@@ -1,4 +1,5 @@
 import * as THREE from 'three/webgpu';
+import { mountFrame } from '../simulation/mountFrames';
 import type { CombatSimulation } from '../simulation/combat';
 import type { Combatant } from '../simulation/damage';
 import type { ShipState } from '../simulation/ship';
@@ -67,8 +68,9 @@ export class LocalizedFireEffects {
       actor.damage.control.mounts.forEach((f, i) => {
         if (f.intensity <= 0) return;
         const m = actor.definition.mounts[i];
-        add([m.position[0], m.position[1] + m.weapon.gunhouseSize[2], m.position[2]], f.intensity,
-          THREE.MathUtils.clamp(Math.sqrt(m.weapon.gunhouseSize[1]) * 1.6, 1.5, 5), true, i * 2.4, m.bearingDeg * Math.PI / 180 + actor.mounts[i].train);
+        const pose = mountFrame(actor.definition, i, actor.mounts.map(m => m.train));
+        add([pose.x, pose.y + m.weapon.gunhouseSize[2], pose.z], f.intensity,
+          THREE.MathUtils.clamp(Math.sqrt(m.weapon.gunhouseSize[1]) * 1.6, 1.5, 5), true, i * 2.4, pose.heading);
       });
     }
     this.sourceCount = sources.length;

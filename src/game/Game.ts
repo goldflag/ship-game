@@ -59,7 +59,8 @@ export const BUOYS = [
   { x: -160, z: -800, color: '#b84734' }, { x: 160, z: -800, color: '#42a789' },
   { x: 220, z: -1800, color: '#b84734' }, { x: 540, z: -1800, color: '#42a789' },
 ];
-export type ArticulationPreview = { trainFraction: number; elevationFraction: number; recoilFraction: number };
+type JointPreview = { trainFraction: number; elevationFraction: number; recoilFraction: number };
+export type ArticulationPreview = JointPreview & { mounts?: Record<string, Partial<JointPreview>> };
 /** Battle preparation stages, reported as a label with a completion fraction in [0, 1). */
 export type BattleProgress = (label: string, fraction: number) => void;
 
@@ -1034,14 +1035,18 @@ export class Game {
     if (pose === null) this.restoreArticulation();
     else {
       if (![pose.trainFraction, pose.elevationFraction, pose.recoilFraction].every(Number.isFinite)) throw new Error('Review fractions must be finite.');
+      for (const [id, override] of Object.entries(pose.mounts ?? {})) {
+        if (!this.definition.mounts.some(m => m.id === id) || !Object.entries(override).every(([key, value]) => ['trainFraction', 'elevationFraction', 'recoilFraction'].includes(key) && Number.isFinite(value))) throw new Error('Invalid mount articulation override.');
+      }
       this.articulationOriginal ??= structuredClone(this.simulation.player.mounts);
       this.articulationLaunchers ??= structuredClone(this.simulation.player.torpedoLaunchers);
       this.simulation.player.torpedoLaunchers?.forEach(l => { l.train = THREE.MathUtils.clamp(pose.trainFraction, -1, 1) * 140 * Math.PI / 180; });
       this.simulation.player.mounts.forEach((state, i) => {
         const w = this.definition.mounts[i].weapon;
-        state.train = THREE.MathUtils.clamp(pose.trainFraction, -1, 1) * w.traverseDeg * Math.PI / 180;
-        state.elevation = (w.elevationMinDeg + THREE.MathUtils.clamp(pose.elevationFraction, 0, 1) * (w.elevationMaxDeg - w.elevationMinDeg)) * Math.PI / 180;
-        state.recoil = THREE.MathUtils.clamp(pose.recoilFraction, 0, 1);
+        const selected = { ...pose, ...pose.mounts?.[this.definition.mounts[i].id] };
+        state.train = THREE.MathUtils.clamp(selected.trainFraction, -1, 1) * w.traverseDeg * Math.PI / 180;
+        state.elevation = (w.elevationMinDeg + THREE.MathUtils.clamp(selected.elevationFraction, 0, 1) * (w.elevationMaxDeg - w.elevationMinDeg)) * Math.PI / 180;
+        state.recoil = THREE.MathUtils.clamp(selected.recoilFraction, 0, 1);
       });
       this.playerView.update();
     }

@@ -3,25 +3,34 @@ import type { Ammunition, ShipDefinition, Vec3 } from '../ships/blueprint';
 import { barrelOffset, barrelHeightOffset } from '../ships/blueprint';
 import { add, clamp, length, localToWorld, normalize, radians, rotate, sub, wrapAngle, worldToLocal, type Pose } from './geometry';
 import { GRAVITY, solveDragArc, travelFactor } from './ballistics';
-import { BarrelObstructionTree, gunMountObstructions } from './obstruction';
+import { BarrelObstructionTree, gunMountObstructions, segmentIntersectsBox } from './obstruction';
+import { mountBearing, mountPosition, mountFrame, type CarrierFrame } from './mountFrames';
 export { GRAVITY } from './ballistics';
 export type MountDefinition = ShipDefinition['mounts'][number];
 // Compiled definitions are immutable during a battle, like the hull/armor caches.
 // Every barrel used to rebuild every other gunhouse box on every fixed tick.
-const barrelObstructions = new WeakMap<MountState, { definition: ShipDefinition; mount: MountDefinition; train: number; elevation: number; blocked: boolean }>();
+const barrelObstructions = new WeakMap<MountState, { definition: ShipDefinition; mount: MountDefinition; train: number; elevation: number; blocked: boolean; carriers: string }>();
 const obstructionTrees = new WeakMap<ShipDefinition, BarrelObstructionTree>();
+const carriedIndices = new WeakMap<ShipDefinition, number[]>();
+function carriedMounts(definition: ShipDefinition): number[] {
+  let indices = carriedIndices.get(definition);
+  if (!indices) { indices = definition.mounts.flatMap((m, i) => m.parentMountId ? [i] : []); carriedIndices.set(definition, indices); }
+  return indices;
+}
 function obstructionTree(definition: ShipDefinition) {
   let tree = obstructionTrees.get(definition);
   if (!tree) {
     tree = new BarrelObstructionTree([
       ...definition.obstructions.map(box => ({ box })),
-      ...definition.mounts.flatMap(gunMountObstructions),
+      ...definition.mounts.filter(m => !m.parentMountId).flatMap(gunMountObstructions),
     ]);
     obstructionTrees.set(definition, tree);
   }
   return tree;
 }
 export interface MountState {
+  /** Derived CPU carrier pose, refreshed before operation; absent on hull mounts. */
+  carrier?: CarrierFrame;
   aaDiscipline?: import('./airGunnery').FireDiscipline;
   id: string; train: number; elevation: number; reload: number; ammo: number; hp: number; recoil: number;
   /** Total rounds include the HE subset; rounds are consumed when fired. */
@@ -64,16 +73,16 @@ export function queueAmmunition(m: MountDefinition, state: MountState, requested
   // An empty gun has no current salvo to preserve.
   if (state.reload === 0 && availableAmmunition(state) < (m.weapon.barrelCount ?? 2)) selectAmmunition(m, state, type);
 }
-export function muzzleLocal(m: MountDefinition, state: Pick<MountState, 'train' | 'elevation'>, barrel: number): Vec3 {
-  const bearing = radians(m.bearingDeg) + state.train, w = m.weapon;
+export function muzzleLocal(m: MountDefinition, state: Pick<MountState, 'train' | 'elevation' | 'carrier'>, barrel: number): Vec3 {
+  const bearing = mountBearing(m, state), w = m.weapon;
   const forward = w.trunnionForward + (w.muzzleForward - w.trunnionForward) * Math.cos(state.elevation) - barrelHeightOffset(w, barrel) * Math.sin(state.elevation);
   const lateral = barrelOffset(w, barrel);
-  return add(m.position, [Math.cos(bearing) * lateral + Math.sin(bearing) * forward, w.pivotHeight + barrelHeightOffset(w, barrel) * Math.cos(state.elevation) + (w.muzzleForward - w.trunnionForward) * Math.sin(state.elevation), Math.sin(bearing) * lateral - Math.cos(bearing) * forward]);
+  return add(mountPosition(m, state), [Math.cos(bearing) * lateral + Math.sin(bearing) * forward, w.pivotHeight + barrelHeightOffset(w, barrel) * Math.cos(state.elevation) + (w.muzzleForward - w.trunnionForward) * Math.sin(state.elevation), Math.sin(bearing) * lateral - Math.cos(bearing) * forward]);
 }
 export const muzzleWorld = (m: MountDefinition, state: MountState, barrel: number, pose: Pose) => localToWorld(muzzleLocal(m, state, barrel), pose);
 /** The aiming reference is the battery mount's barrel center, including odd/single layouts. */
-export function muzzleCenterLocal(m: MountDefinition, state: Pick<MountState, 'train' | 'elevation'>): Vec3 {
-  const w = m.weapon, count = w.barrelCount ?? 2, bearing = radians(m.bearingDeg) + state.train;
+export function muzzleCenterLocal(m: MountDefinition, state: Pick<MountState, 'train' | 'elevation' | 'carrier'>): Vec3 {
+  const w = m.weapon, count = w.barrelCount ?? 2, bearing = mountBearing(m, state), position = mountPosition(m, state);
   const forward = w.trunnionForward + (w.muzzleForward - w.trunnionForward) * Math.cos(state.elevation);
   const cosine = Math.cos(bearing), sine = Math.sin(bearing);
   const vertical = w.pivotHeight + (w.muzzleForward - w.trunnionForward) * Math.sin(state.elevation);
@@ -83,15 +92,15 @@ export function muzzleCenterLocal(m: MountDefinition, state: Pick<MountState, 't
   for (let barrel = 0; barrel < count; barrel++) {
     const lateral = barrelOffset(w, barrel), row = barrelHeightOffset(w, barrel);
     const boreForward = forward - row * Math.sin(state.elevation);
-    x += (m.position[0] + (cosine * lateral + sine * boreForward)) / count;
-    y += (m.position[1] + vertical + row * Math.cos(state.elevation)) / count;
-    z += (m.position[2] + (sine * lateral - cosine * boreForward)) / count;
+    x += (position[0] + (cosine * lateral + sine * boreForward)) / count;
+    y += (position[1] + vertical + row * Math.cos(state.elevation)) / count;
+    z += (position[2] + (sine * lateral - cosine * boreForward)) / count;
   }
   return [x, y, z];
 }
 export const muzzleCenterWorld = (m: MountDefinition, state: MountState, pose: Pose) => localToWorld(muzzleCenterLocal(m, state), pose);
 export function shotDirection(m: MountDefinition, state: MountState, pose: Pose): Vec3 {
-  const bearing = radians(m.bearingDeg) + state.train;
+  const bearing = mountBearing(m, state);
   return rotate([Math.sin(bearing) * Math.cos(state.elevation), Math.sin(state.elevation), -Math.cos(bearing) * Math.cos(state.elevation)], pose);
 }
 /** Low ballistic arc. Same gravity and speed as projectile integration. */
@@ -106,7 +115,7 @@ export function solveBallistic(from: Vec3, target: Vec3, speed: number, dragPerS
   return { direction: [delta[0] / range * Math.cos(angle), Math.sin(angle), delta[2] / range * Math.cos(angle)], time: range / (speed * Math.cos(angle)) };
 }
 /** Return true when the barrel has reached a valid firing solution (used by bots). */
-export function updateMount(m: MountDefinition, state: MountState, definition: ShipDefinition, pose: Pose & { waveHeave?: number }, aim: Vec3 | undefined, dt: number, inheritedVelocity: Vec3 = [0, 0, 0], power = 1): boolean {
+export function updateMount(m: MountDefinition, state: MountState, definition: ShipDefinition, pose: Pose & { waveHeave?: number }, aim: Vec3 | undefined, dt: number, inheritedVelocity: Vec3 = [0, 0, 0], power = 1, mountedStates?: readonly MountState[]): boolean {
   const workRate = gunWorkRate(power);
   const wasReloading = state.reload > 0;
   state.reload = Math.max(0, state.reload - dt * workRate);
@@ -127,7 +136,7 @@ export function updateMount(m: MountDefinition, state: MountState, definition: S
   let reachable = !!aim;
   let flightTime = cache?.time ?? (aim ? length(sub(aim, [pose.x, pose.y, pose.z])) / m.weapon.muzzleSpeed : 0);
   for (let i = 0; aim && i < (cache ? 1 : 3); i++) {
-    const midpoint = localToWorld(muzzleCenterLocal(m, { train: desiredTrain, elevation: desiredElevation }), pose);
+    const midpoint = localToWorld(muzzleCenterLocal(m, { train: desiredTrain, elevation: desiredElevation, carrier: state.carrier }), pose);
     const drag = m.weapon.ballistics?.dragPerSecond ?? 0;
     const inheritedTravel = travelFactor(flightTime, drag);
     const relativeAim: Vec3 = [aim[0] - inheritedVelocity[0] * inheritedTravel,
@@ -136,7 +145,7 @@ export function updateMount(m: MountDefinition, state: MountState, definition: S
     if (!solution) { reachable = false; desiredTrain = state.train; desiredElevation = state.elevation; break; }
     flightTime = solution.time;
     const direction = normalize(sub(worldToLocal(add([pose.x, pose.y, pose.z], solution.direction), pose), [0, 0, 0]));
-    desiredTrain = wrapAngle(Math.atan2(direction[0], -direction[2]) - radians(m.bearingDeg));
+    desiredTrain = wrapAngle(Math.atan2(direction[0], -direction[2]) - radians(m.bearingDeg) - (state.carrier?.heading ?? 0));
     desiredElevation = Math.asin(clamp(direction[1], -1, 1));
   }
   state.aimCache = reachable && aim ? { time: flightTime, train: desiredTrain, elevation: desiredElevation, point: [...aim] } : undefined;
@@ -147,9 +156,12 @@ export function updateMount(m: MountDefinition, state: MountState, definition: S
   state.elevation += clamp(elevation - state.elevation, -radians(w.elevationRateDeg) * dt * workRate, radians(w.elevationRateDeg) * dt * workRate);
   // Readiness depends on the actual barrel path, even while tracking an unreachable reticle.
   const previousObstruction = barrelObstructions.get(state);
-  const unchanged = previousObstruction?.definition === definition && previousObstruction.mount === m
-    && previousObstruction.train === state.train && previousObstruction.elevation === state.elevation;
-  const breech = add(m.position, [0, w.pivotHeight, 0]);
+  const carried = carriedMounts(definition);
+  const trains = carried.length ? definition.mounts.map((_, i) => mountedStates?.[i].train ?? 0) : [];
+  const carriers = carried.length ? trains.join(',') : '';
+  const unchanged = !m.parentMountId && previousObstruction?.definition === definition && previousObstruction.mount === m
+    && previousObstruction.train === state.train && previousObstruction.elevation === state.elevation && previousObstruction.carriers === carriers;
+  const breech = add(mountPosition(m, state), [0, w.pivotHeight, 0]);
   let obstructed = unchanged ? previousObstruction.blocked : false;
   for (let barrel = 0; !unchanged && barrel < (w.barrelCount ?? 2) && !obstructed; barrel++) {
     const muzzle = muzzleLocal(m, state, barrel);
@@ -157,10 +169,16 @@ export function updateMount(m: MountDefinition, state: MountState, definition: S
     const beyond: Vec3 = [muzzle[0] + direction[0] * definition.hull.length,
       muzzle[1] + direction[1] * definition.hull.length, muzzle[2] + direction[2] * definition.hull.length];
     obstructed = obstructionTree(definition).intersects(breech, beyond, m.id);
+    for (const index of carried) {
+      const child = definition.mounts[index];
+      if (obstructed || child.id === m.id) continue;
+      const frame = mountFrame(definition, index, trains), from = worldToLocal(breech, frame), to = worldToLocal(beyond, frame);
+      obstructed = gunMountObstructions({ ...child, position: [0, 0, 0] }).some(entry => segmentIntersectsBox(from, to, entry.box));
+    }
   }
   // Obstructions are fixed in hull coordinates. Ship motion, reload and recoil
   // cannot change this test; any actual traverse/elevation change recomputes it.
-  if (!unchanged) barrelObstructions.set(state, { definition, mount: m, train: state.train, elevation: state.elevation, blocked: obstructed });
+  if (!unchanged) barrelObstructions.set(state, { definition, mount: m, train: state.train, elevation: state.elevation, blocked: obstructed, carriers });
   if (obstructed) { state.status = 'blocked'; return false; }
   if (!reachable) { state.status = 'out-of-range'; return false; }
   if (Math.abs(desiredTrain) > limit + 1e-6 || desiredElevation < radians(w.elevationMinDeg) - 1e-6 || desiredElevation > radians(w.elevationMaxDeg) + 1e-6) { state.status = 'out-of-arc'; return false; }

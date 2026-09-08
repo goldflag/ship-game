@@ -6,7 +6,8 @@ import type { FleetActor } from './battle';
 import { ballisticStep, travelFactor, velocityPenetration } from './ballistics';
 import { burstShell } from './burst';
 import { resolveShipContact, shipContacts, type DamageEvent, type Shell, type ShipContact } from './damage';
-import { add, length, localToWorld, radians, scale, segmentOverlapsBox, sub, worldToLocal } from './geometry';
+import { add, length, localToWorld, scale, segmentOverlapsBox, sub, worldToLocal } from './geometry';
+import { mountFrame } from './mountFrames';
 import { hullContains } from './hull';
 import { mayReachHull, shellHullRadius, shellHullBounds } from './spatial';
 
@@ -22,7 +23,7 @@ export function advanceProjectile(shell: Shell, actors: FleetActor[], dt: number
       if (actor) {
         const index = actor.definition.mounts.findIndex(m => m.id === shell.lodged!.mountId), mount = actor.definition.mounts[index];
         const module=actor.definition.modules.find(m=>m.id===shell.lodged!.moduleId), pose=module&&equipmentPose(actor,actor.definition,module);
-        const local = pose ? localToWorld(shell.lodged.position,pose) : mount ? localToWorld(shell.lodged.position, { x: mount.position[0], y: mount.position[1], z: mount.position[2], heading: radians(mount.bearingDeg) + actor.mounts[index].train, roll: 0, pitch: 0 }) : shell.lodged.position;
+        const local = pose ? localToWorld(shell.lodged.position,pose) : mount ? localToWorld(shell.lodged.position, mountFrame(actor.definition, index, actor.mounts.map(m => m.train))) : shell.lodged.position;
         shell.position = localToWorld(local, actor.motion);
       }
     }

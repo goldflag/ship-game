@@ -18,7 +18,7 @@ const instances = (smoke: ShipFunnelSmoke) => {
 };
 
 test('all registered funnel mouths are found without smoking from bases, caps or the submarine', () => {
-  const counts: Record<string, number> = { bismarck: 1, yamato: 1, 'king-george-v': 2, baltimore: 2, 'enterprise-cv6': 1, 'type-viic': 0,
+  const counts: Record<string, number> = { bismarck: 1, yamato: 1, iowa: 2, 'king-george-v': 2, baltimore: 2, 'enterprise-cv6': 1, 'type-viic': 0,
     'liberty-cargo': 1, 'liberty-collier': 1, 'victory-cargo': 1, 'flower-corvette': 1, fletcher: 2, shokaku: 2 };
   for (const id of Object.keys(shipPresets)) {
     const outlets = funnelOutlets(shipPreset(id));
@@ -34,6 +34,8 @@ test('all registered funnel mouths are found without smoking from bases, caps or
   expect(funnelOutlets(shipPreset('yamato'))[0].position[2]).toBeCloseTo(26.25, 2);
   expect(funnelOutlets(shipPreset('bismarck'))[0].position[1]).toBeCloseTo(25.15, 2);
   expect(funnelOutlets(shipPreset('fletcher'))[0].position[2]).toBeCloseTo(-9.2146, 2);
+  // Explicit outlet datums also work with stable IDs that lack the old suffix.
+  expect(funnelOutlets(shipPreset('iowa')).map(o => o.position)).toEqual([[0, 28.35, 4.46], [0, 27.75, 29.16]]);
 });
 
 test('side-discharging carrier exhaust uses the authored mouths below the jacket crown', () => {

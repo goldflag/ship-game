@@ -11,7 +11,7 @@ export interface FunnelOutlet { id: string; position: Vec3; width: number; lengt
 /** Read the authored funnel rim, including raked jackets, in runtime coordinates.
  * These are visual emission datums, not a second ship definition or uptake simulation. */
 export function funnelOutlets(definition: ShipDefinition): FunnelOutlet[] {
-  return (definition.structures ?? []).filter(s => /(?:^|-)funnel(?:-jacket)?$/.test(s.id)).map(s => {
+  return (definition.structures ?? []).filter(s => s.exhaust || /(?:^|-)funnel(?:-jacket)?$/.test(s.id)).map(s => {
     if (s.exhaust) return { id: s.id, ...s.exhaust };
     let rim: Vec3[] = s.footprint.map(([x, z]) => [x, s.baseY + s.height, z]);
     if (s.surface) {
