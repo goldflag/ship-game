@@ -16,10 +16,8 @@ const blueprint: ShipBlueprint = {
   modules: [{ id: 'machinery', name: 'Machinery', kind: 'engine', center: [0, 0, 0], size: [8, 5, 20], hp: 100, compartmentId: 'machinery-space' }],
   connections: [], obstructions: [], accuracy: { exterior: 'Original starter geometry, not a historical reconstruction.', internals: 'Simplified gameplay volumes.', weapons: 'Provisional gameplay performance.' },
 };
-await mkdir(resolve(folder, 'references'), { recursive: true });
-await mkdir(resolve(folder, 'reports'), { recursive: true });
+await mkdir(folder, { recursive: true });
 await writeFile(resolve(folder, 'blueprint.json'), JSON.stringify(blueprint, null, 2) + '\n');
 await writeFile(resolve(folder, 'build.py'), `"""Replace or extend this original starter recipe for ${id}."""\nfrom pathlib import Path\nimport runpy\nrunpy.run_path(str(Path(__file__).resolve().parents[3]/'scripts/ships/starter.py'),run_name='__main__')\n`);
-await writeFile(resolve(folder, 'references/sources.json'), JSON.stringify({ configuration: blueprint.configuration, sources: [] }, null, 2) + '\n');
 await writeFile(resolve(folder, 'README.md'), `# ${id}\n\nUnverified original starter. Follow [the ship pipeline](../../../docs/ship-pipeline.md) before developing this ship.\n\nBuild: \`bun run ship:build ${id}\`\nReview: \`bun run ship:review ${id}\`\n`);
 console.log(`Created ${folder}. Edit blueprint.json and build.py, then run bun run ship:build ${id}.`);

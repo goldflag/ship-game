@@ -1,3 +1,0 @@
-$ bun scripts/ships/pipeline.ts review king-george-v
-review.py completed; log in /Users/bill/orca/workspaces/ship-game/sunstar/.build/ships/king-george-v
-Orthographic review views: /Users/bill/orca/workspaces/ship-game/sunstar/assets/ships/king-george-v/generated/review

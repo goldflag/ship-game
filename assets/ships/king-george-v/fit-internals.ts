@@ -31,5 +31,5 @@ for(const a of b.armor){
  a.center=lo.map((n,i)=>(n+hi[i])/2) as Vec3;a.size=lo.map((n,i)=>Math.max(.001,hi[i]-n)) as Vec3;
 }
 await Bun.write(path,JSON.stringify(b,null,2)+'\n');
-await Bun.write(new URL('./reports/hull-refit.json',import.meta.url),JSON.stringify({method:'Conservative corner containment of original room envelopes; reduce transverse and vertical extent together, retain stations and stable IDs. Hull-side armor clipped to the same authored sections.',changes},null,2)+'\n');
+await Bun.write(new URL('../../../.build/ships/king-george-v/hull-refit.json',import.meta.url),JSON.stringify({method:'Conservative corner containment of original room envelopes; reduce transverse and vertical extent together, retain stations and stable IDs. Hull-side armor clipped to the same authored sections.',changes},null,2)+'\n');
 console.log('Refit',changes.length,'retained rooms to the revised hull');

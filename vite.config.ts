@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import { existsSync, readFileSync, readdirSync, rmSync } from 'node:fs';
+import { readFileSync, readdirSync, rmSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { vendorTextures } from './scripts/build/vendor-textures';
 import { shipTransfers } from './scripts/build/ship-transfers';
@@ -9,22 +9,14 @@ import { shipTransfers } from './scripts/build/ship-transfers';
 // Vite cannot discover that dynamic URL, so preserve its data/ directory explicitly.
 const skyData = fileURLToPath(new URL('./vendor/threejs-sky-pro/build/data/', import.meta.url));
 const root = fileURLToPath(new URL('./', import.meta.url));
-// Review pages exist only where comparison output was retained locally and published by ship:check or ship:compare.
-const reviewRoot = `${root}public/ship-reference`;
-// SHIP_REVIEW_PAGES=0 leaves them out of a build entirely (public deployments): no port links, nothing copied to dist.
-const publishReviewPages = process.env.SHIP_REVIEW_PAGES !== '0';
-const shipReviewIds = publishReviewPages && existsSync(reviewRoot)
-  ? readdirSync(reviewRoot).filter(id => existsSync(`${root}assets/ships/${id}/modeling-spec.json`) && existsSync(`${reviewRoot}/${id}/index.html`)).sort()
-  : [];
 
 export default defineConfig({
   // Serve from a sub-path with e.g. BASE_PATH=/naval/ bun run build; runtime asset URLs go through src/assetUrl.ts.
   base: process.env.BASE_PATH ?? '/',
-  define: { __SHIP_REVIEW_IDS__: JSON.stringify(shipReviewIds) },
   plugins: [react(), vendorTextures(), shipTransfers(`${root}public/models`), {
-    name: 'ship-review-pages',
-    // Vite copies all of public/ verbatim; drop the served review copy when it is excluded from this build.
-    closeBundle() { if (!publishReviewPages) rmSync(`${root}dist/ship-reference`, { recursive: true, force: true }); },
+    name: 'exclude-retired-ship-reviews',
+    // Old checkouts may still have ignored comparison pages in public/.
+    closeBundle() { rmSync(`${root}dist/ship-reference`, { recursive: true, force: true }); },
   }, {
     name: 'sky-pro-cloud-data',
     generateBundle() {

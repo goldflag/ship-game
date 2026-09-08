@@ -1,13 +1,10 @@
 # Source assets
 
-All original ship models, recipes and references belong here. Runtime exports live in `public/models`.
+Original ship blueprints, geometry recipes and components belong here. Runtime exports live in `public/models`.
 
-- [Pipeline and Blender MCP workflow](../docs/ship-pipeline.md)
-- [Bismarck source](ships/bismarck/README.md)
-- [Distinct merchant designs and Flower corvette](ships/convoy/README.md)
-- [HMS King George V source and 1941 reference register](ships/king-george-v/README.md)
+- [Ship pipeline](../docs/ship-pipeline.md)
+- [Ship build and file layout](../docs/ship-build-reference.md)
 - [Reusable gun catalog](parts/guns.json)
+- [Carrier aircraft pipeline](aircraft/README.md)
 
-Start a new ship with `bun run ship:new <ship-id>`. Existing directories are never overwritten by the scaffolder. Referenced third-party art is retained for comparison and credited in each source register; it is not a runtime texture or geometry source.
-
-- [WWII carrier aircraft: original Blender MCP models, recipes and references](aircraft/README.md)
+Start a ship with `bun run ship:new <ship-id>`. Existing directories are never overwritten. Keep concise ship configuration, inspected primary-model links and lasting limitations in the ship README. Ship reports and reference archives are removed. Use ignored `.build/` for research downloads, logs and extra review captures; do not commit them elsewhere.

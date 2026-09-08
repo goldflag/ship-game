@@ -1,15 +1,26 @@
 # Liberty — deck cargo
 
-Archived revision 1, no longer an active preset. The former runtime GLB/definition/thumbnail are preserved in `retired-public/`; the old URL selects Liberty Collier. The description below records the superseded fit, not current game behavior. See [revision 2](../convoy/README.md).
+EC2-S-C1 Liberty, 1943–44 representative vehicle deck cargo fit
 
-Playable representative 1943–44 EC2-S-C1 Liberty fit. Independently authored blueprint, gun parts and versioned original component recipe. Generated Blender, GLB, thumbnails and review images are build outputs.
+Archived preset; its old URL selects `liberty-collier`. Preserved exports are in `retired-public/`.
 
-134.5692 m × 17.0688 m, 8.46 m estimated loaded draft, 14,478 t provisional displacement, 11 kn. Main battery: aft 5-inch gun. Secondary: bow 3-inch and eight Oerlikons. Eight original vehicle loads, crates and lashings distinguish the cargo deck. They are static cargo, not independently controlled tanks.
+`blueprint.json` and `build.py` are the durable inputs; reusable equipment comes from `assets/parts/`. `recipe-inputs.json` declares additional original dependencies. Generated Blender scenes and runtime models are build outputs.
 
-Select the ship in the port carousel or on either side of Custom battle. Keys 1/2 select main/secondary batteries. The Liberty main gun faces aft; broadside and stern bearings give it clear fire. The Flower main gun faces forward. Port Armor and Internals use the same structural shell, machinery, magazines and flooding spaces as combat.
+Before changing historical geometry, inspect the corresponding GameModels3D or War Thunder model as the primary visual reference. If unavailable, state that explicitly.
 
-Both boilers feed a single reciprocating engine and shaft. Destroyed/immersed machinery reduces power; magazines supply their linked mounts. Closed boundaries, positional breaches, pumps, finite damage-control resources, geometry-derived flotation and reset behavior use the shared CPU simulation. Their numerical performance is provisional gameplay calibration.
+Authored hull: 134.569 m long, 17.0688 m beam, 8.46 m draft. These are model inputs, not a new historical-accuracy certification.
 
-Build with `bun run ship:build liberty-deck-cargo`; fixed views with `bun run ship:review liberty-deck-cargo`; verify with `bun run ship:check liberty-deck-cargo`. The shared original recipe is [geometry-v1.py](../convoy/geometry-v1.py), explicitly registered in `recipe-inputs.json`. Rebuild all four convoy presets after changing it. Initial blueprints were authored by [author-blueprints.ts](../convoy/author-blueprints.ts); edit the versioned blueprint for durable refinements.
+- **Exterior:** Original representative Liberty EC2-S-C1. Published length/beam and five holds; interpreted sections, cargo, fittings and loading. No claim to reproduce a specific named ship.
+- **Internals:** Estimated watertight envelopes, permeability, machinery and magazines. Finite-angle stability calibrated to stated displacement and an estimated GM; room boundaries are not historical plans.
+- **Weapons:** Aft 5-inch main battery; forward 3-inch and eight Oerlikons in secondary battery. Troop fit adds two aft 3-inch guns. Surface fire only; ballistics and ammunition are gameplay approximations.
 
-See [source register](references/sources.json), [discrepancies](reports/discrepancies.md), [stability calibration](reports/stability.json), and [convoy validation](../convoy/reports/validation.md). Export validation does not certify historical accuracy.
+```sh
+bun run ship:compile liberty-deck-cargo
+bun run ship:build liberty-deck-cargo
+bun run ship:review liberty-deck-cargo
+bun run ship:check liberty-deck-cargo
+```
+
+Keep the current fixed views in `generated/review/`. Ship report/reference archives are removed. Research downloads, diagnostic results and extra captures belong in ignored `.build/`; do not recreate a tracked archive. Keep source links and lasting limitations here.
+
+Follow the [ship pipeline](../../../docs/ship-pipeline.md) and [model review](../../../docs/ship-model-review.md).

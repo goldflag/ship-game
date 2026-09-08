@@ -9,7 +9,7 @@ from mathutils.bvhtree import BVHTree
 ROOT=Path(__file__).resolve().parents[1]
 D=json.loads((ROOT/'../../../public/models/shokaku.json').resolve().read_text())
 assert bpy.context.scene.get('definitionHash')==D['contentHash']
-OUT=ROOT/'reports'/('geometry-'+D['contentHash'][:8]);OUT.mkdir(exist_ok=True)
+OUT=ROOT.parents[2]/'.build/ships/shokaku'/('geometry-'+D['contentHash'][:8]);OUT.mkdir(parents=True,exist_ok=True)
 pivots=[bpy.data.objects['rudder-'+id+'.yaw'] for id in ['aft','forward']]
 fins=[next(o for o in p.children if o.name.startswith('Rounded balanced rudder')) for p in pivots]
 cache={}

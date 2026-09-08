@@ -1,3 +1,0 @@
-$ bun scripts/ships/pipeline.ts review fletcher
-review.py completed; log in /Users/bill/orca/workspaces/ship-game/sunstar/.build/ships/fletcher
-Orthographic review views: /Users/bill/orca/workspaces/ship-game/sunstar/assets/ships/fletcher/generated/review

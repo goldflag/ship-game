@@ -115,5 +115,5 @@ for vertices,indices in primitives(find('rudder.yaw')):
 record('Rudder projected side area',area,397*FT*FT,'CV-5 1940 area annotation; horn profile fitted from scanned drawing','m²')
 report=dict(contentHash=definition['contentHash'],method='Actual GLB POSITION accessors, scene transforms and indexed triangles; no declared accessor bounds',
             historicalAccuracy='Not certified. Exact model dimensions do not close configuration, shape or source gaps.',measurements=rows)
-(SHIP/'reports/dimensions.json').write_text(json.dumps(report,indent=2)+'\n')
+print(json.dumps(report,indent=2))
 for row in rows:print(f"{row['measurement']}: {row['actual']:.6f} {row['unit']}; reference {row['reference']:.6f}; difference {row['difference']:+.6f}")

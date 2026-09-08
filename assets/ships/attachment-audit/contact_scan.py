@@ -129,7 +129,7 @@ def inspect(ship, phase):
                   limits='Separate objects are graph nodes; a mesh containing disconnected islands needs additional review. Contacts do not establish historical accuracy.',
                   meshCount=len(rows), hullConnectedMeshCount=len(connected), candidates=candidates,
                   contacts=contacts, elapsedSeconds=time.monotonic()-started, islands=islands)
-    out = Path(__file__).parent / 'reports' / phase
+    out = Path(__file__).resolve().parents[3] / '.build/ships/attachment-audit' / phase
     out.mkdir(parents=True, exist_ok=True)
     (out / (ship + '-contact.json')).write_text(json.dumps(report, indent=2) + '\n')
     print(json.dumps(dict(ship=ship, meshes=len(rows), islands=len(islands), seconds=round(report['elapsedSeconds'],1),

@@ -42,7 +42,7 @@ During a rebase, "ours" is the updated destination and "theirs" is the replayed
 commit—not necessarily the branch you originally authored.
 
 Generated GLBs, Blender scenes and thumbnails are retained build outputs.
-Comparison renders are ignored; only their `build.json` record is tracked. See [comparison records and local output](ship-build-reference.md#comparison-records-and-local-output) for missing or incomplete packs and legacy ZIP entries.
+Ship reference archives and comparison pages are retired. Diagnostics stay in ignored `.build/`; they are not merge inputs.
 These outputs are not independently editable merge sources. Keep a coherent candidate set,
 then validate it against the resolved authoring inputs. Do not use an automatic
 "ours" driver for them: that would hide stale or mismatched assets.
@@ -53,17 +53,16 @@ by the checker:
 
 - Stale compiled definition/model: `bun run ship:build <id>`.
 - Stale thumbnail only: `bun run ship:thumbnail <id>`.
-- Stale comparison pack only: `bun run ship:compare <id>`.
 
 Build after source integration, and have one integration owner produce the final
 outputs. Avoid rebuilding unchanged ships in multiple branches just to refresh
-images. Never edit a content hash to make an old artifact pass. Preserve prior
-runtime evidence under its original hash and label it when it predates a rebuild.
+images. Never edit a content hash to make an old artifact pass. Do not commit old model
+snapshots or recreate report/reference archives during integration.
 
 Run relevant simulation tests and `bun run build` after publication completes.
 Do not run model-loading tests while a build is publishing those same models.
 Follow the ship pipeline's fixed-view and in-game review requirements for geometry
-changes. Commit refreshed assets with their validation report.
+changes. Commit refreshed assets; summarize validation in the task response or PR description.
 
 ## Keeping additions local
 
@@ -73,7 +72,3 @@ or a hard-coded preset count to the README. New per-ship documentation belongs
 under `assets/ships/<id>/`; shared documentation should describe the workflow.
 
 Shared compiler and recipe edits still require rebuilding affected assets.
-Historical comparison packs currently hash broad shared dependencies, including
-the catalog and pipeline; the merge driver does not change or bypass those checks.
-Further narrowing those dependencies requires matching the packaged authoring
-snapshots and preserving evidence validation, not simply removing hash inputs.

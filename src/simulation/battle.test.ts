@@ -5,7 +5,7 @@ import { BATTLE_SPAWN_DISTANCE, MIN_BATTLE_SPAWN_DISTANCE, MAX_BATTLE_SPAWN_DIST
 import { botTarget, clearFiringLane } from './bots';
 import { localToWorld } from './geometry';
 import { compileShip } from '../ships/blueprint';
-import legacyYamato from '../../assets/ships/yamato/reports/fidelity-01/before/blueprint.json';
+import legacyYamato from './fixtures/exposed-magazine-ship.json';
 import catalog from '../../assets/parts/guns.json';
 import { antiAircraftRange } from './antiAircraft';
 
@@ -18,7 +18,8 @@ const fleet = () => new CombatSimulation(shipPreset('baltimore'), {
 for (const spawnDistance of [MIN_BATTLE_SPAWN_DISTANCE, BATTLE_SPAWN_DISTANCE]) {
   test(`legacy Yamato survives an accurately aimed salvo at ${spawnDistance} m with bounded local damage`, () => {
     // Freeze the deliberately exposed magazine geometry that reproduced the
-    // damage-budget bug. Current historical layout must not require explosions.
+    // damage-budget bug (fixture extracted from cf7f62e3's pre-fidelity Yamato).
+    // Current historical layout must not require explosions.
     const sim = new CombatSimulation(shipPreset('bismarck'), {
       friendlyBots: [], enemies: [compileShip(legacyYamato,catalog)], spawnDistance,
     });
