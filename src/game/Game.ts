@@ -439,6 +439,7 @@ export class Game {
       progress?.(`Charting ${oceanMap(setup.mapId ?? DEFAULT_MAP).name}`, 0.04);
       const definition = shipPreset(setup.playerShipId);
       const simulation = await LocalBattleSession.create(setup);
+      simulation.onFailure = message => this.callbacks.error(message);
       await this.replaceFleet(simulation, definition, progress);
       this.environment.setBattle({ timeOfDay: setup.timeOfDay ?? 'map', weather: setup.weather ?? 'map',
         conditions: { timeHours: setup.timeHours, cloudCover: setup.cloudCover, windSpeed: setup.windSpeed } });

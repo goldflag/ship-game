@@ -1,3 +1,4 @@
+import { battleExitLabel } from '../game/session/BattleSession';
 import { MultiplayerDialog } from './MultiplayerDialog';
 import { RemoteBattleSession } from '../game/session/RemoteBattleSession';
 import { Button } from './components';
@@ -271,7 +272,7 @@ export function App() {
       <div className="menu-heading"><h2 id="pause-title">{phase === 'garage' ? 'In port.' : 'At your command.'}</h2><Button variant="icon" aria-label={phase === 'garage' ? 'Close menu' : 'Resume battle'} onClick={resume}><Icon name="close"/></Button></div>
       <p className="menu-description">{phase === 'garage' ? 'Prepare for your next voyage.' : game.current?.simulation.networked ? 'The online battle continues while this menu is open.' : 'Battle paused. Your engine order is held.'}</p>
       <Button autoFocus variant="primary" onClick={resume}>{phase === 'garage' ? 'Back to port' : 'Resume battle'} <Icon name={phase === 'garage' ? 'anchor' : 'play'} size={18}/></Button>
-      {phase === 'sailing' && <Button variant="secondary" className="restart-button" onClick={() => void returnToPort()}>{game.current?.simulation.networked && game.current.simulation.result === 'active' ? 'Forfeit and return to port' : 'Return to port'} <Icon name="anchor" size={18}/></Button>}
+      {phase === 'sailing' && <Button variant="secondary" className="restart-button" onClick={() => void returnToPort()}>{battleExitLabel(game.current?.simulation)} <Icon name="anchor" size={18}/></Button>}
       <Button variant="secondary" className="menu-action" onClick={() => setSettingsOpen(true)}>Settings <Icon name="settings" size={18}/></Button>
       <Button variant="secondary" className="menu-action close-game-button" onClick={closeGame}>Close game <Icon name="power" size={18}/></Button>
       {phase === 'sailing' && <div className="menu-controls">

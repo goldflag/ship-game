@@ -58,6 +58,12 @@ pub fn sha256(bytes: &[u8]) -> String {
     format!("{:x}", Sha256::digest(bytes))
 }
 impl Catalog {
+    pub fn map_ids(&self) -> Result<Vec<String>, String> {
+        environment_ids(&self.maps, "maps")
+    }
+    pub fn weather_ids(&self) -> Result<Vec<String>, String> {
+        environment_ids(&self.conditions, "weather")
+    }
     pub fn load(bytes: &[u8]) -> Result<Self, ContentError> {
         let manifest: Manifest = serde_json::from_slice(bytes)?;
         if manifest.version != 1 || manifest.rules_version != crate::rules::Rules::default().version
@@ -80,6 +86,8 @@ impl Catalog {
             maps: manifest.maps,
             conditions: manifest.conditions,
         };
+        catalog.map_ids().map_err(ContentError::Invalid)?;
+        catalog.weather_ids().map_err(ContentError::Invalid)?;
         if catalog
             .terrain
             .iter()
@@ -152,6 +160,11 @@ impl Catalog {
         }
         if catalog.definitions.is_empty() {
             return Err(ContentError::Invalid("empty catalog".into()));
+        }
+        for map in catalog.map_ids().map_err(ContentError::Invalid)? {
+            for weather in catalog.weather_ids().map_err(ContentError::Invalid)? {
+                catalog.resolve_environment(&map, &weather, 0, 8, 5000.0, None)?;
+            }
         }
         Ok(catalog)
     }
@@ -226,4 +239,48 @@ pub fn validate_definition(d: &ShipDefinition) -> Result<(), ContentError> {
         }
     }
     Ok(())
+}
+
+fn environment_ids(value: &serde_json::Value, key: &str) -> Result<Vec<String>, String> {
+    let error = || format!("Invalid {key} catalog");
+    if value["version"].as_u64() != Some(1) {
+        return Err(error());
+    }
+    let entries = value[key]
+        .as_array()
+        .filter(|a| !a.is_empty())
+        .ok_or_else(error)?;
+    let ids = entries
+        .iter()
+        .map(|v| {
+            v["id"]
+                .as_str()
+                .filter(|s| !s.is_empty())
+                .map(str::to_owned)
+                .ok_or_else(error)
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    if !ids_unique(ids.iter().map(String::as_str)) {
+        return Err(error());
+    }
+    Ok(ids)
+}
+#[cfg(test)]
+mod environment_tests {
+    use super::*;
+    #[test]
+    fn malformed_environment_catalogs_fail_before_admission() {
+        let bytes = std::fs::read("../../.build/naval-content/manifest.json").unwrap();
+        for field in ["maps", "conditions"] {
+            for bad in [
+                serde_json::json!(null),
+                serde_json::json!({"version":1,"maps":[],"weather":[]}),
+                serde_json::json!({"version":1,"maps":[{"id":4}],"weather":[{"id":4}]}),
+            ] {
+                let mut manifest: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
+                manifest[field] = bad;
+                assert!(Catalog::load(&serde_json::to_vec(&manifest).unwrap()).is_err());
+            }
+        }
+    }
 }

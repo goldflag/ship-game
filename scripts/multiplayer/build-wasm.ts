@@ -1,12 +1,10 @@
-import { homedir } from 'node:os';
-import { join } from 'node:path';
-const rustBin = join(homedir(), '.cargo', 'bin');
+import { rustTool } from './toolchain';
 async function run(command: string[]) {
   const process = Bun.spawn(command, { stdout: 'inherit', stderr: 'inherit' });
   if (await process.exited) throw new Error(`Failed: ${command[0]}`);
 }
-await run([join(rustBin, 'cargo'), 'build', '-p', 'naval-wasm', '--target', 'wasm32-unknown-unknown', '--release', '--locked']);
-await run([join(rustBin, 'wasm-bindgen'), '--target', 'web', '--out-dir', 'src/generated/naval-wasm', 'target/wasm32-unknown-unknown/release/naval_wasm.wasm']);
+await run([rustTool('cargo'), 'build', '-p', 'naval-wasm', '--target', 'wasm32-unknown-unknown', '--release', '--locked']);
+await run([rustTool('wasm-bindgen'), '--target', 'web', '--out-dir', 'src/generated/naval-wasm', 'target/wasm32-unknown-unknown/release/naval_wasm.wasm']);
 // Embed the exact local content/build identity; never adopt the server's version
 // as our own, which would silently accept a stale browser deployment.
 const { default: init, simulation_build, protocol_version } = await import('../../src/generated/naval-wasm/naval_wasm.js');

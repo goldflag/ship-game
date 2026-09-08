@@ -78,6 +78,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         writer,
         max_matches,
         std::env::var("NAVAL_ORIGIN").ok(),
+        std::env::var("NAVAL_TRUSTED_PROXIES")
+            .unwrap_or_default()
+            .split(',')
+            .filter(|v| !v.trim().is_empty())
+            .map(|v| v.trim().parse())
+            .collect::<Result<Vec<_>, _>>()?,
     ));
     let app = Router::new()
         .route("/api/health", get(health))
@@ -170,7 +176,7 @@ async fn join(
     if !origin(&headers, &s) {
         return (StatusCode::FORBIDDEN, "Origin is not allowed").into_response();
     }
-    match s.join(request, addr.ip()) {
+    match s.join(request, client_ip(&headers, addr.ip(), &s.trusted_proxies)) {
         Ok(admission) => Json(admission).into_response(),
         Err(message) => (StatusCode::BAD_REQUEST, Json(json!({"error":message}))).into_response(),
     }
@@ -216,9 +222,22 @@ async fn matched(
     player: usize,
     epoch: u32,
 ) -> bool {
-    send(socket, json!({"type":"matched","matchId":handle.id,"player":player,
+    let metadata = json!({"type":"matched","matchId":handle.id,"player":player,
         "team":if player==0 {handle.environment.first_player_team} else {handle.environment.first_player_team.other()},
-        "connectionEpoch":epoch,"version":s.version(),"setup":handle.setup,"environment":handle.environment,"baseline":handle.baseline})).await
+        "connectionEpoch":epoch,"version":s.version(),"setup":handle.setup,"environment":handle.environment,"baseline":handle.baseline});
+    let Ok(mut bytes) = encoding::snapshot_bytes(&metadata) else {
+        return false;
+    };
+    bytes.insert(0, 0); // Protocol 3: non-droppable compressed metadata frame.
+    bytes.len() <= 8 * 1024 * 1024
+        && matches!(
+            tokio::time::timeout(
+                Duration::from_secs(15),
+                socket.send(Message::Binary(bytes.into()))
+            )
+            .await,
+            Ok(Ok(()))
+        )
 }
 struct Rate {
     started: std::time::Instant,
@@ -256,10 +275,22 @@ async fn serve_socket(mut socket: WebSocket, s: Arc<Hub>) {
         .await;
         return;
     }
+    let ticket_socket = match s.attach(&ticket) {
+        Ok(lease) => lease,
+        Err(message) => {
+            send(&mut socket, json!({"type":"error","message":message})).await;
+            return;
+        }
+    };
     let mut timer = tokio::time::interval(Duration::from_millis(100));
+    let mut queue_heartbeat = tokio::time::interval(Duration::from_secs(5));
     let mut waited = false;
     let mut rate = Rate::new();
     let seat = loop {
+        if let Err(message) = s.pair(&ticket) {
+            send(&mut socket, json!({"type":"error","message":message})).await;
+            return;
+        }
         let state = s.registry.lock().ok().and_then(|r| {
             r.tickets
                 .get(&ticket)
@@ -288,8 +319,10 @@ async fn serve_socket(mut socket: WebSocket, s: Arc<Hub>) {
         }
         tokio::select! {
             _ = timer.tick() => (),
+            _ = queue_heartbeat.tick() => { if !matches!(tokio::time::timeout(Duration::from_secs(2), socket.send(Message::Ping(vec![1].into()))).await, Ok(Ok(()))) { return; } },
             message = socket.recv() => {
                 if !rate.take() { return; }
+                ticket_socket.touch();
                 match message {
                     Some(Ok(Message::Text(text))) => match serde_json::from_str::<ClientMessage>(&text) {
                         Ok(ClientMessage::Cancel) => { s.cancel(&ticket); return; }
@@ -425,5 +458,54 @@ async fn termination_signal() {
     #[cfg(not(unix))]
     {
         let _ = tokio::signal::ctrl_c().await;
+    }
+}
+
+/// Walk the forwarding chain from the trusted socket peer toward the client.
+/// An untrusted sender can never choose its rate-limit identity with a header.
+fn client_ip(
+    headers: &HeaderMap,
+    peer: std::net::IpAddr,
+    trusted: &[std::net::IpAddr],
+) -> std::net::IpAddr {
+    if !trusted.contains(&peer) {
+        return peer;
+    }
+    let Some(value) = headers.get("x-forwarded-for").and_then(|v| v.to_str().ok()) else {
+        return peer;
+    };
+    let parts = value.split(',').collect::<Vec<_>>();
+    if parts.len() > 16 {
+        return peer;
+    }
+    let Ok(chain) = parts
+        .iter()
+        .map(|p| p.trim().parse::<std::net::IpAddr>())
+        .collect::<Result<Vec<_>, _>>()
+    else {
+        return peer;
+    };
+    chain
+        .into_iter()
+        .rev()
+        .find(|ip| !trusted.contains(ip))
+        .unwrap_or(peer)
+}
+#[cfg(test)]
+mod proxy_tests {
+    use super::*;
+    #[test]
+    fn only_trusted_proxies_can_supply_client_addresses() {
+        let proxy = "127.0.0.1".parse().unwrap();
+        let client = "192.0.2.1".parse().unwrap();
+        let mut headers = HeaderMap::new();
+        headers.insert(
+            "x-forwarded-for",
+            "203.0.113.99, 192.0.2.1".parse().unwrap(),
+        );
+        assert_eq!(client_ip(&headers, proxy, &[proxy]), client);
+        assert_eq!(client_ip(&headers, client, &[proxy]), client);
+        headers.insert("x-forwarded-for", "invalid, 192.0.2.1".parse().unwrap());
+        assert_eq!(client_ip(&headers, proxy, &[proxy]), proxy);
     }
 }

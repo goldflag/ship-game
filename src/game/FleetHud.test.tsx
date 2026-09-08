@@ -193,3 +193,12 @@ test('spectator HUD uses the observed definition inside the player ship context'
   expect(html).toContain(watched.mounts[0].name);
   expect(html).not.toContain('fire aboard');
 });
+
+test('local worker failures remain visible in battle status', async () => {
+  const { BattleStatus } = await import('../ui/BattleStatus');
+  const definition = shipPreset('fletcher'); const sim = new CombatSimulation(definition);
+  const combat = sim.telemetry('main', [0,0,-5000]);
+  const game = { simulation: { networked: false, phase: 'cancelled', connectionStatus: 'Battle worker failed' } } as unknown as import('./Game').Game;
+  const html = renderToStaticMarkup(<BattleStatus combat={combat} game={game}/>);
+  expect(html).toContain('role="status">Battle worker failed');
+});

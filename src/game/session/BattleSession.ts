@@ -15,3 +15,7 @@ export interface BattleSession extends Pick<CombatSimulation, keyof CombatSimula
  automateShip?(id: string): void;
  surrender?(): void;
 }
+
+export function battleExitLabel(session?: Pick<BattleSession, 'networked' | 'phase' | 'result'>): string {
+  return session?.networked && session.phase === 'running' && session.result === 'active' ? 'Forfeit and return to port' : 'Return to port';
+}

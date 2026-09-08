@@ -1,3 +1,4 @@
+import { gunzipSync } from 'node:zlib';
 // Run against a dedicated server with NAVAL_MAX_MATCHES=2 and no other players.
 import assert from 'node:assert/strict';
 import version from '../../src/generated/naval-version.json';
@@ -29,7 +30,7 @@ function connect(ticket: string) {
   socket.onopen = () => socket.send(JSON.stringify({ type: 'hello', ticket, version }));
   socket.onmessage = event => {
     if (typeof event.data === 'string') client.messages.push(JSON.parse(event.data));
-    else { client.frames++; client.bytes += event.data.byteLength; }
+    else { const message = JSON.parse(gunzipSync(new Uint8Array(event.data)[0] === 0 ? new Uint8Array(event.data).subarray(1) : new Uint8Array(event.data)).toString()); if (message.type === 'matched') client.messages.push(message); else { client.frames++; client.bytes += event.data.byteLength; } }
   };
   return client;
 }

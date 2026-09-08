@@ -1,4 +1,4 @@
-import { expect, test } from 'bun:test';
+import { expect, test, spyOn } from 'bun:test';
 import { HeadlessSession } from '../../../scripts/multiplayer/headless-session';
 import { weaponGroups } from '../../ships/weaponGroups';
 const setup = { playerShipId: 'enterprise-cv6', friendlyBots: ['fletcher', 'type-viic'], enemies: ['baltimore'], spawnDistance: 5000 };
@@ -37,4 +37,16 @@ test('carrier commands launch through Rust and selected waypoints survive gun in
     session.advance(.1, { throttle: -.25, rudder: 0 }, { aim: [0, 0, -5000], battery: 'main', fire: false });
     expect(session.player.helm!.throttle).toBe(-.25);
   } finally { session.dispose(); }
+});
+
+test('physical loss stops continuous commands while another vessel can take control', async () => {
+  const session = await HeadlessSession.create(setup);
+  const send = spyOn(session as any, 'send');
+  try {
+    session.player.damage.sunk = true;
+    session.advance(.1, { throttle: 1, rudder: .5 }, { aim: [0,0,-5000], battery: 'main', fire: true });
+    expect(send).not.toHaveBeenCalled();
+    expect(session.selectShip('friendly-1')).toBe(true);
+    expect(send).toHaveBeenCalledTimes(1);
+  } finally { send.mockRestore(); session.dispose(); }
 });

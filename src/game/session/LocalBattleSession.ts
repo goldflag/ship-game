@@ -17,22 +17,24 @@ export class LocalBattleSession extends SnapshotSession {
   readonly networked = false;
   private worker: Worker;
   private commands: CommandEnvelope[] = []; private sequence = 0; private accumulator = 0; private busy = true; private disposed = false;
+  onFailure?: (message: string) => void;
+  private fail(message: string) { this.pending = undefined; this.busy = false; this.connectionStatus = message; this.phase = 'cancelled'; this.dispose(); this.onFailure?.(message); }
   private constructor(setup: RuntimeSetup) { super(setup); this.worker = new Worker(new URL('./local.worker.ts', import.meta.url), { type: 'module' }); }
   static async create(setup: BattleSetup): Promise<LocalBattleSession> {
     const session = new LocalBattleSession(runtimeSetup(setup, crypto.getRandomValues(new Uint32Array(1))[0]));
     await new Promise<void>((resolve, reject) => {
       const timer = setTimeout(() => { session.dispose(); reject(new Error('Battle worker took too long to load.')); }, 120_000);
-      session.worker.onerror = event => { clearTimeout(timer); session.connectionStatus = event.message; session.dispose(); reject(new Error(event.message)); };
+      session.worker.onerror = event => { clearTimeout(timer); session.fail(event.message); reject(new Error(event.message)); };
       session.worker.onmessage = event => {
         const data = event.data;
-        if (data.type === 'error') { clearTimeout(timer); session.connectionStatus = data.message; session.phase = 'cancelled'; session.dispose(); reject(new Error(data.message)); }
+        if (data.type === 'error') { clearTimeout(timer); session.fail(data.message); reject(new Error(data.message)); }
         if (data.type === 'rejected') session.connectionStatus = `Order declined: ${data.message}`;
         if (data.type === 'snapshot') {
           try {
             const frame = decodeSnapshot(data.json);
             if (!session.actors.length) { session.apply(frame); clearTimeout(timer); resolve(); } else session.pending = frame;
             session.busy = false;
-          } catch (error) { clearTimeout(timer); session.dispose(); reject(error); }
+          } catch (error) { clearTimeout(timer); session.fail(String(error)); reject(error); }
         }
       };
       session.worker.postMessage({ type: 'init', setup: session.setup });

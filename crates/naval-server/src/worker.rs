@@ -59,6 +59,7 @@ pub enum Action {
         player: usize,
         epoch: u32,
     },
+    CancelLoading,
     Shutdown,
 }
 pub struct WorkerConfig {
@@ -66,6 +67,7 @@ pub struct WorkerConfig {
     pub reconnect_grace: Duration,
     pub countdown: Duration,
     pub lag_budget: Duration,
+    pub heartbeat_timeout: Duration,
 }
 impl Default for WorkerConfig {
     fn default() -> Self {
@@ -75,6 +77,7 @@ impl Default for WorkerConfig {
             reconnect_grace: Duration::from_secs(r.reconnect_grace_seconds),
             countdown: Duration::from_secs(3),
             lag_budget: Duration::from_millis(500),
+            heartbeat_timeout: Duration::from_secs(15),
         }
     }
 }
@@ -122,9 +125,20 @@ pub fn spawn(
         environment,
         finished: finished.clone(),
     };
+    let mut abort_record = metadata.clone();
+    abort_record["status"] = json!("infrastructure-abort");
+    abort_record["abortReason"] = json!("worker-panic");
+    let completion = CompletionGuard {
+        id: id.clone(),
+        writer: writer.clone(),
+        finished: finished.clone(),
+        abort_record,
+        committed: false,
+    };
     std::thread::Builder::new()
         .name(format!("match-{id}"))
         .spawn(move || {
+            let mut completion = completion;
             let mut session = session;
             session.input_ready = [false; 2];
             let mut record = metadata;
@@ -142,6 +156,9 @@ pub fn spawn(
                 while !matches!(phase, "finished" | "cancelled") {
                     let now = Instant::now();
                     for action in rx.try_iter().take(256) {
+                        if matches!(phase, "finished" | "cancelled") {
+                            break;
+                        }
                         match action {
                             Action::Connect { player, reply } => {
                                 let epoch =
@@ -180,6 +197,12 @@ pub fn spawn(
                                 command,
                                 reply,
                             } => {
+                                if command.connection_epoch == epoch
+                                    && session.control.players[player].epoch == epoch
+                                    && online[player]
+                                {
+                                    last_seen[player] = now;
+                                }
                                 let accepted = if phase != "running" || !loaded[player] {
                                     Err("Battle is not ready".into())
                                 } else if command.connection_epoch != epoch {
@@ -209,6 +232,12 @@ pub fn spawn(
                                     last_seen[player] = now;
                                 }
                             }
+                            Action::CancelLoading => {
+                                if matches!(phase, "loading" | "countdown") {
+                                    phase = "cancelled";
+                                    reason = Some("Player left before battle".into());
+                                }
+                            }
                             Action::Shutdown => {
                                 if phase == "running" {
                                     session.finish(None, FinishReason::Infrastructure);
@@ -222,7 +251,7 @@ pub fn spawn(
                     }
                     for player in 0..2 {
                         if online[player]
-                            && now.duration_since(last_seen[player]) > Duration::from_secs(15)
+                            && now.duration_since(last_seen[player]) > config.heartbeat_timeout
                         {
                             let epoch = session.control.players[player].epoch;
                             session.control.disconnect(player, epoch);
@@ -326,10 +355,28 @@ pub fn spawn(
             while writer.submit(id.clone(), record.clone(), true).is_err() {
                 std::thread::sleep(Duration::from_secs(1));
             }
-            finished.store(true, Ordering::Release);
+            completion.committed = true;
         })
         .map_err(|e| e.to_string())?;
     Ok(handle)
+}
+// Last-resort cleanup also covers panic recovery/serialization panicking.
+struct CompletionGuard {
+    id: String,
+    writer: Writer,
+    finished: Arc<AtomicBool>,
+    abort_record: serde_json::Value,
+    committed: bool,
+}
+impl Drop for CompletionGuard {
+    fn drop(&mut self) {
+        if !self.committed {
+            let _ = self
+                .writer
+                .submit(self.id.clone(), self.abort_record.clone(), true);
+        }
+        self.finished.store(true, Ordering::Release);
+    }
 }
 #[allow(clippy::too_many_arguments)]
 fn publish(
@@ -465,6 +512,7 @@ mod tests {
             reconnect_grace: Duration::from_millis(450),
             countdown: Duration::from_millis(10),
             lag_budget: Duration::from_secs(3),
+            heartbeat_timeout: Duration::from_secs(15),
         });
         let a = connect(&h, 0).await;
         let b = connect(&h, 1).await;
@@ -520,6 +568,130 @@ mod tests {
         let tick = finished["tick"].clone();
         tokio::time::sleep(Duration::from_millis(80)).await;
         assert_eq!(frame(&mut h, "finished").await["tick"], tick);
+    }
+    #[tokio::test]
+    async fn epoch_valid_commands_keep_a_player_live_without_heartbeats() {
+        let mut h = fixture(WorkerConfig {
+            countdown: Duration::ZERO,
+            heartbeat_timeout: Duration::from_millis(100),
+            reconnect_grace: Duration::from_secs(2),
+            ..Default::default()
+        });
+        let a = connect(&h, 0).await;
+        let b = connect(&h, 1).await;
+        for (player, epoch) in [(0, a), (1, b)] {
+            h.commands.send(Action::Ready { player, epoch }).unwrap();
+        }
+        frame(&mut h, "running").await;
+        for sequence in 1..=8 {
+            for (player, epoch) in [(0, a), (1, b)] {
+                let (reply, response) = oneshot::channel();
+                h.commands
+                    .send(Action::Input {
+                        player,
+                        epoch,
+                        command: CommandEnvelope {
+                            sequence,
+                            connection_epoch: epoch,
+                            ship_id: format!("ship-{player}"),
+                            command: naval_protocol::Command::Hold,
+                        },
+                        reply,
+                    })
+                    .unwrap();
+                assert!(response.await.unwrap().is_ok());
+            }
+            tokio::time::sleep(Duration::from_millis(35)).await;
+        }
+        assert_eq!(
+            frame(&mut h, "running").await["connected"],
+            json!([true, true])
+        );
+        h.commands.send(Action::Shutdown).unwrap();
+        assert_eq!(
+            frame(&mut h, "finished").await["outcome"]["reason"],
+            "infrastructure"
+        );
+    }
+    #[test]
+    fn panic_guard_releases_slot_and_persists_abort() {
+        let path =
+            std::env::temp_dir().join(format!("naval-panic-{}.sqlite", uuid::Uuid::new_v4()));
+        let writer = Writer::open(&path, 8).unwrap();
+        let finished = Arc::new(AtomicBool::new(false));
+        let guard = CompletionGuard {
+            id: "panic".into(),
+            writer: writer.clone(),
+            finished: finished.clone(),
+            abort_record: json!({"status":"infrastructure-abort","abortReason":"worker-panic"}),
+            committed: false,
+        };
+        assert!(
+            std::thread::spawn(move || {
+                let _guard = guard;
+                panic!("injected finalization failure");
+            })
+            .join()
+            .is_err()
+        );
+        assert!(finished.load(Ordering::Acquire));
+        writer.flush().unwrap();
+        let db = rusqlite::Connection::open(&path).unwrap();
+        let value: String = db
+            .query_row(
+                "SELECT record FROM matches WHERE id='panic' AND finished=1",
+                [],
+                |r| r.get(0),
+            )
+            .unwrap();
+        assert_eq!(
+            serde_json::from_str::<serde_json::Value>(&value).unwrap()["abortReason"],
+            "worker-panic"
+        );
+    }
+    #[tokio::test]
+    async fn first_terminal_action_survives_later_surrenders_and_shutdown() {
+        let mut h = fixture(WorkerConfig {
+            countdown: Duration::ZERO,
+            ..Default::default()
+        });
+        let a = connect(&h, 0).await;
+        let b = connect(&h, 1).await;
+        h.commands
+            .send(Action::Ready {
+                player: 0,
+                epoch: a,
+            })
+            .unwrap();
+        h.commands
+            .send(Action::Ready {
+                player: 1,
+                epoch: b,
+            })
+            .unwrap();
+        frame(&mut h, "running").await;
+        h.commands
+            .send(Action::Surrender {
+                player: 0,
+                epoch: a,
+            })
+            .unwrap();
+        let _ = h.commands.send(Action::Surrender {
+            player: 1,
+            epoch: b,
+        });
+        let _ = h.commands.send(Action::Shutdown);
+        let result = frame(&mut h, "finished").await;
+        assert_eq!(result["outcome"]["reason"], "forfeit");
+        assert_eq!(result["outcome"]["winnerTeamId"], "b");
+    }
+    #[tokio::test]
+    async fn cancellation_after_pairing_does_not_wait_for_the_load_deadline() {
+        let mut h = fixture(WorkerConfig::default());
+        h.commands.send(Action::CancelLoading).unwrap();
+        let cancelled = frame(&mut h, "cancelled").await;
+        assert_eq!(cancelled["tick"], 0);
+        assert!(cancelled["outcome"].is_null());
     }
     #[tokio::test]
     async fn load_failure_has_no_competitive_result() {

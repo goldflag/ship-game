@@ -60,6 +60,8 @@ mod tests {
         for value in [
             json!({"actors":[{"x":2,"hp":99},{"x":5,"hp":100}],"events":[1],"optional":{"x":3}}),
             json!({"actors":[{"x":9,"hp":90},{"x":8,"hp":0}],"events":[],"optional":null}),
+            json!({"actors":[{"x":4},{"x":8,"hp":0}],"events":{},"optional":[1]}),
+            json!({"actors":null,"events":[1]}),
         ] {
             let encoded = delta_bytes(&baseline, &value).unwrap();
             let delta: Value =

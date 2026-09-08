@@ -146,7 +146,7 @@ export abstract class SnapshotSession implements BattleSession {
   protected input(helm: HelmCommand, intent: CombatIntent, active: boolean): void {
     this.lastHelm = { ...helm };
     if (this.selectionRequest && performance.now() < this.selectionRequest.until) return;
-    if (!active || this.result !== 'active' || this.phase !== 'running') { this.fireQueued = false; return; }
+    if (!active || physicalLoss(this.player) || this.result !== 'active' || this.phase !== 'running') { this.fireQueued = false; return; }
     if (this.autopilot && (helm.throttle !== this.autopilot.throttle || helm.rudder !== this.autopilot.rudder)) this.autopilot = undefined;
     const priority = intent.controlPriority ?? 'balanced', focus = intent.controlFocus || null;
     const control = JSON.stringify([priority, focus]);

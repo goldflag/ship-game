@@ -40,7 +40,7 @@ export function BattleStatus({ combat, game, children, spectatedShipId }: { comb
       <strong>{String(Math.floor(combat.remainingSeconds / 60)).padStart(2, '0')}:{String(Math.floor(combat.remainingSeconds % 60)).padStart(2, '0')}</strong>
     </div>
     <p className="fleet-tonnage">Afloat · Friendly {(combat.afloatKg[0] / 1000).toLocaleString(undefined, { maximumFractionDigits: 3 })} t · Enemy {(combat.afloatKg[1] / 1000).toLocaleString(undefined, { maximumFractionDigits: 3 })} t</p>
-    {game?.simulation.networked && <p className="fleet-network-status" role="status">{game.simulation.connectionStatus || (game.simulation.phase === 'loading' ? 'Waiting for both fleets to load' : game.simulation.phase === 'countdown' ? 'Both fleets ready — battle starting' : game.simulation.phase === 'cancelled' ? 'Battle cancelled before starting' : '')}</p>}
+    {(game?.simulation.networked || game?.simulation.connectionStatus || game?.simulation.phase === 'cancelled') && <p className="fleet-network-status" role="status">{game.simulation.connectionStatus || (game.simulation.phase === 'loading' ? 'Waiting for both fleets to load' : game.simulation.phase === 'countdown' ? 'Both fleets ready — battle starting' : game.simulation.phase === 'cancelled' ? 'Battle cancelled before starting' : '')}</p>}
     <FleetOrders game={game} combat={combat}/>
     <div className="fleet-teams" aria-label="Team status">{(['friendly', 'enemy'] as const).map(team => <TeamStatus key={team} team={team} combat={combat} game={game} expanded={expandedTeam === team} onToggle={() => setExpandedTeam(expandedTeam === team ? null : team)}/>)}</div>
     {combat.result !== 'active' && <small>Esc to return to port</small>}

@@ -22,7 +22,7 @@ const matchesVersion = (other: typeof version) => Object.entries(version).every(
  * takes control back from a newer socket. No token enters a URL or a log. */
 export class MatchConnection {
   private socket?: WebSocket; private stopped = false; private timer?: ReturnType<typeof setTimeout>; private heartbeat?: ReturnType<typeof setInterval>;
-  private disconnectedAt?: number; private generation = 0; private binary?: ArrayBuffer; private decoding = false;
+  private disconnectedAt?: number; private generation = 0; private binary?: ArrayBuffer; private handshake?: ArrayBuffer; private decoding = false;
   private metadata?: MatchMetadata; private session?: RemoteBattleSession;
   private resolve!: (session: RemoteBattleSession) => void; private reject!: (error: Error) => void;
   readonly matched = new Promise<RemoteBattleSession>((resolve, reject) => { this.resolve = resolve; this.reject = reject; });
@@ -43,7 +43,7 @@ export class MatchConnection {
     const generation = ++this.generation;
     const url = new URL(assetUrl('api/socket'), location.href); url.protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
     const socket = this.socket = new WebSocket(url); socket.binaryType = 'arraybuffer';
-    this.binary = undefined;
+    this.binary = undefined; this.handshake = undefined;
     this.status({ message: this.disconnectedAt ? 'Reconnecting to battle…' : 'Connecting…' });
     socket.onopen = () => {
       if (generation !== this.generation) return;
@@ -52,19 +52,13 @@ export class MatchConnection {
     };
     socket.onmessage = event => {
       if (generation !== this.generation || this.stopped) return;
-      if (event.data instanceof ArrayBuffer) { this.binary = event.data; void this.decode(generation); return; }
+      if (event.data instanceof ArrayBuffer) { if (new Uint8Array(event.data)[0] === 0) this.handshake = event.data.slice(1); else this.binary = event.data; void this.decode(generation); return; }
       try {
         const message = JSON.parse(event.data);
         if (message.type === 'error') { this.fail(message.message ?? message.code ?? 'Connection rejected.'); return; }
         if (message.type === 'queued') { this.disconnectedAt = undefined; this.status({ message: 'Waiting for an opponent', inviteCode: message.inviteCode }); }
-        if (message.type === 'matched') {
-          if (!matchesVersion(message.version)) { this.fail('Game content changed. Reload before joining.'); return; }
-          if (this.metadata && (this.metadata.matchId !== message.matchId || this.metadata.team !== message.team)) { this.fail('Battle identity changed.'); return; }
-          this.metadata = message; this.disconnectedAt = undefined;
-          if (this.session) this.session.reconnected(message);
-          this.status({ message: 'Loading both fleets…' });
-        }
-        if (message.type === 'ack' && this.session) this.session.connectionStatus = message.accepted ? '' : `Order declined: ${message.error ?? 'unavailable'}`;
+        if (message.type === 'matched') this.acceptMetadata(message);
+        if (message.type === 'ack' && this.session) this.session.commandAcknowledged(message.accepted, message.error);
       } catch (error) { this.fail(String(error)); }
     };
     socket.onclose = () => {
@@ -79,26 +73,35 @@ export class MatchConnection {
     };
     socket.onerror = () => socket.close();
   }
+  private acceptMetadata(message: MatchMetadata) {
+          if (!matchesVersion(message.version)) { this.fail('Game content changed. Reload before joining.'); return; }
+          if (this.metadata && (this.metadata.matchId !== message.matchId || this.metadata.team !== message.team)) { this.fail('Battle identity changed.'); return; }
+          this.metadata = message; this.disconnectedAt = undefined;
+          if (this.session) this.session.reconnected(message);
+          this.status({ message: 'Loading both fleets…' });
+  }
   private async decode(generation: number) {
     if (this.decoding) return;
     this.decoding = true;
     try {
-      while (this.binary && !this.stopped) {
-        const bytes = this.binary; this.binary = undefined;
+      while ((this.handshake || this.binary) && !this.stopped) {
+        const bytes = (this.handshake ?? this.binary)!; if (this.handshake) this.handshake = undefined; else this.binary = undefined;
         if (bytes.byteLength > 8 * 1024 * 1024) throw new Error('Battle snapshot exceeds limit.');
         const reader = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip')).getReader();
         const chunks: Uint8Array[] = []; let size = 0;
         for (;;) { const { value, done } = await reader.read(); if (done) break; size += value.byteLength; if (size > 32 * 1024 * 1024) { await reader.cancel(); throw new Error('Expanded snapshot exceeds limit.'); } chunks.push(value); }
         const json = await new Blob(chunks as BlobPart[]).text();
         if (generation !== this.generation || this.stopped) break;
+        const message = JSON.parse(json);
+        if (message.type === 'matched') { this.acceptMetadata(message); continue; }
         if (!this.metadata) throw new Error('Snapshot arrived before battle metadata.');
-        const frame = readSnapshot(expandSnapshot(this.metadata.baseline, JSON.parse(json)));
+        const frame = readSnapshot(expandSnapshot(this.metadata.baseline, message));
         if (!this.session) { this.session = new RemoteBattleSession(this.metadata, this, frame); this.resolve(this.session); }
         else this.session.receive(frame);
         if (frame.phase === 'finished' || frame.phase === 'cancelled') { sessionStorage.removeItem(storageKey); this.stopped = true; clearTimeout(this.timer); clearInterval(this.heartbeat); this.socket?.close(); }
       }
     } catch (error) { this.fail(String(error)); }
-    finally { this.decoding = false; if (this.binary && !this.stopped) void this.decode(this.generation); }
+    finally { this.decoding = false; if ((this.handshake || this.binary) && !this.stopped) void this.decode(this.generation); }
   }
   send(message: object): boolean {
     if (this.socket?.readyState !== WebSocket.OPEN || this.socket.bufferedAmount > 64 * 1024) return false;
@@ -113,6 +116,10 @@ export class MatchConnection {
 }
 export class RemoteBattleSession extends SnapshotSession {
   readonly networked = true;
+  private orderNoticeUntil = 0;
+  commandAcknowledged(accepted: boolean, error?: string) {
+    if (!accepted && !this.connectionStatus) { this.connectionStatus = `Order declined: ${error ?? 'unavailable'}`; this.orderNoticeUntil = performance.now() + 3000; }
+  }
   private sequence = 0; private sentAt = 0; private ready = false;
   constructor(public metadata: MatchMetadata, private connection: MatchConnection, frame: Snapshot) {
     super(metadata.setup, metadata.team, metadata.player); this.apply(frame);
@@ -120,7 +127,7 @@ export class RemoteBattleSession extends SnapshotSession {
   connectionFailed(message: string) { this.pending = undefined; this.connectionStatus = message; this.phase = 'cancelled'; }
   receive(frame: Snapshot) { if (frame.loaded?.[this.playerIndex] && this.connectionStatus === 'Restoring battle state…') this.connectionStatus = ''; if (frame.tick >= this.tick) this.pending = frame; }
   loadedAssets() { this.ready = true; this.connection.send({ type: 'ready', version }); }
-  reconnected(metadata: MatchMetadata) { this.metadata = metadata; this.sequence = 0; this.loaded = [...(this.loaded ?? [false, false])]; this.loaded[this.playerIndex] = false; this.connectionStatus = 'Restoring battle state…'; if (this.ready) this.loadedAssets(); }
+  reconnected(metadata: MatchMetadata) { this.pending = undefined; this.metadata = metadata; this.sequence = 0; this.loaded = [...(this.loaded ?? [false, false])]; this.loaded[this.playerIndex] = false; this.connectionStatus = 'Restoring battle state…'; if (this.ready) this.loadedAssets(); }
   protected send(shipId: string, command: Command) {
     if (this.phase !== 'running' || !this.loaded?.[this.playerIndex]) return;
     this.connection.send({ type: 'command', envelope: { sequence: ++this.sequence, connectionEpoch: this.metadata.connectionEpoch, shipId, command } });
@@ -129,8 +136,9 @@ export class RemoteBattleSession extends SnapshotSession {
     // Remote world time keeps moving while menus are open; held input expires.
     this.consume(dt || 1 / 60, beforeStep);
     const now = performance.now();
+    if (this.orderNoticeUntil && now >= this.orderNoticeUntil) { if (this.connectionStatus.startsWith('Order declined:')) this.connectionStatus = ''; this.orderNoticeUntil = 0; }
     if (now - this.sentAt >= 50) { this.input(helm, intent, dt > 0); this.sentAt = now; }
   }
-  surrender() { this.connection.send({ type: 'surrender' }); this.connection.close(true); }
+  surrender() { if (this.phase === 'running' || this.phase === 'loading' || this.phase === 'countdown') this.connection.send({ type: 'surrender' }); this.connection.close(true); }
   dispose() { this.connection.close(); }
 }
