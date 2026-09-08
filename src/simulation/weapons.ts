@@ -34,6 +34,18 @@ export const createMountState = (m: MountDefinition): MountState => ({ id: m.id,
   ammo: m.weapon.ammoPerBarrel * (m.weapon.barrelCount ?? 2), heAmmo: Math.floor(m.weapon.ammoPerBarrel * (m.weapon.he?.stockFraction ?? 0)) * (m.weapon.barrelCount ?? 2),
   loaded: 'ap', hp: 100, recoil: 0, status: 'turning' });
 export const availableAmmunition = (state: MountState, type = state.loaded): number => type === 'he' ? Math.max(0, Math.min(state.ammo, state.heAmmo)) : Math.max(0, state.ammo - state.heAmmo);
+/** Reload, traverse and elevation all slow together as electrical power fails. The HUD divides displayed reload by the same rate. */
+export const gunWorkRate = (power: number): number => .25 + .75 * clamp(power, 0, 1);
+/** Spend one complete salvo of the loaded type and begin the reload and recoil.
+ * Readiness is the caller's decision; the shared stock model (total rounds with an
+ * HE subset) and the post-salvo state live here for every firing path. */
+export function expendSalvo(m: MountDefinition, state: MountState, reloadSeconds = m.weapon.reloadSeconds): number {
+  const barrels = m.weapon.barrelCount ?? 2;
+  state.ammo -= barrels;
+  if (state.loaded === 'he') state.heAmmo -= barrels;
+  state.reload = reloadSeconds; state.recoil = 1; state.status = 'reloading';
+  return barrels;
+}
 /** Unloading returns the unfired round to its existing stock. Changing type
  * always requires a complete load interval, including changing back mid-load. */
 export function selectAmmunition(m: MountDefinition, state: MountState, requested: Ammunition): void {
@@ -95,7 +107,7 @@ export function solveBallistic(from: Vec3, target: Vec3, speed: number, dragPerS
 }
 /** Return true when the barrel has reached a valid firing solution (used by bots). */
 export function updateMount(m: MountDefinition, state: MountState, definition: ShipDefinition, pose: Pose & { waveHeave?: number }, aim: Vec3 | undefined, dt: number, inheritedVelocity: Vec3 = [0, 0, 0], power = 1): boolean {
-  const workRate = .25 + .75 * clamp(power, 0, 1);
+  const workRate = gunWorkRate(power);
   const wasReloading = state.reload > 0;
   state.reload = Math.max(0, state.reload - dt * workRate);
   if (wasReloading && state.reload === 0 && state.queued) {
