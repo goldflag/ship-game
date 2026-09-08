@@ -85,7 +85,7 @@ For the gameplay fixtures, first use normal **Custom battle** UI to select Shōk
 | `runtime/damage.js` | Resets and seeds real swept AP shells plus one armed torpedo outside the hull. Torpedo depth is overridden to reach the review boiler station; damage/flood state is never assigned directly. Returns `result: pass` only after hull, module and flood damage. |
 | `runtime/reset.js` | Uses the normal pause-menu Return to port button, then asserts restored integrity/modules/air wing and no water. |
 
-These are development review fixtures, not production APIs or historical firing scenarios. A live battle can end in victory before a recovery check completes; the common battle host then stops simulation. The original [recovery record](../reports/runtime-16bd50f5/recovery.json) retains that interrupted attempt separately from its successful passive fixture.
+These are development review fixtures, not production APIs or historical firing scenarios. A live battle can end in victory before a recovery check completes; the common battle host then stops simulation. The retained [recovery record](../reports/runtime-2d438635/recovery.json) uses passive targets to finish the full launch/recovery cycle.
 
 If Orca's background page closes during long checks, the retained `runtime/cdp.mjs` can evaluate scripts and save JSON/screenshots in a separately launched local Chrome review browser. It uses Bun's built-in WebSocket and Chrome's local debugging protocol; no automation package is required. `SHOKAKU_REVIEW_PORT` overrides port 52324. Use a separate temporary profile and loopback-only debugging listener, never a normal browsing profile:
 
@@ -100,3 +100,5 @@ bun assets/ships/shokaku/authoring/runtime/cdp.mjs screenshot /tmp/shokaku-port.
 Use the actual development-server port in the URL; 52323 was used for the recorded review. Keep long operations yielding so tool output and status remain observable. Stop only the isolated review browser when finished.
 
 After durable model changes, rebuild and repeat the affected source and exported-game checks. Run relevant simulation tests and `bun run build`; compiler/shared-input changes also require `ship:check all` and rebuilding stale outputs. Preserve prior evidence under its original hash.
+
+Retain one current visual review set, the regression baselines and unique gameplay evidence. The five fixed views live in `generated/review/`, with their exact hash in `cameras.json`; do not duplicate them under reports. Keep the current blueprint and compiled definition at their canonical paths instead of copying them into review folders. Historical gameplay reports retain their original hashes, aggregate repeated events and disclose which representative samples remain. Superseded exploratory reports are available in Git history.

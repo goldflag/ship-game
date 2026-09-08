@@ -38,7 +38,7 @@ for mount in D['mounts']:
         if o.type=='MESH':o.hide_render=o not in owned
     bpy.context.view_layer.update();matrix=yaw.matrix_world
     target=(1 if heavy else .25,0,1.65 if heavy else .9);scale=9 if heavy else 4.7
-    for label,location in [('side',(0,14,4)),('rear',(-10,-7,5)),('front',(12,-9,5))]:
+    for label,location in [('side',(0,14,4)),('rear',(-10,-7,5))]:
         render(mount['partId']+'-'+label,matrix@Vector(location),matrix@Vector(target),scale,
                assembly=mount['id'],isolation='Own mount only, neutral elevation 1 degree; hull omitted for hidden mechanisms')
 for o in scene.objects:

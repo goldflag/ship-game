@@ -79,9 +79,8 @@ scene.display.shading.show_shadows=True;scene.display.shading.show_cavity=True
 scene.display.shading.cavity_type='BOTH';scene.display.shading.background_type='WORLD'
 scene.world.color=(.12,.14,.16)
 scene.render.resolution_percentage=100;scene.render.image_settings.file_format='PNG'
-views=[('open127-quarter',(72,7,19),(75.7,14.8,14),13),('open127-rear',(76,22,17),(75.7,14.8,14),10),
- ('triple25-quarter',(-8,9,18),(-11.5,16.15,14.8),7),('gas-hood',(-49,-29,20),(-55.7,-16.05,14),15),
- ('island',(70,-50,33),(38,-13.35,20),36),('bow-profile',(110,-75,8),(114,0,4),35),
+# Variant-specific mechanism views are retained by review_closeups.py.
+views=[('island',(70,-50,33),(38,-13.35,20),36),('bow-profile',(110,-75,8),(114,0,4),35),
  ('underwater-stern',(-136,-25,-12),(-104,0,-4),55)]
 for name,location,target,scale in views:
     data=bpy.data.cameras.new(name);cam=bpy.data.objects.new(name,data);scene.collection.objects.link(cam)

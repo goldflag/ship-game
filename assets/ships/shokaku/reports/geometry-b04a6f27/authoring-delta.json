@@ -145,5 +145,6 @@
   "recipeChanges": [
     "Keep scuttles at the existing floor-to-floor datum.",
     "Shorten port lower-gallery knees to meet the clipped deck edge."
-  ]
+  ],
+  "baselineBlueprint": "https://github.com/goldflag/ship-game/blob/cf7f62e32dc3c12b47e75ef40bfea7de5e36a795/assets/ships/shokaku/reports/correction-03/before/blueprint.json"
 }

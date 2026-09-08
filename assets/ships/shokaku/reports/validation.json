@@ -10,14 +10,12 @@
     {
       "command": "bun run ship:build shokaku",
       "result": "pass",
-      "contentHash": "b04a6f27641f67fb5177bea72d65023751e642a1284735d69f9e090c837ba898",
-      "log": "geometry-b04a6f27/ship-build.log"
+      "contentHash": "b04a6f27641f67fb5177bea72d65023751e642a1284735d69f9e090c837ba898"
     },
     {
       "command": "bun run ship:review shokaku",
       "result": "pass",
-      "evidence": "geometry-b04a6f27/fixed/cameras.json",
-      "log": "geometry-b04a6f27/fixed-review.log"
+      "evidence": "../generated/review/cameras.json"
     },
     {
       "command": "Blender review_decks.py against retained correction-03/before/source.blend with --out",
@@ -78,239 +76,13 @@
     },
     {
       "command": "bun run ship:check all",
-      "result": "pass",
-      "log": "geometry-b04a6f27/ship-check.log"
+      "result": "pass"
     },
     {
       "command": "git diff --check",
       "result": "pass"
     }
   ],
-  "export": {
-    "contentHash": "b04a6f27641f67fb5177bea72d65023751e642a1284735d69f9e090c837ba898",
-    "hullBounds": [
-      [
-        -13.00000286102295,
-        -8.869999885559082,
-        -128.75
-      ],
-      [
-        13.000001907348633,
-        10.449999809265137,
-        128.75
-      ]
-    ],
-    "mounts": [
-      {
-        "id": "aa127-port-1",
-        "measuredPivot": [
-          -14.799994468688965,
-          10.5,
-          -75.69999694824219
-        ],
-        "barrels": 2,
-        "articulationChecks": 6
-      },
-      {
-        "id": "aa127-port-2",
-        "measuredPivot": [
-          -14.799996376037598,
-          10.5,
-          -56
-        ],
-        "barrels": 2,
-        "articulationChecks": 6
-      },
-      {
-        "id": "aa127-port-3",
-        "measuredPivot": [
-          -16.050003051757812,
-          10.5,
-          57.20000076293945
-        ],
-        "barrels": 2,
-        "articulationChecks": 6
-      },
-      {
-        "id": "aa127-port-4",
-        "measuredPivot": [
-          -16.050004959106445,
-          10.5,
-          71
-        ],
-        "barrels": 2,
-        "articulationChecks": 6
-      },
-      {
-        "id": "aa127-starboard-1",
-        "measuredPivot": [
-          14.800005912780762,
-          10.5,
-          -75.69999694824219
-        ],
-        "barrels": 2,
-        "articulationChecks": 6
-      },
-      {
-        "id": "aa127-starboard-2",
-        "measuredPivot": [
-          14.800004005432129,
-          10.5,
-          -56
-        ],
-        "barrels": 2,
-        "articulationChecks": 6
-      },
-      {
-        "id": "aa127-starboard-3",
-        "measuredPivot": [
-          16.04999542236328,
-          10.5,
-          41.20000076293945
-        ],
-        "barrels": 2,
-        "articulationChecks": 6
-      },
-      {
-        "id": "aa127-starboard-4",
-        "measuredPivot": [
-          16.04999542236328,
-          10.5,
-          55.70000076293945
-        ],
-        "barrels": 2,
-        "articulationChecks": 6
-      },
-      {
-        "id": "aa25-port-1",
-        "measuredPivot": [
-          -16.15000343322754,
-          14.25,
-          42
-        ],
-        "barrels": 3,
-        "articulationChecks": 9
-      },
-      {
-        "id": "aa25-port-2",
-        "measuredPivot": [
-          -16.150001525878906,
-          14.25,
-          34.70000076293945
-        ],
-        "barrels": 3,
-        "articulationChecks": 9
-      },
-      {
-        "id": "aa25-port-3",
-        "measuredPivot": [
-          -16.150001525878906,
-          14.25,
-          18.599998474121094
-        ],
-        "barrels": 3,
-        "articulationChecks": 9
-      },
-      {
-        "id": "aa25-port-4",
-        "measuredPivot": [
-          -16.149999618530273,
-          14.25,
-          11.499999046325684
-        ],
-        "barrels": 3,
-        "articulationChecks": 9
-      },
-      {
-        "id": "aa25-port-5",
-        "measuredPivot": [
-          -16.149999618530273,
-          14.25,
-          3.899998903274536
-        ],
-        "barrels": 3,
-        "articulationChecks": 9
-      },
-      {
-        "id": "aa25-port-6",
-        "measuredPivot": [
-          -16.149999618530273,
-          14.25,
-          -3.2000012397766113
-        ],
-        "barrels": 3,
-        "articulationChecks": 9
-      },
-      {
-        "id": "aa25-starboard-1",
-        "measuredPivot": [
-          16.149991989135742,
-          14.25,
-          98.19999694824219
-        ],
-        "barrels": 3,
-        "articulationChecks": 9
-      },
-      {
-        "id": "aa25-starboard-2",
-        "measuredPivot": [
-          16.149991989135742,
-          14.25,
-          91.30000305175781
-        ],
-        "barrels": 3,
-        "articulationChecks": 9
-      },
-      {
-        "id": "aa25-starboard-3",
-        "measuredPivot": [
-          16.149993896484375,
-          14.25,
-          75.30000305175781
-        ],
-        "barrels": 3,
-        "articulationChecks": 9
-      },
-      {
-        "id": "aa25-starboard-4",
-        "measuredPivot": [
-          16.149993896484375,
-          14.25,
-          68.80000305175781
-        ],
-        "barrels": 3,
-        "articulationChecks": 9
-      },
-      {
-        "id": "aa25-starboard-5",
-        "measuredPivot": [
-          17.900001525878906,
-          14.25,
-          -15.19999885559082
-        ],
-        "barrels": 3,
-        "articulationChecks": 9
-      },
-      {
-        "id": "aa25-starboard-6",
-        "measuredPivot": [
-          17.900001525878906,
-          14.25,
-          -22.39999771118164
-        ],
-        "barrels": 3,
-        "articulationChecks": 9
-      }
-    ],
-    "torpedoTubes": [],
-    "depthChargeLaunchers": [],
-    "meshes": 183,
-    "primitives": 397,
-    "triangles": 339244,
-    "bytes": 11920892,
-    "result": "passed",
-    "historicalAccuracy": "not certified; see reference register and discrepancy report"
-  },
   "review": "acceptance.md",
   "correction": "correction-03/README.md",
   "authoringDelta": "geometry-b04a6f27/authoring-delta.json",
@@ -337,5 +109,6 @@
     "productionAnimation": false
   },
   "scope": "Five island structures and gallery fittings. Hull, weapons, aircraft, damage and stability inputs unchanged. Prior gameplay fixtures retain their original model hashes; source and exported geometry/inspection reviews repeated.",
-  "remainingVisualLimitation": "Existing cast-shadow edge aliasing under normal game lighting, isolated in correction-03/shadow-diagnostic.json. No production renderer changes."
+  "remainingVisualLimitation": "Existing cast-shadow edge aliasing under normal game lighting, isolated in correction-03/shadow-diagnostic.json. No production renderer changes.",
+  "exportReport": "export.json"
 }

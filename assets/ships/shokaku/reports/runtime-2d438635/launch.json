@@ -24,11 +24,11 @@
           "motion": {
             "id": "player",
             "tick": 10,
-            "x": 0.00008422920580093927,
+            "x": 8.422920580093927e-05,
             "y": -0.003743228439889389,
-            "z": 0.000058977924839234703,
-            "roll": -0.00005880864476355427,
-            "pitch": -0.000021283382163268644,
+            "z": 5.8977924839234703e-05,
+            "roll": -5.880864476355427e-05,
+            "pitch": -2.1283382163268644e-05,
             "heading": 0,
             "speed": 0,
             "swaySpeed": 0,
@@ -55,13 +55,13 @@
             "x": 650.0000842292048,
             "y": 0.014009706996239832,
             "z": -0.002052133186271876,
-            "roll": -0.00000979626289692053,
-            "pitch": -0.0000047772996485135844,
+            "roll": -9.79626289692053e-06,
+            "pitch": -4.7772996485135844e-06,
             "heading": 6.283185302600174,
             "speed": 0,
             "swaySpeed": 2.3083256769500344e-11,
             "rudder": -0.04,
-            "yawRate": -5.862248753910317e-8,
+            "yawRate": -5.862248753910317e-08,
             "distance": 0.0021111111118821595,
             "verticalSpeed": 0.07464339383992151,
             "waveHeave": 0.014009943372263856,
@@ -80,16 +80,16 @@
           "motion": {
             "id": "enemy-1",
             "tick": 10,
-            "x": 0.00008422920442700383,
+            "x": 8.422920442700383e-05,
             "y": -0.012047550976325316,
             "z": -4999.996918799852,
-            "roll": -0.000004012362238441882,
-            "pitch": -0.000005330175321260419,
+            "roll": -4.012362238441882e-06,
+            "pitch": -5.330175321260419e-06,
             "heading": 3.141592658293618,
             "speed": 0,
             "swaySpeed": -3.407183347432198e-11,
             "rudder": 0.041999999999999996,
-            "yawRate": 6.050237487206603e-8,
+            "yawRate": 6.050237487206603e-08,
             "distance": 0.003022222223360321,
             "verticalSpeed": -0.06284632137553277,
             "waveHeave": -0.012047307438488388,
@@ -102,113 +102,6 @@
       ],
       "phases": {
         "ready": 72
-      }
-    },
-    {
-      "label": "deck-launch",
-      "tick": 377,
-      "hash": "2d43863548c9dfcee9b1822b75dee70d501d16271e334d13ce5c1accfd00c0b8",
-      "aircraft": {
-        "models": 18,
-        "instances": 8,
-        "batches": 26,
-        "culled": 0,
-        "silhouettes": 0,
-        "contacts": 0,
-        "payloads": 2,
-        "bombs": 2,
-        "tracers": 0
-      },
-      "fleet": [
-        {
-          "id": "player",
-          "definitionId": "shokaku",
-          "team": "friendly",
-          "controller": "player",
-          "motion": {
-            "id": "player",
-            "tick": 377,
-            "x": 0.09881097780050133,
-            "y": 0.0013076187703581002,
-            "z": 0.0691881915137833,
-            "roll": -0.0007116398971048492,
-            "pitch": 0.0018382768209566406,
-            "heading": 0,
-            "speed": 0,
-            "swaySpeed": 0,
-            "rudder": 0,
-            "yawRate": 0,
-            "distance": 0,
-            "verticalSpeed": -0.05682626419084825,
-            "waveHeave": -0.004821356683739544,
-            "driftX": 0.029814158028872526,
-            "driftZ": 0.020876098197192102
-          },
-          "ammo": 58800,
-          "integrity": 44800
-        },
-        {
-          "id": "friendly-1",
-          "definitionId": "enterprise-cv6",
-          "team": "friendly",
-          "controller": "bot",
-          "aiLevel": "static",
-          "motion": {
-            "id": "friendly-1",
-            "tick": 377,
-            "x": 650.0988109778717,
-            "y": 0.1357810654927543,
-            "z": 0.0670770804026722,
-            "roll": 0.013796557388749714,
-            "pitch": -0.001337105424763861,
-            "heading": 6.283185196139186,
-            "speed": 0,
-            "swaySpeed": 5.002515434770704e-12,
-            "rudder": 0,
-            "yawRate": -2.3439091765494505e-9,
-            "distance": 0.0021111111840545556,
-            "verticalSpeed": -0.08380578718340692,
-            "waveHeave": 0.1271024712408483,
-            "driftX": 0.029814158028872526,
-            "driftZ": 0.020876098197192102
-          },
-          "ammo": 69680,
-          "integrity": 41300
-        },
-        {
-          "id": "enemy-1",
-          "definitionId": "bismarck",
-          "team": "enemy",
-          "controller": "bot",
-          "aiLevel": "static",
-          "motion": {
-            "id": "enemy-1",
-            "tick": 377,
-            "x": 0.09881097790565686,
-            "y": -0.10021707747269622,
-            "z": -4999.927789586264,
-            "roll": 0.012061094300206835,
-            "pitch": -0.0007953905008794731,
-            "heading": 3.14159279168142,
-            "speed": 0,
-            "swaySpeed": -7.383917899810372e-12,
-            "rudder": 0,
-            "yawRate": 4.73069207202286e-9,
-            "distance": 0.0030222223298897403,
-            "verticalSpeed": 0.06940019196265079,
-            "waveHeave": -0.10657576300229543,
-            "driftX": 0.029814158028872526,
-            "driftZ": 0.020876098197192102
-          },
-          "ammo": 41560,
-          "integrity": 50750
-        }
-      ],
-      "phases": {
-        "outbound": 1,
-        "takeoff": 7,
-        "ready": 54,
-        "queued": 10
       }
     },
     {
@@ -317,5 +210,7 @@
       }
     }
   ],
-  "launched": 18
+  "launched": 18,
+  "contentHash": "2d43863548c9dfcee9b1822b75dee70d501d16271e334d13ce5c1accfd00c0b8",
+  "retention": "First and final snapshots retained from the original three-snapshot capture; the intermediate diagnostic snapshot was redundant. No new gameplay run."
 }
