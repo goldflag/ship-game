@@ -37,3 +37,5 @@ Main-thread decoding, full-duration concurrency, extended loss/jitter and stalle
 ## Linux CI correction
 
 The first Linux run found a Fletcher head-on collision selecting the opposite local damage region. A centerline contact acquires a few floating-point ulps in rotated projections; its sign must not choose the damage side or breach normal. Both reference TypeScript and Rust canonicalize lateral contact coordinates within 1e-9 m of zero. A reproducing regression failed before the fix and passes afterward; it also verifies a real 0.1 mm off-center hit remains distinct. Collision/grounding fixtures were deliberately refreshed for this numerical correction. This correction followed the Fable review.
+
+The same investigation reproduced unstable separating impulses when a symmetric ram’s heading changes by 1e-15 radians. The collision solver now preserves authored traversal order for penetration depths tied within 1e-9 m. Rust and TypeScript regressions verify the separating position, sway and yaw remain stable across this rounding noise; collision fixtures were refreshed for the tie rule.

@@ -205,3 +205,21 @@ test('centerline contact roundoff cannot switch the damaged side or breach norma
   expect(impact(.0001).regions[0].hp).toBe(impact(.0001).regions[0].maximum);
   expect(center.regions[0].hp).toBeLessThan(center.regions[0].maximum);
 });
+
+
+test('symmetric head-on contact chooses the same separation axis across rounding noise', () => {
+  const ram = (heading: number) => {
+    const sim = new CombatSimulation(shipPreset('fletcher'));
+    Object.assign(sim.ship, { speed: 12 });
+    Object.assign(sim.target.motion, { x: 0, z: -112.7, heading, speed: 12 });
+    resolveShipCollisions(sim.actors);
+    return sim.ship;
+  };
+  const baseline = ram(Math.PI);
+  for (const offset of [-1e-15, 1e-15]) {
+    const actual = ram(Math.PI + offset);
+    expect(actual.x).toBeCloseTo(baseline.x, 8);
+    expect(actual.swaySpeed).toBeCloseTo(baseline.swaySpeed, 8);
+    expect(actual.yawRate).toBeCloseTo(baseline.yawRate, 8);
+  }
+});

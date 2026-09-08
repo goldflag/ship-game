@@ -666,6 +666,38 @@ fn centerline_contact_roundoff_preserves_side_and_breach_normal() {
     );
 }
 #[test]
+fn symmetric_ram_axis_is_stable_across_heading_roundoff() {
+    use naval_sim::{
+        collisions::resolve_ship_collisions,
+        rules::TeamId,
+        vessel::{CompiledShip, Vessel},
+    };
+    let def = serde_json::from_str(include_str!("../../../public/models/fletcher.json")).unwrap();
+    let compiled = std::sync::Arc::new(CompiledShip::new(def).unwrap());
+    let ram = |heading| {
+        let mut actors = vec![
+            Vessel::new("a", TeamId::A, compiled.clone()),
+            Vessel::new("b", TeamId::B, compiled.clone()),
+        ];
+        actors[0].motion.speed = 12.0;
+        actors[1].motion.z = -112.7;
+        actors[1].motion.heading = heading;
+        actors[1].motion.speed = 12.0;
+        resolve_ship_collisions(&mut actors);
+        [
+            actors[0].motion.x,
+            actors[0].motion.sway_speed,
+            actors[0].motion.yaw_rate,
+        ]
+    };
+    let baseline = ram(std::f64::consts::PI);
+    for offset in [-1e-15, 1e-15] {
+        for (a, b) in ram(std::f64::consts::PI + offset).iter().zip(baseline) {
+            assert!((a - b).abs() < 1e-8);
+        }
+    }
+}
+#[test]
 fn fleet_collisions_and_grounding_match_reference() {
     use naval_sim::{
         collisions::resolve_ship_collisions,

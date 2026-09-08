@@ -212,9 +212,14 @@ fn contact(a: &Body, b: &Body) -> Option<Contact> {
             let positive = amax - bmin;
             let negative = bmax - amin;
             let overlap = positive.min(negative);
-            if overlap < depth {
+            // Preserve traversal order for numerically tied penetration depths.
+            if overlap < depth - 1e-9 {
                 depth = overlap;
-                let sign = if positive <= negative { 1.0 } else { -1.0 };
+                let sign = if positive <= negative + 1e-9 {
+                    1.0
+                } else {
+                    -1.0
+                };
                 normal = [axis[0] * sign, axis[1] * sign];
             }
         }
