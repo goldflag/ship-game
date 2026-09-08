@@ -40,6 +40,26 @@ try {
   await page.waitForFunction(()=>window.review?.result,undefined,{timeout:180000});
   if(process.env.CPU_PROFILE){const {profile}=await cdp.send('Profiler.stop');await writeFile(new URL(`${label}.cpuprofile`,output),JSON.stringify(profile));}
   const data=await page.evaluate(()=>({result:review.result,rows:review.rows,pipelines:window.pipelineSamples,worker:window.workerSamples}));
+  if (process.env.UPLOAD_PROFILE_AFTER) {
+    data.uploads = await page.evaluate(async () => {
+      const g = review.game, rows = new Map(), buffers = new Map();
+      const original = GPUQueue.prototype.writeBuffer;
+      GPUQueue.prototype.writeBuffer = function (buffer, offset, source, dataOffset, size) {
+        const start = performance.now();
+        const result = original.apply(this, arguments);
+        const row = rows.get(buffer.label) ?? { label: buffer.label, calls: 0, bytes: 0, ms: 0 };
+        row.calls++; row.ms += performance.now() - start;
+        row.bytes += size === undefined ? source.byteLength - (dataOffset ?? 0) * (source.BYTES_PER_ELEMENT ?? 1) : size * (source.BYTES_PER_ELEMENT ?? 1);
+        rows.set(buffer.label, row); buffers.set(buffer, (buffers.get(buffer) ?? 0) + 1);
+        return result;
+      };
+      g.paused = false;
+      try { for (let i = 0; i < 60; i++) await g.frame(await new Promise(requestAnimationFrame)); }
+      finally { g.paused = true; GPUQueue.prototype.writeBuffer = original; }
+      return { frames: 60, buffers: buffers.size, rows: [...rows.values()].sort((a, b) => b.ms - a.ms) };
+    });
+    console.log('Buffer uploads', JSON.stringify(data.uploads));
+  }
   if (process.env.GPU_PROFILE_AFTER) {
     data.gpu = await page.evaluate(async () => {
       const g = review.game, renderer = g.renderer;

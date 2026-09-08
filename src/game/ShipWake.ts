@@ -1,4 +1,4 @@
-import { Camera, Mesh, Vector3, type Node, type Object3D, type Scene } from 'three/webgpu';
+import { Camera, Mesh, Vector3, type Node, type Object3D, type Scene, type WebGPURenderer } from 'three/webgpu';
 import { max } from 'three/tsl';
 import { WaterSurfaceMaterial, type WaterSystem } from '../../vendor/threejs-water-pro/build/index.js';
 import { FleetWakeFoam, type WakeShip } from './FleetWakeFoam';
@@ -12,7 +12,7 @@ export class ShipWake {
   private readonly materials = new Set<WaterSurfaceMaterial>();
   private eventSequence = 0;
 
-  constructor(private readonly wake: WaterSystem['wake'], ship: Object3D, scene: Scene) {
+  constructor(private readonly wake: WaterSystem['wake'], ship: Object3D, scene: Scene, renderer?: WebGPURenderer) {
     // The default 100 m camera-centered field misses a 250 m hull in chase view.
     // Anchor a larger field to the ship so orbiting/zooming cannot erase its trail.
     this.anchor.position.set(ship.position.x, 1, ship.position.z);
@@ -25,7 +25,7 @@ export class ShipWake {
     wake.foamBreakThreshold = 0.09;
     wake.foamStrength = 1.2;
     wake.foamPersistence = Math.exp(-(1 / 60) / 9);
-    this.foam = new FleetWakeFoam(Math.min(wake.resolution, 256));
+    this.foam = new FleetWakeFoam(Math.min(wake.resolution, 256), renderer);
     const native = wake.getSampler();
     const sampler: ReturnType<WaterSystem['wake']['getSampler']> = {
       sample: (x, z) => native.sample(x, z),
@@ -85,6 +85,7 @@ export class ShipWake {
   }
 
   resetImpacts(): void { this.foam.resetImpacts(); this.eventSequence = 0; }
+  diagnostics() { return this.foam.diagnostics(); }
 
   reset(): void {
     this.foam.reset();

@@ -39,6 +39,15 @@ Game.prototype.frame = async function (time, warmingUp) {
   if (previous !== undefined) review.rows.push({ time: time - begun, interval: time - previous, work: performance.now() - before, tick: this.simulation.tick });
   previous = time;
   if (time - begun >= seconds * 1000) {
+    const materials = new Map();
+    this.scene.traverse(object => {
+      for (const material of Array.isArray(object.material) ? object.material : object.material ? [object.material] : []) {
+        const row = materials.get(material.id) ?? { id: material.id, type: material.type, name: material.name, objects: [] };
+        const name = object.name || object.parent?.name || object.type;
+        if (!row.objects.includes(name)) row.objects.push(name);
+        materials.set(material.id, row);
+      }
+    });
     const stats = rows => {
       const values = rows.map(r => r.interval).sort((a,b) => a-b);
       return { frames: rows.length, fps: rows.length * 1000 / rows.reduce((s,r)=>s+r.interval,0), p50: values[Math.floor(values.length*.5)], p95: values[Math.floor(values.length*.95)], p99: values[Math.floor(values.length*.99)], max: values.at(-1), over50: values.filter(v=>v>50).length, over100: values.filter(v=>v>100).length, work: rows.reduce((s,r)=>s+r.work,0)/rows.length };
@@ -46,7 +55,7 @@ Game.prototype.frame = async function (time, warmingUp) {
     review.result = {
       total: stats(review.rows),
       windows: Array.from({length: Math.ceil(seconds/10)}, (_,i)=>({start:i*10,...stats(review.rows.filter(r=>r.time>=i*10000 && r.time<(i+1)*10000))})),
-      tick: this.simulation.tick, elapsed: time-begun, roster, seed: this.simulation.seed,
+      tick: this.simulation.tick, startedAt: begun, elapsed: time-begun, roster, seed: this.simulation.seed,
       settings: { quality: this.settings.quality, resolution: this.settings.resolution },
       framebuffer: [this.renderer.domElement.width,this.renderer.domElement.height], backend: this.water.backend,
       diagnostics:this.diagnostics(), phases:review.phases, passes:renderProfile?.results,
@@ -54,6 +63,7 @@ Game.prototype.frame = async function (time, warmingUp) {
       activeShipViews:this.fleetViews.filter(v=>v.renderActive).length,
       submission:{...fleetBatchSubmissionStats(this.renderer.backend)},
       renderInfo:{...this.renderer.info.render}, hidden:document.hidden,
+      materials: [...materials.values()],
     };
     this.paused = true; this.scheduleFrame = () => {}; cancelAnimationFrame(this.raf); this.audio?.setScene(false,true);
   }

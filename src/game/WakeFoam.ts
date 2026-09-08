@@ -5,12 +5,19 @@ import { BISMARCK, type ShipState } from '../simulation/ship';
 type Motion = Pick<ShipState, 'x' | 'z' | 'heading' | 'speed'>;
 type WakeSample = Motion & { born: number; strength: number };
 type ImpactSample = { x: number; z: number; born: number; scale: number };
+export interface WakeStampTarget {
+  begin(centerX: number, centerZ: number): void;
+  stamp(x: number, z: number, rightX: number, rightZ: number, width: number, length: number, strength: number, ring: boolean): void;
+  clear(): void;
+}
 
 export const WAKE_EXTENT = 1536;
 const EXTENT = WAKE_EXTENT;
 const LIFETIME = 55;
 const SAMPLE_DISTANCE = 3;
 const UPDATE_INTERVAL = 1 / 20;
+/** Preparation estimate only; unusual motion can still grow the retained buffers. */
+export const wakeStampBudget = (speed: number) => Math.ceil(LIFETIME * speed / SAMPLE_DISTANCE + 2) * 5 + 64;
 const smooth = (value: number) => {
   const t = Math.max(0, Math.min(value, 1));
   return t * t * (3 - 2 * t);
@@ -33,7 +40,7 @@ export class WakeFoam {
   private elapsed = 0;
   private dirty = false;
 
-  constructor(private readonly resolution: number, private readonly hull: { length: number; beam: number; forwardSpeed: number } = { length: 250, beam: 36, forwardSpeed: BISMARCK.forwardSpeed }) {
+  constructor(private readonly resolution: number, private readonly hull: { length: number; beam: number; forwardSpeed: number } = { length: 250, beam: 36, forwardSpeed: BISMARCK.forwardSpeed }, private readonly stampTarget?: WakeStampTarget) {
     this.pixels = new Uint8Array(resolution * resolution);
     this.texture = new DataTexture(this.pixels, resolution, resolution, RedFormat);
     this.texture.minFilter = this.texture.magFilter = LinearFilter;
@@ -115,6 +122,7 @@ export class WakeFoam {
     this.previous = undefined;
     this.sampleDistance = 0;
     this.pixels.fill(0);
+    this.stampTarget?.clear();
     this.texture.needsUpdate = true;
     this.dirty = false;
   }
@@ -123,6 +131,7 @@ export class WakeFoam {
     const cell = EXTENT / this.resolution;
     this.origin.value.set(Math.round(state.x / cell) * cell, Math.round(state.z / cell) * cell);
     this.pixels.fill(0);
+    this.stampTarget?.begin(this.origin.value.x, this.origin.value.y);
     for (const impact of this.impacts) {
       const age = this.time.value - impact.born;
       const radius = (4 + age * 3.5) * impact.scale;
@@ -167,6 +176,7 @@ export class WakeFoam {
   private stamp(x: number, z: number, rightX: number, rightZ: number,
     width: number, length: number, strength: number, ring = false): void {
     if (strength < 0.015) return;
+    if (this.stampTarget) { this.stampTarget.stamp(x, z, rightX, rightZ, width, length, strength, ring); return; }
     const scale = this.resolution / EXTENT;
     const cx = (x - this.origin.value.x) * scale + this.resolution / 2 - 0.5;
     const cz = (z - this.origin.value.y) * scale + this.resolution / 2 - 0.5;

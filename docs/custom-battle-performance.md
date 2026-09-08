@@ -137,3 +137,72 @@ machine epsilons only for `joints[].maximumVertexTravel`, including each LOD.
 Model/source hashes, geometry counts, bounds and all other fields remain exact;
 retained assets and hashes were not rewritten. The normal `bun run build` passes
 with every ship and aircraft validator enabled.
+
+### GPU wake experiment
+
+The late-combat phase profile measured about 2.3 ms/frame in wake foam. The
+experimental WebGPU path retains the same CPU trail/impact samples and 20 Hz /
+5 Hz refresh rates, but paints max-coverage ellipses into an R8 render target.
+Footprint and vertex storage are retained and prepared for each fleet during
+loading. Other backends retain the CPU rasterizer.
+
+The dev-only `/scripts/diagnostics/wake-foam-gpu.html` compares GPU pixels against
+the CPU rasterizer and exposes `window.result.passed`. It covers aging turns,
+splash rings, buffer growth, a 30-ship atlas, distant refresh, zoom, pause,
+teleport, tile removal/reordering and reset. Maximum observed difference is one
+8-bit level; reset is exactly empty. Ship and distant in-game views were inspected.
+
+The first two-minute GPU-wake run averaged 53.1 FPS versus the earlier 50.7 FPS;
+late windows remained 38.6–51.5 FPS. Three frames exceeded 100 ms, with a 306 ms
+maximum, so stall behavior needs further verification. That run predates the
+retained footprint buffers. These results do not establish sustained 60 FPS.
+
+With retained footprint buffers, a subsequent 120-second run averaged 55.0 FPS,
+with late windows at 40.4–44.8 FPS, 118.3 seconds of simulation progress, and
+one frame over 100 ms (106.9 ms maximum). Six render pipelines were created
+around 78.5 seconds; the harness now records material IDs and scene object names
+to identify first-use compilation. `UPLOAD_PROFILE_AFTER=1` measures GPU buffer
+upload calls and bytes over 60 additional frames after the uninstrumented FPS
+sample. Those additional frames are diagnostic, not part of the FPS result.
+
+The flag solver now reuses each column's flutter value across all cloth rows,
+hoists shared wind calculations and prepares fixed link weights once. It retains
+the 120 Hz step, mesh resolution and six constraint iterations. A temporary
+old/new comparison produced exactly equal particle arrays over 12,000 frames
+covering calm, reversed, storm and changing winds/gravity. Six alternating V8
+microbenchmark pairs reduced solver time by about 14%; this is an isolated
+solver measurement, not an overall FPS gain. Cloth and rig behavior tests pass.
+
+The subsequent cloth run still averaged 55.0 FPS with a 111.1 ms maximum frame.
+Its material catalog identified the late pipelines as aircraft tracer tips,
+envelopes and cores. A GPU reproduction found that the first overflow page's
+WGSL differed only in process-wide `NodeBuffer_<id>` names. The pinned r185
+adapter retains NodeBuilder's shader-local names for instanced draws, allowing
+identical pages to reuse shader programs and pipelines with their own bindings.
+It leaves explicit names and other backends alone.
+
+Late upload instrumentation measured 7.13 MB/frame in matrix uniform buffers,
+plus 1.47 MB/frame in attributes. Native WebGPU aircraft now use versioned
+storage matrices and upload only live instances; the fallback keeps uniform
+matrices. The dev-only `/scripts/diagnostics/instance-matrices-gpu.html` compares
+both paths using real aircraft models, LOD changes, empty/repopulated batches,
+and 801 aircraft. `?stable=1` additionally enables stable buffer names. Pixel
+hashes matched exactly with and without the adapter, including 606 aircraft
+tracers. Tracer pipeline creation fell from six to one, with no new pipelines
+on crossing the 512-instance page boundary. Fleet growth and independent joint
+pose tests exercise both matrix representations.
+
+The final versioned-storage run averaged **57.3 FPS** over 120 seconds, with
+the final 50 seconds at **46.7–49.1 FPS**. Simulation advanced 118.05 seconds.
+There were no frames over 100 ms and the maximum was 55.6 ms. No render
+pipelines were created after the first second; total render/compute pipeline
+creation fell from 1,149 in the preceding cloth run to 404. Ship, close aircraft,
+distant and 24× views were inspected, and the final normal view remained intact.
+
+Storage matrices use explicit version updates rather than Three's unconditional
+dynamic-usage uploads. The GPU diagnostic verifies that a second render needs
+zero additional matrix uploads and still matches the reference pixels. Late
+instrumentation measured 12.2 KB/frame for aircraft matrices and 2.43 MB/frame
+for all buffer uploads, versus 8.63 MB/frame before these matrix changes.
+These runs still contradict sustained 60 FPS in busy combat. Full builds and
+the relevant cloth, aircraft, wake and instance behavior checks pass.

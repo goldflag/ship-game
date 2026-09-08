@@ -22,9 +22,9 @@ import { GAMEPLAY_AIRCRAFT } from '../ships/blueprint';
 const BATCH_CAPACITY = 768;
 type AircraftBatch = THREE.InstancedMesh<THREE.InstancedBufferGeometry>;
 type Joint = { object: THREE.Object3D; id: string; rotation: THREE.Euler };
-type Model = { root: THREE.Group; joints: Joint[]; meshes: { source: THREE.Mesh; batches: AircraftBatch[] }[]; count: number; wingspan: number; radius: number };
+type Model = { root: THREE.Group; joints: Joint[]; meshes: { source: THREE.Mesh; batches: AircraftBatch[] }[]; count: number; wingspan: number; radius: number; storageMatrices: boolean };
 
-function aircraftBatch(source: THREE.Mesh, name: string): AircraftBatch {
+function aircraftBatch(source: THREE.Mesh, name: string, storageMatrices: boolean): AircraftBatch {
   // Three sizes the shader's matrix array from mesh.count on its first draw.
   // Keep that capacity fixed; InstancedBufferGeometry supplies the live draw
   // count so later launches fit without drawing hundreds of unused airframes.
@@ -34,8 +34,17 @@ function aircraftBatch(source: THREE.Mesh, name: string): AircraftBatch {
   Object.assign(geometry, { index, attributes, morphAttributes, morphTargetsRelative, groups, drawRange, boundingBox, boundingSphere });
   geometry.instanceCount = 0;
   const batch = new THREE.InstancedMesh(geometry, source.material, BATCH_CAPACITY);
+  // Uniform-backed instancing uploads the entire reserved matrix array for
+  // each pass. Native WebGPU storage shares a versioned, live-range upload
+  // between the water capture and final draw.
+  if (storageMatrices) batch.instanceMatrix = new THREE.StorageInstancedBufferAttribute(batch.instanceMatrix.array, 16);
   batch.name = name;
-  batch.visible = false; batch.frustumCulled = false; batch.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+  batch.instanceMatrix.name = `${name} matrices`;
+  // DynamicDrawUsage bypasses version checks on every storage binding, so the
+  // second pass would upload the full array after the first consumed its range.
+  // Static usage still accepts needsUpdate and uses the same writable GPU buffer.
+  batch.instanceMatrix.setUsage(storageMatrices ? THREE.StaticDrawUsage : THREE.DynamicDrawUsage);
+  batch.visible = false; batch.frustumCulled = false;
   return batch;
 }
 /** Shared authored geometry/materials, instanced per rigid component at each LOD. */
@@ -74,14 +83,14 @@ export class AircraftView {
     }
   }
   resize(height: number) { this.height = Math.max(1, height); this.contacts.resize(height); }
-  load(modelIds: readonly string[] = Object.keys(GAMEPLAY_AIRCRAFT)): Promise<void> {
+  load(modelIds: readonly string[] = Object.keys(GAMEPLAY_AIRCRAFT), storageMatrices = false): Promise<void> {
     const ids = [...new Set(modelIds)];
     if (ids.some(id => !Object.hasOwn(GAMEPLAY_AIRCRAFT, id))) return Promise.reject(new Error('Unsupported combat aircraft'));
     // A later fleet can introduce another air group. Serialize additions so
     // overlapping requests share existing models and disposal can await them.
-    return this.loadPromise = (this.loadPromise ?? Promise.resolve()).catch(() => {}).then(() => this.loadModels(ids));
+    return this.loadPromise = (this.loadPromise ?? Promise.resolve()).catch(() => {}).then(() => this.loadModels(ids, storageMatrices));
   }
-  private async loadModels(ids: readonly string[]) {
+  private async loadModels(ids: readonly string[], storageMatrices: boolean) {
     const previous = new Set(this.models.keys());
     const palette = new ShipMaterialPalette();
     const results = await Promise.allSettled(ids.flatMap(id => [0, 1, 2].filter(lod => !previous.has(`${id}/${lod}`)).map(async lod => {
@@ -91,14 +100,14 @@ export class AircraftView {
       // landing gear and sockets while rigid paint surfaces share a draw.
       palette.apply(root); batchShipModel(root);
       const bounds = new THREE.Box3().setFromObject(root);
-      const model: Model = { root, joints: [], meshes: [], count: 0, wingspan: bounds.max.x - bounds.min.x,
+      const model: Model = { root, joints: [], meshes: [], count: 0, storageMatrices, wingspan: bounds.max.x - bounds.min.x,
         radius: Math.hypot(...(['x', 'y', 'z'] as const).map(axis => Math.max(Math.abs(bounds.min[axis]), Math.abs(bounds.max[axis])))) + 2 };
       root.traverse(object => {
         const nodeId = object.userData.nodeId as string | undefined;
         if (nodeId) model.joints.push({ object, id: nodeId, rotation: object.rotation.clone() });
         if (!(object as THREE.Mesh).isMesh) return;
         const source = object as THREE.Mesh;
-        const batch = aircraftBatch(source, `Aircraft model ${id}/${lod}`);
+        const batch = aircraftBatch(source, `Aircraft model ${id}/${lod}`, storageMatrices);
         this.root.add(batch);
         const batches = [batch];
         model.meshes.push({ source, batches });
@@ -162,7 +171,7 @@ export class AircraftView {
       const model = this.models.get(`${plane.modelId}/${lod}`);
       if (!model) continue;
       for (const { source, batches } of model.meshes) if (model.count >= batches.length * BATCH_CAPACITY) {
-        const batch = aircraftBatch(source, batches[0].name);
+        const batch = aircraftBatch(source, batches[0].name, model.storageMatrices);
         this.root.add(batch); batches.push(batch);
       }
       this.transform.compose(this.position, this.quaternion, this.unit);
@@ -195,7 +204,11 @@ export class AircraftView {
     for (const model of this.models.values()) for (const { batches } of model.meshes) batches.forEach((batch, i) => {
       batch.geometry.instanceCount = Math.max(0, Math.min(BATCH_CAPACITY, model.count - i * BATCH_CAPACITY));
       batch.visible = batch.geometry.instanceCount > 0;
-      if (batch.visible) batch.instanceMatrix.needsUpdate = true;
+      if (batch.visible) {
+        batch.instanceMatrix.clearUpdateRanges();
+        batch.instanceMatrix.addUpdateRange(0, batch.geometry.instanceCount * 16);
+        batch.instanceMatrix.needsUpdate = true;
+      }
     });
     this.contacts.finish();
     for (const bomb of sim.shells) {
