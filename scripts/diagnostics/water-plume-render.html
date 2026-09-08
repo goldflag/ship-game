@@ -1,6 +1,7 @@
 <!doctype html>
 <meta charset="utf-8">
 <title>Water plume GPU regression</title>
+<style>figure { display: inline-block; margin: 8px; } figcaption { font: 14px sans-serif; } #result { max-height: 180px; overflow: auto; }</style>
 <pre id="result">Checking water rendering…</pre>
 <script type="module">
 import * as THREE from 'three/webgpu';
@@ -63,6 +64,13 @@ async function check(forceWebGL, reversedDepthBuffer) {
     result.pass = result.visiblePixels > 300 && result.pausedPixels === 0 && result.occludedPixels === 0
       && saturatedSheets > singleSheets * 5 && result.saturatedPixels > result.visiblePixels
       && result.resetPixels === 0 && result.restartedPixels > 300 && result.nightToDayBrightness < .7 && errors.length === 0;
+    for (const [stage, image] of [['Single splash', single], ['Overlapping salvos', saturated], ['Night', night]]) {
+      const figure = document.createElement('figure'), caption = document.createElement('figcaption');
+      const preview = document.createElement('canvas'); preview.width = preview.height = 384;
+      preview.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(image), 384, 384), 0, 0);
+      caption.textContent = `${result.backend}, ${reversedDepthBuffer ? 'reversed' : 'normal'} depth: ${stage}`;
+      figure.append(caption, preview); document.body.append(figure);
+    }
     return result;
   } finally { plumes.dispose(); map.dispose(); renderer.dispose(); }
 }

@@ -90,6 +90,30 @@ test('overlapping salvos stay bounded and reset leaves no rendered geometry', ()
   plumes.dispose(); map.dispose();
 });
 
+test('reused sheet slots take the new splash shape, scale and direction after overwrite or reset', () => {
+  const map = effectTexture('water'), camera = new Camera();
+  const random = (seed: number) => () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296; };
+  try {
+    for (const reset of [false, true]) {
+      const reused = new WaterPlumes(24, map), fresh = new WaterPlumes(24, map);
+      try {
+        reused.emit(new Vector3(80, 3, 40), 2.4, new Vector3(1, -.1, 0).normalize(), random(41));
+        reused.advance(1.5); reused.publish(camera);
+        if (reset) reused.reset();
+        for (const pool of [reused, fresh]) {
+          pool.emit(new Vector3(-20, -2, 15), .6, new Vector3(-.3, -1, .7).normalize(), random(832));
+          pool.setSun(new Vector3(.4, .3, -.7).normalize());
+          pool.advance(.9); pool.publish(camera);
+        }
+        expect(reused.count).toBeGreaterThan(0);
+        expect(reused.mesh.geometry.drawRange).toEqual(fresh.mesh.geometry.drawRange);
+        for (const name of ['position', 'color', 'waterOpacity'])
+          expect(reused.mesh.geometry.getAttribute(name).array).toEqual(fresh.mesh.geometry.getAttribute(name).array);
+      } finally { reused.dispose(); fresh.dispose(); }
+    }
+  } finally { map.dispose(); }
+});
+
 test('offscreen sheets keep aging and distant views retain the original streaks', () => {
   const map = effectTexture('water'), plumes = new WaterPlumes(48, map);
   const camera = new PerspectiveCamera(52, 16 / 9, .5, 60000);

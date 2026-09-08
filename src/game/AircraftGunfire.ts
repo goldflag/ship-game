@@ -2,6 +2,7 @@ import type { BattleSession } from './session/BattleSession';
 import * as THREE from 'three/webgpu';
 import { attribute } from 'three/tsl';
 import type { CombatEvent } from '../simulation/combat';
+import type { Vec3 } from '../ships/blueprint';
 import { FIXED_DT } from '../simulation/ship';
 import { ballisticStep } from '../simulation/ballistics';
 import { effectTexture } from './EffectParticles';
@@ -11,6 +12,16 @@ const CAPACITY = 512;
 const UP = new THREE.Vector3(0, 1, 0);
 const RIGHT = new THREE.Vector3(1, 0, 0);
 const AA_SIDES = [0], FIGHTER_SIDES = [-1, 1];
+interface TracerBurst {
+  tick: number;
+  aa: boolean;
+  airburst: boolean;
+  life: number;
+  drag: number;
+  caliberScale: number;
+  exposure: number;
+  shots: { delay: number; origin: Vec3; velocity: Vec3 }[];
+}
 /** Short moving exposures of a burst; event snapshots keep shots independent of later target motion. */
 export class AircraftGunfire {
   readonly root = new THREE.Group();
@@ -37,7 +48,7 @@ export class AircraftGunfire {
   private readonly projection = new THREE.Matrix4();
   private readonly bounds = new THREE.Sphere();
   private count = 0;
-  private readonly active = new Map<number, CombatEvent>();
+  private readonly active = new Map<number, TracerBurst>();
   private sequence = 0;
   private damage?: BattleSession['player']['damage'];
   constructor(private readonly cullOffscreen = false) {
@@ -59,6 +70,36 @@ export class AircraftGunfire {
     mesh.setMatrixAt(index, this.matrix.compose(this.position, this.orientation, this.scale));
     mesh.setScalarAttributeAt('tracerOpacity', index, opacity);
   }
+  private prepare(event: CombatEvent): TracerBurst {
+    const data = event.aircraft!, attitude = data.attitude;
+    const aa = data.tracerSpeed !== undefined, speed = data.tracerSpeed ?? 720;
+    this.pose.setFromEuler(this.attitude.set(attitude?.pitch ?? 0, -(attitude?.heading ?? 0), attitude?.bank ?? 0, 'YXZ'));
+    this.eventOrigin.fromArray(event.position);
+    const range = this.direction.fromArray(data.target!).sub(this.eventOrigin).length();
+    if (data.direction) this.direction.fromArray(data.direction); else this.direction.normalize();
+    // Light AA keeps flying beyond the sampled target, then burns out gradually.
+    // Heavy AA terminates exactly at the CPU's sampled burst time and position.
+    const life = data.airburst?.flightTime ?? (aa ? Math.max(3, range / speed + 1) : Math.min(.95, (range + 100) / speed));
+    const caliber = data.caliberM ?? data.airburst?.caliberM ?? .02;
+    const caliberScale = aa ? Math.sqrt(caliber / .105) : 1;
+    const shots: TracerBurst['shots'] = [];
+    // Event launch snapshots are immutable. Compute each delayed muzzle pose,
+    // inherited velocity and fixed dispersion once, retaining double precision.
+    for (let round = 0; round < (aa ? 1 : 3); round++) for (const side of aa ? AA_SIDES : FIGHTER_SIDES) {
+      const delay = aa ? 0 : round * .095 + (side > 0 ? .018 : 0);
+      this.origin.set(side * 2.4, aa ? 0 : -.25, aa ? 0 : -1.15).applyQuaternion(this.pose).add(this.eventOrigin);
+      if (data.velocity) this.velocity.fromArray(data.velocity); else this.velocity.set(0, 0, 0);
+      this.origin.addScaledVector(this.velocity, delay);
+      this.velocity.addScaledVector(this.direction, speed);
+      if (!aa) {
+        this.velocity.x += Math.sin(event.sequence * 7 + round * 3 + side) * 1.4;
+        this.velocity.y += Math.cos(event.sequence * 3 + round + side) * 1.1;
+      }
+      shots.push({ delay, origin: this.origin.toArray(), velocity: this.velocity.toArray() });
+    }
+    return { tick: event.tick, aa, airburst: !!data.airburst, life, drag: data.dragPerSecond ?? 0, caliberScale,
+      exposure: aa ? .022 * THREE.MathUtils.clamp(caliberScale, .55, 1.2) : .022, shots };
+  }
   update(sim: BattleSession, camera: THREE.Camera) {
     let count = 0, flashes = 0;
     const cull = this.cullOffscreen && (camera as THREE.PerspectiveCamera).isPerspectiveCamera;
@@ -69,50 +110,30 @@ export class AircraftGunfire {
     for (const event of sim.events) {
       if (event.sequence <= this.sequence) continue;
       this.sequence = event.sequence;
-      if (event.kind === 'aircraft-fire' && event.aircraft?.target) this.active.set(event.sequence, event);
+      if (event.kind === 'aircraft-fire' && event.aircraft?.target) this.active.set(event.sequence, this.prepare(event));
     }
-    for (const [id, event] of this.active) {
-      const age = now - event.tick * FIXED_DT;
-      const data = event.aircraft!, attitude = data.attitude;
-      const aa = data.tracerSpeed !== undefined, speed = data.tracerSpeed ?? 720;
-      this.pose.setFromEuler(this.attitude.set(attitude?.pitch ?? 0, -(attitude?.heading ?? 0), attitude?.bank ?? 0, 'YXZ'));
-      this.eventOrigin.fromArray(event.position);
-      const range = this.direction.fromArray(data.target!).sub(this.eventOrigin).length();
-      if (data.direction) this.direction.fromArray(data.direction); else this.direction.normalize();
-      // Light AA keeps flying beyond the sampled target, then burns out gradually.
-      // Heavy AA terminates exactly at the CPU's sampled burst time and position.
-      const life = data.airburst?.flightTime ?? (aa ? Math.max(3, range / speed + 1) : Math.min(.95, (range + 100) / speed));
+    for (const [id, burst] of this.active) {
+      const age = now - burst.tick * FIXED_DT;
+      const { aa, life, caliberScale, exposure } = burst;
       if (age > life + (aa ? 0 : .208)) { this.active.delete(id); continue; }
       if (age < 0) continue;
-      for (let round = 0; round < (aa ? 1 : 3); round++) for (const side of aa ? AA_SIDES : FIGHTER_SIDES) {
-        const delay = aa ? 0 : round * .095 + (side > 0 ? .018 : 0), flight = age - delay;
+      for (const launch of burst.shots) {
+        const flight = age - launch.delay;
         if (flight < 0 || flight > life) continue;
-        this.origin.set(side * 2.4, aa ? 0 : -.25, aa ? 0 : -1.15).applyQuaternion(this.pose).add(this.eventOrigin);
-        if (data.velocity) this.velocity.fromArray(data.velocity); else this.velocity.set(0, 0, 0);
-        this.origin.addScaledVector(this.velocity, delay);
-        this.velocity.addScaledVector(this.direction, speed);
-        // Tiny fixed dispersion separates the streams without homing or random frame flicker.
-        if (!aa) {
-          this.velocity.x += Math.sin(event.sequence * 7 + round * 3 + side) * 1.4;
-          this.velocity.y += Math.cos(event.sequence * 3 + round + side) * 1.1;
-        }
         if (flight < .038) {
-          this.position.copy(this.origin).addScaledVector(this.velocity, flight * .08);
+          this.position.fromArray(launch.origin).addScaledVector(this.velocity.fromArray(launch.velocity), flight * .08);
           this.orientation.copy(camera.quaternion); this.scale.setScalar(.7);
           if (!cull || this.frustum.intersectsSphere(this.bounds.set(this.position, .5))) this.write(this.muzzles, flashes++, 1 - flight / .038);
         }
-        const shot = ballisticStep(this.origin.toArray(), this.velocity.toArray(), flight, data.dragPerSecond ?? 0);
+        const shot = ballisticStep(launch.origin, launch.velocity, flight, burst.drag);
         this.position.fromArray(shot.position);
         this.velocity.fromArray(shot.velocity);
         if (this.position.y < 0) continue;
-        const opacity = data.airburst ? 1 : THREE.MathUtils.smoothstep(life - flight, 0, aa ? .65 : .12);
+        const opacity = burst.airburst ? 1 : THREE.MathUtils.smoothstep(life - flight, 0, aa ? .65 : .12);
         this.normal.copy(this.position).applyMatrix4(camera.matrixWorldInverse);
         const depth = camera.projectionMatrix.elements[11] === -1 ? Math.max(.1, -this.normal.z) : 1;
         const viewHeight = 2 * depth / camera.projectionMatrix.elements[5];
-        const caliber = data.caliberM ?? data.airburst?.caliberM ?? .02;
-        const caliberScale = aa ? Math.sqrt(caliber / .105) : 1;
         const width = Math.max(.12, Math.min(2.4, viewHeight * .0012)) * caliberScale * (aa ? .95 : 1);
-        const exposure = aa ? .022 * THREE.MathUtils.clamp(caliberScale, .55, 1.2) : .022;
         const length = this.velocity.length() * Math.min(exposure, flight);
         // The sphere around the tip encloses the entire trailing ribbon and
         // its billboard tip. Keep the event alive so camera re-entry samples

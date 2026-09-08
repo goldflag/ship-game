@@ -38,6 +38,36 @@ test('AA tracer reaches its CPU airburst endpoint with drag and inherited ship v
   } finally { gunfire.dispose(); }
 });
 
+test('delayed fighter muzzles retain launch motion after history eviction and refresh on battle reset', () => {
+  const sim = new CombatSimulation(shipPreset('enterprise-cv6')), gunfire = new AircraftGunfire();
+  const camera = new PerspectiveCamera(52, 1, .5, 60000);
+  const tips = gunfire.root.getObjectByName('Aircraft tracer tips') as InstancedMesh;
+  const emit = (x: number) => sim.events.push({ sequence: 1, tick: 0, kind: 'aircraft-fire', shipId: 'player', message: 'Fighter burst',
+    position: [x, 300, -50], aircraft: { id: 'fighter', target: [x + 500, 300, -50], direction: [1, 0, 0], velocity: [50, 5, -20],
+      attitude: { heading: Math.PI / 2, pitch: 0, bank: 0 }, dragPerSecond: .04 } });
+  try {
+    for (const x of [100, 800]) {
+      sim.reset(); emit(x);
+      for (const tick of [3, 8, 16]) {
+        sim.tick = tick; gunfire.update(sim, camera);
+        const age = (tick - 1 + sim.interpolationAlpha) / 60;
+        let count = 0;
+        for (let round = 0; round < 3; round++) for (const side of [-1, 1]) {
+          const delay = round * .095 + (side > 0 ? .018 : 0), flight = age - delay;
+          if (flight < 0) continue;
+          // A 90-degree heading rotates the two wing muzzles onto world Z.
+          const origin: [number, number, number] = [x + 1.15 + 50 * delay, 299.75 + 5 * delay, -50 + side * 2.4 - 20 * delay];
+          const velocity: [number, number, number] = [770 + Math.sin(7 + round * 3 + side) * 1.4, 5 + Math.cos(3 + round + side) * 1.1, -20];
+          const expected = ballisticStep(origin, velocity, flight, .04).position;
+          expect(at(tips, count++).position.distanceTo(new Vector3(...expected))).toBeLessThan(.001);
+        }
+        expect(gunfire.diagnostics()).toBe(count);
+        sim.events.length = 0;
+      }
+    }
+  } finally { gunfire.dispose(); }
+});
+
 test('light AA stays visible beyond a nearby aim point and survives combat history eviction', () => {
   const sim = new CombatSimulation(shipPreset('bismarck')), gunfire = new AircraftGunfire(), camera = new PerspectiveCamera();
   try {

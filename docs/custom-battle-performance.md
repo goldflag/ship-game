@@ -400,3 +400,45 @@ pair does not demonstrate an FPS gain from culling; its isolated preparation and
 instance-count savings are established. The build and 62 effect, frame-loop and battle tests
 passed; the display-rate determinism test required a retry with a longer timeout
 after exceeding its default five-second limit. Sustained 60 FPS remains unproven.
+
+## Tracer and splash launch caches
+
+Aircraft gunfire now prepares each event's muzzle offsets, inherited velocity,
+fixed dispersion, lifetime and caliber scaling once. Expiration and battle resets
+discard the cached bursts; frame updates still use the shared ballistic solution
+at the current interpolated simulation time. The cache also removes temporary
+launch-position/velocity arrays from each frame.
+
+Against `57ce706e`, all tracer matrices, opacity buffers, counts and visibility
+matched exactly over 960 replay frames. Coverage includes delayed fighter rounds,
+varied attitudes and drag, future events, history eviction, battle resets,
+perspective/orthographic cameras, zoom and offscreen culling. The replay peaked at
+1,152 tracers. With 600 retained firing events, 400 dense tracer updates fell from
+193-201 ms to 124-129 ms with culling enabled, about 35%. Existing WebGPU checks
+also passed for 6/600/0/606 tracers, including forced empty warmup and repopulation.
+
+Water sheets retain their seeded folds and width profiles in double precision.
+Their common row coordinates and color profiles are calculated once; each frame
+still computes the original gravity, travel, opening, breakup and lighting.
+All position, color and opacity buffers matched exactly over 1,200 frames with
+changing cameras, sun directions, scales, impact directions, emissions and resets.
+For 384 sheets, 500 publications fell from 244-254 ms to 84-86 ms in the first four
+alternating samples. Later samples slowed on both implementations but retained
+61-66% savings. WebGPU and WebGL checks passed with normal and reversed depth,
+including occlusion, pause, reset, repopulation and night lighting. The existing
+water-plume diagnostic now presents its captured images for visual inspection.
+
+The tracer-only production candidate averaged 62.12 FPS over 120 seconds, with
+late windows at 50.1-53.6 FPS, no frames over 100 ms and a 55.6 ms maximum. It
+advanced 119.83 seconds of simulation. The unchanged control averaged 47.64 FPS
+but advanced only 82.75 seconds of simulation, with late windows at 25.1-33.3 FPS
+and two frames over 100 ms. That large control slowdown prevents attributing the
+full paired difference to the cache. Component savings are established;
+sustained 60 FPS remains unproven.
+
+With both caches, the next production run averaged 60.81 FPS, advanced 119.73
+seconds of simulation, and recorded no frames over 100 ms (55.6 ms maximum).
+Late windows remained at 49.5-52.5 FPS. Ship, aircraft, distant and zoom captures
+were inspected at High/1080p; muzzle error remained below 2.75 mm. This still
+does not establish sustained 60 FPS or a reliable overall FPS gain from the
+component changes.
