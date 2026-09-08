@@ -87,3 +87,7 @@
 @media (pointer:coarse) {
   .air-selected-orders button,.air-map-header button { min-height:36px; }
 }
+
+.air-selection-box { fill:color-mix(in srgb, var(--fleet-gold) 10%, transparent); stroke:var(--fleet-gold); stroke-width:1; pointer-events:none; }
+.air-selection-hint { position:absolute; top:100%; left:50%; transform:translateX(-50%); width:max-content; max-width:calc(100cqw - 24px); margin:6px 0 0; font-size:10px; text-align:center; color:var(--fleet-active); }
+@container hud (max-width:600px) { .air-selection-hint { left:0; transform:none; text-align:left; } }

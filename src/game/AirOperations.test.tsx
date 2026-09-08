@@ -48,10 +48,13 @@ test('selected route points toward a distant target through the zoom level where
   const camera = new PerspectiveCamera(52, 1600 / 900, 1, 60000);
   const battlefield = new BattlefieldCamera(camera);
   const game = Object.assign(Object.create(Game.prototype), { camera, hudScale: 1, host: { clientWidth: 1600, clientHeight: 900 } }) as Game;
-  for (const radius of [8000, 4000, 2000, 1000, 600]) {
+  for (const radius of [8000, 4000, 2000, 1000, 600, 300]) {
     battlefield.view.radius = radius; battlefield.update();
     const html = renderToStaticMarkup(<AirOperations data={{ ship: simulation.ship, order: 1, camera: 'Chase', trail: [], fps: 60, backend: 'test', airOperationsOpen: true, selectedFlightId: flight.id, combat }} game={game} bindings={defaultKeybindings()}/>);
     const path = html.match(/class="air-route"[^>]* d="([^"]*)"/)![1];
+    // At the closer limit this elevated route is entirely outside the view;
+    // keep it clipped rather than reflecting it back onto the map.
+    if (radius === 300) { expect(path).toBe(''); continue; }
     const [x1, y1, x2, y2] = path.match(/-?\d+(?:\.\d+)?(?:e[+-]?\d+)?/g)!.map(Number);
     expect(x2).toBeGreaterThan(x1);
     expect(y2).toBeGreaterThan(y1);
@@ -195,4 +198,34 @@ test('closing the carrier map restores the chosen weather visibility', () => {
     game.setAirOperationsOpen(false);
     expect(water.fog).toEqual(authored);
   }
+});
+
+test('additive squadron selection toggles membership, replaces groups and rejects foreign IDs', () => {
+  const simulation = new CombatSimulation(shipPreset('enterprise-cv6'));
+  const game = Object.assign(Object.create(Game.prototype), { simulation }) as Game;
+  const [first, second, third] = squadronFlights(simulation.player);
+  game.selectFlight(first.id);
+  game.selectFlight(second.id, true);
+  expect(game.selectedFlightIds).toEqual([first.id, second.id]);
+  game.selectFlight(first.id, true);
+  expect(game.selectedFlightIds).toEqual([second.id]);
+  game.selectFlights([first.id, first.id, second.id, 'enemy-flight']);
+  expect(game.selectedFlightIds).toEqual([first.id, second.id]);
+  game.selectFlight(second.id);
+  expect(game.selectedFlightIds).toEqual([second.id]);
+  game.selectFlight(third.id, true);
+  game.selectedFlightId = undefined;
+  expect(game.selectedFlightIds).toEqual([]);
+});
+
+test('multiple selected squadrons highlight cards and manifest rows and expose both roles', () => {
+  const sim = new CombatSimulation(shipPreset('enterprise-cv6'));
+  const combat = sim.telemetry('main', [0, 0, -5000]);
+  const fighter = combat.airWing!.groups.find(f => f.role === 'fighter')!;
+  const bomber = combat.airWing!.groups.find(f => f.role === 'dive-bomber')!;
+  const html = renderToStaticMarkup(<AirOperations data={{ ship: sim.ship, order: 1, camera: 'Chase', trail: [], fps: 60, backend: 'test', airOperationsOpen: true, selectedFlightIds: [fighter.id, bomber.id], combat }} game={null} bindings={defaultKeybindings()}/>);
+  expect(html.match(/aria-pressed="true"/g)).toHaveLength(4);
+  expect(html).toContain('2 selected');
+  expect(html).toContain('>Strike<');
+  expect(html).toContain('>Defend<');
 });
