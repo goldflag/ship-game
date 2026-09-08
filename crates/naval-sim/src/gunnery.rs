@@ -7,6 +7,7 @@ use crate::{
     geometry::*,
     impact::{DamageEvent, ShellEffect},
     machinery::{electrical_power, equipment_condition, mount_support},
+    mount_frames::update_mount_carrier,
     shell::Shell,
     vessel::{Controller, Vessel},
     weapons::*,
@@ -91,6 +92,7 @@ pub fn operate(
     let lane = target.is_some_and(|t| bots::clear_firing_lane(actor, t, ctx.actors));
     let velocity = actor.motion.velocity();
     for (i, m) in def.mounts.iter().enumerate() {
+        update_mount_carrier(def, i, &mut actor.mounts);
         if actor.damage.stability.combat_lost
             || m.magazine_id.as_ref().is_some_and(|id| {
                 def.modules
@@ -139,6 +141,7 @@ pub fn operate(
                 velocity,
                 power,
                 &compiled.obstructions,
+                &actor.mounts,
             );
             actor.mounts[i] = state;
             continue;
@@ -191,6 +194,7 @@ pub fn operate(
             velocity,
             power,
             &compiled.obstructions,
+            &actor.mounts,
         );
         if !actor.damage.sunk && fire && aligned && state.status == "ready" {
             if actor.controller == Controller::Bot
@@ -217,10 +221,7 @@ pub fn operate(
                 }
             );
             for barrel in 0..barrels {
-                let position = local_to_world(
-                    muzzle_local(m, state.train, state.elevation, barrel),
-                    actor.motion.pose(),
-                );
+                let position = local_to_world(muzzle_local(m, &state, barrel), actor.motion.pose());
                 let shot = *ctx.dispersion;
                 *ctx.dispersion = ctx.dispersion.wrapping_add(1);
                 let direction = dispersed_direction(

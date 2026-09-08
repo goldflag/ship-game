@@ -12,7 +12,8 @@ import type { Ammunition, APProjectile, Armor, FloodConnection, HEProjectile, Sh
 import type { ShipState } from './ship';
 import { plateHit, plateResponse, samePlateSeam } from './protection';
 import type { MountState } from './weapons';
-import { add, clamp, contains, length, localToWorld, normalize, radians, rotate, scale, segmentBox, sub, worldToLocal } from './geometry';
+import { mountFrame } from './mountFrames';
+import { add, clamp, contains, length, localToWorld, normalize, rotate, scale, segmentBox, sub, worldToLocal } from './geometry';
 
 export interface Breach { position: Vec3; areaM2: number; radiusM: number; shellId: number; normal?: Vec3; footprintAreaM2?: number; initialAreaM2?: number; }
 export interface CompartmentState { id: string; waterM3: number; breachAreaM2: number; breaches: Breach[]; }
@@ -137,7 +138,7 @@ export function nearbyContacts(originWorld: Vec3, radius: number, actor: Combata
   const origin = worldToLocal(originWorld, actor.motion), trains = actor.mounts.map(m => m.train);
   const result: ContactCandidates = { armor: [], modules: [], connections: [], mounts: [], trains };
   const near = (point: Vec3, volume: { center: Vec3; size: Vec3 }) => point.reduce((sum, n, i) => sum + Math.max(0, Math.abs(n - volume.center[i]) - volume.size[i] / 2) ** 2, 0) <= (radius + 1e-5) ** 2;
-  const mountOrigins = def.mounts.map((m, i) => worldToLocal(origin, { x: m.position[0], y: m.position[1], z: m.position[2], heading: radians(m.bearingDeg) + trains[i], roll: 0, pitch: 0 }));
+  const mountOrigins = def.mounts.map((_, i) => worldToLocal(origin, mountFrame(def, i, trains)));
   const plated = new Set<string>();
   def.armor.forEach((a, i) => {
     if (a.plate?.mountId) plated.add(a.plate.mountId);
@@ -199,8 +200,7 @@ export function shipContacts(shell: Shell, fromWorld: Vec3, toWorld: Vec3, actor
   });
   eachCandidate(def.mounts, candidates?.mounts, (m, index) => {
     if (!candidates && def.armor.some(a => a.plate?.mountId === m.id)) return;
-    const yaw = radians(m.bearingDeg) + actor.mounts[index].train;
-    const mountPose = { x: m.position[0], y: m.position[1], z: m.position[2], heading: yaw, roll: 0, pitch: 0 };
+    const mountPose = mountFrame(def, index, trains);
     const a = worldToLocal(from, mountPose), b = worldToLocal(to, mountPose), w = m.weapon;
     const box = { center: [0, w.gunhouseSize[2] / 2, 0] as Vec3, size: [w.gunhouseSize[1], w.gunhouseSize[2], w.gunhouseSize[0]] as Vec3 };
     const hit = segmentBox(a, b, box);
@@ -276,7 +276,7 @@ export function resolveShipContact(shell: Shell, hit: ShipContact, actor: Combat
       if (!(hit.kind === 'mount' || hit.kind === 'armor') || evidence.outcome === 'backing') return;
       const mountId = hit.kind === 'mount' ? def.mounts[hit.index].id : contactArmor(def, hit).plate?.mountId;
       const i = def.mounts.findIndex(m => m.id === mountId), mount = def.mounts[i];
-      const pose = mount && { x: mount.position[0], y: mount.position[1], z: mount.position[2], heading: radians(mount.bearingDeg) + actor.mounts[i].train, roll: 0, pitch: 0 };
+      const pose = mount && mountFrame(def, i, actor.mounts.map(m => m.train));
       return { position: pose ? worldToLocal(hit.point, pose) : [...hit.point],
         normal: pose ? worldToLocal(hit.normal, { ...pose, x: 0, y: 0, z: 0 }) : [...hit.normal],
         direction: pose ? worldToLocal(direction, { ...pose, x: 0, y: 0, z: 0 }) : [...direction], mountId,
@@ -317,7 +317,7 @@ export function resolveShipContact(shell: Shell, hit: ShipContact, actor: Combat
         // makes fresh blast rays pay that armor in both directions.
         const origin = add(hit.point, scale(direction, -1e-4));
         const module=hit.kind==='module'?def.modules[hit.index]:undefined, pose=module&&equipmentPose(actor,def,module);
-        const point = pose ? worldToLocal(origin,pose) : mount ? worldToLocal(origin, { x: mount.position[0], y: mount.position[1], z: mount.position[2], heading: radians(mount.bearingDeg) + actor.mounts[index].train, roll: 0, pitch: 0 }) : origin;
+        const point = pose ? worldToLocal(origin,pose) : mount ? worldToLocal(origin, mountFrame(def, index, actor.mounts.map(m => m.train))) : origin;
         shell.lodged = { shipId: actor.motion.id, position: point, mountId, moduleId:module?.id };
       }
       evidence.outcome = kind; evidence.terminal = !shell.lodged;

@@ -35,7 +35,7 @@ pub fn cross(a: Vec3, b: Vec3) -> Vec3 {
 pub fn wrap_angle(a: f64) -> f64 {
     (a + std::f64::consts::PI).rem_euclid(std::f64::consts::TAU) - std::f64::consts::PI
 }
-#[derive(Clone, Copy, Debug, Default, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct Pose {
     pub x: f64,
     pub y: f64,

@@ -1,5 +1,6 @@
 import { mountSupport, directorDispersion } from './machinery';
 import { meanHullY } from './ship';
+import { mountOriginRadius } from './mountFrames';
 import { AIR_GUNNERY, gunnerySeed, initialFireDiscipline, panicAim, stepFireDiscipline } from './airGunnery';
 import type { AirContext, Aircraft } from './aircraft';
 import { antiAircraftRange } from '../ships/armament';
@@ -21,11 +22,11 @@ export function antiAircraftCandidates(actor: FleetActor, planes: readonly Aircr
   let reach = reachByDefinition.get(actor.definition);
   if (reach === undefined) {
     reach = 0;
-    for (const mount of actor.definition.mounts) {
+    for (const [index, mount] of actor.definition.mounts.entries()) {
       const range = antiAircraftRange(mount), w = mount.weapon;
       if (!range) continue;
       // Triangle bound covers every barrel through traverse, elevation and hull roll.
-      const offset = Math.hypot(...mount.position) + Math.abs(w.pivotHeight) + Math.abs(w.trunnionForward)
+      const offset = mountOriginRadius(actor.definition, index) + Math.abs(w.pivotHeight) + Math.abs(w.trunnionForward)
         + Math.abs(w.muzzleForward - w.trunnionForward) + Math.abs(w.barrelSpacing) * (w.barrelCount ?? 2) + (w.barrelVerticalSpacing ?? 0);
       reach = Math.max(reach, range + offset + 1e-6);
     }
@@ -95,7 +96,7 @@ export function updateAntiAircraft(actor: FleetActor, m: MountDefinition, state:
   const aim = add(target.position, scale(target.velocity, flightTime));
   const crewAim = discipline.panic ? panicAim(origin, target.position, discipline) : aim;
   const support = mountSupport(actor, actor.definition, m.id, power);
-  const aligned = updateMount(m, state, actor.definition, actor.motion, crewAim, dt, velocity, support.power);
+  const aligned = updateMount(m, state, actor.definition, actor.motion, crewAim, dt, velocity, support.power, actor.mounts);
   if (!aligned || state.status !== 'ready') return true;
   const muzzle = muzzleWorld(m, state, 0, actor.motion);
   if (!clearLane(actor, muzzle, crewAim, ctx)) { state.status = 'blocked'; return true; }
