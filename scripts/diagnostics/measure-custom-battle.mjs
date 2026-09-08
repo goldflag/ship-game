@@ -54,6 +54,44 @@ try {
     userAgent: navigator.userAgent, hardwareConcurrency: navigator.hardwareConcurrency,
     adapters: window.gpuAdapters,
   })) };
+  if (process.env.LAYOUT_PROFILE_AFTER) {
+    await cdp.send('Performance.enable');
+    data.overlayLayout = [];
+    for (const batched of [false, true, false, true]) {
+      const before = await cdp.send('Performance.getMetrics');
+      const sample = await page.evaluate(async batched => {
+        const g = review.game, camera = g.camera, x = camera.position.x;
+        const elements = [...document.querySelectorAll('.air-squadron-labels [data-flight-id]')];
+        const project = element => g.projectSquadron(element.dataset.ownerId, element.dataset.flightId);
+        const place = (element, point) => {
+          element.style.display = point ? '' : 'none';
+          if (point) { element.style.left = `${point.x}px`; element.style.top = `${point.y}px`; }
+        };
+        let ms = 0;
+        try {
+          for (let frame = 0; frame < 90; frame++) {
+            await new Promise(requestAnimationFrame);
+            camera.position.x = x + Math.sin(frame * .3) * 4; camera.updateMatrixWorld();
+            const start = performance.now();
+            if (batched) {
+              const points = elements.map(project);
+              elements.forEach((element, i) => place(element, points[i]));
+            } else for (const element of elements) place(element, project(element));
+            ms += performance.now() - start;
+          }
+        } finally {
+          camera.position.x = x; camera.updateMatrixWorld();
+          const points = elements.map(project); elements.forEach((element, i) => place(element, points[i]));
+        }
+        return { batched, markers: elements.length, frames: 90, msPerFrame: ms / 90 };
+      }, batched);
+      const after = await cdp.send('Performance.getMetrics');
+      for (const name of ['LayoutCount', 'RecalcStyleCount', 'LayoutDuration', 'RecalcStyleDuration'])
+        sample[name] = after.metrics.find(m => m.name === name).value - before.metrics.find(m => m.name === name).value;
+      data.overlayLayout.push(sample);
+    }
+    console.log('Overlay layout', JSON.stringify(data.overlayLayout));
+  }
   if (process.env.UPLOAD_PROFILE_AFTER) {
     data.uploads = await page.evaluate(async () => {
       const g = review.game, rows = new Map(), buffers = new Map();

@@ -3,6 +3,26 @@ import { applyLocalDelta, localDelta } from './localSnapshotDelta';
 import { HeadlessSession } from '../../../scripts/multiplayer/headless-session';
 import { decodeSnapshot, SnapshotSession, type Snapshot } from './SnapshotSession';
 
+test('scalar changes preserve zero, false, empty text, null and explicit undefined', () => {
+  for (const next of [0, false, '', null, undefined, 4, true, 'target']) {
+    const previous = { changing: 5, stable: { id: 'ship' } }, expected = { ...previous, changing: next };
+    const result = applyLocalDelta(previous, structuredClone(localDelta(previous, expected)));
+    expect(result).toEqual(expected); expect(previous.changing).toBe(5);
+    expect((result as typeof previous).stable).toBe(previous.stable);
+    expect(Object.hasOwn(result as object, 'changing')).toBe(true);
+  }
+});
+
+test('prototype-named fields remain ordinary own data properties', () => {
+  const previous = JSON.parse('{"__proto__":{"unchanged":1,"value":2},"constructor":3,"other":{"id":"ship"}}');
+  const next = JSON.parse('{"__proto__":{"unchanged":1,"value":0},"constructor":false,"other":{"id":"ship"}}');
+  const result = applyLocalDelta(previous, structuredClone(localDelta(previous, next))) as Record<string, unknown>;
+  expect(result).toEqual(next); expect(Object.getPrototypeOf(result)).toBe(Object.prototype);
+  expect(Object.hasOwn(result, '__proto__')).toBe(true);
+  expect(previous.__proto__.value).toBe(2);
+  expect(Object.getOwnPropertyDescriptor(result, '__proto__')?.value).toEqual(next.__proto__);
+});
+
 test('ordered deltas preserve deletions, array replacement, null slots and earlier snapshots', () => {
   let previous: unknown, received: unknown;
   for (const next of [

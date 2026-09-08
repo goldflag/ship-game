@@ -339,3 +339,33 @@ JS/WASM buffer copies. A JavaScript unrolling/common-product variant also matche
 exactly but was slightly slower. Neither was retained. Temporary code, profiles
 and comparisons remain under ignored `.build/`. These experiments do not establish
 sustained 60 FPS; the shipped rendering path remains unchanged by them.
+
+### Local snapshot transfer and overlay layout
+
+The owned worker's lossless delta uses scalar leaves and keyed object patches.
+This removes wrappers/tuples from structured cloning. Applying changed fields uses
+ordinary assignment except for `__proto__`, which remains an own data property;
+explicit undefined values, deletions and unchanged subtree identities are retained.
+A 7,200-tick thirty-ship replay matched all 1,200 transferred snapshots exactly.
+Alternating old/new execution over the final 600 snapshots measured average delta
+creation at 5.92/6.04 ms, cloning at 4.97/3.62 ms, and application at 1.36/0.52 ms.
+These are isolated V8 transport measurements, not frame-rate gains.
+
+Squadron labels and air-map overlays now complete projection/viewport reads before
+writing element positions. An alternating comparison on twelve real battle
+markers reduced layout/style recalculations from 357 to 90 over ninety frames.
+Label-update CPU time fell from 0.277-0.286 to 0.102-0.107 ms/frame. Camera movement,
+HUD scaling and map path projection retain their existing calculations. All 41
+relevant session, projection and frame-loop tests pass; the frame test fixture now
+includes the real fleet visibility component and a directional light.
+
+The production candidate averaged 62.95 FPS over 120 seconds, with final
+ten-second windows at 50.2-53.5 FPS, zero frames over 100 ms and a 61.5 ms maximum.
+It advanced 119.83 seconds of simulation at High quality and 1920 x 1080. Ship,
+aircraft, distant and zoom captures were reviewed; muzzle error stayed below
+2.75 mm. The following unchanged control averaged 49.77 FPS, advanced 98.73 seconds
+of simulation and had nine frames over 100 ms, including a 407 ms maximum. Its
+final forty seconds fell to 25.5-28.0 FPS despite earlier unchanged runs remaining
+near 50 FPS there. That instability prevents attributing the full paired FPS
+difference to these changes. The isolated transfer/layout savings are established;
+sustained 60 FPS is still not established.

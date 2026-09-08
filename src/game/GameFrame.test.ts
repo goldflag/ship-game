@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, spyOn, test } from 'bun:test';
-import { Color, Group, PerspectiveCamera, Vector3, InstancedBufferGeometry, InstancedMesh, MeshBasicMaterial } from 'three/webgpu';
+import { Color, DirectionalLight, Group, PerspectiveCamera, Vector3, InstancedBufferGeometry, InstancedMesh, MeshBasicMaterial } from 'three/webgpu';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { CombatSimulation } from '../simulation/combat';
 import { ENGINE_ORDERS, FIXED_DT } from '../simulation/ship';
@@ -12,6 +12,7 @@ import { ShellFollow } from './ShellFollow';
 import { Game } from './Game';
 import { VisualEnvironment } from './VisualEnvironment';
 import { FrameScene } from './FrameScene';
+import { FleetVisibility } from './FleetVisibility';
 import { ShipView } from './ShipView';
 import { HullDamageFeedback } from './HullDamageFeedback';
 import { gunAimPoints, type GunAimPoint } from './gunAim';
@@ -32,6 +33,7 @@ afterEach(() => globals.forEach((name, i) => {
 /** Water Pro's live uniforms, without its GPU simulation. */
 function fakeWater() {
   return {
+    lighting: { sunLight: new DirectionalLight() },
     underwaterDistortion: { intensity: .02 },
     color: { absorptionColor: new Color(.296, .105, .095), waterColor: new Color(), transmissionColor: new Color(),
       update(colors: { waterColor: string; transmissionColor: string; absorptionColor: string }) {
@@ -71,7 +73,7 @@ async function frameHarness(shipId = 'bismarck') {
     setRudder: (rudder: number) => { helm.rudder = rudder; } };
   const game = Object.assign(Object.create(Game.prototype), {
     definition: simulation.definition, simulation, playerView, targetView, fleetViews: [playerView, targetView], camera, rig, ship: new Group(), shellFollow: new ShellFollow(),
-    renderer: { domElement: { setAttribute() {} } }, manualAim: false, battlefieldCamera, cameraFrameListeners: new Set(),
+    renderer: { domElement: { setAttribute() {} } }, manualAim: false, battlefieldCamera, cameraFrameListeners: new Set(), fleetVisibility: new FleetVisibility(),
     host: { clientWidth: 1440, clientHeight: 900 }, airOperationsOpen: false,
     shipLabels: { update() {} }, hitLabels: { update() {} }, torpedoPreview: { update() {} },
     playerDamageFeedback: new HullDamageFeedback(simulation.player.damage.integrity),

@@ -19,19 +19,24 @@ function useMapProjection(ref: RefObject<HTMLElement | SVGSVGElement | null>, ga
   useEffect(() => {
     if (!active || !game) return;
     const update = () => {
-      ref.current?.querySelectorAll<HTMLElement | SVGElement>('[data-map-position]').forEach(element => {
+      const markers = Array.from(ref.current?.querySelectorAll<HTMLElement | SVGElement>('[data-map-position]') ?? [], element => {
         const [x, y, z] = JSON.parse(element.dataset.mapPosition!) as number[];
-        const point = game.projectAirMap(x, z, y);
+        return { element, point: game.projectAirMap(x, z, y) };
+      });
+      const paths = Array.from(ref.current?.querySelectorAll<SVGPathElement>('[data-map-path]') ?? [], element => {
+        const points = JSON.parse(element.dataset.mapPath!) as Vec3[];
+        return { element, path: game.projectAirMapPath(points, !!element.dataset.closed) };
+      });
+      // Projection reads the viewport. Complete those reads before any overlay
+      // writes, so one marker cannot force layout for the following marker.
+      for (const { element, point } of markers) {
         element.style.display = point ? '' : 'none';
-        if (!point) return;
+        if (!point) continue;
         const [left, top] = point;
         if (element instanceof SVGElement) element.setAttribute('transform', `translate(${left} ${top})`);
         else { element.style.left = `${left}px`; element.style.top = `${top}px`; }
-      });
-      ref.current?.querySelectorAll<SVGPathElement>('[data-map-path]').forEach(element => {
-        const points = JSON.parse(element.dataset.mapPath!) as Vec3[];
-        element.setAttribute('d', game.projectAirMapPath(points, !!element.dataset.closed));
-      });
+      }
+      for (const { element, path } of paths) element.setAttribute('d', path);
     };
     update();
     return game.onCameraFrame(update);
@@ -53,11 +58,12 @@ export function SquadronLabels({ data, game, onOrder, onTarget, onSelect, onPoin
   useLayoutEffect(() => {
     if (!game) return;
     const update = () => {
-      labels.current?.querySelectorAll<HTMLElement>('[data-flight-id]').forEach(element => {
-        const point = game.projectSquadron(element.dataset.ownerId!, element.dataset.flightId!);
+      const projections = Array.from(labels.current?.querySelectorAll<HTMLElement>('[data-flight-id]') ?? [], element =>
+        ({ element, point: game.projectSquadron(element.dataset.ownerId!, element.dataset.flightId!) }));
+      for (const { element, point } of projections) {
         element.style.display = point ? '' : 'none';
         if (point) { element.style.left = `${point.x}px`; element.style.top = `${point.y}px`; }
-      });
+      }
     };
     update();
     return game.onCameraFrame(update);
