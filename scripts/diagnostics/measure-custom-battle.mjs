@@ -12,14 +12,23 @@ try {
   page.on('console',m=>{if(m.type()==='error') {errors.push(m.text()); console.log(m.text().slice(0,300));}});
   await page.addInitScript(forceWebGL=>{
     if (forceWebGL) Object.defineProperty(navigator, 'gpu', { value: undefined });
-    window.pipelineSamples=[];
+    window.pipelineSamples=[]; window.workerSamples=[];
     for(const method of ['createRenderPipeline','createRenderPipelineAsync','createComputePipeline','createComputePipelineAsync']) {
       if(!window.GPUDevice) break;
       const original=GPUDevice.prototype[method];
       GPUDevice.prototype[method]=function(...args){const start=performance.now(),value=original.apply(this,args);window.pipelineSamples.push({method,start,ms:performance.now()-start,label:args[0].label});return value;};
     }
     const post=Worker.prototype.postMessage;
-    Worker.prototype.postMessage=function(message,...args){if(message?.type==='init'&&message.setup?.ships)message.setup.seed=0x6e617661;return post.call(this,message,...args);};
+    Worker.prototype.postMessage=function(message,...args){
+      if(message?.type==='init'&&message.setup?.ships) {
+        message.setup.seed=0x6e617661;
+        if (new URLSearchParams(location.search).has('profile')) {
+          message.profile=true;
+          this.addEventListener('message',event=>{if(event.data.timing)window.workerSamples.push(event.data.timing);});
+        }
+      }
+      return post.call(this,message,...args);
+    };
   }, !!process.env.FORCE_WEBGL);
   const cdp=await page.context().newCDPSession(page);
   await page.goto(process.env.PERFORMANCE_URL??'http://localhost:5173/scripts/diagnostics/custom-battle-performance.html?seconds=60',{waitUntil:'domcontentloaded',timeout:120000});
@@ -30,7 +39,41 @@ try {
   if(process.env.CPU_PROFILE){await cdp.send('Profiler.enable');await cdp.send('Profiler.start');}
   await page.waitForFunction(()=>window.review?.result,undefined,{timeout:180000});
   if(process.env.CPU_PROFILE){const {profile}=await cdp.send('Profiler.stop');await writeFile(new URL(`${label}.cpuprofile`,output),JSON.stringify(profile));}
-  const data=await page.evaluate(()=>({result:review.result,rows:review.rows,pipelines:window.pipelineSamples}));
+  const data=await page.evaluate(()=>({result:review.result,rows:review.rows,pipelines:window.pipelineSamples,worker:window.workerSamples}));
+  if (process.env.GPU_PROFILE_AFTER) {
+    data.gpu = await page.evaluate(async () => {
+      const g = review.game, renderer = g.renderer;
+      if (!renderer.backend.device?.features.has('timestamp-query')) return { unavailable: true };
+      renderer.backend.trackTimestamp = true;
+      const samples = [];
+      g.paused = false;
+      for (let i = 0; i < 30; i++) {
+        await g.frame(await new Promise(requestAnimationFrame));
+        await Promise.all([renderer.resolveTimestampsAsync('render'), renderer.resolveTimestampsAsync('compute')]);
+        samples.push({render:renderer.info.render.timestamp,compute:renderer.info.compute.timestamp});
+      }
+      g.paused = true; renderer.backend.trackTimestamp = false;
+      return samples;
+    });
+    console.log('GPU timings',JSON.stringify(data.gpu));
+  }
+  if (process.env.CPU_PROFILE_AFTER) {
+    console.log('Render pose counts', JSON.stringify(await page.evaluate(() => review.game.fleetViews.map(v => ({
+      id: v.definition.id, poses: v.poseMatrices.poses.length, active: v.renderActive,
+    })))));
+    await cdp.send('Profiler.enable'); await cdp.send('Profiler.start');
+    await page.evaluate(async () => {
+      const g = review.game, end = performance.now() + 8000;
+      g.paused = false;
+      while (performance.now() < end) {
+        const time = await new Promise(requestAnimationFrame);
+        await g.frame(time);
+      }
+      g.paused = true;
+    });
+    const {profile} = await cdp.send('Profiler.stop');
+    await writeFile(new URL(`${label}.cpuprofile`,output),JSON.stringify(profile));
+  }
   await writeFile(new URL(`${label}.json`,output),JSON.stringify({...data,errors},null,2));
   await page.screenshot({path:new URL(`${label}.png`,output).pathname.replace(/^\/(\w:)/,'$1')});
   if (process.env.VISUAL_REVIEW) {

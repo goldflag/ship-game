@@ -1,5 +1,6 @@
 // Real application and Rust worker, measured from the first battle frame.
 import { Game } from '/src/game/Game.ts';
+import { fleetBatchSubmissionStats, setFleetBatchBundlesEnabled } from '/src/game/FleetBatchInstancing.ts';
 import { profileRenderPasses } from './profile-render-passes.js';
 const params = new URLSearchParams(location.search);
 const seconds = Number(params.get('seconds') ?? 60);
@@ -15,6 +16,8 @@ if (beginBattle) Game.prototype.beginBattle = async function (...args) {
 };
 Game.prototype.start = function () {
   review.game = this;
+  review.setBundles = enabled => setFleetBatchBundlesEnabled(this.renderer.backend, enabled);
+  if (params.get('bundles') === '0') review.setBundles(false);
   this.settings = { ...this.settings, quality: params.get('quality') ?? 'high', resolution: 1 };
   this.rig.capturePointer = () => {};
   const ready = this.callbacks.ready;
@@ -47,6 +50,9 @@ Game.prototype.frame = async function (time, warmingUp) {
       settings: { quality: this.settings.quality, resolution: this.settings.resolution },
       framebuffer: [this.renderer.domElement.width,this.renderer.domElement.height], backend: this.water.backend,
       diagnostics:this.diagnostics(), phases:review.phases, passes:renderProfile?.results,
+      fleetBatches:this.fleetDraws?.diagnostics(),
+      activeShipViews:this.fleetViews.filter(v=>v.renderActive).length,
+      submission:{...fleetBatchSubmissionStats(this.renderer.backend)},
       renderInfo:{...this.renderer.info.render}, hidden:document.hidden,
     };
     this.paused = true; this.scheduleFrame = () => {}; cancelAnimationFrame(this.raf); this.audio?.setScene(false,true);
@@ -61,12 +67,21 @@ await wait(()=>document.querySelector('button[title="Add an enemy bot"]')); docu
 await wait(()=>button('start battle') && !button('start battle').disabled); button('start battle').click();
 await wait(()=>review.ready);
 const g = review.game;
+// Optional late-combat profiling leaves the initial FPS sample uninstrumented.
+if (params.has('profile')) await wait(() => performance.now() - begun >= Number(params.get('profileAfter') ?? 0) * 1000);
 if (params.has('profile')) renderProfile = profileRenderPasses(g);
 if (params.has('profile')) for (const [object,key,label] of [
   [g.simulation,'advance','session'],[g,'readSightAim','sight'],[g.water,'update','water'],[g,'renderFrame','render'],
   [g.effects,'update','effects'],[g.aircraftView,'update','aircraft'],[g.fleetDraws,'update','fleetDraws'],
   [g.funnelSmoke,'update','smoke'],[g.shipWake,'update','wake'],[g,'shipTelemetry','telemetry'],
-  [g.fleetViews[0].constructor.prototype,'update','poses'],
+  [g.fleetViews[0].constructor.prototype,'updateMotion','hullPoses'],
+  [g.fleetViews[0].constructor.prototype,'updateArticulation','jointPoses'],
+  [g.fleetViews[0].constructor.prototype,'updateRenderMatrices','matrices'],
+  [g.fleetViews[0].poseMatrices.constructor.prototype,'update','surfaceMatrices'],
+  [g.fleetViews[0].impactMarks.constructor.prototype,'update','impactMarks'],
+  [[...g.fleetDraws.proxies.values()][0].constructor.prototype,'update','renderProxies'],
+  [g.fleetViews[0].rig.constructor.prototype,'update','rigging'],
+  [g.hitLabels,'update','hitLabels'],[g.shipLabels,'update','shipLabels'],[g.gunAim,'update','aimIndicators'],
 ]) {
   const original=object[key], row=review.phases[label]={ms:0,calls:0};
   object[key]=function(...args) { const begin=performance.now(), result=original.apply(this,args); const done=value=>{row.ms+=performance.now()-begin;row.calls++;return value;};return result?.then?result.then(done):done(result); };

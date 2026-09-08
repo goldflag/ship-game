@@ -213,16 +213,19 @@ impl LocalRuntime {
         Ok(())
     }
     pub fn snapshot(&self) -> Result<String, JsValue> {
-        let mut frame = self.session.battle.presentation_value().map_err(error)?;
-        frame["selectedShipIds"] = serde_json::json!([
-            self.session.control.players[0].selected_ship_id,
-            self.session.control.players[1].selected_ship_id
-        ]);
-        frame["phase"] = serde_json::json!(if self.session.battle.outcome.is_some() {
-            "finished"
-        } else {
-            "running"
-        });
+        #[derive(serde::Serialize)]
+        #[serde(rename_all = "camelCase")]
+        struct LocalFrame<'a, T: serde::Serialize> {
+            #[serde(flatten)]
+            frame: T,
+            selected_ship_ids: [&'a Option<String>; 2],
+            phase: &'static str,
+        }
+        let frame = LocalFrame {
+            frame: self.session.battle.presentation_snapshot(),
+            selected_ship_ids: [&self.session.control.players[0].selected_ship_id, &self.session.control.players[1].selected_ship_id],
+            phase: if self.session.battle.outcome.is_some() { "finished" } else { "running" },
+        };
         serde_json::to_string(&frame).map_err(error)
     }
 }

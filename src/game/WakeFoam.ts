@@ -174,16 +174,24 @@ export class WakeFoam {
     const rz = (Math.abs(rightZ) * width + Math.abs(rightX) * length) * scale;
     const minX = Math.max(0, Math.floor(cx - rx)), maxX = Math.min(this.resolution - 1, Math.ceil(cx + rx));
     const minZ = Math.max(0, Math.floor(cz - rz)), maxZ = Math.min(this.resolution - 1, Math.ceil(cz + rz));
+    // Coverage combines by maximum. An overlapping footprint cannot change a
+    // pixel that already reaches this stamp's peak, even at the ring crest.
+    const peak = Math.round(strength * 255);
+    const inverseWidth = 1 / width, inverseLength = 1 / length;
     for (let iz = minZ; iz <= maxZ; iz++) {
+      const row = iz * this.resolution;
+      const dz = (iz - cz) / scale;
+      const crossZ = dz * rightZ, alongZ = dz * rightX;
       for (let ix = minX; ix <= maxX; ix++) {
-        const dx = (ix - cx) / scale, dz = (iz - cz) / scale;
-        const cross = (dx * rightX + dz * rightZ) / width;
-        const along = (-dx * rightZ + dz * rightX) / length;
+        const index = row + ix;
+        if (this.pixels[index] >= peak) continue;
+        const dx = (ix - cx) / scale;
+        const cross = (dx * rightX + crossZ) * inverseWidth;
+        const along = (-dx * rightZ + alongZ) * inverseLength;
         const radius = cross * cross + along * along;
         if (radius >= 1) continue;
         const profile = ring ? Math.exp(-(((Math.sqrt(radius) - .75) / .13) ** 2)) : 1 - smooth(radius);
         const coverage = strength * profile * 255;
-        const index = iz * this.resolution + ix;
         this.pixels[index] = Math.max(this.pixels[index], Math.round(coverage));
       }
     }

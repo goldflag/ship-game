@@ -50,7 +50,7 @@ interface Emitter { outlet: FunnelOutlet; previous: Vector3; credit: number; ini
 export class ShipFunnelSmoke {
   readonly root = new Group();
   private readonly map = effectTexture('smoke');
-  private readonly pool = new EffectParticlePool(6144, this.map);
+  private readonly pool = new EffectParticlePool(6144, this.map, false, undefined, false, true);
   private readonly emitters = new Map<SmokeShip, { damage: SmokeShip['actor']['damage']; funnels: Emitter[] }>();
   private readonly wind = new Vector3(1.5, 0, 1);
   private readonly position = new Vector3();

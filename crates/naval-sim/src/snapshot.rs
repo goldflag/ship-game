@@ -28,6 +28,9 @@ pub struct Snapshot<'a> {
     pub remaining_seconds: f64,
 }
 impl Battle {
+    pub fn presentation_snapshot(&self) -> impl serde::Serialize + '_ {
+        crate::presentation::Presentation(self.snapshot())
+    }
     pub fn snapshot(&self) -> Snapshot<'_> {
         Snapshot {
             tick: self.tick,

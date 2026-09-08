@@ -5,6 +5,24 @@ import { shipPreset } from '../ships/presets';
 import { AircraftGunfire } from './AircraftGunfire';
 import { ballisticStep } from '../simulation/ballistics';
 
+test('offscreen tracers remain live and return at their current ballistic position', () => {
+  const sim = new CombatSimulation(shipPreset('bismarck')), gunfire = new AircraftGunfire(true);
+  const camera = new PerspectiveCamera(52, 1, .5, 60000);
+  camera.position.set(5000, 300, 0); camera.updateMatrixWorld(true);
+  sim.events.push({ sequence: 1, tick: 0, kind: 'aircraft-fire', position: [0, 300, 0], shipId: 'player', message: 'AA',
+    aircraft: { id: 'target', target: [0, 300, -1600], tracerSpeed: 800, direction: [0, 0, -1] } });
+  try {
+    sim.tick = 31; gunfire.update(sim, camera); expect(gunfire.diagnostics()).toBe(0);
+    sim.events.length = 0; sim.tick = 121;
+    const endpoint = ballisticStep([0, 300, 0], [0, 0, -800], 2, 0).position;
+    camera.position.set(0, 300, 0); camera.lookAt(...endpoint); camera.updateMatrixWorld(true);
+    gunfire.update(sim, camera); expect(gunfire.diagnostics()).toBe(1);
+    const tips = gunfire.root.getObjectByName('Aircraft tracer tips') as InstancedMesh;
+    expect(at(tips).position.distanceTo(new Vector3(...endpoint))).toBeLessThan(.001);
+    sim.tick = 301; gunfire.update(sim, camera); expect(gunfire.diagnostics()).toBe(0);
+  } finally { gunfire.dispose(); }
+});
+
 test('AA tracer reaches its CPU airburst endpoint with drag and inherited ship velocity', () => {
   const sim = new CombatSimulation(shipPreset('bismarck')), gunfire = new AircraftGunfire();
   const camera = new PerspectiveCamera(52, 1, .5, 60000);

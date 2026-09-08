@@ -30,7 +30,15 @@ export class ShipRenderProxy {
     return supported;
   }
 
-  sourceVisible(source: THREE.Object3D): boolean {
+  sourceVisible(source: THREE.Object3D, cache?: Map<THREE.Object3D, boolean>): boolean {
+    if (cache) {
+      const known = cache.get(source);
+      if (known !== undefined) return known;
+      const visible = (source === this.view.model ? this.modelVisible : source.visible) &&
+        (!source.parent || this.sourceVisible(source.parent, cache));
+      cache.set(source, visible);
+      return visible;
+    }
     for (let object: THREE.Object3D | null = source; object; object = object.parent) {
       if (!(object === this.view.model ? this.modelVisible : object.visible)) return false;
     }

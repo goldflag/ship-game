@@ -92,7 +92,7 @@ export class ShipImpactMarks {
   get drawCalls() { return this.batches.size; }
   get renderMeshes(): Iterable<THREE.Mesh> { return this.batches.values(); }
 
-  update(events: readonly CombatEvent[], shipId: string, budget?: ImpactMarkBudget): void {
+  update(events: readonly CombatEvent[], shipId: string, budget?: ImpactMarkBudget, preparePose?: () => void): void {
     // Capture before spending the frame budget: old events may leave the shared
     // simulation ring while this hull's cosmetic work waits for a later frame.
     for (const event of events) {
@@ -107,7 +107,7 @@ export class ShipImpactMarks {
     let updated = false;
     while (this.pending.length && performance.now() - started < available) {
       const event = this.pending.shift()!;
-      if (!updated) { this.root.updateMatrixWorld(true); updated = true; }
+      if (!updated) { preparePose?.(); this.root.updateMatrixWorld(true); updated = true; }
       const impact = event.surfaceImpact!, shell = event.shell!;
       const frame = impact.mountId ? this.mounts.get(impact.mountId) : this.root;
       if (!frame) continue;

@@ -8,6 +8,21 @@ import { CombatSimulation, type CombatEvent } from '../simulation/combat';
 import { CombatEffects } from './CombatEffects';
 import { EffectParticlePool, effectTexture } from './EffectParticles';
 
+test('offscreen exhaust keeps drifting and returns at its current pose without losing edge billboards', () => {
+  const texture = effectTexture('smoke'), pool = new EffectParticlePool(4, texture, false, undefined, false, true);
+  const camera = new PerspectiveCamera(60, 1, .5, 1000); camera.updateMatrixWorld();
+  const puff = pool.emit(new Vector3(100, 0, -20)); puff.life = 10; puff.size = 4; puff.velocity.x = 2;
+  pool.publish(camera); expect(pool.count).toBe(0);
+  pool.advance(1, new Vector3()); expect(puff.age).toBe(1); expect(puff.position.x).toBeCloseTo(102);
+  camera.position.x = 102; camera.updateMatrixWorld(); pool.publish(camera);
+  expect(pool.count).toBe(1);
+  const matrix = new Matrix4(); pool.mesh.getMatrixAt(0, matrix); expect(matrix.elements[12]).toBeCloseTo(102);
+  // Its center is outside, but the rotated quad can still cover the screen edge.
+  camera.position.x = puff.position.x - 20 * Math.tan(Math.PI / 6) - 1;
+  camera.updateMatrixWorld(); pool.publish(camera); expect(pool.count).toBe(1);
+  pool.dispose(); texture.dispose();
+});
+
 test('heavy AA bursts at the recorded endpoint after flight, survives history eviction, and stays visible in optics', () => {
   const sim = new CombatSimulation(compileShip(blueprint, catalog)), effects = new CombatEffects(), camera = new PerspectiveCamera();
   try {

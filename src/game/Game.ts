@@ -20,6 +20,7 @@ import { VisualWaveSampler } from './VisualWaveSampler';
 import { UnderwaterPassVisibility } from './UnderwaterPassVisibility';
 import { FrameScene } from './FrameScene';
 import { FleetShipDraws } from './FleetShipDraws';
+import { installFleetBatchInstancing } from './FleetBatchInstancing';
 import { batchShipModel } from './ShipBatching';
 import { prepareShipDetail } from './ShipDetail';
 import { ShipMaterialPalette } from './ShipMaterialPalette';
@@ -32,6 +33,7 @@ import type { BattleSession } from './session/BattleSession';
 import { CombatSimulation } from '../simulation/combat';
 import { availableAmmunition } from '../simulation/weapons';
 import { ShipView } from './ShipView';
+import { FleetVisibility } from './FleetVisibility';
 import { ArmorOverlay } from './ArmorOverlay';
 import { InspectionHover, type InspectionHoverInfo } from './InspectionHover';
 import { ShipLabels } from './ShipLabels';
@@ -87,6 +89,7 @@ export class Game {
   private targetView?: ShipView;
   private fleetViews: ShipView[] = [];
   private fleetDraws?: FleetShipDraws;
+  private readonly fleetVisibility = new FleetVisibility();
   private visualWaveSampler?: VisualWaveSampler;
   private fleetModels: THREE.Group[] = [];
   private shipLabels: ShipLabels;
@@ -248,6 +251,7 @@ export class Game {
     this.callbacks.progress('Starting graphics', 0.08);
     this.resize();
     await this.renderer.init();
+    installFleetBatchInstancing(this.renderer.backend);
     configureRenderOrder(this.renderer);
     this.assertActive();
     this.rig.update(this.simulation.ship, 0, 0, true);
@@ -628,13 +632,13 @@ export class Game {
       this.syncControlledShip();
       state = this.simulation.ship;
       const alpha = this.inPort ? 1 : this.simulation.interpolationAlpha;
-      this.fleetViews.forEach(view => view.update(alpha));
+      this.fleetViews.forEach(view => view.updateMotion(alpha));
       // A salvo must not synchronously project scars onto every struck hull.
       // Share the budget across the fleet and rotate which hull gets first use.
       const impactBudget = { remainingMs: 2 };
       for (let i = 0; i < this.fleetViews.length; i++) {
         const view = this.fleetViews[(i + this.simulation.tick) % this.fleetViews.length];
-        view.impactMarks.update(this.simulation.events, view.actor.motion.id, impactBudget);
+        view.impactMarks.update(this.simulation.events, view.actor.motion.id, impactBudget, () => view.updateArticulation(alpha));
       }
       this.ship.position.copy(this.playerView!.root.position);
       this.ship.quaternion.copy(this.playerView!.root.quaternion);
@@ -649,6 +653,9 @@ export class Game {
       }
       this.battlefieldCamera.applyTransition(realDt);
       this.cameraFrameListeners.forEach(listener => listener());
+      this.environment.update(this.camera, dt);
+      this.fleetVisibility.update(this.fleetViews, this.camera, this.water!.lighting.sunLight, this.inPort || warmingUp);
+      this.fleetViews.forEach(view => { if (view.renderActive || view === this.playerView) view.updateArticulation(alpha); });
       const showGunAim = !this.inPort && !this.simulation.player.damage.sunk && !this.viewAway;
       this.gunAim.update(showGunAim ? this.playerView!.gunAimPoints(this.battery, aim, this.weaponGroupId) : [], this.camera, showGunAim);
       this.hitDirections.update(this.simulation, this.camera, !this.inPort);
@@ -669,7 +676,6 @@ export class Game {
       this.playerView!.root.visible = this.airOperationsOpen || this.battlefieldCamera.transitioning || !this.rig.binoculars;
       this.harbor?.update(dt, this.camera);
       this.shipWake!.update(this.inPort ? [this.playerView!] : this.fleetViews, dt, this.simulation.events, this.camera);
-      this.environment.update(this.camera, dt);
       // Fixed-step mode with zero delta renders without stepping the wake's
       // leapfrog/foam integrators. Host-clock update(0) would still step them.
       this.water!.deterministic = this.paused;

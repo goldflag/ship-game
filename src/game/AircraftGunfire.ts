@@ -26,11 +26,14 @@ export class AircraftGunfire {
   private readonly normal = new THREE.Vector3();
   private readonly across = new THREE.Vector3();
   private readonly basis = new THREE.Matrix4();
+  private readonly frustum = new THREE.Frustum();
+  private readonly projection = new THREE.Matrix4();
+  private readonly bounds = new THREE.Sphere();
   private count = 0;
   private readonly active = new Map<number, CombatEvent>();
   private sequence = 0;
   private damage?: BattleSession['player']['damage'];
-  constructor() {
+  constructor(private readonly cullOffscreen = false) {
     this.root.name = 'Aircraft gunfire';
     this.root.add(this.ribbons, this.cores, this.tips, this.muzzles);
   }
@@ -51,6 +54,8 @@ export class AircraftGunfire {
   }
   update(sim: BattleSession, camera: THREE.Camera) {
     let count = 0, flashes = 0;
+    const cull = this.cullOffscreen && (camera as THREE.PerspectiveCamera).isPerspectiveCamera;
+    if (cull) this.frustum.setFromProjectionMatrix(this.projection.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse), camera.coordinateSystem, camera.reversedDepth);
     const now = (sim.tick - 1 + sim.interpolationAlpha) * FIXED_DT;
     // Reset replaces damage state even when a new battle catches up to the same tick.
     if (this.damage !== sim.player.damage) { this.active.clear(); this.sequence = 0; this.damage = sim.player.damage; }
@@ -86,7 +91,7 @@ export class AircraftGunfire {
         if (flight < .038) {
           this.dummy.position.copy(this.origin).addScaledVector(this.velocity, flight * .08);
           this.dummy.quaternion.copy(camera.quaternion); this.dummy.scale.setScalar(.7);
-          this.write(this.muzzles, flashes++, 1 - flight / .038);
+          if (!cull || this.frustum.intersectsSphere(this.bounds.set(this.dummy.position, .5))) this.write(this.muzzles, flashes++, 1 - flight / .038);
         }
         const shot = ballisticStep(this.origin.toArray(), this.velocity.toArray(), flight, data.dragPerSecond ?? 0);
         this.dummy.position.fromArray(shot.position);
@@ -99,10 +104,14 @@ export class AircraftGunfire {
         const caliber = data.caliberM ?? data.airburst?.caliberM ?? .02;
         const caliberScale = aa ? Math.sqrt(caliber / .105) : 1;
         const width = Math.max(.12, Math.min(2.4, viewHeight * .0012)) * caliberScale * (aa ? .95 : 1);
-        this.dummy.quaternion.copy(camera.quaternion); this.dummy.scale.setScalar(width * (aa ? 1.5 : 2.2));
-        this.write(this.tips, count, opacity * (aa ? .35 : .65));
         const exposure = aa ? .022 * THREE.MathUtils.clamp(caliberScale, .55, 1.2) : .022;
         const length = this.velocity.length() * Math.min(exposure, flight);
+        // The sphere around the tip encloses the entire trailing ribbon and
+        // its billboard tip. Keep the event alive so camera re-entry samples
+        // the current trajectory, even after the history ring evicts the shot.
+        if (cull && !this.frustum.intersectsSphere(this.bounds.set(this.dummy.position, length + width * 2))) continue;
+        this.dummy.quaternion.copy(camera.quaternion); this.dummy.scale.setScalar(width * (aa ? 1.5 : 2.2));
+        this.write(this.tips, count, opacity * (aa ? .35 : .65));
         this.velocity.normalize(); this.dummy.position.addScaledVector(this.velocity, -length / 2);
         this.normal.subVectors(camera.position, this.dummy.position).normalize();
         this.across.crossVectors(this.velocity, this.normal);

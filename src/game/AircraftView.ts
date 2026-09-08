@@ -43,7 +43,7 @@ export class AircraftView {
   readonly root = new THREE.Group();
   private models = new Map<string, Model>();
   private contacts = new AircraftContacts();
-  private gunfire = new AircraftGunfire();
+  private gunfire = new AircraftGunfire(true);
   private matrix = new THREE.Matrix4();
   private transform = new THREE.Matrix4();
   private position = new THREE.Vector3();

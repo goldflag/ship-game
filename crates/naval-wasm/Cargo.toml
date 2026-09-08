@@ -10,5 +10,6 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 naval-sim.workspace = true
 naval-protocol.workspace = true
+serde.workspace = true
 serde_json.workspace = true
 wasm-bindgen = "0.2"

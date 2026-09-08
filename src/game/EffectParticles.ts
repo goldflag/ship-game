@@ -135,10 +135,13 @@ export class EffectParticlePool {
   private readonly turn = new THREE.Quaternion();
   private readonly cameraInverse = new THREE.Quaternion();
   private readonly direction = new THREE.Vector3();
+  private readonly frustum = new THREE.Frustum();
+  private readonly projection = new THREE.Matrix4();
+  private readonly bounds = new THREE.Sphere();
   private cursor = 0;
 
   constructor(readonly capacity: number, map: THREE.DataTexture, private additive = false,
-    volumeMaterial?: THREE.MeshBasicNodeMaterial, private cullFineWater = false) {
+    volumeMaterial?: THREE.MeshBasicNodeMaterial, private cullFineWater = false, private cullOffscreen = false) {
     const plane = new THREE.PlaneGeometry(1, 1);
     const geometry = new THREE.InstancedBufferGeometry();
     geometry.index = plane.index; geometry.attributes = plane.attributes;
@@ -224,10 +227,19 @@ export class EffectParticlePool {
   publish(camera: THREE.Camera, hiddenSourceId?: string): void {
     this.active.length = 0;
     this.cameraInverse.copy(camera.quaternion).invert();
+    const cull = this.cullOffscreen && (camera as THREE.PerspectiveCamera).isPerspectiveCamera;
+    if (cull) this.frustum.setFromProjectionMatrix(this.projection.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse), camera.coordinateSystem, camera.reversedDepth);
     for (const p of this.particles) {
       if (p.age < 0 || p.age >= p.life) continue;
       // Hidden smoke still ages and drifts, so leaving optics restores its current state.
       if (hiddenSourceId !== undefined && p.sourceId === hiddenSourceId) continue;
+      if (cull) {
+        // Linear growth bounds the decaying expansion. Include the full rotated
+        // quad and stretch; particles outside still age and drift in advance().
+        const size = Math.max(.01, p.size + Math.max(0, p.growth) * p.age + Math.max(0, p.diffusion) * p.age);
+        this.bounds.set(p.position, size * .5 * Math.hypot(1, p.stretch));
+        if (!this.frustum.intersectsSphere(this.bounds)) continue;
+      }
       if (this.cullFineWater && (camera as THREE.PerspectiveCamera).isPerspectiveCamera) {
         this.direction.copy(p.position).applyMatrix4(camera.matrixWorldInverse);
         const depth = -this.direction.z, radius = p.size + p.growth * p.age;

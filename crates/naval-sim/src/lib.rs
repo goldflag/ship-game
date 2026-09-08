@@ -57,4 +57,5 @@ pub mod battle;
 pub mod records;
 
 pub mod snapshot;
+mod presentation;
 pub const SIMULATION_BUILD: &str = env!("NAVAL_SIMULATION_BUILD");

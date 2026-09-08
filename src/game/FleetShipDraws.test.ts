@@ -17,6 +17,9 @@ test('fleet instances preserve separate poses, inspection, hidden hulls and dama
   actors[1].mounts.forEach(m => { m.train = .4; m.elevation = .3; m.recoil = .7; });
   views.forEach(v => { v.update(); v.root.updateMatrixWorld(true); });
   draws.update();
+  // A later compiled pose must match a full authoring-hierarchy update.
+  actors[1].motion.heading += .2;
+  views.forEach(v => { v.update(); v.updateRenderMatrices(); }); draws.update();
   const actual = new THREE.Box3(), expected = new THREE.Box3(), point = new THREE.Vector3();
   let actualVertices = 0, expectedVertices = 0;
   for (const batch of batches) for (let instance = 0; instance < batch.instanceCount; instance++) {
@@ -28,6 +31,7 @@ test('fleet instances preserve separate poses, inspection, hidden hulls and dama
       actual.expandByPoint(point.fromBufferAttribute(batch.geometry.attributes.position, vertex).applyMatrix4(matrix));
     }
   }
+  for (const view of views) view.root.updateMatrixWorld(true);
   for (const view of views) for (const { mesh } of view.renderMeshes) {
     expect(mesh.layers.mask).toBe(0);
     const positions = mesh.geometry.attributes.position; expectedVertices += positions.count;

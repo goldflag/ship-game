@@ -8,22 +8,23 @@ export function localDelta(previous: unknown, next: unknown): LocalDelta | undef
   if (!previous || !next || typeof previous !== 'object' || typeof next !== 'object' || Array.isArray(previous) !== Array.isArray(next)) return { value: next };
   if (Array.isArray(previous) && Array.isArray(next)) {
     if (previous.length !== next.length) return { value: next };
-    const array: [number, LocalDelta][] = [];
+    let array: [number, LocalDelta][] | undefined;
     for (let i = 0; i < next.length; i++) {
       const change = localDelta(previous[i], next[i]);
-      if (change) array.push([i, change]);
+      if (change) (array ??= []).push([i, change]);
     }
-    return array.length ? array.length > next.length / 2 && next.every(value => value === null || typeof value !== 'object') ? { value: next } : { array } : undefined;
+    return array ? array.length > next.length / 2 && next.every(value => value === null || typeof value !== 'object') ? { value: next } : { array } : undefined;
   }
   const before = previous as Record<string, unknown>, after = next as Record<string, unknown>;
-  const keys = Object.keys(after), object: [string, LocalDelta][] = [];
-  const removed = Object.keys(before).filter(key => !Object.hasOwn(after, key));
+  const keys = Object.keys(after);
+  let object: [string, LocalDelta][] | undefined, removed: string[] | undefined;
+  for (const key of Object.keys(before)) if (!Object.hasOwn(after, key)) (removed ??= []).push(key);
   for (const key of keys) {
     const change = Object.hasOwn(before, key) ? localDelta(before[key], after[key]) : { value: after[key] };
-    if (change) object.push([key, change]);
+    if (change) (object ??= []).push([key, change]);
   }
-  if (!removed.length && !object.length) return;
-  return object.length > keys.length / 2 && keys.every(key => after[key] === null || typeof after[key] !== 'object') ? { value: next } : { object, removed };
+  if (!removed && !object) return;
+  return object && object.length > keys.length / 2 && keys.every(key => after[key] === null || typeof after[key] !== 'object') ? { value: next } : { object: object ?? [], removed: removed ?? [] };
 }
 
 /** Copy changed paths. Never mutate the snapshot currently being interpolated. */

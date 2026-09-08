@@ -6,10 +6,12 @@ export function decodeSnapshot(json: string): Snapshot { return readSnapshot(JSO
 export function readSnapshot(value: unknown): Snapshot {
   const normalize = (value: unknown): void => {
     if (!value || typeof value !== 'object') return;
+    // Arrays keep null slots and only need their elements visited. Avoid
+    // allocating string indices for every vector, trail and event array.
+    if (Array.isArray(value)) { for (const child of value) normalize(child); return; }
     const object = value as Record<string, unknown>;
-    const array = Array.isArray(object);
     for (const key of Object.keys(object)) {
-      if (object[key] === null && !array) delete object[key];
+      if (object[key] === null) delete object[key];
       else normalize(object[key]);
     }
   };

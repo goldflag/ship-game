@@ -125,3 +125,17 @@ test('queued cosmetic marks remain bounded during sustained salvos', () => {
     expect(marks.count).toBe(MAX_SHIP_IMPACT_MARKS); expect(marks.pendingCount).toBe(0);
   } finally { marks.dispose(); }
 });
+
+test('deferred offscreen articulation is prepared only when a mark is projected', () => {
+  const { marks, receiver } = fixture();
+  receiver.position.z = 20;
+  let prepared = 0;
+  const prepare = () => { prepared++; receiver.position.z = 0; };
+  try {
+    marks.update([event()], 'target', { remainingMs: 0 }, prepare);
+    expect(prepared).toBe(0);
+    marks.update([], 'target', { remainingMs: Infinity }, prepare);
+    expect(prepared).toBe(1); expect(marks.count).toBe(1);
+    marks.update([], 'target', undefined, prepare); expect(prepared).toBe(1);
+  } finally { marks.dispose(); }
+});
