@@ -244,3 +244,36 @@ This supports a scheduling contribution but does not prove the cause of every
 frame stall. No system power settings or user processes were changed. Battle FPS
 results above use ordinary scheduling; a proposed affinity-controlled battle
 diagnostic was rejected by automatic approval review and was not run.
+
+### Versioned effect uploads
+
+Native WebGPU effects now use storage matrices and aligned storage colors, with
+explicit versions and live upload ranges. This includes funnel/aircraft smoke,
+combat particles, shell/tracer pages and aircraft ordnance. Newly allocated pages
+inherit the same representation. Empty pages still publish cleared matrices for
+loading-screen shader warmup; normal draw counts remain zero. Other backends keep
+their original matrix/color representation. Particle colors use component setters
+because storage RGB has a four-float stride.
+
+The GPU comparison at `instance-matrices-gpu.html?stable=1&effects=1` now also
+checks ordinary particles in a 6,144-slot pool, volumetric smoke, growth, shrink,
+empty/reset and inside-volume views. All twelve particle images matched the
+reference exactly, and the new path matched on its first draw with zero repeated
+matrix/color/custom-attribute uploads on a second draw. The original copied
+interleaved attributes synchronize their versions after vertex uploads, so the
+reference is sampled after its capture/final pair. Tracer images through 606 live
+instances also match, including empty-page warmup followed by repopulation.
+
+The first production run averaged 38.1 FPS over 120 seconds, with two frames over
+100 ms, a 104.3 ms maximum, and 63.72 seconds of simulation progress. Post-sample
+instrumentation measured 1.13 MB/frame of buffer uploads. Ship, close aircraft,
+distant and 24× views were inspected; maximum muzzle error remained 2.75 mm.
+The following unchanged-main control averaged 38.0 FPS with two frames over
+100 ms and 63.18 seconds of simulation progress. It uploaded 2.01 MB/frame in
+531 calls versus 425 calls for the candidate: about 44% fewer bytes and 20% fewer
+calls. Upload instrumentation measured 1.51 versus 1.25 ms/frame. Overall frame
+rate was effectively unchanged in this pair, so this establishes reduced upload
+work and corrected first-pass particle updates, not an additional FPS gain.
+The final empty-page warmup safeguard was added after this FPS sample and passed
+the GPU reset/repopulation check. These measurements still contradict sustained
+60 FPS; the broader scheduling slowdown described above remains unresolved.

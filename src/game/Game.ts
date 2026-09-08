@@ -22,6 +22,7 @@ import { FrameScene } from './FrameScene';
 import { FleetShipDraws } from './FleetShipDraws';
 import { installFleetBatchInstancing } from './FleetBatchInstancing';
 import { installInstanceBufferNames } from './InstanceBufferNames';
+import { prepareInstanceUploads } from './InstanceUploads';
 import { batchShipModel } from './ShipBatching';
 import { prepareShipDetail } from './ShipDetail';
 import { ShipMaterialPalette } from './ShipMaterialPalette';
@@ -254,6 +255,9 @@ export class Game {
     await this.renderer.init();
     installFleetBatchInstancing(this.renderer.backend);
     installInstanceBufferNames(this.renderer.backend);
+    if ((this.renderer.backend as { isWebGPUBackend?: boolean }).isWebGPUBackend) {
+      for (const root of [this.effects.root, this.funnelSmoke.root, this.aircraftView.root]) prepareInstanceUploads(root);
+    }
     configureRenderOrder(this.renderer);
     this.assertActive();
     this.rig.update(this.simulation.ship, 0, 0, true);

@@ -298,7 +298,9 @@ export class EffectParticlePool {
         this.scale.set(size, size * stretch, 1);
       }
       this.mesh.setMatrixAt(index, this.matrix.compose(this.position, this.orientation, this.scale));
-      this.mesh.setColorAt(index, p.color);
+      // Component setters support both packed vertex RGB and aligned WebGPU
+      // storage colors; InstancedMesh.setColorAt assumes a three-float stride.
+      this.mesh.instanceColor!.setXYZ(index, p.color.r, p.color.g, p.color.b);
       this.alpha.setX(index, p.opacity * fade);
       if (this.sphere && this.volume && this.tint) {
         this.sphere.setXYZW(index, p.position.x, p.position.y, p.position.z, size / 2);
