@@ -5,7 +5,7 @@ import { bindingLabel, type Keybindings } from '../game/keybindings';
 import { AIR_STATUS_LABELS, type AirStatus, type AirWingTelemetry, type FlightSummary } from '../simulation/airTelemetry';
 import type { AirOrder } from '../simulation/aircraft';
 import type { Vec3 } from '../ships/blueprint';
-import { BATTLEFIELD_TILT, BATTLEFIELD_MAX_TILT, chartPoint, chartWorld } from './airChart';
+import { chartPoint, chartWorld } from './airChart';
 import { actionAvailable, SQUADRON_ACTIONS, squadronTargetOrder, type SquadronAction, type SquadronTarget } from './airCommands';
 import { Icon } from './Icons';
 import './AirOperations.css';
@@ -21,7 +21,10 @@ function useMapProjection(ref: RefObject<HTMLElement | SVGSVGElement | null>, ga
     const update = () => {
       ref.current?.querySelectorAll<HTMLElement | SVGElement>('[data-map-position]').forEach(element => {
         const [x, y, z] = JSON.parse(element.dataset.mapPosition!) as number[];
-        const [left, top] = game.projectAirMap(x, z, y);
+        const point = game.projectAirMap(x, z, y);
+        element.style.display = point ? '' : 'none';
+        if (!point) return;
+        const [left, top] = point;
         if (element instanceof SVGElement) element.setAttribute('transform', `translate(${left} ${top})`);
         else { element.style.left = `${left}px`; element.style.top = `${top}px`; }
       });
@@ -30,6 +33,7 @@ function useMapProjection(ref: RefObject<HTMLElement | SVGSVGElement | null>, ga
         element.setAttribute('d', game.projectAirMapPath(points, !!element.dataset.closed));
       });
     };
+    update();
     return game.onCameraFrame(update);
   }, [ref, game, active]);
 }
@@ -92,8 +96,8 @@ export function AirOperations({ data, game, bindings, instrumentsVisible = true 
   const state = useRef({ data, selected, mapOpen, size, instrumentsVisible }); state.current = { data, selected, mapOpen, size, instrumentsVisible };
   const canCommand = data.combat!.result === 'active' && !data.combat!.playerSunk;
   const view = data.airMap ?? { x: data.ship.x, z: data.ship.z, radius: 8000 };
-  const point = (x: number, z: number, altitude = 0) => game?.projectAirMap(x, z, altitude) ?? chartPoint(view, size.width, size.height, x, z, altitude);
-  const path = (points: Vec3[], closed = false) => game?.projectAirMapPath(points, closed) ?? `M${points.map(([x, y, z]) => point(x, z, y).join(' ')).join('L')}${closed ? 'Z' : ''}`;
+  const point = (x: number, z: number, altitude = 0) => game ? game.projectAirMap(x, z, altitude) : chartPoint(view, size.width, size.height, x, z, altitude);
+  const path = (points: Vec3[], closed = false) => game?.projectAirMapPath(points, closed) ?? `M${points.map(([x, y, z]) => (point(x, z, y) ?? [0, 0]).join(' ')).join('L')}${closed ? 'Z' : ''}`;
   const waterPoint = (x: number, y: number, width: number, height: number) => game ? game.airMapWater(x, y) : chartWorld(view, width, height, x, y);
   const currentFlight = () => game ? state.current.data.combat?.airWing?.groups.find(f => f.id === game.selectedFlightId) : state.current.selected;
   const issue = (order: AirOrder) => {
@@ -254,14 +258,15 @@ export function AirOperations({ data, game, bindings, instrumentsVisible = true 
         {instrumentsVisible && <>
         {selected?.active && <path className="air-route" data-map-path={JSON.stringify([selected.position, [selected.destination[0], 0, selected.destination[2]]])} d={path([selected.position, [selected.destination[0], 0, selected.destination[2]]])}/>}
         {wing.groups.filter(f => f.active && f.order.kind === 'patrol').map(f => {
-          const [x, y] = point(f.destination[0], f.destination[2]);
+          const station = point(f.destination[0], f.destination[2]);
+          const [x, y] = station ?? [0, 0];
           const ringWorld = Array.from({ length: 48 }, (_, i): Vec3 => { const angle = i * Math.PI / 24; return [f.destination[0] + Math.cos(angle) * 700, 0, f.destination[2] + Math.sin(angle) * 700]; });
           return <g key={f.id} className={`air-station ${f.id === selected?.id ? 'air-selected' : ''}`}>
             <path data-map-path={JSON.stringify(ringWorld)} data-closed="true" d={path(ringWorld, true)} className="air-loiter-radius"/>
-            <g data-map-position={JSON.stringify([f.destination[0], 0, f.destination[2]])} transform={`translate(${x} ${y})`}><path d="M-8 0H8M0-8V8"/><circle r="4"/><text x="11" y="15">{f.name}</text></g>
+            <g style={{ display: station ? undefined : 'none' }} data-map-position={JSON.stringify([f.destination[0], 0, f.destination[2]])} transform={`translate(${x} ${y})`}><path d="M-8 0H8M0-8V8"/><circle r="4"/><text x="11" y="15">{f.name}</text></g>
           </g>;
         })}
-        {data.combat!.contacts.map(c => <g key={c.id} data-contact={c.sunk ? undefined : 'ship'} data-map-position={JSON.stringify([c.x, 0, c.z])} className={`air-map-ship ${c.team === 'enemy' ? 'air-hostile' : 'air-friendly'}${c.sunk ? ' air-map-ship-sunk' : ''}`} transform={`translate(${point(c.x, c.z).join(' ')})`}
+        {data.combat!.contacts.map(c => <g key={c.id} data-contact={c.sunk ? undefined : 'ship'} data-map-position={JSON.stringify([c.x, 0, c.z])} className={`air-map-ship ${c.team === 'enemy' ? 'air-hostile' : 'air-friendly'}${c.sunk ? ' air-map-ship-sunk' : ''}`} style={{ display: point(c.x, c.z) ? undefined : 'none' }} transform={`translate(${(point(c.x, c.z) ?? [0, 0]).join(' ')})`}
           role={c.sunk ? undefined : 'button'} tabIndex={c.sunk ? undefined : 0} aria-label={c.sunk ? `${c.name}, sunk` : `${c.name} · ${c.team}. ${c.team === 'enemy' ? 'Right-click to strike' : 'Right-click to defend'}`}
           onClick={() => { if (c.sunk) return; if (armed.current) commandShip(c.id, c.team); else if (c.team === 'enemy') game?.selectTarget(c.id); }}
           onKeyDown={e => { if (!c.sunk && e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); commandShip(c.id, c.team); } }}
@@ -269,9 +274,9 @@ export function AirOperations({ data, game, bindings, instrumentsVisible = true 
           <title>{c.sunk ? `${c.name}, sunk` : `${c.name} · ${c.team === 'enemy' ? 'Bombers: strike ship' : 'Fighters: defend ship'}`}</title>
           <g className="air-map-ship-marker"><circle r="24" fill="transparent" stroke="none"/><path d="M0-13 6-3 6 11H-6V-3Z" transform={`rotate(${(c.heading - (view.bearing ?? 0)) * 180 / Math.PI})`}/></g>
           <text x="13" y="0">{c.name}{c.id === data.ship.id ? ' · You' : ''}</text>{!c.sunk && <g className="air-map-ship-health" role="meter" aria-label={`${c.name}, hull condition`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(c.integrity * 100)}>
-            <rect className="air-map-ship-health-track" x="13" y="5" width="104" height="5"/>
-            <rect className="air-map-ship-health-fill" x="14" y="6" width={102 * Math.max(0, Math.min(1, c.integrity))} height="3"/>
-            <text x="65" y="20" textAnchor="middle" dominantBaseline="central">{Math.round(c.integrity * 100)}%</text>
+            <rect className="air-map-ship-health-track" x="13" y="5" width="80" height="5"/>
+            <rect className="air-map-ship-health-fill" x="14" y="6" width={78 * Math.max(0, Math.min(1, c.integrity))} height="3"/>
+            <text x="53" y="20" textAnchor="middle" dominantBaseline="central">{Math.round(c.integrity * 100)}%</text>
           </g>}
         </g>)}
         </>}
@@ -280,14 +285,6 @@ export function AirOperations({ data, game, bindings, instrumentsVisible = true 
       <header className="air-map-header"><h2>Air operations</h2>
         <button onClick={e => { game?.setAirOperationsOpen(false); e.currentTarget.blur(); }}>Return to ship <kbd>{bindingLabel(bindings, 'airOperations')}</kbd></button>
       </header>
-      <nav className="air-map-tools" aria-label="Battlefield camera"><button onClick={e => { game?.fitAirMap(); e.currentTarget.blur(); }}>Fit battlefield</button><button onClick={e => { game?.centerAirMap(); e.currentTarget.blur(); }}>Center carrier</button>
-        <button aria-label="Zoom out battlefield" onClick={e => { game?.zoomAirMap(220); e.currentTarget.blur(); }}>−</button><span>{(view.radius * 2 / 1000).toFixed(1)} km across</span><button aria-label="Zoom in battlefield" onClick={e => { game?.zoomAirMap(-220); e.currentTarget.blur(); }}>+</button>
-      </nav>
-      <nav className="air-map-angle" aria-label="Battlefield angle">
-        <label>Tilt <input type="range" min="0" max={Math.round(BATTLEFIELD_MAX_TILT * 180 / Math.PI)} value={Math.round((view.tilt ?? BATTLEFIELD_TILT) * 180 / Math.PI)} aria-label="Battlefield tilt" aria-valuetext={`${Math.round((view.tilt ?? BATTLEFIELD_TILT) * 180 / Math.PI)} degrees from overhead`} onChange={event => game?.setAirMapTilt(Number(event.target.value))}/></label>
-        <button title="Restore north-up and the default tilt" onClick={e => { game?.resetAirMapAngle(); e.currentTarget.blur(); }}>Reset angle</button>
-        <span title="Middle-mouse drag or Shift+arrow keys also changes the angle">Shift-drag to orbit</span>
-      </nav>
       </>}
     </section>}
     {instrumentsVisible && <SquadronLabels data={{ ...data, selectedFlightId: selected?.id }} game={game} onSelect={id => { const f = wing.groups.find(f => f.id === id); if (f) select(f); }} onOrder={commandFlight} onTarget={(id, team) => { if (!armed.current || id === currentFlight()?.id) return false; commandFlight(id, team); return true; }}/>}

@@ -2,6 +2,15 @@ import { expect, test } from 'bun:test';
 import { PerspectiveCamera, Vector3 } from 'three/webgpu';
 import { Game } from './Game';
 
+test('map ship markers reject ships behind the camera at oblique angles', () => {
+  const { game, camera } = fixture(1);
+  camera.position.set(0, 100, 0);
+  camera.lookAt(0, 0, -1000);
+  camera.updateMatrixWorld();
+  expect(game.projectAirMap(0, 1000)).toBeNull();
+  expect(game.projectAirMap(0, -1000)).not.toBeNull();
+});
+
 function fixture(scale: number) {
   const camera = new PerspectiveCamera(52, 1600 / 900, 1, 60000);
   camera.position.set(0, 8000, 3000);
@@ -18,7 +27,7 @@ function fixture(scale: number) {
 for (const scale of [.75, 1, 1.5, 2]) test(`map marker matches scene and water picking at HUD scale ${scale}`, () => {
   const { game, camera } = fixture(scale);
   const expected = new Vector3(700, 0, -1000).project(camera);
-  const point = game.projectAirMap(700, -1000);
+  const point = game.projectAirMap(700, -1000)!;
   expect(point[0] * scale).toBeCloseTo((expected.x + 1) * 800);
   expect(point[1] * scale).toBeCloseTo((1 - expected.y) * 450);
   const water = game.airMapWater(point[0] * scale, point[1] * scale)!;
