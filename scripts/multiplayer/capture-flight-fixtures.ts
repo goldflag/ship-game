@@ -1,0 +1,11 @@
+import { writeFile } from 'node:fs/promises';
+import { shipPresets } from '../../src/ships/presets';
+import { createAirWing } from '../../src/simulation/aircraft';
+import { flyAircraft,stepFlightMechanisms } from '../../src/simulation/aircraftFlight';
+import { initialFireDiscipline,stepFireDiscipline,gunnerySeed } from '../../src/simulation/airGunnery';
+import { fighterBurst,strikeAimError } from '../../src/simulation/aircraftAccuracy';
+const carrier=Object.values(shipPresets).find(d=>d.airWing)!;
+const planes=createAirWing(carrier,'carrier','friendly')!.planes;
+const cases=[...new Set(planes.map(p=>p.modelId))].map(modelId=>{const plane=structuredClone(planes.find(p=>p.modelId===modelId)!);Object.assign(plane,{phase:'outbound',position:[0,500,0],velocity:[0,0,-90],heading:0,pitch:0,bank:0});const initial=structuredClone(plane),checkpoints:unknown[]=[];plane.pilot.fireDiscipline=initialFireDiscipline();const seed=gunnerySeed(plane.id,5739);
+for(let tick=1;tick<=1800;tick++){if(tick===601)plane.phase='attack';if(tick===1201)plane.phase='landing';const point:[number,number,number]=tick<=600?[1500,700,-1000]:tick<=1200?[-500,10,-2500]:[0,15,-4500];flyAircraft(plane,point,105,1/60,{dive:tick>600&&tick<=1200,landing:tick>1200});stepFlightMechanisms(plane,1/60,false);stepFireDiscipline(plane.pilot.fireDiscipline!,1/60,.7,seed,tick<1500);if([1,60,600,1200,1800].includes(tick))checkpoints.push(JSON.parse(JSON.stringify({tick,plane,burst:fighterBurst(plane,[500,200,-1500],5739,2),strike:strikeAimError(plane,.7,5739,2)})));}return{initial,checkpoints};});
+await writeFile('assets/gameplay/migration/flights.v1.json',JSON.stringify({version:1,cases},(key,value)=>key==='team'?(value==='friendly'?'a':'b'):value)+'\n');

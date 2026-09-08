@@ -1,4 +1,5 @@
-import type { CombatSimulation } from '../simulation/combat';
+import type { BattleSession } from './session/BattleSession';
+
 import { FIXED_DT } from '../simulation/ship';
 
 export interface HitDirectionCue { id: number; angle: number; opacity: number; }
@@ -10,13 +11,13 @@ const wrap = (angle: number) => Math.atan2(Math.sin(angle), Math.cos(angle));
  * Presentation only; armor contacts count even when they cause no hull HP loss.
  */
 export class HitDirectionFeedback {
-  private source?: CombatSimulation;
+  private source?: BattleSession;
   private tick = 0;
   private sequence = 0;
   private impacts: Impact[] = [];
   private seen = new Map<number, number>();
 
-  update(simulation: CombatSimulation, viewBearing: number): HitDirectionCue[] {
+  update(simulation: BattleSession, viewBearing: number): HitDirectionCue[] {
     const time = simulation.tick * FIXED_DT;
     if (this.source !== simulation || simulation.tick < this.tick) {
       this.impacts = []; this.seen.clear(); this.sequence = 0;

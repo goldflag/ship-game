@@ -1,0 +1,24 @@
+bun test v1.3.3 (274e01c7)
+
+src/game/ShipLabels.test.ts:
+(pass) ship labels cull rear, offscreen and clipped ships (WebGL, reversed depth: false) [1.32ms]
+(pass) ship labels cull rear, offscreen and clipped ships (WebGPU, reversed depth: false) [0.19ms]
+(pass) ship labels cull rear, offscreen and clipped ships (WebGL, reversed depth: true) [0.05ms]
+(pass) ship labels cull rear, offscreen and clipped ships (WebGPU, reversed depth: true) [0.06ms]
+(pass) overhead condition percentages, meters and loss spans use each ship maximum [11.34ms]
+
+src/multiplayer/snapshotDelta.test.ts:
+(pass) skipped snapshots reconstruct from an immutable baseline, including new metadata and array changes [0.32ms]
+(pass) invalid snapshot paths cannot reach prototypes or grow arbitrary arrays [0.15ms]
+
+src/game/session/transportBounds.test.ts:
+(pass) snapshot boundary rejects missing fleets, negative ticks and excess actors
+
+src/game/session/SnapshotSession.test.ts:
+(pass) real WASM snapshots preserve renderer identities and support every instrument [258.25ms]
+(pass) carrier commands launch through Rust and selected waypoints survive gun input [197.87ms]
+
+ 10 pass
+ 0 fail
+ 99 expect() calls
+Ran 10 tests across 4 files. [633.00ms]

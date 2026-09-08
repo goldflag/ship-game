@@ -16,7 +16,7 @@ Guns of 80 mm or less only engage aircraft when a larger gun is fitted, matching
 
 ## Helm and targeting
 
-Nearest-opponent selection retains its 25% hysteresis. Bots do not have fleet coordination, threat scoring or a visibility/spotting system.
+Nearest-opponent selection retains its 25% hysteresis and includes damaged or disarmed ships while they remain physically afloat. Weapon or ammunition loss does not retire a hull from movement, targeting or tonnage scoring. Bots do not have fleet coordination, threat scoring or a visibility/spotting system.
 
 Ships with guns of at least 300 mm choose a preferred distance of 4.2–5.8 km; others choose 3.2–4.6 km. Bots approach beyond that distance, bring a broadside to bear nearby, and open the range when too close. Each crew chooses a side and small course offset, holds course/speed decisions for 22–38 seconds, and occasionally changes broadside. Hull avoidance still overrides the desired course near other ships.
 

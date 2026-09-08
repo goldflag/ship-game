@@ -7,14 +7,14 @@ import { bindingLabel, type Keybindings } from '../game/keybindings';
 
 const CHART_RANGES = [1000, 2000, 4000, 8000];
 
-export function NavigationChart({ data, onResize, bindings }: { data: Telemetry; bindings: Keybindings; onResize(direction: number): void }) {
+export function NavigationChart({ data, onResize, bindings, onWaypoint }: { onWaypoint?(x: number, z: number): void; data: Telemetry; bindings: Keybindings; onResize(direction: number): void }) {
   const clipId = useId();
   const [zoom, setZoom] = useState(3);
   const radius = CHART_RANGES[zoom];
   const scale = 100 / radius;
   const point = (x: number, z: number) => `${110 + (x - data.ship.x) * scale},${110 + (z - data.ship.z) * scale}`;
   return <div className="navigation-chart">
-    <svg viewBox="0 0 220 220" role="img" aria-label={`Navigation chart, north up, ${radius / 1000} kilometer radius. Your ship, friendly and enemy fleets, course trail and marker buoys.`}>
+    <svg onClick={event => { const rect = event.currentTarget.getBoundingClientRect(); onWaypoint?.(data.ship.x + ((event.clientX - rect.left) / rect.width * 220 - 110) / scale, data.ship.z + ((event.clientY - rect.top) / rect.height * 220 - 110) / scale); }} viewBox="0 0 220 220" role="img" aria-label={`Navigation chart, north up, ${radius / 1000} kilometer radius. Your ship, friendly and enemy fleets, course trail and marker buoys.`}>
       <defs><clipPath id={clipId}><rect x="0" y="0" width="220" height="220"/></clipPath></defs>
       <g className="chart-grid"><path d="M0 55h220M0 110h220M0 165h220M55 0v220M110 0v220M165 0v220"/><circle cx="110" cy="110" r="50"/><circle cx="110" cy="110" r="100"/></g>
       <g clipPath={`url(#${clipId})`}>

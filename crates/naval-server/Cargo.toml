@@ -1,0 +1,16 @@
+[package]
+name = "naval-server"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+naval-sim.workspace = true
+naval-protocol.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+axum = { version = "0.8.9", features = ["ws"] }
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "net", "sync", "time", "signal"] }
+rusqlite = { version = "0.40.2", features = ["bundled"] }
+uuid = { version = "1", features = ["v4"] }
+flate2 = "1.1.10"

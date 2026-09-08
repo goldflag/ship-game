@@ -17,9 +17,11 @@ const shipReviewIds = publishReviewPages && existsSync(reviewRoot)
   ? readdirSync(reviewRoot).filter(id => existsSync(`${root}assets/ships/${id}/modeling-spec.json`) && existsSync(`${reviewRoot}/${id}/index.html`)).sort()
   : [];
 
+const basePath = process.env.BASE_PATH ?? '/';
+const apiPrefix = `${basePath.replace(/\/$/, '')}/api`;
 export default defineConfig({
   // Serve from a sub-path with e.g. BASE_PATH=/naval/ bun run build; runtime asset URLs go through src/assetUrl.ts.
-  base: process.env.BASE_PATH ?? '/',
+  base: basePath,
   define: { __SHIP_REVIEW_IDS__: JSON.stringify(shipReviewIds) },
   plugins: [react(), vendorTextures(), shipTransfers(`${root}public/models`), {
     name: 'ship-review-pages',
@@ -34,7 +36,8 @@ export default defineConfig({
     },
   }],
   resolve: { dedupe: ['three'] },
-  server: { port: 5173, strictPort: true },
+  server: { port: 5173, strictPort: true, proxy: { [apiPrefix]: { target: process.env.NAVAL_SERVER ?? 'http://127.0.0.1:8787', ws: true, rewrite: path => '/api' + path.slice(apiPrefix.length) } } },
+  worker: { format: 'es' },
   build: {
     target: 'es2022',
     rollupOptions: {

@@ -24,3 +24,9 @@ assets/aircraft/*/generated/comparison/
 # Rebuildable download bundles duplicate retained review files. Keep them local.
 /assets/ships/*/generated/comparison/*-review.zip
 /public/ship-reference/*/*-review.zip
+
+# Rust build outputs, generated browser bindings and local match storage.
+/target/
+/src/generated/naval-wasm/
+/.naval-data/
+/src/generated/naval-version.json

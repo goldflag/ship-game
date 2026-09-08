@@ -1,0 +1,6 @@
+{
+  code: "replaced",
+  message: "This connection was replaced by a new session",
+  type: "error",
+}
+{"ok":true,"matchId":"2d37f244-e6be-4636-8dcf-df9be02f09a3","checks":["load barrier","ownership","movement","reconnect epoch","old socket replacement","forfeit","frozen result reconnect"],"finalTick":15}

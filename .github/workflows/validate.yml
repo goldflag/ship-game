@@ -1,0 +1,23 @@
+name: Validate game and Rust multiplayer
+on:
+  push:
+  pull_request:
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GIT_LFS_SKIP_SMUDGE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.3
+      - name: Install pinned Rust toolchain and WASM bindings
+        run: |
+          rustup show
+          cargo install wasm-bindgen-cli --version 0.2.128 --locked
+      - run: bun install --frozen-lockfile
+      - run: bun run multiplayer:check
+      - run: bun run test
+      - run: bun run build

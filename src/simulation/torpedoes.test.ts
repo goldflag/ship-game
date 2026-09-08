@@ -196,7 +196,7 @@ test('loaded tubes preserve fighting strength after gun loss and recover after m
   expect(sim.player.damage.stability.combatLost).toBe(true);
 });
 
-test('torpedoes cannot score against an already disarmed afloat opponent', () => {
+test('torpedoes damage and score against a disarmed but afloat opponent', () => {
   const sim = new CombatSimulation(definition);
   sim.target.mounts.forEach(m => m.hp = 0);
   sim.target.torpedoTubes!.forEach(t => t.ammo = 0);
@@ -205,7 +205,7 @@ test('torpedoes cannot score against an already disarmed afloat opponent', () =>
   sim.torpedoes.push(broadsideRound(sim.target, 11.3));
   step(sim, 15);
   expect(sim.events.some(e => e.kind === 'torpedo-hit')).toBe(true);
-  expect(sim.telemetry('torpedo', ahead).playerDamageDealt).toBe(0);
+  expect(sim.telemetry('torpedo', ahead).playerDamageDealt).toBeGreaterThan(0);
   expect(sim.telemetry('torpedo', ahead).playerFrags).toBe(0);
 });
 

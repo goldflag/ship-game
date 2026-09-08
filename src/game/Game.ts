@@ -1,3 +1,4 @@
+import { physicalLoss } from '../simulation/battleRules';
 import { weaponGroups, selectedWeapon } from '../ships/weaponGroups';
 import { hullDepth } from '../simulation/ship';
 import { assetUrl } from '../assetUrl';
@@ -25,6 +26,9 @@ import { ShipMaterialPalette } from './ShipMaterialPalette';
 import { loadShipModel } from './loadShipModel';
 import { WaterSystem, getPresetParams } from '../../vendor/threejs-water-pro/build/index.js';
 import { SkySystem, PRESETS as SKY_PRESETS } from '../../vendor/threejs-sky-pro/build/index.js';
+import { RemoteBattleSession } from './session/RemoteBattleSession';
+import { LocalBattleSession } from './session/LocalBattleSession';
+import type { BattleSession } from './session/BattleSession';
 import { CombatSimulation } from '../simulation/combat';
 import { availableAmmunition } from '../simulation/weapons';
 import { ShipView } from './ShipView';
@@ -65,7 +69,8 @@ export type BattleProgress = (label: string, fraction: number) => void;
 
 export class Game {
   definition: typeof selectedShip;
-  simulation: CombatSimulation;
+  simulation: BattleSession;
+  fleetWaypointShipId?: string;
   readonly input: InputController;
   private renderer: THREE.WebGPURenderer;
   private scene = new FrameScene();
@@ -257,7 +262,7 @@ export class Game {
     this.fleetDraws = new FleetShipDraws(this.fleetViews);
     this.scene.add(this.fleetDraws.root);
     this.fleetModels = [gltf.scene];
-    this.shipLabels.setFleet(this.fleetViews, this.simulation.actors);
+    this.shipLabels.setFleet(this.fleetViews, this.simulation.actors, this.simulation.ship.id);
     this.ship.position.copy(this.playerView.root.position);
     this.targetView.root.visible = !this.inPort;
     if (this.definition.airWing) {
@@ -430,13 +435,47 @@ export class Game {
     try {
       progress?.(`Charting ${oceanMap(setup.mapId ?? DEFAULT_MAP).name}`, 0.04);
       const definition = shipPreset(setup.playerShipId);
-      const simulation = new CombatSimulation(definition, { ...resolveBattleFleet(setup, shipPreset),
-        seed: crypto.getRandomValues(new Uint32Array(1))[0] });
+      const simulation = await LocalBattleSession.create(setup);
       await this.replaceFleet(simulation, definition, progress);
       this.environment.setBattle({ timeOfDay: setup.timeOfDay ?? 'map', weather: setup.weather ?? 'map',
         conditions: { timeHours: setup.timeHours, cloudCover: setup.cloudCover, windSpeed: setup.windSpeed } });
       progress?.('Forming the battle lines', 0.9);
     } finally { this.switchingShip = false; }
+  }
+
+  async prepareOnlineBattle(session: RemoteBattleSession, progress?: BattleProgress): Promise<void> {
+    if (this.disposed || !this.inPort || this.switchingShip) throw new Error('Return to port before joining.');
+    this.switchingShip = true;
+    try {
+      await this.replaceFleet(session, shipPreset(session.definition.id), progress);
+      this.environment.setBattle({ timeOfDay: session.metadata.environment.timeOfDay, weather: session.metadata.environment.weather, conditions: {} });
+    } finally { this.switchingShip = false; }
+  }
+
+  async returnToPort(): Promise<void> {
+    if (this.switchingShip) return;
+    this.simulation.surrender?.();
+    this.setPaused(true);
+    // replaceFleet requires a port scene, but must not reset the live authority.
+    this.inPort = true;
+    try { await this.replaceFleet(new CombatSimulation(this.definition), this.definition); this.setInPort(true); }
+    catch (error) { this.inPort = false; throw error; }
+  }
+
+  private syncControlledShip(): void {
+    if (this.playerView?.actor === this.simulation.player) return;
+    const view = this.fleetViews.find(v => v.actor === this.simulation.player);
+    if (!view) return;
+    this.playerView = view; this.definition = shipPreset(view.definition.id);
+    this.shipLabels.setFleet(this.fleetViews, this.simulation.actors, view.actor.motion.id);
+    this.playerDamageFeedback = new HullDamageFeedback(view.actor.damage.integrity);
+    this.rig.setBridge(this.definition.viewpoints?.bridge); this.rig.setHullLength(this.definition.hull.length);
+    this.inspecting = false; this.spectatedShipId = undefined; this.airOperationsOpen = false; this.selectedFlightId = undefined;
+    this.battery = this.definition.torpedoTubes?.length ? 'torpedo' : 'main';
+    this.ammunition = { main: 'ap', secondary: 'ap', torpedo: 'ap', 'depth-charge': 'ap' };
+    this.controlPriority = view.actor.damage.control.priority; this.controlFocus = view.actor.damage.control.focus ?? '';
+    this.input.setOrder(0); this.input.setRudder(0);
+    this.trail = []; this.rig.exitBinoculars(); this.audio?.reset(this.simulation);
   }
 
   /** Resolve once the next frame has been rendered, so a scene change is on screen. */
@@ -445,7 +484,7 @@ export class Game {
     return new Promise(resolve => this.frameWaiters.push(resolve));
   }
 
-  private async replaceFleet(simulation: CombatSimulation, definition: typeof selectedShip, progress?: BattleProgress): Promise<void> {
+  private async replaceFleet(simulation: BattleSession, definition: typeof selectedShip, progress?: BattleProgress): Promise<void> {
     this.inspectionHover?.clear();
     const definitions = [...new Map(simulation.actors.map(actor => [actor.definition.id, actor.definition])).values()];
     const models = new Map<string, THREE.Group>();
@@ -489,16 +528,17 @@ export class Game {
       this.fleetDraws?.dispose();
       this.fleetViews.forEach(view => { view.impactMarks.dispose(); view.rig.dispose(); view.root.removeFromParent(); });
       this.scene.add(...views.map(view => view.root), this.aircraftView.root);
+      this.simulation.dispose?.();
       this.definition = definition; this.simulation = simulation;
       this.playerDamageFeedback = new HullDamageFeedback(simulation.player.damage.integrity);
       this.audio?.reset(simulation);
       this.fleetModels = [...models.values()]; this.loadedModel = models.get(definition.id);
-      this.fleetViews = views; this.playerView = views[0];
+      this.fleetViews = views; this.playerView = views.find(view => view.actor === simulation.player)!;
       this.shipWake?.reset();
       this.fleetDraws = draws;
       this.scene.add(this.fleetDraws.root);
       this.targetView = views.find(view => view.actor === simulation.target);
-      this.shipLabels.setFleet(views, simulation.actors);
+      this.shipLabels.setFleet(views, simulation.actors, simulation.ship.id);
       this.articulationOriginal = undefined;
       this.controlPriority = 'balanced'; this.controlFocus = '';
       this.lastShellPress = undefined;
@@ -512,6 +552,7 @@ export class Game {
       this.renderer.domElement.setAttribute('aria-label', `${definition.name} ocean scene. Drag to orbit; scroll to zoom.`);
       disposeObjects(...previous);
     } catch (error) {
+      simulation.dispose?.();
       draws?.dispose();
       views.forEach(view => { view.impactMarks.dispose(); view.rig.dispose(); });
       disposeObjects(...models.values(), ...clones, ...views.map(view => view.root));
@@ -545,7 +586,7 @@ export class Game {
     const dt = this.paused ? 0 : realDt;
     try {
       if (this.resizePending) this.resize();
-      const state = this.simulation.ship;
+      let state = this.simulation.ship;
       this.updateSpectator();
       const focusView = this.cameraShipView;
       const focus = focusView.motion;
@@ -558,6 +599,8 @@ export class Game {
       if (!this.inPort && !warmingUp) this.simulation.advance(dt, this.input.sample(), { aim, fire: this.gunsCommandable && (this.input.firing || this.rig.firing), battery: this.battery, weaponGroupId: this.weaponGroupId, ammunition: this.selectedAmmunition, controlPriority: this.controlPriority, controlFocus: this.controlFocus }, () => {
         this.fleetViews.forEach(view => view.capturePreviousPose());
       });
+      this.syncControlledShip();
+      state = this.simulation.ship;
       const alpha = this.inPort ? 1 : this.simulation.interpolationAlpha;
       this.fleetViews.forEach(view => view.update(alpha));
       // A salvo must not synchronously project scars onto every struck hull.
@@ -704,7 +747,8 @@ export class Game {
   }
   capturePointer(): void { if (!this.airOperationsOpen) this.rig.capturePointer(); }
   launchAircraft(squadronId: string): void {
-    if (!this.inPort && !this.paused && this.simulation.launchAircraft(squadronId)) this.selectedFlightId = this.simulation.player.airWing!.flights.at(-1)!.id;
+    const flight = squadronFlights(this.simulation.player).find(f => f.squadronId === squadronId && f.planeIds.every(id => ['ready', 'lost'].includes(this.simulation.aircraft.find(p => p.id === id)?.phase ?? 'lost')));
+    if (!this.inPort && !this.paused && this.simulation.launchAircraft(squadronId)) this.selectedFlightId = flight?.id;
   }
   selectFlight(id: string): void {
     if (squadronFlights(this.simulation.player).some(f => f.id === id)) this.selectedFlightId = this.selectedFlightId === id ? undefined : id;
@@ -821,7 +865,7 @@ export class Game {
   private get spectatorCandidates(): ShipView[] {
     if (this.inPort || !this.simulation.isBattle || !this.simulation.player.damage.sunk) return [];
     return this.fleetViews.filter(({ actor }) => actor !== this.simulation.player && this.simulation.actors.find(a => a === actor)?.team === this.simulation.player.team
-      && !actor.damage.sunk && !actor.damage.stability.combatLost);
+      && !physicalLoss(actor));
   }
   private updateSpectator(): void {
     const candidates = this.spectatorCandidates;
@@ -882,7 +926,8 @@ export class Game {
   recallAircraft(flightId?: string): void { if (!this.inPort && !this.paused) this.simulation.recallAircraft(flightId); }
   setDepth(depthM: number, emergency = false): void {
     if (this.inPort || this.paused || this.simulation.player.damage.sunk) return;
-    orderDepth(this.simulation.player, this.definition, depthM, emergency);
+    if (this.simulation.setDepth) this.simulation.setDepth(depthM, emergency);
+    else orderDepth(this.simulation.player, this.definition, depthM, emergency);
   }
   resizeChart(direction: number): void { if (this.airOperationsOpen) { this.zoomAirMap(-direction * 220); return; } this.chartSize = THREE.MathUtils.clamp(this.chartSize + direction, 0, 4); }
   togglePeriscope(): void {
@@ -952,8 +997,8 @@ export class Game {
       this.trail = [{ x: this.simulation.ship.x, z: 0 }]; this.lastTrailTick = 0;
     }
     if (leavingPort) {
-      this.simulation.ship.x = 0;
-      this.trail = [{ x: 0, z: 0 }];
+      if (!this.simulation.isBattle) this.simulation.ship.x = 0;
+      this.trail = [{ x: this.simulation.ship.x, z: this.simulation.ship.z }];
     }
     this.fleetViews.forEach(view => view.snap());
     this.setPaused(false);
@@ -964,6 +1009,11 @@ export class Game {
       this.rig.capturePointer();
     }
     this.renderer.domElement.setAttribute('aria-label', `${this.definition.name} ocean scene. ${inPort ? 'Drag to orbit; scroll to zoom.' : 'Click to capture mouse. Mouse to aim; left mouse to fire; Shift for binoculars; Control for cursor; Escape to pause.'}`);
+  }
+  fleetWaypoint(x: number, z: number): void {
+    const id = this.fleetWaypointShipId;
+    if (!id || this.paused || this.inPort || Math.abs(x) > 40000 || Math.abs(z) > 40000) return;
+    this.simulation.moveShip?.(id, [x, 0, z]); this.fleetWaypointShipId = undefined;
   }
   fire(): void { if (this.gunsCommandable && !this.paused && !this.inPort && this.playerView) this.simulation.requestFire(); }
   toggleShellFollow(): void {
@@ -1045,6 +1095,7 @@ export class Game {
         shellFollow: this.shellFollow.phase, followedAircraftId: this.followedAircraftId, spectatedShipId: this.spectatedShipId, followedShellId: this.shellFollow.shellId,
         pointerLocked: this.rig.pointerLocked, position: this.camera.position.toArray(), aim: this.currentAim, manualAim: this.manualAim,
         projectionMatrix: this.camera.projectionMatrix.toArray(), matrixWorldInverse: this.camera.matrixWorldInverse.toArray() },
+      network: { online: !!this.simulation.networked, phase: this.simulation.phase, status: this.simulation.connectionStatus, epoch: this.simulation instanceof RemoteBattleSession ? this.simulation.metadata.connectionEpoch : undefined },
       tick: this.simulation.tick, battleSeed: this.simulation.seed, paused: this.paused, fps: this.fps, inspecting: this.inspecting, inPort: this.inPort,
       effects: this.effects.diagnostics(),
       funnelSmoke: this.funnelSmoke.diagnostics(),
@@ -1097,6 +1148,7 @@ export class Game {
   }
 
   async dispose(): Promise<void> {
+    this.simulation.dispose?.();
     this.disposed = true;
     this.underwaterPassVisibility?.dispose();
     this.audio?.dispose();

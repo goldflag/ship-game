@@ -28,19 +28,23 @@ export function worldToLocal(v: Vec3, pose: Pose): Vec3 {
 export interface SegmentHit { t: number; exit: number; normal: Vec3; point: Vec3; }
 /** Slab intersection for a complete swept segment, including starts inside a volume. */
 export function segmentBox(from: Vec3, to: Vec3, box: Pick<Volume, 'center' | 'size'>): SegmentHit | null {
+  // World/local round trips can move an endpoint a few ulps off a plate.
+  // Keep grazing and endpoint contacts stable without expanding physical boxes.
+  const epsilon = 1e-9;
   let enter = 0, exit = 1;
   let normal: Vec3 = [0, 0, 0];
   const delta = sub(to, from);
   for (let axis = 0; axis < 3; axis++) {
     const low = box.center[axis] - box.size[axis] / 2, high = box.center[axis] + box.size[axis] / 2;
-    if (Math.abs(delta[axis]) < 1e-10) { if (from[axis] < low || from[axis] > high) return null; continue; }
+    if (Math.abs(delta[axis]) < 1e-10) { if (from[axis] < low - epsilon || from[axis] > high + epsilon) return null; continue; }
     let a = (low - from[axis]) / delta[axis], b = (high - from[axis]) / delta[axis];
     let sign = -1;
     if (a > b) { [a, b] = [b, a]; sign = 1; }
-    if (a >= enter) { enter = a; normal = [0, 0, 0]; normal[axis] = sign; }
+    if (a >= enter - epsilon) { enter = Math.max(enter, a); normal = [0, 0, 0]; normal[axis] = sign; }
     exit = Math.min(exit, b);
-    if (enter > exit) return null;
+    if (enter > exit + epsilon) return null;
   }
+  enter = clamp(enter, 0, 1); exit = clamp(exit, enter, 1);
   return { t: enter, exit, normal, point: add(from, scale(delta, enter)) };
 }
 export const contains = (box: Pick<Volume, 'center' | 'size'>, point: Vec3) => point.every((v, i) => Math.abs(v - box.center[i]) <= box.size[i] / 2);

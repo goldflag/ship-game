@@ -1,0 +1,16 @@
+{
+  "version": {
+    "protocol": 2,
+    "simulationBuild": "ffe55cbc44f084a721067a029d3985b1ee00abedfa3a2f67cb63e6dfc26a3c5f",
+    "manifestHash": "71ceaea76f9c41593625d14634e800754a833d29cbbb1539e1a942c9eacfa644",
+    "rulesVersion": 1
+  },
+  "captures": {
+    "custom-rust.png": "840452ac83f390b81bad145e3b77c44ad07dacba8a62d58f795c904e76716bda",
+    "online-player-two.png": "e31eeca77ed5e8bbc82e675e2d275ca1378b528f2e7b6a1d101af06bf711720e",
+    "online-eight-vessels-result.png": "d8d72549d97e45e515238471e89cb5534bbcf35ea31ecb320cb7b3eec76f1fd3",
+    "online-result.png": "cc168dc2f748f5e286fe06222048ab1a986a6353e75b727cd9cc7b54cba9f676",
+    "online-player-one.png": "fe8fc7d0b63c5bcedecfb8cd71c39c35f6bfd8859f9e8da85c458cc6c990fc92",
+    "online-eight-vessels.png": "8f921dfca398beb5e7d4ec851e83b944e58cd4c360fffa324cb2a91452239a69"
+  }
+}
