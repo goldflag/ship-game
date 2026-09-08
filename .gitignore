@@ -24,3 +24,7 @@ assets/aircraft/*/generated/comparison/
 # Rebuildable download bundles duplicate retained review files. Keep them local.
 /assets/ships/*/generated/comparison/*-review.zip
 /public/ship-reference/*/*-review.zip
+
+# Shokaku's canonical blueprint and runtime definition already retain these inputs.
+assets/ships/shokaku/reports/**/blueprint.json
+assets/ships/shokaku/reports/**/definition.json

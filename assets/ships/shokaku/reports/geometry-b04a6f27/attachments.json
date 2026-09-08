@@ -1,0 +1,11 @@
+{
+  "contentHash": "b04a6f27641f67fb5177bea72d65023751e642a1284735d69f9e090c837ba898",
+  "method": "Neutral-pose physical contact graph, independent of scene parenting.\n\nTriangle intersections or <=20 mm surface proximity count as contact. The\nproximity allowance covers export precision and thin painted/bolted details.\nEvery disconnected island requires visual inspection; this is not a sole pass.\n",
+  "objects": 12799,
+  "candidatePairsTested": 16314,
+  "contactEdges": 12798,
+  "components": 1,
+  "largestComponentObjects": 12799,
+  "disconnected": [],
+  "result": "neutral contact graph connected"
+}

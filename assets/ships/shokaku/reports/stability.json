@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "shipId": "shokaku",
+  "method": "Station polygon clipping and midpoint integration; conservative residual cells, 85% permeability",
+  "baselineVolumeM3": 38441.0735395529,
+  "fullHullVolumeM3": 71356.59009077461,
+  "statedMassKg": 32105000,
+  "geometricDisplacementKg": 39402100.37804172,
+  "buoyancyScale": 0.8148042792635415,
+  "dryCenterOfGravity": [
+    0,
+    0.7891379787935593,
+    -3.149519449833596
+  ],
+  "initialGM": 1.8200000000000003,
+  "floodCapacityM3": 53231.82153219176,
+  "reserveSpaces": 24,
+  "limitations": "Estimated loading: dry CG calibrated to an initial GM of 7% beam; longitudinal CG matches modeled buoyancy at reference waterline. Uniform buoyancy scale reconciles stated mass with the authored hull volume. Outer shell uses the blueprint structural plating thickness. Residual flood cells conservatively exclude retained room boxes; partitions, permeability and access are game estimates."
+}

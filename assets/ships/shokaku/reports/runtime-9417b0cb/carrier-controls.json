@@ -1,0 +1,27 @@
+{
+  "contentHash": "9417b0cbd8b1316f706388d8dd3ee67f8fe1f6653aad3e5203245ec7a809096e",
+  "backend": "webgpu",
+  "recordedAtUtc": "2026-09-08T06:09:18.184Z",
+  "fixture": "Normal rendered M-view squadron cards: click first Zero, Command-click first Val, Return selected flights, then select the final Kate flight beyond ten numbered hotkeys.",
+  "cards": 13,
+  "selected": [
+    "player/shokaku-fighters/squadron-1",
+    "player/shokaku-dive/squadron-1"
+  ],
+  "highlighted": 2,
+  "returned": [
+    {
+      "id": "player/shokaku-fighters/squadron-1",
+      "order": "return"
+    },
+    {
+      "id": "player/shokaku-dive/squadron-1",
+      "order": "return"
+    }
+  ],
+  "lastCardSelection": [
+    "player/shokaku-torpedo/squadron-5"
+  ],
+  "result": "pass",
+  "setup": "After the launch/recovery fixture, launch one Zero and one Val flight through Game.commandSquadron and advance 40 seconds. Clear the previous follow-camera selection before operating the normal M-view controls."
+}

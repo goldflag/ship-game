@@ -1,0 +1,41 @@
+{
+  "contentHash": "b04a6f27641f67fb5177bea72d65023751e642a1284735d69f9e090c837ba898",
+  "backend": "webgpu",
+  "method": "Same loaded GLB and top camera as the normal-shadow acceptance capture. Temporarily set directional sunlight.shadow.intensity=0, then restore its original value in finally. No geometry changes.",
+  "normalShadowSettings": {
+    "bias": -0.0005,
+    "normalBias": 0.2783203125,
+    "blurSamples": 8,
+    "intensity": 1,
+    "radius": 1,
+    "mapSize": [
+      2048,
+      2048
+    ],
+    "camera": {
+      "near": 1,
+      "far": 1800,
+      "left": -380,
+      "right": 380,
+      "top": 380,
+      "bottom": -380
+    }
+  },
+  "normalImage": "../geometry-b04a6f27/decks-top.png",
+  "probeImage": "decks-top-shadow-probe.png",
+  "camera": {
+    "name": "decks-top",
+    "camera": [
+      13.35,
+      48,
+      -39
+    ],
+    "target": [
+      13.35,
+      19,
+      -39.1
+    ]
+  },
+  "observation": "Faint repeated diagonal patterns disappear when cast shadows are suppressed. The five geometric overlap pairs independently pass with normal lighting and are fixed in the blueprint. Normal-resolution cast-shadow edge aliasing remains outside this geometry correction.",
+  "productionRendererChanged": false
+}

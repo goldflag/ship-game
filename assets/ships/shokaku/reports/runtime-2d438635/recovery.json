@@ -1,0 +1,215 @@
+{
+  "contentHash": "2d43863548c9dfcee9b1822b75dee70d501d16271e334d13ce5c1accfd00c0b8",
+  "fixture": "Normal custom battle with Shokaku, Enterprise and Bismarck; reset and set both bots to existing Static target behavior for uninterrupted recovery.",
+  "launched": {
+    "label": "passive-three-roles-airborne",
+    "tick": 2412,
+    "hash": "2d43863548c9dfcee9b1822b75dee70d501d16271e334d13ce5c1accfd00c0b8",
+    "aircraft": {
+      "models": 18,
+      "instances": 12,
+      "batches": 26,
+      "culled": 6,
+      "silhouettes": 12,
+      "contacts": 12,
+      "payloads": 12,
+      "bombs": 6,
+      "tracers": 0
+    },
+    "fleet": [
+      {
+        "id": "player",
+        "definitionId": "shokaku",
+        "team": "friendly",
+        "controller": "player",
+        "motion": {
+          "id": "player",
+          "tick": 2412,
+          "x": 2.530969744518776,
+          "y": -0.11717088980672685,
+          "z": 1.772204094092748,
+          "roll": -0.009575362414844446,
+          "pitch": -0.00024756878279874573,
+          "heading": 0,
+          "speed": 0,
+          "swaySpeed": 0,
+          "rudder": 0,
+          "yawRate": 0,
+          "distance": 0,
+          "verticalSpeed": 0.03391799897481118,
+          "waveHeave": -0.10982604951795738,
+          "driftX": 0.09576831791553486,
+          "driftZ": 0.06705769812612143
+        },
+        "ammo": 58800,
+        "integrity": 44800
+      },
+      {
+        "id": "friendly-1",
+        "definitionId": "enterprise-cv6",
+        "team": "friendly",
+        "controller": "bot",
+        "aiLevel": "static",
+        "motion": {
+          "id": "friendly-1",
+          "tick": 2412,
+          "x": 652.5309697445191,
+          "y": 0.06422045756134362,
+          "z": 1.772204094092748,
+          "roll": 0.0040974466579888685,
+          "pitch": 0.0021871692141743546,
+          "heading": 0,
+          "speed": 0,
+          "swaySpeed": 0,
+          "rudder": 0,
+          "yawRate": 0,
+          "distance": 0,
+          "verticalSpeed": -0.10469575292260169,
+          "waveHeave": 0.03100074844604119,
+          "driftX": 0.09576831791553486,
+          "driftZ": 0.06705769812612143
+        },
+        "ammo": 69680,
+        "integrity": 41300
+      },
+      {
+        "id": "enemy-1",
+        "definitionId": "bismarck",
+        "team": "enemy",
+        "controller": "bot",
+        "aiLevel": "static",
+        "motion": {
+          "id": "enemy-1",
+          "tick": 2412,
+          "x": 2.530969744518776,
+          "y": -0.00020664873892764501,
+          "z": -4998.227795905915,
+          "roll": 0.0028943969872329903,
+          "pitch": 0.004383542644402267,
+          "heading": 3.141592653589793,
+          "speed": 0,
+          "swaySpeed": 0,
+          "rudder": 0,
+          "yawRate": 0,
+          "distance": 0,
+          "verticalSpeed": 0.10836616902448783,
+          "waveHeave": -0.011658509906695345,
+          "driftX": 0.09576831791553486,
+          "driftZ": 0.06705769812612143
+        },
+        "ammo": 41560,
+        "integrity": 50750
+      }
+    ],
+    "phases": {
+      "outbound": 18,
+      "ready": 54
+    }
+  },
+  "recovered": 18,
+  "final": {
+    "label": "passive-recovered-and-serviced",
+    "tick": 38535,
+    "hash": "2d43863548c9dfcee9b1822b75dee70d501d16271e334d13ce5c1accfd00c0b8",
+    "aircraft": {
+      "models": 18,
+      "instances": 0,
+      "batches": 0,
+      "culled": 0,
+      "silhouettes": 0,
+      "contacts": 0,
+      "payloads": 0,
+      "bombs": 0,
+      "tracers": 0
+    },
+    "fleet": [
+      {
+        "id": "player",
+        "definitionId": "shokaku",
+        "team": "friendly",
+        "controller": "player",
+        "motion": {
+          "id": "player",
+          "tick": 38535,
+          "x": 68.81276495848937,
+          "y": -0.046995153819192004,
+          "z": 48.18321674900454,
+          "roll": -0.008694683985939816,
+          "pitch": 0.0021886517858944396,
+          "heading": 0,
+          "speed": 0,
+          "swaySpeed": 0,
+          "rudder": 0,
+          "yawRate": 0,
+          "distance": 0,
+          "verticalSpeed": 0.1194778470705847,
+          "waveHeave": -0.04280010997832038,
+          "driftX": 0.11058552597900556,
+          "driftZ": 0.07743281890738289
+        },
+        "ammo": 58800,
+        "integrity": 44800
+      },
+      {
+        "id": "friendly-1",
+        "definitionId": "enterprise-cv6",
+        "team": "friendly",
+        "controller": "bot",
+        "aiLevel": "static",
+        "motion": {
+          "id": "friendly-1",
+          "tick": 38535,
+          "x": 718.8127649585343,
+          "y": -0.026603785555147256,
+          "z": 48.18321674900454,
+          "roll": 0.008778426987336536,
+          "pitch": -0.00029407076173088015,
+          "heading": 0,
+          "speed": 0,
+          "swaySpeed": 0,
+          "rudder": 0,
+          "yawRate": 0,
+          "distance": 0,
+          "verticalSpeed": -0.07056844164046144,
+          "waveHeave": -0.05491617824003104,
+          "driftX": 0.11058552597900556,
+          "driftZ": 0.07743281890738289
+        },
+        "ammo": 69680,
+        "integrity": 41300
+      },
+      {
+        "id": "enemy-1",
+        "definitionId": "bismarck",
+        "team": "enemy",
+        "controller": "bot",
+        "aiLevel": "static",
+        "motion": {
+          "id": "enemy-1",
+          "tick": 38535,
+          "x": 68.81276495848937,
+          "y": 0.07371471190320178,
+          "z": -4951.816783247889,
+          "roll": 0.006199857313707875,
+          "pitch": 0.0025919779431771805,
+          "heading": 3.141592653589793,
+          "speed": 0,
+          "swaySpeed": 0,
+          "rudder": 0,
+          "yawRate": 0,
+          "distance": 0,
+          "verticalSpeed": 0.040010008697669575,
+          "waveHeave": 0.057624987015754504,
+          "driftX": 0.11058552597900556,
+          "driftZ": 0.07743281890738289
+        },
+        "ammo": 41560,
+        "integrity": 50750
+      }
+    ],
+    "phases": {
+      "ready": 72
+    }
+  },
+  "retention": "Original launch and final snapshots, recovered count and passive-fixture disclosure retained. Repeated periodic snapshots and the preceding sortie were omitted. No new gameplay run."
+}

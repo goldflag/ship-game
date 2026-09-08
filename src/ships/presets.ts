@@ -4,6 +4,7 @@ import bismarck from '../../public/models/bismarck.json';
 import yamato from '../../public/models/yamato.json';
 import baltimore from '../../public/models/baltimore.json';
 import enterprise from '../../public/models/enterprise-cv6.json';
+import shokaku from '../../public/models/shokaku.json';
 import viic from '../../public/models/type-viic.json';
 import fletcher from '../../public/models/fletcher.json';
 import libertyCargo from '../../public/models/liberty-cargo.json';
@@ -19,6 +20,7 @@ export const shipPresets = {
   'king-george-v': kingGeorgeV,
   baltimore,
   'enterprise-cv6': enterprise,
+  shokaku,
   'type-viic': viic,
   'liberty-cargo': libertyCargo,
   'liberty-collier': libertyCollier,
