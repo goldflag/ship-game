@@ -314,3 +314,28 @@ control's corresponding windows were 49.4-53.1 FPS. This does not establish an F
 gain from the AA changes or sustained 60 FPS. It establishes reduced isolated
 simulation cost with unchanged replay outcomes; late-combat rendering still needs
 work. The first sample's long stalls did not repeat, but their cause is unresolved.
+
+### Late-combat rendering experiments
+
+With the AA changes present and normal machine speed recovered, an instrumented
+late-combat run measured 4.42 ms/frame in water updates, 2.88 ms in final rendering,
+1.56 ms in combat effects, 1.12 ms in fleet draws and 1.11 ms in rigging. Ocean
+capture and the final scene each render the fleet; the final diagnostic counted
+1,162 native draws across the frame. Flag cloth remained the largest individual
+JavaScript function in the subsequent eight-second CPU profile.
+
+A scar-batching experiment retained exact transparent ordering, receiver matrices,
+subpixel/frustum culling and warmup. Eighteen relevant tests passed, twelve GPU
+fixture images matched exactly, and actual battle ship/zoom/distant views matched
+pixel-for-pixel with 47/87/43 visible scar receivers. Nevertheless its production
+average was 60.98 FPS versus 61.04 for the following unchanged control. Final
+fifty-second averages were about 51 versus 50 FPS; both had no frames over 100 ms
+and advanced about 119.8 seconds of simulation in 120 seconds. This did not show
+a convincing overall gain, so the experiment was removed.
+
+A separate WASM cloth-constraint prototype matched all positions over 12,000
+frames but improved isolated total cloth time by only about 1-4%, including its
+JS/WASM buffer copies. A JavaScript unrolling/common-product variant also matched
+exactly but was slightly slower. Neither was retained. Temporary code, profiles
+and comparisons remain under ignored `.build/`. These experiments do not establish
+sustained 60 FPS; the shipped rendering path remains unchanged by them.
