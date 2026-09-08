@@ -82,5 +82,5 @@ for (const id of requestedShips.length ? requestedShips : ['bismarck', 'yamato',
   }
   compileShip(b, catalog); await writeFile(path, JSON.stringify(b, null, 2) + '\n');
   const report = { version: 1, shipId: id, method: 'Station polygon clipping and midpoint integration; conservative residual cells, 85% permeability', baselineVolumeM3: base.volume, fullHullVolumeM3: full.volume, statedMassKg: h.massKg, geometricDisplacementKg: base.volume * 1025, buoyancyScale: b.stability.buoyancyScale, dryCenterOfGravity: b.stability.dryCenterOfGravity, initialGM: gm, floodCapacityM3: b.compartments.reduce((n, c) => n + c.capacityM3, 0), reserveSpaces: b.compartments.length - old.length, limitations: b.stability.basis };
-  await writeFile(new URL(`./${id}/reports/stability.json`, import.meta.url), JSON.stringify(report, null, 2) + '\n'); console.log(report);
+  console.log(report);
 }

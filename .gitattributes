@@ -16,8 +16,6 @@ assets/parts/guns.json merge=ship-catalog
 # Archival references, validation reports and review captures live in Git LFS. They are pipeline
 # inputs/evidence, never runtime assets; pipeline hashing accepts LFS pointers, so deployment hosts
 # can clone with GIT_LFS_SKIP_SMUDGE=1. Text records stay in plain Git for diffs.
-assets/ships/*/references/** filter=lfs diff=lfs merge=lfs -text
-assets/ships/*/reports/** filter=lfs diff=lfs merge=lfs -text
 assets/ships/*/baseline/** filter=lfs diff=lfs merge=lfs -text
 assets/reviews/** filter=lfs diff=lfs merge=lfs -text
 assets/aircraft/reports/** filter=lfs diff=lfs merge=lfs -text

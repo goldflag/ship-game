@@ -1,5 +1,0 @@
-$ bun scripts/reference/pipeline.ts compare king-george-v
-measure passed
-authored-capture passed
-comparison-sheets passed
-Local review page: /ship-reference/king-george-v/index.html

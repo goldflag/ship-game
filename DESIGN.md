@@ -133,6 +133,14 @@ Controls use restrained corners: 2 px on port instruments and the mouse-capture 
 
 ## Components
 
+### Local ship overlay
+
+The local overlay inherits the aircraft inspector's naval instrument styling: Barlow controls, Barlow Condensed headings, dark maritime surfaces, brass commands, fine borders and 3 px control corners. Its orthographic viewport leads, with an Overlay / Side by side switch, ship identity and seven camera views above the models, and fit/zoom controls with navigation help below. A cyan “Our ship” / amber “Reference” legend labels overlays; separate panels have matching captions. Both panels share camera, zoom, alignment and scale, and stack vertically for port/starboard views and on narrow viewports. Front, rear, port, starboard, top and bottom presets support silhouette comparison; 3D restores an oblique view. The grid uses 10 m spacing at waterline Y = 0. Display controls repeat the model colors beside visibility and opacity controls; wireframe and X-ray support inspection.
+
+Desktop keeps a 330 px scrolling sidebar beside the viewport for ship/reference selection, hull and equipment configuration, reference translation/rotation/uniform scale, saved alignment and model bounds. Save image stays in the header. At widths up to 800 px, the viewport and controls stack in one scrolling main region; the viewport is 60dvh with a 460 px minimum, and alignment fields use three columns. The mobile ship heading intentionally uses 28 px condensed type; 12 px supporting text, alignment labels and compact mobile controls retain the inherited instrument density. These sizes are deliberate local exceptions to generic typography detector advisories.
+
+Native controls and the canvas participate in keyboard navigation, with a brass 2 px focus outline and 3 px offset. Focused-canvas arrows pan, +/− zoom and Home fits both models; labeled buttons expose the same view, fit and zoom actions. Drag orbits, right-drag pans and scrolling zooms. Selected camera buttons expose their pressed state; errors and saved-alignment feedback use alert/status semantics.
+
 ### Custom battle conditions
 
 The setup dialog's Conditions group contains separate Time of day, Cloud cover and Wind speed sliders. Each uses a muted label, a brass value readout, a full-width native range control with brass accent and a visible focus outline, endpoint labels and one short explanation. Time reads as HH:MM, cloud cover as a percentage and wind in m/s. Reuse the deployment slider's naval styling and the settings column's existing responsive flow. The briefing and loading screen repeat the selected values; keep cloud cover and wind independently adjustable.

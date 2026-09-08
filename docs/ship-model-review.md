@@ -22,15 +22,15 @@ Target **100% historically accurate shapes and proportions** for the selected da
 | Bow in side profile | Stem rake/curvature, overhang, sheer and waterline entry |
 
 - Compare orthographic side, front and top views with dated plans and documented dimensions at a common scale. Use photographs to resolve or corroborate details; unmatched perspective views are qualitative evidence.
-- Retain measurements and matched overlays with source IDs and the stated waterline/loading condition.
-- Correct known mismatches before declaring completion. Missing or conflicting evidence stays open in the discrepancy register; qualify provisional reconstruction explicitly. The 100% target does not justify an unsupported accuracy claim.
+- Use measurements and matched overlays at the stated waterline/loading condition while reviewing; temporary files belong in `.build/`.
+- Correct known mismatches before declaring completion. Summarize missing or conflicting evidence and provisional reconstruction in the ship README. The 100% target does not justify an unsupported accuracy claim.
 
 ## 3. Especially intricate exposed guns
 
 - Model the actual variant's visible mechanisms on open deck and AA guns: applicable breech, cradle, trunnions, recoil cylinders/springs, pedestal, shield thickness/brackets, sights, handwheels, seats and ammunition feed/loading fittings.
 - Use supported details. Generic cylinders on blocks remain placeholders; invented machinery is not a substitute for research.
 - Preserve separate moving mechanisms and correct joint ownership. Check that all detail is physically attached.
-- Retain close-up side, rear and quarter views at the game's closest inspection distance. Keep detail within the [model performance guardrails](ship-runtime-contract.md#coordinate-and-component-contract).
+- Inspect close-up side, rear and quarter views at the game's closest inspection distance. Temporary captures belong in `.build/`. Keep detail within the [model performance guardrails](ship-runtime-contract.md#coordinate-and-component-contract).
 
 ## 4. No turret clipping
 
@@ -43,16 +43,8 @@ Target **100% historically accurate shapes and proportions** for the selected da
 
 For the development port articulation hook and exact-hash diagnostics, see [runtime diagnostics](ship-runtime-contract.md#renderer-bindings-diagnostics-and-inspection). The shared hook does not replace checking independent neighboring-mount poses.
 
-## Evidence and completion
+## Completion
 
-Retain evidence under `assets/ships/<id>/generated/review/` and `reports/`. For each check record:
+Inspect the exact published model/hash, affected assembly IDs and reference configuration. Summarize checks performed, tested poses, failures and unresolved issues in the task response. No tracked review report or reference archive is required. Keep the current five fixed views in `generated/review/`; all additional captures and diagnostic output belong in ignored `.build/`.
 
-| Field | Required content |
-| --- | --- |
-| Build | Ship ID and exact model hash |
-| Scope | Affected assembly IDs and reference configuration |
-| Evidence | Fixed views, close-ups, source comparisons and measured gaps where available |
-| Movement | Tested traverse/elevation/recoil poses, including independent neighboring mounts |
-| Result | Pass, fail or unresolved, with discrepancy links and required corrections |
-
-Floating parts, known priority-proportion mismatches, placeholder exposed guns and turret clashes **block visual acceptance**. Fix durable inputs, rebuild and repeat affected reviews before reporting completion. Retest every affected ship after shared-component changes; keep earlier evidence labeled with its original hash.
+Floating parts, known priority-proportion mismatches, placeholder exposed guns and turret clashes **block visual acceptance**. Fix durable inputs, rebuild and repeat affected reviews before reporting completion. Retest every affected ship after shared-component changes. Keep only lasting limitations and source links in the ship README.

@@ -85,7 +85,7 @@ for i,a in enumerate(rows):
         row['overlapAreaM2']+=shared;row['trianglePairs']+=1
 missing=sorted({id+'.surface' for id in decks}-{row['id'] for row in rows})
 r={'contentHash':content_hash,'mode':mode,'scope':__doc__,'deckHeightsM':levels,'horizontalTriangles':len(rows),'missingDeckSurfaces':missing,'coplanarToleranceM':.001,'minimumOverlapAreaM2':.00001,'overlaps':list(pairs.values()),'result':'fail' if pairs or missing else 'pass'}
-out=Path(args[args.index('--out')+1]) if '--out' in args else ROOT/'reports'/('geometry-'+content_hash[:8])/('decks-'+mode+'.json')
+out=Path(args[args.index('--out')+1]) if '--out' in args else ROOT.parents[2]/'.build/ships/shokaku'/('geometry-'+content_hash[:8])/('decks-'+mode+'.json')
 out.parent.mkdir(parents=True,exist_ok=True);out.write_text(json.dumps(r,indent=2)+'\n');print('DECK_REVIEW',json.dumps(r),flush=True)
 if missing:raise RuntimeError('Missing island deck surfaces: '+', '.join(missing))
 if pairs:raise RuntimeError('Coplanar overlapping deck surfaces')

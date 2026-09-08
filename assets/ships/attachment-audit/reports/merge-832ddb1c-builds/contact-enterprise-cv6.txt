@@ -1,5 +1,0 @@
-00:00.425  blend            | Read blend: "/Users/bill/orca/workspaces/ship-game/sunstar/assets/ships/enterprise-cv6/generated/source.blend"
-{"ship": "enterprise-cv6", "meshes": 8186, "islands": 0, "seconds": 8.0, "largest": []}
-Blender 5.2.0 LTS (hash fbe6228777e7 built 2026-07-14 01:31:22)
-
-Blender quit

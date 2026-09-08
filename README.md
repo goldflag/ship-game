@@ -21,7 +21,7 @@ See [Rust multiplayer setup, architecture and validation](docs/rust-multiplayer-
 
 ### Cloning without the asset archive
 
-The repository holds about 2 GB of ship references, validation reports and renders that only the Blender asset pipeline needs. For code work, clone sparsely and skip the archive; the game runs from `public/` alone:
+For code work, clone sparsely and skip original asset sources; the game runs from `public/`:
 
 ```sh
 git clone --filter=blob:none --sparse git@github.com:goldflag/ship-game.git
@@ -29,7 +29,7 @@ cd ship-game
 git sparse-checkout set --no-cone '/*' '!/assets'
 ```
 
-Reference scans, reports and review captures are stored in Git LFS (see `.gitattributes`). Pipeline checks accept LFS pointers, so `GIT_LFS_SKIP_SMUDGE=1 git clone …` gives a full checkout without downloading them; run `git lfs pull` later if you need the originals. Rendered comparison output under `assets/ships/<id>/generated/comparison/` is not version controlled; `bun run ship:compare <id>` rebuilds it with local Blender.
+Aircraft and other non-ship reference/review archives still use Git LFS (see `.gitattributes`). `GIT_LFS_SKIP_SMUDGE=1` skips their downloads; fetch originals when needed for those pipelines. Ship report/reference archives and comparison pages have been removed. Ship research and diagnostics stay in ignored `.build/`.
 
 ### Deploying under a sub-path
 
@@ -39,7 +39,7 @@ Set `BASE_PATH` to the mount point when building. Every asset URL resolves throu
 BASE_PATH=/naval/ bun run build   # serve dist/ at https://example.com/naval/
 ```
 
-`bun run build` runs every `ship:check` and `aircraft:check` first; they need neither Blender nor the LFS archive. `SHIP_REVIEW_PAGES=0` leaves the port reference-review pages out of a build; they exist for local authoring review and carry third-party comparison renders.
+`bun run build` runs every `ship:check` and `aircraft:check` first; they need neither Blender nor the LFS archive.
 
 `bun run deploy:naval` builds for https://game.tomato.gg/naval/ and rsyncs `dist/` to the tanks-na host, where the tank game's Caddy serves it from `/root/tank-game/naval` (see the `@naval` block in Tomato-gg/tank-game's Caddyfile). Override the destination with `NAVAL_DEPLOY_TARGET=user@host:/path/`.
 
@@ -177,34 +177,23 @@ The shared simulation is ready to host outside the browser, but multiplayer tran
 
 ## Model pipeline
 
-Bismarck is independently rebuilt for the 24 May 1941 fit, displayed at a separately stated 9.33 m standard draft. Its new original hull, four main turrets, superstructure, 509 armor plates and 39 internal envelopes are driven by the blueprint and component catalog. All sources are under `assets/ships/bismarck/`; the earlier original model remains untouched in `baseline/`. No build depends on `/Users/bill/models`.
-
-The latest correction replaces the secondary gunhouses' tapered boxes with ridged and sloping roof facets, separates the navigation wheelhouse from the conning tower, and reshapes the tower galleries. All six transverse armor sections now fit inside the local hull, including their physical thickness. See the [fourth correction report](assets/ships/bismarck/reports/visual-iteration-04/README.md). Bismarck's full hull and major deckhouses register hits even outside armored areas; Armor inspection also shows their provisional structural plating.
-
-**Reference review** in port opens the [local comparison page](public/ship-reference/bismarck/index.html): 25 neutral views, historical drawing registration, overlays, dimensions, landmarks, protection sections and a downloadable GLB. The [modeling specification](assets/ships/bismarck/modeling-spec.json) distinguishes documented dimensions from reconstructed sections and room envelopes. The game model is comparison evidence only; the original ship rebuild passes with the raw reference cache unavailable.
-
-Yamato is available at `?ship=yamato`. Its original recipe targets the April 1945 exterior with a separately stated 10.4 m trial draft. Three triple 46 cm and two triple 15.5 cm mounts share the same simulation and articulation contract. The [Yamato source notes](assets/ships/yamato/README.md) distinguish measured dimensions from unresolved historical proportions and fittings.
-
-The [fleet fidelity pass](assets/ships/fleet-fidelity/README.md) upgrades Yamato, Baltimore and Enterprise with vessel-specific hull/deckhouse surfaces, weapon and equipment detail, provisional protection/internals and complete structural hit coverage. Each has twelve matched before/after views, a portable historical/measurement review and exact-hash WebGPU articulation/combat evidence. **Reference review** is available for all four ships and opens `/ship-reference/<ship-id>/index.html` explicitly, including in Vite development. Bismarck's original recipe and preserved baseline remain unchanged. Historical gaps and uncontrolled mixed-fleet performance observations are recorded separately from passing export/tests.
-
-HMS King George V is available in port and Custom battle, or at `?ship=king-george-v`. The original early-1941 reconstruction has ten 14-inch guns in A/B/Y quadruple/twin/quadruple turrets and eight twin 5.25-inch mounts. It includes the early aircraft-handling arrangement, inspected armor and machinery, damage, flooding and a baked carousel thumbnail. [Configuration, sources and limitations](assets/ships/king-george-v/README.md) distinguish the sourced dimensions from estimated fittings and gameplay calibration. Light AA, UP launchers and aircraft are visual fittings.
+Historical ships use one versioned blueprint, the original component catalog and original Blender recipes. These produce a simulation definition, articulated GLB and port thumbnail. The [preset registry](src/ships/presets.ts) owns the playable roster. Generated models use meters, bow -Z, up +Y and waterline Y=0.
 
 ```sh
-bun run ship:reference bismarck   # Optional: refresh the isolated GameModels3D raster pack
-bun run ship:build bismarck       # Also regenerates comparison artifacts
-bun run ship:independence bismarck
-bun run ship:check bismarck
-bun run ship:review bismarck
-bun run ship:build king-george-v # Matched Vickers / GameModels3D review included
-bun run ship:build yamato
-bun run ship:review yamato
-bun assets/ships/yamato/check-dimensions.ts
 bun run ship:new my-ship
+bun run ship:compile my-ship
+bun run ship:build my-ship
+bun run ship:review my-ship
+bun run ship:check my-ship
 ```
 
-Set `BLENDER_BIN` for a custom Blender executable. Builds retain independent mounts, elevation/recoil joints, muzzle sockets and assembly IDs. The export is already in runtime coordinates: meters, bow -Z, up +Y, waterline Y=0.
+Before authoring historical geometry, inspect the corresponding GameModels3D or War Thunder model as the primary visual reference. Corroborate details with historical plans and photographs; report unavailable primary models explicitly. Independently author all geometry and textures. Keep concise configuration, inspected model links and limitations in the ship README. Research downloads, logs and diagnostic results belong in ignored `.build/`; do not create ship `reports/` or `references/` folders.
 
-Read the [ship pipeline and Blender MCP workflow](docs/ship-pipeline.md), [source asset index](assets/README.md), and [Bismarck discrepancy register](assets/ships/bismarck/reports/discrepancies.md). Detailed [runtime contracts](docs/ship-runtime-contract.md) and [build/reference behavior](docs/ship-build-reference.md) are separate references. The [original systems plan](docs/ship-systems-plan.md) preserves the historical proposal and roadmap. The GameModels3D WoWS EU 15.7.0.0 reference pack is retained under the ship’s references. Passing export checks validates authored targets, not historical accuracy.
+Follow the [ship pipeline](docs/ship-pipeline.md), [file layout and build details](docs/ship-build-reference.md), [model review](docs/ship-model-review.md) and [runtime contract](docs/ship-runtime-contract.md). The original Bismarck baseline remains protected. Passing export checks validates authored targets, not historical accuracy. The old port reference pages and archive comparison commands are retired.
+
+### Local model overlay
+
+Run `bun run ship:overlay` and open http://127.0.0.1:5180/ to compare our models with GameModels3D WoWS geometry or a local GLB. Choose overlay or synchronized side-by-side views, including front, rear, both sides, top and bottom. Adjust opacity, configuration and alignment. Reference geometry stays in ignored local storage and never enters ship builds. See the [overlay app guide](tools/ship-overlay/README.md).
 
 ## Aircraft model collection
 
@@ -221,7 +210,7 @@ bun run build
 bun run preview
 ```
 
-`bun run test` discovers every test file under `src/` and `scripts/` and runs each in a separate Bun process, with at most eight workers (bounded by available CPU parallelism). Measured expensive files start first to avoid leaving one slow file at the end. Output stays grouped by file, and any failed file fails the command. Assertions and simulation durations are preserved. The review-page test serves retained comparison pages in an isolated directory; `bun run build` checks asset hashes and freshness. See [runtime measurements](docs/test-performance.md). `bun test` still uses Bun's single-process runner. Passing options to `bun run test`, such as `--coverage`, `--watch` or `--test-name-pattern`, delegates to the native single-process runner so those options retain their usual behavior.
+`bun run test` discovers every test file under `src/` and `scripts/` and runs each in a separate Bun process, with at most eight workers (bounded by available CPU parallelism). Measured expensive files start first to avoid leaving one slow file at the end. Output stays grouped by file, and any failed file fails the command. Assertions and simulation durations are preserved. `bun run build` checks asset hashes and freshness. See [runtime measurements](docs/test-performance.md). `bun test` still uses Bun's single-process runner. Passing options to `bun run test`, such as `--coverage`, `--watch` or `--test-name-pattern`, delegates to the native single-process runner so those options retain their usual behavior.
 
 See the [test runtime measurements](docs/test-performance.md) for the before/after comparison.
 
@@ -276,4 +265,4 @@ There is no global active-count launch cap on shells, torpedoes, depth charges o
 
 After your ship sinks in a custom battle, the camera automatically follows a surviving teammate. Use the **left/right arrow keys**, the on-screen arrow buttons, or the **Spectating teammate** selector in the battle HUD to switch ships. Click the sea to look around, scroll to zoom, and hold Ctrl to use the controls. If the watched teammate is lost, the camera selects another survivor. The HUD follows the watched ship’s name, health, weapons, helm and navigation position. Your battle score stays yours. Teammates remain under bot control; returning to port clears spectating.
 
-Damageable equipment includes gun mounts, machinery, steering, magazines, generators, directors and supported torpedo/depth-charge launchers. Internals lists equipment and its connected weapons; Flooding has a separate compartment view. Directors serve named batteries and leave local gun control available when damaged. The eight-barrel pom-pom component supports finite ammunition and automatic AA in its retained review prototype. KGV's live pom-pom and UP fittings remain decorative behind the station-evidence gate. Historical fitting uncertainties and per-ship functional inventories are retained under `assets/ships/<id>/reports/`. See the [equipment contract](docs/ship-runtime-contract.md#damageable-exposed-equipment-and-coverage-additive-version-1-extension).
+Damageable equipment includes gun mounts, machinery, steering, magazines, generators, directors and supported torpedo/depth-charge launchers. Internals lists equipment and its connected weapons; Flooding has a separate compartment view. Directors serve named batteries and leave local gun control available when damaged. The eight-barrel pom-pom component supports finite ammunition and automatic AA in its retained review prototype. KGV's live pom-pom and UP fittings remain decorative behind the station-evidence gate. Lasting historical fitting uncertainties belong in each ship README; functional inventories come from its blueprint. See the [equipment contract](docs/ship-runtime-contract.md#damageable-exposed-equipment-and-coverage-additive-version-1-extension).

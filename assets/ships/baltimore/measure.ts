@@ -65,17 +65,18 @@ function bounds(points: Vector3[]) {
   return { min: min.toArray(), max: max.toArray(), size: max.clone().sub(min).toArray() };
 }
 const envelope = bounds(positions), waterlineBounds = bounds(waterline);
-const reference = await Bun.file(new URL('./references/measurements.json', import.meta.url)).json();
+const { hull } = await Bun.file(new URL('../../../public/models/baltimore.json', import.meta.url)).json();
+const targets = [{ id: 'length-overall', value: hull.length }, { id: 'beam-extreme', value: hull.beam }, { id: 'limiting-keel-draft', value: hull.draft }];
 const measured: Record<string, number> = {
   'length-overall': envelope.size[2],
   'beam-extreme': envelope.size[0],
   'limiting-keel-draft': -envelope.min[1],
   'length-waterline': waterlineBounds.size[2],
 };
-const comparisons = reference.dimensions.filter((d: { id: string }) => d.id in measured).map((d: { id: string; value: number; source: string }) => ({
-  id: d.id, measuredM: measured[d.id], documentedM: d.value,
+const comparisons = targets.map((d: { id: string; value: number }) => ({
+  id: d.id, measuredM: measured[d.id], authoredM: d.value,
   errorM: measured[d.id] - d.value, toleranceM: .005,
-  pass: Math.abs(measured[d.id] - d.value) <= .005, source: d.source,
+  pass: Math.abs(measured[d.id] - d.value) <= .005, source: 'current compiled hull definition',
 }));
 const report = {
   definitionHash: gltf.scenes[gltf.scene ?? 0].extras?.definitionHash,
@@ -84,6 +85,6 @@ const report = {
   units: 'meters', envelope, waterlineBounds, comparisons,
   historicalAccuracy: 'Envelope and waterline length only; body-plan offsets and waterline endpoint stations remain unresolved.',
 };
-await Bun.write(new URL('./reports/dimensions.json', import.meta.url), JSON.stringify(report, null, 2) + '\n');
+await Bun.write(new URL('../../../.build/ships/baltimore/dimensions.json', import.meta.url), JSON.stringify(report, null, 2) + '\n');
 console.log(JSON.stringify(report, null, 2));
 if (comparisons.some((c: { pass: boolean }) => !c.pass)) process.exitCode = 1;

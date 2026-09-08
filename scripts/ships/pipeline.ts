@@ -179,16 +179,7 @@ function inspectGlb(bytes: Buffer, def: ShipDefinition) {
   }
   const triangles = gltf.meshes.reduce((total, m) => total + m.primitives.reduce((n, p) => n + gltf.accessors[p.indices ?? p.attributes.POSITION].count / 3, 0), 0);
   if (triangles > 500000 || bytes.length > 30 * 1024 * 1024) throw new Error('Ship exceeds initial 500k triangle / 30 MiB export guardrails');
-  return { contentHash, hullBounds: bounds.map(b => b.toArray()), mounts, torpedoTubes, depthChargeLaunchers, meshes: gltf.meshes.length, primitives: gltf.meshes.reduce((n, m) => n + m.primitives.length, 0), triangles, bytes: bytes.length, result: 'passed', historicalAccuracy: 'not certified; see reference register and discrepancy report' };
-}
-
-async function runEvidence(action: 'compare' | 'check') {
-  if (!existsSync(join(sourceDir, 'modeling-spec.json'))) return;
-  const child = Bun.spawn(['bun', join(root, 'scripts/reference/pipeline.ts'), action, shipId], { cwd: root, stdout: 'pipe', stderr: 'pipe' });
-  const [out, err, code] = await Promise.all([new Response(child.stdout).text(), new Response(child.stderr).text(), child.exited]);
-  if (action === 'compare') await writeFile(join(stage, 'evidence.log'), out + err);
-  if (code) throw new Error(`Ship evidence failed:\n${out}${err}`);
-  console.log(out.trim());
+  return { contentHash, hullBounds: bounds.map(b => b.toArray()), mounts, torpedoTubes, depthChargeLaunchers, meshes: gltf.meshes.length, primitives: gltf.meshes.reduce((n, m) => n + m.primitives.length, 0), triangles, bytes: bytes.length, result: 'passed', historicalAccuracy: 'not certified; see ship README' };
 }
 
 async function runBlender(script: string, extraEnv: Record<string, string> = {}) {
@@ -223,7 +214,6 @@ if (action === 'check') {
   if (JSON.stringify(current) !== JSON.stringify(published)) throw new Error('Compiled definition is stale. Run bun run ship:build ' + shipId);
   const report = inspectGlb(await readFile(join(outputDir, `${shipId}.glb`)), definition);
   await checkThumbnail();
-  await runEvidence('check');
   console.log(JSON.stringify(report, null, 2));
 } else {
   await mkdir(resolve(stage, '..'), { recursive: true });
@@ -259,10 +249,8 @@ if (action === 'check') {
   const products = [[join(stage, 'model.glb'), join(outputDir, `${shipId}.glb`)], [join(stage, 'definition.json'), join(outputDir, `${shipId}.json`)], [join(stage, 'source.blend'), join(sourceDir, 'generated/source.blend')]];
   for (const [from, to] of products) { await mkdir(resolve(to, '..'), { recursive: true }); await copyFile(from, to + '.tmp'); }
   for (const [, to] of products) await rename(to + '.tmp', to);
-  await mkdir(join(sourceDir, 'reports'), { recursive: true });
-  await writeFile(join(sourceDir, 'reports/export.json'), JSON.stringify(report, null, 2) + '\n');
+  await writeFile(join(stage, 'export.json'), JSON.stringify(report, null, 2) + '\n');
   await bakeThumbnail();
-  await runEvidence('compare');
   console.log(JSON.stringify(report, null, 2));
   }
   } finally { await rm(lock, { recursive: true, force: true }); }

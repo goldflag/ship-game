@@ -57,6 +57,6 @@ const report = {
   measures,
   historicalAccuracy: 'These five dimensions are checked. Hull lines, surface offsets and equipment details remain unverified; this is not historical certification.',
 };
-await Bun.write(resolve(import.meta.dir, 'reports/dimensions.json'), JSON.stringify(report, null, 2) + '\n');
+await Bun.write(resolve(import.meta.dir, '../../../.build/ships/king-george-v/dimensions.json'), JSON.stringify(report, null, 2) + '\n');
 console.log(JSON.stringify(report, null, 2));
 if (measures.some(m => !m.passed)) process.exitCode = 1;

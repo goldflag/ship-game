@@ -12,13 +12,13 @@ dist/
 *.tmp
 __pycache__/
 
-# Served copy of assets/ships/<id>/generated/comparison, rebuilt by ship:check / ship:compare.
+# Retired ship archive paths. Research and diagnostics stay under .build/.
+assets/ships/**/reports/
+assets/ships/**/references/
 public/ship-reference/
 
-# Rebuildable comparison output (ship:compare, aircraft compare). Only the build record is tracked;
-# ship:check verifies it and, when the output is present, every rendered file.
-assets/ships/*/generated/comparison/*
-!assets/ships/*/generated/comparison/build.json
+# Retired ship comparisons and local aircraft comparisons.
+assets/ships/*/generated/comparison/
 assets/aircraft/*/generated/comparison/
 
 # Rebuildable download bundles duplicate retained review files. Keep them local.
@@ -30,7 +30,3 @@ assets/aircraft/*/generated/comparison/
 /src/generated/naval-wasm/
 /.naval-data/
 /src/generated/naval-version.json
-
-# Shokaku's canonical blueprint and runtime definition already retain these inputs.
-assets/ships/shokaku/reports/**/blueprint.json
-assets/ships/shokaku/reports/**/definition.json

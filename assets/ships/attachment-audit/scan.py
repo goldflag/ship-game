@@ -65,7 +65,7 @@ def scan(ship):
     report = dict(ship=ship, source=str(source.relative_to(ROOT)), toleranceM=TOLERANCE,
                   method='object AABB candidate graph; overlaps do not prove attachment',
                   meshCount=len(objects), hullConnectedMeshCount=len(connected), islands=islands)
-    out = Path(__file__).parent / 'reports' / 'before'
+    out = Path(__file__).resolve().parents[3] / '.build/ships/attachment-audit' / 'before'
     out.mkdir(parents=True, exist_ok=True)
     (out / (ship + '.json')).write_text(json.dumps(report, indent=2) + '\n')
     print(json.dumps(dict(ship=ship, meshes=len(objects), islands=len(islands),

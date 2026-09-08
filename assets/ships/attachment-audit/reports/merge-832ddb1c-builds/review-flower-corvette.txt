@@ -1,3 +1,0 @@
-$ bun scripts/ships/pipeline.ts review flower-corvette
-review.py completed; log in /Users/bill/orca/workspaces/ship-game/sunstar/.build/ships/flower-corvette
-Orthographic review views: /Users/bill/orca/workspaces/ship-game/sunstar/assets/ships/flower-corvette/generated/review

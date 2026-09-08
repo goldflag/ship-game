@@ -1,6 +1,6 @@
 # Rust fleet multiplayer implementation
 
-Implemented on `goldflag/rust-fleet-multiplayer`, integrated with remote master `30fe48aa`. The reviewed proposal and Fable critique remain preserved separately. Local functional validation is complete; public deployment and capacity qualification on the intended host remain separate launch work. See the [retained validation evidence](../assets/reviews/rust-multiplayer/README.md).
+Implemented on `goldflag/rust-fleet-multiplayer`, integrated with remote master `8495e905`. The reviewed proposal and Fable critique remain preserved separately. Local functional validation is complete; public deployment and capacity qualification on the intended host remain separate launch work. See the [retained validation evidence](../assets/reviews/rust-multiplayer/README.md).
 
 ## Implemented
 
@@ -63,13 +63,13 @@ bun run multiplayer:benchmark 1800
 
 `multiplayer:check` generates content, runs native tests and Clippy, builds WASM and checks frozen migration fixtures. Standalone Cargo tests require the generated manifest. Wire types are exported with `TS_RS_EXPORT_DIR=src/multiplayer/generated cargo run -p naval-protocol --bin export`. Frozen fixtures are refreshed deliberately with `bun run multiplayer:fixtures`, never as part of routine tests.
 
-Validation passed native tests and Clippy, complete native/WASM battle comparisons covering 28,800 simulated ticks, all registered weapon-group IDs, damage records and shell histories, 135 TypeScript test files, and the production build with all ship/aircraft checks. GitHub Actions runs the native/WASM checks, TypeScript suite, production build and release-server HTTP/WebSocket smoke. See the PR checks for remote execution status. The [implementation review disposition](reviews/rust-multiplayer-review-disposition.md) records Fable’s findings and their fixes.
+Validation passed native tests and Clippy, complete native/WASM battle comparisons covering 28,800 simulated ticks, all registered weapon-group IDs, damage records and shell histories, 133 TypeScript test files, and the production build with all ship/aircraft checks. GitHub Actions runs the native/WASM checks, TypeScript suite, production build and release-server HTTP/WebSocket smoke. See the PR checks for remote execution status. The [implementation review disposition](reviews/rust-multiplayer-review-disposition.md) records Fable’s findings and their fixes.
 
 Real TCP checks cover load barrier, ownership, movement, reconnect epochs, old socket replacement, forfeit, frozen final-result retrieval, HTTP queue cancellation, four players in two simultaneous maximum-size legal fleets and refusal of a third match. SQLite tests verify committed writes after flush, immutable results and restart aborts. Both custom battle launch and two-client online play ran in the actual GPU browser, including ship switching, a 150 ms network-latency setting, a three-second game-socket outage, reconnection with a new epoch and the opponent's victory display. The isolated browser required `--use-angle=metal`; its default software graphics path stalled during harbor warmup.
 
 One intentional numerical correction affects both the TypeScript migration reference and Rust: segment/box contacts tolerate 1e-9 endpoint roundoff after world/local rotations, without physically expanding a box or admitting a real 0.1 mm miss. Dedicated regression tests and deliberately refreshed fixtures cover this. Exact triangular structural seams retain dedicated duplicate-layer checks; these comparisons do not claim bitwise cross-platform lockstep.
 
-The six historical comparison records were rebuilt through `ship:compare` using local Blender because the endpoint correction changed a declared comparison input. Blender MCP tools were unavailable. All comparison output hashes stayed identical; no model geometry changed and this does not supply new historical model acceptance.
+Before the final master integration, six historical comparison records were rebuilt through `ship:compare` using local Blender because the endpoint correction changed a declared comparison input. Blender MCP tools were unavailable; all output hashes stayed identical and no model geometry changed. Master subsequently retired those archives and the comparison command; integration preserves that removal. Current ship/aircraft checks still pass. This does not supply new historical model acceptance.
 
 ## Measured limits and public launch work
 

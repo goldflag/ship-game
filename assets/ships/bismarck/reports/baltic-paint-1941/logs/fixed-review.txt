@@ -1,3 +1,0 @@
-$ bun scripts/ships/pipeline.ts review bismarck
-review.py completed; log in /Users/bill/orca/workspaces/ship-game/handfish/.build/ships/bismarck
-Orthographic review views: /Users/bill/orca/workspaces/ship-game/handfish/assets/ships/bismarck/generated/review
