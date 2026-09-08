@@ -2,6 +2,7 @@ import kingGeorgeV from '../../public/models/king-george-v.json';
 import bismarck from '../../public/models/bismarck.json';
 import yamato from '../../public/models/yamato.json';
 import baltimore from '../../public/models/baltimore.json';
+import mogami from '../../public/models/mogami.json';
 import enterprise from '../../public/models/enterprise-cv6.json';
 import shokaku from '../../public/models/shokaku.json';
 import viic from '../../public/models/type-viic.json';
@@ -18,6 +19,7 @@ export const shipPresets = {
   yamato,
   'king-george-v': kingGeorgeV,
   baltimore,
+  mogami,
   'enterprise-cv6': enterprise,
   shokaku,
   'type-viic': viic,

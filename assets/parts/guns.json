@@ -7922,6 +7922,3436 @@
         "penetrationReferenceSpeedMps": 530,
         "basis": "S06 nominal 900 m/s. Effective sustained cadence, dispersion, recoil and mount sectors are gameplay estimates; this is not a projectile-by-projectile magazine simulation."
       }
+    },
+    {
+      "id": "type3-203-mogami-e3-twin",
+      "name": "20.3 cm/50 Type 3 No.2 E3 twin",
+      "kind": "gun",
+      "barrelCount": 2,
+      "massKg": 34000,
+      "barbetteRadius": 2.66,
+      "rollerRadius": 2.62,
+      "gunhouseBaseHeight": 0.04,
+      "gunhouseSize": [
+        8.12,
+        5.68,
+        2.07
+      ],
+      "pivotHeight": 1.27,
+      "trunnionForward": 2.15,
+      "muzzleForward": 9.08,
+      "barrelSpacing": 1.77,
+      "barrelBaseRadius": 0.245,
+      "rangefinderWidth": 7.8,
+      "caliberM": 0.203,
+      "traverseDeg": 150,
+      "traverseRateDeg": 6,
+      "elevationMinDeg": -5,
+      "elevationMaxDeg": 55,
+      "elevationRateDeg": 6,
+      "reloadSeconds": 12,
+      "muzzleSpeed": 840,
+      "projectileMassKg": 125.85,
+      "penetrationMm": 270,
+      "damage": 42,
+      "recoilM": 0.45,
+      "ammoPerBarrel": 120,
+      "armorMm": 25,
+      "gunhouseMesh": {
+        "version": 1,
+        "vertices": [
+          [
+            2.6697133610701336,
+            2.3542,
+            0.04
+          ],
+          [
+            2.5291246160396765,
+            2.693611254969543,
+            0.04
+          ],
+          [
+            2.1897133610701336,
+            2.8342,
+            0.04
+          ],
+          [
+            -4.976000000000001,
+            2.8342,
+            0.04
+          ],
+          [
+            -5.315411254969543,
+            2.693611254969543,
+            0.04
+          ],
+          [
+            -5.456000000000001,
+            2.3542,
+            0.04
+          ],
+          [
+            -5.456000000000001,
+            -2.3542,
+            0.04
+          ],
+          [
+            -5.315411254969543,
+            -2.693611254969543,
+            0.04
+          ],
+          [
+            -4.976000000000001,
+            -2.8342,
+            0.04
+          ],
+          [
+            2.1897133610701336,
+            -2.8342,
+            0.04
+          ],
+          [
+            2.5291246160396765,
+            -2.693611254969543,
+            0.04
+          ],
+          [
+            2.6697133610701336,
+            -2.3542,
+            0.04
+          ],
+          [
+            2.4791131021943,
+            2.215,
+            1.0
+          ],
+          [
+            2.338524357163843,
+            2.554411254969543,
+            1.0
+          ],
+          [
+            1.9991131021943,
+            2.695,
+            1.0
+          ],
+          [
+            -4.880000000000001,
+            2.695,
+            1.0
+          ],
+          [
+            -5.219411254969543,
+            2.554411254969543,
+            1.0
+          ],
+          [
+            -5.360000000000001,
+            2.215,
+            1.0
+          ],
+          [
+            -5.360000000000001,
+            -2.215,
+            1.0
+          ],
+          [
+            -5.219411254969543,
+            -2.554411254969543,
+            1.0
+          ],
+          [
+            -4.880000000000001,
+            -2.695,
+            1.0
+          ],
+          [
+            1.9991131021943,
+            -2.695,
+            1.0
+          ],
+          [
+            2.338524357163843,
+            -2.554411254969543,
+            1.0
+          ],
+          [
+            2.4791131021943,
+            -2.215,
+            1.0
+          ],
+          [
+            2.013112281276803,
+            2.1134999999999997,
+            1.7
+          ],
+          [
+            1.8725235362463462,
+            2.4529112549695427,
+            1.7
+          ],
+          [
+            1.5331122812768032,
+            2.5934999999999997,
+            1.7
+          ],
+          [
+            -4.8100000000000005,
+            2.5934999999999997,
+            1.7
+          ],
+          [
+            -5.149411254969543,
+            2.4529112549695427,
+            1.7
+          ],
+          [
+            -5.290000000000001,
+            2.1134999999999997,
+            1.7
+          ],
+          [
+            -5.290000000000001,
+            -2.1134999999999997,
+            1.7
+          ],
+          [
+            -5.149411254969543,
+            -2.4529112549695427,
+            1.7
+          ],
+          [
+            -4.8100000000000005,
+            -2.5934999999999997,
+            1.7
+          ],
+          [
+            1.5331122812768032,
+            -2.5934999999999997,
+            1.7
+          ],
+          [
+            1.872523536246346,
+            -2.4529112549695427,
+            1.7
+          ],
+          [
+            2.013112281276803,
+            -2.1134999999999997,
+            1.7
+          ],
+          [
+            1.5457390024708246,
+            2.07,
+            2.0
+          ],
+          [
+            1.4051502574403676,
+            2.409411254969543,
+            2.0
+          ],
+          [
+            1.0657390024708246,
+            2.55,
+            2.0
+          ],
+          [
+            -4.779999999999999,
+            2.55,
+            2.0
+          ],
+          [
+            -5.119411254969542,
+            2.409411254969543,
+            2.0
+          ],
+          [
+            -5.26,
+            2.07,
+            2.0
+          ],
+          [
+            -5.26,
+            -2.07,
+            2.0
+          ],
+          [
+            -5.119411254969542,
+            -2.409411254969543,
+            2.0
+          ],
+          [
+            -4.779999999999999,
+            -2.55,
+            2.0
+          ],
+          [
+            1.0657390024708246,
+            -2.55,
+            2.0
+          ],
+          [
+            1.4051502574403674,
+            -2.409411254969543,
+            2.0
+          ],
+          [
+            1.5457390024708246,
+            -2.07,
+            2.0
+          ],
+          [
+            1.2718072145219645,
+            2.05985,
+            2.07
+          ],
+          [
+            1.1312184694915075,
+            2.399261254969543,
+            2.07
+          ],
+          [
+            0.7918072145219646,
+            2.53985,
+            2.07
+          ],
+          [
+            -4.773,
+            2.53985,
+            2.07
+          ],
+          [
+            -5.112411254969542,
+            2.399261254969543,
+            2.07
+          ],
+          [
+            -5.253,
+            2.05985,
+            2.07
+          ],
+          [
+            -5.253,
+            -2.05985,
+            2.07
+          ],
+          [
+            -5.112411254969542,
+            -2.399261254969543,
+            2.07
+          ],
+          [
+            -4.773,
+            -2.53985,
+            2.07
+          ],
+          [
+            0.7918072145219645,
+            -2.53985,
+            2.07
+          ],
+          [
+            1.1312184694915073,
+            -2.399261254969543,
+            2.07
+          ],
+          [
+            1.2718072145219645,
+            -2.05985,
+            2.07
+          ]
+        ],
+        "faces": [
+          {
+            "id": "shell-0",
+            "indices": [
+              0,
+              1,
+              13
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-1",
+            "indices": [
+              0,
+              13,
+              12
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-2",
+            "indices": [
+              1,
+              2,
+              14
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-3",
+            "indices": [
+              1,
+              14,
+              13
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-4",
+            "indices": [
+              2,
+              3,
+              15
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-5",
+            "indices": [
+              2,
+              15,
+              14
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-6",
+            "indices": [
+              3,
+              4,
+              16
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-7",
+            "indices": [
+              3,
+              16,
+              15
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-8",
+            "indices": [
+              4,
+              5,
+              17
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-9",
+            "indices": [
+              4,
+              17,
+              16
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-10",
+            "indices": [
+              5,
+              6,
+              18
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-11",
+            "indices": [
+              5,
+              18,
+              17
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-12",
+            "indices": [
+              6,
+              7,
+              19
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-13",
+            "indices": [
+              6,
+              19,
+              18
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-14",
+            "indices": [
+              7,
+              8,
+              20
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-15",
+            "indices": [
+              7,
+              20,
+              19
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-16",
+            "indices": [
+              8,
+              9,
+              21
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-17",
+            "indices": [
+              8,
+              21,
+              20
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-18",
+            "indices": [
+              9,
+              10,
+              22
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-19",
+            "indices": [
+              9,
+              22,
+              21
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-20",
+            "indices": [
+              10,
+              11,
+              23
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-21",
+            "indices": [
+              10,
+              23,
+              22
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-22",
+            "indices": [
+              11,
+              0,
+              12
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-23",
+            "indices": [
+              11,
+              12,
+              23
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-24",
+            "indices": [
+              12,
+              13,
+              25
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-25",
+            "indices": [
+              12,
+              25,
+              24
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-26",
+            "indices": [
+              13,
+              14,
+              26
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-27",
+            "indices": [
+              13,
+              26,
+              25
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-28",
+            "indices": [
+              14,
+              15,
+              27
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-29",
+            "indices": [
+              14,
+              27,
+              26
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-30",
+            "indices": [
+              15,
+              16,
+              28
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-31",
+            "indices": [
+              15,
+              28,
+              27
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-32",
+            "indices": [
+              16,
+              17,
+              29
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-33",
+            "indices": [
+              16,
+              29,
+              28
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-34",
+            "indices": [
+              17,
+              18,
+              30
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-35",
+            "indices": [
+              17,
+              30,
+              29
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-36",
+            "indices": [
+              18,
+              19,
+              31
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-37",
+            "indices": [
+              18,
+              31,
+              30
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-38",
+            "indices": [
+              19,
+              20,
+              32
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-39",
+            "indices": [
+              19,
+              32,
+              31
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-40",
+            "indices": [
+              20,
+              21,
+              33
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-41",
+            "indices": [
+              20,
+              33,
+              32
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-42",
+            "indices": [
+              21,
+              22,
+              34
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-43",
+            "indices": [
+              21,
+              34,
+              33
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-44",
+            "indices": [
+              22,
+              23,
+              35
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-45",
+            "indices": [
+              22,
+              35,
+              34
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-46",
+            "indices": [
+              23,
+              12,
+              24
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-47",
+            "indices": [
+              23,
+              24,
+              35
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-48",
+            "indices": [
+              24,
+              25,
+              37
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-49",
+            "indices": [
+              24,
+              37,
+              36
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-50",
+            "indices": [
+              25,
+              26,
+              38
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-51",
+            "indices": [
+              25,
+              38,
+              37
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-52",
+            "indices": [
+              26,
+              27,
+              39
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-53",
+            "indices": [
+              26,
+              39,
+              38
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-54",
+            "indices": [
+              27,
+              28,
+              40
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-55",
+            "indices": [
+              27,
+              40,
+              39
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-56",
+            "indices": [
+              28,
+              29,
+              41
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-57",
+            "indices": [
+              28,
+              41,
+              40
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-58",
+            "indices": [
+              29,
+              30,
+              42
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-59",
+            "indices": [
+              29,
+              42,
+              41
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-60",
+            "indices": [
+              30,
+              31,
+              43
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-61",
+            "indices": [
+              30,
+              43,
+              42
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-62",
+            "indices": [
+              31,
+              32,
+              44
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-63",
+            "indices": [
+              31,
+              44,
+              43
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-64",
+            "indices": [
+              32,
+              33,
+              45
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-65",
+            "indices": [
+              32,
+              45,
+              44
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-66",
+            "indices": [
+              33,
+              34,
+              46
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-67",
+            "indices": [
+              33,
+              46,
+              45
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-68",
+            "indices": [
+              34,
+              35,
+              47
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-69",
+            "indices": [
+              34,
+              47,
+              46
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-70",
+            "indices": [
+              35,
+              24,
+              36
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-71",
+            "indices": [
+              35,
+              36,
+              47
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-72",
+            "indices": [
+              36,
+              37,
+              49
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-73",
+            "indices": [
+              36,
+              49,
+              48
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-74",
+            "indices": [
+              37,
+              38,
+              50
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-75",
+            "indices": [
+              37,
+              50,
+              49
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-76",
+            "indices": [
+              38,
+              39,
+              51
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-77",
+            "indices": [
+              38,
+              51,
+              50
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-78",
+            "indices": [
+              39,
+              40,
+              52
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-79",
+            "indices": [
+              39,
+              52,
+              51
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-80",
+            "indices": [
+              40,
+              41,
+              53
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-81",
+            "indices": [
+              40,
+              53,
+              52
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-82",
+            "indices": [
+              41,
+              42,
+              54
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-83",
+            "indices": [
+              41,
+              54,
+              53
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-84",
+            "indices": [
+              42,
+              43,
+              55
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-85",
+            "indices": [
+              42,
+              55,
+              54
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-86",
+            "indices": [
+              43,
+              44,
+              56
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-87",
+            "indices": [
+              43,
+              56,
+              55
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-88",
+            "indices": [
+              44,
+              45,
+              57
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-89",
+            "indices": [
+              44,
+              57,
+              56
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-90",
+            "indices": [
+              45,
+              46,
+              58
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-91",
+            "indices": [
+              45,
+              58,
+              57
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-92",
+            "indices": [
+              46,
+              47,
+              59
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-93",
+            "indices": [
+              46,
+              59,
+              58
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-94",
+            "indices": [
+              47,
+              36,
+              48
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-95",
+            "indices": [
+              47,
+              48,
+              59
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-96",
+            "indices": [
+              0,
+              2,
+              1
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-97",
+            "indices": [
+              48,
+              49,
+              50
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "shell-98",
+            "indices": [
+              0,
+              3,
+              2
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-99",
+            "indices": [
+              48,
+              50,
+              51
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "shell-100",
+            "indices": [
+              0,
+              4,
+              3
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-101",
+            "indices": [
+              48,
+              51,
+              52
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "shell-102",
+            "indices": [
+              0,
+              5,
+              4
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-103",
+            "indices": [
+              48,
+              52,
+              53
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "shell-104",
+            "indices": [
+              0,
+              6,
+              5
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-105",
+            "indices": [
+              48,
+              53,
+              54
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "shell-106",
+            "indices": [
+              0,
+              7,
+              6
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-107",
+            "indices": [
+              48,
+              54,
+              55
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "shell-108",
+            "indices": [
+              0,
+              8,
+              7
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-109",
+            "indices": [
+              48,
+              55,
+              56
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "shell-110",
+            "indices": [
+              0,
+              9,
+              8
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-111",
+            "indices": [
+              48,
+              56,
+              57
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "shell-112",
+            "indices": [
+              0,
+              10,
+              9
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-113",
+            "indices": [
+              48,
+              57,
+              58
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "shell-114",
+            "indices": [
+              0,
+              11,
+              10
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-115",
+            "indices": [
+              48,
+              58,
+              59
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "roof"
+          }
+        ],
+        "provenance": {
+          "sourceId": "gamemodels3d-pjsc009",
+          "basis": "estimated",
+          "note": "Provisional game calibration using existing cruiser conventions; exterior fitted to approved GameModels3D pjsc009 A_Hull/AB2_Artillery. No independently verified historical ballistics or mechanical-stop claim."
+        }
+      },
+      "ballistics": {
+        "dragPerSecond": 0.023,
+        "dispersionRad": 0.0013,
+        "muzzleSpeedSigmaFraction": 0.003,
+        "penetrationReferenceSpeedMps": 600,
+        "basis": "Provisional game calibration using existing cruiser conventions; exterior fitted to approved GameModels3D pjsc009 A_Hull/AB2_Artillery. No independently verified historical ballistics or mechanical-stop claim."
+      },
+      "ap": {
+        "armingResistanceMm": 34,
+        "fuzeDelaySeconds": 0.035,
+        "explosiveKg": 3.1,
+        "fragmentPenetrationMm": 28,
+        "basis": "Provisional game calibration using existing cruiser conventions; exterior fitted to approved GameModels3D pjsc009 A_Hull/AB2_Artillery. No independently verified historical ballistics or mechanical-stop claim."
+      },
+      "he": {
+        "explosiveKg": 8,
+        "fragmentPenetrationMm": 34,
+        "damage": 32,
+        "stockFraction": 0.4,
+        "basis": "Provisional game calibration using existing cruiser conventions; exterior fitted to approved GameModels3D pjsc009 A_Hull/AB2_Artillery. No independently verified historical ballistics or mechanical-stop claim."
+      }
+    },
+    {
+      "id": "type3-203-mogami-e-twin",
+      "name": "20.3 cm/50 Type 3 No.2 E twin with rangefinder",
+      "kind": "gun",
+      "barrelCount": 2,
+      "massKg": 34000,
+      "barbetteRadius": 2.66,
+      "rollerRadius": 2.62,
+      "gunhouseBaseHeight": 0.04,
+      "gunhouseSize": [
+        8.12,
+        5.68,
+        2.07
+      ],
+      "pivotHeight": 1.27,
+      "trunnionForward": 2.15,
+      "muzzleForward": 9.08,
+      "barrelSpacing": 1.77,
+      "barrelBaseRadius": 0.245,
+      "rangefinderWidth": 8.7,
+      "caliberM": 0.203,
+      "traverseDeg": 150,
+      "traverseRateDeg": 6,
+      "elevationMinDeg": -5,
+      "elevationMaxDeg": 55,
+      "elevationRateDeg": 6,
+      "reloadSeconds": 12,
+      "muzzleSpeed": 840,
+      "projectileMassKg": 125.85,
+      "penetrationMm": 270,
+      "damage": 42,
+      "recoilM": 0.45,
+      "ammoPerBarrel": 120,
+      "armorMm": 25,
+      "gunhouseMesh": {
+        "version": 1,
+        "vertices": [
+          [
+            2.6697133610701336,
+            2.3542,
+            0.04
+          ],
+          [
+            2.5291246160396765,
+            2.693611254969543,
+            0.04
+          ],
+          [
+            2.1897133610701336,
+            2.8342,
+            0.04
+          ],
+          [
+            -4.976000000000001,
+            2.8342,
+            0.04
+          ],
+          [
+            -5.315411254969543,
+            2.693611254969543,
+            0.04
+          ],
+          [
+            -5.456000000000001,
+            2.3542,
+            0.04
+          ],
+          [
+            -5.456000000000001,
+            -2.3542,
+            0.04
+          ],
+          [
+            -5.315411254969543,
+            -2.693611254969543,
+            0.04
+          ],
+          [
+            -4.976000000000001,
+            -2.8342,
+            0.04
+          ],
+          [
+            2.1897133610701336,
+            -2.8342,
+            0.04
+          ],
+          [
+            2.5291246160396765,
+            -2.693611254969543,
+            0.04
+          ],
+          [
+            2.6697133610701336,
+            -2.3542,
+            0.04
+          ],
+          [
+            2.4791131021943,
+            2.215,
+            1.0
+          ],
+          [
+            2.338524357163843,
+            2.554411254969543,
+            1.0
+          ],
+          [
+            1.9991131021943,
+            2.695,
+            1.0
+          ],
+          [
+            -4.880000000000001,
+            2.695,
+            1.0
+          ],
+          [
+            -5.219411254969543,
+            2.554411254969543,
+            1.0
+          ],
+          [
+            -5.360000000000001,
+            2.215,
+            1.0
+          ],
+          [
+            -5.360000000000001,
+            -2.215,
+            1.0
+          ],
+          [
+            -5.219411254969543,
+            -2.554411254969543,
+            1.0
+          ],
+          [
+            -4.880000000000001,
+            -2.695,
+            1.0
+          ],
+          [
+            1.9991131021943,
+            -2.695,
+            1.0
+          ],
+          [
+            2.338524357163843,
+            -2.554411254969543,
+            1.0
+          ],
+          [
+            2.4791131021943,
+            -2.215,
+            1.0
+          ],
+          [
+            2.013112281276803,
+            2.1134999999999997,
+            1.7
+          ],
+          [
+            1.8725235362463462,
+            2.4529112549695427,
+            1.7
+          ],
+          [
+            1.5331122812768032,
+            2.5934999999999997,
+            1.7
+          ],
+          [
+            -4.8100000000000005,
+            2.5934999999999997,
+            1.7
+          ],
+          [
+            -5.149411254969543,
+            2.4529112549695427,
+            1.7
+          ],
+          [
+            -5.290000000000001,
+            2.1134999999999997,
+            1.7
+          ],
+          [
+            -5.290000000000001,
+            -2.1134999999999997,
+            1.7
+          ],
+          [
+            -5.149411254969543,
+            -2.4529112549695427,
+            1.7
+          ],
+          [
+            -4.8100000000000005,
+            -2.5934999999999997,
+            1.7
+          ],
+          [
+            1.5331122812768032,
+            -2.5934999999999997,
+            1.7
+          ],
+          [
+            1.872523536246346,
+            -2.4529112549695427,
+            1.7
+          ],
+          [
+            2.013112281276803,
+            -2.1134999999999997,
+            1.7
+          ],
+          [
+            1.5457390024708246,
+            2.07,
+            2.0
+          ],
+          [
+            1.4051502574403676,
+            2.409411254969543,
+            2.0
+          ],
+          [
+            1.0657390024708246,
+            2.55,
+            2.0
+          ],
+          [
+            -4.779999999999999,
+            2.55,
+            2.0
+          ],
+          [
+            -5.119411254969542,
+            2.409411254969543,
+            2.0
+          ],
+          [
+            -5.26,
+            2.07,
+            2.0
+          ],
+          [
+            -5.26,
+            -2.07,
+            2.0
+          ],
+          [
+            -5.119411254969542,
+            -2.409411254969543,
+            2.0
+          ],
+          [
+            -4.779999999999999,
+            -2.55,
+            2.0
+          ],
+          [
+            1.0657390024708246,
+            -2.55,
+            2.0
+          ],
+          [
+            1.4051502574403674,
+            -2.409411254969543,
+            2.0
+          ],
+          [
+            1.5457390024708246,
+            -2.07,
+            2.0
+          ],
+          [
+            1.2718072145219645,
+            2.05985,
+            2.07
+          ],
+          [
+            1.1312184694915075,
+            2.399261254969543,
+            2.07
+          ],
+          [
+            0.7918072145219646,
+            2.53985,
+            2.07
+          ],
+          [
+            -4.773,
+            2.53985,
+            2.07
+          ],
+          [
+            -5.112411254969542,
+            2.399261254969543,
+            2.07
+          ],
+          [
+            -5.253,
+            2.05985,
+            2.07
+          ],
+          [
+            -5.253,
+            -2.05985,
+            2.07
+          ],
+          [
+            -5.112411254969542,
+            -2.399261254969543,
+            2.07
+          ],
+          [
+            -4.773,
+            -2.53985,
+            2.07
+          ],
+          [
+            0.7918072145219645,
+            -2.53985,
+            2.07
+          ],
+          [
+            1.1312184694915073,
+            -2.399261254969543,
+            2.07
+          ],
+          [
+            1.2718072145219645,
+            -2.05985,
+            2.07
+          ]
+        ],
+        "faces": [
+          {
+            "id": "shell-0",
+            "indices": [
+              0,
+              1,
+              13
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-1",
+            "indices": [
+              0,
+              13,
+              12
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-2",
+            "indices": [
+              1,
+              2,
+              14
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-3",
+            "indices": [
+              1,
+              14,
+              13
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-4",
+            "indices": [
+              2,
+              3,
+              15
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-5",
+            "indices": [
+              2,
+              15,
+              14
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-6",
+            "indices": [
+              3,
+              4,
+              16
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-7",
+            "indices": [
+              3,
+              16,
+              15
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-8",
+            "indices": [
+              4,
+              5,
+              17
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-9",
+            "indices": [
+              4,
+              17,
+              16
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-10",
+            "indices": [
+              5,
+              6,
+              18
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-11",
+            "indices": [
+              5,
+              18,
+              17
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-12",
+            "indices": [
+              6,
+              7,
+              19
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-13",
+            "indices": [
+              6,
+              19,
+              18
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-14",
+            "indices": [
+              7,
+              8,
+              20
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-15",
+            "indices": [
+              7,
+              20,
+              19
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-16",
+            "indices": [
+              8,
+              9,
+              21
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-17",
+            "indices": [
+              8,
+              21,
+              20
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-18",
+            "indices": [
+              9,
+              10,
+              22
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-19",
+            "indices": [
+              9,
+              22,
+              21
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-20",
+            "indices": [
+              10,
+              11,
+              23
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-21",
+            "indices": [
+              10,
+              23,
+              22
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-22",
+            "indices": [
+              11,
+              0,
+              12
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-23",
+            "indices": [
+              11,
+              12,
+              23
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-24",
+            "indices": [
+              12,
+              13,
+              25
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-25",
+            "indices": [
+              12,
+              25,
+              24
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-26",
+            "indices": [
+              13,
+              14,
+              26
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-27",
+            "indices": [
+              13,
+              26,
+              25
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-28",
+            "indices": [
+              14,
+              15,
+              27
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-29",
+            "indices": [
+              14,
+              27,
+              26
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-30",
+            "indices": [
+              15,
+              16,
+              28
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-31",
+            "indices": [
+              15,
+              28,
+              27
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-32",
+            "indices": [
+              16,
+              17,
+              29
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-33",
+            "indices": [
+              16,
+              29,
+              28
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-34",
+            "indices": [
+              17,
+              18,
+              30
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-35",
+            "indices": [
+              17,
+              30,
+              29
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-36",
+            "indices": [
+              18,
+              19,
+              31
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-37",
+            "indices": [
+              18,
+              31,
+              30
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-38",
+            "indices": [
+              19,
+              20,
+              32
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-39",
+            "indices": [
+              19,
+              32,
+              31
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-40",
+            "indices": [
+              20,
+              21,
+              33
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-41",
+            "indices": [
+              20,
+              33,
+              32
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-42",
+            "indices": [
+              21,
+              22,
+              34
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-43",
+            "indices": [
+              21,
+              34,
+              33
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-44",
+            "indices": [
+              22,
+              23,
+              35
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-45",
+            "indices": [
+              22,
+              35,
+              34
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-46",
+            "indices": [
+              23,
+              12,
+              24
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-47",
+            "indices": [
+              23,
+              24,
+              35
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-48",
+            "indices": [
+              24,
+              25,
+              37
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-49",
+            "indices": [
+              24,
+              37,
+              36
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-50",
+            "indices": [
+              25,
+              26,
+              38
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-51",
+            "indices": [
+              25,
+              38,
+              37
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-52",
+            "indices": [
+              26,
+              27,
+              39
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-53",
+            "indices": [
+              26,
+              39,
+              38
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-54",
+            "indices": [
+              27,
+              28,
+              40
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-55",
+            "indices": [
+              27,
+              40,
+              39
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-56",
+            "indices": [
+              28,
+              29,
+              41
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-57",
+            "indices": [
+              28,
+              41,
+              40
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-58",
+            "indices": [
+              29,
+              30,
+              42
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-59",
+            "indices": [
+              29,
+              42,
+              41
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-60",
+            "indices": [
+              30,
+              31,
+              43
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-61",
+            "indices": [
+              30,
+              43,
+              42
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-62",
+            "indices": [
+              31,
+              32,
+              44
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-63",
+            "indices": [
+              31,
+              44,
+              43
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-64",
+            "indices": [
+              32,
+              33,
+              45
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-65",
+            "indices": [
+              32,
+              45,
+              44
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-66",
+            "indices": [
+              33,
+              34,
+              46
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-67",
+            "indices": [
+              33,
+              46,
+              45
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-68",
+            "indices": [
+              34,
+              35,
+              47
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-69",
+            "indices": [
+              34,
+              47,
+              46
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-70",
+            "indices": [
+              35,
+              24,
+              36
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-71",
+            "indices": [
+              35,
+              36,
+              47
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-72",
+            "indices": [
+              36,
+              37,
+              49
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-73",
+            "indices": [
+              36,
+              49,
+              48
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-74",
+            "indices": [
+              37,
+              38,
+              50
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-75",
+            "indices": [
+              37,
+              50,
+              49
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-76",
+            "indices": [
+              38,
+              39,
+              51
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-77",
+            "indices": [
+              38,
+              51,
+              50
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-78",
+            "indices": [
+              39,
+              40,
+              52
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-79",
+            "indices": [
+              39,
+              52,
+              51
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-80",
+            "indices": [
+              40,
+              41,
+              53
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-81",
+            "indices": [
+              40,
+              53,
+              52
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-82",
+            "indices": [
+              41,
+              42,
+              54
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-83",
+            "indices": [
+              41,
+              54,
+              53
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-84",
+            "indices": [
+              42,
+              43,
+              55
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-85",
+            "indices": [
+              42,
+              55,
+              54
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-86",
+            "indices": [
+              43,
+              44,
+              56
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-87",
+            "indices": [
+              43,
+              56,
+              55
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-88",
+            "indices": [
+              44,
+              45,
+              57
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-89",
+            "indices": [
+              44,
+              57,
+              56
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-90",
+            "indices": [
+              45,
+              46,
+              58
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-91",
+            "indices": [
+              45,
+              58,
+              57
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-92",
+            "indices": [
+              46,
+              47,
+              59
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-93",
+            "indices": [
+              46,
+              59,
+              58
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-94",
+            "indices": [
+              47,
+              36,
+              48
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-95",
+            "indices": [
+              47,
+              48,
+              59
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-96",
+            "indices": [
+              0,
+              2,
+              1
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-97",
+            "indices": [
+              48,
+              49,
+              50
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "shell-98",
+            "indices": [
+              0,
+              3,
+              2
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-99",
+            "indices": [
+              48,
+              50,
+              51
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "shell-100",
+            "indices": [
+              0,
+              4,
+              3
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-101",
+            "indices": [
+              48,
+              51,
+              52
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "shell-102",
+            "indices": [
+              0,
+              5,
+              4
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-103",
+            "indices": [
+              48,
+              52,
+              53
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "shell-104",
+            "indices": [
+              0,
+              6,
+              5
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-105",
+            "indices": [
+              48,
+              53,
+              54
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "shell-106",
+            "indices": [
+              0,
+              7,
+              6
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-107",
+            "indices": [
+              48,
+              54,
+              55
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "shell-108",
+            "indices": [
+              0,
+              8,
+              7
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-109",
+            "indices": [
+              48,
+              55,
+              56
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "shell-110",
+            "indices": [
+              0,
+              9,
+              8
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-111",
+            "indices": [
+              48,
+              56,
+              57
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "shell-112",
+            "indices": [
+              0,
+              10,
+              9
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-113",
+            "indices": [
+              48,
+              57,
+              58
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "shell-114",
+            "indices": [
+              0,
+              11,
+              10
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "shell-115",
+            "indices": [
+              48,
+              58,
+              59
+            ],
+            "thicknessMm": 25,
+            "material": "steel",
+            "finish": "roof"
+          }
+        ],
+        "provenance": {
+          "sourceId": "gamemodels3d-pjsc009",
+          "basis": "estimated",
+          "note": "Provisional game calibration using existing cruiser conventions; exterior fitted to approved GameModels3D pjsc009 A_Hull/AB2_Artillery. No independently verified historical ballistics or mechanical-stop claim."
+        }
+      },
+      "ballistics": {
+        "dragPerSecond": 0.023,
+        "dispersionRad": 0.0013,
+        "muzzleSpeedSigmaFraction": 0.003,
+        "penetrationReferenceSpeedMps": 600,
+        "basis": "Provisional game calibration using existing cruiser conventions; exterior fitted to approved GameModels3D pjsc009 A_Hull/AB2_Artillery. No independently verified historical ballistics or mechanical-stop claim."
+      },
+      "ap": {
+        "armingResistanceMm": 34,
+        "fuzeDelaySeconds": 0.035,
+        "explosiveKg": 3.1,
+        "fragmentPenetrationMm": 28,
+        "basis": "Provisional game calibration using existing cruiser conventions; exterior fitted to approved GameModels3D pjsc009 A_Hull/AB2_Artillery. No independently verified historical ballistics or mechanical-stop claim."
+      },
+      "he": {
+        "explosiveKg": 8,
+        "fragmentPenetrationMm": 34,
+        "damage": 32,
+        "stockFraction": 0.4,
+        "basis": "Provisional game calibration using existing cruiser conventions; exterior fitted to approved GameModels3D pjsc009 A_Hull/AB2_Artillery. No independently verified historical ballistics or mechanical-stop claim."
+      },
+      "rangefinderForward": -3.85
+    },
+    {
+      "id": "type89-127-mogami-a1-mod1-twin",
+      "name": "12.7 cm/40 Type 89 A1 Mod.1 twin",
+      "kind": "gun",
+      "massKg": 20300,
+      "barbetteRadius": 2.1,
+      "gunhouseSize": [
+        4.6,
+        4.25,
+        3.28
+      ],
+      "pivotHeight": 2.11,
+      "trunnionForward": 0.55,
+      "muzzleForward": 4.0,
+      "barrelSpacing": 0.65,
+      "caliberM": 0.127,
+      "traverseDeg": 80,
+      "traverseRateDeg": 7,
+      "elevationMinDeg": -7,
+      "elevationMaxDeg": 85,
+      "elevationRateDeg": 12,
+      "reloadSeconds": 5,
+      "muzzleSpeed": 720,
+      "projectileMassKg": 23.45,
+      "penetrationMm": 55,
+      "damage": 15,
+      "recoilM": 0.45,
+      "ammoPerBarrel": 300,
+      "armorMm": 5,
+      "barrelCount": 2,
+      "mountingStyle": "open-pedestal",
+      "barrelBaseRadius": 0.115,
+      "he": {
+        "explosiveKg": 1.778,
+        "fragmentPenetrationMm": 21,
+        "damage": 24,
+        "stockFraction": 1,
+        "basis": "Type 0 HE nominal projectile and filling; blast damage is gameplay calibration."
+      },
+      "ballistics": {
+        "dragPerSecond": 0.06072,
+        "dispersionRad": 0.0012,
+        "muzzleSpeedSigmaFraction": 0.003,
+        "penetrationReferenceSpeedMps": 416.9,
+        "basis": "Provisional game calibration using existing cruiser conventions; exterior fitted to approved GameModels3D pjsc009 A_Hull/AB2_Artillery. No independently verified historical ballistics or mechanical-stop claim."
+      }
+    },
+    {
+      "id": "type96-25-mogami-2",
+      "name": "25 mm Type 96 twin",
+      "kind": "gun",
+      "massKg": 1800,
+      "barbetteRadius": 0.74,
+      "gunhouseSize": [
+        2.12,
+        2.12,
+        1.84
+      ],
+      "pivotHeight": 1.13,
+      "trunnionForward": 0.12,
+      "muzzleForward": 1.3,
+      "barrelSpacing": 0.31,
+      "caliberM": 0.025,
+      "traverseDeg": 85,
+      "traverseRateDeg": 18,
+      "elevationMinDeg": -5,
+      "elevationMaxDeg": 85,
+      "elevationRateDeg": 12,
+      "reloadSeconds": 0.55,
+      "muzzleSpeed": 900,
+      "projectileMassKg": 0.25,
+      "penetrationMm": 18,
+      "damage": 2.5,
+      "recoilM": 0.075,
+      "ammoPerBarrel": 1500,
+      "armorMm": 3,
+      "barrelCount": 2,
+      "mountingStyle": "open-quad",
+      "barrelBaseRadius": 0.034,
+      "he": {
+        "explosiveKg": 0.015,
+        "fragmentPenetrationMm": 5,
+        "damage": 3,
+        "stockFraction": 1,
+        "basis": "Type 96 HE filling; average firing cadence includes frequent 15-round magazine changes. Blast is provisional."
+      },
+      "ballistics": {
+        "dragPerSecond": 0.27,
+        "dispersionRad": 0.002,
+        "muzzleSpeedSigmaFraction": 0.005,
+        "penetrationReferenceSpeedMps": 530,
+        "basis": "Provisional game calibration using existing cruiser conventions; exterior fitted to approved GameModels3D pjsc009 A_Hull/AB2_Artillery. No independently verified historical ballistics or mechanical-stop claim."
+      }
+    },
+    {
+      "id": "type96-25-mogami-3",
+      "name": "25 mm Type 96 triple",
+      "kind": "gun",
+      "massKg": 1800,
+      "barbetteRadius": 0.74,
+      "gunhouseSize": [
+        2.12,
+        2.12,
+        1.84
+      ],
+      "pivotHeight": 1.13,
+      "trunnionForward": 0.12,
+      "muzzleForward": 1.3,
+      "barrelSpacing": 0.31,
+      "caliberM": 0.025,
+      "traverseDeg": 85,
+      "traverseRateDeg": 18,
+      "elevationMinDeg": -5,
+      "elevationMaxDeg": 85,
+      "elevationRateDeg": 12,
+      "reloadSeconds": 0.55,
+      "muzzleSpeed": 900,
+      "projectileMassKg": 0.25,
+      "penetrationMm": 18,
+      "damage": 2.5,
+      "recoilM": 0.075,
+      "ammoPerBarrel": 1500,
+      "armorMm": 3,
+      "barrelCount": 3,
+      "mountingStyle": "open-quad",
+      "barrelBaseRadius": 0.034,
+      "he": {
+        "explosiveKg": 0.015,
+        "fragmentPenetrationMm": 5,
+        "damage": 3,
+        "stockFraction": 1,
+        "basis": "Type 96 HE filling; average firing cadence includes frequent 15-round magazine changes. Blast is provisional."
+      },
+      "ballistics": {
+        "dragPerSecond": 0.27,
+        "dispersionRad": 0.002,
+        "muzzleSpeedSigmaFraction": 0.005,
+        "penetrationReferenceSpeedMps": 530,
+        "basis": "Provisional game calibration using existing cruiser conventions; exterior fitted to approved GameModels3D pjsc009 A_Hull/AB2_Artillery. No independently verified historical ballistics or mechanical-stop claim."
+      }
     }
   ],
   "torpedoes": [
@@ -7954,6 +11384,21 @@
       "launchIntervalSeconds": 0.5,
       "damage": 380,
       "breachAreaM2": 1.8
+    },
+    {
+      "id": "ijn-type90-mogami",
+      "name": "610 mm Type 90 \u00b7 provisional",
+      "kind": "torpedo",
+      "diameterM": 0.61,
+      "lengthM": 8.5,
+      "speed": 24,
+      "rangeM": 10000,
+      "armingDistanceM": 300,
+      "runningDepthM": 2,
+      "reloadSeconds": 110,
+      "launchIntervalSeconds": 0.75,
+      "damage": 950,
+      "breachAreaM2": 4
     }
   ],
   "depthCharges": [

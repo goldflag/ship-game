@@ -18,7 +18,7 @@ const instances = (smoke: ShipFunnelSmoke) => {
 };
 
 test('all registered funnel mouths are found without smoking from bases, caps or the submarine', () => {
-  const counts: Record<string, number> = { bismarck: 1, yamato: 1, 'king-george-v': 2, baltimore: 2, 'enterprise-cv6': 1, 'type-viic': 0,
+  const counts: Record<string, number> = { bismarck: 1, yamato: 1, 'king-george-v': 2, baltimore: 2, mogami: 2, 'enterprise-cv6': 1, 'type-viic': 0,
     'liberty-cargo': 1, 'liberty-collier': 1, 'victory-cargo': 1, 'flower-corvette': 1, fletcher: 2, shokaku: 2 };
   for (const id of Object.keys(shipPresets)) {
     const outlets = funnelOutlets(shipPreset(id));
