@@ -32,7 +32,12 @@ pub fn damage_hull_contact(
     if energy <= 25000.0 || actor.damage.sunk {
         return 0.0;
     }
-    let point = world_to_local(position, actor.motion.pose());
+    let mut point = world_to_local(position, actor.motion.pose());
+    // Match the reference's centerline convention after rotated projections:
+    // libm roundoff must not choose a different hull side or breach normal.
+    if point[0].abs() < 1e-9 {
+        point[0] = 0.0;
+    }
     let amount = ((energy - 25000.0) / 1e6).sqrt() * 12.0;
     let local = local_damage_evidence(actor, def, point, None, None);
     let dealt = damage_hull(actor, amount, local.as_ref().map(|l| l.region_id.as_str()));

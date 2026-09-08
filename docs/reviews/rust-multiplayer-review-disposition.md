@@ -33,3 +33,7 @@ Live protocol-3 HTTP/WebSocket smoke passed cancellation after pairing, loading 
 Reconnect grace clears only after Ready, preventing reconnecting clients from keeping an unusable seat alive indefinitely. While menus are open or held input expires, the server continues the battle and bots follow standing orders; selected gun input expires. Owned-carrier orders use the existing Take helm flow. Permanent storage errors retain retry/drain behavior rather than silently discarding results. There are no ratings or competitive rewards to exploit through self-pairing.
 
 Main-thread decoding, full-duration concurrency, extended loss/jitter and stalled writes still need qualification on the intended public host. Previous carrier-heavy measurements used roughly 3.6–3.7 MB/s per player and exceeded the proposed 8 ms p99 complete-tick target. This PR does not claim public capacity qualification or deploy infrastructure.
+
+## Linux CI correction
+
+The first Linux run found a Fletcher head-on collision selecting the opposite local damage region. A centerline contact acquires a few floating-point ulps in rotated projections; its sign must not choose the damage side or breach normal. Both reference TypeScript and Rust canonicalize lateral contact coordinates within 1e-9 m of zero. A reproducing regression failed before the fix and passes afterward; it also verifies a real 0.1 mm off-center hit remains distinct. Collision/grounding fixtures were deliberately refreshed for this numerical correction. This correction followed the Fable review.

@@ -2,6 +2,7 @@ import { expect, test } from 'bun:test';
 import { shipPreset } from '../ships/presets';
 import { CombatSimulation } from './combat';
 import { resolveShipCollisions } from './collisions';
+import { damageHullContact } from './contactDamage';
 import { FIXED_DT, motionVelocity, stepShip } from './ship';
 import { shipVelocity } from './bots';
 
@@ -190,4 +191,17 @@ test('collision drift moves the ship, settles in water and is included in gun ve
   const drift = sim.ship.swaySpeed;
   for (let tick = 0; tick < 600; tick++) stepShip(sim.ship, stop);
   expect(sim.ship.swaySpeed).toBeLessThan(drift / 10);
+});
+
+
+test('centerline contact roundoff cannot switch the damaged side or breach normal', () => {
+  const impact = (x: number) => {
+    const sim = new CombatSimulation(shipPreset('fletcher'));
+    damageHullContact(sim.player, [x, -1, -56.35], 10_000_000);
+    return sim.player.damage;
+  };
+  const center = impact(0);
+  for (const x of [-1e-12, 1e-12]) expect(impact(x)).toEqual(center);
+  expect(impact(.0001).regions[0].hp).toBe(impact(.0001).regions[0].maximum);
+  expect(center.regions[0].hp).toBeLessThan(center.regions[0].maximum);
 });

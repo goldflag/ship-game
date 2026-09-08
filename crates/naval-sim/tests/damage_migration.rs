@@ -638,6 +638,34 @@ fn torpedo_training_swept_hits_and_depth_charge_trajectories_match() {
     }
 }
 #[test]
+fn centerline_contact_roundoff_preserves_side_and_breach_normal() {
+    let def: naval_sim::definition::ShipDefinition =
+        serde_json::from_str(include_str!("../../../public/models/fletcher.json")).unwrap();
+    let impact = |x| {
+        let mut actor = Combatant::new("test", &def);
+        naval_sim::collisions::damage_hull_contact(
+            &mut actor,
+            &def,
+            [x, -1.0, -56.35],
+            10_000_000.0,
+        );
+        serde_json::to_value(actor.damage).unwrap()
+    };
+    let center = impact(0.0);
+    for x in [-1e-12, 1e-12] {
+        assert_eq!(impact(x), center);
+    }
+    let off_center = impact(0.0001);
+    assert_eq!(
+        off_center["regions"][0]["hp"],
+        off_center["regions"][0]["maximum"]
+    );
+    assert!(
+        center["regions"][0]["hp"].as_f64().unwrap()
+            < center["regions"][0]["maximum"].as_f64().unwrap()
+    );
+}
+#[test]
 fn fleet_collisions_and_grounding_match_reference() {
     use naval_sim::{
         collisions::resolve_ship_collisions,
