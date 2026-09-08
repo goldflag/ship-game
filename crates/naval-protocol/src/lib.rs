@@ -2,7 +2,8 @@
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use ts_rs::TS;
-pub const PROTOCOL_VERSION: u32 = 3;
+pub const PROTOCOL_VERSION: u32 = 4;
+pub use naval_sim::navigation::{Movement as MovementOrder, WeaponsPolicy};
 pub const MAX_COMMAND_BYTES: usize = 4096;
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "kebab-case")]
@@ -53,11 +54,30 @@ pub enum Command {
         focus: Option<String>,
     },
     Select,
+    ReleaseHelm,
     Input {
         input: HeldInput,
     },
     Move {
         position: [f64; 2],
+    },
+    Route {
+        waypoints: Vec<[f64; 2]>,
+        speed_mps: f64,
+        looped: bool,
+        append: bool,
+    },
+    HoldArea {
+        position: [f64; 2],
+        radius_m: f64,
+    },
+    Escort {
+        leader_id: String,
+        offset: [f64; 2],
+        radius_m: f64,
+    },
+    Weapons {
+        policy: WeaponsPolicy,
     },
     Focus {
         target_id: String,
@@ -81,13 +101,6 @@ pub struct CommandEnvelope {
     pub ship_id: String,
     pub command: Command,
 }
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, TS)]
-#[serde(tag = "type", rename_all = "kebab-case", deny_unknown_fields)]
-pub enum MovementOrder {
-    Autonomous,
-    Hold,
-    Move { position: [f64; 2] },
-}
 #[derive(Clone, Debug)]
 pub struct ShipControl {
     pub owner: usize,
@@ -95,6 +108,7 @@ pub struct ShipControl {
     pub movement: MovementOrder,
     pub target_id: Option<String>,
     pub input: Option<HeldInput>,
+    pub weapons: WeaponsPolicy,
     input_tick: u64,
 }
 #[derive(Clone, Debug)]
@@ -128,6 +142,10 @@ pub enum CommandError {
     NotSelected,
     #[error("Target must be a surviving enemy vessel")]
     Target,
+    #[error("Choose a surviving friendly leader without an escort cycle")]
+    Escort,
+    #[error("Append requires an existing route within the waypoint limit")]
+    Route,
     #[error("Input outside allowed bounds")]
     Bounds,
 }
@@ -194,6 +212,42 @@ fn validate_command(c: &CommandEnvelope) -> Result<(), CommandError> {
                 return Err(CommandError::Bounds);
             }
         }
+        Command::Route {
+            waypoints,
+            speed_mps,
+            ..
+        } => {
+            if waypoints.is_empty()
+                || waypoints.len() > naval_sim::navigation::MAX_WAYPOINTS
+                || waypoints.iter().flatten().any(|n| !coordinate(n))
+                || !speed_mps.is_finite()
+                || !(0.1..=30.0).contains(speed_mps)
+            {
+                return Err(CommandError::Bounds);
+            }
+        }
+        Command::HoldArea { position, radius_m } => {
+            if position.iter().any(|n| !coordinate(n))
+                || !radius_m.is_finite()
+                || !(100.0..=10000.0).contains(radius_m)
+            {
+                return Err(CommandError::Bounds);
+            }
+        }
+        Command::Escort {
+            leader_id,
+            offset,
+            radius_m,
+        } => {
+            if !identity(leader_id)
+                || offset.iter().any(|n| !n.is_finite() || n.abs() > 5000.0)
+                || offset[0].hypot(offset[1]) < 350.0
+                || !radius_m.is_finite()
+                || !(100.0..=10000.0).contains(radius_m)
+            {
+                return Err(CommandError::Bounds);
+            }
+        }
         Command::Focus { target_id } if (target_id.is_empty() || target_id.len() > 128) => {
             return Err(CommandError::Bounds);
         }
@@ -230,6 +284,7 @@ impl FleetControl {
                     movement: MovementOrder::Autonomous,
                     target_id: None,
                     input: None,
+                    weapons: WeaponsPolicy::default(),
                     input_tick: 0,
                 },
             );
@@ -262,8 +317,10 @@ impl FleetControl {
         if !ship.afloat {
             return Err(CommandError::Lost);
         }
-        if matches!(command.command, Command::Input { .. })
-            && p.selected_ship_id.as_deref() != Some(&command.ship_id)
+        if matches!(
+            command.command,
+            Command::Input { .. } | Command::ReleaseHelm
+        ) && p.selected_ship_id.as_deref() != Some(&command.ship_id)
         {
             return Err(CommandError::NotSelected);
         }
@@ -275,6 +332,38 @@ impl FleetControl {
         {
             return Err(CommandError::Target);
         }
+        if let Command::Route {
+            waypoints,
+            append: true,
+            ..
+        } = &command.command
+        {
+            match &ship.movement {
+                MovementOrder::Route {
+                    waypoints: current, ..
+                } if current.len() + waypoints.len() <= naval_sim::navigation::MAX_WAYPOINTS => (),
+                _ => return Err(CommandError::Route),
+            }
+        }
+        if let Command::Escort { leader_id, .. } = &command.command {
+            if !self
+                .ships
+                .get(leader_id)
+                .is_some_and(|s| s.owner == sender && s.afloat)
+            {
+                return Err(CommandError::Escort);
+            }
+            let mut next = leader_id.as_str();
+            for _ in 0..=self.ships.len() {
+                if next == command.ship_id {
+                    return Err(CommandError::Escort);
+                }
+                match self.ships.get(next).map(|s| &s.movement) {
+                    Some(MovementOrder::Escort { leader_id, .. }) => next = leader_id,
+                    _ => break,
+                }
+            }
+        }
         if matches!(command.command, Command::Select) {
             if let Some(old) = p
                 .selected_ship_id
@@ -285,17 +374,54 @@ impl FleetControl {
             }
             self.players[sender].selected_ship_id = Some(command.ship_id.clone());
         }
+        if matches!(command.command, Command::ReleaseHelm) {
+            self.players[sender].selected_ship_id = None;
+        }
         let ship = self.ships.get_mut(&command.ship_id).unwrap();
         match command.command {
-            Command::Air { .. }
-            | Command::Recall { .. }
-            | Command::DamageControl { .. }
-            | Command::Select => {}
+            Command::Air { .. } | Command::Recall { .. } | Command::DamageControl { .. } => {}
+            Command::Select | Command::ReleaseHelm => ship.input = None,
             Command::Input { input } => {
                 ship.input = Some(input);
                 ship.input_tick = tick;
             }
             Command::Move { position } => ship.movement = MovementOrder::Move { position },
+            Command::Route {
+                mut waypoints,
+                speed_mps,
+                looped,
+                append,
+            } => {
+                if append
+                    && let MovementOrder::Route {
+                        waypoints: current, ..
+                    } = &ship.movement
+                {
+                    let mut combined = current.clone();
+                    combined.append(&mut waypoints);
+                    waypoints = combined;
+                }
+                ship.movement = MovementOrder::Route {
+                    waypoints,
+                    speed_mps,
+                    looped,
+                };
+            }
+            Command::HoldArea { position, radius_m } => {
+                ship.movement = MovementOrder::HoldArea { position, radius_m }
+            }
+            Command::Escort {
+                leader_id,
+                offset,
+                radius_m,
+            } => {
+                ship.movement = MovementOrder::Escort {
+                    leader_id,
+                    offset,
+                    radius_m,
+                }
+            }
+            Command::Weapons { policy } => ship.weapons = policy,
             Command::Hold => ship.movement = MovementOrder::Hold,
             Command::Focus { target_id } => ship.target_id = Some(target_id),
             Command::Autonomous => {

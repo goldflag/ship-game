@@ -2,5 +2,6 @@
 import type { AirOrder } from "./AirOrder";
 import type { ControlPriority } from "./ControlPriority";
 import type { HeldInput } from "./HeldInput";
+import type { WeaponsPolicy } from "./WeaponsPolicy";
 
-export type Command = { "type": "air", flightId: string, order: AirOrder, } | { "type": "recall", flightId: string | null, } | { "type": "damage-control", priority: ControlPriority, focus: string | null, } | { "type": "select" } | { "type": "input", input: HeldInput, } | { "type": "move", position: [number, number], } | { "type": "focus", targetId: string, } | { "type": "hold" } | { "type": "autonomous" };
+export type Command = { "type": "air", flightId: string, order: AirOrder, } | { "type": "recall", flightId: string | null, } | { "type": "damage-control", priority: ControlPriority, focus: string | null, } | { "type": "select" } | { "type": "release-helm" } | { "type": "input", input: HeldInput, } | { "type": "move", position: [number, number], } | { "type": "route", waypoints: Array<[number, number]>, speedMps: number, looped: boolean, append: boolean, } | { "type": "hold-area", position: [number, number], radiusM: number, } | { "type": "escort", leaderId: string, offset: [number, number], radiusM: number, } | { "type": "weapons", policy: WeaponsPolicy, } | { "type": "focus", targetId: string, } | { "type": "hold" } | { "type": "autonomous" };

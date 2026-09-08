@@ -4,6 +4,7 @@ pub mod definition;
 pub mod geometry;
 pub mod motion;
 pub mod mount_frames;
+pub mod navigation;
 pub mod rules;
 
 pub mod ballistics;
@@ -54,6 +55,8 @@ pub mod capability;
 pub mod gunnery;
 
 pub mod battle;
+pub mod mission;
+pub mod sensors;
 
 pub mod records;
 

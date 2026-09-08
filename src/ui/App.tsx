@@ -49,14 +49,17 @@ export function App() {
   const [bindings, setBindings] = useState(loadKeybindings);
   const [audioSettings, setAudioSettings] = useState(loadAudioSettings);
   const [hudSettings, setHudSettings] = useState(loadHudSettings);
-  const hudScale = useHudScale(hudSettings);
-  const hudScaleRef = useRef(hudScale);
-  hudScaleRef.current = hudScale;
+  const preferredHudScale = useHudScale(hudSettings);
+  const hudScaleRef = useRef(preferredHudScale);
   const audioSettingsRef = useRef(audioSettings);
   const bindingsRef = useRef(bindings);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [generation, setGeneration] = useState(0);
   const [data, setData] = useState(INITIAL_TELEMETRY);
+  // Fleet command uses responsive panels; keep automatic text at its authored
+  // size instead of shrinking an RTS interface to the ship instrument baseline.
+  const hudScale = data.fleetCommandMode && hudSettings.mode === 'auto' ? Math.max(hudSettings.scale, preferredHudScale) : preferredHudScale;
+  hudScaleRef.current = hudScale;
   const [loading, setLoading] = useState({ label: 'Preparing the harbor', progress: 0 });
   const [ready, setReady] = useState(false);
   const [paused, setPaused] = useState(false);

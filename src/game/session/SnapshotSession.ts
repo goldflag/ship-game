@@ -1,6 +1,8 @@
 import type { BattleSession } from './BattleSession';
 import type { BattleSetup } from '../../multiplayer/generated/BattleSetup';
 import type { Command } from '../../multiplayer/generated/Command';
+import type { WeaponsPolicy } from '../../multiplayer/generated/WeaponsPolicy';
+import type { FleetOrderState } from '../../multiplayer/generated/FleetOrderState';
 import type { TeamId } from '../../multiplayer/generated/TeamId';
 import type { Ammunition, Battery, Vec3 } from '../../ships/blueprint';
 import { shipPreset, shipPresets } from '../../ships/presets';
@@ -31,6 +33,7 @@ export interface Snapshot {
   outcome?: BattleOutcome; afloatKg: [number, number];
   records: { scores: Record<string, { damageDealt: number; frags: number; damageLog: DamageLogEntry[] }>; shellHistory: ShellHistory[] };
   selectedShipIds?: (string | undefined)[]; phase?: string; reason?: string; connected?: boolean[]; loaded?: boolean[]; countdown?: number;
+  fleetOrders?: Record<string, FleetOrderState>;
 }
 function replaceObject<T extends object>(target: T, value: T): void {
   for (const key of Object.keys(target) as (keyof T)[]) if (!(key in value)) delete target[key];
@@ -53,13 +56,17 @@ export abstract class SnapshotSession implements BattleSession {
   protected fireQueued = false;
   protected depthM: number | null = null; protected emergencyBlow: boolean | null = null;
   private orderNoticeUntil = 0;
-  commandAcknowledged(accepted: boolean, error?: string) {
+  commandAcknowledged(accepted: boolean, error?: string, command?: Command['type'], shipId?: string) {
+    if (!accepted && this.selectionRequest && ((command === 'release-helm' && this.selectionRequest.id === null)
+      || (command === 'select' && this.selectionRequest.id === shipId))) this.selectionRequest = undefined;
     if (!accepted && !this.connectionStatus) { this.connectionStatus = `Order declined: ${error ?? 'unavailable'}`; this.orderNoticeUntil = performance.now() + 3000; }
   }
   private elapsed = 0; private interval = 1 / 20;
   private autopilot?: { throttle: number; rudder: number };
   private lastHelm: HelmCommand = { throttle: 0, rudder: 0 };
-  private selectionRequest?: { id: string; until: number };
+  controlledShipId?: string;
+  fleetOrders: Record<string, FleetOrderState> = {};
+  private selectionRequest?: { id: string | null; until: number };
   private lastControl = '';
   constructor(readonly setup: BattleSetup, readonly ownTeam: TeamId = 'a', readonly playerIndex = 0) {
     this.mapId = setup.mapId as OceanMapId; this.seed = setup.seed; this.spawnDistance = setup.spawnDistance;
@@ -130,7 +137,13 @@ export abstract class SnapshotSession implements BattleSession {
     const player = this.actors.find(a => a.motion.id === selected && a.team === 'friendly') ?? this.player ?? this.actors.find(a => a.team === 'friendly')!;
     if (player !== this.player) { this.lastControl = ''; this.ammunitionSelection = {}; this.autopilot = undefined; this.depthM = null; this.emergencyBlow = null; }
     this.player = player;
-    if (this.selectionRequest?.id === player.motion.id) this.selectionRequest = undefined;
+    const authoritativeControl = frame.selectedShipIds ? selected ?? undefined : player.motion.id;
+    if (this.selectionRequest && (this.selectionRequest.id === (authoritativeControl ?? null)
+      || (this.networked && performance.now() >= this.selectionRequest.until))) this.selectionRequest = undefined;
+    // An older in-flight frame cannot give manual authority back during a transfer.
+    // Local commands can remain queued in tactical pause for arbitrarily long.
+    this.controlledShipId = this.selectionRequest ? undefined : authoritativeControl;
+    this.fleetOrders = frame.fleetOrders ?? {};
     this.target ??= this.actors.find(a => a.team === 'enemy')!;
     this.shells = frame.shells; this.torpedoes = frame.torpedoes; this.depthCharges = frame.depthCharges; this.airReleases = frame.releases;
     this.events = frame.events; this.shellHistory = frame.records.shellHistory;
@@ -145,8 +158,8 @@ export abstract class SnapshotSession implements BattleSession {
   private relativeTonnage(values: [number, number]): [number, number] { return this.ownTeam === 'a' ? values : [values[1], values[0]]; }
   protected input(helm: HelmCommand, intent: CombatIntent, active: boolean): void {
     this.lastHelm = { ...helm };
-    if (this.selectionRequest && performance.now() < this.selectionRequest.until) return;
-    if (!active || physicalLoss(this.player) || this.result !== 'active' || this.phase !== 'running') { this.fireQueued = false; return; }
+    if (this.selectionRequest && (!this.networked || performance.now() < this.selectionRequest.until)) return;
+    if (!active || this.controlledShipId !== this.ship.id || physicalLoss(this.player) || this.result !== 'active' || this.phase !== 'running') { this.fireQueued = false; return; }
     if (this.autopilot && (helm.throttle !== this.autopilot.throttle || helm.rudder !== this.autopilot.rudder)) this.autopilot = undefined;
     const priority = intent.controlPriority ?? 'balanced', focus = intent.controlFocus || null;
     const control = JSON.stringify([priority, focus]);
@@ -163,6 +176,19 @@ export abstract class SnapshotSession implements BattleSession {
   telemetry(battery: Battery, aim: Vec3, group?: string, subject = this.player) { return presentationTelemetry(this, battery, aim, group, subject); }
   selectTarget(id: string) { const target = this.actors.find(a => a.motion.id === id && a.team === 'enemy'); if (!target) return false; this.target = target; return true; }
   selectShip(id: string) { const actor = this.actors.find(a => a.motion.id === id && a.team === 'friendly' && !physicalLoss(a)); if (!actor) return false; this.selectionRequest = { id, until: performance.now() + 2000 }; this.send(id, { type: 'select' }); return true; }
+  releaseHelm() {
+    const id = this.controlledShipId;
+    if (!id) return false;
+    this.selectionRequest = { id: null, until: performance.now() + 2000 };
+    this.controlledShipId = undefined;
+    this.fireQueued = false; this.autopilot = undefined; this.depthM = null; this.emergencyBlow = null;
+    this.send(id, { type: 'release-helm' });
+    return true;
+  }
+  routeShip(id: string, waypoints: [number, number][], speedMps: number, looped = false, append = false) { this.send(id, { type: 'route', waypoints, speedMps, looped, append }); }
+  holdShipArea(id: string, position: [number, number], radiusM: number) { this.send(id, { type: 'hold-area', position, radiusM }); }
+  escortShip(id: string, leaderId: string, offset: [number, number], radiusM: number) { this.send(id, { type: 'escort', leaderId, offset, radiusM }); }
+  setShipWeapons(id: string, policy: WeaponsPolicy) { this.send(id, { type: 'weapons', policy }); }
   moveShip(id: string, point: Vec3) { this.send(id, { type: 'move', position: [point[0], point[2]] }); if (id === this.ship.id) this.autopilot = { ...this.lastHelm }; }
   focusShip(id: string, targetId: string) { this.send(id, { type: 'focus', targetId }); }
   holdShip(id: string) { this.send(id, { type: 'hold' }); if (id === this.ship.id) this.autopilot = { ...this.lastHelm }; }
@@ -171,7 +197,15 @@ export abstract class SnapshotSession implements BattleSession {
   requestFire() { this.fireQueued = true; }
   orderAmmunition(battery: Battery, type: Ammunition, _immediate = false, group?: string) { this.ammunitionSelection[group ?? battery] = type; }
   launchAircraft(squadronId: string) { const flight = squadronFlights(this.player).find(f => f.squadronId === squadronId && f.planeIds.some(id => this.aircraft.find(p => p.id === id)?.phase === 'ready')); if (!flight) return 0; this.commandSquadron(flight.id, this.definition.airWing!.squadrons.find(s => s.id === squadronId)?.role === 'fighter' ? { kind: 'defend' } : { kind: 'attack', targetId: this.target.motion.id }); return flight.planeIds.length; }
-  commandSquadron(id: string, order: AirOrder) { this.send(this.ship.id, { type: 'air', flightId: id, order: order.kind === 'defend' ? { ...order, targetId: order.targetId ?? null } : order }); return this.result === 'active'; }
+  commandSquadron(id: string, order: AirOrder) {
+    const owner = this.actors.find(a => a.team === 'friendly' && squadronFlights(a).some(f => f.id === id));
+    if (!owner || this.result !== 'active') return false;
+    this.send(owner.motion.id, { type: 'air', flightId: id, order: order.kind === 'defend' ? { ...order, targetId: order.targetId ?? null } : order });
+    return true;
+  }
   orderFlight(id: string, order: AirOrder) { return this.commandSquadron(id, order); }
-  recallAircraft(flightId?: string) { this.send(this.ship.id, { type: 'recall', flightId: flightId ?? null }); }
+  recallAircraft(flightId?: string) {
+    const owners = flightId ? this.actors.filter(a => a.team === 'friendly' && squadronFlights(a).some(f => f.id === flightId)) : [this.player];
+    for (const owner of owners) this.send(owner.motion.id, { type: 'recall', flightId: flightId ?? null });
+  }
 }

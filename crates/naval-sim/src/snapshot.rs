@@ -25,7 +25,7 @@ pub struct Snapshot<'a> {
     pub outcome: &'a Option<Outcome>,
     pub records: &'a Records,
     pub afloat_kg: [u64; 2],
-    pub remaining_seconds: f64,
+    pub remaining_seconds: Option<f64>,
 }
 impl Battle {
     pub fn snapshot(&self) -> Snapshot<'_> {
@@ -41,9 +41,7 @@ impl Battle {
             outcome: &self.outcome,
             records: &self.records,
             afloat_kg: crate::rules::afloat_kg(&self.survivors()),
-            remaining_seconds: (crate::rules::Rules::default().duration_seconds as f64
-                - self.tick as f64 * crate::rules::DT)
-                .max(0.0),
+            remaining_seconds: self.remaining_seconds(),
         }
     }
 }

@@ -218,6 +218,7 @@ impl LocalRuntime {
             self.session.control.players[0].selected_ship_id,
             self.session.control.players[1].selected_ship_id
         ]);
+        frame["fleetOrders"] = serde_json::to_value(self.session.fleet_orders(0)).map_err(error)?;
         frame["phase"] = serde_json::json!(if self.session.battle.outcome.is_some() {
             "finished"
         } else {

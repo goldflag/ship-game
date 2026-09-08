@@ -5,6 +5,7 @@ import { mountFrame } from '../../simulation/mountFrames';
 import { muzzleWorld } from '../../simulation/weapons';
 import { localToWorld, sub, length } from '../../simulation/geometry';
 import { decodeSnapshot } from './SnapshotSession';
+import { squadronFlights } from '../../simulation/aircraft';
 const setup = { playerShipId: 'enterprise-cv6', friendlyBots: ['fletcher', 'type-viic'], enemies: ['baltimore'], spawnDistance: 5000 };
 test('Iowa carries its roof gun through real WASM snapshots without mutating delta baselines', async () => {
   const session = await HeadlessSession.create({ playerShipId: 'iowa', friendlyBots: [], enemies: [{ shipId: 'baltimore', aiLevel: 'static' }], spawnDistance: 5000 });
@@ -99,5 +100,94 @@ test('declined orders expire even while paused and never clear a later failure',
     now.mockReturnValue(8000);
     session.advance(0, helm, intent);
     expect(session.connectionStatus).toBe('Battle worker stopped');
+  } finally { now.mockRestore(); session.dispose(); }
+});
+
+test('fleet routes and escorts survive focus and explicit helm release through real WASM', async () => {
+  const session = await HeadlessSession.create(setup);
+  const helm = { throttle: 0, rudder: 0 };
+  const intent = { aim: [0, 0, -5000] as [number, number, number], battery: 'main' as const, fire: false };
+  try {
+    const carrier = session.player;
+    const integrity = carrier.damage.integrity;
+    session.routeShip('player', [[0, -1500], [1000, -1500]], 12);
+    session.escortShip('friendly-1', 'player', [650, 350], 1500);
+    session.focusShip('friendly-1', 'enemy-1');
+    session.setShipWeapons('friendly-1', { guns: false, aa: true, torpedoes: false });
+    session.advance(.1, helm, intent);
+    expect(session.controlledShipId).toBe('player');
+    expect(carrier.helm!.throttle).toBe(0);
+    session.requestFire();
+    expect(session.releaseHelm()).toBe(true);
+    const send = spyOn(session as any, 'send');
+    session.advance(.1, helm, intent);
+    expect(send).not.toHaveBeenCalled();
+    send.mockRestore();
+    expect(session.controlledShipId).toBeUndefined();
+    expect(session.player).toBe(carrier);
+    expect(carrier.damage.integrity).toBe(integrity);
+    expect(carrier.controller).toBe('bot');
+    expect(carrier.helm!.throttle).toBeGreaterThan(0);
+    const frame = JSON.parse(session.runtime.snapshot());
+    const escort = frame.actors.find((a: any) => a.motion.id === 'friendly-1');
+    expect(escort.navigation.order).toEqual({ type: 'escort', leaderId: 'player', offset: [650, 350], radiusM: 1500 });
+    expect(escort.targetId).toBe('enemy-1');
+    expect(session.selectShip('friendly-1')).toBe(true);
+    session.advance(.1, helm, intent);
+    expect(session.controlledShipId).toBe('friendly-1');
+    expect(session.ship.id).toBe('friendly-1');
+    expect(session.actors.find(a => a.motion.id === 'player')).toBe(carrier);
+    expect(session.releaseHelm()).toBe(true);
+    session.advance(.1, helm, intent);
+    expect(JSON.parse(session.runtime.snapshot()).actors.find((a: any) => a.motion.id === 'friendly-1').navigation.order.type).toBe('escort');
+  } finally { session.dispose(); }
+});
+
+test('air groups on multiple carriers receive addressed orders while a destroyer retains the helm', async () => {
+  const session = await HeadlessSession.create({ playerShipId: 'fletcher', friendlyBots: ['enterprise-cv6', 'shokaku'], enemies: ['baltimore'], spawnDistance: 7500 });
+  try {
+    const ids = session.actors.filter(a => a.team === 'friendly' && a.airWing).map(a => squadronFlights(a)[0].id);
+    for (const id of ids) expect(session.commandSquadron(id, { kind: 'patrol', point: [1000, 1000, -1000] })).toBe(true);
+    session.advance(.1, { throttle: 0, rudder: 0 }, { aim: [0, 0, -5000], battery: 'main', fire: false });
+    expect(session.controlledShipId).toBe('player');
+    for (const id of ids) {
+      const flight = session.actors.flatMap(a => a.airWing?.flights ?? []).find(f => f.id === id);
+      expect(flight?.order.kind).toBe('patrol');
+      session.recallAircraft(id);
+    }
+    session.advance(.1, { throttle: 0, rudder: 0 }, { aim: [0, 0, -5000], battery: 'main', fire: false });
+    expect(session.controlledShipId).toBe('player');
+    expect(session.commandSquadron('unknown-flight', { kind: 'return' })).toBe(false);
+  } finally { session.dispose(); }
+});
+
+test('delayed snapshots cannot restore helm during a paused transfer; rejected transfers recover', async () => {
+  const session = await HeadlessSession.create(setup);
+  const now = spyOn(performance, 'now');
+  try {
+    const previous = session.runtime.snapshot();
+    now.mockReturnValue(1000);
+    session.releaseHelm();
+    now.mockReturnValue(60000);
+    session.applyRaw(previous);
+    expect(session.controlledShipId).toBeUndefined();
+    session.applyRaw(session.runtime.snapshot());
+    expect(session.controlledShipId).toBeUndefined();
+    const released = session.runtime.snapshot();
+    session.selectShip('friendly-1');
+    session.applyRaw(previous);
+    expect(session.controlledShipId).toBeUndefined();
+    session.applyRaw(session.runtime.snapshot());
+    expect(session.controlledShipId).toBe('friendly-1');
+    // A queue rejection clears only its corresponding transfer request.
+    const send = spyOn(session as any, 'send').mockImplementation(() => {});
+    session.selectShip('player');
+    session.commandAcknowledged(false, 'Unavailable', 'select', 'friendly-1');
+    session.applyRaw(released);
+    expect(session.controlledShipId).toBeUndefined();
+    session.commandAcknowledged(false, 'Queue full', 'select', 'player');
+    session.applyRaw(session.runtime.snapshot());
+    expect(session.controlledShipId).toBe('friendly-1');
+    send.mockRestore();
   } finally { now.mockRestore(); session.dispose(); }
 });

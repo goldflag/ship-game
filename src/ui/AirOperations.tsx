@@ -15,7 +15,7 @@ import { AirWingManifest } from './AirWingManifest';
 
 // Camera motion is rendered every frame; combat telemetry intentionally stays at 10 Hz.
 // Move the overlay directly so camera motion never waits for a React telemetry render.
-function useMapProjection(ref: RefObject<HTMLElement | SVGSVGElement | null>, game: Game | null, active: boolean) {
+export function useMapProjection(ref: RefObject<HTMLElement | SVGSVGElement | null>, game: Game | null, active: boolean) {
   useEffect(() => {
     if (!active || !game) return;
     const update = () => {
@@ -67,7 +67,7 @@ export function SquadronLabels({ data, game, onOrder, onTarget, onSelect, onPoin
       onPointerDown={onPointerDown} data-flight-id={f.id} data-owner-id={f.ownerId} style={{ left: f.screen?.x, top: f.screen?.y, display: f.screen ? undefined : 'none' }} title={`${f.name} · ${roleLabel(f.role)} · ${mission(f)} · ${f.hp}% condition`}
       aria-label={`${f.name} · ${roleLabel(f.role)} · ${f.surviving} aircraft · ${f.activity}`}
       tabIndex={data.airOperationsOpen ? 0 : -1}
-      onClick={e => { if ((e.metaKey || e.ctrlKey || !onTarget?.(f.id, f.team)) && f.ownerId === data.ship.id) { if (onSelect) onSelect(f.id, e.metaKey || e.ctrlKey); else game?.selectFlight(f.id, e.metaKey || e.ctrlKey); } e.currentTarget.blur(); }}
+      onClick={e => { if ((e.metaKey || e.ctrlKey || !onTarget?.(f.id, f.team)) && (f.ownerId === data.ship.id || (game?.fleetCommandMode && f.team === 'friendly'))) { if (onSelect) onSelect(f.id, e.metaKey || e.ctrlKey); else game?.selectFlight(f.id, e.metaKey || e.ctrlKey); } e.currentTarget.blur(); }}
       onContextMenu={e => { if (data.airOperationsOpen) { e.preventDefault(); if (!e.ctrlKey && !e.metaKey) onOrder?.(f.id, f.team); } }}>
       <SquadronIcon role={f.role}/><span><strong>{f.name} · {f.surviving}</strong><small>{f.activity}</small></span>
     </button>)}

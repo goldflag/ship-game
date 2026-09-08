@@ -1,12 +1,12 @@
 import { SnapshotSession, type Snapshot } from './SnapshotSession';
 import type { BattleSetup as RuntimeSetup } from '../../multiplayer/generated/BattleSetup';
-import type { CommandEnvelope } from '../../multiplayer/generated/CommandEnvelope';
 import type { Command } from '../../multiplayer/generated/Command';
 import { botSelection, setupSpawns, type BattleSetup } from '../../simulation/battle';
 import { DEFAULT_MAP } from '../../maps/catalog';
 import type { CombatIntent } from '../../simulation/combat';
 import type { HelmCommand } from '../../simulation/ship';
 import { applyLocalDelta } from './localSnapshotDelta';
+import { CommandQueue } from './commandQueue';
 export function runtimeSetup(setup: BattleSetup, seed: number): RuntimeSetup {
   const spawns = setupSpawns(setup);
   const ships: RuntimeSetup['ships'] = [{ id: 'player', presetId: setup.playerShipId, team: 'a', controller: 'player', aiLevel: 'normal', spawn: spawns.friendly[0] }];
@@ -18,7 +18,10 @@ export class LocalBattleSession extends SnapshotSession {
   readonly networked = false;
   private worker: Worker;
   private received?: Snapshot;
-  private commands: CommandEnvelope[] = []; private sequence = 0; private accumulator = 0; private busy = true; private disposed = false;
+  private commands = new CommandQueue();
+  get orderReceipts() { return this.commands.receipts; }
+  get queuedOrderCount() { return this.commands.length; }
+  private accumulator = 0; private busy = true; private disposed = false;
   onFailure?: (message: string) => void;
   private fail(message: string) { this.pending = undefined; this.busy = false; this.connectionStatus = message; this.phase = 'cancelled'; this.dispose(); this.onFailure?.(message); }
   private constructor(setup: RuntimeSetup) { super(setup); this.worker = new Worker(new URL('./local.worker.ts', import.meta.url), { type: 'module' }); }
@@ -30,7 +33,10 @@ export class LocalBattleSession extends SnapshotSession {
       session.worker.onmessage = event => {
         const data = event.data;
         if (data.type === 'error') { clearTimeout(timer); session.fail(data.message); reject(new Error(data.message)); }
-        if (data.type === 'rejected') session.commandAcknowledged(false, data.message);
+        if (data.type === 'ack') {
+          session.commands.acknowledge(data.sequence, data.accepted ? 'accepted' : 'rejected', data.message);
+          session.commandAcknowledged(data.accepted, data.message, data.command, data.shipId);
+        }
         if (data.type === 'snapshot') {
           try {
             // The owned worker already parsed, validated and normalized this frame.
@@ -46,7 +52,10 @@ export class LocalBattleSession extends SnapshotSession {
     });
     return session;
   }
-  protected send(shipId: string, command: Command) { if (!this.disposed && this.commands.length < 128) this.commands.push({ sequence: ++this.sequence, connectionEpoch: 1, shipId, command }); }
+  protected send(shipId: string, command: Command) {
+    if (this.disposed) return;
+    if (!this.commands.enqueue(shipId, command)) this.commandAcknowledged(false, 'Order queue full. Resume to process orders.', command.type, shipId);
+  }
   advance(dt: number, helm: HelmCommand, intent: CombatIntent, beforeStep?: () => void) {
     this.consume(dt, beforeStep);
     if (this.disposed || this.result !== 'active' || dt <= 0) return;
@@ -54,7 +63,7 @@ export class LocalBattleSession extends SnapshotSession {
     if (this.busy || this.accumulator < 1 / 60) return;
     const ticks = Math.min(6, Math.floor(this.accumulator * 60)); this.accumulator -= ticks / 60;
     this.input(helm, intent, true); this.busy = true;
-    this.worker.postMessage({ type: 'advance', commands: this.commands.splice(0), ticks });
+    this.worker.postMessage({ type: 'advance', commands: this.commands.drain(), ticks });
   }
-  dispose() { this.disposed = true; this.worker.terminate(); this.commands.length = 0; this.received = undefined; }
+  dispose() { this.disposed = true; this.worker.terminate(); this.commands.clear(); this.received = undefined; }
 }

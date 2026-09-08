@@ -1,4 +1,6 @@
 //! Complete renderer-free fixed-tick battle authority, shared by native and WASM.
+pub use crate::navigation::Movement;
+use crate::navigation::{self, NavigationState, WeaponsPolicy};
 use crate::{
     aircraft::{AirOrder, AirRelease},
     aviation::Aviation,
@@ -47,16 +49,9 @@ pub struct BattleSetup {
     pub weather: String,
     pub spawn_distance: f64,
     pub wind_speed: Option<f64>,
-}
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
-#[serde(tag = "type", rename_all = "kebab-case", deny_unknown_fields)]
-pub enum Movement {
-    #[default]
-    Autonomous,
-    Hold,
-    Move {
-        position: [f64; 2],
-    },
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub mission_rules: Option<crate::mission::MissionRules>,
 }
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -66,6 +61,8 @@ pub struct Orders {
     pub movement: Movement,
     pub target_id: Option<String>,
     pub control: Option<(String, String)>,
+    #[serde(default)]
+    pub weapons: WeaponsPolicy,
 }
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -94,7 +91,11 @@ pub struct Battle {
     pub map_id: String,
     pub sequence: i64,
     pub dispersion: u32,
+    pub mission_rules: Option<crate::mission::MissionRules>,
     event_sequence: u64,
+    pub sensors: crate::sensors::Sensors,
+    visual_conditions: crate::sensors::VisualConditions,
+    visual_rules: crate::sensors::VisualRules,
     displacement: Vec<u64>,
     rules: Rules,
 }
@@ -108,6 +109,20 @@ impl Battle {
             .map(|team| setup.ships.iter().filter(|s| s.team == team).count());
         if counts.iter().any(|n| !(1..=30).contains(n)) {
             return Err("Choose one to 30 ships per side".into());
+        }
+        if let Some(mission) = &setup.mission_rules {
+            mission.validate_selection(&catalog)?;
+            for team in [TeamId::A, TeamId::B] {
+                mission.budget.resolve(
+                    &setup
+                        .ships
+                        .iter()
+                        .filter(|s| s.team == team)
+                        .map(|s| s.preset_id.clone())
+                        .collect::<Vec<_>>(),
+                    &catalog,
+                )?;
+            }
         }
         let environment = catalog
             .resolve_environment(
@@ -164,6 +179,10 @@ impl Battle {
                 },
             });
             if ![p.x, p.z, p.heading].iter().all(|n| n.is_finite())
+                || setup.mission_rules.as_ref().is_some_and(|m| {
+                    !m.area
+                        .contains([p.x, p.z], a.definition().hull.length / 2.0)
+                })
                 || p.x.abs() > 40000.0
                 || p.z.abs() > 40000.0
                 || actors
@@ -187,6 +206,8 @@ impl Battle {
             actors.push(a);
         }
         let aviation = Aviation::new(&actors, catalog.aircraft.clone());
+        let visual_conditions =
+            crate::sensors::VisualConditions::resolve(&catalog, &setup.map_id, &setup.weather);
         Ok(Self {
             records: Default::default(),
             catalog,
@@ -208,6 +229,10 @@ impl Battle {
             event_sequence: 0,
             displacement,
             rules: Rules::default(),
+            mission_rules: setup.mission_rules,
+            sensors: Default::default(),
+            visual_conditions,
+            visual_rules: Default::default(),
         })
     }
     pub fn survivors(&self) -> Vec<Survivor> {
@@ -287,6 +312,17 @@ impl Battle {
             return;
         }
         self.records.begin_tick(&self.actors);
+        if self.mission_rules.is_some() && self.tick.is_multiple_of(self.visual_rules.cadence_ticks)
+        {
+            self.sensors.update(
+                self.tick,
+                &crate::sensors::entities(&self.actors, &self.aviation),
+                &self.islands,
+                &self.catalog.terrain,
+                self.visual_conditions,
+                &self.visual_rules,
+            );
+        }
         let time = self.tick as f64 * DT;
         let mut commands = Vec::with_capacity(self.actors.len());
         for i in 0..self.actors.len() {
@@ -331,7 +367,7 @@ impl Battle {
                     if let Some(helm) = o.helm {
                         command = helm
                     } else {
-                        match o.movement {
+                        match &o.movement {
                             Movement::Autonomous => (),
                             Movement::Hold => command = HelmCommand::default(),
                             Movement::Move { position: [x, z] } => {
@@ -354,9 +390,39 @@ impl Battle {
                                     &self.islands,
                                 )
                             }
+                            Movement::Route { .. }
+                            | Movement::HoldArea { .. }
+                            | Movement::Escort { .. } => {
+                                let mut state = actor
+                                    .navigation
+                                    .take()
+                                    .unwrap_or_else(|| NavigationState::new(o.movement.clone()));
+                                let speed_limit = self.actors.iter().filter(|a| a.team == actor.team && a.physical_loss().is_none())
+                                    .filter(|a| orders.get(&a.motion.id).is_some_and(|o|
+                                        matches!(&o.movement, Movement::Escort { leader_id, .. } if leader_id == &actor_id)))
+                                    .map(|a| a.definition().handling.forward_speed * 0.85)
+                                    .fold(def.handling.forward_speed, f64::min);
+                                command = navigation::command(
+                                    &actor,
+                                    &self.actors,
+                                    &self.islands,
+                                    &o.movement,
+                                    &mut state,
+                                    self.tick,
+                                    speed_limit,
+                                );
+                                actor.navigation = Some(state);
+                            }
                         }
                     }
                 }
+            }
+            if let Some(mission) = &self.mission_rules {
+                command = avoid_land(
+                    &actor.motion,
+                    mission.area.constrain(&actor, command),
+                    &self.islands,
+                );
             }
             commands.push(command);
             self.actors.insert(i, actor);
@@ -395,7 +461,10 @@ impl Battle {
                 .as_ref()
                 .and_then(|id| self.actors.iter().find(|t| t.motion.id == *id));
             let player = orders.get(&a.motion.id).and_then(|o| o.guns.as_ref());
-            gunnery::operate(
+            let weapons = orders
+                .get(&a.motion.id)
+                .map_or_else(WeaponsPolicy::default, |o| o.weapons);
+            gunnery::operate_with_policy(
                 &mut a,
                 &mut GunneryContext {
                     actors: &self.actors,
@@ -409,6 +478,7 @@ impl Battle {
                 },
                 target,
                 player,
+                weapons,
             );
             operate_underwater(
                 &mut a,
@@ -419,6 +489,7 @@ impl Battle {
                 &mut self.depth_charges,
                 &mut self.sequence,
                 &mut events,
+                weapons,
             );
             self.actors.insert(i, a);
         }
@@ -585,7 +656,23 @@ impl Battle {
             .collect();
         self.records.finish_tick(&self.actors, &active);
         self.tick += 1;
-        self.outcome = rules::evaluate_outcome(self.tick, &self.survivors(), &self.rules);
+        self.outcome = if let Some(mission) = &self.mission_rules {
+            crate::mission::evaluate(
+                self.tick,
+                &self.actors,
+                &self.aviation,
+                mission,
+                rules::afloat_kg(&self.survivors()),
+            )
+        } else {
+            rules::evaluate_outcome(self.tick, &self.survivors(), &self.rules)
+        };
+    }
+    pub fn remaining_seconds(&self) -> Option<f64> {
+        self.mission_rules.as_ref().map_or_else(
+            || Some((self.rules.duration_seconds as f64 - self.tick as f64 * DT).max(0.0)),
+            |mission| mission.remaining_seconds(self.tick),
+        )
     }
 }
 #[allow(clippy::too_many_arguments)]
@@ -598,6 +685,7 @@ fn operate_underwater(
     charges: &mut Vec<DepthCharge>,
     sequence: &mut i64,
     events: &mut Vec<DamageEvent>,
+    weapons: WeaponsPolicy,
 ) {
     let compiled = a.compiled.clone();
     let def = &compiled.definition;
@@ -646,6 +734,7 @@ fn operate_underwater(
         let fire = player.map_or_else(
             || {
                 a.controller == Controller::Bot
+                    && weapons.torpedoes
                     && target.is_some()
                     && a.bot.as_ref().is_some_and(|b| b.ready(None))
             },
@@ -710,6 +799,7 @@ fn operate_underwater(
         let fire = player.map_or_else(
             || {
                 a.controller == Controller::Bot
+                    && weapons.torpedoes
                     && a.bot.as_ref().is_some_and(|b| b.ready(None))
                     && target.is_some_and(|t| depth_charges::bot_should_drop(a, t, l, actors))
             },

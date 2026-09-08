@@ -16,7 +16,11 @@ Guns of 80 mm or less only engage aircraft when a larger gun is fitted, matching
 
 ## Helm and targeting
 
-Nearest-opponent selection retains its 25% hysteresis and includes damaged or disarmed ships while they remain physically afloat. Weapon or ammunition loss does not retire a hull from movement, targeting or tonnage scoring. Bots do not have fleet coordination, threat scoring or a visibility/spotting system.
+Nearest-opponent selection retains its 25% hysteresis and includes damaged or disarmed ships while they remain physically afloat. Weapon or ammunition loss does not retire a hull from movement, targeting or tonnage scoring in legacy battles. Autonomous captains do not yet have strategic fleet coordination, threat scoring or a visibility/spotting system.
+
+Rust fleet orders override autonomous movement with persistent routes, local station areas or an escort leader and heading-relative slot. Focus fire changes weapon priority without replacing movement. Navigation plans around authored island ellipses, makes local collision corrections, reserves escort catch-up speed and forms a column where an assigned screen slot is obstructed. Leader loss produces a local hold. These policies live in `crates/naval-sim/src/navigation.rs`; temporary corrections retain the standing order. The carrier plus three-destroyer navigation test covers a narrow passage and a subsequent turn, but is not a full combat or damaged-straggler acceptance test.
+
+Guns, automatic AA and discretionary torpedoes have separate addressed permissions. Existing battles retain their original defaults. The planned PvE defaults, bounded attack/torpedo tasks and contact-limited target selection remain tracked in the [PvE implementation status](pve-implementation-status.md).
 
 Ships with guns of at least 300 mm choose a preferred distance of 4.2–5.8 km; others choose 3.2–4.6 km. Bots approach beyond that distance, bring a broadside to bear nearby, and open the range when too close. Each crew chooses a side and small course offset, holds course/speed decisions for 22–38 seconds, and occasionally changes broadside. Hull avoidance still overrides the desired course near other ships.
 

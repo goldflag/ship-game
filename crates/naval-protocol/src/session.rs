@@ -1,7 +1,7 @@
 //! Authenticated addressed commands drive the same battle used by local WASM.
 use crate::*;
 use naval_sim::{
-    battle::{Battle, Movement, Orders},
+    battle::{Battle, Orders},
     gunnery::PlayerGunOrders,
     motion::HelmCommand,
     rules::{FinishReason, Outcome, TeamId, afloat_kg},
@@ -15,7 +15,46 @@ pub struct Session {
     pub owners: [TeamId; 2],
     priorities: BTreeMap<String, (String, String)>,
 }
+/// An owner's acknowledged standing orders, without another team's plans or
+/// transient held input. Camera and UI selection never enter this contract.
+#[derive(Clone, Debug, serde::Serialize, ts_rs::TS)]
+#[serde(rename_all = "camelCase")]
+pub struct FleetOrderState {
+    pub movement: MovementOrder,
+    pub weapons: WeaponsPolicy,
+    pub target_id: Option<String>,
+    pub manual: bool,
+    pub navigation: Option<naval_sim::navigation::NavigationState>,
+}
 impl Session {
+    pub fn fleet_orders(&self, owner: usize) -> BTreeMap<String, FleetOrderState> {
+        self.control
+            .ships
+            .iter()
+            .filter(|(_, ship)| ship.owner == owner)
+            .map(|(id, ship)| {
+                (
+                    id.clone(),
+                    FleetOrderState {
+                        movement: ship.movement.clone(),
+                        weapons: ship.weapons,
+                        target_id: ship.target_id.clone(),
+                        manual: self
+                            .control
+                            .players
+                            .get(owner)
+                            .is_some_and(|p| p.selected_ship_id.as_ref() == Some(id)),
+                        navigation: self
+                            .battle
+                            .actors
+                            .iter()
+                            .find(|a| &a.motion.id == id)
+                            .and_then(|a| a.navigation.clone()),
+                    },
+                )
+            })
+            .collect()
+    }
     pub fn new(battle: Battle, owners: [TeamId; 2]) -> Result<Self, CommandError> {
         if owners[0] == owners[1] {
             return Err(CommandError::Ownership);
@@ -38,7 +77,56 @@ impl Session {
         if self.battle.outcome.is_some() {
             return Err(CommandError::Lost);
         }
+        if self
+            .control
+            .ships
+            .get(&c.ship_id)
+            .is_none_or(|a| a.owner != sender)
+        {
+            return Err(CommandError::Ownership);
+        }
+        // Reject illegal destinations before changing sequence or standing orders.
+        if let Some(actor) = self.battle.actors.iter().find(|a| a.motion.id == c.ship_id) {
+            let points: &[[f64; 2]] = match &c.command {
+                Command::Route { waypoints, .. } => waypoints,
+                Command::HoldArea { position, .. } => std::slice::from_ref(position),
+                _ => &[],
+            };
+            if points.iter().any(|&p| {
+                !naval_sim::navigation::destination_is_clear(actor, p, &self.battle.islands)
+                    || self
+                        .battle
+                        .mission_rules
+                        .as_ref()
+                        .is_some_and(|m| !m.area.contains(p, actor.definition().hull.length / 2.0))
+            }) {
+                return Err(CommandError::Bounds);
+            }
+        }
         self.control.apply(sender, c.clone(), self.battle.tick)?;
+        if matches!(
+            c.command,
+            Command::Route { .. }
+                | Command::HoldArea { .. }
+                | Command::Escort { .. }
+                | Command::Move { .. }
+                | Command::Hold
+                | Command::Autonomous
+        ) {
+            let actor = self
+                .battle
+                .actors
+                .iter_mut()
+                .find(|a| a.motion.id == c.ship_id)
+                .unwrap();
+            if matches!(c.command, Command::Route { append: true, .. }) {
+                if let Some(state) = actor.navigation.as_mut() {
+                    state.order = self.control.ships[&c.ship_id].movement.clone();
+                }
+            } else {
+                actor.navigation = None;
+            }
+        }
         let actor = self
             .battle
             .actors
@@ -101,11 +189,8 @@ impl Session {
                 Controller::Bot
             };
             let mut o = Orders {
-                movement: match c.movement {
-                    MovementOrder::Autonomous => Movement::Autonomous,
-                    MovementOrder::Hold => Movement::Hold,
-                    MovementOrder::Move { position } => Movement::Move { position },
-                },
+                movement: c.movement.clone(),
+                weapons: c.weapons,
                 target_id: c.target_id.clone(),
                 control: self.priorities.get(&a.motion.id).cloned(),
                 ..Default::default()
@@ -147,6 +232,16 @@ impl Session {
         self.battle.step(&orders);
         for a in &self.battle.actors {
             self.control.ships.get_mut(&a.motion.id).unwrap().afloat = a.physical_loss().is_none();
+        }
+        for player in &mut self.control.players {
+            if player
+                .selected_ship_id
+                .as_ref()
+                .is_some_and(|id| !self.control.ships[id].afloat)
+                && let Some(id) = player.selected_ship_id.take()
+            {
+                self.control.ships.get_mut(&id).unwrap().input = None;
+            }
         }
     }
     pub fn finish(&mut self, winner: Option<TeamId>, reason: FinishReason) {

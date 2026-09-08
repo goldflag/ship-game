@@ -20,8 +20,10 @@ self.onmessage = (event: MessageEvent<{ type: 'init'; setup: BattleSetup } | { t
       } else {
         if (!runtime) throw new Error('Battle worker is not initialized.');
         for (const command of message.commands) {
-          try { runtime.command(JSON.stringify(command)); }
-          catch (error) { self.postMessage({ type: 'rejected', sequence: command.sequence, message: String(error) }); }
+          try {
+            runtime.command(JSON.stringify(command));
+            self.postMessage({ type: 'ack', sequence: command.sequence, accepted: true, command: command.command.type, shipId: command.shipId });
+          } catch (error) { self.postMessage({ type: 'ack', sequence: command.sequence, accepted: false, message: String(error), command: command.command.type, shipId: command.shipId }); }
         }
         runtime.step(message.ticks);
       }

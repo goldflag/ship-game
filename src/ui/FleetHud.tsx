@@ -1,4 +1,5 @@
 import { FireControl } from './FireControl';
+import { FleetCommand } from './FleetCommand';
 import { Button } from './components';
 import { AirOperations, SquadronLabels } from './AirOperations';
 import { FlightControl } from './FlightControl';
@@ -119,7 +120,7 @@ function ActiveArmament({ data, game, bindings }: FleetHudProps) {
           {group.reload > 0 && Number.isFinite(group.reload) && group.ready === 0 && <span className="fleet-slot-cooldown">{Math.ceil(group.reload)}<small>s</small></span>}
           <kbd>{shortcut(index)}</kbd>
         </button>)}
-        {combat.airWing && <button className="fleet-weapon-slot" disabled={combat.playerSunk} aria-label={`Open air operations · ${bindingLabel(bindings, 'airOperations')}`} title="Command carrier squadrons" onClick={event => { game?.setAirOperationsOpen(true); event.currentTarget.blur(); }}>
+        {combat.airWing && !data.fleetCommandMode && <button className="fleet-weapon-slot" disabled={combat.playerSunk} aria-label={`Open air operations · ${bindingLabel(bindings, 'airOperations')}`} title="Command carrier squadrons" onClick={event => { game?.setAirOperationsOpen(true); event.currentTarget.blur(); }}>
           <span className="fleet-slot-label">AIR WING</span><Icon name="aircraft" size={32}/>
           <kbd>{bindingLabel(bindings, 'airOperations')}</kbd>
         </button>}
@@ -146,8 +147,14 @@ function FleetHudInstruments({ data, game, visible, bindings }: FleetHudProps) {
   const followingShell = data.shellFollow === 'flight' || data.shellFollow === 'impact';
   const following = followingShell || !!data.followedAircraftId || !!data.combat?.playerSunk;
 
+  if (data.fleetCommandMode && game && data.combat) return <div className={`fleet-hud ${data.controlledShipId && !data.airOperationsOpen ? 'fleet-command-helm' : ''}`} inert={!visible} style={{ visibility: visible ? undefined : 'hidden' }}>
+    <FleetCommand data={data} game={game} bindings={bindings}/>
+    {data.controlledShipId && !data.airOperationsOpen && <ActiveArmament data={data} game={game} visible={visible} bindings={bindings}/>}
+  </div>;
+
   return <div className={`fleet-hud ${visible ? '' : 'fleet-hud-hidden'} ${data.airOperationsOpen ? 'fleet-air-map' : ''} ${data.binoculars ? 'fleet-in-optics' : ''}`} inert={!visible && !data.airOperationsOpen} style={{ '--map-factor': mapSize / 400 } as CSSProperties}>
     <BearingTape degrees={degrees}/>
+    {game?.simulation.releaseHelm && !game.simulation.networked && <button className="fleet-command-entry" onClick={() => game.enterFleetCommand()}>Fleet command</button>}
     <div className="fleet-reports">
     {data.combat?.battle && <BattleStatus combat={data.combat} game={game} spectatedShipId={data.spectatedShipId}>
       {data.combat.airWing && !data.airOperationsOpen && <FlightControl combat={data.combat} game={game} bindings={bindings}/>}

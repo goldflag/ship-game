@@ -1,5 +1,8 @@
 import type { CombatSimulation } from '../../simulation/combat';
 import type { Vec3 } from '../../ships/blueprint';
+import type { WeaponsPolicy } from '../../multiplayer/generated/WeaponsPolicy';
+import type { FleetOrderState } from '../../multiplayer/generated/FleetOrderState';
+import type { OrderReceipt } from './commandQueue';
 /** Renderer-facing state and addressed intent. Neither ShipView nor Game owns
  * collision, weapon or damage decisions for a snapshot-backed session. */
 export interface BattleSession extends Pick<CombatSimulation, keyof CombatSimulation> {
@@ -9,6 +12,15 @@ export interface BattleSession extends Pick<CombatSimulation, keyof CombatSimula
  dispose?(): void;
  setDepth?(depthM: number, emergency?: boolean): void;
  selectShip?(id: string): boolean;
+ readonly controlledShipId?: string;
+ readonly fleetOrders?: Record<string, FleetOrderState>;
+ readonly orderReceipts?: OrderReceipt[];
+ readonly queuedOrderCount?: number;
+ releaseHelm?(): boolean;
+ routeShip?(id: string, waypoints: [number, number][], speedMps: number, looped?: boolean, append?: boolean): void;
+ holdShipArea?(id: string, position: [number, number], radiusM: number): void;
+ escortShip?(id: string, leaderId: string, offset: [number, number], radiusM: number): void;
+ setShipWeapons?(id: string, policy: WeaponsPolicy): void;
  moveShip?(id: string, point: Vec3): void;
  focusShip?(id: string, targetId: string): void;
  holdShip?(id: string): void;

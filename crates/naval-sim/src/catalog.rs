@@ -22,6 +22,7 @@ struct Manifest {
     aircraft: Vec<crate::aircraft_deck::GroundPose>,
     version: u32,
     rules_version: u32,
+    missions: Vec<crate::mission::MissionRules>,
     ships: Vec<ManifestShip>,
     terrain: Vec<crate::environment::TerrainField>,
     maps: serde_json::Value,
@@ -52,6 +53,7 @@ pub struct Catalog {
     pub terrain: Vec<crate::environment::TerrainField>,
     pub maps: serde_json::Value,
     pub conditions: serde_json::Value,
+    pub missions: BTreeMap<String, crate::mission::MissionRules>,
 }
 
 pub fn sha256(bytes: &[u8]) -> String {
@@ -72,6 +74,13 @@ impl Catalog {
                 "unsupported manifest or rules version".into(),
             ));
         }
+        let mut missions = BTreeMap::new();
+        for mission in manifest.missions {
+            mission.validate_profile().map_err(ContentError::Invalid)?;
+            if missions.insert(mission.id.clone(), mission).is_some() {
+                return Err(ContentError::Invalid("Duplicate mission profile".into()));
+            }
+        }
         let mut catalog = Self {
             aircraft: manifest
                 .aircraft
@@ -85,6 +94,7 @@ impl Catalog {
             terrain: manifest.terrain,
             maps: manifest.maps,
             conditions: manifest.conditions,
+            missions,
         };
         catalog.map_ids().map_err(ContentError::Invalid)?;
         catalog.weather_ids().map_err(ContentError::Invalid)?;

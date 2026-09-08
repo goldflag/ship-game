@@ -86,6 +86,22 @@ pub fn operate(
     target: Option<&Vessel>,
     player: Option<&PlayerGunOrders>,
 ) {
+    operate_with_policy(
+        actor,
+        ctx,
+        target,
+        player,
+        crate::navigation::WeaponsPolicy::default(),
+    );
+}
+
+pub fn operate_with_policy(
+    actor: &mut Vessel,
+    ctx: &mut GunneryContext<'_>,
+    target: Option<&Vessel>,
+    player: Option<&PlayerGunOrders>,
+    policy: crate::navigation::WeaponsPolicy,
+) {
     let compiled = actor.compiled.clone();
     let def = &compiled.definition;
     let power = electrical_power(actor, def, None);
@@ -115,6 +131,7 @@ pub fn operate(
         let manual = selected && player.unwrap().weapon_group_id.is_some();
         let mut state = actor.mounts[i].clone();
         if !manual
+            && policy.aa
             && anti_aircraft::update(
                 actor,
                 m,
@@ -182,7 +199,10 @@ pub fn operate(
                     &mut state,
                 ))
             }
-            fire = in_range && lane && actor.bot.as_ref().is_some_and(|b| b.ready(Some(m)));
+            fire = policy.guns
+                && in_range
+                && lane
+                && actor.bot.as_ref().is_some_and(|b| b.ready(Some(m)));
         }
         let aligned = update_mount(
             m,

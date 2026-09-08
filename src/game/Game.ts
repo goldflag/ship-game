@@ -147,6 +147,11 @@ export class Game {
   private currentAim: Vec3 = [650, .5, -550];
   chartSize = 2;
   airOperationsOpen = false;
+  fleetCommandMode = false;
+  selectedShipIds: string[] = [];
+  readonly controlGroups = new Map<number, { name: string; shipIds: string[] }>();
+  private tacticalPause = false;
+  private lastFleetHelmId?: string;
   private cameraFrameListeners = new Set<() => void>();
   onCameraFrame(listener: () => void): () => void {
     this.cameraFrameListeners.add(listener);
@@ -221,7 +226,7 @@ export class Game {
       shellType: () => this.cycleAmmunition(),
       isSpectating: () => !this.inPort && this.simulation.isBattle && this.simulation.player.damage.sunk,
       cycleSpectator: direction => this.cycleSpectator(direction),
-      airOperations: () => this.setAirOperationsOpen(!this.airOperationsOpen),
+      airOperations: () => this.fleetCommandMode ? this.airOperationsOpen ? this.followFleetShip(this.selectedShipIds[0] ?? this.simulation.ship.id) : this.enterFleetCommand() : this.setAirOperationsOpen(!this.airOperationsOpen),
       depth: direction => this.setDepth((this.simulation.player.submarine?.targetDepthM ?? 0) + direction * DEPTH_STEP_M),
       depthPreset: depthM => this.setDepth(depthM),
       emergencyBlow: () => this.setDepth(0, true),
@@ -501,7 +506,7 @@ export class Game {
     this.battery = this.definition.torpedoTubes?.length ? 'torpedo' : 'main';
     this.ammunition = { main: 'ap', secondary: 'ap', torpedo: 'ap', 'depth-charge': 'ap' };
     this.controlPriority = view.actor.damage.control.priority; this.controlFocus = view.actor.damage.control.focus ?? '';
-    this.input.setOrder(0); this.input.setRudder(0);
+    this.input.setOrder(1); this.input.setRudder(0);
     this.trail = []; this.rig.exitBinoculars(); this.audio?.reset(this.simulation);
   }
 
@@ -572,6 +577,7 @@ export class Game {
       this.ammunition = { main: 'ap', secondary: 'ap', torpedo: 'ap', 'depth-charge': 'ap' };
       this.battery = definition.torpedoTubes?.length ? 'torpedo' : 'main'; this.manualAim = true; this.inspecting = false;
       this.airOperationsOpen = false; this.selectedFlightId = undefined; this.effects.reset();
+      this.fleetCommandMode = false; this.selectedShipIds = []; this.controlGroups.clear(); this.tacticalPause = false; this.lastFleetHelmId = undefined;
       this.currentAim = simulation.aimAt(undefined, this.battery, this.weaponGroupId);
       this.aimModule = simulation.target.definition.modules.find(m => m.kind === 'engine')?.id ?? '';
       this.rig.setBridge(definition.viewpoints?.bridge);
@@ -610,7 +616,7 @@ export class Game {
     if (this.disposed) return;
     const realDt = warmingUp ? 1 / 60 : Math.min(Math.max((time - this.lastTime) / 1000, 0.001), 0.1);
     this.lastTime = time;
-    const dt = this.paused ? 0 : realDt;
+    const dt = this.paused || this.tacticalPause ? 0 : realDt;
     try {
       if (this.resizePending) this.resize();
       let state = this.simulation.ship;
@@ -673,7 +679,7 @@ export class Game {
       this.environment.update(this.camera, dt);
       // Fixed-step mode with zero delta renders without stepping the wake's
       // leapfrog/foam integrators. Host-clock update(0) would still step them.
-      this.water!.deterministic = this.paused;
+      this.water!.deterministic = this.paused || this.tacticalPause;
       // Water captures ship depth/color too, so publish batch poses before its passes.
       this.fleetDraws?.update(this.camera, this.renderer.domElement.height);
       this.underwaterPassVisibility?.update(this.camera);
@@ -722,6 +728,7 @@ export class Game {
         this.callbacks.telemetry({ ...hud, camera: this.rig.mode,
           binoculars: this.rig.binoculars, magnification: this.rig.magnification, pointerLocked: this.rig.pointerLocked,
           viewBearing: this.rig.bearing, chartSize: this.chartSize, airOperationsOpen: this.airOperationsOpen, selectedFlightId: this.selectedFlightId, selectedFlightIds: [...this.selectedFlightIds],
+          fleetCommandMode: this.fleetCommandMode, selectedShipIds: [...this.selectedShipIds], controlledShipId: this.simulation.controlledShipId, tacticalPaused: this.tacticalPause,
           airMap: this.airOperationsOpen ? { ...this.battlefieldCamera.view } : undefined,
           squadronMarkers: this.simulation.actors.flatMap(actor => (airWingTelemetry(actor, this.simulation.actors)?.groups ?? [])
             .filter(f => f.airborne > 0).map(f => {
@@ -784,27 +791,60 @@ export class Game {
     this.lastShellPress = undefined;
     this.paused = paused;
     this.audio?.setScene(this.inPort, paused);
-    this.input.setEnabled(!paused && !this.inPort && !!this.water);
+    this.input.setEnabled(!paused && !this.tacticalPause && !this.inPort && !!this.water && (!this.fleetCommandMode || (!this.airOperationsOpen && !!this.simulation.controlledShipId)));
     this.rig.setEnabled(!paused && !this.airOperationsOpen);
     this.callbacks.pause(paused);
   }
   capturePointer(): void { if (!this.airOperationsOpen) this.rig.capturePointer(); }
+  toggleTacticalPause(): void {
+    if (this.inPort || this.simulation.networked || !this.fleetCommandMode || this.simulation.result !== 'active') return;
+    this.tacticalPause = !this.tacticalPause;
+    this.input.clear();
+    this.input.setEnabled(!this.paused && !this.tacticalPause && !this.airOperationsOpen && !!this.simulation.controlledShipId);
+  }
+  selectFleetShips(ids: string[]): void {
+    this.selectedShipIds = [...new Set(ids)].filter(id => this.simulation.actors.some(a => a.motion.id === id && a.team === 'friendly' && !physicalLoss(a)));
+  }
+  enterFleetCommand(): void {
+    if (this.inPort || !this.simulation.releaseHelm) return;
+    this.fleetCommandMode = true;
+    this.simulation.releaseHelm();
+    if (!this.selectedShipIds.length) this.selectFleetShips([this.simulation.ship.id]);
+    this.setAirOperationsOpen(true);
+    this.input.setEnabled(false);
+    this.rig.releasePointer();
+  }
+  followFleetShip(id: string): void {
+    if (!this.fleetCommandMode) return;
+    const view = this.fleetViews.find(v => v.actor.motion.id === id && this.simulation.actors.some(a => a === v.actor && a.team === 'friendly') && !physicalLoss(v.actor));
+    if (!view) return;
+    this.simulation.releaseHelm?.();
+    if (this.airOperationsOpen) this.setAirOperationsOpen(false);
+    this.spectateTeammate(id);
+    this.input.setEnabled(false);
+  }
+  takeFleetHelm(id: string): void {
+    if (!this.fleetCommandMode || !this.simulation.actors.some(a => a.motion.id === id && a.team === 'friendly' && !physicalLoss(a))) return;
+    this.followFleetShip(id);
+    this.simulation.selectShip?.(id);
+    this.input.clear(); this.input.setOrder(1); this.input.setRudder(0);
+  }
   launchAircraft(squadronId: string): void {
     const flight = squadronFlights(this.simulation.player).find(f => f.squadronId === squadronId && f.planeIds.every(id => ['ready', 'lost'].includes(this.simulation.aircraft.find(p => p.id === id)?.phase ?? 'lost')));
     if (!this.inPort && !this.paused && this.simulation.launchAircraft(squadronId)) this.selectedFlightId = flight?.id;
   }
   selectFlights(ids: string[]): void {
-    const available = new Set(squadronFlights(this.simulation.player).map(f => f.id));
+    const available = new Set((this.fleetCommandMode ? this.simulation.actors.filter(a => a.team === 'friendly') : [this.simulation.player]).flatMap(a => squadronFlights(a).map(f => f.id)));
     this.flightSelection = [...new Set(ids)].filter(id => available.has(id));
   }
   selectFlight(id: string, additive = false): void {
-    if (!squadronFlights(this.simulation.player).some(f => f.id === id)) return;
+    if (!(this.fleetCommandMode ? this.simulation.actors.filter(a => a.team === 'friendly') : [this.simulation.player]).some(a => squadronFlights(a).some(f => f.id === id))) return;
     const current = this.selectedFlightIds;
     this.selectFlights(additive ? current.includes(id) ? current.filter(value => value !== id) : [...current, id]
       : current.length === 1 && current[0] === id ? [] : [id]);
   }
-  orderFlight(id: string, order: AirOrder): boolean { return !this.inPort && !this.paused && this.simulation.orderFlight(id, order); }
-  commandSquadron(id: string, order: AirOrder): boolean { return !this.inPort && !this.paused && this.simulation.commandSquadron(id, order); }
+  orderFlight(id: string, order: AirOrder): boolean { return !this.inPort && (!this.paused || this.fleetCommandMode) && this.simulation.orderFlight(id, order); }
+  commandSquadron(id: string, order: AirOrder): boolean { return !this.inPort && (!this.paused || this.fleetCommandMode) && this.simulation.commandSquadron(id, order); }
   panAirMap(dx: number, dy: number, x?: number, y?: number): void { this.battlefieldCamera.pan(dx, dy, this.host.clientWidth, this.host.clientHeight, x, y); }
   projectAirMap(x: number, z: number, altitude = 0): [number, number] | null {
     // Use the same depth and viewport clipping as ship-view nametags.
@@ -840,7 +880,7 @@ export class Game {
   setAirMapTilt(degrees: number): void { this.battlefieldCamera.setTilt(degrees * Math.PI / 180); }
   resetAirMapAngle(): void { this.battlefieldCamera.resetAngle(); }
   setAirOperationsOpen(open: boolean): void {
-    if (this.inPort || (open && (this.simulation.player.damage.sunk || this.paused)) || !this.simulation.player.airWing) return;
+    if (this.inPort || (!this.fleetCommandMode && ((open && (this.simulation.player.damage.sunk || this.paused)) || !this.simulation.player.airWing))) return;
     if (open === this.airOperationsOpen) return;
     this.battlefieldCamera.beginTransition(typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
     this.airOperationsOpen = open;
@@ -849,7 +889,7 @@ export class Game {
       if (this.inspecting) this.inspectTarget();
       this.endFollow(); this.rig.setEnabled(false);
       this.battlefieldCamera.enter(this.simulation.actors.map(a => a.motion), this.host.clientWidth, this.host.clientHeight);
-      this.selectedFlightId ??= squadronFlights(this.simulation.player)[0]?.id;
+      if (!this.fleetCommandMode) this.selectedFlightId ??= squadronFlights(this.simulation.player)[0]?.id;
       // Water Pro sizes its horizon ring when geometry is built, before the map
       // increases camera.far. Grow it once and retain it for subsequent map visits.
       if (this.water && this.water.getGeometryConfig().infinityRingExtent < this.camera.far * .95) this.water.rebuildGeometry({});
@@ -874,12 +914,12 @@ export class Game {
    * displayed pose is not an aim. Inspection, the air map and its descent, and shell
    * or aircraft follows all count; the sight returns as soon as they end. */
   private get viewAway(): boolean {
-    return this.airOperationsOpen || this.battlefieldCamera.transitioning || this.inspecting || !!this.shellFollow.view || !!this.followedAircraftId;
+    return this.airOperationsOpen || (this.fleetCommandMode && !this.simulation.controlledShipId) || this.battlefieldCamera.transitioning || this.inspecting || !!this.shellFollow.view || !!this.followedAircraftId;
   }
   /** Fire commands reach the guns while the player is afloat and not overhead on
    * the map or descending from it. Following a shell keeps the guns firing. */
   private get gunsCommandable(): boolean {
-    return !this.simulation.player.damage.sunk && !this.airOperationsOpen && !this.battlefieldCamera.transitioning;
+    return (!this.fleetCommandMode || !!this.simulation.controlledShipId) && !this.simulation.player.damage.sunk && !this.airOperationsOpen && !this.battlefieldCamera.transitioning;
   }
   /** The presentation-only target the rig follows this frame. A followed aircraft
    * that is lost or leaves the visible phases ends its follow here. */
@@ -895,7 +935,7 @@ export class Game {
     const subject = this.spectatedShipId
       ? this.simulation.actors.find(actor => actor.motion.id === this.spectatedShipId) ?? this.simulation.player
       : this.simulation.player;
-    const spectating = subject !== this.simulation.player;
+    const spectating = subject !== this.simulation.player || (this.fleetCommandMode && this.simulation.controlledShipId !== subject.motion.id);
     const group = spectating ? weaponGroups(subject.definition)[0] : undefined;
     const orders = ENGINE_ORDERS;
     const throttle = subject.helm?.throttle ?? 0;
@@ -913,11 +953,24 @@ export class Game {
       ?? (this.inspecting ? this.targetView! : this.playerView!);
   }
   private get spectatorCandidates(): ShipView[] {
-    if (this.inPort || !this.simulation.isBattle || !this.simulation.player.damage.sunk) return [];
-    return this.fleetViews.filter(({ actor }) => actor !== this.simulation.player && this.simulation.actors.find(a => a === actor)?.team === this.simulation.player.team
+    if (this.inPort || !this.simulation.isBattle || (!this.fleetCommandMode && !this.simulation.player.damage.sunk)) return [];
+    return this.fleetViews.filter(({ actor }) => (this.fleetCommandMode || actor !== this.simulation.player) && this.simulation.actors.find(a => a === actor)?.team === this.simulation.player.team
       && !physicalLoss(actor));
   }
   private updateSpectator(): void {
+    if (this.fleetCommandMode) {
+      const lost = this.lastFleetHelmId && !this.simulation.controlledShipId && this.simulation.actors.some(a => a.motion.id === this.lastFleetHelmId && physicalLoss(a));
+      this.lastFleetHelmId = this.simulation.controlledShipId;
+      if (lost) this.enterFleetCommand();
+    }
+    if (this.fleetCommandMode && this.simulation.controlledShipId && !this.airOperationsOpen) {
+      this.spectatedShipId = undefined;
+      const enabled = !this.paused && !this.tacticalPause;
+      if (this.input.isEnabled !== enabled) this.input.setEnabled(enabled);
+      return;
+    }
+    if (this.fleetCommandMode && this.spectatedShipId && !this.spectatorCandidates.some(v => v.actor.motion.id === this.spectatedShipId)) this.enterFleetCommand();
+    if (this.fleetCommandMode && this.airOperationsOpen) return;
     const candidates = this.spectatorCandidates;
     if (candidates.some(view => view.actor.motion.id === this.spectatedShipId)) return;
     const next = candidates[0];
@@ -1172,7 +1225,7 @@ export class Game {
   }
   /** Bounded fixed-tick rehearsal for development review on slow render hosts. */
   previewAdvance(seconds: number): void {
-    if (!import.meta.env.DEV || this.inPort || this.paused || !Number.isFinite(seconds) || seconds <= 0 || seconds > 120) return;
+    if (!import.meta.env.DEV || this.inPort || this.paused || this.tacticalPause || !Number.isFinite(seconds) || seconds <= 0 || seconds > 120) return;
     for (let i = 0; i < Math.floor(seconds / FIXED_DT); i++) {
       this.simulation.step(this.input.sample(), { aim: this.currentAim, fire: false, battery: this.battery, weaponGroupId: this.weaponGroupId, ammunition: this.selectedAmmunition });
     }

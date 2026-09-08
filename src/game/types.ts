@@ -25,6 +25,10 @@ export interface Telemetry {
   followedAircraftId?: string;
   spectatedShipId?: string;
   airOperationsOpen?: boolean;
+  fleetCommandMode?: boolean;
+  selectedShipIds?: string[];
+  controlledShipId?: string;
+  tacticalPaused?: boolean;
   selectedFlightId?: string;
   selectedFlightIds?: string[];
   airMap?: import('../ui/airChart').ChartView;

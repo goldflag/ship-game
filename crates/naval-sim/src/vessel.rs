@@ -76,6 +76,8 @@ impl CompiledShip {
 #[derive(Clone, Debug, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Vessel {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub navigation: Option<crate::navigation::NavigationState>,
     pub helm: crate::motion::HelmCommand,
     pub tube_launch_cooldown: f64,
     pub depth_charge_cooldown: f64,
@@ -92,6 +94,7 @@ pub struct Vessel {
 impl Vessel {
     pub fn new(id: impl Into<String>, team: TeamId, compiled: Arc<CompiledShip>) -> Self {
         Self {
+            navigation: None,
             helm: Default::default(),
             tube_launch_cooldown: 0.0,
             depth_charge_cooldown: 0.0,

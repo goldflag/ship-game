@@ -333,6 +333,7 @@ impl Hub {
                 weather: environment.weather.clone(),
                 spawn_distance: Rules::default().spawn_distance_m as f64,
                 wind_speed: None,
+                mission_rules: None,
             };
             let id = uuid::Uuid::new_v4().to_string();
             let handle = worker::spawn(

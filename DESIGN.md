@@ -223,6 +223,12 @@ Own damage control puts active fires first, showing the affected space, growing/
 
 ## Do's and Don'ts
 
+### Fleet command · selected variation D
+
+The [approved D study](docs/pve-ui-studies/README.md) keeps the sea visible beneath a compact upper-left fleet roster and a bottom selection card. The card has a ship thumbnail, condition, separate Follow and Take helm actions, standing orders and acknowledgement feedback. Mint identifies friendly selections/readiness, existing salmon identifies hostile contacts and rejection, and brass identifies an armed action or tactical pause. Keep Barlow for controls and Barlow Condensed for headings, with 13 px body text, 11–12 px status/control annotations and 18–22 px headings. The command UI uses responsive panels and an automatic scale floor of one times the user scale; manual HUD scaling still applies.
+
+Selection never changes helm ownership or camera follow. The Air drawer spans all friendly carriers even when a surface ship is selected. Ship-follow and manual-helm views hide aircraft information, the Air toggle, the air row and deck counts; Fleet command returns in one action. Queue feedback must distinguish queued, accepted, rejected and superseded orders. Local tactical pause leaves orders available. Visible keyboard focus is retained inside the command interface because roster selection and map orders are primary interactions. Briefing/deployment task-group columns and contact/logistics workflows remain governed by the [implementation tracker](docs/pve-implementation-status.md).
+
 Water impacts retain the first PR #80 iteration's long, directional water streaks: curved sheets, fine filaments and a low crown that collapse into spray. This is the owner's preferred splash appearance. Preserve its silhouette and breakup when optimizing; the later dense parcel column was rejected. See the [current streaked-water review](assets/reviews/water-impact/streaks/README.md).
 
 ### Do:
