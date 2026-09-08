@@ -202,3 +202,27 @@ The optional `rig.version: 1` blueprint extension declares `ensigns` and `radars
 Radar entries bind an explicit `nodeId`, with revolutions per minute and optional `sweepDeg` and `phaseDeg`. A sweep angle is the half-sector; its RPM controls sweep cycles per minute. Author the moving pieces under a retained pivot using `radar_pivot`, leaving fixed mast geometry outside it. Director-mounted aerials may share the director's pivot; KGV's original `radar-284.yaw` remains a child of `dct-forward.yaw`. Export rejects empty/missing radar joints. These joints participate in the renderer's moving-owner and fleet batching contracts.
 
 `ShipRigView` attaches independently deforming cloth outside rigid fleet batches. `FlagCloth` integrates at 120 Hz, with gravity, relative airflow, aerodynamic pressure and fabric length/shear/bend constraints. Wind comes from the same weather settings as the ocean; hull velocity and yaw produce apparent wind. No GPU ocean sample changes a CPU combat pose. Radar sweeps are visual animation rather than targeting decisions. Their clock holds in port while cloth continues to respond to wind, and advances again after departure. Small projected flags suspend cloth work, accounting for binocular magnification. Pause, ship reset, inspection and resource disposal are shared with the owning ship view.
+
+### Underwater protection (additive version 1 extension)
+
+`underwaterProtection: { version: 1, basis, zones }` authors torpedo-defense coverage
+in the same blueprint format for presets and future custom ships. Each zone has a
+stable `id`, `name`, ship-local `center`/`size`, and `damageReduction` and
+`breachReduction` fractions from 0 through 0.9. Zones must fit inside the submerged
+hull envelope. Omitting the extension leaves a ship unprotected. These are defense
+system calibration values, separate from armor thickness or shell penetration.
+
+Armed torpedo contact first applies common tuning: 62.5% of authored damage and
+7/11 of authored breach area. A zone containing the actual ship-local contact then
+reduces hull/module damage and breach area independently. Overlapping zones use
+the strongest reduction of each kind; they do not multiply. Bow, stern, opposite
+side and keel contacts outside coverage receive no protection. Existing local
+structural saturation, breach merging, physical flooding and scoring still apply.
+Depth charges and bombs retain their existing damage rules.
+
+Bismarck, Yamato and King George V initially use two estimated central side zones,
+with 50% damage and breach reductions. Coverage and effectiveness are provisional
+gameplay calibration, not certified historical measurements. Protection itself
+does not degrade with repeated hits in this version; structural saturation and
+accumulating floodwater still do. Selecting a defense row in Armor inspection shows its blue coverage volume,
+reduction percentages and the estimated basis. Hit messages identify protected hits.

@@ -138,7 +138,9 @@ export class ShipInspection {
     }
     this.volumes.forEach(volume => {
       const { entry, group, fill, water, waterline } = volume;
-      group.visible = this.inMode(entry) && (!this.selectedId || entry.id === this.selectedId);
+      // Defense coverage is a gameplay envelope, not a plate that should hide armor.
+      group.visible = this.inMode(entry) && (!this.selectedId || entry.id === this.selectedId)
+        && (!entry.underwaterProtection || entry.id === this.selectedId);
       this.paint(volume);
       if (entry.moduleIndex !== undefined) {
         const module = this.definition.modules[entry.moduleIndex];

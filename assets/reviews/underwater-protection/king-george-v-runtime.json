@@ -1,0 +1,47 @@
+{
+  "url": "http://localhost:5183/scripts/diagnostics/underwater-protection.html?target=king-george-v",
+  "results": [
+    {
+      "breachAreaM2": 0.17500000000000002,
+      "events": [
+        {
+          "damage": 5250,
+          "message": "Torpedo hit \u00b7 Starboard underwater defense \u00b7 Starboard middle reserve space 2 \u00b7 estimated \u00b7 flooding breach"
+        }
+      ],
+      "hash": "71cd8d030738b9c8057a362666943df064f8b6a4b0951894821c92a521ee9fe1",
+      "hullDamage": 5250,
+      "side": 1,
+      "station": 0,
+      "target": "king-george-v"
+    },
+    {
+      "breachAreaM2": 0.35000000000000003,
+      "events": [
+        {
+          "damage": 10500,
+          "message": "Torpedo hit \u00b7 Starboard middle reserve space 1 \u00b7 estimated \u00b7 flooding breach"
+        }
+      ],
+      "hash": "71cd8d030738b9c8057a362666943df064f8b6a4b0951894821c92a521ee9fe1",
+      "hullDamage": 10500,
+      "side": 1,
+      "station": -100,
+      "target": "king-george-v"
+    },
+    {
+      "breachAreaM2": 0.17500000000000002,
+      "events": [
+        {
+          "damage": 5250,
+          "message": "Torpedo hit \u00b7 Port underwater defense \u00b7 Port middle reserve space 2 \u00b7 estimated \u00b7 flooding breach"
+        }
+      ],
+      "hash": "71cd8d030738b9c8057a362666943df064f8b6a4b0951894821c92a521ee9fe1",
+      "hullDamage": 5250,
+      "side": -1,
+      "station": 0,
+      "target": "king-george-v"
+    }
+  ]
+}

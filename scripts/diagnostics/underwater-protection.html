@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Underwater protection · runtime review</title>
+<style>html,body,#scene{margin:0;width:100%;height:100%;overflow:hidden;background:#132d38}#hud{position:fixed;inset:0;pointer-events:none}#status{position:fixed;bottom:8px;left:20px;right:20px;color:white;font:12px monospace;overflow-wrap:anywhere}</style>
+<div id="scene"></div><div id="hud"></div><output id="status">Preparing Fletcher…</output>
+<script type="module">
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import { Game } from '/src/game/Game.ts';
+import { GameAudio } from '/src/game/GameAudio.ts';
+import { shipPreset } from '/src/ships/presets.ts';
+import { ShipContext } from '/src/ui/ShipContext.ts';
+import { FleetHud } from '/src/ui/FleetHud.tsx';
+import { defaultKeybindings } from '/src/game/keybindings.ts';
+import '/src/ui/styles.css';
+import '/src/ui/ShipLabels.css';
+import '/src/ui/GunAimIndicators.css';
+import '/src/ui/HitDirectionIndicators.css';
+import '@fontsource/barlow/400.css';
+import '@fontsource/barlow/500.css';
+import '@fontsource/barlow/600.css';
+import '@fontsource/barlow-condensed/500.css';
+import '@fontsource/barlow-condensed/600.css';
+const targetId=new URLSearchParams(location.search).get('target')??'bismarck';
+const definition=shipPreset('fletcher'), status=document.querySelector('#status');
+const hud=createRoot(document.querySelector('#hud')), bindings=defaultKeybindings();
+let ready, game, iteration=0; const loaded=new Promise(resolve=>ready=resolve);
+const audio = new GameAudio({muted:true,master:.65,effects:.8,interface:.65});
+const paint=()=>hud.render(React.createElement(ShipContext.Provider,{value:definition,key:iteration},React.createElement(FleetHud,{game,bindings,visible:true,data:{ship:game.simulation.ship,order:5,camera:'Chase',fps:60,backend:game.water?.backend??'webgpu',trail:[],pointerLocked:true,combat:game.simulation.telemetry(game.battery,game.currentAim)}})));
+game=new Game(document.querySelector('#scene'),{quality:'medium',resolution:1},{progress:label=>status.textContent=label,ready,telemetry:()=>{},pause:()=>{},hud:()=>{},error:message=>{window.reviewError=message;status.textContent=message;}},definition,audio);
+window.reviewGame=game;game.start();await loaded;
+try {
+game.setInPort(true);
+await game.prepareBattle({playerShipId:'fletcher',friendlyBots:[],enemies:[targetId],spawnDistance:1000});
+game.setInPort(false);game.setPaused(true);game.rig.update=()=>{};
+const events=[];
+function strike(station=0, side=1) {
+ iteration++;const sim=game.simulation;sim.reset();game.effects.reset();events.length=0;
+ sim.actors.forEach(a=>{a.controller='idle';});
+ Object.assign(sim.ship,{x:-450,z:0,heading:0,speed:0});
+ const actor=sim.target;Object.assign(actor.motion,{x:0,z:0,heading:0,speed:0});
+ const before=actor.damage.integrity;
+ sim.torpedoes.push({id:9001,ownerId:sim.player.motion.id,tubeId:'aircraft.payload',position:[side*(actor.definition.hull.beam/2+12),-2,station],velocity:[-side*23,0,0],distance:400,age:20,
+ weapon:{id:'review-air-torpedo',name:'Air-dropped torpedo',kind:'torpedo',diameterM:.57,lengthM:4.1,speed:23,rangeM:4500,armingDistanceM:180,runningDepthM:2,reloadSeconds:90,launchIntervalSeconds:3,damage:480,breachAreaM2:.55}});
+ for(let i=0;i<120;i++)sim.step({throttle:0,rudder:0},{battery:'torpedo',aim:[0,0,0],fire:false});
+ game.camera.position.set(side*125,55,100);game.camera.lookAt(0,0,0);game.camera.updateProjectionMatrix();game.camera.updateMatrixWorld();
+ game.fleetViews.forEach(v=>v.snap());paint();
+ const result={target:targetId,hash:actor.definition.contentHash,station,side,hullDamage:before-actor.damage.integrity,breachAreaM2:actor.damage.compartments.reduce((n,c)=>n+c.breachAreaM2,0),events:sim.events.filter(e=>e.kind==='torpedo-hit').map(e=>({message:e.message,damage:e.hullDamage}))};
+ status.hidden=false;status.textContent=JSON.stringify(result);return result;
+}
+window.protectionReview={game,strike};strike();
+window.reviewReady=true;
+} catch(error) {window.reviewError=error.message;status.textContent=error.stack;throw error;}
+</script>
+</html>
