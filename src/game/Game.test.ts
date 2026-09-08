@@ -2,6 +2,7 @@ import { afterEach, beforeEach, expect, spyOn, test } from 'bun:test';
 import { Group, PerspectiveCamera, Scene, Vector3 } from 'three/webgpu';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { Game } from './Game';
+import { VisualEnvironment } from './VisualEnvironment';
 import { CameraRig } from './CameraRig';
 import { ShellFollow } from './ShellFollow';
 import { ShipView } from './ShipView';
@@ -55,6 +56,7 @@ async function port() {
     shipLabels: { setFleet() {} },
     ship: new Group(), inPort: true, disposed: false, switchingShip: false,
     renderer: { domElement: { setAttribute() {} } },
+    environment: new VisualEnvironment({ effects: { setWind() {}, setSun() {}, setIllumination() {} }, funnelSmoke: { setWind() {} }, sunAnchor: new Group() }),
   }) as Game;
   return { game, scene, harbor, camera, rig, playerView };
 }

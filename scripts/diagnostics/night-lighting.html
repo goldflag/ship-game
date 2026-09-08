@@ -20,12 +20,11 @@ await game.prepareBattle({ playerShipId: 'bismarck', friendlyBots: [], enemies: 
 game.setInPort(false); game.setPaused(true); game.rig.releasePointer(); game.rig.update = noop;
 game.water.deterministic = true; game.water.syncToTick(3600); await game.water.update(1 / 60);
 window.reviewLighting = async (hours, options = {}) => {
-  game.battleWeather = options.weather ?? 'map';
-  game.battleTimeOfDay = 'map';
-  game.battleConditions = { timeHours: hours, ...(options.cloudCover === undefined ? {} : { cloudCover: options.cloudCover }) };
+  game.environment.setBattle({ weather: options.weather ?? 'map', timeOfDay: 'map',
+    conditions: { timeHours: hours, ...(options.cloudCover === undefined ? {} : { cloudCover: options.cloudCover }) } });
   game.setInPort(options.port ?? false); game.setPaused(true);
   // Exercise normal scene/condition application, including original palette restoration.
-  game.updateSeaState(); game.updatePortLighting();
+  game.environment.setScene(game.simulation.mapId, options.port ?? false);
   game.camera.position.set(...(options.wide ? [550, 200, 700] : [300, 95, 350]));
   game.camera.lookAt(...(options.wide ? [-650, 75, -1000] : [0, 20, 0]));
   game.camera.fov = 60; game.camera.updateProjectionMatrix(); game.camera.updateMatrixWorld();
@@ -37,7 +36,7 @@ window.reviewLighting = async (hours, options = {}) => {
   const cloudFill = sky.pipeline._ambientSky.zenithRadiance.value.toArray();
   const result = { hours, options, sun: sky.sun.intensity.value, elevation: sky.sun.elevationDeg,
     waterLight: light.intensity.value, sceneLight: sceneLight.intensity,
-    direction: light.direction.value.toArray(), ambient: game.ambientLight.intensity,
+    direction: light.direction.value.toArray(), ambient: game.environment.ambientLight.intensity,
     fog: water.fog.color.getHexString(), cloudFill, waterColor: water.color.waterColor.toArray(),
     foam: water.foam.waves.color.toArray(), errors: [...errors] };
   const night = !options.port && (hours === 0 || hours === 24);

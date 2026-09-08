@@ -10,7 +10,7 @@ import { isPassiveAi } from './aiLevels';
 import { ballisticStep, dispersedDirection } from './ballistics';
 import { add, dot, length, normalize, scale, segmentBox, sub, worldToLocal } from './geometry';
 import { motionVelocity } from './ship';
-import { availableAmmunition, muzzleWorld, selectAmmunition, shotDirection, updateMount, type MountDefinition, type MountState } from './weapons';
+import { availableAmmunition, expendSalvo, muzzleWorld, selectAmmunition, shotDirection, updateMount, type MountDefinition, type MountState } from './weapons';
 
 export { antiAircraftRange } from '../ships/armament';
 
@@ -53,8 +53,11 @@ function clearLane(actor: FleetActor, from: [number, number, number], to: [numbe
     }));
 }
 
-/** True reserves this mount for a nearby aircraft this tick. Bursts use seeded
- * miss distance and a bounded hit radius; heavy AA approximates a timed burst. */
+/** Automatic air defense for one mount. Returning true means this mount's tick is
+ * complete under AA control: it advanced once while tracking, was blocked by a
+ * friendly lane, or fired a burst. False leaves the mount untouched for surface
+ * control. Bursts use seeded miss distance and a bounded hit radius; heavy AA
+ * approximates a timed burst. */
 export function updateAntiAircraft(actor: FleetActor, m: MountDefinition, state: MountState, ctx: AirContext, dt: number, candidates?: readonly Aircraft[], power?: number): boolean {
   const range = antiAircraftRange(m);
   if (!range || actor.damage.sunk || actor.damage.stability.combatLost || meanHullY(actor.motion) < -1 || state.hp <= 0 || state.ammo <= 0
@@ -108,8 +111,8 @@ export function updateAntiAircraft(actor: FleetActor, m: MountDefinition, state:
     if (!clearLane(actor, position, endpoint, ctx)) { state.status = 'blocked'; return true; }
     shots.push({ position, direction, endpoint });
   }
-  state.ammo -= barrels; if (state.loaded === 'he') state.heAmmo -= barrels;
-  state.reload = Math.max(.35, m.weapon.reloadSeconds); state.recoil = 1; state.status = 'reloading';
+  // Even slow-firing heavy guns keep a minimum burst cadence against aircraft.
+  expendSalvo(m, state, Math.max(.35, m.weapon.reloadSeconds));
   for (const { position, direction, endpoint } of shots) {
     if (length(sub(endpoint, aim)) < (heavy ? 14 : 6)) target.hp -= AIR_GUNNERY.aaDamage(m.weapon.caliberM);
     ctx.emit({ kind: 'aircraft-fire', shipId: actor.motion.id, position, message: `${m.name} · AA fire`,
