@@ -19,7 +19,7 @@ export const conditionLevel = (p: WingAircraft) => p.status === 'lost' ? 'lost' 
 export const aircraftState = (p: WingAircraft) => p.lossReason ?? PHASES[p.phase];
 
 /** Every squadron and every aircraft of the wing, docked at the right edge of the M view. Rows select squadrons. */
-export function AirWingManifest({ wing, selectedId, onSelect }: { wing: AirWingTelemetry; selectedId?: string; onSelect(flight: FlightSummary): void }) {
+export function AirWingManifest({ wing, selectedId, selectedIds, onSelect }: { wing: AirWingTelemetry; selectedId?: string; selectedIds?: string[]; onSelect(flight: FlightSummary, additive?: boolean): void }) {
   const [open, setOpen] = useState(true);
   const byId = new Map(wing.flights.map(p => [p.id, p]));
   return <aside className={`air-manifest ${open ? '' : 'air-manifest-collapsed'}`} aria-label="Air wing manifest">
@@ -42,10 +42,10 @@ export function AirWingManifest({ wing, selectedId, onSelect }: { wing: AirWingT
             const index = wing.groups.indexOf(f);
             const aircraft = f.aircraftIds.flatMap(id => byId.get(id) ?? []);
             const detail = f.active ? `${mission(f)} · ${duration(f.enduranceSeconds)}` : f.queuePosition ? `Recovery #${f.queuePosition}` : `${f.armed} armed`;
-            return <button key={f.id} className={`air-manifest-row air-manifest-${f.status}`} aria-pressed={selectedId === f.id}
+            return <button key={f.id} className={`air-manifest-row air-manifest-${f.status}`} aria-pressed={selectedIds ? selectedIds.includes(f.id) : selectedId === f.id}
               aria-label={`${f.name}, ${roleLabel(f.role)}, ${f.surviving} of ${f.total} aircraft, ${f.activity}, ${f.armed} armed, ${f.hp}% condition`}
               title={`${roleLabel(f.role)} · ${f.active ? mission(f) : f.activity} · ${f.hp}% condition · ${f.armed} armed`}
-              onClick={e => { onSelect(f); e.currentTarget.blur(); }}>
+              onClick={e => { onSelect(f, e.metaKey || e.ctrlKey); e.currentTarget.blur(); }}>
               {index < 10 && <kbd>{(index + 1) % 10}</kbd>}
               <span className="air-manifest-name">{f.name}</span>
               <span className="air-manifest-info"><span>{f.rearmSeconds ? `Rearm ${duration(f.rearmSeconds)}` : f.activity}</span><small>{detail}</small></span>
