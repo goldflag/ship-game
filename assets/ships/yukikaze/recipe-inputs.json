@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "files": [
+    "assets/parts/ijn-carrier-guns/geometry.py",
+    "assets/ships/yukikaze/refinements.py",
+    "assets/ships/yukikaze/torpedo-assemblies.py"
+  ]
+}

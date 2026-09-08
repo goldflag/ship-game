@@ -5,6 +5,8 @@ export interface TorpedoLauncher {
   id: string; name: string; position: Vec3; traverseRateDeg: number;
   /** Allowed ship-relative launch bearings; training can cross the excluded sectors. */
   launchArcsDeg: [number, number][];
+  /** Optional mechanical travel interval containing neutral; never crossed during training. */
+  traverseLimitsDeg?: [number, number];
 }
 export interface DepthChargePart {
   id: string; name: string; kind: 'depth-charge'; diameterM: number; lengthM: number;
@@ -598,8 +600,16 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
   launchers.forEach(l => {
     text(l.name, `${l.id}.name`); deckPosition(l.position, `${l.id}.position`);
     numeric(l.traverseRateDeg, `${l.id}.traverseRateDeg`, .1, 90);
+    if (l.traverseLimitsDeg !== undefined) {
+      const limits = list(l.traverseLimitsDeg, 'traverseLimitsDeg', 2);
+      if (limits.length !== 2 || numeric(limits[0], 'traverse minimum', -180, 0) >= numeric(limits[1], 'traverse maximum', 0, 180)) fail(String(l.id), 'expected travel limits containing neutral');
+    }
     const arcs = list(l.launchArcsDeg, 'launchArcsDeg', 8);
     if (!arcs.length) fail(String(l.id), 'launcher needs a firing arc');
+    if (l.traverseLimitsDeg !== undefined) {
+      const [lo, hi] = l.traverseLimitsDeg as [number, number];
+      if (arcs.some(a => Array.isArray(a) && (a[0] < lo || a[1] > hi))) fail(String(l.id), 'launch arc exceeds mechanical travel');
+    }
     arcs.forEach(a => { const arc = list(a, 'launch arc', 2); if (arc.length !== 2 || numeric(arc[0], 'arc start', -180, 180) >= numeric(arc[1], 'arc end', -180, 180)) fail(String(l.id), 'expected ordered launch arc'); });
   });
   const tubes = list(b.torpedoTubes ?? [], 'torpedoTubes', 32).map(t => record(t, 'torpedo tube'));

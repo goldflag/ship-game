@@ -98,7 +98,14 @@ pub fn train_launchers(
         let desired = (local[0] - l.position[0]).atan2(l.position[2] - local[2]);
         let train = actor.launcher_trains.entry(l.id.clone()).or_default();
         let rate = radians(l.traverse_rate_deg) * dt;
-        *train = wrap_angle(*train + clamp(wrap_angle(desired - *train), -rate, rate));
+        if let Some([lo, hi]) = l.traverse_limits_deg {
+            let (lo, hi) = (radians(lo), radians(hi));
+            *train = clamp(*train, lo, hi);
+            let target = clamp(desired, lo, hi);
+            *train += clamp(target - *train, -rate, rate);
+        } else {
+            *train = wrap_angle(*train + clamp(wrap_angle(desired - *train), -rate, rate));
+        }
     }
 }
 pub fn torpedo_intercept(from: Vec3, point: Vec3, velocity: Vec3, speed: f64) -> Option<Vec3> {

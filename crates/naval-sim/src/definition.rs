@@ -513,6 +513,8 @@ pub struct TorpedoLauncher {
     pub traverse_rate_deg: f64,
     #[serde(rename = "launchArcsDeg")]
     pub launch_arcs_deg: Vec<[f64; 2]>,
+    #[serde(rename = "traverseLimitsDeg")]
+    pub traverse_limits_deg: Option<[f64; 2]>,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
