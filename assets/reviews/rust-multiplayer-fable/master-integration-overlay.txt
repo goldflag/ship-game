@@ -1,0 +1,16 @@
+$ tsc --project tsconfig.overlay.json --noEmit && bun test tools/ship-overlay
+bun test v1.3.3 (274e01c7)
+
+tools/ship-overlay/reference.test.ts:
+(pass) source identifiers are restricted to GameModels3D WoWS pages [1.13ms]
+(pass) embedded model JSON is parsed as data, including braces and escaped quotes in strings [0.21ms]
+(pass) reference assembly preserves nested mount transforms without applying competing hulls [0.91ms]
+
+tools/ship-overlay/comparison.test.ts:
+(pass) synchronized comparison > both panels cover the canvas equally without overlap at desktop and narrow widths [0.04ms]
+(pass) synchronized comparison > all six orthographic faces have unique directions and perpendicular up vectors [0.44ms]
+
+ 5 pass
+ 0 fail
+ 54 expect() calls
+Ran 5 tests across 2 files. [299.00ms]

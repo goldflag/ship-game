@@ -1,9 +1,10 @@
+import type { BattleSession } from './session/BattleSession';
 import { LocalizedFireEffects, type FireDisplayPose } from './LocalizedFireEffects';
 import { ExpandableInstances } from './ExpandableInstances';
 import { localToWorld } from '../simulation/geometry';
 import * as THREE from 'three/webgpu';
 import { nodeObject, uniform } from 'three/tsl';
-import type { CombatEvent, CombatSimulation } from '../simulation/combat';
+import type { CombatEvent } from '../simulation/combat';
 import { FIXED_DT } from '../simulation/ship';
 import { EffectParticlePool, effectTexture } from './EffectParticles';
 import { EffectDepthTextureNode, effectVolumeMaterial, effectVolumeTexture } from './EffectVolume';
@@ -118,7 +119,7 @@ export class CombatEffects {
     this.smokeAmbient.value.set(.3, .35, .4).multiplyScalar(Math.max(0, ambient) / 1.75);
   }
 
-  update(sim: CombatSimulation, dt: number, camera: THREE.Camera, hidePlayerSmoke = false, poses?: readonly FireDisplayPose[]): void {
+  update(sim: BattleSession, dt: number, camera: THREE.Camera, hidePlayerSmoke = false, poses?: readonly FireDisplayPose[]): void {
     // Advance before emitting: a slow frame still gets one visible muzzle flash.
     for (const item of this.lights) {
       item.age += dt;
@@ -150,7 +151,7 @@ export class CombatEffects {
     this.depthChargeBodies.publish(this.depthChargeCount);
   }
 
-  private updateAirbursts(sim: CombatSimulation): void {
+  private updateAirbursts(sim: BattleSession): void {
     const now = (sim.tick - 1 + sim.interpolationAlpha) * FIXED_DT;
     for (const [id, event] of this.airbursts) {
       const data = event.aircraft!, burst = data.airburst!;
@@ -215,7 +216,7 @@ export class CombatEffects {
     }
   }
 
-  private updateAircraftSmoke(sim: CombatSimulation): void {
+  private updateAircraftSmoke(sim: BattleSession): void {
     const active = new Set<string>();
     for (const plane of sim.aircraft) {
       if (plane.phase !== 'lost' || !plane.wreck || plane.wreck.impacted || plane.lossReason === 'Endurance exhausted') continue;
@@ -251,7 +252,7 @@ export class CombatEffects {
     for (const id of this.aircraftTrails.keys()) if (!active.has(id)) this.aircraftTrails.delete(id);
   }
 
-  private updateTorpedoes(sim: CombatSimulation): void {
+  private updateTorpedoes(sim: BattleSession): void {
     const count = sim.torpedoes.length;
     this.torpedoCount = count;
     for (let i = 0; i < count; i++) {
@@ -280,7 +281,7 @@ export class CombatEffects {
     }
   }
 
-  private updateShells(sim: CombatSimulation, camera: THREE.Camera): void {
+  private updateShells(sim: BattleSession, camera: THREE.Camera): void {
     const shells = sim.shells.filter(shell => !shell.bomb);
     const count = shells.length;
     this.shellCount = count;

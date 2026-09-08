@@ -12,6 +12,9 @@ export interface HullImpact { actor: FleetActor; other?: FleetActor; position: V
 export function damageHullContact(actor: FleetActor, position: Vec3, energyJ: number): number {
   if (energyJ <= 25000 || actor.damage.sunk) return 0;
   const point = worldToLocal(position, actor.motion);
+  // A centered contact can acquire a few ulps of lateral error through rotated
+  // hull projections. Canonicalize the centerline before side/normal selection.
+  if (Math.abs(point[0]) < 1e-9) point[0] = 0;
   const amount = Math.sqrt((energyJ - 25000) / 1e6) * 12;
   const local = localDamageEvidence(actor, actor.definition, point);
   const dealt = damageHull(actor, amount, local?.regionId);

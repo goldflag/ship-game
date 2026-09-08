@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, spyOn, test } from 'bun:test';
-import { Color, Group, PerspectiveCamera, Vector3 } from 'three/webgpu';
+import { Color, Group, PerspectiveCamera, Vector3, InstancedBufferGeometry, InstancedMesh, MeshBasicMaterial } from 'three/webgpu';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { CombatSimulation } from '../simulation/combat';
 import { ENGINE_ORDERS, FIXED_DT } from '../simulation/ship';
@@ -80,9 +80,9 @@ async function frameHarness(shipId = 'bismarck') {
     lastTime: 0, hudTime: Infinity, lastTrailTick: 0, trail: [], fps: 60, battery: 'main',
     ammunition: { main: 'ap', secondary: 'ap' },
     paused: false, inPort: false, inspecting: false, input,
-    aircraftView: { update() {} },
+    aircraftView: { root: new Group(), update() {} },
     funnelSmoke: { root: new Group(), update() {}, setWind() {} },
-    effects: { update() {}, reset() {} }, scene: new FrameScene(), water, environment,
+    effects: { root: new Group(), update() {}, reset() {} }, scene: new FrameScene(), water, environment,
     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
     pipeline: { render() {} }, scheduleFrame() {}, frameWaiters: [],
     callbacks: { pause() {}, error: (message: string) => { throw new Error(message); } },
@@ -97,14 +97,49 @@ const rigEnabled = (rig: CameraRig) => Reflect.get(rig, 'enabled') as boolean;
 test('render warmup draws without advancing combat or starting a second animation loop', async () => {
   const { game, simulation } = await frameHarness();
   const before = structuredClone(simulation.ship);
+  const geometry = new InstancedBufferGeometry(); geometry.instanceCount = 0;
+  const hidden = new InstancedMesh(geometry, new MeshBasicMaterial(), 8); hidden.visible = false;
+  Reflect.get(game, 'aircraftView').root.add(hidden);
   let renders = 0, scheduled = 0;
-  Object.assign(game, { pipeline: { render() { renders++; } }, scheduleFrame() { scheduled++; } });
+  Object.assign(game, { pipeline: { render() { renders++; if (renders <= 12) { expect(hidden.visible).toBe(true); expect(geometry.instanceCount).toBe(1); expect(hidden.count).toBe(8); } } }, scheduleFrame() { scheduled++; } });
   for (let i = 0; i < 12; i++) await game.frame(10000 + i * 1000, true);
+  expect(hidden.visible).toBe(false); expect(geometry.instanceCount).toBe(0);
   expect(simulation.ship).toEqual(before);
   expect(renders).toBe(12); expect(scheduled).toBe(0);
   await game.frame(21020);
   expect(simulation.ship.tick).toBeGreaterThan(before.tick);
   expect(scheduled).toBe(1);
+  hidden.dispose(); hidden.material.dispose(); geometry.dispose();
+});
+
+test('battle loading holds input and starts one loop only after graphics finish successfully', async () => {
+  const original = Object.getOwnPropertyDescriptor(globalThis, 'cancelAnimationFrame');
+  Object.defineProperty(globalThis, 'cancelAnimationFrame', { configurable: true, value() {} });
+  try {
+    for (const failure of [false, true]) {
+      let finish!: () => void, enabled = true, scheduled = 0;
+      const graphics = new Promise<void>(resolve => { finish = resolve; });
+      const game = Object.assign(Object.create(Game.prototype), {
+        input: { setEnabled(value: boolean) { enabled = value; } },
+        setInPort() {}, scheduleFrame() { scheduled++; },
+        async warmupRendering() { await graphics; if (failure) throw new Error('Graphics failed'); },
+      }) as Game;
+      const loading = game.beginBattle();
+      await Promise.resolve();
+      expect(enabled).toBe(false); expect(scheduled).toBe(0);
+      finish();
+      if (failure) {
+        await expect(loading).rejects.toThrow('Graphics failed');
+        expect(enabled).toBe(false); expect(scheduled).toBe(0);
+      } else {
+        await loading;
+        expect(enabled).toBe(true); expect(scheduled).toBe(1);
+      }
+    }
+  } finally {
+    if (original) Object.defineProperty(globalThis, 'cancelAnimationFrame', original);
+    else Reflect.deleteProperty(globalThis, 'cancelAnimationFrame');
+  }
 });
 
 test('map and port transitions restore their own absorption after underwater attenuation', async () => {

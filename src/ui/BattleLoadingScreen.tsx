@@ -7,13 +7,13 @@ import { Icon } from './Icons';
 import './BattleLoadingScreen.css';
 
 export interface BattleLoadingState { label: string; progress: number; leaving: boolean; }
-interface Props { setup: BattleSetup; state: BattleLoadingState; onLeft(): void; }
+interface Props { multiplayer?: boolean; setup: BattleSetup; state: BattleLoadingState; onLeft(): void; }
 
 /** In-game capture of each ocean, sized to fill the viewport without tiling. */
 export const backdropUrl = (mapId: string) => assetUrl(`maps/${mapId}-backdrop.webp`);
 
 /** Fleet action extension: the chart of the chosen waters fills the viewport while both fleets come aboard. */
-export function BattleLoadingScreen({ setup, state, onLeft }: Props) {
+export function BattleLoadingScreen({ setup, state, onLeft, multiplayer }: Props) {
   const map = oceanMap(setup.mapId ?? DEFAULT_MAP);
   const time = TIME_OF_DAY_PRESETS.find(preset => preset.id === setup.timeOfDay);
   const weather = WEATHER_PRESETS.find(preset => preset.id === setup.weather);
@@ -35,7 +35,7 @@ export function BattleLoadingScreen({ setup, state, onLeft }: Props) {
       <span className="battle-loading-region">{map.region.toUpperCase()}</span>
     </div>
     <div className="battle-loading-content">
-      <p className="battle-loading-kicker">Custom battle · {setup.timeHours !== undefined ? formatBattleTime(setup.timeHours) : time && time.id !== 'map' ? time.name : 'Map daylight'} · {setup.cloudCover !== undefined ? `${setup.cloudCover}% clouds` : weather && weather.id !== 'map' ? weather.name : 'Map weather'}{setup.windSpeed !== undefined && ` · ${setup.windSpeed} m/s wind`} · {setup.spawnDistance / 1000} km</p>
+      <p className="battle-loading-kicker">{multiplayer ? '1v1 battle' : 'Custom battle'} · {setup.timeHours !== undefined ? formatBattleTime(setup.timeHours) : time && time.id !== 'map' ? time.name : 'Map daylight'} · {setup.cloudCover !== undefined ? `${setup.cloudCover}% clouds` : weather && weather.id !== 'map' ? weather.name : 'Map weather'}{setup.windSpeed !== undefined && ` · ${setup.windSpeed} m/s wind`} · {setup.spawnDistance / 1000} km</p>
       <h1>{map.name.toUpperCase()}</h1>
       <p className="loading-subtitle">{map.description}</p>
       <div className="battle-loading-fleets">
@@ -48,6 +48,6 @@ export function BattleLoadingScreen({ setup, state, onLeft }: Props) {
       </div>
       <div className="loading-progress" role="progressbar" aria-label="Preparing the battle" aria-valuetext={state.label} aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100}><span style={{ width: `${percent}%` }}/></div>
     </div>
-    <div className="loading-bottom"><span>SINGLEPLAYER · {map.name.toUpperCase()}</span><span>{player.name.toUpperCase()} / {player.configuration.match(/19\d{2}/)?.[0]}</span></div>
+    <div className="loading-bottom"><span>{multiplayer ? 'MULTIPLAYER' : 'SINGLEPLAYER'} · {map.name.toUpperCase()}</span><span>{player.name.toUpperCase()} / {player.configuration.match(/19\d{2}/)?.[0]}</span></div>
   </section>;
 }

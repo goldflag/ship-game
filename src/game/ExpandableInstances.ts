@@ -1,11 +1,14 @@
 import * as THREE from 'three/webgpu';
 
 /** Grow by small GPU allocations rather than imposing a gameplay count limit.
- * Zero unused matrices, preserving the fixed draw-count contract used by WebGPU. */
+ * Separate the live draw count from WebGPU's fixed shader matrix capacity. */
 export class ExpandableInstances<G extends THREE.BufferGeometry, M extends THREE.Material> extends THREE.InstancedMesh<G, M> {
   private overflow: THREE.InstancedMesh[] = [];
   constructor(geometry: G, material: M, private pageSize = 256) {
     super(geometry, material, pageSize);
+    // Preserve the public geometry type and authored attributes, but separate
+    // live draw count from Three's fixed shader matrix capacity.
+    Object.assign(geometry, { isInstancedBufferGeometry: true, instanceCount: 0 });
     this.frustumCulled = false;
     this.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     this.instanceMatrix.array.fill(0);
@@ -34,6 +37,9 @@ export class ExpandableInstances<G extends THREE.BufferGeometry, M extends THREE
   }
   publish(count: number) {
     [this, ...this.overflow].forEach((mesh, page) => {
+      const live = Math.max(0, Math.min(this.pageSize, count - page * this.pageSize));
+      Object.assign(mesh.geometry, { isInstancedBufferGeometry: true, instanceCount: live });
+      mesh.visible = live > 0;
       mesh.instanceMatrix.array.fill(0, Math.max(0, count - page * this.pageSize) * 16);
       mesh.instanceMatrix.needsUpdate = true;
       for (const attr of Object.values(mesh.geometry.attributes)) if ((attr as THREE.InstancedBufferAttribute).isInstancedBufferAttribute) attr.needsUpdate = true;

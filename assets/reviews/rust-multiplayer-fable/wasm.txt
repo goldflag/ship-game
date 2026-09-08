@@ -1,0 +1,9 @@
+$ bun scripts/multiplayer/build-wasm.ts
+   Compiling naval-sim v0.1.0 (/Users/bill/orca/workspaces/ship-game/rust-fleet-multiplayer/crates/naval-sim)
+   Compiling naval-protocol v0.1.0 (/Users/bill/orca/workspaces/ship-game/rust-fleet-multiplayer/crates/naval-protocol)
+   Compiling naval-wasm v0.1.0 (/Users/bill/orca/workspaces/ship-game/rust-fleet-multiplayer/crates/naval-wasm)
+    Finished `release` profile [optimized] target(s) in 22.89s
+$ bun scripts/multiplayer/check-wasm.ts
+WASM verified 36 motion checkpoints, seeded conditions and end-of-tick rules in 5.2 ms. This is a migration check, not server capacity evidence.
+WASM verified 48 complete shell trajectories, damage records, bursts and water entries against the TypeScript reference.
+WASM verified 28800 complete battle ticks, including carrier sorties, AA, underwater weapons, damage records and shell history.

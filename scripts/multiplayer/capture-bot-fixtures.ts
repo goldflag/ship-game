@@ -1,0 +1,14 @@
+import { createTubeState } from '../../src/simulation/torpedoes';
+import { createSubmarineState } from '../../src/simulation/submarine';
+import { writeFile } from 'node:fs/promises';
+import { shipPresets,shipPreset } from '../../src/ships/presets';
+import { createShipState,stepShip } from '../../src/simulation/ship';
+import { createDamage } from '../../src/simulation/damage';
+import { createMountState } from '../../src/simulation/weapons';
+import { createBotState,updateBot,botHelm,botAim,botReadyToFire,botDidFire,botTorpedoAim } from '../../src/simulation/bots';
+import type { FleetActor } from '../../src/simulation/battle';
+import type { ShipAiLevel } from '../../src/simulation/aiLevels';
+const ids=Object.keys(shipPresets);
+const cases=ids.flatMap((id,index)=>(['easy','normal','hard'] as ShipAiLevel[]).map(level=>{const def=shipPreset(id),targetDef=shipPreset(ids[(index+1)%ids.length]);const make=(id:string,definition:typeof def,team:'friendly'|'enemy')=>({definition,team,controller:'bot',motion:createShipState(id),damage:createDamage(definition),mounts:definition.mounts.map(createMountState),torpedoTubes:definition.torpedoTubes?.map(createTubeState),submarine:definition.submarine?createSubmarineState():undefined} as FleetActor);const actor=make(id,def,'friendly'),target=make('target',targetDef,'enemy');target.motion.z=-5000;target.motion.heading=.3;const seed=71393;actor.bot=createBotState(id,def,seed,level);const checkpoints:unknown[]=[];
+for(let tick=1;tick<=2400;tick++){const time=tick/60;if(tick===1200)actor.damage.integrity-=2000;if(tick===900&&target.damage.regions[0])target.damage.regions[0].hp*=.1;stepShip(target.motion,{throttle:tick<1200?.7:.3,rudder:tick<1800?.2:-.4},targetDef.handling);updateBot(actor,target,time);const helm=botHelm(actor,target,[actor,target]);stepShip(actor.motion,helm,def.handling);const aim=def.mounts[0]?botAim(actor,target,def.mounts[0],actor.mounts[0]):undefined;const ready=def.mounts[0]?botReadyToFire(actor,def.mounts[0]):botReadyToFire(actor);if(ready&&def.mounts[0])botDidFire(actor,def.mounts[0]);if([60,600,1200,2400].includes(tick))checkpoints.push(JSON.parse(JSON.stringify({tick,bot:actor.bot,motion:actor.motion,helm,aim,ready,torpedoAim:def.torpedoTubes?.[0]?botTorpedoAim(actor,def.torpedoTubes[0]):undefined})));}return{id,targetId:targetDef.id,seed,level,checkpoints};}));
+await writeFile('assets/gameplay/migration/bots.v1.json',JSON.stringify({version:1,cases})+'\n');

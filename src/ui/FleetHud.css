@@ -314,3 +314,7 @@
 
 .fleet-spectator-controls .ui-button { width: 36px; padding: 6px; }
 .fleet-spectator-controls .ui-select { font-size: 13px; }
+
+.fleet-battle-clock { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; font-size: 12px; }
+.fleet-battle-clock strong { font: 600 19px 'Barlow Condensed', sans-serif; font-variant-numeric: tabular-nums; }
+.fleet-tonnage { margin: 4px 0 10px; font-size: 11px; line-height: 1.5; font-variant-numeric: tabular-nums; }

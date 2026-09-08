@@ -1,0 +1,66 @@
+PORT 0
+PORT 1
+INVITE CREATED
+BATTLE 0 Time remaining
+30:00
+
+Afloat · Friendly 124,969.367 t · Enemy 124,969.367 t
+
+Waiting for both fleets to load
+
+Fleet orders
+Friendly 8/8
+0 damaged · 0 lost
+Enemy 8/8
+0 damaged · 0 lost
+BATTLE 1 Time remaining
+30:00
+
+Afloat · Friendly 124,969.367 t · Enemy 124,969.367 t
+
+Waiting for both fleets to load
+
+Fleet orders
+Friendly 8/8
+0 damaged · 0 lost
+Enemy 8/8
+0 damaged · 0 lost
+TICKS [ 122, 122 ]
+LATENCY 150MS
+CONSOLE 0 WebSocket connection to 'ws://127.0.0.1:9/' failed: Error in connection establishment: net::ERR_UNSAFE_PORT
+CONSOLE 0 WebSocket connection to 'ws://127.0.0.1:9/' failed: Error in connection establishment: net::ERR_UNSAFE_PORT
+RECONNECTED Time remaining
+29:48
+
+Afloat · Friendly 124,969.367 t · Enemy 124,969.367 t
+
+Fleet orders
+Friendly 8/8
+0 damaged · 0 lost
+Enemy 8/8
+0 damaged · 0 lost
+SWITCHED
+MENU At your command.
+
+The online battle continues while this menu is open.
+
+Resume battle
+Forfeit and return to port
+Settings
+Close game
+C Change camera
+R Recenter view
+H Hide instruments
+F Fullscreen
+RESULT Victory
+Battle forfeited
+29:46
+
+Afloat · Friendly 124,969.367 t · Enemy 124,969.367 t
+
+Fleet orders
+Friendly 8/8
+0 damaged · 0 lost
+Enemy 8/8
+0 damaged · 0 lost
+Esc to return to port

@@ -9,8 +9,12 @@ test('live objects grow across GPU pages and clearing removes all stale instance
   expect(mesh.children.length).toBe(7);
   for (const page of [mesh, ...mesh.children as THREE.InstancedMesh[]]) expect(page.instanceMatrix.array.byteLength).toBeLessThanOrEqual(65536);
   const last = mesh.children.at(-1) as THREE.InstancedMesh;
+  expect((last.geometry as THREE.InstancedBufferGeometry).instanceCount).toBe(8);
+  expect(last.count).toBe(256);
   last.getMatrixAt(7, matrix); expect(matrix.elements[12]).toBe(1799);
   mesh.publish(0);
+  expect(mesh.visible).toBe(false);
+  expect((last.geometry as THREE.InstancedBufferGeometry).instanceCount).toBe(0);
   for (const page of [mesh, ...mesh.children as THREE.InstancedMesh[]]) expect([...page.instanceMatrix.array].every(n => n === 0)).toBe(true);
   mesh.dispose(); mesh.geometry.dispose(); mesh.material.dispose();
 });

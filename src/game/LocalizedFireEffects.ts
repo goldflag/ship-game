@@ -1,6 +1,6 @@
+import type { BattleSession } from './session/BattleSession';
 import * as THREE from 'three/webgpu';
 import { mountFrame } from '../simulation/mountFrames';
-import type { CombatSimulation } from '../simulation/combat';
 import type { Combatant } from '../simulation/damage';
 import type { ShipState } from '../simulation/ship';
 import type { Vec3 } from '../ships/blueprint';
@@ -35,7 +35,7 @@ export class LocalizedFireEffects {
     this.root.add(this.smoke.mesh, this.flames.mesh);
   }
 
-  update(sim: CombatSimulation, dt: number, camera: THREE.Camera, wind: THREE.Vector3, hiddenSourceId?: string, poses?: readonly FireDisplayPose[]): void {
+  update(sim: BattleSession, dt: number, camera: THREE.Camera, wind: THREE.Vector3, hiddenSourceId?: string, poses?: readonly FireDisplayPose[]): void {
     this.time += dt; this.smokeTime += dt;
     this.smoke.advance(dt, wind);
     // Rebuild living flame tongues from state every frame: attached during motion,

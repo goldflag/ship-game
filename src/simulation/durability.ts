@@ -1,3 +1,4 @@
+import { physicalLoss } from './battleRules';
 import type { Combatant, Shell } from './damage';
 import type { ShipDefinition, Vec3 } from '../ships/blueprint';
 import { consumeStructure, type LocalDamageEvidence } from './localDamage';
@@ -12,7 +13,7 @@ export const HULL_DAMAGE = { penetration: .65, overpenetration: .15, equipment: 
 /** Accepts authored damage units; returns whole gameplay HP lost. Fractional
  * consumption carries forward so splitting a hit never erases small damage. */
 export function damageHull(actor: Combatant, amount: number, regionId?: string): number {
-  if (actor.damage.sunk || actor.damage.stability.combatLost) return 0;
+  if (physicalLoss(actor)) return 0;
   const consumed = consumeStructure(actor, Math.max(0, amount) * HULL_HP_SCALE, regionId);
   const pending = consumed + actor.damage.hullDamageRemainder;
   const whole = Math.floor(pending + 1e-9);

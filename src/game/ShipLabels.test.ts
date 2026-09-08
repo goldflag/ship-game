@@ -54,7 +54,8 @@ test('overhead condition percentages, meters and loss spans use each ship maximu
       const root = new Group(); root.add(new Group()); root.position.z = -5000;
       const view = { root, motion: actor.motion } as unknown as ShipView;
       const host = new Element(), labels = new ShipLabels(host as unknown as HTMLElement);
-      labels.setFleet([view], [actor]); labels.resize(1600, 900);
+      actor.controller = 'player'; // The opposing human still needs a visible contact label.
+      labels.setFleet([view], [actor], sim.player.motion.id); labels.resize(1600, 900);
       const camera = new PerspectiveCamera(52, 16 / 9, .5, 60000);
       camera.coordinateSystem = WebGPUCoordinateSystem;
       Reflect.set(camera, '_reversedDepth', true);

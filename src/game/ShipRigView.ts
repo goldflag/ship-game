@@ -29,6 +29,9 @@ export class ShipRigView {
   private readonly wind = new THREE.Vector3();
   private readonly gravity = new THREE.Vector3();
   private readonly position = new THREE.Vector3();
+  private readonly frustum = new THREE.Frustum();
+  private readonly projection = new THREE.Matrix4();
+  private readonly flagBounds = new THREE.Sphere();
   private readonly relativeWind = [0, 0, 0];
   private readonly localGravity = [0, -9.81, 0];
   private readonly yaw = new THREE.Vector3(0, 1, 0);
@@ -75,6 +78,7 @@ export class ShipRigView {
     this.inverse.copy(hull.quaternion).invert();
     this.gravity.set(0, -9.81, 0).applyQuaternion(this.inverse).toArray(this.localGravity);
     const velocity = motionVelocity(motion);
+    if (camera) this.frustum.setFromProjectionMatrix(this.projection.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse), camera.coordinateSystem, camera.reversedDepth);
     for (const { mesh, cloth } of this.flags) {
       this.position.copy(mesh.position).applyQuaternion(hull.quaternion).add(hull.position);
       mesh.visible = this.position.y > cloth.height * .5;
@@ -82,6 +86,10 @@ export class ShipRigView {
       // restore motion even when the observed ship is several kilometres away.
       const pixels = camera ? cloth.width * Math.abs(camera.projectionMatrix.elements[5]) * 540 / Math.max(1, camera.position.distanceTo(this.position)) : Infinity;
       if (!mesh.visible || pixels < 1) continue;
+      // Keep the full cloth reach, including wind reversal, inside the test.
+      // Offscreen cloth resumes just like a previously subpixel flag on zoom-in.
+      this.flagBounds.set(this.position, cloth.width + cloth.height);
+      if (camera && !this.frustum.intersectsSphere(this.flagBounds)) continue;
       this.wind.set(Math.cos(windDirection) * windSpeed - velocity[0], -velocity[1], Math.sin(windDirection) * windSpeed - velocity[2]);
       this.wind.applyQuaternion(this.inverse);
       // Apparent wind includes the hoist's velocity as the hull turns.

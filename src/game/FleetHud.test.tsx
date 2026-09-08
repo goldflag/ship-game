@@ -131,11 +131,14 @@ test('battle reports distinguish weapons, incoming hits, duplicate ships, damage
   ];
   const data: Telemetry = { ship: sim.ship, order: 0, camera: 'Chase', fps: 60, backend: 'test', trail: [], combat };
   const html = renderToStaticMarkup(<ShipContext.Provider value={definition}><FleetHud data={data} game={null} visible bindings={defaultKeybindings()}/></ShipContext.Provider>);
-  expect(html).toContain('Friendly fleet: 2 of 2 in action, 1 damaged, 0 lost');
-  expect(html).toContain('Enemy fleet: 1 of 2 in action, 0 damaged, 1 lost');
+  expect(html).toContain('Friendly fleet: 2 of 2 afloat, 1 damaged, 0 lost');
+  expect(html).toContain('Enemy fleet: 2 of 2 afloat, 1 damaged, 0 lost');
   expect(html).toContain('Bismarck (You)');
   expect(html).toContain('Bismarck #2');
-  expect(html).toContain('Lost · disarmed');
+  expect(html).toContain('disarmed');
+  expect(html).not.toContain('Lost · disarmed');
+  expect(html).toContain('Time remaining');
+  expect(html).toContain('30:00');
   expect(html).toContain('1:02 · Taken 21 HP');
   expect(html).toContain('150 mm HE · Secondary');
   expect(html).toContain('From Bismarck #2 · 2 hits');
@@ -189,4 +192,13 @@ test('spectator HUD uses the observed definition inside the player ship context'
   expect(html).toContain('1 fire · Observed ship');
   expect(html).toContain(watched.mounts[0].name);
   expect(html).not.toContain('fire aboard');
+});
+
+test('local worker failures remain visible in battle status', async () => {
+  const { BattleStatus } = await import('../ui/BattleStatus');
+  const definition = shipPreset('fletcher'); const sim = new CombatSimulation(definition);
+  const combat = sim.telemetry('main', [0,0,-5000]);
+  const game = { simulation: { networked: false, phase: 'cancelled', connectionStatus: 'Battle worker failed' } } as unknown as import('./Game').Game;
+  const html = renderToStaticMarkup(<BattleStatus combat={combat} game={game}/>);
+  expect(html).toContain('role="status">Battle worker failed');
 });

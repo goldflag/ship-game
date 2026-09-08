@@ -94,7 +94,7 @@ test('the final hostile damaging hit earns the frag, including delayed flooding'
   expect(score(sim)).toEqual([34 * HULL_HP_SCALE, 1]);
 });
 
-test('another shell in the lethal tick cannot take the frag from an already disarmed ship', () => {
+test('disarming a ship awards damage but no frag while it remains afloat', () => {
   const sim = fixture();
   sim.target.mounts[0].hp = 20;
   for (const owner of [sim.actors[1], sim.player]) sim.shells.push({
@@ -102,5 +102,6 @@ test('another shell in the lethal tick cannot take the frag from an already disa
     velocity: rotate([820, 0, 0], sim.target.motion), age: 0, damage: 100, penetrationMm: 100, caliberM: .38, visited: [],
   });
   sim.step(helm, intent); // Shells resolve in reverse order: player, then ally.
-  expect(score(sim)).toEqual([17 * HULL_HP_SCALE, 1]); // Only 20 equipment HP remained to destroy.
+  expect(score(sim)).toEqual([17 * HULL_HP_SCALE, 0]); // Equipment loss is not physical loss.
+  expect(sim.target.damage.sunk).toBe(false);
 });

@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "tickRate": 60,
+  "durationSeconds": 1800,
+  "maxFleetKg": 200000000,
+  "maxVessels": 8,
+  "maxCarriers": 2,
+  "spawnDistanceM": 5000,
+  "loadTimeoutSeconds": 120,
+  "reconnectGraceSeconds": 90,
+  "heldInputTimeoutMs": 500,
+  "times": [
+    { "id": "morning", "weight": 35 },
+    { "id": "noon", "weight": 35 },
+    { "id": "dawn", "weight": 10 },
+    { "id": "dusk", "weight": 10 },
+    { "id": "night", "weight": 10 }
+  ]
+}

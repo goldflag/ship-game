@@ -1,3 +1,4 @@
+import { FleetOrders } from './FleetOrders';
 import { Button, Select, SelectOption } from './components';
 import { useState, type ReactNode } from 'react';
 import { Icon } from './Icons';
@@ -5,9 +6,9 @@ import type { Game } from '../game/Game';
 import type { CombatTelemetry } from '../simulation/combat';
 
 type Contact = CombatTelemetry['contacts'][number];
-export const contactLabel = (contact: Contact) => contact.controller === 'player' ? `${contact.name} (You)` : `${contact.name} #${contact.id.split('-').at(-1)}`;
-const lost = (contact: Contact) => contact.sunk || contact.combatLost;
-const condition = (contact: Contact) => `${contact.combatLost && !contact.sunk ? 'Lost · ' : ''}${contact.status.replaceAll('-', ' ')}`;
+export const contactLabel = (contact: Contact) => contact.controller === 'player' && contact.team === 'friendly' ? `${contact.name} (You)` : `${contact.name} #${contact.id.split('-').at(-1)}`;
+const lost = (contact: Contact) => contact.physicalLost;
+const condition = (contact: Contact) => contact.status.replaceAll('-', ' ');
 
 function TeamStatus({ team, combat, game, expanded, onToggle }: { team: Contact['team']; combat: CombatTelemetry; game: Game | null; expanded: boolean; onToggle(): void }) {
   const contacts = combat.contacts.filter(contact => contact.team === team);
@@ -15,7 +16,7 @@ function TeamStatus({ team, combat, game, expanded, onToggle }: { team: Contact[
   const damaged = active.filter(contact => contact.integrity < .995 || contact.status !== 'operational').length;
   const name = team === 'friendly' ? 'Friendly' : 'Enemy';
   return <div className={`fleet-team fleet-team-${team}`}>
-    <button className="fleet-team-toggle" aria-expanded={expanded} aria-controls={`fleet-roster-${team}`} onClick={event => { onToggle(); event.currentTarget.blur(); }} aria-label={`${name} fleet: ${active.length} of ${contacts.length} in action, ${damaged} damaged, ${contacts.length - active.length} lost. ${expanded ? 'Hide' : 'Show'} ships.`}>
+    <button className="fleet-team-toggle" aria-expanded={expanded} aria-controls={`fleet-roster-${team}`} onClick={event => { onToggle(); event.currentTarget.blur(); }} aria-label={`${name} fleet: ${active.length} of ${contacts.length} afloat, ${damaged} damaged, ${contacts.length - active.length} lost. ${expanded ? 'Hide' : 'Show'} ships.`}>
       <span className="fleet-team-count">{name} <strong>{active.length}</strong><span>/{contacts.length}</span></span>
       <span className="fleet-team-state">{damaged} damaged · {contacts.length - active.length} lost</span>
     </button>
@@ -31,9 +32,16 @@ function TeamStatus({ team, combat, game, expanded, onToggle }: { team: Contact[
 
 export function BattleStatus({ combat, game, children, spectatedShipId }: { combat: CombatTelemetry; game: Game | null; children?: ReactNode; spectatedShipId?: string }) {
   const [expandedTeam, setExpandedTeam] = useState<Contact['team'] | null>(null);
-  const teammates = combat.contacts.filter(contact => contact.team === combat.contacts.find(c => c.controller === 'player')?.team && contact.controller !== 'player' && !lost(contact));
+  const teammates = combat.contacts.filter(contact => contact.team === 'friendly' && contact.controller !== 'player' && !lost(contact));
   return <section className="fleet-battle" aria-label="Battle status">
-    {combat.result !== 'active' && <h2>{combat.result === 'victory' ? 'Victory' : combat.result === 'defeat' ? 'Defeat' : 'Draw'}</h2>}
+    {combat.result !== 'active' && <h2>{combat.outcome?.reason === 'infrastructure' ? 'Battle interrupted' : combat.outcome?.reason === 'abandoned' ? 'Battle abandoned' : combat.result === 'victory' ? 'Victory' : combat.result === 'defeat' ? 'Defeat' : 'Draw'}</h2>}
+    <div className="fleet-battle-clock" aria-label="Battle time and afloat tonnage">
+      <span>{combat.result === 'active' ? 'Time remaining' : combat.outcome?.reason === 'time-limit' ? '30-minute limit reached' : combat.outcome?.reason === 'forfeit' ? 'Battle forfeited' : combat.outcome?.reason === 'abandoned' ? 'Battle abandoned' : combat.outcome?.reason === 'infrastructure' ? 'Battle interrupted' : 'Fleet destroyed'}</span>
+      <strong>{String(Math.floor(combat.remainingSeconds / 60)).padStart(2, '0')}:{String(Math.floor(combat.remainingSeconds % 60)).padStart(2, '0')}</strong>
+    </div>
+    <p className="fleet-tonnage">Afloat · Friendly {(combat.afloatKg[0] / 1000).toLocaleString(undefined, { maximumFractionDigits: 3 })} t · Enemy {(combat.afloatKg[1] / 1000).toLocaleString(undefined, { maximumFractionDigits: 3 })} t</p>
+    {(game?.simulation.networked || game?.simulation.connectionStatus || game?.simulation.phase === 'cancelled') && <p className="fleet-network-status" role="status">{game.simulation.connectionStatus || (game.simulation.phase === 'loading' ? 'Waiting for both fleets to load' : game.simulation.phase === 'countdown' ? 'Both fleets ready — battle starting' : game.simulation.phase === 'cancelled' ? 'Battle cancelled before starting' : '')}</p>}
+    <FleetOrders game={game} combat={combat}/>
     <div className="fleet-teams" aria-label="Team status">{(['friendly', 'enemy'] as const).map(team => <TeamStatus key={team} team={team} combat={combat} game={game} expanded={expandedTeam === team} onToggle={() => setExpandedTeam(expandedTeam === team ? null : team)}/>)}</div>
     {combat.result !== 'active' && <small>Esc to return to port</small>}
     {combat.result === 'active' && combat.playerSunk && <small>Your ship is sinking · Allies still fighting</small>}

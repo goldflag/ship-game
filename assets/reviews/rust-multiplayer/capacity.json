@@ -1,0 +1,106 @@
+{
+  "hardware": "Apple M5 Pro; 18 logical CPUs; 48 GiB RAM; macOS 26.6.2",
+  "isolatedHost": false,
+  "scope": "Aggregate active simulation seconds; completed battles restart, with identical setup and seed. Custom benchmark includes online encoding overhead unused by the local worker.",
+  "runs": [
+    {
+      "completedBattles": 3,
+      "map": "north-atlantic",
+      "peakAirborne": 72,
+      "seed": 12345,
+      "simulatedSeconds": 1800,
+      "simulationBuild": "ffe55cbc44f084a721067a029d3985b1ee00abedfa3a2f67cb63e6dfc26a3c5f",
+      "snapshotBytes": {
+        "max": 230697.0,
+        "mean": 184301.983,
+        "p50": 190002.0,
+        "p95": 223161.0,
+        "p99": 226525.0
+      },
+      "snapshotMs": {
+        "max": 96.084458,
+        "mean": 13.063519368055669,
+        "p50": 12.87,
+        "p95": 17.49325,
+        "p99": 20.139875
+      },
+      "tickMs": {
+        "max": 28.970459,
+        "mean": 1.34535888539817,
+        "p50": 0.9959999999999999,
+        "p95": 2.1697499999999996,
+        "p99": 11.088084
+      },
+      "vesselsPerSide": 8,
+      "wallSeconds": 671.796984417,
+      "weather": "overcast",
+      "maximumResidentBytes": 123797504
+    },
+    {
+      "completedBattles": 4,
+      "map": "pacific-islands",
+      "peakAirborne": 72,
+      "seed": 987654321,
+      "simulatedSeconds": 1800,
+      "simulationBuild": "ffe55cbc44f084a721067a029d3985b1ee00abedfa3a2f67cb63e6dfc26a3c5f",
+      "snapshotBytes": {
+        "max": 207105.0,
+        "mean": 180941.62705555555,
+        "p50": 192547.0,
+        "p95": 202916.0,
+        "p99": 205536.0
+      },
+      "snapshotMs": {
+        "max": 118.61429199999999,
+        "mean": 12.036861731111117,
+        "p50": 12.137375,
+        "p95": 14.471625,
+        "p99": 16.383917
+      },
+      "tickMs": {
+        "max": 25.056625,
+        "mean": 1.2702723560926032,
+        "p50": 0.907792,
+        "p95": 2.0215,
+        "p99": 10.559624999999999
+      },
+      "vesselsPerSide": 8,
+      "wallSeconds": 623.339917209,
+      "weather": "storm-clouds",
+      "maximumResidentBytes": 124059648
+    },
+    {
+      "completedBattles": 0,
+      "map": "north-atlantic",
+      "peakAirborne": 288,
+      "seed": 12345,
+      "simulatedSeconds": 60,
+      "simulationBuild": "ffe55cbc44f084a721067a029d3985b1ee00abedfa3a2f67cb63e6dfc26a3c5f",
+      "snapshotBytes": {
+        "max": 567182.0,
+        "mean": 411603.17833333334,
+        "p50": 467702.0,
+        "p95": 560419.0,
+        "p99": 563638.0
+      },
+      "snapshotMs": {
+        "max": 146.175667,
+        "mean": 38.00380062416668,
+        "p50": 39.085292,
+        "p95": 47.437124999999995,
+        "p99": 51.469916
+      },
+      "tickMs": {
+        "max": 72.491292,
+        "mean": 9.356075799444444,
+        "p50": 7.70825,
+        "p95": 11.778917,
+        "p99": 54.315583000000004
+      },
+      "vesselsPerSide": 30,
+      "wallSeconds": 85.389373708,
+      "weather": "overcast",
+      "maximumResidentBytes": 293617664
+    }
+  ]
+}

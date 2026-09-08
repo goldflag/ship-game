@@ -11,7 +11,9 @@ export type VesselStatus = 'operational' | 'immobile' | 'disarmed' | 'disabled' 
 export interface StabilityState {
   sampleRoll?: number; samplePitch?: number; rollSlope?: number; pitchSlope?: number;
   elapsed: number; targetY: number; rollRate: number; pitchRate: number; capsizeSeconds: number; water: WaterBody[];
-  rollArm: number; pitchArm: number; displacementM3: number; reserveM3: number; status: VesselStatus; combatLost: boolean;
+  rollArm: number; pitchArm: number; displacementM3: number; reserveM3: number; status: VesselStatus;
+  /** Legacy permanent weapon-capability flag. Never use this as an afloat/result predicate. */
+  combatLost: boolean;
 }
 export const createStability = (): StabilityState => ({ elapsed: .5, targetY: 0, rollRate: 0, pitchRate: 0, capsizeSeconds: 0, water: [], rollArm: 0, pitchArm: 0, displacementM3: 0, reserveM3: 0, status: 'operational', combatLost: false });
 const fullCache = new WeakMap<ShipDefinition, number>();
@@ -117,7 +119,7 @@ export function updateCapability(actor: Combatant, def: ShipDefinition): void {
   const loadedGuns = guns.filter(g => g.state.hp > 0 && hasSalvo(g));
   const loadedTubes = (def.torpedoTubes ?? []).filter(t => (actor.torpedoTubes?.find(s => s.id === t.id)?.ammo ?? 0) > 0);
   const loadedCharges = (def.depthChargeLaunchers ?? []).filter(l => (actor.depthChargeLaunchers?.find(s => s.id === l.id)?.ammo ?? 0) > 0);
-  // Ship victory requires surviving weapons that can still damage a ship.
+  // Assess ship-attack capability independently from physical survival.
   const armedFlight = !!actor.airWing?.planes.some(p => ['takeoff', 'outbound', 'attack', 'returning', 'landing'].includes(p.phase) && p.payload);
   const strikeReserves = !!actor.airWing?.planes.some(p => p.phase !== 'lost' && p.role !== 'fighter');
   const service = def.modules.find(m => m.id === def.airWing?.serviceModuleId);
@@ -128,8 +130,8 @@ export function updateCapability(actor: Combatant, def: ShipDefinition): void {
   const recoverable = airRecoverable || loadedGuns.some(({ definition: m }) => !m.magazineId || actor.damage.modules.find(mod => mod.id === m.magazineId)!.hp > 0) ||
     [...loadedTubes, ...loadedCharges].some(t => launcherAvailable(actor, def, t.launcherModuleId, true) && (actor.damage.modules.find(m => m.id === t.magazineId)?.hp ?? 0) > 0);
   const mobile = systemHealth(actor, def, 'engine') > .001;
-  // Flooded supplies may recover. Only permanent loss of all weapons/ammunition
-  // removes an afloat ship from the battle, until reset.
+  // Flooded supplies may recover. Permanent weapon loss disables firing,
+  // while battleRules.physicalLoss independently owns survival and scoring.
   s.combatLost ||= !recoverable;
   s.status = usable ? (mobile ? 'operational' : 'immobile') : (mobile ? 'disarmed' : 'disabled');
   if (s.combatLost) {

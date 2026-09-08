@@ -49,6 +49,13 @@ test('impact proxies share scars, follow their receivers and retire when scars a
     expect(proxy.root.children).toHaveLength(1);
     const rendered = proxy.root.children[0] as THREE.Mesh;
     expect(rendered.geometry).toBe(scar.geometry); expect(rendered.matrixWorld.elements).toEqual(scar.matrixWorld.elements);
+    scar.geometry.computeBoundingSphere(); scar.userData.maximumMarkDiameter = 1;
+    const camera = new THREE.PerspectiveCamera(52, 16 / 9, .5, 60000);
+    camera.position.set(37, 0, 5000); camera.lookAt(37, 0, 0); camera.updateMatrixWorld();
+    proxy.update(camera, 1080); expect(proxy.root.children).toHaveLength(0);
+    camera.zoom = 24; camera.updateProjectionMatrix();
+    proxy.update(camera, 1080); expect(proxy.root.children).toHaveLength(1);
+    expect((proxy.root.children[0] as THREE.Mesh).geometry).toBe(scar.geometry);
     scar.removeFromParent(); marks.length = 0; proxy.update(); expect(proxy.root.children).toHaveLength(0);
   } finally { proxy.dispose(); }
 });

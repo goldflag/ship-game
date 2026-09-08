@@ -122,7 +122,7 @@ export interface EffectParticle {
 
 /** One instance batch per material; fixed storage and back-to-front alpha sorting. */
 export class EffectParticlePool {
-  readonly mesh: THREE.InstancedMesh<THREE.PlaneGeometry, THREE.MeshBasicNodeMaterial>;
+  readonly mesh: THREE.InstancedMesh<THREE.InstancedBufferGeometry, THREE.MeshBasicNodeMaterial>;
   private readonly particles: EffectParticle[];
   private readonly active: EffectParticle[] = [];
   private readonly alpha: THREE.InstancedBufferAttribute;
@@ -139,7 +139,10 @@ export class EffectParticlePool {
 
   constructor(readonly capacity: number, map: THREE.DataTexture, private additive = false,
     volumeMaterial?: THREE.MeshBasicNodeMaterial, private cullFineWater = false) {
-    const geometry = new THREE.PlaneGeometry(1, 1);
+    const plane = new THREE.PlaneGeometry(1, 1);
+    const geometry = new THREE.InstancedBufferGeometry();
+    geometry.index = plane.index; geometry.attributes = plane.attributes;
+    geometry.instanceCount = 0;
     this.alpha = new THREE.InstancedBufferAttribute(new Float32Array(capacity), 1).setUsage(THREE.DynamicDrawUsage);
     geometry.setAttribute('effectOpacity', this.alpha);
     const material = volumeMaterial ?? new THREE.MeshBasicNodeMaterial({ map, transparent: true, depthWrite: false,
@@ -164,7 +167,7 @@ export class EffectParticlePool {
     // Allocate before first compilation, including when all particles are inactive.
     this.mesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(capacity * 3).fill(1), 3).setUsage(THREE.DynamicDrawUsage);
     // Three r185 sizes the matrix shader buffer from mesh.count at compilation.
-    // Keep capacity fixed; dormant instances have zero scale/alpha and no fragments.
+    // Keep shader capacity fixed; geometry.instanceCount controls the live draw.
     this.mesh.instanceMatrix.array.fill(0);
     this.mesh.frustumCulled = false;
     this.particles = Array.from({ length: capacity }, () => ({ position: new THREE.Vector3(), velocity: new THREE.Vector3(),
@@ -295,16 +298,20 @@ export class EffectParticlePool {
     });
     this.alpha.array.fill(0, this.active.length);
     this.mesh.instanceMatrix.array.fill(0, this.active.length * 16);
-    this.mesh.instanceMatrix.needsUpdate = true;
-    this.mesh.instanceColor!.needsUpdate = true;
-    this.alpha.needsUpdate = true;
-    for (const buffer of [this.sphere, this.volume, this.tint, this.progress]) if (buffer) buffer.needsUpdate = true;
+    this.mesh.geometry.instanceCount = this.active.length;
+    this.mesh.visible = this.active.length > 0;
+    if (this.active.length) for (const buffer of [this.mesh.instanceMatrix, this.mesh.instanceColor, this.alpha, this.sphere, this.volume, this.tint, this.progress]) if (buffer) {
+      buffer.clearUpdateRanges();
+      buffer.addUpdateRange(0, this.active.length * buffer.itemSize);
+      buffer.needsUpdate = true;
+    }
   }
 
   get count(): number { return this.active.length; }
   reset(): void {
     for (const p of this.particles) { p.age = 0; p.life = 0; }
     this.active.length = 0; this.cursor = 0;
+    this.mesh.geometry.instanceCount = 0; this.mesh.visible = false;
     this.alpha.array.fill(0); this.alpha.needsUpdate = true;
     this.mesh.instanceMatrix.array.fill(0); this.mesh.instanceMatrix.needsUpdate = true;
   }

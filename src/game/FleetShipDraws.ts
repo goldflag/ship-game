@@ -100,7 +100,7 @@ export class FleetShipDraws {
       }
       mesh.visible = count > 0; this.visibleInstances += count;
     }
-    this.proxies.forEach(proxy => proxy.update());
+    this.proxies.forEach(proxy => proxy.update(camera, framebufferHeight));
   }
   diagnostics() { return { batches: this.batches.length, instances: this.visibleInstances, reduced: this.reducedInstances, subpixel: this.subpixelInstances }; }
   dispose(): void {

@@ -1,0 +1,27 @@
+   Compiling naval-server v0.1.0 (/Users/bill/orca/workspaces/ship-game/rust-fleet-multiplayer/crates/naval-server)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.45s
+     Running unittests src/bin/benchmark.rs (target/debug/deps/benchmark-00b5e102f5bfe0a4)
+
+running 1 test
+test encoding::tests::deltas_reconstruct_from_the_same_baseline_after_skipped_frames ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (target/debug/deps/naval_server-85f9579c29bc8d04)
+
+running 12 tests
+test proxy_tests::only_trusted_proxies_can_supply_client_addresses ... ok
+test encoding::tests::deltas_reconstruct_from_the_same_baseline_after_skipped_frames ... ok
+test persistence::tests::first_final_result_is_immutable ... ok
+test worker::tests::panic_guard_releases_slot_and_persists_abort ... ok
+test persistence::tests::flush_commits_results_and_restart_aborts_only_incomplete_matches ... ok
+test hub::tests::per_client_rate_budgets_are_independent_and_globally_bounded ... ok
+test hub::tests::ghost_and_closed_tickets_do_not_consume_live_opponents ... ok
+test worker::tests::cancellation_after_pairing_does_not_wait_for_the_load_deadline ... ok
+test worker::tests::first_terminal_action_survives_later_surrenders_and_shutdown ... ok
+test worker::tests::load_failure_has_no_competitive_result ... ok
+test worker::tests::epoch_valid_commands_keep_a_player_live_without_heartbeats ... ok
+test worker::tests::load_barrier_reconnect_epochs_and_forfeit ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.89s
+

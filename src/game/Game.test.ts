@@ -1,3 +1,5 @@
+import { HeadlessSession } from '../../scripts/multiplayer/headless-session';
+import { LocalBattleSession } from './session/LocalBattleSession';
 import { afterEach, beforeEach, expect, spyOn, test } from 'bun:test';
 import { Group, PerspectiveCamera, Scene, Vector3 } from 'three/webgpu';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -12,11 +14,14 @@ import { shipPreset } from '../ships/presets';
 // Camera controls now also listen for pointer-lock and focus changes.
 const browserNames = ['window', 'document'] as const;
 let browserGlobals: (PropertyDescriptor | undefined)[];
+let localFactory: ReturnType<typeof spyOn>;
 beforeEach(() => {
+  localFactory = spyOn(LocalBattleSession, 'create').mockImplementation(async setup => await HeadlessSession.create(setup) as unknown as LocalBattleSession);
   browserGlobals = browserNames.map(name => Object.getOwnPropertyDescriptor(globalThis, name));
   browserNames.forEach(name => Object.defineProperty(globalThis, name, { configurable: true, value: new EventTarget() }));
 });
 afterEach(() => {
+  localFactory.mockRestore();
   browserNames.forEach((name, i) => {
     if (browserGlobals[i]) Object.defineProperty(globalThis, name, browserGlobals[i]!);
     else Reflect.deleteProperty(globalThis, name);
@@ -172,7 +177,7 @@ test('battle loading binds each mixed fleet hull and selected target to its own 
     expect(game.simulation.ship.heading).toBe(0);
     expect(game.simulation.target.motion.heading).toBe(Math.PI);
     const diagnostics = game.diagnostics();
-    expect(diagnostics.fleet.map(actor => actor.aiLevel)).toEqual([undefined, 'normal', 'hard', 'static', 'moving']);
+    expect(diagnostics.fleet.map(actor => actor.aiLevel)).toEqual(['normal', 'normal', 'hard', 'static', 'moving']);
     expect(diagnostics.maxMuzzleErrorM).toBeLessThan(.025);
     expect(diagnostics.renderedShips.filter(ship => ship.visible).map(ship => ship.id)).toEqual(['player']);
     game.selectTarget('enemy-2');
@@ -277,6 +282,8 @@ test('spectating follows only surviving teammates, cycles duplicates, and resets
     expect(telemetry().ship.id).toBe('friendly-1');
     expect(telemetry().combat?.submarine).toBeUndefined();
     simulation.actors[1].damage.stability.combatLost = true;
+    update(); expect(game.spectatedShipId).toBe('friendly-1'); // Disarmed hulls remain afloat.
+    simulation.actors[1].damage.sunk = true;
     update(); expect(game.spectatedShipId).toBe('friendly-3');
     simulation.actors[3].damage.sunk = true;
     update(); expect(game.spectatedShipId).toBeUndefined();

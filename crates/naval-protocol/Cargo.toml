@@ -1,0 +1,12 @@
+[package]
+name = "naval-protocol"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+naval-sim.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+ts-rs = { version = "12.0.1", features = ["no-serde-warnings"] }
+thiserror.workspace = true
