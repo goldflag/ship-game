@@ -586,6 +586,15 @@ fn torpedo_training_swept_hits_and_depth_charge_trajectories_match() {
             &expected["damage"],
             &format!("{id}.damage"),
         );
+        for hit in case["torpedoHits"].as_array().unwrap() {
+            let mut target = Vessel::new(id, TeamId::A, actor.compiled.clone());
+            target.motion = actor.motion.clone();
+            let weapon = serde_json::from_value(fixture["torpedo"].clone()).unwrap();
+            let message = torpedoes::damage_torpedo_hit(&mut target, &def, serde_json::from_value(hit["point"].clone()).unwrap(), &weapon, 7);
+            compare(&json!(message), &hit["message"], &format!("{id}.torpedo.message"));
+            let expected = patched(&case["baseline"], &hit["patches"]);
+            compare(&serde_json::to_value(&target.damage).unwrap(), &expected["damage"], &format!("{id}.torpedo.damage"));
+        }
         for (i, c) in case["reaches"].as_array().unwrap().iter().enumerate() {
             let result = depth_charges::reach(
                 serde_json::from_value(c["position"].clone()).unwrap(),
@@ -906,7 +915,7 @@ fn complete_battles_match_reference() {
     for c in fixture["cases"].as_array().unwrap() {
         let setup: BattleSetup = serde_json::from_value(c["setup"].clone()).unwrap();
         let mut b = Battle::new(catalog.clone(), &compiled, setup).unwrap();
-        if c["id"] == "enterprise-cv6" {
+        if b.actors[0].definition().air_wing.is_some() {
             for s in &b.actors[0]
                 .definition()
                 .air_wing

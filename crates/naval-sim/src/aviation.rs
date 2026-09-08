@@ -51,9 +51,11 @@ impl Aviation {
             wings: actors
                 .iter()
                 .filter_map(|a| {
-                    create_air_wing(a.definition(), &a.motion.id, a.team).map(|state| CarrierWing {
-                        owner_id: a.motion.id.clone(),
-                        state,
+                    create_air_wing(a.definition(), &a.motion.id, a.team, &ground).map(|state| {
+                        CarrierWing {
+                            owner_id: a.motion.id.clone(),
+                            state,
+                        }
                     })
                 })
                 .collect(),

@@ -722,6 +722,8 @@ fn exterior(a: &crate::definition::Armor, hit: &ShipContact) -> bool {
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AircraftEffect {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub caliber_m: Option<f64>,
     pub id: String,
     pub target: Option<Vec3>,
     pub direction: Option<Vec3>,

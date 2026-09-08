@@ -1,0 +1,22 @@
+[
+  {
+    "backend": "webgpu",
+    "error": "Error: Expected 8 visible shells, got 0: [{\"shells\":0,\"visible\":0,\"draws\":19},{\"shells\":8,\"visible\":0,\"draws\":19}]",
+    "version": 0
+  },
+  {
+    "backend": "webgl2",
+    "error": "Error: Expected 8 visible shells, got 0: [{\"shells\":0,\"visible\":0,\"draws\":19},{\"shells\":8,\"visible\":0,\"draws\":19}]",
+    "version": 0
+  },
+  {
+    "backend": "webgpu",
+    "error": "Error: Expected 8 visible shells, got 0: [{\"shells\":0,\"visible\":0,\"draws\":19},{\"shells\":8,\"visible\":0,\"draws\":19}]",
+    "version": 1
+  },
+  {
+    "backend": "webgl2",
+    "error": "Error: Expected 8 visible shells, got 0: [{\"shells\":0,\"visible\":0,\"draws\":19},{\"shells\":8,\"visible\":0,\"draws\":19}]",
+    "version": 1
+  }
+]

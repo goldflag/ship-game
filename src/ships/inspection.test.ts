@@ -41,7 +41,7 @@ test('inspection lists exactly the armor, mounts, modules and compartments used 
   for (const id of Object.keys(shipPresets)) {
     const def = shipPreset(id), entries = inspectionEntries(def);
     const structureCount=def.structuralPlating?1+(def.structures?.length??0):0;
-    expect(entriesForMode(entries, 'armor').length).toBe(structureCount + def.armor.length + def.mounts.filter(m => !def.armor.some(a => a.plate?.mountId === m.id)).length);
+    expect(entriesForMode(entries, 'armor').length).toBe((def.underwaterProtection?.zones.length ?? 0) + structureCount + def.armor.length + def.mounts.filter(m => !def.armor.some(a => a.plate?.mountId === m.id)).length);
     expect(entriesForMode(entries, 'internals').length).toBe(def.modules.length + def.mounts.length);
     expect(entriesForMode(entries, 'exterior')).toEqual([]);
     if (def.armor.length) {
@@ -96,6 +96,9 @@ test('armor picking follows the ship transform, finds the nearest layer and excl
   const origin = ship.localToWorld(new Vector3(-40, 0, 0)), destination = ship.localToWorld(new Vector3(0, 0, 0));
   const ray = new Raycaster(origin, destination.sub(origin).normalize());
   expect(view.pick(ray)?.id).toBe('armor:port-main-belt-2');
+  view.setMode('armor', 'underwater-protection:port-underwater-defense'); view.update(sim.player);
+  expect(view.pick(ray)?.id).toBe('underwater-protection:port-underwater-defense');
+  view.setMode('armor'); view.update(sim.player);
   const bowOrigin = ship.localToWorld(new Vector3(-40, 4, -115)), bowEnd = ship.localToWorld(new Vector3(0, 4, -115));
   expect(view.pick(new Raycaster(bowOrigin, bowEnd.sub(bowOrigin).normalize()))?.id).toBe('structure:hull');
   view.setMode('armor', 'armor:port-belt-support-2'); view.update(sim.player);

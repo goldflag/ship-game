@@ -151,7 +151,10 @@ export class Game {
     this.cameraFrameListeners.add(listener);
     return () => { this.cameraFrameListeners.delete(listener); };
   }
-  selectedFlightId?: string;
+  private flightSelection: string[] = [];
+  get selectedFlightIds(): string[] { return this.flightSelection ?? []; }
+  get selectedFlightId(): string | undefined { return this.selectedFlightIds[0]; }
+  set selectedFlightId(id: string | undefined) { this.flightSelection = id ? [id] : []; }
   private water?: WaterSystem;
   private landscape?: THREE.Group;
   private sky?: SkySystem;
@@ -267,7 +270,7 @@ export class Game {
     this.targetView.root.visible = !this.inPort;
     if (this.definition.airWing) {
       this.callbacks.progress('Loading aircraft', 0.32);
-      await this.aircraftView.load();
+      await this.aircraftView.load(this.definition.airWing.squadrons.map(s => s.modelId));
     }
     this.assertActive();
     this.scene.add(this.playerView.root, this.targetView.root, this.effects.root, this.funnelSmoke.root, this.aircraftView.root, this.torpedoPreview.root);
@@ -512,7 +515,7 @@ export class Game {
         const next = definitions.find(d => !models.has(d.id));
         progress?.(next ? `Loading ${next.name}` : `${def.name} aboard`, 0.08 + hullShare * loaded);
       }
-      if (simulation.actors.some(a => a.definition.airWing)) { progress?.('Spotting the air wing', 0.7); await this.aircraftView.load(); }
+      if (simulation.actors.some(a => a.definition.airWing)) { progress?.('Spotting the air wing', 0.7); await this.aircraftView.load(simulation.actors.flatMap(a => a.definition.airWing?.squadrons.map(s => s.modelId) ?? [])); }
       this.assertActive();
       if (!this.inPort) throw new Error('Return to port before changing fleets.');
       progress?.('Mustering the fleets', 0.78);
@@ -678,7 +681,7 @@ export class Game {
         const hud = this.shipTelemetry(aim);
         this.callbacks.telemetry({ ...hud, camera: this.rig.mode,
           binoculars: this.rig.binoculars, magnification: this.rig.magnification, pointerLocked: this.rig.pointerLocked,
-          viewBearing: this.rig.bearing, chartSize: this.chartSize, airOperationsOpen: this.airOperationsOpen, selectedFlightId: this.selectedFlightId,
+          viewBearing: this.rig.bearing, chartSize: this.chartSize, airOperationsOpen: this.airOperationsOpen, selectedFlightId: this.selectedFlightId, selectedFlightIds: [...this.selectedFlightIds],
           airMap: this.airOperationsOpen ? { ...this.battlefieldCamera.view } : undefined,
           squadronMarkers: this.simulation.actors.flatMap(actor => (airWingTelemetry(actor, this.simulation.actors)?.groups ?? [])
             .filter(f => f.airborne > 0).map(f => {
@@ -750,8 +753,15 @@ export class Game {
     const flight = squadronFlights(this.simulation.player).find(f => f.squadronId === squadronId && f.planeIds.every(id => ['ready', 'lost'].includes(this.simulation.aircraft.find(p => p.id === id)?.phase ?? 'lost')));
     if (!this.inPort && !this.paused && this.simulation.launchAircraft(squadronId)) this.selectedFlightId = flight?.id;
   }
-  selectFlight(id: string): void {
-    if (squadronFlights(this.simulation.player).some(f => f.id === id)) this.selectedFlightId = this.selectedFlightId === id ? undefined : id;
+  selectFlights(ids: string[]): void {
+    const available = new Set(squadronFlights(this.simulation.player).map(f => f.id));
+    this.flightSelection = [...new Set(ids)].filter(id => available.has(id));
+  }
+  selectFlight(id: string, additive = false): void {
+    if (!squadronFlights(this.simulation.player).some(f => f.id === id)) return;
+    const current = this.selectedFlightIds;
+    this.selectFlights(additive ? current.includes(id) ? current.filter(value => value !== id) : [...current, id]
+      : current.length === 1 && current[0] === id ? [] : [id]);
   }
   orderFlight(id: string, order: AirOrder): boolean { return !this.inPort && !this.paused && this.simulation.orderFlight(id, order); }
   commandSquadron(id: string, order: AirOrder): boolean { return !this.inPort && !this.paused && this.simulation.commandSquadron(id, order); }

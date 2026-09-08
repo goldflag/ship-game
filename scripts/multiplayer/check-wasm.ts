@@ -48,7 +48,7 @@ let battleTicks = 0;
 for (const c of battles.cases) {
  const runtime = new wasm.BattleRuntime(await readFile(new URL('../../.build/naval-content/manifest.json', import.meta.url)), JSON.stringify(c.setup));
  try {
-  if (c.id === 'enterprise-cv6') {
+  if (c.baseline.wings.some((w: {ownerId:string}) => w.ownerId === 'player')) {
    const initial = JSON.parse(runtime.migration_snapshot());
    const wing = initial.wings.find((w: {ownerId:string}) => w.ownerId === 'player');
    for (const squadron of [...new Set(wing.state.planes.map((p: {squadronId:string}) => p.squadronId))]) {

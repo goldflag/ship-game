@@ -114,13 +114,12 @@ pub struct AirRelease {
     pub owner_id: String,
     pub position: Vec3,
     pub velocity: Vec3,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub weapon: Option<crate::definition::TorpedoPart>,
 }
 pub const AIRCRAFT_ENDURANCE_SECONDS: f64 = 1050.0;
 pub const FIGHTER_AMMO_BURSTS: f64 = 16.0;
 pub const AIRCRAFT_REPAIR_HP: f64 = 60.0;
-pub fn has_folding_wings(id: &str) -> bool {
-    matches!(id, "f4f-4-wildcat" | "tbd-1-devastator")
-}
 pub fn airborne(p: &Aircraft) -> bool {
     matches!(
         p.phase.as_str(),
@@ -160,6 +159,7 @@ pub fn create_air_wing(
     def: &crate::definition::ShipDefinition,
     owner_id: &str,
     team: TeamId,
+    ground: &std::collections::BTreeMap<String, crate::aircraft_deck::GroundPose>,
 ) -> Option<AirWingState> {
     let wing = def.air_wing.as_ref()?;
     Some(AirWingState {
@@ -188,7 +188,7 @@ pub fn create_air_wing(
                         0.0
                     },
                     payload: s.role != "fighter",
-                    wing_fold: if has_folding_wings(&s.model_id) {
+                    wing_fold: if ground[&s.model_id].folding_wings {
                         1.0
                     } else {
                         0.0

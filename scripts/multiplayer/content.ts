@@ -1,3 +1,4 @@
+import { aircraftBomb, aircraftTorpedo } from '../../src/simulation/aircraftWeapons';
 import { aircraftGroundPose } from '../../src/simulation/aircraftGroundPose';
 import { terrainField } from '../../src/maps/terrain';
 import maps from '../../assets/maps/environments.v1.json';
@@ -13,7 +14,7 @@ const ships = await Promise.all(Object.entries(shipPresets).map(async ([id, defi
 }));
 const manifest = {
   version: 1, rulesVersion: rules.version, ships,
-  aircraft: [...new Set(Object.values(shipPresets).flatMap(def => def.airWing?.squadrons.map(s => s.modelId) ?? []))].map(id => ({ id, ...aircraftGroundPose(id) })),
+  aircraft: [...new Set(Object.values(shipPresets).flatMap(def => def.airWing?.squadrons.map(s => s.modelId) ?? []))].map(id => ({ id, ...aircraftGroundPose(id), bomb: aircraftBomb(id), torpedo: aircraftTorpedo(id) })),
   terrain: [...new Map(maps.maps.flatMap(map => map.land.islands.map(island => {
     const recipe = { ...island, style: map.land.style };
     return [`${island.seed}:${recipe.style}`, { seed: island.seed, style: recipe.style, samples: Array.from(terrainField(recipe)) }] as const;

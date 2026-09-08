@@ -150806,6 +150806,44 @@
       }
     ]
   },
+  "underwaterProtection": {
+    "version": 1,
+    "basis": "Provisional gameplay underwater defense zones: central side coverage and 50% reductions are estimated, not measured historical protection ratings. Ends and keel remain unprotected; no progressive defense failure is modeled.",
+    "zones": [
+      {
+        "id": "port-underwater-defense",
+        "name": "Port underwater defense",
+        "center": [
+          -16.45,
+          -4,
+          0
+        ],
+        "size": [
+          6,
+          8,
+          160
+        ],
+        "damageReduction": 0.5,
+        "breachReduction": 0.5
+      },
+      {
+        "id": "starboard-underwater-defense",
+        "name": "Starboard underwater defense",
+        "center": [
+          16.45,
+          -4,
+          0
+        ],
+        "size": [
+          6,
+          8,
+          160
+        ],
+        "damageReduction": 0.5,
+        "breachReduction": 0.5
+      }
+    ]
+  },
   "compilerVersion": 1,
-  "contentHash": "c13b72fc9389409bf6abdafba611c517bdb41fc10eb5ca8d1268ce5c275bb58d"
+  "contentHash": "a67b4d690fd67b8e9457b2f1426e1fe1734cf812c5b9b30b4759a39de34bf9e8"
 }

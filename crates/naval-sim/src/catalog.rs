@@ -87,11 +87,17 @@ impl Catalog {
         {
             return Err(ContentError::Invalid("invalid baked terrain".into()));
         }
-        if catalog
-            .aircraft
-            .values()
-            .any(|p| !p.pitch.is_finite() || !p.clearance.is_finite() || p.clearance <= 0.0)
-        {
+        if catalog.aircraft.values().any(|p| {
+            !p.pitch.is_finite()
+                || !p.clearance.is_finite()
+                || p.clearance <= 0.0
+                || p.bomb
+                    .as_ref()
+                    .is_none_or(|b| !positive(&[b.caliber_m, b.he.damage, b.he.explosive_kg]))
+                || p.torpedo
+                    .as_ref()
+                    .is_none_or(|t| !positive(&[t.speed, t.range_m, t.damage, t.breach_area_m2]))
+        }) {
             return Err(ContentError::Invalid("Invalid aircraft ground pose".into()));
         }
         for entry in manifest.ships {

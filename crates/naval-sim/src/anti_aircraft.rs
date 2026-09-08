@@ -199,6 +199,7 @@ pub fn update(
             message: format!("{} · AA fire", m.name),
             aircraft: Some(AircraftEffect {
                 id: target.id.clone(),
+                caliber_m: Some(m.weapon.caliber_m),
                 target: Some(endpoint),
                 tracer_speed: Some(m.weapon.muzzle_speed),
                 direction: Some(direction),

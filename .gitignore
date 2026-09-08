@@ -30,3 +30,7 @@ assets/aircraft/*/generated/comparison/
 /src/generated/naval-wasm/
 /.naval-data/
 /src/generated/naval-version.json
+
+# Shokaku's canonical blueprint and runtime definition already retain these inputs.
+assets/ships/shokaku/reports/**/blueprint.json
+assets/ships/shokaku/reports/**/definition.json

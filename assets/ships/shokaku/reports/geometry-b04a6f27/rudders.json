@@ -1,0 +1,51 @@
+{
+  "contentHash": "b04a6f27641f67fb5177bea72d65023751e642a1284735d69f9e090c837ba898",
+  "scope": "Sample retained tandem rudder yaw joints against the actual fixed exterior.\n\nStocks are intended hinge interfaces. Surface-carrier steering does not yet\nanimate these retained joints in normal play; this checks their authored range.\n",
+  "rudders": [
+    {
+      "joint": "rudder-aft.yaw",
+      "anglesDeg": [
+        -35,
+        -30,
+        -25,
+        -20,
+        -15,
+        -10,
+        -5,
+        0,
+        5,
+        10,
+        15,
+        20,
+        25,
+        30,
+        35
+      ],
+      "clashes": []
+    },
+    {
+      "joint": "rudder-forward.yaw",
+      "anglesDeg": [
+        -35,
+        -30,
+        -25,
+        -20,
+        -15,
+        -10,
+        -5,
+        0,
+        5,
+        10,
+        15,
+        20,
+        25,
+        30,
+        35
+      ],
+      "clashes": []
+    }
+  ],
+  "independentNeighborPoses": 225,
+  "neighborClashes": [],
+  "result": "sampled rudder sweep clear"
+}

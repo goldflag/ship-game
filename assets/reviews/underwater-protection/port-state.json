@@ -1,0 +1,6 @@
+{
+  "shipId": "bismarck",
+  "contentHash": "96ac85ae22f22b78a4966838398b75f12eb899d89559ee46dc4993ceac27f43f",
+  "backend": "webgpu",
+  "portInspection": "armor"
+}

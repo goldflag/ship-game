@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "aircraftId": "d3a1-val",
+  "method": "local-blender",
+  "blenderVersion": "5.2.0 LTS",
+  "modelHash": "79b8f763ab3fc5239ccea02ae7fb763eac5afcf3590e294044f0b2ae6a6a2234",
+  "recipeHash": "4dac62f77e03bd34d839afece76b69a852415f46fd2d524f1968006c869223bb",
+  "imageHash": "769145de63392b1d3a7075e2d29607756f4ab7e491f9792a3d71f372f8f681d1",
+  "importedAxes": "nose +Y, starboard +X, up +Z",
+  "projection": "orthographic",
+  "location": [
+    -15.844680786132812,
+    26.649017333984375,
+    18.130043029785156
+  ],
+  "rotationEuler": [
+    1.0413260459899902,
+    -2.0874502126844163e-10,
+    -2.573068141937256
+  ],
+  "scale": 16.462085723876953,
+  "resolution": [
+    320,
+    144
+  ]
+}

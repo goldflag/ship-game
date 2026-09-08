@@ -3,10 +3,22 @@ use crate::{
     vessel::Vessel,
 };
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct GroundPose {
     pub id: String,
     pub pitch: f64,
     pub clearance: f64,
+    #[serde(default)]
+    pub folding_wings: bool,
+    pub torpedo: Option<crate::definition::TorpedoPart>,
+    pub bomb: Option<AirBomb>,
+}
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AirBomb {
+    pub label: String,
+    pub caliber_m: f64,
+    pub he: crate::definition::HEProjectile,
 }
 pub fn deck_attitude(carrier: Pose, ground: &GroundPose, heading: f64) -> FlightAttitude {
     let local = Pose {

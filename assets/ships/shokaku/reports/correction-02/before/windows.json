@@ -1,0 +1,281 @@
+{
+  "contentHash": "16bd50f50408f1a02ed6a0635aaa585a7ae182000b30de6bb7b4ffe5146ef890",
+  "scope": "Superstructure glazing; existing ship-boat window components are a separate asset.",
+  "method": "Pane-center and four inset-corner distances to all opaque island triangles; 1 mm detects coincident walls. Recess/jamb intersections at pane edges are intentional and not sampled. Actual game camera captures separately verify appearance.",
+  "panes": 54,
+  "coplanar": 54,
+  "minimumInteriorClearanceM": 0.0,
+  "rows": [
+    {
+      "object": "Bridge window",
+      "face": 0,
+      "minimumInteriorClearanceM": 0.0
+    },
+    {
+      "object": "Bridge window.001",
+      "face": 0,
+      "minimumInteriorClearanceM": 0.0
+    },
+    {
+      "object": "Bridge window.002",
+      "face": 0,
+      "minimumInteriorClearanceM": 0.0
+    },
+    {
+      "object": "Bridge window.003",
+      "face": 0,
+      "minimumInteriorClearanceM": 0.0
+    },
+    {
+      "object": "Bridge window.004",
+      "face": 0,
+      "minimumInteriorClearanceM": 0.0
+    },
+    {
+      "object": "Bridge window.005",
+      "face": 0,
+      "minimumInteriorClearanceM": 0.0
+    },
+    {
+      "object": "Bridge window.006",
+      "face": 0,
+      "minimumInteriorClearanceM": 0.0
+    },
+    {
+      "object": "Bridge window.007",
+      "face": 0,
+      "minimumInteriorClearanceM": 0.0
+    },
+    {
+      "object": "Bridge window.008",
+      "face": 0,
+      "minimumInteriorClearanceM": 0.0
+    },
+    {
+      "object": "Bridge window.009",
+      "face": 0,
+      "minimumInteriorClearanceM": 0.0
+    },
+    {
+      "object": "Bridge window.010",
+      "face": 0,
+      "minimumInteriorClearanceM": 0.0
+    },
+    {
+      "object": "Bridge window.011",
+      "face": 0,
+      "minimumInteriorClearanceM": 0.0
+    },
+    {
+      "object": "Bridge window.012",
+      "face": 0,
+      "minimumInteriorClearanceM": 0.0
+    },
+    {
+      "object": "Bridge window.013",
+      "face": 0,
+      "minimumInteriorClearanceM": 0.0
+    },
+    {
+      "object": "Bridge window.014",
+      "face": 0,
+      "minimumInteriorClearanceM": 0.0
+    },
+    {
+      "object": "Bridge window.015",
+      "face": 0,
+      "minimumInteriorClearanceM": 9.5367431640625e-07
+    },
+    {
+      "object": "Bridge window.016",
+      "face": 0,
+      "minimumInteriorClearanceM": 0.0
+    },
+    {
+      "object": "Bridge window.017",
+      "face": 0,
+      "minimumInteriorClearanceM": 0.0
+    },
+    {
+      "object": "Bridge window.018",
+      "face": 0,
+      "minimumInteriorClearanceM": 0.0
+    },
+    {
+      "object": "Bridge window.019",
+      "face": 0,
+      "minimumInteriorClearanceM": 0.0
+    },
+    {
+      "object": "Bridge window.020",
+      "face": 0,
+      "minimumInteriorClearanceM": 0.0
+    },
+    {
+      "object": "Bridge window.021",
+      "face": 0,
+      "minimumInteriorClearanceM": 0.0
+    },
+    {
+      "object": "Bridge window.022",
+      "face": 0,
+      "minimumInteriorClearanceM": 0.0
+    },
+    {
+      "object": "Bridge window.023",
+      "face": 0,
+      "minimumInteriorClearanceM": 0.0
+    },
+    {
+      "object": "Bridge window.024",
+      "face": 0,
+      "minimumInteriorClearanceM": 0.0
+    },
+    {
+      "object": "Bridge window.025",
+      "face": 0,
+      "minimumInteriorClearanceM": 0.0
+    },
+    {
+      "object": "Bridge window.026",
+      "face": 0,
+      "minimumInteriorClearanceM": 0.0
+    },
+    {
+      "object": "Bridge window.027",
+      "face": 0,
+      "minimumInteriorClearanceM": 0.0
+    },
+    {
+      "object": "Bridge window.028",
+      "face": 0,
+      "minimumInteriorClearanceM": 0.0
+    },
+    {
+      "object": "Bridge window.029",
+      "face": 0,
+      "minimumInteriorClearanceM": 0.0
+    },
+    {
+      "object": "Bridge window.030",
+      "face": 0,
+      "minimumInteriorClearanceM": 0.0
+    },
+    {
+      "object": "Bridge window.031",
+      "face": 0,
+      "minimumInteriorClearanceM": 0.0
+    },
+    {
+      "object": "Bridge window.032",
+      "face": 0,
+      "minimumInteriorClearanceM": 0.0
+    },
+    {
+      "object": "Bridge window.033",
+      "face": 0,
+      "minimumInteriorClearanceM": 0.0
+    },
+    {
+      "object": "Bridge window.034",
+      "face": 0,
+      "minimumInteriorClearanceM": 0.0
+    },
+    {
+      "object": "Bridge window.035",
+      "face": 0,
+      "minimumInteriorClearanceM": 0.0
+    },
+    {
+      "object": "Bridge window.036",
+      "face": 0,
+      "minimumInteriorClearanceM": 0.0
+    },
+    {
+      "object": "Bridge window.037",
+      "face": 0,
+      "minimumInteriorClearanceM": 0.0
+    },
+    {
+      "object": "Bridge window.038",
+      "face": 0,
+      "minimumInteriorClearanceM": 0.0
+    },
+    {
+      "object": "Bridge window.039",
+      "face": 0,
+      "minimumInteriorClearanceM": 9.5367431640625e-07
+    },
+    {
+      "object": "Bridge window.040",
+      "face": 0,
+      "minimumInteriorClearanceM": 0.0
+    },
+    {
+      "object": "Bridge window.041",
+      "face": 0,
+      "minimumInteriorClearanceM": 0.0
+    },
+    {
+      "object": "Bridge window.042",
+      "face": 0,
+      "minimumInteriorClearanceM": 9.5367431640625e-07
+    },
+    {
+      "object": "Bridge window.043",
+      "face": 0,
+      "minimumInteriorClearanceM": 0.0
+    },
+    {
+      "object": "Bridge window.044",
+      "face": 0,
+      "minimumInteriorClearanceM": 0.0
+    },
+    {
+      "object": "Bridge window.045",
+      "face": 0,
+      "minimumInteriorClearanceM": 0.0
+    },
+    {
+      "object": "Bridge window.046",
+      "face": 0,
+      "minimumInteriorClearanceM": 0.0
+    },
+    {
+      "object": "Bridge window.047",
+      "face": 0,
+      "minimumInteriorClearanceM": 0.0
+    },
+    {
+      "object": "Bridge window.048",
+      "face": 0,
+      "minimumInteriorClearanceM": 0.0
+    },
+    {
+      "object": "Bridge window.049",
+      "face": 0,
+      "minimumInteriorClearanceM": 0.0
+    },
+    {
+      "object": "Bridge window.050",
+      "face": 0,
+      "minimumInteriorClearanceM": 9.5367431640625e-07
+    },
+    {
+      "object": "Bridge window.051",
+      "face": 0,
+      "minimumInteriorClearanceM": 0.0
+    },
+    {
+      "object": "Bridge window.052",
+      "face": 0,
+      "minimumInteriorClearanceM": 0.0
+    },
+    {
+      "object": "Bridge window.053",
+      "face": 0,
+      "minimumInteriorClearanceM": 9.5367431640625e-07
+    }
+  ],
+  "result": "fail"
+}

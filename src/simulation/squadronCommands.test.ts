@@ -115,7 +115,7 @@ for (const blocker of ['airborne', 'deck', 'capacity', 'model', 'role'] as const
   const p = all.find(p => p.id === second.planeIds[0])!;
   if (blocker === 'airborne') { p.phase = 'returning'; p.position = [0, 500, 5000]; }
   if (blocker === 'deck') p.deckSlot = 0;
-  if (blocker === 'model') p.modelId = 'f6f-5-hellcat';
+  if (blocker === 'model') p.modelId = 'a6m2-zero';
   if (blocker === 'role') p.role = 'dive-bomber';
   run(1 / 60);
   expect(groups().find(f => f.id === first.id)!.surviving).toBe(keep);

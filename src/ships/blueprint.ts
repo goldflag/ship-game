@@ -108,6 +108,8 @@ export interface Hull {
 export interface AuthoredStructure {
   id: string; name: string; footprint: [number, number][];
   baseY: number; height: number; material: string;
+  /** Explicit mouth for side-discharging uptakes; otherwise the upper rim is used. */
+  exhaust?: { position: Vec3; width: number; length: number };
   /** Optional original surface for tapered towers and funnel jackets, in runtime coordinates. */
   surface?: AuthoredSurface;
 }
@@ -166,6 +168,15 @@ export interface DamageControlProfile {
   patchM2PerSecond: number; maxPatchM2: number; flashProtection: number; basis: string;
 }
 export type AircraftRole = 'fighter' | 'dive-bomber' | 'torpedo-bomber';
+/** Aircraft with published LODs, authored ground poses and CPU role support. */
+export const GAMEPLAY_AIRCRAFT: Readonly<Record<string, AircraftRole>> = {
+  'f4f-4-wildcat': 'fighter',
+  'sbd-3-dauntless': 'dive-bomber',
+  'tbd-1-devastator': 'torpedo-bomber',
+  'a6m2-zero': 'fighter',
+  'd3a1-val': 'dive-bomber',
+  'b5n2-kate': 'torpedo-bomber',
+};
 export interface AirWingDefinition {
   version: 1; launchPosition: Vec3; recoveryPosition: Vec3; serviceModuleId: string;
   launchIntervalSeconds: number; rearmSeconds: number;
@@ -177,6 +188,8 @@ export interface ShipBlueprint {
   schemaVersion: 1; id: string; name: string; configuration: string;
   coordinates: 'meters-y-up-bow-negative-z'; modelUrl: string;
   damageControl?: DamageControlProfile;
+  /** Ship-local underwater defense coverage; reductions are gameplay calibration. */
+  underwaterProtection?: { version: 1; basis: string; zones: (Volume & { name: string; damageReduction: number; breachReduction: number })[] };
   localDamage?: { version: 1; regions: DamageRegion[]; basis: string };
   stability?: { version: 1; dryCenterOfGravity: Vec3; buoyancyScale: number; shellThicknessMm: number; basis: string };
   hull: Hull; handling: Handling; mounts: Mount[]; armor: Armor[];
@@ -328,6 +341,12 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
       text(s.name, `${s.id}.name`); text(s.material, `${s.id}.material`);
       numeric(s.baseY, `${s.id}.baseY`, -(h.draft as number), 200);
       numeric(s.height, `${s.id}.height`, .001, 100);
+      if (s.exhaust !== undefined) {
+        const exhaust = record(s.exhaust, `${s.id}.exhaust`);
+        vector(exhaust.position, `${s.id}.exhaust.position`);
+        numeric(exhaust.width, `${s.id}.exhaust.width`, .01, 100);
+        numeric(exhaust.length, `${s.id}.exhaust.length`, .01, 100);
+      }
       const points = list(s.footprint, `${s.id}.footprint`, 256);
       if (points.length < 3) fail(String(s.id), 'footprint needs at least three points');
       points.forEach(p => { const pair = list(p, 'footprint point', 2); if (pair.length !== 2) fail(String(s.id), 'expected [x, z]'); pair.forEach(n => numeric(n, 'footprint coordinate', -1000, 1000)); });
@@ -497,6 +516,23 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
     }
   });
   if (modules.some(m => m.servesMountIds !== undefined) && modules.some(m => m.kind === 'fire-control' && m.servesMountIds === undefined)) fail('modules', 'explicit coverage requires every director to declare served mounts');
+  if (b.underwaterProtection !== undefined) {
+    const protection = record(b.underwaterProtection, 'underwaterProtection');
+    literal(protection.version, [1], 'underwaterProtection.version');
+    text(protection.basis, 'underwaterProtection.basis');
+    const zones = volumes(protection.zones, 'underwaterProtection.zones');
+    if (!zones.length) fail('underwaterProtection.zones', 'at least one zone required');
+    zones.forEach(z => {
+      text(z.name, `${z.id}.name`);
+      numeric(z.damageReduction, `${z.id}.damageReduction`, 0, .9);
+      numeric(z.breachReduction, `${z.id}.breachReduction`, 0, .9);
+      const center = z.center as number[], size = z.size as number[];
+      if (center[1] + size[1] / 2 > 0 || center[1] - size[1] / 2 < -(h.draft as number)
+        || Math.abs(center[0]) + size[0] / 2 > (h.beam as number) / 2 + 1e-6
+        || Math.abs(center[2]) + size[2] / 2 > (h.length as number) / 2)
+        fail(String(z.id), 'underwater protection outside submerged hull envelope');
+    });
+  }
   if (b.localDamage !== undefined) {
     const local = record(b.localDamage, 'localDamage');
     literal(local.version, [1], 'localDamage.version'); text(local.basis, 'localDamage.basis');
@@ -689,10 +725,9 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
     const squadrons = list(wing.squadrons, 'airWing.squadrons', 3).map(s => record(s, 'squadron'));
     if (!squadrons.length) fail('airWing.squadrons', 'requires aircraft');
     unique(squadrons, 'airWing.squadrons');
-    const models: Record<string, string> = { 'f4f-4-wildcat': 'fighter', 'sbd-3-dauntless': 'dive-bomber', 'tbd-1-devastator': 'torpedo-bomber' };
     for (const squadron of squadrons) {
       id(squadron.id, 'squadron.id'); text(squadron.name, 'squadron.name');
-      if (models[String(squadron.modelId)] !== squadron.role || !squadron.role) fail('squadron.modelId', 'unknown aircraft or incompatible role');
+      if (!Object.hasOwn(GAMEPLAY_AIRCRAFT, String(squadron.modelId)) || GAMEPLAY_AIRCRAFT[String(squadron.modelId)] !== squadron.role) fail('squadron.modelId', 'unknown aircraft or incompatible role');
       numeric(squadron.count, 'squadron.count', 1, 36);
       if (!Number.isInteger(squadron.count)) fail('squadron.count', 'expected an integer');
     }

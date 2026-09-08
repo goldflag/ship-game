@@ -437,6 +437,93 @@
       ]
     },
     {
+      "id": "shokaku",
+      "hydrostatics": {
+        "volume": 44841.707560557086,
+        "center": [
+          -1.1921545068047186,
+          -3.105277975157586,
+          -7.809083081461175
+        ]
+      },
+      "flotation": {
+        "volume": 31321.954745905157,
+        "center": [
+          -1.5927723747355464,
+          -4.432623779131884,
+          -11.733039871504598
+        ],
+        "y": 1.365456143543124,
+        "afloat": true
+      },
+      "water": [
+        {
+          "id": "forward-ordnance",
+          "body": {
+            "volume": 297.62208,
+            "roll": 0.21,
+            "pitch": -0.013,
+            "level": -4.814612979135075,
+            "area": 137.08700531575658,
+            "center": [
+              -0.7203758572110524,
+              -4.812106272017206,
+              -86.16887271810187
+            ]
+          },
+          "nextLevel": -2.995629192702189
+        },
+        {
+          "id": "aft-ordnance",
+          "body": {
+            "volume": 383.616,
+            "roll": 0.21,
+            "pitch": -0.013,
+            "level": -2.6826730299609762,
+            "area": 176.6964622759483,
+            "center": [
+              -1.080113738425568,
+              -4.773647310654405,
+              77.81288341484557
+            ]
+          },
+          "nextLevel": -0.8636892435280901
+        },
+        {
+          "id": "boiler-port-1",
+          "body": {
+            "volume": 226.461312,
+            "roll": 0.21,
+            "pitch": -0.013,
+            "level": -6.131526670031384,
+            "area": 94.8271014214256,
+            "center": [
+              -5.677151684471843,
+              -5.716938250880951,
+              -47.083351933386965
+            ]
+          },
+          "nextLevel": -4.13064450495521
+        },
+        {
+          "id": "boiler-starboard-1",
+          "body": {
+            "volume": 226.461312,
+            "roll": 0.21,
+            "pitch": -0.013,
+            "level": -4.005415360658486,
+            "area": 94.8271014214256,
+            "center": [
+              4.522848315528156,
+              -5.716938250880952,
+              -47.08335193338698
+            ]
+          },
+          "nextLevel": -2.0045331955823116
+        }
+      ]
+    },
+    {
       "id": "type-viic",
       "hydrostatics": {
         "volume": 1156.892080079733,
@@ -4787,6 +4874,410 @@
       ]
     },
     {
+      "id": "shokaku",
+      "ship": {
+        "id": "shokaku",
+        "tick": 0,
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "roll": -0.04,
+        "pitch": 0.01,
+        "heading": 0.7,
+        "speed": 0,
+        "swaySpeed": 0,
+        "rudder": 0,
+        "yawRate": 0,
+        "distance": 0,
+        "verticalSpeed": 0,
+        "waveHeave": 0,
+        "driftX": 0,
+        "driftZ": 0
+      },
+      "states": [
+        {
+          "state": {
+            "id": "aa127-port-1",
+            "train": 0,
+            "elevation": 0.017453292519943295,
+            "reload": 0,
+            "ammo": 600,
+            "heAmmo": 600,
+            "loaded": "ap",
+            "hp": 100,
+            "recoil": 0,
+            "status": "empty"
+          },
+          "muzzle": [
+            -19.929302443816272,
+            13.069932021482758,
+            -75.05
+          ]
+        },
+        {
+          "state": {
+            "id": "aa127-port-2",
+            "train": 0,
+            "elevation": 0.017453292519943295,
+            "reload": 0,
+            "ammo": 600,
+            "heAmmo": 600,
+            "loaded": "ap",
+            "hp": 100,
+            "recoil": 0,
+            "status": "empty"
+          },
+          "muzzle": [
+            -19.929302443816272,
+            13.069932021482758,
+            -55.35
+          ]
+        },
+        {
+          "state": {
+            "id": "aa127-port-3",
+            "train": 0,
+            "elevation": 0.017453292519943295,
+            "reload": 0,
+            "ammo": 600,
+            "heAmmo": 600,
+            "loaded": "ap",
+            "hp": 100,
+            "recoil": 0,
+            "status": "empty"
+          },
+          "muzzle": [
+            -21.179302443816272,
+            13.069932021482758,
+            57.85
+          ]
+        },
+        {
+          "state": {
+            "id": "aa127-port-4",
+            "train": 0,
+            "elevation": 0.017453292519943295,
+            "reload": 0,
+            "ammo": 600,
+            "heAmmo": 600,
+            "loaded": "ap",
+            "hp": 100,
+            "recoil": 0,
+            "status": "empty"
+          },
+          "muzzle": [
+            -21.179302443816272,
+            13.069932021482758,
+            71.65
+          ]
+        },
+        {
+          "state": {
+            "id": "aa127-starboard-1",
+            "train": 0,
+            "elevation": 0.017453292519943295,
+            "reload": 0,
+            "ammo": 600,
+            "heAmmo": 600,
+            "loaded": "ap",
+            "hp": 100,
+            "recoil": 0,
+            "status": "empty"
+          },
+          "muzzle": [
+            19.929302443816272,
+            13.069932021482758,
+            -76.35000000000001
+          ]
+        },
+        {
+          "state": {
+            "id": "aa127-starboard-2",
+            "train": 0,
+            "elevation": 0.017453292519943295,
+            "reload": 0,
+            "ammo": 600,
+            "heAmmo": 600,
+            "loaded": "ap",
+            "hp": 100,
+            "recoil": 0,
+            "status": "empty"
+          },
+          "muzzle": [
+            19.929302443816272,
+            13.069932021482758,
+            -56.65
+          ]
+        },
+        {
+          "state": {
+            "id": "aa127-starboard-3",
+            "train": 0,
+            "elevation": 0.017453292519943295,
+            "reload": 0,
+            "ammo": 600,
+            "heAmmo": 600,
+            "loaded": "ap",
+            "hp": 100,
+            "recoil": 0,
+            "status": "empty"
+          },
+          "muzzle": [
+            21.179302443816272,
+            13.069932021482758,
+            40.550000000000004
+          ]
+        },
+        {
+          "state": {
+            "id": "aa127-starboard-4",
+            "train": 0,
+            "elevation": 0.017453292519943295,
+            "reload": 0,
+            "ammo": 600,
+            "heAmmo": 600,
+            "loaded": "ap",
+            "hp": 100,
+            "recoil": 0,
+            "status": "empty"
+          },
+          "muzzle": [
+            21.179302443816272,
+            13.069932021482758,
+            55.050000000000004
+          ]
+        },
+        {
+          "state": {
+            "id": "aa25-port-1",
+            "train": 0,
+            "elevation": 0.017453292519943295,
+            "reload": 0,
+            "ammo": 4500,
+            "heAmmo": 4500,
+            "loaded": "ap",
+            "hp": 100,
+            "recoil": 0,
+            "status": "empty"
+          },
+          "muzzle": [
+            -17.72977763492833,
+            15.625480513398434,
+            42.43
+          ]
+        },
+        {
+          "state": {
+            "id": "aa25-port-2",
+            "train": 0,
+            "elevation": 0.017453292519943295,
+            "reload": 0,
+            "ammo": 4500,
+            "heAmmo": 4500,
+            "loaded": "ap",
+            "hp": 100,
+            "recoil": 0,
+            "status": "empty"
+          },
+          "muzzle": [
+            -17.72977763492833,
+            15.625480513398434,
+            35.13
+          ]
+        },
+        {
+          "state": {
+            "id": "aa25-port-3",
+            "train": 0,
+            "elevation": 0.017453292519943295,
+            "reload": 0,
+            "ammo": 4500,
+            "heAmmo": 4500,
+            "loaded": "ap",
+            "hp": 100,
+            "recoil": 0,
+            "status": "empty"
+          },
+          "muzzle": [
+            -17.72977763492833,
+            15.625480513398434,
+            19.03
+          ]
+        },
+        {
+          "state": {
+            "id": "aa25-port-4",
+            "train": 0,
+            "elevation": 0.017453292519943295,
+            "reload": 0,
+            "ammo": 4500,
+            "heAmmo": 4500,
+            "loaded": "ap",
+            "hp": 100,
+            "recoil": 0,
+            "status": "empty"
+          },
+          "muzzle": [
+            -17.72977763492833,
+            15.625480513398434,
+            11.93
+          ]
+        },
+        {
+          "state": {
+            "id": "aa25-port-5",
+            "train": 0,
+            "elevation": 0.017453292519943295,
+            "reload": 0,
+            "ammo": 4500,
+            "heAmmo": 4500,
+            "loaded": "ap",
+            "hp": 100,
+            "recoil": 0,
+            "status": "empty"
+          },
+          "muzzle": [
+            -17.72977763492833,
+            15.625480513398434,
+            4.33
+          ]
+        },
+        {
+          "state": {
+            "id": "aa25-port-6",
+            "train": 0,
+            "elevation": 0.017453292519943295,
+            "reload": 0,
+            "ammo": 4500,
+            "heAmmo": 4500,
+            "loaded": "ap",
+            "hp": 100,
+            "recoil": 0,
+            "status": "empty"
+          },
+          "muzzle": [
+            -17.72977763492833,
+            15.625480513398434,
+            -2.7700000000000005
+          ]
+        },
+        {
+          "state": {
+            "id": "aa25-starboard-1",
+            "train": 0,
+            "elevation": 0.017453292519943295,
+            "reload": 0,
+            "ammo": 4500,
+            "heAmmo": 4500,
+            "loaded": "ap",
+            "hp": 100,
+            "recoil": 0,
+            "status": "empty"
+          },
+          "muzzle": [
+            17.72977763492833,
+            15.625480513398434,
+            97.77
+          ]
+        },
+        {
+          "state": {
+            "id": "aa25-starboard-2",
+            "train": 0,
+            "elevation": 0.017453292519943295,
+            "reload": 0,
+            "ammo": 4500,
+            "heAmmo": 4500,
+            "loaded": "ap",
+            "hp": 100,
+            "recoil": 0,
+            "status": "empty"
+          },
+          "muzzle": [
+            17.72977763492833,
+            15.625480513398434,
+            90.86999999999999
+          ]
+        },
+        {
+          "state": {
+            "id": "aa25-starboard-3",
+            "train": 0,
+            "elevation": 0.017453292519943295,
+            "reload": 0,
+            "ammo": 4500,
+            "heAmmo": 4500,
+            "loaded": "ap",
+            "hp": 100,
+            "recoil": 0,
+            "status": "empty"
+          },
+          "muzzle": [
+            17.72977763492833,
+            15.625480513398434,
+            74.86999999999999
+          ]
+        },
+        {
+          "state": {
+            "id": "aa25-starboard-4",
+            "train": 0,
+            "elevation": 0.017453292519943295,
+            "reload": 0,
+            "ammo": 4500,
+            "heAmmo": 4500,
+            "loaded": "ap",
+            "hp": 100,
+            "recoil": 0,
+            "status": "empty"
+          },
+          "muzzle": [
+            17.72977763492833,
+            15.625480513398434,
+            68.36999999999999
+          ]
+        },
+        {
+          "state": {
+            "id": "aa25-starboard-5",
+            "train": 0,
+            "elevation": 0.017453292519943295,
+            "reload": 0,
+            "ammo": 4500,
+            "heAmmo": 4500,
+            "loaded": "ap",
+            "hp": 100,
+            "recoil": 0,
+            "status": "empty"
+          },
+          "muzzle": [
+            19.47977763492833,
+            15.625480513398434,
+            -15.629999999999999
+          ]
+        },
+        {
+          "state": {
+            "id": "aa25-starboard-6",
+            "train": 0,
+            "elevation": 0.017453292519943295,
+            "reload": 0,
+            "ammo": 4500,
+            "heAmmo": 4500,
+            "loaded": "ap",
+            "hp": 100,
+            "recoil": 0,
+            "status": "empty"
+          },
+          "muzzle": [
+            19.47977763492833,
+            15.625480513398434,
+            -22.83
+          ]
+        }
+      ]
+    },
+    {
       "id": "type-viic",
       "ship": {
         "id": "type-viic",
@@ -6394,6 +6885,99 @@
           "rudder": -0.5,
           "yawRate": -0.0007403466845377439,
           "distance": 36.51888693093915,
+          "verticalSpeed": 0,
+          "waveHeave": 0,
+          "driftX": 0,
+          "driftZ": 0
+        }
+      ]
+    },
+    {
+      "id": "shokaku",
+      "handling": {
+        "forwardSpeed": 17.49111111111111,
+        "reverseSpeed": 3.6,
+        "acceleration": 0.2,
+        "braking": 0.17,
+        "rudderRate": 0.4,
+        "maxYawRate": 0.023
+      },
+      "inputs": [
+        {
+          "ticks": 300,
+          "command": {
+            "throttle": 1,
+            "rudder": 0
+          }
+        },
+        {
+          "ticks": 600,
+          "command": {
+            "throttle": 0.75,
+            "rudder": 0.6
+          }
+        },
+        {
+          "ticks": 240,
+          "command": {
+            "throttle": -1,
+            "rudder": -0.5
+          }
+        }
+      ],
+      "checkpoints": [
+        {
+          "id": "shokaku",
+          "tick": 300,
+          "x": 0,
+          "y": 0,
+          "z": -2.50583333333333,
+          "roll": 0,
+          "pitch": 0,
+          "heading": 0,
+          "speed": 0.9994999999999962,
+          "swaySpeed": 0,
+          "rudder": 0,
+          "yawRate": 0,
+          "distance": 2.50583333333333,
+          "verticalSpeed": 0,
+          "waveHeave": 0,
+          "driftX": 0,
+          "driftZ": 0
+        },
+        {
+          "id": "shokaku",
+          "tick": 900,
+          "x": 0.0772264075499774,
+          "y": 0,
+          "z": -22.51727714210858,
+          "roll": 0,
+          "pitch": 0,
+          "heading": 0.011099018871712829,
+          "speed": 2.999500000000042,
+          "swaySpeed": -0.005249148080975282,
+          "rudder": 0.6,
+          "yawRate": 0.0020491457716197915,
+          "distance": 22.517510803545697,
+          "verticalSpeed": 0,
+          "waveHeave": 0,
+          "driftX": 0,
+          "driftZ": 0
+        },
+        {
+          "id": "shokaku",
+          "tick": 1140,
+          "x": 0.2033584522699995,
+          "y": 0,
+          "z": -33.148877024422326,
+          "roll": 0,
+          "pitch": 0,
+          "heading": 0.014875461050635863,
+          "speed": 2.3195000000000636,
+          "swaySpeed": -0.003799105043748774,
+          "rudder": -0.5,
+          "yawRate": -0.000558085454517152,
+          "distance": 33.149866797446194,
           "verticalSpeed": 0,
           "waveHeave": 0,
           "driftX": 0,

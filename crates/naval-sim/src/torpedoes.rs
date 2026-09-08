@@ -342,6 +342,45 @@ pub fn first_torpedo_hit(
     }
     result
 }
+pub fn torpedo_protection(def: &ShipDefinition, point: Vec3) -> (f64, f64, String) {
+    let mut result = (0.0_f64, 0.0_f64, String::new());
+    if let Some(protection) = &def.underwater_protection {
+        for zone in &protection.zones {
+            if !(0..3).all(|i| (point[i] - zone.center[i]).abs() <= zone.size[i] / 2.0 + 1e-6) {
+                continue;
+            }
+            if zone.damage_reduction > result.0 || zone.breach_reduction > result.1 {
+                result.2 = zone.name.clone();
+            }
+            result.0 = result.0.max(zone.damage_reduction);
+            result.1 = result.1.max(zone.breach_reduction);
+        }
+    }
+    result
+}
+pub fn damage_torpedo_hit(
+    actor: &mut Combatant,
+    def: &ShipDefinition,
+    point: Vec3,
+    weapon: &TorpedoPart,
+    projectile: i64,
+) -> String {
+    let (damage_reduction, breach_reduction, name) = torpedo_protection(def, point);
+    let label = if name.is_empty() {
+        "Torpedo hit".into()
+    } else {
+        format!("Torpedo hit · {name}")
+    };
+    damage_underwater_blast(
+        actor,
+        def,
+        point,
+        weapon.damage * 0.625 * (1.0 - damage_reduction),
+        weapon.breach_area_m2 * (7.0 / 11.0) * (1.0 - breach_reduction),
+        &label,
+        projectile,
+    )
+}
 pub fn damage_underwater_blast(
     actor: &mut Combatant,
     def: &ShipDefinition,

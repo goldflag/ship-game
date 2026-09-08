@@ -1,0 +1,46 @@
+{
+  "contentHash": "2d43863548c9dfcee9b1822b75dee70d501d16271e334d13ce5c1accfd00c0b8",
+  "backend": "webgpu",
+  "fixture": "Actual loaded GLB; all ship geometry present. Camera overrides restored after capture.",
+  "images": [
+    {
+      "name": "decks-forward-high",
+      "camera": [
+        30,
+        36,
+        -53
+      ],
+      "target": [
+        13.35,
+        18.8,
+        -39
+      ]
+    },
+    {
+      "name": "decks-aft-high",
+      "camera": [
+        28,
+        35,
+        -25
+      ],
+      "target": [
+        13.35,
+        18.8,
+        -39
+      ]
+    },
+    {
+      "name": "decks-top",
+      "camera": [
+        13.35,
+        48,
+        -39
+      ],
+      "target": [
+        13.35,
+        19,
+        -39.1
+      ]
+    }
+  ]
+}

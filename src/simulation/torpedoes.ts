@@ -139,7 +139,26 @@ export function firstTorpedoHit(torpedo: Torpedo, from: Vec3, to: Vec3, actors: 
 
 /** Bounded contact blast and one local breach. These are explicit gameplay values. */
 export function damageTorpedoHit(torpedo: Torpedo, actor: FleetActor, point: Vec3): string {
-  return damageUnderwaterBlast(actor, point, torpedo.weapon, 'Torpedo hit', torpedo.id);
+  const protection = torpedoProtection(actor.definition, point);
+  // Common torpedo tuning includes aircraft, ship and future custom weapons.
+  // Depth charges use damageUnderwaterBlast directly and retain their own tuning.
+  const damage = torpedo.weapon.damage * .625 * (1 - protection.damageReduction);
+  const breachAreaM2 = torpedo.weapon.breachAreaM2 * (7 / 11) * (1 - protection.breachReduction);
+  return damageUnderwaterBlast(actor, point, { damage, breachAreaM2 },
+    protection.name ? `Torpedo hit · ${protection.name}` : 'Torpedo hit', torpedo.id);
+}
+
+/** Only the zone containing the actual ship-local contact protects it. Overlapping
+ * zones never stack; the strongest reductions win independently. */
+export function torpedoProtection(def: ShipDefinition, point: Vec3) {
+  const result = { damageReduction: 0, breachReduction: 0, name: '' };
+  for (const zone of def.underwaterProtection?.zones ?? []) {
+    if (!point.every((v, i) => Math.abs(v - zone.center[i]) <= zone.size[i] / 2 + 1e-6)) continue;
+    if (zone.damageReduction > result.damageReduction || zone.breachReduction > result.breachReduction) result.name = zone.name;
+    result.damageReduction = Math.max(result.damageReduction, zone.damageReduction);
+    result.breachReduction = Math.max(result.breachReduction, zone.breachReduction);
+  }
+  return result;
 }
 
 /** Common local underwater damage; callers own blast falloff, scoring and events. */

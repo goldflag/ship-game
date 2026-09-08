@@ -342,6 +342,32 @@ pub struct DamageControlProfile {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ShipDefinitionUnderwaterProtectionZonesItem {
+    #[serde(rename = "id")]
+    pub id: String,
+    #[serde(rename = "center")]
+    pub center: [f64; 3],
+    #[serde(rename = "size")]
+    pub size: [f64; 3],
+    #[serde(rename = "name")]
+    pub name: String,
+    #[serde(rename = "damageReduction")]
+    pub damage_reduction: f64,
+    #[serde(rename = "breachReduction")]
+    pub breach_reduction: f64,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ShipDefinitionUnderwaterProtection {
+    #[serde(rename = "version")]
+    pub version: f64,
+    #[serde(rename = "basis")]
+    pub basis: String,
+    #[serde(rename = "zones")]
+    pub zones: Vec<ShipDefinitionUnderwaterProtectionZonesItem>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct DamageRegion {
     #[serde(rename = "name")]
     pub name: String,
@@ -750,6 +776,16 @@ pub struct ShipDefinitionMountEnvelope {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct AuthoredStructureExhaust {
+    #[serde(rename = "position")]
+    pub position: [f64; 3],
+    #[serde(rename = "width")]
+    pub width: f64,
+    #[serde(rename = "length")]
+    pub length: f64,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct AuthoredSurface {
     #[serde(rename = "vertices")]
     pub vertices: Vec<[f64; 3]>,
@@ -771,6 +807,8 @@ pub struct AuthoredStructure {
     pub height: f64,
     #[serde(rename = "material")]
     pub material: String,
+    #[serde(rename = "exhaust")]
+    pub exhaust: Option<AuthoredStructureExhaust>,
     #[serde(rename = "surface")]
     pub surface: Option<AuthoredSurface>,
 }
@@ -825,6 +863,8 @@ pub struct ShipDefinition {
     pub model_url: String,
     #[serde(rename = "damageControl")]
     pub damage_control: Option<DamageControlProfile>,
+    #[serde(rename = "underwaterProtection")]
+    pub underwater_protection: Option<ShipDefinitionUnderwaterProtection>,
     #[serde(rename = "localDamage")]
     pub local_damage: Option<ShipDefinitionLocalDamage>,
     #[serde(rename = "stability")]

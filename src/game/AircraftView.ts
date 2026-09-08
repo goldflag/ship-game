@@ -14,6 +14,7 @@ import { aircraftOrdnanceGeometry } from '../../assets/effects/naval/aircraft-or
 import { FIXED_DT } from '../simulation/ship';
 import { ShipMaterialPalette } from './ShipMaterialPalette';
 import { batchShipModel } from './ShipBatching';
+import { GAMEPLAY_AIRCRAFT } from '../ships/blueprint';
 
 // Authored deck capacity is bounded at 24; hangar aircraft have no scene instance.
 // Three may bind the full matrix array as uniforms even when few instances draw.
@@ -73,12 +74,17 @@ export class AircraftView {
     }
   }
   resize(height: number) { this.height = Math.max(1, height); this.contacts.resize(height); }
-  load(): Promise<void> {
-    return this.loadPromise ??= this.loadModels();
+  load(modelIds: readonly string[] = Object.keys(GAMEPLAY_AIRCRAFT)): Promise<void> {
+    const ids = [...new Set(modelIds)];
+    if (ids.some(id => !Object.hasOwn(GAMEPLAY_AIRCRAFT, id))) return Promise.reject(new Error('Unsupported combat aircraft'));
+    // A later fleet can introduce another air group. Serialize additions so
+    // overlapping requests share existing models and disposal can await them.
+    return this.loadPromise = (this.loadPromise ?? Promise.resolve()).catch(() => {}).then(() => this.loadModels(ids));
   }
-  private async loadModels() {
+  private async loadModels(ids: readonly string[]) {
+    const previous = new Set(this.models.keys());
     const palette = new ShipMaterialPalette();
-    const results = await Promise.allSettled(['f4f-4-wildcat', 'sbd-3-dauntless', 'tbd-1-devastator'].flatMap(id => [0, 1, 2].map(async lod => {
+    const results = await Promise.allSettled(ids.flatMap(id => [0, 1, 2].filter(lod => !previous.has(`${id}/${lod}`)).map(async lod => {
       const url = assetUrl(lod ? `models/aircraft/LOD${lod}/${id}-lod${lod}.glb` : `models/aircraft/${id}.glb`);
       const root = (await new GLTFLoader().loadAsync(url)).scene;
       // The shared authoring-node boundaries preserve propellers, controls,
@@ -104,7 +110,7 @@ export class AircraftView {
       this.models.set(`${id}/${lod}`, model);
     })));
     const failure = results.find(r => r.status === 'rejected');
-    if (failure?.status === 'rejected') { this.clearModels(); this.loadPromise = undefined; throw failure.reason; }
+    if (failure?.status === 'rejected') { this.clearModels(new Set([...this.models.keys()].filter(key => !previous.has(key)))); throw failure.reason; }
   }
   update(sim: BattleSession, camera: THREE.Camera, visible: boolean, inPort = false, carrierRoots = new Map<string, THREE.Object3D>()) {
     this.root.visible = visible;
@@ -218,9 +224,12 @@ export class AircraftView {
     this.gunfire.update(sim, camera);
   }
   diagnostics() { return { models: this.models.size, instances: [...this.models.values()].reduce((n, m) => n + m.count, 0), batches: [...this.models.values()].reduce((n, m) => n + Math.ceil(m.count / BATCH_CAPACITY) * m.meshes.length, 0), culled: this.culled, silhouettes: this.silhouettes, contacts: this.contacts.count, payloads: this.payloadCount + this.bombCount, bombs: this.bombCount, tracers: this.gunfire.diagnostics() }; }
-  private clearModels() {
-    for (const model of this.models.values()) { for (const { batches } of model.meshes) for (const batch of batches) { batch.removeFromParent(); batch.dispose(); batch.geometry.dispose(); } disposeObjects(model.root); }
-    this.models.clear();
+  private clearModels(keys = new Set(this.models.keys())) {
+    for (const key of keys) {
+      const model = this.models.get(key)!;
+      for (const { batches } of model.meshes) for (const batch of batches) { batch.removeFromParent(); batch.dispose(); batch.geometry.dispose(); }
+      disposeObjects(model.root); this.models.delete(key);
+    }
   }
   async dispose() {
     await this.loadPromise?.catch(() => {});

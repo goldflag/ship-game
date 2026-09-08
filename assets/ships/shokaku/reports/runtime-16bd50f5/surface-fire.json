@@ -1,0 +1,296 @@
+{
+  "contentHash": "16bd50f50408f1a02ed6a0635aaa585a7ae182000b30de6bb7b4ffe5146ef890",
+  "fixture": "Player at broadside to static Bismarck; HE selected through Game command, normal fire queue and projectile simulation.",
+  "before": 58800,
+  "after": 58792,
+  "shots": [
+    {
+      "kind": "shot",
+      "position": [
+        75.04554062736116,
+        13.001278365328718,
+        -20.056933458177394
+      ],
+      "shipId": "player",
+      "message": "Aa127 Port 1 fired",
+      "shell": {
+        "id": 1,
+        "caliberM": 0.127,
+        "velocity": [
+          -9.49757198753816,
+          46.95856945207969,
+          -718.8334337308586
+        ],
+        "ammunition": "he",
+        "type": "HE"
+      },
+      "tick": 312
+    },
+    {
+      "kind": "shot",
+      "position": [
+        76.34539004715229,
+        13.000582091319265,
+        -20.076707205196634
+      ],
+      "shipId": "player",
+      "message": "Aa127 Port 1 fired",
+      "shell": {
+        "id": 2,
+        "caliberM": 0.127,
+        "velocity": [
+          -10.915737460432181,
+          46.77846975785315,
+          -717.2576774090893
+        ],
+        "ammunition": "he",
+        "type": "HE"
+      },
+      "tick": 312
+    },
+    {
+      "kind": "shot",
+      "position": [
+        55.365740094071235,
+        13.007210879776672,
+        -20.05977308899387
+      ],
+      "shipId": "player",
+      "message": "Aa127 Port 2 fired",
+      "shell": {
+        "id": 3,
+        "caliberM": 0.127,
+        "velocity": [
+          -7.52946835943225,
+          46.235516309574386,
+          -720.0574048117314
+        ],
+        "ammunition": "he",
+        "type": "HE"
+      },
+      "tick": 312
+    },
+    {
+      "kind": "shot",
+      "position": [
+        56.66565759314098,
+        13.00659265118426,
+        -20.074405703444313
+      ],
+      "shipId": "player",
+      "message": "Aa127 Port 2 fired",
+      "shell": {
+        "id": 4,
+        "caliberM": 0.127,
+        "velocity": [
+          -7.830150210527103,
+          47.69276982843113,
+          -722.6767741143002
+        ],
+        "ammunition": "he",
+        "type": "HE"
+      },
+      "tick": 312
+    },
+    {
+      "kind": "shot",
+      "position": [
+        -57.71796037094415,
+        13.022365195193707,
+        -21.3243981389581
+      ],
+      "shipId": "player",
+      "message": "Aa127 Port 3 fired",
+      "shell": {
+        "id": 5,
+        "caliberM": 0.127,
+        "velocity": [
+          7.346056243850187,
+          48.59527836477226,
+          -718.1631962420003
+        ],
+        "ammunition": "he",
+        "type": "HE"
+      },
+      "tick": 312
+    },
+    {
+      "kind": "shot",
+      "position": [
+        -56.41804599063221,
+        13.02219569693823,
+        -21.30947918696531
+      ],
+      "shipId": "player",
+      "message": "Aa127 Port 3 fired",
+      "shell": {
+        "id": 6,
+        "caliberM": 0.127,
+        "velocity": [
+          8.598092109295207,
+          45.6839923482807,
+          -718.2958834271351
+        ],
+        "ammunition": "he",
+        "type": "HE"
+      },
+      "tick": 312
+    },
+    {
+      "kind": "shot",
+      "position": [
+        -71.50375970969097,
+        13.026554335379943,
+        -21.326016079141517
+      ],
+      "shipId": "player",
+      "message": "Aa127 Port 4 fired",
+      "shell": {
+        "id": 7,
+        "caliberM": 0.127,
+        "velocity": [
+          10.667222951865652,
+          46.04047765078077,
+          -717.9831741304865
+        ],
+        "ammunition": "he",
+        "type": "HE"
+      },
+      "tick": 312
+    },
+    {
+      "kind": "shot",
+      "position": [
+        -70.20389165942247,
+        13.026439551601364,
+        -21.307494774764326
+      ],
+      "shipId": "player",
+      "message": "Aa127 Port 4 fired",
+      "shell": {
+        "id": 8,
+        "caliberM": 0.127,
+        "velocity": [
+          10.261123350319739,
+          47.59821239969165,
+          -722.811800177364
+        ],
+        "ammunition": "he",
+        "type": "HE"
+      },
+      "tick": 312
+    }
+  ],
+  "state": {
+    "label": "surface-fire",
+    "tick": 1111,
+    "hash": "16bd50f50408f1a02ed6a0635aaa585a7ae182000b30de6bb7b4ffe5146ef890",
+    "aircraft": {
+      "models": 18,
+      "instances": 0,
+      "batches": 0,
+      "culled": 0,
+      "silhouettes": 0,
+      "contacts": 0,
+      "payloads": 0,
+      "bombs": 0,
+      "tracers": 0
+    },
+    "fleet": [
+      {
+        "id": "player",
+        "definitionId": "shokaku",
+        "team": "friendly",
+        "controller": "player",
+        "motion": {
+          "id": "player",
+          "tick": 1111,
+          "x": 0.7128033257480567,
+          "y": -0.05647172294628063,
+          "z": 0.499110261949741,
+          "roll": 0.005071678701934711,
+          "pitch": -0.0008392883412533731,
+          "heading": 1.5707963267948966,
+          "speed": 0,
+          "swaySpeed": 0,
+          "rudder": 0,
+          "yawRate": 0,
+          "distance": 0,
+          "verticalSpeed": 0.014580082769413,
+          "waveHeave": -0.05801354228238979,
+          "driftX": 0.06677141740800487,
+          "driftZ": 0.046753849806031984
+        },
+        "ammo": 58792,
+        "integrity": 44800
+      },
+      {
+        "id": "friendly-1",
+        "definitionId": "enterprise-cv6",
+        "team": "friendly",
+        "controller": "bot",
+        "aiLevel": "static",
+        "motion": {
+          "id": "friendly-1",
+          "tick": 1111,
+          "x": 650.7128033257491,
+          "y": -0.04864572652968452,
+          "z": 0.499110261949741,
+          "roll": -0.004894161796569035,
+          "pitch": -0.002413084027069911,
+          "heading": 0,
+          "speed": 0,
+          "swaySpeed": 0,
+          "rudder": 0,
+          "yawRate": 0,
+          "distance": 0,
+          "verticalSpeed": 0.10363602737286842,
+          "waveHeave": -0.01755501769925872,
+          "driftX": 0.06677141740800487,
+          "driftZ": 0.046753849806031984
+        },
+        "ammo": 69680,
+        "integrity": 41300
+      },
+      {
+        "id": "enemy-1",
+        "definitionId": "bismarck",
+        "team": "enemy",
+        "controller": "bot",
+        "aiLevel": "static",
+        "motion": {
+          "id": "enemy-1",
+          "tick": 1111,
+          "x": 0.7128033257480567,
+          "y": -0.009602264467718901,
+          "z": -4999.500889738059,
+          "roll": -0.0020381852963310848,
+          "pitch": -0.004160305548390593,
+          "heading": 3.141592653589793,
+          "speed": 0,
+          "swaySpeed": 0,
+          "rudder": 0,
+          "yawRate": 0,
+          "distance": 0,
+          "verticalSpeed": -0.10252104929064994,
+          "waveHeave": 0.00021592140630169107,
+          "driftX": 0.06677141740800487,
+          "driftZ": 0.046753849806031984
+        },
+        "ammo": 41560,
+        "integrity": 49497
+      }
+    ],
+    "phases": {
+      "ready": 72
+    }
+  },
+  "muzzleErrorM": 0.0021605566986366348,
+  "eventCount": 25,
+  "eventCounts": {
+    "burst": 9,
+    "contact": 8,
+    "shot": 8
+  },
+  "retention": "All eight shot events, ammunition deltas and final state are retained. The duplicate full event stream is replaced by counts. No new gameplay run."
+}

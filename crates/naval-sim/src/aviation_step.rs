@@ -448,7 +448,7 @@ impl Aviation {
             r.velocity[1] -= 9.81 * dt;
             r.position = add(r.position, scale(r.velocity, dt));
             if r.position[1] <= 0.0 {
-                let weapon = air_torpedo();
+                let weapon = r.weapon.clone().unwrap_or_else(air_torpedo);
                 let velocity = scale(normalize([r.velocity[0], 0.0, r.velocity[2]]), weapon.speed);
                 let position = [r.position[0], -weapon.running_depth_m, r.position[2]];
                 ctx.torpedoes.push(Torpedo {
@@ -496,7 +496,7 @@ impl Aviation {
         if p.phase == "lost" {
             return;
         }
-        let fold = if has_folding_wings(&p.model_id)
+        let fold = if ground.folding_wings
             && matches!(
                 p.phase.as_str(),
                 "ready" | "queued" | "parking" | "rearming"
@@ -569,7 +569,7 @@ impl Aviation {
         }
         if matches!(p.phase.as_str(), "taxi" | "parking" | "rollout") {
             if p.phase == "taxi" && p.wing_fold > 0.0
-                || p.phase == "parking" && has_folding_wings(&p.model_id) && p.wing_fold < 1.0
+                || p.phase == "parking" && ground.folding_wings && p.wing_fold < 1.0
             {
                 deck_pose(p, actor, p.deck_position.unwrap(), &ground);
                 return;
@@ -1135,10 +1135,14 @@ impl Aviation {
             let error = (landing[0] - impact_aim[0]).hypot(landing[2] - impact_aim[2]);
             if error < 22.0 && p.pitch < -0.25 && p.position[1] > target_point[1] + 90.0 {
                 let id = ctx.next_id();
+                let bomb = self.ground[&p.model_id]
+                    .bomb
+                    .as_ref()
+                    .expect("Missing aircraft bomb definition");
                 let shell = Shell {
                     id,
                     owner_id: p.owner_id.clone(),
-                    weapon_label: Some("500 lb HE bomb".into()),
+                    weapon_label: Some(bomb.label.clone()),
                     bomb: Some(FlightAttitude {
                         heading: p.heading,
                         pitch: p.pitch,
@@ -1146,17 +1150,11 @@ impl Aviation {
                     }),
                     position: add(p.position, [0.0, -1.0, 0.0]),
                     velocity: p.velocity,
-                    damage: 380.0,
-                    caliber_m: 0.35,
+                    damage: bomb.he.damage,
+                    caliber_m: bomb.caliber_m,
                     ammunition: Some(crate::weapons::Ammunition::He),
                     shell_type: Some("HE".into()),
-                    he: Some(crate::definition::HEProjectile {
-                        explosive_kg: 120.0,
-                        fragment_penetration_mm: 75.0,
-                        damage: 380.0,
-                        stock_fraction: 1.0,
-                        basis: "Provisional 500 lb gameplay bomb; contact fuze".into(),
-                    }),
+                    he: Some(bomb.he.clone()),
                     ..Default::default()
                 };
                 let effect = ShellEffect::from_shell(&shell);
@@ -1181,7 +1179,10 @@ impl Aviation {
                 p.pilot.attack_stage = Some("egress".into());
             }
         } else {
-            let weapon = air_torpedo();
+            let weapon = self.ground[&p.model_id]
+                .torpedo
+                .clone()
+                .unwrap_or_else(air_torpedo);
             let fall = (-3.0 + (9.0 + 19.62 * p.position[1].max(0.0)).sqrt()) / 9.81;
             let entry = add(p.position, scale([p.velocity[0], 0.0, p.velocity[2]], fall));
             let future = add(target_point, scale(target.motion.velocity(), fall));
@@ -1217,6 +1218,7 @@ impl Aviation {
                     owner_id: p.owner_id.clone(),
                     position: p.position,
                     velocity: [p.velocity[0], -3.0, p.velocity[2]],
+                    weapon: Some(weapon),
                 });
                 p.payload = false;
                 p.phase = "returning".into();

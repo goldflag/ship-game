@@ -805,15 +805,7 @@ fn step_torpedoes(
             let armed = t.distance + travel * at >= w.arming_distance_m;
             let hp = a.damage.integrity;
             let message = if armed {
-                torpedoes::damage_underwater_blast(
-                    a,
-                    &def,
-                    point,
-                    w.damage,
-                    w.breach_area_m2,
-                    "Torpedo hit",
-                    t.id,
-                )
+                torpedoes::damage_torpedo_hit(a, &def, point, w, t.id)
             } else {
                 "Torpedo dud · impact before arming".into()
             };

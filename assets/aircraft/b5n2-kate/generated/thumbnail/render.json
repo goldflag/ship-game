@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "aircraftId": "b5n2-kate",
+  "method": "local-blender",
+  "blenderVersion": "5.2.0 LTS",
+  "modelHash": "169fea9006c2fc4673bcdb59718b481bc7e16462f5300c3d33533c1d994883cb",
+  "recipeHash": "4dac62f77e03bd34d839afece76b69a852415f46fd2d524f1968006c869223bb",
+  "imageHash": "831a467a32f6dfa02bef26247f45625cd1047ea4af922bc2c869f714117a46ed",
+  "importedAxes": "nose +Y, starboard +X, up +Z",
+  "projection": "orthographic",
+  "location": [
+    -16.960309982299805,
+    28.03546905517578,
+    19.069782257080078
+  ],
+  "rotationEuler": [
+    1.0413261651992798,
+    -2.6810152320422276e-08,
+    -2.573068380355835
+  ],
+  "scale": 16.29314422607422,
+  "resolution": [
+    320,
+    144
+  ]
+}
