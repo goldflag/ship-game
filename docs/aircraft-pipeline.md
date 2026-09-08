@@ -45,6 +45,11 @@ bun run build
 
 The pipeline locks its writer, rechecks inputs before publication, and replaces individual files atomically. Publication of multiple aircraft is not one transaction. If interrupted, complete `aircraft:build all`, or finish MCP authoring and `aircraft:publish all`; partial rebuilds of changed shared inputs leave checks visibly stale.
 
+Retained export reports compare exactly except for last-bit platform differences
+in calculated `joints[].maximumVertexTravel`. That field allows four relative
+machine epsilons; model hashes, bounds, counts and other fields remain exact.
+The checker still inspects every published and retained GLB independently.
+
 ## Blender MCP
 
 Squadron cards require a baked thumbnail for every model in `GAMEPLAY_AIRCRAFT`. Build and publish generate these automatically; `aircraft:check` rejects missing or stale thumbnails. To repair only an image without rebuilding geometry, run `bun run aircraft:thumbnail <id>`. The original `assets/aircraft/thumbnail.py` recipe renders the validated GLB with local Blender and retains its model, recipe and image hashes.

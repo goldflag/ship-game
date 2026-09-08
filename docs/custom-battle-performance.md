@@ -76,10 +76,10 @@ cloth skips integration, subpixel scars skip draws until resolved, and unchanged
 damage labels retain their content and measured dimensions. Combat tick rate,
 aircraft population, particle capacity, ocean quality and ship assets are retained.
 
-Relevant tests and TypeScript checks pass. The full build gate currently stops at
-the pre-existing `tbd-1-devastator` stale retained export report; ship checks pass.
-Production rendering was measured using `vite build` separately, without bypassing
-or modifying the asset validator.
+Relevant tests and TypeScript checks passed. At this measurement, the full build
+stopped at a pre-existing `tbd-1-devastator` retained export report mismatch;
+production rendering was measured using `vite build` separately. That comparison
+has since been corrected as described below.
 
 Forced WebGL on this machine fails during harbor warmup with shader validation
 errors and device loss in both the baseline and changed versions. WebGL could not
@@ -129,3 +129,11 @@ windows at 35.9–50.3 FPS, one frame over 100 ms, and 117.9 seconds of simulati
 progress. This longer run contradicts sustained 60 FPS and is the next profiling
 case. `profile=1&profileAfter=60` starts main-thread phase instrumentation after
 the first minute; worker timing remains enabled throughout that diagnostic run.
+
+The full build's aircraft-report failure was traced to one-bit differences in
+`Math.hypot` results for measured joint travel (for example, 4.183700613547448
+versus 4.1837006135474475 metres). Report comparison now allows four relative
+machine epsilons only for `joints[].maximumVertexTravel`, including each LOD.
+Model/source hashes, geometry counts, bounds and all other fields remain exact;
+retained assets and hashes were not rewritten. The normal `bun run build` passes
+with every ship and aircraft validator enabled.

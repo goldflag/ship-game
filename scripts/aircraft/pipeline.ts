@@ -5,6 +5,7 @@ import { dirname, join, resolve, sep } from 'node:path';
 import { validateAircraftCatalog, validateAircraftShape, type AircraftEntry } from './catalog';
 import { aircraftNodeIds, aircraftFoldIds, inspectAircraftLods } from './glb';
 import { GAMEPLAY_AIRCRAFT } from '../../src/ships/blueprint';
+import { aircraftReportMatches } from './report';
 
 const root = resolve(import.meta.dir, '../..');
 const sourceDir = join(root, 'assets/aircraft');
@@ -147,7 +148,7 @@ async function check(entry: AircraftEntry) {
     inspectProducts(entry, generatedDir(entry.id)),
   ]);
   for (const [level, model] of runtimeModels.entries()) if (hash(model) !== report.lods[level].modelHash) throw new Error(`${entry.id}: retained and runtime LOD${level} GLBs differ`);
-  if (JSON.stringify(JSON.parse(storedReport)) !== JSON.stringify(report)) throw new Error(`${entry.id}: retained export report is stale. Run aircraft:build ${entry.id}.`);
+  if (!aircraftReportMatches(JSON.parse(JSON.stringify(report)), JSON.parse(storedReport))) throw new Error(`${entry.id}: retained export report is stale. Run aircraft:build ${entry.id}.`);
   const manifest = { schemaVersion: 1, contentHash, modelHash: report.modelHash, ...report.review };
   if (JSON.stringify(JSON.parse(reviewManifest)) !== JSON.stringify(manifest)) throw new Error(`${entry.id}: review manifest is stale. Run aircraft:review ${entry.id}.`);
   const thumbnailReport = join(generatedDir(entry.id), 'thumbnail/render.json');
