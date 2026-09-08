@@ -176,6 +176,8 @@ bun run ship:check my-ship
 
 Before authoring historical geometry, inspect the corresponding GameModels3D or War Thunder model as the primary visual reference. Corroborate details with historical plans and photographs; report unavailable primary models explicitly. Independently author all geometry and textures. Keep concise configuration, inspected model links and limitations in the ship README. Research downloads, logs and diagnostic results belong in ignored `.build/`; do not create ship `reports/` or `references/` folders.
 
+Use [Blender MCP for interactive authoring and visual correction](docs/ship-build-reference.md#blender-mcp-authoring-loop), then preserve accepted changes in original recipes/components and rebuild through `ship:build`. Reinspect the rebuilt scene and exported model before accepting the result.
+
 Follow the [ship pipeline](docs/ship-pipeline.md), [file layout and build details](docs/ship-build-reference.md), [model review](docs/ship-model-review.md) and [runtime contract](docs/ship-runtime-contract.md). The original Bismarck baseline remains protected. Passing export checks validates authored targets, not historical accuracy. The old port reference pages and archive comparison commands are retired.
 
 ### Local model overlay

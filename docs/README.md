@@ -7,6 +7,7 @@ Start with [AGENTS.md](../AGENTS.md) for repository rules. Read the task's curre
 | Task | Guide | Source of truth |
 | --- | --- | --- |
 | Create or modify a ship | [Ship pipeline](ship-pipeline.md) | Per-ship blueprint, original recipes and component catalog |
+| Iterate on ship geometry with Blender MCP | [MCP authoring loop](ship-build-reference.md#blender-mcp-authoring-loop) | Live scene inspection, durable recipe edits and clean rebuild verification |
 | Overlay ship/reference models | [Local comparison app](../tools/ship-overlay/README.md) | Our runtime GLB plus ignored local reference geometry |
 | Review model quality | [Ship model review](ship-model-review.md) | Four required visual checks on the exact published model |
 | Change ship components or combat | [Runtime/component reference](ship-runtime-contract.md) | Validated definitions and renderer-free simulation |
