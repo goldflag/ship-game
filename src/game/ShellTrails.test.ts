@@ -89,14 +89,37 @@ test('busy salvos grow GPU batches and clear every page', () => {
   } finally { trails.dispose(); }
 });
 
-test('shell-follow reveals the physical round and keeps history ready when the camera pulls back', () => {
+test('close views and distant views both retain the round trail', () => {
   const trails = new ShellTrails(), shell = { ...round(), age: .01 };
   const closeCamera = new PerspectiveCamera(52, 16 / 9, .1, 30000);
   closeCamera.position.set(0, 103, -990); closeCamera.lookAt(...shell.position); closeCamera.updateMatrixWorld();
   try {
     trails.update([shell], .01, closeCamera);
-    expect(trails.diagnostics()).toEqual({ histories: 1, segments: 0 });
+    expect(trails.diagnostics()).toEqual({ histories: 1, segments: 1 });
     trails.update([shell], 0, camera);
     expect(trails.diagnostics()).toEqual({ histories: 1, segments: 1 });
+  } finally { trails.dispose(); }
+});
+
+test('a trail crossing the follow camera clips at the near plane and stays thin at both ends', () => {
+  const trails = new ShellTrails(), shell = round();
+  const closeCamera = new PerspectiveCamera(52, 16 / 9, .5, 30000);
+  closeCamera.position.set(2, 101, -990); closeCamera.lookAt(0, 100, -920); closeCamera.updateMatrixWorld();
+  try {
+    shell.velocity = [0, 0, 800];
+    trails.update([shell], 0, closeCamera);
+    shell.age = .1; shell.position[2] = -920;
+    trails.update([shell], .1, closeCamera);
+    const segments = endpoints(trails.mesh, trails.diagnostics().segments);
+    expect(segments).toHaveLength(1);
+    for (const [side, point] of segments[0].entries()) {
+      const depth = -point.clone().applyMatrix4(closeCamera.matrixWorldInverse).z;
+      expect(depth).toBeGreaterThan(closeCamera.near - .0001);
+      const width = trails.mesh.geometry.getAttribute(side ? 'headWidth' : 'tailWidth').getX(0);
+      const pixels = width * closeCamera.projectionMatrix.elements[5] / (2 * depth) * 720;
+      expect(pixels).toBeGreaterThan(1);
+      expect(pixels).toBeLessThan(3);
+    }
+    expect(segments[0][1].distanceTo(new Vector3(...shell.position))).toBeLessThan(.001);
   } finally { trails.dispose(); }
 });

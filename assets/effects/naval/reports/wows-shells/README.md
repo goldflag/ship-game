@@ -1,5 +1,7 @@
 # Shell tracers and projectile detail — September 7, 2026
 
+The close-camera visibility behavior in this historical review is superseded by the [T shot-follow correction](../shot-follow/README.md), which keeps trails visible at close range. Original captures and source hashes below are preserved.
+
 The owner's [World of Warships screenshot](user-reference.png) supplies the visual target: compact white-gold heads above long, thin pale trails. It is comparison evidence only. Geometry and trail shading are authored independently.
 
 - [Main salvo](salvo.png): eight live CPU-fired rounds, 0.65 seconds after firing toward a 12 km aim point.
