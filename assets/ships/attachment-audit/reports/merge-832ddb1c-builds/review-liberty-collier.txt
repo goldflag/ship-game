@@ -1,3 +1,0 @@
-$ bun scripts/ships/pipeline.ts review liberty-collier
-review.py completed; log in /Users/bill/orca/workspaces/ship-game/sunstar/.build/ships/liberty-collier
-Orthographic review views: /Users/bill/orca/workspaces/ship-game/sunstar/assets/ships/liberty-collier/generated/review

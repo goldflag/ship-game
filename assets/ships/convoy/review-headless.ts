@@ -8,7 +8,7 @@ if (!/^http:\/\/127\.0\.0\.1:\d+$/.test(origin)) throw new Error('Pass the local
 const chrome = process.env.CONVOY_CHROME_BIN ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const profile = await mkdtemp(join(tmpdir(), 'convoy-headless-'));
 const portOnly = process.argv.includes('--port-only');
-const folder = new URL(`./reports/${portOnly ? 'browser-port' : 'browser'}/`, import.meta.url);
+const folder = new URL(`../../../.build/ships/convoy/${portOnly ? 'browser-port' : 'browser'}/`, import.meta.url);
 const ids = ['flower-corvette', 'liberty-cargo', 'liberty-collier', 'victory-cargo'];
 const publishedHash = async (id: string) => (await Bun.file(new URL(`../../../public/models/${id}.json`, import.meta.url)).json()).contentHash as string;
 const presetHashes = Object.fromEntries(await Promise.all(ids.map(async id => [id, await publishedHash(id)])));

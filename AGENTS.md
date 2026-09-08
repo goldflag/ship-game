@@ -16,12 +16,13 @@ Read the relevant [README](README.md) sections for product behavior and architec
 
 ## Invariants
 
-- Author ships through blueprints, the component catalog and original recipes. Keep original assets, sources, references and reports under `assets/`; preserve `assets/ships/bismarck/baseline/`.
+- Author ships through blueprints, the component catalog and original recipes under `assets/`; preserve `assets/ships/bismarck/baseline/`.
+- Do not create or commit ship `reports/` or `references/` directories. Downloads, exploratory captures, logs and diagnostic output belong in ignored `.build/`. Keep only concise configuration, source links and known limitations in the ship README; do not replace the deleted archive with another tracked folder.
 - Generated Blender/GLB files are build outputs. Record durable changes in a recipe or versioned original component asset.
 - Use `ship:new`, `ship:compile`, `ship:build`, `ship:check` and `ship:review`. Discover available Blender MCP tools; use local Blender when unavailable and report the tool actually used.
 - Preserve stable assembly/joint/socket IDs and the documented coordinate conversion. Keep independent moving parts and pivot empties.
 - Keep simulation renderer-free. CPU simulation owns combat poses, firing, hits, modules and flooding; GPU ocean samples are visual-only.
-- GameModels3D is comparison evidence. Author geometry/textures independently; record approximations and unresolved sources. Passing export checks never certifies historical accuracy.
+- Before authoring historical geometry, inspect the corresponding GameModels3D or War Thunder model as the primary visual reference for shape, proportions, equipment placement and fittings. State which model/configuration you inspected in the ship README. Use historical plans and photographs to corroborate details and resolve discrepancies. If access or a suitable model is unavailable, report it explicitly; do not silently substitute historical-only research or claim inspection happened. Author geometry/textures independently. Passing export checks never certifies historical accuracy.
 - Extend the existing naval instrument styling. Keep the ship and sea visible and damage feedback inspectable.
 
 ## Model acceptance
@@ -33,7 +34,7 @@ Complete [all four visual checks](docs/ship-model-review.md):
 3. Exposed guns have intricate, variant-specific mechanisms and fittings.
 4. Turrets, barrels and fittings clear the ship throughout traverse, elevation and recoil, including intermediate poses and independently moving neighbors.
 
-Retain review evidence for the exact model hash. Fix failures in durable inputs and repeat affected reviews.
+Review the exact published model. Fix failures in durable inputs and repeat affected reviews. Use `.build/` for temporary evidence; do not commit review reports or reference downloads.
 
 ## Validation and integration
 

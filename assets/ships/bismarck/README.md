@@ -1,33 +1,26 @@
 # Bismarck · Baltic paint, March–May 1941
 
-The latest combined build and exact-hash review are recorded in [the integration review](reports/paint-crest-integration/README.md). Earlier review captures retain their original hashes.
+24 May 1941 fit; standard 9.33 m reference draft (not battle load)
 
-An independent reconstruction authored from reviewed dimensions, historical drawings/photographs and neutral GameModels3D screenshots. The fit is 24 May 1941; the display uses a separate 9.33 m standard draft, not an asserted battle-day displacement or trim. The earlier original model remains untouched in `baseline/` and is not an input.
+Open `/?ship=bismarck` or select this ship in port or Custom battle.
 
-The exterior now wears the requested **March–May 1941 Baltic trials paint**: three black/white hull bands continuing as black diagonals over the upperworks, dark gray ends with false white waves, dark turret roofs, and red recognition fields with white discs and black swastikas on the fore and aft decks. This is the earlier paint scheme applied to the retained equipment reconstruction, not the ship's paint at the Denmark Strait engagement. `paint-scheme.json` holds versioned metric paint boundaries and an estimated palette; `paint.py` creates two original packed textures and projects UVs onto existing surfaces. Both are registered build inputs. No reference pixels, decal geometry, or renderer changes are used. See [paint evidence and validation](reports/baltic-paint-1941/README.md).
+`blueprint.json` and `build.py` are the durable inputs; reusable equipment comes from `assets/parts/`. `recipe-inputs.json` declares additional original dependencies. Generated Blender scenes and runtime models are build outputs.
 
-`blueprint.json` owns the newly authored hull sections, superstructure footprints, 38 mount positions, 509 compiled physical protection plates, 39 internal envelopes and provisional handling. `build.py` creates fresh topology and materials, using the original reusable gun component catalog. No game-model vertices, offsets, UVs, textures or attachment transforms are production inputs. `generated/source.blend` and `public/models/bismarck.glb` are generated outputs.
+The previous authoring workflow used [Bismarck ’41 on GameModels3D](https://gamemodels3d.com/en/games/worldofwarships/vehicles/pgsb708) for visual comparison. Recheck its configuration when changing geometry.
 
-The second exterior iteration added bridge/director tiers, gallery shields, funnel equipment, light AA, boat hulls and hangar doors, lattice cranes, deck fittings and original baked teak. The third correction reshapes the bow into a curved stem with a nearly vertical forefoot, and replaces the main gunhouses with a longer rear enclosure, narrower near-vertical sides, sloped shoulders and planar roofs. See the [correction report](reports/visual-iteration-03/README.md) and [preceding detail pass](reports/visual-iteration-02/README.md). The original ten main/secondary mounts retain their stable IDs. Eight twin 105 mm, eight twin 37 mm and twelve single 20 mm AA fittings now have blueprint-driven yaw, elevation, recoil and muzzle chains; the two upper quad 20 mm fittings remain visual. The AA fire-control and supply calibration is provisional; see the discrepancy register.
+Authored hull: 250.5 m long, 36 m beam, 9.33 m draft. These are model inputs, not a new historical-accuracy certification.
 
-The [fourth correction](reports/visual-iteration-04/README.md) adds original secondary gunhouse facets, thinner barrels and pleated blast bags. Their rear roof ridge, sloping front roof and clipped nose now share geometry with moving armor. The navigation wheelhouse sits forward of a separate conning enclosure; glazing follows its actual walls, and the tower galleries have recessed centers and projecting wings. The six transverse protection sections follow the local hull instead of crossing it as constant-width rectangles. After future hull changes, run `python3 assets/ships/bismarck/fit-transverse-armor.py` to refit those blueprint polygons, then rebuild and review.
+- **Exterior:** Independent 1941-04: revised secondary gunhouses, separated navigation/conning bridge and scalloped tower galleries. Principal dimensions documented; local shapes and fittings remain image estimates.
+- **Internals:** Plate thicknesses and machinery sequence evidence-based; room boundaries and hull-conforming plate envelopes approximate. Standard-draft datum, not battle displacement.
+- **Weapons:** Independent gunhouse polygons; historical bore and turret frames. Simplified geometry and AP budget, no fuze, spall or material penetration model. AA: eight twin 105 mm, eight twin 37 mm and twelve single 20 mm mounts use original visual placements and provisional CPU fire control. Two upper quad 20 mm fittings remain decorative.
 
 ```sh
-# From the repository root; see scripts/reference/README.md for prerequisites.
-bun run ship:reference bismarck     # Optional refresh: isolated raw cache → indexed raster pack
 bun run ship:compile bismarck
-bun run ship:build bismarck         # Original geometry, GLB, checks, thumbnail and comparison pack
-bun run ship:review bismarck        # Five fixed export-review views
-bun run ship:independence bismarck  # Repeat full build with raw game cache unavailable
+bun run ship:build bismarck
+bun run ship:review bismarck
 bun run ship:check bismarck
-bun test
-bun run build
 ```
 
-The retained GameModels3D pack is [browsable here](references/gamemodels3d/index.html), with source, camera, scale, visibility and per-image hashes in its manifest. Historical originals, crops and download provenance stay under `references/historical/`. The [specification](modeling-spec.json) records the common datum, source quality, reviewed targets, uncertainty and registration. WoWS EU 15.7.0.0 is comparison evidence, not historical ground truth.
+Keep the current fixed views in `generated/review/`. Ship report/reference archives are removed. Research downloads, diagnostic results and extra captures belong in ignored `.build/`; do not recreate a tracked archive. Keep source links and lasting limitations here.
 
-Open [the comparison page](generated/comparison/index.html), or choose **Reference review** in port. It includes matched overall/detail views, historical overlays, protection sections, measurements, landmark deviations and downloadable [review ZIP](generated/comparison/bismarck-review.zip). Extract the ZIP and open `index.html` for offline review. Its Blender/catalog snapshot is editable; rebuilding uses this repository’s shared tools. The production GLB is also downloadable separately.
-
-**Armor / Internals** in port show the same protection and spaces used by the CPU simulation. The complete hull and 24 major deckhouse/tower/funnel surfaces also register hits, using provisional 20 mm hull and 8 mm superstructure plating where armor is absent. Those thicknesses are gameplay estimates; the conning enclosure still lacks its historical armor schedule. Filter by name and select a layer/room to inspect it. Turret armor is compiled from the same 44 main or 24 secondary facets per component that Blender renders, and trains with its mount. Belt, backing, support and turtleback remain separate crossings; teak backing has zero assigned steel resistance. Magazine rooms sit above shell rooms; machinery follows six boiler rooms, two wing turbine rooms and the farther-aft central turbine room, with shaft passages and steering aft.
-
-Exact original hull offsets and a complete measured general arrangement remain unavailable. Hull form, turret housing details, room boundaries, flooding capacities, small fittings and combat performance retain explicit approximations. Read the [discrepancy register](reports/discrepancies.md), [validation report](reports/validation.md) and [source register](references/sources.json) before interpreting successful build checks as evidence of historical accuracy.
+Follow the [ship pipeline](../../../docs/ship-pipeline.md) and [model review](../../../docs/ship-model-review.md). Preserve the original `baseline/` unchanged. The separate paint recipe and `paint-scheme.json` are registered original inputs.

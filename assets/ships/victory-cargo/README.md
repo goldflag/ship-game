@@ -1,11 +1,26 @@
 # Victory Cargo — VC2-S-AP2
 
-A separate Victory-class freighter, not a relabeled Liberty. Reconstructed from National Park Service **HAER CA-345, Winthrop Victory**, especially sheet 2 (profile), sheet 3 (decks) and sheet 6 (body/half-breadth/lines).
+VC2-S-AP2 Victory cargo ship, 1945 arrangement; 6000 shp geared steam turbine
 
-The 455 ft 3 in × 62 ft hull is longer and wider, with a raised forecastle, different stem/counter, paired cargo kingposts, separate house kingposts and geared turbine machinery. The AP2's nominal 6,000 shp/15 kn is used, not the faster AP3's 17 kn. Five hatches, aft 5-inch, bow 3-inch and eight Oerlikons are a representative historical armed arrangement.
+Open `/?ship=victory-cargo` or select this ship in port or Custom battle.
 
-The HAER drawings were made in 2010 using historical drawings and photographs; the model does not claim to depict the exact laid-up 2010 ship. Hull interpolation, fine equipment and loading remain reconstructed.
+`blueprint.json` and `build.py` are the durable inputs; reusable equipment comes from `assets/parts/`. `recipe-inputs.json` declares additional original dependencies. Generated Blender scenes and runtime models are build outputs.
 
-Build: `bun run ship:build victory-cargo`. Review: `bun run ship:review victory-cargo`.
+Before changing historical geometry, inspect the corresponding GameModels3D or War Thunder model as the primary visual reference. If unavailable, state that explicitly.
 
-See [sources](references/sources.json), [discrepancies](reports/discrepancies.md) and [shared authoring/review](../convoy/README.md).
+Authored hull: 138.76 m long, 18.8976 m beam, 8.6868 m draft. These are model inputs, not a new historical-accuracy certification.
+
+- **Exterior:** Independently reconstructed from National Park Service HAER CA-345 Winthrop Victory sheets 2, 3 and 6: 455 ft 3 in overall, 62 ft beam, raised forecastle, five hatches, paired kingposts, turbine machinery, superstructure and hull lines. HAER drawings were made in 2010 from historical drawings and photographs; loading and fine equipment remain estimates, not a claim to match the laid-up vessel in 2010.
+- **Internals:** Estimated watertight envelopes, permeability, machinery and magazines. Finite-angle stability calibrated to stated displacement and an estimated GM; room boundaries are not historical plans.
+- **Weapons:** Representative armed merchant battery: aft 5-inch, bow 3-inch and Oerlikons. Dated weapons inventory is unresolved for the collier. Shared CPU surface gunnery; game ballistics and ammunition.
+
+```sh
+bun run ship:compile victory-cargo
+bun run ship:build victory-cargo
+bun run ship:review victory-cargo
+bun run ship:check victory-cargo
+```
+
+Keep the current fixed views in `generated/review/`. Ship report/reference archives are removed. Research downloads, diagnostic results and extra captures belong in ignored `.build/`; do not recreate a tracked archive. Keep source links and lasting limitations here.
+
+Follow the [ship pipeline](../../../docs/ship-pipeline.md) and [model review](../../../docs/ship-model-review.md).

@@ -1,39 +1,26 @@
 # USS Baltimore (CA-68)
 
-Original, independently authored Baltimore-class cruiser reconstruction targeting October 1943. Built through the shared, versioned ship blueprint and component pipeline. Historical accuracy is **under review**, not certified.
+CA-68 · October 1943 exterior · 24 ft 2 in limiting keel-draft datum; dimensional reconstruction under review
 
-[Fidelity 01](reports/fidelity-01/README.md) records the faired retained hull/bridge outlines, original faceted gunhouses and service fittings, complete structural coverage including the transom, provisional protection/internals, twelve matched views and current WebGPU checks. Reference review in port opens the portable comparison pack.
+Open `/?ship=baltimore` or select this ship in port or Custom battle.
 
-The dimensional datum is the Navy's documented **24 ft 2 in limiting keel draft**. This is distinct from the **26 ft 10 in maximum navigational draft**, which includes projections below the keel. The 1945 tabulation does not establish Baltimore's precise October 1943 displacement.
+`blueprint.json` and `build.py` are the durable inputs; reusable equipment comes from `assets/parts/`. `recipe-inputs.json` declares additional original dependencies. Generated Blender scenes and runtime models are build outputs.
 
-| Dimension | Documented value | Source |
-| --- | --- | --- |
-| Length overall | 673 ft 5 in / 205.2574 m | NAVSHIPS 250-010, p. 26 |
-| Length on waterline | 664 ft / 202.3872 m | NAVSHIPS 250-010, p. 26 |
-| Extreme beam | 70 ft 10 in / 21.59 m | NAVSHIPS 250-010, p. 26 |
-| Limiting keel draft | 24 ft 2 in / 7.366 m | NAVSHIPS 250-010, p. 27 |
-| Maximum navigational draft | 26 ft 10 in / 8.1788 m | NAVSHIPS 250-010, p. 27 |
+Before changing historical geometry, inspect the corresponding GameModels3D or War Thunder model as the primary visual reference. If unavailable, state that explicitly.
 
-`blueprint.json` owns the hull stations, 120 retained hull sections informed by primary class comparisons, deckhouse footprints, nine main/dual-purpose mounts, twelve quad 40 mm Bofors mounts, and provisional simulation volumes. `build.py` creates the retained Blender source, catalog guns, masts, directors, twin aircraft cranes, twin catapults, original indicative OS2U aircraft, light AA, four shafts, and a rudder. The six twin 5-inch and twelve quad Bofors mounts engage aircraft through shared combat state; the single 20 mm guns and aircraft remain visual fittings.
+Authored hull: 205.257 m long, 21.59 m beam, 7.366 m draft. These are model inputs, not a new historical-accuracy certification.
 
-Run:
+- **Exterior:** LOA, beam, waterline length and limiting keel draft are documented in NAVSHIPS 250-010. Top envelope and longitudinal stations are measured from the Navy camouflage drawing. Underwater sections and smaller fittings remain interpreted.
+- **Internals:** Physical protection surfaces and contained provisional room envelopes. Thickness families, boundaries, capacities, flooding and ballistics remain estimates.
+- **Weapons:** Original catalog-based 8-inch triple / 5-inch twin components; primary turret section OP1112 p517. Secondary shield details and AA fittings remain under review. The twelve quad 40 mm Bofors mounts now use shared aiming, finite ammunition and damage alongside the six twin 5-inch DP mounts. AA rates and arcs are gameplay approximations; the single 20 mm fittings remain visual.
 
 ```sh
 bun run ship:compile baltimore
 bun run ship:build baltimore
-bun run ship:check baltimore
-bun assets/ships/baltimore/measure.ts
 bun run ship:review baltimore
-bun run ship:compare baltimore
-bun run ship:independence baltimore
+bun run ship:check baltimore
 ```
 
-Read [the source register](references/sources.json), [measurements](references/measurements.json), and [open discrepancies](reports/discrepancies.md). Reference photographs and scans remain reference-only assets. None are baked onto the ship. The wartime camouflage drawing provides geometry evidence; its later dazzle scheme is not used on the 1943 model.
+Keep the current fixed views in `generated/review/`. Ship report/reference archives are removed. Research downloads, diagnostic results and extra captures belong in ignored `.build/`; do not recreate a tracked archive. Keep source links and lasting limitations here.
 
-For a readable source gallery and an explanation of the fitting process, read [references and reconstruction method](reports/references-and-method.md).
-
-The actual GLB now matches overall length, beam, keel draft and waterline length within a 5 mm computational tolerance. This does not represent the uncertainty of the historical sources. See [the decoded-geometry measurements](reports/dimensions.json).
-
-High-resolution original Baltimore bridge plans, a commissioning photograph, Quincy docking plans, and Canberra cross sections are retained under references/. The sister-ship sheets inform the class hull, staggered shafts and rudder. Later annotations and missile-conversion features are explicitly excluded from the 1943 fit. Full Baltimore hull offsets, five missing BGP sheets, fine superstructure layout, light AA placements, shield details, paint values and internal arrangements still require further evidence.
-
-Open the playable preset at `http://localhost:5175/?ship=baltimore` while the development server is running. The ship is identified as a United States heavy cruiser.
+Follow the [ship pipeline](../../../docs/ship-pipeline.md) and [model review](../../../docs/ship-model-review.md).

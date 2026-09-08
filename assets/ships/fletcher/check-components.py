@@ -27,5 +27,5 @@ for deg in [-15,0,40,85]:
   clearances.append({'elevationDeg':deg,'recoilM':recoil,'barrelSurfaceClearanceLowerBoundM':min(distances)})
 assert min(x['barrelSurfaceClearanceLowerBoundM'] for x in clearances)>0,clearances
 report={'recipeSha256':hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),'sourceBlendSha256':hashlib.sha256((s/'generated/source.blend').read_bytes()).hexdigest(),'contentHash':json.loads((root/'public/models/fletcher.json').read_text())['contentHash'],'closedBlades':rows,'barrelClearanceSamples':clearances,'limits':'Original component only; sparse conservative barrel-radius samples. Not an all-fittings collision proof or historical certification.'}
-(s/'reports/component-geometry-check.json').write_text(json.dumps(report,indent=2)+'\n')
+print(json.dumps(report,indent=2))
 print('COMPONENT CHECK',len(rows),'closed solid blades; minimum sampled barrel clearance',min(x['barrelSurfaceClearanceLowerBoundM'] for x in clearances))

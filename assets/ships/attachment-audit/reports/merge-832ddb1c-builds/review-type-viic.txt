@@ -1,3 +1,0 @@
-$ bun scripts/ships/pipeline.ts review type-viic
-review.py completed; log in /Users/bill/orca/workspaces/ship-game/sunstar/.build/ships/type-viic
-Orthographic review views: /Users/bill/orca/workspaces/ship-game/sunstar/assets/ships/type-viic/generated/review

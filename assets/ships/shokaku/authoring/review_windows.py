@@ -31,7 +31,7 @@ for name,index,points in panes:
 result={'contentHash':bpy.context.scene.get('definitionHash'),'scope':'Superstructure glazing; existing ship-boat window components are a separate asset.', 'method':'Pane-center and four inset-corner distances to all opaque island triangles; 1 mm detects coincident walls. Recess/jamb intersections at pane edges are intentional and not sampled. Actual game camera captures separately verify appearance.','panes':len(rows),'coplanar':sum(r['minimumInteriorClearanceM']<.001 for r in rows),'minimumInteriorClearanceM':min((r['minimumInteriorClearanceM'] for r in rows),default=0),'rows':rows}
 result['result']='pass' if rows and result['coplanar']==0 and result['minimumInteriorClearanceM']>.02 else 'fail'
 args=sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else []
-out=Path(args[args.index('--out')+1]) if '--out' in args else Path(__file__).resolve().parents[1]/'reports'/('geometry-'+result['contentHash'][:8])/'windows.json'
+out=Path(args[args.index('--out')+1]) if '--out' in args else Path(__file__).resolve().parents[4]/'.build/ships/shokaku'/('geometry-'+result['contentHash'][:8])/'windows.json'
 out.parent.mkdir(parents=True,exist_ok=True);out.write_text(json.dumps(result,indent=2)+'\n')
 print('WINDOW_REVIEW',json.dumps({k:v for k,v in result.items() if k!='rows'}),flush=True)
 if result['result']!='pass':raise RuntimeError('Glass competes with opaque island geometry')

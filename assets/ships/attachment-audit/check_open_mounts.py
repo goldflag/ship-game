@@ -79,7 +79,7 @@ for spec in json.loads((ROOT/'assets/parts/guns.json').read_text())['parts']:
             missing=detached(col,name)
             results.append(dict(part=name,elevation=angle,recoil=recoil,detached=missing))
     print(name, 'PASS' if not any(r['detached'] for r in results if r['part']==name) else 'FAIL', flush=True)
-out=ROOT/'assets/ships/attachment-audit/reports/open-mounts.json'
+out=ROOT/'.build/ships/attachment-audit/open-mounts.json'
 out.parent.mkdir(parents=True,exist_ok=True);out.write_text(json.dumps(results,indent=2)+'\n')
 failures=[r for r in results if r['detached']]
 assert not failures, json.dumps(failures[:3])

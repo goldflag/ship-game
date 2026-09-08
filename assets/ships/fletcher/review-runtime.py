@@ -5,7 +5,7 @@ The diagnostic fixture uses the production Game, renderer, CPU combat and HUD.
 from pathlib import Path
 import sys,subprocess,json,base64
 page=sys.argv[1];root=Path(__file__).resolve().parents[3]
-out=Path(__file__).resolve().parent/'reports/runtime-review'
+out=Path(__file__).resolve().parents[3]/'.build/ships/fletcher/runtime-review'
 expected=json.loads((root/'public/models/fletcher.json').read_text())['contentHash']
 def call(op,expression=None):
     args=['orca',op,'--page',page,'--json']

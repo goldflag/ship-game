@@ -1,13 +1,26 @@
 # Flower Corvette — Cobalt 1941 arrangement
 
-A short-forecastle Flower based on Port Arthur Shipbuilding's general arrangement dated **19 November 1941**, not a later extended-forecastle Sackville. The source PDF's cover photograph is dated 1944 and is deliberately excluded from this fit.
+Flower class, HMCS Cobalt 1941 short-forecastle arrangement; representative early-war armament
 
-The rebuilt 205-foot hull has the pronounced counter, short forecastle break, separate raised 4-inch platform, wheelhouse/wireless office, open compass bridge, tall circular funnel and cowl vents, two tall masts, side dinghy platforms, low machinery casing and elevated aft gun platform shown on the GA. The stern carries independently authored minesweeping winch, Oropesa floats, davits and depth-charge rails. Open boats, bilge keels and shaped rudder replace generic placeholders.
+Open `/?ship=flower-corvette` or select this ship in port or Custom battle.
 
-Functional representative early-war battery: forward BL 4-inch, aft 2-pounder and two twin Lewis mounts (four mounts/six barrels). Exact dated Cobalt weapons inventory is unresolved. No Hedgehog or Type 271 lantern. ASW/minesweeping equipment is visual-only.
+`blueprint.json` and `build.py` are the durable inputs; reusable equipment comes from `assets/parts/`. `recipe-inputs.json` declares additional original dependencies. Generated Blender scenes and runtime models are build outputs.
 
-Source dimensions: 62.484 × 10.0584 m; reference draft 3.5052 m. The 1,170,000 kg operating mass and estimated 0.90 m initial GM are explicit gameplay loading assumptions, not a measured Cobalt condition. Transverse sections are reconstructed because the GA contains no body/offset plan.
+Before changing historical geometry, inspect the corresponding GameModels3D or War Thunder model as the primary visual reference. If unavailable, state that explicitly.
 
-Build: `bun run ship:build flower-corvette`. Review: `bun run ship:review flower-corvette`.
+Authored hull: 62.484 m long, 10.0584 m beam, 3.5052 m draft. These are model inputs, not a new historical-accuracy certification.
 
-See [sources](references/sources.json), [discrepancies](reports/discrepancies.md), [shared recipe](../convoy/geometry-v2.py) and [plan/model comparison](../convoy/reports/plan-comparisons/flower-corvette-profile.png).
+- **Exterior:** Independently lofted against Port Arthur Shipbuilding general arrangement dated 19 November 1941, sheets 1–2: short forecastle, two masts, raised 4-inch platform, narrow wheelhouse/open compass deck, tall circular funnel, boat platforms and aft casing. Transverse sections, loading, camouflage and small fittings remain reconstructed. Not a later extended-forecastle Sackville.
+- **Internals:** Estimated watertight envelopes, permeability, machinery and magazines. Finite-angle stability calibrated to stated displacement and an estimated GM; room boundaries are not historical plans.
+- **Weapons:** 4-inch, aft 2-pounder and two twin Lewis light mounts. Early-war representative hardware, not a certified Cobalt weapons inventory. No later Hedgehog or Type 271 lantern. Depth charges and minesweeping equipment are visual only.
+
+```sh
+bun run ship:compile flower-corvette
+bun run ship:build flower-corvette
+bun run ship:review flower-corvette
+bun run ship:check flower-corvette
+```
+
+Keep the current fixed views in `generated/review/`. Ship report/reference archives are removed. Research downloads, diagnostic results and extra captures belong in ignored `.build/`; do not recreate a tracked archive. Keep source links and lasting limitations here.
+
+Follow the [ship pipeline](../../../docs/ship-pipeline.md) and [model review](../../../docs/ship-model-review.md).

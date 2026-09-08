@@ -9,7 +9,7 @@ import type { Game } from "../game/Game";
 import { shipModel, shipIdentity } from "../game/shipModel";
 import { useShip } from "./ShipContext";
 import type { ShipDefinition } from "../ships/blueprint";
-import { shipPresets, shipReviewUrl } from "../ships/presets";
+import { shipPresets } from "../ships/presets";
 import type { InspectionMode } from "../ships/inspection";
 import { ModelViewControls, PortInspection } from "./PortInspection";
 import { HULL_REFIT_SURVIVABILITY_BONUS, ShipScores, ShipStatistics } from "./ShipStatistics";
@@ -595,16 +595,6 @@ function PortLayout({ state }: { state: GarageState }) {
           <Icon name="schematic" size={16} />
           Create schematic
         </button>
-        {shipReviewUrl(selectedShip.id) && (
-          <a
-            className="garage-schematic-button"
-            href={shipReviewUrl(selectedShip.id)}
-            target="_blank"
-            rel="noreferrer"
-          >
-            Reference review
-          </a>
-        )}
       </section>
       <div className="garage-classic-left">
         <button

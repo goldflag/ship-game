@@ -54,6 +54,6 @@ for i, reflector in enumerate(reflectors):
 
 report=dict(contentHash=definition['contentHash'], method='World-space original mesh vertices and joint/optical centres in retained source.blend', measures=measures,
             historicalAccuracy='Checks selected component measurements only. Gunhouse plate vertices, muzzle offsets, blade pitch and equipment positions remain unverified.')
-(ship/'reports/components.json').write_text(json.dumps(report,indent=2)+'\n')
+print(json.dumps(report,indent=2))
 for m in measures: print(m['id'], round(m['measuredM'],6), 'PASS' if m['passed'] else 'FAIL')
 assert all(m['passed'] for m in measures), 'Component dimension mismatch'

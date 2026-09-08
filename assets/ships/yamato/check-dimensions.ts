@@ -58,6 +58,6 @@ const report = {
   measures,
   historicalAccuracy: 'These six dimensions are checked. Hull lines, surface offsets and equipment details remain unverified; this is not 100 percent historical certification.',
 };
-await Bun.write(resolve(import.meta.dir, 'reports/dimensions.json'), JSON.stringify(report, null, 2) + '\n');
+await Bun.write(resolve(import.meta.dir, '../../../.build/ships/yamato/dimensions.json'), JSON.stringify(report, null, 2) + '\n');
 console.log(JSON.stringify(report, null, 2));
 if (measures.some(m => !m.passed)) process.exitCode = 1;

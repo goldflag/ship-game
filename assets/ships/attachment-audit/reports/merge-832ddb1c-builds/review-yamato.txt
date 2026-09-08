@@ -1,3 +1,0 @@
-$ bun scripts/ships/pipeline.ts review yamato
-review.py completed; log in /Users/bill/orca/workspaces/ship-game/sunstar/.build/ships/yamato
-Orthographic review views: /Users/bill/orca/workspaces/ship-game/sunstar/assets/ships/yamato/generated/review

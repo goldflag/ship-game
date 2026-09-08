@@ -11,7 +11,7 @@ ROOT=Path(__file__).resolve().parents[1]
 D=json.loads((ROOT/'../../../public/models/shokaku.json').resolve().read_text())
 scene=bpy.context.scene
 assert scene.get('definitionHash')==D['contentHash']
-OUT=ROOT/'reports'/('geometry-'+D['contentHash'][:8]);OUT.mkdir(exist_ok=True)
+OUT=ROOT.parents[2]/'.build/ships/shokaku'/('geometry-'+D['contentHash'][:8]);OUT.mkdir(parents=True,exist_ok=True)
 scene.render.engine='BLENDER_WORKBENCH'
 scene.display.shading.light='STUDIO';scene.display.shading.color_type='MATERIAL'
 scene.display.shading.show_shadows=True;scene.display.shading.show_cavity=True

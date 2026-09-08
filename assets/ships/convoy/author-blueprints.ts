@@ -148,7 +148,6 @@ const output:Record<string,string>={
  [`${folder}/blueprint.json`]:pretty(b)+'\n',
  [`${folder}/build.py`]:`"""Original versioned convoy components; see the registered recipe inputs."""\nfrom pathlib import Path\nimport runpy\nrunpy.run_path(str(Path(__file__).resolve().parents[1]/'convoy/geometry-v1.py'),run_name='__main__')\n`,
  [`${folder}/recipe-inputs.json`]:JSON.stringify({version:1,files:['assets/ships/convoy/geometry-v1.py']},null,2)+'\n',
- [`${folder}/reports/stability.json`]:JSON.stringify({configuration:b.configuration,draftM:draft,massKg:b.hull.massKg,geometryDisplacementM3:hydro.volume,fullEnvelopeM3:full.volume,reserveM3:b.hull.reserveBuoyancyM3,buoyancyScale:b.stability.buoyancyScale,estimatedGmM:gm,dryCenterOfGravity:b.stability.dryCenterOfGravity,floodCapacityM3:b.compartments.reduce((n,c)=>n+c.capacityM3,0),basis:b.stability.basis},null,2)+'\n',
 };
 let patch='*** Begin Patch\n';
 for(const [path,content] of Object.entries(output)) {
