@@ -4,6 +4,7 @@ import { copyFile, mkdir, readFile, rename, rm, writeFile } from 'node:fs/promis
 import { dirname, join, resolve, sep } from 'node:path';
 import { validateAircraftCatalog, validateAircraftShape, type AircraftEntry } from './catalog';
 import { aircraftNodeIds, aircraftFoldIds, inspectAircraftLods } from './glb';
+import { GAMEPLAY_AIRCRAFT } from '../../src/ships/blueprint';
 
 const root = resolve(import.meta.dir, '../..');
 const sourceDir = join(root, 'assets/aircraft');
@@ -150,6 +151,9 @@ async function check(entry: AircraftEntry) {
   const manifest = { schemaVersion: 1, contentHash, modelHash: report.modelHash, ...report.review };
   if (JSON.stringify(JSON.parse(reviewManifest)) !== JSON.stringify(manifest)) throw new Error(`${entry.id}: review manifest is stale. Run aircraft:review ${entry.id}.`);
   const thumbnailReport = join(generatedDir(entry.id), 'thumbnail/render.json');
+  if (Object.hasOwn(GAMEPLAY_AIRCRAFT, entry.id) && !existsSync(thumbnailReport)) {
+    throw new Error(`${entry.id}: gameplay aircraft requires a squadron thumbnail. Run aircraft:thumbnail ${entry.id}.`);
+  }
   if (existsSync(thumbnailReport)) {
     const thumbnail = JSON.parse(await readFile(thumbnailReport, 'utf8'));
     if (thumbnail.modelHash !== report.modelHash || thumbnail.recipeHash !== hash(await readFile(join(sourceDir, 'thumbnail.py')))
@@ -202,7 +206,7 @@ if (action === 'hash') {
       // review rebuilds with the same durable recipe, retaining all six fixed views.
       const directory = action === 'publish' ? generatedDir(entry.id) : await runBlender(entry);
       await publish(entry, directory);
-      if (existsSync(join(generatedDir(entry.id), 'thumbnail/render.json'))) await thumbnail(entry);
+      if (Object.hasOwn(GAMEPLAY_AIRCRAFT, entry.id) || existsSync(join(generatedDir(entry.id), 'thumbnail/render.json'))) await thumbnail(entry);
     }
     await assertInputsCurrent();
     await writeAtomic(join(outputDir, 'catalog.json'), json(runtimeCatalog));

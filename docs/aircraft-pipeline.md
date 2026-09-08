@@ -47,6 +47,8 @@ The pipeline locks its writer, rechecks inputs before publication, and replaces 
 
 ## Blender MCP
 
+Squadron cards require a baked thumbnail for every model in `GAMEPLAY_AIRCRAFT`. Build and publish generate these automatically; `aircraft:check` rejects missing or stale thumbnails. To repair only an image without rebuilding geometry, run `bun run aircraft:thumbnail <id>`. The original `assets/aircraft/thumbnail.py` recipe renders the validated GLB with local Blender and retains its model, recipe and image hashes.
+
 [assets/aircraft/mcp_author.py](../assets/aircraft/mcp_author.py) uses a Python environment with the `mcp` package and the installed `blender-mcp` executable. Set `BLENDER_MCP_BIN` if needed. Blender must be open with its MCP add-on running. The client discovers `execute_blender_code`, `get_scene_info` and `get_viewport_screenshot`, then executes this repository's recipe through MCP. It preserves other scenes and retains only the authored scene and its dependencies in each source file. `generated/authoring.json` records `blender-mcp` or `local-blender`; a local batch build must not be described as an MCP operation.
 
 ```sh

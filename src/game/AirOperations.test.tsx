@@ -1,10 +1,11 @@
 import { expect, mock, test } from 'bun:test';
+import { readFileSync } from 'node:fs';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { AirOperations } from '../ui/AirOperations';
 import { FleetHud } from '../ui/FleetHud';
 import { chartPoint, chartWorld, fitAirChart } from '../ui/airChart';
 import { CombatSimulation } from '../simulation/combat';
-import { shipPreset } from '../ships/presets';
+import { shipPreset, shipPresets } from '../ships/presets';
 import { defaultKeybindings, keybindingsOf } from './keybindings';
 import { Game } from './Game';
 import { ShellFollow } from './ShellFollow';
@@ -16,6 +17,23 @@ import { battleEnvironment } from '../maps/conditions';
 import { oceanMap } from '../maps/catalog';
 import { squadronTargetOrder } from '../ui/airCommands';
 import { squadronFlights } from '../simulation/aircraft';
+
+test('every carrier squadron card references a published PNG thumbnail', () => {
+  for (const id of Object.keys(shipPresets)) {
+    const def = shipPreset(id);
+    if (!def.airWing) continue;
+    const sim = new CombatSimulation(def);
+    const html = renderToStaticMarkup(<AirOperations data={{ ship: sim.ship, order: 1, camera: 'Chase', trail: [], fps: 60, backend: 'test', airOperationsOpen: true, combat: sim.telemetry('main', [0, 0, -5000]) }} game={null} bindings={defaultKeybindings()}/>);
+    const images = [...html.matchAll(/<img class="air-box-aircraft" src="([^"]+)"/g)];
+    expect(images.length).toBeGreaterThan(0);
+    for (const [, src] of images) {
+      const png = readFileSync(new URL(`../../public${src}`, import.meta.url));
+      expect(png.subarray(0, 8).toString('hex')).toBe('89504e470d0a1a0a');
+      expect(png.readUInt32BE(16)).toBe(320);
+      expect(png.readUInt32BE(20)).toBe(144);
+    }
+  }
+});
 
 test('hiding carrier instruments leaves the map navigation surface interactive', () => {
   const simulation = new CombatSimulation(shipPreset('enterprise-cv6'));
