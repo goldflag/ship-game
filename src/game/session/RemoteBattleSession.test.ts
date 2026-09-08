@@ -16,10 +16,12 @@ class Socket {
   binary(value: unknown, metadata = false) { const gzip=gzipSync(JSON.stringify(value)); const bytes=new Uint8Array(gzip.length+(metadata?1:0)); bytes.set(gzip,metadata?1:0); this.onmessage?.({data:bytes.buffer}); }
 }
 test('compressed handshake survives following deltas and reconnect resets command epoch', async () => {
-  const names=['WebSocket','sessionStorage','location'] as const;
+  const names=['WebSocket','sessionStorage','location','DecompressionStream'] as const;
   const descriptors=names.map(name=>Object.getOwnPropertyDescriptor(globalThis,name));
   const stored=new Map([['naval-match-ticket-v1','test-ticket']]);
-  const overrides={WebSocket:Socket, sessionStorage:{getItem:(k:string)=>stored.get(k),removeItem:(k:string)=>stored.delete(k)},location:{href:'http://localhost/',protocol:'http:'}};
+  const NativeDecompression=globalThis.DecompressionStream; let decodes=0;
+  function DelayedDecompression(format: CompressionFormat) { const stream=new NativeDecompression(format); if(++decodes!==3) return stream; return {writable:stream.writable,readable:stream.readable.pipeThrough(new TransformStream({async transform(chunk,controller){await sleep(1500);controller.enqueue(chunk);}}))}; }
+  const overrides={DecompressionStream:DelayedDecompression,WebSocket:Socket, sessionStorage:{getItem:(k:string)=>stored.get(k),removeItem:(k:string)=>stored.delete(k)},location:{href:'http://localhost/',protocol:'http:'}};
   for(const name of names) Object.defineProperty(globalThis,name,{value:overrides[name],configurable:true,writable:true});
   const local=await HeadlessSession.create({playerShipId:'fletcher',friendlyBots:['fletcher'],enemies:['fletcher'],spawnDistance:5000});
   const baseline=JSON.parse(local.runtime.snapshot());
@@ -30,6 +32,9 @@ test('compressed handshake survives following deltas and reconnect resets comman
     const first=Socket.instances.at(-1)!;
     first.binary(metadata,true); first.binary({type:'snapshot-delta',patches:[[[],frame]]});
     const session=await connection.matched; expect(session.tick).toBe(3); session.loadedAssets();
+    // Reconnect while an old-generation frame is still decompressing. The new
+    // handshake must survive subsequent latest-state frames in the bounded queue.
+    first.binary({type:'snapshot-delta',patches:[]});
     first.close(); await until(()=>Socket.instances.at(-1)!==first);
     const second=Socket.instances.at(-1)!;
     second.binary({...metadata,connectionEpoch:3},true); second.binary({type:'snapshot-delta',patches:[[[],{...frame,tick:6}]]});

@@ -50,3 +50,24 @@ test('physical loss stops continuous commands while another vessel can take cont
     expect(send).toHaveBeenCalledTimes(1);
   } finally { send.mockRestore(); session.dispose(); }
 });
+
+
+test('declined orders expire even while paused and never clear a later failure', async () => {
+  const session = await HeadlessSession.create(setup);
+  const now = spyOn(performance, 'now');
+  const helm = { throttle: 0, rudder: 0 };
+  const intent = { aim: [0, 0, -5000] as [number, number, number], battery: 'main' as const, fire: false };
+  try {
+    now.mockReturnValue(1000);
+    session.commandAcknowledged(false, 'Target lost');
+    expect(session.connectionStatus).toContain('Target lost');
+    now.mockReturnValue(4001);
+    session.advance(0, helm, intent);
+    expect(session.connectionStatus).toBe('');
+    session.commandAcknowledged(false, 'Ship lost');
+    session.connectionStatus = 'Battle worker stopped';
+    now.mockReturnValue(8000);
+    session.advance(0, helm, intent);
+    expect(session.connectionStatus).toBe('Battle worker stopped');
+  } finally { now.mockRestore(); session.dispose(); }
+});

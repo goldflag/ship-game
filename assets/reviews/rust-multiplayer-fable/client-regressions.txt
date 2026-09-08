@@ -1,0 +1,16 @@
+bun test v1.3.3 (274e01c7)
+
+src/game/session/RemoteBattleSession.test.ts:
+(pass) compressed handshake survives following deltas and reconnect resets command epoch [1718.16ms]
+(pass) only a running online battle offers forfeiture [0.04ms]
+
+src/game/session/SnapshotSession.test.ts:
+(pass) real WASM snapshots preserve renderer identities and support every instrument [257.61ms]
+(pass) carrier commands launch through Rust and selected waypoints survive gun input [238.74ms]
+(pass) physical loss stops continuous commands while another vessel can take control [198.96ms]
+(pass) declined orders expire even while paused and never clear a later failure [195.93ms]
+
+ 6 pass
+ 0 fail
+ 41 expect() calls
+Ran 6 tests across 2 files. [2.70s]

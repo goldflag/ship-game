@@ -141,13 +141,6 @@ impl Hub {
         let now = Instant::now();
         let mut registry = self.registry.lock().map_err(|_| "Lobby unavailable")?;
         registry.clean(now);
-        if now.duration_since(registry.global_rate.0) >= Duration::from_secs(10) {
-            registry.global_rate = (now, 0);
-        }
-        if registry.global_rate.1 >= 256 {
-            return Err("Global admission limit reached; wait a moment".into());
-        }
-        registry.global_rate.1 += 1;
         if registry.rates.len() >= 4096 && !registry.rates.contains_key(&ip) {
             return Err("Admission rate capacity reached; try again shortly".into());
         }
@@ -159,6 +152,13 @@ impl Hub {
             return Err("Too many join attempts; wait a moment".into());
         }
         rate.1 += 1;
+        if now.duration_since(registry.global_rate.0) >= Duration::from_secs(10) {
+            registry.global_rate = (now, 0);
+        }
+        if registry.global_rate.1 >= 256 {
+            return Err("Global admission limit reached; wait a moment".into());
+        }
+        registry.global_rate.1 += 1;
         if registry.tickets.len() >= 128 {
             return Err("Lobby is full".into());
         }
@@ -335,7 +335,7 @@ impl Hub {
                 wind_speed: None,
             };
             let id = uuid::Uuid::new_v4().to_string();
-            let handle = match worker::spawn(
+            let handle = worker::spawn(
                 id,
                 setup,
                 environment,
@@ -343,10 +343,7 @@ impl Hub {
                 self.compiled.clone(),
                 self.writer.clone(),
                 WorkerConfig::default(),
-            ) {
-                Ok(handle) => handle,
-                Err(error) => return Err(error),
-            };
+            )?;
             registry
                 .tickets
                 .get_mut(&other)
@@ -507,7 +504,9 @@ mod tests {
             let t = h.join(request(&h), a).unwrap();
             h.cancel(&t.ticket);
         }
-        assert!(h.join(request(&h), a).is_err());
+        for _ in 0..300 {
+            assert!(h.join(request(&h), a).is_err());
+        }
         let t = h.join(request(&h), b).unwrap();
         h.cancel(&t.ticket);
         h.registry.lock().unwrap().global_rate.1 = 256;

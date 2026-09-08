@@ -116,10 +116,6 @@ export class MatchConnection {
 }
 export class RemoteBattleSession extends SnapshotSession {
   readonly networked = true;
-  private orderNoticeUntil = 0;
-  commandAcknowledged(accepted: boolean, error?: string) {
-    if (!accepted && !this.connectionStatus) { this.connectionStatus = `Order declined: ${error ?? 'unavailable'}`; this.orderNoticeUntil = performance.now() + 3000; }
-  }
   private sequence = 0; private sentAt = 0; private ready = false;
   constructor(public metadata: MatchMetadata, private connection: MatchConnection, frame: Snapshot) {
     super(metadata.setup, metadata.team, metadata.player); this.apply(frame);
@@ -136,7 +132,6 @@ export class RemoteBattleSession extends SnapshotSession {
     // Remote world time keeps moving while menus are open; held input expires.
     this.consume(dt || 1 / 60, beforeStep);
     const now = performance.now();
-    if (this.orderNoticeUntil && now >= this.orderNoticeUntil) { if (this.connectionStatus.startsWith('Order declined:')) this.connectionStatus = ''; this.orderNoticeUntil = 0; }
     if (now - this.sentAt >= 50) { this.input(helm, intent, dt > 0); this.sentAt = now; }
   }
   surrender() { if (this.phase === 'running' || this.phase === 'loading' || this.phase === 'countdown') this.connection.send({ type: 'surrender' }); this.connection.close(true); }

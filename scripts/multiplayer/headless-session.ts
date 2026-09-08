@@ -19,7 +19,7 @@ export class HeadlessSession extends SnapshotSession {
   }
   protected send(shipId: string, command: Command) { this.runtime.command(JSON.stringify({ shipId, command, sequence: ++this.sequence, connectionEpoch: 1 })); }
   advance(dt: number, helm: HelmCommand, intent: CombatIntent, beforeStep?: () => void) {
-    if (dt <= 0) return;
+    if (dt <= 0) { this.consume(dt, beforeStep); return; }
     this.input(helm, intent, true); this.runtime.step(Math.min(6, Math.floor(dt * 60)));
     this.pending = decodeSnapshot(this.runtime.snapshot()); this.consume(dt, beforeStep);
   }

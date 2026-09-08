@@ -1,0 +1,7 @@
+$ bun scripts/multiplayer/socket-smoke.ts
+{
+  code: "replaced",
+  message: "This connection was replaced by a new session",
+  type: "error",
+}
+{"ok":true,"matchId":"f3f27fa8-eb51-42a8-8036-72b7bbf8bf48","checks":["cancel after pairing","load barrier","ownership","movement","reconnect epoch","old socket replacement","forfeit","frozen result reconnect"],"finalTick":13}

@@ -66,6 +66,10 @@ export abstract class SnapshotSession implements BattleSession {
   protected pending?: Snapshot;
   protected fireQueued = false;
   protected depthM: number | null = null; protected emergencyBlow: boolean | null = null;
+  private orderNoticeUntil = 0;
+  commandAcknowledged(accepted: boolean, error?: string) {
+    if (!accepted && !this.connectionStatus) { this.connectionStatus = `Order declined: ${error ?? 'unavailable'}`; this.orderNoticeUntil = performance.now() + 3000; }
+  }
   private elapsed = 0; private interval = 1 / 20;
   private autopilot?: { throttle: number; rudder: number };
   private lastHelm: HelmCommand = { throttle: 0, rudder: 0 };
@@ -88,6 +92,7 @@ export abstract class SnapshotSession implements BattleSession {
   reset(): void { /* A new custom battle creates a fresh worker. Online results are immutable. */ }
   resetTarget(): void { /* Battle targets are authoritative. */ }
   protected consume(dt: number, beforeStep?: () => void): void {
+    if (this.orderNoticeUntil && performance.now() >= this.orderNoticeUntil) { if (this.connectionStatus.startsWith('Order declined:')) this.connectionStatus = ''; this.orderNoticeUntil = 0; }
     this.elapsed += dt;
     if (!this.pending) return;
     const frame = this.pending; this.pending = undefined;

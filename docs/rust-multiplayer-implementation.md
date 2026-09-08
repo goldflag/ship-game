@@ -1,6 +1,6 @@
 # Rust fleet multiplayer implementation
 
-Implemented on `goldflag/rust-fleet-multiplayer`, based on remote master `a3892524db55cb96dddd8359c0ca62e42e219f7e`. The reviewed proposal and Fable critique remain preserved separately. Local functional validation is complete; public deployment and capacity qualification on the intended host remain separate launch work. See the [retained validation evidence](../assets/reviews/rust-multiplayer/README.md).
+Implemented on `goldflag/rust-fleet-multiplayer`, integrated with remote master `30fe48aa`. The reviewed proposal and Fable critique remain preserved separately. Local functional validation is complete; public deployment and capacity qualification on the intended host remain separate launch work. See the [retained validation evidence](../assets/reviews/rust-multiplayer/README.md).
 
 ## Implemented
 
@@ -48,7 +48,7 @@ Server settings:
 | `NAVAL_ORIGIN` | request host | Optional exact allowed browser origin |
 | `NAVAL_TRUSTED_PROXIES` | empty | Comma-separated proxy IP addresses allowed to supply X-Forwarded-For; all other headers are ignored |
 
-For deployment, build the browser and server from the same checkout/lockfile and deploy the matching manifest. Serve `dist/` and reverse-proxy its `api/` path on the same HTTPS origin, with WebSocket upgrade support. For `BASE_PATH=/naval/`, route `/naval/api/*` to the Rust server’s `/api/*`; the client preserves the deployment prefix. Configure `NAVAL_TRUSTED_PROXIES` with the reverse proxy’s actual socket address (for example `127.0.0.1,::1` for a local proxy). Per-client join limits use the first untrusted address walking the forwarding chain from right to left, with a separate global admission budget. Keep the SQLite directory on persistent storage and allow a full battle's drain time during rolling shutdown. Infrastructure is not provisioned or deployed by this implementation.
+For deployment, build the browser and server from the same checkout/lockfile and deploy the matching manifest. Serve `dist/` and reverse-proxy its `api/` path on the same HTTPS origin, with WebSocket upgrade support. For `BASE_PATH=/naval/`, route `/naval/api/*` to the Rust server’s `/api/*`; the client preserves the deployment prefix. Configure `NAVAL_TRUSTED_PROXIES` with the reverse proxy’s actual socket address (for example `127.0.0.1,::1` for a local proxy; dual-stack listeners may report an IPv4-mapped address such as `::ffff:127.0.0.1`, which must be listed explicitly). Per-client join limits use the first untrusted address walking the forwarding chain from right to left, with a separate global admission budget. Keep the SQLite directory on persistent storage and allow a full battle's drain time during rolling shutdown. Infrastructure is not provisioned or deployed by this implementation.
 
 ## Validation
 
@@ -63,7 +63,7 @@ bun run multiplayer:benchmark 1800
 
 `multiplayer:check` generates content, runs native tests and Clippy, builds WASM and checks frozen migration fixtures. Standalone Cargo tests require the generated manifest. Wire types are exported with `TS_RS_EXPORT_DIR=src/multiplayer/generated cargo run -p naval-protocol --bin export`. Frozen fixtures are refreshed deliberately with `bun run multiplayer:fixtures`, never as part of routine tests.
 
-Validation passed native tests and Clippy, complete native/WASM battle comparisons covering 18,000 simulated ticks, all registered weapon-group IDs, damage records and shell histories, 132 TypeScript test files, and the production build with all ship/aircraft checks. GitHub Actions runs the native/WASM checks, TypeScript suite and production build; that remote workflow has not been executed from this local branch.
+Validation passed native tests and Clippy, complete native/WASM battle comparisons covering 28,800 simulated ticks, all registered weapon-group IDs, damage records and shell histories, 135 TypeScript test files, and the production build with all ship/aircraft checks. GitHub Actions runs the native/WASM checks, TypeScript suite, production build and release-server HTTP/WebSocket smoke. See the PR checks for remote execution status. The [implementation review disposition](reviews/rust-multiplayer-review-disposition.md) records Fable’s findings and their fixes.
 
 Real TCP checks cover load barrier, ownership, movement, reconnect epochs, old socket replacement, forfeit, frozen final-result retrieval, HTTP queue cancellation, four players in two simultaneous maximum-size legal fleets and refusal of a third match. SQLite tests verify committed writes after flush, immutable results and restart aborts. Both custom battle launch and two-client online play ran in the actual GPU browser, including ship switching, a 150 ms network-latency setting, a three-second game-socket outage, reconnection with a new epoch and the opponent's victory display. The isolated browser required `--use-angle=metal`; its default software graphics path stalled during harbor warmup.
 

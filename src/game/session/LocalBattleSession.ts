@@ -28,7 +28,7 @@ export class LocalBattleSession extends SnapshotSession {
       session.worker.onmessage = event => {
         const data = event.data;
         if (data.type === 'error') { clearTimeout(timer); session.fail(data.message); reject(new Error(data.message)); }
-        if (data.type === 'rejected') session.connectionStatus = `Order declined: ${data.message}`;
+        if (data.type === 'rejected') session.commandAcknowledged(false, data.message);
         if (data.type === 'snapshot') {
           try {
             const frame = decodeSnapshot(data.json);

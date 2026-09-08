@@ -21,3 +21,14 @@ jobs:
       - run: bun run multiplayer:check
       - run: bun run test
       - run: bun run build
+      - name: Exercise the release server over HTTP and WebSockets
+        run: |
+          cargo build --release --locked -p naval-server --bin naval-server
+          NAVAL_DATABASE=/tmp/naval-ci.sqlite target/release/naval-server > /tmp/naval-server.log 2>&1 &
+          naval_ci_pid=$!
+          trap 'kill -TERM "$naval_ci_pid" 2>/dev/null || true; wait "$naval_ci_pid" || true' EXIT
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:8787/api/health; then break; fi
+            sleep 1
+          done
+          bun run multiplayer:smoke
