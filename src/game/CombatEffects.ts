@@ -1,3 +1,4 @@
+import { LocalizedFireEffects, type FireDisplayPose } from './LocalizedFireEffects';
 import { ExpandableInstances } from './ExpandableInstances';
 import { localToWorld } from '../simulation/geometry';
 import * as THREE from 'three/webgpu';
@@ -7,6 +8,8 @@ import { FIXED_DT } from '../simulation/ship';
 import { EffectParticlePool, effectTexture } from './EffectParticles';
 import { EffectDepthTextureNode, effectVolumeMaterial, effectVolumeTexture } from './EffectVolume';
 import { WaterPlumes } from './WaterPlumes';
+import { shellGeometry } from '../../assets/effects/naval/shellGeometry';
+import { ShellTrails } from './ShellTrails';
 
 const UP = new THREE.Vector3(0, 1, 0);
 const WARM = new THREE.Color('#ffe7b6');
@@ -42,15 +45,17 @@ export class CombatEffects {
   private readonly fire = new EffectParticlePool(256, this.maps.flash, true);
   private readonly foam = new EffectParticlePool(96, this.maps.foam);
   private readonly pools = [this.foam, this.smoke, this.aircraftSmoke, this.flakSmoke, this.mist, this.spray, this.fire];
-  private readonly projectiles = new ExpandableInstances(new THREE.CapsuleGeometry(.5, 2, 2, 6),
-    new THREE.MeshBasicMaterial({ color: '#8c877b' }), 256);
+  private readonly projectiles = new ExpandableInstances(shellGeometry(false),
+    new THREE.MeshStandardMaterial({ vertexColors: true, metalness: .6, roughness: .32 }), 256);
+  private readonly detailedProjectiles = new ExpandableInstances(shellGeometry(), this.projectiles.material, 16);
+  private readonly shellTrails = new ShellTrails();
   // Water's depth-based postprocessing otherwise classifies these low-flying
   // lights as sea pixels and erases them. Reject the transparent quad margins.
   private readonly shellGlows = new ExpandableInstances(new THREE.PlaneGeometry(1, 1),
-    new THREE.MeshBasicMaterial({ map: this.maps.flash, color: new THREE.Color('#f3dfba').multiplyScalar(1.8), opacity: .7,
+    new THREE.MeshBasicMaterial({ map: this.maps.flash, color: new THREE.Color('#ffe8bc').multiplyScalar(1.45), opacity: .22,
       transparent: true, blending: THREE.AdditiveBlending, alphaTest: .02, depthWrite: true, side: THREE.DoubleSide }), 256);
   private readonly streaks = new ExpandableInstances(new THREE.PlaneGeometry(1, 1),
-    new THREE.MeshBasicMaterial({ map: this.maps.tracer, color: new THREE.Color('#e8bd85').multiplyScalar(1.6), transparent: true, opacity: .55,
+    new THREE.MeshBasicMaterial({ map: this.maps.tracer, color: new THREE.Color('#fff1d0').multiplyScalar(3.2), transparent: true, opacity: .9,
       blending: THREE.AdditiveBlending, alphaTest: .02, depthWrite: true, side: THREE.DoubleSide }), 256);
   private readonly torpedoBodies = new ExpandableInstances(new THREE.CapsuleGeometry(.5, 1, 3, 8),
     new THREE.MeshBasicMaterial({ color: '#82948f' }), 128);
@@ -69,7 +74,7 @@ export class CombatEffects {
   private readonly cameraPosition = new THREE.Vector3();
   private readonly cameraRotation = new THREE.Quaternion();
   private sequence = 0;
-  private fireTick = -1;
+  private readonly localFires = new LocalizedFireEffects();
   private lightCursor = 0;
   private shellCount = 0;
   private torpedoCount = 0;
@@ -77,7 +82,9 @@ export class CombatEffects {
 
   constructor() {
     this.root.name = 'Combat effects';
+    this.root.add(this.localFires.root, this.shellTrails.mesh);
     this.projectiles.name = 'Shell bodies'; this.streaks.name = 'Shell streaks'; this.shellGlows.name = 'Shell glows';
+    this.detailedProjectiles.name = 'Detailed shell bodies'; this.root.add(this.detailedProjectiles);
     this.streaks.material.forceSinglePass = true; this.shellGlows.material.forceSinglePass = true;
     this.aircraftSmoke.mesh.name = 'Falling aircraft smoke';
     this.flakSmoke.mesh.name = 'Heavy AA burst smoke';
@@ -111,7 +118,7 @@ export class CombatEffects {
     this.smokeAmbient.value.set(.3, .35, .4).multiplyScalar(Math.max(0, ambient) / 1.75);
   }
 
-  update(sim: CombatSimulation, dt: number, camera: THREE.Camera, hidePlayerSmoke = false): void {
+  update(sim: CombatSimulation, dt: number, camera: THREE.Camera, hidePlayerSmoke = false, poses?: readonly FireDisplayPose[]): void {
     // Advance before emitting: a slow frame still gets one visible muzzle flash.
     for (const item of this.lights) {
       item.age += dt;
@@ -125,40 +132,13 @@ export class CombatEffects {
       this.emit(event);
     }
     this.updateAirbursts(sim);
-    if (dt > 0 && sim.tick >= this.fireTick + 15) {
-      this.fireTick = sim.tick;
-      let count = 0;
-      for (const actor of sim.actors) {
-        if (actor.damage.sunk) continue;
-        for (let i = 0; i < actor.damage.control.rooms.length && count < 32; i++) {
-          const intensity = actor.damage.control.rooms[i].intensity;
-          const room = actor.definition.compartments[i], vent = room.fire?.ventPosition;
-          if (intensity <= 0 || !vent) continue;
-          this.position.fromArray(localToWorld(vent, actor.motion));
-          if (this.position.y <= 0) continue;
-          count++;
-          const smoke = this.smoke.emit(this.position, actor.motion.id); smoke.size = 2 + intensity * 2; smoke.growth = 2; smoke.life = 6;
-          smoke.velocity.set(0, 2 + intensity, 0); smoke.wind = 1; smoke.opacity = .35 * intensity; smoke.color.copy(SMOKE).multiplyScalar(.4);
-        }
-        for (let i = 0; i < actor.mounts.length && count < 32; i++) {
-        const intensity = actor.damage.control.mounts[i].intensity;
-        if (intensity <= 0 || actor.damage.sunk) continue;
-        count++;
-        const m = actor.definition.mounts[i];
-        this.position.fromArray(localToWorld([m.position[0], m.position[1] + m.weapon.gunhouseSize[2], m.position[2]], actor.motion));
-        const flame = this.fire.emit(this.position); flame.size = 2 * intensity; flame.growth = 2; flame.life = .6;
-        flame.velocity.set(0, 2, 0); flame.opacity = .6; flame.color.copy(WARM);
-        const smoke = this.smoke.emit(this.position, actor.motion.id); smoke.size = 3; smoke.growth = 2; smoke.life = 5;
-        smoke.velocity.set(0, 3, 0); smoke.wind = 1;
-        smoke.opacity = .35 * intensity; smoke.color.copy(SMOKE).multiplyScalar(.4);
-        }
-      }
-    }
+    this.localFires.update(sim, dt, camera, this.wind, hidePlayerSmoke ? sim.player.motion.id : undefined, poses);
     if (dt > 0) this.updateAircraftSmoke(sim);
     for (const pool of this.pools) pool.publish(camera,
       hidePlayerSmoke && pool === this.smoke ? sim.player.motion.id : undefined);
     this.spouts.publish(camera);
     this.updateShells(sim, camera);
+    this.shellTrails.update(sim.shells, dt, camera);
     this.updateTorpedoes(sim);
     this.depthChargeCount = sim.depthCharges.length;
     sim.depthCharges.forEach((charge, i) => {
@@ -189,11 +169,48 @@ export class CombatEffects {
         puff.size = (7 + random() * 3) * scale;
         puff.growth = 18 * scale; puff.growthDecay = 3; puff.diffusion = 1.1 * scale;
         puff.life = 5.5 + random(); puff.age = age; puff.opacity = .95; puff.fadeIn = .035;
-        puff.density = 5.5; puff.cooling = .1; puff.dissipationTime = 2.8;
+        // Unequal hot lobes ignite together, then expose the charcoal cloud.
+        puff.heat = i === 0 ? 1.15 : .85 + random() * .2;
+        puff.density = 5.5; puff.cooling = .38 + random() * .14; puff.dissipationTime = 2.8;
         puff.velocity.set((random() - .5) * .8, .4 + random() * .5, (random() - .5) * .8);
         puff.wind = 1; puff.seed = random() * 100;
-        puff.color.set('#69645a').multiplyScalar(.85 + random() * .3);
+        puff.color.set('#45484d').multiplyScalar(.85 + random() * .3);
         puff.position.addScaledVector(puff.velocity, age).addScaledVector(this.wind, age);
+      }
+      // Brief radial gas fingers break up the round cloud silhouette. Their
+      // world axes stay fixed as they open and cool; this is cosmetic debris.
+      for (let i = 0; i < 5; i++) {
+        const yaw = random() * Math.PI * 2, y = random() * 1.8 - .9;
+        this.direction.set(Math.cos(yaw) * Math.sqrt(1 - y * y), y, Math.sin(yaw) * Math.sqrt(1 - y * y));
+        const life = .85 + random() * .45;
+        const speed = (8 + random() * 5) * scale, seed = random() * 100;
+        if (age >= life) continue;
+        const puff = this.flakSmoke.emit(this.position);
+        puff.position.addScaledVector(this.direction, 2 * scale);
+        puff.velocity.copy(this.direction).multiplyScalar(speed);
+        puff.size = 4 * scale; puff.growth = 38 * scale; puff.growthDecay = 6;
+        puff.volumeAspect = 3.2; puff.volumeYaw = yaw; puff.volumeAxisY = y;
+        puff.life = life; puff.age = age; puff.opacity = .9;
+        puff.heat = .5; puff.cooling = .18; puff.density = 4.5; puff.dissipationTime = .55;
+        puff.wind = 1; puff.seed = seed; puff.color.set('#3e4249');
+        puff.position.addScaledVector(puff.velocity, age).addScaledVector(this.wind, age);
+      }
+      // Narrow, separated fragments leave the fireball and burn out quickly.
+      // Reuse the bounded ignition batch; no per-burst objects or lights.
+      for (let i = 0; i < 14; i++) {
+        const life = .22 + random() * .16;
+        const yaw = random() * Math.PI * 2, y = 1 - 2 * (i + .5) / 14;
+        const speed = (65 + random() * 55) * scale, size = (.18 + random() * .14) * scale, stretch = 16 + random() * 12;
+        if (age >= life) continue;
+        const fragment = this.fire.emit(this.position);
+        fragment.velocity.set(Math.cos(yaw) * Math.sqrt(1 - y * y), y, Math.sin(yaw) * Math.sqrt(1 - y * y))
+          .multiplyScalar(speed);
+        fragment.size = size; fragment.stretch = stretch;
+        fragment.align = 'velocity'; fragment.life = life; fragment.age = age;
+        fragment.gravity = 9.81; fragment.opacity = .9; fragment.color.set('#ffd391').multiplyScalar(2.5);
+        fragment.position.addScaledVector(fragment.velocity, age);
+        fragment.position.y -= .5 * fragment.gravity * age * age;
+        fragment.velocity.y -= fragment.gravity * age;
       }
     }
   }
@@ -267,6 +284,7 @@ export class CombatEffects {
     const shells = sim.shells.filter(shell => !shell.bomb);
     const count = shells.length;
     this.shellCount = count;
+    let detailCount = 0;
     camera.getWorldPosition(this.cameraPosition);
     camera.getWorldQuaternion(this.cameraRotation);
     for (let i = 0; i < count; i++) {
@@ -277,22 +295,35 @@ export class CombatEffects {
       this.dummy.position.copy(this.position);
       this.dummy.quaternion.setFromUnitVectors(UP, this.direction);
       this.dummy.scale.setScalar(shell.caliberM);
-      this.dummy.updateMatrix(); this.projectiles.setMatrixAt(i, this.dummy.matrix);
       // Preserve physical shell size, with a restrained tip for tracking at range.
       // Projection scale follows binocular zoom without enlarging the glow.
       this.normal.copy(this.position).applyMatrix4(camera.matrixWorldInverse);
       const depth = camera.projectionMatrix.elements[11] === -1 ? Math.max(.1, -this.normal.z) : 1;
       const viewHeight = 2 * depth / camera.projectionMatrix.elements[5];
-      const glowSize = shell.lodged ? 0 : Math.max(shell.caliberM * 2, Math.min(32, viewHeight * .0025));
+      // Spend the engraved geometry only when the projected round can show it,
+      // including binoculars. Small pages avoid submitting hundreds of detailed
+      // zero-scale shells while idle (WebGPU retains each page's draw count).
+      if (shell.caliberM / viewHeight > .002) {
+        this.dummy.updateMatrix(); this.detailedProjectiles.setMatrixAt(detailCount++, this.dummy.matrix);
+        this.dummy.scale.setScalar(0);
+      }
+      this.dummy.updateMatrix(); this.projectiles.setMatrixAt(i, this.dummy.matrix);
+      // In shell-follow range the luminous head recedes to reveal the metal round.
+      const tracking = THREE.MathUtils.smoothstep(this.cameraPosition.distanceTo(this.position), 65, 150);
+      const luminous = !shell.lodged && shell.waterDragPerSecond === undefined;
+      // Caliber also scales the screen-space visibility floor. A shared floor
+      // made 20 mm rounds look as large as main-battery shells at equal range.
+      const caliberScale = Math.sqrt(shell.caliberM / .38);
+      const glowSize = luminous ? Math.max(shell.caliberM * .45, Math.min(16, viewHeight * .003) * caliberScale) * (.2 + .8 * tracking) : 0;
       this.dummy.quaternion.copy(this.cameraRotation);
       this.dummy.scale.set(glowSize, glowSize, 1);
       this.dummy.updateMatrix(); this.shellGlows.setMatrixAt(i, this.dummy.matrix);
 
-      // A short exposure of the CPU velocity forms a warm, tapered ribbon.
-      // Its tip ends at the shell and its tail cannot extend behind a fresh muzzle.
+      // Compact white-gold exposure at the head; pale recorded trails carry the
+      // longer path. Neither head nor trail extends behind a fresh muzzle.
       const speed = Math.hypot(...shell.velocity);
-      const exposure = .075 * THREE.MathUtils.clamp((shell.caliberM / .38) ** .35, .4, 1.2);
-      const length = shell.lodged ? 0 : Math.min(72, speed * Math.min(exposure, shell.age));
+      const exposure = .024 * THREE.MathUtils.clamp((shell.caliberM / .38) ** .35, .4, 1.2);
+      const length = luminous ? Math.min(24, speed * Math.min(exposure, shell.age)) * (.04 + .96 * tracking) : 0;
       this.dummy.position.addScaledVector(this.direction, -length / 2);
       this.normal.subVectors(this.cameraPosition, this.dummy.position).normalize();
       this.across.crossVectors(this.direction, this.normal);
@@ -306,12 +337,13 @@ export class CombatEffects {
       this.normal.crossVectors(this.across, this.direction).normalize();
       this.tracerBasis.makeBasis(this.across, this.direction, this.normal);
       this.dummy.quaternion.setFromRotationMatrix(this.tracerBasis);
-      this.dummy.scale.set(Math.max(shell.caliberM * 1.15, Math.min(12, viewHeight * .0013)), length, 1);
+      this.dummy.scale.set(Math.max(shell.caliberM * .55, Math.min(18, viewHeight * .0045) * caliberScale) * (.2 + .8 * tracking), length, 1);
       this.dummy.updateMatrix(); this.streaks.setMatrixAt(i, this.dummy.matrix);
     }
     for (const mesh of [this.projectiles, this.streaks, this.shellGlows]) {
       mesh.publish(count);
     }
+    this.detailedProjectiles.publish(detailCount);
   }
 
   private emit(event: CombatEvent): void {
@@ -520,17 +552,19 @@ export class CombatEffects {
   }
 
   reset(): void {
-    this.pools.forEach(pool => pool.reset()); this.spouts.reset(); this.aircraftTrails.clear(); this.airbursts.clear(); this.shellCount = 0; this.torpedoCount = 0; this.depthChargeCount = 0; this.fireTick = -1;
+    this.pools.forEach(pool => pool.reset()); this.spouts.reset(); this.shellTrails.reset(); this.aircraftTrails.clear(); this.airbursts.clear(); this.shellCount = 0; this.torpedoCount = 0; this.depthChargeCount = 0; this.localFires.reset();
     for (const mesh of [this.projectiles, this.streaks, this.shellGlows, this.torpedoBodies, this.torpedoWakes, this.depthChargeBodies]) { mesh.publish(0); }
+    this.detailedProjectiles.publish(0);
     this.lights.forEach(item => { item.age = 1; item.light.intensity = 0; }); this.sequence = 0;
   }
   diagnostics() {
-    return { shells: this.shellCount, torpedoes: this.torpedoCount, depthCharges: this.depthChargeCount, smoke: this.smoke.count + this.aircraftSmoke.count + this.flakSmoke.count, aircraftSmoke: this.aircraftSmoke.count, flakSmoke: this.flakSmoke.count, spray: this.spray.count + this.spouts.count + this.mist.count,
-      flashes: this.fire.count, foam: this.foam.count,
-      particleCapacity: this.spouts.capacity + this.pools.reduce((sum, pool) => sum + pool.capacity, 0) };
+    return { shells: this.shellCount, torpedoes: this.torpedoCount, depthCharges: this.depthChargeCount, smoke: this.smoke.count + this.aircraftSmoke.count + this.flakSmoke.count + this.localFires.diagnostics().smoke, aircraftSmoke: this.aircraftSmoke.count, flakSmoke: this.flakSmoke.count, spray: this.spray.count + this.spouts.count + this.mist.count,
+      flashes: this.fire.count + this.localFires.diagnostics().flames, foam: this.foam.count, shellTrails: this.shellTrails.diagnostics(),
+      particleCapacity: this.localFires.diagnostics().capacity + this.spouts.capacity + this.pools.reduce((sum, pool) => sum + pool.capacity, 0) };
   }
   dispose(): void {
-    this.root.removeFromParent(); this.pools.forEach(pool => pool.dispose()); this.spouts.dispose();
+    this.root.removeFromParent(); this.localFires.dispose(); this.shellTrails.dispose(); this.pools.forEach(pool => pool.dispose()); this.spouts.dispose();
+    this.detailedProjectiles.dispose(); this.detailedProjectiles.geometry.dispose();
     for (const mesh of [this.projectiles, this.streaks, this.shellGlows, this.torpedoBodies, this.torpedoWakes, this.depthChargeBodies]) { mesh.dispose(); mesh.geometry.dispose(); mesh.material.dispose(); }
     Object.values(this.maps).forEach(map => map.dispose());
     this.volumeMap.dispose();

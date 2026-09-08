@@ -67,9 +67,7 @@ export async function checkCarrierCamera() {
     check(data.airMap!.tilt !== tilt && optics === 0, 'Shift+arrows tilt without toggling ship optics');
     act(() => key('KeyH')); key('KeyH', 'keyup');
     check(host.querySelector('.air-squadron-box'), 'H restores the squadron controls');
-    const reset = [...host.querySelectorAll<HTMLButtonElement>('button')].find(button => button.textContent === 'Reset angle')!;
-    act(() => reset.click());
-    check(data.airMap!.bearing === 0 && Math.abs(data.airMap!.tilt! - Math.PI / 9) < 1e-8, 'Reset angle restores the original view');
+    check(!host.querySelector('.air-map-tools,.air-map-angle'), 'Camera buttons and tilt slider are removed');
     return { passed: checks };
   } finally { input.dispose(); root.unmount(); host.remove(); }
 }

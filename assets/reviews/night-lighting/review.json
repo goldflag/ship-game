@@ -1,0 +1,20 @@
+{
+  "date": "2026-09-07",
+  "baseCommit": "7964a21545749d56c3071857b54fcfb1d5d1c350",
+  "sourceSHA256": {
+    "src/game/Game.ts": "a0c2bd6009d245fcd701c493a5a5e3d72361913b94a41e6e235faa3edc3ad7b2",
+    "src/maps/conditions.ts": "a3867e137b441df9cdf3f2d56abe719242a404681a72df08ae95cfc4c1c9f239",
+    "vendor/threejs-sky-pro/build/index.js": "17ad251ca286fa0fb1f45ada36d56e2f5309f2d1f0522a7042928172cd44d075",
+    "scripts/diagnostics/night-lighting.html": "6e4f16d53842120aeec6c2eb0012c21563313711eae939152969902ce505e1fc"
+  },
+  "renderer": "Orca embedded Chromium / WebGPU",
+  "quality": "high",
+  "viewport": [
+    1600,
+    900
+  ],
+  "pixelRatio": 1,
+  "oceanSeed": 1,
+  "oceanTick": 3600,
+  "modelChanges": false
+}

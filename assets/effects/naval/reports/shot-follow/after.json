@@ -1,0 +1,79 @@
+{
+  "backend": "webgpu",
+  "camera": {
+    "aim": [
+      12000,
+      0.5,
+      0
+    ],
+    "binoculars": false,
+    "followedShellId": 8,
+    "fov": 52.00000000000001,
+    "magnification": 1,
+    "manualAim": true,
+    "matrixWorldInverse": [
+      0.25819572294092247,
+      0.15088492693894967,
+      -0.954237238572066,
+      0,
+      6.938893903907227e-18,
+      0.9877285153566178,
+      0.15618060043235793,
+      0,
+      0.966092629438303,
+      -0.04032516303798001,
+      0.2550272780918659,
+      0,
+      -213.33678440676945,
+      -142.45775819566128,
+      443.20045676454754,
+      1
+    ],
+    "mode": "Chase",
+    "pointerLocked": false,
+    "position": [
+      499.49575371391677,
+      71.49027655425023,
+      87.33025654044883
+    ],
+    "projectionMatrix": [
+      1.153295910888354,
+      0,
+      0,
+      0,
+      0,
+      2.050303841579296,
+      0,
+      0,
+      0,
+      0,
+      8.333402778356486e-06,
+      -1,
+      0,
+      0,
+      0.5000041667013891,
+      0
+    ],
+    "shellFollow": "flight"
+  },
+  "contentHash": "fcc33f028b242f738e3beeddf0ab62e84567abdc99417e514ec6824dcb928e09",
+  "effects": {
+    "aircraftSmoke": 0,
+    "depthCharges": 0,
+    "flakSmoke": 0,
+    "flashes": 0,
+    "foam": 8,
+    "particleCapacity": 4288,
+    "shellTrails": {
+      "histories": 8,
+      "segments": 22
+    },
+    "shells": 8,
+    "smoke": 24,
+    "spray": 0,
+    "torpedoes": 0
+  },
+  "shipId": "bismarck",
+  "tick": 2139,
+  "paused": true
+}

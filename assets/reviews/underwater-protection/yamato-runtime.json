@@ -1,0 +1,47 @@
+{
+  "url": "http://localhost:5183/scripts/diagnostics/underwater-protection.html?target=yamato",
+  "results": [
+    {
+      "breachAreaM2": 0.17500000000000002,
+      "events": [
+        {
+          "damage": 5250,
+          "message": "Torpedo hit \u00b7 Starboard underwater defense \u00b7 Starboard outer space 7.3 \u00b7 estimated \u00b7 flooding breach"
+        }
+      ],
+      "hash": "e5d7bddc2dd3c555cd6cb904d73a5e89478bfc4a02ed165f10ef0c704134f200",
+      "hullDamage": 5250,
+      "side": 1,
+      "station": 0,
+      "target": "yamato"
+    },
+    {
+      "breachAreaM2": 0.35000000000000003,
+      "events": [
+        {
+          "damage": 10500,
+          "message": "Torpedo hit \u00b7 Starboard middle reserve space 1 \u00b7 estimated \u00b7 flooding breach"
+        }
+      ],
+      "hash": "e5d7bddc2dd3c555cd6cb904d73a5e89478bfc4a02ed165f10ef0c704134f200",
+      "hullDamage": 10500,
+      "side": 1,
+      "station": -100,
+      "target": "yamato"
+    },
+    {
+      "breachAreaM2": 0.17500000000000002,
+      "events": [
+        {
+          "damage": 5250,
+          "message": "Torpedo hit \u00b7 Port underwater defense \u00b7 Port outer space 7.3 \u00b7 estimated \u00b7 flooding breach"
+        }
+      ],
+      "hash": "e5d7bddc2dd3c555cd6cb904d73a5e89478bfc4a02ed165f10ef0c704134f200",
+      "hullDamage": 5250,
+      "side": -1,
+      "station": 0,
+      "target": "yamato"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "controls": true,
+  "height": 844,
+  "overflow": 0,
+  "panel": {
+    "bottom": 745.53125,
+    "height": 390.53125,
+    "left": 12,
+    "right": 258,
+    "top": 355,
+    "width": 246,
+    "x": 12,
+    "y": 355
+  },
+  "ready": true,
+  "width": 390
+}

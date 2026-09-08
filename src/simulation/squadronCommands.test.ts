@@ -77,3 +77,65 @@ test('squadron identity, losses and hotkey order persist across recall and relau
   expect(sim.player.airWing!.planes.filter(p => p.flightId === fighter.id && p.phase === 'outbound')).toHaveLength(5);
   expect(squadronFlights(sim.player).map(f => f.id)).toEqual(initial.map(f => f.id));
 });
+
+test('landed matching survivors combine without reviving losses or skipping service', () => {
+  const { sim, run, groups } = fixture();
+  const [first, second] = squadronFlights(sim.player);
+  const state = sim.player.airWing!;
+  const survivors = state.planes.filter(p => first.planeIds.slice(0, 2).includes(p.id) || second.planeIds.slice(0, 3).includes(p.id));
+  for (const p of state.planes.filter(p => first.planeIds.includes(p.id) || second.planeIds.includes(p.id))) {
+    p.flightId = first.planeIds.includes(p.id) ? first.id : second.id;
+    p.phase = survivors.includes(p) ? 'rearming' : 'lost';
+    p.hp = survivors.includes(p) ? 20 : 0; p.timer = 10; p.ammo = 0;
+  }
+  const originalIds = state.planes.map(p => p.id);
+  run(1 / 60);
+  expect(groups().some(f => f.id === second.id)).toBe(false);
+  expect(groups().find(f => f.id === first.id)!.surviving).toBe(5);
+  expect(sim.commandSquadron(first.id, { kind: 'defend' })).toBe(false);
+  expect(survivors.every(p => p.flightId === first.id && p.hp === 20 && p.timer > 9)).toBe(true);
+  run(11);
+  expect(survivors.every(p => p.hp === 60)).toBe(true);
+  expect(sim.commandSquadron(first.id, { kind: 'defend' })).toBe(true);
+  expect(survivors.every(p => p.phase === 'queued')).toBe(true);
+  expect(state.planes.map(p => p.id)).toEqual(originalIds);
+  expect(state.planes.filter(p => p.phase === 'lost')).toHaveLength(7);
+  expect(new Set(state.flights.flatMap(f => f.planeIds)).size).toBe(state.flights.flatMap(f => f.planeIds).length);
+});
+
+for (const blocker of ['airborne', 'deck', 'capacity', 'model', 'role'] as const) test(`squadron consolidation respects ${blocker}`, () => {
+  const { sim, run, groups } = fixture();
+  const [first, second] = squadronFlights(sim.player);
+  const keep = blocker === 'capacity' ? 4 : 2;
+  const all = sim.player.airWing!.planes;
+  for (const f of [first, second]) for (const [index, id] of f.planeIds.entries()) {
+    const p = all.find(p => p.id === id)!;
+    p.flightId = f.id; p.phase = index < keep ? 'rearming' : 'lost'; p.timer = 100;
+  }
+  const p = all.find(p => p.id === second.planeIds[0])!;
+  if (blocker === 'airborne') { p.phase = 'returning'; p.position = [0, 500, 5000]; }
+  if (blocker === 'deck') p.deckSlot = 0;
+  if (blocker === 'model') p.modelId = 'a6m2-zero';
+  if (blocker === 'role') p.role = 'dive-bomber';
+  run(1 / 60);
+  expect(groups().find(f => f.id === first.id)!.surviving).toBe(keep);
+  expect(groups().find(f => f.id === second.id)!.surviving).toBe(keep);
+});
+
+test('damage adds service time on landing and repairs only up to 60 HP', () => {
+  const { sim, run } = fixture();
+  const planes = sim.player.airWing!.planes.slice(0, 4);
+  for (const [i, p] of planes.entries()) {
+    p.phase = 'rollout'; p.timer = 1.2; p.deckPosition = [0, 20, 0]; p.deckSlot = i;
+    p.hp = [100, 80, 40, 10][i]; p.ammo = 0;
+  }
+  run(1 / 60);
+  const base = sim.player.definition.airWing!.rearmSeconds;
+  expect(planes.map(p => p.timer)).toEqual([base, base * 1.2, base * 1.6, base * 1.9]);
+  run(base + .1);
+  expect(planes[0].phase).toBe('ready');
+  expect(planes[1].phase).toBe('rearming');
+  run(base);
+  expect(planes.map(p => p.hp)).toEqual([100, 80, 60, 60]);
+  expect(planes.every(p => p.phase === 'ready' && p.ammo > 0)).toBe(true);
+});

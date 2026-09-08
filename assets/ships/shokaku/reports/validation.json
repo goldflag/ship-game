@@ -1,62 +1,91 @@
 {
-  "contentHash": "b04a6f27641f67fb5177bea72d65023751e642a1284735d69f9e090c837ba898",
-  "recordedAtUtc": "2026-09-08T04:45:38.669180+00:00",
+  "contentHash": "9417b0cbd8b1316f706388d8dd3ee67f8fe1f6653aad3e5203245ec7a809096e",
+  "recordedAtUtc": "2026-09-08T06:11:58.735236+00:00",
+  "integratedMaster": "8c99b9d88a31a99991401ce9b9bdc14b3338be1a",
+  "priorValidation": "https://github.com/goldflag/ship-game/blob/98887eb16bfa42463b3bbcb4e3e496541b71051d/assets/ships/shokaku/reports/validation.json",
+  "scope": "Resolve master integration, rebuild the stale fleet from merged authoring inputs, and repeat current Shokaku deck, window and runtime checks. Shokaku compiled data and all GLB scene/mesh/material/pivot data are unchanged from the preceding reviewed model.",
   "tooling": {
     "build": "local Blender 5.2.0 LTS",
     "blenderMcp": "No exposed Blender MCP tools in this session",
-    "runtime": "Isolated headless Chrome 152, WebGPU, actual development Game"
+    "runtime": "Isolated Chrome 152, WebGPU, actual merged development Game"
   },
   "commands": [
     {
-      "command": "bun run ship:build shokaku",
+      "command": "bun run ship:check all before rebuilding",
+      "result": "stale compiled exports identified",
+      "ships": [
+        "shokaku",
+        "bismarck",
+        "yamato",
+        "king-george-v",
+        "baltimore",
+        "enterprise-cv6",
+        "type-viic",
+        "liberty-cargo",
+        "liberty-collier",
+        "victory-cargo",
+        "flower-corvette",
+        "fletcher"
+      ]
+    },
+    {
+      "command": "bun run ship:build <id> for each identified stale ship",
       "result": "pass",
-      "contentHash": "b04a6f27641f67fb5177bea72d65023751e642a1284735d69f9e090c837ba898"
+      "evidence": "geometry-9417b0cb/integration-equivalence.json"
     },
     {
       "command": "bun run ship:review shokaku",
       "result": "pass",
-      "evidence": "../generated/review/cameras.json"
+      "evidence": "../generated/review/cameras.json",
+      "visualInspection": "All five fixed views inspected."
     },
     {
-      "command": "Blender review_decks.py against retained correction-03/before/source.blend with --out",
-      "result": "expected failure",
-      "exitCode": 1,
-      "overlapPairs": 5,
-      "evidence": "correction-03/before/decks-source.json"
-    },
-    {
-      "command": "Blender review_decks.py against final source.blend",
+      "command": "Blender review_decks.py against source and GLB; review_windows.py against source",
       "result": "pass",
-      "exitCode": 0,
-      "overlapPairs": 0,
-      "evidence": "geometry-b04a6f27/decks-source.json"
+      "deckOverlapPairs": 0,
+      "recessedGlassPanes": 14,
+      "evidence": [
+        "geometry-9417b0cb/decks-source.json",
+        "geometry-9417b0cb/decks-glb.json",
+        "geometry-9417b0cb/windows.json"
+      ]
     },
     {
-      "command": "Blender review_decks.py --glb public/models/shokaku.glb",
+      "command": "runtime_review.js gridSweep, independentPoses and neighborBounds",
       "result": "pass",
-      "exitCode": 0,
-      "overlapPairs": 0,
-      "evidence": "geometry-b04a6f27/decks-glb.json"
+      "evidence": "runtime-9417b0cb/articulation.json"
     },
     {
-      "command": "Blender review_windows.py, review_attachments.py, review_geometry.py, review_mechanisms.py, review_rudders.py, review_closeups.py; python3 review_reference_overlay.py",
+      "command": "runtime/decks.js and runtime/inspection.js",
       "result": "pass",
-      "evidence": "geometry-b04a6f27/",
-      "reproduction": "../authoring/README.md"
+      "evidence": [
+        "geometry-9417b0cb/decks-cameras.json",
+        "runtime-9417b0cb/inspection.json"
+      ],
+      "visualInspection": "All deck and inspection captures inspected."
     },
     {
-      "command": "runtime_review.js gridSweep(), independentPoses(), neighborBounds(); runtime/decks.js, fidelity.js, inspection.js, rudders.js",
+      "command": "Normal Custom battle with runtime/launch.js and runtime/recovery.js",
       "result": "pass",
-      "evidence": "runtime-b04a6f27/articulation.json",
-      "cameraEvidence": "geometry-b04a6f27/decks-cameras.json"
+      "evidence": "runtime-9417b0cb/carrier-operations.json"
+    },
+    {
+      "command": "Normal M-view multi-selection, Return command and last-flight selection",
+      "result": "pass",
+      "evidence": "runtime-9417b0cb/carrier-controls.json"
+    },
+    {
+      "command": "runtime/reset.js through the normal Return to port button",
+      "result": "pass",
+      "evidence": "runtime-9417b0cb/carrier-operations.json"
     },
     {
       "command": "bun run test",
       "result": "pass",
-      "tests": 892,
-      "testFiles": 124,
+      "tests": 946,
+      "testFiles": 129,
       "failed": 0,
-      "durationMs": 45646,
+      "durationMs": 37641,
       "workers": 8,
       "log": "tests.log"
     },
@@ -75,40 +104,33 @@
       ]
     },
     {
-      "command": "bun run ship:check all",
-      "result": "pass"
-    },
-    {
-      "command": "git diff --check",
+      "command": "bun run typecheck after using a supported Zero in the squadron-consolidation fixture",
       "result": "pass"
     }
   ],
+  "retainedGeometryReview": {
+    "contentHash": "b04a6f27641f67fb5177bea72d65023751e642a1284735d69f9e090c837ba898",
+    "evidence": "geometry-b04a6f27/",
+    "coverage": "Physical attachments, historical overlays, exposed mechanisms, source gun/rudder sweeps. The equivalence record establishes unchanged Shokaku definition, scene data and binary mesh payload; these earlier records keep their original hashes."
+  },
   "review": "acceptance.md",
   "correction": "correction-03/README.md",
-  "authoringDelta": "geometry-b04a6f27/authoring-delta.json",
+  "exportReport": "export.json",
   "historicalAccuracy": "Unresolved original plan provenance, hidden offsets and detail dimensions; no historical certification.",
+  "remainingVisualLimitation": "Existing cast-shadow edge aliasing; correction-03/shadow-diagnostic.json retains the earlier diagnostic. The merged master supplies its current lighting.",
   "logSha256": {
-    "tests.log": "bc8576abd68282b2a9c0fdedcaa535e6b7f5b2f2e1dc2c32d8faf97a6e052588",
-    "build.log": "f524e85ad53ff133a64deedae68d5ae5e21ca5325db13c744b8d7d78e341825f"
+    "tests.log": "ca6debecf24e44a1c284bee6dc8426b193b20b1c9facb1cbf7ada396e813706b",
+    "build.log": "9a1497f4a5b9d557d917933aca4a98e705317f092ae3872207ba58d313ad4212"
   },
   "runtimeSourceSha256": {
     "src/game/AircraftView.ts": "0f88c5b3e55d0151b502b5eec5b4e6de23740eac69570d823bfee311d178e10b",
-    "src/game/Game.ts": "304835d1cb861ee9db8228d48f2f0236d2ef95577aa17ce07fbcd8a6c275e2d6",
+    "src/game/Game.ts": "eac98ddc4b505685d92ed6aed9c48357742ed48ef1d8c51eea5d5b7c80b849e5",
     "src/game/ShipFunnelSmoke.ts": "708f400a6c679305003d7b80d201083f10a88cb577ff49b1e34e5cf15d6fe881",
     "src/game/shipModel.ts": "809189c31c37c40a3378bb35d3dbd6a22dddcb568c832f9f4e5c40f1234e096c",
-    "src/ships/blueprint.ts": "0d35cca646c4c3f640df48da29e93238a5b19747dcafb19dd1cb802ee28c43b0",
+    "src/ships/blueprint.ts": "18e0fb5c8dd12bf27562becd6e4f9899b23d8cd5c9888bac9085c7ef9e991d1c",
     "src/ships/presets.ts": "0506adbfb218baed92b53e15bfb34af8572583ac6d65e73c45b24c2690dbff0c",
-    "src/simulation/aircraft.ts": "ee5d05b589857997936743d3c3da2665b2e576cea0a1945d891e1aa9b2838616",
+    "src/simulation/aircraft.ts": "96ddc697bd8e32efec748f1377e26068c77e459b46cd484f666edc2dcf70cdf9",
     "src/simulation/aircraftGroundPose.ts": "c6d17cd07ca6a7382908a2815e5739dcd73cad57559308b14c01c776a498f5af",
     "src/simulation/aircraftWeapons.ts": "67052e75badbc29725e952a262715e3d60de0198676112f006b7aafe29aaa288"
-  },
-  "deckRegressionSha256": "cc2dff2b9c1f885dcebd36047c916812c529818c2b5c368c80ed4e2797a3ea89",
-  "runtimeRudders": {
-    "record": "runtime-b04a6f27/rudders.json",
-    "manualRenderedPoses": 225,
-    "productionAnimation": false
-  },
-  "scope": "Five island structures and gallery fittings. Hull, weapons, aircraft, damage and stability inputs unchanged. Prior gameplay fixtures retain their original model hashes; source and exported geometry/inspection reviews repeated.",
-  "remainingVisualLimitation": "Existing cast-shadow edge aliasing under normal game lighting, isolated in correction-03/shadow-diagnostic.json. No production renderer changes.",
-  "exportReport": "export.json"
+  }
 }

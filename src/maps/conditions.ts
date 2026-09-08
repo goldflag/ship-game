@@ -24,6 +24,17 @@ export const formatBattleTime = (hours: number) => {
   return `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
 };
 
+const smooth = (value: number, start: number, end: number) => {
+  const t = Math.max(0, Math.min(1, (value - start) / (end - start)));
+  return t * t * (3 - 2 * t);
+};
+// Interpolate authored display-color swatches without importing a renderer into maps.
+const blendFog = (from: string, to: string, weight: number) => {
+  const a = parseInt(from.slice(1), 16), b = parseInt(to.slice(1), 16);
+  return '#' + [16, 8, 0].map(shift => Math.round(((a >> shift) & 255) * (1 - weight)
+    + ((b >> shift) & 255) * weight).toString(16).padStart(2, '0')).join('');
+};
+
 /** Compose visual conditions without changing the map recipe or CPU combat. */
 export function battleEnvironment(map: OceanMap, timeOfDay: TimeOfDayId = 'map', weather: WeatherId = 'map', conditions: BattleConditions = {}) {
   const time = TIME_OF_DAY_PRESETS.find(preset => preset.id === timeOfDay);
@@ -35,14 +46,22 @@ export function battleEnvironment(map: OceanMap, timeOfDay: TimeOfDayId = 'map',
   sky.ambient *= time.lightScale * forecast.ambientScale;
   const fog = { ...map.fog, ...forecast.fog };
   if (time.fogColor) fog.color = time.fogColor;
-  let lightScale = time.lightScale;
   if (conditions.timeHours !== undefined) {
     const hour = conditions.timeHours;
     sky.elevation = 70 * Math.sin((hour - 6) * Math.PI / 12);
     sky.azimuth = (hour * 15) % 360;
-    lightScale = 0.22 + 0.78 * Math.max(0, Math.min(1, (sky.elevation + 6) / 34));
-    sky.ambient *= lightScale / time.lightScale;
+    const nightFog = TIME_OF_DAY_PRESETS.find(preset => preset.id === 'night')!.fogColor!;
+    const dawnFog = TIME_OF_DAY_PRESETS.find(preset => preset.id === 'dawn')!.fogColor!;
+    const duskFog = TIME_OF_DAY_PRESETS.find(preset => preset.id === 'dusk')!.fogColor!;
+    const twilightFog = hour <= 12 ? dawnFog : duskFog;
+    fog.color = sky.elevation < 5 ? blendFog(nightFog, twilightFog, smooth(sky.elevation, -6, 5))
+      : blendFog(twilightFog, fog.color, smooth(sky.elevation, 5, 18));
   }
+  const daylight = smooth(sky.elevation, -6, 18);
+  // Retain enough diffuse fill to read a hull at night; direct light and the
+  // sky still supply the much stronger day/night contrast.
+  if (conditions.timeHours !== undefined || timeOfDay !== 'map')
+    sky.ambient = map.sky.ambient * forecast.ambientScale * (0.5 + 0.5 * daylight);
   if (conditions.cloudCover !== undefined) {
     sky.coverage = conditions.cloudCover / 100;
   }
@@ -60,7 +79,10 @@ export function battleEnvironment(map: OceanMap, timeOfDay: TimeOfDayId = 'map',
   };
   return { sky, fog, cloudWind: wind === undefined ? forecast.cloudWind : wind * 4 / 3,
     waves,
-    cloudAmbient: 1.1 * lightScale * forecast.ambientScale,
+    waterLightScale: 0.24 + 0.76 * daylight,
+    // Sky Pro already scales the incident radiance by the sun's current light.
+    // Scaling this gain again crushed cloud undersides at sunrise.
+    cloudAmbient: 1.1 * forecast.ambientScale,
     cloudShadow: weather === 'storm-clouds' ? 0.55 : 0.2,
     horizonCoverage: conditions.cloudCover !== undefined ? 0.06 * conditions.cloudCover / 100 : weather === 'clear' ? 0 : 0.06 };
 }

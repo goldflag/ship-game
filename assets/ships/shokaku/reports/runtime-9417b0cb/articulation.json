@@ -1,0 +1,107 @@
+{
+  "contentHash": "9417b0cbd8b1316f706388d8dd3ee67f8fe1f6653aad3e5203245ec7a809096e",
+  "backend": "webgpu",
+  "recordedAtUtc": "2026-09-08T06:04:38.812Z",
+  "fixture": "Actual merged development Game, published GLB. Existing runtime_review.js gridSweep, independentPoses and neighborBounds; condensed measurements retain pose counts and maximum errors.",
+  "grid": {
+    "frames": 627,
+    "mounts": [
+      {
+        "id": "aa127-port-1",
+        "uniquePoses": 495
+      },
+      {
+        "id": "aa127-port-2",
+        "uniquePoses": 495
+      },
+      {
+        "id": "aa127-port-3",
+        "uniquePoses": 495
+      },
+      {
+        "id": "aa127-port-4",
+        "uniquePoses": 495
+      },
+      {
+        "id": "aa127-starboard-1",
+        "uniquePoses": 495
+      },
+      {
+        "id": "aa127-starboard-2",
+        "uniquePoses": 495
+      },
+      {
+        "id": "aa127-starboard-3",
+        "uniquePoses": 495
+      },
+      {
+        "id": "aa127-starboard-4",
+        "uniquePoses": 495
+      },
+      {
+        "id": "aa25-port-1",
+        "uniquePoses": 627
+      },
+      {
+        "id": "aa25-port-2",
+        "uniquePoses": 627
+      },
+      {
+        "id": "aa25-port-3",
+        "uniquePoses": 627
+      },
+      {
+        "id": "aa25-port-4",
+        "uniquePoses": 627
+      },
+      {
+        "id": "aa25-port-5",
+        "uniquePoses": 627
+      },
+      {
+        "id": "aa25-port-6",
+        "uniquePoses": 627
+      },
+      {
+        "id": "aa25-starboard-1",
+        "uniquePoses": 627
+      },
+      {
+        "id": "aa25-starboard-2",
+        "uniquePoses": 627
+      },
+      {
+        "id": "aa25-starboard-3",
+        "uniquePoses": 627
+      },
+      {
+        "id": "aa25-starboard-4",
+        "uniquePoses": 627
+      },
+      {
+        "id": "aa25-starboard-5",
+        "uniquePoses": 627
+      },
+      {
+        "id": "aa25-starboard-6",
+        "uniquePoses": 627
+      }
+    ],
+    "totalMountPoses": 11484,
+    "maxMuzzleErrorM": 0.000036020271789662706
+  },
+  "independent": {
+    "poses": 121,
+    "maxMuzzleErrorM": 0.00003601905928747565
+  },
+  "neighbors": {
+    "pairs": 190,
+    "minimum": {
+      "a": "aa127-port-3",
+      "b": "aa127-port-4",
+      "guaranteedGapM": 2.543077917310276
+    },
+    "result": "pass"
+  },
+  "result": "pass"
+}

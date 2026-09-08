@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
-export function Icon({ name, size = 20, style }: { name: 'settings' | 'power' | 'anchor' | 'pause' | 'play' | 'camera' | 'expand' | 'close' | 'arrow' | 'compass' | 'he' | 'shell' | 'repair' | 'ship' | 'turret' | 'target' | 'plus' | 'minus' | 'schematic' | 'download' | 'copy' | 'chevron' | 'fighter' | 'bomb' | 'torpedo'; size?: number; style?: CSSProperties }) {
+export function Icon({ name, size = 20, style }: { name: 'settings' | 'power' | 'anchor' | 'pause' | 'play' | 'camera' | 'expand' | 'close' | 'arrow' | 'compass' | 'he' | 'shell' | 'repair' | 'ship' | 'turret' | 'target' | 'plus' | 'minus' | 'schematic' | 'download' | 'copy' | 'chevron' | 'fighter' | 'aircraft' | 'bomb' | 'torpedo'; size?: number; style?: CSSProperties }) {
   const paths = {
+    aircraft: <path d="M12 2c-1 0-1.5 2-1.5 4v3L3 13v2l7.5-2v5L8 20v1l4-1 4 1v-1l-2.5-2v-5l7.5 2v-2l-7.5-4V6C13.5 4 13 2 12 2Z"/>,
     fighter: <><path d="M3 21V10c0-2 2-5 2-5s2 3 2 5v11ZM3 13h4M3 18h4M10 21V7c0-2 2-5 2-5s2 3 2 5v14ZM10 10h4M10 18h4M17 21V10c0-2 2-5 2-5s2 3 2 5v11ZM17 13h4M17 18h4"/></>,
     bomb: <><path d="M9 8h6v8a3 3 0 0 1-6 0ZM9 8 7 3l5 2 5-2-2 5M9 11h6M12 2v3"/></>,
     torpedo: <><path d="M6 9h11a3 3 0 0 1 0 6H6ZM6 9 3 6v12l3-3M9 9v6M1 9v6"/></>,

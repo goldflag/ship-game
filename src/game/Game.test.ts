@@ -2,6 +2,7 @@ import { afterEach, beforeEach, expect, spyOn, test } from 'bun:test';
 import { Group, PerspectiveCamera, Scene, Vector3 } from 'three/webgpu';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { Game } from './Game';
+import { VisualEnvironment } from './VisualEnvironment';
 import { CameraRig } from './CameraRig';
 import { ShellFollow } from './ShellFollow';
 import { ShipView } from './ShipView';
@@ -55,6 +56,7 @@ async function port() {
     shipLabels: { setFleet() {} },
     ship: new Group(), inPort: true, disposed: false, switchingShip: false,
     renderer: { domElement: { setAttribute() {} } },
+    environment: new VisualEnvironment({ effects: { setWind() {}, setSun() {}, setIllumination() {} }, funnelSmoke: { setWind() {} }, sunAnchor: new Group() }),
   }) as Game;
   return { game, scene, harbor, camera, rig, playerView };
 }
@@ -304,8 +306,8 @@ test('direct slots select a single type, never cycle, and retain selection when 
   game.selectWeaponSlot(9); expect(game.weaponGroupId).toBe(groups[1].id);
   game.selectWeaponGroup('missing'); expect(game.weaponGroupId).toBe(groups[1].id);
   game.definition = shipPreset('fletcher');
-  game.selectWeaponSlot(3); expect(game.battery).toBe('torpedo');
-  game.selectWeaponSlot(4); expect(game.battery).toBe('depth-charge');
+  game.selectWeaponSlot(1); expect(game.battery).toBe('torpedo');
+  game.selectWeaponSlot(2); expect(game.battery).toBe('depth-charge');
 });
 
 test('single shell presses queue, rapid pairs force that choice, and slow presses cancel it', () => {

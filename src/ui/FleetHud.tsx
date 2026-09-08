@@ -1,3 +1,4 @@
+import { FireControl } from './FireControl';
 import { Button } from './components';
 import { AirOperations, SquadronLabels } from './AirOperations';
 import { FlightControl } from './FlightControl';
@@ -45,6 +46,10 @@ function ShipBearing({ data }: { data: Telemetry }) {
           return <g key={mount.id} transform={`translate(${x} ${y})`} className={status === 'ready' ? 'bearing-gun-ready' : 'bearing-gun'}>
             <circle r="3" fill="currentColor"/><text x={mount.position[0] < 0 ? -9 : 9} y="3" textAnchor="middle">{i + 1}</text>
           </g>;
+        })}
+        {data.combat?.playerFires.filter(f => f.intensity > 0).map(fire => {
+          const point = selectedShip.mounts.find(m => m.id === fire.id)?.position ?? selectedShip.compartments.find(c => c.id === fire.id)?.center;
+          return point && <circle key={fire.id} cx={100 + point[0] / selectedShip.hull.beam * 25} cy={100 + point[2] / selectedShip.hull.length * 114} r="5" fill="#ee9b55" fillOpacity={.35 + fire.intensity * .5} stroke="#ffdcaa"/>;
         })}
       </g>
     </svg>
@@ -114,6 +119,10 @@ function ActiveArmament({ data, game, bindings }: FleetHudProps) {
           {group.reload > 0 && Number.isFinite(group.reload) && group.ready === 0 && <span className="fleet-slot-cooldown">{Math.ceil(group.reload)}<small>s</small></span>}
           <kbd>{shortcut(index)}</kbd>
         </button>)}
+        {combat.airWing && <button className="fleet-weapon-slot" disabled={combat.playerSunk} aria-label={`Open air operations · ${bindingLabel(bindings, 'airOperations')}`} title="Command carrier squadrons" onClick={event => { game?.setAirOperationsOpen(true); event.currentTarget.blur(); }}>
+          <span className="fleet-slot-label">AIR WING</span><Icon name="aircraft" size={32}/>
+          <kbd>{bindingLabel(bindings, 'airOperations')}</kbd>
+        </button>}
       </div>
     </div>
   </section>;
@@ -139,9 +148,12 @@ function FleetHudInstruments({ data, game, visible, bindings }: FleetHudProps) {
 
   return <div className={`fleet-hud ${visible ? '' : 'fleet-hud-hidden'} ${data.airOperationsOpen ? 'fleet-air-map' : ''} ${data.binoculars ? 'fleet-in-optics' : ''}`} inert={!visible && !data.airOperationsOpen} style={{ '--map-factor': mapSize / 400 } as CSSProperties}>
     <BearingTape degrees={degrees}/>
+    <div className="fleet-reports">
     {data.combat?.battle && <BattleStatus combat={data.combat} game={game} spectatedShipId={data.spectatedShipId}>
       {data.combat.airWing && !data.airOperationsOpen && <FlightControl combat={data.combat} game={game} bindings={bindings}/>}
     </BattleStatus>}
+    {data.combat && !data.airOperationsOpen && !data.inspecting && <FireControl combat={data.combat} game={game} observedName={data.spectatedShipId ? selectedShip.name : undefined}/>}
+    </div>
     <div className="fleet-top-actions"><span className="fleet-fps" aria-label={`${data.fps} frames per second`}><strong>{data.fps || '—'}</strong> FPS</span><Button variant="icon" aria-label="Pause and settings" title="Pause · Esc" onClick={() => game?.setPaused(true)}><Icon name="pause" size={17}/></Button></div>
     {data.combat?.battle && <BattleDamageLog combat={data.combat} obscured={!!data.inspecting}/>}
 

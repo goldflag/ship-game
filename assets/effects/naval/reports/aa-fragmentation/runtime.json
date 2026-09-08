@@ -1,0 +1,218 @@
+[
+  {
+    "version": "before",
+    "backend": "webgpu",
+    "effects": {
+      "aircraftSmoke": 0,
+      "depthCharges": 0,
+      "flakSmoke": 24,
+      "flashes": 0,
+      "foam": 0,
+      "particleCapacity": 4288,
+      "shellTrails": {
+        "histories": 0,
+        "segments": 0
+      },
+      "shells": 0,
+      "smoke": 24,
+      "spray": 0,
+      "torpedoes": 0
+    },
+    "kind": "heavy",
+    "seconds": 2.1,
+    "tracers": 0,
+    "visibleTracers": 0
+  },
+  {
+    "version": "before",
+    "backend": "webgpu",
+    "effects": {
+      "aircraftSmoke": 0,
+      "depthCharges": 0,
+      "flakSmoke": 0,
+      "flashes": 0,
+      "foam": 0,
+      "particleCapacity": 4288,
+      "shellTrails": {
+        "histories": 0,
+        "segments": 0
+      },
+      "shells": 0,
+      "smoke": 0,
+      "spray": 0,
+      "torpedoes": 0
+    },
+    "kind": "light",
+    "seconds": 2,
+    "tracers": 20,
+    "visibleTracers": 20
+  },
+  {
+    "version": "after",
+    "backend": "webgpu",
+    "effects": {
+      "aircraftSmoke": 0,
+      "depthCharges": 0,
+      "flakSmoke": 64,
+      "flashes": 112,
+      "foam": 0,
+      "particleCapacity": 4288,
+      "shellTrails": {
+        "histories": 0,
+        "segments": 0
+      },
+      "shells": 0,
+      "smoke": 64,
+      "spray": 0,
+      "torpedoes": 0
+    },
+    "kind": "heavy",
+    "seconds": 2.1,
+    "tracers": 0,
+    "visibleTracers": 0
+  },
+  {
+    "version": "after",
+    "backend": "webgpu",
+    "effects": {
+      "aircraftSmoke": 0,
+      "depthCharges": 0,
+      "flakSmoke": 0,
+      "flashes": 0,
+      "foam": 0,
+      "particleCapacity": 4288,
+      "shellTrails": {
+        "histories": 0,
+        "segments": 0
+      },
+      "shells": 0,
+      "smoke": 0,
+      "spray": 0,
+      "torpedoes": 0
+    },
+    "kind": "light",
+    "seconds": 2,
+    "tracers": 20,
+    "visibleTracers": 20
+  },
+  {
+    "version": "after",
+    "backend": "webgpu",
+    "effects": {
+      "aircraftSmoke": 0,
+      "depthCharges": 0,
+      "flakSmoke": 64,
+      "flashes": 63,
+      "foam": 0,
+      "particleCapacity": 4288,
+      "shellTrails": {
+        "histories": 0,
+        "segments": 0
+      },
+      "shells": 0,
+      "smoke": 64,
+      "spray": 0,
+      "torpedoes": 0
+    },
+    "kind": "heavy",
+    "seconds": 2.3,
+    "tracers": 0,
+    "visibleTracers": 0
+  },
+  {
+    "version": "after",
+    "backend": "webgpu",
+    "effects": {
+      "aircraftSmoke": 0,
+      "depthCharges": 0,
+      "flakSmoke": 64,
+      "flashes": 0,
+      "foam": 0,
+      "particleCapacity": 4288,
+      "shellTrails": {
+        "histories": 0,
+        "segments": 0
+      },
+      "shells": 0,
+      "smoke": 64,
+      "spray": 0,
+      "torpedoes": 0
+    },
+    "kind": "heavy",
+    "seconds": 2.8,
+    "tracers": 0,
+    "visibleTracers": 0
+  },
+  {
+    "version": "after",
+    "backend": "webgpu",
+    "effects": {
+      "aircraftSmoke": 0,
+      "depthCharges": 0,
+      "flakSmoke": 0,
+      "flashes": 0,
+      "foam": 0,
+      "particleCapacity": 4288,
+      "shellTrails": {
+        "histories": 0,
+        "segments": 0
+      },
+      "shells": 0,
+      "smoke": 0,
+      "spray": 0,
+      "torpedoes": 0
+    },
+    "kind": "heavy",
+    "seconds": 1.25,
+    "tracers": 8,
+    "visibleTracers": 8
+  },
+  {
+    "version": "after",
+    "backend": "webgpu",
+    "effects": {
+      "aircraftSmoke": 0,
+      "depthCharges": 0,
+      "flakSmoke": 24,
+      "flashes": 0,
+      "foam": 0,
+      "particleCapacity": 4288,
+      "shellTrails": {
+        "histories": 0,
+        "segments": 0
+      },
+      "shells": 0,
+      "smoke": 24,
+      "spray": 0,
+      "torpedoes": 0
+    },
+    "kind": "heavy",
+    "seconds": 4,
+    "tracers": 0,
+    "visibleTracers": 0
+  },
+  {
+    "version": "after",
+    "backend": "webgpu",
+    "effects": {
+      "aircraftSmoke": 0,
+      "depthCharges": 0,
+      "flakSmoke": 0,
+      "flashes": 0,
+      "foam": 0,
+      "particleCapacity": 4288,
+      "shellTrails": {
+        "histories": 0,
+        "segments": 0
+      },
+      "shells": 0,
+      "smoke": 0,
+      "spray": 0,
+      "torpedoes": 0
+    },
+    "kind": "heavy",
+    "seconds": 9,
+    "tracers": 0,
+    "visibleTracers": 0
+  }
+]

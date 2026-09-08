@@ -26,7 +26,10 @@ export function InspectionTooltip({ game }: { game: Game | null }) {
   return <div ref={tooltip} id={INSPECTION_TOOLTIP_ID} role="tooltip" className="port-inspection-tooltip">
     <strong>{entry.name}</strong>
     {entry.kind === 'armor' ? <dl>
-      <div><dt>Thickness</dt><dd>{swatch}{entry.thicknessMm} mm</dd></div>
+      {entry.underwaterProtection ? <>
+        <div><dt>Torpedo damage reduction</dt><dd>{swatch}{Math.round(entry.underwaterProtection.damageReduction * 100)}%</dd></div>
+        <div><dt>Breach reduction</dt><dd>{Math.round(entry.underwaterProtection.breachReduction * 100)}%</dd></div>
+      </> : <div><dt>Thickness</dt><dd>{swatch}{entry.thicknessMm} mm</dd></div>}
       {entry.plate && <div><dt>Material</dt><dd>{entry.plate.material}</dd></div>}
       {dimensions}
       {entry.provenance && <div><dt>Basis</dt><dd>{entry.provenance.basis}</dd></div>}
@@ -39,6 +42,6 @@ export function InspectionTooltip({ game }: { game: Game | null }) {
       {entry.within && <div><dt>Compartment</dt><dd>{entry.within}</dd></div>}
       {dimensions}
     </dl>}
-    <small>{entry.kind === 'armor' ? 'Select a row to isolate this plate.' : INSPECTION_EFFECTS[entry.kind]}</small>
+    <small>{entry.underwaterProtection ? 'Protects torpedo contacts inside this zone. Select a row to isolate it.' : entry.kind === 'armor' ? 'Select a row to isolate this plate.' : INSPECTION_EFFECTS[entry.kind]}</small>
   </div>;
 }

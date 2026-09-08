@@ -1,0 +1,67 @@
+{
+  "tick": 1200,
+  "effects": {
+    "shells": 0,
+    "torpedoes": 0,
+    "depthCharges": 0,
+    "smoke": 77,
+    "aircraftSmoke": 0,
+    "flakSmoke": 0,
+    "spray": 0,
+    "flashes": 0,
+    "foam": 0,
+    "particleCapacity": 4288
+  },
+  "player": [
+    {
+      "id": "anton",
+      "name": "Anton",
+      "intensity": 0,
+      "fuelFraction": 0.7917644074074178,
+      "status": "Cooling",
+      "crew": "Cooling space",
+      "location": "Forward \u00b7 Centreline",
+      "setupSeconds": 0
+    },
+    {
+      "id": "boiler-aft-port",
+      "name": "Aft port boiler room \u00b7 two Wagner boilers",
+      "intensity": 0,
+      "fuelFraction": 0.9229322916666167,
+      "status": "Cooling",
+      "crew": "Cooling space",
+      "location": "Amidships \u00b7 Port",
+      "setupSeconds": 0
+    },
+    {
+      "id": "dora",
+      "name": "Dora",
+      "intensity": 0,
+      "fuelFraction": 0.7917644074074178,
+      "status": "Cooling",
+      "crew": "Cooling space",
+      "location": "Aft \u00b7 Centreline",
+      "setupSeconds": 0
+    }
+  ],
+  "pose": {
+    "id": "player",
+    "tick": 1200,
+    "x": 0,
+    "y": 0,
+    "z": -63.62101053506199,
+    "roll": 0,
+    "pitch": 0,
+    "heading": 0,
+    "speed": 6.338368588359836,
+    "swaySpeed": 0,
+    "rudder": 0,
+    "yawRate": 0,
+    "distance": 63.62101053506199,
+    "verticalSpeed": 0,
+    "waveHeave": 0,
+    "driftX": 0,
+    "driftZ": 0
+  },
+  "hash": "fcc33f028b242f738e3beeddf0ab62e84567abdc99417e514ec6824dcb928e09"
+}

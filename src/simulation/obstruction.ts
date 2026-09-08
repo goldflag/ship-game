@@ -1,8 +1,30 @@
-import type { Vec3, Volume } from '../ships/blueprint';
+import type { ShipDefinition, Vec3, Volume } from '../ships/blueprint';
 
 type Box = Pick<Volume, 'center' | 'size'>;
 type Entry = { box: Box; mountId?: string };
 type Branch = { bounds: Box; left?: Branch; right?: Branch; entries?: Entry[] };
+
+/** Hull-local neutral-pose proxies. Open pedestals have no solid roof between
+ * their sights; dimensions follow the original blender_open_guns.py recipe.
+ * These remain coarse proxies, not a moving-barrel collision mesh. */
+export function gunMountObstructions(m: ShipDefinition['mounts'][number]): Entry[] {
+  const w = m.weapon, [length, width, height] = w.gunhouseSize;
+  const box = (x: number, y: number, size: Vec3): Entry => ({ mountId: m.id, box: {
+    center: [m.position[0] + x, m.position[1] + y, m.position[2]], size,
+  } });
+  if (w.mountingStyle !== 'open-pedestal') return [box(0, height / 2, [width, height, length])];
+  const radius = w.barrelBaseRadius ?? w.caliberM * .85;
+  // Breeches, feed hardware and trunnion covers; the sight supports extend
+  // higher only along the sides of the carriage.
+  const bodyHeight = Math.min(height, w.pivotHeight + Math.max(.16, radius * 1.5 + .16));
+  const entries = [box(0, bodyHeight / 2, [width, bodyHeight, length])];
+  const sightTop = w.pivotHeight + .405;
+  if (sightTop > bodyHeight) for (const sign of [-1, 1]) {
+    entries.push(box(sign * width * .395, (bodyHeight + sightTop) / 2,
+      [width * .07 + .11, sightTop - bodyHeight, length]));
+  }
+  return entries;
+}
 
 /** Static hull-local broad phase; leaves still use the exact readiness test. */
 export class BarrelObstructionTree {

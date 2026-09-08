@@ -28,12 +28,14 @@ The [source after](../geometry-b04a6f27/decks-source.json) and [GLB after](../ge
 
 ## Matched game views
 
+These current game captures use integrated hash `9417b0cbd8b1316f706388d8dd3ee67f8fe1f6653aad3e5203245ec7a809096e`; [artifact comparison](../geometry-9417b0cb/integration-equivalence.json) verifies that its Shōkaku geometry is identical to the corrected hash above. Master supplies the current lighting.
+
 | Camera | Before | Corrected |
 | --- | --- | --- |
-| Forward high | [Before](before/decks-forward-high.png) | [After](../geometry-b04a6f27/decks-forward-high.png) |
-| Aft high | [Before](before/decks-aft-high.png) | [After](../geometry-b04a6f27/decks-aft-high.png) |
-| Overhead | [Before](before/decks-top.png) | [After](../geometry-b04a6f27/decks-top.png) |
+| Forward high | [Before](before/decks-forward-high.png) | [After](../geometry-9417b0cb/decks-forward-high.png) |
+| Aft high | [Before](before/decks-aft-high.png) | [After](../geometry-9417b0cb/decks-aft-high.png) |
+| Overhead | [Before](before/decks-top.png) | [After](../geometry-9417b0cb/decks-top.png) |
 
-[Camera coordinates](../geometry-b04a6f27/decks-cameras.json) are identical to the [baseline](before/cameras.json), with all ship geometry present and normal game lighting. The broad striped and triangular material conflicts have disappeared. Faint stepped patterns at cast-shadow edges remain at the game's existing shadow resolution; temporarily suppressing shadow intensity isolates these from the deck geometry. The retained [diagnostic](shadow-diagnostic.json) and [shadow-free overhead probe](decks-top-shadow-probe.png) disclose that temporary override. Acceptance images use normal shadows. No production renderer or depth-bias change was made.
+[Camera coordinates](../geometry-9417b0cb/decks-cameras.json) are identical to the [baseline](before/cameras.json), with all ship geometry present and normal game lighting. The broad striped and triangular material conflicts have disappeared. Faint stepped patterns at cast-shadow edges remain at the game's existing shadow resolution; temporarily suppressing shadow intensity isolates these from the deck geometry. The retained [diagnostic](shadow-diagnostic.json) and [shadow-free overhead probe](decks-top-shadow-probe.png) disclose that temporary override. Acceptance images use normal shadows. No production renderer or depth-bias change was made.
 
-The exact rebuilt model also passes the attachment, window, source articulation, mechanism, neighbor and exported-game checks linked in [acceptance](../acceptance.md). Local Blender 5.2.0 LTS built and reviewed the source; no Blender MCP tool was exposed. All 892 tests and the production build pass; command evidence is in [validation](../validation.json).
+The exact rebuilt model also passes the attachment, window, source articulation, mechanism, neighbor and exported-game checks linked in [acceptance](../acceptance.md). Local Blender 5.2.0 LTS built and reviewed the source; no Blender MCP tool was exposed. All 946 tests and the production build pass; command evidence is in [validation](../validation.json).

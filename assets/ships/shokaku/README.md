@@ -10,7 +10,7 @@ The blueprint fits eight twin 127 mm Type 89 mounts, twelve triple 25 mm Type 96
 
 Open `/?ship=shokaku`, or select Shōkaku in the harbor and Custom battle. At sea, **M** opens the existing air operations controls. Aircraft are hidden in the hangar until ordered to launch. Select **HE** with **E** to fire the carrier's guns manually; this fit carries no AP stock. The original aircraft assets are reused; flight tuning, service timing and damage remain gameplay approximations. The Japanese aircraft currently keep their wings in flight position because their published rigs do not contain folding hinges.
 
-The export contains 339,244 triangles and occupies 11,920,892 bytes (11.37 MiB), within the per-model guardrails. The [GLB](../../../public/models/shokaku.glb), [compiled definition](../../../public/models/shokaku.json) and [generated Blender scene](generated/source.blend) share content hash `b04a6f27641f67fb5177bea72d65023751e642a1284735d69f9e090c837ba898`.
+The export contains 339,244 triangles and occupies 11,920,892 bytes (11.37 MiB), within the per-model guardrails. The [GLB](../../../public/models/shokaku.glb), [compiled definition](../../../public/models/shokaku.json) and [generated Blender scene](generated/source.blend) share content hash `9417b0cbd8b1316f706388d8dd3ee67f8fe1f6653aad3e5203245ec7a809096e`.
 
 Authoring uses `blueprint.json`, `build.py` and the declared original gun recipe under `assets/parts/ijn-carrier-guns/`. Generated `.blend` and `.glb` files are build outputs. Historical reference images are research evidence only and never enter the production recipe as meshes or textures.
 

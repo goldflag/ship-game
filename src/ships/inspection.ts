@@ -17,6 +17,7 @@ export const ARMOR_COLOR_STOPS = [
 ] as const;
 export interface InspectionEntry {
   id: string; name: string; kind: InspectionKind; center: Vec3; size: Vec3;
+  underwaterProtection?: { damageReduction: number; breachReduction: number };
   plate?: Armor['plate']; provenance?: Armor['provenance']; anchor?: Vec3;
   cells?: { center: Vec3; size: Vec3 }[];
   surface?: AuthoredSurface;
@@ -41,6 +42,7 @@ export function armorThicknessColor(thicknessMm: number): string {
   return ARMOR_COLOR_STOPS[ARMOR_COLOR_STOPS.length - 1].color;
 }
 export function inspectionColor(entry: InspectionEntry): string {
+  if (entry.underwaterProtection) return '#79aacf';
   if (entry.kind !== 'armor') return INSPECTION_COLORS[entry.kind];
   // Teak backing has no steel-equivalent resistance in combat.
   return entry.plate?.material === 'teak' ? '#aebabe' : armorThicknessColor(entry.thicknessMm ?? 0);
@@ -50,6 +52,11 @@ export function inspectionEntries(def: ShipDefinition): InspectionEntry[] {
   return [
     ...structuralSurfaces(def).map(s=>({id:`structure:${s.id}`,name:s.name,kind:'armor' as const,center:s.center,size:s.size,surface:s,thicknessMm:s.thicknessMm,
       provenance:{sourceId:'original-structure',basis:'estimated' as const,note:def.structuralPlating!.note}})),
+    ...(def.underwaterProtection?.zones ?? []).map(z => ({
+      id: `underwater-protection:${z.id}`, name: `${z.name} · ${Math.round(z.damageReduction * 100)}% damage / ${Math.round(z.breachReduction * 100)}% breach reduction`,
+      kind: 'armor' as const, center: z.center, size: z.size, underwaterProtection: { damageReduction: z.damageReduction, breachReduction: z.breachReduction },
+      provenance: { sourceId: 'underwater-defense-calibration', basis: 'estimated' as const, note: def.underwaterProtection!.basis },
+    })),
     ...def.armor.map(a => {
       const mountIndex = def.mounts.findIndex(m => m.id === a.plate?.mountId);
       return { id: `armor:${a.id}`, name:a.name, kind:'armor' as const, center:a.center, size:a.size, thicknessMm:a.thicknessMm, plate:a.plate, provenance:a.provenance,

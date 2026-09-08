@@ -3,12 +3,11 @@ import type { Ammunition, ShipDefinition, Vec3 } from '../ships/blueprint';
 import { barrelOffset, barrelHeightOffset } from '../ships/blueprint';
 import { add, clamp, length, localToWorld, normalize, radians, rotate, sub, wrapAngle, worldToLocal, type Pose } from './geometry';
 import { GRAVITY, solveDragArc, travelFactor } from './ballistics';
-import { BarrelObstructionTree } from './obstruction';
+import { BarrelObstructionTree, gunMountObstructions } from './obstruction';
 export { GRAVITY } from './ballistics';
 export type MountDefinition = ShipDefinition['mounts'][number];
 // Compiled definitions are immutable during a battle, like the hull/armor caches.
 // Every barrel used to rebuild every other gunhouse box on every fixed tick.
-const gunhouseBoxes = new WeakMap<ShipDefinition, { id: string; center: Vec3; size: Vec3 }[]>();
 const barrelObstructions = new WeakMap<MountState, { definition: ShipDefinition; mount: MountDefinition; train: number; elevation: number; blocked: boolean }>();
 const obstructionTrees = new WeakMap<ShipDefinition, BarrelObstructionTree>();
 function obstructionTree(definition: ShipDefinition) {
@@ -16,21 +15,11 @@ function obstructionTree(definition: ShipDefinition) {
   if (!tree) {
     tree = new BarrelObstructionTree([
       ...definition.obstructions.map(box => ({ box })),
-      ...obstructionGunhouses(definition).map(box => ({ box, mountId: box.id })),
+      ...definition.mounts.flatMap(gunMountObstructions),
     ]);
     obstructionTrees.set(definition, tree);
   }
   return tree;
-}
-function obstructionGunhouses(definition: ShipDefinition) {
-  let boxes = gunhouseBoxes.get(definition);
-  if (!boxes) {
-    boxes = definition.mounts.map(m => ({ id: m.id,
-      center: add(m.position, [0, m.weapon.gunhouseSize[2] / 2, 0]),
-      size: [m.weapon.gunhouseSize[1], m.weapon.gunhouseSize[2], m.weapon.gunhouseSize[0]] as Vec3 }));
-    gunhouseBoxes.set(definition, boxes);
-  }
-  return boxes;
 }
 export interface MountState {
   aaDiscipline?: import('./airGunnery').FireDiscipline;
@@ -45,6 +34,18 @@ export const createMountState = (m: MountDefinition): MountState => ({ id: m.id,
   ammo: m.weapon.ammoPerBarrel * (m.weapon.barrelCount ?? 2), heAmmo: Math.floor(m.weapon.ammoPerBarrel * (m.weapon.he?.stockFraction ?? 0)) * (m.weapon.barrelCount ?? 2),
   loaded: 'ap', hp: 100, recoil: 0, status: 'turning' });
 export const availableAmmunition = (state: MountState, type = state.loaded): number => type === 'he' ? Math.max(0, Math.min(state.ammo, state.heAmmo)) : Math.max(0, state.ammo - state.heAmmo);
+/** Reload, traverse and elevation all slow together as electrical power fails. The HUD divides displayed reload by the same rate. */
+export const gunWorkRate = (power: number): number => .25 + .75 * clamp(power, 0, 1);
+/** Spend one complete salvo of the loaded type and begin the reload and recoil.
+ * Readiness is the caller's decision; the shared stock model (total rounds with an
+ * HE subset) and the post-salvo state live here for every firing path. */
+export function expendSalvo(m: MountDefinition, state: MountState, reloadSeconds = m.weapon.reloadSeconds): number {
+  const barrels = m.weapon.barrelCount ?? 2;
+  state.ammo -= barrels;
+  if (state.loaded === 'he') state.heAmmo -= barrels;
+  state.reload = reloadSeconds; state.recoil = 1; state.status = 'reloading';
+  return barrels;
+}
 /** Unloading returns the unfired round to its existing stock. Changing type
  * always requires a complete load interval, including changing back mid-load. */
 export function selectAmmunition(m: MountDefinition, state: MountState, requested: Ammunition): void {
@@ -106,7 +107,7 @@ export function solveBallistic(from: Vec3, target: Vec3, speed: number, dragPerS
 }
 /** Return true when the barrel has reached a valid firing solution (used by bots). */
 export function updateMount(m: MountDefinition, state: MountState, definition: ShipDefinition, pose: Pose & { waveHeave?: number }, aim: Vec3 | undefined, dt: number, inheritedVelocity: Vec3 = [0, 0, 0], power = 1): boolean {
-  const workRate = .25 + .75 * clamp(power, 0, 1);
+  const workRate = gunWorkRate(power);
   const wasReloading = state.reload > 0;
   state.reload = Math.max(0, state.reload - dt * workRate);
   if (wasReloading && state.reload === 0 && state.queued) {

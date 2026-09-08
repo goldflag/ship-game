@@ -2021,6 +2021,10 @@ class Gs extends u.MeshBasicNodeMaterial {
           a(1e-9)
         )
       ).toVar();
+      // Local patch: aerial haze and the horizon must include the same lunar
+      // radiance as the dome; sun-only in-scattering turns far clouds black.
+      const lunarAmbient = H ? H.moonColor.mul(H.moonIntensity).mul(H.moonAmbient)
+        .mul(H.moonPhaseIllumination).mul(D(a(0), H.moonDirection.y)) : j(0);
       if (W(I.greaterThan(a(1e-4)), () => {
         if (_ && R) {
           const $ = oa(
@@ -2031,7 +2035,8 @@ class Gs extends u.MeshBasicNodeMaterial {
             S.fade.maxMarchDist
           );
           k.assign(
-            k.mul($.transmittance).add($.inscatter.mul(m.intensity).mul(I))
+            k.mul($.transmittance).add($.inscatter.mul(m.intensity)
+              .add(lunarAmbient.mul($.transmittance.oneMinus())).mul(I))
           );
         } else if (T) {
           const $ = T({
@@ -2048,7 +2053,8 @@ class Gs extends u.MeshBasicNodeMaterial {
             densityScale: S.fade.hazeDensityScale
           });
           k.assign(
-            k.mul($.transmittance).add($.inscatter.mul(m.intensity).mul(I))
+            k.mul($.transmittance).add($.inscatter.mul(m.intensity)
+              .add(lunarAmbient.mul($.transmittance.oneMinus())).mul(I))
           );
         } else {
           const $ = re(
@@ -2069,7 +2075,7 @@ class Gs extends u.MeshBasicNodeMaterial {
           L.zenithRadiance,
           ue(O.y, 0, 1)
         );
-        k.assign(ae(k, J.mul(I), B));
+        k.assign(ae(k, (b || f ? J.add(lunarAmbient) : J).mul(I), B));
       }), l) {
         const G = Ls({
           rayDir: O,
@@ -2698,7 +2704,8 @@ class Ua extends u.MeshBasicNodeMaterial {
         l.a.pow(a(Wa)),
         r.skyDarkness
       ) : l.a;
-      return se(l.rgb, c);
+      // Preserve premultiplied color when steepening night coverage.
+      return se(l.rgb.mul(c.div(D(l.a, a(1e-6)))), c);
     })(), this.depthNode = le(() => {
       const h = t.sample(Se).r, l = i.add(s.mul(h)), c = this.viewProjection.mul(
         se(l.x, l.y, l.z, 1)
@@ -3416,9 +3423,16 @@ class yn {
 }
 const At = new u.Quaternion(), Sn = 1e-5;
 class vn {
-  /** Zenith diffuse-fill radiance, linear RGB. Pre-multiplied by sunIntensity. */
+  // Local patch: share the dome's lunar diffuse radiance with clouds and their bake.
+  constructor(timeOfDay = null) {
+    this._timeOfDay = timeOfDay;
+  }
+  _timeOfDay;
+  _moonRadiance = new M.Vector3();
+  _lastMoonRadiance = new M.Vector3(Number.NaN, Number.NaN, Number.NaN);
+  /** Zenith diffuse-fill radiance, linear RGB, including lunar ambient when supplied. */
   zenithRadiance = g(new M.Vector3(0, 0, 0));
-  /** Toward-sun horizon diffuse-fill radiance, linear RGB. Pre-multiplied by sunIntensity. */
+  /** Horizon diffuse-fill radiance, linear RGB, including lunar ambient when supplied. */
   horizonRadiance = g(new M.Vector3(0, 0, 0));
   /**
    * Ground-bounce upwelling fill on the cloud base, linear RGB. Pre-multiplied by
@@ -3442,7 +3456,11 @@ class vn {
   /** Recompute the ambient terms if any input changed. Call once per frame. */
   update(e, t, s) {
     const i = e.rayleigh.value, o = e.turbidity.value, r = e.multipleScattering.value, h = s.groundBounceAlbedo.value, l = t.intensity.value, c = t.direction.value, d = c.dot(this._lastSunDir) > 1 - Sn;
-    if (i === this._lastRayleigh && o === this._lastTurbidity && r === this._lastMultipleScattering && l === this._lastSunIntensity && h.equals(this._lastGroundBounceAlbedo) && d)
+    const moon = this._timeOfDay;
+    const moonFill = moon ? moon.moonIntensity.value * moon.moonAmbient.value
+      * moon.moonPhaseIllumination.value * Math.max(0, moon.moonDirection.value.y) : 0;
+    this._moonRadiance.set(moon?.moonColor.value.r ?? 0, moon?.moonColor.value.g ?? 0, moon?.moonColor.value.b ?? 0).multiplyScalar(moonFill);
+    if (i === this._lastRayleigh && o === this._lastTurbidity && r === this._lastMultipleScattering && l === this._lastSunIntensity && h.equals(this._lastGroundBounceAlbedo) && d && this._moonRadiance.equals(this._lastMoonRadiance))
       return;
     this._scratchView.set(0, 1, 0), Rt(
       this._scratchView,
@@ -3468,7 +3486,10 @@ class vn {
       h.r * l * (S.x + m.x * A),
       h.g * l * (S.y + m.y * A),
       h.b * l * (S.z + m.z * A)
-    ), this._lastRayleigh = i, this._lastTurbidity = o, this._lastMultipleScattering = r, this._lastSunIntensity = l, this._lastGroundBounceAlbedo.copy(h), this._lastSunDir.copy(c);
+    ), this.zenithRadiance.value.addScaledVector(this._moonRadiance, 0.65),
+    this.horizonRadiance.value.addScaledVector(this._moonRadiance, 0.65),
+    this.groundBounceRadiance.value.addScaledVector(this._moonRadiance, 0.2),
+    this._lastMoonRadiance.copy(this._moonRadiance), this._lastRayleigh = i, this._lastTurbidity = o, this._lastMultipleScattering = r, this._lastSunIntensity = l, this._lastGroundBounceAlbedo.copy(h), this._lastSunDir.copy(c);
   }
 }
 const Fe = ie.EARTH_R_KM, Ve = ie.ATMO_R_KM, Ot = ie.RAYLEIGH_SCALE_HEIGHT_KM, _t = ie.MIE_SCALE_HEIGHT_KM, [Ys, Ks, qs] = ie.RAYLEIGH_BETA_RGB_KM, Qs = ie.MIE_BETA_BASE_KM, Be = ie.MIE_EXTINCTION_FACTOR, bt = 1 / (4 * Math.PI), xt = 16, Ss = 8, Me = new M.Vector3(0, Fe + 1e-4, 0), Xe = new M.Vector3(), Ae = new M.Vector3(), _e = new M.Vector3(), ut = new M.Vector3();
@@ -4025,7 +4046,7 @@ class Tn {
       e.clouds,
       this._atmosphereLUT.texture,
       this._atmosphereLUT.multiScatterTexture
-    ), this._ambientSky = new vn(), this._ambientSky.update(e.atmosphere, e.sun, e.clouds.lighting), this.sky = new Ii(e.atmosphere, e.sun, {
+    ), this._ambientSky = new vn(e.timeOfDay ?? null), this._ambientSky.update(e.atmosphere, e.sun, e.clouds.lighting), this.sky = new Ii(e.atmosphere, e.sun, {
       transmittanceLUT: this._atmosphereLUT.texture,
       multiScatterLUT: this._atmosphereLUT.multiScatterTexture,
       skyViewLUT: this._skyViewLUT.texture,

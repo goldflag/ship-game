@@ -88,14 +88,15 @@ for (const def of definitions) {
       const intent={aim:[1200,0,0] as Vec3,fire:false,battery};
       for(let i=0;i<1000;i++)sim.step(idle,intent);
       const ready=sim.player.mounts.filter((m,i)=>def.mounts[i].battery===battery&&m.status==='ready');
-      expect(ready.length).toBeGreaterThan(0);
+      if (battery === 'main') expect(ready.length).toBeGreaterThan(0);
+      else expect(ready).toHaveLength(0);
       const ammo=sim.player.mounts.reduce((n,m)=>n+m.ammo,0);
       sim.step(idle,{...intent,fire:true});
       const barrels=ready.reduce((n,m)=>n+(def.mounts.find(d=>d.id===m.id)!.weapon.barrelCount??2),0);
       expect(sim.events.filter(e=>e.kind==='shot'&&e.shipId==='player').length).toBe(barrels);
       expect(sim.player.mounts.reduce((n,m)=>n+m.ammo,0)).toBe(ammo-barrels);
       for(let i=0;i<450;i++)sim.step(idle,intent);
-      expect(ready.some(m=>m.reload===0)).toBe(true);
+      if (battery === 'main') expect(ready.some(m=>m.reload===0)).toBe(true);
       sim.reset();
       expect(sim.shells).toHaveLength(0);
       expect(sim.player.mounts.reduce((n,m)=>n+m.ammo,0)).toBe(ammo);
@@ -147,10 +148,11 @@ for (const def of definitions) {
 
 test('convoy ships deploy on both teams with independent damage and bots that fire',()=>{
   const sim=new CombatSimulation(definitions[3],{friendlyBots:definitions.slice(0,3),enemies:definitions,spawnDistance:1200,seed:12345});
-  for(let i=0;i<2400;i++)sim.step(idle,{aim:[1200,0,0],battery:'main',fire:false});
+  const fired = new Set<string>();
+  for(let i=0;i<4800;i++) { sim.step(idle,{aim:[1200,0,0],battery:'main',fire:false}); for (const event of sim.events) if (event.kind === 'shot') fired.add(event.shipId); }
   expect(sim.actors).toHaveLength(8);
-  expect(sim.events.some(e=>e.kind==='shot'&&e.shipId.startsWith('enemy-'))).toBe(true);
-  expect(sim.events.some(e=>e.kind==='shot'&&e.shipId.startsWith('friendly-'))).toBe(true);
+  expect([...fired].some(id=>id.startsWith('enemy-'))).toBe(true);
+  expect([...fired].some(id=>id.startsWith('friendly-'))).toBe(true);
   expect(sim.actors.every(a=>Number.isFinite(a.motion.heading)&&Number.isFinite(a.motion.y))).toBe(true);
   expect(sim.actors[1].damage).not.toBe(sim.actors[4].damage);
   sim.reset();

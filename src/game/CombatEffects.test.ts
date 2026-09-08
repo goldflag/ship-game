@@ -19,23 +19,45 @@ test('heavy AA bursts at the recorded endpoint after flight, survives history ev
     sim.tick = 120; effects.update(sim, 0, camera, true);
     expect(effects.diagnostics().flakSmoke).toBe(0);
     sim.tick = 121; effects.update(sim, 0, camera, true);
-    expect(effects.diagnostics().flakSmoke).toBe(3);
+    expect(effects.diagnostics().flakSmoke).toBe(8);
+    expect(effects.diagnostics().flashes).toBeGreaterThan(0);
     const mesh = effects.root.getObjectByName('Heavy AA burst smoke') as InstancedMesh;
     const sphere = mesh.geometry.getAttribute('effectSphere');
-    for (let i = 0; i < 3; i++) expect(new Vector3(sphere.getX(i), sphere.getY(i), sphere.getZ(i)).distanceTo(new Vector3(100, 300, -1600))).toBeLessThan(6);
+    for (let i = 0; i < 8; i++) expect(new Vector3(sphere.getX(i), sphere.getY(i), sphere.getZ(i)).distanceTo(new Vector3(100, 300, -1600))).toBeLessThan(6);
+    const volume = mesh.geometry.getAttribute('effectVolume');
+    expect(Array.from({ length: 8 }, (_, i) => volume.getZ(i)).some(heat => heat > 1)).toBe(true);
     const before = [...mesh.instanceMatrix.array], beforeSim = JSON.stringify(sim);
     effects.update(sim, 0, camera, true);
     expect([...mesh.instanceMatrix.array]).toEqual(before);
-    expect(effects.diagnostics().flakSmoke).toBe(3);
+    expect(effects.diagnostics().flakSmoke).toBe(8);
     effects.setWind(10, 0);
     const x = sphere.getX(0);
     effects.update(sim, .5, camera, true);
     expect(sphere.getX(0)).toBeGreaterThan(x);
+    expect(effects.diagnostics().flashes).toBe(0);
+    expect(Array.from({ length: 8 }, (_, i) => volume.getZ(i)).every(heat => heat < .01)).toBe(true);
     expect(JSON.stringify(sim)).toBe(beforeSim);
     effects.update(sim, 8, camera, true);
     expect(effects.diagnostics().flakSmoke).toBe(0);
     effects.reset(); effects.update(sim, 0, camera);
     expect(effects.diagnostics().flakSmoke).toBe(0);
+  } finally { effects.dispose(); }
+});
+
+test('late heavy AA frames show cooled smoke without replaying fire or fragments', () => {
+  const sim = new CombatSimulation(compileShip(blueprint, catalog)), effects = new CombatEffects(), camera = new PerspectiveCamera();
+  try {
+    sim.events.push({ sequence: 1, tick: 0, kind: 'aircraft-fire', position: [0, 20, 0], shipId: 'player', message: 'Heavy AA',
+      aircraft: { id: 'hostile', target: [0, 300, -1600], tracerSpeed: 800, caliberM: .105, airburst: { flightTime: 2, caliberM: .105 } } });
+    sim.tick = 241; effects.update(sim, 0, camera);
+    expect(effects.diagnostics().flakSmoke).toBe(3);
+    expect(effects.diagnostics().flashes).toBe(0);
+    const smoke = effects.root.getObjectByName('Heavy AA burst smoke') as InstancedMesh;
+    const volume = smoke.geometry.getAttribute('effectVolume');
+    for (let i = 0; i < 3; i++) expect(volume.getZ(i)).toBe(0);
+    effects.reset();
+    expect(effects.diagnostics().flakSmoke).toBe(0);
+    expect(effects.diagnostics().flashes).toBe(0);
   } finally { effects.dispose(); }
 });
 
@@ -59,11 +81,11 @@ test('burning-turret smoke drifts with wind, responds to changes, and freezes on
   const sim = new CombatSimulation(compileShip(blueprint, catalog)), effects = new CombatEffects(), camera = new Camera();
   sim.player.damage.control.mounts[0].intensity = 1;
   sim.tick = 15;
-  effects.update(sim, .1, camera);
+  effects.update(sim, .4, camera);
   expect(effects.diagnostics().smoke).toBe(1);
-  const mesh = effects.root.getObjectByName('Propellant and impact volumes') as InstancedMesh;
-  const sphere = mesh.geometry.getAttribute('effectSphere');
-  const position = () => new Vector3(sphere.getX(0), sphere.getY(0), sphere.getZ(0));
+  const mesh = effects.root.getObjectByName('Local fire smoke') as InstancedMesh;
+  const matrix = new Matrix4();
+  const position = () => { mesh.getMatrixAt(0, matrix); return new Vector3().setFromMatrixPosition(matrix); };
   const beforeSimulation = JSON.stringify(sim);
   for (const [speed, direction] of [[10, 0], [10, Math.PI / 2], [20, Math.PI], [10, -Math.PI / 2], [0, 1]]) {
     const before = position();
@@ -72,8 +94,8 @@ test('burning-turret smoke drifts with wind, responds to changes, and freezes on
     expect(position().distanceTo(before)).toBe(0);
     effects.update(sim, .1, camera);
     const drift = position().sub(before);
-    expect(drift.x).toBeCloseTo(Math.cos(direction) * speed * .35 * .1, 4);
-    expect(drift.z).toBeCloseTo(Math.sin(direction) * speed * .35 * .1, 4);
+    expect(drift.x).toBeCloseTo(Math.cos(direction) * speed * .35 * .8 * .1, 4);
+    expect(drift.z).toBeCloseTo(Math.sin(direction) * speed * .35 * .8 * .1, 4);
     expect(drift.y).toBeGreaterThan(0);
   }
   expect(JSON.stringify(sim)).toBe(beforeSimulation);
@@ -198,7 +220,8 @@ test('salvos are bounded, do not replay events, pause cleanly, and reset without
   const active = effects.diagnostics();
   expect(active.smoke + active.spray + active.flashes + active.foam).toBeLessThanOrEqual(active.particleCapacity);
   sim.events.length = 0; effects.reset(); effects.update(sim, 0, camera);
-  expect(effects.diagnostics()).toEqual({ shells: 0, torpedoes: 0, depthCharges: 0, smoke: 0, aircraftSmoke: 0, flakSmoke: 0, spray: 0, flashes: 0, foam: 0, particleCapacity: active.particleCapacity });
+  expect(effects.diagnostics()).toEqual({ shells: 0, torpedoes: 0, depthCharges: 0, smoke: 0, aircraftSmoke: 0, flakSmoke: 0, spray: 0, flashes: 0, foam: 0,
+    shellTrails: { histories: 0, segments: 0 }, particleCapacity: active.particleCapacity });
   sim.events.push({ ...event, sequence: 150 }); effects.update(sim, 0, camera);
   expect(effects.diagnostics().flashes).toBeGreaterThan(0);
   for (let i = 0; i < 13 * 60; i++) effects.update(sim, 1 / 60, camera);
@@ -293,7 +316,8 @@ test('billboards reorient while paused and expired storage is reused', () => {
 
 test('the shell pool keeps its shader capacity through empty frames, salvos and resets', () => {
   const sim = new CombatSimulation(compileShip(blueprint, catalog));
-  const effects = new CombatEffects(), camera = new Camera();
+  const effects = new CombatEffects(), camera = new PerspectiveCamera(52, 16 / 9, .1, 30000);
+  camera.position.set(0, 500, 800); camera.lookAt(0, 0, 0); camera.updateMatrixWorld();
   const pool = effects.root.getObjectByName('Shell bodies') as InstancedMesh;
   const tracers = ['Shell streaks', 'Shell glows'].map(name => effects.root.getObjectByName(name) as InstancedMesh);
   const matrix = new Matrix4(), scale = new Vector3();
@@ -335,6 +359,28 @@ test('the shell pool keeps its shader capacity through empty frames, salvos and 
   } finally {
     effects.dispose();
   }
+});
+
+test('shell-follow and binoculars expose the detailed round; distant shells use the cheap silhouette', () => {
+  const sim = new CombatSimulation(compileShip(blueprint, catalog)), effects = new CombatEffects();
+  const camera = new PerspectiveCamera(52, 16 / 9, .1, 30000);
+  const shell = { id: 1, ownerId: 'player', position: [0, 0, -20] as [number, number, number],
+    velocity: [800, 0, 0] as [number, number, number], age: 1, caliberM: .38, visited: [], penetrationMm: 0, damage: 0 };
+  sim.shells.push(shell);
+  const body = effects.root.getObjectByName('Shell bodies') as InstancedMesh;
+  const detailed = effects.root.getObjectByName('Detailed shell bodies') as InstancedMesh;
+  const matrix = new Matrix4();
+  const scale = (mesh: InstancedMesh) => { mesh.getMatrixAt(0, matrix); return new Vector3().setFromMatrixScale(matrix).x; };
+  try {
+    camera.updateMatrixWorld(); effects.update(sim, 0, camera);
+    expect(scale(body)).toBe(0); expect(scale(detailed)).toBeCloseTo(.38, 6);
+    expect(detailed.geometry.getAttribute('position').count).toBeGreaterThan(body.geometry.getAttribute('position').count * 5);
+    shell.position[2] = -1000; effects.update(sim, 0, camera);
+    expect(scale(body)).toBeCloseTo(.38, 6); expect(scale(detailed)).toBe(0);
+    camera.fov = 2; camera.updateProjectionMatrix(); effects.update(sim, 0, camera);
+    expect(scale(body)).toBe(0); expect(scale(detailed)).toBeCloseTo(.38, 6);
+    effects.reset(); expect(scale(detailed)).toBe(0);
+  } finally { effects.dispose(); }
 });
 
 test('tracers end at the CPU shell, grow from the muzzle, and stay legible across range and zoom', () => {
@@ -380,6 +426,31 @@ test('tracers end at the CPU shell, grow from the muzzle, and stay legible acros
     expect(new Vector3().setFromMatrixScale(matrix).y).toBe(0);
     glow.getMatrixAt(0, matrix);
     expect(new Vector3().setFromMatrixScale(matrix).x).toBe(0);
+  } finally { effects.dispose(); }
+});
+
+test('manual shell heads and trails distinguish AA, secondary and main calibers at equal range', () => {
+  const sim = new CombatSimulation(compileShip(blueprint, catalog)), effects = new CombatEffects();
+  const camera = new PerspectiveCamera(52, 16 / 9, .1, 30000);
+  const calibers = [.02, .037, .105, .15, .38, .46];
+  try {
+    for (const [id, caliberM] of calibers.entries()) sim.shells.push({ id, ownerId: 'player',
+      position: [0, 100, -1000], velocity: [820, 0, 0], age: .1, caliberM, visited: [], penetrationMm: 0, damage: 0 });
+    for (const range of [1000, 5000]) for (const fov of [52, 8]) {
+      for (const shell of sim.shells) shell.position[2] = -range;
+      camera.fov = fov; camera.updateProjectionMatrix(); camera.updateMatrixWorld();
+      effects.update(sim, 0, camera);
+      for (const name of ['Shell streaks', 'Shell glows']) {
+        const mesh = effects.root.getObjectByName(name) as InstancedMesh, matrix = new Matrix4();
+        const widths = calibers.map((_, i) => { mesh.getMatrixAt(i, matrix); return new Vector3().setFromMatrixScale(matrix).x; });
+        expect(widths[0]).toBeGreaterThan(0);
+        for (let i = 1; i < widths.length; i++) expect(widths[i]).toBeGreaterThan(widths[i - 1]);
+        expect(widths[0]).toBeLessThan(widths[4] * .25);
+      }
+      const trails = effects.root.getObjectByName('Shell vapor trails') as InstancedMesh;
+      const widths = trails.geometry.getAttribute('headWidth');
+      for (let i = 1; i < calibers.length; i++) expect(widths.getX(i)).toBeGreaterThan(widths.getX(i - 1));
+    }
   } finally { effects.dispose(); }
 });
 

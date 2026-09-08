@@ -34,7 +34,7 @@ The vendored Fresnel shader's grazing-angle guard is reduced from 0.05 to 0.0001
 
 ### Submerged camera visibility
 
-Black Flag's custom absorption coefficients remove over 99% of green/blue scene light along a 50 m underwater column, making the VIIC disappear at ordinary chase distances. `Game.frame` now scales those coefficients from their original values to 5% using a smooth transition as the camera moves from sea level to 2 m below it. This gives the underwater view 20 times the absorption distance while retaining the blue water color, refraction and distant haze. It is a gameplay visibility adjustment, not measured Atlantic water clarity.
+Black Flag's custom absorption coefficients remove over 99% of green/blue scene light along a 50 m underwater column, making the VIIC disappear at ordinary chase distances. `VisualEnvironment.update` (called from `Game.frame`) now scales those coefficients from their original values to 5% using a smooth transition as the camera moves from sea level to 2 m below it. This gives the underwater view 20 times the absorption distance while retaining the blue water color, refraction and distant haze. It is a gameplay visibility adjustment, not measured Atlantic water clarity.
 
 The animated underwater distortion also eases to **15%** of the preset intensity over the first 2 m of camera submersion. Above-water cameras restore the full original intensity, preserving the view looking into the sea. Surface refraction strength is unchanged. Both adjustments derive from saved preset values, so repeated dives do not compound them.
 
@@ -69,6 +69,33 @@ Each ship has its own **1,536 m** foam field at **256²**, updated at most **20 
 Pausing switches the ocean to fixed-step mode with zero elapsed time, allowing rendering without stepping its wake integrators. This avoids Water Pro's host-clock `update(0)` continuing to extrapolate wake heights and decay foam while paused. Unpausing restores the host clock.
 
 The dev-only `/scripts/diagnostics/ship-wake.html` page runs the actual Game frame loop with controlled input and clock, then reads the native WebGPU wake buffers and foam coverage texture. It checks no wake at rest, foam 150 m behind the stern, widening with age, bounded displacement, retention through turns and camera orbit, exact field preservation while paused, fading after stopping, and clearing on return to port. Results are exposed as `window.wakeDiagnostic`; `?quality=medium` or `?quality=ultra` select the other field resolutions. Private buffer inspection is specific to Water Pro 3.5.1. Fleet regression tests additionally cover 60 independent trails, a stopped player, submerged ships, per-ship teleports, tile reassignment, the native generator limit, fleet replacement, and port cleanup.
+
+## Night and sunrise lighting
+
+The numeric time slider now blends the authored night, dawn/dusk and map fog
+colors by solar elevation. The original implementation changed the sun position
+but retained the map's daytime fog. Hemisphere fill retains 50% of the map/weather
+daylight setting at night and reaches full strength at 18° elevation. This keeps
+ship details readable while preserving a darker sea and sky.
+
+`VisualEnvironment.syncLighting` (`src/game/VisualEnvironment.ts`) supplies the same active celestial light to Water Pro's
+shader uniforms, its scene directional light and combat effects. It runs after
+Sky Pro updates and after Water Pro resynchronizes its provider light, including
+paused frames. Moonlight fades near the horizon; the low sun receives a warmer
+tint and reduced direct intensity, reaching the original daylight at 18°.
+
+Moon ambient is 0.07 with tint `#b4c9f0`. The custom water and foam colors use 24%
+of their original linear radiance at night, reaching 100% at 18°; each application
+starts from the original map/Black Flag swatches. Absorption and wave energy are
+unchanged. Port restores its original colors, fill and direct light.
+
+Cloud ambient gain remains 1.1 × weather scale because Sky Pro already attenuates
+the incoming solar radiance. Its shared cloud baker and aerial haze now include
+lunar diffuse light; its night composite preserves premultiplied color when
+adjusting opacity. These [vendor patches](../vendor/threejs-sky-pro/PATCHES.md)
+also apply to water reflections. They add no render passes or cloud march samples.
+The settings are artistic gameplay lighting, not a geographic or calibrated
+astronomical model. See the [fixed-camera review](../assets/reviews/night-lighting/README.md).
 
 ## Daylight correction
 
@@ -123,7 +150,7 @@ The September 5 scale adjustment reduces Atlantic peak wavelength from 65 to 28 
 
 Custom battle’s **Battle conditions** combines time-of-day and weather selections. Each weather preset also sets wave amplitude, wind speed and peak wavelength, replacing the separate Sea conditions control in battle setup and Settings. Original presets live in `assets/maps/battle-conditions.v1.json`; the renderer-free `src/maps/conditions.ts` resolver applies the map’s water multipliers to the weather’s waves and layers weather over its sky/fog, then applies time-of-day sun angles, ambient scaling and twilight/night fog tint. Omitted selections and **Map default** retain existing map values. These are fixed artistic lighting presets, not geographic solar calculations. Dawn, Morning, Noon, Dusk and Night remain fixed during play; Clear, Partly cloudy, Overcast, Fog and Storm clouds control cloud coverage, altitude, fill, wind and distance haze. Old saved sea preferences are ignored; graphics settings store only quality and render scale. Storm clouds do not include precipitation or lightning, and visual visibility does not alter CPU bot acquisition or ballistics.
 
-`Game.updatePortLighting` applies the composed uniforms and freezes Sky Pro’s celestial clock on an arc matching the authored sun direction, keeping the full moon opposite the sun. Night retains low ambient fill for readable silhouettes and uses a dark fog tint. The provider’s sun-only fog sampler receives the same lunar ambient term as the sky dome, faded in with sky darkness; this prevents the distant fog blend from painting the night backdrop black. The water light’s shadow anchor follows the active sun/moon direction, with a restrained lunar directional fill at night. Returning to port restores cloud fill, cloud wind, horizon coverage, sun, atmospheric scattering and fog alongside the existing sheltered sea. Setup choices survive returns to port for the current page session. `Game.diagnostics()` exposes the selections and applied lighting for in-game review. See the [setup and environment review](../assets/maps/review/battle-conditions/README.md).
+`VisualEnvironment.setScene` applies the composed uniforms and freezes Sky Pro’s celestial clock on an arc matching the authored sun direction, keeping the full moon opposite the sun. Night retains low ambient fill for readable silhouettes and uses a dark fog tint. The provider’s sun-only fog sampler receives the same lunar ambient term as the sky dome, faded in with sky darkness; this prevents the distant fog blend from painting the night backdrop black. The water light’s shadow anchor follows the active sun/moon direction, with a restrained lunar directional fill at night. Returning to port restores cloud fill, cloud wind, horizon coverage, sun, atmospheric scattering and fog alongside the existing sheltered sea. Setup choices survive returns to port for the current page session. `Game.diagnostics()` exposes the selections and applied lighting for in-game review. See the [setup and environment review](../assets/maps/review/battle-conditions/README.md).
 
 Versioned map definitions live in `assets/maps/environments.v1.json`, consumed through `src/maps/catalog.ts`. Select a map, time of day and weather in Custom battle. These selections survive repeated battles during the current page session.
 

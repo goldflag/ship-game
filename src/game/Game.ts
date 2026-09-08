@@ -9,8 +9,8 @@ import { squadronFlights, airborne, onFlightDeck, type AirOrder } from '../simul
 import { aircraftFollowView } from './AircraftFollow';
 import { AircraftView } from './AircraftView';
 import { oceanMap, DEFAULT_MAP, landHeight } from '../maps/catalog';
-import { battleEnvironment, type BattleConditions, type TimeOfDayId, type WeatherId } from '../maps/conditions';
 import { createBattleLandscape, disposeBattleLandscape } from './BattleLandscape';
+import { VisualEnvironment } from './VisualEnvironment';
 import type { ControlPriority } from '../simulation/damageControl';
 import * as THREE from 'three/webgpu';
 import { Fn, float, max, mix, pass, renderOutput, rtt, vec4 } from 'three/tsl';
@@ -48,7 +48,7 @@ import { selectedShip, shipPreset, shipPresets } from '../ships/presets';
 import { resolveBattleFleet, validateBattleSetup, type BattleSetup } from '../simulation/battle';
 import { InputController } from './InputController';
 import { CameraRig } from './CameraRig';
-import { ShellFollow } from './ShellFollow';
+import { ShellFollow, type ShellView } from './ShellFollow';
 import { sightAim, torpedoCourseAim } from './aiming';
 import { createHarborBackdrop, type HarborBackdrop } from './HarborBackdrop';
 import { ShipWake } from './ShipWake';
@@ -70,7 +70,6 @@ export class Game {
   private renderer: THREE.WebGPURenderer;
   private scene = new FrameScene();
   private underwaterPassVisibility?: UnderwaterPassVisibility;
-  private ambientLight = new THREE.HemisphereLight('#dcebf2', '#65757e', .65);
   private camera = new THREE.PerspectiveCamera(52, 1, 0.5, 60000);
   private rig: CameraRig;
   private battlefieldCamera = new BattlefieldCamera(this.camera);
@@ -96,6 +95,7 @@ export class Game {
   private loadedModel?: THREE.Group;
   private effects = new CombatEffects();
   private funnelSmoke = new ShipFunnelSmoke();
+  private environment = new VisualEnvironment({ effects: this.effects, funnelSmoke: this.funnelSmoke, sunAnchor: this.ship });
   private aircraftView = new AircraftView();
   controlPriority: ControlPriority = 'balanced';
   controlFocus = '';
@@ -146,14 +146,12 @@ export class Game {
     this.cameraFrameListeners.add(listener);
     return () => { this.cameraFrameListeners.delete(listener); };
   }
-  selectedFlightId?: string;
+  private flightSelection: string[] = [];
+  get selectedFlightIds(): string[] { return this.flightSelection ?? []; }
+  get selectedFlightId(): string | undefined { return this.selectedFlightIds[0]; }
+  set selectedFlightId(id: string | undefined) { this.flightSelection = id ? [id] : []; }
   private water?: WaterSystem;
   private landscape?: THREE.Group;
-  private battleTimeOfDay?: TimeOfDayId;
-  private battleWeather?: WeatherId;
-  private battleConditions?: BattleConditions;
-  private surfaceWaterAbsorption = new THREE.Color();
-  private surfaceWaterDistortion = 0;
   private sky?: SkySystem;
   private shipWake?: ShipWake;
   private pipeline?: THREE.RenderPipeline;
@@ -271,7 +269,7 @@ export class Game {
     }
     this.assertActive();
     this.scene.add(this.playerView.root, this.targetView.root, this.effects.root, this.funnelSmoke.root, this.aircraftView.root, this.torpedoPreview.root);
-    this.scene.add(this.ambientLight);
+    this.scene.add(this.environment.ambientLight);
 
     this.callbacks.progress('Building the Atlantic', 0.37);
     // Water Pro 3.5.1 combines seed * 100000 + cellIndex in float32.
@@ -303,9 +301,7 @@ export class Game {
     this.water.waves.jonswapGamma.value = 2.2;
     this.underwaterPassVisibility = new UnderwaterPassVisibility(this.water, this.renderer);
     this.torpedoPreview.setWater(this.water);
-    this.surfaceWaterAbsorption.copy(this.water.color.absorptionColor);
-    this.surfaceWaterDistortion = this.water.underwaterDistortion.intensity;
-    this.updateSeaState();
+    this.environment.attachWater(this.water);
 
     this.callbacks.progress('Lighting the sky', 0.59);
     this.sky = await SkySystem.create({ renderer: this.renderer, camera: this.camera, scene: this.scene,
@@ -319,7 +315,7 @@ export class Game {
     this.sky.pipeline.cirrus.material.depthNode = skyDepth;
     await this.sky.applyPreset(SKY_PRESETS.partlyCloudy);
     this.assertActive();
-    // Shared cloud shape; updatePortLighting supplies each scene's daylight.
+    // Shared cloud shape; the visual environment supplies each scene's daylight.
     // Keep exposure neutral so the hull retains its daylight contrast.
     this.sky.godRays.enabled = false;
     this.sky.clouds.shape.altitude.value = 1700;
@@ -332,14 +328,18 @@ export class Game {
     this.sky.clouds.lighting.groundBounceAlbedo.value.setRGB(0.09, 0.105, 0.12);
     this.sky.clouds.wind.speed = 12;
     this.sky.timeOfDay.moonPhase.value = .5;
-    this.updatePortLighting();
+    this.sky.timeOfDay.moonAmbient.value = .07;
+    this.sky.timeOfDay.moonColor.value.set('#b4c9f0');
+    this.environment.attachSky(this.sky);
+    // Water and sky both exist now; nothing renders before the warmup below.
+    this.environment.setScene(this.simulation.mapId, this.inPort);
     const skyProvider = this.sky.createSkyProvider({ envMap: { width: 384, cloudMarchSteps: 16, skipFrames: 8 } });
     const daylightFog = skyProvider.createFogSampler(), moon = this.sky.timeOfDay;
     // Sky Pro's provider fog is sun-only. Preserve its moon ambient in Water
     // Pro's far-distance blend so the night backdrop is not fogged to black.
     skyProvider.createFogSampler = () => Fn(([direction]: [THREE.Node]) => daylightFog(direction).add(
       moon.moonColor.mul(moon.moonIntensity).mul(moon.moonAmbient).mul(moon.moonPhaseIllumination)
-        .mul(max(0, moon.moonDirection.y)).mul(moon.skyDarkness)));
+        .mul(max(0, moon.moonDirection.y))));
     this.water.setSky(skyProvider);
     const sunlight = this.water.lighting.sunLight;
     const shadowSize = this.settings.quality === 'medium' ? 1024 : this.settings.quality === 'ultra' ? 4096 : 2048;
@@ -351,17 +351,7 @@ export class Game {
     // Medium's 1024px resolution; finer maps need proportionally less offset.
     sunlight.shadow.normalBias = 0.75 * (sunlight.shadow.camera.right - sunlight.shadow.camera.left) / shadowSize;
     this.scene.add(sunlight.target);
-    this.water.lighting.addSunSyncListener(() => {
-      sunlight.target.position.copy(this.ship.position);
-      if (this.inPort) sunlight.target.position.x -= 160;
-      const lightDirection = this.sky!.timeOfDay.skyDarkness.value > .5 ? this.sky!.timeOfDay.moonDirection.value : this.sky!.sun.direction.value;
-      if (this.sky!.timeOfDay.skyDarkness.value > .5) {
-        sunlight.intensity = .35 * this.sky!.timeOfDay.moonIntensity.value * this.sky!.timeOfDay.moonPhaseIllumination.value;
-        sunlight.color.copy(this.sky!.timeOfDay.moonColor.value);
-      }
-      sunlight.position.copy(lightDirection).multiplyScalar(this.inPort ? 800 : 500).add(sunlight.target.position);
-      sunlight.target.updateMatrixWorld();
-    });
+    this.water.lighting.addSunSyncListener(() => this.environment.syncLighting());
 
     // Combat hulls use the shared simulation pose. GPU wave sampling remains visual
     // ocean detail and buoy motion; it cannot move ship hitboxes or muzzle positions.
@@ -446,9 +436,8 @@ export class Game {
       const simulation = new CombatSimulation(definition, { ...resolveBattleFleet(setup, shipPreset),
         seed: crypto.getRandomValues(new Uint32Array(1))[0] });
       await this.replaceFleet(simulation, definition, progress);
-      this.battleTimeOfDay = setup.timeOfDay ?? 'map';
-      this.battleWeather = setup.weather ?? 'map';
-      this.battleConditions = { timeHours: setup.timeHours, cloudCover: setup.cloudCover, windSpeed: setup.windSpeed };
+      this.environment.setBattle({ timeOfDay: setup.timeOfDay ?? 'map', weather: setup.weather ?? 'map',
+        conditions: { timeHours: setup.timeHours, cloudCover: setup.cloudCover, windSpeed: setup.windSpeed } });
       progress?.('Forming the battle lines', 0.9);
     } finally { this.switchingShip = false; }
   }
@@ -567,9 +556,9 @@ export class Game {
       // Apply mouse aim before sampling the sight; follow the new rendered pose
       // after stepping, with camera damping applied only once per frame.
       this.rig.update(focus, focus.y, 0);
-      const aim = this.manualAim ? this.simulation.player.damage.sunk || this.airOperationsOpen || this.battlefieldCamera.transitioning || this.inspecting || this.shellFollow.view || this.followedAircraftId ? this.currentAim : this.readSightAim() : this.simulation.aimAt(this.aimModule, this.battery, this.weaponGroupId);
+      const aim = this.manualAim ? this.simulation.player.damage.sunk || this.viewAway ? this.currentAim : this.readSightAim() : this.simulation.aimAt(this.aimModule, this.battery, this.weaponGroupId);
       this.currentAim = aim;
-      if (!this.inPort && !warmingUp) this.simulation.advance(dt, this.input.sample(), { aim, fire: !this.simulation.player.damage.sunk && !this.airOperationsOpen && !this.battlefieldCamera.transitioning && (this.input.firing || this.rig.firing), battery: this.battery, weaponGroupId: this.weaponGroupId, ammunition: this.selectedAmmunition, controlPriority: this.controlPriority, controlFocus: this.controlFocus }, () => {
+      if (!this.inPort && !warmingUp) this.simulation.advance(dt, this.input.sample(), { aim, fire: this.gunsCommandable && (this.input.firing || this.rig.firing), battery: this.battery, weaponGroupId: this.weaponGroupId, ammunition: this.selectedAmmunition, controlPriority: this.controlPriority, controlFocus: this.controlFocus }, () => {
         this.fleetViews.forEach(view => view.capturePreviousPose());
       });
       const alpha = this.inPort ? 1 : this.simulation.interpolationAlpha;
@@ -584,12 +573,7 @@ export class Game {
       this.ship.position.copy(this.playerView!.root.position);
       this.ship.quaternion.copy(this.playerView!.root.quaternion);
       this.shellFollow.update(this.simulation.shells, this.simulation.events, state.id, dt);
-      const followedPlane = this.simulation.aircraft.find(p => p.id === this.followedAircraftId && p.phase !== 'lost');
-      const carrierView = followedPlane && this.fleetViews.find(v => v.actor.motion.id === followedPlane.ownerId);
-      const planeView = followedPlane && carrierView
-        ? aircraftFollowView(followedPlane, this.simulation.player, carrierView.motion, alpha) : undefined;
-      if (this.followedAircraftId && !planeView) this.stopShellFollow();
-      this.rig.setShellView(planeView ?? this.shellFollow.view);
+      this.rig.setShellView(this.followedView(alpha));
       if (this.simulation.player.damage.sunk) this.rig.exitBinoculars();
       if (this.airOperationsOpen) this.battlefieldCamera.update();
       else {
@@ -599,7 +583,7 @@ export class Game {
       }
       this.battlefieldCamera.applyTransition(realDt);
       this.cameraFrameListeners.forEach(listener => listener());
-      const showGunAim = !this.airOperationsOpen && !this.battlefieldCamera.transitioning && !this.inPort && !this.inspecting && !this.shellFollow.view && !this.followedAircraftId && !this.simulation.player.damage.sunk;
+      const showGunAim = !this.inPort && !this.simulation.player.damage.sunk && !this.viewAway;
       this.gunAim.update(showGunAim ? this.playerView!.gunAimPoints(this.battery, aim, this.weaponGroupId) : [], this.camera, showGunAim);
       this.hitDirections.update(this.simulation, this.camera, !this.inPort);
       this.torpedoPreview.update(this.simulation.player, this.playerView!.motion, aim, showGunAim && this.battery === 'torpedo' && this.host?.dataset.shipLabels !== 'false', this.weaponGroupId);
@@ -610,7 +594,7 @@ export class Game {
         view.updateRenderMatrices();
       });
       this.aircraftView.update(this.simulation, this.camera, !this.inspecting && (!this.inPort || this.playerView?.inspection.mode === 'exterior'), this.inPort, new Map(this.fleetViews.map(view => [view.actor.motion.id, view.root])));
-      this.effects.update(this.simulation, dt, this.camera, this.rig.binoculars && !this.shellFollow.view);
+      this.effects.update(this.simulation, dt, this.camera, this.rig.binoculars && !this.shellFollow.view, this.fleetViews);
       this.funnelSmoke.root.visible = !this.inspecting && (!this.inPort || this.playerView!.inspection.mode === 'exterior');
       this.funnelSmoke.update(this.inPort ? [this.playerView!] : this.fleetViews, dt, this.camera,
         this.rig.binoculars && !this.shellFollow.view ? this.simulation.player.motion.id : undefined);
@@ -619,18 +603,7 @@ export class Game {
       this.playerView!.root.visible = this.airOperationsOpen || this.battlefieldCamera.transitioning || !this.rig.binoculars;
       this.harbor?.update(dt, this.camera);
       this.shipWake!.update(this.inPort ? [this.playerView!] : this.fleetViews, dt, this.simulation.events, this.camera);
-      this.sky!.update(dt);
-      this.updateEffectsLighting();
-      // Black Flag's absorption loses >99% of green/blue light over 50 m,
-      // hiding even our own submarine. Ease to a 20× longer visibility range
-      // over the first 2 m of camera submersion; keep distant water hazy and
-      // restore the exact surface preset when the camera comes back up.
-      const submergedView = THREE.MathUtils.smoothstep(-this.camera.position.y, 0, 2);
-      this.water!.color.absorptionColor.copy(this.surfaceWaterAbsorption)
-        .multiplyScalar(THREE.MathUtils.lerp(1, .05, submergedView));
-      // Keep surface-looking-in refraction; soften the full-screen underwater wobble.
-      this.water!.underwaterDistortion.intensity = this.surfaceWaterDistortion
-        * THREE.MathUtils.lerp(1, .15, submergedView);
+      this.environment.update(this.camera, dt);
       // Fixed-step mode with zero delta renders without stepping the wake's
       // leapfrog/foam integrators. Host-clock update(0) would still step them.
       this.water!.deterministic = this.paused;
@@ -665,7 +638,7 @@ export class Game {
         const hud = this.shipTelemetry(aim);
         this.callbacks.telemetry({ ...hud, camera: this.rig.mode,
           binoculars: this.rig.binoculars, magnification: this.rig.magnification, pointerLocked: this.rig.pointerLocked,
-          viewBearing: this.rig.bearing, chartSize: this.chartSize, airOperationsOpen: this.airOperationsOpen, selectedFlightId: this.selectedFlightId,
+          viewBearing: this.rig.bearing, chartSize: this.chartSize, airOperationsOpen: this.airOperationsOpen, selectedFlightId: this.selectedFlightId, selectedFlightIds: [...this.selectedFlightIds],
           airMap: this.airOperationsOpen ? { ...this.battlefieldCamera.view } : undefined,
           squadronMarkers: this.simulation.actors.flatMap(actor => (airWingTelemetry(actor, this.simulation.actors)?.groups ?? [])
             .filter(f => f.airborne > 0).map(f => {
@@ -736,16 +709,23 @@ export class Game {
   launchAircraft(squadronId: string): void {
     if (!this.inPort && !this.paused && this.simulation.launchAircraft(squadronId)) this.selectedFlightId = this.simulation.player.airWing!.flights.at(-1)!.id;
   }
-  selectFlight(id: string): void {
-    if (squadronFlights(this.simulation.player).some(f => f.id === id)) this.selectedFlightId = this.selectedFlightId === id ? undefined : id;
+  selectFlights(ids: string[]): void {
+    const available = new Set(squadronFlights(this.simulation.player).map(f => f.id));
+    this.flightSelection = [...new Set(ids)].filter(id => available.has(id));
+  }
+  selectFlight(id: string, additive = false): void {
+    if (!squadronFlights(this.simulation.player).some(f => f.id === id)) return;
+    const current = this.selectedFlightIds;
+    this.selectFlights(additive ? current.includes(id) ? current.filter(value => value !== id) : [...current, id]
+      : current.length === 1 && current[0] === id ? [] : [id]);
   }
   orderFlight(id: string, order: AirOrder): boolean { return !this.inPort && !this.paused && this.simulation.orderFlight(id, order); }
   commandSquadron(id: string, order: AirOrder): boolean { return !this.inPort && !this.paused && this.simulation.commandSquadron(id, order); }
   panAirMap(dx: number, dy: number, x?: number, y?: number): void { this.battlefieldCamera.pan(dx, dy, this.host.clientWidth, this.host.clientHeight, x, y); }
-  projectAirMap(x: number, z: number, altitude = 0): [number, number] {
-    const p = new THREE.Vector3(x, altitude, z).project(this.camera);
-    // Map SVG and HTML tags live inside the scaled HUD, unlike pointer input.
-    return [(p.x + 1) * this.host.clientWidth / (2 * this.hudScale), (1 - p.y) * this.host.clientHeight / (2 * this.hudScale)];
+  projectAirMap(x: number, z: number, altitude = 0): [number, number] | null {
+    // Use the same depth and viewport clipping as ship-view nametags.
+    const point = projectShipLabel(new THREE.Vector3(x, altitude, z), this.camera, this.host.clientWidth / this.hudScale, this.host.clientHeight / this.hudScale);
+    return point ? [point.x, point.y] : null;
   }
   projectAirMapPath(points: Vec3[], closed = false): string {
     return projectAirMapPath(points, this.camera, this.host.clientWidth / this.hudScale, this.host.clientHeight / this.hudScale, closed);
@@ -783,29 +763,48 @@ export class Game {
     this.input.clear();
     if (open) {
       if (this.inspecting) this.inspectTarget();
-      this.stopShellFollow(); this.rig.setEnabled(false);
+      this.endFollow(); this.rig.setEnabled(false);
       this.battlefieldCamera.enter(this.simulation.actors.map(a => a.motion), this.host.clientWidth, this.host.clientHeight);
       this.selectedFlightId ??= squadronFlights(this.simulation.player)[0]?.id;
-      if (this.water) {
-        // Water Pro sizes its horizon ring when geometry is built, before the map
-        // increases camera.far. Grow it once and retain it for subsequent map visits.
-        if (this.water.getGeometryConfig().infinityRingExtent < this.camera.far * .95) this.water.rebuildGeometry({});
-        this.water.fog.fadeStart = 400000; this.water.fog.fadeEnd = 900000;
-      }
+      // Water Pro sizes its horizon ring when geometry is built, before the map
+      // increases camera.far. Grow it once and retain it for subsequent map visits.
+      if (this.water && this.water.getGeometryConfig().infinityRingExtent < this.camera.far * .95) this.water.rebuildGeometry({});
+      this.environment.setChartFog(true);
     } else {
       this.battlefieldCamera.exit();
-      const { fog } = battleEnvironment(oceanMap(this.simulation.mapId), this.battleTimeOfDay, this.battleWeather, this.battleConditions);
-      if (this.water) { this.water.fog.fadeStart = fog.start; this.water.fog.fadeEnd = fog.end; }
+      this.environment.setChartFog(false);
       this.rig.update(this.playerView?.motion ?? this.simulation.ship, this.simulation.ship.y, 0, true);
-      this.rig.setEnabled(true); this.rig.capturePointer();
+      // Closing the map from the pause menu keeps the rig idle until play resumes.
+      this.rig.setEnabled(!this.paused);
+      if (!this.paused) this.rig.capturePointer();
     }
     this.battlefieldCamera.applyTransition(0);
   }
   followAircraft(id: string): void {
     if (this.simulation.player.damage.sunk || this.inPort || this.inspecting || !this.simulation.player.airWing?.planes.some(p => p.id === id && p.phase !== 'lost' && (airborne(p) || onFlightDeck(p)))) return;
-    this.stopShellFollow();
+    this.endFollow();
     if (this.airOperationsOpen) this.setAirOperationsOpen(false);
     this.followedAircraftId = id;
+  }
+  /** The camera has left the gun sight: the sight freezes, gun circles hide and the
+   * displayed pose is not an aim. Inspection, the air map and its descent, and shell
+   * or aircraft follows all count; the sight returns as soon as they end. */
+  private get viewAway(): boolean {
+    return this.airOperationsOpen || this.battlefieldCamera.transitioning || this.inspecting || !!this.shellFollow.view || !!this.followedAircraftId;
+  }
+  /** Fire commands reach the guns while the player is afloat and not overhead on
+   * the map or descending from it. Following a shell keeps the guns firing. */
+  private get gunsCommandable(): boolean {
+    return !this.simulation.player.damage.sunk && !this.airOperationsOpen && !this.battlefieldCamera.transitioning;
+  }
+  /** The presentation-only target the rig follows this frame. A followed aircraft
+   * that is lost or leaves the visible phases ends its follow here. */
+  private followedView(alpha: number): ShellView | undefined {
+    const plane = this.simulation.aircraft.find(p => p.id === this.followedAircraftId && p.phase !== 'lost');
+    const carrier = plane && this.fleetViews.find(v => v.actor.motion.id === plane.ownerId);
+    const view = plane && carrier ? aircraftFollowView(plane, this.simulation.player, carrier.motion, alpha) : undefined;
+    if (this.followedAircraftId && !view) this.endFollow();
+    return view ?? this.shellFollow.view;
   }
   /** Instruments follow the spectator without transferring control of the actor. */
   private shipTelemetry(aim: Vec3) {
@@ -852,7 +851,7 @@ export class Game {
     if (this.airOperationsOpen) this.setAirOperationsOpen(false);
     this.battlefieldCamera.cancelTransition();
     if (this.inspecting) this.inspectTarget();
-    this.stopShellFollow();
+    this.endFollow();
     this.spectatedShipId = id;
     this.input.clear();
     this.rig.setInspecting(false);
@@ -869,7 +868,7 @@ export class Game {
     const index = candidates.findIndex(view => view.actor.motion.id === this.spectatedShipId);
     this.spectateTeammate(candidates[(Math.max(0, index) + (direction < 0 ? -1 : 1) + candidates.length) % candidates.length].actor.motion.id);
   }
-  returnToShip(): void { this.stopShellFollow(); }
+  returnToShip(): void { this.endFollow(); }
   private lastShellPress?: { time: number; group: string; type: Ammunition };
   cycleAmmunition(now = performance.now()): void {
     if (this.inPort || this.paused || this.airOperationsOpen || this.simulation.player.damage.sunk ||
@@ -902,7 +901,7 @@ export class Game {
   }
   toggleBinoculars(): void {
     if (this.simulation.player.damage.sunk || this.paused || this.inPort || this.inspecting || this.airOperationsOpen) return;
-    if (this.shellFollow.view || this.followedAircraftId) { this.stopShellFollow(); return; }
+    if (this.shellFollow.view || this.followedAircraftId) { this.endFollow(); return; }
     const ship = this.simulation.ship;
     let aim = this.manualAim ? this.readSightAim() : this.currentAim;
     if (!this.rig.binoculars && this.definition.submarine && hullDepth(ship) > .5) {
@@ -928,7 +927,7 @@ export class Game {
     this.inspectionHover?.clear();
     if (this.articulationOriginal) this.restoreArticulation();
     if (!inPort && this.switchingShip) return;
-    this.stopShellFollow();
+    this.endFollow();
     const leavingPort = this.inPort && !inPort;
     this.inPort = inPort;
     this.spectatedShipId = undefined;
@@ -948,10 +947,10 @@ export class Game {
     this.rig.setInspecting(false);
     this.manualAim = true;
     this.airOperationsOpen = false; this.selectedFlightId = undefined;
-    this.updateSeaState();
-    this.updatePortLighting();
+    this.environment.setScene(this.simulation.mapId, inPort);
     this.input.setOrder(1); this.input.setRudder(0);
     if (inPort) {
+      this.controlPriority = 'balanced'; this.controlFocus = '';
       this.simulation.reset();
       this.lastShellPress = undefined;
       this.ammunition = { main: 'ap', secondary: 'ap', torpedo: 'ap', 'depth-charge': 'ap' };
@@ -976,14 +975,16 @@ export class Game {
     }
     this.renderer.domElement.setAttribute('aria-label', `${this.definition.name} ocean scene. ${inPort ? 'Drag to orbit; scroll to zoom.' : 'Click to capture mouse. Mouse to aim; left mouse to fire; Shift for binoculars; Control for cursor; Escape to pause.'}`);
   }
-  fire(): void { if (!this.simulation.player.damage.sunk && !this.paused && !this.inPort && !this.airOperationsOpen && !this.battlefieldCamera.transitioning && this.playerView) this.simulation.requestFire(); }
+  fire(): void { if (this.gunsCommandable && !this.paused && !this.inPort && this.playerView) this.simulation.requestFire(); }
   toggleShellFollow(): void {
     if (this.simulation.player.damage.sunk || this.paused || this.inPort || this.inspecting || this.airOperationsOpen) return;
-    if (this.shellFollow.enabled) { this.stopShellFollow(); return; }
-    this.stopShellFollow();
+    if (this.shellFollow.enabled) { this.endFollow(); return; }
+    this.endFollow();
     this.shellFollow.setEnabled(true);
   }
-  private stopShellFollow(): void {
+  /** End any shell or aircraft follow and snap the camera back onto the focused hull;
+   * the rig restores the optics it saved when the follow began. */
+  private endFollow(): void {
     this.followedAircraftId = undefined;
     this.shellFollow.setEnabled(false);
     this.rig.setShellView();
@@ -997,10 +998,10 @@ export class Game {
   subscribeInspectionHover(listener: (hover: InspectionHoverInfo | null) => void): () => void {
     return this.inspectionHover.subscribe(listener);
   }
-  selectAim(moduleId: string): void { this.stopShellFollow(); this.manualAim = moduleId === 'point'; this.aimModule = moduleId; }
+  selectAim(moduleId: string): void { this.endFollow(); this.manualAim = moduleId === 'point'; this.aimModule = moduleId; }
   inspectTarget(): void {
     if (this.simulation.player.damage.sunk && !this.inspecting) return;
-    this.stopShellFollow();
+    this.endFollow();
     this.inspecting = !this.inspecting;
     this.targetView?.inspect(this.inspecting);
     this.rig.setHullLength((this.inspecting ? this.simulation.target.definition : this.definition).hull.length);
@@ -1009,7 +1010,7 @@ export class Game {
   }
   selectTarget(id: string): void {
     if (!this.simulation.selectTarget(id)) return;
-    this.stopShellFollow();
+    this.endFollow();
     this.targetView?.inspect(false);
     this.targetView = this.fleetViews.find(view => view.actor === this.simulation.target);
     this.targetView?.inspect(this.inspecting);
@@ -1048,13 +1049,7 @@ export class Game {
   }
   diagnostics() {
     return { mapId: this.simulation.mapId ?? DEFAULT_MAP,
-      waves: this.water ? { amplitude: this.water.waves.amplitude.value, windSpeed: this.water.waves.windSpeed.value,
-        peakWavelength: this.water.waves.peakWavelength.value } : undefined,
-      ...this.battleConditions, timeOfDay: this.battleTimeOfDay ?? 'map', weather: this.battleWeather ?? 'map',
-      environment: this.sky ? { sunElevation: this.sky.sun.elevationDeg, sunAzimuth: this.sky.sun.azimuthDeg,
-        sunIntensity: this.sky.sun.peakIntensity, ambient: this.ambientLight.intensity,
-        cloudCoverage: this.sky.clouds.shape.coverage.value, cloudWind: this.sky.clouds.wind.speed,
-        cloudAmbient: this.sky.clouds.lighting.ambientIntensity.value, fogEnd: this.water?.fog.fadeEnd } : undefined,
+      ...this.environment.diagnostics(),
       islands: this.simulation.islands, shipId: this.definition.id, contentHash: this.definition.contentHash, backend: this.water?.backend,
       camera: { mode: this.rig.mode, binoculars: this.rig.binoculars, magnification: this.rig.magnification, fov: this.camera.fov,
         shellFollow: this.shellFollow.phase, followedAircraftId: this.followedAircraftId, spectatedShipId: this.spectatedShipId, followedShellId: this.shellFollow.shellId,
@@ -1104,75 +1099,8 @@ export class Game {
     }
     this.rig.setBattleTerrain((x, z) => landHeight(islands, x, z));
   }
-  private updateSeaState(): void {
-    if (!this.water) return;
-    const map = oceanMap(this.simulation.mapId ?? DEFAULT_MAP);
-    const { waves } = battleEnvironment(map, this.battleTimeOfDay, this.battleWeather, this.battleConditions);
-    // Retain the smaller wave scale across all oceans; port stays sheltered.
-    this.water.waves.amplitude.value = this.inPort ? .12 : waves.amplitude;
-    this.water.waves.windSpeed.value = this.inPort ? 4 : waves.windSpeed;
-    this.water.waves.peakWavelength.value = this.inPort ? 14 : waves.peakWavelength;
-    this.water.waves.choppiness.value = .65;
-    this.water.waves.windDirection.value = (this.inPort ? 35 : map.water.windDirection) * Math.PI / 180;
-    this.water.waves.dirty = true;
-    const colors = this.inPort ? oceanMap(DEFAULT_MAP).water : map.water;
-    this.water.color.update({ waterColor: colors.waterColor, transmissionColor: colors.transmissionColor, absorptionColor: colors.absorptionColor });
-    this.surfaceWaterAbsorption.copy(this.water.color.absorptionColor);
-    this.water.foam.waves.opacity = this.inPort ? .45 : map.water.foam;
-    this.effects.setWind(this.water.waves.windSpeed.value, this.water.waves.windDirection.value);
-    this.funnelSmoke.setWind(this.water.waves.windSpeed.value, this.water.waves.windDirection.value);
-  }
-  private updateEffectsLighting(): void {
-    if (!this.sky) return;
-    // Water skips fixed simulation steps while paused. Read the live sky after
-    // its zero-delta update, so a conditions change still reaches frozen smoke.
-    const { sun, timeOfDay: moon } = this.sky, night = moon.skyDarkness.value > .5;
-    this.effects.setSun(night ? moon.moonDirection.value : sun.direction.value,
-      this.inPort ? 1 : Math.min(1, night ? .18 + this.ambientLight.intensity * .5
-        : this.ambientLight.intensity * .45 + sun.peakIntensity * .09));
-    this.effects.setIllumination(night ? moon.moonColor.value : sun.color.value,
-      night ? .35 * moon.moonIntensity.value * moon.moonPhaseIllumination.value : sun.intensity.value,
-      this.ambientLight.intensity);
-  }
-  private updatePortLighting(): void {
-    if(!this.sky)return;
-    const map = oceanMap(this.simulation.mapId ?? DEFAULT_MAP);
-    const environment = battleEnvironment(map, this.battleTimeOfDay, this.battleWeather, this.battleConditions), sky = environment.sky;
-    const elevation = this.inPort ? 36 : sky.elevation, azimuth = this.inPort ? 58 : sky.azimuth;
-    // Freeze the celestial clock at an arc endpoint matching the authored angles.
-    // This keeps SunDriver's moon opposite the sun without advancing battle time.
-    this.sky.timeOfDay.applyParams({ autoAdvanceSecondsPerDay: 0, time: elevation < 0 ? 0 : .5,
-      latitude: 90 - Math.abs(elevation), azimuth: elevation < 0 ? azimuth : azimuth - 180 });
-    this.sky.sun.setFromAngles(elevation, azimuth);
-    this.sky.sun.peakIntensity=this.inPort ? 5.8 : sky.intensity;
-    this.sky.clouds.shape.altitude.value = this.inPort ? 1700 : sky.altitude;
-    this.sky.clouds.shape.thickness.value = this.inPort ? 2400 : sky.thickness;
-    this.sky.clouds.shape.coverage.value=this.inPort ? .38 : sky.coverage;
-    this.sky.clouds.shape.horizonCoverageAmount.value = this.inPort ? .06 : environment.horizonCoverage;
-    this.sky.clouds.wind.speed = this.inPort ? 12 : environment.cloudWind;
-    this.sky.clouds.lighting.ambientIntensity.value = this.inPort ? 1.1 : environment.cloudAmbient;
-    this.sky.clouds.lighting.baseShadowStrength.value = this.inPort ? .2 : environment.cloudShadow;
-    // Lift shaded hulls and harbor buildings without raising sea/sky exposure.
-    this.ambientLight.intensity = this.inPort ? 1.75 : sky.ambient;
-    // Diffuse fill softens the dark blue dome toward the hills. Keep the port's
-    // forward sun haze restrained so it cannot wash out the sky and reflections.
-    this.sky.atmosphere.turbidity.value = this.inPort ? 3.2 : sky.turbidity;
-    this.sky.atmosphere.rayleigh.value = this.inPort ? .42 : sky.rayleigh;
-    this.sky.atmosphere.mieScatteringStrength.value = this.inPort ? .25 : sky.mie;
-    this.sky.atmosphere.mieDirectionalG.value = this.inPort ? .6 : sky.mieG;
-    this.sky.atmosphere.skyMultipleScattering.value = this.inPort ? 1.4 : sky.multiple;
-    // Water Pro owns scene.fogNode, including the water/sky horizon blend.
-    // Its live uniforms must change with the scene; THREE.Fog is overridden.
-    if (this.water) {
-      this.water.fog.color = this.inPort ? '#819aa5' : environment.fog.color;
-      this.water.fog.fadeStart = this.inPort ? 650 : environment.fog.start;
-      this.water.fog.fadeEnd = this.inPort ? 5600 : environment.fog.end;
-      this.water.fog.fadePower = this.inPort ? .85 : 1.4;
-      this.water.fog.skyBlendDistance = this.inPort ? 2600 : environment.fog.skyBlend;
-    }
-  }
-  cycleCamera(): void { if (this.airOperationsOpen) { this.setAirOperationsOpen(false); return; } const aircraft = !!this.followedAircraftId; this.stopShellFollow(); if (!aircraft) this.rig.cycle(); }
-  recenter(): void { if (this.airOperationsOpen) { this.centerAirMap(); return; } this.stopShellFollow(); this.rig.recenter(); }
+  cycleCamera(): void { if (this.airOperationsOpen) { this.setAirOperationsOpen(false); return; } const aircraft = !!this.followedAircraftId; this.endFollow(); if (!aircraft) this.rig.cycle(); }
+  recenter(): void { if (this.airOperationsOpen) { this.centerAirMap(); return; } this.endFollow(); this.rig.recenter(); }
   fullscreen(): void {
     const action = document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.();
     action?.catch(() => { /* Browsers may decline fullscreen; sailing remains available. */ });

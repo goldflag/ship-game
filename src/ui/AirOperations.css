@@ -5,19 +5,9 @@
 .air-battlefield-map[data-action] { cursor:crosshair; }
 .air-map-header { position:absolute; top:24px; left:50%; transform:translateX(-50%); display:flex; align-items:center; gap:14px; }
 .air-map-header h2 { margin:0; font:500 18px/1.1 'Barlow Condensed',sans-serif; }
-.air-map-header button,.air-map-tools button,.air-squadron-command button { color:inherit; font:inherit; background:transparent; border:1px solid var(--fleet-line); border-radius:1px; cursor:pointer; text-shadow:inherit; }
+.air-map-header button,.air-squadron-command button { color:inherit; font:inherit; background:transparent; border:1px solid var(--fleet-line); border-radius:1px; cursor:pointer; text-shadow:inherit; }
 .air-map-header button { padding:6px 8px; white-space:nowrap; font-size:10px; }
 .air-map-header kbd { margin-left:6px; }
-.air-map-tools { position:absolute; top:64px; left:50%; transform:translateX(-50%); display:flex; align-items:center; gap:4px; white-space:nowrap; }
-.air-map-tools button { min-width:28px; min-height:28px; padding:4px 6px; font-size:10px; }
-.air-map-tools span { width:80px; text-align:center; font-size:10px; }
-.air-map-angle { position:absolute; top:98px; left:50%; transform:translateX(-50%); display:flex; align-items:center; gap:8px; white-space:nowrap; font-size:10px; pointer-events:auto; }
-.air-map-angle label { display:flex; align-items:center; gap:6px; }
-.air-map-angle input { width:80px; accent-color:var(--fleet-gold); }
-.air-map-angle button { min-height:28px; padding:4px 6px; border:1px solid var(--fleet-line); border-radius:1px; color:inherit; background:transparent; font:inherit; cursor:pointer; }
-.air-map-angle button:hover { color:var(--fleet-gold); border-color:currentColor; }
-.air-map-angle :is(button,input):focus-visible { outline:2px solid var(--fleet-gold); outline-offset:2px; }
-.air-map-angle span { color:var(--fleet-muted); }
 .air-map-ship { cursor:pointer; stroke:currentColor; fill:none; }
 .air-map-ship text,.air-station text { stroke:#07131b; stroke-width:3px; paint-order:stroke; fill:currentColor; font:500 10px 'Barlow',sans-serif; }
 .air-map-ship-health-track { fill:#06111b; stroke:#c9dce04a; stroke-width:1; }
@@ -48,8 +38,8 @@
 .air-selected-orders [aria-pressed=true] { color:var(--fleet-gold); border-color:currentColor; }
 .air-squadron-command .air-open-map { margin-bottom:5px; }
 .air-squadron-command button:disabled { opacity:.42; cursor:default; }
-.air-squadron-command button:hover:not(:disabled),.air-map-tools button:hover,.air-map-header button:hover { color:var(--fleet-gold); border-color:currentColor; }
-.air-squadron-command button:focus-visible,.air-map-tools button:focus-visible,.air-map-header button:focus-visible { outline:2px solid var(--fleet-gold); outline-offset:2px; }
+.air-squadron-command button:hover:not(:disabled),.air-map-header button:hover { color:var(--fleet-gold); border-color:currentColor; }
+.air-squadron-command button:focus-visible,.air-map-header button:focus-visible { outline:2px solid var(--fleet-gold); outline-offset:2px; }
 .air-order-feedback { position:absolute; bottom:calc(100% + 6px); left:0; right:0; margin:0; color:var(--fleet-gold); text-align:center; font-size:11px; }
 .air-squadron-row { display:flex; align-items:stretch; gap:5px; overflow-x:auto; scrollbar-width:thin; padding:3px 3px 5px; pointer-events:auto; }
 .air-squadron-row .air-squadron-box { position:relative; flex:0 0 90px; width:90px; padding:5px 6px; text-align:left; border:1px solid var(--fleet-line); }
@@ -83,21 +73,21 @@
 }
 @container hud (max-width:800px) {
   .air-map-header { top:78px; }
-  .air-map-tools { top:116px; }
-  .air-map-angle { top:150px; }
   .fleet-air-map .fleet-ship { display:none; }
   .fleet-air-map .fleet-combat-report { top:192px; }
   .air-squadron-command:not(.air-command-map) { left:204px; right:12px; bottom:calc(var(--chart-width) + 20px); }
 }
 @container hud (max-width:600px) {
   .air-map-header { left:12px; top:70px; transform:none; }
-  .air-map-tools { top:108px; left:12px; transform:none; }
-  .air-map-angle { top:142px; left:12px; transform:none; }
   .air-squadron-command.air-command-map { max-width:calc(100% - 16px); bottom:6px; }
   .air-selected-orders { justify-content:flex-start; }
   .air-squadron-command:not(.air-command-map) { left:12px; right:12px; top:150px; bottom:auto; }
   .air-aircraft-detail { max-width:calc(100cqw - 24px); max-height:33cqh; }
 }
 @media (pointer:coarse) {
-  .air-selected-orders button,.air-map-header button,.air-map-tools button { min-height:36px; }
+  .air-selected-orders button,.air-map-header button { min-height:36px; }
 }
+
+.air-selection-box { fill:color-mix(in srgb, var(--fleet-gold) 10%, transparent); stroke:var(--fleet-gold); stroke-width:1; pointer-events:none; }
+.air-selection-hint { position:absolute; top:100%; left:50%; transform:translateX(-50%); width:max-content; max-width:calc(100cqw - 24px); margin:6px 0 0; font-size:10px; text-align:center; color:var(--fleet-active); }
+@container hud (max-width:600px) { .air-selection-hint { left:0; transform:none; text-align:left; } }

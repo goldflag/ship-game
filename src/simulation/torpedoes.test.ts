@@ -165,16 +165,18 @@ test('torpedo openings retain their position and magazine damage does not invent
   const before = sim.target.damage.integrity;
   damageTorpedoHit(projectile(), sim.target, point);
   const room = sim.target.damage.compartments.find(c => c.id === 'forward-torpedo-room')!;
-  expect(room.breaches).toEqual([expect.objectContaining({ position: point, areaM2: 1.6, shellId: 1 })]);
-  expect(sim.target.damage.modules.find(m => m.id === 'forward-torpedoes')).toMatchObject({ hp: 0, detonated: false });
+  expect(room.breaches).toEqual([expect.objectContaining({ position: point, areaM2: 1.6 * 7 / 11, shellId: 1 })]);
+  const magazine = sim.target.damage.modules.find(m => m.id === 'forward-torpedoes')!;
+  expect(magazine.detonated).toBe(false);
+  expect(magazine.hp).toBeLessThan(definition.modules.find(m => m.id === magazine.id)!.hp);
   const hullLoss = before - sim.target.damage.integrity;
-  expect(hullLoss).toBeGreaterThan(projectile().weapon.damage * .9 * HULL_HP_SCALE);
-  expect(hullLoss).toBeLessThanOrEqual(projectile().weapon.damage * HULL_HP_SCALE);
+  expect(hullLoss).toBeGreaterThan(projectile().weapon.damage * .625 * .9 * HULL_HP_SCALE);
+  expect(hullLoss).toBeLessThanOrEqual(projectile().weapon.damage * .625 * HULL_HP_SCALE);
   updateCapability(sim.target, definition);
   expect(sim.target.damage.integrity).toBe(before - hullLoss);
   for (let i = 0; i < 10; i++) damageTorpedoHit(projectile(), sim.target, point);
-  expect(room.breachAreaM2).toBe(1.6); // The same aperture is not ten fresh holes.
-  expect(room.breaches.reduce((n, b) => n + b.areaM2, 0)).toBe(1.6);
+  expect(room.breachAreaM2).toBeCloseTo(1.6 * 7 / 11); // The same aperture is not ten fresh holes.
+  expect(room.breaches.reduce((n, b) => n + b.areaM2, 0)).toBeCloseTo(1.6 * 7 / 11);
 });
 
 test('loaded tubes preserve fighting strength after gun loss and recover after magazine flooding', () => {
@@ -244,14 +246,15 @@ test('bot torpedo lead uses delayed observations after a target changes course',
   expect(Math.abs(botTorpedoAim(actor, tube)![0] - before[0])).toBeGreaterThan(20);
 });
 
-test('VIIC deck and platform guns remain articulated and fire through the shared gun system', () => {
+test('VIIC deck gun fires while its light platform gun stays automatic-only', () => {
   const sim = new CombatSimulation(definition);
   for (const battery of ['main', 'secondary'] as const) {
     const aim: Vec3 = battery === 'main' ? [700, .5, -400] : [700, .5, 400];
     for (let i = 0; i < 1200; i++) sim.step(helm, { aim, fire: false, battery });
     const m = sim.player.mounts[battery === 'main' ? 0 : 1], ammo = m.ammo;
-    expect(m.status).toBe('ready'); sim.step(helm, { aim, fire: true, battery });
-    expect(m.ammo).toBe(ammo - 1);
+    if (battery === 'main') expect(m.status).toBe('ready');
+    sim.step(helm, { aim, fire: true, battery });
+    expect(m.ammo).toBe(ammo - (battery === 'main' ? 1 : 0));
   }
   expect(rounds(sim)).toBe(14);
 });

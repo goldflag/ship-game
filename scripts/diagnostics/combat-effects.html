@@ -10,6 +10,7 @@
 <div id="scene"></div><output id="status">Preparing the review renderer…</output>
 <script type="module">
 import { Game } from '/src/game/Game.ts';
+import { CameraRig } from '/src/game/CameraRig.ts';
 
 // A development-only capture surface. Uses the actual Game, CPU simulation,
 // ship joints, ocean, sky and effects; no review hooks ship in the production UI.
@@ -44,7 +45,7 @@ function prepare(scene = 'broadside', secondary = false, range = 5000) {
   const target = game.simulation.target.motion;
   const horizon = scene === 'horizon' || scene === 'horizon-splash';
   const splash = scene === 'splash' || scene === 'horizon-splash';
-  aim = scene === 'armor' ? game.simulation.aimAt('engine-port', battery)
+  aim = scene === 'tracers' ? [12000, .5, 0] : scene === 'armor' ? game.simulation.aimAt('engine-port', battery)
     : splash ? [330, .5, -35] : [850, .5, 0];
   game.manualAim = true; game.currentAim = aim; game.readSightAim = () => aim;
   const sim = game.simulation;
@@ -54,12 +55,12 @@ function prepare(scene = 'broadside', secondary = false, range = 5000) {
   // Keep the apparent size fixed when checking horizon composition at 5–20 km.
   game.camera.fov = horizon ? 2 * Math.atan(Math.tan(4.33 * Math.PI / 360) * 5000 / range) * 180 / Math.PI : 52;
   game.camera.updateProjectionMatrix();
-  game.camera.position.set(...(scene === 'horizon-splash' ? [range + 330, 18, -35]
+  game.camera.position.set(...(scene === 'tracers' ? [-290, 68, 35] : scene === 'horizon-splash' ? [range + 330, 18, -35]
     : scene === 'horizon' ? [range, 18, 0]
     : scene === 'splash' ? [480, 64, 125]
     : scene === 'smoke' ? [145, 58, -150]
     : scene === 'armor' ? [target.x - 200, 55, target.z + 95] : [210, 82, 155]));
-  game.camera.lookAt(...(scene === 'horizon-splash' ? [330, 18, -35]
+  game.camera.lookAt(...(scene === 'tracers' ? [350, 100, 0] : scene === 'horizon-splash' ? [330, 18, -35]
     : scene === 'horizon' ? [0, 18, 0]
     : scene === 'splash' ? [325, 13, -35]
     : scene === 'smoke' ? [45, 18, -55]
@@ -94,6 +95,40 @@ window.review = {
     prepare(scene, secondary, range); advance(time); await nextFrame(); return game.diagnostics();
   },
   async capture() { await nextFrame(); return game.renderer.domElement.toDataURL('image/png'); },
+  async shellCloseup(distance = 4) {
+    prepare('tracers'); advance(.65);
+    const shell = game.simulation.shells[0];
+    game.camera.position.set(shell.position[0] - distance * .375, shell.position[1] + distance * .325, shell.position[2] + distance);
+    game.camera.fov = 40; game.camera.updateProjectionMatrix();
+    game.camera.lookAt(...shell.position); game.camera.updateMatrixWorld();
+    await nextFrame(); return game.diagnostics();
+  },
+  async shellFollowStill(zoomDelta = 0, orbit = false) {
+    game.stopShellFollow();
+    prepare('tracers'); advance(.65);
+    game.setPaused(false);
+    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyT', key: 't' }));
+    window.dispatchEvent(new KeyboardEvent('keyup', { code: 'KeyT', key: 't' }));
+    game.shellFollow.update(game.simulation.shells, game.simulation.events, game.simulation.player.motion.id, 0);
+    game.rig.setShellView(game.shellFollow.view);
+    const canvas = game.renderer.domElement;
+    if (zoomDelta) canvas.dispatchEvent(new WheelEvent('wheel', { deltaY: zoomDelta, deltaMode: 0 }));
+    if (orbit) {
+      // Scripted touch has no OS pointer to capture; the production drag
+      // listeners still consume the same down/move/up coordinates.
+      const capture = canvas.setPointerCapture;
+      canvas.setPointerCapture = () => {};
+      try {
+        canvas.dispatchEvent(new PointerEvent('pointerdown', { pointerType: 'touch', pointerId: 1, button: 0, clientX: 0, clientY: 0 }));
+        canvas.dispatchEvent(new PointerEvent('pointermove', { pointerType: 'touch', pointerId: 1, clientX: 200, clientY: 40 }));
+        window.dispatchEvent(new PointerEvent('pointerup', { pointerType: 'touch', pointerId: 1 }));
+      } finally { canvas.setPointerCapture = capture; }
+    }
+    game.setPaused(true);
+    // Exercise the production follow pose instead of this page's fixed camera.
+    CameraRig.prototype.update.call(game.rig, game.simulation.ship, 0, 0, true);
+    await nextFrame(); return game.diagnostics();
+  },
   async record(scene, duration = 8, secondary = false) {
     prepare(scene, secondary);
     await nextFrame();
