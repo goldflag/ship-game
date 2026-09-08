@@ -62,6 +62,34 @@ const at = (mesh: InstancedMesh, index = 0) => {
   const matrix = new Matrix4(); mesh.getMatrixAt(index, matrix);
   return { position: new Vector3().setFromMatrixPosition(matrix), scale: new Vector3().setFromMatrixScale(matrix) };
 };
+test('AA calibers remain visually distinct at equal range through normal and binocular views', () => {
+  const sim = new CombatSimulation(shipPreset('bismarck')), gunfire = new AircraftGunfire();
+  const camera = new PerspectiveCamera(52, 16 / 9, .5, 60000);
+  const calibers = [.02, .037, .105, .13335];
+  for (const [i, caliberM] of calibers.entries()) sim.events.push({ sequence: i + 1, tick: 0, kind: 'aircraft-fire',
+    position: [0, 300, 0], shipId: 'player', message: 'AA size review',
+    aircraft: { id: 'hostile', target: [0, 300, -1600], tracerSpeed: 800, caliberM,
+      ...(caliberM > .08 ? { airburst: { flightTime: 2, caliberM } } : {}) } });
+  try {
+    sim.tick = 61;
+    for (const range of [100, 1000, 5000]) for (const fov of [52, 8]) {
+      camera.position.set(0, 300, range - 800); camera.lookAt(0, 300, -800);
+      camera.fov = fov; camera.updateProjectionMatrix(); camera.updateMatrixWorld(true);
+      gunfire.update(sim, camera);
+      expect(gunfire.diagnostics()).toBe(calibers.length);
+      for (const name of ['Aircraft tracer cores', 'Aircraft tracer envelopes', 'Aircraft tracer tips']) {
+        const mesh = gunfire.root.getObjectByName(name) as InstancedMesh;
+        const widths = calibers.map((_, i) => at(mesh, i).scale.x);
+        expect(widths[0]).toBeGreaterThan(0);
+        for (let i = 1; i < widths.length; i++) expect(widths[i]).toBeGreaterThan(widths[i - 1]);
+        expect(widths[0]).toBeLessThan(widths[2] * .5);
+      }
+      const cores = gunfire.root.getObjectByName('Aircraft tracer cores') as InstancedMesh;
+      expect(at(cores, 0).scale.y).toBeLessThan(at(cores, 2).scale.y * .6);
+    }
+  } finally { gunfire.dispose(); }
+});
+
 test('aircraft tracers travel in separated bursts, remain short and cannot become full target lines', () => {
   const sim = new CombatSimulation(shipPreset('enterprise-cv6')), gunfire = new AircraftGunfire();
   const camera = new PerspectiveCamera(52, 1, .5, 60000); camera.position.set(80, 140, 200); camera.lookAt(0, 100, -200); camera.updateMatrixWorld(true);
