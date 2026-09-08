@@ -26,6 +26,8 @@ node scripts/diagnostics/measure-custom-battle.mjs sample
 ```
 
 JSON frame samples and a final screenshot go to ignored `.build/custom-battle/`.
+Results also record the installed Chrome version, reported CPU concurrency and
+the WebGPU adapter used to create the game's device, where exposed by Chrome.
 `CPU_PROFILE=1` adds a Chrome CPU profile; `VISUAL_REVIEW=1` captures ship, airborne
 aircraft, distant and magnified views after measurement. `FORCE_WEBGL=1` exercises
 the fallback renderer. Keep profiling and other CPU/GPU jobs off during paired FPS
@@ -206,3 +208,39 @@ instrumentation measured 12.2 KB/frame for aircraft matrices and 2.43 MB/frame
 for all buffer uploads, versus 8.63 MB/frame before these matrix changes.
 These runs still contradict sustained 60 FPS in busy combat. Full builds and
 the relevant cloth, aircraft, wake and instance behavior checks pass.
+
+### Particle preparation and measurement variability
+
+Particle and aircraft-tracer poses now compose matrices directly from retained
+vectors and quaternions. They avoid temporary scene-object Euler synchronization
+and world-matrix updates. Perspective smoke volumes prepare their final facing
+pose immediately; other particle alignment, sorting, fade and motion rules remain
+unchanged. Aircraft gunfire also reuses event-origin and attitude scratch values.
+
+An old/new comparison matched every particle instance matrix, color and custom
+attribute across 180 moving-camera frames for both ordinary and volume particles,
+including orthographic and inside-volume views. Aircraft/tracer GPU pixel results
+matched the preceding build exactly through 606 tracers. The 39 relevant effect
+behavior tests pass. An isolated V8 test of 1,800 ordinary particles reduced
+preparation time from 150–158 ms to 108–113 ms over 300 publications, about 28%.
+This is a component measurement, not a 28% gain in game FPS.
+
+Later unrestricted production measurements slowed substantially even on the
+unchanged main build. The particle candidate averaged 37.8 FPS over 120 seconds,
+with two frames over 100 ms and only 62.55 seconds of simulation progress. These
+were followed by an unchanged-main control at 36.7 FPS, also with two frames over
+100 ms and 63.12 seconds of simulation progress. The candidate was about 3% faster
+in this pair, with average frame work falling from 23.71 to 22.96 ms. These
+results cannot establish sustained 60 FPS or be compared directly with the earlier
+57.3 FPS result. The measured device remains NVIDIA Blackwell, using Chrome
+151.0.7922.170 and a 1920 × 1080 framebuffer at High quality.
+
+CPU counters during the slow run showed the four efficiency-core threads at
+80–88% utilization while most performance-core threads were lightly used; GPU
+utilization was about 12% at that sample. A separate cloth microbenchmark recovered
+its earlier speed when its own temporary Node process was restricted to the
+performance cores (644–672 ms versus the recent unrestricted 955–1,097 ms).
+This supports a scheduling contribution but does not prove the cause of every
+frame stall. No system power settings or user processes were changed. Battle FPS
+results above use ordinary scheduling; a proposed affinity-controlled battle
+diagnostic was rejected by automatic approval review and was not run.

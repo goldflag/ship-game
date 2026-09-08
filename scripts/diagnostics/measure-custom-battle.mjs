@@ -13,6 +13,16 @@ try {
   await page.addInitScript(forceWebGL=>{
     if (forceWebGL) Object.defineProperty(navigator, 'gpu', { value: undefined });
     window.pipelineSamples=[]; window.workerSamples=[];
+    window.gpuAdapters=[];
+    if (window.GPUAdapter) {
+      const requestDevice = GPUAdapter.prototype.requestDevice;
+      GPUAdapter.prototype.requestDevice = function (...args) {
+        const info = this.info;
+        window.gpuAdapters.push(info ? { vendor: info.vendor, architecture: info.architecture,
+          device: info.device, description: info.description, isFallbackAdapter: this.isFallbackAdapter } : { unavailable: true });
+        return requestDevice.apply(this, args);
+      };
+    }
     for(const method of ['createRenderPipeline','createRenderPipelineAsync','createComputePipeline','createComputePipelineAsync']) {
       if(!window.GPUDevice) break;
       const original=GPUDevice.prototype[method];
@@ -40,6 +50,10 @@ try {
   await page.waitForFunction(()=>window.review?.result,undefined,{timeout:180000});
   if(process.env.CPU_PROFILE){const {profile}=await cdp.send('Profiler.stop');await writeFile(new URL(`${label}.cpuprofile`,output),JSON.stringify(profile));}
   const data=await page.evaluate(()=>({result:review.result,rows:review.rows,pipelines:window.pipelineSamples,worker:window.workerSamples}));
+  data.environment = { browser: browser.version(), ...await page.evaluate(() => ({
+    userAgent: navigator.userAgent, hardwareConcurrency: navigator.hardwareConcurrency,
+    adapters: window.gpuAdapters,
+  })) };
   if (process.env.UPLOAD_PROFILE_AFTER) {
     data.uploads = await page.evaluate(async () => {
       const g = review.game, rows = new Map(), buffers = new Map();

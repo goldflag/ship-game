@@ -9,6 +9,8 @@ import { ExpandableInstances } from './ExpandableInstances';
 
 const CAPACITY = 512;
 const UP = new THREE.Vector3(0, 1, 0);
+const RIGHT = new THREE.Vector3(1, 0, 0);
+const AA_SIDES = [0], FIGHTER_SIDES = [-1, 1];
 /** Short moving exposures of a burst; event snapshots keep shots independent of later target motion. */
 export class AircraftGunfire {
   readonly root = new THREE.Group();
@@ -18,8 +20,13 @@ export class AircraftGunfire {
   private readonly cores = this.batch('Aircraft tracer cores', this.tracerMap, '#fff1c9', 4);
   private readonly tips = this.batch('Aircraft tracer tips', this.flashMap, '#ffd79a', 3);
   private readonly muzzles = this.batch('Aircraft gun flashes', this.flashMap, '#ffe2aa', 3);
-  private readonly dummy = new THREE.Object3D();
+  private readonly position = new THREE.Vector3();
+  private readonly orientation = new THREE.Quaternion();
+  private readonly scale = new THREE.Vector3();
+  private readonly matrix = new THREE.Matrix4();
   private readonly pose = new THREE.Quaternion();
+  private readonly attitude = new THREE.Euler();
+  private readonly eventOrigin = new THREE.Vector3();
   private readonly origin = new THREE.Vector3();
   private readonly direction = new THREE.Vector3();
   private readonly velocity = new THREE.Vector3();
@@ -49,7 +56,7 @@ export class AircraftGunfire {
     return mesh;
   }
   private write(mesh: ExpandableInstances<THREE.PlaneGeometry, THREE.MeshBasicNodeMaterial>, index: number, opacity: number) {
-    this.dummy.updateMatrix(); mesh.setMatrixAt(index, this.dummy.matrix);
+    mesh.setMatrixAt(index, this.matrix.compose(this.position, this.orientation, this.scale));
     mesh.setScalarAttributeAt('tracerOpacity', index, opacity);
   }
   update(sim: BattleSession, camera: THREE.Camera) {
@@ -68,19 +75,20 @@ export class AircraftGunfire {
       const age = now - event.tick * FIXED_DT;
       const data = event.aircraft!, attitude = data.attitude;
       const aa = data.tracerSpeed !== undefined, speed = data.tracerSpeed ?? 720;
-      this.pose.setFromEuler(new THREE.Euler(attitude?.pitch ?? 0, -(attitude?.heading ?? 0), attitude?.bank ?? 0, 'YXZ'));
-      const range = this.direction.fromArray(data.target!).sub(new THREE.Vector3(...event.position)).length();
-      this.direction.fromArray(data.direction ?? this.direction.normalize().toArray());
+      this.pose.setFromEuler(this.attitude.set(attitude?.pitch ?? 0, -(attitude?.heading ?? 0), attitude?.bank ?? 0, 'YXZ'));
+      this.eventOrigin.fromArray(event.position);
+      const range = this.direction.fromArray(data.target!).sub(this.eventOrigin).length();
+      if (data.direction) this.direction.fromArray(data.direction); else this.direction.normalize();
       // Light AA keeps flying beyond the sampled target, then burns out gradually.
       // Heavy AA terminates exactly at the CPU's sampled burst time and position.
       const life = data.airburst?.flightTime ?? (aa ? Math.max(3, range / speed + 1) : Math.min(.95, (range + 100) / speed));
       if (age > life + (aa ? 0 : .208)) { this.active.delete(id); continue; }
       if (age < 0) continue;
-      for (let round = 0; round < (aa ? 1 : 3); round++) for (const side of aa ? [0] : [-1, 1]) {
+      for (let round = 0; round < (aa ? 1 : 3); round++) for (const side of aa ? AA_SIDES : FIGHTER_SIDES) {
         const delay = aa ? 0 : round * .095 + (side > 0 ? .018 : 0), flight = age - delay;
         if (flight < 0 || flight > life) continue;
-        this.origin.set(side * 2.4, aa ? 0 : -.25, aa ? 0 : -1.15).applyQuaternion(this.pose).add(new THREE.Vector3(...event.position));
-        this.velocity.fromArray(data.velocity ?? [0, 0, 0]);
+        this.origin.set(side * 2.4, aa ? 0 : -.25, aa ? 0 : -1.15).applyQuaternion(this.pose).add(this.eventOrigin);
+        if (data.velocity) this.velocity.fromArray(data.velocity); else this.velocity.set(0, 0, 0);
         this.origin.addScaledVector(this.velocity, delay);
         this.velocity.addScaledVector(this.direction, speed);
         // Tiny fixed dispersion separates the streams without homing or random frame flicker.
@@ -89,16 +97,16 @@ export class AircraftGunfire {
           this.velocity.y += Math.cos(event.sequence * 3 + round + side) * 1.1;
         }
         if (flight < .038) {
-          this.dummy.position.copy(this.origin).addScaledVector(this.velocity, flight * .08);
-          this.dummy.quaternion.copy(camera.quaternion); this.dummy.scale.setScalar(.7);
-          if (!cull || this.frustum.intersectsSphere(this.bounds.set(this.dummy.position, .5))) this.write(this.muzzles, flashes++, 1 - flight / .038);
+          this.position.copy(this.origin).addScaledVector(this.velocity, flight * .08);
+          this.orientation.copy(camera.quaternion); this.scale.setScalar(.7);
+          if (!cull || this.frustum.intersectsSphere(this.bounds.set(this.position, .5))) this.write(this.muzzles, flashes++, 1 - flight / .038);
         }
         const shot = ballisticStep(this.origin.toArray(), this.velocity.toArray(), flight, data.dragPerSecond ?? 0);
-        this.dummy.position.fromArray(shot.position);
+        this.position.fromArray(shot.position);
         this.velocity.fromArray(shot.velocity);
-        if (this.dummy.position.y < 0) continue;
+        if (this.position.y < 0) continue;
         const opacity = data.airburst ? 1 : THREE.MathUtils.smoothstep(life - flight, 0, aa ? .65 : .12);
-        this.normal.copy(this.dummy.position).applyMatrix4(camera.matrixWorldInverse);
+        this.normal.copy(this.position).applyMatrix4(camera.matrixWorldInverse);
         const depth = camera.projectionMatrix.elements[11] === -1 ? Math.max(.1, -this.normal.z) : 1;
         const viewHeight = 2 * depth / camera.projectionMatrix.elements[5];
         const caliber = data.caliberM ?? data.airburst?.caliberM ?? .02;
@@ -109,18 +117,18 @@ export class AircraftGunfire {
         // The sphere around the tip encloses the entire trailing ribbon and
         // its billboard tip. Keep the event alive so camera re-entry samples
         // the current trajectory, even after the history ring evicts the shot.
-        if (cull && !this.frustum.intersectsSphere(this.bounds.set(this.dummy.position, length + width * 2))) continue;
-        this.dummy.quaternion.copy(camera.quaternion); this.dummy.scale.setScalar(width * (aa ? 1.5 : 2.2));
+        if (cull && !this.frustum.intersectsSphere(this.bounds.set(this.position, length + width * 2))) continue;
+        this.orientation.copy(camera.quaternion); this.scale.setScalar(width * (aa ? 1.5 : 2.2));
         this.write(this.tips, count, opacity * (aa ? .35 : .65));
-        this.velocity.normalize(); this.dummy.position.addScaledVector(this.velocity, -length / 2);
-        this.normal.subVectors(camera.position, this.dummy.position).normalize();
+        this.velocity.normalize(); this.position.addScaledVector(this.velocity, -length / 2);
+        this.normal.subVectors(camera.position, this.position).normalize();
         this.across.crossVectors(this.velocity, this.normal);
-        if (this.across.lengthSq() < 1e-8) this.across.crossVectors(this.velocity, Math.abs(this.velocity.y) < .9 ? UP : new THREE.Vector3(1, 0, 0));
+        if (this.across.lengthSq() < 1e-8) this.across.crossVectors(this.velocity, Math.abs(this.velocity.y) < .9 ? UP : RIGHT);
         this.across.normalize(); this.normal.crossVectors(this.across, this.velocity).normalize();
         this.basis.makeBasis(this.across, this.velocity, this.normal);
-        this.dummy.quaternion.setFromRotationMatrix(this.basis);
-        this.dummy.scale.set(width * (aa ? 2.3 : 2.6), length, 1); this.write(this.ribbons, count, opacity * (aa ? .55 : .65));
-        this.dummy.scale.x = width * (aa ? .85 : .65); this.write(this.cores, count++, opacity);
+        this.orientation.setFromRotationMatrix(this.basis);
+        this.scale.set(width * (aa ? 2.3 : 2.6), length, 1); this.write(this.ribbons, count, opacity * (aa ? .55 : .65));
+        this.scale.x = width * (aa ? .85 : .65); this.write(this.cores, count++, opacity);
       }
     }
     this.count = count;

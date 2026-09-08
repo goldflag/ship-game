@@ -83,6 +83,9 @@ if (params.has('profile')) renderProfile = profileRenderPasses(g);
 if (params.has('profile')) for (const [object,key,label] of [
   [g.simulation,'advance','session'],[g,'readSightAim','sight'],[g.water,'update','water'],[g,'renderFrame','render'],
   [g.effects,'update','effects'],[g.aircraftView,'update','aircraft'],[g.fleetDraws,'update','fleetDraws'],
+  [g.effects.smoke.constructor.prototype,'publish','particlePublish'],
+  [g.effects.smoke.constructor.prototype,'advance','particleAdvance'],
+  [g.effects.spouts,'publish','plumePublish'],[g.aircraftView.gunfire,'update','gunfire'],
   [g.funnelSmoke,'update','smoke'],[g.shipWake,'update','wake'],[g,'shipTelemetry','telemetry'],
   [g.fleetViews[0].constructor.prototype,'updateMotion','hullPoses'],
   [g.fleetViews[0].constructor.prototype,'updateArticulation','jointPoses'],

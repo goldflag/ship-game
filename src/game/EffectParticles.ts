@@ -130,7 +130,14 @@ export class EffectParticlePool {
   private readonly volume?: THREE.InstancedBufferAttribute;
   private readonly tint?: THREE.InstancedBufferAttribute;
   private readonly progress?: THREE.InstancedBufferAttribute;
-  private readonly dummy = new THREE.Object3D();
+  // Instance poses do not need a scene object's synchronized Euler rotation or
+  // world-matrix propagation. Compose their quaternion poses directly.
+  private readonly position = new THREE.Vector3();
+  private readonly orientation = new THREE.Quaternion();
+  private readonly scale = new THREE.Vector3();
+  private readonly matrix = new THREE.Matrix4();
+  private readonly facing = new THREE.Matrix4();
+  private readonly up = THREE.Object3D.DEFAULT_UP.clone();
   private readonly axis = new THREE.Vector3(0, 0, 1);
   private readonly turn = new THREE.Quaternion();
   private readonly cameraInverse = new THREE.Quaternion();
@@ -257,43 +264,40 @@ export class EffectParticlePool {
       const fade = (1 - smooth((t - .18) / .82)) * (p.fadeIn > 0 ? smooth(p.age / p.fadeIn) : 1);
       const expansion = p.growthDecay > 0 ? (1 - Math.exp(-p.age * p.growthDecay)) / p.growthDecay : p.age;
       const size = Math.max(.01, p.size + p.growth * expansion + p.diffusion * p.age);
-      this.dummy.position.copy(p.position);
-      let angle = p.angle;
-      let stretch = p.stretch;
-      if (p.align === 'water') {
-        this.dummy.quaternion.setFromAxisAngle(RIGHT, -Math.PI / 2);
-      } else {
-        this.dummy.quaternion.copy(camera.quaternion);
-        if (p.align === 'velocity') {
-          this.direction.copy(p.velocity).applyQuaternion(this.cameraInverse);
-          angle = Math.atan2(-this.direction.x, this.direction.y);
-          stretch *= Math.max(.35, Math.hypot(this.direction.x, this.direction.y) / Math.max(.01, p.velocity.length()));
-        }
-      }
-      this.turn.setFromAxisAngle(this.axis, angle);
-      this.dummy.quaternion.multiply(this.turn);
-      this.dummy.scale.set(size, size * stretch, 1);
+      this.position.copy(p.position);
       if (this.sphere && (camera as THREE.PerspectiveCamera).isPerspectiveCamera) {
         const radiusSq = size * size / 4;
         if (p.distance > radiusSq * 1.01) {
           // A sphere's perspective silhouette extends beyond a diameter-sized
           // billboard. Face its center and bound the camera's tangent cone.
-          this.dummy.lookAt(camera.position);
+          this.orientation.setFromRotationMatrix(this.facing.lookAt(camera.position, this.position, this.up));
           const span = size * Math.sqrt(p.distance / (p.distance - radiusSq));
-          this.dummy.scale.set(span, span, 1);
+          this.scale.set(span, span, 1);
         } else {
           // Inside the volume, every screen ray may intersect gas. Cover the
           // viewport at a valid clip depth; the shader still uses the real sphere.
-          this.dummy.quaternion.copy(camera.quaternion);
+          this.orientation.copy(camera.quaternion);
           // Mid-clip depth stays inside the frustum with standard AND reversed
           // depth; zero lies on the far plane when reversed depth is active.
-          this.dummy.position.set(0, 0, .5).unproject(camera);
-          this.direction.set(1, 1, .5).unproject(camera).sub(this.dummy.position).applyQuaternion(this.cameraInverse);
-          this.dummy.scale.set(Math.abs(this.direction.x) * 2, Math.abs(this.direction.y) * 2, 1);
+          this.position.set(0, 0, .5).unproject(camera);
+          this.direction.set(1, 1, .5).unproject(camera).sub(this.position).applyQuaternion(this.cameraInverse);
+          this.scale.set(Math.abs(this.direction.x) * 2, Math.abs(this.direction.y) * 2, 1);
         }
+      } else {
+        let angle = p.angle, stretch = p.stretch;
+        if (p.align === 'water') this.orientation.setFromAxisAngle(RIGHT, -Math.PI / 2);
+        else {
+          this.orientation.copy(camera.quaternion);
+          if (p.align === 'velocity') {
+            this.direction.copy(p.velocity).applyQuaternion(this.cameraInverse);
+            angle = Math.atan2(-this.direction.x, this.direction.y);
+            stretch *= Math.max(.35, Math.hypot(this.direction.x, this.direction.y) / Math.max(.01, p.velocity.length()));
+          }
+        }
+        this.orientation.multiply(this.turn.setFromAxisAngle(this.axis, angle));
+        this.scale.set(size, size * stretch, 1);
       }
-      this.dummy.updateMatrix();
-      this.mesh.setMatrixAt(index, this.dummy.matrix);
+      this.mesh.setMatrixAt(index, this.matrix.compose(this.position, this.orientation, this.scale));
       this.mesh.setColorAt(index, p.color);
       this.alpha.setX(index, p.opacity * fade);
       if (this.sphere && this.volume && this.tint) {
