@@ -391,7 +391,9 @@ export class Game {
     this.scheduleFrame();
   }
 
-  private async warmupRendering(): Promise<void> {
+  private async warmupRendering(progress?: BattleProgress): Promise<void> {
+    const scar = this.playerView!.impactMarks.createWarmupMesh();
+    this.scene.add(scar);
     // Exercise the actual ship batches, ocean captures and post-processing targets.
     // Compiling the scene against the canvas misses those pipeline variants.
     // Twelve frames also cover the sky reflection's nine-frame update cycle and
@@ -403,19 +405,39 @@ export class Game {
     });
     try {
       for (let frame = 0; frame < 12; frame++) {
-        this.callbacks.progress('Preparing the harbor view', .84 + frame / 12 * .14);
+        if (progress) progress('Preparing battle graphics', .9 + frame / 12 * .09);
+        else this.callbacks.progress('Preparing the harbor view', .84 + frame / 12 * .14);
         await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
         this.assertActive();
         await this.frame(performance.now(), true);
       }
     } finally {
       culled.forEach(object => { object.frustumCulled = true; });
+      scar.removeFromParent(); scar.geometry.dispose();
     }
     await this.frame(performance.now(), true);
     // A submitted frame is not necessarily finished on the GPU. A tiny readback
     // drains the startup work on both WebGPU and the WebGL compatibility backend.
     await this.renderer.readRenderTargetPixelsAsync(this.finalFrame!.renderTarget!, 0, 0, 1, 1);
     this.assertActive();
+  }
+
+  /** Finish battle-specific pipeline compilation under the loading screen,
+   * with the worker and visual clocks held at their initial state. */
+  async beginBattle(progress?: BattleProgress): Promise<void> {
+    cancelAnimationFrame(this.raf);
+    await this.frameTask;
+    cancelAnimationFrame(this.raf);
+    this.assertActive();
+    this.setInPort(false);
+    this.paused = true;
+    this.input.setEnabled(false);
+    await this.warmupRendering(progress);
+    this.assertActive();
+    this.paused = false;
+    this.input.setEnabled(true);
+    this.lastTime = performance.now();
+    this.scheduleFrame();
   }
 
   /** Replace only ship-owned resources; the harbor, ocean, renderer and camera stay alive. */
@@ -654,6 +676,16 @@ export class Game {
       // Water captures ship depth/color too, so publish batch poses before its passes.
       this.fleetDraws?.update(this.camera, this.renderer.domElement.height);
       this.underwaterPassVisibility?.update(this.camera);
+      // Hidden hangar aircraft, LODs and dormant effects must compile against
+      // the actual ocean capture and final targets before their first appearance.
+      const warmInstances: { mesh: THREE.InstancedMesh; visible: boolean; count?: number }[] = [];
+      if (warmingUp) for (const root of [this.effects.root, this.funnelSmoke.root, this.aircraftView.root]) root.traverse(object => {
+        if (!(object instanceof THREE.InstancedMesh)) return;
+        const geometry = object.geometry as THREE.InstancedBufferGeometry;
+        warmInstances.push({ mesh: object, visible: object.visible, count: geometry.instanceCount });
+        object.visible = true;
+        if (geometry.isInstancedBufferGeometry) geometry.instanceCount = Math.max(1, geometry.instanceCount);
+      });
       this.scene.beginFrame();
       try {
         await this.water!.update(dt);
@@ -661,7 +693,13 @@ export class Game {
         if (this.disposed) return;
         this.renderFrame();
         if (this.frameWaiters.length) { const waiters = this.frameWaiters; this.frameWaiters = []; waiters.forEach(resolve => resolve()); }
-      } finally { this.scene.endFrame(); }
+      } finally {
+        this.scene.endFrame();
+        for (const { mesh, visible, count } of warmInstances) {
+          mesh.visible = visible;
+          if (count !== undefined) (mesh.geometry as THREE.InstancedBufferGeometry).instanceCount = count;
+        }
+      }
       const combatTime = this.simulation.tick * FIXED_DT;
       this.shipLabels.update(this.camera, combatTime);
       this.hitLabels.update(this.simulation, this.fleetViews, this.camera, !this.inPort && !this.inspecting);

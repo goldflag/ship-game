@@ -1,0 +1,73 @@
+// Real application and Rust worker, measured from the first battle frame.
+import { Game } from '/src/game/Game.ts';
+import { profileRenderPasses } from './profile-render-passes.js';
+const params = new URLSearchParams(location.search);
+const seconds = Number(params.get('seconds') ?? 60);
+const roster = (params.get('roster') ?? 'bismarck,yamato,baltimore,fletcher,king-george-v,flower-corvette,enterprise-cv6').split(',');
+const review = window.review = { ready: false, rows: [], phases: {}, errors: [] };
+let renderProfile;
+let loaded = false, begun = 0, previous;
+const start = Game.prototype.start, prepare = Game.prototype.prepareBattle, setPort = Game.prototype.setInPort, frame = Game.prototype.frame;
+const beginBattle = Game.prototype.beginBattle;
+if (beginBattle) Game.prototype.beginBattle = async function (...args) {
+  await beginBattle.apply(this,args);
+  begun = performance.now(); review.ready = true;
+};
+Game.prototype.start = function () {
+  review.game = this;
+  this.settings = { ...this.settings, quality: params.get('quality') ?? 'high', resolution: 1 };
+  this.rig.capturePointer = () => {};
+  const ready = this.callbacks.ready;
+  this.callbacks.ready = () => { ready(); loaded = true; };
+  return start.call(this);
+};
+Game.prototype.prepareBattle = function (_, progress) {
+  return prepare.call(this, { playerShipId: roster[0], friendlyBots: roster.slice(1), enemies: roster,
+    spawnDistance: 5000, mapId: 'north-atlantic', timeHours: 12, cloudCover: 38, windSpeed: 9 }, progress);
+};
+Game.prototype.setInPort = function (port) {
+  setPort.call(this, port);
+  if (!port && !begun && !beginBattle) { begun = performance.now(); review.ready = true; }
+};
+Game.prototype.frame = async function (time, warmingUp) {
+  const before = performance.now();
+  await frame.call(this, time, warmingUp);
+  if (!begun || warmingUp || review.result) return;
+  if (previous !== undefined) review.rows.push({ time: time - begun, interval: time - previous, work: performance.now() - before, tick: this.simulation.tick });
+  previous = time;
+  if (time - begun >= seconds * 1000) {
+    const stats = rows => {
+      const values = rows.map(r => r.interval).sort((a,b) => a-b);
+      return { frames: rows.length, fps: rows.length * 1000 / rows.reduce((s,r)=>s+r.interval,0), p50: values[Math.floor(values.length*.5)], p95: values[Math.floor(values.length*.95)], p99: values[Math.floor(values.length*.99)], max: values.at(-1), over50: values.filter(v=>v>50).length, over100: values.filter(v=>v>100).length, work: rows.reduce((s,r)=>s+r.work,0)/rows.length };
+    };
+    review.result = {
+      total: stats(review.rows),
+      windows: Array.from({length: Math.ceil(seconds/10)}, (_,i)=>({start:i*10,...stats(review.rows.filter(r=>r.time>=i*10000 && r.time<(i+1)*10000))})),
+      tick: this.simulation.tick, elapsed: time-begun, roster, seed: this.simulation.seed,
+      settings: { quality: this.settings.quality, resolution: this.settings.resolution },
+      framebuffer: [this.renderer.domElement.width,this.renderer.domElement.height], backend: this.water.backend,
+      diagnostics:this.diagnostics(), phases:review.phases, passes:renderProfile?.results,
+      renderInfo:{...this.renderer.info.render}, hidden:document.hidden,
+    };
+    this.paused = true; this.scheduleFrame = () => {}; cancelAnimationFrame(this.raf); this.audio?.setScene(false,true);
+  }
+};
+await import('/src/main.tsx');
+const wait = async predicate => { while (!predicate()) await new Promise(r=>setTimeout(r,50)); };
+const button = text => [...document.querySelectorAll('button')].find(b=>b.textContent.toLowerCase().includes(text));
+await wait(()=>loaded);
+await wait(()=>button('custom battle')); button('custom battle').click();
+await wait(()=>document.querySelector('button[title="Add an enemy bot"]')); document.querySelector('button[title="Add an enemy bot"]').click();
+await wait(()=>button('start battle') && !button('start battle').disabled); button('start battle').click();
+await wait(()=>review.ready);
+const g = review.game;
+if (params.has('profile')) renderProfile = profileRenderPasses(g);
+if (params.has('profile')) for (const [object,key,label] of [
+  [g.simulation,'advance','session'],[g,'readSightAim','sight'],[g.water,'update','water'],[g,'renderFrame','render'],
+  [g.effects,'update','effects'],[g.aircraftView,'update','aircraft'],[g.fleetDraws,'update','fleetDraws'],
+  [g.funnelSmoke,'update','smoke'],[g.shipWake,'update','wake'],[g,'shipTelemetry','telemetry'],
+  [g.fleetViews[0].constructor.prototype,'update','poses'],
+]) {
+  const original=object[key], row=review.phases[label]={ms:0,calls:0};
+  object[key]=function(...args) { const begin=performance.now(), result=original.apply(this,args); const done=value=>{row.ms+=performance.now()-begin;row.calls++;return value;};return result?.then?result.then(done):done(result); };
+}

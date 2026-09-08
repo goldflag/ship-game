@@ -39,6 +39,22 @@ test('ship speed produces apparent wind in calm weather, and immersed flags disa
   rig.dispose();
 });
 
+test('offscreen cloth holds its pose and resumes when the camera turns back', () => {
+  const { rig, hull, motion } = fixture();
+  const camera = new THREE.PerspectiveCamera(52, 1, .5, 60000);
+  camera.position.set(0, 8, 100); camera.lookAt(0, 8, 200); camera.updateMatrixWorld();
+  const cloth = rig.flags[0].cloth, before = cloth.positions.slice();
+  rig.update(.1, 15, 0, hull, motion, false, camera);
+  expect(cloth.positions).toEqual(before);
+  camera.lookAt(0, 8, 20); camera.updateMatrixWorld();
+  rig.update(.1, 15, 0, hull, motion, false, camera);
+  expect(cloth.positions).not.toEqual(before);
+  const visible = cloth.positions.slice();
+  rig.update(0, 15, 0, hull, motion, false, camera);
+  expect(cloth.positions).toEqual(visible);
+  rig.dispose();
+});
+
 test('rig compiler rejects unknown ensigns, duplicate joints and invalid rotation rates', () => {
   for (const alter of [
     (b: any) => b.rig.ensigns[0].design = 'modern-us-50',

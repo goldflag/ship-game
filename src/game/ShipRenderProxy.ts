@@ -8,6 +8,8 @@ export class ShipRenderProxy {
   private readonly surfaces = new Map<THREE.Mesh, THREE.Mesh>();
   private readonly marks = new Map<THREE.Mesh, THREE.Mesh>();
   private readonly modelVisible: boolean;
+  private readonly markBounds = new THREE.Sphere();
+  private readonly markCenter = new THREE.Vector3();
 
   constructor(private readonly view: ShipView) {
     this.modelVisible = view.model.visible;
@@ -44,7 +46,7 @@ export class ShipRenderProxy {
     return proxy;
   }
 
-  update(): void {
+  update(camera?: THREE.Camera, framebufferHeight = 1080): void {
     for (const [source, proxy] of this.marks) if (!source.parent) {
       proxy.removeFromParent(); this.marks.delete(source);
     }
@@ -52,6 +54,15 @@ export class ShipRenderProxy {
     for (const objects of [this.surfaces, this.marks]) for (const [source, proxy] of objects) {
       proxy.layers.mask = source.layers.mask;
       proxy.visible = source.layers.mask !== 0 && this.sourceVisible(source);
+      const diameter = source.userData.maximumMarkDiameter as number | undefined;
+      if (proxy.visible && diameter !== undefined && camera && source.geometry.boundingSphere) {
+        this.markBounds.copy(source.geometry.boundingSphere).applyMatrix4(source.matrixWorld);
+        const depth = -this.markCenter.copy(this.markBounds.center).applyMatrix4(camera.matrixWorldInverse).z;
+        const nearest = (camera as THREE.PerspectiveCamera).isPerspectiveCamera ? Math.max(.001, depth - this.markBounds.radius) : 1;
+        const pixels = diameter * source.matrixWorld.getMaxScaleOnAxis() * Math.abs(camera.projectionMatrix.elements[5]) * framebufferHeight * .5 / nearest;
+        // Retain every scar; binoculars restore it as soon as it resolves.
+        if (pixels < .5) proxy.visible = false;
+      }
       if (proxy.visible) {
         if (proxy.parent !== this.root) this.root.add(proxy);
         proxy.matrix.copy(source.matrixWorld); proxy.matrixWorldNeedsUpdate = true;

@@ -16,6 +16,8 @@ export class HitLabels {
   private root = document.createElement('div');
   private feedback = new HitFeedback();
   private labels = new Map<number, HTMLDivElement>();
+  private content = new WeakMap<HTMLDivElement, string>();
+  private dimensions = new WeakMap<HTMLDivElement, { width: number; height: number }>();
   private width = 1;
   private height = 1;
   constructor(host: HTMLElement) {
@@ -23,7 +25,10 @@ export class HitLabels {
     this.root.setAttribute('aria-label', 'Enemy impact damage');
     host.appendChild(this.root);
   }
-  resize(width: number, height: number): void { this.width = width; this.height = height; }
+  resize(width: number, height: number): void {
+    this.width = width; this.height = height;
+    this.dimensions = new WeakMap();
+  }
   update(sim: BattleSession, views: readonly ShipView[], camera: Camera, visible: boolean): void {
     const cues = this.feedback.update(sim);
     this.root.hidden = !visible;
@@ -38,24 +43,28 @@ export class HitLabels {
         label.innerHTML = '<strong></strong><span class="hit-label-part"><span class="hit-label-name"></span><span class="hit-label-outcome" role="img"><svg viewBox="0 0 18 18" aria-hidden="true"><path/></svg><span></span></span></span><small></small>';
         this.root.appendChild(label); this.labels.set(cue.id, label);
       }
-      const [damage, part, result] = Array.from(label.children) as HTMLElement[];
-      const [name, outcome] = Array.from(part.children) as HTMLElement[];
-      const count = cue.projectileIds.length > 1 ? ` x${cue.projectileIds.length}` : '';
-      const icon = OUTCOME_ICONS.find(icon => cue.result === icon.label || cue.result.startsWith(`${icon.label} · `));
-      damage.textContent = cue.damage > 0 ? `−${cue.damage.toLocaleString(undefined, { maximumFractionDigits: 0 })} HP` : '';
-      damage.hidden = cue.damage <= 0;
-      name.textContent = icon?.kind === 'destroyed' ? `Destroyed ${cue.part}` : cue.part;
-      outcome.hidden = !icon;
-      if (icon) {
-        outcome.dataset.outcome = icon.kind;
-        outcome.setAttribute('aria-label', `${icon.label}${count}`);
-        outcome.title = `${icon.label}${count}`;
-        outcome.children[0].children[0].setAttribute('d', icon.path);
-        outcome.children[1].textContent = count.trim();
+      const content = JSON.stringify([cue.damage, cue.part, cue.result, cue.projectileIds.length]);
+      if (this.content.get(label) !== content) {
+        this.content.set(label, content); this.dimensions.delete(label);
+        const [damage, part, result] = Array.from(label.children) as HTMLElement[];
+        const [name, outcome] = Array.from(part.children) as HTMLElement[];
+        const count = cue.projectileIds.length > 1 ? ` x${cue.projectileIds.length}` : '';
+        const icon = OUTCOME_ICONS.find(icon => cue.result === icon.label || cue.result.startsWith(`${icon.label} · `));
+        damage.textContent = cue.damage > 0 ? `−${cue.damage.toLocaleString(undefined, { maximumFractionDigits: 0 })} HP` : '';
+        damage.hidden = cue.damage <= 0;
+        name.textContent = icon?.kind === 'destroyed' ? `Destroyed ${cue.part}` : cue.part;
+        outcome.hidden = !icon;
+        if (icon) {
+          outcome.dataset.outcome = icon.kind;
+          outcome.setAttribute('aria-label', `${icon.label}${count}`);
+          outcome.title = `${icon.label}${count}`;
+          outcome.children[0].children[0].setAttribute('d', icon.path);
+          outcome.children[1].textContent = count.trim();
+        }
+        // Preserve additional evidence, such as a new opening, without repeating the icon's outcome.
+        result.textContent = icon ? cue.result.slice(icon.label.length).replace(/^ · /, '') : `${cue.result}${count}`;
+        result.hidden = !result.textContent;
       }
-      // Preserve additional evidence, such as a new opening, without repeating the icon's outcome.
-      result.textContent = icon ? cue.result.slice(icon.label.length).replace(/^ · /, '') : `${cue.result}${count}`;
-      result.hidden = !result.textContent;
       const view = views.find(v => v.actor.motion.id === cue.shipId);
       const anchor = view && new Vector3(...cue.position).applyMatrix4(view.root.matrixWorld);
       const point = anchor && view?.root.visible ? projectShipLabel(anchor, camera, this.width, this.height) : null;
@@ -64,7 +73,14 @@ export class HitLabels {
       label.style.opacity = String(cue.opacity);
     }
     // Measure after updating every label: a zero-damage armor stop is only one row high.
-    const measured = placements.map(p => ({ ...p, width: p.label.offsetWidth, height: p.label.offsetHeight }));
+    const measured = placements.map(p => {
+      let size = this.dimensions.get(p.label);
+      if (!size) {
+        size = { width: p.label.offsetWidth, height: p.label.offsetHeight };
+        if (size.width && size.height) this.dimensions.set(p.label, size);
+      }
+      return { ...p, ...size };
+    });
     for (const { label, point, width, height } of measured) {
       if (point) {
         point.y -= 28;

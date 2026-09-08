@@ -117,19 +117,17 @@ export function App() {
   }, [paused, ready, error]);
 
   // Let React unmount the setup dialog before the scene takes focus for aiming.
-  // The loading screen stays up until the battle scene has actually been drawn twice,
-  // covering the landscape build and the first shader compilation of the new hulls.
+  // Keep loading visible through the battle's actual render-pass warmup.
   useEffect(() => {
     const session = game.current;
     if (phase !== 'sailing' || !session) return;
-    session.setInPort(false);
     let active = true;
-    void session.nextFrame().then(() => session.nextFrame()).then(() => {
+    void session.beginBattle((label, progress) => { if (active && game.current === session) setBattleLoading({ label, progress, leaving: false }); }).then(() => {
       if (active && game.current === session) {
         if (session.simulation instanceof RemoteBattleSession) session.simulation.loadedAssets();
         setBattleLoading(value => value && { label: 'Underway', progress: 1, leaving: true });
       }
-    });
+    }).catch(error => { if (active && game.current === session) setError(error instanceof Error ? error.message : String(error)); });
     return () => { active = false; };
   }, [phase]);
 

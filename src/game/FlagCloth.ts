@@ -7,7 +7,7 @@ export class FlagCloth {
   readonly indices: Uint16Array;
   private readonly previous: Float32Array;
   private readonly forces: Float32Array;
-  private readonly links: { a: number; b: number; length: number; stiffness: number }[] = [];
+  private readonly links: { a: number; b: number; length: number; stiffness: number; wa: number; wb: number }[] = [];
   private accumulator = 0;
   private time = 0;
   constructor(readonly width: number, readonly height: number, readonly phase = 0) {
@@ -20,7 +20,7 @@ export class FlagCloth {
       const a = index(x, y);
       for (const [dx, dy, stiffness] of [[1, 0, 1], [0, 1, 1], [1, 1, .85], [-1, 1, .85], [2, 0, .15], [0, 2, .15]]) {
         if (x + dx >= 0 && x + dx <= this.columns && y + dy <= this.rows) {
-          this.links.push({ a: a * 3, b: index(x + dx, y + dy) * 3, length: Math.hypot(dx * width / this.columns, dy * height / this.rows), stiffness });
+          this.links.push({ a: a * 3, b: index(x + dx, y + dy) * 3, length: Math.hypot(dx * width / this.columns, dy * height / this.rows), stiffness, wa: x === 0 ? 0 : 1, wb: x + dx === 0 ? 0 : 1 });
         }
       }
       if (x < this.columns && y < this.rows) {
@@ -96,9 +96,8 @@ export class FlagCloth {
       }
     }
     for (let iteration = 0; iteration < 6; iteration++) for (const link of this.links) {
-      const { a, b, length, stiffness } = link;
+      const { a, b, length, stiffness, wa, wb } = link;
       const dx = p[b] - p[a], dy = p[b + 1] - p[a + 1], dz = p[b + 2] - p[a + 2], distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
-      const wa = this.pinned(a) ? 0 : 1, wb = this.pinned(b) ? 0 : 1;
       if (!wa && !wb || distance < 1e-9) continue;
       const correction = (distance - length) / distance * stiffness / (wa + wb);
       p[a] += dx * correction * wa; p[a + 1] += dy * correction * wa; p[a + 2] += dz * correction * wa;

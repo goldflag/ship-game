@@ -15,6 +15,16 @@ function fixture(mounted = false) {
   return { root, mount, receiver, marks };
 }
 
+test('scar warmup uses the live material without retaining a hit', () => {
+  const { root, marks } = fixture();
+  const warmup = marks.createWarmupMesh();
+  expect(marks.count).toBe(0); expect(marks.drawCalls).toBe(0);
+  expect(warmup.receiveShadow).toBe(true); expect(warmup.scale.length()).toBe(0);
+  root.updateMatrixWorld(true); marks.update([event()], 'target');
+  expect([...marks.renderMeshes][0].material).toBe(warmup.material);
+  warmup.geometry.dispose(); marks.dispose();
+});
+
 test('caliber, ammunition and penetration select distinct wound size and material', () => {
   const small = impactStyle(.15, 'AP', 'penetration'), big = impactStyle(.46, 'AP', 'penetration');
   expect(big.width / small.width).toBeCloseTo(.46 / .15);

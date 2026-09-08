@@ -21,6 +21,7 @@ Start with [AGENTS.md](../AGENTS.md) for repository rules. Read the task's curre
 | Work on port or HUD UI | [Garage design](garage-mockups/README.md), [HUD design](hud-mockups/README.md), [shared controls](../src/ui/components/README.md) | Existing naval instrument styling and current runtime UI |
 | Develop Rust multiplayer | [Implementation status](rust-multiplayer-implementation.md), [reviewed proposal](rust-multiplayer-plan.md), [Fable critique](rust-multiplayer-critique-fable.md), [review response](rust-multiplayer-review-response.md) | Shared Rust authority for online/custom battles, local validation and measured deployment limits |
 | Investigate test execution | [Test performance](test-performance.md) | Repository test runner and measured execution notes |
+| Profile custom battles | [Custom battle performance](custom-battle-performance.md) | Actual application, Rust worker, frame intervals and graphics warmup |
 
 ## Asset inputs and review
 

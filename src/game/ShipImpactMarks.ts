@@ -154,13 +154,12 @@ export class ShipImpactMarks {
     if (old) { old.removeFromParent(); old.geometry.dispose(); this.batches.delete(receiver); }
     const geometries = this.marks.filter(mark => mark.receiver === receiver).map(mark => mark.geometry);
     if (!geometries.length) return;
-    if (!this.material) {
-      // Three reverses the depth test but leaves polygon bias in raw depth units.
-      const offset = this.reversedDepthBuffer ? 4 : -4;
-      this.material = new THREE.MeshStandardMaterial({ map: atlas, transparent: true, depthWrite: false,
-        polygonOffset: true, polygonOffsetFactor: offset, polygonOffsetUnits: offset, roughness: .92, metalness: .15 });
-    }
-    const batch = new THREE.Mesh(mergeGeometries(geometries)!, this.material);
+    const batch = new THREE.Mesh(mergeGeometries(geometries)!, this.getMaterial());
+    batch.geometry.computeBoundingSphere();
+    batch.userData.maximumMarkDiameter = Math.max(...geometries.map(geometry => {
+      if (!geometry.boundingSphere) geometry.computeBoundingSphere();
+      return geometry.boundingSphere!.radius * 2;
+    }));
     batch.name = 'Shell impact marks'; batch.visible = this.visible; batch.receiveShadow = true;
     // Composite surface scars after opaque hulls but before transparent smoke
     // and spray. Effect pools sort as a batch, so distance sorting alone cannot
@@ -168,6 +167,25 @@ export class ShipImpactMarks {
     // Three r185 reverses the entire sorted list, including explicit orders.
     batch.renderOrder = this.reversedDepthBuffer ? 1 : -1; batch.raycast = () => {};
     receiver.add(batch); this.batches.set(receiver, batch);
+  }
+
+  private getMaterial(): THREE.MeshStandardMaterial {
+    if (!this.material) {
+      // Three reverses the depth test but leaves polygon bias in raw depth units.
+      const offset = this.reversedDepthBuffer ? 4 : -4;
+      this.material = new THREE.MeshStandardMaterial({ map: atlas, transparent: true, depthWrite: false,
+        polygonOffset: true, polygonOffsetFactor: offset, polygonOffsetUnits: offset, roughness: .92, metalness: .15 });
+    }
+    return this.material;
+  }
+
+  /** Compile the actual scar material without creating a hit or retaining a decal. */
+  createWarmupMesh(): THREE.Mesh {
+    const plane = new THREE.PlaneGeometry(1, 1);
+    const mesh = new THREE.Mesh(plane.toNonIndexed(), this.getMaterial());
+    plane.dispose();
+    mesh.scale.setScalar(0); mesh.frustumCulled = false; mesh.receiveShadow = true;
+    return mesh;
   }
 
   setVisible(visible: boolean): void {

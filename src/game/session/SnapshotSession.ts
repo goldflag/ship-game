@@ -20,22 +20,7 @@ import type { HelmCommand } from '../../simulation/ship';
 
 /** Wire state is decoded once at the authority boundary. Optional Rust values
  * become absent JS properties; null deck slots must never look like deck poses. */
-export function decodeSnapshot(json: string): Snapshot { return readSnapshot(JSON.parse(json)); }
-export function readSnapshot(value: unknown): Snapshot {
-  const normalize = (value: unknown): void => {
-    if (!value || typeof value !== 'object') return;
-    const object = value as Record<string, unknown>;
-    for (const key of Object.keys(object)) {
-      if (object[key] === null && !Array.isArray(object)) delete object[key];
-      else normalize(object[key]);
-    }
-  };
-  const frame = value as Snapshot;
-  if (!frame || !Number.isSafeInteger(frame.tick) || frame.tick < 0 || !Array.isArray(frame.actors) || !frame.actors.length || frame.actors.length > 60)
-    throw new Error('Invalid battle snapshot.');
-  normalize(frame);
-  return frame;
-}
+export { decodeSnapshot, readSnapshot } from './snapshotCodec';
 type WireActor = Omit<FleetActor, 'definition' | 'team' | 'bot' | 'airWing'> & {
   presetId: string; team: TeamId; aiLevel?: NonNullable<FleetActor['bot']>['aiLevel']; launcherTrains: Record<string, number>;
 };
@@ -107,7 +92,10 @@ export abstract class SnapshotSession implements BattleSession {
       if (!expected || expected.presetId !== wire.presetId || expected.team !== wire.team) throw new Error('Snapshot fleet changed.');
       const { presetId, team, aiLevel, launcherTrains, ...state } = wire;
       const existing = this.actors.find(a => a.motion.id === state.motion.id);
-      const actor = existing ?? { ...state, definition: shipPreset(presetId), team: team === this.ownTeam ? 'friendly' : 'enemy' } as FleetActor;
+      // These stable renderer identities must not alias the retained wire frame:
+      // local deltas reuse its unchanged paths in subsequent snapshots.
+      const actor = existing ?? { ...state, motion: { ...state.motion }, damage: { ...state.damage },
+        definition: shipPreset(presetId), team: team === this.ownTeam ? 'friendly' : 'enemy' } as FleetActor;
       if (existing) {
         const { motion, damage, ...rest } = state;
         replaceObject(actor.motion, motion); replaceObject(actor.damage, damage); Object.assign(actor, rest);
@@ -119,16 +107,17 @@ export abstract class SnapshotSession implements BattleSession {
       const wing = frame.wings.find(w => w.ownerId === actor.motion.id)?.state;
       if (wing) {
         const previous = new Map(actor.airWing?.planes.map(p => [p.id, p]) ?? []);
-        for (const p of wing.planes) {
-          p.team = actor.team;
+        const planes = wing.planes.map(wirePlane => {
+          const p = { ...wirePlane, team: actor.team };
           const old = previous.get(p.id);
           if (old) {
             p.previousPosition = old.position;
             p.previousAttitude = { heading: old.heading, pitch: old.pitch, bank: old.bank };
             p.previousControls = old.controls;
           }
-        }
-        actor.airWing = wing;
+          return p;
+        });
+        actor.airWing = { ...wing, planes };
       }
     }
     const selected = frame.selectedShipIds?.[this.playerIndex];

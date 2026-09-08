@@ -1,4 +1,4 @@
-import { SnapshotSession, decodeSnapshot } from './SnapshotSession';
+import { SnapshotSession, type Snapshot } from './SnapshotSession';
 import type { BattleSetup as RuntimeSetup } from '../../multiplayer/generated/BattleSetup';
 import type { CommandEnvelope } from '../../multiplayer/generated/CommandEnvelope';
 import type { Command } from '../../multiplayer/generated/Command';
@@ -6,6 +6,7 @@ import { botSelection, setupSpawns, type BattleSetup } from '../../simulation/ba
 import { DEFAULT_MAP } from '../../maps/catalog';
 import type { CombatIntent } from '../../simulation/combat';
 import type { HelmCommand } from '../../simulation/ship';
+import { applyLocalDelta } from './localSnapshotDelta';
 export function runtimeSetup(setup: BattleSetup, seed: number): RuntimeSetup {
   const spawns = setupSpawns(setup);
   const ships: RuntimeSetup['ships'] = [{ id: 'player', presetId: setup.playerShipId, team: 'a', controller: 'player', aiLevel: 'normal', spawn: spawns.friendly[0] }];
@@ -16,6 +17,7 @@ export function runtimeSetup(setup: BattleSetup, seed: number): RuntimeSetup {
 export class LocalBattleSession extends SnapshotSession {
   readonly networked = false;
   private worker: Worker;
+  private received?: Snapshot;
   private commands: CommandEnvelope[] = []; private sequence = 0; private accumulator = 0; private busy = true; private disposed = false;
   onFailure?: (message: string) => void;
   private fail(message: string) { this.pending = undefined; this.busy = false; this.connectionStatus = message; this.phase = 'cancelled'; this.dispose(); this.onFailure?.(message); }
@@ -31,7 +33,10 @@ export class LocalBattleSession extends SnapshotSession {
         if (data.type === 'rejected') session.commandAcknowledged(false, data.message);
         if (data.type === 'snapshot') {
           try {
-            const frame = decodeSnapshot(data.json);
+            // The owned worker already parsed, validated and normalized this frame.
+            if (data.baseTick !== session.received?.tick) throw new Error('Battle worker snapshot sequence changed.');
+            const frame = applyLocalDelta(session.received, data.delta) as Snapshot;
+            session.received = frame;
             if (!session.actors.length) { session.apply(frame); clearTimeout(timer); resolve(); } else session.pending = frame;
             session.busy = false;
           } catch (error) { clearTimeout(timer); session.fail(String(error)); reject(error); }
@@ -51,5 +56,5 @@ export class LocalBattleSession extends SnapshotSession {
     this.input(helm, intent, true); this.busy = true;
     this.worker.postMessage({ type: 'advance', commands: this.commands.splice(0), ticks });
   }
-  dispose() { this.disposed = true; this.worker.terminate(); this.commands.length = 0; }
+  dispose() { this.disposed = true; this.worker.terminate(); this.commands.length = 0; this.received = undefined; }
 }
