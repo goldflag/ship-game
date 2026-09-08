@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "files": [
+    "assets/ships/mogami/guns.py",
+    "assets/ships/mogami/superstructure.py",
+    "assets/ships/mogami/main_guns.py"
+  ]
+}

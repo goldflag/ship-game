@@ -9,6 +9,7 @@ const identities: Record<string, { type: string; nation: string }> = {
   iowa: { type: 'Battleship', nation: 'United States' },
   'king-george-v': { type: 'Battleship', nation: 'United Kingdom' },
   baltimore: { type: 'Heavy cruiser', nation: 'United States' },
+  mogami: { type: 'Heavy cruiser', nation: 'Japan' },
   'enterprise-cv6': { type: 'Aircraft carrier', nation: 'United States' },
   shokaku: { type: 'Aircraft carrier', nation: 'Japan' },
   'liberty-cargo': { type: 'Cargo ship', nation: 'United States' },
