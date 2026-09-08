@@ -1,5 +1,6 @@
+import type { BattleSession } from './session/BattleSession';
 import type { PerspectiveCamera } from 'three/webgpu';
-import type { CombatSimulation } from '../simulation/combat';
+
 import { HitDirectionFeedback } from './HitDirectionFeedback';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -19,7 +20,7 @@ export class HitDirectionIndicators {
     host.appendChild(this.root);
   }
 
-  update(simulation: CombatSimulation, camera: PerspectiveCamera, visible: boolean): void {
+  update(simulation: BattleSession, camera: PerspectiveCamera, visible: boolean): void {
     // Use the actual camera, including inspection and shell-follow views.
     const matrix = camera.matrixWorld.elements;
     const cues = this.feedback.update(simulation, Math.atan2(-matrix[8], matrix[10]));

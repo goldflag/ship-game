@@ -1,8 +1,9 @@
+import type { BattleSession } from './session/BattleSession';
 import { ExpandableInstances } from './ExpandableInstances';
 import { assetUrl } from '../assetUrl';
 import * as THREE from 'three/webgpu';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import type { CombatSimulation } from '../simulation/combat';
+
 import { aircraftDeckSpot, onFlightDeck } from '../simulation/aircraft';
 import { aircraftAttitude, aircraftControls } from '../simulation/aircraftFlight';
 import { aircraftGroundPose } from '../simulation/aircraftGroundPose';
@@ -111,7 +112,7 @@ export class AircraftView {
     const failure = results.find(r => r.status === 'rejected');
     if (failure?.status === 'rejected') { this.clearModels(new Set([...this.models.keys()].filter(key => !previous.has(key)))); throw failure.reason; }
   }
-  update(sim: CombatSimulation, camera: THREE.Camera, visible: boolean, inPort = false, carrierRoots = new Map<string, THREE.Object3D>()) {
+  update(sim: BattleSession, camera: THREE.Camera, visible: boolean, inPort = false, carrierRoots = new Map<string, THREE.Object3D>()) {
     this.root.visible = visible;
     if (!visible) return;
     for (const model of this.models.values()) model.count = 0;

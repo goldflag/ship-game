@@ -87,9 +87,11 @@ function contact(a: Body, b: Body): Contact | undefined {
     // Taking both exit distances also handles an initially contained hull.
     const positive = aMax - bMin, negative = bMax - aMin;
     const overlap = Math.min(positive, negative);
-    if (overlap < depth) {
+    // Keep the first axis for numerically equal penetration depths. Symmetric
+    // rams must not reverse their separating impulse across libm implementations.
+    if (overlap < depth - 1e-9) {
       depth = overlap;
-      const sign = positive <= negative ? 1 : -1;
+      const sign = positive <= negative + 1e-9 ? 1 : -1;
       normal = { x: axis.x * sign, z: axis.z * sign };
     }
   }

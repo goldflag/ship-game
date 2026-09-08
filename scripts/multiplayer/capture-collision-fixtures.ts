@@ -1,0 +1,16 @@
+import { writeFile } from 'node:fs/promises';
+import { shipPresets,shipPreset } from '../../src/ships/presets';
+import { createShipState } from '../../src/simulation/ship';
+import { createDamage } from '../../src/simulation/damage';
+import { createMountState } from '../../src/simulation/weapons';
+import { resolveShipCollisions } from '../../src/simulation/collisions';
+import { resolveLandContact } from '../../src/simulation/land';
+import { OCEAN_MAPS,mapIslands } from '../../src/maps/catalog';
+import type { FleetActor } from '../../src/simulation/battle';
+import { fixturePatches } from './fixture-patches';
+const make=(id:string,preset:string)=>{const definition=shipPreset(preset);return{definition,motion:createShipState(id),damage:createDamage(definition),mounts:definition.mounts.map(createMountState)} as FleetActor;};
+const snapshot=(a:FleetActor)=>JSON.parse(JSON.stringify({motion:a.motion,damage:{...a.damage,stability:undefined}}));
+const collisions=Object.keys(shipPresets).flatMap(id=>[0,1,2].map(mode=>{const actors=[make('a',id),make('b',id),make('c',id)];const h=actors[0].definition.hull;Object.assign(actors[0].motion,{x:mode===1?20:0,z:mode===1?(h.length+h.beam)/2-1:0,speed:12,swaySpeed:mode===2?8:0});Object.assign(actors[1].motion,{x:mode===2?h.beam-1:0,z:mode===0?-h.length+2:0,heading:mode===0?Math.PI:mode===1?Math.PI/2:0,speed:mode===0?12:0});Object.assign(actors[2].motion,{x:mode===2?2*h.beam-2:500,z:0});const baseline=actors.map(snapshot),events:unknown[]=[];resolveShipCollisions(actors,e=>events.push({actorId:e.actor.motion.id,otherId:e.other?.motion.id,position:e.position,damage:e.damage,kind:e.kind}));return{id,baseline,patches:fixturePatches(baseline,actors.map(snapshot)),events};}));
+const map=OCEAN_MAPS.find(m=>mapIslands(m.id,5000,8).length)!;const island=mapIslands(map.id,5000,8)[0];
+const land=Object.keys(shipPresets).map(id=>{const actor=make(id,id);Object.assign(actor.motion,{x:island.x+island.rx*.9,z:island.z,heading:-Math.PI/2,speed:8});const baseline=snapshot(actor),events:unknown[]=[];resolveLandContact(actor,[island],e=>events.push({actorId:e.actor.motion.id,position:e.position,damage:e.damage,kind:e.kind}));return{id,baseline,patches:fixturePatches(baseline,snapshot(actor)),events};});
+await writeFile('assets/gameplay/migration/collisions.v1.json',JSON.stringify({version:1,collisions,land,island})+'\n');

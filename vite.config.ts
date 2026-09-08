@@ -10,9 +10,11 @@ import { shipTransfers } from './scripts/build/ship-transfers';
 const skyData = fileURLToPath(new URL('./vendor/threejs-sky-pro/build/data/', import.meta.url));
 const root = fileURLToPath(new URL('./', import.meta.url));
 
+const basePath = process.env.BASE_PATH ?? '/';
+const apiPrefix = `${basePath.replace(/\/$/, '')}/api`;
 export default defineConfig({
   // Serve from a sub-path with e.g. BASE_PATH=/naval/ bun run build; runtime asset URLs go through src/assetUrl.ts.
-  base: process.env.BASE_PATH ?? '/',
+  base: basePath,
   plugins: [react(), vendorTextures(), shipTransfers(`${root}public/models`), {
     name: 'exclude-retired-ship-reviews',
     // Old checkouts may still have ignored comparison pages in public/.
@@ -26,7 +28,8 @@ export default defineConfig({
     },
   }],
   resolve: { dedupe: ['three'] },
-  server: { port: 5173, strictPort: true },
+  server: { port: 5173, strictPort: true, proxy: { [apiPrefix]: { target: process.env.NAVAL_SERVER ?? 'http://127.0.0.1:8787', ws: true, rewrite: path => '/api' + path.slice(apiPrefix.length) } } },
+  worker: { format: 'es' },
   build: {
     target: 'es2022',
     rollupOptions: {

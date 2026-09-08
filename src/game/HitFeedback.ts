@@ -1,4 +1,5 @@
-import type { CombatSimulation } from '../simulation/combat';
+import type { BattleSession } from './session/BattleSession';
+
 import type { Vec3 } from '../ships/blueprint';
 import { worldToLocal } from '../simulation/geometry';
 import { FIXED_DT } from '../simulation/ship';
@@ -12,12 +13,12 @@ const outcomes = { penetrated: 'Penetration', ricochet: 'Ricochet', stopped: 'Ar
 
 /** Consume each projectile's layers once, then group matching visible component results. */
 export class HitFeedback {
-  private source?: CombatSimulation;
+  private source?: BattleSession;
   private sequence = 0;
   private tick = 0;
   private cues: HitCue[] = [];
 
-  update(sim: CombatSimulation): readonly HitCue[] {
+  update(sim: BattleSession): readonly HitCue[] {
     if (this.source !== sim || sim.tick < this.tick) { this.cues = []; this.sequence = 0; }
     this.source = sim; this.tick = sim.tick;
     const time = sim.tick * FIXED_DT;

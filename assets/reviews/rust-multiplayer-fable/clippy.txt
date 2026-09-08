@@ -1,0 +1,2 @@
+    Checking naval-server v0.1.0 (/Users/bill/orca/workspaces/ship-game/rust-fleet-multiplayer/crates/naval-server)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.82s

@@ -1,6 +1,7 @@
+import type { BattleSession } from './session/BattleSession';
 import * as THREE from 'three/webgpu';
 import { attribute } from 'three/tsl';
-import type { CombatEvent, CombatSimulation } from '../simulation/combat';
+import type { CombatEvent } from '../simulation/combat';
 import { FIXED_DT } from '../simulation/ship';
 import { ballisticStep } from '../simulation/ballistics';
 import { effectTexture } from './EffectParticles';
@@ -28,7 +29,7 @@ export class AircraftGunfire {
   private count = 0;
   private readonly active = new Map<number, CombatEvent>();
   private sequence = 0;
-  private damage?: CombatSimulation['player']['damage'];
+  private damage?: BattleSession['player']['damage'];
   constructor() {
     this.root.name = 'Aircraft gunfire';
     this.root.add(this.ribbons, this.cores, this.tips, this.muzzles);
@@ -48,7 +49,7 @@ export class AircraftGunfire {
     this.dummy.updateMatrix(); mesh.setMatrixAt(index, this.dummy.matrix);
     mesh.setScalarAttributeAt('tracerOpacity', index, opacity);
   }
-  update(sim: CombatSimulation, camera: THREE.Camera) {
+  update(sim: BattleSession, camera: THREE.Camera) {
     let count = 0, flashes = 0;
     const now = (sim.tick - 1 + sim.interpolationAlpha) * FIXED_DT;
     // Reset replaces damage state even when a new battle catches up to the same tick.

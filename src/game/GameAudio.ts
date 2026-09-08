@@ -1,5 +1,6 @@
+import type { BattleSession } from './session/BattleSession';
 import { selectedWeapon } from '../ships/weaponGroups';
-import type { CombatSimulation } from '../simulation/combat';
+
 import type { Battery, Vec3 } from '../ships/blueprint';
 import { CombatAudioEvents, SOUND_IDS, sanitizeAudio, spatialMix, type AudioBus, type AudioSettings, type SoundId } from './audio';
 
@@ -119,10 +120,10 @@ export class GameAudio {
     this.inPort = inPort; this.paused = paused;
   }
   departure(): void { this.play('ship-horn', 'effects', .4); }
-  reset(simulation: CombatSimulation): void {
+  reset(simulation: BattleSession): void {
     this.stopEffects(); this.events.reset(simulation.events); this.reloading.clear(); this.order = undefined;
   }
-  update(simulation: CombatSimulation, order: number, battery: Battery, listener: Vec3, right: Vec3, weaponGroupId?: string): void {
+  update(simulation: BattleSession, order: number, battery: Battery, listener: Vec3, right: Vec3, weaponGroupId?: string): void {
     this.listener = listener; this.right = right;
     const cues = this.events.consume(simulation.events, simulation.tick);
     if (!this.paused && !this.inPort) {

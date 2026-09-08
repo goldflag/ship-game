@@ -1,0 +1,131 @@
+Naval content: 11 definitions; SHA-256 71ceaea76f9c41593625d14634e800754a833d29cbbb1539e1a942c9eacfa644
+   Compiling tokio-macros v2.7.2
+   Compiling serde v1.0.229
+   Compiling tungstenite v0.29.0
+   Compiling wasm-bindgen v0.2.128
+   Compiling naval-sim v0.1.0 (/Users/bill/orca/workspaces/ship-game/rust-fleet-multiplayer/crates/naval-sim)
+   Compiling serde_urlencoded v0.7.1
+   Compiling tokio v1.53.1
+   Compiling hyper v1.11.1
+   Compiling tower v0.5.3
+   Compiling tokio-tungstenite v0.29.0
+   Compiling hyper-util v0.1.20
+   Compiling axum v0.8.9
+   Compiling naval-protocol v0.1.0 (/Users/bill/orca/workspaces/ship-game/rust-fleet-multiplayer/crates/naval-protocol)
+   Compiling naval-wasm v0.1.0 (/Users/bill/orca/workspaces/ship-game/rust-fleet-multiplayer/crates/naval-wasm)
+   Compiling naval-server v0.1.0 (/Users/bill/orca/workspaces/ship-game/rust-fleet-multiplayer/crates/naval-server)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 11.33s
+     Running unittests src/lib.rs (target/debug/deps/naval_protocol-372fce668fd3fe08)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/export.rs (target/debug/deps/export-769bf32a1e5b0cfe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/control.rs (target/debug/deps/control-b9c0812564f3c46b)
+
+running 3 tests
+test input_expiry_and_old_socket_events_cannot_override_reconnect ... ok
+test malformed_unbounded_and_nonfinite_inputs_fail_closed ... ok
+test ownership_switching_and_persistent_orders ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/benchmark.rs (target/debug/deps/benchmark-f14dec8029b7a1ec)
+
+running 1 test
+test encoding::tests::deltas_reconstruct_from_the_same_baseline_after_skipped_frames ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (target/debug/deps/naval_server-7fba92a2e8bd250a)
+
+running 4 tests
+test persistence::tests::first_final_result_is_immutable ... ok
+test encoding::tests::deltas_reconstruct_from_the_same_baseline_after_skipped_frames ... ok
+test worker::tests::load_failure_has_no_competitive_result ... ok
+test worker::tests::load_barrier_reconnect_epochs_and_forfeit ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.12s
+
+     Running unittests src/lib.rs (target/debug/deps/naval_sim-34e43ab2984d8c3a)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/damage_migration.rs (target/debug/deps/damage_migration-fe96be97051d2db6)
+
+running 11 tests
+test exact_plate_seam_is_one_layer_and_parallel_ray_misses ... ok
+test aircraft_flight_controls_and_seeded_fire_match_reference ... ok
+test armor_contacts_and_resistance_match_reference ... ok
+test torpedo_training_swept_hits_and_depth_charge_trajectories_match ... ok
+test complete_projectile_flight_and_bursts_match_reference ... ok
+test fleet_collisions_and_grounding_match_reference ... ok
+test direct_ap_he_and_inert_contacts_match_reference ... ok
+test damage_flooding_crews_and_submarines_match_existing_hulls ... ok
+test seeded_bot_observations_helm_and_gun_aim_match_reference ... ok
+test carrier_sorties_recovery_and_fighters_match_reference ... ok
+test complete_battles_match_reference ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 39.87s
+
+     Running tests/migration.rs (target/debug/deps/migration-7c4b1e7226558a82)
+
+running 8 tests
+test rotated_endpoint_contacts_are_stable ... ok
+test articulation_coordinate_contract_matches ... ok
+test environment_integer_seeds_match_browser ... ok
+test movement_matches_existing_hulls ... ok
+test ballistic_aim_and_flight_match_reference ... ok
+test buoyancy_floodwater_and_weapon_training_match_reference ... ok
+test registered_content_loads_and_tampering_is_rejected ... ok
+test cpu_sea_and_baked_terrain_match_reference ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.51s
+
+     Running tests/rules.rs (target/debug/deps/rules-79de36b21c671fb3)
+
+running 3 tests
+test exact_deadline_and_simultaneous_losses ... ok
+test budget_boundaries_use_frozen_catalog_kg ... ok
+test night_is_rare_and_sentinel_never_selected ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running unittests src/lib.rs (target/debug/deps/naval_wasm-eb1f42511dd65199)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests naval_protocol
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests naval_sim
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests naval_wasm
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+    Checking naval-server v0.1.0 (/Users/bill/orca/workspaces/ship-game/rust-fleet-multiplayer/crates/naval-server)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.73s
+    Finished `release` profile [optimized] target(s) in 0.12s
+WASM verified 33 motion checkpoints, seeded conditions and end-of-tick rules in 8.1 ms. This is a migration check, not server capacity evidence.
+WASM verified 44 complete shell trajectories, damage records, bursts and water entries against the TypeScript reference.
+WASM verified 18000 complete battle ticks, including carrier sorties, AA, underwater weapons, damage records and shell history.

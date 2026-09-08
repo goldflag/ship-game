@@ -1,5 +1,6 @@
+import type { BattleSession } from './session/BattleSession';
 import { Vector3, type Camera } from 'three/webgpu';
-import type { CombatSimulation } from '../simulation/combat';
+
 import type { ShipView } from './ShipView';
 import { HitFeedback } from './HitFeedback';
 import { projectShipLabel } from './ShipLabels';
@@ -23,7 +24,7 @@ export class HitLabels {
     host.appendChild(this.root);
   }
   resize(width: number, height: number): void { this.width = width; this.height = height; }
-  update(sim: CombatSimulation, views: readonly ShipView[], camera: Camera, visible: boolean): void {
+  update(sim: BattleSession, views: readonly ShipView[], camera: Camera, visible: boolean): void {
     const cues = this.feedback.update(sim);
     this.root.hidden = !visible;
     const live = new Set(cues.map(c => c.id));

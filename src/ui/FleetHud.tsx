@@ -203,6 +203,6 @@ function FleetHudInstruments({ data, game, visible, bindings }: FleetHudProps) {
     {data.combat?.airWing && <AirOperations data={data} game={game} bindings={bindings} instrumentsVisible={visible}/>}
     {data.combat?.submarine && <DepthControl combat={data.combat} game={game} bindings={bindings}/>}
     {!following && data.binoculars && data.aimModule !== 'point' && data.aimMarker?.visible && <div className="aim-marker" aria-hidden="true" style={{ left: `${data.aimMarker.x}%`, top: `${data.aimMarker.y}%` }}><span/><small>TRACKED AIM</small></div>}
-    <aside className="fleet-map-area" aria-label="Navigation minimap"><NavigationChart bindings={bindings} data={data} onResize={direction => game?.resizeChart(direction)}/></aside>
+    <aside className="fleet-map-area" aria-label="Navigation minimap"><NavigationChart onWaypoint={(x, z) => game?.fleetWaypoint(x, z)} bindings={bindings} data={data} onResize={direction => game?.resizeChart(direction)}/></aside>
   </div>;
 }

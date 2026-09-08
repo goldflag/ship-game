@@ -1,3 +1,6 @@
+import { battleExitLabel } from '../game/session/BattleSession';
+import { MultiplayerDialog } from './MultiplayerDialog';
+import { RemoteBattleSession } from '../game/session/RemoteBattleSession';
 import { Button } from './components';
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Game } from '../game/Game';
@@ -59,6 +62,7 @@ export function App() {
   const [paused, setPaused] = useState(false);
   const [error, setError] = useState('');
   const [hud, setHud] = useState(true);
+  const [multiplayerOpen, setMultiplayerOpen] = useState(false);
   const [battleSetupOpen, setBattleSetupOpen] = useState(false);
   const [battleSetup, setBattleSetup] = useState<BattleSetup>({ playerShipId: initialShip.id, friendlyBots: [], enemies: [], spawnDistance: BATTLE_SPAWN_DISTANCE, mapId: 'north-atlantic', timeHours: 12, cloudCover: 38, windSpeed: 9 });
   const [battleLoading, setBattleLoading] = useState<BattleLoadingState | null>(null);
@@ -74,7 +78,11 @@ export function App() {
     const session = new Game(host.current!, settings, {
       progress: (label, progress) => active && setLoading({ label, progress }),
       ready: () => active && setReady(true),
-      telemetry: value => active && setData(value),
+      telemetry: value => {
+        if (!active) return;
+        setData(value);
+        if (session.definition.id !== selectedRef.current.id) { selectedRef.current = session.definition; setSelectedShip(session.definition); }
+      },
       pause: value => active && setPaused(value),
       hud: () => active && setHud(value => !value),
       error: message => active && setError(message),
@@ -117,7 +125,10 @@ export function App() {
     session.setInPort(false);
     let active = true;
     void session.nextFrame().then(() => session.nextFrame()).then(() => {
-      if (active && game.current === session) setBattleLoading(value => value && { label: 'Underway', progress: 1, leaving: true });
+      if (active && game.current === session) {
+        if (session.simulation instanceof RemoteBattleSession) session.simulation.loadedAssets();
+        setBattleLoading(value => value && { label: 'Underway', progress: 1, leaving: true });
+      }
     });
     return () => { active = false; };
   }, [phase]);
@@ -147,9 +158,23 @@ export function App() {
       if (game.current === session) battlePending.current = false;
     }
   };
-  const returnToPort = () => {
-    game.current?.setInPort(true);
-    setPhase('garage');
+  const returnToPort = async () => {
+    try { await game.current?.returnToPort(); setPhase('garage'); }
+    catch (error) { setError(error instanceof Error ? error.message : String(error)); }
+  };
+  const onlineBattle = async (remote: RemoteBattleSession) => {
+    const current = game.current;
+    if (!current) { remote.surrender(); return; }
+    const friendly = remote.setup.ships.filter(s => s.team === remote.ownTeam);
+    const player = friendly.find(s => s.id === remote.ship.id)!;
+    setBattleSetup({ playerShipId: player.presetId, friendlyBots: friendly.filter(s => s !== player).map(s => s.presetId), enemies: remote.setup.ships.filter(s => s.team !== remote.ownTeam).map(s => s.presetId), mapId: remote.mapId, spawnDistance: remote.spawnDistance, ...remote.metadata.environment });
+    setBattleLoading({ label: 'Loading the fleets', progress: 0, leaving: false });
+    try {
+      await current.prepareOnlineBattle(remote, (label, progress) => setBattleLoading({ label, progress, leaving: false }));
+      if (current !== game.current) { remote.dispose(); return; }
+      selectedRef.current = current.definition; setSelectedShip(current.definition);
+      setMultiplayerOpen(false); setHud(true); setPhase('sailing');
+    } catch (error) { setBattleLoading(null); remote.surrender(); throw error; }
   };
   const resume = () => {
     dialog.current?.close();
@@ -218,13 +243,14 @@ export function App() {
       if (!(target instanceof HTMLElement && target.closest('input, textarea, [contenteditable]:not([contenteditable="false"])'))) event.preventDefault();
     }}>
     <div ref={host} className="ocean-viewport" inert={!ready || !!error} data-ship-labels={phase === 'sailing' && hud && ready && !error && !data.airOperationsOpen} />
-    {phase === 'garage' && ready && !error && <Garage key={selectedShip.id} switching={switching} switchError={switchError} onSelectShip={switchShip} game={game.current} ready={ready} fps={data.fps} onLaunch={openBattleSetup} onSettings={() => game.current?.setPaused(true)}/>}
+    {phase === 'garage' && ready && !error && <Garage key={selectedShip.id} switching={switching} switchError={switchError} onSelectShip={switchShip} game={game.current} ready={ready} fps={data.fps} onLaunch={openBattleSetup} onMultiplayer={() => setMultiplayerOpen(true)} onSettings={() => game.current?.setPaused(true)}/>}
+    {multiplayerOpen && <MultiplayerDialog loading={!!battleLoading} initialShipId={selectedShip.id} onBattle={onlineBattle} onClose={() => setMultiplayerOpen(false)}/>}
     {battleSetupOpen && !battleLoading && <BattleSetupDialog setup={battleSetup} onChange={setBattleSetup} onLaunch={launch} onClose={() => setBattleSetupOpen(false)} error={battleError}/>}
     {phase === 'sailing' && ready && !error && <><BinocularOverlay data={data}/><div className="hud-viewport">
       <FleetHud data={data} game={game.current} visible={hud} bindings={bindings}/>
       {!hud && <button className="restore-hud" onClick={() => setHud(true)}>Show instruments <kbd>{bindingLabel(bindings, 'hud')}</kbd></button>}
     </div></>}
-    {battleLoading && ready && !error && <BattleLoadingScreen setup={battleSetup} state={battleLoading} onLeft={() => setBattleLoading(null)}/>}
+    {battleLoading && ready && !error && <BattleLoadingScreen setup={battleSetup} state={battleLoading} multiplayer={!!game.current?.simulation.networked} onLeft={() => setBattleLoading(null)}/>}
 
     {!ready && !error && <section className="startup-screen" aria-labelledby="startup-title">
       <div className="startup-content">
@@ -244,9 +270,9 @@ export function App() {
 
     <dialog ref={dialog} className={`pause-menu ${settingsOpen ? 'pause-menu-covered' : ''}`} aria-labelledby="pause-title" onCancel={e => { e.preventDefault(); resume(); }}>
       <div className="menu-heading"><h2 id="pause-title">{phase === 'garage' ? 'In port.' : 'At your command.'}</h2><Button variant="icon" aria-label={phase === 'garage' ? 'Close menu' : 'Resume battle'} onClick={resume}><Icon name="close"/></Button></div>
-      <p className="menu-description">{phase === 'garage' ? 'Prepare for your next voyage.' : 'Battle paused. Your engine order is held.'}</p>
+      <p className="menu-description">{phase === 'garage' ? 'Prepare for your next voyage.' : game.current?.simulation.networked ? 'The online battle continues while this menu is open.' : 'Battle paused. Your engine order is held.'}</p>
       <Button autoFocus variant="primary" onClick={resume}>{phase === 'garage' ? 'Back to port' : 'Resume battle'} <Icon name={phase === 'garage' ? 'anchor' : 'play'} size={18}/></Button>
-      {phase === 'sailing' && <Button variant="secondary" className="restart-button" onClick={returnToPort}>Return to port <Icon name="anchor" size={18}/></Button>}
+      {phase === 'sailing' && <Button variant="secondary" className="restart-button" onClick={() => void returnToPort()}>{battleExitLabel(game.current?.simulation)} <Icon name="anchor" size={18}/></Button>}
       <Button variant="secondary" className="menu-action" onClick={() => setSettingsOpen(true)}>Settings <Icon name="settings" size={18}/></Button>
       <Button variant="secondary" className="menu-action close-game-button" onClick={closeGame}>Close game <Icon name="power" size={18}/></Button>
       {phase === 'sailing' && <div className="menu-controls">

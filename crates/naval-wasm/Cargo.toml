@@ -1,0 +1,14 @@
+[package]
+name = "naval-wasm"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+naval-sim.workspace = true
+naval-protocol.workspace = true
+serde_json.workspace = true
+wasm-bindgen = "0.2"

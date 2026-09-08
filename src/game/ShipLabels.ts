@@ -35,11 +35,11 @@ export class ShipLabels {
     host.appendChild(this.root);
   }
 
-  setFleet(views: readonly ShipView[], actors: readonly FleetActor[]): void {
+  setFleet(views: readonly ShipView[], actors: readonly FleetActor[], playerId = actors.find(a => a.controller === 'player' && a.team === 'friendly')?.motion.id): void {
     this.root.replaceChildren();
     this.labels = views.flatMap((view, index) => {
       const actor = actors[index];
-      if (actor.controller === 'player') return [];
+      if (actor.motion.id === playerId) return [];
       const root = document.createElement('div');
       root.className = `ship-label ship-label-${actor.team}`;
       root.dataset.shipId = actor.motion.id;

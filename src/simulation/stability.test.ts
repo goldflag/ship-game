@@ -89,13 +89,13 @@ test('finite-angle capsize is separate from negative initial GM and from sinking
   expect(a.damage.stability.status).toBe('capsized');
 });
 
-test('afloat ships retain useful guns after propulsion loss; permanent gun/ammunition loss decides a battle', () => {
+test('afloat ships retain useful guns after propulsion loss; permanent gun/ammunition loss leaves tonnage afloat', () => {
   const def = compileShip(bismarck, catalog), sim = new CombatSimulation(def, { friendlyBots: [], enemies: [def] }), a = sim.target;
   def.modules.forEach((m, i) => { if (m.kind === 'engine') a.damage.modules[i].hp = 0; });
   updateCapability(a, def); expect(a.damage.stability.status).toBe('immobile'); expect(a.damage.stability.combatLost).toBe(false);
   a.mounts.forEach(m => m.hp = 0);
   sim.step({ throttle: 0, rudder: 0 }, { aim: sim.aimAt(), fire: false, battery: 'main' });
-  expect(a.damage.sunk).toBe(false); expect(a.damage.stability.status).toBe('disabled'); expect(sim.result).toBe('victory');
+  expect(a.damage.sunk).toBe(false); expect(a.damage.stability.status).toBe('disabled'); expect(sim.result).toBe('active');
   sim.reset(); expect(sim.target.damage.stability.status).toBe('operational'); expect(sim.result).toBe('active');
 });
 

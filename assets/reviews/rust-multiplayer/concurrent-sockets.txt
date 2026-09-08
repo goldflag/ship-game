@@ -1,0 +1,1 @@
+{"ok":true,"durationSeconds":30,"concurrentMatches":2,"vesselsPerMatch":16,"checks":["HTTP queue cancellation","four players","third match rejected","sustained snapshots"],"clients":[{"frames":641,"bytes":33083311},{"frames":640,"bytes":33083144},{"frames":640,"bytes":29577917},{"frames":640,"bytes":29577917}]}
