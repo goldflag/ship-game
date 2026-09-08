@@ -215,7 +215,14 @@ pub fn validate_definition(d: &ShipDefinition) -> Result<(), ContentError> {
             return Err(fail());
         }
     }
-    for mount in &d.mounts {
+    for (i, mount) in d.mounts.iter().enumerate() {
+        if mount
+            .parent_mount_id
+            .as_ref()
+            .is_some_and(|id| !d.mounts[..i].iter().any(|parent| &parent.id == id))
+        {
+            return Err(fail());
+        }
         if !positive(&[
             mount.weapon.caliber_m,
             mount.weapon.muzzle_speed,

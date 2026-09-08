@@ -4,6 +4,7 @@ import { resolve, join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { Matrix4, Quaternion, Vector3 } from 'three';
 import { barrelOffset, barrelHeightOffset, barrelIds, compileShip, type ShipDefinition } from '../../src/ships/blueprint';
+import { mountFrame } from '../../src/simulation/mountFrames';
 
 const root = resolve(import.meta.dir, '../..');
 const [action = 'check', shipId = 'bismarck'] = process.argv.slice(2);
@@ -80,7 +81,7 @@ function inspectGlb(bytes: Buffer, def: ShipDefinition) {
     const key = n.extras?.nodeId;
     if (typeof key === 'string') { if (byId.has(key)) throw new Error(`Duplicate node ID ${key}`); byId.set(key, i); }
   });
-  const frames = (overrides = new Map<number, Matrix4>()) => {
+  const frames = (overrides = new Map<number, Matrix4>(), recoilOffsets = new Map<number, number>()) => {
     const worlds = new Map<number, Matrix4>();
     const walk = (index: number, parent: Matrix4, ancestry: Set<number>) => {
       if (ancestry.has(index) || worlds.has(index)) throw new Error('Cyclic or multiply-parented GLB hierarchy');
@@ -91,6 +92,7 @@ function inspectGlb(bytes: Buffer, def: ShipDefinition) {
         const p = new Vector3().setFromMatrixPosition(local);
         local.copy(overrides.get(index)!); local.setPosition(p);
       }
+      local.elements[14] += recoilOffsets.get(index) ?? 0;
       const world = parent.clone().multiply(local);
       if (!world.elements.every(Number.isFinite)) throw new Error('Nonfinite GLB transform');
       worlds.set(index, world);
@@ -121,8 +123,12 @@ function inspectGlb(bytes: Buffer, def: ShipDefinition) {
   near(bounds[1].z - bounds[0].z, def.hull.length, 'Hull length');
   near(bounds[1].x - bounds[0].x, def.hull.beam, 'Hull beam');
   near(bounds[0].y, -def.hull.draft, 'Keel datum');
-  const mounts = def.mounts.map(m => {
+  const mounts = def.mounts.map((m, mountIndex) => {
     const index = getIndex(`${m.id}.yaw`);
+    if (m.parentMountId) {
+      const descendants = (index: number): number[] => [index, ...(gltf.nodes[index].children ?? []).flatMap(descendants)];
+      if (!descendants(getIndex(`${m.parentMountId}.yaw`)).includes(index)) throw new Error(`${m.id}: carried mount must descend from its parent's yaw joint`);
+    }
     const center = new Vector3().setFromMatrixPosition(worlds.get(index)!);
     m.position.forEach((n, i) => near(center.getComponent(i), n, `${m.id} pivot ${i}`));
     const sides = barrelIds(m.weapon);
@@ -139,8 +145,22 @@ function inspectGlb(bytes: Buffer, def: ShipDefinition) {
         const expected = new Vector3(m.position[0] + Math.cos(bearing) * lateral + Math.sin(bearing) * forward, m.position[1] + m.weapon.pivotHeight + barrelHeightOffset(m.weapon, barrel) * Math.cos(angle) + length * Math.sin(angle), m.position[2] + Math.sin(bearing) * lateral - Math.cos(bearing) * forward);
         near(actual.distanceTo(expected), 0, `${m.id}.${side} muzzle at ${train}/${elevation}`);
       }
+      if (m.parentMountId) for (const fraction of [-.73, .38, 1]) {
+        const trains = def.mounts.map((mount, i) => (i % 2 ? -1 : 1) * fraction * mount.weapon.traverseDeg * Math.PI / 180);
+        const overrides = new Map(def.mounts.map((mount, i) => [getIndex(`${mount.id}.yaw`), new Matrix4().makeRotationY(-(mount.bearingDeg * Math.PI / 180 + trains[i]))]));
+        const angle = (m.weapon.elevationMinDeg + .63 * (m.weapon.elevationMaxDeg - m.weapon.elevationMinDeg)) * Math.PI / 180;
+        overrides.set(pitch, new Matrix4().makeRotationX(angle));
+        const recoilM = m.weapon.recoilM * .8;
+        const updated = frames(overrides, new Map([[recoil, recoilM]]));
+        const actual = new Vector3().setFromMatrixPosition(updated.get(socket)!);
+        const pose = mountFrame(def, mountIndex, trains), length = m.weapon.muzzleForward - m.weapon.trunnionForward - recoilM;
+        const vertical = barrelHeightOffset(m.weapon, barrel), lateral = barrelOffset(m.weapon, barrel);
+        const forward = m.weapon.trunnionForward + length * Math.cos(angle) - vertical * Math.sin(angle);
+        const expected = new Vector3(pose.x + Math.cos(pose.heading) * lateral + Math.sin(pose.heading) * forward, pose.y + m.weapon.pivotHeight + vertical * Math.cos(angle) + length * Math.sin(angle), pose.z + Math.sin(pose.heading) * lateral - Math.cos(pose.heading) * forward);
+        near(actual.distanceTo(expected), 0, `${m.id}.${side} carried muzzle at ${fraction}`);
+      }
     }
-    return { id: m.id, measuredPivot: center.toArray(), barrels: sides.length, articulationChecks: sides.length * 3 };
+    return { id: m.id, measuredPivot: center.toArray(), barrels: sides.length, articulationChecks: sides.length * (m.parentMountId ? 6 : 3) };
   });
   const torpedoTubes = (def.torpedoTubes ?? []).map(tube => {
     const frame = worlds.get(getIndex(`${tube.id}.muzzle`))!;

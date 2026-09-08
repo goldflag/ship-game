@@ -1,7 +1,9 @@
 import kingGeorgeV from '../../public/models/king-george-v.json';
 import bismarck from '../../public/models/bismarck.json';
 import yamato from '../../public/models/yamato.json';
+import iowa from '../../public/models/iowa.json';
 import baltimore from '../../public/models/baltimore.json';
+import mogami from '../../public/models/mogami.json';
 import enterprise from '../../public/models/enterprise-cv6.json';
 import shokaku from '../../public/models/shokaku.json';
 import viic from '../../public/models/type-viic.json';
@@ -17,8 +19,10 @@ import type { ShipDefinition } from './blueprint';
 export const shipPresets = {
   bismarck,
   yamato,
+  iowa,
   'king-george-v': kingGeorgeV,
   baltimore,
+  mogami,
   'enterprise-cv6': enterprise,
   shokaku,
   'type-viic': viic,

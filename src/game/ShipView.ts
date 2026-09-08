@@ -3,6 +3,7 @@ import type { Battery, ShipDefinition, Vec3 } from '../ships/blueprint';
 import { barrelIds } from '../ships/blueprint';
 import type { Combatant } from '../simulation/damage';
 import { radians, wrapAngle } from '../simulation/geometry';
+import { updateMountCarriers } from '../simulation/mountFrames';
 import { muzzleWorld, shotDirection } from '../simulation/weapons';
 import { ShipInspection } from './ShipInspection';
 import type { InspectionMode } from '../ships/inspection';
@@ -33,6 +34,7 @@ export class ShipView {
   private tubeBindings: THREE.Object3D[];
   get internals() { return this.inspection.root; }
   private bindings: { yaw: THREE.Object3D; elevation: THREE.Object3D[]; recoil: THREE.Object3D[]; muzzles: THREE.Object3D[] }[];
+  private gunCovers: { mesh: THREE.Mesh; elevation: THREE.Object3D; angles: number[] }[] = [];
   private surfaces: { material: THREE.MeshStandardMaterial | THREE.MeshStandardNodeMaterial; opacity: number; transparent: boolean; depthWrite: boolean }[] = [];
   private inspecting = false;
   private readonly poseMatrices: ShipPoseMatrices;
@@ -74,6 +76,15 @@ export class ShipView {
     });
     const node = (id: string) => { const n = nodes.get(id); if (!n) throw new Error(`Ship export is missing ${id}. Rebuild with bun run ship:build ${definition.id}`); return n; };
     this.bindings = definition.mounts.map(m => ({ yaw: node(`${m.id}.yaw`), elevation: barrelIds(m.weapon).map(side => node(`${m.id}.${side}.elevation`)), recoil: barrelIds(m.weapon).map(side => node(`${m.id}.${side}.recoil`)), muzzles: barrelIds(m.weapon).map(side => node(`${m.id}.${side}.muzzle`)) }));
+    model.traverse(o => {
+      if (!(o instanceof THREE.Mesh) || !o.userData.gunCoverElevationId) return;
+      const angles: number[] = o.userData.gunCoverAngles;
+      if (!Array.isArray(angles) || !angles.length || angles.length !== o.morphTargetInfluences?.length ||
+          angles.some((a, i) => !Number.isFinite(a) || a <= (angles[i - 1] ?? 0))) {
+        throw new Error(`Ship export has invalid gun-cover shapes on ${o.name}. Rebuild with bun run ship:build ${definition.id}`);
+      }
+      this.gunCovers.push({ mesh: o, elevation: node(o.userData.gunCoverElevationId), angles });
+    });
     this.launcherBindings = (definition.torpedoLaunchers ?? []).map(l => node(`${l.id}.yaw`));
     this.tubeBindings = (definition.torpedoTubes ?? []).map(t => node(`${t.id}.muzzle`));
     if (definition.submarine) for (const kind of ['bowPlanes', 'sternPlanes', 'rudders', 'propellers'] as const) {
@@ -171,6 +182,7 @@ export class ShipView {
         m[key] = stopped ? currentMount[key] : THREE.MathUtils.lerp(previousMount[key], currentMount[key], t);
       }
     });
+    updateMountCarriers(this.definition, mounts);
     this.root.position.set(motion.x, motion.y, motion.z);
     this.root.rotation.set(motion.pitch, -motion.heading, motion.roll, 'YXZ');
     this.bindings.forEach((b, i) => {
@@ -180,6 +192,17 @@ export class ShipView {
       b.elevation.forEach(n => { n.rotation.set(mounts[i].elevation, 0, 0); });
       b.recoil.forEach(n => { n.position.z = mounts[i].recoil * this.definition.mounts[i].weapon.recoilM; });
     });
+    // Cloth is visual-only: the same interpolated gun angle drives its shapes.
+    // Its fixed seam remains on the gunhouse while its collar follows pitch.
+    for (const { mesh, elevation, angles } of this.gunCovers) {
+      const degrees = THREE.MathUtils.clamp(THREE.MathUtils.radToDeg(elevation.rotation.x), 0, angles.at(-1)!);
+      const weights = mesh.morphTargetInfluences!;
+      weights.fill(0);
+      const upper = angles.findIndex(a => a >= degrees), lowerAngle = angles[upper - 1] ?? 0;
+      const fraction = (degrees - lowerAngle) / (angles[upper] - lowerAngle);
+      weights[upper] = fraction;
+      if (upper > 0) weights[upper - 1] = 1 - fraction;
+    }
     this.launcherBindings.forEach((node, i) => {
       const launcher = this.renderedLaunchers[i];
       const train = this.actor.torpedoLaunchers?.find(state => state.id === launcher.id)?.train ?? 0;

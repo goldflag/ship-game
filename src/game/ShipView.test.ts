@@ -6,6 +6,78 @@ import { CombatSimulation } from '../simulation/combat';
 import { compileShip } from '../ships/blueprint';
 import { ShipView } from './ShipView';
 import { shipPreset } from '../ships/presets';
+import * as THREE from 'three/webgpu';
+
+test('Iowa exported blast bags keep fixed seams and follow gun collars through interpolated elevation', async () => {
+  const definition = shipPreset('iowa');
+  const model = await new GLTFLoader().parseAsync(await Bun.file('public/models/iowa.glb').arrayBuffer(), '');
+  const sim = new CombatSimulation(definition), view = new ShipView(model.scene, definition, sim.player);
+  const nodes = new Map<string, THREE.Object3D>(), covers: THREE.Mesh[] = [];
+  model.scene.traverse(o => {
+    if (o.userData.nodeId) nodes.set(o.userData.nodeId, o);
+    if (o instanceof THREE.Mesh && o.userData.gunCoverElevationId) covers.push(o);
+  });
+  expect(covers).toHaveLength(9);
+  sim.player.mounts.forEach(m => { m.elevation = 0; });
+  view.snap(); view.root.updateMatrixWorld(true);
+  const seams = covers.map(mesh => {
+    const elevation = nodes.get(mesh.userData.gunCoverElevationId)!;
+    const fixed: { index: number; position: THREE.Vector3 }[] = [], collar: number[] = [];
+    for (let i = 0; i < mesh.geometry.attributes.position.count; i++) {
+      const p = mesh.getVertexPosition(i, new THREE.Vector3());
+      if (mesh.geometry.morphAttributes.position!.every(a => new THREE.Vector3().fromBufferAttribute(a, i).length() < 1e-7)) fixed.push({ index: i, position: p.clone() });
+      elevation.worldToLocal(mesh.localToWorld(p));
+      if (Math.abs(p.z + 6.91 - 3.657) < .003 && Math.abs(Math.hypot(p.x, p.y) - .647) < .003) collar.push(i);
+    }
+    expect(fixed.length).toBeGreaterThanOrEqual(40); expect(collar.length).toBeGreaterThanOrEqual(40);
+    return { mesh, elevation, fixed, collar };
+  });
+  for (const degrees of [2.5, 11, 22.5, 38, 45]) {
+    view.capturePreviousPose();
+    sim.player.mounts.forEach((m, i) => {
+      if (i < 3) Object.assign(m, { elevation: degrees * Math.PI / 180, recoil: i / 2 });
+    });
+    for (const alpha of [.37, 1]) {
+      view.update(alpha); view.root.updateMatrixWorld(true);
+      for (const { mesh, elevation, fixed, collar } of seams) {
+        for (const { index, position } of fixed) expect(mesh.getVertexPosition(index, new THREE.Vector3()).distanceTo(position)).toBeLessThan(1e-6);
+        for (const index of collar) {
+          const p = elevation.worldToLocal(mesh.localToWorld(mesh.getVertexPosition(index, new THREE.Vector3())));
+          expect(Math.abs(p.z + 6.91 - 3.657)).toBeLessThan(.01);
+          expect(Math.abs(Math.hypot(p.x, p.y) - .647)).toBeLessThan(.01);
+        }
+      }
+      expect(Math.max(...view.muzzleErrors())).toBeLessThan(.025);
+    }
+  }
+});
+
+test('Iowa exported roof AA inherits turret train while aiming and recoiling independently', async () => {
+  const definition = shipPreset('iowa');
+  const bytes = await Bun.file('public/models/iowa.glb').arrayBuffer();
+  const gltf = JSON.parse(new TextDecoder().decode(new Uint8Array(bytes, 20, new DataView(bytes).getUint32(12, true))));
+  const nodes = gltf.nodes.map(({ mesh: _mesh, ...node }: { mesh?: number }) => node);
+  const model = await new GLTFLoader().parseAsync(JSON.stringify({ asset: gltf.asset, scene: gltf.scene, scenes: gltf.scenes, nodes }), '');
+  const sim = new CombatSimulation(definition), view = new ShipView(model.scene, definition, sim.player);
+  const child = definition.mounts.findIndex(m => m.parentMountId === 'main-3');
+  expect(child).toBeGreaterThan(0);
+  expect(view.muzzleErrors()).toHaveLength(99);
+  for (const train of [-1, -.6, -.17, .31, .78, 1]) for (const elevation of [0, .5, 1]) for (const recoil of [0, 1]) {
+    view.capturePreviousPose();
+    Object.assign(sim.player.motion, { x: 143, y: -.8, z: -672, heading: 2.1, roll: -.11, pitch: .07 });
+    sim.player.mounts.forEach((state, i) => {
+      const w = definition.mounts[i].weapon;
+      Object.assign(state, { train: train * (i % 2 ? -1 : 1) * w.traverseDeg * Math.PI / 180,
+        elevation: (w.elevationMinDeg + (w.elevationMaxDeg - w.elevationMinDeg) * elevation) * Math.PI / 180, recoil: i === child ? 1 - recoil : recoil });
+    });
+    for (const alpha of [0, .37, 1]) {
+      view.update(alpha);
+      expect(Math.max(...view.muzzleErrors())).toBeLessThan(.025);
+    }
+    // Renderer interpolation must not become the simulation's authoritative frame.
+    expect(sim.player.mounts[child].carrier).toBeUndefined();
+  }
+});
 
 test('a turret disabled during a tick stops its rendered traverse and elevation immediately', async () => {
   const bytes = await Bun.file(new URL('../../public/models/baltimore.glb', import.meta.url)).arrayBuffer();

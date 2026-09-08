@@ -18,7 +18,7 @@ for collection in bpy.data.collections:
 for obj in list(bpy.context.scene.objects):
     obj.hide_set(False);obj.hide_viewport=False;obj.hide_render=False
 bpy.ops.object.select_all(action='DESELECT')
-convertible=[o for o in bpy.context.scene.objects if o.type in {'MESH','CURVE'}]
+convertible=[o for o in bpy.context.scene.objects if o.type=='CURVE' or (o.type=='MESH' and not o.data.shape_keys)]
 for obj in convertible:obj.select_set(True)
 bpy.context.view_layer.objects.active=convertible[0]
 bpy.ops.object.convert(target='MESH')
@@ -26,7 +26,7 @@ bpy.ops.object.convert(target='MESH')
 # Batch within a single parent + assembly, preserving logical and articulated boundaries.
 buckets={}
 for obj in bpy.context.scene.objects:
-    if obj.type!='MESH' or obj.get('nodeId')=='hull.surface':continue
+    if obj.type!='MESH' or obj.get('nodeId')=='hull.surface' or obj.data.shape_keys:continue
     key=(obj.parent.name if obj.parent else '', obj.get('assemblyId',''), obj.users_collection[0].name)
     buckets.setdefault(key,[]).append(obj)
 for key,objects in buckets.items():
@@ -76,13 +76,21 @@ if teak is not None:
 # Change basis for every local frame AND mesh, so exported coordinates are already
 # +Y up, -Z bow. Runtime performs no additional model rotation.
 bpy.context.view_layer.update()
+# Driver expressions use authoring axes. Freeze their evaluated weights before
+# changing basis; runtime follows the exported joint/angle metadata instead.
+for obj in bpy.context.scene.objects:
+    if obj.type=='MESH' and obj.data.shape_keys:
+        keys=obj.data.shape_keys
+        values=[key.value for key in keys.key_blocks]
+        keys.animation_data_clear()
+        for key,value in zip(keys.key_blocks,values):key.value=value
 rotation=Matrix.Rotation(math.pi/2,4,'Z')
 inverse=rotation.inverted()
 local_frames={o:o.matrix_local.copy() for o in bpy.context.scene.objects}
 meshes=set()
 for obj in bpy.context.scene.objects:
     if obj.type=='MESH' and obj.data not in meshes:
-        obj.data.transform(rotation);meshes.add(obj.data)
+        obj.data.transform(rotation,shape_keys=True);meshes.add(obj.data)
 for obj,frame in local_frames.items():
     obj.matrix_parent_inverse=Matrix.Identity(4)
     obj.matrix_local=rotation @ frame @ inverse
@@ -91,6 +99,7 @@ bpy.context.scene['definitionHash']=definition['contentHash']
 bpy.ops.export_scene.gltf(
     filepath=str(output_dir/'model.glb'),export_format='GLB',export_yup=True,
     export_cameras=False,export_lights=False,export_animations=False,
-    export_extras=True,export_apply=True,
+    # Ordinary modifiers were applied above; retain authored flexible covers.
+    export_extras=True,export_apply=False,
 )
 print('EXPORTED',output_dir/'model.glb',flush=True)

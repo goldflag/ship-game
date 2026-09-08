@@ -75,10 +75,7 @@ pub fn update(
     {
         return false;
     }
-    let origin = local_to_world(
-        muzzle_local(m, state.train, state.elevation, 0),
-        actor.motion.pose(),
-    );
+    let origin = local_to_world(muzzle_local(m, state, 0), actor.motion.pose());
     let mut closest = reach;
     let mut target = None;
     for p in air.planes() {
@@ -143,14 +140,12 @@ pub fn update(
         velocity,
         power,
         &actor.compiled.obstructions,
+        &actor.mounts,
     );
     if !aligned || state.status != "ready" {
         return true;
     }
-    let muzzle = local_to_world(
-        muzzle_local(m, state.train, state.elevation, 0),
-        actor.motion.pose(),
-    );
+    let muzzle = local_to_world(muzzle_local(m, state, 0), actor.motion.pose());
     if !clear_lane(actor, muzzle, crew_aim, actors, air) {
         state.status = "blocked".into();
         return true;
@@ -164,10 +159,7 @@ pub fn update(
         .map_or(0.0, |b| b.drag_per_second);
     let mut shots = vec![];
     for barrel in 0..barrels {
-        let position = local_to_world(
-            muzzle_local(m, state.train, state.elevation, barrel),
-            actor.motion.pose(),
-        );
+        let position = local_to_world(muzzle_local(m, state, barrel), actor.motion.pose());
         *sequence += 1;
         let direction = dispersed_direction(
             shot_direction(m, state, actor.motion.pose()),

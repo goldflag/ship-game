@@ -195,6 +195,10 @@ pub struct MountDefinition {
     pub bearing_deg: f64,
     #[serde(rename = "rangefinder")]
     pub rangefinder: bool,
+    #[serde(rename = "parentMountId")]
+    pub parent_mount_id: Option<String>,
+    #[serde(rename = "traverseDeg")]
+    pub traverse_deg: Option<f64>,
     #[serde(rename = "magazineId")]
     pub magazine_id: Option<String>,
     #[serde(rename = "fire")]

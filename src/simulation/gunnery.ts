@@ -4,6 +4,7 @@ import type { Ammunition, Battery, Vec3 } from '../ships/blueprint';
 import type { AirContext, Aircraft } from './aircraft';
 import { antiAircraftCandidates, updateAntiAircraft } from './antiAircraft';
 import type { FleetActor } from './battle';
+import { updateMountCarrier } from './mountFrames';
 import { botAim, botAmmunition, botDidFire, botGunRange, botReadyToFire, clearFiringLane, shipVelocity } from './bots';
 import { dispersedDirection, dispersedSpeed, velocityPenetration } from './ballistics';
 import { add, length, scale } from './geometry';
@@ -44,6 +45,7 @@ export function operateGuns(actor: FleetActor, ctx: GunneryContext, target?: Fle
   const laneClear = !!target && clearFiringLane(actor, target, ctx.actors);
   const velocity = shipVelocity(actor);
   def.mounts.forEach((m, i) => {
+    updateMountCarrier(def, i, actor.mounts);
     const state = actor.mounts[i];
     if (actor.damage.stability.combatLost) { state.status = 'disabled'; return; }
     if (m.magazineId && equipmentCondition(actor, def, m.magazineId).availability === 0) { state.status = 'disabled'; return; }
@@ -52,7 +54,7 @@ export function operateGuns(actor: FleetActor, ctx: GunneryContext, target?: Fle
     // A directly selected group belongs to the sight; aggregate battery intent keeps AA automatic.
     const manual = selected && player!.weaponGroupId !== undefined;
     if (aircraft && !manual && updateAntiAircraft(actor, m, state, ctx, ctx.dt, aircraft, support.power)) return;
-    if (!surfaceAllowed) { updateMount(m, state, def, actor.motion, undefined, ctx.dt, velocity, support.power); return; }
+    if (!surfaceAllowed) { updateMount(m, state, def, actor.motion, undefined, ctx.dt, velocity, support.power, actor.mounts); return; }
     let aim: Vec3 | undefined, fire = false, inRange = false;
     if (player) {
       queueAmmunition(m, state, player.ammunition[weaponGroupId(m.battery, m.weapon)] ?? player.ammunition[m.battery]);
@@ -64,7 +66,7 @@ export function operateGuns(actor: FleetActor, ctx: GunneryContext, target?: Fle
       if (inRange && state.hp > 0 && availableAmmunition(state) >= (m.weapon.barrelCount ?? 2)) aim = botAim(actor, target, m, state);
       fire = inRange && laneClear && botReadyToFire(actor, m);
     }
-    const aligned = updateMount(m, state, def, actor.motion, aim, ctx.dt, velocity, support.power);
+    const aligned = updateMount(m, state, def, actor.motion, aim, ctx.dt, velocity, support.power, actor.mounts);
     if (actor.damage.sunk || !fire || !aligned || state.status !== 'ready') return;
     if (actor.controller === 'bot') botDidFire(actor, m);
     fireSurfaceSalvo(actor, m, state, support.power, velocity, ctx);

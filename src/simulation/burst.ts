@@ -8,6 +8,7 @@ import { plateResponse } from './protection';
 import { damageShellHull, HULL_DAMAGE } from './durability';
 import { hullContains } from './hull';
 import { localDamageEvidence } from './localDamage';
+import { mountFrame } from './mountFrames';
 
 /** Calibrated, bounded target rays. Closed steel blocks pressure; fragments pay
  * each intervening layer. No unoccluded sphere damage or stochastic ray swarm.
@@ -49,7 +50,8 @@ export function burstShell(shell: Shell, actors: (Combatant & { definition: Ship
     });
     def.mounts.forEach((m, index) => {
       // Center ray includes the complete gunhouse protection, including rotated plates.
-      target('mount', index, m.id, m.name, [m.position[0], m.position[1] + m.weapon.gunhouseSize[2] / 2, m.position[2]]);
+      const pose = mountFrame(def, index, candidates.trains);
+      target('mount', index, m.id, m.name, [pose.x, pose.y + m.weapon.gunhouseSize[2] / 2, pose.z]);
     });
     candidates.connections.forEach(index => {
       const c = def.connections[index];

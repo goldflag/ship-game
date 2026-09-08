@@ -3,6 +3,7 @@ use crate::{
     definition::{GunPart, MountDefinition, ShipDefinition, Vec3},
     geometry::*,
     motion::ShipState,
+    mount_frames::{CarrierFrame, mount_bearing, mount_frame, mount_position},
 };
 use serde::{Deserialize, Serialize};
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -23,6 +24,9 @@ pub struct AimCache {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MountState {
+    /// Derived before operation; never accepted from or sent to a client.
+    #[serde(skip)]
+    pub carrier: Option<CarrierFrame>,
     pub aa_discipline: Option<crate::air_gunnery::FireDiscipline>,
     pub lead_cache: Option<LeadCache>,
     pub id: String,
@@ -38,12 +42,21 @@ pub struct MountState {
     pub status: String,
     pub aim_cache: Option<AimCache>,
     #[serde(skip)]
-    blocked_cache: Option<(f64, f64, bool)>,
+    blocked_cache: Option<BlockedCache>,
+}
+#[derive(Clone, Debug)]
+struct BlockedCache {
+    train: f64,
+    elevation: f64,
+    carrier: Option<CarrierFrame>,
+    carried: Vec<Pose>,
+    blocked: bool,
 }
 impl MountState {
     pub fn new(m: &MountDefinition) -> Self {
         let count = m.weapon.barrel_count.unwrap_or(2.0);
         Self {
+            carrier: None,
             id: m.id.clone(),
             train: 0.0,
             elevation: radians(1.0),
@@ -132,15 +145,16 @@ pub fn barrel_height(w: &GunPart, i: usize) -> f64 {
         0.0
     }
 }
-pub fn muzzle_local(m: &MountDefinition, train: f64, elevation: f64, barrel: usize) -> Vec3 {
-    let bearing = radians(m.bearing_deg) + train;
+pub fn muzzle_local(m: &MountDefinition, state: &MountState, barrel: usize) -> Vec3 {
+    let bearing = mount_bearing(m, state);
+    let elevation = state.elevation;
     let w = &m.weapon;
     let row = barrel_height(w, barrel);
     let forward = w.trunnion_forward + (w.muzzle_forward - w.trunnion_forward) * elevation.cos()
         - row * elevation.sin();
     let lateral = barrel_offset(w, barrel);
     add(
-        m.position,
+        mount_position(m, state),
         [
             bearing.cos() * lateral + bearing.sin() * forward,
             w.pivot_height
@@ -150,10 +164,16 @@ pub fn muzzle_local(m: &MountDefinition, train: f64, elevation: f64, barrel: usi
         ],
     )
 }
-pub fn muzzle_center_local(m: &MountDefinition, train: f64, elevation: f64) -> Vec3 {
+pub fn muzzle_center_local(
+    m: &MountDefinition,
+    train: f64,
+    elevation: f64,
+    carrier: Option<CarrierFrame>,
+) -> Vec3 {
     let w = &m.weapon;
     let count = w.barrel_count.unwrap_or(2.0);
-    let bearing = radians(m.bearing_deg) + train;
+    let bearing = radians(m.bearing_deg) + carrier.map_or(0.0, |c| c.heading) + train;
+    let position = carrier.map_or(m.position, |c| c.position);
     let forward = w.trunnion_forward + (w.muzzle_forward - w.trunnion_forward) * elevation.cos();
     let (cos, sin) = (bearing.cos(), bearing.sin());
     let vertical = w.pivot_height + (w.muzzle_forward - w.trunnion_forward) * elevation.sin();
@@ -162,14 +182,14 @@ pub fn muzzle_center_local(m: &MountDefinition, train: f64, elevation: f64) -> V
         let lateral = barrel_offset(w, barrel);
         let row = barrel_height(w, barrel);
         let bore_forward = forward - row * elevation.sin();
-        x += (m.position[0] + cos * lateral + sin * bore_forward) / count;
-        y += (m.position[1] + vertical + row * elevation.cos()) / count;
-        z += (m.position[2] + sin * lateral - cos * bore_forward) / count;
+        x += (position[0] + cos * lateral + sin * bore_forward) / count;
+        y += (position[1] + vertical + row * elevation.cos()) / count;
+        z += (position[2] + sin * lateral - cos * bore_forward) / count;
     }
     [x, y, z]
 }
 pub fn shot_direction(m: &MountDefinition, s: &MountState, pose: Pose) -> Vec3 {
-    let b = radians(m.bearing_deg) + s.train;
+    let b = mount_bearing(m, s);
     rotate(
         [
             b.sin() * s.elevation.cos(),
@@ -212,6 +232,7 @@ struct Obstruction {
 #[derive(Clone, Debug)]
 pub struct Obstructions {
     entries: Vec<Obstruction>,
+    carried: Vec<(usize, Vec<Obstruction>)>,
 }
 impl Obstructions {
     pub fn new(d: &ShipDefinition) -> Self {
@@ -224,40 +245,59 @@ impl Obstructions {
                 mount_id: None,
             })
             .collect();
-        for m in &d.mounts {
+        let mut carried = vec![];
+        for (index, m) in d.mounts.iter().enumerate() {
+            let mut boxes = vec![];
+            let position = if m.parent_mount_id.is_some() {
+                [0.0; 3]
+            } else {
+                m.position
+            };
             let w = &m.weapon;
             let [l, width, height] = w.gunhouse_size;
             let mut push = |x: f64, y: f64, size: Vec3| {
-                entries.push(Obstruction {
-                    center: [m.position[0] + x, m.position[1] + y, m.position[2]],
+                boxes.push(Obstruction {
+                    center: [position[0] + x, position[1] + y, position[2]],
                     size,
                     mount_id: Some(m.id.clone()),
                 })
             };
             if w.mounting_style.as_deref() != Some("open-pedestal") {
                 push(0.0, height / 2.0, [width, height, l]);
-                continue;
-            }
-            let radius = w.barrel_base_radius.unwrap_or(w.caliber_m * 0.85);
-            let body = height.min(w.pivot_height + 0.16f64.max(radius * 1.5 + 0.16));
-            push(0.0, body / 2.0, [width, body, l]);
-            let top = w.pivot_height + 0.405;
-            if top > body {
-                for sign in [-1.0, 1.0] {
-                    push(
-                        sign * width * 0.395,
-                        (body + top) / 2.0,
-                        [width * 0.07 + 0.11, top - body, l],
-                    );
+            } else {
+                let radius = w.barrel_base_radius.unwrap_or(w.caliber_m * 0.85);
+                let body = height.min(w.pivot_height + 0.16f64.max(radius * 1.5 + 0.16));
+                push(0.0, body / 2.0, [width, body, l]);
+                let top = w.pivot_height + 0.405;
+                if top > body {
+                    for sign in [-1.0, 1.0] {
+                        push(
+                            sign * width * 0.395,
+                            (body + top) / 2.0,
+                            [width * 0.07 + 0.11, top - body, l],
+                        );
+                    }
                 }
             }
+            if m.parent_mount_id.is_some() {
+                carried.push((index, boxes));
+            } else {
+                entries.extend(boxes);
+            }
         }
-        Self { entries }
+        Self { entries, carried }
     }
-    fn intersects(&self, from: Vec3, to: Vec3, mount_id: &str) -> bool {
+    fn intersects(&self, from: Vec3, to: Vec3, mount_id: &str, poses: &[Pose]) -> bool {
         self.entries.iter().any(|e| {
             e.mount_id.as_deref() != Some(mount_id)
                 && segment_box(from, to, e.center, e.size).is_some()
+        }) || self.carried.iter().zip(poses).any(|((_, boxes), pose)| {
+            let from = world_to_local(from, *pose);
+            let to = world_to_local(to, *pose);
+            boxes.iter().any(|e| {
+                e.mount_id.as_deref() != Some(mount_id)
+                    && segment_box(from, to, e.center, e.size).is_some()
+            })
         })
     }
 }
@@ -272,6 +312,7 @@ pub fn update_mount(
     inherited: Vec3,
     power: f64,
     obstructions: &Obstructions,
+    mounted_states: &[MountState],
 ) -> bool {
     let work = gun_work_rate(power);
     let was_reloading = s.reload > 0.0;
@@ -295,7 +336,7 @@ pub fn update_mount(
         return reject(s, "empty");
     }
     if d.submarine.is_some() && p.depth() > 0.5
-        || local_to_world(muzzle_local(m, s.train, s.elevation, 0), p.pose())[1] <= p.wave_heave
+        || local_to_world(muzzle_local(m, s, 0), p.pose())[1] <= p.wave_heave
     {
         return reject(s, "submerged");
     }
@@ -319,7 +360,7 @@ pub fn update_mount(
             break;
         };
         let midpoint = local_to_world(
-            muzzle_center_local(m, desired_train, desired_elevation),
+            muzzle_center_local(m, desired_train, desired_elevation, s.carrier),
             p.pose(),
         );
         let drag = m
@@ -345,7 +386,11 @@ pub fn update_mount(
             add([p.x, p.y, p.z], solution.direction),
             p.pose(),
         ));
-        desired_train = wrap_angle(direction[0].atan2(-direction[2]) - radians(m.bearing_deg));
+        desired_train = wrap_angle(
+            direction[0].atan2(-direction[2])
+                - radians(m.bearing_deg)
+                - s.carrier.map_or(0.0, |c| c.heading),
+        );
         desired_elevation = clamp(direction[1], -1.0, 1.0).asin();
     }
     s.aim_cache = if reachable {
@@ -370,19 +415,47 @@ pub fn update_mount(
     let elevation_rate = radians(w.elevation_rate_deg) * dt * work;
     s.train += clamp(train - s.train, -train_rate, train_rate);
     s.elevation += clamp(elevation - s.elevation, -elevation_rate, elevation_rate);
-    let blocked = if let Some((_, _, blocked)) = s
-        .blocked_cache
-        .filter(|(t, e, _)| *t == s.train && *e == s.elevation)
-    {
-        blocked
+    // A parent can move an obstruction even when this gun has not traversed.
+    // Use the detached mount's updated train when posing its own descendants.
+    let carried: Vec<_> = obstructions
+        .carried
+        .iter()
+        .map(|(index, _)| {
+            mount_frame(d, *index, &|i| {
+                if d.mounts[i].id == m.id {
+                    s.train
+                } else {
+                    mounted_states[i].train
+                }
+            })
+        })
+        .collect();
+    let blocked = if let Some(cache) = s.blocked_cache.as_ref().filter(|c| {
+        c.train == s.train
+            && c.elevation == s.elevation
+            && c.carrier == s.carrier
+            && c.carried == carried
+    }) {
+        cache.blocked
     } else {
-        let breech = add(m.position, [0.0, w.pivot_height, 0.0]);
+        let breech = add(mount_position(m, s), [0.0, w.pivot_height, 0.0]);
         let blocked = (0..w.barrel_count.unwrap_or(2.0) as usize).any(|barrel| {
-            let muzzle = muzzle_local(m, s.train, s.elevation, barrel);
+            let muzzle = muzzle_local(m, s, barrel);
             let direction = normalize(sub(muzzle, breech));
-            obstructions.intersects(breech, add(muzzle, scale(direction, d.hull.length)), &m.id)
+            obstructions.intersects(
+                breech,
+                add(muzzle, scale(direction, d.hull.length)),
+                &m.id,
+                &carried,
+            )
         });
-        s.blocked_cache = Some((s.train, s.elevation, blocked));
+        s.blocked_cache = Some(BlockedCache {
+            train: s.train,
+            elevation: s.elevation,
+            carrier: s.carrier,
+            carried,
+            blocked,
+        });
         blocked
     };
     if blocked {
@@ -413,7 +486,7 @@ pub struct LeadCache {
 }
 pub fn muzzle_center_world(m: &MountDefinition, state: &MountState, ship: &ShipState) -> Vec3 {
     local_to_world(
-        muzzle_center_local(m, state.train, state.elevation),
+        muzzle_center_local(m, state.train, state.elevation, state.carrier),
         ship.pose(),
     )
 }

@@ -55,13 +55,17 @@ for (const id of Object.keys(shipPresets)) test(`${id}: every registered AA moun
   const def = shipPreset(id), mounts = def.mounts.filter(m => antiAircraftRange(m) > 0);
   expect(mounts.length).toBeGreaterThan(0);
   const fired = new Set<string>();
+  // Allow a full load and a slow mount's half-traverse, plus a discipline cycle.
+  // A fixed ten-second window can end while a functional Type 89 is still training.
+  const ticks = Math.ceil(Math.max(10, ...mounts.map(m =>
+    m.weapon.reloadSeconds + m.weapon.traverseDeg / m.weapon.traverseRateDeg + 8)) * 60);
   for (const bearing of [0, Math.PI / 2, Math.PI, -Math.PI / 2]) {
     const sim = new CombatSimulation(def, { friendlyBots: [], enemies: [shipPreset('enterprise-cv6')], seed: 93 });
     sim.target.controller = 'idle';
     const plane = sim.target.airWing!.planes[0];
     const ammo = sim.player.mounts.reduce((sum, mount) => sum + mount.ammo, 0);
     let shots = 0;
-    for (let tick = 0; tick < 600; tick++) {
+    for (let tick = 0; tick < ticks; tick++) {
       // Hold a fresh target in each cardinal sector so one kill cannot mask
       // an inoperative mount elsewhere on the hull. Use real combat ticks.
       Object.assign(plane, { phase: 'outbound', hp: 100,
