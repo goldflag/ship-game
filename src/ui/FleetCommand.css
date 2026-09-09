@@ -20,6 +20,7 @@
 .fleet-command-chart[data-armed] { cursor:crosshair; }
 .fleet-command-marker { color:var(--fleet-active); cursor:pointer; }
 .fleet-command-marker.enemy { color:#ffb5a6; }
+.fleet-command-marker.unidentified { color:#edf1ec; }
 .fleet-command-marker.selected { color:var(--fleet-gold); }
 .fleet-command-marker path { fill:#102c37; stroke:currentColor; stroke-width:1.5; }
 .fleet-command-hitbox { fill:transparent; stroke:none; }
@@ -28,6 +29,14 @@
 .fleet-command-marker .fleet-command-marker-order { font-size:10px; fill:#edf1ec; }
 .fleet-command-marker:focus-visible { outline:2px solid var(--fleet-gold); }
 .fleet-command-route { fill:none; stroke:var(--fleet-gold); stroke-width:1.2; stroke-dasharray:6 5; pointer-events:none; }
+.fleet-command-boundary,.fleet-command-boundary-warning,.fleet-command-uncertainty { fill:none; pointer-events:none; stroke-width:1; }
+.fleet-command-boundary { stroke:var(--fleet-gold); stroke-width:2; }
+.fleet-command-boundary-warning { stroke:var(--fleet-gold); opacity:.3; stroke-dasharray:3 9; }
+.fleet-command-boundary-label { position:absolute; right:24px; bottom:288px; color:var(--fleet-muted); font-size:11px; text-shadow:0 2px 3px #07131b; }
+.fleet-command-uncertainty { stroke:#ffb5a6; fill:#ffb5a608; stroke-dasharray:4 5; }
+.fleet-command-marker.report.lost path,.fleet-command-marker.report.stale path { stroke-dasharray:3 3; }
+.fleet-command-marker.report.stale,.fleet-command-uncertainty.stale { opacity:.55; }
+.fleet-command-report p+p { margin-top:8px; }
 .fleet-command-box { position:absolute; border:1px solid var(--fleet-active); background:#86e4c515; pointer-events:none; }
 .fleet-command-top { position:absolute; left:286px; right:24px; top:24px; display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
 .fleet-command-top>div { display:flex; align-items:baseline; gap:12px; padding:6px 0; text-shadow:0 2px 4px #07131b; white-space:nowrap; }

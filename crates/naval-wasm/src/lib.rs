@@ -145,7 +145,17 @@ impl BattleRuntime {
         Ok(())
     }
     pub fn snapshot(&self) -> Result<String, JsValue> {
-        serde_json::to_string(&self.battle.presentation_value().map_err(error)?).map_err(error)
+        serde_json::to_string(
+            &self
+                .battle
+                .presentation_value(if self.battle.mission_rules.is_some() {
+                    naval_sim::snapshot::PresentationView::Team(naval_sim::rules::TeamId::A)
+                } else {
+                    naval_sim::snapshot::PresentationView::FullKnowledge
+                })
+                .map_err(error)?,
+        )
+        .map_err(error)
     }
     /// Full state for deliberate migration checks; never sent by the server.
     pub fn migration_snapshot(&self) -> Result<String, JsValue> {
@@ -192,7 +202,9 @@ impl LocalRuntime {
         )
         .map_err(error)?;
         session.input_ready[1] = false;
-        session.control.players[0].selected_ship_id = selected;
+        if session.battle.mission_rules.is_none() {
+            session.control.players[0].selected_ship_id = selected;
+        }
         Ok(Self { session })
     }
     pub fn command(&mut self, json: &str) -> Result<(), JsValue> {
@@ -213,10 +225,22 @@ impl LocalRuntime {
         Ok(())
     }
     pub fn snapshot(&self) -> Result<String, JsValue> {
-        let mut frame = self.session.battle.presentation_value().map_err(error)?;
+        let mut frame = self
+            .session
+            .battle
+            .presentation_value(if self.session.battle.mission_rules.is_some() {
+                naval_sim::snapshot::PresentationView::Team(naval_sim::rules::TeamId::A)
+            } else {
+                naval_sim::snapshot::PresentationView::FullKnowledge
+            })
+            .map_err(error)?;
         frame["selectedShipIds"] = serde_json::json!([
             self.session.control.players[0].selected_ship_id,
-            self.session.control.players[1].selected_ship_id
+            if self.session.battle.mission_rules.is_some() {
+                None
+            } else {
+                self.session.control.players[1].selected_ship_id.clone()
+            }
         ]);
         frame["fleetOrders"] = serde_json::to_value(self.session.fleet_orders(0)).map_err(error)?;
         frame["phase"] = serde_json::json!(if self.session.battle.outcome.is_some() {

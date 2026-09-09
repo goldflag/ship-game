@@ -21,6 +21,7 @@ export interface SpawnPose { x: number; z: number; heading: number; }
 export type SpawnPositions = { friendly: SpawnPose[]; enemy: SpawnPose[] };
 export type SpawnFormation = 'line' | 'column' | 'wedge';
 export interface BattleSetup extends BattleConditions {
+  missionRules?: import('../multiplayer/generated/MissionRules').MissionRules;
   playerShipId: string; friendlyBots: BotSelection[]; enemies: BotSelection[]; spawnDistance: number;
   formation?: SpawnFormation; spawns?: SpawnPositions;
   mapId?: OceanMapId; timeOfDay?: TimeOfDayId; weather?: WeatherId;

@@ -102,10 +102,25 @@ pub fn operate_with_policy(
     player: Option<&PlayerGunOrders>,
     policy: crate::navigation::WeaponsPolicy,
 ) {
+    operate_observed(actor, ctx, target, None, player, policy, None);
+}
+#[allow(clippy::too_many_arguments)]
+pub fn operate_observed(
+    actor: &mut Vessel,
+    ctx: &mut GunneryContext<'_>,
+    target: Option<&Vessel>,
+    contact: Option<&crate::sensors::ContactTrack>,
+    player: Option<&PlayerGunOrders>,
+    policy: crate::navigation::WeaponsPolicy,
+    knowledge: Option<crate::sensors::Knowledge<'_>>,
+) {
     let compiled = actor.compiled.clone();
     let def = &compiled.definition;
     let power = electrical_power(actor, def, None);
-    let lane = target.is_some_and(|t| bots::clear_firing_lane(actor, t, ctx.actors));
+    let lane = contact.map_or_else(
+        || target.is_some_and(|t| bots::clear_firing_lane(actor, t, ctx.actors)),
+        |c| bots::clear_lane_to(actor, c.estimated_position, ctx.actors),
+    );
     let velocity = actor.motion.velocity();
     for (i, m) in def.mounts.iter().enumerate() {
         update_mount_carrier(def, i, &mut actor.mounts);
@@ -132,7 +147,7 @@ pub fn operate_with_policy(
         let mut state = actor.mounts[i].clone();
         if !manual
             && policy.aa
-            && anti_aircraft::update(
+            && anti_aircraft::update_observed(
                 actor,
                 m,
                 &mut state,
@@ -142,6 +157,7 @@ pub fn operate_with_policy(
                 ctx.seed,
                 ctx.sequence,
                 ctx.events,
+                knowledge,
             )
         {
             actor.mounts[i] = state;
@@ -180,6 +196,37 @@ pub fn operate_with_policy(
             };
             aim = Some(point);
             fire = p.fire && selected;
+        } else if actor.controller == Controller::Bot
+            && let Some(c) = contact
+        {
+            let ammunition = if m.weapon.he.is_some()
+                && c.classification.as_deref() != Some("Large warship")
+                && state.available(Ammunition::He) >= m.weapon.barrel_count.unwrap_or(2.0)
+            {
+                Ammunition::He
+            } else {
+                Ammunition::Ap
+            };
+            state.select_ammunition(m, ammunition);
+            let in_range = (c.estimated_position[0] - actor.motion.x)
+                .hypot(c.estimated_position[2] - actor.motion.z)
+                <= bots::gun_range(m);
+            if in_range
+                && state.hp > 0.0
+                && state.available(state.loaded) >= m.weapon.barrel_count.unwrap_or(2.0)
+            {
+                aim = Some(bots::aim_contact(
+                    actor.bot.as_ref(),
+                    &actor.motion,
+                    c,
+                    m,
+                    &mut state,
+                ));
+            }
+            fire = policy.guns
+                && in_range
+                && lane
+                && actor.bot.as_ref().is_some_and(|b| b.ready(Some(m)));
         } else if actor.controller == Controller::Bot
             && let Some(t) = target
         {

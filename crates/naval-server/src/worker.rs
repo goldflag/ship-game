@@ -103,7 +103,7 @@ pub fn spawn(
     let baseline = Arc::new(
         session
             .battle
-            .presentation_value()
+            .presentation_value(naval_sim::snapshot::PresentationView::FullKnowledge)
             .map_err(|e| e.to_string())?,
     );
     let metadata = json!({"id":id,"status":"loading","setup":setup,"environment":environment,"simulationBuild":naval_sim::SIMULATION_BUILD,"manifestHash":catalog.manifest_hash,"rules":Rules::default()});
@@ -391,7 +391,7 @@ fn publish(
 ) -> Result<(), String> {
     let mut data = session
         .battle
-        .presentation_value()
+        .presentation_value(naval_sim::snapshot::PresentationView::FullKnowledge)
         .map_err(|e| e.to_string())?;
     let epochs = std::array::from_fn(|i| session.control.players[i].epoch);
     let selected: Vec<_> = session

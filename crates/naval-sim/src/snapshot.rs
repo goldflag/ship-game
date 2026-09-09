@@ -11,6 +11,11 @@ use crate::{
     torpedoes::Torpedo,
     vessel::Vessel,
 };
+#[derive(Clone, Copy)]
+pub enum PresentationView {
+    FullKnowledge,
+    Team(crate::rules::TeamId),
+}
 #[derive(serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Snapshot<'a> {
@@ -48,8 +53,21 @@ impl Battle {
 impl Battle {
     /// Preserve the game's inspectable damage model, while keeping bot tracking,
     /// RNG, blast budgets and collision ledgers behind the authority boundary.
-    pub fn presentation_value(&self) -> Result<serde_json::Value, serde_json::Error> {
-        let mut frame = serde_json::to_value(self.snapshot())?;
+    pub fn presentation_value(
+        &self,
+        viewer: PresentationView,
+    ) -> Result<serde_json::Value, serde_json::Error> {
+        let mut frame = match viewer {
+            PresentationView::FullKnowledge => serde_json::to_value(self.snapshot())?,
+            // Do not serialize hidden hull damage and carrier state merely to
+            // discard them afterward. Effects are whitelisted in team_view.
+            PresentationView::Team(team) => serde_json::json!({
+                "actors": self.actors.iter().filter(|a| a.team == team).collect::<Vec<_>>(),
+                "wings": self.aviation.wings.iter().filter(|w| self.actors.iter().any(|a| a.team == team && a.motion.id == w.owner_id)).collect::<Vec<_>>(),
+                "shells": self.shells, "torpedoes": self.torpedoes,
+                "depthCharges": self.depth_charges, "releases": self.air_releases,
+            }),
+        };
         for actor in frame["actors"].as_array_mut().unwrap() {
             let actor = actor.as_object_mut().unwrap();
             let level = actor.get("bot").and_then(|b| b.get("aiLevel")).cloned();
@@ -92,6 +110,9 @@ impl Battle {
                 s.remove(key);
             }
         }
-        Ok(frame)
+        match viewer {
+            PresentationView::FullKnowledge => Ok(frame),
+            PresentationView::Team(team) => self.team_presentation(frame, team),
+        }
     }
 }

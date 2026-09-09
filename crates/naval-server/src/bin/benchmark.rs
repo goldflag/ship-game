@@ -81,7 +81,9 @@ fn main() {
         mission_rules: None,
     };
     let mut battle = Battle::new(catalog.clone(), &compiled, setup.clone()).unwrap();
-    let mut baseline = battle.presentation_value().unwrap();
+    let mut baseline = battle
+        .presentation_value(naval_sim::snapshot::PresentationView::FullKnowledge)
+        .unwrap();
     let mut ticks = Vec::new();
     let mut encoding = Vec::new();
     let mut bytes = Vec::new();
@@ -93,7 +95,9 @@ fn main() {
         if battle.outcome.is_some() {
             completed += 1;
             battle = Battle::new(catalog.clone(), &compiled, setup.clone()).unwrap();
-            baseline = battle.presentation_value().unwrap();
+            baseline = battle
+                .presentation_value(naval_sim::snapshot::PresentationView::FullKnowledge)
+                .unwrap();
         }
         let step = Instant::now();
         battle.step(&orders);
@@ -114,7 +118,9 @@ fn main() {
         );
         if tick % 3 == 0 {
             let start = Instant::now();
-            let data = battle.presentation_value().unwrap();
+            let data = battle
+                .presentation_value(naval_sim::snapshot::PresentationView::FullKnowledge)
+                .unwrap();
             let frame = encoding::delta_bytes(&baseline, &data).unwrap();
             bytes.push(frame.len() as f64);
             encoding.push(start.elapsed().as_secs_f64() * 1000.0);
@@ -129,12 +135,23 @@ fn main() {
     }
     std::fs::write(
         ".build/naval-content/profile-snapshot.json",
-        serde_json::to_vec(&battle.presentation_value().unwrap()).unwrap(),
+        serde_json::to_vec(
+            &battle
+                .presentation_value(naval_sim::snapshot::PresentationView::FullKnowledge)
+                .unwrap(),
+        )
+        .unwrap(),
     )
     .unwrap();
     std::fs::write(
         ".build/naval-content/profile-delta.gz",
-        encoding::delta_bytes(&baseline, &battle.presentation_value().unwrap()).unwrap(),
+        encoding::delta_bytes(
+            &baseline,
+            &battle
+                .presentation_value(naval_sim::snapshot::PresentationView::FullKnowledge)
+                .unwrap(),
+        )
+        .unwrap(),
     )
     .unwrap();
     fn stats(mut samples: Vec<f64>) -> serde_json::Value {

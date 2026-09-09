@@ -174,9 +174,9 @@ test('battle loading binds each mixed fleet hull and selected target to its own 
     expect(game.diagnostics().timeOfDay).toBe('night');
     expect(game.diagnostics().weather).toBe('fog');
     expect(game.simulation.islands).toHaveLength(3);
-    expect(game.simulation.target.motion.z - game.simulation.ship.z).toBe(-7500);
+    expect(game.simulation.target!.motion.z - game.simulation.ship.z).toBe(-7500);
     expect(game.simulation.ship.heading).toBe(0);
-    expect(game.simulation.target.motion.heading).toBe(Math.PI);
+    expect(game.simulation.target!.motion.heading).toBe(Math.PI);
     const diagnostics = game.diagnostics();
     expect(diagnostics.fleet.map(actor => actor.aiLevel)).toEqual(['normal', 'normal', 'hard', 'static', 'moving']);
     expect(diagnostics.maxMuzzleErrorM).toBeLessThan(.025);

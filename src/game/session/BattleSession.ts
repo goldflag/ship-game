@@ -3,9 +3,18 @@ import type { Vec3 } from '../../ships/blueprint';
 import type { WeaponsPolicy } from '../../multiplayer/generated/WeaponsPolicy';
 import type { FleetOrderState } from '../../multiplayer/generated/FleetOrderState';
 import type { OrderReceipt } from './commandQueue';
+import type { FleetActor } from '../../simulation/battle';
+import type { ContactTrack } from '../../multiplayer/generated/ContactTrack';
+import type { MissionRules } from '../../multiplayer/generated/MissionRules';
+export interface ObservedShip { id: string; presetId: string; position: Vec3; heading: number; velocity: Vec3; observedTick: number; observers: string[] }
 /** Renderer-facing state and addressed intent. Neither ShipView nor Game owns
  * collision, weapon or damage decisions for a snapshot-backed session. */
-export interface BattleSession extends Pick<CombatSimulation, keyof CombatSimulation> {
+export interface BattleSession extends Omit<Pick<CombatSimulation, keyof CombatSimulation>, 'target'> {
+ target?: FleetActor;
+ readonly targetContact?: ContactTrack;
+ readonly observationTracks?: ContactTrack[];
+ readonly observedShips?: ObservedShip[];
+ readonly missionRules?: MissionRules;
  readonly networked?: boolean;
  readonly phase?: string;
  readonly connectionStatus?: string;

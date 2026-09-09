@@ -55,16 +55,27 @@ impl Session {
             })
             .collect()
     }
-    pub fn new(battle: Battle, owners: [TeamId; 2]) -> Result<Self, CommandError> {
+    pub fn new(mut battle: Battle, owners: [TeamId; 2]) -> Result<Self, CommandError> {
         if owners[0] == owners[1] {
             return Err(CommandError::Ownership);
         }
-        let control = FleetControl::new(
+        let mut control = FleetControl::new(
             battle
                 .actors
                 .iter()
                 .map(|a| (a.motion.id.clone(), if a.team == owners[0] { 0 } else { 1 })),
         )?;
+        if battle.mission_rules.is_some() {
+            for actor in &mut battle.actors {
+                actor.controller = Controller::Bot;
+            }
+            for player in &mut control.players {
+                player.selected_ship_id = None;
+            }
+            for ship in control.ships.values_mut() {
+                ship.weapons = WeaponsPolicy::fleet_default();
+            }
+        }
         Ok(Self {
             input_ready: [true; 2],
             battle,
@@ -103,7 +114,17 @@ impl Session {
                 return Err(CommandError::Bounds);
             }
         }
-        self.control.apply(sender, c.clone(), self.battle.tick)?;
+        let contacts = self.battle.mission_rules.as_ref().map(|_| {
+            self.battle
+                .sensors
+                .contacts(self.owners[sender])
+                .into_iter()
+                .filter(|c| c.targetable())
+                .map(|c| c.id)
+                .collect::<std::collections::BTreeSet<_>>()
+        });
+        self.control
+            .apply_with_contacts(sender, c.clone(), self.battle.tick, contacts.as_ref())?;
         if matches!(
             c.command,
             Command::Route { .. }

@@ -83,6 +83,8 @@ pub struct Battle {
     pub depth_charges: Vec<DepthCharge>,
     pub air_releases: Vec<AirRelease>,
     pub events: Vec<Event>,
+    pub(crate) team_events: [Vec<Event>; 2],
+    team_event_sequence: [u64; 2],
     pub tick: u64,
     pub outcome: Option<Outcome>,
     pub seed: u32,
@@ -94,7 +96,7 @@ pub struct Battle {
     pub mission_rules: Option<crate::mission::MissionRules>,
     event_sequence: u64,
     pub sensors: crate::sensors::Sensors,
-    visual_conditions: crate::sensors::VisualConditions,
+    pub(crate) visual_conditions: crate::sensors::VisualConditions,
     visual_rules: crate::sensors::VisualRules,
     displacement: Vec<u64>,
     rules: Rules,
@@ -218,6 +220,8 @@ impl Battle {
             depth_charges: vec![],
             air_releases: vec![],
             events: vec![],
+            team_events: Default::default(),
+            team_event_sequence: [0; 2],
             tick: 0,
             outcome: None,
             seed: setup.seed,
@@ -262,6 +266,22 @@ impl Battle {
         )
     }
     fn emit(&mut self, event: DamageEvent) {
+        if self.mission_rules.is_some() {
+            for team in [TeamId::A, TeamId::B] {
+                if let Some(data) = self.observed_event(&event, team) {
+                    self.team_event_sequence[team.index()] += 1;
+                    let events = &mut self.team_events[team.index()];
+                    events.push(Event {
+                        sequence: self.team_event_sequence[team.index()],
+                        tick: self.tick,
+                        data,
+                    });
+                    if events.len() > 128 {
+                        events.remove(0);
+                    }
+                }
+            }
+        }
         self.records.event(&event, self.tick, &self.actors);
         self.event_sequence += 1;
         self.events.push(Event {
@@ -336,32 +356,53 @@ impl Battle {
             if actor.physical_loss().is_some() {
                 actor.target_id = None
             } else {
-                let target = order
-                    .and_then(|o| o.target_id.as_ref())
-                    .and_then(|id| {
-                        self.actors.iter().find(|a| {
-                            a.motion.id == *id
-                                && a.team != actor.team
-                                && a.physical_loss().is_none()
-                        })
+                let contact = self.mission_rules.as_ref().and_then(|_| {
+                    self.sensors.surface_target(
+                        actor.team,
+                        [actor.motion.x, actor.motion.y, actor.motion.z],
+                        order.and_then(|o| o.target_id.as_deref()),
+                        actor.target_id.as_deref(),
+                    )
+                });
+                let target = self
+                    .mission_rules
+                    .is_none()
+                    .then(|| {
+                        order
+                            .and_then(|o| o.target_id.as_ref())
+                            .and_then(|id| {
+                                self.actors.iter().find(|a| {
+                                    a.motion.id == *id
+                                        && a.team != actor.team
+                                        && a.physical_loss().is_none()
+                                })
+                            })
+                            .or_else(|| bots::target(&actor, &self.actors).map(|j| &self.actors[j]))
                     })
-                    .or_else(|| bots::target(&actor, &self.actors).map(|j| &self.actors[j]));
+                    .flatten();
                 if actor.controller == Controller::Bot
                     || order.is_some_and(|o| o.guns.is_none() || o.helm.is_none())
                 {
                     let mut bot = actor.bot.take().unwrap();
-                    bot.update(
-                        &actor,
-                        &def,
-                        target.map(|t| (&t.state, t.definition())),
-                        time,
-                    );
-                    command = bots::helm(&mut bot, &actor, target, &self.actors);
+                    if self.mission_rules.is_some() {
+                        bot.update_contact(&actor, &def, contact, time);
+                        command = bots::helm_contact(&bot, &actor, contact, &self.actors);
+                    } else {
+                        bot.update(
+                            &actor,
+                            &def,
+                            target.map(|t| (&t.state, t.definition())),
+                            time,
+                        );
+                        command = bots::helm(&mut bot, &actor, target, &self.actors);
+                    }
                     if bot.ai_level != AiLevel::Static {
                         command = avoid_land(&actor.motion, command, &self.islands)
                     }
                     actor.bot = Some(bot);
-                    actor.target_id = target.map(|t| t.motion.id.clone());
+                    actor.target_id = contact
+                        .map(|c| c.id.clone())
+                        .or_else(|| target.map(|t| t.motion.id.clone()));
                 }
                 if let Some(o) = order {
                     if let Some(helm) = o.helm {
@@ -460,11 +501,17 @@ impl Battle {
                 .target_id
                 .as_ref()
                 .and_then(|id| self.actors.iter().find(|t| t.motion.id == *id));
+            let contact = self
+                .mission_rules
+                .as_ref()
+                .and(a.target_id.as_deref())
+                .and_then(|id| self.sensors.contact(a.team, id))
+                .filter(|c| c.targetable());
             let player = orders.get(&a.motion.id).and_then(|o| o.guns.as_ref());
             let weapons = orders
                 .get(&a.motion.id)
                 .map_or_else(WeaponsPolicy::default, |o| o.weapons);
-            gunnery::operate_with_policy(
+            gunnery::operate_observed(
                 &mut a,
                 &mut GunneryContext {
                     actors: &self.actors,
@@ -477,13 +524,23 @@ impl Battle {
                     dt: DT,
                 },
                 target,
+                contact,
                 player,
                 weapons,
+                self.mission_rules
+                    .as_ref()
+                    .map(|_| crate::sensors::Knowledge {
+                        sensors: &self.sensors,
+                        tick: self.tick,
+                        islands: &self.islands,
+                        terrain: &self.catalog.terrain,
+                    }),
             );
             operate_underwater(
                 &mut a,
                 &self.actors,
                 target,
+                contact.is_some(),
                 player,
                 &mut self.torpedoes,
                 &mut self.depth_charges,
@@ -495,6 +552,15 @@ impl Battle {
         }
         self.aviation.step(
             &mut AirContext {
+                knowledge: self
+                    .mission_rules
+                    .as_ref()
+                    .map(|_| crate::sensors::Knowledge {
+                        sensors: &self.sensors,
+                        tick: self.tick,
+                        islands: &self.islands,
+                        terrain: &self.catalog.terrain,
+                    }),
                 actors: &self.actors,
                 shells: &mut self.shells,
                 torpedoes: &mut self.torpedoes,
@@ -680,6 +746,7 @@ fn operate_underwater(
     a: &mut Vessel,
     actors: &[Vessel],
     target: Option<&Vessel>,
+    observed_target: bool,
     player: Option<&PlayerGunOrders>,
     torpedoes: &mut Vec<Torpedo>,
     charges: &mut Vec<DepthCharge>,
@@ -698,11 +765,13 @@ fn operate_underwater(
             (
                 t.id.clone(),
                 player.map(|p| p.aim).unwrap_or_else(|| {
-                    target.and_then(|_| {
-                        a.bot
-                            .as_ref()
-                            .and_then(|b| bots::torpedo_aim(b, &a.motion, t))
-                    })
+                    (target.is_some() || observed_target)
+                        .then(|| {
+                            a.bot
+                                .as_ref()
+                                .and_then(|b| bots::torpedo_aim(b, &a.motion, t))
+                        })
+                        .flatten()
                 }),
             )
         })
@@ -735,7 +804,7 @@ fn operate_underwater(
             || {
                 a.controller == Controller::Bot
                     && weapons.torpedoes
-                    && target.is_some()
+                    && (target.is_some() || observed_target)
                     && a.bot.as_ref().is_some_and(|b| b.ready(None))
             },
             |p| {

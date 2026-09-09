@@ -3,6 +3,7 @@ import type { Game } from '../game/Game';
 import type { Telemetry } from '../game/types';
 import type { Keybindings } from '../game/keybindings';
 import type { FleetOrderState } from '../multiplayer/generated/FleetOrderState';
+import type { ContactTrack } from '../multiplayer/generated/ContactTrack';
 import type { CombatTelemetry } from '../simulation/combat';
 import type { Vec3 } from '../ships/blueprint';
 import { airWingTelemetry } from '../simulation/airTelemetry';
@@ -13,10 +14,15 @@ import { actionAvailable, SQUADRON_ACTIONS, squadronTargetOrder, type SquadronAc
 import { duration, mission, roleIcon, roleLabel } from './airFormat';
 import { Icon } from './Icons';
 import { assetUrl } from '../assetUrl';
+import { shipPreset } from '../ships/presets';
 import './FleetCommand.css';
 
 type Contact = CombatTelemetry['contacts'][number];
 type ArmedOrder = 'move' | 'escort' | 'focus' | SquadronAction;
+const circlePoints = (x: number, z: number, radius: number): Vec3[] => Array.from({ length: 65 }, (_, i) => [x + Math.sin(i / 64 * Math.PI * 2) * radius, 0, z + Math.cos(i / 64 * Math.PI * 2) * radius]);
+const reportName = (track: ContactTrack) => track.identifiedPresetId ? shipPreset(track.identifiedPresetId).name : track.classification ?? (track.kind === 'aircraft' ? 'Aircraft contact' : 'Surface contact');
+const reportAge = (track: ContactTrack, tick: number) => `${Math.max(0, Math.floor((tick - track.lastObservedTick) / 60))}s ago`;
+const reportUncertainty = (track: ContactTrack) => track.uncertaintyM >= 1000 ? `${(track.uncertaintyM / 1000).toFixed(1)} km` : `${Math.round(track.uncertaintyM)} m`;
 export function standingOrder(order?: FleetOrderState): string {
   if (!order) return 'Awaiting order report';
   const task = order.movement;
@@ -50,7 +56,9 @@ export function FleetCommand({ data, game, bindings }: { data: Telemetry; game: 
   const combat = data.combat!;
   const mapOpen = !!data.airOperationsOpen;
   const ships = combat.contacts.filter(c => c.team === 'friendly');
-  const enemies = combat.contacts.filter(c => c.team === 'enemy' && !c.physicalLost);
+  const observations = game.simulation.observationTracks ?? [];
+  const enemies = [...combat.contacts.filter(c => c.team === 'enemy' && !c.physicalLost), ...observations.map(c => ({ id: c.id, name: reportName(c), x: c.estimatedPosition[0], z: c.estimatedPosition[2] }))];
+  const boundary = game.simulation.missionRules?.area;
   const ids = data.selectedShipIds ?? [];
   const selected = ships.filter(s => ids.includes(s.id) && !s.physicalLost);
   const [rosterOpen, setRosterOpen] = useState(() => typeof window === 'undefined' || window.innerWidth >= 900);
@@ -80,6 +88,7 @@ export function FleetCommand({ data, game, bindings }: { data: Telemetry; game: 
   const orders = game.simulation.fleetOrders ?? {};
   const actionable = combat.result === 'active' && game.simulation.phase === 'running';
   const selectedContact = enemies.find(c => c.id === contactId);
+  const selectedReport = observations.find(c => c.id === contactId);
   const current = useRef({ data, armed, filter, selected, selectedFlights, actionable });
   current.current = { data, armed, filter, selected, selectedFlights, actionable };
   const selectShips = (shipIds: string[]) => { game.selectFleetShips(shipIds); game.selectFlights([]); setContactId(undefined); setArmed(undefined); };
@@ -105,7 +114,9 @@ export function FleetCommand({ data, game, bindings }: { data: Telemetry; game: 
     if (recipients.length > 1) escort(lead.id);
     setArmed(undefined); setFeedback(`${append ? 'Waypoint appended' : 'Route queued'} · ${speedKn} kn${recipients.length > 1 ? ` · ${formation}` : ''}`);
   };
-  const targetShip = (ship: Contact, right: boolean, additive: boolean) => {
+  const targetShip = (ship: Pick<Contact, 'id' | 'team'>, right: boolean, additive: boolean) => {
+    const report = observations.find(c => c.id === ship.id);
+    if (report?.status === 'stale' && (right || armed)) { setFeedback('Report is stale. Search its last reported area before attacking.'); return; }
     if (current.current.selectedFlights.length && (right || typeof armed === 'object')) { issueAir({ kind: 'ship', id: ship.id, team: ship.team }); return; }
     if (ship.team === 'friendly') {
       if (right || armed === 'escort') escort(ship.id);
@@ -113,7 +124,12 @@ export function FleetCommand({ data, game, bindings }: { data: Telemetry; game: 
     } else if (right || armed === 'focus') {
       recipients.forEach(s => game.simulation.focusShip?.(s.id, ship.id));
       setArmed(undefined); setFeedback(`${recipients.length} focus orders queued · Movement unchanged`);
-    } else { setContactId(ship.id); game.simulation.selectTarget(ship.id); }
+    } else { selectShips([]); setContactId(ship.id); game.selectTarget(ship.id); }
+  };
+  const selectReport = (report: ContactTrack, right = false) => {
+    if (report.kind === 'surface') { targetShip({ id: report.id, team: 'enemy' }, right, false); return; }
+    if (right || armed) { setFeedback('Select an air group and an interception order on the fleet map.'); return; }
+    selectShips([]); setContactId(report.id);
   };
   const water = (event: { clientX: number; clientY: number; shiftKey: boolean }, right: boolean) => {
     const rect = map.current?.getBoundingClientRect();
@@ -196,6 +212,9 @@ export function FleetCommand({ data, game, bindings }: { data: Telemetry; game: 
         onPointerDown={startDrag} onPointerMove={dragMap} onPointerUp={endDrag} onPointerCancel={() => { drag.current = undefined; setBox(undefined); }}
         onClick={e => { if (ignoreClick.current) { ignoreClick.current = false; return; } water(e, false); }}
         onContextMenu={e => { e.preventDefault(); water(e, true); }} onWheel={e => { const r = e.currentTarget.getBoundingClientRect(); game.zoomAirMap(e.deltaY, e.clientX - r.left, e.clientY - r.top); }}>
+        {boundary && <path className="fleet-command-boundary" data-map-path={JSON.stringify(circlePoints(0, 0, boundary.radiusM))} data-closed="true"/>}
+        {boundary && <path className="fleet-command-boundary-warning" data-map-path={JSON.stringify(circlePoints(0, 0, boundary.radiusM - boundary.warningMarginM))} data-closed="true"/>}
+        {observations.filter(c => c.id === contactId || c.status === 'lost' || c.status === 'stale').map(c => <path key={`area-${c.id}`} className={`fleet-command-uncertainty ${c.status}`} data-map-path={JSON.stringify(circlePoints(c.estimatedPosition[0], c.estimatedPosition[2], c.uncertaintyM))} data-closed="true"/>)}
         {selected.map(s => <path key={s.id} className="fleet-command-route" data-map-path={JSON.stringify(routePoints(s, orders[s.id], ships))}/>)}
         {combat.contacts.filter(c => !c.physicalLost).map(s => <g key={s.id} data-map-position={JSON.stringify([s.x, 0, s.z])} data-ship-marker={s.id} className={`fleet-command-marker ${s.team} ${ids.includes(s.id) || s.id === contactId ? 'selected' : ''}`}
           role="button" tabIndex={0} aria-label={`${s.name} · ${s.team}`} onPointerDown={e => e.stopPropagation()}
@@ -206,7 +225,16 @@ export function FleetCommand({ data, game, bindings }: { data: Telemetry; game: 
           <path d="M0 -12 5 -3 4 10 -4 10 -5 -3Z" transform={`rotate(${s.heading * 180 / Math.PI})`}/>
           <text x="12" y="1">{s.name}</text><text className="fleet-command-marker-order" x="12" y="15">{s.team === 'friendly' ? standingOrder(orders[s.id]) : ''}</text>
         </g>)}
+        {observations.map(c => <g key={c.id} data-map-position={JSON.stringify([c.estimatedPosition[0], 0, c.estimatedPosition[2]])} data-contact-marker={c.id} className={`fleet-command-marker ${c.affiliation === 'hostile' ? 'enemy' : 'unidentified'} report ${c.status} ${contactId === c.id ? 'selected' : ''}`}
+          role="button" tabIndex={0} aria-label={`${reportName(c)} · ${c.status} · observed ${reportAge(c, game.simulation.tick)} · uncertainty ${reportUncertainty(c)}`} onPointerDown={e => e.stopPropagation()}
+          onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); selectReport(c); } }}
+          onClick={e => { e.stopPropagation(); selectReport(c); }} onContextMenu={e => { e.preventDefault(); e.stopPropagation(); selectReport(c, true); }}>
+          <circle r="18" className="fleet-command-hitbox"/>
+          <path d={c.kind === 'aircraft' ? 'M0 -12 4 -2 11 4 11 7 3 5 3 10 -3 10 -3 5 -11 7 -11 4 -4 -2Z' : 'M0 -12 9 0 0 12 -9 0Z'}/>
+          <text x="16" y="1">{reportName(c)}</text><text className="fleet-command-marker-order" x="16" y="15">{c.affiliation === 'unknown' ? 'Affiliation unknown' : c.status} · {reportAge(c, game.simulation.tick)}</text>
+        </g>)}
       </svg>
+      {boundary && <p className="fleet-command-boundary-label">Battle area · {(boundary.radiusM / 1000).toFixed(0)} km radius · Captains turn back at the edge</p>}
       {box && <div className="fleet-command-box" style={{ left: box.x, top: box.y, width: box.width, height: box.height }}/>}
       <SquadronLabels data={data} game={game} onSelect={(id, additive) => { if (filter === 'aircraft') selectAir(id, additive); }} onTarget={(id, team) => { if (typeof armed !== 'object') return false; issueAir({ kind: 'squadron', id, team }); return true; }} onOrder={(id, team) => issueAir({ kind: 'squadron', id, team })}/>
       <section className="fleet-command-roster" aria-label="Fleet roster">
@@ -220,17 +248,17 @@ export function FleetCommand({ data, game, bindings }: { data: Telemetry; game: 
       <div><strong>{mapOpen ? 'Fleet command' : data.controlledShipId ? 'At the helm' : 'Following ship'}</strong><time>{duration(game.simulation.tick / 60)}</time></div>
       <nav aria-label="Fleet views">
         {mapOpen && <><button aria-pressed={filter === 'ships'} onClick={() => setFilter('ships')}>Ships</button>{wings.length > 0 && <button aria-pressed={filter === 'aircraft'} onClick={() => { setFilter('aircraft'); setAirOpen(true); }}>Aircraft</button>}<button onClick={() => game.fitAirMap()} title="Fit reported fleet">Fit chart</button></>}
-        <button aria-expanded={contactsOpen} onClick={() => setContactsOpen(!contactsOpen)}>Contacts {enemies.length}</button>
+        {mapOpen && <button aria-expanded={contactsOpen} onClick={() => setContactsOpen(!contactsOpen)}>Contacts {enemies.length}</button>}
         {mapOpen && wings.length > 0 && <button aria-expanded={airOpen} onClick={() => setAirOpen(!airOpen)}>Air</button>}
         {!game.simulation.networked && <button onClick={() => game.toggleTacticalPause()} aria-pressed={data.tacticalPaused}><Icon name={data.tacticalPaused ? 'play' : 'pause'} size={14}/>{data.tacticalPaused ? 'Resume' : 'Pause'} <kbd>Space</kbd></button>}
         <button onClick={() => game.setPaused(true)} aria-label="Battle menu"><Icon name="settings" size={16}/></button>
       </nav>
     </header>
-    {contactsOpen && <section className="fleet-command-contacts" aria-label="Contacts"><header><h2>Contacts</h2><button onClick={() => setContactsOpen(false)}>Hide</button></header>{enemies.length ? enemies.map(c => <button key={c.id} aria-pressed={contactId === c.id} onClick={() => { setContactId(c.id); game.simulation.selectTarget(c.id); }}><strong>{c.name}</strong><small>{(c.x / 1000).toFixed(1)} km E · {(-c.z / 1000).toFixed(1)} km N</small></button>) : <p>No contacts reported.</p>}</section>}
+    {mapOpen && contactsOpen && <section className="fleet-command-contacts" aria-label="Contacts"><header><h2>Contacts</h2><button onClick={() => setContactsOpen(false)}>Hide</button></header>{enemies.length ? enemies.map(c => { const report = observations.find(r => r.id === c.id); return <button key={c.id} aria-pressed={contactId === c.id} onClick={() => report ? selectReport(report) : targetShip({ id: c.id, team: 'enemy' }, false, false)}><strong>{c.name}</strong><small>{(c.x / 1000).toFixed(1)} km E · {(-c.z / 1000).toFixed(1)} km N</small>{report && <small>{report.status} · {reportAge(report, game.simulation.tick)} · ±{reportUncertainty(report)}</small>}</button>; }) : <p>No contacts reported. Send ships or aircraft forward to search.</p>}</section>}
     {data.tacticalPaused && <p className="fleet-command-paused" role="status">Tactical pause · Both fleets stopped · {game.simulation.queuedOrderCount ?? 0} orders queued for resume</p>}
     <section className={`fleet-command-card ${airOpen && mapOpen ? 'raised' : ''}`} aria-label="Command card">
       <div className="fleet-command-identity">
-        <h2>{mapOpen && selectedFlights.length ? selectedFlights.length === 1 ? selectedFlights[0].name : `${selectedFlights.length} air groups` : subject?.name ?? (selected.length ? `${selected.length} ships` : selectedContact?.name ?? 'Fleet command')}</h2>
+        <h2>{mapOpen && selectedFlights.length ? selectedFlights.length === 1 ? selectedFlights[0].name : `${selectedFlights.length} air groups` : subject?.name ?? (selected.length ? `${selected.length} ships` : (mapOpen ? selectedContact?.name : undefined) ?? 'Fleet command')}</h2>
         {subject && <img className="fleet-command-thumbnail" src={assetUrl(`models/${subject.shipId}-thumbnail.png`)} width="160" height="48" alt=""/>}
         {subject && <><p>{Math.round(subject.integrity * 100)}% hull · {data.controlledShipId === subject.id ? 'Manual helm' : 'Captain in command'}</p><div><button onClick={() => game.followFleetShip(subject.id)}><Icon name="camera" size={14}/>Follow</button>{data.controlledShipId === subject.id ? <button onClick={() => game.followFleetShip(subject.id)}>Give back helm</button> : <button disabled={!actionable || subject.physicalLost} onClick={() => game.takeFleetHelm(subject.id)}>Take helm</button>}</div></>}
         {!mapOpen && <button className="fleet-command-return" onClick={() => game.enterFleetCommand()}><Icon name="compass" size={16}/>Fleet command <kbd>M</kbd></button>}
@@ -242,7 +270,7 @@ export function FleetCommand({ data, game, bindings }: { data: Telemetry; game: 
             <label>Speed<select value={speedKn} onChange={e => setSpeedKn(Number(e.target.value))}>{[8, 12, 16, 20, 24, 28, 30].map(v => <option key={v} value={v}>{v} kn</option>)}</select></label><label>Formation<select value={formation} onChange={e => setFormation(e.target.value as typeof formation)}><option value="column">Column</option><option value="screen">Escort screen</option></select></label></div>
             <div className="fleet-command-weapons">{(['guns', 'aa', 'torpedoes'] as const).map(kind => { const free = recipients.every(s => orders[s.id]?.weapons[kind]); return <button key={kind} disabled={!actionable} aria-pressed={free} onClick={() => recipients.forEach(s => game.simulation.setShipWeapons?.(s.id, { ...(orders[s.id]?.weapons ?? { guns: true, aa: true, torpedoes: false }), [kind]: !free }))}>{kind === 'aa' ? 'AA' : kind === 'guns' ? 'Guns' : 'Torpedoes'}: {free ? 'Free' : 'Held'}</button>; })}</div>
             <div className="fleet-command-standing">{recipients.map(s => <p key={s.id}>{recipients.length > 1 && <strong>{s.name} · </strong>}{standingOrder(orders[s.id])}</p>)}</div></>
-          : selectedContact ? <p>Reported position {(selectedContact.x / 1000).toFixed(1)} km E, {(-selectedContact.z / 1000).toFixed(1)} km N. Select friendly ships to assign focus fire.</p>
+          : mapOpen && selectedContact ? <div className="fleet-command-report"><p>Reported position {(selectedContact.x / 1000).toFixed(1)} km E, {(-selectedContact.z / 1000).toFixed(1)} km N.</p>{selectedReport && <><p>{selectedReport.status} · Observed {reportAge(selectedReport, game.simulation.tick)} · Uncertainty ±{reportUncertainty(selectedReport)}</p><p>Reported by {selectedReport.sources.map(source => ships.find(s => s.id === source.observerId)?.name ?? 'Friendly aircraft').filter((name, i, names) => names.indexOf(name) === i).join(', ') || 'Fleet lookouts'}.</p></>}<p>{selectedReport?.status === 'stale' ? 'Search the reported area to reacquire this contact.' : selectedReport?.kind === 'aircraft' ? 'Aircraft movements are estimates from your observers.' : 'Select friendly ships to assign focus fire.'}</p></div>
           : <p>Right-click water to move, a friendly ship to escort, or an enemy to focus fire. Shift appends waypoints. Middle-drag pans; scroll zooms.</p>}
         {armed && <p className="fleet-command-armed">{typeof armed === 'object' ? `Choose ${armed.target}` : armed === 'move' ? 'Choose water · Shift appends a waypoint' : armed === 'escort' ? 'Choose a friendly leader' : 'Choose an enemy contact'}<button onClick={() => setArmed(undefined)}>Cancel <kbd>Esc</kbd></button></p>}
         <div className="fleet-command-feedback" role="status">{feedback && <p>{feedback}</p>}{receipts.map(r => <p key={r.sequence} data-state={r.state}>{ships.find(s => s.id === r.shipId)?.name ?? r.shipId} · {r.command.replaceAll('-', ' ')} · {r.state}{r.message ? `: ${r.message}` : ''}</p>)}</div>

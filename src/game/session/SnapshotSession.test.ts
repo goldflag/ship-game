@@ -6,7 +6,50 @@ import { muzzleWorld } from '../../simulation/weapons';
 import { localToWorld, sub, length } from '../../simulation/geometry';
 import { decodeSnapshot } from './SnapshotSession';
 import { squadronFlights } from '../../simulation/aircraft';
+import pveRules from '../../../assets/gameplay/pve-mission.v1.json';
+import type { MissionRules } from '../../multiplayer/generated/MissionRules';
 const setup = { playerShipId: 'enterprise-cv6', friendlyBots: ['fletcher', 'type-viic'], enemies: ['baltimore'], spawnDistance: 5000 };
+test('PvE WASM sends an owned fleet and unknown enemy state; instruments work without a target', async () => {
+  const session = await HeadlessSession.create({ playerShipId: 'fletcher', friendlyBots: [], enemies: [{ shipId: 'fletcher', aiLevel: 'static' }], spawnDistance: 16000, weather: 'clear', missionRules: pveRules as MissionRules });
+  try {
+    expect(session.actors).toHaveLength(1);
+    expect(session.target).toBeUndefined();
+    expect(session.controlledShipId).toBeUndefined();
+    expect(session.player.controller).toBe('bot');
+    expect(session.afloatKg[1]).toBeNull();
+    expect(session.remainingSeconds).toBeNull();
+    const telemetry = session.telemetry('main', session.aimAt());
+    expect(telemetry.targetKnowledge).toBe('none');
+    expect(telemetry.targetIntegrity).toBeUndefined();
+    expect(telemetry.modules).toBeUndefined();
+    expect(telemetry.playerIntegrity).toBeGreaterThan(0);
+    expect(telemetry.remainingSeconds).toBeNull();
+    expect(session.selectTarget('enemy-1')).toBe(false);
+    expect(session.selectShip('player')).toBe(true);
+    session.advance(.1, { throttle: 0, rudder: 0 }, { aim: session.aimAt(), battery: 'main', fire: false });
+    expect(session.controlledShipId).toBe('player');
+  } finally { session.dispose(); }
+});
+test('a reported PvE target can be selected and focused without exposing HP or internal modules', async () => {
+  const session = await HeadlessSession.create({ playerShipId: 'fletcher', friendlyBots: [], enemies: [{ shipId: 'fletcher', aiLevel: 'static' }], spawnDistance: 2000, weather: 'clear', missionRules: pveRules as MissionRules });
+  try {
+    session.advance(.1, { throttle: 0, rudder: 0 }, { aim: session.aimAt(), battery: 'main', fire: false });
+    const contact = session.observationTracks[0];
+    expect(contact.id).toStartWith('contact-');
+    expect(session.selectTarget(contact.id)).toBe(true);
+    expect(session.target).toBeUndefined();
+    session.focusShip('player', contact.id);
+    expect(() => session.focusShip('player', 'enemy-1')).toThrow();
+    session.advance(.1, { throttle: 0, rudder: 0 }, { aim: session.aimAt(), battery: 'main', fire: false });
+    expect(session.fleetOrders.player.targetId).toBe(contact.id);
+    const telemetry = session.telemetry('main', session.aimAt());
+    expect(telemetry.targetKnowledge).toBe('contact');
+    expect(telemetry.targetId).toBe(contact.id);
+    expect(telemetry.targetIntegrity).toBeUndefined();
+    expect(telemetry.targetSupport).toBeUndefined();
+    expect(telemetry.modules).toBeUndefined();
+  } finally { session.dispose(); }
+});
 test('Iowa carries its roof gun through real WASM snapshots without mutating delta baselines', async () => {
   const session = await HeadlessSession.create({ playerShipId: 'iowa', friendlyBots: [], enemies: [{ shipId: 'baltimore', aiLevel: 'static' }], spawnDistance: 5000 });
   try {

@@ -19,6 +19,7 @@ use crate::{
 };
 use std::collections::BTreeMap;
 pub struct AirContext<'a> {
+    pub knowledge: Option<crate::sensors::Knowledge<'a>>,
     pub actors: &'a [Vessel],
     pub shells: &'a mut Vec<Shell>,
     pub torpedoes: &'a mut Vec<Torpedo>,
@@ -406,6 +407,7 @@ impl Aviation {
                 .as_ref()
                 .map_or(crate::bots::AiLevel::Normal, |b| b.ai_level);
             if actor.controller == Controller::Bot
+                && ctx.knowledge.is_none()
                 && !level.passive()
                 && time >= 5.0 * crate::bots::reaction_scale(level)
             {

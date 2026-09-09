@@ -34,7 +34,8 @@ import { createDamage, systemHealth, updateFlooding, type BallisticEffectData, t
 export interface CombatIntent { aim: Vec3; fire: boolean; battery: Battery; weaponGroupId?: string; ammunition?: Ammunition; controlPriority?: ControlPriority; controlFocus?: string; }
 export interface CombatEvent extends BallisticEffectData { sequence: number; tick: number; kind: DamageEvent['kind'] | 'shot' | 'splash' | 'torpedo-launch' | 'torpedo-hit' | 'torpedo-dud' | 'torpedo-expired' | 'aircraft-launch' | 'aircraft-recovered' | 'aircraft-lost' | 'aircraft-crash' | 'aircraft-fire' | 'aircraft-release' | 'bomb-release' | 'depth-charge-launch' | 'depth-charge-splash' | 'depth-charge-blast' | 'depth-charge-hit'; aircraft?: { id: string; caliberM?: number; panic?: boolean; dragPerSecond?: number; target?: Vec3; tracerSpeed?: number; direction?: Vec3; velocity?: Vec3; airburst?: { flightTime: number; caliberM: number }; attitude?: { heading: number; pitch: number; bank: number } }; depthCharge?: { id: number; radiusM: number }; torpedo?: { id: number; velocity: Vec3; diameterM: number }; position: Vec3; message: string; shipId: string; hullDamage?: number; impact?: ImpactRecord; defeatCause?: DefeatCause; }
 export interface ShellHistory { shellId: number; ownerId: string; tick: number; ammunition: Ammunition; impacts: ImpactRecord[]; outcome: 'flying' | 'splash' | 'passed-through' | 'expired' | 'stopped' | 'ricochet' | 'internal' | 'burst'; }
-export interface CombatTelemetry {
+export interface FullCombatTelemetry {
+  targetKnowledge?: 'full';
   playerSupport: { power: number; fireControl: number }; targetSupport: { power: number; fireControl: number };
   playerFires: FireReadout[]; targetFireDetails: FireReadout[];
   targetRegions: { id: string; name: string; condition: number }[];
@@ -54,7 +55,7 @@ export interface CombatTelemetry {
   targetDepthM?: number;
   contacts: { id: string; name: string; shipId: string; team: Team; controller: FleetActor['controller']; targetId?: string; x: number; z: number; heading: number; integrity: number; sunk: boolean; status: VesselStatus; combatLost: boolean; physicalLost: boolean }[];
   battle: boolean; result: BattleResult; playerSunk: boolean;
-  remainingSeconds: number; afloatKg: [number, number]; outcome?: BattleOutcome;
+  remainingSeconds: number | null; afloatKg: [number | null, number | null]; outcome?: BattleOutcome;
   targetPower: number; targetSteering: number; targetSunk: boolean; targetUnderway: boolean;
   mounts: { id: string; name: string; status: string; reload: number; ammo: number; loaded?: Ammunition; queued?: Ammunition }[];
   modules: ({ id: string; name: string; condition: number } & EquipmentCondition)[]; message: string;
@@ -70,6 +71,11 @@ export interface CombatTelemetry {
   damageLog: DamageLogEntry[];
   targetPosition: { x: number; z: number; heading: number };
   batteries: { battery: Battery; ammunition: Ammunition; ammo: number; ready: number; total: number; reload: number }[];
+}
+type TargetTelemetryKeys = Extract<keyof FullCombatTelemetry, `target${string}`> | 'modules' | 'shellHistory';
+export type CombatTelemetry = FullCombatTelemetry | (Omit<FullCombatTelemetry, TargetTelemetryKeys> & Partial<Pick<FullCombatTelemetry, Exclude<TargetTelemetryKeys, 'targetKnowledge'>>> & { targetKnowledge: 'none' | 'contact' });
+export function hasFullTarget(combat: CombatTelemetry): combat is FullCombatTelemetry {
+  return combat.targetKnowledge !== 'none' && combat.targetKnowledge !== 'contact';
 }
 export class CombatSimulation {
   readonly player: FleetActor;

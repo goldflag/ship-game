@@ -88,6 +88,38 @@ pub struct ContactTrack {
     pub identified_preset_id: Option<String>,
     pub sources: Vec<ObservationSource>,
 }
+impl ContactTrack {
+    pub fn pose(&self) -> crate::geometry::Pose {
+        crate::geometry::Pose {
+            x: self.estimated_position[0],
+            y: self.estimated_position[1],
+            z: self.estimated_position[2],
+            heading: self.velocity[0].atan2(-self.velocity[2]),
+            ..Default::default()
+        }
+    }
+    pub fn estimated_length(&self) -> f64 {
+        match self.classification.as_deref() {
+            Some("Small warship") => 100.0,
+            Some("Large warship") => 260.0,
+            _ => 180.0,
+        }
+    }
+    pub fn targetable(&self) -> bool {
+        self.kind == ContactKind::Surface
+            && self.affiliation == Affiliation::Hostile
+            && self.status != TrackStatus::Stale
+    }
+}
+
+/// Read-only knowledge plus physical terrain for line-of-fire collision checks.
+#[derive(Clone, Copy)]
+pub struct Knowledge<'a> {
+    pub sensors: &'a Sensors,
+    pub tick: u64,
+    pub islands: &'a [Island],
+    pub terrain: &'a [TerrainField],
+}
 /// This is authority-only input, not a serialized presentation actor.
 #[derive(Clone, Debug)]
 pub struct VisualEntity {
@@ -139,6 +171,42 @@ pub struct Sensors {
     last_tick: Option<u64>,
 }
 impl Sensors {
+    pub fn contact(&self, team: TeamId, contact_id: &str) -> Option<&ContactTrack> {
+        self.records[team.index()]
+            .values()
+            .map(|r| &r.track)
+            .find(|t| t.id == contact_id)
+    }
+    pub fn surface_target(
+        &self,
+        team: TeamId,
+        position: [f64; 3],
+        priority: Option<&str>,
+        previous: Option<&str>,
+    ) -> Option<&ContactTrack> {
+        let candidates: Vec<_> = self.records[team.index()]
+            .values()
+            .map(|r| &r.track)
+            .filter(|t| t.targetable())
+            .collect();
+        if let Some(t) = candidates.iter().find(|t| Some(t.id.as_str()) == priority) {
+            return Some(t);
+        }
+        let nearest = candidates.iter().min_by(|a, b| {
+            horizontal(a.estimated_position, position)
+                .total_cmp(&horizontal(b.estimated_position, position))
+        })?;
+        Some(
+            candidates
+                .iter()
+                .find(|t| {
+                    Some(t.id.as_str()) == previous
+                        && horizontal(t.estimated_position, position)
+                            <= horizontal(nearest.estimated_position, position) * 1.25
+                })
+                .unwrap_or(nearest),
+        )
+    }
     pub fn contacts(&self, team: TeamId) -> Vec<ContactTrack> {
         self.records[team.index()]
             .values()

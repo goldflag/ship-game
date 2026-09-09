@@ -919,6 +919,7 @@ fn carrier_sorties_recovery_and_fighters_match_reference() {
             }
             air.step(
                 &mut AirContext {
+                    knowledge: None,
                     actors: &actors,
                     shells: &mut shells,
                     torpedoes: &mut torpedoes,

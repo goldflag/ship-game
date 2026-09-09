@@ -298,6 +298,15 @@ impl FleetControl {
         command: CommandEnvelope,
         tick: u64,
     ) -> Result<(), CommandError> {
+        self.apply_with_contacts(sender, command, tick, None)
+    }
+    pub fn apply_with_contacts(
+        &mut self,
+        sender: usize,
+        command: CommandEnvelope,
+        tick: u64,
+        contacts: Option<&std::collections::BTreeSet<String>>,
+    ) -> Result<(), CommandError> {
         // Revalidate typed callers too; direct construction cannot bypass wire bounds.
         validate_command(&command)?;
         let p = self.players.get(sender).ok_or(CommandError::Ownership)?;
@@ -325,10 +334,14 @@ impl FleetControl {
             return Err(CommandError::NotSelected);
         }
         if let Command::Focus { target_id } = &command.command
-            && !self
-                .ships
-                .get(target_id)
-                .is_some_and(|s| s.owner != sender && s.afloat)
+            && !contacts.map_or_else(
+                || {
+                    self.ships
+                        .get(target_id)
+                        .is_some_and(|s| s.owner != sender && s.afloat)
+                },
+                |ids| ids.contains(target_id),
+            )
         {
             return Err(CommandError::Target);
         }
