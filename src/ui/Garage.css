@@ -73,7 +73,8 @@
 .garage-fleet-nav:hover:not(:disabled) { background:#243e4ceb; border-color:#cbdedc72; }
 .garage-fleet-nav:disabled { opacity:.25; cursor:default; }
 .garage-fleet-nav-prev svg { transform:scaleX(-1); }
-.garage-ship-cards { flex:1; min-width:0; display:flex; gap:12px; overflow-x:auto; scroll-snap-type:x proximity; scrollbar-width:thin; overscroll-behavior:contain; padding-bottom:4px; pointer-events:auto; }
+.garage-ship-cards { flex:1; min-width:0; display:flex; gap:12px; overflow-x:auto; scroll-snap-type:x proximity; scrollbar-width:none; -ms-overflow-style:none; overscroll-behavior:contain; padding-bottom:4px; pointer-events:auto; }
+.garage-ship-cards::-webkit-scrollbar { display:none; }
 .garage-ship-cards>button { position:relative; flex-shrink:0; min-width:0; width:180px; height:103px; padding:9px 11px; display:flex; flex-direction:column; align-items:flex-start; border:1px solid #afcadf31; border-radius:2px; background:#0d2130de; color:#bacbd2; overflow:hidden; text-align:left; scroll-snap-align:start; }
 .garage-ship-cards>button:hover { background:#243e4ceb; border-color:#cbdedc72; }
 .garage-ship-cards>button>div { display:flex; justify-content:space-between; align-items:center; width:100%; font-size:9px; }
