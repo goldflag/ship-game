@@ -4039,7 +4039,9 @@ function sj(r) {
       const sceneDepth = r.sceneDepth.sample(IA).mul(EA.sub(dA)).add(dA);
       const column = KA(sceneDepth.sub(rt.z.negate()), O(0));
       return {
-        refractedClearFactor: r.waterColor.buildClearFactor(column),
+        // The game's custom-color water uses analytic absorption. Do not pull
+        // the unused physical-water LUT into this lightweight surface path.
+        refractedClearFactor: Ut(R(r.waterColor._absorptionColor).negate().mul(column)),
         refractedSceneColor: F(r.sceneColorTexture, IA).rgb,
         refractedWaterColor: color
       };

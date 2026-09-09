@@ -5,10 +5,15 @@
 The game enables the creation-only `surfaceTransmissionEnabled` option while
 keeping `refractionEnabled` false and full-screen underwater distortion disabled.
 The above-water shader samples opaque scene color at the original screen UV and
-applies the existing water absorption using scene depth minus the current water
+applies the game's custom-color absorption using scene depth minus the current water
 surface fragment's view depth. It restores visibility of submerged hulls and
 terrain without the wave-normal UV offset or a separate surface water-depth pass.
 The below-water interface stays on its existing unwarped path.
+
+Absorption is evaluated analytically from the existing custom-color uniform,
+without compiling the unused physical-water lookup buffer into this surface
+path. The combined lookup shader caused WebGL context loss during validation;
+the custom-color expression avoids that failure and matches the WebGPU image.
 
 The new option defaults to false in the library and is retained on the shared
 Fresnel object across presets and quality changes. With refraction enabled, the
