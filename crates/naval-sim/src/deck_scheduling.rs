@@ -101,7 +101,8 @@ impl DeckOperations {
             .planes
             .iter()
             .filter(|p| {
-                p.flight_id.as_deref() == Some(request.flight_id.as_str()) && p.phase != "lost"
+                p.flight_id.as_deref() == Some(request.flight_id.as_str())
+                    && !crate::aircraft::terminal(p)
             })
             .collect();
         if group.is_empty() {

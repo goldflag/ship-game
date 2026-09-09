@@ -1,3 +1,4 @@
+import type { CarrierRecovery } from '../multiplayer/generated/CarrierRecovery';
 import type { SearchProgress } from '../multiplayer/generated/SearchProgress';
 import type { AirOrder as NativeAirOrder } from '../multiplayer/generated/AirOrder';
 import type { EndurancePolicy } from '../multiplayer/generated/EndurancePolicy';
@@ -20,7 +21,7 @@ import { AIR_GUNNERY, gunnerySeed, initialFireDiscipline, stepFireDiscipline } f
 import { flyFormation, formationLeader } from './aircraftFormation';
 import { aircraftBomb, aircraftTorpedo, DEFAULT_AIR_TORPEDO } from './aircraftWeapons';
 
-export type FlightPhase = 'ready' | 'queued' | 'taxi' | 'takeoff' | 'outbound' | 'attack' | 'returning' | 'landing' | 'rollout' | 'parking' | 'rearming' | 'lost' | 'hangar' | 'raising' | 'lowering' | 'repairing' | 'launch-ready';
+export type FlightPhase = 'withdrawn' | 'ready' | 'queued' | 'taxi' | 'takeoff' | 'outbound' | 'attack' | 'returning' | 'landing' | 'rollout' | 'parking' | 'rearming' | 'lost' | 'hangar' | 'raising' | 'lowering' | 'repairing' | 'launch-ready';
 export type AirOrder = Exclude<NativeAirOrder, { kind: 'defend' }> | { kind: 'defend'; targetId?: string };
 export interface AirFlight { id: string; name: string; squadronId: string; planeIds: string[]; order: AirOrder; notice?: string; mergedInto?: string; }
 export interface Aircraft {
@@ -41,7 +42,7 @@ export interface DeckStatus {
   currentPlaneId?: string; task?: string; stepRemainingSeconds?: number; suspended: boolean; notice?: string;
   occupied: number; capacity: number; groupSize: number; activeFlightLimit: number | null; endurance: EndurancePolicy; repairCeilingHp: number;
 }
-export interface AirWingState { deck?: DeckStatus; planes: Aircraft[]; launchCooldown: number; flights: AirFlight[]; flightSequence: number; transferCooldown: number; }
+export interface AirWingState { recovery?: CarrierRecovery; deck?: DeckStatus; planes: Aircraft[]; launchCooldown: number; flights: AirFlight[]; flightSequence: number; transferCooldown: number; }
 export interface AirRelease { id: number; ownerId: string; position: Vec3; velocity: Vec3; weapon?: TorpedoPart; }
 export const hasFoldingWings = (modelId: string) => aircraftGroundPose(modelId).foldingWings;
 const WING_FOLD_SECONDS = 4; // Gameplay timing; manual crew/hydraulic operation is abstracted.
@@ -54,7 +55,8 @@ export const aircraftServiceSeconds = (baseSeconds: number, hp: number) => baseS
 export const deckClearance = (p: Aircraft) => aircraftGroundPose(p.modelId).clearance;
 export const flightSize = (actor: FleetActor) => actor.airWing?.deck?.groupSize ?? actor.definition.airWing?.flightSize ?? 3;
 export const deckCapacity = (actor: FleetActor) => actor.airWing?.deck?.capacity ?? actor.definition.airWing?.deckCapacity ?? 18;
-export const activeFlight = (flight: AirFlight, planes: Aircraft[]) => planes.some(p => p.flightId === flight.id && !['ready', 'rearming', 'lost', 'hangar', 'raising', 'lowering', 'repairing'].includes(p.phase));
+export const terminalAircraft = (p: Pick<Aircraft, 'phase'>) => p.phase === 'lost' || p.phase === 'withdrawn';
+export const activeFlight = (flight: AirFlight, planes: Aircraft[]) => planes.some(p => p.flightId === flight.id && !['ready', 'rearming', 'lost', 'withdrawn', 'hangar', 'raising', 'lowering', 'repairing'].includes(p.phase));
 export const airborne = (p: Aircraft) => ['takeoff', 'outbound', 'attack', 'returning', 'landing'].includes(p.phase);
 /** Stable deck spots, derived from the authored flight-deck datums (runtime metres). */
 export function aircraftDeckSpot(actor: FleetActor, plane: Aircraft): Vec3 {

@@ -7,7 +7,7 @@ import type { ShellView } from './ShellFollow';
 
 /** Camera samples the same interpolated flight/deck poses as the aircraft renderer. */
 export function aircraftFollowView(plane: Aircraft, actor: FleetActor, hull: Pose, alpha: number): ShellView | undefined {
-  if (plane.phase === 'lost') return;
+  if (plane.phase === 'lost' || plane.phase === 'withdrawn') return;
   const deck = onFlightDeck(plane);
   if (!deck && !['takeoff', 'outbound', 'attack', 'returning', 'landing'].includes(plane.phase)) return;
   const position = deck

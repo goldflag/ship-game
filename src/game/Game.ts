@@ -990,7 +990,7 @@ export class Game {
   /** The presentation-only target the rig follows this frame. A followed aircraft
    * that is lost or leaves the visible phases ends its follow here. */
   private followedView(alpha: number): ShellView | undefined {
-    const plane = this.simulation.aircraft.find(p => p.id === this.followedAircraftId && p.phase !== 'lost');
+    const plane = this.simulation.aircraft.find(p => p.id === this.followedAircraftId && !['lost', 'withdrawn'].includes(p.phase));
     const carrier = plane && this.fleetViews.find(v => v.actor.motion.id === plane.ownerId);
     const view = plane && carrier ? aircraftFollowView(plane, this.simulation.player, carrier.motion, alpha) : undefined;
     if (this.followedAircraftId && !view) this.endFollow();

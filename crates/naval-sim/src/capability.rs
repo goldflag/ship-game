@@ -43,7 +43,7 @@ pub fn update(actor: &mut Combatant, def: &ShipDefinition, wing: Option<&AirWing
     let reserves = wing.is_some_and(|w| {
         w.planes
             .iter()
-            .any(|p| p.phase != "lost" && p.role != "fighter")
+            .any(|p| !crate::aircraft::terminal(p) && p.role != "fighter")
     });
     let service = def.air_wing.as_ref().map(|w| w.service_module_id.as_str());
     let mut usable = armed || reserves && service.is_some_and(available);

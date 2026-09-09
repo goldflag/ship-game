@@ -70,7 +70,7 @@ pub fn air_torpedo() -> TorpedoPart {
     }
 }
 pub fn lose(p: &mut Aircraft, events: &mut Vec<DamageEvent>, reason: &str) {
-    if p.phase == "lost" {
+    if terminal(p) {
         return;
     }
     if airborne(p) && !on_flight_deck(p) {
@@ -354,7 +354,7 @@ impl Aviation {
                     bank: p.bank,
                 });
                 p.previous_controls = Some(p.controls);
-                if p.phase == "lost" {
+                if terminal(p) {
                     step_wreck(p, ctx.events, dt);
                 } else {
                     let deck = on_flight_deck(p)
@@ -381,6 +381,15 @@ impl Aviation {
                 continue;
             };
             let wing = actor.definition().air_wing.as_ref().unwrap();
+            if ctx.knowledge.is_some() {
+                self.wings[wi].state.recovery = Some(crate::air_recovery::status(actor, ctx.sea));
+                if let Some(crate::air_recovery::CarrierRecovery::Closed { reason }) =
+                    self.wings[wi].state.recovery.clone()
+                    && let Some(ops) = self.deck_operations.get_mut(&actor.motion.id)
+                {
+                    ops.close(&mut self.wings[wi].state, &reason);
+                }
+            }
             if !self.deck_operations.contains_key(&actor.motion.id) {
                 self.combine_landed(actor);
             }
@@ -475,6 +484,25 @@ impl Aviation {
                 );
                 self.wings[wi].state.planes[i] = p;
             }
+            if matches!(
+                self.wings[wi].state.recovery,
+                Some(crate::air_recovery::CarrierRecovery::Closed { .. })
+            ) {
+                let state = &mut self.wings[wi].state;
+                for f in &mut state.flights {
+                    if state
+                        .planes
+                        .iter()
+                        .filter(|p| f.plane_ids.contains(&p.id))
+                        .all(terminal)
+                    {
+                        f.notice = Some("Air group unavailable · No recovery possible".into());
+                    }
+                }
+                if let Some(ops) = self.deck_operations.get(&actor.motion.id) {
+                    ops.publish(state, true);
+                }
+            }
         }
         for i in (0..ctx.releases.len()).rev() {
             let r = &mut ctx.releases[i];
@@ -526,7 +554,10 @@ impl Aviation {
         let wing = actor.definition().air_wing.as_ref().unwrap();
         let ground = self.ground[&p.model_id].clone();
         p.cooldown = (p.cooldown - dt).max(0.0);
-        if p.phase == "lost" {
+        if terminal(p) {
+            return;
+        }
+        if ctx.knowledge.is_some() && self.retire_without_home(p, actor, ctx) {
             return;
         }
         let managed = self.deck_operations.contains_key(&actor.motion.id);

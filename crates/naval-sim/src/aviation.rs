@@ -313,7 +313,7 @@ impl Aviation {
                 && state
                     .planes
                     .iter()
-                    .any(|p| f.plane_ids.contains(&p.id) && p.phase != "lost")
+                    .any(|p| f.plane_ids.contains(&p.id) && !crate::aircraft::terminal(p))
                 && state
                     .planes
                     .iter()

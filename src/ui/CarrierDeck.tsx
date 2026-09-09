@@ -41,7 +41,9 @@ export function CarrierDeck({ name, wing, enabled, cancel, setPolicy, prioritize
     <strong>{name}</strong>
     <p>Deck {wing.onDeck}/{wing.deckCapacity} · Hangar {wing.inHangar}</p>
     <p>Airborne {wing.groups.reduce((n, f) => n + f.airborne, 0)} · Recovering {wing.recoveryCount}</p>
-    {deck && <>
+    {wing.recovery?.kind === 'closed' && <p className="fleet-command-deck-task">Flight operations unavailable · {wing.recovery.reason}</p>}
+    {wing.counts.withdrawn > 0 && <p>{wing.counts.withdrawn} unavailable · {wing.counts.lost} lost</p>}
+    {deck && wing.recovery?.kind !== 'closed' && <>
       {setPolicy && <label className="fleet-command-deck-policy">Deck policy<Select value={deck.policy} disabled={!enabled} onValueChange={value => setPolicy(value as DeckPolicy)}>
         <SelectOption value="balanced">Balanced</SelectOption><SelectOption value="launch-first">Launch first</SelectOption><SelectOption value="recover-first">Recover first</SelectOption>
       </Select></label>}

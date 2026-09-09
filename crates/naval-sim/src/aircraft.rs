@@ -164,6 +164,8 @@ pub struct AirPilot {
 #[serde(rename_all = "camelCase")]
 pub struct AirWingState {
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub recovery: Option<crate::air_recovery::CarrierRecovery>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub deck: Option<crate::deck_operations::DeckStatus>,
     pub planes: Vec<Aircraft>,
     pub launch_cooldown: f64,
@@ -182,6 +184,9 @@ pub struct AirRelease {
     pub weapon: Option<crate::definition::TorpedoPart>,
 }
 pub const FIGHTER_AMMO_BURSTS: f64 = 16.0;
+pub fn terminal(p: &Aircraft) -> bool {
+    matches!(p.phase.as_str(), "lost" | "withdrawn")
+}
 pub fn airborne(p: &Aircraft) -> bool {
     matches!(
         p.phase.as_str(),
@@ -212,7 +217,14 @@ pub fn active_flight(f: &AirFlight, planes: &[Aircraft]) -> bool {
         p.flight_id.as_ref() == Some(&f.id)
             && !matches!(
                 p.phase.as_str(),
-                "ready" | "rearming" | "lost" | "hangar" | "repairing" | "raising" | "lowering"
+                "ready"
+                    | "rearming"
+                    | "lost"
+                    | "withdrawn"
+                    | "hangar"
+                    | "repairing"
+                    | "raising"
+                    | "lowering"
             )
     })
 }
@@ -236,6 +248,7 @@ pub fn create_air_wing(
 ) -> Option<AirWingState> {
     let wing = def.air_wing.as_ref()?;
     Some(AirWingState {
+        recovery: None,
         planes: wing
             .squadrons
             .iter()

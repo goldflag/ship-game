@@ -114,6 +114,7 @@ pub struct DeckOperations {
     notice: Option<String>,
     batch: scheduling::BatchSchedule,
     next_request_id: Option<u64>,
+    closed: bool,
 }
 fn pose(p: &Aircraft, ground: &GroundPose) -> DeckPose {
     DeckPose {
@@ -233,6 +234,7 @@ impl DeckOperations {
             notice: None,
             batch: scheduling::BatchSchedule::default(),
             next_request_id: None,
+            closed: false,
         };
         ops.publish(state, false);
         Ok(ops)
@@ -243,6 +245,9 @@ impl DeckOperations {
         flight_id: &str,
         action: DeckAction,
     ) -> Result<u64, String> {
+        if self.closed {
+            return Err("Carrier flight operations are permanently unavailable".into());
+        }
         let flight = state
             .flights
             .iter()
@@ -251,7 +256,7 @@ impl DeckOperations {
         let survivors: Vec<_> = state
             .planes
             .iter()
-            .filter(|p| flight.plane_ids.contains(&p.id) && p.phase != "lost")
+            .filter(|p| flight.plane_ids.contains(&p.id) && !crate::aircraft::terminal(p))
             .collect();
         if survivors.is_empty() {
             return Err("No surviving aircraft in this group".into());
@@ -358,7 +363,9 @@ impl DeckOperations {
         state
             .planes
             .iter()
-            .filter(|p| p.id != except && p.phase != "lost" && p.deck_position.is_some())
+            .filter(|p| {
+                p.id != except && !crate::aircraft::terminal(p) && p.deck_position.is_some()
+            })
             .map(|p| {
                 let g = &ground[&p.model_id];
                 let model = g.deck_geometry.as_ref().unwrap();
@@ -375,7 +382,10 @@ impl DeckOperations {
         let current: OccupancyKey = state
             .planes
             .iter()
-            .filter(|p| p.phase != "lost" && (p.deck_position.is_some() || p.deck_slot.is_some()))
+            .filter(|p| {
+                !crate::aircraft::terminal(p)
+                    && (p.deck_position.is_some() || p.deck_slot.is_some())
+            })
             .map(|p| {
                 (
                     p.id.clone(),
@@ -432,7 +442,7 @@ impl DeckOperations {
                 .planes
                 .iter()
                 .enumerate()
-                .filter(|(_, p)| flight.plane_ids.contains(&p.id) && p.phase != "lost")
+                .filter(|(_, p)| flight.plane_ids.contains(&p.id) && !crate::aircraft::terminal(p))
                 .map(|(i, _)| i)
                 .collect();
             if matches!(
@@ -597,6 +607,16 @@ impl DeckOperations {
         }
         self.queue.retain(|r| !completed.contains(&r.id));
     }
+    pub(crate) fn close(&mut self, state: &mut AirWingState, reason: &str) {
+        self.closed = true;
+        self.queue.clear();
+        self.active = None;
+        self.next_request_id = None;
+        self.failed.clear();
+        self.occupancy.clear();
+        self.notice = Some(reason.into());
+        self.publish(state, true);
+    }
     pub fn step(
         &mut self,
         state: &mut AirWingState,
@@ -606,6 +626,10 @@ impl DeckOperations {
         flight_ready: bool,
         dt: f64,
     ) {
+        if self.closed {
+            self.publish(state, true);
+            return;
+        }
         if dt <= 0.0 || !dt.is_finite() {
             return;
         }
@@ -618,7 +642,7 @@ impl DeckOperations {
             .as_ref()
             .unwrap();
         for p in &mut state.planes {
-            if p.phase == "lost" || p.hp <= 0.0 {
+            if crate::aircraft::terminal(p) || p.hp <= 0.0 {
                 continue;
             }
             if p.deck_position.is_some() && p.phase != "takeoff" {
@@ -675,7 +699,7 @@ impl DeckOperations {
         let Some(index) = state
             .planes
             .iter()
-            .position(|p| p.id == job.plane_id && p.phase != "lost" && p.hp > 0.0)
+            .position(|p| p.id == job.plane_id && !crate::aircraft::terminal(p) && p.hp > 0.0)
         else {
             self.publish(state, false);
             return;

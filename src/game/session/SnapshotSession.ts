@@ -181,7 +181,7 @@ export abstract class SnapshotSession implements BattleSession {
         return { id: actor.motion.id, presetId: actor.presetId, team: actor.team === this.ownTeam ? 'friendly' : 'enemy',
           status: frame.debrief!.shipOutcomes?.[actor.motion.id] ?? (physicalLoss(actor) ? 'sunk' : 'operational'),
           damageDealt: score?.damageDealt ?? 0, frags: score?.frags ?? 0,
-          aircraftRemaining: frame.debrief!.wings.find(w => w.ownerId === actor.motion.id)?.state.planes.filter(p => p.phase !== 'lost' && p.hp > 0).length ?? 0 };
+          aircraftRemaining: frame.debrief!.wings.find(w => w.ownerId === actor.motion.id)?.state.planes.filter(p => !['lost', 'withdrawn'].includes(p.phase) && p.hp > 0).length ?? 0 };
       }),
     } : undefined;
     this.phase = frame.phase ?? 'running'; this.connected = frame.connected; this.loaded = frame.loaded; this.countdown = frame.countdown ?? 0;

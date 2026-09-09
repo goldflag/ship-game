@@ -32,6 +32,14 @@ D exposes these controls on the selected aircraft card. Choose Search area and c
 
 The enemy commander runs only for the opposing PvE team. It proposes one carrier action per difficulty cadence: establish CAP, send a bounded rear-area scout without contacts, commit strikes against recent reports and provide fighter escorts. It retains an escort slot under compatibility flight limits. Known identified carrier reports receive priority, without reading hidden composition, damage or position. Managed profiles can request Raise/Repair/Rearm through ordinary deck admission; production still uses the compatibility profile. All air intentions pass the normal authenticated Session handler. This initial doctrine has native information-boundary and allocation tests, but complete managed sorties, threat-driven retasking, multi-carrier allocation and combat balance still need acceptance.
 
+## PvE carrier loss and recovery
+
+PvE projects each carrier's recovery state as Open, Delayed or Closed under both compatibility and managed deck profiles. Roll, pitch and temporary service unavailability delay recovery; returning aircraft retain their marshal requests and can land when the deck steadies. Physical carrier loss or destruction of the linked service module closes flight operations and clears managed handling tasks and reservations.
+
+Aircraft aboard a lost carrier are destroyed. Grounded survivors on a carrier with destroyed recovery equipment become unavailable. Airborne survivors may finish a feasible combat order: strikes and interceptions require recent hostile reports, while defense and escort require a surviving friendly assignment. A strike search remains bounded by its search task. Returning aircraft, depleted or critically damaged aircraft, and groups without a feasible task withdraw. No aircraft changes its home carrier. Aircraft alone cannot prevent fleet elimination.
+
+The terminal `withdrawn` state preserves individual IDs, health, ammunition and payload; it emits an `aircraft-unavailable` event once and creates no crash or fabricated combat kill. Telemetry excludes withdrawn aircraft from usable groups, hangar/deck counts and follow targets. The manifest and carrier controls report unavailable aircraft separately from losses and distinguish closed operations from a temporary suspension. These rules apply only to PvE observation-mode battles; legacy Custom/online behavior remains covered by migration comparisons.
+
 ## Battlefield camera and squadron commands
 
 The ocean covers the full map view through maximum zoom and panning, including portrait windows. Position and camera tilt ease together in both directions, and reversing a transition starts from the currently displayed pose. The development review at `/scripts/diagnostics/carrier-camera.html` opens the actual renderer at maximum zoom; `carrierCameraReview` exposes frame stepping for inspecting transitions.

@@ -5,6 +5,7 @@ import { airWingTelemetry } from '../simulation/airTelemetry';
 import { shipPreset } from '../ships/presets';
 import { AirGroupService, CarrierDeck } from './CarrierDeck';
 import { decodeSnapshot } from '../game/session/snapshotCodec';
+import { AirWingManifest } from './AirWingManifest';
 
 function fixture() {
   const sim = new CombatSimulation(shipPreset('enterprise-cv6'));
@@ -19,6 +20,40 @@ function fixture() {
   }
   return { actor, state, telemetry: () => airWingTelemetry(actor, [actor])! };
 }
+
+test('closed recovery preserves unavailable identities without counting them as losses, hangar stock or usable groups', () => {
+  const { actor, state, telemetry } = fixture();
+  state.recovery = { kind: 'closed', reason: 'Recovery equipment destroyed' };
+  state.deck!.suspended = true;
+  state.deck!.occupied = 0;
+  state.planes.forEach((p, i) => {
+    p.phase = i === 0 ? 'lost' : 'withdrawn';
+    p.hp = i === 0 ? 0 : 73;
+    p.lossReason = i === 0 ? 'Shot down' : 'Unavailable · Recovery equipment destroyed';
+  });
+  const frame = decodeSnapshot(JSON.stringify({ tick: 30, actors: [{}], wings: [{ ownerId: actor.motion.id, state }] }));
+  actor.airWing = frame.wings[0].state;
+  const wing = telemetry();
+  expect(wing.recovery).toEqual(state.recovery);
+  expect(wing.counts).toMatchObject({ withdrawn: 47, lost: 1, hangar: 0, ready: 0 });
+  expect(Object.values(wing.counts).reduce((a, b) => a + b, 0)).toBe(48);
+  expect(wing).toMatchObject({ activeFlights: 0, inHangar: 0, onDeck: 0, recoveryCount: 0, available: false });
+  expect(wing.groups).toHaveLength(12);
+  expect(wing.groups.every(g => !g.active && !g.surviving && !g.armed && g.status === 'withdrawn')).toBe(true);
+  expect(wing.groups.every(g => g.deck && !g.deck.canLaunch && !g.deck.canRaise && !g.deck.canStow && !g.deck.canRepair && !g.deck.canRearm)).toBe(true);
+  expect(wing.flights.every(p => !p.followable)).toBe(true);
+  expect(wing.flights.slice(1).every(p => p.hp === 73 && p.location === 'Unavailable')).toBe(true);
+  const deck = renderToStaticMarkup(<CarrierDeck name="Enterprise" wing={wing} enabled cancel={() => {}} setPolicy={() => {}}/>);
+  const manifest = renderToStaticMarkup(<AirWingManifest wing={wing} onSelect={() => {}}/>);
+  for (const html of [deck, manifest]) {
+    expect(html).toContain('Flight operations unavailable · Recovery equipment destroyed');
+    expect(html).toContain('47 unavailable · 1 lost');
+    expect(html).not.toContain('Deck operations suspended');
+  }
+  expect(deck).not.toContain('role="combobox"');
+  expect(deck).not.toContain('Deck crew ready');
+  expect(manifest).toContain('<strong>0<small>/48</small></strong>');
+});
 
 test('managed telemetry retains four-plane groups and reports unlimited flights without fuel warnings', () => {
   const { state, telemetry } = fixture();
