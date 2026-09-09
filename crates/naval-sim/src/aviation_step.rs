@@ -18,6 +18,8 @@ use crate::{
     vessel::{Controller, Vessel},
 };
 use std::collections::BTreeMap;
+#[path = "air_observation.rs"]
+mod observation;
 pub struct AirContext<'a> {
     pub knowledge: Option<crate::sensors::Knowledge<'a>>,
     pub actors: &'a [Vessel],
@@ -1062,31 +1064,12 @@ impl Aviation {
             self.fighter_mission(p, carrier, flight, leader, ctx, dt, time);
             return;
         }
-        let target = ctx.actors.iter().find(|a| {
-            Some(&a.motion.id) == p.target_id.as_ref()
-                && a.team != p.team
-                && a.physical_loss().is_none()
-                && a.motion.y > -8.0
-        });
-        if target.is_none() || !p.payload {
-            if target.is_none()
-                && p.payload
-                && let Some(f) = flight
-            {
-                f.notice = Some("Target unavailable · Returning armed".into());
-            }
-            p.phase = "returning".into();
+        let Some(target) = self.strike_solution(p, flight, ctx, dt) else {
             return;
-        }
-        let target = target.unwrap();
+        };
         let target_point = add(
-            [
-                target.motion.x,
-                (target.motion.y + target.definition().hull.depth - target.definition().hull.draft)
-                    .max(0.0),
-                target.motion.z,
-            ],
-            strike_aim_error(p, target.motion.heading, ctx.seed, p.sortie.unwrap_or(0)),
+            target.point,
+            strike_aim_error(p, target.heading, ctx.seed, p.sortie.unwrap_or(0)),
         );
         let distance = (target_point[0] - p.position[0]).hypot(target_point[2] - p.position[2]);
         if let Some(l) = leader
@@ -1102,7 +1085,7 @@ impl Aviation {
                 p.pilot.attack_stage = Some("run".into());
             }
         }
-        let ingress = strike_ingress(p, target.motion.heading, target_point);
+        let ingress = strike_ingress(p, target.heading, target_point);
         let heading = p.pilot.attack_heading.unwrap();
         let forward = [heading.sin(), 0.0, -heading.cos()];
         if let Some(l) = leader
@@ -1186,7 +1169,7 @@ impl Aviation {
         if p.role == "dive-bomber" {
             let height = (p.position[1] - 1.0 - target_point[1]).max(0.0);
             let fall = (p.velocity[1] + (p.velocity[1].powi(2) + 19.62 * height).sqrt()) / 9.81;
-            let aim = add(target_point, scale(target.motion.velocity(), fall));
+            let aim = add(target_point, scale(target.velocity, fall));
             fly(
                 p,
                 [aim[0], target_point[1], aim[2]],
@@ -1202,7 +1185,7 @@ impl Aviation {
             let release_fall =
                 (p.velocity[1] + (p.velocity[1].powi(2) + 19.62 * release_height).sqrt()) / 9.81;
             let landing = add(p.position, scale(p.velocity, release_fall));
-            let impact_aim = add(target_point, scale(target.motion.velocity(), release_fall));
+            let impact_aim = add(target_point, scale(target.velocity, release_fall));
             let error = (landing[0] - impact_aim[0]).hypot(landing[2] - impact_aim[2]);
             if error < 22.0 && p.pitch < -0.25 && p.position[1] > target_point[1] + 90.0 {
                 let id = ctx.next_id();
@@ -1256,9 +1239,9 @@ impl Aviation {
                 .unwrap_or_else(air_torpedo);
             let fall = (-3.0 + (9.0 + 19.62 * p.position[1].max(0.0)).sqrt()) / 9.81;
             let entry = add(p.position, scale([p.velocity[0], 0.0, p.velocity[2]], fall));
-            let future = add(target_point, scale(target.motion.velocity(), fall));
-            let aim = torpedo_intercept(entry, future, target.motion.velocity(), weapon.speed)
-                .unwrap_or(future);
+            let future = add(target_point, scale(target.velocity, fall));
+            let aim =
+                torpedo_intercept(entry, future, target.velocity, weapon.speed).unwrap_or(future);
             fly(
                 p,
                 [aim[0], 26.0, aim[2]],
@@ -1335,7 +1318,24 @@ impl Aviation {
                         f.notice = Some("Ship unavailable · Defending carrier".into());
                     }
                 }
+                AirOrder::InterceptContact { contact_id } => {
+                    if let Some(k) = ctx.knowledge
+                        && let Some(c) = k.sensors.contact(p.team, contact_id)
+                    {
+                        patrol = observation::report_point(c, k.tick);
+                        f.notice = Some("Following aircraft report · Acquiring locally".into());
+                    } else {
+                        f.notice = Some("Aircraft report unavailable · Returning".into());
+                        p.phase = "returning".into();
+                        return;
+                    }
+                }
                 AirOrder::Intercept { flight_id: id } => {
+                    if ctx.knowledge.is_some() {
+                        f.notice = Some("Interception requires an aircraft report".into());
+                        p.phase = "returning".into();
+                        return;
+                    }
                     let target = self.planes().into_iter().find(|o| {
                         o.flight_id.as_ref() == Some(id)
                             && o.team != p.team
@@ -1375,9 +1375,11 @@ impl Aviation {
                 _ => {}
             }
         }
-        let planes = self.planes();
+        let pilots = self.pilot_aircraft(p, ctx.knowledge);
+        let planes: Vec<_> = pilots.iter().collect();
         let target_flight = flight.as_ref().and_then(|f| match &f.order {
             AirOrder::Intercept { flight_id } => Some(flight_id.as_str()),
+            AirOrder::InterceptContact { contact_id } => Some(contact_id.as_str()),
             _ => None,
         });
         let target =
@@ -1399,7 +1401,10 @@ impl Aviation {
             target.is_some(),
         );
         let panic = p.pilot.fire_discipline.as_ref().unwrap().panic;
-        if let Some(mut hostile) = target {
+        if let Some(hostile) = target {
+            if let Some(f) = flight {
+                f.notice = None;
+            }
             p.phase = "attack".into();
             let pursuing = steer_fighter(p, &hostile, &planes, dt);
             let gun = fighter_gun_aim(p, &hostile);
@@ -1416,11 +1421,6 @@ impl Aviation {
                 }
                 p.ammo -= 1.0;
                 p.cooldown = 0.4;
-                if burst.hit {
-                    hostile.hp -= air_gunnery::FIGHTER_DAMAGE
-                        * clamp((gun.alignment - 0.996) / 0.004, 0.3, 1.0)
-                        * clamp(1.3 - gun.distance / 900.0, 0.5, 1.0);
-                }
                 ctx.events.push(DamageEvent {
                     kind: "aircraft-fire".into(),
                     position: p.position,
@@ -1444,16 +1444,25 @@ impl Aviation {
                     }),
                     ..Default::default()
                 });
-                if hostile.hp <= 0.0 {
-                    p.kills += 1;
-                    lose(&mut hostile, ctx.events, "Shot down");
-                }
-                let id = hostile.id.clone();
-                *self.plane_mut(&id).unwrap() = hostile;
+                self.apply_fighter_hit(p, &hostile, &burst, &gun, ctx);
             }
         } else {
             p.phase = "outbound".into();
             p.pilot.aim_time = 0.0;
+            if let Some(f) = flight
+                && let AirOrder::InterceptContact { contact_id } = &f.order
+                && let Some(k) = ctx.knowledge
+                && let Some(c) = k.sensors.contact(p.team, contact_id)
+            {
+                if matches!(
+                    c.status,
+                    crate::sensors::TrackStatus::Lost | crate::sensors::TrackStatus::Stale
+                ) {
+                    f.notice = Some("Contact lost · Searching last report".into());
+                }
+                self.search_report(p, c, k.tick, dt);
+                return;
+            }
             let anchor = [patrol[0], 420.0_f64.max(patrol[1] + 80.0), patrol[2]];
             if leader.is_none_or(|l| l.phase == "attack")
                 || !follow(p, flight.as_ref(), leader, dt, time, ctx.seed)

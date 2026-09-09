@@ -16,6 +16,16 @@ Both carrier definitions now include an optional version-1 `deckLayout`: named p
 
 The content build measures parked, spread and intermediate wing-fold bounds and three tyre support points from the published aircraft GLBs. Rust validates and consumes these geometry records without loading renderer assets. Its clearance queries account for translation and intermediate headings, so clear endpoints alone cannot authorize towing through another aircraft. Packing tests establish aircraft-to-aircraft room and a clear forward launch run; the stern recovery paths intersect the full startup arrangement and require clearing. The physical handling scheduler, fitted deck contact poses and in-game startup remain pending. Numeric capacity and passing bounds tests do not certify complete taxi/recovery clearance.
 
+## PvE observation-based air orders
+
+PvE uses opaque team contact IDs for `Strike` and `InterceptContact`. `Battle.command_air` validates report ownership, hostile affiliation and surface/aircraft kind; normal aircraft admission still checks role, weapons, health and deck readiness. Legacy actor-ID Attack and flight-ID Intercept cannot bypass observations in this mode. Custom/online retain those compatibility commands. The TypeScript presentation type derives from the generated Rust air-order union, with its existing optional Defend field normalization.
+
+Strikes and interceptions navigate from measured position, reported velocity and bounded extrapolation. Only a fresh local aircraft sighting (at most two seconds old) permits attack behavior; receiving another unit's report alone does not. Lost reports lead to a bounded orbit around the estimated search area, with an explicit notice and no hidden homing. Own pilot navigation legs are safe to project to the fleet map. PvE loiter stations use the mission circle with maneuvering space instead of the legacy 30 km carrier-relative limit.
+
+Fighter target selection and evasion use local reports plus owned aircraft. Hostile representations carry measured motion and unknown capability, without inspecting the target's current HP, payload or flight group. Fighter shots resolve against the physical aircraft's predicted position; hitting a report marker cannot damage or overwrite an aircraft that has moved away. This preserves the existing approximate burst model rather than implementing individual bullet trajectories.
+
+Variation D routes aircraft report markers to Intercept and allows strikes against stale surface reports for reacquisition. Mixed selections send the resolved action only to compatible, ready groups and report skipped counts. Actual native-input acceptance remains in the implementation tracker. These contact-following behaviors do not yet implement a finite Search sector order, search altitude selection, Shadow/report policy, search-and-strike allocation or the enemy air commander.
+
 ## Battlefield camera and squadron commands
 
 The ocean covers the full map view through maximum zoom and panning, including portrait windows. Position and camera tilt ease together in both directions, and reversing a transition starts from the currently displayed pose. The development review at `/scripts/diagnostics/carrier-camera.html` opens the actual renderer at maximum zoom; `carrierCameraReview` exposes frame stepping for inspecting transitions.

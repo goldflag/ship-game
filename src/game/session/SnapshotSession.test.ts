@@ -94,6 +94,27 @@ test('a reported PvE target can be selected and focused without exposing HP or i
     expect(telemetry.modules).toBeUndefined();
   } finally { session.dispose(); }
 });
+
+test('PvE strikes address a reported contact on an owned carrier while the destroyer keeps the helm', async () => {
+  const session = await HeadlessSession.create({ playerShipId: 'fletcher', friendlyBots: ['enterprise-cv6'], enemies: [{ shipId: 'fletcher', aiLevel: 'static' }], spawnDistance: 2000, weather: 'clear', missionRules: pveRules as MissionRules });
+  try {
+    session.selectShip('player');
+    session.runtime.step(6); session.applyRaw(session.runtime.snapshot());
+    const contact = session.observationTracks.find(c => c.kind === 'surface')!;
+    expect(contact).toBeDefined();
+    const carrier = session.actors.find(a => a.airWing)!;
+    const flight = squadronFlights(carrier).find(f => carrier.airWing!.planes.some(p => f.planeIds.includes(p.id) && p.role === 'dive-bomber'))!;
+    expect(() => session.commandSquadron(flight.id, { kind: 'attack', targetId: 'enemy-1' })).toThrow();
+    expect(session.commandSquadron(flight.id, { kind: 'attack', targetId: contact.id })).toBe(true);
+    session.applyRaw(session.runtime.snapshot());
+    expect(carrier.airWing!.flights.find(f => f.id === flight.id)!.order).toEqual({ kind: 'strike', contactId: contact.id });
+    expect(carrier.airWing!.planes.filter(p => p.flightId === flight.id).every(p => p.targetId === contact.id)).toBe(true);
+    expect(session.controlledShipId).toBe('player'); expect(session.tick).toBe(6);
+    expect(session.actors.every(a => a.team === 'friendly')).toBe(true);
+    expect(airWingTelemetry(carrier, session.actors)!.groups.find(f => f.id === flight.id)!.targetName).toBe('reported contact');
+    expect(session.runtime.snapshot()).not.toContain('enemy-1');
+  } finally { session.dispose(); }
+});
 test('Iowa carries its roof gun through real WASM snapshots without mutating delta baselines', async () => {
   const session = await HeadlessSession.create({ playerShipId: 'iowa', friendlyBots: [], enemies: [{ shipId: 'baltimore', aiLevel: 'static' }], spawnDistance: 5000 });
   try {

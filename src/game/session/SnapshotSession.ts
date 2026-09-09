@@ -243,6 +243,8 @@ export abstract class SnapshotSession implements BattleSession {
   commandSquadron(id: string, order: AirOrder) {
     const owner = this.actors.find(a => a.team === 'friendly' && squadronFlights(a).some(f => f.id === id));
     if (!owner || this.result !== 'active') return false;
+    if (this.setup.missionRules && order.kind === 'attack') order = { kind: 'strike', contactId: order.targetId };
+    if (this.setup.missionRules && order.kind === 'intercept') order = { kind: 'intercept-contact', contactId: order.flightId };
     this.send(owner.motion.id, { type: 'air', flightId: id, order: order.kind === 'defend' ? { ...order, targetId: order.targetId ?? null } : order });
     return true;
   }

@@ -4,6 +4,15 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, ts_rs::TS)]
 #[serde(tag = "kind", rename_all = "lowercase", deny_unknown_fields)]
 pub enum AirOrder {
+    Strike {
+        #[serde(rename = "contactId")]
+        contact_id: String,
+    },
+    #[serde(rename = "intercept-contact")]
+    InterceptContact {
+        #[serde(rename = "contactId")]
+        contact_id: String,
+    },
     Attack {
         #[serde(rename = "targetId")]
         target_id: String,

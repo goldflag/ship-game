@@ -145,7 +145,8 @@ impl Battle {
             }
             for plane in wing["state"]["planes"].as_array_mut().unwrap() {
                 let plane = plane.as_object_mut().unwrap();
-                plane.remove("navigationTarget");
+                // Owned pilot navigation now derives only from own positions
+                // and team reports, so the command map can show its actual leg.
                 plane.remove("kills");
                 if let Some(id) = plane.get("targetId").and_then(Value::as_str) {
                     let id = self.public_entity_id(id, team);

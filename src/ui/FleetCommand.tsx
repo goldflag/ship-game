@@ -105,8 +105,17 @@ export function FleetCommand({ data, game, bindings }: { data: Telemetry; game: 
     const action = typeof current.current.armed === 'object' ? current.current.armed.kind : undefined;
     const order = squadronTargetOrder(action, target);
     if (!order) { setFeedback(`Choose ${typeof armed === 'object' ? armed.target : 'a compatible target'}.`); return; }
-    const accepted = current.current.selectedFlights.filter(f => (!f.deck || f.active || f.deck.canLaunch) && game.commandSquadron(f.id, order));
-    setFeedback(`${accepted.length} air group orders queued`); setArmed(undefined);
+    const command = SQUADRON_ACTIONS.find(a => a.kind === order.kind);
+    const selected = current.current.selectedFlights;
+    const compatible = selected.filter(f => !command || actionAvailable(command, f.role));
+    const ready = compatible.filter(f => !f.deck || f.active || f.deck.canLaunch);
+    const queued = ready.filter(f => game.commandSquadron(f.id, order));
+    setFeedback([`${queued.length} air group orders queued`,
+      compatible.length < selected.length && `${selected.length - compatible.length} incompatible groups skipped`,
+      ready.length < compatible.length && `${compatible.length - ready.length} groups not ready to launch`,
+      queued.length < ready.length && `${ready.length - queued.length} groups unavailable`,
+    ].filter(Boolean).join(' · '));
+    setArmed(undefined);
   };
   const escort = (leader: string) => {
     const followers = recipients.filter(s => s.id !== leader);
@@ -123,7 +132,7 @@ export function FleetCommand({ data, game, bindings }: { data: Telemetry; game: 
   };
   const targetShip = (ship: Pick<Contact, 'id' | 'team'>, right: boolean, additive: boolean) => {
     const report = observations.find(c => c.id === ship.id);
-    if (report?.status === 'stale' && (right || armed)) { setFeedback('Report is stale. Search its last reported area before attacking.'); return; }
+    if (!current.current.selectedFlights.length && report?.status === 'stale' && (right || armed)) { setFeedback('Report is stale. Search its last reported area before attacking.'); return; }
     if (current.current.selectedFlights.length && (right || typeof armed === 'object')) { issueAir({ kind: 'ship', id: ship.id, team: ship.team }); return; }
     if (ship.team === 'friendly') {
       if (right || armed === 'escort') escort(ship.id);
@@ -135,7 +144,8 @@ export function FleetCommand({ data, game, bindings }: { data: Telemetry; game: 
   };
   const selectReport = (report: ContactTrack, right = false) => {
     if (report.kind === 'surface') { targetShip({ id: report.id, team: 'enemy' }, right, false); return; }
-    if (right || armed) { setFeedback('Select an air group and an interception order on the fleet map.'); return; }
+    if (current.current.selectedFlights.length && (right || typeof armed === 'object')) { issueAir({ kind: 'squadron', id: report.id, team: 'enemy' }); return; }
+    if (right || armed) { setFeedback('Select a fighter group and Intercept, then choose an aircraft contact.'); return; }
     selectShips([]); setContactId(report.id);
   };
   const water = (event: { clientX: number; clientY: number; shiftKey: boolean }, right: boolean) => {

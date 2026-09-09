@@ -20,6 +20,8 @@ pub struct Aviation {
     pub carrier_rules: BTreeMap<String, crate::air_rules::CarrierAirRules>,
     #[serde(skip)]
     pub deck_operations: BTreeMap<String, crate::deck_operations::DeckOperations>,
+    #[serde(skip)]
+    pub airspace: Option<crate::mission::BattleArea>,
 }
 pub fn service_available(actor: &Vessel, sea: Option<(&SeaState, f64)>) -> bool {
     actor.motion.roll.abs() < 0.22
@@ -70,6 +72,7 @@ impl Aviation {
             rules,
             carrier_rules,
             deck_operations: BTreeMap::new(),
+            airspace: None,
         };
         if let crate::air_rules::DeckCycle::Managed {
             startup_groups_per_role,
@@ -209,7 +212,16 @@ impl Aviation {
         match order {
             AirOrder::Patrol { point } => {
                 point.iter().all(|n| n.is_finite())
-                    && (point[0] - actor.motion.x).hypot(point[2] - actor.motion.z) <= 30000.0
+                    && self.airspace.as_ref().map_or_else(
+                        || (point[0] - actor.motion.x).hypot(point[2] - actor.motion.z) <= 30000.0,
+                        |area| area.contains([point[0], point[2]], 1000.0),
+                    )
+            }
+            // Contact identity/kind is validated by Battle against the team's
+            // reports. Admission here checks the owned aircraft, never a hidden actor.
+            AirOrder::Strike { .. } => planes.iter().all(|p| p.role != "fighter" && p.payload),
+            AirOrder::InterceptContact { .. } => {
+                planes.iter().all(|p| p.role == "fighter" && p.ammo > 0.0)
             }
             AirOrder::Attack { target_id } => {
                 actors.iter().any(|a| {
@@ -350,6 +362,7 @@ impl Aviation {
             p.flight_id = Some(flight.id.clone());
             p.target_id = match &order {
                 AirOrder::Attack { target_id } => Some(target_id.clone()),
+                AirOrder::Strike { contact_id } => Some(contact_id.clone()),
                 _ => None,
             };
             p.pilot = Default::default();
@@ -535,6 +548,7 @@ impl Aviation {
             }
             p.target_id = match &order {
                 AirOrder::Attack { target_id } => Some(target_id.clone()),
+                AirOrder::Strike { contact_id } => Some(contact_id.clone()),
                 _ => None,
             };
             p.pilot = Default::default();

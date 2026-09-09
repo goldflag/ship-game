@@ -231,7 +231,8 @@ impl Battle {
         if setup.mission_rules.is_some() && air_rules.id != air_profile_id {
             return Err("Air operations profile does not match the mission".into());
         }
-        let aviation = Aviation::with_rules(&actors, catalog.aircraft.clone(), air_rules)?;
+        let mut aviation = Aviation::with_rules(&actors, catalog.aircraft.clone(), air_rules)?;
+        aviation.airspace = setup.mission_rules.as_ref().map(|m| m.area.clone());
         let visual_conditions =
             crate::sensors::VisualConditions::resolve(&catalog, &setup.map_id, &setup.weather);
         Ok(Self {
@@ -281,6 +282,31 @@ impl Battle {
         let Some(a) = self.actors.iter().find(|a| a.motion.id == actor_id) else {
             return false;
         };
+        use crate::sensors::{Affiliation, ContactKind};
+        match &order {
+            AirOrder::Strike { contact_id } | AirOrder::InterceptContact { contact_id } => {
+                if self.mission_rules.is_none()
+                    || self.sensors.contact(a.team, contact_id).is_none_or(|c| {
+                        c.affiliation != Affiliation::Hostile
+                            || c.kind
+                                != if matches!(order, AirOrder::Strike { .. }) {
+                                    ContactKind::Surface
+                                } else {
+                                    ContactKind::Aircraft
+                                }
+                    })
+                {
+                    return false;
+                }
+            }
+            // Omniscient compatibility commands cannot bypass PvE observations.
+            AirOrder::Attack { .. } | AirOrder::Intercept { .. }
+                if self.mission_rules.is_some() =>
+            {
+                return false;
+            }
+            _ => {}
+        }
         self.aviation.command_squadron(
             a,
             flight,

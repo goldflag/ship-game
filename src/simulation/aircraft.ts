@@ -1,3 +1,4 @@
+import type { AirOrder as NativeAirOrder } from '../multiplayer/generated/AirOrder';
 import type { EndurancePolicy } from '../multiplayer/generated/EndurancePolicy';
 import type { DeckPolicy } from '../multiplayer/generated/DeckPolicy';
 import { physicalLoss } from './battleRules';
@@ -19,7 +20,7 @@ import { flyFormation, formationLeader } from './aircraftFormation';
 import { aircraftBomb, aircraftTorpedo, DEFAULT_AIR_TORPEDO } from './aircraftWeapons';
 
 export type FlightPhase = 'ready' | 'queued' | 'taxi' | 'takeoff' | 'outbound' | 'attack' | 'returning' | 'landing' | 'rollout' | 'parking' | 'rearming' | 'lost' | 'hangar' | 'raising' | 'lowering' | 'repairing' | 'launch-ready';
-export type AirOrder = { kind: 'attack'; targetId: string } | { kind: 'patrol'; point: Vec3 } | { kind: 'defend'; targetId?: string } | { kind: 'intercept'; flightId: string } | { kind: 'escort'; flightId: string } | { kind: 'return' };
+export type AirOrder = Exclude<NativeAirOrder, { kind: 'defend' }> | { kind: 'defend'; targetId?: string };
 export interface AirFlight { id: string; name: string; squadronId: string; planeIds: string[]; order: AirOrder; notice?: string; mergedInto?: string; }
 export interface Aircraft {
   id: string; ownerId: string; team: Team; squadronId: string; modelId: string; role: AircraftRole;
@@ -155,6 +156,7 @@ function combineLandedSquadrons(actor: FleetActor) {
 }
 function validAirOrder(actor: FleetActor, flightId: string, planes: Aircraft[], order: AirOrder, actors: FleetActor[]) {
   if (order.kind === 'return') return true;
+  if (order.kind === 'strike' || order.kind === 'intercept-contact') return false; // Rust observation-mode orders.
   if (!planes.length || planes.some(p => p.flightTime > 470 || p.hp < 25)) return false;
   if (order.kind === 'patrol') return order.point.length === 3 && order.point.every(Number.isFinite)
     && Math.hypot(order.point[0] - actor.motion.x, order.point[2] - actor.motion.z) <= 30000;
