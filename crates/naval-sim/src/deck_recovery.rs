@@ -75,7 +75,7 @@ impl DeckOperations {
             position: layout.recovery_stop,
             heading: 0.0,
         };
-        let occupied = Self::occupied(state, ground, &p.id);
+        let occupied = Self::occupied(state, actor, ground, &p.id);
         let mut spread = model.clone();
         spread.parked = model.sweep;
         spread.layers = vec![model.sweep];

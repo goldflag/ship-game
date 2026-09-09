@@ -96,7 +96,7 @@ struct Job {
 }
 // Only physical occupancy/folding belongs in this key. A parked plane receiving
 // a new air order must not invalidate every route on the deck.
-type OccupancyKey = Vec<(String, Option<[f64; 3]>, Option<usize>, f64, f64)>;
+type OccupancyKey = Vec<(String, Option<[f64; 3]>, Option<usize>, f64, f64, bool)>;
 #[derive(Clone, Debug)]
 pub struct DeckOperations {
     timings: DeckTimings,
@@ -376,6 +376,7 @@ impl DeckOperations {
     }
     fn occupied(
         state: &AirWingState,
+        actor: &Vessel,
         ground: &BTreeMap<String, GroundPose>,
         except: &str,
     ) -> Vec<(Envelope, DeckPose)> {
@@ -388,12 +389,27 @@ impl DeckOperations {
             .map(|p| {
                 let g = &ground[&p.model_id];
                 let model = g.deck_geometry.as_ref().unwrap();
-                let envelope = if g.folding_wings && p.wing_fold >= 1.0 {
+                let mut envelope = if g.folding_wings && p.wing_fold >= 1.0 {
                     model.parked
                 } else {
                     model.sweep
                 };
-                (envelope, pose(p, g))
+                let at = pose(p, g);
+                if p.phase == "takeoff" {
+                    let layout = actor
+                        .definition()
+                        .air_wing
+                        .as_ref()
+                        .unwrap()
+                        .deck_layout
+                        .as_ref()
+                        .unwrap();
+                    // The managed takeoff roll advances along local -Z with
+                    // heading zero. Reserve its remaining travel, not just the
+                    // current airframe, before admitting a concurrent lift.
+                    envelope.min[2] -= (at.position[2] - layout.launch_end[2]).max(0.0);
+                }
+                (envelope, at)
             })
             .collect()
     }
@@ -406,12 +422,21 @@ impl DeckOperations {
                     && (p.deck_position.is_some() || p.deck_slot.is_some())
             })
             .map(|p| {
+                let rolling = p.phase == "takeoff" && p.deck_position.is_some();
                 (
                     p.id.clone(),
-                    p.deck_position,
+                    // A takeoff's remaining reservation only shrinks. Paths
+                    // checked against an earlier extent stay safe; restarting
+                    // their search every moving tick would prevent overlap.
+                    if rolling {
+                        Some([0.0; 3])
+                    } else {
+                        p.deck_position
+                    },
                     p.deck_slot,
                     p.deck_heading.unwrap_or(0.0),
                     p.wing_fold,
+                    rolling,
                 )
             })
             .collect();
@@ -435,15 +460,12 @@ impl DeckOperations {
             .deck_layout
             .as_ref()
             .unwrap();
-        // Only one ground move commits at a time. A takeoff retains its deck
-        // reservation until its wheels leave the runway.
-        if state
+        // One handling job may overlap the last roll in a launch batch once
+        // the departing aircraft's remaining runway reservation clears it.
+        let rolling = state
             .planes
             .iter()
-            .any(|p| p.phase == "takeoff" && p.deck_position.is_some())
-        {
-            return;
-        }
+            .any(|p| p.phase == "takeoff" && p.deck_position.is_some());
         let mut completed = vec![];
         let recovery_waiting = !Self::near_returners(state, actor).is_empty();
         let launch_waiting = self.launch_waiting(state);
@@ -516,6 +538,9 @@ impl DeckOperations {
                     continue;
                 }
                 needed = true;
+                if rolling && action != DeckAction::Raise {
+                    continue;
+                }
                 if ground[&p.model_id].folding_wings && p.wing_fold < 1.0 {
                     continue;
                 }
@@ -543,7 +568,10 @@ impl DeckOperations {
                             .iter()
                             .enumerate()
                             .filter(|(i, _)| {
-                                !state.planes.iter().any(|p| p.deck_slot == Some(*i))
+                                !state
+                                    .planes
+                                    .iter()
+                                    .any(|p| p.deck_slot == Some(*i) && p.phase != "takeoff")
                                     && !self.failed.contains(&(p.id.clone(), action, *i))
                             })
                             .collect();
@@ -559,6 +587,12 @@ impl DeckOperations {
                         let Some((slot, spot)) = spots.into_iter().next() else {
                             continue;
                         };
+                        // A rolling aircraft may still own the best aft spot.
+                        // Wait for its reservation instead of filling a forward
+                        // hole that would block the group's later arrivals.
+                        if state.planes.iter().any(|p| p.deck_slot == Some(slot)) {
+                            continue;
+                        }
                         (
                             Destination::Spot(slot),
                             DeckPose {
@@ -598,11 +632,16 @@ impl DeckOperations {
                 if self.failed.contains(&(p.id.clone(), action, key)) {
                     continue;
                 }
-                let occupied = Self::occupied(state, ground, &p.id);
+                let occupied = Self::occupied(state, actor, ground, &p.id);
                 let traffic = DeckTraffic {
                     ship: actor.definition(),
                     occupied: &occupied,
                 };
+                // Retry admission as the runway clears; do not cache a failed
+                // route while the aircraft is still approaching the lift.
+                if action == DeckAction::Raise && !traffic.clear(model, from) {
+                    continue;
+                }
                 self.active = Some(Job {
                     plane_id: p.id.clone(),
                     request_id: request.id,
@@ -728,7 +767,7 @@ impl DeckOperations {
         let mut finished = false;
         match job.stage {
             Stage::Planning => {
-                let occupied = Self::occupied(state, ground, &job.plane_id);
+                let occupied = Self::occupied(state, actor, ground, &job.plane_id);
                 let traffic = DeckTraffic {
                     ship: actor.definition(),
                     occupied: &occupied,
@@ -911,7 +950,7 @@ impl DeckOperations {
                 }
             }
             Stage::Unfold => {
-                let occupied = Self::occupied(state, ground, &job.plane_id);
+                let occupied = Self::occupied(state, actor, ground, &job.plane_id);
                 // Folding and the entire takeoff strip must clear other planes
                 // before the wings open; no launch uses folded clearance.
                 let at = pose(&state.planes[index], g);

@@ -703,21 +703,22 @@ fn a_queued_lift_does_not_refill_the_lane_a_launch_batch_is_still_using() {
     );
     let mut time = 0.0;
     until(&mut a, &actors, &mut time, |a| {
-        a.wings[0]
-            .state
-            .planes
+        let planes = &a.wings[0].state.planes;
+        if planes.iter().any(|p| {
+            launch.plane_ids.contains(&p.id) && p.deck_slot.is_some() && p.phase != "takeoff"
+        }) {
+            assert!(
+                planes
+                    .iter()
+                    .filter(|p| raise.plane_ids.contains(&p.id))
+                    .all(|p| p.phase == "hangar")
+            );
+        }
+        planes
             .iter()
             .filter(|p| launch.plane_ids.contains(&p.id))
             .all(|p| p.deck_slot.is_none())
     });
-    assert!(
-        a.wings[0]
-            .state
-            .planes
-            .iter()
-            .filter(|p| raise.plane_ids.contains(&p.id))
-            .all(|p| p.phase == "hangar")
-    );
     until(&mut a, &actors, &mut time, |a| {
         a.wings[0]
             .state
@@ -726,6 +727,157 @@ fn a_queued_lift_does_not_refill_the_lane_a_launch_batch_is_still_using() {
             .filter(|p| raise.plane_ids.contains(&p.id))
             .all(|p| p.phase == "ready")
     });
+}
+
+#[test]
+fn a_lift_can_move_during_the_final_roll_only_after_the_runway_clears_it() {
+    use naval_sim::{flight_deck::DeckPose, geometry::sub};
+    for carrier in ["enterprise-cv6", "shokaku"] {
+        for role in ["fighter", "dive-bomber", "torpedo-bomber"] {
+            let (actors, mut a) = setup(carrier, 1);
+            // Single-role deck fixture using the authored startup positions.
+            // Keep the other roles below so a direct handling path can clear
+            // within the short roll; crowded-deck cases are covered separately.
+            for p in &mut a.wings[0].state.planes {
+                if p.role != role {
+                    p.phase = "hangar".into();
+                    p.deck_slot = None;
+                    p.deck_position = None;
+                    p.deck_heading = None;
+                }
+            }
+            let mut time = 0.0;
+            let layout = actors[0]
+                .definition()
+                .air_wing
+                .as_ref()
+                .unwrap()
+                .deck_layout
+                .as_ref()
+                .unwrap();
+            let groups: Vec<_> = a.wings[0]
+                .state
+                .flights
+                .iter()
+                .filter(|f| {
+                    a.wings[0]
+                        .state
+                        .planes
+                        .iter()
+                        .any(|p| f.plane_ids.contains(&p.id) && p.role == role)
+                })
+                .cloned()
+                .collect();
+            let (launch, raise) = (&groups[0], &groups[1]);
+            a.deck_command("carrier", &raise.id, DeckAction::Raise)
+                .unwrap();
+            assert_eq!(
+                a.launch_squadron(
+                    &actors[0],
+                    &launch.squadron_id,
+                    None,
+                    Some(AirOrder::Patrol {
+                        point: [5000.0, 800.0, -5000.0]
+                    }),
+                    &actors,
+                    Some(&launch.id),
+                    None
+                ),
+                4
+            );
+            let mut moving_overlap = false;
+            let mut saw_blocked_approach = false;
+            for _ in 0..12000 {
+                step(&mut a, &actors, &mut time, 0.1);
+                let planes = &a.wings[0].state.planes;
+                let rolling = planes
+                    .iter()
+                    .find(|p| p.phase == "takeoff" && p.deck_position.is_some());
+                if let Some(departing) = rolling {
+                    let g = &a.ground[&departing.model_id];
+                    let at = DeckPose {
+                        position: sub(departing.deck_position.unwrap(), [0.0, g.clearance, 0.0]),
+                        heading: 0.0,
+                    };
+                    let end = DeckPose {
+                        position: layout.launch_end,
+                        heading: 0.0,
+                    };
+                    let arriving = planes
+                        .iter()
+                        .find(|p| raise.plane_ids.contains(&p.id) && p.phase == "raising");
+                    let raised_ground = &a.ground[&planes
+                        .iter()
+                        .find(|p| raise.plane_ids.contains(&p.id))
+                        .unwrap()
+                        .model_id];
+                    let top = DeckPose {
+                        position: layout.elevators[0].position,
+                        heading: 0.0,
+                    };
+                    let obstructed = g.deck_geometry.as_ref().unwrap().sweep.swept_overlap(
+                        at,
+                        end,
+                        raised_ground.deck_geometry.as_ref().unwrap().parked,
+                        top,
+                    );
+                    if obstructed {
+                        saw_blocked_approach = true;
+                        assert!(
+                            arriving.is_none(),
+                            "{carrier}/{role}: lift entered future takeoff path"
+                        );
+                    }
+                    if let Some(arriving) = arriving {
+                        let y = arriving.deck_position.unwrap()[1] - raised_ground.clearance;
+                        moving_overlap |= y > layout.elevators[0].hangar_y + 0.01;
+                        assert_eq!(
+                            planes
+                                .iter()
+                                .filter(
+                                    |p| launch.plane_ids.contains(&p.id) && p.deck_slot.is_some()
+                                )
+                                .count(),
+                            1
+                        );
+                    }
+                }
+                if planes
+                    .iter()
+                    .filter(|p| raise.plane_ids.contains(&p.id))
+                    .all(|p| p.phase == "ready")
+                {
+                    break;
+                }
+            }
+            assert!(
+                saw_blocked_approach,
+                "{carrier}/{role}: did not exercise runway conflict"
+            );
+            assert!(
+                moving_overlap,
+                "{carrier}/{role}: no physical lift/takeoff overlap"
+            );
+            assert!(
+                a.wings[0]
+                    .state
+                    .planes
+                    .iter()
+                    .filter(|p| raise.plane_ids.contains(&p.id))
+                    .all(|p| p.phase == "ready"),
+                "{carrier}/{role}: lift did not drain"
+            );
+            assert!(
+                a.wings[0]
+                    .state
+                    .planes
+                    .iter()
+                    .filter(|p| launch.plane_ids.contains(&p.id))
+                    .all(|p| p.deck_slot.is_none()),
+                "{carrier}/{role}: launch did not drain"
+            );
+        }
+    }
 }
 
 #[test]
