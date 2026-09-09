@@ -21,11 +21,23 @@ const identities: Record<string, { type: string; nation: string }> = {
 export function shipIdentity(id: string) {
   return identities[id] ?? { type: 'Ship', nation: '' };
 }
+/** Port filter classes. Detailed types (heavy cruiser, cargo ship, corvette) fold into these. */
+export const SHIP_CLASSES = ['Carrier', 'Battleship', 'Cruiser', 'Destroyer', 'Submarine', 'Other'] as const;
+export type ShipClass = typeof SHIP_CLASSES[number];
+export function shipClass(id: string): ShipClass {
+  const type = shipIdentity(id).type;
+  if (type === 'Aircraft carrier') return 'Carrier';
+  if (type === 'Battleship') return 'Battleship';
+  if (/cruiser/i.test(type)) return 'Cruiser';
+  if (type === 'Destroyer') return 'Destroyer';
+  if (type === 'Submarine') return 'Submarine';
+  return 'Other';
+}
 export function shipModel(selectedShip: ShipDefinition) {
   const identity = shipIdentity(selectedShip.id);
   const year = selectedShip.configuration.match(/19\d{2}/)?.[0] ?? '';
 
-  // The port, custom battle and schematic all use the selected compiled asset.
+  // The port and custom battle both use the selected compiled asset.
   return {
     id: selectedShip.id,
     url: assetUrl(selectedShip.modelUrl),
