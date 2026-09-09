@@ -79,6 +79,7 @@ fn main() {
         spawn_distance: 5000.0,
         wind_speed: None,
         mission_rules: None,
+        air_rules: None,
     };
     let mut battle = Battle::new(catalog.clone(), &compiled, setup.clone()).unwrap();
     let mut baseline = battle

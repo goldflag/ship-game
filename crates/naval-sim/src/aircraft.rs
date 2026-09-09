@@ -117,9 +117,7 @@ pub struct AirRelease {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub weapon: Option<crate::definition::TorpedoPart>,
 }
-pub const AIRCRAFT_ENDURANCE_SECONDS: f64 = 1050.0;
 pub const FIGHTER_AMMO_BURSTS: f64 = 16.0;
-pub const AIRCRAFT_REPAIR_HP: f64 = 60.0;
 pub fn airborne(p: &Aircraft) -> bool {
     matches!(
         p.phase.as_str(),

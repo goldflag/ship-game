@@ -46,6 +46,7 @@ pub enum TimeoutPolicy {
 pub struct MissionRules {
     pub version: u32,
     pub id: String,
+    pub air_profile_id: String,
     pub budget: FleetBudget,
     pub area: BattleArea,
     pub observation: ObservationPolicy,
@@ -67,6 +68,8 @@ impl MissionRules {
         if self.version != 1
             || self.id.is_empty()
             || self.id.len() > 64
+            || self.air_profile_id.is_empty()
+            || self.air_profile_id.len() > 64
             || !(1..=30).contains(&self.budget.max_ships)
             || self.budget.max_displacement_kg == 0
             || self.budget.max_displacement_kg > 1_000_000_000

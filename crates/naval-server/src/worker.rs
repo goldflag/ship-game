@@ -485,6 +485,7 @@ mod tests {
             spawn_distance: 5000.0,
             wind_speed: None,
             mission_rules: None,
+            air_rules: None,
         };
         let id = uuid::Uuid::new_v4().to_string();
         let path = std::env::temp_dir().join(format!("naval-worker-{id}.sqlite"));

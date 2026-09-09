@@ -18,6 +18,7 @@ test('real WASM planner exposes owned deployment only and remains usable after a
     expect(briefing.setup.ships.every(s => s.team === 'a')).toBe(true);
     expect(initial).not.toContain('opponent-');
     expect(briefing.totals).toEqual({ aircraft: 0, displacementKg: 2924000, ships: 1 });
+    expect(briefing.setup.airRules?.id).toBe(briefing.setup.missionRules?.airProfileId);
     expect(() => planner.start(JSON.stringify([{ id: 'own-destroyer', spawn: { x: 0, z: -8000, heading: 0 } }]))).toThrow();
     expect(planner.briefing()).toBe(initial);
     const runtime = planner.start(JSON.stringify(briefing.setup.ships.map(s => ({ id: s.id, spawn: s.spawn }))));

@@ -4,6 +4,14 @@ Carriers use the same version-1 `airWing` in their ship blueprints and compile t
 
 Shōkaku's December 1941 preset uses the same global gameplay complement: 48 aircraft, comprising 16 A6M2 Zeros, 16 D3A1 Vals and 16 B5N2 Kates. This deliberately reduced equal-role inventory is not a historical manifest. Each carrier's legacy six-plane limit produces nine groups (6, 6 and 4 aircraft per role); deck and concurrent-flight rules remain shared. The PvE four-plane grouping and deck policy are tracked in the [PvE implementation status](pve-implementation-status.md). The published Japanese aircraft rigs retain their wings in flight position; A6M2 and B5N2 historical folding hinges are not yet modeled. D3A1 has fixed landing gear and wings. Wildcat and Devastator folding remains driven by their authored hinges, and capability is checked against every exported LOD. The renderer loads the aircraft needed by the selected fleet, with three LODs each, and retains cached models when the fleet changes. See the [Shōkaku reference and discrepancy record](../assets/ships/shokaku/README.md) for configuration uncertainty.
 
+## Rust operating profiles
+
+Rust resolves versioned `AirRules` from the content manifest and freezes the selected values for a battle. `MissionRules.airProfileId` binds a mission to its installed profile; saved PvE setups carry the full selection. Missing profiles, altered selections and a deck allowance above the authored capacity are rejected. Profiles and the mission binding participate in content and simulation hashes.
+
+The explicit compatibility profile is [legacy-air.v1.json](../assets/gameplay/legacy-air.v1.json). It preserves authored group/deck/active-flight values and the existing launch timing, repair ceiling and endurance deadlines. The initial rule contract supports a bounded or unlimited active-flight policy and disabled or timed endurance. Rust admission, automatic recall, exhaustion and recovery priority consume the same endurance policy. Aircraft clocks continue advancing when endurance is disabled; empty weapons and critical damage still cause returns.
+
+The current PvE implementation still selects this compatibility profile while its physical deck cycle is built. Four-plane groups, 24-plane startup, lifts, deck/hangar service, serial recovery and their telemetry must be connected before activating the complete PvE profile. Those changes remain tracked in the [implementation status](pve-implementation-status.md).
+
 ## Battlefield camera and squadron commands
 
 The ocean covers the full map view through maximum zoom and panning, including portrait windows. Position and camera tilt ease together in both directions, and reversing a transition starts from the currently displayed pose. The development review at `/scripts/diagnostics/carrier-camera.html` opens the actual renderer at maximum zoom; `carrierCameraReview` exposes frame stepping for inspecting transitions.

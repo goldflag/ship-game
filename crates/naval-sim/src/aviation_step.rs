@@ -8,7 +8,7 @@ use crate::{
     },
     aircraft_formation::{fly_formation, formation_leader},
     aircraft_tactics::*,
-    aviation::{Aviation, deck_capacity, flight_size, service_available},
+    aviation::{Aviation, service_available},
     definition::{TorpedoPart, Vec3},
     environment::SeaState,
     geometry::*,
@@ -154,7 +154,9 @@ impl Aviation {
     fn deck_spot(&self, actor: &Vessel, p: &Aircraft) -> Vec3 {
         let wing = actor.definition().air_wing.as_ref().unwrap();
         let index = p.deck_slot.unwrap_or(0);
-        let count = deck_capacity(actor).min(self.wing(&actor.motion.id).unwrap().planes.len());
+        let count = self
+            .deck_capacity(actor)
+            .min(self.wing(&actor.motion.id).unwrap().planes.len());
         let span = (actor.definition().hull.length * 0.76).min((count as f64 - 1.0) * 14.0);
         [
             wing.launch_position[0] - 10.0,
@@ -171,9 +173,9 @@ impl Aviation {
         if p.deck_slot.is_some() {
             return true;
         }
+        let capacity = self.deck_capacity(actor);
         let state = self.wing_mut(&actor.motion.id).unwrap();
-        let free = (0..deck_capacity(actor))
-            .find(|i| !state.planes.iter().any(|o| o.deck_slot == Some(*i)));
+        let free = (0..capacity).find(|i| !state.planes.iter().any(|o| o.deck_slot == Some(*i)));
         if let Some(free) = free {
             p.deck_slot = Some(free);
         } else {
@@ -206,9 +208,16 @@ impl Aviation {
             let (a, b) = (&state.planes[a], &state.planes[b]);
             (b.phase == "landing")
                 .cmp(&(a.phase == "landing"))
-                .then_with(|| (b.flight_time > 470.0).cmp(&(a.flight_time > 470.0)))
                 .then_with(|| {
-                    if a.flight_time > 470.0 && b.flight_time > 470.0 {
+                    self.rules
+                        .endurance
+                        .needs_recall(b.flight_time, false)
+                        .cmp(&self.rules.endurance.needs_recall(a.flight_time, false))
+                })
+                .then_with(|| {
+                    if self.rules.endurance.needs_recall(a.flight_time, false)
+                        && self.rules.endurance.needs_recall(b.flight_time, false)
+                    {
                         b.flight_time.total_cmp(&a.flight_time)
                     } else {
                         std::cmp::Ordering::Equal
@@ -228,7 +237,7 @@ impl Aviation {
         if !state.planes.iter().any(|p| p.phase == "lost") {
             return;
         }
-        let size = flight_size(actor);
+        let size = self.flight_size(actor);
         let mut candidates: Vec<_> = self
             .squadron_flights(actor)
             .into_iter()
@@ -538,7 +547,7 @@ impl Aviation {
                         0.0
                     };
                     p.payload = p.role != "fighter";
-                    p.hp = p.hp.max(AIRCRAFT_REPAIR_HP);
+                    p.hp = p.hp.max(self.rules.repair_ceiling_hp);
                 }
             }
             let state = self.wing(&actor.motion.id).unwrap();
@@ -556,8 +565,11 @@ impl Aviation {
                 p.timer = 0.0;
                 p.flight_time = 0.0;
                 self.wing_mut(&actor.motion.id).unwrap().launch_cooldown =
-                    (10.0 - TAKEOFF_ROLL_SECONDS - TAKEOFF_CLIMB_SECONDS)
-                        / (flight_size(actor) as f64 - 1.0).max(1.0);
+                    (self.rules.launch_group_seconds
+                        - TAKEOFF_ROLL_SECONDS
+                        - TAKEOFF_CLIMB_SECONDS)
+                        .max(0.0)
+                        / (self.flight_size(actor) as f64 - 1.0).max(1.0);
                 deck_pose(
                     p,
                     actor,
@@ -630,11 +642,13 @@ impl Aviation {
         }
         p.flight_time += dt;
         p.timer += dt;
-        if p.flight_time > AIRCRAFT_ENDURANCE_SECONDS {
+        if self.rules.endurance.exhausted(p.flight_time) {
             lose(p, ctx.events, "Endurance exhausted");
             return;
         }
-        if (p.flight_time > 470.0 || p.hp < 25.0) && p.phase != "landing" {
+        if (self.rules.endurance.needs_recall(p.flight_time, false) || p.hp < 25.0)
+            && p.phase != "landing"
+        {
             p.phase = "returning".into();
         }
         let carrier = local_to_world(
@@ -1244,7 +1258,7 @@ impl Aviation {
         dt: f64,
         time: f64,
     ) {
-        if p.ammo == 0.0 || p.flight_time > 260.0 {
+        if p.ammo == 0.0 || self.rules.endurance.needs_recall(p.flight_time, true) {
             p.phase = "returning".into();
             return;
         }

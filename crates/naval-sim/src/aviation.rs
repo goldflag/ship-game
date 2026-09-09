@@ -14,22 +14,10 @@ pub struct Aviation {
     pub wings: Vec<CarrierWing>,
     #[serde(skip)]
     pub ground: BTreeMap<String, GroundPose>,
-}
-pub fn flight_size(actor: &Vessel) -> usize {
-    actor
-        .definition()
-        .air_wing
-        .as_ref()
-        .and_then(|w| w.flight_size)
-        .unwrap_or(3.0) as usize
-}
-pub fn deck_capacity(actor: &Vessel) -> usize {
-    actor
-        .definition()
-        .air_wing
-        .as_ref()
-        .and_then(|w| w.deck_capacity)
-        .unwrap_or(18.0) as usize
+    #[serde(skip)]
+    pub rules: crate::air_rules::AirRules,
+    #[serde(skip)]
+    pub carrier_rules: BTreeMap<String, crate::air_rules::CarrierAirRules>,
 }
 pub fn service_available(actor: &Vessel, sea: Option<(&SeaState, f64)>) -> bool {
     let def = actor.definition();
@@ -47,7 +35,21 @@ pub fn service_available(actor: &Vessel, sea: Option<(&SeaState, f64)>) -> bool 
 }
 impl Aviation {
     pub fn new(actors: &[Vessel], ground: BTreeMap<String, GroundPose>) -> Self {
-        Self {
+        Self::with_rules(actors, ground, crate::air_rules::AirRules::legacy())
+            .expect("Validated carrier definitions support legacy air rules")
+    }
+    pub fn with_rules(
+        actors: &[Vessel],
+        ground: BTreeMap<String, GroundPose>,
+        rules: crate::air_rules::AirRules,
+    ) -> Result<Self, String> {
+        rules.validate()?;
+        let carrier_rules = actors
+            .iter()
+            .filter(|a| a.definition().air_wing.is_some())
+            .map(|a| Ok((a.motion.id.clone(), rules.resolve(a.definition())?)))
+            .collect::<Result<BTreeMap<_, _>, String>>()?;
+        Ok(Self {
             wings: actors
                 .iter()
                 .filter_map(|a| {
@@ -60,7 +62,15 @@ impl Aviation {
                 })
                 .collect(),
             ground,
-        }
+            rules,
+            carrier_rules,
+        })
+    }
+    pub fn flight_size(&self, actor: &Vessel) -> usize {
+        self.carrier_rules[&actor.motion.id].group_size
+    }
+    pub fn deck_capacity(&self, actor: &Vessel) -> usize {
+        self.carrier_rules[&actor.motion.id].deck_capacity
     }
     pub fn wing(&self, id: &str) -> Option<&AirWingState> {
         self.wings
@@ -87,7 +97,7 @@ impl Aviation {
         let Some(state) = self.wing(&actor.motion.id) else {
             return vec![];
         };
-        let size = flight_size(actor);
+        let size = self.flight_size(actor);
         actor
             .definition()
             .air_wing
@@ -145,9 +155,9 @@ impl Aviation {
             return true;
         }
         if planes.is_empty()
-            || planes
-                .iter()
-                .any(|p| !refuelled && p.flight_time > 470.0 || p.hp < 25.0)
+            || planes.iter().any(|p| {
+                !refuelled && self.rules.endurance.rejects_order(p.flight_time) || p.hp < 25.0
+            })
         {
             return false;
         }
@@ -212,19 +222,15 @@ impl Aviation {
         let Some(state) = self.wing(&actor.motion.id) else {
             return 0;
         };
-        let max = actor
-            .definition()
-            .air_wing
-            .as_ref()
-            .and_then(|w| w.max_active_flights)
-            .unwrap_or(4.0) as usize;
-        if state
-            .flights
-            .iter()
-            .filter(|f| active_flight(f, &state.planes))
-            .count()
-            >= max
-        {
+        let max = self.carrier_rules[&actor.motion.id].active_flights;
+        if max.is_some_and(|max| {
+            state
+                .flights
+                .iter()
+                .filter(|f| active_flight(f, &state.planes))
+                .count()
+                >= max
+        }) {
             return 0;
         }
         let Some(mut flight) = self.squadron_flights(actor).into_iter().find(|f| {

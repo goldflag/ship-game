@@ -257,6 +257,7 @@ impl PvePlan {
                 weather: request.weather,
                 spawn_distance: 16000.0,
                 wind_speed: None,
+                air_rules: Some(catalog.air_profiles[&rules.air_profile_id].clone()),
                 mission_rules: Some(rules),
             },
             groups: request.groups,

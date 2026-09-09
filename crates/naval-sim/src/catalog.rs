@@ -23,6 +23,7 @@ struct Manifest {
     version: u32,
     rules_version: u32,
     missions: Vec<crate::mission::MissionRules>,
+    air_profiles: Vec<crate::air_rules::AirRules>,
     ships: Vec<ManifestShip>,
     terrain: Vec<crate::environment::TerrainField>,
     maps: serde_json::Value,
@@ -54,6 +55,7 @@ pub struct Catalog {
     pub maps: serde_json::Value,
     pub conditions: serde_json::Value,
     pub missions: BTreeMap<String, crate::mission::MissionRules>,
+    pub air_profiles: BTreeMap<String, crate::air_rules::AirRules>,
 }
 
 pub fn sha256(bytes: &[u8]) -> String {
@@ -81,6 +83,26 @@ impl Catalog {
                 return Err(ContentError::Invalid("Duplicate mission profile".into()));
             }
         }
+        let mut air_profiles = BTreeMap::new();
+        for profile in manifest.air_profiles {
+            profile.validate().map_err(ContentError::Invalid)?;
+            if air_profiles.insert(profile.id.clone(), profile).is_some() {
+                return Err(ContentError::Invalid(
+                    "Duplicate air operations profile".into(),
+                ));
+            }
+        }
+        if air_profiles.get("legacy-air-v1") != Some(&crate::air_rules::AirRules::legacy()) {
+            return Err(ContentError::Invalid(
+                "Missing or altered legacy air profile".into(),
+            ));
+        }
+        if missions
+            .values()
+            .any(|m| !air_profiles.contains_key(&m.air_profile_id))
+        {
+            return Err(ContentError::Invalid("Missing mission air profile".into()));
+        }
         let mut catalog = Self {
             aircraft: manifest
                 .aircraft
@@ -95,6 +117,7 @@ impl Catalog {
             maps: manifest.maps,
             conditions: manifest.conditions,
             missions,
+            air_profiles,
         };
         catalog.map_ids().map_err(ContentError::Invalid)?;
         catalog.weather_ids().map_err(ContentError::Invalid)?;

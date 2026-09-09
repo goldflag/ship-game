@@ -52,6 +52,10 @@ pub struct BattleSetup {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[ts(optional)]
     pub mission_rules: Option<crate::mission::MissionRules>,
+    /// Omitted legacy setups explicitly resolve legacy-air-v1 from installed content.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub air_rules: Option<crate::air_rules::AirRules>,
 }
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -216,7 +220,18 @@ impl Battle {
             displacement.push(catalog.fleet_entries[&ship.preset_id].displacement_kg);
             actors.push(a);
         }
-        let aviation = Aviation::new(&actors, catalog.aircraft.clone());
+        let air_profile_id = setup
+            .mission_rules
+            .as_ref()
+            .map_or("legacy-air-v1", |m| m.air_profile_id.as_str());
+        let air_rules = setup
+            .air_rules
+            .unwrap_or_else(|| catalog.air_profiles[air_profile_id].clone());
+        air_rules.validate_selection(&catalog)?;
+        if setup.mission_rules.is_some() && air_rules.id != air_profile_id {
+            return Err("Air operations profile does not match the mission".into());
+        }
+        let aviation = Aviation::with_rules(&actors, catalog.aircraft.clone(), air_rules)?;
         let visual_conditions =
             crate::sensors::VisualConditions::resolve(&catalog, &setup.map_id, &setup.weather);
         Ok(Self {

@@ -1,6 +1,7 @@
 {
   "version": 1,
   "id": "pve-fleet-v1",
+  "airProfileId": "legacy-air-v1",
   "budget": { "maxDisplacementKg": 200000000, "maxShips": 15, "maxAircraft": 100 },
   "area": { "radiusM": 25000, "warningMarginM": 1500 },
   "observation": "visual-v1",

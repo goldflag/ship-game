@@ -5,4 +5,4 @@ import type { FleetBudget } from "./FleetBudget";
 import type { ObservationPolicy } from "./ObservationPolicy";
 import type { TimeoutPolicy } from "./TimeoutPolicy";
 
-export type MissionRules = { version: number, id: string, budget: FleetBudget, area: BattleArea, observation: ObservationPolicy, elimination: EliminationPolicy, durationSeconds: number | null, timeout: TimeoutPolicy, };
+export type MissionRules = { version: number, id: string, airProfileId: string, budget: FleetBudget, area: BattleArea, observation: ObservationPolicy, elimination: EliminationPolicy, durationSeconds: number | null, timeout: TimeoutPolicy, };
