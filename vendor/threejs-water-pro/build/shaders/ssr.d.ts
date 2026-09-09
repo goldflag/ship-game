@@ -17,6 +17,9 @@
  * - DDA adapts: step count = ray length in pixels. Every sample is
  *   meaningful, no geometry is skipped, and short rays are cheap.
  * - `stepCount` acts as a max cap to bound worst-case cost for long rays.
+ * - Rays are clipped to the viewport before distributing DDA steps, including
+ *   the matching reciprocal-depth interval. Hits receive eight refinement steps
+ *   to resolve the two-meter tolerance at naval viewing distances.
  */
 import * as THREE from "three/webgpu";
 import type { Node } from "./types";
