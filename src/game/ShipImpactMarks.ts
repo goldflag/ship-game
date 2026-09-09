@@ -164,8 +164,9 @@ export class ShipImpactMarks {
     // Composite surface scars after opaque hulls but before transparent smoke
     // and spray. Effect pools sort as a batch, so distance sorting alone cannot
     // reliably place their individual plumes in front of these decals.
-    // Three r185 reverses the entire sorted list, including explicit orders.
-    batch.renderOrder = this.reversedDepthBuffer ? 1 : -1; batch.raycast = () => {};
+    // configureRenderOrder keeps authored order ascending on both depth
+    // conventions, so a negative order draws before the effect pools' zero.
+    batch.renderOrder = -1; batch.raycast = () => {};
     receiver.add(batch); this.batches.set(receiver, batch);
   }
 
