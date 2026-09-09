@@ -67,7 +67,9 @@ for (const [side, sign] of [['bow', -1], ['stern', 1]] as const) {
     for (let distance = 1; distance < 35; distance++) {
       const z = sign * (hull.length / 2 - distance);
       const box: Compartment = { id: 'candidate', name: 'candidate', center: [0, midY, z], size: [.8, (y1 - y0) * .98, .98], capacityM3: 1, pumpM3PerSecond: 0 };
-      const inside = [-1, 1].every(sx => [-1, 1].every(sy => [-1, 1].every(sz => hullContains(hull, [sx * .4, midY + sy * box.size[1] / 2, z + sz * .49]))));
+      // Recurved stems can be narrower through a box's middle than at its
+      // corners; include face/edge centres before accepting an end space.
+      const inside = [-1, 0, 1].every(sx => [-1, 0, 1].every(sy => [-1, 0, 1].every(sz => hullContains(hull, [sx * .4, midY + sy * box.size[1] / 2, z + sz * .49]))));
       const occupied = b.compartments.some(c => c.center.every((n, axis) => Math.abs(n - box.center[axis]) < (c.size[axis] + box.size[axis]) / 2));
       if (inside && !occupied) { if (cells.length && distance !== cells.at(-1)! + 1) break; cells.push(distance); }
       else if (cells.length) break;

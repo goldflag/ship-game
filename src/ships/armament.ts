@@ -1,5 +1,16 @@
 import type { Battery, GunPart, ShipDefinition } from './blueprint';
 
+/** Installed travel about the unchanged neutral bearing. */
+export function gunTraverseLimitsDeg(mount: ShipDefinition['mounts'][number]): [number, number] {
+  return mount.traverseLimitsDeg ?? [-mount.weapon.traverseDeg, mount.weapon.traverseDeg];
+}
+
+/** Review fractions run from the negative stop, through neutral, to the positive stop. */
+export function gunTraverseAtFraction(mount: ShipDefinition['mounts'][number], fraction: number): number {
+  const [low, high] = gunTraverseLimitsDeg(mount), t = Math.max(-1, Math.min(1, fraction));
+  return (t < 0 ? -t * low : t * high) * Math.PI / 180;
+}
+
 /** Gameplay envelope for registered high-angle mounts, including 5.25-inch DP guns. */
 export const ANTI_AIRCRAFT_MAX_CALIBER_M = .14;
 export function antiAircraftRange(mount: ShipDefinition['mounts'][number]): number {

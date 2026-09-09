@@ -6,7 +6,39 @@ import { CombatSimulation } from '../simulation/combat';
 import { compileShip } from '../ships/blueprint';
 import { ShipView } from './ShipView';
 import { shipPreset } from '../ships/presets';
+import { gunTraverseAtFraction, gunTraverseLimitsDeg } from '../ships/armament';
 import * as THREE from 'three/webgpu';
+
+test('Cleveland exported joints retain asymmetric wing travel and independent neighboring poses during interpolation', async () => {
+  const definition = shipPreset('cleveland');
+  const bytes = await Bun.file('public/models/cleveland.glb').arrayBuffer();
+  const length = new DataView(bytes).getUint32(12, true);
+  const gltf = JSON.parse(new TextDecoder().decode(new Uint8Array(bytes, 20, length)));
+  const nodes = gltf.nodes.map(({ mesh: _mesh, ...node }: { mesh?: number }) => node);
+  const model = await new GLTFLoader().parseAsync(JSON.stringify({ asset: gltf.asset, scene: gltf.scene, scenes: gltf.scenes, nodes }), '');
+  const sim = new CombatSimulation(definition), view = new ShipView(model.scene, definition, sim.player);
+  expect(view.muzzleErrors()).toHaveLength(67);
+  const joint = (id: string) => { let result: THREE.Object3D | undefined; model.scene.traverse(o => { if (o.userData.nodeId === id) result = o; }); return result!; };
+  for (const fraction of [-1, -.5, 0, .5, 1]) for (const elevation of [0, .5, 1]) {
+    view.capturePreviousPose();
+    sim.player.mounts.forEach((state, i) => {
+      const m = definition.mounts[i], w = m.weapon;
+      state.train = gunTraverseAtFraction(m, i % 2 ? -fraction : fraction);
+      state.elevation = (w.elevationMinDeg + elevation * (w.elevationMaxDeg - w.elevationMinDeg)) * Math.PI / 180;
+      state.recoil = i % 2 ? .8 : .2;
+    });
+    for (const alpha of [0, .35, .7, 1]) {
+      view.update(alpha);
+      expect(Math.max(...view.muzzleErrors())).toBeLessThan(.025);
+      for (const m of definition.mounts.filter(m => m.traverseLimitsDeg)) {
+        const train = -joint(`${m.id}.yaw`).rotation.y - m.bearingDeg * Math.PI / 180;
+        const [low, high] = gunTraverseLimitsDeg(m).map(n => n * Math.PI / 180);
+        expect(train).toBeGreaterThanOrEqual(low - 1e-6);
+        expect(train).toBeLessThanOrEqual(high + 1e-6);
+      }
+    }
+  }
+});
 
 test('Iowa exported blast bags keep fixed seams and follow gun collars through interpolated elevation', async () => {
   const definition = shipPreset('iowa');
