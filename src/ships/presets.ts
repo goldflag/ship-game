@@ -1,11 +1,14 @@
 import kingGeorgeV from '../../public/models/king-george-v.json';
 import bismarck from '../../public/models/bismarck.json';
 import yamato from '../../public/models/yamato.json';
+import iowa from '../../public/models/iowa.json';
 import baltimore from '../../public/models/baltimore.json';
+import mogami from '../../public/models/mogami.json';
 import enterprise from '../../public/models/enterprise-cv6.json';
 import shokaku from '../../public/models/shokaku.json';
 import viic from '../../public/models/type-viic.json';
 import fletcher from '../../public/models/fletcher.json';
+import yukikaze from '../../public/models/yukikaze.json';
 import libertyCargo from '../../public/models/liberty-cargo.json';
 import libertyCollier from '../../public/models/liberty-collier.json';
 import victoryCargo from '../../public/models/victory-cargo.json';
@@ -16,8 +19,10 @@ import type { ShipDefinition } from './blueprint';
 export const shipPresets = {
   bismarck,
   yamato,
+  iowa,
   'king-george-v': kingGeorgeV,
   baltimore,
+  mogami,
   'enterprise-cv6': enterprise,
   shokaku,
   'type-viic': viic,
@@ -26,6 +31,7 @@ export const shipPresets = {
   'victory-cargo': victoryCargo,
   'flower-corvette': flower,
   fletcher,
+  yukikaze,
 };
 const retiredPresetAliases: Record<string, keyof typeof shipPresets> = {
   'liberty-deck-cargo': 'liberty-collier', 'liberty-troopship': 'victory-cargo',

@@ -3,12 +3,12 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { positionWorld, float } from 'three/tsl';
 import { waterLevel as compartmentWaterLevel } from '../simulation/stability';
 import * as THREE from 'three/webgpu';
+import { mountFrame } from '../simulation/mountFrames';
 import { materialColor, mix, normalFlat, uniform, vec3 } from 'three/tsl';
 import type { ShipDefinition } from '../ships/blueprint';
 import { entryInMode, inspectionColor, inspectionEntries, type InspectionMode, type InspectionEntry } from '../ships/inspection';
 import type { Combatant } from '../simulation/damage';
 import { equipmentCondition } from '../simulation/machinery';
-import { radians } from '../simulation/geometry';
 import { EXTERIOR_PLATING_REPLACEMENT_M } from '../simulation/structure';
 import { regionCondition } from '../simulation/localDamage';
 
@@ -154,7 +154,12 @@ export class ShipInspection {
         const hp = actor.mounts[entry.mountIndex].hp;
         if (hp < entry.hp!) fill.material.color.set(hp <= 0 ? '#d36b4f' : '#dfbd83');
       }
-      if (entry.mountIndex !== undefined) group.rotation.y = -(radians(entry.bearingDeg!) + actor.mounts[entry.mountIndex].train);
+      if (entry.mountIndex !== undefined) {
+        const pose = mountFrame(this.definition, entry.mountIndex, actor.mounts.map(m => m.train));
+        const mount = this.definition.mounts[entry.mountIndex], anchor = entry.anchor ?? entry.center;
+        group.position.set(pose.x + anchor[0] - mount.position[0], pose.y + anchor[1] - mount.position[1], pose.z + anchor[2] - mount.position[2]);
+        group.rotation.y = -pose.heading;
+      }
       if (water && entry.compartmentIndex !== undefined) {
         const fraction = actor.damage.compartments[entry.compartmentIndex].waterM3 / entry.capacityM3!;
         // Combat emphasizes consequences; the complete dry layout stays

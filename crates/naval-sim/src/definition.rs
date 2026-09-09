@@ -195,6 +195,10 @@ pub struct MountDefinition {
     pub bearing_deg: f64,
     #[serde(rename = "rangefinder")]
     pub rangefinder: bool,
+    #[serde(rename = "parentMountId")]
+    pub parent_mount_id: Option<String>,
+    #[serde(rename = "traverseDeg")]
+    pub traverse_deg: Option<f64>,
     #[serde(rename = "magazineId")]
     pub magazine_id: Option<String>,
     #[serde(rename = "fire")]
@@ -509,6 +513,8 @@ pub struct TorpedoLauncher {
     pub traverse_rate_deg: f64,
     #[serde(rename = "launchArcsDeg")]
     pub launch_arcs_deg: Vec<[f64; 2]>,
+    #[serde(rename = "traverseLimitsDeg")]
+    pub traverse_limits_deg: Option<[f64; 2]>,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]

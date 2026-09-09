@@ -8,6 +8,7 @@ use crate::{
     hull::hull_contains,
     impact::{DamageEvent, ShellEffect, resolve_ship_contact},
     machinery::equipment_pose,
+    mount_frames::mount_frame,
     shell::Shell,
     vessel::Vessel,
 };
@@ -52,18 +53,7 @@ pub fn advance_projectile(
                 .and_then(|id| def.modules.iter().find(|m| &m.id == id));
             let pose = module
                 .and_then(|m| equipment_pose(actor, def, m))
-                .or_else(|| {
-                    mount.map(|i| {
-                        let m = &def.mounts[i];
-                        Pose {
-                            x: m.position[0],
-                            y: m.position[1],
-                            z: m.position[2],
-                            heading: radians(m.bearing_deg) + actor.mounts[i].train,
-                            ..Pose::default()
-                        }
-                    })
-                });
+                .or_else(|| mount.map(|i| mount_frame(def, i, &|j| actor.mounts[j].train)));
             let local = pose.map_or(l.position, |p| local_to_world(l.position, p));
             shell.position = local_to_world(local, actor.motion.pose());
         }

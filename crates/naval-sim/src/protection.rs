@@ -1,6 +1,7 @@
 use crate::{
     definition::{Armor, ShipDefinition, Vec3},
     geometry::*,
+    mount_frames::mount_frame,
 };
 #[derive(Clone, Copy, Debug, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -68,14 +69,7 @@ pub fn plate_hit(
         .as_ref()
         .and_then(|id| def.mounts.iter().position(|m| &m.id == id));
     if let Some(i) = index {
-        let m = &def.mounts[i];
-        let pose = Pose {
-            x: m.position[0],
-            y: m.position[1],
-            z: m.position[2],
-            heading: radians(m.bearing_deg) + trains[i],
-            ..Pose::default()
-        };
+        let pose = mount_frame(def, i, &|j| trains[j]);
         let a = world_to_local(from, pose);
         let b = world_to_local(to, pose);
         if !segment_overlaps_box(a, b, armor.center, armor.size) {

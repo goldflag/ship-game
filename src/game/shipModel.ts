@@ -4,10 +4,13 @@ import type { ShipDefinition } from '../ships/blueprint';
 const identities: Record<string, { type: string; nation: string }> = {
   'type-viic': { type: 'Submarine', nation: 'Germany' },
   fletcher: { type: 'Destroyer', nation: 'United States' },
+  yukikaze: { type: 'Destroyer', nation: 'Japan' },
   bismarck: { type: 'Battleship', nation: 'Germany' },
   yamato: { type: 'Battleship', nation: 'Japan' },
+  iowa: { type: 'Battleship', nation: 'United States' },
   'king-george-v': { type: 'Battleship', nation: 'United Kingdom' },
   baltimore: { type: 'Heavy cruiser', nation: 'United States' },
+  mogami: { type: 'Heavy cruiser', nation: 'Japan' },
   'enterprise-cv6': { type: 'Aircraft carrier', nation: 'United States' },
   shokaku: { type: 'Aircraft carrier', nation: 'Japan' },
   'liberty-cargo': { type: 'Cargo ship', nation: 'United States' },

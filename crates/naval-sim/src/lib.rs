@@ -3,6 +3,7 @@ pub mod catalog;
 pub mod definition;
 pub mod geometry;
 pub mod motion;
+pub mod mount_frames;
 pub mod rules;
 
 pub mod ballistics;

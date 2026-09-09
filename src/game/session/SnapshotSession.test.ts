@@ -1,7 +1,37 @@
 import { expect, test, spyOn } from 'bun:test';
 import { HeadlessSession } from '../../../scripts/multiplayer/headless-session';
 import { weaponGroups } from '../../ships/weaponGroups';
+import { mountFrame } from '../../simulation/mountFrames';
+import { muzzleWorld } from '../../simulation/weapons';
+import { localToWorld, sub, length } from '../../simulation/geometry';
+import { decodeSnapshot } from './SnapshotSession';
 const setup = { playerShipId: 'enterprise-cv6', friendlyBots: ['fletcher', 'type-viic'], enemies: ['baltimore'], spawnDistance: 5000 };
+test('Iowa carries its roof gun through real WASM snapshots without mutating delta baselines', async () => {
+  const session = await HeadlessSession.create({ playerShipId: 'iowa', friendlyBots: [], enemies: [{ shipId: 'baltimore', aiLevel: 'static' }], spawnDistance: 5000 });
+  try {
+    const def = session.definition;
+    const child = def.mounts.findIndex(m => m.parentMountId);
+    const parent = def.mounts.findIndex(m => m.id === def.mounts[child].parentMountId);
+    for (let i = 0; i < 20; i++) session.advance(.1, { throttle: 0, rudder: 0 }, { aim: [1500, 10, 0], battery: 'main', fire: false });
+    expect(Math.abs(session.player.mounts[parent].train)).toBeGreaterThan(.1);
+    const state = session.player.mounts[child], mount = def.mounts[child];
+    const frame = mountFrame(def, child, session.player.mounts.map(m => m.train));
+    expect(state.carrier!.position).toEqual([frame.x, frame.y, frame.z]);
+    const actual = muzzleWorld(mount, state, 0, session.ship);
+    const neutral = muzzleWorld(mount, { ...state, carrier: undefined }, 0, { x: 0, y: 0, z: 0, heading: 0, pitch: 0, roll: 0 });
+    const pivot = def.mounts[parent].position;
+    const expected = localToWorld(localToWorld(sub(neutral, pivot), { x: pivot[0], y: pivot[1], z: pivot[2],
+      heading: session.player.mounts[parent].train, pitch: 0, roll: 0 }), session.ship);
+    expect(length(sub(actual, expected))).toBeLessThan(1e-8);
+    const wire = JSON.parse(session.runtime.snapshot());
+    expect(wire.actors[0].mounts[child].carrier).toBeUndefined();
+    // Applying a decoded frame must also leave that frame untouched for later deltas.
+    const frameToApply = decodeSnapshot(session.runtime.snapshot());
+    (session as any).apply(frameToApply);
+    expect(frameToApply.actors[0].mounts[child].carrier).toBeUndefined();
+    expect(session.player.mounts[child].carrier).toBeDefined();
+  } finally { session.dispose(); }
+});
 test('real WASM snapshots preserve renderer identities and support every instrument', async () => {
   const session = await HeadlessSession.create(setup);
   try {

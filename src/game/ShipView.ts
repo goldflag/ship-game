@@ -3,6 +3,7 @@ import type { Battery, ShipDefinition, Vec3 } from '../ships/blueprint';
 import { barrelIds } from '../ships/blueprint';
 import type { Combatant } from '../simulation/damage';
 import { radians, wrapAngle } from '../simulation/geometry';
+import { updateMountCarriers } from '../simulation/mountFrames';
 import { muzzleWorld, shotDirection } from '../simulation/weapons';
 import { ShipInspection } from './ShipInspection';
 import type { InspectionMode } from '../ships/inspection';
@@ -34,6 +35,7 @@ export class ShipView {
   private tubeBindings: THREE.Object3D[];
   get internals() { return this.inspection.root; }
   private bindings: { yaw: THREE.Object3D; elevation: THREE.Object3D[]; recoil: THREE.Object3D[]; muzzles: THREE.Object3D[] }[];
+  private gunCovers: { mesh: THREE.Mesh; elevation: THREE.Object3D; angles: number[] }[] = [];
   private surfaces: { material: THREE.MeshStandardMaterial | THREE.MeshStandardNodeMaterial; opacity: number; transparent: boolean; depthWrite: boolean }[] = [];
   private inspecting = false;
   private readonly poseMatrices: ShipPoseMatrices;
@@ -45,8 +47,10 @@ export class ShipView {
     this.previousMotion = { ...actor.motion };
     this.previousMounts = actor.mounts.map(m => ({ ...m }));
     this.renderedMounts = actor.mounts.map(m => ({ ...m }));
-    this.previousLaunchers = (actor.torpedoLaunchers ?? []).map(l => l.train);
-    this.renderedLaunchers = (actor.torpedoLaunchers ?? []).map(l => ({ ...l }));
+    this.renderedLaunchers = (definition.torpedoLaunchers ?? []).map(l => ({
+      id: l.id, train: actor.torpedoLaunchers?.find(state => state.id === l.id)?.train ?? 0,
+    }));
+    this.previousLaunchers = this.renderedLaunchers.map(l => l.train);
     this.root.name = actor.motion.id;
     this.inspection = new ShipInspection(definition);
     const nodes = new Map<string, THREE.Object3D>();
@@ -73,6 +77,15 @@ export class ShipView {
     });
     const node = (id: string) => { const n = nodes.get(id); if (!n) throw new Error(`Ship export is missing ${id}. Rebuild with bun run ship:build ${definition.id}`); return n; };
     this.bindings = definition.mounts.map(m => ({ yaw: node(`${m.id}.yaw`), elevation: barrelIds(m.weapon).map(side => node(`${m.id}.${side}.elevation`)), recoil: barrelIds(m.weapon).map(side => node(`${m.id}.${side}.recoil`)), muzzles: barrelIds(m.weapon).map(side => node(`${m.id}.${side}.muzzle`)) }));
+    model.traverse(o => {
+      if (!(o instanceof THREE.Mesh) || !o.userData.gunCoverElevationId) return;
+      const angles: number[] = o.userData.gunCoverAngles;
+      if (!Array.isArray(angles) || !angles.length || angles.length !== o.morphTargetInfluences?.length ||
+          angles.some((a, i) => !Number.isFinite(a) || a <= (angles[i - 1] ?? 0))) {
+        throw new Error(`Ship export has invalid gun-cover shapes on ${o.name}. Rebuild with bun run ship:build ${definition.id}`);
+      }
+      this.gunCovers.push({ mesh: o, elevation: node(o.userData.gunCoverElevationId), angles });
+    });
     this.launcherBindings = (definition.torpedoLaunchers ?? []).map(l => node(`${l.id}.yaw`));
     this.tubeBindings = (definition.torpedoTubes ?? []).map(t => node(`${t.id}.muzzle`));
     if (definition.submarine) for (const kind of ['bowPlanes', 'sternPlanes', 'rudders', 'propellers'] as const) {
@@ -138,7 +151,7 @@ export class ShipView {
     this.motionSource = this.actor.motion;
     Object.assign(this.previousMotion, this.actor.motion);
     this.previousMounts.forEach((m, i) => Object.assign(m, this.actor.mounts[i]));
-    this.previousLaunchers = (this.actor.torpedoLaunchers ?? []).map(l => l.train);
+    this.previousLaunchers = this.renderedLaunchers.map(l => this.actor.torpedoLaunchers?.find(state => state.id === l.id)?.train ?? 0);
   }
   /** Teleports and port transitions must not interpolate across the old voyage. */
   snap(): void { this.capturePreviousPose(); this.rig.reset(); this.update(); }
@@ -182,6 +195,7 @@ export class ShipView {
         m[key] = stopped ? currentMount[key] : THREE.MathUtils.lerp(previousMount[key], currentMount[key], t);
       }
     });
+    updateMountCarriers(this.definition, mounts);
     this.bindings.forEach((b, i) => {
       // A 180° imported quaternion can decompose into nonzero X/Z Euler angles.
       // Replace the complete joint rotation instead of retaining those alternate axes.
@@ -189,9 +203,24 @@ export class ShipView {
       b.elevation.forEach(n => { n.rotation.set(mounts[i].elevation, 0, 0); });
       b.recoil.forEach(n => { n.position.z = mounts[i].recoil * this.definition.mounts[i].weapon.recoilM; });
     });
+    // Cloth is visual-only: the same interpolated gun angle drives its shapes.
+    // Its fixed seam remains on the gunhouse while its collar follows pitch.
+    for (const { mesh, elevation, angles } of this.gunCovers) {
+      const degrees = THREE.MathUtils.clamp(THREE.MathUtils.radToDeg(elevation.rotation.x), 0, angles.at(-1)!);
+      const weights = mesh.morphTargetInfluences!;
+      weights.fill(0);
+      const upper = angles.findIndex(a => a >= degrees), lowerAngle = angles[upper - 1] ?? 0;
+      const fraction = (degrees - lowerAngle) / (angles[upper] - lowerAngle);
+      weights[upper] = fraction;
+      if (upper > 0) weights[upper - 1] = 1 - fraction;
+    }
     this.launcherBindings.forEach((node, i) => {
-      const train = this.actor.torpedoLaunchers?.[i].train ?? 0, previous = this.previousLaunchers[i] ?? train;
-      this.renderedLaunchers[i].train = previous + wrapAngle(train - previous) * t;
+      const launcher = this.renderedLaunchers[i];
+      const train = this.actor.torpedoLaunchers?.find(state => state.id === launcher.id)?.train ?? 0;
+      const previous = this.previousLaunchers[i] ?? train;
+      // Wire snapshots can reorder banks; bounded travel must also stay inside its stops.
+      launcher.train = this.definition.torpedoLaunchers![i].traverseLimitsDeg
+        ? THREE.MathUtils.lerp(previous, train, t) : previous + wrapAngle(train - previous) * t;
       node.rotation.set(0, -this.renderedLaunchers[i].train, 0);
     });
     this.appendages.forEach(({ node, base, kind, index }) => {

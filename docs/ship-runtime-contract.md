@@ -46,6 +46,14 @@ Optional `gunhouseShape`, `gunhouseBaseHeight`, `rollerRadius`, `rangefinderWidt
 
 Runtime yaw rotates around +Y with a negative clockwise angle; elevation rotates around +X; visual recoil translates along +Z. Fixed barbettes remain outside the yaw joint. The `hull.surface` node identifies the actual hull envelope for measurement. `assemblyId` records logical ownership of mesh pieces. Non-rendering simulation objects use `exportRole = simulation` and are excluded from the GLB.
 
+Flexible gun covers may export shape keys with `gunCoverElevationId` naming the
+retained elevation joint and `gunCoverAngles` listing increasing positive angles
+in degrees, one per target; the base shape is zero degrees. `ShipView` blends
+adjacent shapes using the displayed CPU gun angle. These meshes remain outside
+rigid batches. Authoring drivers provide the equivalent Blender inspection pose;
+export preserves every shape across the coordinate conversion and freezes the
+initial driver weights. Cloth deformation never changes firing or hit geometry.
+
 Batching preserves parent and assembly boundaries. Empty joints and sockets survive export. Gameplay identifies components by stable IDs, never GLB node indices or human-readable names. Export checks verify the actual GLB hull bounds, pivot positions, hierarchy, and every muzzle position at three angular configurations per mount. The initial performance guardrails are 500,000 triangles and 30 MiB per model; they are regression guardrails, not a validated fleet-performance promise.
 
 Yamato additionally has `bun assets/ships/yamato/check-dimensions.ts`. It intersects the published hull triangles at the waterline and midship to measure waterline length/beam and hull depth as well as the outer envelope. Its report records individual source references and conflicts. Such checks verify selected dimensions; they cannot certify every hull section, dated fitting or historical proportion.
@@ -116,6 +124,12 @@ Surface-hit events additionally retain shell type (AP by default), caliber, outc
 
 Diagnostics also identify the loaded ship/hash, renderer backend and camera matrices for reproducible browser review. In the development port, `window.shipTrialArticulation({trainFraction: 1, elevationFraction: 1, recoilFraction: 1})` previews the catalog limits on the actual loaded model. Train spans -1 to 1; elevation and recoil span 0 to 1. Passing `null` restores the original mount state. Launching restores it automatically. This review hook is unavailable in production and cannot change joints during combat.
 
+Use `mounts` to pose neighbors independently, for example `window.shipTrialArticulation({trainFraction: 0, elevationFraction: 0, recoilFraction: 0, mounts: {'main-3': {trainFraction: .6}, 'bofors-turret-3': {trainFraction: -.7, elevationFraction: .8, recoilFraction: 1}}})` on Iowa. Overrides use stable mount IDs and the same bounded fractions. Unknown IDs and nonfinite values are rejected before any pose changes.
+
+A mount may declare `parentMountId` to ride another mount's yaw assembly. Parents must precede children in the blueprint; missing parents and cycles are invalid. Position and bearing remain absolute neutral ship-space datums. The exported child base preserves that neutral frame beneath the parent yaw, while CPU mount frames compose every ancestor's train for aiming, hits, fire effects and lodged projectiles. Child elevation and recoil remain independent. Optional mount `traverseDeg` narrows the reusable catalog part's half-sector about the installed bearing; it cannot exceed the part's mechanical range.
+
+Rust `naval-sim` resolves carried frames from authoritative mount trains for both local WASM and online battles. Weapon operation refreshes each child's carrier after its parent traverses; clearance caches include moving carrier poses. The browser reconstructs derived carrier frames in presentation state without modifying retained snapshot delta baselines.
+
 An optional blueprint `viewpoints.bridge` places a ship's bridge camera in runtime coordinates. Its position follows the authoritative ship pose. Use it for offset islands and bridges instead of adding ship-name conditions to the camera or simulation.
 
 `ShipFunnelSmoke` derives visual exhaust outlets from existing authored `structures` with IDs `funnel`, `funnel-jacket`, or `<assembly>-funnel`. Bases, casings and caps do not add emitters. Open surface boundaries locate raked rims; closed jackets use their upper facing lid, and simple extrusions use the top footprint. Positions use the same runtime coordinate frame and displayed CPU hull pose. New player-built ships can use this convention without preset-name conditions. Particle size, density, aggregate propulsion response and wind drift are illustrative; individual boiler-to-uptake routing and thermal exhaust are not simulated. No model geometry or compiled blueprint is modified by the effect.
@@ -162,7 +176,9 @@ The renderer consumes torpedo launch/hit/dud events and positions to draw underw
 
 Fletcher exercises the same blueprint/compiler contract with two additional optional weapon assemblies. `torpedoLaunchers` declares stable IDs, ship-local pivot positions, training rate and permitted launch-bearing sectors. Each of its five `torpedoTubes` references `launcherId`; tube positions are ship-local muzzle positions at zero train. The CPU turns each shared assembly once per tick and derives the transformed tube origin. An excluded launch sector never consumes a round. Fixed submarine tubes retain their submerged muzzle and gyro-arc contract. Deck-launched torpedoes fall to the water, then use the common fixed-depth, straight-course simulation. One-round tubes carry no spare reloads.
 
-A trainable assembly exports `<launcher-id>.yaw` with its `<tube-id>.muzzle` children intact. `ship:check` checks the pivot, parenting, neutral muzzle, and four broadside training poses. `ShipView` interpolates the CPU yaw through angle wrap and binds the shared joint; diagnostics compare every displayed tube origin against the same sampled pose. The development port articulation hook now previews torpedo training too.
+Optional `traverseLimitsDeg: [min, max]` defines mechanical travel containing neutral. Launch sectors must fit inside it; both simulation backends train through the interval rather than taking a shorter path across the stops. Omission preserves unrestricted rotation. The port articulation preview uses these limits.
+
+A trainable assembly exports `<launcher-id>.yaw` with its `<tube-id>.muzzle` children intact. `ship:check` checks the pivot, parenting, neutral muzzle, and four broadside training poses. `ShipView` binds launcher states by stable ID and interpolates CPU yaw within mechanical limits when present, or through angle wrap otherwise; diagnostics compare every displayed tube origin against the same sampled pose. The development port articulation hook now previews torpedo training too.
 
 `assets/parts/guns.json` optionally supplies `depthCharges`, and a blueprint's `depthChargeLaunchers` specifies each rack/thrower's stable ID, part, release position, ship-local launch velocity, magazine connection and total ammunition. Its compiled part supplies the dimensions, sinking rate, detonation depth, blast radius, damage, breach area, station reload and launch spacing. Every station exports `<launcher-id>.release`, checked against its authored position. Historical presets and future player ships use these definitions without ship-name branches in combat.
 

@@ -1,5 +1,6 @@
 import type { Armor, ShipDefinition, Vec3 } from '../ships/blueprint';
-import { add, clamp, dot, localToWorld, normalize, radians, rotate, scale, segmentOverlapsBox, sub, worldToLocal } from './geometry';
+import { add, clamp, dot, localToWorld, normalize, rotate, scale, segmentOverlapsBox, sub, worldToLocal } from './geometry';
+import { mountFrame } from './mountFrames';
 
 const cross = (a: Vec3, b: Vec3): Vec3 => [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]];
 /** Intersect the mid-surface once. Thickness is consumed along the incidence normal.
@@ -27,8 +28,7 @@ export function plateHit(from: Vec3, to: Vec3, armor: Armor, def: ShipDefinition
   if (!armor.plate) return null;
   const index = armor.plate.mountId ? def.mounts.findIndex(m => m.id === armor.plate!.mountId) : -1;
   if (index < 0) return segmentOverlapsBox(from, to, armor) ? segmentPlate(from, to, armor.plate.vertices) : null;
-  const m = def.mounts[index];
-  const pose = { x:m.position[0], y:m.position[1], z:m.position[2], heading:radians(m.bearingDeg)+trains[index], roll:0, pitch:0 };
+  const pose = mountFrame(def, index, trains);
   const a = worldToLocal(from, pose), b = worldToLocal(to, pose);
   const hit = segmentOverlapsBox(a, b, armor) ? segmentPlate(a, b, armor.plate.vertices) : null;
   return hit ? { ...hit, point:localToWorld(hit.point,pose), normal:rotate(hit.normal,pose) } : null;

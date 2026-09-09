@@ -166,6 +166,7 @@ fn buoyancy_floodwater_and_weapon_training_match_reference() {
                     [0.0; 3],
                     1.0,
                     &obstructions,
+                    &[], // Frozen fixtures contain only hull-mounted weapons.
                 );
             }
             let expected = &case["states"][i];
@@ -186,11 +187,7 @@ fn buoyancy_floodwater_and_weapon_training_match_reference() {
                 expected["state"]["elevation"].as_f64().unwrap(),
                 1e-7,
             );
-            vector(
-                muzzle_local(m, state.train, state.elevation, 0),
-                &expected["muzzle"],
-                1e-7,
-            );
+            vector(muzzle_local(m, &state, 0), &expected["muzzle"], 1e-7);
         }
     }
 }

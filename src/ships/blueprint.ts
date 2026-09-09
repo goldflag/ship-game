@@ -5,6 +5,8 @@ export interface TorpedoLauncher {
   id: string; name: string; position: Vec3; traverseRateDeg: number;
   /** Allowed ship-relative launch bearings; training can cross the excluded sectors. */
   launchArcsDeg: [number, number][];
+  /** Optional mechanical travel interval containing neutral; never crossed during training. */
+  traverseLimitsDeg?: [number, number];
 }
 export interface DepthChargePart {
   id: string; name: string; kind: 'depth-charge'; diameterM: number; lengthM: number;
@@ -80,6 +82,11 @@ export interface PartCatalog { schemaVersion: 1; parts: GunPart[]; torpedoes?: T
 export interface Mount {
   id: string; name: string; partId: string; battery: 'main' | 'secondary'; position: Vec3;
   bearingDeg: number; rangefinder: boolean;
+  /** Riding on another mount's yaw assembly. Position/bearing remain the
+   * ship-space neutral datums; the carrier must precede this mount. */
+  parentMountId?: string;
+  /** Installed half-sector about bearingDeg, at most the catalog capability. */
+  traverseDeg?: number;
   magazineId?: string;
   fire?: FireProfile;
 }
@@ -447,7 +454,7 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
   }
   const mounts = list(b.mounts, 'mounts', 64).map((m, i) => record(m, `mounts[${i}]`));
   unique(mounts, 'mounts');
-  mounts.forEach(m => {
+  mounts.forEach((m, index) => {
     text(m.name, `${m.id}.name`); id(m.partId, `${m.id}.partId`);
     if (!parts.some(p => p.id === m.partId)) fail(String(m.id), `unknown part ${m.partId}`);
     literal(m.battery, ['main', 'secondary'], `${m.id}.battery`);
@@ -456,6 +463,11 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
     const envelope = b.mountEnvelope === undefined ? h : record(b.mountEnvelope, 'mountEnvelope');
     if (Math.abs(pos[0]) > (envelope.beam as number) / 2 || Math.abs(pos[2]) > (envelope.length as number) / 2) fail(String(m.id), 'mount lies outside the hull envelope');
     numeric(m.bearingDeg, `${m.id}.bearingDeg`, -360, 360);
+    if (m.traverseDeg !== undefined) numeric(m.traverseDeg, `${m.id}.traverseDeg`, 0, parts.find(p => p.id === m.partId)!.traverseDeg as number);
+    if (m.parentMountId !== undefined) {
+      id(m.parentMountId, `${m.id}.parentMountId`);
+      if (!mounts.slice(0, index).some(parent => parent.id === m.parentMountId)) fail(String(m.id), 'parent mount must precede its child (no missing parents or cycles)');
+    }
   });
   const compartments = volumes(b.compartments, 'compartments');
   const validateFire = (value: unknown, path: string) => {
@@ -588,8 +600,16 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
   launchers.forEach(l => {
     text(l.name, `${l.id}.name`); deckPosition(l.position, `${l.id}.position`);
     numeric(l.traverseRateDeg, `${l.id}.traverseRateDeg`, .1, 90);
+    if (l.traverseLimitsDeg !== undefined) {
+      const limits = list(l.traverseLimitsDeg, 'traverseLimitsDeg', 2);
+      if (limits.length !== 2 || numeric(limits[0], 'traverse minimum', -180, 0) >= numeric(limits[1], 'traverse maximum', 0, 180)) fail(String(l.id), 'expected travel limits containing neutral');
+    }
     const arcs = list(l.launchArcsDeg, 'launchArcsDeg', 8);
     if (!arcs.length) fail(String(l.id), 'launcher needs a firing arc');
+    if (l.traverseLimitsDeg !== undefined) {
+      const [lo, hi] = l.traverseLimitsDeg as [number, number];
+      if (arcs.some(a => Array.isArray(a) && (a[0] < lo || a[1] > hi))) fail(String(l.id), 'launch arc exceeds mechanical travel');
+    }
     arcs.forEach(a => { const arc = list(a, 'launch arc', 2); if (arc.length !== 2 || numeric(arc[0], 'arc start', -180, 180) >= numeric(arc[1], 'arc end', -180, 180)) fail(String(l.id), 'expected ordered launch arc'); });
   });
   const tubes = list(b.torpedoTubes ?? [], 'torpedoTubes', 32).map(t => record(t, 'torpedo tube'));
@@ -759,7 +779,11 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
   }
   ['exterior', 'internals', 'weapons'].forEach(k => text(accuracy[k], `accuracy.${k}`));
   const blueprint = structuredClone(input) as ShipBlueprint;
-  const result: ShipDefinition = { ...blueprint, torpedoTubes: undefined, depthChargeLaunchers: undefined, armor:structuredClone(compiledArmor) as Armor[], compilerVersion: 1, mounts: blueprint.mounts.map(m => ({ ...m, weapon: structuredClone(parts.find(p => p.id === m.partId)) as unknown as GunPart })) };
+  const result: ShipDefinition = { ...blueprint, torpedoTubes: undefined, depthChargeLaunchers: undefined, armor:structuredClone(compiledArmor) as Armor[], compilerVersion: 1, mounts: blueprint.mounts.map(m => {
+    const weapon = structuredClone(parts.find(p => p.id === m.partId)) as unknown as GunPart;
+    if (m.traverseDeg !== undefined) weapon.traverseDeg = m.traverseDeg;
+    return { ...m, weapon };
+  }) };
   if (blueprint.torpedoTubes) result.torpedoTubes = blueprint.torpedoTubes.map(t => ({ ...t, weapon: structuredClone(torpedoes.find(p => p.id === t.partId)) as unknown as TorpedoPart }));
   else delete result.torpedoTubes;
   if (blueprint.depthChargeLaunchers) result.depthChargeLaunchers = blueprint.depthChargeLaunchers.map(l => ({ ...l, weapon: structuredClone(depthCharges.find(p => p.id === l.partId)) as unknown as DepthChargePart }));
