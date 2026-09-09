@@ -126,8 +126,16 @@ impl Battle {
                 )?;
             }
         }
-        let environment = catalog
-            .resolve_environment(
+        let environment = if let Some(rules) = &setup.mission_rules {
+            catalog.resolve_pve_environment(
+                &setup.map_id,
+                &setup.weather,
+                setup.seed,
+                rules,
+                setup.wind_speed,
+            )
+        } else {
+            catalog.resolve_environment(
                 &setup.map_id,
                 &setup.weather,
                 setup.seed,
@@ -135,7 +143,8 @@ impl Battle {
                 setup.spawn_distance,
                 setup.wind_speed,
             )
-            .map_err(|e| e.to_string())?;
+        }
+        .map_err(|e| e.to_string())?;
         let mut actors = vec![];
         let mut slots = [0usize; 2];
         let mut displacement = vec![];

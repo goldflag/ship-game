@@ -184,28 +184,14 @@ impl BattleRuntime {
 #[wasm_bindgen]
 pub struct LocalRuntime {
     session: naval_protocol::session::Session,
+    pve_plan: Option<naval_sim::pve::PvePlan>,
 }
 #[wasm_bindgen]
 impl LocalRuntime {
     #[wasm_bindgen(constructor)]
     pub fn new(manifest: &[u8], setup: &str) -> Result<LocalRuntime, JsValue> {
         let runtime = BattleRuntime::new(manifest, setup)?;
-        let selected = runtime
-            .battle
-            .actors
-            .iter()
-            .find(|a| a.controller == naval_sim::vessel::Controller::Player)
-            .map(|a| a.motion.id.clone());
-        let mut session = naval_protocol::session::Session::new(
-            runtime.battle,
-            [naval_sim::rules::TeamId::A, naval_sim::rules::TeamId::B],
-        )
-        .map_err(error)?;
-        session.input_ready[1] = false;
-        if session.battle.mission_rules.is_none() {
-            session.control.players[0].selected_ship_id = selected;
-        }
-        Ok(Self { session })
+        Self::from_battle(runtime.battle, None)
     }
     pub fn command(&mut self, json: &str) -> Result<(), JsValue> {
         if json.len() > naval_protocol::MAX_COMMAND_BYTES {
@@ -220,8 +206,39 @@ impl LocalRuntime {
             return Err(error("Tick batch exceeds limit"));
         }
         for _ in 0..ticks {
+            if let Some(plan) = &self.pve_plan {
+                for (id, (movement, target)) in plan.enemy_directives(&self.session.battle) {
+                    if let Some(ship) = self.session.control.ships.get_mut(&id) {
+                        ship.movement = movement;
+                        ship.target_id = target;
+                    }
+                }
+            }
             self.session.step();
         }
+        Ok(())
+    }
+    /// Reuse the frozen opponent and the accepted friendly deployment. No seed
+    /// is drawn and no full setup ever crosses into the render thread.
+    pub fn restart_pve(&mut self) -> Result<(), JsValue> {
+        let plan = self
+            .pve_plan
+            .as_ref()
+            .ok_or_else(|| error("This battle has no saved PvE mission"))?;
+        let compiled = self
+            .session
+            .battle
+            .actors
+            .iter()
+            .map(|a| (a.preset_id.clone(), a.compiled.clone()))
+            .collect();
+        let battle = naval_sim::battle::Battle::new(
+            self.session.battle.catalog.clone(),
+            &compiled,
+            plan.restart_setup(),
+        )
+        .map_err(error)?;
+        *self = Self::from_battle(battle, Some(plan.clone()))?;
         Ok(())
     }
     pub fn snapshot(&self) -> Result<String, JsValue> {
@@ -248,7 +265,105 @@ impl LocalRuntime {
         } else {
             "running"
         });
+        if self.session.battle.outcome.is_some()
+            && let Some(plan) = &self.pve_plan
+        {
+            frame["debrief"]["mission"] = plan.debrief();
+        }
         serde_json::to_string(&frame).map_err(error)
+    }
+}
+impl LocalRuntime {
+    fn from_battle(
+        battle: naval_sim::battle::Battle,
+        pve_plan: Option<naval_sim::pve::PvePlan>,
+    ) -> Result<Self, JsValue> {
+        let selected = battle
+            .actors
+            .iter()
+            .find(|a| a.controller == naval_sim::vessel::Controller::Player)
+            .map(|a| a.motion.id.clone());
+        let mut session = naval_protocol::session::Session::new(
+            battle,
+            [naval_sim::rules::TeamId::A, naval_sim::rules::TeamId::B],
+        )
+        .map_err(error)?;
+        session.input_ready[1] = false;
+        if session.battle.mission_rules.is_none() {
+            session.control.players[0].selected_ship_id = selected;
+        }
+        if let Some(plan) = &pve_plan {
+            for (id, (movement, target)) in plan.initial_directives(&session.battle) {
+                if let Some(ship) = session.control.ships.get_mut(&id) {
+                    ship.movement = movement;
+                    ship.target_id = target;
+                }
+            }
+        }
+        Ok(Self { session, pve_plan })
+    }
+}
+
+/// Preparatory worker state. `briefing` exposes owned deployment only; starting
+/// yields a production runtime that owns both private fleets and restart data.
+#[wasm_bindgen]
+pub struct PvePlanner {
+    catalog: std::sync::Arc<naval_sim::catalog::Catalog>,
+    plan: naval_sim::pve::PvePlan,
+    compiled: std::collections::BTreeMap<String, std::sync::Arc<naval_sim::vessel::CompiledShip>>,
+}
+#[wasm_bindgen]
+impl PvePlanner {
+    #[wasm_bindgen(constructor)]
+    pub fn new(manifest: &[u8], request: &str) -> Result<PvePlanner, JsValue> {
+        if request.len() > 65536 {
+            return Err(error("Mission request exceeds limit"));
+        }
+        let catalog =
+            std::sync::Arc::new(naval_sim::catalog::Catalog::load(manifest).map_err(error)?);
+        let plan = naval_sim::pve::PvePlan::generate(
+            &catalog,
+            serde_json::from_str(request).map_err(error)?,
+        )
+        .map_err(error)?;
+        Ok(Self {
+            catalog,
+            plan,
+            compiled: Default::default(),
+        })
+    }
+    pub fn briefing(&self) -> Result<String, JsValue> {
+        serde_json::to_string(&self.plan.briefing(&self.catalog)).map_err(error)
+    }
+    pub fn start(&mut self, placements: &str) -> Result<LocalRuntime, JsValue> {
+        if placements.len() > 16384 {
+            return Err(error("Deployment exceeds limit"));
+        }
+        let setup = self
+            .plan
+            .deploy(
+                &self.catalog,
+                serde_json::from_str(placements).map_err(error)?,
+            )
+            .map_err(error)?;
+        for ship in &setup.ships {
+            if !self.compiled.contains_key(&ship.preset_id) {
+                let def = self
+                    .catalog
+                    .definitions
+                    .get(&ship.preset_id)
+                    .ok_or_else(|| error("Unknown ship preset"))?;
+                self.compiled.insert(
+                    ship.preset_id.clone(),
+                    std::sync::Arc::new(
+                        naval_sim::vessel::CompiledShip::new(def.clone()).map_err(error)?,
+                    ),
+                );
+            }
+        }
+        let battle = naval_sim::battle::Battle::new(self.catalog.clone(), &self.compiled, setup)
+            .map_err(error)?;
+        LocalRuntime::from_battle(battle, Some(self.plan.clone()))
     }
 }
 

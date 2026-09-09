@@ -78,7 +78,8 @@ export abstract class SnapshotSession implements BattleSession {
   private lastControl = '';
   constructor(readonly setup: BattleSetup, readonly ownTeam: TeamId = 'a', readonly playerIndex = 0) {
     this.mapId = setup.mapId as OceanMapId; this.seed = setup.seed; this.spawnDistance = setup.spawnDistance;
-    this.islands = mapIslands(this.mapId, setup.spawnDistance, Math.max(...(['a', 'b'] as const).map(t => setup.ships.filter(s => s.team === t).length)));
+    this.islands = setup.missionRules ? mapIslands(this.mapId, 16000, setup.missionRules.budget.maxShips).map(island => ({ ...island, z: island.z + 8000 }))
+      : mapIslands(this.mapId, setup.spawnDistance, Math.max(...(['a', 'b'] as const).map(t => setup.ships.filter(s => s.team === t).length)));
     this.sea = createSeaState(this.mapId, setup.weather as WeatherId, setup.seed, setup.windSpeed ?? undefined);
   }
   get definition() { return this.player.definition; }
@@ -86,6 +87,12 @@ export abstract class SnapshotSession implements BattleSession {
   get aircraft() { return this.actors.flatMap(a => a.airWing?.planes ?? []); }
   get interpolationAlpha() { return Math.min(1, this.elapsed / this.interval); }
   protected abstract send(shipId: string, command: Command): void;
+  protected resetIntents(): void {
+    this.selectionRequest = undefined; this.targetContactId = undefined; this.target = undefined;
+    this.fireQueued = false; this.autopilot = undefined; this.lastControl = '';
+    this.depthM = null; this.emergencyBlow = null; this.orderNoticeUntil = 0;
+    this.connectionStatus = ''; this.controlledShipId = undefined;
+  }
   abstract advance(dt: number, helm: HelmCommand, intent: CombatIntent, beforeStep?: () => void): void;
   abstract dispose(): void;
   // Fixed ticks belong to the worker/server. Development preview cannot run a JS fallback.

@@ -56,6 +56,8 @@ pub mod gunnery;
 
 pub mod battle;
 pub mod mission;
+pub mod pve;
+mod pve_command;
 pub mod sensors;
 
 pub mod records;

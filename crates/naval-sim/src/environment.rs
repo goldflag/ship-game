@@ -264,6 +264,23 @@ pub struct ResolvedEnvironment {
     pub islands: Vec<Island>,
 }
 impl crate::catalog::Catalog {
+    /// Mission geography is centered on the visible circle and depends on the
+    /// public mission capacity, never the private generated fleet size.
+    pub fn resolve_pve_environment(
+        &self,
+        map_id: &str,
+        weather: &str,
+        seed: u32,
+        rules: &crate::mission::MissionRules,
+        wind: Option<f64>,
+    ) -> Result<ResolvedEnvironment, crate::catalog::ContentError> {
+        let mut environment =
+            self.resolve_environment(map_id, weather, seed, rules.budget.max_ships, 16000.0, wind)?;
+        for island in &mut environment.islands {
+            island.z += 8000.0;
+        }
+        Ok(environment)
+    }
     /// Resolve CPU conditions from the frozen deployment manifest. Online callers
     /// always supply the server's rolled preset; custom callers may override wind.
     pub fn resolve_environment(
