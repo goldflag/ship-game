@@ -8,13 +8,13 @@
       "massKg": 1052000,
       "barbetteRadius": 4.95,
       "gunhouseSize": [
-        14.15,
+        14.56,
         8.7,
-        3.65
+        3.45
       ],
-      "pivotHeight": 1.9,
-      "trunnionForward": 4.25,
-      "muzzleForward": 18.4,
+      "pivotHeight": 1.5,
+      "trunnionForward": 3.3,
+      "muzzleForward": 17.9,
       "barrelSpacing": 3.75,
       "caliberM": 0.38,
       "traverseDeg": 145,
@@ -35,14 +35,14 @@
         "version": 1,
         "vertices": [
           [
-            -8.5,
-            -3.55,
-            0.43
+            -8.6,
+            -3.12,
+            0.39
           ],
           [
             -7.05,
             -4.35,
-            0.3554285714285714
+            0.25
           ],
           [
             3.15,
@@ -67,92 +67,112 @@
           [
             -7.05,
             4.35,
-            0.3554285714285714
+            0.25
           ],
           [
-            -8.5,
-            3.55,
-            0.43
+            -8.6,
+            3.12,
+            0.39
           ],
           [
-            -8.5,
-            -3.55,
-            2.1
+            -8.6,
+            -3.12,
+            1.95
           ],
           [
             -7.05,
             -4.35,
-            2.1
+            1.95
           ],
           [
             3.15,
             -4.35,
-            2.1
+            1.95
           ],
           [
-            5.3500000000000005,
+            5.38,
             -3.7,
-            2.1
+            1.95
           ],
           [
-            5.3500000000000005,
+            5.38,
             3.7,
-            2.1
+            1.95
           ],
           [
             3.15,
             4.35,
-            2.1
+            1.95
           ],
           [
             -7.05,
             4.35,
-            2.1
+            1.95
           ],
           [
-            -8.5,
-            3.55,
-            2.1
+            -8.6,
+            3.12,
+            1.95
           ],
           [
             -6.85,
             -3.2,
-            3.65
+            3.45
           ],
           [
             -6.4,
             -3.35,
-            3.65
+            3.45
           ],
           [
-            2.4,
+            2.85,
             -3.35,
-            3.65
+            3.45
           ],
           [
-            2.8,
+            3.12,
             -3.2,
-            3.65
+            3.45
           ],
           [
-            2.8,
+            3.12,
             3.2,
-            3.65
+            3.45
           ],
           [
-            2.4,
+            2.85,
             3.35,
-            3.65
+            3.45
           ],
           [
             -6.4,
             3.35,
-            3.65
+            3.45
           ],
           [
             -6.85,
             3.2,
-            3.65
+            3.45
+          ],
+          [
+            5.78,
+            0,
+            0.25
+          ],
+          [
+            5.49,
+            0,
+            1.95
+          ],
+          [
+            -8.78,
+            0,
+            0.39
+          ],
+          [
+            -8.78,
+            0,
+            1.95
           ]
         ],
         "faces": [
@@ -226,8 +246,8 @@
             "id": "side-3-a",
             "indices": [
               3,
-              4,
-              12
+              24,
+              25
             ],
             "thicknessMm": 360,
             "material": "KC",
@@ -237,7 +257,7 @@
             "id": "side-3-b",
             "indices": [
               3,
-              12,
+              25,
               11
             ],
             "thicknessMm": 360,
@@ -314,8 +334,8 @@
             "id": "side-7-a",
             "indices": [
               7,
-              0,
-              8
+              26,
+              27
             ],
             "thicknessMm": 320,
             "material": "KC",
@@ -325,7 +345,7 @@
             "id": "side-7-b",
             "indices": [
               7,
-              8,
+              27,
               15
             ],
             "thicknessMm": 320,
@@ -402,8 +422,8 @@
             "id": "slope-3-a",
             "indices": [
               11,
-              12,
-              20
+              25,
+              19
             ],
             "thicknessMm": 180,
             "material": "KC",
@@ -412,9 +432,9 @@
           {
             "id": "slope-3-b",
             "indices": [
-              11,
-              20,
-              19
+              25,
+              12,
+              20
             ],
             "thicknessMm": 180,
             "material": "KC",
@@ -490,8 +510,8 @@
             "id": "slope-7-a",
             "indices": [
               15,
-              8,
-              16
+              27,
+              23
             ],
             "thicknessMm": 180,
             "material": "KC",
@@ -500,9 +520,9 @@
           {
             "id": "slope-7-b",
             "indices": [
-              15,
-              16,
-              23
+              27,
+              8,
+              16
             ],
             "thicknessMm": 180,
             "material": "KC",
@@ -635,6 +655,94 @@
               7,
               1,
               0
+            ],
+            "thicknessMm": 50,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "side-3-c",
+            "indices": [
+              24,
+              4,
+              12
+            ],
+            "thicknessMm": 360,
+            "material": "KC",
+            "finish": "naval"
+          },
+          {
+            "id": "side-3-d",
+            "indices": [
+              24,
+              12,
+              25
+            ],
+            "thicknessMm": 360,
+            "material": "KC",
+            "finish": "naval"
+          },
+          {
+            "id": "slope-3-c",
+            "indices": [
+              25,
+              20,
+              19
+            ],
+            "thicknessMm": 180,
+            "material": "KC",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-3-curve",
+            "indices": [
+              4,
+              24,
+              3
+            ],
+            "thicknessMm": 50,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "side-7-c",
+            "indices": [
+              26,
+              0,
+              8
+            ],
+            "thicknessMm": 320,
+            "material": "KC",
+            "finish": "naval"
+          },
+          {
+            "id": "side-7-d",
+            "indices": [
+              26,
+              8,
+              27
+            ],
+            "thicknessMm": 320,
+            "material": "KC",
+            "finish": "naval"
+          },
+          {
+            "id": "slope-7-c",
+            "indices": [
+              27,
+              16,
+              23
+            ],
+            "thicknessMm": 180,
+            "material": "KC",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-7-curve",
+            "indices": [
+              0,
+              26,
+              7
             ],
             "thicknessMm": 50,
             "material": "steel",

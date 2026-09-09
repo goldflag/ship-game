@@ -23205,7 +23205,7 @@
       "battery": "main",
       "position": [
         0,
-        6.75,
+        7,
         -70.05
       ],
       "bearingDeg": 0,
@@ -23224,7 +23224,7 @@
       "battery": "main",
       "position": [
         0,
-        10.55,
+        10.2,
         -51.85
       ],
       "bearingDeg": 0,
@@ -23243,7 +23243,7 @@
       "battery": "main",
       "position": [
         0,
-        10.55,
+        10.3,
         58.15
       ],
       "bearingDeg": 180,
@@ -23262,7 +23262,7 @@
       "battery": "main",
       "position": [
         0,
-        6.35,
+        7,
         76.35
       ],
       "bearingDeg": 180,

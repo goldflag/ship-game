@@ -11,6 +11,8 @@ from mathutils import Vector, Matrix
 ROOT=Path(__file__).resolve().parents[3]
 sys.path.insert(0,str(ROOT/'scripts/ships'))
 from blender_components import create_gun_mount
+sys.path.insert(0,str(ROOT/'assets/parts'))
+from library import create_mount as create_library_mount
 from blender_supports import SupportSurface
 from blender_rig import radar_pivot
 OUT=Path(os.environ['SHIP_OUTPUT']);DEF=json.loads(Path(os.environ['SHIP_DEFINITION']).read_text());H=DEF['hull']
@@ -200,72 +202,38 @@ for s in DEF['structures']:
     if abs(normal.x)<.15:door(s['id']+' watertight door',xx,yy+sign*.05,z+.13,sign)
 # All ten active batteries retain the shared original joint and socket contract.
 for mount in DEF['mounts']:
- if mount['weapon']['caliberM']>.13:create_gun_mount(mount,gunscol,helpers,materials,deckz)
-# Additional original gunhouse fabrication and service fittings follow yaw.
+ if mount['partId']=='sk-c34-380-twin':create_library_mount(mount,gunscol,dict(helpers,deck_height=deckz),materials)
+ elif mount['weapon']['caliberM']>.13:create_gun_mount(mount,gunscol,helpers,materials,deckz)
+# Secondary gunhouse fabrication follows its existing yaw rig.
 for mount in DEF['mounts']:
- if mount['weapon']['caliberM']<=.13:continue
- yaw=bpy.data.objects[mount['id']+'.yaw'];w=mount['weapon'];L,W,T=w['gunhouseSize'];primary=w['caliberM']>.2
+ if mount['weapon']['caliberM']<=.13 or mount['partId']=='sk-c34-380-twin':continue
+ yaw=bpy.data.objects[mount['id']+'.yaw'];w=mount['weapon'];L,W,T=w['gunhouseSize']
  def mounted(ob):ob.parent=yaw;ob.matrix_parent_inverse=Matrix.Identity(4);ob['assemblyId']=mount['id'];return ob
+ # The secondary's rear roof ridge, sloping roof and near-vertical walls are
+ # catalog facets. These small original fittings are carried by the same yaw.
+ mounted(box('Secondary rear access hatch',(-3.92,0,1.12),(.07,.78,1.18),materials['edge'],gunscol))
+ mounted(box('Secondary rear hatch inset',(-3.97,0,1.12),(.035,.63,1.02),materials['naval'],gunscol))
+ for yy in [-1.25,-.73]:mounted(rod('Secondary rear ladder rail',(-3.94,yy,.3),(-3.86,yy,2.20),.025,materials['edge'],gunscol,vertices=6))
+ for zz in [.42+i*.26 for i in range(7)]:mounted(rod('Secondary rear ladder rung',(-3.94+.08*(zz-.3)/1.9, -1.25,zz),(-3.94+.08*(zz-.3)/1.9,-.73,zz),.022,materials['edge'],gunscol,vertices=6))
  for sign in [-1,1]:
-  if primary:
-   for xx in [-L*.33,-L*.07,L*.17]:mounted(box('Gunhouse side drain',(xx,sign*W*.49,T*.2),(.27,.06,.09),materials['dark'],gunscol))
-   # Preserve the main turret's existing paired rear ladders and roof hatches.
-   for zz in [T*.22+i*.28 for i in range(int(T*.65/.28))]:
-    rearx=-8.55+max(0,zz-2.1)*(1.65/1.55)
-    mounted(rod('Gunhouse rear rung',(rearx,sign*W*.2-.25,zz),(rearx,sign*W*.2+.25,zz),.024,materials['edge'],gunscol,vertices=6))
-    for yy in (sign*W*.2-.25,sign*W*.2+.25):mounted(rod('Gunhouse rung foot',(rearx,yy,zz),(rearx+.13,yy,zz),.024,materials['edge'],gunscol,vertices=6))
-   mounted(box('Gunhouse roof access',(-L*.26,sign*W*.22,T+.05),(1.0,.76,.12),materials['naval'],gunscol))
- if not primary:
-  # The secondary's rear roof ridge, sloping roof and near-vertical walls are
-  # catalog facets. These small original fittings are carried by the same yaw.
-  mounted(box('Secondary rear access hatch',(-3.92,0,1.12),(.07,.78,1.18),materials['edge'],gunscol))
-  mounted(box('Secondary rear hatch inset',(-3.97,0,1.12),(.035,.63,1.02),materials['naval'],gunscol))
-  for yy in [-1.25,-.73]:mounted(rod('Secondary rear ladder rail',(-3.94,yy,.3),(-3.86,yy,2.20),.025,materials['edge'],gunscol,vertices=6))
-  for zz in [.42+i*.26 for i in range(7)]:mounted(rod('Secondary rear ladder rung',(-3.94+.08*(zz-.3)/1.9, -1.25,zz),(-3.94+.08*(zz-.3)/1.9,-.73,zz),.022,materials['edge'],gunscol,vertices=6))
-  for sign in [-1,1]:
-   mounted(box('Secondary covered sight',(-.25,sign*2.32,1.52),(.63,.12,.32),materials['naval'],gunscol))
-   mounted(box('Secondary sight glass',(.075,sign*2.32,1.52),(.026,.085,.14),materials['dark'],gunscol))
-   for xx in [-2.7,-.6,1.2]:
-    yy=sign*(2.15+(xx+3.9)*.4/5.9)
-    mounted(box('Secondary drain',(xx,yy,.39),(.22,.05,.065),materials['dark'],gunscol))
-  for a,b in zip([(-3.82,0,2.20),(-1.2,0,2.62),(1.95,0,2.10)], [(-1.2,0,2.62),(1.95,0,2.10),(2.55,0,1.87)]):mounted(rod('Secondary roof seam',a,b,.018,materials['edge'],gunscol,vertices=5))
-  mounted(cyl('Secondary observation periscope',(-1.18,0,2.76),.095,.34,materials['naval'],gunscol,16))
-  mounted(box('Secondary periscope head',(-1.12,0,2.94),(.26,.23,.15),materials['edge'],gunscol))
-  for side in ['left','right']:
-   parent=bpy.data.objects[mount['id']+'.'+side+'.recoil']
-   for old in list(parent.children):
-    if 'canvas mantlet' in old.name:bpy.data.objects.remove(old,do_unlink=True)
-   vs=[];n=24;rings=[(-.38,.35),(-.16,.39),(.12,.34),(.48,.29),(.85,.235),(1.10,.208)]
-   for xx,rr in rings:
-    for i in range(n):
-     a=math.tau*i/n;wrinkle=1+.055*math.cos(a*7+xx*10);vs.append((xx,rr*math.cos(a)*wrinkle,rr*.94*math.sin(a)*wrinkle))
-   boot=mesh('Secondary pleated blast bag',vs,[(j*n+i,j*n+(i+1)%n,(j+1)*n+(i+1)%n,(j+1)*n+i) for j in range(len(rings)-1) for i in range(n)],materials['canvas'],gunscol,True)
-   boot.parent=parent;boot.matrix_parent_inverse=Matrix.Identity(4);boot['assemblyId']=mount['id']
- if primary:
-  for yy in [-2.65,0,2.65]:
-   mounted(box('Gunhouse roof plate seam',(-1.95,yy,T+.017),(8.7,.025,.025),materials['edge'],gunscol))
-   mounted(cyl('Gunhouse roof sight',(-3.7,yy,T+.15),.18,.35,materials['naval'],gunscol,16))
-  for yy in [-1.2,1.2]:mounted(box('Rear ventilation hood',(-8.5,yy,1.3),(.26,.68,.84),materials['naval'],gunscol))
-  for sign in [-1,1]:
-   # Side ladders, covered sight slots and plate seams are on the sloped side
-   # surface, with every new piece carried by the original yaw parent.
-   def side_y(zz):return sign*(4.35-max(0,zz-2.10)/1.55+.045)
-   for zz in [.50+i*.28 for i in range(12)]:mounted(rod('Main gunhouse side ladder',(-3.35,side_y(zz),zz),(-2.82,side_y(zz),zz),.025,materials['edge'],gunscol,vertices=6))
-   for xx in [-3.35,-2.82]:
-    for za,zb in [(.4,2.1),(2.1,3.6)]:mounted(rod('Main gunhouse ladder stringer',(xx,side_y(za),za),(xx,side_y(zb),zb),.032,materials['naval'],gunscol,vertices=6))
-   cover=rounded_rect(-5.15,2.85,2.7,.84,.32,5);ncover=len(cover)
-   vs=[(xx,side_y(zz)+sign*offset,zz) for offset in [-.10,.09] for xx,zz in cover]
-   fs=[tuple(range(ncover,2*ncover))]+[(i,(i+1)%ncover,(i+1)%ncover+ncover,i+ncover) for i in range(ncover)]
-   mounted(mesh('Gunhouse side optical cover',vs,fs,materials['naval'],gunscol))
-   mounted(rod('Gunhouse side plate joint',(-6.9,side_y(2.1),2.1),(3.0,side_y(2.1),2.1),.022,materials['edge'],gunscol,vertices=6))
-  for side in ['left','right']:
-   parent=bpy.data.objects[mount['id']+'.'+side+'.recoil'];vs=[];n=24
-   rings=[(1.0,.90),(1.3,1.02),(1.9,.89),(2.5,.70),(3.1,.55),(3.6,.44)]
-   for xx,rr in rings:
-    for i in range(n):
-     a=math.tau*i/n;wrinkle=1+.04*math.cos(a*6+xx*7);vs.append((xx,rr*math.cos(a)*wrinkle,rr*.92*math.sin(a)*wrinkle))
-   boot=mesh('Main gun pleated blast bag',vs,[(j*n+i,j*n+(i+1)%n,(j+1)*n+(i+1)%n,(j+1)*n+i) for j in range(len(rings)-1) for i in range(n)],materials['canvas'],gunscol,True)
-   boot.parent=parent;boot.matrix_parent_inverse=Matrix.Identity(4);boot['assemblyId']=mount['id']
+  mounted(box('Secondary covered sight',(-.25,sign*2.32,1.52),(.63,.12,.32),materials['naval'],gunscol))
+  mounted(box('Secondary sight glass',(.075,sign*2.32,1.52),(.026,.085,.14),materials['dark'],gunscol))
+  for xx in [-2.7,-.6,1.2]:
+   yy=sign*(2.15+(xx+3.9)*.4/5.9)
+   mounted(box('Secondary drain',(xx,yy,.39),(.22,.05,.065),materials['dark'],gunscol))
+ for a,b in zip([(-3.82,0,2.20),(-1.2,0,2.62),(1.95,0,2.10)], [(-1.2,0,2.62),(1.95,0,2.10),(2.55,0,1.87)]):mounted(rod('Secondary roof seam',a,b,.018,materials['edge'],gunscol,vertices=5))
+ mounted(cyl('Secondary observation periscope',(-1.18,0,2.76),.095,.34,materials['naval'],gunscol,16))
+ mounted(box('Secondary periscope head',(-1.12,0,2.94),(.26,.23,.15),materials['edge'],gunscol))
+ for side in ['left','right']:
+  parent=bpy.data.objects[mount['id']+'.'+side+'.recoil']
+  for old in list(parent.children):
+   if 'canvas mantlet' in old.name:bpy.data.objects.remove(old,do_unlink=True)
+  vs=[];n=24;rings=[(-.38,.35),(-.16,.39),(.12,.34),(.48,.29),(.85,.235),(1.10,.208)]
+  for xx,rr in rings:
+   for i in range(n):
+    a=math.tau*i/n;wrinkle=1+.055*math.cos(a*7+xx*10);vs.append((xx,rr*math.cos(a)*wrinkle,rr*.94*math.sin(a)*wrinkle))
+  boot=mesh('Secondary pleated blast bag',vs,[(j*n+i,j*n+(i+1)%n,(j+1)*n+(i+1)%n,(j+1)*n+i) for j in range(len(rings)-1) for i in range(n)],materials['canvas'],gunscol,True)
+  boot.parent=parent;boot.matrix_parent_inverse=Matrix.Identity(4);boot['assemblyId']=mount['id']
 # Glazing follows the actual faceted wall, including the rounded forward bridge
 # corners. The navigation house is forward of the separate conning enclosure.
 def wall_windows(sid,z,height,spacing=.95):
