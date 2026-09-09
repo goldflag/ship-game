@@ -18,6 +18,8 @@ bun run build
 
 The archived `ship:reference`, `ship:compare` and `ship:independence` commands, modeling specifications and port reference pages have been removed. Reference research is part of authoring, not a build dependency. Do not recreate ship `reports/` or `references/` directories.
 
+For standalone original equipment and the general model viewer, see [shared components](shared-components.md). `part:build` uses the same registered callable that ship recipes import; its generated previews stay in `.build/parts/`.
+
 ## Blender setup
 
 Use Blender MCP for the interactive authoring loop below. Batch generation, export, thumbnails and fixed review renders continue through the existing pipeline commands: `BLENDER_BIN` overrides the executable, with the standard macOS application or `blender` on PATH as defaults. Those commands start isolated Blender processes and do not require MCP or use the open interactive scene.
@@ -38,6 +40,10 @@ If MCP tools are absent, report that they are not exposed in this session. If a 
 
 ```text
 assets/parts/                         Original reusable equipment and recipes
+  guns.json                          Canonical versioned gun definitions
+  library.json                       Variant discovery and explicit builders
+  library.py                         Reusable mount entry point
+scripts/parts/                       Standalone component build/check tooling
 assets/ships/<ship-id>/
   blueprint.json                      Editable geometry parameters and gameplay data
   build.py                            Original Blender geometry recipe

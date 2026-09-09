@@ -9,6 +9,7 @@ Read the relevant [README](README.md) sections for product behavior and architec
 | Task | Start here |
 | --- | --- |
 | New ship, ship model or combat change | [Ship pipeline](docs/ship-pipeline.md), then its required task-specific references |
+| Shared components or model viewer | [Shared component library](docs/shared-components.md), then [model viewer](tools/ship-overlay/README.md) |
 | Aircraft assets | [Aircraft pipeline](docs/aircraft-pipeline.md) |
 | Carrier operations or bots | [Air operations](docs/air-operations.md) or [bot behavior](docs/bot-behavior.md), plus the ship pipeline for combat changes |
 | Ocean or UI | [Ocean guide](docs/ocean-configuration.md), [README architecture](README.md#architecture), and the relevant guide in the documentation index |
@@ -16,6 +17,7 @@ Read the relevant [README](README.md) sections for product behavior and architec
 
 ## Invariants
 
+- Before modeling ship equipment, search `bun run part:list` and inspect matching variants in `bun run model:viewer`. Reuse registered original builders through `assets/parts/library.py`; isolate published assemblies only for viewing. Preserve exact variants and declare dependencies with `part:inputs`. See [shared components](docs/shared-components.md).
 - Author ships through blueprints, the component catalog and original recipes under `assets/`; preserve `assets/ships/bismarck/baseline/`.
 - Do not create or commit ship `reports/` or `references/` directories. Downloads, exploratory captures, logs and diagnostic output belong in ignored `.build/`. Keep only concise configuration, source links and known limitations in the ship README; do not replace the deleted archive with another tracked folder.
 - Generated Blender/GLB files are build outputs. Record durable changes in a recipe or versioned original component asset.
