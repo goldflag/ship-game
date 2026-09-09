@@ -64,14 +64,33 @@ def rounded_rect(cx,cy,length,width,r=.5,steps=4):
  return [(cx+sx*(length/2-r)+r*math.cos(a),cy+sy*(width/2-r)+r*math.sin(a)) for sx,sy,start in [(1,1,0),(-1,1,90),(-1,-1,180),(1,-1,270)] for a in [math.radians(start+i*90/steps) for i in range(steps+1)]]
 def ellipse(cx,cy,rx,ry,n=40):return [(cx+rx*math.cos(math.tau*i/n),cy+ry*math.sin(math.tau*i/n)) for i in range(n)]
 def polyline(name,pts,r=.027,mat=None,col=None,closed=False,vertices=6):
- for a,b in zip(pts,pts[1:]+([pts[0]] if closed else [])):rod(name,a,b,r,mat or materials['edge'],col or detailcol,vertices=vertices)
+ pts=[Vector(p) for p in pts]
+ if len(pts)<2:return
+ if (pts[-1]-pts[0]).length<1e-7:pts.pop();closed=True
+ vs=[];n=vertices
+ for i,p in enumerate(pts):
+  prev=pts[(i-1)%len(pts)] if closed or i else p
+  nxt=pts[(i+1)%len(pts)] if closed or i<len(pts)-1 else p
+  tangent=(nxt-prev).normalized();u=tangent.cross(Vector((0,0,1)))
+  if u.length<.01:u=tangent.cross(Vector((0,1,0)))
+  u.normalize();v=tangent.cross(u)
+  vs.extend(p+r*(u*math.cos(math.tau*j/n)+v*math.sin(math.tau*j/n)) for j in range(n))
+ fs=[]
+ for i in range(len(pts) if closed else len(pts)-1):
+  a=i*n;b=((i+1)%len(pts))*n
+  fs.extend((a+j,a+(j+1)%n,b+(j+1)%n,b+j) for j in range(n))
+ if not closed:fs.extend([tuple(reversed(range(n))),tuple((len(pts)-1)*n+j for j in range(n))])
+ return mesh(name,vs,fs,mat or materials['edge'],col or detailcol,True)
 def rail(name,pts,height=.94,spacing=1.85,closed=True,col=None):
- col=col or detailcol;seq=list(zip(pts,pts[1:]+([pts[0]] if closed else [])))
+ col=col or detailcol;pts=[Vector(p) for p in pts];seq=list(zip(pts,pts[1:]+([pts[0]] if closed else [])))
+ remaining=0.0
  for a,b in seq:
-  a,b=Vector(a),Vector(b);length=(b-a).length
-  for i in range(max(1,math.ceil(length/spacing))):
-   p=a+(b-a)*(i/max(1,math.ceil(length/spacing)));rod(name+' stanchion',p,p+Vector((0,0,height)),.026,materials['edge'],col,vertices=5)
-  for dz in [height*.38,height*.7,height]:rod(name+' wire',a+Vector((0,0,dz)),b+Vector((0,0,dz)),.014,materials['edge'],col,vertices=5)
+  delta=b-a;length=delta.length
+  if length<1e-7:continue
+  while remaining<length:
+   p=a+delta*(remaining/length);rod(name+' stanchion',p,p+Vector((0,0,height)),.026,materials['edge'],col,vertices=5);remaining+=spacing
+  remaining-=length
+ for dz in [height*.38,height*.7,height]:polyline(name+' wire',[p+Vector((0,0,dz)) for p in pts],.014,materials['edge'],col,closed,5)
 def ring(name,center,normal,radius,tube=.035,mat=None,n=20):
  axis=Vector(normal).normalized();u=axis.cross(Vector((0,0,1)))
  if u.length<.1:u=axis.cross(Vector((0,1,0)))
@@ -179,7 +198,7 @@ for s in DEF['structures']:
     ob=mesh('Gallery splinter bulwark',vs,[(0,1,3,2)],materials['naval'],supercol)
     mod=ob.modifiers.new('Fabricated plate thickness','SOLIDIFY');mod.thickness=.045
     lip=[Vector((x,y,top+shield)) for x,y in [a,b]];mesh('Gallery wind deflector',[tuple(v) for v in lip]+[tuple(v+normal*.17+Vector((0,0,.13))) for v in lip],[(0,1,3,2)],materials['edge'],supercol)
-    count=max(1,math.ceil((Vector(b)-Vector(a)).length/1.4))
+    count=math.ceil((Vector(b)-Vector(a)).length/1.4) if (Vector(b)-Vector(a)).length>.65 else 0
     for i in range(count):
      p=Vector(a)+(Vector(b)-Vector(a))*((i+.5)/count);rod('Bulwark stiffener',(p.x,p.y,top+.08),(p.x,p.y,top+shield-.04),.025,materials['edge'],supercol,vertices=5)
   # Gallery brackets connect the outer lip to the enclosed central support.
@@ -247,8 +266,12 @@ def wall_windows(sid,z,height,spacing=.95):
    corners=[p+Vector((0,0,zz)) for zz in [z,z+height] for p in [start,end]]
    mesh(sid+' framed glass',corners,[(0,1,3,2)],materials['glass'],detailcol)
    polyline(sid+' window frame',[corners[j] for j in [0,1,3,2]],.033,materials['edge'],closed=True,vertices=6)
+bridge_detail_before=set(bpy.data.objects)
 wall_windows('bridge-wheelhouse',13.62,.66,1.02)
+for ob in set(bpy.data.objects)-bridge_detail_before:ob.location.x+=2
+window_before=set(bpy.data.objects)
 wall_windows('conning-tower',17.30,.12,1.3)
+for ob in set(bpy.data.objects)-window_before:ob.location.x+=2
 # The upper control house has small apertures; the former full window ribbon
 # exaggerated its width. All service fittings bear on their actual deck or wall.
 for sign in [-1,1]:
@@ -304,7 +327,7 @@ for a,b in zip(front,front[1:]):
 # Funnel: a flared uptake foot, nearly straight-sided oblong jacket, projecting
 # collar and smaller raked cap. Profiles come from the authored blueprint rings.
 fx=-.6;N=64
-verts=[(-z,-x,y) for x,y,z in structures['funnel-jacket']['surface']['vertices']]
+verts=[(-z+2,-x,y) for x,y,z in structures['funnel-jacket']['surface']['vertices']]
 jacket_rings=[verts[i:i+N] for i in range(0,len(verts),N)]
 outer=jacket_rings[-1];inner=[(fx+(x-fx)*.945,y*.9,z-.05) for x,y,z in outer]
 mesh('Funnel cap thickness',outer+inner,[(i,(i+1)%N,(i+1)%N+N,i+N) for i in range(N)],materials['edge'],supercol)
@@ -343,6 +366,9 @@ for sign in [-1,1]:
  stairs('Funnel gallery access',(-5.5,sign*4.0,14.75),(-2.4,sign*4.0,17.65),.6)
  ladder('Funnel upper ladder',(-3.8,sign*3.02,17.7),(-3.8,sign*3.02,22.95),.45)
  for xx in [-4.5,.7]:vent('Funnel lower uptake grille',(xx,sign*3.77,10.3),(1.5,.15,1.3),sign)
+
+for ob in set(bpy.data.objects)-bridge_detail_before:
+ ob.location.x-=2.0
 # The conning enclosure and crown now come from the blueprint, with the same
 # structural surfaces used for CPU hits. Its director remains on the original axis.
 def director(name,x,z,span,base):
@@ -388,8 +414,8 @@ def director(name,x,z,span,base):
   for yy in [-.6,.6]:rod(name+' aerial stay',(x,yy,top+.15),(x,0,top+.83),.012,materials['edge'],detailcol,vertices=5)
  else:cyl(name+' roof vent',(x,0,top+.26),.12,.30,materials['naval'],detailcol,12)
  radar_pivot({'Fore main director':'fumo-fore.yaw','Conning director':'fumo-conning.yaw','Aft main director':'fumo-aft.yaw'}[name],(x,0,base+.16),set(bpy.context.scene.objects)-before)
-director('Fore main director',16.2,31.1,10.5,29.8)
-director('Conning director',27.6,19.55,7.0,18.3)
+director('Fore main director',14.2,31.1,10.5,29.8)
+director('Conning director',25.0,19.55,7.0,18.3)
 director('Aft main director',-37.8,17.5,10.5,16.2)
 # Enclosed AA directors with the characteristic rounded weather covers.
 def aa_director(name,x,y,z,base):
@@ -406,7 +432,7 @@ def aa_director(name,x,y,z,base):
   rr=next(ra+(rb-ra)*(zz-za)/(zb-za) for (za,ra),(zb,rb) in zip(latitudes,latitudes[1:]) if za<=zz<=zb)
   polyline(name+' cover seam',[(x+1.25*rr*math.cos(math.tau*i/28),y+rr*math.sin(math.tau*i/28),z+zz) for i in range(28)],.02,materials['edge'],closed=True)
 for sign in [-1,1]:
- aa_director('Forward AA director',17.0,sign*6.8,17.8,12.95)
+ aa_director('Forward AA director',15.0,sign*6.8,17.8,12.95)
 # Searchlights are open mechanical drums, not the forward AA weather domes.
 def searchlight(name,x,y,z,bearing,radius=.75):
  axis=Vector((math.cos(bearing),math.sin(bearing),.08)).normalized()
@@ -458,11 +484,11 @@ def searchlight_cup(name,x,y,z,deep=True):
  sign=1 if y>0 else -1
  box(name+' gallery saddle',(x,y-sign*.98,z-.09),(1.65,1.2,.18),materials['roof'],detailcol)
 for sign in [-1,1]:
- for xx,yy,zz,bearing in [(3.45,4.3,18.7,sign*1.25),(-5.7,3.8,17.7,sign*2.15)]:
+ for xx,yy,zz,bearing in [(1.45,4.3,18.7,sign*1.25),(-7.7,3.8,17.7,sign*2.15)]:
   searchlight_cup('Funnel searchlight',xx,sign*yy,zz,deep=xx>0)
   searchlight('Funnel 1.5 m searchlight',xx,sign*yy,zz+.08,bearing)
  searchlight('Aft searchlight',-34.8,sign*4.8,12.52,sign*2.5)
-searchlight('Foretop 1.5 m searchlight',22.2,0,24.71,0)
+searchlight('Foretop 1.5 m searchlight',20.2,0,24.71,0)
 # Fore pole mast and aft mainmast, with yards, ladders, navigation platforms,
 # signal halyards and properly grounded stays. All lines are original geometry.
 for name,x,base,top in [('foremast',6.4,5.73,40.3),('mainmast',-22.0,10.96,48.5)]:
@@ -734,7 +760,7 @@ for mount in DEF['mounts']:
  if mount['weapon']['caliberM']<=.13:
   a,b,c=mount['position'];aa_mount(mount['name'],-c,-a,b,mount['weapon']['caliberM'],bearing=-math.radians(mount['bearingDeg']),mount=mount)
 for sign in [-1,1]:
- aa_mount('Quad 2 cm April 1941 fit',19.0,sign*4.65,24.72,.020,bearing=sign*.82,quad=True)
+ aa_mount('Quad 2 cm April 1941 fit',17.0,sign*4.65,24.72,.020,bearing=sign*.82,quad=True)
 
 # Mooring machinery, proper stockless anchors, hatch coamings and hull scuttles.
 def bollard(name,x,y,z):
@@ -791,7 +817,7 @@ for sign in [-1,1]:
   y*=sign;z=aa_support.below(x,y,z+.1);box('Ready ammunition locker',(x,y,z+.62),(1.05,.64,1.24),materials['naval'],detailcol)
   box('Ammunition locker lid',(x,y,z+1.28),(1.1,.69,.08),materials['roof'],detailcol)
   rod('Locker handle',(x-.12,y+sign*.34,z+.8),(x+.12,y+sign*.34,z+.8),.022,materials['dark'],detailcol,vertices=6)
- for x,y,z in [(36,4.9,12.65),(7,8.8,11.0),(-34,7.7,9.4),(-42,7.9,9.4)]:
+ for x,y,z in [(36,4.9,12.65),(7,10.7,8.6),(-34,7.7,9.4),(-42,7.9,9.4)]:
   y*=sign;pts=[(xx,yy,z+.3) for xx,yy in rounded_rect(x,y,2.55,1.28,.56,5)];polyline('Carley float buoyant tube',pts,.17,materials['canvas'],closed=True,vertices=8)
   for xx in [-.85,-.45,0,.45,.85]:rod('Carley float floor',(x+xx,y-.52,z+.22),(x+xx,y+.52,z+.22),.033,materials['wood'],detailcol,vertices=6)
   for xx in [-.75,.75]:box('Carley float cradle',(x+xx,y,z+.025),(.12,1.12,.22),materials['edge'],detailcol)
@@ -881,7 +907,7 @@ for a in DEF['armor']:
 for c in DEF['compartments']:
  x,y,z=c['center'];sx,sy,sz=c['size'];ob=box(c['name'],(-z,-x,y),(sz,sx,sy),materials['edge'],simcol);ob['exportRole']='simulation';ob.hide_render=True
 simcol.hide_render=True;simcol.hide_viewport=True
-for name,loc in [('funnel-cap',(-2.4,0,25)),('mainmast-top',(-22.5,0,48.5)),('fore-director',(13.4,0,32)),('conning-director',(27.6,0,20.6)),('aft-director',(-37.8,0,17.5))]:
+for name,loc in [('funnel-cap',(-2.6,0,24.3)),('mainmast-top',(-22.5,0,48.5)),('fore-director',(14.2,0,31.1)),('conning-director',(25.0,0,19.55)),('aft-director',(-37.8,0,17.5))]:
  ob=bpy.data.objects.new('landmark.'+name,None);scene.collection.objects.link(ob);ob.location=loc;ob['nodeId']='landmark.'+name
 sys.path.insert(0,str(Path(__file__).resolve().parent))
 from paint import apply_paint, consolidate_finish_uvs
