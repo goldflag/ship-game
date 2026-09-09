@@ -229,7 +229,7 @@ for side,sign in [('port',1),('starboard',-1)]:
 plate('machinery-deck','Protective deck over machinery',[(-60,-12.2,1.65),(67,-12.2,1.65),(67,12.2,1.65),(-60,12.2,1.65)],65)
 for end,x,w in [('forward',86,10),('aft',-78,12.2)]:plate('magazine-deck-'+end,'Magazine crown '+end,[(x-10,-w/2,0),(x+10,-w/2,0),(x+10,w/2,0),(x-10,w/2,0)],132)
 
-b=dict(schemaVersion=1,id='shokaku',name='IJN Shōkaku',configuration='December 1941; original armament and 72 operational aircraft; sourced reconstruction with unresolved offsets',
+b=dict(schemaVersion=1,id='shokaku',name='IJN Shōkaku',configuration='December 1941; original armament; 48-aircraft gameplay complement; sourced reconstruction with unresolved offsets',
  coordinates='meters-y-up-bow-negative-z',modelUrl='/models/shokaku.glb',
  hull=dict(kind='authored-stations-v1',length=L,beam=26,draft=DRAFT,depth=19.32,massKg=32105000,waterplaneAreaM2=5050,reserveBuoyancyM3=15500,
   halfBreadths=[[s['station'],max(p[0] for p in s['points'])] for s in sections],deckHeights=[[s['station'],s['points'][-1][1]] for s in sections],keelHeights=[[s['station'],s['points'][0][1]] for s in sections],sections=sections),
@@ -239,7 +239,7 @@ b=dict(schemaVersion=1,id='shokaku',name='IJN Shōkaku',configuration='December 
  obstructions=[dict(id='hangar-block',center=xyz(0,0,10),size=[21,8.8,198]),dict(id='island-block',center=xyz(39.6,IY,18.2),size=[4.4,6.9,11.0])],
  viewpoints=dict(bridge=xyz(43.6,-12.6,21.10)),
  airWing=dict(version=1,launchPosition=xyz(16,0,FLIGHT),recoveryPosition=xyz(-109,0,FLIGHT),serviceModuleId='aviation-service',launchIntervalSeconds=2,rearmSeconds=35,flightSize=6,deckCapacity=12,maxActiveFlights=4,
-  squadrons=[dict(id='shokaku-fighters',name='Shōkaku fighter group',modelId='a6m2-zero',role='fighter',count=18),dict(id='shokaku-dive',name='Shōkaku dive bomber group',modelId='d3a1-val',role='dive-bomber',count=27),dict(id='shokaku-torpedo',name='Shōkaku attack group',modelId='b5n2-kate',role='torpedo-bomber',count=27)]),
+  squadrons=[dict(id='shokaku-fighters',name='Shōkaku fighter group',modelId='a6m2-zero',role='fighter',count=16),dict(id='shokaku-dive',name='Shōkaku dive bomber group',modelId='d3a1-val',role='dive-bomber',count=16),dict(id='shokaku-torpedo',name='Shōkaku attack group',modelId='b5n2-kate',role='torpedo-bomber',count=16)]),
  rig=dict(version=1,ensigns=[dict(id='shokaku-ensign',design='ijn',position=xyz(27.3,IY,27.1),width=2.8,staffHeight=0)],radars=[]),
  damageControl=dict(version=1,teams=4,setupSeconds=6,repairPoints=190,roomFuelSeconds=200,mountFuelSeconds=65,suppressionPerSecond=.055,portablePumpM3PerSecond=.07,repairHpPerSecond=1.3,repairCeiling=.65,patchM2PerSecond=.001,maxPatchM2=.12,flashProtection=.35,basis='Provisional carrier damage-control calibration; no historical crew-performance claim.'),
  accuracy=dict(exterior='Independent original geometry based on S01-S06. S02 is a secondary arrangement with unverified drawing provenance; hidden offsets and exact bridge dimensions remain unresolved.',internals='Named machinery, ordnance, service, steering and side voids are gameplay volumes, not a recovered ship subdivision plan.',weapons='Six open Type 89 A1 and two gas-shielded A1 Mod 2 twins; twelve Type 96 triples. Positions are plan-measured estimates. Ballistics, service timings, ammunition and aircraft flight performance remain gameplay calibration.'))

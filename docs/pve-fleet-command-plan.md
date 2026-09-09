@@ -356,12 +356,12 @@ Keep one versioned blueprint/compiled-definition format for carrier equipment, a
 
 Add versioned `AirRules` selected by the battle profile: group size, startup allocation, permitted deck capacity within validated physical layout, lift/launch/recovery/service timings, active-flight policy, endurance and consolidation. Store tunable mode policy in a gameplay asset referencing preset IDs only when a carrier-specific override is needed. Resolve it once in Rust, validate against the ship definition, and freeze its version/hash with battle setup. The catalog/rules handshake must cover these assets too. Missing profiles must fail validation or use an explicitly declared default, never an invisible four-flight fallback in PvE.
 
-The authored baseline and intended rebalance are distinct:
+The global inventory rebalance is authored and rebuilt. Startup and grouping below describe the pending PvE operating profile:
 
-| Carrier | Current authored fighter/dive/torpedo pools | Proposed pools | Proposed deck/hangar startup | Status |
+| Carrier | Previous fighter/dive/torpedo pools | Current authored pools | PvE deck/hangar startup | Status |
 | --- | --- | --- | --- | --- |
-| Enterprise | 18 / 18 / 12 (48 total) | 16 / 16 / 16 | 24 / 24 | Equal-role goal agreed |
-| Shōkaku | 18 / 27 / 27 (72 total) | 16 / 16 / 16 (48 total) | 24 / 24 | User decision |
+| Enterprise | 18 / 18 / 12 (48 total) | 16 / 16 / 16 | 24 / 24 | Inventory rebuilt; operating profile pending |
+| Shōkaku | 18 / 27 / 27 (72 total) | 16 / 16 / 16 (48 total) | 24 / 24 | Inventory rebuilt; operating profile pending |
 
 At group size four, the agreed pools produce twelve groups on each carrier, four per role. Both carriers start six groups on deck and six below. Matching counts, grouping and startup does not replace Japanese aircraft models with American ones or imply equal combat effectiveness; their payloads and flight performance still need balance testing. Keeping current pools instead produces partial groups and does not meet the agreed inventory design.
 

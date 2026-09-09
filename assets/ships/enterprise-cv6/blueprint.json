@@ -93693,21 +93693,21 @@
         "name": "Wildcats",
         "modelId": "f4f-4-wildcat",
         "role": "fighter",
-        "count": 18
+        "count": 16
       },
       {
         "id": "vb-6",
         "name": "Dauntlesses",
         "modelId": "sbd-3-dauntless",
         "role": "dive-bomber",
-        "count": 18
+        "count": 16
       },
       {
         "id": "vt-6",
         "name": "Devastators",
         "modelId": "tbd-1-devastator",
         "role": "torpedo-bomber",
-        "count": 12
+        "count": 16
       }
     ],
     "flightSize": 6,

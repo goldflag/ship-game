@@ -95723,21 +95723,21 @@
         "name": "Wildcats",
         "modelId": "f4f-4-wildcat",
         "role": "fighter",
-        "count": 18
+        "count": 16
       },
       {
         "id": "vb-6",
         "name": "Dauntlesses",
         "modelId": "sbd-3-dauntless",
         "role": "dive-bomber",
-        "count": 18
+        "count": 16
       },
       {
         "id": "vt-6",
         "name": "Devastators",
         "modelId": "tbd-1-devastator",
         "role": "torpedo-bomber",
-        "count": 12
+        "count": 16
       }
     ],
     "flightSize": 6,
@@ -97257,5 +97257,5 @@
     ]
   },
   "compilerVersion": 1,
-  "contentHash": "c1a5de2ed8006816400725554ce0f38ba048adad392de730b4b3576f9e3ae6f2"
+  "contentHash": "b6eb9705e7b4934f07c67cf8e045813b77c313ae68a3e0f5e5ff612e05cfedad"
 }

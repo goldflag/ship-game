@@ -13,8 +13,9 @@ test('deployment rotation preserves escort spacing and unselected ships', () => 
 test('fleet allowance feedback uses authored aircraft totals, not a carrier count', () => {
   const budget = { maxShips: 15, maxAircraft: 100, maxDisplacementKg: 200000000 };
   const carrier = (id: string, presetId: string) => ({ id, presetId, groupId: 'rear' });
-  expect(aircraftCount('enterprise-cv6')).toBeGreaterThan(0);
-  const pair = [carrier('cv1', 'enterprise-cv6'), carrier('cv2', 'enterprise-cv6')];
+  expect(aircraftCount('enterprise-cv6')).toBe(48);
+  expect(aircraftCount('shokaku')).toBe(48);
+  const pair = [carrier('cv1', 'enterprise-cv6'), carrier('cv2', 'shokaku')];
   expect(budgetError(pair, budget)).toBe('');
   expect(budgetError([...pair, carrier('cv3', 'enterprise-cv6')], budget)).toContain('aircraft');
   expect(budgetError([], budget)).toContain('at least one');

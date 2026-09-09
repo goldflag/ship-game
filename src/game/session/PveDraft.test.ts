@@ -60,3 +60,25 @@ test('briefing options and placement preflight expose public content and preserv
     expect(JSON.parse(planner.briefing()).setup.ships[0].spawn).toEqual({ x: 0, z: 11000, heading: .3 });
   } finally { planner.free(); }
 });
+
+test('both national carrier wings fit the aircraft allowance and survive the real WASM deployment', () => {
+  const ships = ['enterprise-cv6', 'shokaku'].map((presetId, i) => ({ id: `owned-carrier-${i}`, presetId, groupId: 'rear' }));
+  const planner = new PvePlanner(manifest, JSON.stringify({ ...request, ships, groups: [{ id: 'rear', name: 'Carriers', station: 'rear' }] }));
+  try {
+    const briefing = JSON.parse(planner.briefing()) as PveBriefing;
+    expect(briefing.totals.aircraft).toBe(96);
+    const runtime = planner.start(JSON.stringify(briefing.setup.ships.map(s => ({ id: s.id, spawn: s.spawn }))));
+    try {
+      const frame = JSON.parse(runtime.snapshot());
+      const wings = frame.wings;
+      expect(wings).toHaveLength(2);
+      for (const wing of wings) {
+        expect(wing.state.planes).toHaveLength(48);
+        for (const role of ['fighter', 'dive-bomber', 'torpedo-bomber']) {
+          expect(wing.state.planes.filter((p: { role: string }) => p.role === role)).toHaveLength(16);
+        }
+      }
+      expect([...new Set(wings[1].state.planes.map((p: { modelId: string }) => p.modelId))]).toEqual(['a6m2-zero', 'd3a1-val', 'b5n2-kate']);
+    } finally { runtime.free(); }
+  } finally { planner.free(); }
+});

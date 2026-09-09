@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "shokaku",
   "name": "IJN Shōkaku",
-  "configuration": "December 1941; original armament and 72 operational aircraft; sourced reconstruction with unresolved offsets",
+  "configuration": "December 1941; original armament; 48-aircraft gameplay complement; sourced reconstruction with unresolved offsets",
   "coordinates": "meters-y-up-bow-negative-z",
   "modelUrl": "/models/shokaku.glb",
   "hull": {
@@ -32578,21 +32578,21 @@
         "name": "Shōkaku fighter group",
         "modelId": "a6m2-zero",
         "role": "fighter",
-        "count": 18
+        "count": 16
       },
       {
         "id": "shokaku-dive",
         "name": "Shōkaku dive bomber group",
         "modelId": "d3a1-val",
         "role": "dive-bomber",
-        "count": 27
+        "count": 16
       },
       {
         "id": "shokaku-torpedo",
         "name": "Shōkaku attack group",
         "modelId": "b5n2-kate",
         "role": "torpedo-bomber",
-        "count": 27
+        "count": 16
       }
     ]
   },

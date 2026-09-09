@@ -18,14 +18,15 @@ function fixture() {
   return { sim, events, run };
 }
 
-test('Shokaku fits the 1941 guns and air group through the common blueprint', () => {
+test('Shokaku fits the 1941 guns and balanced gameplay air group through the common blueprint', () => {
   expect(definition.mounts.filter(m => m.weapon.caliberM === .127)).toHaveLength(8);
   expect(definition.mounts.filter(m => m.weapon.caliberM === .025)).toHaveLength(12);
   expect(definition.mounts.filter(m => m.partId === 'type89-127-a1-mod2-twin')).toHaveLength(2);
   const { sim } = fixture();
-  expect(sim.player.airWing!.planes).toHaveLength(72);
+  expect(sim.player.airWing!.planes).toHaveLength(48);
+  expect(definition.airWing!.squadrons.map(s => [s.role, s.count])).toEqual([["fighter", 16], ["dive-bomber", 16], ["torpedo-bomber", 16]]);
   const flights = squadronFlights(sim.player);
-  expect(flights.map(f => f.planeIds.length)).toEqual([6, 6, 6, 6, 6, 6, 6, 3, 6, 6, 6, 6, 3]);
+  expect(flights.map(f => f.planeIds.length)).toEqual([6, 6, 4, 6, 6, 4, 6, 6, 4]);
   expect(hasFoldingWings('a6m2-zero')).toBe(false);
   expect(hasFoldingWings('b5n2-kate')).toBe(false);
   expect(hasFoldingWings('d3a1-val')).toBe(false);
@@ -47,7 +48,7 @@ test('Japanese aircraft launch, recover, service and preserve squadron inventory
   expect(squadronFlights(sim.player).map(f => f.planeIds)).toEqual(before);
   expect(sim.launchAircraft('shokaku-fighters')).toBe(6);
   sim.reset();
-  expect(sim.player.airWing!.planes).toHaveLength(72);
+  expect(sim.player.airWing!.planes).toHaveLength(48);
   expect(sim.player.airWing!.planes.every(p => p.phase === 'ready')).toBe(true);
 });
 
