@@ -20,6 +20,13 @@ Fresnel object across presets and quality changes. With refraction enabled, the
 original refraction path takes precedence. There is no public runtime graph
 switch. No performance measurement was requested for this restoration.
 
+The actual-game WebGPU capture shows the fully submerged VIIC from above, with
+refraction and underwater distortion both disabled. Dive visibility and recovery
+checks pass at 7, 50 and 150 m. WebGL also passes those dive checks without shader
+errors after the analytic-absorption change; its above-water diagnostic capture
+is black with either transmission setting, so fallback surface visibility is
+not certified. Temporary images and functional checks remain in `.build/`.
+
 ## Optional refraction removal
 
 The `refractionEnabled` option passed to `WaterSystem.create` defaults to true in
