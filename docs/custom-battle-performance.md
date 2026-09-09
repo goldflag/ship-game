@@ -546,3 +546,10 @@ The following unchanged control averaged 66.03 FPS and advanced 119.75 simulatio
 seconds, with no frames over 100 ms (61.3 ms maximum). The warmed candidate is
 about 9% faster overall in this pair; the control's busy windows remained below
 60 FPS. Normal machine-speed variability still applies to these measurements.
+
+After integration, the main production build averaged 72.06 FPS over 120 seconds,
+advanced 119.87 simulation seconds and recorded no frames over 100 ms (53.6 ms
+maximum). Its final fifty-second windows were 63.0, 61.8, 64.2, 64.3 and 64.8 FPS.
+All 52 tests and the full build also passed in the main checkout. The tested
+thirty-ship/four-carrier scenario now exceeds 60 FPS in each ten-second window;
+occasional individual frames still exceed 16.7 ms.
