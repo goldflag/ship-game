@@ -14,6 +14,28 @@
       "inputs": [
         "scripts/ships/blender_barrels.py"
       ]
+    },
+    "ijn-type-c": {
+      "path": "assets/parts/ijn-destroyer-guns/type_c.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_components.py",
+        "scripts/ships/blender_barrels.py"
+      ]
+    },
+    "ijn-mogami-aa": {
+      "path": "assets/parts/ijn-destroyer-guns/aa.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
+    },
+    "ijn-type-93": {
+      "path": "assets/parts/ijn-destroyer-guns/type_93.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
     }
   },
   "components": [
@@ -242,7 +264,8 @@
       "nation": "Japan",
       "family": "127 mm/50 Type C twin",
       "review": "unreviewed",
-      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified."
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified.",
+      "builder": "ijn-type-c"
     },
     {
       "partId": "type96-25-yukikaze-triple",
@@ -284,7 +307,8 @@
       "nation": "Japan",
       "family": "Type 96 25 mm",
       "review": "unreviewed",
-      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified."
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified.",
+      "builder": "ijn-mogami-aa"
     },
     {
       "partId": "type96-25-mogami-3",
@@ -320,6 +344,22 @@
       "family": "US 5-inch/38",
       "review": "unreviewed",
       "limitations": "Legacy ID and name say Mk 32; historical Iowa mount identity is Mk 28 Mod 2. Resolve against approved fit before promoting to a shared builder."
+    },
+    {
+      "partId": "type93-13-twin",
+      "nation": "Japan",
+      "family": "13.2 mm Type 93",
+      "review": "unreviewed",
+      "limitations": "Original interpretation of approved GameModels3D Fubuki A. Game performance and mechanical limits provisional; installation review required.",
+      "builder": "ijn-type-93"
+    },
+    {
+      "partId": "type93-13-single",
+      "nation": "Japan",
+      "family": "13.2 mm Type 93",
+      "review": "unreviewed",
+      "limitations": "Original interpretation of approved GameModels3D Fubuki A. Game performance and mechanical limits provisional; installation review required.",
+      "builder": "ijn-type-93"
     }
   ]
 }

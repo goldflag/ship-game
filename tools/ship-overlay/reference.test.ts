@@ -33,3 +33,21 @@ test('reference assembly preserves nested mount transforms without applying comp
   expect(scheme).toEqual(original);
   expect(() => assembleReference(scheme, 'unknown', [])).toThrow();
 });
+
+test('dated hull variants retain common AB1 equipment and default fittings without a competing hull', () => {
+  const scheme: Scheme = {
+    A_Hull_1943: { hull: { visual: 'hull-a', nodes: { gun: {}, director: {}, launcher: {} } } },
+    B_Hull_1943: { hull: { visual: 'hull-b' } },
+    AB1_127_50: { gun: { visual: 'type-c' } },
+    AB1_Torpedoes: { launcher: { visual: 'stock-triple' } },
+    AB2_Torpedoes: { launcher: { visual: 'upgraded-triple' } },
+    DirectorsDefault: { director: { visual: 'director' } },
+    A_AirDefense: {}, B_AirDefense: {},
+  };
+  const selected = defaultComponents(scheme, 'A_Hull_1943');
+  expect(selected).toEqual(['AB1_127_50', 'AB1_Torpedoes', 'A_AirDefense', 'DirectorsDefault']);
+  const result = assembleReference(scheme, 'A_Hull_1943', [...selected, 'B_Hull_1943']);
+  expect((result.nodes as any).hull).toEqual({ visual: 'hull-a', nodes: {
+    gun: { visual: 'type-c' }, director: { visual: 'director' }, launcher: { visual: 'stock-triple' },
+  } });
+});

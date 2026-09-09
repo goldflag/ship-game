@@ -9,6 +9,7 @@ import shokaku from '../../public/models/shokaku.json';
 import viic from '../../public/models/type-viic.json';
 import fletcher from '../../public/models/fletcher.json';
 import yukikaze from '../../public/models/yukikaze.json';
+import fubuki from '../../public/models/fubuki.json';
 import libertyCargo from '../../public/models/liberty-cargo.json';
 import libertyCollier from '../../public/models/liberty-collier.json';
 import victoryCargo from '../../public/models/victory-cargo.json';
@@ -32,6 +33,7 @@ export const shipPresets = {
   'flower-corvette': flower,
   fletcher,
   yukikaze,
+  fubuki,
 };
 const retiredPresetAliases: Record<string, keyof typeof shipPresets> = {
   'liberty-deck-cargo': 'liberty-collier', 'liberty-troopship': 'victory-cargo',
