@@ -3138,7 +3138,7 @@ class aj {
     return t.mul(p);
   }
 }
-const Vj = 4, cj = 2, rj = 0.999;
+const Vj = 8, cj = 2, rj = 0.999;
 class Sj {
   // ============= Private Uniforms =============
   _enabled = d(1);
@@ -3268,12 +3268,15 @@ class Sj {
         ).toVar("ssrStartUV"), T = Jp(
           K,
           j
-        ).toVar("ssrEndUV"), W = b.mul(At).toVar("ssrStart"), B = T.mul(At).toVar("ssrEnd").sub(W), I = KA(Vt(B.x), Vt(B.y)), J = at(I, this._stepCount).max(1).toVar("ssrMarchSteps"), Z = M.div(J), m = at(
+        ).toVar("ssrEndUV"), delta = T.sub(b), screenSpan = at(O(1), at(
+          lt(delta.x.greaterThan(0), O(1).sub(b.x), b.x).div(KA(Vt(delta.x), 1e-6)),
+          lt(delta.y.greaterThan(0), O(1).sub(b.y), b.y).div(KA(Vt(delta.y), 1e-6))
+        )).max(0).toVar("ssrScreenSpan"), B = delta.mul(screenSpan).mul(At), I = KA(Vt(B.x), Vt(B.y)), J = at(I, this._stepCount).max(1).toVar("ssrMarchSteps"), Z = M.div(J), m = at(
           Z.mul(2),
           O(cj)
         );
         tA(this._enabled.greaterThan(0.5), () => {
-          const N = T.sub(b).div(J), D = O(1).div(u.z), C = O(1).div(K.z).sub(D).div(J), L = UA(
+          const N = delta.mul(screenSpan).div(J), D = O(1).div(u.z), C = O(1).div(K.z).sub(D).mul(screenSpan).div(J), L = UA(
             rA(qA(IA, y(127.1, 311.7))).mul(43758.5453)
           ), X = b.add(N.mul(L)).toVar("ssrCurUV"), $ = D.add(C.mul(L)).toVar("ssrCurInvZ"), _ = b.toVar("ssrLastUV"), v = D.toVar("ssrLastInvZ");
           it(J, () => {
@@ -11636,7 +11639,9 @@ function Fp(r, A) {
   return new S.RenderTarget(r, A, {
     minFilter: S.NearestFilter,
     magFilter: S.NearestFilter,
-    type: S.HalfFloatType,
+    // Meter-valued view depth must resolve the SSR's 2 m hit tolerance at
+    // naval ranges (half floats round to 16 m increments by 20 km).
+    type: S.FloatType,
     format: S.RGBAFormat,
     depthBuffer: !0
   });
