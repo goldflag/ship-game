@@ -503,3 +503,10 @@ lighting difference could not be isolated. The measured FPS results use WebGPU.
 An earlier aircraft part-grouping prototype had image mismatches and was removed
 from runtime before these measurements. Its temporary source and diagnostics
 remain under ignored `.build/`; no aircraft batching gain is included here.
+
+After integration and a fresh production build, the final construction-option
+version averaged 68.01 FPS over 120 seconds, advanced 119.78 simulation seconds,
+and had no frames over 100 ms (60.4 ms maximum). Its final fifty-second windows
+were 54.3-59.0 FPS. This confirms an improved normal-speed result but still falls
+short of sustained 60 FPS during the busiest combat. The main checkout contains
+the approved reductions; the broader steady-60 target remains open.
