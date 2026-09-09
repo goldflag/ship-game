@@ -1,3 +1,4 @@
+import type { EndurancePolicy } from '../multiplayer/generated/EndurancePolicy';
 import { physicalLoss } from './battleRules';
 import type { AircraftRole, ShipDefinition, TorpedoPart, Vec3 } from '../ships/blueprint';
 import type { FleetActor, Team } from './battle';
@@ -32,9 +33,9 @@ export interface Aircraft {
   wreck?: { age: number; rollRate: number; impacted: boolean };
 }
 export interface DeckStatus {
-  queue: { id: number; flightId: string; action: 'raise' | 'stow' | 'rearm' | 'repair' | 'launch' }[];
-  currentPlaneId?: string; task?: string; suspended: boolean; notice?: string;
-  occupied: number; capacity: number; groupSize: number;
+  queue: { id: number; flightId: string; action: 'raise' | 'stow' | 'rearm' | 'repair' | 'launch'; automatic: boolean }[];
+  currentPlaneId?: string; task?: string; stepRemainingSeconds?: number; suspended: boolean; notice?: string;
+  occupied: number; capacity: number; groupSize: number; activeFlightLimit: number | null; endurance: EndurancePolicy; repairCeilingHp: number;
 }
 export interface AirWingState { deck?: DeckStatus; planes: Aircraft[]; launchCooldown: number; flights: AirFlight[]; flightSequence: number; transferCooldown: number; }
 export interface AirRelease { id: number; ownerId: string; position: Vec3; velocity: Vec3; weapon?: TorpedoPart; }
@@ -102,6 +103,9 @@ export function airServiceAvailable(actor: FleetActor): boolean {
 /** Stable squadron IDs; merged groups retain records but no longer offer commands. */
 export function squadronFlights(actor: FleetActor): AirFlight[] {
   if (!actor.airWing) return [];
+  // Managed groups are persistent authority records, including groups whose
+  // survivors are split between the deck, hangar and recovery queue.
+  if (actor.airWing.deck) return actor.airWing.flights.filter(f => !f.mergedInto);
   return (actor.definition.airWing?.squadrons ?? []).flatMap(s => {
     const planes = actor.airWing!.planes.filter(p => p.squadronId === s.id);
     return Array.from({ length: Math.ceil(planes.length / flightSize(actor)) }, (_, i): AirFlight => {

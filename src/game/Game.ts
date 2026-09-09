@@ -30,7 +30,7 @@ import { WaterSystem, getPresetParams } from '../../vendor/threejs-water-pro/bui
 import { SkySystem, PRESETS as SKY_PRESETS } from '../../vendor/threejs-sky-pro/build/index.js';
 import { RemoteBattleSession } from './session/RemoteBattleSession';
 import { LocalBattleSession } from './session/LocalBattleSession';
-import type { BattleSession } from './session/BattleSession';
+import type { BattleSession, DeckServiceAction } from './session/BattleSession';
 import { CombatSimulation } from '../simulation/combat';
 import { availableAmmunition } from '../simulation/weapons';
 import { ShipView } from './ShipView';
@@ -901,6 +901,8 @@ export class Game {
     this.selectFlights(additive ? current.includes(id) ? current.filter(value => value !== id) : [...current, id]
       : current.length === 1 && current[0] === id ? [] : [id]);
   }
+  commandDeck(id: string, action: DeckServiceAction): boolean { return !this.inPort && (!this.paused || this.fleetCommandMode) && (this.simulation.commandDeck?.(id, action) ?? false); }
+  cancelDeckTask(carrierId: string, requestId: number): boolean { return !this.inPort && (!this.paused || this.fleetCommandMode) && (this.simulation.cancelDeckTask?.(carrierId, requestId) ?? false); }
   orderFlight(id: string, order: AirOrder): boolean { return !this.inPort && (!this.paused || this.fleetCommandMode) && this.simulation.orderFlight(id, order); }
   commandSquadron(id: string, order: AirOrder): boolean { return !this.inPort && (!this.paused || this.fleetCommandMode) && this.simulation.commandSquadron(id, order); }
   panAirMap(dx: number, dy: number, x?: number, y?: number): void { this.battlefieldCamera.pan(dx, dy, this.host.clientWidth, this.host.clientHeight, x, y); }

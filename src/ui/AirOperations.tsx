@@ -119,7 +119,7 @@ export function AirOperations({ data, game, bindings, instrumentsVisible = true 
     setFeedback(accepted.length ? `${accepted.length} squadron${accepted.length === 1 ? '' : 's'} · Order received${rejected.length ? ` · ${rejected.map(f => f.name).join(', ')} unable to accept: check role, readiness and flight slots.` : ''}`
       : !canCommand ? 'Carrier unavailable · Battle ended or carrier lost.'
       : !wing.available && flights.some(f => !f.active) ? 'Launch suspended · Check carrier damage, list and trim.'
-      : wing.activeFlights >= wing.maxActiveFlights && flights.some(f => !f.active) ? `All ${wing.maxActiveFlights} flight slots occupied · Recover a squadron to launch.`
+      : wing.maxActiveFlights !== null && wing.activeFlights >= wing.maxActiveFlights && flights.some(f => !f.active) ? `All ${wing.maxActiveFlights} flight slots occupied · Recover a squadron to launch.`
       : 'Order unavailable · Check role, readiness, armament, endurance and the 30 km command range.');
   };
   const setSelection = (ids: string[]) => {
@@ -341,7 +341,7 @@ export function AirOperations({ data, game, bindings, instrumentsVisible = true 
           <button aria-keyshortcuts="x" disabled={!canCommand || !wing.activeFlights} onClick={e => { perform('X'); e.currentTarget.blur(); }}>Recall all<kbd>X</kbd></button>
         </nav>
         {feedback && <p className="air-order-feedback" role="status">{feedback}</p>}
-        {details && selected && <div className="air-aircraft-detail" aria-label={`${selected.name} aircraft`}><strong>{selected.name} · {mission(selected)} · {selected.hp}% condition</strong><p>{selected.armed} armed · Endurance {duration(selected.enduranceSeconds)}{selected.queuePosition ? ` · Recovery #${selected.queuePosition}` : ''}{selected.notice && ` · ${selected.notice}`}</p>
+        {details && selected && <div className="air-aircraft-detail" aria-label={`${selected.name} aircraft`}><strong>{selected.name} · {mission(selected)} · {selected.hp}% condition</strong><p>{selected.armed} armed{selected.enduranceSeconds !== null && ` · Endurance ${duration(selected.enduranceSeconds)}`}{selected.queuePosition ? ` · Recovery #${selected.queuePosition}` : ''}{selected.notice && ` · ${selected.notice}`}</p>
           {aircraft.map(p => <div key={p.id}><span>Aircraft {p.id.split('/').at(-1)} · {Math.ceil(p.hp)}% · {p.lossReason ?? p.phase}</span><button disabled={!p.followable} onClick={() => game?.followAircraft(p.id)}>Follow</button></div>)}
         </div>}
       </>}

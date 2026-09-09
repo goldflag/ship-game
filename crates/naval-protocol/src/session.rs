@@ -172,6 +172,32 @@ impl Session {
                     .aviation
                     .recall(&c.ship_id, flight_id.as_deref())
             }
+            Command::Deck { flight_id, action } => {
+                self.battle
+                    .aviation
+                    .deck_command(&c.ship_id, &flight_id, action)
+                    .map_err(CommandError::Deck)?;
+            }
+            Command::CancelDeck { request_id } => {
+                if self
+                    .battle
+                    .aviation
+                    .wing(&c.ship_id)
+                    .and_then(|w| w.deck.as_ref())
+                    .is_some_and(|d| d.queue.iter().any(|r| r.id == request_id && r.automatic))
+                {
+                    return Err(CommandError::Deck(
+                        "Automatic clearance is required for flight operations".into(),
+                    ));
+                }
+                if !self
+                    .battle
+                    .aviation
+                    .cancel_deck_command(&c.ship_id, request_id)
+                {
+                    return Err(CommandError::Deck("Deck task is no longer queued".into()));
+                }
+            }
             Command::DamageControl { priority, focus } => {
                 let focus = focus.unwrap_or_default();
                 if !focus.is_empty()

@@ -182,6 +182,7 @@ impl DeckOperations {
             id: self.sequence,
             flight_id: group,
             action: DeckAction::Stow,
+            automatic: true,
         });
         self.notice = Some(reason.into());
         true

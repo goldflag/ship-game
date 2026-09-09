@@ -14,7 +14,16 @@ use std::collections::{BTreeMap, BTreeSet, VecDeque};
 mod recovery;
 
 #[derive(
-    Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, serde::Serialize, serde::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    serde::Serialize,
+    serde::Deserialize,
+    ts_rs::TS,
 )]
 #[serde(rename_all = "kebab-case")]
 pub enum DeckAction {
@@ -30,18 +39,23 @@ pub struct DeckRequest {
     pub id: u64,
     pub flight_id: String,
     pub action: DeckAction,
+    pub automatic: bool,
 }
-#[derive(Clone, Debug, Default, serde::Serialize, serde::Deserialize)]
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DeckStatus {
     pub queue: Vec<DeckRequest>,
     pub current_plane_id: Option<String>,
     pub task: Option<String>,
+    pub step_remaining_seconds: Option<f64>,
     pub suspended: bool,
     pub notice: Option<String>,
     pub occupied: usize,
     pub capacity: usize,
     pub group_size: usize,
+    pub active_flight_limit: Option<usize>,
+    pub endurance: crate::air_rules::EndurancePolicy,
+    pub repair_ceiling_hp: f64,
 }
 #[derive(Clone, Debug)]
 enum Destination {
@@ -83,6 +97,8 @@ pub struct DeckOperations {
     timings: DeckTimings,
     capacity: usize,
     group_size: usize,
+    active_flight_limit: Option<usize>,
+    endurance: crate::air_rules::EndurancePolicy,
     repair_ceiling: f64,
     queue: VecDeque<DeckRequest>,
     sequence: u64,
@@ -127,11 +143,13 @@ impl DeckOperations {
         state: &mut AirWingState,
         actor: &Vessel,
         ground: &BTreeMap<String, GroundPose>,
-        timings: DeckTimings,
+        rules: &crate::air_rules::AirRules,
         resolved: &crate::air_rules::CarrierAirRules,
         startup_per_role: usize,
-        repair_ceiling: f64,
     ) -> Result<Self, String> {
+        let crate::air_rules::DeckCycle::Managed { timings, .. } = &rules.deck_cycle else {
+            return Err("Managed deck policy required".into());
+        };
         let capacity = resolved.deck_capacity;
         let layout = actor
             .definition()
@@ -195,10 +213,12 @@ impl DeckOperations {
             return Err("Startup allocation exceeds a role's aircraft inventory".into());
         }
         let ops = Self {
-            timings,
+            timings: timings.clone(),
             capacity,
             group_size: resolved.group_size,
-            repair_ceiling,
+            active_flight_limit: resolved.active_flights,
+            endurance: rules.endurance.clone(),
+            repair_ceiling: rules.repair_ceiling_hp,
             queue: VecDeque::new(),
             sequence: 0,
             active: None,
@@ -231,6 +251,13 @@ impl DeckOperations {
         if survivors.is_empty() {
             return Err("No surviving aircraft in this group".into());
         }
+        if self
+            .queue
+            .iter()
+            .any(|r| r.flight_id == flight_id && r.automatic)
+        {
+            return Err("Group is clearing flight operations; wait for the current move".into());
+        }
         let eligible = match action {
             DeckAction::Raise => {
                 survivors.iter().any(|p| p.phase == "hangar")
@@ -244,7 +271,11 @@ impl DeckOperations {
             DeckAction::Rearm => survivors
                 .iter()
                 .all(|p| p.phase == "ready" && p.deck_slot.is_some()),
-            DeckAction::Stow | DeckAction::Repair => survivors
+            DeckAction::Repair => survivors.iter().any(|p| {
+                p.phase == "hangar" && p.hp < self.repair_ceiling
+                    || matches!(p.phase.as_str(), "ready" | "rearming") && p.deck_slot.is_some()
+            }),
+            DeckAction::Stow => survivors
                 .iter()
                 .any(|p| matches!(p.phase.as_str(), "ready" | "rearming") && p.deck_slot.is_some()),
         };
@@ -270,11 +301,15 @@ impl DeckOperations {
             id: self.sequence,
             flight_id: flight_id.into(),
             action,
+            automatic: false,
         });
         self.notice = None;
         Ok(self.sequence)
     }
     pub fn cancel(&mut self, id: u64) -> bool {
+        if self.queue.iter().any(|r| r.id == id && r.automatic) {
+            return false;
+        }
         let before = self.queue.len();
         self.queue.retain(|r| r.id != id);
         if before == self.queue.len() {
@@ -415,12 +450,29 @@ impl DeckOperations {
                         .then_with(|| a[0].abs().total_cmp(&b[0].abs()))
                 });
             }
-            let mut needed = false;
+            if request.action == DeckAction::Rearm
+                && !indices.iter().all(|&i| {
+                    state.planes[i].phase == "ready" && state.planes[i].deck_slot.is_some()
+                })
+            {
+                continue;
+            }
+            let mut needed = matches!(request.action, DeckAction::Stow | DeckAction::Repair)
+                && indices
+                    .iter()
+                    .any(|&i| crate::aircraft::airborne(&state.planes[i]));
             for index in indices {
                 let p = &mut state.planes[index];
                 let action = request.action;
                 let needs_move = match action {
                     DeckAction::Raise => p.phase == "hangar",
+                    DeckAction::Repair if p.phase == "hangar" => {
+                        if p.hp < self.repair_ceiling {
+                            p.phase = "repairing".into();
+                            p.timer = aircraft_service_seconds(self.timings.repair_seconds, p.hp);
+                        }
+                        false
+                    }
                     DeckAction::Stow | DeckAction::Repair => {
                         matches!(p.phase.as_str(), "ready" | "rearming") && p.deck_slot.is_some()
                     }
@@ -696,7 +748,12 @@ impl DeckOperations {
                             );
                             job.stage = Stage::LiftUp(0.0);
                         } else {
-                            p.phase = "taxi".into();
+                            p.phase = if matches!(job.destination, Destination::Hangar { .. }) {
+                                "lowering"
+                            } else {
+                                "taxi"
+                            }
+                            .into();
                             job.stage = Stage::Taxi;
                         }
                     }
@@ -721,7 +778,7 @@ impl DeckOperations {
                 );
                 if elapsed >= self.timings.lift_seconds {
                     if up {
-                        p.phase = "taxi".into();
+                        p.phase = "raising".into();
                         job.stage = Stage::Taxi;
                     } else {
                         p.deck_slot = None;
@@ -875,10 +932,19 @@ impl DeckOperations {
                 }
                 .into()
             }),
+            step_remaining_seconds: self.active.as_ref().and_then(|j| match j.stage {
+                Stage::LiftUp(elapsed) | Stage::LiftDown(elapsed) => {
+                    Some((self.timings.lift_seconds - elapsed).max(0.0))
+                }
+                _ => None,
+            }),
             suspended,
             notice: self.notice.clone(),
             capacity: self.capacity,
             group_size: self.group_size,
+            active_flight_limit: self.active_flight_limit,
+            endurance: self.endurance.clone(),
+            repair_ceiling_hp: self.repair_ceiling,
             occupied: state
                 .planes
                 .iter()

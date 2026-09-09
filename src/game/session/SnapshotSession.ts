@@ -1,4 +1,4 @@
-import type { BattleSession, ObservedShip, BattleDebrief } from './BattleSession';
+import type { BattleSession, ObservedShip, BattleDebrief, DeckServiceAction } from './BattleSession';
 import type { ContactTrack } from '../../multiplayer/generated/ContactTrack';
 import type { BattleSetup } from '../../multiplayer/generated/BattleSetup';
 import type { Command } from '../../multiplayer/generated/Command';
@@ -243,6 +243,18 @@ export abstract class SnapshotSession implements BattleSession {
     const owner = this.actors.find(a => a.team === 'friendly' && squadronFlights(a).some(f => f.id === id));
     if (!owner || this.result !== 'active') return false;
     this.send(owner.motion.id, { type: 'air', flightId: id, order: order.kind === 'defend' ? { ...order, targetId: order.targetId ?? null } : order });
+    return true;
+  }
+  commandDeck(id: string, action: DeckServiceAction) {
+    const owner = this.actors.find(a => a.team === 'friendly' && a.airWing?.deck && a.airWing.flights.some(f => f.id === id));
+    if (!owner || this.result !== 'active') return false;
+    this.send(owner.motion.id, { type: 'deck', flightId: id, action });
+    return true;
+  }
+  cancelDeckTask(carrierId: string, requestId: number) {
+    const owner = this.actors.find(a => a.team === 'friendly' && a.motion.id === carrierId && a.airWing?.deck);
+    if (!owner || this.result !== 'active' || !Number.isSafeInteger(requestId) || requestId < 1) return false;
+    this.send(carrierId, { type: 'cancel-deck', requestId });
     return true;
   }
   orderFlight(id: string, order: AirOrder) { return this.commandSquadron(id, order); }

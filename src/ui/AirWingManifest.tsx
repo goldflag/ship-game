@@ -26,7 +26,7 @@ export function AirWingManifest({ wing, selectedId, selectedIds, onSelect }: { w
     <header className="air-manifest-header">
       <h3>Air wing <strong>{wing.total - wing.counts.lost}<small>/{wing.total}</small></strong></h3>
       <button aria-expanded={open} aria-controls="air-manifest-body" onClick={e => { setOpen(value => !value); e.currentTarget.blur(); }}>{open ? 'Hide' : 'Show'}</button>
-      <p>Flights {wing.activeFlights}/{wing.maxActiveFlights} · Deck {wing.onDeck}/{wing.deckCapacity} · Hangar {wing.inHangar}{wing.recoveryCount ? ` · Recovering ${wing.recoveryCount}` : ''}</p>
+      <p>Flights {wing.activeFlights}{wing.maxActiveFlights !== null && `/${wing.maxActiveFlights}`} · Deck {wing.onDeck}/{wing.deckCapacity} · Hangar {wing.inHangar}{wing.recoveryCount ? ` · Recovering ${wing.recoveryCount}` : ''}</p>
       {!wing.available && <p className="air-manifest-warning">Deck operations suspended</p>}
     </header>
     {open && <div id="air-manifest-body">
@@ -41,7 +41,7 @@ export function AirWingManifest({ wing, selectedId, selectedIds, onSelect }: { w
           {groups.map(f => {
             const index = wing.groups.indexOf(f);
             const aircraft = f.aircraftIds.flatMap(id => byId.get(id) ?? []);
-            const detail = f.active ? `${mission(f)} · ${duration(f.enduranceSeconds)}` : f.queuePosition ? `Recovery #${f.queuePosition}` : `${f.armed} armed`;
+            const detail = f.active ? `${mission(f)}${f.enduranceSeconds === null ? '' : ` · ${duration(f.enduranceSeconds)}`}` : f.queuePosition ? `Recovery #${f.queuePosition}` : `${f.armed} armed`;
             return <button key={f.id} className={`air-manifest-row air-manifest-${f.status}`} aria-pressed={selectedIds ? selectedIds.includes(f.id) : selectedId === f.id}
               aria-label={`${f.name}, ${roleLabel(f.role)}, ${f.surviving} of ${f.total} aircraft, ${f.activity}, ${f.armed} armed, ${f.hp}% condition`}
               title={`${roleLabel(f.role)} · ${f.active ? mission(f) : f.activity} · ${f.hp}% condition · ${f.armed} armed`}

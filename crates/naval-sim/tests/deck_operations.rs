@@ -152,6 +152,22 @@ fn timed_lifts_suspend_cancel_and_service_preserves_individual_health() {
         .iter()
         .position(|p| p.phase == "raising")
         .unwrap();
+    let initial_time = a.wings[0]
+        .state
+        .deck
+        .as_ref()
+        .unwrap()
+        .step_remaining_seconds
+        .unwrap();
+    step(&mut a, &actors, &mut time, 0.25);
+    let remaining = a.wings[0]
+        .state
+        .deck
+        .as_ref()
+        .unwrap()
+        .step_remaining_seconds
+        .unwrap();
+    assert!(remaining > 0.0 && remaining < initial_time);
     let before = a.wings[0].state.planes[index].deck_position;
     let module = actors[0]
         .damage
@@ -165,6 +181,15 @@ fn timed_lifts_suspend_cancel_and_service_preserves_individual_health() {
         step(&mut a, &actors, &mut time, 0.25);
     }
     assert_eq!(a.wings[0].state.planes[index].deck_position, before);
+    assert_eq!(
+        a.wings[0]
+            .state
+            .deck
+            .as_ref()
+            .unwrap()
+            .step_remaining_seconds,
+        Some(remaining)
+    );
     assert!(a.wings[0].state.deck.as_ref().unwrap().suspended);
     assert!(a.cancel_deck_command("carrier", request));
     assert!(a.wings[0].state.deck.as_ref().unwrap().queue.is_empty());
@@ -249,6 +274,20 @@ fn timed_lifts_suspend_cancel_and_service_preserves_individual_health() {
             .count(),
         3
     );
+    assert_eq!(a.wings[0].state.flights[0].plane_ids, ids);
+    // Damage discovered after automatic stow can be serviced in the hangar;
+    // no pointless lift to the deck and back is necessary.
+    a.wings[0].state.planes[index].hp = 22.0;
+    a.deck_command("carrier", &flight.id, DeckAction::Repair)
+        .unwrap();
+    step(&mut a, &actors, &mut time, 0.25);
+    assert_eq!(a.wings[0].state.planes[index].phase, "repairing");
+    assert!(a.wings[0].state.planes[index].deck_slot.is_none());
+    assert!(a.wings[0].state.planes[index].deck_position.is_none());
+    until(&mut a, &actors, &mut time, |a| {
+        a.wings[0].state.planes[index].phase == "hangar"
+    });
+    assert_eq!(a.wings[0].state.planes[index].hp, 60.0);
     assert_eq!(a.wings[0].state.flights[0].plane_ids, ids);
     // A destroyed airframe cannot be restored by a service timer completing.
     a.wings[0].state.planes[index].phase = "repairing".into();
@@ -502,6 +541,14 @@ fn balanced_recovery_clears_a_full_deck_without_waiting_for_airborne_group_mates
         assert_eq!(
             a.wings[0].state.planes[index].flight_id.as_deref(),
             Some(flight_id.as_str())
+        );
+        // The standing group instruction also applies to later arrivals. It
+        // must survive the interval when all currently landed members are below.
+        let pending = &a.wings[0].state.deck.as_ref().unwrap().queue;
+        assert!(
+            pending
+                .iter()
+                .any(|r| r.flight_id == flight_id && r.action == DeckAction::Stow && !r.automatic)
         );
     }
 }

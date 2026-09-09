@@ -73,7 +73,7 @@ impl Aviation {
         };
         if let crate::air_rules::DeckCycle::Managed {
             startup_groups_per_role,
-            timings,
+            ..
         } = aviation.rules.deck_cycle.clone()
         {
             for actor in actors.iter().filter(|a| a.definition().air_wing.is_some()) {
@@ -100,10 +100,9 @@ impl Aviation {
                     state,
                     actor,
                     &aviation.ground,
-                    timings.clone(),
+                    &aviation.rules,
                     &resolved,
                     size * startup_groups_per_role,
-                    aviation.rules.repair_ceiling_hp,
                 )?;
                 aviation
                     .deck_operations

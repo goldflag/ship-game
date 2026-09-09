@@ -89,10 +89,19 @@
 .fleet-command-flights strong { flex:1; font-weight:500; }
 .fleet-command-flights b { color:var(--fleet-active); font-weight:500; }
 .fleet-command-flights small { display:block; margin-top:3px; }
-.fleet-command-decks { flex:0 0 215px; overflow:auto; font-size:12px; }
-.fleet-command-decks p+p { margin-top:10px; }
-.fleet-command-decks strong,.fleet-command-decks span { display:block; }
-.fleet-command-decks span { color:var(--fleet-muted); font-size:11px; }
+.fleet-command-decks { flex:0 0 270px; overflow:auto; font-size:12px; }
+.fleet-command-deck+.fleet-command-deck { border-top:1px solid var(--fleet-line); margin-top:10px; padding-top:10px; }
+.fleet-command-deck>strong { display:block; margin-bottom:3px; font-weight:500; }
+.fleet-command-deck p { color:var(--fleet-muted); font-size:11px; }
+.fleet-command-deck .fleet-command-deck-task { margin-top:6px; color:var(--fleet-active); }
+.fleet-command-deck-task[data-suspended] { color:var(--fleet-gold); }
+.fleet-command-deck ol { margin:6px 0 0; padding:0; list-style:none; }
+.fleet-command-deck li { display:flex; align-items:center; gap:6px; border-top:1px solid var(--fleet-line); padding:5px 0; }
+.fleet-command-deck li>div { flex:1; min-width:0; }
+.fleet-command-deck li span,.fleet-command-deck li small { display:block; overflow-wrap:anywhere; }
+.fleet-command-deck li button { font-size:11px; padding:4px 6px; }
+.fleet-command-service { margin:8px 0; padding-top:8px; border-top:1px solid var(--fleet-line); }
+.fleet-command-service p { margin-top:5px; color:var(--fleet-muted); font-size:12px; }
 .fleet-command-follow .fleet-command-top { left:24px; }
 .fleet-command-entry { position:absolute; top:120px; left:24px; color:var(--fleet-active); border:1px solid var(--fleet-line); border-radius:2px; background:#102c37; padding:7px 10px; font:500 13px 'Barlow',sans-serif; }
 .fleet-command-helm .fleet-command-card { left:24px; transform:none; width:270px; grid-template-columns:1fr; max-height:45%; }

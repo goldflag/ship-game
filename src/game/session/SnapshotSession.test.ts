@@ -8,7 +8,36 @@ import { decodeSnapshot } from './SnapshotSession';
 import { squadronFlights } from '../../simulation/aircraft';
 import pveRules from '../../../assets/gameplay/pve-mission.v1.json';
 import type { MissionRules } from '../../multiplayer/generated/MissionRules';
+import { managedDeckFixture } from '../../../scripts/multiplayer/managed-deck-fixture';
+import { airWingTelemetry } from '../../simulation/airTelemetry';
 const setup = { playerShipId: 'enterprise-cv6', friendlyBots: ['fletcher', 'type-viic'], enemies: ['baltimore'], spawnDistance: 5000 };
+test('managed deck commands and queues retain carrier ownership and policies through real WASM snapshots', async () => {
+  const content = new Uint8Array(await Bun.file(new URL('../../../.build/naval-content/manifest.json', import.meta.url)).arrayBuffer());
+  const session = await HeadlessSession.create({ playerShipId: 'fletcher', friendlyBots: ['enterprise-cv6', 'shokaku'], enemies: ['fletcher'], spawnDistance: 16000 }, managedDeckFixture(content));
+  try {
+    const carriers = session.actors.filter(a => a.team === 'friendly' && a.airWing);
+    expect(session.controlledShipId).toBe('player');
+    for (const carrier of carriers) {
+      const wing = airWingTelemetry(carrier, session.actors)!;
+      expect(wing.maxActiveFlights).toBeNull(); expect(wing.onDeck).toBe(24); expect(wing.inHangar).toBe(24);
+      expect(wing.groups).toHaveLength(12); expect(wing.groups.every(f => f.total === 4 && f.enduranceSeconds === null)).toBe(true);
+      const group = wing.groups.find(f => f.deck?.canRaise)!;
+      expect(session.commandDeck(group.id, 'raise')).toBe(true);
+    }
+    session.applyRaw(session.runtime.snapshot());
+    expect(session.tick).toBe(0); expect(session.controlledShipId).toBe('player');
+    for (const carrier of carriers) expect(carrier.airWing!.deck!.queue).toHaveLength(1);
+    const first = carriers[0], request = first.airWing!.deck!.queue[0];
+    expect(request.automatic).toBe(false);
+    expect(session.cancelDeckTask(first.motion.id, request.id)).toBe(true);
+    expect(session.cancelDeckTask('enemy-1', request.id)).toBe(false);
+    expect(session.commandDeck('foreign-group', 'raise')).toBe(false);
+    session.applyRaw(session.runtime.snapshot());
+    expect(first.airWing!.deck!.queue).toHaveLength(0);
+    expect(carriers[1].airWing!.deck!.queue).toHaveLength(1);
+    expect(session.controlledShipId).toBe('player'); expect(session.tick).toBe(0);
+  } finally { session.dispose(); }
+});
 test('PvE WASM sends an owned fleet and unknown enemy state; instruments work without a target', async () => {
   const session = await HeadlessSession.create({ playerShipId: 'fletcher', friendlyBots: [], enemies: [{ shipId: 'fletcher', aiLevel: 'static' }], spawnDistance: 16000, weather: 'clear', missionRules: pveRules as MissionRules });
   try {

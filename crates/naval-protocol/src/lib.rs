@@ -49,6 +49,14 @@ pub enum Command {
     Recall {
         flight_id: Option<String>,
     },
+    Deck {
+        flight_id: String,
+        action: naval_sim::deck_operations::DeckAction,
+    },
+    CancelDeck {
+        #[ts(type = "number")]
+        request_id: u64,
+    },
     DamageControl {
         priority: ControlPriority,
         focus: Option<String>,
@@ -148,6 +156,8 @@ pub enum CommandError {
     Route,
     #[error("Input outside allowed bounds")]
     Bounds,
+    #[error("{0}")]
+    Deck(String),
 }
 pub fn decode_command(bytes: &[u8]) -> Result<CommandEnvelope, CommandError> {
     if bytes.len() > MAX_COMMAND_BYTES {
@@ -184,6 +194,16 @@ fn validate_command(c: &CommandEnvelope) -> Result<(), CommandError> {
         }
         Command::Recall { flight_id } => {
             if flight_id.as_ref().is_some_and(|id| !identity(id)) {
+                return Err(CommandError::Bounds);
+            }
+        }
+        Command::Deck { flight_id, action } => {
+            if !identity(flight_id) || *action == naval_sim::deck_operations::DeckAction::Launch {
+                return Err(CommandError::Bounds);
+            }
+        }
+        Command::CancelDeck { request_id } => {
+            if *request_id == 0 || *request_id > 9_007_199_254_740_991 {
                 return Err(CommandError::Bounds);
             }
         }
@@ -392,7 +412,11 @@ impl FleetControl {
         }
         let ship = self.ships.get_mut(&command.ship_id).unwrap();
         match command.command {
-            Command::Air { .. } | Command::Recall { .. } | Command::DamageControl { .. } => {}
+            Command::Air { .. }
+            | Command::Recall { .. }
+            | Command::Deck { .. }
+            | Command::CancelDeck { .. }
+            | Command::DamageControl { .. } => {}
             Command::Select | Command::ReleaseHelm => ship.input = None,
             Command::Input { input } => {
                 ship.input = Some(input);
