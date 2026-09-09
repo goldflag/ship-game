@@ -191,6 +191,9 @@ fn validate_command(c: &CommandEnvelope) -> Result<(), CommandError> {
                 AirOrder::Strike { contact_id } | AirOrder::InterceptContact { contact_id } => {
                     identity(contact_id)
                 }
+                AirOrder::SearchArea {
+                    center, radius_m, ..
+                } => naval_sim::air_search::valid_area(*center, *radius_m),
                 AirOrder::Patrol { point } => point.iter().all(coordinate),
                 AirOrder::Defend { target_id } => target_id.as_ref().is_none_or(|id| identity(id)),
                 AirOrder::Intercept { flight_id } | AirOrder::Escort { flight_id } => {

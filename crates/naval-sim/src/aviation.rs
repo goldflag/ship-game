@@ -210,6 +210,20 @@ impl Aviation {
             return false;
         }
         match order {
+            AirOrder::SearchArea {
+                center,
+                radius_m,
+                policy,
+                ..
+            } => {
+                crate::air_search::valid_area(*center, *radius_m)
+                    && self
+                        .airspace
+                        .as_ref()
+                        .is_some_and(|area| area.contains(*center, radius_m + 1500.0))
+                    && (*policy != SearchPolicy::Strike
+                        || planes.iter().all(|p| p.role != "fighter" && p.payload))
+            }
             AirOrder::Patrol { point } => {
                 point.iter().all(|n| n.is_finite())
                     && self.airspace.as_ref().map_or_else(
@@ -366,6 +380,7 @@ impl Aviation {
                 _ => None,
             };
             p.pilot = Default::default();
+            p.search = None;
             p.flight_time = 0.0;
             p.timer = 0.0;
             p.recovery_requested_at = None;
@@ -552,6 +567,7 @@ impl Aviation {
                 _ => None,
             };
             p.pilot = Default::default();
+            p.search = None;
             p.recovery_requested_at = None;
             if matches!(p.phase.as_str(), "outbound" | "attack" | "returning") {
                 p.phase = "outbound".into();

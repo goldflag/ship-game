@@ -69,3 +69,6 @@ pub mod records;
 pub mod snapshot;
 mod team_view;
 pub const SIMULATION_BUILD: &str = env!("NAVAL_SIMULATION_BUILD");
+
+pub mod air_search;
+pub mod pve_air;

@@ -313,3 +313,87 @@ fn enemy_search_orders_do_not_change_when_unobserved_friendly_ships_move() {
             .all(|id| id.starts_with("opponent-"))
     );
 }
+
+#[test]
+fn enemy_air_commander_scouts_before_striking_uses_reports_and_keeps_fighter_support() {
+    use naval_sim::{aircraft::AirOrder, pve_air::AirIntent, sensors};
+    let mut content = catalog().clone();
+    content.definitions.retain(|id, _| id == "enterprise-cv6");
+    let plan =
+        PvePlan::generate(&content, request(83, &["enterprise-cv6"], "north-atlantic")).unwrap();
+    let mut battle = battle(&plan);
+    assert!(plan.enemy_air_directives(&battle).is_empty());
+    battle.tick = 300;
+    let directives = plan.enemy_air_directives(&battle);
+    assert_eq!(directives.len(), 1);
+    let cap = &directives[0];
+    assert!(cap.carrier_id.starts_with("opponent-"));
+    let AirIntent::Order(order @ AirOrder::Defend { .. }) = &cap.intent else {
+        panic!("initial air decision must protect the carrier")
+    };
+    assert!(battle.command_air(&cap.carrier_id, &cap.flight_id, order.clone()));
+    battle.tick = 600;
+    let before = serde_json::to_value(plan.enemy_air_directives(&battle)).unwrap();
+    for a in battle.actors.iter_mut().filter(|a| a.team == TeamId::A) {
+        a.motion.x = 18000.0;
+        a.motion.z = 12000.0;
+        a.motion.heading = 1.2;
+        a.damage.integrity *= 0.25;
+    }
+    assert_eq!(
+        before,
+        serde_json::to_value(plan.enemy_air_directives(&battle)).unwrap()
+    );
+    let scout = plan.enemy_air_directives(&battle).remove(0);
+    let AirIntent::Order(order @ AirOrder::SearchArea { .. }) = scout.intent else {
+        panic!("no contact: search")
+    };
+    assert!(battle.command_air(&scout.carrier_id, &scout.flight_id, order));
+    let own_carrier = battle
+        .actors
+        .iter()
+        .find(|a| a.team == TeamId::B)
+        .unwrap()
+        .motion
+        .clone();
+    for a in battle.actors.iter_mut().filter(|a| a.team == TeamId::A) {
+        a.motion.x = own_carrier.x;
+        a.motion.z = own_carrier.z + 5000.0;
+    }
+    for _ in 0..6 {
+        battle.tick += 60;
+        battle.sensors.update(
+            battle.tick,
+            &sensors::entities(&battle.actors, &battle.aviation),
+            &battle.islands,
+            &[],
+            sensors::VisualConditions::resolve(catalog(), "north-atlantic", "clear"),
+            &sensors::VisualRules::default(),
+        );
+    }
+    battle.tick = 1200;
+    let strike = plan.enemy_air_directives(&battle).remove(0);
+    let AirIntent::Order(order @ AirOrder::Strike { .. }) = strike.intent else {
+        panic!("observed surface contact: commit a strike")
+    };
+    let AirOrder::Strike { contact_id } = &order else {
+        unreachable!()
+    };
+    assert!(battle.sensors.contact(TeamId::B, contact_id).is_some());
+    assert!(!contact_id.starts_with("ship-"));
+    assert!(battle.command_air(&strike.carrier_id, &strike.flight_id, order));
+    battle.tick = 1500;
+    let escort = plan.enemy_air_directives(&battle).remove(0);
+    let AirIntent::Order(order @ AirOrder::Escort { .. }) = escort.intent else {
+        panic!("strike needs a fighter escort")
+    };
+    assert!(battle.command_air(&escort.carrier_id, &escort.flight_id, order));
+    assert!(
+        battle.aviation.wing("ship-0").unwrap().flights.is_empty(),
+        "the commander never launches the human's aircraft"
+    );
+    assert_eq!(
+        battle.aviation.wing(&cap.carrier_id).unwrap().flights.len(),
+        4
+    );
+}

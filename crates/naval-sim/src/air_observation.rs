@@ -17,7 +17,7 @@ pub(super) fn report_point(c: &ContactTrack, tick: u64) -> Vec3 {
         });
     add(c.measured_position, scale(c.velocity, age))
 }
-fn locally_observed(c: &ContactTrack, p: &Aircraft, tick: u64) -> bool {
+pub(super) fn locally_observed(c: &ContactTrack, p: &Aircraft, tick: u64) -> bool {
     c.affiliation == Affiliation::Hostile
         && c.sources.iter().any(|s| {
             s.observer_id == p.id && tick.saturating_sub(s.tick) <= 2 * crate::rules::TICK_RATE

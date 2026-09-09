@@ -5,7 +5,7 @@ import { mountFrame } from '../../simulation/mountFrames';
 import { muzzleWorld } from '../../simulation/weapons';
 import { localToWorld, sub, length } from '../../simulation/geometry';
 import { decodeSnapshot } from './SnapshotSession';
-import { squadronFlights } from '../../simulation/aircraft';
+import { squadronFlights, type AirOrder } from '../../simulation/aircraft';
 import pveRules from '../../../assets/gameplay/pve-mission.v1.json';
 import type { MissionRules } from '../../multiplayer/generated/MissionRules';
 import { managedDeckFixture } from '../../../scripts/multiplayer/managed-deck-fixture';
@@ -95,6 +95,31 @@ test('a reported PvE target can be selected and focused without exposing HP or i
   } finally { session.dispose(); }
 });
 
+test('PvE search orders survive WASM projection, fly native routes and retain a separate ship helm', async () => {
+  const session = await HeadlessSession.create({ playerShipId: 'fletcher', friendlyBots: ['enterprise-cv6'], enemies: [{ shipId: 'fletcher', aiLevel: 'static' }], spawnDistance: 16000, weather: 'clear', missionRules: pveRules as MissionRules });
+  try {
+    session.selectShip('player');
+    const carrier = session.actors.find(a => a.airWing)!;
+    const flight = squadronFlights(carrier).find(f => carrier.airWing!.planes.some(p => f.planeIds.includes(p.id) && p.role === 'dive-bomber'))!;
+    const order = { kind: 'search-area', center: [0, -5000], radiusM: 2000, altitude: 'high', policy: 'report' } satisfies AirOrder;
+    expect(() => session.commandSquadron(flight.id, { ...order, center: [0, 24000] })).toThrow();
+    expect(session.commandSquadron(flight.id, { ...order, center: [...order.center] })).toBe(true);
+    for (let i = 0; i < 300; i++) session.runtime.step(6);
+    session.applyRaw(session.runtime.snapshot());
+    expect(session.controlledShipId).toBe('player');
+    const group = airWingTelemetry(carrier, session.actors)!.groups.find(f => f.id === flight.id)!;
+    expect(group.order).toEqual(order); expect(group.search!.route.length).toBeGreaterThan(2);
+    expect(group.search!.route.every(p => p[1] === 1500)).toBe(true);
+    expect(group.search!.trail.length).toBeGreaterThan(0);
+    expect(group.route.length).toBeGreaterThan(2); expect(group.armed).toBe(group.surviving);
+    expect(carrier.airWing!.planes.filter(p => p.flightId === flight.id).every(p => !p.targetId)).toBe(true);
+    expect(session.actors.every(a => a.team === 'friendly')).toBe(true);
+    expect(session.commandSquadron(flight.id, { kind: 'patrol', point: [0, 850, 0] })).toBe(true);
+    session.applyRaw(session.runtime.snapshot());
+    expect(carrier.airWing!.planes.filter(p => p.flightId === flight.id).every(p => !p.search)).toBe(true);
+    expect(session.controlledShipId).toBe('player');
+  } finally { session.dispose(); }
+});
 test('PvE strikes address a reported contact on an owned carrier while the destroyer keeps the helm', async () => {
   const session = await HeadlessSession.create({ playerShipId: 'fletcher', friendlyBots: ['enterprise-cv6'], enemies: [{ shipId: 'fletcher', aiLevel: 'static' }], spawnDistance: 2000, weather: 'clear', missionRules: pveRules as MissionRules });
   try {

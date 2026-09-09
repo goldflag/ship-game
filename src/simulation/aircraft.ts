@@ -1,3 +1,4 @@
+import type { SearchProgress } from '../multiplayer/generated/SearchProgress';
 import type { AirOrder as NativeAirOrder } from '../multiplayer/generated/AirOrder';
 import type { EndurancePolicy } from '../multiplayer/generated/EndurancePolicy';
 import type { DeckPolicy } from '../multiplayer/generated/DeckPolicy';
@@ -30,7 +31,7 @@ export interface Aircraft {
   deckPosition?: Vec3; deckHeading?: number; timer: number; flightTime: number; cooldown: number; targetId?: string; kills: number;
   controls: FlightControls; previousControls?: FlightControls; previousAttitude?: FlightAttitude; pilot: AirPilot;
   deckSlot?: number; flightId?: string; recoveryRequestedAt?: number; lossReason?: string;
-  navigationTarget?: Vec3; sortie?: number;
+  navigationTarget?: Vec3; sortie?: number; search?: SearchProgress;
   /** A loss leaves combat immediately; its unpowered airframe continues to sea level. */
   wreck?: { age: number; rollRate: number; impacted: boolean };
 }
@@ -156,7 +157,7 @@ function combineLandedSquadrons(actor: FleetActor) {
 }
 function validAirOrder(actor: FleetActor, flightId: string, planes: Aircraft[], order: AirOrder, actors: FleetActor[]) {
   if (order.kind === 'return') return true;
-  if (order.kind === 'strike' || order.kind === 'intercept-contact') return false; // Rust observation-mode orders.
+  if (order.kind === 'strike' || order.kind === 'intercept-contact' || order.kind === 'search-area') return false; // Rust observation-mode orders.
   if (!planes.length || planes.some(p => p.flightTime > 470 || p.hp < 25)) return false;
   if (order.kind === 'patrol') return order.point.length === 3 && order.point.every(Number.isFinite)
     && Math.hypot(order.point[0] - actor.motion.x, order.point[2] - actor.motion.z) <= 30000;

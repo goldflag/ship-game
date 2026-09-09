@@ -20,6 +20,8 @@ use crate::{
 use std::collections::BTreeMap;
 #[path = "air_observation.rs"]
 mod observation;
+#[path = "air_search_step.rs"]
+mod search;
 pub struct AirContext<'a> {
     pub knowledge: Option<crate::sensors::Knowledge<'a>>,
     pub actors: &'a [Vessel],
@@ -1029,6 +1031,9 @@ impl Aviation {
     ) {
         if matches!(flight.as_ref().map(|f| &f.order), Some(AirOrder::Return)) {
             p.phase = "returning".into();
+            return;
+        }
+        if self.search_mission(p, flight, ctx, dt) {
             return;
         }
         let leader = flight.as_ref().and_then(|f| leaders.get(&f.id));

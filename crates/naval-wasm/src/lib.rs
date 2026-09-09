@@ -185,6 +185,7 @@ impl BattleRuntime {
 pub struct LocalRuntime {
     session: naval_protocol::session::Session,
     pve_plan: Option<naval_sim::pve::PvePlan>,
+    enemy_air_sequence: u32,
 }
 #[wasm_bindgen]
 impl LocalRuntime {
@@ -207,6 +208,34 @@ impl LocalRuntime {
         }
         for _ in 0..ticks {
             if let Some(plan) = &self.pve_plan {
+                for directive in plan.enemy_air_directives(&self.session.battle) {
+                    self.enemy_air_sequence += 1;
+                    let command = match directive.intent {
+                        naval_sim::pve_air::AirIntent::Order(order) => {
+                            naval_protocol::Command::Air {
+                                flight_id: directive.flight_id,
+                                order,
+                            }
+                        }
+                        naval_sim::pve_air::AirIntent::Deck(action) => {
+                            naval_protocol::Command::Deck {
+                                flight_id: directive.flight_id,
+                                action,
+                            }
+                        }
+                    };
+                    // The enemy uses the same ownership, report, role and deck
+                    // validation as player commands. It never changes the helm.
+                    let _ = self.session.apply(
+                        1,
+                        naval_protocol::CommandEnvelope {
+                            sequence: self.enemy_air_sequence,
+                            connection_epoch: self.session.control.players[1].epoch,
+                            ship_id: directive.carrier_id,
+                            command,
+                        },
+                    );
+                }
                 for (id, (movement, target)) in plan.enemy_directives(&self.session.battle) {
                     if let Some(ship) = self.session.control.ships.get_mut(&id) {
                         ship.movement = movement;
@@ -300,7 +329,11 @@ impl LocalRuntime {
                 }
             }
         }
-        Ok(Self { session, pve_plan })
+        Ok(Self {
+            session,
+            pve_plan,
+            enemy_air_sequence: 0,
+        })
     }
 }
 

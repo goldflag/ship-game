@@ -437,3 +437,163 @@ fn firing_at_a_recent_aircraft_report_does_not_damage_its_empty_marker_or_overwr
             .all(|p| p.hp == 37.0 && p.ammo == 0.0 && p.position[0] >= 190.0)
     );
 }
+
+fn search_order(policy: naval_sim::aircraft::SearchPolicy) -> AirOrder {
+    AirOrder::SearchArea {
+        center: [0.0, -5000.0],
+        radius_m: 2000.0,
+        altitude: naval_sim::aircraft::SearchAltitude::Medium,
+        policy,
+    }
+}
+#[test]
+fn finite_search_flies_the_sweep_and_returns_with_payload_instead_of_orbiting_forever() {
+    use naval_sim::aircraft::SearchPolicy;
+    let mut b = battle();
+    let flight = launch(&mut b, "own", "dive-bomber", [0.0, 850.0, -3500.0]);
+    assert!(b.command_air("own", &flight, search_order(SearchPolicy::Report)));
+    let reports = Sensors::default();
+    let ids = b
+        .aviation
+        .wing("own")
+        .unwrap()
+        .flights
+        .iter()
+        .find(|f| f.id == flight)
+        .unwrap()
+        .plane_ids
+        .clone();
+    for tick in 0..60000 {
+        step_air(&mut b, &reports, tick, 1);
+        let planes: Vec<_> = b
+            .aviation
+            .wing("own")
+            .unwrap()
+            .planes
+            .iter()
+            .filter(|p| ids.contains(&p.id))
+            .collect();
+        if planes.iter().all(|p| p.phase == "returning") {
+            for p in planes {
+                let search = p.search.as_ref().unwrap();
+                assert_eq!(
+                    search.waypoint,
+                    search.route.len(),
+                    "must fly every leg, not just time out"
+                );
+                assert!(search.elapsed_seconds < search.deadline_seconds);
+                assert!(p.payload);
+                assert!(p.target_id.is_none());
+                assert!(search.trail.len() <= 19);
+                assert!(
+                    search
+                        .route
+                        .iter()
+                        .all(|point| (point[0]).hypot(point[2] + 5000.0) <= 2000.0)
+                );
+            }
+            assert!(b.air_releases.is_empty());
+            return;
+        }
+    }
+    panic!("search failed to return");
+}
+#[test]
+fn search_policy_preserves_scout_weapons_and_requires_local_sighting_for_opportunistic_strikes() {
+    use naval_sim::aircraft::SearchPolicy;
+    for policy in [
+        SearchPolicy::Report,
+        SearchPolicy::Shadow,
+        SearchPolicy::Strike,
+    ] {
+        let mut b = battle();
+        let flight = launch(&mut b, "own", "dive-bomber", [0.0, 850.0, -3500.0]);
+        observe(&mut b, false);
+        assert!(b.command_air("own", &flight, search_order(policy)));
+        let reports = std::mem::take(&mut b.sensors);
+        let tick = b.tick;
+        step_air(&mut b, &reports, tick, 1);
+        assert!(own_planes(&b).iter().all(|p| p.target_id.is_none()));
+        b.sensors = reports;
+        observe(&mut b, true);
+        let reports = std::mem::take(&mut b.sensors);
+        let tick = b.tick;
+        step_air(&mut b, &reports, tick, 1);
+        let planes: Vec<_> = own_planes(&b)
+            .into_iter()
+            .filter(|p| p.flight_id.as_ref() == Some(&flight))
+            .collect();
+        assert!(planes.iter().all(|p| p.payload));
+        assert!(b.air_releases.is_empty());
+        match policy {
+            SearchPolicy::Report => assert!(
+                planes
+                    .iter()
+                    .all(|p| p.target_id.is_none() && p.pilot.attack_stage.is_none())
+            ),
+            SearchPolicy::Shadow => assert!(planes.iter().all(|p| p.target_id.is_some()
+                && p.pilot.attack_stage.is_none()
+                && p.search.as_ref().unwrap().shadow_seconds > 0.0)),
+            SearchPolicy::Strike => assert!(
+                planes
+                    .iter()
+                    .all(|p| p.target_id.is_some() && p.pilot.attack_stage.is_some())
+            ),
+        }
+    }
+}
+#[test]
+fn search_bounds_and_role_validation_are_atomic_and_scouts_withdraw_from_local_air_threats() {
+    use naval_sim::aircraft::{SearchAltitude, SearchPolicy};
+    let mut b = battle();
+    let fighter = launch(&mut b, "own", "fighter", [0.0, 850.0, -3500.0]);
+    assert!(!b.command_air("own", &fighter, search_order(SearchPolicy::Strike)));
+    for (center, radius_m) in [
+        ([0.0, 23000.0], 2000.0),
+        ([0.0, 0.0], f64::NAN),
+        ([0.0, 0.0], 500.0),
+        ([f64::INFINITY, 0.0], 2000.0),
+    ] {
+        assert!(!b.command_air(
+            "own",
+            &fighter,
+            AirOrder::SearchArea {
+                center,
+                radius_m,
+                altitude: SearchAltitude::Low,
+                policy: SearchPolicy::Report
+            }
+        ));
+    }
+    assert!(matches!(
+        b.aviation
+            .wing("own")
+            .unwrap()
+            .flights
+            .iter()
+            .find(|f| f.id == fighter)
+            .unwrap()
+            .order,
+        AirOrder::Patrol { .. }
+    ));
+    assert!(b.command_air("own", &fighter, search_order(SearchPolicy::Shadow)));
+    launch(&mut b, "private-carrier", "fighter", [0.0, 850.0, -4100.0]);
+    // An unreported nearby threat must not cause withdrawal or any new knowledge.
+    step_air(&mut b, &Sensors::default(), 0, 1);
+    assert!(
+        own_planes(&b)
+            .iter()
+            .filter(|p| p.flight_id.as_ref() == Some(&fighter))
+            .all(|p| p.phase == "outbound")
+    );
+    observe(&mut b, true);
+    let reports = std::mem::take(&mut b.sensors);
+    let tick = b.tick;
+    step_air(&mut b, &reports, tick, 1);
+    assert!(
+        own_planes(&b)
+            .iter()
+            .filter(|p| p.flight_id.as_ref() == Some(&fighter))
+            .all(|p| p.phase == "returning" && p.ammo == 16.0)
+    );
+}

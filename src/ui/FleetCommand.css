@@ -139,3 +139,10 @@
 
 .fleet-command-deck-actions { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:4px; max-width:50%; }
 .fleet-command-deck-policy { margin:7px 0 4px; flex-wrap:wrap; }
+
+.fleet-command-search { margin:10px 0; }
+.fleet-command-search>p { margin-top:6px; font-size:11px; color:var(--fleet-muted); }
+.fleet-command-search-trail { fill:none; stroke:var(--fleet-active); stroke-width:3; pointer-events:none; }
+
+.game-shell .fleet-command-chart:focus-visible,.fleet-command-chart:focus-visible { outline:2px solid var(--fleet-gold) !important; outline-offset:-3px; }
+.fleet-command-search-center { pointer-events:none; fill:none; stroke:var(--fleet-gold); stroke-width:2; }

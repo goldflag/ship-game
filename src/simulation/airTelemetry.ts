@@ -12,6 +12,7 @@ export const airStatus = (p: Aircraft): AirStatus => p.phase === 'lost' ? 'lost'
   : ['rollout', 'parking', 'rearming', 'repairing'].includes(p.phase) ? 'servicing' : 'on-mission';
 export const AIR_STATUS_LABELS: Record<AirStatus, string> = { ready: 'Ready', launching: 'Launching', 'on-mission': 'On mission', returning: 'Returning', servicing: 'Servicing', lost: 'Lost', hangar: 'In hangar', handling: 'Handling' };
 export interface FlightSummary {
+  search?: Aircraft['search'];
   id: string; name: string; squadronId: string; role: AircraftRole; order: AirOrder;
   active: boolean; status: AirStatus; total: number; surviving: number; airborne: number;
   hp: number; armed: number; enduranceSeconds: number | null; rearmSeconds: number;
@@ -43,10 +44,11 @@ export function airWingTelemetry(actor: FleetActor, actors: FleetActor[]) {
     const escort = (f.order.kind === 'escort' || f.order.kind === 'intercept') ? actors.flatMap(a => a.airWing?.flights ?? []).find(g => g.id === (f.order as { flightId: string }).flightId) : undefined;
     const home: Vec3 = [actor.motion.x, actor.motion.y, actor.motion.z];
     const position = flying.length ? flying.reduce<Vec3>((point, p) => point.map((v, i) => v + p.position[i] / flying.length) as Vec3, [0, 0, 0]) : home;
+    const search = f.order.kind === 'search-area' ? lead.search : undefined;
     const reportMission = f.order.kind === 'strike' || f.order.kind === 'intercept-contact';
     const destination: Vec3 = status === 'returning' || f.order.kind === 'return' ? home : target ? [target.motion.x, 0, target.motion.z]
-      : reportMission ? lead.navigationTarget ?? position : f.order.kind === 'patrol' ? [...f.order.point] : escort ? actors.flatMap(a => a.airWing?.planes ?? []).find(p => p.flightId === escort.id && airborne(p))?.position ?? home : home;
-    const route: Vec3[] = flying.length ? [position, ...(lead.navigationTarget ? [[...lead.navigationTarget] as Vec3] : []), [...destination]] : [];
+      : f.order.kind === 'search-area' ? lead.navigationTarget ?? [f.order.center[0], 0, f.order.center[1]] : reportMission ? lead.navigationTarget ?? position : f.order.kind === 'patrol' ? [...f.order.point] : escort ? actors.flatMap(a => a.airWing?.planes ?? []).find(p => p.flightId === escort.id && airborne(p))?.position ?? home : home;
+    const route: Vec3[] = flying.length ? [position, ...(lead.navigationTarget ? [[...lead.navigationTarget] as Vec3] : []), ...(search && status === 'on-mission' && !lead.targetId ? search.route.slice(search.waypoint) : [[...destination] as Vec3])] : [];
     const distance = route.slice(1).reduce((n, point, i) => n + length(sub(point, route[i])), 0);
     const queueIndex = queue.findIndex(p => p.flightId === f.id);
     const pendingClearance = state.deck?.queue.some(r => r.flightId === f.id && r.automatic);
@@ -70,8 +72,8 @@ export function airWingTelemetry(actor: FleetActor, actors: FleetActor[]) {
       activity: deck?.reason ?? (status !== 'on-mission' ? AIR_STATUS_LABELS[status]
         : surviving.some(p => p.phase === 'attack') ? (lead.role === 'fighter' ? 'Engaging' : 'Attacking')
         : f.order.kind === 'patrol' ? (Math.hypot(position[0] - destination[0], position[2] - destination[2]) < 1300 ? 'Loitering' : 'En route')
-        : f.order.kind === 'defend' ? 'Defending' : (f.order.kind === 'intercept' || f.order.kind === 'intercept-contact') ? 'Intercepting' : f.order.kind === 'escort' ? 'Escorting' : 'En route'),
-      heading: lead.heading, route, targetName: target?.definition.name ?? escort?.name ?? (reportMission ? 'reported contact' : undefined),
+        : f.order.kind === 'search-area' ? (lead.targetId ? 'Shadowing' : 'Searching') : f.order.kind === 'defend' ? 'Defending' : (f.order.kind === 'intercept' || f.order.kind === 'intercept-contact') ? 'Intercepting' : f.order.kind === 'escort' ? 'Escorting' : 'En route'),
+      heading: lead.heading, route, search, targetName: target?.definition.name ?? escort?.name ?? (reportMission ? 'reported contact' : undefined),
       etaSeconds: flying.length && (status === 'returning' || f.order.kind === 'attack') ? Math.ceil(distance / Math.max(35, length(lead.velocity))) : undefined,
       queuePosition: queueIndex >= 0 ? queueIndex + 1 : undefined,
       notice: f.notice ?? (flying.some(lowEndurance) ? 'Low endurance · Returning to carrier' : undefined), aircraftIds: planes.map(p => p.id), deck,
