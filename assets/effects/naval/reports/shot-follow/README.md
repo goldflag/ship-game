@@ -1,5 +1,7 @@
 # Visible tracers in T shot follow — September 7, 2026
 
+Superseded on September 8, 2026: the T follow camera now hides every shell trail and shows only the physical projectiles; see the [effects review record](../validation.md). The captures, hashes and regression notes below are historical evidence of the visible-trail behavior.
+
 The previous effect hid each entire trail within 65 m of its shell. The default T camera is 48.09 m away, so following a salvo showed physical projectiles with no nearby trails. The old close-view test explicitly expected this disappearance and missed the player's required behavior.
 
 [Before](before.png) · [Default T camera after correction](after.png) · [12 m zoom and orbit](close-orbit.png)

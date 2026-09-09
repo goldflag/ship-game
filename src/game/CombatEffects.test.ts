@@ -5,6 +5,7 @@ import catalog from '../../assets/parts/guns.json';
 import submarine from '../../assets/ships/type-viic/blueprint.json';
 import { compileShip } from '../ships/blueprint';
 import { CombatSimulation, type CombatEvent } from '../simulation/combat';
+import type { Shell } from '../simulation/damage';
 import { CombatEffects } from './CombatEffects';
 import { EffectParticlePool, effectTexture } from './EffectParticles';
 
@@ -485,6 +486,25 @@ test('manual shell heads and trails distinguish AA, secondary and main calibers 
       const widths = trails.geometry.getAttribute('headWidth');
       for (let i = 1; i < calibers.length; i++) expect(widths.getX(i)).toBeGreaterThan(widths.getX(i - 1));
     }
+  } finally { effects.dispose(); }
+});
+
+test('the shell follow camera hides shell vapor trails without dropping their histories', () => {
+  const sim = new CombatSimulation(compileShip(blueprint, catalog)), effects = new CombatEffects();
+  const camera = new PerspectiveCamera(52, 16 / 9, .1, 30000);
+  try {
+    const shell: Shell = { id: 1, ownerId: 'player', position: [0, 100, -1000], velocity: [820, 0, 0], age: .1, caliberM: .38, visited: [], penetrationMm: 0, damage: 0 };
+    sim.shells.push(shell);
+    effects.update(sim, .1, camera);
+    expect(effects.diagnostics().shellTrails.segments).toBeGreaterThan(0);
+    for (const age of [.2, .3]) {
+      shell.age = age; shell.position[0] = (age - .1) * 820;
+      effects.update(sim, .1, camera, false, undefined, true);
+      expect(effects.diagnostics().shellTrails).toEqual({ histories: 1, segments: 0 });
+    }
+    expect((effects.root.getObjectByName('Shell vapor trails') as InstancedMesh).visible).toBe(false);
+    effects.update(sim, 0, camera);
+    expect(effects.diagnostics().shellTrails.segments).toBeGreaterThanOrEqual(2);
   } finally { effects.dispose(); }
 });
 

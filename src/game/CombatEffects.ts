@@ -119,7 +119,7 @@ export class CombatEffects {
     this.smokeAmbient.value.set(.3, .35, .4).multiplyScalar(Math.max(0, ambient) / 1.75);
   }
 
-  update(sim: BattleSession, dt: number, camera: THREE.Camera, hidePlayerSmoke = false, poses?: readonly FireDisplayPose[]): void {
+  update(sim: BattleSession, dt: number, camera: THREE.Camera, hidePlayerSmoke = false, poses?: readonly FireDisplayPose[], hideShellTrails = false): void {
     // Advance before emitting: a slow frame still gets one visible muzzle flash.
     for (const item of this.lights) {
       item.age += dt;
@@ -139,7 +139,7 @@ export class CombatEffects {
       hidePlayerSmoke && pool === this.smoke ? sim.player.motion.id : undefined);
     this.spouts.publish(camera);
     this.updateShells(sim, camera);
-    this.shellTrails.update(sim.shells, dt, camera);
+    this.shellTrails.update(sim.shells, dt, camera, hideShellTrails);
     this.updateTorpedoes(sim);
     this.depthChargeCount = sim.depthCharges.length;
     sim.depthCharges.forEach((charge, i) => {

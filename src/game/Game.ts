@@ -676,7 +676,7 @@ export class Game {
         view.updateRenderMatrices();
       });
       this.aircraftView.update(this.simulation, this.camera, !this.inspecting && (!this.inPort || this.playerView?.inspection.mode === 'exterior'), this.inPort, new Map(this.fleetViews.map(view => [view.actor.motion.id, view.root])));
-      this.effects.update(this.simulation, dt, this.camera, this.rig.binoculars && !this.shellFollow.view, this.fleetViews);
+      this.effects.update(this.simulation, dt, this.camera, this.rig.binoculars && !this.shellFollow.view, this.fleetViews, !!this.shellFollow.view);
       this.funnelSmoke.root.visible = !this.inspecting && (!this.inPort || this.playerView!.inspection.mode === 'exterior');
       this.funnelSmoke.update(this.inPort ? [this.playerView!] : this.fleetViews, dt, this.camera,
         this.rig.binoculars && !this.shellFollow.view ? this.simulation.player.motion.id : undefined);
