@@ -324,7 +324,7 @@ test('port zoom stays proportional when switching very small and large hulls', (
   } finally { rig.dispose(); }
 });
 
-test('the default T shot-follow camera keeps the followed round tracer visible through orbit and zoom', () => {
+test('the default T shot-follow camera hides shell tracers through orbit and zoom, and ending the follow restores them', () => {
   const { camera, canvas, rig, drag } = interactiveCamera(), follow = new ShellFollow(), trails = new ShellTrails();
   const shot: Shell = { id: 1, ownerId: 'player', position: [0, 300, -1000], velocity: [800, 0, 0], age: 0,
     caliberM: .38, damage: 70, penetrationMm: 400, visited: [] };
@@ -334,15 +334,18 @@ test('the default T shot-follow camera keeps the followed round tracer visible t
       shot.age = frame / 60; shot.position[0] = shot.age * 800;
       follow.update([shot], [], 'player', 1 / 60);
       rig.setShellView(follow.view); rig.update(createShipState(), 0, 1 / 60, true);
-      trails.update([shot], 1 / 60, camera);
+      trails.update([shot], 1 / 60, camera, !!follow.view);
     }
     expect(camera.position.distanceTo(new Vector3(...shot.position))).toBeCloseTo(Math.hypot(45, 12, 12), 5);
-    expect(trails.diagnostics().segments).toBeGreaterThan(0);
+    expect(trails.diagnostics()).toEqual({ histories: 1, segments: 0 });
     drag(200, 40);
     canvas.dispatchEvent(Object.assign(new Event('wheel'), { deltaY: -2000, deltaMode: 0 }));
-    rig.update(createShipState(), 0, 0, true); trails.update([shot], 0, camera);
+    rig.update(createShipState(), 0, 0, true); trails.update([shot], 0, camera, !!follow.view);
     expect(camera.position.distanceTo(new Vector3(...shot.position))).toBeCloseTo(12, 5);
-    expect(trails.diagnostics().segments).toBeGreaterThan(0);
+    expect(trails.diagnostics()).toEqual({ histories: 1, segments: 0 });
+    follow.setEnabled(false); rig.setShellView(); rig.update(createShipState(), 0, 0, true);
+    trails.update([shot], 0, camera, !!follow.view);
+    expect(trails.diagnostics().segments).toBeGreaterThan(10);
   } finally { trails.dispose(); rig.dispose(); }
 });
 

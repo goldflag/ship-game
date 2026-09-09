@@ -201,6 +201,8 @@ test('turning through north takes the short heading path without changing author
 
 test('firing enters shell view without feeding its camera into aim, freezes on pause and restores optics', async () => {
   const { game, simulation, camera, rig, playerView, gunAimFrames } = await frameHarness();
+  const effectsUpdate = spyOn(Reflect.get(game, 'effects') as { update(...args: unknown[]): void }, 'update');
+  const hidesShellTrails = () => effectsUpdate.mock.calls.at(-1)![5];
   game.manualAim = true;
   rig.aimAt([2500, 0, -2500], playerView.motion);
   game.toggleBinoculars();
@@ -210,11 +212,14 @@ test('firing enters shell view without feeding its camera into aim, freezes on p
   for (let i = 0; i < 600; i++) await game.frame(time += 1000 / 60);
   expect(gunAimFrames.at(-1)!.visible).toBe(true);
   expect(gunAimFrames.at(-1)!.points).toHaveLength(4);
+  expect(hidesShellTrails()).toBe(false);
   game.toggleShellFollow();
   simulation.requestFire();
   await game.frame(time += 1000 / 60);
   expect(game.shellFollow.phase).toBe('flight');
   expect(gunAimFrames.at(-1)).toEqual({ points: [], visible: false });
+  // Riding the round shows the physical projectiles without their vapor trails.
+  expect(hidesShellTrails()).toBe(true);
   expect(rig.binoculars).toBe(false);
   expect(playerView.root.visible).toBe(true);
   const aim = [...game.currentAim];
@@ -230,6 +235,8 @@ test('firing enters shell view without feeding its camera into aim, freezes on p
   game.paused = false;
   game.toggleShellFollow();
   expect(game.shellFollow.phase).toBe('off');
+  await game.frame(time += 1000 / 60);
+  expect(hidesShellTrails()).toBe(false);
   expect(rig.binoculars).toBe(true);
   expect(camera.fov).toBeCloseTo(fov, 10);
   expect(camera.position.distanceTo(playerView.root.position)).toBeLessThan(100);

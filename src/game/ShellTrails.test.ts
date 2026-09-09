@@ -123,3 +123,25 @@ test('a trail crossing the follow camera clips at the near plane and stays thin 
     expect(segments[0][1].distanceTo(new Vector3(...shell.position))).toBeLessThan(.001);
   } finally { trails.dispose(); }
 });
+
+test('the shell follow camera hides trails while they keep recording, so leaving T restores the retained path', () => {
+  const trails = new ShellTrails(), shell = round();
+  try {
+    for (let i = 0; i <= 120; i++) {
+      shell.age = i / 60; shell.position[0] = shell.age * 800;
+      trails.update([shell], 1 / 60, camera, true);
+      expect(trails.diagnostics()).toEqual({ histories: 1, segments: 0 });
+    }
+    expect(trails.mesh.visible).toBe(false);
+    expect([...trails.mesh.instanceMatrix.array].every(value => value === 0)).toBe(true);
+    trails.update([shell], 0, camera);
+    const segments = endpoints(trails.mesh, trails.diagnostics().segments);
+    expect(trails.mesh.visible).toBe(true);
+    expect(segments.length).toBeGreaterThan(15);
+    expect(segments[0][0].x).toBeCloseTo(600, 2); // The full 1.25 seconds recorded while hidden.
+    expect(segments.at(-1)![1].distanceTo(new Vector3(...shell.position))).toBeLessThan(.001);
+    // Expiry continues while hidden: a finished flight leaves no stale history.
+    trails.update([], 1.3, camera, true);
+    expect(trails.diagnostics()).toEqual({ histories: 0, segments: 0 });
+  } finally { trails.dispose(); }
+});
