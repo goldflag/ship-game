@@ -802,27 +802,62 @@ for sign in [-1,1]:
   rod('Hose drum',(x,y-.34,z),(x,y+.34,z),.37,materials['rope'],detailcol,vertices=24)
   for yy in [-.45,.45]:box('Reel support',(x,y+yy,z-.30),(.18,.12,.55),materials['naval'],detailcol)
 
-# Three propellers with twisted, thick blades; independently authored original
-# shapes. Shaft exits and foil-section rudders remain approximate below water.
-for y,xend in [(-5,-103),(0,-108),(5,-103)]:
- rod('Propeller shaft',(-69,y,-7.0),(xend,y,-4.8),.23,materials['edge'],undercol,vertices=20)
- rod('Propeller boss',(xend+1.3,y,-4.8),(xend-.95,y,-4.8),.65,materials['bronze'],undercol,.35,32)
- for sign in [-1,1]:rod('Shaft A bracket',(xend+3,y,-4.9),(xend+3.5,y+sign*1.6,-2.6),.12,materials['oxide'],undercol,vertices=10)
- for angle in [0,math.tau/3,2*math.tau/3]:
-  vs=[];rows=[(.48,.0,.25),(.9,.10,.55),(1.5,.19,.78),(2.05,.31,.73),(2.35,.46,.22),(2.4,.52,0)]
-  for thickness in [-.035,.035]:
+# Original three-bladed screws: broad paddle outlines, reduced rake, helical
+# pitch and thick roots into rounded bosses. Silhouettes were reviewed against
+# approved GameModels3D pgsb708 A_Hull; the source loading datum is unverified.
+# These visual shafts do not move the blueprint's machinery or combat sockets.
+def screw_boss(x,y,z):
+ rows=[(1.16,.30),(.83,.59),(.34,.73),(-.34,.72),(-.85,.61),(-1.18,.39),(-1.34,.08)]
+ vs=[(x+dx,y+r*math.cos(math.tau*i/32),z+r*math.sin(math.tau*i/32)) for dx,r in rows for i in range(32)]
+ fs=[tuple(reversed(range(32))),tuple(range((len(rows)-1)*32,len(rows)*32))]
+ fs.extend((j*32+i,j*32+(i+1)%32,(j+1)*32+(i+1)%32,(j+1)*32+i) for j in range(len(rows)-1) for i in range(32))
+ return mesh('Propeller boss',vs,fs,materials['bronze'],undercol,True)
+def shaft_bracket(name,a,b,chord=.72):
+ # Closed foil strut: a wide axial chord and a narrow rounded trailing edge.
+ a,b=Vector(a),Vector(b);radial=(b-a).normalized();side=radial.cross(Vector((1,0,0))).normalized()
+ profile=[(-.52,0),(-.36,.10),(.16,.12),(.48,.04),(.54,0),(.48,-.04),(.16,-.12),(-.36,-.10)]
+ vs=[p+Vector((u*chord,0,0))+side*v for p in [a,b] for u,v in profile];n=len(profile)
+ fs=[tuple(reversed(range(n))),tuple(range(n,2*n))]+[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)]
+ return mesh(name,vs,fs,materials['oxide'],undercol,True)
+for y,xend in [(-6,-100),(0,-106),(6,-100)]:
+ z=-6.8
+ rod('Propeller shaft',(-69,y,-6.0),(xend+.6,y,z),.24,materials['edge'],undercol,vertices=24)
+ rod('Shaft stern bearing',(xend+2.15,y,z+.08),(xend+.80,y,z+.02),.43,materials['oxide'],undercol,.36,24)
+ screw_boss(xend,y,z)
+ # Bearing struts penetrate the actual lofted counter, including the center
+ # installation. Their upper feet are sampled from the hull, not free points.
+ for sign in [-1,1]:
+  bx=xend+2.1;by=y+sign*1.15;profile=section_at(bx);hits=[]
+  for (wa,za),(wb,zb) in zip(profile,profile[1:]):
+   if min(wa,wb)<=abs(by)<=max(wa,wb) and abs(wb-wa)>1e-6:hits.append(za+(zb-za)*(abs(by)-wa)/(wb-wa))
+  foot=min(hits) if hits else -2.6
+  shaft_bracket('Shaft A bracket',(bx,y,z+.05),(bx+.25,by,foot+.14),.94)
+ for angle in [math.pi/2,math.pi/2+math.tau/3,math.pi/2+2*math.tau/3]:
+  # Radial radius, tangential sweep, half chord. Sparse original controls are
+  # interpolated for a continuous rounded edge without a pinched angular tip.
+  controls=[(.55,-.08,.30),(.82,-.08,.52),(1.15,-.03,.79),(1.55,.03,1.02),(1.95,.07,1.02),(2.20,.06,.80),(2.35,.02,.44),(2.40,0,.035)]
+  rows=[]
+  for a,b in zip(controls,controls[1:]):
+   for step in range(3):
+    t=step/3;rows.append(tuple(u+(v-u)*t for u,v in zip(a,b)))
+  rows.append(controls[-1]);cols=9;vs=[]
+  for face in [-1,1]:
    for r,sweep,w in rows:
-    for q in [-1,-.5,0,.5,1]:
-     a=angle+sweep+q*w/max(r,1)*.6;pitch=.45*q*(1-r/3)
-     vs.append((xend+pitch+thickness,y+r*math.cos(a),-4.8+r*math.sin(a)))
-  n=len(rows)*5;fs=[]
+    pitch=math.atan2(3.6,math.tau*r)
+    for i in range(cols):
+     q=-1+2*i/(cols-1);chord=q*w;tangent=sweep+chord*math.cos(pitch)
+     thickness=(.012+.105*(1-r/2.6))*math.sqrt(max(0,1-q*q))+.008
+     axial=chord*math.sin(pitch)+.035*(r-.55)+face*thickness
+     vs.append((xend+axial,y+r*math.cos(angle)-tangent*math.sin(angle),z+r*math.sin(angle)+tangent*math.cos(angle)))
+  n=len(rows)*cols;fs=[]
   for face in [0,1]:
    for j in range(len(rows)-1):
-    for i in range(4):
-     ids=(face*n+j*5+i,face*n+j*5+i+1,face*n+(j+1)*5+i+1,face*n+(j+1)*5+i);fs.append(ids if face else tuple(reversed(ids)))
-  boundary=list(range(5))+[j*5+4 for j in range(1,len(rows))]+list(range(n-2,n-6,-1))+[j*5 for j in reversed(range(1,len(rows)-1))]
+    for i in range(cols-1):
+     ids=(face*n+j*cols+i,face*n+j*cols+i+1,face*n+(j+1)*cols+i+1,face*n+(j+1)*cols+i);fs.append(ids if face else tuple(reversed(ids)))
+  boundary=list(range(cols))+[j*cols+cols-1 for j in range(1,len(rows))]+list(range(n-2,n-cols-1,-1))+[j*cols for j in reversed(range(1,len(rows)-1))]
   fs.extend((a,b,b+n,a+n) for a,b in zip(boundary,boundary[1:]+boundary[:1]))
-  mesh('Twisted screw blade',vs,fs,materials['bronze'],undercol,True)
+  blade=mesh('Twisted screw blade',vs,fs,materials['bronze'],undercol,True)
+  bm=bmesh.new();bm.from_mesh(blade.data);bmesh.ops.recalc_face_normals(bm,faces=list(bm.faces));bm.to_mesh(blade.data);bm.free()
 for y in [-3,3]:
  pts=[(-113.6,y),(-112.8,y-.20),(-109.7,y-.28),(-109.0,y-.14),(-109.0,y+.14),(-109.7,y+.28),(-112.8,y+.20)]
  extrude('Foil-section balanced rudder',pts,-5.8,3.75,materials['oxide'],undercol,.06)
