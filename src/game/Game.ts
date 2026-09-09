@@ -692,6 +692,7 @@ export class Game {
       // Hidden hangar aircraft, LODs and dormant effects must compile against
       // the actual ocean capture and final targets before their first appearance.
       const warmInstances: { mesh: THREE.InstancedMesh; visible: boolean; count?: number }[] = [];
+      const restoreAircraftParts = warmingUp ? this.aircraftView.warmupParts() : undefined;
       if (warmingUp) for (const root of [this.effects.root, this.funnelSmoke.root, this.aircraftView.root]) root.traverse(object => {
         if (!(object instanceof THREE.InstancedMesh)) return;
         const geometry = object.geometry as THREE.InstancedBufferGeometry;
@@ -708,6 +709,7 @@ export class Game {
         if (this.frameWaiters.length) { const waiters = this.frameWaiters; this.frameWaiters = []; waiters.forEach(resolve => resolve()); }
       } finally {
         this.scene.endFrame();
+        restoreAircraftParts?.();
         for (const { mesh, visible, count } of warmInstances) {
           mesh.visible = visible;
           if (count !== undefined) (mesh.geometry as THREE.InstancedBufferGeometry).instanceCount = count;

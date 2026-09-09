@@ -82,7 +82,7 @@ async function frameHarness(shipId = 'bismarck') {
     lastTime: 0, hudTime: Infinity, lastTrailTick: 0, trail: [], fps: 60, battery: 'main',
     ammunition: { main: 'ap', secondary: 'ap' },
     paused: false, inPort: false, inspecting: false, input,
-    aircraftView: { root: new Group(), update() {} },
+    aircraftView: { root: new Group(), update() {}, warmupParts() { return () => {}; } },
     funnelSmoke: { root: new Group(), update() {}, setWind() {} },
     effects: { root: new Group(), update() {}, reset() {} }, scene: new FrameScene(), water, environment,
     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
@@ -102,12 +102,17 @@ test('render warmup draws without advancing combat or starting a second animatio
   const geometry = new InstancedBufferGeometry(); geometry.instanceCount = 0;
   const hidden = new InstancedMesh(geometry, new MeshBasicMaterial(), 8); hidden.visible = false;
   Reflect.get(game, 'aircraftView').root.add(hidden);
-  let renders = 0, scheduled = 0;
-  Object.assign(game, { pipeline: { render() { renders++; if (renders <= 12) { expect(hidden.visible).toBe(true); expect(geometry.instanceCount).toBe(1); expect(hidden.count).toBe(8); } } }, scheduleFrame() { scheduled++; } });
+  let renders = 0, scheduled = 0, partsWarming = false, restoredParts = 0;
+  Reflect.get(game, 'aircraftView').warmupParts = () => {
+    partsWarming = true;
+    return () => { partsWarming = false; restoredParts++; };
+  };
+  Object.assign(game, { pipeline: { render() { renders++; if (renders <= 12) { expect(partsWarming).toBe(true); expect(hidden.visible).toBe(true); expect(geometry.instanceCount).toBe(1); expect(hidden.count).toBe(8); } } }, scheduleFrame() { scheduled++; } });
   for (let i = 0; i < 12; i++) await game.frame(10000 + i * 1000, true);
   expect(hidden.visible).toBe(false); expect(geometry.instanceCount).toBe(0);
   expect(simulation.ship).toEqual(before);
   expect(renders).toBe(12); expect(scheduled).toBe(0);
+  expect(partsWarming).toBe(false); expect(restoredParts).toBe(12);
   await game.frame(21020);
   expect(simulation.ship.tick).toBeGreaterThan(before.tick);
   expect(scheduled).toBe(1);

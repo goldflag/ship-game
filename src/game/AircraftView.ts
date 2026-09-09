@@ -15,6 +15,7 @@ import { FIXED_DT } from '../simulation/ship';
 import { ShipMaterialPalette } from './ShipMaterialPalette';
 import { batchShipModel } from './ShipBatching';
 import { GAMEPLAY_AIRCRAFT } from '../ships/blueprint';
+import { AircraftPartsBatch, aircraftPartGroups } from './AircraftPartsBatch';
 
 // Authored deck capacity is bounded at 24; hangar aircraft have no scene instance.
 // Three may bind the full matrix array as uniforms even when few instances draw.
@@ -22,7 +23,7 @@ import { GAMEPLAY_AIRCRAFT } from '../ships/blueprint';
 const BATCH_CAPACITY = 768;
 type AircraftBatch = THREE.InstancedMesh<THREE.InstancedBufferGeometry>;
 type Joint = { object: THREE.Object3D; id: string; rotation: THREE.Euler };
-type Model = { root: THREE.Group; joints: Joint[]; meshes: { source: THREE.Mesh; batches: AircraftBatch[] }[]; count: number; wingspan: number; radius: number; storageMatrices: boolean };
+type Model = { root: THREE.Group; joints: Joint[]; meshes: { source: THREE.Mesh; batches: AircraftBatch[] }[]; parts: AircraftPartsBatch[]; count: number; wingspan: number; radius: number; storageMatrices: boolean };
 
 function aircraftBatch(source: THREE.Mesh, name: string, storageMatrices: boolean): AircraftBatch {
   // Three sizes the shader's matrix array from mesh.count on its first draw.
@@ -100,18 +101,27 @@ export class AircraftView {
       // landing gear and sockets while rigid paint surfaces share a draw.
       palette.apply(root); batchShipModel(root);
       const bounds = new THREE.Box3().setFromObject(root);
-      const model: Model = { root, joints: [], meshes: [], count: 0, storageMatrices, wingspan: bounds.max.x - bounds.min.x,
+      const model: Model = { root, joints: [], meshes: [], parts: [], count: 0, storageMatrices, wingspan: bounds.max.x - bounds.min.x,
         radius: Math.hypot(...(['x', 'y', 'z'] as const).map(axis => Math.max(Math.abs(bounds.min[axis]), Math.abs(bounds.max[axis])))) + 2 };
+      const sources: THREE.Mesh[] = [];
       root.traverse(object => {
         const nodeId = object.userData.nodeId as string | undefined;
         if (nodeId) model.joints.push({ object, id: nodeId, rotation: object.rotation.clone() });
         if (!(object as THREE.Mesh).isMesh) return;
-        const source = object as THREE.Mesh;
+        sources.push(object as THREE.Mesh);
+      });
+      const grouped = new Set<THREE.Mesh>();
+      if (storageMatrices) for (const group of aircraftPartGroups(sources)) {
+        const parts = new AircraftPartsBatch(group, `Aircraft parts ${id}/${lod}`);
+        group.forEach(source => grouped.add(source)); model.parts.push(parts); this.root.add(parts.mesh);
+      }
+      for (const source of sources) {
+        if (grouped.has(source)) continue;
         const batch = aircraftBatch(source, `Aircraft model ${id}/${lod}`, storageMatrices);
         this.root.add(batch);
         const batches = [batch];
         model.meshes.push({ source, batches });
-      });
+      }
       // Most authored nodes are fixed. Only mechanism owners need their local
       // matrices recomposed for each aircraft pose.
       const moving = new Set(model.joints.map(j => j.object));
@@ -192,6 +202,7 @@ export class AircraftView {
       }
       model.root.updateMatrixWorld(true);
       for (const { source, batches } of model.meshes) batches[Math.floor(model.count / BATCH_CAPACITY)].setMatrixAt(model.count % BATCH_CAPACITY, this.matrix.multiplyMatrices(this.transform, source.matrixWorld));
+      for (const parts of model.parts) parts.setPose(model.count, this.transform);
       if (plane.payload && !['ready', 'queued', 'rearming', 'parking', 'rollout'].includes(plane.phase) && payloadCount < 768) {
         const socket = model.joints.find(j => j.id === 'socket.payload')?.object;
         this.matrix.copy(this.transform);
@@ -201,15 +212,18 @@ export class AircraftView {
       }
       model.count++;
     }
-    for (const model of this.models.values()) for (const { batches } of model.meshes) batches.forEach((batch, i) => {
-      batch.geometry.instanceCount = Math.max(0, Math.min(BATCH_CAPACITY, model.count - i * BATCH_CAPACITY));
-      batch.visible = batch.geometry.instanceCount > 0;
-      if (batch.visible) {
-        batch.instanceMatrix.clearUpdateRanges();
-        batch.instanceMatrix.addUpdateRange(0, batch.geometry.instanceCount * 16);
-        batch.instanceMatrix.needsUpdate = true;
-      }
-    });
+    for (const model of this.models.values()) {
+      for (const parts of model.parts) parts.publish(model.count);
+      for (const { batches } of model.meshes) batches.forEach((batch, i) => {
+        batch.geometry.instanceCount = Math.max(0, Math.min(BATCH_CAPACITY, model.count - i * BATCH_CAPACITY));
+        batch.visible = batch.geometry.instanceCount > 0;
+        if (batch.visible) {
+          batch.instanceMatrix.clearUpdateRanges();
+          batch.instanceMatrix.addUpdateRange(0, batch.geometry.instanceCount * 16);
+          batch.instanceMatrix.needsUpdate = true;
+        }
+      });
+    }
     this.contacts.finish();
     for (const bomb of sim.shells) {
       if (!bomb.bomb || bomb.lodged) continue;
@@ -236,11 +250,20 @@ export class AircraftView {
     this.bombs.publish(bombCount);
     this.gunfire.update(sim, camera);
   }
-  diagnostics() { return { models: this.models.size, instances: [...this.models.values()].reduce((n, m) => n + m.count, 0), batches: [...this.models.values()].reduce((n, m) => n + Math.ceil(m.count / BATCH_CAPACITY) * m.meshes.length, 0), culled: this.culled, silhouettes: this.silhouettes, contacts: this.contacts.count, payloads: this.payloadCount + this.bombCount, bombs: this.bombCount, tracers: this.gunfire.diagnostics() }; }
+  diagnostics() { return { models: this.models.size, instances: [...this.models.values()].reduce((n, m) => n + m.count, 0), batches: [...this.models.values()].reduce((n, m) => n + Math.ceil(m.count / BATCH_CAPACITY) * m.meshes.length + (m.count ? m.parts.length : 0), 0), culled: this.culled, silhouettes: this.silhouettes, contacts: this.contacts.count, payloads: this.payloadCount + this.bombCount, bombs: this.bombCount, tracers: this.gunfire.diagnostics() }; }
+  warmupParts(): () => void {
+    const restore: (() => void)[] = [];
+    for (const model of this.models.values()) for (const parts of model.parts) {
+      const finish = parts.warmup();
+      if (finish) restore.push(finish);
+    }
+    return () => { for (const finish of restore) finish(); };
+  }
   private clearModels(keys = new Set(this.models.keys())) {
     for (const key of keys) {
       const model = this.models.get(key)!;
       for (const { batches } of model.meshes) for (const batch of batches) { batch.removeFromParent(); batch.dispose(); batch.geometry.dispose(); }
+      for (const parts of model.parts) parts.dispose();
       disposeObjects(model.root); this.models.delete(key);
     }
   }

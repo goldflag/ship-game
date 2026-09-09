@@ -3,14 +3,19 @@ import { float, uniform } from 'three/tsl';
 import { AircraftView } from '/src/game/AircraftView.ts';
 import { AircraftGunfire } from '/src/game/AircraftGunfire.ts';
 import { installInstanceBufferNames } from '/src/game/InstanceBufferNames.ts';
+import { installFleetBatchInstancing } from '/src/game/FleetBatchInstancing.ts';
 import { prepareInstanceUploads } from '/src/game/InstanceUploads.ts';
 import { EffectParticlePool, effectTexture } from '/src/game/EffectParticles.ts';
 import { effectVolumeMaterial, effectVolumeTexture } from '/src/game/EffectVolume.ts';
 import { CombatSimulation } from '/src/simulation/combat.ts';
+import { GAMEPLAY_AIRCRAFT } from '/src/ships/blueprint.ts';
 import { shipPreset } from '/src/ships/presets.ts';
 
-const renderer = new THREE.WebGPURenderer();
+// Match the game: conventional depth quantizes distant overlapping parts,
+// making legitimate draw reordering change a pixel even with identical geometry.
+const renderer = new THREE.WebGPURenderer({ reversedDepthBuffer: true });
 await renderer.init();
+installFleetBatchInstancing(renderer.backend);
 if (new URLSearchParams(location.search).has('stable')) installInstanceBufferNames(renderer.backend);
 const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(52, 1, .5, 60000);
 scene.add(new THREE.HemisphereLight(0xffffff, 0x334455, 2));
@@ -18,7 +23,8 @@ const sun = new THREE.DirectionalLight(0xffffff, 2); sun.position.set(20, 60, 50
 const target = new THREE.RenderTarget(256, 256);
 renderer.setRenderTarget(target);
 const a = new AircraftView(), b = new AircraftView();
-await a.load(['f4f-4-wildcat']); await b.load(['f4f-4-wildcat'], true);
+const modelIds = Object.keys(GAMEPLAY_AIRCRAFT);
+await a.load(modelIds); await b.load(modelIds, true);
 scene.add(a.root, b.root);
 const sim = new CombatSimulation(shipPreset('enterprise-cv6'));
 const template = sim.aircraft.find(p => p.modelId === 'f4f-4-wildcat');
@@ -27,31 +33,36 @@ sim.player.airWing.planes = Array.from({ length: 801 }, (_, i) => ({ ...structur
   previousPosition: [(i % 5 - 2) * 16, 100, -Math.floor(i / 5) * 22], wingFold: i % 3 * .4 }));
 const rows = [];
 const hash = async pixels => [...new Uint8Array(await crypto.subtle.digest('SHA-256', pixels))].map(n => n.toString(16).padStart(2, '0')).join('');
-for (const [count, distance] of [[1, 80], [6, 120], [0, 120], [801, 5000], [2, 80], [6, 400], [6, 1200]]) {
-  sim.aircraft.forEach((p, i) => { p.phase = i < count ? 'outbound' : 'lost'; });
-  camera.position.set(0, 100 + distance * .3, distance); camera.lookAt(0, 100, -10); camera.updateMatrixWorld(true);
-  const pictures = [];
-  let repeatedMatrixUploads = 0;
-  for (const [view, other] of [[a, b], [b, a]]) {
-    view.update(sim, camera, true); other.root.visible = false;
-    renderer.render(scene, camera);
-    if (view === b) {
-      const queue = renderer.backend.device.queue, write = queue.writeBuffer;
-      queue.writeBuffer = function (buffer, ...args) {
-        if (buffer.label.startsWith('Aircraft model ')) repeatedMatrixUploads++;
-        return write.call(this, buffer, ...args);
-      };
-      try { renderer.render(scene, camera); } finally { queue.writeBuffer = write; }
+for (const modelId of modelIds) {
+  for (const plane of sim.aircraft) { plane.modelId = modelId; plane.role = GAMEPLAY_AIRCRAFT[modelId]; }
+  for (const [count, distance] of [[1, 40], [6, 80], [1, 80], [6, 120], [0, 120], [801, 5000], [2, 80], [6, 400], [6, 1200]]) {
+    sim.aircraft.forEach((p, i) => { p.phase = i < count ? 'outbound' : 'lost'; });
+    camera.position.set(count === 1 ? -32 : 0, 100 + distance * .3, distance); camera.lookAt(count === 1 ? -32 : 0, 100, -10); camera.updateMatrixWorld(true);
+    const pictures = [], firstHashes = [];
+    let repeatedMatrixUploads = 0;
+    for (const [view, other] of [[a, b], [b, a]]) {
+      view.update(sim, camera, true); other.root.visible = false;
+      renderer.render(scene, camera);
+      firstHashes.push(await hash(await renderer.readRenderTargetPixelsAsync(target, 0, 0, 256, 256)));
+      if (view === b) {
+        const queue = renderer.backend.device.queue, write = queue.writeBuffer;
+        queue.writeBuffer = function (buffer, ...args) {
+          if (buffer.label.startsWith('Aircraft model ')) repeatedMatrixUploads++;
+          return write.call(this, buffer, ...args);
+        };
+        try { renderer.render(scene, camera); } finally { queue.writeBuffer = write; }
+      }
+      pictures.push(await renderer.readRenderTargetPixelsAsync(target, 0, 0, 256, 256));
     }
-    pictures.push(await renderer.readRenderTargetPixelsAsync(target, 0, 0, 256, 256));
+    let max = 0, different = 0, lit = 0;
+    for (let i = 0; i < pictures[0].length; i++) {
+      const d = Math.abs(pictures[0][i] - pictures[1][i]); max = Math.max(max, d); if (d > 1) different++;
+      if (i % 4 !== 3 && pictures[0][i]) lit++;
+    }
+    rows.push({ modelId, firstHashes, count, distance, max, different, lit, instances: b.diagnostics().instances, repeatedMatrixUploads,
+      referenceHash: await hash(pictures[0]), storageHash: await hash(pictures[1]) });
   }
-  let max = 0, different = 0, lit = 0;
-  for (let i = 0; i < pictures[0].length; i++) {
-    const d = Math.abs(pictures[0][i] - pictures[1][i]); max = Math.max(max, d); if (d > 1) different++;
-    if (i % 4 !== 3 && pictures[0][i]) lit++;
-  }
-  rows.push({ count, distance, max, different, lit, instances: b.diagnostics().instances, repeatedMatrixUploads,
-    referenceHash: await hash(pictures[0]), storageHash: await hash(pictures[1]) });
+
 }
 
 // Record which first-use pipelines belong to dynamically added tracer pages.
@@ -97,7 +108,7 @@ const particles = [], map = effectTexture('smoke'), volumeMap = effectVolumeText
 for (const volume of [false, true]) {
   const capacity = volume ? 192 : 6144;
   const pools = [false, true].map(storage => {
-    const material = volume ? effectVolumeMaterial(volumeMap, uniform(new THREE.Vector3(-.55, .74, -.39).normalize()), float(1), 16, true) : undefined;
+    const material = volume ? effectVolumeMaterial(volumeMap, uniform(new THREE.Vector3(-.55, .74, -.39).normalize()), float(renderer.reversedDepthBuffer ? 0 : 1), 16, true) : undefined;
     const pool = new EffectParticlePool(capacity, map, false, material);
     pool.mesh.name = 'Particle upload comparison';
     if (storage) prepareInstanceUploads(pool.mesh);
@@ -156,7 +167,7 @@ for (const volume of [false, true]) {
   for (const pool of pools) { pool.mesh.removeFromParent(); pool.dispose(); }
 }
 map.dispose(); volumeMap.dispose();
-window.result = { passed: rows.every(r => r.max <= 1 && r.repeatedMatrixUploads === 0 && (r.count === 0 || r.lit > 0)) && tracers.every(r => r.events ? r.lit > 0 : r.lit === 0)
+window.result = { passed: rows.every(r => r.max <= 1 && r.firstHashes[1] === r.storageHash && r.repeatedMatrixUploads === 0 && (r.count === 0 || r.lit > 0)) && tracers.every(r => r.events ? r.lit > 0 : r.lit === 0)
   && (!effectStorage || tracers.every(r => r.repeatedMatrixUploads === 0))
   && particles.every(r => r.referenceHash === r.storageHash && r.storageFirstHash === r.storageHash && r.repeatedUploads === 0 && (r.count === 0 || r.lit > 0))
   && (!new URLSearchParams(location.search).has('stable') || pipelines.every(p => p.stage === 1)), rows, pipelines, tracers, particles };

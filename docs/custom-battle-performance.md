@@ -510,3 +510,39 @@ and had no frames over 100 ms (60.4 ms maximum). Its final fifty-second windows
 were 54.3-59.0 FPS. This confirms an improved normal-speed result but still falls
 short of sustained 60 FPS during the busiest combat. The main checkout contains
 the approved reductions; the broader steady-60 target remains open.
+
+## Aircraft part submission and warmup
+
+Native WebGPU now groups compatible opaque aircraft parts by material and vertex
+layout in fleet batches. Each part retains its original geometry and its own
+articulated pose; transparent parts and the WebGL fallback retain ordinary
+instancing. Dormant batches render during loading against the ocean capture and
+final targets, so launches and LOD transitions reuse their compiled pipelines.
+
+The earlier missing-wing prototype was traced to Three r185 promoting uint16
+indices during their first GPU upload, after draw byte offsets were calculated.
+The aircraft batch selects uint32 indices before the first draw. A remaining
+one-pixel difference at 5 km came from conventional depth quantization in the
+diagnostic. Using the game's reversed-depth configuration makes all 54 aircraft
+comparisons pixel-exact across the six models, close views, LODs, 801-instance
+growth, removal and re-entry. The optimized first draw matches too. Particle and
+tracer comparisons still pass; no GPU errors were reported.
+
+The initial production prototype averaged 71.27 FPS, with late ten-second windows
+at 61.6-65.2 FPS, but introduced four frames over 100 ms (334.2 ms maximum).
+After adding loading-time warmup, the same thirty-ship/four-carrier High/1080p
+benchmark averaged 72.22 FPS over 120 seconds and advanced 119.85 simulation
+seconds. Its final fifty-second windows were 61.0-64.9 FPS, with no frames over
+100 ms and a 54.9 ms maximum. No render pipelines were created after battle
+start. This meets 60 FPS by ten-second window in this sample; it does not mean
+every individual frame completed within 16.7 ms.
+
+All 52 relevant aircraft rendering, batch submission, frame, flight and ground
+pose tests pass, as does the production build. Ship, aircraft, distant and zoom
+captures were inspected; muzzle error remained below 2.75 mm. Temporary captures,
+profiles and comparison results remain in ignored `.build/`.
+
+The following unchanged control averaged 66.03 FPS and advanced 119.75 simulation
+seconds, with no frames over 100 ms (61.3 ms maximum). The warmed candidate is
+about 9% faster overall in this pair; the control's busy windows remained below
+60 FPS. Normal machine-speed variability still applies to these measurements.
