@@ -90,7 +90,8 @@ export interface BallisticEffectData {
 export interface DamageEvent extends BallisticEffectData { kind: 'penetration' | 'contact' | 'ricochet' | 'stopped' | 'module' | 'sunk' | 'burst'; position: Vec3; message: string; shipId: string; impact?: ImpactRecord; defeatCause?: DefeatCause; }
 /** Displacement-based gameplay durability, shared by every blueprint. */
 export function maxHullIntegrity(def: ShipDefinition): number {
-  return Math.round((300 + 1450 * Math.sqrt(def.hull.massKg / 70_000_000)) / 10) * 10 * HULL_HP_SCALE;
+  // Gentle small-hull bonus (mass^0.8), anchored to Bismarck’s existing 50,750 HP.
+  return Math.round((def.hull.massKg / 43_978_000) ** .8 * 1450 * HULL_HP_SCALE);
 }
 export function createDamage(def: ShipDefinition): DamageState {
   return { hullDamageRemainder: 0, regions: createRegions(def, maxHullIntegrity(def)), stability: createStability(), control: createControl(def), integrity: maxHullIntegrity(def), maxIntegrity: maxHullIntegrity(def), modules: def.modules.map(m => ({ id: m.id, hp: m.hp, detonated: false, ignition: 0 })), compartments: def.compartments.map(c => ({ id: c.id, waterM3: 0, breachAreaM2: 0, breaches: [] })), connections: def.connections.map(c => ({ id: connectionId(c), state: c.state ?? 'open', damageAreaM2: c.state === 'damaged' ? c.areaM2 : 0, fromIndex: def.compartments.findIndex(r => r.id === c.fromId), toIndex: def.compartments.findIndex(r => r.id === c.toId) })), sunk: false };

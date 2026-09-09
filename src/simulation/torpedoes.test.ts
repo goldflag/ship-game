@@ -170,7 +170,8 @@ test('torpedo openings retain their position and magazine damage does not invent
   expect(magazine.detonated).toBe(false);
   expect(magazine.hp).toBeLessThan(definition.modules.find(m => m.id === magazine.id)!.hp);
   const hullLoss = before - sim.target.damage.integrity;
-  expect(hullLoss).toBeGreaterThan(projectile().weapon.damage * .625 * .9 * HULL_HP_SCALE);
+  // A full hit exhausts the light hull; damage cannot exceed its remaining HP.
+  expect(hullLoss).toBe(before);
   expect(hullLoss).toBeLessThanOrEqual(projectile().weapon.damage * .625 * HULL_HP_SCALE);
   updateCapability(sim.target, definition);
   expect(sim.target.damage.integrity).toBe(before - hullLoss);
@@ -198,17 +199,19 @@ test('loaded tubes preserve fighting strength after gun loss and recover after m
   expect(sim.player.damage.stability.combatLost).toBe(true);
 });
 
-test('torpedoes damage and score against a disarmed but afloat opponent', () => {
+test('torpedoes sink and score against a disarmed but afloat light hull', () => {
   const sim = new CombatSimulation(definition);
   sim.target.mounts.forEach(m => m.hp = 0);
   sim.target.torpedoTubes!.forEach(t => t.ammo = 0);
   updateCapability(sim.target, definition);
   expect(sim.target.damage.stability.combatLost).toBe(true);
+  expect(sim.telemetry('torpedo', ahead).playerFrags).toBe(0);
   sim.torpedoes.push(broadsideRound(sim.target, 11.3));
   step(sim, 15);
   expect(sim.events.some(e => e.kind === 'torpedo-hit')).toBe(true);
   expect(sim.telemetry('torpedo', ahead).playerDamageDealt).toBeGreaterThan(0);
-  expect(sim.telemetry('torpedo', ahead).playerFrags).toBe(0);
+  expect(sim.target.damage.integrity).toBe(0);
+  expect(sim.telemetry('torpedo', ahead).playerFrags).toBe(1);
 });
 
 test('bot lead intercepts a crossing target; friendly ships block the predicted torpedo lane', () => {
