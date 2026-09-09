@@ -1,0 +1,325 @@
+{
+  "schemaVersion": 1,
+  "builders": {
+    "open-naval": {
+      "path": "scripts/ships/blender_open_guns.py",
+      "function": "create_open_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
+    },
+    "ijn-aa": {
+      "path": "assets/parts/ijn-carrier-guns/geometry.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
+    }
+  },
+  "components": [
+    {
+      "partId": "sk-c34-380-twin",
+      "nation": "Germany",
+      "family": "38 cm twin mount",
+      "review": "unreviewed",
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified."
+    },
+    {
+      "partId": "sk-c28-150-twin",
+      "nation": "Germany",
+      "family": "15 cm twin mount",
+      "review": "unreviewed",
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified."
+    },
+    {
+      "partId": "type94-460-triple",
+      "nation": "Japan",
+      "family": "46 cm Type 94 triple mount",
+      "review": "unreviewed",
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified."
+    },
+    {
+      "partId": "type3-155-triple",
+      "nation": "Japan",
+      "family": "15.5 cm Type 3 triple mount",
+      "review": "unreviewed",
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified."
+    },
+    {
+      "partId": "us-5in38-mk21-single",
+      "nation": "United States",
+      "family": "US 5-inch/38",
+      "review": "unreviewed",
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified.",
+      "builder": "open-naval"
+    },
+    {
+      "partId": "us-11in75-quad",
+      "nation": "United States",
+      "family": "1.1-inch/75 quadruple mount",
+      "review": "unreviewed",
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified.",
+      "builder": "open-naval"
+    },
+    {
+      "partId": "oerlikon-20mm-single",
+      "nation": "United States",
+      "family": "20 mm Oerlikon",
+      "review": "unreviewed",
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified.",
+      "builder": "open-naval"
+    },
+    {
+      "partId": "us-8in55-mk12-triple",
+      "nation": "United States",
+      "family": "8-inch/55 Mk 12 three-gun turret",
+      "review": "unreviewed",
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified."
+    },
+    {
+      "partId": "us-5in38-mk32-twin",
+      "nation": "United States",
+      "family": "US 5-inch/38",
+      "review": "unreviewed",
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified."
+    },
+    {
+      "partId": "sk-c35-88-single",
+      "nation": "Germany",
+      "family": "8.8 cm SK C/35",
+      "review": "unreviewed",
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified."
+    },
+    {
+      "partId": "flak-c30-20-single",
+      "nation": "Germany",
+      "family": "2 cm C/30",
+      "review": "unreviewed",
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified."
+    },
+    {
+      "partId": "us-3in50-single",
+      "nation": "United States",
+      "family": "3-inch/50 defensive gun",
+      "review": "unreviewed",
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified.",
+      "builder": "open-naval"
+    },
+    {
+      "partId": "bl-4in-mk9-single",
+      "nation": "United Kingdom",
+      "family": "BL 4-inch Mk IX shielded gun",
+      "review": "unreviewed",
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified."
+    },
+    {
+      "partId": "qf-2pdr-single",
+      "nation": "United Kingdom",
+      "family": "QF 2-pounder pom-pom",
+      "review": "unreviewed",
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified."
+    },
+    {
+      "partId": "lewis-303-twin",
+      "nation": "United Kingdom",
+      "family": "Twin .303 Lewis light machine guns",
+      "review": "unreviewed",
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified."
+    },
+    {
+      "partId": "us-5in38-mk30-single",
+      "nation": "United States",
+      "family": "US 5-inch/38",
+      "review": "unreviewed",
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified."
+    },
+    {
+      "partId": "us-40mm-bofors-twin",
+      "nation": "United States",
+      "family": "40 mm Bofors",
+      "review": "unreviewed",
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified.",
+      "builder": "open-naval"
+    },
+    {
+      "partId": "flak-105-bismarck-1941",
+      "nation": "Germany",
+      "family": "10.5 cm twin AA",
+      "review": "unreviewed",
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified."
+    },
+    {
+      "partId": "flak-37-bismarck-1941",
+      "nation": "Germany",
+      "family": "3.7 cm twin AA",
+      "review": "unreviewed",
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified."
+    },
+    {
+      "partId": "flak-20-bismarck-1941",
+      "nation": "Germany",
+      "family": "2 cm single AA",
+      "review": "unreviewed",
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified."
+    },
+    {
+      "partId": "bl-14-mkvii-quad",
+      "nation": "United Kingdom",
+      "family": "14-inch Mk VII quadruple",
+      "review": "unreviewed",
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified."
+    },
+    {
+      "partId": "bl-14-mkvii-twin",
+      "nation": "United Kingdom",
+      "family": "14-inch Mk VII twin",
+      "review": "unreviewed",
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified."
+    },
+    {
+      "partId": "qf-525-mki-twin",
+      "nation": "United Kingdom",
+      "family": "5.25-inch QF Mk I twin",
+      "review": "unreviewed",
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified."
+    },
+    {
+      "partId": "type89-127-yamato-twin",
+      "nation": "Japan",
+      "family": "Type 89 127 mm/40",
+      "review": "unreviewed",
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified."
+    },
+    {
+      "partId": "us-40mm-bofors-baltimore-quad",
+      "nation": "United States",
+      "family": "40 mm Bofors",
+      "review": "unreviewed",
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified."
+    },
+    {
+      "partId": "qf-2pdr-mkvi-octuple",
+      "nation": "United Kingdom",
+      "family": "Octuple QF 2-pounder Mk VI pom-pom",
+      "review": "unreviewed",
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified.",
+      "builder": "open-naval"
+    },
+    {
+      "partId": "type89-127-a1-twin",
+      "nation": "Japan",
+      "family": "Type 89 127 mm/40",
+      "review": "unreviewed",
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified.",
+      "builder": "ijn-aa"
+    },
+    {
+      "partId": "type89-127-a1-mod2-twin",
+      "nation": "Japan",
+      "family": "Type 89 127 mm/40",
+      "review": "unreviewed",
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified.",
+      "builder": "ijn-aa"
+    },
+    {
+      "partId": "type96-25-triple",
+      "nation": "Japan",
+      "family": "Type 96 25 mm",
+      "review": "unreviewed",
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified.",
+      "builder": "ijn-aa"
+    },
+    {
+      "partId": "type96-25-triple-shielded",
+      "nation": "Japan",
+      "family": "Type 96 25 mm",
+      "review": "unreviewed",
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified.",
+      "builder": "ijn-aa"
+    },
+    {
+      "partId": "type3-127-typec-twin",
+      "nation": "Japan",
+      "family": "127 mm/50 Type C twin",
+      "review": "unreviewed",
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified."
+    },
+    {
+      "partId": "type96-25-yukikaze-triple",
+      "nation": "Japan",
+      "family": "Type 96 25 mm",
+      "review": "unreviewed",
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified."
+    },
+    {
+      "partId": "type96-25-single",
+      "nation": "Japan",
+      "family": "Type 96 25 mm",
+      "review": "unreviewed",
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified."
+    },
+    {
+      "partId": "type3-203-mogami-e3-twin",
+      "nation": "Japan",
+      "family": "20.3 cm/50 Type 3 No.2 E3 twin",
+      "review": "unreviewed",
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified."
+    },
+    {
+      "partId": "type3-203-mogami-e-twin",
+      "nation": "Japan",
+      "family": "20.3 cm/50 Type 3 No.2 E twin with rangefinder",
+      "review": "unreviewed",
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified."
+    },
+    {
+      "partId": "type89-127-mogami-a1-mod1-twin",
+      "nation": "Japan",
+      "family": "Type 89 127 mm/40",
+      "review": "unreviewed",
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified."
+    },
+    {
+      "partId": "type96-25-mogami-2",
+      "nation": "Japan",
+      "family": "Type 96 25 mm",
+      "review": "unreviewed",
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified."
+    },
+    {
+      "partId": "type96-25-mogami-3",
+      "nation": "Japan",
+      "family": "Type 96 25 mm",
+      "review": "unreviewed",
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified."
+    },
+    {
+      "partId": "us-16in50-mk7-iowa",
+      "nation": "United States",
+      "family": "406 mm/50 Mk.7 triple",
+      "review": "unreviewed",
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified."
+    },
+    {
+      "partId": "us-40mm-bofors-mk1-iowa",
+      "nation": "United States",
+      "family": "40 mm Bofors",
+      "review": "unreviewed",
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified."
+    },
+    {
+      "partId": "us-20mm-oerlikon-mk4-iowa",
+      "nation": "United States",
+      "family": "20 mm Oerlikon",
+      "review": "unreviewed",
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified."
+    },
+    {
+      "partId": "us-5in38-mk32-iowa",
+      "nation": "United States",
+      "family": "US 5-inch/38",
+      "review": "unreviewed",
+      "limitations": "Legacy ID and name say Mk 32; historical Iowa mount identity is Mk 28 Mod 2. Resolve against approved fit before promoting to a shared builder."
+    }
+  ]
+}

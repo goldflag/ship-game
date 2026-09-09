@@ -10,3 +10,27 @@
 @media(max-width:1100px){.stage-footer{align-items:flex-start;flex-direction:column}}
 @media(max-width:800px){header{padding:12px 16px;gap:12px}header p{display:none}main{flex-direction:column;overflow:auto}.stage{flex:none;min-height:780px;height:90dvh}aside{width:auto;overflow:visible;padding:0 20px 24px;border-left:0;border-top:1px solid var(--line)}.stage-toolbar{padding:14px 16px}.views{margin-top:12px}.views button{padding:6px 9px;min-height:36px;font-size:12px}.stage-title h2{font-size:28px}.legend{left:18px;font-size:12px;gap:14px}.stage-footer{padding:12px 16px}.fields{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .viewport canvas:focus-visible{outline-offset:-3px}
+.part-identity{font-size:13px;margin-top:16px;color:var(--accent)}
+.part-id{display:block;font-size:12px;overflow-wrap:anywhere;margin:7px 0 18px;color:var(--muted)}
+.joint-value{float:right;font-variant-numeric:tabular-nums;color:var(--accent)}
+.library-picker input[type=search]{margin-bottom:14px}
+.subtle code{font-size:11px;overflow-wrap:anywhere}
+@media(max-width:800px){.stage{min-height:540px;height:72dvh}.library-picker{padding-top:18px}.stage-title p{max-height:3.2em;overflow:auto}button{min-height:44px}}
+.component-carousel{flex:none;position:relative;border-top:1px solid var(--line);background:#132d38;padding:12px 20px 8px;min-width:0}
+.component-filters{display:flex;align-items:end;gap:12px;margin-bottom:10px}
+.component-filters label{margin:0;min-width:130px;font-size:12px}
+.component-filters input,.component-filters select{margin-top:4px;min-height:36px;padding:7px 9px}
+.component-filters .component-search{flex:1;min-width:160px;max-width:320px}
+.component-count{min-width:180px;align-self:center}.component-count h2{font-size:24px}.component-count p{color:var(--muted);font-size:12px;margin-top:3px;max-width:220px}
+.carousel-arrows{display:flex;gap:4px;margin-left:auto}.component-filters button{white-space:nowrap}
+.component-track{position:relative;display:flex;gap:8px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x proximity;list-style:none;margin:0;padding:4px 2px 8px;scrollbar-width:thin;scrollbar-color:var(--accent) var(--field);min-height:166px}
+.component-track li{flex:none;width:184px;scroll-snap-align:start}
+.component-card{display:flex;flex-direction:column;width:100%;height:100%;padding:0 0 7px;text-align:left;background:#10252e;overflow:hidden}
+.component-card[aria-pressed=true]{border-color:var(--accent);background:#243c43}.component-card[aria-pressed=true] .component-card-name{color:var(--accent)}
+.component-image{display:flex;width:100%;height:88px;align-items:center;justify-content:center;background:#10252e}.component-image img{width:100%;height:100%;object-fit:contain}.component-image>span{font-size:12px;color:var(--muted)}
+.component-card-name{font-size:13px;line-height:1.25;margin:5px 9px 0;min-height:32px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.component-card-meta,.component-card-source{font-size:11px;color:var(--muted);margin:3px 9px 0}.component-card-source{font-size:10px}
+.component-empty{position:absolute;bottom:16px;left:20px;right:20px;min-height:132px;display:flex;justify-content:center;align-items:center;gap:16px;color:var(--muted);font-size:14px}
+@media(min-width:801px) and (max-height:850px){.stage-toolbar{padding-top:10px;padding-bottom:10px}.stage-title h2{font-size:28px}.views{margin-top:8px}.stage-footer{padding-top:8px;padding-bottom:8px}.navigation{display:none}.scene-area{min-height:100px}}
+@media(max-width:1100px){.component-count{min-width:130px}.component-filters{gap:8px}.component-filters label{min-width:110px}.carousel-arrows button{padding:7px 8px}.component-filters .component-search{min-width:120px}}
+@media(max-width:800px){.component-carousel{padding:8px 12px 4px}.component-filters{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px 8px;margin-bottom:4px}.component-count{display:flex;align-items:baseline;gap:8px;grid-column:1/-1}.component-count h2{font-size:20px}.component-count p{max-width:none;font-size:11px}.component-filters .component-search{grid-column:1/-1;max-width:none;min-width:0}.component-filters label{min-width:0}.component-filters input,.component-filters select{min-height:36px}.component-filters>button{position:absolute;right:12px;top:6px;min-height:28px;padding:3px 6px;font-size:11px}.component-count{padding-right:72px}.carousel-arrows{display:none}.component-track{min-height:140px}.component-track li{width:152px}.component-image{height:66px}.component-card-name{font-size:12px;min-height:30px}.component-card-meta{font-size:10px}.component-card-source{display:none}.component-empty{bottom:8px;min-height:128px;flex-direction:column;gap:8px}.app:has(.component-carousel) .stage{min-height:440px;height:60dvh}}

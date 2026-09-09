@@ -1,4 +1,4 @@
-export type ComparisonMode = 'overlay' | 'side-by-side';
+export type ComparisonMode = 'inspect' | 'overlay' | 'side-by-side';
 export type ViewName = 'quarter' | 'port' | 'starboard' | 'bow' | 'stern' | 'top' | 'bottom';
 export const views: { name: ViewName; label: string; direction: [number, number, number]; up: [number, number, number] }[] = [
   { name: 'quarter', label: '3D', direction: [-1, .65, -1], up: [0, 1, 0] },
@@ -15,7 +15,7 @@ export const isSideView = (view: ViewName) => view === 'port' || view === 'starb
 // WebGL rectangles start at the bottom left. Equal panels share one projection,
 // camera target and zoom; independently fitting either model would hide differences.
 export function comparisonPanels(width: number, height: number, mode: ComparisonMode, view: ViewName = 'quarter') {
-  if (mode === 'overlay') return [{ x: 0, y: 0, width, height }];
+  if (mode !== 'side-by-side') return [{ x: 0, y: 0, width, height }];
   return width < 640 || isSideView(view)
     ? [{ x: 0, y: height / 2, width, height: height / 2 }, { x: 0, y: 0, width, height: height / 2 }]
     : [{ x: 0, y: 0, width: width / 2, height }, { x: width / 2, y: 0, width: width / 2, height }];

@@ -27,7 +27,7 @@
     "ship:review": "bun scripts/ships/pipeline.ts review",
     "ship:thumbnail": "bun scripts/ships/pipeline.ts thumbnail",
     "ship:overlay": "vite --config vite.overlay.config.ts",
-    "ship:overlay:check": "tsc --project tsconfig.overlay.json --noEmit && bun test tools/ship-overlay",
+    "ship:overlay:check": "tsc --project tsconfig.overlay.json --noEmit && bun test tools/ship-overlay scripts/parts",
     "ship:new": "bun scripts/ships/new.ts",
     "git:setup": "bun scripts/git/setup.ts",
     "test:workflow": "bun test scripts/git scripts/ships",
@@ -41,7 +41,13 @@
     "multiplayer:server": "cargo run --release --locked -p naval-server --bin naval-server",
     "multiplayer:benchmark": "cargo run --release --locked -p naval-server --bin benchmark --",
     "multiplayer:smoke": "bun scripts/multiplayer/socket-smoke.ts",
-    "multiplayer:capacity-smoke": "bun scripts/multiplayer/capacity-smoke.ts"
+    "multiplayer:capacity-smoke": "bun scripts/multiplayer/capacity-smoke.ts",
+    "model:viewer": "vite --config vite.overlay.config.ts",
+    "model:viewer:check": "tsc --project tsconfig.overlay.json --noEmit && bun test tools/ship-overlay scripts/parts",
+    "part:list": "bun scripts/parts/pipeline.ts list",
+    "part:inputs": "bun scripts/parts/pipeline.ts inputs",
+    "part:build": "bun scripts/parts/pipeline.ts build",
+    "part:check": "bun scripts/parts/pipeline.ts check"
   },
   "dependencies": {
     "@fontsource/barlow": "^5.2.8",

@@ -5,6 +5,8 @@ import { join } from 'node:path';
 import type { Plugin } from 'vite';
 import { shipPresets } from '../../src/ships/presets';
 import { embeddedJson, vehicleId, type ReferencePack, type Scheme } from './reference';
+import { componentItems } from '../../scripts/parts/library';
+import type { ShipDefinition } from '../../src/ships/blueprint';
 
 const inflight = new Map<string, Promise<ReferencePack>>();
 async function download(url: string): Promise<Buffer> {
@@ -57,6 +59,17 @@ export function overlayApi(root: string): Plugin {
       const url = new URL(req.url ?? '/', 'http://localhost');
       res.setHeader('Content-Type', 'application/json');
       try {
+        if (url.pathname === '/components') {
+          res.end(JSON.stringify(await componentItems(root, Object.values(shipPresets) as unknown as ShipDefinition[]))); return;
+        }
+        const component = url.pathname.match(/^\/components\/([a-z0-9-]+)\/model\.glb$/);
+        if (component) {
+          const items = await componentItems(root, []);
+          const item = items.find(p => p.partId === component[1]);
+          if (!item?.modelUrl) { res.statusCode = 404; res.end(JSON.stringify({ error: 'Preview missing or stale. Run part:build for this component.' })); return; }
+          res.setHeader('Content-Type', 'model/gltf-binary'); res.setHeader('Cache-Control', 'no-store');
+          res.end(await readFile(join(root, '.build/parts', item.partId, 'model.glb'))); return;
+        }
         if (url.pathname === '/ships') {
           res.end(JSON.stringify(Object.values(shipPresets).map(s => ({ id: s.id, name: s.name, modelUrl: s.modelUrl, length: s.hull.length, configuration: s.configuration })))); return;
         }
