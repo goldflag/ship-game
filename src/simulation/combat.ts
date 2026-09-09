@@ -1,3 +1,4 @@
+import { torpedoSpeed } from './mobility';
 import { presentationAim, presentationTelemetry } from './presentation';
 import { BATTLE_RULES, afloatKg, evaluateOutcome, matchDisplacementKg, physicalLoss, type BattleOutcome } from './battleRules';
 import { surfaceGunAllowed } from '../ships/armament';
@@ -316,10 +317,10 @@ export class CombatSimulation {
         const solution = tubeSolution(actor, tube, state, aim ?? [NaN, 0, NaN], FIXED_DT);
         const origin = solution.origin;
         if (state.status === 'ready' && actor.tubeLaunchCooldown! > 0) state.status = 'reloading';
-        if (state.status === 'ready' && actor.controller === 'bot' && aim && !clearTorpedoLane(actor, origin, aim, tube.weapon.speed, this.actors)) state.status = 'blocked';
+        if (state.status === 'ready' && actor.controller === 'bot' && aim && !clearTorpedoLane(actor, origin, aim, torpedoSpeed(tube.weapon.speed), this.actors)) state.status = 'blocked';
         const fire = actor === this.player ? aimValid && selectedWeapon('torpedo', tube.weapon, intent.battery, intent.weaponGroupId) && (intent.fire || this.fireQueued) : actor.controller === 'bot' && !!target && botReadyToFire(actor);
         if (!fire || state.status !== 'ready') return;
-        const velocity: Vec3 = [Math.sin(solution.heading) * tube.weapon.speed, 0, -Math.cos(solution.heading) * tube.weapon.speed];
+        const velocity: Vec3 = [Math.sin(solution.heading) * torpedoSpeed(tube.weapon.speed), 0, -Math.cos(solution.heading) * torpedoSpeed(tube.weapon.speed)];
         const torpedo: Torpedo = { id: ++this.shellSequence, ownerId: actor.motion.id, tubeId: tube.id, position: origin, velocity, age: 0, distance: 0, weapon: tube.weapon };
         this.torpedoes.push(torpedo);
         state.ammo--; state.reload = state.ammo ? tube.weapon.reloadSeconds : 0; state.status = state.ammo ? 'reloading' : 'empty';
@@ -378,8 +379,8 @@ export class CombatSimulation {
   private stepTorpedoes(): void {
     for (let i = this.torpedoes.length - 1; i >= 0; i--) {
       const torpedo = this.torpedoes[i], from: Vec3 = [...torpedo.position], w = torpedo.weapon;
-      const travel = Math.min(w.speed * FIXED_DT, w.rangeM - torpedo.distance);
-      const to = add(from, scale(torpedo.velocity, travel / w.speed));
+      const travel = Math.min(torpedoSpeed(w.speed) * FIXED_DT, w.rangeM - torpedo.distance);
+      const to = add(from, scale(torpedo.velocity, travel / torpedoSpeed(w.speed)));
       // A simple depth keeper settles from the tube datum onto the selected fixed run depth.
       if (from[1] > 0) {
         to[1] = Math.max(-w.runningDepthM, from[1] + torpedo.velocity[1] * FIXED_DT - .5 * GRAVITY * FIXED_DT ** 2);
