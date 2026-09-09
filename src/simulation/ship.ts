@@ -1,3 +1,5 @@
+import { MOBILITY } from './mobility';
+
 /** Shared, renderer-free gameplay state. Distances: meters. Time: seconds.
  * Heading is clockwise from north (-Z); X points east. */
 export const FIXED_DT = 1 / 60;
@@ -71,13 +73,13 @@ export function stepShip(state: ShipState, command: HelmCommand, handling: impor
   // speed, rather than instantly following a helm command.
   const turnLoss = .22 * state.rudder ** 2 * clamp(Math.abs(state.speed) / handling.forwardSpeed, 0, 1);
   const targetSpeed = throttle * (throttle < 0 ? handling.reverseSpeed : handling.forwardSpeed) * Math.sqrt(availablePower) * (1 - turnLoss) * (1 - (environment?.resistance ?? 0));
-  state.rudder = approach(state.rudder, rudder, handling.rudderRate * FIXED_DT);
+  state.rudder = approach(state.rudder, rudder, handling.rudderRate * MOBILITY.rudderRate * FIXED_DT);
   const braking = Math.abs(targetSpeed) < Math.abs(state.speed) || Math.sign(targetSpeed) !== Math.sign(state.speed);
-  state.speed = approach(state.speed, targetSpeed, (braking ? handling.braking : handling.acceleration * availablePower) * FIXED_DT);
+  state.speed = approach(state.speed, targetSpeed, (braking ? handling.braking * MOBILITY.braking : handling.acceleration * MOBILITY.acceleration * availablePower) * FIXED_DT);
   // A stationary rudder has no authority; going astern reverses its effect.
   const authority = clamp(state.speed / handling.forwardSpeed, -0.4, 1);
-  const targetYaw = state.rudder * handling.maxYawRate * authority;
-  state.yawRate += (targetYaw - state.yawRate) * (1 - Math.exp(-FIXED_DT / clamp(2.4 * .019 / Math.max(.001, handling.maxYawRate), .8, 6)));
+  const targetYaw = state.rudder * handling.maxYawRate * MOBILITY.maxYawRate * authority;
+  state.yawRate += (targetYaw - state.yawRate) * (1 - Math.exp(-FIXED_DT * MOBILITY.yawResponse / clamp(2.4 * .019 / Math.max(.001, handling.maxYawRate), .8, 6)));
   state.heading = (state.heading + state.yawRate * FIXED_DT + Math.PI * 2) % (Math.PI * 2);
   // Turning develops outward sideslip; water resistance also settles contact
   // impulses. This is a damped maneuvering approximation, not instant strafing.
