@@ -1,6 +1,5 @@
 import type { GunPart, ShipDefinition } from './blueprint';
 import { ANTI_AIRCRAFT_MAX_CALIBER_M, antiAircraftRange, torpedoArcLabel } from './armament';
-import { HULL_HP_SCALE } from '../simulation/durability';
 import { maxHullIntegrity } from '../simulation/damage';
 import { KNOTS_PER_MPS } from '../simulation/ship';
 import { GRAVITY } from '../simulation/weapons';
@@ -19,7 +18,7 @@ export interface StatScore { id: StatScoreId; label: string; score: number; help
 const MAX_BALLISTIC_RANGE_M = 30000;
 /** The 0-100 category scores compare every ship against these fixed references, not against each other. */
 export const SCORE_REFERENCES = {
-  hullIntegrity: 1750 * HULL_HP_SCALE, armorMm: 410, mainDamagePerMinute: 2000, penetrationMm: 650,
+  hullIntegrity: 73_553, armorMm: 410, mainDamagePerMinute: 2000, penetrationMm: 650,
   dualPurposeDamagePerMinute: 6000, speedKn: 40, yawRateRadPerSecond: 0.05, largestPlanRootM: 130, smallestPlanRootM: 50,
   dualPurposeCaliberM: ANTI_AIRCRAFT_MAX_CALIBER_M,
 } as const;
