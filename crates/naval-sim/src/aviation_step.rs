@@ -237,6 +237,10 @@ impl Aviation {
         queue
     }
     fn combine_landed(&mut self, actor: &Vessel) {
+        if self.rules.consolidation == crate::air_rules::ConsolidationPolicy::Disabled {
+            return;
+        }
+        let managed = self.deck_operations.get(&actor.motion.id);
         let state = self.wing(&actor.motion.id).unwrap();
         if !state.planes.iter().any(|p| p.phase == "lost") {
             return;
@@ -246,16 +250,26 @@ impl Aviation {
             .squadron_flights(actor)
             .into_iter()
             .filter_map(|f| {
+                if managed.is_some_and(|ops| ops.group_busy(state, &f.id)) {
+                    return None;
+                }
                 let survivors: Vec<_> = f
                     .plane_ids
                     .iter()
                     .filter_map(|id| state.planes.iter().find(|p| &p.id == id))
-                    .filter(|p| p.phase != "lost")
+                    .filter(|p| !terminal(p))
                     .collect();
                 if survivors.is_empty()
                     || survivors.len() >= size
                     || !survivors.iter().all(|p| {
-                        matches!(p.phase.as_str(), "ready" | "rearming") && !on_flight_deck(p)
+                        if managed.is_some() {
+                            matches!(p.phase.as_str(), "hangar" | "repairing")
+                                && p.hp > 0.0
+                                && p.deck_slot.is_none()
+                                && p.deck_position.is_none()
+                        } else {
+                            matches!(p.phase.as_str(), "ready" | "rearming") && !on_flight_deck(p)
+                        }
                     })
                 {
                     return None;
@@ -264,6 +278,8 @@ impl Aviation {
                 Some((f, survivors))
             })
             .collect();
+        let managed = managed.is_some();
+        let mut redirects = Vec::new();
         let state = self.wing_mut(&actor.motion.id).unwrap();
         for i in 0..candidates.len() {
             for j in i + 1..candidates.len() {
@@ -315,11 +331,36 @@ impl Aviation {
                 }
                 target.1.extend(source.1.clone());
                 source.0.merged_into = Some(target.0.id.clone());
+                if managed {
+                    target.0.notice = Some(format!(
+                        "Combined with {} in hangar · {} aircraft",
+                        source.0.name,
+                        target.1.len()
+                    ));
+                    source.0.notice = Some(format!("Combined into {}", target.0.name));
+                    redirects.push((source.0.id.clone(), target.0.id.clone()));
+                }
                 for flight in [&target.0, &source.0] {
                     if let Some(f) = state.flights.iter_mut().find(|f| f.id == flight.id) {
                         *f = flight.clone();
                     } else {
                         state.flights.push(flight.clone());
+                    }
+                }
+            }
+        }
+        // Escort intent belongs to the friendly flight, including escorts based
+        // on another carrier. Enemy orders must not learn about private merges.
+        for wing in &mut self.wings {
+            if !wing.state.planes.iter().any(|p| p.team == actor.team) {
+                continue;
+            }
+            for flight in &mut wing.state.flights {
+                if let AirOrder::Escort { flight_id } = &mut flight.order {
+                    for (source, target) in &redirects {
+                        if flight_id == source {
+                            *flight_id = target.clone();
+                        }
                     }
                 }
             }
@@ -390,9 +431,7 @@ impl Aviation {
                     ops.close(&mut self.wings[wi].state, &reason);
                 }
             }
-            if !self.deck_operations.contains_key(&actor.motion.id) {
-                self.combine_landed(actor);
-            }
+            self.combine_landed(actor);
             if let Some(ops) = self.deck_operations.get_mut(&actor.motion.id) {
                 ops.step(
                     &mut self.wings[wi].state,

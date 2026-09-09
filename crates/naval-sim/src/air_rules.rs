@@ -105,6 +105,15 @@ pub struct AirRules {
     pub repair_ceiling_hp: f64,
     #[serde(default)]
     pub deck_cycle: DeckCycle,
+    #[serde(default)]
+    pub consolidation: ConsolidationPolicy,
+}
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "kebab-case")]
+pub enum ConsolidationPolicy {
+    Disabled,
+    #[default]
+    HangarCompatible,
 }
 #[derive(Clone, Debug)]
 pub struct CarrierAirRules {

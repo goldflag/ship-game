@@ -165,7 +165,17 @@ export class Game {
     return () => { this.cameraFrameListeners.delete(listener); };
   }
   private flightSelection: string[] = [];
-  get selectedFlightIds(): string[] { return this.flightSelection ?? []; }
+  get selectedFlightIds(): string[] {
+    const selected = this.flightSelection ?? [];
+    if (!selected.length || !this.simulation) return selected;
+    const flights = this.simulation.actors.filter(a => a.team === 'friendly').flatMap(a => a.airWing?.flights ?? []);
+    const redirects = new Map(flights.filter(f => f.mergedInto).map(f => [f.id, f.mergedInto!]));
+    return [...new Set(selected.map(id => {
+      const seen = new Set<string>();
+      while (redirects.has(id) && !seen.has(id)) { seen.add(id); id = redirects.get(id)!; }
+      return id;
+    }))];
+  }
   get selectedFlightId(): string | undefined { return this.selectedFlightIds[0]; }
   set selectedFlightId(id: string | undefined) { this.flightSelection = id ? [id] : []; }
   private water?: WaterSystem;

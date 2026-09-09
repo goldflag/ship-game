@@ -71,6 +71,9 @@ test('managed telemetry retains four-plane groups and reports unlimited flights 
   expect(telemetry().groups[1].deck?.canRepair).toBe(true);
   damagedBelow.hp = 60;
   expect(telemetry().groups[1].deck?.canRepair).toBe(false);
+  damagedBelow.ammo = 3;
+  expect(telemetry().groups[1].deck?.canRepair).toBe(true);
+  damagedBelow.ammo = 16;
   expect(wing.activeFlights).toBe(0);
   planes[0].phase = 'lowering';
   wing = telemetry();

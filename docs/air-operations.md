@@ -16,6 +16,14 @@ Both carrier definitions now include an optional version-1 `deckLayout`: named p
 
 The content build measures parked, spread and intermediate wing-fold bounds and three tyre support points from the published aircraft GLBs. Rust validates and consumes these geometry records without loading renderer assets. Its clearance queries account for translation and intermediate headings, so clear endpoints alone cannot authorize towing through another aircraft. Packing tests establish aircraft-to-aircraft room and a clear forward launch run; the stern recovery paths intersect the full startup arrangement and require clearing. The physical handling scheduler, fitted deck contact poses and in-game startup remain pending. Numeric capacity and passing bounds tests do not certify complete taxi/recovery clearance.
 
+## Hangar consolidation
+
+`AirRules.consolidation` explicitly selects `hangar-compatible` or `disabled`. Older profiles resolve to the existing hangar-compatible behavior, and the selected value participates in the content handshake. Managed groups consolidate only when every surviving member is in the hangar or already receiving hangar service, their combined count fits the resolved group size, and their models and roles match. Queued or committed handling holds group membership stable until the request finishes or is cancelled; aircraft on deck, transferring or airborne are never moved between groups.
+
+The first group's ID survives. Aircraft retain individual IDs, health, stores, sortie counts and service timers; the removed group remains a merge record with the lost airframes. Friendly escort references and selected group IDs follow the surviving group, including chained merges. The selected command card and air drawer show a merge notice. Addressed launch, service and recall commands using an earlier group ID resolve within that same carrier before normal readiness and ownership checks. Enemy references do not receive private merge information.
+
+Repair below also services healthy aircraft that need ammunition or a payload, without reducing health above the repair ceiling. Existing service timers finish normally after a merge. Native tests cover both carriers and all six current aircraft models; a merged dive-bomber group on each carrier completes repair, lift, launch and recall. Integrated battle and native-input acceptance remain in the implementation tracker.
+
 ## PvE observation-based air orders
 
 PvE uses opaque team contact IDs for `Strike` and `InterceptContact`. `Battle.command_air` validates report ownership, hostile affiliation and surface/aircraft kind; normal aircraft admission still checks role, weapons, health and deck readiness. Legacy actor-ID Attack and flight-ID Intercept cannot bypass observations in this mode. Custom/online retain those compatibility commands. The TypeScript presentation type derives from the generated Rust air-order union, with its existing optional Defend field normalization.

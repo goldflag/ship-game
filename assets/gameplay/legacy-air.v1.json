@@ -13,5 +13,6 @@
   },
   "launchGroupSeconds": 10,
   "repairCeilingHp": 60,
-  "deckCycle": { "kind": "legacy" }
+  "deckCycle": { "kind": "legacy" },
+  "consolidation": "hangar-compatible"
 }

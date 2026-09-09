@@ -62,6 +62,9 @@ fn content_profiles_are_required_and_selected_values_cannot_be_tampered_with() {
     let rules = AirRules::legacy();
     assert!(rules.validate_selection(catalog()).is_ok());
     let mut altered = rules.clone();
+    altered.consolidation = naval_sim::air_rules::ConsolidationPolicy::Disabled;
+    assert!(altered.validate_selection(catalog()).is_err());
+    altered = rules.clone();
     altered.endurance = EndurancePolicy::Disabled;
     assert!(altered.validate_selection(catalog()).is_err());
     altered.id = "missing".into();

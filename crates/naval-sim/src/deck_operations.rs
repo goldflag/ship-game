@@ -133,6 +133,14 @@ pub fn place(p: &mut Aircraft, actor: &Vessel, at: DeckPose, ground: &GroundPose
     p.bank = attitude.bank;
     p.velocity = actor.motion.velocity();
 }
+fn needs_hangar_service(p: &Aircraft, repair_ceiling: f64) -> bool {
+    p.hp < repair_ceiling
+        || if p.role == "fighter" {
+            p.ammo < crate::aircraft::FIGHTER_AMMO_BURSTS
+        } else {
+            !p.payload
+        }
+}
 fn restock(p: &mut Aircraft) {
     p.ammo = if p.role == "fighter" {
         FIGHTER_AMMO_BURSTS
@@ -145,6 +153,17 @@ fn restock(p: &mut Aircraft) {
     p.timer = 0.0;
 }
 impl DeckOperations {
+    /// A group's explicit handling intent must finish or be cancelled before
+    /// automatic consolidation can change its membership.
+    pub(crate) fn group_busy(&self, state: &AirWingState, flight_id: &str) -> bool {
+        self.queue.iter().any(|r| r.flight_id == flight_id)
+            || self.active.as_ref().is_some_and(|job| {
+                state
+                    .planes
+                    .iter()
+                    .any(|p| p.id == job.plane_id && p.flight_id.as_deref() == Some(flight_id))
+            })
+    }
     pub fn initialize(
         state: &mut AirWingState,
         actor: &Vessel,
@@ -282,7 +301,7 @@ impl DeckOperations {
                 .iter()
                 .all(|p| p.phase == "ready" && p.deck_slot.is_some()),
             DeckAction::Repair => survivors.iter().any(|p| {
-                p.phase == "hangar" && p.hp < self.repair_ceiling
+                p.phase == "hangar" && needs_hangar_service(p, self.repair_ceiling)
                     || matches!(p.phase.as_str(), "ready" | "rearming") && p.deck_slot.is_some()
             }),
             DeckAction::Stow => survivors
@@ -473,7 +492,7 @@ impl DeckOperations {
                 let needs_move = match action {
                     DeckAction::Raise => p.phase == "hangar",
                     DeckAction::Repair if p.phase == "hangar" => {
-                        if p.hp < self.repair_ceiling {
+                        if needs_hangar_service(p, self.repair_ceiling) {
                             p.phase = "repairing".into();
                             p.timer = aircraft_service_seconds(self.timings.repair_seconds, p.hp);
                         }

@@ -141,6 +141,26 @@ impl Aviation {
             .flat_map(|w| &mut w.state.planes)
             .find(|p| p.id == id)
     }
+    /// Resolve only within the addressed carrier; merge records never grant
+    /// ownership of another carrier's group.
+    fn resolved_flight_id(&self, actor_id: &str, id: &str) -> String {
+        let Some(state) = self.wing(actor_id) else {
+            return id.into();
+        };
+        let mut current = id;
+        for _ in 0..state.flights.len() {
+            let Some(next) = state
+                .flights
+                .iter()
+                .find(|f| f.id == current)
+                .and_then(|f| f.merged_into.as_deref())
+            else {
+                return current.into();
+            };
+            current = next;
+        }
+        id.into()
+    }
     pub fn squadron_flights(&self, actor: &Vessel) -> Vec<AirFlight> {
         let Some(state) = self.wing(&actor.motion.id) else {
             return vec![];
@@ -399,11 +419,12 @@ impl Aviation {
         if action == crate::deck_operations::DeckAction::Launch {
             return Err("A launch requires a validated flight order".into());
         }
+        let flight_id = self.resolved_flight_id(actor_id, flight_id);
         let mut ops = self
             .deck_operations
             .remove(actor_id)
             .ok_or("This battle does not use managed deck operations")?;
-        let result = ops.enqueue(self.wing(actor_id).unwrap(), flight_id, action);
+        let result = ops.enqueue(self.wing(actor_id).unwrap(), &flight_id, action);
         let suspended = self
             .wing(actor_id)
             .unwrap()
@@ -466,6 +487,8 @@ impl Aviation {
         result
     }
     pub fn recall(&mut self, actor_id: &str, flight_id: Option<&str>) {
+        let resolved = flight_id.map(|id| self.resolved_flight_id(actor_id, id));
+        let flight_id = resolved.as_deref();
         let managed = self.deck_operations.contains_key(actor_id);
         if let Some(ops) = self.deck_operations.get_mut(actor_id) {
             ops.cancel_launches(flight_id);
@@ -517,6 +540,8 @@ impl Aviation {
         order: AirOrder,
         actors: &[Vessel],
     ) -> bool {
+        let resolved = self.resolved_flight_id(&actor.motion.id, flight_id);
+        let flight_id = resolved.as_str();
         let Some(state) = self.wing(&actor.motion.id) else {
             return false;
         };
@@ -583,6 +608,8 @@ impl Aviation {
         actors: &[Vessel],
         sea: Option<(&SeaState, f64)>,
     ) -> bool {
+        let resolved = self.resolved_flight_id(&actor.motion.id, id);
+        let id = resolved.as_str();
         let Some(f) = self
             .squadron_flights(actor)
             .into_iter()

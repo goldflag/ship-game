@@ -2,7 +2,7 @@ import legacyAir from '../../assets/gameplay/legacy-air.v1.json';
 import type { EndurancePolicy } from '../multiplayer/generated/EndurancePolicy';
 import type { AircraftRole, Vec3 } from '../ships/blueprint';
 import type { FleetActor } from './battle';
-import { terminalAircraft, squadronFlights, activeFlight, airServiceAvailable, airborne, deckCapacity, flightSize, onFlightDeck, recoveryQueue, type Aircraft, type AirOrder } from './aircraft';
+import { FIGHTER_AMMO_BURSTS, terminalAircraft, squadronFlights, activeFlight, airServiceAvailable, airborne, deckCapacity, flightSize, onFlightDeck, recoveryQueue, type Aircraft, type AirOrder } from './aircraft';
 import { length, sub } from './geometry';
 
 export type AirStatus = 'withdrawn' | 'ready' | 'launching' | 'on-mission' | 'returning' | 'servicing' | 'lost' | 'hangar' | 'handling';
@@ -57,7 +57,7 @@ export function airWingTelemetry(actor: FleetActor, actors: FleetActor[]) {
     const raiseable = surviving.some(p => p.phase === 'hangar') && surviving.every(p => p.phase === 'hangar' || p.phase === 'ready' && onFlightDeck(p));
     const deck = state.deck ? { onDeck: surviving.filter(onFlightDeck).length, inHangar: surviving.filter(p => ['hangar', 'repairing'].includes(p.phase)).length,
       canRaise: !pendingClearance && raiseable, canStow: !pendingClearance && stowable,
-      canRepair: !pendingClearance && (stowable || surviving.some(p => p.phase === 'hangar' && p.hp < state.deck!.repairCeilingHp)),
+      canRepair: !pendingClearance && (stowable || surviving.some(p => p.phase === 'hangar' && (p.hp < state.deck!.repairCeilingHp || (p.role === 'fighter' ? p.ammo < FIGHTER_AMMO_BURSTS : !p.payload)))),
       canRearm: !pendingClearance && allOnDeck, canLaunch: !pendingClearance && allOnDeck && surviving.every(p => p.hp >= 25),
       reason: state.recovery?.kind === 'closed' ? state.recovery.reason : pendingClearance ? 'Clearing space for flight operations' : flying.length && surviving.some(p => !airborne(p)) ? 'Waiting for group members to return'
         : surviving.some(p => p.phase === 'repairing') ? 'Repair in progress'

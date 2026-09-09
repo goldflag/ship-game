@@ -326,6 +326,7 @@ export function FleetCommand({ data, game, bindings }: { data: Telemetry; game: 
             setArmed(undefined); setFeedback(`${accepted.length} group service orders queued`);
           }}/>
           <p>{selectedFlights.map(f => `${f.carrierName} · ${f.surviving}/${f.total} · ${f.active ? mission(f) : f.activity}`).join(' / ')}</p>
+          {selectedFlights.some(f => f.notice) && <p role="status">{selectedFlights.filter(f => f.notice).map(f => `${f.name} · ${f.notice}`).join(' / ')}</p>}
         </>
           : recipients.length > 0 ? <><div className="fleet-command-buttons"><button disabled={!actionable} aria-pressed={armed === 'move'} onClick={() => arm('move')}>Move</button><button disabled={!actionable} onClick={() => { recipients.forEach(s => game.simulation.holdShipArea?.(s.id, [s.x, s.z], 500)); setFeedback('Hold orders queued · 500 m station area'); }}>Hold area</button><button disabled={!actionable} aria-pressed={armed === 'escort'} onClick={() => arm('escort')}>Escort</button><button disabled={!actionable} aria-pressed={armed === 'focus'} onClick={() => arm('focus')}>Focus fire</button>
             <label>Speed<Select value={speedKn} onValueChange={value => setSpeedKn(Number(value))}>{[8, 12, 16, 20, 24, 28, 30].map(v => <SelectOption key={v} value={v}>{v} kn</SelectOption>)}</Select></label><label>Formation<Select value={formation} onValueChange={value => setFormation(value as typeof formation)}><SelectOption value="column">Column</SelectOption><SelectOption value="screen">Escort screen</SelectOption></Select></label></div>
