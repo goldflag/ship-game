@@ -234,3 +234,17 @@ test('delayed snapshots cannot restore helm during a paused transfer; rejected t
     send.mockRestore();
   } finally { now.mockRestore(); session.dispose(); }
 });
+test('PvE debrief appears only after an authoritative outcome and leaves active actors filtered', async () => {
+  const session = await HeadlessSession.create({ playerShipId: 'fletcher', friendlyBots: [], enemies: [{ shipId: 'fletcher', aiLevel: 'static' }], spawnDistance: 16000, weather: 'clear', missionRules: { ...pveRules, durationSeconds: 1 } as MissionRules });
+  try {
+    expect(session.debrief).toBeUndefined();
+    const initial = session.runtime.snapshot();
+    for (let i = 0; i < 12; i++) session.advance(.1, { throttle: 0, rudder: 0 }, { aim: session.aimAt(), battery: 'main', fire: false });
+    expect(session.result).toBe('draw'); expect(session.outcome?.reason).toBe('time-limit');
+    expect(session.debrief?.ships).toHaveLength(2);
+    expect(session.debrief?.ships.find(s => s.team === 'enemy')?.status).toBe('operational');
+    expect(session.actors).toHaveLength(1); expect(session.target).toBeUndefined();
+    // Applying the reset frame withdraws the report as well as the outcome.
+    session.applyRaw(initial); expect(session.debrief).toBeUndefined(); expect(session.result).toBe('active');
+  } finally { session.dispose(); }
+});

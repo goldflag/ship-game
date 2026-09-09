@@ -120,6 +120,10 @@ export class AircraftGunfire {
       mesh.publish(used);
     }
   }
+  reset(): void {
+    this.active.clear(); this.sequence = 0; this.count = 0; this.damage = undefined;
+    for (const mesh of [this.ribbons, this.cores, this.tips, this.muzzles]) mesh.publish(0);
+  }
   diagnostics() { return this.count; }
   dispose() {
     for (const mesh of [this.ribbons, this.cores, this.tips, this.muzzles]) { mesh.dispose(); mesh.geometry.dispose(); mesh.material.dispose(); }

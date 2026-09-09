@@ -225,6 +225,24 @@ impl Battle {
         if self.outcome.is_some() {
             // Full information belongs in the debrief, never in the active world.
             frame["debrief"] = self.presentation_value(PresentationView::FullKnowledge)?;
+            frame["debrief"]["shipOutcomes"] = json!(
+                self.actors
+                    .iter()
+                    .map(|actor| {
+                        let status = if actor.physical_loss().is_some() {
+                            "sunk"
+                        } else if crate::mission::permanently_incapable(
+                            actor,
+                            self.aviation.wing(&actor.motion.id),
+                        ) {
+                            "incapacitated"
+                        } else {
+                            "operational"
+                        };
+                        (&actor.motion.id, status)
+                    })
+                    .collect::<std::collections::BTreeMap<_, _>>()
+            );
         }
         Ok(frame)
     }

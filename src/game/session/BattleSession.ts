@@ -7,6 +7,11 @@ import type { FleetActor } from '../../simulation/battle';
 import type { ContactTrack } from '../../multiplayer/generated/ContactTrack';
 import type { MissionRules } from '../../multiplayer/generated/MissionRules';
 export interface ObservedShip { id: string; presetId: string; position: Vec3; heading: number; velocity: Vec3; observedTick: number; observers: string[] }
+export interface BattleDebrief {
+ seed: number;
+ tick: number;
+ ships: { id: string; presetId: string; team: 'friendly' | 'enemy'; status: 'operational' | 'sunk' | 'incapacitated'; damageDealt: number; frags: number; aircraftRemaining: number }[];
+}
 /** Renderer-facing state and addressed intent. Neither ShipView nor Game owns
  * collision, weapon or damage decisions for a snapshot-backed session. */
 export interface BattleSession extends Omit<Pick<CombatSimulation, keyof CombatSimulation>, 'target'> {
@@ -15,6 +20,7 @@ export interface BattleSession extends Omit<Pick<CombatSimulation, keyof CombatS
  readonly observationTracks?: ContactTrack[];
  readonly observedShips?: ObservedShip[];
  readonly missionRules?: MissionRules;
+ readonly debrief?: BattleDebrief;
  readonly networked?: boolean;
  readonly phase?: string;
  readonly connectionStatus?: string;

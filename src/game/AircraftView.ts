@@ -231,6 +231,7 @@ export class AircraftView {
       disposeObjects(model.root); this.models.delete(key);
     }
   }
+  reset(): void { this.gunfire.reset(); this.contacts.begin(); this.contacts.finish(); }
   async dispose() {
     await this.loadPromise?.catch(() => {});
     this.clearModels(); this.root.removeFromParent(); this.gunfire.dispose();

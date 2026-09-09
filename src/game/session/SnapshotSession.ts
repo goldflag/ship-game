@@ -1,4 +1,4 @@
-import type { BattleSession, ObservedShip } from './BattleSession';
+import type { BattleSession, ObservedShip, BattleDebrief } from './BattleSession';
 import type { ContactTrack } from '../../multiplayer/generated/ContactTrack';
 import type { BattleSetup } from '../../multiplayer/generated/BattleSetup';
 import type { Command } from '../../multiplayer/generated/Command';
@@ -34,6 +34,7 @@ export interface Snapshot {
   outcome?: BattleOutcome; afloatKg: [number | null, number | null];
   view?: 'team'; contacts?: ContactTrack[]; observedShips?: ObservedShip[]; remainingSeconds?: number | null;
   debrief?: Snapshot;
+  shipOutcomes?: Record<string, 'operational' | 'sunk' | 'incapacitated'>;
   records: { scores: Record<string, { damageDealt: number; frags: number; damageLog: DamageLogEntry[] }>; shellHistory: ShellHistory[] };
   selectedShipIds?: (string | undefined)[]; phase?: string; reason?: string; connected?: boolean[]; loaded?: boolean[]; countdown?: number;
   fleetOrders?: Record<string, FleetOrderState>;
@@ -52,6 +53,7 @@ export abstract class SnapshotSession implements BattleSession {
   get targetContact() { return this.observationTracks.find(c => c.id === this.targetContactId); }
   get missionRules() { return this.setup.missionRules; }
   remainingSeconds?: number | null;
+  debrief?: BattleDebrief;
   shells: Shell[] = []; torpedoes: Torpedo[] = []; depthCharges: DepthCharge[] = []; airReleases: AirRelease[] = [];
   events: CombatEvent[] = []; shellHistory: ShellHistory[] = [];
   tick = 0; result: BattleResult = 'active'; outcome?: BattleOutcome; phase = 'loading'; connectionStatus = '';
@@ -171,6 +173,16 @@ export abstract class SnapshotSession implements BattleSession {
     this.afloatKg = this.relativeTonnage(frame.afloatKg);
     this.outcome = frame.outcome && { ...frame.outcome, winnerTeamId: frame.outcome.winnerTeamId ? frame.outcome.winnerTeamId === this.ownTeam ? 'a' : 'b' : null, afloatKg: this.relativeTonnage(frame.outcome.afloatKg) };
     this.result = !this.outcome ? 'active' : !this.outcome.winnerTeamId ? 'draw' : this.outcome.winnerTeamId === 'a' ? 'victory' : 'defeat';
+    this.debrief = frame.outcome && frame.debrief ? {
+      seed: this.seed, tick: frame.debrief.tick,
+      ships: frame.debrief.actors.map(actor => {
+        const score = frame.debrief!.records.scores[actor.motion.id];
+        return { id: actor.motion.id, presetId: actor.presetId, team: actor.team === this.ownTeam ? 'friendly' : 'enemy',
+          status: frame.debrief!.shipOutcomes?.[actor.motion.id] ?? (physicalLoss(actor) ? 'sunk' : 'operational'),
+          damageDealt: score?.damageDealt ?? 0, frags: score?.frags ?? 0,
+          aircraftRemaining: frame.debrief!.wings.find(w => w.ownerId === actor.motion.id)?.state.planes.filter(p => p.phase !== 'lost' && p.hp > 0).length ?? 0 };
+      }),
+    } : undefined;
     this.phase = frame.phase ?? 'running'; this.connected = frame.connected; this.loaded = frame.loaded; this.countdown = frame.countdown ?? 0;
     if (frame.reason || frame.phase === 'finished') this.connectionStatus = frame.reason ?? '';
   }

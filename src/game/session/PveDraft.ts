@@ -10,7 +10,7 @@ export interface PveOptions { rules: MissionRules; eligiblePresets: string[] }
  * the frozen enemy from generation through deployment, battle and restart. */
 export class PveDraft {
   private transferred = false;
-  private constructor(private worker: Worker, readonly briefing: PveBriefing) {}
+  private constructor(private worker: Worker, readonly briefing: PveBriefing, readonly request: PveRequest) {}
   static options(signal?: AbortSignal): Promise<PveOptions> {
     const worker = new Worker(new URL('./local.worker.ts', import.meta.url), { type: 'module' });
     return new Promise((resolve, reject) => {
@@ -44,7 +44,7 @@ export class PveDraft {
           cleanup();
           const briefing = event.data.briefing as PveBriefing;
           if (briefing.generationVersion !== 1 || !briefing.setup.ships.length || briefing.setup.ships.some(s => s.team !== 'a')) { fail('Invalid mission briefing.'); return; }
-          resolve(new PveDraft(worker, briefing));
+          resolve(new PveDraft(worker, briefing, structuredClone(request)));
         }
       };
       if (signal?.aborted) { abort(); return; }

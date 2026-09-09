@@ -138,3 +138,18 @@ test('ship AA uses the actual muzzle, speed and endpoint without fighter wing of
     expect(gunfire.diagnostics()).toBe(0);
   } finally { gunfire.dispose(); }
 });
+
+test('mission restart clears tracer history even when the snapshot actor retains its damage object', () => {
+  const sim = new CombatSimulation(shipPreset('bismarck')), gunfire = new AircraftGunfire(), camera = new PerspectiveCamera();
+  try {
+    sim.events.push({ sequence: 80, tick: 0, kind: 'aircraft-fire', shipId: 'player', message: 'AA', position: [0, 300, 0], aircraft: { id: 'old', target: [0, 300, -400], tracerSpeed: 800 } });
+    sim.tick = 7; gunfire.update(sim, camera); expect(gunfire.diagnostics()).toBe(1);
+    const damage = sim.player.damage;
+    sim.events.length = 0; sim.tick = 0; gunfire.reset(); gunfire.update(sim, camera);
+    expect(sim.player.damage).toBe(damage); expect(gunfire.diagnostics()).toBe(0);
+    sim.events.push({ sequence: 1, tick: 0, kind: 'aircraft-fire', shipId: 'player', message: 'AA', position: [1000, 300, 0], aircraft: { id: 'new', target: [1000, 300, -400], tracerSpeed: 800 } });
+    sim.tick = 7; gunfire.update(sim, camera);
+    expect(gunfire.diagnostics()).toBe(1);
+    expect(at(gunfire.root.getObjectByName('Aircraft tracer cores') as InstancedMesh).position.x).toBeGreaterThan(900);
+  } finally { gunfire.dispose(); }
+});

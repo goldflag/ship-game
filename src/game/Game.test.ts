@@ -55,7 +55,7 @@ async function port() {
   rig.update(simulation.ship, 0, 0, true);
   const game = Object.assign(Object.create(Game.prototype), {
     definition, simulation, playerView, targetView, fleetViews: [playerView, targetView], fleetModels: [loaded], loadedModel: loaded, scene, harbor, camera, rig,
-    currentAim: [650, .5, -550], manualAim: true, shellFollow: new ShellFollow(), controlGroups: new Map(),
+    currentAim: [650, .5, -550], manualAim: true, shellFollow: new ShellFollow(), controlGroups: new Map(), pveStartingGroups: new Map(),
     aircraftView: { root: new Group(), async load() {}, diagnostics() { return {}; } },
     effects: { reset() {}, diagnostics() { return {}; } },
     funnelSmoke: { diagnostics() { return {}; } },

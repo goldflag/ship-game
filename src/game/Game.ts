@@ -152,8 +152,10 @@ export class Game {
   chartSize = 2;
   airOperationsOpen = false;
   fleetCommandMode = false;
+  battleRevision = 0;
   selectedShipIds: string[] = [];
   readonly controlGroups = new Map<number, { name: string; shipIds: string[] }>();
+  private pveStartingGroups = new Map<number, { name: string; shipIds: string[] }>();
   private tacticalPause = false;
   private lastFleetHelmId?: string;
   private cameraFrameListeners = new Set<() => void>();
@@ -492,8 +494,39 @@ export class Game {
         const shipIds = draft.briefing.assignments.filter(s => s.groupId === group.id).map(s => s.id);
         if (shipIds.length) this.controlGroups.set(index + 1, { name: group.name, shipIds });
       });
+      this.pveStartingGroups = new Map([...this.controlGroups].map(([slot, group]) => [slot, { name: group.name, shipIds: [...group.shipIds] }]));
       progress?.('Preparing fleet command', .9);
     } finally { this.switchingShip = false; }
+  }
+
+  async restartPveBattle(): Promise<void> {
+    const session = this.simulation;
+    if (!(session instanceof LocalBattleSession) || !session.missionRules || this.inPort || this.switchingShip || this.disposed) throw new Error('No PvE mission is available to restart.');
+    this.switchingShip = true; this.paused = true;
+    this.input.clear(); this.input.setOrder(1); this.input.setRudder(0); this.input.setEnabled(false); this.rig.releasePointer();
+    cancelAnimationFrame(this.raf);
+    try {
+      await this.frameTask; cancelAnimationFrame(this.raf);
+      await session.restartPve(); this.assertActive(); this.battleRevision++;
+      this.endFollow(); this.spectatedShipId = undefined; this.selectedShipIds = [];
+      this.selectedFlightId = undefined; this.selectFlights([]); this.lastFleetHelmId = undefined;
+      this.inspectionHover?.clear(); this.inspecting = false;
+      this.fleetViews.forEach(view => { view.inspect(false); view.impactMarks.clear(); view.snap(); });
+      this.syncControlledShip(); this.observedShipViews?.clear(); this.aircraftView.reset();
+      this.playerDamageFeedback = new HullDamageFeedback(session.player.damage.integrity);
+      this.effects.reset(); this.funnelSmoke.reset(); this.shipWake?.reset(); this.audio?.reset(session);
+      this.trail = []; this.lastTrailTick = 0; this.lastShellPress = undefined;
+      this.controlPriority = 'balanced'; this.controlFocus = ''; this.aimModule = '';
+      this.ammunition = { main: 'ap', secondary: 'ap', torpedo: 'ap', 'depth-charge': 'ap' };
+      this.currentAim = session.aimAt(undefined, this.battery, this.weaponGroupId);
+      this.controlGroups.clear();
+      this.pveStartingGroups.forEach((group, slot) => this.controlGroups.set(slot, { name: group.name, shipIds: [...group.shipIds] }));
+      this.tacticalPause = false; this.enterFleetCommand(); this.fitAirMap();
+      await this.frame(performance.now(), true);
+    } finally {
+      this.switchingShip = false; this.lastTime = performance.now();
+      if (!this.disposed) { this.setPaused(false); this.scheduleFrame(); }
+    }
   }
 
   async prepareOnlineBattle(session: RemoteBattleSession, progress?: BattleProgress): Promise<void> {
@@ -600,7 +633,7 @@ export class Game {
       this.ammunition = { main: 'ap', secondary: 'ap', torpedo: 'ap', 'depth-charge': 'ap' };
       this.battery = definition.torpedoTubes?.length ? 'torpedo' : 'main'; this.manualAim = true; this.inspecting = false;
       this.airOperationsOpen = false; this.selectedFlightId = undefined; this.effects.reset();
-      this.fleetCommandMode = false; this.selectedShipIds = []; this.controlGroups.clear(); this.tacticalPause = false; this.lastFleetHelmId = undefined;
+      this.fleetCommandMode = false; this.selectedShipIds = []; this.controlGroups.clear(); this.pveStartingGroups.clear(); this.tacticalPause = false; this.lastFleetHelmId = undefined;
       this.currentAim = simulation.aimAt(undefined, this.battery, this.weaponGroupId);
       this.aimModule = simulation.target?.definition.modules.find(m => m.kind === 'engine')?.id ?? '';
       this.rig.setBridge(definition.viewpoints?.bridge);

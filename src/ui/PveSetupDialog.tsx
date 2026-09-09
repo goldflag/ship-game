@@ -12,13 +12,13 @@ import { aircraftCount, budgetError, fleetTotals, placementError, unitName } fro
 import { PveDeployment } from './PveDeployment';
 import './PveSetupDialog.css';
 
-interface Props { initialShipId: string; loading: boolean; onLaunch(draft: PveDraft, placements: Placement[]): Promise<void>; onClose(): void }
+interface Props { initialRequest?: PveRequest; initialShipId: string; loading: boolean; onLaunch(draft: PveDraft, placements: Placement[]): Promise<void>; onClose(): void }
 const seed = () => crypto.getRandomValues(new Uint32Array(1))[0];
 const tonnes = (kg: number) => Math.round(kg / 1000).toLocaleString();
-export function PveSetupDialog({ initialShipId, loading, onLaunch, onClose }: Props) {
-  const dialog = useRef<HTMLDialogElement>(null), draftRef = useRef<PveDraft | undefined>(undefined), controller = useRef<AbortController | undefined>(undefined), nextId = useRef(1);
+export function PveSetupDialog({ initialRequest, initialShipId, loading, onLaunch, onClose }: Props) {
+  const dialog = useRef<HTMLDialogElement>(null), draftRef = useRef<PveDraft | undefined>(undefined), controller = useRef<AbortController | undefined>(undefined), nextId = useRef(Math.max(0, ...[...(initialRequest?.ships ?? []), ...(initialRequest?.groups ?? [])].map(s => Number(s.id.match(/(\d+)$/)?.[1]) || 0)) + 1);
   const [options, setOptions] = useState<PveOptions>();
-  const [request, setRequest] = useState<PveRequest>(() => ({ version: 1, seed: seed(), mapId: 'pacific-islands', weather: 'partly-cloudy', difficulty: 'normal', groups: [{ id: 'front', name: 'Surface force', station: 'front' }, { id: 'rear', name: 'Carrier group', station: 'rear' }], ships: [] }));
+  const [request, setRequest] = useState<PveRequest>(() => initialRequest ? structuredClone(initialRequest) : ({ version: 1, seed: seed(), mapId: 'pacific-islands', weather: 'partly-cloudy', difficulty: 'normal', groups: [{ id: 'front', name: 'Surface force', station: 'front' }, { id: 'rear', name: 'Carrier group', station: 'rear' }], ships: [] }));
   const [step, setStep] = useState<'briefing' | 'deployment'>('briefing');
   const [draft, setDraft] = useState<PveDraft>();
   const [placements, setPlacements] = useState<Placement[]>([]);

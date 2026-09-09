@@ -148,7 +148,7 @@ Choose **PvE Fleet Command** in port to assemble task groups, then place ships o
 
 Surface groups begin on station; rear groups patrol with assigned escorts. Fleet command separates selecting a ship, following its camera and taking its helm. Captains navigate and operate guns/AA; torpedoes start held. The current command interface supports routes, holds, escorts, focus fire, weapons policy, named control groups and local tactical pause. Observation reports replace the omniscient enemy roster in this mode.
 
-This branch is still implementing the [agreed PvE plan](docs/pve-fleet-command-plan.md). See [implementation status](docs/pve-implementation-status.md) for the remaining results/restart workflow, attack coordination, carrier inventory/logistics, air-search and validation work. Existing Custom/online rules retain their current behavior.
+This branch is still implementing the [agreed PvE plan](docs/pve-fleet-command-plan.md). See [implementation status](docs/pve-implementation-status.md) for remaining completed-mission acceptance, attack coordination, carrier inventory/logistics, air-search and validation work. Existing Custom/online rules retain their current behavior.
 
 ## Architecture
 

@@ -183,3 +183,32 @@ fn observed_enemy_is_a_report_and_silhouette_without_an_inspectable_damage_model
     assert!(lost_view["observedShips"].as_array().unwrap().is_empty());
     assert_eq!(lost_view["contacts"].as_array().unwrap().len(), 1);
 }
+
+#[test]
+fn final_debrief_reveals_incapacity_without_adding_enemies_to_the_active_world() {
+    use naval_sim::{rules::TeamId, snapshot::PresentationView};
+    let mut a = battle(16000.0);
+    let before = a
+        .presentation_value(PresentationView::Team(TeamId::A))
+        .unwrap();
+    assert!(before.get("debrief").is_none());
+    for mount in &mut a.actors[1].mounts {
+        mount.hp = 0.0;
+    }
+    for tube in &mut a.actors[1].torpedo_tubes {
+        tube.ammo = 0.0;
+    }
+    assert!(a.actors[1].physical_loss().is_none());
+    a.step(&BTreeMap::new());
+    assert_eq!(a.outcome.as_ref().unwrap().winner_team_id, Some(TeamId::A));
+    let frame = a
+        .presentation_value(PresentationView::Team(TeamId::A))
+        .unwrap();
+    assert_eq!(frame["actors"].as_array().unwrap().len(), 1);
+    assert_eq!(frame["debrief"]["actors"].as_array().unwrap().len(), 2);
+    assert_eq!(
+        frame["debrief"]["shipOutcomes"]["enemy-private-id"],
+        "incapacitated"
+    );
+    assert_eq!(frame["debrief"]["shipOutcomes"]["own"], "operational");
+}
