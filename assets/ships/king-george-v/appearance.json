@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "id": "king-george-v-maintained-v1",
+  "basis": "Preserve original recipe colors, scheme, markings and deck coverings. Shared maintained finish; no new historical color claim.",
+  "materials": {
+    "naval": {
+      "paint": "king-george-v-authored-naval",
+      "finish": "painted-steel"
+    },
+    "roof": {
+      "paint": "king-george-v-authored-roof",
+      "finish": "painted-deck"
+    },
+    "edge": {
+      "paint": "king-george-v-authored-edge",
+      "finish": "painted-steel"
+    },
+    "hullgray": {
+      "paint": "king-george-v-authored-hullgray",
+      "finish": "painted-steel",
+      "projection": "hull"
+    },
+    "antifouling": {
+      "paint": "king-george-v-authored-antifouling",
+      "finish": "underwater-coating",
+      "projection": "hull"
+    },
+    "boot": {
+      "paint": "king-george-v-authored-boot",
+      "finish": "underwater-coating",
+      "projection": "hull"
+    },
+    "deck": {
+      "paint": "king-george-v-authored-deck",
+      "finish": "wood",
+      "existing": "procedural"
+    }
+  },
+  "hull": {
+    "bounds": [
+      -113.54,
+      113.54,
+      -9.8392,
+      10.4
+    ],
+    "pixelsPerMeter": 16,
+    "waterline": 0,
+    "stainStrength": 0.16,
+    "runoffStrength": 0.16
+  }
+}

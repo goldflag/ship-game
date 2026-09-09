@@ -744,10 +744,14 @@ simcol.hide_render=True;simcol.hide_viewport=True
 for name,loc in [('funnel-cap',(-2.4,0,25)),('mainmast-top',(-22.5,0,48.5)),('fore-director',(13.4,0,32)),('conning-director',(27.6,0,20.6)),('aft-director',(-37.8,0,17.5))]:
  ob=bpy.data.objects.new('landmark.'+name,None);scene.collection.objects.link(ob);ob.location=loc;ob['nodeId']='landmark.'+name
 sys.path.insert(0,str(Path(__file__).resolve().parent))
-from paint import apply_paint
+from paint import apply_paint, consolidate_finish_uvs
 apply_paint(scene,materials,Path(__file__).with_name('paint-scheme.json'))
 OUT.mkdir(parents=True,exist_ok=True)
 from blender_rig import create_flagstaffs
 create_flagstaffs(DEF)
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'appearance'))
+from surface import apply_appearance
+apply_appearance(scene,dict(materials,**{'baltic-'+key:bpy.data.materials['Baltic sides · '+key] for key in ['hullgray','naval','roof','edge']}),Path(__file__).with_name('appearance.json'))
+consolidate_finish_uvs(scene)
 bpy.ops.wm.save_as_mainfile(filepath=str(OUT/'source.blend'))
 print('INDEPENDENT BISMARCK SOURCE 1941-04',len(scene.objects),'objects',flush=True)

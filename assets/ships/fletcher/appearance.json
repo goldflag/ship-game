@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "id": "fletcher-maintained-v1",
+  "basis": "Preserve original recipe colors, scheme, markings and deck coverings. Shared maintained finish; no new historical color claim.",
+  "materials": {
+    "naval": {
+      "paint": "fletcher-authored-naval",
+      "finish": "painted-steel",
+      "existing": "image",
+      "imageLayout": {
+        "bounds": [
+          -57.35,
+          57.35,
+          -4.4,
+          16.6
+        ]
+      }
+    },
+    "roof": {
+      "paint": "fletcher-authored-roof",
+      "finish": "painted-deck"
+    },
+    "edge": {
+      "paint": "fletcher-authored-edge",
+      "finish": "painted-steel"
+    },
+    "hullgray": {
+      "paint": "fletcher-authored-hullgray",
+      "finish": "painted-steel",
+      "existing": "image",
+      "imageLayout": {
+        "bounds": [
+          -57.35,
+          57.35,
+          -4.4,
+          16.6
+        ]
+      }
+    },
+    "underwater": {
+      "paint": "fletcher-authored-underwater",
+      "finish": "underwater-coating",
+      "projection": "hull"
+    },
+    "deck": {
+      "paint": "fletcher-authored-deck",
+      "finish": "painted-deck"
+    },
+    "wood": {
+      "paint": "fletcher-authored-wood",
+      "finish": "wood"
+    }
+  },
+  "hull": {
+    "bounds": [
+      -57.35,
+      57.35,
+      -5.2,
+      8.120000000000001
+    ],
+    "pixelsPerMeter": 16,
+    "waterline": 0,
+    "stainStrength": 0.16,
+    "runoffStrength": 0.16
+  }
+}

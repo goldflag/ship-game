@@ -9,6 +9,7 @@
 | New ship or geometry change | This workflow, [model review](ship-model-review.md), [coordinate/component contract](ship-runtime-contract.md#coordinate-and-component-contract), the [MCP authoring loop](ship-build-reference.md#blender-mcp-authoring-loop), and the ship's README |
 | Combat, internals or equipment behavior | This workflow and the relevant [runtime contract sections](ship-runtime-contract.md) |
 | Build or stale artifacts | [Build details](ship-build-reference.md) |
+| Paint, decks or surface finish | [Shared appearance rules](ship-appearance.md), then the ship's approved brief |
 | Merge or rebase | [Integration workflow](integration-workflow.md) |
 
 Per-ship authoring inputs live under `assets/ships/<id>/`; reusable equipment lives in `assets/parts/guns.json`, with original builders and discovery metadata in the [shared component library](shared-components.md). The [asset layout](ship-build-reference.md#repository-layout) lists retained outputs and shared tools. Ship reports and reference archives have been removed. Research downloads and diagnostics stay in ignored `.build/`; do not recreate them in another tracked folder. Historical documentation may name removed files; it is not a current completion checklist.

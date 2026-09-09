@@ -480,5 +480,8 @@ for kind in ['armor','modules','compartments','obstructions']:
 create_flagstaffs(D)
 scene['definitionHash']=D['contentHash'];scene['configuration']=D['configuration']
 scene['historicalAccuracy']='Qualified reconstruction; see reports/discrepancies.md'
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'appearance'))
+from surface import apply_appearance
+apply_appearance(scene,M,Path(__file__).with_name('appearance.json'))
 bpy.ops.wm.save_as_mainfile(filepath=str(OUT/'source.blend'))
 print('SHOKAKU SOURCE',len(scene.objects),'objects',flush=True)
