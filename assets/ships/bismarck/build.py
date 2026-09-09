@@ -1,7 +1,7 @@
 """Original Bismarck exterior, 24 May 1941 at the separately stated standard draft.
 
-Version 4 interprets the retained historical plan, archival profile and raster
-comparison pack. Blueprint polygons own major placements; this original recipe
+The current refinement follows the approved GameModels3D pgsb708 A fit.
+Reference geometry is inspection-only; all shapes below are original constructions. Blueprint polygons own major placements; this original recipe
 owns construction/detail primitives. No source mesh or extracted transforms enter.
 The separate original paint recipe applies the requested March–May Baltic scheme.
 """
@@ -17,7 +17,7 @@ OUT=Path(os.environ['SHIP_OUTPUT']);DEF=json.loads(Path(os.environ['SHIP_DEFINIT
 bpy.context.preferences.filepaths.save_version=0
 bpy.ops.object.select_all(action='SELECT');bpy.ops.object.delete(use_global=False)
 scene=bpy.context.scene;scene.unit_settings.system='METRIC';scene.unit_settings.scale_length=1
-scene['definitionHash']=DEF['contentHash'];scene['authoring']='Original polygon lofts and construction primitives, 1941-04; raster/historical interpretation only'
+scene['definitionHash']=DEF['contentHash'];scene['authoring']='Original construction primitives; GameModels3D pgsb708 A fit visual refinement'
 def group(name):
  c=bpy.data.collections.new(name);scene.collection.children.link(c);return c
 hullcol=group('01 Hull and deck');supercol=group('02 Superstructure');gunscol=group('03 Articulated batteries');detailcol=group('04 Fittings');undercol=group('05 Underwater');simcol=group('14 Simulation volumes')
@@ -160,7 +160,8 @@ for s in DEF['structures']:
  ob['assemblyId']='superstructure-'+s['id']
  if s['id']=='funnel-jacket':continue
  if roof:
-  shields={'bridge-wings':.78,'signal-platform':1.05,'fore-aa-platform':.66,'foretop-platform':1.12,'foretop-roof':.38,'aft-director-platform':.74}
+  shields={'bridge-wings':1.35,'fore-aa-platform':.98,'foretop-platform':1.30,'aft-director-platform':.74}
+  if s['id'] in ['navigation-roof','foretop-roof','bridge-admiral-platform','conning-platform']:continue
   if s['id'] not in shields:rail(s['id'],[(x,y,top+.005) for x,y in pts],.85,1.55,col=supercol)
   if s['id'] in shields:
    # Sheet bulwarks and their inclined wind lip break up the repeated open
@@ -185,7 +186,7 @@ for s in DEF['structures']:
     # Forward lobes overhang the tower's front as well as its sides. Keep the
     # inner end inside the tapered core instead of leaving a hanging strut.
     tower=s['id'] in ['signal-platform','fore-aa-platform','foretop-platform','foretop-roof']
-    inner=(max(11.0,min(16.5,x)),math.copysign(3.0,y),z-1.2) if tower else (x,y*.56,z-1.2)
+    inner=(max(14.0,min(17.3,x)),math.copysign(2.15,y),z-1.6) if tower else (x,y*.56,z-1.2)
     rod(s['id']+' knee',(x,y,z-.02),inner,.07,materials['naval'],supercol,vertices=6)
  else:
   # Steel deck overhang and drainage lip emphasize real deck boundaries.
@@ -278,75 +279,102 @@ def wall_windows(sid,z,height,spacing=.95):
    corners=[p+Vector((0,0,zz)) for zz in [z,z+height] for p in [start,end]]
    mesh(sid+' framed glass',corners,[(0,1,3,2)],materials['glass'],detailcol)
    polyline(sid+' window frame',[corners[j] for j in [0,1,3,2]],.033,materials['edge'],closed=True,vertices=6)
-wall_windows('bridge-wheelhouse',15.95,.85,.90)
-wall_windows('foretop-control',27.10,.66,1.05)
-wall_windows('conning-tower',17.74,.13,1.15)
+wall_windows('bridge-wheelhouse',13.62,.66,1.02)
+wall_windows('conning-tower',17.30,.12,1.3)
+# The upper control house has small apertures; the former full window ribbon
+# exaggerated its width. All service fittings bear on their actual deck or wall.
 for sign in [-1,1]:
- # Open bridge wings, enclosed signal lockers and small navigation instruments.
- box('Admiral bridge signal locker',(12.4,sign*4.95,21.28),(2.9,.48,.74),materials['naval'],detailcol)
- for xx in [11.3,12.0,12.7,13.4]:box('Signal locker door',(xx,sign*5.21,21.28),(.57,.035,.56),materials['edge'],detailcol)
- for xx,yy,zz in [(33.1,6.1,15.54),(18.2,5.6,20.89)]:
-  cyl('Bridge pelorus stand',(xx,sign*yy,zz+.46),.14,1.06,materials['naval'],detailcol,16)
-  cyl('Bridge pelorus dial',(xx,sign*yy,zz+1.0),.31,.12,materials['edge'],detailcol,24)
-  rod('Bridge sighting arm',(xx-.25,sign*yy,zz+1.08),(xx+.35,sign*yy,zz+1.08),.035,materials['dark'],detailcol,vertices=6)
- stairs('Signal bridge access',(18.5,sign*4.0,15.55),(10.3,sign*4.0,20.89),.65)
- stairs('Upper director gallery access',(10.3,sign*3.9,23.44),(12.8,sign*4.8,26.43),.65)
-# Deckhouse equipment and stairs read at normal harbor inspection distances.
+ for xx in [14.2,15.5,16.8]:
+  pts=[(-zz,-xx) for xx,zz in structures['foretop-control']['footprint']]
+  yy,normal=house_side(pts,xx,sign);porthole('Upper control aperture',Vector((xx,yy,28.35))+normal*.03,normal,.12)
+
+def stair_landing(name,x,y,z,inner,width=1.15):
+ box(name+' landing',(x,(y+inner)/2,z-.09),(width,abs(y-inner)+.45,.18),materials['roof'],supercol)
+ for dx in [-width*.36,width*.36]:rod(name+' landing knee',(x+dx,y,z-.18),(x+dx,inner,z-.95),.07,materials['naval'],supercol,vertices=6)
+
 for sign in [-1,1]:
- for x in [12,18,32,39]:
-  pts=[(-z,-x) for x,z in structures['forward-battery-deck']['footprint']];y,_=house_side(pts,x,sign);vent('Forward intake',(x,y+sign*.08,7.15),(1.2,.23,1.05),sign)
- for x in [-47,-42,-34]:vent('Aft intake',(x,sign*8.8,7.05),(1.15,.25,1.0),sign)
- stairs('Forward exterior stair',(39.5,sign*7.95,5.9),(36.0,sign*7.95,9.38))
- stairs('Bridge stair',(35.4,sign*6.3,9.4),(32.8,sign*5.8,12.63))
- stairs('Upper bridge stair',(24.3,sign*6.1,12.6),(21.2,sign*6.1,15.53))
- stairs('Aft deck stair',(-46,sign*8.5,5.85),(-42.6,sign*8.5,9.28))
- stairs('Aft control stair',(-41.6,sign*6.5,9.3),(-38.5,sign*6.5,12.5))
- for x in [13,37]:
-  pipe=[(x,sign*9.1,deckz(x)),(x,sign*9.1,8.1),(x+.5,sign*9.1,8.6),(x+1.8,sign*9.1,8.6)];polyline('Ventilation pipe',pipe,.11,materials['naval'],vertices=10)
- # The upper tower narrows above 20.5 m; the middle lockers meet that wall.
- for zz,xx,yy in [(21.0,12.0,3.6),(23.93,13.0,3.08),(27.0,12.0,4.25)]:
-  box('Tower equipment locker',(xx,sign*yy,zz),(.8,.35,.95),materials['edge'],detailcol)
- ladder('Foretower access',(10.1,sign*3.6,18.5),(10.1,sign*3.6,28.7),.52)
- # Lower tower access and exterior services meet the supporting shelter deck.
- ladder('Lower foretower access',(10.05,sign*2.4,9.4),(10.05,sign*2.4,20.5),.52)
- for zz in [15.9,19.1]:
-  box('Tower service cabinet',(13.9,sign*3.55,zz),(1.35,.32,.86),materials['edge'],detailcol)
-  box('Tower cabinet inset',(13.9,sign*3.73,zz),(1.10,.06,.61),materials['naval'],detailcol)
- polyline('Tower external cable conduit',[(16.2,sign*3.55,12.7),(16.2,sign*3.55,18.6),(15.1,sign*3.55,19.2),(15.1,sign*3.3,23.0)],.042,materials['edge'],vertices=8)
-# Funnel jacket and forward-rising cap: a deliberately authored rounded oblong,
-# with internal lip, collars, stays, steam pipes and multiple searchlight galleries.
-fx=-2.4;N=64
+ # Bridge wing instruments and a low locker fitted on the signal deck.
+ box('Signal bridge locker',(10.7,sign*4.85,21.02),(2.3,.46,.74),materials['naval'],detailcol)
+ for xx in [10.0,10.7,11.4]:box('Signal locker panel',(xx,sign*5.10,21.02),(.57,.035,.56),materials['edge'],detailcol)
+ for xx,yy,zz in [(33.1,5.9,15.4),(10.6,5.8,20.65),(10.9,3.6,27.3)]:
+  cyl('Bridge pelorus stand',(xx,sign*yy,zz+.44),.13,.88,materials['naval'],detailcol,16)
+  cyl('Bridge pelorus dial',(xx,sign*yy,zz+.91),.27,.10,materials['edge'],detailcol,20)
+  rod('Bridge sighting arm',(xx-.23,sign*yy,zz+.99),(xx+.3,sign*yy,zz+.99),.03,materials['dark'],detailcol,vertices=6)
+ for name,a,b,inner in [
+  ('Platform access',(46.7,9.2,5.75),(43.8,9.2,8.4),8.1),
+  ('Forward exterior stair',(42.8,8.05,8.4),(39.5,8.05,10.75),6.9),
+  ('Bridge stair',(35.4,7.2,10.75),(32.1,7.2,13.0),6.0),
+  ('Navigation bridge stair',(30.2,7.2,13.0),(27.4,7.2,15.5),6.2),
+  ('Signal bridge access',(21.8,5.1,15.5),(17.9,5.1,20.75),4.2),
+  ('Searchlight gallery stair',(12.4,5.1,20.75),(17.1,5.1,24.72),4.4),
+  ('Aft platform access',(-50.4,9.1,5.8),(-47.2,9.1,8.4),8.0),
+  ('Aft deck stair',(-46.5,8.4,8.4),(-43.5,8.4,10.75),7.8),
+  ('Aft control stair',(-41.5,6.7,10.75),(-38.3,6.7,13.2),5.9)]:
+  a=(a[0],a[1]*sign,a[2]);b=(b[0],b[1]*sign,b[2]);stairs(name,a,b,.7);stair_landing(name,*b,inner*sign)
+ # Deck vents and tower conduits sit on the revised walls rather than old offsets.
+ for sid,z,xs in [('forward-battery-deck',9.35,[13,18,37,41]),('forward-shelter-deck',11.55,[19,27,34])]:
+  pts=[(-zz,-xx) for xx,zz in structures[sid]['footprint']]
+  for xx in xs:
+   yy,normal=house_side(pts,xx,sign)
+   if abs(normal.x)<.3:vent(sid+' intake',(xx,yy+sign*.06,z),(1.2,.20,1.0),sign)
+ for xx in [-47,-42,-34]:vent('Aft intake',(xx,sign*8.8,9.3),(1.15,.25,1.0),sign)
+ ladder('Lower tower service ladder',(12.35,sign*2.6,12.98),(12.35,sign*2.6,20.45),.45)
+ ladder('Upper tower service ladder',(14.0,sign*2.65,24.7),(14.0,sign*2.65,29.55),.45)
+ for zz in [14.0,16.0,18.0,20.0]:
+  rod('Tower ladder mounting foot',(12.6,sign*2.6,zz),(12.35,sign*2.6,zz),.035,materials['edge'],detailcol,vertices=6)
+ for zz in [16.5,19.0]:
+  box('Tower service cabinet',(15.5,sign*3.46,zz),(1.05,.3,.75),materials['edge'],detailcol)
+ polyline('Tower cable conduit',[(18.3,sign*2.8,13),(18.3,sign*2.8,20.5),(18.8,sign*2.7,23.0)],.042,materials['edge'],vertices=8)
+ # The angular bridge visor is attached to the forward upper wall.
+ for xx,yy in [(36.0,4.5),(35.0,5.9)]:
+  rod('Bridge visor bracket',(xx,sign*yy,15.27),(xx+.62,sign*yy,14.36),.075,materials['edge'],supercol,vertices=6)
+pts=[(-zz,-xx) for xx,zz in structures['bridge-wheelhouse']['footprint']]
+front=[(x,y) for x,y in pts if x>34.7]
+for a,b in zip(front,front[1:]):
+ if abs(a[1]-b[1])<.002:continue
+ mesh('Navigation bridge sloping weather brow',[(a[0],a[1],15.16),(b[0],b[1],15.16),(b[0]+.78,b[1]*1.07,14.18),(a[0]+.78,a[1]*1.07,14.18)],[(0,1,2,3)],materials['naval'],supercol)
+# Funnel: a flared uptake foot, nearly straight-sided oblong jacket, projecting
+# collar and smaller raked cap. Profiles come from the authored blueprint rings.
+fx=-.6;N=64
 verts=[(-z,-x,y) for x,y,z in structures['funnel-jacket']['surface']['vertices']]
-outer=verts[-N:];inner=[(fx+(x-fx)*.905,y*.86,z-.08) for x,y,z in outer]
-mesh('Funnel cap thickness',outer+inner,[(i,(i+1)%N,(i+1)%N+N,i+N) for i in range(N)],materials['edge'],supercol)
-mesh('Funnel inner wall',inner+[(x,y,z-1.4) for x,y,z in inner],[(i,(i+1)%N,(i+1)%N+N,i+N) for i in range(N)],materials['dark'],supercol)
-mesh('Recessed uptake darkness',[(x,y,z-1.36) for x,y,z in inner],[tuple(reversed(range(N)))],materials['dark'],supercol)
-polyline('Funnel cap rolled lip',outer,.06,materials['light'],supercol,True,8)
-for yy in [-2.8,-1.4,0,1.4,2.8]:rod('Funnel opening grate',(fx-5.5,yy,23.455),(fx+5.5,yy,25.545),.055,materials['edge'],supercol,vertices=8)
-for xx in [-6.3,-4.3,-2.3,-.3,1.7]:rod('Funnel grate crossbar',(xx,-3.5,24.5+(xx-fx)*.19),(xx,3.5,24.5+(xx-fx)*.19),.055,materials['edge'],supercol,vertices=8)
-# Interpolate corresponding jacket vertices; every collar bears on the original
-# shell instead of assuming a constant elliptical section at all elevations.
 jacket_rings=[verts[i:i+N] for i in range(0,len(verts),N)]
-for zz in [12.25,16.5,19.1,22.8]:
+outer=jacket_rings[-1];inner=[(fx+(x-fx)*.945,y*.9,z-.05) for x,y,z in outer]
+mesh('Funnel cap thickness',outer+inner,[(i,(i+1)%N,(i+1)%N+N,i+N) for i in range(N)],materials['edge'],supercol)
+mesh('Funnel cap inner wall',inner+[(x,y,z-1.3) for x,y,z in inner],[(i,(i+1)%N,(i+1)%N+N,i+N) for i in range(N)],materials['dark'],supercol)
+mesh('Recessed uptake darkness',[(x,y,z-1.27) for x,y,z in inner],[tuple(reversed(range(N)))],materials['dark'],supercol)
+polyline('Funnel cap rolled lip',outer,.045,materials['light'],supercol,True,8)
+for xx in [-4.8,-3.3,-1.8,-.3,1.2,2.7,4.1]:
+ hits=[]
+ for a,b in zip(outer,outer[1:]+outer[:1]):
+  if min(a[0],b[0])<=xx<=max(a[0],b[0]) and abs(a[0]-b[0])>.0001:hits.append(a[1]+(b[1]-a[1])*(xx-a[0])/(b[0]-a[0]))
+ if len(hits)>=2:rod('Funnel transverse cap grating',(xx,min(hits),24.3+.16*(xx-fx)),(xx,max(hits),24.3+.16*(xx-fx)),.035,materials['edge'],supercol,vertices=6)
+for yy in [-1.25,0,1.25]:
+ hits=[]
+ for a,b in zip(outer,outer[1:]+outer[:1]):
+  if min(a[1],b[1])<=yy<=max(a[1],b[1]) and abs(a[1]-b[1])>.0001:hits.append(a[0]+(b[0]-a[0])*(yy-a[1])/(b[1]-a[1]))
+ if len(hits)>=2:
+  a,b=min(hits),max(hits);rod('Funnel longitudinal cap grating',(a,yy,24.3+.16*(a-fx)),(b,yy,24.3+.16*(b-fx)),.038,materials['edge'],supercol,vertices=6)
+for zz in [13.7,16.2,19.1,21.3,22.65]:
  pts=[]
  for i in range(N):
   a,b=next((a[i],b[i]) for a,b in zip(jacket_rings,jacket_rings[1:]) if a[i][2]<=zz<=b[i][2])
   t=(zz-a[2])/(b[2]-a[2]);pts.append(tuple(a[k]+(b[k]-a[k])*t for k in range(3)))
- polyline('Funnel plating collar',pts,.045,materials['edge'],supercol,True)
-for i in range(20):
- a=math.tau*i/20;x=fx+5.93*math.cos(a);y=3.72*math.sin(a);z=23.63+.2*math.cos(a)
- box('Cap ventilation slit',(x,y,z),(.21,.19,.48),materials['dark'],supercol)
- box('Cap ventilation cowl',(x,y,z+.30),(.32,.27,.14),materials['naval'],supercol)
+ polyline('Funnel plating collar',pts,.032,materials['edge'],supercol,True)
+# Standing cowl ventilators follow the horizontal collar, outside the smaller cap.
+for i in range(0,N,2):
+ x,y,z=jacket_rings[3][i]
+ cyl('Funnel collar ventilator',(x,y,23.51),.105,.62,materials['naval'],supercol,10)
+ cyl('Funnel ventilator crown',(x,y,23.83),.12,.035,materials['edge'],supercol,10)
 for sign in [-1,1]:
- for zz,length,w in [(14.1,12.5,1.05),(17.65,13.2,1.6),(20.1,12.0,1.3)]:
-  yy=sign*(3.65+w/2);pts=rounded_rect(fx-.2,yy,length,w,.45,3);extrude('Funnel gallery',pts,zz,.18,materials['roof'],supercol)
-  rail('Funnel gallery',[(x,y,zz+.18) for x,y in pts],.88,1.5,col=supercol)
-  for xx in [-6,-3,0,2]:rod('Funnel gallery knee',(xx,yy+sign*w*.45,zz),(xx,sign*3.0,zz-1.05),.065,materials['naval'],supercol,vertices=6)
- for xx in [-6.4,-5.9,-5.4]:
-  polyline('Funnel steam pipe',[(xx,sign*3.2,9.3),(xx,sign*3.2,20.4),(xx+.3,sign*3.45,22.5),(xx+.5,sign*3.45,23.4)],.065,materials['light'],supercol,vertices=8)
- stairs('Funnel gallery access',(fx-4,sign*4.45,14.3),(fx-.3,sign*4.45,17.83),.7)
- ladder('Funnel upper ladder',(fx-5.8,sign*3.9,17.9),(fx-5.8,sign*3.9,23.4),.46)
- for xx in [-5.7,0.5]:vent('Funnel lower uptake grille',(xx,sign*5.04,9.6),(1.75,.12,1.5),sign)
+ for zz,length,w,yy in [(14.55,11.6,1.0,3.6),(17.45,12.2,2.6,4.4)]:
+  pts=rounded_rect(fx-.6,sign*yy,length,w,.45,5);extrude('Funnel gallery',pts,zz,.2,materials['roof'],supercol)
+  rail('Funnel gallery',[(x,y,zz+.2) for x,y in pts],.87,1.35,col=supercol)
+  for xx in [-5.2,-2.8,-.3,2.2]:rod('Funnel gallery knee',(xx,sign*(yy+w*.44),zz),(xx,sign*2.65,zz-1.15),.065,materials['naval'],supercol,vertices=6)
+ for xx in [-5.7,-5.25]:
+  polyline('Funnel steam pipe',[(xx,sign*2.55,12),(xx,sign*2.55,20.1),(xx+.18,sign*2.7,22.5)],.065,materials['light'],supercol,vertices=8)
+ stairs('Funnel gallery access',(-5.5,sign*4.0,14.75),(-2.4,sign*4.0,17.65),.6)
+ ladder('Funnel upper ladder',(-3.8,sign*3.02,17.7),(-3.8,sign*3.02,22.95),.45)
+ for xx in [-4.5,.7]:vent('Funnel lower uptake grille',(xx,sign*3.77,10.3),(1.5,.15,1.3),sign)
 # The conning enclosure and crown now come from the blueprint, with the same
 # structural surfaces used for CPU hits. Its director remains on the original axis.
 def director(name,x,z,span,base):
@@ -629,7 +657,7 @@ for mount in DEF['mounts']:
  if mount['weapon']['caliberM']<=.13:
   a,b,c=mount['position'];aa_mount(mount['name'],-c,-a,b,mount['weapon']['caliberM'],bearing=-math.radians(mount['bearingDeg']),mount=mount)
 for sign in [-1,1]:
- aa_mount('Quad 2 cm April 1941 fit',14.4,sign*4.8,26.46,.020,bearing=sign*.82,quad=True)
+ aa_mount('Quad 2 cm April 1941 fit',19.0,sign*4.65,24.72,.020,bearing=sign*.82,quad=True)
 
 # Mooring machinery, proper stockless anchors, hatch coamings and hull scuttles.
 def bollard(name,x,y,z):
