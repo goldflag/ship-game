@@ -1,5 +1,4 @@
 import { FireControl } from './FireControl';
-import { Button } from './components';
 import { AirOperations, SquadronLabels } from './AirOperations';
 import { FlightControl } from './FlightControl';
 import { type CSSProperties } from 'react';
@@ -154,7 +153,7 @@ function FleetHudInstruments({ data, game, visible, bindings }: FleetHudProps) {
     </BattleStatus>}
     {data.combat && !data.airOperationsOpen && !data.inspecting && <FireControl combat={data.combat} game={game} observedName={data.spectatedShipId ? selectedShip.name : undefined}/>}
     </div>
-    <div className="fleet-top-actions"><span className="fleet-fps" aria-label={`${data.fps} frames per second`}><strong>{data.fps || '—'}</strong> FPS</span><Button variant="icon" aria-label="Pause and settings" title="Pause · Esc" onClick={() => game?.setPaused(true)}><Icon name="pause" size={17}/></Button></div>
+    <span className="fleet-fps" aria-label={`${data.fps} frames per second`}><strong>{data.fps || '—'}</strong> FPS</span>
     {data.combat?.battle && <BattleDamageLog combat={data.combat} obscured={!!data.inspecting}/>}
 
     {followingShell && <div className="fleet-shell-status" role="status" title="Move mouse to orbit; drag when the cursor is released. Scroll to zoom."><strong>{data.shellFollow === 'impact' ? 'Shell impact' : 'Following shell'}</strong><span>{data.shellFollow === 'impact' ? 'Returning to ship…' : `${bindingLabel(bindings, 'shellFollow')} to return to ship`}</span></div>}
@@ -182,7 +181,6 @@ function FleetHudInstruments({ data, game, visible, bindings }: FleetHudProps) {
 
     <section className="fleet-ship" aria-label="Ship condition and helm">
       {damage && damage.amount > 0 && <p className="fleet-hit-notice" role="status" style={{ opacity: damage.opacity }}><strong>−{Math.max(1, Math.round(damage.amount)).toLocaleString()}</strong><span>Hull damaged</span></p>}
-      <svg className="fleet-ship-silhouette" viewBox="0 0 180 34" fill="currentColor" aria-hidden="true"><path d="m3 24 8 8h151l14-10-27 2v-5h-17v-6h-12V9h-8V4h-2v5h-8v7H85V9H73V5h-2v4H60v9H42v5H27v-5H15v6Zm35-7h20v2H38Zm94-5h25v2h-25Z"/></svg>
       <div className="fleet-ship-name"><h1>{selectedShip.name.toUpperCase()}</h1><span className="fleet-hp" aria-label={`${hp} of ${maxIntegrity} HP`}><strong>{hp.toLocaleString()}</strong><span> / {maxIntegrity.toLocaleString()} HP</span></span></div>
       <div className="fleet-health-track" role="meter" aria-label="HP" aria-valuenow={hp} aria-valuemin={0} aria-valuemax={maxIntegrity}><i style={{ width: `${integrity * 100}%` }}/>{damage && damage.amount > 0 && <b className="fleet-health-loss" style={{ left: `${integrity * 100}%`, width: `${damage.amount / maxIntegrity * 100}%`, opacity: damage.opacity }}/>}</div>
       <div className="fleet-navigation"><ShipBearing data={data}/><div className="fleet-engine">

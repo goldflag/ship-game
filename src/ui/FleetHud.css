@@ -5,9 +5,7 @@
 .fleet-hud button { pointer-events:auto; }
 .fleet-hud button:focus-visible { outline:2px solid var(--fleet-active); outline-offset:3px; }
 .fleet-hud kbd { font:500 10px/1.2 'Barlow Condensed',sans-serif; min-width:18px; padding:2px 4px; border-radius:1px; }
-.fleet-top-actions { position:absolute; top:22px; right:var(--fleet-edge); display:flex; gap:14px; align-items:center; }
-.fleet-top-actions .icon-button { width:30px; height:30px; }
-.fleet-fps { color:var(--fleet-muted); font-size:10px; white-space:nowrap; }
+.fleet-fps { position:absolute; top:6px; left:var(--fleet-edge); color:var(--fleet-muted); font-size:10px; line-height:1; white-space:nowrap; }
 .fleet-fps strong { color:#edf5f2; font-weight:500; display:inline-block; text-align:right; min-width:3ch; margin-right:3px; }
 .fleet-compass { position:absolute; top:24px; left:50%; transform:translateX(-50%); width:272px; text-align:center; }
 .fleet-compass-tape { position:relative; height:27px; overflow:hidden; mask-image:linear-gradient(90deg,transparent,black 14%,black 86%,transparent); }
@@ -33,7 +31,6 @@
 .fleet-in-optics .fleet-capture-hint { top:calc(50% + min(110px,19cqh,16cqw) + 56px); }
 
 .fleet-ship { position:absolute; left:var(--fleet-edge); bottom:var(--fleet-bottom); width:240px; }
-.fleet-ship-silhouette { width:96px; height:24px; display:block; margin-bottom:5px; color:var(--fleet-active); filter:drop-shadow(0 2px 3px #07131b); }
 .fleet-ship-name { display:flex; flex-wrap:wrap; gap:4px 10px; align-items:baseline; justify-content:space-between; }
 .fleet-ship-name h1 { margin:0; font:600 20px/1.1 'Barlow Condensed',sans-serif; }
 .fleet-hp { white-space:nowrap; font:500 18px/1 'Barlow Condensed',sans-serif; }
@@ -117,14 +114,13 @@
 .fleet-weapon-slot:has(.fleet-slot-cooldown) .fleet-ammo-glyph { opacity:.3; }
 
 .fleet-map-area { position:absolute; right:0; bottom:0; width:var(--chart-width); }
-.navigation-chart { position:relative; aspect-ratio:1; background:transparent; border-top:1px solid #c9dce066; border-left:1px solid #c9dce066; color:#d5e5e5; }
+.navigation-chart { position:relative; aspect-ratio:1; background:#0b1d26a8; border-top:1px solid #c9dce066; border-left:1px solid #c9dce066; color:#d5e5e5; }
 .navigation-chart>svg { display:block; width:100%; height:100%; }
 .chart-grid { fill:none; stroke:#bedadc40; stroke-width:.7; }
 .chart-trail { fill:none; stroke:var(--fleet-active); stroke-width:1.2; stroke-dasharray:2 2; }
 .navigation-chart text { fill:#e1ebed; font:9px 'Barlow',sans-serif; paint-order:stroke; stroke:#10252e80; stroke-width:1.5; }
 .chart-view-cone { fill:#deefed0d; stroke:#deefed3d; stroke-width:.7; }
 .chart-contact { fill:#ee9b86; stroke:#142c35; stroke-width:1; }
-.chart-orientation { position:absolute; left:9px; top:10px; font-size:9px; color:#dfebeb; }
 .chart-controls { position:absolute; right:6px; bottom:6px; display:flex; gap:3px; align-items:center; }
 .chart-controls>span { font-size:8px; margin-right:2px; }
 .chart-controls button { display:grid; place-items:center; width:23px; height:23px; padding:0; border:1px solid var(--fleet-line); border-radius:1px; background:transparent; }
@@ -162,7 +158,6 @@
   .fleet-hp { font-size:14px; }
   .fleet-hp>span { font-size:11px; }
   .fleet-navigation { align-items:flex-start; }
-  .fleet-ship-silhouette { width:78px; height:20px; }
   .fleet-armament { --fleet-slot-height:54px; width:260px; }
   .fleet-slot-label { font-size:8px; }
   .fleet-ammo-glyph { width:42px; height:42px; }
@@ -170,7 +165,6 @@
 }
 @container hud (max-width:600px) {
   .fleet-hud { --fleet-edge:12px; --fleet-bottom:12px; --chart-limit:50cqw; }
-  .fleet-top-actions { top:15px; gap:8px; }
   .fleet-compass { top:16px; width:180px; }
   .fleet-ship { width:calc(45cqw - 18px); }
   .fleet-ship-silhouette { width:78px; height:20px; }
@@ -196,7 +190,6 @@
 @container hud (max-height:620px) and (min-width:601px) {
   .fleet-hud { --fleet-bottom:12px; }
   .fleet-compass { top:13px; }
-  .fleet-top-actions { top:10px; }
   .fleet-scope-readout { top:auto; bottom:calc(50% + 42px); }
   .fleet-sight-optics>.fleet-scope-reticle { height:180px; clip-path:inset(32% 0); }
   .fleet-armament { --fleet-slot-height:48px; padding-bottom:22px; }
