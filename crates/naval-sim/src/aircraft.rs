@@ -101,6 +101,8 @@ pub struct AirPilot {
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AirWingState {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub deck: Option<crate::deck_operations::DeckStatus>,
     pub planes: Vec<Aircraft>,
     pub launch_cooldown: f64,
     pub flights: Vec<AirFlight>,
@@ -131,14 +133,25 @@ pub fn on_flight_deck(p: &Aircraft) -> bool {
     p.deck_slot.is_some()
         && matches!(
             p.phase.as_str(),
-            "ready" | "queued" | "taxi" | "rollout" | "parking" | "rearming"
+            "ready"
+                | "queued"
+                | "taxi"
+                | "rollout"
+                | "parking"
+                | "rearming"
+                | "raising"
+                | "lowering"
+                | "launch-ready"
         )
         || p.phase == "takeoff" && p.timer <= crate::aircraft_flight::TAKEOFF_ROLL_SECONDS
 }
 pub fn active_flight(f: &AirFlight, planes: &[Aircraft]) -> bool {
     planes.iter().any(|p| {
         p.flight_id.as_ref() == Some(&f.id)
-            && !matches!(p.phase.as_str(), "ready" | "rearming" | "lost")
+            && !matches!(
+                p.phase.as_str(),
+                "ready" | "rearming" | "lost" | "hangar" | "repairing" | "raising" | "lowering"
+            )
     })
 }
 pub fn aircraft_service_seconds(base: f64, hp: f64) -> f64 {

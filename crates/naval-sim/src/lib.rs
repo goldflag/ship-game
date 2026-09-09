@@ -10,6 +10,7 @@ pub mod rules;
 pub mod ballistics;
 
 pub mod deck_navigation;
+pub mod deck_operations;
 pub mod flight_deck;
 pub mod floodwater;
 pub mod hull;

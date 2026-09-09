@@ -129,13 +129,13 @@ export class AircraftView {
       if (!deck && !crashing && !['takeoff', 'outbound', 'attack', 'returning', 'landing'].includes(plane.phase)) continue;
       const actor = actors.get(plane.ownerId)!;
       if (deck) {
-        const local = ['ready', 'queued', 'rearming'].includes(plane.phase) ? aircraftDeckSpot(actor, plane) : plane.deckPosition!;
+        const local = plane.deckPosition ?? aircraftDeckSpot(actor, plane);
         this.position.fromArray(local);
         const carrierRoot = carrierRoots.get(plane.ownerId);
         if (carrierRoot) {
           this.position.applyMatrix4(carrierRoot.matrixWorld);
           this.quaternion.copy(carrierRoot.quaternion);
-          if (plane.phase === 'taxi' || plane.phase === 'parking') this.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -(plane.deckHeading ?? plane.heading - actor.motion.heading)));
+          if (plane.deckHeading !== undefined || plane.phase === 'taxi' || plane.phase === 'parking') this.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -(plane.deckHeading ?? plane.heading - actor.motion.heading)));
           this.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), aircraftGroundPose(plane.modelId).pitch));
         } else {
           this.position.fromArray(plane.position);

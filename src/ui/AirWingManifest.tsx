@@ -8,7 +8,7 @@ import './AirWingManifest.css';
 
 export type WingAircraft = AirWingTelemetry['flights'][number];
 const ROLES: AircraftRole[] = ['fighter', 'dive-bomber', 'torpedo-bomber'];
-const PHASES: Record<WingAircraft['phase'], string> = { ready: 'Ready', queued: 'Queued', taxi: 'Taxiing', takeoff: 'Taking off', outbound: 'Outbound', attack: 'Attacking', returning: 'Returning', landing: 'Landing', rollout: 'Rollout', parking: 'Parking', rearming: 'Rearming', lost: 'Lost' };
+const PHASES: Record<WingAircraft['phase'], string> = { ready: 'Ready', queued: 'Queued', taxi: 'Taxiing', takeoff: 'Taking off', outbound: 'Outbound', attack: 'Attacking', returning: 'Returning', landing: 'Landing', rollout: 'Rollout', parking: 'Parking', rearming: 'Rearming', lost: 'Lost', hangar: 'In hangar', raising: 'Raising', lowering: 'Lowering', repairing: 'Repairing', 'launch-ready': 'Preparing launch' };
 
 /** Armament left as 0–1: gun bursts for fighters, the single bomb or torpedo for bombers. */
 export const armamentFraction = (p: WingAircraft) => p.status === 'lost' ? 0 : p.role === 'fighter' ? p.ammo / FIGHTER_AMMO_BURSTS : p.payload ? 1 : 0;

@@ -216,3 +216,32 @@ test('fold joints retain full-size geometry and independent per-plane poses acro
     }
   } finally { await view.dispose(); loader.mockRestore(); }
 });
+
+
+test('authoritative deck poses retain their position and heading while raising, parked and preparing launch', async () => {
+  const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async () => {
+    const scene = new Group(); scene.add(new Mesh(new BoxGeometry(), new MeshBasicMaterial()));
+    return { scene } as Awaited<ReturnType<GLTFLoader['loadAsync']>>;
+  });
+  const view = new AircraftView();
+  try {
+    await view.load();
+    const sim = new CombatSimulation(shipPreset('enterprise-cv6'));
+    for (const p of sim.aircraft) p.phase = 'lost';
+    const plane = sim.player.airWing!.planes[0];
+    plane.deckSlot = 0; plane.deckPosition = [3, 13.2, -62]; plane.deckHeading = .7;
+    const carrier = new Group(); carrier.position.set(100, 5, 20); carrier.rotation.set(.03, .4, -.08); carrier.updateMatrixWorld(true);
+    const camera = new PerspectiveCamera(), roots = new Map([['player', carrier]]);
+    for (const phase of ['raising', 'ready', 'rearming', 'launch-ready', 'lowering'] as const) {
+      plane.phase = phase;
+      view.update(sim, camera, true, true, roots);
+      expect(view.diagnostics().instances).toBe(1);
+      const batch = view.root.children.find(c => c instanceof InstancedMesh && c.name.startsWith('Aircraft model ') && c.visible) as InstancedMesh;
+      const actual = new Matrix4(); batch.getMatrixAt(0, actual);
+      const expected = carrier.matrixWorld.clone().multiply(new Matrix4().makeTranslation(...plane.deckPosition))
+        .multiply(new Matrix4().makeRotationY(-plane.deckHeading))
+        .multiply(new Matrix4().makeRotationX(aircraftGroundPose(plane.modelId).pitch));
+      actual.elements.forEach((value, i) => expect(value).toBeCloseTo(expected.elements[i], 3));
+    }
+  } finally { await view.dispose(); loader.mockRestore(); }
+});

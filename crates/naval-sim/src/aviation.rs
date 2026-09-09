@@ -18,8 +18,16 @@ pub struct Aviation {
     pub rules: crate::air_rules::AirRules,
     #[serde(skip)]
     pub carrier_rules: BTreeMap<String, crate::air_rules::CarrierAirRules>,
+    #[serde(skip)]
+    pub deck_operations: BTreeMap<String, crate::deck_operations::DeckOperations>,
 }
 pub fn service_available(actor: &Vessel, sea: Option<(&SeaState, f64)>) -> bool {
+    actor.motion.roll.abs() < 0.22
+        && actor.motion.pitch.abs() < 0.15
+        && actor.motion.y > -3.0
+        && service_equipment_available(actor, sea)
+}
+pub fn service_equipment_available(actor: &Vessel, sea: Option<(&SeaState, f64)>) -> bool {
     let def = actor.definition();
     let module = def
         .air_wing
@@ -27,9 +35,6 @@ pub fn service_available(actor: &Vessel, sea: Option<(&SeaState, f64)>) -> bool 
         .and_then(|w| def.modules.iter().find(|m| m.id == w.service_module_id));
     module.is_some_and(|m| {
         actor.physical_loss().is_none()
-            && actor.motion.roll.abs() < 0.22
-            && actor.motion.pitch.abs() < 0.15
-            && actor.motion.y > -3.0
             && equipment_condition(actor, def, m, sea).availability > 0.0
     })
 }
@@ -49,7 +54,7 @@ impl Aviation {
             .filter(|a| a.definition().air_wing.is_some())
             .map(|a| Ok((a.motion.id.clone(), rules.resolve(a.definition())?)))
             .collect::<Result<BTreeMap<_, _>, String>>()?;
-        Ok(Self {
+        let mut aviation = Self {
             wings: actors
                 .iter()
                 .filter_map(|a| {
@@ -64,7 +69,48 @@ impl Aviation {
             ground,
             rules,
             carrier_rules,
-        })
+            deck_operations: BTreeMap::new(),
+        };
+        if let crate::air_rules::DeckCycle::Managed {
+            startup_groups_per_role,
+            timings,
+        } = aviation.rules.deck_cycle.clone()
+        {
+            for actor in actors.iter().filter(|a| a.definition().air_wing.is_some()) {
+                let flights = aviation.squadron_flights(actor);
+                let size = aviation.flight_size(actor);
+                let resolved = aviation.carrier_rules[&actor.motion.id].clone();
+                let state = &mut aviation
+                    .wings
+                    .iter_mut()
+                    .find(|w| w.owner_id == actor.motion.id)
+                    .unwrap()
+                    .state;
+                state.flights = flights;
+                for flight in &state.flights {
+                    for p in state
+                        .planes
+                        .iter_mut()
+                        .filter(|p| flight.plane_ids.contains(&p.id))
+                    {
+                        p.flight_id = Some(flight.id.clone());
+                    }
+                }
+                let ops = crate::deck_operations::DeckOperations::initialize(
+                    state,
+                    actor,
+                    &aviation.ground,
+                    timings.clone(),
+                    &resolved,
+                    size * startup_groups_per_role,
+                    aviation.rules.repair_ceiling_hp,
+                )?;
+                aviation
+                    .deck_operations
+                    .insert(actor.motion.id.clone(), ops);
+            }
+        }
+        Ok(aviation)
     }
     pub fn flight_size(&self, actor: &Vessel) -> usize {
         self.carrier_rules[&actor.motion.id].group_size
@@ -216,7 +262,10 @@ impl Aviation {
         flight_id: Option<&str>,
         sea: Option<(&SeaState, f64)>,
     ) -> usize {
-        if !service_available(actor, sea) {
+        if actor.physical_loss().is_some()
+            || !self.deck_operations.contains_key(&actor.motion.id)
+                && !service_available(actor, sea)
+        {
             return 0;
         }
         let Some(state) = self.wing(&actor.motion.id) else {
@@ -268,15 +317,36 @@ impl Aviation {
             return 0;
         }
         let count = planes.len();
+        if let Some(mut ops) = self.deck_operations.remove(&actor.motion.id) {
+            let result = ops.enqueue(
+                self.wing(&actor.motion.id).unwrap(),
+                &flight.id,
+                crate::deck_operations::DeckAction::Launch,
+            );
+            let suspended = self
+                .wing(&actor.motion.id)
+                .unwrap()
+                .deck
+                .as_ref()
+                .is_some_and(|s| s.suspended);
+            ops.publish(self.wing_mut(&actor.motion.id).unwrap(), suspended);
+            self.deck_operations.insert(actor.motion.id.clone(), ops);
+            if result.is_err() {
+                return 0;
+            }
+        }
         flight.order = order.clone();
         flight.notice = None;
+        let managed = self.deck_operations.contains_key(&actor.motion.id);
         let state = self.wing_mut(&actor.motion.id).unwrap();
         state.flights.retain(|f| f.id != flight.id);
         for p in &mut state.planes {
             if !flight.plane_ids.contains(&p.id) || p.phase != "ready" {
                 continue;
             }
-            p.sortie = Some(p.sortie.unwrap_or(0) + 1);
+            if !managed {
+                p.sortie = Some(p.sortie.unwrap_or(0) + 1);
+            }
             p.phase = "queued".into();
             p.flight_id = Some(flight.id.clone());
             p.target_id = match &order {
@@ -293,7 +363,50 @@ impl Aviation {
         state.flight_sequence += 1;
         count
     }
+    pub fn deck_command(
+        &mut self,
+        actor_id: &str,
+        flight_id: &str,
+        action: crate::deck_operations::DeckAction,
+    ) -> Result<u64, String> {
+        if action == crate::deck_operations::DeckAction::Launch {
+            return Err("A launch requires a validated flight order".into());
+        }
+        let mut ops = self
+            .deck_operations
+            .remove(actor_id)
+            .ok_or("This battle does not use managed deck operations")?;
+        let result = ops.enqueue(self.wing(actor_id).unwrap(), flight_id, action);
+        let suspended = self
+            .wing(actor_id)
+            .unwrap()
+            .deck
+            .as_ref()
+            .is_some_and(|s| s.suspended);
+        ops.publish(self.wing_mut(actor_id).unwrap(), suspended);
+        self.deck_operations.insert(actor_id.into(), ops);
+        result
+    }
+    pub fn cancel_deck_command(&mut self, actor_id: &str, id: u64) -> bool {
+        let Some(mut ops) = self.deck_operations.remove(actor_id) else {
+            return false;
+        };
+        let cancelled = ops.cancel(id);
+        let suspended = self
+            .wing(actor_id)
+            .unwrap()
+            .deck
+            .as_ref()
+            .is_some_and(|s| s.suspended);
+        ops.publish(self.wing_mut(actor_id).unwrap(), suspended);
+        self.deck_operations.insert(actor_id.into(), ops);
+        cancelled
+    }
     pub fn recall(&mut self, actor_id: &str, flight_id: Option<&str>) {
+        let managed = self.deck_operations.contains_key(actor_id);
+        if let Some(ops) = self.deck_operations.get_mut(actor_id) {
+            ops.cancel_launches(flight_id);
+        }
         let Some(state) = self.wing_mut(actor_id) else {
             return;
         };
@@ -309,13 +422,29 @@ impl Aviation {
             }
             if p.phase == "queued" {
                 p.phase = "ready".into();
-                p.deck_slot = None;
-                p.deck_position = None;
+                if !managed {
+                    p.deck_slot = None;
+                    p.deck_position = None;
+                }
+            } else if managed && (!airborne(p) || p.phase == "takeoff") {
+                // Handling finishes at a safe point. A committed takeoff run
+                // finishes airborne, then the flight's Return order applies.
             } else if p.phase == "taxi" || p.phase == "takeoff" && on_flight_deck(p) {
                 p.phase = "parking".into();
             } else if airborne(p) && p.phase != "landing" {
                 p.phase = "returning".into();
             }
+        }
+        if managed {
+            let ops = self.deck_operations.remove(actor_id).unwrap();
+            let suspended = self
+                .wing(actor_id)
+                .unwrap()
+                .deck
+                .as_ref()
+                .is_some_and(|s| s.suspended);
+            ops.publish(self.wing_mut(actor_id).unwrap(), suspended);
+            self.deck_operations.insert(actor_id.into(), ops);
         }
     }
     pub fn order_flight(

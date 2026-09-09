@@ -8,7 +8,7 @@ use crate::{
     },
     aircraft_formation::{fly_formation, formation_leader},
     aircraft_tactics::*,
-    aviation::{Aviation, service_available},
+    aviation::{Aviation, service_available, service_equipment_available},
     definition::{TorpedoPart, Vec3},
     environment::SeaState,
     geometry::*,
@@ -353,7 +353,9 @@ impl Aviation {
                 if p.phase == "lost" {
                     step_wreck(p, ctx.events, dt);
                 } else {
-                    let deck = on_flight_deck(p);
+                    let deck = on_flight_deck(p)
+                        || self.deck_operations.contains_key(&w.owner_id)
+                            && matches!(p.phase.as_str(), "hangar" | "repairing");
                     aircraft_flight::step_mechanisms(p, dt, deck);
                 }
             }
@@ -375,7 +377,19 @@ impl Aviation {
                 continue;
             };
             let wing = actor.definition().air_wing.as_ref().unwrap();
-            self.combine_landed(actor);
+            if !self.deck_operations.contains_key(&actor.motion.id) {
+                self.combine_landed(actor);
+            }
+            if let Some(ops) = self.deck_operations.get_mut(&actor.motion.id) {
+                ops.step(
+                    &mut self.wings[wi].state,
+                    actor,
+                    &self.ground,
+                    service_equipment_available(actor, ctx.sea),
+                    service_available(actor, ctx.sea),
+                    dt,
+                );
+            }
             let state = &mut self.wings[wi].state;
             state.launch_cooldown = (state.launch_cooldown - dt).max(0.0);
             state.transfer_cooldown = (state.transfer_cooldown - dt).max(0.0);
@@ -386,7 +400,7 @@ impl Aviation {
             }
             let recovery = self.recovery_queue(&actor.motion.id);
             let state = &self.wings[wi].state;
-            let landing_clearance = recovery.iter().find_map(|&i| {
+            let legacy_landing_clearance = recovery.iter().find_map(|&i| {
                 let p = &state.planes[i];
                 if p.phase != "returning" || p.pilot.recovery_stage.as_deref() != Some("final") {
                     return None;
@@ -405,6 +419,10 @@ impl Aviation {
                     }))
                 .then(|| p.id.clone())
             });
+            let landing_clearance = match self.deck_operations.get(&actor.motion.id) {
+                Some(ops) => ops.landing_clearance().map(str::to_owned),
+                None => legacy_landing_clearance,
+            };
             let approaching = state.planes.iter().any(|p| {
                 p.phase == "landing"
                     && world_to_local(p.position, actor.motion.pose())[2]
@@ -507,6 +525,15 @@ impl Aviation {
         if p.phase == "lost" {
             return;
         }
+        let managed = self.deck_operations.contains_key(&actor.motion.id);
+        if managed && !airborne(p) {
+            if p.hp <= 0.0 {
+                lose(p, ctx.events, "Destroyed on deck");
+            } else if actor.physical_loss().is_some() {
+                lose(p, ctx.events, "Carrier lost");
+            }
+            return;
+        }
         let fold = if ground.folding_wings
             && matches!(
                 p.phase.as_str(),
@@ -521,7 +548,9 @@ impl Aviation {
         } else {
             4.0
         };
-        p.wing_fold += clamp(fold - p.wing_fold, -dt / seconds, dt / seconds);
+        if !managed {
+            p.wing_fold += clamp(fold - p.wing_fold, -dt / seconds, dt / seconds);
+        }
         if actor.damage.sunk && (on_flight_deck(p) || !airborne(p)) {
             p.hp = 0.0;
             p.phase = "lost".into();
@@ -660,12 +689,25 @@ impl Aviation {
             return;
         }
         if p.phase == "takeoff" {
+            let launch = if managed {
+                wing.deck_layout.as_ref().unwrap().launch_start
+            } else {
+                wing.launch_position
+            };
+            let run = if managed {
+                launch[2] - wing.deck_layout.as_ref().unwrap().launch_end[2]
+            } else {
+                140.0
+            };
+            if managed && p.timer <= dt {
+                ctx.event(p, "aircraft-launch", format!("{} launched", p.model_id));
+            }
             if p.timer <= TAKEOFF_ROLL_SECONDS {
-                let acceleration = 2.0 * 140.0 / TAKEOFF_ROLL_SECONDS.powi(2);
+                let acceleration = 2.0 * run / TAKEOFF_ROLL_SECONDS.powi(2);
                 let local = [
-                    wing.launch_position[0],
-                    wing.launch_position[1] + ground.clearance,
-                    wing.launch_position[2] - 0.5 * acceleration * p.timer * p.timer,
+                    launch[0],
+                    launch[1] + ground.clearance,
+                    launch[2] - 0.5 * acceleration * p.timer * p.timer,
                 ];
                 deck_pose(p, actor, local, &ground);
                 p.velocity = add(
@@ -677,12 +719,13 @@ impl Aviation {
                     ],
                 );
             } else {
+                if managed {
+                    p.deck_position = None;
+                    p.deck_slot = None;
+                    p.deck_heading = None;
+                }
                 let point = local_to_world(
-                    [
-                        wing.launch_position[0],
-                        wing.launch_position[1] + ground.clearance + 80.0,
-                        -600.0,
-                    ],
+                    [launch[0], launch[1] + ground.clearance + 80.0, -600.0],
                     actor.motion.pose(),
                 );
                 fly(
@@ -755,18 +798,24 @@ impl Aviation {
             return;
         }
         let wing = actor.definition().air_wing.as_ref().unwrap();
+        let managed = self.deck_operations.contains_key(&actor.motion.id);
+        let recovery_position = if managed {
+            wing.deck_layout.as_ref().unwrap().recovery_touchdown
+        } else {
+            wing.recovery_position
+        };
         let ground = self.ground[&p.model_id].clone();
         let local = world_to_local(p.position, actor.motion.pose());
-        let aft = local[2] - wing.recovery_position[2];
+        let aft = local[2] - recovery_position[2];
         let side = *p
             .pilot
             .recovery_side
             .get_or_insert(if local[0] < 0.0 { -1.0 } else { 1.0 });
         let approach = local_to_world(
             [
-                wing.recovery_position[0],
-                wing.recovery_position[1] + 180.0,
-                wing.recovery_position[2] + 3000.0,
+                recovery_position[0],
+                recovery_position[1] + 180.0,
+                recovery_position[2] + 3000.0,
             ],
             actor.motion.pose(),
         );
@@ -777,6 +826,7 @@ impl Aviation {
             .iter()
             .any(|o| o.id != p.id && occupies_launch_lane(o, actor));
         let available = service_available(actor, ctx.sea);
+        let reserved = !managed || landing_clearance == Some(p.id.as_str());
         if p.phase == "returning" {
             if !available {
                 p.pilot.recovery_stage = Some("marshal".into());
@@ -784,7 +834,7 @@ impl Aviation {
                     [
                         850.0,
                         220.0 + (index % 3) as f64 * 45.0,
-                        wing.recovery_position[2] + 1600.0,
+                        recovery_position[2] + 1600.0,
                     ],
                     actor.motion.pose(),
                 );
@@ -803,7 +853,7 @@ impl Aviation {
                 {
                     p.pilot.recovery_stage = Some(
                         if aft > 700.0
-                            && (local[0] - wing.recovery_position[0]).abs() < 100.0
+                            && (local[0] - recovery_position[0]).abs() < 100.0
                             && wrap_angle(p.heading - actor.motion.heading).abs() < 0.25
                         {
                             "final"
@@ -817,9 +867,9 @@ impl Aviation {
                     Some("downwind") => {
                         let downwind = local_to_world(
                             [
-                                wing.recovery_position[0] + side * 900.0,
-                                wing.recovery_position[1] + 180.0 + (index % 3) as f64 * 25.0,
-                                wing.recovery_position[2] + 2800.0,
+                                recovery_position[0] + side * 900.0,
+                                recovery_position[1] + 180.0 + (index % 3) as f64 * 25.0,
+                                recovery_position[2] + 2800.0,
                             ],
                             actor.motion.pose(),
                         );
@@ -849,9 +899,9 @@ impl Aviation {
                     Some("final") => {
                         let intercept = local_to_world(
                             [
-                                wing.recovery_position[0],
-                                wing.recovery_position[1] + 90.0_f64.max(aft * 0.06),
-                                wing.recovery_position[2] + 150.0_f64.max(aft - 600.0),
+                                recovery_position[0],
+                                recovery_position[1] + 90.0_f64.max(aft * 0.06),
+                                recovery_position[2] + 150.0_f64.max(aft - 600.0),
                             ],
                             actor.motion.pose(),
                         );
@@ -868,15 +918,16 @@ impl Aviation {
                                     || o.phase != "landing"
                                     || (aft
                                         - (world_to_local(o.position, actor.motion.pose())[2]
-                                            - wing.recovery_position[2]))
+                                            - recovery_position[2]))
                                         .abs()
                                         > 60.0
                             });
                         if landing_clearance == Some(p.id.as_str())
+                            && reserved
                             && separated
                             && (!busy || aft > 900.0)
                             && aft > 550.0
-                            && (local[0] - wing.recovery_position[0]).abs() < 70.0
+                            && (local[0] - recovery_position[0]).abs() < 70.0
                             && wrap_angle(p.heading - actor.motion.heading).abs() < 0.2
                         {
                             p.phase = "landing".into();
@@ -888,7 +939,7 @@ impl Aviation {
                     _ => {}
                 }
             }
-        } else if !available {
+        } else if !available || !reserved {
             p.phase = "returning".into();
             p.pilot.recovery_stage = Some("marshal".into());
             fly(p, approach, 70.0, dt, FlightOptions::default());
@@ -900,9 +951,9 @@ impl Aviation {
             let aim = add(
                 local_to_world(
                     [
-                        wing.recovery_position[0],
-                        wing.recovery_position[1] + ground.clearance + height,
-                        wing.recovery_position[2] + next_aft,
+                        recovery_position[0],
+                        recovery_position[1] + ground.clearance + height,
+                        recovery_position[2] + next_aft,
                     ],
                     actor.motion.pose(),
                 ),
@@ -919,14 +970,14 @@ impl Aviation {
                 },
             );
             let next = world_to_local(p.position, actor.motion.pose());
-            let deck_y = wing.recovery_position[1] + ground.clearance;
-            if next[2] <= wing.recovery_position[2] + 12.0
-                && next[2] >= wing.recovery_position[2] - 30.0
-                && (next[0] - wing.recovery_position[0]).abs() < 7.0
+            let deck_y = recovery_position[1] + ground.clearance;
+            if next[2] <= recovery_position[2] + 12.0
+                && next[2] >= recovery_position[2] - 30.0
+                && (next[0] - recovery_position[0]).abs() < 7.0
                 && (next[1] - deck_y).abs() < 0.35
                 && wrap_angle(p.heading - actor.motion.heading).abs() < 0.12
             {
-                if busy || !self.spot_aircraft(actor, p) {
+                if busy || !reserved || !managed && !self.spot_aircraft(actor, p) {
                     p.phase = "returning".into();
                     p.pilot.recovery_stage = Some("marshal".into());
                     return;
@@ -935,8 +986,8 @@ impl Aviation {
                 p.timer = 0.0;
                 deck_pose(p, actor, [next[0], deck_y, next[2]], &ground);
                 ctx.event(p, "aircraft-recovered", format!("{} landed", p.model_id));
-            } else if next[2] < wing.recovery_position[2] - 30.0
-                || aft < 250.0 && (next[0] - wing.recovery_position[0]).abs() > 30.0
+            } else if next[2] < recovery_position[2] - 30.0
+                || aft < 250.0 && (next[0] - recovery_position[0]).abs() > 30.0
             {
                 p.phase = "returning".into();
                 p.pilot.recovery_stage = Some("marshal".into());
@@ -974,6 +1025,10 @@ impl Aviation {
         dt: f64,
         time: f64,
     ) {
+        if matches!(flight.as_ref().map(|f| &f.order), Some(AirOrder::Return)) {
+            p.phase = "returning".into();
+            return;
+        }
         let leader = flight.as_ref().and_then(|f| leaders.get(&f.id));
         if p.role != "fighter"
             && let Some(AirOrder::Patrol { point }) = flight.as_ref().map(|f| &f.order)

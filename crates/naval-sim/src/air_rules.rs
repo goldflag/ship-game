@@ -53,6 +53,44 @@ impl EndurancePolicy {
     }
 }
 
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize, TS)]
+#[serde(
+    tag = "kind",
+    rename_all = "kebab-case",
+    rename_all_fields = "camelCase",
+    deny_unknown_fields
+)]
+pub enum DeckCycle {
+    #[default]
+    Legacy,
+    Managed {
+        startup_groups_per_role: usize,
+        timings: DeckTimings,
+    },
+}
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct DeckTimings {
+    pub lift_seconds: f64,
+    pub taxi_speed: f64,
+    pub turn_radians_per_second: f64,
+    pub rearm_seconds: f64,
+    pub repair_seconds: f64,
+}
+impl DeckTimings {
+    fn valid(&self) -> bool {
+        [
+            (self.lift_seconds, 2.0, 60.0),
+            (self.taxi_speed, 0.5, 20.0),
+            (self.turn_radians_per_second, 0.05, 1.5),
+            (self.rearm_seconds, 5.0, 300.0),
+            (self.repair_seconds, 20.0, 600.0),
+        ]
+        .iter()
+        .all(|(value, min, max)| value.is_finite() && (min..=max).contains(&value))
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct AirRules {
@@ -65,6 +103,8 @@ pub struct AirRules {
     pub endurance: EndurancePolicy,
     pub launch_group_seconds: f64,
     pub repair_ceiling_hp: f64,
+    #[serde(default)]
+    pub deck_cycle: DeckCycle,
 }
 #[derive(Clone, Debug)]
 pub struct CarrierAirRules {
@@ -90,6 +130,14 @@ impl AirRules {
             || !(0.0..=100.0).contains(&self.repair_ceiling_hp)
         {
             return Err("Invalid air operations profile".into());
+        }
+        if let DeckCycle::Managed {
+            startup_groups_per_role,
+            timings,
+        } = &self.deck_cycle
+            && (*startup_groups_per_role > 8 || !timings.valid())
+        {
+            return Err("Invalid physical deck operating policy".into());
         }
         if let EndurancePolicy::Timed {
             order_limit_seconds,
@@ -134,7 +182,17 @@ impl AirRules {
         let group_size = self
             .group_size
             .unwrap_or(integer(wing.flight_size.unwrap_or(3.0), 12)?);
-        let physical_capacity = integer(wing.deck_capacity.unwrap_or(18.0), 100)?;
+        let physical_capacity = match &self.deck_cycle {
+            DeckCycle::Legacy => integer(wing.deck_capacity.unwrap_or(18.0), 100)?,
+            DeckCycle::Managed { .. } => {
+                let layout = wing
+                    .deck_layout
+                    .as_ref()
+                    .ok_or("Physical deck layout required")?;
+                crate::flight_deck::validate(definition, layout)?;
+                layout.spots.len()
+            }
+        };
         let deck_capacity = self.deck_capacity.unwrap_or(physical_capacity);
         if deck_capacity > physical_capacity {
             return Err("Air profile exceeds the authored deck capacity".into());

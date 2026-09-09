@@ -12,5 +12,6 @@
     "exhaustionSeconds": 1050
   },
   "launchGroupSeconds": 10,
-  "repairCeilingHp": 60
+  "repairCeilingHp": 60,
+  "deckCycle": { "kind": "legacy" }
 }
