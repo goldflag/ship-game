@@ -2372,6 +2372,7 @@ class wn {
   _refractionStrength = d(0.1);
   // Local host option, retained across quality/preset changes.
   refractionEnabled = !0;
+  surfaceTransmissionEnabled = !1;
   // ============= Public Getters/Setters =============
   /**
    * End of the distance-fade range (world units), consumed by SSS.
@@ -4032,6 +4033,17 @@ function Gj(r) {
 function sj(r) {
   if (!r.fresnel.refractionEnabled) {
     const color = r.waterColor.buildMediumColor();
+    if (r.fresnel.surfaceTransmissionEnabled) {
+      // Straight-through visibility uses the existing opaque capture. With no
+      // displaced UV, this surface fragment supplies the water entry depth.
+      const sceneDepth = r.sceneDepth.sample(IA).mul(EA.sub(dA)).add(dA);
+      const column = KA(sceneDepth.sub(rt.z.negate()), O(0));
+      return {
+        refractedClearFactor: r.waterColor.buildClearFactor(column),
+        refractedSceneColor: F(r.sceneColorTexture, IA).rgb,
+        refractedWaterColor: color
+      };
+    }
     return { refractedClearFactor: O(0), refractedSceneColor: color, refractedWaterColor: color };
   }
   const {
@@ -12814,6 +12826,7 @@ class iq {
       }
     ), K._foamAccumulation && (K._foamAccumulation.setCamera(p), K._subsystems.push(K._foamAccumulation));
     K._fresnel.refractionEnabled = n.refractionEnabled !== !1;
+    K._fresnel.surfaceTransmissionEnabled = n.surfaceTransmissionEnabled === !0;
     const b = new zp(
       U,
       K.getSharedMaterialUniforms(),

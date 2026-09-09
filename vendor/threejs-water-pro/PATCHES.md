@@ -1,5 +1,20 @@
 # Local patches to Water Pro 3.5.1
 
+## Straight-through surface visibility
+
+The game enables the creation-only `surfaceTransmissionEnabled` option while
+keeping `refractionEnabled` false and full-screen underwater distortion disabled.
+The above-water shader samples opaque scene color at the original screen UV and
+applies the existing water absorption using scene depth minus the current water
+surface fragment's view depth. It restores visibility of submerged hulls and
+terrain without the wave-normal UV offset or a separate surface water-depth pass.
+The below-water interface stays on its existing unwarped path.
+
+The new option defaults to false in the library and is retained on the shared
+Fresnel object across presets and quality changes. With refraction enabled, the
+original refraction path takes precedence. There is no public runtime graph
+switch. No performance measurement was requested for this restoration.
+
 ## Optional refraction removal
 
 The `refractionEnabled` option passed to `WaterSystem.create` defaults to true in
@@ -10,7 +25,8 @@ Changing the graph after rendering caused a WebGL context loss in a diagnostic,
 so runtime switching is deliberately excluded from the public API. The WebGPU
 performance probe can rebuild the graph through private fields for comparison.
 
-When disabled, the above-water surface uses the water medium color without
+When both refraction and straight-through transmission are disabled, the
+above-water surface uses the water medium color without
 sampling submerged scene color. A submerged camera sees an unwarped view through
 the interface. Above-water captures omit transparent effects, and the water-depth
 pass is skipped while underwater rendering is conservatively disabled. Opaque

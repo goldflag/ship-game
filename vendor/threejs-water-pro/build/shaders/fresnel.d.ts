@@ -77,6 +77,8 @@ export interface FresnelBuildParams {
 export declare class Fresnel {
     /** Local host option, chosen through WaterSystem.create. */
     readonly refractionEnabled: boolean;
+    /** Straight-through above-water visibility, independent of refraction distortion. */
+    readonly surfaceTransmissionEnabled: boolean;
     private _fadeEnd;
     private _iorRatio;
     private _refractionStrength;

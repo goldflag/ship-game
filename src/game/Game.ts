@@ -291,7 +291,8 @@ export class Game {
     // Water Pro 3.5.1 combines seed * 100000 + cellIndex in float32.
     // Large seeds (e.g. 1941) collapse adjacent inputs, creating repeated arcs.
     // Keep the library's small, deterministic seed until its hash input is fixed.
-    this.water = await WaterSystem.create(this.renderer, this.scene, this.camera, this.settings.quality, { seed: 1, refractionEnabled: false });
+    this.water = await WaterSystem.create(this.renderer, this.scene, this.camera, this.settings.quality,
+      { seed: 1, refractionEnabled: false, surfaceTransmissionEnabled: true });
     this.visualWaveSampler = new VisualWaveSampler(this.water.buoyancy.getSampler());
     this.water.buoyancy.setSampler(this.visualWaveSampler);
     this.assertActive();
