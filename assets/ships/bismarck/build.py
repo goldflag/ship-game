@@ -207,7 +207,7 @@ for s in DEF['structures']:
     # Forward lobes overhang the tower's front as well as its sides. Keep the
     # inner end inside the tapered core instead of leaving a hanging strut.
     tower=s['id'] in ['signal-platform','fore-aa-platform','foretop-platform','foretop-roof']
-    inner=(max(14.0,min(17.3,x)),math.copysign(2.15,y),z-1.6) if tower else (x,y*.56,z-1.2)
+    inner=(max(12.0,min(14.8,x)),math.copysign(2.15,y),z-1.6) if tower else (x,y*.56,z-1.2)
     rod(s['id']+' knee',(x,y,z-.02),inner,.07,materials['naval'],supercol,vertices=6)
  else:
   # Steel deck overhang and drainage lip emphasize real deck boundaries.
@@ -256,7 +256,7 @@ for mount in DEF['mounts']:
 # Glazing follows the actual faceted wall, including the rounded forward bridge
 # corners. The navigation house is forward of the separate conning enclosure.
 def wall_windows(sid,z,height,spacing=.95):
- s=structures[sid];pts=[(-zz,-xx) for xx,zz in s['footprint']];aft=min(x for x,y in pts)
+ s=structures[sid];pts=[(-zz+2,-xx) for xx,zz in s['footprint']];aft=min(x for x,y in pts)
  for a,b in zip(pts,pts[1:]+pts[:1]):
   if (a[0]+b[0])/2<aft+.2:continue
   a,b=Vector((*a,0)),Vector((*b,0));delta=b-a;count=max(1,round(delta.length/spacing));normal=Vector((delta.y,-delta.x,0)).normalized()
@@ -268,15 +268,12 @@ def wall_windows(sid,z,height,spacing=.95):
    polyline(sid+' window frame',[corners[j] for j in [0,1,3,2]],.033,materials['edge'],closed=True,vertices=6)
 bridge_detail_before=set(bpy.data.objects)
 wall_windows('bridge-wheelhouse',13.62,.66,1.02)
-for ob in set(bpy.data.objects)-bridge_detail_before:ob.location.x+=2
-window_before=set(bpy.data.objects)
 wall_windows('conning-tower',17.30,.12,1.3)
-for ob in set(bpy.data.objects)-window_before:ob.location.x+=2
 # The upper control house has small apertures; the former full window ribbon
 # exaggerated its width. All service fittings bear on their actual deck or wall.
 for sign in [-1,1]:
  for xx in [14.2,15.5,16.8]:
-  pts=[(-zz,-xx) for xx,zz in structures['foretop-control']['footprint']]
+  pts=[(-zz+2,-xx) for xx,zz in structures['foretop-control']['footprint']]
   yy,normal=house_side(pts,xx,sign);porthole('Upper control aperture',Vector((xx,yy,28.35))+normal*.03,normal,.12)
 
 def stair_landing(name,x,y,z,inner,width=1.15):
@@ -304,7 +301,7 @@ for sign in [-1,1]:
   a=(a[0],a[1]*sign,a[2]);b=(b[0],b[1]*sign,b[2]);stairs(name,a,b,.7);stair_landing(name,*b,inner*sign)
  # Deck vents and tower conduits sit on the revised walls rather than old offsets.
  for sid,z,xs in [('forward-battery-deck',9.35,[13,18,37,41]),('forward-shelter-deck',11.55,[19,27,34])]:
-  pts=[(-zz,-xx) for xx,zz in structures[sid]['footprint']]
+  pts=[(-zz+2,-xx) for xx,zz in structures[sid]['footprint']]
   for xx in xs:
    yy,normal=house_side(pts,xx,sign)
    if abs(normal.x)<.3:vent(sid+' intake',(xx,yy+sign*.06,z),(1.2,.20,1.0),sign)
@@ -319,7 +316,7 @@ for sign in [-1,1]:
  # The angular bridge visor is attached to the forward upper wall.
  for xx,yy in [(36.0,4.5),(35.0,5.9)]:
   rod('Bridge visor bracket',(xx,sign*yy,15.27),(xx+.62,sign*yy,14.36),.075,materials['edge'],supercol,vertices=6)
-pts=[(-zz,-xx) for xx,zz in structures['bridge-wheelhouse']['footprint']]
+pts=[(-zz+2,-xx) for xx,zz in structures['bridge-wheelhouse']['footprint']]
 front=[(x,y) for x,y in pts if x>34.7]
 for a,b in zip(front,front[1:]):
  if abs(a[1]-b[1])<.002:continue
@@ -520,23 +517,23 @@ for x,top in [(-123,15.5),(124,11.5)]:rod('Ensign or jack staff',(x,0,deckz(x)),
 rod('After derrick post',(-43,0,12.3),(-43,0,26.8),.13,materials['edge'],detailcol,.05,12)
 rod('After derrick boom',(-43,0,16.0),(-48,0,21.5),.09,materials['edge'],detailcol,vertices=10)
 rod('After derrick cable',(-43,0,26.5),(-48,0,21.5),.018,materials['dark'],detailcol,vertices=5)
-# Aircraft hangars: the roof curvature and folding door leaves are visible in
-# the retained May plan. Dimensions below are independent raster estimates.
-for name,x,y,length,breadth,base in [('Port single hangar',8.8,6.7,11.8,5.5,10.39),('Starboard single hangar',8.8,-6.7,11.8,5.5,10.39),('Double hangar',-24.6,0,12.8,14.2,10.85)]:
+# Aircraft hangar roof camber and folding leaves follow the approved model.
+# The eaves and door sills follow the raised blueprint decks.
+for name,x,y,length,breadth,base in [('Port single hangar',8.8,6.7,11.8,5.5,12.1),('Starboard single hangar',8.8,-6.7,11.8,5.5,12.1),('Double hangar',-24.6,0,12.8,14.2,13.2)]:
  rise=.85 if breadth<7 else 1.12
  arc=[(y+breadth*(i/16-.5),base+rise*math.sin(math.pi*i/16)) for i in range(17)]
  roofvs=[(xx,yy,zz) for xx in [x-length/2,x+length/2] for yy,zz in arc]
  mesh(name+' curved roof',roofvs,[(i,i+1,i+18,i+17) for i in range(16)]+[tuple(reversed(range(17))),tuple(range(17,34))],materials['roof'],supercol,True)
  for xx in [x-length/2+.15,x,x+length/2-.15]:polyline(name+' roof seam',[(xx,yy,zz+.025) for yy,zz in arc],.028,materials['edge'])
  # The double hangar opens forward; the side hangars open aft onto handling deck.
- xx=x+(length/2+.035)*(1 if breadth>7 else -1);floor=5.84;doorheight=4.4
+ xx=x+(length/2+.035)*(1 if breadth>7 else -1);floor=8.4;doorheight=base-floor-.12
  leaves=12 if breadth>7 else 6;opening=breadth-.65
  for i in range(leaves):
   yy=y-opening/2+opening*(i+.5)/leaves
   box(name+' folding door',(xx,yy,floor+doorheight/2),(.10,opening/leaves-.035,doorheight),materials['naval'],detailcol)
   for dz in [.65,2.1,3.55]:box(name+' door stiffener',(xx+(.065 if breadth>7 else -.065),yy,floor+dz),(.07,opening/leaves-.13,.055),materials['edge'],detailcol)
  rod(name+' door track',(xx,y-opening/2-.1,floor+doorheight+.1),(xx,y+opening/2+.1,floor+doorheight+.1),.075,materials['edge'],detailcol,vertices=8)
- for sign in [-1,1]:vent(name+' ventilation',(x, y+sign*(breadth/2+.035),8.35),(1.8,.12,1.1),sign)
+ for sign in [-1,1]:vent(name+' ventilation',(x, y+sign*(breadth/2+.035),base-1.15),(1.8,.12,1.1),sign)
 # An aft cross-gallery carries the center searchlight and joins the side galleries.
 extrude('Funnel aft cross gallery',rounded_rect(-8.15,0,2.3,9.7,.4,3),17.65,.18,materials['roof'],supercol)
 rail('Funnel aft cross gallery',[(-9.28,-4.4,17.83),(-9.28,4.4,17.83)],.88,1.6,False)
@@ -640,7 +637,7 @@ def truss(name,a,b,width,depth):
    k=(j+1)%4;rod(name+' cross member',lo+corners[j],lo+corners[k],.035,materials['naval'],detailcol,vertices=6)
    rod(name+' diagonal',lo+corners[j if i%2==0 else k],hi+corners[k if i%2==0 else j],.03,materials['naval'],detailcol,vertices=6)
 for sign in [-1,1]:
- base=Vector((-6.5,sign*9.7,deckz(-6.5)));heel=base+Vector((0,0,2.2));tip=Vector((7.2,sign*6.6,22.0))
+ base=Vector((-6.5,sign*9.7,8.4));heel=base+Vector((0,0,2.2));tip=Vector((7.2,sign*6.6,22.0))
  cyl('Aircraft crane foundation',base+Vector((0,0,.28)),1.05,.56,materials['edge'],detailcol,32)
  cyl('Aircraft crane pedestal',base+Vector((0,0,1.4)),.78,2.45,materials['naval'],detailcol,32)
  cyl('Aircraft crane bearing',heel,1.04,.27,materials['edge'],detailcol,32)
@@ -658,6 +655,7 @@ for sign in [-1,1]:
  ring('Crane hook',tip-Vector((0,0,1.98)),(0,1,0),.14,.035,materials['edge'],12)
  ladder('Crane pedestal access',base+Vector((-.88,0,.1)),heel+Vector((-.88,0,.5)),.48)
 # Transverse catapult with two rails, open web and launch trolley.
+catapult_before=set(bpy.data.objects)
 for xx in [-9.9,-8.2]:
  rod('Catapult longitudinal rail',(xx,-14,6.82),(xx,14,6.82),.09,materials['light'],detailcol,vertices=8)
  box('Catapult girder',(xx,0,6.43),(.17,28,.48),materials['edge'],detailcol)
@@ -667,6 +665,8 @@ for yy in [-13.5,-9,-4.5,0,4.5,9,13.5]:box('Catapult sleeper',(-9.05,yy,6.45),(2
 box('Catapult trolley',(-9.05,0,7.0),(2.35,2.3,.24),materials['roof'],detailcol)
 for yy in [-.9,.9]:
  for xx in [-9.9,-8.2]:rod('Trolley wheel',(xx-.10,yy,6.92),(xx+.10,yy,6.92),.20,materials['edge'],detailcol,vertices=16)
+
+for ob in set(bpy.data.objects)-catapult_before:ob.location.z+=2.65
 
 # Existing original AA geometry now uses the same blueprint joints as other guns.
 # The two upper quad fittings retain their original decorative geometry.
@@ -814,11 +814,11 @@ for sign in [-1,1]:
   cyl('Mushroom vent stem',(x,y,z+.32),.18,.64,materials['naval'],detailcol,16)
   cyl('Mushroom vent hood',(x,y,z+.69),.34,.22,materials['naval'],detailcol,20)
  for x,y,z in [(30,9,9.4),(6,13,5.8),(-14,13,5.8),(-40,9.5,5.8),(-53,8.5,5.8)]:
-  y*=sign;z=aa_support.below(x,y,z+.1);box('Ready ammunition locker',(x,y,z+.62),(1.05,.64,1.24),materials['naval'],detailcol)
+  y*=sign;z=aa_support.below(x,y,z+3);box('Ready ammunition locker',(x,y,z+.62),(1.05,.64,1.24),materials['naval'],detailcol)
   box('Ammunition locker lid',(x,y,z+1.28),(1.1,.69,.08),materials['roof'],detailcol)
   rod('Locker handle',(x-.12,y+sign*.34,z+.8),(x+.12,y+sign*.34,z+.8),.022,materials['dark'],detailcol,vertices=6)
  for x,y,z in [(36,4.9,12.65),(7,10.7,8.6),(-34,7.7,9.4),(-42,7.9,9.4)]:
-  y*=sign;pts=[(xx,yy,z+.3) for xx,yy in rounded_rect(x,y,2.55,1.28,.56,5)];polyline('Carley float buoyant tube',pts,.17,materials['canvas'],closed=True,vertices=8)
+  y*=sign;z=aa_support.below(x,y,z+4)+.09;pts=[(xx,yy,z+.3) for xx,yy in rounded_rect(x,y,2.55,1.28,.56,5)];polyline('Carley float buoyant tube',pts,.17,materials['canvas'],closed=True,vertices=8)
   for xx in [-.85,-.45,0,.45,.85]:rod('Carley float floor',(x+xx,y-.52,z+.22),(x+xx,y+.52,z+.22),.033,materials['wood'],detailcol,vertices=6)
   for xx in [-.75,.75]:box('Carley float cradle',(x+xx,y,z+.025),(.12,1.12,.22),materials['edge'],detailcol)
  for x,y in [(80,5),(-97,5)]:
