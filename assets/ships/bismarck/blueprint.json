@@ -23284,7 +23284,8 @@
         6.15,
         -27.2
       ],
-      "bearingDeg": 0,
+      "bearingDeg": 78.5,
+      "traverseDeg": 70.5,
       "rangefinder": false,
       "fire": {
         "fuelSeconds": 45,
@@ -23302,7 +23303,8 @@
         6,
         -8
       ],
-      "bearingDeg": 0,
+      "bearingDeg": 87.5,
+      "traverseDeg": 77.5,
       "rangefinder": true,
       "fire": {
         "fuelSeconds": 45,
@@ -23320,7 +23322,8 @@
         6,
         24
       ],
-      "bearingDeg": 180,
+      "bearingDeg": 95.5,
+      "traverseDeg": 78.5,
       "rangefinder": false,
       "fire": {
         "fuelSeconds": 45,
@@ -23338,7 +23341,8 @@
         6.15,
         -27.2
       ],
-      "bearingDeg": 0,
+      "bearingDeg": -78.5,
+      "traverseDeg": 70.5,
       "rangefinder": false,
       "fire": {
         "fuelSeconds": 45,
@@ -23356,7 +23360,8 @@
         6,
         -8
       ],
-      "bearingDeg": 0,
+      "bearingDeg": -87.5,
+      "traverseDeg": 77.5,
       "rangefinder": true,
       "fire": {
         "fuelSeconds": 45,
@@ -23374,7 +23379,8 @@
         6,
         24
       ],
-      "bearingDeg": 180,
+      "bearingDeg": -95.5,
+      "traverseDeg": 78.5,
       "rangefinder": false,
       "fire": {
         "fuelSeconds": 45,
@@ -23392,7 +23398,8 @@
         8.38,
         -20
       ],
-      "bearingDeg": 90,
+      "bearingDeg": 88,
+      "traverseDeg": 76,
       "rangefinder": false,
       "magazineId": "bruno-magazine",
       "fire": {
@@ -23411,7 +23418,8 @@
         8.38,
         -0.1
       ],
-      "bearingDeg": 90,
+      "bearingDeg": 80.5,
+      "traverseDeg": 71.5,
       "rangefinder": false,
       "magazineId": "bruno-magazine",
       "fire": {
@@ -23430,7 +23438,8 @@
         8.38,
         16
       ],
-      "bearingDeg": 90,
+      "bearingDeg": 99,
+      "traverseDeg": 69,
       "rangefinder": false,
       "magazineId": "caesar-magazine",
       "fire": {
@@ -23449,7 +23458,8 @@
         8.38,
         32
       ],
-      "bearingDeg": 90,
+      "bearingDeg": 112,
+      "traverseDeg": 58,
       "rangefinder": false,
       "magazineId": "caesar-magazine",
       "fire": {
@@ -23658,7 +23668,8 @@
         8.38,
         -20
       ],
-      "bearingDeg": -90,
+      "bearingDeg": -88,
+      "traverseDeg": 76,
       "rangefinder": false,
       "magazineId": "bruno-magazine",
       "fire": {
@@ -23677,7 +23688,8 @@
         8.38,
         -0.1
       ],
-      "bearingDeg": -90,
+      "bearingDeg": -80.5,
+      "traverseDeg": 71.5,
       "rangefinder": false,
       "magazineId": "bruno-magazine",
       "fire": {
@@ -23696,7 +23708,8 @@
         8.38,
         16
       ],
-      "bearingDeg": -90,
+      "bearingDeg": -99,
+      "traverseDeg": 69,
       "rangefinder": false,
       "magazineId": "caesar-magazine",
       "fire": {
@@ -23715,7 +23728,8 @@
         8.38,
         32
       ],
-      "bearingDeg": -90,
+      "bearingDeg": -112,
+      "traverseDeg": 58,
       "rangefinder": false,
       "magazineId": "caesar-magazine",
       "fire": {
