@@ -18,13 +18,13 @@ import { equipmentIntegrity } from './durability';
 import { fireReadout, regionReadout, type FireReadout } from './damageReadout';
 import { DamageLog, type DamageLogEntry } from './damageLog';
 import { createShipState, FIXED_DT, stepShip, hullDepth, meanHullY, type HelmCommand } from './ship';
-import { add, clamp, localToWorld, scale, sub } from './geometry';
+import { add, clamp, worldToLocal, localToWorld, scale, sub } from './geometry';
 import { availableAmmunition, createMountState, GRAVITY, gunWorkRate, queueAmmunition, selectAmmunition, solveBallistic } from './weapons';
 import { travelFactor } from './ballistics';
 import { BATTLE_SPAWN_DISTANCE, deployment, validateSpawns, type SpawnPositions, MAX_TEAM_SHIPS, validateSpawnDistance, type BattleFleet, type BattleResult, type FleetActor, type Team } from './battle';
 import { botShouldDropDepthCharge, createDepthChargeLauncherState, damageDepthCharge, launchDepthCharge, stepDepthCharge, updateDepthChargeLauncher, type DepthCharge } from './depthCharges';
 import { botHelm, botReadyToFire, botTarget, botTorpedoAim, createBotState, shipVelocity, updateBot } from './bots';
-import { clearTorpedoLane, createTubeState, damageTorpedoHit, firstTorpedoHit, torpedoIntercept, trainTorpedoLaunchers, tubeLocalPosition, tubeSolution, type Torpedo } from './torpedoes';
+import { clearTorpedoLane, createTubeState, glancingDudChance, torpedoDudRoll, damageTorpedoHit, firstTorpedoHit, torpedoIntercept, trainTorpedoLaunchers, tubeLocalPosition, tubeSolution, type Torpedo } from './torpedoes';
 import { createSubmarineState, stepSubmarine, submarinePropulsion } from './submarine';
 import { resolveShipCollisions } from './collisions';
 import type { HullImpact } from './contactDamage';
@@ -396,16 +396,19 @@ export class CombatSimulation {
       }
       if (hit) {
         const { actor, point } = hit, armed = torpedo.distance + travel * hit.t >= w.armingDistanceM;
+        const direction = sub(worldToLocal(to, actor.motion), worldToLocal(from, actor.motion));
+        const glancing = armed && torpedoDudRoll(this.seed, torpedo.id) < glancingDudChance(direction, hit.normal);
+        const detonates = armed && !glancing;
         const hp = actor.damage.integrity, alreadyLost = !!physicalLoss(actor);
-        const message = armed ? damageTorpedoHit(torpedo, actor, point) : 'Torpedo dud · impact before arming';
-        if (armed) updateCapability(actor, actor.definition);
+        const message = detonates ? damageTorpedoHit(torpedo, actor, point) : glancing ? 'Torpedo dud · glancing impact' : 'Torpedo dud · impact before arming';
+        if (detonates) updateCapability(actor, actor.definition);
         const owner = this.actors.find(a => a.motion.id === torpedo.ownerId);
-        if (armed && !alreadyLost && owner && owner.team !== actor.team) {
+        if (detonates && !alreadyLost && owner && owner.team !== actor.team) {
           if (owner === this.player) this.playerDamageDealt += Math.max(0, hp - actor.damage.integrity);
           this.recordDamage(owner, actor, torpedo.id, `${w.name}${torpedo.tubeId === 'aircraft.payload' ? ' · Air torpedo' : ' · Torpedo'}`, Math.max(0, hp - actor.damage.integrity));
           this.lastDamager.set(actor.motion.id, owner.motion.id);
         }
-        this.emit({ kind: armed ? 'torpedo-hit' : 'torpedo-dud', position: localToWorld(point, actor.motion), shipId: actor.motion.id, message, hullDamage: Math.max(0, hp - actor.damage.integrity), torpedo: evidence });
+        this.emit({ kind: detonates ? 'torpedo-hit' : 'torpedo-dud', position: localToWorld(point, actor.motion), shipId: actor.motion.id, message, hullDamage: Math.max(0, hp - actor.damage.integrity), torpedo: evidence });
       }
       torpedo.position = to; torpedo.distance += travel;
       if (!hit && torpedo.distance >= w.rangeM - 1e-6) this.emit({ kind: 'torpedo-expired', position: [...to], shipId: torpedo.ownerId, message: 'Torpedo reached maximum range', torpedo: evidence });

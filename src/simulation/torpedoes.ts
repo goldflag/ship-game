@@ -2,7 +2,7 @@ import { hullDepth } from './ship';
 import { mayReachHull, torpedoHullRadius } from './spatial';
 import type { ShipDefinition, TorpedoPart, Vec3 } from '../ships/blueprint';
 import type { FleetActor } from './battle';
-import { add, clamp, localToWorld, radians, rotate, scale, segmentBox, sub, worldToLocal, wrapAngle } from './geometry';
+import { add, dot, normalize, clamp, localToWorld, radians, rotate, scale, segmentBox, sub, worldToLocal, wrapAngle } from './geometry';
 import { motionVelocity } from './ship';
 import { structuralHits } from './structure';
 import { addBreach } from './damage';
@@ -183,4 +183,21 @@ export function damageUnderwaterBlast(actor: FleetActor, point: Vec3, w: { damag
     state.hp = Math.max(0, state.hp - w.damage * .5 * (1 - module.distance / 8));
   }
   return `${label}${compartment ? ` · ${compartment.c.name}` : ''} · flooding breach`;
+}
+
+/** Gameplay tuning shared with the Rust authority; angle measured from the surface. */
+export function glancingDudChance(direction: Vec3, normal: Vec3): number {
+  const sine = clamp(Math.abs(dot(normalize(direction), normalize(normal))), 0, 1);
+  return .9 * clamp(1 - Math.asin(sine) / radians(20), 0, 1);
+}
+
+/** Stateless seeded roll, independent of projectile iteration and display rate. */
+export function torpedoDudRoll(seed: number, projectile: number): number {
+  let x = seed ^ Math.imul(projectile, 0x9e3779b9) ^ 0x746f7270;
+  x ^= x >>> 16;
+  x = Math.imul(x, 0x85ebca6b);
+  x ^= x >>> 13;
+  x = Math.imul(x, 0xc2b2ae35);
+  x ^= x >>> 16;
+  return (x >>> 0) / 4294967296;
 }

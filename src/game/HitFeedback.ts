@@ -33,7 +33,7 @@ export class HitFeedback {
       if (time - hitTime >= DURATION) continue;
       const position = worldToLocal(event.position, actor.motion);
       const projectile = event.shell?.id ?? event.torpedo?.id ?? event.depthCharge?.id ?? impact?.shellId ?? event.sequence;
-      const part = impact?.targetName ?? event.message.split(' · ')[1] ?? 'Hull';
+      const part = impact?.targetName ?? (event.kind === 'torpedo-dud' ? 'Hull' : undefined) ?? event.message.split(' · ')[1] ?? 'Hull';
       const partId = impact?.targetId ?? part;
       const local = impact?.localDamage;
       // Equipment loss stays the headline; structural context explains reduced hull damage.
@@ -41,7 +41,7 @@ export class HitFeedback {
         : impact?.throughWreckage && (impact.damage ?? 0) > 0 ? 'Through wreckage · Equipment damaged'
         : local && local.condition < .05 ? 'Destroyed section · Minimal damage'
         : local && local.multiplier < 1 ? 'Damaged section · Reduced damage' : impact ? outcomes[impact.outcome] : '';
-      const result = impact ? `${impact.outcome === 'stopped' || impact.outcome === 'ricochet' ? outcomes[impact.outcome] : explanation}${impact.breachAreaM2 ? ' · New opening' : ''}` : event.kind === 'torpedo-dud' ? 'Unarmed impact' : 'Flooding breach';
+      const result = impact ? `${impact.outcome === 'stopped' || impact.outcome === 'ricochet' ? outcomes[impact.outcome] : explanation}${impact.breachAreaM2 ? ' · New opening' : ''}` : event.kind === 'torpedo-dud' ? (event.message.endsWith('glancing impact') ? 'Dud · glancing impact' : 'Unarmed impact') : 'Flooding breach';
       const priority = impact ? (impact.kind === 'module' || impact.kind === 'mount' ? 3 : impact.kind === 'burst' ? 2 : 1) + (impact.outcome === 'destroyed' ? 3 : 0) : 4;
       const damage = Math.max(0, impact?.hullDamage ?? event.hullDamage ?? 0);
       const existing = this.cues.find(c => c.shipId === actor.motion.id && c.projectileIds.includes(projectile));

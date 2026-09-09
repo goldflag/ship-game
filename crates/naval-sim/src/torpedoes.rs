@@ -310,7 +310,7 @@ pub fn first_torpedo_hit(
     from: Vec3,
     to: Vec3,
     actors: &[Vessel],
-) -> Option<(usize, Vec3, f64)> {
+) -> Option<(usize, Vec3, f64, Vec3)> {
     let mut result = None;
     for (i, a) in actors.iter().enumerate() {
         if a.motion.id == t.owner_id {
@@ -342,9 +342,9 @@ pub fn first_torpedo_hit(
             continue;
         }
         if let Some(hit) = structural_hits(from, to, &a.compiled.torpedo_hull).first()
-            && result.is_none_or(|(_, _, t)| hit.hit.t < t)
+            && result.is_none_or(|(_, _, t, _)| hit.hit.t < t)
         {
-            result = Some((i, hit.hit.point, hit.hit.t));
+            result = Some((i, hit.hit.point, hit.hit.t, hit.hit.normal));
         }
     }
     result
@@ -447,4 +447,24 @@ pub fn damage_underwater_blast(
         "{label}{} · flooding breach",
         compartment.map_or(String::new(), |(_, c)| format!(" · {}", c.name))
     )
+}
+
+/// Gameplay contact-pistol tuning: reliable at >=20 degrees to the surface,
+/// rising linearly to 90% duds at grazing incidence. Direction and normal are local.
+pub fn glancing_dud_chance(direction: Vec3, normal: Vec3) -> f64 {
+    let sine = dot(normalize(direction), normalize(normal))
+        .abs()
+        .clamp(0.0, 1.0);
+    0.9 * (1.0 - sine.asin() / radians(20.0)).clamp(0.0, 1.0)
+}
+
+/// Stateless seeded roll; projectile order and display frame rate cannot change it.
+pub fn torpedo_dud_roll(seed: u32, projectile: i64) -> f64 {
+    let mut x = seed ^ (projectile as u32).wrapping_mul(0x9e3779b9) ^ 0x746f7270;
+    x ^= x >> 16;
+    x = x.wrapping_mul(0x85ebca6b);
+    x ^= x >> 13;
+    x = x.wrapping_mul(0xc2b2ae35);
+    x ^= x >> 16;
+    x as f64 / 4294967296.0
 }

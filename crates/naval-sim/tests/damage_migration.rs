@@ -567,7 +567,7 @@ fn torpedo_training_swept_hits_and_depth_charge_trajectories_match() {
                 weapon: serde_json::from_value(fixture["torpedo"].clone()).unwrap(),
             };
             let hit = torpedoes::first_torpedo_hit(&t, from, to, std::slice::from_ref(&actor))
-                .map(|(_, point, t)| json!({"point":point,"t":t}));
+                .map(|(_, point, t, _)| json!({"point":point,"t":t}));
             compare(&json!(hit), &shot["hit"], &format!("{id}.hit[{i}]"));
         }
         let message = torpedoes::damage_underwater_blast(
