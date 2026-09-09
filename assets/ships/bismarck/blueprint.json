@@ -23234,7 +23234,8 @@
         "fuelSeconds": 90,
         "ignitionHeat": 0.5,
         "heatPerDamage": 0.014
-      }
+      },
+      "traverseDeg": 138
     },
     {
       "id": "caesar",

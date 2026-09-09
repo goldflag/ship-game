@@ -467,7 +467,7 @@ def searchlight(name,x,y,z,bearing,radius=.75):
  axis=Vector((math.cos(bearing),math.sin(bearing),.08)).normalized()
  side=Vector((-math.sin(bearing),math.cos(bearing),0));up=axis.cross(side)
  def p(a,b,h):return Vector((x,y,z))+axis*a+side*b+up*h
- cyl(name+' deck sole',(x,y,z+.08),.55,.16,materials['edge'],detailcol,28)
+ cyl(name+' deck sole',(x,y,z+.03),.55,.26,materials['edge'],detailcol,28)
  cyl(name+' swivel pedestal',(x,y,z+.29),.32,.40,materials['naval'],detailcol,24)
  cyl(name+' training ring',(x,y,z+.50),.53,.13,materials['edge'],detailcol,28)
  center=Vector((x,y,z+1.45));width=radius+.13
@@ -850,7 +850,7 @@ for sign in [-1,1]:
   y*=sign;z=aa_support.below(x,y,z+3);box('Ready ammunition locker',(x,y,z+.62),(1.05,.64,1.24),materials['naval'],detailcol)
   box('Ammunition locker lid',(x,y,z+1.28),(1.1,.69,.08),materials['roof'],detailcol)
   rod('Locker handle',(x-.12,y+sign*.34,z+.8),(x+.12,y+sign*.34,z+.8),.022,materials['dark'],detailcol,vertices=6)
- for x,y,z in [(36,4.9,12.65),(7,10.7,8.6),(-34,7.7,9.4),(-42,7.9,9.4)]:
+ for x,y,z in [(36,4.9,12.65),(7,10.7,8.6),(-42,7.9,9.4)]:
   y*=sign;z=aa_support.below(x,y,z+4)+.09;pts=[(xx,yy,z+.3) for xx,yy in rounded_rect(x,y,2.55,1.28,.56,5)];polyline('Carley float buoyant tube',pts,.17,materials['canvas'],closed=True,vertices=8)
   for xx in [-.85,-.45,0,.45,.85]:rod('Carley float floor',(x+xx,y-.52,z+.22),(x+xx,y+.52,z+.22),.033,materials['wood'],detailcol,vertices=6)
   for xx in [-.75,.75]:box('Carley float cradle',(x+xx,y,z+.025),(.12,1.12,.22),materials['edge'],detailcol)
