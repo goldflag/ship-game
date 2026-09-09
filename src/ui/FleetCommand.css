@@ -97,7 +97,7 @@
 .fleet-command-deck-task[data-suspended] { color:var(--fleet-gold); }
 .fleet-command-deck ol { margin:6px 0 0; padding:0; list-style:none; }
 .fleet-command-deck li { display:flex; align-items:center; gap:6px; border-top:1px solid var(--fleet-line); padding:5px 0; }
-.fleet-command-deck li>div { flex:1; min-width:0; }
+.fleet-command-deck li>div:first-child { flex:1; min-width:0; }
 .fleet-command-deck li span,.fleet-command-deck li small { display:block; overflow-wrap:anywhere; }
 .fleet-command-deck li button { font-size:11px; padding:4px 6px; }
 .fleet-command-service { margin:8px 0; padding-top:8px; border-top:1px solid var(--fleet-line); }
@@ -136,3 +136,6 @@
   .fleet-command-helm .fleet-command-card { left:12px; width:190px; }
 }
 @media (prefers-reduced-motion:reduce) { .fleet-command * { scroll-behavior:auto; } }
+
+.fleet-command-deck-actions { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:4px; max-width:50%; }
+.fleet-command-deck-policy { margin:7px 0 4px; flex-wrap:wrap; }

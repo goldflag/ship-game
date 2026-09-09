@@ -17,6 +17,8 @@ test('managed deck commands and queues retain carrier ownership and policies thr
   try {
     const carriers = session.actors.filter(a => a.team === 'friendly' && a.airWing);
     expect(session.controlledShipId).toBe('player');
+    expect(session.setDeckPolicy(carriers[0].motion.id, 'launch-first')).toBe(true);
+    expect(session.setDeckPolicy(carriers[1].motion.id, 'recover-first')).toBe(true);
     for (const carrier of carriers) {
       const wing = airWingTelemetry(carrier, session.actors)!;
       expect(wing.maxActiveFlights).toBeNull(); expect(wing.onDeck).toBe(24); expect(wing.inHangar).toBe(24);
@@ -28,6 +30,9 @@ test('managed deck commands and queues retain carrier ownership and policies thr
     expect(session.tick).toBe(0); expect(session.controlledShipId).toBe('player');
     for (const carrier of carriers) expect(carrier.airWing!.deck!.queue).toHaveLength(1);
     const first = carriers[0], request = first.airWing!.deck!.queue[0];
+    expect(first.airWing!.deck!.policy).toBe('launch-first');
+    expect(carriers[1].airWing!.deck!.policy).toBe('recover-first');
+    expect(() => session.prioritizeDeckTask(first.motion.id, request.id)).toThrow('deck is full');
     expect(request.automatic).toBe(false);
     expect(session.cancelDeckTask(first.motion.id, request.id)).toBe(true);
     expect(session.cancelDeckTask('enemy-1', request.id)).toBe(false);
@@ -36,6 +41,16 @@ test('managed deck commands and queues retain carrier ownership and policies thr
     expect(first.airWing!.deck!.queue).toHaveLength(0);
     expect(carriers[1].airWing!.deck!.queue).toHaveLength(1);
     expect(session.controlledShipId).toBe('player'); expect(session.tick).toBe(0);
+    for (const group of first.airWing!.flights.slice(0, 2)) session.commandDeck(group.id, 'stow');
+    session.applyRaw(session.runtime.snapshot());
+    const next = first.airWing!.deck!.queue[1].id;
+    expect(session.prioritizeDeckTask(first.motion.id, next)).toBe(true);
+    session.applyRaw(session.runtime.snapshot());
+    expect(first.airWing!.deck!.nextRequestId).toBe(next);
+    expect(first.airWing!.deck!.queue[0].id).toBe(next);
+    expect(carriers[1].airWing!.deck!.queue).toHaveLength(1);
+    expect(session.controlledShipId).toBe('player'); expect(session.tick).toBe(0);
+
   } finally { session.dispose(); }
 });
 test('PvE WASM sends an owned fleet and unknown enemy state; instruments work without a target', async () => {

@@ -1,3 +1,4 @@
+import type { DeckPolicy } from '../multiplayer/generated/DeckPolicy';
 import { physicalLoss } from '../simulation/battleRules';
 import { PveDraft } from './session/PveDraft';
 import type { Placement } from '../multiplayer/generated/Placement';
@@ -903,6 +904,8 @@ export class Game {
   }
   commandDeck(id: string, action: DeckServiceAction): boolean { return !this.inPort && (!this.paused || this.fleetCommandMode) && (this.simulation.commandDeck?.(id, action) ?? false); }
   cancelDeckTask(carrierId: string, requestId: number): boolean { return !this.inPort && (!this.paused || this.fleetCommandMode) && (this.simulation.cancelDeckTask?.(carrierId, requestId) ?? false); }
+  setDeckPolicy(carrierId: string, policy: DeckPolicy): boolean { return !this.inPort && (!this.paused || this.fleetCommandMode) && (this.simulation.setDeckPolicy?.(carrierId, policy) ?? false); }
+  prioritizeDeckTask(carrierId: string, requestId: number): boolean { return !this.inPort && (!this.paused || this.fleetCommandMode) && (this.simulation.prioritizeDeckTask?.(carrierId, requestId) ?? false); }
   orderFlight(id: string, order: AirOrder): boolean { return !this.inPort && (!this.paused || this.fleetCommandMode) && this.simulation.orderFlight(id, order); }
   commandSquadron(id: string, order: AirOrder): boolean { return !this.inPort && (!this.paused || this.fleetCommandMode) && this.simulation.commandSquadron(id, order); }
   panAirMap(dx: number, dy: number, x?: number, y?: number): void { this.battlefieldCamera.pan(dx, dy, this.host.clientWidth, this.host.clientHeight, x, y); }

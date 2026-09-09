@@ -12,6 +12,9 @@ use crate::{
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
 #[path = "deck_recovery.rs"]
 mod recovery;
+#[path = "deck_scheduling.rs"]
+mod scheduling;
+pub use scheduling::DeckPolicy;
 
 #[derive(
     Clone,
@@ -45,6 +48,8 @@ pub struct DeckRequest {
 #[serde(rename_all = "camelCase")]
 pub struct DeckStatus {
     pub queue: Vec<DeckRequest>,
+    pub policy: DeckPolicy,
+    pub next_request_id: Option<u64>,
     pub current_plane_id: Option<String>,
     pub task: Option<String>,
     pub step_remaining_seconds: Option<f64>,
@@ -107,8 +112,8 @@ pub struct DeckOperations {
     occupancy: OccupancyKey,
     failed: BTreeSet<(String, DeckAction, usize)>,
     notice: Option<String>,
-    launched_batch: usize,
-    recovered_batch: usize,
+    batch: scheduling::BatchSchedule,
+    next_request_id: Option<u64>,
 }
 fn pose(p: &Aircraft, ground: &GroundPose) -> DeckPose {
     DeckPose {
@@ -226,8 +231,8 @@ impl DeckOperations {
             occupancy: vec![],
             failed: BTreeSet::new(),
             notice: None,
-            launched_batch: 0,
-            recovered_batch: 0,
+            batch: scheduling::BatchSchedule::default(),
+            next_request_id: None,
         };
         ops.publish(state, false);
         Ok(ops)
@@ -314,6 +319,9 @@ impl DeckOperations {
         self.queue.retain(|r| r.id != id);
         if before == self.queue.len() {
             return false;
+        }
+        if self.next_request_id == Some(id) {
+            self.next_request_id = None;
         }
         if self.active.as_ref().is_some_and(|j| j.request_id == id) {
             if self
@@ -409,19 +417,7 @@ impl DeckOperations {
         }
         let mut completed = vec![];
         let recovery_waiting = !Self::near_returners(state, actor).is_empty();
-        let launch_waiting = self
-            .queue
-            .iter()
-            .filter(|r| r.action == DeckAction::Launch)
-            .any(|r| {
-                state.planes.iter().any(|p| {
-                    p.flight_id.as_deref() == Some(r.flight_id.as_str())
-                        && matches!(
-                            p.phase.as_str(),
-                            "ready" | "queued" | "taxi" | "launch-ready"
-                        )
-                })
-            });
+        let launch_waiting = self.launch_waiting(state);
 
         for request in &self.queue {
             if (recovery_waiting || launch_waiting) && request.action == DeckAction::Raise {
@@ -834,8 +830,7 @@ impl DeckOperations {
                         Destination::Spot(_) => {
                             p.phase = "ready".into();
                             if job.arrival {
-                                self.recovered_batch += 1;
-                                self.launched_batch = 0;
+                                self.batch.recovered();
                             }
                             finished = true;
                         }
@@ -899,8 +894,7 @@ impl DeckOperations {
                     if p.wing_fold <= 0.0 {
                         p.phase = "takeoff".into();
                         p.sortie = Some(p.sortie.unwrap_or(0) + 1);
-                        self.launched_batch += 1;
-                        self.recovered_batch = 0;
+                        self.batch.launched();
                         p.timer = 0.0;
                         p.flight_time = 0.0;
                         finished = true;
@@ -918,6 +912,10 @@ impl DeckOperations {
     pub(crate) fn publish(&self, state: &mut AirWingState, suspended: bool) {
         state.deck = Some(DeckStatus {
             queue: self.queue.iter().cloned().collect(),
+            policy: self.batch.policy,
+            next_request_id: self
+                .next_request_id
+                .filter(|id| self.queue.iter().any(|r| r.id == *id)),
             current_plane_id: self.active.as_ref().map(|j| j.plane_id.clone()),
             task: self.active.as_ref().map(|j| {
                 match j.stage {

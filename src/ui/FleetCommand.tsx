@@ -295,7 +295,11 @@ export function FleetCommand({ data, game, bindings }: { data: Telemetry; game: 
       </div>
     </section>
     {mapOpen && airOpen && <section className="fleet-command-air" aria-label="Air operations across all carriers"><header><h2>Air operations</h2><label>Carrier<Select value={carrier} onValueChange={setCarrier}><SelectOption value="all">All carriers</SelectOption>{wings.map(({ owner }) => <SelectOption key={owner.motion.id} value={owner.motion.id}>{nameFor(owner.motion.id)}</SelectOption>)}</Select></label><button onClick={() => setAirOpen(false)}>Hide</button></header><div className="fleet-command-air-body"><div className="fleet-command-flights" aria-label="Air groups">{flights.filter(f => carrier === 'all' || f.ownerId === carrier).map(f => <button key={f.id} disabled={!f.surviving} aria-pressed={game.selectedFlightIds.includes(f.id)} onClick={e => selectAir(f.id, e.ctrlKey || e.metaKey || e.shiftKey)}><span><Icon name={roleIcon(f.role)} size={20}/><strong>{f.name}</strong><b>{f.surviving}/{f.total}</b></span><small>{f.carrierName} · {roleLabel(f.role)}</small><small>{f.activity} · {f.armed} armed</small>{f.notice && <small>{f.notice}</small>}</button>)}</div><div className="fleet-command-decks">{wings.filter(({ owner }) => carrier === 'all' || owner.motion.id === carrier).map(({ owner, wing }) =>
-      <CarrierDeck key={owner.motion.id} name={nameFor(owner.motion.id)} wing={wing} enabled={actionable} cancel={id => {
+      <CarrierDeck key={owner.motion.id} name={nameFor(owner.motion.id)} wing={wing} enabled={actionable} setPolicy={policy => {
+        if (game.setDeckPolicy(owner.motion.id, policy)) setFeedback(`${nameFor(owner.motion.id)} · Deck policy order queued`);
+      }} prioritize={id => {
+        if (game.prioritizeDeckTask(owner.motion.id, id)) setFeedback(`${nameFor(owner.motion.id)} · Next deck task requested`);
+      }} cancel={id => {
         if (game.cancelDeckTask(owner.motion.id, id)) setFeedback(`${nameFor(owner.motion.id)} · Deck cancellation queued`);
       }}/>
     )}</div></div></section>}

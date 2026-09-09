@@ -1,4 +1,5 @@
 import type { DeckAction } from '../../multiplayer/generated/DeckAction';
+import type { DeckPolicy } from '../../multiplayer/generated/DeckPolicy';
 export type DeckServiceAction = Exclude<DeckAction, 'launch'>;
 import type { CombatSimulation } from '../../simulation/combat';
 import type { Vec3 } from '../../ships/blueprint';
@@ -36,6 +37,8 @@ export interface BattleSession extends Omit<Pick<CombatSimulation, keyof CombatS
  releaseHelm?(): boolean;
  commandDeck?(flightId: string, action: DeckServiceAction): boolean;
  cancelDeckTask?(carrierId: string, requestId: number): boolean;
+ setDeckPolicy?(carrierId: string, policy: DeckPolicy): boolean;
+ prioritizeDeckTask?(carrierId: string, requestId: number): boolean;
  routeShip?(id: string, waypoints: [number, number][], speedMps: number, looped?: boolean, append?: boolean): void;
  holdShipArea?(id: string, position: [number, number], radiusM: number): void;
  escortShip?(id: string, leaderId: string, offset: [number, number], radiusM: number): void;

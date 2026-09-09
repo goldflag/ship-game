@@ -57,6 +57,13 @@ pub enum Command {
         #[ts(type = "number")]
         request_id: u64,
     },
+    DeckPolicy {
+        policy: naval_sim::deck_operations::DeckPolicy,
+    },
+    NextDeck {
+        #[ts(type = "number")]
+        request_id: u64,
+    },
     DamageControl {
         priority: ControlPriority,
         focus: Option<String>,
@@ -202,7 +209,7 @@ fn validate_command(c: &CommandEnvelope) -> Result<(), CommandError> {
                 return Err(CommandError::Bounds);
             }
         }
-        Command::CancelDeck { request_id } => {
+        Command::CancelDeck { request_id } | Command::NextDeck { request_id } => {
             if *request_id == 0 || *request_id > 9_007_199_254_740_991 {
                 return Err(CommandError::Bounds);
             }
@@ -416,6 +423,8 @@ impl FleetControl {
             | Command::Recall { .. }
             | Command::Deck { .. }
             | Command::CancelDeck { .. }
+            | Command::NextDeck { .. }
+            | Command::DeckPolicy { .. }
             | Command::DamageControl { .. } => {}
             Command::Select | Command::ReleaseHelm => ship.input = None,
             Command::Input { input } => {

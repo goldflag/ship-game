@@ -1,3 +1,4 @@
+import type { DeckPolicy } from '../../multiplayer/generated/DeckPolicy';
 import type { BattleSession, ObservedShip, BattleDebrief, DeckServiceAction } from './BattleSession';
 import type { ContactTrack } from '../../multiplayer/generated/ContactTrack';
 import type { BattleSetup } from '../../multiplayer/generated/BattleSetup';
@@ -255,6 +256,17 @@ export abstract class SnapshotSession implements BattleSession {
     const owner = this.actors.find(a => a.team === 'friendly' && a.motion.id === carrierId && a.airWing?.deck);
     if (!owner || this.result !== 'active' || !Number.isSafeInteger(requestId) || requestId < 1) return false;
     this.send(carrierId, { type: 'cancel-deck', requestId });
+    return true;
+  }
+  setDeckPolicy(carrierId: string, policy: DeckPolicy) {
+    if (this.result !== 'active' || !this.actors.some(a => a.team === 'friendly' && a.motion.id === carrierId && a.airWing?.deck)) return false;
+    this.send(carrierId, { type: 'deck-policy', policy });
+    return true;
+  }
+  prioritizeDeckTask(carrierId: string, requestId: number) {
+    if (this.result !== 'active' || !Number.isSafeInteger(requestId) || requestId < 1
+      || !this.actors.some(a => a.team === 'friendly' && a.motion.id === carrierId && a.airWing?.deck)) return false;
+    this.send(carrierId, { type: 'next-deck', requestId });
     return true;
   }
   orderFlight(id: string, order: AirOrder) { return this.commandSquadron(id, order); }

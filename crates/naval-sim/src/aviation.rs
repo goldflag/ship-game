@@ -401,6 +401,42 @@ impl Aviation {
         self.deck_operations.insert(actor_id.into(), ops);
         cancelled
     }
+    pub fn set_deck_policy(
+        &mut self,
+        actor_id: &str,
+        policy: crate::deck_operations::DeckPolicy,
+    ) -> Result<(), String> {
+        let ops = self
+            .deck_operations
+            .get_mut(actor_id)
+            .ok_or("This battle does not use managed deck operations")?;
+        let state = &mut self
+            .wings
+            .iter_mut()
+            .find(|w| w.owner_id == actor_id)
+            .unwrap()
+            .state;
+        let suspended = state.deck.as_ref().is_some_and(|d| d.suspended);
+        ops.set_policy(policy);
+        ops.publish(state, suspended);
+        Ok(())
+    }
+    pub fn prioritize_deck(&mut self, actor: &Vessel, id: u64) -> Result<(), String> {
+        let ops = self
+            .deck_operations
+            .get_mut(&actor.motion.id)
+            .ok_or("This battle does not use managed deck operations")?;
+        let state = &mut self
+            .wings
+            .iter_mut()
+            .find(|w| w.owner_id == actor.motion.id)
+            .unwrap()
+            .state;
+        let result = ops.prioritize(state, actor, id);
+        let suspended = state.deck.as_ref().is_some_and(|d| d.suspended);
+        ops.publish(state, suspended);
+        result
+    }
     pub fn recall(&mut self, actor_id: &str, flight_id: Option<&str>) {
         let managed = self.deck_operations.contains_key(actor_id);
         if let Some(ops) = self.deck_operations.get_mut(actor_id) {

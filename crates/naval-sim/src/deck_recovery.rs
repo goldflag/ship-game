@@ -53,7 +53,7 @@ impl DeckOperations {
         {
             return;
         }
-        if self.recovered_batch >= 4 && self.queue.iter().any(|r| r.action == DeckAction::Launch) {
+        if self.launch_batch_due(state) {
             return;
         }
         let p = &state.planes[index];

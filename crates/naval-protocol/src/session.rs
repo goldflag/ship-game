@@ -198,6 +198,18 @@ impl Session {
                     return Err(CommandError::Deck("Deck task is no longer queued".into()));
                 }
             }
+            Command::DeckPolicy { policy } => {
+                self.battle
+                    .aviation
+                    .set_deck_policy(&c.ship_id, policy)
+                    .map_err(CommandError::Deck)?;
+            }
+            Command::NextDeck { request_id } => {
+                self.battle
+                    .aviation
+                    .prioritize_deck(actor, request_id)
+                    .map_err(CommandError::Deck)?;
+            }
             Command::DamageControl { priority, focus } => {
                 let focus = focus.unwrap_or_default();
                 if !focus.is_empty()

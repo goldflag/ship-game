@@ -4,7 +4,7 @@ use naval_sim::{
     battle::{Battle, BattleSetup, ShipSetup},
     bots::AiLevel,
     catalog::Catalog,
-    deck_operations::DeckAction,
+    deck_operations::{DeckAction, DeckPolicy},
     rules::TeamId,
     vessel::{CompiledShip, Controller},
 };
@@ -29,6 +29,10 @@ fn deck_commands_validate_ids_and_cannot_bypass_flight_order_validation() {
             action: DeckAction::Raise,
         },
         Command::CancelDeck { request_id: 0 },
+        Command::NextDeck { request_id: 0 },
+        Command::NextDeck {
+            request_id: u64::MAX,
+        },
         Command::CancelDeck {
             request_id: u64::MAX,
         },
@@ -228,6 +232,145 @@ fn owned_carriers_receive_deck_commands_without_taking_the_destroyer_helm() {
             )
         ),
         Err(CommandError::Deck(_))
+    ));
+    session
+        .apply(
+            0,
+            envelope(
+                8,
+                "enterprise",
+                Command::DeckPolicy {
+                    policy: DeckPolicy::LaunchFirst,
+                },
+            ),
+        )
+        .unwrap();
+    session
+        .apply(
+            0,
+            envelope(
+                9,
+                "shokaku",
+                Command::DeckPolicy {
+                    policy: DeckPolicy::RecoverFirst,
+                },
+            ),
+        )
+        .unwrap();
+    assert_eq!(
+        session
+            .battle
+            .aviation
+            .wing("enterprise")
+            .unwrap()
+            .deck
+            .as_ref()
+            .unwrap()
+            .policy,
+        DeckPolicy::LaunchFirst
+    );
+    assert_eq!(
+        session
+            .battle
+            .aviation
+            .wing("shokaku")
+            .unwrap()
+            .deck
+            .as_ref()
+            .unwrap()
+            .policy,
+        DeckPolicy::RecoverFirst
+    );
+    let groups = session
+        .battle
+        .aviation
+        .wing("enterprise")
+        .unwrap()
+        .flights
+        .clone();
+    session
+        .apply(
+            0,
+            envelope(
+                10,
+                "enterprise",
+                Command::Deck {
+                    flight_id: groups[2].id.clone(),
+                    action: DeckAction::Raise,
+                },
+            ),
+        )
+        .unwrap();
+    let raise = session
+        .battle
+        .aviation
+        .wing("enterprise")
+        .unwrap()
+        .deck
+        .as_ref()
+        .unwrap()
+        .queue[0]
+        .id;
+    assert!(
+        matches!(session.apply(0, envelope(11, "enterprise", Command::NextDeck { request_id: raise })), Err(CommandError::Deck(reason)) if reason.contains("deck is full"))
+    );
+    for (sequence, group) in [(12, &groups[0]), (13, &groups[1])] {
+        session
+            .apply(
+                0,
+                envelope(
+                    sequence,
+                    "enterprise",
+                    Command::Deck {
+                        flight_id: group.id.clone(),
+                        action: DeckAction::Stow,
+                    },
+                ),
+            )
+            .unwrap();
+    }
+    let next = session
+        .battle
+        .aviation
+        .wing("enterprise")
+        .unwrap()
+        .deck
+        .as_ref()
+        .unwrap()
+        .queue
+        .last()
+        .unwrap()
+        .id;
+    session
+        .apply(
+            0,
+            envelope(14, "enterprise", Command::NextDeck { request_id: next }),
+        )
+        .unwrap();
+    let deck = session
+        .battle
+        .aviation
+        .wing("enterprise")
+        .unwrap()
+        .deck
+        .as_ref()
+        .unwrap();
+    assert_eq!(deck.next_request_id, Some(next));
+    assert_eq!(deck.queue[0].id, next);
+    assert_eq!(deck.queue.len(), 3);
+    assert_eq!(session.battle.tick, 0);
+    assert!(matches!(
+        session.apply(
+            0,
+            envelope(
+                15,
+                "enemy",
+                Command::DeckPolicy {
+                    policy: DeckPolicy::LaunchFirst
+                }
+            )
+        ),
+        Err(CommandError::Ownership)
     ));
     assert_eq!(
         session.control.players[0].selected_ship_id.as_deref(),

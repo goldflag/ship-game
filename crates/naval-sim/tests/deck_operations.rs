@@ -4,7 +4,7 @@ use naval_sim::{
     aviation::Aviation,
     aviation_step::AirContext,
     catalog::Catalog,
-    deck_operations::DeckAction,
+    deck_operations::{DeckAction, DeckPolicy},
     rules::TeamId,
     vessel::{CompiledShip, Controller, Vessel},
 };
@@ -152,6 +152,7 @@ fn timed_lifts_suspend_cancel_and_service_preserves_individual_health() {
         .iter()
         .position(|p| p.phase == "raising")
         .unwrap();
+    assert!(a.prioritize_deck(&actors[0], request).is_err());
     let initial_time = a.wings[0]
         .state
         .deck
@@ -854,4 +855,155 @@ fn returning_groups_cannot_permanently_block_a_queued_launch_behind_them() {
         launched.len(),
         a.wings[0].state.deck
     );
+}
+
+#[test]
+fn all_deck_preferences_drain_mixed_physical_traffic_without_losing_aircraft() {
+    use naval_sim::{deck_operations::place, flight_deck::DeckPose, geometry::local_to_world};
+    for policy in [
+        DeckPolicy::Balanced,
+        DeckPolicy::LaunchFirst,
+        DeckPolicy::RecoverFirst,
+    ] {
+        let (actors, mut a) = setup("enterprise-cv6", 0);
+        a.set_deck_policy("carrier", policy).unwrap();
+        let flights = a.wings[0].state.flights.clone();
+        let role = |flight: &&naval_sim::aircraft::AirFlight, role: &str| {
+            a.wings[0]
+                .state
+                .planes
+                .iter()
+                .any(|p| flight.plane_ids.contains(&p.id) && p.role == role)
+        };
+        let departing: Vec<_> = flights
+            .iter()
+            .filter(|f| role(f, "fighter"))
+            .take(3)
+            .cloned()
+            .collect();
+        let arrivals: Vec<_> = flights
+            .iter()
+            .filter(|f| role(f, "dive-bomber"))
+            .take(3)
+            .flat_map(|f| f.plane_ids.clone())
+            .collect();
+        let leaving: Vec<_> = departing.iter().flat_map(|f| f.plane_ids.clone()).collect();
+        for f in &departing {
+            a.deck_command("carrier", &f.id, DeckAction::Raise).unwrap();
+        }
+        let mut time = 0.0;
+        until(&mut a, &actors, &mut time, |a| {
+            a.wings[0]
+                .state
+                .planes
+                .iter()
+                .filter(|p| leaving.contains(&p.id))
+                .all(|p| p.phase == "ready")
+        });
+        let actor = &actors[0];
+        let layout = actor
+            .definition()
+            .air_wing
+            .as_ref()
+            .unwrap()
+            .deck_layout
+            .as_ref()
+            .unwrap();
+        for (i, p) in a.wings[0]
+            .state
+            .planes
+            .iter_mut()
+            .filter(|p| arrivals.contains(&p.id))
+            .enumerate()
+        {
+            p.phase = "returning".into();
+            p.wing_fold = 0.0;
+            p.recovery_requested_at = Some(i as f64);
+            p.pilot.recovery_stage = Some("final".into());
+            p.position = local_to_world(
+                [
+                    layout.recovery_touchdown[0],
+                    90.0,
+                    layout.recovery_touchdown[2] + 1100.0,
+                ],
+                actor.motion.pose(),
+            );
+        }
+        for f in &departing {
+            assert_eq!(
+                a.launch_squadron(
+                    actor,
+                    &f.squadron_id,
+                    None,
+                    Some(AirOrder::Patrol {
+                        point: [5000.0, 800.0, -5000.0]
+                    }),
+                    &actors,
+                    Some(&f.id),
+                    None
+                ),
+                4
+            );
+        }
+        let mut events = String::new();
+        let mut handled = BTreeSet::new();
+        for _ in 0..40000 {
+            let mut ops = a.deck_operations.remove("carrier").unwrap();
+            // Repeated preference changes cannot reset the already-used batch.
+            ops.set_policy(DeckPolicy::Balanced);
+            ops.set_policy(policy);
+            ops.step(&mut a.wings[0].state, actor, &a.ground, true, true, 0.25);
+            if let Some(id) = ops.landing_clearance() {
+                let p = a.wings[0]
+                    .state
+                    .planes
+                    .iter_mut()
+                    .find(|p| p.id == id)
+                    .unwrap();
+                if p.phase != "rollout" {
+                    assert!(handled.insert(p.id.clone()));
+                    events.push('R');
+                    // Queue admission test: supply the permitted touchdown.
+                    p.phase = "rollout".into();
+                    place(
+                        p,
+                        actor,
+                        DeckPose {
+                            position: layout.recovery_touchdown,
+                            heading: 0.0,
+                        },
+                        &a.ground[&p.model_id],
+                    );
+                }
+            }
+            a.deck_operations.insert("carrier".into(), ops);
+            for p in a.wings[0]
+                .state
+                .planes
+                .iter_mut()
+                .filter(|p| p.phase == "takeoff")
+            {
+                assert!(handled.insert(p.id.clone()));
+                events.push('L');
+                // Queue fairness is separate from the existing actual sortie test.
+                p.phase = "outbound".into();
+                p.deck_position = None;
+                p.deck_slot = None;
+                p.deck_heading = None;
+            }
+            if events.len() == 24 {
+                break;
+            }
+        }
+        assert_eq!(
+            events.len(),
+            24,
+            "{policy:?}: {events}; {:?}",
+            a.wings[0].state.deck
+        );
+        assert_eq!(events.chars().filter(|c| *c == 'L').count(), 12);
+        assert_eq!(events.chars().filter(|c| *c == 'R').count(), 12);
+        assert_eq!(a.wings[0].state.planes.len(), 48);
+        assert!(a.wings[0].state.planes.iter().all(|p| p.hp == 100.0));
+    }
 }

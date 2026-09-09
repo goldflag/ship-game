@@ -9,7 +9,7 @@ import { decodeSnapshot } from '../game/session/snapshotCodec';
 function fixture() {
   const sim = new CombatSimulation(shipPreset('enterprise-cv6'));
   const actor = sim.player, state = actor.airWing!;
-  state.deck = { queue: [], suspended: false, capacity: 24, occupied: 24, groupSize: 4, activeFlightLimit: null, endurance: { kind: 'disabled' }, repairCeilingHp: 60 };
+  state.deck = { policy: 'balanced', queue: [], suspended: false, capacity: 24, occupied: 24, groupSize: 4, activeFlightLimit: null, endurance: { kind: 'disabled' }, repairCeilingHp: 60 };
   state.flights = actor.definition.airWing!.squadrons.flatMap(s => Array.from({ length: 4 }, (_, i) => ({
     id: `${s.id}-group-${i}`, name: `${s.name} ${i + 1}`, squadronId: s.id, order: { kind: 'defend' as const },
     planeIds: state.planes.filter(p => p.squadronId === s.id).slice(i * 4, i * 4 + 4).map(p => p.id),
@@ -95,4 +95,29 @@ test('deck controls explain mixed groups and distinguish required clearance from
   expect(renderToStaticMarkup(<AirGroupService flights={telemetry().groups} enabled command={() => {}}/>)).toContain('Current service 0:34 remaining');
   state.deck!.suspended = true;
   expect(renderToStaticMarkup(<CarrierDeck name="Enterprise" wing={telemetry()} enabled={false} cancel={() => {}}/>)).toContain('Deck operations suspended');
+});
+
+test('deck priorities show the selected policy and keep automatic clearance out of player reordering', () => {
+  const { state, telemetry } = fixture();
+  state.deck!.policy = 'recover-first';
+  state.deck!.nextRequestId = 2;
+  state.deck!.queue = [
+    { id: 1, flightId: state.flights[0].id, action: 'stow', automatic: true },
+    { id: 2, flightId: state.flights[1].id, action: 'raise', automatic: false },
+    { id: 3, flightId: state.flights[2].id, action: 'repair', automatic: false },
+  ];
+  const render = (enabled: boolean) => renderToStaticMarkup(<CarrierDeck name="Enterprise" wing={telemetry()} enabled={enabled}
+    cancel={() => {}} setPolicy={() => {}} prioritize={() => {}}/>);
+  const html = render(true);
+  expect(html).toContain('role="combobox"');
+  expect(html).toContain('Recover first');
+  expect(html).toContain('Up to 4 takeoffs / 8 landings per turn when paths are clear');
+  expect(html).not.toContain('Make next: Send below');
+  expect(html).toContain('aria-label="Next: Bring up');
+  expect(html).toContain('aria-label="Make next: Repair below');
+  expect(html).toMatch(/<button disabled="" aria-pressed="true"[^>]*>Next<\/button>/);
+  expect(html).toMatch(/<button aria-pressed="false"[^>]*>Make next<\/button>/);
+  const disabled = render(false).match(/<button[^>]*>/g)!;
+  expect(disabled.length).toBeGreaterThan(0);
+  expect(disabled.every(button => button.includes('disabled=""'))).toBe(true);
 });

@@ -1,4 +1,5 @@
 import type { EndurancePolicy } from '../multiplayer/generated/EndurancePolicy';
+import type { DeckPolicy } from '../multiplayer/generated/DeckPolicy';
 import { physicalLoss } from './battleRules';
 import type { AircraftRole, ShipDefinition, TorpedoPart, Vec3 } from '../ships/blueprint';
 import type { FleetActor, Team } from './battle';
@@ -33,6 +34,7 @@ export interface Aircraft {
   wreck?: { age: number; rollRate: number; impacted: boolean };
 }
 export interface DeckStatus {
+  policy: DeckPolicy; nextRequestId?: number;
   queue: { id: number; flightId: string; action: 'raise' | 'stow' | 'rearm' | 'repair' | 'launch'; automatic: boolean }[];
   currentPlaneId?: string; task?: string; stepRemainingSeconds?: number; suspended: boolean; notice?: string;
   occupied: number; capacity: number; groupSize: number; activeFlightLimit: number | null; endurance: EndurancePolicy; repairCeilingHp: number;
