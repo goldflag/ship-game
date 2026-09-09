@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "id": "yamato-maintained-v1",
+  "basis": "Preserve original recipe colors, scheme, markings and deck coverings. Shared maintained finish; no new historical color claim.",
+  "materials": {
+    "naval": {
+      "paint": "yamato-authored-naval",
+      "finish": "painted-steel"
+    },
+    "roof": {
+      "paint": "yamato-authored-roof",
+      "finish": "painted-deck"
+    },
+    "edge": {
+      "paint": "yamato-authored-edge",
+      "finish": "painted-steel"
+    },
+    "hullgray": {
+      "paint": "yamato-authored-hullgray",
+      "finish": "painted-steel",
+      "projection": "hull"
+    },
+    "underwater": {
+      "paint": "yamato-authored-underwater",
+      "finish": "underwater-coating",
+      "projection": "hull"
+    },
+    "teak": {
+      "paint": "yamato-authored-teak",
+      "finish": "wood",
+      "existing": "procedural"
+    }
+  },
+  "hull": {
+    "bounds": [
+      -131.5,
+      131.5,
+      -11.4,
+      11.4
+    ],
+    "pixelsPerMeter": 15.574144486692015,
+    "waterline": 0,
+    "stainStrength": 0.16,
+    "runoffStrength": 0.16
+  }
+}

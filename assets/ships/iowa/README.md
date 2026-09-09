@@ -35,3 +35,19 @@ Follow [the ship pipeline](../../../docs/ship-pipeline.md).
 
 Build: `bun run ship:build iowa`
 Review: `bun run ship:review iowa`
+
+Appearance follows the [shared fleet finish](../../../docs/ship-appearance.md).
+The main weather deck uses a separate timber material with longitudinal grain,
+staggered joints and slight caulking relief. Steel superstructure decks and gun
+platforms keep the original roof finish. The approved source's blue-gray coating
+is retained: timber does not imply bare tan wood. The former 0.38 m raised seam
+rods are replaced by a plank texture using 0.127 m board width; repeating lengths
+and exact covering margins remain interpreted.
+
+For the user's deck-material correction, textual corroboration comes from the
+[Navy's spring-1943 Iowa caption](https://www.history.navy.mil/our-collections/photography/numerical-list-of-images/nhhc-series/nh-series/80-G-K-06000/80-G-K-6116.html)
+which describes Deck Blue application, and Bureau of Ships materials engineer
+J. G. Kuenzel's [Wood Requirements for Shipbuilding (1950), pp. 248–249](https://doi.org/10.1093/jof/48.4.245),
+which lists Iowa's wooden decking, including five-inch boards. These text records
+support substrate/coating distinctions; no additional external visual reference
+or refit has been substituted for the approved model.

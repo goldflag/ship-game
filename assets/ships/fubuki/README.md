@@ -20,3 +20,8 @@ bun run ship:build fubuki
 bun run ship:review fubuki
 bun run ship:check fubuki
 ```
+
+Appearance follows the [shared fleet finish](../../../docs/ship-appearance.md).
+`appearance.json` preserves this recipe’s colors, scheme and deck coverings while
+adding the shared matte materials and restrained original surface wear. Existing
+markings and plank detail remain intact; this is not a new historical-accuracy claim.

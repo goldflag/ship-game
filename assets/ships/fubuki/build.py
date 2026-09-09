@@ -193,5 +193,8 @@ for o in col.objects:
     v=o.matrix_world@o.data.vertices[o.data.loops[li].vertex_index].co;uv.data[li].uv=((v.x+half)/h['length'],(v.z+3.3)/10)
  bm=bmesh.new();bm.from_mesh(o.data);bmesh.ops.recalc_face_normals(bm,faces=list(bm.faces));bm.to_mesh(o.data);bm.free()
 scene['definitionHash']=definition['contentHash'];scene['authoringRevision']=1
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'appearance'))
+from surface import apply_appearance
+apply_appearance(scene,materials,Path(__file__).with_name('appearance.json'))
 bpy.ops.wm.save_as_mainfile(filepath=str(out/'source.blend'))
 print('FUBUKI ORIGINAL',len(col.objects),'objects',flush=True)

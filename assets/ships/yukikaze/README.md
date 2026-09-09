@@ -22,3 +22,8 @@ bun run ship:check yukikaze
 ```
 
 Follow the [ship pipeline](../../../docs/ship-pipeline.md) and [model review](../../../docs/ship-model-review.md).
+
+Appearance follows the [shared fleet finish](../../../docs/ship-appearance.md).
+`appearance.json` preserves this recipe’s colors, scheme and deck coverings while
+adding the shared matte materials and restrained original surface wear. Existing
+markings and plank detail remain intact; this is not a new historical-accuracy claim.

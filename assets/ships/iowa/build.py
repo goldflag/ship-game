@@ -27,6 +27,7 @@ for name in ['Hull and decks','Main battery','Secondary battery','Light AA','Sup
     c=bpy.data.collections.new(name);scene.collection.children.link(c);collections[name]=c
 COL=collections['Hull and decks'];ASSEMBLY='hull'
 colors={'naval':(.31,.37,.39,1),'hullgray':(.285,.335,.35,1),'roof':(.10,.145,.17,1),'edge':(.15,.185,.195,1),'canvas':(.075,.095,.103,1),'armor_roof':(.25,.315,.335,1),'dark':(.022,.028,.031,1),'antifouling':(.155,.17,.115,1),'boot':(.045,.05,.044,1),'glass':(.023,.066,.081,1),'bronze':(.31,.29,.16,1),'white':(.64,.67,.65,1)}
+colors['wood_deck']=colors['roof']
 materials={}
 for key,color in colors.items():
     m=bpy.data.materials.new('Iowa '+key);m.diffuse_color=color;m.use_nodes=True
@@ -180,14 +181,9 @@ def surface_height(x,y,ceiling):
     return height
 helpers=dict(mesh=mesh,cyl=cyl,rod=rod,box=box)
 hull=authored_hull(H,mesh,COL,[materials[k] for k in ['hullgray','antifouling','boot']],True)
-hull.data.materials.append(materials['roof'])
+hull.data.materials.append(materials['wood_deck'])
 for face in hull.data.polygons:
     if face.normal.z>.96:face.material_index=3
-for y in [i*.38 for i in range(-43,44)]:
-    for a,b in zip(H['halfBreadths'],H['halfBreadths'][1:]):
-        if min(a[1],b[1])<abs(y)+.15:continue
-        x0,x1=a[0]-H['length']/2,b[0]-H['length']/2
-        rod('Deck seam',(x0,y,deckz(x0)+.011),(x1,y,deckz(x1)+.011),.008,'edge',vertices=4)
 
 COL=collections['Superstructure']
 for s in D['structures']:
@@ -282,4 +278,9 @@ for (parent,assembly,col),objects in groups.items():
         if data.users==0:bpy.data.meshes.remove(data)
 scene['definitionHash']=D['contentHash']
 scene['authoringNote']='Original Iowa A geometry; accepted source limitations are in the ship README.'
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'appearance'))
+from surface import apply_appearance
+from decking import apply_decking
+apply_decking(scene,materials,Path(__file__).with_name('appearance.json'))
+apply_appearance(scene,materials,Path(__file__).with_name('appearance.json'))
 bpy.ops.wm.save_as_mainfile(filepath=str(OUT/'source.blend'))

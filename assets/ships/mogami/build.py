@@ -21,7 +21,9 @@ C={}
 for name in ['Hull','Deck','Superstructure','Guns','Masts','Fittings','Underwater','Torpedoes']:
  col=bpy.data.collections.new(name);scene.collection.children.link(col);C[name]=col
 COL=C['Hull'];OWNER='hull'
-colors={'naval':(.125,.145,.16),'roof':(.105,.12,.13),'edge':(.19,.215,.235),'hullgray':(.13,.15,.16),'canvas':(.25,.275,.23),'dark':(.024,.028,.03),'underwater':(.20,.225,.13),'linoleum':(.235,.14,.085),'strip':(.56,.42,.21),'bronze':(.42,.33,.13),'glass':(.027,.066,.076),'white':(.75,.73,.64),'rope':(.23,.205,.155),'wood':(.27,.18,.105)}
+colors={'canvas':(.25,.275,.23),'dark':(.024,.028,.03),'strip':(.56,.42,.21),'bronze':(.42,.33,.13),'glass':(.027,.066,.076),'white':(.75,.73,.64),'rope':(.23,.205,.155)}
+appearance=json.loads(Path(__file__).with_name('appearance.json').read_text())
+colors.update({role:appearance['palette'][binding['paint']] for role,binding in appearance['materials'].items()})
 M={}
 for key,color in colors.items():
  m=bpy.data.materials.new('Mogami '+key);m.diffuse_color=(*color,1);m.use_nodes=True;p=m.node_tree.nodes['Principled BSDF'];p.inputs['Base Color'].default_value=(*color,1);p.inputs['Roughness'].default_value=.72;p.inputs['Metallic'].default_value=.12 if key not in ['canvas','linoleum','rope','wood'] else 0;M[key]=m
@@ -84,13 +86,7 @@ def wall(name,pts,z,h=.8,t=.05):
 def detail():return Fittings(dict(mesh=mesh,box=box,cyl=cyl,rod=rod),dict(**M,teak=M['wood']),COL)
 helpers=dict(mesh=mesh,box=box,cyl=cyl,rod=rod)
 hull=authored_hull(H,mesh,COL,[M['hullgray'],M['underwater']])
-# Original small tonal variation across the hull plates. All color stays on the hull.
-for base in ['hullgray','underwater']:
- for k in range(4):
-  m=M[base].copy();m.name='Mogami '+base+' plate '+str(k);color=tuple(c*(.94+k*.025) for c in colors[base]);m.diffuse_color=(*color,1);m.node_tree.nodes['Principled BSDF'].inputs['Base Color'].default_value=(*color,1);hull.data.materials.append(m)
-for p in hull.data.polygons:
- x=sum(hull.data.vertices[i].co.x for i in p.vertices)/len(p.vertices);z=sum(hull.data.vertices[i].co.z for i in p.vertices)/len(p.vertices)
- p.material_index=2+(4 if z<0 else 0)+int(abs(math.sin(x*.31+z*2.1))*3.99)
+# Spatial paint variation is applied by the shared appearance recipe below.
 COL=C['Deck'];OWNER='deck'
 for a,b in zip(H['sections'],H['sections'][1:]):
  x0,x1=a['station']-L/2,b['station']-L/2;w0,w1=a['points'][-1][0],b['points'][-1][0];z0,z1=deck(x0)+.018,deck(x1)+.018
@@ -258,5 +254,8 @@ for sy in (-1,1):
    o=mesh('Propeller blade',verts,[tuple(range(6))],'bronze');mod=o.modifiers.new('Blade thickness','SOLIDIFY');mod.thickness=.055
 rod('Rudder stock',(-93.6,0,-.3),(-93.6,0,-3.8),.18,'edge')
 mesh('Rudder',[(-96.5,-.12,-3.6),(-93,-.12,-3.7),(-92.8,-.12,-.8),(-96,-.12,-.8),(-96.5,.12,-3.6),(-93,.12,-3.7),(-92.8,.12,-.8),(-96,.12,-.8)],[(0,3,2,1),(4,5,6,7),(0,1,5,4),(1,2,6,5),(2,3,7,6),(3,0,4,7)],'underwater')
+sys.path.insert(0,str(ROOT/'assets/ships/appearance'))
+from surface import apply_appearance
+apply_appearance(scene,M,Path(__file__).with_name('appearance.json'))
 scene['definitionHash']=D['contentHash']
 bpy.ops.wm.save_as_mainfile(filepath=str(OUT/'source.blend'))
