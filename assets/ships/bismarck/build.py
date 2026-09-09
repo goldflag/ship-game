@@ -726,17 +726,28 @@ def aa_mount(name,x,y,z,caliber,bearing=0,quad=False,mount=None):
  before=set(bpy.data.objects);heavy=caliber>.08;medium=caliber>.025
  radius=1.50 if heavy else .76 if medium or quad else .42
  cyl(name+' deck ring',(0,0,.10),radius,.2,materials['edge'],detailcol,28)
- cyl(name+' pedestal',(0,0,.53),radius*.48,.86,materials['naval'],detailcol,20)
+ cyl(name+' pedestal',(0,0,.25 if heavy else .53),radius*.48,.30 if heavy else .86,materials['naval'],detailcol,20)
  axisz=1.63 if heavy else 1.30;length=4.70 if heavy else 2.22 if medium else 1.45
  # Cast saddle, bearing axle and barrel slide make a continuous carriage.
- rod(name+' carriage crosshead',(0,-.45,.76),(0,.45,.76),.13,materials['naval'],detailcol,vertices=12)
- rod(name+' trunnion axle',(.12,-.52,axisz),(.12,.52,axisz),.12,materials['edge'],detailcol,vertices=12)
+ fork_y=.80 if heavy else .45;fork_z=.43 if heavy else .65
+ rod(name+' carriage crosshead',(0,-fork_y,.43 if heavy else .76),(0,fork_y,.43 if heavy else .76),.07 if heavy else .13,materials['naval'],detailcol,vertices=12)
+ if heavy:
+  # Outboard bearing stubs leave the twin receivers an open lowering well.
+  for sign in [-1,1]:rod(name+' trunnion axle',(.12,sign*.60,axisz),(.12,sign*.82,axisz),.12,materials['edge'],detailcol,vertices=12)
+ else:rod(name+' trunnion axle',(.12,-.52,axisz),(.12,.52,axisz),.12,materials['edge'],detailcol,vertices=12)
  if heavy:
   # Open-backed sloped shield, rather than a solid rectangular box.
   cross=[(-1.25,.58),(1.28,.58),(1.17,1.95),(.63,2.44),(-1.12,2.44)]
   vs=[(xx,yy,zz) for yy in [-1.47,1.47] for xx,zz in cross]
-  mesh(name+' side shield',vs,[(0,1,2,3,4),(5,9,8,7,6),(1,6,7,2),(2,7,8,3),(3,8,9,4)],materials['naval'],detailcol)
-  for yy in [-1.05,1.05]:box(name+' loading deck',(-.3,yy,.50),(2.3,.64,.13),materials['roof'],detailcol)
+  mesh(name+' side shield',vs,[(0,1,2,3,4),(5,9,8,7,6)],materials['naval'],detailcol)
+  # Two continuous gun slots cross the front, brow and overhead plate. The
+  # barrels pass through all three planes as the carriage elevates to 80 deg.
+  for low,high in [(-1.47,-.70),(-.12,.12),(.70,1.47)]:
+   for a,b in zip(cross[1:4],cross[2:5]):
+    mesh(name+' slotted shield plate',[(a[0],low,a[1]),(a[0],high,a[1]),(b[0],high,b[1]),(b[0],low,b[1])],[(0,1,2,3)],materials['naval'],detailcol)
+  sill_x=1.28-(.70-.58)*.11/(1.95-.58)
+  mesh(name+' shield lower sill',[(1.28,-1.47,.58),(1.28,1.47,.58),(sill_x,1.47,.70),(sill_x,-1.47,.70)],[(0,1,2,3)],materials['naval'],detailcol)
+  for yy in [-1.05,1.05]:box(name+' loading deck',(-.3,yy,.515),(2.3,.84,.13),materials['roof'],detailcol)
  count=4 if quad else 2 if heavy or medium else 1
  barrel_groups=[]
  for i in range(count):
@@ -751,15 +762,15 @@ def aa_mount(name,x,y,z,caliber,bearing=0,quad=False,mount=None):
   if not heavy:box(name+' feed magazine',tuple(start+Vector((-.22,0,.14))),(.32,.24,.25),materials['dark'],detailcol)
   barrel_groups.append((yy,zz,elev,set(bpy.data.objects)-barrel_before))
  for sign in [-1,1]:
-  rod(name+' trunnion',(0,sign*.45,.65),(0,sign*.45,axisz),.14 if heavy else .075,materials['naval'],detailcol,vertices=10)
-  rod(name+' bearing cheek',(0,sign*.45,axisz),(.12,sign*.45,axisz),.14 if heavy else .08,materials['naval'],detailcol,vertices=10)
+  rod(name+' trunnion',(0,sign*fork_y,fork_z),(0,sign*fork_y,axisz),.14 if heavy else .075,materials['naval'],detailcol,vertices=10)
+  rod(name+' bearing cheek',(0,sign*fork_y,axisz),(.12,sign*fork_y,axisz),.14 if heavy else .08,materials['naval'],detailcol,vertices=10)
   cyl(name+' crew seat',(-.65,sign*(1.04 if heavy else .55),.72),.23,.11,materials['roof'],detailcol,16)
   rod(name+' seat support',(-.65,sign*(1.04 if heavy else .55),.2),(-.65,sign*(1.04 if heavy else .55),.68),.05,materials['edge'],detailcol,vertices=6)
   rod(name+' seat outrigger',(0,0,.40),(-.65,sign*(1.04 if heavy else .55),.40),.06,materials['naval'],detailcol,vertices=8)
   ring(name+' handwheel',(-.34,sign*(.83 if heavy else .45),1.14),(0,1,0),.22 if heavy else .13,.025,n=14)
-  rod(name+' handwheel shaft',(0,sign*.45,1.14),(-.34,sign*(.83 if heavy else .45),1.14),.035,materials['edge'],detailcol,vertices=8)
+  rod(name+' handwheel shaft',(0,sign*fork_y,1.14),(-.34,sign*(.83 if heavy else .45),1.14),.035,materials['edge'],detailcol,vertices=8)
   for a in range(3):rod(name+' handwheel spoke',(-.34,sign*(.83 if heavy else .45),1.14),(-.34+(.22 if heavy else .13)*math.cos(a*math.tau/3),sign*(.83 if heavy else .45),1.14+(.22 if heavy else .13)*math.sin(a*math.tau/3)),.018,materials['edge'],detailcol,vertices=6)
- rod(name+' sight bracket',(0,0,.65),(-.35,0,axisz+.5),.035,materials['edge'],detailcol,vertices=6)
+ rod(name+' sight bracket',(0,0,.43 if heavy else .65),(-.35,0,axisz+.5),.035,materials['edge'],detailcol,vertices=6)
  ring(name+' ring sight',(-.35,0,axisz+.54),(1,0,0),.11,.015,n=12)
  # Assemble in the local mount frame, then place the complete hierarchy.
  pieces=set(bpy.data.objects)-before
