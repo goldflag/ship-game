@@ -811,14 +811,14 @@ def screw_boss(x,y,z):
  vs=[(x+dx,y+r*math.cos(math.tau*i/32),z+r*math.sin(math.tau*i/32)) for dx,r in rows for i in range(32)]
  fs=[tuple(reversed(range(32))),tuple(range((len(rows)-1)*32,len(rows)*32))]
  fs.extend((j*32+i,j*32+(i+1)%32,(j+1)*32+(i+1)%32,(j+1)*32+i) for j in range(len(rows)-1) for i in range(32))
- return mesh('Propeller boss',vs,fs,materials['bronze'],undercol,True)
+ return mesh('Propeller boss',vs,[tuple(reversed(f)) for f in fs],materials['bronze'],undercol,True)
 def shaft_bracket(name,a,b,chord=.72):
  # Closed foil strut: a wide axial chord and a narrow rounded trailing edge.
  a,b=Vector(a),Vector(b);radial=(b-a).normalized();side=radial.cross(Vector((1,0,0))).normalized()
  profile=[(-.52,0),(-.36,.10),(.16,.12),(.48,.04),(.54,0),(.48,-.04),(.16,-.12),(-.36,-.10)]
  vs=[p+Vector((u*chord,0,0))+side*v for p in [a,b] for u,v in profile];n=len(profile)
  fs=[tuple(reversed(range(n))),tuple(range(n,2*n))]+[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)]
- return mesh(name,vs,fs,materials['oxide'],undercol,True)
+ return mesh(name,vs,[tuple(reversed(f)) for f in fs],materials['oxide'],undercol,True)
 for y,xend in [(-6,-100),(0,-106),(6,-100)]:
  z=-6.8
  rod('Propeller shaft',(-69,y,-6.0),(xend+.6,y,z),.24,materials['edge'],undercol,vertices=24)
