@@ -414,6 +414,38 @@ def director(name,x,z,span,base):
 director('Fore main director',14.2,31.1,10.5,29.8)
 director('Conning director',25.0,19.55,7.0,18.3)
 director('Aft main director',-37.8,17.5,10.5,16.2)
+# Compact open 3 m night rangefinders, independently modeled from the
+# approved pgsb708 gf004 fitting; these are distinct from enclosed SL-8 domes.
+def night_rangefinder(name,x,y,base,axisz):
+ cyl(name+' deck sole',(x,y,base+.035),.79,.07,materials['edge'],detailcol,24)
+ rod(name+' tapered pedestal',(x,y,base+.07),(x,y,base+.65),.25,materials['naval'],detailcol,.19,16)
+ cyl(name+' pedestal shoulder',(x,y,base+.65),.34,.13,materials['edge'],detailcol,20)
+ box(name+' saddle',(x,y,axisz-.29),(.53,1.02,.17),materials['naval'],detailcol)
+ rod(name+' optical baseline',(x,y-1.47,axisz),(x,y+1.47,axisz),.165,materials['naval'],detailcol,vertices=20)
+ rod(name+' central instrument',(x,y-.43,axisz),(x,y+.43,axisz),.295,materials['naval'],detailcol,vertices=16)
+ for sign in [-1,1]:
+  for yy,r in [(.45,.32),(.93,.225)]:
+   rod(name+' instrument collar',(x,y+sign*(yy-.055),axisz),(x,y+sign*(yy+.055),axisz),r,materials['edge'],detailcol,vertices=12)
+  yy=y+sign*1.38
+  extrude(name+' prismatic end casing',rounded_rect(x,yy,.47,.37,.075,2),axisz-.23,.46,materials['naval'],detailcol)
+  rod(name+' end cover',(x,y+sign*1.52,axisz),(x,y+sign*1.57,axisz),.195,materials['edge'],detailcol,vertices=12)
+  rod(name+' forward objective sleeve',(x+.19,yy,axisz-.04),(x+.58,yy,axisz-.04),.063,materials['naval'],detailcol,.049,12)
+  rod(name+' objective glazing',(x+.579,yy,axisz-.04),(x+.59,yy,axisz-.04),.042,materials['glass'],detailcol,vertices=12)
+  # Forks meet the bearing collars and the pedestal's crosshead continuously.
+  polyline(name+' bearing fork',[(x-.22,y+sign*.44,axisz-.28),(x-.28,y+sign*.45,axisz-.09),(x,y+sign*.45,axisz)],.060,materials['naval'],vertices=6)
+  rod(name+' yoke brace',(x,y,base+.48),(x+.22,y+sign*.44,axisz-.30),.046,materials['naval'],detailcol,vertices=6)
+  box(name+' lower instrument box',(x-.37,y+sign*.34,base+.35),(.26,.30,.40),materials['naval'],detailcol)
+  rod(name+' instrument box bracket',(x,y+sign*.23,base+.39),(x-.30,y+sign*.34,base+.39),.038,materials['edge'],detailcol,vertices=6)
+  rod(name+' eyepiece',(x-.27,y+sign*.105,axisz+.12),(x-.48,y+sign*.105,axisz+.19),.052,materials['dark'],detailcol,vertices=10)
+  hub=Vector((x-.31,y+sign*.60,axisz-.27))
+  rod(name+' control shaft',(x-.12,y+sign*.42,axisz-.27),hub,.033,materials['edge'],detailcol,vertices=8)
+  ring(name+' adjusting wheel',hub,(0,1,0),.14,.019,materials['edge'],12)
+  for a in range(3):rod(name+' wheel spoke',hub,hub+Vector((math.cos(a*math.tau/3)*.14,0,math.sin(a*math.tau/3)*.14)),.014,materials['edge'],detailcol,vertices=5)
+  polyline(name+' instrument cable',[(x-.43,y+sign*.30,axisz-.2),(x-.55,y+sign*.34,base+.12),(x-.18,y+sign*.25,base+.10)],.014,materials['dark'],vertices=5)
+  ring(name+' lifting eye',(x,y+sign*.98,axisz+.255),(1,0,0),.038,.011,materials['edge'],8)
+ box(name+' rear readout housing',(x-.37,y,axisz-.12),(.18,.55,.28),materials['naval'],detailcol)
+ box(name+' upper adjustment block',(x,y,axisz+.31),(.24,.33,.10),materials['naval'],detailcol)
+for sign in [-1,1]:night_rangefinder('Signal gallery night rangefinder',15.1,sign*5.5,20.65,21.65)
 # Enclosed AA directors with the characteristic rounded weather covers.
 def aa_director(name,x,y,z,base):
  cyl(name+' column',(x,y,(base+z-1.08)/2),1.0,max(.2,z-1.08-base),materials['naval'],detailcol,24)
@@ -480,11 +512,12 @@ def searchlight_cup(name,x,y,z,deep=True):
  # Inboard passage and attachment saddle reach the gallery's flat deck.
  sign=1 if y>0 else -1
  box(name+' gallery saddle',(x,y-sign*.98,z-.09),(1.65,1.2,.18),materials['roof'],detailcol)
+searchlight_support=SupportSurface([*hullcol.objects,*supercol.objects])
 for sign in [-1,1]:
  for xx,yy,zz,bearing in [(1.45,4.3,18.7,sign*1.25),(-7.7,3.8,17.7,sign*2.15)]:
   searchlight_cup('Funnel searchlight',xx,sign*yy,zz,deep=xx>0)
   searchlight('Funnel 1.5 m searchlight',xx,sign*yy,zz+.08,bearing)
- searchlight('Aft searchlight',-34.8,sign*4.8,12.52,sign*2.5)
+ searchlight('Aft searchlight',-34.8,sign*4.8,searchlight_support.below(-34.8,sign*4.8,20)+.02,sign*2.5)
 searchlight('Foretop 1.5 m searchlight',20.2,0,24.71,0)
 # Fore pole mast and aft mainmast, with yards, ladders, navigation platforms,
 # signal halyards and properly grounded stays. All lines are original geometry.
