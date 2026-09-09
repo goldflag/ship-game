@@ -9,6 +9,7 @@ pub mod rules;
 
 pub mod ballistics;
 
+pub mod flight_deck;
 pub mod floodwater;
 pub mod hull;
 pub mod hydrostatics;

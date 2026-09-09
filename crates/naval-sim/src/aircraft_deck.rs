@@ -10,6 +10,9 @@ pub struct GroundPose {
     pub clearance: f64,
     #[serde(default)]
     pub folding_wings: bool,
+    /// Optional only for legacy fixture compatibility. Physical deck operations
+    /// require the measured geometry baked into the installed catalog.
+    pub deck_geometry: Option<crate::flight_deck::AircraftDeckGeometry>,
     pub torpedo: Option<crate::definition::TorpedoPart>,
     pub bomb: Option<AirBomb>,
 }

@@ -8,6 +8,7 @@ import { shipPresets } from '../../src/ships/presets';
 import rules from '../../assets/gameplay/battle-rules.v1.json';
 import pveMission from '../../assets/gameplay/pve-mission.v1.json';
 import legacyAir from '../../assets/gameplay/legacy-air.v1.json';
+import { aircraftDeckGeometry } from './aircraft-deck-geometry';
 const digest = (bytes: string) => createHash('sha256').update(bytes).digest('hex');
 const ships = await Promise.all(Object.entries(shipPresets).map(async ([id, definition]) => {
   const json = await Bun.file(`public/models/${id}.json`).text();
@@ -16,7 +17,7 @@ const ships = await Promise.all(Object.entries(shipPresets).map(async ([id, defi
 }));
 const manifest = {
   version: 1, rulesVersion: rules.version, missions: [pveMission], airProfiles: [legacyAir], ships,
-  aircraft: [...new Set(Object.values(shipPresets).flatMap(def => def.airWing?.squadrons.map(s => s.modelId) ?? []))].map(id => ({ id, ...aircraftGroundPose(id), bomb: aircraftBomb(id), torpedo: aircraftTorpedo(id) })),
+  aircraft: await Promise.all([...new Set(Object.values(shipPresets).flatMap(def => def.airWing?.squadrons.map(s => s.modelId) ?? []))].map(async id => ({ id, ...aircraftGroundPose(id), deckGeometry: await aircraftDeckGeometry(id), bomb: aircraftBomb(id), torpedo: aircraftTorpedo(id) }))),
   terrain: [...new Map(maps.maps.flatMap(map => map.land.islands.map(island => {
     const recipe = { ...island, style: map.land.style };
     return [`${island.seed}:${recipe.style}`, { seed: island.seed, style: recipe.style, samples: Array.from(terrainField(recipe)) }] as const;

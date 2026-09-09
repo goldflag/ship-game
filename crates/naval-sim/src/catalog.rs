@@ -132,6 +132,7 @@ impl Catalog {
             !p.pitch.is_finite()
                 || !p.clearance.is_finite()
                 || p.clearance <= 0.0
+                || p.deck_geometry.as_ref().is_some_and(|g| !g.valid())
                 || p.bomb
                     .as_ref()
                     .is_none_or(|b| !positive(&[b.caliber_m, b.he.damage, b.he.explosive_kg]))
@@ -212,6 +213,9 @@ fn ids_unique<'a>(ids: impl Iterator<Item = &'a str>) -> bool {
 }
 pub fn validate_definition(d: &ShipDefinition) -> Result<(), ContentError> {
     let fail = || ContentError::Invalid(format!("invalid compiled definition {}", d.id));
+    if let Some(layout) = d.air_wing.as_ref().and_then(|w| w.deck_layout.as_ref()) {
+        crate::flight_deck::validate(d, layout).map_err(ContentError::Invalid)?;
+    }
     if d.schema_version != 1.0
         || d.compiler_version != 1.0
         || d.coordinates != "meters-y-up-bow-negative-z"

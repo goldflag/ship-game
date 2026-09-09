@@ -182,11 +182,21 @@ export const GAMEPLAY_AIRCRAFT: Readonly<Record<string, AircraftRole>> = {
   'd3a1-val': 'dive-bomber',
   'b5n2-kate': 'torpedo-bomber',
 };
+/** Physical flight-deck geometry, shared by every operating profile. Positions
+ * are tyre datums in ship-local coordinates; aircraft clearance is added by the sim. */
+export interface FlightDeckLayout {
+  version: 1; surfaceId: string;
+  spots: { id: string; position: Vec3; preferredRole: AircraftRole }[];
+  launchStart: Vec3; launchEnd: Vec3;
+  recoveryTouchdown: Vec3; recoveryStop: Vec3;
+  elevators: { id: string; position: Vec3; hangarY: number; widthM: number; lengthM: number }[];
+}
 export interface AirWingDefinition {
   version: 1; launchPosition: Vec3; recoveryPosition: Vec3; serviceModuleId: string;
   launchIntervalSeconds: number; rearmSeconds: number;
   /** Optional v1 operations limits; older blueprints retain three-plane launches. */
   flightSize?: number; deckCapacity?: number; maxActiveFlights?: number;
+  deckLayout?: FlightDeckLayout;
   squadrons: { id: string; name: string; modelId: string; role: AircraftRole; count: number }[];
 }
 export interface ShipBlueprint {
@@ -742,6 +752,51 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
       if (!Number.isInteger(squadron.count)) fail('squadron.count', 'expected an integer');
     }
     if (squadrons.reduce((n, s) => n + Number(s.count), 0) > 96) fail('airWing.squadrons', 'maximum inventory is 96 aircraft');
+    if (wing.deckLayout !== undefined) {
+      const layout = record(wing.deckLayout, 'airWing.deckLayout');
+      if (layout.version !== 1) fail('airWing.deckLayout.version', 'expected version 1');
+      const deckStructures = list(b.structures, 'structures').map(s => record(s, 'structure'));
+      const surface = deckStructures.find(s => s.id === layout.surfaceId);
+      if (!surface) fail('airWing.deckLayout.surfaceId', 'unknown deck structure');
+      const footprint = surface!.footprint as number[][];
+      const onSurface = (x: number, z: number) => {
+        let inside = false;
+        for (let i = 0, j = footprint.length - 1; i < footprint.length; j = i++) {
+          const a = footprint[i], b = footprint[j];
+          if ((a[1] > z) !== (b[1] > z) && x < (b[0] - a[0]) * (z - a[1]) / (b[1] - a[1]) + a[0]) inside = !inside;
+        }
+        return inside;
+      };
+      const point = (value: unknown, path: string) => {
+        const p = vector(value, path);
+        if (Math.abs(p[0]) > (h.beam as number) || Math.abs(p[2]) > (h.length as number) * .55 || p[1] < 0 || p[1] > 40) fail(path, 'invalid deck position');
+        if (!onSurface(p[0], p[2]) || Math.abs(p[1] - Number(surface!.baseY) - Number(surface!.height)) > .5) fail(path, 'must rest on the authored flight deck');
+        return p;
+      };
+      const start = point(layout.launchStart, 'deckLayout.launchStart'), end = point(layout.launchEnd, 'deckLayout.launchEnd');
+      const touchdown = point(layout.recoveryTouchdown, 'deckLayout.recoveryTouchdown'), stop = point(layout.recoveryStop, 'deckLayout.recoveryStop');
+      if (end[2] >= start[2] - 30 || stop[2] >= touchdown[2] - 10) fail('airWing.deckLayout', 'launch and recovery paths must run toward the bow');
+      const spots = list(layout.spots, 'deckLayout.spots', 100).map(s => record(s, 'deck spot'));
+      if (!spots.length) fail('deckLayout.spots', 'requires parking positions');
+      unique(spots, 'deckLayout.spots');
+      for (const spot of spots) {
+        id(spot.id, 'deck spot.id'); point(spot.position, 'deck spot.position');
+        if (!['fighter', 'dive-bomber', 'torpedo-bomber'].includes(String(spot.preferredRole))) fail('deck spot.preferredRole', 'unknown aircraft role');
+      }
+      const elevators = list(layout.elevators, 'deckLayout.elevators', 8).map(e => record(e, 'elevator'));
+      if (!elevators.length) fail('deckLayout.elevators', 'requires an elevator');
+      unique(elevators, 'deckLayout.elevators');
+      for (const elevator of elevators) {
+        const structure = deckStructures.find(s => s.id === elevator.id);
+        if (!structure) fail('elevator.id', 'unknown fitted elevator structure');
+        const p = point(elevator.position, 'elevator.position');
+        numeric(elevator.hangarY, 'elevator.hangarY', 0, p[1] - 2);
+        numeric(elevator.widthM, 'elevator.widthM', 3, 30); numeric(elevator.lengthM, 'elevator.lengthM', 3, 30);
+        const shape = structure!.footprint as number[][];
+        const xs = shape.map(p => p[0]), zs = shape.map(p => p[1]);
+        if (Number(elevator.widthM) > Math.max(...xs) - Math.min(...xs) + .001 || Number(elevator.lengthM) > Math.max(...zs) - Math.min(...zs) + .001) fail('elevator', 'operating dimensions exceed the fitted platform');
+      }
+    }
   }
   if (b.submarine !== undefined) {
     const s = record(b.submarine, 'submarine');
