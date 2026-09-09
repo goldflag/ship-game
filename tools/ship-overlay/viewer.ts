@@ -118,6 +118,8 @@ export class Viewer {
     if (!texture) {
       texture = this.textureLoader.load(`/api/texture/${path}`, () => this.render(), undefined, () => {});
       texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+      // Source UVs follow the game engine's top-left origin; three.js flips images by default.
+      texture.flipY = false;
       if (color) texture.colorSpace = THREE.SRGBColorSpace;
       this.textures.set(path, texture);
     }
