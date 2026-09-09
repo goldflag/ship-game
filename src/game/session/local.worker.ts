@@ -20,11 +20,19 @@ function loadContent() {
 }
 // Requests are serialized: initialization cannot race a queued tick batch.
 let chain = Promise.resolve();
-self.onmessage = (event: MessageEvent<{ type: 'init'; setup: BattleSetup } | { type: 'plan'; request: PveRequest } | { type: 'deploy'; placements: Placement[] } | { type: 'restart' } | { type: 'advance'; commands: CommandEnvelope[]; ticks: number }>) => {
+self.onmessage = (event: MessageEvent<{ type: 'options' } | { type: 'validate'; placements: Placement[] } | { type: 'init'; setup: BattleSetup } | { type: 'plan'; request: PveRequest } | { type: 'deploy'; placements: Placement[] } | { type: 'restart' } | { type: 'advance'; commands: CommandEnvelope[]; ticks: number }>) => {
   chain = chain.then(async () => {
     try {
       const message = event.data;
-      if (message.type === 'plan') {
+      if (message.type === 'options') {
+        self.postMessage({ type: 'options', options: JSON.parse(PvePlanner.options(await loadContent())) });
+        return;
+      } else if (message.type === 'validate') {
+        if (!planner) throw new Error('Prepare a mission before deploying.');
+        planner.validate_placement(JSON.stringify(message.placements));
+        self.postMessage({ type: 'validated' });
+        return;
+      } else if (message.type === 'plan') {
         const next = new PvePlanner(await loadContent(), JSON.stringify(message.request));
         planner?.free(); planner = next;
         self.postMessage({ type: 'briefing', briefing: JSON.parse(planner.briefing()) });

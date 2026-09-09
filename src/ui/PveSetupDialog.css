@@ -1,0 +1,97 @@
+/* Variation D uses task-group columns in preparation, then the selection-led HUD. */
+.pve-setup { --pve-line:#38515b; --pve-muted:#b0c3c9; --pve-gold:#dcc68b; --pve-green:#9fdec5; position:fixed; inset:0; width:calc(100vw - 40px); height:calc(100dvh - 40px); max-width:1800px; max-height:none; margin:auto; padding:0; border:1px solid var(--pve-line); border-radius:3px; background:#102630f7; color:#edf3f1; font:400 14px/1.4 'Barlow',sans-serif; box-shadow:0 20px 70px #0008; }
+.pve-setup[open] { display:flex; flex-direction:column; }
+.pve-setup::backdrop { background:#06121c85; }
+.pve-setup h1,.pve-setup h2,.pve-setup p { margin:0; }
+.pve-setup h1 { font:500 30px/1.1 'Barlow Condensed',sans-serif; }
+.pve-setup h2 { font:500 22px/1.2 'Barlow Condensed',sans-serif; }
+.pve-setup small { font-size:12px; color:var(--pve-muted); }
+.pve-setup ul { list-style:none; margin:0; padding:0; }
+.pve-setup label { display:flex; flex-direction:column; gap:5px; font-size:12px; color:var(--pve-muted); }
+.pve-setup .ui-select { width:100%; }
+.pve-header { padding:18px 22px; display:flex; align-items:center; gap:28px; border-bottom:1px solid var(--pve-line); }
+.pve-eyebrow { display:block; color:var(--pve-gold); font-size:11px; letter-spacing:.12em; margin-bottom:4px; }
+.pve-header nav { display:flex; gap:24px; margin-left:auto; color:var(--pve-muted); }
+.pve-header nav [aria-current] { color:var(--pve-green); }
+.pve-footer { display:flex; justify-content:space-between; align-items:center; gap:20px; border-top:1px solid var(--pve-line); padding:14px 20px; min-height:72px; }
+.pve-footer>div:first-child { max-width:70ch; color:var(--pve-muted); font-size:13px; }
+.pve-footer>div:last-child { display:flex; flex-shrink:0; gap:8px; }
+.pve-setup .is-error { color:#ffb6a9 !important; }
+.pve-scroll { overflow:auto; min-height:0; scrollbar-width:thin; scrollbar-color:#58717c transparent; }
+.pve-briefing { flex:1; min-height:0; display:grid; grid-template-columns:260px minmax(280px,1fr) 270px; }
+.pve-mission { padding:20px; border-right:1px solid var(--pve-line); }
+.pve-mission>p { margin:12px 0; color:var(--pve-muted); }
+.pve-mission-facts { margin:16px 0; }
+.pve-mission-facts>div { padding:8px 0; border-bottom:1px solid var(--pve-line); }
+.pve-mission-facts dt { font-size:12px; color:var(--pve-muted); }
+.pve-mission-facts dd { margin:2px 0 0; }
+.pve-mission .pve-intel-note { border-left:2px solid var(--pve-green); padding-left:10px; font-size:13px; }
+.pve-mission>label { margin-top:12px; }
+.pve-budget { padding:12px 0; display:grid; gap:12px; }
+.pve-budget>div { display:grid; grid-template-columns:1fr auto; gap:4px; font-size:12px; }
+.pve-budget strong { font-weight:500; font-variant-numeric:tabular-nums; }
+.pve-budget meter { width:100%; height:5px; grid-column:1/-1; appearance:none; background:#28414b; border:0; }
+.pve-budget meter::-webkit-meter-bar { background:#28414b; border:0; height:5px; }
+.pve-budget meter::-webkit-meter-optimum-value { background:var(--pve-green); }
+.pve-seed { display:flex; flex-direction:column; align-items:flex-start; gap:8px; margin-top:18px; }
+.pve-group-columns { display:flex; overflow:auto; min-width:0; }
+.pve-group-column { flex:1 0 245px; min-width:245px; display:flex; flex-direction:column; border-right:1px solid var(--pve-line); }
+.pve-group-column>header { padding:16px 12px 10px; display:flex; flex-direction:column; gap:6px; }
+.pve-group-column>header input { width:100%; font:500 21px 'Barlow Condensed',sans-serif; padding:5px 6px; background:transparent; }
+.pve-group-station { padding:0 12px; }
+.pve-standing-order { color:var(--pve-muted); padding:10px 12px 14px; font-size:12px; border-bottom:1px solid var(--pve-line); }
+.pve-group-ships { flex:1; }
+.pve-group-ships>li { display:grid; grid-template-columns:1fr 32px; gap:6px; border-bottom:1px solid var(--pve-line); padding:12px; }
+.pve-group-ships img { grid-column:1; object-fit:contain; object-position:left; }
+.pve-group-ships>li>div { grid-column:1; }
+.pve-group-ships strong,.pve-group-ships small { display:block; }
+.pve-group-ships>li>.ui-button { grid-column:2; grid-row:1/3; align-self:start; }
+.pve-group-ships .ui-select { grid-column:1/-1; }
+.pve-group-column>footer { padding:12px; border-top:1px solid var(--pve-line); }
+.pve-group-column>footer button { margin-top:8px; }
+.pve-add-group { flex-shrink:0; align-self:start; margin:16px 12px; }
+.pve-catalog { min-height:0; border-left:1px solid var(--pve-line); display:flex; flex-direction:column; }
+.pve-catalog>header { display:grid; gap:12px; padding:16px; border-bottom:1px solid var(--pve-line); }
+.pve-catalog>ul { flex:1; }
+.pve-catalog li { display:grid; grid-template-columns:1fr auto; gap:3px 8px; padding:12px 16px; border-bottom:1px solid var(--pve-line); }
+.pve-catalog img { object-fit:contain; object-position:left; grid-column:1; }
+.pve-catalog strong,.pve-catalog small { grid-column:1; }
+.pve-catalog li button { grid-column:2; grid-row:1/4; align-self:center; }
+.pve-empty,.pve-preparing { padding:32px; color:var(--pve-muted); }
+.pve-preparing { flex:1; }
+.pve-deployment { flex:1; min-height:0; display:grid; grid-template-columns:285px minmax(0,1fr); }
+.pve-deploy-roster { border-right:1px solid var(--pve-line); display:flex; flex-direction:column; min-height:0; }
+.pve-deploy-roster>header { padding:16px; border-bottom:1px solid var(--pve-line); }
+.pve-deploy-roster>header p { font-size:12px; color:var(--pve-muted); margin-top:8px; }
+.pve-deploy-roster>.pve-scroll { flex:1; padding:10px; }
+.pve-deploy-roster section { border-bottom:1px solid var(--pve-line); padding-bottom:10px; margin-bottom:10px; }
+.pve-group-select { width:100%; display:flex; flex-direction:column; align-items:flex-start; }
+.pve-deploy-roster li button { width:100%; justify-content:flex-start; margin-top:4px; background:transparent; font-size:13px; }
+.pve-deploy-roster [aria-pressed=true] { border-color:var(--pve-green); color:var(--pve-green); }
+.pve-deploy-tools { padding:14px; border-top:1px solid var(--pve-line); display:grid; gap:10px; font-size:12px; }
+.pve-deploy-tools>div { display:flex; gap:6px; }
+.pve-deploy-tools label { flex-direction:row; align-items:center; }
+.pve-deploy-tools input { width:80px; }
+.pve-chart-wrap { min-width:0; min-height:0; position:relative; display:flex; flex-direction:column; background:#0d242e; }
+.pve-chart-heading { display:flex; justify-content:space-between; align-items:center; gap:10px; padding:14px 20px; }
+.pve-chart-heading strong,.pve-chart-heading span { display:block; }
+.pve-chart-heading span { color:var(--pve-muted); font-size:12px; }
+.pve-chart-heading>div:last-child { display:flex; gap:5px; }
+.pve-chart { flex:1; width:100%; min-height:0; cursor:crosshair; }
+.pve-chart:focus-visible { outline:2px solid var(--pve-gold); outline-offset:-4px; }
+.pve-chart path,.pve-chart circle,.pve-chart polygon { vector-effect:non-scaling-stroke; }
+.pve-map-water { fill:#122f3c; }
+.pve-friendly-sector { fill:#184941; fill-opacity:.55; }
+.pve-map-grid { fill:none; stroke:#7c9ba4; stroke-opacity:.17; }
+.pve-map-land { fill:#344d4c; stroke:#84928a; stroke-width:1; }
+.pve-sector-edge { stroke:#9fdec5; opacity:.7; stroke-dasharray:5 5; }
+.pve-map-label { text-anchor:middle; fill:#b0c3c9; letter-spacing:.1em; pointer-events:none; }
+.pve-map-boundary { fill:none; stroke:#dcc68b; stroke-width:1.5; }
+.pve-map-unit { cursor:pointer; fill:#a9d4dc; stroke:#09212a; }
+.pve-map-unit text { fill:#f4f7f5; stroke:none; font-variant-numeric:tabular-nums; pointer-events:none; }
+.pve-map-unit.is-selected { fill:#b8f4d9; stroke:#b8f4d9; }
+.pve-unit-hit { fill:transparent; stroke:none; }
+.pve-map-unit:focus-visible .pve-unit-hit { stroke:#dcc68b; stroke-width:2; }
+.pve-chart-status { padding:12px 20px; min-height:42px; font-size:13px; color:var(--pve-muted); }
+@media(max-width:1100px) { .pve-setup { width:calc(100vw - 16px); height:calc(100dvh - 16px); } .pve-briefing { grid-template-columns:225px minmax(245px,1fr) 225px; } .pve-header { padding:12px 16px; } .pve-mission { padding:14px; } .pve-footer { padding:10px 14px; } }
+@media(max-width:760px) { .pve-setup { width:100vw; height:100dvh; border-radius:0; } .pve-header nav { display:none; } .pve-header>button { margin-left:auto; } .pve-briefing { display:flex; overflow:auto; } .pve-mission { flex:0 0 220px; } .pve-group-columns { flex:0 0 265px; } .pve-catalog { flex:0 0 230px; } .pve-footer { align-items:flex-start; } .pve-footer>div:first-child { font-size:12px; } .pve-deployment { grid-template-columns:210px minmax(0,1fr); } .pve-chart-heading { padding:10px; align-items:flex-start; flex-direction:column; } }

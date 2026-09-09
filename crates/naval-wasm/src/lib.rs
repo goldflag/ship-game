@@ -314,6 +314,18 @@ pub struct PvePlanner {
 }
 #[wasm_bindgen]
 impl PvePlanner {
+    pub fn options(manifest: &[u8]) -> Result<String, JsValue> {
+        let catalog = naval_sim::catalog::Catalog::load(manifest).map_err(error)?;
+        let rules = catalog
+            .missions
+            .get("pve-fleet-v1")
+            .ok_or_else(|| error("PvE mission content is unavailable"))?;
+        serde_json::to_string(&serde_json::json!({
+            "rules": rules,
+            "eligiblePresets": naval_sim::pve::eligible_presets(&catalog)
+        }))
+        .map_err(error)
+    }
     #[wasm_bindgen(constructor)]
     pub fn new(manifest: &[u8], request: &str) -> Result<PvePlanner, JsValue> {
         if request.len() > 65536 {
@@ -334,6 +346,18 @@ impl PvePlanner {
     }
     pub fn briefing(&self) -> Result<String, JsValue> {
         serde_json::to_string(&self.plan.briefing(&self.catalog)).map_err(error)
+    }
+    pub fn validate_placement(&mut self, placements: &str) -> Result<(), JsValue> {
+        if placements.len() > 16384 {
+            return Err(error("Deployment exceeds limit"));
+        }
+        self.plan
+            .deploy(
+                &self.catalog,
+                serde_json::from_str(placements).map_err(error)?,
+            )
+            .map_err(error)?;
+        Ok(())
     }
     pub fn start(&mut self, placements: &str) -> Result<LocalRuntime, JsValue> {
         if placements.len() > 16384 {

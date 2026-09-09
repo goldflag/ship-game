@@ -1,4 +1,6 @@
 import { physicalLoss } from '../simulation/battleRules';
+import { PveDraft } from './session/PveDraft';
+import type { Placement } from '../multiplayer/generated/Placement';
 import { weaponGroups, selectedWeapon } from '../ships/weaponGroups';
 import { hullDepth } from '../simulation/ship';
 import { assetUrl } from '../assetUrl';
@@ -443,7 +445,7 @@ export class Game {
     await this.warmupRendering(progress);
     this.assertActive();
     this.paused = false;
-    this.input.setEnabled(true);
+    this.input.setEnabled(!this.fleetCommandMode);
     this.lastTime = performance.now();
     this.scheduleFrame();
   }
@@ -474,6 +476,23 @@ export class Game {
       this.environment.setBattle({ timeOfDay: setup.timeOfDay ?? 'map', weather: setup.weather ?? 'map',
         conditions: { timeHours: setup.timeHours, cloudCover: setup.cloudCover, windSpeed: setup.windSpeed } });
       progress?.('Forming the battle lines', 0.9);
+    } finally { this.switchingShip = false; }
+  }
+
+  async preparePveBattle(draft: PveDraft, placements: Placement[], progress?: BattleProgress): Promise<void> {
+    if (this.disposed || !this.inPort || !this.playerView || this.switchingShip) throw new Error('Return to an idle port before deploying.');
+    this.switchingShip = true;
+    try {
+      progress?.('Preparing mission waters', .04);
+      const simulation = await draft.deploy(placements);
+      simulation.onFailure = message => this.callbacks.error(message);
+      await this.replaceFleet(simulation, shipPreset(simulation.definition.id), progress);
+      this.environment.setBattle({ timeOfDay: 'noon', weather: draft.briefing.setup.weather as import('../maps/conditions').WeatherId, conditions: {} });
+      draft.briefing.groups.forEach((group, index) => {
+        const shipIds = draft.briefing.assignments.filter(s => s.groupId === group.id).map(s => s.id);
+        if (shipIds.length) this.controlGroups.set(index + 1, { name: group.name, shipIds });
+      });
+      progress?.('Preparing fleet command', .9);
     } finally { this.switchingShip = false; }
   }
 

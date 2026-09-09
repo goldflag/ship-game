@@ -45,3 +45,18 @@ test('restart restores the exact accepted mission and clears helm, orders, repor
     expect(briefing.setup.seed).toBe(request.seed);
   } finally { runtime.free(); }
 });
+test('briefing options and placement preflight expose public content and preserve a rejected draft', () => {
+  const options = JSON.parse(PvePlanner.options(manifest));
+  expect(options.rules.budget).toEqual({ maxDisplacementKg: 200000000, maxShips: 15, maxAircraft: 100 });
+  expect(options.eligiblePresets).toContain('shokaku');
+  expect(options.eligiblePresets).not.toContain('type-viic');
+  expect(options.ships).toBeUndefined();
+  const planner = new PvePlanner(manifest, JSON.stringify(request));
+  try {
+    const before = planner.briefing();
+    expect(() => planner.validate_placement(JSON.stringify([{ id: 'own-destroyer', spawn: { x: 0, z: -1000, heading: 0 } }]))).toThrow();
+    expect(planner.briefing()).toBe(before);
+    planner.validate_placement(JSON.stringify([{ id: 'own-destroyer', spawn: { x: 0, z: 11000, heading: .3 } }]));
+    expect(JSON.parse(planner.briefing()).setup.ships[0].spawn).toEqual({ x: 0, z: 11000, heading: .3 });
+  } finally { planner.free(); }
+});

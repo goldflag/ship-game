@@ -142,6 +142,14 @@ When your ship is hit, a salmon arc around the sight points toward the incoming 
 
 Shell strikes also leave lasting marks on the ship itself: penetrations have dark punctures and torn paint, stopped AP rounds leave steel dents, and ricochets score a scrape along the incoming direction. Larger calibers leave larger marks. Scars conform to the visible mesh and follow hull movement, sinking and turret rotation. They persist while paused, hide in Armor/Internals inspection, and clear when the ship resets or returns to port. Each ship retains its latest 96 marks, batched by struck mesh. AP and HE use their respective strike marks, with broader scorch marks for HE contact bursts. These are surface decals and gameplay approximations, not holes cut through the model.
 
+## PvE fleet command (in development)
+
+Choose **PvE Fleet Command** in port to assemble task groups, then place ships or whole formations on the circular deployment chart. Each team is limited to 200,000 tonnes, 15 ships and 100 embarked aircraft. Enemy strength scales to the selected fleet; its composition and deployment stay private and remain fixed while you arrange your ships. **New opponent** explicitly changes the mission seed.
+
+Surface groups begin on station; rear groups patrol with assigned escorts. Fleet command separates selecting a ship, following its camera and taking its helm. Captains navigate and operate guns/AA; torpedoes start held. The current command interface supports routes, holds, escorts, focus fire, weapons policy, named control groups and local tactical pause. Observation reports replace the omniscient enemy roster in this mode.
+
+This branch is still implementing the [agreed PvE plan](docs/pve-fleet-command-plan.md). See [implementation status](docs/pve-implementation-status.md) for the remaining results/restart workflow, attack coordination, carrier inventory/logistics, air-search and validation work. Existing Custom/online rules retain their current behavior.
+
 ## Architecture
 
 Production builds publish losslessly compressed ship transfers alongside the original GLBs. `src/game/loadShipModel.ts` decompresses them before the normal GLTF parse and definition-hash check; development uses the original models. The build also extracts the supplied ocean/sky libraries' embedded textures into separate hashed files, allowing the game code to start before every texture downloads. Both steps preserve the original asset bytes. See the [startup measurements](assets/reviews/startup/README.md).

@@ -2,12 +2,34 @@ import type { PveRequest } from '../../multiplayer/generated/PveRequest';
 import type { PveBriefing } from '../../multiplayer/generated/PveBriefing';
 import type { Placement } from '../../multiplayer/generated/Placement';
 import { LocalBattleSession } from './LocalBattleSession';
+import type { MissionRules } from '../../multiplayer/generated/MissionRules';
+
+export interface PveOptions { rules: MissionRules; eligiblePresets: string[] }
 
 /** Only public briefing data leaves the planner's worker. The same worker owns
  * the frozen enemy from generation through deployment, battle and restart. */
 export class PveDraft {
   private transferred = false;
   private constructor(private worker: Worker, readonly briefing: PveBriefing) {}
+  static options(signal?: AbortSignal): Promise<PveOptions> {
+    const worker = new Worker(new URL('./local.worker.ts', import.meta.url), { type: 'module' });
+    return new Promise((resolve, reject) => {
+      const finish = (error?: string, options?: PveOptions) => {
+        clearTimeout(timer); signal?.removeEventListener('abort', abort); worker.terminate();
+        if (error) reject(new Error(error)); else resolve(options!);
+      };
+      const abort = () => finish('Mission preparation cancelled.');
+      const timer = setTimeout(() => finish('Mission content took too long to load.'), 120000);
+      worker.onerror = event => finish(event.message);
+      worker.onmessage = event => {
+        if (event.data.type === 'error') finish(event.data.message);
+        else if (event.data.type === 'options') finish(undefined, event.data.options);
+      };
+      if (signal?.aborted) { abort(); return; }
+      signal?.addEventListener('abort', abort, { once: true });
+      worker.postMessage({ type: 'options' });
+    });
+  }
   static create(request: PveRequest, signal?: AbortSignal): Promise<PveDraft> {
     const worker = new Worker(new URL('./local.worker.ts', import.meta.url), { type: 'module' });
     return new Promise((resolve, reject) => {
@@ -34,6 +56,18 @@ export class PveDraft {
     if (this.transferred) throw new Error('This mission has already left deployment.');
     this.transferred = true;
     return LocalBattleSession.deploy(this.worker, this.briefing, placements);
+  }
+  validate(placements: Placement[]): Promise<void> {
+    if (this.transferred) return Promise.reject(new Error('This mission has already left deployment.'));
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => { this.dispose(); reject(new Error('Deployment validation took too long.')); }, 30000);
+      this.worker.onerror = event => { clearTimeout(timer); reject(new Error(event.message)); };
+      this.worker.onmessage = event => {
+        if (event.data.type === 'error') { clearTimeout(timer); reject(new Error(event.data.message)); }
+        else if (event.data.type === 'validated') { clearTimeout(timer); resolve(); }
+      };
+      this.worker.postMessage({ type: 'validate', placements });
+    });
   }
   dispose(): void { if (!this.transferred) { this.transferred = true; this.worker.terminate(); } }
 }

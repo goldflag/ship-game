@@ -1,3 +1,7 @@
+import type { PveBriefing } from '../multiplayer/generated/PveBriefing';
+import { PveSetupDialog } from './PveSetupDialog';
+import type { PveDraft } from '../game/session/PveDraft';
+import type { Placement } from '../multiplayer/generated/Placement';
 import { battleExitLabel } from '../game/session/BattleSession';
 import { MultiplayerDialog } from './MultiplayerDialog';
 import { RemoteBattleSession } from '../game/session/RemoteBattleSession';
@@ -66,6 +70,8 @@ export function App() {
   const [error, setError] = useState('');
   const [hud, setHud] = useState(true);
   const [multiplayerOpen, setMultiplayerOpen] = useState(false);
+  const [pveBriefing, setPveBriefing] = useState<PveBriefing>();
+  const [pveOpen, setPveOpen] = useState(false);
   const [battleSetupOpen, setBattleSetupOpen] = useState(false);
   const [battleSetup, setBattleSetup] = useState<BattleSetup>({ playerShipId: initialShip.id, friendlyBots: [], enemies: [], spawnDistance: BATTLE_SPAWN_DISTANCE, mapId: 'north-atlantic', timeHours: 12, cloudCover: 38, windSpeed: 9 });
   const [battleLoading, setBattleLoading] = useState<BattleLoadingState | null>(null);
@@ -75,7 +81,7 @@ export function App() {
 
   useEffect(() => {
     let active = true;
-    setBattleSetupOpen(false); setBattleLoading(null); battlePending.current = false;
+    setPveBriefing(undefined); setPveOpen(false); setBattleSetupOpen(false); setBattleLoading(null); battlePending.current = false;
     setSwitching(false); setSwitchError(''); switchPending.current = false;
     setReady(false); setError(''); setPaused(false); setSettingsOpen(false); setData(INITIAL_TELEMETRY); setPhase('garage');
     const session = new Game(host.current!, settings, {
@@ -137,7 +143,7 @@ export function App() {
   const openBattleSetup = () => {
     if (!ready || switchPending.current) return;
     setBattleSetup(value => ({ ...value, playerShipId: selectedShip.id }));
-    setBattleError(''); setBattleSetupOpen(true);
+    setPveBriefing(undefined); setBattleError(''); setBattleSetupOpen(true);
   };
   const launch = async () => {
     const session = game.current;
@@ -159,6 +165,23 @@ export function App() {
       if (game.current === session) battlePending.current = false;
     }
   };
+  const launchPve = async (draft: PveDraft, placements: Placement[]) => {
+    const session = game.current;
+    if (!ready || !session || switchPending.current || battlePending.current) throw new Error('The port is still preparing.');
+    battlePending.current = true;
+    setBattleSetup(value => ({ ...value, mapId: draft.briefing.setup.mapId as BattleSetup['mapId'] }));
+    setPveBriefing(draft.briefing);
+    setBattleLoading({ label: 'Preparing mission waters', progress: 0, leaving: false });
+    try {
+      await session.preparePveBattle(draft, placements, (label, progress) => { if (game.current === session) setBattleLoading({ label, progress, leaving: false }); });
+      if (game.current !== session) return;
+      selectedRef.current = session.definition; setSelectedShip(session.definition);
+      setPveOpen(false); setHud(true); setPhase('sailing');
+    } catch (error) {
+      if (game.current === session) setBattleLoading(null);
+      throw error;
+    } finally { if (game.current === session) battlePending.current = false; }
+  };
   const returnToPort = async () => {
     try { await game.current?.returnToPort(); setPhase('garage'); }
     catch (error) { setError(error instanceof Error ? error.message : String(error)); }
@@ -166,6 +189,7 @@ export function App() {
   const onlineBattle = async (remote: RemoteBattleSession) => {
     const current = game.current;
     if (!current) { remote.surrender(); return; }
+    setPveBriefing(undefined);
     const friendly = remote.setup.ships.filter(s => s.team === remote.ownTeam);
     const player = friendly.find(s => s.id === remote.ship.id)!;
     setBattleSetup({ playerShipId: player.presetId, friendlyBots: friendly.filter(s => s !== player).map(s => s.presetId), enemies: remote.setup.ships.filter(s => s.team !== remote.ownTeam).map(s => s.presetId), mapId: remote.mapId, spawnDistance: remote.spawnDistance, ...remote.metadata.environment });
@@ -183,7 +207,7 @@ export function App() {
     if (phase === 'sailing') game.current?.capturePointer();
   };
 
-  useEffect(() => { document.title = `${selectedShip.name} — Custom Battle`; }, [selectedShip]);
+  useEffect(() => { document.title = phase === 'sailing' && pveBriefing ? 'Fleet Command — PvE' : `${selectedShip.name} — Custom Battle`; }, [selectedShip, phase, pveBriefing]);
 
   const switchShip = async (id: string) => {
     const session = game.current;
@@ -244,14 +268,15 @@ export function App() {
       if (!(target instanceof HTMLElement && target.closest('input, textarea, [contenteditable]:not([contenteditable="false"])'))) event.preventDefault();
     }}>
     <div ref={host} className="ocean-viewport" inert={!ready || !!error} data-ship-labels={phase === 'sailing' && hud && ready && !error && !data.airOperationsOpen} />
-    {phase === 'garage' && ready && !error && <Garage key={selectedShip.id} switching={switching} switchError={switchError} onSelectShip={switchShip} game={game.current} ready={ready} fps={data.fps} onLaunch={openBattleSetup} onMultiplayer={() => setMultiplayerOpen(true)} onSettings={() => game.current?.setPaused(true)}/>}
+    {phase === 'garage' && ready && !error && <Garage key={selectedShip.id} switching={switching} switchError={switchError} onSelectShip={switchShip} game={game.current} ready={ready} fps={data.fps} onLaunch={openBattleSetup} onPve={() => setPveOpen(true)} onMultiplayer={() => setMultiplayerOpen(true)} onSettings={() => game.current?.setPaused(true)}/>}
+    {pveOpen && <PveSetupDialog initialShipId={selectedShip.id} loading={!!battleLoading} onLaunch={launchPve} onClose={() => setPveOpen(false)}/>}
     {multiplayerOpen && <MultiplayerDialog loading={!!battleLoading} initialShipId={selectedShip.id} onBattle={onlineBattle} onClose={() => setMultiplayerOpen(false)}/>}
     {battleSetupOpen && !battleLoading && <BattleSetupDialog setup={battleSetup} onChange={setBattleSetup} onLaunch={launch} onClose={() => setBattleSetupOpen(false)} error={battleError}/>}
     {phase === 'sailing' && ready && !error && <><BinocularOverlay data={data}/><div className="hud-viewport">
       <FleetHud data={data} game={game.current} visible={hud} bindings={bindings}/>
       {!hud && <button className="restore-hud" onClick={() => setHud(true)}>Show instruments <kbd>{bindingLabel(bindings, 'hud')}</kbd></button>}
     </div></>}
-    {battleLoading && ready && !error && <BattleLoadingScreen setup={battleSetup} state={battleLoading} multiplayer={!!game.current?.simulation.networked} onLeft={() => setBattleLoading(null)}/>}
+    {battleLoading && ready && !error && <BattleLoadingScreen briefing={pveBriefing} setup={battleSetup} state={battleLoading} multiplayer={!!game.current?.simulation.networked} onLeft={() => setBattleLoading(null)}/>}
 
     {!ready && !error && <section className="startup-screen" aria-labelledby="startup-title">
       <div className="startup-content">
