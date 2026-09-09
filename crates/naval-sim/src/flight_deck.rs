@@ -12,6 +12,9 @@ pub struct AircraftDeckGeometry {
     pub spread: Envelope,
     pub sweep: Envelope,
     pub support: Vec<Vec3>,
+    /// Quarter-metre height bands clipped from actual triangles. Broad overall
+    /// bounds alone incorrectly block wings passing above low deck fittings.
+    pub layers: Vec<Envelope>,
 }
 
 /// Bounds relative to the tyre datum, with landing gear down and the authored
@@ -25,6 +28,17 @@ pub struct Envelope {
 impl AircraftDeckGeometry {
     pub fn valid(&self) -> bool {
         self.version == 1
+            && !self.layers.is_empty()
+            && self.layers.len() <= 200
+            && self.layers.iter().all(|b| {
+                (0..3).all(|i| {
+                    b.min[i].is_finite()
+                        && b.max[i].is_finite()
+                        && b.min[i] <= b.max[i]
+                        && b.min[i] >= self.parked.min[i] - 1e-6
+                        && b.max[i] <= self.parked.max[i] + 1e-6
+                })
+            })
             && self.support.len() == 3
             && self.support.iter().all(|p| {
                 p.iter().all(|v| v.is_finite())

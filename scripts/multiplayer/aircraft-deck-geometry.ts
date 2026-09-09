@@ -9,7 +9,7 @@ interface Node {
 }
 interface Glb {
   nodes: Node[]; scenes: { nodes: number[] }[]; scene?: number;
-  meshes: { primitives: { attributes: Record<string, number> }[] }[];
+  meshes: { primitives: { attributes: Record<string, number>; indices?: number }[] }[];
   accessors: { bufferView: number; byteOffset?: number; count: number; componentType: number; type: string; sparse?: unknown }[];
   bufferViews: { byteOffset?: number; byteLength: number; byteStride?: number }[];
 }
@@ -28,6 +28,17 @@ export async function aircraftDeckGeometry(id: string) {
   const vertex = new Vector3(), root = new Matrix4().makeRotationX(pose.pitch);
   root.setPosition(0, pose.clearance, 0);
   const contacts = new Map<string, Vector3[]>();
+  const layers = new Map<number, Box3>();
+  const clip = (polygon: Vector3[], height: number, above: boolean) => {
+    const out: Vector3[] = [];
+    for (let i = 0; i < polygon.length; i++) {
+      const a = polygon[i], b = polygon[(i + 1) % polygon.length];
+      const insideA = above ? a.y >= height : a.y <= height, insideB = above ? b.y >= height : b.y <= height;
+      if (insideA) out.push(a);
+      if (insideA !== insideB) out.push(a.clone().lerp(b, (height - a.y) / (b.y - a.y)));
+    }
+    return out;
+  };
   const bounds = (fraction: number) => {
     const result = new Box3(), seen = new Set<number>();
     const visit = (index: number, parent: Matrix4, gearOwner?: string) => {
@@ -47,19 +58,45 @@ export async function aircraftDeckGeometry(id: string) {
         local.multiply(new Matrix4().makeRotationAxis(new Vector3().fromArray(axis), degrees * Math.PI / 180 * fraction));
       }
       const world = parent.clone().multiply(local);
+      const capture = fraction === (pose.foldingWings ? 1 : 0);
       for (const primitive of node.mesh === undefined ? [] : doc.meshes[node.mesh].primitives) {
         const a = doc.accessors[primitive.attributes.POSITION], v = doc.bufferViews[a.bufferView];
         if (a.type !== 'VEC3' || a.componentType !== 5126 || a.sparse) throw new Error(`Unsupported aircraft vertex accessor: ${id}`);
         const offset = (v.byteOffset ?? 0) + (a.byteOffset ?? 0), stride = v.byteStride ?? 12;
         if (stride < 12 || (a.byteOffset ?? 0) + (a.count - 1) * stride + 12 > v.byteLength) throw new Error(`Invalid aircraft vertex range: ${id}`);
+        const vertices: Vector3[] = [];
         for (let i = 0; i < a.count; i++) {
           const p = offset + i * stride;
           vertex.set(binary.readFloatLE(p), binary.readFloatLE(p + 4), binary.readFloatLE(p + 8)).applyMatrix4(world);
           if (!vertex.toArray().every(Number.isFinite)) throw new Error(`Nonfinite aircraft vertex: ${id}`);
           result.expandByPoint(vertex);
+          if (capture) vertices.push(vertex.clone());
           if (fraction === 0 && gearOwner) {
             const points = contacts.get(gearOwner) ?? [];
             points.push(vertex.clone()); contacts.set(gearOwner, points);
+          }
+        }
+        if (capture) {
+          let indices = vertices.map((_, i) => i);
+          if (primitive.indices !== undefined) {
+            const a = doc.accessors[primitive.indices], v = doc.bufferViews[a.bufferView];
+            const size = a.componentType === 5121 ? 1 : a.componentType === 5123 ? 2 : a.componentType === 5125 ? 4 : 0;
+            if (!size || a.type !== 'SCALAR' || a.sparse) throw new Error(`Unsupported aircraft triangle indices: ${id}`);
+            indices = Array.from({ length: a.count }, (_, i) => {
+              const offset = (v.byteOffset ?? 0) + (a.byteOffset ?? 0) + i * (v.byteStride ?? size);
+              return size === 1 ? binary.readUInt8(offset) : size === 2 ? binary.readUInt16LE(offset) : binary.readUInt32LE(offset);
+            });
+          }
+          for (let i = 0; i < indices.length; i += 3) {
+            const triangle = indices.slice(i, i + 3).map(j => vertices[j]);
+            if (triangle.length !== 3 || triangle.some(p => !p)) throw new Error(`Invalid aircraft triangle: ${id}`);
+            const low = Math.floor(Math.min(...triangle.map(p => p.y)) / .25), high = Math.floor(Math.max(...triangle.map(p => p.y)) / .25);
+            for (let band = low; band <= high; band++) {
+              const polygon = clip(clip(triangle, band * .25, true), (band + 1) * .25, false);
+              const box = layers.get(band) ?? new Box3();
+              for (const p of polygon) box.expandByPoint(p);
+              if (!box.isEmpty()) layers.set(band, box);
+            }
           }
         }
       }
@@ -80,5 +117,5 @@ export async function aircraftDeckGeometry(id: string) {
     const bottom = points.filter(p => p.y <= low + .002);
     return bottom.reduce((sum, p) => sum.add(p), new Vector3()).multiplyScalar(1 / bottom.length).toArray();
   });
-  return { version: 1, modelHash: createHash('sha256').update(bytes).digest('hex'), parked: value(parked), spread: value(spread), sweep: value(sweep), support };
+  return { version: 1, modelHash: createHash('sha256').update(bytes).digest('hex'), parked: value(parked), spread: value(spread), sweep: value(sweep), support, layers: [...layers].sort(([a], [b]) => a - b).map(([, box]) => value(box)) };
 }

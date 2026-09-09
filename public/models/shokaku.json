@@ -33511,7 +33511,7 @@
         {
           "id": "park-1-starboard",
           "position": [
-            8,
+            7.5,
             14.78,
             -23
           ],
@@ -33529,7 +33529,7 @@
         {
           "id": "park-2-starboard",
           "position": [
-            8,
+            7.5,
             14.78,
             -11.8
           ],
@@ -33547,7 +33547,7 @@
         {
           "id": "park-3-starboard",
           "position": [
-            8,
+            7.5,
             14.78,
             -0.6
           ],
@@ -33565,7 +33565,7 @@
         {
           "id": "park-4-starboard",
           "position": [
-            8,
+            7.5,
             14.78,
             10.6
           ],
@@ -34955,5 +34955,5 @@
     "basis": "Original game calibration: eight longitudinal sections, independent sides and three height bands, with separate gunhouse budgets. Generator/director proxy positions and fire loads are estimated; no historical structural tolerance, electrical routing, ventilation or crew-performance claim."
   },
   "compilerVersion": 1,
-  "contentHash": "84c4e371d4ad1be5a515a06362ec40eebc756846fe43f05b422c7e92cad6e932"
+  "contentHash": "95e6516cc07e99a828d70214ce2cdaccdec8a9d1d8cb9d1eb0d8c424e137faf2"
 }
