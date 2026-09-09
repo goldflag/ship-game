@@ -76,6 +76,23 @@ fn step(a: &mut Aviation, actors: &[Vessel], time: &mut f64, dt: f64) {
             .len(),
         planes.iter().filter(|p| p.deck_slot.is_some()).count()
     );
+    for p in planes.iter().filter(|p| p.deck_position.is_some()) {
+        let limit = a.ground[&p.model_id]
+            .deck_geometry
+            .as_ref()
+            .unwrap()
+            .hook_deck_fraction;
+        assert!(
+            p.controls.hook <= limit,
+            "{} hook crossed its deck stop",
+            p.id
+        );
+        assert!(
+            p.previous_controls.is_none_or(|c| c.hook <= limit),
+            "{} hook interpolation crossed its deck stop",
+            p.id
+        );
+    }
 }
 fn until(
     a: &mut Aviation,

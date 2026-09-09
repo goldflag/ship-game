@@ -1058,7 +1058,19 @@ impl Aviation {
                 }
                 p.phase = "rollout".into();
                 p.timer = 0.0;
-                deck_pose(p, actor, [next[0], deck_y, next[2]], &ground);
+                if managed {
+                    crate::deck_operations::place(
+                        p,
+                        actor,
+                        crate::flight_deck::DeckPose {
+                            position: [next[0], recovery_position[1], next[2]],
+                            heading: 0.0,
+                        },
+                        &ground,
+                    );
+                } else {
+                    deck_pose(p, actor, [next[0], deck_y, next[2]], &ground);
+                }
                 ctx.event(p, "aircraft-recovered", format!("{} landed", p.model_id));
             } else if next[2] < recovery_position[2] - 30.0
                 || aft < 250.0 && (next[0] - recovery_position[0]).abs() > 30.0

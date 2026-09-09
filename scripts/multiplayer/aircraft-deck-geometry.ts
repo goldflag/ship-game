@@ -28,6 +28,8 @@ export async function aircraftDeckGeometry(id: string) {
   const vertex = new Vector3(), root = new Matrix4().makeRotationX(pose.pitch);
   root.setPosition(0, pose.clearance, 0);
   const contacts = new Map<string, Vector3[]>();
+  const hookPoints: Vector3[] = [];
+  let hookFrame: Matrix4 | undefined;
   const layers = new Map<number, Box3>();
   const clip = (polygon: Vector3[], height: number, above: boolean) => {
     const out: Vector3[] = [];
@@ -41,7 +43,7 @@ export async function aircraftDeckGeometry(id: string) {
   };
   const bounds = (fraction: number) => {
     const result = new Box3(), seen = new Set<number>();
-    const visit = (index: number, parent: Matrix4, gearOwner?: string) => {
+    const visit = (index: number, parent: Matrix4, gearOwner?: string, hookOwner = false) => {
       if (seen.has(index)) throw new Error(`Invalid aircraft hierarchy: ${id}`);
       seen.add(index);
       const node = doc.nodes[index];
@@ -58,6 +60,7 @@ export async function aircraftDeckGeometry(id: string) {
         local.multiply(new Matrix4().makeRotationAxis(new Vector3().fromArray(axis), degrees * Math.PI / 180 * fraction));
       }
       const world = parent.clone().multiply(local);
+      if (nodeId === 'arrestor.hook') { hookOwner = true; hookFrame = world.clone(); }
       const capture = fraction === (pose.foldingWings ? 1 : 0);
       for (const primitive of node.mesh === undefined ? [] : doc.meshes[node.mesh].primitives) {
         const a = doc.accessors[primitive.attributes.POSITION], v = doc.bufferViews[a.bufferView];
@@ -75,6 +78,7 @@ export async function aircraftDeckGeometry(id: string) {
             const points = contacts.get(gearOwner) ?? [];
             points.push(vertex.clone()); contacts.set(gearOwner, points);
           }
+          if (fraction === 0 && hookOwner) hookPoints.push(vertex.clone());
         }
         if (capture) {
           let indices = vertices.map((_, i) => i);
@@ -100,7 +104,7 @@ export async function aircraftDeckGeometry(id: string) {
           }
         }
       }
-      for (const child of node.children ?? []) visit(child, world, gearOwner);
+      for (const child of node.children ?? []) visit(child, world, gearOwner, hookOwner);
     };
     for (const index of doc.scenes[doc.scene ?? 0].nodes) visit(index, root);
     if (result.isEmpty()) throw new Error(`Empty aircraft deck geometry: ${id}`);
@@ -109,6 +113,30 @@ export async function aircraftDeckGeometry(id: string) {
   const spread = bounds(0), parked = pose.foldingWings ? bounds(1) : spread.clone();
   const sweep = spread.clone().union(parked);
   if (pose.foldingWings) for (let i = 1; i < 20; i++) sweep.union(bounds(i / 20));
+  if (!hookFrame || !hookPoints.length) throw new Error(`Missing aircraft hook geometry: ${id}`);
+  const inverseHook = hookFrame.clone().invert();
+  const hookHeight = (fraction: number) => {
+    const transform = hookFrame!.clone().multiply(new Matrix4().makeRotationX(.65 * fraction)).multiply(inverseHook);
+    return hookPoints.reduce((low, p) => Math.min(low, p.clone().applyMatrix4(transform).y), Infinity);
+  };
+  // Retain a small LOD/contact allowance. On touchdown the CPU constrains both
+  // control samples to this fitted stop, preventing interpolation through deck.
+  if (hookHeight(0) < .04) throw new Error(`Stowed aircraft hook intersects its deck allowance: ${id}`);
+  let hookDeckFraction = 1;
+  for (let i = 1; i <= 64; i++) {
+    if (hookHeight(i / 64) >= .04) continue;
+    let low = (i - 1) / 64, high = i / 64;
+    for (let j = 0; j < 20; j++) {
+      const middle = (low + high) / 2;
+      if (hookHeight(middle) >= .04) low = middle; else high = middle;
+    }
+    hookDeckFraction = low;
+    break;
+  }
+  for (let i = 0; i <= 64; i++) {
+    const transform = hookFrame.clone().multiply(new Matrix4().makeRotationX(.65 * hookDeckFraction * i / 64)).multiply(inverseHook);
+    for (const point of hookPoints) sweep.expandByPoint(point.clone().applyMatrix4(transform));
+  }
   const value = (box: Box3) => ({ min: box.min.toArray(), max: box.max.toArray() });
   const support = ['gear.port', 'gear.starboard', 'gear.tail'].map(gear => {
     const points = contacts.get(gear);
@@ -117,5 +145,5 @@ export async function aircraftDeckGeometry(id: string) {
     const bottom = points.filter(p => p.y <= low + .002);
     return bottom.reduce((sum, p) => sum.add(p), new Vector3()).multiplyScalar(1 / bottom.length).toArray();
   });
-  return { version: 1, modelHash: createHash('sha256').update(bytes).digest('hex'), parked: value(parked), spread: value(spread), sweep: value(sweep), support, layers: [...layers].sort(([a], [b]) => a - b).map(([, box]) => value(box)) };
+  return { version: 1, modelHash: createHash('sha256').update(bytes).digest('hex'), hookDeckFraction, parked: value(parked), spread: value(spread), sweep: value(sweep), support, layers: [...layers].sort(([a], [b]) => a - b).map(([, box]) => value(box)) };
 }

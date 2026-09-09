@@ -8,6 +8,8 @@ use std::collections::BTreeSet;
 pub struct AircraftDeckGeometry {
     pub version: u32,
     pub model_hash: String,
+    /// Fitted hook stop above the nominal deck, baked from the published rig.
+    pub hook_deck_fraction: f64,
     pub parked: Envelope,
     pub spread: Envelope,
     pub sweep: Envelope,
@@ -28,6 +30,8 @@ pub struct Envelope {
 impl AircraftDeckGeometry {
     pub fn valid(&self) -> bool {
         self.version == 1
+            && self.hook_deck_fraction.is_finite()
+            && (0.0..=1.0).contains(&self.hook_deck_fraction)
             && !self.layers.is_empty()
             && self.layers.len() <= 200
             && self.layers.iter().all(|b| {

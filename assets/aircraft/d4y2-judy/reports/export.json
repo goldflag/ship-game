@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "aircraftId": "d4y2-judy",
-  "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75",
+  "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de",
   "result": "passed",
   "coordinates": {
     "units": "meters",
@@ -38,7 +38,8 @@
     "gear.starboard",
     "gear.tail",
     "socket.payload",
-    "socket.deck"
+    "socket.deck",
+    "arrestor.hook"
   ],
   "joints": [
     {
@@ -106,12 +107,23 @@
       "movingMeshes": 1,
       "testedRotationRadians": 0.35,
       "maximumVertexTravel": 0.19987720742449414
+    },
+    {
+      "id": "arrestor.hook",
+      "pivot": [
+        0,
+        -0.32341504096984863,
+        3.6791999340057373
+      ],
+      "movingMeshes": 1,
+      "testedRotationRadians": 0.35,
+      "maximumVertexTravel": 0.48851610240376747
     }
   ],
-  "triangles": 28252,
+  "triangles": 28472,
   "meshes": 11,
   "primitives": 27,
-  "bytes": 1082920,
+  "bytes": 1088092,
   "surfaces": {
     "uvPrimitives": 27,
     "texturedPrimitives": 6,
@@ -124,11 +136,11 @@
     "degenerateTriangles": 0
   },
   "historicalAccuracy": "Not certified; see the aircraft source register and discrepancy report.",
-  "modelHash": "df1dcd2ac2becd9c618e6c2226a83a284b2d5d9e9a2af9cacc66daa809ac95de",
-  "sourceBlendHash": "cb167385a86f0f99d580ee2c0f978d7980f5472c02d11e87d2bf35a751995855",
+  "modelHash": "adf4c731c9218e8800a91b4db338bb40616b20e65f3e27b0ca3439f66e147ed0",
+  "sourceBlendHash": "a6f7fb7fcd2dfe25edab687a83204340d6b265b20973564caaa0abe33aacc74c",
   "sourceFiles": {
     "assets/aircraft/catalog.json": "f5a9edd4250b53c049f506701465c5a19c02de32742df2c2e9e93d837a4497a3",
-    "assets/aircraft/build.py": "fcb1bf8212454e3ffe2eedcbffe48880e31d8f754b8e27faf277b023055cc511",
+    "assets/aircraft/build.py": "e479fc8d1af823aa6b3976efafe30d4b46c728ffbced181ea0fb89e07bfc3d11",
     "assets/aircraft/detail_bombers.py": "351e2cd6ccfddc591279a2b6e1f6057b4131420cd18f7020050f0a40848ad499",
     "assets/aircraft/shapes/a6m2-zero.json": "98c909b4199cce1ae77024c4fa57a89099d973c8878357e4f40a1b07b9fab77c",
     "assets/aircraft/references/schematics/a6m2-zero/three-view.png": "bd3911b9abab248fd6d5d8affe8b76f79216190f0ee0e624a40cac97e2e78dac",
@@ -174,7 +186,7 @@
       "level": 0,
       "schemaVersion": 1,
       "aircraftId": "d4y2-judy",
-      "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75",
+      "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de",
       "result": "passed",
       "coordinates": {
         "units": "meters",
@@ -211,7 +223,8 @@
         "gear.starboard",
         "gear.tail",
         "socket.payload",
-        "socket.deck"
+        "socket.deck",
+        "arrestor.hook"
       ],
       "joints": [
         {
@@ -279,12 +292,23 @@
           "movingMeshes": 1,
           "testedRotationRadians": 0.35,
           "maximumVertexTravel": 0.19987720742449414
+        },
+        {
+          "id": "arrestor.hook",
+          "pivot": [
+            0,
+            -0.32341504096984863,
+            3.6791999340057373
+          ],
+          "movingMeshes": 1,
+          "testedRotationRadians": 0.35,
+          "maximumVertexTravel": 0.48851610240376747
         }
       ],
-      "triangles": 28252,
+      "triangles": 28472,
       "meshes": 11,
       "primitives": 27,
-      "bytes": 1082920,
+      "bytes": 1088092,
       "surfaces": {
         "uvPrimitives": 27,
         "texturedPrimitives": 6,
@@ -297,14 +321,14 @@
         "degenerateTriangles": 0
       },
       "historicalAccuracy": "Not certified; see the aircraft source register and discrepancy report.",
-      "modelHash": "df1dcd2ac2becd9c618e6c2226a83a284b2d5d9e9a2af9cacc66daa809ac95de",
+      "modelHash": "adf4c731c9218e8800a91b4db338bb40616b20e65f3e27b0ca3439f66e147ed0",
       "triangleRatio": 1
     },
     {
       "level": 1,
       "schemaVersion": 1,
       "aircraftId": "d4y2-judy",
-      "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75",
+      "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de",
       "result": "passed",
       "coordinates": {
         "units": "meters",
@@ -341,7 +365,8 @@
         "gear.starboard",
         "gear.tail",
         "socket.payload",
-        "socket.deck"
+        "socket.deck",
+        "arrestor.hook"
       ],
       "joints": [
         {
@@ -409,12 +434,23 @@
           "movingMeshes": 1,
           "testedRotationRadians": 0.35,
           "maximumVertexTravel": 0.19988804786182943
+        },
+        {
+          "id": "arrestor.hook",
+          "pivot": [
+            0,
+            -0.32341504096984863,
+            3.6791999340057373
+          ],
+          "movingMeshes": 1,
+          "testedRotationRadians": 0.35,
+          "maximumVertexTravel": 0.48851610240376747
         }
       ],
-      "triangles": 12700,
+      "triangles": 13022,
       "meshes": 11,
       "primitives": 27,
-      "bytes": 526900,
+      "bytes": 534304,
       "surfaces": {
         "uvPrimitives": 27,
         "texturedPrimitives": 6,
@@ -427,14 +463,14 @@
         "degenerateTriangles": 0
       },
       "historicalAccuracy": "Not certified; see the aircraft source register and discrepancy report.",
-      "modelHash": "f608a659e8b583715c8c0cc91e9a701043eb4db65396587cd686d5dd800690df",
-      "triangleRatio": 0.4495256972957667
+      "modelHash": "356060908ca66a9c7d7b9ddc08328640309791e8401080ec581706df08e38fe0",
+      "triangleRatio": 0.45736161843214385
     },
     {
       "level": 2,
       "schemaVersion": 1,
       "aircraftId": "d4y2-judy",
-      "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75",
+      "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de",
       "result": "passed",
       "coordinates": {
         "units": "meters",
@@ -471,7 +507,8 @@
         "gear.starboard",
         "gear.tail",
         "socket.payload",
-        "socket.deck"
+        "socket.deck",
+        "arrestor.hook"
       ],
       "joints": [
         {
@@ -539,12 +576,23 @@
           "movingMeshes": 1,
           "testedRotationRadians": 0.35,
           "maximumVertexTravel": 0.19988804786182943
+        },
+        {
+          "id": "arrestor.hook",
+          "pivot": [
+            0,
+            -0.32341504096984863,
+            3.6791999340057373
+          ],
+          "movingMeshes": 1,
+          "testedRotationRadians": 0.35,
+          "maximumVertexTravel": 0.48851610240376747
         }
       ],
-      "triangles": 5616,
+      "triangles": 5982,
       "meshes": 11,
       "primitives": 27,
-      "bytes": 268440,
+      "bytes": 276640,
       "surfaces": {
         "uvPrimitives": 27,
         "texturedPrimitives": 6,
@@ -557,48 +605,48 @@
         "degenerateTriangles": 0
       },
       "historicalAccuracy": "Not certified; see the aircraft source register and discrepancy report.",
-      "modelHash": "bf97e32460de447ec55a9cbd6ff965968860ad564fe10810e1c366a92de2643b",
-      "triangleRatio": 0.19878238708763982
+      "modelHash": "85a4ee5f93aa89f4b3d315a874f298f6086ed4b180dc8cbe65e968c4b3e0abcb",
+      "triangleRatio": 0.2101011520089913
     }
   ],
   "authoring": {
     "method": "local-blender",
     "blenderVersion": "5.2.0 LTS",
-    "metadataHash": "5552821c2d6e2b57c2cf8f853d645eacd6fdca359b470e4557ed9ca39fbfdbfa"
+    "metadataHash": "d64d1cd6431645cf80110fb859a89506df99823050f1b1b5f2075c6d28425f74"
   },
   "review": {
     "images": {
       "quarter": {
-        "sha256": "9c4311fd74cac6de2000564e54ed62dbc68ed02e1d32cccf1a22a2fa5efeb492",
+        "sha256": "a0d91f81d9c4ca76a1ba62d52f9744b72981402610555d8dae4dc529cdd7db35",
         "width": 1400,
         "height": 1050
       },
       "top": {
-        "sha256": "79c1bb7dc426b7b30d2ef4017fce8a844863773474428c2cd80c2468cdd28fbe",
+        "sha256": "f39bb4d0805bfc4ae8b8cce044f73bd62e613cb0820e95d868a64b1185b213ea",
         "width": 1400,
         "height": 1050
       },
       "side": {
-        "sha256": "fcfa9939b4628b1a10e66d020b358c788f79ffa0edf6d55a635d9f89d436d7ad",
+        "sha256": "c48dc9967dff95f6fd2e9790fdf88a5e3b64040788a9367edb254fd5ad3d2888",
         "width": 1400,
         "height": 1050
       },
       "front": {
-        "sha256": "52fa8aded3ad1d9845d8739906fdd2bcd90da556fe07d3cb843bc57bbc514467",
+        "sha256": "7594cd9ebb7de76774403f36a71c47027d87ff8adc42ae71d4725f8dc6461312",
         "width": 1400,
         "height": 1050
       },
       "rear": {
-        "sha256": "87efdeaf0e9eb1aab00cfeaa7adbd7159f168ad11b3d0fb9205d0c2255e4dc0e",
+        "sha256": "fe1bb0f61b8e4d8c238946f35885c7f431dfbc11a1d308a4171c982396075ea7",
         "width": 1400,
         "height": 1050
       },
       "articulated": {
-        "sha256": "438ec9ea17dd1b8a0e4fadff12e84762ff144a1e2f529024849bef1c403daa04",
+        "sha256": "9d59096d9796ae94a9a654e99175ff9518c92ca616959f1756555003531ed052",
         "width": 1400,
         "height": 1050
       }
     },
-    "camerasHash": "ae33dfc6c5bb5b7285de48343c403b1161bde93b84798b42a535e74352bd8a8f"
+    "camerasHash": "9a3ce99bd2abf8e0b7fec66d2b4628a7a7ebc224badc083389f691f42182a4f1"
   }
 }

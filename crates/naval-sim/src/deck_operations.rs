@@ -123,6 +123,12 @@ fn pose(p: &Aircraft, ground: &GroundPose) -> DeckPose {
     }
 }
 pub fn place(p: &mut Aircraft, actor: &Vessel, at: DeckPose, ground: &GroundPose) {
+    if let Some(geometry) = &ground.deck_geometry {
+        p.controls.hook = p.controls.hook.min(geometry.hook_deck_fraction);
+        if let Some(previous) = &mut p.previous_controls {
+            previous.hook = previous.hook.min(geometry.hook_deck_fraction);
+        }
+    }
     let root = add(at.position, [0.0, ground.clearance, 0.0]);
     p.deck_position = Some(root);
     p.deck_heading = Some(at.heading);

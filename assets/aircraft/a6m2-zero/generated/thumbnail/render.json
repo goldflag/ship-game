@@ -3,9 +3,9 @@
   "aircraftId": "a6m2-zero",
   "method": "local-blender",
   "blenderVersion": "5.2.0 LTS",
-  "modelHash": "d15004620426a66897489bced0abef386e886b35813ba81cc842656f09511a24",
+  "modelHash": "55f4d403e67033c27597c52a8cc374d9592738c864646a7bafad1178b32e1398",
   "recipeHash": "4dac62f77e03bd34d839afece76b69a852415f46fd2d524f1968006c869223bb",
-  "imageHash": "799af16d953e1ea9786d31953f50cfe12fa27f32dea33963f49f2679142a495f",
+  "imageHash": "1ccf348e64420f63472b276a5832d116e0aedee06a01fbc3bb0ed8519030b87d",
   "importedAxes": "nose +Y, starboard +X, up +Z",
   "projection": "orthographic",
   "location": [
