@@ -8,10 +8,10 @@ import enterprise from '../../assets/ships/enterprise-cv6/blueprint.json';
 import catalog from '../../assets/parts/guns.json';
 import { compileShip, type Vec3 } from '../ships/blueprint';
 import { CombatSimulation } from './combat';
-import { clearTorpedoLane, damageTorpedoHit, firstTorpedoHit, torpedoIntercept, type Torpedo, type TubeState } from './torpedoes';
+import { clearTorpedoLane, glancingDudChance, torpedoDudRoll, damageTorpedoHit, firstTorpedoHit, torpedoIntercept, type Torpedo, type TubeState } from './torpedoes';
 import { FIXED_DT } from './ship';
 import { botTorpedoAim } from './bots';
-import { localToWorld, normalize, scale, sub } from './geometry';
+import { add, localToWorld, normalize, scale, sub } from './geometry';
 import type { FleetActor } from './battle';
 import { updateCapability } from './stability';
 
@@ -282,4 +282,40 @@ test('128 existing torpedoes do not suppress a loaded tube launch', () => {
   sim.requestFire(); step(sim, 1);
   expect(sim.torpedoes).toHaveLength(129);
   expect(rounds(sim)).toBe(13);
+});
+
+test('contact pistol is reliable outside extreme glancing angles and seeded per projectile', () => {
+  const chance = (degrees: number) => glancingDudChance([Math.sin(degrees * Math.PI / 180), 0, Math.cos(degrees * Math.PI / 180)], [1, 0, 0]);
+  expect(chance(90)).toBe(0);
+  expect(chance(45)).toBe(0);
+  expect(chance(20)).toBeCloseTo(0);
+  expect(chance(10)).toBeCloseTo(.45);
+  expect(chance(0)).toBeCloseTo(.9);
+  expect(glancingDudChance([-1, 0, 0], [-1, 0, 0])).toBe(0);
+  expect(torpedoDudRoll(123, 42)).toBe(0.41204642434604466); // Shared native/TS vector.
+  expect(torpedoDudRoll(124, 42)).not.toBe(torpedoDudRoll(123, 42));
+});
+
+test('an armed glancing dud is consumed without damage, flooding or score', () => {
+  const target = compileShip(blueprint, catalog);
+  target.hull.sections = [0, target.hull.length].map(station => ({ station, points: [[0, -4], [3, -4], [3, 4]] }));
+  const run = () => {
+    const sim = new CombatSimulation(definition, { enemies: [target], friendlyBots: [], spawnDistance: 1000 }, 123);
+    sim.target.controller = 'idle';
+    const direction: Vec3 = [Math.sin(Math.PI / 18), 0, Math.cos(Math.PI / 18)];
+    const t = { ...projectile(), id: 42 };
+    const contact = localToWorld([-3, -t.weapon.runningDepthM, 0], sim.target.motion);
+    const end = localToWorld(add([-3, -t.weapon.runningDepthM, 0], direction), sim.target.motion);
+    t.velocity = scale(normalize(sub(end, contact)), t.weapon.speed);
+    t.position = sub(contact, scale(t.velocity, FIXED_DT / 2));
+    sim.torpedoes.push(t); step(sim, 1);
+    expect(sim.torpedoes).toHaveLength(0);
+    expect(sim.target.damage.integrity).toBe(sim.target.damage.maxIntegrity);
+    expect(sim.target.damage.compartments.every(c => c.breachAreaM2 === 0)).toBe(true);
+    expect(sim.telemetry('torpedo', ahead).playerDamageDealt).toBe(0);
+    expect(sim.telemetry('torpedo', ahead).damageLog).toHaveLength(0);
+    return sim.events.find(e => e.kind === 'torpedo-dud');
+  };
+  expect(run()).toMatchObject({ message: 'Torpedo dud · glancing impact', hullDamage: 0 });
+  expect(run()).toEqual(run());
 });

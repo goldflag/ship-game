@@ -76,5 +76,8 @@ test('torpedo HP and armor rejection are explicit, friendly impacts excluded, an
   expect(feedback.update(sim)[0]).toMatchObject({ part: 'Engine room', damage: 300, result: 'Flooding breach' });
   sim.events.push({ ...sim.events[0], sequence: 3, kind: 'torpedo-dud', hullDamage: 0, torpedo: { id: 3, velocity: [0, 0, -20], diameterM: .533 }, message: 'Torpedo dud · impact before arming' });
   expect(feedback.update(sim).at(-1)).toMatchObject({ damage: 0, result: 'Unarmed impact' });
+  sim.events.push({ ...sim.events[2], sequence: 4, torpedo: { id: 4, velocity: [0, 0, -20], diameterM: .533 }, message: 'Torpedo dud · glancing impact' });
+  expect(feedback.update(sim).at(-1)).toMatchObject({ part: 'Hull', damage: 0, result: 'Dud · glancing impact' });
+  expect(feedback.update(sim)).toHaveLength(3);
   expect(feedback.update(new CombatSimulation(shipPreset('type-viic')))).toHaveLength(0);
 });
