@@ -1,5 +1,5 @@
 import { expect, spyOn, test } from 'bun:test';
-import { BoxGeometry, Group, InstancedBufferGeometry, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, PerspectiveCamera, Vector3 } from 'three/webgpu';
+import { BoxGeometry, Euler, Group, InstancedBufferGeometry, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, PerspectiveCamera, Quaternion, Vector3 } from 'three/webgpu';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { AircraftView } from './AircraftView';
 import { CombatSimulation } from '../simulation/combat';
@@ -7,6 +7,7 @@ import { shipPreset } from '../ships/presets';
 import { aircraftDeckSpot } from '../simulation/aircraft';
 import { aircraftGroundPose } from '../simulation/aircraftGroundPose';
 import { aircraftContactAppearance } from './AircraftContacts';
+import { localToWorld, rotate } from '../simulation/geometry';
 
 const drawCount = (mesh: InstancedMesh) => (mesh.geometry as InstancedBufferGeometry).instanceCount;
 
@@ -218,7 +219,7 @@ test('fold joints retain full-size geometry and independent per-plane poses acro
 });
 
 
-test('authoritative deck poses retain their position and heading while raising, parked and preparing launch', async () => {
+test('fitted deck poses retain CPU contact attitude through hull interpolation and every ground phase', async () => {
   const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async () => {
     const scene = new Group(); scene.add(new Mesh(new BoxGeometry(), new MeshBasicMaterial()));
     return { scene } as Awaited<ReturnType<GLTFLoader['loadAsync']>>;
@@ -230,18 +231,32 @@ test('authoritative deck poses retain their position and heading while raising, 
     for (const p of sim.aircraft) p.phase = 'lost';
     const plane = sim.player.airWing!.planes[0];
     plane.deckSlot = 0; plane.deckPosition = [3, 13.2, -62]; plane.deckHeading = .7;
-    const carrier = new Group(); carrier.position.set(100, 5, 20); carrier.rotation.set(.03, .4, -.08); carrier.updateMatrixWorld(true);
+    Object.assign(sim.player.motion, { heading: -.4, pitch: .11, roll: .09 });
+    const fitted = { heading: plane.deckHeading, pitch: .16, roll: -.07 };
+    const cpuHull = sim.player.motion;
+    const cpuRotation = new Quaternion().setFromEuler(new Euler(cpuHull.pitch, -cpuHull.heading, cpuHull.roll, 'YXZ'))
+      .multiply(new Quaternion().setFromEuler(new Euler(fitted.pitch, -fitted.heading, fitted.roll, 'YXZ')));
+    const cpuAttitude = new Euler().setFromQuaternion(cpuRotation, 'YXZ');
+    Object.assign(plane, { heading: -cpuAttitude.y, pitch: cpuAttitude.x, bank: cpuAttitude.z });
+    const displayed = { x: 100, y: 5, z: 20, heading: .6, pitch: -.03, roll: -.08 };
+    const carrier = new Group(); carrier.position.set(displayed.x, displayed.y, displayed.z);
+    carrier.rotation.set(displayed.pitch, -displayed.heading, displayed.roll, 'YXZ'); carrier.updateMatrixWorld(true);
     const camera = new PerspectiveCamera(), roots = new Map([['player', carrier]]);
-    for (const phase of ['raising', 'ready', 'rearming', 'launch-ready', 'lowering'] as const) {
+    for (const phase of ['raising', 'ready', 'queued', 'taxi', 'rearming', 'launch-ready', 'takeoff', 'rollout', 'parking', 'lowering'] as const) {
       plane.phase = phase;
+      const before = structuredClone(plane), hullBefore = structuredClone(sim.player.motion);
       view.update(sim, camera, true, true, roots);
+      expect(plane).toEqual(before); expect(sim.player.motion).toEqual(hullBefore);
       expect(view.diagnostics().instances).toBe(1);
       const batch = view.root.children.find(c => c instanceof InstancedMesh && c.name.startsWith('Aircraft model ') && c.visible) as InstancedMesh;
       const actual = new Matrix4(); batch.getMatrixAt(0, actual);
-      const expected = carrier.matrixWorld.clone().multiply(new Matrix4().makeTranslation(...plane.deckPosition))
-        .multiply(new Matrix4().makeRotationY(-plane.deckHeading))
-        .multiply(new Matrix4().makeRotationX(aircraftGroundPose(plane.modelId).pitch));
-      actual.elements.forEach((value, i) => expect(value).toBeCloseTo(expected.elements[i], 3));
+      const expectedPosition = localToWorld(plane.deckPosition, displayed);
+      new Vector3().setFromMatrixPosition(actual).toArray().forEach((value, i) => expect(value).toBeCloseTo(expectedPosition[i], 4));
+      // Each body axis must retain its fitted direction on the displayed deck.
+      for (const axis of [[1, 0, 0], [0, 1, 0], [0, 0, 1]] as [number, number, number][]) {
+        const expectedAxis = rotate(rotate(axis, fitted), displayed);
+        new Vector3(...axis).transformDirection(actual).toArray().forEach((value, i) => expect(value).toBeCloseTo(expectedAxis[i], 5));
+      }
     }
   } finally { await view.dispose(); loader.mockRestore(); }
 });

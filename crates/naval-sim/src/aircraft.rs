@@ -116,6 +116,11 @@ pub struct Aircraft {
     pub ammo: f64,
     pub payload: bool,
     pub wing_fold: f64,
+    /// Managed routing datum, distinct from the fitted visual root.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub deck_datum: Option<Vec3>,
+    #[serde(skip)]
+    pub deck_local_attitude: Option<crate::aircraft_flight::FlightAttitude>,
     pub deck_position: Option<Vec3>,
     pub deck_heading: Option<f64>,
     pub timer: f64,
@@ -279,6 +284,8 @@ pub fn create_air_wing(
                     } else {
                         0.0
                     },
+                    deck_datum: None,
+                    deck_local_attitude: None,
                     deck_position: None,
                     deck_heading: None,
                     timer: 0.0,

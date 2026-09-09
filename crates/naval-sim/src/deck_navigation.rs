@@ -12,6 +12,7 @@ use std::{
 
 pub struct DeckTraffic<'a> {
     pub ship: &'a ShipDefinition,
+    pub surface: &'a crate::deck_contact::DeckSurface,
     /// Excludes the moving aircraft; includes occupied and reserved destinations.
     pub occupied: &'a [(Envelope, DeckPose)],
 }
@@ -68,7 +69,13 @@ impl DeckTraffic<'_> {
                 &deck.footprint,
                 pose.position[0] + cos * p[0] - sin * p[2],
                 pose.position[2] + sin * p[0] + cos * p[2],
-            )
+            ) || self
+                .surface
+                .height(
+                    pose.position[0] + cos * p[0] - sin * p[2],
+                    pose.position[2] + sin * p[0] + cos * p[2],
+                )
+                .is_none()
         }) {
             return false;
         }

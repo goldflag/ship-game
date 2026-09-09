@@ -14,6 +14,7 @@ use std::{
 /// Built once when trusted content loads, then shared by every vessel and match.
 #[derive(Clone, Debug)]
 pub struct CompiledShip {
+    pub deck_surface: Option<crate::deck_contact::DeckSurface>,
     pub collision_profile: Vec<[f64; 2]>,
     pub torpedo_hull: Vec<crate::structure::StructuralSurface>,
     pub definition: Arc<ShipDefinition>,
@@ -27,6 +28,14 @@ pub struct CompiledShip {
 impl CompiledShip {
     pub fn new(definition: Arc<ShipDefinition>) -> Result<Self, String> {
         let d = &definition;
+        let deck_surface = crate::deck_contact::DeckSurface::new(d);
+        if d.air_wing
+            .as_ref()
+            .is_some_and(|wing| wing.deck_layout.is_some())
+            && deck_surface.is_none()
+        {
+            return Err("Invalid authored flight-deck contact surface".into());
+        }
         let mut low = [
             -(d.hull.beam + 30.0) / 2.0,
             -20.0,
@@ -61,6 +70,7 @@ impl CompiledShip {
             shell_center[i].abs() + shell_size[i] / 2.0
         }));
         Ok(Self {
+            deck_surface,
             torpedo_hull: crate::torpedoes::torpedo_hull(d)?,
             collision_profile: crate::collisions::profile(&d.hull),
             contacts: ContactGeometry::new(d)?,

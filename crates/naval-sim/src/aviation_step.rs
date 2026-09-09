@@ -192,6 +192,7 @@ impl Aviation {
             };
             p.deck_slot = reserve.deck_slot;
             reserve.deck_slot = None;
+            reserve.deck_datum = None;
             reserve.deck_position = None;
         }
         let spot = self.deck_spot(actor, p);
@@ -642,6 +643,7 @@ impl Aviation {
                     p.phase = "ready".into();
                     p.timer = 0.0;
                     p.deck_slot = None;
+                    p.deck_datum = None;
                     p.deck_position = None;
                     p.flight_time = 0.0;
                     p.ammo = if p.role == "fighter" {
@@ -773,9 +775,6 @@ impl Aviation {
             } else {
                 140.0
             };
-            if managed && p.timer <= dt {
-                ctx.event(p, "aircraft-launch", format!("{} launched", p.model_id));
-            }
             if p.timer <= TAKEOFF_ROLL_SECONDS {
                 let acceleration = 2.0 * run / TAKEOFF_ROLL_SECONDS.powi(2);
                 let local = [
@@ -783,7 +782,37 @@ impl Aviation {
                     launch[1] + ground.clearance,
                     launch[2] - 0.5 * acceleration * p.timer * p.timer,
                 ];
-                deck_pose(p, actor, local, &ground);
+                if managed {
+                    if !crate::deck_operations::place(
+                        p,
+                        actor,
+                        crate::flight_deck::DeckPose {
+                            position: [local[0], launch[1], local[2]],
+                            heading: 0.0,
+                        },
+                        &ground,
+                    ) {
+                        p.timer -= dt;
+                        if let Some(position) = p.deck_datum {
+                            crate::deck_operations::place(
+                                p,
+                                actor,
+                                crate::flight_deck::DeckPose {
+                                    position,
+                                    heading: p.deck_heading.unwrap_or(0.0),
+                                },
+                                &ground,
+                            );
+                        }
+                        p.velocity = actor.motion.velocity();
+                        return;
+                    }
+                } else {
+                    deck_pose(p, actor, local, &ground);
+                }
+                if managed && p.timer <= dt {
+                    ctx.event(p, "aircraft-launch", format!("{} launched", p.model_id));
+                }
                 p.velocity = add(
                     actor.motion.velocity(),
                     [
@@ -794,6 +823,7 @@ impl Aviation {
                 );
             } else {
                 if managed {
+                    p.deck_datum = None;
                     p.deck_position = None;
                     p.deck_slot = None;
                     p.deck_heading = None;
@@ -813,6 +843,7 @@ impl Aviation {
             if p.timer > TAKEOFF_ROLL_SECONDS + TAKEOFF_CLIMB_SECONDS {
                 p.phase = "outbound".into();
                 p.timer = 0.0;
+                p.deck_datum = None;
                 p.deck_position = None;
                 p.deck_slot = None;
             }
@@ -846,6 +877,7 @@ fn service_plane(p: &mut Aircraft, seconds: f64) {
     p.phase = "rearming".into();
     p.timer = aircraft_service_seconds(seconds, p.hp);
     p.deck_slot = None;
+    p.deck_datum = None;
     p.deck_position = None;
     p.recovery_requested_at = None;
 }
@@ -1059,7 +1091,7 @@ impl Aviation {
                 p.phase = "rollout".into();
                 p.timer = 0.0;
                 if managed {
-                    crate::deck_operations::place(
+                    if !crate::deck_operations::place(
                         p,
                         actor,
                         crate::flight_deck::DeckPose {
@@ -1067,7 +1099,12 @@ impl Aviation {
                             heading: 0.0,
                         },
                         &ground,
-                    );
+                    ) {
+                        p.phase = "returning".into();
+                        p.pilot.recovery_stage = Some("marshal".into());
+                        p.deck_slot = None;
+                        return;
+                    }
                 } else {
                     deck_pose(p, actor, [next[0], deck_y, next[2]], &ground);
                 }

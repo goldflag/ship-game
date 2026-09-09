@@ -28,6 +28,7 @@ export async function aircraftDeckGeometry(id: string) {
   const vertex = new Vector3(), root = new Matrix4().makeRotationX(pose.pitch);
   root.setPosition(0, pose.clearance, 0);
   const contacts = new Map<string, Vector3[]>();
+  const gearTriangles = new Map<string, Vector3[][]>();
   const hookPoints: Vector3[] = [];
   let hookFrame: Matrix4 | undefined;
   const layers = new Map<number, Box3>();
@@ -73,14 +74,14 @@ export async function aircraftDeckGeometry(id: string) {
           vertex.set(binary.readFloatLE(p), binary.readFloatLE(p + 4), binary.readFloatLE(p + 8)).applyMatrix4(world);
           if (!vertex.toArray().every(Number.isFinite)) throw new Error(`Nonfinite aircraft vertex: ${id}`);
           result.expandByPoint(vertex);
-          if (capture) vertices.push(vertex.clone());
+          if (capture || fraction === 0 && gearOwner) vertices.push(vertex.clone());
           if (fraction === 0 && gearOwner) {
             const points = contacts.get(gearOwner) ?? [];
             points.push(vertex.clone()); contacts.set(gearOwner, points);
           }
           if (fraction === 0 && hookOwner) hookPoints.push(vertex.clone());
         }
-        if (capture) {
+        if (capture || fraction === 0 && gearOwner) {
           let indices = vertices.map((_, i) => i);
           if (primitive.indices !== undefined) {
             const a = doc.accessors[primitive.indices], v = doc.bufferViews[a.bufferView];
@@ -94,6 +95,11 @@ export async function aircraftDeckGeometry(id: string) {
           for (let i = 0; i < indices.length; i += 3) {
             const triangle = indices.slice(i, i + 3).map(j => vertices[j]);
             if (triangle.length !== 3 || triangle.some(p => !p)) throw new Error(`Invalid aircraft triangle: ${id}`);
+            if (fraction === 0 && gearOwner) {
+              const list = gearTriangles.get(gearOwner) ?? [];
+              list.push(triangle); gearTriangles.set(gearOwner, list);
+            }
+            if (!capture) continue;
             const low = Math.floor(Math.min(...triangle.map(p => p.y)) / .25), high = Math.floor(Math.max(...triangle.map(p => p.y)) / .25);
             for (let band = low; band <= high; band++) {
               const polygon = clip(clip(triangle, band * .25, true), (band + 1) * .25, false);
@@ -145,5 +151,21 @@ export async function aircraftDeckGeometry(id: string) {
     const bottom = points.filter(p => p.y <= low + .002);
     return bottom.reduce((sum, p) => sum.add(p), new Vector3()).multiplyScalar(1 / bottom.length).toArray();
   });
-  return { version: 1, modelHash: createHash('sha256').update(bytes).digest('hex'), hookDeckFraction, parked: value(parked), spread: value(spread), sweep: value(sweep), support, layers: [...layers].sort(([a], [b]) => a - b).map(([, box]) => value(box)) };
+  const inverseRoot = root.clone().invert();
+  const tyres = ['gear.port', 'gear.starboard', 'gear.tail'].map(gear => {
+    const points = contacts.get(gear)!;
+    const low = Math.min(...points.map(p => p.y));
+    const patches: number[][][] = [];
+    for (const triangle of gearTriangles.get(gear) ?? []) {
+      const polygon = clip(triangle, low + .15, false);
+      for (let i = 1; i + 1 < polygon.length; i++) {
+        const tri = [polygon[0], polygon[i], polygon[i + 1]];
+        if (tri[1].clone().sub(tri[0]).cross(tri[2].clone().sub(tri[0])).lengthSq() < 1e-14) continue;
+        patches.push(tri.map(p => p.clone().applyMatrix4(inverseRoot).toArray()));
+      }
+    }
+    if (!patches.length || patches.length > 500) throw new Error(`Invalid aircraft tyre contact patches: ${id}/${gear}`);
+    return patches;
+  });
+  return { version: 1, modelHash: createHash('sha256').update(bytes).digest('hex'), hookDeckFraction, tyres, parked: value(parked), spread: value(spread), sweep: value(sweep), support, layers: [...layers].sort(([a], [b]) => a - b).map(([, box]) => value(box)) };
 }

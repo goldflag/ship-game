@@ -81,6 +81,7 @@ impl DeckOperations {
         spread.layers = vec![model.sweep];
         let traffic = DeckTraffic {
             ship: actor.definition(),
+            surface: actor.compiled.deck_surface.as_ref().unwrap(),
             occupied: &occupied,
         };
         let lane_clear = traffic.segment_clear(&spread, touchdown, stop);
@@ -230,7 +231,7 @@ impl DeckOperations {
             Stage::Rollout { elapsed, from } => {
                 let elapsed = (elapsed + dt).min(1.5);
                 let t = 1.0 - (1.0 - elapsed / 1.5).powi(2);
-                place(
+                if !place(
                     p,
                     actor,
                     DeckPose {
@@ -241,7 +242,9 @@ impl DeckOperations {
                         heading: 0.0,
                     },
                     ground,
-                );
+                ) {
+                    return false;
+                }
                 if elapsed >= 1.5 {
                     job.stage = Stage::Fold;
                     p.phase = "parking".into();

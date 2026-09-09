@@ -183,6 +183,7 @@ impl Aviation {
             observed.ammo = 0.0;
             observed.payload = false;
             observed.deck_slot = None;
+            observed.deck_datum = None;
             observed.deck_position = None;
             observed.target_id = None;
             observed.pilot = Default::default();

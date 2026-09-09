@@ -53,6 +53,7 @@ fn both_full_decks_have_an_order_of_clear_paths_to_the_launch_datum() {
                     .collect();
                 let traffic = DeckTraffic {
                     ship,
+                    surface: &naval_sim::deck_contact::DeckSurface::new(ship).unwrap(),
                     occupied: &occupied,
                 };
                 if let Some(route) = traffic.route(model, from, pose(layout.launch_start)) {
@@ -88,6 +89,7 @@ fn empty_deck_allows_recovery_to_elevator_and_rejects_unsupported_destinations()
         let layout = wing.deck_layout.as_ref().unwrap();
         let traffic = DeckTraffic {
             ship,
+            surface: &naval_sim::deck_contact::DeckSurface::new(ship).unwrap(),
             occupied: &[],
         };
         for pool in &wing.squadrons {
@@ -141,6 +143,7 @@ fn routing_yields_within_budget_and_invalidates_paths_when_the_deck_changes() {
     let to = pose(layout.launch_start);
     let traffic = DeckTraffic {
         ship,
+        surface: &naval_sim::deck_contact::DeckSurface::new(ship).unwrap(),
         occupied: &[],
     };
     let mut search = traffic.begin_route(model, from, to, 7);

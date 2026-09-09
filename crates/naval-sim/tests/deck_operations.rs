@@ -77,6 +77,16 @@ fn step(a: &mut Aviation, actors: &[Vessel], time: &mut f64, dt: f64) {
         planes.iter().filter(|p| p.deck_slot.is_some()).count()
     );
     for p in planes.iter().filter(|p| p.deck_position.is_some()) {
+        let actor = actors.iter().find(|a| a.motion.id == p.owner_id).unwrap();
+        assert!(p.deck_datum.is_some() && p.deck_local_attitude.is_some());
+        let attached =
+            naval_sim::geometry::local_to_world(p.deck_position.unwrap(), actor.motion.pose());
+        assert!(
+            naval_sim::geometry::length(naval_sim::geometry::sub(p.position, attached)) < 0.0001,
+            "{} {} lost its fitted carrier attachment",
+            p.model_id,
+            p.phase
+        );
         let limit = a.ground[&p.model_id]
             .deck_geometry
             .as_ref()

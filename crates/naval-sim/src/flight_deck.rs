@@ -14,6 +14,8 @@ pub struct AircraftDeckGeometry {
     pub spread: Envelope,
     pub sweep: Envelope,
     pub support: Vec<Vec3>,
+    /// Lower tyre triangles in unposed aircraft coordinates, baked from GLB.
+    pub tyres: std::sync::Arc<Vec<Vec<[Vec3; 3]>>>,
     /// Quarter-metre height bands clipped from actual triangles. Broad overall
     /// bounds alone incorrectly block wings passing above low deck fittings.
     pub layers: Vec<Envelope>,
@@ -42,6 +44,15 @@ impl AircraftDeckGeometry {
                         && b.min[i] >= self.parked.min[i] - 1e-6
                         && b.max[i] <= self.parked.max[i] + 1e-6
                 })
+            })
+            && self.tyres.len() == 3
+            && self.tyres.iter().all(|patches| {
+                !patches.is_empty()
+                    && patches.len() <= 500
+                    && patches
+                        .iter()
+                        .flatten()
+                        .all(|p| p.iter().all(|v| v.is_finite() && v.abs() <= 25.0))
             })
             && self.support.len() == 3
             && self.support.iter().all(|p| {

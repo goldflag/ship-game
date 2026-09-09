@@ -4,6 +4,8 @@ import type { FleetActor } from '../simulation/battle';
 import { aircraftAttitude } from '../simulation/aircraftFlight';
 import { add, localToWorld, scale, sub, type Pose } from '../simulation/geometry';
 import type { ShellView } from './ShellFollow';
+import { Euler, Quaternion, Vector3 } from 'three/webgpu';
+import { aircraftDeckRotation } from './AircraftDeckPresentation';
 
 /** Camera samples the same interpolated flight/deck poses as the aircraft renderer. */
 export function aircraftFollowView(plane: Aircraft, actor: FleetActor, hull: Pose, alpha: number): ShellView | undefined {
@@ -11,12 +13,15 @@ export function aircraftFollowView(plane: Aircraft, actor: FleetActor, hull: Pos
   const deck = onFlightDeck(plane);
   if (!deck && !['takeoff', 'outbound', 'attack', 'returning', 'landing'].includes(plane.phase)) return;
   const position = deck
-    ? localToWorld(['ready', 'queued', 'rearming'].includes(plane.phase) ? aircraftDeckSpot(actor, plane) : plane.deckPosition!, hull)
+    ? localToWorld(plane.deckPosition ?? aircraftDeckSpot(actor, plane), hull)
     : add(plane.previousPosition, scale(sub(plane.position, plane.previousPosition), alpha));
+  if (deck) {
+    const rotation = aircraftDeckRotation(plane, actor.motion, new Quaternion())
+      .premultiply(new Quaternion().setFromEuler(new Euler(hull.pitch, -hull.heading, hull.roll, 'YXZ')));
+    // Follow the fitted airframe's nose, including taxi turns and deck slope.
+    return { position, velocity: new Vector3(0, 0, -1).applyQuaternion(rotation).toArray() };
+  }
   const attitude = aircraftAttitude(plane, alpha);
-  const heading = deck ? plane.heading + hull.heading - actor.motion.heading : attitude.heading;
-  // Heading remains defined while parked; carrier velocity would point the camera
-  // the wrong way during taxi or on a stopped deck.
-  const pitch = deck ? hull.pitch : attitude.pitch;
+  const { heading, pitch } = attitude;
   return { position, velocity: [Math.sin(heading) * Math.cos(pitch), Math.sin(pitch), -Math.cos(heading) * Math.cos(pitch)] };
 }

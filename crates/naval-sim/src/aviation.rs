@@ -510,6 +510,7 @@ impl Aviation {
                 p.phase = "ready".into();
                 if !managed {
                     p.deck_slot = None;
+                    p.deck_datum = None;
                     p.deck_position = None;
                 }
             } else if managed && (!airborne(p) || p.phase == "takeoff") {

@@ -29,6 +29,9 @@ pub fn deck_attitude(carrier: Pose, ground: &GroundPose, heading: f64) -> Flight
         pitch: ground.pitch,
         ..Default::default()
     };
+    compose_attitude(carrier, local)
+}
+pub fn compose_attitude(carrier: Pose, local: Pose) -> FlightAttitude {
     let right = rotate(rotate([1.0, 0.0, 0.0], local), carrier);
     let up = rotate(rotate([0.0, 1.0, 0.0], local), carrier);
     let back = rotate(rotate([0.0, 0.0, 1.0], local), carrier);

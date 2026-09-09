@@ -1,4 +1,4 @@
 {
   "version": 1,
-  "files": ["assets/parts/ijn-carrier-guns/geometry.py"]
+  "files": ["assets/parts/ijn-carrier-guns/geometry.py", "assets/ships/shokaku/authoring/flight_deck.py"]
 }

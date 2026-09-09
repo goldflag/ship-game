@@ -48,6 +48,16 @@ The pipeline locks its writer, rechecks inputs before publication, and replaces 
 
 The hook clearance check uses an isolated background Blender process and the published GLBs. It verifies the stowed hook stays above the nominal tyre plane, then checks actual hook and gear triangles across independently varied deployment/retraction controls at every LOD. Its temporary JSON records exact model hashes and sampled conflicts under `.build/aircraft/`; use `--output` to choose another temporary destination. Run it after hook or gear edits and inspect close-ups at the neutral, intermediate and deployed poses. Sampled clearance does not establish historical mechanism fidelity or contact with a crowned carrier deck.
 
+The carrier contact checker compares native fitted poses with actual published ship and aircraft triangles, including each aircraft LOD. Regenerate its samples after changing ship geometry, aircraft geometry or fitting code:
+
+```sh
+bun run multiplayer:content
+DECK_CONTACT_SAMPLES="$PWD/.build/pve-ground/contact-poses.json" cargo test --release -p naval-sim --test deck_contact all_six_models_rest_on_both_carriers_at_every_startup_spot_and_intermediate_heading
+bun scripts/aircraft/check_deck_contact.ts .build/pve-ground/contact-poses.json
+```
+
+Create the ignored output directory first if needed. The checker rejects stale manifest/model hashes, tyre gaps outside the 2 cm LOD allowance, hook penetration and overlapping raised fittings. It checks triangle interiors across planks and platform boundaries, with per-triangle material classification. Its JSON records exact witnesses and hashes beside the samples. A passing sample set still requires visual inspection and does not certify every taxi path or moving elevator pose. The baked tyre patches are content outputs; changing their extraction does not change the aircraft recipe or require a geometry rebuild.
+
 ## Blender MCP
 
 Squadron cards require a baked thumbnail for every model in `GAMEPLAY_AIRCRAFT`. Build and publish generate these automatically; `aircraft:check` rejects missing or stale thumbnails. To repair only an image without rebuilding geometry, run `bun run aircraft:thumbnail <id>`. The original `assets/aircraft/thumbnail.py` recipe renders the validated GLB with local Blender and retains its model, recipe and image hashes.

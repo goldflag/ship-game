@@ -6,7 +6,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 import { aircraftDeckSpot, onFlightDeck } from '../simulation/aircraft';
 import { aircraftAttitude, aircraftControls } from '../simulation/aircraftFlight';
-import { aircraftGroundPose } from '../simulation/aircraftGroundPose';
+import { aircraftDeckRotation } from './AircraftDeckPresentation';
 import { disposeObjects } from './disposeObjects';
 import { AircraftContacts } from './AircraftContacts';
 import { AircraftGunfire } from './AircraftGunfire';
@@ -48,6 +48,7 @@ export class AircraftView {
   private transform = new THREE.Matrix4();
   private position = new THREE.Vector3();
   private quaternion = new THREE.Quaternion();
+  private hullQuaternion = new THREE.Quaternion();
   private unit = new THREE.Vector3(1, 1, 1);
   private payloadGeometry = aircraftOrdnanceGeometry('torpedo');
   private bombGeometry = aircraftOrdnanceGeometry('bomb');
@@ -134,9 +135,8 @@ export class AircraftView {
         const carrierRoot = carrierRoots.get(plane.ownerId);
         if (carrierRoot) {
           this.position.applyMatrix4(carrierRoot.matrixWorld);
-          this.quaternion.copy(carrierRoot.quaternion);
-          if (plane.deckHeading !== undefined || plane.phase === 'taxi' || plane.phase === 'parking') this.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -(plane.deckHeading ?? plane.heading - actor.motion.heading)));
-          this.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), aircraftGroundPose(plane.modelId).pitch));
+          aircraftDeckRotation(plane, actor.motion, this.quaternion);
+          this.quaternion.premultiply(carrierRoot.getWorldQuaternion(this.hullQuaternion));
         } else {
           this.position.fromArray(plane.position);
           this.quaternion.setFromEuler(new THREE.Euler(plane.pitch, -plane.heading, plane.bank, 'YXZ'));

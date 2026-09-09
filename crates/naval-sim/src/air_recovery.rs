@@ -48,6 +48,7 @@ fn withdraw(p: &mut Aircraft, ctx: &mut crate::aviation_step::AirContext<'_>, re
     p.navigation_target = None;
     p.search = None;
     p.deck_slot = None;
+    p.deck_datum = None;
     p.deck_position = None;
     p.deck_heading = None;
     p.recovery_requested_at = None;

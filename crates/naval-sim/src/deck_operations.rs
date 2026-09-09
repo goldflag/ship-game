@@ -3,7 +3,7 @@
 use crate::{
     air_rules::DeckTimings,
     aircraft::{AirWingState, Aircraft, FIGHTER_AMMO_BURSTS, aircraft_service_seconds},
-    aircraft_deck::{GroundPose, deck_attitude},
+    aircraft_deck::{GroundPose, compose_attitude},
     deck_navigation::{DeckTraffic, RouteProgress, RouteSearch},
     flight_deck::{DeckPose, Envelope},
     geometry::{add, length, local_to_world, scale, sub, wrap_angle},
@@ -118,26 +118,56 @@ pub struct DeckOperations {
 }
 fn pose(p: &Aircraft, ground: &GroundPose) -> DeckPose {
     DeckPose {
-        position: sub(p.deck_position.unwrap(), [0.0, ground.clearance, 0.0]),
+        position: p
+            .deck_datum
+            .unwrap_or_else(|| sub(p.deck_position.unwrap(), [0.0, ground.clearance, 0.0])),
         heading: p.deck_heading.unwrap_or(0.0),
     }
 }
-pub fn place(p: &mut Aircraft, actor: &Vessel, at: DeckPose, ground: &GroundPose) {
+/// Refuse unsupported geometry atomically; callers retain or defer their task.
+pub fn place(p: &mut Aircraft, actor: &Vessel, at: DeckPose, ground: &GroundPose) -> bool {
+    let cached = (p.deck_datum == Some(at.position) && p.deck_heading == Some(at.heading))
+        .then(|| p.deck_local_attitude.zip(p.deck_position))
+        .flatten()
+        .map(|(attitude, root)| crate::deck_contact::ContactPose {
+            root,
+            attitude: crate::geometry::Pose {
+                heading: attitude.heading,
+                pitch: attitude.pitch,
+                roll: attitude.bank,
+                ..Default::default()
+            },
+        });
+    let Some(fitted) = cached.or_else(|| {
+        actor
+            .compiled
+            .deck_surface
+            .as_ref()
+            .and_then(|surface| surface.fit(actor.definition(), ground, at))
+    }) else {
+        return false;
+    };
     if let Some(geometry) = &ground.deck_geometry {
         p.controls.hook = p.controls.hook.min(geometry.hook_deck_fraction);
         if let Some(previous) = &mut p.previous_controls {
             previous.hook = previous.hook.min(geometry.hook_deck_fraction);
         }
     }
-    let root = add(at.position, [0.0, ground.clearance, 0.0]);
-    p.deck_position = Some(root);
+    p.deck_local_attitude = Some(crate::aircraft_flight::FlightAttitude {
+        heading: fitted.attitude.heading,
+        pitch: fitted.attitude.pitch,
+        bank: fitted.attitude.roll,
+    });
+    p.deck_datum = Some(at.position);
+    p.deck_position = Some(fitted.root);
     p.deck_heading = Some(at.heading);
-    p.position = local_to_world(root, actor.motion.pose());
-    let attitude = deck_attitude(actor.motion.pose(), ground, at.heading);
+    p.position = local_to_world(fitted.root, actor.motion.pose());
+    let attitude = compose_attitude(actor.motion.pose(), fitted.attitude);
     p.heading = attitude.heading;
     p.pitch = attitude.pitch;
     p.bank = attitude.bank;
     p.velocity = actor.motion.velocity();
+    true
 }
 fn needs_hangar_service(p: &Aircraft, repair_ceiling: f64) -> bool {
     p.hp < repair_ceiling
@@ -227,6 +257,7 @@ impl DeckOperations {
             if occupied.len() >= capacity
                 || !(DeckTraffic {
                     ship: actor.definition(),
+                    surface: actor.compiled.deck_surface.as_ref().unwrap(),
                     occupied: &occupied,
                 })
                 .clear(model, at)
@@ -236,7 +267,9 @@ impl DeckOperations {
             occupied.push((model.parked, at));
             p.deck_slot = Some(index);
             p.phase = "ready".into();
-            place(p, actor, at, g);
+            if !place(p, actor, at, g) {
+                return Err("Startup aircraft have unsupported tyres".into());
+            }
             p.previous_position = p.position;
             *count += 1;
         }
@@ -641,6 +674,7 @@ impl DeckOperations {
                 let occupied = Self::occupied(state, actor, ground, &p.id);
                 let traffic = DeckTraffic {
                     ship: actor.definition(),
+                    surface: actor.compiled.deck_surface.as_ref().unwrap(),
                     occupied: &occupied,
                 };
                 // Retry admission as the runway clears; do not cache a failed
@@ -776,6 +810,7 @@ impl DeckOperations {
                 let occupied = Self::occupied(state, actor, ground, &job.plane_id);
                 let traffic = DeckTraffic {
                     ship: actor.definition(),
+                    surface: actor.compiled.deck_surface.as_ref().unwrap(),
                     occupied: &occupied,
                 };
                 let progress = job
@@ -808,7 +843,6 @@ impl DeckOperations {
                     }
                     RouteProgress::Found(path) => {
                         job.path = path.into();
-                        job.search = None;
                         self.notice = None;
                         let p = &mut state.planes[index];
                         if job.arrival {
@@ -818,10 +852,8 @@ impl DeckOperations {
                             p.deck_slot = Some(slot);
                             job.stage = Stage::AwaitLanding;
                         } else if let Destination::Spot(slot) = job.destination {
-                            p.deck_slot = Some(slot);
-                            p.phase = "raising".into();
                             let lift = &layout.elevators[job.elevator];
-                            place(
+                            if !place(
                                 p,
                                 actor,
                                 DeckPose {
@@ -829,7 +861,14 @@ impl DeckOperations {
                                     heading: 0.0,
                                 },
                                 g,
-                            );
+                            ) {
+                                self.notice = Some("Waiting for supported aircraft tyres".into());
+                                self.active = Some(job);
+                                self.publish(state, true);
+                                return;
+                            }
+                            p.deck_slot = Some(slot);
+                            p.phase = "raising".into();
                             job.stage = Stage::LiftUp(0.0);
                         } else {
                             p.phase = if matches!(job.destination, Destination::Hangar { .. }) {
@@ -840,6 +879,9 @@ impl DeckOperations {
                             .into();
                             job.stage = Stage::Taxi;
                         }
+                        // Retain the completed search while initial placement
+                        // waits: Planning retries it and checks its revision.
+                        job.search = None;
                     }
                 }
             }
@@ -851,7 +893,7 @@ impl DeckOperations {
                 let y = lift.hangar_y
                     + (lift.position[1] - lift.hangar_y) * if up { t } else { 1.0 - t };
                 let p = &mut state.planes[index];
-                place(
+                if !place(
                     p,
                     actor,
                     DeckPose {
@@ -859,13 +901,19 @@ impl DeckOperations {
                         heading: 0.0,
                     },
                     g,
-                );
+                ) {
+                    self.notice = Some("Waiting for supported aircraft tyres".into());
+                    self.active = Some(job);
+                    self.publish(state, true);
+                    return;
+                }
                 if elapsed >= self.timings.lift_seconds {
                     if up {
                         p.phase = "raising".into();
                         job.stage = Stage::Taxi;
                     } else {
                         p.deck_slot = None;
+                        p.deck_datum = None;
                         p.deck_position = None;
                         p.deck_heading = None;
                         let repair =
@@ -900,7 +948,7 @@ impl DeckOperations {
                     } else {
                         1.0
                     };
-                    place(
+                    if !place(
                         p,
                         actor,
                         DeckPose {
@@ -908,7 +956,12 @@ impl DeckOperations {
                             heading: current.heading + angle * t,
                         },
                         g,
-                    );
+                    ) {
+                        self.notice = Some("Waiting for supported aircraft tyres".into());
+                        self.active = Some(job);
+                        self.publish(state, true);
+                        return;
+                    }
                     if t >= 1.0 {
                         job.path.pop_front();
                     }
@@ -970,6 +1023,7 @@ impl DeckOperations {
                     spread.layers = vec![model.sweep];
                     job.runway_checked = DeckTraffic {
                         ship: actor.definition(),
+                        surface: actor.compiled.deck_surface.as_ref().unwrap(),
                         occupied: &occupied,
                     }
                     .segment_clear(&spread, at, end);
