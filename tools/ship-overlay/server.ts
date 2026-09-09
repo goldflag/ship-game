@@ -4,7 +4,7 @@ import { gunzipSync } from 'node:zlib';
 import { join } from 'node:path';
 import type { Plugin } from 'vite';
 import { shipPresets } from '../../src/ships/presets';
-import { embeddedJson, vehicleId, type ReferencePack, type Scheme } from './reference';
+import { isHullConfiguration, embeddedJson, vehicleId, type ReferencePack, type Scheme } from './reference';
 import { componentItems } from '../../scripts/parts/library';
 import type { ShipDefinition } from '../../src/ships/blueprint';
 
@@ -24,7 +24,7 @@ export async function loadReference(root: string, vehicle: string): Promise<Refe
   const metadata = embeddedJson(page, /var\s+_vehicle\s*=\s*/);
   if (metadata.index !== vehicle) throw new Error('The source page returned a different vehicle.');
   const scheme = embeddedJson(page, /scheme\s*:\s*/).visual?.default as Scheme;
-  if (!scheme || !Object.keys(scheme).some(k => k.endsWith('_Hull'))) throw new Error('This source has no supported WoWS hull configuration.');
+  if (!scheme || !Object.keys(scheme).some(k => isHullConfiguration(k))) throw new Error('This source has no supported WoWS hull configuration.');
   const paths = new Set<string>();
   const walk = (node: any) => { if (!node || typeof node !== 'object') return; if (typeof node.visual === 'string') paths.add(node.visual); Object.values(node).forEach(walk); };
   walk(scheme);

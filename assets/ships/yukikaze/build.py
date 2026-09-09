@@ -261,16 +261,10 @@ prism('searchlight.platform',outline_rect(-6.8,-3.9,-1.35,1.35,.3),6.90,7.12)
 for sign in [-1,1]:rod('searchlight.platform-knee',(-5.4,sign*.85,5.5),(-5.4,sign*1.3,6.94),.085,materials['naval'])
 # Main gun articulation, followed by original Type C details.
 helpers=dict(mesh=mesh,cyl=cyl,rod=rod,box=box)
+sys.path.insert(0,str(ROOT/'assets/parts'))
+from library import create_mount as create_shared_mount
 for mount in [m for m in definition['mounts'] if m['battery']=='main']:
- x=-mount['position'][2];deck=lambda xx:5.15 if mount['id']=='main-2' else deckz(xx)
- create_gun_mount(mount,col,helpers,materials,deck)
- name=mount['id'];spec=mount['weapon'];yaw=next(o for o in col.objects if o.get('nodeId')==name+'.yaw')
- house=next(o for o in col.objects if o.get('assemblyId')==name and 'sloped gunhouse' in o.name)
- for face in house.data.polygons:face.use_smooth=True
- house.data.set_sharp_from_angle(angle=math.radians(32))
- bevel=house.modifiers.new('Rolled Type C edges','BEVEL');bevel.width=.14;bevel.segments=5
- normals=house.modifiers.new('Type C plate normals','WEIGHTED_NORMAL');normals.keep_sharp=True;normals.weight=35
- refined_main(mount,yaw)
+ create_shared_mount(mount,col,dict(helpers,deck_height=(lambda xx:5.15) if mount['id']=='main-2' else deckz),materials)
 # Type 96 triple recipe reused from the original catalog collection.
 module=importlib.util.spec_from_file_location('ijn_original',ROOT/'assets/parts/ijn-carrier-guns/geometry.py');ijn=importlib.util.module_from_spec(module);module.loader.exec_module(ijn)
 for m in [m for m in definition['mounts'] if 'triple' in m['id']]:

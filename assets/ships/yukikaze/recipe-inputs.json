@@ -3,6 +3,9 @@
   "files": [
     "assets/parts/ijn-carrier-guns/geometry.py",
     "assets/ships/yukikaze/refinements.py",
-    "assets/ships/yukikaze/torpedo-assemblies.py"
+    "assets/ships/yukikaze/torpedo-assemblies.py",
+    "assets/parts/library.py",
+    "assets/parts/library.json",
+    "assets/parts/ijn-destroyer-guns/type_c.py"
   ]
 }

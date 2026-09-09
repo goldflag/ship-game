@@ -3,6 +3,7 @@
   "files": [
     "assets/ships/mogami/guns.py",
     "assets/ships/mogami/superstructure.py",
-    "assets/ships/mogami/main_guns.py"
+    "assets/ships/mogami/main_guns.py",
+    "assets/parts/ijn-destroyer-guns/aa.py"
   ]
 }

@@ -38,12 +38,16 @@ export function embeddedJson(text: string, marker: RegExp): any {
   }
   throw new Error('Incomplete model data from GameModels3D. Try loading again.');
 }
+export const isHullConfiguration = (key: string): boolean => /^[A-Z]+\d*_Hull(?:_\d{4})?$/.test(key);
+
 export function defaultComponents(scheme: Scheme, hull = 'A_Hull'): string[] {
   const groups = new Map<string, string>();
   const prefix = hull.split('_')[0].replace(/\d+$/, '');
-  const matching = new RegExp(`^(${prefix}\\d*|AB)_`);
+  const matching = new RegExp(`^(${prefix}\\d*|AB\\d*)_`);
   for (const key of Object.keys(scheme).sort()) {
-    if (key.endsWith('_Hull') || !matching.test(key)) continue;
+    if (isHullConfiguration(key)) continue;
+    if (key.endsWith('Default')) { groups.set(key, key); continue; }
+    if (!matching.test(key)) continue;
     const group = key.replace(matching, '');
     if (!groups.has(group)) groups.set(group, key);
   }
@@ -57,7 +61,7 @@ export function assembleReference(scheme: Scheme, hull: string, components: stri
     for (const [name, child] of children(node)) { if (name === key) return child; const found = find(child, key); if (found) return found; }
   };
   for (const component of components) {
-    if (component.endsWith('_Hull')) continue;
+    if (isHullConfiguration(component)) continue;
     for (const [name, payload] of Object.entries(scheme[component] ?? {})) {
       const target = find(root, name);
       if (!target) continue;
