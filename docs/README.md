@@ -9,8 +9,9 @@ Start with [AGENTS.md](../AGENTS.md) for repository rules. Read the task's curre
 | Agree a new ship and its references | [Collaborative brief](ship-pipeline.md#start-a-new-ship-collaboratively) | User-approved vessel, fit, paint and reference policy in the ship README |
 | Create or modify a ship | [Ship pipeline](ship-pipeline.md) | Per-ship blueprint, original recipes and component catalog |
 | Iterate on ship geometry with Blender MCP | [MCP authoring loop](ship-build-reference.md#blender-mcp-authoring-loop) | Live scene inspection, durable recipe edits and clean rebuild verification |
-| Overlay ship/reference models | [Local comparison app](../tools/ship-overlay/README.md) | Our runtime GLB plus ignored local reference geometry |
+| Overlay ship/reference models | [Model library and comparison app](../tools/ship-overlay/README.md) | Our runtime GLB plus ignored local reference geometry |
 | Review model quality | [Ship model review](ship-model-review.md) | Four required visual checks on the exact published model |
+| Reuse equipment or browse standalone models | [Shared components](shared-components.md), [model viewer](../tools/ship-overlay/README.md) | Component catalog, original builders and published ship assemblies |
 | Change ship components or combat | [Runtime/component reference](ship-runtime-contract.md) | Validated definitions and renderer-free simulation |
 | Build, export or compare ships | [Build/reference details](ship-build-reference.md) | Build scripts, input hashes and published model/thumbnail validation |
 | Merge or rebase | [Integration workflow](integration-workflow.md) | Resolved authoring inputs and runtime preset roster |

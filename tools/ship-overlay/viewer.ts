@@ -4,6 +4,8 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'meshoptimizer';
 import { comparisonPanels, views, type ComparisonMode, type ViewName } from './comparison';
 import { assembleReference, type ReferenceNode, type ReferencePack } from './reference';
+import { isolateAssembly, ComponentArticulation } from './component';
+import type { GunPart } from '../../src/ships/blueprint';
 
 export type Pose = { x: number; y: number; z: number; yaw: number; pitch: number; roll: number; scale: number };
 export const zeroPose: Pose = { x: 0, y: 0, z: 0, yaw: 0, pitch: 0, roll: 0, scale: 15 };
@@ -24,7 +26,12 @@ export class Viewer {
   private span = 200;
   private mode: ComparisonMode = 'overlay';
   private selectedView: ViewName = 'quarter';
-  private display = { ours: true, reference: true, oursOpacity: .72, referenceOpacity: .48, wireframe: false, xray: false };
+  private originals = new Map<THREE.Mesh, THREE.Material | THREE.Material[]>();
+  private tints = new Map<THREE.Mesh, THREE.Material>();
+  private materialStyle = new WeakMap<THREE.Material, { opacity: number; transparent: boolean; depthWrite: boolean }>();
+  private articulation?: ComponentArticulation;
+  private weapon?: GunPart;
+  private display = { ours: true, reference: true, oursOpacity: 1, referenceOpacity: .48, wireframe: false, xray: false, native: true };
   constructor(private host: HTMLElement) {
     this.renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
     this.renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
@@ -66,7 +73,7 @@ export class Viewer {
     this.renderer.setScissorTest(true);
     panels.forEach((panel, index) => {
       this.ours.visible = this.display.ours && (panels.length === 1 || index === 0);
-      this.reference.visible = this.display.reference && (panels.length === 1 || index === 1);
+      this.reference.visible = this.mode !== 'inspect' && this.display.reference && (panels.length === 1 || index === 1);
       this.renderer.setViewport(panel.x, panel.y, panel.width, panel.height);
       this.renderer.setScissor(panel.x, panel.y, panel.width, panel.height);
       this.renderer.render(this.scene, this.camera);
@@ -88,23 +95,31 @@ export class Viewer {
   }
   private disposeObject(object: THREE.Object3D) {
     const materials = new Set<THREE.Material>(), textures = new Set<THREE.Texture>();
-    object.traverse(o => { if (o instanceof THREE.Mesh) { o.geometry.dispose(); for (const m of Array.isArray(o.material) ? o.material : [o.material]) { materials.add(m); for (const v of Object.values(m)) if (v instanceof THREE.Texture) textures.add(v); } } });
+    object.traverse(o => { if (o instanceof THREE.Mesh) { o.geometry.dispose(); const original = this.originals.get(o) ?? o.material; const tint = this.tints.get(o); if (tint) materials.add(tint); this.originals.delete(o); this.tints.delete(o); for (const m of Array.isArray(original) ? original : [original]) { materials.add(m); for (const v of Object.values(m)) if (v instanceof THREE.Texture) textures.add(v); } } });
     textures.forEach(t => t.dispose()); materials.forEach(m => m.dispose());
   }
   private clear(group: THREE.Group) { group.children.forEach(o => this.disposeObject(o)); group.clear(); }
   private tint(object: THREE.Object3D, color: number) {
-    const old = new Set<THREE.Material>(), textures = new Set<THREE.Texture>();
-    object.traverse(o => { if (!(o instanceof THREE.Mesh)) return; for (const m of Array.isArray(o.material) ? o.material : [o.material]) { old.add(m); for (const v of Object.values(m)) if (v instanceof THREE.Texture) textures.add(v); }
-      o.material = new THREE.MeshStandardMaterial({ color, roughness: .85, metalness: 0, side: THREE.DoubleSide });
+    object.traverse(o => { if (!(o instanceof THREE.Mesh)) return;
+      this.originals.set(o, o.material);
+      this.tints.set(o, new THREE.MeshStandardMaterial({ color, roughness: .85, metalness: 0, side: THREE.DoubleSide }));
     });
-    textures.forEach(t => t.dispose()); old.forEach(m => m.dispose());
   }
-  async loadShip(url: string) {
+  clearModel() { this.modelVersion++; this.clear(this.ours); this.articulation = undefined; this.weapon = undefined; this.render(); }
+  async loadShip(url: string, component?: { assemblyId: string; weapon: GunPart; installed: boolean }) {
     const version = ++this.modelVersion;
     const gltf = await this.loader.loadAsync(url);
-    if (!this.alive || version !== this.modelVersion) { this.disposeObject(gltf.scene); return; }
-    this.clear(this.ours); this.tint(gltf.scene, 0x6fe4d5); this.ours.add(gltf.scene); this.style({}); this.fit();
+    if (!this.alive || version !== this.modelVersion) { this.disposeObject(gltf.scene); return false; }
+    let model: THREE.Object3D = gltf.scene;
+    try { if (component?.installed) model = isolateAssembly(gltf.scene, component.assemblyId); }
+    catch (e) { this.disposeObject(gltf.scene); throw e; }
+    this.clear(this.ours); this.tint(model, 0x6fe4d5); this.ours.add(model);
+    this.weapon = component?.weapon;
+    this.articulation = component ? new ComponentArticulation(model, component.assemblyId) : undefined;
+    this.grid.scale.setScalar(component ? .1 : 1);
+    this.style({}); this.fit(); return true;
   }
+  componentPose(yaw: number, elevation: number, recoil: number) { if (this.weapon) this.articulation?.pose(this.weapon, yaw, elevation, recoil); this.render(); return this.dimensions(); }
   clearReference() { this.refVersion++; this.clear(this.reference); this.render(); }
   async loadGlb(file: File) {
     const version = ++this.refVersion;
@@ -142,7 +157,14 @@ export class Viewer {
     Object.assign(this.display, display);
     for (const [group, visible, opacity] of [[this.ours, this.display.ours, this.display.oursOpacity], [this.reference, this.display.reference, this.display.referenceOpacity]] as const) {
       group.visible = visible;
-      group.traverse(o => { if (o instanceof THREE.Mesh) { const m = o.material as THREE.MeshStandardMaterial; m.opacity = opacity; m.transparent = opacity < 1; m.depthWrite = opacity >= 1; m.depthTest = !this.display.xray; m.wireframe = this.display.wireframe; m.needsUpdate = true; } });
+      group.traverse(o => { if (o instanceof THREE.Mesh) {
+        o.material = (this.display.native ? this.originals.get(o) : this.tints.get(o)) ?? o.material;
+        for (const m of (Array.isArray(o.material) ? o.material : [o.material]) as THREE.MeshStandardMaterial[]) {
+          if (!this.materialStyle.has(m)) this.materialStyle.set(m, { opacity: m.opacity, transparent: m.transparent, depthWrite: m.depthWrite });
+          const base = this.materialStyle.get(m)!;
+          m.opacity = base.opacity * opacity; m.transparent = base.transparent || m.opacity < 1; m.depthWrite = base.depthWrite && opacity >= 1; m.depthTest = !this.display.xray; m.wireframe = this.display.wireframe; m.needsUpdate = true;
+        }
+      } });
     }
     this.render();
   }
@@ -157,7 +179,7 @@ export class Viewer {
   }
   fit() {
     const box = new THREE.Box3().setFromObject(this.ours, true);
-    if (this.reference.children.length) box.union(new THREE.Box3().setFromObject(this.reference, true));
+    if (this.mode !== 'inspect' && this.reference.children.length) box.union(new THREE.Box3().setFromObject(this.reference, true));
     if (box.isEmpty()) return;
     const center = box.getCenter(new THREE.Vector3()); const size = box.getSize(new THREE.Vector3());
     const { width, height } = this.panels()[0];
@@ -171,7 +193,7 @@ export class Viewer {
       const x = corner.dot(right), y = corner.dot(up);
       minX = Math.min(minX, x); maxX = Math.max(maxX, x); minY = Math.min(minY, y); maxY = Math.max(maxY, y);
     }
-    this.span = Math.max((maxY - minY) * 1.6, (maxX - minX) / Math.max(width / Math.max(height, 1), .1) * 1.2, 10);
+    this.span = Math.max((maxY - minY) * 1.6, (maxX - minX) / Math.max(width / Math.max(height, 1), .1) * 1.2, .5);
     const offset = this.camera.position.clone().sub(this.controls.target).normalize().multiplyScalar(Math.max(radius * 4, 100));
     this.controls.target.copy(center); this.camera.position.copy(center).add(offset); this.camera.zoom = 1;
     this.controls.update(); this.resize();
@@ -190,6 +212,7 @@ export class Viewer {
     this.controls.update(); this.fit();
   }
   zoomBy(factor: number) { this.camera.zoom = THREE.MathUtils.clamp(this.camera.zoom * factor, .05, 100); this.camera.updateProjectionMatrix(); this.render(); }
-  screenshot() { this.render(); const a = document.createElement('a'); a.href = this.renderer.domElement.toDataURL('image/png'); a.download = 'ship-overlay.png'; a.click(); }
+  screenshot() { this.render(); const a = document.createElement('a'); a.href = this.renderer.domElement.toDataURL('image/png'); a.download = 'model-viewer.png'; a.click(); }
+  thumbnail() { this.grid.visible = false; this.render(); return this.renderer.domElement.toDataURL('image/webp', .85); }
   dispose() { this.alive = false; this.observer.disconnect(); this.controls.dispose(); this.clear(this.ours); this.clear(this.reference); this.grid.geometry.dispose(); (this.grid.material as THREE.Material).dispose(); this.renderer.dispose(); this.renderer.domElement.remove(); }
 }

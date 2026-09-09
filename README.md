@@ -1,6 +1,6 @@
 # Fleet Command — Fleet Battles
 
-Naval fleet battles using **Rust, Bun, TypeScript, React, Three.js WebGPU, Water Pro 3.5.1, and Sky Pro 2.2.0**. Custom battles run the shared Rust simulation in a WebAssembly worker; 1v1 multiplayer uses the same simulation on an authoritative Rust server. Historical ships use a reproducible Blender asset pipeline and versioned blueprints.
+Naval fleet battles using **Rust, Bun, TypeScript, React, Three.js WebGPU, Water Pro 3.5.1, and Sky Pro 2.2.0**. Custom battles run the shared Rust simulation in a WebAssembly worker; 1v1 multiplayer uses the same simulation on an authoritative Rust server. Historical ships use a reproducible Blender asset pipeline and versioned blueprints. Reusable equipment is discovered with `bun run part:list` and built from original shared recipes; `bun run model:viewer` browses ships, standalone components and reference comparisons. See [shared components](docs/shared-components.md).
 
 For agent work, start with [repository instructions](AGENTS.md) and the [task-based documentation map](docs/README.md). Ship authoring follows the [ship pipeline](docs/ship-pipeline.md) and its required [model review checks](docs/ship-model-review.md).
 

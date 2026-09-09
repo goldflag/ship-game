@@ -1,13 +1,19 @@
-# Local ship overlay
+# Model library and comparison viewer
 
 ```sh
 bun install
-bun run ship:overlay
+bun run model:viewer
 ```
 
 Open **http://127.0.0.1:5180/**. This is a separate local app; it is not part of the game deployment.
 
-Before modeling a new ship, show source previews and get approval of the [brief and reference set](../../docs/ship-pipeline.md#start-a-new-ship-collaboratively). This app tints both models for geometry inspection; use the original source viewer to approve paint and markings.
+**Inspect** opens a ship with its original materials and no reference required. Choose **Ships** or **Components** in Browse library. Components are selected from the bottom thumbnail carousel. Search matches family, name and stable part ID; nation and exact caliber (mm) filters combine with search. Clear filters restores the full collection. Filters leave the inspected model in place until another card is selected. Cards show real model thumbnails, rendered lazily as they enter the scroll strip; use Previous/Next, horizontal scrolling, or arrow keys between focused cards. The component panel distinguishes reusable original builders from installed previews awaiting source extraction; it shows review status, limitations, mounting radius and barrel count.
+
+Build standalone components with `bun run part:build all` (or a specific part ID), then reload the viewer. A component's **Preview source** selects its standalone recipe output or a named installation isolated from a published ship. Use traverse, elevation and recoil controls to inspect its moving parts. The component grid is 1 m, with the mount yaw datum at the origin; ship inspection uses a 10 m grid. Deep links use `?ship=<preset-id>` or `?part=<part-id>`. See the [shared component workflow](../../docs/shared-components.md) for building and reusing original models.
+
+Choose **Overlay** or **Side by side** to open reference controls. These modes default to cyan/amber geometry inspection; **Original materials** restores available local GLB materials. Direct GameModels3D downloads contain geometry only, so use the source viewer for reference paint. Existing saved ship/reference alignments and `ship:overlay` commands remain compatible.
+
+Before modeling a new ship, show source previews and get approval of the [brief and reference set](../../docs/ship-pipeline.md#start-a-new-ship-collaboratively). Comparison modes can tint both models for geometry inspection; use the original source viewer to approve paint and markings.
 
 1. Select our ship. The list comes from the game's preset roster; build and register a new ship before trying to inspect it here.
 2. Paste a GameModels3D **World of Warships vehicle page URL or vehicle ID**, then choose **Load from GameModels3D**. Bismarck (`pgsb708`), King George V (`pbsb107`) and Fletcher (`pasd021`) have starter suggestions from earlier authoring work; check the dated fit yourself. Other ships accept any suitable WoWS vehicle page.
@@ -22,4 +28,4 @@ Raw reference geometry is used only by this viewer. Downloads are cached under i
 
 This tool compares model geometry, not historical truth. Different configurations, game simplifications, unverified loading datums and imperfect registration can explain differences. There is no automatic historical-accuracy score.
 
-Validation: `bun run ship:overlay:check`. Optional frontend bundle check: `bunx vite build --config vite.overlay.config.ts` (output stays in ignored `.build/`; the local API requires the dev command above).
+Validation: `bun run model:viewer:check`. Optional frontend bundle check: `bunx vite build --config vite.overlay.config.ts` (output stays in ignored `.build/`; the local API requires the dev command above).
