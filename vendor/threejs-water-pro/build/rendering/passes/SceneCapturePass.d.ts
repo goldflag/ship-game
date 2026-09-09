@@ -79,7 +79,7 @@ export declare class SceneCapturePass {
      * renders; the transparent sub-passes run only when
      * `includeTransparents` is true.
      */
-    render(renderer: THREE.WebGPURenderer, includeTransparents?: boolean): void;
+    render(renderer: THREE.WebGPURenderer, includeTransparents?: boolean, includeSurfaceTransparents?: boolean): void;
     dispose(): void;
     /**
      * Passes 2–3: transparent depth (override material, sprites skipped),

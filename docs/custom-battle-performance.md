@@ -442,3 +442,64 @@ Late windows remained at 49.5-52.5 FPS. Ship, aircraft, distant and zoom capture
 were inspected at High/1080p; muzzle error remained below 2.75 mm. This still
 does not establish sustained 60 FPS or a reliable overall FPS gain from the
 component changes.
+
+## Approved flag, ship-detail and refraction reductions
+
+The user approved these visual tradeoffs. Flag cloth now uses a 6 x 3 cell grid
+(28 vertices, 36 triangles), a 60 Hz solver and four constraint iterations;
+previously it used 12 x 6 cells, 120 Hz and six iterations. Wind, apparent ship
+motion, gravity, pinned hoists, pause and reset remain supported. Alternating
+isolated tests of thirty moving flags measured 3.07-3.11 ms per fleet frame before
+and 0.264-0.266 ms after, about 91% less solver time. Actual battle savings depend
+on how many flags are visible.
+
+Ship simplification permits 1.25 pixels of projected error on entry and 1.75
+pixels while retaining a level, replacing the 0.45/0.65 pixel limits. Parts below
+1.5 pixels across are omitted instead of 0.5 pixels. Zoom and framebuffer size
+still govern detail; inspection restores the original surfaces. Original model
+assets, joints and CPU hit geometry remain intact.
+
+The ocean is created without surface refraction and underwater distortion.
+Opaque scene depth/color remain for shoreline contact and ship reflections.
+Above-water refraction no longer duplicates transparent effects or needs the
+separate water-depth pass. Submerged views retain their complete fog captures
+and use an unwarped interface. The choice is made before material construction:
+switching the full graph back on after rendering caused WebGL context loss in a
+diagnostic, so there is no public runtime setter. See the vendor patch record.
+
+`REFRACTION_PROFILE_AFTER=1` compares private WebGPU graph variants on the same
+frozen battle after the FPS sample. Two pairs measured 7.58-7.75 ms per unpaced
+frame with refraction and 6.76-6.94 ms without it, about 0.8 ms saved. Draws fell
+from 383 to 316. This is an isolated paused rendering measurement, not live FPS.
+`SUBMISSION_PROFILE_AFTER=1` records per-object submission costs after the sample;
+nested pass timings are inclusive and must not simply be summed.
+
+The first production candidate averaged 44.12 FPS but advanced only 63.5 seconds
+of simulation in 120 seconds. It recorded three frames over 100 ms, with a
+111.1 ms maximum. The following unchanged control returned to 60.40 FPS and
+119.73 simulation seconds, with no frames over 100 ms and a 55.6 ms maximum.
+This pair cannot isolate the changes from the recurring machine-speed variation.
+
+The repeat candidate averaged 66.22 FPS with 119.75 simulation seconds, no frames
+over 100 ms and a 69.4 ms maximum. Its final fifty seconds ran at 53.8-57.1 FPS,
+versus 49.1-51.8 for the control. That comparable pair shows about a 10% overall
+gain; sustained 60 FPS is still unproven. Both use the same thirty-ship roster,
+four carriers, normal scheduling, High quality and a 1920 x 1080 framebuffer.
+Ship, aircraft, distant and binocular captures were inspected; muzzle error
+remained below 2.75 mm.
+
+All 64 relevant capture, cloth, rig, detail, fleet, frame, environment and combat
+tests pass. The display-rate combat determinism test needed a longer timeout on
+retry. The full production build passes. The submarine diagnostic now publishes
+its hidden-hull override to fleet render batches and initializes the changed
+ocean spectrum before pausing, so its comparisons exercise the current renderer.
+The final construction option passes WebGPU and WebGL visibility checks at
+7, 50 and 150 m, including periscope/surface restoration, without shader errors.
+WebGPU captures retain readable hull detail. WebGL captures show a much darker
+hull silhouette; its lighting fidelity is not certified by the contrast test.
+An unchanged production WebGL control lost its context while loading, so that
+lighting difference could not be isolated. The measured FPS results use WebGPU.
+
+An earlier aircraft part-grouping prototype had image mismatches and was removed
+from runtime before these measurements. Its temporary source and diagnostics
+remain under ignored `.build/`; no aircraft batching gain is included here.

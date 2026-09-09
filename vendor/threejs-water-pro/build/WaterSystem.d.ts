@@ -251,6 +251,8 @@ export declare class WaterSystem {
     get color(): WaterColor;
     /** Surface fresnel */
     get fresnel(): Fresnel;
+    /** Local construction option; retained across quality/preset changes. */
+    get refractionEnabled(): boolean;
     /** Atmospheric fog (post-processing) */
     get fog(): AtmosphericFog;
     /** Rain particles and ripple simulation. */

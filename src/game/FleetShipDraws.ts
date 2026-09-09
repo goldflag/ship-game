@@ -89,12 +89,13 @@ export class FleetShipDraws {
           // and viewport resolution. Never reduce geometry crossing the camera.
           const viewDepth = -this.viewCenter.copy(this.sphere.center).applyMatrix4(camera.matrixWorldInverse).z;
           const pixelsPerMetre = projection / ((camera as THREE.PerspectiveCamera).isPerspectiveCamera ? Math.max(.001, viewDepth - this.sphere.radius) : 1);
-          if (this.sphere.radius * 2 * pixelsPerMetre < .5) { visible = false; this.subpixelInstances++; }
+          if (this.sphere.radius * 2 * pixelsPerMetre < 1.5) { visible = false; this.subpixelInstances++; }
           else {
             const scale = source.mesh.matrixWorld.getMaxScaleOnAxis();
             for (let i = 1; i < source.levels!.length; i++) {
-              // Hysteresis keeps a stationary silhouette stable near a threshold.
-              const budget = i <= source.level ? .65 : .45;
+              // Allow about one pixel of distant surface error. Hysteresis
+              // keeps a stationary silhouette stable near a threshold.
+              const budget = i <= source.level ? 1.75 : 1.25;
               if (source.levels![i].error * scale * pixelsPerMetre <= budget) level = i;
             }
           }

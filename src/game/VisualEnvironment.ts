@@ -65,7 +65,8 @@ export class VisualEnvironment {
     // restore the exact surface preset when the camera comes back up.
     const submerged = MathUtils.smoothstep(-camera.position.y, 0, 2);
     this.water.color.absorptionColor.copy(this.surfaceAbsorption).multiplyScalar(MathUtils.lerp(1, .05, submerged));
-    // Keep surface-looking-in refraction; soften the full-screen underwater wobble.
+    // If distortion is enabled for a diagnostic, soften it on submersion.
+    // The game disables this optional effect during ocean initialization.
     this.water.underwaterDistortion.intensity = this.surfaceDistortion * MathUtils.lerp(1, .15, submerged);
   }
   diagnostics() {

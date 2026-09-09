@@ -54,6 +54,53 @@ try {
     userAgent: navigator.userAgent, hardwareConcurrency: navigator.hardwareConcurrency,
     adapters: window.gpuAdapters,
   })) };
+  if (process.env.REFRACTION_PROFILE_AFTER) {
+    data.refraction = await page.evaluate(async () => {
+      const g = review.game, water = g.water;
+      if (water.backend !== 'webgpu') throw new Error('Refraction graph comparison requires WebGPU');
+      // Diagnostic-only graph switching. Production chooses this at creation;
+      // recompiling the full refraction graph can lose the WebGL context.
+      const setRefraction = enabled => {
+        water.fresnel.refractionEnabled = enabled;
+        water.waterMaterial.setupMaterial(); water.waterMaterial.needsUpdate = true;
+      };
+      const originalRefraction = water.refractionEnabled, originalDistortion = water.underwaterDistortion.enabled;
+      const rows = [];
+      try {
+        for (const enabled of [false, true, true, false]) {
+          setRefraction(enabled); water.underwaterDistortion.enabled = enabled;
+          for (let i = 0; i < 12; i++) await g.frame(performance.now());
+          const start = performance.now();
+          for (let i = 0; i < 90; i++) await g.frame(performance.now());
+          rows.push({ enabled, frameMs: (performance.now() - start) / 90,
+            underwater: water.underwater.enabled, ssr: water.ssr.enabled,
+            draws: g.renderer.info.render.drawCalls, triangles: g.renderer.info.render.triangles });
+        }
+      } finally {
+        setRefraction(originalRefraction); water.underwaterDistortion.enabled = originalDistortion;
+      }
+      return rows;
+    });
+  }
+  if (process.env.SUBMISSION_PROFILE_AFTER) {
+    data.submissions = await page.evaluate(async () => {
+      const g = review.game, renderer = g.renderer, original = renderer._renderObjectDirect, rows = new Map();
+      renderer._renderObjectDirect = function (object, material, scene, camera, ...args) {
+        const pass = camera.isOrthographicCamera ? 'shadow/ortho' : renderer.getRenderTarget()?.texture.name || 'scene';
+        const key = `${object.name || object.type}|${material.type}|${!!material.transparent}|${pass}`;
+        const row = rows.get(key) ?? { name: object.name || object.type, material: material.type, transparent: !!material.transparent,
+          batched: !!object.isBatchedMesh, instanced: !!object.isInstancedMesh, pass, calls: 0, ms: 0 };
+        const start = performance.now();
+        try { return original.call(this, object, material, scene, camera, ...args); }
+        finally { row.ms += performance.now() - start; row.calls++; rows.set(key, row); }
+      };
+      try { for (let i = 0; i < 60; i++) await g.frame(await new Promise(requestAnimationFrame)); }
+      finally { renderer._renderObjectDirect = original; }
+      if (!rows.size) throw new Error('Submission profiling did not observe any draws.');
+      return { frames: 60, rows: [...rows.values()].sort((a, b) => b.ms - a.ms) };
+    });
+    console.log('Submission costs', JSON.stringify(data.submissions));
+  }
   if (process.env.PARTICLE_CULL_PROFILE_AFTER) {
     data.particleCulling = await page.evaluate(() => {
       const g = review.game, pools = [g.effects.smoke, g.effects.aircraftSmoke, g.effects.flakSmoke, g.effects.fire, g.effects.foam];

@@ -25,6 +25,10 @@ if (!window.visibilityError) {
   game.rig.recenter();
   game.water.deterministic=true;
   game.water.syncToTick(3600);
+  // The map change dirtied the spectrum. A paused update(0) only renders;
+  // initialize that spectrum once before freezing the comparison frames.
+  await game.water.update(1/60);
+  game.underwaterPassVisibility?.capture();
   const absorption=game.water.color.absorptionColor.clone();
   const distortion=game.water.underwaterDistortion.enabled;
   window.visibilityGame=game;
@@ -45,6 +49,9 @@ if (!window.visibilityError) {
     if(frame) await game.frame(performance.now());
     else { game.sky.update(0); await game.water.update(0); }
     game.playerView.root.visible=ship;
+    // Game.frame restores own-ship visibility; publish the diagnostic override
+    // to the fleet's derived render batches before comparing visible/hidden hulls.
+    game.fleetDraws?.update(game.camera, game.renderer.domElement.height);
     // Negative control restores the original coefficients after the real frame.
     if(legacy) game.water.color.absorptionColor.copy(absorption);
     // Refresh scene depth/color after hiding the ship for the comparison frame.

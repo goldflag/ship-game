@@ -1,8 +1,8 @@
-/** Renderer-free visual cloth: fixed-step Verlet particles, aerodynamic pressure,
- * drag, gravity and structural/shear/bend constraints. The hoist stays pinned. */
+/** Renderer-free visual cloth: a coarse 6 x 3 grid at 60 Hz retains wind,
+ * gravity and a pinned hoist without solving tiny folds across the fleet. */
 export class FlagCloth {
-  readonly columns = 12;
-  readonly rows = 6;
+  readonly columns = 6;
+  readonly rows = 3;
   readonly positions: Float32Array;
   readonly indices: Uint16Array;
   private readonly previous: Float32Array;
@@ -46,7 +46,7 @@ export class FlagCloth {
   advance(dt: number, wind: readonly number[], gravity: readonly number[] = [0, -9.81, 0]): boolean {
     if (!(dt > 0) || !Number.isFinite(dt)) return false;
     this.accumulator += Math.min(dt, .1);
-    const h = 1 / 120;
+    const h = 1 / 60;
     let changed = false;
     while (this.accumulator + 1e-9 >= h) {
       this.accumulator -= h; this.time += h; this.step(h, wind, gravity); changed = true;
@@ -99,11 +99,11 @@ export class FlagCloth {
       if (this.pinned(i)) continue;
       for (let axis = 0; axis < 3; axis++) {
         const at = i + axis, position = p[at];
-        p[at] += (position - old[at]) * .992 + f[at] * dt * dt;
+        p[at] += (position - old[at]) * (.992 * .992) + f[at] * dt * dt;
         old[at] = position;
       }
     }
-    for (let iteration = 0; iteration < 6; iteration++) for (const link of this.links) {
+    for (let iteration = 0; iteration < 4; iteration++) for (const link of this.links) {
       const { a, b, length, stiffness, wa, wb } = link;
       const dx = p[b] - p[a], dy = p[b + 1] - p[a + 1], dz = p[b + 2] - p[a + 2], distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
       if (distance < 1e-9) continue;
