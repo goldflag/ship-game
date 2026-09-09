@@ -131,6 +131,7 @@ function App() {
           <div className="comparison-mode" role="group" aria-label="Library category">{(['ship', 'component'] as const).map(k => <button key={k} aria-pressed={kind === k} onClick={() => { clearComparison(); setKind(k); }}>{k === 'ship' ? 'Ships' : 'Components'}</button>)}</div>
           {kind === 'ship' ? <><label htmlFor="ship">Ship</label><select id="ship" value={shipId} onChange={e => chooseShip(e.target.value)}>{ships.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></> : <>
             {part && <><p className="part-identity">{part.nation} · {part.builder ? 'Reusable source' : 'Awaiting source extraction'}</p><code className="part-id">{part.partId}</code>
+              <p className="subtle">Mounted on in the current fleet: {[...new Map(part.installations.map(i => [i.shipId, i.shipName])).values()].sort().join(', ') || 'No ships'}.</p>
               <label htmlFor="installation">Preview source</label><select id="installation" value={standalone ? 'recipe' : installed ? `${installed.shipId}:${installed.mountId}` : 'none'} onChange={e => setInstallation(e.target.value)}>
                 {part.modelUrl && <option value="recipe">Standalone shared component</option>}{part.installations.map(i => <option key={`${i.shipId}:${i.mountId}`} value={`${i.shipId}:${i.mountId}`}>{i.shipName} · {i.mountId}</option>)}{!part.modelUrl && !installed && <option value="none">No preview available</option>}
               </select>

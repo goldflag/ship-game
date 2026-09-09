@@ -7,6 +7,8 @@ export const caliberMm = (part: ComponentItem) => Number((part.weapon.caliberM *
 function ComponentCard({ part, selected, thumbnails, onSelect }: {
   part: ComponentItem; selected: boolean; thumbnails: ComponentThumbnails; onSelect: () => void;
 }) {
+  const ships = [...new Map(part.installations.map(i => [i.shipId, i.shipName])).values()].sort();
+  const mountedOn = ships.length ? `Mounted on: ${ships.join(', ')}` : 'Not mounted in the current fleet';
   const button = useRef<HTMLButtonElement>(null);
   const [image, setImage] = useState(''), [failed, setFailed] = useState(false);
   useEffect(() => {
@@ -20,10 +22,11 @@ function ComponentCard({ part, selected, thumbnails, onSelect }: {
     return () => { active = false; observer.disconnect(); };
   }, [part, thumbnails]);
   return <li><button ref={button} className="component-card" aria-pressed={selected} data-part-id={part.partId}
-    aria-label={`${part.name}, ${caliberMm(part)} mm, ${part.nation}, ${part.partId}`} title={`${part.name}\n${part.partId}\n${part.builder ? 'Reusable source' : 'Installed preview'} · ${part.review}`} onClick={onSelect}>
+    aria-label={`${part.name}, ${caliberMm(part)} mm, ${part.nation}, ${part.partId}. ${mountedOn}`} title={`${part.name}\n${part.partId}\n${part.builder ? 'Reusable source' : 'Installed preview'} · ${part.review}`} onClick={onSelect}>
     <span className="component-image">{image ? <img src={image} alt="" width="320" height="180"/> : <span>{failed ? 'Preview unavailable' : 'Rendering preview…'}</span>}</span>
     <span className="component-card-name">{part.name}</span>
     <span className="component-card-meta">{part.nation} · {caliberMm(part)} mm</span>
+    <span className="component-card-ships">{mountedOn}</span>
     <span className="component-card-source">{part.modelUrl ? 'Shared recipe' : part.installations.length ? 'Installed preview' : 'Preview unavailable'}</span>
   </button></li>;
 }
@@ -36,8 +39,8 @@ export function ComponentCarousel({ parts, selectedId, onSelect }: {
   const track = useRef<HTMLUListElement>(null);
   const [edges, setEdges] = useState({ start: true, end: true });
   const nations = useMemo(() => [...new Set(parts.map(p => p.nation))].sort(), [parts]);
-  const calibers = useMemo(() => [...new Set(parts.map(caliberMm))].sort((a, b) => a - b), [parts]);
-  const filtered = useMemo(() => parts.filter(p => (!nation || p.nation === nation) && (!caliber || caliberMm(p) === Number(caliber)) &&
+  const calibers = useMemo(() => Array.from({ length: Math.floor(Math.max(0, ...parts.map(caliberMm)) / 50) + 1 }, (_, i) => i * 50), [parts]);
+  const filtered = useMemo(() => parts.filter(p => (!nation || p.nation === nation) && (!caliber || (caliberMm(p) >= Number(caliber) && caliberMm(p) < Number(caliber) + 50)) &&
     `${p.name} ${p.partId} ${p.family} ${p.nation}`.toLowerCase().includes(search.trim().toLowerCase())), [parts, search, nation, caliber]);
   const outsideFilters = filtered.length > 0 && !filtered.some(p => p.partId === selectedId);
   useEffect(() => { const renderer = new ComponentThumbnails(); setThumbnails(renderer); return () => renderer.dispose(); }, []);
@@ -59,7 +62,7 @@ export function ComponentCarousel({ parts, selectedId, onSelect }: {
       <div className="component-count"><h2>Components</h2><p role="status">{filtered.length} of {parts.length} variants{outsideFilters ? ' · selection outside filters' : ''}</p></div>
       <label className="component-search" htmlFor="component-search">Find equipment<input id="component-search" type="search" placeholder="Name, family or part ID" value={search} onChange={e => setSearch(e.target.value)}/></label>
       <label htmlFor="component-nation">Nation<select id="component-nation" value={nation} onChange={e => setNation(e.target.value)}><option value="">All nations</option>{nations.map(n => <option key={n}>{n}</option>)}</select></label>
-      <label htmlFor="component-caliber">Caliber<select id="component-caliber" value={caliber} onChange={e => setCaliber(e.target.value)}><option value="">All calibers</option>{calibers.map(c => <option key={c} value={c}>{c} mm</option>)}</select></label>
+      <label htmlFor="component-caliber">Caliber<select title="Lower bound included; upper bound excluded" id="component-caliber" value={caliber} onChange={e => setCaliber(e.target.value)}><option value="">All calibers</option>{calibers.map(c => <option key={c} value={c}>{c}–{c + 50} mm</option>)}</select></label>
       <button onClick={reset} disabled={!search && !nation && !caliber}>Clear filters</button>
       <div className="carousel-arrows"><button aria-label="Previous components" disabled={edges.start} onClick={() => scroll(-1)}>Previous</button><button aria-label="Next components" disabled={edges.end} onClick={() => scroll(1)}>Next</button></div>
     </div>

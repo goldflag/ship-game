@@ -62,3 +62,5 @@ Authoring axes remain +X bow, +Y port, +Z up in Blender. Blueprint/runtime axes 
 Do not create ship `reports/` or `references/` directories or a replacement tracked evidence archive. Temporary review captures stay in `.build/`; durable source, concise configuration and limitations belong with the original component.
 
 For long-term fleet planning, see [WWII equipment reuse](wwii-equipment-reuse.md).
+
+Component cards list the ships mounting that exact variant in the current runtime fleet, deduplicated across mounts. Caliber ranges use 50 mm bands (0–50, 50–100, and so on); lower bounds are included and upper bounds excluded, so 50 mm belongs to 50–100 mm.
