@@ -1,5 +1,5 @@
 use crate::{
-    aircraft::{Aircraft, in_flight},
+    aircraft::{Aircraft, PlaneView, set_opt_str, set_str},
     aircraft_flight::{FlightOptions, fly},
     definition::Vec3,
     geometry::*,
@@ -12,7 +12,7 @@ pub struct FighterManeuver {
     pub pursuit_seconds: f64,
 }
 
-fn threatens(hostile: &Aircraft, ally: &Aircraft) -> bool {
+fn threatens(hostile: &PlaneView<'_>, ally: &PlaneView<'_>) -> bool {
     let delta = sub(ally.position, hostile.position);
     length(delta) < 650.0
         && dot(normalize(hostile.velocity), normalize(delta)) > 0.85
@@ -20,18 +20,20 @@ fn threatens(hostile: &Aircraft, ally: &Aircraft) -> bool {
 }
 pub fn fighter_target(
     p: &mut Aircraft,
-    planes: &[&Aircraft],
+    planes: &[PlaneView<'_>],
     carrier: Vec3,
     dt: f64,
     target_flight: Option<&str>,
 ) -> Option<usize> {
     p.pilot.think = (p.pilot.think - dt).max(0.0);
     let best = crate::fighter_coordination::target(p, planes, carrier, target_flight);
-    let id = best.map(|i| planes[i].id.clone());
-    if p.pilot.hostile_id != id {
+    let id = best.map(|i| planes[i].id);
+    // The stored identity is unchanged when it already matches, so the string
+    // is only reallocated when the pilot actually switches tracks.
+    if p.pilot.hostile_id.as_deref() != id {
         p.pilot.aim_time = 0.0;
+        p.pilot.hostile_id = id.map(str::to_owned);
     }
-    p.pilot.hostile_id = id;
     best
 }
 #[derive(Clone, Copy, Debug, serde::Serialize)]
@@ -42,7 +44,7 @@ pub struct FighterAim {
     pub distance: f64,
     pub point: Vec3,
 }
-pub fn fighter_gun_aim(p: &Aircraft, hostile: &Aircraft) -> FighterAim {
+pub fn fighter_gun_aim(p: &Aircraft, hostile: &PlaneView<'_>) -> FighterAim {
     let relative = sub(hostile.position, p.position);
     let velocity = sub(hostile.velocity, p.velocity);
     let a = dot(velocity, velocity) - 720.0_f64.powi(2);
@@ -89,12 +91,12 @@ pub fn fighter_fire_ready(
     p.pilot.aim_time = if on_aim { p.pilot.aim_time + dt } else { 0.0 };
     on_aim && p.pilot.aim_time >= if panic { 0.45 } else { 0.18 } && p.cooldown <= 0.0
 }
-pub fn clear_fighter_lane(p: &Aircraft, aim: Vec3, planes: &[&Aircraft]) -> bool {
+pub fn clear_fighter_lane(p: &Aircraft, aim: Vec3, planes: &[PlaneView<'_>]) -> bool {
     let ray = sub(aim, p.position);
     let distance = length(ray);
     let direction = normalize(ray);
     !planes.iter().any(|o| {
-        if o.id == p.id || o.team != p.team || !in_flight(o) {
+        if o.id == p.id || o.team != p.team || !o.in_flight() {
             return false;
         }
         let relative = sub(o.position, p.position);
@@ -102,7 +104,12 @@ pub fn clear_fighter_lane(p: &Aircraft, aim: Vec3, planes: &[&Aircraft]) -> bool
         along > 0.0 && along < distance && length(sub(relative, scale(direction, along))) < 18.0
     })
 }
-pub fn steer_fighter(p: &mut Aircraft, hostile: &Aircraft, planes: &[&Aircraft], dt: f64) -> bool {
+pub fn steer_fighter(
+    p: &mut Aircraft,
+    hostile: &PlaneView<'_>,
+    planes: &[PlaneView<'_>],
+    dt: f64,
+) -> bool {
     let delta = sub(hostile.position, p.position);
     let distance = length(delta);
     p.pilot.break_cooldown = (p.pilot.break_cooldown - dt).max(0.0);
@@ -111,7 +118,7 @@ pub fn steer_fighter(p: &mut Aircraft, hostile: &Aircraft, planes: &[&Aircraft],
     let threatened = planes.iter().any(|o| {
         o.team != p.team
             && o.role == "fighter"
-            && in_flight(o)
+            && o.in_flight()
             && length(sub(o.position, p.position)) < 450.0
             && dot(forward, normalize(sub(o.position, p.position))) < -0.65
             && dot(
@@ -129,16 +136,20 @@ pub fn steer_fighter(p: &mut Aircraft, hostile: &Aircraft, planes: &[&Aircraft],
         0.0
     };
     if p.pilot.break_time <= 0.0 && p.pilot.break_cooldown <= 0.0 {
-        let key = crate::air_gunnery::gunnery_seed(
-            &format!("{}/{}/maneuver", p.id, p.sortie.unwrap_or(0)),
-            0,
-        );
+        let key = crate::air_gunnery::SeedKey::new(0)
+            .text(&p.id)
+            .text("/")
+            .number(p.sortie.unwrap_or(0))
+            .text("/maneuver")
+            .finish();
         let side = if key % 2 == 0 { 1.0 } else { -1.0 };
         let choice = if threatened {
             // Draw a pursuer across a nearby wingman's nose when one is available.
             let support = planes
                 .iter()
-                .filter(|a| a.id != p.id && a.team == p.team && a.role == "fighter" && in_flight(a))
+                .filter(|a| {
+                    a.id != p.id && a.team == p.team && a.role == "fighter" && a.in_flight()
+                })
                 .filter(|a| length(sub(a.position, p.position)) < 1600.0)
                 .min_by(|a, b| {
                     length(sub(a.position, p.position))
@@ -200,7 +211,7 @@ pub fn steer_fighter(p: &mut Aircraft, hostile: &Aircraft, planes: &[&Aircraft],
             None
         };
         if let Some((kind, point, speed, seconds)) = choice {
-            maneuver.kind = kind.into();
+            set_str(&mut maneuver.kind, kind);
             maneuver.speed = speed;
             maneuver.pursuit_seconds = 0.0;
             p.pilot.break_point = Some(point);
@@ -233,15 +244,17 @@ pub fn steer_fighter(p: &mut Aircraft, hostile: &Aircraft, planes: &[&Aircraft],
     };
     let covering = planes
         .iter()
-        .any(|a| a.id != p.id && a.team == p.team && in_flight(a) && threatens(hostile, a));
-    p.pilot.maneuver.as_mut().unwrap().kind = if covering {
-        "cover-wingman"
-    } else if tail {
-        "tail-pursuit"
-    } else {
-        "lead-pursuit"
-    }
-    .into();
+        .any(|a| a.id != p.id && a.team == p.team && a.in_flight() && threatens(hostile, a));
+    set_str(
+        &mut p.pilot.maneuver.as_mut().unwrap().kind,
+        if covering {
+            "cover-wingman"
+        } else if tail {
+            "tail-pursuit"
+        } else {
+            "lead-pursuit"
+        },
+    );
     // Trim excess closure before reaching the overshoot gate. Gun lead remains
     // independent of this navigation aim and still requires a clear friendly lane.
     let navigation_aim = if tail && distance < 450.0 && closing > 12.0 {
@@ -283,7 +296,7 @@ pub fn strike_ingress(p: &mut Aircraft, target_heading: f64, target: Vec3) -> Ve
         } else {
             (target[0] - p.position[0]).atan2(p.position[2] - target[2])
         });
-        p.pilot.attack_stage = Some("ingress".into());
+        set_opt_str(&mut p.pilot.attack_stage, "ingress");
     }
     let heading = p.pilot.attack_heading.unwrap();
     let stand = if p.role == "torpedo-bomber" {

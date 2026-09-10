@@ -398,7 +398,7 @@ impl Aviation {
             if !managed {
                 p.sortie = Some(p.sortie.unwrap_or(0) + 1);
             }
-            p.phase = "queued".into();
+            crate::aircraft::set_str(&mut p.phase, "queued");
             p.flight_id = Some(flight.id.clone());
             p.target_id = match &order {
                 AirOrder::Attack { target_id } => Some(target_id.clone()),
@@ -538,7 +538,7 @@ impl Aviation {
                 continue;
             }
             if p.phase == "queued" {
-                p.phase = "ready".into();
+                crate::aircraft::set_str(&mut p.phase, "ready");
                 if !managed {
                     p.deck_slot = None;
                     p.deck_datum = None;
@@ -548,9 +548,9 @@ impl Aviation {
                 // Handling finishes at a safe point. A committed takeoff run
                 // finishes airborne, then the flight's Return order applies.
             } else if p.phase == "taxi" || p.phase == "takeoff" && on_flight_deck(p) {
-                p.phase = "parking".into();
+                crate::aircraft::set_str(&mut p.phase, "parking");
             } else if airborne(p) && p.phase != "landing" {
-                p.phase = "returning".into();
+                crate::aircraft::set_str(&mut p.phase, "returning");
             }
         }
         if managed {
@@ -627,7 +627,7 @@ impl Aviation {
             p.search = None;
             p.recovery_requested_at = None;
             if matches!(p.phase.as_str(), "outbound" | "attack" | "returning") {
-                p.phase = "outbound".into();
+                crate::aircraft::set_str(&mut p.phase, "outbound");
             }
         }
         self.record_air_order(actor, flight_id, &order);

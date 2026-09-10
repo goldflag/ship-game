@@ -13,6 +13,46 @@ pub fn gunnery_seed(id: &str, mut seed: u32) -> u32 {
     }
     seed
 }
+/// `gunnery_seed` folds its key one UTF-16 unit at a time into the running
+/// seed, so folding the pieces of a key in order is identical to folding the
+/// concatenation. `SeedKey` builds the same keys without formatting them into
+/// a temporary `String`.
+#[derive(Clone, Copy, Debug)]
+pub struct SeedKey(u32);
+impl SeedKey {
+    #[inline]
+    pub fn new(seed: u32) -> Self {
+        Self(seed)
+    }
+    #[inline]
+    pub fn text(self, text: &str) -> Self {
+        Self(gunnery_seed(text, self.0))
+    }
+    /// The same bytes `{}` would render for a `u32`.
+    #[inline]
+    pub fn number(self, value: u32) -> Self {
+        let mut digits = [0u8; 10];
+        let mut at = digits.len();
+        let mut rest = value;
+        loop {
+            at -= 1;
+            digits[at] = b'0' + (rest % 10) as u8;
+            rest /= 10;
+            if rest == 0 {
+                break;
+            }
+        }
+        let mut seed = self.0;
+        for digit in &digits[at..] {
+            seed = (seed ^ u32::from(*digit)).wrapping_mul(16777619);
+        }
+        Self(seed)
+    }
+    #[inline]
+    pub fn finish(self) -> u32 {
+        self.0
+    }
+}
 fn sample(seed: u32, sequence: u32, channel: u32) -> f64 {
     let mut x = seed ^ sequence.wrapping_add(1).wrapping_mul(0x9e3779b9) ^ channel;
     x = (x ^ (x >> 16)).wrapping_mul(0x21f0aaad);

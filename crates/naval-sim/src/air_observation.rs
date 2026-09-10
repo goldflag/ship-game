@@ -48,7 +48,7 @@ impl Aviation {
         } else {
             orbit_point(p, anchor, radius, 1.0)
         };
-        p.phase = "outbound".into();
+        crate::aircraft::set_str(&mut p.phase, "outbound");
         p.pilot.attack_stage = None;
         p.pilot.attack_heading = None;
         fly(
@@ -71,7 +71,7 @@ impl Aviation {
         dt: f64,
     ) -> Option<StrikeSolution> {
         if !p.payload {
-            p.phase = "returning".into();
+            crate::aircraft::set_str(&mut p.phase, "returning");
             return None;
         }
         if let Some(k) = ctx.knowledge {
@@ -129,27 +129,26 @@ impl Aviation {
         if let Some(f) = flight {
             f.notice = Some("Target unavailable · Returning armed".into());
         }
-        p.phase = "returning".into();
+        crate::aircraft::set_str(&mut p.phase, "returning");
         None
     }
 
     /// Preserve own physical aircraft for formation/clear-fire checks. Hostile
     /// representations contain measurements and unknown capability, never HP,
     /// payload, current private maneuvers, squadron IDs or carrier inventories.
-    pub(super) fn pilot_aircraft(
-        &self,
+    pub(super) fn pilot_aircraft<'a>(
+        &'a self,
         p: &Aircraft,
-        knowledge: Option<Knowledge<'_>>,
+        knowledge: Option<Knowledge<'a>>,
         radius: f64,
-    ) -> Vec<Aircraft> {
+    ) -> Vec<PlaneView<'a>> {
         let Some(k) = knowledge else {
             return self
                 .iter_planes()
                 .filter(|a| {
-                    in_flight(a)
-                        && crate::geometry::within_distance(a.position, p.position, radius)
+                    in_flight(a) && crate::geometry::within_distance(a.position, p.position, radius)
                 })
-                .cloned()
+                .map(PlaneView::of)
                 .collect();
         };
         let mut planes: Vec<_> = self
@@ -159,7 +158,7 @@ impl Aviation {
                     && in_flight(a)
                     && crate::geometry::within_distance(a.position, p.position, radius)
             })
-            .cloned()
+            .map(PlaneView::of)
             .collect();
         for c in k
             .sensors
@@ -169,38 +168,26 @@ impl Aviation {
             if !crate::geometry::within_distance(report_point(c, k.tick), p.position, radius) {
                 continue;
             }
-            // The own-aircraft template supplies required mechanical fields to
-            // the existing pilot math; every target-dependent field is replaced.
-            let mut observed = p.clone();
-            observed.id = c.id.clone();
-            observed.owner_id.clear();
-            observed.flight_id = Some(c.id.clone());
-            observed.squadron_id.clear();
-            observed.model_id.clear();
-            observed.team = if p.team == crate::rules::TeamId::A {
-                crate::rules::TeamId::B
-            } else {
-                crate::rules::TeamId::A
-            };
-            observed.position = report_point(c, k.tick);
-            observed.previous_position = observed.position;
-            observed.velocity = c.velocity;
-            observed.heading = c.pose().heading;
-            observed.pitch = c.velocity[1].atan2(c.velocity[0].hypot(c.velocity[2]));
-            observed.bank = 0.0;
-            observed.phase = "outbound".into();
-            // Any aircraft approaching from behind may pose a threat; no
-            // unobserved weapon load or aircraft model is consulted.
-            observed.role = "fighter".into();
-            observed.hp = 100.0;
-            observed.ammo = 0.0;
-            observed.payload = false;
-            observed.deck_slot = None;
-            observed.deck_datum = None;
-            observed.deck_position = None;
-            observed.target_id = None;
-            observed.pilot = Default::default();
-            planes.push(observed);
+            // A report carries measurements and unknown capability, never HP,
+            // payload, private maneuvers, squadron IDs or carrier inventories.
+            planes.push(PlaneView {
+                id: &c.id,
+                flight_id: Some(&c.id),
+                hostile_id: None,
+                team: if p.team == crate::rules::TeamId::A {
+                    crate::rules::TeamId::B
+                } else {
+                    crate::rules::TeamId::A
+                },
+                // Any aircraft approaching from behind may pose a threat; no
+                // unobserved weapon load or aircraft model is consulted.
+                role: "fighter",
+                phase: "outbound",
+                position: report_point(c, k.tick),
+                velocity: c.velocity,
+                hp: 100.0,
+                ammo: 0.0,
+            });
         }
         planes
     }
@@ -208,15 +195,15 @@ impl Aviation {
     pub(super) fn apply_fighter_hit(
         &mut self,
         p: &mut Aircraft,
-        observed: &Aircraft,
+        observed_id: &str,
         burst: &crate::aircraft_accuracy::FighterBurst,
         gun: &FighterAim,
         ctx: &mut AirContext<'_>,
     ) {
         let id = if let Some(k) = ctx.knowledge {
-            k.sensors.resolve_contact(p.team, &observed.id)
+            k.sensors.resolve_contact(p.team, observed_id)
         } else {
-            Some(observed.id.as_str())
+            Some(observed_id)
         };
         let Some(target) = id
             .and_then(|id| self.plane_mut(id))
