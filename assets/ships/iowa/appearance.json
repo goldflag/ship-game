@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "id": "iowa-maintained-v1",
+  "basis": "Preserve original recipe colors, scheme, markings and deck coverings. Shared maintained finish; no new historical color claim.",
+  "materials": {
+    "naval": {
+      "paint": "iowa-authored-naval",
+      "finish": "painted-steel"
+    },
+    "roof": {
+      "paint": "iowa-authored-roof",
+      "finish": "painted-deck"
+    },
+    "edge": {
+      "paint": "iowa-authored-edge",
+      "finish": "painted-steel"
+    },
+    "hullgray": {
+      "paint": "iowa-authored-hullgray",
+      "finish": "painted-steel",
+      "projection": "hull"
+    },
+    "antifouling": {
+      "paint": "iowa-authored-antifouling",
+      "finish": "underwater-coating",
+      "projection": "hull"
+    },
+    "boot": {
+      "paint": "iowa-authored-boot",
+      "finish": "underwater-coating",
+      "projection": "hull"
+    },
+    "armor_roof": {
+      "paint": "iowa-authored-armor_roof",
+      "finish": "painted-deck"
+    },
+    "wood_deck": {
+      "paint": "iowa-authored-wood_deck",
+      "finish": "wood",
+      "existing": "image",
+      "imageLayout": {
+        "bounds": [
+          0,
+          12.192,
+          0,
+          1.524
+        ]
+      }
+    }
+  },
+  "hull": {
+    "bounds": [
+      -135.2,
+      135.2,
+      -10.32,
+      11.87
+    ],
+    "pixelsPerMeter": 15.147928994082841,
+    "waterline": 0,
+    "stainStrength": 0.16,
+    "runoffStrength": 0.16
+  },
+  "decking": {
+    "wood_deck": {
+      "plankLength": 3.048,
+      "plankWidth": 0.127,
+      "seamWidth": 0.003,
+      "coating": "blue-gray"
+    }
+  }
+}

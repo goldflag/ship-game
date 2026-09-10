@@ -4,7 +4,7 @@ export const radians = (degrees: number) => degrees * Math.PI / 180;
 export const add = (a: Vec3, b: Vec3): Vec3 => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
 export const sub = (a: Vec3, b: Vec3): Vec3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 export const scale = (a: Vec3, s: number): Vec3 => [a[0] * s, a[1] * s, a[2] * s];
-export const length = (a: Vec3) => Math.hypot(...a);
+export const length = (a: Vec3) => Math.hypot(a[0], a[1], a[2]);
 export const normalize = (a: Vec3) => scale(a, 1 / (length(a) || 1));
 export const wrapAngle = (a: number) => ((a + Math.PI) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2) - Math.PI;
 
@@ -17,12 +17,16 @@ export function rotate(v: Vec3, pose: Pick<Pose, 'heading' | 'roll' | 'pitch'>):
   const yy = cp * y - sp * v[2], z = sp * y + cp * v[2];
   return [ch * x - sh * z, yy, sh * x + ch * z];
 }
-export const localToWorld = (v: Vec3, pose: Pose) => add(rotate(v, pose), [pose.x, pose.y, pose.z]);
+export function localToWorld(v: Vec3, pose: Pose): Vec3 {
+  const result = rotate(v, pose);
+  result[0] += pose.x; result[1] += pose.y; result[2] += pose.z;
+  return result;
+}
 export function worldToLocal(v: Vec3, pose: Pose): Vec3 {
-  const p = sub(v, [pose.x, pose.y, pose.z]);
+  const px = v[0] - pose.x, py = v[1] - pose.y, pz = v[2] - pose.z;
   const ch = Math.cos(pose.heading), sh = Math.sin(pose.heading), cp = Math.cos(pose.pitch), sp = Math.sin(pose.pitch), cr = Math.cos(pose.roll), sr = Math.sin(pose.roll);
-  const x = ch * p[0] + sh * p[2], zz = -sh * p[0] + ch * p[2];
-  const y = cp * p[1] + sp * zz, z = -sp * p[1] + cp * zz;
+  const x = ch * px + sh * pz, zz = -sh * px + ch * pz;
+  const y = cp * py + sp * zz, z = -sp * py + cp * zz;
   return [cr * x + sr * y, -sr * x + cr * y, z];
 }
 export interface SegmentHit { t: number; exit: number; normal: Vec3; point: Vec3; }
@@ -63,4 +67,4 @@ export function segmentOverlapsBox(from: Vec3, to: Vec3, box: Pick<Volume, 'cent
   return true;
 }
 
-export const dot = (a: Vec3, b: Vec3): number => a.reduce((n, v, i) => n + v * b[i], 0);
+export const dot = (a: Vec3, b: Vec3): number => 0 + a[0] * b[0] + a[1] * b[1] + a[2] * b[2];

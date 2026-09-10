@@ -46,7 +46,8 @@ export class ShellTrails {
     this.mesh.name = 'Shell vapor trails';
   }
 
-  update(shells: readonly Shell[], dt: number, camera: THREE.Camera): void {
+  /** Hidden trails keep recording, so leaving the T follow camera restores the retained path. */
+  update(shells: readonly Shell[], dt: number, camera: THREE.Camera, hidden = false): void {
     for (const trail of this.trails.values()) trail.age += dt;
     for (const shell of shells) {
       if (shell.bomb || shell.lodged || shell.waterDragPerSecond !== undefined) continue;
@@ -78,6 +79,9 @@ export class ShellTrails {
       while (trail.samples.length > 96 || (trail.samples.length > 1 && trail.samples[1].age <= cutoff)) trail.samples.shift();
       const endAge = trail.headAge;
       if (endAge <= cutoff) { this.trails.delete(id); continue; }
+      // The T follow camera rides beside the round; its nearby ribbons read as
+      // clutter, so following shows only the physical projectiles.
+      if (hidden) continue;
       for (let i = 0; i < trail.samples.length; i++) {
         const a = trail.samples[i], b = trail.samples[i + 1];
         const end = b?.position ?? trail.head;

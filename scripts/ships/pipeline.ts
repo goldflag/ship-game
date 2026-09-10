@@ -4,6 +4,7 @@ import { resolve, join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { Matrix4, Quaternion, Vector3 } from 'three';
 import { barrelOffset, barrelHeightOffset, barrelIds, compileShip, type ShipDefinition } from '../../src/ships/blueprint';
+import { gunTraverseAtFraction } from '../../src/ships/armament';
 import { mountFrame } from '../../src/simulation/mountFrames';
 
 const root = resolve(import.meta.dir, '../..');
@@ -135,7 +136,8 @@ function inspectGlb(bytes: Buffer, def: ShipDefinition) {
     for (const [barrel, side] of sides.entries()) {
       const pitch = getIndex(`${m.id}.${side}.elevation`), recoil = getIndex(`${m.id}.${side}.recoil`), socket = getIndex(`${m.id}.${side}.muzzle`);
       if (!gltf.nodes[index].children?.includes(pitch) || !gltf.nodes[pitch].children?.includes(recoil) || !gltf.nodes[recoil].children?.includes(socket)) throw new Error(`${m.id}: broken joint chain`);
-      for (const [train, elevation] of [[0, 0], [-40, 12], [40, 25]]) {
+      for (const [fraction, elevation] of [[0, 0], [-.4, 12], [.4, 25]]) {
+        const train = gunTraverseAtFraction(m, fraction) * 180 / Math.PI;
         const bearing = (m.bearingDeg + train) * Math.PI / 180, angle = elevation * Math.PI / 180;
         const updated = frames(new Map([[index, new Matrix4().makeRotationY(-bearing)], [pitch, new Matrix4().makeRotationX(angle)]]));
         const actual = new Vector3().setFromMatrixPosition(updated.get(socket)!);
@@ -146,7 +148,7 @@ function inspectGlb(bytes: Buffer, def: ShipDefinition) {
         near(actual.distanceTo(expected), 0, `${m.id}.${side} muzzle at ${train}/${elevation}`);
       }
       if (m.parentMountId) for (const fraction of [-.73, .38, 1]) {
-        const trains = def.mounts.map((mount, i) => (i % 2 ? -1 : 1) * fraction * mount.weapon.traverseDeg * Math.PI / 180);
+        const trains = def.mounts.map((mount, i) => gunTraverseAtFraction(mount, (i % 2 ? -1 : 1) * fraction));
         const overrides = new Map(def.mounts.map((mount, i) => [getIndex(`${mount.id}.yaw`), new Matrix4().makeRotationY(-(mount.bearingDeg * Math.PI / 180 + trains[i]))]));
         const angle = (m.weapon.elevationMinDeg + .63 * (m.weapon.elevationMaxDeg - m.weapon.elevationMinDeg)) * Math.PI / 180;
         overrides.set(pitch, new Matrix4().makeRotationX(angle));

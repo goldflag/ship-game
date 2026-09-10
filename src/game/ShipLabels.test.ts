@@ -69,10 +69,13 @@ test('overhead condition percentages, meters and loss spans use each ship maximu
       actor.damage.integrity *= .6;
       labels.update(camera, 1);
       expect(host.find('ship-label-health')!.textContent).toBe('60%');
-      // Network state quantizes HP; compare the intended visual proportions.
-      expect(Number(host.find('ship-label-fill')!.style.transform.slice(7, -1))).toBeCloseTo(.6, 4);
-      expect(parseFloat(host.find('ship-label-loss')!.style.left)).toBeCloseTo(60, 2);
-      expect(parseFloat(host.find('ship-label-loss')!.style.width)).toBeCloseTo(40, 2);
+      // The meter uses displayed whole HP; loss feedback retains the exact hit.
+      const displayedHp = Math.round(actor.damage.integrity);
+      expect(host.find('ship-label-meter')!.attributes.get('aria-valuenow')).toBe(String(displayedHp));
+      expect(host.find('ship-label-fill')!.style.transform).toBe(`scaleX(${displayedHp / maxHp})`);
+      expect(actor.damage.integrity).toBe(maxHp * .6);
+      expect(Number.parseFloat(host.find('ship-label-loss')!.style.left)).toBeCloseTo(60, 12);
+      expect(Number.parseFloat(host.find('ship-label-loss')!.style.width)).toBeCloseTo(40, 12);
       expect(host.find('ship-label-meter')!.children).not.toContain(host.find('ship-label-health')!);
       actor.damage.sunk = true;
       labels.update(camera, 2);

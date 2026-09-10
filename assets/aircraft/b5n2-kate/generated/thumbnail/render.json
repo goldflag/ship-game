@@ -3,22 +3,22 @@
   "aircraftId": "b5n2-kate",
   "method": "local-blender",
   "blenderVersion": "5.2.0 LTS",
-  "modelHash": "169fea9006c2fc4673bcdb59718b481bc7e16462f5300c3d33533c1d994883cb",
+  "modelHash": "2c92e720fb0b5c367ed3d736c7c85036bd1e4147bb8956da58c972b633b6105c",
   "recipeHash": "4dac62f77e03bd34d839afece76b69a852415f46fd2d524f1968006c869223bb",
-  "imageHash": "831a467a32f6dfa02bef26247f45625cd1047ea4af922bc2c869f714117a46ed",
+  "imageHash": "6d7c5bc9ae4d9cb85bcf09d696d612fdb989e09331e30dc126cd151bd2719f01",
   "importedAxes": "nose +Y, starboard +X, up +Z",
   "projection": "orthographic",
   "location": [
-    -16.960309982299805,
-    28.03546905517578,
-    19.069782257080078
+    -16.991918563842773,
+    28.084928512573242,
+    19.1041259765625
   ],
   "rotationEuler": [
-    1.0413261651992798,
-    -2.6810152320422276e-08,
-    -2.573068380355835
+    1.0413262844085693,
+    4.3991825293687725e-08,
+    -2.573068141937256
   ],
-  "scale": 16.29314422607422,
+  "scale": 16.29314613342285,
   "resolution": [
     320,
     144

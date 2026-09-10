@@ -37,6 +37,7 @@ bun run aircraft:check all        # Independently inspect retained and published
 bun run aircraft:review all       # Rebuild and refresh the six fixed views
 python3 scripts/aircraft/compare.py all
 python3 assets/aircraft/review_sheets.py
+blender --background --factory-startup --python-exit-code 1 --python scripts/aircraft/check_hook_clearance.py -- all
 bun test
 bun run build
 ```
@@ -44,6 +45,18 @@ bun run build
 `BLENDER_BIN` overrides the local Blender executable. `aircraft:publish <id|all>` checks and publishes existing retained outputs authored through Blender MCP without rerunning Blender. Add `--validate` to `mcp_author.py` to perform that check immediately after each MCP export and stop the batch on failure. The checker reads actual GLB buffers, composed transforms, UVs, embedded textures and joint descendants at every LOD. For the two folding carrier types it additionally verifies outer-panel ownership, nested ailerons, reduced folded width and 21 sampled fold poses that stay above the tyre floor (2 cm tolerance). It rejects degenerate binary triangles and non-unit/nonfinite normals, and checks dimensions, coordinates, geometry budgets, strict triangle reduction, retained/runtime agreement, provenance, textures and fixed-view hashes. These are export and consistency checks; they do not approve historical accuracy or fleet performance.
 
 The pipeline locks its writer, rechecks inputs before publication, and replaces individual files atomically. Publication of multiple aircraft is not one transaction. If interrupted, complete `aircraft:build all`, or finish MCP authoring and `aircraft:publish all`; partial rebuilds of changed shared inputs leave checks visibly stale.
+
+The hook clearance check uses an isolated background Blender process and the published GLBs. It verifies the stowed hook stays above the nominal tyre plane, then checks actual hook and gear triangles across independently varied deployment/retraction controls at every LOD. Its temporary JSON records exact model hashes and sampled conflicts under `.build/aircraft/`; use `--output` to choose another temporary destination. Run it after hook or gear edits and inspect close-ups at the neutral, intermediate and deployed poses. Sampled clearance does not establish historical mechanism fidelity or contact with a crowned carrier deck.
+
+The carrier contact checker compares native fitted poses with actual published ship and aircraft triangles, including each aircraft LOD. Regenerate its samples after changing ship geometry, aircraft geometry or fitting code:
+
+```sh
+bun run multiplayer:content
+DECK_CONTACT_SAMPLES="$PWD/.build/pve-ground/contact-poses.json" cargo test --release -p naval-sim --test deck_contact all_six_models_rest_on_both_carriers_at_every_startup_spot_and_intermediate_heading
+bun scripts/aircraft/check_deck_contact.ts .build/pve-ground/contact-poses.json
+```
+
+Create the ignored output directory first if needed. The checker rejects stale manifest/model hashes, tyre gaps outside the 2 cm LOD allowance, hook penetration and overlapping raised fittings. It checks triangle interiors across planks and platform boundaries, with per-triangle material classification. Its JSON records exact witnesses and hashes beside the samples. A passing sample set still requires visual inspection and does not certify every taxi path or moving elevator pose. The baked tyre patches are content outputs; changing their extraction does not change the aircraft recipe or require a geometry rebuild.
 
 Retained export reports compare exactly except for last-bit platform differences
 in calculated `joints[].maximumVertexTravel`. That field allows four relative
@@ -89,7 +102,7 @@ Every model retains `aircraft.root` and stable `nodeId` custom properties. Ident
 | `control.elevator.port`, `.starboard` | Elevators; span (+X) |
 | `control.aileron.port`, `.starboard` | Ailerons; span (+X), opposite signs |
 | `gear.port`, `gear.starboard`, `gear.tail` | Gear assemblies; simplified inspection rotation |
-| `arrestor.hook` | Independent hook; span (+X) |
+| `arrestor.hook` | Required independent hook, hinge pin, fork shank and shoe; span (+X) |
 | `turret.yaw` | Avenger dorsal turret; up (+Y) |
 | `defensiveGun.yaw` | SBD, TBD and Helldiver rear flexible gun mount; up (+Y) |
 | `diveBrake.port`, `.starboard` | SBD/Helldiver upper perforated plates; span (+X) |
@@ -101,7 +114,9 @@ Each brake joint carries `pairedNode` and `rotationMultiplier`. The plates have 
 
 ## Drawing comparison and review
 
-Open `/aircraft-review.html` for the standalone Three.js inspector. It loads the published model with manual LOD0/1/2 selection, supports orbit and fixed views, previews propeller/control/gear, wing-fold and split-brake movement, and provides a one-meter grid. It does not instantiate combat. `window.aircraftReviewDiagnostics()` reports the loaded model, camera, bounds, render statistics and recognized joints; `window.aircraftReview.select(id, lod)`, `.view(view)` and `.pose({propellerAngle, controlsAngle, gearFraction, diveBrakeAngle, wingFoldFraction})` provide repeatable review hooks. The diagnostics include the selected LOD, and `diveBrakeAngle` drives the upper/lower plates with their recorded opposite signs. Inspect the additional gun and turret joints through Blender MCP and the retained articulated views.
+For GameModels3D or local GLB comparison, run `bun run model:viewer` and choose **Planes**, or open `http://127.0.0.1:5180/?aircraft=f4f-4-wildcat`. It reads the published aircraft catalog and offers LOD selection, a one-metre grid, synchronized overlay/side-by-side views and saved reference alignment. See the [model viewer guide](../tools/ship-overlay/README.md) for source IDs and variant limitations.
+
+Open `/aircraft-review.html` for the standalone Three.js inspector. It loads the published model with manual LOD0/1/2 selection, supports orbit and fixed views, previews propeller/control/gear, arrestor-hook, wing-fold and split-brake movement, and provides a one-meter grid. It does not instantiate combat. `window.aircraftReviewDiagnostics()` reports the loaded model, camera, bounds, render statistics and recognized joints; `window.aircraftReview.select(id, lod)`, `.view(view)` and `.pose({propellerAngle, controlsAngle, gearFraction, hookFraction, diveBrakeAngle, wingFoldFraction})` provide repeatable review hooks. The diagnostics include the selected LOD, and `diveBrakeAngle` drives the upper/lower plates with their recorded opposite signs. Inspect the additional gun and turret joints through Blender MCP and the retained articulated views.
 
 [scripts/aircraft/compare.py](../scripts/aircraft/compare.py) independently decodes the exported GLB's vertices, indices and scene transforms, then projects them over the retained side and top drawings using their fixed pixel datums. It does not fit the model silhouette to the drawing or read Blender geometry. NumPy and Pillow are required. Run it separately after building or publishing:
 

@@ -4,6 +4,9 @@
     "assets/parts/library.py",
     "assets/parts/library.json",
     "assets/parts/us-mk30/geometry.py",
-    "assets/parts/us-oerlikon/geometry.py"
+    "assets/parts/us-oerlikon/geometry.py",
+    "assets/ships/appearance/surface.py",
+    "assets/ships/appearance/finishes.json",
+    "assets/ships/gleaves/appearance.json"
   ]
 }

@@ -54,9 +54,10 @@ test('installed depression stops narrow one mount without changing its neighbors
   const b = structuredClone(blueprint) as ShipBlueprint;
   const part = catalog.parts.find(p => p.id === b.mounts[0].partId)!;
   const originalMin = part.elevationMinDeg;
-  b.mounts[0].elevationMinDeg = -3;
+  const installedMin = originalMin / 2;
+  b.mounts[0].elevationMinDeg = installedMin;
   const d = compileShip(b, catalog);
-  expect(d.mounts[0].weapon.elevationMinDeg).toBe(-3);
+  expect(d.mounts[0].weapon.elevationMinDeg).toBe(installedMin);
   expect(d.mounts[1].weapon.elevationMinDeg).toBe(originalMin);
   expect(part.elevationMinDeg).toBe(originalMin);
   for (const invalid of [originalMin - .01, .01, NaN]) {

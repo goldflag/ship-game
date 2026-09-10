@@ -32,9 +32,13 @@ ports and articulated canvas bags. `guns.py`, `main_guns.py` and `superstructure
 are declared recipe inputs. The runtime preset includes magazines, machinery,
 directors, launcher equipment, armor, local damage regions and connected flood spaces.
 
+Appearance follows the [shared material rules](../../../docs/ship-appearance.md).
+`appearance.json` retains the approved palette and assigns shared matte finishes,
+original metric surface variation, subtle runoff and waterline staining. Wear is
+an independent restrained interpretation, not a copy of the reference textures.
+
 Known limitations: internal layouts, armor distribution, loading, ballistics and
-mechanical stops are provisional game authoring. Paint uses original material
-colors rather than the reference's weathering textures. Rigging and minor fittings
+mechanical stops are provisional game authoring. Rigging and minor fittings
 remain simplified. Independent main-2/main-3 and main-4/main-5 poses can intersect
 at the current main traverse limits. The bridge-mounted aa-03/aa-04 mounts can
 contact the bridge at extreme train; launcher extremes can contact the bay sides.

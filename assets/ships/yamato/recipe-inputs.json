@@ -1,4 +1,9 @@
 {
   "version": 1,
-  "files": ["assets/parts/aa_articulation.py"]
+  "files": [
+    "assets/parts/aa_articulation.py",
+    "assets/ships/appearance/surface.py",
+    "assets/ships/appearance/finishes.json",
+    "assets/ships/yamato/appearance.json"
+  ]
 }

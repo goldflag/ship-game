@@ -1,3 +1,4 @@
+use crate::mobility::torpedo_speed;
 use crate::{
     ballistics::travel_factor,
     damage::{Combatant, HULL_HP_SCALE, damage_region},
@@ -274,6 +275,91 @@ impl BotState {
             self.maneuver_at = time + self.between(skill.maneuver);
         }
     }
+    /// PvE crews read only transmitted observations. No enemy Combatant or
+    /// damage model is available in this path.
+    pub fn update_contact(
+        &mut self,
+        actor: &Combatant,
+        def: &ShipDefinition,
+        contact: Option<&crate::sensors::ContactTrack>,
+        time: f64,
+    ) {
+        self.time = time;
+        let Some(contact) =
+            contact.filter(|c| c.targetable() && !self.ai_level.passive() && !actor.damage.sunk)
+        else {
+            self.track = None;
+            return;
+        };
+        let skill = skill(self.ai_level);
+        if self.track.as_ref().is_none_or(|t| t.id != contact.id) {
+            let first = self.opening_fire_at.is_none();
+            if first {
+                self.opening_fire_at = Some(time + self.between(skill.opening));
+            }
+            let fire_at = if first {
+                self.opening_fire_at.unwrap()
+            } else {
+                self.opening_fire_at
+                    .unwrap()
+                    .max(time + self.between(skill.reacquire))
+            };
+            self.track = Some(TargetTrack {
+                id: contact.id.clone(),
+                fire_at,
+                observed_at: time,
+                observe_at: time,
+                pose: contact.pose(),
+                velocity: contact.velocity,
+                quality: 0.0,
+                focus: (self.random() * 3.0).floor() as usize,
+                refocus_at: time + self.between([18.0, 30.0]),
+                aim_points: None,
+            });
+            for m in &def.mounts {
+                let mut gun = self.guns.remove(&m.id).unwrap();
+                gun.fire_at = fire_at + self.between([0.0, 2.0]);
+                self.revise(&mut gun);
+                self.guns.insert(m.id.clone(), gun);
+            }
+        }
+        let mut track = self.track.take().unwrap();
+        track.quality = if contact.status == crate::sensors::TrackStatus::Lost {
+            (track.quality - DT / 10.0).max(0.0)
+        } else {
+            (track.quality + DT / skill.settle).min(1.0)
+        };
+        let observed_at = contact.last_observed_tick as f64 / crate::rules::TICK_RATE as f64;
+        if track.observed_at <= observed_at {
+            track.quality = (track.quality
+                - (length(sub(contact.velocity, track.velocity)) * 0.035).min(0.35))
+            .max(0.0);
+            track.pose = contact.pose();
+            track.pose.x = contact.measured_position[0];
+            track.pose.y = contact.measured_position[1];
+            track.pose.z = contact.measured_position[2];
+            track.velocity = contact.velocity;
+            track.observed_at = observed_at;
+        }
+        if self.last_integrity - actor.damage.integrity > skill.evade * HULL_HP_SCALE {
+            self.evade_until = time + self.between([8.0, 14.0]);
+            self.maneuver_at = time;
+        }
+        self.last_integrity = actor.damage.integrity;
+        if time >= track.refocus_at {
+            track.focus = (track.focus + 1 + (self.random() * 2.0).floor() as usize) % 3;
+            track.refocus_at = time + self.between([18.0, 30.0]);
+        }
+        self.track = Some(track);
+        if time >= self.maneuver_at {
+            self.course_offset = self.between([-0.22, 0.22]);
+            self.cruise_throttle = self.between([0.5, 0.8]);
+            if time > 0.0 && self.random() < 0.18 {
+                self.side *= -1.0;
+            }
+            self.maneuver_at = time + self.between(skill.maneuver);
+        }
+    }
 }
 pub fn gun_range(m: &MountDefinition) -> f64 {
     let caliber = m.weapon.caliber_m;
@@ -373,7 +459,7 @@ pub fn torpedo_aim(bot: &BotState, motion: &ShipState, tube: &TubeDefinition) ->
         local_to_world(tube.position, motion.pose()),
         point,
         track.velocity,
-        tube.weapon.speed,
+        torpedo_speed(tube.weapon.speed),
     )
 }
 fn distance(a: &Vessel, b: &Vessel) -> f64 {
@@ -409,9 +495,12 @@ fn steer(actor: &Vessel, heading: f64) -> f64 {
     )
 }
 fn avoid_ships(actor: &Vessel, heading: f64, actors: &[Vessel]) -> f64 {
+    avoid_known_ships(actor, heading, actors, false)
+}
+fn avoid_known_ships(actor: &Vessel, heading: f64, actors: &[Vessel], own_only: bool) -> f64 {
     let (mut x, mut z) = (heading.sin(), -heading.cos());
     for other in actors {
-        if other.motion.id == actor.motion.id || other.motion.y < -20.0 {
+        if other.motion.id == actor.motion.id || other.motion.y < -20.0 || (own_only && other.team != actor.team) {
             continue;
         }
         let separation = distance(actor, other);
@@ -530,6 +619,53 @@ pub fn helm(
         ..Default::default()
     }
 }
+pub fn helm_contact(
+    bot: &BotState,
+    actor: &Vessel,
+    contact: Option<&crate::sensors::ContactTrack>,
+    actors: &[Vessel],
+) -> HelmCommand {
+    if bot.ai_level.passive() || actor.physical_loss().is_some() {
+        return HelmCommand::default();
+    }
+    let Some(contact) = contact else {
+        return HelmCommand::default();
+    };
+    let point = contact.estimated_position;
+    let range = (point[0] - actor.motion.x).hypot(point[2] - actor.motion.z);
+    let bearing = (point[0] - actor.motion.x).atan2(actor.motion.z - point[2]);
+    let evading = bot.time < bot.evade_until;
+    let preferred = bot.preferred_range
+        * if actor.damage.integrity / actor.damage.max_integrity < 0.35 {
+            1.35
+        } else {
+            1.0
+        };
+    let angle = if evading || range < preferred - 900.0 {
+        0.7
+    } else if range > preferred + 700.0 {
+        1.0 / 3.0
+    } else {
+        0.5
+    };
+    let heading = avoid_known_ships(
+        actor,
+        bearing + bot.side * (angle * std::f64::consts::PI + bot.course_offset),
+        actors,
+        true,
+    );
+    HelmCommand {
+        throttle: if evading {
+            0.85
+        } else if range > preferred + 700.0 {
+            0.8
+        } else {
+            bot.cruise_throttle
+        },
+        rudder: steer(actor, heading),
+        ..Default::default()
+    }
+}
 pub fn aim(
     bot: Option<&BotState>,
     motion: &ShipState,
@@ -537,6 +673,46 @@ pub fn aim(
     def: &ShipDefinition,
     mount: &MountDefinition,
     state: &mut MountState,
+) -> Vec3 {
+    aim_solution(
+        bot,
+        motion,
+        mount,
+        state,
+        target.motion.pose(),
+        target.motion.velocity(),
+        def.hull.length,
+        0.0,
+    )
+}
+pub fn aim_contact(
+    bot: Option<&BotState>,
+    motion: &ShipState,
+    target: &crate::sensors::ContactTrack,
+    mount: &MountDefinition,
+    state: &mut MountState,
+) -> Vec3 {
+    aim_solution(
+        bot,
+        motion,
+        mount,
+        state,
+        target.pose(),
+        target.velocity,
+        target.estimated_length(),
+        target.uncertainty_m,
+    )
+}
+#[allow(clippy::too_many_arguments)]
+fn aim_solution(
+    bot: Option<&BotState>,
+    motion: &ShipState,
+    mount: &MountDefinition,
+    state: &mut MountState,
+    fallback_pose: Pose,
+    fallback_velocity: Vec3,
+    hull_length: f64,
+    uncertainty: f64,
 ) -> Vec3 {
     let track = bot.and_then(|b| b.track.as_ref());
     let default_gun = GunOrder {
@@ -546,8 +722,8 @@ pub fn aim(
     let gun = bot
         .and_then(|b| b.guns.get(&mount.id))
         .unwrap_or(&default_gun);
-    let pose = track.map_or(target.motion.pose(), |t| t.pose);
-    let velocity = track.map_or_else(|| target.motion.velocity(), |t| t.velocity);
+    let pose = track.map_or(fallback_pose, |t| t.pose);
+    let velocity = track.map_or(fallback_velocity, |t| t.velocity);
     let inherited = motion.velocity();
     let along = (track.map_or(1, |t| t.focus) as f64 - 1.0) * 0.23 + gun.along_hull;
     let selected = track.and_then(|t| {
@@ -565,9 +741,9 @@ pub fn aim(
                 } else {
                     0.0
                 },
-            along * def.hull.length,
+            along * hull_length,
         ],
-        |p| [p[0], p[1], p[2] + gun.along_hull * def.hull.length * 0.25],
+        |p| [p[0], p[1], p[2] + gun.along_hull * hull_length * 0.25],
     );
     let time = bot.map_or(0.0, |b| b.time);
     let mut point = add(
@@ -578,7 +754,7 @@ pub fn aim(
     let from = muzzle_center_world(mount, state, motion);
     let (dx, dz) = (point[0] - from[0], point[2] - from[2]);
     let range = dx.hypot(dz).max(1.0);
-    let error = (4.0 + range * 0.003)
+    let error = (4.0 + range * 0.003 + uncertainty * 0.5)
         * (1.0 + 3.0 * (1.0 - track.map_or(0.0, |t| t.quality)))
         * skill(bot.map_or(AiLevel::Normal, |b| b.ai_level)).error;
     point[0] += (dx * gun.range_error - dz * gun.across_error * 0.6) / range * error;
@@ -614,10 +790,14 @@ pub fn aim(
     add(point, scale(velocity, time))
 }
 pub fn clear_firing_lane(actor: &Vessel, target: &Vessel, actors: &[Vessel]) -> bool {
-    let (dx, dz) = (
-        target.motion.x - actor.motion.x,
-        target.motion.z - actor.motion.z,
-    );
+    clear_lane_to(
+        actor,
+        [target.motion.x, target.motion.y, target.motion.z],
+        actors,
+    )
+}
+pub fn clear_lane_to(actor: &Vessel, point: Vec3, actors: &[Vessel]) -> bool {
+    let (dx, dz) = (point[0] - actor.motion.x, point[2] - actor.motion.z);
     let squared = dx * dx + dz * dz;
     if squared < 1.0 {
         return false;

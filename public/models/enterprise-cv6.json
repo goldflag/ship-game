@@ -95703,6 +95703,261 @@
     "basis": "Estimated loading: dry CG calibrated to an initial GM of 7% beam; longitudinal CG matches modeled buoyancy at reference waterline. Uniform buoyancy scale reconciles stated mass with the authored hull volume. Outer shell uses the blueprint structural plating thickness. Residual flood cells conservatively exclude retained room boxes; partitions, permeability and access are game estimates."
   },
   "airWing": {
+    "deckLayout": {
+      "version": 1,
+      "surfaceId": "flight-deck",
+      "spots": [
+        {
+          "id": "park-fighter-1",
+          "position": [
+            8.8,
+            16.431877,
+            32
+          ],
+          "preferredRole": "fighter"
+        },
+        {
+          "id": "park-fighter-2",
+          "position": [
+            8.8,
+            16.431877,
+            43.4
+          ],
+          "preferredRole": "fighter"
+        },
+        {
+          "id": "park-fighter-3",
+          "position": [
+            8.8,
+            16.431877,
+            54.8
+          ],
+          "preferredRole": "fighter"
+        },
+        {
+          "id": "park-fighter-4",
+          "position": [
+            8.8,
+            16.431877,
+            66.2
+          ],
+          "preferredRole": "fighter"
+        },
+        {
+          "id": "park-fighter-5",
+          "position": [
+            8.8,
+            16.431877,
+            77.6
+          ],
+          "preferredRole": "fighter"
+        },
+        {
+          "id": "park-fighter-6",
+          "position": [
+            8.8,
+            16.431877,
+            89
+          ],
+          "preferredRole": "fighter"
+        },
+        {
+          "id": "park-fighter-7",
+          "position": [
+            8.8,
+            16.431877,
+            100.4
+          ],
+          "preferredRole": "fighter"
+        },
+        {
+          "id": "park-fighter-8",
+          "position": [
+            8.8,
+            16.431877,
+            111.8
+          ],
+          "preferredRole": "fighter"
+        },
+        {
+          "id": "park-dive-bomber-1",
+          "position": [
+            0,
+            16.4719,
+            32
+          ],
+          "preferredRole": "dive-bomber"
+        },
+        {
+          "id": "park-dive-bomber-2",
+          "position": [
+            0,
+            16.4719,
+            43.4
+          ],
+          "preferredRole": "dive-bomber"
+        },
+        {
+          "id": "park-dive-bomber-3",
+          "position": [
+            0,
+            16.4719,
+            54.8
+          ],
+          "preferredRole": "dive-bomber"
+        },
+        {
+          "id": "park-dive-bomber-4",
+          "position": [
+            0,
+            16.4719,
+            66.2
+          ],
+          "preferredRole": "dive-bomber"
+        },
+        {
+          "id": "park-dive-bomber-5",
+          "position": [
+            0,
+            16.4719,
+            77.6
+          ],
+          "preferredRole": "dive-bomber"
+        },
+        {
+          "id": "park-dive-bomber-6",
+          "position": [
+            0,
+            16.4719,
+            89
+          ],
+          "preferredRole": "dive-bomber"
+        },
+        {
+          "id": "park-dive-bomber-7",
+          "position": [
+            0,
+            16.4719,
+            100.4
+          ],
+          "preferredRole": "dive-bomber"
+        },
+        {
+          "id": "park-dive-bomber-8",
+          "position": [
+            0,
+            16.4719,
+            111.8
+          ],
+          "preferredRole": "dive-bomber"
+        },
+        {
+          "id": "park-torpedo-bomber-1",
+          "position": [
+            -9.5,
+            16.425256,
+            32
+          ],
+          "preferredRole": "torpedo-bomber"
+        },
+        {
+          "id": "park-torpedo-bomber-2",
+          "position": [
+            -9.5,
+            16.425256,
+            43.4
+          ],
+          "preferredRole": "torpedo-bomber"
+        },
+        {
+          "id": "park-torpedo-bomber-3",
+          "position": [
+            -9.5,
+            16.425256,
+            54.8
+          ],
+          "preferredRole": "torpedo-bomber"
+        },
+        {
+          "id": "park-torpedo-bomber-4",
+          "position": [
+            -9.5,
+            16.425256,
+            66.2
+          ],
+          "preferredRole": "torpedo-bomber"
+        },
+        {
+          "id": "park-torpedo-bomber-5",
+          "position": [
+            -9.5,
+            16.425256,
+            77.6
+          ],
+          "preferredRole": "torpedo-bomber"
+        },
+        {
+          "id": "park-torpedo-bomber-6",
+          "position": [
+            -9.5,
+            16.425256,
+            89
+          ],
+          "preferredRole": "torpedo-bomber"
+        },
+        {
+          "id": "park-torpedo-bomber-7",
+          "position": [
+            -9.5,
+            16.425256,
+            100.4
+          ],
+          "preferredRole": "torpedo-bomber"
+        },
+        {
+          "id": "park-torpedo-bomber-8",
+          "position": [
+            -9.5,
+            16.425256,
+            111.8
+          ],
+          "preferredRole": "torpedo-bomber"
+        }
+      ],
+      "launchStart": [
+        -0.5,
+        16.472,
+        -48
+      ],
+      "launchEnd": [
+        -0.5,
+        16.472,
+        -110
+      ],
+      "recoveryTouchdown": [
+        -0.5,
+        16.472,
+        116
+      ],
+      "recoveryStop": [
+        -0.5,
+        16.472,
+        93
+      ],
+      "elevators": [
+        {
+          "id": "elevator-forward",
+          "position": [
+            0,
+            16.506,
+            -76.2
+          ],
+          "hangarY": 10.1,
+          "widthM": 13.4112,
+          "lengthM": 14.6304
+        }
+      ]
+    },
     "version": 1,
     "launchPosition": [
       0,
@@ -95723,21 +95978,21 @@
         "name": "Wildcats",
         "modelId": "f4f-4-wildcat",
         "role": "fighter",
-        "count": 18
+        "count": 16
       },
       {
         "id": "vb-6",
         "name": "Dauntlesses",
         "modelId": "sbd-3-dauntless",
         "role": "dive-bomber",
-        "count": 18
+        "count": 16
       },
       {
         "id": "vt-6",
         "name": "Devastators",
         "modelId": "tbd-1-devastator",
         "role": "torpedo-bomber",
-        "count": 12
+        "count": 16
       }
     ],
     "flightSize": 6,
@@ -97257,5 +97512,5 @@
     ]
   },
   "compilerVersion": 1,
-  "contentHash": "cc5d9c86280d54ad1185fdf90bc573f086f81792b3b41f43a09996c9024d08b9"
+  "contentHash": "16881089e8180a40134fdb610f07fe24f372112706276b6aebe2fe7f1488c3f4"
 }

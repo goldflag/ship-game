@@ -11,6 +11,8 @@ sys.path.insert(0,str(ROOT/'scripts/ships'))
 from blender_fidelity import authored_hull, authored_structure, loft_breadth, Fittings
 from blender_rig import create_flagstaffs
 from blender_supports import SupportSurface
+sys.path.insert(0,str(ROOT/'assets/ships/shokaku/authoring'))
+from flight_deck import partition_polygon
 spec=importlib.util.spec_from_file_location('ijn_guns',ROOT/'assets/parts/ijn-carrier-guns/geometry.py')
 guns=importlib.util.module_from_spec(spec);spec.loader.exec_module(guns)
 D=json.loads(Path(os.environ['SHIP_DEFINITION']).read_text());H=D['hull'];OUT=Path(os.environ['SHIP_OUTPUT'])
@@ -178,13 +180,51 @@ for a,b in [(-125.05,-102),(101,117.15)]:
         points=[(u,yl),(v,zl),(v,zr),(u,yr)]
         mesh('Steel flight-deck end',[(x,y,flight_level(x)+.016) for x,y in points],[(0,1,2,3)],M['steel-deck'],COL['Flight deck'])
 for a,b in zip(outline,outline[1:]+outline[:1]):rod('Continuous deck edge girder',(*a,flight_level(a[0])-.20),(*b,flight_level(b[0])-.20),.16,M['naval'],COL['Hangars'])
+# Paint uses the actual authored skins, including individual plank gaps and
+# faceted steel round-down, so no independently guessed height can hover.
+bpy.context.view_layer.update()
+paint_surfaces=[]
+for support in list(COL['Flight deck'].objects):
+    if support.type!='MESH' or not (support.name.startswith(('Longitudinal weathered wood planking','Steel flight-deck end')) or support.get('nodeId','').startswith('elevator-')):continue
+    for face in support.data.polygons:
+        ps=[support.matrix_world@support.data.vertices[i].co for i in face.vertices]
+        normal=(ps[1]-ps[0]).cross(ps[2]-ps[0])
+        if normal.length<1e-9 or normal.normalized().z<.8:continue
+        shape=[[-p.y,-p.x] for p in ps]
+        bounds=(min(p[0] for p in shape),max(p[0] for p in shape),min(p[1] for p in shape),max(p[1] for p in shape))
+        owner=support.parent if support.parent and support.parent.get('nodeId','').endswith('.lift') else None
+        paint_surfaces.append((shape,bounds,ps[0],normal,owner))
+
+def paint(name, points, material=None, only_owner=None):
+    """Clip a 0.5 mm coating to physical skins; retain each platform owner."""
+    runtime=[[-y,0,-x] for x,y in points]
+    bounds=(min(p[0] for p in runtime),max(p[0] for p in runtime),min(p[2] for p in runtime),max(p[2] for p in runtime))
+    groups={}
+    for shape,extent,origin,normal,owner in paint_surfaces:
+        if only_owner is not None and owner!=only_owner:continue
+        if bounds[1]<=extent[0] or bounds[0]>=extent[1] or bounds[3]<=extent[2] or bounds[2]>=extent[3]:continue
+        _,part=partition_polygon(runtime,shape)
+        verts=[]
+        for y,_,z in part:
+            x,yy=-z,-y
+            height=origin.z-(normal.x*(x-origin.x)+normal.y*(yy-origin.y))/normal.z
+            verts.append((x,yy,height+.0005))
+        verts=[v for i,v in enumerate(verts) if i==0 or math.dist(v,verts[i-1])>1e-8]
+        if len(verts)>1 and math.dist(verts[0],verts[-1])<1e-8:verts.pop()
+        if len(verts)<3 or abs(sum(a[0]*b[1]-b[0]*a[1] for a,b in zip(verts,verts[1:]+verts[:1])))<1e-10:continue
+        vertices,faces=groups.setdefault(owner,([],[]));n=len(vertices)
+        vertices.extend(verts);faces.append(tuple(range(n,n+len(verts))))
+    for owner,(vertices,faces) in groups.items():
+        o=mesh(name,vertices,faces,material or M['line'],COL['Flight deck'])
+        if owner:o.parent=owner
+
 for x in range(-119,109,6):
     if all(abs(x+sum(p[1] for p in s['footprint'])/len(s['footprint']))>7.3 for id,s in S.items() if id.startswith('elevator')):
-        box('Painted flight centerline',(x,0,FD+.024),(3,.17,.015),M['line'],COL['Flight deck'])
-for y in [-6.9,6.9]:box('Landing guide line',(-27,y,FD+.026),(173,.10,.012),M['line'],COL['Flight deck'])
+        paint('Painted flight centerline',[(x-1.5,-.085),(x+1.5,-.085),(x+1.5,.085),(x-1.5,.085)])
+for y in [-6.9,6.9]:paint('Landing guide line',[(-113.5,y-.05),(59.5,y-.05),(59.5,y+.05),(-113.5,y+.05)])
 for y in range(-9,10,2):
     for a,b in [(-120.25,-120),(-120,-118.5),(-118.5,-111.75)]:
-        mesh('Afterdeck landing stripes',[(x,yy,flight_level(x)+.023) for x,yy in [(a,y-.315),(b,y-.315),(b,y+.315),(a,y+.315)]],[(0,1,2,3)],M['line'],COL['Flight deck'])
+        paint('Afterdeck landing stripes',[(a,y-.315),(b,y-.315),(b,y+.315),(a,y+.315)])
 for x in [-97,-88,-74,-64,-54,-44,-32,-10,2,13]:
     rod('Arresting cable',(x,-11.8,FD+.052),(x,11.8,FD+.052),.022,M['edge'],COL['Fittings'],vertices=6)
     for y in [-11.9,11.9]:
@@ -194,7 +234,12 @@ for x in [19,26]:box('Stowed crash barrier sill',(x,0,FD+.042),(.17,23,.06),M['e
 for id,s in S.items():
     if not id.startswith('elevator'):continue
     points=[(-z,-x) for x,z in s['footprint']]
-    for a,b in zip(points,points[1:]+points[:1]):rod('Lift perimeter seam',(*a,FD+.041),(*b,FD+.041),.024,M['edge'],COL['Flight deck'],vertices=6)
+    sign=1 if sum(a[0]*b[1]-b[0]*a[1] for a,b in zip(points,points[1:]+points[:1]))>0 else -1
+    for a,b in zip(points,points[1:]+points[:1]):
+        length=math.dist(a,b);dx=-(b[1]-a[1])/length*sign*.024;dy=(b[0]-a[0])/length*sign*.024
+        # A dark inset border depicts the seam without inventing a raised rod.
+        # The complete coating belongs to the independently moving platform.
+        paint('Lift perimeter seam',[a,b,(b[0]+dx,b[1]+dy),(a[0]+dx,a[1]+dy)],M['edge'],bpy.data.objects[id+'.lift'])
 
 fit=Fittings(helpers,M,COL['Hangars'])
 for x in [103,109,114]:
@@ -480,5 +525,8 @@ for kind in ['armor','modules','compartments','obstructions']:
 create_flagstaffs(D)
 scene['definitionHash']=D['contentHash'];scene['configuration']=D['configuration']
 scene['historicalAccuracy']='Qualified reconstruction; see reports/discrepancies.md'
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'appearance'))
+from surface import apply_appearance
+apply_appearance(scene,M,Path(__file__).with_name('appearance.json'))
 bpy.ops.wm.save_as_mainfile(filepath=str(OUT/'source.blend'))
 print('SHOKAKU SOURCE',len(scene.objects),'objects',flush=True)

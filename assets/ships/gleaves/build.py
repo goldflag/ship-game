@@ -997,7 +997,9 @@ for o in col.objects:
 # Deterministic original paint tiles. Image textures have an explicit glTF path;
 # no procedural-only shader or reference texture is silently lost on export.
 import numpy as np
-paint_keys=['naval','hullgray','roof','deck','underwater']
+# Reuse the same metric UVs for shared finishes; a second full-mesh UV layer
+# would exceed this detailed model's export budget.
+paint_keys=['naval','hullgray','roof','deck','underwater','edge','wood']
 rng=np.random.default_rng(194608)
 for key in paint_keys:
     n=512;u,v=np.meshgrid(np.arange(n)/n,np.arange(n)/n)
@@ -1044,5 +1046,8 @@ for obj in scene.objects:
             uv.data[li].uv=(co[coords[0]]/5.7,co[coords[1]]/5.7)
 
 scene['definitionHash']=definition['contentHash'];scene['authoringRevision']=2
+sys.path.insert(0,str(ROOT/'assets/ships/appearance'))
+from surface import apply_appearance
+apply_appearance(scene,materials,Path(__file__).with_name('appearance.json'))
 bpy.ops.wm.save_as_mainfile(filepath=str(out/'source.blend'))
 print('GLEAVES original reconstruction',len(col.objects),'objects')

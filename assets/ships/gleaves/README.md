@@ -11,6 +11,10 @@ Approved by the user on 2026-09-08: reproduce **Hsienyang (ex-USS Rodman), Hull 
 - **Sensors:** the approved A-model's SC2 and SG search radars use separate rotating joints on modeled mast platforms. Their 6/15 RPM visual animation follows existing game conventions; these are not verified historical operating rates.
 - **Technical-reference exception (2026-09-09):** the user approved consulting technical references for gun travel stops after the upper forward gun collided with the lower gunhouse at −15° depression. This exception does not broaden the visual reference policy. [NAVPERS 10111, Mk30 manual](https://www.eugeneleeslover.com/US-NAVY-GUNS/Navpers_10111.php) and the [1943 Navy gun-crew instructions](https://www.maritime.org/doc/destroyer/fiveinch/index.php) are the starting references; installed Hsienyang travel limits remain unverified. A firing cutout alone is not a mechanical clearance solution.
 
+## Appearance contract
+
+`appearance.json` retains the approved GameModels3D-only scheme, original paint colors, markings and geometry. The five original generated paint images keep their recipe UV projection and exact repeating 5.7 m image bounds `[0, 5.7, 0, 5.7]`; the shared finish is applied after those images and UVs are authored. Painted fittings and modeled wood use additional original tiles with their existing colors and the same UV layout to stay within the export budget. The single metric projection remains a recipe-level approximation on small fittings, so finish variation is not a historical paint claim.
+
 ## Installed configuration and limitations
 
 The original exterior and gameplay fit are implemented. Installed gameplay stops are `gun-1` traverse ±130° and depression −12°, `gun-2` depression −3°, `gun-4` traverse ±150°, and twin Oerlikons −9°/+78°. These clearance-derived approximations are applied in the shared blueprint contract; they are not verified Hsienyang stop-cam profiles. Catalog family capabilities remain separate so installed limits do not split weapon selection groups.

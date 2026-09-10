@@ -27,7 +27,7 @@ scene.render.resolution_percentage = 100
 scene.render.resolution_x = 1400
 scene.render.resolution_y = 1000
 scene.render.image_settings.file_format = 'PNG'
-folder = HERE / 'generated/review/details'
+folder = ROOT / '.build/ships/yamato/details'
 folder.mkdir(parents=True, exist_ok=True)
 views = [
     ('bridge-quarter', (37, -80, 47), (-8, 0, 25), 49),

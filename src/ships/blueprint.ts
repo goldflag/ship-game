@@ -40,6 +40,18 @@ export interface TorpedoTube {
 }
 export interface Volume { id: string; center: Vec3; size: Vec3; }
 export interface AuthoredSurface { vertices: Vec3[]; triangles: [number, number, number][]; }
+/** Physical movement stops derived from original geometry, independent of firing arcs. */
+export interface MountClearanceProfile {
+  version: 1; marginM: number; basis: string;
+  /** Select exactly one geometry encoding: closed bodies or installation envelopes. */
+  mountIds?: string[];
+  /** Fixed bodies use hull coordinates; mounted fittings use yaw-local coordinates. */
+  bodies?: { id: string; mountId?: string; surface: AuthoredSurface }[];
+  /** Conservative envelopes for reviewed hull-mounted installations. */
+  mounts?: { mountId: string; barrelRadiusM: number; body?: { center: Vec3; size: Vec3 } }[];
+  structures?: { structureId: string; topExtensionM: number }[];
+  neighbors?: [string, string][];
+}
 export interface GunPart {
   id: string; name: string; kind: 'gun'; massKg: number; barbetteRadius: number;
   gunhouseSize: Vec3; pivotHeight: number; trunnionForward: number; muzzleForward: number;
@@ -94,6 +106,9 @@ export interface Mount {
   elevationMinDeg?: number;
   /** Installed elevation stop, between level and the catalog maximum. */
   elevationMaxDeg?: number;
+  /** Optional asymmetric travel relative to bearingDeg, containing neutral and
+   * bounded by the installed/catalog half-sector. */
+  traverseLimitsDeg?: [number, number];
   magazineId?: string;
   fire?: FireProfile;
 }
@@ -191,17 +206,30 @@ export const GAMEPLAY_AIRCRAFT: Readonly<Record<string, AircraftRole>> = {
   'd3a1-val': 'dive-bomber',
   'b5n2-kate': 'torpedo-bomber',
 };
+/** Physical flight-deck geometry, shared by every operating profile. Positions
+ * are tyre datums in ship-local coordinates; aircraft clearance is added by the sim. */
+export interface FlightDeckLayout {
+  version: 1; surfaceId: string;
+  spots: { id: string; position: Vec3; preferredRole: AircraftRole }[];
+  launchStart: Vec3; launchEnd: Vec3;
+  recoveryTouchdown: Vec3; recoveryStop: Vec3;
+  elevators: { id: string; position: Vec3; hangarY: number; widthM: number; lengthM: number }[];
+}
 export interface AirWingDefinition {
   version: 1; launchPosition: Vec3; recoveryPosition: Vec3; serviceModuleId: string;
   launchIntervalSeconds: number; rearmSeconds: number;
   /** Optional v1 operations limits; older blueprints retain three-plane launches. */
   flightSize?: number; deckCapacity?: number; maxActiveFlights?: number;
+  deckLayout?: FlightDeckLayout;
   squadrons: { id: string; name: string; modelId: string; role: AircraftRole; count: number }[];
 }
 export interface ShipBlueprint {
   schemaVersion: 1; id: string; name: string; configuration: string;
   coordinates: 'meters-y-up-bow-negative-z'; modelUrl: string;
   damageControl?: DamageControlProfile;
+  /** Optional CPU motion interlocks, fitted to reviewed installation geometry.
+   * These are explicit game clearance envelopes, not historical firing sectors. */
+  mountClearance?: MountClearanceProfile;
   /** Ship-local underwater defense coverage; reductions are gameplay calibration. */
   underwaterProtection?: { version: 1; basis: string; zones: (Volume & { name: string; damageReduction: number; breachReduction: number })[] };
   localDamage?: { version: 1; regions: DamageRegion[]; basis: string };
@@ -480,12 +508,86 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
       const part = parts.find(p => p.id === m.partId)!;
       numeric(m.elevationMaxDeg, `${m.id}.elevationMaxDeg`, 0, part.elevationMaxDeg as number);
     }
+    if (m.traverseLimitsDeg !== undefined) {
+      const limit = (m.traverseDeg ?? parts.find(p => p.id === m.partId)!.traverseDeg) as number;
+      const limits = list(m.traverseLimitsDeg, `${m.id}.traverseLimitsDeg`, 2);
+      if (limits.length !== 2 || numeric(limits[0], `${m.id}.traverse minimum`, -limit, 0) > numeric(limits[1], `${m.id}.traverse maximum`, 0, limit)) fail(String(m.id), 'expected ordered travel limits containing neutral');
+    }
     if (m.parentMountId !== undefined) {
       id(m.parentMountId, `${m.id}.parentMountId`);
       if (!mounts.slice(0, index).some(parent => parent.id === m.parentMountId)) fail(String(m.id), 'parent mount must precede its child (no missing parents or cycles)');
     }
   });
+  if (b.mountClearance !== undefined) {
+    const profile = record(b.mountClearance, 'mountClearance');
+    literal(profile.version, [1], 'mountClearance.version');
+    text(profile.basis, 'mountClearance.basis');
+    const bodies = profile.mountIds !== undefined || profile.bodies !== undefined;
+    const envelopes = profile.mounts !== undefined || profile.structures !== undefined || profile.neighbors !== undefined;
+    if (bodies === envelopes) fail('mountClearance', 'expected exactly one geometry encoding: closed bodies or installation envelopes');
+    numeric(profile.marginM, 'mountClearance.marginM', bodies ? 0 : .001, bodies ? .2 : .5);
+    if (bodies) list(profile.mountIds, 'mountClearance.mountIds', 64);
+    else list(profile.mounts, 'mountClearance.mounts', 128);
+  }
+  if (b.mountClearance !== undefined && record(b.mountClearance, 'mountClearance').mountIds !== undefined) {
+    const profile = record(b.mountClearance, 'mountClearance');
+    const participants = list(profile.mountIds, 'mountClearance.mountIds', 64);
+    if (!participants.length || new Set(participants).size !== participants.length) fail('mountClearance.mountIds', 'requires distinct mount IDs');
+    participants.forEach(value => {
+      id(value, 'mountClearance.mountIds');
+      if (!mounts.some(m => m.id === value)) fail('mountClearance.mountIds', `unknown mount ${value}`);
+    });
+    const bodies = list(profile.bodies, 'mountClearance.bodies', 4096).map((value, i) => record(value, `mountClearance.bodies[${i}]`));
+    unique(bodies, 'mountClearance.bodies');
+    bodies.forEach(body => {
+      const path = `mountClearance.${body.id}`;
+      if (body.mountId !== undefined && !mounts.some(m => m.id === body.mountId)) fail(path, 'unknown parent mount');
+      const surface = record(body.surface, `${path}.surface`);
+      const vertices = list(surface.vertices, `${path}.vertices`, 2048).map(v => vector(v, `${path}.vertex`));
+      const faces = list(surface.triangles, `${path}.triangles`, 4096);
+      if (vertices.length < 4 || faces.length < 4) fail(path, 'requires a closed physical body');
+      const edges = new Map<string, { count: number; winding: number }>();
+      faces.forEach(face => {
+        validateTriangle(face, vertices, `${path}.triangle`);
+        const indices = face as number[];
+        indices.forEach((a, i) => {
+          const c = indices[(i + 1) % 3], key = a < c ? `${a}:${c}` : `${c}:${a}`;
+          const edge = edges.get(key) ?? { count: 0, winding: 0 };
+          edge.count++; edge.winding += a < c ? 1 : -1; edges.set(key, edge);
+        });
+      });
+      if ([...edges.values()].some(e => e.count !== 2 || e.winding !== 0)) fail(path, 'body must be closed and consistently wound');
+    });
+  }
   const compartments = volumes(b.compartments, 'compartments');
+  if (b.mountClearance !== undefined && record(b.mountClearance, 'mountClearance').mounts !== undefined) {
+    const c = record(b.mountClearance, 'mountClearance');
+    const entries = list(c.mounts, 'mountClearance.mounts', 128).map(v => record(v, 'clearance mount'));
+    if (!entries.length) fail('mountClearance.mounts', 'requires participating mounts');
+    const selected = new Set<string>();
+    for (const e of entries) {
+      const m = mounts.find(m => m.id === e.mountId);
+      if (!m || m.parentMountId !== undefined || selected.has(String(e.mountId))) fail('mountClearance.mounts', 'expected unique hull-mounted gun IDs');
+      selected.add(String(e.mountId)); numeric(e.barrelRadiusM, 'clearance barrel radius', .01, 2);
+      if (e.body !== undefined) {
+        const body = record(e.body, 'clearance body'); vector(body.center, 'clearance body center');
+        vector(body.size, 'clearance body size').forEach(n => numeric(n, 'clearance body dimension', .01, 30));
+      }
+    }
+    const structures = b.structures as AuthoredStructure[] | undefined;
+    const seen = new Set<string>();
+    for (const v of list(c.structures, 'mountClearance.structures', 128)) {
+      const e = record(v, 'clearance structure');
+      if (!structures?.some(s => s.id === e.structureId) || seen.has(String(e.structureId))) fail('mountClearance.structures', 'expected unique authored structure IDs');
+      seen.add(String(e.structureId)); numeric(e.topExtensionM, 'clearance structure extension', 0, 5);
+    }
+    const pairs = new Set<string>();
+    for (const v of list(c.neighbors, 'mountClearance.neighbors', 128)) {
+      const pair = list(v, 'clearance neighbor pair', 2).map(String), key = [...pair].sort().join(':');
+      if (pair.length !== 2 || pair[0] === pair[1] || pair.some(id => !selected.has(id)) || pairs.has(key)) fail('mountClearance.neighbors', 'expected distinct selected mount pairs');
+      pairs.add(key);
+    }
+  }
   const validateFire = (value: unknown, path: string) => {
     if (value === undefined) return;
     const f = record(value, path);
@@ -768,6 +870,51 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
       if (!Number.isInteger(squadron.count)) fail('squadron.count', 'expected an integer');
     }
     if (squadrons.reduce((n, s) => n + Number(s.count), 0) > 96) fail('airWing.squadrons', 'maximum inventory is 96 aircraft');
+    if (wing.deckLayout !== undefined) {
+      const layout = record(wing.deckLayout, 'airWing.deckLayout');
+      if (layout.version !== 1) fail('airWing.deckLayout.version', 'expected version 1');
+      const deckStructures = list(b.structures, 'structures').map(s => record(s, 'structure'));
+      const surface = deckStructures.find(s => s.id === layout.surfaceId);
+      if (!surface) fail('airWing.deckLayout.surfaceId', 'unknown deck structure');
+      const footprint = surface!.footprint as number[][];
+      const onSurface = (x: number, z: number) => {
+        let inside = false;
+        for (let i = 0, j = footprint.length - 1; i < footprint.length; j = i++) {
+          const a = footprint[i], b = footprint[j];
+          if ((a[1] > z) !== (b[1] > z) && x < (b[0] - a[0]) * (z - a[1]) / (b[1] - a[1]) + a[0]) inside = !inside;
+        }
+        return inside;
+      };
+      const point = (value: unknown, path: string) => {
+        const p = vector(value, path);
+        if (Math.abs(p[0]) > (h.beam as number) || Math.abs(p[2]) > (h.length as number) * .55 || p[1] < 0 || p[1] > 40) fail(path, 'invalid deck position');
+        if (!onSurface(p[0], p[2]) || Math.abs(p[1] - Number(surface!.baseY) - Number(surface!.height)) > .5) fail(path, 'must rest on the authored flight deck');
+        return p;
+      };
+      const start = point(layout.launchStart, 'deckLayout.launchStart'), end = point(layout.launchEnd, 'deckLayout.launchEnd');
+      const touchdown = point(layout.recoveryTouchdown, 'deckLayout.recoveryTouchdown'), stop = point(layout.recoveryStop, 'deckLayout.recoveryStop');
+      if (end[2] >= start[2] - 30 || stop[2] >= touchdown[2] - 10) fail('airWing.deckLayout', 'launch and recovery paths must run toward the bow');
+      const spots = list(layout.spots, 'deckLayout.spots', 100).map(s => record(s, 'deck spot'));
+      if (!spots.length) fail('deckLayout.spots', 'requires parking positions');
+      unique(spots, 'deckLayout.spots');
+      for (const spot of spots) {
+        id(spot.id, 'deck spot.id'); point(spot.position, 'deck spot.position');
+        if (!['fighter', 'dive-bomber', 'torpedo-bomber'].includes(String(spot.preferredRole))) fail('deck spot.preferredRole', 'unknown aircraft role');
+      }
+      const elevators = list(layout.elevators, 'deckLayout.elevators', 8).map(e => record(e, 'elevator'));
+      if (!elevators.length) fail('deckLayout.elevators', 'requires an elevator');
+      unique(elevators, 'deckLayout.elevators');
+      for (const elevator of elevators) {
+        const structure = deckStructures.find(s => s.id === elevator.id);
+        if (!structure) fail('elevator.id', 'unknown fitted elevator structure');
+        const p = point(elevator.position, 'elevator.position');
+        numeric(elevator.hangarY, 'elevator.hangarY', 0, p[1] - 2);
+        numeric(elevator.widthM, 'elevator.widthM', 3, 30); numeric(elevator.lengthM, 'elevator.lengthM', 3, 30);
+        const shape = structure!.footprint as number[][];
+        const xs = shape.map(p => p[0]), zs = shape.map(p => p[1]);
+        if (Number(elevator.widthM) > Math.max(...xs) - Math.min(...xs) + .001 || Number(elevator.lengthM) > Math.max(...zs) - Math.min(...zs) + .001) fail('elevator', 'operating dimensions exceed the fitted platform');
+      }
+    }
   }
   if (b.submarine !== undefined) {
     const s = record(b.submarine, 'submarine');

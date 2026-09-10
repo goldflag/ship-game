@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "files": [
+    "assets/ships/appearance/surface.py",
+    "assets/ships/appearance/finishes.json",
+    "assets/ships/fletcher/appearance.json"
+  ]
+}

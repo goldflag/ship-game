@@ -1,7 +1,7 @@
 """Original Bismarck exterior, 24 May 1941 at the separately stated standard draft.
 
-Version 4 interprets the retained historical plan, archival profile and raster
-comparison pack. Blueprint polygons own major placements; this original recipe
+The current refinement follows the approved GameModels3D pgsb708 A fit.
+Reference geometry is inspection-only; all shapes below are original constructions. Blueprint polygons own major placements; this original recipe
 owns construction/detail primitives. No source mesh or extracted transforms enter.
 The separate original paint recipe applies the requested March–May Baltic scheme.
 """
@@ -11,13 +11,15 @@ from mathutils import Vector, Matrix
 ROOT=Path(__file__).resolve().parents[3]
 sys.path.insert(0,str(ROOT/'scripts/ships'))
 from blender_components import create_gun_mount
+sys.path.insert(0,str(ROOT/'assets/parts'))
+from library import create_mount as create_library_mount
 from blender_supports import SupportSurface
 from blender_rig import radar_pivot
 OUT=Path(os.environ['SHIP_OUTPUT']);DEF=json.loads(Path(os.environ['SHIP_DEFINITION']).read_text());H=DEF['hull']
 bpy.context.preferences.filepaths.save_version=0
 bpy.ops.object.select_all(action='SELECT');bpy.ops.object.delete(use_global=False)
 scene=bpy.context.scene;scene.unit_settings.system='METRIC';scene.unit_settings.scale_length=1
-scene['definitionHash']=DEF['contentHash'];scene['authoring']='Original polygon lofts and construction primitives, 1941-04; raster/historical interpretation only'
+scene['definitionHash']=DEF['contentHash'];scene['authoring']='Original construction primitives; GameModels3D pgsb708 A fit visual refinement'
 def group(name):
  c=bpy.data.collections.new(name);scene.collection.children.link(c);return c
 hullcol=group('01 Hull and deck');supercol=group('02 Superstructure');gunscol=group('03 Articulated batteries');detailcol=group('04 Fittings');undercol=group('05 Underwater');simcol=group('14 Simulation volumes')
@@ -62,14 +64,33 @@ def rounded_rect(cx,cy,length,width,r=.5,steps=4):
  return [(cx+sx*(length/2-r)+r*math.cos(a),cy+sy*(width/2-r)+r*math.sin(a)) for sx,sy,start in [(1,1,0),(-1,1,90),(-1,-1,180),(1,-1,270)] for a in [math.radians(start+i*90/steps) for i in range(steps+1)]]
 def ellipse(cx,cy,rx,ry,n=40):return [(cx+rx*math.cos(math.tau*i/n),cy+ry*math.sin(math.tau*i/n)) for i in range(n)]
 def polyline(name,pts,r=.027,mat=None,col=None,closed=False,vertices=6):
- for a,b in zip(pts,pts[1:]+([pts[0]] if closed else [])):rod(name,a,b,r,mat or materials['edge'],col or detailcol,vertices=vertices)
+ pts=[Vector(p) for p in pts]
+ if len(pts)<2:return
+ if (pts[-1]-pts[0]).length<1e-7:pts.pop();closed=True
+ vs=[];n=vertices
+ for i,p in enumerate(pts):
+  prev=pts[(i-1)%len(pts)] if closed or i else p
+  nxt=pts[(i+1)%len(pts)] if closed or i<len(pts)-1 else p
+  tangent=(nxt-prev).normalized();u=tangent.cross(Vector((0,0,1)))
+  if u.length<.01:u=tangent.cross(Vector((0,1,0)))
+  u.normalize();v=tangent.cross(u)
+  vs.extend(p+r*(u*math.cos(math.tau*j/n)+v*math.sin(math.tau*j/n)) for j in range(n))
+ fs=[]
+ for i in range(len(pts) if closed else len(pts)-1):
+  a=i*n;b=((i+1)%len(pts))*n
+  fs.extend((a+j,a+(j+1)%n,b+(j+1)%n,b+j) for j in range(n))
+ if not closed:fs.extend([tuple(reversed(range(n))),tuple((len(pts)-1)*n+j for j in range(n))])
+ return mesh(name,vs,fs,mat or materials['edge'],col or detailcol,True)
 def rail(name,pts,height=.94,spacing=1.85,closed=True,col=None):
- col=col or detailcol;seq=list(zip(pts,pts[1:]+([pts[0]] if closed else [])))
+ col=col or detailcol;pts=[Vector(p) for p in pts];seq=list(zip(pts,pts[1:]+([pts[0]] if closed else [])))
+ remaining=0.0
  for a,b in seq:
-  a,b=Vector(a),Vector(b);length=(b-a).length
-  for i in range(max(1,math.ceil(length/spacing))):
-   p=a+(b-a)*(i/max(1,math.ceil(length/spacing)));rod(name+' stanchion',p,p+Vector((0,0,height)),.026,materials['edge'],col,vertices=5)
-  for dz in [height*.38,height*.7,height]:rod(name+' wire',a+Vector((0,0,dz)),b+Vector((0,0,dz)),.014,materials['edge'],col,vertices=5)
+  delta=b-a;length=delta.length
+  if length<1e-7:continue
+  while remaining<length:
+   p=a+delta*(remaining/length);rod(name+' stanchion',p,p+Vector((0,0,height)),.026,materials['edge'],col,vertices=5);remaining+=spacing
+  remaining-=length
+ for dz in [height*.38,height*.7,height]:polyline(name+' wire',[p+Vector((0,0,dz)) for p in pts],.014,materials['edge'],col,closed,5)
 def ring(name,center,normal,radius,tube=.035,mat=None,n=20):
  axis=Vector(normal).normalized();u=axis.cross(Vector((0,0,1)))
  if u.length<.1:u=axis.cross(Vector((0,1,0)))
@@ -158,10 +179,28 @@ for s in DEF['structures']:
   ob=mesh(s['name'],vs,shape['triangles'],materials[s['material']],supercol,s['id']=='funnel-jacket')
  else:ob=extrude(s['name'],pts,z,s['height'],materials[s['material']],supercol,.025 if roof else .035)
  ob['assemblyId']='superstructure-'+s['id']
+ if s['id']=='navigation-roof':ob.data.materials.clear();ob.data.materials.append(materials['naval'])
  if s['id']=='funnel-jacket':continue
  if roof:
-  shields={'bridge-wings':.78,'signal-platform':1.05,'fore-aa-platform':.66,'foretop-platform':1.12,'foretop-roof':.38,'aft-director-platform':.74}
-  if s['id'] not in shields:rail(s['id'],[(x,y,top+.005) for x,y in pts],.85,1.55,col=supercol)
+  shields={'bridge-wings':1.35,'fore-aa-platform':.98,'foretop-platform':1.30,'aft-director-platform':.74,'tower-lower-gallery':.60}
+  if s['id'] in ['navigation-roof','foretop-roof','bridge-admiral-platform','conning-platform']:continue
+  if s['id']=='signal-platform':
+   # Leave optical ports in the guardrail for the transverse nightfinders.
+   chain=[]
+   for a,b in zip(pts,pts[1:]+pts[:1]):
+    ts=[0,1]+[(cut-a[0])/(b[0]-a[0]) for cut in [14.05,16.15] if abs(b[0]-a[0])>1e-7 and min(a[0],b[0])<cut<max(a[0],b[0])]
+    ts=sorted(ts)
+    for lo,hi in zip(ts,ts[1:]):
+     pa=tuple(a[k]+(b[k]-a[k])*lo for k in [0,1]);pb=tuple(a[k]+(b[k]-a[k])*hi for k in [0,1])
+     gap=14.05<(pa[0]+pb[0])/2<16.15 and abs((pa[1]+pb[1])/2)>5.5
+     if gap:
+      if len(chain)>1:rail(s['id'],[(x,y,top+.005) for x,y in chain],.85,1.55,False,col=supercol)
+      chain=[]
+     else:
+      if not chain:chain=[pa]
+      chain.append(pb)
+   if len(chain)>1:rail(s['id'],[(x,y,top+.005) for x,y in chain],.85,1.55,False,col=supercol)
+  elif s['id'] not in shields:rail(s['id'],[(x,y,top+.005) for x,y in pts],.85,1.55,col=supercol)
   if s['id'] in shields:
    # Sheet bulwarks and their inclined wind lip break up the repeated open
    # handrails. Leave the after edge open for passage and mast access.
@@ -176,7 +215,7 @@ for s in DEF['structures']:
     ob=mesh('Gallery splinter bulwark',vs,[(0,1,3,2)],materials['naval'],supercol)
     mod=ob.modifiers.new('Fabricated plate thickness','SOLIDIFY');mod.thickness=.045
     lip=[Vector((x,y,top+shield)) for x,y in [a,b]];mesh('Gallery wind deflector',[tuple(v) for v in lip]+[tuple(v+normal*.17+Vector((0,0,.13))) for v in lip],[(0,1,3,2)],materials['edge'],supercol)
-    count=max(1,math.ceil((Vector(b)-Vector(a)).length/1.4))
+    count=math.ceil((Vector(b)-Vector(a)).length/1.4) if (Vector(b)-Vector(a)).length>.65 else 0
     for i in range(count):
      p=Vector(a)+(Vector(b)-Vector(a))*((i+.5)/count);rod('Bulwark stiffener',(p.x,p.y,top+.08),(p.x,p.y,top+shield-.04),.025,materials['edge'],supercol,vertices=5)
   # Gallery brackets connect the outer lip to the enclosed central support.
@@ -185,193 +224,266 @@ for s in DEF['structures']:
     # Forward lobes overhang the tower's front as well as its sides. Keep the
     # inner end inside the tapered core instead of leaving a hanging strut.
     tower=s['id'] in ['signal-platform','fore-aa-platform','foretop-platform','foretop-roof']
-    inner=(max(11.0,min(16.5,x)),math.copysign(3.0,y),z-1.2) if tower else (x,y*.56,z-1.2)
+    inner=(max(12.8,min(14.8,x)),math.copysign(1.65,y),z-1.6) if tower else (x,y*.56,z-1.2)
     rod(s['id']+' knee',(x,y,z-.02),inner,.07,materials['naval'],supercol,vertices=6)
  else:
   # Steel deck overhang and drainage lip emphasize real deck boundaries.
-  extrude(s['id']+' deck lip',[(x*1.001,y*1.012) for x,y in pts],top,.10,materials['roof'],supercol)
+  if s.get('surface'):
+   # Follow the authored upper ring on sloped enclosures; a horizontal lip floats above their nose.
+   ringpts=[(-zz,-xx,yy) for xx,yy,zz in s['surface']['vertices'][-len(pts):]]
+   polyline(s['id']+' deck edge',ringpts,.035,materials['roof'],supercol,True,6)
+  elif s['id']!='tower-mast-base':
+   extrude(s['id']+' deck lip',pts,top,.06,materials['roof'],supercol)
   for sign in [-1,1]:
    yy=sign*max(abs(y) for x,y in pts);lo=min(x for x,y in pts)+2.6;hi=max(x for x,y in pts)-2.6
-   if hi>lo and s['height']>2.0 and s['id'] not in ['funnel-base','tower-mast-base','bridge-wheelhouse','foretop-control','conning-tower']:
+   if hi>lo and s['height']>2.0 and s['id'] not in ['funnel-base','tower-mast-base','bridge-wheelhouse','foretop-control','conning-tower','tower-upper-shaft']:
     for x in [lo+i*2.2 for i in range(max(1,int((hi-lo)/2.2)))]:
      yy,normal=house_side(pts,x,sign);porthole(s['id']+' scuttle',Vector((x,yy,top-1.12))+normal*.05,normal,.16)
     xx=(lo+hi)/2;yy,normal=house_side(pts,xx,sign)
     if abs(normal.x)<.15:door(s['id']+' watertight door',xx,yy+sign*.05,z+.13,sign)
 # All ten active batteries retain the shared original joint and socket contract.
 for mount in DEF['mounts']:
- if mount['weapon']['caliberM']>.13:create_gun_mount(mount,gunscol,helpers,materials,deckz)
-# Additional original gunhouse fabrication and service fittings follow yaw.
+ if mount['partId']=='sk-c34-380-twin':create_library_mount(mount,gunscol,dict(helpers,deck_height=deckz),materials)
+ elif mount['weapon']['caliberM']>.13:create_gun_mount(mount,gunscol,helpers,materials,deckz)
+# Secondary gunhouse fabrication follows its existing yaw rig.
 for mount in DEF['mounts']:
- if mount['weapon']['caliberM']<=.13:continue
- yaw=bpy.data.objects[mount['id']+'.yaw'];w=mount['weapon'];L,W,T=w['gunhouseSize'];primary=w['caliberM']>.2
+ if mount['weapon']['caliberM']<=.13 or mount['partId']=='sk-c34-380-twin':continue
+ yaw=bpy.data.objects[mount['id']+'.yaw'];w=mount['weapon'];L,W,T=w['gunhouseSize']
  def mounted(ob):ob.parent=yaw;ob.matrix_parent_inverse=Matrix.Identity(4);ob['assemblyId']=mount['id'];return ob
+ # The secondary's rear roof ridge, sloping roof and near-vertical walls are
+ # catalog facets. These small original fittings are carried by the same yaw.
+ mounted(box('Secondary rear access hatch',(-3.92,0,1.12),(.07,.78,1.18),materials['edge'],gunscol))
+ mounted(box('Secondary rear hatch inset',(-3.97,0,1.12),(.035,.63,1.02),materials['naval'],gunscol))
+ for yy in [-1.25,-.73]:mounted(rod('Secondary rear ladder rail',(-3.94,yy,.3),(-3.86,yy,2.20),.025,materials['edge'],gunscol,vertices=6))
+ for zz in [.42+i*.26 for i in range(7)]:mounted(rod('Secondary rear ladder rung',(-3.94+.08*(zz-.3)/1.9, -1.25,zz),(-3.94+.08*(zz-.3)/1.9,-.73,zz),.022,materials['edge'],gunscol,vertices=6))
  for sign in [-1,1]:
-  if primary:
-   for xx in [-L*.33,-L*.07,L*.17]:mounted(box('Gunhouse side drain',(xx,sign*W*.49,T*.2),(.27,.06,.09),materials['dark'],gunscol))
-   # Preserve the main turret's existing paired rear ladders and roof hatches.
-   for zz in [T*.22+i*.28 for i in range(int(T*.65/.28))]:
-    rearx=-8.55+max(0,zz-2.1)*(1.65/1.55)
-    mounted(rod('Gunhouse rear rung',(rearx,sign*W*.2-.25,zz),(rearx,sign*W*.2+.25,zz),.024,materials['edge'],gunscol,vertices=6))
-    for yy in (sign*W*.2-.25,sign*W*.2+.25):mounted(rod('Gunhouse rung foot',(rearx,yy,zz),(rearx+.13,yy,zz),.024,materials['edge'],gunscol,vertices=6))
-   mounted(box('Gunhouse roof access',(-L*.26,sign*W*.22,T+.05),(1.0,.76,.12),materials['naval'],gunscol))
- if not primary:
-  # The secondary's rear roof ridge, sloping roof and near-vertical walls are
-  # catalog facets. These small original fittings are carried by the same yaw.
-  mounted(box('Secondary rear access hatch',(-3.92,0,1.12),(.07,.78,1.18),materials['edge'],gunscol))
-  mounted(box('Secondary rear hatch inset',(-3.97,0,1.12),(.035,.63,1.02),materials['naval'],gunscol))
-  for yy in [-1.25,-.73]:mounted(rod('Secondary rear ladder rail',(-3.94,yy,.3),(-3.86,yy,2.20),.025,materials['edge'],gunscol,vertices=6))
-  for zz in [.42+i*.26 for i in range(7)]:mounted(rod('Secondary rear ladder rung',(-3.94+.08*(zz-.3)/1.9, -1.25,zz),(-3.94+.08*(zz-.3)/1.9,-.73,zz),.022,materials['edge'],gunscol,vertices=6))
-  for sign in [-1,1]:
-   mounted(box('Secondary covered sight',(-.25,sign*2.32,1.52),(.63,.12,.32),materials['naval'],gunscol))
-   mounted(box('Secondary sight glass',(.075,sign*2.32,1.52),(.026,.085,.14),materials['dark'],gunscol))
-   for xx in [-2.7,-.6,1.2]:
-    yy=sign*(2.15+(xx+3.9)*.4/5.9)
-    mounted(box('Secondary drain',(xx,yy,.39),(.22,.05,.065),materials['dark'],gunscol))
-  for a,b in zip([(-3.82,0,2.20),(-1.2,0,2.62),(1.95,0,2.10)], [(-1.2,0,2.62),(1.95,0,2.10),(2.55,0,1.87)]):mounted(rod('Secondary roof seam',a,b,.018,materials['edge'],gunscol,vertices=5))
-  mounted(cyl('Secondary observation periscope',(-1.18,0,2.76),.095,.34,materials['naval'],gunscol,16))
-  mounted(box('Secondary periscope head',(-1.12,0,2.94),(.26,.23,.15),materials['edge'],gunscol))
-  for side in ['left','right']:
-   parent=bpy.data.objects[mount['id']+'.'+side+'.recoil']
-   for old in list(parent.children):
-    if 'canvas mantlet' in old.name:bpy.data.objects.remove(old,do_unlink=True)
-   vs=[];n=24;rings=[(-.38,.35),(-.16,.39),(.12,.34),(.48,.29),(.85,.235),(1.10,.208)]
-   for xx,rr in rings:
-    for i in range(n):
-     a=math.tau*i/n;wrinkle=1+.055*math.cos(a*7+xx*10);vs.append((xx,rr*math.cos(a)*wrinkle,rr*.94*math.sin(a)*wrinkle))
-   boot=mesh('Secondary pleated blast bag',vs,[(j*n+i,j*n+(i+1)%n,(j+1)*n+(i+1)%n,(j+1)*n+i) for j in range(len(rings)-1) for i in range(n)],materials['canvas'],gunscol,True)
-   boot.parent=parent;boot.matrix_parent_inverse=Matrix.Identity(4);boot['assemblyId']=mount['id']
- if primary:
-  for yy in [-2.65,0,2.65]:
-   mounted(box('Gunhouse roof plate seam',(-1.95,yy,T+.017),(8.7,.025,.025),materials['edge'],gunscol))
-   mounted(cyl('Gunhouse roof sight',(-3.7,yy,T+.15),.18,.35,materials['naval'],gunscol,16))
-  for yy in [-1.2,1.2]:mounted(box('Rear ventilation hood',(-8.5,yy,1.3),(.26,.68,.84),materials['naval'],gunscol))
-  for sign in [-1,1]:
-   # Side ladders, covered sight slots and plate seams are on the sloped side
-   # surface, with every new piece carried by the original yaw parent.
-   def side_y(zz):return sign*(4.35-max(0,zz-2.10)/1.55+.045)
-   for zz in [.50+i*.28 for i in range(12)]:mounted(rod('Main gunhouse side ladder',(-3.35,side_y(zz),zz),(-2.82,side_y(zz),zz),.025,materials['edge'],gunscol,vertices=6))
-   for xx in [-3.35,-2.82]:
-    for za,zb in [(.4,2.1),(2.1,3.6)]:mounted(rod('Main gunhouse ladder stringer',(xx,side_y(za),za),(xx,side_y(zb),zb),.032,materials['naval'],gunscol,vertices=6))
-   cover=rounded_rect(-5.15,2.85,2.7,.84,.32,5);ncover=len(cover)
-   vs=[(xx,side_y(zz)+sign*offset,zz) for offset in [-.10,.09] for xx,zz in cover]
-   fs=[tuple(range(ncover,2*ncover))]+[(i,(i+1)%ncover,(i+1)%ncover+ncover,i+ncover) for i in range(ncover)]
-   mounted(mesh('Gunhouse side optical cover',vs,fs,materials['naval'],gunscol))
-   mounted(rod('Gunhouse side plate joint',(-6.9,side_y(2.1),2.1),(3.0,side_y(2.1),2.1),.022,materials['edge'],gunscol,vertices=6))
-  for side in ['left','right']:
-   parent=bpy.data.objects[mount['id']+'.'+side+'.recoil'];vs=[];n=24
-   rings=[(1.0,.90),(1.3,1.02),(1.9,.89),(2.5,.70),(3.1,.55),(3.6,.44)]
-   for xx,rr in rings:
-    for i in range(n):
-     a=math.tau*i/n;wrinkle=1+.04*math.cos(a*6+xx*7);vs.append((xx,rr*math.cos(a)*wrinkle,rr*.92*math.sin(a)*wrinkle))
-   boot=mesh('Main gun pleated blast bag',vs,[(j*n+i,j*n+(i+1)%n,(j+1)*n+(i+1)%n,(j+1)*n+i) for j in range(len(rings)-1) for i in range(n)],materials['canvas'],gunscol,True)
-   boot.parent=parent;boot.matrix_parent_inverse=Matrix.Identity(4);boot['assemblyId']=mount['id']
+  mounted(box('Secondary covered sight',(-.25,sign*2.32,1.52),(.63,.12,.32),materials['naval'],gunscol))
+  mounted(box('Secondary sight glass',(.075,sign*2.32,1.52),(.026,.085,.14),materials['dark'],gunscol))
+  for xx in [-2.7,-.6,1.2]:
+   yy=sign*(2.15+(xx+3.9)*.4/5.9)
+   mounted(box('Secondary drain',(xx,yy,.39),(.22,.05,.065),materials['dark'],gunscol))
+ for a,b in zip([(-3.82,0,2.20),(-1.2,0,2.62),(1.95,0,2.10)], [(-1.2,0,2.62),(1.95,0,2.10),(2.55,0,1.87)]):mounted(rod('Secondary roof seam',a,b,.018,materials['edge'],gunscol,vertices=5))
+ mounted(cyl('Secondary observation periscope',(-1.18,0,2.76),.095,.34,materials['naval'],gunscol,16))
+ mounted(box('Secondary periscope head',(-1.12,0,2.94),(.26,.23,.15),materials['edge'],gunscol))
+ for side in ['left','right']:
+  parent=bpy.data.objects[mount['id']+'.'+side+'.recoil']
+  for old in list(parent.children):
+   if 'canvas mantlet' in old.name:bpy.data.objects.remove(old,do_unlink=True)
+  vs=[];n=24;rings=[(-.38,.35),(-.16,.39),(.12,.34),(.48,.29),(.85,.235),(1.10,.208)]
+  for xx,rr in rings:
+   for i in range(n):
+    a=math.tau*i/n;wrinkle=1+.055*math.cos(a*7+xx*10);vs.append((xx,rr*math.cos(a)*wrinkle,rr*.94*math.sin(a)*wrinkle))
+  boot=mesh('Secondary pleated blast bag',vs,[(j*n+i,j*n+(i+1)%n,(j+1)*n+(i+1)%n,(j+1)*n+i) for j in range(len(rings)-1) for i in range(n)],materials['canvas'],gunscol,True)
+  boot.parent=parent;boot.matrix_parent_inverse=Matrix.Identity(4);boot['assemblyId']=mount['id']
 # Glazing follows the actual faceted wall, including the rounded forward bridge
 # corners. The navigation house is forward of the separate conning enclosure.
-def wall_windows(sid,z,height,spacing=.95):
- s=structures[sid];pts=[(-zz,-xx) for xx,zz in s['footprint']];aft=min(x for x,y in pts)
+def wall_windows(sid,z,height,spacing=.95,fill=.8):
+ s=structures[sid];pts=[(-zz+2,-xx) for xx,zz in s['footprint']];aft=min(x for x,y in pts)
  for a,b in zip(pts,pts[1:]+pts[:1]):
   if (a[0]+b[0])/2<aft+.2:continue
   a,b=Vector((*a,0)),Vector((*b,0));delta=b-a;count=max(1,round(delta.length/spacing));normal=Vector((delta.y,-delta.x,0)).normalized()
   if normal.dot((a+b)/2-Vector(((aft+max(x for x,y in pts))/2,0,0)))<0:normal=-normal
+  # The signal bridge has shallow forward apertures and tall side windows.
+  # A continuous tall ribbon exaggerates the approved enclosure's front face.
+  front_slit=sid=='signal-house' and normal.x>.8 and abs((a.y+b.y)/2)<2.5
+  window_z,window_height,window_fill=(22.57,.24,.64) if front_slit else (z,height,fill)
   for i in range(count):
-   start=a+delta*((i+.10)/count)+normal*.047;end=a+delta*((i+.90)/count)+normal*.047
-   corners=[p+Vector((0,0,zz)) for zz in [z,z+height] for p in [start,end]]
+   start=a+delta*((i+(1-window_fill)/2)/count)+normal*.047;end=a+delta*((i+(1+window_fill)/2)/count)+normal*.047
+   corners=[p+Vector((0,0,zz)) for zz in [window_z,window_z+window_height] for p in [start,end]]
    mesh(sid+' framed glass',corners,[(0,1,3,2)],materials['glass'],detailcol)
    polyline(sid+' window frame',[corners[j] for j in [0,1,3,2]],.033,materials['edge'],closed=True,vertices=6)
-wall_windows('bridge-wheelhouse',15.95,.85,.90)
-wall_windows('foretop-control',27.10,.66,1.05)
-wall_windows('conning-tower',17.74,.13,1.15)
+bridge_detail_before=set(bpy.data.objects)
+wall_windows('bridge-wheelhouse',13.96,.37,1.25)
+wall_windows('signal-house',22.10,.80,1.05)
+wall_windows('conning-tower',17.30,.12,1.3)
+wall_windows('foretop-control',28.96,.14,2.4,.22)
+# The upper control house has small apertures; the former full window ribbon
+# exaggerated its width. All service fittings bear on their actual deck or wall.
 for sign in [-1,1]:
- # Open bridge wings, enclosed signal lockers and small navigation instruments.
- box('Admiral bridge signal locker',(12.4,sign*4.95,21.28),(2.9,.48,.74),materials['naval'],detailcol)
- for xx in [11.3,12.0,12.7,13.4]:box('Signal locker door',(xx,sign*5.21,21.28),(.57,.035,.56),materials['edge'],detailcol)
- for xx,yy,zz in [(33.1,6.1,15.54),(18.2,5.6,20.89)]:
-  cyl('Bridge pelorus stand',(xx,sign*yy,zz+.46),.14,1.06,materials['naval'],detailcol,16)
-  cyl('Bridge pelorus dial',(xx,sign*yy,zz+1.0),.31,.12,materials['edge'],detailcol,24)
-  rod('Bridge sighting arm',(xx-.25,sign*yy,zz+1.08),(xx+.35,sign*yy,zz+1.08),.035,materials['dark'],detailcol,vertices=6)
- stairs('Signal bridge access',(18.5,sign*4.0,15.55),(10.3,sign*4.0,20.89),.65)
- stairs('Upper director gallery access',(10.3,sign*3.9,23.44),(12.8,sign*4.8,26.43),.65)
-# Deckhouse equipment and stairs read at normal harbor inspection distances.
+ for sid,zz,xx in [('tower-upper-shaft',19.25,16.15),('tower-upper-shaft',25.35,16.15),('tower-mast-base',16.25,20.0)]:
+  pts=[(-zz+2,-xx) for xx,zz in structures[sid]['footprint']]
+  yy,normal=house_side(pts,xx,sign);porthole('Tower wall aperture',Vector((xx,yy,zz))+normal*.04,normal,.18)
+
+def stair_landing(name,x,y,z,inner,width=1.15):
+ box(name+' landing',(x,(y+inner)/2,z-.09),(width,abs(y-inner)+.45,.18),materials['roof'],supercol)
+ for dx in [-width*.36,width*.36]:rod(name+' landing knee',(x+dx,y,z-.18),(x+dx,inner,z-.95),.07,materials['naval'],supercol,vertices=6)
+
 for sign in [-1,1]:
- for x in [12,18,32,39]:
-  pts=[(-z,-x) for x,z in structures['forward-battery-deck']['footprint']];y,_=house_side(pts,x,sign);vent('Forward intake',(x,y+sign*.08,7.15),(1.2,.23,1.05),sign)
- for x in [-47,-42,-34]:vent('Aft intake',(x,sign*8.8,7.05),(1.15,.25,1.0),sign)
- stairs('Forward exterior stair',(39.5,sign*7.95,5.9),(36.0,sign*7.95,9.38))
- stairs('Bridge stair',(35.4,sign*6.3,9.4),(32.8,sign*5.8,12.63))
- stairs('Upper bridge stair',(24.3,sign*6.1,12.6),(21.2,sign*6.1,15.53))
- stairs('Aft deck stair',(-46,sign*8.5,5.85),(-42.6,sign*8.5,9.28))
- stairs('Aft control stair',(-41.6,sign*6.5,9.3),(-38.5,sign*6.5,12.5))
- for x in [13,37]:
-  pipe=[(x,sign*9.1,deckz(x)),(x,sign*9.1,8.1),(x+.5,sign*9.1,8.6),(x+1.8,sign*9.1,8.6)];polyline('Ventilation pipe',pipe,.11,materials['naval'],vertices=10)
- # The upper tower narrows above 20.5 m; the middle lockers meet that wall.
- for zz,xx,yy in [(21.0,12.0,3.6),(23.93,13.0,3.08),(27.0,12.0,4.25)]:
-  box('Tower equipment locker',(xx,sign*yy,zz),(.8,.35,.95),materials['edge'],detailcol)
- ladder('Foretower access',(10.1,sign*3.6,18.5),(10.1,sign*3.6,28.7),.52)
- # Lower tower access and exterior services meet the supporting shelter deck.
- ladder('Lower foretower access',(10.05,sign*2.4,9.4),(10.05,sign*2.4,20.5),.52)
- for zz in [15.9,19.1]:
-  box('Tower service cabinet',(13.9,sign*3.55,zz),(1.35,.32,.86),materials['edge'],detailcol)
-  box('Tower cabinet inset',(13.9,sign*3.73,zz),(1.10,.06,.61),materials['naval'],detailcol)
- polyline('Tower external cable conduit',[(16.2,sign*3.55,12.7),(16.2,sign*3.55,18.6),(15.1,sign*3.55,19.2),(15.1,sign*3.3,23.0)],.042,materials['edge'],vertices=8)
-# Funnel jacket and forward-rising cap: a deliberately authored rounded oblong,
-# with internal lip, collars, stays, steam pipes and multiple searchlight galleries.
-fx=-2.4;N=64
-verts=[(-z,-x,y) for x,y,z in structures['funnel-jacket']['surface']['vertices']]
-outer=verts[-N:];inner=[(fx+(x-fx)*.905,y*.86,z-.08) for x,y,z in outer]
-mesh('Funnel cap thickness',outer+inner,[(i,(i+1)%N,(i+1)%N+N,i+N) for i in range(N)],materials['edge'],supercol)
-mesh('Funnel inner wall',inner+[(x,y,z-1.4) for x,y,z in inner],[(i,(i+1)%N,(i+1)%N+N,i+N) for i in range(N)],materials['dark'],supercol)
-mesh('Recessed uptake darkness',[(x,y,z-1.36) for x,y,z in inner],[tuple(reversed(range(N)))],materials['dark'],supercol)
-polyline('Funnel cap rolled lip',outer,.06,materials['light'],supercol,True,8)
-for yy in [-2.8,-1.4,0,1.4,2.8]:rod('Funnel opening grate',(fx-5.5,yy,23.455),(fx+5.5,yy,25.545),.055,materials['edge'],supercol,vertices=8)
-for xx in [-6.3,-4.3,-2.3,-.3,1.7]:rod('Funnel grate crossbar',(xx,-3.5,24.5+(xx-fx)*.19),(xx,3.5,24.5+(xx-fx)*.19),.055,materials['edge'],supercol,vertices=8)
-# Interpolate corresponding jacket vertices; every collar bears on the original
-# shell instead of assuming a constant elliptical section at all elevations.
+ # Bridge wing instruments and a low locker fitted on the signal deck.
+ box('Signal bridge locker',(12.9,sign*3.15,21.02),(2.3,.46,.74),materials['naval'],detailcol)
+ for xx in [12.2,12.9,13.6]:box('Signal locker panel',(xx,sign*3.40,21.02),(.57,.035,.56),materials['edge'],detailcol)
+ for xx,yy,zz in [(34.6,4.4,15.4),(12.5,2.8,20.65),(11.5,3.6,27.3)]:
+  cyl('Bridge pelorus stand',(xx,sign*yy,zz+.44),.13,.88,materials['naval'],detailcol,16)
+  cyl('Bridge pelorus dial',(xx,sign*yy,zz+.91),.27,.10,materials['edge'],detailcol,20)
+  rod('Bridge sighting arm',(xx-.23,sign*yy,zz+.99),(xx+.3,sign*yy,zz+.99),.03,materials['dark'],detailcol,vertices=6)
+ for name,a,b,inner in [
+  ('Platform access',(46.7,9.2,5.75),(43.8,9.2,8.4),8.1),
+  ('Forward exterior stair',(41.2,7.9,8.4),(36.0,7.9,13.1),7.45),
+  ('Navigation bridge stair',(29.8,7.1,13.1),(27.4,7.1,15.4),5.85),
+  ('Lower tower gun gallery stair',(24.3,4.65,15.4),(22.0,4.65,17.68),3.85),
+  ('Signal bridge access',(12.3,3.1,17.68),(15.6,3.1,20.65),2.6),
+  ('Searchlight gallery stair',(12.5,3.2,20.65),(17.2,3.2,24.65),2.9),
+  ('Aft platform access',(-56.0,9.1,5.8),(-51.0,9.1,8.3),8.0),
+  ('Aft deck stair',(-47.0,8.55,8.3),(-42.0,8.55,10.66),7.6),
+  ('Aft control stair',(-39.0,4.6,10.66),(-35.6,4.6,12.9),3.8)]:
+  a=(a[0],a[1]*sign,a[2]);b=(b[0],b[1]*sign,b[2]);stairs(name,a,b,.7);stair_landing(name,*b,inner*sign)
+ # The lower tower flight begins on a short aft landing tied into its wall.
+ box('Tower stair aft landing',(12.55,sign*3.1,17.58),(1.05,.9,.20),materials['roof'],supercol)
+ for yy in [2.8,3.4]:rod('Tower stair aft landing knee',(12.1,sign*yy,17.5),(13.1,sign*yy,16.8),.065,materials['naval'],supercol,vertices=6)
+ # Deck vents and tower conduits sit on the revised walls rather than old offsets.
+ for sid,z,xs in [('forward-battery-deck',9.35,[13,18,37,41]),('forward-shelter-deck',11.55,[19,27,34])]:
+  pts=[(-zz+2,-xx) for xx,zz in structures[sid]['footprint']]
+  for xx in xs:
+   yy,normal=house_side(pts,xx,sign)
+   if abs(normal.x)<.3:vent(sid+' intake',(xx,yy+sign*.06,z),(1.2,.20,1.0),sign)
+ aft_pts=[(-zz+2,-xx) for xx,zz in structures['aft-battery-deck']['footprint']]
+ for xx in [-41,-37,-33]:
+  yy,normal=house_side(aft_pts,xx,sign)
+  vent('Aft intake',(xx,yy+sign*.06,9.3),(1.15,.25,1.0),sign)
+ # Aft-facing service ladders follow the two actual tower walls.
+ ladder('Lower tower service ladder',(12.65,sign*2.0,13.12),(12.65,sign*2.0,17.60),.45)
+ for zz in [13.4,15.2,17.3]:
+  rod('Lower ladder wall foot',(12.65,sign*2.0,zz),(12.94,sign*2.0,zz),.035,materials['edge'],detailcol,vertices=6)
+ ladder('Upper tower service ladder',(14.3,sign*2.14,18.0),(14.3,sign*2.14,27.2),.45)
+ for zz in [18.2,20.0,22.0,24.0,26.4]:
+  rod('Upper ladder wall foot',(14.3,sign*2.14,zz),(14.3,sign*1.83,zz),.035,materials['edge'],detailcol,vertices=6)
+ box('Tower service cabinet',(16.4,sign*4.14,16.5),(1.05,.3,.75),materials['edge'],detailcol)
+ polyline('Tower cable conduit',[(18.3,sign*4.11,13.2),(18.3,sign*4.11,17.5)],.042,materials['edge'],vertices=8)
+ # Low after signal-gallery walls leave the slender central shaft exposed above them.
+ aft=[(11.0,0),(11.15,2.8),(11.55,3.75),(15.7,3.75),(16.45,3.3)]
+ for a,b in zip(aft,aft[1:]):
+  a=(a[0],sign*a[1]);b=(b[0],sign*b[1]);mesh('Open signal gallery bulwark',[(x,y,z) for z in [20.65,21.9] for x,y in [a,b]],[(0,1,3,2)],materials['naval'],supercol)
+  rod('Signal gallery rim',(*a,21.9),(*b,21.9),.035,materials['edge'],supercol,vertices=6)
+# Broad windshield follows the after edge of the sloping hood.
+hood=[(37.2,7.6),(37.75,5.0),(38.05,3.05),(38.2,0),(38.05,-3.05),(37.75,-5.0),(37.2,-7.6)]
+for a,b in zip(hood,hood[1:]):
+ mesh('Forward hood windshield',[(x,y,z) for z in [14.42,14.98] for x,y in [a,b]],[(0,1,3,2)],materials['naval'],supercol)
+ rod('Forward hood deflector',(*a,14.98),(*b,14.98),.045,materials['edge'],supercol,vertices=6)
+# Funnel: a flared uptake foot, nearly straight-sided oblong jacket, projecting
+# collar and smaller raked cap. Profiles come from the authored blueprint rings.
+fx=-.6;N=64
+verts=[(-z+2,-x,y) for x,y,z in structures['funnel-jacket']['surface']['vertices']]
 jacket_rings=[verts[i:i+N] for i in range(0,len(verts),N)]
-for zz in [12.25,16.5,19.1,22.8]:
+outer=jacket_rings[-1];inner=[(fx+(x-fx)*.945,y*.9,z-.05) for x,y,z in outer]
+mesh('Funnel cap thickness',outer+inner,[(i,(i+1)%N,(i+1)%N+N,i+N) for i in range(N)],materials['edge'],supercol)
+mesh('Funnel cap inner wall',inner+[(x,y,z-1.3) for x,y,z in inner],[(i,(i+1)%N,(i+1)%N+N,i+N) for i in range(N)],materials['dark'],supercol)
+mesh('Recessed uptake darkness',[(x,y,z-1.27) for x,y,z in inner],[tuple(reversed(range(N)))],materials['dark'],supercol)
+polyline('Funnel cap rolled lip',outer,.045,materials['light'],supercol,True,8)
+for xx in [-4.8,-3.3,-1.8,-.3,1.2,2.7,4.1]:
+ hits=[]
+ for a,b in zip(outer,outer[1:]+outer[:1]):
+  if min(a[0],b[0])<=xx<=max(a[0],b[0]) and abs(a[0]-b[0])>.0001:hits.append(a[1]+(b[1]-a[1])*(xx-a[0])/(b[0]-a[0]))
+ if len(hits)>=2:rod('Funnel transverse cap grating',(xx,min(hits),24.3+.16*(xx-fx)),(xx,max(hits),24.3+.16*(xx-fx)),.035,materials['edge'],supercol,vertices=6)
+for yy in [-1.25,0,1.25]:
+ hits=[]
+ for a,b in zip(outer,outer[1:]+outer[:1]):
+  if min(a[1],b[1])<=yy<=max(a[1],b[1]) and abs(a[1]-b[1])>.0001:hits.append(a[0]+(b[0]-a[0])*(yy-a[1])/(b[1]-a[1]))
+ if len(hits)>=2:
+  a,b=min(hits),max(hits);rod('Funnel longitudinal cap grating',(a,yy,24.3+.16*(a-fx)),(b,yy,24.3+.16*(b-fx)),.038,materials['edge'],supercol,vertices=6)
+for zz in [13.7,16.2,19.1,21.3,22.65]:
  pts=[]
  for i in range(N):
   a,b=next((a[i],b[i]) for a,b in zip(jacket_rings,jacket_rings[1:]) if a[i][2]<=zz<=b[i][2])
   t=(zz-a[2])/(b[2]-a[2]);pts.append(tuple(a[k]+(b[k]-a[k])*t for k in range(3)))
- polyline('Funnel plating collar',pts,.045,materials['edge'],supercol,True)
-for i in range(20):
- a=math.tau*i/20;x=fx+5.93*math.cos(a);y=3.72*math.sin(a);z=23.63+.2*math.cos(a)
- box('Cap ventilation slit',(x,y,z),(.21,.19,.48),materials['dark'],supercol)
- box('Cap ventilation cowl',(x,y,z+.30),(.32,.27,.14),materials['naval'],supercol)
+ polyline('Funnel plating collar',pts,.032,materials['edge'],supercol,True)
+# Standing cowl ventilators follow the horizontal collar, outside the smaller cap.
+for i in range(0,N,2):
+ x,y,z=jacket_rings[-3][i]
+ cyl('Funnel collar ventilator',(x,y,23.51),.105,.62,materials['naval'],supercol,10)
+ cyl('Funnel ventilator crown',(x,y,23.83),.12,.035,materials['edge'],supercol,10)
 for sign in [-1,1]:
- for zz,length,w in [(14.1,12.5,1.05),(17.65,13.2,1.6),(20.1,12.0,1.3)]:
-  yy=sign*(3.65+w/2);pts=rounded_rect(fx-.2,yy,length,w,.45,3);extrude('Funnel gallery',pts,zz,.18,materials['roof'],supercol)
-  rail('Funnel gallery',[(x,y,zz+.18) for x,y in pts],.88,1.5,col=supercol)
-  for xx in [-6,-3,0,2]:rod('Funnel gallery knee',(xx,yy+sign*w*.45,zz),(xx,sign*3.0,zz-1.05),.065,materials['naval'],supercol,vertices=6)
- for xx in [-6.4,-5.9,-5.4]:
-  polyline('Funnel steam pipe',[(xx,sign*3.2,9.3),(xx,sign*3.2,20.4),(xx+.3,sign*3.45,22.5),(xx+.5,sign*3.45,23.4)],.065,materials['light'],supercol,vertices=8)
- stairs('Funnel gallery access',(fx-4,sign*4.45,14.3),(fx-.3,sign*4.45,17.83),.7)
- ladder('Funnel upper ladder',(fx-5.8,sign*3.9,17.9),(fx-5.8,sign*3.9,23.4),.46)
- for xx in [-5.7,0.5]:vent('Funnel lower uptake grille',(xx,sign*5.04,9.6),(1.75,.12,1.5),sign)
+ for zz,length,w,yy in [(14.55,11.6,1.0,3.6),(17.45,12.2,2.6,4.4)]:
+  pts=rounded_rect(fx-.6,sign*yy,length,w,.45,5);extrude('Funnel gallery',pts,zz,.2,materials['roof'],supercol)
+  rail('Funnel gallery',[(x,y,zz+.2) for x,y in pts],.87,1.35,col=supercol)
+  for xx in [-5.2,-2.8,-.3,2.2]:rod('Funnel gallery knee',(xx,sign*(yy+w*.44),zz),(xx,sign*2.65,zz-1.15),.065,materials['naval'],supercol,vertices=6)
+ for xx in [-5.7,-5.25]:
+  polyline('Funnel steam pipe',[(xx,sign*2.55,12),(xx,sign*2.55,20.1),(xx+.18,sign*2.7,22.5)],.065,materials['light'],supercol,vertices=8)
+ stairs('Funnel gallery access',(-5.5,sign*4.0,14.75),(-2.4,sign*4.0,17.65),.6)
+ ladder('Funnel upper ladder',(-3.8,sign*3.02,17.7),(-3.8,sign*3.02,22.95),.45)
+ for xx in [-4.5,.7]:vent('Funnel lower uptake grille',(xx,sign*3.77,10.3),(1.5,.15,1.3),sign)
+
+for ob in set(bpy.data.objects)-bridge_detail_before:
+ ob.location.x-=2.0
 # The conning enclosure and crown now come from the blueprint, with the same
 # structural surfaces used for CPU hits. Its director remains on the original axis.
 def director(name,x,z,span,base):
- # Center of optical axis is z; each pedestal physically spans the supporting roof.
- cyl(name+' support column',(x,0,(base+z-.75)/2),1.55,max(.12,z-.75-base),materials['naval'],detailcol,32)
- cyl(name+' mounting ring',(x,0,z-.67),2.0,.20,materials['edge'],detailcol,40)
+ # Original interpretation of pgsb708 A_Finders: a tall rounded rectangular
+ # housing, tapered optical arms and external service platforms. The A fit
+ # has no mattress aerial; retain the existing articulated sensor IDs.
+ cyl(name+' foundation',(x,0,base+.10),1.60,.20,materials['edge'],detailcol,40)
  before=set(bpy.context.scene.objects)
- pts=rounded_rect(x,0,3.3,3.7,1.2,5);extrude(name+' armored hood',pts,z-.56,1.28,materials['naval'],detailcol)
- extrude(name+' sloped crown',rounded_rect(x,0,3.1,3.5,1.15,5),z+.72,.2,materials['roof'],detailcol)
- rod(name+' optical tube',(x,-span/2,z),(x,span/2,z),.29,materials['naval'],detailcol,vertices=24)
+ bottom=base+.16;top=z+1.13
+ pts=rounded_rect(x,0,3.25,3.5,.70,5)
+ extrude(name+' armored hood',pts,bottom,top-bottom,materials['naval'],detailcol,.035)
+ extrude(name+' crown edge',rounded_rect(x,0,3.38,3.62,.73,5),top,.12,materials['edge'],detailcol)
+ # Very shallow hipped crown instead of a thick floating lid.
+ crown=rounded_rect(x,0,3.30,3.54,.71,5);n=len(crown)
+ mesh(name+' hipped crown',[(a,b,top+.12) for a,b in crown]+[(x,0,top+.27)],[(i,(i+1)%n,n) for i in range(n)],materials['naval'],detailcol)
+ polyline(name+' horizontal plating joint',[(a,b,bottom+.62) for a,b in pts],.016,materials['edge'],closed=True)
  for sign in [-1,1]:
-  extrude(name+' optical end hood',rounded_rect(x,sign*(span/2-.32),1.1,.85,.22,3),z-.45,.95,materials['naval'],detailcol)
-  rod(name+' optic',(x+.55,sign*(span/2-.32),z),(x+.59,sign*(span/2-.32),z),.17,materials['dark'],detailcol,vertices=16)
- # FuMO mattress aerial on a real elevation frame, not disconnected wires.
- radarx=x+.65;radarz=z+1.9
- box(name+' radar back frame',(radarx,0,radarz),(.15,4.2,1.7),materials['edge'],detailcol)
- box(name+' radar recessed face',(radarx+.082,0,radarz),(.026,3.98,1.52),materials['dark'],detailcol)
- for yy in [-2.05+i*.41 for i in range(11)]:rod(name+' radar vertical',(radarx+.105,yy,radarz-.8),(radarx+.105,yy,radarz+.8),.017,materials['light'],detailcol,vertices=5)
- for dz in [-.78,-.39,0,.39,.78]:rod(name+' radar horizontal',(radarx+.12,-2.1,radarz+dz),(radarx+.12,2.1,radarz+dz),.02,materials['light'],detailcol,vertices=5)
- for yy in [-1.2,1.2]:rod(name+' radar support',(x,yy,z+.65),(radarx,yy,radarz-.5),.055,materials['edge'],detailcol,vertices=6)
- rod(name+' aerial',(x-.5,0,z+.9),(x-.5,0,z+3.25),.024,materials['edge'],detailcol,vertices=6)
- radar_pivot({'Fore main director':'fumo-fore.yaw','Conning director':'fumo-conning.yaw','Aft main director':'fumo-aft.yaw'}[name],(x,0,z-.67),set(bpy.context.scene.objects)-before)
-director('Fore main director',13.4,32.0,10.5,structures['foretop-roof']['baseY']+structures['foretop-roof']['height'])
-director('Conning director',27.6,20.6,7.0,18.63)
+  # Cast arm transition, taper, optic casing and bolted sleeves are distinct.
+  extrude(name+' tube junction',[(x-.59,sign*1.34),(x+.60,sign*1.34),(x+.43,sign*2.12),(x-.41,sign*2.12)],z-.38,.78,materials['naval'],detailcol)
+  rod(name+' tapered optical tube',(x,sign*1.72,z),(x,sign*(span/2-.33),z),.245,materials['naval'],detailcol,.18,24)
+  for yy in [2.05,span/2-.70]:
+   rod(name+' optical tube collar',(x,sign*(yy-.08),z),(x,sign*(yy+.08),z),.27,materials['edge'],detailcol,vertices=24)
+  yy=sign*(span/2-.25)
+  extrude(name+' optical end housing',rounded_rect(x,yy,.74,.69,.16,3),z-.29,.58,materials['naval'],detailcol,.025)
+  rod(name+' forward lens sleeve',(x+.28,yy,z),(x+.45,yy,z),.145,materials['edge'],detailcol,vertices=20)
+  rod(name+' forward optic',(x+.449,yy,z),(x+.46,yy,z),.111,materials['glass'],detailcol,vertices=20)
+  # Narrow maintenance step, triangulated arms and a rail behind each optic.
+  a,b=sign*1.65,sign*(span/2+.06)
+  box(name+' optical service step',(x-.38,(a+b)/2,z-.57),(.62,abs(b-a),.08),materials['edge'],detailcol)
+  for yy in [sign*2.0,sign*(span/2-.32)]:
+   rod(name+' service step brace',(x-.45,sign*1.42,z-.97),(x-.45,yy,z-.58),.033,materials['edge'],detailcol,vertices=6)
+   rod(name+' optical service stanchion',(x-.70,yy,z-.55),(x-.70,yy,z+.40),.021,materials['edge'],detailcol,vertices=5)
+  rod(name+' optical service handrail',(x-.70,a,z+.4),(x-.70,b,z+.4),.021,materials['edge'],detailcol,vertices=5)
+  # Handholds physically terminate on the hood's after corner.
+  for dz in [bottom+.30+i*.27 for i in range(max(1,int((top-bottom-.3)/.27)))]:
+   polyline(name+' casing ladder rung',[(x-1.48,sign*1.42,dz),(x-1.63,sign*1.52,dz),(x-1.63,sign*1.17,dz),(x-1.48,sign*1.13,dz)],.020,materials['light'])
+ if name=='Aft main director':
+  rod(name+' after director mast',(x,0,top+.17),(x,0,top+4.8),.11,materials['edge'],detailcol,.045,16)
+  rod(name+' after director yard',(x,-1.9,top+3.75),(x,1.9,top+3.75),.040,materials['edge'],detailcol,vertices=8)
+  for yy in [-1.9,1.9]:rod(name+' after director yard stay',(x,yy,top+3.75),(x,0,top+4.55),.012,materials['edge'],detailcol,vertices=5)
+ elif name!='Conning director':
+  rod(name+' roof aerial',(x,0,top+.18),(x,0,top+1.35),.022,materials['edge'],detailcol,vertices=6)
+  for yy in [-.6,.6]:rod(name+' aerial stay',(x,yy,top+.15),(x,0,top+.83),.012,materials['edge'],detailcol,vertices=5)
+ else:cyl(name+' roof vent',(x,0,top+.26),.12,.30,materials['naval'],detailcol,12)
+ radar_pivot({'Fore main director':'fumo-fore.yaw','Conning director':'fumo-conning.yaw','Aft main director':'fumo-aft.yaw'}[name],(x,0,base+.16),set(bpy.context.scene.objects)-before)
+director('Fore main director',13.32,31.1,10.5,29.8)
+director('Conning director',25.0,19.55,7.0,18.3)
 director('Aft main director',-37.8,17.5,10.5,16.2)
+# Compact open 3 m night rangefinders, independently modeled from the
+# approved pgsb708 gf004 fitting; these are distinct from enclosed SL-8 domes.
+def night_rangefinder(name,x,y,base,axisz):
+ cyl(name+' deck sole',(x,y,base+.035),.79,.07,materials['edge'],detailcol,24)
+ rod(name+' tapered pedestal',(x,y,base+.07),(x,y,base+.65),.25,materials['naval'],detailcol,.19,16)
+ cyl(name+' pedestal shoulder',(x,y,base+.65),.34,.13,materials['edge'],detailcol,20)
+ box(name+' saddle',(x,y,axisz-.29),(.53,1.02,.17),materials['naval'],detailcol)
+ rod(name+' optical baseline',(x,y-1.47,axisz),(x,y+1.47,axisz),.165,materials['naval'],detailcol,vertices=20)
+ rod(name+' central instrument',(x,y-.43,axisz),(x,y+.43,axisz),.295,materials['naval'],detailcol,vertices=16)
+ for sign in [-1,1]:
+  for yy,r in [(.45,.32),(.93,.225)]:
+   rod(name+' instrument collar',(x,y+sign*(yy-.055),axisz),(x,y+sign*(yy+.055),axisz),r,materials['edge'],detailcol,vertices=12)
+  yy=y+sign*1.38
+  extrude(name+' prismatic end casing',rounded_rect(x,yy,.47,.37,.075,2),axisz-.23,.46,materials['naval'],detailcol)
+  rod(name+' end cover',(x,y+sign*1.52,axisz),(x,y+sign*1.57,axisz),.195,materials['edge'],detailcol,vertices=12)
+  rod(name+' forward objective sleeve',(x+.19,yy,axisz-.04),(x+.58,yy,axisz-.04),.063,materials['naval'],detailcol,.049,12)
+  rod(name+' objective glazing',(x+.579,yy,axisz-.04),(x+.59,yy,axisz-.04),.042,materials['glass'],detailcol,vertices=12)
+  # Forks meet the bearing collars and the pedestal's crosshead continuously.
+  polyline(name+' bearing fork',[(x-.22,y+sign*.44,axisz-.28),(x-.28,y+sign*.45,axisz-.09),(x,y+sign*.45,axisz)],.060,materials['naval'],vertices=6)
+  rod(name+' yoke brace',(x,y,base+.48),(x+.22,y+sign*.44,axisz-.30),.046,materials['naval'],detailcol,vertices=6)
+  box(name+' lower instrument box',(x-.37,y+sign*.34,base+.35),(.26,.30,.40),materials['naval'],detailcol)
+  rod(name+' instrument box bracket',(x,y+sign*.23,base+.39),(x-.30,y+sign*.34,base+.39),.038,materials['edge'],detailcol,vertices=6)
+  rod(name+' eyepiece',(x-.27,y+sign*.105,axisz+.12),(x-.48,y+sign*.105,axisz+.19),.052,materials['dark'],detailcol,vertices=10)
+  hub=Vector((x-.31,y+sign*.60,axisz-.27))
+  rod(name+' control shaft',(x-.12,y+sign*.42,axisz-.27),hub,.033,materials['edge'],detailcol,vertices=8)
+  ring(name+' adjusting wheel',hub,(0,1,0),.14,.019,materials['edge'],12)
+  for a in range(3):rod(name+' wheel spoke',hub,hub+Vector((math.cos(a*math.tau/3)*.14,0,math.sin(a*math.tau/3)*.14)),.014,materials['edge'],detailcol,vertices=5)
+  polyline(name+' instrument cable',[(x-.43,y+sign*.30,axisz-.2),(x-.55,y+sign*.34,base+.12),(x-.18,y+sign*.25,base+.10)],.014,materials['dark'],vertices=5)
+  ring(name+' lifting eye',(x,y+sign*.98,axisz+.255),(1,0,0),.038,.011,materials['edge'],8)
+ box(name+' rear readout housing',(x-.37,y,axisz-.12),(.18,.55,.28),materials['naval'],detailcol)
+ box(name+' upper adjustment block',(x,y,axisz+.31),(.24,.33,.10),materials['naval'],detailcol)
+for sign in [-1,1]:night_rangefinder('Signal gallery night rangefinder',15.1,sign*5.5,20.65,21.65)
 # Enclosed AA directors with the characteristic rounded weather covers.
 def aa_director(name,x,y,z,base):
  cyl(name+' column',(x,y,(base+z-1.08)/2),1.0,max(.2,z-1.08-base),materials['naval'],detailcol,24)
@@ -387,23 +499,64 @@ def aa_director(name,x,y,z,base):
   rr=next(ra+(rb-ra)*(zz-za)/(zb-za) for (za,ra),(zb,rb) in zip(latitudes,latitudes[1:]) if za<=zz<=zb)
   polyline(name+' cover seam',[(x+1.25*rr*math.cos(math.tau*i/28),y+rr*math.sin(math.tau*i/28),z+zz) for i in range(28)],.02,materials['edge'],closed=True)
 for sign in [-1,1]:
- aa_director('Forward AA director',15.8,sign*6.5,17.6,12.7)
- aa_director('Funnel AA director',.2,sign*5.35,21.1,17.83)
-# Searchlights with glazed recessed faces, yokes and pedestals.
-def searchlight(name,x,y,z,bearing):
- axis=Vector((math.cos(bearing),math.sin(bearing),.12)).normalized();c=Vector((x,y,z+1.05))
- cyl(name+' pedestal',(x,y,z+.32),.28,.64,materials['naval'],detailcol,16)
- side=Vector((-axis.y,axis.x,0))*.7
- for sign in [-1,1]:rod(name+' yoke',Vector((x,y,z+.5))+sign*side,c+sign*side,.09,materials['edge'],detailcol,vertices=8)
- rod(name+' drum',c-axis*.45,c+axis*.38,.66,materials['naval'],detailcol,vertices=28)
- rod(name+' lens',c+axis*.39,c+axis*.405,.57,materials['glass'],detailcol,vertices=24)
- ring(name+' lens rim',c+axis*.42,axis,.66,.055,materials['light'],24)
- rod(name+' shutter brace',c+axis*.44+side*.6,c+axis*.44-side*.6,.025,materials['edge'],detailcol,vertices=6)
+ aa_director('Forward AA director',15.0,sign*6.8,17.8,12.95)
+# Searchlights are open mechanical drums, not the forward AA weather domes.
+def searchlight(name,x,y,z,bearing,radius=.75):
+ axis=Vector((math.cos(bearing),math.sin(bearing),.08)).normalized()
+ side=Vector((-math.sin(bearing),math.cos(bearing),0));up=axis.cross(side)
+ def p(a,b,h):return Vector((x,y,z))+axis*a+side*b+up*h
+ cyl(name+' deck sole',(x,y,z+.03),.55,.26,materials['edge'],detailcol,28)
+ cyl(name+' swivel pedestal',(x,y,z+.29),.32,.40,materials['naval'],detailcol,24)
+ cyl(name+' training ring',(x,y,z+.50),.53,.13,materials['edge'],detailcol,28)
+ center=Vector((x,y,z+1.45));width=radius+.13
+ # Flat fork cheeks and a continuous crosshead, seated on the training ring.
+ rod(name+' yoke crosshead',(x-side.x*width,y-side.y*width,z+.58),(x+side.x*width,y+side.y*width,z+.58),.12,materials['naval'],detailcol,vertices=12)
+ for sign in [-1,1]:
+  coords=[(-.22,.57),(.25,.57),(.36,1.36),(.18,1.62),(-.18,1.62),(-.32,1.28)]
+  vs=[tuple(Vector((x,y,z))+axis*a+side*(sign*width+t)+Vector((0,0,h))) for t in [-.055,.055] for a,h in coords];n=len(coords)
+  mesh(name+' cast yoke cheek',vs,[tuple(reversed(range(n))),tuple(range(n,n*2))]+[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)],materials['naval'],detailcol)
+  rod(name+' trunnion',center+side*sign*(radius-.1),center+side*sign*(radius+.23),.15,materials['edge'],detailcol,vertices=20)
+  ring(name+' elevating handwheel',center+side*sign*(radius+.25)-axis*.07,(side*sign),.22,.025,materials['edge'],18)
+  for a in range(3):
+   hub=center+side*sign*(radius+.25)-axis*.07
+   rod(name+' handwheel spoke',hub,hub+(axis*math.cos(a*math.tau/3)+up*math.sin(a*math.tau/3))*.22,.016,materials['edge'],detailcol,vertices=5)
+ # Stepped rear cover, circumferential bands and a recessed shuttered face.
+ rod(name+' drum body',center-axis*.48,center+axis*.43,radius,materials['naval'],detailcol,vertices=40)
+ rod(name+' rear cap',center-axis*.57,center-axis*.47,radius*.84,materials['naval'],detailcol,radius,40)
+ rod(name+' rear access cover',center-axis*.61,center-axis*.565,radius*.44,materials['edge'],detailcol,vertices=28)
+ for a in [-.35,.30]:ring(name+' drum reinforcing band',center+axis*a,axis,radius+.028,.042,materials['edge'],36)
+ rod(name+' recessed lens',center+axis*.437,center+axis*.445,radius*.91,materials['glass'],detailcol,vertices=40)
+ ring(name+' lens flange',center+axis*.46,axis,radius,.057,materials['light'],36)
+ for h in [-.48,0,.48]:
+  half=math.sqrt(radius**2-h**2)*.91
+  rod(name+' shutter rail',center+axis*.485+up*h-side*half,center+axis*.485+up*h+side*half,.024,materials['naval'],detailcol,vertices=6)
+ for i in range(8):
+  d=side*math.cos(i*math.tau/8)+up*math.sin(i*math.tau/8)
+  rod(name+' rim clamp',center+d*(radius+.035)+axis*.35,center+d*(radius+.035)+axis*.49,.045,materials['edge'],detailcol,vertices=8)
+ rod(name+' top ventilation neck',center+up*radius*.9,center+up*(radius+.10),.15,materials['naval'],detailcol,vertices=16)
+ rod(name+' top ventilation cap',center+up*(radius+.10),center+up*(radius+.14),.21,materials['edge'],detailcol,vertices=20)
+ box(name+' power housing',(x,y,z+.61),(.44,.48,.27),materials['naval'],detailcol)
+
+def searchlight_cup(name,x,y,z,deep=True):
+ # Open shell with a tapered underside rooted into the gallery, not a sphere.
+ count=40
+ rings=([(z-1.14,.56),(z-.86,1.10),(z-.37,1.43),(z+.68,1.60),(z+.68,1.51),(z+.05,1.46)] if deep else [(z-.12,1.48),(z+.04,1.48)])
+ vs=[(x+r*math.cos(i*math.tau/count),y+r*math.sin(i*math.tau/count),zz) for zz,r in rings for i in range(count)]
+ fs=[(j*count+i,j*count+(i+1)%count,(j+1)*count+(i+1)%count,(j+1)*count+i) for j in range(len(rings)-1) for i in range(count)]
+ fs+=[tuple(reversed(range(count)))];mesh(name+' open cup shield',vs,fs,materials['naval'],detailcol,True)
+ cyl(name+' cup floor',(x,y,z),1.48,.14,materials['roof'],detailcol,40)
+ if deep:ring(name+' cup rolled edge',(x,y,z+.68),(0,0,1),1.555,.035,materials['edge'],40)
+ else:rail(name+' platform rail',[(x+1.48*math.cos(a),y+1.48*math.sin(a),z+.04) for a in [i*math.tau/32 for i in range(32)]],.82,1.25)
+ # Inboard passage and attachment saddle reach the gallery's flat deck.
+ sign=1 if y>0 else -1
+ box(name+' gallery saddle',(x,y-sign*.98,z-.09),(1.65,1.2,.18),materials['roof'],detailcol)
+searchlight_support=SupportSurface([*hullcol.objects,*supercol.objects])
 for sign in [-1,1]:
- searchlight('Foretop 1.5 m searchlight',18.5,sign*5.1,23.46,sign*.75)
- searchlight('Funnel searchlight',-7.7,sign*4.65,17.86,sign*2.15)
- searchlight('Aft searchlight',-34.8,sign*4.8,12.52,sign*2.5)
-searchlight('Funnel aft searchlight',-8.4,0,17.9,math.pi)
+ for xx,yy,zz,bearing in [(1.45,4.3,18.7,sign*1.25),(-7.7,3.8,17.7,sign*2.15)]:
+  searchlight_cup('Funnel searchlight',xx,sign*yy,zz,deep=xx>0)
+  searchlight('Funnel 1.5 m searchlight',xx,sign*yy,zz+.08,bearing)
+ searchlight('Aft searchlight',-34.8,sign*4.8,searchlight_support.below(-34.8,sign*4.8,20)+.02,sign*2.5)
+searchlight('Foretop 1.5 m searchlight',20.2,0,24.71,0)
 # Fore pole mast and aft mainmast, with yards, ladders, navigation platforms,
 # signal halyards and properly grounded stays. All lines are original geometry.
 for name,x,base,top in [('foremast',6.4,5.73,40.3),('mainmast',-22.0,10.96,48.5)]:
@@ -435,67 +588,123 @@ for x,top in [(-123,15.5),(124,11.5)]:rod('Ensign or jack staff',(x,0,deckz(x)),
 rod('After derrick post',(-43,0,12.3),(-43,0,26.8),.13,materials['edge'],detailcol,.05,12)
 rod('After derrick boom',(-43,0,16.0),(-48,0,21.5),.09,materials['edge'],detailcol,vertices=10)
 rod('After derrick cable',(-43,0,26.5),(-48,0,21.5),.018,materials['dark'],detailcol,vertices=5)
-# Aircraft hangars: the roof curvature and folding door leaves are visible in
-# the retained May plan. Dimensions below are independent raster estimates.
-for name,x,y,length,breadth,base in [('Port single hangar',8.8,6.7,11.8,5.5,10.39),('Starboard single hangar',8.8,-6.7,11.8,5.5,10.39),('Double hangar',-24.6,0,12.8,14.2,10.85)]:
- rise=.85 if breadth<7 else 1.12
+# Aircraft hangar roof camber and folding leaves follow the approved model.
+# The eaves and door sills follow the raised blueprint decks.
+for name,x,y,length,breadth,base in [('Port single hangar',6.0,5.55,11.8,4.6,12.1),('Starboard single hangar',6.0,-5.55,11.8,4.6,12.1),('Double hangar',-20.9,0,9.82,11.4,13.15)]:
+ rise=.15 if breadth<7 else .12
  arc=[(y+breadth*(i/16-.5),base+rise*math.sin(math.pi*i/16)) for i in range(17)]
  roofvs=[(xx,yy,zz) for xx in [x-length/2,x+length/2] for yy,zz in arc]
- mesh(name+' curved roof',roofvs,[(i,i+1,i+18,i+17) for i in range(16)]+[tuple(reversed(range(17))),tuple(range(17,34))],materials['roof'],supercol,True)
- for xx in [x-length/2+.15,x,x+length/2-.15]:polyline(name+' roof seam',[(xx,yy,zz+.025) for yy,zz in arc],.028,materials['edge'])
+ if breadth<7:mesh(name+' curved roof',roofvs,[(i,i+1,i+18,i+17) for i in range(16)]+[tuple(reversed(range(17))),tuple(range(17,34))],materials['roof'],supercol,True)
+ for xx in ([x-length/2+.15,x,x+length/2-.15] if breadth<7 else []):polyline(name+' roof seam',[(xx,yy,zz+.025) for yy,zz in arc],.028,materials['edge'])
  # The double hangar opens forward; the side hangars open aft onto handling deck.
- xx=x+(length/2+.035)*(1 if breadth>7 else -1);floor=5.84;doorheight=4.4
+ xx=x+(length/2+.035)*(1 if breadth>7 else -1);floor=8.4;doorheight=base-floor-.12
  leaves=12 if breadth>7 else 6;opening=breadth-.65
  for i in range(leaves):
   yy=y-opening/2+opening*(i+.5)/leaves
   box(name+' folding door',(xx,yy,floor+doorheight/2),(.10,opening/leaves-.035,doorheight),materials['naval'],detailcol)
   for dz in [.65,2.1,3.55]:box(name+' door stiffener',(xx+(.065 if breadth>7 else -.065),yy,floor+dz),(.07,opening/leaves-.13,.055),materials['edge'],detailcol)
  rod(name+' door track',(xx,y-opening/2-.1,floor+doorheight+.1),(xx,y+opening/2+.1,floor+doorheight+.1),.075,materials['edge'],detailcol,vertices=8)
- for sign in [-1,1]:vent(name+' ventilation',(x, y+sign*(breadth/2+.035),8.35),(1.8,.12,1.1),sign)
+ for sign in [-1,1]:vent(name+' ventilation',(x, y+sign*(breadth/2+.035),base-1.15),(1.8,.12,1.1),sign)
 # An aft cross-gallery carries the center searchlight and joins the side galleries.
 extrude('Funnel aft cross gallery',rounded_rect(-8.15,0,2.3,9.7,.4,3),17.65,.18,materials['roof'],supercol)
 rail('Funnel aft cross gallery',[(-9.28,-4.4,17.83),(-9.28,4.4,17.83)],.88,1.6,False)
 for sign in [-1,1]:rod('Cross gallery bracket',(-9.1,sign*3,17.63),(-7.4,sign*3,16.1),.075,materials['naval'],supercol,vertices=6)
 
 boat_support=SupportSurface([*hullcol.objects,*supercol.objects])
-def boat(name,x,y,z,length,breadth,cabin=False):
- # A closed shell, recessed cockpit and separately modeled gunwale. The boats
- # are cradled above their supporting roofs rather than flat floating polygons.
- stations=[(-.5,.10,.34),(-.42,.74,.08),(-.24,.98,0),(.08,1.0,0),(.30,.83,.08),(.43,.46,.28),(.50,0,.52)]
- vs=[];ringcount=8;depth=breadth*.43
+def boat(name,x,y,z,length,breadth,cabin=False,yaw=0,keel=None,support_surface=None):
+ before=set(bpy.data.objects)
+ # Seat the keel consistently above the actual roof, including raised platforms.
+ z=boat_support.below(x,y,z+5)+.40 if keel is None else keel
+ # Original pgsb708 visual interpretation: fine raked stem, flared topsides,
+ # narrower rounded transom and visibly hollow timber interior. The closed
+ # double skin gives an actual gunwale thickness rather than an open mesh rim.
+ stations=[(-.50,.33,.24),(-.46,.63,.13),(-.36,.86,.04),(-.20,.97,0),(0,1,0),(.18,.94,.035),(.32,.74,.10),(.42,.44,.21),(.48,.15,.34),(.50,0,.40)]
+ depth=breadth*.38
+ def shape(t):
+  for (a,wa,sa),(b,wb,sb) in zip(stations,stations[1:]):
+   if a<=t<=b:
+    f=(t-a)/(b-a);return (wa+(wb-wa)*f)*breadth/2,sa+(sb-sa)*f
+  return 0,.4
+ vs=[]
  for t,w,sheer in stations:
   xx=x+t*length;half=w*breadth/2
-  vs.extend([(xx,y,z+sheer),(xx,y+half*.58,z+.14+sheer),(xx,y+half*.90,z+depth*.57+sheer),(xx,y+half,z+depth+sheer),(xx,y-half,z+depth+sheer),(xx,y-half*.90,z+depth*.57+sheer),(xx,y-half*.58,z+.14+sheer),(xx,y,z+sheer)])
- fs=[(j*8+i,j*8+(i+1)%8,(j+1)*8+(i+1)%8,(j+1)*8+i) for j in range(len(stations)-1) for i in [0,1,2,4,5,6]]
- fs.extend([tuple(reversed(range(8))),tuple(range((len(stations)-1)*8,len(stations)*8))])
- mesh(name+' hull shell',vs,fs,materials['naval'] if cabin else materials['wood'],detailcol,True)
+  # Continuous outer-to-inner section across both gunwales and bottom.
+  vs.extend([(xx,y,z+sheer),(xx,y+half*.55,z+depth*.17+sheer),(xx,y+half*.84,z+depth*.55+sheer),(xx,y+half,z+depth+sheer),(xx,y+max(0,half-.065),z+depth+sheer-.035),(xx,y+max(0,half*.79-.045),z+depth*.55+sheer),(xx,y+max(0,half*.46-.035),z+depth*.26+sheer),(xx,y,z+depth*.20+sheer),(xx,y-max(0,half*.46-.035),z+depth*.26+sheer),(xx,y-max(0,half*.79-.045),z+depth*.55+sheer),(xx,y-max(0,half-.065),z+depth+sheer-.035),(xx,y-half,z+depth+sheer),(xx,y-half*.84,z+depth*.55+sheer),(xx,y-half*.55,z+depth*.17+sheer)])
+ n=14;fs=[(j*n+i,j*n+(i+1)%n,(j+1)*n+(i+1)%n,(j+1)*n+i) for j in range(len(stations)-1) for i in range(n)]
+ fs.extend([tuple(reversed(range(n))),tuple(range((len(stations)-1)*n,len(stations)*n))])
+ mesh(name+' closed clinker hull',vs,fs,materials['naval'] if cabin else materials['wood'],detailcol,True)
  gunwale=[(x+t*length,y+w*breadth/2,z+depth+sheer) for t,w,sheer in stations]+[(x+t*length,y-w*breadth/2,z+depth+sheer) for t,w,sheer in reversed(stations)]
- polyline(name+' gunwale',gunwale,.075,materials['light'],closed=True,vertices=8)
- floor=rounded_rect(x-length*.02,y,length*.68,breadth*.68,.35,4);extrude(name+' cockpit floor',floor,z+depth*.51,.07,materials['wood'],detailcol)
- for xx in [-.28,-.12,.08,.25]:box(name+' thwart',(x+length*xx,y,z+depth*.78),(.23,breadth*.95,.10),materials['deck'],detailcol)
- for xx in [-.27,.25]:
-  box(name+' cradle',(x+length*xx,y,z-.19),(.22,breadth*.78,.32),materials['edge'],detailcol)
+ polyline(name+' rolled gunwale',gunwale,.045,materials['light'],closed=True,vertices=8)
+ for sign in [-1,1]:
+  for frac,spread in [(.32,.67),(.58,.85),(.80,.94)]:
+   polyline(name+' plank lap',[(x+t*length,y+sign*w*breadth*.5*spread,z+depth*frac+sheer) for t,w,sheer in stations],.013,materials['edge'] if cabin else materials['wood'],vertices=5)
+ # Floorboards fit the taper, with ribs tying floor and gunwale into one shell.
+ for yy in [-.22,-.11,0,.11,.22]:
+  box(name+' floorboard',(x-length*.02,y+yy*breadth,z+depth*.38),(length*.68,breadth*.102,.045),materials['wood'],detailcol)
+ for t in [-.35,-.25,-.12,.02,.16,.29,.39]:
+  half,sheer=shape(t);xx=x+t*length
+  pts=[(xx,y-half+.055,z+depth+sheer-.04),(xx,y-half*.79,z+depth*.55+sheer),(xx,y-half*.46,z+depth*.26+sheer),(xx,y,z+depth*.21+sheer),(xx,y+half*.46,z+depth*.26+sheer),(xx,y+half*.79,z+depth*.55+sheer),(xx,y+half-.055,z+depth+sheer-.04)]
+  polyline(name+' internal rib',pts,.027,materials['wood'],vertices=6)
+ # Fine foredeck and transom capping boards close the extremities.
+ for ta,tb in [(-.50,-.38),(.37,.50)]:
+  cut=[(t,w,sh) for t,w,sh in stations if ta<=t<=tb]
+  outline=[(x+t*length,y+w*breadth/2,z+depth+sh-.035) for t,w,sh in cut]+[(x+t*length,y-w*breadth/2,z+depth+sh-.035) for t,w,sh in reversed(cut)]
+  mesh(name+' end deck',outline,[tuple(range(len(outline)))],materials['deck'],detailcol)
+ # All cradle feet raycast original support surfaces; their arms meet the hull.
+ for t in [-.27,.25]:
+  xx=x+length*t;half,sheer=shape(t)
+  box(name+' cradle crossbeam',(xx,y,z-.03),(.23,breadth*.83,.12),materials['edge'],detailcol)
   for sign in [-1,1]:
-   yy=y+sign*breadth*.28;floor=boat_support.below(x+length*xx,yy,z-.35)
-   box(name+' cradle leg',(x+length*xx,yy,(floor+z-.03)/2),(.20,.18,z-.03-floor+.02),materials['edge'],detailcol)
-  for sign in [-1,1]:rod(name+' cradle arm',(x+length*xx,y,z-.22),(x+length*xx,y+sign*breadth*.45,z+depth*.4),.065,materials['edge'],detailcol,vertices=6)
+   yy=y+sign*breadth*.28;foot=Vector((xx-x,yy-y,0));foot.rotate(Matrix.Rotation(yaw,3,'Z'));floor=(support_surface or boat_support).below(x+foot.x,y+foot.y,z+.025)
+   box(name+' cradle leg',(xx,yy,(floor+z+.02)/2),(.21,.20,max(.04,z+.04-floor)),materials['edge'],detailcol)
+   rod(name+' fitted cradle arm',(xx,y,z-.01),(xx,y+sign*half*.85,z+depth*.55+sheer),.057,materials['edge'],detailcol,vertices=8)
  if cabin:
-  extrude(name+' engine deck',rounded_rect(x-length*.17,y,length*.35,breadth*.81,.3,3),z+depth*.80,.21,materials['deck'],detailcol)
-  cabx=x+length*.08;cabz=z+depth+.50
-  box(name+' cabin',(cabx,y,cabz),(length*.32,breadth*.70,1.14),materials['naval'],detailcol)
-  box(name+' cabin roof',(cabx,y,cabz+.61),(length*.34,breadth*.76,.12),materials['canvas'],detailcol)
+  # Long low after cabin, shallow sloped wheelhouse and a flush forward deck.
+  outline=[(x+t*length,y+w*breadth*.49) for t,w,sh in stations]+[(x+t*length,y-w*breadth*.49) for t,w,sh in reversed(stations)]
+  extrude(name+' launch deck',outline,z+depth-.015,.06,materials['deck'],detailcol)
+  gig='gig' in name.lower();cabx=x-length*(.08 if gig else .13);cabbase=z+depth+.045;cabheight=.90 if gig else .95;cablength=length*(.32 if gig else .43)
+  pts=rounded_rect(cabx,y,cablength,breadth*.67,.20,3)
+  extrude(name+' cabin sides',pts,cabbase,cabheight,materials['naval'],detailcol,.025)
+  roof=rounded_rect(cabx,y,cablength+.20,breadth*.71,.22,3)
+  n=len(roof);ridge=[(a,b*.88+y*.12,cabbase+cabheight+.16) for a,b in roof]
+  mesh(name+' cambered cabin roof',[(a,b,cabbase+cabheight) for a,b in roof]+ridge,[tuple(range(n,2*n))]+[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)],materials['canvas'],detailcol)
   for sign in [-1,1]:
-   for xx in [-.095,.035,.14]:box(name+' cabin side light',(cabx+length*xx,y+sign*breadth*.354,cabz+.2),(length*.08,.035,.48),materials['glass'],detailcol)
-   box(name+' windscreen',(cabx+length*.162,y+sign*breadth*.18,cabz+.2),(.035,breadth*.24,.5),materials['glass'],detailcol)
-  rod(name+' short boat mast',(cabx,y,cabz+.67),(cabx,y,cabz+1.8),.032,materials['edge'],detailcol,vertices=6)
+   for t in [-.155,-.055,.065,.155]:
+    xx=cabx+cablength*t/.43;yy=y+sign*breadth*.339
+    box(name+' framed cabin port',(xx,yy,cabbase+.48),(length*.074,.045,.42),materials['edge'],detailcol)
+    box(name+' cabin glazing',(xx,yy+sign*.027,cabbase+.48),(length*.060,.025,.32),materials['glass'],detailcol)
+   box(name+' windscreen frame',(cabx+cablength*.505,y+sign*breadth*.16,cabbase+.49),(.045,breadth*.27,.45),materials['edge'],detailcol)
+   box(name+' windscreen',(cabx+cablength*.505+.027,y+sign*breadth*.16,cabbase+.49),(.020,breadth*.23,.35),materials['glass'],detailcol)
+  hatch(name+' cabin hatch',cabx-length*.10,y,cabbase+cabheight+.17,.78,.62)
+  for t in [-.43,.35]:
+   for sign in [-1,1]:rod(name+' cleat',(x+length*t-.14,y+sign*breadth*.21,z+depth+.20),(x+length*t+.14,y+sign*breadth*.21,z+depth+.20),.024,materials['edge'],detailcol,vertices=8)
  else:
-  for sign in [-1,1]:rod(name+' stored oar',(x-length*.31,y+sign*breadth*.21,z+depth*.78+.075),(x+length*.24,y+sign*breadth*.21,z+depth*.78+.075),.03,materials['wood'],detailcol,vertices=6)
+  for t in [-.29,-.12,.06,.23,.34]:
+   half,sheer=shape(t);xx=x+length*t;seat=z+depth*.82+sheer
+   box(name+' rowing thwart',(xx,y,seat),(.24,2*half*.91,.08),materials['deck'],detailcol)
+   for sign in [-1,1]:
+    rod(name+' seat knee',(xx,y+sign*half*.67,seat-.03),(xx,y+sign*half*.82,seat-.25),.035,materials['wood'],detailcol,vertices=6)
+    rod(name+' rowlock socket',(xx,y+sign*half,z+depth+sheer-.025),(xx,y+sign*half,z+depth+sheer+.095),.025,materials['edge'],detailcol,vertices=8)
+  for sign in [-1,1]:
+   yy=y+sign*breadth*.21;zz=z+depth*.87+.09
+   rod(name+' stowed oar shaft',(x-length*.33,yy,zz),(x+length*.23,yy,zz),.025,materials['wood'],detailcol,vertices=8)
+   extrude(name+' shaped oar blade',[(x-length*.43,yy-.075),(x-length*.43,yy+.075),(x-length*.35,yy+.095),(x-length*.30,yy+.025),(x-length*.30,yy-.025),(x-length*.35,yy-.095)],zz-.015,.030,materials['wood'],detailcol)
+ # Rotate the original boat and cradle together; all cradle feet use world support.
+ if yaw:
+  transform=Matrix.Translation((x,y,0))@Matrix.Rotation(yaw,4,'Z')@Matrix.Translation((-x,-y,0))
+  bpy.context.view_layer.update()
+  for ob in set(bpy.data.objects)-before:ob.matrix_world=transform@ob.matrix_world
+ return set(bpy.data.objects)-before
+# The approved A fit has asymmetric forward stowage: two nested port cutters,
+# a starboard captain's gig, and two lower outboard admiral's gigs.
+for yy in [4.06,6.38]:
+ cutter=boat('Port cutter',5.97,yy,12.63,8.70,2.07,False,keel=12.63)
+ boat('Nested port longboat',6.0,yy,13.54,6.31,1.65,False,keel=13.54,support_surface=SupportSurface(list(cutter)))
+boat('Starboard captain gig',6.31,-3.88,12.39,9.21,2.56,True,keel=12.39)
 for sign in [-1,1]:
- boat('Forward motor launch',11.7,sign*6.7,11.52,11.1,2.75,True)
- boat('Aft motor launch',-24.3,sign*5.2,12.32,11.7,2.85,True)
- boat('Aft cutter',-25.3,sign*1.85,12.35,9.2,2.45,False)
- # A smaller dinghy is carried above the aft boat deck clear of the mainmast.
- boat('After dinghy',-33.1,sign*6.9,9.56,7.6,2.05,False)
+ boat('Admiral gig',6.85,sign*9.30,10.83,11.14,2.67,True,keel=10.83)
+ boat('Outer aft motor launch',-21.95,sign*6.86,11.6,11.54,3.00,True,keel=11.60)
+ boat('Inner aft motor launch',-19.56,sign*2.91,13.59,11.54,3.00,True,yaw=-sign*math.radians(13.846),keel=13.59)
 
 def truss(name,a,b,width,depth):
  a,b=Vector(a),Vector(b);axis=(b-a).normalized();side=axis.cross(Vector((0,0,1))).normalized()*width/2;up=axis.cross(side).normalized()*depth/2
@@ -509,7 +718,7 @@ def truss(name,a,b,width,depth):
    k=(j+1)%4;rod(name+' cross member',lo+corners[j],lo+corners[k],.035,materials['naval'],detailcol,vertices=6)
    rod(name+' diagonal',lo+corners[j if i%2==0 else k],hi+corners[k if i%2==0 else j],.03,materials['naval'],detailcol,vertices=6)
 for sign in [-1,1]:
- base=Vector((-6.5,sign*9.7,deckz(-6.5)));heel=base+Vector((0,0,2.2));tip=Vector((7.2,sign*6.6,22.0))
+ base=Vector((-6.5,sign*9.7,8.4));heel=base+Vector((0,0,2.2));tip=Vector((7.2,sign*6.6,22.0))
  cyl('Aircraft crane foundation',base+Vector((0,0,.28)),1.05,.56,materials['edge'],detailcol,32)
  cyl('Aircraft crane pedestal',base+Vector((0,0,1.4)),.78,2.45,materials['naval'],detailcol,32)
  cyl('Aircraft crane bearing',heel,1.04,.27,materials['edge'],detailcol,32)
@@ -527,6 +736,7 @@ for sign in [-1,1]:
  ring('Crane hook',tip-Vector((0,0,1.98)),(0,1,0),.14,.035,materials['edge'],12)
  ladder('Crane pedestal access',base+Vector((-.88,0,.1)),heel+Vector((-.88,0,.5)),.48)
 # Transverse catapult with two rails, open web and launch trolley.
+catapult_before=set(bpy.data.objects)
 for xx in [-9.9,-8.2]:
  rod('Catapult longitudinal rail',(xx,-14,6.82),(xx,14,6.82),.09,materials['light'],detailcol,vertices=8)
  box('Catapult girder',(xx,0,6.43),(.17,28,.48),materials['edge'],detailcol)
@@ -536,6 +746,8 @@ for yy in [-13.5,-9,-4.5,0,4.5,9,13.5]:box('Catapult sleeper',(-9.05,yy,6.45),(2
 box('Catapult trolley',(-9.05,0,7.0),(2.35,2.3,.24),materials['roof'],detailcol)
 for yy in [-.9,.9]:
  for xx in [-9.9,-8.2]:rod('Trolley wheel',(xx-.10,yy,6.92),(xx+.10,yy,6.92),.20,materials['edge'],detailcol,vertices=16)
+
+for ob in set(bpy.data.objects)-catapult_before:ob.location.z+=2.65
 
 # Existing original AA geometry now uses the same blueprint joints as other guns.
 # The two upper quad fittings retain their original decorative geometry.
@@ -559,20 +771,34 @@ def aa_mount(name,x,y,z,caliber,bearing=0,quad=False,mount=None):
  else:
   floor=aa_support.below(x,y,z)
   if z-floor>.015:cyl(name+' deck seating',(x,y,(floor+z)/2),1.50 if caliber>.08 else .76 if caliber>.025 else .42,z-floor+.02,materials['naval'],detailcol,24)
+ if mount and mount['partId']=='flak-37-bismarck-1941':
+  create_library_mount(mount,detailcol,helpers,materials)
+  return
  before=set(bpy.data.objects);heavy=caliber>.08;medium=caliber>.025
  radius=1.50 if heavy else .76 if medium or quad else .42
  cyl(name+' deck ring',(0,0,.10),radius,.2,materials['edge'],detailcol,28)
- cyl(name+' pedestal',(0,0,.53),radius*.48,.86,materials['naval'],detailcol,20)
+ cyl(name+' pedestal',(0,0,.25 if heavy else .53),radius*.48,.30 if heavy else .86,materials['naval'],detailcol,20)
  axisz=1.63 if heavy else 1.30;length=4.70 if heavy else 2.22 if medium else 1.45
  # Cast saddle, bearing axle and barrel slide make a continuous carriage.
- rod(name+' carriage crosshead',(0,-.45,.76),(0,.45,.76),.13,materials['naval'],detailcol,vertices=12)
- rod(name+' trunnion axle',(.12,-.52,axisz),(.12,.52,axisz),.12,materials['edge'],detailcol,vertices=12)
+ fork_y=.80 if heavy else .45;fork_z=.43 if heavy else .65
+ rod(name+' carriage crosshead',(0,-fork_y,.43 if heavy else .76),(0,fork_y,.43 if heavy else .76),.07 if heavy else .13,materials['naval'],detailcol,vertices=12)
+ if heavy:
+  # Outboard bearing stubs leave the twin receivers an open lowering well.
+  for sign in [-1,1]:rod(name+' trunnion axle',(.12,sign*.60,axisz),(.12,sign*.82,axisz),.12,materials['edge'],detailcol,vertices=12)
+ else:rod(name+' trunnion axle',(.12,-.52,axisz),(.12,.52,axisz),.12,materials['edge'],detailcol,vertices=12)
  if heavy:
   # Open-backed sloped shield, rather than a solid rectangular box.
   cross=[(-1.25,.58),(1.28,.58),(1.17,1.95),(.63,2.44),(-1.12,2.44)]
   vs=[(xx,yy,zz) for yy in [-1.47,1.47] for xx,zz in cross]
-  mesh(name+' side shield',vs,[(0,1,2,3,4),(5,9,8,7,6),(1,6,7,2),(2,7,8,3),(3,8,9,4)],materials['naval'],detailcol)
-  for yy in [-1.05,1.05]:box(name+' loading deck',(-.3,yy,.50),(2.3,.64,.13),materials['roof'],detailcol)
+  mesh(name+' side shield',vs,[(0,1,2,3,4),(5,9,8,7,6)],materials['naval'],detailcol)
+  # Two continuous gun slots cross the front, brow and overhead plate. The
+  # barrels pass through all three planes as the carriage elevates to 80 deg.
+  for low,high in [(-1.47,-.70),(-.12,.12),(.70,1.47)]:
+   for a,b in zip(cross[1:4],cross[2:5]):
+    mesh(name+' slotted shield plate',[(a[0],low,a[1]),(a[0],high,a[1]),(b[0],high,b[1]),(b[0],low,b[1])],[(0,1,2,3)],materials['naval'],detailcol)
+  sill_x=1.28-(.70-.58)*.11/(1.95-.58)
+  mesh(name+' shield lower sill',[(1.28,-1.47,.58),(1.28,1.47,.58),(sill_x,1.47,.70),(sill_x,-1.47,.70)],[(0,1,2,3)],materials['naval'],detailcol)
+  for yy in [-1.05,1.05]:box(name+' loading deck',(-.3,yy,.515),(2.3,.84,.13),materials['roof'],detailcol)
  count=4 if quad else 2 if heavy or medium else 1
  barrel_groups=[]
  for i in range(count):
@@ -587,15 +813,15 @@ def aa_mount(name,x,y,z,caliber,bearing=0,quad=False,mount=None):
   if not heavy:box(name+' feed magazine',tuple(start+Vector((-.22,0,.14))),(.32,.24,.25),materials['dark'],detailcol)
   barrel_groups.append((yy,zz,elev,set(bpy.data.objects)-barrel_before))
  for sign in [-1,1]:
-  rod(name+' trunnion',(0,sign*.45,.65),(0,sign*.45,axisz),.14 if heavy else .075,materials['naval'],detailcol,vertices=10)
-  rod(name+' bearing cheek',(0,sign*.45,axisz),(.12,sign*.45,axisz),.14 if heavy else .08,materials['naval'],detailcol,vertices=10)
+  rod(name+' trunnion',(0,sign*fork_y,fork_z),(0,sign*fork_y,axisz),.14 if heavy else .075,materials['naval'],detailcol,vertices=10)
+  rod(name+' bearing cheek',(0,sign*fork_y,axisz),(.12,sign*fork_y,axisz),.14 if heavy else .08,materials['naval'],detailcol,vertices=10)
   cyl(name+' crew seat',(-.65,sign*(1.04 if heavy else .55),.72),.23,.11,materials['roof'],detailcol,16)
   rod(name+' seat support',(-.65,sign*(1.04 if heavy else .55),.2),(-.65,sign*(1.04 if heavy else .55),.68),.05,materials['edge'],detailcol,vertices=6)
   rod(name+' seat outrigger',(0,0,.40),(-.65,sign*(1.04 if heavy else .55),.40),.06,materials['naval'],detailcol,vertices=8)
   ring(name+' handwheel',(-.34,sign*(.83 if heavy else .45),1.14),(0,1,0),.22 if heavy else .13,.025,n=14)
-  rod(name+' handwheel shaft',(0,sign*.45,1.14),(-.34,sign*(.83 if heavy else .45),1.14),.035,materials['edge'],detailcol,vertices=8)
+  rod(name+' handwheel shaft',(0,sign*fork_y,1.14),(-.34,sign*(.83 if heavy else .45),1.14),.035,materials['edge'],detailcol,vertices=8)
   for a in range(3):rod(name+' handwheel spoke',(-.34,sign*(.83 if heavy else .45),1.14),(-.34+(.22 if heavy else .13)*math.cos(a*math.tau/3),sign*(.83 if heavy else .45),1.14+(.22 if heavy else .13)*math.sin(a*math.tau/3)),.018,materials['edge'],detailcol,vertices=6)
- rod(name+' sight bracket',(0,0,.65),(-.35,0,axisz+.5),.035,materials['edge'],detailcol,vertices=6)
+ rod(name+' sight bracket',(0,0,.43 if heavy else .65),(-.35,0,axisz+.5),.035,materials['edge'],detailcol,vertices=6)
  ring(name+' ring sight',(-.35,0,axisz+.54),(1,0,0),.11,.015,n=12)
  # Assemble in the local mount frame, then place the complete hierarchy.
  pieces=set(bpy.data.objects)-before
@@ -629,7 +855,7 @@ for mount in DEF['mounts']:
  if mount['weapon']['caliberM']<=.13:
   a,b,c=mount['position'];aa_mount(mount['name'],-c,-a,b,mount['weapon']['caliberM'],bearing=-math.radians(mount['bearingDeg']),mount=mount)
 for sign in [-1,1]:
- aa_mount('Quad 2 cm April 1941 fit',14.4,sign*4.8,26.46,.020,bearing=sign*.82,quad=True)
+ aa_mount('Quad 2 cm April 1941 fit',17.395,sign*4.092,24.65,.020,bearing=sign*.82,quad=True)
 
 # Mooring machinery, proper stockless anchors, hatch coamings and hull scuttles.
 def bollard(name,x,y,z):
@@ -683,11 +909,11 @@ for sign in [-1,1]:
   cyl('Mushroom vent stem',(x,y,z+.32),.18,.64,materials['naval'],detailcol,16)
   cyl('Mushroom vent hood',(x,y,z+.69),.34,.22,materials['naval'],detailcol,20)
  for x,y,z in [(30,9,9.4),(6,13,5.8),(-14,13,5.8),(-40,9.5,5.8),(-53,8.5,5.8)]:
-  y*=sign;z=aa_support.below(x,y,z+.1);box('Ready ammunition locker',(x,y,z+.62),(1.05,.64,1.24),materials['naval'],detailcol)
+  y*=sign;z=aa_support.below(x,y,z+3);box('Ready ammunition locker',(x,y,z+.62),(1.05,.64,1.24),materials['naval'],detailcol)
   box('Ammunition locker lid',(x,y,z+1.28),(1.1,.69,.08),materials['roof'],detailcol)
   rod('Locker handle',(x-.12,y+sign*.34,z+.8),(x+.12,y+sign*.34,z+.8),.022,materials['dark'],detailcol,vertices=6)
- for x,y,z in [(36,4.9,12.65),(7,8.8,11.0),(-34,7.7,9.4),(-42,7.9,9.4)]:
-  y*=sign;pts=[(xx,yy,z+.3) for xx,yy in rounded_rect(x,y,2.55,1.28,.56,5)];polyline('Carley float buoyant tube',pts,.17,materials['canvas'],closed=True,vertices=8)
+ for x,y,z in [(-42,7.9,9.4)]:
+  y*=sign;z=aa_support.below(x,y,z+4)+.09;pts=[(xx,yy,z+.3) for xx,yy in rounded_rect(x,y,2.55,1.28,.56,5)];polyline('Carley float buoyant tube',pts,.17,materials['canvas'],closed=True,vertices=8)
   for xx in [-.85,-.45,0,.45,.85]:rod('Carley float floor',(x+xx,y-.52,z+.22),(x+xx,y+.52,z+.22),.033,materials['wood'],detailcol,vertices=6)
   for xx in [-.75,.75]:box('Carley float cradle',(x+xx,y,z+.025),(.12,1.12,.22),materials['edge'],detailcol)
  for x,y in [(80,5),(-97,5)]:
@@ -697,27 +923,62 @@ for sign in [-1,1]:
   rod('Hose drum',(x,y-.34,z),(x,y+.34,z),.37,materials['rope'],detailcol,vertices=24)
   for yy in [-.45,.45]:box('Reel support',(x,y+yy,z-.30),(.18,.12,.55),materials['naval'],detailcol)
 
-# Three propellers with twisted, thick blades; independently authored original
-# shapes. Shaft exits and foil-section rudders remain approximate below water.
-for y,xend in [(-5,-103),(0,-108),(5,-103)]:
- rod('Propeller shaft',(-69,y,-7.0),(xend,y,-4.8),.23,materials['edge'],undercol,vertices=20)
- rod('Propeller boss',(xend+1.3,y,-4.8),(xend-.95,y,-4.8),.65,materials['bronze'],undercol,.35,32)
- for sign in [-1,1]:rod('Shaft A bracket',(xend+3,y,-4.9),(xend+3.5,y+sign*1.6,-2.6),.12,materials['oxide'],undercol,vertices=10)
- for angle in [0,math.tau/3,2*math.tau/3]:
-  vs=[];rows=[(.48,.0,.25),(.9,.10,.55),(1.5,.19,.78),(2.05,.31,.73),(2.35,.46,.22),(2.4,.52,0)]
-  for thickness in [-.035,.035]:
+# Original three-bladed screws: broad paddle outlines, reduced rake, helical
+# pitch and thick roots into rounded bosses. Silhouettes were reviewed against
+# approved GameModels3D pgsb708 A_Hull; the source loading datum is unverified.
+# These visual shafts do not move the blueprint's machinery or combat sockets.
+def screw_boss(x,y,z):
+ rows=[(1.16,.30),(.83,.59),(.34,.73),(-.34,.72),(-.85,.61),(-1.18,.39),(-1.34,.08)]
+ vs=[(x+dx,y+r*math.cos(math.tau*i/32),z+r*math.sin(math.tau*i/32)) for dx,r in rows for i in range(32)]
+ fs=[tuple(reversed(range(32))),tuple(range((len(rows)-1)*32,len(rows)*32))]
+ fs.extend((j*32+i,j*32+(i+1)%32,(j+1)*32+(i+1)%32,(j+1)*32+i) for j in range(len(rows)-1) for i in range(32))
+ return mesh('Propeller boss',vs,[tuple(reversed(f)) for f in fs],materials['bronze'],undercol,True)
+def shaft_bracket(name,a,b,chord=.72):
+ # Closed foil strut: a wide axial chord and a narrow rounded trailing edge.
+ a,b=Vector(a),Vector(b);radial=(b-a).normalized();side=radial.cross(Vector((1,0,0))).normalized()
+ profile=[(-.52,0),(-.36,.10),(.16,.12),(.48,.04),(.54,0),(.48,-.04),(.16,-.12),(-.36,-.10)]
+ vs=[p+Vector((u*chord,0,0))+side*v for p in [a,b] for u,v in profile];n=len(profile)
+ fs=[tuple(reversed(range(n))),tuple(range(n,2*n))]+[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)]
+ return mesh(name,vs,[tuple(reversed(f)) for f in fs],materials['oxide'],undercol,True)
+for y,xend in [(-6,-100),(0,-106),(6,-100)]:
+ z=-6.8
+ rod('Propeller shaft',(-69,y,-6.0),(xend+.6,y,z),.24,materials['edge'],undercol,vertices=24)
+ rod('Shaft stern bearing',(xend+2.15,y,z+.08),(xend+.80,y,z+.02),.43,materials['oxide'],undercol,.36,24)
+ screw_boss(xend,y,z)
+ # Bearing struts penetrate the actual lofted counter, including the center
+ # installation. Their upper feet are sampled from the hull, not free points.
+ for sign in [-1,1]:
+  bx=xend+2.1;by=y+sign*1.15;profile=section_at(bx);hits=[]
+  for (wa,za),(wb,zb) in zip(profile,profile[1:]):
+   if min(wa,wb)<=abs(by)<=max(wa,wb) and abs(wb-wa)>1e-6:hits.append(za+(zb-za)*(abs(by)-wa)/(wb-wa))
+  foot=min(hits) if hits else -2.6
+  shaft_bracket('Shaft A bracket',(bx,y,z+.05),(bx+.25,by,foot+.14),.94)
+ for angle in [math.pi/2,math.pi/2+math.tau/3,math.pi/2+2*math.tau/3]:
+  # Radial radius, tangential sweep, half chord. Sparse original controls are
+  # interpolated for a continuous rounded edge without a pinched angular tip.
+  controls=[(.55,-.08,.30),(.82,-.08,.52),(1.15,-.03,.79),(1.55,.03,1.02),(1.95,.07,1.02),(2.20,.06,.80),(2.35,.02,.44),(2.40,0,.035)]
+  rows=[]
+  for a,b in zip(controls,controls[1:]):
+   for step in range(3):
+    t=step/3;rows.append(tuple(u+(v-u)*t for u,v in zip(a,b)))
+  rows.append(controls[-1]);cols=9;vs=[]
+  for face in [-1,1]:
    for r,sweep,w in rows:
-    for q in [-1,-.5,0,.5,1]:
-     a=angle+sweep+q*w/max(r,1)*.6;pitch=.45*q*(1-r/3)
-     vs.append((xend+pitch+thickness,y+r*math.cos(a),-4.8+r*math.sin(a)))
-  n=len(rows)*5;fs=[]
+    pitch=math.atan2(3.6,math.tau*r)
+    for i in range(cols):
+     q=-1+2*i/(cols-1);chord=q*w;tangent=sweep+chord*math.cos(pitch)
+     thickness=(.012+.105*(1-r/2.6))*math.sqrt(max(0,1-q*q))+.008
+     axial=chord*math.sin(pitch)+.035*(r-.55)+face*thickness
+     vs.append((xend+axial,y+r*math.cos(angle)-tangent*math.sin(angle),z+r*math.sin(angle)+tangent*math.cos(angle)))
+  n=len(rows)*cols;fs=[]
   for face in [0,1]:
    for j in range(len(rows)-1):
-    for i in range(4):
-     ids=(face*n+j*5+i,face*n+j*5+i+1,face*n+(j+1)*5+i+1,face*n+(j+1)*5+i);fs.append(ids if face else tuple(reversed(ids)))
-  boundary=list(range(5))+[j*5+4 for j in range(1,len(rows))]+list(range(n-2,n-6,-1))+[j*5 for j in reversed(range(1,len(rows)-1))]
+    for i in range(cols-1):
+     ids=(face*n+j*cols+i,face*n+j*cols+i+1,face*n+(j+1)*cols+i+1,face*n+(j+1)*cols+i);fs.append(ids if face else tuple(reversed(ids)))
+  boundary=list(range(cols))+[j*cols+cols-1 for j in range(1,len(rows))]+list(range(n-2,n-cols-1,-1))+[j*cols for j in reversed(range(1,len(rows)-1))]
   fs.extend((a,b,b+n,a+n) for a,b in zip(boundary,boundary[1:]+boundary[:1]))
-  mesh('Twisted screw blade',vs,fs,materials['bronze'],undercol,True)
+  blade=mesh('Twisted screw blade',vs,fs,materials['bronze'],undercol,True)
+  bm=bmesh.new();bm.from_mesh(blade.data);bmesh.ops.recalc_face_normals(bm,faces=list(bm.faces));bm.to_mesh(blade.data);bm.free()
 for y in [-3,3]:
  pts=[(-113.6,y),(-112.8,y-.20),(-109.7,y-.28),(-109.0,y-.14),(-109.0,y+.14),(-109.7,y+.28),(-112.8,y+.20)]
  extrude('Foil-section balanced rudder',pts,-5.8,3.75,materials['oxide'],undercol,.06)
@@ -741,13 +1002,17 @@ for a in DEF['armor']:
 for c in DEF['compartments']:
  x,y,z=c['center'];sx,sy,sz=c['size'];ob=box(c['name'],(-z,-x,y),(sz,sx,sy),materials['edge'],simcol);ob['exportRole']='simulation';ob.hide_render=True
 simcol.hide_render=True;simcol.hide_viewport=True
-for name,loc in [('funnel-cap',(-2.4,0,25)),('mainmast-top',(-22.5,0,48.5)),('fore-director',(13.4,0,32)),('conning-director',(27.6,0,20.6)),('aft-director',(-37.8,0,17.5))]:
+for name,loc in [('funnel-cap',(-2.6,0,24.3)),('mainmast-top',(-22.5,0,48.5)),('fore-director',(13.32,0,31.1)),('conning-director',(25.0,0,19.55)),('aft-director',(-37.8,0,17.5))]:
  ob=bpy.data.objects.new('landmark.'+name,None);scene.collection.objects.link(ob);ob.location=loc;ob['nodeId']='landmark.'+name
 sys.path.insert(0,str(Path(__file__).resolve().parent))
-from paint import apply_paint
+from paint import apply_paint, consolidate_finish_uvs
 apply_paint(scene,materials,Path(__file__).with_name('paint-scheme.json'))
 OUT.mkdir(parents=True,exist_ok=True)
 from blender_rig import create_flagstaffs
 create_flagstaffs(DEF)
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'appearance'))
+from surface import apply_appearance
+apply_appearance(scene,dict(materials,**{'baltic-'+key:bpy.data.materials['Baltic sides · '+key] for key in ['hullgray','naval','roof','edge']}),Path(__file__).with_name('appearance.json'))
+consolidate_finish_uvs(scene)
 bpy.ops.wm.save_as_mainfile(filepath=str(OUT/'source.blend'))
 print('INDEPENDENT BISMARCK SOURCE 1941-04',len(scene.objects),'objects',flush=True)

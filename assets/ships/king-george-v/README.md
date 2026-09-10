@@ -24,3 +24,8 @@ bun run ship:check king-george-v
 Keep the current fixed views in `generated/review/`. Ship report/reference archives are removed. Research downloads, diagnostic results and extra captures belong in ignored `.build/`; do not recreate a tracked archive. Keep source links and lasting limitations here.
 
 Follow the [ship pipeline](../../../docs/ship-pipeline.md) and [model review](../../../docs/ship-model-review.md). `author-blueprint.py` resets subsequent blueprint edits and updates shared catalog entries; run it only for deliberate regeneration, then refit internals and regenerate flooding/stability. Normal builds do not need it.
+
+Appearance follows the [shared fleet finish](../../../docs/ship-appearance.md).
+`appearance.json` preserves this recipe’s colors, scheme and deck coverings while
+adding the shared matte materials and restrained original surface wear. Existing
+markings and plank detail remain intact; this is not a new historical-accuracy claim.

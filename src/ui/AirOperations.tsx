@@ -12,29 +12,47 @@ import './AirOperations.css';
 import { AirMapNavigation } from './airMapNavigation';
 import { duration, mission, roleIcon, roleLabel } from './airFormat';
 import { AirWingManifest } from './AirWingManifest';
+import { markerOpacity } from './fleetStats';
 
 // Camera motion is rendered every frame; combat telemetry intentionally stays at 10 Hz.
 // Move the overlay directly so camera motion never waits for a React telemetry render.
-function useMapProjection(ref: RefObject<HTMLElement | SVGSVGElement | null>, game: Game | null, active: boolean) {
+export function useMapProjection(ref: RefObject<HTMLElement | SVGSVGElement | null>, game: Game | null, active: boolean) {
   useEffect(() => {
     if (!active || !game) return;
     const update = () => {
       const markers = Array.from(ref.current?.querySelectorAll<HTMLElement | SVGElement>('[data-map-position]') ?? [], element => {
         const [x, y, z] = JSON.parse(element.dataset.mapPosition!) as number[];
-        return { element, point: game.projectAirMap(x, z, y) };
+        const point = element.dataset.contactMarker ? game.projectContact(element.dataset.contactMarker) : game.projectAirMap(x, z, y);
+        const headings = Array.from(element.querySelectorAll<SVGElement>('[data-map-heading]'), glyph => {
+          const heading = Number(glyph.dataset.mapHeading);
+          const forward = point && game.projectAirMap(x + Math.sin(heading) * 10, z - Math.cos(heading) * 10, y);
+          return { glyph, angle: point && forward ? Math.atan2(forward[0] - point[0], point[1] - forward[1]) * 180 / Math.PI : undefined };
+        });
+        // A ship marker stands in for a hull too small to read; once the model
+        // itself is legible on screen the marker fades and only the label stays.
+        let fade: number | undefined;
+        if (element.dataset.mapFade && point) {
+          const [length, heading] = element.dataset.mapFade.split(',').map(Number);
+          const bow = game.projectAirMap(x + Math.sin(heading) * length / 2, z - Math.cos(heading) * length / 2, y);
+          const stern = game.projectAirMap(x - Math.sin(heading) * length / 2, z + Math.cos(heading) * length / 2, y);
+          if (bow && stern) fade = markerOpacity(Math.hypot(bow[0] - stern[0], bow[1] - stern[1]));
+        }
+        return { element, point, headings, fade };
       });
       const paths = Array.from(ref.current?.querySelectorAll<SVGPathElement>('[data-map-path]') ?? [], element => {
         const points = JSON.parse(element.dataset.mapPath!) as Vec3[];
-        return { element, path: game.projectAirMapPath(points, !!element.dataset.closed) };
+        return { element, path: game.projectAirMapPath(points, !!element.dataset.closed, !!element.dataset.mapFill) };
       });
       // Projection reads the viewport. Complete those reads before any overlay
       // writes, so one marker cannot force layout for the following marker.
-      for (const { element, point } of markers) {
+      for (const { element, point, headings, fade } of markers) {
         element.style.display = point ? '' : 'none';
         if (!point) continue;
         const [left, top] = point;
         if (element instanceof SVGElement) element.setAttribute('transform', `translate(${left} ${top})`);
         else { element.style.left = `${left}px`; element.style.top = `${top}px`; }
+        for (const { glyph, angle } of headings) if (angle !== undefined) glyph.setAttribute('transform', `rotate(${angle})`);
+        if (fade !== undefined) (element.querySelector<SVGElement | HTMLElement>('[data-map-glyph]') ?? element).style.opacity = String(fade);
       }
       for (const { element, path } of paths) element.setAttribute('d', path);
     };
@@ -73,7 +91,7 @@ export function SquadronLabels({ data, game, onOrder, onTarget, onSelect, onPoin
       onPointerDown={onPointerDown} data-flight-id={f.id} data-owner-id={f.ownerId} style={{ left: f.screen?.x, top: f.screen?.y, display: f.screen ? undefined : 'none' }} title={`${f.name} · ${roleLabel(f.role)} · ${mission(f)} · ${f.hp}% condition`}
       aria-label={`${f.name} · ${roleLabel(f.role)} · ${f.surviving} aircraft · ${f.activity}`}
       tabIndex={data.airOperationsOpen ? 0 : -1}
-      onClick={e => { if ((e.metaKey || e.ctrlKey || !onTarget?.(f.id, f.team)) && f.ownerId === data.ship.id) { if (onSelect) onSelect(f.id, e.metaKey || e.ctrlKey); else game?.selectFlight(f.id, e.metaKey || e.ctrlKey); } e.currentTarget.blur(); }}
+      onClick={e => { if ((e.metaKey || e.ctrlKey || !onTarget?.(f.id, f.team)) && (f.ownerId === data.ship.id || (game?.fleetCommandMode && f.team === 'friendly'))) { if (onSelect) onSelect(f.id, e.metaKey || e.ctrlKey); else game?.selectFlight(f.id, e.metaKey || e.ctrlKey); } e.currentTarget.blur(); }}
       onContextMenu={e => { if (data.airOperationsOpen) { e.preventDefault(); if (!e.ctrlKey && !e.metaKey) onOrder?.(f.id, f.team); } }}>
       <SquadronIcon role={f.role}/><span><strong>{f.name} · {f.surviving}</strong><small>{f.activity}</small></span>
     </button>)}
@@ -125,7 +143,7 @@ export function AirOperations({ data, game, bindings, instrumentsVisible = true 
     setFeedback(accepted.length ? `${accepted.length} squadron${accepted.length === 1 ? '' : 's'} · Order received${rejected.length ? ` · ${rejected.map(f => f.name).join(', ')} unable to accept: check role, readiness and flight slots.` : ''}`
       : !canCommand ? 'Carrier unavailable · Battle ended or carrier lost.'
       : !wing.available && flights.some(f => !f.active) ? 'Launch suspended · Check carrier damage, list and trim.'
-      : wing.activeFlights >= wing.maxActiveFlights && flights.some(f => !f.active) ? `All ${wing.maxActiveFlights} flight slots occupied · Recover a squadron to launch.`
+      : wing.maxActiveFlights !== null && wing.activeFlights >= wing.maxActiveFlights && flights.some(f => !f.active) ? `All ${wing.maxActiveFlights} flight slots occupied · Recover a squadron to launch.`
       : 'Order unavailable · Check role, readiness, armament, endurance and the 30 km command range.');
   };
   const setSelection = (ids: string[]) => {
@@ -347,7 +365,7 @@ export function AirOperations({ data, game, bindings, instrumentsVisible = true 
           <button aria-keyshortcuts="x" disabled={!canCommand || !wing.activeFlights} onClick={e => { perform('X'); e.currentTarget.blur(); }}>Recall all<kbd>X</kbd></button>
         </nav>
         {feedback && <p className="air-order-feedback" role="status">{feedback}</p>}
-        {details && selected && <div className="air-aircraft-detail" aria-label={`${selected.name} aircraft`}><strong>{selected.name} · {mission(selected)} · {selected.hp}% condition</strong><p>{selected.armed} armed · Endurance {duration(selected.enduranceSeconds)}{selected.queuePosition ? ` · Recovery #${selected.queuePosition}` : ''}{selected.notice && ` · ${selected.notice}`}</p>
+        {details && selected && <div className="air-aircraft-detail" aria-label={`${selected.name} aircraft`}><strong>{selected.name} · {mission(selected)} · {selected.hp}% condition</strong><p>{selected.armed} armed{selected.enduranceSeconds !== null && ` · Endurance ${duration(selected.enduranceSeconds)}`}{selected.queuePosition ? ` · Recovery #${selected.queuePosition}` : ''}{selected.notice && ` · ${selected.notice}`}</p>
           {aircraft.map(p => <div key={p.id}><span>Aircraft {p.id.split('/').at(-1)} · {Math.ceil(p.hp)}% · {p.lossReason ?? p.phase}</span><button disabled={!p.followable} onClick={() => game?.followAircraft(p.id)}>Follow</button></div>)}
         </div>}
       </>}

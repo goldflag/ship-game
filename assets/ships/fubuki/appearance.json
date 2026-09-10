@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "id": "fubuki-maintained-v1",
+  "basis": "Preserve original recipe colors, scheme, markings and deck coverings. Shared maintained finish; no new historical color claim.",
+  "materials": {
+    "naval": {
+      "paint": "fubuki-authored-naval",
+      "finish": "painted-steel"
+    },
+    "roof": {
+      "paint": "fubuki-authored-roof",
+      "finish": "painted-deck"
+    },
+    "edge": {
+      "paint": "fubuki-authored-edge",
+      "finish": "painted-steel"
+    },
+    "hullgray": {
+      "paint": "fubuki-authored-hullgray",
+      "finish": "painted-steel",
+      "existing": "image",
+      "imageLayout": {
+        "bounds": [
+          -59.375,
+          59.375,
+          -3.3,
+          6.7
+        ]
+      }
+    },
+    "underwater": {
+      "paint": "fubuki-authored-underwater",
+      "finish": "underwater-coating",
+      "projection": "hull"
+    },
+    "deck": {
+      "paint": "fubuki-authored-deck",
+      "finish": "painted-deck"
+    },
+    "wood": {
+      "paint": "fubuki-authored-wood",
+      "finish": "wood"
+    },
+    "linoleum": {
+      "paint": "fubuki-authored-linoleum",
+      "finish": "linoleum"
+    }
+  },
+  "hull": {
+    "bounds": [
+      -59.375,
+      59.375,
+      -4.220000000000001,
+      8.365
+    ],
+    "pixelsPerMeter": 16,
+    "waterline": 0,
+    "stainStrength": 0.16,
+    "runoffStrength": 0.16
+  }
+}

@@ -28,16 +28,21 @@ export function equipmentCondition(actor: Combatant, def: ShipDefinition, module
   const hp = (state?.id === module.id ? state : actor.damage.modules.find(s => s.id === module.id)!).hp;
   if (hp <= 0) return { availability: 0, reason: 'destroyed' };
   if (module.immersionToleranceM !== undefined) {
+    const roomIndex = module.compartmentId === undefined ? undefined : compiled.rooms.get(module.compartmentId)!;
+    if (roomIndex !== undefined) {
+      const room = def.compartments[roomIndex], compartment = actor.damage.compartments[roomIndex];
+      const water = (compartment?.id === room.id ? compartment : actor.damage.compartments.find(c => c.id === room.id)!).waterM3;
+      // Internal equipment in a dry room cannot be immersed. Avoid constructing
+      // its world pose on every readiness, propulsion and repair query.
+      if (water <= 0) return { availability: hp / module.hp, reason: hp < module.hp ? 'damaged' : 'operational' };
+    }
     const center = equipmentCenter(actor, def, module);
     const datum = localToWorld([center[0], center[1] - module.size[1] / 2 + module.immersionToleranceM, center[2]], actor.motion);
     if (module.compartmentId === undefined) {
       const level = actor.sea ? seaHeight(actor.sea.state, datum[0], datum[2], actor.sea.time) : 0;
       if (datum[1] <= level) return { availability: 0, reason: 'flooded' };
     } else {
-      const roomIndex = compiled.rooms.get(module.compartmentId)!, room = def.compartments[roomIndex];
-      const compartment = actor.damage.compartments[roomIndex];
-      const water = (compartment?.id === room.id ? compartment : actor.damage.compartments.find(c => c.id === room.id)!).waterM3;
-      if (water > 0 && waterLevel(actor, def, roomIndex) >= datum[1]) return { availability: 0, reason: 'flooded' };
+      if (waterLevel(actor, def, roomIndex!) >= datum[1]) return { availability: 0, reason: 'flooded' };
     }
   }
   return { availability: hp / module.hp, reason: hp < module.hp ? 'damaged' : 'operational' };

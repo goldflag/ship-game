@@ -1,17 +1,21 @@
 import { expect, test } from 'bun:test';
 import * as THREE from 'three/webgpu';
+// Exercise the installed renderer's real sort/reversal, not a copy of its algorithm.
+// @ts-expect-error Three does not publish declarations for its internal RenderList.
+import RenderList from 'three/src/renderers/common/RenderList.js';
 import type { CombatEvent } from '../simulation/combat';
+import { configureRenderOrder } from './renderOrder';
 import { impactStyle, MAX_SHIP_IMPACT_MARKS, ShipImpactMarks } from './ShipImpactMarks';
 
 const event = (sequence = 1): CombatEvent => ({ sequence, tick: sequence, kind: 'penetration', shipId: 'target',
   position: [0, 0, 1], message: 'Test strike', shell: { id: sequence, caliberM: .38, type: 'AP', velocity: [0, 0, -820] },
   surfaceImpact: { position: [0, 0, 1], normal: [0, 0, 1], direction: [.2, 0, -1], outcome: 'penetration' } });
 
-function fixture(mounted = false) {
+function fixture(mounted = false, reversedDepthBuffer = false) {
   const root = new THREE.Group(), model = new THREE.Group(), mount = new THREE.Group();
   const receiver = new THREE.Mesh(new THREE.BoxGeometry(20, 10, 2), new THREE.MeshStandardMaterial());
   root.add(model); model.add(mount); mount.add(receiver);
-  const marks = new ShipImpactMarks(root, model, new Map(mounted ? [['turret', mount]] : []));
+  const marks = new ShipImpactMarks(root, model, new Map(mounted ? [['turret', mount]] : []), reversedDepthBuffer);
   return { root, mount, receiver, marks };
 }
 
@@ -47,6 +51,25 @@ test('decals conform to the struck face, remain depth-tested and batch repeated 
     marks.update([event(), event(2)], 'target'); expect(marks.count).toBe(2);
     marks.setVisible(false); expect(batch.visible).toBe(false);
     marks.setVisible(true); expect(batch.visible).toBe(true);
+  } finally { marks.dispose(); }
+});
+
+for (const reversed of [false, true]) test(`scars composite before smoke and spray batches (reversed=${reversed})`, () => {
+  const { marks } = fixture(false, reversed);
+  let transparentSort: Parameters<THREE.WebGPURenderer['setTransparentSort']>[0] = null;
+  configureRenderOrder({ reversedDepthBuffer: reversed, setOpaqueSort: () => {},
+    setTransparentSort: (sort: typeof transparentSort) => { transparentSort = sort; } } as unknown as THREE.WebGPURenderer);
+  try {
+    marks.update([event()], 'target');
+    const [batch] = marks.renderMeshes;
+    const list = new RenderList({ getNode: () => ({}) });
+    const item = (id: number, order: number, distance: number) => ({ id, renderOrder: order, groupOrder: 0, z: reversed ? 1 - distance : distance });
+    // Effect pools publish one instanced batch at render order zero, whose
+    // sort distance may fall behind the struck hull while a plume covers it.
+    const effects = [item(1, 0, .2), item(2, 0, .9), item(3, 0, .5)];
+    list.transparent.push(effects[0], item(4, batch.renderOrder, .5), effects[1], effects[2]);
+    list.sort(null, transparentSort, reversed);
+    expect(list.transparent[0].id).toBe(4);
   } finally { marks.dispose(); }
 });
 

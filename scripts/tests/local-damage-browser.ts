@@ -20,10 +20,10 @@ export async function articulation(shipId: string) {
   if (game.definition.id !== shipId) await game.switchShip(shipPreset(shipId));
   const results = [];
   for (const trainFraction of [-1, 1]) {
-    const d = game.previewArticulation({ trainFraction, elevationFraction: 1, recoilFraction: 1 });
+    const d = await game.previewArticulation({ trainFraction, elevationFraction: 1, recoilFraction: 1 });
     results.push({ shipId, contentHash: d.contentHash, trainFraction, maxMuzzleErrorM: d.maxMuzzleErrorM, maxTorpedoMuzzleErrorM: d.maxTorpedoMuzzleErrorM });
   }
-  game.previewArticulation(null);
+  await game.previewArticulation(null);
   return results;
 }
 
@@ -36,7 +36,9 @@ export async function damageReview() {
     if (!button) throw new Error(`Missing ${text} control`); button.click();
   };
   if (game.inPort) {
-    click('Custom battle'); await new Promise(r => setTimeout(r, 100)); click('Start battle');
+    click('Battle'); await new Promise(r => setTimeout(r, 100));
+    click('Custom battle'); await new Promise(r => setTimeout(r, 100));
+    click('Deploy fleet'); await new Promise(r => setTimeout(r, 100)); click('Start battle');
     await until(() => !game.inPort);
   }
   cancelAnimationFrame(game.raf); await game.frameTask; cancelAnimationFrame(game.raf);

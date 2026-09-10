@@ -13,6 +13,17 @@ export interface ControlState {
 }
 interface JobOffer { job: ControlJob; score: number; }
 const jobKey = (job: ControlJob) => `${job.kind}:${job.index}`;
+// Definitions are fixed during combat; damage, fire and water remain live.
+const roomLayouts = new WeakMap<ShipDefinition, number[]>();
+function moduleRooms(def: ShipDefinition): number[] {
+  let rooms = roomLayouts.get(def);
+  if (!rooms) {
+    const indices = new Map(def.compartments.map((room, i) => [room.id, i]));
+    rooms = def.modules.map(module => module.compartmentId === undefined ? -1 : indices.get(module.compartmentId) ?? -1);
+    roomLayouts.set(def, rooms);
+  }
+  return rooms;
+}
 
 /** Reserve every valid incumbent before dispatching idle teams or preempting
  * lower-priority work. Team array order must not cause job stealing. */
@@ -61,7 +72,7 @@ function wet(actor: Combatant, def: ShipDefinition, index: number): number {
 }
 export function heatModule(actor: Combatant, def: ShipDefinition, index: number, deliveredDamage: number): void {
   if (!def.damageControl) return;
-  const m = def.modules[index], room = def.compartments.findIndex(c => c.id === m.compartmentId);
+  const m = def.modules[index], room = moduleRooms(def)[index];
   if (room < 0 || wet(actor, def, room) >= .25) return;
   heatRoom(actor, def, room, deliveredDamage);
   if (m.kind === 'magazine') actor.damage.modules[index].ignition += deliveredDamage / 150;
@@ -82,6 +93,15 @@ export function updateDamageControl(actor: Combatant, def: ShipDefinition, dt: n
   const d = def.damageControl, c = actor.damage.control;
   c.pumping.fill(0);
   if (!d || actor.damage.sunk || dt <= 0) return;
+  // Intact ships have no jobs, heat, ignition or water to evolve. Read live
+  // state each tick so direct hits, flooding and restored snapshots immediately
+  // enter the full control loop; no cached "undamaged" flag can go stale.
+  const cold = (f: FireState) => f.heat === 0 && f.intensity === 0 && f.fuel >= 0 && !f.suppressed && f.trend === 'out';
+  if (c.teams.every(job => job === null) && c.rooms.every(cold) && c.mounts.every(cold)
+    && actor.damage.compartments.every(room => room.waterM3 === 0 && room.breaches.length === 0)
+    && actor.damage.modules.every((m, i) => m.hp === def.modules[i].hp && m.ignition === 0)
+    && actor.mounts.every(m => m.hp === 100)) return;
+  const rooms = moduleRooms(def);
   const jobs: JobOffer[] = [];
   const offer = (kind: ControlJob['kind'], index: number, id: string, score: number, category: ControlPriority) => {
     jobs.push({ job: { kind, index, setup: d.setupSeconds },
@@ -102,8 +122,10 @@ export function updateDamageControl(actor: Combatant, def: ShipDefinition, dt: n
   });
   if (c.spares > 0) {
     def.modules.forEach((m, i) => {
-      const room = def.compartments.findIndex(r => r.id === m.compartmentId), hp = actor.damage.modules[i].hp;
-      if (hp > 0 && hp < m.hp * d.repairCeiling && equipmentCondition(actor, def, m).reason !== 'flooded' && (room < 0 || c.rooms[room].heat < .15 && wet(actor, def, room) < .2))
+      const hp = actor.damage.modules[i].hp;
+      if (hp <= 0 || hp >= m.hp * d.repairCeiling) return;
+      const room = rooms[i];
+      if (equipmentCondition(actor, def, m).reason !== 'flooded' && (room < 0 || c.rooms[room].heat < .15 && wet(actor, def, room) < .2))
         offer('repair-module', i, m.compartmentId ?? m.id, 10, 'repairs');
     });
     actor.mounts.forEach((m, i) => { if (m.hp > 0 && m.hp < 100 * d.repairCeiling && c.mounts[i].heat < .15) offer('repair-mount', i, def.mounts[i].id, 10, 'repairs'); });
@@ -164,13 +186,14 @@ export function updateDamageControl(actor: Combatant, def: ShipDefinition, dt: n
     if (b.intensity > 0 && a.fuel > 0) a.heat = Math.min(2, a.heat + b.intensity * path * .02 * dt);
   });
   def.modules.forEach((m, i) => {
-    const state = actor.damage.modules[i], ri = def.compartments.findIndex(r => r.id === m.compartmentId), f = c.rooms[ri], w = ri < 0 ? 0 : wet(actor, def, ri);
+    const state = actor.damage.modules[i], ri = rooms[i], f = c.rooms[ri], w = ri < 0 ? 0 : wet(actor, def, ri);
     if (ri < 0) return;
     state.hp = Math.max(0, state.hp - f.intensity * .8 * dt);
     if (m.kind !== 'magazine' || state.detonated) return;
     state.ignition = w >= .25 ? 0 : Math.max(0, state.ignition + (f.intensity * .025 - .003) * dt - .05 * (suppressRooms.get(ri) ?? 0));
+    if (state.ignition < 1) return;
     const linked = def.mounts.map((mount, j) => mount.magazineId === m.id ? j : -1).filter(j => j >= 0);
-    if (state.ignition < 1 || (linked.length > 0 && linked.every(j => actor.mounts[j].ammo === 0))) return;
+    if (linked.length > 0 && linked.every(j => actor.mounts[j].ammo === 0)) return;
     state.detonated = true; state.hp = 0;
     linked.forEach(j => { actor.mounts[j].hp = 0; actor.mounts[j].ammo = 0; actor.mounts[j].heAmmo = 0; });
     let low = 0, high = def.hull.beam / 2;

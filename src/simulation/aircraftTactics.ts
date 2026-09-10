@@ -5,6 +5,11 @@ import { add, clamp, dot, length, normalize, scale, sub } from './geometry';
 import { flyAircraft } from './aircraftFlight';
 
 export interface AirPilot {
+  /** Authoritative Rust pilot state; the frozen TypeScript controller does not write it. */
+  recovery?: { stage: string; bestDistance: number; stalledSeconds: number; goArounds: number; retrySeconds: number; notice?: string | null };
+  defense?: { fireSeconds: number; fireDirection: Vec3; cooldown: number; maneuverSeconds: number; spreadSeconds: number; heading: number; altitude: number; side: number; sequence: number; notice?: string | null };
+  formation?: { kind: string; offset: Vec3 };
+  maneuver?: { kind: string; speed: number; pursuitSeconds: number };
   fireDiscipline?: import('./airGunnery').FireDiscipline;
   think: number; hostileId?: string; aimTime: number;
   breakTime: number; breakCooldown: number; breakPoint?: Vec3;
