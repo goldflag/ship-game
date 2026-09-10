@@ -68,15 +68,20 @@ pub fn aa_spread(distance: f64) -> f64 {
     0.06 + distance / 20000.0
 }
 pub fn aa_damage(caliber: f64) -> f64 {
+    // Overlapping batteries remain dangerous; their per-hit damage is modestly
+    // below the original 8/16/40 tuning so positioned fighters matter more.
     if caliber > 0.08 {
-        40.0
+        36.0
     } else if caliber > 0.025 {
-        16.0
+        14.0
     } else {
-        8.0
+        7.0
     }
 }
 pub fn fighter_spread(bank: f64) -> f64 {
-    0.07 + bank.abs() * 0.04
+    // A burst represents several rounds. Disciplined fire needs a reasonable
+    // chance of landing two damaging bursts within the finite 16-burst load;
+    // banking and panic still spoil the solution rather than granting hits.
+    0.026 + bank.abs() * 0.018
 }
 pub const FIGHTER_DAMAGE: f64 = 80.0;

@@ -51,6 +51,14 @@ export function airWingTelemetry(actor: FleetActor, actors: FleetActor[]) {
     const route: Vec3[] = flying.length ? [position, ...(lead.navigationTarget ? [[...lead.navigationTarget] as Vec3] : []), ...(search && status === 'on-mission' && !lead.targetId ? search.route.slice(search.waypoint) : [[...destination] as Vec3])] : [];
     const distance = route.slice(1).reduce((n, point, i) => n + length(sub(point, route[i])), 0);
     const queueIndex = queue.findIndex(p => p.flightId === f.id);
+    const recoveryNotice = status === 'returning' ? flying.find(p => p.behavior?.recoveryNotice?.includes('Holding') || p.behavior?.recoveryNotice?.includes('Steady the course'))?.behavior?.recoveryNotice
+      ?? flying.find(p => p.behavior?.recoveryNotice)?.behavior?.recoveryNotice : undefined;
+    const evading = status === 'on-mission' || status === 'returning' ? flying.find(p => !!p.behavior?.evasionNotice) : undefined;
+    const maneuverNotice = status === 'on-mission' && lead.role === 'fighter' ? ({
+      'defensive-break': 'Defensive break', extend: 'Extending for another pass',
+      'high-yo-yo': 'Climbing to reduce closure', reposition: 'Repositioning for a firing pass',
+      'cover-wingman': 'Covering a threatened wingman', 'tail-pursuit': 'Following target’s tail',
+    } as Record<string, string>)[lead.behavior?.maneuver ?? ''] : undefined;
     const pendingClearance = state.deck?.queue.some(r => r.flightId === f.id && r.automatic);
     const allOnDeck = surviving.length > 0 && surviving.every(p => p.phase === 'ready' && onFlightDeck(p));
     const stowable = surviving.some(p => ['ready', 'rearming'].includes(p.phase) && onFlightDeck(p));
@@ -69,14 +77,14 @@ export function airWingTelemetry(actor: FleetActor, actors: FleetActor[]) {
       enduranceSeconds: remaining(Math.max(0, ...flying.map(p => p.flightTime))),
       rearmSeconds: Math.ceil(Math.max(0, ...surviving.filter(p => ['rearming', 'repairing'].includes(p.phase)).map(p => p.timer))),
       position, destination: [destination[0], 0, destination[2]],
-      activity: deck?.reason ?? (status !== 'on-mission' ? AIR_STATUS_LABELS[status]
+      activity: deck?.reason ?? (evading ? status === 'returning' ? 'Returning · Evading' : 'Evading' : status !== 'on-mission' ? AIR_STATUS_LABELS[status]
         : surviving.some(p => p.phase === 'attack') ? (lead.role === 'fighter' ? 'Engaging' : 'Attacking')
         : f.order.kind === 'patrol' ? (Math.hypot(position[0] - destination[0], position[2] - destination[2]) < 1300 ? 'Loitering' : 'En route')
         : f.order.kind === 'search-area' ? (lead.targetId ? 'Shadowing' : 'Searching') : f.order.kind === 'defend' ? 'Defending' : (f.order.kind === 'intercept' || f.order.kind === 'intercept-contact') ? 'Intercepting' : f.order.kind === 'escort' ? 'Escorting' : 'En route'),
       heading: lead.heading, route, search, targetName: target?.definition.name ?? escort?.name ?? (reportMission ? 'reported contact' : undefined),
       etaSeconds: flying.length && (status === 'returning' || f.order.kind === 'attack') ? Math.ceil(distance / Math.max(35, length(lead.velocity))) : undefined,
       queuePosition: queueIndex >= 0 ? queueIndex + 1 : undefined,
-      notice: f.notice ?? (flying.some(lowEndurance) ? 'Low endurance · Returning to carrier' : undefined), aircraftIds: planes.map(p => p.id), deck,
+      notice: evading?.behavior?.evasionNotice ?? recoveryNotice ?? f.notice ?? maneuverNotice ?? (flying.some(lowEndurance) ? 'Low endurance · Returning to carrier' : undefined), aircraftIds: planes.map(p => p.id), deck,
     } satisfies FlightSummary];
   });
   return {

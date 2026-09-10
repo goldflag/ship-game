@@ -630,7 +630,7 @@ fn spotted_aircraft_publish_only_visible_exteriors_and_stop_when_sight_is_lost()
             .any(|id| id == "own")
     );
     for field in [
-        "ownerId", "hp", "ammo", "payload", "order", "pilot", "targetId", "flightId",
+        "ownerId", "hp", "ammo", "payload", "order", "pilot", "targetId", "flightId", "behavior",
     ] {
         assert!(exterior.get(field).is_none(), "private field {field}");
     }
@@ -663,4 +663,100 @@ fn spotted_aircraft_publish_only_visible_exteriors_and_stop_when_sight_is_lost()
         !hidden["contacts"].as_array().unwrap().is_empty(),
         "last-known reports remain on the chart"
     );
+}
+
+#[test]
+fn bomber_evasion_requires_local_observation_or_actual_nearby_fire() {
+    let mut visible = battle();
+    let mut hidden = battle();
+    for b in [&mut visible, &mut hidden] {
+        launch(b, "own", "dive-bomber", [0.0, 850.0, -3500.0]);
+        launch(b, "private-carrier", "fighter", [0.0, 850.0, -2800.0]);
+    }
+    observe(&mut visible, true);
+    let reports = std::mem::take(&mut visible.sensors);
+    let tick = visible.tick;
+    step_air(&mut visible, &reports, tick, 1);
+    step_air(&mut hidden, &Sensors::default(), tick, 1);
+    assert!(own_planes(&visible).iter().any(|p| {
+        p.pilot
+            .defense
+            .as_ref()
+            .is_some_and(|d| d.maneuver_seconds > 0.0)
+    }));
+    assert!(
+        own_planes(&hidden)
+            .iter()
+            .all(|p| p.pilot.defense.is_none())
+    );
+    let id = own_planes(&hidden)
+        .iter()
+        .find(|p| p.phase == "outbound")
+        .unwrap()
+        .id
+        .clone();
+    naval_sim::aircraft_defense::near_fire(
+        hidden.aviation.plane_mut(&id).unwrap(),
+        [0.0, 850.0, -2800.0],
+    );
+    step_air(&mut hidden, &Sensors::default(), tick + 1, 1);
+    assert!(
+        hidden
+            .aviation
+            .plane_mut(&id)
+            .unwrap()
+            .pilot
+            .defense
+            .as_ref()
+            .unwrap()
+            .maneuver_seconds
+            > 0.0
+    );
+}
+
+#[test]
+fn owned_flights_publish_activity_without_private_pilot_state() {
+    let mut b = battle();
+    let flight = launch(&mut b, "own", "dive-bomber", [0.0, 850.0, -3500.0]);
+    let p = b
+        .aviation
+        .wing_mut("own")
+        .unwrap()
+        .planes
+        .iter_mut()
+        .find(|p| p.flight_id.as_ref() == Some(&flight))
+        .unwrap();
+    p.pilot.recovery = Some(naval_sim::aircraft_recovery::RecoveryProgress {
+        notice: Some("Carrier turning too sharply · Steady the course to recover aircraft".into()),
+        ..Default::default()
+    });
+    p.pilot.defense = Some(naval_sim::aircraft_defense::DefenseState {
+        notice: Some("Evading fighter".into()),
+        maneuver_seconds: 4.0,
+        ..Default::default()
+    });
+    let id = p.id.clone();
+    for frame in [
+        b.presentation_value(PresentationView::FullKnowledge)
+            .unwrap(),
+        b.presentation_value(PresentationView::Team(TeamId::A))
+            .unwrap(),
+        serde_json::to_value(b.presentation_snapshot()).unwrap(),
+    ] {
+        let p = frame["wings"][0]["state"]["planes"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|p| p["id"] == id)
+            .unwrap();
+        assert!(p.get("pilot").is_none());
+        assert_eq!(p["behavior"]["evasionNotice"], "Evading fighter");
+        assert!(
+            p["behavior"]["recoveryNotice"]
+                .as_str()
+                .unwrap()
+                .contains("Steady the course")
+        );
+        assert_eq!(p["behavior"].as_object().unwrap().len(), 2);
+    }
 }
