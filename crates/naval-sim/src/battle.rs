@@ -90,7 +90,9 @@ pub struct Battle {
     pub depth_charges: Vec<DepthCharge>,
     pub air_releases: Vec<AirRelease>,
     pub events: Vec<Event>,
-    pub(crate) team_events: [Vec<Event>; 2],
+    /// Ring buffers: the bound drops the oldest event, which on a `Vec` moved
+    /// the whole 128-entry window on every emission.
+    pub(crate) team_events: [std::collections::VecDeque<Event>; 2],
     team_event_sequence: [u64; 2],
     pub tick: u64,
     pub outcome: Option<Outcome>,
@@ -111,6 +113,8 @@ pub struct Battle {
     /// Every actor's recorded track and formation axis, kept outside navigation
     /// state so manual helm, bots and standing orders all leave a wake to follow.
     pub trails: navigation::Trails,
+    /// Reused per-tick scratch: the projectile ids still in flight, sorted.
+    active_projectiles: Vec<i64>,
 }
 impl Battle {
     pub fn new(
@@ -271,6 +275,7 @@ impl Battle {
             navigation_reports: Default::default(),
             visual_conditions,
             visual_rules: Default::default(),
+            active_projectiles: vec![],
         })
     }
     pub fn survivors(&self) -> Vec<Survivor> {
@@ -338,13 +343,13 @@ impl Battle {
                     }
                     self.team_event_sequence[team.index()] += 1;
                     let events = &mut self.team_events[team.index()];
-                    events.push(Event {
+                    events.push_back(Event {
                         sequence: self.team_event_sequence[team.index()],
                         tick: self.tick,
                         data,
                     });
                     if events.len() > 128 {
-                        events.remove(0);
+                        events.pop_front();
                     }
                 }
             }
@@ -432,37 +437,51 @@ impl Battle {
             .as_ref()
             .map(|_| &self.navigation_reports);
         let mut commands = Vec::with_capacity(self.actors.len());
+        // The actor stays in place: every callee here already skips the ship it
+        // is steering (by identity or by team), so an index-based split shows
+        // the same fleet in the same order without memmoving the whole vector
+        // out and back twice a tick.
         for i in 0..self.actors.len() {
-            let mut actor = self.actors.remove(i);
-            let def = actor.compiled.definition.clone();
-            actor.sea = Some((self.sea.clone(), time));
-            let actor_id = actor.motion.id.clone();
-            capability::update(&mut actor, &def, self.aviation.wing(&actor_id));
-            let order = orders.get(&actor.motion.id);
+            let def = self.actors[i].compiled.definition.clone();
+            self.actors[i].sea = Some((self.sea.clone(), time));
+            let actor_id = self.actors[i].motion.id.clone();
+            let team = self.actors[i].team;
+            let wing = self.aviation.wing(&actor_id);
+            capability::update(&mut self.actors[i], &def, wing);
+            let order = orders.get(&actor_id);
             let mut command = HelmCommand::default();
-            if actor.physical_loss().is_some() {
-                actor.target_id = None
+            if self.actors[i].physical_loss().is_some() {
+                self.actors[i].target_id = None
             } else {
-                let contact = self.mission_rules.as_ref().and_then(|_| {
-                    if let Some(mount) = bots::battery_mount(&actor, false)
-                        .or_else(|| bots::battery_mount(&actor, true))
-                    {
+                let contact = if self.mission_rules.is_some() {
+                    let mount = bots::battery_mount(&self.actors[i], false)
+                        .or_else(|| bots::battery_mount(&self.actors[i], true))
+                        .and_then(|m| def.mounts.iter().position(|d| std::ptr::eq(d, m)));
+                    let position = [
+                        self.actors[i].motion.x,
+                        self.actors[i].motion.y,
+                        self.actors[i].motion.z,
+                    ];
+                    let requested = order.and_then(|o| o.target_id.as_deref());
+                    if let Some(mount) = mount {
                         self.sensors.battery_target(
-                            actor.team,
-                            [actor.motion.x, actor.motion.y, actor.motion.z],
-                            mount,
-                            order.and_then(|o| o.target_id.as_deref()),
-                            actor.target_id.as_deref(),
+                            team,
+                            position,
+                            &def.mounts[mount],
+                            requested,
+                            self.actors[i].target_id.as_deref(),
                         )
                     } else {
                         self.sensors.surface_target(
-                            actor.team,
-                            [actor.motion.x, actor.motion.y, actor.motion.z],
-                            order.and_then(|o| o.target_id.as_deref()),
-                            actor.target_id.as_deref(),
+                            team,
+                            position,
+                            requested,
+                            self.actors[i].target_id.as_deref(),
                         )
                     }
-                });
+                } else {
+                    None
+                };
                 let target = self
                     .mission_rules
                     .is_none()
@@ -470,38 +489,44 @@ impl Battle {
                         order
                             .and_then(|o| o.target_id.as_ref())
                             .and_then(|id| {
-                                self.actors.iter().find(|a| {
+                                self.actors.iter().position(|a| {
                                     a.motion.id == *id
-                                        && a.team != actor.team
+                                        && a.team != team
                                         && a.physical_loss().is_none()
                                 })
                             })
-                            .or_else(|| bots::target(&actor, &self.actors).map(|j| &self.actors[j]))
+                            .or_else(|| bots::target(&self.actors[i], &self.actors))
                     })
                     .flatten();
-                if actor.controller == Controller::Bot
+                if self.actors[i].controller == Controller::Bot
                     || order.is_some_and(|o| o.guns.is_none() || o.helm.is_none())
                 {
-                    let mut bot = actor.bot.take().unwrap();
+                    let mut bot = self.actors[i].bot.take().unwrap();
                     if self.mission_rules.is_some() {
-                        bot.update_contact(&actor, &def, contact, time);
-                        command = bots::helm_contact(&bot, &actor, contact, &self.actors);
+                        bot.update_contact(&self.actors[i], &def, contact, time);
+                        command = bots::helm_contact(&bot, &self.actors[i], contact, &self.actors);
                     } else {
                         bot.update(
-                            &actor,
+                            &self.actors[i],
                             &def,
-                            target.map(|t| (&t.state, t.definition())),
+                            target.map(|j| (&self.actors[j].state, self.actors[j].definition())),
                             time,
                         );
-                        command = bots::helm(&mut bot, &actor, target, &self.actors);
+                        command = bots::helm(
+                            &mut bot,
+                            &self.actors[i],
+                            target.map(|j| &self.actors[j]),
+                            &self.actors,
+                        );
                     }
                     if bot.ai_level != AiLevel::Static {
-                        command = avoid_land(&actor.motion, command, &self.islands)
+                        command = avoid_land(&self.actors[i].motion, command, &self.islands)
                     }
-                    actor.bot = Some(bot);
-                    actor.target_id = contact
+                    self.actors[i].bot = Some(bot);
+                    let chosen = contact
                         .map(|c| c.id.clone())
-                        .or_else(|| target.map(|t| t.motion.id.clone()));
+                        .or_else(|| target.map(|j| self.actors[j].motion.id.clone()));
+                    self.actors[i].target_id = chosen;
                 }
                 if let Some(o) = order {
                     if let Some(helm) = o.helm {
@@ -511,7 +536,7 @@ impl Battle {
                             Movement::Autonomous => {
                                 if self.mission_rules.is_some() {
                                     let formation = navigation::formation_report(
-                                        &actor,
+                                        &self.actors[i],
                                         &self.actors,
                                         orders,
                                         o.formation_policy,
@@ -519,9 +544,9 @@ impl Battle {
                                     );
                                     command.throttle = command.throttle.min(
                                         formation.speed_limit_mps
-                                            / navigation::maximum_speed(&actor).max(0.05),
+                                            / navigation::maximum_speed(&self.actors[i]).max(0.05),
                                     );
-                                    let mut state = actor
+                                    let mut state = self.actors[i]
                                         .navigation
                                         .take()
                                         .filter(|s| s.order == o.movement)
@@ -537,18 +562,17 @@ impl Battle {
                                         navigation::NavigationStatus::FollowingRoute
                                     };
                                     state.formation = Some(formation);
-                                    actor.navigation = Some(state);
+                                    self.actors[i].navigation = Some(state);
                                 }
                             }
                             Movement::Hold => command = HelmCommand::default(),
                             Movement::Move { position: [x, z] } => {
-                                let distance = (x - actor.motion.x).hypot(z - actor.motion.z);
-                                let angle = wrap_angle(
-                                    (x - actor.motion.x).atan2(actor.motion.z - z)
-                                        - actor.motion.heading,
-                                );
+                                let motion = &self.actors[i].motion;
+                                let distance = (x - motion.x).hypot(z - motion.z);
+                                let angle =
+                                    wrap_angle((x - motion.x).atan2(motion.z - z) - motion.heading);
                                 command = avoid_land(
-                                    &actor.motion,
+                                    &self.actors[i].motion,
                                     HelmCommand {
                                         throttle: if distance < 80.0 {
                                             0.0
@@ -564,18 +588,18 @@ impl Battle {
                             Movement::Route { .. }
                             | Movement::HoldArea { .. }
                             | Movement::Escort { .. } => {
-                                let mut state = actor
+                                let mut state = self.actors[i]
                                     .navigation
                                     .take()
                                     .unwrap_or_else(|| NavigationState::new(o.movement.clone()));
-                                let speed_limit = self.actors.iter().filter(|a| a.team == actor.team && a.physical_loss().is_none())
+                                let speed_limit = self.actors.iter().filter(|a| a.motion.id != actor_id && a.team == team && a.physical_loss().is_none())
                                     .filter(|a| orders.get(&a.motion.id).is_some_and(|o|
                                         matches!(&o.movement, Movement::Escort { leader_id, .. } if leader_id == &actor_id)))
                                     .map(|a| a.definition().handling.forward_speed * 0.85)
                                     .fold(def.handling.forward_speed, f64::min);
                                 let formation = self.mission_rules.as_ref().map(|_| {
                                     navigation::formation_report(
-                                        &actor,
+                                        &self.actors[i],
                                         &self.actors,
                                         orders,
                                         o.formation_policy,
@@ -586,7 +610,7 @@ impl Battle {
                                     .as_ref()
                                     .map_or(speed_limit, |f| f.speed_limit_mps);
                                 command = navigation::command_observed(
-                                    &actor,
+                                    &self.actors[i],
                                     &self.actors,
                                     &self.islands,
                                     &o.movement,
@@ -596,7 +620,7 @@ impl Battle {
                                     &self.trails,
                                     navigation_contacts
                                         .as_ref()
-                                        .map(|reports| reports[actor.team.index()].as_slice()),
+                                        .map(|reports| reports[team.index()].as_slice()),
                                 );
                                 if formation.as_ref().is_some_and(|f| !f.stragglers.is_empty())
                                     && o.formation_policy
@@ -607,33 +631,33 @@ impl Battle {
                                         navigation::NavigationStatus::SlowingForStragglers;
                                 }
                                 state.formation = formation;
-                                actor.navigation = Some(state);
+                                self.actors[i].navigation = Some(state);
                             }
                         }
                     }
                 }
             }
             if let Some(reports) = &navigation_contacts
-                && actor.physical_loss().is_none()
+                && self.actors[i].physical_loss().is_none()
                 && order.is_none_or(|o| o.helm.is_none())
-                && actor
+                && self.actors[i]
                     .bot
                     .as_ref()
                     .is_some_and(|b| !matches!(b.ai_level, AiLevel::Static | AiLevel::Moving))
             {
-                let mut state = actor.navigation.take().unwrap_or_else(|| {
+                let mut state = self.actors[i].navigation.take().unwrap_or_else(|| {
                     NavigationState::new(order.map_or(Movement::Autonomous, |o| o.movement.clone()))
                 });
                 let wakes = crate::fleet_evasion::visible_wakes(
-                    &actor,
+                    &self.actors[i],
                     &self.torpedoes,
                     &self.islands,
                     &self.catalog.terrain,
                     self.visual_conditions.visibility_m,
                 );
                 command = crate::fleet_evasion::command(
-                    &actor,
-                    &reports[actor.team.index()],
+                    &self.actors[i],
+                    &reports[team.index()],
                     &wakes,
                     self.tick,
                     &mut state,
@@ -645,24 +669,23 @@ impl Battle {
                         | navigation::NavigationStatus::EvadingTorpedo
                 ) {
                     command = navigation::safe_correction(
-                        &actor,
+                        &self.actors[i],
                         &self.actors,
-                        &reports[actor.team.index()],
+                        &reports[team.index()],
                         &mut state,
                         command,
                     );
                 }
-                actor.navigation = Some(state);
+                self.actors[i].navigation = Some(state);
             }
             if let Some(mission) = &self.mission_rules {
                 command = avoid_land(
-                    &actor.motion,
-                    mission.area.constrain(&actor, command),
+                    &self.actors[i].motion,
+                    mission.area.constrain(&self.actors[i], command),
                     &self.islands,
                 );
             }
             commands.push(command);
-            self.actors.insert(i, actor);
         }
         for (i, a) in self.actors.iter_mut().enumerate() {
             let def = a.compiled.definition.clone();
@@ -851,14 +874,7 @@ impl Battle {
             );
             events.append(&mut emitted);
             if let Some(end) = end {
-                completed.push((
-                    self.shells[i].id,
-                    serde_json::to_value(end)
-                        .unwrap()
-                        .as_str()
-                        .unwrap()
-                        .to_string(),
-                ));
+                completed.push((self.shells[i].id, end.as_str()));
                 self.shells.remove(i);
             }
         }
@@ -940,16 +956,22 @@ impl Battle {
             self.emit(e)
         }
         for (id, end) in completed {
-            self.records.complete_shell(id, &end)
+            self.records.complete_shell(id, end)
         }
-        let active = self
-            .shells
-            .iter()
-            .map(|s| s.id)
-            .chain(self.torpedoes.iter().map(|t| t.id))
-            .chain(self.depth_charges.iter().map(|c| c.id))
-            .collect();
+        // One reused sorted buffer instead of a fresh BTreeSet of node
+        // allocations for every projectile in flight, every tick.
+        let mut active = std::mem::take(&mut self.active_projectiles);
+        active.clear();
+        active.extend(
+            self.shells
+                .iter()
+                .map(|s| s.id)
+                .chain(self.torpedoes.iter().map(|t| t.id))
+                .chain(self.depth_charges.iter().map(|c| c.id)),
+        );
+        active.sort_unstable();
         self.records.finish_tick(&self.actors, &active);
+        self.active_projectiles = active;
         self.tick += 1;
         self.outcome = if let Some(mission) = &self.mission_rules {
             crate::mission::evaluate(
@@ -986,29 +1008,45 @@ fn operate_underwater(
     let compiled = a.compiled.clone();
     let def = &compiled.definition;
     a.tube_launch_cooldown = (a.tube_launch_cooldown - DT).max(0.0);
-    let aims: BTreeMap<_, _> = def
+    // Aims by tube index. Ships without tubes allocate nothing, and the tube
+    // identity never has to be cloned into a map key to be found again.
+    let aims: Vec<Option<crate::definition::Vec3>> = def
         .torpedo_tubes
         .iter()
         .flatten()
         .map(|t| {
-            (
-                t.id.clone(),
-                player.map(|p| p.aim).unwrap_or_else(|| {
-                    (target.is_some() || observed_target)
-                        .then(|| {
-                            a.bot
-                                .as_ref()
-                                .and_then(|b| bots::torpedo_aim(b, &a.motion, t))
-                        })
-                        .flatten()
-                }),
-            )
+            player.map(|p| p.aim).unwrap_or_else(|| {
+                (target.is_some() || observed_target)
+                    .then(|| {
+                        a.bot
+                            .as_ref()
+                            .and_then(|b| bots::torpedo_aim(b, &a.motion, t))
+                    })
+                    .flatten()
+            })
         })
         .collect();
-    torpedoes::train_launchers(a, def, &|t| aims[&t.id], DT, None);
+    let aim_for = |tube: &crate::definition::TubeDefinition| {
+        def.torpedo_tubes
+            .iter()
+            .flatten()
+            .position(|t| std::ptr::eq(t, tube))
+            .and_then(|i| aims[i])
+    };
+    torpedoes::train_launchers(a, def, &aim_for, DT, None);
     for (i, t) in def.torpedo_tubes.iter().flatten().enumerate() {
-        let mut state = a.torpedo_tubes[i].clone();
-        let aim = aims[&t.id];
+        // Move the tube state out and back rather than cloning its two strings
+        // every tick; nothing reachable from here reads the vessel's own tubes.
+        let mut state = std::mem::replace(
+            &mut a.torpedo_tubes[i],
+            torpedoes::TubeState {
+                id: String::new(),
+                ammo: 0.0,
+                reload: 0.0,
+                status: String::new(),
+            },
+        );
+        let aim = aims[i];
         let solution = torpedoes::tube_solution(
             a,
             def,
@@ -1098,7 +1136,15 @@ fn operate_underwater(
     }
     a.depth_charge_cooldown = (a.depth_charge_cooldown - DT).max(0.0);
     for (i, l) in def.depth_charge_launchers.iter().flatten().enumerate() {
-        let mut state = a.depth_charge_launchers[i].clone();
+        let mut state = std::mem::replace(
+            &mut a.depth_charge_launchers[i],
+            depth_charges::DepthChargeLauncherState {
+                id: String::new(),
+                ammo: 0.0,
+                reload: 0.0,
+                status: String::new(),
+            },
+        );
         depth_charges::update_launcher(a, def, l, &mut state, DT, a.depth_charge_cooldown, None);
         let fire = player.map_or_else(
             || {
