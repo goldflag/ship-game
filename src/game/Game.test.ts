@@ -11,6 +11,7 @@ import { CameraRig } from './CameraRig';
 import { ShellFollow } from './ShellFollow';
 import { BattlefieldCamera } from './BattlefieldCamera';
 import { ShipView } from './ShipView';
+import { ObservedShipViews } from './ObservedShipViews';
 import { CombatSimulation } from '../simulation/combat';
 import { shipPreset, shipPresets } from '../ships/presets';
 import * as ShipDetail from './ShipDetail';
@@ -60,7 +61,7 @@ async function port(storageMatrices = false) {
     effects: { reset() {}, diagnostics() { return {}; } },
     funnelSmoke: { diagnostics() { return {}; } },
     shipLabels: { setFleet() {} },
-    ship: new Group(), inPort: true, disposed: false, switchingShip: false,
+    ship: new Group(), inPort: true, disposed: false, switchingShip: false, frameWaiters: [], observedShipViews: new ObservedShipViews(),
     renderer: { backend: { isWebGPUBackend: storageMatrices }, domElement: { setAttribute() {} } },
     environment: new VisualEnvironment({ effects: { setWind() {}, setSun() {}, setIllumination() {} }, funnelSmoke: { setWind() {} }, sunAnchor: new Group() }),
   }) as Game;
@@ -278,14 +279,31 @@ test.each(['yamato', 'enterprise-cv6'])('PvE prepares detail only for owned hull
     await game.prepareBattle({ playerShipId: 'bismarck', friendlyBots: ['fletcher', 'fletcher'],
       enemies: [enemy], spawnDistance: 5000, missionRules: pveRules as MissionRules }, label => stages.push(label));
     expect(game.simulation.actors.every(actor => actor.team === 'friendly')).toBe(true);
-    // Every exterior remains ready before detection, with roster-independent
-    // requests and loading text. Only actual ShipViews consume detail buffers.
-    expect(loaded).toEqual(Object.keys(shipPresets));
+    // Getting underway waits only on the hulls already at sea, and the loading text names
+    // no hull at all, so nothing about the mission fleet leaks before contact.
+    expect(loaded).toEqual(['bismarck', 'fletcher']);
     expect(detailed.sort()).toEqual(['bismarck', 'fletcher']);
-    expect(stages.filter(label => label.includes('recognition'))).toEqual([
-      ...Array(Object.keys(shipPresets).length + 1).fill('Preparing ship recognition models'),
-      'Preparing aircraft recognition models',
-    ]);
+    expect(stages.every(label => !Object.keys(shipPresets).some(id => label.toLowerCase().includes(id.split('-')[0])))).toBe(true);
+    expect(stages).toContain('Preparing the fleet');
+
+    // A hull the mission reveals is fetched at that moment and drawn once it lands. The
+    // report already names the preset, so this asks for nothing the player was not told.
+    const contact = { id: 'contact-0-1', presetId: enemy, position: [0, 0, -8000] as [number, number, number],
+      heading: 0, velocity: [0, 0, 0] as [number, number, number], observedTick: 0, observers: [] };
+    const observed = (game as unknown as { observedShipViews: ObservedShipViews }).observedShipViews;
+    observed.update([contact], 0, true);
+    expect(observed.root.children).toHaveLength(0);
+    for (let pump = 1; pump < 100 && !observed.root.children.length; pump++) {
+      await new Promise(resolve => setTimeout(resolve, 0));
+      observed.update([contact], pump, true);
+    }
+    expect(observed.root.children).toHaveLength(1);
+    expect(loaded).toEqual(['bismarck', 'fletcher', enemy]);
+    // A revealed hull never gets detail buffers; only actor-backed views use those.
+    expect(detailed.sort()).toEqual(['bismarck', 'fletcher']);
+    // Asking again for a hull already aboard, or one already refused, costs no second fetch.
+    observed.update([contact, { ...contact, id: 'contact-0-2' }], 200, true);
+    expect(loaded).toEqual(['bismarck', 'fletcher', enemy]);
   } finally { detail.mockRestore(); loader.mockRestore(); rig.dispose(); game.simulation.dispose?.(); }
 }, 30000);
 

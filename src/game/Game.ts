@@ -123,6 +123,8 @@ export class Game {
   private waterViewFocus?: WaterViewFocus;
   private visualWaveSampler?: VisualWaveSampler;
   private fleetModels: THREE.Group[] = [];
+  /** Public hulls a mission may reveal, brought aboard the first time a contact needs one. */
+  private recognition?: { models: Map<string, THREE.Group>; palette: ShipMaterialPalette; asked: Set<string> };
   private shipLabels: ShipLabels;
   private hitLabels: HitLabels;
   private torpedoPreview = new TorpedoPreview();
@@ -621,8 +623,7 @@ export class Game {
   private async replaceFleet(simulation: BattleSession, definition: typeof selectedShip, progress?: BattleProgress): Promise<void> {
     this.inspectionHover?.clear();
     const actorDefinitions = new Map(simulation.actors.map(actor => [actor.definition.id, actor.definition]));
-    const definitions = simulation.missionRules ? Object.keys(shipPresets).map(id => shipPreset(id))
-      : [...actorDefinitions.values()];
+    const definitions = [...actorDefinitions.values()];
     const models = new Map<string, THREE.Group>();
     const palette = new ShipMaterialPalette();
     const views: ShipView[] = [];
@@ -633,7 +634,7 @@ export class Game {
       // buffers. Finish one model before fetching the next to bound peak memory.
       let loaded = 0;
       const hullShare = 0.6 / definitions.length;
-      progress?.(simulation.missionRules ? 'Preparing ship recognition models' : `Loading ${definitions[0].name}`, 0.08);
+      progress?.(simulation.missionRules ? 'Preparing the fleet' : `Loading ${definitions[0].name}`, 0.08);
       for (const def of definitions) {
         this.assertActive();
         const model = (await loadShipModel(assetUrl(def.modelUrl))).scene;
@@ -649,9 +650,9 @@ export class Game {
         if (actorDefinitions.has(def.id)) await prepareShipDetail(model);
         loaded += 1;
         const next = definitions.find(d => !models.has(d.id));
-        progress?.(simulation.missionRules ? 'Preparing ship recognition models' : next ? `Loading ${next.name}` : `${def.name} aboard`, 0.08 + hullShare * loaded);
+        progress?.(simulation.missionRules ? 'Preparing the fleet' : next ? `Loading ${next.name}` : `${def.name} aboard`, 0.08 + hullShare * loaded);
       }
-      if (definitions.some(d => d.airWing)) { progress?.(simulation.missionRules ? 'Preparing aircraft recognition models' : 'Spotting the air wing', 0.7); await this.aircraftView.load(definitions.flatMap(d => d.airWing?.squadrons.map(s => s.modelId) ?? []), !!(this.renderer.backend as { isWebGPUBackend?: boolean }).isWebGPUBackend); }
+      if (definitions.some(d => d.airWing)) { progress?.('Spotting the air wing', 0.7); await this.aircraftView.load(definitions.flatMap(d => d.airWing?.squadrons.map(s => s.modelId) ?? []), !!(this.renderer.backend as { isWebGPUBackend?: boolean }).isWebGPUBackend); }
       this.assertActive();
       if (!this.inPort) throw new Error('Return to port before changing fleets.');
       progress?.('Mustering the fleets', 0.78);
@@ -672,7 +673,8 @@ export class Game {
       this.playerDamageFeedback = new HullDamageFeedback(simulation.player.damage.integrity);
       this.audio?.reset(simulation);
       this.fleetModels = [...models.values()]; this.loadedModel = models.get(definition.id);
-      this.observedShipViews?.setModels(simulation.missionRules ? models : new Map());
+      this.recognition = simulation.missionRules ? { models, palette, asked: new Set(models.keys()) } : undefined;
+      this.observedShipViews?.setModels(simulation.missionRules ? models : new Map(), this.recognition && (presetId => this.loadRecognitionModel(presetId)));
       this.fleetViews = views; this.playerView = views.find(view => view.actor === simulation.player)!;
       this.shipWake?.reset();
       this.fleetDraws = draws;
@@ -701,6 +703,38 @@ export class Game {
       disposeObjects(...models.values(), ...clones, ...views.map(view => view.root));
       throw error;
     }
+  }
+
+  /** Bring aboard a hull the mission has just revealed. Loading the whole public catalog
+   * before the battle instead cost 109 MiB and about 7 s locally — 27 s on a 50 Mbit line —
+   * every time, whatever the player brought, and streaming it in behind the battle stalled
+   * frames for twenty seconds. A contact already names its preset in the report, so fetching
+   * it at that moment tells the player nothing they were not just told. */
+  private loadRecognitionModel(presetId: string): void {
+    const recognition = this.recognition;
+    // Failures stay marked as asked: one unavailable hull must not be retried every frame.
+    if (!recognition || recognition.asked.has(presetId)) return;
+    const definition = shipPreset(presetId);
+    if (definition.id !== presetId) return;
+    recognition.asked.add(presetId);
+    void (async () => {
+      let model: THREE.Group | undefined;
+      try {
+        model = (await loadShipModel(assetUrl(definition.modelUrl))).scene;
+        if (this.disposed || recognition !== this.recognition) { disposeObjects(model); return; }
+        const hash = 'contentHash' in definition ? definition.contentHash : undefined;
+        if (!hash || model.userData.definitionHash !== hash) throw new Error(`${definition.name} model and definition have different versions.`);
+        recognition.palette.apply(model);
+        batchShipModel(model);
+        recognition.models.set(presetId, model);
+        this.fleetModels.push(model);
+        if (definition.airWing) await this.aircraftView.load(definition.airWing.squadrons.map(squadron => squadron.modelId), !!(this.renderer.backend as { isWebGPUBackend?: boolean }).isWebGPUBackend);
+      } catch (error) {
+        // A hull that will not load stays undrawn rather than costing the battle.
+        if (model) disposeObjects(model);
+        console.warn(`Recognition model unavailable: ${presetId}`, error);
+      }
+    })();
   }
 
   private addBuoy(buoy: typeof BUOYS[number]): void {
