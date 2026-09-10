@@ -76,6 +76,20 @@ test('warming inspection caches between ticks cannot change a flooding replay', 
   expect(actor.damage.compartments[0].waterM3).toBeGreaterThan(0);
 });
 
+test('reusing compound column layouts preserves earlier water curves across axis and sampling changes', () => {
+  const room = base.compartments.reduce((a, b) => (a.cells?.length ?? 0) > (b.cells?.length ?? 0) ? a : b);
+  const volumes = [0, .01, .2, .6, 1].map(fraction => fraction * room.capacityM3);
+  const poses = [[0, 0], [.2, -.15], [.2001, -.149], [2.3, -.4], [0, Math.PI / 2]];
+  for (const [roll, pitch] of poses) {
+    const body = waterBody(room, room.capacityM3 * .3, roll, pitch), restored = structuredClone(body);
+    const levels = volumes.map(volume => levelAtVolume(room, body, volume));
+    for (const [otherRoll, otherPitch] of poses) waterBody(room, room.capacityM3 * .7, otherRoll, otherPitch);
+    expect(body).toEqual(restored);
+    expect(volumes.map(volume => levelAtVolume(room, body, volume))).toEqual(levels);
+    expect(volumes.map(volume => levelAtVolume(room, restored, volume))).toEqual(levels);
+  }
+});
+
 test('fill curves remain monotone and bounded under heel, trim and restored caches', () => {
   for (const [roll, pitch] of [[0, 0], [.2, -.15], [Math.PI / 4, .1], [2.3, -.4], [0, Math.PI / 2]]) {
     const body = waterBody(steppedRoom, 2, roll, pitch), restored = structuredClone(body);

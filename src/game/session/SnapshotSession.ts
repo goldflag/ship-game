@@ -1,5 +1,5 @@
 import type { DeckPolicy } from '../../multiplayer/generated/DeckPolicy';
-import type { BattleSession, ObservedShip, BattleDebrief, DeckServiceAction } from './BattleSession';
+import type { BattleSession, ObservedShip, ObservedAircraft, BattleDebrief, DeckServiceAction } from './BattleSession';
 import type { ContactTrack } from '../../multiplayer/generated/ContactTrack';
 import type { ReconCoverage } from '../../multiplayer/generated/ReconCoverage';
 import type { BattleSetup } from '../../multiplayer/generated/BattleSetup';
@@ -34,7 +34,7 @@ export interface Snapshot {
   tick: number; actors: WireActor[]; wings: { ownerId: string; state: AirWingState }[];
   shells: Shell[]; torpedoes: Torpedo[]; depthCharges: DepthCharge[]; releases: AirRelease[]; events: CombatEvent[];
   outcome?: BattleOutcome; afloatKg: [number | null, number | null];
-  view?: 'team'; contacts?: ContactTrack[]; observedShips?: ObservedShip[]; remainingSeconds?: number | null;
+  view?: 'team'; contacts?: ContactTrack[]; observedShips?: ObservedShip[]; observedAircraft?: ObservedAircraft[]; remainingSeconds?: number | null;
   reconCoverage?: ReconCoverage;
   debrief?: Snapshot;
   shipOutcomes?: Record<string, 'operational' | 'sunk' | 'incapacitated'>;
@@ -51,7 +51,7 @@ export abstract class SnapshotSession implements BattleSession {
   readonly isBattle = true;
   actors: FleetActor[] = [];
   player!: FleetActor; target?: FleetActor;
-  observationTracks: ContactTrack[] = []; observedShips: ObservedShip[] = [];
+  observationTracks: ContactTrack[] = []; observedShips: ObservedShip[] = []; observedAircraft: ObservedAircraft[] = [];
   reconCoverage?: ReconCoverage;
   private targetContactId?: string;
   get targetContact() { return this.observationTracks.find(c => c.id === this.targetContactId); }
@@ -162,7 +162,7 @@ export abstract class SnapshotSession implements BattleSession {
       }
     }
     this.actors = this.actors.filter(a => frame.actors.some(w => w.motion.id === a.motion.id));
-    this.observationTracks = frame.contacts ?? []; this.observedShips = frame.observedShips ?? [];
+    this.observationTracks = frame.contacts ?? []; this.observedShips = frame.observedShips ?? []; this.observedAircraft = frame.observedAircraft ?? [];
     this.reconCoverage = frame.reconCoverage;
     this.remainingSeconds = frame.view === 'team' ? frame.remainingSeconds ?? null : frame.remainingSeconds;
     const selected = frame.selectedShipIds?.[this.playerIndex];

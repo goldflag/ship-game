@@ -183,6 +183,8 @@ impl CoverageGrid {
                                 preset_id: None,
                                 role: None,
                                 cues: VisualCues::default(),
+                                motion: Default::default(),
+                                aircraft: None,
                             };
                             if !observation_strength(observer, &target, 1, false, conditions, rules)
                                 .is_some_and(|strength| strength >= 0.25)

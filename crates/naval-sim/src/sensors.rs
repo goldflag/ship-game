@@ -34,7 +34,7 @@ pub struct VisualRules {
 impl Default for VisualRules {
     fn default() -> Self {
         serde_json::from_str(include_str!(
-            "../../../assets/gameplay/visual-sensors.v1.json"
+            "../../../assets/gameplay/visual-sensors.v2.json"
         ))
         .expect("versioned visual rules")
     }
@@ -138,6 +138,23 @@ pub struct VisualEntity {
     /// Aircraft role for type classification once evidence is strong; ships use None.
     pub role: Option<String>,
     pub cues: crate::recon::VisualCues,
+    pub motion: VisualMotion,
+    pub aircraft: Option<AircraftExterior>,
+}
+/// Only externally visible pose and mechanisms are retained at acquisition.
+#[derive(Clone, Debug, Default)]
+pub struct VisualMotion {
+    pub velocity: [f64; 3],
+    pub heading: f64,
+    pub pitch: f64,
+    pub roll: f64,
+}
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AircraftExterior {
+    pub model_id: String,
+    pub controls: crate::aircraft_flight::FlightControls,
+    pub wing_fold: f64,
 }
 impl VisualEntity {
     pub fn can_observe(&self) -> bool {
@@ -172,13 +189,11 @@ impl VisualConditions {
 #[derive(Clone, Debug)]
 struct TrackRecord {
     track: ContactTrack,
-    evidence: f64,
-    measured_uncertainty: f64,
+    visual: VisualEntity,
 }
 #[derive(Default)]
 pub struct Sensors {
     records: [BTreeMap<String, TrackRecord>; 2],
-    pending: [BTreeMap<String, f64>; 2],
     sequence: [u64; 2],
     last_tick: Option<u64>,
     coverage: crate::recon::CoverageGrid,
@@ -246,6 +261,14 @@ impl Sensors {
     pub fn track(&self, team: TeamId, target_id: &str) -> Option<&ContactTrack> {
         self.records[team.index()].get(target_id).map(|r| &r.track)
     }
+    /// Exteriors exist only for the latest successful visibility sample.
+    /// Lost reports never read a hidden entity's subsequent pose or condition.
+    pub fn observed(&self, team: TeamId) -> impl Iterator<Item = (&ContactTrack, &VisualEntity)> {
+        self.records[team.index()]
+            .values()
+            .filter(|r| Some(r.track.last_observed_tick) == self.last_tick)
+            .map(|r| (&r.track, &r.visual))
+    }
     /// Resolve opaque commands internally; callers must use track measurements,
     /// not substitute the corresponding actor's unobserved current motion.
     pub fn resolve_contact(&self, team: TeamId, contact_id: &str) -> Option<&str> {
@@ -269,9 +292,6 @@ impl Sensors {
         {
             return;
         }
-        let dt = self
-            .last_tick
-            .map_or(1.0, |t| (tick - t) as f64 / TICK_RATE as f64);
         self.last_tick = Some(tick);
         self.coverage
             .update(tick, entities, islands, terrain, conditions, rules);
@@ -347,26 +367,13 @@ impl Sensors {
                         .total_cmp(&a.strength)
                         .then(a.observer_id.cmp(&b.observer_id))
                 });
-                let strength = sources[0].strength;
-                // Duplicate observers can corroborate classification, but cannot
-                // convert a distant invisible target into an acquired contact.
-                let evidence = self.pending[team.index()]
-                    .entry(target_id.clone())
-                    .or_default();
-                *evidence = (*evidence + strength * dt).min(2.0);
-                if !self.records[team.index()].contains_key(&target_id) && *evidence < 1.0 {
-                    continue;
-                }
-                let uncertainty = 20.0 + (1.0 - strength).powi(2) * 500.0;
-                let quantize = |n: f64| (n / uncertainty).round() * uncertainty;
-                let measured = target.position.map(quantize);
+                let measured = target.position;
                 let record = self.records[team.index()]
                     .entry(target_id)
                     .or_insert_with(|| {
                         self.sequence[team.index()] += 1;
                         TrackRecord {
-                            evidence: 0.0,
-                            measured_uncertainty: uncertainty,
+                            visual: target.clone(),
                             track: ContactTrack {
                                 id: format!(
                                     "contact-{}-{}",
@@ -381,7 +388,7 @@ impl Sensors {
                                 measured_position: measured,
                                 estimated_position: measured,
                                 velocity: [0.0; 3],
-                                uncertainty_m: uncertainty,
+                                uncertainty_m: 0.0,
                                 identification_confidence: 0.0,
                                 classification: None,
                                 identified_preset_id: None,
@@ -390,67 +397,40 @@ impl Sensors {
                             },
                         }
                     });
-                let elapsed = (tick - record.track.last_observed_tick) as f64 / TICK_RATE as f64;
-                if elapsed >= 1.0 {
-                    let max_speed = if target.kind == ContactKind::Aircraft {
-                        180.0
-                    } else {
-                        25.0
-                    };
-                    for (i, measurement) in measured.iter().enumerate() {
-                        let sample = ((measurement - record.track.measured_position[i]) / elapsed)
-                            .clamp(-max_speed, max_speed);
-                        record.track.velocity[i] = record.track.velocity[i] * 0.7 + sample * 0.3;
-                    }
-                }
-                record.evidence = (record.evidence + strength * dt).min(30.0);
-                record.measured_uncertainty = uncertainty;
+                record.visual = target.clone();
+                record.track.velocity = target.motion.velocity;
                 record.track.last_observed_tick = tick;
                 record.track.measured_position = measured;
-                record.track.identification_confidence = (record.evidence / 15.0).min(1.0);
-                record.track.affiliation =
-                    if target.kind == ContactKind::Surface || record.evidence >= 2.0 {
-                        Affiliation::Hostile
-                    } else {
-                        Affiliation::Unknown
-                    };
-                if record.evidence >= 3.0 {
-                    record.track.classification = Some(
-                        match target.kind {
-                            // Observers recognise the airframe type, never its owner or state.
-                            ContactKind::Aircraft => match target.role.as_deref() {
-                                Some("fighter") => "Fighter",
-                                Some("dive-bomber") => "Dive bomber",
-                                Some("torpedo-bomber") => "Torpedo bomber",
-                                _ => "Aircraft",
-                            },
-                            ContactKind::Surface if target.length_m < 150.0 => "Small warship",
-                            ContactKind::Surface if target.length_m < 220.0 => "Warship",
-                            ContactKind::Surface => "Large warship",
-                        }
-                        .into(),
-                    );
-                }
-                if record.evidence >= 15.0 && strength >= 0.5 {
-                    record.track.identified_preset_id = target.preset_id.clone();
-                }
+                record.track.identification_confidence = 1.0;
+                record.track.affiliation = Affiliation::Hostile;
+                record.track.classification = Some(
+                    match target.kind {
+                        // Observers recognise the airframe type, never its owner or state.
+                        ContactKind::Aircraft => match target.role.as_deref() {
+                            Some("fighter") => "Fighter",
+                            Some("dive-bomber") => "Dive bomber",
+                            Some("torpedo-bomber") => "Torpedo bomber",
+                            _ => "Aircraft",
+                        },
+                        ContactKind::Surface if target.length_m < 150.0 => "Small warship",
+                        ContactKind::Surface if target.length_m < 220.0 => "Warship",
+                        ContactKind::Surface => "Large warship",
+                    }
+                    .into(),
+                );
+                record.track.identified_preset_id = target.preset_id.clone();
                 record.track.sources = sources;
-                if target.kind == ContactKind::Surface && strength >= 0.6 {
+                if target.kind == ContactKind::Surface {
                     let visible = |point: Option<[f64; 3]>| {
                         point.is_some_and(|point| {
-                            record
-                                .track
-                                .sources
-                                .iter()
-                                .filter(|source| source.strength >= 0.6)
-                                .any(|source| {
-                                    entities
-                                        .iter()
-                                        .find(|entity| entity.id == source.observer_id)
-                                        .is_some_and(|observer| {
-                                            line_visible(observer.eye, point, islands, terrain)
-                                        })
-                                })
+                            record.track.sources.iter().any(|source| {
+                                entities
+                                    .iter()
+                                    .find(|entity| entity.id == source.observer_id)
+                                    .is_some_and(|observer| {
+                                        line_visible(observer.eye, point, islands, terrain)
+                                    })
+                            })
                         })
                     };
                     let sinking = target.cues.sinking
@@ -471,9 +451,6 @@ impl Sensors {
                     }
                 }
             }
-            for evidence in self.pending[team.index()].values_mut() {
-                *evidence = (*evidence - dt * 0.02).max(0.0);
-            }
             for record in self.records[team.index()].values_mut() {
                 let age = (tick - record.track.last_observed_tick) as f64 / TICK_RATE as f64;
                 let aircraft = record.track.kind == ContactKind::Aircraft;
@@ -484,19 +461,16 @@ impl Sensors {
                 };
                 record.track.status = if age >= stale as f64 {
                     TrackStatus::Stale
-                } else if age >= rules.lost_after_seconds as f64 {
+                } else if age > 0.0 && age >= rules.lost_after_seconds as f64 {
                     TrackStatus::Lost
-                } else if record.evidence >= 3.0 {
-                    TrackStatus::Tracked
                 } else {
-                    TrackStatus::Reported
+                    TrackStatus::Tracked
                 };
                 let prediction_age = age.min(if aircraft { 10.0 } else { 30.0 });
                 record.track.estimated_position = std::array::from_fn(|i| {
                     record.track.measured_position[i] + record.track.velocity[i] * prediction_age
                 });
-                record.track.uncertainty_m =
-                    record.measured_uncertainty + age * if aircraft { 100.0 } else { 15.0 };
+                record.track.uncertainty_m = age * if aircraft { 100.0 } else { 15.0 };
             }
         }
     }
@@ -514,7 +488,7 @@ pub fn observation_strength(
     observer: &VisualEntity,
     target: &VisualEntity,
     formation: usize,
-    tracked: bool,
+    _tracked: bool,
     conditions: VisualConditions,
     r: &VisualRules,
 ) -> Option<f64> {
@@ -539,17 +513,14 @@ pub fn observation_strength(
         1.0
     };
     let horizon = 3570.0 * (observer.eye[1].max(0.0).sqrt() + target.feature[1].max(0.0).sqrt());
-    let range = (range
-        * aggregate
-        * conditions.light.clamp(0.05, 1.0).sqrt()
-        * if tracked { 1.1 } else { 1.0 })
-    .min(conditions.visibility_m)
-    .min(horizon);
+    let range = (range * aggregate * conditions.light.clamp(0.05, 1.0).sqrt())
+        .min(conditions.visibility_m)
+        .min(horizon);
     let distance = horizontal(observer.eye, target.feature);
     if distance > range || range <= 0.0 {
         return None;
     }
-    Some(((1.0 - distance / range) / 0.55).clamp(0.1, 1.0))
+    Some(1.0)
 }
 /// Sample the same baked CPU terrain used by grounding. Island intersection
 /// narrows the samples; aircraft may see over ridges if their actual ray clears.
@@ -677,6 +648,13 @@ pub fn entities(actors: &[Vessel], aviation: &Aviation) -> Vec<VisualEntity> {
                 preset_id: Some(a.preset_id.clone()),
                 role: None,
                 cues,
+                motion: VisualMotion {
+                    velocity: a.motion.velocity(),
+                    heading: a.motion.heading,
+                    pitch: a.motion.pitch,
+                    roll: a.motion.roll,
+                },
+                aircraft: None,
             }
         })
         .collect();
@@ -687,9 +665,10 @@ pub fn entities(actors: &[Vessel], aviation: &Aviation) -> Vec<VisualEntity> {
             .flat_map(|w| &w.state.planes)
             .filter(|p| {
                 p.hp > 0.0
+                    && p.deck_position.is_none()
                     && matches!(
                         p.phase.as_str(),
-                        "outbound" | "attack" | "returning" | "landing"
+                        "takeoff" | "outbound" | "attack" | "returning" | "landing"
                     )
             })
             .map(|p| VisualEntity {
@@ -703,6 +682,17 @@ pub fn entities(actors: &[Vessel], aviation: &Aviation) -> Vec<VisualEntity> {
                 preset_id: None,
                 role: Some(p.role.clone()),
                 cues: Default::default(),
+                motion: VisualMotion {
+                    velocity: p.velocity,
+                    heading: p.heading,
+                    pitch: p.pitch,
+                    roll: p.bank,
+                },
+                aircraft: Some(AircraftExterior {
+                    model_id: p.model_id.clone(),
+                    controls: p.controls,
+                    wing_fold: p.wing_fold,
+                }),
             }),
     );
     entities.sort_by(|a, b| a.id.cmp(&b.id));

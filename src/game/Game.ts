@@ -1,5 +1,6 @@
 import type { DeckPolicy } from '../multiplayer/generated/DeckPolicy';
 import { physicalLoss } from '../simulation/battleRules';
+import { ArticulationResolver } from './articulationPreview';
 import { PveDraft } from './session/PveDraft';
 import type { Placement } from '../multiplayer/generated/Placement';
 import { weaponGroups, selectedWeapon } from '../ships/weaponGroups';
@@ -59,7 +60,6 @@ import { configureRenderOrder } from './renderOrder';
 import type { GameAudio } from './GameAudio';
 import type { Ammunition, Battery, Vec3 } from '../ships/blueprint';
 import { gunTraverseAtFraction } from '../ships/armament';
-import { moveMountWithClearance } from '../simulation/mountClearance';
 import type { InspectionMode } from '../ships/inspection';
 import { selectedShip, shipPreset, shipPresets } from '../ships/presets';
 import { resolveBattleFleet, validateBattleSetup, type BattleSetup } from '../simulation/battle';
@@ -216,6 +216,8 @@ export class Game {
   private frameTask?: Promise<void>;
   private frameWaiters: (() => void)[] = [];
   private articulationOriginal?: CombatSimulation['player']['mounts'];
+  private articulationRequest = 0;
+  private articulationResolver?: ArticulationResolver;
   private articulationLaunchers?: CombatSimulation['player']['torpedoLaunchers'];
 
   constructor(private host: HTMLElement, private settings: GameSettings, private callbacks: GameCallbacks, definition = selectedShip, readonly audio?: GameAudio) {
@@ -602,8 +604,9 @@ export class Game {
 
   private async replaceFleet(simulation: BattleSession, definition: typeof selectedShip, progress?: BattleProgress): Promise<void> {
     this.inspectionHover?.clear();
+    const actorDefinitions = new Map(simulation.actors.map(actor => [actor.definition.id, actor.definition]));
     const definitions = simulation.missionRules ? Object.keys(shipPresets).map(id => shipPreset(id))
-      : [...new Map(simulation.actors.map(actor => [actor.definition.id, actor.definition])).values()];
+      : [...actorDefinitions.values()];
     const models = new Map<string, THREE.Group>();
     const palette = new ShipMaterialPalette();
     const views: ShipView[] = [];
@@ -624,7 +627,10 @@ export class Game {
         if (!hash || model.userData.definitionHash !== hash) throw new Error('The ship model and definition have different versions. Rebuild the ship assets and reload.');
         palette.apply(model);
         batchShipModel(model);
-        await prepareShipDetail(model);
+        // Report-only exteriors clone the original geometry; they never use
+        // FleetShipDraws' detail buffers. Only actor-backed ShipViews need LODs.
+        // Keep the full public catalog loaded independently of hidden enemies.
+        if (actorDefinitions.has(def.id)) await prepareShipDetail(model);
         loaded += 1;
         const next = definitions.find(d => !models.has(d.id));
         progress?.(simulation.missionRules ? 'Preparing ship recognition models' : next ? `Loading ${next.name}` : `${def.name} aboard`, 0.08 + hullShare * loaded);
@@ -657,7 +663,9 @@ export class Game {
       this.scene.add(this.fleetDraws.root);
       this.targetView = views.find(view => view.actor === simulation.target);
       this.shipLabels.setFleet(views, simulation.actors, simulation.ship.id);
+      this.articulationRequest++;
       this.articulationOriginal = undefined;
+      this.articulationLaunchers = undefined;
       this.controlPriority = 'balanced'; this.controlFocus = '';
       this.lastShellPress = undefined;
       this.ammunition = { main: 'ap', secondary: 'ap', torpedo: 'ap', 'depth-charge': 'ap' };
@@ -760,7 +768,7 @@ export class Game {
           view.root, view.motion, view.actor.damage.sunk, this.camera, !this.inPort);
         view.updateRenderMatrices();
       });
-      this.aircraftView.update(this.simulation, this.camera, !this.inspecting && (!this.inPort || this.playerView?.inspection.mode === 'exterior'), this.inPort, new Map(this.fleetViews.map(view => [view.actor.motion.id, view.root])));
+      this.aircraftView.update(this.simulation, this.camera, !this.inspecting && (!this.inPort || this.playerView?.inspection.mode === 'exterior'), this.inPort, new Map(this.fleetViews.map(view => [view.actor.motion.id, view.root])), this.airOperationsOpen ? undefined : this.cameraShipView.actor.motion.id, presentationDt);
       this.effects.update(this.simulation, presentationDt, this.camera, this.rig.binoculars && !this.shellFollow.view, this.fleetViews, !!this.shellFollow.view);
       this.funnelSmoke.root.visible = !this.inspecting && (!this.inPort || this.playerView!.inspection.mode === 'exterior');
       this.funnelSmoke.update(this.inPort ? [this.playerView!] : this.fleetViews, presentationDt, this.camera,
@@ -955,9 +963,9 @@ export class Game {
     if (!report) return null;
     // Keep current report markers on their smoothed exterior. Lost/unidentified
     // tracks retain their published estimate, without any private actor lookup.
-    const exterior = report.status === 'tracked' ? this.observedShipViews?.position(id) : undefined;
+    const exterior = report.status === 'tracked' ? (report.kind === 'aircraft' ? this.aircraftView.observedPosition(id) : this.observedShipViews?.position(id)) : undefined;
     const position = reportPosition(report, this.simulation.tick);
-    return this.projectAirMap(exterior?.x ?? position[0], exterior?.z ?? position[2]);
+    return this.projectAirMap(exterior?.x ?? position[0], exterior?.z ?? position[2], exterior?.y ?? position[1]);
   }
   projectAirMapPath(points: Vec3[], closed = false, filled = false): string {
     return filled ? projectAirMapPolygon(points, this.camera, this.host.clientWidth / this.hudScale, this.host.clientHeight / this.hudScale)
@@ -1175,7 +1183,8 @@ export class Game {
   }
   setInPort(inPort: boolean): void {
     this.inspectionHover?.clear();
-    if (this.articulationOriginal) this.restoreArticulation();
+    // Cancel pending previews even when their first result has not arrived yet.
+    this.restoreArticulation();
     if (!inPort && this.switchingShip) return;
     this.endFollow();
     const leavingPort = this.inPort && !inPort;
@@ -1279,6 +1288,7 @@ export class Game {
     if (!this.inspecting && !this.simulation.player.damage.sunk) this.rig.aimAt(this.currentAim, this.simulation.ship);
   }
   private restoreArticulation(): void {
+    this.articulationRequest++;
     if (this.articulationOriginal) {
       this.simulation.player.mounts.forEach((m, i) => Object.assign(m, this.articulationOriginal![i]));
       this.simulation.player.torpedoLaunchers?.forEach((l, i) => Object.assign(l, this.articulationLaunchers?.[i]));
@@ -1288,7 +1298,7 @@ export class Game {
     }
   }
   /** Development-only port inspection of the loaded model at catalog joint limits. */
-  previewArticulation(pose: ArticulationPreview | null) {
+  async previewArticulation(pose: ArticulationPreview | null) {
     if (!import.meta.env.DEV || !this.inPort || !this.playerView) throw new Error('Articulation review requires a loaded ship in the development port.');
     if (pose === null) this.restoreArticulation();
     else {
@@ -1296,6 +1306,19 @@ export class Game {
       for (const [id, override] of Object.entries(pose.mounts ?? {})) {
         if (!this.definition.mounts.some(m => m.id === id) || !Object.entries(override).every(([key, value]) => ['trainFraction', 'elevationFraction', 'recoilFraction'].includes(key) && Number.isFinite(value))) throw new Error('Invalid mount articulation override.');
       }
+      const request = ++this.articulationRequest;
+      const simulation = this.simulation;
+      const requested = this.definition.mounts.map(mount => {
+        const w = mount.weapon, selected = { ...pose, ...pose.mounts?.[mount.id] };
+        return {
+          train: gunTraverseAtFraction(mount, selected.trainFraction),
+          elevation: (w.elevationMinDeg + THREE.MathUtils.clamp(selected.elevationFraction, 0, 1) * (w.elevationMaxDeg - w.elevationMinDeg)) * Math.PI / 180,
+          recoil: THREE.MathUtils.clamp(selected.recoilFraction, 0, 1),
+        };
+      });
+      this.articulationResolver ??= new ArticulationResolver();
+      const accepted = await this.articulationResolver.resolve(this.definition, simulation.player.mounts, requested);
+      if (request !== this.articulationRequest || simulation !== this.simulation || !this.inPort || this.disposed) return this.diagnostics();
       this.articulationOriginal ??= structuredClone(this.simulation.player.mounts);
       this.articulationLaunchers ??= structuredClone(this.simulation.player.torpedoLaunchers);
       this.simulation.player.torpedoLaunchers?.forEach(l => {
@@ -1303,31 +1326,12 @@ export class Game {
         const fraction = THREE.MathUtils.clamp(pose.trainFraction, -1, 1);
         l.train = (fraction < 0 ? -fraction * limits[0] : fraction * limits[1]) * Math.PI / 180;
       });
-      const targets = this.simulation.player.mounts.map((state, i) => {
-        const w = this.definition.mounts[i].weapon;
-        const selected = { ...pose, ...pose.mounts?.[this.definition.mounts[i].id] };
-        state.recoil = THREE.MathUtils.clamp(selected.recoilFraction, 0, 1);
-        return { train: gunTraverseAtFraction(this.definition.mounts[i], selected.trainFraction),
-          elevation: (w.elevationMinDeg + THREE.MathUtils.clamp(selected.elevationFraction, 0, 1) * (w.elevationMaxDeg - w.elevationMinDeg)) * Math.PI / 180 };
+      this.simulation.player.mounts.forEach((state, i) => {
+        Object.assign(state, accepted[i].pose);
+        state.status = accepted[i].blocked ? 'blocked' : 'ready';
       });
-      // Review the same CPU interlocks as combat, including independently moved neighbors.
-      const states = this.simulation.player.mounts, step = THREE.MathUtils.degToRad(.5);
-      for (let pass=0; pass<1440; pass++) {
-        let moved=false;
-        states.forEach((state,i)=>{
-          const before={train:state.train,elevation:state.elevation},target=targets[i];
-          const next={train:state.train+THREE.MathUtils.clamp(target.train-state.train,-step,step),elevation:state.elevation+THREE.MathUtils.clamp(target.elevation-state.elevation,-step,step)};
-          const clear=moveMountWithClearance(this.definition,i,state,next,states);
-          if (!clear) {
-            moveMountWithClearance(this.definition,i,state,{train:next.train,elevation:state.elevation},states);
-            moveMountWithClearance(this.definition,i,state,{train:state.train,elevation:next.elevation},states);
-          }
-          state.status=Math.abs(state.train-target.train)+Math.abs(state.elevation-target.elevation)<1e-7?'ready':'blocked';
-          moved ||= Math.abs(state.train-before.train)+Math.abs(state.elevation-before.elevation)>1e-9;
-        });
-        if (!moved) break;
-      }
       this.playerView.update();
+      return { ...this.diagnostics(), articulation: accepted.map((result, i) => ({ id: this.definition.mounts[i].id, requested: requested[i], ...result })) };
     }
     return this.diagnostics();
   }
@@ -1396,6 +1400,7 @@ export class Game {
   }
 
   async dispose(): Promise<void> {
+    this.articulationResolver?.dispose();
     this.simulation.dispose?.();
     this.disposed = true;
     this.underwaterPassVisibility?.dispose();

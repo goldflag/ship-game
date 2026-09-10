@@ -23,3 +23,29 @@ test('real team snapshots carry sampled coverage and observed condition without 
     expect(session.reconCoverage).toBeUndefined();
   } finally { session.dispose(); }
 });
+
+test('real PvE WASM aircraft sightings reach the renderer without enemy carriers or combat state', async () => {
+  const session = await HeadlessSession.createPve({ version: 1, seed: 396076824, mapId: 'north-atlantic', weather: 'clear', difficulty: 'normal',
+    ships: [{ id: 'player', presetId: 'fletcher', groupId: 'front' }, { id: 'carrier', presetId: 'enterprise-cv6', groupId: 'front' }],
+    groups: [{ id: 'front', name: 'Vanguard', station: 'front' }] });
+  try {
+    for (let batch = 0; batch < 2400 && !session.observedAircraft.length; batch++) {
+      session.runtime.step(6); session.applyRaw(session.runtime.snapshot());
+    }
+    expect(session.observedAircraft.length).toBeGreaterThan(0);
+    const plane = session.observedAircraft[0];
+    expect(plane.id).toMatch(/^contact-/);
+    expect(plane.modelId).toBeTruthy();
+    expect(plane.observers).toContain('player');
+    expect(plane.controls.propeller).toBeNumber();
+    expect(session.actors.every(a => a.team === 'friendly')).toBe(true);
+    expect(session.aircraft.every(p => p.team === 'friendly')).toBe(true);
+    const raw = JSON.parse(session.runtime.snapshot());
+    expect(JSON.stringify(raw.observedAircraft)).not.toContain('enemy-1');
+    expect(raw.observedAircraft[0].hp).toBeUndefined();
+    expect(raw.observedAircraft[0].ownerId).toBeUndefined();
+    delete raw.observedAircraft;
+    session.applyRaw(JSON.stringify(raw));
+    expect(session.observedAircraft).toEqual([]);
+  } finally { session.dispose(); }
+}, 20000);

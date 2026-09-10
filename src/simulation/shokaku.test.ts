@@ -15,7 +15,7 @@ function fixture() {
   const events: Omit<CombatEvent, 'sequence' | 'tick'>[] = [];
   const context: AirContext = { actors: sim.actors, planes: sim.aircraft, shells: sim.shells, torpedoes: sim.torpedoes, releases: sim.airReleases,
     nextId: () => ++next, emit: event => events.push(event) };
-  const run = (seconds: number) => { for (let i = 0; i < seconds * 60; i++) { stepAircraft(context, 1 / 60, time); time += 1 / 60; } };
+  const run = (seconds: number, done?: () => boolean) => { for (let i = 0; i < seconds * 60 && !done?.(); i++) { stepAircraft(context, 1 / 60, time); time += 1 / 60; } };
   return { sim, events, run };
 }
 
@@ -43,7 +43,7 @@ test('Japanese aircraft launch, recover, service and preserve squadron inventory
   run(40);
   expect(sim.player.airWing!.planes.filter(p => p.phase === 'outbound')).toHaveLength(18);
   expect(sim.player.airWing!.planes.filter(p => p.phase === 'outbound').every(p => p.wingFold === 0)).toBe(true);
-  sim.recallAircraft(); run(750);
+  sim.recallAircraft(); run(750, () => sim.player.airWing!.planes.every(p => p.phase === 'ready'));
   expect(sim.player.airWing!.planes.every(p => p.phase === 'ready')).toBe(true);
   expect(events.filter(e => e.kind === 'aircraft-recovered')).toHaveLength(18);
   expect(squadronFlights(sim.player).map(f => f.planeIds)).toEqual(before);
@@ -57,7 +57,7 @@ test('Japanese attacks retain their bomb and torpedo variants after release', ()
   const { sim, run, events } = fixture();
   expect(sim.launchAircraft('shokaku-dive')).toBe(6);
   expect(sim.launchAircraft('shokaku-torpedo')).toBe(6);
-  run(580);
+  run(580, () => sim.shells.length === 6 && sim.torpedoes.length === 6);
   expect(events.some(e => e.kind === 'bomb-release')).toBe(true);
   expect(sim.shells.some(s => s.weaponLabel === 'Type 99 No. 25 250 kg bomb' && s.he?.explosiveKg === 60)).toBe(true);
   expect(events.some(e => e.kind === 'torpedo-launch')).toBe(true);

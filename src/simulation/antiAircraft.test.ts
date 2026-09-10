@@ -59,7 +59,9 @@ for (const id of Object.keys(shipPresets)) test(`${id}: every registered AA moun
   // A fixed ten-second window can end while a functional Type 89 is still training.
   const ticks = Math.ceil(Math.max(10, ...mounts.map(m =>
     m.weapon.reloadSeconds + m.weapon.traverseDeg / m.weapon.traverseRateDeg + 8)) * 60);
-  for (const bearing of [0, Math.PI / 2, Math.PI, -Math.PI / 2]) {
+  // Broadsides exercise both forward and aft batteries together. Continue to
+  // the end sectors if any mount still needs to demonstrate a real shot.
+  for (const bearing of [Math.PI / 2, -Math.PI / 2, 0, Math.PI]) {
     const sim = new CombatSimulation(def, { friendlyBots: [], enemies: [shipPreset('enterprise-cv6')], seed: 93 });
     sim.target.controller = 'idle';
     const plane = sim.target.airWing!.planes[0];
@@ -79,10 +81,17 @@ for (const id of Object.keys(shipPresets)) test(`${id}: every registered AA moun
         expect(event.aircraft?.caliberM).toBe(firedMount.weapon.caliberM);
         expect(event.position[1]).toBeGreaterThan(0);
       }
+      // This is a mount-coverage check, not an endurance test. Keep waiting for
+      // every unfired gun that can engage this sector; otherwise try the next.
+      // The final assertion still requires an actual validated shot from every
+      // registered AA mount, including any new mount added to the catalog.
+      if (mounts.every(mount => fired.has(mount.name) || !['turning', 'reloading', 'ready'].includes(
+        sim.player.mounts[def.mounts.indexOf(mount)].status))) break;
     }
     if (shots) {
       expect(sim.player.mounts.reduce((sum, mount) => sum + mount.ammo, 0)).toBeLessThan(ammo);
     }
+    if (mounts.every(mount => fired.has(mount.name))) break;
   }
   expect(mounts.filter(mount => !fired.has(mount.name)).map(mount => mount.id)).toEqual([]);
 }, 30000);

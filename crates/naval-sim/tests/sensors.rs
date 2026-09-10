@@ -16,6 +16,8 @@ fn entity(id: &str, team: TeamId, kind: ContactKind, x: f64, altitude: f64) -> V
         length_m: 250.0,
         preset_id: Some("private-preset".into()),
         cues: Default::default(),
+        motion: Default::default(),
+        aircraft: None,
     }
 }
 fn clear() -> VisualConditions {
@@ -25,7 +27,7 @@ fn clear() -> VisualConditions {
     }
 }
 #[test]
-fn close_contacts_report_promptly_but_identification_is_separate() {
+fn close_contacts_are_immediately_identified_and_keep_the_same_contact_id() {
     let mut sensors = Sensors::default();
     let rules = VisualRules::default();
     let observer = entity("own", TeamId::A, ContactKind::Surface, 0.0, 0.0);
@@ -46,10 +48,14 @@ fn close_contacts_report_promptly_but_identification_is_separate() {
     );
     let first = sensors.contacts(TeamId::A);
     assert_eq!(first.len(), 1);
-    assert_eq!(first[0].status, TrackStatus::Reported);
-    assert!(first[0].classification.is_none());
-    assert!(first[0].identified_preset_id.is_none());
-    assert!(!serde_json::to_string(&first).unwrap().contains("private-"));
+    assert_eq!(first[0].status, TrackStatus::Tracked);
+    assert_eq!(first[0].classification.as_deref(), Some("Large warship"));
+    assert_eq!(first[0].identified_preset_id, target.preset_id);
+    assert!(
+        !serde_json::to_string(&first)
+            .unwrap()
+            .contains("private-enemy-id")
+    );
     for second in 1..=15 {
         sensors.update(
             second * TICK_RATE,
@@ -69,7 +75,7 @@ fn close_contacts_report_promptly_but_identification_is_separate() {
     );
 }
 #[test]
-fn marginal_reports_accumulate_and_cadence_is_not_render_frame_dependent() {
+fn marginal_reports_are_immediate_and_cadence_is_not_render_frame_dependent() {
     let rules = VisualRules::default();
     let observer = entity("own", TeamId::A, ContactKind::Surface, 0.0, 0.0);
     let target = entity("enemy", TeamId::B, ContactKind::Surface, 13000.0, 0.0);
@@ -77,7 +83,7 @@ fn marginal_reports_accumulate_and_cadence_is_not_render_frame_dependent() {
     let mut b = Sensors::default();
     let world = [observer, target];
     a.update(0, &world, &[], &[], clear(), &rules);
-    assert!(a.contacts(TeamId::A).is_empty());
+    assert_eq!(a.contacts(TeamId::A).len(), 1);
     for tick in 0..=15 * TICK_RATE {
         a.update(tick, &world, &[], &[], clear(), &rules);
         if tick.is_multiple_of(TICK_RATE) {
@@ -189,4 +195,57 @@ fn baked_terrain_blocks_lookouts_but_a_high_aircraft_can_see_over_it() {
         &[island],
         &[field]
     ));
+}
+
+#[test]
+fn binary_spotting_identifies_even_a_marginal_contact_on_the_first_check() {
+    let mut sensors = Sensors::default();
+    let rules = VisualRules::default();
+    let observer = entity("own", TeamId::A, ContactKind::Surface, 0.0, 0.0);
+    let target = entity("enemy", TeamId::B, ContactKind::Surface, 13000.0, 0.0);
+    sensors.update(0, &[observer, target.clone()], &[], &[], clear(), &rules);
+    let contacts = sensors.contacts(TeamId::A);
+    assert_eq!(
+        contacts.len(),
+        1,
+        "in-range targets must appear immediately"
+    );
+    let contact = &contacts[0];
+    assert_eq!(contact.status, TrackStatus::Tracked);
+    assert_eq!(contact.identified_preset_id, target.preset_id);
+    assert_eq!(contact.measured_position, target.position);
+    assert_eq!(contact.uncertainty_m, 0.0);
+    assert_eq!(contact.sources[0].strength, 1.0);
+}
+
+#[test]
+fn current_contacts_follow_a_straight_course_without_rounding_jumps() {
+    let mut sensors = Sensors::default();
+    let rules = VisualRules::default();
+    assert!(
+        rules.cadence_ticks <= 6,
+        "visible poses need at least 10 Hz samples"
+    );
+    let observer = entity("own", TeamId::A, ContactKind::Surface, 0.0, 0.0);
+    for sample in 0..120 {
+        let target = entity(
+            "enemy",
+            TeamId::B,
+            ContactKind::Surface,
+            10000.0 + sample as f64,
+            0.0,
+        );
+        sensors.update(
+            sample * rules.cadence_ticks,
+            &[observer.clone(), target.clone()],
+            &[],
+            &[],
+            clear(),
+            &rules,
+        );
+        assert_eq!(
+            sensors.contacts(TeamId::A)[0].measured_position,
+            target.position
+        );
+    }
 }

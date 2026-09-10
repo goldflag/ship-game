@@ -285,3 +285,24 @@ fn visible_condition_reports_use_exterior_cues_without_leaking_health_or_changin
     assert_eq!(own(&a)["contacts"][0]["visibleCondition"]["sinking"], true);
     assert!(!a.sensors.contacts(TeamId::A)[0].targetable());
 }
+
+#[test]
+fn a_newly_spotted_ship_has_an_exact_exterior_heading_even_when_stationary() {
+    use naval_sim::{rules::TeamId, snapshot::PresentationView};
+    let mut b = battle(6500.0);
+    b.actors[1].motion.heading = 1.234;
+    let position = [
+        b.actors[1].motion.x,
+        b.actors[1].motion.y,
+        b.actors[1].motion.z,
+    ];
+    b.step(&BTreeMap::new());
+    let frame = b
+        .presentation_value(PresentationView::Team(TeamId::A))
+        .unwrap();
+    let exterior = &frame["observedShips"][0];
+    assert_eq!(exterior["heading"], 1.234);
+    assert_eq!(exterior["position"], serde_json::json!(position));
+    assert_eq!(exterior["observers"], serde_json::json!(["own"]));
+    assert_eq!(frame["contacts"][0]["identificationConfidence"], 1.0);
+}

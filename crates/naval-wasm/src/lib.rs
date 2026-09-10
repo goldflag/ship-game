@@ -6,6 +6,125 @@ use wasm_bindgen::prelude::*;
 fn error(e: impl std::fmt::Display) -> JsValue {
     JsValue::from_str(&e.to_string())
 }
+/// Development port inspection uses the same physical movement resolver as combat.
+#[wasm_bindgen]
+pub fn preview_articulation_json(
+    definition: &str,
+    current: &str,
+    requested: &str,
+) -> Result<String, JsValue> {
+    use naval_sim::{
+        definition::ShipDefinition,
+        mount_clearance::{
+            ClearancePose, ClearanceResult, MountClearance, move_mount_with_clearance,
+        },
+        weapons::MountState,
+    };
+    let def: ShipDefinition = serde_json::from_str(definition).map_err(error)?;
+    let mut poses: Vec<ClearancePose> = serde_json::from_str(current).map_err(error)?;
+    let mut targets: Vec<ClearancePose> = serde_json::from_str(requested).map_err(error)?;
+    if poses.len() != def.mounts.len() || targets.len() != poses.len() {
+        return Err(error("Articulation requires one pose per mount"));
+    }
+    if !poses.iter().chain(&targets).all(|p| {
+        [p.train, p.elevation, p.recoil]
+            .iter()
+            .all(|v| v.is_finite())
+    }) {
+        return Err(error("Articulation poses must be finite"));
+    }
+    for (index, target) in targets.iter_mut().enumerate() {
+        let weapon = &def.mounts[index].weapon;
+        let limits = def.mounts[index]
+            .traverse_limits_deg
+            .unwrap_or([-weapon.traverse_deg, weapon.traverse_deg]);
+        *target = ClearancePose {
+            train: target
+                .train
+                .clamp(limits[0].to_radians(), limits[1].to_radians()),
+            elevation: target.elevation.clamp(
+                weapon.elevation_min_deg.to_radians(),
+                weapon.elevation_max_deg.to_radians(),
+            ),
+            recoil: target.recoil.clamp(0.0, 1.0),
+        };
+    }
+    // Validate either profile encoding before entering its native resolver.
+    let clearance = MountClearance::new(&def).map_err(error)?;
+    if def
+        .mount_clearance
+        .as_ref()
+        .is_some_and(|p| p.mounts.is_some())
+    {
+        let mut states: Vec<_> = def
+            .mounts
+            .iter()
+            .zip(&poses)
+            .map(|(mount, pose)| {
+                let mut state = MountState::new(mount);
+                state.train = pose.train;
+                state.elevation = pose.elevation;
+                state.recoil = pose.recoil;
+                state
+            })
+            .collect();
+        // Interleave small actuator steps against the independently moving neighbors.
+        // The native helper encloses each intervening arc and the full recoil stroke.
+        let step = 0.5_f64.to_radians();
+        for _ in 0..1440 {
+            let mut moved = false;
+            for (index, target) in targets.iter().enumerate() {
+                let mut state = states[index].clone();
+                let before = (state.train, state.elevation);
+                let next = (
+                    state.train + (target.train - state.train).clamp(-step, step),
+                    state.elevation + (target.elevation - state.elevation).clamp(-step, step),
+                );
+                if !move_mount_with_clearance(&def, index, &mut state, next, &states) {
+                    let train_only = (next.0, state.elevation);
+                    move_mount_with_clearance(&def, index, &mut state, train_only, &states);
+                    let elevation_only = (state.train, next.1);
+                    move_mount_with_clearance(&def, index, &mut state, elevation_only, &states);
+                }
+                moved |= (state.train - before.0).abs() + (state.elevation - before.1).abs() > 1e-9;
+                states[index] = state;
+            }
+            if !moved {
+                break;
+            }
+        }
+        let results: Vec<_> = states
+            .iter()
+            .zip(&targets)
+            .map(|(state, target)| ClearanceResult {
+                pose: ClearancePose {
+                    train: state.train,
+                    elevation: state.elevation,
+                    recoil: target.recoil,
+                },
+                blocked: (state.train - target.train).abs()
+                    + (state.elevation - target.elevation).abs()
+                    >= 1e-7,
+                obstruction_id: None,
+            })
+            .collect();
+        return serde_json::to_string(&results).map_err(error);
+    }
+    let mut results = Vec::with_capacity(poses.len());
+    for (index, target) in targets.into_iter().enumerate() {
+        let result = clearance.as_ref().map_or_else(
+            || ClearanceResult {
+                pose: target,
+                blocked: false,
+                obstruction_id: None,
+            },
+            |cache| cache.resolve(&def, index, &poses, target),
+        );
+        poses[index] = result.pose;
+        results.push(result);
+    }
+    serde_json::to_string(&results).map_err(error)
+}
 #[wasm_bindgen]
 pub fn rules_json() -> String {
     naval_sim::rules::RULES_JSON.to_owned()

@@ -260,3 +260,45 @@ test('fitted deck poses retain CPU contact attitude through hull interpolation a
     }
   } finally { await view.dispose(); loader.mockRestore(); }
 });
+
+test('spotted enemy airframes render and move between reports, use local lookout visibility, and vanish on contact loss', async () => {
+  const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async () => {
+    const scene = new Group(); scene.add(new Mesh(new BoxGeometry(12, .2, 8), new MeshBasicMaterial()));
+    return { scene } as Awaited<ReturnType<GLTFLoader['loadAsync']>>;
+  });
+  const view = new AircraftView();
+  try {
+    await view.load(['f4f-4-wildcat']);
+    const sim: import('./session/BattleSession').BattleSession = new CombatSimulation(shipPreset('fletcher'));
+    const report: import('./session/BattleSession').ObservedAircraft = {
+      id: 'contact-0-7', modelId: 'f4f-4-wildcat', position: [0, 300, 0], velocity: [80, 0, 0],
+      heading: Math.PI / 2, pitch: .1, roll: .3, observedTick: 0, observers: ['player'], wingFold: 0,
+      controls: { gear: 0, hook: 0, brakes: 0, aileron: .1, elevator: 0, rudder: 0, propeller: 1 },
+    };
+    Object.assign(sim, { observedAircraft: [report] });
+    const wire = JSON.stringify(report);
+    const camera = new PerspectiveCamera(52, 1, .5, 60000);
+    camera.position.set(0, 300, 500); camera.lookAt(0, 300, 0); camera.updateMatrixWorld(true);
+    view.update(sim, camera, true, false, undefined, 'player', 0);
+    expect(view.diagnostics().instances).toBe(1);
+    expect(sim.aircraft).toHaveLength(0); // No invented enemy combat aircraft or carrier.
+    const first = view.observedPosition(report.id)!.x;
+    view.update(sim, camera, true, false, undefined, 'player', 1 / 60);
+    const second = view.observedPosition(report.id)!.x;
+    view.update(sim, camera, true, false, undefined, 'player', 1 / 60);
+    expect(second).toBeGreaterThan(first);
+    expect(view.observedPosition(report.id)!.x).toBeGreaterThan(second);
+    const paused = view.observedPosition(report.id)!.toArray();
+    view.update(sim, camera, true, false, undefined, 'player', 0);
+    expect(view.observedPosition(report.id)!.toArray()).toEqual(paused);
+    view.update(sim, camera, true, false, undefined, 'rear-ship', 0);
+    expect(view.diagnostics().instances).toBe(0);
+    view.update(sim, camera, true, false, undefined, undefined, 0);
+    expect(view.diagnostics().instances).toBe(1);
+    Object.assign(sim, { observedAircraft: [] });
+    view.update(sim, camera, true, false, undefined, undefined, 0);
+    expect(view.diagnostics().instances).toBe(0);
+    expect(view.observedPosition(report.id)).toBeUndefined();
+    expect(JSON.stringify(report)).toBe(wire);
+  } finally { await view.dispose(); loader.mockRestore(); }
+});

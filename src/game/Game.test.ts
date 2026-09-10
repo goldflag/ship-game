@@ -3,14 +3,19 @@ import { LocalBattleSession } from './session/LocalBattleSession';
 import { afterEach, beforeEach, expect, spyOn, test } from 'bun:test';
 import { Group, PerspectiveCamera, Scene, Vector3 } from 'three/webgpu';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { loadShipJoints } from '../../scripts/diagnostics/load-ship-joints';
 import { Game } from './Game';
+import type { ClearancePose, ClearanceResult } from './articulationPreview';
 import { VisualEnvironment } from './VisualEnvironment';
 import { CameraRig } from './CameraRig';
 import { ShellFollow } from './ShellFollow';
 import { BattlefieldCamera } from './BattlefieldCamera';
 import { ShipView } from './ShipView';
 import { CombatSimulation } from '../simulation/combat';
-import { shipPreset } from '../ships/presets';
+import { shipPreset, shipPresets } from '../ships/presets';
+import * as ShipDetail from './ShipDetail';
+import pveRules from '../../assets/gameplay/pve-mission.v1.json';
+import type { MissionRules } from '../multiplayer/generated/MissionRules';
 
 // Camera controls now also listen for pointer-lock and focus changes.
 const browserNames = ['window', 'document'] as const;
@@ -29,12 +34,7 @@ afterEach(() => {
   });
 });
 
-async function model(id: string) {
-  const bytes = await Bun.file(new URL(`../../public/models/${id}.glb`, import.meta.url)).arrayBuffer();
-  const gltf = JSON.parse(new TextDecoder().decode(new Uint8Array(bytes, 20, new DataView(bytes).getUint32(12, true))));
-  return new GLTFLoader().parseAsync(JSON.stringify({ asset: gltf.asset, scene: gltf.scene, scenes: gltf.scenes,
-    nodes: gltf.nodes.map(({ mesh: _mesh, ...node }: { mesh?: number }) => node) }), '');
-}
+const model = loadShipJoints;
 
 // Exercise the real scene swap with exported joint hierarchies; only GPU startup is omitted.
 async function port(storageMatrices = false) {
@@ -119,6 +119,49 @@ test('switching ships retains the port until loading completes, then frames the 
   } finally { loader.mockRestore(); rig.dispose(); }
 });
 
+
+test('a delayed first articulation preview cannot overwrite poses after leaving and returning to port', async () => {
+  const { game, rig } = await port();
+  const previousDev = process.env.DEV;
+  process.env.DEV = 'true';
+  const pending: { targets: ClearancePose[]; finish: (results: ClearanceResult[]) => void }[] = [];
+  Object.assign(game, {
+    articulationRequest: 0, battery: 'main',
+    input: { setOrder() {}, setRudder() {}, setEnabled() {} },
+    callbacks: { pause() {} },
+    battlefieldCamera: { cancelTransition() {}, exit() {} },
+    refreshLandscape() {},
+    articulationResolver: {
+      resolve(_definition: unknown, _current: ClearancePose[], targets: ClearancePose[]) {
+        return new Promise<ClearanceResult[]>(finish => pending.push({ targets, finish }));
+      },
+    },
+  });
+  const capture = spyOn(rig, 'capturePointer').mockImplementation(() => {});
+  const finish = (index: number) => pending[index].finish(pending[index].targets.map(pose => ({ pose, blocked: false, obstructionId: null })));
+  try {
+    const delayed = game.previewArticulation({ trainFraction: .4, elevationFraction: .5, recoilFraction: 1 });
+    expect(pending).toHaveLength(1);
+    game.setInPort(false);
+    game.setInPort(true);
+    const reset = structuredClone(game.simulation.player.mounts);
+    finish(0);
+    await delayed;
+    expect(game.simulation.player.mounts).toEqual(reset);
+    // A fresh request still applies, then restoring preview returns to this port's original states.
+    const current = game.previewArticulation({ trainFraction: -.2, elevationFraction: .6, recoilFraction: .5 });
+    finish(1);
+    await current;
+    expect(game.simulation.player.mounts[0].train).toBe(pending[1].targets[0].train);
+    expect(game.simulation.player.mounts[0].recoil).toBe(.5);
+    await game.previewArticulation(null);
+    expect(game.simulation.player.mounts).toEqual(reset);
+  } finally {
+    capture.mockRestore(); rig.dispose();
+    if (previousDev === undefined) delete process.env.DEV;
+    else process.env.DEV = previousDev;
+  }
+});
 
 test('failed ship loads preserve the old ship and allow retry', async () => {
   const { game, scene, playerView, rig } = await port();
@@ -218,6 +261,33 @@ test('battle preparation reports each loading stage in order for the loading scr
     await game.nextFrame();
   } finally { loader.mockRestore(); rig.dispose(); }
 });
+
+test.each(['yamato', 'enterprise-cv6'])('PvE prepares detail only for owned hull types without disclosing the hidden %s', async enemy => {
+  const { game, rig } = await port();
+  const loaded: string[] = [], detailed: string[] = [];
+  const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async url => {
+    const id = String(url).split('/').pop()!.replace('.glb', '');
+    loaded.push(id);
+    const gltf = await model(id);
+    gltf.scene.name = id;
+    return gltf;
+  });
+  const detail = spyOn(ShipDetail, 'prepareShipDetail').mockImplementation(async root => { detailed.push(root.name); });
+  const stages: string[] = [];
+  try {
+    await game.prepareBattle({ playerShipId: 'bismarck', friendlyBots: ['fletcher', 'fletcher'],
+      enemies: [enemy], spawnDistance: 5000, missionRules: pveRules as MissionRules }, label => stages.push(label));
+    expect(game.simulation.actors.every(actor => actor.team === 'friendly')).toBe(true);
+    // Every exterior remains ready before detection, with roster-independent
+    // requests and loading text. Only actual ShipViews consume detail buffers.
+    expect(loaded).toEqual(Object.keys(shipPresets));
+    expect(detailed.sort()).toEqual(['bismarck', 'fletcher']);
+    expect(stages.filter(label => label.includes('recognition'))).toEqual([
+      ...Array(Object.keys(shipPresets).length + 1).fill('Preparing ship recognition models'),
+      'Preparing aircraft recognition models',
+    ]);
+  } finally { detail.mockRestore(); loader.mockRestore(); rig.dispose(); game.simulation.dispose?.(); }
+}, 30000);
 
 test('one failed fleet asset leaves the port intact and the same battle can be retried', async () => {
   const { game, scene, playerView, rig } = await port();

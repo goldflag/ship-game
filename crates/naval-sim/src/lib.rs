@@ -5,6 +5,7 @@ pub mod fleet_evasion;
 pub mod geometry;
 pub mod mobility;
 pub mod motion;
+pub mod installation_clearance;
 pub mod mount_clearance;
 pub mod mount_frames;
 pub mod navigation;

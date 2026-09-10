@@ -17,7 +17,9 @@ function fixture() {
   const events: Omit<CombatEvent, 'sequence' | 'tick'>[] = [];
   const context: AirContext = { actors: sim.actors, planes: sim.aircraft, shells: sim.shells, torpedoes: sim.torpedoes, releases: sim.airReleases, nextId: () => ++id, emit: e => events.push(e) };
   let time = 0;
-  const run = (seconds: number) => { for (let i = 0; i < seconds * 60; i++) { stepAircraft(context, 1 / 60, time); time += 1 / 60; } };
+  const run = (seconds: number, done?: () => boolean) => {
+    for (let i = 0; i < seconds * 60 && !done?.(); i++) { stepAircraft(context, 1 / 60, time); time += 1 / 60; }
+  };
   return { sim, context, events, run };
 }
 test('mixed flights recover before endurance expires on an undamaged carrier', () => {
@@ -42,7 +44,7 @@ test('launch queues three, spaces takeoffs, uses moving carrier datum, recall an
   run(1);
   expect(sim.player.airWing!.planes.filter(p => p.phase === 'takeoff')).toHaveLength(1);
   expect(sim.aircraft.filter(airborne)).toHaveLength(1);
-  run(60);
+  run(60, () => sim.aircraft.filter(airborne).length === 3);
   expect(sim.aircraft.filter(airborne)).toHaveLength(3);
   sim.recallAircraft();
   expect(sim.aircraft.filter(airborne).every(p => p.phase === 'returning')).toBe(true);
@@ -67,7 +69,8 @@ test('torpedo bombers create falling payloads then armed-distance water runners'
 });
 test('opposing fighter sorties engage with finite bursts even when no kill is scored', () => {
   const { sim, run, events } = fixture();
-  sim.target.controller = 'bot'; sim.launchAircraft('vf-6'); run(240);
+  sim.target.controller = 'bot'; sim.launchAircraft('vf-6');
+  run(240, () => events.some(e => e.kind === 'aircraft-fire') && sim.aircraft.some(p => p.role === 'fighter' && p.ammo < 16));
   expect(events.some(e => e.kind === 'aircraft-fire')).toBe(true);
   expect(sim.aircraft.some(p => p.role === 'fighter' && p.ammo < 16)).toBe(true);
 });
@@ -90,7 +93,7 @@ test('recall cancels queued launches; port fixture cannot deploy', () => {
 });
 test('fixed-tick combat integrates bot air operations and resets airborne payloads', () => {
   const { sim } = fixture(); sim.target.controller = 'bot';
-  for (let i = 0; i < 1800; i++) sim.step({ throttle: 0, rudder: 0 }, { aim: [0, 0, -5000] as Vec3, fire: false, battery: 'main' });
+  for (let i = 0; i < 1800 && !sim.target.airWing!.planes.some(airborne); i++) sim.step({ throttle: 0, rudder: 0 }, { aim: [0, 0, -5000] as Vec3, fire: false, battery: 'main' });
   expect(sim.target.airWing!.planes.some(airborne)).toBe(true);
   sim.reset(); expect(sim.aircraft.every(p => p.phase === 'ready')).toBe(true);
 });
@@ -100,7 +103,7 @@ test('aircraft weapons resolve actual ship hits and score hostile damage through
   sim.target.mounts.forEach(m => { m.ammo = m.heAmmo = 0; });
   sim.launchAircraft('vb-6'); sim.launchAircraft('vt-6');
   let bombHit = false, torpedoHit = false;
-  for (let i = 0; i < 280 * 60; i++) {
+  for (let i = 0; i < 280 * 60 && !(bombHit && torpedoHit); i++) {
     sim.step({ throttle: 0, rudder: 0 }, { aim: [0, 0, -5000], fire: false, battery: 'main' });
     bombHit ||= sim.events.some(e => !!e.shell && e.shell.caliberM === .35 && !!e.impact);
     torpedoHit ||= sim.events.some(e => e.kind === 'torpedo-hit');

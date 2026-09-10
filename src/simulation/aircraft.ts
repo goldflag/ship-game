@@ -290,17 +290,28 @@ export function stepAircraft(ctx: AirContext, dt: number, time: number) {
   if (dt <= 0) return;
   // Snapshot the whole group before any fighter can change another plane's state.
   for (const p of ctx.planes) {
-    p.previousPosition = [...p.position];
-    p.previousAttitude = { heading: p.heading, pitch: p.pitch, bank: p.bank };
-    p.previousControls = { ...p.controls };
+    const position = p.previousPosition ??= [0, 0, 0];
+    position[0] = p.position[0]; position[1] = p.position[1]; position[2] = p.position[2];
+    const attitude = p.previousAttitude ??= { heading: 0, pitch: 0, bank: 0 };
+    attitude.heading = p.heading; attitude.pitch = p.pitch; attitude.bank = p.bank;
+    const previous = p.previousControls ??= initialFlightControls(), controls = p.controls;
+    previous.gear = controls.gear; previous.hook = controls.hook; previous.brakes = controls.brakes;
+    previous.aileron = controls.aileron; previous.elevator = controls.elevator; previous.rudder = controls.rudder;
+    previous.propeller = controls.propeller;
     if (p.phase === 'lost') stepWreck(p, ctx, dt);
     else stepFlightMechanisms(p, dt, onFlightDeck(p));
   }
   // One immutable leader pose per tick keeps every wingman on the same reference.
   const leaders = new Map<string, Aircraft>();
-  for (const actor of ctx.actors) for (const flight of actor.airWing?.flights ?? []) {
-    const leader = formationLeader(flight, actor.airWing!.planes);
-    if (leader) leaders.set(flight.id, { ...leader, position: [...leader.position], velocity: [...leader.velocity], pilot: { ...leader.pilot } });
+  for (const actor of ctx.actors) {
+    if (!actor.airWing) continue;
+    // Build one live lookup per wing, rather than scanning its entire inventory
+    // for every member of every flight, including aircraft still in the hangar.
+    const planes = actor.airWing.planes, byId = new Map(planes.map(p => [p.id, p]));
+    for (const flight of actor.airWing.flights) {
+      const leader = formationLeader(flight, planes, byId);
+      if (leader) leaders.set(flight.id, { ...leader, position: [...leader.position], velocity: [...leader.velocity], pilot: { ...leader.pilot } });
+    }
   }
   for (const actor of ctx.actors) {
     const state = actor.airWing, wing = actor.definition.airWing;
@@ -322,7 +333,8 @@ export function stepAircraft(ctx: AirContext, dt: number, time: number) {
       const target = ctx.actors.find(a => a.motion.id === actor.targetId && validTarget(a)) ?? ctx.actors.find(validTarget);
       for (const squadron of wing.squadrons) if (!state.planes.some(p => p.squadronId === squadron.id && !['ready', 'rearming', 'lost'].includes(p.phase))) launchSquadron(actor, squadron.id, target);
     }
-    for (const [i, p] of state.planes.entries()) {
+    for (let i = 0; i < state.planes.length; i++) {
+      const p = state.planes[i];
       p.cooldown = Math.max(0, p.cooldown - dt);
       if (p.phase === 'lost') continue;
       const foldTarget = hasFoldingWings(p.modelId) && ['ready', 'queued', 'parking', 'rearming'].includes(p.phase) ? 1 : 0;

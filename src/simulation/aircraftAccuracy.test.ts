@@ -39,20 +39,23 @@ test('aligned fighter bursts can hit or miss, with identical seeded replays', ()
 });
 
 test('rare fighter hits finish damaged enemies and count kills without friendly damage', () => {
-  let kills = 0;
-  for (let seed = 0; seed < 256; seed++) {
+  // The distribution test above owns statistical coverage. These fixed cases
+  // separately require successful kill attribution and a harmless miss.
+  for (const [seed, hit] of [[96, true], [0, false]] as const) {
     const { sim, ctx, events } = fixture(seed);
     const p = sim.aircraft[0], target = sim.target.airWing!.planes[0];
     Object.assign(p, { phase: 'attack', position: [0, 400, 0], velocity: [0, 0, -100] });
     Object.assign(target, { hp: 60, phase: 'outbound', position: [0, 400, -350], velocity: [0, 0, -100] });
     p.pilot.aimTime = .2; p.pilot.hostileId = target.id; p.pilot.think = 1;
     stepAircraft(ctx, 1 / 60, 0);
-    if (target.phase === 'lost') {
-      kills++; expect(p.kills).toBe(1); expect(events.some(e => e.kind === 'aircraft-lost')).toBe(true);
-    }
+    expect(events.some(e => e.kind === 'aircraft-fire')).toBe(true);
+    expect(p.ammo).toBe(15);
+    expect(target.phase === 'lost').toBe(hit);
+    expect(target.hp).toBe(hit ? 0 : 60);
+    expect(p.kills).toBe(hit ? 1 : 0);
+    expect(events.some(e => e.kind === 'aircraft-lost')).toBe(hit);
     expect(sim.player.airWing!.planes.every(plane => plane.hp === 100)).toBe(true);
   }
-  expect(kills).toBeGreaterThan(0);
 });
 
 test('panicked fighters waste forward bursts before obtaining a disciplined gun solution', () => {
@@ -77,22 +80,25 @@ test('panicked fighters waste forward bursts before obtaining a disciplined gun 
 for (const squadron of ['vb-6', 'vt-6']) test(`${squadron} releases follow varied seeded attack runs without homing`, () => {
   const run = (seed: number) => {
     const { sim, ctx } = fixture(seed);
-    sim.launchAircraft(squadron);
-    for (let tick = 0; tick < 180 * 60; tick++) stepAircraft(ctx, 1 / 60, tick / 60);
     const rounds = squadron === 'vb-6' ? ctx.shells : ctx.torpedoes;
+    const launched = sim.launchAircraft(squadron);
+    // Wait for the entire flight's physical payloads, retaining the deadline
+    // for failed releases without simulating unused post-attack holding time.
+    for (let tick = 0; tick < 180 * 60 && rounds.length < launched; tick++) stepAircraft(ctx, 1 / 60, tick / 60);
     expect(rounds.length).toBeGreaterThan(0);
     return rounds.map(r => ({ position: r.position, velocity: r.velocity }));
   };
-  expect(run(11)).not.toEqual(run(29));
-  expect(run(11)).toEqual(run(11));
+  const first = run(11);
+  expect(first).not.toEqual(run(29));
+  expect(run(11)).toEqual(first);
 });
 
 for (const squadron of ['vb-6', 'vt-6']) test(`${squadron} produces both physical ship hits and misses across attack runs`, () => {
   let rounds = 0, hits = 0;
   for (let seed = 0; seed < 4; seed++) {
     const { sim, ctx } = fixture(seed);
-    sim.launchAircraft(squadron);
-    for (let tick = 0; tick < 180 * 60; tick++) stepAircraft(ctx, 1 / 60, tick / 60);
+    const launched = sim.launchAircraft(squadron), released = squadron === 'vb-6' ? ctx.shells : ctx.torpedoes;
+    for (let tick = 0; tick < 180 * 60 && released.length < launched; tick++) stepAircraft(ctx, 1 / 60, tick / 60);
     if (squadron === 'vb-6') for (const bomb of ctx.shells) {
       rounds++; let hit = false;
       for (let tick = 0; tick < 30 * 60; tick++) {

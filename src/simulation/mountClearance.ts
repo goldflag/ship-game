@@ -4,7 +4,7 @@ import type { MountDefinition, MountState } from './weapons';
 
 type Pose = Pick<MountState, 'train' | 'elevation'>;
 type Capsule = { a: Vec3; b: Vec3; radius: number };
-type Entry = NonNullable<ShipDefinition['mountClearance']>['mounts'][number];
+type Entry = NonNullable<NonNullable<ShipDefinition['mountClearance']>['mounts']>[number];
 type Triangle = [Vec3, Vec3, Vec3];
 const cross = (a: Vec3, b: Vec3): Vec3 => [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]];
 const norm2 = (a: Vec3) => dot(a,a);
@@ -101,13 +101,13 @@ function bodies(a: MountDefinition,ap: Pose,ae: Entry,b: MountDefinition,bp: Pos
 }
 /** CPU-only installation check. No GPU samples or render meshes enter the simulation. */
 export function mountPoseClear(def: ShipDefinition,index: number,pose: Pose,states?: readonly Pose[],extraMargin=0): boolean {
-  const profile=def.mountClearance,m=def.mounts[index],entry=profile?.mounts.find(e=>e.mountId===m.id);
+  const profile=def.mountClearance,m=def.mounts[index],entry=profile?.mounts?.find(e=>e.mountId===m.id);
   if (!profile || !entry) return true;
   const margin=profile.marginM+extraMargin,own=barrels(m,pose,entry,margin);
   if (own.some(c=>prisms(def).some(p=>capsulePrism(c,p)))) return false;
-  for (const pair of profile.neighbors) {
+  for (const pair of (profile.neighbors ?? [])) {
     const otherId=pair[0]===m.id?pair[1]:pair[1]===m.id?pair[0]:undefined;if (!otherId) continue;
-    const j=def.mounts.findIndex(m=>m.id===otherId),other=def.mounts[j],otherPose=states?.[j]??{train:0,elevation:radians(1)},otherEntry=profile.mounts.find(e=>e.mountId===otherId)!;
+    const j=def.mounts.findIndex(m=>m.id===otherId),other=def.mounts[j],otherPose=states?.[j]??{train:0,elevation:radians(1)},otherEntry=profile.mounts!.find(e=>e.mountId===otherId)!;
     const their=barrels(other,otherPose,otherEntry,margin);
     if (own.some(a=>their.some(b=>segments(a.a,a.b,b.a,b.b)<=(a.radius+b.radius)**2) || capsuleBody(a,other,otherPose,otherEntry,margin)) || their.some(c=>capsuleBody(c,m,pose,entry,margin)) || bodies(m,pose,entry,other,otherPose,otherEntry,margin)) return false;
   }
@@ -116,9 +116,11 @@ export function mountPoseClear(def: ShipDefinition,index: number,pose: Pose,stat
 /** Move along a checked path. Small angular subdivisions plus an arc-length margin
  * cover interpolation between samples, including large development-preview jumps. */
 export function moveMountWithClearance(def: ShipDefinition,index: number,state: Pose,target: Pose,states?: readonly Pose[]): boolean {
-  if (!def.mountClearance?.mounts.some(e=>e.mountId===def.mounts[index].id)) { Object.assign(state,target);return true; }
+  if (!def.mountClearance?.mounts?.some(e=>e.mountId===def.mounts[index].id)) { Object.assign(state,target);return true; }
   const w=def.mounts[index].weapon,train=target.train-state.train,elevation=target.elevation-state.elevation;
-  const steps=Math.max(1,Math.ceil(Math.max(Math.abs(train),Math.abs(elevation))/radians(.25))),start={...state};
+  // Roundoff at exact quarter-degree boundaries must not add a subdivision:
+  // its smaller padding can admit a pose that the next equal-size step rejects.
+  const steps=Math.max(1,Math.ceil(Math.max(Math.abs(train),Math.abs(elevation))/radians(.25)-1e-9)),start={...state};
   // A sum of rotational arc lengths bounds every barrel and body point between samples.
   const reach=Math.max(Math.abs(w.muzzleForward)+w.recoilM+1,...w.gunhouseSize),margin=reach*(Math.abs(train)+Math.abs(elevation))/steps;
   for (let i=1;i<=steps;i++) {
