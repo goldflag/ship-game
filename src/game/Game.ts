@@ -52,6 +52,8 @@ import { CombatEffects } from './CombatEffects';
 import { configureRenderOrder } from './renderOrder';
 import type { GameAudio } from './GameAudio';
 import type { Ammunition, Battery, Vec3 } from '../ships/blueprint';
+import { gunTraverseAtFraction } from '../ships/armament';
+import { moveMountWithClearance } from '../simulation/mountClearance';
 import type { InspectionMode } from '../ships/inspection';
 import { selectedShip, shipPreset, shipPresets } from '../ships/presets';
 import { resolveBattleFleet, validateBattleSetup, type BattleSetup } from '../simulation/battle';
@@ -1155,13 +1157,30 @@ export class Game {
         const fraction = THREE.MathUtils.clamp(pose.trainFraction, -1, 1);
         l.train = (fraction < 0 ? -fraction * limits[0] : fraction * limits[1]) * Math.PI / 180;
       });
-      this.simulation.player.mounts.forEach((state, i) => {
+      const targets = this.simulation.player.mounts.map((state, i) => {
         const w = this.definition.mounts[i].weapon;
         const selected = { ...pose, ...pose.mounts?.[this.definition.mounts[i].id] };
-        state.train = THREE.MathUtils.clamp(selected.trainFraction, -1, 1) * w.traverseDeg * Math.PI / 180;
-        state.elevation = (w.elevationMinDeg + THREE.MathUtils.clamp(selected.elevationFraction, 0, 1) * (w.elevationMaxDeg - w.elevationMinDeg)) * Math.PI / 180;
         state.recoil = THREE.MathUtils.clamp(selected.recoilFraction, 0, 1);
+        return { train: gunTraverseAtFraction(this.definition.mounts[i], selected.trainFraction),
+          elevation: (w.elevationMinDeg + THREE.MathUtils.clamp(selected.elevationFraction, 0, 1) * (w.elevationMaxDeg - w.elevationMinDeg)) * Math.PI / 180 };
       });
+      // Review the same CPU interlocks as combat, including independently moved neighbors.
+      const states = this.simulation.player.mounts, step = THREE.MathUtils.degToRad(.5);
+      for (let pass=0; pass<1440; pass++) {
+        let moved=false;
+        states.forEach((state,i)=>{
+          const before={train:state.train,elevation:state.elevation},target=targets[i];
+          const next={train:state.train+THREE.MathUtils.clamp(target.train-state.train,-step,step),elevation:state.elevation+THREE.MathUtils.clamp(target.elevation-state.elevation,-step,step)};
+          const clear=moveMountWithClearance(this.definition,i,state,next,states);
+          if (!clear) {
+            moveMountWithClearance(this.definition,i,state,{train:next.train,elevation:state.elevation},states);
+            moveMountWithClearance(this.definition,i,state,{train:state.train,elevation:next.elevation},states);
+          }
+          state.status=Math.abs(state.train-target.train)+Math.abs(state.elevation-target.elevation)<1e-7?'ready':'blocked';
+          moved ||= Math.abs(state.train-before.train)+Math.abs(state.elevation-before.elevation)>1e-9;
+        });
+        if (!moved) break;
+      }
       this.playerView.update();
     }
     return this.diagnostics();

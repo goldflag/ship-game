@@ -1,10 +1,12 @@
 import { hullDepth } from './ship';
+import { gunTraverseLimitsDeg } from '../ships/armament';
 import type { Ammunition, ShipDefinition, Vec3 } from '../ships/blueprint';
 import { barrelOffset, barrelHeightOffset } from '../ships/blueprint';
 import { add, clamp, length, localToWorld, normalize, radians, rotate, sub, wrapAngle, worldToLocal, type Pose } from './geometry';
 import { GRAVITY, solveDragArc, travelFactor } from './ballistics';
 import { BarrelObstructionTree, gunMountObstructions, segmentIntersectsBox } from './obstruction';
 import { mountBearing, mountPosition, mountFrame, type CarrierFrame } from './mountFrames';
+import { moveMountWithClearance } from './mountClearance';
 export { GRAVITY } from './ballistics';
 export type MountDefinition = ShipDefinition['mounts'][number];
 // Compiled definitions are immutable during a battle, like the hull/armor caches.
@@ -149,11 +151,21 @@ export function updateMount(m: MountDefinition, state: MountState, definition: S
     desiredElevation = Math.asin(clamp(direction[1], -1, 1));
   }
   state.aimCache = reachable && aim ? { time: flightTime, train: desiredTrain, elevation: desiredElevation, point: [...aim] } : undefined;
-  const w = m.weapon, limit = radians(w.traverseDeg);
-  const train = clamp(desiredTrain, -limit, limit), elevation = clamp(desiredElevation, radians(w.elevationMinDeg), radians(w.elevationMaxDeg));
+  const w = m.weapon, [minimumTrain, maximumTrain] = gunTraverseLimitsDeg(m).map(radians);
+  const train = clamp(desiredTrain, minimumTrain, maximumTrain), elevation = clamp(desiredElevation, radians(w.elevationMinDeg), radians(w.elevationMaxDeg));
   // Traverse through the permitted interval; never shortcut across the forbidden stern sector.
-  state.train += clamp(train - state.train, -radians(w.traverseRateDeg) * dt * workRate, radians(w.traverseRateDeg) * dt * workRate);
-  state.elevation += clamp(elevation - state.elevation, -radians(w.elevationRateDeg) * dt * workRate, radians(w.elevationRateDeg) * dt * workRate);
+  const next = {
+    train: state.train + clamp(train - state.train, -radians(w.traverseRateDeg) * dt * workRate, radians(w.traverseRateDeg) * dt * workRate),
+    elevation: state.elevation + clamp(elevation - state.elevation, -radians(w.elevationRateDeg) * dt * workRate, radians(w.elevationRateDeg) * dt * workRate),
+  };
+  const mountIndex = definition.mountClearance ? definition.mounts.findIndex(other => other.id === m.id) : 0;
+  let motionClear = moveMountWithClearance(definition, mountIndex, state, next, mountedStates);
+  if (!motionClear) {
+    // A blocked elevation must not prevent traversing away from a platform.
+    moveMountWithClearance(definition, mountIndex, state, { train: next.train, elevation: state.elevation }, mountedStates);
+    moveMountWithClearance(definition, mountIndex, state, { train: state.train, elevation: next.elevation }, mountedStates);
+    motionClear = Math.abs(state.train-next.train)<1e-9 && Math.abs(state.elevation-next.elevation)<1e-9;
+  }
   // Readiness depends on the actual barrel path, even while tracking an unreachable reticle.
   const previousObstruction = barrelObstructions.get(state);
   const carried = carriedMounts(definition);
@@ -179,9 +191,9 @@ export function updateMount(m: MountDefinition, state: MountState, definition: S
   // Obstructions are fixed in hull coordinates. Ship motion, reload and recoil
   // cannot change this test; any actual traverse/elevation change recomputes it.
   if (!unchanged) barrelObstructions.set(state, { definition, mount: m, train: state.train, elevation: state.elevation, blocked: obstructed, carriers });
-  if (obstructed) { state.status = 'blocked'; return false; }
+  if (obstructed || !motionClear) { state.status = 'blocked'; return false; }
   if (!reachable) { state.status = 'out-of-range'; return false; }
-  if (Math.abs(desiredTrain) > limit + 1e-6 || desiredElevation < radians(w.elevationMinDeg) - 1e-6 || desiredElevation > radians(w.elevationMaxDeg) + 1e-6) { state.status = 'out-of-arc'; return false; }
+  if (desiredTrain < minimumTrain - 1e-6 || desiredTrain > maximumTrain + 1e-6 || desiredElevation < radians(w.elevationMinDeg) - 1e-6 || desiredElevation > radians(w.elevationMaxDeg) + 1e-6) { state.status = 'out-of-arc'; return false; }
   // A small angular tolerance is shared by firing and the HUD via this status.
   if (Math.abs(desiredTrain - state.train) >= .0015 || Math.abs(desiredElevation - state.elevation) >= .0008) { state.status = 'turning'; return false; }
   state.status = state.reload > 0 ? 'reloading' : 'ready';
