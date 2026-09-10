@@ -152,8 +152,7 @@ impl Aviation {
             .collect();
         for c in k
             .sensors
-            .contacts(p.team)
-            .into_iter()
+            .iter_contacts(p.team)
             .filter(|c| c.kind == ContactKind::Aircraft && locally_observed(c, p, k.tick))
         {
             // The own-aircraft template supplies required mechanical fields to
@@ -169,7 +168,7 @@ impl Aviation {
             } else {
                 crate::rules::TeamId::A
             };
-            observed.position = report_point(&c, k.tick);
+            observed.position = report_point(c, k.tick);
             observed.previous_position = observed.position;
             observed.velocity = c.velocity;
             observed.heading = c.pose().heading;

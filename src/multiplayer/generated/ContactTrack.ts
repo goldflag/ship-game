@@ -2,6 +2,7 @@
 import type { Affiliation } from "./Affiliation";
 import type { ContactKind } from "./ContactKind";
 import type { ObservationSource } from "./ObservationSource";
+import type { ObservedCondition } from "./ObservedCondition";
 import type { TrackStatus } from "./TrackStatus";
 
-export type ContactTrack = { id: string, kind: ContactKind, affiliation: Affiliation, status: TrackStatus, firstObservedTick: number, lastObservedTick: number, measuredPosition: [number, number, number], estimatedPosition: [number, number, number], velocity: [number, number, number], uncertaintyM: number, identificationConfidence: number, classification: string | null, identifiedPresetId: string | null, sources: Array<ObservationSource>, };
+export type ContactTrack = { id: string, kind: ContactKind, affiliation: Affiliation, status: TrackStatus, firstObservedTick: number, lastObservedTick: number, measuredPosition: [number, number, number], estimatedPosition: [number, number, number], velocity: [number, number, number], uncertaintyM: number, identificationConfidence: number, classification: string | null, identifiedPresetId: string | null, sources: Array<ObservationSource>, visibleCondition?: ObservedCondition, };

@@ -52,10 +52,10 @@ impl Aviation {
             p.phase = "returning".into();
             return true;
         }
-        let reports = k.sensors.contacts(p.team);
+        let reports = k.sensors.iter_contacts(p.team);
         let local = |c: &&crate::sensors::ContactTrack| observation::locally_observed(c, p, k.tick);
         let threatened = policy != SearchPolicy::Strike
-            && reports.iter().filter(local).any(|c| {
+            && reports.clone().filter(local).any(|c| {
                 c.kind == ContactKind::Aircraft
                     && length(sub(observation::report_point(c, k.tick), p.position)) < 3500.0
             });
@@ -65,8 +65,7 @@ impl Aviation {
             return true;
         }
         if policy != SearchPolicy::Report && p.target_id.is_none() {
-            p.target_id = reports
-                .iter()
+            p.target_id = reports.clone()
                 .filter(local)
                 .filter(|c| c.kind == ContactKind::Surface && c.affiliation == Affiliation::Hostile)
                 .filter(|c| {

@@ -1,5 +1,25 @@
 # PvE implementation status
 
+## Delivered expansion: desktop PvE (2026-09-09)
+
+Continues from UI-polish commit `38d40f71`. The four requested additions are delivered. The full historical plan remains a roadmap: exact wheel/hook contact, physical elevators, below-deck loading, detailed handling choreography, advanced attack/torpedo planning, rally/Execute, sophisticated retasking, mobile polish and exhaustive balance stay deferred.
+
+| Increment | Delivered behavior and acceptance |
+| --- | --- |
+| Formations and commanders | Turn-aware station keeping, damage-aware speed and explicit slow/leave decisions; temporary observed aircraft/torpedo avoidance preserves standing orders. Enemy surface targeting, carrier support and escort regrouping use permitted reports. Native tests cover passages, turns, damaged stragglers, evasion and front-collapse repositioning; UI accepted both policies and showed route-preserving evasion. |
+| Simulation speed | Local 1×/2×/4× uses bounded batches of unchanged authoritative ticks. Rendering and camera/input remain separate. Real-WASM tests cover clock equivalence, high-refresh batching, pause/queued orders, result freeze and restart to 1×; online timing is unchanged. Final UI measurements: **1.00× / 2.01× / 3.99×**, with 84–104 FPS at the sample endpoints, and an unchanged paused tick. |
+| Reconnaissance | Bounded 1 km cells record actual sensor eligibility, including range, horizon, weather and terrain, with last-observed ages. Reports distinguish current, estimated, last-known and observed sinking; condition cues are observed exterior effects. No enemy health, inventory or orders are exposed. Aircraft uncertainty rings remain removed. Native hidden-state tests and UI coverage/age/condition checks pass. |
+| Aircraft operating rules | Versioned `pve-air-v1` removes the active-group cap while retaining inventories, persistent losses and simplified deck constraints. Timed orders allow **30 minutes**, automatic recall is **32 minutes** for every role, and exhaustion is **40 minutes**. Empty weapons, critical damage, recall and finite search-task completion still return aircraft. The audit removed the separate legacy 470-second formation-leader cutoff from PvE. Legacy Custom/online rules remain unchanged. |
+
+### Expansion validation
+
+- **64 client/session/UI tests, 1,341 assertions across 14 files; 54 native simulation/protocol tests; production build passed.** Native coverage includes the 32-minute recall and 40-minute exhaustion boundaries, observed aircraft/search behavior, formation policy ownership and hidden-state invariance. The build retains its existing large-bundle warning.
+- Actual Chromium/WebGPU UI battle, seed **2644022287**, used Bismarck, Fletcher and Enterprise with 48 aircraft. At **21:33 simulation time**, all nine groups were airborne; six bomber groups had remained airborne continuously for over 20 minutes (oldest 1,279.93 seconds). Fighters returned, serviced and launched again. Surface damage, aircraft and torpedo evasion, retained standing orders, 713 sampled coverage cells, report aging and an observed enemy Bismarck sinking were recorded.
+- A second mission, seed **3007874398**, exposed a real 4× throughput problem: AA mounts and pilots copied all contact reports repeatedly. Profiling identified report/string allocation as the dominant cost. Those readers now borrow the identical team-permitted reports in the same order. Replaying that seed restored the measured 3.99× rate above; targeting/privacy regression tests pass. This is a performance correction, not a change in observation cadence or combat rules.
+- Final UI confirmation covered 1440×1000 and 1280×800, continuous filled reconnaissance patches, restrained aircraft report labels, hover ages, speed changes in both fleet and helm views, restored helm/sight/minimap, and armed Move clicks through aircraft markers. Paused orders retained visible waypoints and dispatched on resume. Evidence and profiling scripts/logs are retained under ignored `.build/pve-expansion/`.
+
+**No confirmed blocker remains for this requested desktop scope. Remaining implementation estimate: zero.** The initial inspection estimate was 1–2 hours. Integration/publishing is separate from local delivery. Dense friendly flight labels can still overlap at whole-map zoom; maximum-scale performance and exhaustive balance remain follow-up work. This expansion pass did not run a new natural battle to results or fly for the full 40 minutes in the browser: those boundaries are covered by automated authority tests, and the completed desktop results/restart loop remains documented in the MVP acceptance below.
+
 ## Delivered objective: playable desktop PvE MVP (2026-09-09)
 
 Deliver a playable desktop loop through the actual UI: **port → fleet setup → deployment → battle → win/loss → results → restart or new battle**. Use the selected [variation D](pve-ui-studies/README.md) and the existing shared Rust simulation. The user's latest scope explicitly supersedes the earlier requirement to finish the entire [PvE fleet-command plan](pve-fleet-command-plan.md) before delivery.
@@ -52,13 +72,13 @@ A separate native contact-only pursuit continued to 60 minutes without a stall: 
 
 - The full plan, advanced coordinated tactics, torpedo/rally/Execute workflows and extended air allocation/retasking.
 - Further carrier physics and fidelity: exact tyre/hook/fitting contact, elevator and hangar geometry/transfers, exhaustive deck-cycle reviews, and managed-profile activation that depends on those changes. Keep the working production behavior for the MVP.
-- Additional observation swaths/condition-report features, mobile/compact-layout acceptance, exhaustive matchup balance, maximum-scale performance campaigns and historical-model certification.
+- Reconnaissance beyond the delivered sampled surface-coverage/observed-condition reports, mobile acceptance, exhaustive matchup balance, maximum-scale performance campaigns and historical-model certification.
 
 These items remain possible later work. They become MVP work only if a concrete finding blocks the accepted desktop loop or violates a preserved invariant.
 
 ## Historical milestones (not current acceptance gates)
 
-The records below preserve earlier implementation and validation evidence. Every earlier statement that the full plan is “active,” “unfinished,” “required” or “pending” describes the scope at that checkpoint and is **superseded by the desktop MVP objective above**. Historical incomplete checks are not new confirmed bugs, and historical passing checks do not replace the pending MVP playthrough.
+The records below preserve earlier implementation and validation evidence. Every earlier statement that the full plan is “active,” “unfinished,” “required” or “pending” describes the scope at that checkpoint and is **superseded by the desktop MVP objective above**. Historical incomplete checks are not new confirmed bugs, and historical passing checks do not replace current acceptance evidence.
 
 The implementation checkout was created from remote master `b321cbf8a524edb16bdbcd56a3944eda8fd7a774` (including Iowa and Mogami). The discussion checkout and Fable study were preserved separately; the approved HTML was retained byte-for-byte with its recorded hash.
 

@@ -113,26 +113,43 @@ impl PvePlan {
                         .total_cmp(&b.uncertainty_m)
                         .then(a.id.cmp(&b.id))
                 });
-            let target = reports
-                .iter()
-                .filter(|c| {
-                    c.targetable()
-                        && battle.tick.saturating_sub(c.last_observed_tick) <= 30 * TICK_RATE
+            let target = crate::pve_command::priority_contact(battle);
+            let defended = threat
+                .and_then(|threat| {
+                    battle
+                        .actors
+                        .iter()
+                        .filter(|a| a.team == TeamId::B && a.physical_loss().is_none())
+                        .min_by(|a, b| {
+                            let range = |a: &crate::vessel::Vessel| {
+                                (a.motion.x - threat.estimated_position[0])
+                                    .hypot(a.motion.z - threat.estimated_position[2])
+                            };
+                            range(a)
+                                .total_cmp(&range(b))
+                                .then(a.motion.id.cmp(&b.motion.id))
+                        })
                 })
-                .max_by(|a, b| {
-                    let priority = |c: &crate::sensors::ContactTrack| {
-                        c.identified_preset_id
-                            .as_ref()
-                            .and_then(|id| battle.catalog.definitions.get(id))
-                            .is_some_and(|d| d.air_wing.is_some())
-                    };
-                    priority(a)
-                        .cmp(&priority(b))
-                        .then(b.uncertainty_m.total_cmp(&a.uncertainty_m))
-                        .then(b.id.cmp(&a.id))
-                });
-            let mut chosen = if !cap {
-                fighter.map(|f| (f, AirOrder::Defend { target_id: None }))
+                .map(|a| a.motion.id.clone());
+            let cap_retask = defended.as_ref().and_then(|id| active.iter().find(|f| on_task(f)
+                && matches!(&f.order, AirOrder::Defend {target_id} if target_id.as_deref().unwrap_or(&actor.motion.id) != id))
+                .map(|f| (*f,id.clone())));
+            let mut chosen = if let Some((flight, id)) = cap_retask {
+                Some((
+                    flight,
+                    AirOrder::Defend {
+                        target_id: Some(id),
+                    },
+                ))
+            } else if !cap {
+                fighter.map(|f| {
+                    (
+                        f,
+                        AirOrder::Defend {
+                            target_id: defended,
+                        },
+                    )
+                })
             } else if let Some(strike) = strike.filter(|_| !escort) {
                 fighter.map(|f| {
                     (
@@ -168,7 +185,7 @@ impl PvePlan {
                     .min_by_key(|f| if role(f) == "dive-bomber" { 0 } else { 1 })
                     .copied();
                 if let Some(f) = bomber {
-                    if let Some(c) = target {
+                    if let Some(c) = target.as_ref() {
                         // Keep a compatibility-mode slot available for the strike's escort.
                         let escort_room = fighter.is_none()
                             || escort
@@ -241,7 +258,7 @@ impl PvePlan {
                     Some(AirIntent::Deck(DeckAction::Rearm))
                 } else if wing.deck.is_some() && planes.iter().any(|p| p.hp < 25.0) {
                     Some(AirIntent::Deck(DeckAction::Repair))
-                } else if slot_available {
+                } else if slot_available || active_flight(f, &wing.planes) {
                     Some(AirIntent::Order(order))
                 } else {
                     None

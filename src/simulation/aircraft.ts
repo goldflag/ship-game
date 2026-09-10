@@ -42,7 +42,7 @@ export interface DeckStatus {
   currentPlaneId?: string; task?: string; stepRemainingSeconds?: number; suspended: boolean; notice?: string;
   occupied: number; capacity: number; groupSize: number; activeFlightLimit: number | null; endurance: EndurancePolicy; repairCeilingHp: number;
 }
-export interface AirWingState { recovery?: CarrierRecovery; deck?: DeckStatus; planes: Aircraft[]; launchCooldown: number; flights: AirFlight[]; flightSequence: number; transferCooldown: number; }
+export interface AirWingState { operatingRules?: { endurance: EndurancePolicy; activeFlightLimit: number | null }; recovery?: CarrierRecovery; deck?: DeckStatus; planes: Aircraft[]; launchCooldown: number; flights: AirFlight[]; flightSequence: number; transferCooldown: number; }
 export interface AirRelease { id: number; ownerId: string; position: Vec3; velocity: Vec3; weapon?: TorpedoPart; }
 export const hasFoldingWings = (modelId: string) => aircraftGroundPose(modelId).foldingWings;
 const WING_FOLD_SECONDS = 4; // Gameplay timing; manual crew/hydraulic operation is abstracted.

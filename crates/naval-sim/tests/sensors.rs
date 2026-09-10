@@ -15,6 +15,7 @@ fn entity(id: &str, team: TeamId, kind: ContactKind, x: f64, altitude: f64) -> V
         feature: [x, altitude + 25.0, 0.0],
         length_m: 250.0,
         preset_id: Some("private-preset".into()),
+        cues: Default::default(),
     }
 }
 fn clear() -> VisualConditions {

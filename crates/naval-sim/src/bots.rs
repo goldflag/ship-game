@@ -494,9 +494,12 @@ fn steer(actor: &Vessel, heading: f64) -> f64 {
     )
 }
 fn avoid_ships(actor: &Vessel, heading: f64, actors: &[Vessel]) -> f64 {
+    avoid_known_ships(actor, heading, actors, false)
+}
+fn avoid_known_ships(actor: &Vessel, heading: f64, actors: &[Vessel], own_only: bool) -> f64 {
     let (mut x, mut z) = (heading.sin(), -heading.cos());
     for other in actors {
-        if other.motion.id == actor.motion.id || other.motion.y < -20.0 {
+        if other.motion.id == actor.motion.id || other.motion.y < -20.0 || (own_only && other.team != actor.team) {
             continue;
         }
         let separation = distance(actor, other);
@@ -644,10 +647,11 @@ pub fn helm_contact(
     } else {
         0.5
     };
-    let heading = avoid_ships(
+    let heading = avoid_known_ships(
         actor,
         bearing + bot.side * (angle * std::f64::consts::PI + bot.course_offset),
         actors,
+        true,
     );
     HelmCommand {
         throttle: if evading {

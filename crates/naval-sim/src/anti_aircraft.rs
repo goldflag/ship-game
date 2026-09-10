@@ -96,7 +96,7 @@ pub fn update_observed(
     let mut closest = reach;
     let mut target = None;
     if let Some(k) = knowledge {
-        for c in k.sensors.contacts(actor.team) {
+        for c in k.sensors.iter_contacts(actor.team) {
             if c.kind != crate::sensors::ContactKind::Aircraft
                 || c.affiliation != crate::sensors::Affiliation::Hostile
                 || k.tick.saturating_sub(c.last_observed_tick) > 2 * crate::rules::TICK_RATE

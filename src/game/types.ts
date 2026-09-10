@@ -29,6 +29,7 @@ export interface Telemetry {
   selectedShipIds?: string[];
   controlledShipId?: string;
   tacticalPaused?: boolean;
+  simulationSpeed?: 1 | 2 | 4;
   selectedFlightId?: string;
   selectedFlightIds?: string[];
   airMap?: import('../ui/airChart').ChartView;

@@ -1,6 +1,7 @@
 import type { DeckPolicy } from '../../multiplayer/generated/DeckPolicy';
 import type { BattleSession, ObservedShip, BattleDebrief, DeckServiceAction } from './BattleSession';
 import type { ContactTrack } from '../../multiplayer/generated/ContactTrack';
+import type { ReconCoverage } from '../../multiplayer/generated/ReconCoverage';
 import type { BattleSetup } from '../../multiplayer/generated/BattleSetup';
 import type { Command } from '../../multiplayer/generated/Command';
 import type { WeaponsPolicy } from '../../multiplayer/generated/WeaponsPolicy';
@@ -34,6 +35,7 @@ export interface Snapshot {
   shells: Shell[]; torpedoes: Torpedo[]; depthCharges: DepthCharge[]; releases: AirRelease[]; events: CombatEvent[];
   outcome?: BattleOutcome; afloatKg: [number | null, number | null];
   view?: 'team'; contacts?: ContactTrack[]; observedShips?: ObservedShip[]; remainingSeconds?: number | null;
+  reconCoverage?: ReconCoverage;
   debrief?: Snapshot;
   shipOutcomes?: Record<string, 'operational' | 'sunk' | 'incapacitated'>;
   records: { scores: Record<string, { damageDealt: number; frags: number; damageLog: DamageLogEntry[] }>; shellHistory: ShellHistory[] };
@@ -50,6 +52,7 @@ export abstract class SnapshotSession implements BattleSession {
   actors: FleetActor[] = [];
   player!: FleetActor; target?: FleetActor;
   observationTracks: ContactTrack[] = []; observedShips: ObservedShip[] = [];
+  reconCoverage?: ReconCoverage;
   private targetContactId?: string;
   get targetContact() { return this.observationTracks.find(c => c.id === this.targetContactId); }
   get missionRules() { return this.setup.missionRules; }
@@ -148,11 +151,16 @@ export abstract class SnapshotSession implements BattleSession {
           }
           return p;
         });
-        actor.airWing = { ...wing, planes };
+        const rules = this.setup.airRules;
+        actor.airWing = { ...wing, planes, operatingRules: rules ? {
+          endurance: rules.endurance,
+          activeFlightLimit: rules.activeFlights.kind === 'unlimited' ? null : rules.activeFlights.kind === 'limited' ? rules.activeFlights.maximum : actor.definition.airWing?.maxActiveFlights ?? 4,
+        } : undefined };
       }
     }
     this.actors = this.actors.filter(a => frame.actors.some(w => w.motion.id === a.motion.id));
     this.observationTracks = frame.contacts ?? []; this.observedShips = frame.observedShips ?? [];
+    this.reconCoverage = frame.reconCoverage;
     this.remainingSeconds = frame.view === 'team' ? frame.remainingSeconds ?? null : frame.remainingSeconds;
     const selected = frame.selectedShipIds?.[this.playerIndex];
     const player = this.actors.find(a => a.motion.id === selected && a.team === 'friendly') ?? this.player ?? this.actors.find(a => a.team === 'friendly')!;
@@ -248,6 +256,7 @@ export abstract class SnapshotSession implements BattleSession {
     this.send(owner.motion.id, { type: 'air', flightId: id, order: order.kind === 'defend' ? { ...order, targetId: order.targetId ?? null } : order });
     return true;
   }
+  setFormationPolicy(id: string, policy: import('../../multiplayer/generated/FormationPolicy').FormationPolicy) { this.send(id, { type: 'formation-policy', policy }); }
   commandDeck(id: string, action: DeckServiceAction) {
     const owner = this.actors.find(a => a.team === 'friendly' && a.airWing?.deck && a.airWing.flights.some(f => f.id === id));
     if (!owner || this.result !== 'active') return false;

@@ -12,7 +12,7 @@ const movement = new Set<Command['type']>(['move', 'route', 'hold', 'hold-area',
 function replacementKey(command: Command): string | undefined {
   if (command.type === 'route' && command.append) return;
   if (movement.has(command.type)) return 'movement';
-  if (command.type === 'focus' || command.type === 'weapons' || command.type === 'input') return command.type;
+    if (command.type === 'focus' || command.type === 'weapons' || command.type === 'formation-policy' || command.type === 'input') return command.type;
 }
 
 /** Local tactical-pause outbox. Nothing changes simulation state before Rust

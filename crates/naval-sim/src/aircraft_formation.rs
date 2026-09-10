@@ -23,13 +23,13 @@ pub fn formation_offset(f: &AirFlight, p: &Aircraft, time: f64, seed: u32) -> Ve
         row * 27.0 + (time * 0.27 + phase * 3.0).sin() * 2.0,
     ]
 }
-pub fn formation_leader(f: &AirFlight, planes: &[Aircraft]) -> Option<usize> {
+pub fn formation_leader(f: &AirFlight, planes: &[Aircraft], endurance: &crate::air_rules::EndurancePolicy) -> Option<usize> {
     f.plane_ids
         .iter()
         .filter_map(|id| planes.iter().position(|p| &p.id == id))
         .find(|&i| {
             planes[i].hp >= 25.0
-                && planes[i].flight_time <= 470.0
+                && !endurance.needs_recall(planes[i].flight_time, false)
                 && matches!(planes[i].phase.as_str(), "outbound" | "attack")
         })
 }

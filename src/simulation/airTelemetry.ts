@@ -24,7 +24,7 @@ export function airWingTelemetry(actor: FleetActor, actors: FleetActor[]) {
   const state = actor.airWing, wing = actor.definition.airWing;
   if (!state || !wing) return undefined;
   const queue = recoveryQueue(actor);
-  const endurance: EndurancePolicy = state.deck?.endurance ?? { ...legacyAir.endurance, kind: 'timed' };
+  const endurance: EndurancePolicy = state.operatingRules?.endurance ?? state.deck?.endurance ?? { ...legacyAir.endurance, kind: 'timed' };
   const remaining = (elapsed: number): number | null => endurance.kind === 'disabled' ? null : Math.max(0, Math.floor(endurance.exhaustionSeconds - elapsed));
   const lowEndurance = (plane: Aircraft) => endurance.kind !== 'disabled' && plane.flightTime > (plane.role === 'fighter' ? endurance.fighterRecallSeconds : endurance.recallSeconds);
   const counts: Record<AirStatus, number> = { withdrawn: 0, ready: 0, launching: 0, 'on-mission': 0, returning: 0, servicing: 0, lost: 0, hangar: 0, handling: 0 };
@@ -82,7 +82,7 @@ export function airWingTelemetry(actor: FleetActor, actors: FleetActor[]) {
   return {
     recovery: state.recovery, deck: state.deck,
     available: state.recovery?.kind === 'closed' ? false : state.deck ? !state.deck.suspended : airServiceAvailable(actor), total: state.planes.length, counts,
-    activeFlights: groups.filter(g => g.active).length, maxActiveFlights: state.deck ? state.deck.activeFlightLimit : wing.maxActiveFlights ?? 4, flightSize: flightSize(actor),
+    activeFlights: groups.filter(g => g.active).length, maxActiveFlights: state.operatingRules ? state.operatingRules.activeFlightLimit : state.deck ? state.deck.activeFlightLimit : wing.maxActiveFlights ?? 4, flightSize: flightSize(actor),
     deckCapacity: deckCapacity(actor), onDeck: state.planes.filter(onFlightDeck).length,
     inHangar: state.planes.filter(p => !terminalAircraft(p) && !airborne(p) && !onFlightDeck(p)).length,
     recoveryCount: queue.length,

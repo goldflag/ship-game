@@ -122,6 +122,77 @@ fn escort(ship: &Vessel, leader: &Vessel, plan: &PvePlan, index: usize) -> Movem
         radius_m: 180.0,
     }
 }
+/// A shared report priority lets surface groups and carrier strikes concentrate
+/// on the same known threat without consulting hidden hull condition or orders.
+pub(crate) fn priority_contact(battle: &Battle) -> Option<crate::sensors::ContactTrack> {
+    battle
+        .sensors
+        .contacts(TeamId::B)
+        .into_iter()
+        .filter(|c| {
+            c.targetable()
+                && battle.tick.saturating_sub(c.last_observed_tick) <= 30 * crate::rules::TICK_RATE
+        })
+        .max_by(|a, b| {
+            let carrier = |c: &crate::sensors::ContactTrack| {
+                c.identified_preset_id
+                    .as_ref()
+                    .and_then(|id| battle.catalog.definitions.get(id))
+                    .is_some_and(|d| d.air_wing.is_some())
+            };
+            carrier(a)
+                .cmp(&carrier(b))
+                .then(b.uncertainty_m.total_cmp(&a.uncertainty_m))
+                .then(b.id.cmp(&a.id))
+        })
+}
+fn withdraw(leader: &Vessel, battle: &Battle, threat: [f64; 3]) -> Movement {
+    let delta = [leader.motion.x - threat[0], leader.motion.z - threat[2]];
+    let range = delta[0].hypot(delta[1]).max(1.0);
+    if let Some(Movement::Route {
+        waypoints,
+        speed_mps,
+        looped: false,
+    }) = leader.navigation.as_ref().map(|n| &n.order)
+    {
+        if waypoints.len() == 1 {
+            let p = waypoints[0];
+            let remaining = (p[0] - leader.motion.x).hypot(p[1] - leader.motion.z);
+            if remaining > 300.0
+                && (p[0] - leader.motion.x) * delta[0] + (p[1] - leader.motion.z) * delta[1] > 0.0
+            {
+                return Movement::Route {
+                    waypoints: waypoints.clone(),
+                    speed_mps: *speed_mps,
+                    looped: false,
+                };
+            }
+        }
+    }
+    // Try several retreat bearings around authored land, not an invisible enemy
+    // route. Navigation still owns the full island detour and collision checks.
+    for angle in [0.0_f64, 0.6, -0.6, 1.2, -1.2] {
+        let (sin, cos) = angle.sin_cos();
+        let p = inside(
+            [
+                leader.motion.x + (delta[0] * cos - delta[1] * sin) / range * 4000.0,
+                leader.motion.z + (delta[0] * sin + delta[1] * cos) / range * 4000.0,
+            ],
+            battle,
+        );
+        if crate::navigation::destination_is_clear(leader, p, &battle.islands) {
+            return Movement::Route {
+                waypoints: vec![p],
+                speed_mps: crate::navigation::maximum_speed(leader) * 0.85,
+                looped: false,
+            };
+        }
+    }
+    Movement::HoldArea {
+        position: [leader.motion.x, leader.motion.z],
+        radius_m: 500.0,
+    }
+}
 impl PvePlan {
     pub fn initial_directives(&self, battle: &Battle) -> Directives {
         let mut orders = BTreeMap::new();
@@ -165,6 +236,7 @@ impl PvePlan {
             .find(|s| s.team == TeamId::B)
             .map_or(AiLevel::Normal, |s| s.ai_level);
         let cadence = match level {
+            AiLevel::Static | AiLevel::Moving => return BTreeMap::new(),
             AiLevel::Easy => 600,
             AiLevel::Hard => 180,
             _ => 300,
@@ -173,19 +245,52 @@ impl PvePlan {
             return BTreeMap::new();
         }
         let mut orders = BTreeMap::new();
+        let shared_contact = priority_contact(battle);
+        let front_ids: Vec<_> = self
+            .enemy_assignments
+            .iter()
+            .filter(|a| {
+                self.enemy_groups
+                    .iter()
+                    .any(|g| g.id == a.group_id && g.station == GroupStation::Front)
+            })
+            .map(|a| a.id.as_str())
+            .collect();
+        let original_front: f64 = self
+            .setup
+            .ships
+            .iter()
+            .filter(|a| front_ids.contains(&a.id.as_str()))
+            .map(|a| battle.catalog.definitions[&a.preset_id].hull.mass_kg)
+            .sum();
+        let remaining_front: f64 = battle
+            .actors
+            .iter()
+            .filter(|a| {
+                front_ids.contains(&a.motion.id.as_str())
+                    && a.physical_loss().is_none()
+                    && !crate::mission::permanently_incapable(a, battle.aviation.wing(&a.motion.id))
+            })
+            .map(|a| a.definition().hull.mass_kg)
+            .sum();
+        let front_collapsed = original_front > 0.0 && remaining_front < original_front * 0.5;
         for group in &self.enemy_groups {
             let ships = members(battle, &self.enemy_assignments, group, TeamId::B);
             let Some(leader) = ships.first() else {
                 continue;
             };
-            let contact = battle.sensors.surface_target(
-                TeamId::B,
-                [leader.motion.x, leader.motion.y, leader.motion.z],
-                None,
-                leader.target_id.as_deref(),
-            );
+            let contact = shared_contact.as_ref().or_else(|| {
+                battle.sensors.surface_target(
+                    TeamId::B,
+                    [leader.motion.x, leader.motion.y, leader.motion.z],
+                    None,
+                    leader.target_id.as_deref(),
+                )
+            });
             if group.station == GroupStation::Front {
-                let movement = if contact.is_some() {
+                let movement = if front_collapsed && contact.is_some() {
+                    withdraw(leader, battle, contact.unwrap().estimated_position)
+                } else if contact.is_some() {
                     Movement::Autonomous
                 } else if leader
                     .navigation
@@ -199,6 +304,19 @@ impl PvePlan {
                 orders.insert(
                     leader.motion.id.clone(),
                     (movement, contact.map(|c| c.id.clone())),
+                );
+            } else if let Some(threat) = contact.filter(|c| {
+                front_collapsed
+                    || (c.estimated_position[0] - leader.motion.x)
+                        .hypot(c.estimated_position[2] - leader.motion.z)
+                        < 9000.0
+            }) {
+                orders.insert(
+                    leader.motion.id.clone(),
+                    (
+                        withdraw(leader, battle, threat.estimated_position),
+                        Some(threat.id.clone()),
+                    ),
                 );
             } else if !leader
                 .navigation

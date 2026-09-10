@@ -397,3 +397,141 @@ fn enemy_air_commander_scouts_before_striking_uses_reports_and_keeps_fighter_sup
         4
     );
 }
+
+#[test]
+fn enemy_front_loss_repositions_carriers_and_keeps_surviving_escorts_with_them() {
+    use naval_sim::{navigation::Movement, sensors};
+    let mut content = catalog().clone();
+    content
+        .definitions
+        .retain(|id, _| matches!(id.as_str(), "fletcher" | "enterprise-cv6"));
+    let plan = (0..50)
+        .map(|seed| {
+            PvePlan::generate(
+                &content,
+                request(
+                    seed,
+                    &["enterprise-cv6", "fletcher", "fletcher", "fletcher"],
+                    "north-atlantic",
+                ),
+            )
+            .unwrap()
+        })
+        .find(|p| {
+            let b = battle(p);
+            b.actors
+                .iter()
+                .any(|a| a.team == TeamId::B && a.definition().air_wing.is_some())
+                && p.initial_directives(&b).iter().any(|(id, (m, _))| {
+                    id.starts_with("opponent-")
+                        && matches!(m,Movement::Route{waypoints,..} if waypoints.len()==6)
+                })
+        })
+        .unwrap();
+    let mut battle = battle(&plan);
+    battle.islands.clear();
+    for (i, a) in battle.actors.iter_mut().enumerate() {
+        a.motion.x = i as f64 * 500.0;
+        a.motion.z = if a.team == TeamId::A { -6000.0 } else { 0.0 };
+    }
+    for tick in (0..=600).step_by(60) {
+        battle.sensors.update(
+            tick,
+            &sensors::entities(&battle.actors, &battle.aviation),
+            &[],
+            &[],
+            sensors::VisualConditions::resolve(catalog(), "north-atlantic", "clear"),
+            &sensors::VisualRules::default(),
+        );
+    }
+    battle.tick = 600;
+    // The carrier is outside the close-threat withdrawal threshold. Only the
+    // subsequent loss of the front should change its rear patrol into retreat.
+    let carrier_id = battle
+        .actors
+        .iter_mut()
+        .find(|a| a.team == TeamId::B && a.definition().air_wing.is_some())
+        .map(|a| {
+            a.motion.z = 6000.0;
+            a.motion.id.clone()
+        })
+        .unwrap();
+    assert!(matches!(
+        &plan.enemy_directives(&battle)[&carrier_id].0,
+        Movement::Route { looped: true, .. }
+    ));
+    let opening = plan.initial_directives(&battle);
+    let front_leaders: Vec<_> = opening
+        .iter()
+        .filter(|(id, (m, _))| {
+            id.starts_with("opponent-")
+                && matches!(m,Movement::Route{waypoints,..} if waypoints.len()==6)
+        })
+        .map(|(id, _)| id.clone())
+        .collect();
+    let front: Vec<_> = opening
+        .iter()
+        .filter(|(id, (m, _))| {
+            front_leaders.contains(id)
+                || matches!(m,Movement::Escort{leader_id,..} if front_leaders.contains(leader_id))
+        })
+        .map(|(id, _)| id.clone())
+        .collect();
+    for a in battle
+        .actors
+        .iter_mut()
+        .filter(|a| front.contains(&a.motion.id))
+    {
+        a.damage.sunk = true;
+    }
+    let directives = plan.enemy_directives(&battle);
+    let carrier = battle
+        .actors
+        .iter()
+        .find(|a| a.team == TeamId::B && a.definition().air_wing.is_some())
+        .unwrap();
+    let (movement, target) = &directives[&carrier.motion.id];
+    let contact = battle
+        .sensors
+        .contact(TeamId::B, target.as_ref().unwrap())
+        .unwrap();
+    let Movement::Route {
+        waypoints,
+        looped: false,
+        ..
+    } = movement
+    else {
+        panic!("exposed carrier must withdraw, got {movement:?}")
+    };
+    let before = (carrier.motion.x - contact.estimated_position[0])
+        .hypot(carrier.motion.z - contact.estimated_position[2]);
+    let after = (waypoints[0][0] - contact.estimated_position[0])
+        .hypot(waypoints[0][1] - contact.estimated_position[2]);
+    assert!(
+        after > before + 2000.0,
+        "retreat must open range: {before} -> {after}"
+    );
+    assert!(
+        directives
+            .values()
+            .all(|(_, t)| t.as_ref().is_none_or(|id| id.starts_with("contact-")))
+    );
+    for (id, (movement, _)) in &directives {
+        if id != &carrier.motion.id && !front.contains(id) {
+            assert!(
+                matches!(movement,Movement::Escort{leader_id,..} if leader_id==&carrier.motion.id)
+            );
+        }
+    }
+    let before = serde_json::to_value(&directives).unwrap();
+    for a in battle.actors.iter_mut().filter(|a| a.team == TeamId::A) {
+        a.motion.x = 18000.0;
+        a.motion.z = 15000.0;
+        a.damage.integrity *= 0.1;
+    }
+    assert_eq!(
+        before,
+        serde_json::to_value(plan.enemy_directives(&battle)).unwrap(),
+        "hidden manoeuvres and damage cannot retarget retreat"
+    );
+}

@@ -5,6 +5,7 @@ pub mod geometry;
 pub mod motion;
 pub mod mount_frames;
 pub mod navigation;
+pub mod fleet_evasion;
 pub mod rules;
 
 pub mod ballistics;
@@ -64,6 +65,7 @@ pub mod mission;
 pub mod pve;
 mod pve_command;
 pub mod sensors;
+pub mod recon;
 
 pub mod records;
 

@@ -22,7 +22,7 @@ impl Battle {
         entities: &[crate::sensors::VisualEntity],
     ) -> bool {
         let conditions = self.visual_conditions;
-        entities.iter().filter(|e| e.team == team).any(|observer| {
+        entities.iter().filter(|e| e.team == team && e.can_observe()).any(|observer| {
             let distance = (point[0] - observer.eye[0]).hypot(point[2] - observer.eye[2]);
             let reach: f64 = if observer.kind == ContactKind::Aircraft {
                 12000.0
@@ -208,6 +208,7 @@ impl Battle {
         let contacts = self.sensors.contacts(team);
         let observed_ships: Vec<_> = contacts.iter().filter(|c| c.kind == ContactKind::Surface
             && c.status == TrackStatus::Tracked && self.tick.saturating_sub(c.last_observed_tick) <= 60
+            && !c.visible_condition.as_ref().is_some_and(|condition| condition.sinking)
             && c.uncertainty_m < 120.0 && c.identified_preset_id.is_some())
             .map(|c| json!({"id":c.id,"presetId":c.identified_preset_id,"position":c.measured_position,
                 "heading":c.pose().heading,"velocity":c.velocity,"observedTick":c.last_observed_tick,
@@ -216,7 +217,7 @@ impl Battle {
         tonnage[team.index()] = Some(crate::rules::afloat_kg(&self.survivors())[team.index()]);
         let mut frame = json!({
             "view":"team", "team":team, "tick":self.tick, "actors":actors, "wings":wings,
-            "contacts":contacts, "observedShips":observed_ships,
+            "contacts":contacts, "observedShips":observed_ships, "reconCoverage": self.sensors.coverage(team),
             "shells":projectiles("shells"), "torpedoes":projectiles("torpedoes"),
             "depthCharges":projectiles("depthCharges"), "releases":projectiles("releases"),
             "events":self.team_events[team.index()], "records":{"scores":{},"shellHistory":[]},

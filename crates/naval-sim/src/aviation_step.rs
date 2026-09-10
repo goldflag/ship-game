@@ -409,7 +409,7 @@ impl Aviation {
         let mut leaders = BTreeMap::new();
         for w in &self.wings {
             for f in &w.state.flights {
-                if let Some(i) = formation_leader(f, &w.state.planes) {
+                if let Some(i) = formation_leader(f, &w.state.planes, &self.rules.endurance) {
                     leaders.insert(f.id.clone(), w.state.planes[i].clone());
                 }
             }

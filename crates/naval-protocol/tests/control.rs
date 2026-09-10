@@ -299,3 +299,94 @@ fn route_append_is_bounded_and_rejections_do_not_erase_the_route() {
         &vec![[0.0, -1000.0], [1000.0, -1000.0], [0.0, -3000.0]]
     );
 }
+
+#[test]
+fn formation_policy_is_addressed_and_preserves_route_target_and_helm() {
+    let mut f = fixture();
+    f.apply(
+        0,
+        envelope(
+            1,
+            1,
+            "a-1",
+            Command::Route {
+                waypoints: vec![[100.0, 200.0]],
+                speed_mps: 10.0,
+                looped: false,
+                append: false,
+            },
+        ),
+        0,
+    )
+    .unwrap();
+    f.apply(
+        0,
+        envelope(
+            2,
+            1,
+            "a-1",
+            Command::Focus {
+                target_id: "b-1".into(),
+            },
+        ),
+        0,
+    )
+    .unwrap();
+    let movement = f.ships["a-1"].movement.clone();
+    assert_eq!(
+        f.apply(
+            0,
+            envelope(
+                3,
+                1,
+                "b-1",
+                Command::FormationPolicy {
+                    policy: FormationPolicy::SlowForStragglers
+                }
+            ),
+            0
+        ),
+        Err(CommandError::Ownership)
+    );
+    f.apply(
+        0,
+        envelope(
+            3,
+            1,
+            "a-1",
+            Command::FormationPolicy {
+                policy: FormationPolicy::SlowForStragglers,
+            },
+        ),
+        0,
+    )
+    .unwrap();
+    assert_eq!(
+        f.ships["a-1"].formation_policy,
+        FormationPolicy::SlowForStragglers
+    );
+    assert_eq!(f.ships["a-1"].movement, movement);
+    assert_eq!(f.ships["a-1"].target_id.as_deref(), Some("b-1"));
+    assert_eq!(f.players[0].selected_ship_id.as_deref(), Some("a-1"));
+    assert_eq!(
+        f.ships["a-2"].formation_policy,
+        FormationPolicy::AwaitDecision
+    );
+    f.apply(
+        0,
+        envelope(
+            4,
+            1,
+            "a-1",
+            Command::FormationPolicy {
+                policy: FormationPolicy::LeaveStragglers,
+            },
+        ),
+        0,
+    )
+    .unwrap();
+    assert_eq!(
+        f.ships["a-1"].formation_policy,
+        FormationPolicy::LeaveStragglers
+    );
+}

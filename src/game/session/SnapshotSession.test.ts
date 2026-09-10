@@ -338,3 +338,19 @@ test('PvE debrief appears only after an authoritative outcome and leaves active 
     session.applyRaw(initial); expect(session.debrief).toBeUndefined(); expect(session.result).toBe('active');
   } finally { session.dispose(); }
 });
+
+test('simplified PvE carrier presentation uses unlimited slots and the admitted endurance profile', async () => {
+  const session = await HeadlessSession.create({ playerShipId: 'enterprise-cv6', friendlyBots: [], enemies: ['fletcher'], spawnDistance: 16000, missionRules: pveRules as MissionRules });
+  try {
+    const wing = airWingTelemetry(session.player, session.actors)!;
+    expect(wing.maxActiveFlights).toBeNull();
+    expect(wing.groups).toHaveLength(9);
+    expect(wing.groups.every(group => group.enduranceSeconds === 2400)).toBe(true);
+    expect(wing.deck).toBeUndefined();
+    for (const group of wing.groups) expect(session.commandSquadron(group.id, { kind: 'patrol', point: [0, 600, 11000] })).toBe(true);
+    session.applyRaw(session.runtime.snapshot());
+    expect(airWingTelemetry(session.player, session.actors)!.activeFlights).toBe(9);
+    expect(session.player.airWing!.planes).toHaveLength(48);
+    expect(session.player.airWing!.planes.every(p => p.phase === 'queued')).toBe(true);
+  } finally { session.dispose(); }
+});

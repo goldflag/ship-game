@@ -4,6 +4,7 @@ fn main() {
     naval_sim::aircraft::SearchProgress::export_all(&ts_rs::Config::from_env()).unwrap();
     naval_sim::battle::BattleSetup::export_all(&ts_rs::Config::from_env()).unwrap();
     naval_sim::sensors::ContactTrack::export_all(&ts_rs::Config::from_env()).unwrap();
+    naval_sim::recon::ReconCoverage::export_all(&ts_rs::Config::from_env()).unwrap();
     naval_sim::pve::PveRequest::export_all(&ts_rs::Config::from_env()).unwrap();
     naval_sim::pve::PveBriefing::export_all(&ts_rs::Config::from_env()).unwrap();
     naval_sim::pve::Placement::export_all(&ts_rs::Config::from_env()).unwrap();

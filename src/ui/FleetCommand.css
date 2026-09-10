@@ -160,3 +160,18 @@
 .fleet-command-carriers button { flex-shrink:0; }
 .fleet-command-helm-controls { position:absolute; left:0; top:0; display:flex; align-items:center; flex-wrap:wrap; gap:6px; max-width:420px; padding:8px; }
 .fleet-command-helm-controls strong { flex-basis:100%; }
+
+.fleet-simulation-speed { display:inline-flex; gap:0; align-items:center; }
+.fleet-simulation-speed button { min-width:34px; padding:6px; border-radius:0; }
+.fleet-simulation-speed button + button { border-left:0; }
+.fleet-command-helm-controls .fleet-simulation-speed { margin-left:auto; }
+
+.fleet-command-recon { position:absolute; left:286px; top:116px; display:flex; flex-wrap:wrap; gap:8px 18px; color:#b2c2bf; font-size:11px; pointer-events:none; }
+.fleet-command-marker[data-report-state="last-known"] { opacity:.55; }
+.fleet-command-marker[data-report-state="estimated"] > path { stroke-dasharray:3 2; }
+.fleet-command-marker[data-report-state="confirmed-sinking"] { opacity:.6; }
+.fleet-command-formation p { margin:4px 0; color:var(--fleet-gold); }
+
+.fleet-command-marker[data-contact-kind="aircraft"]:not(.selected):not(:hover):not(:focus) text { display:none; }
+.fleet-command-marker[data-contact-kind="aircraft"]:not(.selected) > path { transform:scale(.65); }
+.fleet-command-recon .fleet-recon-legend { pointer-events:auto; }

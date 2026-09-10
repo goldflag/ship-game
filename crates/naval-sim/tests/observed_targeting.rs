@@ -212,3 +212,68 @@ fn final_debrief_reveals_incapacity_without_adding_enemies_to_the_active_world()
     );
     assert_eq!(frame["debrief"]["shipOutcomes"]["own"], "operational");
 }
+
+#[test]
+fn visible_condition_reports_use_exterior_cues_without_leaking_health_or_changing_legacy_frames() {
+    use naval_sim::{rules::TeamId, snapshot::PresentationView};
+    let mut a = battle(2000.0);
+    let mut b = battle(2000.0);
+    for battle in [&mut a, &mut b] {
+        battle.actors[1].damage.control.mounts[0].intensity = 0.8;
+        battle.actors[1].motion.roll = 0.25;
+    }
+    a.actors[1].damage.integrity = 1.0;
+    a.actors[1].mounts[0].ammo = 0.0;
+    for battle in [&mut a, &mut b] {
+        let entities = naval_sim::sensors::entities(&battle.actors, &battle.aviation);
+        battle.sensors.update(
+            0,
+            &entities,
+            &battle.islands,
+            &battle.catalog.terrain,
+            naval_sim::sensors::VisualConditions::resolve(
+                &battle.catalog,
+                "north-atlantic",
+                "clear",
+            ),
+            &naval_sim::sensors::VisualRules::default(),
+        );
+    }
+    let own = |battle: &Battle| {
+        battle
+            .presentation_value(PresentationView::Team(TeamId::A))
+            .unwrap()
+    };
+    assert_eq!(own(&a), own(&b));
+    let frame = own(&a);
+    let condition = &frame["contacts"][0]["visibleCondition"];
+    assert_eq!(condition["fire"], true);
+    assert_eq!(condition["heavySmoke"], true);
+    assert_eq!(condition["listing"], true);
+    assert_eq!(condition["sinking"], false);
+    assert_eq!(condition.as_object().unwrap().len(), 5);
+    assert!(
+        !frame["reconCoverage"]["cells"]
+            .as_array()
+            .unwrap()
+            .is_empty()
+    );
+    let legacy = a
+        .presentation_value(PresentationView::FullKnowledge)
+        .unwrap();
+    assert!(legacy.get("reconCoverage").is_none());
+    assert!(legacy.get("contacts").is_none());
+    assert!(!legacy.to_string().contains("visibleCondition"));
+    a.actors[1].damage.integrity = 0.0;
+    let entities = naval_sim::sensors::entities(&a.actors, &a.aviation);
+    a.sensors.update(
+        60,
+        &entities,
+        &a.islands,
+        &a.catalog.terrain,
+        naval_sim::sensors::VisualConditions::resolve(&a.catalog, "north-atlantic", "clear"),
+        &naval_sim::sensors::VisualRules::default(),
+    );
+    assert_eq!(own(&a)["contacts"][0]["visibleCondition"]["sinking"], true);
+    assert!(!a.sensors.contacts(TeamId::A)[0].targetable());
+}

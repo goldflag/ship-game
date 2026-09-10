@@ -224,3 +224,44 @@ fn disabled_endurance_removes_order_recall_and_exhaustion_deadlines_but_keeps_co
         "outbound"
     );
 }
+
+#[test]
+fn pve_profile_keeps_simplified_launches_and_long_finite_endurance() {
+    let actors = vec![carrier()];
+    let actor = &actors[0];
+    let rules = catalog().air_profiles["pve-air-v1"].clone();
+    assert!(rules.validate_selection(catalog()).is_ok());
+    let resolved = rules.resolve(actor.definition()).unwrap();
+    assert_eq!(resolved.group_size, 6);
+    assert_eq!(resolved.deck_capacity, 12);
+    assert_eq!(resolved.active_flights, None);
+    assert_eq!(rules.deck_cycle, naval_sim::air_rules::DeckCycle::Legacy);
+    let mut aviation = Aviation::with_rules(&actors, catalog().aircraft.clone(), rules).unwrap();
+    let flights = aviation.squadron_flights(actor);
+    assert_eq!(flights.len(), 9);
+    for flight in &flights {
+        assert_eq!(aviation.launch_squadron(actor, &flight.squadron_id, None, Some(patrol()), &actors, Some(&flight.id), None), flight.plane_ids.len());
+    }
+    assert_eq!(aviation.wing("carrier").unwrap().planes.len(), 48);
+    assert!(aviation.wing("carrier").unwrap().planes.iter().all(|p| p.phase == "queued"));
+    // Launch queue still takes time; admitting nine groups does not teleport planes airborne.
+    step(&mut aviation, &actors);
+    assert!(aviation.wing("carrier").unwrap().planes.iter().filter(|p| p.phase == "queued").count() > 30);
+    for p in aviation.wing_mut("carrier").unwrap().planes.iter_mut() {
+        p.phase = "outbound".into(); p.flight_time = 1200.0;
+        p.position = [5000.0, 600.0, -5000.0]; p.velocity = [0.0, 0.0, -80.0];
+    }
+    step(&mut aviation, &actors);
+    assert!(aviation.wing("carrier").unwrap().planes.iter().all(|p| p.phase == "outbound"));
+    let wing = aviation.wing("carrier").unwrap();
+    assert!(naval_sim::aircraft_formation::formation_leader(&wing.flights[0], &wing.planes, &aviation.rules.endurance).is_some());
+    assert!(naval_sim::aircraft_formation::formation_leader(&wing.flights[0], &wing.planes, &AirRules::legacy().endurance).is_none());
+    for p in aviation.wing_mut("carrier").unwrap().planes.iter_mut() { p.flight_time = 1921.0; }
+    step(&mut aviation, &actors);
+    assert!(aviation.wing("carrier").unwrap().planes.iter().all(|p| p.phase == "returning"));
+    for p in aviation.wing_mut("carrier").unwrap().planes.iter_mut() { p.flight_time = 2401.0; }
+    step(&mut aviation, &actors);
+    assert!(aviation.wing("carrier").unwrap().planes.iter().all(|p| p.phase == "lost"));
+    assert_eq!(AirRules::legacy().resolve(actor.definition()).unwrap().active_flights, Some(4));
+    assert!(AirRules::legacy().endurance.needs_recall(261.0, true));
+}

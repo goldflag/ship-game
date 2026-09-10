@@ -35,7 +35,7 @@ export function useMapProjection(ref: RefObject<HTMLElement | SVGSVGElement | nu
       });
       ref.current?.querySelectorAll<SVGPathElement>('[data-map-path]').forEach(element => {
         const points = JSON.parse(element.dataset.mapPath!) as Vec3[];
-        element.setAttribute('d', game.projectAirMapPath(points, !!element.dataset.closed));
+        element.setAttribute('d', game.projectAirMapPath(points, !!element.dataset.closed, !!element.dataset.mapFill));
       });
     };
     update();

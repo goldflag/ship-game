@@ -87,6 +87,9 @@ pub struct ContactTrack {
     pub classification: Option<String>,
     pub identified_preset_id: Option<String>,
     pub sources: Vec<ObservationSource>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub visible_condition: Option<crate::recon::ObservedCondition>,
 }
 impl ContactTrack {
     pub fn pose(&self) -> crate::geometry::Pose {
@@ -109,6 +112,7 @@ impl ContactTrack {
         self.kind == ContactKind::Surface
             && self.affiliation == Affiliation::Hostile
             && self.status != TrackStatus::Stale
+            && !self.visible_condition.as_ref().is_some_and(|c| c.sinking)
     }
 }
 
@@ -131,6 +135,12 @@ pub struct VisualEntity {
     pub feature: [f64; 3],
     pub length_m: f64,
     pub preset_id: Option<String>,
+    pub cues: crate::recon::VisualCues,
+}
+impl VisualEntity {
+    pub fn can_observe(&self) -> bool {
+        !self.cues.sinking
+    }
 }
 #[derive(Clone, Copy, Debug)]
 pub struct VisualConditions {
@@ -169,8 +179,24 @@ pub struct Sensors {
     pending: [BTreeMap<String, f64>; 2],
     sequence: [u64; 2],
     last_tick: Option<u64>,
+    coverage: crate::recon::CoverageGrid,
 }
 impl Sensors {
+    pub fn coverage(&self, team: TeamId) -> crate::recon::ReconCoverage {
+        self.coverage.snapshot(team)
+    }
+    /// Called only after the event's own visibility gate succeeds. Preserve the
+    /// last measured location; a visible loss event is not a new exact pose.
+    pub(crate) fn confirm_sinking(&mut self, team: TeamId, target_id: &str, tick: u64) {
+        if let Some(record) = self.records[team.index()].get_mut(target_id) {
+            record.track.visible_condition = Some(crate::recon::ObservedCondition {
+                observed_tick: tick,
+                sinking: true,
+                ..Default::default()
+            });
+            record.track.velocity = [0.0; 3];
+        }
+    }
     pub fn contact(&self, team: TeamId, contact_id: &str) -> Option<&ContactTrack> {
         self.records[team.index()]
             .values()
@@ -207,11 +233,13 @@ impl Sensors {
                 .unwrap_or(nearest),
         )
     }
+    /// Borrow the same permitted reports used in public snapshots. Combat
+    /// readers must not clone every report and observer string per AA mount.
+    pub fn iter_contacts(&self, team: TeamId) -> impl Iterator<Item = &ContactTrack> + Clone {
+        self.records[team.index()].values().map(|r| &r.track)
+    }
     pub fn contacts(&self, team: TeamId) -> Vec<ContactTrack> {
-        self.records[team.index()]
-            .values()
-            .map(|r| r.track.clone())
-            .collect()
+        self.iter_contacts(team).cloned().collect()
     }
     pub fn track(&self, team: TeamId, target_id: &str) -> Option<&ContactTrack> {
         self.records[team.index()].get(target_id).map(|r| &r.track)
@@ -243,6 +271,8 @@ impl Sensors {
             .last_tick
             .map_or(1.0, |t| (tick - t) as f64 / TICK_RATE as f64);
         self.last_tick = Some(tick);
+        self.coverage
+            .update(tick, entities, islands, terrain, conditions, rules);
         // Bounded spatial candidate search; UI flight/group identities never enter
         // the visual signature. Nearby physical aircraft supply aggregate evidence.
         let mut cells: BTreeMap<(i32, i32), Vec<&VisualEntity>> = BTreeMap::new();
@@ -252,7 +282,10 @@ impl Sensors {
         for team in [TeamId::A, TeamId::B] {
             let mut reports: BTreeMap<String, (VisualEntity, Vec<ObservationSource>)> =
                 BTreeMap::new();
-            for observer in entities.iter().filter(|e| e.team == team) {
+            for observer in entities
+                .iter()
+                .filter(|e| e.team == team && e.can_observe())
+            {
                 let (cx, cz) = cell(observer.position);
                 for x in cx - 3..=cx + 3 {
                     for z in cz - 3..=cz + 3 {
@@ -351,6 +384,7 @@ impl Sensors {
                                 classification: None,
                                 identified_preset_id: None,
                                 sources: vec![],
+                                visible_condition: None,
                             },
                         }
                     });
@@ -393,6 +427,41 @@ impl Sensors {
                     record.track.identified_preset_id = target.preset_id.clone();
                 }
                 record.track.sources = sources;
+                if target.kind == ContactKind::Surface && strength >= 0.6 {
+                    let visible = |point: Option<[f64; 3]>| {
+                        point.is_some_and(|point| {
+                            record
+                                .track
+                                .sources
+                                .iter()
+                                .filter(|source| source.strength >= 0.6)
+                                .any(|source| {
+                                    entities
+                                        .iter()
+                                        .find(|entity| entity.id == source.observer_id)
+                                        .is_some_and(|observer| {
+                                            line_visible(observer.eye, point, islands, terrain)
+                                        })
+                                })
+                        })
+                    };
+                    let sinking = target.cues.sinking
+                        || record
+                            .track
+                            .visible_condition
+                            .as_ref()
+                            .is_some_and(|c| c.sinking);
+                    record.track.visible_condition = Some(crate::recon::ObservedCondition {
+                        observed_tick: tick,
+                        fire: visible(target.cues.fire),
+                        heavy_smoke: visible(target.cues.smoke),
+                        listing: target.cues.listing,
+                        sinking,
+                    });
+                    if sinking {
+                        record.track.velocity = [0.0; 3];
+                    }
+                }
             }
             for evidence in self.pending[team.index()].values_mut() {
                 *evidence = (*evidence - dt * 0.02).max(0.0);
@@ -528,7 +597,7 @@ pub fn line_visible(
 pub fn entities(actors: &[Vessel], aviation: &Aviation) -> Vec<VisualEntity> {
     let mut entities: Vec<_> = actors
         .iter()
-        .filter(|a| a.physical_loss().is_none() && a.motion.depth() <= 0.5)
+        .filter(|a| a.motion.depth() <= 0.5)
         .map(|a| {
             let def = a.definition();
             let bridge = def
@@ -547,6 +616,48 @@ pub fn entities(actors: &[Vessel], aviation: &Aviation) -> Vec<VisualEntity> {
                     a.motion.pose(),
                 )
             };
+            let mut cues = crate::recon::VisualCues {
+                listing: a.motion.roll.abs() >= 12.0_f64.to_radians(),
+                sinking: a.physical_loss().is_some(),
+                ..Default::default()
+            };
+            // Match authored exterior flames/vent smoke, not hidden room HP,
+            // flooding or machinery condition. Submerged sources are invisible.
+            for (index, _) in a
+                .damage
+                .control
+                .mounts
+                .iter()
+                .enumerate()
+                .filter(|(_, f)| f.intensity >= 0.35)
+            {
+                let mount = crate::mount_frames::mount_frame(def, index, &|i| a.mounts[i].train);
+                let point = crate::geometry::local_to_world(
+                    [
+                        mount.x,
+                        mount.y + def.mounts[index].weapon.gunhouse_size[2],
+                        mount.z,
+                    ],
+                    a.motion.pose(),
+                );
+                if point[1] > 0.0 {
+                    cues.fire = Some(point);
+                    cues.smoke = Some(point);
+                    break;
+                }
+            }
+            if cues.smoke.is_none() {
+                cues.smoke = a
+                    .damage
+                    .control
+                    .rooms
+                    .iter()
+                    .zip(&def.compartments)
+                    .filter(|(fire, _)| fire.intensity >= 0.35)
+                    .filter_map(|(_, compartment)| compartment.fire.as_ref()?.vent_position)
+                    .map(|point| crate::geometry::local_to_world(point, a.motion.pose()))
+                    .find(|point| point[1] > 0.0);
+            }
             VisualEntity {
                 id: a.motion.id.clone(),
                 team: a.team,
@@ -556,6 +667,7 @@ pub fn entities(actors: &[Vessel], aviation: &Aviation) -> Vec<VisualEntity> {
                 feature: top(feature, 5.0),
                 length_m: def.hull.length,
                 preset_id: Some(a.preset_id.clone()),
+                cues,
             }
         })
         .collect();
@@ -580,6 +692,7 @@ pub fn entities(actors: &[Vessel], aviation: &Aviation) -> Vec<VisualEntity> {
                 feature: p.position,
                 length_m: 12.0,
                 preset_id: None,
+                cues: Default::default(),
             }),
     );
     entities.sort_by(|a, b| a.id.cmp(&b.id));

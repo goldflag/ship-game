@@ -230,3 +230,292 @@ fn carrier_screen_traverses_a_passage_and_reforms_after_a_turn() {
         );
     }
 }
+
+fn damage_engines(a: &mut Vessel, fraction: f64) {
+    let engines: Vec<_> = a
+        .definition()
+        .modules
+        .iter()
+        .filter(|m| m.kind == "engine")
+        .map(|m| (m.id.clone(), m.hp))
+        .collect();
+    assert!(!engines.is_empty());
+    for (id, hp) in engines {
+        a.damage.modules.iter_mut().find(|m| m.id == id).unwrap().hp = hp * fraction;
+    }
+}
+#[test]
+fn damaged_straggler_requires_an_explicit_decision_and_slowing_restores_formation() {
+    use naval_sim::{battle::Orders, machinery::system_health, navigation::FormationPolicy};
+    let run = |policy| {
+        let mut ships = vec![
+            ship("cv", "enterprise-cv6", 0.0, 0.0),
+            ship("dd", "fletcher", 650.0, 350.0),
+        ];
+        for a in &mut ships {
+            a.motion.speed = 12.0;
+        }
+        let orders = BTreeMap::from([
+            (
+                "cv".into(),
+                Orders {
+                    movement: route(vec![[0.0, -20000.0]]),
+                    formation_policy: policy,
+                    ..Default::default()
+                },
+            ),
+            (
+                "dd".into(),
+                Orders {
+                    movement: Movement::Escort {
+                        leader_id: "cv".into(),
+                        offset: [650.0, 350.0],
+                        radius_m: 160.0,
+                    },
+                    ..Default::default()
+                },
+            ),
+        ]);
+        // A healthy ship deployed far away does not manufacture a damage choice.
+        ships[1].motion.z = 4000.0;
+        assert!(
+            navigation::formation_report(&ships[0], &ships[1..], &orders, policy)
+                .stragglers
+                .is_empty()
+        );
+        ships[1].motion.z = 350.0;
+        damage_engines(&mut ships[1], 0.09);
+        let report = navigation::formation_report(&ships[0], &ships[1..], &orders, policy);
+        assert_eq!(report.stragglers.len(), 1);
+        assert_eq!(report.stragglers[0].ship_id, "dd");
+        for tick in 0..60 * 600 {
+            let mut commands = vec![];
+            for i in 0..2 {
+                let mut a = ships.remove(i);
+                let order = &orders[&a.motion.id];
+                let limit =
+                    navigation::formation_report(&a, &ships, &orders, policy).speed_limit_mps;
+                let mut state = a
+                    .navigation
+                    .take()
+                    .unwrap_or_else(|| NavigationState::new(order.movement.clone()));
+                commands.push(navigation::command(
+                    &a,
+                    &ships,
+                    &[],
+                    &order.movement,
+                    &mut state,
+                    tick,
+                    limit,
+                ));
+                a.navigation = Some(state);
+                ships.insert(i, a);
+            }
+            for (a, command) in ships.iter_mut().zip(commands) {
+                let handling = a.definition().handling.clone();
+                let power = system_health(a, a.definition(), "engine", None);
+                step_ship(&mut a.motion, command, &handling, power, 1.0, None);
+            }
+        }
+        let lead = &ships[0];
+        let (sin, cos) = lead.motion.heading.sin_cos();
+        (
+            gap(
+                &ships[1],
+                [
+                    lead.motion.x + 650.0 * cos - 350.0 * sin,
+                    lead.motion.z + 650.0 * sin + 350.0 * cos,
+                ],
+            ),
+            lead.motion.speed,
+        )
+    };
+    let awaiting = run(FormationPolicy::AwaitDecision);
+    let leaving = run(FormationPolicy::LeaveStragglers);
+    let slowing = run(FormationPolicy::SlowForStragglers);
+    assert_eq!(awaiting, leaving, "no silent slow-down before a decision");
+    assert!(
+        awaiting.0 > 1500.0,
+        "damaged escort must really fail to keep pace: {awaiting:?}"
+    );
+    assert!(
+        slowing.0 < 250.0,
+        "accepted slow-down must actually reform: {slowing:?}"
+    );
+    assert!(slowing.1 < awaiting.1 * 0.6);
+}
+
+#[test]
+fn unobserved_nearby_enemy_motion_cannot_change_route_avoidance() {
+    let a = ship("dd", "fletcher", 0.0, 0.0);
+    let mut hidden = ship("hidden", "fletcher", 0.0, -150.0);
+    hidden.team = TeamId::B;
+    let order = route(vec![[0.0, -2000.0]]);
+    let mut state = NavigationState::new(order.clone());
+    let before =
+        navigation::command_observed(&a, &[hidden], &[], &order, &mut state, 0, 12.0, Some(&[]));
+    let mut state = NavigationState::new(order.clone());
+    let after = navigation::command_observed(&a, &[], &[], &order, &mut state, 0, 12.0, Some(&[]));
+    assert_eq!(
+        serde_json::to_value(before).unwrap(),
+        serde_json::to_value(after).unwrap()
+    );
+}
+
+#[test]
+fn observed_threat_dodge_expires_without_erasing_the_route_or_waypoint() {
+    use naval_sim::{
+        fleet_evasion::{self, ObservedThreat},
+        motion::HelmCommand,
+    };
+    let mut a = ship("dd", "fletcher", 0.0, 0.0);
+    a.motion.speed = 10.0;
+    let order = route(vec![[0.0, -2000.0], [2000.0, -2000.0]]);
+    let mut state = NavigationState::new(order.clone());
+    state.waypoint = 1;
+    let normal = HelmCommand {
+        throttle: 0.6,
+        rudder: 0.0,
+        ..Default::default()
+    };
+    let threat = ObservedThreat {
+        position: [0.0, -600.0, -1000.0],
+        velocity: [0.0, 0.0, 25.0],
+        torpedo: true,
+    };
+    let evade = fleet_evasion::command(&a, &[], &[threat], 100, &mut state, normal);
+    assert_eq!(state.status, NavigationStatus::EvadingTorpedo);
+    assert!(evade.rudder.abs() > 0.5);
+    assert_eq!(state.order, order);
+    assert_eq!(state.waypoint, 1);
+    let resumed = fleet_evasion::command(&a, &[], &[], 100 + 8 * 60, &mut state, normal);
+    assert_eq!(
+        serde_json::to_value(resumed).unwrap(),
+        serde_json::to_value(normal).unwrap()
+    );
+    assert_eq!(state.order, order);
+    assert_eq!(state.waypoint, 1);
+    let receding = ObservedThreat {
+        velocity: [0.0, 0.0, -80.0],
+        ..threat
+    };
+    let clear = fleet_evasion::command(&a, &[], &[receding], 100 + 9 * 60, &mut state, normal);
+    assert_eq!(clear.rudder, normal.rudder);
+}
+
+#[test]
+fn torpedo_wake_acquisition_requires_local_weather_range_and_clear_terrain() {
+    use naval_sim::{fleet_evasion, torpedoes::Torpedo};
+    let a = ship("dd", "fletcher", 0.0, 0.0);
+    let torpedo = Torpedo {
+        id: 1,
+        owner_id: "enemy".into(),
+        tube_id: "tube".into(),
+        position: [0.0, -2.0, -1000.0],
+        velocity: [0.0, 0.0, 25.0],
+        distance: 300.0,
+        age: 12.0,
+        weapon: Default::default(),
+    };
+    assert_eq!(
+        fleet_evasion::visible_wakes(&a, &[torpedo.clone()], &[], &[], 10000.0).len(),
+        1
+    );
+    assert!(fleet_evasion::visible_wakes(&a, &[torpedo.clone()], &[], &[], 500.0).is_empty());
+    let mut obstruction = island("screen", 0.0, -500.0);
+    obstruction.rx = 100.0;
+    obstruction.rz = 100.0;
+    assert!(fleet_evasion::visible_wakes(&a, &[torpedo], &[obstruction], &[], 10000.0).is_empty());
+}
+
+#[test]
+fn aircraft_evasion_uses_only_fresh_hostile_converging_reports() {
+    use naval_sim::{fleet_evasion, motion::HelmCommand, sensors::ContactTrack};
+    let mut a = ship("dd", "fletcher", 0.0, 0.0);
+    a.motion.speed = 10.0;
+    let order = route(vec![[0.0, -2000.0]]);
+    let normal = HelmCommand {
+        throttle: 0.6,
+        rudder: 0.0,
+        ..Default::default()
+    };
+    let report: ContactTrack=serde_json::from_value(serde_json::json!({
+        "id":"contact-b-1","kind":"aircraft","affiliation":"hostile","status":"tracked",
+        "firstObservedTick":0,"lastObservedTick":600,"measuredPosition":[0,500,-1400],"estimatedPosition":[0,500,-1400],
+        "velocity":[0,0,100],"uncertaintyM":50,"identificationConfidence":0,"classification":"Aircraft","identifiedPresetId":null,"sources":[]
+    })).unwrap();
+    let mut state = NavigationState::new(order.clone());
+    let dodge = fleet_evasion::command(&a, &[report.clone()], &[], 600, &mut state, normal);
+    assert_eq!(state.status, NavigationStatus::EvadingAircraft);
+    assert_ne!(dodge.rudder, normal.rudder);
+    for (report, tick) in [
+        (report.clone(), 1000),
+        (
+            ContactTrack {
+                affiliation: naval_sim::sensors::Affiliation::Unknown,
+                ..report.clone()
+            },
+            600,
+        ),
+        (
+            ContactTrack {
+                velocity: [0.0, 0.0, -100.0],
+                ..report
+            },
+            600,
+        ),
+    ] {
+        let mut state = NavigationState::new(order.clone());
+        assert_eq!(
+            fleet_evasion::command(&a, &[report], &[], tick, &mut state, normal).rudder,
+            normal.rudder
+        );
+    }
+}
+
+#[test]
+fn a_visible_torpedo_dodge_opens_real_clearance_then_resumes_the_order() {
+    use naval_sim::{
+        fleet_evasion::{self, ObservedThreat},
+        rules::DT,
+    };
+    let run = |evade| {
+        let mut a = ship("dd", "fletcher", 0.0, 0.0);
+        a.motion.speed = 12.0;
+        let order = route(vec![[0.0, -5000.0]]);
+        let mut state = NavigationState::new(order.clone());
+        let mut minimum = f64::INFINITY;
+        for tick in 0..60 * 45 {
+            let position = [0.0, -2.0, -800.0 + 25.0 * tick as f64 * DT];
+            let normal = navigation::command(&a, &[], &[], &order, &mut state, tick, 12.0);
+            let command = if evade {
+                fleet_evasion::command(
+                    &a,
+                    &[],
+                    &[ObservedThreat {
+                        position,
+                        velocity: [0.0, 0.0, 25.0],
+                        torpedo: true,
+                    }],
+                    tick,
+                    &mut state,
+                    normal,
+                )
+            } else {
+                normal
+            };
+            let handling = a.definition().handling.clone();
+            step_ship(&mut a.motion, command, &handling, 1.0, 1.0, None);
+            minimum = minimum.min((position[0] - a.motion.x).hypot(position[2] - a.motion.z));
+            assert_eq!(state.order, order);
+        }
+        minimum
+    };
+    let baseline = run(false);
+    let dodging = run(true);
+    assert!(baseline < 5.0, "control course should collide: {baseline}");
+    assert!(
+        dodging > 40.0,
+        "physical dodge must open useful clearance: {dodging}"
+    );
+}

@@ -22,6 +22,7 @@ pub struct Session {
 pub struct FleetOrderState {
     pub movement: MovementOrder,
     pub weapons: WeaponsPolicy,
+    pub formation_policy: FormationPolicy,
     pub target_id: Option<String>,
     pub manual: bool,
     pub navigation: Option<naval_sim::navigation::NavigationState>,
@@ -38,6 +39,7 @@ impl Session {
                     FleetOrderState {
                         movement: ship.movement.clone(),
                         weapons: ship.weapons,
+                        formation_policy: ship.formation_policy,
                         target_id: ship.target_id.clone(),
                         manual: self
                             .control
@@ -250,6 +252,7 @@ impl Session {
             let mut o = Orders {
                 movement: c.movement.clone(),
                 weapons: c.weapons,
+                formation_policy: c.formation_policy,
                 target_id: c.target_id.clone(),
                 control: self.priorities.get(&a.motion.id).cloned(),
                 ..Default::default()

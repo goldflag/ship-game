@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use ts_rs::TS;
 pub const PROTOCOL_VERSION: u32 = 4;
-pub use naval_sim::navigation::{Movement as MovementOrder, WeaponsPolicy};
+pub use naval_sim::navigation::{FormationPolicy, Movement as MovementOrder, WeaponsPolicy};
 pub const MAX_COMMAND_BYTES: usize = 4096;
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "kebab-case")]
@@ -94,6 +94,9 @@ pub enum Command {
     Weapons {
         policy: WeaponsPolicy,
     },
+    FormationPolicy {
+        policy: FormationPolicy,
+    },
     Focus {
         target_id: String,
     },
@@ -124,6 +127,7 @@ pub struct ShipControl {
     pub target_id: Option<String>,
     pub input: Option<HeldInput>,
     pub weapons: WeaponsPolicy,
+    pub formation_policy: FormationPolicy,
     input_tick: u64,
 }
 #[derive(Clone, Debug)]
@@ -318,6 +322,7 @@ impl FleetControl {
                     target_id: None,
                     input: None,
                     weapons: WeaponsPolicy::default(),
+                    formation_policy: FormationPolicy::default(),
                     input_tick: 0,
                 },
             );
@@ -474,6 +479,7 @@ impl FleetControl {
                 }
             }
             Command::Weapons { policy } => ship.weapons = policy,
+            Command::FormationPolicy { policy } => ship.formation_policy = policy,
             Command::Hold => ship.movement = MovementOrder::Hold,
             Command::Focus { target_id } => ship.target_id = Some(target_id),
             Command::Autonomous => {

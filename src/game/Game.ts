@@ -9,7 +9,9 @@ import { BattlefieldCamera } from './BattlefieldCamera';
 import { airWingTelemetry } from '../simulation/airTelemetry';
 import { projectShipLabel } from './ShipLabels';
 import { projectAirMapPath } from './AirMapProjection';
+import { projectAirMapPolygon } from './AirMapPolygon';
 import { squadronFlights, airborne, onFlightDeck, type AirOrder } from '../simulation/aircraft';
+import { reportPosition } from '../ui/reconReports';
 import { aircraftFollowView } from './AircraftFollow';
 import { AircraftView } from './AircraftView';
 import { oceanMap, DEFAULT_MAP, landHeight } from '../maps/catalog';
@@ -684,6 +686,7 @@ export class Game {
     const realDt = warmingUp ? 1 / 60 : Math.min(Math.max((time - this.lastTime) / 1000, 0.001), 0.1);
     this.lastTime = time;
     const dt = this.paused || this.tacticalPause ? 0 : realDt;
+    const presentationDt = dt * (this.simulation.simulationSpeed ?? 1);
     try {
       if (this.resizePending) this.resize();
       let state = this.simulation.ship;
@@ -704,7 +707,7 @@ export class Game {
       const alpha = this.inPort ? 1 : this.simulation.interpolationAlpha;
       this.fleetViews.forEach(view => view.update(alpha));
       this.observedShipViews?.update(this.simulation.observedShips ?? [], this.simulation.tick, !this.inPort && !this.inspecting,
-        this.airOperationsOpen ? undefined : this.cameraShipView.actor.motion.id, dt);
+        this.airOperationsOpen ? undefined : this.cameraShipView.actor.motion.id, presentationDt);
       // A salvo must not synchronously project scars onto every struck hull.
       // Share the budget across the fleet and rotate which hull gets first use.
       const impactBudget = { remainingMs: 2 };
@@ -731,14 +734,14 @@ export class Game {
       this.torpedoPreview.update(this.simulation.player, this.playerView!.motion, aim, showGunAim && this.battery === 'torpedo' && this.host?.dataset.shipLabels !== 'false', this.weaponGroupId);
       this.inspectionHover?.update(this.inPort && !this.paused && !this.switchingShip ? this.playerView?.inspection : undefined);
       this.fleetViews.forEach(view => {
-        view.rig.update(dt, this.water!.waves.windSpeed.value, this.water!.waves.windDirection.value,
+        view.rig.update(presentationDt, this.water!.waves.windSpeed.value, this.water!.waves.windDirection.value,
           view.root, view.motion, view.actor.damage.sunk, this.camera, !this.inPort);
         view.updateRenderMatrices();
       });
       this.aircraftView.update(this.simulation, this.camera, !this.inspecting && (!this.inPort || this.playerView?.inspection.mode === 'exterior'), this.inPort, new Map(this.fleetViews.map(view => [view.actor.motion.id, view.root])));
-      this.effects.update(this.simulation, dt, this.camera, this.rig.binoculars && !this.shellFollow.view, this.fleetViews);
+      this.effects.update(this.simulation, presentationDt, this.camera, this.rig.binoculars && !this.shellFollow.view, this.fleetViews);
       this.funnelSmoke.root.visible = !this.inspecting && (!this.inPort || this.playerView!.inspection.mode === 'exterior');
-      this.funnelSmoke.update(this.inPort ? [this.playerView!] : this.fleetViews, dt, this.camera,
+      this.funnelSmoke.update(this.inPort ? [this.playerView!] : this.fleetViews, presentationDt, this.camera,
         this.rig.binoculars && !this.shellFollow.view ? this.simulation.player.motion.id : undefined);
       if (!warmingUp) this.audio?.update(this.simulation, this.input.order, this.battery,
         this.camera.position.toArray(), new THREE.Vector3().setFromMatrixColumn(this.camera.matrixWorld, 0).toArray(), this.weaponGroupId);
@@ -797,7 +800,7 @@ export class Game {
         this.callbacks.telemetry({ ...hud, camera: this.rig.mode,
           binoculars: this.rig.binoculars, magnification: this.rig.magnification, pointerLocked: this.rig.pointerLocked,
           viewBearing: this.rig.bearing, chartSize: this.chartSize, airOperationsOpen: this.airOperationsOpen, selectedFlightId: this.selectedFlightId, selectedFlightIds: [...this.selectedFlightIds],
-          fleetCommandMode: this.fleetCommandMode, selectedShipIds: [...this.selectedShipIds], controlledShipId: this.simulation.controlledShipId, tacticalPaused: this.tacticalPause,
+          fleetCommandMode: this.fleetCommandMode, selectedShipIds: [...this.selectedShipIds], controlledShipId: this.simulation.controlledShipId, tacticalPaused: this.tacticalPause, simulationSpeed: this.simulation.simulationSpeed,
           airMap: this.airOperationsOpen ? { ...this.battlefieldCamera.view } : undefined,
           squadronMarkers: this.simulation.actors.flatMap(actor => (airWingTelemetry(actor, this.simulation.actors)?.groups ?? [])
             .filter(f => f.airborne > 0).map(f => {
@@ -930,10 +933,12 @@ export class Game {
     // Keep current report markers on their smoothed exterior. Lost/unidentified
     // tracks retain their published estimate, without any private actor lookup.
     const exterior = report.status === 'tracked' ? this.observedShipViews?.position(id) : undefined;
-    return this.projectAirMap(exterior?.x ?? report.estimatedPosition[0], exterior?.z ?? report.estimatedPosition[2]);
+    const position = reportPosition(report, this.simulation.tick);
+    return this.projectAirMap(exterior?.x ?? position[0], exterior?.z ?? position[2]);
   }
-  projectAirMapPath(points: Vec3[], closed = false): string {
-    return projectAirMapPath(points, this.camera, this.host.clientWidth / this.hudScale, this.host.clientHeight / this.hudScale, closed);
+  projectAirMapPath(points: Vec3[], closed = false, filled = false): string {
+    return filled ? projectAirMapPolygon(points, this.camera, this.host.clientWidth / this.hudScale, this.host.clientHeight / this.hudScale)
+      : projectAirMapPath(points, this.camera, this.host.clientWidth / this.hudScale, this.host.clientHeight / this.hudScale, closed);
   }
   projectSquadron(ownerId: string, flightId: string): { x: number; y: number } | null {
     const actor = this.simulation.actors.find(a => a.motion.id === ownerId);
@@ -1292,6 +1297,9 @@ export class Game {
         projectionMatrix: this.camera.projectionMatrix.toArray(), matrixWorldInverse: this.camera.matrixWorldInverse.toArray() },
       network: { online: !!this.simulation.networked, phase: this.simulation.phase, status: this.simulation.connectionStatus, epoch: this.simulation instanceof RemoteBattleSession ? this.simulation.metadata.connectionEpoch : undefined },
       tick: this.simulation.tick, battleSeed: this.simulation.seed, paused: this.paused, fps: this.fps, inspecting: this.inspecting, inPort: this.inPort,
+      simulationSpeed: this.simulation.simulationSpeed ?? 1, tacticalPaused: this.tacticalPause,
+      fleetOrders: this.simulation.fleetOrders, observationTracks: this.simulation.observationTracks,
+      reconCoverage: this.simulation.reconCoverage,
       effects: this.effects.diagnostics(),
       funnelSmoke: this.funnelSmoke.diagnostics(),
       shipRigs: this.fleetViews.map(view => ({ shipId: view.actor.motion.id, ...view.rig.diagnostics() })),

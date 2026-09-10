@@ -67,6 +67,8 @@ pub struct Orders {
     pub control: Option<(String, String)>,
     #[serde(default)]
     pub weapons: WeaponsPolicy,
+    #[serde(default)]
+    pub formation_policy: navigation::FormationPolicy,
 }
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -100,6 +102,7 @@ pub struct Battle {
     pub mission_rules: Option<crate::mission::MissionRules>,
     event_sequence: u64,
     pub sensors: crate::sensors::Sensors,
+    navigation_reports: [Vec<crate::sensors::ContactTrack>; 2],
     pub(crate) visual_conditions: crate::sensors::VisualConditions,
     visual_rules: crate::sensors::VisualRules,
     displacement: Vec<u64>,
@@ -260,6 +263,7 @@ impl Battle {
             rules: Rules::default(),
             mission_rules: setup.mission_rules,
             sensors: Default::default(),
+            navigation_reports: Default::default(),
             visual_conditions,
             visual_rules: Default::default(),
         })
@@ -319,6 +323,10 @@ impl Battle {
         if self.mission_rules.is_some() {
             for team in [TeamId::A, TeamId::B] {
                 if let Some(data) = self.observed_event(&event, team) {
+                    if event.kind == "sunk" {
+                        self.sensors
+                            .confirm_sinking(team, &event.ship_id, self.tick);
+                    }
                     self.team_event_sequence[team.index()] += 1;
                     let events = &mut self.team_events[team.index()];
                     events.push(Event {
@@ -394,6 +402,19 @@ impl Battle {
             );
         }
         let time = self.tick as f64 * DT;
+        // Sensors change on their fixed cadence; all captains share these
+        // measured snapshots instead of cloning every report on every tick.
+        if self.mission_rules.is_some() && self.tick.is_multiple_of(self.visual_rules.cadence_ticks)
+        {
+            self.navigation_reports = [
+                self.sensors.contacts(rules::TeamId::A),
+                self.sensors.contacts(rules::TeamId::B),
+            ];
+        }
+        let navigation_contacts = self
+            .mission_rules
+            .as_ref()
+            .map(|_| &self.navigation_reports);
         let mut commands = Vec::with_capacity(self.actors.len());
         for i in 0..self.actors.len() {
             let mut actor = self.actors.remove(i);
@@ -459,7 +480,37 @@ impl Battle {
                         command = helm
                     } else {
                         match &o.movement {
-                            Movement::Autonomous => (),
+                            Movement::Autonomous => {
+                                if self.mission_rules.is_some() {
+                                    let formation = navigation::formation_report(
+                                        &actor,
+                                        &self.actors,
+                                        orders,
+                                        o.formation_policy,
+                                    );
+                                    command.throttle = command.throttle.min(
+                                        formation.speed_limit_mps
+                                            / navigation::maximum_speed(&actor).max(0.05),
+                                    );
+                                    let mut state = actor
+                                        .navigation
+                                        .take()
+                                        .filter(|s| s.order == o.movement)
+                                        .unwrap_or_else(|| {
+                                            NavigationState::new(o.movement.clone())
+                                        });
+                                    state.status = if !formation.stragglers.is_empty()
+                                        && o.formation_policy
+                                            == navigation::FormationPolicy::SlowForStragglers
+                                    {
+                                        navigation::NavigationStatus::SlowingForStragglers
+                                    } else {
+                                        navigation::NavigationStatus::FollowingRoute
+                                    };
+                                    state.formation = Some(formation);
+                                    actor.navigation = Some(state);
+                                }
+                            }
                             Movement::Hold => command = HelmCommand::default(),
                             Movement::Move { position: [x, z] } => {
                                 let distance = (x - actor.motion.x).hypot(z - actor.motion.z);
@@ -493,7 +544,18 @@ impl Battle {
                                         matches!(&o.movement, Movement::Escort { leader_id, .. } if leader_id == &actor_id)))
                                     .map(|a| a.definition().handling.forward_speed * 0.85)
                                     .fold(def.handling.forward_speed, f64::min);
-                                command = navigation::command(
+                                let formation = self.mission_rules.as_ref().map(|_| {
+                                    navigation::formation_report(
+                                        &actor,
+                                        &self.actors,
+                                        orders,
+                                        o.formation_policy,
+                                    )
+                                });
+                                let speed_limit = formation
+                                    .as_ref()
+                                    .map_or(speed_limit, |f| f.speed_limit_mps);
+                                command = navigation::command_observed(
                                     &actor,
                                     &self.actors,
                                     &self.islands,
@@ -501,11 +563,67 @@ impl Battle {
                                     &mut state,
                                     self.tick,
                                     speed_limit,
+                                    navigation_contacts
+                                        .as_ref()
+                                        .map(|reports| reports[actor.team.index()].as_slice()),
                                 );
+                                if formation.as_ref().is_some_and(|f| !f.stragglers.is_empty())
+                                    && o.formation_policy
+                                        == navigation::FormationPolicy::SlowForStragglers
+                                    && state.status == navigation::NavigationStatus::FollowingRoute
+                                {
+                                    state.status =
+                                        navigation::NavigationStatus::SlowingForStragglers;
+                                }
+                                state.formation = formation;
                                 actor.navigation = Some(state);
                             }
                         }
                     }
+                }
+            }
+            if let Some(reports) = &navigation_contacts {
+                if actor.physical_loss().is_none()
+                    && order.is_none_or(|o| o.helm.is_none())
+                    && actor
+                        .bot
+                        .as_ref()
+                        .is_some_and(|b| !matches!(b.ai_level, AiLevel::Static | AiLevel::Moving))
+                {
+                    let mut state = actor.navigation.take().unwrap_or_else(|| {
+                        NavigationState::new(
+                            order.map_or(Movement::Autonomous, |o| o.movement.clone()),
+                        )
+                    });
+                    let wakes = crate::fleet_evasion::visible_wakes(
+                        &actor,
+                        &self.torpedoes,
+                        &self.islands,
+                        &self.catalog.terrain,
+                        self.visual_conditions.visibility_m,
+                    );
+                    command = crate::fleet_evasion::command(
+                        &actor,
+                        &reports[actor.team.index()],
+                        &wakes,
+                        self.tick,
+                        &mut state,
+                        command,
+                    );
+                    if matches!(
+                        state.status,
+                        navigation::NavigationStatus::EvadingAircraft
+                            | navigation::NavigationStatus::EvadingTorpedo
+                    ) {
+                        command = navigation::safe_correction(
+                            &actor,
+                            &self.actors,
+                            &reports[actor.team.index()],
+                            &mut state,
+                            command,
+                        );
+                    }
+                    actor.navigation = Some(state);
                 }
             }
             if let Some(mission) = &self.mission_rules {

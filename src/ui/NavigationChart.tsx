@@ -6,6 +6,7 @@ import { Icon } from './Icons';
 import { bindingLabel, type Keybindings } from '../game/keybindings';
 import type { ContactTrack } from '../multiplayer/generated/ContactTrack';
 import { shipPreset } from '../ships/presets';
+import { reportPosition, reportState, conditionReport } from './reconReports';
 
 const CHART_RANGES = [1000, 2000, 4000, 8000];
 
@@ -30,8 +31,8 @@ export function NavigationChart({ data, reports = [], onResize, bindings, onWayp
           <path d="m0-7 4 10-4-2-4 2Z" className={`chart-contact ${contact.team === 'friendly' ? 'chart-friendly' : ''}`} transform={`rotate(${contact.heading * 180 / Math.PI})`}/>
           {contact.id === data.combat?.targetId && <circle r="10" fill="none" stroke="var(--accent)" strokeWidth="1"/>}
         </g>)}
-        {reports.map(report => <g key={report.id} transform={`translate(${point(report.estimatedPosition[0], report.estimatedPosition[2])})`} opacity={report.status === 'lost' || report.status === 'stale' ? .55 : 1}>
-          <title>{`${report.identifiedPresetId ? shipPreset(report.identifiedPresetId).name : report.classification ?? (report.kind === 'aircraft' ? 'Aircraft contact' : 'Surface contact')} · ${report.affiliation} · ${report.status} · ±${Math.round(report.uncertaintyM)} m`}</title>
+        {reports.map(report => <g key={report.id} transform={`translate(${point(reportPosition(report, data.ship.tick)[0], reportPosition(report, data.ship.tick)[2])})`} opacity={report.status === 'lost' || report.status === 'stale' ? .55 : 1}>
+          <title>{`${report.identifiedPresetId ? shipPreset(report.identifiedPresetId).name : report.classification ?? (report.kind === 'aircraft' ? 'Aircraft contact' : 'Surface contact')} · ${report.affiliation} · ${reportState(report, data.ship.tick)} · ±${Math.round(report.uncertaintyM)} m · ${conditionReport(report, data.ship.tick)}`}</title>
           {report.kind === 'surface' && <circle r={Math.max(3, report.uncertaintyM * scale)} fill="none" stroke={report.affiliation === 'hostile' ? '#ff9c8d' : 'var(--fleet-gold)'} strokeOpacity=".45" strokeWidth=".7" strokeDasharray="2 2"/>}
           <path d={report.kind === 'aircraft' ? 'M-3 0h6M0-3v6' : 'M0-5 4 0 0 5-4 0Z'} fill="none" stroke={report.affiliation === 'hostile' ? '#ff9c8d' : 'var(--fleet-gold)'} strokeWidth="1.2"/>
         </g>)}

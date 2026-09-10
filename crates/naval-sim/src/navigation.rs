@@ -69,6 +69,29 @@ impl WeaponsPolicy {
     }
 }
 
+/// An explicit fleet decision; damage never silently detaches an escort.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize, ts_rs::TS)]
+#[serde(rename_all = "kebab-case")]
+pub enum FormationPolicy {
+    #[default]
+    AwaitDecision,
+    SlowForStragglers,
+    LeaveStragglers,
+}
+#[derive(Clone, Debug, Serialize, ts_rs::TS)]
+#[serde(rename_all = "camelCase")]
+pub struct Straggler {
+    pub ship_id: String,
+    pub available_speed_mps: f64,
+    pub gap_m: f64,
+}
+#[derive(Clone, Debug, Serialize, ts_rs::TS)]
+#[serde(rename_all = "camelCase")]
+pub struct FormationReport {
+    pub stragglers: Vec<Straggler>,
+    pub speed_limit_mps: f64,
+}
+
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "kebab-case")]
 pub enum NavigationStatus {
@@ -82,6 +105,10 @@ pub enum NavigationStatus {
     Blocked,
     Immobile,
     Avoiding,
+    Straggling,
+    SlowingForStragglers,
+    EvadingAircraft,
+    EvadingTorpedo,
 }
 
 #[derive(Clone, Debug, Serialize, ts_rs::TS)]
@@ -91,6 +118,11 @@ pub struct NavigationState {
     pub waypoint: usize,
     pub status: NavigationStatus,
     pub destination: Option<[f64; 2]>,
+    pub formation: Option<FormationReport>,
+    #[serde(skip)]
+    column_until_tick: u64,
+    #[serde(skip)]
+    pub(crate) evasion: Option<crate::fleet_evasion::Evasion>,
     #[serde(skip)]
     path: Vec<[f64; 2]>,
     #[serde(skip)]
@@ -107,6 +139,9 @@ impl NavigationState {
             waypoint: 0,
             status: NavigationStatus::FollowingRoute,
             destination: None,
+            formation: None,
+            column_until_tick: 0,
+            evasion: None,
             path: vec![],
             path_target: None,
             next_plan_tick: 0,
@@ -121,8 +156,78 @@ fn distance(a: [f64; 2], b: [f64; 2]) -> f64 {
 fn point(a: &Vessel) -> [f64; 2] {
     [a.motion.x, a.motion.z]
 }
-fn maximum_speed(a: &Vessel) -> f64 {
+pub fn maximum_speed(a: &Vessel) -> f64 {
     a.definition().handling.forward_speed * system_health(a, a.definition(), "engine", None).sqrt()
+}
+
+/// Only owned capabilities enter this report. A healthy displaced ship needs
+/// catch-up room, not a damage decision; a damaged ship can warn before it falls
+/// kilometres behind. LeaveStragglers preserves its escort order for recovery.
+pub fn formation_report(
+    leader: &Vessel,
+    actors: &[Vessel],
+    orders: &std::collections::BTreeMap<String, crate::battle::Orders>,
+    policy: FormationPolicy,
+) -> FormationReport {
+    let maximum = maximum_speed(leader);
+    let requested = match orders.get(&leader.motion.id).map(|o| &o.movement) {
+        Some(Movement::Route { speed_mps, .. }) => maximum.min(*speed_mps),
+        _ => leader.motion.speed.abs(),
+    };
+    let mut report = FormationReport {
+        stragglers: vec![],
+        speed_limit_mps: maximum,
+    };
+    for follower in actors
+        .iter()
+        .filter(|a| a.team == leader.team && a.physical_loss().is_none())
+    {
+        let Some(Movement::Escort {
+            leader_id, offset, ..
+        }) = orders.get(&follower.motion.id).map(|o| &o.movement)
+        else {
+            continue;
+        };
+        if leader_id != &leader.motion.id {
+            continue;
+        }
+        let design = follower.definition().handling.forward_speed;
+        let available = maximum_speed(follower);
+        let damaged = available < design * 0.85;
+        let steering_failed =
+            system_health(follower, follower.definition(), "steering", None) < 0.01;
+        let (sin, cos) = leader.motion.heading.sin_cos();
+        let station = [
+            leader.motion.x + offset[0] * cos - offset[1] * sin,
+            leader.motion.z + offset[0] * sin + offset[1] * cos,
+        ];
+        if (damaged && available + 0.5 < requested) || steering_failed {
+            report.stragglers.push(Straggler {
+                ship_id: follower.motion.id.clone(),
+                available_speed_mps: if steering_failed { 0.0 } else { available },
+                gap_m: distance(point(follower), station),
+            });
+        }
+        // Reserve outer-station speed during a turn, retaining the established
+        // straight-line reserve. Damage changes the cap only after a decision.
+        let capability = if policy == FormationPolicy::SlowForStragglers {
+            available
+        } else {
+            design
+        };
+        let turn_speed = leader.motion.yaw_rate.abs() * offset[0].hypot(offset[1]);
+        report.speed_limit_mps = report
+            .speed_limit_mps
+            .min((capability * 0.85 - turn_speed).max(capability * 0.4));
+    }
+    if policy == FormationPolicy::SlowForStragglers {
+        for straggler in &report.stragglers {
+            report.speed_limit_mps = report
+                .speed_limit_mps
+                .min(straggler.available_speed_mps * 0.85);
+        }
+    }
+    report
 }
 
 /// Conservative ellipses enclose every authored coastline lobe plus the hull
@@ -223,22 +328,52 @@ fn steer(a: &Vessel, heading: f64) -> f64 {
 
 /// Predict close approaches using physical motion only. Both ships turn to
 /// starboard for a head-on meeting; passing ships do not attract each other.
-fn avoid_neighbors(a: &Vessel, actors: &[Vessel], heading: f64, speed: f64) -> (f64, f64, bool) {
+fn avoid_neighbors(
+    a: &Vessel,
+    actors: &[Vessel],
+    contacts: Option<&[crate::sensors::ContactTrack]>,
+    heading: f64,
+    speed: f64,
+) -> (f64, f64, bool) {
     let own = a.motion.velocity();
     let mut desired = [heading.sin(), -heading.cos()];
     let mut safe_speed = speed;
     let mut avoiding = false;
-    for other in actors {
-        if other.motion.id == a.motion.id || other.motion.y < -20.0 {
-            continue;
-        }
-        let r = [other.motion.x - a.motion.x, other.motion.z - a.motion.z];
+    let physical = actors
+        .iter()
+        .filter(|b| {
+            b.motion.id != a.motion.id
+                && b.motion.y >= -20.0
+                && (contacts.is_none() || b.team == a.team)
+        })
+        .map(|b| {
+            (
+                [b.motion.x, b.motion.z],
+                b.motion.velocity(),
+                b.definition().hull.length,
+            )
+        });
+    let observed = contacts
+        .into_iter()
+        .flatten()
+        .filter(|c| {
+            c.kind == crate::sensors::ContactKind::Surface
+                && c.status != crate::sensors::TrackStatus::Stale
+        })
+        .map(|c| {
+            (
+                [c.estimated_position[0], c.estimated_position[2]],
+                c.velocity,
+                c.estimated_length(),
+            )
+        });
+    for (position, theirs, length) in physical.chain(observed) {
+        let r = [position[0] - a.motion.x, position[1] - a.motion.z];
         let gap = r[0].hypot(r[1]);
-        let clearance = (a.definition().hull.length + other.definition().hull.length) * 0.6 + 100.0;
-        if gap > clearance + (a.motion.speed.abs() + other.motion.speed.abs()) * 45.0 {
+        let clearance = (a.definition().hull.length + length) * 0.6 + 100.0;
+        if gap > clearance + (a.motion.speed.abs() + theirs[0].hypot(theirs[2])) * 45.0 {
             continue;
         }
-        let theirs = other.motion.velocity();
         let velocity = [theirs[0] - own[0], theirs[2] - own[2]];
         let v2 = velocity[0] * velocity[0] + velocity[1] * velocity[1];
         let approach = r[0] * velocity[0] + r[1] * velocity[1];
@@ -270,6 +405,35 @@ fn avoid_neighbors(a: &Vessel, actors: &[Vessel], heading: f64, speed: f64) -> (
     (desired[0].atan2(-desired[1]), safe_speed, avoiding)
 }
 
+/// Recheck a temporary threat turn against known nearby hulls. Land and mission
+/// boundaries are applied by Battle after this correction, just as for orders.
+pub fn safe_correction(
+    a: &Vessel,
+    actors: &[Vessel],
+    contacts: &[crate::sensors::ContactTrack],
+    state: &mut NavigationState,
+    command: HelmCommand,
+) -> HelmCommand {
+    let maximum = maximum_speed(a).max(0.05);
+    let heading = a.motion.heading + (command.rudder + a.motion.yaw_rate * 5.0) * 0.5;
+    let (heading, speed, avoiding) = avoid_neighbors(
+        a,
+        actors,
+        Some(contacts),
+        heading,
+        maximum * command.throttle,
+    );
+    if !avoiding {
+        return command;
+    }
+    state.status = NavigationStatus::Avoiding;
+    HelmCommand {
+        rudder: steer(a, heading),
+        throttle: command.throttle.min(speed / maximum),
+        ..command
+    }
+}
+
 /// speed_limit reserves catch-up speed for formation members. It is supplied by
 /// the authoritative order set, so selecting/following a ship cannot change it.
 pub fn command(
@@ -280,6 +444,19 @@ pub fn command(
     state: &mut NavigationState,
     tick: u64,
     speed_limit: f64,
+) -> HelmCommand {
+    command_observed(a, actors, islands, order, state, tick, speed_limit, None)
+}
+
+pub fn command_observed(
+    a: &Vessel,
+    actors: &[Vessel],
+    islands: &[Island],
+    order: &Movement,
+    state: &mut NavigationState,
+    tick: u64,
+    speed_limit: f64,
+    contacts: Option<&[crate::sensors::ContactTrack]>,
 ) -> HelmCommand {
     if state.order != *order {
         *state = NavigationState::new(order.clone());
@@ -349,7 +526,18 @@ pub fn command(
                     leader.motion.z + offset_world[1],
                 ];
                 state.status = NavigationStatus::Rejoining;
-                if !clear_segment(destination, destination, islands, margin + 250.0) {
+                let ahead = [
+                    leader.motion.x + leader.motion.heading.sin() * leader.motion.speed * 15.0,
+                    leader.motion.z - leader.motion.heading.cos() * leader.motion.speed * 15.0,
+                ];
+                let next_station = [ahead[0] + offset_world[0], ahead[1] + offset_world[1]];
+                let obstructed_slot =
+                    !clear_segment(point(leader), destination, islands, margin + 100.0)
+                        || !clear_segment(destination, next_station, islands, margin + 150.0);
+                if obstructed_slot {
+                    state.column_until_tick = tick + 600;
+                }
+                if obstructed_slot || tick < state.column_until_tick {
                     let index = actors.iter().filter(|b| b.motion.id < a.motion.id && b.navigation.as_ref().is_some_and(|n|
                         matches!(&n.order, Movement::Escort { leader_id: id, .. } if id == leader_id))).count();
                     let aft = 450.0 + index as f64 * 400.0;
@@ -372,7 +560,16 @@ pub fn command(
                     if range < radius && station_velocity[0].hypot(station_velocity[1]) < 0.25 {
                         state.status = NavigationStatus::OnStation;
                         state.destination = Some(destination);
-                        return sail(a, actors, islands, state, a.motion.heading, 0.0, maximum);
+                        return sail(
+                            a,
+                            actors,
+                            contacts,
+                            islands,
+                            state,
+                            a.motion.heading,
+                            0.0,
+                            maximum,
+                        );
                     }
                     let velocity = [
                         station_velocity[0] + error[0] / 35.0,
@@ -388,7 +585,15 @@ pub fn command(
                     } else {
                         a.motion.heading
                     };
-                    return sail(a, actors, islands, state, heading, speed, maximum);
+                    let command =
+                        sail(a, actors, contacts, islands, state, heading, speed, maximum);
+                    if maximum < a.definition().handling.forward_speed * 0.85
+                        && maximum + 0.5 < leader.motion.speed.abs()
+                        && state.status != NavigationStatus::Avoiding
+                    {
+                        state.status = NavigationStatus::Straggling;
+                    }
+                    return command;
                 }
                 destination
             } else {
@@ -404,7 +609,16 @@ pub fn command(
         if state.status == NavigationStatus::FollowingRoute {
             state.status = NavigationStatus::Holding;
         }
-        return sail(a, actors, islands, state, a.motion.heading, 0.0, maximum);
+        return sail(
+            a,
+            actors,
+            contacts,
+            islands,
+            state,
+            a.motion.heading,
+            0.0,
+            maximum,
+        );
     }
     let changed = state
         .path_target
@@ -433,19 +647,20 @@ pub fn command(
         requested.min(braking_speed.max(final_speed))
     };
     let heading = (next[0] - at[0]).atan2(at[1] - next[1]);
-    sail(a, actors, islands, state, heading, speed, maximum)
+    sail(a, actors, contacts, islands, state, heading, speed, maximum)
 }
 
 fn sail(
     a: &Vessel,
     actors: &[Vessel],
+    contacts: Option<&[crate::sensors::ContactTrack]>,
     islands: &[Island],
     state: &mut NavigationState,
     heading: f64,
     speed: f64,
     maximum: f64,
 ) -> HelmCommand {
-    let (heading, speed, avoiding) = avoid_neighbors(a, actors, heading, speed);
+    let (heading, speed, avoiding) = avoid_neighbors(a, actors, contacts, heading, speed);
     if avoiding {
         state.status = NavigationStatus::Avoiding;
     }

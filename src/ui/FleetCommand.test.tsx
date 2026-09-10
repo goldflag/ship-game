@@ -12,7 +12,7 @@ function fixture() {
   const id = simulation.ship.id;
   Object.assign(simulation, {
     fleetOrders: { [id]: { manual: false, movement: { type: 'route', waypoints: [[100, 200], [300, 400]], speedMps: 10, looped: false } } },
-    observationTracks: [{ id: 'hidden-air-report', kind: 'aircraft', status: 'stale', affiliation: 'hostile', estimatedPosition: [200, 400, 900], uncertaintyM: 5000, lastObservedTick: 0 }],
+    observationTracks: [{ id: 'hidden-air-report', kind: 'aircraft', status: 'stale', affiliation: 'hostile', estimatedPosition: [200, 400, 900], measuredPosition: [200, 400, 900], velocity: [0, 0, 0], uncertaintyM: 5000, lastObservedTick: 0 }],
   });
   const game = { simulation, selectedShipIds: [], selectedFlightIds: [], controlGroups: new Map() } as unknown as Game;
   const data: Telemetry = { ship: simulation.ship, order: 1, camera: 'Chase', fps: 60, backend: 'test', trail: [], combat: simulation.telemetry('main', [0, 0, -5000]), fleetCommandMode: true, airOperationsOpen: true, selectedShipIds: [] };
@@ -37,4 +37,11 @@ test('helm command overlay stays compact so regular instruments have the full lo
   expect(html).toContain('Give back helm');
   expect(html).not.toContain('Command card');
   expect(html).not.toContain('Fleet views');
+});
+
+test('standing-order report distinguishes temporary evasion from its retained route', async () => {
+  const { standingOrder } = await import('./FleetCommand');
+  const order = { movement: { type: 'route', waypoints: [[0, 1000]], speedMps: 10, looped: false }, navigation: { status: 'evading-torpedo', waypoint: 0 } } as unknown as import('../multiplayer/generated/FleetOrderState').FleetOrderState;
+  expect(standingOrder(order)).toContain('Avoiding spotted torpedoes');
+  expect(standingOrder(order)).toContain('Waypoint 1/1');
 });

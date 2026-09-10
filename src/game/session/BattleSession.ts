@@ -9,6 +9,7 @@ import type { OrderReceipt } from './commandQueue';
 import type { FleetActor } from '../../simulation/battle';
 import type { ContactTrack } from '../../multiplayer/generated/ContactTrack';
 import type { MissionRules } from '../../multiplayer/generated/MissionRules';
+import type { ReconCoverage } from '../../multiplayer/generated/ReconCoverage';
 export interface ObservedShip { id: string; presetId: string; position: Vec3; heading: number; velocity: Vec3; observedTick: number; observers: string[] }
 export interface BattleDebrief {
  seed: number;
@@ -22,6 +23,7 @@ export interface BattleSession extends Omit<Pick<CombatSimulation, keyof CombatS
  readonly targetContact?: ContactTrack;
  readonly observationTracks?: ContactTrack[];
  readonly observedShips?: ObservedShip[];
+ readonly reconCoverage?: ReconCoverage;
  readonly missionRules?: MissionRules;
  readonly debrief?: BattleDebrief;
  readonly networked?: boolean;
@@ -34,6 +36,8 @@ export interface BattleSession extends Omit<Pick<CombatSimulation, keyof CombatS
  readonly fleetOrders?: Record<string, FleetOrderState>;
  readonly orderReceipts?: OrderReceipt[];
  readonly queuedOrderCount?: number;
+ readonly simulationSpeed?: 1 | 2 | 4;
+ setSimulationSpeed?(speed: 1 | 2 | 4): void;
  releaseHelm?(): boolean;
  commandDeck?(flightId: string, action: DeckServiceAction): boolean;
  cancelDeckTask?(carrierId: string, requestId: number): boolean;
@@ -43,6 +47,7 @@ export interface BattleSession extends Omit<Pick<CombatSimulation, keyof CombatS
  holdShipArea?(id: string, position: [number, number], radiusM: number): void;
  escortShip?(id: string, leaderId: string, offset: [number, number], radiusM: number): void;
  setShipWeapons?(id: string, policy: WeaponsPolicy): void;
+ setFormationPolicy?(id: string, policy: import('../../multiplayer/generated/FormationPolicy').FormationPolicy): void;
  moveShip?(id: string, point: Vec3): void;
  focusShip?(id: string, targetId: string): void;
  holdShip?(id: string): void;

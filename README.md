@@ -152,6 +152,14 @@ In fleet command, **left-drag pans**, **Shift-left-drag box-selects**, and **Ctr
 
 Fleet command separates selecting a ship, following its camera and taking its helm. Take helm restores the regular sailing, gunnery and minimap controls; Give back helm returns control to the captain. Captains navigate and operate guns/AA; torpedoes start held. Routes, holds, escorts, focus fire, weapons policy, named control groups and local tactical pause are available. Observation reports replace the omniscient enemy roster; enemy exterior motion is smoothed using only permitted reports.
 
+Local PvE offers **1×, 2× and 4×** simulation speed in fleet command and at the helm. All authoritative systems advance in fixed ticks; cameras remain responsive. Tactical pause stops the simulation and retains queued orders. Restart and new battles return to 1×; online timing is unchanged.
+
+Escorts anticipate turns and changing leader speed, reform around obstacles, and report damaged stragglers. Select their leader to choose **Slow for stragglers** or **Leave behind**; the escort's standing assignment remains intact. Captains temporarily evade observed aircraft approaches and locally spotted torpedo wakes. Enemy commanders share reported targets, assign carrier support and reposition surviving forces after their front collapses.
+
+The restrained **Surface search** overlay records sampled lookout coverage and its age. Point at water for its latest survey time. It represents a reference surface vessel, not guaranteed empty water or coverage of aircraft/submarines. Contacts distinguish current, estimated and last-known positions; visible fire/smoke/list and confirmed sinking appear only when observed. Aircraft uncertainty rings remain absent.
+
+PvE has **no active-airborne-group cap**. Each carrier retains its 48 aircraft and normal launch/recovery queues. The versioned PvE air profile uses **40-minute finite endurance**, recalls at 32 minutes and closes new-task admission at 30 minutes. Mission completion, empty weapons, critical damage and explicit recall can return aircraft sooner; losses remain persistent. See [air operations](docs/air-operations.md) for the timer audit and unchanged legacy defaults.
+
 The desktop MVP is delivered; see [implementation status](docs/pve-implementation-status.md) for acceptance evidence and deferred work. The broader [PvE plan](docs/pve-fleet-command-plan.md) is a roadmap, not the completion checklist. Existing Custom/online rules retain their current behavior.
 
 ## Architecture

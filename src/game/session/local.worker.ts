@@ -56,7 +56,10 @@ self.onmessage = (event: MessageEvent<{ type: 'options' } | { type: 'validate'; 
             self.postMessage({ type: 'ack', sequence: command.sequence, accepted: true, command: command.command.type, shipId: command.shipId });
           } catch (error) { self.postMessage({ type: 'ack', sequence: command.sequence, accepted: false, message: String(error), command: command.command.type, shipId: command.shipId }); }
         }
-        runtime.step(message.ticks);
+        if (!Number.isInteger(message.ticks) || message.ticks < 1 || message.ticks > 24) throw new Error('Invalid local tick batch.');
+        // Keep the runtime's bounded fixed-step API; high speed batches never
+        // alter timestep or block the rendering/input thread.
+        for (let left = message.ticks; left > 0; left -= 6) runtime.step(Math.min(6, left));
       }
       const frame = decodeSnapshot(runtime!.snapshot());
       self.postMessage({ type: 'snapshot', reset: message.type === 'restart', baseTick: previous?.tick, delta: localDelta(previous, frame) });
