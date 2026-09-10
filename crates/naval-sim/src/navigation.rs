@@ -60,6 +60,10 @@ pub enum Movement {
 pub enum Formation {
     #[default]
     Column,
+    /// Two parallel columns; the guide leads the port column.
+    DoubleColumn,
+    /// Three parallel columns; the guide leads the centre column.
+    TripleColumn,
     Screen,
     LineAbreast,
 }
