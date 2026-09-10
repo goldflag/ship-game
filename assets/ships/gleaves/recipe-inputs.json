@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "files": [
+    "assets/parts/library.py",
+    "assets/parts/library.json",
+    "assets/parts/us-mk30/geometry.py",
+    "assets/parts/us-oerlikon/geometry.py"
+  ]
+}

@@ -45,6 +45,9 @@ export interface GunPart {
   gunhouseSize: Vec3; pivotHeight: number; trunnionForward: number; muzzleForward: number;
   barrelSpacing: number; caliberM: number; traverseDeg: number; traverseRateDeg: number;
   elevationMinDeg: number; elevationMaxDeg: number; elevationRateDeg: number;
+  /** Compiler-retained catalog capability for grouping an installation-limited gun. */
+  catalogElevationMinDeg?: number;
+  catalogElevationMaxDeg?: number;
   reloadSeconds: number; muzzleSpeed: number; projectileMassKg: number;
   penetrationMm: number; damage: number; recoilM: number; ammoPerBarrel: number; armorMm: number;
   /** Optional calibrated flight model; omitted v1 parts retain vacuum/no spread. */
@@ -87,6 +90,10 @@ export interface Mount {
   parentMountId?: string;
   /** Installed half-sector about bearingDeg, at most the catalog capability. */
   traverseDeg?: number;
+  /** Installed depression stop, between the catalog minimum and level. */
+  elevationMinDeg?: number;
+  /** Installed elevation stop, between level and the catalog maximum. */
+  elevationMaxDeg?: number;
   magazineId?: string;
   fire?: FireProfile;
 }
@@ -381,15 +388,16 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
   ['forwardSpeed', 'reverseSpeed', 'acceleration', 'braking', 'rudderRate', 'maxYawRate'].forEach(k => numeric(handling[k], `handling.${k}`, .00001, 100));
   const parts = list(catalog.parts, 'parts').map((p, i) => record(p, `parts[${i}]`));
   unique(parts, 'parts');
-  const requiredNumbers = ['massKg', 'barbetteRadius', 'pivotHeight', 'muzzleForward', 'barrelSpacing', 'caliberM', 'traverseDeg', 'traverseRateDeg', 'elevationRateDeg', 'reloadSeconds', 'muzzleSpeed', 'projectileMassKg', 'penetrationMm', 'damage', 'recoilM', 'ammoPerBarrel', 'armorMm'];
+  const requiredNumbers = ['massKg', 'barbetteRadius', 'pivotHeight', 'muzzleForward', 'barrelSpacing', 'caliberM', 'traverseDeg', 'traverseRateDeg', 'elevationRateDeg', 'reloadSeconds', 'muzzleSpeed', 'projectileMassKg', 'penetrationMm', 'damage', 'ammoPerBarrel', 'armorMm'];
   parts.forEach(p => {
     literal(p.kind, ['gun'], `${p.id}.kind`); text(p.name, `${p.id}.name`);
     requiredNumbers.forEach(k => numeric(p[k], `${p.id}.${k}`, .00001));
+    numeric(p.recoilM, `${p.id}.recoilM`, 0);
     numeric(p.trunnionForward, `${p.id}.trunnionForward`, -100, 100);
     vector(p.gunhouseSize, `${p.id}.gunhouseSize`, .001);
     numeric(p.traverseDeg, `${p.id}.traverseDeg`, 0, 180);
     numeric(p.elevationMinDeg, `${p.id}.elevationMinDeg`, -15, 0);
-    numeric(p.elevationMaxDeg, `${p.id}.elevationMaxDeg`, 0, 85);
+    numeric(p.elevationMaxDeg, `${p.id}.elevationMaxDeg`, 0, 90);
     if ((p.muzzleForward as number) <= (p.trunnionForward as number)) fail(String(p.id), 'muzzle must be forward of the trunnion');
     if (!Number.isInteger(p.ammoPerBarrel)) fail(String(p.id), 'ammunition must be an integer');
     if (p.ballistics !== undefined) {
@@ -464,6 +472,14 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
     if (Math.abs(pos[0]) > (envelope.beam as number) / 2 || Math.abs(pos[2]) > (envelope.length as number) / 2) fail(String(m.id), 'mount lies outside the hull envelope');
     numeric(m.bearingDeg, `${m.id}.bearingDeg`, -360, 360);
     if (m.traverseDeg !== undefined) numeric(m.traverseDeg, `${m.id}.traverseDeg`, 0, parts.find(p => p.id === m.partId)!.traverseDeg as number);
+    if (m.elevationMinDeg !== undefined) {
+      const part = parts.find(p => p.id === m.partId)!;
+      numeric(m.elevationMinDeg, `${m.id}.elevationMinDeg`, part.elevationMinDeg as number, 0);
+    }
+    if (m.elevationMaxDeg !== undefined) {
+      const part = parts.find(p => p.id === m.partId)!;
+      numeric(m.elevationMaxDeg, `${m.id}.elevationMaxDeg`, 0, part.elevationMaxDeg as number);
+    }
     if (m.parentMountId !== undefined) {
       id(m.parentMountId, `${m.id}.parentMountId`);
       if (!mounts.slice(0, index).some(parent => parent.id === m.parentMountId)) fail(String(m.id), 'parent mount must precede its child (no missing parents or cycles)');
@@ -782,6 +798,16 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
   const result: ShipDefinition = { ...blueprint, torpedoTubes: undefined, depthChargeLaunchers: undefined, armor:structuredClone(compiledArmor) as Armor[], compilerVersion: 1, mounts: blueprint.mounts.map(m => {
     const weapon = structuredClone(parts.find(p => p.id === m.partId)) as unknown as GunPart;
     if (m.traverseDeg !== undefined) weapon.traverseDeg = m.traverseDeg;
+    delete weapon.catalogElevationMinDeg;
+    delete weapon.catalogElevationMaxDeg;
+    if (m.elevationMinDeg !== undefined) {
+      weapon.catalogElevationMinDeg = weapon.elevationMinDeg;
+      weapon.elevationMinDeg = m.elevationMinDeg;
+    }
+    if (m.elevationMaxDeg !== undefined) {
+      weapon.catalogElevationMaxDeg = weapon.elevationMaxDeg;
+      weapon.elevationMaxDeg = m.elevationMaxDeg;
+    }
     return { ...m, weapon };
   }) };
   if (blueprint.torpedoTubes) result.torpedoTubes = blueprint.torpedoTubes.map(t => ({ ...t, weapon: structuredClone(torpedoes.find(p => p.id === t.partId)) as unknown as TorpedoPart }));

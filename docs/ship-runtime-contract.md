@@ -48,7 +48,7 @@ Runtime yaw rotates around +Y with a negative clockwise angle; elevation rotates
 
 Flexible gun covers may export shape keys with `gunCoverElevationId` naming the
 retained elevation joint and `gunCoverAngles` listing increasing positive angles
-in degrees, one per target; the base shape is zero degrees. `ShipView` blends
+in degrees, one per target; the base shape defaults to zero degrees or uses optional `gunCoverBaseAngle` for fittings that follow depression. `ShipView` blends
 adjacent shapes using the displayed CPU gun angle. These meshes remain outside
 rigid batches. Authoring drivers provide the equivalent Blender inspection pose;
 export preserves every shape across the coordinate conversion and freezes the
@@ -126,7 +126,7 @@ Diagnostics also identify the loaded ship/hash, renderer backend and camera matr
 
 Use `mounts` to pose neighbors independently, for example `window.shipTrialArticulation({trainFraction: 0, elevationFraction: 0, recoilFraction: 0, mounts: {'main-3': {trainFraction: .6}, 'bofors-turret-3': {trainFraction: -.7, elevationFraction: .8, recoilFraction: 1}}})` on Iowa. Overrides use stable mount IDs and the same bounded fractions. Unknown IDs and nonfinite values are rejected before any pose changes.
 
-A mount may declare `parentMountId` to ride another mount's yaw assembly. Parents must precede children in the blueprint; missing parents and cycles are invalid. Position and bearing remain absolute neutral ship-space datums. The exported child base preserves that neutral frame beneath the parent yaw, while CPU mount frames compose every ancestor's train for aiming, hits, fire effects and lodged projectiles. Child elevation and recoil remain independent. Optional mount `traverseDeg` narrows the reusable catalog part's half-sector about the installed bearing; it cannot exceed the part's mechanical range.
+A mount may declare `parentMountId` to ride another mount's yaw assembly. Parents must precede children in the blueprint; missing parents and cycles are invalid. Position and bearing remain absolute neutral ship-space datums. The exported child base preserves that neutral frame beneath the parent yaw, while CPU mount frames compose every ancestor's train for aiming, hits, fire effects and lodged projectiles. Child elevation and recoil remain independent. Optional mount `traverseDeg` narrows the reusable catalog part's half-sector about the installed bearing; it cannot exceed the part's mechanical range. Optional mount `elevationMinDeg` sets an installed depression stop between the catalog minimum and level. Optional mount `elevationMaxDeg` sets an installed ceiling between level and the catalog maximum. Compilation resolves these installation limits into that mount's weapon, so CPU aiming and renderer articulation consume the same limits without changing neighboring mounts or the reusable catalog part. The compiled weapon retains `catalogElevationMinDeg` and `catalogElevationMaxDeg` for control-group identity; installation stops do not split guns firing the same ammunition into separate player selections.
 
 Rust `naval-sim` resolves carried frames from authoritative mount trains for both local WASM and online battles. Weapon operation refreshes each child's carrier after its parent traverses; clearance caches include moving carrier poses. The browser reconstructs derived carrier frames in presentation state without modifying retained snapshot delta baselines.
 
