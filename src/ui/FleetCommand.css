@@ -245,6 +245,9 @@
 .fleet-command-route { stroke:var(--fleet-gold); stroke-width:1.4; stroke-dasharray:none; }
 .fleet-command-escort-link { fill:none; stroke:var(--fleet-active); stroke-width:1.1; stroke-dasharray:1 5; stroke-linecap:round; opacity:.75; pointer-events:none; }
 .fleet-command-hold-ring { fill:none; stroke:var(--fleet-active); stroke-width:1.1; stroke-dasharray:8 4 2 4; pointer-events:none; }
+.fleet-command-escort-station { color:var(--fleet-active); pointer-events:none; }
+.fleet-command-escort-station circle { fill:none; stroke:currentColor; stroke-width:1.2; }
+.fleet-command-escort-station text { fill:currentColor; font-size:10.5px; paint-order:stroke; stroke:#07131b; stroke-width:3px; }
 .fleet-command-move-preview { stroke:#f0f5f3; stroke-width:1.4; stroke-dasharray:2 5; stroke-linecap:round; }
 .fleet-command-move-preview text { fill:#f0f5f3; }
 .fleet-command-move-preview.air { stroke:var(--fleet-active); }

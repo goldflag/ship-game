@@ -78,6 +78,10 @@ function bracketPoints(members: { x: number; z: number }[], padM = 420): Vec3[] 
   const minX = Math.min(...xs) - padM, maxX = Math.max(...xs) + padM, minZ = Math.min(...zs) - padM, maxZ = Math.max(...zs) + padM;
   return [[minX, 0, minZ], [maxX, 0, minZ], [maxX, 0, maxZ], [minX, 0, maxZ]];
 }
+/** A formation moves as one body, so its route leaves from its centre rather than the leader's bow. */
+function centroid(members: { x: number; z: number }[]): Vec3 {
+  return [members.reduce((n, m) => n + m.x, 0) / members.length, 0, members.reduce((n, m) => n + m.z, 0) / members.length];
+}
 const WEAPONS = ['guns', 'aa', 'torpedoes'] as const;
 const weaponLabel = { guns: 'Guns', aa: 'AA', torpedoes: 'Torpedoes' } as const;
 
@@ -489,16 +493,24 @@ export function FleetCommand({ data, game, bindings }: { data: Telemetry; game: 
       {selectedFlights.flatMap(f => f.search?.trail.slice(1).flatMap((sample, i) => { const age = (tick - sample.tick) / 60; return age <= 90 ? [<path key={`trail-${f.id}-${sample.tick}`} className="fleet-command-search-trail" opacity={Math.max(.15, 1 - age / 90)} data-map-path={JSON.stringify([f.search!.trail[i].position, sample.position])}/>] : []; }) ?? [])}
       {ships.filter(s => !s.physicalLost).map(s => {
         const pending = pendingRoutes[s.id];
-        const points = pending ? pending.points : routePoints(s, orders[s.id], ships);
         const movement = orders[s.id]?.movement;
+        const led = formations.find(f => f.leaderId === s.id && f.shipIds.length > 1);
+        const body = led ? ships.filter(m => led.shipIds.includes(m.id) && !m.physicalLost) : [];
+        let points = pending ? pending.points : routePoints(s, orders[s.id], ships);
+        if (body.length > 1 && (pending || movement?.type === 'route') && points.length > 1) points = [centroid(body), ...points.slice(1)];
         const waypoints = pending || movement?.type === 'route' ? points.slice(1) : [];
-        return <g key={`route-${s.id}`} data-route-owner={s.id} className={`fleet-command-course ${ids.includes(s.id) ? 'selected' : ''}`}>
+        // An escort's link to its station only means something on its own: the whole formation moves on the leader's route.
+        const own = formations.find(f => f.shipIds.includes(s.id));
+        const alone = ids.includes(s.id) && !(own && own.shipIds.length > 1 && own.shipIds.every(id => ids.includes(id)));
+        if (movement?.type === 'escort' && !alone && hoverId !== s.id) return null;
+        return <g key={`route-${s.id}`} data-route-owner={s.id} className={`fleet-command-course ${ids.includes(s.id) || hoverId === s.id ? 'selected' : ''}`}>
           <path className={movement?.type === 'escort' ? 'fleet-command-escort-link' : movement?.type === 'hold-area' ? 'fleet-command-hold-ring' : 'fleet-command-route'} data-map-path={JSON.stringify(points)}/>
+          {movement?.type === 'escort' && points.length > 1 && <g className="fleet-command-escort-station" data-map-position={JSON.stringify(points[1])} aria-label={`${s.name} escort station`}><circle r="5"/><text x="8" y="14">station</text></g>}
           {waypoints.map((point, i) => <g key={i} className="fleet-command-waypoint" data-map-position={JSON.stringify(point)} aria-label={`${s.name} waypoint ${i + 1}`}><circle r="8"/><path d="M-12 0H12M0-12V12"/><text x="12" y="-10">{i + 1}</text></g>)}
         </g>;
       })}
-      {armed === 'move' && movePoint && <g className="fleet-command-move-preview" aria-label="Move preview">
-        {recipients.map(s => <path key={s.id} data-map-path={JSON.stringify([[s.x, 0, s.z], [movePoint[0], 0, movePoint[1]]])}/>)}
+      {armed === 'move' && movePoint && recipients.length > 0 && <g className="fleet-command-move-preview" aria-label="Move preview">
+        <path data-map-path={JSON.stringify([recipients.length > 1 ? centroid(recipients) : [recipients[0].x, 0, recipients[0].z], [movePoint[0], 0, movePoint[1]]])}/>
         <g data-map-position={JSON.stringify([movePoint[0], 0, movePoint[1]])}><circle r="9"/><path d="M-14 0H14M0-14V14"/><text x="16" y="-8">{speedKn} kn · Shift adds a waypoint</text></g>
       </g>}
       {previewArmed(armed) && armed !== 'move' && movePoint && selectedFlights.length > 0 && <g className="fleet-command-move-preview air" aria-label="Air order preview">
@@ -537,13 +549,13 @@ export function FleetCommand({ data, game, bindings }: { data: Telemetry; game: 
         <g data-map-glyph="true" data-map-heading={heading}><path className="fleet-command-hull" d={glyph.hull}/><path className="fleet-command-mark" d={glyph.mark}/></g>
         <text x="16" y="-3">{reportName(c)}</text><text className="fleet-command-marker-order" x="16" y="11">{c.affiliation === 'unknown' ? 'affiliation unknown' : reportState(c, tick) === 'current' ? conditionReport(c, tick).split(' · ')[0].toLowerCase() : `${reportState(c, tick).replaceAll('-', ' ')} · ${reportAge(c, tick)}`}</text>
       </g>; })}
-      {ownPlanes.map(p => { const flight = flights.find(f => f.id === p.flightId), on = !!flight && game.selectedFlightIds.includes(flight.id), unarmed = p.role === 'fighter' ? p.ammo <= 0 : !p.payload; return <g key={p.id} data-map-position={JSON.stringify(p.position)} data-plane={p.id} data-map-fade={`13,${p.heading},12,30`} className={`fleet-command-plane friendly ${on ? 'selected' : ''} ${p.hp < 50 ? 'hurt' : ''} ${unarmed ? 'unarmed' : ''} ${hoverFlightId && hoverFlightId === p.flightId ? 'hovered' : ''}`}
+      {ownPlanes.map(p => { const flight = flights.find(f => f.id === p.flightId), on = !!flight && game.selectedFlightIds.includes(flight.id), unarmed = p.role === 'fighter' ? p.ammo <= 0 : !p.payload; return <g key={p.id} data-map-position={JSON.stringify(p.position)} data-plane={p.id} data-map-fade={`13,${p.heading},6,14`} className={`fleet-command-plane friendly ${on ? 'selected' : ''} ${p.hp < 50 ? 'hurt' : ''} ${unarmed ? 'unarmed' : ''} ${hoverFlightId && hoverFlightId === p.flightId ? 'hovered' : ''}`}
         onClick={e => { e.stopPropagation(); if (ignoreClick.current) { ignoreClick.current = false; return; } if (flight) selectAir(flight.id, e.shiftKey || e.ctrlKey || e.metaKey); }}>
         <circle r="8" className="fleet-command-hitbox"/>
         <g data-map-glyph="true" data-map-heading={p.heading}><path d={PLANE_GLYPHS[p.role]} transform="scale(.9)"/></g>
         {on && <><rect className="fleet-command-hull-track" x="-6" y="9" width="12" height="2"/><rect className="fleet-command-hull-fill" x="-6" y="9" width={12 * Math.max(0, Math.min(1, p.hp / 100))} height="2"/></>}
       </g>; })}
-      {observations.filter(c => c.kind === 'aircraft').map(c => { const position = reportPosition(c, tick), [vx, , vz] = c.velocity, damaged = c.visibleCondition?.fire || c.visibleCondition?.heavySmoke; return <g key={c.id} data-map-position={JSON.stringify(position)} data-track={c.id} data-contact-kind="aircraft" data-map-fade={`13,${Math.atan2(vx, -vz)},12,30`} data-report-state={reportState(c, tick)} className={`fleet-command-plane ${c.affiliation === 'hostile' ? 'enemy' : 'unidentified'} ${c.status} ${contactId === c.id ? 'selected' : ''}`}
+      {observations.filter(c => c.kind === 'aircraft').map(c => { const position = reportPosition(c, tick), [vx, , vz] = c.velocity, damaged = c.visibleCondition?.fire || c.visibleCondition?.heavySmoke; return <g key={c.id} data-map-position={JSON.stringify(position)} data-track={c.id} data-contact-kind="aircraft" data-map-fade={`13,${Math.atan2(vx, -vz)},6,14`} data-report-state={reportState(c, tick)} className={`fleet-command-plane ${c.affiliation === 'hostile' ? 'enemy' : 'unidentified'} ${c.status} ${contactId === c.id ? 'selected' : ''}`}
         role="button" tabIndex={0} aria-label={`${reportName(c)} · ${c.status} · observed ${reportAge(c, tick)}`}
         onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); selectReport(c); } }}
         onClick={e => { e.stopPropagation(); if (ignoreClick.current) { ignoreClick.current = false; return; } selectReport(c); }} onContextMenu={e => { e.preventDefault(); e.stopPropagation(); if (e.ctrlKey || e.metaKey || e.altKey || drag.current?.moved) return; selectReport(c, true); }}>

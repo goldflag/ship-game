@@ -922,8 +922,10 @@ export class Game {
     const view = this.fleetViews.find(v => v.actor.motion.id === id && this.simulation.actors.some(a => a === v.actor && a.team === 'friendly') && !physicalLoss(v.actor));
     if (!view) return;
     this.simulation.releaseHelm?.();
-    if (this.airOperationsOpen) this.setAirOperationsOpen(false);
+    // Leave the chart from inside spectateTeammate so the descent it starts is not
+    // cancelled; only close it here when the ship is not a spectator candidate.
     this.spectateTeammate(id);
+    if (this.airOperationsOpen) this.setAirOperationsOpen(false);
     this.input.setEnabled(false);
   }
   takeFleetHelm(id: string): void {
@@ -1107,8 +1109,10 @@ export class Game {
   spectateTeammate(id: string): void {
     const view = this.spectatorCandidates.find(view => view.actor.motion.id === id);
     if (!view) return;
+    // Closing the chart starts the descent onto this ship; keep it. Switching
+    // between hulls already on the water stays a cut.
     if (this.airOperationsOpen) this.setAirOperationsOpen(false);
-    this.battlefieldCamera.cancelTransition();
+    else this.battlefieldCamera.cancelTransition();
     if (this.inspecting) this.inspectTarget();
     this.endFollow();
     this.spectatedShipId = id;
