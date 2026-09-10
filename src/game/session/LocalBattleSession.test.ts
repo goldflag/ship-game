@@ -16,25 +16,33 @@ const helm = { throttle: 0, rudder: 0 }, intent = { aim: [0, 0, 0] as [number, n
 class TestWorker {
   onmessage?: (event: { data: unknown }) => void;
   onerror?: (event: { message: string }) => void;
-  previous?: Snapshot; maxBatch = 0; batches = 0;
+  previous?: Snapshot; maxBatch = 0; batches = 0; posts = 0; detail: string[] = [];
+  /** Hold replies to model a round trip longer than one render frame. */
+  manual = false; private held: (() => void)[] = [];
+  get inFlight() { return this.held.length; }
   constructor(readonly runtime: LocalRuntime) {}
-  postMessage(message: { type: string; commands?: CommandEnvelope[]; ticks?: number }) {
-    queueMicrotask(() => {
-      if (message.type === 'restart') { this.runtime.restart_pve(); this.previous = undefined; }
+  postMessage(message: { type: string; commands?: CommandEnvelope[]; ticks?: number; detailShipIds?: string[] }) {
+    if (message.type === 'advance') this.posts++;
+    const reply = () => {
+      if (message.type === 'restart') { this.runtime.restart_pve(); this.previous = undefined; this.detail = []; }
       if (message.type === 'advance') {
         this.batches++;
         this.maxBatch = Math.max(this.maxBatch, message.ticks!);
+        this.detail = message.detailShipIds ?? [];
         for (const command of message.commands!) {
           this.runtime.command(JSON.stringify(command));
           this.onmessage?.({ data: { type: 'ack', sequence: command.sequence, accepted: true, command: command.command.type, shipId: command.shipId } });
         }
         for (let n = message.ticks!; n > 0; n -= 6) this.runtime.step(Math.min(6, n));
       }
-      const frame = decodeSnapshot(this.runtime.snapshot());
+      const frame = decodeSnapshot(this.runtime.detailed_snapshot(this.detail));
       this.onmessage?.({ data: { type: 'snapshot', reset: message.type === 'restart', baseTick: this.previous?.tick, delta: localDelta(this.previous, frame) } });
       this.previous = frame;
-    });
+    };
+    if (this.manual) this.held.push(reply); else queueMicrotask(reply);
   }
+  /** Deliver one held reply, letting the session schedule from it. */
+  async flush() { this.held.shift()?.(); await Promise.resolve(); }
   terminate() { this.runtime.free(); }
 }
 async function fixture(withAircraft = false) {
@@ -129,5 +137,66 @@ test('taking the helm retains 60 Hz input opportunities at accelerated speed', a
     expect(session.tick - tick).toBe(240);
     expect(worker.batches - batches).toBe(60);
     expect(worker.maxBatch).toBe(4);
+  } finally { session.dispose(); }
+});
+
+test('a slow round trip takes its next batch from the reply, not the next frame', async () => {
+  const { session, worker } = await fixture();
+  try {
+    session.releaseHelm();
+    await frame(session, 1 / 60); await frame(session, 0);
+    session.setSimulationSpeed(4);
+    worker.manual = true;
+    session.advance(.05, helm, intent);
+    expect(worker.posts).toBe(1);
+    // Frames keep arriving while the worker is busy; none of them may dispatch.
+    for (let i = 0; i < 3; i++) session.advance(1 / 60, helm, intent);
+    expect(worker.posts).toBe(1);
+    await worker.flush();
+    expect(worker.posts).toBe(2);
+    expect(worker.inFlight).toBe(1);
+  } finally { session.dispose(); }
+});
+
+test('a round trip longer than the old clamp carries its debt instead of dropping time', async () => {
+  const { session, worker } = await fixture();
+  try {
+    session.releaseHelm();
+    await frame(session, 1 / 60); await frame(session, 0);
+    session.setSimulationSpeed(4);
+    const start = session.tick;
+    worker.manual = true;
+    // 0.05 s dispatches twelve ticks; nine more frames owe another 36, which the
+    // former 0.4 s clamp would have silently discarded.
+    session.advance(.05, helm, intent);
+    for (let i = 0; i < 9; i++) session.advance(1 / 60, helm, intent);
+    for (let i = 0; i < 5; i++) await worker.flush();
+    await frame(session, 0);
+    expect(session.tick - start).toBe(48);
+    expect(session.achievedSpeed).toBe(4);
+  } finally { session.dispose(); }
+});
+
+test('damage-control detail travels only for the ship whose panel is on screen', async () => {
+  const { session, worker } = await fixture(true);
+  try {
+    session.selectShip('own');
+    await frame(session, 1 / 60); await frame(session, 0);
+    await frame(session, 1 / 60); await frame(session, 0);
+    expect(session.controlledShipId).toBe('own');
+    expect(worker.detail).toEqual(['own']);
+    const own = session.actors.find(a => a.motion.id === 'own')!;
+    const other = session.actors.find(a => a.motion.id !== 'own')!;
+    expect(own.damage.control.rooms[0].trend).toBeString();
+    expect(own.damage.control.pumping.length).toBeGreaterThan(0);
+    expect(other.damage.control.pumping).toEqual([]);
+    expect(other.damage.connections).toEqual([]);
+    // Hull fire effects and the inspection view read every ship's room fires by
+    // compartment index, so the rooms stay in place with only what they read.
+    expect(other.damage.control.rooms.length).toBe(other.damage.compartments.length);
+    expect(Object.keys(other.damage.control.rooms[0])).toEqual(['heat', 'intensity']);
+    // Fire markers and flooding readouts still need every hull's compartments.
+    expect(other.damage.compartments.length).toBeGreaterThan(0);
+    expect(other.damage.control.mounts.length).toBeGreaterThan(0);
   } finally { session.dispose(); }
 });

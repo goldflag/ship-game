@@ -49,7 +49,11 @@ export interface BattleSession extends Omit<Pick<CombatSimulation, keyof CombatS
  /** Aircraft losses seen so far: own from the wing, enemy from observed loss events. */
  readonly aircraftLosses?: { own: number; enemy: number };
  readonly simulationSpeed?: 1 | 2 | 4;
+ /** Simulated seconds per wall second actually reached; absent when unmeasured. */
+ readonly achievedSpeed?: number;
  setSimulationSpeed?(speed: 1 | 2 | 4): void;
+ /** Camera subject, so the transport can narrow damage-control detail to it. */
+ setFollowedShip?(id?: string): void;
  releaseHelm?(): boolean;
  commandDeck?(flightId: string, action: DeckServiceAction): boolean;
  cancelDeckTask?(carrierId: string, requestId: number): boolean;
