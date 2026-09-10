@@ -17,6 +17,8 @@ interface Gesture {
 interface Props {
   deployment: Deployment; fit: number; onChange(units: ChartUnit[]): void; onCommit(before: ChartUnit[]): void;
   selection: ChartSelection; onSelect(selection: ChartSelection): void; scope: ChartScope; onScopeChange(scope: ChartScope): void;
+  /** What the pointer rests on, here or in the roster beside the chart; both light the same unit. */
+  hover?: ChartSelection; onHover?(hover: ChartSelection): void;
   disabled?: boolean;
 }
 export function selectedUnits(deployment: Deployment, selection: ChartSelection): ChartUnit[] {
@@ -25,7 +27,7 @@ export function selectedUnits(deployment: Deployment, selection: ChartSelection)
 }
 
 /** North-up chart. Frames and tags move a group, ship markers move one ship, the compass ring turns the selection. */
-export function DeploymentChart({ deployment, fit, onChange, onCommit, selection, onSelect, scope, onScopeChange, disabled }: Props) {
+export function DeploymentChart({ deployment, fit, onChange, onCommit, selection, onSelect, hover, onHover, scope, onScopeChange, disabled }: Props) {
   const svg = useRef<SVGSVGElement>(null), clip = useId(), gesture = useRef<Gesture | undefined>(undefined);
   const [zoom, setZoom] = useState(1), [center, setCenter] = useState(deployment.focus);
   const [size, setSize] = useState({ w: 600, h: 600 });
@@ -213,14 +215,15 @@ export function DeploymentChart({ deployment, fit, onChange, onCommit, selection
     </g>}
     {groups.map(group => {
       const box = unitsBox(group.units), pad = px(26), x = box.x0 - pad, z = box.z0 - pad, w = box.x1 - box.x0 + pad * 2, h = box.z1 - box.z0 + pad * 2;
-      const selected = selection?.kind === 'group' && selection.id === group.id;
+      const selected = selection?.kind === 'group' && selection.id === group.id, hovered = hover?.kind === 'group' && hover.id === group.id;
+      const groupHover = { onPointerEnter: () => onHover?.({ kind: 'group', id: group.id }), onPointerLeave: () => onHover?.(undefined) };
       const label = `${group.name.toUpperCase()} · ${group.units.length} ${group.units.length === 1 ? 'SHIP' : 'SHIPS'}${group.formation ? ` · ${formationLabel(group.formation).toUpperCase()}` : ''}`;
       const tagWidth = px(label.length * 6.4 + 16), tagHeight = px(18);
-      return <g key={group.id} className={`chart-group ${group.side} ${selected ? 'is-selected' : ''}`}>
+      return <g key={group.id} className={`chart-group ${group.side} ${selected ? 'is-selected' : ''} ${hovered ? 'is-hovered' : ''}`}>
         <rect className="chart-frame" x={x} y={z} width={w} height={h} rx={px(8)} role="button" tabIndex={disabled ? -1 : 0} aria-label={`Select ${group.name}`} aria-pressed={selected}
-          onPointerDown={event => pressGroup(event, group.id)} onClick={event => event.stopPropagation()}
+          onPointerDown={event => pressGroup(event, group.id)} onClick={event => event.stopPropagation()} {...groupHover}
           onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.stopPropagation(); if (!disabled) onSelect({ kind: 'group', id: group.id }); } }}/>
-        <g className="chart-tag" onPointerDown={event => pressGroup(event, group.id)} onClick={event => event.stopPropagation()}>
+        <g className="chart-tag" onPointerDown={event => pressGroup(event, group.id)} onClick={event => event.stopPropagation()} {...groupHover}>
           <rect x={x} y={z - tagHeight - px(4)} width={tagWidth} height={tagHeight} rx={px(2)}/>
           <text x={x + px(8)} y={z - tagHeight - px(4) + px(13)} fontSize={px(10)}>{label}</text>
         </g>
@@ -229,9 +232,11 @@ export function DeploymentChart({ deployment, fit, onChange, onCommit, selection
     {units.map(unit => {
       number++;
       const selected = active.some(other => other.id === unit.id), own = selection?.kind === 'ship' && selection.id === unit.id;
+      const hovered = hover?.kind === 'ship' ? hover.id === unit.id : hover?.kind === 'group' && hover.id === unit.groupId;
       const shipClass = shipClassOf(shipPreset(unit.presetId)), glyph = SHIP_GLYPHS[shipClass];
-      return <g key={unit.id} transform={`translate(${unit.spawn.x} ${unit.spawn.z})`} className={`chart-ship ${unit.side} ${selected ? 'is-selected' : ''} ${own ? 'is-focus' : ''}`} role="button" tabIndex={disabled ? -1 : 0} aria-label={`Select ${unit.name}`} aria-pressed={own}
+      return <g key={unit.id} transform={`translate(${unit.spawn.x} ${unit.spawn.z})`} className={`chart-ship ${unit.side} ${selected ? 'is-selected' : ''} ${own ? 'is-focus' : ''} ${hovered ? 'is-hovered' : ''}`} role="button" tabIndex={disabled ? -1 : 0} aria-label={`Select ${unit.name}`} aria-pressed={own}
         onPointerDown={event => pressShip(event, unit)} onClick={event => event.stopPropagation()}
+        onPointerEnter={() => onHover?.({ kind: 'ship', id: unit.id })} onPointerLeave={() => onHover?.(undefined)}
         onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.stopPropagation(); if (!disabled) onSelect(scope === 'ship' ? { kind: 'ship', id: unit.id } : { kind: 'group', id: unit.groupId }); } }}>
         <title>{`${unit.name} · ${shipClass} · ${shipPreset(unit.presetId).hull.length.toFixed(0)} m · ${formatHeading(unit.spawn.heading)}`}</title>
         <circle r={px(13)} className="chart-ship-hit"/>

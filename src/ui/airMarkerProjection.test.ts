@@ -28,3 +28,12 @@ test('heading stays north as an interpolated contact passes its telemetry positi
     expect(projectMapHeading(game, [0, 0, 0], 0)).toBe(0);
   }
 });
+
+test('own hull markers ride above the rendered hull and fall back to the sea-level point without a model', () => {
+  let anchored: [number, number] | null = [7, 8];
+  const game = { projectAirMap: () => [10, 20], projectFleetShip: (id: string) => id === 'own' ? anchored : null } as unknown as Game;
+  expect(projectAirMarker(game, { shipMarker: 'own' }, [1, 0, 2])).toEqual([7, 8]);
+  anchored = null;
+  expect(projectAirMarker(game, { shipMarker: 'own' }, [1, 0, 2])).toEqual([10, 20]);
+  expect(projectAirMarker(game, { shipMarker: 'enemy' }, [1, 0, 2])).toEqual([10, 20]);
+});

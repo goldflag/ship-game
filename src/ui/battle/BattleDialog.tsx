@@ -12,7 +12,7 @@ import { aircraftCount, unitName } from '../pveSetup';
 import { BATTLE_MODES, carryToCustom, carryToDuel, carryToPve, fleetForCarry, saveBattleMode, type BattleMode } from './battleModes';
 import { CustomLanes, CustomRail, customBrief, FormationSelect } from './CustomMode';
 import { DeployScreen } from './DeployScreen';
-import { applyCustomDeployment, applyPveDeployment, customDeployment, pveDeployment } from './deploymentModel';
+import { applyCustomDeployment, applyPveDeployment, customDeployment, initialPvePlacements, pveDeployment } from './deploymentModel';
 import { DuelLanes, DuelRail, duelBrief } from './DuelMode';
 import { duelBudget, type FleetTransfer } from './fleetTransfer';
 import { missionSeed, PveLanes, PveRail, pveBrief, pveInvalid } from './PveMode';
@@ -104,8 +104,8 @@ export function BattleDialog({ initialMode, initialShipId, loading, onClose, ini
       const prepared = await PveDraft.create(request, abort.signal);
       if (abort.signal.aborted) { prepared.dispose(); return; }
       draftRef.current = prepared; setDraft(prepared);
-      setFormations(Object.fromEntries(prepared.briefing.groups.map(group => [group.id, group.formation ?? 'column' as Formation])));
-      setPlacements(prepared.briefing.setup.ships.map(ship => ({ id: ship.id, spawn: ship.spawn! }))); setStep('deploy');
+      const seeded = Object.fromEntries(prepared.briefing.groups.map(group => [group.id, group.formation ?? 'column' as Formation]));
+      setFormations(seeded); setPlacements(initialPvePlacements(prepared.briefing, seeded)); setStep('deploy');
     } catch (error) { if (!abort.signal.aborted) notice(error instanceof Error ? error.message : String(error)); }
     finally { if (!abort.signal.aborted) setPveBusy(false); }
   };
@@ -148,7 +148,7 @@ export function BattleDialog({ initialMode, initialShipId, loading, onClose, ini
   };
   const pick = (id: string) => { setTransfer(transfer?.kind === 'catalog' && transfer.id === id ? undefined : { kind: 'catalog', id }); setMessage({ text: '', error: false }); };
   const unavailable = (id: string): string => {
-    if (mode === 'pve') { if (!options) return ''; if (!options.eligiblePresets.includes(id)) return 'Not available in fleet command yet.'; return pveInvalid({ ...request, ships: [...request.ships, { id: 'preview', presetId: id, groupId: request.groups[0]?.id ?? 'front' }] }, options).replace('Fleet exceeds', 'Would exceed'); }
+    if (mode === 'pve') { if (!options) return ''; return pveInvalid({ ...request, ships: [...request.ships, { id: 'preview', presetId: id, groupId: request.groups[0]?.id ?? 'front' }] }, options).replace('Fleet exceeds', 'Would exceed'); }
     if (mode === 'duel') return duelBudget([...fleet, id]).error ?? '';
     return '';
   };
@@ -179,9 +179,9 @@ export function BattleDialog({ initialMode, initialShipId, loading, onClose, ini
     {step === 'deploy' && mode === 'custom' && customPlacement && <DeployScreen deployment={customPlacement} disabled={loading} fitKey={`${setup.mapId}:${setup.spawnDistance}:${setup.formation ?? 'line'}:${setup.friendlyBots.length}:${setup.enemies.length}`}
       onChange={units => onSetupChange(applyCustomDeployment(setup, units))} onReset={() => onSetupChange({ ...setup, spawns: undefined })} tools={<FormationSelect setup={setup} onChange={onSetupChange} compact/>}/>}
     {step === 'deploy' && mode === 'pve' && draft && <DeployScreen key={draft.briefing.setup.seed} deployment={pveDeployment(draft.briefing, placements, formations)} disabled={pveBusy} fitKey={String(draft.briefing.setup.seed)}
-      onChange={units => setPlacements(applyPveDeployment(units))} onReset={() => setPlacements(draft.briefing.setup.ships.map(ship => ({ id: ship.id, spawn: ship.spawn! })))} onFormation={chooseFormation}/>}
+      onChange={units => setPlacements(applyPveDeployment(units))} onReset={() => setPlacements(initialPvePlacements(draft.briefing, formations))} onFormation={chooseFormation}/>}
     {step === 'fleet' && <div className="battle-body">
-      <ShipCatalog ships={ALL_SHIPS} hint={mode === 'custom' ? 'Drag into a lane' : mode === 'pve' ? 'Drag into a group' : 'Drag into a berth'} picked={transfer?.kind === 'catalog' ? transfer.id : undefined} commanded={mode === 'custom' ? setup.playerShipId : undefined}
+      <ShipCatalog ships={mode === 'pve' && options ? ALL_SHIPS.filter(id => options.eligiblePresets.includes(id)) : ALL_SHIPS} hint={mode === 'custom' ? 'Drag into a lane' : mode === 'pve' ? 'Drag into a group' : 'Drag into a berth'} picked={transfer?.kind === 'catalog' ? transfer.id : undefined} commanded={mode === 'custom' ? setup.playerShipId : undefined}
         disabled={catalogDisabled} unavailable={unavailable} onPick={pick} onDragStart={startCatalogDrag} onDragEnd={() => setTransfer(undefined)}/>
       <div className="battle-center">
         {mode === 'custom' && <CustomLanes setup={setup} onChange={next => { onSetupChange(next); setMessage({ text: '', error: false }); }} transfer={transfer} onTransfer={setTransfer} onError={notice} disabled={busy}/>}
