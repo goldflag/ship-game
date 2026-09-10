@@ -8,9 +8,10 @@ use crate::{
 pub fn strike_aim_error(p: &Aircraft, heading: f64, seed: u32, sortie: u32) -> Vec3 {
     let key = gunnery_seed(&p.id, seed);
     let pass = sortie.wrapping_mul(17).wrapping_add(p.pilot.attempts);
-    let across = (dispersed_speed(1.0, 1.0, key, pass) - 1.0) * 24.0;
+    let across = (dispersed_speed(1.0, 1.0, key, pass) - 1.0)
+        * if p.role == "dive-bomber" { 5.0 } else { 24.0 };
     let along = (dispersed_speed(1.0, 1.0, key ^ 0xa53c9e17, pass) - 1.0)
-        * if p.role == "dive-bomber" { 45.0 } else { 100.0 };
+        * if p.role == "dive-bomber" { 12.0 } else { 100.0 };
     [
         heading.cos() * across + heading.sin() * along,
         0.0,

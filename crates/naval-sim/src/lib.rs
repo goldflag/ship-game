@@ -35,6 +35,7 @@ pub mod aircraft_formation;
 pub mod aircraft_defense;
 pub mod aircraft_recovery;
 pub mod aircraft_tactics;
+pub mod aircraft_strike;
 pub mod aviation;
 pub mod aviation_step;
 pub mod bots;

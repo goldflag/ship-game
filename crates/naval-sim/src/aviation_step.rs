@@ -66,7 +66,7 @@ pub fn air_torpedo() -> TorpedoPart {
         running_depth_m: 2.0,
         reload_seconds: 35.0,
         launch_interval_seconds: 3.0,
-        damage: 480.0,
+        damage: 160.0,
         breach_area_m2: 0.55,
     }
 }
@@ -1356,7 +1356,7 @@ impl Aviation {
             let landing = add(p.position, scale(p.velocity, release_fall));
             let impact_aim = add(target_point, scale(target.velocity, release_fall));
             let error = (landing[0] - impact_aim[0]).hypot(landing[2] - impact_aim[2]);
-            if error < 22.0 && p.pitch < -0.25 && p.position[1] > target_point[1] + 90.0 {
+            if error < 3.0 && p.pitch < -0.25 && p.position[1] > target_point[1] + 90.0 {
                 let id = ctx.next_id();
                 let bomb = self.ground[&p.model_id]
                     .bomb
@@ -1412,9 +1412,12 @@ impl Aviation {
             let aim =
                 torpedo_intercept(entry, future, target.velocity, torpedo_speed(weapon.speed))
                     .unwrap_or(future);
+            let approach = crate::aircraft_strike::torpedo_approach_point(
+                p.position, length(p.velocity), target_point, target.velocity, torpedo_speed(weapon.speed),
+            );
             fly(
                 p,
-                [aim[0], 26.0, aim[2]],
+                approach,
                 70.0,
                 dt,
                 FlightOptions {
