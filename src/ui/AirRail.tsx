@@ -47,6 +47,8 @@ const planeTitle = (p: Aircraft) => `${p.id.split('/').at(-1)} · ${Math.ceil(Ma
 /** A group with a deck record has to be raised and cleared before it can fly again. */
 const grounded = (f: FlightSummary) => !!f.deck && !f.active && !f.deck.canLaunch;
 const statusLabel = (f: FlightSummary) => f.active && f.order.kind === 'patrol' ? 'Loitering' : AIR_STATUS_LABELS[f.status];
+/** The detail after the status is dropped when it only repeats it ("Ready · Ready"). */
+const detail = (f: FlightSummary) => { const text = f.active ? mission(f) : f.activity; return text === statusLabel(f) ? '' : text; };
 
 /** Air groups live on one rail: every group of every carrier, the selected one
  * expanded in place with its verbs, and the flight deck pinned at the foot. */
@@ -107,7 +109,7 @@ export function AirRail({ carriers, flights, planesOf, selectedIds, hoverId, arm
         <svg className="air-rail-glyph" viewBox="-12 -12 24 24" aria-hidden="true"><path d={PLANE_GLYPHS[flight.role]} transform="scale(1.1)"/></svg>
         <span className="air-rail-name">{flight.name}</span>
         <span className={flight.armed ? 'air-rail-armed' : 'air-rail-armed dim'}>{flight.armed}/{flight.surviving} armed<small>{foot}</small></span>
-        <span className="air-rail-status"><b>{statusLabel(flight)}</b> · {flight.active ? mission(flight) : flight.activity}</span>
+        <span className="air-rail-status"><b>{statusLabel(flight)}</b>{detail(flight) && ` · ${detail(flight)}`}</span>
         <span className="air-rail-dots">{planes.map(p => <i key={p.id} className={lost(p) ? 'lost' : p.hp < 50 ? 'hurt' : loaded(p) ? undefined : 'empty'} title={planeTitle(p)}/>)}</span>
         {flight.notice && <span className="air-rail-notice">{flight.notice}</span>}
       </button>
