@@ -2,7 +2,7 @@ use crate::{
     damage::Combatant,
     definition::ShipDefinition,
     environment::SeaResponse,
-    floodwater::{WaterBody, water_body},
+    floodwater::{Scratch, WaterBody, refresh, water_body, water_body_with},
     geometry::*,
     hydrostatics::{HullHydrostatics, righting_arms},
 };
@@ -25,6 +25,8 @@ pub struct StabilityState {
     pub reserve_m3: f64,
     pub status: String,
     pub combat_lost: bool,
+    #[serde(skip)]
+    scratch: Scratch,
 }
 impl Default for StabilityState {
     fn default() -> Self {
@@ -45,6 +47,7 @@ impl Default for StabilityState {
             reserve_m3: 0.0,
             status: "operational".into(),
             combat_lost: false,
+            scratch: Scratch::default(),
         }
     }
 }
@@ -64,10 +67,10 @@ pub fn water_level(actor: &Combatant, def: &ShipDefinition, i: usize, volume: Op
     }
     actor.motion.y
         + if let Some(body) = actor.damage.stability.water.get(i) {
-            body.level_at_volume(volume)
+            body.level_at_volume(room, volume)
         } else {
             water_body(room, state.water_m3, actor.motion.roll, actor.motion.pitch)
-                .level_at_volume(volume)
+                .level_at_volume(room, volume)
         }
 }
 fn wreck_depth(def: &ShipDefinition) -> f64 {
@@ -96,12 +99,20 @@ pub fn update_stability(
     s.elapsed += dt;
     if s.elapsed >= 0.5 {
         s.elapsed %= 0.5;
-        s.water = def
-            .compartments
-            .iter()
-            .enumerate()
-            .map(|(i, c)| water_body(c, damage.compartments[i].water_m3, p.roll, p.pitch))
-            .collect();
+        let mut work = std::mem::take(&mut s.scratch);
+        if s.water.len() > def.compartments.len() {
+            s.water.truncate(def.compartments.len());
+        }
+        for (i, c) in def.compartments.iter().enumerate() {
+            let volume = damage.compartments[i].water_m3;
+            match s.water.get_mut(i) {
+                Some(body) => refresh(body, c, volume, p.roll, p.pitch, &mut work),
+                None => s
+                    .water
+                    .push(water_body_with(c, volume, p.roll, p.pitch, &mut work)),
+            }
+        }
+        s.scratch = work;
         let water: f64 = s.water.iter().map(|w| w.volume).sum();
         let mass = def.hull.mass_kg + water * 1025.0;
         let center = std::array::from_fn(|axis| {
