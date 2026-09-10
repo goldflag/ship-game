@@ -32,10 +32,11 @@ export function useMapProjection(ref: RefObject<HTMLElement | SVGSVGElement | nu
         // itself is legible on screen the marker fades and only the label stays.
         let fade: number | undefined;
         if (element.dataset.mapFade && point) {
-          const [length, heading] = element.dataset.mapFade.split(',').map(Number);
+          // "length,heading[,start,end]": the span in metres along the heading and the on-screen pixel band over which the marker fades.
+          const [length, heading, start, end] = element.dataset.mapFade.split(',').map(Number);
           const bow = game.projectAirMap(x + Math.sin(heading) * length / 2, z - Math.cos(heading) * length / 2, y);
           const stern = game.projectAirMap(x - Math.sin(heading) * length / 2, z + Math.cos(heading) * length / 2, y);
-          if (bow && stern) fade = markerOpacity(Math.hypot(bow[0] - stern[0], bow[1] - stern[1]));
+          if (bow && stern) fade = markerOpacity(Math.hypot(bow[0] - stern[0], bow[1] - stern[1]), Number.isFinite(start) ? start : undefined, Number.isFinite(end) ? end : undefined);
         }
         return { element, point, headings, fade };
       });

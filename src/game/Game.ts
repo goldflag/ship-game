@@ -996,6 +996,8 @@ export class Game {
   }
   fitAirMap(): void { this.battlefieldCamera.fit(this.reportedMapPoints(), this.host.clientWidth, this.host.clientHeight); }
   centerAirMap(): void { this.battlefieldCamera.view.x = this.simulation.ship.x; this.battlefieldCamera.view.z = this.simulation.ship.z; }
+  /** Bring a unit chosen off the chart into view without changing zoom or angle. */
+  centerAirMapOn(x: number, z: number): void { this.battlefieldCamera.view.x = x; this.battlefieldCamera.view.z = z; }
   orbitAirMap(dx: number, dy: number): void { this.battlefieldCamera.orbit(dx, dy); }
   setAirMapTilt(degrees: number): void { this.battlefieldCamera.setTilt(degrees * Math.PI / 180); }
   resetAirMapAngle(): void { this.battlefieldCamera.resetAngle(); }

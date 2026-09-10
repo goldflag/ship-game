@@ -1,5 +1,25 @@
 # PvE implementation status
 
+## Fleet command round two (2026-09-10)
+
+Owner review of the shipped command screen produced a second pass, all in `src/ui/FleetCommand.tsx` and companions unless noted:
+
+- The clock keeps a fixed width; the top row no longer shifts as it counts.
+- Choosing a ship, formation or air group from a list pans the chart to it when it is off-screen (`Game.centerAirMapOn`).
+- Hovering an air group in the panel or the wheel's plane strip highlights its planes on the chart.
+- Every air group's course is drawn (faint unselected, bright selected, fainter while still on deck) with a target crosshair and the loiter ring at its station; loiter lines run to the station itself rather than the pilot's orbit tangent. Armed air orders preview a line from the group to the cursor; Loiter previews the loiter ring and Search its radius circle.
+- Line vocabulary: ship routes brass solid, move preview ivory dots, escort links mint dots, hold rings mint dash-dot, air routes mint long dashes, loiter rings mint fine dots, search areas mint dash-dot, formation brackets ivory dashes, boundary brass solid, report uncertainty salmon dashes.
+- Plane markers fade like ship markers once the model is legible (`data-map-fade` now takes optional pixel thresholds).
+- Ship-type silhouettes by class (`src/ui/shipGlyphs.ts`: battleship, cruiser, destroyer, carrier, submarine, auxiliary) from what a hull carries; reports use the identified preset or the observed size class.
+- Enemy plane type from the observer's classification, falling back to the recognised exterior's model, with the model name in labels and the enemy panel (`src/ui/aircraftNames.ts`).
+- Plane markers encode payload and health: solid = armed, hollow = nothing left to drop or fire, brass = under half health, HP tick when selected.
+- The wheel collapses to a chip while an order is armed so the chart under it stays clickable, and opens to port or upward near the right or bottom edge.
+- Air groups use the same wheel as ships (Loiter, Strike or Defend by role, Intercept, Escort, Return, Search) with the plane strip, search settings and deck service beneath.
+- Esc closes what is open innermost first: armed order, report popover, aircraft panel, selection; only then the battle menu.
+- The header hint and the chart-controls and battle-area legend lines are removed.
+
+Design explorations the owner asked for alongside (air-groups panel as a right sidebar or otherwise, mirrored friendly and enemy panels with an aircraft overview, menu placement options, one menu for ships and planes, the line and icon vocabulary) are in `docs/fleet-command-redesign/round2.html`; decisions pending.
+
 ## Fleet command redesign "At the cursor" (2026-09-09)
 
 The in-battle command screen now follows the selected redesign in [docs/fleet-command-redesign](fleet-command-redesign/README.md). Orders open on a wheel beside the selected ship (`src/ui/OrderWheel.tsx`), air orders on a bar beside the selected groups, and a report in a popover; every anchored control follows its subject across the chart through the existing projection hook. The old command card, contacts panel and task-group form are gone.

@@ -24,7 +24,7 @@ export function EnemyFleet({ tracks, clusters, tick, origin, selectedId, onSelec
     </button>)}
     {clusters.map(cluster => { const first = tracks.find(t => t.id === cluster.trackIds[0])!; return <button key={cluster.id} className={`fleet-command-enemy-row air ${cluster.stale ? 'last-known' : 'current'} ${cluster.trackIds.includes(selectedId ?? '') ? 'selected' : ''}`} aria-pressed={cluster.trackIds.includes(selectedId ?? '')} onClick={() => onSelect(first)}>
       <svg className="fleet-command-enemy-plane" viewBox="-12 -12 24 24" aria-hidden="true"><path d={PLANE_GLYPHS[cluster.type]} transform="scale(1.25)"/></svg>
-      <span><strong>{cluster.label}</strong><small>{cluster.stale ? 'last known' : 'current'} · {observationAge(cluster.lastObservedTick, tick)}{cluster.smoking ? ` · ${cluster.smoking} smoking` : ''}</small></span>
+      <span><strong>{cluster.label}</strong><small>{cluster.model ? `${cluster.model} · ` : ''}{cluster.stale ? 'last known' : 'current'} · {observationAge(cluster.lastObservedTick, tick)}{cluster.smoking ? ` · ${cluster.smoking} smoking` : ''}</small></span>
       <span className="fleet-command-enemy-range">{rangeLabel(cluster.position[0] - origin.x, cluster.position[2] - origin.z)}<small>{bearingLabel(cluster.position[0] - origin.x, cluster.position[2] - origin.z)}</small></span>
     </button>; })}
     <table className="fleet-command-comparison" aria-label="Battle comparison"><thead><tr><th scope="col">Battle</th><th scope="col">Us</th><th scope="col">Them<small>spotted only</small></th></tr></thead><tbody>

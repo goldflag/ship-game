@@ -5,7 +5,7 @@ const point = (radius: number, angle: number): [number, number] => [Math.cos(ang
 
 /** Orders around the selected ship: the wheel is the discoverable form of the
  * hotkeys and right-click paths listed on each sector. */
-export function OrderWheel({ items, hull, onSelect, label }: { items: WheelItem[]; hull: number; onSelect(kind: string, shift: boolean): void; label: string }) {
+export function OrderWheel({ items, hull, hubLabel, onSelect, label }: { items: WheelItem[]; hull: number; hubLabel?: string; onSelect(kind: string, shift: boolean): void; label: string }) {
   const n = items.length, size = OUTER * 2 + 8;
   return <svg className="fleet-wheel" width={size} height={size} viewBox={`${-OUTER - 4} ${-OUTER - 4} ${size} ${size}`} role="group" aria-label={label}>
     {items.map((item, i) => {
@@ -20,6 +20,6 @@ export function OrderWheel({ items, hull, onSelect, label }: { items: WheelItem[
     })}
     <circle className="fleet-wheel-hub" r={INNER - 8}/>
     <circle className="fleet-wheel-hull" r={INNER - 8} strokeDasharray={`${2 * Math.PI * (INNER - 8) * Math.max(0, Math.min(1, hull))} ${2 * Math.PI * (INNER - 8)}`} transform="rotate(-90)"/>
-    <text className="fleet-wheel-hp" y="5">{Math.round(hull * 100)}%</text>
+    <text className="fleet-wheel-hp" y="5">{hubLabel ?? `${Math.round(hull * 100)}%`}</text>
   </svg>;
 }
