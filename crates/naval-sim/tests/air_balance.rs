@@ -92,6 +92,7 @@ struct Engagement {
     fighter_kills: usize,
     high_kills: usize,
     low_kills: usize,
+    low_kills_before_release: usize,
     aa_kills: usize,
     fighter_shots: usize,
     aa_shots: usize,
@@ -247,7 +248,11 @@ fn engagement(scenario: &str, fighters: bool, aa: usize, seed: u32) -> Engagemen
             1.0 / 60.0,
             tick as f64 / 60.0,
         );
-        for (before, after) in before.into_iter().zip(health(&air)) {
+        for (index, (before, after)) in before.into_iter().zip(health(&air)).enumerate() {
+            let target = air.iter_planes().find(|p| p.id == ids[index]).unwrap();
+            result.low_kills_before_release += usize::from(
+                before > 0.0 && after == 0.0 && target.role == "torpedo-bomber" && target.payload,
+            );
             result.fighter_damage += (before - after).max(0.0);
             result.fighter_kills += usize::from(before > 0.0 && after == 0.0);
         }
@@ -371,6 +376,10 @@ fn mixed_raid_cap_covers_both_altitudes_and_retains_ammunition() {
         assert!(
             result.high_kills > 0 && result.low_kills > 0,
             "CAP left one altitude uncovered, seed {seed}: {result:?}"
+        );
+        assert!(
+            result.low_kills_before_release > 0,
+            "low-sector defense arrived after torpedo release, seed {seed}: {result:?}"
         );
         assert!(
             result.fighter_shots < 84,

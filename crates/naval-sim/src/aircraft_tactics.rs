@@ -249,7 +249,19 @@ pub fn steer_fighter(p: &mut Aircraft, hostile: &Aircraft, planes: &[&Aircraft],
     } else {
         aim
     };
-    fly(p, navigation_aim, speed, dt, FlightOptions::default());
+    // Convert a substantial altitude advantage before passing overhead. The
+    // normal flight controller still owns pitch rate and low-altitude pullout.
+    let diving = p.position[1] > hostile.position[1] + 150.0;
+    fly(
+        p,
+        navigation_aim,
+        speed,
+        dt,
+        FlightOptions {
+            dive: diving,
+            ..FlightOptions::default()
+        },
+    );
     true
 }
 pub fn orbit_point(p: &Aircraft, anchor: Vec3, radius: f64, side: f64) -> Vec3 {

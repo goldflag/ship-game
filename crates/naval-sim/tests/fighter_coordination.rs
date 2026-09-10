@@ -195,3 +195,24 @@ fn a_fighter_with_height_advantage_descends_instead_of_repeated_high_yoyos() {
         "existing altitude advantage should be spent closing on the target"
     );
 }
+
+#[test]
+fn diving_pursuit_spends_height_before_overtaking_a_low_target() {
+    let all = fixture();
+    let mut p = all[0].clone();
+    let mut hostile = all[6].clone();
+    p.position = [500., 850., 0.];
+    p.velocity = [-115., 0., 0.];
+    p.heading = -std::f64::consts::FRAC_PI_2;
+    hostile.position = [0., 90., 0.];
+    hostile.velocity = [-80., 0., 0.];
+    for _ in 0..120 {
+        naval_sim::aircraft_tactics::steer_fighter(&mut p, &hostile, &[&hostile], 1. / 60.);
+        hostile.position[0] -= 80. / 60.;
+    }
+    assert!(
+        p.pitch < -0.3,
+        "a high fighter stayed in shallow transit descent: {}",
+        p.pitch
+    );
+}
