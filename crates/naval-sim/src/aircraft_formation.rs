@@ -1,6 +1,6 @@
 use crate::{
-    air_gunnery::gunnery_seed,
-    aircraft::{AirFlight, Aircraft},
+    air_gunnery::SeedKey,
+    aircraft::{AirFlight, Aircraft, set_str},
     aircraft_flight::{FlightOptions, fly},
     definition::Vec3,
     geometry::*,
@@ -14,6 +14,15 @@ pub struct FormationState {
     pub offset: Vec3,
 }
 
+fn layout_seed(f: &AirFlight, p: &Aircraft, seed: u32) -> u32 {
+    SeedKey::new(seed)
+        .text(&f.id)
+        .text("/")
+        .number(p.sortie.unwrap_or(0))
+        .text("/layout")
+        .finish()
+}
+
 pub fn formation_kind(f: &AirFlight, p: &Aircraft, seed: u32) -> &'static str {
     if p.pilot.attack_stage.as_deref() == Some("run") {
         return if p.role == "torpedo-bomber" {
@@ -25,7 +34,7 @@ pub fn formation_kind(f: &AirFlight, p: &Aircraft, seed: u32) -> &'static str {
     if p.role == "fighter" {
         return "pairs";
     }
-    let key = gunnery_seed(&format!("{}/{}/layout", f.id, p.sortie.unwrap_or(0)), seed);
+    let key = layout_seed(f, p, seed);
     match key % 3 {
         0 => "vic",
         1 => "sections",
@@ -40,7 +49,7 @@ pub fn formation_offset(f: &AirFlight, p: &Aircraft, time: f64, seed: u32) -> Ve
     }
     let row = (slot as f64 / 2.0).ceil();
     let side = if slot % 2 != 0 { -1.0 } else { 1.0 };
-    let layout_seed = gunnery_seed(&format!("{}/{}/layout", f.id, p.sortie.unwrap_or(0)), seed);
+    let layout_seed = layout_seed(f, p, seed);
     let spacing = 0.92 + f64::from(layout_seed % 17) * 0.01;
     let spread = if p
         .pilot
@@ -78,10 +87,14 @@ pub fn formation_offset(f: &AirFlight, p: &Aircraft, time: f64, seed: u32) -> Ve
         ),
         _ => (side * row * 40.0, row * 36.0),
     };
-    let phase = f64::from(gunnery_seed(
-        &format!("{}/{}/formation", p.id, p.sortie.unwrap_or(0)),
-        seed,
-    )) / 4294967296.0
+    let phase = f64::from(
+        SeedKey::new(seed)
+            .text(&p.id)
+            .text("/")
+            .number(p.sortie.unwrap_or(0))
+            .text("/formation")
+            .finish(),
+    ) / 4294967296.0
         * std::f64::consts::TAU;
     [
         x * spacing * spread + (time * 0.19 + phase).sin() * 3.0,
@@ -140,12 +153,12 @@ pub fn fly_formation(
     seed: u32,
 ) {
     let desired = formation_offset(f, p, time, seed);
-    let kind = formation_kind(f, p, seed).to_owned();
+    let kind = formation_kind(f, p, seed);
     let state = p.pilot.formation.get_or_insert_with(|| FormationState {
-        kind: kind.clone(),
+        kind: String::new(),
         offset: desired,
     });
-    state.kind = kind;
+    set_str(&mut state.kind, kind);
     for (axis, target) in desired.into_iter().enumerate() {
         state.offset[axis] += clamp(target - state.offset[axis], -8.0 * dt, 8.0 * dt);
     }

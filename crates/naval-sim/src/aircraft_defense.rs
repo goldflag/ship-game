@@ -1,7 +1,7 @@
 //! Short, persistent reactions to locally observed attackers and close gunfire.
 //! This controller receives permitted pilot observations, never a hidden threat list.
 use crate::{
-    aircraft::{Aircraft, in_flight},
+    aircraft::{Aircraft, PlaneView, set_opt_str},
     aircraft_flight::{FlightOptions, fly},
     definition::Vec3,
     geometry::*,
@@ -46,7 +46,7 @@ pub fn tick(p: &mut Aircraft, dt: f64) {
 
 pub fn evade_bomber(
     p: &mut Aircraft,
-    observations: &[Aircraft],
+    observations: &[PlaneView<'_>],
     slot: usize,
     seed: u32,
     dt: f64,
@@ -56,7 +56,7 @@ pub fn evade_bomber(
     }
     let threat = observations
         .iter()
-        .filter(|other| other.team != p.team && other.role == "fighter" && in_flight(other))
+        .filter(|other| other.team != p.team && other.role == "fighter" && other.in_flight())
         .filter_map(|other| {
             let delta = sub(p.position, other.position);
             let distance = length(delta);
@@ -93,15 +93,13 @@ pub fn evade_bomber(
         && (!committed || severe)
         && (threat.is_some() || under_fire)
     {
-        let key = crate::air_gunnery::gunnery_seed(
-            &format!(
-                "{}/{}/defense/{}",
-                p.id,
-                p.sortie.unwrap_or(0),
-                state.sequence
-            ),
-            seed,
-        );
+        let key = crate::air_gunnery::SeedKey::new(seed)
+            .text(&p.id)
+            .text("/")
+            .number(p.sortie.unwrap_or(0))
+            .text("/defense/")
+            .number(state.sequence)
+            .finish();
         let incoming = threat.map_or(state.fire_direction, |t| t.1);
         let across = dot(incoming, [p.heading.cos(), 0.0, p.heading.sin()]);
         // Wingmen break outwards, preserving their lateral order. The leader
@@ -132,7 +130,7 @@ pub fn evade_bomber(
             .into(),
         );
         if committed {
-            p.pilot.attack_stage = Some("egress".into());
+            set_opt_str(&mut p.pilot.attack_stage, "egress");
         }
     }
     if state.maneuver_seconds <= 0.0 {

@@ -331,13 +331,26 @@ fn fighters_extend_before_overshooting_and_break_toward_wingman_support() {
     let mut enemy = ps[1].clone();
     enemy.team = TeamId::B;
     enemy.position = [0.0, 850.0, -100.0];
-    assert!(!steer_fighter(&mut p, &enemy, &[&enemy], 1.0 / 60.0));
+    let enemy_view = naval_sim::aircraft::PlaneView::of(&enemy);
+    assert!(!steer_fighter(
+        &mut p,
+        &enemy_view,
+        &[enemy_view],
+        1.0 / 60.0
+    ));
     assert_eq!(p.pilot.maneuver.as_ref().unwrap().kind, "extend");
     p = ps[0].clone();
     enemy.position = [0.0, 850.0, 200.0];
     let mut ally = ps[2].clone();
     ally.position = [800.0, 850.0, 0.0];
-    assert!(!steer_fighter(&mut p, &enemy, &[&enemy, &ally], 1.0 / 60.0));
+    let enemy_view = naval_sim::aircraft::PlaneView::of(&enemy);
+    let ally_view = naval_sim::aircraft::PlaneView::of(&ally);
+    assert!(!steer_fighter(
+        &mut p,
+        &enemy_view,
+        &[enemy_view, ally_view],
+        1.0 / 60.0
+    ));
     assert_eq!(p.pilot.maneuver.as_ref().unwrap().kind, "defensive-break");
     assert!(
         p.pilot.break_point.unwrap()[0] > 500.0,
