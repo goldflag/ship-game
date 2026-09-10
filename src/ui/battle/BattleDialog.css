@@ -1,0 +1,305 @@
+/* Battle setup: one full-screen board for every mode. Catalog, drop lanes and waters,
+   then the deployment chart. Extends the naval instrument styling in DESIGN.md. */
+.battle-dialog { --battle-line:#cfdfdf35; --battle-line-strong:#c0d4d26e; --battle-muted:#bacbd0; --battle-muted2:#93a7ad; --battle-field:#0e2530; --battle-mint:#86e4c5; --battle-salmon:#ffb5a6; --battle-brass:#e0c58d;
+  position:fixed; inset:0; width:100vw; height:100dvh; max-width:none; max-height:none; margin:0; padding:0; border:0; border-radius:0; background:#0b1c25; color:#edf1ec; font:400 13px/1.35 'Barlow',sans-serif; font-variant-numeric:tabular-nums; box-shadow:none; }
+.battle-dialog[open] { display:flex; flex-direction:column; }
+.battle-dialog::backdrop { background:#0b1c25; }
+.battle-dialog h1,.battle-dialog h2,.battle-dialog h3,.battle-dialog p { margin:0; }
+.battle-dialog ul,.battle-dialog ol { list-style:none; margin:0; padding:0; }
+.battle-dialog kbd { font:500 10px/1.2 'Barlow Condensed',sans-serif; min-width:15px; padding:0 3px; border-color:currentColor; opacity:.8; }
+.battle-sr-only { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+.battle-dialog .ui-select,.battle-dialog .ui-input:not([type=range],[type=radio]) { min-height:32px; padding:4px 9px; font-size:13px; }
+.battle-dialog input[type=search]::-webkit-search-cancel-button { filter:invert(.8); }
+
+/* Top bar: title, mode tabs, close. */
+.battle-top { height:52px; flex-shrink:0; display:flex; align-items:center; gap:18px; padding:0 18px; border-bottom:1px solid var(--battle-line); }
+.battle-title { display:flex; align-items:center; gap:10px; font:500 21px/1 'Barlow Condensed',sans-serif; letter-spacing:.03em; white-space:nowrap; }
+.battle-title svg { color:var(--battle-brass); }
+.battle-modes,.battle-segmented { display:inline-flex; border:1px solid var(--battle-line-strong); border-radius:3px; overflow:hidden; background:var(--battle-field); }
+.battle-modes>button,.battle-segmented>button { display:inline-flex; align-items:center; justify-content:center; gap:6px; height:30px; padding:0 14px; border:0; border-right:1px solid var(--battle-line); border-radius:0; background:transparent; color:var(--battle-muted); font:500 13px 'Barlow',sans-serif; white-space:nowrap; }
+.battle-modes>button:last-child,.battle-segmented>button:last-child { border-right:0; }
+.battle-modes>button:hover:not(:disabled),.battle-segmented>button:hover:not(:disabled) { color:#edf1ec; background:#d9eeed12; }
+.battle-modes>button[aria-selected=true],.battle-segmented>button[aria-pressed=true] { background:var(--battle-brass); color:#152b32; }
+.battle-segmented.small>button { height:26px; padding:0 9px; font-size:11px; }
+.battle-mode-summary { color:var(--battle-muted); font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
+.battle-mode-summary b { color:var(--battle-brass); font-weight:500; }
+.battle-close { margin-left:auto; width:32px; height:32px; flex-shrink:0; }
+
+/* Board: catalog | lanes | rail. */
+.battle-body { flex:1; min-height:0; display:grid; grid-template-columns:296px minmax(0,1fr) 304px; }
+.battle-body>* { min-width:0; min-height:0; }
+.battle-catalog { display:flex; flex-direction:column; border-right:1px solid var(--battle-line); }
+.catalog-head { display:flex; align-items:baseline; gap:8px; padding:12px 14px 6px; flex-shrink:0; }
+.catalog-head h3 { font:500 19px/1.1 'Barlow Condensed',sans-serif; }
+.catalog-count { color:var(--battle-muted); font-size:12px; white-space:nowrap; }
+.catalog-hint { margin-left:auto; color:var(--battle-muted2); font-size:11px; white-space:nowrap; }
+.catalog-search { display:block; margin:4px 14px 8px; }
+.catalog-search .ui-input { width:100%; }
+.catalog-filters { display:flex; flex-wrap:wrap; gap:4px; padding:0 14px 6px; }
+.catalog-filters>button { display:inline-flex; align-items:center; gap:5px; height:24px; padding:0 7px; border:1px solid var(--battle-line); border-radius:2px; background:transparent; color:var(--battle-muted); font:400 11px 'Barlow',sans-serif; white-space:nowrap; }
+.catalog-filters>button svg { flex-shrink:0; }
+.catalog-filters>button:hover { color:#edf1ec; border-color:var(--battle-line-strong); }
+.catalog-filters>button[aria-pressed=true] { color:var(--battle-brass); border-color:var(--battle-brass); }
+.catalog-list { flex:1; min-height:0; overflow-y:auto; overscroll-behavior:contain; scrollbar-width:thin; scrollbar-gutter:stable; padding:0 8px 12px 14px; }
+.catalog-empty { padding:14px 0; color:var(--battle-muted); font-size:12px; line-height:1.5; }
+
+/* Ship card family: catalog row, lane chip, berth. */
+.ship-card { border-bottom:1px solid var(--battle-line); }
+.ship-card-pick,.ship-chip-pick { display:grid; grid-template-columns:8px 64px minmax(0,1fr); gap:0 9px; align-items:center; width:100%; padding:7px 4px 7px 0; border:0; border-radius:2px; background:transparent; color:inherit; font:inherit; text-align:left; cursor:grab; }
+.ship-card-pick:hover:not(:disabled),.ship-chip-pick:hover:not(:disabled) { background:#d9eeed12; }
+.ship-card-pick[aria-pressed=true],.ship-chip.is-picked { background:#86e4c514; box-shadow:inset 0 0 0 1px var(--battle-mint); }
+.ship-card-pick:disabled { cursor:not-allowed; }
+.ship-card.is-unavailable .ship-card-pick>:not(.ship-card-reason) { opacity:.42; }
+.ship-card.is-commanded strong { color:var(--battle-brass); }
+.ship-grip { width:6px; height:22px; background:radial-gradient(circle,#93a7ad 1px,transparent 1.2px) 0 0/4px 5px; opacity:.7; }
+.ship-thumbnail { width:64px; height:20px; object-fit:contain; pointer-events:none; }
+.ship-card-text { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:0 8px; align-items:baseline; min-width:0; }
+.ship-card-text strong { font:500 15px/1.15 'Barlow Condensed',sans-serif; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ship-card-text small { color:var(--battle-muted); font-size:11px; white-space:nowrap; }
+.ship-card-text .ship-meta { grid-column:1 / -1; }
+.ship-card-reason { grid-column:2 / -1; color:var(--battle-salmon); font-size:11px; }
+.ship-meta { display:flex; align-items:center; gap:5px; min-width:0; margin-top:2px; color:var(--battle-muted); font-size:11px; white-space:nowrap; overflow:hidden; }
+.ship-meta>span { overflow:hidden; text-overflow:ellipsis; }
+.ship-meta>i { font-style:normal; opacity:.5; }
+.ship-meta>svg { flex-shrink:0; width:22px; height:11px; color:#d4e2df; }
+.ship-meta .nation-flag { width:15px; height:10px; border-radius:1px; box-shadow:0 0 0 1px #ffffff2a; }
+.ship-aircraft { display:inline-flex; align-items:center; gap:2px; margin-left:3px; color:var(--battle-brass); flex-shrink:0; }
+.ship-aircraft svg { width:12px; height:12px; }
+.nation-flag { flex-shrink:0; border-radius:1px; box-shadow:0 0 0 1px #ffffff2a; }
+.ship-chip { position:relative; display:grid; grid-template-columns:minmax(0,1fr) auto auto; gap:0 7px; align-items:center; min-height:44px; padding-right:4px; border:1px solid var(--battle-line); border-radius:2px; background:var(--battle-field); }
+.ship-chip[draggable=true] { cursor:grab; }
+.ship-chip:hover { border-color:var(--battle-line-strong); }
+.ship-chip-pick { grid-template-columns:6px 56px minmax(0,1fr); gap:0 7px; padding:5px 4px 5px 6px; }
+.ship-chip-pick:disabled { cursor:default; opacity:1; }
+.ship-chip-pick .ship-thumbnail { width:56px; height:18px; }
+.ship-chip-pick .ship-card-text { grid-template-columns:minmax(0,1fr); }
+.ship-chip-pick .ship-card-text strong { font-size:14px; }
+.ship-chip.is-commanded { border-color:var(--battle-brass); background:#e0c58d12; }
+.ship-chip.is-commanded strong { color:var(--battle-brass); }
+.ship-chip-mark { display:grid; place-items:center; width:26px; height:26px; color:var(--battle-brass); }
+.ship-chip-ai { min-height:28px !important; padding:2px 6px !important; font-size:11px !important; max-width:132px; }
+.ship-chip-remove { width:26px; height:26px; display:grid; place-items:center; border:0; border-radius:2px; background:transparent; color:var(--battle-muted2); }
+.ship-chip-remove:hover:not(:disabled) { color:#edf1ec; background:#d9eeed12; }
+.command-berth .command-berth-drop { position:absolute; inset:0; pointer-events:none; }
+.command-berth.is-accepting .command-berth-drop { pointer-events:auto; }
+.command-berth.is-accepting { box-shadow:inset 0 0 0 1px var(--battle-brass); }
+.command-berth.is-drop-target { background:#e0c58d2a; }
+.ship-berth { display:flex; align-items:center; height:44px; padding:0 12px; border:1px dashed var(--battle-line); border-radius:2px; color:var(--battle-muted2); font-size:12px; }
+
+/* Lanes. */
+.battle-center { display:flex; flex-direction:column; min-height:0; }
+.battle-lanes { flex:1; min-height:0; display:flex; }
+.fleet-lane { flex:1 1 0; min-width:0; display:flex; flex-direction:column; border-right:1px solid var(--battle-line); }
+.fleet-lane:last-child { border-right:0; }
+.fleet-lane-head { display:flex; align-items:center; flex-wrap:wrap; gap:6px 8px; min-height:48px; padding:10px 12px 8px; border-bottom:1px solid var(--battle-line); flex-shrink:0; }
+.fleet-lane-head h3 { font:500 19px/1.1 'Barlow Condensed',sans-serif; white-space:nowrap; min-width:0; }
+.fleet-lane.friendly .fleet-lane-head h3 { color:var(--battle-mint); }
+.fleet-lane.enemy .fleet-lane-head h3 { color:var(--battle-salmon); }
+.fleet-lane-count { color:var(--battle-muted); font-size:12px; white-space:nowrap; }
+.fleet-lane-count .is-full { color:var(--battle-brass); }
+.fleet-lane-extra { margin-left:auto; display:flex; align-items:center; gap:8px; min-width:0; }
+.fleet-lane-all { display:flex; align-items:center; gap:6px; color:var(--battle-muted); font-size:11px; white-space:nowrap; }
+.fleet-lane-all .ui-select { min-height:28px; padding:2px 6px; font-size:11px; }
+.fleet-lane-name { width:min(100%,180px); font:500 19px/1.1 'Barlow Condensed',sans-serif !important; padding:2px 6px !important; min-height:30px !important; background:transparent !important; border-color:transparent !important; }
+.fleet-lane-name:hover,.fleet-lane-name:focus { border-color:var(--battle-line-strong) !important; }
+.fleet-lane-station { min-height:28px !important; padding:2px 6px !important; font-size:11px !important; }
+.fleet-lane-note { color:var(--battle-muted2); font-size:11px; white-space:normal; }
+.fleet-lane-chips { flex:1; min-height:0; overflow-y:auto; overscroll-behavior:contain; scrollbar-width:thin; padding:8px 10px 0; display:flex; flex-direction:column; gap:4px; }
+.lane-slot-label { display:flex; align-items:center; gap:6px; padding:6px 0 2px; font:600 10px/1 'Barlow',sans-serif; letter-spacing:.12em; text-transform:uppercase; color:var(--battle-brass); }
+.fleet-lane .lane-slot-label:first-child { padding:8px 10px 0; }
+.lane-slot-label.muted { color:var(--battle-muted2); }
+.fleet-lane-drop { flex-shrink:0; margin:6px 10px 10px; padding:10px 12px; border:1px dashed var(--battle-line-strong); border-radius:3px; text-align:center; color:var(--battle-muted2); font-size:12px; line-height:1.4; }
+.fleet-lane.is-accepting .fleet-lane-drop { border-color:var(--battle-mint); color:var(--battle-mint); }
+.fleet-lane.is-drop-target { background:#86e4c50e; }
+.fleet-lane.is-drop-target .fleet-lane-drop { background:#86e4c518; }
+.fleet-lane:focus-visible { box-shadow:inset 0 0 0 2px var(--battle-brass); }
+.fleet-lane-action { min-height:28px !important; padding:2px 8px !important; font-size:11px !important; margin-top:6px; }
+.fleet-lane.ghost { flex:0 0 76px; color:var(--battle-muted2); }
+.fleet-lane.ghost .fleet-lane-head { justify-content:center; padding:12px 4px; }
+.fleet-lane.ghost .fleet-lane-head h3 { display:flex; align-items:center; gap:4px; color:var(--battle-muted2); font-size:14px; }
+.fleet-lane.ghost .fleet-lane-drop { flex:1; margin:8px 8px 10px; display:grid; place-items:center; padding:8px 4px; }
+.fleet-lane-vertical { writing-mode:vertical-rl; transform:rotate(180deg); letter-spacing:.04em; }
+.fleet-budget { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; padding:8px 14px; border-bottom:1px solid var(--battle-line); flex-shrink:0; }
+.fleet-meter { font-size:12px; color:var(--battle-muted); }
+.fleet-meter>div { display:flex; justify-content:space-between; gap:8px; }
+.fleet-meter strong { color:#edf1ec; font-weight:500; white-space:nowrap; }
+.fleet-meter.is-over strong { color:var(--battle-salmon); }
+.fleet-meter meter { width:100%; height:4px; margin-top:5px; appearance:none; background:#28414b; border:0; }
+.fleet-meter meter::-webkit-meter-bar { background:#28414b; border:0; height:4px; }
+.fleet-meter meter::-webkit-meter-optimum-value { background:var(--battle-mint); }
+.fleet-meter.is-over meter::-webkit-meter-optimum-value { background:var(--battle-salmon); }
+.battle-preparing { padding:32px; color:var(--battle-muted); display:grid; gap:12px; justify-items:start; }
+
+/* Rail. */
+.battle-rail { display:flex; flex-direction:column; gap:16px; padding:12px 14px; border-left:1px solid var(--battle-line); overflow-y:auto; scrollbar-width:thin; }
+.rail-block h3 { display:flex; justify-content:space-between; align-items:baseline; gap:8px; margin-bottom:8px; font:500 17px/1.1 'Barlow Condensed',sans-serif; }
+.rail-block h3 small { color:var(--battle-muted); font:400 11px 'Barlow',sans-serif; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.rail-note { margin-top:8px; color:var(--battle-muted); font-size:11px; line-height:1.45; }
+.rail-note.is-error { color:var(--battle-salmon); }
+.map-tiles { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+.map-tiles.is-locked { opacity:.45; pointer-events:none; }
+.map-tile { position:relative; display:block; border:1px solid var(--battle-line); border-radius:2px; overflow:hidden; background:var(--battle-field); cursor:pointer; }
+.map-tile input { position:absolute; top:5px; left:5px; width:14px; height:14px; margin:0; }
+.map-tile img { display:block; width:100%; height:58px; object-fit:cover; }
+.map-tile span { display:block; padding:4px 7px 0; font:500 13px/1.2 'Barlow Condensed',sans-serif; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.map-tile small { display:block; padding:0 7px 5px; color:var(--battle-muted); font-size:10px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.map-tile:hover,.map-tile.is-selected { border-color:var(--battle-brass); }
+.map-tile.is-selected span { color:var(--battle-brass); }
+.map-tile:has(:focus-visible) { box-shadow:inset 0 0 0 2px var(--battle-brass); }
+.rail-slider { display:grid; grid-template-columns:1fr auto; align-items:center; margin-top:8px; font-size:12px; color:var(--battle-muted); }
+.rail-slider:first-child { margin-top:0; }
+.rail-slider output { color:var(--battle-brass); font:500 13px 'Barlow Condensed',sans-serif; }
+.rail-slider input { grid-column:1 / -1; width:100%; min-width:0; height:24px; margin:2px 0 0; cursor:pointer; }
+.rail-slider-scale { grid-column:1 / -1; display:flex; justify-content:space-between; font-size:10px; color:var(--battle-muted2); }
+.rail-slider p { grid-column:1 / -1; margin-top:4px; color:var(--battle-muted2); font-size:11px; line-height:1.4; }
+.rail-field { display:grid; gap:5px; margin-top:10px; font-size:11px; color:var(--battle-muted); }
+.rail-field:first-child { margin-top:0; }
+.rail-field .ui-select { width:100%; }
+.rail-field.is-compact { margin:0; grid-template-columns:auto 1fr; align-items:center; }
+.rail-field.is-compact .ui-select { min-height:28px; padding:2px 6px; font-size:11px; }
+.rail-row { display:flex; align-items:center; gap:6px; }
+.rail-row .ui-input { flex:1; min-width:0; }
+.rail-row>.ui-button { white-space:nowrap; }
+.rail-seed { flex:1; min-height:32px; display:flex; align-items:center; padding:0 9px; border:1px solid var(--battle-line); border-radius:3px; background:var(--battle-field); letter-spacing:.08em; font:500 13px 'Barlow Condensed',sans-serif; }
+.rail-lock { display:flex; gap:10px; align-items:flex-start; margin-bottom:8px; padding:10px; border:1px solid var(--battle-line); border-radius:3px; color:var(--battle-muted); font-size:12px; line-height:1.4; }
+.rail-lock svg { color:var(--battle-brass); flex-shrink:0; margin-top:1px; }
+.rail-stack { display:grid; gap:8px; }
+.rail-stack>.ui-button { width:100%; }
+.rail-waiting { display:grid; gap:10px; justify-items:start; }
+.rail-waiting strong { font:500 17px 'Barlow Condensed',sans-serif; }
+.rail-invite-code { display:block; font:500 26px/1 'Barlow Condensed',sans-serif; letter-spacing:.12em; user-select:text; -webkit-user-select:text; }
+
+/* Footer. */
+.battle-footer { height:64px; flex-shrink:0; display:flex; align-items:center; gap:10px; padding:0 18px; border-top:1px solid var(--battle-line); }
+.battle-brief { display:flex; align-items:center; gap:12px; min-width:0; }
+.battle-brief svg { color:var(--battle-brass); flex-shrink:0; }
+.battle-brief p { display:flex; flex-wrap:wrap; gap:2px 14px; color:var(--battle-muted); font-size:13px; }
+.battle-brief strong { color:#edf1ec; font-weight:500; }
+.battle-brief span { white-space:nowrap; }
+.battle-status { flex:1; min-width:0; margin-left:8px; color:var(--battle-muted); font-size:13px; line-height:1.35; overflow:hidden; text-overflow:ellipsis; }
+.battle-status.is-error { color:var(--battle-salmon); }
+.battle-footer .ui-button { flex-shrink:0; }
+.battle-footer .primary-button { min-width:160px; width:auto; gap:24px; padding:9px 18px; }
+.battle-footer .secondary-button { width:auto; padding:9px 16px; }
+
+/* Deploy screen. */
+.deploy-body { flex:1; min-height:0; display:grid; grid-template-columns:300px minmax(0,1fr); }
+.deploy-side { display:flex; flex-direction:column; min-height:0; border-right:1px solid var(--battle-line); }
+.deploy-head { display:flex; align-items:baseline; justify-content:space-between; gap:8px; padding:12px 14px 6px; }
+.deploy-head h3 { font:500 19px/1.1 'Barlow Condensed',sans-serif; }
+.deploy-head span { color:var(--battle-muted2); font-size:11px; }
+.deploy-scope { padding:2px 14px 8px; }
+.deploy-scope .battle-segmented { display:flex; width:100%; }
+.deploy-scope .battle-segmented>button { flex:1; }
+.deploy-scope p { margin-top:6px; color:var(--battle-muted); font-size:11px; line-height:1.4; }
+.deploy-list { flex:1; min-height:0; overflow-y:auto; scrollbar-width:thin; padding:4px 10px; display:flex; flex-direction:column; gap:6px; }
+.deploy-group-row,.deploy-ship-row { display:flex; align-items:center; gap:8px; width:100%; padding:0 8px; border:1px solid transparent; border-radius:2px; background:transparent; color:inherit; font:inherit; text-align:left; cursor:pointer; }
+.deploy-group-row { height:36px; }
+.deploy-group-row[draggable=true],.deploy-ship-row[draggable=true] { cursor:grab; }
+.deploy-group-row strong { font:500 15px 'Barlow Condensed',sans-serif; }
+.deploy-group.enemy .deploy-group-row strong { color:var(--battle-salmon); }
+.deploy-group.friendly .deploy-group-row strong { color:var(--battle-mint); }
+.deploy-group-row span { color:var(--battle-muted); font-size:12px; }
+.deploy-group-row em { margin-left:auto; font-style:normal; color:var(--battle-muted2); font-size:11px; }
+.deploy-ship-row { height:34px; padding-left:8px; color:var(--battle-muted); }
+.deploy-ship-number { width:16px; text-align:right; color:var(--battle-muted2); font-size:11px; }
+.deploy-ship-row .ship-thumbnail { width:56px; height:18px; }
+.deploy-ship-name { flex:1; min-width:0; font:500 14px 'Barlow Condensed',sans-serif; color:#edf1ec; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.deploy-group-row:hover:not(:disabled),.deploy-ship-row:hover:not(:disabled) { background:#d9eeed0e; }
+.deploy-group-row[aria-pressed=true],.deploy-ship-row[aria-pressed=true] { border-color:var(--battle-mint); background:#86e4c512; }
+.deploy-tools { flex-shrink:0; display:grid; gap:8px; padding:12px 14px; border-top:1px solid var(--battle-line); font-size:12px; color:var(--battle-muted); }
+.deploy-heading { display:grid; grid-template-columns:72px 1fr; gap:10px; align-items:center; }
+.deploy-heading .rail-field { margin:0; }
+.deploy-heading .ui-input { flex:0 0 62px; width:62px; min-height:28px; padding:2px 6px; font-size:12px; }
+.deploy-heading .ui-button,.deploy-actions .ui-button { min-height:28px; padding:2px 8px; font-size:11px; white-space:nowrap; gap:4px; }
+.deploy-actions { flex-wrap:wrap; }
+.deploy-dial circle { fill:#0a202b; stroke:var(--battle-brass); stroke-opacity:.55; }
+.deploy-dial line { stroke:var(--battle-brass); stroke-opacity:.6; }
+.deploy-dial line.major { stroke-opacity:1; }
+.deploy-dial path { fill:var(--battle-brass); }
+.deploy-dial g line { stroke-opacity:.5; }
+.deploy-dial .deploy-dial-center { fill:var(--battle-brass); stroke:none; }
+.deploy-help { color:var(--battle-muted2); font-size:11px; line-height:1.5; }
+.deploy-chart-wrap { position:relative; min-width:0; min-height:0; display:flex; background:#0d242e; }
+.deploy-chart { flex:1; width:100%; height:100%; min-height:0; display:block; cursor:grab; touch-action:none; user-select:none; background:#0d242e; }
+.deploy-chart.is-dragging { cursor:grabbing; }
+.deploy-chart.is-drop-target { outline:2px solid var(--battle-mint); outline-offset:-3px; }
+.deploy-chart:focus-visible { outline:2px solid var(--battle-brass) !important; outline-offset:-4px; }
+.deploy-chart text { font-family:'Barlow',sans-serif; fill:var(--battle-muted); pointer-events:none; }
+.deploy-chart path,.deploy-chart circle,.deploy-chart polygon,.deploy-chart rect,.deploy-chart line { vector-effect:non-scaling-stroke; }
+.chart-water { fill:#122f3c; }
+.chart-sector { fill:#184941; fill-opacity:.55; }
+.chart-grid { fill:none; stroke:#7c9ba4; stroke-opacity:.16; }
+.chart-land { fill:#344d4c; stroke:#84928a; stroke-width:1; }
+.chart-edge { stroke:var(--battle-mint); opacity:.7; stroke-dasharray:5 5; }
+.chart-boundary { fill:none; stroke:var(--battle-brass); stroke-width:1.5; }
+.chart-label { text-anchor:middle; letter-spacing:.12em; fill:#b0c3c9; }
+.chart-rose { text-anchor:middle; letter-spacing:.1em; fill:#b0c3c9; }
+.chart-ship { cursor:grab; }
+.chart-ship path { fill:#a9d4dc; stroke:#09212a; stroke-width:1; }
+.chart-ship.enemy path { fill:#e6a99e; }
+.chart-ship.is-selected path { fill:#c8f7e4; stroke:var(--battle-mint); }
+.chart-ship.enemy.is-selected path { fill:#ffd2c9; stroke:var(--battle-salmon); }
+.chart-ship text { fill:#f4f7f5; font-weight:500; }
+.chart-ship-hit { fill:transparent; stroke:none; }
+.chart-ship:focus-visible .chart-ship-hit { stroke:var(--battle-brass); stroke-width:2; }
+.chart-frame { fill:none; stroke:var(--battle-mint); stroke-opacity:.35; stroke-width:1; stroke-dasharray:3 5; cursor:pointer; }
+.chart-group.enemy .chart-frame { stroke:var(--battle-salmon); }
+.chart-group.is-selected .chart-frame { fill:#86e4c50a; stroke-opacity:1; stroke-dasharray:6 4; cursor:move; }
+.chart-group.enemy.is-selected .chart-frame { fill:#ffb5a60a; }
+.chart-frame:focus-visible { stroke:var(--battle-brass); stroke-opacity:1; }
+.chart-tag { cursor:move; }
+.chart-tag rect { fill:#0a202bb0; stroke:var(--battle-mint); stroke-opacity:.4; stroke-width:1; }
+.chart-group.enemy .chart-tag rect { stroke:var(--battle-salmon); }
+.chart-group.is-selected .chart-tag rect { fill:#0a202b; stroke-opacity:1; }
+.chart-tag text { fill:#b0c3c9; font-weight:500; letter-spacing:.06em; }
+.chart-group.is-selected .chart-tag text { fill:#e9f6f0; font-weight:600; }
+.chart-ring { fill:none; stroke:var(--battle-brass); stroke-opacity:.55; stroke-width:1; }
+.chart-ring-hit { fill:none; stroke:transparent; cursor:grab; }
+.chart-tick { stroke:var(--battle-brass); stroke-opacity:.7; stroke-width:1; }
+.chart-tick.major { stroke-opacity:1; }
+.chart-handle { fill:var(--battle-brass); stroke:#0a202b; stroke-width:1.5; cursor:grab; }
+.chart-ring-group g[role=button]:focus-visible .chart-handle { stroke:#edf1ec; }
+.chart-readout rect { fill:#0a202bd9; stroke:var(--battle-brass); }
+.chart-readout text { text-anchor:middle; fill:var(--battle-brass); font-weight:600; font-family:'Barlow Condensed',sans-serif; }
+.deploy-legend { position:absolute; right:14px; top:12px; display:flex; gap:12px; font-size:11px; color:var(--battle-muted); pointer-events:none; }
+.deploy-legend span::before { content:''; display:inline-block; width:8px; height:8px; margin-right:5px; border-radius:1px; vertical-align:middle; background:#a9d4dc; }
+.deploy-legend .selected::before { background:#c8f7e4; }
+.deploy-legend .enemy::before { background:#e6a99e; }
+.deploy-legend .sector::before { background:#184941; }
+.deploy-status { position:absolute; left:14px; bottom:12px; display:flex; gap:14px; align-items:center; color:var(--battle-muted); font-size:12px; pointer-events:none; }
+.deploy-status.is-error { color:var(--battle-salmon); }
+.deploy-status span { color:var(--battle-muted2); }
+
+@media (max-width:1300px) {
+  .battle-body { grid-template-columns:260px minmax(0,1fr) 270px; }
+  .deploy-body { grid-template-columns:270px minmax(0,1fr); }
+  .battle-mode-summary { display:none; }
+  .fleet-lane-all span { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
+}
+@media (max-width:1000px) {
+  .battle-top { gap:10px; padding:0 12px; }
+  .battle-modes>button { padding:0 9px; font-size:12px; }
+  .battle-body { grid-template-columns:230px minmax(0,1fr); grid-template-rows:minmax(0,1fr) auto; }
+  .battle-catalog { grid-row:1 / 3; }
+  .battle-rail { grid-column:2; border-left:0; border-top:1px solid var(--battle-line); flex-direction:row; flex-wrap:wrap; max-height:36dvh; }
+  .battle-catalog .ship-meta>span:last-of-type { display:none; }
+  .battle-rail>.rail-block { flex:1 1 240px; min-width:0; }
+  .battle-brief span { display:none; }
+  .fleet-budget { gap:8px; padding:8px 10px; }
+}
+@media (max-width:720px) {
+  .battle-body { display:flex; flex-direction:column; overflow-y:auto; }
+  .battle-catalog { flex:0 0 auto; max-height:45%; border-right:0; border-bottom:1px solid var(--battle-line); }
+  .battle-center { flex:0 0 auto; }
+  .battle-lanes { flex-direction:column; }
+  .fleet-lane { border-right:0; border-bottom:1px solid var(--battle-line); }
+  .fleet-lane.ghost { flex:0 0 auto; }
+  .fleet-lane-vertical { writing-mode:horizontal-tb; transform:none; }
+  .battle-rail { max-height:none; flex-direction:column; }
+  .battle-brief { display:none; }
+  .battle-footer .primary-button { min-width:0; flex:1; gap:8px; }
+  .deploy-body { grid-template-columns:1fr; grid-template-rows:auto minmax(0,1fr); }
+  .deploy-side { border-right:0; border-bottom:1px solid var(--battle-line); max-height:45%; }
+  .deploy-list { max-height:120px; }
+}

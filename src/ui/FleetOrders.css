@@ -1,0 +1,9 @@
+/* In-battle fleet orders (online matches). */
+.fleet-orders { margin-top: 8px; font-size: 12px; pointer-events: auto; }
+.fleet-orders summary { cursor: pointer; padding: 8px 0; }
+.fleet-orders-controls { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0; }
+.fleet-orders select, .fleet-orders input { color: #e4eded; background: #14252d; border: 1px solid #607982; padding: 6px; max-width: 190px; }
+.fleet-orders input { width: 70px; }
+.fleet-orders button { padding: 6px; color: #e4eded; background: #243b44; border: 1px solid #607982; cursor: pointer; }
+.fleet-orders button:disabled { opacity: .45; cursor: default; }
+.fleet-network-status { color: #efce90; margin: 6px 0; font-size: 12px; }

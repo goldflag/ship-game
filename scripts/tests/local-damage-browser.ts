@@ -36,7 +36,9 @@ export async function damageReview() {
     if (!button) throw new Error(`Missing ${text} control`); button.click();
   };
   if (game.inPort) {
-    click('Custom battle'); await new Promise(r => setTimeout(r, 100)); click('Start battle');
+    click('Battle'); await new Promise(r => setTimeout(r, 100));
+    click('Custom battle'); await new Promise(r => setTimeout(r, 100));
+    click('Deploy fleet'); await new Promise(r => setTimeout(r, 100)); click('Start battle');
     await until(() => !game.inPort);
   }
   cancelAnimationFrame(game.raf); await game.frameTask; cancelAnimationFrame(game.raf);
