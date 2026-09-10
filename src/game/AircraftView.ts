@@ -4,12 +4,12 @@ import type { BattleSession } from './session/BattleSession';
 import { ExpandableInstances } from './ExpandableInstances';
 import { assetUrl } from '../assetUrl';
 import * as THREE from 'three/webgpu';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 import { aircraftDeckSpot, onFlightDeck } from '../simulation/aircraft';
 import { aircraftAttitude, aircraftControls } from '../simulation/aircraftFlight';
 import { aircraftDeckRotation } from './AircraftDeckPresentation';
 import { disposeObjects } from './disposeObjects';
+import { loadShipModel } from './loadShipModel';
 import { AircraftContacts } from './AircraftContacts';
 import { AircraftGunfire } from './AircraftGunfire';
 import { aircraftOrdnanceGeometry } from '../../assets/effects/naval/aircraft-ordnance';
@@ -100,7 +100,7 @@ export class AircraftView {
     const palette = new ShipMaterialPalette();
     const results = await Promise.allSettled(ids.flatMap(id => [0, 1, 2].filter(lod => !previous.has(`${id}/${lod}`)).map(async lod => {
       const url = assetUrl(lod ? `models/aircraft/LOD${lod}/${id}-lod${lod}.glb` : `models/aircraft/${id}.glb`);
-      const root = (await new GLTFLoader().loadAsync(url)).scene;
+      const root = (await loadShipModel(url)).scene;
       // The shared authoring-node boundaries preserve propellers, controls,
       // landing gear and sockets while rigid paint surfaces share a draw.
       palette.apply(root); batchShipModel(root);
