@@ -1581,19 +1581,23 @@ impl Aviation {
             p.phase = "attack".into();
             let pursuing = steer_fighter(p, &hostile, &planes, dt);
             let gun = fighter_gun_aim(p, &hostile);
-            let on_aim = pursuing
-                && gun.distance > 80.0
-                && gun.distance < 600.0
-                && gun.alignment > if panic { 0.94 } else { 0.996 }
-                && clear_fighter_lane(p, gun.point, &planes);
-            p.pilot.aim_time = if on_aim { p.pilot.aim_time + dt } else { 0.0 };
-            if on_aim && p.pilot.aim_time >= if panic { 0.04 } else { 0.12 } && p.cooldown <= 0.0 {
+            let lane_clear = clear_fighter_lane(p, gun.point, &planes);
+            if fighter_fire_ready(p, &gun, pursuing, lane_clear, dt) {
                 let burst = fighter_burst(p, gun.point, ctx.seed, p.sortie.unwrap_or(0));
                 if !clear_fighter_lane(p, burst.end, &planes) {
                     return;
                 }
                 p.ammo -= 1.0;
-                p.cooldown = 0.4;
+                // A two-burst opportunity followed by a longer assessment pause.
+                // Each burst still requires a newly settled, clear solution.
+                p.cooldown = if panic {
+                    1.6
+                } else if p.ammo as u32 % 2 == 0 {
+                    1.5
+                } else {
+                    0.25
+                };
+                p.pilot.aim_time = 0.0;
                 ctx.events.push(DamageEvent {
                     kind: "aircraft-fire".into(),
                     position: p.position,
@@ -1639,8 +1643,27 @@ impl Aviation {
                 self.search_report(p, c, k.tick, dt);
                 return;
             }
-            let anchor = [patrol[0], 420.0_f64.max(patrol[1] + 80.0), patrol[2]];
-            if leader.is_none_or(|l| l.phase == "attack")
+            let area_defense = flight.as_ref().is_none_or(|f| {
+                matches!(f.order, AirOrder::Defend { .. } | AirOrder::Patrol { .. })
+            });
+            let slot = planes
+                .iter()
+                .filter(|a| {
+                    a.team == p.team
+                        && a.flight_id == p.flight_id
+                        && a.role == "fighter"
+                        && a.id < p.id
+                        && in_flight(a)
+                })
+                .count();
+            let altitude: f64 = if area_defense && (slot / 2) % 2 == 1 {
+                1100.0
+            } else {
+                420.0
+            };
+            let anchor = [patrol[0], altitude.max(patrol[1] + 80.0), patrol[2]];
+            if area_defense
+                || leader.is_none_or(|l| l.phase == "attack")
                 || !follow(p, flight.as_ref(), leader, dt, time, ctx.seed)
             {
                 let point = orbit_point(p, anchor, 1000.0, 1.0);
