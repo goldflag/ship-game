@@ -974,6 +974,21 @@ export class Game {
   orderFlight(id: string, order: AirOrder): boolean { return !this.inPort && (!this.paused || this.fleetCommandMode) && this.simulation.orderFlight(id, order); }
   commandSquadron(id: string, order: AirOrder): boolean { return !this.inPort && (!this.paused || this.fleetCommandMode) && this.simulation.commandSquadron(id, order); }
   panAirMap(dx: number, dy: number, x?: number, y?: number): void { this.battlefieldCamera.pan(dx, dy, this.host.clientWidth, this.host.clientHeight, x, y); }
+  private readonly mapProjectionState = new Float64Array(35);
+  private mapProjectionVersion = 0;
+  /** Counts the moves of everything an air-map projection reads: pose, lens and viewport.
+   * An unchanged count means an overlay may reuse the points it projected last frame. */
+  get mapProjectionStamp(): number {
+    const view = this.camera.matrixWorldInverse.elements, lens = this.camera.projectionMatrix.elements, state = this.mapProjectionState;
+    // The framebuffer follows every resize, and reading it cannot force a layout mid-overlay.
+    const width = this.renderer.domElement.width, height = this.renderer.domElement.height;
+    let moved = state[32] !== width || state[33] !== height || state[34] !== this.hudScale;
+    for (let i = 0; i < 16 && !moved; i++) moved = state[i] !== view[i] || state[16 + i] !== lens[i];
+    if (!moved) return this.mapProjectionVersion;
+    state.set(view); state.set(lens, 16);
+    state[32] = width; state[33] = height; state[34] = this.hudScale;
+    return ++this.mapProjectionVersion;
+  }
   projectAirMap(x: number, z: number, altitude = 0): [number, number] | null {
     // Use the same depth and viewport clipping as ship-view nametags.
     const point = projectShipLabel(new THREE.Vector3(x, altitude, z), this.camera, this.host.clientWidth / this.hudScale, this.host.clientHeight / this.hudScale);

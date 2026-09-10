@@ -108,7 +108,7 @@ export class FleetShipDraws {
     }
     this.proxies.forEach((proxy, view) => {
       proxy.root.visible = view.renderActive !== false;
-      if (proxy.root.visible) proxy.update(camera, framebufferHeight);
+      if (proxy.root.visible) proxy.update(camera, framebufferHeight, this.visibility);
     });
   }
   diagnostics() { return { batches: this.batches.length, instances: this.visibleInstances, reduced: this.reducedInstances, subpixel: this.subpixelInstances }; }

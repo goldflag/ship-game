@@ -18,53 +18,90 @@ import { smoothMapPath } from '../game/smoothMapPath';
 import { reportState } from './reconReports';
 import { projectAirMarker, projectMapHeading } from './airMarkerProjection';
 
+type Marker = {
+  element: HTMLElement | SVGElement; svg: boolean; position: Vec3;
+  /** Reads a live aircraft, contact or hull pose, so it moves between snapshots. */
+  tracking: boolean;
+  headings: { glyph: SVGElement; heading: number; angle?: number }[];
+  fade?: number[]; details: NodeListOf<SVGElement>; glyph: SVGElement | HTMLElement;
+  point: [number, number] | null; opacity?: number; close: boolean;
+};
+type Route = { element: SVGPathElement; points: Vec3[]; closed: boolean; filled: boolean; path: string };
+
 // Camera motion is rendered every frame; combat telemetry intentionally stays at 10 Hz.
 // Move the overlay directly so camera motion never waits for a React telemetry render.
 export function useMapProjection(ref: RefObject<HTMLElement | SVGSVGElement | null>, game: Game | null, active: boolean) {
+  const rendered = useRef(true);
+  // Any render can add, move or reselect a marker; nothing else edits the overlay.
+  useLayoutEffect(() => { rendered.current = true; });
   useEffect(() => {
     if (!active || !game) return;
+    let markers: Marker[] = [], routes: Route[] = [], tracked = 0, stamp: number | undefined;
+    const collect = () => {
+      markers = Array.from(ref.current?.querySelectorAll<HTMLElement | SVGElement>('[data-map-position]') ?? [], element => {
+        const marker = element.dataset;
+        return {
+          element, svg: element instanceof SVGElement, position: JSON.parse(marker.mapPosition!) as Vec3,
+          tracking: !!(marker.plane || marker.track || marker.contactGroup || marker.contactMarker || marker.shipMarker),
+          headings: Array.from(element.querySelectorAll<SVGElement>('[data-map-heading]'), glyph => ({ glyph, heading: Number(glyph.dataset.mapHeading) })),
+          // "length,heading[,start,end]": the span in metres along the heading and the on-screen pixel band over which the marker fades.
+          fade: marker.mapFade?.split(',').map(Number),
+          details: element.querySelectorAll<SVGElement>('[data-map-detail]'),
+          glyph: element.querySelector<SVGElement | HTMLElement>('[data-map-glyph]') ?? element,
+          point: null, close: false,
+        };
+      });
+      routes = Array.from(ref.current?.querySelectorAll<SVGPathElement>('[data-map-path]') ?? [], element => {
+        const points = JSON.parse(element.dataset.mapPath!) as Vec3[];
+        return { element, points: element.dataset.mapSmooth ? smoothMapPath(points, !!element.dataset.closed) : points, closed: !!element.dataset.closed, filled: !!element.dataset.mapFill, path: '' };
+      });
+      tracked = markers.reduce((n, marker) => n + (marker.tracking ? 1 : 0), 0);
+    };
     const update = () => {
-      const markers = Array.from(ref.current?.querySelectorAll<HTMLElement | SVGElement>('[data-map-position]') ?? [], element => {
-        const [x, y, z] = JSON.parse(element.dataset.mapPosition!) as number[];
-        const point = projectAirMarker(game, element.dataset, [x, y, z]);
-        const headings = Array.from(element.querySelectorAll<SVGElement>('[data-map-heading]'), glyph => {
-          const heading = Number(glyph.dataset.mapHeading);
-          return { glyph, angle: projectMapHeading(game, [x, y, z], heading) };
-        });
+      const moved = rendered.current;
+      if (moved) { rendered.current = false; collect(); }
+      // Everything but a live pose depends only on the camera and the last render.
+      const still = !moved && stamp !== undefined && stamp === game.mapProjectionStamp;
+      stamp = game.mapProjectionStamp;
+      if (still && !tracked) return;
+      // Projection reads the viewport. Complete those reads before any overlay
+      // writes, so one marker cannot force layout for the following marker.
+      for (const marker of markers) {
+        if (still && !marker.tracking) continue;
+        const [x, y, z] = marker.position;
+        marker.point = projectAirMarker(game, marker.element.dataset, marker.position);
+        if (still) continue;
+        for (const heading of marker.headings) heading.angle = projectMapHeading(game, marker.position, heading.heading);
         // A ship marker stands in for a hull too small to read; once the model
         // itself is legible on screen the marker fades and only the label stays.
-        let fade: number | undefined;
-        let close = false;
-        if (element.dataset.mapFade && point) {
-          // "length,heading[,start,end]": the span in metres along the heading and the on-screen pixel band over which the marker fades.
-          const [length, heading, start, end] = element.dataset.mapFade.split(',').map(Number);
+        marker.opacity = undefined; marker.close = false;
+        if (marker.fade && marker.point) {
+          const [length, heading, start, end] = marker.fade;
           const bow = game.projectAirMap(x + Math.sin(heading) * length / 2, z - Math.cos(heading) * length / 2, y);
           const stern = game.projectAirMap(x - Math.sin(heading) * length / 2, z + Math.cos(heading) * length / 2, y);
           if (bow && stern) {
-            close = Math.hypot(bow[0] - stern[0], bow[1] - stern[1]) >= 14;
-            fade = markerOpacity(Math.hypot(bow[0] - stern[0], bow[1] - stern[1]), Number.isFinite(start) ? start : undefined, Number.isFinite(end) ? end : undefined);
+            marker.close = Math.hypot(bow[0] - stern[0], bow[1] - stern[1]) >= 14;
+            marker.opacity = markerOpacity(Math.hypot(bow[0] - stern[0], bow[1] - stern[1]), Number.isFinite(start) ? start : undefined, Number.isFinite(end) ? end : undefined);
           }
         }
-        return { element, point, headings, fade, close };
-      });
-      const paths = Array.from(ref.current?.querySelectorAll<SVGPathElement>('[data-map-path]') ?? [], element => {
-        const points = JSON.parse(element.dataset.mapPath!) as Vec3[];
-        return { element, path: game.projectAirMapPath(element.dataset.mapSmooth ? smoothMapPath(points, !!element.dataset.closed) : points, !!element.dataset.closed, !!element.dataset.mapFill) };
-      });
-      // Projection reads the viewport. Complete those reads before any overlay
-      // writes, so one marker cannot force layout for the following marker.
-      for (const { element, point, headings, fade, close } of markers) {
+      }
+      if (!still) for (const route of routes) route.path = game.projectAirMapPath(route.points, route.closed, route.filled);
+      for (const marker of markers) {
+        if (still && !marker.tracking) continue;
+        const { element, point } = marker;
         element.style.display = point ? '' : 'none';
         if (!point) continue;
         const [left, top] = point;
-        if (element instanceof SVGElement) element.setAttribute('transform', `translate(${left} ${top})`);
+        if (marker.svg) element.setAttribute('transform', `translate(${left} ${top})`);
         else { element.style.left = `${left}px`; element.style.top = `${top}px`; }
-        for (const { glyph, angle } of headings) if (angle !== undefined) glyph.setAttribute('transform', `rotate(${angle})`);
-        for (const detail of element.querySelectorAll<SVGElement>('[data-map-detail]')) detail.style.display = close || element.classList.contains('selected') ? 'initial' : 'none';
-        if (fade !== undefined) (element.querySelector<SVGElement | HTMLElement>('[data-map-glyph]') ?? element).style.opacity = String(fade);
+        if (still) continue;
+        for (const { glyph, angle } of marker.headings) if (angle !== undefined) glyph.setAttribute('transform', `rotate(${angle})`);
+        for (const detail of marker.details) detail.style.display = marker.close || element.classList.contains('selected') ? 'initial' : 'none';
+        if (marker.opacity !== undefined) marker.glyph.style.opacity = String(marker.opacity);
       }
-      for (const { element, path } of paths) element.setAttribute('d', path);
+      if (!still) for (const route of routes) route.element.setAttribute('d', route.path);
     };
+    rendered.current = true;
     update();
     return game.onCameraFrame(update);
   }, [ref, game, active]);
