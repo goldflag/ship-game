@@ -143,7 +143,7 @@ fn buoyancy_floodwater_and_weapon_training_match_reference() {
             near(body.area, water["body"]["area"].as_f64().unwrap(), 1e-6);
             vector(body.center, &water["body"]["center"], 1e-7);
             near(
-                body.level_at_volume(room.capacity_m3 * 0.68),
+                body.level_at_volume(room, room.capacity_m3 * 0.68),
                 water["nextLevel"].as_f64().unwrap(),
                 1e-7,
             );
