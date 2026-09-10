@@ -21,6 +21,10 @@ export class ShipMaterialPalette {
     return JSON.stringify(data);
   }
 
+  /** The shared paint outlives the hulls that used it; a palette kept across fleets must
+   * keep its materials out of the disposal sweep or the next reuse hands back a dead one. */
+  sharedMaterials(): Iterable<THREE.Material> { return this.materials.values(); }
+
   apply(root: THREE.Object3D): void {
     const derived = new Map<THREE.BufferGeometry, Map<string, THREE.BufferGeometry>>();
     const retiredGeometry = new Set<THREE.BufferGeometry>(), retiredMaterials = new Set<THREE.Material>();

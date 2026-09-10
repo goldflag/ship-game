@@ -11,6 +11,8 @@ import { CameraRig } from './CameraRig';
 import { ShellFollow } from './ShellFollow';
 import { BattlefieldCamera } from './BattlefieldCamera';
 import { ShipView } from './ShipView';
+import { ObservedShipViews } from './ObservedShipViews';
+import { ShipMaterialPalette } from './ShipMaterialPalette';
 import { CombatSimulation } from '../simulation/combat';
 import { shipPreset, shipPresets } from '../ships/presets';
 import * as ShipDetail from './ShipDetail';
@@ -60,7 +62,8 @@ async function port(storageMatrices = false) {
     effects: { reset() {}, diagnostics() { return {}; } },
     funnelSmoke: { diagnostics() { return {}; } },
     shipLabels: { setFleet() {} },
-    ship: new Group(), inPort: true, disposed: false, switchingShip: false,
+    ship: new Group(), inPort: true, disposed: false, switchingShip: false, frameWaiters: [], observedShipViews: new ObservedShipViews(),
+    hulls: new Map(), palette: new ShipMaterialPalette(),
     renderer: { backend: { isWebGPUBackend: storageMatrices }, domElement: { setAttribute() {} } },
     environment: new VisualEnvironment({ effects: { setWind() {}, setSun() {}, setIllumination() {} }, funnelSmoke: { setWind() {} }, sunAnchor: new Group() }),
   }) as Game;
@@ -278,14 +281,31 @@ test.each(['yamato', 'enterprise-cv6'])('PvE prepares detail only for owned hull
     await game.prepareBattle({ playerShipId: 'bismarck', friendlyBots: ['fletcher', 'fletcher'],
       enemies: [enemy], spawnDistance: 5000, missionRules: pveRules as MissionRules }, label => stages.push(label));
     expect(game.simulation.actors.every(actor => actor.team === 'friendly')).toBe(true);
-    // Every exterior remains ready before detection, with roster-independent
-    // requests and loading text. Only actual ShipViews consume detail buffers.
-    expect(loaded).toEqual(Object.keys(shipPresets));
+    // Getting underway waits only on the hulls already at sea, and the loading text names
+    // no hull at all, so nothing about the mission fleet leaks before contact.
+    expect(loaded).toEqual(['bismarck', 'fletcher']);
     expect(detailed.sort()).toEqual(['bismarck', 'fletcher']);
-    expect(stages.filter(label => label.includes('recognition'))).toEqual([
-      ...Array(Object.keys(shipPresets).length + 1).fill('Preparing ship recognition models'),
-      'Preparing aircraft recognition models',
-    ]);
+    expect(stages.every(label => !Object.keys(shipPresets).some(id => label.toLowerCase().includes(id.split('-')[0])))).toBe(true);
+    expect(stages).toContain('Preparing the fleet');
+
+    // A hull the mission reveals is fetched at that moment and drawn once it lands. The
+    // report already names the preset, so this asks for nothing the player was not told.
+    const contact = { id: 'contact-0-1', presetId: enemy, position: [0, 0, -8000] as [number, number, number],
+      heading: 0, velocity: [0, 0, 0] as [number, number, number], observedTick: 0, observers: [] };
+    const observed = (game as unknown as { observedShipViews: ObservedShipViews }).observedShipViews;
+    observed.update([contact], 0, true);
+    expect(observed.root.children).toHaveLength(0);
+    for (let pump = 1; pump < 100 && !observed.root.children.length; pump++) {
+      await new Promise(resolve => setTimeout(resolve, 0));
+      observed.update([contact], pump, true);
+    }
+    expect(observed.root.children).toHaveLength(1);
+    expect(loaded).toEqual(['bismarck', 'fletcher', enemy]);
+    // A revealed hull never gets detail buffers; only actor-backed views use those.
+    expect(detailed.sort()).toEqual(['bismarck', 'fletcher']);
+    // Asking again for a hull already aboard, or one already refused, costs no second fetch.
+    observed.update([contact, { ...contact, id: 'contact-0-2' }], 200, true);
+    expect(loaded).toEqual(['bismarck', 'fletcher', enemy]);
   } finally { detail.mockRestore(); loader.mockRestore(); rig.dispose(); game.simulation.dispose?.(); }
 }, 30000);
 
@@ -515,4 +535,42 @@ test('task groups become numbered control groups carrying the formation the play
   ]);
   // An empty group takes no slot, and without a draft record each group keeps its own formation.
   expect([...briefingControlGroups(briefing)].map(([slot, group]) => [slot, group.formation])).toEqual([[1, 'line-abreast'], [2, 'column']]);
+});
+
+test('a second sortie with the same fleet reuses the hulls the first one built', async () => {
+  const { game, rig } = await port();
+  const loaded: string[] = [];
+  const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async url => {
+    const id = String(url).split('/').pop()!.replace('.glb', '');
+    loaded.push(id);
+    const gltf = await model(id); gltf.scene.name = id; return gltf;
+  });
+  const setup = { playerShipId: 'bismarck', friendlyBots: ['fletcher'], enemies: ['iowa'], spawnDistance: 5000 };
+  try {
+    await game.prepareBattle(setup);
+    expect([...loaded].sort()).toEqual(['bismarck', 'fletcher', 'iowa']);
+    loaded.length = 0;
+    // A whole new fleet, built from hulls the first sortie already parsed, painted and batched.
+    await game.prepareBattle(setup);
+    expect(loaded).toEqual([]);
+    loaded.length = 0;
+    await game.prepareBattle({ ...setup, enemies: ['yamato'] });
+    expect(loaded).toEqual(['yamato']);
+  } finally { loader.mockRestore(); rig.dispose(); game.simulation.dispose?.(); }
+}, 30000);
+
+test('kept hulls are capped, least recently used first, and never take the fleet at sea with them', async () => {
+  const { game, rig } = await port();
+  const internals = game as unknown as { hulls: Map<string, Group>; trimHulls(fleet: ReadonlyMap<string, Group>): Group[] };
+  try {
+    for (let index = 0; index < 12; index++) internals.hulls.set(`hull-${index}`, new Group());
+    // The oldest entry is still afloat, so the sweep has to step over it.
+    const afloat = new Map([['afloat', internals.hulls.get('hull-0')!]]);
+    const evicted = internals.trimHulls(afloat);
+    expect(internals.hulls.size).toBe(8);
+    expect(evicted).toHaveLength(4);
+    expect(internals.hulls.has('hull-0')).toBe(true);
+    expect(['hull-1', 'hull-2', 'hull-3', 'hull-4'].every(key => !internals.hulls.has(key))).toBe(true);
+    expect(internals.trimHulls(afloat)).toEqual([]);
+  } finally { rig.dispose(); game.simulation.dispose?.(); }
 });

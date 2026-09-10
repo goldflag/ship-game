@@ -55,11 +55,11 @@ import { ENGINE_ORDERS, FIXED_DT } from '../simulation/ship';
 import { DEPTH_STEP_M, orderDepth } from '../simulation/submarine';
 import { GunAimIndicators } from './GunAimIndicators';
 import { HitDirectionIndicators } from './HitDirectionIndicators';
-import { disposeObjects } from './disposeObjects';
+import { disposeObjects, disposeObjectsExcept } from './disposeObjects';
 import { CombatEffects } from './CombatEffects';
 import { configureRenderOrder } from './renderOrder';
 import type { GameAudio } from './GameAudio';
-import type { Ammunition, Battery, Vec3 } from '../ships/blueprint';
+import type { Ammunition, Battery, ShipDefinition, Vec3 } from '../ships/blueprint';
 import { gunTraverseAtFraction } from '../ships/armament';
 import type { InspectionMode } from '../ships/inspection';
 import { selectedShip, shipPreset, shipPresets } from '../ships/presets';
@@ -129,6 +129,15 @@ export class Game {
   private waterViewFocus?: WaterViewFocus;
   private visualWaveSampler?: VisualWaveSampler;
   private fleetModels: THREE.Group[] = [];
+  /** Public hulls a mission may reveal, brought aboard the first time a contact needs one. */
+  private recognition?: { models: Map<string, THREE.Group>; asked: Set<string> };
+  /** Derived hull templates from fleets this session has already built. Fetching, parsing,
+   * painting and batching a hull costs around 1.9 s, and the next battle usually wants the
+   * same ones, so they are kept — in least-recently-used order and capped, because each one
+   * holds tens of megabytes of vertex data. The fleet at sea is always retained. */
+  private readonly hulls = new Map<string, THREE.Group>();
+  /** One palette for every hull kept, so paint still collapses across cached fleets. */
+  private readonly palette = new ShipMaterialPalette();
   private shipLabels: ShipLabels;
   private hitLabels: HitLabels;
   private torpedoPreview = new TorpedoPreview();
@@ -318,19 +327,18 @@ export class Game {
     this.assertActive();
     this.rig.update(this.simulation.ship, 0, 0, true);
     this.callbacks.progress(`Loading ${this.definition.name}`, 0.2);
-    const gltf = await loadShipModel(assetUrl(this.definition.modelUrl));
-    new ShipMaterialPalette().apply(gltf.scene);
-    batchShipModel(gltf.scene);
-    await prepareShipDetail(gltf.scene);
-    this.loadedModel = gltf.scene;
+    // Through the same cache the fleets use, so the first sortie does not fetch and rebuild
+    // the hull the player has been looking at in port.
+    const model = await this.hull(this.definition);
+    await prepareShipDetail(model);
+    this.loadedModel = model;
     this.assertActive();
-    if (gltf.scene.userData.definitionHash !== this.definition.contentHash) throw new Error('The ship model and definition have different versions. Rebuild the ship assets and reload.');
-    this.playerView = new ShipView(gltf.scene.clone(true), this.definition, this.simulation.player, this.renderer.reversedDepthBuffer);
-    this.targetView = this.simulation.target ? new ShipView(gltf.scene.clone(true), this.definition, this.simulation.target, this.renderer.reversedDepthBuffer) : undefined;
+    this.playerView = new ShipView(model.clone(true), this.definition, this.simulation.player, this.renderer.reversedDepthBuffer);
+    this.targetView = this.simulation.target ? new ShipView(model.clone(true), this.definition, this.simulation.target, this.renderer.reversedDepthBuffer) : undefined;
     this.fleetViews = [this.playerView, ...(this.targetView ? [this.targetView] : [])];
     this.fleetDraws = new FleetShipDraws(this.fleetViews);
     this.scene.add(this.fleetDraws.root);
-    this.fleetModels = [gltf.scene];
+    this.fleetModels = [model];
     this.shipLabels.setFleet(this.fleetViews, this.simulation.actors, this.simulation.ship.id);
     this.ship.position.copy(this.playerView.root.position);
     if (this.targetView) this.targetView.root.visible = !this.inPort;
@@ -629,10 +637,8 @@ export class Game {
   private async replaceFleet(simulation: BattleSession, definition: typeof selectedShip, progress?: BattleProgress): Promise<void> {
     this.inspectionHover?.clear();
     const actorDefinitions = new Map(simulation.actors.map(actor => [actor.definition.id, actor.definition]));
-    const definitions = simulation.missionRules ? Object.keys(shipPresets).map(id => shipPreset(id))
-      : [...actorDefinitions.values()];
+    const definitions = [...actorDefinitions.values()];
     const models = new Map<string, THREE.Group>();
-    const palette = new ShipMaterialPalette();
     const views: ShipView[] = [];
     const clones: THREE.Group[] = [];
     let draws: FleetShipDraws | undefined;
@@ -641,25 +647,21 @@ export class Game {
       // buffers. Finish one model before fetching the next to bound peak memory.
       let loaded = 0;
       const hullShare = 0.6 / definitions.length;
-      progress?.(simulation.missionRules ? 'Preparing ship recognition models' : `Loading ${definitions[0].name}`, 0.08);
+      progress?.(simulation.missionRules ? 'Preparing the fleet' : `Loading ${definitions[0].name}`, 0.08);
       for (const def of definitions) {
         this.assertActive();
-        const model = (await loadShipModel(assetUrl(def.modelUrl))).scene;
+        const model = await this.hull(def);
         models.set(def.id, model);
         this.assertActive();
-        const hash = 'contentHash' in def ? def.contentHash : undefined;
-        if (!hash || model.userData.definitionHash !== hash) throw new Error('The ship model and definition have different versions. Rebuild the ship assets and reload.');
-        palette.apply(model);
-        batchShipModel(model);
         // Report-only exteriors clone the original geometry; they never use
         // FleetShipDraws' detail buffers. Only actor-backed ShipViews need LODs.
         // Keep the full public catalog loaded independently of hidden enemies.
         if (actorDefinitions.has(def.id)) await prepareShipDetail(model);
         loaded += 1;
         const next = definitions.find(d => !models.has(d.id));
-        progress?.(simulation.missionRules ? 'Preparing ship recognition models' : next ? `Loading ${next.name}` : `${def.name} aboard`, 0.08 + hullShare * loaded);
+        progress?.(simulation.missionRules ? 'Preparing the fleet' : next ? `Loading ${next.name}` : `${def.name} aboard`, 0.08 + hullShare * loaded);
       }
-      if (definitions.some(d => d.airWing)) { progress?.(simulation.missionRules ? 'Preparing aircraft recognition models' : 'Spotting the air wing', 0.7); await this.aircraftView.load(definitions.flatMap(d => d.airWing?.squadrons.map(s => s.modelId) ?? []), !!(this.renderer.backend as { isWebGPUBackend?: boolean }).isWebGPUBackend); }
+      if (definitions.some(d => d.airWing)) { progress?.('Spotting the air wing', 0.7); await this.aircraftView.load(definitions.flatMap(d => d.airWing?.squadrons.map(s => s.modelId) ?? []), !!(this.renderer.backend as { isWebGPUBackend?: boolean }).isWebGPUBackend); }
       this.assertActive();
       if (!this.inPort) throw new Error('Return to port before changing fleets.');
       progress?.('Mustering the fleets', 0.78);
@@ -680,7 +682,8 @@ export class Game {
       this.playerDamageFeedback = new HullDamageFeedback(simulation.player.damage.integrity);
       this.audio?.reset(simulation);
       this.fleetModels = [...models.values()]; this.loadedModel = models.get(definition.id);
-      this.observedShipViews?.setModels(simulation.missionRules ? models : new Map());
+      this.recognition = simulation.missionRules ? { models, asked: new Set(models.keys()) } : undefined;
+      this.observedShipViews?.setModels(simulation.missionRules ? models : new Map(), this.recognition && (presetId => this.loadRecognitionModel(presetId)));
       this.fleetViews = views; this.playerView = views.find(view => view.actor === simulation.player)!;
       this.shipWake?.reset();
       this.fleetDraws = draws;
@@ -701,14 +704,76 @@ export class Game {
       this.rig.setBridge(definition.viewpoints?.bridge);
       this.rig.setHullLength(definition.hull.length);
       this.renderer.domElement.setAttribute('aria-label', `${definition.name} ocean scene. Drag to orbit; scroll to zoom.`);
-      disposeObjects(...previous);
+      disposeObjectsExcept({ roots: [...this.hulls.values()], materials: this.palette.sharedMaterials() }, ...previous, ...this.trimHulls(models));
     } catch (error) {
       simulation.dispose?.();
       draws?.dispose();
       views.forEach(view => { view.impactMarks.dispose(); view.rig.dispose(); });
-      disposeObjects(...models.values(), ...clones, ...views.map(view => view.root));
+      disposeObjectsExcept({ roots: [...this.hulls.values()], materials: this.palette.sharedMaterials() }, ...clones, ...views.map(view => view.root));
       throw error;
     }
+  }
+
+  /** How many derived hulls to keep beyond the fleet at sea. Enough for a repeat sortie with
+   * the same fleet plus the hulls it met, small enough that an idle port is not holding a
+   * battle's worth of vertex data. */
+  private static readonly HULL_CACHE = 8;
+
+  /** A derived hull template: fetched, painted and batched once, then reused. */
+  private async hull(definition: ShipDefinition): Promise<THREE.Group> {
+    const hash = 'contentHash' in definition ? definition.contentHash as string : undefined;
+    const key = `${definition.id}:${hash ?? ''}`;
+    const cached = this.hulls.get(key);
+    // Reinserting keeps the map in least-recently-used order for trimHulls.
+    if (cached) { this.hulls.delete(key); this.hulls.set(key, cached); return cached; }
+    const model = (await loadShipModel(assetUrl(definition.modelUrl))).scene;
+    if (!hash || model.userData.definitionHash !== hash) {
+      disposeObjects(model);
+      throw new Error('The ship model and definition have different versions. Rebuild the ship assets and reload.');
+    }
+    this.palette.apply(model);
+    batchShipModel(model);
+    this.hulls.set(key, model);
+    return model;
+  }
+
+  /** Drop the least recently used hulls once the fleet at sea is settled, and hand them back
+   * so they are retired alongside the rest of the outgoing scene. */
+  private trimHulls(fleet: ReadonlyMap<string, THREE.Group>): THREE.Group[] {
+    const afloat = new Set(fleet.values());
+    const evicted: THREE.Group[] = [];
+    for (const [key, model] of this.hulls) {
+      if (this.hulls.size <= Game.HULL_CACHE) break;
+      if (afloat.has(model)) continue;
+      this.hulls.delete(key); evicted.push(model);
+    }
+    return evicted;
+  }
+
+  /** Bring aboard a hull the mission has just revealed. Loading the whole public catalog
+   * before the battle instead cost 109 MiB and about 7 s locally — 27 s on a 50 Mbit line —
+   * every time, whatever the player brought, and streaming it in behind the battle stalled
+   * frames for twenty seconds. A contact already names its preset in the report, so fetching
+   * it at that moment tells the player nothing they were not just told. */
+  private loadRecognitionModel(presetId: string): void {
+    const recognition = this.recognition;
+    // Failures stay marked as asked: one unavailable hull must not be retried every frame.
+    if (!recognition || recognition.asked.has(presetId)) return;
+    const definition = shipPreset(presetId);
+    if (definition.id !== presetId) return;
+    recognition.asked.add(presetId);
+    void (async () => {
+      try {
+        const model = await this.hull(definition);
+        if (this.disposed || recognition !== this.recognition) return;
+        recognition.models.set(presetId, model);
+        this.fleetModels.push(model);
+        if (definition.airWing) await this.aircraftView.load(definition.airWing.squadrons.map(squadron => squadron.modelId), !!(this.renderer.backend as { isWebGPUBackend?: boolean }).isWebGPUBackend);
+      } catch (error) {
+        // A hull that will not load stays undrawn rather than costing the battle.
+        console.warn(`Recognition model unavailable: ${presetId}`, error);
+      }
+    })();
   }
 
   private addBuoy(buoy: typeof BUOYS[number]): void {
@@ -1522,8 +1587,9 @@ export class Game {
         for (const material of Array.isArray(object.material) ? object.material : [object.material]) materials.add(material);
       }
     });
-    // A model loaded after unmount may not have reached scene.add yet.
-    for (const model of new Set([...this.fleetModels, this.loadedModel ?? this.ship])) model.traverse(object => {
+    // A model loaded after unmount may not have reached scene.add yet, and a kept hull from
+    // an earlier fleet is in neither the scene nor the current one.
+    for (const model of new Set([...this.fleetModels, ...this.hulls.values(), this.loadedModel ?? this.ship])) model.traverse(object => {
       if (object instanceof THREE.Mesh) {
         geometries.add(object.geometry);
         for (const material of Array.isArray(object.material) ? object.material : [object.material]) materials.add(material);
@@ -1535,6 +1601,7 @@ export class Game {
       material.dispose();
     });
     textures.forEach(texture => texture.dispose());
+    this.hulls.clear();
     this.renderer.dispose();
     this.renderer.domElement.remove();
   }
