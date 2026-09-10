@@ -321,19 +321,18 @@ export class Game {
     this.assertActive();
     this.rig.update(this.simulation.ship, 0, 0, true);
     this.callbacks.progress(`Loading ${this.definition.name}`, 0.2);
-    const gltf = await loadShipModel(assetUrl(this.definition.modelUrl));
-    new ShipMaterialPalette().apply(gltf.scene);
-    batchShipModel(gltf.scene);
-    await prepareShipDetail(gltf.scene);
-    this.loadedModel = gltf.scene;
+    // Through the same cache the fleets use, so the first sortie does not fetch and rebuild
+    // the hull the player has been looking at in port.
+    const model = await this.hull(this.definition);
+    await prepareShipDetail(model);
+    this.loadedModel = model;
     this.assertActive();
-    if (gltf.scene.userData.definitionHash !== this.definition.contentHash) throw new Error('The ship model and definition have different versions. Rebuild the ship assets and reload.');
-    this.playerView = new ShipView(gltf.scene.clone(true), this.definition, this.simulation.player, this.renderer.reversedDepthBuffer);
-    this.targetView = this.simulation.target ? new ShipView(gltf.scene.clone(true), this.definition, this.simulation.target, this.renderer.reversedDepthBuffer) : undefined;
+    this.playerView = new ShipView(model.clone(true), this.definition, this.simulation.player, this.renderer.reversedDepthBuffer);
+    this.targetView = this.simulation.target ? new ShipView(model.clone(true), this.definition, this.simulation.target, this.renderer.reversedDepthBuffer) : undefined;
     this.fleetViews = [this.playerView, ...(this.targetView ? [this.targetView] : [])];
     this.fleetDraws = new FleetShipDraws(this.fleetViews);
     this.scene.add(this.fleetDraws.root);
-    this.fleetModels = [gltf.scene];
+    this.fleetModels = [model];
     this.shipLabels.setFleet(this.fleetViews, this.simulation.actors, this.simulation.ship.id);
     this.ship.position.copy(this.playerView.root.position);
     if (this.targetView) this.targetView.root.visible = !this.inPort;
