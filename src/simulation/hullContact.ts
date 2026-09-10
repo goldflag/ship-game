@@ -4,19 +4,31 @@ import { add, dot, normalize, scale, segmentOverlapsBox, sub } from './geometry'
 interface Triangle { a: Vec3; b: Vec3; c: Vec3; index: number; center: Vec3; size: Vec3; }
 interface Node { center: Vec3; size: Vec3; triangles?: Triangle[]; children?: Node[]; }
 const cache = new WeakMap<Hull, Node>();
+// Independently compiled actors can carry identical hulls. Share immutable
+// meshes by their complete geometric input, with bounded retained storage.
+const shapes = new Map<string, Node>();
 const cross = (a: Vec3, b: Vec3): Vec3 => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
 function bounds(points: Vec3[]): { center: Vec3; size: Vec3 } {
-  const lo = [0, 1, 2].map(i => Math.min(...points.map(p => p[i]))), hi = [0, 1, 2].map(i => Math.max(...points.map(p => p[i])));
-  return { center: lo.map((n, i) => (n + hi[i]) / 2) as Vec3, size: lo.map((n, i) => Math.max(.00001, hi[i] - n)) as Vec3 };
+  let lx = Infinity, ly = Infinity, lz = Infinity, hx = -Infinity, hy = -Infinity, hz = -Infinity;
+  for (const p of points) {
+    lx = Math.min(lx, p[0]); ly = Math.min(ly, p[1]); lz = Math.min(lz, p[2]);
+    hx = Math.max(hx, p[0]); hy = Math.max(hy, p[1]); hz = Math.max(hz, p[2]);
+  }
+  return { center: [(lx + hx) / 2, (ly + hy) / 2, (lz + hz) / 2], size: [Math.max(.00001, hx - lx), Math.max(.00001, hy - ly), Math.max(.00001, hz - lz)] };
 }
 function tree(ts: Triangle[]): Node {
-  const box = bounds(ts.flatMap(t => [t.a, t.b, t.c]));
+  const points: Vec3[] = [];
+  for (const t of ts) points.push(t.a, t.b, t.c);
+  const box = bounds(points);
   if (ts.length <= 12) return { ...box, triangles: ts };
   const axis = box.size.indexOf(Math.max(...box.size)); ts.sort((a, b) => a.center[axis] - b.center[axis]); const mid = ts.length >> 1;
   return { ...box, children: [tree(ts.slice(0, mid)), tree(ts.slice(mid))] };
 }
 function mesh(hull: Hull): Node {
   let node = cache.get(hull); if (node) return node;
+  const key = JSON.stringify([hull.length, hull.halfBreadths, hull.keelHeights, hull.deckHeights, hull.sections]);
+  node = shapes.get(key);
+  if (node) { cache.set(hull, node); return node; }
   const stations = [...new Set([0, hull.length, ...hull.halfBreadths.map(p => p[0]), ...(hull.sections ?? []).map(s => s.station)])].sort((a, b) => a - b);
   const triangles: Triangle[] = [];
   const triangle = (a: Vec3, b: Vec3, c: Vec3) => { if (Math.hypot(...cross(sub(b, a), sub(c, a))) > 1e-9) triangles.push({ a, b, c, index: triangles.length, ...bounds([a, b, c]) }); };
@@ -36,7 +48,10 @@ function mesh(hull: Hull): Node {
     for (const f of [0, 1]) { const p = point(a, az, f, -1), q = point(a, az, f, 1), r = point(b, bz, f, 1), s = point(b, bz, f, -1); triangle(p, q, r); triangle(p, r, s); }
   }
   for (const station of [0, hull.length]) { const polygon = hullSection(hull, station).map(([x, y]): Vec3 => [x, y, hull.length / 2 - station]); for (let i = 1; i < polygon.length - 1; i++) triangle(polygon[0], polygon[i], polygon[i + 1]); }
-  node = tree(triangles); cache.set(hull, node); return node;
+  node = tree(triangles); cache.set(hull, node);
+  if (shapes.size >= 32) shapes.delete(shapes.keys().next().value!);
+  shapes.set(key, node);
+  return node;
 }
 /** Cached hull-shell BVH covers deck, bottom and ends between authored plates. */
 export function hullContacts(hull: Hull, from: Vec3, to: Vec3): { t: number; point: Vec3; normal: Vec3; index: number }[] {
