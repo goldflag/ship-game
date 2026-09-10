@@ -183,6 +183,9 @@ pub fn steer_fighter(p: &mut Aircraft, hostile: &Aircraft, planes: &[&Aircraft],
             && alignment < 0.75
             && speed_advantage > 20.0
             && p.position[1] > 150.0
+            // Spend existing height advantage closing on a lower target;
+            // another climb would repeatedly postpone low-level interception.
+            && p.position[1] - hostile.position[1] < 150.0
         {
             let mut point = add(hostile.position, scale(hostile.velocity, -1.5));
             point[1] = p.position[1] + 120.0;

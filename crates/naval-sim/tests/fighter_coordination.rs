@@ -177,3 +177,21 @@ fn settled_close_fire_requires_reacquisition_and_a_clear_lane() {
     p.cooldown = 0.;
     assert!(!fighter_fire_ready(&mut p, &gun, true, true, 0.15));
 }
+
+#[test]
+fn a_fighter_with_height_advantage_descends_instead_of_repeated_high_yoyos() {
+    let all = fixture();
+    let mut p = all[0].clone();
+    let mut hostile = all[6].clone();
+    p.position = [500., 850., 0.];
+    p.velocity = [-115., 0., 0.];
+    p.heading = -std::f64::consts::FRAC_PI_2;
+    hostile.position = [0., 90., 300.];
+    hostile.velocity = [-80., 0., 0.];
+    naval_sim::aircraft_tactics::steer_fighter(&mut p, &hostile, &[&hostile], 1. / 60.);
+    assert_ne!(p.pilot.maneuver.as_ref().unwrap().kind, "high-yo-yo");
+    assert!(
+        p.navigation_target.unwrap()[1] < 850.,
+        "existing altitude advantage should be spent closing on the target"
+    );
+}
