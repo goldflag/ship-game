@@ -348,7 +348,25 @@ pub struct DamageControlProfile {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-pub struct ShipDefinitionMountClearanceMountsItemBody {
+pub struct AuthoredSurface {
+    #[serde(rename = "vertices")]
+    pub vertices: Vec<[f64; 3]>,
+    #[serde(rename = "triangles")]
+    pub triangles: Vec<[f64; 3]>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct MountClearanceProfileBodiesItem {
+    #[serde(rename = "id")]
+    pub id: String,
+    #[serde(rename = "mountId")]
+    pub mount_id: Option<String>,
+    #[serde(rename = "surface")]
+    pub surface: AuthoredSurface,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct MountClearanceProfileMountsItemBody {
     #[serde(rename = "center")]
     pub center: [f64; 3],
     #[serde(rename = "size")]
@@ -356,17 +374,17 @@ pub struct ShipDefinitionMountClearanceMountsItemBody {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-pub struct ShipDefinitionMountClearanceMountsItem {
+pub struct MountClearanceProfileMountsItem {
     #[serde(rename = "mountId")]
     pub mount_id: String,
     #[serde(rename = "barrelRadiusM")]
     pub barrel_radius_m: f64,
     #[serde(rename = "body")]
-    pub body: Option<ShipDefinitionMountClearanceMountsItemBody>,
+    pub body: Option<MountClearanceProfileMountsItemBody>,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-pub struct ShipDefinitionMountClearanceStructuresItem {
+pub struct MountClearanceProfileStructuresItem {
     #[serde(rename = "structureId")]
     pub structure_id: String,
     #[serde(rename = "topExtensionM")]
@@ -374,19 +392,23 @@ pub struct ShipDefinitionMountClearanceStructuresItem {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-pub struct ShipDefinitionMountClearance {
+pub struct MountClearanceProfile {
     #[serde(rename = "version")]
     pub version: f64,
     #[serde(rename = "marginM")]
     pub margin_m: f64,
     #[serde(rename = "basis")]
     pub basis: String,
+    #[serde(rename = "mountIds")]
+    pub mount_ids: Option<Vec<String>>,
+    #[serde(rename = "bodies")]
+    pub bodies: Option<Vec<MountClearanceProfileBodiesItem>>,
     #[serde(rename = "mounts")]
-    pub mounts: Vec<ShipDefinitionMountClearanceMountsItem>,
+    pub mounts: Option<Vec<MountClearanceProfileMountsItem>>,
     #[serde(rename = "structures")]
-    pub structures: Vec<ShipDefinitionMountClearanceStructuresItem>,
+    pub structures: Option<Vec<MountClearanceProfileStructuresItem>>,
     #[serde(rename = "neighbors")]
-    pub neighbors: Vec<[String; 2]>,
+    pub neighbors: Option<Vec<[String; 2]>>,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
@@ -882,14 +904,6 @@ pub struct AuthoredStructureExhaust {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
-pub struct AuthoredSurface {
-    #[serde(rename = "vertices")]
-    pub vertices: Vec<[f64; 3]>,
-    #[serde(rename = "triangles")]
-    pub triangles: Vec<[f64; 3]>,
-}
-
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct AuthoredStructure {
     #[serde(rename = "id")]
     pub id: String,
@@ -960,7 +974,7 @@ pub struct ShipDefinition {
     #[serde(rename = "damageControl")]
     pub damage_control: Option<DamageControlProfile>,
     #[serde(rename = "mountClearance")]
-    pub mount_clearance: Option<ShipDefinitionMountClearance>,
+    pub mount_clearance: Option<MountClearanceProfile>,
     #[serde(rename = "underwaterProtection")]
     pub underwater_protection: Option<ShipDefinitionUnderwaterProtection>,
     #[serde(rename = "localDamage")]
