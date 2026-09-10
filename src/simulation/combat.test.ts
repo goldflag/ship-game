@@ -199,7 +199,8 @@ test('reset replaces the trial target state without invalidating renderer bindin
   expect(sim.target).toBe(target); expect(target.damage.integrity).toBe(target.damage.maxIntegrity); expect(target.motion.y).toBe(0);
 });
 test('shot and splash events retain matching caliber and independent velocity snapshots', () => {
-  const sim = new CombatSimulation(definition()), aim: Vec3 = [450, .5, 0];
+  // Keep the near-water target within the raised turrets' -1° depression limit.
+  const sim = new CombatSimulation(definition()), aim: Vec3 = [650, .5, 0];
   for (let i = 0; i < 1800; i++) sim.step(stop, { aim, fire: false, battery: 'main' });
   sim.step(stop, { aim, fire: true, battery: 'main' });
   const shots = sim.events.filter(e => e.kind === 'shot');
