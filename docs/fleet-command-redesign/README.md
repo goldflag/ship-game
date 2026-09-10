@@ -16,3 +16,7 @@ Bill chose D on 2026-09-09 and asked for refinements, now in the page: every shi
 Implemented on 2026-09-09 in `src/ui/FleetCommand.tsx` and companions; see the status note in [pve-implementation-status.md](../pve-implementation-status.md). Move is G rather than M in the shipped build because M remains the chart toggle.
 
 Author: Claude Fable 5.1, 2026-09-09, on branch `goldflag/turbot` from master `24412824`.
+
+## Round two
+
+`round2.html` holds the second-round explorations after the owner reviewed the shipped screen: air-groups panel variations, mirrored fleet panels with an aircraft overview, menu placement options, one menu for ships and planes, the line and icon vocabulary, and the checklist of what shipped in that round (see the status note).

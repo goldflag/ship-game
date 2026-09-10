@@ -271,3 +271,41 @@
   .fleet-command-panel { width:calc(100% - 12px); }
 }
 @media (prefers-reduced-motion:reduce) { .fleet-command * { scroll-behavior:auto; transition:none; } }
+
+/* Line vocabulary: one look per meaning. */
+.fleet-command-route { stroke:var(--fleet-gold); stroke-width:1.4; stroke-dasharray:none; }
+.fleet-command-escort-link { fill:none; stroke:var(--fleet-active); stroke-width:1.1; stroke-dasharray:1 5; stroke-linecap:round; opacity:.75; pointer-events:none; }
+.fleet-command-hold-ring { fill:none; stroke:var(--fleet-active); stroke-width:1.1; stroke-dasharray:8 4 2 4; pointer-events:none; }
+.fleet-command-move-preview { stroke:#f0f5f3; stroke-width:1.4; stroke-dasharray:2 5; stroke-linecap:round; }
+.fleet-command-move-preview text { fill:#f0f5f3; }
+.fleet-command-move-preview.air { stroke:var(--fleet-active); }
+.fleet-command-move-preview.air text { fill:var(--fleet-active); }
+.fleet-command-air-course { opacity:.5; pointer-events:none; }
+.fleet-command-air-course.selected { opacity:1; }
+.fleet-command-air-course.planned { opacity:.35; }
+.fleet-command-air-route { fill:none; stroke:var(--fleet-active); stroke-width:1.2; stroke-dasharray:10 6; }
+.fleet-command-loiter { fill:none; stroke:var(--fleet-active); stroke-width:1; stroke-dasharray:1 4; stroke-linecap:round; }
+.fleet-command-search-area { fill:none; stroke:var(--fleet-active); stroke-width:1.1; stroke-dasharray:8 4 2 4; }
+.fleet-command-air-target { fill:none; stroke:var(--fleet-active); stroke-width:1.4; }
+/* Ship-type silhouettes: the hull carries the marker fill, the class mark the colour. */
+.fleet-command-marker .fleet-command-hull { fill:#102c37; stroke:currentColor; stroke-width:1.5; }
+.fleet-command-marker .fleet-command-mark { fill:currentColor; stroke:none; opacity:.9; }
+/* Planes: solid = armed, hollow = nothing left to drop or fire, brass = hurt. */
+.fleet-command-plane.unarmed path { fill:none; stroke:currentColor; stroke-width:1; }
+.fleet-command-plane.hurt.unarmed path { stroke:var(--fleet-gold); }
+.fleet-command-plane.hovered .fleet-command-hitbox { stroke:#f0f5f3; stroke-width:1.2; }
+.fleet-command-top time { min-width:3.3em; }
+.fleet-command-wheel-anchor.flip .fleet-command-wheel-block { left:auto; right:100px; }
+.fleet-command-wheel-anchor.flip .fleet-command-wheel-chip { left:auto; right:36px; }
+.fleet-command-wheel-chip { position:absolute; left:24px; top:28px; display:flex; align-items:center; gap:10px; padding:5px 8px 5px 10px; background:#0b1e27e6; border:1px solid var(--fleet-line); border-radius:2px; text-shadow:none; white-space:nowrap; }
+.fleet-command-wheel-chip strong { font:600 13px/1 'Barlow Condensed',sans-serif; color:var(--fleet-gold); letter-spacing:.03em; text-transform:uppercase; }
+.fleet-command-wheel-chip span { color:var(--fleet-gold); font-size:12px; }
+.fleet-command-wheel-chip button { min-height:24px; padding:2px 7px; font-size:11.5px; }
+.fleet-command-wheel-block.air { width:420px; }
+.fleet-command-wheel-block .fleet-command-planes { border:0; padding:0 0 0 12px; }
+.fleet-command-wheel-block .fleet-command-search { padding-left:12px; }
+.fleet-command-wheel-block .fleet-command-service { margin:0 0 0 12px; padding-top:6px; border-top:1px solid var(--fleet-line); }
+.fleet-command-notice { padding-left:12px; color:var(--fleet-gold); font-size:12px; }
+.fleet-command-flights > button.hovered { background:#c9dce012; }
+.fleet-command-wheel-anchor.flip-up .fleet-command-wheel-block { top:auto; bottom:-40px; }
+.fleet-command-wheel-anchor.flip .fleet-command-wheel-chip { right:24px; }

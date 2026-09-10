@@ -51,3 +51,11 @@ test('ship markers fade out as the hull grows on screen', () => {
   expect(markerOpacity(36)).toBeCloseTo(.5);
   expect(markerOpacity(80)).toBe(0);
 });
+
+test('an unclassified aircraft report takes its type and model from a recognised exterior', async () => {
+  const { reportedAircraftType } = await import('./fleetStats');
+  const report = track({ id: 'a9', kind: 'aircraft', classification: null });
+  expect(reportedAircraftType(report, [{ id: 'a9', modelId: 'b5n2-kate' }])).toEqual({ type: 'torpedo-bomber', model: 'B5N2 Kate' });
+  expect(reportedAircraftType(track({ id: 'a9', kind: 'aircraft', classification: 'Fighter' }), [{ id: 'a9', modelId: 'b5n2-kate' }])).toEqual({ type: 'fighter', model: 'B5N2 Kate' });
+  expect(reportedAircraftType(report)).toEqual({ type: 'unknown', model: undefined });
+});

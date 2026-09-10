@@ -49,7 +49,8 @@ test('the chart shows every formation, the enemy fleet and an order wheel with h
   for (const item of ['Move · G', 'Hold · H', 'Escort · E', 'Focus fire · F', 'Column · C · formation', '20 kn · + / −']) expect(html).toContain(`aria-label="${item}"`);
   expect(html).toContain('Take helm<kbd>T</kbd>');
   expect(html).toContain('Weapons policy');
-  expect(html).toContain('Middle-drag orbit');
+  expect(html).toContain('fleet-command-hull');
+  expect(html).not.toContain('Middle-drag orbit');
   expect(html).toContain('data-map-fade="');
   expect(html).toContain('data-track="hidden-air-report"');
 });
