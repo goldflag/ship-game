@@ -569,3 +569,14 @@ test('fleet Follow lead leaves the chart and keeps tracking a friendly carrier p
   await game.frame(time += 1000 / 60);
   expect(followedAircraft(game)).toBeUndefined();
 });
+
+test('camera overlay listeners receive aircraft presentation from the current frame', async () => {
+  const { game } = await frameHarness();
+  let aircraftFrame = 0;
+  Reflect.get(game, 'aircraftView').update = () => { aircraftFrame++; };
+  const observed: number[] = [];
+  Reflect.get(game, 'cameraFrameListeners').add(() => observed.push(aircraftFrame));
+  await game.frame(1000 / 60);
+  await game.frame(2000 / 60);
+  expect(observed).toEqual([1, 2]);
+});

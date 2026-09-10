@@ -601,7 +601,7 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
         <g data-map-glyph="true" data-map-heading={Math.atan2(vx, -vz)}><path d={PLANE_GLYPHS[reportedAircraftType(c, observedModels).type]} transform="scale(.9)"/>{damaged && <path className="fleet-command-smoke" d="M0 6q-3 6 -1 12"/>}</g>
         {healthMarker(c, 12, 18)}
       </g>; })}
-      {clusters.map(cluster => <g key={cluster.id} data-map-position={JSON.stringify(cluster.position)} className={`fleet-command-cluster ${cluster.stale ? 'stale' : ''} ${cluster.trackIds.includes(contactId ?? '') ? 'selected' : ''}`} aria-hidden="true">
+      {clusters.map(cluster => <g key={cluster.id} data-contact-group={JSON.stringify(cluster.trackIds)} data-map-position={JSON.stringify(cluster.position)} className={`fleet-command-cluster ${cluster.stale ? 'stale' : ''} ${cluster.trackIds.includes(contactId ?? '') ? 'selected' : ''}`} aria-hidden="true">
         <text x="20" y="-2">{cluster.label}{cluster.model ? ` · ${cluster.model}` : ''}</text><text className="fleet-command-marker-order" x="20" y="11">{cluster.stale ? `last known · ${observationAge(cluster.lastObservedTick, tick)}` : `current${cluster.smoking ? ` · ${cluster.smoking} smoking` : ''}`}</text>
       </g>)}
     </svg>
@@ -643,7 +643,7 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
           {selectedFlights.some(f => f.notice) && <p className="fleet-command-notice" role="status">{selectedFlights.filter(f => f.notice).map(f => `${f.name} · ${f.notice}`).join(' / ')}</p>}
         </div>}
       </div>}
-      {selectedContact && <div className="fleet-command-popover-anchor" {...(selectedReport?.kind === 'aircraft' ? { 'data-map-position': JSON.stringify(reportPosition(selectedReport, tick)) } : selectedReport ? { 'data-map-position': JSON.stringify(reportPosition(selectedReport, tick)), 'data-contact-marker': selectedReport.id } : { 'data-map-position': JSON.stringify([selectedContact.x, 0, selectedContact.z]) })}>
+      {selectedContact && <div className="fleet-command-popover-anchor" {...(selectedReport?.kind === 'aircraft' ? { 'data-map-position': JSON.stringify(reportPosition(selectedReport, tick)), 'data-contact-marker': selectedReport.id } : selectedReport ? { 'data-map-position': JSON.stringify(reportPosition(selectedReport, tick)), 'data-contact-marker': selectedReport.id } : { 'data-map-position': JSON.stringify([selectedContact.x, 0, selectedContact.z]) })}>
         <section className="fleet-command-popover" aria-label="Contact report">
           <strong>{selectedTrackCluster ? selectedTrackCluster.label : selectedContact.name}</strong>
           {selectedReport ? <p>{selectedReport.affiliation === 'hostile' ? 'Hostile' : 'Affiliation unknown'} · {reportState(selectedReport, tick).replaceAll('-', ' ')} · {bearingLabel(selectedContact.x - origin.x, selectedContact.z - origin.z)} · {rangeLabel(selectedContact.x - origin.x, selectedContact.z - origin.z)}{selectedReport.visibleCondition?.sinking ? '' : ` · ±${reportUncertainty(selectedReport)}`}</p> : <p>Hostile · {bearingLabel(selectedContact.x - origin.x, selectedContact.z - origin.z)} · {rangeLabel(selectedContact.x - origin.x, selectedContact.z - origin.z)}</p>}

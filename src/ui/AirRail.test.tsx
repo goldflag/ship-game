@@ -129,3 +129,12 @@ test('the hovered row is marked and a wing without a deck drops the policy cell 
   expect(bare).not.toContain('air-rail-deck');
   expect(bare).toContain('<small>Deck</small><b>4<i>/12</i></b>');
 });
+
+test('patrol labels follow actual launch, transit and return status', () => {
+  for (const [status, activity] of [['launching', 'Launching'], ['on-mission', 'En route'], ['returning', 'Returning'], ['servicing', 'Servicing']] as const) {
+    const html = render({ flights: [flight({ status, activity })] });
+    expect(html).not.toContain('Loitering');
+    expect(html).toContain(activity);
+    if (status === 'returning' || status === 'servicing') expect(html).not.toContain('Loiter at station');
+  }
+});
