@@ -266,7 +266,7 @@ fn mission_geography_is_independent_of_private_roster_and_initial_pool_excludes_
 }
 
 #[test]
-fn opening_orders_keep_rear_escorts_with_the_carrier_and_surface_orders_under_player_control() {
+fn opening_orders_keep_escorts_but_leave_all_player_group_routes_unassigned() {
     use naval_sim::navigation::Movement;
     let mut content = catalog().clone();
     content
@@ -283,7 +283,7 @@ fn opening_orders_keep_rear_escorts_with_the_carrier_and_surface_orders_under_pl
     let orders = plan.initial_directives(&battle);
     assert!(matches!(
         &orders["ship-0"].0,
-        Movement::Route { looped: true, .. }
+        Movement::HoldArea { .. }
     ));
     assert!(matches!(&orders["ship-1"].0,Movement::Escort{leader_id,..} if leader_id=="ship-0"));
     assert!(matches!(&orders["ship-2"].0, Movement::HoldArea { .. }));

@@ -12,3 +12,19 @@ test('plane markers and group labels follow frame poses instead of cached teleme
     x = 100;
   }
 });
+
+test('heading stays north as an interpolated contact passes its telemetry position', async () => {
+  const { projectMapHeading } = await import('./airMarkerProjection');
+  let liveZ = 0;
+  const game = {
+    projectAirMap: (x: number, z: number) => [x, z],
+    projectContact: () => [0, liveZ],
+  } as unknown as Game;
+  for (liveZ of [0, -5, -10, -15, -30]) {
+    const marker = projectAirMarker(game, { track: 'enemy' }, [0, 0, 0])!;
+    // The old subtraction flips south once interpolation moves beyond the 10 m heading probe.
+    const oldAngle = Math.atan2(-marker[0], marker[1] + 10) * 180 / Math.PI;
+    if (liveZ < -10) expect(Math.abs(oldAngle)).toBe(180);
+    expect(projectMapHeading(game, [0, 0, 0], 0)).toBe(0);
+  }
+});

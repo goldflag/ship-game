@@ -99,7 +99,8 @@ test('enemy HP appears only for current sightings with sampled health', () => {
   expect(render()).not.toContain('73% HP');
   const tracks = (simulation as unknown as { observationTracks: { status: string }[] }).observationTracks;
   tracks[0].status = 'tracked';
-  expect(render()).toContain('73% HP');
+  expect(render()).toContain('aria-valuenow="73"');
+  expect(render()).not.toContain('73% HP');
   tracks[1].status = 'stale';
   expect(render()).not.toContain('42% HP');
 });

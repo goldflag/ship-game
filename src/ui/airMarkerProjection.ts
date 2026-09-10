@@ -7,3 +7,11 @@ export function projectAirMarker(game: Game, marker: DOMStringMap, [x, y, z]: Ve
   if (marker.contactGroup) return game.projectContactGroup(JSON.parse(marker.contactGroup) as string[]);
   return marker.contactMarker ? game.projectContact(marker.contactMarker) : game.projectAirMap(x, z, y);
 }
+
+/** Project both ends of the direction from one pose, independently of label interpolation. */
+export function projectMapHeading(game: Game, position: Vec3, heading: number): number | undefined {
+  const [x, y, z] = position;
+  const origin = game.projectAirMap(x, z, y);
+  const forward = game.projectAirMap(x + Math.sin(heading) * 10, z - Math.cos(heading) * 10, y);
+  return origin && forward ? Math.atan2(forward[0] - origin[0], origin[1] - forward[1]) * 180 / Math.PI : undefined;
+}

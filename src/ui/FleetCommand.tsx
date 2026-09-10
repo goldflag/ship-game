@@ -35,6 +35,7 @@ import { AirRail } from './AirRail';
 import { FleetRoster, type RosterShip } from './FleetRoster';
 import { OrderWheel, type WheelItem } from './OrderWheel';
 import './FleetCommand.css';
+import { PlaneHealth } from './PlaneHealth';
 
 type Contact = CombatTelemetry['contacts'][number];
 type ArmedOrder = 'search' | 'move' | 'escort' | 'focus' | SquadronAction;
@@ -191,9 +192,10 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
     setFeedback(followers.length ? `${followers.length} escort orders queued · ${formation}` : 'Choose a leader outside the selection.');
     setArmed(undefined);
   };
-  const move = (point: [number, number], append: boolean) => {
+  const move = (point: [number, number], appendRequested: boolean) => {
     if (!lead) { setFeedback('Select ships before giving a destination.'); return; }
     const previous = pendingRoutes[lead.id]?.points ?? (orders[lead.id]?.movement.type === 'route' ? routePoints(lead, orders[lead.id], ships) : []);
+    const append = appendRequested && previous.length > 1;
     const points: Vec3[] = append && previous.length > 1 ? [...previous, [point[0], 0, point[1]]] : [[lead.x, 0, lead.z], [point[0], 0, point[1]]];
     const before = game.simulation.orderReceipts?.at(-1);
     game.simulation.routeShip?.(lead.id, [point], speedKn / KNOTS_PER_MPS, false, append);
@@ -244,7 +246,7 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
     if (!point) return;
     if (selectedFlights.length && armed === 'search') issueSearch(point);
     else if (selectedFlights.length && (right || typeof armed === 'object')) issueAir({ kind: 'water', point: [point[0], 0, point[1]] });
-    else if (right || armed === 'move') move(point, event.shiftKey);
+    else if (right || armed === 'move' || (!armed && event.shiftKey && lead && !selectedFlights.length)) move(point, event.shiftKey);
     else if (!armed) { selectShips([]); game.selectFlights([]); }
   };
   const arm = (order: ArmedOrder) => {
@@ -505,7 +507,7 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
         const all = members.every(m => ids.includes(m.id));
         const points = bracketPoints(members);
         return <g key={`formation-${f.index}`} className={`fleet-command-bracket ${all ? 'selected' : ''}`}>
-          {members.length > 1 && <path data-map-path={JSON.stringify(points)} data-closed="true"/>}
+          {members.length > 1 && <path data-map-smooth="true" data-map-path={JSON.stringify(points)} data-closed="true"/>}
           <g className="fleet-command-bracket-label" data-map-position={JSON.stringify(members.length > 1 ? points[0] : [members[0].x, 0, members[0].z])} role="button" tabIndex={0} aria-label={`Select ${f.name} · ${f.index}`}
             onClick={e => { e.stopPropagation(); selectFormation(f); }} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); selectFormation(f); } }}>
             <rect className="fleet-command-bracket-key" x={members.length > 1 ? 0 : -30} y={members.length > 1 ? -24 : -32} width="16" height="16" rx="2"/><text className="fleet-command-bracket-index" x={members.length > 1 ? 8 : -22} y={members.length > 1 ? -12 : -20}>{f.index}</text>
@@ -520,7 +522,7 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
         const patrol = f.order.kind === 'patrol', search = f.order.kind === 'search-area' ? f.order : undefined;
         const { path, station, contactId: destinationContact } = fleetAirCourse(f, from, observations, tick);
         return <g key={`air-${f.id}`} className={`fleet-command-air-course ${on ? 'selected' : ''} ${f.airborne === 0 ? 'planned' : ''}`} aria-label={`${f.name} course`}>
-          {path.length > 1 && <path className="fleet-command-air-route" data-map-path={JSON.stringify(path)}/>}
+          {path.length > 1 && <path className="fleet-command-air-route" data-map-smooth="true" data-map-path={JSON.stringify(path)}/>}
           {destinationContact && <g className="fleet-command-air-target" data-contact-marker={destinationContact} data-map-position={JSON.stringify(station)}><circle r="7"/><path d="M-11 0H11M0-11V11"/></g>}
           {patrol && <><path className="fleet-command-loiter" data-map-path={JSON.stringify(circlePoints(station[0], station[2], LOITER_RADIUS_M))} data-closed="true"/><g className="fleet-command-air-target" data-map-position={JSON.stringify(station)}><circle r="7"/><path d="M-11 0H11M0-11V11"/></g></>}
           {search && <path className="fleet-command-search-area" data-map-path={JSON.stringify(circlePoints(search.center[0], search.center[1], search.radiusM))} data-closed="true"/>}
@@ -540,7 +542,7 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
         const alone = ids.includes(s.id) && !(own && own.shipIds.length > 1 && own.shipIds.every(id => ids.includes(id)));
         if (movement?.type === 'escort' && !alone && hoverId !== s.id) return null;
         return <g key={`route-${s.id}`} data-route-owner={s.id} className={`fleet-command-course ${ids.includes(s.id) || hoverId === s.id ? 'selected' : ''}`}>
-          <path className={movement?.type === 'escort' ? 'fleet-command-escort-link' : movement?.type === 'hold-area' ? 'fleet-command-hold-ring' : 'fleet-command-route'} data-map-path={JSON.stringify(points)}/>
+          <path className={movement?.type === 'escort' ? 'fleet-command-escort-link' : movement?.type === 'hold-area' ? 'fleet-command-hold-ring' : 'fleet-command-route'} data-map-smooth="true" data-map-path={JSON.stringify(points)}/>
           {movement?.type === 'escort' && points.length > 1 && <g className="fleet-command-escort-station" data-map-position={JSON.stringify(points[1])} aria-label={`${s.name} escort station`}><circle r="5"/><text x="8" y="14">station</text></g>}
           {waypoints.map((point, i) => <g key={i} className="fleet-command-waypoint" data-map-position={JSON.stringify(point)} aria-label={`${s.name} waypoint ${i + 1}`}><circle r="8"/><path d="M-12 0H12M0-12V12"/><text x="12" y="-10">{i + 1}</text></g>)}
         </g>;
@@ -583,14 +585,14 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
         <title>{`${reportName(c)} · ${reportState(c, tick).replaceAll('-', ' ')} · ${reportAge(c, tick)}`}</title>
         <circle r="18" className="fleet-command-hitbox"/>
         <g data-map-glyph="true" data-map-heading={heading}><path className="fleet-command-hull" d={glyph.hull}/><path className="fleet-command-mark" d={glyph.mark}/></g>
-        <text x="16" y="-3">{reportName(c)}</text><text className="fleet-command-marker-order" x="16" y="11">{c.affiliation === 'unknown' ? 'affiliation unknown' : reportState(c, tick) === 'current' ? conditionReport(c, tick).split(' · ')[0].toLowerCase() : `${reportState(c, tick).replaceAll('-', ' ')} · ${reportAge(c, tick)}`}</text>
+        <text x="16" y="-3">{reportName(c)}</text><text className="fleet-command-marker-order" x="16" y="11">{c.affiliation === 'unknown' ? 'affiliation unknown' : reportState(c, tick) === 'current' ? (c.visibleCondition?.sinking || c.visibleCondition?.fire || c.visibleCondition?.heavySmoke || c.visibleCondition?.listing ? conditionReport(c, tick).split(' · ')[0].toLowerCase() : '') : `${reportState(c, tick).replaceAll('-', ' ')} · ${reportAge(c, tick)}`}</text>
         {healthMarker(c, 16, 18)}
       </g>; })}
       {ownPlanes.map(p => { const flight = flights.find(f => f.id === p.flightId), on = !!flight && game.selectedFlightIds.includes(flight.id), unarmed = p.role === 'fighter' ? p.ammo <= 0 : !p.payload; return <g key={p.id} data-map-position={JSON.stringify(p.position)} data-plane={p.id} data-map-fade={`13,${p.heading},6,14`} className={`fleet-command-plane friendly ${on ? 'selected' : ''} ${p.hp < 50 ? 'hurt' : ''} ${unarmed ? 'unarmed' : ''} ${hoverFlightId && hoverFlightId === p.flightId ? 'hovered' : ''}`}
         onClick={e => { e.stopPropagation(); if (ignoreClick.current) { ignoreClick.current = false; return; } if (flight) selectAir(flight.id, e.shiftKey || e.ctrlKey || e.metaKey); }}>
         <circle r="8" className="fleet-command-hitbox"/>
         <g data-map-glyph="true" data-map-heading={p.heading}><path d={PLANE_GLYPHS[p.role]} transform="scale(.9)"/></g>
-        {on && <><rect className="fleet-command-hull-track" x="-6" y="9" width="12" height="2"/><rect className="fleet-command-hull-fill" x="-6" y="9" width={12 * Math.max(0, Math.min(1, p.hp / 100))} height="2"/></>}
+        <PlaneHealth hp={p.hp / 100} name={flight?.name ?? 'Aircraft'}/>
       </g>; })}
       {observations.filter(c => c.kind === 'aircraft').map(c => { const position = reportPosition(c, tick), [vx, , vz] = c.velocity, damaged = c.visibleCondition?.fire || c.visibleCondition?.heavySmoke; return <g key={c.id} data-map-position={JSON.stringify(position)} data-track={c.id} data-contact-kind="aircraft" data-map-fade={`13,${Math.atan2(vx, -vz)},6,14`} data-report-state={reportState(c, tick)} className={`fleet-command-plane ${c.affiliation === 'hostile' ? 'enemy' : 'unidentified'} ${c.status} ${contactId === c.id ? 'selected' : ''}`}
         role="button" tabIndex={0} aria-label={`${reportName(c)} · ${c.status} · observed ${reportAge(c, tick)}`}
@@ -599,10 +601,10 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
         <title>{`${reportName(c)} · ${reportState(c, tick).replaceAll('-', ' ')} · ${reportAge(c, tick)}`}</title>
         <circle r="8" className="fleet-command-hitbox"/>
         <g data-map-glyph="true" data-map-heading={Math.atan2(vx, -vz)}><path d={PLANE_GLYPHS[reportedAircraftType(c, observedModels).type]} transform="scale(.9)"/>{damaged && <path className="fleet-command-smoke" d="M0 6q-3 6 -1 12"/>}</g>
-        {healthMarker(c, 12, 18)}
+        <PlaneHealth hp={healthOf(c)} name={reportName(c)}/>
       </g>; })}
       {clusters.map(cluster => <g key={cluster.id} data-contact-group={JSON.stringify(cluster.trackIds)} data-map-position={JSON.stringify(cluster.position)} className={`fleet-command-cluster ${cluster.stale ? 'stale' : ''} ${cluster.trackIds.includes(contactId ?? '') ? 'selected' : ''}`} aria-hidden="true">
-        <text x="20" y="-2">{cluster.label}{cluster.model ? ` · ${cluster.model}` : ''}</text><text className="fleet-command-marker-order" x="20" y="11">{cluster.stale ? `last known · ${observationAge(cluster.lastObservedTick, tick)}` : `current${cluster.smoking ? ` · ${cluster.smoking} smoking` : ''}`}</text>
+        <text x="20" y="-2">{cluster.label}{cluster.model ? ` · ${cluster.model}` : ''}</text><text className="fleet-command-marker-order" x="20" y="11">{cluster.stale ? `last known · ${observationAge(cluster.lastObservedTick, tick)}` : cluster.smoking ? `${cluster.smoking} smoking` : ''}</text>
       </g>)}
     </svg>
     <div ref={anchors} className="fleet-command-anchors">
