@@ -8,6 +8,7 @@
     "assets/ships/bismarck/appearance.json",
     "assets/parts/library.py",
     "assets/parts/library.json",
-    "assets/parts/german-battleship-guns/sk_c34.py"
+    "assets/parts/german-battleship-guns/sk_c34.py",
+    "assets/parts/german-battleship-guns/sk_c30.py"
   ]
 }

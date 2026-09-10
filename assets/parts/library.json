@@ -44,6 +44,13 @@
         "scripts/ships/blender_components.py",
         "scripts/ships/blender_barrels.py"
       ]
+    },
+    "german-sk-c30": {
+      "path": "assets/parts/german-battleship-guns/sk_c30.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
     }
   },
   "components": [
@@ -184,7 +191,8 @@
       "nation": "Germany",
       "family": "3.7 cm twin AA",
       "review": "unreviewed",
-      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified."
+      "limitations": "Original SK C/30 twin inferred from approved pgsb708 displayed 30-degree muzzle locations. Source AA operating sectors are empty; catalog travel remains an authored approximation. Ship installation and independent-neighbor clearance require final review.",
+      "builder": "german-sk-c30"
     },
     {
       "partId": "flak-20-bismarck-1941",
