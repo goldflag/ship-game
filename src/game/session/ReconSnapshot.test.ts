@@ -16,6 +16,7 @@ test('real team snapshots carry sampled coverage and observed condition without 
     const raw = JSON.parse(session.runtime.snapshot());
     expect(JSON.stringify(raw)).not.toContain('enemy-1');
     expect(raw.contacts[0].health).toBeUndefined();
+    expect(raw.observedShips[0].health).toBeGreaterThan(0);
     expect(raw.contacts[0].inventory).toBeUndefined();
     expect(raw.contacts[0].orders).toBeUndefined();
     delete raw.reconCoverage;
@@ -43,6 +44,7 @@ test('real PvE WASM aircraft sightings reach the renderer without enemy carriers
     const raw = JSON.parse(session.runtime.snapshot());
     expect(JSON.stringify(raw.observedAircraft)).not.toContain('enemy-1');
     expect(raw.observedAircraft[0].hp).toBeUndefined();
+    expect(raw.observedAircraft[0].health).toBeGreaterThan(0);
     expect(raw.observedAircraft[0].ownerId).toBeUndefined();
     delete raw.observedAircraft;
     session.applyRaw(JSON.stringify(raw));

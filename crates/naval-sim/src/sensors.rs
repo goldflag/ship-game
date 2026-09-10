@@ -140,6 +140,8 @@ pub struct VisualEntity {
     pub cues: crate::recon::VisualCues,
     pub motion: VisualMotion,
     pub aircraft: Option<AircraftExterior>,
+    /// Hull or airframe health fraction, sampled only while visible.
+    pub health: f64,
 }
 /// Only externally visible pose and mechanisms are retained at acquisition.
 #[derive(Clone, Debug, Default)]
@@ -654,6 +656,7 @@ pub fn entities(actors: &[Vessel], aviation: &Aviation) -> Vec<VisualEntity> {
                     pitch: a.motion.pitch,
                     roll: a.motion.roll,
                 },
+                health: (a.damage.integrity / a.damage.max_integrity).clamp(0.0, 1.0),
                 aircraft: None,
             }
         })
@@ -688,6 +691,7 @@ pub fn entities(actors: &[Vessel], aviation: &Aviation) -> Vec<VisualEntity> {
                     pitch: p.pitch,
                     roll: p.bank,
                 },
+                health: (p.hp / 100.0).clamp(0.0, 1.0),
                 aircraft: Some(AircraftExterior {
                     model_id: p.model_id.clone(),
                     controls: p.controls,

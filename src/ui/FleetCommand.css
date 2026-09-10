@@ -277,3 +277,7 @@
 .fleet-command-notice { padding-left:12px; color:var(--fleet-gold); font-size:12px; }
 .fleet-command-wheel-anchor.flip-up .fleet-command-wheel-block { top:auto; bottom:-40px; }
 .fleet-command-wheel-anchor.flip .fleet-command-wheel-chip { right:24px; }
+
+.fleet-command-enemy-health { color:#ffb5a6; pointer-events:none; }
+.fleet-command-enemy-health .fleet-command-hull-fill { fill:currentColor; }
+.fleet-command-enemy-health text { fill:currentColor; font-size:10.5px; font-weight:500; font-variant-numeric:tabular-nums; }

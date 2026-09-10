@@ -10,7 +10,8 @@ import type { FleetActor } from '../../simulation/battle';
 import type { ContactTrack } from '../../multiplayer/generated/ContactTrack';
 import type { MissionRules } from '../../multiplayer/generated/MissionRules';
 import type { ReconCoverage } from '../../multiplayer/generated/ReconCoverage';
-export interface ObservedPose { id: string; position: Vec3; heading: number; pitch?: number; roll?: number; velocity: Vec3; observedTick: number; observers: string[] }
+/** Health is a sampled 0–1 fraction; absent on older snapshots. */
+export interface ObservedPose { health?: number; id: string; position: Vec3; heading: number; pitch?: number; roll?: number; velocity: Vec3; observedTick: number; observers: string[] }
 export interface ObservedShip extends ObservedPose { presetId: string }
 export interface ObservedAircraft extends ObservedPose { modelId: string; controls: import('../../simulation/aircraftFlight').FlightControls; wingFold: number }
 export interface BattleDebrief {

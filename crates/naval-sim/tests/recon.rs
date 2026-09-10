@@ -19,6 +19,7 @@ fn observer() -> VisualEntity {
         cues: VisualCues::default(),
         motion: Default::default(),
         aircraft: None,
+        health: 1.0,
     }
 }
 fn target() -> VisualEntity {

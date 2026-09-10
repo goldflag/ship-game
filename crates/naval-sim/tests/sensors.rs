@@ -19,6 +19,7 @@ fn entity(id: &str, team: TeamId, kind: ContactKind, x: f64, altitude: f64) -> V
         cues: Default::default(),
         motion: Default::default(),
         aircraft: None,
+        health: 1.0,
     }
 }
 fn clear() -> VisualConditions {
