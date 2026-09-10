@@ -444,6 +444,11 @@ impl Aviation {
         result
     }
     pub fn cancel_deck_command(&mut self, actor_id: &str, id: u64) -> bool {
+        let request = self
+            .wing(actor_id)
+            .and_then(|w| w.deck.as_ref())
+            .and_then(|d| d.queue.iter().find(|r| r.id == id))
+            .cloned();
         let Some(mut ops) = self.deck_operations.remove(actor_id) else {
             return false;
         };
@@ -456,6 +461,23 @@ impl Aviation {
             .is_some_and(|s| s.suspended);
         ops.publish(self.wing_mut(actor_id).unwrap(), suspended);
         self.deck_operations.insert(actor_id.into(), ops);
+        if cancelled && let Some(request) = request {
+            if request.action == crate::deck_operations::DeckAction::Launch {
+                // Cancellation is an order lifecycle event, not only removal of
+                // a handling job. Recall clears queued aircraft and persistent
+                // patrol/package intent; committed moves finish safely as usual.
+                self.recall(actor_id, Some(&request.flight_id));
+            } else if self
+                .operations
+                .stations
+                .iter()
+                .any(|s| s.owner_id == actor_id && s.groups.contains(&request.flight_id))
+            {
+                // Do not immediately recreate an explicitly cancelled relief
+                // preparation request at the next scheduler check.
+                self.cancel_air_operation(actor_id, Some(&request.flight_id));
+            }
+        }
         cancelled
     }
     pub fn set_deck_policy(

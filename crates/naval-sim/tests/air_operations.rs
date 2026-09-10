@@ -747,3 +747,148 @@ fn benchmark_attack_package_flights() {
         }
     }
 }
+
+fn managed_setup(groups: usize) -> (Vec<Vessel>, Aviation) {
+    use naval_sim::air_rules::{DeckCycle, DeckTimings};
+    let actors = actors();
+    let mut rules = catalog().air_profiles["pve-air-v1"].clone();
+    rules.group_size = Some(4);
+    rules.deck_capacity = Some(24);
+    rules.deck_cycle = DeckCycle::Managed {
+        startup_groups_per_role: groups,
+        timings: DeckTimings {
+            lift_seconds: 6.0,
+            taxi_speed: 12.0,
+            turn_radians_per_second: 0.7,
+            rearm_seconds: 35.0,
+            repair_seconds: 90.0,
+        },
+    };
+    let air = Aviation::with_rules(&actors, catalog().aircraft.clone(), rules).unwrap();
+    (actors, air)
+}
+#[test]
+fn cancelling_a_managed_relief_launch_clears_queued_planes_and_persistent_station() {
+    let (actors, mut air) = managed_setup(2);
+    let original = launch(
+        &mut air,
+        &actors,
+        0,
+        "fighter",
+        AirOrder::Defend { target_id: None },
+    );
+    airborne(&mut air, "carrier", &original, [0.0, 850.0, 0.0]);
+    low_ammo(&mut air, "carrier", &original);
+    air.step_air_operations(&actors, None, 1.0);
+    let relief = air.operations.stations[0].relief.clone().unwrap();
+    let request = air
+        .wing("carrier")
+        .unwrap()
+        .deck
+        .as_ref()
+        .unwrap()
+        .queue
+        .iter()
+        .find(|r| {
+            r.flight_id == relief && r.action == naval_sim::deck_operations::DeckAction::Launch
+        })
+        .unwrap()
+        .id;
+    assert!(!air.cancel_deck_command("other", request));
+    assert_eq!(air.operations.stations.len(), 1);
+    assert!(air.cancel_deck_command("carrier", request));
+    assert!(air.operations.stations.is_empty());
+    assert!(
+        air.wing("carrier")
+            .unwrap()
+            .planes
+            .iter()
+            .filter(|p| p.flight_id.as_deref() == Some(&relief))
+            .all(|p| p.phase == "ready")
+    );
+    assert!(
+        air.wing("carrier")
+            .unwrap()
+            .planes
+            .iter()
+            .filter(|p| p.flight_id.as_deref() == Some(&original))
+            .all(|p| p.phase == "returning")
+    );
+    for time in 2..90 {
+        air.step_air_operations(&actors, None, time as f64);
+    }
+    assert!(air.operations.stations.is_empty());
+    assert!(
+        air.wing("carrier")
+            .unwrap()
+            .deck
+            .as_ref()
+            .unwrap()
+            .queue
+            .iter()
+            .all(|r| r.action != naval_sim::deck_operations::DeckAction::Launch)
+    );
+}
+#[test]
+fn cancelling_managed_strike_launch_and_patrol_preparation_retires_operation_intent() {
+    let (actors, mut air) = managed_setup(1);
+    let flight = launch(&mut air, &actors, 0, "dive-bomber", strike());
+    let request = air
+        .wing("carrier")
+        .unwrap()
+        .deck
+        .as_ref()
+        .unwrap()
+        .queue
+        .iter()
+        .find(|r| r.flight_id == flight)
+        .unwrap()
+        .id;
+    assert_eq!(air.operations.packages.len(), 1);
+    assert!(air.cancel_deck_command("carrier", request));
+    assert!(air.operations.packages.is_empty());
+    assert!(
+        air.wing("carrier")
+            .unwrap()
+            .planes
+            .iter()
+            .filter(|p| p.flight_id.as_deref() == Some(&flight))
+            .all(|p| p.phase == "ready")
+    );
+    let cap = launch(
+        &mut air,
+        &actors,
+        0,
+        "fighter",
+        AirOrder::Defend { target_id: None },
+    );
+    airborne(&mut air, "carrier", &cap, [0.0, 850.0, 0.0]);
+    low_ammo(&mut air, "carrier", &cap);
+    air.step_air_operations(&actors, None, 1.0);
+    let request = air
+        .wing("carrier")
+        .unwrap()
+        .deck
+        .as_ref()
+        .unwrap()
+        .queue
+        .iter()
+        .find(|r| r.action == naval_sim::deck_operations::DeckAction::Raise)
+        .unwrap()
+        .id;
+    assert!(air.cancel_deck_command("carrier", request));
+    for time in 2..90 {
+        air.step_air_operations(&actors, None, time as f64);
+    }
+    assert!(air.operations.stations.is_empty());
+    assert!(
+        air.wing("carrier")
+            .unwrap()
+            .deck
+            .as_ref()
+            .unwrap()
+            .queue
+            .iter()
+            .all(|r| r.action != naval_sim::deck_operations::DeckAction::Raise)
+    );
+}
