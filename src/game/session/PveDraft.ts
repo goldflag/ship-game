@@ -7,6 +7,22 @@ import type { Formation } from '../../multiplayer/generated/Formation';
 
 export interface PveOptions { rules: MissionRules; eligiblePresets: string[] }
 
+/** Starting a planner worker is expensive: wasm instantiation plus a 38 MB content manifest
+ * that is fetched, parsed and hashed before it can answer anything. One worker serves a
+ * whole visit to the setup screen — options, every regenerated plan, validation — and is
+ * handed to the battle on deploy, so that cost is paid once instead of per step. */
+let idleWorker: Worker | undefined;
+const startWorker = () => new Worker(new URL('./local.worker.ts', import.meta.url), { type: 'module' });
+function takeWorker(): Worker {
+  const worker = idleWorker ?? startWorker();
+  idleWorker = undefined;
+  return worker;
+}
+function parkWorker(worker: Worker): void {
+  worker.onmessage = null; worker.onerror = null;
+  if (idleWorker) worker.terminate(); else idleWorker = worker;
+}
+
 /** Only public briefing data leaves the planner's worker. The same worker owns
  * the frozen enemy from generation through deployment, battle and restart. */
 export class PveDraft {
@@ -17,10 +33,13 @@ export class PveDraft {
   private constructor(private worker: Worker, readonly briefing: PveBriefing, readonly request: PveRequest) {}
   setFormation(groupId: string, formation: Formation): void { this.formations[groupId] = formation; }
   static options(signal?: AbortSignal): Promise<PveOptions> {
-    const worker = new Worker(new URL('./local.worker.ts', import.meta.url), { type: 'module' });
+    const worker = takeWorker();
     return new Promise((resolve, reject) => {
       const finish = (error?: string, options?: PveOptions) => {
-        clearTimeout(timer); signal?.removeEventListener('abort', abort); worker.terminate();
+        clearTimeout(timer); signal?.removeEventListener('abort', abort);
+        // A worker that answered cleanly still holds the loaded catalog; a failed or
+        // abandoned one may have a reply in flight, so it is not worth keeping.
+        if (error) worker.terminate(); else parkWorker(worker);
         if (error) reject(new Error(error)); else resolve(options!);
       };
       const abort = () => finish('Mission preparation cancelled.');
@@ -36,7 +55,7 @@ export class PveDraft {
     });
   }
   static create(request: PveRequest, signal?: AbortSignal): Promise<PveDraft> {
-    const worker = new Worker(new URL('./local.worker.ts', import.meta.url), { type: 'module' });
+    const worker = takeWorker();
     return new Promise((resolve, reject) => {
       const abort = () => fail('Mission preparation cancelled.');
       const cleanup = () => { clearTimeout(timer); signal?.removeEventListener('abort', abort); };
@@ -74,5 +93,9 @@ export class PveDraft {
       this.worker.postMessage({ type: 'validate', placements });
     });
   }
-  dispose(): void { if (!this.transferred) { this.transferred = true; this.worker.terminate(); } }
+  /** Give the worker back for the next plan on this screen; the planner it holds is freed
+   * when that plan replaces it. Use release() to shut the setup down for good. */
+  dispose(): void { if (!this.transferred) { this.transferred = true; parkWorker(this.worker); } }
+  /** Leaving mission setup: stop paying to keep a worker and its catalog resident. */
+  static release(): void { idleWorker?.terminate(); idleWorker = undefined; }
 }
