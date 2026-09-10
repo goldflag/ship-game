@@ -6,7 +6,7 @@ import { SHIP_GLYPHS, type ShipClass } from './shipGlyphs';
 export interface OwnFleetShip {
   id: string; name: string; shipClass: ShipClass;
   /** 0..1 */
-  hull: number; kn: number;
+  hull: number; kn: number; routeBlocked?: boolean;
   /** Standing order text, e.g. "Route · 20 kn · Waypoint 2/4". */
   order: string;
   damageDealt: number; frags: number; lost: boolean; warn: boolean; massKg: number;
@@ -41,7 +41,7 @@ export function OwnFleetCard({ formations, ships, selectedIds, hoverId, aircraft
       onMouseEnter={() => onHover(ship.id)} onMouseLeave={() => onHover(undefined)} onFocus={() => onHover(ship.id)} onBlur={() => onHover(undefined)}
       onClick={e => onSelectShip(ship.id, e.shiftKey || e.ctrlKey || e.metaKey)}>
       <svg className="fleet-card-glyph" viewBox="-13 -13 26 26" aria-hidden="true"><path className="fleet-card-hull" d={glyph.hull}/><path className="fleet-card-mark" d={glyph.mark}/></svg>
-      <span className="fleet-card-name">{ship.name}<small className={ship.warn ? 'brass' : ''}>{ship.order}</small></span>
+      <span className="fleet-card-name">{ship.name}{ship.routeBlocked && <span className="fleet-route-warning" title="Route blocked"><Icon name="warning" size={14}/></span>}<small className={ship.warn ? 'brass' : ''}>{ship.order}</small></span>
       <span className="fleet-card-value">{ship.lost ? 'Lost' : `${Math.round(ship.hull * 100)}%`}
         <small>{ship.kn} kn · {ship.damageDealt ? `${compact(ship.damageDealt)} dmg` : 'no hits'}{ship.frags ? ` · ${ship.frags} sunk` : ''}</small></span>
     </button>;

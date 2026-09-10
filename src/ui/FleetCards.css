@@ -102,3 +102,5 @@
   .fleet-card.own { left:12px; }
   .fleet-card.foe { right:12px; }
 }
+
+.fleet-card-name .fleet-route-warning { display:inline-flex; margin-left:5px; vertical-align:middle; color:var(--fleet-gold); }

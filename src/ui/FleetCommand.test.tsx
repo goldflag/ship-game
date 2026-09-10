@@ -104,3 +104,22 @@ test('enemy HP appears only for current sightings with sampled health', () => {
   tracks[1].status = 'stale';
   expect(render()).not.toContain('42% HP');
 });
+
+
+test('an unselected blocked ship exposes its route and warnings, then clears them on recovery', () => {
+  const { render, id, simulation } = fixture();
+  const order = (simulation as unknown as Game['simulation']).fleetOrders![id];
+  order.navigation = { order: order.movement, waypoint: 1, status: 'blocked', destination: [300, 400], formation: null };
+  const html = render();
+  expect(html).toContain('fleet-command-course blocked');
+  expect(html).toContain('fleet-command-route-alert');
+  expect(html).toContain('Bismarck route blocked · Reassign destination');
+  expect(html.match(/class="fleet-route-warning"/g)).toHaveLength(2);
+  expect(html).not.toContain('Bismarck waypoint 2');
+  expect(html).toContain('[300,0,400]');
+  order.navigation.status = 'following-route';
+  const recovered = render();
+  expect(recovered).not.toContain('fleet-command-course blocked');
+  expect(recovered).not.toContain('fleet-command-route-alert');
+  expect(recovered).not.toContain('class="fleet-route-warning"');
+});

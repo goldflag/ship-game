@@ -10,6 +10,7 @@ use crate::{
 use serde::{Deserialize, Serialize};
 
 pub const MAX_WAYPOINTS: usize = 32;
+const SHORE_BUFFER_M: f64 = 150.0;
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize, ts_rs::TS)]
 #[ts(rename = "MovementOrder")]
@@ -248,12 +249,36 @@ fn clear_segment(from: [f64; 2], to: [f64; 2], islands: &[Island], margin: f64) 
     })
 }
 
+/// A ship can drift into the extra planning buffer while its entire hull is
+/// still clear of shore. Let its first leg leave that buffer, but never enter
+/// it from outside, move closer to the island, or relax physical hull clearance.
+fn clear_departure(from: [f64; 2], to: [f64; 2], islands: &[Island], margin: f64) -> bool {
+    islands.iter().all(|island| {
+        let one = std::slice::from_ref(island);
+        if clear_segment(from, to, one, margin) {
+            return true;
+        }
+        if clear_segment(from, from, one, margin)
+            || !clear_segment(from, to, one, (margin - SHORE_BUFFER_M).max(0.0))
+        {
+            return false;
+        }
+        let rx = island.rx * 1.22 + margin;
+        let rz = island.rz * 1.22 + margin;
+        // Nonnegative derivative of squared elliptical distance: this entire
+        // straight leg moves outward, including at its closest point (the start).
+        (from[0] - island.x) * (to[0] - from[0]) / (rx * rx)
+            + (from[1] - island.z) * (to[1] - from[1]) / (rz * rz)
+            >= 0.0
+    })
+}
+
 pub fn destination_is_clear(a: &Vessel, destination: [f64; 2], islands: &[Island]) -> bool {
     clear_segment(
         destination,
         destination,
         islands,
-        a.definition().hull.length * 0.5 + 150.0,
+        a.definition().hull.length * 0.5 + SHORE_BUFFER_M,
     )
 }
 
@@ -268,7 +293,7 @@ fn plan_path(
     if !clear_segment(to, to, islands, margin) {
         return None;
     }
-    if clear_segment(from, to, islands, margin) {
+    if clear_departure(from, to, islands, margin) {
         return Some(vec![to]);
     }
     let mut nodes = vec![from, to];
@@ -300,7 +325,15 @@ fn plan_path(
         }
         visited[u] = true;
         for v in 0..nodes.len() {
-            if !visited[v] && clear_segment(nodes[u], nodes[v], islands, margin) {
+            if visited[v] {
+                continue;
+            }
+            let clear = if u == 0 {
+                clear_departure(nodes[u], nodes[v], islands, margin)
+            } else {
+                clear_segment(nodes[u], nodes[v], islands, margin)
+            };
+            if clear {
                 let cost = costs[u] + distance(nodes[u], nodes[v]);
                 if cost < costs[v] {
                     costs[v] = cost;
@@ -468,7 +501,7 @@ pub fn command_observed(
         state.status = NavigationStatus::Immobile;
         return HelmCommand::default();
     }
-    let margin = a.definition().hull.length * 0.5 + 150.0;
+    let margin = a.definition().hull.length * 0.5 + SHORE_BUFFER_M;
     let mut final_speed = 0.0;
     let mut requested = maximum.min(speed_limit);
     let mut radius = 80.0;
@@ -627,7 +660,7 @@ pub fn command_observed(
     let obstructed = state
         .path
         .first()
-        .is_some_and(|p| !clear_segment(at, *p, islands, margin));
+        .is_some_and(|p| !clear_departure(at, *p, islands, margin));
     if (changed || state.path.is_empty() || obstructed) && tick >= state.next_plan_tick {
         state.path = plan_path(at, destination, islands, margin).unwrap_or_default();
         state.path_target = Some(destination);

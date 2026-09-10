@@ -65,6 +65,7 @@ export function standingOrder(order?: FleetOrderState, nameFor: (id: string) => 
 function routePoints(ship: Contact, order?: FleetOrderState, contacts: Contact[] = []): Vec3[] {
   const task = order?.movement;
   const origin: Vec3 = [ship.x, 0, ship.z];
+  if (task?.type === 'move') return [origin, [task.position[0], 0, task.position[1]]];
   if (task?.type === 'route') return [origin, ...task.waypoints.slice(order?.navigation?.waypoint ?? 0).map(([x, z]): Vec3 => [x, 0, z])];
   if (task?.type === 'hold-area') {
     return Array.from({ length: 65 }, (_, i): Vec3 => [task.position[0] + Math.sin(i / 64 * Math.PI * 2) * task.radiusM, 0, task.position[1] + Math.cos(i / 64 * Math.PI * 2) * task.radiusM]);
@@ -441,6 +442,7 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
   const rosterShips: RosterShip[] = ships.map(s => {
     const actor = actorOf(s.id), wing = wings.find(w => w.owner.motion.id === s.id)?.wing, status = orders[s.id]?.navigation?.status;
     return { id: s.id, name: s.name, hull: s.integrity, kn: Math.round(Math.abs((actor?.motion.speed ?? 0) * KNOTS_PER_MPS)), damageDealt: scores[s.id]?.damageDealt ?? 0, frags: scores[s.id]?.frags ?? 0, lost: s.physicalLost,
+      routeBlocked: !s.physicalLost && status === 'blocked',
       warn: !s.physicalLost && (s.integrity < .5 || status === 'straggling' || status === 'blocked' || status === 'immobile' || status === 'leader-lost'),
       aircraft: wing ? { remaining: Object.values(wing.counts).reduce((n, v) => n + v, 0) - wing.counts.lost - wing.counts.withdrawn, total: Object.values(wing.counts).reduce((n, v) => n + v, 0) } : undefined };
   });
@@ -544,16 +546,17 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
       {ships.filter(s => !s.physicalLost).map(s => {
         const pending = pendingRoutes[s.id];
         const movement = orders[s.id]?.movement;
+        const blocked = !pending && orders[s.id]?.navigation?.status === 'blocked';
         const led = formations.find(f => f.leaderId === s.id && f.shipIds.length > 1);
         const body = led ? ships.filter(m => led.shipIds.includes(m.id) && !m.physicalLost) : [];
         let points = pending ? pending.points : routePoints(s, orders[s.id], ships);
-        if (body.length > 1 && (pending || movement?.type === 'route') && points.length > 1) points = [centroid(body), ...points.slice(1)];
+        if (!blocked && body.length > 1 && (pending || movement?.type === 'route') && points.length > 1) points = [centroid(body), ...points.slice(1)];
         const waypoints = pending || movement?.type === 'route' ? points.slice(1) : [];
         // An escort's link to its station only means something on its own: the whole formation moves on the leader's route.
         const own = formations.find(f => f.shipIds.includes(s.id));
         const alone = ids.includes(s.id) && !(own && own.shipIds.length > 1 && own.shipIds.every(id => ids.includes(id)));
-        if (movement?.type === 'escort' && !alone && hoverId !== s.id) return null;
-        return <g key={`route-${s.id}`} data-route-owner={s.id} className={`fleet-command-course ${ids.includes(s.id) || hoverId === s.id ? 'selected' : ''}`}>
+        if (!blocked && movement?.type === 'escort' && !alone && hoverId !== s.id) return null;
+        return <g key={`route-${s.id}`} data-route-owner={s.id} aria-label={`${s.name} ${blocked ? 'route blocked · Reassign destination' : 'course'}`} className={`fleet-command-course ${blocked ? 'blocked' : ''} ${ids.includes(s.id) || hoverId === s.id ? 'selected' : ''}`}>
           <path className={movement?.type === 'escort' ? 'fleet-command-escort-link' : movement?.type === 'hold-area' ? 'fleet-command-hold-ring' : 'fleet-command-route'} data-map-smooth="true" data-map-path={JSON.stringify(points)}/>
           {movement?.type === 'escort' && points.length > 1 && <g className="fleet-command-escort-station" data-map-position={JSON.stringify(points[1])} aria-label={`${s.name} escort station`}><circle r="5"/><text x="8" y="14">station</text></g>}
           {waypoints.map((point, i) => <g key={i} className="fleet-command-waypoint" data-map-position={JSON.stringify(point)} aria-label={`${s.name} waypoint ${i + 1}`}><circle r="8"/><path d="M-12 0H12M0-12V12"/><text x="12" y="-10">{i + 1}</text></g>)}
@@ -577,13 +580,16 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
         const leader = own && formations.some(f => f.leaderId === s.id && f.shipIds.length > 1);
         const definition = actor?.definition ?? shipPreset(s.shipId), glyph = SHIP_GLYPHS[shipClassOf(definition)];
         return <g key={s.id} data-map-position={JSON.stringify([s.x, 0, s.z])} data-ship-marker={s.id} data-map-fade={`${definition.hull.length},${s.heading}`} className={`fleet-command-marker ${s.team} ${ids.includes(s.id) || s.id === contactId ? 'selected' : ''} ${hoverId === s.id ? 'hovered' : ''} ${warn ? 'warn' : ''}`}
-          role="button" tabIndex={0} aria-label={`${nameFor(s.id) === 'assigned leader' ? s.name : nameFor(s.id)} · ${s.team}`}
+          role="button" tabIndex={0} aria-label={`${nameFor(s.id) === 'assigned leader' ? s.name : nameFor(s.id)} · ${s.team}${own && status === 'blocked' ? ' · Route blocked · Reassign destination' : ''}`}
           onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); targetShip(s, false, e.shiftKey); } }}
           onClick={e => { e.stopPropagation(); if (ignoreClick.current) { ignoreClick.current = false; return; } targetShip(s, false, e.shiftKey || e.ctrlKey || e.metaKey); }}
           onContextMenu={e => { e.preventDefault(); e.stopPropagation(); if (e.ctrlKey || e.metaKey || e.altKey || drag.current?.moved) return; targetShip(s, true, false); }}>
           <circle r="18" className="fleet-command-hitbox"/>
           {hoverId === s.id && <circle r="22" className="fleet-command-hover-ring"/>}
           <g data-map-glyph="true" data-map-heading={s.heading}><path className="fleet-command-hull" d={glyph.hull}/><path className="fleet-command-mark" d={glyph.mark}/></g>
+          {own && status === 'blocked' && <g className="fleet-command-route-alert" transform={`translate(${leader ? -130 : 14} 23)`}>
+            <title>Route blocked · Reassign destination</title><Icon name="warning" size={14}/><text x="18" y="11">Route blocked</text>
+          </g>}
           <text x={leader ? -14 : 14} y="-3" textAnchor={leader ? 'end' : 'start'}>{own ? nameFor(s.id) : s.name}</text>
           {own && <><rect className="fleet-command-hull-track" x={leader ? -54 : 14} y="2" width="40" height="3"/><rect className="fleet-command-hull-fill" x={leader ? -14 - 40 * Math.max(0, Math.min(1, s.integrity)) : 14} y="2" width={40 * Math.max(0, Math.min(1, s.integrity))} height="3"/>
             <text className="fleet-command-marker-order" x={leader ? -14 : 14} y="17" textAnchor={leader ? 'end' : 'start'}>{Math.round(s.integrity * 100)}% · {kn} kn{status === 'straggling' ? ' · straggling' : status === 'evading-aircraft' || status === 'evading-torpedo' ? ' · evading' : ''}</text></>}
