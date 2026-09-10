@@ -199,6 +199,16 @@ pub struct Sensors {
     coverage: crate::recon::CoverageGrid,
 }
 impl Sensors {
+    /// Retire a witnessed aircraft loss only after the event has been projected
+    /// with its public contact ID. Unobserved losses retain their last report.
+    pub(crate) fn confirm_aircraft_loss(&mut self, team: TeamId, target_id: &str) {
+        if self.records[team.index()]
+            .get(target_id)
+            .is_some_and(|r| r.track.kind == ContactKind::Aircraft)
+        {
+            self.records[team.index()].remove(target_id);
+        }
+    }
     pub fn coverage(&self, team: TeamId) -> crate::recon::ReconCoverage {
         self.coverage.snapshot(team)
     }
