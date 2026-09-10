@@ -25,7 +25,12 @@ import { ReconnaissanceCoverage, ReconnaissanceLegend } from './Reconnaissance';
 import { reportState, reportPosition, conditionReport, observationAge } from './reconReports';
 import { advancePendingRoute, type PendingRoute } from './pendingFleetRoute';
 import { shipPreset } from '../ships/presets';
-import { fleetFormations, type Formation } from './fleetFormations';
+import type { FleetNotice } from '../multiplayer/generated/FleetNotice';
+import { fleetFormations, type FleetFormation } from './fleetFormations';
+import type { BattleSession } from '../game/session/BattleSession';
+import type { ControlGroup } from '../game/Game';
+import { FORMATIONS, formationLabel, formationStations, STATION_RADIUS_M, type StationShip } from './formationStations';
+import type { Formation } from '../multiplayer/generated/Formation';
 import { airClusters, battleComparison, reportedAircraftType } from './fleetStats';
 import { PLANE_GLYPHS } from './planeGlyphs';
 import { SHIP_GLYPHS, shipClassFromReport, shipClassOf } from './shipGlyphs';
@@ -43,6 +48,28 @@ const SPEEDS = [8, 12, 16, 20, 24, 28, 30];
 const LOITER_RADIUS_M = 700;
 /** Orders aimed at water preview a line from the unit to the cursor while armed. */
 const previewArmed = (armed?: ArmedOrder) => armed === 'move' || armed === 'search' || (typeof armed === 'object' && armed.target === 'water');
+
+export const FORMATION_HINT = 'Select every ship in one formation to set how it sails.';
+/** Guide succession and other fleet-wide reports the CPU raises for the player. */
+const fleetNoticesOf = (session: { fleetNotices?: readonly FleetNotice[] }): readonly FleetNotice[] => session.fleetNotices ?? [];
+/** Station a guide's escorts from the formation table: role-ordered offsets scaled to
+ * the guide's hull, each order carrying its formation and the slot that decides who
+ * takes the guide next. Returns the number of orders sent. */
+export function stationEscorts(simulation: Pick<BattleSession, 'escortShip'>, leaderId: string, formation: Formation, members: readonly StationShip[]): number {
+  const guide = members.find(m => m.id === leaderId), followers = members.filter(m => m.id !== leaderId);
+  if (!guide || !followers.length) return 0;
+  const stations = formationStations(formation, guide, followers);
+  stations.forEach(station => simulation.escortShip?.(station.id, leaderId, station.offset, STATION_RADIUS_M, formation, station.slot));
+  return stations.length;
+}
+/** Setting a group's formation is one act: the group records how it sails, and every
+ * escort takes a fresh station under the same guide. Returns the order feedback. */
+export function applyGroupFormation(game: { controlGroups: Map<number, ControlGroup>; simulation: Pick<BattleSession, 'escortShip'> }, group: FleetFormation, formation: Formation, members: readonly StationShip[]): string {
+  const held = game.controlGroups.get(group.index);
+  game.controlGroups.set(group.index, { name: held?.name ?? `Group ${group.index}`, shipIds: held?.shipIds ?? [...group.shipIds], formation });
+  const queued = stationEscorts(game.simulation, group.leaderId, formation, members);
+  return queued ? `${queued} escort orders queued · ${formationLabel(formation)}` : `${group.name} · ${formationLabel(formation)} · no escorts to station`;
+}
 const circlePoints = (x: number, z: number, radius: number): Vec3[] => Array.from({ length: 65 }, (_, i) => [x + Math.sin(i / 64 * Math.PI * 2) * radius, 0, z + Math.cos(i / 64 * Math.PI * 2) * radius]);
 const reportName = (track: ContactTrack) => track.identifiedPresetId ? shipPreset(track.identifiedPresetId).name : track.classification ?? (track.kind === 'aircraft' ? 'Aircraft contact' : 'Surface contact');
 const reportAge = (track: ContactTrack, tick: number) => observationAge(track.lastObservedTick, tick);
@@ -136,12 +163,11 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
   const [airOpen, setAirOpen] = useState(false);
   const [filter, setFilter] = useState<'ships' | 'aircraft'>('ships');
   const [speedKn, setSpeedKn] = useState(20);
-  const [formation, setFormation] = useState<'column' | 'screen'>('column');
   const [searchRadius, setSearchRadius] = useState(4000);
   const [searchAltitude, setSearchAltitude] = useState<SearchAltitude>('medium');
   const [searchPolicy, setSearchPolicy] = useState<SearchPolicy>('report');
   const [armed, setArmed] = useState<ArmedOrder>();
-  const [feedback, setFeedback] = useState('');
+  const [feedback, setFeedback] = useState(() => fleetNoticesOf(game.simulation).at(-1)?.text ?? '');
   const [contactId, setContactId] = useState<string>();
   const [hoverId, setHoverId] = useState<string>();
   const [hoverFlightId, setHoverFlightId] = useState<string>();
@@ -153,6 +179,7 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
   const drag = useRef<{ x: number; y: number; lastX: number; lastY: number; mode: 'pan' | 'orbit' | 'select'; pointerId: number; additive: boolean; moved: boolean } | undefined>(undefined);
   const [box, setBox] = useState<{ x: number; y: number; width: number; height: number }>();
   const ignoreClick = useRef(false);
+  const seenNotices = useRef(fleetNoticesOf(game.simulation).length);
   const pointer = useRef<{ x: number; y: number } | undefined>(undefined);
   const [shiftHeld, setShiftHeld] = useState(false);
   const [movePoint, setMovePoint] = useState<[number, number]>();
@@ -173,7 +200,7 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
   const reveal = (x: number, z: number) => { if (map.current && !game.projectAirMap(x, z)) game.centerAirMapOn(x, z); };
   const selectShips = (shipIds: string[]) => { setFilter('ships'); game.selectFleetShips(shipIds); game.selectFlights([]); setContactId(undefined); setArmed(undefined); };
   const selectShip = (id: string, additive: boolean) => { selectShips(additive ? ids.includes(id) ? ids.filter(s => s !== id) : [...ids, id] : [id]); const ship = ships.find(s => s.id === id); if (ship && !additive) reveal(ship.x, ship.z); };
-  const selectFormation = (f: Formation) => { selectShips(f.shipIds); const leader = ships.find(s => s.id === f.leaderId); if (leader) reveal(leader.x, leader.z); };
+  const selectFormation = (f: FleetFormation) => { selectShips(f.shipIds); const leader = ships.find(s => s.id === f.leaderId); if (leader) reveal(leader.x, leader.z); };
   const selectAir = (id: string, additive = false) => { setFilter('aircraft'); game.selectFlight(id, additive); game.selectFleetShips([]); setContactId(undefined); setArmed(undefined); const flight = flights.find(f => f.id === id); if (flight && !additive) reveal(flight.position[0], flight.position[2]); };
   const issueAir = (target: SquadronTarget) => {
     if (current.current.armed === 'search') { setFeedback('Choose water for the center of the search area.'); return; }
@@ -192,11 +219,22 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
     ].filter(Boolean).join(' · '));
     setArmed(undefined);
   };
+  const stationShip = (ship: { id: string; shipId: string }) => ({ id: ship.id, shipClass: shipClassOf(actorOf(ship.id)?.definition ?? shipPreset(ship.shipId)) });
+  /** How the group containing this ship sails: what the picker last set, or how its escorts stand now. */
+  const formationOf = (id: string): Formation => formations.find(f => f.shipIds.includes(id))?.formation ?? 'column';
   const escort = (leaderId: string) => {
-    const followers = recipients.filter(s => s.id !== leaderId);
-    followers.forEach((s, i) => game.simulation.escortShip?.(s.id, leaderId, formation === 'column' ? [0, 500 + i * 400] : [i % 2 ? 650 : -650, 450 + Math.floor(i / 2) * 600], 160));
-    setFeedback(followers.length ? `${followers.length} escort orders queued · ${formation}` : 'Choose a leader outside the selection.');
+    const guide = ships.find(s => s.id === leaderId);
+    const formation = formationOf(leaderId);
+    const queued = guide ? stationEscorts(game.simulation, leaderId, formation, [guide, ...recipients.filter(s => s.id !== leaderId)].map(stationShip)) : 0;
+    setFeedback(queued ? `${queued} escort orders queued · ${formationLabel(formation)}` : 'Choose a leader outside the selection.');
     setArmed(undefined);
+  };
+  // The picker acts on one group, so it needs that whole group selected and nothing else.
+  const selectedGroup = formations.find(f => f.shipIds.length === recipients.length && f.shipIds.every(id => recipients.some(s => s.id === id)));
+  const setGroupFormation = (next: Formation) => {
+    if (!selectedGroup || !actionable) { setFeedback(FORMATION_HINT); return; }
+    setArmed(undefined);
+    setFeedback(applyGroupFormation(game, selectedGroup, next, ships.filter(s => selectedGroup.shipIds.includes(s.id) && !s.physicalLost).map(stationShip)));
   };
   const move = (point: [number, number], appendRequested: boolean) => {
     if (!lead) { setFeedback('Select ships before giving a destination.'); return; }
@@ -212,7 +250,7 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
     }
     if (recipients.length > 1) escort(lead.id);
     setArmed('move'); setMovePoint(point); setShiftHeld(appendRequested);
-    setFeedback(`${append ? 'Waypoint appended' : 'Route queued'} · ${speedKn} kn${recipients.length > 1 ? ` · ${formation}` : ''}`);
+    setFeedback(`${append ? 'Waypoint appended' : 'Route queued'} · ${speedKn} kn${recipients.length > 1 ? ` · ${formationLabel(formationOf(lead.id))}` : ''}`);
   };
   const hold = () => { recipients.forEach(s => game.simulation.holdShipArea?.(s.id, [s.x, s.z], 500)); setArmed(undefined); setFeedback(`${recipients.length} hold orders queued · 500 m station area`); };
   const targetShip = (ship: Pick<Contact, 'id' | 'team'>, right: boolean, additive: boolean) => {
@@ -262,7 +300,7 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
     if (order === 'search') map.current?.focus();
   };
   const adjustSpeed = (direction: number) => setSpeedKn(v => SPEEDS[Math.max(0, Math.min(SPEEDS.length - 1, SPEEDS.indexOf(v) + direction))]);
-  const cycleFormation = () => setFormation(f => f === 'column' ? 'screen' : 'column');
+  const cycleFormation = () => setGroupFormation(FORMATIONS[(FORMATIONS.findIndex(f => f.id === (selectedGroup?.formation ?? 'column')) + 1) % FORMATIONS.length].id);
   const airAction = (key: string) => {
     if (!current.current.selectedFlights.length || !current.current.actionable) return;
     if (key === 'R') { current.current.selectedFlights.filter(f => f.active).forEach(f => game.commandSquadron(f.id, { kind: 'return' })); setFeedback('Return orders queued'); return; }
@@ -416,6 +454,18 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
       return changed ? next : routes;
     });
   }, [game, data]);
+  // A lost guide hands the group on to the next ship in its station table. The CPU
+  // raises the notice; the group re-forms under the new guide from its escort orders.
+  useEffect(() => {
+    const notices = fleetNoticesOf(game.simulation);
+    if (notices.length < seenNotices.current) seenNotices.current = 0;
+    if (notices.length > seenNotices.current) {
+      // The CPU names the hull class; the roster name ("Fletcher 2") is what the player reads.
+      const last = notices[notices.length - 1], ship = ships.find(s => s.id === last.shipId);
+      setFeedback(last.kind === 'guide-assumed' && ship ? `${ship.name} has the guide` : last.text);
+    }
+    seenNotices.current = notices.length;
+  }, [game, data]);
   const receipts = game.simulation.orderReceipts?.filter(r => r.command !== 'damage-control').slice(-2) ?? [];
   const weaponsRow = recipients.length > 0 && <div className="fleet-command-weapons" role="group" aria-label="Weapons policy">{WEAPONS.map(kind => { const free = recipients.every(s => orders[s.id]?.weapons[kind]); return <button key={kind} disabled={!actionable} aria-pressed={free} onClick={() => recipients.forEach(s => game.simulation.setShipWeapons?.(s.id, { ...(orders[s.id]?.weapons ?? { guns: true, aa: true, torpedoes: false }), [kind]: !free }))}><i/>{weaponLabel[kind]} {free ? 'free' : 'held'}</button>; })}</div>;
   const stragglerTags = recipients.flatMap(s => (orders[s.id]?.navigation?.formation?.stragglers ?? []).map(straggler => ({ leader: s, straggler, ship: ships.find(c => c.id === straggler.shipId) })));
@@ -468,16 +518,23 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
     { kind: 'hold', label: 'Hold', sub: 'H', disabled: !actionable },
     { kind: 'escort', label: 'Escort', sub: 'E', armed: armed === 'escort', disabled: !actionable },
     { kind: 'focus', label: 'Focus fire', sub: 'F', armed: armed === 'focus', disabled: !actionable },
-    { kind: 'formation', label: formation === 'column' ? 'Column' : 'Screen', sub: 'C · formation' },
     { kind: 'speed', label: `${speedKn} kn`, sub: '+ / −' },
   ];
+  /** How the selected group sails. One group at a time: the stations are a table for
+   * the whole body, so a partial selection has nothing coherent to re-station. */
+  const formationPicker = <div className="fleet-command-formations" role="group" aria-label="Formation">
+    <span>Formation<kbd>C</kbd></span>
+    <div>{FORMATIONS.map(entry => <button key={entry.id} title={selectedGroup ? entry.hint : FORMATION_HINT} disabled={!actionable || !selectedGroup}
+      aria-pressed={!!selectedGroup && selectedGroup.formation === entry.id} onClick={() => setGroupFormation(entry.id)}>{entry.label}</button>)}</div>
+    {!selectedGroup && <small>{FORMATION_HINT}</small>}
+  </div>;
   const armedHint = typeof armed === 'object' ? `Choose ${armed.target}` : armed === 'search' ? 'Choose the area center on water, or pan with arrow keys and press Enter at chart center' : armed === 'move' ? 'Choose water · Shift adds a waypoint · Esc finishes' : armed === 'escort' ? 'Choose a friendly leader' : armed === 'focus' ? 'Choose an enemy contact' : '';
   // Near the right edge the wheel opens to port of the unit instead of running under it.
   const flipAt = (x: number, z: number) => { if (!map.current) return ''; const point = game.projectAirMap(x, z); return point ? `${point[0] > map.current.clientWidth - 560 ? 'flip' : ''} ${point[1] > map.current.clientHeight - 420 ? 'flip-up' : ''}` : ''; };
   const chip = (name: string) => <div className="fleet-command-wheel-chip"><strong>{name}</strong><span>{armedHint}</span><button onClick={() => setArmed(undefined)}>Cancel<kbd>Esc</kbd></button></div>;
   const onWheel = (kind: string, shift: boolean) => {
     if (kind === 'move') arm('move'); else if (kind === 'hold') hold(); else if (kind === 'escort') arm('escort'); else if (kind === 'focus') arm('focus');
-    else if (kind === 'formation') cycleFormation(); else if (kind === 'speed') adjustSpeed(shift ? -1 : 1);
+    else if (kind === 'speed') adjustSpeed(shift ? -1 : 1);
   };
   const airReady = (a: SquadronAction) => selectedFlights.some(f => actionAvailable(a, f.role) && (!f.deck || f.active || f.deck.canLaunch));
   const airItems: WheelItem[] = [
@@ -576,8 +633,15 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
         const own = s.team === 'friendly', actor = own ? actorOf(s.id) : undefined, status = orders[s.id]?.navigation?.status;
         const warn = own && (s.integrity < .5 || status === 'straggling' || status === 'blocked' || status === 'immobile');
         const kn = Math.round(Math.abs((actor?.motion.speed ?? 0) * KNOTS_PER_MPS));
-        // A leader's label sits to port so its escorts, stationed close astern and to starboard, keep theirs readable.
-        const leader = own && formations.some(f => f.leaderId === s.id && f.shipIds.length > 1);
+        // A column guide's label sits to port: its escorts are astern and their own labels
+        // run to starboard. Screen and line-abreast stations take both beams, so the guide's
+        // label rides above the marker instead, where the nearest station is a ring away.
+        const guide = own ? formations.find(f => f.leaderId === s.id && f.shipIds.length > 1) : undefined;
+        const side = !guide ? 'starboard' : guide.formation === 'column' ? 'port' : 'above';
+        const label = side === 'port' ? { x: -14, anchor: 'end' as const, y: -3, barX: -54, barY: 2, orderY: 17 }
+          : side === 'above' ? { x: 0, anchor: 'middle' as const, y: -32, barX: -20, barY: -27, orderY: -16 }
+          : { x: 14, anchor: 'start' as const, y: -3, barX: 14, barY: 2, orderY: 17 };
+        const hp = Math.max(0, Math.min(1, s.integrity));
         const definition = actor?.definition ?? shipPreset(s.shipId), glyph = SHIP_GLYPHS[shipClassOf(definition)];
         return <g key={s.id} data-map-position={JSON.stringify([s.x, 0, s.z])} data-ship-marker={s.id} data-map-fade={`${definition.hull.length},${s.heading}`} className={`fleet-command-marker ${s.team} ${ids.includes(s.id) || s.id === contactId ? 'selected' : ''} ${hoverId === s.id ? 'hovered' : ''} ${warn ? 'warn' : ''}`}
           role="button" tabIndex={0} aria-label={`${nameFor(s.id) === 'assigned leader' ? s.name : nameFor(s.id)} · ${s.team}${own && status === 'blocked' ? ' · Route blocked · Reassign destination' : ''}`}
@@ -587,12 +651,12 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
           <circle r="18" className="fleet-command-hitbox"/>
           {hoverId === s.id && <circle r="22" className="fleet-command-hover-ring"/>}
           <g data-map-glyph="true" data-map-heading={s.heading}><path className="fleet-command-hull" d={glyph.hull}/><path className="fleet-command-mark" d={glyph.mark}/></g>
-          {own && status === 'blocked' && <g className="fleet-command-route-alert" transform={`translate(${leader ? -130 : 14} 23)`}>
+          {own && status === 'blocked' && <g className="fleet-command-route-alert" transform={`translate(${side === 'port' ? -130 : 14} 23)`}>
             <title>Route blocked · Reassign destination</title><Icon name="warning" size={14}/><text x="18" y="11">Route blocked</text>
           </g>}
-          <text x={leader ? -14 : 14} y="-3" textAnchor={leader ? 'end' : 'start'}>{own ? nameFor(s.id) : s.name}</text>
-          {own && <><rect className="fleet-command-hull-track" x={leader ? -54 : 14} y="2" width="40" height="3"/><rect className="fleet-command-hull-fill" x={leader ? -14 - 40 * Math.max(0, Math.min(1, s.integrity)) : 14} y="2" width={40 * Math.max(0, Math.min(1, s.integrity))} height="3"/>
-            <text className="fleet-command-marker-order" x={leader ? -14 : 14} y="17" textAnchor={leader ? 'end' : 'start'}>{Math.round(s.integrity * 100)}% · {kn} kn{status === 'straggling' ? ' · straggling' : status === 'evading-aircraft' || status === 'evading-torpedo' ? ' · evading' : ''}</text></>}
+          <text x={label.x} y={label.y} textAnchor={label.anchor}>{own ? nameFor(s.id) : s.name}</text>
+          {own && <><rect className="fleet-command-hull-track" x={label.barX} y={label.barY} width="40" height="3"/><rect className="fleet-command-hull-fill" x={side === 'port' ? -14 - 40 * hp : label.barX} y={label.barY} width={40 * hp} height="3"/>
+            <text className="fleet-command-marker-order" x={label.x} y={label.orderY} textAnchor={label.anchor}>{Math.round(s.integrity * 100)}% · {kn} kn{status === 'straggling' ? ' · straggling' : status === 'evading-aircraft' || status === 'evading-torpedo' ? ' · evading' : ''}</text></>}
           {!own && <text className="fleet-command-marker-order" x="14" y="11">{s.status === 'operational' ? 'contact' : s.status.replaceAll('-', ' ')}</text>}
         </g>;
       })}
@@ -636,6 +700,7 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
               <button disabled={!actionable} onClick={() => game.takeFleetHelm(lead.id)}>Take helm<kbd>T</kbd></button>
             </div>
           </div>
+          {formationPicker}
           {weaponsRow}
         </div>}
       </div>}

@@ -83,3 +83,20 @@ test('both national carrier wings fit the aircraft allowance and survive the rea
     } finally { runtime.free(); }
   } finally { planner.free(); }
 });
+
+test('the deployment formation chosen for a task group reaches its escorts', () => {
+  const ships = [{ id: 'own-carrier', presetId: 'enterprise-cv6', groupId: 'front' }, { id: 'own-destroyer', presetId: 'fletcher', groupId: 'front' }];
+  const planner = new PvePlanner(manifest, JSON.stringify({ ...request, ships }));
+  try {
+    const briefing = JSON.parse(planner.briefing()) as PveBriefing;
+    const placements = JSON.stringify(briefing.setup.ships.map(s => ({ id: s.id, spawn: s.spawn })));
+    const runtime = planner.start(placements, JSON.stringify({ front: 'line-abreast' }));
+    try {
+      const frame = JSON.parse(runtime.snapshot());
+      expect(frame.fleetNotices).toEqual([]);
+      const orders = frame.fleetOrders;
+      expect(orders['own-destroyer'].movement).toMatchObject({ type: 'escort', leaderId: 'own-carrier', formation: 'line-abreast', slot: 0 });
+      expect(orders['own-carrier'].movement.type).toBe('hold-area');
+    } finally { runtime.free(); }
+  } finally { planner.free(); }
+});

@@ -1,11 +1,17 @@
 import { expect, test } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { FleetCommand } from './FleetCommand';
+import { applyGroupFormation, FleetCommand, FORMATION_HINT } from './FleetCommand';
 import { CombatSimulation } from '../simulation/combat';
 import { shipPreset } from '../ships/presets';
 import { Game } from '../game/Game';
 import { defaultKeybindings } from '../game/keybindings';
 import type { Telemetry } from '../game/types';
+import type { FleetOrderState } from '../multiplayer/generated/FleetOrderState';
+import type { ControlGroup } from '../game/Game';
+import type { Formation } from '../multiplayer/generated/Formation';
+import { resolveBattleFleet } from '../simulation/battle';
+import { shipClassOf } from './shipGlyphs';
+import { SCREEN_INNER_RADIUS_M, SCREEN_OUTER_RADIUS_M, STATION_RADIUS_M } from './formationStations';
 
 function fixture() {
   const definition = shipPreset('bismarck'), simulation = new CombatSimulation(definition);
@@ -49,7 +55,10 @@ test('the chart shows every formation, the enemy fleet and an order wheel with h
   expect(html).toContain('aria-label="Battle comparison"');
   expect(html).toContain('12,400');
   expect(html).toContain('aria-label="Order wheel"');
-  for (const item of ['Move · G', 'Hold · H', 'Escort · E', 'Focus fire · F', 'Column · C · formation', '20 kn · + / −']) expect(html).toContain(`aria-label="${item}"`);
+  for (const item of ['Move · G', 'Hold · H', 'Escort · E', 'Focus fire · F', '20 kn · + / −']) expect(html).toContain(`aria-label="${item}"`);
+  // The formation is a property of the group, not a global toggle on the wheel.
+  expect(html).not.toContain('C · formation');
+  expect(html).toContain('aria-label="Formation"');
   expect(html).toContain('Take helm<kbd>T</kbd>');
   expect(html).toContain('Weapons policy');
   expect(html).toContain('fleet-command-hull');
@@ -122,4 +131,81 @@ test('an unselected blocked ship exposes its route and warnings, then clears the
   expect(recovered).not.toContain('fleet-command-course blocked');
   expect(recovered).not.toContain('fleet-command-route-alert');
   expect(recovered).not.toContain('class="fleet-route-warning"');
+});
+
+const fleetFixture = (formation: Formation = 'column', notices: { tick: number; shipId: string; kind: 'guide-assumed'; text: string }[] = []) => {
+  const definition = shipPreset('bismarck');
+  const simulation = new CombatSimulation(definition, resolveBattleFleet({ playerShipId: 'bismarck', friendlyBots: ['fletcher', 'baltimore'], enemies: ['yamato'], spawnDistance: 7500 }, shipPreset));
+  const escorts: { id: string; leaderId: string; offset: [number, number]; radiusM: number; formation?: Formation; slot?: number }[] = [];
+  const standing = (movement: FleetOrderState['movement']): FleetOrderState => ({ movement, weapons: { guns: true, aa: true, torpedoes: false }, formationPolicy: 'slow-for-stragglers', targetId: null, manual: false, navigation: null });
+  Object.assign(simulation, { phase: 'running', fleetNotices: notices,
+    fleetOrders: { player: standing({ type: 'hold' }),
+      'friendly-1': standing({ type: 'escort', leaderId: 'player', offset: [0, 1800], radiusM: 160, formation, slot: 1 }),
+      'friendly-2': standing({ type: 'escort', leaderId: 'player', offset: [0, 900], radiusM: 160, formation, slot: 0 }) },
+    escortShip: (id: string, leaderId: string, offset: [number, number], radiusM: number, kind?: Formation, slot?: number) => { escorts.push({ id, leaderId, offset, radiusM, formation: kind, slot }); } });
+  const owned = simulation.telemetry('main', [0, 0, -7500]).contacts.filter(c => c.team === 'friendly');
+  const controlGroups = new Map<number, ControlGroup>([[1, { name: 'Group 1', shipIds: owned.map(c => c.id), formation }]]);
+  const game = { simulation, selectedShipIds: [], selectedFlightIds: [], controlGroups } as unknown as Game;
+  const data: Telemetry = { ship: simulation.ship, order: 1, camera: 'Chase', fps: 60, backend: 'test', trail: [], combat: simulation.telemetry('main', [0, 0, -7500]), fleetCommandMode: true, airOperationsOpen: true, selectedShipIds: [] };
+  const render = (selectedShipIds: string[]) => renderToStaticMarkup(<FleetCommand data={{ ...data, selectedShipIds }} game={game} bindings={defaultKeybindings()}/>);
+  return { render, game, controlGroups, escorts, owned, classes: owned.map(c => shipClassOf(simulation.actors.find(a => a.motion.id === c.id)!.definition)) };
+};
+
+test('the formation picker acts on the selected group and explains itself when the selection is not one', () => {
+  const { render, owned } = fleetFixture();
+  const whole = render(owned.map(c => c.id));
+  expect(whole).toContain('aria-label="Formation"');
+  for (const label of ['Column', 'Screen', 'Line abreast']) expect(whole).toContain(`>${label}</button>`);
+  // The group sails in column until the picker says otherwise, and says so on the rail and in the roster.
+  expect(whole).toContain('aria-pressed="true">Column</button>');
+  expect(whole).toContain('Line ahead. Followers turn in succession');
+  expect(whole).toContain('3 ships · Column');
+  expect(whole).not.toContain(FORMATION_HINT);
+  const partial = render([owned[0].id]);
+  expect(partial).toContain('aria-label="Formation"');
+  expect(partial).toContain(FORMATION_HINT);
+  expect(partial).not.toContain('aria-pressed="true">Column</button>');
+  expect(partial).toContain('disabled=""');
+});
+
+test('choosing a formation records it on the control group and re-stations every escort by role', () => {
+  const { game, controlGroups, escorts, owned, classes } = fleetFixture();
+  const group = { index: 1, name: 'Bismarck formation', leaderId: owned[0].id, shipIds: owned.map(c => c.id), formation: 'column' as Formation };
+  expect(controlGroups.get(1)!.formation).toBe('column');
+  const members = owned.map((c, i) => ({ id: c.id, shipClass: classes[i] }));
+  expect(classes).toEqual(['battleship', 'destroyer', 'cruiser']);
+  expect(applyGroupFormation(game, group, 'screen', members)).toBe('2 escort orders queued · Screen');
+  // The group keeps how it sails, so the roster, the chart and a later Move all agree.
+  expect(controlGroups.get(1)).toEqual({ name: 'Group 1', shipIds: owned.map(c => c.id), formation: 'screen' });
+  // Cruiser inside, destroyer outside: role order decides the slots, and every order carries both.
+  expect(escorts.map(e => [e.id, e.formation, e.slot, e.radiusM])).toEqual([
+    [owned[2].id, 'screen', 0, STATION_RADIUS_M],
+    [owned[1].id, 'screen', 1, STATION_RADIUS_M],
+  ]);
+  expect(escorts.map(e => e.leaderId)).toEqual([owned[0].id, owned[0].id]);
+  expect(escorts[0].offset).toEqual([0, -SCREEN_INNER_RADIUS_M]);
+  expect(escorts[1].offset).toEqual([0, -SCREEN_OUTER_RADIUS_M]);
+  // A column puts the same ships astern at the battleship's interval, heavies nearest.
+  escorts.length = 0;
+  expect(applyGroupFormation(game, { ...group, formation: 'screen' }, 'column', members)).toBe('2 escort orders queued · Column');
+  expect(escorts.map(e => [e.id, e.offset, e.slot])).toEqual([[owned[2].id, [0, 900], 0], [owned[1].id, [0, 1800], 1]]);
+  expect(controlGroups.get(1)!.formation).toBe('column');
+  // A group with nobody to station still records the formation it was set to.
+  expect(applyGroupFormation(game, { ...group, shipIds: [owned[0].id] }, 'line-abreast', [members[0]])).toBe('Bismarck formation · Line abreast · no escorts to station');
+});
+
+test('a guide-assumed notice reaches the feedback line so the fleet knows who has the group', () => {
+  const { render, owned } = fleetFixture('column', [{ tick: 120, shipId: 'friendly-1', kind: 'guide-assumed', text: 'Fletcher 2 has the guide' }]);
+  expect(render(owned.map(c => c.id))).toContain('Fletcher 2 has the guide');
+  expect(render([])).toContain('Fletcher 2 has the guide');
+});
+
+test("the guide's label clears its escorts: to port in column, above the marker in a screen", () => {
+  const column = fleetFixture('column').render([]);
+  expect(column).toContain('<text x="-14" y="-3" text-anchor="end">Bismarck</text>');
+  const screen = fleetFixture('screen').render([]);
+  expect(screen).toContain('<text x="0" y="-32" text-anchor="middle">Bismarck</text>');
+  // Escorts and unled ships keep their labels to starboard.
+  expect(screen).toContain('<text x="14" y="-3" text-anchor="start">Fletcher</text>');
+  expect(screen).toContain('3 ships · Screen');
 });

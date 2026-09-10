@@ -7,6 +7,7 @@ import type { Command } from '../../multiplayer/generated/Command';
 import type { WeaponsPolicy } from '../../multiplayer/generated/WeaponsPolicy';
 import type { Formation } from '../../multiplayer/generated/Formation';
 import type { FleetOrderState } from '../../multiplayer/generated/FleetOrderState';
+import type { FleetNotice } from '../../multiplayer/generated/FleetNotice';
 import type { TeamId } from '../../multiplayer/generated/TeamId';
 import type { Ammunition, Battery, Vec3 } from '../../ships/blueprint';
 import { shipPreset, shipPresets } from '../../ships/presets';
@@ -42,6 +43,7 @@ export interface Snapshot {
   records: { scores: Record<string, { damageDealt: number; frags: number; damageLog: DamageLogEntry[] }>; shellHistory: ShellHistory[] };
   selectedShipIds?: (string | undefined)[]; phase?: string; reason?: string; connected?: boolean[]; loaded?: boolean[]; countdown?: number;
   fleetOrders?: Record<string, FleetOrderState>;
+  fleetNotices?: FleetNotice[];
 }
 function replaceObject<T extends object>(target: T, value: T): void {
   for (const key of Object.keys(target) as (keyof T)[]) if (!(key in value)) delete target[key];
@@ -84,6 +86,7 @@ export abstract class SnapshotSession implements BattleSession {
   private lastHelm: HelmCommand = { throttle: 0, rudder: 0 };
   controlledShipId?: string;
   fleetOrders: Record<string, FleetOrderState> = {};
+  fleetNotices: FleetNotice[] = [];
   private selectionRequest?: { id: string | null; until: number };
   private lastControl = '';
   constructor(readonly setup: BattleSetup, readonly ownTeam: TeamId = 'a', readonly playerIndex = 0) {
@@ -177,6 +180,7 @@ export abstract class SnapshotSession implements BattleSession {
     // Local commands can remain queued in tactical pause for arbitrarily long.
     this.controlledShipId = this.selectionRequest ? undefined : authoritativeControl;
     this.fleetOrders = frame.fleetOrders ?? {};
+    this.fleetNotices = frame.fleetNotices ?? [];
     if (frame.view === 'team') this.target = undefined;
     else if (!this.target || !this.actors.includes(this.target)) this.target = this.actors.find(a => a.team === 'enemy');
     this.shells = frame.shells; this.torpedoes = frame.torpedoes; this.depthCharges = frame.depthCharges; this.airReleases = frame.releases;

@@ -108,6 +108,9 @@ pub struct Battle {
     visual_rules: crate::sensors::VisualRules,
     displacement: Vec<u64>,
     rules: Rules,
+    /// Every actor's recorded track and formation axis, kept outside navigation
+    /// state so manual helm, bots and standing orders all leave a wake to follow.
+    pub trails: navigation::Trails,
 }
 impl Battle {
     pub fn new(
@@ -262,6 +265,7 @@ impl Battle {
             event_sequence: 0,
             displacement,
             rules: Rules::default(),
+            trails: Default::default(),
             mission_rules: setup.mission_rules,
             sensors: Default::default(),
             navigation_reports: Default::default(),
@@ -395,6 +399,13 @@ impl Battle {
             return;
         }
         self.records.begin_tick(&self.actors);
+        // Record every actor's track before any captain reads it, so a follower
+        // steers for water its guide has actually crossed.
+        for a in &self.actors {
+            let trail = self.trails.entry(a.motion.id.clone()).or_default();
+            trail.record([a.motion.x, a.motion.z], a.motion.heading, a.motion.speed);
+            trail.steady_axis(a.motion.heading, DT);
+        }
         if self.mission_rules.is_some() && self.tick.is_multiple_of(self.visual_rules.cadence_ticks)
         {
             self.sensors.update(
@@ -504,6 +515,7 @@ impl Battle {
                                         &self.actors,
                                         orders,
                                         o.formation_policy,
+                                        &self.trails,
                                     );
                                     command.throttle = command.throttle.min(
                                         formation.speed_limit_mps
@@ -567,6 +579,7 @@ impl Battle {
                                         &self.actors,
                                         orders,
                                         o.formation_policy,
+                                        &self.trails,
                                     )
                                 });
                                 let speed_limit = formation
@@ -580,6 +593,7 @@ impl Battle {
                                     &mut state,
                                     self.tick,
                                     speed_limit,
+                                    &self.trails,
                                     navigation_contacts
                                         .as_ref()
                                         .map(|reports| reports[actor.team.index()].as_slice()),

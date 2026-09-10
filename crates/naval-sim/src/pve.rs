@@ -338,6 +338,18 @@ impl PvePlan {
         self.setup = proposed;
         Ok(self.setup.clone())
     }
+    /// Cruising formation per owned task group, chosen at deployment. Unknown
+    /// group ids are ignored; the enemy's own groups are never addressed here.
+    pub fn set_formations(
+        &mut self,
+        formations: &std::collections::BTreeMap<String, crate::navigation::Formation>,
+    ) {
+        for group in &mut self.groups {
+            if let Some(formation) = formations.get(&group.id) {
+                group.formation = Some(*formation);
+            }
+        }
+    }
     pub fn restart_setup(&self) -> BattleSetup {
         self.setup.clone()
     }

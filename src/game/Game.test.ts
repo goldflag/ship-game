@@ -4,7 +4,7 @@ import { afterEach, beforeEach, expect, spyOn, test } from 'bun:test';
 import { Group, PerspectiveCamera, Scene, Vector3 } from 'three/webgpu';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { loadShipJoints } from '../../scripts/diagnostics/load-ship-joints';
-import { Game } from './Game';
+import { briefingControlGroups, Game } from './Game';
 import type { ClearancePose, ClearanceResult } from './articulationPreview';
 import { VisualEnvironment } from './VisualEnvironment';
 import { CameraRig } from './CameraRig';
@@ -479,4 +479,18 @@ test('rapid shell presses in different secondary groups never force a neighborin
     expect(simulation.player.mounts[i].loaded).toBe(groups[1].mountIds.includes(m.id) ? 'he' : 'ap');
   });
   expect(game.selectedAmmunition).toBe('he');
+});
+
+test('task groups become numbered control groups carrying the formation the player deployed them in', () => {
+  const briefing = {
+    groups: [{ id: 'g1', name: 'Battle line', formation: 'line-abreast' as const }, { id: 'g2', name: 'Screen' }, { id: 'g3', name: 'Reserve' }],
+    assignments: [{ id: 'bb', groupId: 'g1' }, { id: 'ca', groupId: 'g1' }, { id: 'dd', groupId: 'g2' }],
+  };
+  // The deploy screen's choice wins; a group's own cruising formation stands in; column is the default.
+  expect([...briefingControlGroups(briefing, { g2: 'screen' })]).toEqual([
+    [1, { name: 'Battle line', shipIds: ['bb', 'ca'], formation: 'line-abreast' }],
+    [2, { name: 'Screen', shipIds: ['dd'], formation: 'screen' }],
+  ]);
+  // An empty group takes no slot, and without a draft record each group keeps its own formation.
+  expect([...briefingControlGroups(briefing)].map(([slot, group]) => [slot, group.formation])).toEqual([[1, 'line-abreast'], [2, 'column']]);
 });

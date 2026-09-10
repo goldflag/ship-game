@@ -5,6 +5,7 @@ import type { CombatSimulation } from '../../simulation/combat';
 import type { Vec3 } from '../../ships/blueprint';
 import type { WeaponsPolicy } from '../../multiplayer/generated/WeaponsPolicy';
 import type { FleetOrderState } from '../../multiplayer/generated/FleetOrderState';
+import type { FleetNotice } from '../../multiplayer/generated/FleetNotice';
 import type { OrderReceipt } from './commandQueue';
 import type { Formation } from '../../multiplayer/generated/Formation';
 import type { FleetActor } from '../../simulation/battle';
@@ -39,6 +40,8 @@ export interface BattleSession extends Omit<Pick<CombatSimulation, keyof CombatS
  selectShip?(id: string): boolean;
  readonly controlledShipId?: string;
  readonly fleetOrders?: Record<string, FleetOrderState>;
+ /** Fleet news for the owner, oldest first: a lost guide's successor announces itself. `text` is rendered verbatim. */
+ readonly fleetNotices?: readonly FleetNotice[];
  readonly orderReceipts?: OrderReceipt[];
  readonly queuedOrderCount?: number;
  /** Live score sheet for owned vessels: damage dealt and ships sunk. */

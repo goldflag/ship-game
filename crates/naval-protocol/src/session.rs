@@ -14,7 +14,27 @@ pub struct Session {
     pub control: FleetControl,
     pub owners: [TeamId; 2],
     priorities: BTreeMap<String, (String, String)>,
+    notices: [Vec<FleetNotice>; 2],
 }
+/// Why a fleet notice was raised. These are owner-visible consequences of the
+/// standing orders, not chat.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize, ts_rs::TS)]
+#[serde(rename_all = "kebab-case")]
+pub enum FleetNoticeKind {
+    GuideAssumed,
+}
+/// One line of fleet news for an owner. `text` is rendered verbatim.
+#[derive(Clone, Debug, PartialEq, serde::Serialize, ts_rs::TS)]
+#[serde(rename_all = "camelCase")]
+pub struct FleetNotice {
+    #[ts(type = "number")]
+    pub tick: u64,
+    pub ship_id: String,
+    pub kind: FleetNoticeKind,
+    pub text: String,
+}
+/// Notices an owner keeps; older ones are dropped.
+pub const MAX_FLEET_NOTICES: usize = 32;
 /// An owner's acknowledged standing orders, without another team's plans or
 /// transient held input. Camera and UI selection never enter this contract.
 #[derive(Clone, Debug, serde::Serialize, ts_rs::TS)]
@@ -84,6 +104,7 @@ impl Session {
             control,
             owners,
             priorities: BTreeMap::new(),
+            notices: Default::default(),
         })
     }
     pub fn apply(&mut self, sender: usize, c: CommandEnvelope) -> Result<(), CommandError> {
@@ -292,8 +313,17 @@ impl Session {
             orders.insert(a.motion.id.clone(), o);
         }
         self.battle.step(&orders);
+        let mut lost = vec![];
         for a in &self.battle.actors {
-            self.control.ships.get_mut(&a.motion.id).unwrap().afloat = a.physical_loss().is_none();
+            let afloat = a.physical_loss().is_none();
+            let ship = self.control.ships.get_mut(&a.motion.id).unwrap();
+            if ship.afloat && !afloat {
+                lost.push(a.motion.id.clone());
+            }
+            ship.afloat = afloat;
+        }
+        for id in lost {
+            self.promote_guide(&id);
         }
         for player in &mut self.control.players {
             if player
@@ -304,6 +334,60 @@ impl Session {
             {
                 self.control.ships.get_mut(&id).unwrap().input = None;
             }
+        }
+    }
+    pub fn fleet_notices(&self, owner: usize) -> &[FleetNotice] {
+        self.notices.get(owner).map_or(&[], |n| n.as_slice())
+    }
+    /// A lost guide hands its own standing order to the surviving escort with the
+    /// lowest slot, and the rest of the formation re-forms on that ship. This is
+    /// the authoritative order store, so the succession outlives any local hold.
+    fn promote_guide(&mut self, lost_id: &str) {
+        let Some(lost) = self.control.ships.get(lost_id) else {
+            return;
+        };
+        let (owner, order) = (lost.owner, lost.movement.clone());
+        let mut escorts: Vec<(u32, String)> = self
+            .control
+            .ships
+            .iter()
+            .filter(|(_, s)| s.owner == owner && s.afloat)
+            .filter_map(|(id, s)| match &s.movement {
+                MovementOrder::Escort {
+                    leader_id, slot, ..
+                } if leader_id == lost_id => Some((*slot, id.clone())),
+                _ => None,
+            })
+            .collect();
+        escorts.sort();
+        let Some((_, guide)) = escorts.first().cloned() else {
+            return;
+        };
+        self.control.ships.get_mut(&guide).unwrap().movement = order;
+        for (_, id) in escorts.iter().skip(1) {
+            if let Some(MovementOrder::Escort { leader_id, .. }) =
+                self.control.ships.get_mut(id).map(|s| &mut s.movement)
+            {
+                *leader_id = guide.clone();
+            }
+        }
+        // Navigation state is rebuilt from the new order on the next tick.
+        let name = self
+            .battle
+            .actors
+            .iter()
+            .find(|a| a.motion.id == guide)
+            .map_or(guide.clone(), |a| a.definition().name.clone());
+        let notice = FleetNotice {
+            tick: self.battle.tick,
+            ship_id: guide,
+            kind: FleetNoticeKind::GuideAssumed,
+            text: format!("{name} has the guide"),
+        };
+        let notices = &mut self.notices[owner];
+        notices.push(notice);
+        if notices.len() > MAX_FLEET_NOTICES {
+            notices.drain(..notices.len() - MAX_FLEET_NOTICES);
         }
     }
     pub fn finish(&mut self, winner: Option<TeamId>, reason: FinishReason) {

@@ -1,15 +1,18 @@
 import type { FleetOrderState } from '../multiplayer/generated/FleetOrderState';
+import type { Formation } from '../multiplayer/generated/Formation';
 
 export interface FormationShip { id: string; name: string }
-export interface FormationGroup { name: string; shipIds: string[] }
-export interface Formation { index: number; name: string; leaderId: string; shipIds: string[] }
+export interface FormationGroup { name: string; shipIds: string[]; formation?: Formation }
+/** A group on the chart: who sails with whom, under which guide, in what shape. */
+export interface FleetFormation { index: number; name: string; leaderId: string; shipIds: string[]; formation: Formation }
 
 const defaultGroupName = /^group \d+$/i;
 
 /** The formation is the group: a leader plus every ship escorting it, directly
- * or through another escort. Setup groups seed the numbering and any custom
- * name, so the opening order of battle and later escort orders agree. */
-export function fleetFormations(ships: readonly FormationShip[], orders: Record<string, FleetOrderState | undefined> = {}, groups: ReadonlyMap<number, FormationGroup> = new Map()): Formation[] {
+ * or through another escort. Setup groups seed the numbering, any custom
+ * name and the cruising formation, so the opening order of battle and later
+ * escort orders agree. */
+export function fleetFormations(ships: readonly FormationShip[], orders: Record<string, FleetOrderState | undefined> = {}, groups: ReadonlyMap<number, FormationGroup> = new Map()): FleetFormation[] {
   const ids = new Set(ships.map(s => s.id));
   const order = new Map(ships.map((s, i) => [s.id, i]));
   const leaderOf = (id: string): string => {
@@ -40,10 +43,19 @@ export function fleetFormations(ships: readonly FormationShip[], orders: Record<
   });
   let next = 1;
   const nameOf = (id: string) => ships.find(s => s.id === id)?.name ?? id;
+  /** Escorts that were stationed without a group record still report how they sail. */
+  const sailing = (leaderId: string, shipIds: readonly string[]): Formation | undefined => {
+    for (const id of shipIds) {
+      const movement = id === leaderId ? undefined : orders[id]?.movement;
+      if (movement?.type === 'escort') return movement.formation;
+    }
+    return undefined;
+  };
   return numbered.map(formation => {
     if (formation.index === undefined) { while (used.has(next)) next++; formation.index = next; used.add(next); }
-    const custom = groups.get(formation.index)?.name;
+    const group = groups.get(formation.index);
+    const custom = group?.name;
     const name = custom && !defaultGroupName.test(custom.trim()) ? custom : formation.shipIds.length > 1 ? `${nameOf(formation.leaderId)} formation` : nameOf(formation.leaderId);
-    return { index: formation.index, name, leaderId: formation.leaderId, shipIds: formation.shipIds };
+    return { index: formation.index, name, leaderId: formation.leaderId, shipIds: formation.shipIds, formation: group?.formation ?? sailing(formation.leaderId, formation.shipIds) ?? 'column' };
   }).sort((a, b) => a.index - b.index);
 }

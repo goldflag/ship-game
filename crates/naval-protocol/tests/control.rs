@@ -392,3 +392,109 @@ fn formation_policy_is_addressed_and_preserves_route_target_and_helm() {
         FormationPolicy::LeaveStragglers
     );
 }
+
+#[test]
+fn a_lost_guide_hands_the_formation_to_its_lowest_slot_escort() {
+    use naval_protocol::session::{FleetNoticeKind, Session};
+    use naval_sim::{
+        battle::{Battle, BattleSetup, ShipSetup},
+        bots::AiLevel,
+        catalog::Catalog,
+        navigation::{Formation, Movement as MovementOrder},
+        rules::TeamId,
+        vessel::{CompiledShip, Controller},
+    };
+    use std::{collections::BTreeMap, sync::Arc};
+    let catalog =
+        Catalog::load(&std::fs::read("../../.build/naval-content/manifest.json").unwrap()).unwrap();
+    let compiled: BTreeMap<_, _> = ["enterprise-cv6", "fletcher"]
+        .into_iter()
+        .map(|id| {
+            (
+                id.to_string(),
+                Arc::new(CompiledShip::new(catalog.definitions[id].clone()).unwrap()),
+            )
+        })
+        .collect();
+    let ships = [
+        ("guide", "enterprise-cv6", TeamId::A),
+        ("escort-a", "fletcher", TeamId::A),
+        ("escort-b", "fletcher", TeamId::A),
+        ("enemy", "fletcher", TeamId::B),
+    ]
+    .into_iter()
+    .map(|(id, preset, team)| ShipSetup {
+        id: id.into(),
+        preset_id: preset.into(),
+        team,
+        controller: Controller::Bot,
+        ai_level: AiLevel::Normal,
+        spawn: None,
+    })
+    .collect();
+    let battle = Battle::new(
+        Arc::new(catalog),
+        &compiled,
+        BattleSetup {
+            ships,
+            seed: 11,
+            map_id: "north-atlantic".into(),
+            weather: "clear".into(),
+            spawn_distance: 12000.0,
+            wind_speed: None,
+            mission_rules: None,
+            air_rules: None,
+        },
+    )
+    .unwrap();
+    let mut session = Session::new(battle, [TeamId::A, TeamId::B]).unwrap();
+    let route = MovementOrder::Route {
+        waypoints: vec![[0.0, -6000.0]],
+        speed_mps: 12.0,
+        looped: false,
+    };
+    let escort = |slot: u32| MovementOrder::Escort {
+        leader_id: "guide".into(),
+        offset: [0.0, 600.0 * (slot + 1) as f64],
+        radius_m: 160.0,
+        formation: Formation::Column,
+        slot,
+    };
+    session.control.ships.get_mut("guide").unwrap().movement = route.clone();
+    // The higher slot is alphabetically first, so the choice is the slot's.
+    session.control.ships.get_mut("escort-a").unwrap().movement = escort(1);
+    session.control.ships.get_mut("escort-b").unwrap().movement = escort(0);
+    session.step();
+    assert!(session.fleet_notices(0).is_empty());
+    // Physically lose the guide; the succession happens in the order store.
+    let guide = session
+        .battle
+        .actors
+        .iter_mut()
+        .find(|a| a.motion.id == "guide")
+        .unwrap();
+    guide.damage.integrity = 0.0;
+    assert!(guide.physical_loss().is_some());
+    session.step();
+    assert!(!session.control.ships["guide"].afloat);
+    assert_eq!(session.control.ships["escort-b"].movement, route);
+    assert_eq!(
+        session.control.ships["escort-a"].movement,
+        MovementOrder::Escort {
+            leader_id: "escort-b".into(),
+            offset: [0.0, 1200.0],
+            radius_m: 160.0,
+            formation: Formation::Column,
+            slot: 1,
+        }
+    );
+    let notices = session.fleet_notices(0);
+    assert_eq!(notices.len(), 1);
+    assert_eq!(notices[0].ship_id, "escort-b");
+    assert_eq!(notices[0].kind, FleetNoticeKind::GuideAssumed);
+    assert_eq!(notices[0].text, "Fletcher has the guide");
+    assert!(session.fleet_notices(1).is_empty());
+    // The succession is announced once, not on every subsequent tick.
+    session.step();
+    assert_eq!(session.fleet_notices(0).len(), 1);
+}

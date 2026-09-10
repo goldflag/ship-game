@@ -27,9 +27,14 @@ export function rotateFormation<T extends Placement>(placements: T[], selected: 
   return angle === 0 ? placements : moveFormation(placements, selected, center.x, center.z, angle);
 }
 
+/** Zoom 1 fits the whole battle area on the chart's shorter axis; below it the
+ * player can pull back far enough to see the sea around the boundary. */
+export const MIN_DEPLOYMENT_ZOOM = .35;
+export const MAX_DEPLOYMENT_ZOOM = 8;
+
 /** Keep the world point under the cursor fixed while changing scale. */
 export function zoomDeployment(view: DeploymentView, anchor: DeploymentPoint, wheelDelta: number): DeploymentView {
-  const zoom = Math.max(1, Math.min(8, view.zoom * Math.exp(-Math.max(-240, Math.min(240, wheelDelta)) * .002)));
+  const zoom = Math.max(MIN_DEPLOYMENT_ZOOM, Math.min(MAX_DEPLOYMENT_ZOOM, view.zoom * Math.exp(-Math.max(-240, Math.min(240, wheelDelta)) * .002)));
   const ratio = view.zoom / zoom;
   return { zoom, center: { x: anchor.x + (view.center.x - anchor.x) * ratio, z: anchor.z + (view.center.z - anchor.z) * ratio } };
 }

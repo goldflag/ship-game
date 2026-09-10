@@ -7,6 +7,7 @@ import { localDelta } from './localSnapshotDelta';
 import type { Snapshot } from './SnapshotSession';
 import type { PveRequest } from '../../multiplayer/generated/PveRequest';
 import type { Placement } from '../../multiplayer/generated/Placement';
+import type { Formation } from '../../multiplayer/generated/Formation';
 let runtime: LocalRuntime | undefined;
 let planner: PvePlanner | undefined;
 let previous: Snapshot | undefined;
@@ -21,7 +22,7 @@ function loadContent() {
 }
 // Requests are serialized: initialization cannot race a queued tick batch.
 let chain = Promise.resolve();
-self.onmessage = (event: MessageEvent<{ type: 'options' } | { type: 'validate'; placements: Placement[] } | { type: 'init'; setup: BattleSetup; profile?: boolean } | { type: 'plan'; request: PveRequest; profile?: boolean } | { type: 'deploy'; placements: Placement[] } | { type: 'restart' } | { type: 'advance'; commands: CommandEnvelope[]; ticks: number }>) => {
+self.onmessage = (event: MessageEvent<{ type: 'options' } | { type: 'validate'; placements: Placement[] } | { type: 'init'; setup: BattleSetup; profile?: boolean } | { type: 'plan'; request: PveRequest; profile?: boolean } | { type: 'deploy'; placements: Placement[]; formations?: Record<string, Formation> } | { type: 'restart' } | { type: 'advance'; commands: CommandEnvelope[]; ticks: number }>) => {
   chain = chain.then(async () => {
     try {
       const message = event.data;
@@ -42,7 +43,7 @@ self.onmessage = (event: MessageEvent<{ type: 'options' } | { type: 'validate'; 
         return;
       } else if (message.type === 'deploy') {
         if (!planner) throw new Error('Prepare a mission before deploying.');
-        const next = planner.start(JSON.stringify(message.placements));
+        const next = planner.start(JSON.stringify(message.placements), JSON.stringify(message.formations ?? {}));
         runtime?.free(); runtime = next; previous = undefined;
         planner.free(); planner = undefined;
       } else if (message.type === 'init') {
