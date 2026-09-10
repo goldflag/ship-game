@@ -18,7 +18,8 @@ import { selectedShip as initialShip, shipPreset } from '../ships/presets';
 import { ShipContext } from './ShipContext';
 import { bindingLabel, KEYBINDING_STORAGE_KEY, loadKeybindings, type Keybindings } from '../game/keybindings';
 import { BattleDialog } from './battle/BattleDialog';
-import { loadBattleMode, type BattleMode } from './battle/battleModes';
+import { loadBattleMode, loadSkipSortieBoard, type BattleMode } from './battle/battleModes';
+import { SortieBoard } from './battle/SortieBoard';
 import { BattleLoadingScreen, type BattleLoadingState } from './BattleLoadingScreen';
 import { BATTLE_SPAWN_DISTANCE, type BattleSetup } from '../simulation/battle';
 import { SettingsDialog } from './SettingsDialog';
@@ -74,6 +75,7 @@ export function App() {
   const [pveRequest, setPveRequest] = useState<PveRequest>();
   const [pveBriefing, setPveBriefing] = useState<PveBriefing>();
   const [battleOpen, setBattleOpen] = useState(false);
+  const [sortieOpen, setSortieOpen] = useState(false);
   const [battleMode, setBattleMode] = useState<BattleMode>(loadBattleMode);
   const [battleSetup, setBattleSetup] = useState<BattleSetup>({ playerShipId: initialShip.id, friendlyBots: [], enemies: [], spawnDistance: BATTLE_SPAWN_DISTANCE, mapId: 'north-atlantic', timeHours: 12, cloudCover: 38, windSpeed: 9 });
   const [battleLoading, setBattleLoading] = useState<BattleLoadingState | null>(null);
@@ -83,7 +85,7 @@ export function App() {
 
   useEffect(() => {
     let active = true;
-    setPveBriefing(undefined); setBattleOpen(false); setBattleLoading(null); battlePending.current = false;
+    setPveBriefing(undefined); setBattleOpen(false); setSortieOpen(false); setBattleLoading(null); battlePending.current = false;
     setSwitching(false); setSwitchError(''); switchPending.current = false;
     setReady(false); setError(''); setPaused(false); setSettingsOpen(false); setData(INITIAL_TELEMETRY); setPhase('garage');
     const session = new Game(host.current!, settings, {
@@ -146,8 +148,11 @@ export function App() {
     if (!ready || switchPending.current) return;
     setBattleSetup(value => ({ ...value, playerShipId: selectedShip.id }));
     if (pveRequest) setPveRequest({ ...pveRequest, seed: crypto.getRandomValues(new Uint32Array(1))[0] });
-    setPveBriefing(undefined); setBattleError(''); setBattleMode(mode); setBattleOpen(true);
+    setPveBriefing(undefined); setBattleError(''); setBattleMode(mode); setSortieOpen(false); setBattleOpen(true);
   };
+  /** The sortie board explains the modes before setup. Players who have made up their mind can skip it. */
+  const openSortieBoard = () => { if (ready && !switchPending.current) setSortieOpen(true); };
+  const pressBattle = () => { if (loadSkipSortieBoard()) openBattle(); else openSortieBoard(); };
   const launch = async () => {
     const session = game.current;
     if (!ready || !session || switchPending.current || battlePending.current) return;
@@ -285,7 +290,8 @@ export function App() {
       if (!(target instanceof HTMLElement && target.closest('input, textarea, [contenteditable]:not([contenteditable="false"])'))) event.preventDefault();
     }}>
     <div ref={host} className="ocean-viewport" inert={!ready || !!error} data-ship-labels={phase === 'sailing' && hud && ready && !error && !data.airOperationsOpen} />
-    {phase === 'garage' && ready && !error && !battleOpen && <Garage key={selectedShip.id} switching={switching} switchError={switchError} onSelectShip={switchShip} game={game.current} ready={ready} fps={data.fps} onBattle={openBattle} lastMode={battleMode} onSettings={() => game.current?.setPaused(true)}/>}
+    {phase === 'garage' && ready && !error && !battleOpen && <Garage key={selectedShip.id} switching={switching} switchError={switchError} onSelectShip={switchShip} game={game.current} ready={ready} fps={data.fps} onBattle={pressBattle} onChooseBattle={openSortieBoard} lastMode={battleMode} onSettings={() => game.current?.setPaused(true)}/>}
+    {phase === 'garage' && sortieOpen && !battleOpen && <SortieBoard lastMode={battleMode} onChoose={openBattle} onClose={() => setSortieOpen(false)}/>}
     {battleOpen && <BattleDialog initialMode={battleMode} initialShipId={selectedShip.id} loading={!!battleLoading} onClose={() => setBattleOpen(false)}
       setup={battleSetup} onSetupChange={setBattleSetup} onLaunchCustom={() => void launch()} customError={battleError}
       pveRequest={pveRequest} onLaunchPve={launchPve} onOnlineBattle={onlineBattle}/>}

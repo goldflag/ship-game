@@ -12,7 +12,7 @@ import type { InspectionMode } from "../ships/inspection";
 import { ModelViewControls, PortInspection } from "./PortInspection";
 import { ShipStatistics } from "./ShipStatistics";
 import { ShipClassIcon } from "./ShipClassIcons";
-import { BATTLE_MODES, battleModeName, type BattleMode } from "./battle/battleModes";
+import { battleModeName, type BattleMode } from "./battle/battleModes";
 
 const SHIPS = Object.values(shipPresets);
 const NATIONS = Array.from(new Set(SHIPS.map((ship) => shipIdentity(ship.id).nation).filter(Boolean))).sort();
@@ -109,28 +109,22 @@ type GarageState = {
   inspect: (mode: InspectionMode) => void;
   selectVolume: (id?: string) => void;
   selectShip: (id: string) => void;
-  battle: (mode?: BattleMode) => void;
+  /** The Battle button: the sortie board, or the last mode when the player chose to skip it. */
+  battle: () => void;
+  /** The caret: always the sortie board. */
+  chooseBattle: () => void;
   lastMode: BattleMode;
   ready: boolean;
   settings: () => void;
   fps: number;
 };
 function SetSail({ state }: { state: GarageState }) {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const menu = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!menuOpen) return;
-    const outside = (event: PointerEvent) => { if (!menu.current?.contains(event.target as Node)) setMenuOpen(false); };
-    const escape = (event: KeyboardEvent) => { if (event.key === "Escape") setMenuOpen(false); };
-    window.addEventListener("pointerdown", outside); window.addEventListener("keydown", escape);
-    return () => { window.removeEventListener("pointerdown", outside); window.removeEventListener("keydown", escape); };
-  }, [menuOpen]);
   return (
-    <div className="garage-battle" ref={menu}>
+    <div className="garage-battle">
       <div className="garage-battle-split">
         <button
           className="garage-set-sail"
-          title={`Prepare a battle (${battleModeName(state.lastMode)})`}
+          title="Prepare a battle"
           aria-haspopup="dialog"
           onClick={() => state.battle()}
           disabled={!state.ready}
@@ -141,26 +135,16 @@ function SetSail({ state }: { state: GarageState }) {
         </button>
         <button
           className="garage-battle-caret"
+          title="Choose a battle mode"
           aria-label="Choose a battle mode"
-          aria-haspopup="menu"
-          aria-expanded={menuOpen}
+          aria-haspopup="dialog"
           disabled={!state.ready}
-          onClick={() => setMenuOpen((open) => !open)}
+          onClick={() => state.chooseBattle()}
         >
           <Icon name="chevron" size={18} />
         </button>
       </div>
       <small className="garage-battle-last">Last: <b>{battleModeName(state.lastMode)}</b></small>
-      {menuOpen && (
-        <div className="garage-battle-menu" role="menu" aria-label="Battle mode">
-          {BATTLE_MODES.map((mode) => (
-            <button key={mode.id} role="menuitem" aria-current={mode.id === state.lastMode ? "true" : undefined} onClick={() => { setMenuOpen(false); state.battle(mode.id); }}>
-              <strong>{mode.name}</strong>
-              <span>{mode.summary}</span>
-            </button>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
@@ -403,7 +387,8 @@ interface Props {
   switchError: string;
   onSelectShip: (id: string) => void;
   fps: number;
-  onBattle: (mode?: BattleMode) => void;
+  onBattle: () => void;
+  onChooseBattle: () => void;
   lastMode: BattleMode;
   onSettings: () => void;
 }
@@ -413,6 +398,7 @@ export function Garage({
   ready,
   fps,
   onBattle,
+  onChooseBattle,
   lastMode,
   onSettings,
   switching,
@@ -455,6 +441,7 @@ export function Garage({
       onSelectShip(id);
     },
     battle: onBattle,
+    chooseBattle: onChooseBattle,
     lastMode,
     ready: ready && !switching,
     settings: onSettings,
