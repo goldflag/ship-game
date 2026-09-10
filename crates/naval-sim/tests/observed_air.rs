@@ -621,6 +621,7 @@ fn spotted_aircraft_publish_only_visible_exteriors_and_stop_when_sight_is_lost()
     let exterior = exteriors.iter().find(|p| p["id"] == *id).unwrap();
     assert_eq!(exterior["position"], serde_json::json!(plane.position));
     assert_eq!(exterior["modelId"], plane.model_id);
+    assert_eq!(exterior["health"], plane.hp / 100.0);
     assert_eq!(exterior["velocity"], serde_json::json!(plane.velocity));
     assert!(
         exterior["observers"]

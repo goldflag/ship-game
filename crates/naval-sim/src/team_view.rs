@@ -222,7 +222,7 @@ impl Battle {
             .map(|(c, e)| {
                 json!({"id":c.id,"presetId":e.preset_id,"position":e.position,
                 "heading":e.motion.heading,"pitch":e.motion.pitch,"roll":e.motion.roll,
-                "velocity":e.motion.velocity,"observedTick":c.last_observed_tick,
+                "velocity":e.motion.velocity,"observedTick":c.last_observed_tick,"health":e.health,
                 "observers":c.sources.iter().map(|s| &s.observer_id).collect::<Vec<_>>()})
             })
             .collect();
@@ -234,7 +234,7 @@ impl Battle {
                     json!({
                         "id":c.id,"modelId":aircraft.model_id,"position":e.position,
                         "heading":e.motion.heading,"pitch":e.motion.pitch,"roll":e.motion.roll,
-                        "velocity":e.motion.velocity,"observedTick":c.last_observed_tick,
+                        "velocity":e.motion.velocity,"observedTick":c.last_observed_tick,"health":e.health,
                         "controls":aircraft.controls,"wingFold":aircraft.wing_fold,
                         "observers":c.sources.iter().map(|s| &s.observer_id).collect::<Vec<_>>()
                     })

@@ -21,7 +21,7 @@ function fixture() {
   const game = { simulation, selectedShipIds: [], selectedFlightIds: [], controlGroups: new Map([[1, { name: 'Group 1', shipIds: [id] }]]) } as unknown as Game;
   const data: Telemetry = { ship: simulation.ship, order: 1, camera: 'Chase', fps: 60, backend: 'test', trail: [], combat: simulation.telemetry('main', [0, 0, -5000]), fleetCommandMode: true, airOperationsOpen: true, selectedShipIds: [] };
   const render = (state = data) => renderToStaticMarkup(<FleetCommand data={state} game={game} bindings={defaultKeybindings()}/>);
-  return { render, data, id };
+  return { render, data, id, simulation };
 }
 
 test('unselected owned routes retain waypoint markers and stale aircraft never draw uncertainty rings', () => {
@@ -87,4 +87,19 @@ test('standing-order report distinguishes temporary evasion from its retained ro
   const order = { movement: { type: 'route', waypoints: [[0, 1000]], speedMps: 10, looped: false }, navigation: { status: 'evading-torpedo', waypoint: 0 } } as unknown as import('../multiplayer/generated/FleetOrderState').FleetOrderState;
   expect(standingOrder(order)).toContain('Avoiding spotted torpedoes');
   expect(standingOrder(order)).toContain('Waypoint 1/1');
+});
+
+test('enemy HP appears only for current sightings with sampled health', () => {
+  const { render, simulation } = fixture();
+  Object.assign(simulation, {
+    observedShips: [{ id: 'contact-a-1', health: .42, observedTick: 0 }],
+    observedAircraft: [{ id: 'hidden-air-report', health: .73, observedTick: 0 }],
+  });
+  expect(render()).toContain('42% HP');
+  expect(render()).not.toContain('73% HP');
+  const tracks = (simulation as unknown as { observationTracks: { status: string }[] }).observationTracks;
+  tracks[0].status = 'tracked';
+  expect(render()).toContain('73% HP');
+  tracks[1].status = 'stale';
+  expect(render()).not.toContain('42% HP');
 });

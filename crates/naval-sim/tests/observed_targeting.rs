@@ -174,6 +174,7 @@ fn observed_enemy_is_a_report_and_silhouette_without_an_inspectable_damage_model
     assert!(!frame.to_string().contains("enemy-private-id"));
     assert!(frame["contacts"][0].get("damage").is_none());
     assert!(frame["observedShips"][0].get("mounts").is_none());
+    assert!(frame["observedShips"][0]["health"].as_f64().is_some_and(|hp| (0.0..=1.0).contains(&hp)));
     assert!(
         frame["observedShips"][0]["id"]
             .as_str()
@@ -222,7 +223,7 @@ fn final_debrief_reveals_incapacity_without_adding_enemies_to_the_active_world()
 }
 
 #[test]
-fn visible_condition_reports_use_exterior_cues_without_leaking_health_or_changing_legacy_frames() {
+fn visible_reports_publish_sampled_health_without_private_damage_or_changing_legacy_frames() {
     use naval_sim::{rules::TeamId, snapshot::PresentationView};
     let mut a = battle(2000.0);
     let mut b = battle(2000.0);
@@ -252,7 +253,14 @@ fn visible_condition_reports_use_exterior_cues_without_leaking_health_or_changin
             .presentation_value(PresentationView::Team(TeamId::A))
             .unwrap()
     };
-    assert_eq!(own(&a), own(&b));
+    let mut damaged = own(&a);
+    let mut intact = own(&b);
+    assert_eq!(damaged["observedShips"][0]["health"], 1.0 / a.actors[1].damage.max_integrity);
+    assert_eq!(intact["observedShips"][0]["health"], 1.0);
+    for frame in [&mut damaged, &mut intact] {
+        frame["observedShips"][0].as_object_mut().unwrap().remove("health");
+    }
+    assert_eq!(damaged, intact);
     let frame = own(&a);
     let condition = &frame["contacts"][0]["visibleCondition"];
     assert_eq!(condition["fire"], true);

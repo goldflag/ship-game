@@ -109,6 +109,18 @@ export function FleetCommand({ data, game, bindings }: { data: Telemetry; game: 
   const selectedFlights = flights.filter(f => game.selectedFlightIds.includes(f.id));
   const ownPlanes = wings.flatMap(({ owner }) => owner.airWing!.planes.filter(airborne));
   const observedModels = game.simulation.observedAircraft ?? [];
+  const enemyHealth = new Map([...(game.simulation.observedShips ?? []), ...observedModels]
+    .filter(o => o.health !== undefined && Number.isFinite(o.health) && tick - o.observedTick <= 60)
+    .map(o => [o.id, Math.max(0, Math.min(1, o.health!))]));
+  const healthOf = (c: ContactTrack) => reportState(c, tick) === 'current' ? enemyHealth.get(c.id) : undefined;
+  const healthMarker = (c: ContactTrack, x: number, y: number) => {
+    const hp = healthOf(c);
+    return hp === undefined ? null : <g className="fleet-command-enemy-health" aria-label={`${reportName(c)} · ${Math.round(hp * 100)}% HP`}>
+      <rect className="fleet-command-hull-track" x={x} y={y} width="40" height="3"/>
+      <rect className="fleet-command-hull-fill" x={x} y={y} width={40 * hp} height="3"/>
+      <text x={x + 45} y={y + 5}>{Math.round(hp * 100)}% HP</text>
+    </g>;
+  };
   const clusters = airClusters(observations, tick, 900, observedModels);
   const [coveragePoint, setCoveragePoint] = useState<[number, number]>();
   const coverage = game.simulation.reconCoverage;
@@ -536,6 +548,7 @@ export function FleetCommand({ data, game, bindings }: { data: Telemetry; game: 
         <circle r="18" className="fleet-command-hitbox"/>
         <g data-map-glyph="true" data-map-heading={heading}><path className="fleet-command-hull" d={glyph.hull}/><path className="fleet-command-mark" d={glyph.mark}/></g>
         <text x="16" y="-3">{reportName(c)}</text><text className="fleet-command-marker-order" x="16" y="11">{c.affiliation === 'unknown' ? 'affiliation unknown' : reportState(c, tick) === 'current' ? conditionReport(c, tick).split(' · ')[0].toLowerCase() : `${reportState(c, tick).replaceAll('-', ' ')} · ${reportAge(c, tick)}`}</text>
+        {healthMarker(c, 16, 18)}
       </g>; })}
       {ownPlanes.map(p => { const flight = flights.find(f => f.id === p.flightId), on = !!flight && game.selectedFlightIds.includes(flight.id), unarmed = p.role === 'fighter' ? p.ammo <= 0 : !p.payload; return <g key={p.id} data-map-position={JSON.stringify(p.position)} data-plane={p.id} data-map-fade={`13,${p.heading},12,30`} className={`fleet-command-plane friendly ${on ? 'selected' : ''} ${p.hp < 50 ? 'hurt' : ''} ${unarmed ? 'unarmed' : ''} ${hoverFlightId && hoverFlightId === p.flightId ? 'hovered' : ''}`}
         onClick={e => { e.stopPropagation(); if (ignoreClick.current) { ignoreClick.current = false; return; } if (flight) selectAir(flight.id, e.shiftKey || e.ctrlKey || e.metaKey); }}>
@@ -550,6 +563,7 @@ export function FleetCommand({ data, game, bindings }: { data: Telemetry; game: 
         <title>{`${reportName(c)} · ${reportState(c, tick).replaceAll('-', ' ')} · ${reportAge(c, tick)}`}</title>
         <circle r="8" className="fleet-command-hitbox"/>
         <g data-map-glyph="true" data-map-heading={Math.atan2(vx, -vz)}><path d={PLANE_GLYPHS[reportedAircraftType(c, observedModels).type]} transform="scale(.9)"/>{damaged && <path className="fleet-command-smoke" d="M0 6q-3 6 -1 12"/>}</g>
+        {healthMarker(c, 12, 18)}
       </g>; })}
       {clusters.map(cluster => <g key={cluster.id} data-map-position={JSON.stringify(cluster.position)} className={`fleet-command-cluster ${cluster.stale ? 'stale' : ''} ${cluster.trackIds.includes(contactId ?? '') ? 'selected' : ''}`} aria-hidden="true">
         <text x="20" y="-2">{cluster.label}{cluster.model ? ` · ${cluster.model}` : ''}</text><text className="fleet-command-marker-order" x="20" y="11">{cluster.stale ? `last known · ${observationAge(cluster.lastObservedTick, tick)}` : `current${cluster.smoking ? ` · ${cluster.smoking} smoking` : ''}`}</text>
@@ -598,6 +612,7 @@ export function FleetCommand({ data, game, bindings }: { data: Telemetry; game: 
           <strong>{selectedTrackCluster ? selectedTrackCluster.label : selectedContact.name}</strong>
           {selectedReport ? <p>{selectedReport.affiliation === 'hostile' ? 'Hostile' : 'Affiliation unknown'} · {reportState(selectedReport, tick).replaceAll('-', ' ')} · {bearingLabel(selectedContact.x - origin.x, selectedContact.z - origin.z)} · {rangeLabel(selectedContact.x - origin.x, selectedContact.z - origin.z)}{selectedReport.visibleCondition?.sinking ? '' : ` · ±${reportUncertainty(selectedReport)}`}</p> : <p>Hostile · {bearingLabel(selectedContact.x - origin.x, selectedContact.z - origin.z)} · {rangeLabel(selectedContact.x - origin.x, selectedContact.z - origin.z)}</p>}
           {selectedReport && <p>Reported by {selectedReport.sources.map(source => ships.find(s => s.id === source.observerId)?.name ?? 'Friendly aircraft').filter((name, i, names) => names.indexOf(name) === i).join(', ') || 'Fleet lookouts'}, observed {reportAge(selectedReport, tick)}. {selectedReport.kind === 'surface' ? conditionReport(selectedReport, tick).split(' · ')[0] : 'Heading and speed are estimates from your observers.'}</p>}
+          {selectedReport && healthOf(selectedReport) !== undefined && <p>{Math.round(healthOf(selectedReport)! * 100)}% HP remaining</p>}
           <p className="fleet-command-popover-hint">{selectedReport?.visibleCondition?.sinking ? 'Loss confirmed by an observer. This report is no longer a target.' : selectedReport?.status === 'stale' ? 'Search the reported area to reacquire this contact.' : selectedReport?.kind === 'aircraft' ? 'Select a fighter group and Intercept to engage.' : 'Right-click with ships selected to focus fire, or with bombers selected to strike.'}</p>
           <div className="fleet-command-buttons">
             <button disabled={!actionable || !selectedFlights.length && !flights.some(f => f.role !== 'fighter' || true)} onClick={() => { if (!current.current.selectedFlights.length) { setFeedback('Select air groups first, then search here.'); return; } arm('search'); }}><Icon name="target" size={13}/>Search here<kbd>S</kbd></button>
