@@ -11,6 +11,7 @@ export interface ReferenceMaterial { color?: number; specular?: number; shinines
 export interface ReferenceGeometry { position: number[]; index: number[]; uv?: number[]; groups?: { start: number; count: number; material: number }[] }
 export interface ReferenceModel { geometry: Record<string, ReferenceGeometry>; materials?: Record<string, Record<string, ReferenceMaterial[]>> }
 export interface ReferencePack {
+  kind?: 'ship' | 'aircraft';
   vehicle: string;
   name: string;
   url: string;
@@ -20,6 +21,27 @@ export interface ReferencePack {
   paints: Record<string, string>;
   models: Record<string, ReferenceModel>;
   omitted: string[];
+}
+export interface AircraftReference { id: string; name: string; category: string; path: string }
+/** Read the public aircraft index as JSON, never execute the source page. */
+export function aircraftReferences(page: string): AircraftReference[] {
+  const misc = embeddedJson(page, /const\s+misc\s*=\s*/);
+  const result: AircraftReference[] = [];
+  for (const [category, items] of Object.entries(misc)) {
+    if (!/^[a-z]+$/.test(category) || !items || typeof items !== 'object') continue;
+    for (const [id, item] of Object.entries(items)) {
+      if (!/^p[a-z]a[a-z]\d{3}$/.test(id) || !item || typeof item !== 'object') continue;
+      const { name, scheme } = item as { name?: unknown; scheme?: unknown };
+      if (typeof name !== 'string' || typeof scheme !== 'string' || !/^common\/visual\/[a-zA-Z0-9_/-]+$/.test(scheme)) continue;
+      result.push({ id, name, category, path: scheme });
+    }
+  }
+  if (!result.length) throw new Error('GameModels3D exposed no supported aircraft. Load a local GLB instead.');
+  return result;
+}
+export function aircraftScheme(aircraft: AircraftReference): Scheme {
+  // Match the source viewer's X reflection; loadGame applies the shared Z conversion.
+  return { HullDefault: { aircraft: { visual: aircraft.path, transform: { matrix: [[-1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]] } } } };
 }
 /** World of Warships vehicles on GameModels3D that match roster presets. Presets without a WoWS counterpart have no suggestion. */
 export const suggestedVehicles: Record<string, string> = {

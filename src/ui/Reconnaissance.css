@@ -1,0 +1,11 @@
+.fleet-recon-coverage { pointer-events:none; }
+.fleet-recon-coverage path { fill:var(--fleet-active); stroke:none; }
+.fleet-recon-coverage .current { opacity:.12; }
+.fleet-recon-coverage .recent { opacity:.055; }
+.fleet-recon-coverage .older { opacity:.018; }
+.fleet-recon-legend { display:flex; flex-wrap:wrap; align-items:center; gap:10px; color:var(--fleet-muted); font-size:11px; }
+.fleet-recon-legend strong { font-weight:500; }
+.fleet-recon-legend span { display:inline-flex; align-items:center; gap:4px; }
+.fleet-recon-legend span::before { content:""; width:8px; height:8px; background:var(--fleet-active); }
+.fleet-recon-legend .recent::before { opacity:.5; }
+.fleet-recon-legend .older::before { opacity:.2; }

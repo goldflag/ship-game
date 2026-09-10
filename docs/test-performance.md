@@ -2,7 +2,7 @@
 
 ## Running the suite
 
-`bun run test` prepares the multiplayer content/WASM and discovers every test under
+`bun run test` prepares multiplayer content/WASM and discovers every test under
 `src/` and `scripts/`. It uses up to 16 workers, bounded by available CPU
 parallelism, with Bun's smaller-heap mode for each worker. Expensive files start
 first. Several long independent scenarios run in separate processes; disjoint
@@ -15,7 +15,7 @@ processes. Native options still delegate to Bun's runner, including filtering,
 watch mode and coverage. `bun run test:serial` uses the same preparation and test
 roots. Every invocation executes the tests; there is no persistent result cache.
 
-## Measurement method
+## Current measurements
 
 Measured September 9, 2026 on an Apple M5 Pro Mac with 18 logical CPUs, Bun 1.3.3,
 and dependencies installed with `bun install --frozen-lockfile`. Wall times include
@@ -25,40 +25,53 @@ multiplayer preparation, process startup, and captured stdout/stderr:
 /usr/bin/time -p bun run test > .build/test-performance/test.log 2>&1
 ```
 
-The comparison used source at `201f7da300e1dab391249d36fcb1ee24a8ac433b` with its
-original eight-worker runner and simulation. Both versions used the same installed
-dependencies, generated WASM/content and published assets. Preparation ran from
-the working checkout before each runner; its warm build was included on both
-sides. Before/after runs alternated, with no other validation work launched by
-this task concurrently.
+The baseline is master at `7832be3f`, including its PvE and carrier changes, using
+its original eight-worker runner and simulation. It passes 1,138 tests in 165
+files without fixture repairs. The updated branch passes 1,143 tests in 168 files:
+six regression tests were added, one duplicate was removed, and five timing tests
+were replaced or refocused. A comparison of executed test names confirmed these
+were the only additions/removals/renames.
 
-Five pre-existing failing test fixtures were corrected on both sides: the mock
-renderer's backend, rounded HP displays, transform formatting, the documented
-torpedo speed multiplier, and an explicit successful seed for a positive AA-hit
-fixture. These corrections preserve the assertions' behavioral intent. The new
-flotation reference regression was also included on both sides. The passing
-baseline contains 1,062 tests in 148 files; the updated suite adds five more tests
-and contains 1,067 tests in 150 files.
+Both versions used the same installed dependencies, generated WASM/content and
+published assets. Preparation ran from the working checkout before each runner;
+its warm build was included on both sides. Before/after runs alternated, with no
+other validation work launched by this task concurrently.
 
 | Pair | Before | After | Speedup | Result |
 | --- | ---: | ---: | ---: | --- |
-| 1 | 35.27 s | 16.42 s | 2.15× | Both passed |
-| 2 | 36.06 s | 16.64 s | 2.17× | Both passed |
-| 3 | 38.34 s | 23.98 s | 1.60× | Both passed |
-| Median | 36.06 s | 16.64 s | 2.17× | Zero failures |
+| 1 | 83.31 s | 51.57 s | 1.62× | Both passed |
+| 2 | 58.90 s | 19.75 s | 2.98× | Both passed |
+| 3 | 35.86 s | 28.69 s | 1.25× | Both passed |
+| Median | 58.90 s | 28.69 s | 2.05× | Zero failures |
 
 The requested **3× whole-suite speedup has not been reached**. Median user CPU
-time decreased from 246.47 to 162.14 seconds (1.52×); concurrency and scheduling
-supply the rest of the observed wall-time improvement. All three updated runs
-executed all 1,067 tests.
+time decreased from 362.54 to 182.45 seconds (1.99×). The shared host was under
+substantial external load, and wall times varied widely. These are local
+observations, not a guarantee for other machines. Failed baselines, cold
+installation/WASM builds and isolated microbenchmarks are excluded.
 
-The shared host was under substantial external load and had roughly 50 GB of swap
-allocated. Earlier intermediate paired runs measured 65.60 → 34.67 s,
-41.39 → 17.52 s, and 45.71 → 20.16 s. Timings are local observations, not a guarantee
-for other machines. Failed baselines, cold dependency/WASM builds, and isolated
-microbenchmarks are excluded from the whole-suite speedup calculation.
+Before coverage consolidation and master integration, the earlier suite measured
+36.06 → 16.64 seconds (2.17× medians) against `201f7da3`. That comparison included
+five fixture repairs on both sides and a flotation regression. Its different
+source, content and test inventory make it unsuitable as the final PR benchmark.
 
-## Changes and preserved coverage
+## Coverage consolidation
+
+- Replace repeated FPS runs in combat, AI, collision, diving and damage-control
+  tests with one focused `advance()` contract test and the retained 40-second
+  bot battle replay at 30, 60 and 144 FPS. The contract covers fractional time,
+  invalid deltas, bounded stalls, input callback ordering and reset. Keep each
+  subsystem's behavior and reset assertions in a single simulation.
+- Remove the short shell-view/death camera test; the retained complete
+  binoculars → shell follow → death → return scenario checks both optics
+  restoration and re-entry prevention through the real game controls.
+- Replace the 256-seed kill-counter sweep with explicit hit (96) and miss (0)
+  cases, asserting shots, ammunition, HP, kill attribution and friendly safety.
+  The separate 1,024-seed accuracy-distribution test remains.
+- Reuse the first seed-11 attack result when checking variation and replay, so
+  each squadron flies two reproducibility runs instead of three.
+
+## Runtime and fixture optimizations
 
 - Model geometry fixtures retain the GLB binary chunk instead of converting it
   through base64 and fetch. Frame tests load the exported joint hierarchy once
@@ -83,10 +96,11 @@ microbenchmarks are excluded from the whole-suite speedup calculation.
 
 ## Validation
 
-The complete suite passes in both default and serial modes. The build passes,
-including ship/aircraft freshness checks, TypeScript and Vite. Generated model
-assets, the runtime roster, dependencies and the Rust/WASM implementation are
-unchanged by these optimizations.
+The integrated branch passes the complete default suite and build, including
+ship/aircraft freshness checks, TypeScript and Vite. The changed test files also
+pass together in serial mode. Before consolidation and master integration, the
+complete 1,067-test suite passed serially. Generated model assets, the runtime
+roster, dependencies and the Rust/WASM implementation are unchanged by this PR.
 
 Durable regressions compare flotation exactly against the original 27-step
 bisection across fleet hulls, orientations and immersion levels; check ordered
@@ -95,8 +109,8 @@ mutate retained or restored curves; and verify test-filter partitioning and
 invalid concurrency. Temporary runner fixtures also verified assertion and
 module-load failure propagation.
 
-Additional differential checks against the original implementation passed for
-fleet hull rays, dry and wet compartment bodies, retained/restored fill curves,
-and complete damaged battleship, carrier and submarine simulations through 1,800
-fixed ticks, including projectiles, aircraft and events. Temporary profiles,
-comparison snapshots and logs remain in ignored `.build/test-performance/`.
+Additional differential checks against master passed for fleet hull rays, dry
+and wet compartment bodies, retained/restored fill curves, and complete damaged
+battleship, carrier and submarine simulations through 1,800 fixed ticks, including
+projectiles, aircraft and events. Temporary profiles, comparison snapshots and
+logs remain in ignored `.build/test-performance/`.

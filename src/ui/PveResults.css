@@ -1,0 +1,25 @@
+.pve-results { position:fixed; inset:24px 24px 24px auto; width:min(670px,calc(100vw - 48px)); height:calc(100dvh - 48px); max-height:none; max-width:none; margin:0; padding:0; border:1px solid #47626c; border-radius:3px; background:#102630f5; color:#edf3f1; font:400 14px/1.4 'Barlow',sans-serif; }
+.pve-results[open] { display:flex; flex-direction:column; }
+.pve-results::backdrop { background:#06151a45; }
+.pve-results header { padding:22px 24px; border-bottom:1px solid #38515b; }
+.pve-results header>span { font-size:11px; letter-spacing:.1em; color:#dcc68b; }
+.pve-results h1 { font:500 44px/1.1 'Barlow Condensed',sans-serif; margin:8px 0; }
+.pve-results h2 { margin:0 0 6px; font:500 26px 'Barlow Condensed',sans-serif; }
+.pve-results h3 { display:flex; justify-content:space-between; align-items:baseline; gap:10px; font-size:17px; font-weight:500; margin:20px 0 5px; }
+.pve-results p { margin:0; color:#b0c3c9; }
+.pve-results header>div { display:flex; gap:24px; align-items:baseline; margin-top:14px; }
+.pve-results small { font-size:12px; font-weight:400; color:#b0c3c9; }
+.pve-results-report { flex:1; overflow:auto; min-height:0; padding:20px 24px; scrollbar-width:thin; }
+.pve-results table { width:100%; border-collapse:collapse; margin-top:12px; }
+.pve-results th,.pve-results td { padding:9px 5px; border-bottom:1px solid #38515b; text-align:right; font-variant-numeric:tabular-nums; }
+.pve-results th:first-child { text-align:left; width:60%; }
+.pve-results thead th { font-weight:400; color:#b0c3c9; font-size:11px; }
+.pve-results tbody th { font-weight:500; }
+.pve-results tbody small { display:block; }
+.pve-results .is-defeated { color:#ffb6a9; }
+.pve-results footer { padding:14px 24px; border-top:1px solid #38515b; }
+.pve-results footer>p:not(:empty) { margin-bottom:12px; color:#dcc68b; }
+.pve-results footer>div { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; }
+.pve-results footer button { display:flex; flex-direction:column; gap:2px; }
+.pve-results footer button small { color:inherit; opacity:.85; font-size:11px; }
+@media(max-width:760px) { .pve-results { inset:8px; width:calc(100vw - 16px); height:calc(100dvh - 16px); } .pve-results header { padding:16px; } .pve-results-report,.pve-results footer { padding:14px 16px; } }

@@ -1,3 +1,8 @@
+import type { CarrierRecovery } from '../multiplayer/generated/CarrierRecovery';
+import type { SearchProgress } from '../multiplayer/generated/SearchProgress';
+import type { AirOrder as NativeAirOrder } from '../multiplayer/generated/AirOrder';
+import type { EndurancePolicy } from '../multiplayer/generated/EndurancePolicy';
+import type { DeckPolicy } from '../multiplayer/generated/DeckPolicy';
 import { torpedoSpeed } from './mobility';
 import { physicalLoss } from './battleRules';
 import type { AircraftRole, ShipDefinition, TorpedoPart, Vec3 } from '../ships/blueprint';
@@ -17,8 +22,8 @@ import { AIR_GUNNERY, gunnerySeed, initialFireDiscipline, stepFireDiscipline } f
 import { flyFormation, formationLeader } from './aircraftFormation';
 import { aircraftBomb, aircraftTorpedo, DEFAULT_AIR_TORPEDO } from './aircraftWeapons';
 
-export type FlightPhase = 'ready' | 'queued' | 'taxi' | 'takeoff' | 'outbound' | 'attack' | 'returning' | 'landing' | 'rollout' | 'parking' | 'rearming' | 'lost';
-export type AirOrder = { kind: 'attack'; targetId: string } | { kind: 'patrol'; point: Vec3 } | { kind: 'defend'; targetId?: string } | { kind: 'intercept'; flightId: string } | { kind: 'escort'; flightId: string } | { kind: 'return' };
+export type FlightPhase = 'withdrawn' | 'ready' | 'queued' | 'taxi' | 'takeoff' | 'outbound' | 'attack' | 'returning' | 'landing' | 'rollout' | 'parking' | 'rearming' | 'lost' | 'hangar' | 'raising' | 'lowering' | 'repairing' | 'launch-ready';
+export type AirOrder = Exclude<NativeAirOrder, { kind: 'defend' }> | { kind: 'defend'; targetId?: string };
 export interface AirFlight { id: string; name: string; squadronId: string; planeIds: string[]; order: AirOrder; notice?: string; mergedInto?: string; }
 export interface Aircraft {
   id: string; ownerId: string; team: Team; squadronId: string; modelId: string; role: AircraftRole;
@@ -28,11 +33,17 @@ export interface Aircraft {
   deckPosition?: Vec3; deckHeading?: number; timer: number; flightTime: number; cooldown: number; targetId?: string; kills: number;
   controls: FlightControls; previousControls?: FlightControls; previousAttitude?: FlightAttitude; pilot: AirPilot;
   deckSlot?: number; flightId?: string; recoveryRequestedAt?: number; lossReason?: string;
-  navigationTarget?: Vec3; sortie?: number;
+  navigationTarget?: Vec3; sortie?: number; search?: SearchProgress;
   /** A loss leaves combat immediately; its unpowered airframe continues to sea level. */
   wreck?: { age: number; rollRate: number; impacted: boolean };
 }
-export interface AirWingState { planes: Aircraft[]; launchCooldown: number; flights: AirFlight[]; flightSequence: number; transferCooldown: number; }
+export interface DeckStatus {
+  policy: DeckPolicy; nextRequestId?: number;
+  queue: { id: number; flightId: string; action: 'raise' | 'stow' | 'rearm' | 'repair' | 'launch'; automatic: boolean }[];
+  currentPlaneId?: string; task?: string; stepRemainingSeconds?: number; suspended: boolean; notice?: string;
+  occupied: number; capacity: number; groupSize: number; activeFlightLimit: number | null; endurance: EndurancePolicy; repairCeilingHp: number;
+}
+export interface AirWingState { operatingRules?: { endurance: EndurancePolicy; activeFlightLimit: number | null }; recovery?: CarrierRecovery; deck?: DeckStatus; planes: Aircraft[]; launchCooldown: number; flights: AirFlight[]; flightSequence: number; transferCooldown: number; }
 export interface AirRelease { id: number; ownerId: string; position: Vec3; velocity: Vec3; weapon?: TorpedoPart; }
 export const hasFoldingWings = (modelId: string) => aircraftGroundPose(modelId).foldingWings;
 const WING_FOLD_SECONDS = 4; // Gameplay timing; manual crew/hydraulic operation is abstracted.
@@ -43,9 +54,10 @@ export const AIRCRAFT_REPAIR_HP = 60;
 /** Up to one extra base service interval for damage; health above the repair ceiling is preserved. */
 export const aircraftServiceSeconds = (baseSeconds: number, hp: number) => baseSeconds * (1 + (100 - clamp(hp, 0, 100)) / 100);
 export const deckClearance = (p: Aircraft) => aircraftGroundPose(p.modelId).clearance;
-export const flightSize = (actor: FleetActor) => actor.definition.airWing?.flightSize ?? 3;
-export const deckCapacity = (actor: FleetActor) => actor.definition.airWing?.deckCapacity ?? 18;
-export const activeFlight = (flight: AirFlight, planes: Aircraft[]) => planes.some(p => p.flightId === flight.id && !['ready', 'rearming', 'lost'].includes(p.phase));
+export const flightSize = (actor: FleetActor) => actor.airWing?.deck?.groupSize ?? actor.definition.airWing?.flightSize ?? 3;
+export const deckCapacity = (actor: FleetActor) => actor.airWing?.deck?.capacity ?? actor.definition.airWing?.deckCapacity ?? 18;
+export const terminalAircraft = (p: Pick<Aircraft, 'phase'>) => p.phase === 'lost' || p.phase === 'withdrawn';
+export const activeFlight = (flight: AirFlight, planes: Aircraft[]) => planes.some(p => p.flightId === flight.id && !['ready', 'rearming', 'lost', 'withdrawn', 'hangar', 'raising', 'lowering', 'repairing'].includes(p.phase));
 export const airborne = (p: Aircraft) => ['takeoff', 'outbound', 'attack', 'returning', 'landing'].includes(p.phase);
 /** Stable deck spots, derived from the authored flight-deck datums (runtime metres). */
 export function aircraftDeckSpot(actor: FleetActor, plane: Aircraft): Vec3 {
@@ -56,7 +68,7 @@ export function aircraftDeckSpot(actor: FleetActor, plane: Aircraft): Vec3 {
   return [wing.launchPosition[0] - 10, wing.launchPosition[1] + deckClearance(plane),
     wing.recoveryPosition[2] - 15 - span + (count > 1 ? index * span / (count - 1) : 0)];
 }
-export const onFlightDeck = (p: Aircraft) => (p.deckSlot !== undefined && ['ready', 'queued', 'taxi', 'rollout', 'parking', 'rearming'].includes(p.phase)) || (p.phase === 'takeoff' && p.timer <= TAKEOFF_ROLL_SECONDS);
+export const onFlightDeck = (p: Aircraft) => (p.deckSlot !== undefined && ['ready', 'queued', 'taxi', 'rollout', 'parking', 'rearming', 'raising', 'lowering', 'launch-ready'].includes(p.phase)) || (p.phase === 'takeoff' && p.timer <= TAKEOFF_ROLL_SECONDS);
 // Keep the next taxi off the centerline until the departing plane is beyond the bow.
 const occupiesLaunchLane = (p: Aircraft, actor: FleetActor) => ['taxi', 'rollout'].includes(p.phase)
   || (p.phase === 'parking' && Math.abs((p.deckPosition?.[0] ?? 0) - actor.definition.airWing!.launchPosition[0]) < 6)
@@ -98,6 +110,9 @@ export function airServiceAvailable(actor: FleetActor): boolean {
 /** Stable squadron IDs; merged groups retain records but no longer offer commands. */
 export function squadronFlights(actor: FleetActor): AirFlight[] {
   if (!actor.airWing) return [];
+  // Managed groups are persistent authority records, including groups whose
+  // survivors are split between the deck, hangar and recovery queue.
+  if (actor.airWing.deck) return actor.airWing.flights.filter(f => !f.mergedInto);
   return (actor.definition.airWing?.squadrons ?? []).flatMap(s => {
     const planes = actor.airWing!.planes.filter(p => p.squadronId === s.id);
     return Array.from({ length: Math.ceil(planes.length / flightSize(actor)) }, (_, i): AirFlight => {
@@ -145,6 +160,7 @@ function combineLandedSquadrons(actor: FleetActor) {
 }
 function validAirOrder(actor: FleetActor, flightId: string, planes: Aircraft[], order: AirOrder, actors: FleetActor[]) {
   if (order.kind === 'return') return true;
+  if (order.kind === 'strike' || order.kind === 'intercept-contact' || order.kind === 'search-area') return false; // Rust observation-mode orders.
   if (!planes.length || planes.some(p => p.flightTime > 470 || p.hp < 25)) return false;
   if (order.kind === 'patrol') return order.point.length === 3 && order.point.every(Number.isFinite)
     && Math.hypot(order.point[0] - actor.motion.x, order.point[2] - actor.motion.z) <= 30000;

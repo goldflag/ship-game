@@ -4,6 +4,23 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, ts_rs::TS)]
 #[serde(tag = "kind", rename_all = "lowercase", deny_unknown_fields)]
 pub enum AirOrder {
+    #[serde(rename = "search-area")]
+    SearchArea {
+        center: [f64; 2],
+        #[serde(rename = "radiusM")]
+        radius_m: f64,
+        altitude: SearchAltitude,
+        policy: SearchPolicy,
+    },
+    Strike {
+        #[serde(rename = "contactId")]
+        contact_id: String,
+    },
+    #[serde(rename = "intercept-contact")]
+    InterceptContact {
+        #[serde(rename = "contactId")]
+        contact_id: String,
+    },
     Attack {
         #[serde(rename = "targetId")]
         target_id: String,
@@ -24,6 +41,49 @@ pub enum AirOrder {
         flight_id: String,
     },
     Return,
+}
+/// Search choices are operational tuning, not new aircraft capabilities.
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, ts_rs::TS)]
+#[serde(rename_all = "lowercase")]
+pub enum SearchAltitude {
+    Low,
+    Medium,
+    High,
+}
+impl SearchAltitude {
+    pub fn metres(self) -> f64 {
+        match self {
+            Self::Low => 200.0,
+            Self::Medium => 850.0,
+            Self::High => 1500.0,
+        }
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, ts_rs::TS)]
+#[serde(rename_all = "lowercase")]
+pub enum SearchPolicy {
+    Report,
+    Shadow,
+    Strike,
+}
+#[derive(Clone, Debug, Serialize, Deserialize, ts_rs::TS)]
+#[serde(rename_all = "camelCase")]
+pub struct SearchProgress {
+    pub entry_position: Vec3,
+    pub route: Vec<Vec3>,
+    pub waypoint: usize,
+    pub elapsed_seconds: f64,
+    pub deadline_seconds: f64,
+    pub shadow_seconds: f64,
+    /// Actual flown samples, never a promise that nearby water is empty.
+    pub trail: Vec<SearchSample>,
+}
+#[derive(Clone, Debug, Serialize, Deserialize, ts_rs::TS)]
+#[serde(rename_all = "camelCase")]
+pub struct SearchSample {
+    pub position: Vec3,
+    #[ts(type = "number")]
+    pub tick: u64,
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -56,6 +116,11 @@ pub struct Aircraft {
     pub ammo: f64,
     pub payload: bool,
     pub wing_fold: f64,
+    /// Managed routing datum, distinct from the fitted visual root.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub deck_datum: Option<Vec3>,
+    #[serde(skip)]
+    pub deck_local_attitude: Option<crate::aircraft_flight::FlightAttitude>,
     pub deck_position: Option<Vec3>,
     pub deck_heading: Option<f64>,
     pub timer: f64,
@@ -72,6 +137,8 @@ pub struct Aircraft {
     pub recovery_requested_at: Option<f64>,
     pub loss_reason: Option<String>,
     pub navigation_target: Option<Vec3>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub search: Option<SearchProgress>,
     pub sortie: Option<u32>,
     pub wreck: Option<AirWreck>,
 }
@@ -101,6 +168,10 @@ pub struct AirPilot {
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AirWingState {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub recovery: Option<crate::air_recovery::CarrierRecovery>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub deck: Option<crate::deck_operations::DeckStatus>,
     pub planes: Vec<Aircraft>,
     pub launch_cooldown: f64,
     pub flights: Vec<AirFlight>,
@@ -117,9 +188,10 @@ pub struct AirRelease {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub weapon: Option<crate::definition::TorpedoPart>,
 }
-pub const AIRCRAFT_ENDURANCE_SECONDS: f64 = 1050.0;
 pub const FIGHTER_AMMO_BURSTS: f64 = 16.0;
-pub const AIRCRAFT_REPAIR_HP: f64 = 60.0;
+pub fn terminal(p: &Aircraft) -> bool {
+    matches!(p.phase.as_str(), "lost" | "withdrawn")
+}
 pub fn airborne(p: &Aircraft) -> bool {
     matches!(
         p.phase.as_str(),
@@ -133,14 +205,32 @@ pub fn on_flight_deck(p: &Aircraft) -> bool {
     p.deck_slot.is_some()
         && matches!(
             p.phase.as_str(),
-            "ready" | "queued" | "taxi" | "rollout" | "parking" | "rearming"
+            "ready"
+                | "queued"
+                | "taxi"
+                | "rollout"
+                | "parking"
+                | "rearming"
+                | "raising"
+                | "lowering"
+                | "launch-ready"
         )
         || p.phase == "takeoff" && p.timer <= crate::aircraft_flight::TAKEOFF_ROLL_SECONDS
 }
 pub fn active_flight(f: &AirFlight, planes: &[Aircraft]) -> bool {
     planes.iter().any(|p| {
         p.flight_id.as_ref() == Some(&f.id)
-            && !matches!(p.phase.as_str(), "ready" | "rearming" | "lost")
+            && !matches!(
+                p.phase.as_str(),
+                "ready"
+                    | "rearming"
+                    | "lost"
+                    | "withdrawn"
+                    | "hangar"
+                    | "repairing"
+                    | "raising"
+                    | "lowering"
+            )
     })
 }
 pub fn aircraft_service_seconds(base: f64, hp: f64) -> f64 {
@@ -163,6 +253,7 @@ pub fn create_air_wing(
 ) -> Option<AirWingState> {
     let wing = def.air_wing.as_ref()?;
     Some(AirWingState {
+        recovery: None,
         planes: wing
             .squadrons
             .iter()
@@ -193,6 +284,8 @@ pub fn create_air_wing(
                     } else {
                         0.0
                     },
+                    deck_datum: None,
+                    deck_local_attitude: None,
                     deck_position: None,
                     deck_heading: None,
                     timer: 0.0,
@@ -209,6 +302,7 @@ pub fn create_air_wing(
                     recovery_requested_at: None,
                     loss_reason: None,
                     navigation_target: None,
+                    search: None,
                     sortie: None,
                     wreck: None,
                 })

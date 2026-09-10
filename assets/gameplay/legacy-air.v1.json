@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "id": "legacy-air-v1",
+  "groupSize": null,
+  "deckCapacity": null,
+  "activeFlights": { "kind": "authored" },
+  "endurance": {
+    "kind": "timed",
+    "orderLimitSeconds": 470,
+    "recallSeconds": 470,
+    "fighterRecallSeconds": 260,
+    "exhaustionSeconds": 1050
+  },
+  "launchGroupSeconds": 10,
+  "repairCeilingHp": 60,
+  "deckCycle": { "kind": "legacy" },
+  "consolidation": "hangar-compatible"
+}
