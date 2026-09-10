@@ -35,7 +35,7 @@ export class ShipView {
   private tubeBindings: THREE.Object3D[];
   get internals() { return this.inspection.root; }
   private bindings: { yaw: THREE.Object3D; elevation: THREE.Object3D[]; recoil: THREE.Object3D[]; muzzles: THREE.Object3D[] }[];
-  private gunCovers: { mesh: THREE.Mesh; elevation: THREE.Object3D; angles: number[] }[] = [];
+  private gunCovers: { mesh: THREE.Mesh; elevation: THREE.Object3D; angles: number[]; baseAngle: number }[] = [];
   private surfaces: { material: THREE.MeshStandardMaterial | THREE.MeshStandardNodeMaterial; opacity: number; transparent: boolean; depthWrite: boolean }[] = [];
   private inspecting = false;
   private readonly poseMatrices: ShipPoseMatrices;
@@ -80,11 +80,12 @@ export class ShipView {
     model.traverse(o => {
       if (!(o instanceof THREE.Mesh) || !o.userData.gunCoverElevationId) return;
       const angles: number[] = o.userData.gunCoverAngles;
+      const baseAngle: number = o.userData.gunCoverBaseAngle ?? 0;
       if (!Array.isArray(angles) || !angles.length || angles.length !== o.morphTargetInfluences?.length ||
-          angles.some((a, i) => !Number.isFinite(a) || a <= (angles[i - 1] ?? 0))) {
+          !Number.isFinite(baseAngle) || angles.some((a, i) => !Number.isFinite(a) || a <= (angles[i - 1] ?? baseAngle))) {
         throw new Error(`Ship export has invalid gun-cover shapes on ${o.name}. Rebuild with bun run ship:build ${definition.id}`);
       }
-      this.gunCovers.push({ mesh: o, elevation: node(o.userData.gunCoverElevationId), angles });
+      this.gunCovers.push({ mesh: o, elevation: node(o.userData.gunCoverElevationId), angles, baseAngle });
     });
     this.launcherBindings = (definition.torpedoLaunchers ?? []).map(l => node(`${l.id}.yaw`));
     this.tubeBindings = (definition.torpedoTubes ?? []).map(t => node(`${t.id}.muzzle`));
@@ -204,12 +205,12 @@ export class ShipView {
       b.recoil.forEach(n => { n.position.z = mounts[i].recoil * this.definition.mounts[i].weapon.recoilM; });
     });
     // Cloth is visual-only: the same interpolated gun angle drives its shapes.
-    // Its fixed seam remains on the gunhouse while its collar follows pitch.
-    for (const { mesh, elevation, angles } of this.gunCovers) {
-      const degrees = THREE.MathUtils.clamp(THREE.MathUtils.radToDeg(elevation.rotation.x), 0, angles.at(-1)!);
+    // Fixed seams stay on the gunhouse or carriage; moving seams follow pitch.
+    for (const { mesh, elevation, angles, baseAngle } of this.gunCovers) {
+      const degrees = THREE.MathUtils.clamp(THREE.MathUtils.radToDeg(elevation.rotation.x), baseAngle, angles.at(-1)!);
       const weights = mesh.morphTargetInfluences!;
       weights.fill(0);
-      const upper = angles.findIndex(a => a >= degrees), lowerAngle = angles[upper - 1] ?? 0;
+      const upper = angles.findIndex(a => a >= degrees), lowerAngle = angles[upper - 1] ?? baseAngle;
       const fraction = (degrees - lowerAngle) / (angles[upper] - lowerAngle);
       weights[upper] = fraction;
       if (upper > 0) weights[upper - 1] = 1 - fraction;

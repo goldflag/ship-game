@@ -135,6 +135,10 @@ pub struct GunPart {
     pub elevation_max_deg: f64,
     #[serde(rename = "elevationRateDeg")]
     pub elevation_rate_deg: f64,
+    #[serde(rename = "catalogElevationMinDeg")]
+    pub catalog_elevation_min_deg: Option<f64>,
+    #[serde(rename = "catalogElevationMaxDeg")]
+    pub catalog_elevation_max_deg: Option<f64>,
     #[serde(rename = "reloadSeconds")]
     pub reload_seconds: f64,
     #[serde(rename = "muzzleSpeed")]
@@ -199,6 +203,10 @@ pub struct MountDefinition {
     pub parent_mount_id: Option<String>,
     #[serde(rename = "traverseDeg")]
     pub traverse_deg: Option<f64>,
+    #[serde(rename = "elevationMinDeg")]
+    pub elevation_min_deg: Option<f64>,
+    #[serde(rename = "elevationMaxDeg")]
+    pub elevation_max_deg: Option<f64>,
     #[serde(rename = "traverseLimitsDeg")]
     pub traverse_limits_deg: Option<[f64; 2]>,
     #[serde(rename = "magazineId")]

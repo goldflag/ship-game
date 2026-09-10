@@ -9,6 +9,7 @@ import enterprise from '../../public/models/enterprise-cv6.json';
 import shokaku from '../../public/models/shokaku.json';
 import viic from '../../public/models/type-viic.json';
 import fletcher from '../../public/models/fletcher.json';
+import gleaves from '../../public/models/gleaves.json';
 import yukikaze from '../../public/models/yukikaze.json';
 import fubuki from '../../public/models/fubuki.json';
 import libertyCargo from '../../public/models/liberty-cargo.json';
@@ -34,6 +35,7 @@ export const shipPresets = {
   'victory-cargo': victoryCargo,
   'flower-corvette': flower,
   fletcher,
+  gleaves,
   yukikaze,
   fubuki,
 };

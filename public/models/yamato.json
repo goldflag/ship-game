@@ -362591,5 +362591,5 @@
     "basis": "Original recipe contact bodies for 25 mm AA and turret fittings; hull, structures, gunhouses, rangefinders and barrel/recoil envelopes come from shared authored inputs. Roof bodies follow their mount yaw. A 0.02 m margin preserves the measured valid neutral clearance. Cosmetic painted slot overlays are excluded. This gameplay movement interlock preserves nominal arcs; it does not establish historical mechanical stop settings."
   },
   "compilerVersion": 1,
-  "contentHash": "4109ea27a551121b09b548a852ebad0c6834b8d884152253bf668606e5e46112"
+  "contentHash": "2160d98b931bea3714d223af4135dc3f5ecbdb5077811a05bddd3f17b0646c10"
 }

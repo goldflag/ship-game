@@ -15,6 +15,31 @@
         "scripts/ships/blender_barrels.py"
       ]
     },
+    "us-mk30": {
+      "path": "assets/parts/us-mk30/geometry.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_components.py",
+        "scripts/ships/blender_barrels.py",
+        "scripts/ships/blender_open_guns.py"
+      ]
+    },
+    "us-mk30-mod0": {
+      "path": "assets/parts/us-mk30/geometry.py",
+      "function": "create_mod_zero_mount",
+      "inputs": [
+        "scripts/ships/blender_components.py",
+        "scripts/ships/blender_barrels.py",
+        "scripts/ships/blender_open_guns.py"
+      ]
+    },
+    "us-shielded-oerlikon": {
+      "path": "assets/parts/us-oerlikon/geometry.py",
+      "function": "create_mount",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
+    },
     "cleveland-main": {
       "path": "assets/parts/us-6in47-mk16/geometry.py",
       "function": "create_mount",
@@ -186,7 +211,8 @@
       "nation": "United States",
       "family": "US 5-inch/38",
       "review": "unreviewed",
-      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified."
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified.",
+      "builder": "us-mk30"
     },
     {
       "partId": "us-40mm-bofors-twin",
@@ -381,6 +407,30 @@
       "review": "unreviewed",
       "limitations": "Original legacy Iowa recipe; exact historical identification remains unresolved. Do not substitute for the separately registered AGS010 Mk.32 Mod.12 enclosure.",
       "builder": "us-iowa-mounts"
+    },
+    {
+      "partId": "us-5in38-mk30-mod0-single",
+      "nation": "United States",
+      "family": "US 5-inch/38 Mk30 mod.0",
+      "review": "unreviewed",
+      "limitations": "Original Hsienyang source-model configuration; visual proportions and articulation under review. Exact historical refit unverified.",
+      "builder": "us-mk30-mod0"
+    },
+    {
+      "partId": "us-20mm-oerlikon-mk4-hsienyang",
+      "nation": "United States",
+      "family": "20 mm Oerlikon Mk4 single",
+      "review": "unreviewed",
+      "limitations": "Original approved Hsienyang Hull A reconstruction; paired source visual is labeled Mk20 while equipment text says Mk24. Fidelity/articulation under review.",
+      "builder": "us-shielded-oerlikon"
+    },
+    {
+      "partId": "us-20mm-oerlikon-mk24-hsienyang",
+      "nation": "United States",
+      "family": "20 mm Oerlikon Mk24 twin (source label)",
+      "review": "unreviewed",
+      "limitations": "Original approved Hsienyang Hull A reconstruction; paired source visual is labeled Mk20 while equipment text says Mk24. Fidelity/articulation under review.",
+      "builder": "us-shielded-oerlikon"
     },
     {
       "partId": "us-6in47-mk16-cleveland",

@@ -392,3 +392,43 @@ test('launcher IDs bind reordered battle snapshots and bounded interpolation sta
   sim.reset(); view.snap();
   expect(Math.max(...view.torpedoMuzzleErrors())).toBeLessThan(.001);
 });
+
+test('Hsienyang AA fabric keeps both attachment seams seated through depression and elevation', async () => {
+  const definition = shipPreset('gleaves');
+  const model = await new GLTFLoader().parseAsync(await Bun.file('public/models/gleaves.glb').arrayBuffer(), '');
+  const sim = new CombatSimulation(definition), view = new ShipView(model.scene, definition, sim.player);
+  view.snap(); view.updateRenderMatrices();
+  const nodes = new Map<string, THREE.Object3D>(), bags: THREE.Mesh[] = [];
+  model.scene.traverse(o => {
+    if (o.userData.nodeId) nodes.set(o.userData.nodeId, o);
+    if (o instanceof THREE.Mesh && String(o.userData.nodeId).endsWith('.case-bag')) bags.push(o);
+  });
+  expect(bags).toHaveLength(10);
+  const seams = bags.flatMap(mesh => ['front', 'rear'].map(end => {
+    const marker = nodes.get(`${mesh.userData.nodeId}-${end}`)!;
+    expect(marker).toBeDefined();
+    const local = Array.from({ length: mesh.geometry.attributes.position.count }, (_, i) =>
+      marker.worldToLocal(mesh.localToWorld(mesh.getVertexPosition(i, new THREE.Vector3()))));
+    // Select the attachment edge on the frame axis, not a nearby fold.
+    const vertices = local.map((p, i) => ({ p, i })).filter(({ p }) => Math.hypot(p.y, p.z) < .001 && Math.abs(p.x) < .1);
+    expect(vertices.length).toBeGreaterThanOrEqual(2);
+    return { mesh, marker, vertices };
+  }));
+  for (const fraction of [0, .035, .22, .5, .83, 1]) {
+    view.capturePreviousPose();
+    sim.player.mounts.forEach((state, i) => {
+      const w = definition.mounts[i].weapon;
+      state.elevation = THREE.MathUtils.degToRad(w.elevationMinDeg + fraction * (w.elevationMaxDeg - w.elevationMinDeg));
+      state.train = (i % 2 ? -1 : 1) * fraction * THREE.MathUtils.degToRad(w.traverseDeg);
+    });
+    for (const alpha of [.37, 1]) {
+      view.update(alpha); view.updateRenderMatrices();
+      // Full diagnostic update also refreshes retained non-rendering markers.
+      expect(Math.max(...view.muzzleErrors())).toBeLessThan(.002);
+      for (const { mesh, marker, vertices } of seams) for (const { p, i } of vertices) {
+        const actual = marker.worldToLocal(mesh.localToWorld(mesh.getVertexPosition(i, new THREE.Vector3())));
+        expect(actual.distanceTo(p)).toBeLessThan(.003);
+      }
+    }
+  }
+});
