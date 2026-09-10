@@ -40,6 +40,12 @@ export interface TorpedoTube {
 }
 export interface Volume { id: string; center: Vec3; size: Vec3; }
 export interface AuthoredSurface { vertices: Vec3[]; triangles: [number, number, number][]; }
+/** Physical movement stops derived from original geometry, independent of firing arcs. */
+export interface MountClearanceProfile {
+  version: 1; marginM: number; mountIds: string[]; basis: string;
+  /** Fixed bodies use hull coordinates; mounted fittings use yaw-local coordinates. */
+  bodies: { id: string; mountId?: string; surface: AuthoredSurface }[];
+}
 export interface GunPart {
   id: string; name: string; kind: 'gun'; massKg: number; barbetteRadius: number;
   gunhouseSize: Vec3; pivotHeight: number; trunnionForward: number; muzzleForward: number;
@@ -213,6 +219,7 @@ export interface ShipBlueprint {
   /** Explicit shell-to-space assignment; regions cover local shell surfaces. */
   floodRegions?: (Volume & { compartmentId: string; face?: 'port' | 'starboard' | 'bow' | 'stern' })[];
   obstructions: Volume[];
+  mountClearance?: MountClearanceProfile;
   /** Gun sponsons can extend beyond the bare hull. */
   mountEnvelope?: { beam: number; length: number };
   structures?: AuthoredStructure[];
@@ -469,6 +476,39 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
       if (!mounts.slice(0, index).some(parent => parent.id === m.parentMountId)) fail(String(m.id), 'parent mount must precede its child (no missing parents or cycles)');
     }
   });
+  if (b.mountClearance !== undefined) {
+    const profile = record(b.mountClearance, 'mountClearance');
+    literal(profile.version, [1], 'mountClearance.version');
+    numeric(profile.marginM, 'mountClearance.marginM', 0, .2);
+    text(profile.basis, 'mountClearance.basis');
+    const participants = list(profile.mountIds, 'mountClearance.mountIds', 64);
+    if (!participants.length || new Set(participants).size !== participants.length) fail('mountClearance.mountIds', 'requires distinct mount IDs');
+    participants.forEach(value => {
+      id(value, 'mountClearance.mountIds');
+      if (!mounts.some(m => m.id === value)) fail('mountClearance.mountIds', `unknown mount ${value}`);
+    });
+    const bodies = list(profile.bodies, 'mountClearance.bodies', 4096).map((value, i) => record(value, `mountClearance.bodies[${i}]`));
+    unique(bodies, 'mountClearance.bodies');
+    bodies.forEach(body => {
+      const path = `mountClearance.${body.id}`;
+      if (body.mountId !== undefined && !mounts.some(m => m.id === body.mountId)) fail(path, 'unknown parent mount');
+      const surface = record(body.surface, `${path}.surface`);
+      const vertices = list(surface.vertices, `${path}.vertices`, 2048).map(v => vector(v, `${path}.vertex`));
+      const faces = list(surface.triangles, `${path}.triangles`, 4096);
+      if (vertices.length < 4 || faces.length < 4) fail(path, 'requires a closed physical body');
+      const edges = new Map<string, { count: number; winding: number }>();
+      faces.forEach(face => {
+        validateTriangle(face, vertices, `${path}.triangle`);
+        const indices = face as number[];
+        indices.forEach((a, i) => {
+          const c = indices[(i + 1) % 3], key = a < c ? `${a}:${c}` : `${c}:${a}`;
+          const edge = edges.get(key) ?? { count: 0, winding: 0 };
+          edge.count++; edge.winding += a < c ? 1 : -1; edges.set(key, edge);
+        });
+      });
+      if ([...edges.values()].some(e => e.count !== 2 || e.winding !== 0)) fail(path, 'body must be closed and consistently wound');
+    });
+  }
   const compartments = volumes(b.compartments, 'compartments');
   const validateFire = (value: unknown, path: string) => {
     if (value === undefined) return;

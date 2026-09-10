@@ -1,7 +1,7 @@
 """Original Yamato exterior reconstruction. All geometry is authored here, in metres.
 
 Bow +X, port +Y, up +Z, trial waterline Z=0. The blueprint owns dimensions and
-weapon placement. Numeric interpretations are tracked in reports/discrepancies.md.
+weapon placement. Reference configuration and remaining limits are in README.md.
 No reference mesh or texture is imported. Run through `bun run ship:build yamato`.
 """
 import bpy
@@ -88,18 +88,6 @@ def interp(st,t):
 def deck(x):return interp(H['deckHeights'],x+L/2)
 def breadth(x):return interp(H['halfBreadths'],x+L/2)
 
-def smooth_interp(st,t):
- # Shape-preserving cubic interpolation: no overshoot beyond the authored stem.
- if t<=st[0][0]:return st[0][1]
- if t>=st[-1][0]:return st[-1][1]
- slopes=[(b[1]-a[1])/(b[0]-a[0]) for a,b in zip(st,st[1:])]
- tangent=[slopes[0]]
- for a,b in zip(slopes,slopes[1:]):tangent.append(0 if a*b<=0 else 2*a*b/(a+b))
- tangent.append(slopes[-1])
- for i,((a,va),(b,vb)) in enumerate(zip(st,st[1:])):
-  if a<=t<=b:
-   u=(t-a)/(b-a);return (2*u**3-3*u*u+1)*va+(u**3-2*u*u+u)*(b-a)*tangent[i]+(-2*u**3+3*u*u)*vb+(u**3-u*u)*(b-a)*tangent[i+1]
-
 # Hull and CPU hits share every original station, including the recurve.
 stations=[s['station'] for s in H['sections']]
 hull=authored_hull(H,mesh,HULL,[hullgray,red])
@@ -131,11 +119,8 @@ for mount in D['mounts']:
  gun_finish=Fittings(dict(mesh=mesh,cyl=cyl,rod=rod,box=box),dict(**materials,glass=glass),GUNS)
  gun_finish.gun_details(mount)
 
-# Bridge outlines and gallery construction are original geometry interpreted
-# from the museum's bridge photograph. Elevations remain provisional (Y-07).
-def bridge_outline(x,sx,sy):
- return [(x+a*sx,b*sy) for a,b in [(-.5,-.35),(-.39,-.5),(.10,-.5),(.33,-.43),(.5,-.23),(.5,.23),(.33,.43),(.10,.5),(-.39,.5),(-.5,.35)]]
-
+# Gallery outlines are independent authored polygons; the blueprint carries the
+# inspected GameModels3D silhouette and the runtime structural surfaces.
 def perimeter_band(name,outline,z,height,material,col,thickness=.075):
  # A real, open-topped splinter wall, rather than a solid platform-sized box.
  cx=sum(p[0] for p in outline)/len(outline);cy=sum(p[1] for p in outline)/len(outline)
@@ -148,74 +133,136 @@ def perimeter_band(name,outline,z,height,material,col,thickness=.075):
   fs.extend([(i,j,2*n+j,2*n+i),(n+j,n+i,3*n+i,3*n+j),(2*n+i,2*n+j,3*n+j,3*n+i),(j,i,n+i,n+j)])
  return mesh(name,v,fs,material,col)
 
-def bridge_gallery(name,x,z,sx,sy,wall_height=1.05):
- outline=bridge_outline(x,sx,sy);prism(name+' deck',outline,z,z+.19,roof,SUPER)
- perimeter_band(name+' splinter wall',outline,z+.19,wall_height,naval,SUPER)
- for (a,b),(c,d) in zip(outline,outline[1:]+outline[:1]):
-  rod(name+' cap rail',(a,b,z+.19+wall_height),(c,d,z+.19+wall_height),.035,edge,SUPER,vertices=6)
- # Plate knees visibly support the overhang below each gallery.
- for xx,yy in outline:
-  if xx<x-sx*.35:continue
-  v=[(xx,yy,z),(x+(xx-x)*.68,yy*.68,z),(x+(xx-x)*.68,yy*.68,z-1.05)]
-  mesh(name+' support knee',v,[(0,1,2)],edge,SUPER)
+# The approved pjsb018 A_Hull has a battered lower body, a narrow vertical
+# operations tower and separate galleries. Blueprint surfaces own those forms.
+def structure_outline(id):return [(-z,-x) for x,z in S[id]['footprint']]
 
-def bridge_windows(name,x,z,sx,sy,height=.72):
- outline=bridge_outline(x,sx,sy)
- perimeter_band(name+' glazing',outline,z,height,glass,SUPER,.025)
- for (a,b),(c,d) in zip(outline,outline[1:]+outline[:1]):
-  count=max(1,math.ceil(math.hypot(c-a,d-b)/.74))
-  for i in range(count):
-   t=i/count;xx=a+(c-a)*t;yy=b+(d-b)*t
-   rod(name+' mullion',(xx,yy,z-.04),(xx,yy,z+height+.04),.033,naval,SUPER,vertices=6)
- perimeter_band(name+' sill',outline,z-.09,.09,naval,SUPER,.10)
- perimeter_band(name+' lintel',outline,z+height,.10,naval,SUPER,.10)
+def shaped_gallery(id,name,solid=True):
+ s=S[id];outline=structure_outline(id);z=s['baseY'];h=s['height']-.16
+ prism(name+' deck',outline,z,z+.16,roof,SUPER)
+ if solid:perimeter_band(name+' splinter wall',outline,z+.16,h,naval,SUPER,.065)
+ # Gallery knees actually enter the wall at their inner feet. The former
+ # constant .68 scaled footprint left triangular webs hanging away from it.
+ support=SupportSurface([o for o in SUPER.objects if o.get('nodeId') in ('bridge-foundation.surface','bridge-trunk.surface','operations-tower.surface')])
+ for i,(a,b) in enumerate(zip(outline,outline[1:]+outline[:1])):
+  length=math.dist(a,b)
+  for j in range(max(1,math.ceil(length/1.35))):
+   t=(j+.5)/max(1,math.ceil(length/1.35));x=a[0]+(b[0]-a[0])*t;y=a[1]+(b[1]-a[1])*t
+   if not solid:
+    rod(name+' guard stanchion',(x,y,z+.16),(x,y,z+1.05),.027,edge,SUPER,vertices=6)
+   if abs(y)<.8:continue
+   try:foot=support.along((x,y,z-.15),(0,-math.copysign(1,y),0),20)
+   except ValueError:continue
+   if abs(foot[1]-y)<.20:continue
+   # Closed plate thickness keeps knees legible from the front and below.
+   pts=[(x-.035,y,z),(x-.035,foot[1],z),(x-.035,foot[1],z-.9),(x+.035,y,z),(x+.035,foot[1],z),(x+.035,foot[1],z-.9)]
+   mesh(name+' bracket',pts,[(0,2,1),(3,4,5),(0,1,4,3),(1,2,5,4),(2,0,3,5)],edge,SUPER)
+  for hrail in ([s['height']] if solid else [.58,1.05]):rod(name+' rim',(*a,z+hrail),(*b,z+hrail),.027,edge,SUPER,vertices=6)
 
-# Broad machinery deck and compact tower; no Bismarck superstructure is reused.
 rounded('Central shelter deck',-19,0,8.515,55,21.5,2.285,naval,SUPER)
-structure('bridge-foundation')
-# Rounded armored conning tower projects from the forward foundation.
-o=cyl('Forward conning tower',(3.0,0,13.6),4.2,5.2,hullgray,SUPER,48);o.scale.x=.86
-o=cyl('Conning tower roof',(3.0,0,16.25),4.3,.20,roof,SUPER,48);o.scale.x=.86
-for i in range(13):
- a=-math.pi*.7+i*math.pi*1.4/12
- p=(3+3.64*math.cos(a),4.23*math.sin(a),15.3)
- q=(3+3.67*math.cos(a),4.27*math.sin(a),15.3)
- rod('Conning tower vision slit',p,q,.10,dark,SUPER,vertices=8)
-structure('bridge-trunk')
-structure('operations-tower')
-bridge_gallery('Lower bridge lookout',-1.5,18.3,17.8,16.6,.95)
-bridge_windows('Second navigation bridge',-2.3,21.15,13.4,12.9)
-bridge_gallery('Second bridge lookout',-2.3,22.0,14.3,14.2,1.0)
-prism('First navigation bridge lower wall',bridge_outline(-3.5,9.5,11.8),31.1,31.85,naval,SUPER)
-bridge_windows('First navigation bridge',-3.5,31.85,9.5,11.8,.83)
-bridge_gallery('Air defence station',-3.5,32.8,10.1,12.2,1.25)
+structure('bridge-foundation');structure('bridge-trunk');structure('operations-tower')
+structure('conning-tower')
+prism('Conning tower roof',[(-z,-x) for x,y,z in S['conning-tower']['surface']['vertices'][-48:]],19.35,19.52,roof,SUPER)
+# Narrow slit band, front rain hood and vertical seams on the conning tower.
+for i in range(11):
+ a=-math.pi*.7+i*math.pi*1.4/10
+ x=4.85+2.73*math.cos(a);y=2.82*math.sin(a)
+ o=box('Conning tower vision slit',(x,y,18.95),(.40,.08,.12),dark,SUPER);o.rotation_euler.z=a+math.pi/2
+shaped_gallery('lower-lookout','Lower signal bridge')
+shaped_gallery('second-lookout','Secondary lookout bridge')
+structure('forward-lookout-room')
+perimeter_band('Forward lookout rain hood',structure_outline('forward-lookout-room'),25.12,.09,edge,SUPER,.09)
+# Upper navigating room: near-vertical side walls, a modest glazed band,
+# separate roof station, and external knees below the forward overhang.
+nav_outline=structure_outline('first-bridge')
+prism('First navigation bridge lower wall',nav_outline,32.4,33.02,naval,SUPER)
+perimeter_band('First navigation bridge glazing',nav_outline,33.02,.78,glass,SUPER,.025)
+for a,b in zip(nav_outline,nav_outline[1:]+nav_outline[:1]):
+ count=max(1,math.ceil(math.dist(a,b)/.64))
+ for i in range(count):
+  t=i/count;x=a[0]+(b[0]-a[0])*t;y=a[1]+(b[1]-a[1])*t
+  rod('First navigation bridge mullion',(x,y,33.0),(x,y,33.84),.026,naval,SUPER,vertices=6)
+perimeter_band('Navigation window sill',nav_outline,32.96,.10,edge,SUPER,.10)
+prism('Navigation roof',nav_outline,33.80,34.40,naval,SUPER)
+shaped_gallery('air-defense','Air defence station')
+# Lower forward face changes width without covering the entire tower in a
+# glazed belt. The reference carries small apertures and open lookout tubs.
 for side in (-1,1):
- for z in (25.7,28.0,30.1):
-  for xx in (-5.4,-3.0):rod('Operations room scuttle',(xx,side*4.255,z),(xx,side*4.3,z),.14,dark,SUPER,vertices=12)
- for xx in (-5.8,-3.9,-2.0):
-  cyl('Air defence binocular stand',(xx,side*4.9,33.45),.09,.9,naval,SUPER,12)
-  rod('Air defence binocular', (xx-.25,side*4.9,33.95),(xx+.25,side*4.9,33.95),.11,dark,SUPER,vertices=10)
- # Side ladders and the forward tower's external stiffening are visible in
- # museum photographs; exact rung count and plate thickness are interpreted.
- for xx in (-6.8,-6.15):rod('Bridge access ladder rail',(xx,side*4.5,24),(xx,side*4.5,31.4),.038,edge,SUPER,vertices=6)
- for i in range(24):rod('Bridge access ladder rung',(-6.8,side*4.5,24+i*.30),(-6.15,side*4.5,24+i*.30),.025,edge,SUPER,vertices=6)
+ for z in (27.65,30.1):
+  for xx in (-3.1,-1.9):
+   rod('Operations room scuttle',(xx,side*3.34,z),(xx,side*3.40,z),.115,dark,SUPER,vertices=12)
+ # A rear-facing ladder has transverse rungs; both rails clear the curved
+ # aft wall. Each stand-off is seated by an actual forward surface ray.
+ ladder_support=SupportSurface([o for o in SUPER.objects if o.get('nodeId') in ('bridge-trunk.surface','operations-tower.surface') or o.name.startswith(('First navigation bridge lower wall','Navigation roof'))])
+ if side==1:
+  for y in (-.32,.32):rod('Bridge access ladder rail',(-6.12,y,22.25),(-6.12,y,34.4),.032,edge,SUPER,vertices=6)
+  for i in range(42):rod('Bridge access ladder rung',(-6.12,-.32,22.3+i*.29),(-6.12,.32,22.3+i*.29),.023,edge,SUPER,vertices=6)
+  for z in (23,26,29,32,34):
+   for y in (-.32,.32):
+    foot=ladder_support.along((-6.12,y,z),(1,0,0),6)
+    rod('Bridge ladder stand-off',foot,(-6.12,y,z),.045,naval,SUPER,vertices=8)
+ # Narrow, supported optical tubs on the tower shoulders.
+ for x,z,r in [(-3.9,26.2,1.05)]:
+  y=side*3.75;outline=[(x+r*math.cos(i*math.tau/20),y+r*math.sin(i*math.tau/20)) for i in range(20)]
+  cyl('Bridge optical tub support',(x,y,z-.65),.28,1.3,naval,SUPER,20,r2=r)
+  prism('Bridge optical tub deck',outline,z,z+.12,roof,SUPER)
+  perimeter_band('Bridge optical tub wall',outline,z+.12,.85,naval,SUPER,.065)
+  rod('Optical tub inboard brace',(x,side*2.9,z-1.1),(x,y,z-.8),.13,naval,SUPER,vertices=10)
+  cyl('Binocular pedestal',(x,y,z+.57),.10,.9,edge,SUPER,12)
+  rod('Binocular optics',(x-.25,y,z+1.05),(x+.25,y,z+1.05),.11,dark,SUPER,vertices=10)
+ for xx in (-3.9,-2.5,-1.1):
+  cyl('Air defence binocular stand',(xx,side*2.7,34.96),.08,.9,naval,SUPER,12)
+  rod('Air defence binocular',(xx-.23,side*2.7,35.45),(xx+.23,side*2.7,35.45),.10,dark,SUPER,vertices=10)
+ # Open signal wings are deliberately separate from the enclosed room.
+ pts=[(-5.6,side*3.0),(-9.5,side*9.7),(-8.95,side*9.9),(-3.8,side*3.4)]
+ prism('Upper signal wing',pts,34.85,35.03,roof,SUPER)
+ for a,b in zip(pts,pts[1:]+pts[:1]):
+  rod('Signal wing guard rail',(*a,35.88),(*b,35.88),.023,edge,SUPER,vertices=6)
+  count=max(1,math.ceil(math.dist(a,b)/1.3))
+  for i in range(count):
+   t=i/count;xx=a[0]+(b[0]-a[0])*t;yy=a[1]+(b[1]-a[1])*t
+   rod('Signal wing stanchion',(xx,yy,35.0),(xx,yy,35.88),.023,edge,SUPER,vertices=6)
+ foot=ladder_support.along((-5.1,side*2.7,31.25),(0,-side,0),6)
+ rod('Signal wing lower strut',foot,(-9.2,side*9.7,34.88),.09,edge,SUPER,vertices=10)
+rod('Forward small rangefinder bracket',(3.12,0,28.65),(4.126,0,28.75),.19,naval,SUPER,vertices=12)
+rounded('Forward small rangefinder housing',4.126,0,28.72,1.2,.78,.83,naval,SUPER,cut=.35)
+rod('Forward small rangefinder optical base',(4.126,-.96,29.10),(4.126,.96,29.10),.16,edge,SUPER,vertices=16)
 for side in (-1,1):
- rounded('Bridge wing binocular station',-2.6,side*7.0,18.5,5,3.3,.85,naval,SUPER)
- for x in (0,-2.7,-5.0):
-  cyl('Binocular pedestal',(x,side*7,19.7),.14,.8,edge,SUPER,12)
-  rod('Binocular optics',(x-.25,side*7,20.2),(x+.3,side*7,20.2),.16,dark,SUPER,vertices=10)
-# Main director and its 15 metre optical base.
+ box('Upper bridge instrument box',(3.21,side*1.27,31.40),(.25,.72,.68),naval,SUPER)
+ box('Upper bridge instrument aperture',(3.345,side*1.27,31.44),(.025,.43,.24),dark,SUPER)
+# Main director and its optical base, mounted on the measured upper station.
+cyl('Main director fixed pedestal',(-1.76,0,35.265),1.95,1.45,naval,SUPER,40)
 director_before=set(scene.objects)
-cyl('Main director rotating drum',(-3.5,0,35.1),3.1,2.3,naval,SUPER,40)
-rod('15 metre bridge rangefinder',(-3.5,-7.5,35.4),(-3.5,7.5,35.4),.59,naval,SUPER,vertices=20)
-for side in (-1,1):rounded('Main rangefinder end hood',-3.5,side*7.4,34.8,2.1,1.25,1.3,naval,SUPER)
-cyl('Type 98 main director',(-3.2,0,37.35),1.8,2.2,naval,SUPER,40)
-cyl('Director cap',(-3.2,0,38.5),1.9,.28,roof,SUPER,32)
-for angle in (0,110,250):
- a=math.radians(angle)
- o=box('Director optical hood',(-3.2+1.8*math.cos(a),1.8*math.sin(a),37.55),(.65,1.1,.58),naval,SUPER);o.rotation_euler.z=a
- rod('Director optical aperture',(-3.2+2.13*math.cos(a),2.13*math.sin(a),37.55),(-3.2+2.16*math.cos(a),2.16*math.sin(a),37.55),.12,dark,SUPER,vertices=10)
-rod('Director roof sight',(-2.7,0,38.64),(-2.7,0,39.10),.10,edge,SUPER,vertices=12)
+cyl('Main director bearing lower',(-1.76,0,36.0895),2.031,.207,naval,SUPER,40)
+cyl('Main director bearing collar',(-1.76,0,36.4025),2.210,.419,naval,SUPER,40)
+director_outline=structure_outline('main-director-drum')
+prism('Main director faceted housing',director_outline,36.61,38.15,naval,SUPER)
+prism('Main director housing roof',director_outline,38.15,38.30,roof,SUPER)
+cyl('Director cupola collar',(-1.76,0,38.435),1.78,.29,naval,SUPER,32)
+prism('Type 98 main director',structure_outline('main-director-head'),38.578,40.749,naval,SUPER)
+prism('Director cap',structure_outline('main-director-head'),40.749,40.84,roof,SUPER)
+for side in (-1,1):
+ # Aft-set, tapered box arms join the broad rear shoulders of the housing.
+ prism('Rangefinder arm root',[(-3.873,side*1.4),(-2.503,side*1.4),(-2.503,side*4.498),(-3.873,side*4.498)],36.94,38.13,naval,SUPER)
+ v=[]
+ for y,x0,x1,low,high in [(side*4.49,-3.760,-2.614,36.94,38.13),(side*6.81,-3.663,-2.712,37.02,38.05)]:
+  v.extend([(x0,y,low),(x1,y,low),(x1,y,high),(x0,y,high)])
+ mesh('Tapered rangefinder arm',v,[(0,3,2,1),(4,5,6,7),(0,1,5,4),(1,2,6,5),(2,3,7,6),(3,0,4,7)],naval,SUPER)
+ rounded('Main rangefinder end hood',-3.1785,side*7.4765,37.02,.909,1.351,1.026,naval,SUPER,cut=.14)
+ rod('Main rangefinder outer optics',(-2.95,side*8.05,37.56),(-2.95,side*8.362,37.56),.20,edge,SUPER,vertices=16)
+ box('Main rangefinder forward optical hood',(-2.69,side*7.95,37.64),(.444,.42,.48),naval,SUPER)
+ box('Main rangefinder aperture',(-2.46,side*7.95,37.64),(.02,.23,.25),dark,SUPER)
+ for y in (side*2.9,side*6.3):
+  rod('Rangefinder underside bracket',(-3.1,y,36.99),(-1.76,side*1.7,36.35),.075,edge,SUPER,vertices=10)
+box('Director forward optical hood',(-.3115,.024,39.8875),(1.369,.98,.439),naval,SUPER)
+box('Director forward optical aperture',(.382,.024,39.8875),(.025,.61,.23),dark,SUPER)
+rod('Director roof sight',(-1.3,0,40.82),(-1.3,0,41.30),.06,edge,SUPER,vertices=12)
+def aerial_x(z):return -3.3-(z-40.45)*1.75/3.73
+rod('Director aerial mast',(aerial_x(40.45),0,40.45),(aerial_x(44.916),0,44.916),.045,edge,SUPER,r2=.02,vertices=8)
+for i in range(24):
+ a=i*math.tau/24;bb=(i+1)*math.tau/24;za=42.60+.53*math.sin(a);zb=42.60+.53*math.sin(bb)
+ rod('Director aerial loop',(aerial_x(za),.38*math.cos(a),za),(aerial_x(zb),.38*math.cos(bb),zb),.035,edge,SUPER,vertices=6)
+for z in (42.1,43.0):rod('Director aerial crossarm',(aerial_x(z),-.35,z),(aerial_x(z),.35,z),.025,edge,SUPER,vertices=6)
 main_director_parts=set(scene.objects)-director_before
 # Aft director stands ahead of the after 15.5 cm turret.
 rounded('Aft director foundation',-39,0,10.8,9,10,4.6,naval,SUPER)
@@ -224,31 +271,28 @@ cyl('Aft director upper housing',(-38.6,0,22.8),2.05,3.9,naval,SUPER,32)
 rod('10 metre aft rangefinder',(-38.6,-5,20.1),(-38.6,5,20.1),.42,naval,SUPER,vertices=16)
 rounded('Aft fire control head',-38.6,0,24.6,2.5,2.7,1.0,naval,SUPER)
 
-# Curved funnel uptake, from the naval damage section and museum silhouette.
-# Each authored row is z, longitudinal centre, x radius, y radius. The cap is
-# sloped with the rake; neither source establishes exact shell offsets.
-funnel_sections=[(11,-19.1,8.2,4.65),(13,-19.8,7.9,4.55),(15,-21.0,6.8,4.35),(17,-22.1,5.7,4.10),(20,-23.1,4.55,3.9),(24,-24.35,4.15,3.72),(28,-25.55,4.1,3.60),(30.4,-26.25,4.05,3.55)]
-def funnel_ring(z,x,sx,sy,cap_slope=0):return [(x+sx*math.cos(i*math.tau/48),sy*math.sin(i*math.tau/48),z+cap_slope*sx*math.cos(i*math.tau/48)) for i in range(48)]
-frings=[funnel_ring(*row,.25 if i==len(funnel_sections)-1 else 0) for i,row in enumerate(funnel_sections)]
-fv=[p for row in frings for p in row];ff=[]
-for j in range(len(frings)-1):
- for i in range(48):ff.append((j*48+i,j*48+(i+1)%48,(j+1)*48+(i+1)%48,(j+1)*48+i))
+# Narrow capsule uptake and raked rim from the approved model comparison.
+# Derive shell bands and fittings from the same original blueprint rings.
+fverts=S['funnel-jacket']['surface']['vertices']
+frings=[[(-z,-x,y) for x,y,z in fverts[i:i+48]] for i in range(0,len(fverts),48)]
 structure('funnel-jacket',FUNNEL)
 cap=frings[-1];mesh('Funnel smoke opening',[(x,y,z-.14) for x,y,z in cap],[tuple(range(48))],dark,FUNNEL)
 for row in frings[1:]:
  for i in range(48):rod('Funnel shell band',row[i],row[(i+1)%48],.045,edge,FUNNEL,vertices=6)
 for j in (3,9,15,21,27,33,39,45):
  for a,b in zip(frings[1:],frings[2:]):rod('Funnel stiffener',a[j],b[j],.070,edge,FUNNEL,vertices=7)
-for y in (-2.6,-1.3,0,1.3,2.6):
- extent=4.05*math.sqrt(1-(y/3.55)**2)
- rod('Funnel cap grille',(-26.25-extent,y,30.42-.25*extent),(-26.25+extent,y,30.42+.25*extent),.045,edge,FUNNEL,vertices=6)
+for y in (-1.4,-.7,0,.7,1.4):
+ extent=2.466+1.894*math.sqrt(1-(y/1.894)**2)
+ rod('Funnel cap grille',(-23.3-extent,y,29.45-.15*extent),(-23.3+extent,y,29.45+.15*extent),.035,edge,FUNNEL,vertices=6)
 funnel_support=SupportSurface(FUNNEL.objects)
 for side in (-1,1):
- for xx in (-30.6,-16):
-  cyl('Steam pipe',(xx,side*3.3,17),.24,11.8,edge,FUNNEL,16)
-  for z in (13,18):
-   foot=funnel_support.along((xx,side*3.3,z),(1 if xx< -25 else -1,0,0),18)
-   rod('Steam pipe clamp',foot,(xx,side*3.3,z),.065,edge,FUNNEL,vertices=8)
+ # Bent external steam lines follow the rake on the narrow capsule shell.
+ for offset in (-2.0,0,2.0):
+  route=[(-19.1+offset,side*3.18,15.0),(-20.7+offset,side*2.60,19.5),(-21.7+offset,side*2.08,23.5),(-23.1+offset,side*2.08,28.8)]
+  for a,b in zip(route,route[1:]):rod('Funnel steam line',a,b,.10,edge,FUNNEL,vertices=12)
+  for x,y,z in route[1:]:
+   foot=funnel_support.along((x,y,z),(0,-side,0),8)
+   rod('Steam pipe clamp',foot,(x,y,z),.052,edge,FUNNEL,vertices=8)
 
 # Auxiliary directors, searchlights and Type 89 dual-purpose mounts.
 def light(name,x,y,z,bearing):
@@ -262,6 +306,13 @@ def light(name,x,y,z,bearing):
   rod(name+' axle',pt(0,s,1.4),pt(0,s*.78,1.4),.12,edge,SUPER,vertices=12)
  rod(name+' reflector horizontal brace',pt(.53,-.75,1.4),pt(.53,.75,1.4),.018,edge,SUPER,vertices=6)
  rod(name+' reflector vertical brace',pt(.53,0,.65),pt(.53,0,2.15),.018,edge,SUPER,vertices=6)
+controller_support=SupportSurface(SUPER.objects)
+for side in (-1,1):
+ pts=[(.5,side*2.1),(2.72,side*2.1),(2.72,side*4.35),(2.40,side*4.82),(1.86,side*4.965),(1.07,side*4.74),(.5,side*3.55)]
+ prism('Forward controller wing',pts,22.65,22.77,roof,SUPER)
+ for x in (1.15,2.35):
+  foot=controller_support.along((x,side*4.6,21.6),(0,-side,0),8)
+  rod('Forward controller wing knee',foot,(x,side*4.65,22.70),.12,naval,SUPER,vertices=10)
 searchlight_support=SupportSurface([*HULL.objects,*SUPER.objects])
 for side in (-1,1):
  # Museum searchlight article explicitly describes three 150 cm lights per side.
@@ -275,11 +326,18 @@ for side in (-1,1):
   prism('Searchlight gallery deck',outline,zz,zz+.18,roof,SUPER)
   perimeter_band('Searchlight gallery bulwark',outline,zz+.18,.7,naval,SUPER)
   light('150 cm searchlight',xx,cy,zz+.18,side*90)
- for xx,zz in [(0,21),(-6,25),(-35,16)]:
-  floor=searchlight_support.below(xx,side*5.9,zz-1)
-  if zz-1-floor>.02:cyl('HA director foundation',(xx,side*5.9,(floor+zz-1)/2),1.15,zz-1-floor+.02,naval,SUPER,24)
-  cyl('HA director pedestal',(xx,side*5.9,zz),1.4,2,naval,SUPER,24)
-  rounded('HA director hood',xx,side*5.9,zz+1,2.8,2.4,1.5,naval,SUPER)
+ for xx,yy,zz in [(1.71,4.46,22.81),(4.54,1.63,26.13),(-38.85,6.24,15.07),(-8.14,5.62,17.87),(-11.25,6.03,18.72)]:
+  floor=searchlight_support.below(xx,side*yy,zz)
+  if zz-floor>.02:cyl('HA director foundation',(xx,side*yy,(floor+zz)/2),.65,zz-floor+.02,naval,SUPER,24)
+  compact=zz==26.13
+  width=2.169 if compact else 2.217
+  height=1.284 if compact else 1.918
+  shoulder=.35 if compact else .60
+  cyl('HA director pedestal',(xx,side*yy,zz+(shoulder+.04)/2),.48,shoulder+.04,naval,SUPER,24)
+  rounded('HA director hood',xx,side*yy,zz+shoulder,2.262 if compact else 2.206,width,height-shoulder,naval,SUPER,cut=.42)
+  box('HA director optical window',(xx+1.11,side*yy,zz+height-.49),(.06,.85,.26),glass,SUPER)
+  box('HA director window brow',(xx+1.15,side*yy,zz+height-.30),(.20,1.03,.08),edge,SUPER)
+
 
 # Heavy AA uses blueprint joints; 25 mm fittings retain visual assembly ownership.
 # Counts, detailed positions and performance remain under review.
@@ -399,25 +457,36 @@ rod('Signal spar lower brace',(-36.1,0,28),(-43,0,36),.12,edge,MAST,vertices=8)
 rod('Signal spar',(-43,-7,36),(-43,7,36),.075,wire,MAST,vertices=8)
 for side in (-1,1):
  for y in (2,4,6,8,10):rod('Signal halyard',(-34.5,side*y,33),(-29,side*5.8,16.4),.015,wire,MAST,vertices=5)
- for a,b in [((-37,0,39.6),(-3.5,0,37.8)),((-3.5,0,37.8),(128,0,12.0)),((-43,side*7,36),(-128,side*2,10.5))]:rod('Aerial wire',a,b,.018,wire,MAST,vertices=5)
+ for a,b in [((-37,0,39.6),(-1.76,0,39.4)),((-1.76,0,39.4),(128,0,12.0)),((-43,side*7,36),(-128,side*2,10.5))]:rod('Aerial wire',a,b,.018,wire,MAST,vertices=5)
 radar_before=set(bpy.context.scene.objects)
-# Two Type 21 arrays sit over the ends of the 15 m rangefinder, as visible
-# in the museum bridge photographs. Their framing remains interpreted.
+# Type 21 frames follow the measured low rectangular screens over the aft arms.
 for side in (-1,1):
- for y in (side*3.3,side*7.3):rod('Type 21 radar support',(-3.5,y,35.4),(-3.5,y,38.5),.08,edge,MAST,vertices=8)
- for i in range(9):
-  y=side*(3.3+i*.5)
-  rod('Type 21 array vertical',(-3.5,y,36.5),(-3.5,y,38.5),.035,edge,MAST,vertices=6)
- for z in (36.5,37.15,37.8,38.5):rod('Type 21 array horizontal',(-3.5,side*3.3,z),(-3.5,side*7.3,z),.035,edge,MAST,vertices=6)
-radar_pivot('radar-21.yaw',(-3.5,0,35.4),(set(bpy.context.scene.objects)-radar_before)|main_director_parts)
+ for y in (side*3.147,side*7.608):rod('Type 21 radar support',(-3.10,y,37.56),(-2.85,y,38.46),.065,edge,MAST,vertices=8)
+ for y in (side*2.844,side*7.815):rod('Type 21 outer frame',(-2.85,y,38.436),(-2.85,y,39.714),.045,edge,MAST,vertices=8)
+ for i in range(10):
+  y=side*(3.147+i*(7.608-3.147)/9)
+  rod('Type 21 array vertical',(-2.85,y,38.668),(-2.85,y,39.508),.025,edge,MAST,vertices=6)
+ for z in (38.436,38.668,39.088,39.508,39.714):rod('Type 21 array horizontal',(-2.85,side*2.844,z),(-2.85,side*7.815,z),.028,edge,MAST,vertices=6)
+radar_pivot('radar-21.yaw',(-1.76,0,37.55),(set(bpy.context.scene.objects)-radar_before)|main_director_parts)
 tower_support=SupportSurface(SUPER.objects)
 for side in (-1,1):
- for z in (27.8,28.55):
-  foot=tower_support.along((-1,side*5,z),(0,-side,0),8)
-  rod('Type 22 radar bracket',foot,(-1,side*5,z),.10,naval,MAST,vertices=10)
+ outline=[(-2.52,side*3.25),(-2.52,side*5.35),(-2.15,side*5.79),(-.54,side*5.79),(-.17,side*5.35),(-.17,side*3.25)]
+ prism('Type 22 radar wing',outline,31.53,31.65,roof,SUPER)
+ for x in (-2.2,-.5):
+  foot=tower_support.along((x,side*4.3,30.45),(0,-side,0),8)
+  rod('Radar wing cantilever',foot,(x,side*5.6,31.55),.11,naval,SUPER,vertices=10)
+ # The source platform has no high outboard rail in the horn sweep.
+ perimeter_band('Radar wing edge',outline,31.65,.055,edge,SUPER,.045)
+ cyl('Type 22 seated pedestal',(-1.322,side*5.424,31.78),.2175,.30,naval,MAST,16)
  radar_before=set(bpy.context.scene.objects)
- for z in (27.8,28.55):rod('Type 22 radar horn',(-1,side*5,z),(1.0,side*5,z),.19,naval,MAST,r2=.52,vertices=16)
- radar_pivot('radar-22-'+('port' if side==1 else 'starboard')+'.yaw',(-1,side*5,27.8),set(bpy.context.scene.objects)-radar_before)
+ def radar_pt(f,h):return (-1.322+f*math.cos(math.radians(35)),side*(5.424+f*math.sin(math.radians(35))),31.53+h)
+ rod('Type 22 radar upright',radar_pt(0,.34),radar_pt(0,1.33),.069,naval,MAST,vertices=12)
+ for h,back,neck,front,r_mid,r_mouth in [(.771,.0075,.633,1.2075,.141,.258),(1.3005,-.5535,.066,.4965,.1305,.219)]:
+  rod('Type 22 horn throat',radar_pt(back,h),radar_pt(neck,h),.069,naval,MAST,r2=r_mid,vertices=20)
+  rod('Type 22 horn flare',radar_pt(neck,h),radar_pt(front,h),r_mid,naval,MAST,r2=r_mouth,vertices=20)
+  rod('Type 22 horn aperture',radar_pt(front+.002,h),radar_pt(front+.008,h),r_mouth*.89,dark,MAST,vertices=20)
+  rod('Type 22 horn saddle',radar_pt(0,h-.08),radar_pt(back+.17,h),.035,edge,MAST,vertices=8)
+ radar_pivot('radar-22-'+('port' if side==1 else 'starboard')+'.yaw',(-1.322,side*5.424,31.53),set(bpy.context.scene.objects)-radar_before)
  for z in (30,33):rod('Type 13 mounting arm',(-35-2*(z-14)/25.6,0,z),(-35.5,0,z),.08,edge,MAST,vertices=8)
  rod('Type 13 aerial spine',(-35.5,0,29.8),(-35.5,0,34.2),.07,edge,MAST,vertices=8)
  for z in (30,31,32,33,34):rod('Type 13 aerial dipole',(-35.5,-.85,z),(-35.5,.85,z),.038,edge,MAST,vertices=6)
@@ -496,9 +565,18 @@ for side in (-1,1):
 # Foredeck anchor gear and scattered fittings.
 for side in (-1,1):
  cyl('Anchor capstan',(95,side*3.5,deck(95)+.6),.9,1.2,edge,DECK,24)
- rod('Anchor shank',(124,side*6.0,4.8),(121,side*6.7,3.6),.15,edge,DECK,vertices=12)
- foot=SupportSurface([hull]).along((124,side*6,4.8),(0,-side,0),12)
- rod('Hawse seating',foot,(124,side*6,4.8),.24,hullgray,DECK,vertices=16)
+ # Source anchor shanks fall forward beneath the forecastle flare. Their
+ # upper hawse collars sit through the deck; the crown and flukes hang from it.
+ top=(125.35,side*3.95,9.44);bottom=(128.45,side*3.84,7.86)
+ mouth_z=deck(125.35)
+ cyl('Hawse mouth collar',(125.35,side*3.95,mouth_z+.08),.40,.28,hullgray,DECK,24)
+ rod('Hawse seating',(125.35,side*3.95,mouth_z-.08),top,.20,hullgray,DECK,vertices=16)
+ rod('Anchor shank',top,bottom,.16,edge,DECK,vertices=12)
+ rod('Anchor crown',(128.45,side*2.96,7.82),(128.45,side*4.70,7.82),.23,edge,DECK,vertices=12)
+ for offset in (-.76,.76):
+  y=side*3.84+offset
+  rod('Anchor curved arm',(128.45,side*3.84,7.86),(127.55,y,7.30),.19,edge,DECK,vertices=12)
+  mesh('Anchor fluke',[(127.7,y-.24,7.28),(127.7,y+.24,7.28),(126.4,y+.35,8.74),(126.4,y-.35,8.74),(127.9,y-.24,7.37),(127.9,y+.24,7.37)],[(0,1,2,3),(4,3,2,5),(0,4,5,1),(0,3,4),(1,5,2)],edge,DECK)
  for x in (70,83,103,115,-57,-78,-118):
   y=side*max(1,breadth(x)-1.2);z=deck(x)
   for dx in (-.4,.4):cyl('Mooring bollard',(x+dx,y,z+.42),.23,.8,edge,DECK,12)
@@ -579,21 +657,21 @@ for side in (-1,1):
 fm=dict(**materials,glass=glass)
 fit=Fittings(dict(mesh=mesh,cyl=cyl,rod=rod,box=box),fm,SUPER)
 for side in [-1,1]:
- fit.stairs('Lower bridge stair',(-8,side*6.1,18.5),(-4.5,side*6.1,22.15))
- fit.stairs('Tower access stair',(-7.9,side*4.65,22.15),(-5.0,side*4.65,25.0),.68)
- for x,z,w in [(-3,12.1,1.5),(-9,9.7,2.3),(-18,9.7,2.2),(-27,9.7,2.2),(-36,9.7,1.8)]:fit.vent('Shelter ventilation',x,side*(6.9 if x==-3 else 10.8),z,w,1.25)
+ fit.stairs('Lower bridge stair',(-8.5,side*4.8,18.7),(-5.5,side*4.8,22.25))
+ fit.stairs('Tower access stair',(-4.5,side*4.25,22.25),(-1.3,side*4.25,25.77),.68)
+ for x,z,w in [(-9,9.7,2.3),(-18,9.7,2.2),(-27,9.7,2.2),(-36,9.7,1.8)]:fit.vent('Shelter ventilation',x,side*(6.5 if x==-3 else 10.8),z,w,1.25)
  for x in [-12,-34]:fit.door('Shelter access',x,side*10.8,8.7)
  for x in [-32,-26,-20,-14,-8]:fit.knee('AA gallery bracket',x,side*16.5,side*20.1,8.5,1.2)
  # Raised directors have sight slits and split hoods instead of blank drums.
- for x,z in [(-38.6,23),(-3.2,37.5)]:
+ for x,z in [(-38.6,23),(-1.76,39.4)]:
   for dx in [-.65,.65]:
    yy=(2.05 if x==-38.6 else 1.8)*math.sqrt(1-(dx/(2.05 if x==-38.6 else 1.8))**2)
    box('Director optical slit',(x+dx,side*(yy-.035),z),(.38,.12,.20),glass,SUPER)
 fit.col=FUNNEL
 for side in [-1,1]:
- fit.ladder('Funnel inspection ladder',(-22,side*4.0,17),(-26.3,side*3.7,30.0),.62)
- for x in [-30.8,-17.2]:
-  fit.vent('Funnel base air intake',x,side*3.85,13.4,2.0,1.7)
+ fit.ladder('Funnel inspection ladder',(-19.6,side*2.88,17),(-23.25,side*2.02,29.7),.58)
+ for x in [-21.5,-17.2]:
+  fit.vent('Funnel base air intake',x,side*3.60,13.4,2.0,1.7)
 fit.col=DECK
 for side in [-1,1]:
  for x in [59,76,87,-57,-75]:fit.reel('Mooring line reel',x,side*min(12,breadth(x)-2),deck(x)+.025,.58,1.4)
@@ -601,7 +679,9 @@ for side in [-1,1]:
   fit.door('Deck trunk access',x,side*3.2,deck(x),.7,1.2)
   rounded('Companionway coaming',x,side*3.0,deck(x),1.5,1.1,1.3,naval,DECK)
  # Chain links follow the rising forecastle; machinery has a warping head.
- fit.chain('Bower anchor chain',(95,side*3.5,deck(95)+.18),(121,side*4.6,deck(121)+.18),.5)
+ for start,end in [(95,100),(100,105),(105,110),(110,115),(115,120),(120,125.35)]:
+  ya=side*(3.5+.45*(start-95)/30.35);yb=side*(3.5+.45*(end-95)/30.35)
+  fit.chain('Bower anchor chain',(start,ya,deck(start)+.12),(end,yb,deck(end)+.12),.5)
  for x in [95]:
   cyl('Windlass gear casing',(x-1.1,side*3.5,deck(x)+.43),.68,.78,naval,DECK,32)
   rod('Windlass axle',(x-1.1,side*2.65,deck(x)+.65),(x-1.1,side*4.35,deck(x)+.65),.18,edge,DECK,vertices=16)
@@ -617,7 +697,7 @@ for side in [-1,1]:
   rod('Boat bay upper beam',(x,side*10.95,5.92),(x,side*(loft_breadth(H,x,5.92)-.03),5.92),.08,naval,AFT,vertices=8)
  fit.ladder('Aircraft deck access',(-75,side*9,5.95),(-70,side*9,8.0),.7)
 scene['definitionHash']=D['contentHash'];scene['configuration']=D['configuration']
-scene['historicalAccuracy']='Unverified reconstruction; see discrepancy register'
+scene['historicalAccuracy']='GameModels3D pjsb018 geometry comparison; not historical certification'
 from blender_rig import create_flagstaffs
 create_flagstaffs(D)
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'appearance'))

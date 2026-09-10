@@ -43,6 +43,15 @@ pub struct MountState {
     pub aim_cache: Option<AimCache>,
     #[serde(skip)]
     blocked_cache: Option<BlockedCache>,
+    #[serde(skip)]
+    clearance_cache: Option<ClearanceCache>,
+}
+#[derive(Clone, Debug)]
+struct ClearanceCache {
+    geometry: usize,
+    poses: Vec<[f64; 2]>,
+    requested: [f64; 2],
+    result: crate::mount_clearance::ClearanceResult,
 }
 #[derive(Clone, Debug)]
 struct BlockedCache {
@@ -75,6 +84,7 @@ impl MountState {
             lead_cache: None,
             aa_discipline: None,
             blocked_cache: None,
+            clearance_cache: None,
         }
     }
     pub fn available(&self, kind: Ammunition) -> f64 {
@@ -233,6 +243,7 @@ struct Obstruction {
 pub struct Obstructions {
     entries: Vec<Obstruction>,
     carried: Vec<(usize, Vec<Obstruction>)>,
+    pub clearance: Option<crate::mount_clearance::MountClearance>,
 }
 impl Obstructions {
     pub fn new(d: &ShipDefinition) -> Self {
@@ -285,7 +296,12 @@ impl Obstructions {
                 entries.extend(boxes);
             }
         }
-        Self { entries, carried }
+        Self {
+            entries,
+            carried,
+            clearance: crate::mount_clearance::MountClearance::new(d)
+                .expect("validated original mount clearance geometry"),
+        }
     }
     fn intersects(&self, from: Vec3, to: Vec3, mount_id: &str, poses: &[Pose]) -> bool {
         self.entries.iter().any(|e| {
@@ -413,8 +429,65 @@ pub fn update_mount(
     );
     let train_rate = radians(w.traverse_rate_deg) * dt * work;
     let elevation_rate = radians(w.elevation_rate_deg) * dt * work;
-    s.train += clamp(train - s.train, -train_rate, train_rate);
-    s.elevation += clamp(elevation - s.elevation, -elevation_rate, elevation_rate);
+    let requested_train = s.train + clamp(train - s.train, -train_rate, train_rate);
+    let requested_elevation =
+        s.elevation + clamp(elevation - s.elevation, -elevation_rate, elevation_rate);
+    let mut mechanically_blocked = false;
+    if let Some(clearance) = &obstructions.clearance {
+        let index = d
+            .mounts
+            .iter()
+            .position(|mount| mount.id == m.id)
+            .expect("known mount");
+        if clearance.enabled(index) {
+            // Physical movement needs actual independent neighbors. Legacy
+            // callers without a complete pose array must fail closed.
+            if mounted_states.len() != d.mounts.len() {
+                return reject(s, "blocked");
+            }
+            let mut poses: Vec<_> = mounted_states
+                .iter()
+                .map(crate::mount_clearance::ClearancePose::from)
+                .collect();
+            poses[index] = crate::mount_clearance::ClearancePose::from(&*s);
+            let key: Vec<_> = poses.iter().map(|p| [p.train, p.elevation]).collect();
+            let requested = [requested_train, requested_elevation];
+            let geometry = clearance as *const _ as usize;
+            let accepted =
+                if let Some(cache) = s.clearance_cache.as_ref().filter(|c| {
+                    c.geometry == geometry && c.poses == key && c.requested == requested
+                }) {
+                    cache.result.clone()
+                } else {
+                    let result = clearance.resolve(
+                        d,
+                        index,
+                        &poses,
+                        crate::mount_clearance::ClearancePose {
+                            train: requested_train,
+                            elevation: requested_elevation,
+                            recoil: s.recoil,
+                        },
+                    );
+                    s.clearance_cache = Some(ClearanceCache {
+                        geometry,
+                        poses: key,
+                        requested,
+                        result: result.clone(),
+                    });
+                    result
+                };
+            s.train = accepted.pose.train;
+            s.elevation = accepted.pose.elevation;
+            mechanically_blocked = accepted.blocked;
+        } else {
+            s.train = requested_train;
+            s.elevation = requested_elevation;
+        }
+    } else {
+        s.train = requested_train;
+        s.elevation = requested_elevation;
+    }
     // A parent can move an obstruction even when this gun has not traversed.
     // Use the detached mount's updated train when posing its own descendants.
     let carried: Vec<_> = obstructions
@@ -458,7 +531,7 @@ pub fn update_mount(
         });
         blocked
     };
-    if blocked {
+    if blocked || mechanically_blocked {
         return reject(s, "blocked");
     }
     if !reachable {

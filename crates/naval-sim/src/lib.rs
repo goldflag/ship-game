@@ -5,6 +5,7 @@ pub mod geometry;
 pub mod motion;
 pub mod mobility;
 pub mod mount_frames;
+pub mod mount_clearance;
 pub mod rules;
 
 pub mod ballistics;

@@ -1,4 +1,5 @@
 import { physicalLoss } from '../simulation/battleRules';
+import { ArticulationResolver } from './articulationPreview';
 import { weaponGroups, selectedWeapon } from '../ships/weaponGroups';
 import { hullDepth } from '../simulation/ship';
 import { assetUrl } from '../assetUrl';
@@ -190,6 +191,8 @@ export class Game {
   private frameTask?: Promise<void>;
   private frameWaiters: (() => void)[] = [];
   private articulationOriginal?: CombatSimulation['player']['mounts'];
+  private articulationRequest = 0;
+  private articulationResolver?: ArticulationResolver;
   private articulationLaunchers?: CombatSimulation['player']['torpedoLaunchers'];
 
   constructor(private host: HTMLElement, private settings: GameSettings, private callbacks: GameCallbacks, definition = selectedShip, readonly audio?: GameAudio) {
@@ -1131,6 +1134,7 @@ export class Game {
     if (!this.inspecting && !this.simulation.player.damage.sunk) this.rig.aimAt(this.currentAim, this.simulation.ship);
   }
   private restoreArticulation(): void {
+    this.articulationRequest++;
     if (this.articulationOriginal) {
       this.simulation.player.mounts.forEach((m, i) => Object.assign(m, this.articulationOriginal![i]));
       this.simulation.player.torpedoLaunchers?.forEach((l, i) => Object.assign(l, this.articulationLaunchers?.[i]));
@@ -1140,7 +1144,7 @@ export class Game {
     }
   }
   /** Development-only port inspection of the loaded model at catalog joint limits. */
-  previewArticulation(pose: ArticulationPreview | null) {
+  async previewArticulation(pose: ArticulationPreview | null) {
     if (!import.meta.env.DEV || !this.inPort || !this.playerView) throw new Error('Articulation review requires a loaded ship in the development port.');
     if (pose === null) this.restoreArticulation();
     else {
@@ -1148,6 +1152,19 @@ export class Game {
       for (const [id, override] of Object.entries(pose.mounts ?? {})) {
         if (!this.definition.mounts.some(m => m.id === id) || !Object.entries(override).every(([key, value]) => ['trainFraction', 'elevationFraction', 'recoilFraction'].includes(key) && Number.isFinite(value))) throw new Error('Invalid mount articulation override.');
       }
+      const request = ++this.articulationRequest;
+      const simulation = this.simulation;
+      const requested = this.definition.mounts.map(mount => {
+        const w = mount.weapon, selected = { ...pose, ...pose.mounts?.[mount.id] };
+        return {
+          train: THREE.MathUtils.clamp(selected.trainFraction, -1, 1) * w.traverseDeg * Math.PI / 180,
+          elevation: (w.elevationMinDeg + THREE.MathUtils.clamp(selected.elevationFraction, 0, 1) * (w.elevationMaxDeg - w.elevationMinDeg)) * Math.PI / 180,
+          recoil: THREE.MathUtils.clamp(selected.recoilFraction, 0, 1),
+        };
+      });
+      this.articulationResolver ??= new ArticulationResolver();
+      const accepted = await this.articulationResolver.resolve(this.definition, simulation.player.mounts, requested);
+      if (request !== this.articulationRequest || simulation !== this.simulation || !this.inPort || this.disposed) return this.diagnostics();
       this.articulationOriginal ??= structuredClone(this.simulation.player.mounts);
       this.articulationLaunchers ??= structuredClone(this.simulation.player.torpedoLaunchers);
       this.simulation.player.torpedoLaunchers?.forEach(l => {
@@ -1156,13 +1173,10 @@ export class Game {
         l.train = (fraction < 0 ? -fraction * limits[0] : fraction * limits[1]) * Math.PI / 180;
       });
       this.simulation.player.mounts.forEach((state, i) => {
-        const w = this.definition.mounts[i].weapon;
-        const selected = { ...pose, ...pose.mounts?.[this.definition.mounts[i].id] };
-        state.train = THREE.MathUtils.clamp(selected.trainFraction, -1, 1) * w.traverseDeg * Math.PI / 180;
-        state.elevation = (w.elevationMinDeg + THREE.MathUtils.clamp(selected.elevationFraction, 0, 1) * (w.elevationMaxDeg - w.elevationMinDeg)) * Math.PI / 180;
-        state.recoil = THREE.MathUtils.clamp(selected.recoilFraction, 0, 1);
+        Object.assign(state, accepted[i].pose);
       });
       this.playerView.update();
+      return { ...this.diagnostics(), articulation: accepted.map((result, i) => ({ id: this.definition.mounts[i].id, requested: requested[i], ...result })) };
     }
     return this.diagnostics();
   }
@@ -1228,6 +1242,7 @@ export class Game {
   }
 
   async dispose(): Promise<void> {
+    this.articulationResolver?.dispose();
     this.simulation.dispose?.();
     this.disposed = true;
     this.underwaterPassVisibility?.dispose();

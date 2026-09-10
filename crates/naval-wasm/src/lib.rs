@@ -6,6 +6,37 @@ use wasm_bindgen::prelude::*;
 fn error(e: impl std::fmt::Display) -> JsValue {
     JsValue::from_str(&e.to_string())
 }
+/// Development port inspection uses the same physical movement resolver as combat.
+#[wasm_bindgen]
+pub fn preview_articulation_json(definition: &str, current: &str, requested: &str) -> Result<String, JsValue> {
+    use naval_sim::{definition::ShipDefinition, mount_clearance::{ClearancePose, ClearanceResult, MountClearance}};
+    let def: ShipDefinition = serde_json::from_str(definition).map_err(error)?;
+    let mut poses: Vec<ClearancePose> = serde_json::from_str(current).map_err(error)?;
+    let targets: Vec<ClearancePose> = serde_json::from_str(requested).map_err(error)?;
+    if poses.len() != def.mounts.len() || targets.len() != poses.len() {
+        return Err(error("Articulation requires one pose per mount"));
+    }
+    let clearance = MountClearance::new(&def).map_err(error)?;
+    let mut results = Vec::with_capacity(poses.len());
+    for (index, target) in targets.into_iter().enumerate() {
+        if ![target.train, target.elevation, target.recoil, poses[index].train, poses[index].elevation, poses[index].recoil].iter().all(|v| v.is_finite()) {
+            return Err(error("Articulation poses must be finite"));
+        }
+        let weapon = &def.mounts[index].weapon;
+        let target = ClearancePose {
+            train: target.train.clamp(-weapon.traverse_deg.to_radians(), weapon.traverse_deg.to_radians()),
+            elevation: target.elevation.clamp(weapon.elevation_min_deg.to_radians(), weapon.elevation_max_deg.to_radians()),
+            recoil: target.recoil.clamp(0.0, 1.0),
+        };
+        let result = clearance.as_ref().map_or_else(
+            || ClearanceResult { pose: target, blocked: false, obstruction_id: None },
+            |cache| cache.resolve(&def, index, &poses, target),
+        );
+        poses[index] = result.pose;
+        results.push(result);
+    }
+    serde_json::to_string(&results).map_err(error)
+}
 #[wasm_bindgen]
 pub fn rules_json() -> String {
     naval_sim::rules::RULES_JSON.to_owned()

@@ -152,10 +152,16 @@ fn buoyancy_floodwater_and_weapon_training_match_reference() {
     for case in f["mounts"].as_array().unwrap() {
         let d = &catalog.definitions[case["id"].as_str().unwrap()];
         let ship = from_value(case["ship"].clone()).unwrap();
-        let obstructions = Obstructions::new(d);
-        for (i, m) in d.mounts.iter().enumerate() {
-            let mut state = MountState::new(m);
-            for _ in 0..120 {
+        let mut obstructions = Obstructions::new(d);
+        // This frozen TypeScript comparison predates physical movement
+        // interlocks. The published profile and complete independent poses
+        // are covered by mount_clearance.rs and the WASM preview regressions.
+        obstructions.clearance = None;
+        let mut states: Vec<_> = d.mounts.iter().map(MountState::new).collect();
+        for _ in 0..120 {
+            for (i, m) in d.mounts.iter().enumerate() {
+                naval_sim::mount_frames::update_mount_carrier(d, i, &mut states);
+                let mut state = states[i].clone();
                 update_mount(
                     m,
                     &mut state,
@@ -166,9 +172,13 @@ fn buoyancy_floodwater_and_weapon_training_match_reference() {
                     [0.0; 3],
                     1.0,
                     &obstructions,
-                    &[], // Frozen fixtures contain only hull-mounted weapons.
+                    &states,
                 );
+                states[i] = state;
             }
+        }
+        for (i, m) in d.mounts.iter().enumerate() {
+            let state = &states[i];
             let expected = &case["states"][i];
             assert_eq!(
                 state.status,

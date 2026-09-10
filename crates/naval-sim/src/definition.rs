@@ -774,6 +774,38 @@ pub struct Volume {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct AuthoredSurface {
+    #[serde(rename = "vertices")]
+    pub vertices: Vec<[f64; 3]>,
+    #[serde(rename = "triangles")]
+    pub triangles: Vec<[f64; 3]>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct MountClearanceProfileBodiesItem {
+    #[serde(rename = "id")]
+    pub id: String,
+    #[serde(rename = "mountId")]
+    pub mount_id: Option<String>,
+    #[serde(rename = "surface")]
+    pub surface: AuthoredSurface,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct MountClearanceProfile {
+    #[serde(rename = "version")]
+    pub version: f64,
+    #[serde(rename = "marginM")]
+    pub margin_m: f64,
+    #[serde(rename = "mountIds")]
+    pub mount_ids: Vec<String>,
+    #[serde(rename = "basis")]
+    pub basis: String,
+    #[serde(rename = "bodies")]
+    pub bodies: Vec<MountClearanceProfileBodiesItem>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct ShipDefinitionMountEnvelope {
     #[serde(rename = "beam")]
     pub beam: f64,
@@ -789,14 +821,6 @@ pub struct AuthoredStructureExhaust {
     pub width: f64,
     #[serde(rename = "length")]
     pub length: f64,
-}
-
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
-pub struct AuthoredSurface {
-    #[serde(rename = "vertices")]
-    pub vertices: Vec<[f64; 3]>,
-    #[serde(rename = "triangles")]
-    pub triangles: Vec<[f64; 3]>,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
@@ -901,6 +925,8 @@ pub struct ShipDefinition {
     pub flood_regions: Option<Vec<ShipDefinitionFloodRegionsItem>>,
     #[serde(rename = "obstructions")]
     pub obstructions: Vec<Volume>,
+    #[serde(rename = "mountClearance")]
+    pub mount_clearance: Option<MountClearanceProfile>,
     #[serde(rename = "mountEnvelope")]
     pub mount_envelope: Option<ShipDefinitionMountEnvelope>,
     #[serde(rename = "structures")]
