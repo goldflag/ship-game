@@ -10,7 +10,10 @@ import { ShellFollow } from './ShellFollow';
 import { BattlefieldCamera } from './BattlefieldCamera';
 import { ShipView } from './ShipView';
 import { CombatSimulation } from '../simulation/combat';
-import { shipPreset } from '../ships/presets';
+import { shipPreset, shipPresets } from '../ships/presets';
+import * as ShipDetail from './ShipDetail';
+import pveRules from '../../assets/gameplay/pve-mission.v1.json';
+import type { MissionRules } from '../multiplayer/generated/MissionRules';
 
 // Camera controls now also listen for pointer-lock and focus changes.
 const browserNames = ['window', 'document'] as const;
@@ -218,6 +221,33 @@ test('battle preparation reports each loading stage in order for the loading scr
     await game.nextFrame();
   } finally { loader.mockRestore(); rig.dispose(); }
 });
+
+test.each(['yamato', 'enterprise-cv6'])('PvE prepares detail only for owned hull types without disclosing the hidden %s', async enemy => {
+  const { game, rig } = await port();
+  const loaded: string[] = [], detailed: string[] = [];
+  const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async url => {
+    const id = String(url).split('/').pop()!.replace('.glb', '');
+    loaded.push(id);
+    const gltf = await model(id);
+    gltf.scene.name = id;
+    return gltf;
+  });
+  const detail = spyOn(ShipDetail, 'prepareShipDetail').mockImplementation(async root => { detailed.push(root.name); });
+  const stages: string[] = [];
+  try {
+    await game.prepareBattle({ playerShipId: 'bismarck', friendlyBots: ['fletcher', 'fletcher'],
+      enemies: [enemy], spawnDistance: 5000, missionRules: pveRules as MissionRules }, label => stages.push(label));
+    expect(game.simulation.actors.every(actor => actor.team === 'friendly')).toBe(true);
+    // Every exterior remains ready before detection, with roster-independent
+    // requests and loading text. Only actual ShipViews consume detail buffers.
+    expect(loaded).toEqual(Object.keys(shipPresets));
+    expect(detailed.sort()).toEqual(['bismarck', 'fletcher']);
+    expect(stages.filter(label => label.includes('recognition'))).toEqual([
+      ...Array(Object.keys(shipPresets).length + 1).fill('Preparing ship recognition models'),
+      'Preparing aircraft recognition models',
+    ]);
+  } finally { detail.mockRestore(); loader.mockRestore(); rig.dispose(); game.simulation.dispose?.(); }
+}, 30000);
 
 test('one failed fleet asset leaves the port intact and the same battle can be retried', async () => {
   const { game, scene, playerView, rig } = await port();
