@@ -19,7 +19,22 @@
 .garage-wallet>span svg { color:var(--port-accent); }
 .garage-wallet>span:nth-child(2) svg { color:var(--port-ready); }
 .garage-wallet>b { color:var(--port-muted); font-size:10px; font-weight:400; border-left:1px solid var(--port-line); padding-left:22px; }
-.garage-set-sail { min-width:188px; min-height:44px; display:flex; align-items:center; justify-content:space-between; gap:15px; padding:11px 16px; background:var(--port-accent); color:#152831; border:0; border-radius:2px; text-shadow:none; box-shadow:0 7px 24px #06131d33; }
+.garage-battle { position:relative; display:flex; flex-direction:column; align-items:center; gap:5px; }
+.garage-battle-split { display:flex; box-shadow:0 7px 24px #06131d33; }
+.garage-set-sail { min-width:176px; min-height:44px; display:flex; align-items:center; justify-content:space-between; gap:15px; padding:11px 16px; background:var(--port-accent); color:#152831; border:0; border-radius:2px 0 0 2px; text-shadow:none; white-space:nowrap; }
+.garage-battle-caret { width:38px; min-height:44px; display:grid; place-items:center; padding:0; background:#c9ad74; color:#152831; border:0; border-left:1px solid #a88f5a; border-radius:0 2px 2px 0; text-shadow:none; }
+.garage-battle-caret:hover:not(:disabled) { background:#d9bd83; }
+.garage-battle-caret[aria-expanded=true] svg { transform:rotate(180deg); }
+.garage-battle-caret:disabled { opacity:.7; }
+.garage-battle-last { font-size:11px; color:var(--port-muted); white-space:nowrap; }
+.garage-battle-last b { color:var(--port-accent); font-weight:500; }
+.garage-battle-menu { position:absolute; top:calc(100% - 14px); left:50%; transform:translateX(-50%); z-index:4; width:300px; padding:6px; display:grid; gap:2px; background:#10232ef5; border:1px solid var(--port-line); border-radius:3px; box-shadow:0 12px 32px #06131d66; text-shadow:none; }
+.garage-battle-menu button { display:grid; gap:3px; width:100%; padding:9px 11px; text-align:left; background:transparent; border:1px solid transparent; border-radius:2px; color:var(--port-text); }
+.garage-battle-menu button:hover { background:#d9eeed12; }
+.garage-battle-menu button[aria-current=true] { border-color:#e5bf8066; }
+.garage-battle-menu button[aria-current=true] strong { color:var(--port-accent); }
+.garage-battle-menu strong { font:500 16px/1.1 'Barlow Condensed',sans-serif; letter-spacing:.03em; }
+.garage-battle-menu span { font-size:11px; color:var(--port-muted); line-height:1.4; }
 .garage-set-sail>strong { font:600 20px/1 'Barlow Condensed',sans-serif; letter-spacing:.055em; }
 .garage-set-sail:hover { background:#f4d199; }
 .garage-set-sail:active { transform:translateY(1px); }

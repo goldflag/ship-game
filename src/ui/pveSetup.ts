@@ -34,7 +34,7 @@ export function placementError(briefing: PveBriefing, placements: Placement[]): 
   }
   return '';
 }
-export function moveFormation(placements: Placement[], selected: string[], x: number, z: number, rotate = 0): Placement[] {
+export function moveFormation<T extends Placement>(placements: T[], selected: readonly string[], x: number, z: number, rotate = 0): T[] {
   const moving = placements.filter(p => selected.includes(p.id));
   if (!moving.length) return placements;
   const cx = moving.reduce((n, p) => n + p.spawn.x, 0) / moving.length, cz = moving.reduce((n, p) => n + p.spawn.z, 0) / moving.length;

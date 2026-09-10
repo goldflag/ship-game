@@ -4,7 +4,7 @@ import { moveFormation } from './pveSetup';
 export interface DeploymentPoint { x: number; z: number }
 export interface DeploymentView { center: DeploymentPoint; zoom: number }
 
-export function formationCenter(placements: Placement[], selected: string[]): DeploymentPoint | undefined {
+export function formationCenter(placements: readonly Placement[], selected: readonly string[]): DeploymentPoint | undefined {
   const moving = placements.filter(p => selected.includes(p.id));
   if (!moving.length) return;
   return { x: moving.reduce((sum, p) => sum + p.spawn.x, 0) / moving.length,
@@ -12,16 +12,19 @@ export function formationCenter(placements: Placement[], selected: string[]): De
 }
 
 /** Every preview starts from the grabbed formation, so dragging never accumulates error. */
-export function dragFormation(placements: Placement[], selected: string[], start: DeploymentPoint, point: DeploymentPoint): Placement[] {
+export function dragFormation<T extends Placement>(placements: T[], selected: readonly string[], start: DeploymentPoint, point: DeploymentPoint): T[] {
   const center = formationCenter(placements, selected);
   return center ? moveFormation(placements, selected, center.x + point.x - start.x, center.z + point.z - start.z) : placements;
 }
 
-export function rotateFormation(placements: Placement[], selected: string[], start: DeploymentPoint, point: DeploymentPoint): Placement[] {
+/** Snap rounds the turn to whole steps (radians), so a ring drag lands on readable headings. */
+export function rotateFormation<T extends Placement>(placements: T[], selected: readonly string[], start: DeploymentPoint, point: DeploymentPoint, snap = 0): T[] {
   const center = formationCenter(placements, selected);
   if (!center || Math.hypot(point.x - center.x, point.z - center.z) < 1) return placements;
-  const angle = Math.atan2(point.z - center.z, point.x - center.x) - Math.atan2(start.z - center.z, start.x - center.x);
-  return moveFormation(placements, selected, center.x, center.z, Math.atan2(Math.sin(angle), Math.cos(angle)));
+  let angle = Math.atan2(point.z - center.z, point.x - center.x) - Math.atan2(start.z - center.z, start.x - center.x);
+  angle = Math.atan2(Math.sin(angle), Math.cos(angle));
+  if (snap > 0) angle = Math.round(angle / snap) * snap;
+  return angle === 0 ? placements : moveFormation(placements, selected, center.x, center.z, angle);
 }
 
 /** Keep the world point under the cursor fixed while changing scale. */
