@@ -344,3 +344,12 @@ fn bombers_can_hit_small_stationary_ships_without_guaranteed_hits() {
         );
     }
 }
+
+#[test]
+fn dive_bombers_release_against_a_small_steadily_moving_ship() {
+    let (released, hits) = strike("flower-corvette", "dive-bomber", true, 5739);
+    assert!(
+        released >= 4 && hits >= 1,
+        "moving Flower: {released} released, {hits} hits"
+    );
+}

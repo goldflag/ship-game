@@ -1346,6 +1346,17 @@ impl Aviation {
             let height = (p.position[1] - 1.0 - target_point[1]).max(0.0);
             let fall = (p.velocity[1] + (p.velocity[1].powi(2) + 19.62 * height).sqrt()) / 9.81;
             let aim = add(target_point, scale(target.velocity, fall));
+            // Track the ballistic aim's angular motion as well as heading error.
+            // Pure pursuit lags a crossing ship by several metres at release.
+            // As altitude falls, the remaining bomb time shrinks: under the
+            // current vertical velocity, d(fall)/dt = vy / sqrt(vy² + 2gh).
+            let offset = sub(aim, p.position);
+            let fall_rate = p.velocity[1]
+                / (p.velocity[1].powi(2) + 19.62 * height).sqrt().max(1.0);
+            let relative_velocity = sub(scale(target.velocity, 1.0 + fall_rate), p.velocity);
+            let aim_turn_rate = (-offset[2] * relative_velocity[0]
+                + offset[0] * relative_velocity[2])
+                / (offset[0].powi(2) + offset[2].powi(2)).max(10000.0);
             fly(
                 p,
                 [aim[0], target_point[1], aim[2]],
@@ -1354,6 +1365,7 @@ impl Aviation {
                 FlightOptions {
                     dive: true,
                     bank_limit: Some(0.5),
+                    turn_rate: aim_turn_rate.clamp(-0.15, 0.15),
                     ..Default::default()
                 },
             );
