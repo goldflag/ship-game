@@ -6,6 +6,7 @@ import type { Vec3 } from '../../ships/blueprint';
 import type { WeaponsPolicy } from '../../multiplayer/generated/WeaponsPolicy';
 import type { FleetOrderState } from '../../multiplayer/generated/FleetOrderState';
 import type { OrderReceipt } from './commandQueue';
+import type { Formation } from '../../multiplayer/generated/Formation';
 import type { FleetActor } from '../../simulation/battle';
 import type { ContactTrack } from '../../multiplayer/generated/ContactTrack';
 import type { MissionRules } from '../../multiplayer/generated/MissionRules';
@@ -53,7 +54,8 @@ export interface BattleSession extends Omit<Pick<CombatSimulation, keyof CombatS
  prioritizeDeckTask?(carrierId: string, requestId: number): boolean;
  routeShip?(id: string, waypoints: [number, number][], speedMps: number, looped?: boolean, append?: boolean): void;
  holdShipArea?(id: string, position: [number, number], radiusM: number): void;
- escortShip?(id: string, leaderId: string, offset: [number, number], radiusM: number): void;
+ /** Column slots follow the leader's track at the aft offset; screen and line-abreast slots turn together on a formation axis. `slot` orders guide succession. */
+ escortShip?(id: string, leaderId: string, offset: [number, number], radiusM: number, formation?: Formation, slot?: number): void;
  setShipWeapons?(id: string, policy: WeaponsPolicy): void;
  setFormationPolicy?(id: string, policy: import('../../multiplayer/generated/FormationPolicy').FormationPolicy): void;
  moveShip?(id: string, point: Vec3): void;

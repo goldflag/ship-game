@@ -5,6 +5,7 @@ import type { ReconCoverage } from '../../multiplayer/generated/ReconCoverage';
 import type { BattleSetup } from '../../multiplayer/generated/BattleSetup';
 import type { Command } from '../../multiplayer/generated/Command';
 import type { WeaponsPolicy } from '../../multiplayer/generated/WeaponsPolicy';
+import type { Formation } from '../../multiplayer/generated/Formation';
 import type { FleetOrderState } from '../../multiplayer/generated/FleetOrderState';
 import type { TeamId } from '../../multiplayer/generated/TeamId';
 import type { Ammunition, Battery, Vec3 } from '../../ships/blueprint';
@@ -244,7 +245,7 @@ export abstract class SnapshotSession implements BattleSession {
   }
   routeShip(id: string, waypoints: [number, number][], speedMps: number, looped = false, append = false) { this.send(id, { type: 'route', waypoints, speedMps, looped, append }); }
   holdShipArea(id: string, position: [number, number], radiusM: number) { this.send(id, { type: 'hold-area', position, radiusM }); }
-  escortShip(id: string, leaderId: string, offset: [number, number], radiusM: number) { this.send(id, { type: 'escort', leaderId, offset, radiusM }); }
+  escortShip(id: string, leaderId: string, offset: [number, number], radiusM: number, formation: Formation = 'column', slot = 0) { this.send(id, { type: 'escort', leaderId, offset, radiusM, formation, slot }); }
   setShipWeapons(id: string, policy: WeaponsPolicy) { this.send(id, { type: 'weapons', policy }); }
   moveShip(id: string, point: Vec3) { this.send(id, { type: 'move', position: [point[0], point[2]] }); if (id === this.ship.id) this.autopilot = { ...this.lastHelm }; }
   focusShip(id: string, targetId: string) { this.send(id, { type: 'focus', targetId }); }

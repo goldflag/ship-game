@@ -37,12 +37,31 @@ pub enum Movement {
         position: [f64; 2],
         radius_m: f64,
     },
-    /// Ship-local [starboard, aft] meters, rotated by the leader's heading.
+    /// Ship-local [starboard, aft] meters. Column slots follow the leader's
+    /// track at the aft distance; other formations rotate with the formation
+    /// axis. `slot` orders guide succession (lowest slot takes the guide).
     Escort {
         leader_id: String,
         offset: [f64; 2],
         radius_m: f64,
+        #[serde(default)]
+        formation: Formation,
+        #[serde(default)]
+        slot: u32,
     },
+}
+
+/// How a formation keeps its shape through a turn. Column followers turn in
+/// succession along the leader's track; screen and line-abreast stations are
+/// fixed to a formation axis that rotates toward the leader's course at a
+/// bounded rate, so every ship turns together.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize, ts_rs::TS)]
+#[serde(rename_all = "kebab-case")]
+pub enum Formation {
+    #[default]
+    Column,
+    Screen,
+    LineAbreast,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, ts_rs::TS)]
@@ -544,6 +563,7 @@ pub fn command_observed(
             leader_id,
             offset,
             radius_m,
+            ..
         } => {
             radius = (*radius_m * 0.1).clamp(40.0, 100.0);
             if let Some(leader) = actors.iter().find(|b| {

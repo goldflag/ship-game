@@ -2,7 +2,7 @@ import { expect, test } from 'bun:test';
 import { fleetFormations } from './fleetFormations';
 import type { FleetOrderState } from '../multiplayer/generated/FleetOrderState';
 
-const escort = (leaderId: string): FleetOrderState => ({ movement: { type: 'escort', leaderId, offset: [0, 500], radiusM: 160 }, weapons: { guns: true, aa: true, torpedoes: false }, formationPolicy: 'slow-for-stragglers', targetId: null, manual: false, navigation: null });
+const escort = (leaderId: string): FleetOrderState => ({ movement: { type: 'escort', leaderId, offset: [0, 500], radiusM: 160, formation: 'column', slot: 0 }, weapons: { guns: true, aa: true, torpedoes: false }, formationPolicy: 'slow-for-stragglers', targetId: null, manual: false, navigation: null });
 const hold = (): FleetOrderState => ({ movement: { type: 'hold' }, weapons: { guns: true, aa: true, torpedoes: false }, formationPolicy: 'slow-for-stragglers', targetId: null, manual: false, navigation: null });
 const ships = [{ id: 'bb', name: 'Bismarck' }, { id: 'dd1', name: 'Fletcher' }, { id: 'dd2', name: 'Yukikaze' }, { id: 'cv', name: 'USS Enterprise (CV-6)' }];
 

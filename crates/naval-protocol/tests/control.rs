@@ -164,6 +164,8 @@ fn escort(leader: &str) -> Command {
         leader_id: leader.into(),
         offset: [650.0, 350.0],
         radius_m: 1500.0,
+        formation: Default::default(),
+        slot: 0,
     }
 }
 

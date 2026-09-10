@@ -97,6 +97,8 @@ fn escort_catches_a_moving_leader_and_holds_locally_after_its_loss() {
             leader_id: "cv".into(),
             offset: [650.0, 350.0],
             radius_m: 1500.0,
+            formation: Default::default(),
+            slot: 0,
         },
     ];
     let mut overtook_leader_speed = false;
@@ -182,6 +184,8 @@ fn carrier_screen_traverses_a_passage_and_reforms_after_a_turn() {
             leader_id: "cv".into(),
             offset: *offset,
             radius_m: 1500.0,
+            formation: Default::default(),
+            slot: 0,
         });
     }
     let islands = vec![island("west", -1800.0, 0.0), island("east", 1800.0, 0.0)];
@@ -271,6 +275,8 @@ fn damaged_straggler_requires_an_explicit_decision_and_slowing_restores_formatio
                         leader_id: "cv".into(),
                         offset: [650.0, 350.0],
                         radius_m: 160.0,
+                        formation: Default::default(),
+                        slot: 0,
                     },
                     ..Default::default()
                 },

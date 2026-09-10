@@ -26,6 +26,10 @@ pub struct TaskGroup {
     pub id: String,
     pub name: String,
     pub station: GroupStation,
+    /// Cruising formation the group sails at the start; column when omitted.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub formation: Option<crate::navigation::Formation>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -435,6 +439,7 @@ fn enemy_groups(catalog: &Catalog, ids: Vec<String>) -> (Vec<FleetShip>, Vec<Tas
         id: "enemy-front".into(),
         name: "Surface force".into(),
         station: GroupStation::Front,
+        formation: None,
     }];
     let mut units: Vec<_> = ids
         .into_iter()
@@ -457,6 +462,7 @@ fn enemy_groups(catalog: &Catalog, ids: Vec<String>) -> (Vec<FleetShip>, Vec<Tas
             id: id.clone(),
             name: "Carrier force".into(),
             station: GroupStation::Rear,
+            formation: None,
         });
         units[*carrier].group_id = id.clone();
         let escorts: Vec<_> = units
