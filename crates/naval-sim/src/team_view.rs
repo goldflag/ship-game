@@ -4,7 +4,7 @@ use crate::{
     battle::Battle,
     impact::DamageEvent,
     rules::{TeamId, mix32},
-    sensors::{ContactKind, TrackStatus},
+    sensors::ContactKind,
     snapshot::PresentationView,
 };
 use serde_json::{Value, json};
@@ -22,22 +22,25 @@ impl Battle {
         entities: &[crate::sensors::VisualEntity],
     ) -> bool {
         let conditions = self.visual_conditions;
-        entities.iter().filter(|e| e.team == team && e.can_observe()).any(|observer| {
-            let distance = (point[0] - observer.eye[0]).hypot(point[2] - observer.eye[2]);
-            let reach: f64 = if observer.kind == ContactKind::Aircraft {
-                12000.0
-            } else {
-                6000.0
-            };
-            let horizon = 3570.0 * (observer.eye[1].max(0.0).sqrt() + point[1].max(0.0).sqrt());
-            distance <= reach.min(conditions.visibility_m).min(horizon)
-                && crate::sensors::line_visible(
-                    observer.eye,
-                    point,
-                    &self.islands,
-                    &self.catalog.terrain,
-                )
-        })
+        entities
+            .iter()
+            .filter(|e| e.team == team && e.can_observe())
+            .any(|observer| {
+                let distance = (point[0] - observer.eye[0]).hypot(point[2] - observer.eye[2]);
+                let reach: f64 = if observer.kind == ContactKind::Aircraft {
+                    12000.0
+                } else {
+                    6000.0
+                };
+                let horizon = 3570.0 * (observer.eye[1].max(0.0).sqrt() + point[1].max(0.0).sqrt());
+                distance <= reach.min(conditions.visibility_m).min(horizon)
+                    && crate::sensors::line_visible(
+                        observer.eye,
+                        point,
+                        &self.islands,
+                        &self.catalog.terrain,
+                    )
+            })
     }
     fn public_entity_id(&self, id: &str, team: TeamId) -> Option<String> {
         if self
@@ -206,18 +209,43 @@ impl Battle {
                 .collect()
         };
         let contacts = self.sensors.contacts(team);
-        let observed_ships: Vec<_> = contacts.iter().filter(|c| c.kind == ContactKind::Surface
-            && c.status == TrackStatus::Tracked && self.tick.saturating_sub(c.last_observed_tick) <= 60
-            && !c.visible_condition.as_ref().is_some_and(|condition| condition.sinking)
-            && c.uncertainty_m < 120.0 && c.identified_preset_id.is_some())
-            .map(|c| json!({"id":c.id,"presetId":c.identified_preset_id,"position":c.measured_position,
-                "heading":c.pose().heading,"velocity":c.velocity,"observedTick":c.last_observed_tick,
-                "observers":c.sources.iter().filter(|s| s.strength >= 0.6).map(|s| s.observer_id.clone()).collect::<Vec<_>>()})).collect();
+        let observed_ships: Vec<_> = self
+            .sensors
+            .observed(team)
+            .filter(|(c, _)| {
+                c.kind == ContactKind::Surface
+                    && !c
+                        .visible_condition
+                        .as_ref()
+                        .is_some_and(|condition| condition.sinking)
+            })
+            .map(|(c, e)| {
+                json!({"id":c.id,"presetId":e.preset_id,"position":e.position,
+                "heading":e.motion.heading,"pitch":e.motion.pitch,"roll":e.motion.roll,
+                "velocity":e.motion.velocity,"observedTick":c.last_observed_tick,
+                "observers":c.sources.iter().map(|s| &s.observer_id).collect::<Vec<_>>()})
+            })
+            .collect();
+        let observed_aircraft: Vec<_> = self
+            .sensors
+            .observed(team)
+            .filter_map(|(c, e)| {
+                e.aircraft.as_ref().map(|aircraft| {
+                    json!({
+                        "id":c.id,"modelId":aircraft.model_id,"position":e.position,
+                        "heading":e.motion.heading,"pitch":e.motion.pitch,"roll":e.motion.roll,
+                        "velocity":e.motion.velocity,"observedTick":c.last_observed_tick,
+                        "controls":aircraft.controls,"wingFold":aircraft.wing_fold,
+                        "observers":c.sources.iter().map(|s| &s.observer_id).collect::<Vec<_>>()
+                    })
+                })
+            })
+            .collect();
         let mut tonnage: [Option<u64>; 2] = [None, None];
         tonnage[team.index()] = Some(crate::rules::afloat_kg(&self.survivors())[team.index()]);
         let mut frame = json!({
             "view":"team", "team":team, "tick":self.tick, "actors":actors, "wings":wings,
-            "contacts":contacts, "observedShips":observed_ships, "reconCoverage": self.sensors.coverage(team),
+            "contacts":contacts, "observedShips":observed_ships, "observedAircraft":observed_aircraft, "reconCoverage": self.sensors.coverage(team),
             "shells":projectiles("shells"), "torpedoes":projectiles("torpedoes"),
             "depthCharges":projectiles("depthCharges"), "releases":projectiles("releases"),
             "events":self.team_events[team.index()], "records":{"scores":{},"shellHistory":[]},

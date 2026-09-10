@@ -65,12 +65,12 @@ export function stepFlightMechanisms(p: Aircraft, dt: number, deck: boolean) {
   }
 }
 
-export function aircraftAttitude(p: Aircraft, alpha: number): FlightAttitude {
+export function aircraftAttitude(p: Pick<Aircraft, 'heading' | 'pitch' | 'bank' | 'previousAttitude'>, alpha: number): FlightAttitude {
   const previous = p.previousAttitude ?? p;
   return { heading: wrapAngle(previous.heading + wrapAngle(p.heading - previous.heading) * alpha), pitch: previous.pitch + (p.pitch - previous.pitch) * alpha, bank: previous.bank + (p.bank - previous.bank) * alpha };
 }
 
-export function aircraftControls(p: Aircraft, alpha: number): FlightControls {
+export function aircraftControls(p: Pick<Aircraft, 'controls' | 'previousControls'>, alpha: number): FlightControls {
   const previous = p.previousControls ?? p.controls;
   const controls = { ...p.controls };
   for (const key of Object.keys(controls) as (keyof FlightControls)[]) {

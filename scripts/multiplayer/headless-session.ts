@@ -1,6 +1,6 @@
 /** Test adapter: actual WASM authority, with synchronous scheduling instead of a
  * browser worker. GPU scene tests can bind the exact production snapshots. */
-import init, { LocalRuntime } from '../../src/generated/naval-wasm/naval_wasm';
+import init, { LocalRuntime, PvePlanner } from '../../src/generated/naval-wasm/naval_wasm';
 import { SnapshotSession, decodeSnapshot } from '../../src/game/session/SnapshotSession';
 import { runtimeSetup } from '../../src/game/session/LocalBattleSession';
 import type { BattleSetup } from '../../src/simulation/battle';
@@ -18,6 +18,15 @@ export class HeadlessSession extends SnapshotSession {
     const runtime = runtimeSetup(setup, 12345);
     if (fixture) runtime.airRules = fixture.airRules;
     return new HeadlessSession(runtime, new LocalRuntime(manifest, JSON.stringify(runtime)));
+  }
+  static async createPve(request: import('../../src/multiplayer/generated/PveRequest').PveRequest): Promise<HeadlessSession> {
+    await (initialized ??= Bun.file(new URL('../../src/generated/naval-wasm/naval_wasm_bg.wasm', import.meta.url)).arrayBuffer().then(module_or_path => init({ module_or_path })));
+    const manifest = await Bun.file(new URL('../../.build/naval-content/manifest.json', import.meta.url)).bytes();
+    const planner = new PvePlanner(manifest, JSON.stringify(request));
+    try {
+      const { setup } = JSON.parse(planner.briefing()) as import('../../src/multiplayer/generated/PveBriefing').PveBriefing;
+      return new HeadlessSession(setup, planner.start(JSON.stringify(setup.ships.map(s => ({ id: s.id, spawn: s.spawn })))));
+    } finally { planner.free(); }
   }
   protected send(shipId: string, command: Command) { this.runtime.command(JSON.stringify({ shipId, command, sequence: ++this.sequence, connectionEpoch: 1 })); }
   advance(dt: number, helm: HelmCommand, intent: CombatIntent, beforeStep?: () => void) {
