@@ -1,10 +1,56 @@
 # PvE implementation status
 
-Objective: implement the complete [PvE fleet-command plan](pve-fleet-command-plan.md) with the user-selected [variation D](pve-ui-studies/README.md). Partial milestones do not complete this objective.
+## Active objective: playable desktop PvE MVP (2026-09-09)
 
-Implementation checkout: `goldflag/pve-fleet-command`, created from current remote master `b321cbf8a524edb16bdbcd56a3944eda8fd7a774` (includes Iowa and Mogami). The discussion checkout and Fable study are preserved separately. The approved HTML is retained byte-for-byte with its recorded hash.
+Deliver a playable desktop loop through the actual UI: **port → fleet setup → deployment → battle → win/loss → results → restart or new battle**. Use the selected [variation D](pve-ui-studies/README.md) and the existing shared Rust simulation. The user's latest scope explicitly supersedes the earlier requirement to finish the entire [PvE fleet-command plan](pve-fleet-command-plan.md) before delivery.
 
-## Work and evidence
+The working baseline is `91629e3a` on `goldflag/pve-fleet-command`, with content manifest `cda0aeee446ada2e6982f6f9d88c1e210dcfab68deb1c3bb5f26b4a9c0d03527`. The subsequent uncommitted carrier-physics work is preserved in stash `6bc13b265fec999b6e234e3354cab8d44642b878`. It is deferred work, not an MVP dependency; do not restore it as part of routine MVP validation. Historical evidence below applies only to its recorded checkpoint and asset hashes.
+
+### MVP acceptance
+
+| Area | Required desktop behavior | Current acceptance |
+| --- | --- | --- |
+| Entry and preparation | Enter PvE from port, select a legal fleet and settings, place it in deployment, and start the accepted battle without losing the setup | Passed desktop UI: four ships / 75,736 t / 48 aircraft; invalid deployment blocked, undo and valid deployment accepted |
+| Fleet commands | Select ships/groups and reliably issue move, escort and priority-target orders; feedback identifies the selected units and accepted action | Passed desktop UI: individual and named group selection, routes, escort and two-ship focus accepted; invalid land destination rejected |
+| Air commands | Select owned carrier aircraft, issue the basic available air orders and see their state; addressing another carrier must preserve current ship control | Passed desktop UI search, strike and defend; launch, return, service and subsequent sortie observed. Existing real-WASM tests cover addressing multiple carriers |
+| Camera and control | Follow a ship without taking its helm; take helm and return to fleet command; tactical pause/resume preserves orders and control authority | Passed desktop UI follow, take/release helm and paused order queue; followed ship loss returned to command and its escort held locally |
+| Opposition and information | Enemies search, engage and create a credible basic challenge using permitted observations; active UI and orders do not expose hidden enemy state | Passed native mixed-fleet engagement and desktop combat: unknown fleet at launch, progressive identification, stale reports, enemy damage and natural friendly ship losses |
+| Outcome and replay | Complete the actual battle-to-results flow; verify authoritative victory/defeat presentation, same-mission restart and new-battle entry without stale results, orders or selection | Passed natural defeat at 46:43, full debrief, same-seed restart and port → new opponent → deployment → fresh battle. Victory/draw authority is covered by native tests |
+| Reliability | The desktop session remains usable through the loop; relevant tests and production build pass for the final MVP changes | Desktop loop, 116 focused client/UI/session tests, 43 native tests and production build pass |
+
+Preserve the existing **200,000-tonne / 15-ship / 100-aircraft** mission limits and **48 aircraft per carrier, split 16/16/16**. Aircraft identities, inventory and losses remain authoritative throughout a mission; service does not recreate lost aircraft. Restart resets the accepted mission through the existing Rust-owned restart path. The shared Rust authority, hidden-information rules and existing Custom/online compatibility remain intact.
+
+### MVP blockers and next action
+
+**No confirmed MVP blocker remains.** The existing simplified implementation supports the desktop loop; no runtime fix was required during this acceptance pass. Carrier fidelity is safely deferred and the build/gameplay baseline is retained. The remaining work estimate for this local MVP is **zero implementation time**. Integration or publishing is separate from this local delivery.
+
+Known follow-up limitations are match length and map-label crowding, not release gates for this scope. The representative completed battle lasted 46:43 of simulation time; distant forces require player pursuit, and broader balance remains deferred. The results-screen restart was exercised directly; new-mission entry was exercised through return to port and the fleet setup's New opponent control. The direct results-screen New battle shortcut was not clicked in this browser pass.
+
+### MVP baseline verification (2026-09-09)
+
+The pinned Bun 1.3.3 runtime passes **116 focused client/UI/session tests** across 16 files. Coverage includes setup budgets and deployment, startup/loading/results UI, input and pause ordering, real-WASM hidden-state projection, carrier air orders, separate follow/helm authority and restart/debrief state. **43 relevant native core/protocol tests** pass, including mission, generation, observed targeting/air, compatibility carrier loss, air rules and control authority. `bun run build` passes with rebuilt baseline WASM, all ship/aircraft asset checks and TypeScript. No model or generated tracked file changed. Logs are retained in `.build/pve-mvp/build.log`, `client-ui.log` and `client-session.log`.
+
+The native seed-0 mixed mission fielded seven ships, including carriers and surface escorts on both sides. Its ten-minute smoke observed 172 enemy shells, 5,490 enemy damage and 24 enemy aircraft launches, while retaining aircraft identities and terminal losses and excluding hidden opponent IDs. That smoke used a controlled finish only to check freeze/restart; it is not evidence of a natural completed mission. A separate 30-minute natural run sank an enemy destroyer, fired 474 enemy shells and dealt 17,075 enemy damage. The remaining fleets were distant after the player's route ended; this was not an engine stall. Native evidence is in `.build/pve-ground/mvp-native-smoke.json` and `mvp-native-natural.json`.
+
+The actual 1440×1000 desktop UI runs in isolated Chromium with WebGPU against the existing local worker/WASM authority. Orca embedded-browser automation timed out, so it was not used as acceptance evidence. Playwright pointer/keyboard actions exercise the rendered controls; screenshots and JSON evidence are in `.build/pve-mvp/`. Missions `D7EDB4F9` and `3E16CB99` cover preparation and commands. The latter reached a **natural defeat at tick 168214 (46:43)**: four friendly ships sunk, two enemy ships sunk. Enterprise dealt **57,737 damage and sank two ships**. Its loss left all **48 aircraft terminally lost**, with unavailable groups disabled. The full eight-ship debrief became visible only after the result. Direct results-screen restart restored seed `3E16CB99`, four healthy ships, 48 ready aircraft, initial groups/orders and zero contacts. Return to port retained the four-ship fleet; New opponent produced seed `D0973496`. Test-only time acceleration used supported six-tick worker batches and yielded development advance calls; no damage or outcome was injected. One attempted oversized batch was correctly rejected and that test mission was restarted. All acceleration was removed before restart and new-mission checks.
+
+A separate native contact-only pursuit continued to 60 minutes without a stall: both friendly destroyers naturally sank and ordinary carrier strikes dealt 40,303 damage. This run remained active at its cap and is not claimed as another completed mission. See `.build/pve-ground/mvp-native-pursuit.json`; no further balance campaign is an MVP requirement.
+
+### Explicitly deferred
+
+- The full plan, advanced coordinated tactics, torpedo/rally/Execute workflows and extended air allocation/retasking.
+- Further carrier physics and fidelity: exact tyre/hook/fitting contact, elevator and hangar geometry/transfers, exhaustive deck-cycle reviews, and managed-profile activation that depends on those changes. Keep the working production behavior for the MVP.
+- Additional observation swaths/condition-report features, mobile/compact-layout acceptance, exhaustive matchup balance, maximum-scale performance campaigns and historical-model certification.
+
+These items remain possible later work. They become MVP work only if a concrete finding blocks the accepted desktop loop or violates a preserved invariant.
+
+## Historical milestones (not current acceptance gates)
+
+The records below preserve earlier implementation and validation evidence. Every earlier statement that the full plan is “active,” “unfinished,” “required” or “pending” describes the scope at that checkpoint and is **superseded by the desktop MVP objective above**. Historical incomplete checks are not new confirmed bugs, and historical passing checks do not replace the pending MVP playthrough.
+
+The implementation checkout was created from remote master `b321cbf8a524edb16bdbcd56a3944eda8fd7a774` (including Iowa and Mogami). The discussion checkout and Fable study were preserved separately; the approved HTML was retained byte-for-byte with its recorded hash.
+
+### Historical broad-plan inventory
 
 | Scope | Status / evidence required |
 | --- | --- |
@@ -22,7 +68,7 @@ Implementation checkout: `goldflag/pve-fleet-command`, created from current remo
 
 Legacy Custom/online policies remain selected defaults except for the explicitly global inventory change. The full objective remains active until all required gameplay, UI, model and validation work is complete.
 
-## Foundation verification (2026-09-08)
+### Foundation verification (2026-09-08)
 
 - Full Rust workspace validation passes: 64 tests. Clippy initially reported one manual-clamp idiom; after correction, warnings-as-errors Clippy passes. The rebuilt WASM passes all migration checks, including 28,800 full battle ticks. No migration fixtures were regenerated.
 - Production `bun run build` passes with the revised command UI, transfer fix and mission/sensor additions. Ship and aircraft asset checks pass for the unchanged models; this does not certify the pending inventory rebuild.
@@ -35,7 +81,7 @@ Legacy Custom/online policies remain selected defaults except for the explicitly
 
 Next required work: complete mission acceptance, remaining command tasks and the carrier slices. The port launches private PvE missions through the D briefing/deployment workflow. The circular map UI is implemented but still needs real-view verification. Global inventories are rebuilt; current carrier progress and remaining acceptance are recorded in the checkpoints below.
 
-## Observation integration checkpoint (2026-09-08)
+### Observation integration checkpoint (2026-09-08)
 
 - PvE surface bots acquire, aim and maneuver from opaque observation tracks. Focus accepts only the owning team’s targetable contact IDs; true enemy IDs and unseen targets are rejected. Own crew damage and physical collision/terrain checks remain authoritative. Legacy targeting is preserved for Custom/online.
 - The Rust production projection requires an explicit audience. PvE serializes owned ship/air-wing state and whitelisted observations/effects. Hidden hull damage is not serialized into that intermediate frame. Team event admission happens when an event occurs, with its own sequence; hidden past events cannot become newly disclosed when the player moves closer. Complete enemy state is available only in the finished debrief payload.
@@ -47,7 +93,7 @@ Next required work: complete mission acceptance, remaining command tasks and the
 
 This is a surface-observation milestone, not completion of fog of war or the PvE mode. Carrier orders still need the planned observation-aware air commander; the old five-second launch script is disabled only for missions. The private setup workflow, enemy coordination, air rules and complete mission UI remain required.
 
-## Private mission preparation checkpoint (2026-09-08)
+### Private mission preparation checkpoint (2026-09-08)
 
 - `PvePlan` owns the full frozen setup without a public serializer. The briefing contains only friendly ships, assignments, public mission policy and public catalog eligibility. The complete setup and definition identities enter the debrief only after an outcome.
 - The generator tries 256 bounded mutations of a legal matching fallback. Candidates stay within 85–115% of selected displacement, 80–120% of a documented armament/protection/air-capability estimate, and all hard budgets. This is an initial matchup heuristic, not measured balance. The pool is derived from compiled capabilities; present submarines and merchants are excluded. Initial tests cover 96 seeds/map combinations, actual composition variety, tiny fleets and a one-preset pool.
@@ -57,7 +103,7 @@ This is a surface-observation milestone, not completion of fog of war or the PvE
 - Validation passes: 74 native workspace tests, warnings-as-errors Clippy after one modulo-style fix, 29 client/control/render tests, WASM migration checks covering 28,800 battle ticks, and the production build. A final reserved-identity validation fix was separately rechecked with the six generator tests, rebuilt WASM planner tests and build. Browser worker/restart and the full mission workflow still need real interaction checks.
 - The live browser returned to port successfully. A diagnostic prototype hook did not attach to the active HMR version of `Game`, so the subsequent battle remained a legacy Custom battle. It supplies no contact/silhouette evidence; use the real PvE workflow for the next visual check.
 
-## Briefing and deployment checkpoint (2026-09-08)
+### Briefing and deployment checkpoint (2026-09-08)
 
 - The port has a PvE Fleet Command entry. Variation D’s preparation uses a mission column, editable task-group columns and a catalog. Players can name groups, assign front/rear stations, move ships between groups, inspect actual tonnage/ship/aircraft allowances, select waters/weather/difficulty and explicitly reroll. Eligibility and mission rules come from the Rust content authority; ship cost feedback uses the same authored definitions as combat.
 - Entering deployment freezes the generated opponent inside the worker. The circular chart exposes only friendly ships and public geography. Whole-group translation/rotation, individual placement, heading entry, keyboard nudges, zoom, undo and reset are connected. The chart warns about the friendly region, coast clearance, hull boundary and spacing. Rust validates the entire placement before transferring the same worker into battle; a rejected preflight preserves the draft.
@@ -70,7 +116,7 @@ This is a surface-observation milestone, not completion of fog of war or the PvE
 
 The full goal remains active. Completed mission and UI acceptance, confirmed sinking/condition reports, advanced attack coordination, global carrier inventory rebuilds, observation-aware air missions, deck/recovery logistics, full playtests and final visual/performance acceptance are still required.
 
-## Debrief and restart checkpoint (2026-09-08)
+### Debrief and restart checkpoint (2026-09-08)
 
 - Rust adds final ship outcomes only inside the post-battle debrief, distinguishing physical loss from permanent incapacity. The active world remains filtered after the outcome. A new authored-hull test disables an enemy’s weapons without sinking it and verifies victory, the incapacity report and continued world filtering.
 - SnapshotSession exposes a compact full debrief only after the authoritative outcome. The D results sheet displays actual duration, seed, fleets, final status, damage, sinking credit and remaining carrier aircraft. Restart reuses the existing worker’s frozen plan and accepted placements. New battle retains the owned fleet/group/settings request and gives it a new seed before briefing. Restart is also available in the local PvE pause menu.
@@ -79,7 +125,7 @@ The full goal remains active. Completed mission and UI acceptance, confirmed sin
 - Validation passes: five native observation/debrief tests; warnings-as-errors workspace Clippy; 45 client/render tests across eight files (including debrief withdrawal, results wording, tracer reset and existing Game/aircraft cases); WASM migration checks with 36 motion checkpoints, 48 shell trajectories and 28,800 full battle ticks; production build. Six initial Game test failures came from Object.create fixtures missing the new saved-group map; their initialization was corrected and all 45 pass. No migration fixtures or ship models changed.
 - The results sheet still needs a real completed-mission interaction and pixel review, and the final restart UI remount needs a browser recheck. No screenshot or full battle playtest is claimed. These remain part of overall acceptance alongside the still-pending combat/aircraft work.
 
-## Global inventory checkpoint (2026-09-08)
+### Global inventory checkpoint (2026-09-08)
 
 - Enterprise and Shōkaku now both author 48 aircraft with 16 per role, retaining their American/Japanese aircraft and stable pool IDs. The change applies globally. Their legacy six-plane policy yields nine initial groups, with 6/6/4 planes per role; the PvE four-plane policy is still pending. Both blueprint helpers preserve the new air-wing values; the older Enterprise helper previously omitted the wing entirely.
 - Both compiled definitions and Blender/GLB outputs were rebuilt through the ship pipeline using local Blender; no Blender MCP tool was exposed. New content hashes are Enterprise `b6eb9705e7b4934f07c67cf8e045813b77c313ae68a3e0f5e5ff612e05cfedad` and Shōkaku `3c54d54fda8b9324a1bdee65543ef7166d3b00d87fd4784112685fe7a7ee0972`. Binary mesh buffers, node hierarchies, mesh definitions and accessors are identical to the previous models. All five freshly generated fixed views per carrier were inspected. This metadata change adds no historical-accuracy claim.
@@ -87,7 +133,7 @@ The full goal remains active. Completed mission and UI acceptance, confirmed sin
 - Validation passes: 75 native workspace tests, warnings-as-errors Clippy, focused inventory/manifest/PvE tests, ship and aircraft asset checks, production build, and WASM migration checks covering 28,800 complete battle ticks. The affected aviation/battle fixtures were intentionally recaptured from the TypeScript reference after the global gameplay change. Surface-only battle cases and existing weapon-group data are unchanged; the current roster capture additionally includes the already-integrated Iowa and Mogami. Other migration fixtures were not regenerated.
 - Raw build, geometry comparison and runtime evidence remain in ignored `.build/pve-inventory/`. This completes the inventory rebalance, not the carrier logistics or full PvE goal.
 
-## Air policy prerequisite checkpoint (2026-09-08)
+### Air policy prerequisite checkpoint (2026-09-08)
 
 - Versioned `AirRules` now live in trusted gameplay content. Mission policy names its air profile; PvE saves the full selected values with its accepted setup. Catalog loading rejects missing, duplicate or altered compatibility profiles and missing mission references. Battle creation rejects uninstalled/tampered selections or a different profile from the mission's binding. Profile content participates in manifest and simulation hashes.
 - Aviation resolves grouping, deck allowance and active-flight allowance once per carrier without replacing inventory. Rust launch admission supports explicit bounded/unlimited policies. Order admission, general/fighter timer recall, exhaustion and recovery priority share one disabled/timed endurance policy. Launch-group timing and repair ceiling also resolve from that policy. Legacy values remain in an explicit compatibility asset, and legacy setups have a declared fallback.
@@ -97,7 +143,7 @@ The full goal remains active. Completed mission and UI acceptance, confirmed sin
 
 Next carrier slice: connect managed deck commands and queue feedback to variation D, complete fitted ground poses/elevator articulation, and finish queue priorities and carrier-loss handling before activating the PvE profile. The native handling checkpoint below records the implemented cycle; it does not complete carrier combat or the full mission acceptance work.
 
-## Physical deck prerequisite checkpoint (2026-09-08)
+### Physical deck prerequisite checkpoint (2026-09-08)
 
 - The common blueprint/definition now has a versioned physical deck layout. Both carriers author 24 named positions, eight preferred per role, plus launch/recovery datums and a fitted forward elevator. Their durable blueprint helpers retain the same layout. The legacy operating values remain 12 deck positions and six-plane groups; adding physical geometry does not activate a different policy.
 - Local Blender was used because no Blender MCP tool was exposed. Actual aircraft GLBs were composed with their ground pitch and authored folding hinges. An initial review-script coordinate conversion was wrong and was corrected before inspection. The corrected plan/aft/quarter views were inspected for both carriers. Triangle-overlap diagnostics found two Shōkaku wing/fitting contacts; small fore/aft parking adjustments cleared those contacts while preserving aircraft spacing. The review still finds tyre/deck and neutral-hook contact issues; fitted ground poses and hook stowage must be resolved before accepting visible startup. No complete taxi/landing path or in-game 24-plane startup is claimed.
@@ -105,14 +151,14 @@ Next carrier slice: connect managed deck commands and queue feedback to variatio
 - The shared schema changed every registered ship's recipe hash. All stale roster assets were rebuilt successfully through the normal pipeline. Carrier geometry buffers and all roster node/mesh/accessor definitions are unchanged. Fletcher's binary difference is restricted to UV values with maximum change 0.00000005960464477539063; its position/index buffers and geometry are unchanged. No hashes were patched. Shōkaku was rebuilt again after the two parking corrections.
 - Validation passes: 82 Rust workspace tests, warnings-as-errors Clippy, 21 focused client/layout/real-WASM tests, migration comparisons covering 28,800 battle ticks, asset checks and the production build. The build initially caught a test-only TypeScript assertion type mismatch; after correction it passes. All five refreshed fixed views per carrier were inspected. Browser loading/articulation verification is still being completed. No migration fixtures were regenerated. Raw geometry, overlap, build and render evidence is in ignored `.build/pve-deck/`. This checkpoint does not complete carrier logistics or the full PvE goal.
 
-## Deck routing checkpoint (2026-09-09)
+### Deck routing checkpoint (2026-09-09)
 
 - Ground routes now retain aircraft heading, forward/reverse handling and intermediate turns. Three measured tyre contacts must stay supported by the authored deck; parked aircraft and reservations block their swept envelopes. Fixed structures use quarter-metre height bands clipped from the actual aircraft triangles, allowing wings above low fittings without treating the empty space below them as solid. This uses authored structural volumes; complete moving-path visual review remains required.
 - The first four Shōkaku starboard parking positions moved 0.5 m inboard to clear the authored funnel volumes. The durable helper, definition and published model were rebuilt together with local Blender. Mesh buffers and geometry are unchanged. Fresh fixed views are pixel-identical to the previously inspected views; updated populated plan/quarter views and triangle diagnostics show no wing/body contact with fittings. Existing tyre/camber and neutral-hook contact issues remain unresolved.
 - Runtime callers can retain a route search and advance it with a deterministic node budget. Changing deck revision invalidates pending and completed paths; aircraft geometry is owned by the search. Exhaustion fails closed. Blocking routing is retained only for offline validation. The full-deck test finds a departure ordering for all 24 aircraft on both carriers, and all six aircraft models can reach the forward lift from the recovery stop on an empty deck. A separate test verifies yielding, budget limits and invalidation around Enterprise's island.
 - Validation passes: ten focused native air-policy/deck/navigation tests, warnings-as-errors workspace Clippy, asset checks and the production build with freshly rebuilt WASM. No migration fixtures changed. Route validation is not a timed sortie or browser-performance result: the blocking release benchmark took several seconds for both complete departure sequences, which motivated incremental search. Timed transfer, launch/recovery queues, fitted ground poses, visible startup and the full PvE acceptance work remain pending.
 
-## Managed deck cycle checkpoint (2026-09-09)
+### Managed deck cycle checkpoint (2026-09-09)
 
 - `AirRules.deckCycle` now distinguishes the explicit compatibility cycle from a managed cycle with validated lift, towing, turning, rearm and repair timings. Managed capacity resolves against the authored physical layout. Construction requires measured aircraft geometry and a fitted elevator for every model. Both carriers initialize twelve stable four-plane groups, with two groups per role on deck and two below. Production PvE still selects the compatibility profile; the managed cycle is exercised through native integration tests until the remaining controls and physical review are complete.
 - `DeckOperations` owns requests and reservations, while the existing wing remains the only aircraft inventory. Raise, Stow, Rearm, Repair and validated flight launches use timed lifts, resumable path searches and explicit ground phases. Cancellation finishes an aircraft already being moved at a safe destination. Service-equipment failure suspends work; rolling/pitching delays committed flight operations without globally stopping hangar work. Rearming retains damage, hangar repair restores only up to the repair ceiling, and a destroyed airframe cannot be revived by its service timer.
@@ -124,7 +170,7 @@ Next carrier slice: connect managed deck commands and queue feedback to variatio
 - Validation on the current source passes: 93 workspace Rust tests in release mode, warnings-as-errors Clippy, 25 client/renderer/real-WASM tests across four files, asset checks and the production build. Rebuilt WASM matches 36 motion checkpoints, 48 complete shell trajectories and 28,800 battle ticks from the migration fixtures. No fixtures or ship/aircraft models changed in this handling slice. Raw evidence is in ignored `.build/pve-deck/`. These tests establish the recorded mechanics; browser controls, deck articulation, combat balance and full-mission performance remain unverified.
 
 
-## Addressed deck controls checkpoint (2026-09-09)
+### Addressed deck controls checkpoint (2026-09-09)
 
 - Variation D now has map-only Bring up, Send below, Rearm and Repair below controls for selected groups across every owned carrier. The drawer exposes each carrier's handling task, queue and cancellation. Automatic deck-clearance requests are identified and cannot be cancelled or replaced by an unsafe service command. Selecting an aircraft group does not transfer the ship helm. Production PvE still uses the explicit compatibility profile; the managed diagnostic profile is test content only.
 - Commands retain carrier/group ownership through the Rust protocol, client session and local outbox. Stow/Repair instructions remain pending for later group arrivals while landed members can move immediately. Damaged aircraft already in the hangar can now be repaired there without a redundant trip to the deck. Individual health and the configured repair ceiling remain authoritative.
@@ -143,7 +189,7 @@ The UI review's final disposition is **fix**, with verification work still open:
 | Acceptance evidence | Partial; desktop queues and DOM cancellation are confirmed, but valid compact captures, native input and integrated sea remain unverified |
 
 
-## Deck scheduling checkpoint (2026-09-09)
+### Deck scheduling checkpoint (2026-09-09)
 
 - Added default Balanced, Launch first and Recover first preferences. Limits are expressed in individual aircraft using the resolved group size: 4/4, 8/4 and 4/8 takeoffs/landings for the managed test profile. Depleted groups do not change this bound. Policy changes retain completed work; repeated preference changes cannot reset a batch. Physical path clearance and committed moves take precedence when only one operation is possible.
 - Make next reorders a user group task after required clearance and the current move. The preference cannot pin an unsafe lift, interrupt a committed movement or make an automatic task cancellable. Full-deck Raise and conflicting flight-operation priorities return concrete rejection reasons. Cancellation or queue completion removes the next-task marker.
@@ -152,7 +198,7 @@ The UI review's final disposition is **fix**, with verification work still open:
 - Production PvE continues to select the compatibility air profile until the remaining carrier operations and physical reviews pass. Aircraft observation/search, advanced fleet orders and full mission/balance/performance acceptance remain required for the active full-plan objective.
 
 
-## Aircraft observation checkpoint (2026-09-09)
+### Aircraft observation checkpoint (2026-09-09)
 
 - Added native contact-ID Strike and InterceptContact orders. Battle validation checks the issuing team's existing hostile report and compatible contact kind; old internal actor/flight-ID attack commands are rejected in PvE. Roles, weapons, health, owned-carrier addressing and deck readiness still pass through normal aircraft admission. PvE loiter destinations use the circular mission airspace with maneuvering margin, including stations beyond the retired 30 km carrier-relative limit.
 - Aircraft navigate from report measurements and capped extrapolation. A strike needs a current local sighting to begin its attack; otherwise it approaches/searches the reported area with an explicit notice. CAP selection/evasion sees owned aircraft and locally observed hostile motion only. Explicit interception follows the team's report until local acquisition, and returns to search when that acquisition expires. Private target HP, payload and current hidden maneuvers do not supply tactical decisions.
@@ -162,7 +208,7 @@ The UI review's final disposition is **fix**, with verification work still open:
 - The next air work is finite sector sweeps, altitude/policy selection, shadowing/search-and-strike behavior and a commander using the enemy team's reports. This checkpoint does not activate the managed deck profile or complete carrier loss/consolidation/lift visuals, advanced fleet tasks, full mission acceptance or the named balance/performance playtests. The full objective remains active.
 
 
-## Finite scouting and enemy air commander checkpoint (2026-09-09)
+### Finite scouting and enemy air commander checkpoint (2026-09-09)
 
 - Added native SearchArea orders with bounded circular areas, search altitude and Report/Shadow/Strike policies. Rust computes alternating sweep legs, route progress, finite mission timing and bounded actual-position history. A physical flight test caught perpetual pursuit around an unreachable waypoint; line guidance now crosses each waypoint, and the test completes every leg before returning armed. Report-only groups never acquire attack targets, scouts withdraw from locally detected aircraft threats, and opportunistic strikes still need a local sighting.
 - Search admission is PvE-only, reserves maneuvering space and rejects incompatible fighter strike policies without changing the preceding order. A real-WASM client case sends a high-altitude search to Enterprise while Fletcher retains helm, verifies native route/history projection and retained payloads, then replaces the search with a loiter order without retaining stale search state.
@@ -183,7 +229,7 @@ Final independent review disposition: **fix**.
 The complete PvE goal remains active. Remaining work includes observed swaths and condition reports, advanced fleet Attack/torpedo/rally orders, air retasking and loss handling, carrier consolidation/concurrency/fitted elevator and ground visuals, activation of the managed production profile, complete mission interaction and the named balance/performance playtests. This checkpoint establishes finite scouting and the initial opposing air doctrine; it is not full-mode or balance acceptance.
 
 
-## Carrier-loss checkpoint (2026-09-09)
+### Carrier-loss checkpoint (2026-09-09)
 
 - Resumed the uncommitted carrier-loss implementation from `2b9b571d` in this checkout. PvE now distinguishes open, temporarily delayed and permanently closed recovery. Carrier loss destroys grounded aircraft; destroyed recovery equipment makes grounded survivors unavailable. Closure clears committed handling and queued tasks. No automatic cross-carrier transfer occurs.
 - Airborne aircraft can finish feasible combat assignments using observed reports and surviving friendly assignments. Return, depleted weapons, critical damage, stale strike/intercept reports or no feasible assignment produces a terminal withdrawal. Withdrawal preserves IDs, health and stores, emits one availability event and creates no kill or wreck. Aircraft cannot keep an eliminated fleet in battle.
@@ -195,7 +241,7 @@ The complete PvE goal remains active. Remaining work includes observed swaths an
 The complete PvE plan remains unfinished. Continue with carrier consolidation/reference repair, launch/lift concurrency and fitted aircraft/elevator visuals; retain the pending observed swaths/condition reports, advanced fleet orders and air retasking, managed production-profile activation, integrated mission interaction and balance/performance acceptance. Existing UI acceptance gaps remain open.
 
 
-## Hangar consolidation checkpoint (2026-09-09)
+### Hangar consolidation checkpoint (2026-09-09)
 
 - Added explicit `hangar-compatible` / `disabled` consolidation policy to versioned AirRules and regenerated its wire types. The compatibility asset explicitly retains the existing enabled behavior. Profile equality rejects altered selections; neither physical inventory nor model definitions changed.
 - Managed groups now use the existing loss-consolidation mechanism when all survivors are safely below, models/roles match and the resolved group limit permits it. Pending or committed deck work blocks consolidation. Source records remain as aliases while the first group retains its ID. Aircraft IDs, health, ammunition, payloads, sortie counters and per-plane service timers survive.
@@ -208,7 +254,7 @@ The complete PvE plan remains unfinished. Continue with carrier consolidation/re
 The full plan remains active. Next carrier work is safe launch/lift concurrency and fitted ground/elevator visuals before managed production-profile activation, followed by the remaining observation, fleet-order, mission-interaction and balance/performance requirements. Consolidation tests do not establish whole-mode acceptance.
 
 
-## Launch/lift overlap checkpoint (2026-09-09)
+### Launch/lift overlap checkpoint (2026-09-09)
 
 - Managed handling can raise an aircraft during the final takeoff roll in a queued batch. Admission reserves the departing aircraft's entire remaining runway travel and requires the lift's top position and planned route to clear it. Earlier queued takeoffs and incoming recoveries retain priority. One handling job still runs at a time.
 - A takeoff reservation shrinks monotonically in the carrier's frame, so ongoing bounded route searches need not restart every moving tick. Entry/exit and other occupancy changes still invalidate them. Crowded decks and longer route searches can defer lifting until after takeoff; this is conditional overlap, not a promised launch-cycle rate.
@@ -219,7 +265,7 @@ The full plan remains active. Next carrier work is safe launch/lift concurrency 
 The full plan remains active. Fitted tyre/hook contact, moving elevator platforms, reserved-versus-occupied telemetry, production managed-profile activation, sortie timing, integrated mission interactions and the remaining fleet/observation/balance requirements still need acceptance. Native overlap tests do not establish in-game visual or complete mission acceptance.
 
 
-## Arrestor-hook clearance checkpoint (2026-09-09)
+### Arrestor-hook clearance checkpoint (2026-09-09)
 
 - Finished the pending hook correction after `047d8a36`. The original shared recipe now mounts a fork shank, hinge pin and shoe above the nominal tyre plane, clearing the tail wheel throughout independently sampled hook deployment and gear retraction. Small hook and tail-gear meshes retain their exact geometry through LOD reduction. The mechanism is a shared visual approximation, not a historically verified variant reconstruction.
 - All thirteen aircraft were rebuilt and published through isolated **local Blender 5.2.0 LTS**. The shared aircraft content hash is `9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de`. Retained sources, all 39 GLBs, fixed views, thumbnails and schematic comparisons match the rebuilt inputs. Blender MCP's unrelated unsaved scene was preserved.
@@ -230,7 +276,7 @@ The full plan remains active. Fitted tyre/hook contact, moving elevator platform
 
 The full plan remains unfinished. Next carrier requirements are actual three-tyre support on fitted deck surfaces, moving elevator platforms, reserved-versus-occupied telemetry, sortie timing and managed production-profile activation. Observed swaths/condition reports, advanced fleet orders, remaining air behavior, integrated mission/native-input/compact-layout acceptance and the named balance/performance playtests remain pending.
 
-## Fitted carrier contact checkpoint (2026-09-09)
+### Fitted carrier contact checkpoint (2026-09-09)
 
 - Managed aircraft now solve root height, pitch and roll against three lower-tyre triangle patches baked from the published aircraft. A bounded authored-surface cache handles crowned decks, platform edges and unsupported holes. Routing datums stay independent of fitted roots; parked poses follow CPU carrier motion without accumulating offsets. Aircraft presentation and follow cameras retain that local attitude while the displayed hull interpolates.
 - Placement failure preserves handling progress and the last supported pose. Regression cases cover a stalled takeoff on a moving carrier, exactly-once launch events, and repeated initial-lift failure followed by recovery of the same queued job. Public contact queries reject malformed input and bound aggregate cell/triangle work.
