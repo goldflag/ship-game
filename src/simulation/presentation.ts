@@ -1,3 +1,4 @@
+import { torpedoSpeed } from './mobility';
 import { BATTLE_RULES, physicalLoss } from './battleRules';
 import { surfaceGunAllowed } from '../ships/armament';
 import { equipmentCenter } from './equipmentPose';
@@ -32,7 +33,7 @@ export function presentationAim(view: AimView, moduleId?: string, battery: Batte
     if (battery === 'torpedo' && view.definition.torpedoTubes?.length) {
       const tube = view.definition.torpedoTubes.find(t => selectedWeapon('torpedo', t.weapon, battery, weaponGroupId));
       if (!tube) return aim;
-      return torpedoIntercept(localToWorld(tubeLocalPosition(view.player, tube), view.ship), aim, shipVelocity(view.target), tube.weapon.speed) ?? aim;
+      return torpedoIntercept(localToWorld(tubeLocalPosition(view.player, tube), view.ship), aim, shipVelocity(view.target), torpedoSpeed(tube.weapon.speed)) ?? aim;
     }
     const weapon = view.definition.mounts.find(m => selectedWeapon(m.battery, m.weapon, battery, weaponGroupId))?.weapon;
     const speed = weapon?.muzzleSpeed ?? 820, drag = weapon?.ballistics?.dragPerSecond ?? 0;

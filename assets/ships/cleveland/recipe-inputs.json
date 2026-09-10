@@ -7,6 +7,9 @@
     "assets/parts/aa_articulation.py",
     "assets/parts/us-iowa-mounts/geometry.py",
     "assets/ships/cleveland/fittings.py",
-    "assets/parts/us-5in38-mk32-mod12/geometry.py"
+    "assets/parts/us-5in38-mk32-mod12/geometry.py",
+    "assets/ships/cleveland/appearance.json",
+    "assets/ships/appearance/surface.py",
+    "assets/ships/appearance/finishes.json"
   ]
 }

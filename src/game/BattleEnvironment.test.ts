@@ -200,3 +200,19 @@ test('paused scene, water and smoke share moonlight and restore the current sun'
     if (hour === 12) expect(waterSun.intensity.value).toBeCloseTo(sky.sun.intensity.value);
   }
 });
+
+test('distant shadow focus survives provider sync and restores the port and player anchors', () => {
+  const sky = { sun: new Sun(), timeOfDay: new TimeOfDay(), atmosphere: new Atmosphere(), clouds: new Clouds() };
+  const water = fakeWater({ sun: { direction: { value: new Vector3() }, intensity: { value: 1 }, color: new Color() }, sunLight: new DirectionalLight() });
+  const anchor = new Group(); anchor.position.set(100, 3, 200);
+  const environment = new VisualEnvironment({ effects: lightSink(), funnelSmoke: windSink(), sunAnchor: anchor });
+  environment.attachWater(water as never); environment.attachSky(sky as never);
+  environment.setScene('north-atlantic', false);
+  const focus = new Vector3(20000, 0, 15000);
+  environment.setShadowFocus(focus); environment.syncLighting(); environment.syncLighting();
+  expect(water.lighting!.sunLight.target.position).toEqual(focus);
+  environment.setScene('north-atlantic', true); environment.syncLighting();
+  expect(water.lighting!.sunLight.target.position).toEqual(new Vector3(-60, 3, 200));
+  environment.setShadowFocus(); environment.setScene('north-atlantic', false); environment.syncLighting();
+  expect(water.lighting!.sunLight.target.position).toEqual(anchor.position);
+});

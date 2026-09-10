@@ -1,3 +1,4 @@
+use crate::mobility::torpedo_speed;
 use crate::{
     air_gunnery::{self, gunnery_seed, step_discipline},
     aircraft::*,
@@ -449,7 +450,7 @@ impl Aviation {
             r.position = add(r.position, scale(r.velocity, dt));
             if r.position[1] <= 0.0 {
                 let weapon = r.weapon.clone().unwrap_or_else(air_torpedo);
-                let velocity = scale(normalize([r.velocity[0], 0.0, r.velocity[2]]), weapon.speed);
+                let velocity = scale(normalize([r.velocity[0], 0.0, r.velocity[2]]), torpedo_speed(weapon.speed));
                 let position = [r.position[0], -weapon.running_depth_m, r.position[2]];
                 ctx.torpedoes.push(Torpedo {
                     id: r.id,
@@ -1186,7 +1187,7 @@ impl Aviation {
             let fall = (-3.0 + (9.0 + 19.62 * p.position[1].max(0.0)).sqrt()) / 9.81;
             let entry = add(p.position, scale([p.velocity[0], 0.0, p.velocity[2]], fall));
             let future = add(target_point, scale(target.motion.velocity(), fall));
-            let aim = torpedo_intercept(entry, future, target.motion.velocity(), weapon.speed)
+            let aim = torpedo_intercept(entry, future, target.motion.velocity(), torpedo_speed(weapon.speed))
                 .unwrap_or(future);
             fly(
                 p,
@@ -1210,7 +1211,7 @@ impl Aviation {
                 && p.bank.abs() < 0.12
                 && p.pitch.abs() < 0.08
                 && aligned
-                && clear_torpedo_lane(actor, entry, aim, weapon.speed, ctx.actors)
+                && clear_torpedo_lane(actor, entry, aim, torpedo_speed(weapon.speed), ctx.actors)
             {
                 let id = ctx.next_id();
                 ctx.releases.push(AirRelease {

@@ -15282,6 +15282,100 @@
       "rollerRadius": 2.01,
       "gunhouseBaseHeight": 0.05,
       "rangefinderWidth": 5.175
+    },
+    {
+      "id": "type93-13-twin",
+      "name": "13.2 mm Type 93 twin",
+      "kind": "gun",
+      "massKg": 350,
+      "barbetteRadius": 0.33,
+      "gunhouseSize": [
+        1.84,
+        0.84,
+        1.9
+      ],
+      "pivotHeight": 0.87,
+      "trunnionForward": -0.1,
+      "muzzleForward": 1.0,
+      "barrelSpacing": 0.2,
+      "caliberM": 0.0132,
+      "traverseDeg": 100,
+      "traverseRateDeg": 18,
+      "elevationMinDeg": -10,
+      "elevationMaxDeg": 85,
+      "elevationRateDeg": 12,
+      "reloadSeconds": 0.3,
+      "muzzleSpeed": 900,
+      "projectileMassKg": 0.052,
+      "penetrationMm": 9,
+      "damage": 1.3,
+      "recoilM": 0.045,
+      "ammoPerBarrel": 1800,
+      "armorMm": 3,
+      "barrelCount": 2,
+      "mountingStyle": "open-quad",
+      "barrelBaseRadius": 0.025,
+      "he": {
+        "explosiveKg": 0.002,
+        "fragmentPenetrationMm": 2,
+        "damage": 1.4,
+        "stockFraction": 1,
+        "basis": "Provisional game ammunition; source-model fitting only."
+      },
+      "ballistics": {
+        "dragPerSecond": 0.27,
+        "dispersionRad": 0.002,
+        "muzzleSpeedSigmaFraction": 0.005,
+        "penetrationReferenceSpeedMps": 530,
+        "basis": "Provisional game calibration for the approved Fubuki A visual fit."
+      }
+    },
+    {
+      "id": "type93-13-single",
+      "name": "13.2 mm Type 93 single",
+      "kind": "gun",
+      "massKg": 100,
+      "barbetteRadius": 0.2,
+      "gunhouseSize": [
+        1.84,
+        0.45,
+        1.9
+      ],
+      "pivotHeight": 1.22,
+      "trunnionForward": -0.16,
+      "muzzleForward": 1.0,
+      "barrelSpacing": 0.2,
+      "caliberM": 0.0132,
+      "traverseDeg": 100,
+      "traverseRateDeg": 18,
+      "elevationMinDeg": -10,
+      "elevationMaxDeg": 85,
+      "elevationRateDeg": 12,
+      "reloadSeconds": 0.3,
+      "muzzleSpeed": 900,
+      "projectileMassKg": 0.052,
+      "penetrationMm": 9,
+      "damage": 1.3,
+      "recoilM": 0.045,
+      "ammoPerBarrel": 1800,
+      "armorMm": 3,
+      "barrelCount": 1,
+      "mountingStyle": "open-quad",
+      "barrelBaseRadius": 0.025,
+      "he": {
+        "explosiveKg": 0.002,
+        "fragmentPenetrationMm": 2,
+        "damage": 1.4,
+        "stockFraction": 1,
+        "basis": "Provisional game ammunition; source-model fitting only."
+      },
+      "ballistics": {
+        "dragPerSecond": 0.27,
+        "dispersionRad": 0.002,
+        "muzzleSpeedSigmaFraction": 0.005,
+        "penetrationReferenceSpeedMps": 530,
+        "basis": "Provisional game calibration for the approved Fubuki A visual fit."
+      }
     }
   ],
   "torpedoes": [
@@ -15344,6 +15438,21 @@
       "launchIntervalSeconds": 0.75,
       "damage": 950,
       "breachAreaM2": 4
+    },
+    {
+      "id": "ijn-610-type8-game",
+      "name": "610 mm Type 8 \u00b7 provisional",
+      "kind": "torpedo",
+      "diameterM": 0.61,
+      "lengthM": 9,
+      "speed": 26,
+      "rangeM": 6000,
+      "armingDistanceM": 300,
+      "runningDepthM": 2,
+      "reloadSeconds": 100,
+      "launchIntervalSeconds": 0.5,
+      "damage": 420,
+      "breachAreaM2": 2
     }
   ],
   "depthCharges": [

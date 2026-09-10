@@ -1,0 +1,127 @@
+{
+  "version": 1,
+  "id": "bismarck-maintained-v1",
+  "basis": "Preserve original recipe colors, scheme, markings and deck coverings. Shared maintained finish; no new historical color claim.",
+  "materials": {
+    "naval": {
+      "paint": "bismarck-authored-naval",
+      "finish": "painted-steel"
+    },
+    "roof": {
+      "paint": "bismarck-authored-roof",
+      "finish": "painted-deck"
+    },
+    "edge": {
+      "paint": "bismarck-authored-edge",
+      "finish": "painted-steel"
+    },
+    "hullgray": {
+      "paint": "bismarck-authored-hullgray",
+      "finish": "painted-steel",
+      "projection": "hull"
+    },
+    "oxide": {
+      "paint": "bismarck-authored-oxide",
+      "finish": "underwater-coating",
+      "projection": "hull"
+    },
+    "boot": {
+      "paint": "bismarck-authored-boot",
+      "finish": "underwater-coating",
+      "projection": "hull"
+    },
+    "light": {
+      "paint": "bismarck-authored-light",
+      "finish": "painted-steel"
+    },
+    "wood": {
+      "paint": "bismarck-authored-wood",
+      "finish": "wood"
+    },
+    "baltic-hullgray": {
+      "paint": "bismarck-authored-baltic-hullgray",
+      "finish": "painted-steel",
+      "existing": "image",
+      "imageLayout": {
+        "bounds": [
+          -126,
+          126,
+          -2,
+          50
+        ],
+        "tiles": 4,
+        "gutter": 4
+      }
+    },
+    "baltic-naval": {
+      "paint": "bismarck-authored-baltic-naval",
+      "finish": "painted-steel",
+      "existing": "image",
+      "imageLayout": {
+        "bounds": [
+          -126,
+          126,
+          -2,
+          50
+        ],
+        "tiles": 4,
+        "gutter": 4
+      }
+    },
+    "baltic-roof": {
+      "paint": "bismarck-authored-baltic-roof",
+      "finish": "painted-steel",
+      "existing": "image",
+      "imageLayout": {
+        "bounds": [
+          -126,
+          126,
+          -2,
+          50
+        ],
+        "tiles": 4,
+        "gutter": 4
+      }
+    },
+    "baltic-edge": {
+      "paint": "bismarck-authored-baltic-edge",
+      "finish": "painted-steel",
+      "existing": "image",
+      "imageLayout": {
+        "bounds": [
+          -126,
+          126,
+          -2,
+          50
+        ],
+        "tiles": 4,
+        "gutter": 4
+      }
+    },
+    "deck": {
+      "paint": "bismarck-authored-deck",
+      "finish": "wood",
+      "existing": "image",
+      "imageLayout": {
+        "bounds": [
+          -126,
+          126,
+          -18.5,
+          18.5
+        ]
+      }
+    }
+  },
+  "hull": {
+    "bounds": [
+      -125.25,
+      125.25,
+      -10.33,
+      11.3
+    ],
+    "pixelsPerMeter": 8,
+    "waterline": 0,
+    "stainStrength": 0.16,
+    "runoffStrength": 0.16
+  }
+}

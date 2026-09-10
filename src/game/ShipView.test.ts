@@ -336,6 +336,33 @@ test('Fletcher gun and torpedo joints follow interpolated CPU poses on both broa
   expect(Math.max(...view.torpedoMuzzleErrors())).toBeLessThan(.025);
 });
 
+test('Fubuki independent gun and triple-bank poses retain CPU socket alignment on the published hierarchy', async () => {
+  const def = shipPreset('fubuki'), bytes = await Bun.file('public/models/fubuki.glb').arrayBuffer();
+  const gltf = JSON.parse(new TextDecoder().decode(new Uint8Array(bytes, 20, new DataView(bytes).getUint32(12, true))));
+  const nodes = gltf.nodes.map(({ mesh: _mesh, ...node }: { mesh?: number }) => node);
+  const model = await new GLTFLoader().parseAsync(JSON.stringify({ asset: gltf.asset, scene: gltf.scene, scenes: gltf.scenes, nodes }), '');
+  const sim = new CombatSimulation(def), view = new ShipView(model.scene, def, sim.player);
+  expect(view.muzzleErrors()).toHaveLength(22); expect(view.torpedoMuzzleErrors()).toHaveLength(9);
+  for (const fraction of [-1, -.7, -.2, 0, .3, .8, 1]) {
+    view.capturePreviousPose();
+    sim.player.mounts.forEach((m,i) => {
+      const w = def.mounts[i].weapon;
+      Object.assign(m, { train: fraction * (i % 2 ? -1 : 1) * w.traverseDeg * Math.PI / 180,
+        elevation: (w.elevationMinDeg + (i % 3) / 2 * (w.elevationMaxDeg-w.elevationMinDeg)) * Math.PI / 180, recoil: (i % 3) / 2 });
+    });
+    sim.player.torpedoLaunchers!.forEach((l,i) => l.train = fraction * (i % 2 ? -1 : 1) * 2 * Math.PI / 3);
+    Object.assign(sim.ship, { x: 170, z: -430, heading: 1.7, roll: -.08, pitch: .045 });
+    for (const alpha of [0, .25, .5, .75, 1]) {
+      view.update(alpha);
+      expect(Math.max(...view.muzzleErrors())).toBeLessThan(.025);
+      expect(Math.max(...view.torpedoMuzzleErrors())).toBeLessThan(.025);
+    }
+  }
+  sim.reset(); view.snap();
+  expect(Math.max(...view.muzzleErrors())).toBeLessThan(.025);
+  expect(Math.max(...view.torpedoMuzzleErrors())).toBeLessThan(.025);
+});
+
 test('launcher IDs bind reordered battle snapshots and bounded interpolation stays inside travel stops', async () => {
   const def = shipPreset('yukikaze');
   const bytes = await Bun.file('public/models/yukikaze.glb').arrayBuffer();

@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "files": [
+    "assets/ships/fubuki/geometry.py",
+    "assets/ships/fubuki/fittings.py",
+    "assets/parts/library.py",
+    "assets/parts/library.json",
+    "assets/parts/ijn-destroyer-guns/type_c.py",
+    "assets/parts/ijn-destroyer-guns/aa.py",
+    "assets/parts/ijn-destroyer-guns/type_93.py",
+    "assets/ships/appearance/surface.py",
+    "assets/ships/appearance/finishes.json",
+    "assets/ships/fubuki/appearance.json"
+  ]
+}

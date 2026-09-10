@@ -156,5 +156,8 @@ for face in hull_object.data.polygons:
         # Half-texel inset prevents the two sides bleeding across the atlas seam.
         u=(side*side_width+.5+(v.x/h['length']+.5)*(side_width-1))/width
         uv.data[loop_index].uv=(u,(v.z-low)/span)
+sys.path.insert(0,str(ROOT / 'assets/ships/appearance'))
+from surface import apply_appearance
+apply_appearance(scene,materials,Path(__file__).with_name('appearance.json'))
 scene['definitionHash'] = D['contentHash']
 bpy.ops.wm.save_as_mainfile(filepath=str(OUT / 'source.blend'))

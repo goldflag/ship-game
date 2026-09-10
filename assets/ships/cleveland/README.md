@@ -54,3 +54,5 @@ Build: `bun run ship:build cleveland`
 Review: `bun run ship:review cleveland`
 
 Temporary comparisons and diagnostic captures belong in ignored `.build/cleveland/`.
+
+The maintained appearance bindings preserve the original upperworks and deck colors. Opaque fittings use the shared metric surface recipe; the original two-sided hull-paint atlas and its UVs remain unchanged. Damage control uses the fleet’s explicitly provisional three-team calibration.

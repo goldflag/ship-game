@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "finishes": {
+    "painted-steel": { "roughness": 0.78, "metallic": 0, "tileMeters": 8, "variation": 0.11, "grain": 0.012 },
+    "painted-deck": { "roughness": 0.84, "metallic": 0, "tileMeters": 8, "variation": 0.08, "grain": 0.012 },
+    "underwater-coating": { "roughness": 0.86, "metallic": 0, "tileMeters": 8, "variation": 0.10, "grain": 0.012 },
+    "linoleum": { "roughness": 0.82, "metallic": 0, "tileMeters": 8, "variation": 0.09, "grain": 0.01 },
+    "wood": { "roughness": 0.86, "metallic": 0, "tileMeters": 8, "variation": 0.08, "grain": 0.012 }
+  }
+}

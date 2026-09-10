@@ -1,0 +1,65 @@
+{
+  "version": 1,
+  "id": "victory-cargo-maintained-v1",
+  "basis": "Preserve original recipe colors, scheme, markings and deck coverings. Shared maintained finish; no new historical color claim.",
+  "materials": {
+    "naval": {
+      "paint": "convoy-authored-naval",
+      "finish": "painted-steel"
+    },
+    "roof": {
+      "paint": "convoy-authored-roof",
+      "finish": "painted-deck"
+    },
+    "edge": {
+      "paint": "convoy-authored-edge",
+      "finish": "painted-steel"
+    },
+    "hullgray": {
+      "paint": "convoy-authored-hullgray",
+      "finish": "painted-steel",
+      "projection": "hull"
+    },
+    "underwater": {
+      "paint": "convoy-authored-underwater",
+      "finish": "underwater-coating",
+      "projection": "hull"
+    },
+    "deck": {
+      "paint": "convoy-authored-deck",
+      "finish": "painted-deck"
+    },
+    "wood": {
+      "paint": "convoy-authored-wood",
+      "finish": "wood"
+    },
+    "hatch": {
+      "paint": "convoy-authored-hatch",
+      "finish": "painted-deck"
+    },
+    "funnel": {
+      "paint": "convoy-authored-funnel",
+      "finish": "painted-steel"
+    },
+    "blue": {
+      "paint": "convoy-authored-blue",
+      "finish": "painted-steel"
+    },
+    "white": {
+      "paint": "convoy-authored-white",
+      "finish": "painted-steel"
+    }
+  },
+  "hull": {
+    "bounds": [
+      -69.3801,
+      69.3801,
+      -9.6868,
+      10.4
+    ],
+    "pixelsPerMeter": 16,
+    "waterline": 0,
+    "stainStrength": 0.16,
+    "runoffStrength": 0.16
+  }
+}

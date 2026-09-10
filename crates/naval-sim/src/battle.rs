@@ -1,4 +1,5 @@
 //! Complete renderer-free fixed-tick battle authority, shared by native and WASM.
+use crate::mobility::torpedo_speed;
 use crate::{
     aircraft::{AirOrder, AirRelease},
     aviation::Aviation,
@@ -639,7 +640,7 @@ fn operate_underwater(
         if state.status == "ready"
             && a.controller == Controller::Bot
             && aim.is_some_and(|aim| {
-                !torpedoes::clear_torpedo_lane(a, solution.origin, aim, t.weapon.speed, actors)
+                !torpedoes::clear_torpedo_lane(a, solution.origin, aim, torpedo_speed(t.weapon.speed), actors)
             })
         {
             state.status = "blocked".into()
@@ -662,9 +663,9 @@ fn operate_underwater(
         if fire && state.status == "ready" {
             *sequence += 1;
             let velocity = [
-                solution.heading.sin() * t.weapon.speed,
+                solution.heading.sin() * torpedo_speed(t.weapon.speed),
                 0.0,
-                -solution.heading.cos() * t.weapon.speed,
+                -solution.heading.cos() * torpedo_speed(t.weapon.speed),
             ];
             torpedoes.push(Torpedo {
                 id: *sequence,
@@ -767,8 +768,8 @@ fn step_torpedoes(
         let t = &mut torpedoes[i];
         let from = t.position;
         let w = &t.weapon;
-        let travel = (w.speed * DT).min(w.range_m - t.distance);
-        let mut to = add(from, scale(t.velocity, travel / w.speed));
+        let travel = (torpedo_speed(w.speed) * DT).min(w.range_m - t.distance);
+        let mut to = add(from, scale(t.velocity, travel / torpedo_speed(w.speed)));
         if from[1] > 0.0 {
             to[1] = (-w.running_depth_m).max(from[1] + t.velocity[1] * DT - 0.5 * 9.81 * DT * DT);
             t.velocity[1] = if to[1] > 0.0 {
@@ -941,8 +942,8 @@ mod torpedo_contact_tests {
             id: 42,
             owner_id: "player".into(),
             tube_id: "aircraft.payload".into(),
-            position: sub(point, scale(direction, weapon.speed * DT * 0.5)),
-            velocity: scale(direction, weapon.speed),
+            position: sub(point, scale(direction, torpedo_speed(weapon.speed) * DT * 0.5)),
+            velocity: scale(direction, torpedo_speed(weapon.speed)),
             distance: if armed { 1000.0 } else { 0.0 },
             age: 0.0,
             weapon,

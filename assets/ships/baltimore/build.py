@@ -33,6 +33,7 @@ for name in ['Hull and decks','Main and secondary batteries','Superstructure','S
  col=bpy.data.collections.new(name);scene.collection.children.link(col);collections[name]=col
 COL=collections['Hull and decks'];ASSEMBLY='hull'
 colors={'naval':(.19,.255,.31,1),'roof':(.11,.17,.22,1),'edge':(.085,.12,.15,1),'hullgray':(.17,.23,.285,1),'canvas':(.28,.31,.31,1),'dark':(.018,.023,.028,1),'antifouling':(.26,.067,.042,1),'boot':(.035,.043,.049,1),'bronze':(.36,.27,.12,1),'glass':(.025,.075,.095,1),'white':(.68,.7,.68,1),'aircraft':(.19,.26,.32,1),'aircraft-light':(.40,.44,.45,1)}
+colors['wood_deck']=colors['roof']
 materials={}
 for key,color in colors.items():
  m=bpy.data.materials.new('Baltimore '+key);m.diffuse_color=color;m.use_nodes=True
@@ -95,6 +96,9 @@ deckz=lambda x:interp(H['deckHeights'],x+L/2)
 width=lambda x:interp(H['halfBreadths'],max(0,min(L,x+L/2)))
 # Retained class-informed sections, with the same surface used by CPU hits.
 hull=authored_hull(H,mesh,COL,[materials[k] for k in ['hullgray','antifouling','boot']],True)
+hull.data.materials.append(materials['wood_deck'])
+for face in hull.data.polygons:
+ if face.normal.z>.96:face.material_index=len(hull.data.materials)-1
 S={s['id']:s for s in D['structures']}
 # Articulated main and secondary mounts are generated through the shared catalog.
 COL=collections['Main and secondary batteries']
@@ -458,5 +462,10 @@ scene['historicalConfiguration']=D['configuration']
 scene['accuracyStatus']='Under review: see the source and discrepancy registers'
 from blender_rig import create_flagstaffs
 create_flagstaffs(D)
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'appearance'))
+from surface import apply_appearance
+from decking import apply_decking
+apply_decking(scene,materials,Path(__file__).with_name('appearance.json'))
+apply_appearance(scene,materials,Path(__file__).with_name('appearance.json'))
 bpy.ops.wm.save_as_mainfile(filepath=str(OUT/'source.blend'))
 print('Baltimore original recipe:',len(scene.objects),'objects; source saved')
