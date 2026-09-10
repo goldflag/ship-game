@@ -1,3 +1,4 @@
+import { updateMountCarriers } from '../../src/simulation/mountFrames';
 import { hydrostatics, flotation } from '../../src/simulation/hydrostatics';
 import { waterBody, levelAtVolume } from '../../src/simulation/floodwater';
 import { createSeaState, seaHeight } from '../../src/simulation/sea';
@@ -34,6 +35,15 @@ const hydro = Object.keys(shipPresets).map(id => {
 });
 const sea = OCEAN_MAPS.flatMap(map => WEATHER_PRESETS.map(weather => { const state = createSeaState(map.id, weather.id, 73493); return { mapId: map.id, weather: weather.id, state, height: seaHeight(state, 452.5, -320.4, 67.1) }; }));
 const terrain = OCEAN_MAPS.flatMap(map => mapIslands(map.id, 5000, 8).map(island => ({ island, points: [[.1,.2],[.54,-.13],[.97,.32],[1.2,-.15]].map(([x,z])=>({ x:island.x+x*island.rx,z:island.z+z*island.rz,height:islandHeight(island,island.x+x*island.rx,island.z+z*island.rz) })) })));
-const mounts = Object.keys(shipPresets).map(id => { const definition = shipPreset(id), ship = createShipState(id); ship.heading = .7; ship.roll = -.04; ship.pitch = .01; return { id, ship, states: definition.mounts.map(m => {const state = createMountState(m); for(let i=0;i<120;i++)updateMount(m,state,definition,ship,[3000,.5,-4000],1/60); return {state,muzzle:muzzleLocal(m,state,0)};}) }; });
+const mounts = Object.keys(shipPresets).map(id => {
+ const definition = shipPreset(id), ship = createShipState(id);
+ ship.heading = .7; ship.roll = -.04; ship.pitch = .01;
+ const states = definition.mounts.map(createMountState);
+ for (let tick = 0; tick < 120; tick++) for (const [i, mount] of definition.mounts.entries()) {
+  updateMountCarriers(definition, states);
+  updateMount(mount, states[i], definition, ship, [3000, .5, -4000], 1/60, [0, 0, 0], 1, states);
+ }
+ return { id, ship, states: states.map((state, i) => ({ state, muzzle: muzzleLocal(definition.mounts[i], state, 0) })) };
+});
 await mkdir('assets/gameplay/migration' ,{recursive:true});
 await writeFile('assets/gameplay/migration/reference.v1.json', JSON.stringify({version:1, hydro, sea, terrain, mounts, motion, ballistic, geometry:{pose,point,world:localToWorld(point,pose),local:worldToLocal(point,pose)},dispersion,environments},null,2)+'\n');

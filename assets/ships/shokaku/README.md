@@ -1,6 +1,6 @@
 # IJN Shōkaku — December 1941
 
-December 1941; original armament and 72 operational aircraft; sourced reconstruction with unresolved offsets
+December 1941; original armament; 48-aircraft gameplay complement; sourced reconstruction with unresolved offsets
 
 Open `/?ship=shokaku` or select this ship in port or Custom battle.
 
@@ -12,6 +12,8 @@ Authored hull: 257.5 m long, 26 m beam, 8.87 m draft. These are model inputs, no
 
 - **Exterior:** Independent original geometry based on S01-S06. S02 is a secondary arrangement with unverified drawing provenance; hidden offsets and exact bridge dimensions remain unresolved.
 - **Internals:** Named machinery, ordnance, service, steering and side voids are gameplay volumes, not a recovered ship subdivision plan.
+- **Air wing:** Global gameplay complement of 48 aircraft: 16 fighters, 16 dive bombers and 16 torpedo bombers. Aircraft types remain specific to this ship; this is not a historical manifest.
+- **Flight deck:** The operational forward elevator has an opening through the flight-deck slab and adjoining upper-hangar roof, matching the existing platform footprint. Painted markings follow timber, steel and the independently owned lift surface with a 0.5 mm visual coating. Lift drive mechanisms, lower loading access and the other elevator openings remain unresolved; this correction does not certify full elevator travel or historical mechanism detail.
 - **Weapons:** Six open Type 89 A1 and two gas-shielded A1 Mod 2 twins; twelve Type 96 triples. Positions are plan-measured estimates. Ballistics, service timings, ammunition and aircraft flight performance remain gameplay calibration.
 
 ```sh

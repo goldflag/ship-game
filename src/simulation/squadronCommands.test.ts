@@ -108,6 +108,10 @@ for (const blocker of ['airborne', 'deck', 'capacity', 'model', 'role'] as const
   const [first, second] = squadronFlights(sim.player);
   const keep = blocker === 'capacity' ? 4 : 2;
   const all = sim.player.airWing!.planes;
+  // Isolate the pair: the 16-plane pool also has a four-plane group that
+  // could legitimately consolidate with either damaged group.
+  const pairIds = new Set([...first.planeIds, ...second.planeIds]);
+  for (const p of all) if (!pairIds.has(p.id)) { p.phase = 'lost'; p.hp = 0; }
   for (const f of [first, second]) for (const [index, id] of f.planeIds.entries()) {
     const p = all.find(p => p.id === id)!;
     p.flightId = f.id; p.phase = index < keep ? 'rearming' : 'lost'; p.timer = 100;

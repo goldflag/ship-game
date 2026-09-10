@@ -73,7 +73,7 @@ test('a long delay can carry an armed shell outside the hull before it bursts', 
   for (let i = 0; i < 3; i++) sim.step({ throttle: 0, rudder: 0 }, quiet);
   expect(shell.position[0]).toBeGreaterThan(actor.definition.hull.beam / 2);
   expect(sim.shells).toHaveLength(0);
-  const history = sim.telemetry('main', quiet.aim).shellHistory[0];
+  const history = sim.telemetry('main', quiet.aim).shellHistory![0];
   expect(history.outcome).toBe('burst'); expect(history.impacts.at(-1)!.kind).toBe('burst');
 });
 test('turret entry and exit both resist a shell, while equipment is damaged only once', () => {

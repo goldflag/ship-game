@@ -1,5 +1,16 @@
 # Aircraft validation — schematic rebuild
 
+## Current hook revision (2026-09-09)
+
+Aircraft content hash: `9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de`.
+
+All thirteen aircraft were rebuilt with isolated local Blender 5.2.0 LTS. The shared hook fork, mount and shoe replace the earlier penetrating stowed geometry; hook and tail-gear contact meshes retain their geometry at each LOD. Required independent hook ownership is checked during export. The mechanism remains an approximation with no new historical-accuracy claim.
+
+All 39 published LODs pass the independent hook/gear triangle sweep (65 × 33 independently selected controls per LOD, zero intersections). Neutral, intermediate and deployed close-ups for the six combat models and all six fleet review sheets were inspected. A fresh SBD browser canvas also shows the intermediate hook/gear pose. Actual carrier-surface fitting, continuous-clearance proof and integrated in-game deck acceptance remain pending. Exact-file hashes and raw diagnostics are under ignored `.build/pve-ground/`; the reproducible check is `scripts/aircraft/check_hook_clearance.py`.
+
+See [the current implementation checkpoint](../../../docs/pve-implementation-status.md#arrestor-hook-clearance-checkpoint-2026-09-09) for simulation, client, build and compatibility verification. The original validation below records an earlier asset revision; its hashes, triangle counts and pre-integration scope are historical.
+
+
 Reviewed 5 September 2026. All thirteen aircraft were rebuilt through **Blender MCP**, published at three detail levels and inspected in the repository's Three.js viewer. The final authoring hash is `a6c5b1fd623c6a92224f3295ab05b19bb2b4e58e51d3551b886315003bae4844`. Machine-readable quantities and evidence hashes are in [validation.json](validation.json).
 
 ## Shape and visual review

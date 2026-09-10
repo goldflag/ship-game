@@ -26,12 +26,30 @@ test('all ten ship presets retain their original geometry and vertex attributes 
       expect(Object.keys(distant.attributes)).toEqual(Object.keys(original.attributes));
       // Simplification chooses existing vertices; it must not invent normals,
       // UVs or colors, or move sockets by modifying the authored surface.
-      const signature = (g: THREE.BufferGeometry, vertex: number) => Object.values(g.attributes).flatMap(a =>
-        Array.from({ length: a.itemSize }, (_, c) => a.array[vertex * a.itemSize + c])).join(',');
-      const vertices = new Set(Array.from({ length: original.attributes.position.count }, (_, j) => signature(original, j)));
+      const attributes = Object.keys(original.attributes).map(name => [original.attributes[name], distant.attributes[name]]);
+      const source = original.attributes.position, sample = distant.attributes.position;
+      const samples: number[] = [], pending = new Map<number, number[]>(), matched = new Set<number>();
       for (let j = 0; j < distant.attributes.position.count; j += Math.max(1, Math.floor(distant.attributes.position.count / 20))) {
-        expect(vertices.has(signature(distant, j))).toBe(true);
+        samples.push(j);
+        const x = sample.array[j * 3], candidates = pending.get(x) ?? [];
+        candidates.push(j); pending.set(x, candidates);
       }
+      // Scan the source once for the same sampled output tuples. Index only
+      // the small sample set, instead of allocating strings for every vertex.
+      for (let i = 0; i < source.count && pending.size; i++) {
+        const x = source.array[i * 3], candidates = pending.get(x);
+        if (!candidates) continue;
+        candidate: for (const j of candidates) {
+          if (matched.has(j)) continue;
+          for (let c = 0; c < 3; c++) if (source.array[i * 3 + c] !== sample.array[j * 3 + c]) continue candidate;
+          for (const [a, b] of attributes) for (let c = 0; c < a.itemSize; c++) {
+            if (a.array[i * a.itemSize + c] !== b.array[j * b.itemSize + c]) continue candidate;
+          }
+          matched.add(j);
+        }
+        if (candidates.every(j => matched.has(j))) pending.delete(x);
+      }
+      for (const j of samples) expect(matched.has(j)).toBe(true);
       expect(levels.every(level => Number.isFinite(level.error) && level.error >= 0)).toBe(true);
     }
     expect(distantTriangles).toBeLessThan(originalTriangles * .25);

@@ -19,7 +19,7 @@ const instances = (smoke: ShipFunnelSmoke) => {
 
 test('all registered funnel mouths are found without smoking from bases, caps or the submarine', () => {
   const counts: Record<string, number> = { bismarck: 1, yamato: 1, iowa: 2, 'king-george-v': 2, baltimore: 2, mogami: 2, 'enterprise-cv6': 1, 'type-viic': 0,
-    'liberty-cargo': 1, 'liberty-collier': 1, 'victory-cargo': 1, 'flower-corvette': 1, fletcher: 2, shokaku: 2, yukikaze: 2 };
+    'liberty-cargo': 1, 'liberty-collier': 1, 'victory-cargo': 1, 'flower-corvette': 1, fletcher: 2, shokaku: 2, yukikaze: 2, fubuki: 2, cleveland: 2 };
   for (const id of Object.keys(shipPresets)) {
     const outlets = funnelOutlets(shipPreset(id));
     expect(outlets.length).toBe(counts[id]);
@@ -32,8 +32,9 @@ test('all registered funnel mouths are found without smoking from bases, caps or
   }
   expect(funnelOutlets(shipPreset('enterprise-cv6'))[0].position[0]).toBeCloseTo(11.049, 2);
   // The curved outlet sits aft of the uptake's base, and below its highest lip.
-  expect(funnelOutlets(shipPreset('yamato'))[0].position[2]).toBeCloseTo(26.25, 2);
-  expect(funnelOutlets(shipPreset('bismarck'))[0].position[1]).toBeCloseTo(25.15, 2);
+  expect(funnelOutlets(shipPreset('yamato'))[0].position[2]).toBeCloseTo(23.3, 2);
+  // The refined Bismarck rim averages 24.30 m, below its raised forward lip.
+  expect(funnelOutlets(shipPreset('bismarck'))[0].position[1]).toBeCloseTo(24.45, 2);
   expect(funnelOutlets(shipPreset('fletcher'))[0].position[2]).toBeCloseTo(-9.2146, 2);
   expect(funnelOutlets(shipPreset('yukikaze')).map(o => o.position[1])).toEqual([11.42, 9.98]);
   // Explicit outlet datums also work with stable IDs that lack the old suffix.

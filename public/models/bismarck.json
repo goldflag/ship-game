@@ -107001,12 +107001,181 @@
       "center": [
         0,
         9.4,
-        -26.15
+        -23.05
       ],
       "size": [
         15.4,
         2,
-        30.5
+        24.3
+      ]
+    },
+    {
+      "id": "forward-battery-deck-bow-taper-01",
+      "center": [
+        0,
+        9.4,
+        -41.161538462
+      ],
+      "size": [
+        6.523077,
+        2,
+        0.476923077
+      ]
+    },
+    {
+      "id": "forward-battery-deck-bow-taper-02",
+      "center": [
+        0,
+        9.4,
+        -40.684615385
+      ],
+      "size": [
+        7.246154,
+        2,
+        0.476923077
+      ]
+    },
+    {
+      "id": "forward-battery-deck-bow-taper-03",
+      "center": [
+        0,
+        9.4,
+        -40.207692308
+      ],
+      "size": [
+        7.969231,
+        2,
+        0.476923077
+      ]
+    },
+    {
+      "id": "forward-battery-deck-bow-taper-04",
+      "center": [
+        0,
+        9.4,
+        -39.730769231
+      ],
+      "size": [
+        8.692308,
+        2,
+        0.476923077
+      ]
+    },
+    {
+      "id": "forward-battery-deck-bow-taper-05",
+      "center": [
+        0,
+        9.4,
+        -39.253846154
+      ],
+      "size": [
+        9.415385,
+        2,
+        0.476923077
+      ]
+    },
+    {
+      "id": "forward-battery-deck-bow-taper-06",
+      "center": [
+        0,
+        9.4,
+        -38.776923077
+      ],
+      "size": [
+        10.138462,
+        2,
+        0.476923077
+      ]
+    },
+    {
+      "id": "forward-battery-deck-bow-taper-07",
+      "center": [
+        0,
+        9.4,
+        -38.3
+      ],
+      "size": [
+        10.861539,
+        2,
+        0.476923077
+      ]
+    },
+    {
+      "id": "forward-battery-deck-bow-taper-08",
+      "center": [
+        0,
+        9.4,
+        -37.823076923
+      ],
+      "size": [
+        11.584616,
+        2,
+        0.476923077
+      ]
+    },
+    {
+      "id": "forward-battery-deck-bow-taper-09",
+      "center": [
+        0,
+        9.4,
+        -37.346153846
+      ],
+      "size": [
+        12.307693,
+        2,
+        0.476923077
+      ]
+    },
+    {
+      "id": "forward-battery-deck-bow-taper-10",
+      "center": [
+        0,
+        9.4,
+        -36.869230769
+      ],
+      "size": [
+        13.03077,
+        2,
+        0.476923077
+      ]
+    },
+    {
+      "id": "forward-battery-deck-bow-taper-11",
+      "center": [
+        0,
+        9.4,
+        -36.392307692
+      ],
+      "size": [
+        13.753847,
+        2,
+        0.476923077
+      ]
+    },
+    {
+      "id": "forward-battery-deck-bow-taper-12",
+      "center": [
+        0,
+        9.4,
+        -35.915384615
+      ],
+      "size": [
+        14.476924,
+        2,
+        0.476923077
+      ]
+    },
+    {
+      "id": "forward-battery-deck-bow-taper-13",
+      "center": [
+        0,
+        9.4,
+        -35.438461538
+      ],
+      "size": [
+        15.2,
+        2,
+        0.476923077
       ]
     },
     {
@@ -107014,12 +107183,181 @@
       "center": [
         0,
         11.725,
-        -26.15
+        -23.05
       ],
       "size": [
         15.4,
         2.65,
-        30.5
+        24.3
+      ]
+    },
+    {
+      "id": "forward-shelter-deck-bow-taper-01",
+      "center": [
+        0,
+        11.725,
+        -41.161538462
+      ],
+      "size": [
+        6.523077,
+        2.65,
+        0.476923077
+      ]
+    },
+    {
+      "id": "forward-shelter-deck-bow-taper-02",
+      "center": [
+        0,
+        11.725,
+        -40.684615385
+      ],
+      "size": [
+        7.246154,
+        2.65,
+        0.476923077
+      ]
+    },
+    {
+      "id": "forward-shelter-deck-bow-taper-03",
+      "center": [
+        0,
+        11.725,
+        -40.207692308
+      ],
+      "size": [
+        7.969231,
+        2.65,
+        0.476923077
+      ]
+    },
+    {
+      "id": "forward-shelter-deck-bow-taper-04",
+      "center": [
+        0,
+        11.725,
+        -39.730769231
+      ],
+      "size": [
+        8.692308,
+        2.65,
+        0.476923077
+      ]
+    },
+    {
+      "id": "forward-shelter-deck-bow-taper-05",
+      "center": [
+        0,
+        11.725,
+        -39.253846154
+      ],
+      "size": [
+        9.415385,
+        2.65,
+        0.476923077
+      ]
+    },
+    {
+      "id": "forward-shelter-deck-bow-taper-06",
+      "center": [
+        0,
+        11.725,
+        -38.776923077
+      ],
+      "size": [
+        10.138462,
+        2.65,
+        0.476923077
+      ]
+    },
+    {
+      "id": "forward-shelter-deck-bow-taper-07",
+      "center": [
+        0,
+        11.725,
+        -38.3
+      ],
+      "size": [
+        10.861539,
+        2.65,
+        0.476923077
+      ]
+    },
+    {
+      "id": "forward-shelter-deck-bow-taper-08",
+      "center": [
+        0,
+        11.725,
+        -37.823076923
+      ],
+      "size": [
+        11.584616,
+        2.65,
+        0.476923077
+      ]
+    },
+    {
+      "id": "forward-shelter-deck-bow-taper-09",
+      "center": [
+        0,
+        11.725,
+        -37.346153846
+      ],
+      "size": [
+        12.307693,
+        2.65,
+        0.476923077
+      ]
+    },
+    {
+      "id": "forward-shelter-deck-bow-taper-10",
+      "center": [
+        0,
+        11.725,
+        -36.869230769
+      ],
+      "size": [
+        13.03077,
+        2.65,
+        0.476923077
+      ]
+    },
+    {
+      "id": "forward-shelter-deck-bow-taper-11",
+      "center": [
+        0,
+        11.725,
+        -36.392307692
+      ],
+      "size": [
+        13.753847,
+        2.65,
+        0.476923077
+      ]
+    },
+    {
+      "id": "forward-shelter-deck-bow-taper-12",
+      "center": [
+        0,
+        11.725,
+        -35.915384615
+      ],
+      "size": [
+        14.476924,
+        2.65,
+        0.476923077
+      ]
+    },
+    {
+      "id": "forward-shelter-deck-bow-taper-13",
+      "center": [
+        0,
+        11.725,
+        -35.438461538
+      ],
+      "size": [
+        15.2,
+        2.65,
+        0.476923077
       ]
     },
     {
@@ -127260,5 +127598,5 @@
     ]
   },
   "compilerVersion": 1,
-  "contentHash": "3b82352234633d58d359a7a26843ebb14621b20b2bd0b09a0a6db74d601d500d"
+  "contentHash": "3b1a31be23fc91d2936680e5c65f5317e30e59bc9eb11cc87731e6e72eff1b4e"
 }

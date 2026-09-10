@@ -52,3 +52,22 @@ test('open bow AA mount blocks its mechanism and side sights but leaves the uppe
   expect(crosses(-1.16, 1.7)).toBe(true);
   expect(crosses(0, .5, mount.id)).toBe(false);
 });
+
+test('Bismarck forward deck obstructions cover the taper and leave the bow AA platforms clear', () => {
+  const definition = shipPreset('bismarck');
+  for (const id of ['forward-battery-deck', 'forward-shelter-deck']) {
+    const tree = new BarrelObstructionTree(definition.obstructions
+      .filter(box => box.id === id || box.id.startsWith(`${id}-`)).map(box => ({ box })));
+    for (const side of [-1, 1]) {
+      const crosses = (x: number, z: number) => tree.intersects([side * x, 7, z], [side * x, 14, z], 'probe');
+      // Samples inside both the angled nose and the full-width aft end.
+      for (const [x, z] of [[2.8, -41.3], [4.15, -39.5], [6.2, -37], [7.4, -35.4], [7.5, -12]]) {
+        expect(crosses(x, z)).toBe(true);
+      }
+      // The relocated 37 mm platform and the empty corners beside the taper.
+      for (const [x, z] of [[5.64, -41.53], [5.64, -41.2], [7.4, -39.5]]) {
+        expect(crosses(x, z)).toBe(false);
+      }
+    }
+  }
+});

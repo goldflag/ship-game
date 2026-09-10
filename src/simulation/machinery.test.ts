@@ -92,15 +92,15 @@ test('a penetrating underwater path opens boundaries and flooding disables other
   expect(equipmentCondition(actor, def, boiler).reason).toBe('flooded');
   expect(actor.damage.compartments.find(c => c.id === 'boiler-aft-port')!.waterM3).toBe(0);
 }, 60000); // Ten simulated minutes through the complete network, including slower Windows runs.
-test('authored outer spaces fit the hull and never overlap retained room envelopes', () => {
+test('authored outer cells fit the hull and never overlap retained room cells', () => {
   for (const preset of [blueprint, yamato, baltimore, enterprise]) {
     const def = compileShip(preset, catalog), added = def.compartments.filter(c => c.id.startsWith('flood-strip-') || c.id.startsWith('flood-end-'));
     expect(added.length).toBeGreaterThan(0);
     expect(def.connections.every(c => c.state === 'closed')).toBe(true);
-    for (const room of added) {
-      for (const sx of [-1, 1]) for (const sy of [-1, 1]) for (const sz of [-1, 1]) expect(hullContains(def.hull, [room.center[0] + sx * room.size[0] / 2, room.center[1] + sy * room.size[1] / 2, room.center[2] + sz * room.size[2] / 2])).toBe(true);
+    for (const room of added) for (const cell of room.cells ?? [room]) {
+      for (const sx of [-1, 1]) for (const sy of [-1, 1]) for (const sz of [-1, 1]) expect(hullContains(def.hull, [cell.center[0] + sx * cell.size[0] / 2, cell.center[1] + sy * cell.size[1] / 2, cell.center[2] + sz * cell.size[2] / 2])).toBe(true);
       for (const other of def.compartments.filter(c => c.id !== room.id)) {
-        const overlap = (other.cells ?? [other]).some(cell => room.center.every((n, i) => Math.abs(n - cell.center[i]) < (room.size[i] + cell.size[i]) / 2 - 1e-6));
+        const overlap = (other.cells ?? [other]).some(otherCell => cell.center.every((n, i) => Math.abs(n - otherCell.center[i]) < (cell.size[i] + otherCell.size[i]) / 2 - 1e-6));
         expect(overlap).toBe(false);
       }
     }

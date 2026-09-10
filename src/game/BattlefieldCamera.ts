@@ -64,7 +64,7 @@ export class BattlefieldCamera {
   zoom(delta: number, x: number, y: number, width: number, height: number) {
     y = chartNavigationY(this.view, height, y);
     const before = chartWorld(this.view, width, height, x, y);
-    this.view.radius = Math.max(300, Math.min(40000, this.view.radius * Math.exp(delta * .0015)));
+    this.view.radius = Math.max(1, Math.min(40000, this.view.radius * Math.exp(delta * .0015)));
     const after = chartWorld(this.view, width, height, x, y);
     this.view.x += before[0] - after[0]; this.view.z += before[1] - after[1];
   }

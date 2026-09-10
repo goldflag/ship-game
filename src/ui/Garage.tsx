@@ -110,6 +110,7 @@ type GarageState = {
   selectShip: (id: string) => void;
   launch: () => void;
   multiplayer?: () => void;
+  pve?: () => void;
   ready: boolean;
   settings: () => void;
   fps: number;
@@ -127,6 +128,7 @@ function SetSail({ state }: { state: GarageState }) {
       <strong>{state.ready ? "CUSTOM BATTLE" : "PREPARING"}</strong>
       <Icon name="arrow" size={20} />
     </button>
+    {state.pve && <button className="garage-online-battle" disabled={!state.ready} aria-haspopup="dialog" onClick={state.pve}>PvE FLEET COMMAND</button>}
     {state.multiplayer && <button className="garage-online-battle" disabled={!state.ready} aria-haspopup="dialog" onClick={state.multiplayer}>1V1 MULTIPLAYER</button>}</div>
   );
 }
@@ -371,6 +373,7 @@ interface Props {
   fps: number;
   onLaunch: () => void;
   onMultiplayer?: () => void;
+  onPve?: () => void;
   onSettings: () => void;
 }
 
@@ -380,6 +383,7 @@ export function Garage({
   fps,
   onLaunch,
   onMultiplayer,
+  onPve,
   onSettings,
   switching,
   switchError,
@@ -421,6 +425,7 @@ export function Garage({
       onSelectShip(id);
     },
     launch: onLaunch,
+    pve: onPve,
     multiplayer: onMultiplayer,
     ready: ready && !switching,
     settings: onSettings,

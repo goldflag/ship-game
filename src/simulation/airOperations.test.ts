@@ -15,15 +15,16 @@ function fixture() {
   return { sim, run, wing, events };
 }
 
-test('48 aircraft start hidden in the hangar with eight stable squadron selections', () => {
+test('48 aircraft start hidden in the hangar with nine stable legacy squadron selections', () => {
   const { sim, run, wing } = fixture(); run(1 / 60);
   expect(sim.player.airWing!.planes).toHaveLength(48);
   expect(sim.player.airWing!.planes.filter(onFlightDeck)).toHaveLength(0);
-  expect(wing().groups).toHaveLength(8);
-  expect(wing().groups.every(f => f.total === 6 && f.status === 'ready')).toBe(true);
+  expect(wing().groups).toHaveLength(9);
+  expect(wing().groups.map(f => f.total)).toEqual([6, 6, 4, 6, 6, 4, 6, 6, 4]);
+  expect(wing().groups.every(f => f.status === 'ready')).toBe(true);
   expect(wing().inHangar).toBe(48); expect(wing().counts.ready).toBe(48);
   expect(wing().flights.filter(p => p.followable)).toHaveLength(0);
-  expect(wing().squadrons.map(s => s.total)).toEqual([18, 18, 12]);
+  expect(wing().squadrons.map(s => s.total)).toEqual([16, 16, 16]);
 });
 
 test('six-plane flights retain separate orders and four active slots include queued flights', () => {

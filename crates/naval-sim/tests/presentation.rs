@@ -72,7 +72,12 @@ fn streamed_large_battle_preserves_every_presentation_field_and_authority_state(
         }
         let before = serde_json::to_string(&battle.snapshot()).unwrap();
         let expected: Value = serde_json::from_str(
-            &serde_json::to_string(&battle.presentation_value().unwrap()).unwrap(),
+            &serde_json::to_string(
+                &battle
+                    .presentation_value(naval_sim::snapshot::PresentationView::FullKnowledge)
+                    .unwrap(),
+            )
+            .unwrap(),
         )
         .unwrap();
         let actual: Value =

@@ -15,6 +15,23 @@
         "scripts/ships/blender_barrels.py"
       ]
     },
+    "cleveland-main": {
+      "path": "assets/parts/us-6in47-mk16/geometry.py",
+      "function": "create_mount",
+      "inputs": [
+        "assets/parts/aa_articulation.py"
+      ]
+    },
+    "us-iowa-mounts": {
+      "path": "assets/parts/us-iowa-mounts/geometry.py",
+      "function": "create_mount",
+      "inputs": []
+    },
+    "us-mk32-mod12": {
+      "path": "assets/parts/us-5in38-mk32-mod12/geometry.py",
+      "function": "create_mount",
+      "inputs": []
+    },
     "ijn-type-c": {
       "path": "assets/parts/ijn-destroyer-guns/type_c.py",
       "function": "create_mount",
@@ -346,21 +363,40 @@
       "nation": "United States",
       "family": "40 mm Bofors",
       "review": "unreviewed",
-      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified."
+      "limitations": "Original Iowa source extracted for exact-variant reuse. Standalone and Cleveland installation review pending; historical identification limited to approved source model.",
+      "builder": "us-iowa-mounts"
     },
     {
       "partId": "us-20mm-oerlikon-mk4-iowa",
       "nation": "United States",
       "family": "20 mm Oerlikon",
       "review": "unreviewed",
-      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified."
+      "limitations": "Original Iowa source extracted for exact-variant reuse. Standalone and Cleveland installation review pending; historical identification limited to approved source model.",
+      "builder": "us-iowa-mounts"
     },
     {
       "partId": "us-5in38-mk32-iowa",
       "nation": "United States",
       "family": "US 5-inch/38",
       "review": "unreviewed",
-      "limitations": "Legacy ID and name say Mk 32; historical Iowa mount identity is Mk 28 Mod 2. Resolve against approved fit before promoting to a shared builder."
+      "limitations": "Original legacy Iowa recipe; exact historical identification remains unresolved. Do not substitute for the separately registered AGS010 Mk.32 Mod.12 enclosure.",
+      "builder": "us-iowa-mounts"
+    },
+    {
+      "partId": "us-6in47-mk16-cleveland",
+      "nation": "United States",
+      "family": "US 6-inch/47 Mk.16 triple",
+      "review": "unreviewed",
+      "limitations": "Original Cleveland Hull A reconstruction in progress; canvas articulation and exact proportions require visual review. Gameplay values provisional.",
+      "builder": "cleveland-main"
+    },
+    {
+      "partId": "us-5in38-mk32-mod12",
+      "nation": "United States",
+      "family": "US 5-inch/38 Mk.32 Mod.12",
+      "review": "unreviewed",
+      "limitations": "Original reconstruction against the approved Cleveland pasc208 AGS010 model; distinct from the unresolved legacy Iowa enclosure. Geometry and installation acceptance pending; inherited gameplay values provisional.",
+      "builder": "us-mk32-mod12"
     },
     {
       "partId": "type93-13-twin",

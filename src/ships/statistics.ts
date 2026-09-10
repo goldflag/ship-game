@@ -1,6 +1,6 @@
 import { torpedoSpeed, effectiveHandling } from '../simulation/mobility';
 import type { GunPart, ShipDefinition } from './blueprint';
-import { ANTI_AIRCRAFT_MAX_CALIBER_M, antiAircraftRange, torpedoArcLabel } from './armament';
+import { ANTI_AIRCRAFT_MAX_CALIBER_M, antiAircraftRange, gunTraverseLimitsDeg, torpedoArcLabel } from './armament';
 import { maxHullIntegrity } from '../simulation/damage';
 import { KNOTS_PER_MPS } from '../simulation/ship';
 import { GRAVITY } from '../simulation/weapons';
@@ -72,11 +72,17 @@ export function shipScores(def: ShipDefinition): StatScore[] {
   ];
 }
 
-function batteryRows(mounts: ShipDefinition['mounts'], withName: boolean): StatRow[] {
+function batteryRows(mounts: ShipDefinition['mounts'], withName: boolean, definition: ShipDefinition): StatRow[] {
   const weapon = mounts[0].weapon;
   const groups = new Map<number, number>();
   for (const mount of mounts) groups.set(barrels(mount.weapon), (groups.get(barrels(mount.weapon)) ?? 0) + 1);
   const layout = [...groups].map(([barrels, count]) => `${count} × ${barrels}`).join(' + ');
+  const traverse = (mount: ShipDefinition['mounts'][number]) => {
+    const [low, high] = gunTraverseLimitsDeg(mount);
+    return `${low === -high ? `±${high}°` : `${low}° to ${high}°`} · ${mount.weapon.traverseRateDeg}°/s`;
+  };
+  const traverseRows = new Set(mounts.map(traverse)).size === 1 ? [{ label: 'Traverse', value: traverse(mounts[0]), help: 'Travel relative to the mount’s neutral bearing and training speed.' }]
+    : mounts.map(mount => ({ label: `Traverse · ${mount.name}`, value: traverse(mount), help: 'Travel relative to this mount’s neutral bearing and training speed.' }));
   return [
     ...(withName ? [{ label: weapon.name, value: layout, help: 'Mounts × barrels per mount.', text: true }] : [{ label: 'Layout', value: layout, help: 'Mounts × barrels per mount.' }]),
     { label: 'Reload', value: format(weapon.reloadSeconds, weapon.reloadSeconds < 10 ? 1 : 0), unit: 's', help: 'Seconds between salvos from one mount.' },
@@ -87,7 +93,8 @@ function batteryRows(mounts: ShipDefinition['mounts'], withName: boolean): StatR
     { label: 'Shell mass', value: format(weapon.projectileMassKg, weapon.projectileMassKg < 10 ? 2 : 0), unit: 'kg', help: 'Projectile mass carried by each shot.' },
     { label: 'Maximum range', value: format(maximumRangeM(weapon) / 1000, 1), unit: 'km', help: 'Maximum flat-water range with drag over the permitted low arc, capped by the fire-control solver.' },
     { label: 'Elevation', value: `${weapon.elevationMinDeg}° to ${weapon.elevationMaxDeg}°`, help: 'Barrel elevation limits.' },
-    { label: 'Traverse', value: `±${weapon.traverseDeg}° · ${weapon.traverseRateDeg}°/s`, help: 'Training arc either side of the mount bearing and training speed.' },
+    ...((definition.mountClearance?.mounts?.some(e => mounts.some(m => m.id === e.mountId)) || definition.mountClearance?.mountIds?.some(id => mounts.some(m => m.id === id))) ? [{ label: 'Motion clearance', value: 'Interlocked', help: 'Fitted guns stop before entering a platform or neighboring turret. Reachable elevation depends on bearing and nearby gun positions.' }] : []),
+    ...traverseRows,
     { label: 'Ammunition', value: format(mounts.reduce((n, m) => n + m.weapon.ammoPerBarrel * barrels(m.weapon), 0)), unit: 'rounds', help: 'Rounds for the whole battery. Firing a salvo spends one per barrel.' },
     { label: 'Gunhouse armor', value: format(weapon.armorMm), unit: 'mm', help: 'Nominal gunhouse protection used when no authored gunhouse plates exist.' },
   ];
@@ -134,12 +141,12 @@ export function shipStatistics(def: ShipDefinition): StatSection[] {
   };
   const mainBattery: StatSection | undefined = main.length ? {
     id: 'main-battery', title: 'Main battery', headline: format(Math.round(main[0].weapon.caliberM * 1000)), headlineUnit: 'mm', headlineHelp: `${main[0].weapon.name}. Caliber sets the shell and the gunhouse envelope.`,
-    rows: [{ label: 'Gun', value: [...new Set(main.map(m => m.weapon.name))].join(' / '), help: 'Weapons fitted to the main battery mounts.', text: true }, ...batteryRows(main, false)],
+    rows: [{ label: 'Gun', value: [...new Set(main.map(m => m.weapon.name))].join(' / '), help: 'Weapons fitted to the main battery mounts.', text: true }, ...batteryRows(main, false, def)],
   } : undefined;
   const secondaryGroups = [...new Map(secondary.map(m => [m.partId, secondary.filter(s => s.partId === m.partId)])).values()];
   const secondaryBattery: StatSection | undefined = secondary.length ? {
     id: 'secondary-battery', title: 'Secondary battery', headline: format(secondary.reduce((n, m) => n + barrels(m.weapon), 0)), headlineUnit: 'barrels', headlineHelp: 'Barrels across every secondary mount. Secondary batteries fire under their own control.',
-    rows: secondaryGroups.flatMap(group => batteryRows(group, true).filter(row => secondaryGroups.length === 1 || ['Reload', 'Damage per minute', 'Maximum range', 'Penetration'].includes(row.label) || row.text)),
+    rows: secondaryGroups.flatMap(group => batteryRows(group, true, def).filter(row => secondaryGroups.length === 1 || ['Reload', 'Damage per minute', 'Maximum range', 'Penetration', 'Motion clearance'].includes(row.label) || row.text)),
     collapsed: true,
   } : undefined;
   const tubes = def.torpedoTubes ?? [];
