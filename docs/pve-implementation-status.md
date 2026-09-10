@@ -29,6 +29,14 @@ The owner chose corner cards for the fleet panels, the right sidebar for air gro
 - **Menu placement**: the wheel hub is hollow so the unit stays visible through it, and the wheel flips to port before the rail as well as before the screen edge. The collapse-to-chip behaviour from the first pass stays.
 - Verified with the SSR test suite (FleetCards, AirRail, FleetCommand) and a headless WebGPU battle: cards, rail with an expanded group, wheel flip beside the rail, and three groups loitering with endurance in the rows.
 
+### Round-two follow-ups (2026-09-10)
+
+- A formation's route and its move preview leave from the formation's centre, not the leader's bow, and a multi-ship selection previews one line. Escort links are hidden while the whole formation is selected (the leader's route explains the movement); an escort selected or hovered on its own shows its link to a small station ring labelled "station".
+- Plane markers give way to the model sooner (fade between 6 and 14 px of projected length instead of 12 and 30).
+- Leaving the chart for a ship now descends onto it: `spectateTeammate` only cancels a camera transition when it did not just close the chart itself, and `followFleetShip` lets it close the chart. Taking the helm from the chart descends the same way.
+- The minimap size keys work while following a teammate: `chartLarger`/`chartSmaller` are handled like the HUD and fullscreen toggles, before the input controller's enabled guard. Mouse-wheel zoom while following already worked; optics (Shift) stay disabled while following.
+- Headless validation uses the new battle setup (Choose a battle mode → Fleet command → drag ships into Group 1/2 → Deploy fleet → Start battle); the garage ship joins the fleet automatically.
+
 ## Fleet command redesign "At the cursor" (2026-09-09)
 
 The in-battle command screen now follows the selected redesign in [docs/fleet-command-redesign](fleet-command-redesign/README.md). Orders open on a wheel beside the selected ship (`src/ui/OrderWheel.tsx`), air orders on a bar beside the selected groups, and a report in a popover; every anchored control follows its subject across the chart through the existing projection hook. The old command card, contacts panel and task-group form are gone.

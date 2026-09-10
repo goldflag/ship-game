@@ -75,6 +75,10 @@ export class InputController {
       if (key === 'Escape') this.actions.pause();
       if (action === 'hud') this.actions.hud();
       if (action === 'fullscreen') this.actions.fullscreen();
+      // Resizing the chart is a view control like the HUD toggle: it stays live
+      // while the helm is not the player's, such as when following a teammate.
+      if (action === 'chartLarger') this.actions.chartSize(1);
+      if (action === 'chartSmaller') this.actions.chartSize(-1);
     }
     if (!this.enabled) return;
     this.keys.add(key);
@@ -90,8 +94,6 @@ export class InputController {
       if (control) this.actions.cursor(true);
       const weaponIndex = WEAPON_GROUP_ACTIONS.findIndex(id => id === action);
       if (weaponIndex >= 0) this.actions.weaponGroup(weaponIndex);
-      if (action === 'chartLarger') this.actions.chartSize(1);
-      if (action === 'chartSmaller') this.actions.chartSize(-1);
       if (action === 'shellFollow') this.actions.shellFollow();
       if (action === 'shellType') this.actions.shellType?.();
       if (action === 'dive') this.actions.depth?.(1);

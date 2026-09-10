@@ -76,7 +76,7 @@ function SquadronIcon({ role, size = 20 }: { role: FlightSummary['role']; size?:
 
 export function SquadronLabels({ data, game, onOrder, onTarget, onSelect, onPointerDown }: { data: Telemetry; game: Game | null; onOrder?(id: string, team: string): void; onTarget?(id: string, team: string): boolean; onSelect?(id: string, additive?: boolean): void; onPointerDown?(event: PointerEvent<Element>): void }) {
   const labels = useRef<HTMLDivElement>(null);
-  const reports = game?.simulation.observationTracks ?? [];
+  const reports = game?.simulation?.observationTracks ?? [];
   const observedPlanes = data.airOperationsOpen ? [] : (game?.simulation.observedAircraft ?? []).filter(p =>
     p.observers.includes(data.spectatedShipId ?? data.ship.id) && reports.some(r => r.id === p.id && reportState(r, game!.simulation.tick) === 'current'));
   useLayoutEffect(() => {
