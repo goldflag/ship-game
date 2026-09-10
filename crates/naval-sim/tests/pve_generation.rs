@@ -281,10 +281,7 @@ fn opening_orders_keep_escorts_but_leave_all_player_group_routes_unassigned() {
     let plan = PvePlan::generate(&content, req).unwrap();
     let battle = battle(&plan);
     let orders = plan.initial_directives(&battle);
-    assert!(matches!(
-        &orders["ship-0"].0,
-        Movement::HoldArea { .. }
-    ));
+    assert!(matches!(&orders["ship-0"].0, Movement::HoldArea { .. }));
     assert!(matches!(&orders["ship-1"].0,Movement::Escort{leader_id,..} if leader_id=="ship-0"));
     assert!(matches!(&orders["ship-2"].0, Movement::HoldArea { .. }));
     assert!(orders.values().all(|(_, target)| target.is_none()));
@@ -491,10 +488,12 @@ fn enemy_front_loss_repositions_carriers_and_keeps_surviving_escorts_with_them()
         .find(|a| a.team == TeamId::B && a.definition().air_wing.is_some())
         .unwrap();
     let (movement, target) = &directives[&carrier.motion.id];
-    let contact = battle
-        .sensors
-        .contact(TeamId::B, target.as_ref().unwrap())
-        .unwrap();
+    assert!(
+        target.is_none(),
+        "movement directives must leave battery targets to captains"
+    );
+    let contacts = battle.sensors.contacts(TeamId::B);
+    let contact = contacts.iter().find(|c| c.targetable()).unwrap();
     let Movement::Route {
         waypoints,
         looped: false,

@@ -9,6 +9,10 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
+
+/// Gameplay tuning: repeated gunfire refreshes this visibility window.
+pub const FIRING_VISIBILITY_SECONDS: f64 = 20.0;
+const FIRING_VISIBILITY_BONUS_M: f64 = 1000.0;
 use ts_rs::TS;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, TS)]
@@ -134,6 +138,7 @@ pub struct VisualEntity {
     pub eye: [f64; 3],
     pub feature: [f64; 3],
     pub length_m: f64,
+    pub firing: bool,
     pub preset_id: Option<String>,
     /// Aircraft role for type classification once evidence is strong; ships use None.
     pub role: Option<String>,
@@ -260,6 +265,68 @@ impl Sensors {
                             <= horizontal(nearest.estimated_position, position) * 1.25
                 })
                 .unwrap_or(nearest),
+        )
+    }
+    /// Score permitted reports for a battery. Hysteresis keeps crews on a
+    /// useful solution; close, converging screens compete with distant capitals.
+    pub fn battery_target(
+        &self,
+        team: TeamId,
+        position: [f64; 3],
+        mount: &crate::definition::MountDefinition,
+        priority: Option<&str>,
+        previous: Option<&str>,
+    ) -> Option<&ContactTrack> {
+        let range = crate::bots::gun_range(mount);
+        let eligible = |c: &&ContactTrack| {
+            c.targetable()
+                && (mount.battery != "secondary"
+                    || horizontal(c.estimated_position, position) <= range)
+        };
+        let score = |c: &ContactTrack| {
+            let distance = horizontal(c.estimated_position, position).max(250.0);
+            let large = c.classification.as_deref() == Some("Large warship");
+            let small = c.classification.as_deref() == Some("Small warship");
+            let suitability = if mount.weapon.caliber_m >= 0.2 {
+                if large {
+                    1.6
+                } else if small {
+                    0.75
+                } else {
+                    1.15
+                }
+            } else if small {
+                1.6
+            } else if large {
+                0.65
+            } else {
+                1.0
+            };
+            let closing = ((position[0] - c.estimated_position[0]) * c.velocity[0]
+                + (position[2] - c.estimated_position[2]) * c.velocity[2])
+                / distance;
+            let threat =
+                if distance < 4000.0 { 1.5 } else { 1.0 } * if closing > 2.0 { 1.2 } else { 1.0 };
+            let freshness = if c.status == TrackStatus::Lost {
+                0.35
+            } else {
+                1.0
+            };
+            let reachable = if distance > range { 0.25 } else { 1.0 };
+            suitability * threat * freshness * reachable / distance
+        };
+        let candidates = self.iter_contacts(team).filter(eligible);
+        if let Some(c) = candidates.clone().find(|c| Some(c.id.as_str()) == priority) {
+            return Some(c);
+        }
+        let best = candidates
+            .clone()
+            .max_by(|a, b| score(a).total_cmp(&score(b)))?;
+        Some(
+            candidates
+                .into_iter()
+                .find(|c| Some(c.id.as_str()) == previous && score(c) * 1.25 >= score(best))
+                .unwrap_or(best),
         )
     }
     /// Borrow the same permitted reports used in public snapshots. Combat
@@ -519,6 +586,12 @@ pub fn observation_strength(
         }
         (ContactKind::Aircraft, ContactKind::Aircraft) => r.air_to_air_range_m,
     };
+    let range = range
+        + if target.kind == ContactKind::Surface && target.firing {
+            FIRING_VISIBILITY_BONUS_M
+        } else {
+            0.0
+        };
     let aggregate = if target.kind == ContactKind::Aircraft {
         1.0 + (formation as f64).ln().min(3.0) * 0.1
     } else {
@@ -657,6 +730,7 @@ pub fn entities(actors: &[Vessel], aviation: &Aviation) -> Vec<VisualEntity> {
                 eye: top(bridge, 8.0),
                 feature: top(feature, 5.0),
                 length_m: def.hull.length,
+                firing: a.firing_visibility_seconds > 0.0,
                 preset_id: Some(a.preset_id.clone()),
                 role: None,
                 cues,
@@ -692,6 +766,7 @@ pub fn entities(actors: &[Vessel], aviation: &Aviation) -> Vec<VisualEntity> {
                 eye: p.position,
                 feature: p.position,
                 length_m: 12.0,
+                firing: false,
                 preset_id: None,
                 role: Some(p.role.clone()),
                 cues: Default::default(),

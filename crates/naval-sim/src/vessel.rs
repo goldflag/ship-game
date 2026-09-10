@@ -95,6 +95,10 @@ pub struct Vessel {
     pub depth_charge_cooldown: f64,
     pub controller: Controller,
     pub bot: Option<crate::bots::BotState>,
+    #[serde(skip)]
+    pub firing_visibility_seconds: f64,
+    #[serde(skip)]
+    pub secondary_bot: Option<crate::bots::BotState>,
     pub target_id: Option<String>,
     #[serde(flatten)]
     pub state: Combatant,
@@ -113,6 +117,8 @@ impl Vessel {
             controller: Controller::Idle,
             bot: None,
             target_id: None,
+            firing_visibility_seconds: 0.0,
+            secondary_bot: None,
             state: Combatant::new(id, &compiled.definition),
             preset_id: compiled.definition.id.clone(),
             team,

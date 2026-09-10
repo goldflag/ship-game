@@ -361,6 +361,23 @@ impl BotState {
         }
     }
 }
+/// Select the strongest operational surface mount in this battery.
+pub fn battery_mount(actor: &Vessel, secondary: bool) -> Option<&MountDefinition> {
+    actor
+        .definition()
+        .mounts
+        .iter()
+        .zip(&actor.mounts)
+        .filter(|(m, state)| {
+            (m.battery == "secondary") == secondary
+                && crate::anti_aircraft::surface_allowed(actor.definition(), m)
+                && state.hp > 0.0
+                && state.ammo > 0.0
+        })
+        .max_by(|(a, _), (b, _)| a.weapon.caliber_m.total_cmp(&b.weapon.caliber_m))
+        .map(|(m, _)| m)
+}
+
 pub fn gun_range(m: &MountDefinition) -> f64 {
     let caliber = m.weapon.caliber_m;
     if caliber >= 0.2 {
@@ -500,7 +517,10 @@ fn avoid_ships(actor: &Vessel, heading: f64, actors: &[Vessel]) -> f64 {
 fn avoid_known_ships(actor: &Vessel, heading: f64, actors: &[Vessel], own_only: bool) -> f64 {
     let (mut x, mut z) = (heading.sin(), -heading.cos());
     for other in actors {
-        if other.motion.id == actor.motion.id || other.motion.y < -20.0 || (own_only && other.team != actor.team) {
+        if other.motion.id == actor.motion.id
+            || other.motion.y < -20.0
+            || (own_only && other.team != actor.team)
+        {
             continue;
         }
         let separation = distance(actor, other);

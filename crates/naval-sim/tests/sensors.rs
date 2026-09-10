@@ -19,6 +19,7 @@ fn entity(id: &str, team: TeamId, kind: ContactKind, x: f64, altitude: f64) -> V
         cues: Default::default(),
         motion: Default::default(),
         aircraft: None,
+        firing: false,
         health: 1.0,
     }
 }
@@ -80,7 +81,7 @@ fn close_contacts_are_immediately_identified_and_keep_the_same_contact_id() {
 fn marginal_reports_are_immediate_and_cadence_is_not_render_frame_dependent() {
     let rules = VisualRules::default();
     let observer = entity("own", TeamId::A, ContactKind::Surface, 0.0, 0.0);
-    let target = entity("enemy", TeamId::B, ContactKind::Surface, 13000.0, 0.0);
+    let target = entity("enemy", TeamId::B, ContactKind::Surface, 10800.0, 0.0);
     let mut a = Sensors::default();
     let mut b = Sensors::default();
     let world = [observer, target];
@@ -204,7 +205,7 @@ fn binary_spotting_identifies_even_a_marginal_contact_on_the_first_check() {
     let mut sensors = Sensors::default();
     let rules = VisualRules::default();
     let observer = entity("own", TeamId::A, ContactKind::Surface, 0.0, 0.0);
-    let target = entity("enemy", TeamId::B, ContactKind::Surface, 13000.0, 0.0);
+    let target = entity("enemy", TeamId::B, ContactKind::Surface, 10800.0, 0.0);
     sensors.update(0, &[observer, target.clone()], &[], &[], clear(), &rules);
     let contacts = sensors.contacts(TeamId::A);
     assert_eq!(
@@ -250,4 +251,60 @@ fn current_contacts_follow_a_straight_course_without_rounding_jumps() {
             target.position
         );
     }
+}
+
+#[test]
+fn surface_size_and_firing_boundaries_preserve_weather_and_horizon() {
+    let observer = entity("own", TeamId::A, ContactKind::Surface, 0.0, 0.0);
+    let rules = VisualRules::default();
+    for (length, base) in [(100.0, 9000.0), (180.0, 10000.0), (260.0, 11000.0)] {
+        for firing in [false, true] {
+            let limit = base + if firing { 1000.0 } else { 0.0 };
+            for (distance, visible) in [(limit, true), (limit + 1.0, false)] {
+                let mut target = entity("enemy", TeamId::B, ContactKind::Surface, distance, 0.0);
+                target.length_m = length;
+                target.firing = firing;
+                let strength = |o: &VisualEntity, c| {
+                    sensors::observation_strength(o, &target, 1, false, c, &rules)
+                };
+                assert_eq!(strength(&observer, clear()).is_some(), visible);
+                assert!(
+                    strength(
+                        &observer,
+                        VisualConditions {
+                            visibility_m: 8000.0,
+                            ..clear()
+                        }
+                    )
+                    .is_none()
+                );
+                let mut low = observer.clone();
+                low.eye[1] = 0.0;
+                target.feature[1] = 0.0;
+                assert!(
+                    sensors::observation_strength(&low, &target, 1, false, clear(), &rules)
+                        .is_none()
+                );
+            }
+        }
+    }
+}
+
+#[test]
+fn forward_screen_is_visible_alongside_a_rear_battleship() {
+    let own = entity("own", TeamId::A, ContactKind::Surface, 0.0, 0.0);
+    let mut destroyer = entity("screen", TeamId::B, ContactKind::Surface, 8900.0, 0.0);
+    destroyer.length_m = 100.0;
+    let mut capital = entity("capital", TeamId::B, ContactKind::Surface, 10900.0, 0.0);
+    capital.length_m = 260.0;
+    let mut sensors = Sensors::default();
+    sensors.update(
+        0,
+        &[own, destroyer, capital],
+        &[],
+        &[],
+        clear(),
+        &VisualRules::default(),
+    );
+    assert_eq!(sensors.contacts(TeamId::A).len(), 2);
 }
