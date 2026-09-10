@@ -6,4 +6,4 @@
  * fixed to a formation axis that rotates toward the leader's course at a
  * bounded rate, so every ship turns together.
  */
-export type Formation = "column" | "screen" | "line-abreast";
+export type Formation = "column" | "double-column" | "triple-column" | "screen" | "line-abreast";

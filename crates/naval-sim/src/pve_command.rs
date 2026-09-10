@@ -2,7 +2,8 @@
 use crate::{
     battle::Battle,
     bots::AiLevel,
-    navigation::Movement,
+    formations::{Station, StationClass, formation_stations},
+    navigation::{Formation, Movement},
     pve::{FleetShip, GroupStation, PvePlan, TaskGroup},
     rules::TeamId,
     vessel::Vessel,
@@ -29,19 +30,29 @@ fn members<'a>(
         })
         .collect();
     members.sort_by(|a, b| {
-        b.definition()
-            .air_wing
-            .is_some()
-            .cmp(&a.definition().air_wing.is_some())
-            .then(
-                b.definition()
-                    .hull
-                    .mass_kg
-                    .total_cmp(&a.definition().hull.mass_kg),
-            )
-            .then(a.motion.id.cmp(&b.motion.id))
+        crate::pve::member_order(
+            (a.definition(), &a.motion.id),
+            (b.definition(), &b.motion.id),
+        )
     });
     members
+}
+/// The formation a group sails in and the berth each follower keeps in it, from
+/// the same table the deployment chart laid the group out with. `ships` is the
+/// group in `members` order, guide first.
+fn group_stations(group: &TaskGroup, ships: &[&Vessel]) -> (Formation, Vec<Station>) {
+    let formation = group.formation.unwrap_or_default();
+    let class = |a: &Vessel| StationClass::of(a.definition());
+    let followers: Vec<_> = ships[1..]
+        .iter()
+        .map(|a| (a.motion.id.clone(), class(a)))
+        .collect();
+    let stations = formation_stations(
+        formation,
+        (&ships[0].motion.id, class(ships[0])),
+        &followers,
+    );
+    (formation, stations)
 }
 fn inside(point: [f64; 2], battle: &Battle) -> [f64; 2] {
     let radius = battle.mission_rules.as_ref().unwrap().area.radius_m - 2500.0;
@@ -85,7 +96,18 @@ fn search(leader: &Vessel, battle: &Battle) -> Movement {
         looped: true,
     }
 }
-fn escort(ship: &Vessel, leader: &Vessel, plan: &PvePlan, index: usize) -> Movement {
+/// A follower keeps the berth it deployed in, measured from where its guide
+/// deployed: what the owner placed on the chart is what sails. A ship with no
+/// recorded placement falls back to the station its class earns in the group's
+/// formation. The slot always comes from the table, so guide succession runs
+/// down the formation in role order.
+fn escort(
+    ship: &Vessel,
+    leader: &Vessel,
+    plan: &PvePlan,
+    formation: Formation,
+    station: &Station,
+) -> Movement {
     let initial = plan
         .setup
         .ships
@@ -107,32 +129,14 @@ fn escort(ship: &Vessel, leader: &Vessel, plan: &PvePlan, index: usize) -> Movem
                 -dx * b.heading.sin() + dz * b.heading.cos(),
             ]
         }
-        _ => [
-            if index.is_multiple_of(2) {
-                -650.0
-            } else {
-                650.0
-            },
-            500.0 + (index / 2) as f64 * 500.0,
-        ],
+        _ => station.offset,
     };
     Movement::Escort {
         leader_id: leader.motion.id.clone(),
         offset,
         radius_m: 180.0,
-        formation: plan
-            .groups
-            .iter()
-            .chain(plan.enemy_groups.iter())
-            .find(|g| {
-                plan.assignments
-                    .iter()
-                    .chain(plan.enemy_assignments.iter())
-                    .any(|s| s.id == ship.motion.id && s.group_id == g.id)
-            })
-            .and_then(|g| g.formation)
-            .unwrap_or_default(),
-        slot: index as u32,
+        formation,
+        slot: station.slot,
     }
 }
 /// A shared report priority lets surface groups and carrier strikes concentrate
@@ -228,10 +232,14 @@ impl PvePlan {
                     }
                 };
                 orders.insert(leader.motion.id.clone(), (movement, None));
-                for (i, ship) in ships.iter().skip(1).enumerate() {
+                let (formation, stations) = group_stations(group, &ships);
+                for ship in ships.iter().skip(1) {
+                    let Some(station) = stations.iter().find(|s| s.id == ship.motion.id) else {
+                        continue;
+                    };
                     orders.insert(
                         ship.motion.id.clone(),
-                        (escort(ship, leader, self, i), None),
+                        (escort(ship, leader, self, formation, station), None),
                     );
                 }
             }
@@ -331,10 +339,17 @@ impl PvePlan {
             {
                 orders.insert(leader.motion.id.clone(), (patrol(leader, battle), None));
             }
-            for (i, ship) in ships.iter().skip(1).enumerate() {
+            // A re-issued escort carries the group's formation and the follower's
+            // slot in it, so a directive refresh never quietly flattens a screen
+            // into a column or reshuffles guide succession.
+            let (formation, stations) = group_stations(group, &ships);
+            for ship in ships.iter().skip(1) {
+                let Some(station) = stations.iter().find(|s| s.id == ship.motion.id) else {
+                    continue;
+                };
                 orders.insert(
                     ship.motion.id.clone(),
-                    (escort(ship, leader, self, i), None),
+                    (escort(ship, leader, self, formation, station), None),
                 );
             }
         }

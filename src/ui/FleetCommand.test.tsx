@@ -140,8 +140,8 @@ const fleetFixture = (formation: Formation = 'column', notices: { tick: number; 
   const standing = (movement: FleetOrderState['movement']): FleetOrderState => ({ movement, weapons: { guns: true, aa: true, torpedoes: false }, formationPolicy: 'slow-for-stragglers', targetId: null, manual: false, navigation: null });
   Object.assign(simulation, { phase: 'running', fleetNotices: notices,
     fleetOrders: { player: standing({ type: 'hold' }),
-      'friendly-1': standing({ type: 'escort', leaderId: 'player', offset: [0, 1800], radiusM: 160, formation, slot: 1 }),
-      'friendly-2': standing({ type: 'escort', leaderId: 'player', offset: [0, 900], radiusM: 160, formation, slot: 0 }) },
+      'friendly-1': standing({ type: 'escort', leaderId: 'player', offset: [0, 900], radiusM: 160, formation, slot: 1 }),
+      'friendly-2': standing({ type: 'escort', leaderId: 'player', offset: [0, 450], radiusM: 160, formation, slot: 0 }) },
     escortShip: (id: string, leaderId: string, offset: [number, number], radiusM: number, kind?: Formation, slot?: number) => { escorts.push({ id, leaderId, offset, radiusM, formation: kind, slot }); } });
   const owned = simulation.telemetry('main', [0, 0, -7500]).contacts.filter(c => c.team === 'friendly');
   const controlGroups = new Map<number, ControlGroup>([[1, { name: 'Group 1', shipIds: owned.map(c => c.id), formation }]]);
@@ -155,7 +155,7 @@ test('the formation picker acts on the selected group and explains itself when t
   const { render, owned } = fleetFixture();
   const whole = render(owned.map(c => c.id));
   expect(whole).toContain('aria-label="Formation"');
-  for (const label of ['Column', 'Screen', 'Line abreast']) expect(whole).toContain(`>${label}</button>`);
+  for (const label of ['Column', 'Double column', 'Triple column', 'Screen', 'Line abreast']) expect(whole).toContain(`>${label}</button>`);
   // The group sails in column until the picker says otherwise, and says so on the rail and in the roster.
   expect(whole).toContain('aria-pressed="true">Column</button>');
   expect(whole).toContain('Line ahead. Followers turn in succession');
@@ -184,12 +184,21 @@ test('choosing a formation records it on the control group and re-stations every
   ]);
   expect(escorts.map(e => e.leaderId)).toEqual([owned[0].id, owned[0].id]);
   expect(escorts[0].offset).toEqual([0, -SCREEN_INNER_RADIUS_M]);
+  expect(SCREEN_INNER_RADIUS_M).toBe(700);
   expect(escorts[1].offset).toEqual([0, -SCREEN_OUTER_RADIUS_M]);
   // A column puts the same ships astern at the battleship's interval, heavies nearest.
   escorts.length = 0;
   expect(applyGroupFormation(game, { ...group, formation: 'screen' }, 'column', members)).toBe('2 escort orders queued · Column');
-  expect(escorts.map(e => [e.id, e.offset, e.slot])).toEqual([[owned[2].id, [0, 900], 0], [owned[1].id, [0, 1800], 1]]);
+  expect(escorts.map(e => [e.id, e.offset, e.slot])).toEqual([[owned[2].id, [0, 450], 0], [owned[1].id, [0, 900], 1]]);
   expect(controlGroups.get(1)!.formation).toBe('column');
+  // A double column re-stations the same pair abeam and astern of the guide's own column.
+  escorts.length = 0;
+  expect(applyGroupFormation(game, { ...group, formation: 'column' }, 'double-column', members)).toBe('2 escort orders queued · Double column');
+  expect(escorts.map(e => [e.id, e.formation, e.offset, e.slot])).toEqual([
+    [owned[2].id, 'double-column', [450, 0], 0],
+    [owned[1].id, 'double-column', [0, 450], 1],
+  ]);
+  expect(controlGroups.get(1)!.formation).toBe('double-column');
   // A group with nobody to station still records the formation it was set to.
   expect(applyGroupFormation(game, { ...group, shipIds: [owned[0].id] }, 'line-abreast', [members[0]])).toBe('Bismarck formation · Line abreast · no escorts to station');
 });

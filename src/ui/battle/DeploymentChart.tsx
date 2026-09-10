@@ -8,6 +8,11 @@ import { SHIP_GLYPHS, shipClassOf } from '../shipGlyphs';
 import { formatHeading, headingDegrees, unitsBox, unitsCenter, type ChartUnit, type Deployment } from './deploymentModel';
 
 export const DEPLOYMENT_DRAG = 'application/x-fleet-deployment';
+/** Ship glyphs hold their screen size, so at the 25 km fit a close-order group (360 m
+ * between stations, about 4 px) stacks its markers on one spot and the numbers beside them
+ * become a smear. Below this zoom the group tag names the group and the numbers stay off;
+ * zoom in and every ship is numbered again. */
+export const SHIP_NUMBER_ZOOM = 1.5;
 export type ChartSelection = { kind: 'group' | 'ship'; id: string } | undefined;
 export type ChartScope = 'group' | 'ship';
 interface Gesture {
@@ -243,7 +248,7 @@ export function DeploymentChart({ deployment, fit, onChange, onCommit, selection
         <g transform={`rotate(${headingDegrees(unit.spawn.heading)}) scale(${px(.95)})`}>
           <path className="chart-hull" d={glyph.hull}/><path className="chart-mark" d={glyph.mark}/>
         </g>
-        <text x={px(14)} y={px(4)} fontSize={px(10)}>{number}</text>
+        {zoom >= SHIP_NUMBER_ZOOM && <text x={px(14)} y={px(4)} fontSize={px(10)}>{number}</text>}
       </g>;
     })}
   </svg>;

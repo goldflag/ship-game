@@ -60,8 +60,20 @@ pub enum Movement {
 pub enum Formation {
     #[default]
     Column,
+    /// Two parallel columns; the guide leads the port column.
+    DoubleColumn,
+    /// Three parallel columns; the guide leads the centre column.
+    TripleColumn,
     Screen,
     LineAbreast,
+}
+impl Formation {
+    /// Every column variant rides the guide's wake: a station astern is a place
+    /// on the water the guide has already crossed, whichever column it is in.
+    /// Only the screen and the line turn together on a formation axis.
+    pub fn is_column(self) -> bool {
+        matches!(self, Self::Column | Self::DoubleColumn | Self::TripleColumn)
+    }
 }
 
 /// Distance a ship must run before another breadcrumb is recorded.
@@ -70,6 +82,17 @@ pub const TRAIL_STEP_M: f64 = 20.0;
 pub const TRAIL_LENGTH_M: f64 = 8000.0;
 /// A formation axis follows the guide's course at three degrees a second, so a
 /// screen leans into a turn together instead of snapping around the guide's bow.
+/// Re-measured against the 700/1300 m rings a screen now keeps. A heavy guide —
+/// the ship a screen is actually built around — puts its helm over slower than
+/// this, so the axis simply tracks its head and the reorientation ends when the
+/// guide steadies: a carrier's quarter turn holds the group at its turn reserve
+/// for 140 s and the screen is back on station 168 s after that. Leaning slower
+/// only leaves the axis sweeping once the guide is steady, and the sweep reserve
+/// holds the whole group down while it does — 0.35 deg/s costs that same carrier
+/// group 258 s at the reserve and reforms no sooner. What it buys is a nimble
+/// guide throwing its screen less wide (a destroyer guide slings the outer boat
+/// 1.5 km at this rate against 0.7 km at 0.35 deg/s); the group keeping its legs
+/// is worth more than the group keeping its shape.
 pub const AXIS_RATE_RAD_PER_S: f64 = 0.0524;
 
 /// One recorded point of an actor's track.
@@ -204,10 +227,13 @@ pub fn station_for(order: &Movement, leader: &Vessel, trail: Option<&Trail>) -> 
         speed: leader.motion.speed,
         distance: 0.0,
     };
-    // A column slot is a place on the water the guide has already crossed. A slot
-    // ahead of the guide, or one further back than the recorded track, has no such
-    // place and keeps the heading-relative station with its turn reservation.
-    if *formation == Formation::Column
+    // A column slot is a place on the water the guide has already crossed, with
+    // the slot's lateral offset applied at the heading the guide held there: the
+    // side columns of a double or triple column ride the same wake, one interval
+    // out. A slot ahead of the guide, abeam of it, or further back than the
+    // recorded track has no such place and keeps the heading-relative station
+    // with its turn reservation, so a lead ship abeam swings with the guide's bow.
+    if formation.is_column()
         && offset[1] > 0.0
         && let Some(track) = trail.and_then(|t| t.behind(head, offset[1]))
     {
@@ -225,7 +251,7 @@ pub fn station_for(order: &Movement, leader: &Vessel, trail: Option<&Trail>) -> 
             sweep_rate: 0.0,
         });
     }
-    let column = *formation == Formation::Column;
+    let column = formation.is_column();
     let axis = if column {
         leader.motion.heading
     } else {

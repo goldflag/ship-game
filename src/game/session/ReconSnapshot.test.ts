@@ -37,7 +37,10 @@ test('real PvE WASM aircraft sightings reach the renderer without enemy carriers
     const plane = session.observedAircraft[0];
     expect(plane.id).toMatch(/^contact-/);
     expect(plane.modelId).toBeTruthy();
-    expect(plane.observers).toContain('player');
+    // Whichever owned ship happens to have the sighting reports it; the group's
+    // cruising formation decides which hull is nearest the contact.
+    expect(plane.observers.length).toBeGreaterThan(0);
+    expect(plane.observers.every(id => session.actors.some(a => a.motion.id === id))).toBe(true);
     expect(plane.controls.propeller).toBeNumber();
     expect(session.actors.every(a => a.team === 'friendly')).toBe(true);
     expect(session.aircraft.every(p => p.team === 'friendly')).toBe(true);

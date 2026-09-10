@@ -71,15 +71,17 @@ test('both national carrier wings fit the aircraft allowance and survive the rea
     const runtime = planner.start(JSON.stringify(briefing.setup.ships.map(s => ({ id: s.id, spawn: s.spawn }))));
     try {
       const frame = JSON.parse(runtime.snapshot());
-      const wings = frame.wings;
+      const wings = frame.wings as { ownerId: string; state: { planes: { role: string; modelId: string }[] } }[];
       expect(wings).toHaveLength(2);
       for (const wing of wings) {
         expect(wing.state.planes).toHaveLength(48);
         for (const role of ['fighter', 'dive-bomber', 'torpedo-bomber']) {
-          expect(wing.state.planes.filter((p: { role: string }) => p.role === role)).toHaveLength(16);
+          expect(wing.state.planes.filter(p => p.role === role)).toHaveLength(16);
         }
       }
-      expect([...new Set(wings[1].state.planes.map((p: { modelId: string }) => p.modelId))]).toEqual(['a6m2-zero', 'd3a1-val', 'b5n2-kate']);
+      // Wings follow the deployed order of the group, so find the Japanese deck by owner.
+      const shokaku = wings.find(w => w.ownerId === 'owned-carrier-1')!;
+      expect([...new Set(shokaku.state.planes.map(p => p.modelId))]).toEqual(['a6m2-zero', 'd3a1-val', 'b5n2-kate']);
     } finally { runtime.free(); }
   } finally { planner.free(); }
 });

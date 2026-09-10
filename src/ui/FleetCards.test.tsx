@@ -1,6 +1,7 @@
 import { expect, test } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { OwnFleetCard, type OwnFleetShip } from './OwnFleet';
+import { FleetRoster } from './FleetRoster';
 import { EnemyFleet } from './EnemyFleet';
 import type { ContactTrack } from '../multiplayer/generated/ContactTrack';
 import type { AirCluster, BattleComparison } from './fleetStats';
@@ -40,6 +41,16 @@ test('the own fleet card lists every formation with its ships, their standing or
   expect(html).toContain('Aircraft 44/48 · 36 airborne · 4 deck · 4 hangar');
   // The selected ship is the pressed row; nothing else is.
   expect(html.match(/aria-pressed="true"/g)).toHaveLength(1);
+});
+
+test('the fleet cards name every formation the picker offers, the new columns included', () => {
+  for (const [formation, label] of [['double-column', 'Double column'], ['triple-column', 'Triple column']] as const) {
+    const led = [{ ...formations[0], formation }, formations[1]];
+    expect(ownCard({ formations: led })).toContain(`2 ships \u00b7 ${label} \u00b7 13.0k dmg`);
+    const roster = renderToStaticMarkup(<FleetRoster formations={led} ships={ships} selectedIds={[]} onHover={() => {}} onSelectShip={() => {}} onSelectFormation={() => {}}/>);
+    expect(roster).toContain(`2 ships \u00b7 ${label}`);
+    expect(roster).toContain(`Bismarck formation \u00b7 1 \u00b7 ${label}`);
+  }
 });
 
 test('the own fleet card marks warnings in brass, reports losses and keeps stray ships visible', () => {

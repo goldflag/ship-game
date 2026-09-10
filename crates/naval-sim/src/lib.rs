@@ -2,6 +2,7 @@
 pub mod catalog;
 pub mod definition;
 pub mod fleet_evasion;
+pub mod formations;
 pub mod geometry;
 pub mod mobility;
 pub mod motion;

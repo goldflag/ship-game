@@ -65,6 +65,16 @@ test('a formation preset stations a group around its guide and leaves every othe
 
   const abreast = arrangeFormation(units, 'front', 'line-abreast');
   expect(abreast.find(ship => ship.id === 'ca')!.spawn.z).toBeCloseTo(12000 + d);
+
+  // Heading 090 turns the columns' [starboard, aft] offsets a quarter turn: starboard is
+  // south (+z), astern is west (−x). The cruiser leads the second column abeam of the guide.
+  const doubled = arrangeFormation(units, 'front', 'double-column');
+  const doubledCa = doubled.find(ship => ship.id === 'ca')!, doubledDd = doubled.find(ship => ship.id === 'dd')!;
+  expect(doubledCa.spawn.x).toBeCloseTo(1000); expect(doubledCa.spawn.z).toBeCloseTo(12000 + d);
+  expect(doubledDd.spawn.x).toBeCloseTo(1000 - d); expect(doubledDd.spawn.z).toBeCloseTo(12000);
+  const tripled = arrangeFormation(units, 'front', 'triple-column');
+  expect(tripled.find(ship => ship.id === 'ca')!.spawn.z).toBeCloseTo(12000 - d); // Port wing, abeam.
+  expect(tripled.find(ship => ship.id === 'dd')!.spawn.z).toBeCloseTo(12000 + d); // Starboard wing, abeam.
   expect(arrangeFormation([units[3]], 'rear', 'screen')).toEqual([units[3]]); // A single ship is already in formation.
 
   // The chart reports the chosen formation, and an arrangement that breaks the rules still shows the usual error.

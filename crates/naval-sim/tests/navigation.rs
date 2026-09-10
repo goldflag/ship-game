@@ -3,6 +3,7 @@
 use naval_sim::{
     definition::ShipDefinition,
     environment::Island,
+    formations::{StationClass, formation_stations},
     geometry::wrap_angle,
     motion::step_ship,
     navigation::{self, Formation, Movement, NavigationState, NavigationStatus, Trails},
@@ -729,26 +730,132 @@ fn a_column_turns_in_succession_and_keeps_its_line_and_intervals() {
     }
 }
 
+/// The side columns of a double column ride the same wake as the centre one, an
+/// interval out on the beam, so the whole body turns in succession behind the
+/// guide instead of swinging round it.
+#[test]
+fn a_double_column_rides_the_guides_wake_in_both_columns() {
+    let followers = ["dd0", "dd1", "dd2"];
+    let stations = formation_stations(
+        Formation::DoubleColumn,
+        ("guide", StationClass::Destroyer),
+        &followers
+            .iter()
+            .map(|id| ((*id).into(), StationClass::Destroyer))
+            .collect::<Vec<_>>(),
+    );
+    assert_eq!(
+        stations.iter().map(|s| s.offset).collect::<Vec<_>>(),
+        [[360.0, 0.0], [0.0, 360.0], [360.0, 360.0]],
+        "the sailed stations are the table's own"
+    );
+    let mut ships = vec![ship("guide", "fletcher", 0.0, 0.0)];
+    let mut orders = vec![route(vec![[0.0, -5000.0], [6000.0, -5000.0]])];
+    for station in &stations {
+        ships.push(ship(
+            &station.id,
+            "fletcher",
+            station.offset[0],
+            station.offset[1],
+        ));
+        orders.push(Movement::Escort {
+            leader_id: "guide".into(),
+            offset: station.offset,
+            radius_m: 160.0,
+            formation: Formation::DoubleColumn,
+            slot: station.slot,
+        });
+    }
+    for a in &mut ships {
+        a.motion.speed = 12.0;
+    }
+    let mut trails = Trails::new();
+    let mut track = vec![];
+    let mut minimum_gap = f64::INFINITY;
+    for tick in 0..60 * 1200 {
+        step_tracked(&mut ships, &orders, &[], tick, &mut trails);
+        if track.last().is_none_or(|p| gap(&ships[0], *p) > 10.0) {
+            track.push([ships[0].motion.x, ships[0].motion.z]);
+        }
+        for (i, a) in ships.iter().enumerate() {
+            for b in ships.iter().skip(i + 1) {
+                minimum_gap = minimum_gap.min(gap(a, [b.motion.x, b.motion.z]));
+            }
+        }
+    }
+    assert!(
+        gap(&ships[0], [6000.0, -5000.0]) < 150.0,
+        "guide failed its route"
+    );
+    assert!(minimum_gap > 200.0, "unsafe column spacing: {minimum_gap}");
+    // Each ship astern holds its own column's distance from the guide's track:
+    // the port column on it, the starboard column one interval off it.
+    for (a, station) in ships[1..].iter().zip(&stations) {
+        let off_track = cross_track(&track, [a.motion.x, a.motion.z]);
+        if station.offset[1] > 0.0 {
+            assert!(
+                (off_track - station.offset[0]).abs() < 90.0,
+                "{} is {off_track} m off the wake, not {}",
+                a.motion.id,
+                station.offset[0]
+            );
+        }
+    }
+    for (a, order) in ships[1..].iter().zip(&orders[1..]) {
+        let target = navigation::station_for(order, &ships[0], trails.get("guide"))
+            .unwrap()
+            .position;
+        assert!(
+            gap(a, target) < 200.0,
+            "{} failed to reform: error {}, status {:?}",
+            a.motion.id,
+            gap(a, target),
+            a.navigation.as_ref().unwrap().status
+        );
+    }
+}
+
 #[test]
 fn a_screen_turns_together_on_its_axis_and_reforms_without_impossible_speed() {
-    // The station table the deployment screen uses: the cruiser takes the inner
-    // ring dead ahead, the destroyers the outer ring ahead and on both quarters.
-    let stations = [
-        ("cruiser", "baltimore", [0.0, -1500.0]),
-        ("dd0", "fletcher", [0.0, -2500.0]),
-        ("dd1", "fletcher", [2165.0, 1250.0]),
-        ("dd2", "fletcher", [-2165.0, 1250.0]),
+    // The screen the deployment chart lays out, read from the shared table: the
+    // cruiser takes the inner ring dead ahead, the destroyers the outer ring
+    // ahead and on both quarters.
+    let fleet = [
+        ("cruiser", "baltimore"),
+        ("dd0", "fletcher"),
+        ("dd1", "fletcher"),
+        ("dd2", "fletcher"),
     ];
     let mut ships = vec![ship("cv", "enterprise-cv6", 0.0, 0.0)];
     let mut orders = vec![route(vec![[0.0, -9000.0], [20000.0, -9000.0]])];
-    for (slot, (id, preset, offset)) in stations.iter().enumerate() {
-        ships.push(ship(id, preset, offset[0], offset[1]));
+    let class = |preset: &str| StationClass::of(&content()[preset].definition);
+    let stations = formation_stations(
+        Formation::Screen,
+        ("cv", class("enterprise-cv6")),
+        &fleet
+            .iter()
+            .map(|(id, preset)| ((*id).into(), class(preset)))
+            .collect::<Vec<_>>(),
+    );
+    assert_eq!(
+        stations.iter().map(|s| s.offset).collect::<Vec<_>>(),
+        [
+            [0.0, -700.0],
+            [0.0, -1300.0],
+            [1126.0, 650.0],
+            [-1126.0, 650.0]
+        ],
+        "the sailed screen is the table's own"
+    );
+    for (station, (id, preset)) in stations.iter().zip(&fleet) {
+        assert_eq!(station.id, *id);
+        ships.push(ship(id, preset, station.offset[0], station.offset[1]));
         orders.push(Movement::Escort {
             leader_id: "cv".into(),
-            offset: *offset,
+            offset: station.offset,
             radius_m: 160.0,
             formation: Formation::Screen,
-            slot: slot as u32,
+            slot: station.slot,
         });
     }
     for a in &mut ships {
@@ -756,10 +863,12 @@ fn a_screen_turns_together_on_its_axis_and_reforms_without_impossible_speed() {
     }
     let mut trails = Trails::new();
     let mut steadied = 0;
-    // Reorienting a screen this wide is a long physical manoeuvre: the outer
-    // slot has to run most of a quarter circle of 2.5 km relative to the guide.
-    let settle = 60 * 600;
-    for tick in 0..60 * 2000 {
+    // Reorienting a screen is still a real physical manoeuvre: the outer slot
+    // has to run most of a quarter circle of 1.3 km relative to the guide, and
+    // the guide is held to its turn reserve while that station is swinging.
+    let settle = 60 * 300;
+    let run = 60 * 1500;
+    for tick in 0..run {
         step_fleet(&mut ships, &orders, &[], tick, &mut trails, true);
         if steadied == 0
             && wrap_angle(ships[0].motion.heading - std::f64::consts::FRAC_PI_2).abs() < 0.02
@@ -778,7 +887,7 @@ fn a_screen_turns_together_on_its_axis_and_reforms_without_impossible_speed() {
             if steadied > 0 && tick > steadied + settle {
                 let station = navigation::station_for(order, &ships[0], trails.get("cv")).unwrap();
                 assert!(
-                    gap(a, station.position) < 250.0,
+                    gap(a, station.position) < 200.0,
                     "{} is {} m off its axis station at tick {tick}",
                     a.motion.id,
                     gap(a, station.position)
@@ -787,7 +896,7 @@ fn a_screen_turns_together_on_its_axis_and_reforms_without_impossible_speed() {
         }
     }
     assert!(
-        steadied > 0 && 60 * 2000 - steadied > settle + 60 * 240,
+        steadied > 0 && run - steadied > settle + 60 * 240,
         "not enough steady running after the turn: steadied at {steadied}"
     );
     // The axis has caught the guide's course, so the screen is oriented on it.

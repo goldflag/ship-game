@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { SHIP_GLYPHS } from '../shipGlyphs';
-import { DeploymentChart } from './DeploymentChart';
+import { DeploymentChart, SHIP_NUMBER_ZOOM } from './DeploymentChart';
 import type { ChartGroup, ChartUnit, Deployment } from './deploymentModel';
 
 const groups: ChartGroup[] = [
@@ -57,8 +57,23 @@ test('zoom 1 fits the whole battle area on the chart, and the ships wear their c
   expect(html).toContain('cv · carrier');
 });
 
+test('ship numbers stay off until the chart is zoomed in, so close order is not a smear', () => {
+  // Markers hold their screen size, so at the 25 km fit a group in close order (360 m
+  // between stations, about 4 px) would stack its numbers on top of one another.
+  expect(SHIP_NUMBER_ZOOM).toBeGreaterThan(1);
+  const html = chart('front');
+  expect(html).not.toMatch(/<text x="[\d.]+" y="[\d.]+" font-size="[\d.]+">\d+<\/text>/);
+  // Nothing is lost: every marker still names its ship for the pointer and for a reader.
+  expect(html).toContain('bb \u00b7 battleship');
+  expect(html).toContain('Select bb');
+});
+
 test('a group tag names the formation it will sail', () => {
   const html = chart('rear');
   expect(html).toContain('GROUP 1 · 2 SHIPS · SCREEN');
   expect(html).toContain('GROUP 2 · 2 SHIPS · COLUMN');
+  const doubled = renderToStaticMarkup(<DeploymentChart deployment={{ ...deployment, groups: [{ ...groups[0], formation: 'double-column' }, { ...groups[1], formation: 'triple-column' }] }}
+    fit={28000} onChange={() => {}} onCommit={() => {}} selection={undefined} onSelect={() => {}} scope="group" onScopeChange={() => {}}/>);
+  expect(doubled).toContain('GROUP 1 · 2 SHIPS · DOUBLE COLUMN');
+  expect(doubled).toContain('GROUP 2 · 2 SHIPS · TRIPLE COLUMN');
 });

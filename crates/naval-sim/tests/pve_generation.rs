@@ -536,3 +536,111 @@ fn enemy_front_loss_repositions_carriers_and_keeps_surviving_escorts_with_them()
         "hidden manoeuvres and damage cannot retarget retreat"
     );
 }
+
+/// The opposing admiral deploys and sails his groups from the same station table
+/// the player's chart uses, and a formation the mission seed chose for him.
+#[test]
+fn enemy_groups_deploy_on_the_station_table_in_a_seeded_formation() {
+    use naval_sim::{
+        formations::{MIN_STATION_OFFSET_M, StationClass, formation_stations},
+        navigation::{Formation, Movement},
+    };
+    let mut content = catalog().clone();
+    content
+        .definitions
+        .retain(|id, _| matches!(id.as_str(), "fletcher" | "enterprise-cv6"));
+    let mut chosen = BTreeSet::new();
+    let fleets: [&[&str]; 3] = [
+        &["fletcher", "fletcher"],
+        &["enterprise-cv6", "fletcher", "fletcher", "fletcher"],
+        &["fletcher", "fletcher", "fletcher", "fletcher", "fletcher", "fletcher"],
+    ];
+    for (seed, fleet) in (0..24).flat_map(|seed| fleets.iter().map(move |fleet| (seed, *fleet))) {
+        let plan =
+            PvePlan::generate(&content, request(seed, fleet, "north-atlantic")).unwrap();
+        let battle = battle(&plan);
+        let definition = |id: &str| {
+            &content.definitions[&plan
+                .restart_setup()
+                .ships
+                .iter()
+                .find(|s| s.id == id)
+                .unwrap()
+                .preset_id]
+        };
+        let orders = plan.initial_directives(&battle);
+        let mut groups: std::collections::BTreeMap<String, Vec<String>> = Default::default();
+        for (id, (movement, _)) in orders.iter().filter(|(id, _)| id.starts_with("opponent-")) {
+            let Movement::Escort {
+                leader_id, offset, ..
+            } = movement
+            else {
+                continue;
+            };
+            assert!(
+                (MIN_STATION_OFFSET_M..=5000.0).contains(&offset[0].hypot(offset[1])),
+                "{id} is ordered to an unissuable station {offset:?}"
+            );
+            groups.entry(leader_id.clone()).or_default().push(id.clone());
+        }
+        assert!(!groups.is_empty(), "seed {seed} produced no enemy escorts");
+        for (leader, mut followers) in groups {
+            // Same order the live group forms up in: flight decks first, then
+            // the heaviest hull, ties on id.
+            followers.sort_by(|a, b| {
+                let (x, y) = (definition(a), definition(b));
+                y.air_wing
+                    .is_some()
+                    .cmp(&x.air_wing.is_some())
+                    .then(y.hull.mass_kg.total_cmp(&x.hull.mass_kg))
+                    .then(a.cmp(b))
+            });
+            let Movement::Escort { formation, .. } = &orders[&followers[0]].0 else {
+                unreachable!()
+            };
+            let carrier = definition(&leader).air_wing.is_some();
+            assert_eq!(
+                carrier,
+                *formation == Formation::Screen,
+                "a carrier keeps a screen and a surface force does not"
+            );
+            if !carrier {
+                let size = followers.len() + 1;
+                chosen.insert((size, format!("{formation:?}")));
+                if size <= 2 {
+                    assert_eq!(*formation, Formation::Column);
+                }
+                if size >= 5 {
+                    assert_ne!(*formation, Formation::Column);
+                }
+            }
+            let stations = formation_stations(
+                *formation,
+                (leader.as_str(), StationClass::of(definition(&leader))),
+                &followers
+                    .iter()
+                    .map(|id| (id.clone(), StationClass::of(definition(id))))
+                    .collect::<Vec<_>>(),
+            );
+            for station in &stations {
+                let Movement::Escort { offset, slot, .. } = &orders[&station.id].0 else {
+                    unreachable!()
+                };
+                // The group deployed on its stations, so the offsets the escort
+                // orders derive from those placements are the table's own.
+                assert!(
+                    (offset[0] - station.offset[0]).abs() < 1.0
+                        && (offset[1] - station.offset[1]).abs() < 1.0,
+                    "seed {seed}: {} is stationed {offset:?}, not {:?}",
+                    station.id,
+                    station.offset
+                );
+                assert_eq!(*slot, station.slot);
+            }
+        }
+    }
+    assert!(
+        chosen.iter().map(|(_, f)| f).collect::<BTreeSet<_>>().len() > 1,
+        "the seed must actually vary the surface force's formation: {chosen:?}"
+    );
+}
