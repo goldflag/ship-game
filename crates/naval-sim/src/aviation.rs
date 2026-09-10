@@ -22,6 +22,8 @@ pub struct Aviation {
     pub deck_operations: BTreeMap<String, crate::deck_operations::DeckOperations>,
     #[serde(skip)]
     pub airspace: Option<crate::mission::BattleArea>,
+    #[serde(skip)]
+    pub operations: crate::air_operations::AirOperations,
 }
 pub fn service_available(actor: &Vessel, sea: Option<(&SeaState, f64)>) -> bool {
     actor.motion.roll.abs() < 0.22
@@ -73,6 +75,7 @@ impl Aviation {
             carrier_rules,
             deck_operations: BTreeMap::new(),
             airspace: None,
+            operations: Default::default(),
         };
         if let crate::air_rules::DeckCycle::Managed {
             startup_groups_per_role,
@@ -146,7 +149,7 @@ impl Aviation {
     }
     /// Resolve only within the addressed carrier; merge records never grant
     /// ownership of another carrier's group.
-    fn resolved_flight_id(&self, actor_id: &str, id: &str) -> String {
+    pub(crate) fn resolved_flight_id(&self, actor_id: &str, id: &str) -> String {
         let Some(state) = self.wing(actor_id) else {
             return id.into();
         };
@@ -411,6 +414,8 @@ impl Aviation {
         }
         state.flights.push(flight);
         state.flight_sequence += 1;
+        let id = state.flights.last().unwrap().id.clone();
+        self.record_air_order(actor, &id, &order);
         count
     }
     pub fn deck_command(
@@ -492,6 +497,7 @@ impl Aviation {
     pub fn recall(&mut self, actor_id: &str, flight_id: Option<&str>) {
         let resolved = flight_id.map(|id| self.resolved_flight_id(actor_id, id));
         let flight_id = resolved.as_deref();
+        self.cancel_air_operation(actor_id, flight_id);
         let managed = self.deck_operations.contains_key(actor_id);
         if let Some(ops) = self.deck_operations.get_mut(actor_id) {
             ops.cancel_launches(flight_id);
@@ -602,6 +608,7 @@ impl Aviation {
                 p.phase = "outbound".into();
             }
         }
+        self.record_air_order(actor, flight_id, &order);
         true
     }
     pub fn command_squadron(

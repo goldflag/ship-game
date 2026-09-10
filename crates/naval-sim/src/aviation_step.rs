@@ -388,6 +388,7 @@ impl Aviation {
         if dt <= 0.0 {
             return;
         }
+        self.step_air_operations(ctx.actors, ctx.sea, time);
         for w in &mut self.wings {
             for p in &mut w.state.planes {
                 p.previous_position = p.position;
@@ -855,6 +856,9 @@ impl Aviation {
             return;
         }
         if matches!(p.phase.as_str(), "returning" | "landing") {
+            if p.phase == "returning" && self.package_withdrawal(p, dt) {
+                return;
+            }
             if p.phase == "returning"
                 && p.role != "fighter"
                 && p.hp >= 25.0
@@ -1236,6 +1240,9 @@ impl Aviation {
         let Some(target) = self.strike_solution(p, flight, ctx, dt) else {
             return;
         };
+        if self.package_guidance(p, target.point, target.heading, dt) {
+            return;
+        }
         let target_point = add(
             target.point,
             strike_aim_error(p, target.heading, ctx.seed, p.sortie.unwrap_or(0)),

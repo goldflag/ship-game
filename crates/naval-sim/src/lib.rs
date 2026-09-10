@@ -26,6 +26,7 @@ pub mod environment;
 pub mod trace;
 
 pub mod air_gunnery;
+pub mod air_operations;
 pub mod air_rules;
 pub mod aircraft;
 pub mod aircraft_accuracy;
