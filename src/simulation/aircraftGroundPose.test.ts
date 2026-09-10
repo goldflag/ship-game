@@ -4,17 +4,21 @@ import { loadShipGeometry } from '../../scripts/diagnostics/load-ship-geometry';
 import { aircraftDeckAttitude, aircraftGroundPose } from './aircraftGroundPose';
 import { rotate } from './geometry';
 import { GAMEPLAY_AIRCRAFT } from '../ships/blueprint';
+import { aircraftDeckGeometry } from '../../scripts/multiplayer/aircraft-deck-geometry';
 
-test('all exported carrier aircraft seat both main wheels and the tail wheel at every LOD', async () => {
+test('all exported carrier aircraft seat their wheels and keep the stowed hook above the tyre plane at every LOD', async () => {
   for (const id of Object.keys(GAMEPLAY_AIRCRAFT)) {
     const { pitch, clearance } = aircraftGroundPose(id);
+    const { hookDeckFraction } = await aircraftDeckGeometry(id);
+    expect(hookDeckFraction).toBeGreaterThan(0);
+    expect(hookDeckFraction).toBeLessThanOrEqual(1);
     for (const lod of [0, 1, 2]) {
       const root = await loadShipGeometry(lod ? `aircraft/LOD${lod}/${id}-lod${lod}` : `aircraft/${id}`);
       const foldNodes: string[] = [];
       root.traverse(object => { if (String(object.userData.nodeId).startsWith('wing.fold.')) foldNodes.push(object.userData.nodeId); });
       expect(foldNodes.length > 0, `${id} LOD${lod} authored fold capability`).toBe(aircraftGroundPose(id).foldingWings);
       root.rotation.x = pitch; root.position.y = clearance; root.updateMatrixWorld(true);
-      for (const nodeId of ['gear.port', 'gear.starboard', 'gear.tail']) {
+      for (const nodeId of ['gear.port', 'gear.starboard', 'gear.tail', 'arrestor.hook']) {
         let lowest = Infinity;
         root.traverse(joint => {
           if (joint.userData.nodeId !== nodeId) return;
@@ -24,9 +28,27 @@ test('all exported carrier aircraft seat both main wheels and the tail wheel at 
             for (let i = 0; i < positions.count; i++) lowest = Math.min(lowest, new Vector3().fromBufferAttribute(positions, i).applyMatrix4(mesh.matrixWorld).y);
           });
         });
-        // Tyre tread and simplified distant LODs vary by up to 13 mm.
-        expect(lowest, `${id} LOD${lod} ${nodeId}`).toBeGreaterThanOrEqual(-.02);
-        expect(lowest, `${id} LOD${lod} ${nodeId}`).toBeLessThan(.02);
+        expect(Number.isFinite(lowest), `${id} LOD${lod} ${nodeId} has geometry`).toBe(true);
+        if (nodeId === 'arrestor.hook') {
+          expect(lowest, `${id} LOD${lod} stowed hook clearance`).toBeGreaterThanOrEqual(.02);
+          root.traverse(joint => {
+            if (joint.userData.nodeId !== nodeId) return;
+            joint.rotateX(.65 * hookDeckFraction);
+            root.updateMatrixWorld(true);
+            let stopped = Infinity;
+            joint.traverse(object => {
+              const mesh = object as Mesh, positions = mesh.geometry?.getAttribute('position');
+              if (!positions) return;
+              for (let i = 0; i < positions.count; i++) stopped = Math.min(stopped, new Vector3().fromBufferAttribute(positions, i).applyMatrix4(mesh.matrixWorld).y);
+            });
+            expect(stopped, `${id} LOD${lod} fitted hook stop`).toBeGreaterThanOrEqual(.02);
+            expect(stopped, `${id} LOD${lod} fitted hook stop`).toBeLessThan(.06);
+          });
+        } else {
+          // Tyre tread and simplified distant LODs vary by up to 13 mm.
+          expect(lowest, `${id} LOD${lod} ${nodeId}`).toBeGreaterThanOrEqual(-.02);
+          expect(lowest, `${id} LOD${lod} ${nodeId}`).toBeLessThan(.02);
+        }
       }
       root.traverse(object => (object as Mesh).geometry?.dispose());
     }

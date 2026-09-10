@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "id": "pve-air-v1",
+  "groupSize": null,
+  "deckCapacity": null,
+  "activeFlights": {
+    "kind": "unlimited"
+  },
+  "endurance": {
+    "kind": "timed",
+    "orderLimitSeconds": 1800,
+    "recallSeconds": 1920,
+    "fighterRecallSeconds": 1920,
+    "exhaustionSeconds": 2400
+  },
+  "launchGroupSeconds": 10,
+  "repairCeilingHp": 60,
+  "deckCycle": {
+    "kind": "legacy"
+  },
+  "consolidation": "hangar-compatible"
+}

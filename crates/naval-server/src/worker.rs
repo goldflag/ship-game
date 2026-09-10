@@ -103,7 +103,7 @@ pub fn spawn(
     let baseline = Arc::new(
         session
             .battle
-            .presentation_value()
+            .presentation_value(naval_sim::snapshot::PresentationView::FullKnowledge)
             .map_err(|e| e.to_string())?,
     );
     let metadata = json!({"id":id,"status":"loading","setup":setup,"environment":environment,"simulationBuild":naval_sim::SIMULATION_BUILD,"manifestHash":catalog.manifest_hash,"rules":Rules::default()});
@@ -391,7 +391,7 @@ fn publish(
 ) -> Result<(), String> {
     let mut data = session
         .battle
-        .presentation_value()
+        .presentation_value(naval_sim::snapshot::PresentationView::FullKnowledge)
         .map_err(|e| e.to_string())?;
     let epochs = std::array::from_fn(|i| session.control.players[i].epoch);
     let selected: Vec<_> = session
@@ -484,6 +484,8 @@ mod tests {
             weather: "clear".into(),
             spawn_distance: 5000.0,
             wind_speed: None,
+            mission_rules: None,
+            air_rules: None,
         };
         let id = uuid::Uuid::new_v4().to_string();
         let path = std::env::temp_dir().join(format!("naval-worker-{id}.sqlite"));

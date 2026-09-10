@@ -140,3 +140,14 @@ for (const [width, height] of [[1440, 900], [700, 550], [390, 844]]) test(`tilte
   expect(dragged[0]).toBeCloseTo(grab[0], 6); expect(dragged[1]).toBeCloseTo(grab[1], 6);
   map.exit(); expect(camera.fov).toBe(17); expect(camera.far).toBe(60000); expect(camera.up.toArray()).toEqual([0, 1, 0]);
 });
+
+test('fleet zoom reaches ship details without the old 300 metre stop and keeps the cursor anchored', () => {
+  const camera = new PerspectiveCamera(52, 1.6, .5, 60000), map = new BattlefieldCamera(camera);
+  map.view = { x: 300, z: -600, radius: 300, tilt: .7, bearing: 1 };
+  const anchor = chartWorld(map.view, 1440, 900, 800, 600);
+  map.zoom(-4000, 800, 600, 1440, 900); map.update();
+  expect(map.view.radius).toBeLessThan(2);
+  const after = chartWorld(map.view, 1440, 900, 800, 600);
+  expect(after[0]).toBeCloseTo(anchor[0], 6); expect(after[1]).toBeCloseTo(anchor[1], 6);
+  expect(camera.position.toArray().every(Number.isFinite)).toBe(true);
+});
