@@ -18,6 +18,21 @@ pub fn scale(a: Vec3, s: f64) -> Vec3 {
 pub fn length(a: Vec3) -> f64 {
     a[0].hypot(a[1]).hypot(a[2])
 }
+/// Range queries need a comparison, not a correctly rounded distance. Avoid
+/// WASM's software hypot/FMA path away from the boundary, retaining the original
+/// calculation in its rounding band and for extreme/non-finite inputs.
+pub fn within_distance(a: Vec3, b: Vec3, radius: f64) -> bool {
+    let delta = sub(a, b);
+    let squared = dot(delta, delta);
+    let limit = radius * radius;
+    if radius >= 0.0 && squared.is_finite() && limit.is_normal() {
+        let uncertainty = 16.0 * f64::EPSILON * squared.max(limit);
+        if (squared - limit).abs() > uncertainty {
+            return squared < limit;
+        }
+    }
+    length(delta) <= radius
+}
 pub fn normalize(a: Vec3) -> Vec3 {
     let n = length(a);
     scale(a, 1.0 / if n == 0.0 { 1.0 } else { n })

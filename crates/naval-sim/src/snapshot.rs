@@ -36,6 +36,12 @@ impl Battle {
     pub fn presentation_snapshot(&self) -> impl serde::Serialize + '_ {
         crate::presentation::Presentation(self.snapshot())
     }
+    pub fn team_presentation_snapshot(
+        &self,
+        team: crate::rules::TeamId,
+    ) -> impl serde::Serialize + '_ {
+        crate::presentation::TeamPresentation(self, team)
+    }
     pub fn snapshot(&self) -> Snapshot<'_> {
         Snapshot {
             tick: self.tick,
@@ -60,12 +66,27 @@ impl Battle {
         &self,
         viewer: PresentationView,
     ) -> Result<serde_json::Value, serde_json::Error> {
+        self.presentation_value_impl(viewer, true)
+    }
+    /// The streaming team projection supplies owned hulls itself. All other
+    /// fields still pass through the same information-boundary implementation.
+    pub(crate) fn team_presentation_fields(
+        &self,
+        team: crate::rules::TeamId,
+    ) -> Result<serde_json::Value, serde_json::Error> {
+        self.presentation_value_impl(PresentationView::Team(team), false)
+    }
+    fn presentation_value_impl(
+        &self,
+        viewer: PresentationView,
+        include_owned_actors: bool,
+    ) -> Result<serde_json::Value, serde_json::Error> {
         let mut frame = match viewer {
             PresentationView::FullKnowledge => serde_json::to_value(self.snapshot())?,
             // Do not serialize hidden hull damage and carrier state merely to
             // discard them afterward. Effects are whitelisted in team_view.
             PresentationView::Team(team) => serde_json::json!({
-                "actors": self.actors.iter().filter(|a| a.team == team).collect::<Vec<_>>(),
+                "actors": self.actors.iter().filter(|a| include_owned_actors && a.team == team).collect::<Vec<_>>(),
                 "wings": self.aviation.wings.iter().filter(|w| self.actors.iter().any(|a| a.team == team && a.motion.id == w.owner_id)).collect::<Vec<_>>(),
                 "shells": self.shells, "torpedoes": self.torpedoes,
                 "depthCharges": self.depth_charges, "releases": self.air_releases,

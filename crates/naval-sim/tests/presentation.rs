@@ -91,3 +91,75 @@ fn streamed_large_battle_preserves_every_presentation_field_and_authority_state(
         );
     }
 }
+
+#[test]
+fn streamed_team_hulls_preserve_visibility_targets_damage_and_debrief() {
+    use naval_sim::{
+        pve::{PvePlan, PveRequest},
+        rules::TeamId,
+        snapshot::PresentationView,
+    };
+    let catalog = Arc::new(
+        Catalog::load(&std::fs::read("../../.build/naval-content/manifest.json").unwrap()).unwrap(),
+    );
+    let request: PveRequest = serde_json::from_value(json!({
+        "version":1,"seed":17001,"mapId":"pacific-islands","weather":"clear","difficulty":"normal",
+        "ships":[{"id":"own","presetId":"bismarck","groupId":"g"},
+            {"id":"carrier","presetId":"enterprise-cv6","groupId":"g"},
+            {"id":"escort","presetId":"fletcher","groupId":"g"}],
+        "groups":[{"id":"g","name":"Fleet","station":"front"}]
+    }))
+    .unwrap();
+    let plan = PvePlan::generate(&catalog, request).unwrap();
+    let setup = plan.restart_setup();
+    let compiled = setup
+        .ships
+        .iter()
+        .map(|s| {
+            (
+                s.preset_id.clone(),
+                Arc::new(CompiledShip::new(catalog.definitions[&s.preset_id].clone()).unwrap()),
+            )
+        })
+        .collect();
+    let mut battle = Battle::new(catalog, &compiled, setup).unwrap();
+    for tick in [0, 30, 600, 601] {
+        while battle.tick < tick {
+            battle.step(&BTreeMap::new());
+        }
+        if tick == 601 {
+            battle.outcome = Some(serde_json::from_value(json!({"winnerTeamId":"a","reason":"destruction","finalTick":tick,"afloatKg":[1000,0]})).unwrap());
+        }
+        // Exercise both a resolvable friendly target and an unavailable ID.
+        battle.actors[0].target_id = Some(if tick == 30 {
+            "unavailable".into()
+        } else {
+            battle.actors[1].motion.id.clone()
+        });
+        for team in [TeamId::A, TeamId::B] {
+            let before = serde_json::to_string(&battle.snapshot()).unwrap();
+            let expected: Value = serde_json::from_str(
+                &serde_json::to_string(
+                    &battle
+                        .presentation_value(PresentationView::Team(team))
+                        .unwrap(),
+                )
+                .unwrap(),
+            )
+            .unwrap();
+            let actual: Value = serde_json::from_str(
+                &serde_json::to_string(&battle.team_presentation_snapshot(team)).unwrap(),
+            )
+            .unwrap();
+            same(&actual, &expected, &format!("team {team:?}, tick {tick}"));
+            assert_eq!(before, serde_json::to_string(&battle.snapshot()).unwrap());
+            assert!(
+                actual["actors"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .all(|a| a["team"] == serde_json::to_value(team).unwrap())
+            );
+        }
+    }
+}

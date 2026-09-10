@@ -308,3 +308,38 @@ fn forward_screen_is_visible_alongside_a_rear_battleship() {
     );
     assert_eq!(sensors.contacts(TeamId::A).len(), 2);
 }
+
+#[test]
+fn formation_visibility_is_shared_by_observers_and_recomputed_when_planes_separate() {
+    let rules = VisualRules::default();
+    let mut sensors = Sensors::default();
+    let a = entity("lookout-a", TeamId::A, ContactKind::Aircraft, 0.0, 1000.0);
+    let b = entity("lookout-b", TeamId::A, ContactKind::Aircraft, 0.0, 1000.0);
+    // A pair is visible just beyond the single-aircraft limit.
+    let range = rules.air_to_air_range_m * 1.03;
+    let target = entity("target", TeamId::B, ContactKind::Aircraft, range, 1000.0);
+    let neighbor = entity(
+        "neighbor",
+        TeamId::B,
+        ContactKind::Aircraft,
+        range + 10.0,
+        1000.0,
+    );
+    let mut world = [a, b, target, neighbor];
+    sensors.update(0, &world, &[], &[], clear(), &rules);
+    let contact = sensors
+        .contacts(TeamId::A)
+        .into_iter()
+        .find(|c| c.measured_position == world[2].position)
+        .unwrap();
+    assert_eq!(contact.sources.len(), 2);
+    world[3].position[0] += 2000.0;
+    world[3].eye[0] += 2000.0;
+    world[3].feature[0] += 2000.0;
+    sensors.update(rules.cadence_ticks, &world, &[], &[], clear(), &rules);
+    let contact = sensors.contact(TeamId::A, &contact.id).unwrap();
+    assert_eq!(
+        contact.last_observed_tick, 0,
+        "a departed neighbor must not keep extending detection range"
+    );
+}

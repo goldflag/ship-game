@@ -407,6 +407,17 @@ impl LocalRuntime {
             "running"
         };
         let fleet_orders = self.session.fleet_orders(0);
+        if self.session.battle.mission_rules.is_some() && self.session.battle.outcome.is_none() {
+            return serde_json::to_string(&LocalFrame {
+                frame: self.session.battle.team_presentation_snapshot(
+                    naval_sim::rules::TeamId::A,
+                ),
+                selected_ship_ids: [selected[0].selected_ship_id.as_deref(), None],
+                fleet_orders,
+                phase,
+            })
+            .map_err(error);
+        }
         if self.session.battle.mission_rules.is_some() {
             // Team projection is the information boundary. Never replace it
             // with the full-knowledge streaming serializer for a live mission.

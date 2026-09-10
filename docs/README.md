@@ -25,6 +25,7 @@ Start with [AGENTS.md](../AGENTS.md) for repository rules. Read the task's curre
 | Develop Rust multiplayer | [Implementation status](rust-multiplayer-implementation.md), [reviewed proposal](rust-multiplayer-plan.md), [Fable critique](rust-multiplayer-critique-fable.md), [review response](rust-multiplayer-review-response.md) | Shared Rust authority for online/custom battles, local validation and measured deployment limits |
 | Develop PvE fleet command | [Agreed plan](pve-fleet-command-plan.md), [implementation status](pve-implementation-status.md), [selected UI D](pve-ui-studies/README.md) | Rust orders, observation, mission and air rules; approved selection/follow/helm workflows |
 | Investigate test execution | [Test performance](test-performance.md) | Repository test runner and measured execution notes |
+| Measure fleet-command speed | [Fleet command speed](pve-speed-performance.md) | Actual 1×/2×/4× progress, fixed fleet scenarios and worker throughput |
 | Profile custom battles | [Custom battle performance](custom-battle-performance.md) | Actual application, Rust worker, frame intervals and graphics warmup |
 
 ## Asset inputs and review
