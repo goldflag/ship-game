@@ -380,6 +380,9 @@ impl Sensors {
         for e in entities {
             cells.entry(cell(e.position)).or_default().push(e);
         }
+        // Formation size depends on this acquisition's world, not the observer.
+        // Share it across all lookouts, and discard it before the next update.
+        let mut formation_sizes = BTreeMap::new();
         for team in [TeamId::A, TeamId::B] {
             let mut reports: BTreeMap<String, (VisualEntity, Vec<ObservationSource>)> =
                 BTreeMap::new();
@@ -398,24 +401,26 @@ impl Sensors {
                         {
                             let tracked = self.records[team.index()].contains_key(&target.id);
                             let formation = if target.kind == ContactKind::Aircraft {
-                                let (tx, tz) = cell(target.position);
-                                let mut count = 0;
-                                for x in tx - 1..=tx + 1 {
-                                    for z in tz - 1..=tz + 1 {
-                                        count += cells
-                                            .get(&(x, z))
-                                            .into_iter()
-                                            .flatten()
-                                            .filter(|p| {
-                                                p.team == target.team
-                                                    && p.kind == ContactKind::Aircraft
-                                                    && horizontal(p.position, target.position)
-                                                        < 900.0
-                                            })
-                                            .count();
+                                *formation_sizes.entry(target.id.as_str()).or_insert_with(|| {
+                                    let (tx, tz) = cell(target.position);
+                                    let mut count = 0;
+                                    for x in tx - 1..=tx + 1 {
+                                        for z in tz - 1..=tz + 1 {
+                                            count += cells
+                                                .get(&(x, z))
+                                                .into_iter()
+                                                .flatten()
+                                                .filter(|p| {
+                                                    p.team == target.team
+                                                        && p.kind == ContactKind::Aircraft
+                                                        && horizontal(p.position, target.position)
+                                                            < 900.0
+                                                })
+                                                .count();
+                                        }
                                     }
-                                }
-                                count.max(1)
+                                    count.max(1)
+                                })
                             } else {
                                 1
                             };

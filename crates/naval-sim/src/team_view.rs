@@ -42,7 +42,7 @@ impl Battle {
                     )
             })
     }
-    fn public_entity_id(&self, id: &str, team: TeamId) -> Option<String> {
+    pub(crate) fn public_entity_id(&self, id: &str, team: TeamId) -> Option<String> {
         if self
             .actors
             .iter()

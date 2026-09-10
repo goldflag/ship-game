@@ -89,10 +89,15 @@ export class LocalBattleSession extends SnapshotSession {
     this.consume(simulationDt, beforeStep);
     if (this.disposed || this.restartRequest || this.result !== 'active' || dt <= 0) return;
     this.accumulator = Math.min(.1 * this.speed, this.accumulator + simulationDt);
-    // At fast display refresh rates, batch accelerated ticks rather than also
-    // multiplying snapshot traffic. Commands still dispatch within one 60Hz frame.
-    if (this.busy || this.accumulator < this.speed / 60) return;
-    const ticks = Math.min(6 * this.speed, Math.floor(this.accumulator * 60)); this.accumulator -= ticks / 60;
+    // Captains run every authoritative tick, but fleet presentation needs only
+    // 20 wall-time updates/second. Helm input and queued orders retain the 60Hz
+    // dispatch opportunity, including commands issued between ordinary batches.
+    const updatesPerSecond = this.missionRules && !this.controlledShipId && !this.commands.length ? 20 : 60;
+    // Summing six 120Hz frames can land just below three ticks. Round only the
+    // floating-point noise, so a full batch is not delayed by another frame.
+    const availableTicks = Math.floor(this.accumulator * 60 + 1e-9);
+    if (this.busy || availableTicks < this.speed * (60 / updatesPerSecond)) return;
+    const ticks = Math.min(6 * this.speed, availableTicks); this.accumulator = Math.max(0, this.accumulator - ticks / 60);
     this.input(helm, intent, true); this.busy = true;
     this.worker.postMessage({ type: 'advance', commands: this.commands.drain(), ticks });
   }

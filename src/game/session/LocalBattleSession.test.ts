@@ -57,7 +57,7 @@ test('local speed schedules the same authoritative battle at 1×, 2× and 4×', 
       expect(session.tick).toBe(240);
       const snapshot = worker.runtime.snapshot();
       if (expected) expect(snapshot).toBe(expected); else expected = snapshot;
-      expect(worker.maxBatch).toBe(speed);
+      expect(worker.maxBatch).toBe(3 * speed);
     } finally { session.dispose(); }
   }
 });
@@ -90,7 +90,44 @@ test('4× batches high-refresh render frames without dropping authoritative time
     for (let i = 0; i < 120; i++) await frame(session, 1 / 120);
     await frame(session, 0);
     expect(session.tick).toBe(240);
-    expect(worker.batches).toBe(60);
+    expect(worker.batches).toBe(20);
+    expect(worker.maxBatch).toBe(12);
+  } finally { session.dispose(); }
+});
+
+test('fleet command batches presentation at 20 Hz while preserving accelerated ticks', async () => {
+  for (const speed of [1, 2, 4] as const) {
+    const { session, worker } = await fixture();
+    try {
+      session.releaseHelm();
+      await frame(session, 1 / 60); await frame(session, 0);
+      session.setSimulationSpeed(speed);
+      const startTick = session.tick, startBatches = worker.batches;
+      for (let i = 0; i < 120; i++) await frame(session, 1 / 120);
+      await frame(session, 0);
+      expect(session.tick - startTick).toBe(60 * speed);
+      expect(worker.batches - startBatches).toBe(20);
+      expect(worker.maxBatch).toBe(3 * speed);
+      // An addressed order must not wait for the next ordinary publication.
+      session.holdShipArea('own', [1000, 10000], 500);
+      await frame(session, 1 / 60);
+      expect(session.orderReceipts.at(-1)?.state).toBe('accepted');
+    } finally { session.dispose(); }
+  }
+});
+
+test('taking the helm retains 60 Hz input opportunities at accelerated speed', async () => {
+  const { session, worker } = await fixture();
+  try {
+    session.selectShip('own');
+    await frame(session, 1 / 60); await frame(session, 0);
+    expect(session.controlledShipId).toBe('own');
+    session.setSimulationSpeed(4);
+    const tick = session.tick, batches = worker.batches;
+    for (let i = 0; i < 60; i++) await frame(session, 1 / 60);
+    await frame(session, 0);
+    expect(session.tick - tick).toBe(240);
+    expect(worker.batches - batches).toBe(60);
     expect(worker.maxBatch).toBe(4);
   } finally { session.dispose(); }
 });

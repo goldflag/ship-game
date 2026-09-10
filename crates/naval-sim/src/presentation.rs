@@ -1,6 +1,6 @@
 //! Stream the presentation projection without first allocating a JSON tree for
 //! the entire authority state. Unmodified subtrees use their normal serializer.
-use crate::{bots::AiLevel, snapshot::Snapshot, vessel::Vessel};
+use crate::{battle::Battle, bots::AiLevel, rules::TeamId, snapshot::Snapshot, vessel::Vessel};
 use serde::{
     Serialize, Serializer,
     ser::{Error, SerializeMap, SerializeSeq, SerializeStruct},
@@ -58,9 +58,57 @@ impl Serialize for Actors<'_> {
     }
 }
 
+pub(crate) struct TeamPresentation<'a>(pub &'a Battle, pub TeamId);
+impl Serialize for TeamPresentation<'_> {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        let fields = self
+            .0
+            .team_presentation_fields(self.1)
+            .map_err(S::Error::custom)?;
+        let mut s = serializer.serialize_map(None)?;
+        for (key, value) in fields
+            .as_object()
+            .ok_or_else(|| S::Error::custom("Invalid team projection"))?
+        {
+            if key != "actors" {
+                s.serialize_entry(key, value)?;
+            }
+        }
+        s.serialize_entry("actors", &TeamActors(self.0, self.1))?;
+        s.end()
+    }
+}
+struct TeamActors<'a>(&'a Battle, TeamId);
+impl Serialize for TeamActors<'_> {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        #[derive(Serialize)]
+        #[serde(rename_all = "camelCase")]
+        struct Actor<'a> {
+            #[serde(flatten)]
+            fields: Filtered<'a, Vessel>,
+            target_id: Option<String>,
+        }
+        let mut s = serializer.serialize_seq(None)?;
+        for actor in self.0.actors.iter().filter(|a| a.team == self.1) {
+            s.serialize_element(&Actor {
+                fields: Filtered(
+                    actor,
+                    Mode::TeamActor(actor.bot.as_ref().map(|b| b.ai_level)),
+                ),
+                target_id: actor
+                    .target_id
+                    .as_deref()
+                    .and_then(|id| self.0.public_entity_id(id, self.1)),
+            })?;
+        }
+        s.end()
+    }
+}
+
 #[derive(Clone, Copy)]
 enum Mode {
     Actor(Option<AiLevel>),
+    TeamActor(Option<AiLevel>),
     Damage,
     Stability,
     Mount,
@@ -81,12 +129,13 @@ enum Field {
 impl Mode {
     fn field(self, key: &str) -> Field {
         match (self, key) {
-            (Self::Actor(_), "bot")
+            (Self::Actor(_) | Self::TeamActor(_), "bot")
+            | (Self::TeamActor(_), "targetId")
             | (Self::Mount, "leadCache" | "aaDiscipline")
             | (Self::AimCache, "point") => Field::Drop,
             (Self::Plane, "pilot") => Field::Behavior,
-            (Self::Actor(_), "damage") => Field::Nested(Self::Damage),
-            (Self::Actor(_), "mounts") => Field::Nested(Self::Mount),
+            (Self::Actor(_) | Self::TeamActor(_), "damage") => Field::Nested(Self::Damage),
+            (Self::Actor(_) | Self::TeamActor(_), "mounts") => Field::Nested(Self::Mount),
             (Self::Damage, "stability") => Field::Nested(Self::Stability),
             (Self::Stability, "water") => Field::Empty,
             (Self::Mount, "aimCache") => Field::Nested(Self::AimCache),
@@ -156,7 +205,7 @@ impl<S: SerializeStruct> SerializeStruct for FilterStruct<S> {
         }
     }
     fn end(mut self) -> Result<S::Ok, S::Error> {
-        if let Mode::Actor(Some(level)) = self.mode {
+        if let Mode::Actor(Some(level)) | Mode::TeamActor(Some(level)) = self.mode {
             self.inner.serialize_field("aiLevel", &level)?;
         }
         self.inner.end()
@@ -193,7 +242,7 @@ impl<S: SerializeMap> SerializeMap for FilterMap<S> {
         }
     }
     fn end(mut self) -> Result<S::Ok, S::Error> {
-        if let Mode::Actor(Some(level)) = self.mode {
+        if let Mode::Actor(Some(level)) | Mode::TeamActor(Some(level)) = self.mode {
             self.inner.serialize_entry("aiLevel", &level)?;
         }
         self.inner.end()

@@ -22,3 +22,16 @@ complete Rust snapshots, including combat events and renderer identity updates.
 `MatchConnection` handles admission, per-tab reconnect tokens, socket replacement, bounded decompression and match metadata. `RemoteBattleSession` publishes addressed commands and interpolates snapshots while the server owns time. The load-ready message is sent after model loading and initial scene rendering, not when the socket connects.
 
 `SnapshotSession.test.ts` executes real WASM and validates renderer identities, telemetry, selection, carrier commands and movement precedence. `scripts/multiplayer/headless-session.ts` uses that same WASM authority with synchronous scheduling for GPU-independent scene-binding tests.
+
+Local fleet command batches routine presentation at 20 Hz of wall time, including
+fast-forward. Authoritative combat remains at 60 ticks per simulated second.
+Queued orders and manual helm retain a 60 Hz dispatch opportunity; batches remain
+bounded at 100 ms of requested wall time. Tests cover 1×/2×/4× equivalence, 120 Hz
+displays, pause/restart, prompt orders and taking the helm.
+
+Live PvE snapshots stream owned hull fields through the shared presentation
+serializer, remapping target IDs through the team boundary. Contacts, effects,
+aircraft and scores retain the existing team projection, and finished missions
+retain their debrief path. Native differential tests compare every field against
+the original tree projection for both teams, including unavailable targets and
+finished battles. See [fleet speed measurements](../../../docs/pve-speed-performance.md).

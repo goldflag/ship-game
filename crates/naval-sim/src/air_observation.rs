@@ -145,15 +145,19 @@ impl Aviation {
         let Some(k) = knowledge else {
             return self
                 .iter_planes()
-                .filter(|a| in_flight(a) && length(sub(a.position, p.position)) <= radius)
+                .filter(|a| {
+                    in_flight(a)
+                        && crate::geometry::within_distance(a.position, p.position, radius)
+                })
                 .cloned()
                 .collect();
         };
         let mut planes: Vec<_> = self
-            .planes()
-            .into_iter()
+            .iter_planes()
             .filter(|a| {
-                a.team == p.team && in_flight(a) && length(sub(a.position, p.position)) <= radius
+                a.team == p.team
+                    && in_flight(a)
+                    && crate::geometry::within_distance(a.position, p.position, radius)
             })
             .cloned()
             .collect();
@@ -162,7 +166,7 @@ impl Aviation {
             .iter_contacts(p.team)
             .filter(|c| c.kind == ContactKind::Aircraft && locally_observed(c, p, k.tick))
         {
-            if length(sub(report_point(c, k.tick), p.position)) > radius {
+            if !crate::geometry::within_distance(report_point(c, k.tick), p.position, radius) {
                 continue;
             }
             // The own-aircraft template supplies required mechanical fields to
