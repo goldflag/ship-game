@@ -49,7 +49,7 @@ test('the PvE deploy panel offers a cruising formation for the selected group; c
   const pve = renderToStaticMarkup(<DeployScreen deployment={deployment} onChange={() => {}} onReset={() => {}} disabled={false} fitKey="x" onFormation={() => {}}/>);
   expect(pve).toContain('Cruising formation');
   expect(pve).toContain('Formation · Group 1');
-  expect(pve).toContain('Column'); expect(pve).toContain('Screen'); expect(pve).toContain('Line abreast');
+  for (const label of ['Column', 'Double column', 'Triple column', 'Screen', 'Line abreast']) expect(pve).toContain(`>${label}</`);
   expect(pve).toContain('destroyers on an outer ring'); // The hint follows the group's own choice.
   expect(pve).toContain('GROUP 1 · 2 SHIPS · SCREEN');
   // Custom battles have no task groups, so the panel keeps only the line/column/wedge spawn preset.

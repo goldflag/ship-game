@@ -6,7 +6,9 @@ use crate::{
     catalog::{Catalog, ContentIdentity},
     definition::ShipDefinition,
     environment::Island,
+    formations::{StationClass, formation_stations},
     mission::{FleetTotals, MissionRules},
+    navigation::Formation,
     rules::{TeamId, mix32},
     vessel::Controller,
 };
@@ -224,6 +226,8 @@ impl PvePlan {
             &eligible,
             mix32(request.seed ^ 0x6172_6d73),
         )?;
+        let (enemy_units, enemy_groups) =
+            enemy_groups(catalog, enemy, mix32(request.seed ^ 0x666f_726d));
         let mut ships = place_groups(
             catalog,
             &rules,
@@ -234,7 +238,6 @@ impl PvePlan {
             AiLevel::Normal,
             mix32(request.seed ^ 0x6f77_6e73),
         )?;
-        let (enemy_units, enemy_groups) = enemy_groups(catalog, enemy);
         let opponents = place_groups(
             catalog,
             &rules,
@@ -446,7 +449,25 @@ fn generate_enemy(
     };
     Ok(candidates.swap_remove(index))
 }
-fn enemy_groups(catalog: &Catalog, ids: Vec<String>) -> (Vec<FleetShip>, Vec<TaskGroup>) {
+/// The cruising formation the opposing admiral puts a surface force in, drawn
+/// from the mission seed so a given mission always meets the same shape. A pair
+/// simply forms line ahead; a division has the room for two columns; a squadron
+/// of five or more prefers the broader bodies. A line abreast is an occasional
+/// sweep formation once there are enough hulls to spread out.
+fn front_formation(size: usize, random: &mut Random) -> Formation {
+    if size <= 2 {
+        return Formation::Column;
+    }
+    match (size <= 4, random.index(8)) {
+        (_, 0) => Formation::LineAbreast,
+        (true, 1..=4) => Formation::Column,
+        (true, _) => Formation::DoubleColumn,
+        (false, 1..=4) => Formation::DoubleColumn,
+        (false, _) => Formation::TripleColumn,
+    }
+}
+fn enemy_groups(catalog: &Catalog, ids: Vec<String>, seed: u32) -> (Vec<FleetShip>, Vec<TaskGroup>) {
+    let mut random = Random(seed);
     let mut groups = vec![TaskGroup {
         id: "enemy-front".into(),
         name: "Surface force".into(),
@@ -470,11 +491,13 @@ fn enemy_groups(catalog: &Catalog, ids: Vec<String>) -> (Vec<FleetShip>, Vec<Tas
         .collect();
     for (index, carrier) in carriers.iter().enumerate() {
         let id = format!("enemy-rear-{}", index + 1);
+        // A carrier keeps its escorts ringed around it rather than astern, so
+        // the boats are between the flight deck and whatever finds it.
         groups.push(TaskGroup {
             id: id.clone(),
             name: "Carrier force".into(),
             station: GroupStation::Rear,
-            formation: None,
+            formation: Some(Formation::Screen),
         });
         units[*carrier].group_id = id.clone();
         let escorts: Vec<_> = units
@@ -496,6 +519,11 @@ fn enemy_groups(catalog: &Catalog, ids: Vec<String>) -> (Vec<FleetShip>, Vec<Tas
             units[escort].group_id = id.clone();
         }
     }
+    let front = units
+        .iter()
+        .filter(|u| u.group_id == "enemy-front")
+        .count();
+    groups[0].formation = Some(front_formation(front, &mut random));
     (units, groups)
 }
 fn valid_position(
@@ -517,6 +545,20 @@ fn valid_position(
             expanded.radius(p.x, p.z) > 1.05
         })
 }
+/// The order a task group forms up in, guide first: a flight deck leads, then
+/// the heaviest hull, and ties break on ship id. `pve_command::members` sorts
+/// the living group the same way, so the ship laid out at the group centre is
+/// the ship the group's directives make the guide.
+pub(crate) fn member_order(
+    a: (&ShipDefinition, &str),
+    b: (&ShipDefinition, &str),
+) -> std::cmp::Ordering {
+    b.0.air_wing
+        .is_some()
+        .cmp(&a.0.air_wing.is_some())
+        .then(b.0.hull.mass_kg.total_cmp(&a.0.hull.mass_kg))
+        .then(a.1.cmp(b.1))
+}
 #[allow(clippy::too_many_arguments)]
 fn place_groups(
     catalog: &Catalog,
@@ -533,22 +575,57 @@ fn place_groups(
     let mut result = vec![];
     let mut occupied = vec![];
     for (g, group) in groups.iter().enumerate() {
+        let mut members: Vec<&FleetShip> =
+            units.iter().filter(|u| u.group_id == group.id).collect();
+        members.sort_by(|a, b| {
+            member_order(
+                (&catalog.definitions[&a.preset_id], &a.id),
+                (&catalog.definitions[&b.preset_id], &b.id),
+            )
+        });
+        let Some(guide) = members.first().copied() else {
+            continue;
+        };
+        // The group starts the battle in the shape it will sail in: the guide at
+        // the group centre and every follower on the station its class earns from
+        // the shared table, so the first escort orders confirm the layout the
+        // chart already shows. A player group with no chosen formation is a column.
+        let class = |unit: &FleetShip| StationClass::of(&catalog.definitions[&unit.preset_id]);
+        let followers: Vec<_> = members[1..]
+            .iter()
+            .map(|unit| (unit.id.clone(), class(unit)))
+            .collect();
+        let stations = formation_stations(
+            group.formation.unwrap_or_default(),
+            (&guide.id, class(guide)),
+            &followers,
+        );
         let center_x = (g as f64 - (groups.len() - 1) as f64 / 2.0) * 2600.0 + random.signed(500.0);
-        let center_z = if group.station == GroupStation::Front {
+        // A station ahead of the guide must not carry the group across its own
+        // deployment line, so the centre falls back by whatever the formation
+        // reaches forward.
+        let ahead = stations.iter().map(|s| s.offset[1]).fold(0.0, f64::min);
+        let center_z = (if group.station == GroupStation::Front {
             8000.0
         } else {
             16500.0
-        } + random.signed(500.0);
-        for (slot, unit) in units.iter().filter(|u| u.group_id == group.id).enumerate() {
+        } + random.signed(500.0))
+        .max(if group.station == GroupStation::Front {
+            7200.0
+        } else {
+            14200.0
+        } - ahead);
+        for unit in members {
             let def = &catalog.definitions[&unit.preset_id];
+            let offset = stations
+                .iter()
+                .find(|s| s.id == unit.id)
+                .map_or([0.0, 0.0], |s| s.offset);
+            // Both fleets steam at each other down the z axis, so the station's
+            // [starboard, aft] frame rotates onto the world by the team's sign.
             let desired = Spawn {
-                x: center_x
-                    + if slot.is_multiple_of(2) {
-                        -400.0
-                    } else {
-                        400.0
-                    },
-                z: (center_z + (slot / 2) as f64 * 700.0) * sign,
+                x: center_x + offset[0] * sign,
+                z: (center_z + offset[1]) * sign,
                 heading: if team == TeamId::A { 0.0 } else { PI },
             };
             let placement = if valid_position(&desired, def, rules, islands, &occupied) {

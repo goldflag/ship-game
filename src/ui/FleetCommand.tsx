@@ -633,11 +633,11 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
         const own = s.team === 'friendly', actor = own ? actorOf(s.id) : undefined, status = orders[s.id]?.navigation?.status;
         const warn = own && (s.integrity < .5 || status === 'straggling' || status === 'blocked' || status === 'immobile');
         const kn = Math.round(Math.abs((actor?.motion.speed ?? 0) * KNOTS_PER_MPS));
-        // A column guide's label sits to port: its escorts are astern and their own labels
-        // run to starboard. Screen and line-abreast stations take both beams, so the guide's
-        // label rides above the marker instead, where the nearest station is a ring away.
+        // A column guide's label sits to port: its escorts are astern (a double column keeps
+        // its second column to starboard) and their own labels run to starboard. Triple column,
+        // screen and line abreast take both beams, so the guide's label rides above the marker.
         const guide = own ? formations.find(f => f.leaderId === s.id && f.shipIds.length > 1) : undefined;
-        const side = !guide ? 'starboard' : guide.formation === 'column' ? 'port' : 'above';
+        const side = !guide ? 'starboard' : guide.formation === 'column' || guide.formation === 'double-column' ? 'port' : 'above';
         const label = side === 'port' ? { x: -14, anchor: 'end' as const, y: -3, barX: -54, barY: 2, orderY: 17 }
           : side === 'above' ? { x: 0, anchor: 'middle' as const, y: -32, barX: -20, barY: -27, orderY: -16 }
           : { x: 14, anchor: 'start' as const, y: -3, barX: 14, barY: 2, orderY: 17 };
