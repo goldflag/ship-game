@@ -31,7 +31,7 @@ test('tactical pause retains authoritative time and old orders until the outbox 
     const before = JSON.parse(session.runtime.snapshot());
     queue.enqueue('player', { type: 'release-helm' });
     queue.enqueue('player', { type: 'route', waypoints: [[0, -2000]], speedMps: 10, looped: false, append: false });
-    queue.enqueue('friendly-1', { type: 'escort', leaderId: 'enemy-1', offset: [650, 450], radiusM: 160 });
+    queue.enqueue('friendly-1', { type: 'escort', leaderId: 'enemy-1', offset: [650, 450], radiusM: 160, formation: 'column', slot: 0 });
     expect(JSON.parse(session.runtime.snapshot())).toEqual(before);
     for (const command of queue.drain()) {
       try { session.runtime.command(JSON.stringify(command)); queue.acknowledge(command.sequence, 'accepted'); }

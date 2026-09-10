@@ -9,6 +9,7 @@ import { applyLocalDelta } from './localSnapshotDelta';
 import { CommandQueue } from './commandQueue';
 import type { PveBriefing } from '../../multiplayer/generated/PveBriefing';
 import type { Placement } from '../../multiplayer/generated/Placement';
+import type { Formation } from '../../multiplayer/generated/Formation';
 import pveAir from '../../../assets/gameplay/pve-air.v1.json';
 import type { AirRules } from '../../multiplayer/generated/AirRules';
 export function runtimeSetup(setup: BattleSetup, seed: number): RuntimeSetup {
@@ -42,12 +43,12 @@ export class LocalBattleSession extends SnapshotSession {
     const session = new LocalBattleSession(runtimeSetup(setup, crypto.getRandomValues(new Uint32Array(1))[0]));
     return session.initialize({ type: 'init', setup: session.setup });
   }
-  static async deploy(worker: Worker, briefing: PveBriefing, placements: Placement[]): Promise<LocalBattleSession> {
+  static async deploy(worker: Worker, briefing: PveBriefing, placements: Placement[], formations: Record<string, Formation> = {}): Promise<LocalBattleSession> {
     const setup = { ...briefing.setup, ships: briefing.setup.ships.map(ship => ({ ...ship, spawn: placements.find(p => p.id === ship.id)?.spawn ?? ship.spawn })) };
     const session = new LocalBattleSession(setup, worker);
-    return session.initialize({ type: 'deploy', placements });
+    return session.initialize({ type: 'deploy', placements, formations });
   }
-  private async initialize(message: { type: 'init'; setup: RuntimeSetup } | { type: 'deploy'; placements: Placement[] }): Promise<LocalBattleSession> {
+  private async initialize(message: { type: 'init'; setup: RuntimeSetup } | { type: 'deploy'; placements: Placement[]; formations: Record<string, Formation> }): Promise<LocalBattleSession> {
     const session = this;
     await new Promise<void>((resolve, reject) => {
       const timer = setTimeout(() => { session.dispose(); reject(new Error('Battle worker took too long to load.')); }, 120_000);

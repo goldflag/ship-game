@@ -120,6 +120,19 @@ fn escort(ship: &Vessel, leader: &Vessel, plan: &PvePlan, index: usize) -> Movem
         leader_id: leader.motion.id.clone(),
         offset,
         radius_m: 180.0,
+        formation: plan
+            .groups
+            .iter()
+            .chain(plan.enemy_groups.iter())
+            .find(|g| {
+                plan.assignments
+                    .iter()
+                    .chain(plan.enemy_assignments.iter())
+                    .any(|s| s.id == ship.motion.id && s.group_id == g.id)
+            })
+            .and_then(|g| g.formation)
+            .unwrap_or_default(),
+        slot: index as u32,
     }
 }
 /// A shared report priority lets surface groups and carrier strikes concentrate

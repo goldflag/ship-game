@@ -1,5 +1,6 @@
 import { Icon } from './Icons';
-import type { Formation } from './fleetFormations';
+import { formationLabel } from './formationStations';
+import type { FleetFormation } from './fleetFormations';
 
 export interface RosterShip { id: string; name: string; hull: number; kn: number; damageDealt: number; frags: number; lost: boolean; warn?: boolean; routeBlocked?: boolean; aircraft?: { remaining: number; total: number } }
 const glyph = 'M0 -12 5 -3 4 10 -4 10 -5 -3Z';
@@ -8,8 +9,8 @@ const compact = (n: number) => n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(
 /** Every formation and every ship, always: a hull ring, speed and the score
  * each captain has run up. The header selects the formation; a token, one ship. */
 export function FleetRoster({ formations, ships, selectedIds, hoverId, onHover, onSelectShip, onSelectFormation }: {
-  formations: readonly Formation[]; ships: readonly RosterShip[]; selectedIds: readonly string[]; hoverId?: string;
-  onHover(id: string | undefined): void; onSelectShip(id: string, additive: boolean): void; onSelectFormation(formation: Formation): void;
+  formations: readonly FleetFormation[]; ships: readonly RosterShip[]; selectedIds: readonly string[]; hoverId?: string;
+  onHover(id: string | undefined): void; onSelectShip(id: string, additive: boolean): void; onSelectFormation(formation: FleetFormation): void;
 }) {
   const circumference = 2 * Math.PI * 17;
   return <nav className="fleet-command-roster" aria-label="Fleet roster">
@@ -17,8 +18,8 @@ export function FleetRoster({ formations, ships, selectedIds, hoverId, onHover, 
       const members = formation.shipIds.map(id => ships.find(s => s.id === id)).filter((s): s is RosterShip => !!s);
       const carrier = members.find(s => s.aircraft?.total);
       return <div key={formation.index} className="fleet-command-formation" onMouseLeave={() => onHover(undefined)}>
-        <button className="fleet-command-formation-name" aria-pressed={members.every(s => selectedIds.includes(s.id))} onClick={() => onSelectFormation(formation)} title={`Select every ship in ${formation.name} · ${formation.index}`}>
-          <kbd>{formation.index}</kbd>{formation.name}<small>{members.length === 1 ? '1 ship' : `${members.length} ships`}{carrier ? ` · ${carrier.aircraft!.remaining}/${carrier.aircraft!.total} aircraft` : ` · ${compact(members.reduce((n, s) => n + s.damageDealt, 0))} dmg`}</small>
+        <button className="fleet-command-formation-name" aria-pressed={members.every(s => selectedIds.includes(s.id))} onClick={() => onSelectFormation(formation)} title={`Select every ship in ${formation.name} · ${formation.index}${members.length > 1 ? ` · ${formationLabel(formation.formation)}` : ''}`}>
+          <kbd>{formation.index}</kbd>{formation.name}<small>{members.length === 1 ? '1 ship' : `${members.length} ships`}{members.length > 1 ? ` · ${formationLabel(formation.formation)}` : ''}{carrier ? ` · ${carrier.aircraft!.remaining}/${carrier.aircraft!.total} aircraft` : ` · ${compact(members.reduce((n, s) => n + s.damageDealt, 0))} dmg`}</small>
         </button>
         <div className="fleet-command-tokens">{members.map(ship => <button key={ship.id} className={`fleet-command-token ${ship.warn ? 'warn' : ''} ${ship.lost ? 'lost' : ''} ${hoverId === ship.id ? 'hovered' : ''}`} disabled={ship.lost}
           aria-pressed={selectedIds.includes(ship.id)} aria-label={`${ship.name}${ship.routeBlocked ? ' · Route blocked · Reassign destination' : ''} · ${Math.round(ship.hull * 100)}% hull · ${ship.kn} knots · ${Math.round(ship.damageDealt).toLocaleString()} damage dealt`}

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type DragEvent } from 'react';
 import { PveDraft, type PveOptions } from '../../game/session/PveDraft';
 import { MatchConnection, pendingTicket, type JoinMode, type LobbyStatus, type RemoteBattleSession } from '../../game/session/RemoteBattleSession';
+import type { Formation } from '../../multiplayer/generated/Formation';
 import type { Placement } from '../../multiplayer/generated/Placement';
 import type { PveRequest } from '../../multiplayer/generated/PveRequest';
 import { shipPreset, shipPresets } from '../../ships/presets';
@@ -27,6 +28,8 @@ interface Props {
   onOnlineBattle(session: RemoteBattleSession): Promise<void>;
 }
 const ALL_SHIPS = Object.keys(shipPresets);
+/** `PveDraft.setFormation` arrives with the sim's formation work; until it lands this is a
+ * no-op and the group still starts in column. Drop the cast once the method is on the class. */
 const defaultRequest = (): PveRequest => ({ version: 1, seed: missionSeed(), mapId: 'pacific-islands', weather: 'partly-cloudy', difficulty: 'normal', groups: [{ id: 'front', name: 'Group 1', station: 'front' }, { id: 'rear', name: 'Group 2', station: 'rear' }], ships: [] });
 
 /** One battle screen for every mode: catalog, drop lanes and waters, then the deployment chart. */
@@ -42,6 +45,8 @@ export function BattleDialog({ initialMode, initialShipId, loading, onClose, ini
   const [request, setRequest] = useState<PveRequest>(() => pveRequest ? structuredClone(pveRequest) : defaultRequest());
   const [draft, setDraft] = useState<PveDraft>(); const draftRef = useRef<PveDraft | undefined>(undefined);
   const [placements, setPlacements] = useState<Placement[]>([]);
+  // Cruising formation per task group, seeded from the briefing and kept while the draft lives.
+  const [formations, setFormations] = useState<Record<string, Formation>>({});
   const [pveBusy, setPveBusy] = useState(false); const [optionsRetry, setOptionsRetry] = useState(0); const [optionsError, setOptionsError] = useState('');
   const nextId = useRef(Math.max(0, ...[...(pveRequest?.ships ?? []), ...(pveRequest?.groups ?? [])].map(s => Number(s.id.match(/(\d+)$/)?.[1]) || 0)) + 1);
   const newId = () => `unit-${nextId.current++}`;
@@ -73,7 +78,14 @@ export function BattleDialog({ initialMode, initialShipId, loading, onClose, ini
     return () => abort.abort();
   }, [mode, options, optionsRetry, initialShipId]);
 
-  const changeRequest = (next: PveRequest) => { draftRef.current?.dispose(); draftRef.current = undefined; setDraft(undefined); setRequest(next); setMessage({ text: '', error: false }); };
+  const changeRequest = (next: PveRequest) => { draftRef.current?.dispose(); draftRef.current = undefined; setDraft(undefined); setFormations({}); setRequest(next); setMessage({ text: '', error: false }); };
+  /** Remember the pick, arrange nothing here (the deploy screen owns the chart), and start the
+   * group in that formation in the sim. The request keeps it too, so regenerating asks for it again. */
+  const chooseFormation = (groupId: string, formation: Formation) => {
+    setFormations(current => ({ ...current, [groupId]: formation }));
+    setRequest(current => ({ ...current, groups: current.groups.map(group => group.id === groupId ? { ...group, formation } : group) }));
+    draftRef.current?.setFormation(groupId, formation);
+  };
   const switchMode = (next: BattleMode) => {
     if (next === mode || pveBusy || duelBusy) return;
     const ids = fleetForCarry(mode, { setup, request: options ? request : pveRequest, duel: fleet });
@@ -92,6 +104,7 @@ export function BattleDialog({ initialMode, initialShipId, loading, onClose, ini
       const prepared = await PveDraft.create(request, abort.signal);
       if (abort.signal.aborted) { prepared.dispose(); return; }
       draftRef.current = prepared; setDraft(prepared);
+      setFormations(Object.fromEntries(prepared.briefing.groups.map(group => [group.id, group.formation ?? 'column' as Formation])));
       setPlacements(prepared.briefing.setup.ships.map(ship => ({ id: ship.id, spawn: ship.spawn! }))); setStep('deploy');
     } catch (error) { if (!abort.signal.aborted) notice(error instanceof Error ? error.message : String(error)); }
     finally { if (!abort.signal.aborted) setPveBusy(false); }
@@ -165,8 +178,8 @@ export function BattleDialog({ initialMode, initialShipId, loading, onClose, ini
     </header>
     {step === 'deploy' && mode === 'custom' && customPlacement && <DeployScreen deployment={customPlacement} disabled={loading} fitKey={`${setup.mapId}:${setup.spawnDistance}:${setup.formation ?? 'line'}:${setup.friendlyBots.length}:${setup.enemies.length}`}
       onChange={units => onSetupChange(applyCustomDeployment(setup, units))} onReset={() => onSetupChange({ ...setup, spawns: undefined })} tools={<FormationSelect setup={setup} onChange={onSetupChange} compact/>}/>}
-    {step === 'deploy' && mode === 'pve' && draft && <DeployScreen key={draft.briefing.setup.seed} deployment={pveDeployment(draft.briefing, placements)} disabled={pveBusy} fitKey={String(draft.briefing.setup.seed)}
-      onChange={units => setPlacements(applyPveDeployment(units))} onReset={() => setPlacements(draft.briefing.setup.ships.map(ship => ({ id: ship.id, spawn: ship.spawn! })))}/>}
+    {step === 'deploy' && mode === 'pve' && draft && <DeployScreen key={draft.briefing.setup.seed} deployment={pveDeployment(draft.briefing, placements, formations)} disabled={pveBusy} fitKey={String(draft.briefing.setup.seed)}
+      onChange={units => setPlacements(applyPveDeployment(units))} onReset={() => setPlacements(draft.briefing.setup.ships.map(ship => ({ id: ship.id, spawn: ship.spawn! })))} onFormation={chooseFormation}/>}
     {step === 'fleet' && <div className="battle-body">
       <ShipCatalog ships={ALL_SHIPS} hint={mode === 'custom' ? 'Drag into a lane' : mode === 'pve' ? 'Drag into a group' : 'Drag into a berth'} picked={transfer?.kind === 'catalog' ? transfer.id : undefined} commanded={mode === 'custom' ? setup.playerShipId : undefined}
         disabled={catalogDisabled} unavailable={unavailable} onPick={pick} onDragStart={startCatalogDrag} onDragEnd={() => setTransfer(undefined)}/>

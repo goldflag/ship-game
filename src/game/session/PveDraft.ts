@@ -3,6 +3,7 @@ import type { PveBriefing } from '../../multiplayer/generated/PveBriefing';
 import type { Placement } from '../../multiplayer/generated/Placement';
 import { LocalBattleSession } from './LocalBattleSession';
 import type { MissionRules } from '../../multiplayer/generated/MissionRules';
+import type { Formation } from '../../multiplayer/generated/Formation';
 
 export interface PveOptions { rules: MissionRules; eligiblePresets: string[] }
 
@@ -10,7 +11,11 @@ export interface PveOptions { rules: MissionRules; eligiblePresets: string[] }
  * the frozen enemy from generation through deployment, battle and restart. */
 export class PveDraft {
   private transferred = false;
+  /** Cruising formation chosen for each task group on the deployment screen.
+   * Groups left out sail in column, the mission's default. */
+  readonly formations: Record<string, Formation> = {};
   private constructor(private worker: Worker, readonly briefing: PveBriefing, readonly request: PveRequest) {}
+  setFormation(groupId: string, formation: Formation): void { this.formations[groupId] = formation; }
   static options(signal?: AbortSignal): Promise<PveOptions> {
     const worker = new Worker(new URL('./local.worker.ts', import.meta.url), { type: 'module' });
     return new Promise((resolve, reject) => {
@@ -55,7 +60,7 @@ export class PveDraft {
   async deploy(placements: Placement[]): Promise<LocalBattleSession> {
     if (this.transferred) throw new Error('This mission has already left deployment.');
     this.transferred = true;
-    return LocalBattleSession.deploy(this.worker, this.briefing, placements);
+    return LocalBattleSession.deploy(this.worker, this.briefing, placements, this.formations);
   }
   validate(placements: Placement[]): Promise<void> {
     if (this.transferred) return Promise.reject(new Error('This mission has already left deployment.'));

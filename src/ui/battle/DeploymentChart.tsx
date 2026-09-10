@@ -2,13 +2,14 @@ import { useEffect, useId, useRef, useState, type DragEvent, type KeyboardEvent,
 import { coastOutline } from '../../maps/catalog';
 import { shipPreset } from '../../ships/presets';
 import { dragFormation, rotateFormation, zoomDeployment, type DeploymentPoint } from '../deploymentGestures';
+import { formationLabel } from '../formationStations';
 import { moveFormation } from '../pveSetup';
+import { SHIP_GLYPHS, shipClassOf } from '../shipGlyphs';
 import { formatHeading, headingDegrees, unitsBox, unitsCenter, type ChartUnit, type Deployment } from './deploymentModel';
 
 export const DEPLOYMENT_DRAG = 'application/x-fleet-deployment';
 export type ChartSelection = { kind: 'group' | 'ship'; id: string } | undefined;
 export type ChartScope = 'group' | 'ship';
-const HULL = 'M 0 -8 L 4 0 L 3 7 L -3 7 L -4 0 Z';
 interface Gesture {
   kind: 'pan' | 'move' | 'rotate'; pointer: number; inverse: DOMMatrix; start: DeploymentPoint; client: [number, number];
   center: DeploymentPoint; units: ChartUnit[]; ids: string[]; moved: boolean;
@@ -49,8 +50,10 @@ export function DeploymentChart({ deployment, fit, onChange, onCommit, selection
     return () => { observer.disconnect(); element.removeEventListener('wheel', wheel); };
   }, []);
 
-  const span = fit / zoom, aspect = size.h / size.w;
-  const view = { x: center.x - span, z: center.z - span * aspect, w: span * 2, h: span * 2 * aspect };
+  // The fit spans the shorter axis, so zoom 1 shows the whole battle area however wide the chart is.
+  const span = fit / zoom, wide = size.w >= size.h;
+  const halfW = wide ? span * (size.w / size.h) : span, halfH = wide ? span : span * (size.h / size.w);
+  const view = { x: center.x - halfW, z: center.z - halfH, w: halfW * 2, h: halfH * 2 };
   const k = view.w / size.w; // metres per CSS pixel
   const units = deployment.units, active = selectedUnits(deployment, selection);
   const focus = active.length ? unitsCenter(active) : undefined;
@@ -78,6 +81,8 @@ export function DeploymentChart({ deployment, fit, onChange, onCommit, selection
       if (cancel) { if (current.kind === 'pan') setCenter(current.center); else onChange(current.units); }
       else if (current.kind !== 'pan') onCommit(current.units);
     }
+    // Press and release on open water without moving: nothing was aimed at, so let the selection go.
+    else if (!cancel && current.kind === 'pan' && selection) onSelect(undefined);
     if (svg.current?.hasPointerCapture(current.pointer)) svg.current.releasePointerCapture(current.pointer);
   };
   const pressShip = (event: ReactPointerEvent<SVGElement>, unit: ChartUnit) => {
@@ -94,6 +99,7 @@ export function DeploymentChart({ deployment, fit, onChange, onCommit, selection
     onSelect({ kind: 'group', id: groupId });
     startGesture(event, 'move', units.filter(unit => unit.groupId === groupId).map(unit => unit.id));
   };
+  const pressRotate = (event: ReactPointerEvent<SVGElement>) => { event.stopPropagation(); startGesture(event, 'rotate', active.map(unit => unit.id)); };
   const nudge = (dx: number, dz: number, turn = 0) => {
     if (disabled || !active.length || !focus) return;
     const ids = active.map(unit => unit.id);
@@ -101,7 +107,12 @@ export function DeploymentChart({ deployment, fit, onChange, onCommit, selection
   };
   const keyDown = (event: KeyboardEvent<SVGSVGElement>) => {
     const key = event.key.toLowerCase();
-    if (key === 'escape' && gesture.current) { event.preventDefault(); event.stopPropagation(); finishGesture(true); return; }
+    if (key === 'escape') {
+      if (gesture.current) { event.preventDefault(); event.stopPropagation(); finishGesture(true); return; }
+      // Nothing is dragging, so Escape clears the selection before the dialog sees it.
+      if (selection) { event.preventDefault(); event.stopPropagation(); onSelect(undefined); }
+      return;
+    }
     if (key === 'home') { event.preventDefault(); event.stopPropagation(); setZoom(1); setCenter(deployment.focus); return; }
     if (['+', '=', '-'].includes(event.key)) {
       event.preventDefault(); event.stopPropagation();
@@ -131,7 +142,7 @@ export function DeploymentChart({ deployment, fit, onChange, onCommit, selection
   })() : undefined;
   let number = 0;
   return <svg ref={svg} className={`deploy-chart ${dragging ? 'is-dragging' : ''} ${dropActive ? 'is-drop-target' : ''}`} viewBox={`${view.x} ${view.z} ${view.w} ${view.h}`} tabIndex={0} role="application"
-    aria-label="Deployment chart. Drag a frame or its tag to move a group; drag a ship to move that ship. Drag the ring to rotate. Arrows move 500 metres, Shift 100 metres. Q and E rotate 15 degrees. G and S change the selection scope. Scroll to zoom, drag water to pan, Home shows the full chart, Escape cancels a drag."
+    aria-label="Deployment chart. Drag a frame or its tag to move a group; drag a ship to move that ship. Drag the ring, the heading knob or the heading readout to rotate. Arrows move 500 metres, Shift 100 metres. Q and E rotate 15 degrees. G and S change the selection scope. Scroll to zoom, drag water to pan, click open water to deselect, Home shows the full chart, Escape cancels a drag or clears the selection."
     onPointerDown={event => startGesture(event, 'pan')}
     onPointerMove={event => {
       const current = gesture.current;
@@ -174,10 +185,36 @@ export function DeploymentChart({ deployment, fit, onChange, onCommit, selection
     </g>
     {bounds.kind === 'circle' && <><circle r={bounds.radius} className="chart-boundary"/><text x="0" y={-bounds.radius - px(12)} className="chart-rose" fontSize={px(13)}>N</text></>}
     {bounds.kind === 'square' && <text x={view.x + px(14)} y={view.z + px(20)} className="chart-rose" fontSize={px(13)} textAnchor="start">N ↑</text>}
+    {/* The compass ring sits beneath every frame, tag and ship marker: SVG paints later
+        siblings on top, so a press on another group always reaches that group instead of
+        starting a rotation of the current selection. */}
+    {ring && focus && <g className="chart-ring-group" transform={`translate(${focus.x} ${focus.z})`}>
+      <circle className="chart-ring-hit" r={ring.r} style={{ strokeWidth: px(28) }} onPointerDown={pressRotate} onClick={event => event.stopPropagation()}/>
+      <circle className="chart-ring" r={ring.r}/>
+      {Array.from({ length: 24 }, (_, i) => i * 15).map(angle => {
+        const major = angle % 90 === 0, length = px(major ? 9 : angle % 45 === 0 ? 7 : 4), rad = angle * Math.PI / 180;
+        return <line key={angle} className={`chart-tick ${major ? 'major' : ''}`} x1={Math.sin(rad) * ring.r} y1={-Math.cos(rad) * ring.r} x2={Math.sin(rad) * (ring.r + length)} y2={-Math.cos(rad) * (ring.r + length)}/>;
+      })}
+      {([['N', 0], ['E', 90], ['S', 180], ['W', 270]] as const).map(([letter, angle]) => { const rad = angle * Math.PI / 180, d = ring.r + px(19); return <text key={letter} className="chart-rose" x={Math.sin(rad) * d} y={-Math.cos(rad) * d + px(4)} fontSize={px(9)} opacity=".7">{letter}</text>; })}
+      <g className="chart-knob" transform={`rotate(${headingDegrees(ring.heading)})`} role="button" tabIndex={disabled ? -1 : 0} aria-disabled={disabled} aria-label="Rotate the selection. Drag the heading knob, or press Q or E."
+        onPointerDown={pressRotate} onClick={event => event.stopPropagation()}>
+        <g transform={`translate(0 ${-ring.r})`}>
+          <circle className="chart-knob-hit" r={px(16)}/>
+          <circle className="chart-knob-face" r={px(11)}/>
+          <path className="chart-handle" transform={`scale(${px(1)})`} d="M0 -6.5 5 4.5 0 2 -5 4.5Z"/>
+        </g>
+      </g>
+      <g className="chart-readout" transform={`translate(${Math.sin(ring.heading) * (ring.r + px(42))} ${-Math.cos(ring.heading) * (ring.r + px(42))})`}
+        role="button" tabIndex={disabled ? -1 : 0} aria-disabled={disabled} aria-label={`Heading ${formatHeading(ring.heading)}. Drag to rotate the selection.`}
+        onPointerDown={pressRotate} onClick={event => event.stopPropagation()}>
+        <rect className="chart-readout-hit" x={-px(26)} y={-px(13)} width={px(52)} height={px(26)}/>
+        <rect x={-px(19)} y={-px(9)} width={px(38)} height={px(18)} rx={px(2)}/><text y={px(4.5)} fontSize={px(11)}>{formatHeading(ring.heading)}</text>
+      </g>
+    </g>}
     {groups.map(group => {
       const box = unitsBox(group.units), pad = px(26), x = box.x0 - pad, z = box.z0 - pad, w = box.x1 - box.x0 + pad * 2, h = box.z1 - box.z0 + pad * 2;
       const selected = selection?.kind === 'group' && selection.id === group.id;
-      const label = `${group.name.toUpperCase()} · ${group.units.length} ${group.units.length === 1 ? 'SHIP' : 'SHIPS'}`;
+      const label = `${group.name.toUpperCase()} · ${group.units.length} ${group.units.length === 1 ? 'SHIP' : 'SHIPS'}${group.formation ? ` · ${formationLabel(group.formation).toUpperCase()}` : ''}`;
       const tagWidth = px(label.length * 6.4 + 16), tagHeight = px(18);
       return <g key={group.id} className={`chart-group ${group.side} ${selected ? 'is-selected' : ''}`}>
         <rect className="chart-frame" x={x} y={z} width={w} height={h} rx={px(8)} role="button" tabIndex={disabled ? -1 : 0} aria-label={`Select ${group.name}`} aria-pressed={selected}
@@ -192,30 +229,17 @@ export function DeploymentChart({ deployment, fit, onChange, onCommit, selection
     {units.map(unit => {
       number++;
       const selected = active.some(other => other.id === unit.id), own = selection?.kind === 'ship' && selection.id === unit.id;
+      const shipClass = shipClassOf(shipPreset(unit.presetId)), glyph = SHIP_GLYPHS[shipClass];
       return <g key={unit.id} transform={`translate(${unit.spawn.x} ${unit.spawn.z})`} className={`chart-ship ${unit.side} ${selected ? 'is-selected' : ''} ${own ? 'is-focus' : ''}`} role="button" tabIndex={disabled ? -1 : 0} aria-label={`Select ${unit.name}`} aria-pressed={own}
         onPointerDown={event => pressShip(event, unit)} onClick={event => event.stopPropagation()}
         onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.stopPropagation(); if (!disabled) onSelect(scope === 'ship' ? { kind: 'ship', id: unit.id } : { kind: 'group', id: unit.groupId }); } }}>
-        <title>{`${unit.name} · ${shipPreset(unit.presetId).hull.length.toFixed(0)} m · ${formatHeading(unit.spawn.heading)}`}</title>
-        <circle r={px(12)} className="chart-ship-hit"/>
-        <path transform={`rotate(${headingDegrees(unit.spawn.heading)}) scale(${px(2.2)})`} d={HULL}/>
-        <text x={px(13)} y={px(4)} fontSize={px(10)}>{number}</text>
+        <title>{`${unit.name} · ${shipClass} · ${shipPreset(unit.presetId).hull.length.toFixed(0)} m · ${formatHeading(unit.spawn.heading)}`}</title>
+        <circle r={px(13)} className="chart-ship-hit"/>
+        <g transform={`rotate(${headingDegrees(unit.spawn.heading)}) scale(${px(.95)})`}>
+          <path className="chart-hull" d={glyph.hull}/><path className="chart-mark" d={glyph.mark}/>
+        </g>
+        <text x={px(14)} y={px(4)} fontSize={px(10)}>{number}</text>
       </g>;
     })}
-    {ring && focus && <g className="chart-ring-group" transform={`translate(${focus.x} ${focus.z})`}>
-      <circle className="chart-ring-hit" r={ring.r} style={{ strokeWidth: px(28) }} onPointerDown={event => { event.stopPropagation(); startGesture(event, 'rotate', active.map(unit => unit.id)); }} onClick={event => event.stopPropagation()}/>
-      <circle className="chart-ring" r={ring.r}/>
-      {Array.from({ length: 24 }, (_, i) => i * 15).map(angle => {
-        const major = angle % 90 === 0, length = px(major ? 9 : angle % 45 === 0 ? 7 : 4), rad = angle * Math.PI / 180;
-        return <line key={angle} className={`chart-tick ${major ? 'major' : ''}`} x1={Math.sin(rad) * ring.r} y1={-Math.cos(rad) * ring.r} x2={Math.sin(rad) * (ring.r + length)} y2={-Math.cos(rad) * (ring.r + length)}/>;
-      })}
-      {([['N', 0], ['E', 90], ['S', 180], ['W', 270]] as const).map(([letter, angle]) => { const rad = angle * Math.PI / 180, d = ring.r + px(19); return <text key={letter} className="chart-rose" x={Math.sin(rad) * d} y={-Math.cos(rad) * d + px(4)} fontSize={px(9)} opacity=".7">{letter}</text>; })}
-      <g transform={`rotate(${headingDegrees(ring.heading)})`} role="button" tabIndex={disabled ? -1 : 0} aria-disabled={disabled} aria-label="Rotate the selection. Drag the handle, or press Q or E."
-        onPointerDown={event => { event.stopPropagation(); startGesture(event, 'rotate', active.map(unit => unit.id)); }} onClick={event => event.stopPropagation()}>
-        <path className="chart-handle" transform={`translate(0 ${-ring.r}) scale(${px(1.15)})`} d="M0 -9 L7 5 L0 2 L-7 5 Z"/>
-      </g>
-      <g className="chart-readout" transform={`translate(${Math.sin(ring.heading) * (ring.r + px(30))} ${-Math.cos(ring.heading) * (ring.r + px(30))})`}>
-        <rect x={-px(19)} y={-px(9)} width={px(38)} height={px(18)} rx={px(2)}/><text y={px(4.5)} fontSize={px(11)}>{formatHeading(ring.heading)}</text>
-      </g>
-    </g>}
   </svg>;
 }

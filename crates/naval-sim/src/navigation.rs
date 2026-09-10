@@ -37,12 +37,217 @@ pub enum Movement {
         position: [f64; 2],
         radius_m: f64,
     },
-    /// Ship-local [starboard, aft] meters, rotated by the leader's heading.
+    /// Ship-local [starboard, aft] meters. Column slots follow the leader's
+    /// track at the aft distance; other formations rotate with the formation
+    /// axis. `slot` orders guide succession (lowest slot takes the guide).
     Escort {
         leader_id: String,
         offset: [f64; 2],
         radius_m: f64,
+        #[serde(default)]
+        formation: Formation,
+        #[serde(default)]
+        slot: u32,
     },
+}
+
+/// How a formation keeps its shape through a turn. Column followers turn in
+/// succession along the leader's track; screen and line-abreast stations are
+/// fixed to a formation axis that rotates toward the leader's course at a
+/// bounded rate, so every ship turns together.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize, ts_rs::TS)]
+#[serde(rename_all = "kebab-case")]
+pub enum Formation {
+    #[default]
+    Column,
+    Screen,
+    LineAbreast,
+}
+
+/// Distance a ship must run before another breadcrumb is recorded.
+pub const TRAIL_STEP_M: f64 = 20.0;
+/// How much track every actor keeps behind it.
+pub const TRAIL_LENGTH_M: f64 = 8000.0;
+/// A formation axis follows the guide's course at three degrees a second, so a
+/// screen leans into a turn together instead of snapping around the guide's bow.
+pub const AXIS_RATE_RAD_PER_S: f64 = 0.0524;
+
+/// One recorded point of an actor's track.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Breadcrumb {
+    pub position: [f64; 2],
+    pub heading: f64,
+    pub speed: f64,
+    /// Arc length run along the trail when this point was recorded.
+    pub distance: f64,
+}
+
+/// Where an actor has been, and the formation axis its followers steer by. It is
+/// recorded for every actor each tick, so manual helm, bots and standing orders
+/// all leave the same track behind them.
+#[derive(Clone, Debug, Default)]
+pub struct Trail {
+    points: std::collections::VecDeque<Breadcrumb>,
+    axis: Option<f64>,
+    axis_rate: f64,
+}
+impl Trail {
+    pub fn record(&mut self, position: [f64; 2], heading: f64, speed: f64) {
+        let travelled = match self.points.back() {
+            Some(last) => {
+                let step = distance(last.position, position);
+                if step < TRAIL_STEP_M {
+                    return;
+                }
+                last.distance + step
+            }
+            None => 0.0,
+        };
+        self.points.push_back(Breadcrumb {
+            position,
+            heading,
+            speed,
+            distance: travelled,
+        });
+        while self
+            .points
+            .front()
+            .is_some_and(|p| travelled - p.distance > TRAIL_LENGTH_M)
+            && self.points.len() > 1
+        {
+            self.points.pop_front();
+        }
+    }
+    /// Turn the formation axis toward the guide's course the short way round,
+    /// at the bounded rate. It starts on the guide's own heading.
+    pub fn steady_axis(&mut self, heading: f64, dt: f64) {
+        let axis = *self.axis.get_or_insert(heading);
+        let limit = AXIS_RATE_RAD_PER_S * dt;
+        let change = wrap_angle(heading - axis).clamp(-limit, limit);
+        self.axis = Some(wrap_angle(axis + change));
+        self.axis_rate = if dt > 0.0 { change / dt } else { 0.0 };
+    }
+    pub fn axis(&self, heading: f64) -> f64 {
+        self.axis.unwrap_or(heading)
+    }
+    pub fn axis_rate(&self) -> f64 {
+        self.axis_rate
+    }
+    pub fn len(&self) -> usize {
+        self.points.len()
+    }
+    pub fn is_empty(&self) -> bool {
+        self.points.is_empty()
+    }
+    /// The point `distance_m` of run track behind `head`, interpolated between
+    /// breadcrumbs. None when the recorded track is shorter than that.
+    pub fn behind(&self, head: Breadcrumb, distance_m: f64) -> Option<Breadcrumb> {
+        if distance_m <= 0.0 {
+            return Some(head);
+        }
+        let mut next = head;
+        let mut travelled = 0.0;
+        for point in self.points.iter().rev() {
+            let step = distance(point.position, next.position);
+            if travelled + step >= distance_m {
+                let t = if step > 1e-9 {
+                    (distance_m - travelled) / step
+                } else {
+                    0.0
+                };
+                return Some(Breadcrumb {
+                    position: [
+                        next.position[0] + (point.position[0] - next.position[0]) * t,
+                        next.position[1] + (point.position[1] - next.position[1]) * t,
+                    ],
+                    heading: wrap_angle(
+                        next.heading + wrap_angle(point.heading - next.heading) * t,
+                    ),
+                    speed: next.speed + (point.speed - next.speed) * t,
+                    distance: distance_m,
+                });
+            }
+            travelled += step;
+            next = *point;
+        }
+        None
+    }
+}
+pub type Trails = std::collections::BTreeMap<String, Trail>;
+
+/// A follower's station and how fast that station itself travels. Column slots
+/// ride the guide's own track at the ordered distance astern; every other
+/// formation rides the formation axis, so the whole body turns together.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Station {
+    pub position: [f64; 2],
+    pub velocity: [f64; 2],
+    /// How fast the station itself swings about the guide, in radians a second.
+    /// A slot on the guide's track does not swing at all; a heading-relative
+    /// slot swings with the guide's bow; an axis slot only leans over at the
+    /// bounded axis rate. Outer slots reserve guide speed in proportion to it.
+    pub sweep_rate: f64,
+}
+
+/// The one place battle stepping, the formation report and the captain agree on
+/// where a follower belongs. Non-escort orders have no station.
+pub fn station_for(order: &Movement, leader: &Vessel, trail: Option<&Trail>) -> Option<Station> {
+    let Movement::Escort {
+        offset, formation, ..
+    } = order
+    else {
+        return None;
+    };
+    let head = Breadcrumb {
+        position: point(leader),
+        heading: leader.motion.heading,
+        speed: leader.motion.speed,
+        distance: 0.0,
+    };
+    // A column slot is a place on the water the guide has already crossed. A slot
+    // ahead of the guide, or one further back than the recorded track, has no such
+    // place and keeps the heading-relative station with its turn reservation.
+    if *formation == Formation::Column
+        && offset[1] > 0.0
+        && let Some(track) = trail.and_then(|t| t.behind(head, offset[1]))
+    {
+        let (sin, cos) = track.heading.sin_cos();
+        // The slot slides along the track as fast as the guide is running now,
+        // pointed the way the guide was pointed there: a follower keeps pace
+        // without sprinting sideways, and drops back the moment the guide slows.
+        let along = leader.motion.speed;
+        return Some(Station {
+            position: [
+                track.position[0] + offset[0] * cos,
+                track.position[1] + offset[0] * sin,
+            ],
+            velocity: [along * sin, -along * cos],
+            sweep_rate: 0.0,
+        });
+    }
+    let column = *formation == Formation::Column;
+    let axis = if column {
+        leader.motion.heading
+    } else {
+        trail.map_or(leader.motion.heading, |t| t.axis(leader.motion.heading))
+    };
+    let rate = if column {
+        leader.motion.yaw_rate
+    } else {
+        trail.map_or(0.0, |t| t.axis_rate())
+    };
+    let (sin, cos) = axis.sin_cos();
+    let world = [
+        offset[0] * cos - offset[1] * sin,
+        offset[0] * sin + offset[1] * cos,
+    ];
+    let velocity = leader.motion.velocity();
+    Some(Station {
+        position: [leader.motion.x + world[0], leader.motion.z + world[1]],
+        // The station itself travels faster/slower than the hull center in a turn.
+        velocity: [velocity[0] - rate * world[1], velocity[2] + rate * world[0]],
+        sweep_rate: rate,
+    })
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, ts_rs::TS)]
@@ -169,6 +374,7 @@ pub fn formation_report(
     actors: &[Vessel],
     orders: &std::collections::BTreeMap<String, crate::battle::Orders>,
     policy: FormationPolicy,
+    trails: &Trails,
 ) -> FormationReport {
     let maximum = maximum_speed(leader);
     let requested = match orders.get(&leader.motion.id).map(|o| &o.movement) {
@@ -183,9 +389,11 @@ pub fn formation_report(
         .iter()
         .filter(|a| a.team == leader.team && a.physical_loss().is_none())
     {
-        let Some(Movement::Escort {
-            leader_id, offset, ..
-        }) = orders.get(&follower.motion.id).map(|o| &o.movement)
+        let Some(
+            order @ Movement::Escort {
+                leader_id, offset, ..
+            },
+        ) = orders.get(&follower.motion.id).map(|o| &o.movement)
         else {
             continue;
         };
@@ -197,26 +405,25 @@ pub fn formation_report(
         let damaged = available < design * 0.85;
         let steering_failed =
             system_health(follower, follower.definition(), "steering", None) < 0.01;
-        let (sin, cos) = leader.motion.heading.sin_cos();
-        let station = [
-            leader.motion.x + offset[0] * cos - offset[1] * sin,
-            leader.motion.z + offset[0] * sin + offset[1] * cos,
-        ];
+        let station = station_for(order, leader, trails.get(leader_id)).unwrap();
         if (damaged && available + 0.5 < requested) || steering_failed {
             report.stragglers.push(Straggler {
                 ship_id: follower.motion.id.clone(),
                 available_speed_mps: if steering_failed { 0.0 } else { available },
-                gap_m: distance(point(follower), station),
+                gap_m: distance(point(follower), station.position),
             });
         }
-        // Reserve outer-station speed during a turn, retaining the established
-        // straight-line reserve. Damage changes the cap only after a decision.
+        // Reserve outer-station speed while the station itself is swinging,
+        // retaining the established straight-line reserve. A column slot on the
+        // guide's track never swings, so it reserves nothing; an axis station
+        // reserves only what the bounded axis rate actually demands. Damage
+        // changes the cap only after a decision.
         let capability = if policy == FormationPolicy::SlowForStragglers {
             available
         } else {
             design
         };
-        let turn_speed = leader.motion.yaw_rate.abs() * offset[0].hypot(offset[1]);
+        let turn_speed = station.sweep_rate.abs() * offset[0].hypot(offset[1]);
         report.speed_limit_mps = report
             .speed_limit_mps
             .min((capability * 0.85 - turn_speed).max(capability * 0.4));
@@ -469,6 +676,9 @@ pub fn safe_correction(
 
 /// speed_limit reserves catch-up speed for formation members. It is supplied by
 /// the authoritative order set, so selecting/following a ship cannot change it.
+/// `trails` carries every actor's recorded track and formation axis; a follower
+/// reads its guide's entry from it.
+#[allow(clippy::too_many_arguments)]
 pub fn command(
     a: &Vessel,
     actors: &[Vessel],
@@ -477,8 +687,19 @@ pub fn command(
     state: &mut NavigationState,
     tick: u64,
     speed_limit: f64,
+    trails: &Trails,
 ) -> HelmCommand {
-    command_observed(a, actors, islands, order, state, tick, speed_limit, None)
+    command_observed(
+        a,
+        actors,
+        islands,
+        order,
+        state,
+        tick,
+        speed_limit,
+        trails,
+        None,
+    )
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -490,6 +711,7 @@ pub fn command_observed(
     state: &mut NavigationState,
     tick: u64,
     speed_limit: f64,
+    trails: &Trails,
     contacts: Option<&[crate::sensors::ContactTrack]>,
 ) -> HelmCommand {
     if state.order != *order {
@@ -542,29 +764,23 @@ pub fn command_observed(
         }
         Movement::Escort {
             leader_id,
-            offset,
             radius_m,
+            ..
         } => {
             radius = (*radius_m * 0.1).clamp(40.0, 100.0);
             if let Some(leader) = actors.iter().find(|b| {
                 b.motion.id == *leader_id && b.team == a.team && b.physical_loss().is_none()
             }) {
                 state.lost_hold = None;
-                let (sin, cos) = leader.motion.heading.sin_cos();
-                let mut offset_world = [
-                    offset[0] * cos - offset[1] * sin,
-                    offset[0] * sin + offset[1] * cos,
-                ];
-                let mut destination = [
-                    leader.motion.x + offset_world[0],
-                    leader.motion.z + offset_world[1],
-                ];
+                let station = station_for(order, leader, trails.get(leader_id)).unwrap();
+                let mut destination = station.position;
+                let mut station_velocity = station.velocity;
                 state.status = NavigationStatus::Rejoining;
-                let ahead = [
-                    leader.motion.x + leader.motion.heading.sin() * leader.motion.speed * 15.0,
-                    leader.motion.z - leader.motion.heading.cos() * leader.motion.speed * 15.0,
+                // Where the slot will be once the guide has run on for a while.
+                let next_station = [
+                    destination[0] + station_velocity[0] * 15.0,
+                    destination[1] + station_velocity[1] * 15.0,
                 ];
-                let next_station = [ahead[0] + offset_world[0], ahead[1] + offset_world[1]];
                 let obstructed_slot =
                     !clear_segment(point(leader), destination, islands, margin + 100.0)
                         || !clear_segment(destination, next_station, islands, margin + 150.0);
@@ -575,19 +791,19 @@ pub fn command_observed(
                     let index = actors.iter().filter(|b| b.motion.id < a.motion.id && b.navigation.as_ref().is_some_and(|n|
                         matches!(&n.order, Movement::Escort { leader_id: id, .. } if id == leader_id))).count();
                     let aft = 450.0 + index as f64 * 400.0;
-                    offset_world = [-aft * sin, aft * cos];
+                    let (sin, cos) = leader.motion.heading.sin_cos();
+                    let offset_world = [-aft * sin, aft * cos];
                     destination = [
                         leader.motion.x + offset_world[0],
                         leader.motion.z + offset_world[1],
                     ];
+                    let velocity = leader.motion.velocity();
+                    station_velocity = [
+                        velocity[0] - leader.motion.yaw_rate * offset_world[1],
+                        velocity[2] + leader.motion.yaw_rate * offset_world[0],
+                    ];
                     state.status = NavigationStatus::FormingColumn;
                 }
-                let velocity = leader.motion.velocity();
-                // The station itself travels faster/slower than the hull center in a turn.
-                let station_velocity = [
-                    velocity[0] - leader.motion.yaw_rate * offset_world[1],
-                    velocity[2] + leader.motion.yaw_rate * offset_world[0],
-                ];
                 let error = [destination[0] - at[0], destination[1] - at[1]];
                 let range = error[0].hypot(error[1]);
                 if clear_segment(at, destination, islands, margin) {
@@ -609,7 +825,11 @@ pub fn command_observed(
                         station_velocity[0] + error[0] / 35.0,
                         station_velocity[1] + error[1] / 35.0,
                     ];
-                    let speed = velocity[0].hypot(velocity[1]).min(maximum);
+                    // A slot on the guide's track stops when the guide stops.
+                    // Leave room to shed catch-up speed instead of running past it.
+                    let braking = station_velocity[0].hypot(station_velocity[1])
+                        + (2.0 * a.definition().handling.braking * range).sqrt();
+                    let speed = velocity[0].hypot(velocity[1]).min(maximum).min(braking);
                     if range < radius && state.status != NavigationStatus::FormingColumn {
                         state.status = NavigationStatus::OnStation;
                     }

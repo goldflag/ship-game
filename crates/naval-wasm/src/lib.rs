@@ -398,6 +398,7 @@ impl LocalRuntime {
             selected_ship_ids: [Option<&'a str>; 2],
             fleet_orders:
                 std::collections::BTreeMap<String, naval_protocol::session::FleetOrderState>,
+            fleet_notices: &'a [naval_protocol::session::FleetNotice],
             phase: &'static str,
         }
         let selected = &self.session.control.players;
@@ -407,6 +408,7 @@ impl LocalRuntime {
             "running"
         };
         let fleet_orders = self.session.fleet_orders(0);
+        let fleet_notices = self.session.fleet_notices(0);
         if self.session.battle.mission_rules.is_some() && self.session.battle.outcome.is_none() {
             return serde_json::to_string(&LocalFrame {
                 frame: self.session.battle.team_presentation_snapshot(
@@ -414,6 +416,7 @@ impl LocalRuntime {
                 ),
                 selected_ship_ids: [selected[0].selected_ship_id.as_deref(), None],
                 fleet_orders,
+                fleet_notices,
                 phase,
             })
             .map_err(error);
@@ -437,6 +440,7 @@ impl LocalRuntime {
                 frame,
                 selected_ship_ids: [selected[0].selected_ship_id.as_deref(), None],
                 fleet_orders,
+                fleet_notices,
                 phase,
             })
             .map_err(error);
@@ -448,6 +452,7 @@ impl LocalRuntime {
                 selected[1].selected_ship_id.as_deref(),
             ],
             fleet_orders,
+            fleet_notices,
             phase,
         };
         serde_json::to_string(&frame).map_err(error)
@@ -543,10 +548,25 @@ impl PvePlanner {
             .map_err(error)?;
         Ok(())
     }
-    pub fn start(&mut self, placements: &str) -> Result<LocalRuntime, JsValue> {
+    /// `formations` is an optional `{ groupId: Formation }` map chosen on the
+    /// deployment screen. It is applied before the opening task-group directives
+    /// are derived, so each group sails in the cruising formation the player set.
+    pub fn start(
+        &mut self,
+        placements: &str,
+        formations: Option<String>,
+    ) -> Result<LocalRuntime, JsValue> {
         if placements.len() > 16384 {
             return Err(error("Deployment exceeds limit"));
         }
+        let chosen: std::collections::BTreeMap<String, naval_sim::navigation::Formation> =
+            match &formations {
+                Some(json) if json.len() > 4096 => {
+                    return Err(error("Formation selection exceeds limit"));
+                }
+                Some(json) => serde_json::from_str(json).map_err(error)?,
+                None => Default::default(),
+            };
         let setup = self
             .plan
             .deploy(
@@ -554,6 +574,8 @@ impl PvePlanner {
                 serde_json::from_str(placements).map_err(error)?,
             )
             .map_err(error)?;
+        // Only an accepted deployment changes the frozen plan.
+        self.plan.set_formations(&chosen);
         for ship in &setup.ships {
             if !self.compiled.contains_key(&ship.preset_id) {
                 let def = self

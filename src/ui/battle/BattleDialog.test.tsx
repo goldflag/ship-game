@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { BattleDialog } from './BattleDialog';
 import { ShipCatalogCard, ShipChip } from './ShipCard';
 import { DeployScreen } from './DeployScreen';
-import { customDeployment } from './deploymentModel';
+import { customDeployment, type Deployment } from './deploymentModel';
 import type { BattleSetup } from '../../simulation/battle';
 
 const setup: BattleSetup = { playerShipId: 'bismarck', friendlyBots: [{ shipId: 'fletcher', aiLevel: 'hard' }], enemies: ['mogami'], spawnDistance: 5000, mapId: 'north-atlantic', timeHours: 14.5, cloudCover: 40, windSpeed: 8 };
@@ -37,4 +37,23 @@ test('the deploy screen lists formations with a scope toggle, heading dial and t
   expect(html).toContain('Friendly formation'); expect(html).toContain('Enemy formation'); expect(html).toContain('Bismarck · You');
   expect(html).toContain('deploy-dial'); expect(html).toContain('chart-frame'); expect(html).toContain('chart-tag'); expect(html).toContain('chart-ring'); expect(html).toContain('chart-handle');
   expect(html).toContain('FRIENDLY FORMATION · 2 SHIPS'); expect(html).toContain('Placement clear.'); expect(html).toContain('Reset positions');
+});
+
+test('the PvE deploy panel offers a cruising formation for the selected group; custom battles keep their spawn presets', () => {
+  const deployment: Deployment = {
+    units: [{ id: 'bb', presetId: 'bismarck', name: 'Bismarck', side: 'friendly', groupId: 'front', spawn: { x: 0, z: 12000, heading: 0 } },
+      { id: 'dd', presetId: 'fletcher', name: 'Fletcher', side: 'friendly', groupId: 'front', spawn: { x: 900, z: 12000, heading: 0 } }],
+    groups: [{ id: 'front', name: 'Group 1', side: 'friendly', formation: 'screen' }],
+    islands: [], bounds: { kind: 'circle', radius: 25000 }, friendlyMinZ: 7000, focus: { x: 0, z: 0 }, labels: {}, error: '',
+  };
+  const pve = renderToStaticMarkup(<DeployScreen deployment={deployment} onChange={() => {}} onReset={() => {}} disabled={false} fitKey="x" onFormation={() => {}}/>);
+  expect(pve).toContain('Cruising formation');
+  expect(pve).toContain('Formation · Group 1');
+  expect(pve).toContain('Column'); expect(pve).toContain('Screen'); expect(pve).toContain('Line abreast');
+  expect(pve).toContain('destroyers on an outer ring'); // The hint follows the group's own choice.
+  expect(pve).toContain('GROUP 1 · 2 SHIPS · SCREEN');
+  // Custom battles have no task groups, so the panel keeps only the line/column/wedge spawn preset.
+  const custom = renderToStaticMarkup(<DeployScreen deployment={customDeployment(setup)} onChange={() => {}} onReset={() => {}} disabled={false} fitKey="x"/>);
+  expect(custom).not.toContain('Cruising formation');
+  expect(custom).toContain('FRIENDLY FORMATION · 2 SHIPS<');
 });

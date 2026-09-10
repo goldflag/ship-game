@@ -208,6 +208,9 @@
 .deploy-group-row:hover:not(:disabled),.deploy-ship-row:hover:not(:disabled) { background:#d9eeed0e; }
 .deploy-group-row[aria-pressed=true],.deploy-ship-row[aria-pressed=true] { border-color:var(--battle-mint); background:#86e4c512; }
 .deploy-tools { flex-shrink:0; display:grid; gap:8px; padding:12px 14px; border-top:1px solid var(--battle-line); font-size:12px; color:var(--battle-muted); }
+.deploy-formation { display:grid; gap:4px; }
+.deploy-formation .rail-field { margin:0; }
+.deploy-formation .rail-note { color:var(--battle-muted2); font-size:11px; line-height:1.4; }
 .deploy-heading { display:grid; grid-template-columns:72px 1fr; gap:10px; align-items:center; }
 .deploy-heading .rail-field { margin:0; }
 .deploy-heading .ui-input { flex:0 0 62px; width:62px; min-height:28px; padding:2px 6px; font-size:12px; }
@@ -235,13 +238,18 @@
 .chart-boundary { fill:none; stroke:var(--battle-brass); stroke-width:1.5; }
 .chart-label { text-anchor:middle; letter-spacing:.12em; fill:#b0c3c9; }
 .chart-rose { text-anchor:middle; letter-spacing:.1em; fill:#b0c3c9; }
-.chart-ship { cursor:grab; }
-.chart-ship path { fill:#a9d4dc; stroke:#09212a; stroke-width:1; }
-.chart-ship.enemy path { fill:#e6a99e; }
-.chart-ship.is-selected path { fill:#c8f7e4; stroke:var(--battle-mint); }
-.chart-ship.enemy.is-selected path { fill:#ffd2c9; stroke:var(--battle-salmon); }
+/* The same class silhouettes the in-battle map markers use, so a carrier, battleship,
+   cruiser, destroyer and merchant read the same on the chart as they will in the fight. */
+.chart-ship { cursor:grab; color:#a9d4dc; }
+.chart-ship.enemy { color:#e6a99e; }
+.chart-ship.is-selected { color:var(--battle-mint); }
+.chart-ship.enemy.is-selected { color:var(--battle-salmon); }
+.chart-ship .chart-hull { fill:#0e2c38; stroke:currentColor; stroke-width:1.5; }
+.chart-ship .chart-mark { fill:currentColor; stroke:none; opacity:.9; }
+.chart-ship.is-selected .chart-hull { fill:#123c45; }
 .chart-ship text { fill:#f4f7f5; font-weight:500; }
 .chart-ship-hit { fill:transparent; stroke:none; }
+.chart-ship.is-focus .chart-ship-hit { stroke:currentColor; stroke-width:1.5; stroke-opacity:.7; }
 .chart-ship:focus-visible .chart-ship-hit { stroke:var(--battle-brass); stroke-width:2; }
 .chart-frame { fill:none; stroke:var(--battle-mint); stroke-opacity:.35; stroke-width:1; stroke-dasharray:3 5; cursor:pointer; }
 .chart-group.enemy .chart-frame { stroke:var(--battle-salmon); }
@@ -254,13 +262,20 @@
 .chart-group.is-selected .chart-tag rect { fill:#0a202b; stroke-opacity:1; }
 .chart-tag text { fill:#b0c3c9; font-weight:500; letter-spacing:.06em; }
 .chart-group.is-selected .chart-tag text { fill:#e9f6f0; font-weight:600; }
-.chart-ring { fill:none; stroke:var(--battle-brass); stroke-opacity:.55; stroke-width:1; }
+.chart-ring { fill:none; stroke:var(--battle-brass); stroke-opacity:.55; stroke-width:1; pointer-events:none; }
 .chart-ring-hit { fill:none; stroke:transparent; cursor:grab; }
-.chart-tick { stroke:var(--battle-brass); stroke-opacity:.7; stroke-width:1; }
+.chart-tick { stroke:var(--battle-brass); stroke-opacity:.7; stroke-width:1; pointer-events:none; }
 .chart-tick.major { stroke-opacity:1; }
-.chart-handle { fill:var(--battle-brass); stroke:#0a202b; stroke-width:1.5; cursor:grab; }
-.chart-ring-group g[role=button]:focus-visible .chart-handle { stroke:#edf1ec; }
-.chart-readout rect { fill:#0a202bd9; stroke:var(--battle-brass); }
+/* A knob you can actually grab: a 22 px disc with a bow arrow, over a wider invisible target. */
+.chart-knob,.chart-readout { cursor:grab; }
+.deploy-chart.is-dragging .chart-knob,.deploy-chart.is-dragging .chart-readout { cursor:grabbing; }
+.chart-knob-hit,.chart-readout-hit { fill:transparent; stroke:none; }
+.chart-knob-face { fill:#0a202b; stroke:var(--battle-brass); stroke-width:1.5; }
+.chart-knob:hover .chart-knob-face { fill:#123645; }
+.chart-handle { fill:var(--battle-brass); stroke:none; }
+.chart-knob:focus-visible .chart-knob-face,.chart-readout:focus-visible rect+rect { stroke:#edf1ec; stroke-width:2; }
+.chart-readout rect+rect { fill:#0a202bd9; stroke:var(--battle-brass); }
+.chart-readout:hover rect+rect { fill:#123645; }
 .chart-readout text { text-anchor:middle; fill:var(--battle-brass); font-weight:600; font-family:'Barlow Condensed',sans-serif; }
 .deploy-legend { position:absolute; right:14px; top:12px; display:flex; gap:12px; font-size:11px; color:var(--battle-muted); pointer-events:none; }
 .deploy-legend span::before { content:''; display:inline-block; width:8px; height:8px; margin-right:5px; border-radius:1px; vertical-align:middle; background:#a9d4dc; }

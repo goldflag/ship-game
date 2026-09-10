@@ -1,16 +1,17 @@
 import { expect, test } from 'bun:test';
 import { fleetFormations } from './fleetFormations';
 import type { FleetOrderState } from '../multiplayer/generated/FleetOrderState';
+import type { Formation } from '../multiplayer/generated/Formation';
 
-const escort = (leaderId: string): FleetOrderState => ({ movement: { type: 'escort', leaderId, offset: [0, 500], radiusM: 160 }, weapons: { guns: true, aa: true, torpedoes: false }, formationPolicy: 'slow-for-stragglers', targetId: null, manual: false, navigation: null });
+const escort = (leaderId: string, formation: Formation = 'column'): FleetOrderState => ({ movement: { type: 'escort', leaderId, offset: [0, 500], radiusM: 160, formation, slot: 0 }, weapons: { guns: true, aa: true, torpedoes: false }, formationPolicy: 'slow-for-stragglers', targetId: null, manual: false, navigation: null });
 const hold = (): FleetOrderState => ({ movement: { type: 'hold' }, weapons: { guns: true, aa: true, torpedoes: false }, formationPolicy: 'slow-for-stragglers', targetId: null, manual: false, navigation: null });
 const ships = [{ id: 'bb', name: 'Bismarck' }, { id: 'dd1', name: 'Fletcher' }, { id: 'dd2', name: 'Yukikaze' }, { id: 'cv', name: 'USS Enterprise (CV-6)' }];
 
 test('escort orders form the groups, numbered and named from the setup groups', () => {
   const formations = fleetFormations(ships, { dd1: escort('bb'), dd2: escort('dd1'), bb: hold() }, new Map([[1, { name: 'Group 1', shipIds: ['bb', 'dd1', 'dd2'] }], [2, { name: 'Screen', shipIds: ['cv'] }]]));
   expect(formations).toEqual([
-    { index: 1, name: 'Bismarck formation', leaderId: 'bb', shipIds: ['bb', 'dd1', 'dd2'] },
-    { index: 2, name: 'Screen', leaderId: 'cv', shipIds: ['cv'] },
+    { index: 1, name: 'Bismarck formation', leaderId: 'bb', shipIds: ['bb', 'dd1', 'dd2'], formation: 'column' },
+    { index: 2, name: 'Screen', leaderId: 'cv', shipIds: ['cv'], formation: 'column' },
   ]);
 });
 
@@ -26,4 +27,14 @@ test('escort chains that loop or point outside the fleet still terminate at a le
   expect(formations).toHaveLength(1);
   expect(formations[0].shipIds.sort()).toEqual(['bb', 'dd1']);
   expect(fleetFormations([ships[0]], { bb: escort('missing') })[0].shipIds).toEqual(['bb']);
+});
+
+test('each group reports how it sails: the record the picker keeps, or the escort orders themselves', () => {
+  const groups = new Map([[1, { name: 'Group 1', shipIds: ['bb', 'dd1', 'dd2'], formation: 'screen' as Formation }], [2, { name: 'Group 2', shipIds: ['cv'] }]]);
+  const kept = fleetFormations(ships, { dd1: escort('bb'), dd2: escort('dd1') }, groups);
+  expect(kept.map(f => [f.index, f.formation])).toEqual([[1, 'screen'], [2, 'column']]);
+  // A group with no record of its own reports the formation its escorts are stationed in.
+  const stationed = fleetFormations(ships, { dd1: escort('bb', 'line-abreast'), dd2: escort('bb', 'line-abreast') });
+  expect(stationed[0].formation).toBe('line-abreast');
+  expect(fleetFormations(ships, {})[0].formation).toBe('column');
 });

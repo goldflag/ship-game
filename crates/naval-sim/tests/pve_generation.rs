@@ -59,11 +59,13 @@ fn request(seed: u32, ids: &[&str], map: &str) -> PveRequest {
                 id: "front".into(),
                 name: "Surface force".into(),
                 station: GroupStation::Front,
+                formation: None,
             },
             TaskGroup {
                 id: "rear".into(),
                 name: "Carrier force".into(),
                 station: GroupStation::Rear,
+                formation: None,
             },
         ],
     }

@@ -4,15 +4,15 @@ import { OwnFleetCard, type OwnFleetShip } from './OwnFleet';
 import { EnemyFleet } from './EnemyFleet';
 import type { ContactTrack } from '../multiplayer/generated/ContactTrack';
 import type { AirCluster, BattleComparison } from './fleetStats';
-import type { Formation } from './fleetFormations';
+import type { FleetFormation } from './fleetFormations';
 
 const track = (over: Partial<ContactTrack>): ContactTrack => ({ id: 'c', kind: 'surface', affiliation: 'hostile', status: 'tracked', firstObservedTick: 0, lastObservedTick: 100, measuredPosition: over.estimatedPosition ?? [0, 0, 0], estimatedPosition: [0, 0, 0], velocity: [0, 0, 0], uncertaintyM: 20, identificationConfidence: 1, classification: null, identifiedPresetId: null, sources: [], ...over });
 
 const ship = (over: Partial<OwnFleetShip>): OwnFleetShip => ({ id: 'bb', name: 'Bismarck', shipClass: 'battleship', hull: .97, kn: 20, order: 'Route · 20 kn · Waypoint 2/4', damageDealt: 12_400, frags: 1, lost: false, warn: false, massKg: 43_978_000, ...over });
 
-const formations: readonly Formation[] = [
-  { index: 1, name: 'Bismarck formation', leaderId: 'bb', shipIds: ['bb', 'dd'] },
-  { index: 2, name: 'Enterprise', leaderId: 'cv', shipIds: ['cv'] },
+const formations: readonly FleetFormation[] = [
+  { index: 1, name: 'Bismarck formation', leaderId: 'bb', shipIds: ['bb', 'dd'], formation: 'screen' },
+  { index: 2, name: 'Enterprise', leaderId: 'cv', shipIds: ['cv'], formation: 'column' },
 ];
 const ships = [ship({}), ship({ id: 'dd', name: 'Yukikaze', shipClass: 'destroyer', hull: .62, kn: 14, order: 'Straggling · 14 kn available', damageDealt: 600, frags: 0, warn: true, massKg: 2_924_000 }),
   ship({ id: 'cv', name: 'Enterprise', shipClass: 'carrier', hull: 1, kn: 23, order: 'Patrol · 23 kn', damageDealt: 0, frags: 0, massKg: 25_500_000, aircraft: { remaining: 44, total: 48 } })];
@@ -27,10 +27,12 @@ test('the own fleet card lists every formation with its ships, their standing or
   // Three ships afloat, their tonnage and the damage the whole fleet has dealt.
   expect(html).toContain('3 ships · 72,402 t · 13,000 dmg');
   expect(html).toContain('<kbd>1</kbd>Bismarck formation');
-  expect(html).toContain('2 ships · 13.0k dmg');
+  // A formation of more than one ship reports how it sails; a lone ship has no formation.
+  expect(html).toContain('2 ships · Screen · 13.0k dmg');
   // A lone carrier reports its wing instead of a damage score.
   expect(html).toContain('<kbd>2</kbd>Enterprise');
   expect(html).toContain('1 ship · 44/48 aircraft');
+  expect(html).not.toContain('1 ship · Column');
   expect(html).toContain('Route · 20 kn · Waypoint 2/4');
   expect(html).toContain('97%');
   expect(html).toContain('20 kn · 12.4k dmg · 1 sunk');

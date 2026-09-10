@@ -1,6 +1,7 @@
 import './FleetCards.css';
 import { Icon } from './Icons';
-import type { Formation } from './fleetFormations';
+import { formationLabel } from './formationStations';
+import type { FleetFormation } from './fleetFormations';
 import { SHIP_GLYPHS, type ShipClass } from './shipGlyphs';
 
 export interface OwnFleetShip {
@@ -15,11 +16,11 @@ export interface OwnFleetShip {
 }
 export interface OwnFleetAircraft { remaining: number; total: number; airborne: number; onDeck: number; inHangar: number }
 export interface OwnFleetCardProps {
-  formations: readonly Formation[]; ships: readonly OwnFleetShip[]; selectedIds: readonly string[]; hoverId?: string;
+  formations: readonly FleetFormation[]; ships: readonly OwnFleetShip[]; selectedIds: readonly string[]; hoverId?: string;
   /** Undefined when the fleet has no carrier. */
   aircraft?: OwnFleetAircraft;
   airOpen?: boolean;
-  onHover(id: string | undefined): void; onSelectShip(id: string, additive: boolean): void; onSelectFormation(formation: Formation): void;
+  onHover(id: string | undefined): void; onSelectShip(id: string, additive: boolean): void; onSelectFormation(formation: FleetFormation): void;
   onOpenAir?(): void;
 }
 
@@ -53,9 +54,9 @@ export function OwnFleetCard({ formations, ships, selectedIds, hoverId, aircraft
       const carrier = members.find(s => s.aircraft?.total);
       return <div key={formation.index}>
         <button className="fleet-card-head" aria-pressed={members.length > 0 && members.every(s => selectedIds.includes(s.id))}
-          title={`Select every ship in ${formation.name} · ${formation.index}`} onClick={() => onSelectFormation(formation)}>
+          title={`Select every ship in ${formation.name} · ${formation.index}${members.length > 1 ? ` · ${formationLabel(formation.formation)}` : ''}`} onClick={() => onSelectFormation(formation)}>
           <span><kbd>{formation.index}</kbd>{formation.name}</span>
-          <small>{shipCount(members.length)}{carrier ? ` · ${carrier.aircraft!.remaining}/${carrier.aircraft!.total} aircraft` : ` · ${compact(members.reduce((n, s) => n + s.damageDealt, 0))} dmg`}</small>
+          <small>{shipCount(members.length)}{members.length > 1 ? ` · ${formationLabel(formation.formation)}` : ''}{carrier ? ` · ${carrier.aircraft!.remaining}/${carrier.aircraft!.total} aircraft` : ` · ${compact(members.reduce((n, s) => n + s.damageDealt, 0))} dmg`}</small>
         </button>
         {members.map(row)}
       </div>;

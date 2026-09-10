@@ -11,4 +11,5 @@ fn main() {
     naval_protocol::CommandEnvelope::export_all(&ts_rs::Config::from_env()).unwrap();
     naval_protocol::MovementOrder::export_all(&ts_rs::Config::from_env()).unwrap();
     naval_protocol::session::FleetOrderState::export_all(&ts_rs::Config::from_env()).unwrap();
+    naval_protocol::session::FleetNotice::export_all(&ts_rs::Config::from_env()).unwrap();
 }

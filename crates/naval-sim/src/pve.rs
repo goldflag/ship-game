@@ -26,6 +26,10 @@ pub struct TaskGroup {
     pub id: String,
     pub name: String,
     pub station: GroupStation,
+    /// Cruising formation the group sails at the start; column when omitted.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub formation: Option<crate::navigation::Formation>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -334,6 +338,18 @@ impl PvePlan {
         self.setup = proposed;
         Ok(self.setup.clone())
     }
+    /// Cruising formation per owned task group, chosen at deployment. Unknown
+    /// group ids are ignored; the enemy's own groups are never addressed here.
+    pub fn set_formations(
+        &mut self,
+        formations: &std::collections::BTreeMap<String, crate::navigation::Formation>,
+    ) {
+        for group in &mut self.groups {
+            if let Some(formation) = formations.get(&group.id) {
+                group.formation = Some(*formation);
+            }
+        }
+    }
     pub fn restart_setup(&self) -> BattleSetup {
         self.setup.clone()
     }
@@ -435,6 +451,7 @@ fn enemy_groups(catalog: &Catalog, ids: Vec<String>) -> (Vec<FleetShip>, Vec<Tas
         id: "enemy-front".into(),
         name: "Surface force".into(),
         station: GroupStation::Front,
+        formation: None,
     }];
     let mut units: Vec<_> = ids
         .into_iter()
@@ -457,6 +474,7 @@ fn enemy_groups(catalog: &Catalog, ids: Vec<String>) -> (Vec<FleetShip>, Vec<Tas
             id: id.clone(),
             name: "Carrier force".into(),
             station: GroupStation::Rear,
+            formation: None,
         });
         units[*carrier].group_id = id.clone();
         let escorts: Vec<_> = units

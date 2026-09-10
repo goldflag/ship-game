@@ -90,6 +90,10 @@ pub enum Command {
         leader_id: String,
         offset: [f64; 2],
         radius_m: f64,
+        #[serde(default)]
+        formation: naval_sim::navigation::Formation,
+        #[serde(default)]
+        slot: u32,
     },
     Weapons {
         policy: WeaponsPolicy,
@@ -275,6 +279,7 @@ fn validate_command(c: &CommandEnvelope) -> Result<(), CommandError> {
             leader_id,
             offset,
             radius_m,
+            ..
         } => {
             if !identity(leader_id)
                 || offset.iter().any(|n| !n.is_finite() || n.abs() > 5000.0)
@@ -471,11 +476,15 @@ impl FleetControl {
                 leader_id,
                 offset,
                 radius_m,
+                formation,
+                slot,
             } => {
                 ship.movement = MovementOrder::Escort {
                     leader_id,
                     offset,
                     radius_m,
+                    formation,
+                    slot,
                 }
             }
             Command::Weapons { policy } => ship.weapons = policy,

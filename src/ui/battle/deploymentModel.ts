@@ -1,13 +1,17 @@
 import { DEFAULT_MAP, mapIslands, type Island } from '../../maps/catalog';
+import type { Formation } from '../../multiplayer/generated/Formation';
 import type { PveBriefing } from '../../multiplayer/generated/PveBriefing';
 import type { Placement } from '../../multiplayer/generated/Placement';
 import { shipPreset } from '../../ships/presets';
 import { botSelection, setupSpawns, validateSpawns, type BattleSetup, type SpawnPose, type Team } from '../../simulation/battle';
+import { formationStations, stationPosition } from '../formationStations';
 import { deploymentIslands, placementError, unitName } from '../pveSetup';
+import { shipClassOf } from '../shipGlyphs';
 
 /** One ship on the deployment chart. `spawn` matches the worker's Placement shape so formation helpers apply directly. */
 export interface ChartUnit { id: string; presetId: string; name: string; side: Team; groupId: string; spawn: SpawnPose; }
-export interface ChartGroup { id: string; name: string; side: Team; }
+/** `formation` is the cruising formation the group starts the battle in; only the PvE flow chooses one. */
+export interface ChartGroup { id: string; name: string; side: Team; formation?: Formation; }
 export type ChartBounds = { kind: 'circle'; radius: number } | { kind: 'square'; half: number };
 export interface Deployment {
   units: ChartUnit[]; groups: ChartGroup[]; islands: Island[]; bounds: ChartBounds;
@@ -41,9 +45,11 @@ export function applyCustomDeployment(setup: BattleSetup, units: readonly ChartU
   return { ...setup, spawns: { friendly: side('friendly'), enemy: side('enemy') } };
 }
 
-/** PvE: the player's task groups inside the circular battle area; the enemy stays unseen. */
-export function pveDeployment(briefing: PveBriefing, placements: readonly Placement[]): Deployment {
-  const groups = briefing.groups.filter(group => briefing.assignments.some(unit => unit.groupId === group.id)).map(group => ({ id: group.id, name: group.name, side: 'friendly' as const }));
+/** PvE: the player's task groups inside the circular battle area; the enemy stays unseen.
+ * `formations` overrides the briefing's cruising formation with what the player picked here. */
+export function pveDeployment(briefing: PveBriefing, placements: readonly Placement[], formations: Readonly<Record<string, Formation>> = {}): Deployment {
+  const groups = briefing.groups.filter(group => briefing.assignments.some(unit => unit.groupId === group.id))
+    .map(group => ({ id: group.id, name: group.name, side: 'friendly' as const, formation: formations[group.id] ?? group.formation ?? 'column' as Formation }));
   const units = placements.flatMap(placement => {
     const unit = briefing.assignments.find(ship => ship.id === placement.id);
     return unit ? [{ id: unit.id, presetId: unit.presetId, name: unitName(unit, briefing.assignments), side: 'friendly' as const, groupId: unit.groupId, spawn: placement.spawn }] : [];
@@ -52,6 +58,21 @@ export function pveDeployment(briefing: PveBriefing, placements: readonly Placem
     labels: { north: 'NO CONTACTS REPORTED', south: 'FRIENDLY DEPLOYMENT' }, error: placementError(briefing, [...placements]) };
 }
 export const applyPveDeployment = (units: readonly ChartUnit[]): Placement[] => units.map(unit => ({ id: unit.id, spawn: unit.spawn }));
+
+/** Put one group's ships on their formation stations. The guide — the group's first
+ * unit — keeps the position and heading the player gave it; every follower takes the
+ * station its class earns from the same table the sim's escort orders read, so the
+ * chart shows the shape the group will actually sail. Other groups are untouched. */
+export function arrangeFormation(units: readonly ChartUnit[], groupId: string, formation: Formation): ChartUnit[] {
+  const members = units.filter(unit => unit.groupId === groupId);
+  if (members.length < 2) return [...units];
+  const guide = members[0], station = (unit: ChartUnit) => ({ id: unit.id, shipClass: shipClassOf(shipPreset(unit.presetId)) });
+  const stations = new Map(formationStations(formation, station(guide), members.slice(1).map(station)).map(entry => [entry.id, entry.offset]));
+  return units.map(unit => {
+    const offset = unit.groupId === groupId ? stations.get(unit.id) : undefined;
+    return offset ? { ...unit, spawn: { ...stationPosition(guide.spawn, offset), heading: guide.spawn.heading } } : unit;
+  });
+}
 
 export function unitsBox(units: readonly ChartUnit[]) {
   const xs = units.map(unit => unit.spawn.x), zs = units.map(unit => unit.spawn.z);

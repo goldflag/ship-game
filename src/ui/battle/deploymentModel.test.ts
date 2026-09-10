@@ -2,7 +2,8 @@ import { expect, test } from 'bun:test';
 import type { BattleSetup } from '../../simulation/battle';
 import type { PveBriefing } from '../../multiplayer/generated/PveBriefing';
 import mission from '../../../assets/gameplay/pve-mission.v1.json';
-import { applyCustomDeployment, applyPveDeployment, customDeployment, fitRadius, formatHeading, pveDeployment } from './deploymentModel';
+import { applyCustomDeployment, applyPveDeployment, arrangeFormation, customDeployment, fitRadius, formatHeading, pveDeployment } from './deploymentModel';
+import { roleInterval, SCREEN_OUTER_RADIUS_M } from '../formationStations';
 import { moveFormation } from '../pveSetup';
 
 const setup: BattleSetup = { playerShipId: 'bismarck', friendlyBots: ['fletcher'], enemies: ['yamato', { shipId: 'fubuki', aiLevel: 'easy' }], spawnDistance: 6000, mapId: 'north-atlantic' };
@@ -40,4 +41,32 @@ test('PvE deployment mirrors placements and reports sector violations', () => {
   expect(applyPveDeployment(deployment.units)).toEqual(placements);
   expect(formatHeading(Math.PI / 2)).toBe('090°');
   expect(formatHeading(-Math.PI / 4)).toBe('315°');
+});
+
+test('a formation preset stations a group around its guide and leaves every other group alone', () => {
+  const briefing = { generationVersion: 1, setup: { ships: [], mapId: 'pacific-islands', weather: 'clear', seed: 1, spawnDistance: 16000, windSpeed: null, missionRules: mission },
+    groups: [{ id: 'front', name: 'Screen', station: 'front' }], assignments: [{ id: 'dd', presetId: 'fletcher', groupId: 'front' }], totals: { displacementKg: 1, ships: 1, aircraft: 0 }, eligiblePresets: ['fletcher'], deploymentMinZ: 7000 } as unknown as PveBriefing;
+  const unit = (id: string, presetId: string, groupId: string, x: number, z: number, heading = 0) =>
+    ({ id, presetId, name: id, side: 'friendly' as const, groupId, spawn: { x, z, heading } });
+  const units = [unit('bb', 'bismarck', 'front', 1000, 12000, Math.PI / 2), unit('dd', 'fletcher', 'front', -4000, 19000), unit('ca', 'baltimore', 'front', 6000, 3000), unit('cv', 'enterprise-cv6', 'rear', 0, 16000)];
+
+  const column = arrangeFormation(units, 'front', 'column');
+  const d = roleInterval('battleship');
+  expect(column[0].spawn).toEqual(units[0].spawn); // The guide keeps the place and the course the player gave it.
+  expect(column[3]).toBe(units[3]); // Another group is never touched.
+  // Heading 090 puts astern to the west: the cruiser takes the first station, the destroyer the second.
+  expect(column[2].spawn.x).toBeCloseTo(1000 - d); expect(column[2].spawn.z).toBeCloseTo(12000);
+  expect(column[1].spawn.x).toBeCloseTo(1000 - d * 2); expect(column[1].spawn.heading).toBeCloseTo(Math.PI / 2);
+
+  const screen = arrangeFormation(units, 'front', 'screen');
+  const dd = screen.find(ship => ship.id === 'dd')!; // Destroyers ride the outer ring, dead ahead of the guide.
+  expect(Math.hypot(dd.spawn.x - 1000, dd.spawn.z - 12000)).toBeCloseTo(SCREEN_OUTER_RADIUS_M);
+  expect(dd.spawn.x).toBeCloseTo(1000 + SCREEN_OUTER_RADIUS_M);
+
+  const abreast = arrangeFormation(units, 'front', 'line-abreast');
+  expect(abreast.find(ship => ship.id === 'ca')!.spawn.z).toBeCloseTo(12000 + d);
+  expect(arrangeFormation([units[3]], 'rear', 'screen')).toEqual([units[3]]); // A single ship is already in formation.
+
+  // The chart reports the chosen formation, and an arrangement that breaks the rules still shows the usual error.
+  expect(pveDeployment(briefing, [{ id: 'dd', spawn: { x: 0, z: 12000, heading: 0 } }], { front: 'screen' }).groups).toEqual([{ id: 'front', name: 'Screen', side: 'friendly', formation: 'screen' }]);
 });

@@ -2,6 +2,7 @@ import type { DeckPolicy } from '../multiplayer/generated/DeckPolicy';
 import { physicalLoss } from '../simulation/battleRules';
 import { ArticulationResolver } from './articulationPreview';
 import { PveDraft } from './session/PveDraft';
+import type { Formation } from '../multiplayer/generated/Formation';
 import type { Placement } from '../multiplayer/generated/Placement';
 import { weaponGroups, selectedWeapon } from '../ships/weaponGroups';
 import { hullDepth } from '../simulation/ship';
@@ -80,6 +81,20 @@ type JointPreview = { trainFraction: number; elevationFraction: number; recoilFr
 export type ArticulationPreview = JointPreview & { mounts?: Record<string, Partial<JointPreview>> };
 /** Battle preparation stages, reported as a label with a completion fraction in [0, 1). */
 export type BattleProgress = (label: string, fraction: number) => void;
+
+/** One task group as fleet command holds it: its ships, its name and how it sails. */
+export interface ControlGroup { name: string; shipIds: string[]; formation?: Formation }
+/** The briefing's task groups become the numbered control groups fleet command works
+ * with. What the player set on the deploy screen is what sails: each group carries its
+ * cruising formation into battle, and the in-battle picker keeps that record current. */
+export function briefingControlGroups(briefing: { groups: readonly { id: string; name: string; formation?: Formation }[]; assignments: readonly { id: string; groupId: string }[] }, chosen?: Record<string, Formation>): Map<number, ControlGroup> {
+  const groups = new Map<number, ControlGroup>();
+  briefing.groups.forEach((group, index) => {
+    const shipIds = briefing.assignments.filter(s => s.groupId === group.id).map(s => s.id);
+    if (shipIds.length) groups.set(index + 1, { name: group.name, shipIds, formation: chosen?.[group.id] ?? group.formation ?? 'column' });
+  });
+  return groups;
+}
 
 export class Game {
   definition: typeof selectedShip;
@@ -166,8 +181,10 @@ export class Game {
   fleetCommandMode = false;
   battleRevision = 0;
   selectedShipIds: string[] = [];
-  readonly controlGroups = new Map<number, { name: string; shipIds: string[] }>();
-  private pveStartingGroups = new Map<number, { name: string; shipIds: string[] }>();
+  /** Task groups from the deployment screen: who sails together, under what
+   * name, and the cruising formation the fleet-command picker keeps up to date. */
+  readonly controlGroups = new Map<number, ControlGroup>();
+  private pveStartingGroups = new Map<number, ControlGroup>();
   private tacticalPause = false;
   private lastFleetHelmId?: string;
   private cameraFrameListeners = new Set<() => void>();
@@ -522,11 +539,8 @@ export class Game {
       simulation.onFailure = message => this.callbacks.error(message);
       await this.replaceFleet(simulation, shipPreset(simulation.definition.id), progress);
       this.environment.setBattle({ timeOfDay: 'noon', weather: draft.briefing.setup.weather as import('../maps/conditions').WeatherId, conditions: {} });
-      draft.briefing.groups.forEach((group, index) => {
-        const shipIds = draft.briefing.assignments.filter(s => s.groupId === group.id).map(s => s.id);
-        if (shipIds.length) this.controlGroups.set(index + 1, { name: group.name, shipIds });
-      });
-      this.pveStartingGroups = new Map([...this.controlGroups].map(([slot, group]) => [slot, { name: group.name, shipIds: [...group.shipIds] }]));
+      briefingControlGroups(draft.briefing, draft.formations).forEach((group, slot) => this.controlGroups.set(slot, group));
+      this.pveStartingGroups = new Map([...this.controlGroups].map(([slot, group]) => [slot, { name: group.name, shipIds: [...group.shipIds], formation: group.formation }]));
       progress?.('Preparing fleet command', .9);
     } finally { this.switchingShip = false; }
   }
@@ -552,7 +566,7 @@ export class Game {
       this.ammunition = { main: 'ap', secondary: 'ap', torpedo: 'ap', 'depth-charge': 'ap' };
       this.currentAim = session.aimAt(undefined, this.battery, this.weaponGroupId);
       this.controlGroups.clear();
-      this.pveStartingGroups.forEach((group, slot) => this.controlGroups.set(slot, { name: group.name, shipIds: [...group.shipIds] }));
+      this.pveStartingGroups.forEach((group, slot) => this.controlGroups.set(slot, { name: group.name, shipIds: [...group.shipIds], formation: group.formation }));
       this.tacticalPause = false; this.enterFleetCommand(); this.fitAirMap();
       await this.frame(performance.now(), true);
     } finally {

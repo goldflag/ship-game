@@ -263,7 +263,7 @@ test('fleet routes and escorts survive focus and explicit helm release through r
     expect(carrier.helm!.throttle).toBeGreaterThan(0);
     const frame = JSON.parse(session.runtime.snapshot());
     const escort = frame.actors.find((a: any) => a.motion.id === 'friendly-1');
-    expect(escort.navigation.order).toEqual({ type: 'escort', leaderId: 'player', offset: [650, 350], radiusM: 1500 });
+    expect(escort.navigation.order).toEqual({ type: 'escort', leaderId: 'player', offset: [650, 350], radiusM: 1500, formation: 'column', slot: 0 });
     expect(escort.targetId).toBe('enemy-1');
     expect(session.selectShip('friendly-1')).toBe(true);
     session.advance(.1, helm, intent);

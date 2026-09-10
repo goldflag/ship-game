@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState, type DragEvent, type ReactNode } from 'react';
 import { shipIdentity } from '../../game/shipModel';
-import { Button, Input } from '../components';
+import { Button, Input, Select, SelectOption } from '../components';
+import { FORMATIONS, type Formation } from '../formationStations';
 import { moveFormation } from '../pveSetup';
 import { NationFlag } from './NationFlag';
 import { ShipThumbnail } from './ShipCard';
 import { DEPLOYMENT_DRAG, DeploymentChart, selectedUnits, type ChartScope, type ChartSelection } from './DeploymentChart';
-import { fitRadius, formatHeading, headingDegrees, unitsCenter, type ChartUnit, type Deployment } from './deploymentModel';
+import { arrangeFormation, fitRadius, formatHeading, headingDegrees, unitsCenter, type ChartUnit, type Deployment } from './deploymentModel';
 
 interface Props {
   deployment: Deployment; onChange(units: ChartUnit[]): void; onReset(): void; disabled: boolean;
@@ -13,6 +14,9 @@ interface Props {
   tools?: ReactNode;
   /** Changing this refits the chart, for example when a formation preset rearranges everything. */
   fitKey: string;
+  /** Present only where a group can sail a cruising formation (PvE). Choosing one arranges
+   * the selected group on its stations here and starts the group in that formation in the sim. */
+  onFormation?(groupId: string, formation: Formation): void;
 }
 const Turn = ({ direction }: { direction: 'port' | 'starboard' }) => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={direction === 'starboard' ? { transform: 'scaleX(-1)' } : undefined}><path d="M9 4 5 8l4 4M5 8h9a5 5 0 0 1 0 10h-3"/></svg>;
 const UndoIcon = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5M4 9h9a6 6 0 0 1 0 12h-3"/></svg>;
@@ -28,7 +32,7 @@ export function HeadingDial({ heading, size = 72 }: { heading: number; size?: nu
 }
 
 /** Place the fleet: group and ship list on the left, the chart beside it. */
-export function DeployScreen({ deployment, onChange, onReset, disabled, tools, fitKey }: Props) {
+export function DeployScreen({ deployment, onChange, onReset, disabled, tools, fitKey, onFormation }: Props) {
   const firstGroup = deployment.groups.find(group => deployment.units.some(unit => unit.groupId === group.id));
   const [selection, setSelection] = useState<ChartSelection>(firstGroup ? { kind: 'group', id: firstGroup.id } : undefined);
   const [scope, setScope] = useState<ChartScope>('group');
@@ -42,6 +46,17 @@ export function DeployScreen({ deployment, onChange, onReset, disabled, tools, f
   const change = (next: ChartUnit[]) => { if (!disabled) { commit(units); onChange(next); } };
   const center = active.length ? unitsCenter(active) : undefined, heading = active[0]?.spawn.heading ?? 0;
   const turn = (angle: number) => { if (center) change(moveFormation(units, active.map(unit => unit.id), center.x, center.z, angle)); };
+  // The formation picker works on whichever group owns the selection, ship scope included.
+  const selectedGroupId = selection?.kind === 'group' ? selection.id : units.find(unit => unit.id === selection?.id)?.groupId;
+  const selectedGroup = deployment.groups.find(group => group.id === selectedGroupId);
+  const formation = selectedGroup?.formation ?? 'column';
+  const chooseFormation = (next: Formation) => {
+    if (!onFormation || !selectedGroup) return;
+    onFormation(selectedGroup.id, next);
+    // Arranging goes through `change`, so an unwanted formation is one Undo away, and an
+    // illegal arrangement still lands on the chart with the usual placement error under it.
+    change(arrangeFormation(units, selectedGroup.id, next));
+  };
   const rosterDrag = (event: DragEvent<HTMLElement>, ids: string[], next: ChartSelection) => {
     event.stopPropagation();
     if (disabled) { event.preventDefault(); return; }
@@ -58,7 +73,7 @@ export function DeployScreen({ deployment, onChange, onReset, disabled, tools, f
       <header className="deploy-head"><h3>Place the fleet</h3><span>North up</span></header>
       <div className="deploy-scope" role="group" aria-label="Selection scope">
         <div className="battle-segmented"><button type="button" aria-pressed={scope === 'group'} onClick={() => scopeChange('group')}>Group <kbd>G</kbd></button><button type="button" aria-pressed={scope === 'ship'} onClick={() => scopeChange('ship')}>Ship <kbd>S</kbd></button></div>
-        <p>{scope === 'group' ? 'Selecting a ship selects its whole group. Drag a frame or its tag to move the group.' : 'Selecting a ship selects only that ship. Drag it to move it alone.'} Drag the ring to rotate.</p>
+        <p>{scope === 'group' ? 'Selecting a ship selects its whole group. Drag a frame or its tag to move the group.' : 'Selecting a ship selects only that ship. Drag it to move it alone.'} Drag the ring or the heading knob to rotate.</p>
       </div>
       <div className="deploy-list">
         {deployment.groups.map(group => {
@@ -77,6 +92,13 @@ export function DeployScreen({ deployment, onChange, onReset, disabled, tools, f
         })}
       </div>
       <div className="deploy-tools">
+        {onFormation && <div className="deploy-formation">
+          <label className="rail-field"><span>Formation{selectedGroup ? ` · ${selectedGroup.name}` : ''}</span>
+            <Select aria-label="Cruising formation" value={formation} disabled={disabled || !selectedGroup} onValueChange={value => chooseFormation(value as Formation)}>
+              {FORMATIONS.map(entry => <SelectOption key={entry.id} value={entry.id}>{entry.label}</SelectOption>)}
+            </Select></label>
+          <p className="rail-note">{FORMATIONS.find(entry => entry.id === formation)?.hint}</p>
+        </div>}
         <div className="deploy-heading"><HeadingDial heading={heading}/>
           <div className="rail-field"><label htmlFor="deploy-heading">Heading{active.length > 1 ? ' · lead ship' : ''}</label>
             <div className="rail-row"><Input id="deploy-heading" type="number" min="0" max="359" step="5" value={headingDegrees(heading)} disabled={disabled || !active.length} onChange={event => { if (event.target.value !== '') turn(Number(event.target.value) * Math.PI / 180 - heading); }}/>
@@ -93,7 +115,7 @@ export function DeployScreen({ deployment, onChange, onReset, disabled, tools, f
     <div className="deploy-chart-wrap">
       <DeploymentChart deployment={deployment} fit={fit} onChange={onChange} onCommit={commit} selection={selection} onSelect={setSelection} scope={scope} onScopeChange={scopeChange} disabled={disabled}/>
       <div className="deploy-legend" aria-hidden="true"><span className="selected">Selected</span><span className="friendly">Friendly</span>{deployment.groups.some(group => group.side === 'enemy') && <span className="enemy">Enemy</span>}{deployment.friendlyMinZ !== undefined && <span className="sector">Friendly sector</span>}</div>
-      <p className={`deploy-status ${deployment.error ? 'is-error' : ''}`} role="status">{deployment.error || 'Placement clear.'}<span>Scroll to zoom · drag water to pan · <kbd>Home</kbd> shows everything</span></p>
+      <p className={`deploy-status ${deployment.error ? 'is-error' : ''}`} role="status">{deployment.error || 'Placement clear.'}<span>Scroll to zoom · drag water to pan · click water to deselect · <kbd>Home</kbd> shows everything</span></p>
     </div>
   </div>;
 }
