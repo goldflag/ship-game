@@ -74,3 +74,39 @@ test('legacy deck follow uses the nominal ground pitch when a fitted pose is abs
   const expected = rotate(rotate([0, 0, -1], { heading: 0, roll: 0, pitch: aircraftGroundPose(plane.modelId).pitch }), hull);
   aircraftFollowView(plane, sim.player, hull, .5)!.velocity.forEach((value, i) => expect(value).toBeCloseTo(expected[i], 10));
 });
+
+test('fleet Follow lead selects another friendly carrier aircraft and survives spectator updates', () => {
+  const sim = new CombatSimulation(shipPreset('fletcher'), {
+    friendlyBots: [shipPreset('enterprise-cv6')], enemies: [shipPreset('enterprise-cv6')],
+  });
+  const carrier = sim.actors[1], plane = carrier.airWing!.planes[0];
+  plane.phase = 'outbound'; plane.previousPosition = [100, 200, 300]; plane.position = [120, 220, 320];
+  const views = sim.actors.map(actor => ({ actor, definition: actor.definition, motion: actor.motion }));
+  const game = Object.assign(Object.create(Game.prototype), {
+    simulation: sim, shellFollow: new ShellFollow(), inPort: false, inspecting: false,
+    fleetCommandMode: true, airOperationsOpen: true, fleetViews: views, playerView: views[0],
+    rig: { setShellView() {}, update() {}, setInspecting() {}, setBridge() {}, setHullLength() {}, setSubmarine() {}, releasePointer() {} },
+    battlefieldCamera: { cancelTransition() {} }, input: { clear() {} },
+    // Map close is covered by GameFrame; this seam runs the real follow and spectator methods.
+    setAirOperationsOpen(open: boolean) { this.airOperationsOpen = open; },
+  }) as Game;
+  game.followAircraft(plane.id);
+  expect(Reflect.get(game, 'followedAircraftId')).toBe(plane.id);
+  expect(game.airOperationsOpen).toBe(false);
+  Reflect.get(game, 'updateSpectator').call(game);
+  expect(Reflect.get(game, 'followedAircraftId')).toBe(plane.id);
+  expect(Reflect.get(game, 'followedView').call(game, .5)?.position).toEqual([110, 210, 310]);
+  game.returnToShip();
+  const enemy = sim.target.airWing!.planes[0]; enemy.phase = 'outbound';
+  game.followAircraft(enemy.id);
+  expect(Reflect.get(game, 'followedAircraftId')).toBeUndefined();
+  sim.player.damage.sunk = true;
+  game.followAircraft(plane.id);
+  expect(Reflect.get(game, 'followedAircraftId')).toBe(plane.id);
+  plane.phase = 'ready'; plane.deckSlot = 0;
+  expect(Reflect.get(game, 'followedView').call(game, .5)?.position)
+    .toEqual(localToWorld(aircraftDeckSpot(carrier, plane), carrier.motion));
+  plane.phase = 'lost';
+  expect(Reflect.get(game, 'followedView').call(game, .5)).toBeUndefined();
+  expect(Reflect.get(game, 'followedAircraftId')).toBeUndefined();
+});
