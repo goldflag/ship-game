@@ -181,7 +181,7 @@ fn buoyancy_floodwater_and_weapon_training_match_reference() {
             let state = &states[i];
             let expected = &case["states"][i];
             assert_eq!(
-                state.status,
+                state.status.as_str(),
                 expected["state"]["status"].as_str().unwrap(),
                 "{} {}",
                 d.id,

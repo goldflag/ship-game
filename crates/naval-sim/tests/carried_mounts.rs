@@ -12,7 +12,7 @@ use naval_sim::{
     rules::{DT, TeamId},
     shell::Shell,
     vessel::{CompiledShip, Vessel},
-    weapons::{MountState, Obstructions, muzzle_local, shot_direction, update_mount},
+    weapons::{MountState, MountStatus, Obstructions, muzzle_local, shot_direction, update_mount},
 };
 use std::{collections::BTreeMap, sync::Arc};
 
@@ -182,13 +182,13 @@ fn parent_motion_invalidates_a_stationary_neighbors_clearance() {
             &obstructions,
             states,
         );
-        gun.status.clone()
+        gun.status
     };
-    assert_eq!(check(&states), "blocked");
+    assert_eq!(check(&states), MountStatus::Blocked);
     states[0].train = radians(90.0);
-    assert_eq!(check(&states), "out-of-range");
+    assert_eq!(check(&states), MountStatus::OutOfRange);
     states[0].train = 0.0;
-    assert_eq!(check(&states), "blocked");
+    assert_eq!(check(&states), MountStatus::Blocked);
 }
 
 #[test]

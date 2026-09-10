@@ -8,6 +8,29 @@ use crate::{
     machinery::{EquipmentReason, equipment_condition},
 };
 use serde::{Deserialize, Serialize};
+/// Closed set, written only here and published as the same JSON strings.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum FireTrend {
+    Growing,
+    Contained,
+    Cooling,
+    #[default]
+    Out,
+}
+/// Damage-control job kinds. Variants are declared in the byte order of their
+/// serialized names so the `Ord` used to break score ties is unchanged.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum JobKind {
+    FireMount,
+    FireRoom,
+    Isolate,
+    Patch,
+    Pump,
+    RepairModule,
+    RepairMount,
+}
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FireState {
@@ -17,7 +40,7 @@ pub struct FireState {
     pub initial_fuel: f64,
     pub ignition_heat: f64,
     pub heat_per_damage: f64,
-    pub trend: String,
+    pub trend: FireTrend,
     pub suppressed: bool,
 }
 impl FireState {
@@ -30,14 +53,14 @@ impl FireState {
             initial_fuel: fuel,
             ignition_heat: profile.map_or(0.6, |p| p.ignition_heat),
             heat_per_damage: profile.map_or(0.01, |p| p.heat_per_damage),
-            trend: "out".into(),
+            trend: FireTrend::Out,
             suppressed: false,
         }
     }
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ControlJob {
-    pub kind: String,
+    pub kind: JobKind,
     pub index: usize,
     pub setup: f64,
 }
@@ -78,8 +101,8 @@ struct Offer {
     job: ControlJob,
     score: f64,
 }
-fn key(job: &ControlJob) -> (String, usize) {
-    (job.kind.clone(), job.index)
+fn key(job: &ControlJob) -> (JobKind, usize) {
+    (job.kind, job.index)
 }
 fn assign_teams(teams: &[Option<ControlJob>], jobs: &[Offer]) -> Vec<Option<ControlJob>> {
     let mut claimed = std::collections::BTreeSet::new();
@@ -124,6 +147,18 @@ fn assign_teams(teams: &[Option<ControlJob>], jobs: &[Offer]) -> Vec<Option<Cont
     }
     assigned.into_iter().map(|o| o.map(|o| o.job)).collect()
 }
+/// The compartment a module sits in, from the compiled index when it applies.
+fn compartment_of(
+    index: Option<&crate::vessel::ShipIndex>,
+    def: &ShipDefinition,
+    i: usize,
+) -> Option<usize> {
+    if let Some(ix) = index {
+        return ix.room(i);
+    }
+    let id = def.modules[i].compartment_id.as_ref();
+    def.compartments.iter().position(|r| Some(&r.id) == id)
+}
 fn wet(actor: &Combatant, def: &ShipDefinition, i: usize) -> f64 {
     actor.damage.compartments[i].water_m3 / def.compartments[i].capacity_m3
 }
@@ -142,11 +177,7 @@ pub fn heat_module(actor: &mut Combatant, def: &ShipDefinition, i: usize, damage
         return;
     }
     let m = &def.modules[i];
-    let Some(room) = def
-        .compartments
-        .iter()
-        .position(|c| Some(&c.id) == m.compartment_id.as_ref())
-    else {
+    let Some(room) = compartment_of(actor.index.of(def), def, i) else {
         return;
     };
     if wet(actor, def, room) >= 0.25 {
@@ -178,6 +209,13 @@ pub fn update_damage_control(
     sea: Option<(&SeaState, f64)>,
 ) -> Vec<MagazineIgnition> {
     actor.damage.control.pumping.fill(0.0);
+    // Held by value so the compiled index outlives the mutable borrows below.
+    let compiled = actor.index.clone();
+    let index = compiled.of(def);
+    let magazines = index.filter(|ix| {
+        ix.mounts == def.mounts.len() && actor.damage.modules.len() == ix.modules
+    });
+    let mut scratch: Vec<usize> = vec![];
     let mut events = vec![];
     let Some(d) = &def.damage_control else {
         return events;
@@ -187,10 +225,10 @@ pub fn update_damage_control(
     }
     let c = &actor.damage.control;
     let mut jobs = vec![];
-    let mut offer = |kind: &str, index: usize, id: &str, score: f64, category: &str| {
+    let mut offer = |kind: JobKind, index: usize, id: &str, score: f64, category: &str| {
         jobs.push(Offer {
             job: ControlJob {
-                kind: kind.into(),
+                kind,
                 index,
                 setup: d.setup_seconds,
             },
@@ -208,10 +246,16 @@ pub fn update_damage_control(
         let room = &def.compartments[i];
         let state = &actor.damage.compartments[i];
         if f.heat > 0.15 && w < 0.6 {
-            offer("fire-room", i, &room.id, 60.0 + f.heat * 10.0, "fires");
+            offer(
+                JobKind::FireRoom,
+                i,
+                &room.id,
+                60.0 + f.heat * 10.0,
+                "fires",
+            );
         }
         if w > 0.001 && w < 0.9 {
-            offer("pump", i, &room.id, 20.0 + w * 20.0, "flooding");
+            offer(JobKind::Pump, i, &room.id, 20.0 + w * 20.0, "flooding");
         }
         if w < 0.6
             && state
@@ -220,13 +264,13 @@ pub fn update_damage_control(
                 .any(|b| b.area_m2 > 0.0 && b.area_m2 <= d.max_patch_m2)
             && c.spares > 0.0
         {
-            offer("patch", i, &room.id, 50.0, "flooding");
+            offer(JobKind::Patch, i, &room.id, 50.0, "flooding");
         }
     }
     for (i, f) in c.mounts.iter().enumerate() {
         if f.heat > 0.15 {
             offer(
-                "fire-mount",
+                JobKind::FireMount,
                 i,
                 &def.mounts[i].id,
                 60.0 + f.heat * 10.0,
@@ -241,7 +285,7 @@ pub fn update_damage_control(
         let fire = c.rooms[s.from_index].intensity > 0.0 || c.rooms[s.to_index].intensity > 0.0;
         if fire || (wet(actor, def, s.from_index) - wet(actor, def, s.to_index)).abs() > 0.02 {
             offer(
-                "isolate",
+                JobKind::Isolate,
                 i,
                 &def.compartments[s.from_index].id,
                 80.0,
@@ -251,10 +295,7 @@ pub fn update_damage_control(
     }
     if c.spares > 0.0 {
         for (i, m) in def.modules.iter().enumerate() {
-            let room = def
-                .compartments
-                .iter()
-                .position(|r| Some(&r.id) == m.compartment_id.as_ref());
+            let room = compartment_of(index, def, i);
             let hp = actor.damage.modules[i].hp;
             if hp > 0.0
                 && hp < m.hp * d.repair_ceiling
@@ -262,7 +303,7 @@ pub fn update_damage_control(
                 && room.is_none_or(|r| c.rooms[r].heat < 0.15 && wet(actor, def, r) < 0.2)
             {
                 offer(
-                    "repair-module",
+                    JobKind::RepairModule,
                     i,
                     m.compartment_id.as_ref().unwrap_or(&m.id),
                     10.0,
@@ -272,7 +313,7 @@ pub fn update_damage_control(
         }
         for (i, m) in actor.mounts.iter().enumerate() {
             if m.hp > 0.0 && m.hp < 100.0 * d.repair_ceiling && c.mounts[i].heat < 0.15 {
-                offer("repair-mount", i, &def.mounts[i].id, 10.0, "repairs");
+                offer(JobKind::RepairMount, i, &def.mounts[i].id, 10.0, "repairs");
             }
         }
     }
@@ -293,12 +334,12 @@ pub fn update_damage_control(
             continue;
         }
         let i = job.index;
-        match job.kind.as_str() {
-            "fire-room" => suppress_rooms[i] = work,
-            "fire-mount" => suppress_mounts[i] = work,
-            "pump" => c.pumping[i] = d.portable_pump_m3_per_second * work / dt,
-            "isolate" => actor.damage.connections[i].state = "closed".into(),
-            "patch" => {
+        match job.kind {
+            JobKind::FireRoom => suppress_rooms[i] = work,
+            JobKind::FireMount => suppress_mounts[i] = work,
+            JobKind::Pump => c.pumping[i] = d.portable_pump_m3_per_second * work / dt,
+            JobKind::Isolate => actor.damage.connections[i].state = "closed".into(),
+            JobKind::Patch => {
                 let room = &mut actor.damage.compartments[i];
                 if let Some(b) = room
                     .breaches
@@ -316,7 +357,7 @@ pub fn update_damage_control(
                 }
             }
             _ => {
-                let module = job.kind == "repair-module";
+                let module = job.kind == JobKind::RepairModule;
                 let hp = if module {
                     &mut actor.damage.modules[i].hp
                 } else {
@@ -352,16 +393,15 @@ pub fn update_damage_control(
         f.suppressed = suppression > 0.0;
         f.trend = if f.intensity > 0.0 {
             if f.heat > before + 1e-9 && !f.suppressed {
-                "growing"
+                FireTrend::Growing
             } else {
-                "contained"
+                FireTrend::Contained
             }
         } else if f.heat > 0.15 {
-            "cooling"
+            FireTrend::Cooling
         } else {
-            "out"
-        }
-        .into();
+            FireTrend::Out
+        };
     };
     for (i, f) in c.rooms.iter_mut().enumerate() {
         burn(
@@ -376,9 +416,15 @@ pub fn update_damage_control(
         if let Some(id) = &def.mounts[i].magazine_id
             && f.intensity > 0.0
             && actor.mounts[i].ammo > 0.0
-            && let Some(m) = actor.damage.modules.iter_mut().find(|m| &m.id == id)
         {
-            m.ignition += f.intensity * (1.0 - d.flash_protection) * 0.015 * dt;
+            let magazine = match magazines {
+                Some(ix) => ix.mount_magazine[i],
+                None => actor.damage.modules.iter().position(|m| &m.id == id),
+            };
+            if let Some(j) = magazine {
+                actor.damage.modules[j].ignition +=
+                    f.intensity * (1.0 - d.flash_protection) * 0.015 * dt;
+            }
         }
     }
     for s in &actor.damage.connections {
@@ -402,11 +448,7 @@ pub fn update_damage_control(
         }
     }
     for (i, m) in def.modules.iter().enumerate() {
-        let Some(ri) = def
-            .compartments
-            .iter()
-            .position(|r| Some(&r.id) == m.compartment_id.as_ref())
-        else {
+        let Some(ri) = compartment_of(index, def, i) else {
             continue;
         };
         let state = &mut actor.damage.modules[i];
@@ -422,13 +464,19 @@ pub fn update_damage_control(
             (state.ignition + (f.intensity * 0.025 - 0.003) * dt - 0.05 * suppress_rooms[ri])
                 .max(0.0)
         };
-        let linked: Vec<_> = def
-            .mounts
-            .iter()
-            .enumerate()
-            .filter(|(_, mount)| mount.magazine_id.as_ref() == Some(&m.id))
-            .map(|(j, _)| j)
-            .collect();
+        let linked: &[usize] = match magazines {
+            Some(ix) => ix.magazine_mounts(i),
+            None => {
+                scratch = def
+                    .mounts
+                    .iter()
+                    .enumerate()
+                    .filter(|(_, mount)| mount.magazine_id.as_ref() == Some(&m.id))
+                    .map(|(j, _)| j)
+                    .collect();
+                &scratch
+            }
+        };
         if state.ignition < 1.0
             || !linked.is_empty() && linked.iter().all(|j| actor.mounts[*j].ammo == 0.0)
         {
@@ -437,9 +485,9 @@ pub fn update_damage_control(
         state.detonated = true;
         state.hp = 0.0;
         for j in linked {
-            actor.mounts[j].hp = 0.0;
-            actor.mounts[j].ammo = 0.0;
-            actor.mounts[j].he_ammo = 0.0;
+            actor.mounts[*j].hp = 0.0;
+            actor.mounts[*j].ammo = 0.0;
+            actor.mounts[*j].he_ammo = 0.0;
         }
         let (mut low, mut high) = (0.0, def.hull.beam / 2.0);
         for _ in 0..20 {

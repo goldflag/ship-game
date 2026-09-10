@@ -3,7 +3,7 @@ use naval_sim::{
     geometry::radians,
     motion::ShipState,
     mount_clearance::{ClearancePose, MountClearance},
-    weapons::{MountState, Obstructions, update_mount},
+    weapons::{MountState, MountStatus, Obstructions, update_mount},
 };
 
 fn yamato() -> ShipDefinition {
@@ -149,7 +149,7 @@ fn native_weapon_update_keeps_the_achieved_pose_blocked() {
         );
         states[1] = state.clone();
     }
-    assert_eq!(state.status, "blocked");
+    assert_eq!(state.status, MountStatus::Blocked);
     assert!(state.elevation > radians(-5.0));
     let poses: Vec<_> = states.iter().map(ClearancePose::from).collect();
     assert!(
@@ -397,7 +397,7 @@ fn authority_cache_tracks_neighbor_motion_and_requires_complete_pose_context() {
     };
     update(&mut state, &states);
     states[0] = state.clone();
-    assert_eq!(state.status, "blocked");
+    assert_eq!(state.status, MountStatus::Blocked);
     let stopped = state.train;
     update(&mut state, &states);
     states[0] = state.clone();
@@ -410,6 +410,6 @@ fn authority_cache_tracks_neighbor_motion_and_requires_complete_pose_context() {
     );
     let before = state.train;
     assert!(!update(&mut state, &[]));
-    assert_eq!(state.status, "blocked");
+    assert_eq!(state.status, MountStatus::Blocked);
     near(state.train, before);
 }

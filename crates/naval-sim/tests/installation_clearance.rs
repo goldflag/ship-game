@@ -3,7 +3,7 @@ use naval_sim::{
     geometry::radians,
     motion::ShipState,
     mount_clearance::{MountClearance, mount_pose_clear, move_mount_with_clearance},
-    weapons::{MountState, Obstructions, update_mount},
+    weapons::{MountState, MountStatus, Obstructions, update_mount},
 };
 fn fixture() -> (ShipDefinition, Vec<MountState>) {
     let d: ShipDefinition =
@@ -132,7 +132,7 @@ fn active_kernel_enforces_asymmetric_travel_and_platform_interlocks() {
             0.0
         ));
     }
-    assert_eq!(states[i].status, "blocked");
+    assert_eq!(states[i].status, MountStatus::Blocked);
     for _ in 0..700 {
         let mut s = states[i].clone();
         update_mount(
@@ -170,5 +170,5 @@ fn active_kernel_enforces_asymmetric_travel_and_platform_interlocks() {
     }
     // The neutral firing line is also obstructed, which takes readiness priority.
     assert_eq!(states[i].train, 0.0);
-    assert_eq!(states[i].status, "blocked");
+    assert_eq!(states[i].status, MountStatus::Blocked);
 }
