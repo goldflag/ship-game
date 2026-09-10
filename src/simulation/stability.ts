@@ -5,7 +5,7 @@ import type { Combatant } from './damage';
 import { flotation, hydrostatics, rightingArms } from './hydrostatics';
 import { levelAtVolume, waterBody, type WaterBody } from './floodwater';
 import { clamp, localToWorld } from './geometry';
-import { availableAmmunition, type MountDefinition, type MountState } from './weapons';
+import { availableAmmunition } from './weapons';
 
 export type VesselStatus = 'operational' | 'immobile' | 'disarmed' | 'disabled' | 'sinking' | 'capsized';
 export interface StabilityState {
@@ -113,21 +113,31 @@ export function updateCapability(actor: Combatant, def: ShipDefinition): void {
     return;
   }
   // Every surviving weapon counts, including secondaries after main-gun loss.
-  const guns = def.mounts.map((m, i) => ({ definition: m, state: actor.mounts[i] }));
-  const hasSalvo = ({ definition: m, state }: { definition: MountDefinition; state: MountState }) =>
-    availableAmmunition(state, 'ap') >= (m.weapon.barrelCount ?? 2) || !!m.weapon.he && availableAmmunition(state, 'he') >= (m.weapon.barrelCount ?? 2);
-  const loadedGuns = guns.filter(g => g.state.hp > 0 && hasSalvo(g));
   const loadedTubes = (def.torpedoTubes ?? []).filter(t => (actor.torpedoTubes?.find(s => s.id === t.id)?.ammo ?? 0) > 0);
   const loadedCharges = (def.depthChargeLaunchers ?? []).filter(l => (actor.depthChargeLaunchers?.find(s => s.id === l.id)?.ammo ?? 0) > 0);
   // Assess ship-attack capability independently from physical survival.
   const armedFlight = !!actor.airWing?.planes.some(p => ['takeoff', 'outbound', 'attack', 'returning', 'landing'].includes(p.phase) && p.payload);
   const strikeReserves = !!actor.airWing?.planes.some(p => p.phase !== 'lost' && p.role !== 'fighter');
-  const service = def.modules.find(m => m.id === def.airWing?.serviceModuleId);
+  const service = def.airWing && def.modules.find(m => m.id === def.airWing!.serviceModuleId);
   const airRecoverable = armedFlight || strikeReserves && (actor.damage.modules.find(m => m.id === service?.id)?.hp ?? 0) > 0;
   const airUsable = armedFlight || strikeReserves && !!service && equipmentCondition(actor, def, service).availability > 0;
-  const usable = airUsable || loadedGuns.some(({ definition: m }) => !m.magazineId || equipmentCondition(actor, def, def.modules.find(mod => mod.id === m.magazineId)!).availability > 0) ||
-    [...loadedTubes, ...loadedCharges].some(t => launcherAvailable(actor, def, t.launcherModuleId) && equipmentCondition(actor, def, def.modules.find(m => m.id === t.magazineId)!).availability > 0);
-  const recoverable = airRecoverable || loadedGuns.some(({ definition: m }) => !m.magazineId || actor.damage.modules.find(mod => mod.id === m.magazineId)!.hp > 0) ||
+  let gunUsable = false, gunRecoverable = false, gunAmmunition = false;
+  // Scan live mounts directly: no per-tick array of wrapper objects, and each
+  // magazine's condition also supplies the immediate individual failure status.
+  for (let i = 0; i < def.mounts.length; i++) {
+    const m = def.mounts[i], state = actor.mounts[i], barrels = m.weapon.barrelCount ?? 2;
+    const salvo = availableAmmunition(state, 'ap') >= barrels || !!m.weapon.he && availableAmmunition(state, 'he') >= barrels;
+    gunAmmunition ||= salvo;
+    const supply = m.magazineId ? equipmentCondition(actor, def, m.magazineId) : undefined;
+    if (state.hp <= 0 || supply?.availability === 0) state.status = 'disabled';
+    if (state.hp > 0 && salvo) {
+      gunUsable ||= !supply || supply.availability > 0;
+      gunRecoverable ||= !m.magazineId || actor.damage.modules.find(mod => mod.id === m.magazineId)!.hp > 0;
+    }
+  }
+  const usable = airUsable || gunUsable ||
+    [...loadedTubes, ...loadedCharges].some(t => launcherAvailable(actor, def, t.launcherModuleId) && equipmentCondition(actor, def, t.magazineId).availability > 0);
+  const recoverable = airRecoverable || gunRecoverable ||
     [...loadedTubes, ...loadedCharges].some(t => launcherAvailable(actor, def, t.launcherModuleId, true) && (actor.damage.modules.find(m => m.id === t.magazineId)?.hp ?? 0) > 0);
   const mobile = systemHealth(actor, def, 'engine') > .001;
   // Flooded supplies may recover. Permanent weapon loss disables firing,
@@ -135,11 +145,9 @@ export function updateCapability(actor: Combatant, def: ShipDefinition): void {
   s.combatLost ||= !recoverable;
   s.status = usable ? (mobile ? 'operational' : 'immobile') : (mobile ? 'disarmed' : 'disabled');
   if (s.combatLost) {
-    actor.damage.defeatCause ??= !guns.some(hasSalvo) && loadedTubes.length === 0 && loadedCharges.length === 0 ? 'ammunition-exhausted' : 'weapons-lost';
+    actor.damage.defeatCause ??= !gunAmmunition && loadedTubes.length === 0 && loadedCharges.length === 0 ? 'ammunition-exhausted' : 'weapons-lost';
   }
   // Hits resolve after gun training. Publish individual failures immediately so
   // the HUD and renderer do not spend another tick treating them as turning.
-  guns.forEach(({ definition: m, state }) => {
-    if (s.combatLost || state.hp <= 0 || m.magazineId && equipmentCondition(actor, def, def.modules.find(mod => mod.id === m.magazineId)!).availability === 0) state.status = 'disabled';
-  });
+  if (s.combatLost) actor.mounts.forEach(state => state.status = 'disabled');
 }

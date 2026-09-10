@@ -94,7 +94,9 @@ export function maxHullIntegrity(def: ShipDefinition): number {
   return Math.round((def.hull.massKg / 43_978_000) ** .8 * 1450 * HULL_HP_SCALE);
 }
 export function createDamage(def: ShipDefinition): DamageState {
-  return { hullDamageRemainder: 0, regions: createRegions(def, maxHullIntegrity(def)), stability: createStability(), control: createControl(def), integrity: maxHullIntegrity(def), maxIntegrity: maxHullIntegrity(def), modules: def.modules.map(m => ({ id: m.id, hp: m.hp, detonated: false, ignition: 0 })), compartments: def.compartments.map(c => ({ id: c.id, waterM3: 0, breachAreaM2: 0, breaches: [] })), connections: def.connections.map(c => ({ id: connectionId(c), state: c.state ?? 'open', damageAreaM2: c.state === 'damaged' ? c.areaM2 : 0, fromIndex: def.compartments.findIndex(r => r.id === c.fromId), toIndex: def.compartments.findIndex(r => r.id === c.toId) })), sunk: false };
+  const rooms = new Map(def.compartments.map((room, i) => [room.id, i]));
+  const integrity = maxHullIntegrity(def);
+  return { hullDamageRemainder: 0, regions: createRegions(def, integrity), stability: createStability(), control: createControl(def), integrity, maxIntegrity: integrity, modules: def.modules.map(m => ({ id: m.id, hp: m.hp, detonated: false, ignition: 0 })), compartments: def.compartments.map(c => ({ id: c.id, waterM3: 0, breachAreaM2: 0, breaches: [] })), connections: def.connections.map(c => ({ id: connectionId(c), state: c.state ?? 'open', damageAreaM2: c.state === 'damaged' ? c.areaM2 : 0, fromIndex: rooms.get(c.fromId) ?? -1, toIndex: rooms.get(c.toId) ?? -1 })), sunk: false };
 }
 export { systemHealth } from './machinery';
 
@@ -460,6 +462,13 @@ export function updateFlooding(actor: Combatant, def: ShipDefinition, dt: number
     damage.defeatCause = 'hull-failure';
   }
   updateStability(actor, def, dt, sea);
+  // With no water or openings, pumps and internal transfers cannot change a
+  // stable-profile ship. Stability and sinking still advance at their normal
+  // cadence, and live state is checked again after every subsequent hit.
+  if (def.stability && damage.compartments.every(room => room.waterM3 === 0 && room.breaches.length === 0)) {
+    updateSinking(actor, def, dt);
+    return;
+  }
   const electricalPower = def.compartments.some(c => c.pumpM3PerSecond > 0) ? supportPerformance(actor, def).power : 0;
   damage.compartments.forEach((state, i) => {
     const c = def.compartments[i];
@@ -491,6 +500,9 @@ export function updateFlooding(actor: Combatant, def: ShipDefinition, dt: number
     if (state.state === 'closed') return;
     const ai = state.fromIndex, bi = state.toIndex;
     const a = damage.compartments[ai], b = damage.compartments[bi], ac = def.compartments[ai], bc = def.compartments[bi];
+    // Neither side can donate water. Other connections still run in their
+    // original order, and any newly wetted room is observed immediately.
+    if (a.waterM3 === 0 && b.waterM3 === 0) return;
     const portalY = connection.position ? localToWorld(connection.position, actor.motion)[1] : -Infinity;
     const ay = waterLevel(actor, def, ai), by = waterLevel(actor, def, bi);
     const difference = connection.position ? Math.max(0, ay - portalY) - Math.max(0, by - portalY) : ay - by;

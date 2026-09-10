@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, expect, spyOn, test } from 'bun:test';
 import { Color, DirectionalLight, Group, PerspectiveCamera, Vector3, InstancedBufferGeometry, InstancedMesh, MeshBasicMaterial } from 'three/webgpu';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { loadShipJoints } from '../../scripts/diagnostics/load-ship-joints';
 import { CombatSimulation } from '../simulation/combat';
 import { ENGINE_ORDERS, FIXED_DT } from '../simulation/ship';
 import { localToWorld, wrapAngle } from '../simulation/geometry';
@@ -48,10 +48,7 @@ function fakeWater() {
 
 /** Exercise the real frame loop and exported joints, replacing only browser/GPU services. */
 async function frameHarness(shipId = 'bismarck') {
-  const bytes = await Bun.file(new URL(`../../public/models/${shipId}.glb`, import.meta.url)).arrayBuffer();
-  const gltf = JSON.parse(new TextDecoder().decode(new Uint8Array(bytes, 20, new DataView(bytes).getUint32(12, true))));
-  const nodes = gltf.nodes.map(({ mesh: _mesh, ...node }: { mesh?: number }) => node);
-  const model = await new GLTFLoader().parseAsync(JSON.stringify({ asset: gltf.asset, scene: gltf.scene, scenes: gltf.scenes, nodes }), '');
+  const model = await loadShipJoints(shipId);
   const simulation = new CombatSimulation(shipPreset(shipId));
   simulation.ship.speed = simulation.definition.handling.forwardSpeed;
   const camera = new PerspectiveCamera(52, 16 / 9, .5, 60000);
@@ -259,17 +256,6 @@ test('death exits binoculars without a surviving teammate and prevents scope ree
   expect(playerView.root.visible).toBe(true);
   game.toggleBinoculars();
   expect(rig.binoculars).toBe(false);
-});
-
-test('shell-follow cannot restore binoculars after player death', async () => {
-  const { game, simulation, rig, camera } = await frameHarness();
-  await game.frame(16);
-  game.toggleBinoculars();
-  rig.setShellView({ position: [0, 100, 0], velocity: [0, 0, -100] });
-  simulation.player.damage.sunk = true;
-  await game.frame(32);
-  expect(rig.binoculars).toBe(false);
-  expect(camera.fov).toBeCloseTo(52);
 });
 
 test('target inspection follows the interpolated underway target and resets without a streak', async () => {

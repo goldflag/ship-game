@@ -3,6 +3,7 @@ import { LocalBattleSession } from './session/LocalBattleSession';
 import { afterEach, beforeEach, expect, spyOn, test } from 'bun:test';
 import { Group, PerspectiveCamera, Scene, Vector3 } from 'three/webgpu';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { loadShipJoints } from '../../scripts/diagnostics/load-ship-joints';
 import { Game } from './Game';
 import { VisualEnvironment } from './VisualEnvironment';
 import { CameraRig } from './CameraRig';
@@ -32,12 +33,7 @@ afterEach(() => {
   });
 });
 
-async function model(id: string) {
-  const bytes = await Bun.file(new URL(`../../public/models/${id}.glb`, import.meta.url)).arrayBuffer();
-  const gltf = JSON.parse(new TextDecoder().decode(new Uint8Array(bytes, 20, new DataView(bytes).getUint32(12, true))));
-  return new GLTFLoader().parseAsync(JSON.stringify({ asset: gltf.asset, scene: gltf.scene, scenes: gltf.scenes,
-    nodes: gltf.nodes.map(({ mesh: _mesh, ...node }: { mesh?: number }) => node) }), '');
-}
+const model = loadShipJoints;
 
 // Exercise the real scene swap with exported joint hierarchies; only GPU startup is omitted.
 async function port(storageMatrices = false) {
