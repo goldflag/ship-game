@@ -34,17 +34,17 @@ export class CombatEffects {
   private readonly volumeDepthTexture = new THREE.DepthTexture(1, 1);
   private readonly volumeDepth = nodeObject(new EffectDepthTextureNode(undefined, null, this.volumeDepthTexture)).r;
   private readonly smoke = new EffectParticlePool(192, this.maps.smoke, false, effectVolumeMaterial(this.volumeMap, this.sun, this.volumeDepth, 16, true,
-    { direct: this.smokeDirect, ambient: this.smokeAmbient }));
+    { direct: this.smokeDirect, ambient: this.smokeAmbient }), false, true);
   private readonly spouts = new WaterPlumes(384, this.maps.water);
   private readonly spray = new EffectParticlePool(1536, this.maps.droplet, false, undefined, true);
   private readonly mist = new EffectParticlePool(192, this.maps.smoke, false, undefined, true);
-  private readonly aircraftSmoke = new EffectParticlePool(768, this.maps.smoke);
+  private readonly aircraftSmoke = new EffectParticlePool(768, this.maps.smoke, false, undefined, false, true);
   private readonly flakSmoke = new EffectParticlePool(256, this.maps.smoke, false,
-    effectVolumeMaterial(this.volumeMap, this.sun, this.volumeDepth, 10, true, { direct: this.smokeDirect, ambient: this.smokeAmbient }));
+    effectVolumeMaterial(this.volumeMap, this.sun, this.volumeDepth, 10, true, { direct: this.smokeDirect, ambient: this.smokeAmbient }), false, true);
   private readonly airbursts = new Map<number, CombatEvent>();
   private readonly aircraftTrails = new Map<string, { position: THREE.Vector3; age: number }>();
-  private readonly fire = new EffectParticlePool(256, this.maps.flash, true);
-  private readonly foam = new EffectParticlePool(96, this.maps.foam);
+  private readonly fire = new EffectParticlePool(256, this.maps.flash, true, undefined, false, true);
+  private readonly foam = new EffectParticlePool(96, this.maps.foam, false, undefined, false, true);
   private readonly pools = [this.foam, this.smoke, this.aircraftSmoke, this.flakSmoke, this.mist, this.spray, this.fire];
   private readonly projectiles = new ExpandableInstances(shellGeometry(false),
     new THREE.MeshStandardMaterial({ vertexColors: true, metalness: .6, roughness: .32 }), 256);
@@ -119,7 +119,7 @@ export class CombatEffects {
     this.smokeAmbient.value.set(.3, .35, .4).multiplyScalar(Math.max(0, ambient) / 1.75);
   }
 
-  update(sim: BattleSession, dt: number, camera: THREE.Camera, hidePlayerSmoke = false, poses?: readonly FireDisplayPose[]): void {
+  update(sim: BattleSession, dt: number, camera: THREE.Camera, hidePlayerSmoke = false, poses?: readonly FireDisplayPose[], hideShellTrails = false): void {
     // Advance before emitting: a slow frame still gets one visible muzzle flash.
     for (const item of this.lights) {
       item.age += dt;
@@ -139,7 +139,7 @@ export class CombatEffects {
       hidePlayerSmoke && pool === this.smoke ? sim.player.motion.id : undefined);
     this.spouts.publish(camera);
     this.updateShells(sim, camera);
-    this.shellTrails.update(sim.shells, dt, camera);
+    this.shellTrails.update(sim.shells, dt, camera, hideShellTrails);
     this.updateTorpedoes(sim);
     this.depthChargeCount = sim.depthCharges.length;
     sim.depthCharges.forEach((charge, i) => {

@@ -271,34 +271,55 @@ impl LocalRuntime {
         Ok(())
     }
     pub fn snapshot(&self) -> Result<String, JsValue> {
-        let mut frame = self
-            .session
-            .battle
-            .presentation_value(if self.session.battle.mission_rules.is_some() {
-                naval_sim::snapshot::PresentationView::Team(naval_sim::rules::TeamId::A)
-            } else {
-                naval_sim::snapshot::PresentationView::FullKnowledge
-            })
-            .map_err(error)?;
-        frame["selectedShipIds"] = serde_json::json!([
-            self.session.control.players[0].selected_ship_id,
-            if self.session.battle.mission_rules.is_some() {
-                None
-            } else {
-                self.session.control.players[1].selected_ship_id.clone()
-            }
-        ]);
-        frame["fleetOrders"] = serde_json::to_value(self.session.fleet_orders(0)).map_err(error)?;
-        frame["phase"] = serde_json::json!(if self.session.battle.outcome.is_some() {
+        #[derive(serde::Serialize)]
+        #[serde(rename_all = "camelCase")]
+        struct LocalFrame<'a, T: serde::Serialize> {
+            #[serde(flatten)]
+            frame: T,
+            selected_ship_ids: [Option<&'a str>; 2],
+            fleet_orders:
+                std::collections::BTreeMap<String, naval_protocol::session::FleetOrderState>,
+            phase: &'static str,
+        }
+        let selected = &self.session.control.players;
+        let phase = if self.session.battle.outcome.is_some() {
             "finished"
         } else {
             "running"
-        });
-        if self.session.battle.outcome.is_some()
-            && let Some(plan) = &self.pve_plan
-        {
-            frame["debrief"]["mission"] = plan.debrief();
+        };
+        let fleet_orders = self.session.fleet_orders(0);
+        if self.session.battle.mission_rules.is_some() {
+            // Team projection is the information boundary. Never replace it
+            // with the full-knowledge streaming serializer for a live mission.
+            let mut frame = self
+                .session
+                .battle
+                .presentation_value(naval_sim::snapshot::PresentationView::Team(
+                    naval_sim::rules::TeamId::A,
+                ))
+                .map_err(error)?;
+            if self.session.battle.outcome.is_some()
+                && let Some(plan) = &self.pve_plan
+            {
+                frame["debrief"]["mission"] = plan.debrief();
+            }
+            return serde_json::to_string(&LocalFrame {
+                frame,
+                selected_ship_ids: [selected[0].selected_ship_id.as_deref(), None],
+                fleet_orders,
+                phase,
+            })
+            .map_err(error);
         }
+        let frame = LocalFrame {
+            frame: self.session.battle.presentation_snapshot(),
+            selected_ship_ids: [
+                selected[0].selected_ship_id.as_deref(),
+                selected[1].selected_ship_id.as_deref(),
+            ],
+            fleet_orders,
+            phase,
+        };
         serde_json::to_string(&frame).map_err(error)
     }
 }

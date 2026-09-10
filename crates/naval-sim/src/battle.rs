@@ -1,4 +1,5 @@
 //! Complete renderer-free fixed-tick battle authority, shared by native and WASM.
+use crate::mobility::torpedo_speed;
 pub use crate::navigation::Movement;
 use crate::navigation::{self, NavigationState, WeaponsPolicy};
 use crate::{
@@ -582,49 +583,46 @@ impl Battle {
                     }
                 }
             }
-            if let Some(reports) = &navigation_contacts {
-                if actor.physical_loss().is_none()
-                    && order.is_none_or(|o| o.helm.is_none())
-                    && actor
-                        .bot
-                        .as_ref()
-                        .is_some_and(|b| !matches!(b.ai_level, AiLevel::Static | AiLevel::Moving))
-                {
-                    let mut state = actor.navigation.take().unwrap_or_else(|| {
-                        NavigationState::new(
-                            order.map_or(Movement::Autonomous, |o| o.movement.clone()),
-                        )
-                    });
-                    let wakes = crate::fleet_evasion::visible_wakes(
+            if let Some(reports) = &navigation_contacts
+                && actor.physical_loss().is_none()
+                && order.is_none_or(|o| o.helm.is_none())
+                && actor
+                    .bot
+                    .as_ref()
+                    .is_some_and(|b| !matches!(b.ai_level, AiLevel::Static | AiLevel::Moving))
+            {
+                let mut state = actor.navigation.take().unwrap_or_else(|| {
+                    NavigationState::new(order.map_or(Movement::Autonomous, |o| o.movement.clone()))
+                });
+                let wakes = crate::fleet_evasion::visible_wakes(
+                    &actor,
+                    &self.torpedoes,
+                    &self.islands,
+                    &self.catalog.terrain,
+                    self.visual_conditions.visibility_m,
+                );
+                command = crate::fleet_evasion::command(
+                    &actor,
+                    &reports[actor.team.index()],
+                    &wakes,
+                    self.tick,
+                    &mut state,
+                    command,
+                );
+                if matches!(
+                    state.status,
+                    navigation::NavigationStatus::EvadingAircraft
+                        | navigation::NavigationStatus::EvadingTorpedo
+                ) {
+                    command = navigation::safe_correction(
                         &actor,
-                        &self.torpedoes,
-                        &self.islands,
-                        &self.catalog.terrain,
-                        self.visual_conditions.visibility_m,
-                    );
-                    command = crate::fleet_evasion::command(
-                        &actor,
+                        &self.actors,
                         &reports[actor.team.index()],
-                        &wakes,
-                        self.tick,
                         &mut state,
                         command,
                     );
-                    if matches!(
-                        state.status,
-                        navigation::NavigationStatus::EvadingAircraft
-                            | navigation::NavigationStatus::EvadingTorpedo
-                    ) {
-                        command = navigation::safe_correction(
-                            &actor,
-                            &self.actors,
-                            &reports[actor.team.index()],
-                            &mut state,
-                            command,
-                        );
-                    }
-                    actor.navigation = Some(state);
                 }
+                actor.navigation = Some(state);
             }
             if let Some(mission) = &self.mission_rules {
                 command = avoid_land(
@@ -803,6 +801,7 @@ impl Battle {
             }
         }
         step_torpedoes(
+            self.seed,
             &mut self.torpedoes,
             &mut self.actors,
             &mut self.aviation,
@@ -963,7 +962,13 @@ fn operate_underwater(
         if state.status == "ready"
             && a.controller == Controller::Bot
             && aim.is_some_and(|aim| {
-                !torpedoes::clear_torpedo_lane(a, solution.origin, aim, t.weapon.speed, actors)
+                !torpedoes::clear_torpedo_lane(
+                    a,
+                    solution.origin,
+                    aim,
+                    torpedo_speed(t.weapon.speed),
+                    actors,
+                )
             })
         {
             state.status = "blocked".into()
@@ -987,9 +992,9 @@ fn operate_underwater(
         if fire && state.status == "ready" {
             *sequence += 1;
             let velocity = [
-                solution.heading.sin() * t.weapon.speed,
+                solution.heading.sin() * torpedo_speed(t.weapon.speed),
                 0.0,
-                -solution.heading.cos() * t.weapon.speed,
+                -solution.heading.cos() * torpedo_speed(t.weapon.speed),
             ];
             torpedoes.push(Torpedo {
                 id: *sequence,
@@ -1081,6 +1086,7 @@ fn operate_underwater(
     }
 }
 fn step_torpedoes(
+    seed: u32,
     torpedoes: &mut Vec<Torpedo>,
     actors: &mut [Vessel],
     air: &mut Aviation,
@@ -1092,8 +1098,8 @@ fn step_torpedoes(
         let t = &mut torpedoes[i];
         let from = t.position;
         let w = &t.weapon;
-        let travel = (w.speed * DT).min(w.range_m - t.distance);
-        let mut to = add(from, scale(t.velocity, travel / w.speed));
+        let travel = (torpedo_speed(w.speed) * DT).min(w.range_m - t.distance);
+        let mut to = add(from, scale(t.velocity, travel / torpedo_speed(w.speed)));
         if from[1] > 0.0 {
             to[1] = (-w.running_depth_m).max(from[1] + t.velocity[1] * DT - 0.5 * 9.81 * DT * DT);
             t.velocity[1] = if to[1] > 0.0 {
@@ -1113,7 +1119,7 @@ fn step_torpedoes(
         };
         let land = crate::environment::first_land_hit(islands, fields, from, to);
         if let Some((at, point)) = land
-            && hit.is_none_or(|(_, _, ht)| at < ht)
+            && hit.is_none_or(|(_, _, ht, _)| at < ht)
         {
             events.push(DamageEvent {
                 kind: "torpedo-expired".into(),
@@ -1126,22 +1132,37 @@ fn step_torpedoes(
             torpedoes.remove(i);
             continue;
         }
-        if let Some((victim, point, at)) = hit {
+        if let Some((victim, point, at, normal)) = hit {
             let a = &mut actors[victim];
             let def = a.compiled.definition.clone();
             let armed = t.distance + travel * at >= w.arming_distance_m;
+            let direction = sub(
+                world_to_local(to, a.motion.pose()),
+                world_to_local(from, a.motion.pose()),
+            );
+            let glancing = armed
+                && torpedoes::torpedo_dud_roll(seed, t.id)
+                    < torpedoes::glancing_dud_chance(direction, normal);
+            let detonates = armed && !glancing;
             let hp = a.damage.integrity;
-            let message = if armed {
+            let message = if detonates {
                 torpedoes::damage_torpedo_hit(a, &def, point, w, t.id)
+            } else if glancing {
+                "Torpedo dud · glancing impact".into()
             } else {
                 "Torpedo dud · impact before arming".into()
             };
-            if armed {
+            if detonates {
                 let id = a.motion.id.clone();
                 capability::update(a, &def, air.wing(&id))
             }
             events.push(DamageEvent {
-                kind: if armed { "torpedo-hit" } else { "torpedo-dud" }.into(),
+                kind: if detonates {
+                    "torpedo-hit"
+                } else {
+                    "torpedo-dud"
+                }
+                .into(),
                 position: local_to_world(point, a.motion.pose()),
                 ship_id: a.motion.id.clone(),
                 message,
@@ -1223,5 +1244,127 @@ fn step_charges(
             });
         }
         charges.remove(i);
+    }
+}
+
+#[cfg(test)]
+mod torpedo_contact_tests {
+    use super::*;
+    use crate::{rules::TeamId, vessel::CompiledShip};
+    use std::sync::Arc;
+
+    fn contact(angle: f64, seed: u32, armed: bool) -> (Vessel, DamageEvent) {
+        let mut def: crate::definition::ShipDefinition =
+            serde_json::from_str(include_str!("../../../public/models/type-viic.json")).unwrap();
+        // A flat, vertical side isolates incidence from the submarine's curved hull.
+        let mut value = serde_json::to_value(&def).unwrap();
+        value["hull"]["sections"] = serde_json::json!([
+            {"station":0,"points":[[0,-4],[3,-4],[3,4]]},
+            {"station":def.hull.length,"points":[[0,-4],[3,-4],[3,4]]}
+        ]);
+        def = serde_json::from_value(value).unwrap();
+        let weapon = def.torpedo_tubes.as_ref().unwrap()[0].weapon.clone();
+        let compiled = Arc::new(CompiledShip::new(Arc::new(def)).unwrap());
+        let mut actors = vec![Vessel::new("target", TeamId::B, compiled)];
+        let direction = [radians(angle).sin(), 0.0, radians(angle).cos()];
+        let point = [-3.0, -weapon.running_depth_m, 0.0];
+        let t = Torpedo {
+            id: 42,
+            owner_id: "player".into(),
+            tube_id: "aircraft.payload".into(),
+            position: sub(
+                point,
+                scale(direction, torpedo_speed(weapon.speed) * DT * 0.5),
+            ),
+            velocity: scale(direction, torpedo_speed(weapon.speed)),
+            distance: if armed { 1000.0 } else { 0.0 },
+            age: 0.0,
+            weapon,
+        };
+        let mut rounds = vec![t];
+        let mut events = vec![];
+        let mut air = Aviation::new(&actors, BTreeMap::new());
+        step_torpedoes(
+            seed,
+            &mut rounds,
+            &mut actors,
+            &mut air,
+            &[],
+            &[],
+            &mut events,
+        );
+        assert!(rounds.is_empty(), "contact must consume the projectile");
+        assert_eq!(events.len(), 1);
+        (actors.remove(0), events.remove(0))
+    }
+
+    #[test]
+    fn contact_pistol_curve_and_seed_are_stable() {
+        for (angle, expected) in [
+            (90.0, 0.0),
+            (45.0, 0.0),
+            (20.0, 0.0),
+            (10.0, 0.45),
+            (0.0, 0.9),
+        ] {
+            let chance = torpedoes::glancing_dud_chance(
+                [radians(angle).sin(), 0.0, radians(angle).cos()],
+                [1.0, 0.0, 0.0],
+            );
+            assert!((chance - expected).abs() < 1e-12);
+        }
+        assert_eq!(torpedoes::torpedo_dud_roll(123, 42), 0.41204642434604466); // Shared native/TS vector.
+        assert_ne!(
+            torpedoes::torpedo_dud_roll(123, 42),
+            torpedoes::torpedo_dud_roll(124, 42)
+        );
+    }
+
+    #[test]
+    fn glancing_duds_are_harmless_and_detonations_keep_full_damage() {
+        let dud_seed = (0..100)
+            .find(|s| torpedoes::torpedo_dud_roll(*s, 42) < 0.45)
+            .unwrap();
+        let hit_seed = (0..100)
+            .find(|s| torpedoes::torpedo_dud_roll(*s, 42) >= 0.45)
+            .unwrap();
+        let (dud, event) = contact(10.0, dud_seed, true);
+        assert_eq!(event.kind, "torpedo-dud");
+        assert_eq!(event.message, "Torpedo dud · glancing impact");
+        assert_eq!(event.hull_damage, Some(0.0));
+        assert_eq!(dud.damage.integrity, dud.damage.max_integrity);
+        assert!(
+            dud.damage
+                .compartments
+                .iter()
+                .all(|c| c.breach_area_m2 == 0.0)
+        );
+        assert!(
+            dud.damage
+                .modules
+                .iter()
+                .zip(&dud.definition().modules)
+                .all(|(state, def)| state.hp == def.hp)
+        );
+        let (_, repeated) = contact(10.0, dud_seed, true);
+        assert_eq!(event.message, repeated.message);
+        let (square, square_event) = contact(90.0, dud_seed, true);
+        let (glance, glance_event) = contact(10.0, hit_seed, true);
+        assert_eq!(square_event.kind, "torpedo-hit");
+        assert_eq!(glance_event.kind, "torpedo-hit");
+        assert_eq!(square_event.hull_damage, glance_event.hull_damage);
+        assert!(glance_event.hull_damage.unwrap() > 0.0);
+        let breach = |a: &Vessel| {
+            a.damage
+                .compartments
+                .iter()
+                .map(|c| c.breach_area_m2)
+                .sum::<f64>()
+        };
+        assert!(breach(&glance) > 0.0);
+        assert!((breach(&square) - breach(&glance)).abs() < 1e-12);
+        let (_, unarmed) = contact(10.0, dud_seed, false);
+        assert_eq!(unarmed.message, "Torpedo dud · impact before arming");
+        assert_eq!(unarmed.hull_damage, Some(0.0));
     }
 }

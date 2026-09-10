@@ -6,7 +6,39 @@ import { CombatSimulation } from '../simulation/combat';
 import { compileShip } from '../ships/blueprint';
 import { ShipView } from './ShipView';
 import { shipPreset } from '../ships/presets';
+import { gunTraverseAtFraction, gunTraverseLimitsDeg } from '../ships/armament';
 import * as THREE from 'three/webgpu';
+
+test('Cleveland exported joints retain asymmetric wing travel and independent neighboring poses during interpolation', async () => {
+  const definition = shipPreset('cleveland');
+  const bytes = await Bun.file('public/models/cleveland.glb').arrayBuffer();
+  const length = new DataView(bytes).getUint32(12, true);
+  const gltf = JSON.parse(new TextDecoder().decode(new Uint8Array(bytes, 20, length)));
+  const nodes = gltf.nodes.map(({ mesh: _mesh, ...node }: { mesh?: number }) => node);
+  const model = await new GLTFLoader().parseAsync(JSON.stringify({ asset: gltf.asset, scene: gltf.scene, scenes: gltf.scenes, nodes }), '');
+  const sim = new CombatSimulation(definition), view = new ShipView(model.scene, definition, sim.player);
+  expect(view.muzzleErrors()).toHaveLength(67);
+  const joint = (id: string) => { let result: THREE.Object3D | undefined; model.scene.traverse(o => { if (o.userData.nodeId === id) result = o; }); return result!; };
+  for (const fraction of [-1, -.5, 0, .5, 1]) for (const elevation of [0, .5, 1]) {
+    view.capturePreviousPose();
+    sim.player.mounts.forEach((state, i) => {
+      const m = definition.mounts[i], w = m.weapon;
+      state.train = gunTraverseAtFraction(m, i % 2 ? -fraction : fraction);
+      state.elevation = (w.elevationMinDeg + elevation * (w.elevationMaxDeg - w.elevationMinDeg)) * Math.PI / 180;
+      state.recoil = i % 2 ? .8 : .2;
+    });
+    for (const alpha of [0, .35, .7, 1]) {
+      view.update(alpha);
+      expect(Math.max(...view.muzzleErrors())).toBeLessThan(.025);
+      for (const m of definition.mounts.filter(m => m.traverseLimitsDeg)) {
+        const train = -joint(`${m.id}.yaw`).rotation.y - m.bearingDeg * Math.PI / 180;
+        const [low, high] = gunTraverseLimitsDeg(m).map(n => n * Math.PI / 180);
+        expect(train).toBeGreaterThanOrEqual(low - 1e-6);
+        expect(train).toBeLessThanOrEqual(high + 1e-6);
+      }
+    }
+  }
+});
 
 test('Iowa exported blast bags keep fixed seams and follow gun collars through interpolated elevation', async () => {
   const definition = shipPreset('iowa');
@@ -302,4 +334,61 @@ test('Fletcher gun and torpedo joints follow interpolated CPU poses on both broa
   }
   sim.reset(); view.snap();
   expect(Math.max(...view.torpedoMuzzleErrors())).toBeLessThan(.025);
+});
+
+test('Fubuki independent gun and triple-bank poses retain CPU socket alignment on the published hierarchy', async () => {
+  const def = shipPreset('fubuki'), bytes = await Bun.file('public/models/fubuki.glb').arrayBuffer();
+  const gltf = JSON.parse(new TextDecoder().decode(new Uint8Array(bytes, 20, new DataView(bytes).getUint32(12, true))));
+  const nodes = gltf.nodes.map(({ mesh: _mesh, ...node }: { mesh?: number }) => node);
+  const model = await new GLTFLoader().parseAsync(JSON.stringify({ asset: gltf.asset, scene: gltf.scene, scenes: gltf.scenes, nodes }), '');
+  const sim = new CombatSimulation(def), view = new ShipView(model.scene, def, sim.player);
+  expect(view.muzzleErrors()).toHaveLength(22); expect(view.torpedoMuzzleErrors()).toHaveLength(9);
+  for (const fraction of [-1, -.7, -.2, 0, .3, .8, 1]) {
+    view.capturePreviousPose();
+    sim.player.mounts.forEach((m,i) => {
+      const w = def.mounts[i].weapon;
+      Object.assign(m, { train: fraction * (i % 2 ? -1 : 1) * w.traverseDeg * Math.PI / 180,
+        elevation: (w.elevationMinDeg + (i % 3) / 2 * (w.elevationMaxDeg-w.elevationMinDeg)) * Math.PI / 180, recoil: (i % 3) / 2 });
+    });
+    sim.player.torpedoLaunchers!.forEach((l,i) => l.train = fraction * (i % 2 ? -1 : 1) * 2 * Math.PI / 3);
+    Object.assign(sim.ship, { x: 170, z: -430, heading: 1.7, roll: -.08, pitch: .045 });
+    for (const alpha of [0, .25, .5, .75, 1]) {
+      view.update(alpha);
+      expect(Math.max(...view.muzzleErrors())).toBeLessThan(.025);
+      expect(Math.max(...view.torpedoMuzzleErrors())).toBeLessThan(.025);
+    }
+  }
+  sim.reset(); view.snap();
+  expect(Math.max(...view.muzzleErrors())).toBeLessThan(.025);
+  expect(Math.max(...view.torpedoMuzzleErrors())).toBeLessThan(.025);
+});
+
+test('launcher IDs bind reordered battle snapshots and bounded interpolation stays inside travel stops', async () => {
+  const def = shipPreset('yukikaze');
+  const bytes = await Bun.file('public/models/yukikaze.glb').arrayBuffer();
+  const gltf = JSON.parse(new TextDecoder().decode(new Uint8Array(bytes, 20, new DataView(bytes).getUint32(12, true))));
+  const nodes = gltf.nodes.map(({ mesh: _mesh, ...node }: { mesh?: number }) => node);
+  const model = await new GLTFLoader().parseAsync(JSON.stringify({ asset: gltf.asset, scene: gltf.scene, scenes: gltf.scenes, nodes }), '');
+  const sim = new CombatSimulation(def);
+  sim.player.torpedoLaunchers!.reverse(); // Rust's sorted snapshot order differs from the blueprint.
+  for (const state of sim.player.torpedoLaunchers!) {
+    state.train = def.torpedoLaunchers!.find(l => l.id === state.id)!.traverseLimitsDeg![1] * Math.PI / 180;
+  }
+  const view = new ShipView(model.scene, def, sim.player);
+  const joints = new Map<string, typeof model.scene>();
+  model.scene.traverse(node => { if (node.userData.nodeId) joints.set(node.userData.nodeId, node as typeof model.scene); });
+  expect(Math.max(...view.torpedoMuzzleErrors())).toBeLessThan(.001);
+  view.capturePreviousPose();
+  sim.player.torpedoLaunchers!.reverse();
+  sim.player.torpedoLaunchers!.forEach(l => { l.train *= -1; });
+  for (const alpha of [0, .25, .5, .75, 1]) {
+    view.update(alpha);
+    for (const l of def.torpedoLaunchers!) {
+      const limit = l.traverseLimitsDeg![1] * Math.PI / 180;
+      expect(joints.get(`${l.id}.yaw`)!.rotation.y).toBeCloseTo(-limit * (1 - 2 * alpha), 10);
+    }
+    expect(Math.max(...view.torpedoMuzzleErrors())).toBeLessThan(.001);
+  }
+  sim.reset(); view.snap();
+  expect(Math.max(...view.torpedoMuzzleErrors())).toBeLessThan(.001);
 });

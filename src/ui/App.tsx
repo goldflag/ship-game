@@ -314,8 +314,8 @@ export function App() {
     </section>}
 
     <dialog ref={dialog} className={`pause-menu ${settingsOpen ? 'pause-menu-covered' : ''}`} aria-labelledby="pause-title" onCancel={e => { e.preventDefault(); resume(); }}>
-      <div className="menu-heading"><h2 id="pause-title">{phase === 'garage' ? 'In port.' : 'At your command.'}</h2><Button variant="icon" aria-label={phase === 'garage' ? 'Close menu' : 'Resume battle'} onClick={resume}><Icon name="close"/></Button></div>
-      <p className="menu-description">{phase === 'garage' ? 'Prepare for your next voyage.' : game.current?.simulation.networked ? 'The online battle continues while this menu is open.' : 'Battle paused. Your engine order is held.'}</p>
+      <div className="menu-heading"><h2 id="pause-title">{phase === 'garage' ? 'In port.' : 'Paused'}</h2><Button variant="icon" aria-label={phase === 'garage' ? 'Close menu' : 'Resume battle'} onClick={resume}><Icon name="close"/></Button></div>
+      {phase === 'garage' && <p className="menu-description">Prepare for your next voyage.</p>}
       <Button autoFocus variant="primary" onClick={resume}>{phase === 'garage' ? 'Back to port' : 'Resume battle'} <Icon name={phase === 'garage' ? 'anchor' : 'play'} size={18}/></Button>
       {phase === 'sailing' && game.current?.simulation.missionRules && <Button disabled={pveRestarting} variant="secondary" onClick={() => void restartPve().catch(e => setError(e instanceof Error ? e.message : String(e)))}>{pveRestarting ? 'Restarting…' : 'Restart this battle'}</Button>}
       {phase === 'sailing' && <Button variant="secondary" className="restart-button" onClick={() => void returnToPort()}>{battleExitLabel(game.current?.simulation)} <Icon name="anchor" size={18}/></Button>}

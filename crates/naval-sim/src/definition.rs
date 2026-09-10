@@ -199,6 +199,8 @@ pub struct MountDefinition {
     pub parent_mount_id: Option<String>,
     #[serde(rename = "traverseDeg")]
     pub traverse_deg: Option<f64>,
+    #[serde(rename = "traverseLimitsDeg")]
+    pub traverse_limits_deg: Option<[f64; 2]>,
     #[serde(rename = "magazineId")]
     pub magazine_id: Option<String>,
     #[serde(rename = "fire")]
@@ -343,6 +345,48 @@ pub struct DamageControlProfile {
     pub flash_protection: f64,
     #[serde(rename = "basis")]
     pub basis: String,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ShipDefinitionMountClearanceMountsItemBody {
+    #[serde(rename = "center")]
+    pub center: [f64; 3],
+    #[serde(rename = "size")]
+    pub size: [f64; 3],
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ShipDefinitionMountClearanceMountsItem {
+    #[serde(rename = "mountId")]
+    pub mount_id: String,
+    #[serde(rename = "barrelRadiusM")]
+    pub barrel_radius_m: f64,
+    #[serde(rename = "body")]
+    pub body: Option<ShipDefinitionMountClearanceMountsItemBody>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ShipDefinitionMountClearanceStructuresItem {
+    #[serde(rename = "structureId")]
+    pub structure_id: String,
+    #[serde(rename = "topExtensionM")]
+    pub top_extension_m: f64,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ShipDefinitionMountClearance {
+    #[serde(rename = "version")]
+    pub version: f64,
+    #[serde(rename = "marginM")]
+    pub margin_m: f64,
+    #[serde(rename = "basis")]
+    pub basis: String,
+    #[serde(rename = "mounts")]
+    pub mounts: Vec<ShipDefinitionMountClearanceMountsItem>,
+    #[serde(rename = "structures")]
+    pub structures: Vec<ShipDefinitionMountClearanceStructuresItem>,
+    #[serde(rename = "neighbors")]
+    pub neighbors: Vec<[String; 2]>,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
@@ -513,6 +557,8 @@ pub struct TorpedoLauncher {
     pub traverse_rate_deg: f64,
     #[serde(rename = "launchArcsDeg")]
     pub launch_arcs_deg: Vec<[f64; 2]>,
+    #[serde(rename = "traverseLimitsDeg")]
+    pub traverse_limits_deg: Option<[f64; 2]>,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
@@ -913,6 +959,8 @@ pub struct ShipDefinition {
     pub model_url: String,
     #[serde(rename = "damageControl")]
     pub damage_control: Option<DamageControlProfile>,
+    #[serde(rename = "mountClearance")]
+    pub mount_clearance: Option<ShipDefinitionMountClearance>,
     #[serde(rename = "underwaterProtection")]
     pub underwater_protection: Option<ShipDefinitionUnderwaterProtection>,
     #[serde(rename = "localDamage")]

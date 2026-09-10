@@ -25,6 +25,7 @@ import type { Underwater } from "../rendering/postprocessing";
 import type { UnderwaterDistortion } from "../shaders/underwaterDistortion";
 import type { SunShafts } from "../shaders/sunShafts";
 import type { SSR } from "../shaders/ssr";
+import type { Fresnel } from "../shaders/fresnel";
 import type { RainSystem } from "./rain/RainSystem";
 import type { RenderPassManager } from "../rendering/RenderPassManager";
 import type { WaterSubsystem } from "./types";
@@ -35,6 +36,7 @@ import type { WaterSubsystem } from "./types";
  * TSL node-graph chain.
  */
 export interface PostProcessingPipelineRefs {
+    fresnel: Fresnel;
     rainSystem: RainSystem;
     rpm: RenderPassManager;
     ssr: SSR;

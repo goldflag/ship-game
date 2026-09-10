@@ -1,3 +1,4 @@
+import cleveland from '../../public/models/cleveland.json';
 import kingGeorgeV from '../../public/models/king-george-v.json';
 import bismarck from '../../public/models/bismarck.json';
 import yamato from '../../public/models/yamato.json';
@@ -8,6 +9,8 @@ import enterprise from '../../public/models/enterprise-cv6.json';
 import shokaku from '../../public/models/shokaku.json';
 import viic from '../../public/models/type-viic.json';
 import fletcher from '../../public/models/fletcher.json';
+import yukikaze from '../../public/models/yukikaze.json';
+import fubuki from '../../public/models/fubuki.json';
 import libertyCargo from '../../public/models/liberty-cargo.json';
 import libertyCollier from '../../public/models/liberty-collier.json';
 import victoryCargo from '../../public/models/victory-cargo.json';
@@ -16,6 +19,7 @@ import type { ShipDefinition } from './blueprint';
 
 /** Historical presets share the same compiled definition and renderer contract. */
 export const shipPresets = {
+  cleveland,
   bismarck,
   yamato,
   iowa,
@@ -30,6 +34,8 @@ export const shipPresets = {
   'victory-cargo': victoryCargo,
   'flower-corvette': flower,
   fletcher,
+  yukikaze,
+  fubuki,
 };
 const retiredPresetAliases: Record<string, keyof typeof shipPresets> = {
   'liberty-deck-cargo': 'liberty-collier', 'liberty-troopship': 'victory-cargo',

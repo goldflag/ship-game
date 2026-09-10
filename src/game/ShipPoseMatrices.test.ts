@@ -6,6 +6,27 @@ import { ShipView } from './ShipView';
 import { batchShipModel } from './ShipBatching';
 import { ShipMaterialPalette } from './ShipMaterialPalette';
 
+test('offscreen hulls retain interpolation and restore current joint poses on re-entry', async () => {
+  const sim = mixedSimulation(), actor = sim.player, model = await loadShipGeometry(actor.definition.id);
+  batchShipModel(model);
+  const hidden = new ShipView(model.clone(true), actor.definition, actor);
+  const reference = new ShipView(model.clone(true), actor.definition, actor);
+  hidden.renderActive = false;
+  for (let tick = 0; tick < 8; tick++) {
+    hidden.capturePreviousPose(); reference.capturePreviousPose();
+    Object.assign(actor.motion, { x: tick * 7, z: -tick * 13, heading: tick * .2, roll: tick * .02 });
+    actor.mounts.forEach(m => Object.assign(m, { train: tick * .12, elevation: tick * .08, recoil: (tick % 3) * .3 }));
+    hidden.updateMotion(.37); hidden.updateRenderMatrices(); reference.update(.37);
+    expect(hidden.motion).toEqual(reference.motion);
+    expect(hidden.root.matrixWorld.elements[12]).toBeCloseTo(reference.motion.x);
+  }
+  hidden.renderActive = true; hidden.updateArticulation(.37); hidden.updateRenderMatrices(); reference.updateRenderMatrices();
+  for (let i = 0; i < hidden.renderMeshes.length; i++) {
+    expect(hidden.renderMeshes[i].mesh.matrixWorld.elements).toEqual(reference.renderMeshes[i].mesh.matrixWorld.elements);
+  }
+  hidden.impactMarks.dispose(); reference.impactMarks.dispose(); hidden.rig.dispose(); reference.rig.dispose();
+});
+
 test('compiled render poses match the retained hierarchy through motion and articulation', async () => {
   const sim = mixedSimulation();
   for (const actor of sim.actors.slice(0, 10)) {

@@ -5,6 +5,24 @@ import { shipPreset } from '../ships/presets';
 import { AircraftGunfire } from './AircraftGunfire';
 import { ballisticStep } from '../simulation/ballistics';
 
+test('offscreen tracers remain live and return at their current ballistic position', () => {
+  const sim = new CombatSimulation(shipPreset('bismarck')), gunfire = new AircraftGunfire(true);
+  const camera = new PerspectiveCamera(52, 1, .5, 60000);
+  camera.position.set(5000, 300, 0); camera.updateMatrixWorld(true);
+  sim.events.push({ sequence: 1, tick: 0, kind: 'aircraft-fire', position: [0, 300, 0], shipId: 'player', message: 'AA',
+    aircraft: { id: 'target', target: [0, 300, -1600], tracerSpeed: 800, direction: [0, 0, -1] } });
+  try {
+    sim.tick = 31; gunfire.update(sim, camera); expect(gunfire.diagnostics()).toBe(0);
+    sim.events.length = 0; sim.tick = 121;
+    const endpoint = ballisticStep([0, 300, 0], [0, 0, -800], 2, 0).position;
+    camera.position.set(0, 300, 0); camera.lookAt(...endpoint); camera.updateMatrixWorld(true);
+    gunfire.update(sim, camera); expect(gunfire.diagnostics()).toBe(1);
+    const tips = gunfire.root.getObjectByName('Aircraft tracer tips') as InstancedMesh;
+    expect(at(tips).position.distanceTo(new Vector3(...endpoint))).toBeLessThan(.001);
+    sim.tick = 301; gunfire.update(sim, camera); expect(gunfire.diagnostics()).toBe(0);
+  } finally { gunfire.dispose(); }
+});
+
 test('AA tracer reaches its CPU airburst endpoint with drag and inherited ship velocity', () => {
   const sim = new CombatSimulation(shipPreset('bismarck')), gunfire = new AircraftGunfire();
   const camera = new PerspectiveCamera(52, 1, .5, 60000);
@@ -17,6 +35,36 @@ test('AA tracer reaches its CPU airburst endpoint with drag and inherited ship v
     const tips = gunfire.root.getObjectByName('Aircraft tracer tips') as InstancedMesh;
     expect(gunfire.diagnostics()).toBe(1);
     expect(at(tips).position.distanceTo(new Vector3(...endpoint))).toBeLessThan(.001);
+  } finally { gunfire.dispose(); }
+});
+
+test('delayed fighter muzzles retain launch motion after history eviction and refresh on battle reset', () => {
+  const sim = new CombatSimulation(shipPreset('enterprise-cv6')), gunfire = new AircraftGunfire();
+  const camera = new PerspectiveCamera(52, 1, .5, 60000);
+  const tips = gunfire.root.getObjectByName('Aircraft tracer tips') as InstancedMesh;
+  const emit = (x: number) => sim.events.push({ sequence: 1, tick: 0, kind: 'aircraft-fire', shipId: 'player', message: 'Fighter burst',
+    position: [x, 300, -50], aircraft: { id: 'fighter', target: [x + 500, 300, -50], direction: [1, 0, 0], velocity: [50, 5, -20],
+      attitude: { heading: Math.PI / 2, pitch: 0, bank: 0 }, dragPerSecond: .04 } });
+  try {
+    for (const x of [100, 800]) {
+      sim.reset(); emit(x);
+      for (const tick of [3, 8, 16]) {
+        sim.tick = tick; gunfire.update(sim, camera);
+        const age = (tick - 1 + sim.interpolationAlpha) / 60;
+        let count = 0;
+        for (let round = 0; round < 3; round++) for (const side of [-1, 1]) {
+          const delay = round * .095 + (side > 0 ? .018 : 0), flight = age - delay;
+          if (flight < 0) continue;
+          // A 90-degree heading rotates the two wing muzzles onto world Z.
+          const origin: [number, number, number] = [x + 1.15 + 50 * delay, 299.75 + 5 * delay, -50 + side * 2.4 - 20 * delay];
+          const velocity: [number, number, number] = [770 + Math.sin(7 + round * 3 + side) * 1.4, 5 + Math.cos(3 + round + side) * 1.1, -20];
+          const expected = ballisticStep(origin, velocity, flight, .04).position;
+          expect(at(tips, count++).position.distanceTo(new Vector3(...expected))).toBeLessThan(.001);
+        }
+        expect(gunfire.diagnostics()).toBe(count);
+        sim.events.length = 0;
+      }
+    }
   } finally { gunfire.dispose(); }
 });
 

@@ -1,13 +1,14 @@
-/** Renderer-free visual cloth: fixed-step Verlet particles, aerodynamic pressure,
- * drag, gravity and structural/shear/bend constraints. The hoist stays pinned. */
+/** Renderer-free visual cloth: a coarse 6 x 3 grid at 60 Hz retains wind,
+ * gravity and a pinned hoist without solving tiny folds across the fleet. */
 export class FlagCloth {
-  readonly columns = 12;
-  readonly rows = 6;
+  readonly columns = 6;
+  readonly rows = 3;
   readonly positions: Float32Array;
   readonly indices: Uint16Array;
   private readonly previous: Float32Array;
   private readonly forces: Float32Array;
   private readonly links: { a: number; b: number; length: number; stiffness: number; wa: number; wb: number }[] = [];
+  private readonly flutter = new Float64Array(this.columns + 1);
   private accumulator = 0;
   private time = 0;
   constructor(readonly width: number, readonly height: number, readonly phase = 0) {
@@ -20,7 +21,10 @@ export class FlagCloth {
       const a = index(x, y);
       for (const [dx, dy, stiffness] of [[1, 0, 1], [0, 1, 1], [1, 1, .85], [-1, 1, .85], [2, 0, .15], [0, 2, .15]]) {
         if (x + dx >= 0 && x + dx <= this.columns && y + dy <= this.rows) {
-          this.links.push({ a: a * 3, b: index(x + dx, y + dy) * 3, length: Math.hypot(dx * width / this.columns, dy * height / this.rows), stiffness, wa: x === 0 ? 0 : 1, wb: x + dx === 0 ? 0 : 1 });
+          const wa = x === 0 ? 0 : 1, wb = x + dx === 0 ? 0 : 1;
+          // Pinned-to-pinned links cannot move either endpoint. The remaining
+          // total inverse mass is one or two, so this division is exact.
+          if (wa || wb) this.links.push({ a: a * 3, b: index(x + dx, y + dy) * 3, length: Math.hypot(dx * width / this.columns, dy * height / this.rows), stiffness: stiffness / (wa + wb), wa, wb });
         }
       }
       if (x < this.columns && y < this.rows) {
@@ -42,7 +46,7 @@ export class FlagCloth {
   advance(dt: number, wind: readonly number[], gravity: readonly number[] = [0, -9.81, 0]): boolean {
     if (!(dt > 0) || !Number.isFinite(dt)) return false;
     this.accumulator += Math.min(dt, .1);
-    const h = 1 / 120;
+    const h = 1 / 60;
     let changed = false;
     while (this.accumulator + 1e-9 >= h) {
       this.accumulator -= h; this.time += h; this.step(h, wind, gravity); changed = true;
@@ -56,16 +60,20 @@ export class FlagCloth {
     const horizontalSpeed = Math.max(.001, Math.hypot(wind[0], wind[2]));
     // Gusts and vortex shedding scale to available wind energy; still air stays still.
     const gust = 1 + .14 * Math.sin(this.time * 1.7 + this.phase) + .07 * Math.sin(this.time * 4.1 + this.phase * 2);
-    for (let i = 0; i < p.length; i += 3) {
-      const u = (i / 3 % (this.columns + 1)) / this.columns;
-      const flutter = Math.sin(this.time * (3 + speed * .7) - u * 9 + this.phase) * speed * .09 * u;
+    const wx = wind[0] * gust, wy = wind[1] * gust, wz = wind[2] * gust;
+    const crossX = -wind[2] / horizontalSpeed, crossZ = wind[0] / horizontalSpeed;
+    // Each row has the same longitudinal coordinate and shedding phase.
+    for (let x = 0; x <= this.columns; x++) {
+      const u = x / this.columns;
+      this.flutter[x] = Math.sin(this.time * (3 + speed * .7) - u * 9 + this.phase) * speed * .09 * u;
+    }
+    for (let i = 0, x = 0; i < p.length; i += 3, x = x === this.columns ? 0 : x + 1) {
+      const flutter = this.flutter[x];
       f[i] = gravity[0]; f[i + 1] = gravity[1]; f[i + 2] = gravity[2];
       // Skin drag also acts when the fabric is parallel to the incident airflow.
-      for (let axis = 0; axis < 3; axis++) {
-        const crosswind = axis === 0 ? -wind[2] / horizontalSpeed : axis === 2 ? wind[0] / horizontalSpeed : .3;
-        const relative = wind[axis] * gust + flutter * crosswind - (p[i + axis] - old[i + axis]) / dt;
-        f[i + axis] += relative * .9;
-      }
+      f[i] += (wx + flutter * crossX - (p[i] - old[i]) / dt) * .9;
+      f[i + 1] += (wy + flutter * .3 - (p[i + 1] - old[i + 1]) / dt) * .9;
+      f[i + 2] += (wz + flutter * crossZ - (p[i + 2] - old[i + 2]) / dt) * .9;
     }
     for (let t = 0; t < this.indices.length; t += 3) {
       const a = this.indices[t] * 3, b = this.indices[t + 1] * 3, c = this.indices[t + 2] * 3;
@@ -75,9 +83,9 @@ export class FlagCloth {
       const area2 = Math.sqrt(nx * nx + ny * ny + nz * nz);
       if (area2 < 1e-9) continue;
       nx /= area2; ny /= area2; nz /= area2;
-      const rx = wind[0] * gust - (p[a] - old[a] + p[b] - old[b] + p[c] - old[c]) / (3 * dt);
-      const ry = wind[1] * gust - (p[a + 1] - old[a + 1] + p[b + 1] - old[b + 1] + p[c + 1] - old[c + 1]) / (3 * dt);
-      const rz = wind[2] * gust - (p[a + 2] - old[a + 2] + p[b + 2] - old[b + 2] + p[c + 2] - old[c + 2]) / (3 * dt);
+      const rx = wx - (p[a] - old[a] + p[b] - old[b] + p[c] - old[c]) / (3 * dt);
+      const ry = wy - (p[a + 1] - old[a + 1] + p[b + 1] - old[b + 1] + p[c + 1] - old[c + 1]) / (3 * dt);
+      const rz = wz - (p[a + 2] - old[a + 2] + p[b + 2] - old[b + 2] + p[c + 2] - old[c + 2]) / (3 * dt);
       const normalSpeed = rx * nx + ry * ny + rz * nz;
       // Air density 1.225 kg/m³, drag coefficient 1.15, cloth 0.22 kg/m².
       // Bound acceleration for abrupt camera/teleport/weather transitions.
@@ -91,15 +99,15 @@ export class FlagCloth {
       if (this.pinned(i)) continue;
       for (let axis = 0; axis < 3; axis++) {
         const at = i + axis, position = p[at];
-        p[at] += (position - old[at]) * .992 + f[at] * dt * dt;
+        p[at] += (position - old[at]) * (.992 * .992) + f[at] * dt * dt;
         old[at] = position;
       }
     }
-    for (let iteration = 0; iteration < 6; iteration++) for (const link of this.links) {
+    for (let iteration = 0; iteration < 4; iteration++) for (const link of this.links) {
       const { a, b, length, stiffness, wa, wb } = link;
       const dx = p[b] - p[a], dy = p[b + 1] - p[a + 1], dz = p[b + 2] - p[a + 2], distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
-      if (!wa && !wb || distance < 1e-9) continue;
-      const correction = (distance - length) / distance * stiffness / (wa + wb);
+      if (distance < 1e-9) continue;
+      const correction = (distance - length) / distance * stiffness;
       p[a] += dx * correction * wa; p[a + 1] += dy * correction * wa; p[a + 2] += dz * correction * wa;
       p[b] -= dx * correction * wb; p[b + 1] -= dy * correction * wb; p[b + 2] -= dz * correction * wb;
     }

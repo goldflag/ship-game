@@ -10,6 +10,7 @@ import type { Placement } from '../../multiplayer/generated/Placement';
 let runtime: LocalRuntime | undefined;
 let planner: PvePlanner | undefined;
 let previous: Snapshot | undefined;
+let profile = false;
 let content: Promise<Uint8Array> | undefined;
 function loadContent() {
   return content ??= (async () => {
@@ -20,10 +21,12 @@ function loadContent() {
 }
 // Requests are serialized: initialization cannot race a queued tick batch.
 let chain = Promise.resolve();
-self.onmessage = (event: MessageEvent<{ type: 'options' } | { type: 'validate'; placements: Placement[] } | { type: 'init'; setup: BattleSetup } | { type: 'plan'; request: PveRequest } | { type: 'deploy'; placements: Placement[] } | { type: 'restart' } | { type: 'advance'; commands: CommandEnvelope[]; ticks: number }>) => {
+self.onmessage = (event: MessageEvent<{ type: 'options' } | { type: 'validate'; placements: Placement[] } | { type: 'init'; setup: BattleSetup; profile?: boolean } | { type: 'plan'; request: PveRequest } | { type: 'deploy'; placements: Placement[] } | { type: 'restart' } | { type: 'advance'; commands: CommandEnvelope[]; ticks: number }>) => {
   chain = chain.then(async () => {
     try {
       const message = event.data;
+      if (message.type === 'init') profile = message.profile === true;
+      const started = profile ? performance.now() : 0;
       if (message.type === 'options') {
         self.postMessage({ type: 'options', options: JSON.parse(PvePlanner.options(await loadContent())) });
         return;
@@ -61,8 +64,16 @@ self.onmessage = (event: MessageEvent<{ type: 'options' } | { type: 'validate'; 
         // alter timestep or block the rendering/input thread.
         for (let left = message.ticks; left > 0; left -= 6) runtime.step(Math.min(6, left));
       }
-      const frame = decodeSnapshot(runtime!.snapshot());
-      self.postMessage({ type: 'snapshot', reset: message.type === 'restart', baseTick: previous?.tick, delta: localDelta(previous, frame) });
+      const stepped = profile ? performance.now() : 0;
+      const json = runtime!.snapshot();
+      const serialized = profile ? performance.now() : 0;
+      const frame = decodeSnapshot(json);
+      const decoded = profile ? performance.now() : 0;
+      const delta = localDelta(previous, frame);
+      const timing = profile ? { tick: frame.tick, ticks: message.type === 'advance' ? message.ticks : 0,
+        step: stepped - started, serialize: serialized - stepped, decode: decoded - serialized,
+        delta: performance.now() - decoded, bytes: json.length } : undefined;
+      self.postMessage({ type: 'snapshot', reset: message.type === 'restart', baseTick: previous?.tick, delta, timing });
       previous = frame;
     } catch (error) { self.postMessage({ type: 'error', message: String(error) }); }
   });

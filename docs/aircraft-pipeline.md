@@ -58,6 +58,11 @@ bun scripts/aircraft/check_deck_contact.ts .build/pve-ground/contact-poses.json
 
 Create the ignored output directory first if needed. The checker rejects stale manifest/model hashes, tyre gaps outside the 2 cm LOD allowance, hook penetration and overlapping raised fittings. It checks triangle interiors across planks and platform boundaries, with per-triangle material classification. Its JSON records exact witnesses and hashes beside the samples. A passing sample set still requires visual inspection and does not certify every taxi path or moving elevator pose. The baked tyre patches are content outputs; changing their extraction does not change the aircraft recipe or require a geometry rebuild.
 
+Retained export reports compare exactly except for last-bit platform differences
+in calculated `joints[].maximumVertexTravel`. That field allows four relative
+machine epsilons; model hashes, bounds, counts and other fields remain exact.
+The checker still inspects every published and retained GLB independently.
+
 ## Blender MCP
 
 Squadron cards require a baked thumbnail for every model in `GAMEPLAY_AIRCRAFT`. Build and publish generate these automatically; `aircraft:check` rejects missing or stale thumbnails. To repair only an image without rebuilding geometry, run `bun run aircraft:thumbnail <id>`. The original `assets/aircraft/thumbnail.py` recipe renders the validated GLB with local Blender and retains its model, recipe and image hashes.

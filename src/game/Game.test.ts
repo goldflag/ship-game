@@ -37,7 +37,7 @@ async function model(id: string) {
 }
 
 // Exercise the real scene swap with exported joint hierarchies; only GPU startup is omitted.
-async function port() {
+async function port(storageMatrices = false) {
   const definition = shipPreset('bismarck');
   const simulation = new CombatSimulation(definition);
   simulation.ship.x = 240;
@@ -61,7 +61,7 @@ async function port() {
     funnelSmoke: { diagnostics() { return {}; } },
     shipLabels: { setFleet() {} },
     ship: new Group(), inPort: true, disposed: false, switchingShip: false,
-    renderer: { domElement: { setAttribute() {} } },
+    renderer: { backend: { isWebGPUBackend: storageMatrices }, domElement: { setAttribute() {} } },
     environment: new VisualEnvironment({ effects: { setWind() {}, setSun() {}, setIllumination() {} }, funnelSmoke: { setWind() {} }, sunAnchor: new Group() }),
   }) as Game;
   return { game, scene, harbor, camera, rig, playerView };
@@ -159,14 +159,17 @@ test('a second request cannot replace an in-flight switch; disposed games never 
   } finally { loader.mockRestore(); rig.dispose(); }
 });
 
-test('battle loading binds each mixed fleet hull and selected target to its own exported joints', async () => {
-  const { game, scene, harbor, rig } = await port();
+test.each([false, true])('battle loading binds each mixed fleet hull and selected target to its own exported joints (storage matrices: %s)', async storageMatrices => {
+  const { game, scene, harbor, rig } = await port(storageMatrices);
+  const aircraftLoader = spyOn((game as unknown as { aircraftView: { load(modelIds: string[], storageMatrices?: boolean): Promise<void> } }).aircraftView, 'load');
   const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async url => model(String(url).split('/').pop()!.replace('.glb', '')));
   try {
     await game.prepareBattle({ playerShipId: 'baltimore', friendlyBots: ['bismarck', { shipId: 'bismarck', aiLevel: 'hard' }],
       enemies: [{ shipId: 'yamato', aiLevel: 'static' }, { shipId: 'enterprise-cv6', aiLevel: 'moving' }],
       spawnDistance: 7500, mapId: 'pacific-islands', timeOfDay: 'night', weather: 'fog' });
     expect(loader).toHaveBeenCalledTimes(4);
+    expect(aircraftLoader).toHaveBeenCalledTimes(1);
+    expect(aircraftLoader).toHaveBeenCalledWith(shipPreset('enterprise-cv6').airWing!.squadrons.map(s => s.modelId), storageMatrices);
     expect(scene.children).toContain(harbor);
     expect(scene.children).toHaveLength(8); // Harbor, aircraft, five hull roots, fleet draw adapter.
     expect(game.simulation.actors).toHaveLength(5);
@@ -187,7 +190,7 @@ test('battle loading binds each mixed fleet hull and selected target to its own 
     await game.switchShip(shipPreset('bismarck'));
     expect(scene.children).toHaveLength(5); // Harbor, aircraft, two hull roots, fleet draw adapter.
     expect(game.simulation.isBattle).toBe(false);
-  } finally { loader.mockRestore(); rig.dispose(); }
+  } finally { aircraftLoader.mockRestore(); loader.mockRestore(); rig.dispose(); }
 });
 
 test('battle preparation reports each loading stage in order for the loading screen', async () => {

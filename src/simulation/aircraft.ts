@@ -3,6 +3,7 @@ import type { SearchProgress } from '../multiplayer/generated/SearchProgress';
 import type { AirOrder as NativeAirOrder } from '../multiplayer/generated/AirOrder';
 import type { EndurancePolicy } from '../multiplayer/generated/EndurancePolicy';
 import type { DeckPolicy } from '../multiplayer/generated/DeckPolicy';
+import { torpedoSpeed } from './mobility';
 import { physicalLoss } from './battleRules';
 import type { AircraftRole, ShipDefinition, TorpedoPart, Vec3 } from '../ships/blueprint';
 import type { FleetActor, Team } from './battle';
@@ -591,11 +592,11 @@ export function stepAircraft(ctx: AirContext, dt: number, time: number) {
         const waterEntry = add(p.position, scale([p.velocity[0], 0, p.velocity[2]], fall));
         const futureTarget = add(targetPoint, scale(motionVelocity(target.motion), fall));
         const torpedo = aircraftTorpedo(p.modelId);
-        const aim = torpedoIntercept(waterEntry, futureTarget, motionVelocity(target.motion), torpedo.speed) ?? futureTarget;
+        const aim = torpedoIntercept(waterEntry, futureTarget, motionVelocity(target.motion), torpedoSpeed(torpedo.speed)) ?? futureTarget;
         fly(p, [aim[0], 26, aim[2]], 70, dt, { bankLimit: distance > 1600 ? .72 : .35, altitudeLookahead: 450 });
         const aligned = dot(normalize([p.velocity[0], 0, p.velocity[2]]), normalize([aim[0] - p.position[0], 0, aim[2] - p.position[2]])) > .999;
         if (distance < 1050 && distance > 650 && p.position[1] < 38 && p.position[1] > 15 && Math.abs(p.bank) < .12 && Math.abs(p.pitch) < .08 && aligned
-          && clearTorpedoLane(actor, waterEntry, aim, torpedo.speed, ctx.actors)) {
+          && clearTorpedoLane(actor, waterEntry, aim, torpedoSpeed(torpedo.speed), ctx.actors)) {
           ctx.releases.push({ id: ctx.nextId(), ownerId: p.ownerId, position: [...p.position], velocity: [p.velocity[0], -3, p.velocity[2]], weapon: torpedo });
           p.payload = false; p.phase = 'returning';
           ctx.emit({ kind: 'aircraft-release', position: [...p.position], shipId: p.ownerId, message: 'Torpedo away', aircraft: { id: p.id } });
@@ -609,7 +610,7 @@ export function stepAircraft(ctx: AirContext, dt: number, time: number) {
     release.position = add(release.position, scale(release.velocity, dt));
     if (release.position[1] <= 0) {
       const weapon = release.weapon ?? AIR_TORPEDO;
-      const velocity = scale(normalize([release.velocity[0], 0, release.velocity[2]]), weapon.speed);
+      const velocity = scale(normalize([release.velocity[0], 0, release.velocity[2]]), torpedoSpeed(weapon.speed));
       const position: Vec3 = [release.position[0], -weapon.runningDepthM, release.position[2]];
       ctx.torpedoes.push({ id: release.id, ownerId: release.ownerId, tubeId: 'aircraft.payload', position, velocity, distance: 0, age: 0, weapon });
       ctx.emit({ kind: 'torpedo-launch', position, shipId: release.ownerId, message: 'Air torpedo entered water', torpedo: { id: release.id, velocity, diameterM: weapon.diameterM } });

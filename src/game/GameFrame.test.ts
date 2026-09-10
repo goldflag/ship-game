@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, spyOn, test } from 'bun:test';
-import { Color, Group, PerspectiveCamera, Vector3, InstancedBufferGeometry, InstancedMesh, MeshBasicMaterial } from 'three/webgpu';
+import { Color, DirectionalLight, Group, PerspectiveCamera, Vector3, InstancedBufferGeometry, InstancedMesh, MeshBasicMaterial } from 'three/webgpu';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { CombatSimulation } from '../simulation/combat';
 import { ENGINE_ORDERS, FIXED_DT } from '../simulation/ship';
@@ -12,6 +12,7 @@ import { ShellFollow } from './ShellFollow';
 import { Game } from './Game';
 import { VisualEnvironment } from './VisualEnvironment';
 import { FrameScene } from './FrameScene';
+import { FleetVisibility } from './FleetVisibility';
 import { ShipView } from './ShipView';
 import { HullDamageFeedback } from './HullDamageFeedback';
 import { gunAimPoints, type GunAimPoint } from './gunAim';
@@ -32,6 +33,7 @@ afterEach(() => globals.forEach((name, i) => {
 /** Water Pro's live uniforms, without its GPU simulation. */
 function fakeWater() {
   return {
+    lighting: { sunLight: new DirectionalLight() },
     underwaterDistortion: { intensity: .02 },
     color: { absorptionColor: new Color(.296, .105, .095), waterColor: new Color(), transmissionColor: new Color(),
       update(colors: { waterColor: string; transmissionColor: string; absorptionColor: string }) {
@@ -71,7 +73,7 @@ async function frameHarness(shipId = 'bismarck') {
     setRudder: (rudder: number) => { helm.rudder = rudder; } };
   const game = Object.assign(Object.create(Game.prototype), {
     definition: simulation.definition, simulation, playerView, targetView, fleetViews: [playerView, targetView], camera, rig, ship: new Group(), shellFollow: new ShellFollow(),
-    renderer: { domElement: { setAttribute() {} } }, manualAim: false, battlefieldCamera, cameraFrameListeners: new Set(),
+    renderer: { domElement: { setAttribute() {} } }, manualAim: false, battlefieldCamera, cameraFrameListeners: new Set(), fleetVisibility: new FleetVisibility(),
     host: { clientWidth: 1440, clientHeight: 900 }, airOperationsOpen: false,
     shipLabels: { update() {} }, hitLabels: { update() {} }, torpedoPreview: { update() {} },
     playerDamageFeedback: new HullDamageFeedback(simulation.player.damage.integrity),
@@ -80,7 +82,7 @@ async function frameHarness(shipId = 'bismarck') {
     lastTime: 0, hudTime: Infinity, lastTrailTick: 0, trail: [], fps: 60, battery: 'main',
     ammunition: { main: 'ap', secondary: 'ap' },
     paused: false, inPort: false, inspecting: false, input,
-    aircraftView: { root: new Group(), update() {} },
+    aircraftView: { root: new Group(), update() {}, warmupParts() { return () => {}; } },
     funnelSmoke: { root: new Group(), update() {}, setWind() {} },
     effects: { root: new Group(), update() {}, reset() {} }, scene: new FrameScene(), water, environment,
     shipWake: { update: (ships: ShipView[]) => wakePositions.push(ships[0].motion.z), reset() {} },
@@ -100,12 +102,17 @@ test('render warmup draws without advancing combat or starting a second animatio
   const geometry = new InstancedBufferGeometry(); geometry.instanceCount = 0;
   const hidden = new InstancedMesh(geometry, new MeshBasicMaterial(), 8); hidden.visible = false;
   Reflect.get(game, 'aircraftView').root.add(hidden);
-  let renders = 0, scheduled = 0;
-  Object.assign(game, { pipeline: { render() { renders++; if (renders <= 12) { expect(hidden.visible).toBe(true); expect(geometry.instanceCount).toBe(1); expect(hidden.count).toBe(8); } } }, scheduleFrame() { scheduled++; } });
+  let renders = 0, scheduled = 0, partsWarming = false, restoredParts = 0;
+  Reflect.get(game, 'aircraftView').warmupParts = () => {
+    partsWarming = true;
+    return () => { partsWarming = false; restoredParts++; };
+  };
+  Object.assign(game, { pipeline: { render() { renders++; if (renders <= 12) { expect(partsWarming).toBe(true); expect(hidden.visible).toBe(true); expect(geometry.instanceCount).toBe(1); expect(hidden.count).toBe(8); } } }, scheduleFrame() { scheduled++; } });
   for (let i = 0; i < 12; i++) await game.frame(10000 + i * 1000, true);
   expect(hidden.visible).toBe(false); expect(geometry.instanceCount).toBe(0);
   expect(simulation.ship).toEqual(before);
   expect(renders).toBe(12); expect(scheduled).toBe(0);
+  expect(partsWarming).toBe(false); expect(restoredParts).toBe(12);
   await game.frame(21020);
   expect(simulation.ship.tick).toBeGreaterThan(before.tick);
   expect(scheduled).toBe(1);
@@ -194,6 +201,8 @@ test('turning through north takes the short heading path without changing author
 
 test('firing enters shell view without feeding its camera into aim, freezes on pause and restores optics', async () => {
   const { game, simulation, camera, rig, playerView, gunAimFrames } = await frameHarness();
+  const effectsUpdate = spyOn(Reflect.get(game, 'effects') as { update(...args: unknown[]): void }, 'update');
+  const hidesShellTrails = () => effectsUpdate.mock.calls.at(-1)![5];
   game.manualAim = true;
   rig.aimAt([2500, 0, -2500], playerView.motion);
   game.toggleBinoculars();
@@ -203,11 +212,14 @@ test('firing enters shell view without feeding its camera into aim, freezes on p
   for (let i = 0; i < 600; i++) await game.frame(time += 1000 / 60);
   expect(gunAimFrames.at(-1)!.visible).toBe(true);
   expect(gunAimFrames.at(-1)!.points).toHaveLength(4);
+  expect(hidesShellTrails()).toBe(false);
   game.toggleShellFollow();
   simulation.requestFire();
   await game.frame(time += 1000 / 60);
   expect(game.shellFollow.phase).toBe('flight');
   expect(gunAimFrames.at(-1)).toEqual({ points: [], visible: false });
+  // Riding the round shows the physical projectiles without their vapor trails.
+  expect(hidesShellTrails()).toBe(true);
   expect(rig.binoculars).toBe(false);
   expect(playerView.root.visible).toBe(true);
   const aim = [...game.currentAim];
@@ -223,6 +235,8 @@ test('firing enters shell view without feeding its camera into aim, freezes on p
   game.paused = false;
   game.toggleShellFollow();
   expect(game.shellFollow.phase).toBe('off');
+  await game.frame(time += 1000 / 60);
+  expect(hidesShellTrails()).toBe(false);
   expect(rig.binoculars).toBe(true);
   expect(camera.fov).toBeCloseTo(fov, 10);
   expect(camera.position.distanceTo(playerView.root.position)).toBeLessThan(100);

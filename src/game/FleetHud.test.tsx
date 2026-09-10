@@ -210,7 +210,10 @@ test('spectator HUD uses the observed definition inside the player ship context'
   const html = renderToStaticMarkup(<ShipContext.Provider value={player}><FleetHud data={data} game={null} visible bindings={defaultKeybindings()}/></ShipContext.Provider>);
   expect(html).toContain(`<h1>${watched.name.toUpperCase()}</h1>`);
   expect(html).not.toContain(`<h1>${player.name.toUpperCase()}</h1>`);
-  expect(html).toContain(`aria-label="${friend.damage.integrity} of ${friend.damage.maxIntegrity} HP"`);
+  // Display whole HP while keeping the watched hull's exact fractional state.
+  expect(html).toContain(`aria-label="${Math.round(friend.damage.integrity)} of ${friend.damage.maxIntegrity} HP"`);
+  expect(html).toContain('style="width:50%"');
+  expect(friend.damage.integrity).toBe(friend.damage.maxIntegrity / 2);
   expect(html).toContain('Spectating teammate');
   expect(html).not.toContain('380 mm');
   expect(html).toContain('disabled="" aria-label="Engine full"');

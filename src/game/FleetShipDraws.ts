@@ -21,6 +21,7 @@ export class FleetShipDraws {
   private subpixelInstances = 0;
   private readonly viewCenter = new THREE.Vector3();
   private readonly sphere = new THREE.Sphere();
+  private readonly visibility = new Map<THREE.Object3D, boolean>();
   constructor(views: readonly ShipView[]) {
     this.root.name = 'Fleet ship surfaces';
     const groups = new Map<string, { material: THREE.Material; sources: Source[] }>();
@@ -60,21 +61,25 @@ export class FleetShipDraws {
   /** Call after interpolating all hull/joint matrices and choosing view visibility. */
   update(camera?: THREE.Camera, framebufferHeight = 1080): void {
     this.visibleInstances = 0; this.reducedInstances = 0; this.subpixelInstances = 0;
+    this.visibility.clear();
     const projection = camera ? Math.abs(camera.projectionMatrix.elements[5]) * framebufferHeight * .5 : 0;
     for (const { mesh, sources } of this.batches) {
       mesh.invalidateDrawList();
       let count = 0;
       for (const source of sources) {
+        if (source.view.renderActive === false) { mesh.setVisibleAt(source.instance!, false); continue; }
         const batched = source.view.inspection.mode === 'exterior';
         const proxy = this.proxies.get(source.view);
         const sourceVisible = (surface: THREE.Mesh) => {
-          if (proxy) return proxy.sourceVisible(surface);
+          if (proxy) return proxy.sourceVisible(surface, this.visibility);
           for (let ancestor: THREE.Object3D | null = surface; ancestor; ancestor = ancestor.parent) if (!ancestor.visible) return false;
           return true;
         };
         const together = batched && source.members.every(member => sourceVisible(member.mesh));
         // A hidden component or inspection falls back to original surfaces.
-        for (const member of source.members) member.mesh.layers.mask = together ? 0 : member.layers;
+        for (const member of source.members) {
+          member.mesh.layers.mask = together ? 0 : member.layers;
+        }
         let visible = together;
         if (source.owner) source.mesh.matrixWorld.copy(source.owner.matrixWorld);
         let level = 0;
@@ -84,12 +89,13 @@ export class FleetShipDraws {
           // and viewport resolution. Never reduce geometry crossing the camera.
           const viewDepth = -this.viewCenter.copy(this.sphere.center).applyMatrix4(camera.matrixWorldInverse).z;
           const pixelsPerMetre = projection / ((camera as THREE.PerspectiveCamera).isPerspectiveCamera ? Math.max(.001, viewDepth - this.sphere.radius) : 1);
-          if (this.sphere.radius * 2 * pixelsPerMetre < .5) { visible = false; this.subpixelInstances++; }
+          if (this.sphere.radius * 2 * pixelsPerMetre < 1.5) { visible = false; this.subpixelInstances++; }
           else {
             const scale = source.mesh.matrixWorld.getMaxScaleOnAxis();
             for (let i = 1; i < source.levels!.length; i++) {
-              // Hysteresis keeps a stationary silhouette stable near a threshold.
-              const budget = i <= source.level ? .65 : .45;
+              // Allow about one pixel of distant surface error. Hysteresis
+              // keeps a stationary silhouette stable near a threshold.
+              const budget = i <= source.level ? 1.75 : 1.25;
               if (source.levels![i].error * scale * pixelsPerMetre <= budget) level = i;
             }
           }
@@ -100,7 +106,10 @@ export class FleetShipDraws {
       }
       mesh.visible = count > 0; this.visibleInstances += count;
     }
-    this.proxies.forEach(proxy => proxy.update(camera, framebufferHeight));
+    this.proxies.forEach((proxy, view) => {
+      proxy.root.visible = view.renderActive !== false;
+      if (proxy.root.visible) proxy.update(camera, framebufferHeight);
+    });
   }
   diagnostics() { return { batches: this.batches.length, instances: this.visibleInstances, reduced: this.reducedInstances, subpixel: this.subpixelInstances }; }
   dispose(): void {

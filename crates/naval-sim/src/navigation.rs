@@ -448,6 +448,7 @@ pub fn command(
     command_observed(a, actors, islands, order, state, tick, speed_limit, None)
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn command_observed(
     a: &Vessel,
     actors: &[Vessel],
@@ -650,6 +651,7 @@ pub fn command_observed(
     sail(a, actors, contacts, islands, state, heading, speed, maximum)
 }
 
+#[allow(clippy::too_many_arguments)]
 fn sail(
     a: &Vessel,
     actors: &[Vessel],

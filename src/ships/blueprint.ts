@@ -5,6 +5,8 @@ export interface TorpedoLauncher {
   id: string; name: string; position: Vec3; traverseRateDeg: number;
   /** Allowed ship-relative launch bearings; training can cross the excluded sectors. */
   launchArcsDeg: [number, number][];
+  /** Optional mechanical travel interval containing neutral; never crossed during training. */
+  traverseLimitsDeg?: [number, number];
 }
 export interface DepthChargePart {
   id: string; name: string; kind: 'depth-charge'; diameterM: number; lengthM: number;
@@ -85,6 +87,9 @@ export interface Mount {
   parentMountId?: string;
   /** Installed half-sector about bearingDeg, at most the catalog capability. */
   traverseDeg?: number;
+  /** Optional asymmetric travel relative to bearingDeg, containing neutral and
+   * bounded by the installed/catalog half-sector. */
+  traverseLimitsDeg?: [number, number];
   magazineId?: string;
   fire?: FireProfile;
 }
@@ -203,6 +208,14 @@ export interface ShipBlueprint {
   schemaVersion: 1; id: string; name: string; configuration: string;
   coordinates: 'meters-y-up-bow-negative-z'; modelUrl: string;
   damageControl?: DamageControlProfile;
+  /** Optional CPU motion interlocks, fitted to reviewed installation geometry.
+   * These are explicit game clearance envelopes, not historical firing sectors. */
+  mountClearance?: {
+    version: 1; marginM: number; basis: string;
+    mounts: { mountId: string; barrelRadiusM: number; body?: { center: Vec3; size: Vec3 } }[];
+    structures: { structureId: string; topExtensionM: number }[];
+    neighbors: [string, string][];
+  };
   /** Ship-local underwater defense coverage; reductions are gameplay calibration. */
   underwaterProtection?: { version: 1; basis: string; zones: (Volume & { name: string; damageReduction: number; breachReduction: number })[] };
   localDamage?: { version: 1; regions: DamageRegion[]; basis: string };
@@ -472,12 +485,46 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
     if (Math.abs(pos[0]) > (envelope.beam as number) / 2 || Math.abs(pos[2]) > (envelope.length as number) / 2) fail(String(m.id), 'mount lies outside the hull envelope');
     numeric(m.bearingDeg, `${m.id}.bearingDeg`, -360, 360);
     if (m.traverseDeg !== undefined) numeric(m.traverseDeg, `${m.id}.traverseDeg`, 0, parts.find(p => p.id === m.partId)!.traverseDeg as number);
+    if (m.traverseLimitsDeg !== undefined) {
+      const limit = (m.traverseDeg ?? parts.find(p => p.id === m.partId)!.traverseDeg) as number;
+      const limits = list(m.traverseLimitsDeg, `${m.id}.traverseLimitsDeg`, 2);
+      if (limits.length !== 2 || numeric(limits[0], `${m.id}.traverse minimum`, -limit, 0) > numeric(limits[1], `${m.id}.traverse maximum`, 0, limit)) fail(String(m.id), 'expected ordered travel limits containing neutral');
+    }
     if (m.parentMountId !== undefined) {
       id(m.parentMountId, `${m.id}.parentMountId`);
       if (!mounts.slice(0, index).some(parent => parent.id === m.parentMountId)) fail(String(m.id), 'parent mount must precede its child (no missing parents or cycles)');
     }
   });
   const compartments = volumes(b.compartments, 'compartments');
+  if (b.mountClearance !== undefined) {
+    const c = record(b.mountClearance, 'mountClearance');
+    literal(c.version, [1], 'mountClearance.version'); text(c.basis, 'mountClearance.basis');
+    numeric(c.marginM, 'mountClearance.marginM', .001, .5);
+    const entries = list(c.mounts, 'mountClearance.mounts', 128).map(v => record(v, 'clearance mount'));
+    const selected = new Set<string>();
+    for (const e of entries) {
+      const m = mounts.find(m => m.id === e.mountId);
+      if (!m || m.parentMountId !== undefined || selected.has(String(e.mountId))) fail('mountClearance.mounts', 'expected unique hull-mounted gun IDs');
+      selected.add(String(e.mountId)); numeric(e.barrelRadiusM, 'clearance barrel radius', .01, 2);
+      if (e.body !== undefined) {
+        const body = record(e.body, 'clearance body'); vector(body.center, 'clearance body center');
+        vector(body.size, 'clearance body size').forEach(n => numeric(n, 'clearance body dimension', .01, 30));
+      }
+    }
+    const structures = b.structures as AuthoredStructure[] | undefined;
+    const seen = new Set<string>();
+    for (const v of list(c.structures, 'mountClearance.structures', 128)) {
+      const e = record(v, 'clearance structure');
+      if (!structures?.some(s => s.id === e.structureId) || seen.has(String(e.structureId))) fail('mountClearance.structures', 'expected unique authored structure IDs');
+      seen.add(String(e.structureId)); numeric(e.topExtensionM, 'clearance structure extension', 0, 5);
+    }
+    const pairs = new Set<string>();
+    for (const v of list(c.neighbors, 'mountClearance.neighbors', 128)) {
+      const pair = list(v, 'clearance neighbor pair', 2).map(String), key = [...pair].sort().join(':');
+      if (pair.length !== 2 || pair[0] === pair[1] || pair.some(id => !selected.has(id)) || pairs.has(key)) fail('mountClearance.neighbors', 'expected distinct selected mount pairs');
+      pairs.add(key);
+    }
+  }
   const validateFire = (value: unknown, path: string) => {
     if (value === undefined) return;
     const f = record(value, path);
@@ -608,8 +655,16 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
   launchers.forEach(l => {
     text(l.name, `${l.id}.name`); deckPosition(l.position, `${l.id}.position`);
     numeric(l.traverseRateDeg, `${l.id}.traverseRateDeg`, .1, 90);
+    if (l.traverseLimitsDeg !== undefined) {
+      const limits = list(l.traverseLimitsDeg, 'traverseLimitsDeg', 2);
+      if (limits.length !== 2 || numeric(limits[0], 'traverse minimum', -180, 0) >= numeric(limits[1], 'traverse maximum', 0, 180)) fail(String(l.id), 'expected travel limits containing neutral');
+    }
     const arcs = list(l.launchArcsDeg, 'launchArcsDeg', 8);
     if (!arcs.length) fail(String(l.id), 'launcher needs a firing arc');
+    if (l.traverseLimitsDeg !== undefined) {
+      const [lo, hi] = l.traverseLimitsDeg as [number, number];
+      if (arcs.some(a => Array.isArray(a) && (a[0] < lo || a[1] > hi))) fail(String(l.id), 'launch arc exceeds mechanical travel');
+    }
     arcs.forEach(a => { const arc = list(a, 'launch arc', 2); if (arc.length !== 2 || numeric(arc[0], 'arc start', -180, 180) >= numeric(arc[1], 'arc end', -180, 180)) fail(String(l.id), 'expected ordered launch arc'); });
   });
   const tubes = list(b.torpedoTubes ?? [], 'torpedoTubes', 32).map(t => record(t, 'torpedo tube'));

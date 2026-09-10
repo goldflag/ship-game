@@ -1,0 +1,94 @@
+{
+  "version": 1,
+  "id": "shokaku-maintained-v1",
+  "basis": "Preserve original recipe colors, scheme, markings and deck coverings. Shared maintained finish; no new historical color claim.",
+  "materials": {
+    "naval": {
+      "paint": "shokaku-authored-naval",
+      "finish": "painted-steel"
+    },
+    "roof": {
+      "paint": "shokaku-authored-roof",
+      "finish": "painted-deck"
+    },
+    "edge": {
+      "paint": "shokaku-authored-edge",
+      "finish": "painted-steel"
+    },
+    "hullgray": {
+      "paint": "shokaku-authored-hullgray",
+      "finish": "painted-steel",
+      "projection": "hull"
+    },
+    "antifouling": {
+      "paint": "shokaku-authored-antifouling",
+      "finish": "underwater-coating",
+      "projection": "hull"
+    },
+    "boot": {
+      "paint": "shokaku-authored-boot",
+      "finish": "underwater-coating",
+      "projection": "hull"
+    },
+    "deck": {
+      "paint": "shokaku-authored-deck",
+      "finish": "wood"
+    },
+    "elevator": {
+      "paint": "shokaku-authored-elevator",
+      "finish": "painted-deck"
+    },
+    "steel-deck": {
+      "paint": "shokaku-authored-steel-deck",
+      "finish": "painted-deck"
+    },
+    "hangar": {
+      "paint": "shokaku-authored-hangar",
+      "finish": "painted-steel"
+    },
+    "raft": {
+      "paint": "shokaku-authored-raft",
+      "finish": "painted-steel"
+    },
+    "plank0": {
+      "paint": "shokaku-authored-deck-stain",
+      "finish": "wood"
+    },
+    "plank1": {
+      "paint": "shokaku-authored-deck-stain",
+      "finish": "wood"
+    },
+    "plank2": {
+      "paint": "shokaku-authored-deck-stain",
+      "finish": "wood"
+    },
+    "plank3": {
+      "paint": "shokaku-authored-deck-stain",
+      "finish": "wood"
+    },
+    "plank4": {
+      "paint": "shokaku-authored-deck-stain",
+      "finish": "wood"
+    },
+    "plank5": {
+      "paint": "shokaku-authored-deck-stain",
+      "finish": "wood"
+    },
+    "plank6": {
+      "paint": "shokaku-authored-deck-stain",
+      "finish": "wood"
+    }
+  },
+  "hull": {
+    "bounds": [
+      -128.75,
+      128.75,
+      -9.87,
+      12.45
+    ],
+    "pixelsPerMeter": 15.906796116504854,
+    "waterline": 0,
+    "stainStrength": 0.16,
+    "runoffStrength": 0.16
+  }
+}

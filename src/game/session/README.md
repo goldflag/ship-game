@@ -12,6 +12,10 @@ The local worker parses and normalizes snapshots before sending ordered, lossles
 changes. The receiver checks the preceding tick and copies changed paths, keeping
 earlier snapshots intact for interpolation. This transport relies on one owned
 worker with serialized requests; it is separate from reconnectable online deltas.
+Scalar changes travel directly and object patches use keyed fields to avoid
+per-value wrappers and key/value tuple allocations during structured cloning.
+Explicit `undefined` replacements remain wrapped, and prototype-named fields are
+written as own data properties. Unchanged subtrees retain their identity.
 `localSnapshotDelta.test.ts` compares transferred carrier battles against the
 complete Rust snapshots, including combat events and renderer identity updates.
 

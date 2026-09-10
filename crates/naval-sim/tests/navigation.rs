@@ -418,10 +418,13 @@ fn torpedo_wake_acquisition_requires_local_weather_range_and_clear_terrain() {
         weapon: Default::default(),
     };
     assert_eq!(
-        fleet_evasion::visible_wakes(&a, &[torpedo.clone()], &[], &[], 10000.0).len(),
+        fleet_evasion::visible_wakes(&a, std::slice::from_ref(&torpedo), &[], &[], 10000.0).len(),
         1
     );
-    assert!(fleet_evasion::visible_wakes(&a, &[torpedo.clone()], &[], &[], 500.0).is_empty());
+    assert!(
+        fleet_evasion::visible_wakes(&a, std::slice::from_ref(&torpedo), &[], &[], 500.0)
+            .is_empty()
+    );
     let mut obstruction = island("screen", 0.0, -500.0);
     obstruction.rx = 100.0;
     obstruction.rz = 100.0;
@@ -445,7 +448,14 @@ fn aircraft_evasion_uses_only_fresh_hostile_converging_reports() {
         "velocity":[0,0,100],"uncertaintyM":50,"identificationConfidence":0,"classification":"Aircraft","identifiedPresetId":null,"sources":[]
     })).unwrap();
     let mut state = NavigationState::new(order.clone());
-    let dodge = fleet_evasion::command(&a, &[report.clone()], &[], 600, &mut state, normal);
+    let dodge = fleet_evasion::command(
+        &a,
+        std::slice::from_ref(&report),
+        &[],
+        600,
+        &mut state,
+        normal,
+    );
     assert_eq!(state.status, NavigationStatus::EvadingAircraft);
     assert_ne!(dodge.rudder, normal.rudder);
     for (report, tick) in [

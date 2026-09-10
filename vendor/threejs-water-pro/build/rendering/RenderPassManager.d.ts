@@ -88,7 +88,7 @@ export declare class RenderPassManager {
      *   Only the underwater fog decomposition consumes them, so callers skip
      *   them when underwater is disabled.
      */
-    renderCapturePass(renderer: THREE.WebGPURenderer, includeTransparents?: boolean): void;
+    renderCapturePass(renderer: THREE.WebGPURenderer, includeTransparents?: boolean, includeSurfaceTransparents?: boolean): void;
     /**
      * Render the mask pass (for water masking)
      */

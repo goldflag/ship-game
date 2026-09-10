@@ -12,14 +12,33 @@ try {
   page.on('console',m=>{if(m.type()==='error') {errors.push(m.text()); console.log(m.text().slice(0,300));}});
   await page.addInitScript(forceWebGL=>{
     if (forceWebGL) Object.defineProperty(navigator, 'gpu', { value: undefined });
-    window.pipelineSamples=[];
+    window.pipelineSamples=[]; window.workerSamples=[];
+    window.gpuAdapters=[];
+    if (window.GPUAdapter) {
+      const requestDevice = GPUAdapter.prototype.requestDevice;
+      GPUAdapter.prototype.requestDevice = function (...args) {
+        const info = this.info;
+        window.gpuAdapters.push(info ? { vendor: info.vendor, architecture: info.architecture,
+          device: info.device, description: info.description, isFallbackAdapter: this.isFallbackAdapter } : { unavailable: true });
+        return requestDevice.apply(this, args);
+      };
+    }
     for(const method of ['createRenderPipeline','createRenderPipelineAsync','createComputePipeline','createComputePipelineAsync']) {
       if(!window.GPUDevice) break;
       const original=GPUDevice.prototype[method];
       GPUDevice.prototype[method]=function(...args){const start=performance.now(),value=original.apply(this,args);window.pipelineSamples.push({method,start,ms:performance.now()-start,label:args[0].label});return value;};
     }
     const post=Worker.prototype.postMessage;
-    Worker.prototype.postMessage=function(message,...args){if(message?.type==='init'&&message.setup?.ships)message.setup.seed=0x6e617661;return post.call(this,message,...args);};
+    Worker.prototype.postMessage=function(message,...args){
+      if(message?.type==='init'&&message.setup?.ships) {
+        message.setup.seed=0x6e617661;
+        if (new URLSearchParams(location.search).has('profile')) {
+          message.profile=true;
+          this.addEventListener('message',event=>{if(event.data.timing)window.workerSamples.push(event.data.timing);});
+        }
+      }
+      return post.call(this,message,...args);
+    };
   }, !!process.env.FORCE_WEBGL);
   const cdp=await page.context().newCDPSession(page);
   await page.goto(process.env.PERFORMANCE_URL??'http://localhost:5173/scripts/diagnostics/custom-battle-performance.html?seconds=60',{waitUntil:'domcontentloaded',timeout:120000});
@@ -30,7 +49,168 @@ try {
   if(process.env.CPU_PROFILE){await cdp.send('Profiler.enable');await cdp.send('Profiler.start');}
   await page.waitForFunction(()=>window.review?.result,undefined,{timeout:180000});
   if(process.env.CPU_PROFILE){const {profile}=await cdp.send('Profiler.stop');await writeFile(new URL(`${label}.cpuprofile`,output),JSON.stringify(profile));}
-  const data=await page.evaluate(()=>({result:review.result,rows:review.rows,pipelines:window.pipelineSamples}));
+  const data=await page.evaluate(()=>({result:review.result,rows:review.rows,pipelines:window.pipelineSamples,worker:window.workerSamples}));
+  data.environment = { browser: browser.version(), ...await page.evaluate(() => ({
+    userAgent: navigator.userAgent, hardwareConcurrency: navigator.hardwareConcurrency,
+    adapters: window.gpuAdapters,
+  })) };
+  if (process.env.REFRACTION_PROFILE_AFTER) {
+    data.refraction = await page.evaluate(async () => {
+      const g = review.game, water = g.water;
+      if (water.backend !== 'webgpu') throw new Error('Refraction graph comparison requires WebGPU');
+      // Diagnostic-only graph switching. Production chooses this at creation;
+      // recompiling the full refraction graph can lose the WebGL context.
+      const setRefraction = enabled => {
+        water.fresnel.refractionEnabled = enabled;
+        water.waterMaterial.setupMaterial(); water.waterMaterial.needsUpdate = true;
+      };
+      const originalRefraction = water.refractionEnabled, originalDistortion = water.underwaterDistortion.enabled;
+      const rows = [];
+      try {
+        for (const enabled of [false, true, true, false]) {
+          setRefraction(enabled); water.underwaterDistortion.enabled = enabled;
+          for (let i = 0; i < 12; i++) await g.frame(performance.now());
+          const start = performance.now();
+          for (let i = 0; i < 90; i++) await g.frame(performance.now());
+          rows.push({ enabled, frameMs: (performance.now() - start) / 90,
+            underwater: water.underwater.enabled, ssr: water.ssr.enabled,
+            draws: g.renderer.info.render.drawCalls, triangles: g.renderer.info.render.triangles });
+        }
+      } finally {
+        setRefraction(originalRefraction); water.underwaterDistortion.enabled = originalDistortion;
+      }
+      return rows;
+    });
+  }
+  if (process.env.SUBMISSION_PROFILE_AFTER) {
+    data.submissions = await page.evaluate(async () => {
+      const g = review.game, renderer = g.renderer, original = renderer._renderObjectDirect, rows = new Map();
+      renderer._renderObjectDirect = function (object, material, scene, camera, ...args) {
+        const pass = camera.isOrthographicCamera ? 'shadow/ortho' : renderer.getRenderTarget()?.texture.name || 'scene';
+        const key = `${object.name || object.type}|${material.type}|${!!material.transparent}|${pass}`;
+        const row = rows.get(key) ?? { name: object.name || object.type, material: material.type, transparent: !!material.transparent,
+          batched: !!object.isBatchedMesh, instanced: !!object.isInstancedMesh, pass, calls: 0, ms: 0 };
+        const start = performance.now();
+        try { return original.call(this, object, material, scene, camera, ...args); }
+        finally { row.ms += performance.now() - start; row.calls++; rows.set(key, row); }
+      };
+      try { for (let i = 0; i < 60; i++) await g.frame(await new Promise(requestAnimationFrame)); }
+      finally { renderer._renderObjectDirect = original; }
+      if (!rows.size) throw new Error('Submission profiling did not observe any draws.');
+      return { frames: 60, rows: [...rows.values()].sort((a, b) => b.ms - a.ms) };
+    });
+    console.log('Submission costs', JSON.stringify(data.submissions));
+  }
+  if (process.env.PARTICLE_CULL_PROFILE_AFTER) {
+    data.particleCulling = await page.evaluate(() => {
+      const g = review.game, pools = [g.effects.smoke, g.effects.aircraftSmoke, g.effects.flakSmoke, g.effects.fire, g.effects.foam];
+      const original = pools.map(p => p.cullOffscreen), rows = [];
+      try {
+        for (const enabled of [false, true, false, true]) {
+          pools.forEach(p => { p.cullOffscreen = enabled; });
+          for (let frame = 0; frame < 30; frame++) pools.forEach(p => p.publish(g.camera));
+          const start = performance.now();
+          for (let frame = 0; frame < 300; frame++) pools.forEach(p => p.publish(g.camera));
+          rows.push({ enabled, msPerPublication: (performance.now() - start) / 300,
+            pools: pools.map(p => ({ name: p.mesh.name, count: p.count })) });
+        }
+      } finally { pools.forEach((p, i) => { p.cullOffscreen = original[i]; p.publish(g.camera); }); }
+      return rows;
+    });
+    console.log('Particle culling', JSON.stringify(data.particleCulling));
+  }
+  if (process.env.LAYOUT_PROFILE_AFTER) {
+    await cdp.send('Performance.enable');
+    data.overlayLayout = [];
+    for (const batched of [false, true, false, true]) {
+      const before = await cdp.send('Performance.getMetrics');
+      const sample = await page.evaluate(async batched => {
+        const g = review.game, camera = g.camera, x = camera.position.x;
+        const elements = [...document.querySelectorAll('.air-squadron-labels [data-flight-id]')];
+        const project = element => g.projectSquadron(element.dataset.ownerId, element.dataset.flightId);
+        const place = (element, point) => {
+          element.style.display = point ? '' : 'none';
+          if (point) { element.style.left = `${point.x}px`; element.style.top = `${point.y}px`; }
+        };
+        let ms = 0;
+        try {
+          for (let frame = 0; frame < 90; frame++) {
+            await new Promise(requestAnimationFrame);
+            camera.position.x = x + Math.sin(frame * .3) * 4; camera.updateMatrixWorld();
+            const start = performance.now();
+            if (batched) {
+              const points = elements.map(project);
+              elements.forEach((element, i) => place(element, points[i]));
+            } else for (const element of elements) place(element, project(element));
+            ms += performance.now() - start;
+          }
+        } finally {
+          camera.position.x = x; camera.updateMatrixWorld();
+          const points = elements.map(project); elements.forEach((element, i) => place(element, points[i]));
+        }
+        return { batched, markers: elements.length, frames: 90, msPerFrame: ms / 90 };
+      }, batched);
+      const after = await cdp.send('Performance.getMetrics');
+      for (const name of ['LayoutCount', 'RecalcStyleCount', 'LayoutDuration', 'RecalcStyleDuration'])
+        sample[name] = after.metrics.find(m => m.name === name).value - before.metrics.find(m => m.name === name).value;
+      data.overlayLayout.push(sample);
+    }
+    console.log('Overlay layout', JSON.stringify(data.overlayLayout));
+  }
+  if (process.env.UPLOAD_PROFILE_AFTER) {
+    data.uploads = await page.evaluate(async () => {
+      const g = review.game, rows = new Map(), buffers = new Map();
+      const original = GPUQueue.prototype.writeBuffer;
+      GPUQueue.prototype.writeBuffer = function (buffer, offset, source, dataOffset, size) {
+        const start = performance.now();
+        const result = original.apply(this, arguments);
+        const row = rows.get(buffer.label) ?? { label: buffer.label, calls: 0, bytes: 0, ms: 0 };
+        row.calls++; row.ms += performance.now() - start;
+        row.bytes += size === undefined ? source.byteLength - (dataOffset ?? 0) * (source.BYTES_PER_ELEMENT ?? 1) : size * (source.BYTES_PER_ELEMENT ?? 1);
+        rows.set(buffer.label, row); buffers.set(buffer, (buffers.get(buffer) ?? 0) + 1);
+        return result;
+      };
+      g.paused = false;
+      try { for (let i = 0; i < 60; i++) await g.frame(await new Promise(requestAnimationFrame)); }
+      finally { g.paused = true; GPUQueue.prototype.writeBuffer = original; }
+      return { frames: 60, buffers: buffers.size, rows: [...rows.values()].sort((a, b) => b.ms - a.ms) };
+    });
+    console.log('Buffer uploads', JSON.stringify(data.uploads));
+  }
+  if (process.env.GPU_PROFILE_AFTER) {
+    data.gpu = await page.evaluate(async () => {
+      const g = review.game, renderer = g.renderer;
+      if (!renderer.backend.device?.features.has('timestamp-query')) return { unavailable: true };
+      renderer.backend.trackTimestamp = true;
+      const samples = [];
+      g.paused = false;
+      for (let i = 0; i < 30; i++) {
+        await g.frame(await new Promise(requestAnimationFrame));
+        await Promise.all([renderer.resolveTimestampsAsync('render'), renderer.resolveTimestampsAsync('compute')]);
+        samples.push({render:renderer.info.render.timestamp,compute:renderer.info.compute.timestamp});
+      }
+      g.paused = true; renderer.backend.trackTimestamp = false;
+      return samples;
+    });
+    console.log('GPU timings',JSON.stringify(data.gpu));
+  }
+  if (process.env.CPU_PROFILE_AFTER) {
+    console.log('Render pose counts', JSON.stringify(await page.evaluate(() => review.game.fleetViews.map(v => ({
+      id: v.definition.id, poses: v.poseMatrices.poses.length, active: v.renderActive,
+    })))));
+    await cdp.send('Profiler.enable'); await cdp.send('Profiler.start');
+    await page.evaluate(async () => {
+      const g = review.game, end = performance.now() + 8000;
+      g.paused = false;
+      while (performance.now() < end) {
+        const time = await new Promise(requestAnimationFrame);
+        await g.frame(time);
+      }
+      g.paused = true;
+    });
+    const {profile} = await cdp.send('Profiler.stop');
+    await writeFile(new URL(`${label}.cpuprofile`,output),JSON.stringify(profile));
+  }
   await writeFile(new URL(`${label}.json`,output),JSON.stringify({...data,errors},null,2));
   await page.screenshot({path:new URL(`${label}.png`,output).pathname.replace(/^\/(\w:)/,'$1')});
   if (process.env.VISUAL_REVIEW) {

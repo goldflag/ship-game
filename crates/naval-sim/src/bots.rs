@@ -1,3 +1,4 @@
+use crate::mobility::torpedo_speed;
 use crate::{
     ballistics::travel_factor,
     damage::{Combatant, HULL_HP_SCALE, damage_region},
@@ -458,7 +459,7 @@ pub fn torpedo_aim(bot: &BotState, motion: &ShipState, tube: &TubeDefinition) ->
         local_to_world(tube.position, motion.pose()),
         point,
         track.velocity,
-        tube.weapon.speed,
+        torpedo_speed(tube.weapon.speed),
     )
 }
 fn distance(a: &Vessel, b: &Vessel) -> f64 {

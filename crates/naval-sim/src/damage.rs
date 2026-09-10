@@ -124,9 +124,8 @@ impl Combatant {
     }
 }
 pub fn max_hull_integrity(def: &ShipDefinition) -> f64 {
-    ((300.0 + 1450.0 * (def.hull.mass_kg / 70_000_000.0).sqrt()) / 10.0).round()
-        * 10.0
-        * HULL_HP_SCALE
+    // Gentle small-hull bonus (mass^0.8), anchored to Bismarck’s existing 50,750 HP.
+    ((def.hull.mass_kg / 43_978_000.0).powf(0.8) * 1450.0 * HULL_HP_SCALE).round()
 }
 impl DamageState {
     pub fn new(def: &ShipDefinition) -> Self {

@@ -620,5 +620,8 @@ scene['definitionHash']=D['contentHash'];scene['configuration']=D['configuration
 scene['historicalAccuracy']='Unverified reconstruction; see discrepancy register'
 from blender_rig import create_flagstaffs
 create_flagstaffs(D)
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'appearance'))
+from surface import apply_appearance
+apply_appearance(scene,dict(materials,teak=teak,underwater=red),Path(__file__).with_name('appearance.json'))
 bpy.ops.wm.save_as_mainfile(filepath=str(OUT/'source.blend'))
 print('Authored Yamato:',len(scene.objects),'objects',flush=True)

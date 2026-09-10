@@ -3,6 +3,7 @@ import { plateHit, segmentPlate } from '../simulation/protection';
 import { segmentIntersectsBox } from '../simulation/obstruction';
 import type { ShipDefinition, Vec3, Volume } from '../ships/blueprint';
 import { add, localToWorld, normalize, scale, segmentBox, worldToLocal, type Pose } from '../simulation/geometry';
+import { aimArmorCandidates } from './AimArmorTree';
 
 const MAX_AIM_DISTANCE = 30000;
 
@@ -54,7 +55,9 @@ export function sightAim(origin: Vec3, direction: Vec3, target?: AimTarget | Aim
     const from = worldToLocal(origin, candidate.pose), to = worldToLocal(end, candidate.pose);
     if (candidate.definition && candidate.armor === candidate.definition.armor &&
       !segmentIntersectsBox(from, to, targetBounds(candidate.definition))) continue;
-    for (const volume of candidate.armor) {
+    const armor = candidate.definition && candidate.armor === candidate.definition.armor
+      ? aimArmorCandidates(candidate.definition, from, to) : candidate.armor;
+    for (const volume of armor) {
       const hit = !volume.plate ? segmentBox(from, to, volume)
         : candidate.definition ? plateHit(from, to, volume, candidate.definition, candidate.trains ?? candidate.definition.mounts.map(() => 0))
         : volume.plate.mountId ? null : segmentPlate(from, to, volume.plate.vertices);

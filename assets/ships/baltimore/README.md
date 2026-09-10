@@ -24,3 +24,12 @@ bun run ship:check baltimore
 Keep the current fixed views in `generated/review/`. Ship report/reference archives are removed. Research downloads, diagnostic results and extra captures belong in ignored `.build/`; do not recreate a tracked archive. Keep source links and lasting limitations here.
 
 Follow the [ship pipeline](../../../docs/ship-pipeline.md) and [model review](../../../docs/ship-model-review.md).
+
+Appearance follows the [shared fleet finish](../../../docs/ship-appearance.md).
+The main weather deck now has a separate blue-gray timber material with grain,
+staggered joints and caulking relief; it previously inherited the hull-side
+material. Elevated steel platforms and roofs remain separate. Teak decking for
+the CA-68 class is documented by Bureau of Ships materials engineer J. G.
+Kuenzel in [Wood Requirements for Shipbuilding (1950), Table 2](https://doi.org/10.1093/jof/48.4.245).
+The existing roof-paint swatch supplies the deck coating; the exact shade,
+covering margins and repeating plank dimensions remain interpretations.

@@ -16,6 +16,7 @@ import { gunAimPoints } from './gunAim';
 
 /** Renderer adapter. Simulation geometry and transforms come from the same definition. */
 export class ShipView {
+  renderActive = true;
   readonly root = new PreparedPoseGroup();
   readonly inspection: ShipInspection;
   readonly motion: Combatant['motion'];
@@ -46,8 +47,10 @@ export class ShipView {
     this.previousMotion = { ...actor.motion };
     this.previousMounts = actor.mounts.map(m => ({ ...m }));
     this.renderedMounts = actor.mounts.map(m => ({ ...m }));
-    this.previousLaunchers = (actor.torpedoLaunchers ?? []).map(l => l.train);
-    this.renderedLaunchers = (actor.torpedoLaunchers ?? []).map(l => ({ ...l }));
+    this.renderedLaunchers = (definition.torpedoLaunchers ?? []).map(l => ({
+      id: l.id, train: actor.torpedoLaunchers?.find(state => state.id === l.id)?.train ?? 0,
+    }));
+    this.previousLaunchers = this.renderedLaunchers.map(l => l.train);
     this.root.name = actor.motion.id;
     this.inspection = new ShipInspection(definition);
     const nodes = new Map<string, THREE.Object3D>();
@@ -118,6 +121,7 @@ export class ShipView {
   }
   /** Prepare the matrices consumed by this frame's surface and aircraft draws. */
   updateRenderMatrices(): void {
+    if (!this.renderActive) { this.root.updateWorldMatrix(true, false); return; }
     this.poseMatrices.update();
     this.rig.root.updateMatrixWorld(true);
     if (this.internals.visible) this.internals.updateMatrixWorld(true);
@@ -147,18 +151,23 @@ export class ShipView {
     this.motionSource = this.actor.motion;
     Object.assign(this.previousMotion, this.actor.motion);
     this.previousMounts.forEach((m, i) => Object.assign(m, this.actor.mounts[i]));
-    this.previousLaunchers = (this.actor.torpedoLaunchers ?? []).map(l => l.train);
+    this.previousLaunchers = this.renderedLaunchers.map(l => this.actor.torpedoLaunchers?.find(state => state.id === l.id)?.train ?? 0);
   }
   /** Teleports and port transitions must not interpolate across the old voyage. */
   snap(): void { this.capturePreviousPose(); this.rig.reset(); this.update(); }
   update(alpha = 1): void {
+    this.updateMotion(alpha);
+    this.updateArticulation(alpha);
+  }
+  /** Every hull keeps its interpolated motion, including offscreen carriers. */
+  updateMotion(alpha = 1): void {
     if (this.damageSource !== this.actor.damage) {
       this.impactMarks.clear(); this.rig.reset(); this.damageSource = this.actor.damage;
     }
     if (this.motionSource !== this.actor.motion) this.capturePreviousPose();
     const t = THREE.MathUtils.clamp(alpha, 0, 1);
     const current = this.actor.motion, previous = this.previousMotion;
-    const motion = this.motion, mounts = this.renderedMounts;
+    const motion = this.motion;
     Object.assign(motion, current);
     for (const key of ['x', 'y', 'z', 'roll', 'pitch', 'speed', 'swaySpeed'] as const) {
       motion[key] = THREE.MathUtils.lerp(previous[key], current[key], t);
@@ -168,6 +177,12 @@ export class ShipView {
       motion[key] = THREE.MathUtils.lerp(previous[key] ?? 0, current[key] ?? 0, t);
     }
     motion.heading = previous.heading + wrapAngle(current.heading - previous.heading) * t;
+    this.root.position.set(motion.x, motion.y, motion.z);
+    this.root.rotation.set(motion.pitch, -motion.heading, motion.roll, 'YXZ');
+  }
+  /** Re-entry uses the latest pair of CPU snapshots, never an old visual pose. */
+  updateArticulation(alpha = 1): void {
+    const t = THREE.MathUtils.clamp(alpha, 0, 1), motion = this.motion, mounts = this.renderedMounts;
     mounts.forEach((m, i) => {
       const currentMount = this.actor.mounts[i], previousMount = this.previousMounts[i];
       Object.assign(m, currentMount);
@@ -181,8 +196,6 @@ export class ShipView {
       }
     });
     updateMountCarriers(this.definition, mounts);
-    this.root.position.set(motion.x, motion.y, motion.z);
-    this.root.rotation.set(motion.pitch, -motion.heading, motion.roll, 'YXZ');
     this.bindings.forEach((b, i) => {
       // A 180° imported quaternion can decompose into nonzero X/Z Euler angles.
       // Replace the complete joint rotation instead of retaining those alternate axes.
@@ -202,8 +215,12 @@ export class ShipView {
       if (upper > 0) weights[upper - 1] = 1 - fraction;
     }
     this.launcherBindings.forEach((node, i) => {
-      const train = this.actor.torpedoLaunchers?.[i].train ?? 0, previous = this.previousLaunchers[i] ?? train;
-      this.renderedLaunchers[i].train = previous + wrapAngle(train - previous) * t;
+      const launcher = this.renderedLaunchers[i];
+      const train = this.actor.torpedoLaunchers?.find(state => state.id === launcher.id)?.train ?? 0;
+      const previous = this.previousLaunchers[i] ?? train;
+      // Wire snapshots can reorder banks; bounded travel must also stay inside its stops.
+      launcher.train = this.definition.torpedoLaunchers![i].traverseLimitsDeg
+        ? THREE.MathUtils.lerp(previous, train, t) : previous + wrapAngle(train - previous) * t;
       node.rotation.set(0, -this.renderedLaunchers[i].train, 0);
     });
     this.appendages.forEach(({ node, base, kind, index }) => {

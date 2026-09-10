@@ -3,8 +3,6 @@
 .battle-loading::before { content: ''; position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, #0b1d26d9 0%, #0f273366 45%, #0b1d26c9 100%); }
 .battle-loading > :not(.battle-loading-backdrop) { position: relative; z-index: 2; }
 .battle-loading-leaving { animation: battle-loading-depart .55s ease-in both; pointer-events: none; }
-.battle-loading-top { display: flex; justify-content: space-between; align-items: center; gap: 24px; }
-.battle-loading-region { font-size: 10px; letter-spacing: .2em; color: #a9bcc3; }
 .battle-loading-content { width: min(720px, 100%); margin: auto; text-align: center; }
 .battle-loading-kicker { margin: 0 0 14px; font-size: 11px; letter-spacing: .2em; color: var(--accent); text-transform: uppercase; }
 .battle-loading-content > h1 { font: 500 clamp(56px, 8vw, 96px)/1 'Barlow Condensed', sans-serif; letter-spacing: .065em; margin: 0; }

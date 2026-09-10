@@ -1,4 +1,4 @@
-import { Color, HemisphereLight, MathUtils, type Object3D, type PerspectiveCamera, type Vector3 } from 'three/webgpu';
+import { Color, HemisphereLight, MathUtils, Vector3, type Object3D, type PerspectiveCamera } from 'three/webgpu';
 import type { WaterSystem } from '../../vendor/threejs-water-pro/build/index.js';
 import type { SkySystem } from '../../vendor/threejs-sky-pro/build/index.js';
 import { DEFAULT_MAP, oceanMap, type OceanMapId } from '../maps/catalog';
@@ -33,6 +33,7 @@ export class VisualEnvironment {
   private surfaceDistortion = 0;
   private celestialColor = new Color();
   private readonly sunriseColor = new Color('#ffd1a0');
+  private shadowFocus?: Vector3;
 
   constructor(private sinks: EnvironmentSinks) {}
 
@@ -54,6 +55,11 @@ export class VisualEnvironment {
   }
   /** The air map raises the camera far above the authored fog; closing it restores the scene's fog. */
   setChartFog(enabled: boolean): void { this.chartFog = enabled; this.applyFog(); }
+  /** Retained across the water provider's repeated light-sync callbacks. */
+  setShadowFocus(position?: Vector3): void {
+    if (position) (this.shadowFocus ??= new Vector3()).copy(position);
+    else this.shadowFocus = undefined;
+  }
   /** Per frame, before the water steps: advance the sky, share its light, and attenuate for a submerged camera. */
   update(camera: PerspectiveCamera, dt: number): void {
     this.sky?.update(dt);
@@ -65,7 +71,8 @@ export class VisualEnvironment {
     // restore the exact surface preset when the camera comes back up.
     const submerged = MathUtils.smoothstep(-camera.position.y, 0, 2);
     this.water.color.absorptionColor.copy(this.surfaceAbsorption).multiplyScalar(MathUtils.lerp(1, .05, submerged));
-    // Keep surface-looking-in refraction; soften the full-screen underwater wobble.
+    // If distortion is enabled for a diagnostic, soften it on submersion.
+    // The game disables this optional effect during ocean initialization.
     this.water.underwaterDistortion.intensity = this.surfaceDistortion * MathUtils.lerp(1, .15, submerged);
   }
   diagnostics() {
@@ -172,7 +179,7 @@ export class VisualEnvironment {
       const light = lighting.sunLight;
       light.intensity = intensity;
       light.color.copy(this.celestialColor);
-      light.target.position.copy(this.sinks.sunAnchor.position);
+      light.target.position.copy(this.inPort ? this.sinks.sunAnchor.position : this.shadowFocus ?? this.sinks.sunAnchor.position);
       if (this.inPort) light.target.position.x -= 160;
       light.position.copy(direction).multiplyScalar(this.inPort ? 800 : 500).add(light.target.position);
       light.target.updateMatrixWorld();

@@ -1,5 +1,17 @@
 # PvE implementation status
 
+## Master integration for PR #137 (2026-09-09)
+
+Resolved conflicts against `master` at `201f7da3`, retaining the desktop PvE scope alongside the newer ships, rendering optimizations and combat updates. Durable carrier inputs were combined before regenerating every runtime ship affected by the shared blueprint source change. All ship and aircraft checks pass; both carriers' five fixed review views were rendered with isolated local Blender and inspected.
+
+Validation of the merged tree:
+
+- Full client suite: **164 test files, zero failures**. Full optimized native suite: **160 tests, zero failures or ignored tests**; Clippy and native/WASM parity across **28,800 battle ticks** pass. Production build passes with the existing bundle-size warning.
+- Chromium/WebGPU UI mission **396076824** used Bismarck, Fletcher and Enterprise. All **nine groups / 48 aircraft** launched, 349 coverage cells were sampled at 2:08, and contacts appeared as the battle continued. Measured speeds were **1.00× / 2.00× / 3.98×**; pause held tick 4864. A paused Move order was accepted on resume and remained present during observed-aircraft evasion. Take helm restored the normal controls, sight and minimap.
+- The earlier PR CI run exceeded its 30-minute limit in debug native tests. `multiplayer:check` now runs the complete native suite in the optimized release profile; coverage and WASM checks remain intact. Remote validation is reported by the PR checks.
+
+No confirmed integration blocker remains locally. This smoke pass does not repeat the earlier completed battle or extended-endurance browser acceptance. Existing automated boundary coverage and the evidence below remain applicable to those behaviors. Integration logs and screenshots are under ignored `.build/pve-expansion/`.
+
 ## Delivered expansion: desktop PvE (2026-09-09)
 
 Continues from UI-polish commit `38d40f71`. The four requested additions are delivered. The full historical plan remains a roadmap: exact wheel/hook contact, physical elevators, below-deck loading, detailed handling choreography, advanced attack/torpedo planning, rally/Execute, sophisticated retasking, mobile polish and exhaustive balance stay deferred.

@@ -1,5 +1,9 @@
 # Naval firing and shell effects
 
+## T shot-follow tracers removed — September 8, 2026
+
+Following a shot with T now hides every shell vapor trail; the ride shows the physical projectiles and their compact heads only. Trail histories keep recording during the follow, so trails reappear with their retained path when the follow ends. This supersedes the September 7 correction below, whose captures remain historical evidence.
+
 ## T shot-follow tracer correction — September 7, 2026
 
 Trails remain visible while following shots with T. The earlier 65 m visibility cutoff hid them at the normal 48 m follow distance; projected endpoint widths now keep trails thin at close range. See the [before/after captures and regression checks](shot-follow/README.md).

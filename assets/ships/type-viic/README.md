@@ -24,3 +24,11 @@ bun run ship:check type-viic
 Keep the current fixed views in `generated/review/`. Ship report/reference archives are removed. Research downloads, diagnostic results and extra captures belong in ignored `.build/`; do not recreate a tracked archive. Keep source links and lasting limitations here.
 
 Follow the [ship pipeline](../../../docs/ship-pipeline.md) and [model review](../../../docs/ship-model-review.md).
+
+Appearance follows the [shared fleet finish](../../../docs/ship-appearance.md).
+The original `deck.timber` surface now uses the wood finish with longitudinal
+grain, staggered plank joints and slight relief, correcting its previous
+painted-steel finish. Its original gray-green swatch and modeled drainage slots
+remain. Torpedo covers, loading hatches and steel platforms retain separate
+materials. Plank dimensions and coating reflectance remain interpretations of
+the existing U-570 reconstruction.

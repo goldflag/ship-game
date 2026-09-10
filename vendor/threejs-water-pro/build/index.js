@@ -2370,6 +2370,9 @@ class wn {
   _fadeEnd = d(200);
   _iorRatio = d(1.33);
   _refractionStrength = d(0.1);
+  // Local host option, retained across quality/preset changes.
+  refractionEnabled = !0;
+  surfaceTransmissionEnabled = !1;
   // ============= Public Getters/Setters =============
   /**
    * End of the distance-fade range (world units), consumed by SSS.
@@ -3135,7 +3138,7 @@ class aj {
     return t.mul(p);
   }
 }
-const Vj = 4, cj = 2, rj = 0.999;
+const Vj = 8, cj = 2, rj = 0.999;
 class Sj {
   // ============= Private Uniforms =============
   _enabled = d(1);
@@ -3265,12 +3268,15 @@ class Sj {
         ).toVar("ssrStartUV"), T = Jp(
           K,
           j
-        ).toVar("ssrEndUV"), W = b.mul(At).toVar("ssrStart"), B = T.mul(At).toVar("ssrEnd").sub(W), I = KA(Vt(B.x), Vt(B.y)), J = at(I, this._stepCount).max(1).toVar("ssrMarchSteps"), Z = M.div(J), m = at(
+        ).toVar("ssrEndUV"), delta = T.sub(b), screenSpan = at(O(1), at(
+          lt(delta.x.greaterThan(0), O(1).sub(b.x), b.x).div(KA(Vt(delta.x), 1e-6)),
+          lt(delta.y.greaterThan(0), O(1).sub(b.y), b.y).div(KA(Vt(delta.y), 1e-6))
+        )).max(0).toVar("ssrScreenSpan"), B = delta.mul(screenSpan).mul(At), I = KA(Vt(B.x), Vt(B.y)), J = at(I, this._stepCount).max(1).toVar("ssrMarchSteps"), Z = M.div(J), m = at(
           Z.mul(2),
           O(cj)
         );
         tA(this._enabled.greaterThan(0.5), () => {
-          const N = T.sub(b).div(J), D = O(1).div(u.z), C = O(1).div(K.z).sub(D).div(J), L = UA(
+          const N = delta.mul(screenSpan).div(J), D = O(1).div(u.z), C = O(1).div(K.z).sub(D).mul(screenSpan).div(J), L = UA(
             rA(qA(IA, y(127.1, 311.7))).mul(43758.5453)
           ), X = b.add(N.mul(L)).toVar("ssrCurUV"), $ = D.add(C.mul(L)).toVar("ssrCurInvZ"), _ = b.toVar("ssrLastUV"), v = D.toVar("ssrLastInvZ");
           it(J, () => {
@@ -4028,6 +4034,23 @@ function Gj(r) {
   };
 }
 function sj(r) {
+  if (!r.fresnel.refractionEnabled) {
+    const color = r.waterColor.buildMediumColor();
+    if (r.fresnel.surfaceTransmissionEnabled) {
+      // Straight-through visibility uses the existing opaque capture. With no
+      // displaced UV, this surface fragment supplies the water entry depth.
+      const sceneDepth = r.sceneDepth.sample(IA).mul(EA.sub(dA)).add(dA);
+      const column = KA(sceneDepth.sub(rt.z.negate()), O(0));
+      return {
+        // The game's custom-color water uses analytic absorption. Do not pull
+        // the unused physical-water LUT into this lightweight surface path.
+        refractedClearFactor: Ut(R(r.waterColor._absorptionColor).negate().mul(column)),
+        refractedSceneColor: F(r.sceneColorTexture, IA).rgb,
+        refractedWaterColor: color
+      };
+    }
+    return { refractedClearFactor: O(0), refractedSceneColor: color, refractedWaterColor: color };
+  }
   const {
     fresnel: A,
     normal: t,
@@ -4067,6 +4090,12 @@ function sj(r) {
   };
 }
 function Tj(r) {
+  if (!r.fresnel.refractionEnabled) {
+    // Unwarped view through the interface for submerged cameras.
+    const scene = F(r.sceneColorTexture, IA);
+    const sky = r.reflectionSampler ? r.reflectionSampler(r.viewDir.negate(), O(0)) : R(0.1, 0.2, 0.3);
+    return { surfaceColor: scene.rgb.add(sky.mul(scene.w.oneMinus())), reflectance: O(0) };
+  }
   const {
     fresnel: A,
     normal: t,
@@ -11217,14 +11246,18 @@ class Ta {
    * renders; the transparent sub-passes run only when
    * `includeTransparents` is true.
    */
-  render(A, t = !0) {
+  render(A, t = !0, includeSurfaceTransparents = !0) {
     for (const j of this.excludedObjects)
       this.originalVisibility.set(j, j.visible), j.visible = !1;
-    const p = A.getRenderTarget(), q = A.autoClear, n = this.scene.background;
+    const p = A.getRenderTarget(), q = A.autoClear, n = this.scene.background, transparent = A.transparent;
     this.depthSampler.setCameraPlanes(this.camera.near, this.camera.far), A.autoClear = !1, this.scene.background = null;
     try {
-      A.setClearColor(0, 0), A.setRenderTarget(this.captureTarget), A.clear(), A.render(this.scene, this.camera), t && (A.setRenderTarget(this.transparentDepthTarget), A.setClearColor(16711680, 1), A.clear(), this.renderTransparentCaptures(A));
+      A.transparent = transparent && includeSurfaceTransparents;
+      A.setClearColor(0, 0), A.setRenderTarget(this.captureTarget), A.clear(), A.render(this.scene, this.camera);
+      A.transparent = transparent;
+      t && (A.setRenderTarget(this.transparentDepthTarget), A.setClearColor(16711680, 1), A.clear(), this.renderTransparentCaptures(A));
     } finally {
+      A.transparent = transparent;
       A.setClearColor(0, 0), A.autoClear = q, A.setRenderTarget(p), this.scene.background = n;
       for (const [j, e] of this.originalVisibility)
         j.visible = e;
@@ -11606,7 +11639,9 @@ function Fp(r, A) {
   return new S.RenderTarget(r, A, {
     minFilter: S.NearestFilter,
     magFilter: S.NearestFilter,
-    type: S.HalfFloatType,
+    // Meter-valued view depth must resolve the SSR's 2 m hit tolerance at
+    // naval ranges (half floats round to 16 m increments by 20 km).
+    type: S.FloatType,
     format: S.RGBAFormat,
     depthBuffer: !0
   });
@@ -11963,8 +11998,8 @@ class ga {
    *   Only the underwater fog decomposition consumes them, so callers skip
    *   them when underwater is disabled.
    */
-  renderCapturePass(A, t = !0) {
-    this.capturePass.render(A, t);
+  renderCapturePass(A, t = !0, includeSurfaceTransparents = !0) {
+    this.capturePass.render(A, t, includeSurfaceTransparents);
   }
   /**
    * Render the mask pass (for water masking)
@@ -12329,15 +12364,12 @@ class Ia {
    * material's surface composition. Hooked into the {@link WaterSubsystem}
    * `renderPass` slot so `WaterSystem` iterates it through the registry.
    *
-   * - **Scene capture** always runs — the water material samples its
-   *   depth for shoreline alpha fade and its colour for refraction; the
-   *   transparent sub-passes run only when underwater is enabled (only
-   *   the fog decomposition consumes them).
+   * - **Scene capture** supplies shoreline depth and opaque SSR color.
+   *   Surface transparents are included for refraction or underwater views;
+   *   the separate transparent sub-passes run only for underwater fog.
    * - **Mask pass** runs only when at least one masking object is
    *   registered with the render pass manager.
-   * - **Water depth pass** always runs — the surface refraction samples
-   *   it for the refracted column's surface depth, and the underwater fog
-   *   for per-pixel submersion.
+   * - **Water depth pass** runs for surface refraction or underwater fog.
    * - **Sun shaft pass** is delegated to `SunShafts.renderPass`, which
    *   self-gates on its own enabled flag plus the underwater state.
    * - **SSR G-buffer + SSR pass** — both draws are skipped when SSR is
@@ -12346,7 +12378,10 @@ class Ia {
    */
   async renderPass(A) {
     const t = this._refs, p = t.underwater.enabled, q = t.ssr.enabled;
-    t.rpm.renderCapturePass(A, p), t.rpm.getMaskObjectCount() > 0 && t.rpm.renderMaskPass(A), t.rpm.renderWaterDepthPass(A), t.sunShafts.renderPass(A), q ? (t.rpm.renderSSRGBufferPass(A), t.rpm.renderSSRPass(A)) : t.rpm.clearSSRPassIfNeeded(A);
+    const refraction = t.fresnel.refractionEnabled;
+    // Opaque capture still supplies shoreline depth and ship reflections.
+    // Underwater fog retains its complete color/depth decomposition.
+    t.rpm.renderCapturePass(A, p, p || refraction), t.rpm.getMaskObjectCount() > 0 && t.rpm.renderMaskPass(A), (p || refraction) && t.rpm.renderWaterDepthPass(A), t.sunShafts.renderPass(A), q ? (t.rpm.renderSSRGBufferPass(A), t.rpm.renderSSRPass(A)) : t.rpm.clearSSRPassIfNeeded(A);
   }
   dispose() {
   }
@@ -12797,6 +12832,8 @@ class iq {
         worldSize: e.foamFieldWorldSize
       }
     ), K._foamAccumulation && (K._foamAccumulation.setCamera(p), K._subsystems.push(K._foamAccumulation));
+    K._fresnel.refractionEnabled = n.refractionEnabled !== !1;
+    K._fresnel.surfaceTransmissionEnabled = n.surfaceTransmissionEnabled === !0;
     const b = new zp(
       U,
       K.getSharedMaterialUniforms(),
@@ -12867,6 +12904,7 @@ class iq {
       B.y,
       e.sunShaftResolutionScale
     ), K._postProcessing = new Ia({
+      fresnel: K._fresnel,
       rainSystem: K._rainSystem,
       rpm: g,
       ssr: K._ssr,
@@ -12960,6 +12998,10 @@ class iq {
   /** Surface fresnel */
   get fresnel() {
     return this._fresnel;
+  }
+  /** Local option: omit surface refraction and its above-water depth pass. */
+  get refractionEnabled() {
+    return this._fresnel.refractionEnabled;
   }
   /** Atmospheric fog (post-processing) */
   get fog() {

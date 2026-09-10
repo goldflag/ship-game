@@ -6,13 +6,22 @@ const VERTICES = (SEGMENTS + 1) * 2;
 const GRAVITY = 9.81;
 const DRAG = .12;
 const smooth = (a: number, b: number, value: number) => THREE.MathUtils.smoothstep(value, a, b);
+// The sheet's row profile is fixed; age only changes its travel, opening and fade.
+const ROWS = Array.from({ length: SEGMENTS + 1 }, (_, row) => {
+  const along = row / SEGMENTS;
+  return { along, radius: .12 + .88 * along * along, alpha: 1 - smooth(.83, 1, along),
+    red: .63 + .32 * along, green: .76 + .22 * along, blue: .81 + .19 * along };
+});
 
 interface WaterSheet {
   origin: THREE.Vector3;
   age: number;
   life: number;
   scale: number;
-  angle: number;
+  cosine: number;
+  sine: number;
+  bends: Float64Array;
+  widths: Float64Array;
   up: number;
   out: number;
   width: number;
@@ -37,7 +46,6 @@ export class WaterPlumes {
   private readonly sun = new THREE.Vector3(-.55, .74, -.39).normalize();
   private readonly illumination = uniform(1);
   private readonly center = new THREE.Vector3();
-  private readonly light = new THREE.Color();
   private cursor = 0;
 
   constructor(readonly capacity: number, map: THREE.DataTexture) {
@@ -72,7 +80,8 @@ export class WaterPlumes {
     this.mesh.name = 'Ballistic water sheets';
     this.mesh.frustumCulled = false;
     this.sheets = Array.from({ length: capacity }, () => ({ origin: new THREE.Vector3(), age: 0, life: 0,
-      scale: 1, angle: 0, up: 0, out: 0, width: 1, leanX: 0, leanZ: 0, seed: 0, crown: false, distance: 0 }));
+      scale: 1, cosine: 1, sine: 0, bends: new Float64Array(SEGMENTS + 1), widths: new Float64Array(SEGMENTS + 1),
+      up: 0, out: 0, width: 1, leanX: 0, leanZ: 0, seed: 0, crown: false, distance: 0 }));
   }
 
   emit(origin: THREE.Vector3, scale: number, direction: THREE.Vector3, random: () => number): void {
@@ -86,12 +95,21 @@ export class WaterPlumes {
       const crown = i >= 14, count = crown ? 10 : 14;
       sheet.origin.copy(origin); sheet.scale = scale; sheet.crown = crown;
       sheet.age = -random() * (crown ? .025 : .085);
-      sheet.angle = rotation + ((crown ? i - 14 : i) + random() * .65) / count * Math.PI * 2;
+      const angle = rotation + ((crown ? i - 14 : i) + random() * .65) / count * Math.PI * 2;
+      sheet.cosine = Math.cos(angle); sheet.sine = Math.sin(angle);
       sheet.up = (crown ? 8 + random() * 6 : 28 + random() * 13) * rootScale * lift;
       sheet.out = (crown ? 9 + random() * 9 : 1.2 + random() * 3.4) * rootScale;
       sheet.width = (crown ? 4 + random() * 3 : 2.7 + random() * 2.3) * scale;
       sheet.leanX = direction.x * lean; sheet.leanZ = direction.z * lean;
       sheet.seed = random() * Math.PI * 2;
+      // Cache launch-specific folds in double precision and preserve the
+      // original multiplication order when animating their opening below.
+      for (let row = 0; row <= SEGMENTS; row++) {
+        const along = ROWS[row].along;
+        sheet.bends[row] = Math.sin(along * 19 + sheet.seed) * Math.sin(along * 7 + sheet.seed);
+        const folds = .64 + .5 * Math.sin(along * 12 + sheet.seed) ** 2;
+        sheet.widths[row] = sheet.width * folds * (1 - (sheet.crown ? .78 : .4) * along);
+      }
       // Bound the full return to sea; drag makes the real flight shorter.
       sheet.life = sheet.up * 2 / GRAVITY + .15;
     }
@@ -130,30 +148,29 @@ export class WaterPlumes {
       const sheet = this.active[index], age = sheet.age;
       const travel = -Math.expm1(-DRAG * age) / DRAG;
       const fall = GRAVITY / DRAG * (age - travel);
-      const cosine = Math.cos(sheet.angle), sine = Math.sin(sheet.angle);
+      const { cosine, sine } = sheet;
       const opening = 1 - Math.exp(-age * 38);
       const breakup = smooth(.65, 4.2 * Math.sqrt(sheet.scale), age);
       const fade = (1 - smooth(sheet.life * .55, sheet.life, age)) * opening;
       const sunlight = .66 + .22 * this.sun.y + .12 * (cosine * this.sun.x + sine * this.sun.z);
+      const bending = .45 + .35 * Math.min(age, 2);
       for (let row = 0; row <= SEGMENTS; row++) {
-        const along = row / SEGMENTS;
+        const profile = ROWS[row], along = profile.along;
         const height = sheet.up * along * travel - fall;
-        const radius = sheet.scale * .35 + sheet.out * travel * (.12 + .88 * along * along);
-        const bend = Math.sin(along * 19 + sheet.seed) * Math.sin(along * 7 + sheet.seed)
-          * (.45 + .35 * Math.min(age, 2)) * sheet.scale * opening;
-        const folds = .64 + .5 * Math.sin(along * 12 + sheet.seed) ** 2;
-        const width = sheet.width * folds * (1 - (sheet.crown ? .78 : .4) * along) * opening * (1 + age * .13);
+        const radius = sheet.scale * .35 + sheet.out * travel * profile.radius;
+        const bend = sheet.bends[row] * bending * sheet.scale * opening;
+        const width = sheet.widths[row] * opening * (1 + age * .13);
         const centerX = sheet.origin.x + cosine * radius + sheet.leanX * travel * along;
         const centerZ = sheet.origin.z + sine * radius + sheet.leanZ * travel * along;
-        const alpha = fade * smooth(0, .65 * sheet.scale, height) * (1 - smooth(.83, 1, along));
+        const alpha = fade * smooth(0, .65 * sheet.scale, height) * profile.alpha;
         // Dense lower water carries the sea's blue shadow; aerated tips scatter
         // more sky light. The shared sun follows time of day and battle weather.
-        this.light.setRGB(.63 + .32 * along, .76 + .22 * along, .81 + .19 * along).multiplyScalar(sunlight);
+        const red = profile.red * sunlight, green = profile.green * sunlight, blue = profile.blue * sunlight;
         for (let side = 0; side < 2; side++) {
           const vertex = index * VERTICES + row * 2 + side;
           const lateral = (side - .5) * width + bend;
           this.position.setXYZ(vertex, centerX - sine * lateral, sheet.origin.y + Math.max(-.5, height), centerZ + cosine * lateral);
-          this.color.setXYZ(vertex, this.light.r, this.light.g, this.light.b);
+          this.color.setXYZ(vertex, red, green, blue);
           this.opacity.setXY(vertex, alpha * .82, .38 + breakup * .34 + along * .05);
         }
       }

@@ -3,7 +3,12 @@ import { FleetWakeFoam, type WakeShip } from './FleetWakeFoam';
 import { PreparedPoseGroup } from './FrameScene';
 import { shipPreset } from '../ships/presets';
 import { CombatSimulation } from '../simulation/combat';
-import { PerspectiveCamera } from 'three/webgpu';
+import { DataTexture, PerspectiveCamera } from 'three/webgpu';
+
+function cpuImage(foam: FleetWakeFoam) {
+  if (!(foam.texture instanceof DataTexture)) throw new Error('CPU wake fixture requires a data texture');
+  return foam.texture.image;
+}
 
 function ship(x: number, speed = 15): WakeShip {
   const definition = shipPreset('bismarck');
@@ -11,8 +16,8 @@ function ship(x: number, speed = 15): WakeShip {
   return { definition, motion, root: new PreparedPoseGroup() };
 }
 function tileHasFoam(foam: FleetWakeFoam, slot: number): boolean {
-  const size = foam.texture.image.width, res = size / 8;
-  const pixels = foam.texture.image.data as Uint8Array;
+  const size = cpuImage(foam).width, res = size / 8;
+  const pixels = cpuImage(foam).data as Uint8Array;
   for (let row = 0; row < res; row++) {
     const start = (Math.floor(slot / 8) * res + row) * size + slot % 8 * res;
     if (pixels.subarray(start, start + res).some(value => value > 0)) return true;
@@ -30,9 +35,9 @@ test('all 60 ships have independent trails across a wide battlefield, even with 
   }
   expect(tileHasFoam(foam, 0)).toBe(false);
   for (let i = 1; i < ships.length; i++) expect(tileHasFoam(foam, i)).toBe(true);
-  const beforePause = (foam.texture.image.data as Uint8Array).slice();
+  const beforePause = (cpuImage(foam).data as Uint8Array).slice();
   foam.update(ships, 0, []);
-  expect(foam.texture.image.data).toEqual(beforePause);
+  expect(cpuImage(foam).data).toEqual(beforePause);
   // A teleported hull clears only its own trail, never its neighbours'.
   ships[1].motion.x += 1000;
   foam.update(ships, .1, []);
@@ -43,7 +48,7 @@ test('all 60 ships have independent trails across a wide battlefield, even with 
   expect(tileHasFoam(foam, 0)).toBe(true);
   expect(tileHasFoam(foam, 1)).toBe(false);
   foam.reset();
-  expect((foam.texture.image.data as Uint8Array).some(value => value > 0)).toBe(false);
+  expect((cpuImage(foam).data as Uint8Array).some(value => value > 0)).toBe(false);
   foam.dispose();
 });
 
@@ -80,7 +85,7 @@ test('distant wake refreshes retain the full curved trail and zoom restores near
   camera.zoom = 10; camera.updateProjectionMatrix();
   // Both publish the same accumulated path when inspected closely.
   detailed.update(ships, .21, []); distant.update(ships, .21, [], camera);
-  expect(distant.texture.image.data).toEqual(detailed.texture.image.data);
+  expect(cpuImage(distant).data).toEqual(cpuImage(detailed).data);
   const version = distant.texture.version;
   distant.update(ships, .06, [], camera);
   expect(distant.texture.version).toBeGreaterThan(version);

@@ -1,11 +1,13 @@
 //! Renderer-free naval simulation shared by the native server and browser WASM.
 pub mod catalog;
 pub mod definition;
+pub mod fleet_evasion;
 pub mod geometry;
+pub mod mobility;
 pub mod motion;
+pub mod mount_clearance;
 pub mod mount_frames;
 pub mod navigation;
-pub mod fleet_evasion;
 pub mod rules;
 
 pub mod ballistics;
@@ -64,11 +66,12 @@ pub mod battle;
 pub mod mission;
 pub mod pve;
 mod pve_command;
-pub mod sensors;
 pub mod recon;
+pub mod sensors;
 
 pub mod records;
 
+mod presentation;
 pub mod snapshot;
 mod team_view;
 pub const SIMULATION_BUILD: &str = env!("NAVAL_SIMULATION_BUILD");

@@ -30,6 +30,10 @@ export type { SunShaftsParams } from "../shaders/sunShafts";
  *   `deterministic` is `true`; ignored otherwise. Default `1 / 60`.
  */
 export interface WaterSystemOptions {
+    /** Local option: choose the surface refraction graph before shader warmup. Default true. */
+    refractionEnabled?: boolean;
+    /** Show submerged opaque geometry with custom-color absorption and no UV distortion when refraction is disabled. Creation-only. */
+    surfaceTransmissionEnabled?: boolean;
     deterministic?: boolean;
     seed?: number;
     stepSize?: number;

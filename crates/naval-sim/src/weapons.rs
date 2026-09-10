@@ -1,3 +1,4 @@
+use crate::mount_clearance::move_mount_with_clearance;
 use crate::{
     ballistics::{Arc, GRAVITY, solve_drag_arc, travel_factor},
     definition::{GunPart, MountDefinition, ShipDefinition, Vec3},
@@ -404,8 +405,11 @@ pub fn update_mount(
         None
     };
     let w = &m.weapon;
-    let limit = radians(w.traverse_deg);
-    let train = clamp(desired_train, -limit, limit);
+    let [lo, hi] = m
+        .traverse_limits_deg
+        .unwrap_or([-w.traverse_deg, w.traverse_deg])
+        .map(radians);
+    let train = clamp(desired_train, lo, hi);
     let elevation = clamp(
         desired_elevation,
         radians(w.elevation_min_deg),
@@ -413,8 +417,21 @@ pub fn update_mount(
     );
     let train_rate = radians(w.traverse_rate_deg) * dt * work;
     let elevation_rate = radians(w.elevation_rate_deg) * dt * work;
-    s.train += clamp(train - s.train, -train_rate, train_rate);
-    s.elevation += clamp(elevation - s.elevation, -elevation_rate, elevation_rate);
+    let next = (
+        s.train + clamp(train - s.train, -train_rate, train_rate),
+        s.elevation + clamp(elevation - s.elevation, -elevation_rate, elevation_rate),
+    );
+    let index = if d.mount_clearance.is_some() {
+        d.mounts.iter().position(|other| other.id == m.id).unwrap()
+    } else {
+        0
+    };
+    let mut motion_clear = move_mount_with_clearance(d, index, s, next, mounted_states);
+    if !motion_clear {
+        move_mount_with_clearance(d, index, s, (next.0, s.elevation), mounted_states);
+        move_mount_with_clearance(d, index, s, (s.train, next.1), mounted_states);
+        motion_clear = (s.train - next.0).abs() < 1e-9 && (s.elevation - next.1).abs() < 1e-9;
+    }
     // A parent can move an obstruction even when this gun has not traversed.
     // Use the detached mount's updated train when posing its own descendants.
     let carried: Vec<_> = obstructions
@@ -458,13 +475,14 @@ pub fn update_mount(
         });
         blocked
     };
-    if blocked {
+    if blocked || !motion_clear {
         return reject(s, "blocked");
     }
     if !reachable {
         return reject(s, "out-of-range");
     }
-    if desired_train.abs() > limit + 1e-6
+    if desired_train < lo - 1e-6
+        || desired_train > hi + 1e-6
         || desired_elevation < radians(w.elevation_min_deg) - 1e-6
         || desired_elevation > radians(w.elevation_max_deg) + 1e-6
     {

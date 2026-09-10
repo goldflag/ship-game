@@ -1,4 +1,8 @@
 {
   "extends": "./tsconfig.json",
-  "include": ["tools/ship-overlay", "vite.overlay.config.ts"]
+  "include": [
+    "tools/ship-overlay",
+    "vite.overlay.config.ts",
+    "scripts/parts"
+  ]
 }

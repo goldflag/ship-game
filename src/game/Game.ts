@@ -17,6 +17,7 @@ import { AircraftView } from './AircraftView';
 import { oceanMap, DEFAULT_MAP, landHeight } from '../maps/catalog';
 import { createBattleLandscape, disposeBattleLandscape } from './BattleLandscape';
 import { VisualEnvironment } from './VisualEnvironment';
+import { WaterViewFocus } from './WaterViewFocus';
 import type { ControlPriority } from '../simulation/damageControl';
 import * as THREE from 'three/webgpu';
 import { Fn, float, max, mix, pass, renderOutput, rtt, vec4 } from 'three/tsl';
@@ -25,6 +26,9 @@ import { VisualWaveSampler } from './VisualWaveSampler';
 import { UnderwaterPassVisibility } from './UnderwaterPassVisibility';
 import { FrameScene } from './FrameScene';
 import { FleetShipDraws } from './FleetShipDraws';
+import { installFleetBatchInstancing } from './FleetBatchInstancing';
+import { installInstanceBufferNames } from './InstanceBufferNames';
+import { prepareInstanceUploads } from './InstanceUploads';
 import { batchShipModel } from './ShipBatching';
 import { prepareShipDetail } from './ShipDetail';
 import { ShipMaterialPalette } from './ShipMaterialPalette';
@@ -38,6 +42,7 @@ import { CombatSimulation } from '../simulation/combat';
 import { availableAmmunition } from '../simulation/weapons';
 import { ShipView } from './ShipView';
 import { ObservedShipViews } from './ObservedShipViews';
+import { FleetVisibility } from './FleetVisibility';
 import { ArmorOverlay } from './ArmorOverlay';
 import { InspectionHover, type InspectionHoverInfo } from './InspectionHover';
 import { ShipLabels } from './ShipLabels';
@@ -53,6 +58,8 @@ import { CombatEffects } from './CombatEffects';
 import { configureRenderOrder } from './renderOrder';
 import type { GameAudio } from './GameAudio';
 import type { Ammunition, Battery, Vec3 } from '../ships/blueprint';
+import { gunTraverseAtFraction } from '../ships/armament';
+import { moveMountWithClearance } from '../simulation/mountClearance';
 import type { InspectionMode } from '../ships/inspection';
 import { selectedShip, shipPreset, shipPresets } from '../ships/presets';
 import { resolveBattleFleet, validateBattleSetup, type BattleSetup } from '../simulation/battle';
@@ -95,6 +102,8 @@ export class Game {
   private fleetViews: ShipView[] = [];
   private fleetDraws?: FleetShipDraws;
   private observedShipViews = new ObservedShipViews();
+  private readonly fleetVisibility = new FleetVisibility();
+  private waterViewFocus?: WaterViewFocus;
   private visualWaveSampler?: VisualWaveSampler;
   private fleetModels: THREE.Group[] = [];
   private shipLabels: ShipLabels;
@@ -273,6 +282,11 @@ export class Game {
     this.callbacks.progress('Starting graphics', 0.08);
     this.resize();
     await this.renderer.init();
+    installFleetBatchInstancing(this.renderer.backend);
+    installInstanceBufferNames(this.renderer.backend);
+    if ((this.renderer.backend as { isWebGPUBackend?: boolean }).isWebGPUBackend) {
+      for (const root of [this.effects.root, this.funnelSmoke.root, this.aircraftView.root]) prepareInstanceUploads(root);
+    }
     configureRenderOrder(this.renderer);
     this.assertActive();
     this.rig.update(this.simulation.ship, 0, 0, true);
@@ -295,7 +309,7 @@ export class Game {
     if (this.targetView) this.targetView.root.visible = !this.inPort;
     if (this.definition.airWing) {
       this.callbacks.progress('Loading aircraft', 0.32);
-      await this.aircraftView.load(this.definition.airWing.squadrons.map(s => s.modelId));
+      await this.aircraftView.load(this.definition.airWing.squadrons.map(s => s.modelId), !!(this.renderer.backend as { isWebGPUBackend?: boolean }).isWebGPUBackend);
     }
     this.assertActive();
     this.scene.add(...this.fleetViews.map(view => view.root), this.observedShipViews.root, this.effects.root, this.funnelSmoke.root, this.aircraftView.root, this.torpedoPreview.root);
@@ -305,7 +319,8 @@ export class Game {
     // Water Pro 3.5.1 combines seed * 100000 + cellIndex in float32.
     // Large seeds (e.g. 1941) collapse adjacent inputs, creating repeated arcs.
     // Keep the library's small, deterministic seed until its hash input is fixed.
-    this.water = await WaterSystem.create(this.renderer, this.scene, this.camera, this.settings.quality, { seed: 1 });
+    this.water = await WaterSystem.create(this.renderer, this.scene, this.camera, this.settings.quality,
+      { seed: 1, refractionEnabled: false, surfaceTransmissionEnabled: true });
     this.visualWaveSampler = new VisualWaveSampler(this.water.buoyancy.getSampler());
     this.water.buoyancy.setSampler(this.visualWaveSampler);
     this.assertActive();
@@ -328,10 +343,12 @@ export class Game {
     params.postProcessing.underwaterParticles.enabled = false;
     params.spray.enabled = false;
     this.water.loadPreset(params);
+    this.water.underwaterDistortion.enabled = false;
     this.water.waves.jonswapGamma.value = 2.2;
     this.underwaterPassVisibility = new UnderwaterPassVisibility(this.water, this.renderer);
     this.torpedoPreview.setWater(this.water);
     this.environment.attachWater(this.water);
+    this.waterViewFocus = new WaterViewFocus(this.water.ssr);
 
     this.callbacks.progress('Lighting the sky', 0.59);
     this.sky = await SkySystem.create({ renderer: this.renderer, camera: this.camera, scene: this.scene,
@@ -385,7 +402,7 @@ export class Game {
 
     // Combat hulls use the shared simulation pose. GPU wave sampling remains visual
     // ocean detail and buoy motion; it cannot move ship hitboxes or muzzle positions.
-    this.shipWake = new ShipWake(this.water.wake, this.ship, this.scene);
+    this.shipWake = new ShipWake(this.water.wake, this.ship, this.scene, this.renderer);
     for (const buoy of BUOYS) this.addBuoy(buoy);
     this.callbacks.progress('Building the naval anchorage', 0.72);
     this.harbor = await createHarborBackdrop(this.settings.quality);
@@ -612,7 +629,7 @@ export class Game {
         const next = definitions.find(d => !models.has(d.id));
         progress?.(simulation.missionRules ? 'Preparing ship recognition models' : next ? `Loading ${next.name}` : `${def.name} aboard`, 0.08 + hullShare * loaded);
       }
-      if (definitions.some(d => d.airWing)) { progress?.(simulation.missionRules ? 'Preparing aircraft recognition models' : 'Spotting the air wing', 0.7); await this.aircraftView.load(definitions.flatMap(d => d.airWing?.squadrons.map(s => s.modelId) ?? [])); }
+      if (definitions.some(d => d.airWing)) { progress?.(simulation.missionRules ? 'Preparing aircraft recognition models' : 'Spotting the air wing', 0.7); await this.aircraftView.load(definitions.flatMap(d => d.airWing?.squadrons.map(s => s.modelId) ?? []), !!(this.renderer.backend as { isWebGPUBackend?: boolean }).isWebGPUBackend); }
       this.assertActive();
       if (!this.inPort) throw new Error('Return to port before changing fleets.');
       progress?.('Mustering the fleets', 0.78);
@@ -705,7 +722,7 @@ export class Game {
       this.syncControlledShip();
       state = this.simulation.ship;
       const alpha = this.inPort ? 1 : this.simulation.interpolationAlpha;
-      this.fleetViews.forEach(view => view.update(alpha));
+      this.fleetViews.forEach(view => view.updateMotion(alpha));
       this.observedShipViews?.update(this.simulation.observedShips ?? [], this.simulation.tick, !this.inPort && !this.inspecting,
         this.airOperationsOpen ? undefined : this.cameraShipView.actor.motion.id, presentationDt);
       // A salvo must not synchronously project scars onto every struck hull.
@@ -713,7 +730,7 @@ export class Game {
       const impactBudget = { remainingMs: 2 };
       for (let i = 0; i < this.fleetViews.length; i++) {
         const view = this.fleetViews[(i + this.simulation.tick) % this.fleetViews.length];
-        view.impactMarks.update(this.simulation.events, view.actor.motion.id, impactBudget);
+        view.impactMarks.update(this.simulation.events, view.actor.motion.id, impactBudget, () => view.updateArticulation(alpha));
       }
       this.ship.position.copy(this.playerView!.root.position);
       this.ship.quaternion.copy(this.playerView!.root.quaternion);
@@ -728,6 +745,11 @@ export class Game {
       }
       this.battlefieldCamera.applyTransition(realDt);
       this.cameraFrameListeners.forEach(listener => listener());
+      this.environment.setShadowFocus(this.waterViewFocus?.update(this.fleetViews, this.camera,
+        !this.inPort && !this.airOperationsOpen && !this.battlefieldCamera.transitioning && this.rig.magnification > 1.5));
+      this.environment.update(this.camera, dt);
+      this.fleetVisibility.update(this.fleetViews, this.camera, this.water!.lighting.sunLight, this.inPort || warmingUp);
+      this.fleetViews.forEach(view => { if (view.renderActive || view === this.playerView) view.updateArticulation(alpha); });
       const showGunAim = !this.inPort && !this.simulation.player.damage.sunk && !this.viewAway;
       this.gunAim.update(showGunAim ? this.playerView!.gunAimPoints(this.battery, aim, this.weaponGroupId) : [], this.camera, showGunAim);
       this.hitDirections.update(this.simulation, this.camera, !this.inPort);
@@ -739,7 +761,7 @@ export class Game {
         view.updateRenderMatrices();
       });
       this.aircraftView.update(this.simulation, this.camera, !this.inspecting && (!this.inPort || this.playerView?.inspection.mode === 'exterior'), this.inPort, new Map(this.fleetViews.map(view => [view.actor.motion.id, view.root])));
-      this.effects.update(this.simulation, presentationDt, this.camera, this.rig.binoculars && !this.shellFollow.view, this.fleetViews);
+      this.effects.update(this.simulation, presentationDt, this.camera, this.rig.binoculars && !this.shellFollow.view, this.fleetViews, !!this.shellFollow.view);
       this.funnelSmoke.root.visible = !this.inspecting && (!this.inPort || this.playerView!.inspection.mode === 'exterior');
       this.funnelSmoke.update(this.inPort ? [this.playerView!] : this.fleetViews, presentationDt, this.camera,
         this.rig.binoculars && !this.shellFollow.view ? this.simulation.player.motion.id : undefined);
@@ -748,7 +770,6 @@ export class Game {
       this.playerView!.root.visible = this.airOperationsOpen || this.battlefieldCamera.transitioning || !this.rig.binoculars;
       this.harbor?.update(dt, this.camera);
       this.shipWake!.update(this.inPort ? [this.playerView!] : this.fleetViews, dt, this.simulation.events, this.camera);
-      this.environment.update(this.camera, dt);
       // Fixed-step mode with zero delta renders without stepping the wake's
       // leapfrog/foam integrators. Host-clock update(0) would still step them.
       this.water!.deterministic = this.paused || this.tacticalPause;
@@ -758,6 +779,7 @@ export class Game {
       // Hidden hangar aircraft, LODs and dormant effects must compile against
       // the actual ocean capture and final targets before their first appearance.
       const warmInstances: { mesh: THREE.InstancedMesh; visible: boolean; count?: number }[] = [];
+      const restoreAircraftParts = warmingUp ? this.aircraftView.warmupParts() : undefined;
       if (warmingUp) for (const root of [this.effects.root, this.funnelSmoke.root, this.aircraftView.root]) root.traverse(object => {
         if (!(object instanceof THREE.InstancedMesh)) return;
         const geometry = object.geometry as THREE.InstancedBufferGeometry;
@@ -774,6 +796,7 @@ export class Game {
         if (this.frameWaiters.length) { const waiters = this.frameWaiters; this.frameWaiters = []; waiters.forEach(resolve => resolve()); }
       } finally {
         this.scene.endFrame();
+        restoreAircraftParts?.();
         for (const { mesh, visible, count } of warmInstances) {
           mesh.visible = visible;
           if (count !== undefined) (mesh.geometry as THREE.InstancedBufferGeometry).instanceCount = count;
@@ -1275,14 +1298,35 @@ export class Game {
       }
       this.articulationOriginal ??= structuredClone(this.simulation.player.mounts);
       this.articulationLaunchers ??= structuredClone(this.simulation.player.torpedoLaunchers);
-      this.simulation.player.torpedoLaunchers?.forEach(l => { l.train = THREE.MathUtils.clamp(pose.trainFraction, -1, 1) * 140 * Math.PI / 180; });
-      this.simulation.player.mounts.forEach((state, i) => {
+      this.simulation.player.torpedoLaunchers?.forEach(l => {
+        const limits = this.definition.torpedoLaunchers?.find(d => d.id === l.id)?.traverseLimitsDeg ?? [-140, 140];
+        const fraction = THREE.MathUtils.clamp(pose.trainFraction, -1, 1);
+        l.train = (fraction < 0 ? -fraction * limits[0] : fraction * limits[1]) * Math.PI / 180;
+      });
+      const targets = this.simulation.player.mounts.map((state, i) => {
         const w = this.definition.mounts[i].weapon;
         const selected = { ...pose, ...pose.mounts?.[this.definition.mounts[i].id] };
-        state.train = THREE.MathUtils.clamp(selected.trainFraction, -1, 1) * w.traverseDeg * Math.PI / 180;
-        state.elevation = (w.elevationMinDeg + THREE.MathUtils.clamp(selected.elevationFraction, 0, 1) * (w.elevationMaxDeg - w.elevationMinDeg)) * Math.PI / 180;
         state.recoil = THREE.MathUtils.clamp(selected.recoilFraction, 0, 1);
+        return { train: gunTraverseAtFraction(this.definition.mounts[i], selected.trainFraction),
+          elevation: (w.elevationMinDeg + THREE.MathUtils.clamp(selected.elevationFraction, 0, 1) * (w.elevationMaxDeg - w.elevationMinDeg)) * Math.PI / 180 };
       });
+      // Review the same CPU interlocks as combat, including independently moved neighbors.
+      const states = this.simulation.player.mounts, step = THREE.MathUtils.degToRad(.5);
+      for (let pass=0; pass<1440; pass++) {
+        let moved=false;
+        states.forEach((state,i)=>{
+          const before={train:state.train,elevation:state.elevation},target=targets[i];
+          const next={train:state.train+THREE.MathUtils.clamp(target.train-state.train,-step,step),elevation:state.elevation+THREE.MathUtils.clamp(target.elevation-state.elevation,-step,step)};
+          const clear=moveMountWithClearance(this.definition,i,state,next,states);
+          if (!clear) {
+            moveMountWithClearance(this.definition,i,state,{train:next.train,elevation:state.elevation},states);
+            moveMountWithClearance(this.definition,i,state,{train:state.train,elevation:next.elevation},states);
+          }
+          state.status=Math.abs(state.train-target.train)+Math.abs(state.elevation-target.elevation)<1e-7?'ready':'blocked';
+          moved ||= Math.abs(state.train-before.train)+Math.abs(state.elevation-before.elevation)>1e-9;
+        });
+        if (!moved) break;
+      }
       this.playerView.update();
     }
     return this.diagnostics();
@@ -1302,6 +1346,7 @@ export class Game {
       reconCoverage: this.simulation.reconCoverage,
       effects: this.effects.diagnostics(),
       funnelSmoke: this.funnelSmoke.diagnostics(),
+      wakeFoam: this.shipWake?.diagnostics(),
       shipRigs: this.fleetViews.map(view => ({ shipId: view.actor.motion.id, ...view.rig.diagnostics() })),
       audio: this.audio?.diagnostics(),
       portInspection: this.playerView?.inspection.mode, selectedVolume: this.playerView?.inspection.selectedId, hoveredVolume: this.playerView?.inspection.hoveredId,

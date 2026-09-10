@@ -2,7 +2,7 @@ import { hullDepth } from './ship';
 import { mayReachHull, torpedoHullRadius } from './spatial';
 import type { ShipDefinition, TorpedoPart, Vec3 } from '../ships/blueprint';
 import type { FleetActor } from './battle';
-import { add, clamp, localToWorld, radians, rotate, scale, segmentBox, sub, worldToLocal, wrapAngle } from './geometry';
+import { add, dot, normalize, clamp, localToWorld, radians, rotate, scale, segmentBox, sub, worldToLocal, wrapAngle } from './geometry';
 import { motionVelocity } from './ship';
 import { structuralHits } from './structure';
 import { addBreach } from './damage';
@@ -28,7 +28,7 @@ export function tubeLocalPosition(actor: Pick<FleetActor, 'definition' | 'torped
   return add(launcher.position, rotate(sub(tube.position, launcher.position), { heading: train, roll: 0, pitch: 0 }));
 }
 
-/** Train each shared five-tube assembly once per tick. The CPU owns its yaw. */
+/** Train each shared torpedo assembly once per tick. The CPU owns its yaw. */
 export function trainTorpedoLaunchers(actor: FleetActor, aimFor: (tube: TubeDefinition) => Vec3 | null, dt: number): void {
   for (const launcher of actor.definition.torpedoLaunchers ?? []) {
     const state = actor.torpedoLaunchers!.find(s => s.id === launcher.id)!;
@@ -40,7 +40,13 @@ export function trainTorpedoLaunchers(actor: FleetActor, aimFor: (tube: TubeDefi
     if (!aim?.every(Number.isFinite)) continue;
     const local = worldToLocal(aim, actor.motion);
     const desired = Math.atan2(local[0] - launcher.position[0], launcher.position[2] - local[2]);
-    state.train = wrapAngle(state.train + clamp(wrapAngle(desired - state.train), -radians(launcher.traverseRateDeg) * dt, radians(launcher.traverseRateDeg) * dt));
+    const rate = radians(launcher.traverseRateDeg) * dt;
+    if (launcher.traverseLimitsDeg) {
+      const [lo, hi] = launcher.traverseLimitsDeg.map(radians);
+      state.train = clamp(state.train, lo, hi);
+      const target = clamp(desired, lo, hi);
+      state.train += clamp(target - state.train, -rate, rate);
+    } else state.train = wrapAngle(state.train + clamp(wrapAngle(desired - state.train), -rate, rate));
   }
 }
 
@@ -177,4 +183,21 @@ export function damageUnderwaterBlast(actor: FleetActor, point: Vec3, w: { damag
     state.hp = Math.max(0, state.hp - w.damage * .5 * (1 - module.distance / 8));
   }
   return `${label}${compartment ? ` · ${compartment.c.name}` : ''} · flooding breach`;
+}
+
+/** Gameplay tuning shared with the Rust authority; angle measured from the surface. */
+export function glancingDudChance(direction: Vec3, normal: Vec3): number {
+  const sine = clamp(Math.abs(dot(normalize(direction), normalize(normal))), 0, 1);
+  return .9 * clamp(1 - Math.asin(sine) / radians(20), 0, 1);
+}
+
+/** Stateless seeded roll, independent of projectile iteration and display rate. */
+export function torpedoDudRoll(seed: number, projectile: number): number {
+  let x = seed ^ Math.imul(projectile, 0x9e3779b9) ^ 0x746f7270;
+  x ^= x >>> 16;
+  x = Math.imul(x, 0x85ebca6b);
+  x ^= x >>> 13;
+  x = Math.imul(x, 0xc2b2ae35);
+  x ^= x >>> 16;
+  return (x >>> 0) / 4294967296;
 }

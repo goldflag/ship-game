@@ -154,19 +154,18 @@ fn withdraw(leader: &Vessel, battle: &Battle, threat: [f64; 3]) -> Movement {
         speed_mps,
         looped: false,
     }) = leader.navigation.as_ref().map(|n| &n.order)
+        && waypoints.len() == 1
     {
-        if waypoints.len() == 1 {
-            let p = waypoints[0];
-            let remaining = (p[0] - leader.motion.x).hypot(p[1] - leader.motion.z);
-            if remaining > 300.0
-                && (p[0] - leader.motion.x) * delta[0] + (p[1] - leader.motion.z) * delta[1] > 0.0
-            {
-                return Movement::Route {
-                    waypoints: waypoints.clone(),
-                    speed_mps: *speed_mps,
-                    looped: false,
-                };
-            }
+        let p = waypoints[0];
+        let remaining = (p[0] - leader.motion.x).hypot(p[1] - leader.motion.z);
+        if remaining > 300.0
+            && (p[0] - leader.motion.x) * delta[0] + (p[1] - leader.motion.z) * delta[1] > 0.0
+        {
+            return Movement::Route {
+                waypoints: waypoints.clone(),
+                speed_mps: *speed_mps,
+                looped: false,
+            };
         }
     }
     // Try several retreat bearings around authored land, not an invisible enemy
@@ -288,8 +287,8 @@ impl PvePlan {
                 )
             });
             if group.station == GroupStation::Front {
-                let movement = if front_collapsed && contact.is_some() {
-                    withdraw(leader, battle, contact.unwrap().estimated_position)
+                let movement = if front_collapsed && let Some(contact) = contact {
+                    withdraw(leader, battle, contact.estimated_position)
                 } else if contact.is_some() {
                     Movement::Autonomous
                 } else if leader

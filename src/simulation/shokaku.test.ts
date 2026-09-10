@@ -5,6 +5,7 @@ import { compileShip } from '../ships/blueprint';
 import { CombatSimulation, type CombatEvent } from './combat';
 import { commandSquadron, hasFoldingWings, squadronFlights, stepAircraft, type AirContext } from './aircraft';
 import { aircraftTorpedo } from './aircraftWeapons';
+import { torpedoSpeed } from './mobility';
 
 const definition = compileShip(source, catalog);
 function fixture() {
@@ -62,5 +63,5 @@ test('Japanese attacks retain their bomb and torpedo variants after release', ()
   expect(events.some(e => e.kind === 'torpedo-launch')).toBe(true);
   expect(sim.torpedoes.length).toBeGreaterThan(0);
   expect(sim.torpedoes.every(t => t.weapon.id === 'type91-mod2-game' && t.ownerId === 'player')).toBe(true);
-  for (const torpedo of sim.torpedoes) expect(Math.hypot(...torpedo.velocity)).toBeCloseTo(aircraftTorpedo('b5n2-kate').speed, 8);
+  for (const torpedo of sim.torpedoes) expect(Math.hypot(...torpedo.velocity)).toBeCloseTo(torpedoSpeed(aircraftTorpedo('b5n2-kate').speed), 8);
 });

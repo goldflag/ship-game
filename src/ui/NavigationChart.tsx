@@ -1,4 +1,4 @@
-import { coastOutline, oceanMap, DEFAULT_MAP } from '../maps/catalog';
+import { coastOutline } from '../maps/catalog';
 import { useId, useState } from 'react';
 import { BUOYS } from '../game/Game';
 import type { Telemetry } from '../game/types';
@@ -40,7 +40,6 @@ export function NavigationChart({ data, reports = [], onResize, bindings, onWayp
       <path d="m110 101 4 13-4-3-4 3Z" fill="var(--fleet-active)" stroke="#142c35" strokeWidth=".8" transform={`rotate(${data.ship.heading * 180 / Math.PI} 110 110)`}/>
       <text x="110" y="16" textAnchor="middle">N</text><text x="209" y="114" textAnchor="middle">E</text><text x="11" y="114" textAnchor="middle">W</text>
     </svg>
-    <span className="chart-orientation">{oceanMap(data.mapId ?? DEFAULT_MAP).name.toUpperCase()}</span>
     <button className="chart-range-button" title="Change chart range" aria-label={`Change chart range · Current radius ${radius / 1000} kilometers`} onClick={event => { setZoom(value => (value + 1) % CHART_RANGES.length); event.currentTarget.blur(); }}>{radius / 1000} km <Icon name="chevron" size={10}/></button>
     <div className="chart-controls"><span>SIZE</span><button aria-label={`Decrease minimap size · ${bindingLabel(bindings, 'chartSmaller')}`} title={`Smaller map · ${bindingLabel(bindings, 'chartSmaller')}`}  disabled={(data.chartSize ?? 2) === 0} onClick={event => { onResize(-1); event.currentTarget.blur(); }}><Icon name="minus" size={12}/></button><button aria-label={`Increase minimap size · ${bindingLabel(bindings, 'chartLarger')}`} title={`Larger map · ${bindingLabel(bindings, 'chartLarger')}`}  disabled={(data.chartSize ?? 2) === 4} onClick={event => { onResize(1); event.currentTarget.blur(); }}><Icon name="plus" size={12}/></button></div>
   </div>;

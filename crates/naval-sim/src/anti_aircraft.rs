@@ -25,17 +25,29 @@ pub fn range(m: &MountDefinition) -> f64 {
 pub fn surface_allowed(d: &ShipDefinition, m: &MountDefinition) -> bool {
     m.weapon.caliber_m > 0.08 || !d.mounts.iter().any(|m| m.weapon.caliber_m > 0.08)
 }
+fn nearer_distance(delta: Vec3, closest: f64) -> Option<f64> {
+    // Reject clearly farther aircraft before paying for the scaled hypot/FMA
+    // implementation in WASM. Keep a wide rounding margin around the boundary;
+    // candidates and ties still use the original norm and strict comparison.
+    if dot(delta, delta) > closest * closest * (1.0 + 32.0 * f64::EPSILON) {
+        return None;
+    }
+    let distance = length(delta);
+    (distance < closest).then_some(distance)
+}
 fn clear_lane(actor: &Vessel, from: Vec3, to: Vec3, actors: &[Vessel], air: &Aviation) -> bool {
     let delta = sub(to, from);
     let distance = length(delta);
-    let direction = normalize(delta);
-    !air.planes().iter().any(|p| {
+    let direction = scale(delta, 1.0 / if distance == 0.0 { 1.0 } else { distance });
+    !air.iter_planes().any(|p| {
         if p.team != actor.team || !airborne(p) {
             return false;
         }
         let relative = sub(p.position, from);
         let along = dot(relative, direction);
-        along > 0.0 && along < distance && length(sub(relative, scale(direction, along))) < 20.0
+        along > 0.0
+            && along < distance
+            && nearer_distance(sub(relative, scale(direction, along)), 20.0).is_some()
     }) && !actors.iter().any(|f| {
         f.motion.id != actor.motion.id && f.team == actor.team && !f.damage.sunk && {
             let h = &f.definition().hull;
@@ -111,23 +123,21 @@ pub fn update_observed(
                     (k.tick - c.last_observed_tick) as f64 / crate::rules::TICK_RATE as f64,
                 ),
             );
-            let d = length(sub(point, origin));
-            if d < closest
+            if let Some(d) = nearer_distance(sub(point, origin), closest)
                 && let Some(id) = k.sensors.resolve_contact(actor.team, &c.id)
             {
                 closest = d;
-                target = Some((id.to_owned(), point, c.velocity));
+                target = Some((id, point, c.velocity));
             }
         }
     } else {
-        for p in air.planes() {
+        for p in air.iter_planes() {
             if p.hp <= 0.0 || p.team == actor.team || !airborne(p) || on_flight_deck(p) {
                 continue;
             }
-            let d = length(sub(p.position, origin));
-            if d < closest {
+            if let Some(d) = nearer_distance(sub(p.position, origin), closest) {
                 closest = d;
-                target = Some((p.id.clone(), p.position, p.velocity))
+                target = Some((p.id.as_str(), p.position, p.velocity))
             }
         }
     }
@@ -137,6 +147,7 @@ pub fn update_observed(
         }
         return false;
     };
+    let target_id = target_id.to_owned();
     let discipline = state.aa_discipline.get_or_insert_with(Default::default);
     let inbound = dot(target_velocity, sub(origin, target_position)) > 0.0;
     let pressure = 1.0 - state.hp / 100.0
@@ -233,7 +244,10 @@ pub fn update_observed(
             let clear = knowledge.is_none_or(|k| {
                 crate::sensors::line_visible(position, actual.position, k.islands, k.terrain)
             });
-            if clear && length(sub(endpoint, hit_position)) < if heavy { 14.0 } else { 6.0 } {
+            if clear
+                && nearer_distance(sub(endpoint, hit_position), if heavy { 14.0 } else { 6.0 })
+                    .is_some()
+            {
                 actual.hp -= aa_damage(m.weapon.caliber_m);
             }
         }
@@ -261,4 +275,47 @@ pub fn update_observed(
         });
     }
     true
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn distance_rejection_preserves_the_exact_norm_and_strict_boundary() {
+        let mut random = 0x6e617661u32;
+        for i in 0..200_000 {
+            let mut sample = || {
+                random = random.wrapping_mul(1664525).wrapping_add(1013904223);
+                (random as f64 / u32::MAX as f64 - 0.5) * 40000.0
+            };
+            let delta = [sample(), sample(), sample()];
+            let norm = length(delta);
+            let closest = match i % 4 {
+                0 => 3200.0,
+                1 => norm,
+                2 => f64::from_bits(norm.to_bits() + 1),
+                _ => f64::from_bits(norm.to_bits() - 1),
+            };
+            assert_eq!(
+                nearer_distance(delta, closest),
+                (norm < closest).then_some(norm)
+            );
+        }
+        for delta in [
+            [0.0; 3],
+            [1e-200; 3],
+            [1e200; 3],
+            [f64::INFINITY; 3],
+            [f64::NAN; 3],
+        ] {
+            for closest in [0.0, 1e-199, 1200.0, 1e201, f64::INFINITY] {
+                let norm = length(delta);
+                assert_eq!(
+                    nearer_distance(delta, closest),
+                    (norm < closest).then_some(norm)
+                );
+            }
+        }
+    }
 }
