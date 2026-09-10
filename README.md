@@ -142,13 +142,17 @@ When your ship is hit, a salmon arc around the sight points toward the incoming 
 
 Shell strikes also leave lasting marks on the ship itself: penetrations have dark punctures and torn paint, stopped AP rounds leave steel dents, and ricochets score a scrape along the incoming direction. Larger calibers leave larger marks. Scars conform to the visible mesh and follow hull movement, sinking and turret rotation. They persist while paused, hide in Armor/Internals inspection, and clear when the ship resets or returns to port. Each ship retains its latest 96 marks, batched by struck mesh. AP and HE use their respective strike marks, with broader scorch marks for HE contact bursts. These are surface decals and gameplay approximations, not holes cut through the model.
 
-## PvE fleet command (in development)
+## PvE fleet command
 
 Choose **PvE Fleet Command** in port to assemble task groups, then place ships or whole formations on the circular deployment chart. Each team is limited to 200,000 tonnes, 15 ships and 100 embarked aircraft. Enemy strength scales to the selected fleet; its composition and deployment stay private and remain fixed while you arrange your ships. **New opponent** explicitly changes the mission seed.
 
-Surface groups begin on station; rear groups patrol with assigned escorts. Fleet command separates selecting a ship, following its camera and taking its helm. Captains navigate and operate guns/AA; torpedoes start held. The current command interface supports routes, holds, escorts, focus fire, weapons policy, named control groups and local tactical pause. Observation reports replace the omniscient enemy roster in this mode.
+Setup and deployment fill the screen. Drag catalog ships into **Group 1**, **Group 2**, and subsequent groups, or drag existing ships between groups. In deployment, drag a roster ship or selected formation onto the chart; drag its rotation handle to change heading. Scroll to zoom, drag empty water to pan, and use Undo to restore a placement.
 
-This branch is still implementing the [agreed PvE plan](docs/pve-fleet-command-plan.md). See [implementation status](docs/pve-implementation-status.md) for remaining completed-mission acceptance, attack coordination, carrier inventory/logistics, air-search and validation work. Existing Custom/online rules retain their current behavior.
+In fleet command, **left-drag pans**, **Shift-left-drag box-selects**, and **Ctrl/Cmd-drag changes the camera angle**. Middle-drag also pans; scroll zooms, arrow keys pan, and Shift-arrow keys change angle. **Move** previews a line to the pointer; click water to place a waypoint, or Shift-click to append. Owned ship routes stay visible after deselection. **Aircraft** opens the air panel with carrier buttons and aircraft thumbnails.
+
+Fleet command separates selecting a ship, following its camera and taking its helm. Take helm restores the regular sailing, gunnery and minimap controls; Give back helm returns control to the captain. Captains navigate and operate guns/AA; torpedoes start held. Routes, holds, escorts, focus fire, weapons policy, named control groups and local tactical pause are available. Observation reports replace the omniscient enemy roster; enemy exterior motion is smoothed using only permitted reports.
+
+The desktop MVP is delivered; see [implementation status](docs/pve-implementation-status.md) for acceptance evidence and deferred work. The broader [PvE plan](docs/pve-fleet-command-plan.md) is a roadmap, not the completion checklist. Existing Custom/online rules retain their current behavior.
 
 ## Architecture
 

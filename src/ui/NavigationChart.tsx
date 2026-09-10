@@ -4,10 +4,12 @@ import { BUOYS } from '../game/Game';
 import type { Telemetry } from '../game/types';
 import { Icon } from './Icons';
 import { bindingLabel, type Keybindings } from '../game/keybindings';
+import type { ContactTrack } from '../multiplayer/generated/ContactTrack';
+import { shipPreset } from '../ships/presets';
 
 const CHART_RANGES = [1000, 2000, 4000, 8000];
 
-export function NavigationChart({ data, onResize, bindings, onWaypoint }: { onWaypoint?(x: number, z: number): void; data: Telemetry; bindings: Keybindings; onResize(direction: number): void }) {
+export function NavigationChart({ data, reports = [], onResize, bindings, onWaypoint }: { reports?: readonly ContactTrack[]; onWaypoint?(x: number, z: number): void; data: Telemetry; bindings: Keybindings; onResize(direction: number): void }) {
   const clipId = useId();
   const [zoom, setZoom] = useState(3);
   const radius = CHART_RANGES[zoom];
@@ -21,12 +23,17 @@ export function NavigationChart({ data, onResize, bindings, onWaypoint }: { onWa
         {data.islands?.map(island => <polygon key={island.id} points={coastOutline(island).map(([x, z]) => point(x, z)).join(' ')} fill="#65786a" fillOpacity=".65" stroke="#b3c5af" strokeWidth=".8"><title>Coastline</title></polygon>)}
         <path d="M110 110 57 8Q110-10 163 8Z" className="chart-view-cone" transform={`rotate(${(data.viewBearing ?? data.ship.heading) * 180 / Math.PI} 110 110)`}/>
         <polyline points={data.trail.map(p => point(p.x, p.z)).join(' ')} className="chart-trail"/>
-        {data.combat?.airContacts?.map(contact => <path key={contact.id} d="M-3 0h6M0-3v6" transform={`translate(${point(contact.x, contact.z)})`} stroke={contact.team === 'friendly' ? 'var(--fleet-active)' : '#ff9c8d'} strokeWidth="1.2"><title>{contact.team} aircraft</title></path>)}
+        {data.combat?.airContacts?.map(contact => <path key={contact.id} d="M-3 0h6M0-3v6" transform={`translate(${point(contact.x, contact.z)})`} stroke={contact.team === 'friendly' ? 'var(--fleet-active)' : '#ff9c8d'} strokeWidth="1.2"><title>{`${contact.team} aircraft`}</title></path>)}
         {BUOYS.map((buoy, i) => <circle key={i} cx={110 + (buoy.x - data.ship.x) * scale} cy={110 + (buoy.z - data.ship.z) * scale} r="2.5" fill={buoy.color} stroke="#d9eee6" strokeWidth=".6"/>)}
         {data.combat?.contacts.filter(contact => contact.id !== data.ship.id && !contact.sunk).map(contact => <g key={contact.id} transform={`translate(${point(contact.x, contact.z)})`}>
-          <title>{contact.team === 'friendly' ? 'Friendly' : 'Enemy'} · {contact.name}</title>
+          <title>{`${contact.team === 'friendly' ? 'Friendly' : 'Enemy'} · ${contact.name}`}</title>
           <path d="m0-7 4 10-4-2-4 2Z" className={`chart-contact ${contact.team === 'friendly' ? 'chart-friendly' : ''}`} transform={`rotate(${contact.heading * 180 / Math.PI})`}/>
           {contact.id === data.combat?.targetId && <circle r="10" fill="none" stroke="var(--accent)" strokeWidth="1"/>}
+        </g>)}
+        {reports.map(report => <g key={report.id} transform={`translate(${point(report.estimatedPosition[0], report.estimatedPosition[2])})`} opacity={report.status === 'lost' || report.status === 'stale' ? .55 : 1}>
+          <title>{`${report.identifiedPresetId ? shipPreset(report.identifiedPresetId).name : report.classification ?? (report.kind === 'aircraft' ? 'Aircraft contact' : 'Surface contact')} · ${report.affiliation} · ${report.status} · ±${Math.round(report.uncertaintyM)} m`}</title>
+          {report.kind === 'surface' && <circle r={Math.max(3, report.uncertaintyM * scale)} fill="none" stroke={report.affiliation === 'hostile' ? '#ff9c8d' : 'var(--fleet-gold)'} strokeOpacity=".45" strokeWidth=".7" strokeDasharray="2 2"/>}
+          <path d={report.kind === 'aircraft' ? 'M-3 0h6M0-3v6' : 'M0-5 4 0 0 5-4 0Z'} fill="none" stroke={report.affiliation === 'hostile' ? '#ff9c8d' : 'var(--fleet-gold)'} strokeWidth="1.2"/>
         </g>)}
       </g>
       <path d="m110 101 4 13-4-3-4 3Z" fill="var(--fleet-active)" stroke="#142c35" strokeWidth=".8" transform={`rotate(${data.ship.heading * 180 / Math.PI} 110 110)`}/>

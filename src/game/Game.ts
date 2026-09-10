@@ -704,7 +704,7 @@ export class Game {
       const alpha = this.inPort ? 1 : this.simulation.interpolationAlpha;
       this.fleetViews.forEach(view => view.update(alpha));
       this.observedShipViews?.update(this.simulation.observedShips ?? [], this.simulation.tick, !this.inPort && !this.inspecting,
-        this.airOperationsOpen ? undefined : this.cameraShipView.actor.motion.id);
+        this.airOperationsOpen ? undefined : this.cameraShipView.actor.motion.id, dt);
       // A salvo must not synchronously project scars onto every struck hull.
       // Share the budget across the fleet and rotate which hull gets first use.
       const impactBudget = { remainingMs: 2 };
@@ -923,6 +923,14 @@ export class Game {
     // Use the same depth and viewport clipping as ship-view nametags.
     const point = projectShipLabel(new THREE.Vector3(x, altitude, z), this.camera, this.host.clientWidth / this.hudScale, this.host.clientHeight / this.hudScale);
     return point ? [point.x, point.y] : null;
+  }
+  projectContact(id: string): [number, number] | null {
+    const report = this.simulation.observationTracks?.find(contact => contact.id === id);
+    if (!report) return null;
+    // Keep current report markers on their smoothed exterior. Lost/unidentified
+    // tracks retain their published estimate, without any private actor lookup.
+    const exterior = report.status === 'tracked' ? this.observedShipViews?.position(id) : undefined;
+    return this.projectAirMap(exterior?.x ?? report.estimatedPosition[0], exterior?.z ?? report.estimatedPosition[2]);
   }
   projectAirMapPath(points: Vec3[], closed = false): string {
     return projectAirMapPath(points, this.camera, this.host.clientWidth / this.hudScale, this.host.clientHeight / this.hudScale, closed);

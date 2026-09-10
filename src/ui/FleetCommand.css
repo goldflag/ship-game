@@ -43,7 +43,7 @@
 .fleet-command-top strong { font:500 21px 'Barlow Condensed',sans-serif; }
 .fleet-command-top time { color:var(--fleet-muted); }
 .fleet-command-top nav { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:5px; }
-.fleet-command-roster { position:absolute; left:24px; top:24px; width:242px; max-height:calc(100% - 310px); display:flex; flex-direction:column; }
+.fleet-command-roster { position:absolute; left:0; top:0; width:242px; border-top:0; border-left:0; border-radius:0; max-height:calc(100% - 310px); display:flex; flex-direction:column; }
 .fleet-command-roster-list { overflow:auto; scrollbar-width:thin; }
 .fleet-command-roster-list>button { display:block; width:100%; padding:9px 10px; border:0; border-bottom:1px solid var(--fleet-line); background:transparent; text-align:left; }
 .fleet-command-roster-list>button>span { display:flex; justify-content:space-between; gap:10px; }
@@ -80,8 +80,8 @@
 .fleet-command-feedback p[data-state=accepted] { color:var(--fleet-active); }
 .fleet-command-feedback p[data-state=rejected] { color:#ffb5a6; }
 .fleet-command-feedback p[data-state=superseded] { color:var(--fleet-gold); }
-.fleet-command-card.raised { bottom:215px; }
-.fleet-command-air { position:absolute; left:24px; right:24px; bottom:16px; height:184px; display:flex; flex-direction:column; }
+.fleet-command-card.raised { bottom:230px; }
+.fleet-command-air { position:absolute; left:0; right:0; bottom:0; height:218px; border-bottom:0; border-left:0; border-right:0; border-radius:0; display:flex; flex-direction:column; }
 .fleet-command-air-body { display:flex; gap:14px; min-height:0; padding:10px; }
 .fleet-command-flights { display:flex; gap:6px; overflow:auto; min-width:0; flex:1; padding-bottom:5px; scrollbar-width:thin; }
 .fleet-command-flights>button { display:block; flex:0 0 168px; text-align:left; }
@@ -110,9 +110,9 @@
 @container hud (max-width:1050px) {
   .fleet-command-top { left:242px; right:16px; }
   .fleet-command-top>div { display:none; }
-  .fleet-command-roster { left:16px; top:16px; width:208px; }
+  .fleet-command-roster { left:0; top:0; width:208px; }
   .fleet-command-card { width:calc(100% - 32px); grid-template-columns:195px minmax(0, 1fr); }
-  .fleet-command-air { left:16px; right:16px; }
+  .fleet-command-air { left:0; right:0; }
   .fleet-command-decks { flex-basis:180px; }
 }
 @container hud (max-width:720px) {
@@ -120,7 +120,7 @@
   .fleet-command-top nav { gap:4px; }
   .fleet-command button { font-size:12px; min-height:32px; padding:5px 7px; }
   .fleet-command kbd { display:none; }
-  .fleet-command-roster { top:92px; left:12px; width:190px; max-height:28%; }
+  .fleet-command-roster { top:0; left:0; width:190px; max-height:28%; }
   .fleet-command-contacts { top:92px; right:12px; width:230px; max-height:32%; }
   .fleet-command-paused { top:76px; width:max-content; max-width:calc(100% - 24px); font-size:11px; }
   .fleet-command-card { bottom:12px; width:calc(100% - 24px); grid-template-columns:150px minmax(0, 1fr); max-height:34%; }
@@ -128,7 +128,7 @@
   .fleet-command h2 { font-size:18px; }
   .fleet-command-identity p { font-size:11px; }
   .fleet-command-card.raised { bottom:calc(22% + 24px); }
-  .fleet-command-air { left:12px; right:12px; bottom:12px; height:22%; }
+  .fleet-command-air { left:0; right:0; bottom:0; height:22%; }
   .fleet-command-air>header { padding:6px 8px; gap:6px; }
   .fleet-command-air>header label { max-width:55%; font-size:11px; }
   .fleet-command-decks { flex-basis:140px; }
@@ -144,5 +144,19 @@
 .fleet-command-search>p { margin-top:6px; font-size:11px; color:var(--fleet-muted); }
 .fleet-command-search-trail { fill:none; stroke:var(--fleet-active); stroke-width:3; pointer-events:none; }
 
-.game-shell .fleet-command-chart:focus-visible,.fleet-command-chart:focus-visible { outline:2px solid var(--fleet-gold) !important; outline-offset:-3px; }
+.game-shell .fleet-command-chart:focus-visible,.fleet-command-chart:focus-visible { outline:none !important; }
 .fleet-command-search-center { pointer-events:none; fill:none; stroke:var(--fleet-gold); stroke-width:2; }
+
+.fleet-command-chart { cursor:grab; }
+.fleet-command-chart:active { cursor:grabbing; }
+.fleet-command-course { opacity:.55; pointer-events:none; }
+.fleet-command-course.selected { opacity:1; }
+.fleet-command-waypoint { color:var(--fleet-gold); }
+.fleet-command-waypoint :is(circle,path) { fill:none; stroke:currentColor; stroke-width:1.5; }
+.fleet-command-waypoint text { fill:currentColor; font-size:11px; paint-order:stroke; stroke:#07131b; stroke-width:3px; }
+.fleet-command-move-preview { fill:none; stroke:var(--fleet-gold); stroke-width:1.6; stroke-dasharray:5 4; pointer-events:none; }
+.fleet-command-aircraft-thumbnail { display:block; width:100%; height:60px; object-fit:contain; }
+.fleet-command-carriers { display:flex; gap:5px; min-width:0; max-width:75%; overflow:auto; }
+.fleet-command-carriers button { flex-shrink:0; }
+.fleet-command-helm-controls { position:absolute; left:0; top:0; display:flex; align-items:center; flex-wrap:wrap; gap:6px; max-width:420px; padding:8px; }
+.fleet-command-helm-controls strong { flex-basis:100%; }

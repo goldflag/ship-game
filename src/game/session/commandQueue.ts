@@ -20,6 +20,8 @@ function replacementKey(command: Command): string | undefined {
 export class CommandQueue {
   readonly receipts: OrderReceipt[] = [];
   private pending: CommandEnvelope[] = [];
+  // Keep queued/in-flight receipts alive even when display history rotates out.
+  private outstanding = new Map<number, OrderReceipt>();
   private sequence = 0;
   constructor(readonly capacity = 128) {}
   get length(): number { return this.pending.length; }
@@ -45,11 +47,16 @@ export class CommandQueue {
     return commands;
   }
   acknowledge(sequence: number, state: OrderReceipt['state'], message?: string): void {
-    const receipt = this.receipts.find(r => r.sequence === sequence);
+    const receipt = this.outstanding.get(sequence) ?? this.receipts.find(r => r.sequence === sequence);
     if (receipt) { receipt.state = state; receipt.message = message; }
+    if (state !== 'queued' && state !== 'sent') this.outstanding.delete(sequence);
   }
-  clear(): void { this.pending.length = 0; this.receipts.length = 0; }
+  clear(): void {
+    for (const sequence of this.outstanding.keys()) this.acknowledge(sequence, 'superseded', 'Session orders cleared.');
+    this.pending.length = 0; this.receipts.length = 0;
+  }
   private record(receipt: OrderReceipt): void {
+    if (receipt.state === 'queued') this.outstanding.set(receipt.sequence, receipt);
     this.receipts.push(receipt);
     if (this.receipts.length > 48) this.receipts.shift();
   }

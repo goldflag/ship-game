@@ -21,12 +21,17 @@ export function useMapProjection(ref: RefObject<HTMLElement | SVGSVGElement | nu
     const update = () => {
       ref.current?.querySelectorAll<HTMLElement | SVGElement>('[data-map-position]').forEach(element => {
         const [x, y, z] = JSON.parse(element.dataset.mapPosition!) as number[];
-        const point = game.projectAirMap(x, z, y);
+        const point = element.dataset.contactMarker ? game.projectContact(element.dataset.contactMarker) : game.projectAirMap(x, z, y);
         element.style.display = point ? '' : 'none';
         if (!point) return;
         const [left, top] = point;
         if (element instanceof SVGElement) element.setAttribute('transform', `translate(${left} ${top})`);
         else { element.style.left = `${left}px`; element.style.top = `${top}px`; }
+        element.querySelectorAll<SVGElement>('[data-map-heading]').forEach(glyph => {
+          const heading = Number(glyph.dataset.mapHeading);
+          const forward = game.projectAirMap(x + Math.sin(heading) * 10, z - Math.cos(heading) * 10, y);
+          if (forward) glyph.setAttribute('transform', `rotate(${Math.atan2(forward[0] - left, top - forward[1]) * 180 / Math.PI})`);
+        });
       });
       ref.current?.querySelectorAll<SVGPathElement>('[data-map-path]').forEach(element => {
         const points = JSON.parse(element.dataset.mapPath!) as Vec3[];

@@ -7,6 +7,31 @@ import { ShipContext } from '../ui/ShipContext';
 import { defaultKeybindings } from './keybindings';
 import type { Telemetry } from './types';
 import { updateCapability } from '../simulation/stability';
+import { Game } from './Game';
+
+test('PvE helm restores regular ship instruments without granting them to follow or chart views', () => {
+  const definition = shipPreset('bismarck'), simulation = new CombatSimulation(definition);
+  const game = Object.assign(Object.create(Game.prototype), { simulation, selectedShipIds: [simulation.ship.id], controlGroups: new Map() }) as Game;
+  const data: Telemetry = { ship: simulation.ship, shipDefinition: definition, order: 1, camera: 'Chase', fps: 60, backend: 'test', trail: [], combat: simulation.telemetry('main', [0, 0, -5000]), fleetCommandMode: true, controlledShipId: simulation.ship.id };
+  const render = (state: Telemetry) => renderToStaticMarkup(<ShipContext.Provider value={definition}><FleetHud data={state} game={game} visible bindings={defaultKeybindings()}/></ShipContext.Provider>);
+  const ordinary = render({ ...data, fleetCommandMode: false });
+  const helm = render(data);
+  for (const instrument of ['Ship condition and helm', 'Engine telegraph', 'Rudder order', 'Navigation minimap', 'fleet-sight-chase', 'aria-label="Weapons"']) {
+    expect(ordinary).toContain(instrument);
+    expect(helm).toContain(instrument);
+  }
+  expect(helm.match(/aria-label="Weapons"/g)).toHaveLength(1);
+  for (const state of [
+    { ...data, controlledShipId: undefined, spectatedShipId: simulation.ship.id },
+    { ...data, controlledShipId: 'another-ship', spectatedShipId: simulation.ship.id },
+    { ...data, airOperationsOpen: true },
+  ]) {
+    const html = render(state);
+    expect(html).not.toContain('Ship condition and helm');
+    expect(html).not.toContain('fleet-sight-chase');
+    expect(html).not.toContain('Navigation minimap');
+  }
+});
 
 test('the compact shell cycle exposes the current load, next choice, stocks and remapped shortcut', () => {
   const definition = shipPreset('bismarck'), sim = new CombatSimulation(definition);

@@ -1,6 +1,6 @@
 # PvE implementation status
 
-## Active objective: playable desktop PvE MVP (2026-09-09)
+## Delivered objective: playable desktop PvE MVP (2026-09-09)
 
 Deliver a playable desktop loop through the actual UI: **port → fleet setup → deployment → battle → win/loss → results → restart or new battle**. Use the selected [variation D](pve-ui-studies/README.md) and the existing shared Rust simulation. The user's latest scope explicitly supersedes the earlier requirement to finish the entire [PvE fleet-command plan](pve-fleet-command-plan.md) before delivery.
 
@@ -26,7 +26,19 @@ Preserve the existing **200,000-tonne / 15-ship / 100-aircraft** mission limits 
 
 Known follow-up limitations are match length and map-label crowding, not release gates for this scope. The representative completed battle lasted 46:43 of simulation time; distant forces require player pursuit, and broader balance remains deferred. The results-screen restart was exercised directly; new-mission entry was exercised through return to port and the fleet setup's New opponent control. The direct results-screen New battle shortcut was not clicked in this browser pass.
 
-### MVP baseline verification (2026-09-09)
+### Requested desktop interaction polish (2026-09-09)
+
+Completed the follow-up UI scope without restoring carrier physics or expanding the MVP roadmap:
+
+- Fleet chart uses left-drag pan, Shift-left-drag selection, Ctrl/Cmd-drag orbit and close wheel zoom. The full-chart gold focus outline is removed; individual keyboard controls retain focus indicators.
+- Move shows a cursor destination and live route lines. Queued waypoints remain visible after deselection and through dispatch until authority updates. Receipt eviction, rejection, supersession and camera navigation have regression coverage.
+- Fleet roster and air panel meet the screen edges. One Aircraft tab opens carrier buttons and aircraft thumbnails. Aircraft uncertainty rings are removed from both fleet chart and helm minimap.
+- Reported enemy exteriors smoothly correct position and heading using only allowed observations. Take helm restores the regular helm/HP controls, sight, weapons and minimap.
+- Opaque fullscreen assembly/deployment supports catalog-to-group and between-group dragging, default Group N names, roster thumbnails, chart drag/drop, rotation handles, wheel zoom, water pan and undo. Opening-position selectors and redundant add/group dropdown controls are removed.
+
+Validation: **59 tests across 12 files, 992 assertions, production build passed**. Actual Chromium/WebGPU UI checks used a four-ship fleet with both carriers (104,917 t / 96 aircraft), then a three-ship confirmation fleet. Native UI gestures verified fleet assignment/transfers, individual and group deployment movement/rotation with exact undo, zoom/pan, box selection, camera orbit, live Move preview while keyboard-panning, persistent deselected waypoints, accepted orders after pause/resume, carrier buttons/thumbnails, and restored helm/sight/minimap with return to command. Fullscreen views were inspected at 1440×1000 and 1280×800. Logs, screenshots and gesture results are in `.build/pve-polish/`; no new completed-battle or balance claim is made by this focused pass. No confirmed blocker remains for this requested polish.
+
+### Original MVP acceptance evidence (2026-09-09)
 
 The pinned Bun 1.3.3 runtime passes **116 focused client/UI/session tests** across 16 files. Coverage includes setup budgets and deployment, startup/loading/results UI, input and pause ordering, real-WASM hidden-state projection, carrier air orders, separate follow/helm authority and restart/debrief state. **43 relevant native core/protocol tests** pass, including mission, generation, observed targeting/air, compatibility carrier loss, air rules and control authority. `bun run build` passes with rebuilt baseline WASM, all ship/aircraft asset checks and TypeScript. No model or generated tracked file changed. Logs are retained in `.build/pve-mvp/build.log`, `client-ui.log` and `client-session.log`.
 

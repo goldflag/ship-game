@@ -15,9 +15,10 @@ import { KNOTS_PER_MPS } from '../simulation/ship';
 import { SquadronLabels, useMapProjection } from './AirOperations';
 import { AirMapNavigation } from './airMapNavigation';
 import { actionAvailable, SQUADRON_ACTIONS, squadronTargetOrder, type SquadronAction, type SquadronTarget } from './airCommands';
-import { duration, mission, roleIcon, roleLabel } from './airFormat';
+import { duration, mission, roleLabel } from './airFormat';
 import { Icon } from './Icons';
 import { assetUrl } from '../assetUrl';
+import { advancePendingRoute, type PendingRoute } from './pendingFleetRoute';
 import { shipPreset } from '../ships/presets';
 import './FleetCommand.css';
 
@@ -83,14 +84,17 @@ export function FleetCommand({ data, game, bindings }: { data: Telemetry; game: 
   const [armed, setArmed] = useState<ArmedOrder>();
   const [feedback, setFeedback] = useState('');
   const [groupSlot, setGroupSlot] = useState(1);
-  const [groupName, setGroupName] = useState('Task group');
+  const [groupName, setGroupName] = useState('Group');
   const [groupsOpen, setGroupsOpen] = useState(false);
   const [contactId, setContactId] = useState<string>();
   const map = useRef<SVGSVGElement>(null);
   const nav = useRef(new AirMapNavigation());
-  const drag = useRef<{ x: number; y: number; lastX: number; lastY: number; pan: boolean; additive: boolean; moved: boolean } | undefined>(undefined);
+  const drag = useRef<{ x: number; y: number; lastX: number; lastY: number; mode: 'pan' | 'orbit' | 'select'; pointerId: number; additive: boolean; moved: boolean } | undefined>(undefined);
   const [box, setBox] = useState<{ x: number; y: number; width: number; height: number }>();
   const ignoreClick = useRef(false);
+  const pointer = useRef<{ x: number; y: number } | undefined>(undefined);
+  const [movePoint, setMovePoint] = useState<[number, number]>();
+  const [pendingRoutes, setPendingRoutes] = useState<Record<string, PendingRoute>>({});
   useMapProjection(map, game, mapOpen);
   const wings = game.simulation.actors.filter(a => a.team === 'friendly' && a.airWing).map(a => ({ owner: a, wing: airWingTelemetry(a, game.simulation.actors)! }));
   const flights = wings.flatMap(({ owner, wing }) => wing.groups.map(f => ({ ...f, ownerId: owner.motion.id, carrierName: nameFor(owner.motion.id) })));
@@ -103,9 +107,9 @@ export function FleetCommand({ data, game, bindings }: { data: Telemetry; game: 
   const selectedReport = observations.find(c => c.id === contactId);
   const current = useRef({ data, armed, filter, selected, selectedFlights, actionable });
   current.current = { data, armed, filter, selected, selectedFlights, actionable };
-  const selectShips = (shipIds: string[]) => { game.selectFleetShips(shipIds); game.selectFlights([]); setContactId(undefined); setArmed(undefined); };
+  const selectShips = (shipIds: string[]) => { setFilter('ships'); setAirOpen(false); game.selectFleetShips(shipIds); game.selectFlights([]); setContactId(undefined); setArmed(undefined); };
   const selectShip = (id: string, additive: boolean) => selectShips(additive ? ids.includes(id) ? ids.filter(s => s !== id) : [...ids, id] : [id]);
-  const selectAir = (id: string, additive = false) => { game.selectFlight(id, additive); game.selectFleetShips([]); setContactId(undefined); setArmed(undefined); setAirOpen(true); };
+  const selectAir = (id: string, additive = false) => { setFilter('aircraft'); game.selectFlight(id, additive); game.selectFleetShips([]); setContactId(undefined); setArmed(undefined); setAirOpen(true); };
   const issueAir = (target: SquadronTarget) => {
     if (current.current.armed === 'search') { setFeedback('Choose water for the center of the search area.'); return; }
     const action = typeof current.current.armed === 'object' ? current.current.armed.kind : undefined;
@@ -132,7 +136,15 @@ export function FleetCommand({ data, game, bindings }: { data: Telemetry; game: 
   const move = (point: [number, number], append: boolean) => {
     const lead = recipients[0];
     if (!lead) { setFeedback('Select ships before giving a destination.'); return; }
+    const previous = pendingRoutes[lead.id]?.points ?? (orders[lead.id]?.movement.type === 'route' ? routePoints(lead, orders[lead.id], ships) : []);
+    const points: Vec3[] = append && previous.length > 1 ? [...previous, [point[0], 0, point[1]]] : [[lead.x, 0, lead.z], [point[0], 0, point[1]]];
+    const before = game.simulation.orderReceipts?.at(-1);
     game.simulation.routeShip?.(lead.id, [point], speedKn / KNOTS_PER_MPS, false, append);
+    const receipt = game.simulation.orderReceipts?.at(-1);
+    if (receipt && receipt !== before && receipt.shipId === lead.id && receipt.command === 'route') {
+      // Capture the exact object now, outside React's deferred state updater.
+      setPendingRoutes(routes => ({ ...routes, [lead.id]: { points, receipt } }));
+    }
     if (recipients.length > 1) escort(lead.id);
     setArmed(undefined); setFeedback(`${append ? 'Waypoint appended' : 'Route queued'} · ${speedKn} kn${recipients.length > 1 ? ` · ${formation}` : ''}`);
   };
@@ -178,7 +190,7 @@ export function FleetCommand({ data, game, bindings }: { data: Telemetry; game: 
   };
   const saveGroup = (slot = groupSlot) => {
     if (!game.selectedShipIds.length) return;
-    game.controlGroups.set(slot, { name: groupName.trim() || `Task group ${slot}`, shipIds: [...game.selectedShipIds] });
+    game.controlGroups.set(slot, { name: groupName.trim() || `Group ${slot}`, shipIds: [...game.selectedShipIds] });
     setFeedback(`Task group ${slot} saved · ${game.selectedShipIds.length} ships`);
   };
   const handlers = useRef({ saveGroup }); handlers.current = { saveGroup };
@@ -190,8 +202,10 @@ export function FleetCommand({ data, game, bindings }: { data: Telemetry; game: 
       const digit = /^Digit[1-9]$/.test(event.code) ? Number(event.code.at(-1)) : 0;
       const mapActive = !!current.current.data.airOperationsOpen;
       const toggle = bindings.airOperations.includes(event.code);
-      const pan = mapActive && !event.ctrlKey && !event.metaKey && nav.current.key(event.code, true);
-      const handled = toggle || event.code === 'Space' || (mapActive && (digit || pan || event.code === 'Escape'));
+      const angle = mapActive && event.shiftKey && /^Arrow/.test(event.code);
+      if (angle) game.orbitAirMap(event.code === 'ArrowLeft' ? -12 : event.code === 'ArrowRight' ? 12 : 0, event.code === 'ArrowUp' ? 12 : event.code === 'ArrowDown' ? -12 : 0);
+      const pan = !angle && mapActive && !event.ctrlKey && !event.metaKey && nav.current.key(event.code, true);
+      const handled = toggle || event.code === 'Space' || (mapActive && (digit || pan || angle || event.code === 'Escape'));
       if (!handled) return;
       event.preventDefault(); event.stopImmediatePropagation();
       if (event.repeat) return;
@@ -207,7 +221,7 @@ export function FleetCommand({ data, game, bindings }: { data: Telemetry; game: 
     return () => { window.removeEventListener('keydown', keydown, true); window.removeEventListener('keyup', keyup); window.removeEventListener('blur', clear); nav.current.clear(); };
   }, [game, bindings]);
   useEffect(() => {
-    if (!mapOpen) { nav.current.clear(); setBox(undefined); setArmed(undefined); return; }
+    if (!mapOpen) { nav.current.clear(); drag.current = undefined; setBox(undefined); setArmed(undefined); return; }
     let previous = performance.now(), frame = 0;
     const animate = (now: number) => {
       const dt = (now - previous) / 1000; previous = now;
@@ -217,59 +231,115 @@ export function FleetCommand({ data, game, bindings }: { data: Telemetry; game: 
     };
     frame = requestAnimationFrame(animate); return () => cancelAnimationFrame(frame);
   }, [mapOpen, game]);
+  useEffect(() => {
+    if (!mapOpen) return;
+    // Camera frames include keyboard, wheel, fit and reset navigation, even when
+    // the pointer is stationary. Preview and click use the same water projection.
+    return game.onCameraFrame(() => {
+      if (current.current.armed !== 'move' || !pointer.current) return;
+      const point = game.airMapWater(pointer.current.x, pointer.current.y);
+      setMovePoint(previous => previous?.[0] === point?.[0] && previous?.[1] === point?.[1] ? previous : point);
+    });
+  }, [game, mapOpen]);
+  useEffect(() => {
+    const release = (event: PointerEvent) => {
+      if (drag.current?.pointerId !== event.pointerId) return;
+      // SVG handles in-chart releases first; this catches short gestures released
+      // over a panel before they acquired pointer capture.
+      drag.current = undefined; setBox(undefined);
+    };
+    window.addEventListener('pointerup', release); window.addEventListener('pointercancel', release);
+    return () => { window.removeEventListener('pointerup', release); window.removeEventListener('pointercancel', release); };
+  }, []);
   const startDrag = (event: ReactPointerEvent<SVGSVGElement>) => {
-    if (event.button === 2 || (event.target as Element).closest('[data-ship-marker]')) return;
-    drag.current = { x: event.clientX, y: event.clientY, lastX: event.clientX, lastY: event.clientY, pan: event.button === 1 || event.altKey, additive: event.shiftKey || event.ctrlKey || event.metaKey, moved: false };
-    event.currentTarget.setPointerCapture(event.pointerId);
+    if (event.button === 2) return;
+    const mode = event.ctrlKey || event.metaKey || event.altKey ? 'orbit' : event.button === 0 && event.shiftKey && !armed ? 'select' : 'pan';
+    drag.current = { x: event.clientX, y: event.clientY, lastX: event.clientX, lastY: event.clientY, mode, pointerId: event.pointerId, additive: event.ctrlKey || event.metaKey, moved: false };
   };
   const dragMap = (event: ReactPointerEvent<SVGSVGElement>) => {
-    const d = drag.current; if (!d) return;
-    d.moved ||= Math.hypot(event.clientX - d.x, event.clientY - d.y) > 5;
-    if (d.pan) game.panAirMap(event.clientX - d.lastX, event.clientY - d.lastY);
-    else if (d.moved && !armed) { const rect = event.currentTarget.getBoundingClientRect(); setBox({ x: Math.min(d.x, event.clientX) - rect.left, y: Math.min(d.y, event.clientY) - rect.top, width: Math.abs(event.clientX - d.x), height: Math.abs(event.clientY - d.y) }); }
+    const rect = event.currentTarget.getBoundingClientRect();
+    pointer.current = { x: event.clientX - rect.left, y: event.clientY - rect.top };
+    if (armed === 'move') setMovePoint(game.airMapWater(pointer.current.x, pointer.current.y));
+    const d = drag.current; if (!d || d.pointerId !== event.pointerId) return;
+    if (!event.buttons) { drag.current = undefined; setBox(undefined); return; }
+    if (!d.moved && Math.hypot(event.clientX - d.x, event.clientY - d.y) > 5) { d.moved = true; event.currentTarget.setPointerCapture(event.pointerId); }
+    if (d.moved && d.mode === 'pan') game.panAirMap(event.clientX - d.lastX, event.clientY - d.lastY);
+    else if (d.moved && d.mode === 'orbit') game.orbitAirMap(event.clientX - d.lastX, event.clientY - d.lastY);
+    else if (d.moved && !armed) setBox({ x: Math.min(d.x, event.clientX) - rect.left, y: Math.min(d.y, event.clientY) - rect.top, width: Math.abs(event.clientX - d.x), height: Math.abs(event.clientY - d.y) });
     d.lastX = event.clientX; d.lastY = event.clientY;
   };
   const endDrag = (event: ReactPointerEvent<SVGSVGElement>) => {
-    const d = drag.current; drag.current = undefined; setBox(undefined);
+    const d = drag.current;
+    if (d?.pointerId !== event.pointerId) return;
+    drag.current = undefined; setBox(undefined);
     if (!d?.moved) return;
     ignoreClick.current = event.button === 0;
-    if (d.pan || armed) return;
+    if (d.mode !== 'select' || armed) return;
     const rect = event.currentTarget.getBoundingClientRect();
     const inside = (x: number, y: number) => x + rect.left >= Math.min(d.x, event.clientX) && x + rect.left <= Math.max(d.x, event.clientX) && y + rect.top >= Math.min(d.y, event.clientY) && y + rect.top <= Math.max(d.y, event.clientY);
     const scaleX = rect.width / event.currentTarget.clientWidth, scaleY = rect.height / event.currentTarget.clientHeight;
     if (filter === 'ships') selectShips([...(d.additive ? game.selectedShipIds : []), ...ships.filter(s => { const p = game.projectAirMap(s.x, s.z); return !s.physicalLost && p && inside(p[0] * scaleX, p[1] * scaleY); }).map(s => s.id)]);
     else { game.selectFlights([...(d.additive ? game.selectedFlightIds : []), ...flights.filter(f => { const p = game.projectAirMap(f.position[0], f.position[2], f.position[1]); return f.airborne > 0 && p && inside(p[0] * scaleX, p[1] * scaleY); }).map(f => f.id)]); game.selectFleetShips([]); }
   };
-  const arm = (order: ArmedOrder) => { if (!mapOpen) game.enterFleetCommand(); setArmed(order); setFeedback(''); };
+  const arm = (order: ArmedOrder) => {
+    if (!mapOpen) game.enterFleetCommand(); setArmed(order); setFeedback('');
+    if (order === 'move') setMovePoint(pointer.current ? game.airMapWater(pointer.current.x, pointer.current.y) : undefined);
+  };
+  // Receipt references survive display-history eviction. Accepted routes remain
+  // visible until an authority frame after acknowledgement has been consumed.
+  useEffect(() => {
+    setPendingRoutes(routes => {
+      const next = { ...routes }; let changed = false;
+      for (const [id, pending] of Object.entries(routes)) {
+        const updated = ships.some(s => s.id === id && !s.physicalLost) ? advancePendingRoute(pending, game.simulation.tick) : undefined;
+        if (updated !== pending) { if (updated) next[id] = updated; else delete next[id]; changed = true; }
+      }
+      return changed ? next : routes;
+    });
+  }, [game, data]);
   const receipts = game.simulation.orderReceipts?.filter(r => r.command !== 'damage-control').slice(-3) ?? [];
+  if (!mapOpen && data.controlledShipId) return <div className="fleet-command"><section className="fleet-command-helm-controls" aria-label="Fleet helm controls"><strong>{subject?.name}</strong><button onClick={() => game.followFleetShip(data.controlledShipId!)}>Give back helm</button><button onClick={() => game.enterFleetCommand()}>Fleet command <kbd>M</kbd></button></section></div>;
   return <div className={`fleet-command ${mapOpen ? 'fleet-command-map' : 'fleet-command-follow'}`}>
     {mapOpen && <>
       <svg ref={map} className="fleet-command-chart" tabIndex={0} aria-label="Fleet command chart" data-armed={armed ? true : undefined}
         onKeyDown={e => { if (armed === 'search' && e.key === 'Enter') { e.preventDefault(); const r = e.currentTarget.getBoundingClientRect(); water({ clientX: r.left + r.width / 2, clientY: r.top + r.height / 2, shiftKey: false }, false); } }}
         onPointerDown={startDrag} onPointerMove={dragMap} onPointerUp={endDrag} onPointerCancel={() => { drag.current = undefined; setBox(undefined); }}
         onClick={e => { if (ignoreClick.current) { ignoreClick.current = false; return; } water(e, false); }}
-        onContextMenu={e => { e.preventDefault(); water(e, true); }} onWheel={e => { const r = e.currentTarget.getBoundingClientRect(); game.zoomAirMap(e.deltaY, e.clientX - r.left, e.clientY - r.top); }}>
+        onContextMenu={e => { e.preventDefault(); if (e.ctrlKey || e.metaKey || e.altKey || drag.current?.moved) return; water(e, true); }} onWheel={e => { const r = e.currentTarget.getBoundingClientRect(); game.zoomAirMap(e.deltaY, e.clientX - r.left, e.clientY - r.top); }}>
         {armed === 'search' && <svg x="50%" y="50%" width="1" height="1" overflow="visible" className="fleet-command-search-center" aria-hidden="true"><path d="M-12 0H12M0-12V12"/></svg>}
         {boundary && <path className="fleet-command-boundary" data-map-path={JSON.stringify(circlePoints(0, 0, boundary.radiusM))} data-closed="true"/>}
         {boundary && <path className="fleet-command-boundary-warning" data-map-path={JSON.stringify(circlePoints(0, 0, boundary.radiusM - boundary.warningMarginM))} data-closed="true"/>}
-        {observations.filter(c => c.id === contactId || c.status === 'lost' || c.status === 'stale').map(c => <path key={`area-${c.id}`} className={`fleet-command-uncertainty ${c.status}`} data-map-path={JSON.stringify(circlePoints(c.estimatedPosition[0], c.estimatedPosition[2], c.uncertaintyM))} data-closed="true"/>)}
+        {observations.filter(c => c.kind === 'surface' && c.id === contactId).map(c => <path key={`area-${c.id}`} className={`fleet-command-uncertainty ${c.status}`} data-map-path={JSON.stringify(circlePoints(c.estimatedPosition[0], c.estimatedPosition[2], c.uncertaintyM))} data-closed="true"/>)}
         {selectedFlights.filter(f => f.route.length > 1).map(f => <path key={`air-route-${f.id}`} className="fleet-command-route" data-map-path={JSON.stringify(f.route)}/>)}
         {selectedFlights.filter(f => f.order.kind === 'search-area').map(f => f.order.kind === 'search-area' && <path key={`search-${f.id}`} className="fleet-command-route" data-map-path={JSON.stringify(circlePoints(f.order.center[0], f.order.center[1], f.order.radiusM))} data-closed="true"/>)}
         {selectedFlights.flatMap(f => f.search?.trail.slice(1).flatMap((sample, i) => { const age = (game.simulation.tick - sample.tick) / 60; return age <= 90 ? [<path key={`trail-${f.id}-${sample.tick}`} className="fleet-command-search-trail" opacity={Math.max(.15, 1 - age / 90)} data-map-path={JSON.stringify([f.search!.trail[i].position, sample.position])}/>] : []; }) ?? [])}
-        {selected.map(s => <path key={s.id} className="fleet-command-route" data-map-path={JSON.stringify(routePoints(s, orders[s.id], ships))}/>)}
+        {ships.filter(s => !s.physicalLost).map(s => {
+          const pending = pendingRoutes[s.id];
+          const points = pending ? pending.points : routePoints(s, orders[s.id], ships);
+          const movement = orders[s.id]?.movement;
+          const waypoints = pending || movement?.type === 'route' ? points.slice(1) : [];
+          return <g key={`route-${s.id}`} data-route-owner={s.id} className={`fleet-command-course ${ids.includes(s.id) ? 'selected' : ''}`}>
+            <path className="fleet-command-route" data-map-path={JSON.stringify(points)}/>
+            {waypoints.map((point, i) => <g key={i} className="fleet-command-waypoint" data-map-position={JSON.stringify(point)} aria-label={`${s.name} waypoint ${i + 1}`}><circle r="8"/><path d="M-12 0H12M0-12V12"/><text x="12" y="-10">{i + 1}</text></g>)}
+          </g>;
+        })}
+        {armed === 'move' && movePoint && <g className="fleet-command-move-preview" aria-label="Move preview">
+          {recipients.map(s => <path key={s.id} data-map-path={JSON.stringify([[s.x, 0, s.z], [movePoint[0], 0, movePoint[1]]])}/>)}
+          <g data-map-position={JSON.stringify([movePoint[0], 0, movePoint[1]])}><circle r="9"/><path d="M-14 0H14M0-14V14"/></g>
+        </g>}
         {combat.contacts.filter(c => !c.physicalLost).map(s => <g key={s.id} data-map-position={JSON.stringify([s.x, 0, s.z])} data-ship-marker={s.id} className={`fleet-command-marker ${s.team} ${ids.includes(s.id) || s.id === contactId ? 'selected' : ''}`}
-          role="button" tabIndex={0} aria-label={`${s.name} · ${s.team}`} onPointerDown={e => e.stopPropagation()}
+          role="button" tabIndex={0} aria-label={`${s.name} · ${s.team}`}
           onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); targetShip(s, false, e.shiftKey); } }}
-          onClick={e => { e.stopPropagation(); targetShip(s, false, e.shiftKey || e.ctrlKey || e.metaKey); }}
-          onContextMenu={e => { e.preventDefault(); e.stopPropagation(); targetShip(s, true, false); }}>
+          onClick={e => { e.stopPropagation(); if (ignoreClick.current) { ignoreClick.current = false; return; } targetShip(s, false, e.shiftKey || e.ctrlKey || e.metaKey); }}
+          onContextMenu={e => { e.preventDefault(); e.stopPropagation(); if (e.ctrlKey || e.metaKey || e.altKey || drag.current?.moved) return; targetShip(s, true, false); }}>
           <circle r="18" className="fleet-command-hitbox"/>
-          <path d="M0 -12 5 -3 4 10 -4 10 -5 -3Z" transform={`rotate(${s.heading * 180 / Math.PI})`}/>
+          <path d="M0 -12 5 -3 4 10 -4 10 -5 -3Z" data-map-heading={s.heading}/>
           <text x="12" y="1">{s.name}</text><text className="fleet-command-marker-order" x="12" y="15">{s.team === 'friendly' ? standingOrder(orders[s.id], nameFor) : ''}</text>
         </g>)}
         {observations.map(c => <g key={c.id} data-map-position={JSON.stringify([c.estimatedPosition[0], 0, c.estimatedPosition[2]])} data-contact-marker={c.id} className={`fleet-command-marker ${c.affiliation === 'hostile' ? 'enemy' : 'unidentified'} report ${c.status} ${contactId === c.id ? 'selected' : ''}`}
-          role="button" tabIndex={0} aria-label={`${reportName(c)} · ${c.status} · observed ${reportAge(c, game.simulation.tick)} · uncertainty ${reportUncertainty(c)}`} onPointerDown={e => e.stopPropagation()}
+          role="button" tabIndex={0} aria-label={`${reportName(c)} · ${c.status} · observed ${reportAge(c, game.simulation.tick)} · uncertainty ${reportUncertainty(c)}`}
           onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); selectReport(c); } }}
-          onClick={e => { e.stopPropagation(); selectReport(c); }} onContextMenu={e => { e.preventDefault(); e.stopPropagation(); selectReport(c, true); }}>
+          onClick={e => { e.stopPropagation(); if (ignoreClick.current) { ignoreClick.current = false; return; } selectReport(c); }} onContextMenu={e => { e.preventDefault(); e.stopPropagation(); if (e.ctrlKey || e.metaKey || e.altKey || drag.current?.moved) return; selectReport(c, true); }}>
           <circle r="18" className="fleet-command-hitbox"/>
           <path d={c.kind === 'aircraft' ? 'M0 -12 4 -2 11 4 11 7 3 5 3 10 -3 10 -3 5 -11 7 -11 4 -4 -2Z' : 'M0 -12 9 0 0 12 -9 0Z'}/>
           <text x="16" y="1">{reportName(c)}</text><text className="fleet-command-marker-order" x="16" y="15">{c.affiliation === 'unknown' ? 'Affiliation unknown' : c.status} · {reportAge(c, game.simulation.tick)}</text>
@@ -288,9 +358,8 @@ export function FleetCommand({ data, game, bindings }: { data: Telemetry; game: 
     <header className="fleet-command-top">
       <div><strong>{mapOpen ? 'Fleet command' : data.controlledShipId ? 'At the helm' : 'Following ship'}</strong><time>{duration(game.simulation.tick / 60)}</time></div>
       <nav aria-label="Fleet views">
-        {mapOpen && <><button aria-pressed={filter === 'ships'} onClick={() => setFilter('ships')}>Ships</button>{wings.length > 0 && <button aria-pressed={filter === 'aircraft'} onClick={() => { setFilter('aircraft'); setAirOpen(true); }}>Aircraft</button>}<button onClick={() => game.fitAirMap()} title="Fit reported fleet">Fit chart</button></>}
+        {mapOpen && <><button aria-pressed={filter === 'ships'} onClick={() => { setFilter('ships'); setAirOpen(false); game.selectFlights([]); setArmed(undefined); }}>Ships</button>{wings.length > 0 && <button aria-pressed={filter === 'aircraft'} onClick={() => { setFilter('aircraft'); setAirOpen(true); }}>Aircraft</button>}<button onClick={() => game.fitAirMap()} title="Fit reported fleet">Fit chart</button><button onClick={() => game.resetAirMapAngle()} title="Reset camera angle">Reset angle</button></>}
         {mapOpen && <button aria-expanded={contactsOpen} onClick={() => setContactsOpen(!contactsOpen)}>Contacts {enemies.length}</button>}
-        {mapOpen && wings.length > 0 && <button aria-expanded={airOpen} onClick={() => setAirOpen(!airOpen)}>Air</button>}
         {!game.simulation.networked && <button onClick={() => game.toggleTacticalPause()} aria-pressed={data.tacticalPaused}><Icon name={data.tacticalPaused ? 'play' : 'pause'} size={14}/>{data.tacticalPaused ? 'Resume' : 'Pause'} <kbd>Space</kbd></button>}
         <button onClick={() => game.setPaused(true)} aria-label="Battle menu"><Icon name="settings" size={16}/></button>
       </nav>
@@ -333,12 +402,12 @@ export function FleetCommand({ data, game, bindings }: { data: Telemetry; game: 
             <div className="fleet-command-weapons">{(['guns', 'aa', 'torpedoes'] as const).map(kind => { const free = recipients.every(s => orders[s.id]?.weapons[kind]); return <button key={kind} disabled={!actionable} aria-pressed={free} onClick={() => recipients.forEach(s => game.simulation.setShipWeapons?.(s.id, { ...(orders[s.id]?.weapons ?? { guns: true, aa: true, torpedoes: false }), [kind]: !free }))}>{kind === 'aa' ? 'AA' : kind === 'guns' ? 'Guns' : 'Torpedoes'}: {free ? 'Free' : 'Held'}</button>; })}</div>
             <div className="fleet-command-standing">{recipients.map(s => <p key={s.id}>{recipients.length > 1 && <strong>{s.name} · </strong>}{standingOrder(orders[s.id], nameFor)}</p>)}</div></>
           : mapOpen && selectedContact ? <div className="fleet-command-report"><p>Reported position {(selectedContact.x / 1000).toFixed(1)} km E, {(-selectedContact.z / 1000).toFixed(1)} km N.</p>{selectedReport && <><p>{selectedReport.status} · Observed {reportAge(selectedReport, game.simulation.tick)} · Uncertainty ±{reportUncertainty(selectedReport)}</p><p>Reported by {selectedReport.sources.map(source => ships.find(s => s.id === source.observerId)?.name ?? 'Friendly aircraft').filter((name, i, names) => names.indexOf(name) === i).join(', ') || 'Fleet lookouts'}.</p></>}<p>{selectedReport?.status === 'stale' ? 'Search the reported area to reacquire this contact.' : selectedReport?.kind === 'aircraft' ? 'Aircraft movements are estimates from your observers.' : 'Select friendly ships to assign focus fire.'}</p></div>
-          : <p>Right-click water to move, a friendly ship to escort, or an enemy to focus fire. Shift appends waypoints. Middle-drag pans; scroll zooms.</p>}
+          : <p>Right-click water to move, a friendly ship to escort, or an enemy to focus fire. Shift appends waypoints. Drag to pan · Shift-drag to select · Ctrl/Cmd-drag to orbit · Scroll to zoom.</p>}
         {armed && <p className="fleet-command-armed">{typeof armed === 'object' ? `Choose ${armed.target}` : armed === 'search' ? 'Choose the area center on water, or pan with arrow keys and press Enter at chart center' : armed === 'move' ? 'Choose water · Shift appends a waypoint' : armed === 'escort' ? 'Choose a friendly leader' : 'Choose an enemy contact'}<button onClick={() => setArmed(undefined)}>Cancel <kbd>Esc</kbd></button></p>}
         <div className="fleet-command-feedback" role="status">{feedback && <p>{feedback}</p>}{receipts.map(r => <p key={r.sequence} data-state={r.state}>{ships.find(s => s.id === r.shipId)?.name ?? r.shipId} · {r.command.replaceAll('-', ' ')} · {r.state}{r.message ? `: ${r.message}` : ''}</p>)}</div>
       </div>
     </section>
-    {mapOpen && airOpen && <section className="fleet-command-air" aria-label="Air operations across all carriers"><header><h2>Air operations</h2><label>Carrier<Select value={carrier} onValueChange={setCarrier}><SelectOption value="all">All carriers</SelectOption>{wings.map(({ owner }) => <SelectOption key={owner.motion.id} value={owner.motion.id}>{nameFor(owner.motion.id)}</SelectOption>)}</Select></label><button onClick={() => setAirOpen(false)}>Hide</button></header><div className="fleet-command-air-body"><div className="fleet-command-flights" aria-label="Air groups">{flights.filter(f => carrier === 'all' || f.ownerId === carrier).map(f => <button key={f.id} disabled={!f.surviving} aria-pressed={game.selectedFlightIds.includes(f.id)} onClick={e => selectAir(f.id, e.ctrlKey || e.metaKey || e.shiftKey)}><span><Icon name={roleIcon(f.role)} size={20}/><strong>{f.name}</strong><b>{f.surviving}/{f.total}</b></span><small>{f.carrierName} · {roleLabel(f.role)}</small><small>{f.activity} · {f.armed} armed</small>{f.notice && <small>{f.notice}</small>}</button>)}</div><div className="fleet-command-decks">{wings.filter(({ owner }) => carrier === 'all' || owner.motion.id === carrier).map(({ owner, wing }) =>
+    {mapOpen && airOpen && <section className="fleet-command-air" aria-label="Air operations across all carriers"><header><h2>Air operations</h2><nav className="fleet-command-carriers" aria-label="Carriers"><button aria-pressed={carrier === 'all'} onClick={() => setCarrier('all')}>All carriers</button>{wings.map(({ owner }) => <button key={owner.motion.id} aria-pressed={carrier === owner.motion.id} onClick={() => setCarrier(owner.motion.id)}>{nameFor(owner.motion.id)}</button>)}</nav><button onClick={() => { setAirOpen(false); setFilter('ships'); game.selectFlights([]); setArmed(undefined); }}>Hide</button></header><div className="fleet-command-air-body"><div className="fleet-command-flights" aria-label="Air groups">{flights.filter(f => carrier === 'all' || f.ownerId === carrier).map(f => <button key={f.id} disabled={!f.surviving} aria-pressed={game.selectedFlightIds.includes(f.id)} onClick={e => selectAir(f.id, e.ctrlKey || e.metaKey || e.shiftKey)}><span><strong>{f.name}</strong><b>{f.surviving}/{f.total}</b></span><img className="fleet-command-aircraft-thumbnail" src={assetUrl(`models/aircraft/${wings.find(w => w.owner.motion.id === f.ownerId)?.wing.flights.find(p => f.aircraftIds.includes(p.id))?.modelId}-thumbnail.png`)} alt="" width="160" height="60" draggable={false}/><small>{f.carrierName} · {roleLabel(f.role)}</small><small>{f.activity} · {f.armed} armed</small>{f.notice && <small>{f.notice}</small>}</button>)}</div><div className="fleet-command-decks">{wings.filter(({ owner }) => carrier === 'all' || owner.motion.id === carrier).map(({ owner, wing }) =>
       <CarrierDeck key={owner.motion.id} name={nameFor(owner.motion.id)} wing={wing} enabled={actionable} setPolicy={policy => {
         if (game.setDeckPolicy(owner.motion.id, policy)) setFeedback(`${nameFor(owner.motion.id)} · Deck policy order queued`);
       }} prioritize={id => {

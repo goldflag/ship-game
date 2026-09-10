@@ -146,20 +146,22 @@ function FleetHudInstruments({ data, game, visible, bindings }: FleetHudProps) {
   const mapSize = [240, 280, 320, 360, 400][data.chartSize ?? 2];
   const followingShell = data.shellFollow === 'flight' || data.shellFollow === 'impact';
   const following = followingShell || !!data.followedAircraftId || !!data.combat?.playerSunk;
+  const fleetCommand = !!(data.fleetCommandMode && game && data.combat);
+  const commandingShip = fleetCommand && data.controlledShipId === data.ship.id && !data.airOperationsOpen;
 
-  if (data.fleetCommandMode && game && data.combat) return <div className={`fleet-hud ${data.controlledShipId && !data.airOperationsOpen ? 'fleet-command-helm' : ''}`} inert={!visible} style={{ visibility: visible ? undefined : 'hidden' }}>
-    <FleetCommand data={data} game={game} bindings={bindings}/>
-    {data.controlledShipId && !data.airOperationsOpen && <ActiveArmament data={data} game={game} visible={visible} bindings={bindings}/>}
+  if (fleetCommand && !commandingShip) return <div className="fleet-hud" inert={!visible} style={{ visibility: visible ? undefined : 'hidden' }}>
+    <FleetCommand data={data} game={game!} bindings={bindings}/>
   </div>;
 
-  return <div className={`fleet-hud ${visible ? '' : 'fleet-hud-hidden'} ${data.airOperationsOpen ? 'fleet-air-map' : ''} ${data.binoculars ? 'fleet-in-optics' : ''}`} inert={!visible && !data.airOperationsOpen} style={{ '--map-factor': mapSize / 400 } as CSSProperties}>
+  return <div className={`fleet-hud ${visible ? '' : 'fleet-hud-hidden'} ${data.airOperationsOpen ? 'fleet-air-map' : ''} ${data.binoculars ? 'fleet-in-optics' : ''} ${commandingShip ? 'fleet-command-helm' : ''}`} inert={!visible && !data.airOperationsOpen} style={{ '--map-factor': mapSize / 400 } as CSSProperties}>
+    {fleetCommand && <FleetCommand data={data} game={game!} bindings={bindings}/>}
     <BearingTape degrees={degrees}/>
-    {game?.simulation.releaseHelm && !game.simulation.networked && <button className="fleet-command-entry" onClick={() => game.enterFleetCommand()}>Fleet command</button>}
+    {!fleetCommand && game?.simulation.releaseHelm && !game.simulation.networked && <button className="fleet-command-entry" onClick={() => game.enterFleetCommand()}>Fleet command</button>}
     <div className="fleet-reports">
-    {data.combat?.battle && <BattleStatus combat={data.combat} game={game} spectatedShipId={data.spectatedShipId}>
+    {!fleetCommand && data.combat?.battle && <BattleStatus combat={data.combat} game={game} spectatedShipId={data.spectatedShipId}>
       {data.combat.airWing && !data.airOperationsOpen && <FlightControl combat={data.combat} game={game} bindings={bindings}/>}
     </BattleStatus>}
-    {data.combat && !data.airOperationsOpen && !data.inspecting && <FireControl combat={data.combat} game={game} observedName={data.spectatedShipId ? selectedShip.name : undefined}/>}
+    {data.combat && !data.airOperationsOpen && !data.inspecting && <FireControl combat={data.combat} game={game} observedName={data.spectatedShipId && !commandingShip ? selectedShip.name : undefined}/>}
     </div>
     <div className="fleet-top-actions"><span className="fleet-fps" aria-label={`${data.fps} frames per second`}><strong>{data.fps || '—'}</strong> FPS</span><Button variant="icon" aria-label="Pause and settings" title="Pause · Esc" onClick={() => game?.setPaused(true)}><Icon name="pause" size={17}/></Button></div>
     {data.combat?.battle && <BattleDamageLog combat={data.combat} obscured={!!data.inspecting}/>}
@@ -206,10 +208,10 @@ function FleetHudInstruments({ data, game, visible, bindings }: FleetHudProps) {
     </section>
 
     {!data.airOperationsOpen && <ActiveArmament data={data} game={game} visible={visible} bindings={bindings}/>}
-    {!data.combat?.airWing && <SquadronLabels data={data} game={game}/>}
-    {data.combat?.airWing && <AirOperations data={data} game={game} bindings={bindings} instrumentsVisible={visible}/>}
+    {!fleetCommand && !data.combat?.airWing && <SquadronLabels data={data} game={game}/>}
+    {!fleetCommand && data.combat?.airWing && <AirOperations data={data} game={game} bindings={bindings} instrumentsVisible={visible}/>}
     {data.combat?.submarine && <DepthControl combat={data.combat} game={game} bindings={bindings}/>}
     {!following && data.binoculars && data.aimModule !== 'point' && data.aimMarker?.visible && <div className="aim-marker" aria-hidden="true" style={{ left: `${data.aimMarker.x}%`, top: `${data.aimMarker.y}%` }}><span/><small>TRACKED AIM</small></div>}
-    <aside className="fleet-map-area" aria-label="Navigation minimap"><NavigationChart onWaypoint={(x, z) => game?.fleetWaypoint(x, z)} bindings={bindings} data={data} onResize={direction => game?.resizeChart(direction)}/></aside>
+    <aside className="fleet-map-area" aria-label="Navigation minimap"><NavigationChart reports={fleetCommand ? game?.simulation.observationTracks : undefined} onWaypoint={(x, z) => game?.fleetWaypoint(x, z)} bindings={bindings} data={data} onResize={direction => game?.resizeChart(direction)}/></aside>
   </div>;
 }
