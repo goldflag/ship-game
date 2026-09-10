@@ -597,3 +597,70 @@ fn search_bounds_and_role_validation_are_atomic_and_scouts_withdraw_from_local_a
             .all(|p| p.phase == "returning" && p.ammo == 16.0)
     );
 }
+
+#[test]
+fn spotted_aircraft_publish_only_visible_exteriors_and_stop_when_sight_is_lost() {
+    let mut b = battle();
+    launch(&mut b, "private-carrier", "fighter", [0.0, 420.0, -1600.0]);
+    let plane = b
+        .aviation
+        .wing("private-carrier")
+        .unwrap()
+        .planes
+        .iter()
+        .find(|p| p.phase == "outbound")
+        .unwrap()
+        .clone();
+    observe(&mut b, true);
+    let frame = b
+        .presentation_value(PresentationView::Team(TeamId::A))
+        .unwrap();
+    let exteriors = frame["observedAircraft"].as_array().unwrap();
+    assert!(!exteriors.is_empty());
+    let id = &b.sensors.track(TeamId::A, &plane.id).unwrap().id;
+    let exterior = exteriors.iter().find(|p| p["id"] == *id).unwrap();
+    assert_eq!(exterior["position"], serde_json::json!(plane.position));
+    assert_eq!(exterior["modelId"], plane.model_id);
+    assert_eq!(exterior["velocity"], serde_json::json!(plane.velocity));
+    assert!(
+        exterior["observers"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|id| id == "own")
+    );
+    for field in [
+        "ownerId", "hp", "ammo", "payload", "order", "pilot", "targetId", "flightId",
+    ] {
+        assert!(exterior.get(field).is_none(), "private field {field}");
+    }
+    assert!(!frame.to_string().contains("private-carrier"));
+    assert_eq!(frame["wings"].as_array().unwrap().len(), 1);
+    // Moving a hidden plane, its controls and damage after the observation
+    // cannot update its retained exterior before another visibility sample.
+    for p in b
+        .aviation
+        .wing_mut("private-carrier")
+        .unwrap()
+        .planes
+        .iter_mut()
+    {
+        p.position = [28000.0, 400.0, 18000.0];
+        p.hp = 1.0;
+        p.heading = 2.0;
+    }
+    assert_eq!(
+        b.presentation_value(PresentationView::Team(TeamId::A))
+            .unwrap()["observedAircraft"],
+        frame["observedAircraft"]
+    );
+    observe(&mut b, true);
+    let hidden = b
+        .presentation_value(PresentationView::Team(TeamId::A))
+        .unwrap();
+    assert!(hidden["observedAircraft"].as_array().unwrap().is_empty());
+    assert!(
+        !hidden["contacts"].as_array().unwrap().is_empty(),
+        "last-known reports remain on the chart"
+    );
+}

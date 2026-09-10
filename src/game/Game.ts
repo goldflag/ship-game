@@ -760,7 +760,7 @@ export class Game {
           view.root, view.motion, view.actor.damage.sunk, this.camera, !this.inPort);
         view.updateRenderMatrices();
       });
-      this.aircraftView.update(this.simulation, this.camera, !this.inspecting && (!this.inPort || this.playerView?.inspection.mode === 'exterior'), this.inPort, new Map(this.fleetViews.map(view => [view.actor.motion.id, view.root])));
+      this.aircraftView.update(this.simulation, this.camera, !this.inspecting && (!this.inPort || this.playerView?.inspection.mode === 'exterior'), this.inPort, new Map(this.fleetViews.map(view => [view.actor.motion.id, view.root])), this.airOperationsOpen ? undefined : this.cameraShipView.actor.motion.id, presentationDt);
       this.effects.update(this.simulation, presentationDt, this.camera, this.rig.binoculars && !this.shellFollow.view, this.fleetViews, !!this.shellFollow.view);
       this.funnelSmoke.root.visible = !this.inspecting && (!this.inPort || this.playerView!.inspection.mode === 'exterior');
       this.funnelSmoke.update(this.inPort ? [this.playerView!] : this.fleetViews, presentationDt, this.camera,
@@ -955,9 +955,9 @@ export class Game {
     if (!report) return null;
     // Keep current report markers on their smoothed exterior. Lost/unidentified
     // tracks retain their published estimate, without any private actor lookup.
-    const exterior = report.status === 'tracked' ? this.observedShipViews?.position(id) : undefined;
+    const exterior = report.status === 'tracked' ? (report.kind === 'aircraft' ? this.aircraftView.observedPosition(id) : this.observedShipViews?.position(id)) : undefined;
     const position = reportPosition(report, this.simulation.tick);
-    return this.projectAirMap(exterior?.x ?? position[0], exterior?.z ?? position[2]);
+    return this.projectAirMap(exterior?.x ?? position[0], exterior?.z ?? position[2], exterior?.y ?? position[1]);
   }
   projectAirMapPath(points: Vec3[], closed = false, filled = false): string {
     return filled ? projectAirMapPolygon(points, this.camera, this.host.clientWidth / this.hudScale, this.host.clientHeight / this.hudScale)
