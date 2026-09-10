@@ -243,12 +243,37 @@ impl Battle {
             .collect();
         let mut tonnage: [Option<u64>; 2] = [None, None];
         tonnage[team.index()] = Some(crate::rules::afloat_kg(&self.survivors())[team.index()]);
+        // Own vessels keep their live score sheet: damage dealt, ships sunk and a
+        // hit log addressed through public contact IDs. Other teams' records and
+        // the shell history stay private until the debrief.
+        let scores: serde_json::Map<String, Value> = self
+            .records
+            .scores
+            .iter()
+            .filter(|(id, _)| own.contains(id.as_str()))
+            .map(|(id, score)| {
+                let log: Vec<Value> = score
+                    .damage_log
+                    .iter()
+                    .filter_map(|entry| {
+                        let source = self.public_entity_id(&entry.source_id, team)?;
+                        let target = self.public_entity_id(&entry.target_id, team)?;
+                        Some(json!({"id":entry.id,"tick":entry.tick,"sourceId":source,"targetId":target,
+                            "weapon":entry.weapon,"damage":entry.damage,"hits":entry.hits}))
+                    })
+                    .collect();
+                (
+                    id.clone(),
+                    json!({"damageDealt":score.damage_dealt,"frags":score.frags,"damageLog":log}),
+                )
+            })
+            .collect();
         let mut frame = json!({
             "view":"team", "team":team, "tick":self.tick, "actors":actors, "wings":wings,
             "contacts":contacts, "observedShips":observed_ships, "observedAircraft":observed_aircraft, "reconCoverage": self.sensors.coverage(team),
             "shells":projectiles("shells"), "torpedoes":projectiles("torpedoes"),
             "depthCharges":projectiles("depthCharges"), "releases":projectiles("releases"),
-            "events":self.team_events[team.index()], "records":{"scores":{},"shellHistory":[]},
+            "events":self.team_events[team.index()], "records":{"scores":scores,"shellHistory":[]},
             "outcome":self.outcome, "afloatKg":tonnage, "remainingSeconds":self.remaining_seconds(),
             "missionRules":self.mission_rules,
         });

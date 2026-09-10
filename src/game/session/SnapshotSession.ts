@@ -64,6 +64,9 @@ export abstract class SnapshotSession implements BattleSession {
   connected?: boolean[]; loaded?: boolean[]; countdown = 0;
   targetUnderway = true;
   afloatKg: [number | null, number | null] = [0, 0]; playerDamageDealt = 0; playerFrags = 0; damageLog: DamageLogEntry[] = [];
+  shipScores: Record<string, { damageDealt: number; frags: number }> = {};
+  aircraftLosses = { own: 0, enemy: 0 };
+  private lastLossSequence = -1; private lastFrameTick = -1;
   ammunitionSelection: Record<string, Ammunition> = {};
   readonly mapId: OceanMapId; readonly islands; readonly sea; readonly seed; readonly spawnDistance;
   protected pending?: Snapshot;
@@ -179,6 +182,16 @@ export abstract class SnapshotSession implements BattleSession {
     this.events = frame.events; this.shellHistory = frame.records.shellHistory;
     const score = frame.records.scores[player.motion.id];
     this.playerDamageDealt = score?.damageDealt ?? 0; this.playerFrags = score?.frags ?? 0; this.damageLog = score?.damageLog ?? [];
+    this.shipScores = Object.fromEntries(Object.entries(frame.records.scores).map(([id, s]) => [id, { damageDealt: s.damageDealt, frags: s.frags }]));
+    // A restarted mission replays from tick zero; loss counts start again with it.
+    if (frame.tick < this.lastFrameTick) { this.aircraftLosses = { own: 0, enemy: 0 }; this.lastLossSequence = -1; }
+    this.lastFrameTick = frame.tick;
+    const ownPlanes = new Set(this.actors.flatMap(a => a.airWing?.planes.map(p => p.id) ?? []));
+    for (const event of frame.events) {
+      if (event.kind !== 'aircraft-lost' || !(event.sequence > this.lastLossSequence)) continue;
+      this.lastLossSequence = event.sequence;
+      if (ownPlanes.has(event.aircraft?.id ?? '')) this.aircraftLosses.own++; else this.aircraftLosses.enemy++;
+    }
     this.afloatKg = this.relativeTonnage(frame.afloatKg);
     this.outcome = frame.outcome && { ...frame.outcome, winnerTeamId: frame.outcome.winnerTeamId ? frame.outcome.winnerTeamId === this.ownTeam ? 'a' : 'b' : null, afloatKg: this.relativeTonnage(frame.outcome.afloatKg) };
     this.result = !this.outcome ? 'active' : !this.outcome.winnerTeamId ? 'draw' : this.outcome.winnerTeamId === 'a' ? 'victory' : 'defeat';

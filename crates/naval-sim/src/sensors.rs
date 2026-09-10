@@ -135,6 +135,8 @@ pub struct VisualEntity {
     pub feature: [f64; 3],
     pub length_m: f64,
     pub preset_id: Option<String>,
+    /// Aircraft role for type classification once evidence is strong; ships use None.
+    pub role: Option<String>,
     pub cues: crate::recon::VisualCues,
     pub motion: VisualMotion,
     pub aircraft: Option<AircraftExterior>,
@@ -403,7 +405,13 @@ impl Sensors {
                 record.track.affiliation = Affiliation::Hostile;
                 record.track.classification = Some(
                     match target.kind {
-                        ContactKind::Aircraft => "Aircraft",
+                        // Observers recognise the airframe type, never its owner or state.
+                        ContactKind::Aircraft => match target.role.as_deref() {
+                            Some("fighter") => "Fighter",
+                            Some("dive-bomber") => "Dive bomber",
+                            Some("torpedo-bomber") => "Torpedo bomber",
+                            _ => "Aircraft",
+                        },
                         ContactKind::Surface if target.length_m < 150.0 => "Small warship",
                         ContactKind::Surface if target.length_m < 220.0 => "Warship",
                         ContactKind::Surface => "Large warship",
@@ -638,6 +646,7 @@ pub fn entities(actors: &[Vessel], aviation: &Aviation) -> Vec<VisualEntity> {
                 feature: top(feature, 5.0),
                 length_m: def.hull.length,
                 preset_id: Some(a.preset_id.clone()),
+                role: None,
                 cues,
                 motion: VisualMotion {
                     velocity: a.motion.velocity(),
@@ -671,6 +680,7 @@ pub fn entities(actors: &[Vessel], aviation: &Aviation) -> Vec<VisualEntity> {
                 feature: p.position,
                 length_m: 12.0,
                 preset_id: None,
+                role: Some(p.role.clone()),
                 cues: Default::default(),
                 motion: VisualMotion {
                     velocity: p.velocity,
