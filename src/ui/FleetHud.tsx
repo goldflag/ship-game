@@ -158,7 +158,7 @@ function FleetHudInstruments({ data, game, visible, bindings }: FleetHudProps) {
   return <div className={`fleet-hud ${visible ? '' : 'fleet-hud-hidden'} ${data.airOperationsOpen ? 'fleet-air-map' : ''} ${data.binoculars ? 'fleet-in-optics' : ''} ${commandingShip ? 'fleet-command-helm' : ''} ${followingShip ? 'fleet-following' : ''}`} inert={!visible && !data.airOperationsOpen} style={{ '--map-factor': mapSize / 400 } as CSSProperties}>
     {fleetCommand && <FleetCommand data={data} game={game!} bindings={bindings}/>}
     <BearingTape degrees={degrees}/>
-    {!fleetCommand && game?.simulation.releaseHelm && !game.simulation.networked && <button className="fleet-command-entry" onClick={() => game.enterFleetCommand()}>Fleet command</button>}
+    {!fleetCommand && game?.simulation.missionRules && game.simulation.releaseHelm && !game.simulation.networked && <button className="fleet-command-entry" onClick={() => game.enterFleetCommand()}>Fleet command</button>}
     <div className="fleet-reports">
     {!fleetCommand && data.combat?.battle && <BattleStatus combat={data.combat} game={game} spectatedShipId={data.spectatedShipId}>
       {data.combat.airWing && !data.airOperationsOpen && <FlightControl combat={data.combat} game={game} bindings={bindings}/>}
