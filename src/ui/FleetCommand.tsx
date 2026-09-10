@@ -153,6 +153,7 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
   const [box, setBox] = useState<{ x: number; y: number; width: number; height: number }>();
   const ignoreClick = useRef(false);
   const pointer = useRef<{ x: number; y: number } | undefined>(undefined);
+  const [shiftHeld, setShiftHeld] = useState(false);
   const [movePoint, setMovePoint] = useState<[number, number]>();
   const [pendingRoutes, setPendingRoutes] = useState<Record<string, PendingRoute>>({});
   useMapProjection(map, game, mapOpen);
@@ -160,6 +161,8 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
   const subject = !mapOpen ? ships.find(s => s.id === data.spectatedShipId || s.id === data.controlledShipId) : selected.length === 1 ? selected[0] : undefined;
   const recipients = !mapOpen && subject ? [subject] : selected;
   const lead = recipients[0];
+  const leadRoute = lead ? pendingRoutes[lead.id]?.points ?? (orders[lead.id]?.movement.type === 'route' ? routePoints(lead, orders[lead.id], ships) : []) : [];
+  const moveOrigin = shiftHeld && leadRoute.length > 1 ? leadRoute.at(-1)! : recipients.length > 1 ? centroid(recipients) : lead ? [lead.x, 0, lead.z] : undefined;
   const actionable = combat.result === 'active' && game.simulation.phase === 'running';
   const selectedContact = enemies.find(c => c.id === contactId);
   const selectedReport = observations.find(c => c.id === contactId);
@@ -196,7 +199,7 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
   };
   const move = (point: [number, number], appendRequested: boolean) => {
     if (!lead) { setFeedback('Select ships before giving a destination.'); return; }
-    const previous = pendingRoutes[lead.id]?.points ?? (orders[lead.id]?.movement.type === 'route' ? routePoints(lead, orders[lead.id], ships) : []);
+    const previous = leadRoute;
     const append = appendRequested && previous.length > 1;
     const points: Vec3[] = append && previous.length > 1 ? [...previous, [point[0], 0, point[1]]] : [[lead.x, 0, lead.z], [point[0], 0, point[1]]];
     const before = game.simulation.orderReceipts?.at(-1);
@@ -207,7 +210,8 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
       setPendingRoutes(routes => ({ ...routes, [lead.id]: { points, receipt } }));
     }
     if (recipients.length > 1) escort(lead.id);
-    setArmed(undefined); setFeedback(`${append ? 'Waypoint appended' : 'Route queued'} · ${speedKn} kn${recipients.length > 1 ? ` · ${formation}` : ''}`);
+    setArmed('move'); setMovePoint(point); setShiftHeld(appendRequested);
+    setFeedback(`${append ? 'Waypoint appended' : 'Route queued'} · ${speedKn} kn${recipients.length > 1 ? ` · ${formation}` : ''}`);
   };
   const hold = () => { recipients.forEach(s => game.simulation.holdShipArea?.(s.id, [s.x, s.z], 500)); setArmed(undefined); setFeedback(`${recipients.length} hold orders queued · 500 m station area`); };
   const targetShip = (ship: Pick<Contact, 'id' | 'team'>, right: boolean, additive: boolean) => {
@@ -286,6 +290,7 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
   const handlers = useRef({ airAction, shipAction, adjustSpeed, selectFormation, selectFlightAt, formations, escape }); handlers.current = { airAction, shipAction, adjustSpeed, selectFormation, selectFlightAt, formations, escape };
   useEffect(() => {
     const keydown = (event: KeyboardEvent) => {
+      if (event.code === 'ShiftLeft' || event.code === 'ShiftRight') setShiftHeld(true);
       if (document.querySelector('dialog[open]') || event.altKey) return;
       const element = event.target as HTMLElement;
       if (element?.matches('input, textarea, select') || element?.closest('[role=combobox], [role=listbox]') || element?.isContentEditable || (element?.closest('button, [role=button]') && event.code === 'Space')) return;
@@ -315,13 +320,13 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
       else if (airKey) handlers.current.airAction(letter);
       else if (shipKey) handlers.current.shipAction(letter);
     };
-    const keyup = (event: KeyboardEvent) => { nav.current.key(event.code, false); };
-    const clear = () => { nav.current.clear(); drag.current = undefined; setBox(undefined); };
+    const keyup = (event: KeyboardEvent) => { setShiftHeld(event.shiftKey); nav.current.key(event.code, false); };
+    const clear = () => { setShiftHeld(false); nav.current.clear(); drag.current = undefined; setBox(undefined); };
     window.addEventListener('keydown', keydown, true); window.addEventListener('keyup', keyup); window.addEventListener('blur', clear);
     return () => { window.removeEventListener('keydown', keydown, true); window.removeEventListener('keyup', keyup); window.removeEventListener('blur', clear); nav.current.clear(); };
   }, [game, bindings]);
   useEffect(() => {
-    if (!mapOpen) { nav.current.clear(); drag.current = undefined; setBox(undefined); setArmed(undefined); setHoverId(undefined); return; }
+    if (!mapOpen) { setShiftHeld(false); nav.current.clear(); drag.current = undefined; setBox(undefined); setArmed(undefined); setHoverId(undefined); return; }
     let previous = performance.now(), frame = 0;
     const animate = (now: number) => {
       const dt = (now - previous) / 1000; previous = now;
@@ -365,6 +370,7 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
     drag.current = { x: event.clientX, y: event.clientY, lastX: event.clientX, lastY: event.clientY, mode, pointerId: event.pointerId, additive: event.ctrlKey || event.metaKey, moved: false };
   };
   const dragMap = (event: ReactPointerEvent<SVGSVGElement>) => {
+    setShiftHeld(event.shiftKey);
     const rect = event.currentTarget.getBoundingClientRect();
     pointer.current = { x: event.clientX - rect.left, y: event.clientY - rect.top };
     setCoveragePoint(game.airMapWater(pointer.current.x, pointer.current.y));
@@ -463,7 +469,7 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
     { kind: 'formation', label: formation === 'column' ? 'Column' : 'Screen', sub: 'C · formation' },
     { kind: 'speed', label: `${speedKn} kn`, sub: '+ / −' },
   ];
-  const armedHint = typeof armed === 'object' ? `Choose ${armed.target}` : armed === 'search' ? 'Choose the area center on water, or pan with arrow keys and press Enter at chart center' : armed === 'move' ? 'Choose water · Shift adds a waypoint' : armed === 'escort' ? 'Choose a friendly leader' : armed === 'focus' ? 'Choose an enemy contact' : '';
+  const armedHint = typeof armed === 'object' ? `Choose ${armed.target}` : armed === 'search' ? 'Choose the area center on water, or pan with arrow keys and press Enter at chart center' : armed === 'move' ? 'Choose water · Shift adds a waypoint · Esc finishes' : armed === 'escort' ? 'Choose a friendly leader' : armed === 'focus' ? 'Choose an enemy contact' : '';
   // Near the right edge the wheel opens to port of the unit instead of running under it.
   const flipAt = (x: number, z: number) => { if (!map.current) return ''; const point = game.projectAirMap(x, z); return point ? `${point[0] > map.current.clientWidth - 560 ? 'flip' : ''} ${point[1] > map.current.clientHeight - 420 ? 'flip-up' : ''}` : ''; };
   const chip = (name: string) => <div className="fleet-command-wheel-chip"><strong>{name}</strong><span>{armedHint}</span><button onClick={() => setArmed(undefined)}>Cancel<kbd>Esc</kbd></button></div>;
@@ -554,8 +560,8 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
         </g>;
       })}
       {armed === 'move' && movePoint && recipients.length > 0 && <g className="fleet-command-move-preview" aria-label="Move preview">
-        <path data-map-path={JSON.stringify([recipients.length > 1 ? centroid(recipients) : [recipients[0].x, 0, recipients[0].z], [movePoint[0], 0, movePoint[1]]])}/>
-        <g data-map-position={JSON.stringify([movePoint[0], 0, movePoint[1]])}><circle r="9"/><path d="M-14 0H14M0-14V14"/><text x="16" y="-8">{speedKn} kn · Shift adds a waypoint</text></g>
+        <path data-map-path={JSON.stringify([moveOrigin, [movePoint[0], 0, movePoint[1]]])}/>
+        <g data-map-position={JSON.stringify([movePoint[0], 0, movePoint[1]])}><circle r="9"/><path d="M-14 0H14M0-14V14"/><text x="16" y="-8">{speedKn} kn · Shift adds a waypoint · Esc finishes</text></g>
       </g>}
       {previewArmed(armed) && armed !== 'move' && movePoint && selectedFlights.length > 0 && <g className="fleet-command-move-preview air" aria-label="Air order preview">
         {selectedFlights.map(f => <path key={f.id} data-map-path={JSON.stringify([f.position, [movePoint[0], 0, movePoint[1]]])}/>)}
