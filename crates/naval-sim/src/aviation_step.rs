@@ -856,9 +856,6 @@ impl Aviation {
             return;
         }
         if matches!(p.phase.as_str(), "returning" | "landing") {
-            if p.phase == "returning" && self.package_withdrawal(p, dt) {
-                return;
-            }
             if p.phase == "returning"
                 && p.role != "fighter"
                 && p.hp >= 25.0
@@ -869,6 +866,9 @@ impl Aviation {
                 if crate::aircraft_defense::evade_bomber(p, &observations, index, ctx.seed, dt) {
                     return;
                 }
+            }
+            if p.phase == "returning" && self.package_withdrawal(p, dt) {
+                return;
             }
             self.recover_plane(p, actor, index, landing_clearance, carrier, ctx, dt);
             return;

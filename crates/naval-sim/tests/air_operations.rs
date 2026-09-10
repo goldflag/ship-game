@@ -892,3 +892,101 @@ fn cancelling_managed_strike_launch_and_patrol_preparation_retires_operation_int
             .all(|r| r.action != naval_sim::deck_operations::DeckAction::Raise)
     );
 }
+
+#[test]
+fn returning_package_aircraft_evade_observed_fighters_before_following_the_exit_leg() {
+    use naval_sim::sensors::{self, Knowledge, Sensors, VisualConditions, VisualRules};
+    let mut actors = actors();
+    actors[1].team = TeamId::B;
+    let mut air = Aviation::with_rules(
+        &actors,
+        catalog().aircraft.clone(),
+        catalog().air_profiles["pve-air-v1"].clone(),
+    )
+    .unwrap();
+    let dive = launch(
+        &mut air,
+        &actors,
+        0,
+        "dive-bomber",
+        AirOrder::Attack {
+            target_id: "target".into(),
+        },
+    );
+    let fighter = launch(
+        &mut air,
+        &actors,
+        1,
+        "fighter",
+        AirOrder::Defend { target_id: None },
+    );
+    airborne(&mut air, "carrier", &dive, [13000.0, 850.0, 0.0]);
+    airborne(&mut air, "other", &fighter, [12300.0, 850.0, 0.0]);
+    // Supply the package's permitted target fix, as strike_solution normally
+    // does before release. Returning aircraft remain in the same package.
+    let mut bomber = sample(&air, &dive);
+    air.package_guidance(&mut bomber, [14000.0, 0.0, 0.0], 0.0, 0.1);
+    for p in air
+        .wing_mut("carrier")
+        .unwrap()
+        .planes
+        .iter_mut()
+        .filter(|p| p.flight_id.as_deref() == Some(&dive))
+    {
+        p.phase = "returning".into();
+        p.payload = false;
+    }
+    let mut hidden = air.clone();
+    let mut reports = Sensors::default();
+    let conditions = VisualConditions::resolve(catalog(), "north-atlantic", "clear");
+    for tick in (0..=360).step_by(60) {
+        reports.update(
+            tick,
+            &sensors::entities(&actors, &air),
+            &[],
+            &[],
+            conditions,
+            &VisualRules::default(),
+        );
+    }
+    let empty = Sensors::default();
+    for (simulation, sensors) in [(&mut air, &reports), (&mut hidden, &empty)] {
+        simulation.step(
+            &mut AirContext {
+                knowledge: Some(Knowledge {
+                    sensors,
+                    tick: 360,
+                    islands: &[],
+                    terrain: &[],
+                }),
+                actors: &actors,
+                shells: &mut vec![],
+                torpedoes: &mut vec![],
+                releases: &mut vec![],
+                sequence: &mut 0,
+                events: &mut vec![],
+                seed: 17,
+                sea: None,
+            },
+            0.1,
+            6.0,
+        );
+    }
+    let visible_bomber = sample(&air, &dive);
+    let hidden_bomber = sample(&hidden, &dive);
+    assert!(
+        visible_bomber.pilot.defense.as_ref().is_some_and(
+            |d| d.maneuver_seconds > 0.0 && d.notice.as_deref() == Some("Evading fighter")
+        ),
+        "package exit must not suppress a locally observed threat"
+    );
+    assert!(
+        hidden_bomber.pilot.defense.is_none(),
+        "unreported fighters must not cause evasion"
+    );
+    assert_ne!(
+        visible_bomber.navigation_target, hidden_bomber.navigation_target,
+        "observed fighter evasion must override the ordinary package exit waypoint"
+    );
+    assert_eq!(visible_bomber.phase, "returning");
+}
