@@ -602,8 +602,9 @@ export class Game {
 
   private async replaceFleet(simulation: BattleSession, definition: typeof selectedShip, progress?: BattleProgress): Promise<void> {
     this.inspectionHover?.clear();
+    const actorDefinitions = new Map(simulation.actors.map(actor => [actor.definition.id, actor.definition]));
     const definitions = simulation.missionRules ? Object.keys(shipPresets).map(id => shipPreset(id))
-      : [...new Map(simulation.actors.map(actor => [actor.definition.id, actor.definition])).values()];
+      : [...actorDefinitions.values()];
     const models = new Map<string, THREE.Group>();
     const palette = new ShipMaterialPalette();
     const views: ShipView[] = [];
@@ -624,7 +625,10 @@ export class Game {
         if (!hash || model.userData.definitionHash !== hash) throw new Error('The ship model and definition have different versions. Rebuild the ship assets and reload.');
         palette.apply(model);
         batchShipModel(model);
-        await prepareShipDetail(model);
+        // Report-only exteriors clone the original geometry; they never use
+        // FleetShipDraws' detail buffers. Only actor-backed ShipViews need LODs.
+        // Keep the full public catalog loaded independently of hidden enemies.
+        if (actorDefinitions.has(def.id)) await prepareShipDetail(model);
         loaded += 1;
         const next = definitions.find(d => !models.has(d.id));
         progress?.(simulation.missionRules ? 'Preparing ship recognition models' : next ? `Loading ${next.name}` : `${def.name} aboard`, 0.08 + hullShare * loaded);
