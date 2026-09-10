@@ -760,7 +760,9 @@ export class Game {
       this.ship.quaternion.copy(this.playerView!.root.quaternion);
       this.shellFollow.update(this.simulation.shells, this.simulation.events, state.id, dt);
       this.rig.setShellView(this.followedView(alpha));
-      if (this.simulation.player.damage.sunk) this.rig.exitBinoculars();
+      // The optics belong to whichever hull the camera sits on, so a spectator keeps
+      // the glasses up after their own ship is gone and loses them when this one sinks.
+      if (this.cameraShipView.actor.damage.sunk) this.rig.exitBinoculars();
       if (this.airOperationsOpen) this.battlefieldCamera.update();
       else {
         this.updateSpectator();
@@ -786,13 +788,19 @@ export class Game {
       this.aircraftView.update(this.simulation, this.camera, !this.inspecting && (!this.inPort || this.playerView?.inspection.mode === 'exterior'), this.inPort, new Map(this.fleetViews.map(view => [view.actor.motion.id, view.root])), this.airOperationsOpen ? undefined : this.cameraShipView.actor.motion.id, presentationDt);
       // Labels use the aircraft poses just drawn this frame, including observed smoothing.
       this.cameraFrameListeners.forEach(listener => listener());
-      this.effects.update(this.simulation, presentationDt, this.camera, this.rig.binoculars && !this.shellFollow.view, this.fleetViews, !!this.shellFollow.view);
+      // Own smoke is suppressed for the hull the lens sits on, which is the followed
+      // teammate while spectating rather than the player's own ship.
+      const opticsShipId = this.rig.binoculars && !this.shellFollow.view ? this.cameraShipView.actor.motion.id : undefined;
+      this.effects.update(this.simulation, presentationDt, this.camera, opticsShipId, this.fleetViews, !!this.shellFollow.view);
       this.funnelSmoke.root.visible = !this.inspecting && (!this.inPort || this.playerView!.inspection.mode === 'exterior');
-      this.funnelSmoke.update(this.inPort ? [this.playerView!] : this.fleetViews, presentationDt, this.camera,
-        this.rig.binoculars && !this.shellFollow.view ? this.simulation.player.motion.id : undefined);
+      this.funnelSmoke.update(this.inPort ? [this.playerView!] : this.fleetViews, presentationDt, this.camera, opticsShipId);
       if (!warmingUp) this.audio?.update(this.simulation, this.input.order, this.battery,
         this.camera.position.toArray(), new THREE.Vector3().setFromMatrixColumn(this.camera.matrixWorld, 0).toArray(), this.weaponGroupId);
-      this.playerView!.root.visible = this.airOperationsOpen || this.battlefieldCamera.transitioning || !this.rig.binoculars;
+      // Optics sit at the subject's bridge, where its own hull would fill the lens. In
+      // port only the player's model is on show, so leave that visibility alone.
+      const opticsHull = this.airOperationsOpen || this.battlefieldCamera.transitioning || !this.rig.binoculars ? undefined : this.cameraShipView;
+      if (this.inPort) this.playerView!.root.visible = true;
+      else this.fleetViews.forEach(view => { view.root.visible = view !== opticsHull; });
       this.harbor?.update(dt, this.camera);
       this.shipWake!.update(this.inPort ? [this.playerView!] : this.fleetViews, dt, this.simulation.events, this.camera);
       // Fixed-step mode with zero delta renders without stepping the wake's
@@ -1170,6 +1178,8 @@ export class Game {
     this.endFollow();
     this.spectatedShipId = id;
     this.input.clear();
+    // Arriving on a new hull starts in the chase view; the glasses belong to the hull left behind.
+    this.rig.exitBinoculars();
     this.rig.setInspecting(false);
     this.rig.mode = 'Chase';
     this.rig.setBridge(view.definition.viewpoints?.bridge);
@@ -1216,21 +1226,25 @@ export class Game {
     if (!this.definition.submarine || this.simulation.player.damage.sunk) return;
     this.toggleBinoculars();
   }
+  /** Raise or lower the glasses on whichever hull carries the camera. A spectator following
+   * a teammate has no sight to aim, so the lens opens along the bearing already being viewed. */
   toggleBinoculars(): void {
-    if (this.simulation.player.damage.sunk || this.paused || this.inPort || this.inspecting || this.airOperationsOpen) return;
+    if (this.paused || this.inPort || this.inspecting || this.airOperationsOpen) return;
     if (this.shellFollow.view || this.followedAircraftId) { this.endFollow(); return; }
-    const ship = this.simulation.ship;
-    let aim = this.manualAim ? this.readSightAim() : this.currentAim;
-    if (!this.rig.binoculars && this.definition.submarine && hullDepth(ship) > .5) {
-      const bearing = this.rig.bearing;
+    const spectated = this.spectatedShipId ? this.cameraShipView : undefined;
+    if ((spectated?.actor ?? this.simulation.player).damage.sunk) return;
+    const definition = spectated?.definition ?? this.definition;
+    const ship = spectated?.motion ?? this.simulation.ship;
+    const bearing = this.rig.bearing;
+    const range = (definition.torpedoTubes?.[0]?.weapon.rangeM ?? 5000) * .98;
+    const alongBearing = (): Vec3 => [ship.x + Math.sin(bearing) * range, .5, ship.z - Math.cos(bearing) * range];
+    let aim = spectated ? alongBearing() : this.manualAim ? this.readSightAim() : this.currentAim;
+    if (!spectated && !this.rig.binoculars && definition.submarine && hullDepth(ship) > .5) {
       const ahead = (aim[0] - ship.x) * Math.sin(bearing) - (aim[2] - ship.z) * Math.cos(bearing);
       // During a shallow dive the chase sight can meet the sea over our own
       // stern. Moving to the scope would turn around to keep that point in view.
       // Continue along the viewing bearing, including deliberate stern aiming.
-      if (ahead < this.definition.hull.length) {
-        const range = (this.definition.torpedoTubes?.[0]?.weapon.rangeM ?? 5000) * .98;
-        aim = [ship.x + Math.sin(bearing) * range, .5, ship.z - Math.cos(bearing) * range];
-      }
+      if (ahead < definition.hull.length) aim = alongBearing();
     }
     this.rig.toggleBinoculars(aim, ship);
   }

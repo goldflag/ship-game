@@ -119,7 +119,9 @@ export class CombatEffects {
     this.smokeAmbient.value.set(.3, .35, .4).multiplyScalar(Math.max(0, ambient) / 1.75);
   }
 
-  update(sim: BattleSession, dt: number, camera: THREE.Camera, hidePlayerSmoke = false, poses?: readonly FireDisplayPose[], hideShellTrails = false): void {
+  /** `opticsShipId` is the hull the lens sits on: its own smoke is left out so the
+   * view from its bridge stays clear, whether that is the player's ship or a followed teammate. */
+  update(sim: BattleSession, dt: number, camera: THREE.Camera, opticsShipId?: string, poses?: readonly FireDisplayPose[], hideShellTrails = false): void {
     // Advance before emitting: a slow frame still gets one visible muzzle flash.
     for (const item of this.lights) {
       item.age += dt;
@@ -133,10 +135,9 @@ export class CombatEffects {
       this.emit(event);
     }
     this.updateAirbursts(sim);
-    this.localFires.update(sim, dt, camera, this.wind, hidePlayerSmoke ? sim.player.motion.id : undefined, poses);
+    this.localFires.update(sim, dt, camera, this.wind, opticsShipId, poses);
     if (dt > 0) this.updateAircraftSmoke(sim);
-    for (const pool of this.pools) pool.publish(camera,
-      hidePlayerSmoke && pool === this.smoke ? sim.player.motion.id : undefined);
+    for (const pool of this.pools) pool.publish(camera, pool === this.smoke ? opticsShipId : undefined);
     this.spouts.publish(camera);
     this.updateShells(sim, camera);
     this.shellTrails.update(sim.shells, dt, camera, hideShellTrails);

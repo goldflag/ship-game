@@ -15,7 +15,7 @@ import { AirGroupService } from './CarrierDeck';
 import { KNOTS_PER_MPS } from '../simulation/ship';
 import { SquadronLabels, useMapProjection } from './AirOperations';
 import { AirMapNavigation } from './airMapNavigation';
-import { fleetBoxSelection, fleetDragMode } from './fleetBoxSelection';
+import { fleetBoxSelection, fleetDragMode, fleetWaterAction } from './fleetBoxSelection';
 import { fleetAirCourse } from './fleetAirCourse';
 import { actionAvailable, SQUADRON_ACTIONS, squadronTargetOrder, type SquadronAction, type SquadronTarget } from './airCommands';
 import { duration, mission } from './airFormat';
@@ -249,9 +249,16 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
       setPendingRoutes(routes => ({ ...routes, [lead.id]: { points, receipt } }));
     }
     if (recipients.length > 1) escort(lead.id);
-    setArmed('move'); setMovePoint(point); setShiftHeld(appendRequested);
-    setFeedback(`${append ? 'Waypoint appended' : 'Route queued'} · ${speedKn} kn${recipients.length > 1 ? ` · ${formationLabel(formationOf(lead.id))}` : ''}`);
+    const note = `${append ? 'Waypoint appended' : 'Route queued'} · ${speedKn} kn${recipients.length > 1 ? ` · ${formationLabel(formationOf(lead.id))}` : ''}`;
+    // One destination is one order: the chart hands the selection back so the next
+    // click is a fresh choice. Shift keeps the ships in hand to extend the route.
+    setShiftHeld(appendRequested);
+    if (appendRequested) { setArmed('move'); setMovePoint(point); }
+    else { setMovePoint(undefined); selectShips([]); }
+    setFeedback(note);
   };
+  /** Leave the move flow without ordering anything, and hand back the selection with it. */
+  const cancelMove = () => { setMovePoint(undefined); selectShips([]); };
   const hold = () => { recipients.forEach(s => game.simulation.holdShipArea?.(s.id, [s.x, s.z], 500)); setArmed(undefined); setFeedback(`${recipients.length} hold orders queued · 500 m station area`); };
   const targetShip = (ship: Pick<Contact, 'id' | 'team'>, right: boolean, additive: boolean) => {
     if (armed === 'search') { setFeedback('Choose water for the center of the search area.'); return; }
@@ -289,10 +296,13 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
     if (!rect || !actionable || !instrumentsVisible) return;
     const point = game.airMapWater(event.clientX - rect.left, event.clientY - rect.top);
     if (!point) return;
-    if (selectedFlights.length && armed === 'search') issueSearch(point);
-    else if (selectedFlights.length && (right || typeof armed === 'object')) issueAir({ kind: 'water', point: [point[0], 0, point[1]] });
-    else if (right || armed === 'move' || (!armed && event.shiftKey && lead && !selectedFlights.length)) move(point, event.shiftKey);
-    else if (!armed) { selectShips([]); game.selectFlights([]); }
+    const kind = typeof armed === 'object' ? 'squadron' : armed === 'move' || armed === 'search' ? armed : armed ? 'other' : undefined;
+    const action = fleetWaterAction(kind, { right, shift: event.shiftKey, flights: selectedFlights.length > 0, lead: !!lead });
+    if (action === 'search') issueSearch(point);
+    else if (action === 'air') issueAir({ kind: 'water', point: [point[0], 0, point[1]] });
+    else if (action === 'cancel-move') cancelMove();
+    else if (action === 'move') move(point, event.shiftKey);
+    else if (action === 'clear') { selectShips([]); game.selectFlights([]); }
   };
   const arm = (order: ArmedOrder) => {
     if (!mapOpen) game.enterFleetCommand(); setArmed(order); setFeedback('');
@@ -528,7 +538,7 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
       aria-pressed={!!selectedGroup && selectedGroup.formation === entry.id} onClick={() => setGroupFormation(entry.id)}>{entry.label}</button>)}</div>
     {!selectedGroup && <small>{FORMATION_HINT}</small>}
   </div>;
-  const armedHint = typeof armed === 'object' ? `Choose ${armed.target}` : armed === 'search' ? 'Choose the area center on water, or pan with arrow keys and press Enter at chart center' : armed === 'move' ? 'Choose water · Shift adds a waypoint · Esc finishes' : armed === 'escort' ? 'Choose a friendly leader' : armed === 'focus' ? 'Choose an enemy contact' : '';
+  const armedHint = typeof armed === 'object' ? `Choose ${armed.target}` : armed === 'search' ? 'Choose the area center on water, or pan with arrow keys and press Enter at chart center' : armed === 'move' ? 'Choose water · Shift adds a waypoint · Right-click cancels' : armed === 'escort' ? 'Choose a friendly leader' : armed === 'focus' ? 'Choose an enemy contact' : '';
   // Near the right edge the wheel opens to port of the unit instead of running under it.
   const flipAt = (x: number, z: number) => { if (!map.current) return ''; const point = game.projectAirMap(x, z); return point ? `${point[0] > map.current.clientWidth - 560 ? 'flip' : ''} ${point[1] > map.current.clientHeight - 420 ? 'flip-up' : ''}` : ''; };
   const chip = (name: string) => <div className="fleet-command-wheel-chip"><strong>{name}</strong><span>{armedHint}</span><button onClick={() => setArmed(undefined)}>Cancel<kbd>Esc</kbd></button></div>;
@@ -621,7 +631,7 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
       })}
       {armed === 'move' && movePoint && recipients.length > 0 && <g className="fleet-command-move-preview" aria-label="Move preview">
         <path data-map-path={JSON.stringify([moveOrigin, [movePoint[0], 0, movePoint[1]]])}/>
-        <g data-map-position={JSON.stringify([movePoint[0], 0, movePoint[1]])}><circle r="9"/><path d="M-14 0H14M0-14V14"/><text x="16" y="-8">{speedKn} kn · Shift adds a waypoint · Esc finishes</text></g>
+        <g data-map-position={JSON.stringify([movePoint[0], 0, movePoint[1]])}><circle r="9"/><path d="M-14 0H14M0-14V14"/><text x="16" y="-8">{speedKn} kn · Shift adds a waypoint</text></g>
       </g>}
       {previewArmed(armed) && armed !== 'move' && movePoint && selectedFlights.length > 0 && <g className="fleet-command-move-preview air" aria-label="Air order preview">
         {selectedFlights.map(f => <path key={f.id} data-map-path={JSON.stringify([f.position, [movePoint[0], 0, movePoint[1]]])}/>)}

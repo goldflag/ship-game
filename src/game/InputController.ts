@@ -38,7 +38,7 @@ export class InputController {
     window.addEventListener('keyup', e => {
       this.keys.delete(e.code);
       if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
-        if (this.enabled && this.shiftTap) this.actions.optics();
+        if (this.shiftTap) this.actions.optics();
         this.shiftTap = false;
       }
       if (this.enabled && (e.code === 'ControlLeft' || e.code === 'ControlRight') && !this.keys.has('ControlLeft') && !this.keys.has('ControlRight')) this.actions.cursor(false);
@@ -79,6 +79,9 @@ export class InputController {
       // while the helm is not the player's, such as when following a teammate.
       if (action === 'chartLarger') this.actions.chartSize(1);
       if (action === 'chartSmaller') this.actions.chartSize(-1);
+      // Optics are a view control too: a spectator following a teammate raises the
+      // same glasses without holding that ship's helm.
+      if (shift) this.shiftTap = true;
     }
     if (!this.enabled) return;
     this.keys.add(key);
@@ -90,7 +93,6 @@ export class InputController {
       if (action === 'stop') this.setOrder(1);
       if (action === 'camera') this.actions.camera();
       if (action === 'recenter') this.actions.recenter();
-      if (shift) this.shiftTap = true;
       if (control) this.actions.cursor(true);
       const weaponIndex = WEAPON_GROUP_ACTIONS.findIndex(id => id === action);
       if (weaponIndex >= 0) this.actions.weaponGroup(weaponIndex);
