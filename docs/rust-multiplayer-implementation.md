@@ -61,7 +61,7 @@ bun run multiplayer:capacity-smoke # dedicated server, cap 2, no other players
 bun run multiplayer:benchmark 1800
 ```
 
-`multiplayer:check` generates content, runs native tests and Clippy, builds WASM and checks frozen migration fixtures. Standalone Cargo tests require the generated manifest. Wire types are exported with `TS_RS_EXPORT_DIR=src/multiplayer/generated cargo run -p naval-protocol --bin export`. Frozen fixtures are refreshed deliberately with `bun run multiplayer:fixtures`, never as part of routine tests.
+`multiplayer:check` generates content, runs the full native suite in the optimized release profile and Clippy, builds WASM and checks frozen migration fixtures. Release-profile tests keep long carrier scenarios within the CI time budget without skipping coverage. Standalone Cargo tests require the generated manifest. Wire types are exported with `TS_RS_EXPORT_DIR=src/multiplayer/generated cargo run -p naval-protocol --bin export`. Frozen fixtures are refreshed deliberately with `bun run multiplayer:fixtures`, never as part of routine tests.
 
 Validation passed native tests and Clippy, complete native/WASM battle comparisons covering 28,800 simulated ticks, all registered weapon-group IDs, damage records and shell histories, 133 TypeScript test files, and the production build with all ship/aircraft checks. GitHub Actions runs the native/WASM checks, TypeScript suite, production build and release-server HTTP/WebSocket smoke. See the PR checks for remote execution status. The [implementation review disposition](reviews/rust-multiplayer-review-disposition.md) records Fable’s findings and their fixes.
 

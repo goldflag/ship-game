@@ -5,6 +5,7 @@ export const aircraftNodeIds = [
   'control.elevator.port', 'control.elevator.starboard',
   'control.aileron.port', 'control.aileron.starboard',
   'gear.port', 'gear.starboard', 'gear.tail', 'socket.payload', 'socket.deck',
+  'arrestor.hook',
 ] as const;
 
 export const aircraftFoldIds = (id: string): string[] => ['f4f-4-wildcat', 'tbd-1-devastator'].includes(id) ? ['wing.fold.port', 'wing.fold.starboard'] : [];
@@ -217,7 +218,7 @@ export function inspectAircraftGlb(bytes: Buffer, aircraft: AircraftDimensions, 
     require(descendsFrom(nodeIndex(`control.aileron.${id.split('.').at(-1)}`), nodeIndex(id)), `${id} must carry its aileron`);
     return new Matrix4().makeRotationAxis(new Vector3().fromArray(axis), data.foldAngleDegrees * Math.PI / 180 * fraction);
   };
-  const movingIds: string[] = [...aircraftNodeIds.filter(id => id === 'propeller.spin' || id.startsWith('control.')), ...foldIds];
+  const movingIds: string[] = [...aircraftNodeIds.filter(id => id === 'propeller.spin' || id === 'arrestor.hook' || id.startsWith('control.')), ...foldIds];
   const joints = movingIds.map(id => {
     const index = nodeIndex(id);
     const movingMeshes = [...vertices.keys()].filter(mesh => descendsFrom(mesh, index));

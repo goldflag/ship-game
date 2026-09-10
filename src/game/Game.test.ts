@@ -7,6 +7,7 @@ import { Game } from './Game';
 import { VisualEnvironment } from './VisualEnvironment';
 import { CameraRig } from './CameraRig';
 import { ShellFollow } from './ShellFollow';
+import { BattlefieldCamera } from './BattlefieldCamera';
 import { ShipView } from './ShipView';
 import { CombatSimulation } from '../simulation/combat';
 import { shipPreset } from '../ships/presets';
@@ -36,7 +37,7 @@ async function model(id: string) {
 }
 
 // Exercise the real scene swap with exported joint hierarchies; only GPU startup is omitted.
-async function port() {
+async function port(storageMatrices = false) {
   const definition = shipPreset('bismarck');
   const simulation = new CombatSimulation(definition);
   simulation.ship.x = 240;
@@ -54,13 +55,13 @@ async function port() {
   rig.update(simulation.ship, 0, 0, true);
   const game = Object.assign(Object.create(Game.prototype), {
     definition, simulation, playerView, targetView, fleetViews: [playerView, targetView], fleetModels: [loaded], loadedModel: loaded, scene, harbor, camera, rig,
-    currentAim: [650, .5, -550], manualAim: true, shellFollow: new ShellFollow(),
+    currentAim: [650, .5, -550], manualAim: true, shellFollow: new ShellFollow(), controlGroups: new Map(), pveStartingGroups: new Map(),
     aircraftView: { root: new Group(), async load() {}, diagnostics() { return {}; } },
     effects: { reset() {}, diagnostics() { return {}; } },
     funnelSmoke: { diagnostics() { return {}; } },
     shipLabels: { setFleet() {} },
     ship: new Group(), inPort: true, disposed: false, switchingShip: false,
-    renderer: { domElement: { setAttribute() {} } },
+    renderer: { backend: { isWebGPUBackend: storageMatrices }, domElement: { setAttribute() {} } },
     environment: new VisualEnvironment({ effects: { setWind() {}, setSun() {}, setIllumination() {} }, funnelSmoke: { setWind() {} }, sunAnchor: new Group() }),
   }) as Game;
   return { game, scene, harbor, camera, rig, playerView };
@@ -158,14 +159,17 @@ test('a second request cannot replace an in-flight switch; disposed games never 
   } finally { loader.mockRestore(); rig.dispose(); }
 });
 
-test('battle loading binds each mixed fleet hull and selected target to its own exported joints', async () => {
-  const { game, scene, harbor, rig } = await port();
+test.each([false, true])('battle loading binds each mixed fleet hull and selected target to its own exported joints (storage matrices: %s)', async storageMatrices => {
+  const { game, scene, harbor, rig } = await port(storageMatrices);
+  const aircraftLoader = spyOn((game as unknown as { aircraftView: { load(modelIds: string[], storageMatrices?: boolean): Promise<void> } }).aircraftView, 'load');
   const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async url => model(String(url).split('/').pop()!.replace('.glb', '')));
   try {
     await game.prepareBattle({ playerShipId: 'baltimore', friendlyBots: ['bismarck', { shipId: 'bismarck', aiLevel: 'hard' }],
       enemies: [{ shipId: 'yamato', aiLevel: 'static' }, { shipId: 'enterprise-cv6', aiLevel: 'moving' }],
       spawnDistance: 7500, mapId: 'pacific-islands', timeOfDay: 'night', weather: 'fog' });
     expect(loader).toHaveBeenCalledTimes(4);
+    expect(aircraftLoader).toHaveBeenCalledTimes(1);
+    expect(aircraftLoader).toHaveBeenCalledWith(shipPreset('enterprise-cv6').airWing!.squadrons.map(s => s.modelId), storageMatrices);
     expect(scene.children).toContain(harbor);
     expect(scene.children).toHaveLength(8); // Harbor, aircraft, five hull roots, fleet draw adapter.
     expect(game.simulation.actors).toHaveLength(5);
@@ -173,9 +177,9 @@ test('battle loading binds each mixed fleet hull and selected target to its own 
     expect(game.diagnostics().timeOfDay).toBe('night');
     expect(game.diagnostics().weather).toBe('fog');
     expect(game.simulation.islands).toHaveLength(3);
-    expect(game.simulation.target.motion.z - game.simulation.ship.z).toBe(-7500);
+    expect(game.simulation.target!.motion.z - game.simulation.ship.z).toBe(-7500);
     expect(game.simulation.ship.heading).toBe(0);
-    expect(game.simulation.target.motion.heading).toBe(Math.PI);
+    expect(game.simulation.target!.motion.heading).toBe(Math.PI);
     const diagnostics = game.diagnostics();
     expect(diagnostics.fleet.map(actor => actor.aiLevel)).toEqual(['normal', 'normal', 'hard', 'static', 'moving']);
     expect(diagnostics.maxMuzzleErrorM).toBeLessThan(.025);
@@ -186,7 +190,7 @@ test('battle loading binds each mixed fleet hull and selected target to its own 
     await game.switchShip(shipPreset('bismarck'));
     expect(scene.children).toHaveLength(5); // Harbor, aircraft, two hull roots, fleet draw adapter.
     expect(game.simulation.isBattle).toBe(false);
-  } finally { loader.mockRestore(); rig.dispose(); }
+  } finally { aircraftLoader.mockRestore(); loader.mockRestore(); rig.dispose(); }
 });
 
 test('battle preparation reports each loading stage in order for the loading screen', async () => {
@@ -294,6 +298,49 @@ test('spectating follows only surviving teammates, cycles duplicates, and resets
     simulation.player.damage.sunk = true; update(); expect(game.spectatedShipId).toBe('friendly-1');
     Object.assign(game, { inPort: true }); update(); expect(game.spectatedShipId).toBeUndefined();
   } finally { rig.dispose(); }
+});
+
+test('fleet selection and camera follow keep captains active; helm transfer resumes standing orders without resetting another actor', async () => {
+  const simulation = await HeadlessSession.create({ playerShipId: 'enterprise-cv6', friendlyBots: ['fletcher'], enemies: ['baltimore'], spawnDistance: 7500 });
+  const camera = new PerspectiveCamera(52, 1.6, .5, 60000);
+  const rig = new CameraRig(camera, new EventTarget() as HTMLCanvasElement);
+  const views = simulation.actors.map(actor => ({ actor, definition: actor.definition, motion: actor.motion }));
+  let clears = 0;
+  const input = { isEnabled: true, order: 1, rudderOrder: 0, clear() { clears++; }, setEnabled(value: boolean) { this.isEnabled = value; this.clear(); }, setOrder(value: number) { this.order = value; }, setRudder(value: number) { this.rudderOrder = value; } };
+  const game = Object.assign(Object.create(Game.prototype), {
+    simulation, definition: simulation.definition, rig, camera, fleetViews: views, playerView: views[0], targetView: views.at(-1),
+    inPort: false, selectedBattery: 'main', currentAim: [0, 0, -7500], ammunition: {}, shellFollow: new ShellFollow(), input,
+    battlefieldCamera: new BattlefieldCamera(camera), selectedShipIds: [], controlGroups: new Map(), host: { clientWidth: 1280, clientHeight: 800 },
+    environment: { setChartFog() {} },
+  }) as Game;
+  const update = () => (game as unknown as { updateSpectator(): void }).updateSpectator();
+  const advance = () => simulation.advance(.1, { throttle: 0, rudder: 0 }, { aim: [0, 0, -7500], battery: 'main', fire: false });
+  try {
+    simulation.routeShip('player', [[0, -1500]], 10);
+    simulation.escortShip('friendly-1', 'player', [650, 450], 160);
+    const carrier = simulation.player, hp = carrier.damage.integrity;
+    game.enterFleetCommand(); advance(); update();
+    expect(game.airOperationsOpen).toBe(true);
+    expect(simulation.controlledShipId).toBeUndefined();
+    game.selectFleetShips(['friendly-1', 'enemy-1']);
+    expect(game.selectedShipIds).toEqual(['friendly-1']);
+    expect(simulation.player).toBe(carrier);
+    game.followFleetShip('friendly-1'); update();
+    expect(game.airOperationsOpen).toBe(false);
+    expect(game.spectatedShipId).toBe('friendly-1');
+    expect(simulation.controlledShipId).toBeUndefined();
+    game.takeFleetHelm('friendly-1'); advance(); update();
+    expect(simulation.controlledShipId).toBe('friendly-1');
+    expect(input.isEnabled).toBe(true);
+    const firstClear = clears;
+    update(); update();
+    expect(clears).toBe(firstClear); // Rendering must never clear a held key every frame.
+    game.enterFleetCommand(); advance(); update();
+    expect(simulation.controlledShipId).toBeUndefined();
+    expect(simulation.fleetOrders['friendly-1'].movement.type).toBe('escort');
+    expect(carrier.damage.integrity).toBe(hp);
+    expect(simulation.actors[0]).toBe(carrier);
+  } finally { simulation.dispose(); rig.dispose(); }
 });
 
 test('direct slots select a single type, never cycle, and retain selection when guns are lost', () => {

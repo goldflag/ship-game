@@ -107,6 +107,7 @@ export class InputController {
   setOrder(order: number): void { this.order = Math.max(0, Math.min(ENGINE_ORDERS.length - 1, Math.round(order))); }
   setRudder(rudder: number): void { if (Number.isFinite(rudder)) this.rudderOrder = Math.max(-1, Math.min(1, Math.round(rudder * 2) / 2)); }
   setEnabled(enabled: boolean): void { this.enabled = enabled; this.clear(); }
+  get isEnabled(): boolean { return this.enabled; }
   clear(): void { this.keys.clear(); this.shiftTap = false; }
   setBindings(bindings: Keybindings): void { this.bindings = bindings; this.clear(); }
   private held(action: InputAction): boolean { return this.bindings[action].some(key => key !== null && this.keys.has(key)); }

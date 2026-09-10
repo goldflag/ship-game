@@ -608,6 +608,50 @@ pub struct SubmarineDefinition {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct FlightDeckLayoutSpotsItem {
+    #[serde(rename = "id")]
+    pub id: String,
+    #[serde(rename = "position")]
+    pub position: [f64; 3],
+    #[serde(rename = "preferredRole")]
+    pub preferred_role: String,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct FlightDeckLayoutElevatorsItem {
+    #[serde(rename = "id")]
+    pub id: String,
+    #[serde(rename = "position")]
+    pub position: [f64; 3],
+    #[serde(rename = "hangarY")]
+    pub hangar_y: f64,
+    #[serde(rename = "widthM")]
+    pub width_m: f64,
+    #[serde(rename = "lengthM")]
+    pub length_m: f64,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct FlightDeckLayout {
+    #[serde(rename = "version")]
+    pub version: f64,
+    #[serde(rename = "surfaceId")]
+    pub surface_id: String,
+    #[serde(rename = "spots")]
+    pub spots: Vec<FlightDeckLayoutSpotsItem>,
+    #[serde(rename = "launchStart")]
+    pub launch_start: [f64; 3],
+    #[serde(rename = "launchEnd")]
+    pub launch_end: [f64; 3],
+    #[serde(rename = "recoveryTouchdown")]
+    pub recovery_touchdown: [f64; 3],
+    #[serde(rename = "recoveryStop")]
+    pub recovery_stop: [f64; 3],
+    #[serde(rename = "elevators")]
+    pub elevators: Vec<FlightDeckLayoutElevatorsItem>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct AirWingDefinitionSquadronsItem {
     #[serde(rename = "id")]
     pub id: String,
@@ -641,6 +685,8 @@ pub struct AirWingDefinition {
     pub deck_capacity: Option<f64>,
     #[serde(rename = "maxActiveFlights")]
     pub max_active_flights: Option<f64>,
+    #[serde(rename = "deckLayout")]
+    pub deck_layout: Option<FlightDeckLayout>,
     #[serde(rename = "squadrons")]
     pub squadrons: Vec<AirWingDefinitionSquadronsItem>,
 }
