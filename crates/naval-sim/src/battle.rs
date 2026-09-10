@@ -327,6 +327,10 @@ impl Battle {
                     if event.kind == "sunk" {
                         self.sensors
                             .confirm_sinking(team, &event.ship_id, self.tick);
+                    } else if event.kind == "aircraft-lost"
+                        && let Some(aircraft) = &event.aircraft
+                    {
+                        self.sensors.confirm_aircraft_loss(team, &aircraft.id);
                     }
                     self.team_event_sequence[team.index()] += 1;
                     let events = &mut self.team_events[team.index()];

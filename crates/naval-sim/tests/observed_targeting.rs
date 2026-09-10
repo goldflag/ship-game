@@ -314,3 +314,95 @@ fn a_newly_spotted_ship_has_an_exact_exterior_heading_even_when_stationary() {
     assert_eq!(exterior["observers"], serde_json::json!(["own"]));
     assert_eq!(frame["contacts"][0]["identificationConfidence"], 1.0);
 }
+
+fn aircraft_loss_report(witnessed: bool) {
+    use naval_sim::{
+        rules::{TICK_RATE, TeamId},
+        sensors::{self, VisualRules},
+        snapshot::PresentationView,
+    };
+    let (catalog, compiled) = content();
+    let setup: BattleSetup = serde_json::from_value(serde_json::json!({
+        "ships": [
+            {"id":"own","presetId":"fletcher","team":"a","controller":"bot","aiLevel":"static","spawn":{"x":0,"z":0,"heading":0}},
+            {"id":"enemy-carrier","presetId":"enterprise-cv6","team":"b","controller":"bot","aiLevel":"static","spawn":{"x":0,"z":-16000,"heading":0}}
+        ],
+        "seed":54321,"mapId":"north-atlantic","weather":"clear","spawnDistance":16000,"windSpeed":0,
+        "missionRules":catalog.missions["pve-fleet-v1"]
+    })).unwrap();
+    let mut battle = Battle::new(catalog.clone(), compiled, setup).unwrap();
+    let plane = &mut battle.aviation.wings[0].state.planes[0];
+    plane.phase = "outbound".into();
+    plane.deck_position = None;
+    plane.deck_slot = None;
+    plane.position = [2000.0, 500.0, 0.0];
+    let plane_id = plane.id.clone();
+    let rules = VisualRules::default();
+    let conditions = sensors::VisualConditions::resolve(catalog, "north-atlantic", "clear");
+    battle.sensors.update(
+        0,
+        &sensors::entities(&battle.actors, &battle.aviation),
+        &[],
+        &[],
+        conditions,
+        &rules,
+    );
+    let contact_id = battle
+        .sensors
+        .track(TeamId::A, &plane_id)
+        .unwrap()
+        .id
+        .clone();
+    let plane = &mut battle.aviation.wings[0].state.planes[0];
+    if !witnessed {
+        plane.position = [30000.0, 500.0, 0.0];
+    }
+    plane.hp = 0.0;
+    battle.step(&BTreeMap::new());
+    assert_eq!(battle.aviation.wings[0].state.planes[0].phase, "lost");
+    let frame = battle
+        .presentation_value(PresentationView::Team(TeamId::A))
+        .unwrap();
+    let loss = frame["events"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|e| e["kind"] == "aircraft-lost");
+    assert_eq!(loss.is_some(), witnessed);
+    if let Some(loss) = loss {
+        assert_eq!(
+            loss["aircraft"]["id"], contact_id,
+            "loss must retain its public identity"
+        );
+    }
+    assert_eq!(
+        frame["contacts"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|c| c["id"] == contact_id),
+        !witnessed
+    );
+    battle.sensors.update(
+        300 * TICK_RATE,
+        &sensors::entities(&battle.actors, &battle.aviation),
+        &[],
+        &[],
+        conditions,
+        &rules,
+    );
+    assert_eq!(
+        battle.sensors.contact(TeamId::A, &contact_id).is_some(),
+        !witnessed
+    );
+}
+
+#[test]
+fn witnessed_aircraft_loss_retires_its_map_contact() {
+    aircraft_loss_report(true);
+}
+
+#[test]
+fn unwitnessed_aircraft_loss_preserves_the_last_known_report() {
+    aircraft_loss_report(false);
+}
