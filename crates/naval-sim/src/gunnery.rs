@@ -137,6 +137,27 @@ pub fn operate_observed(
             actor.mounts[i].status = "disabled".into();
             continue;
         }
+        let independent_secondary = knowledge.is_some() && m.battery == "secondary";
+        let contact = if independent_secondary {
+            actor
+                .secondary_bot
+                .as_ref()
+                .and_then(|b| b.track.as_ref())
+                .and_then(|t| knowledge.unwrap().sensors.contact(actor.team, &t.id))
+                .filter(|c| c.targetable())
+        } else {
+            contact
+        };
+        let lane = if independent_secondary {
+            contact.is_some_and(|c| bots::clear_lane_to(actor, c.estimated_position, ctx.actors))
+        } else {
+            lane
+        };
+        let bot = if independent_secondary {
+            actor.secondary_bot.as_ref()
+        } else {
+            actor.bot.as_ref()
+        };
         let allowed = anti_aircraft::surface_allowed(def, m);
         let group = &compiled.weapon_group_ids[i];
         let selected = allowed
@@ -160,6 +181,9 @@ pub fn operate_observed(
                 knowledge,
             )
         {
+            if state.reload > actor.mounts[i].reload {
+                actor.firing_visibility_seconds = crate::sensors::FIRING_VISIBILITY_SECONDS;
+            }
             actor.mounts[i] = state;
             continue;
         }
@@ -215,18 +239,9 @@ pub fn operate_observed(
                 && state.hp > 0.0
                 && state.available(state.loaded) >= m.weapon.barrel_count.unwrap_or(2.0)
             {
-                aim = Some(bots::aim_contact(
-                    actor.bot.as_ref(),
-                    &actor.motion,
-                    c,
-                    m,
-                    &mut state,
-                ));
+                aim = Some(bots::aim_contact(bot, &actor.motion, c, m, &mut state));
             }
-            fire = policy.guns
-                && in_range
-                && lane
-                && actor.bot.as_ref().is_some_and(|b| b.ready(Some(m)));
+            fire = policy.guns && in_range && lane && bot.is_some_and(|b| b.ready(Some(m)));
         } else if actor.controller == Controller::Bot
             && let Some(t) = target
         {
@@ -238,7 +253,7 @@ pub fn operate_observed(
                 && state.available(state.loaded) >= m.weapon.barrel_count.unwrap_or(2.0)
             {
                 aim = Some(bots::aim(
-                    actor.bot.as_ref(),
+                    bot,
                     &actor.motion,
                     t,
                     t.definition(),
@@ -246,10 +261,7 @@ pub fn operate_observed(
                     &mut state,
                 ))
             }
-            fire = policy.guns
-                && in_range
-                && lane
-                && actor.bot.as_ref().is_some_and(|b| b.ready(Some(m)));
+            fire = policy.guns && in_range && lane && bot.is_some_and(|b| b.ready(Some(m)));
         }
         let aligned = update_mount(
             m,
@@ -265,11 +277,18 @@ pub fn operate_observed(
         );
         if !actor.damage.sunk && fire && aligned && state.status == "ready" {
             if actor.controller == Controller::Bot
-                && let Some(bot) = actor.bot.as_mut()
+                && let Some(bot) = if independent_secondary {
+                    actor.secondary_bot.as_mut()
+                } else {
+                    actor.bot.as_mut()
+                }
             {
                 bot.did_fire(m)
             }
             let barrels = state.expend_salvo(m, m.weapon.reload_seconds);
+            if barrels > 0 {
+                actor.firing_visibility_seconds = crate::sensors::FIRING_VISIBILITY_SECONDS;
+            }
             let w = &m.weapon;
             let spread = w.ballistics.as_ref().map_or(0.0, |b| b.dispersion_rad)
                 + (1.0 - mount_support(actor, def, Some(&m.id), None).1) * 0.0015;

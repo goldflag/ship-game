@@ -433,12 +433,24 @@ impl Battle {
                 actor.target_id = None
             } else {
                 let contact = self.mission_rules.as_ref().and_then(|_| {
-                    self.sensors.surface_target(
-                        actor.team,
-                        [actor.motion.x, actor.motion.y, actor.motion.z],
-                        order.and_then(|o| o.target_id.as_deref()),
-                        actor.target_id.as_deref(),
-                    )
+                    if let Some(mount) = bots::battery_mount(&actor, false)
+                        .or_else(|| bots::battery_mount(&actor, true))
+                    {
+                        self.sensors.battery_target(
+                            actor.team,
+                            [actor.motion.x, actor.motion.y, actor.motion.z],
+                            mount,
+                            order.and_then(|o| o.target_id.as_deref()),
+                            actor.target_id.as_deref(),
+                        )
+                    } else {
+                        self.sensors.surface_target(
+                            actor.team,
+                            [actor.motion.x, actor.motion.y, actor.motion.z],
+                            order.and_then(|o| o.target_id.as_deref()),
+                            actor.target_id.as_deref(),
+                        )
+                    }
                 });
                 let target = self
                     .mission_rules
@@ -664,6 +676,9 @@ impl Battle {
             );
             self.contacts(hits)
         }
+        for actor in &mut self.actors {
+            actor.firing_visibility_seconds = (actor.firing_visibility_seconds - DT).max(0.0);
+        }
         let mut events = vec![];
         for i in 0..self.actors.len() {
             let mut a = self.actors.remove(i);
@@ -677,6 +692,35 @@ impl Battle {
                 .and(a.target_id.as_deref())
                 .and_then(|id| self.sensors.contact(a.team, id))
                 .filter(|c| c.targetable());
+            if self.mission_rules.is_some() && a.controller == Controller::Bot {
+                let secondary = bots::battery_mount(&a, true).and_then(|mount| {
+                    self.sensors.battery_target(
+                        a.team,
+                        [a.motion.x, a.motion.y, a.motion.z],
+                        mount,
+                        orders
+                            .get(&a.motion.id)
+                            .and_then(|o| o.target_id.as_deref()),
+                        a.secondary_bot
+                            .as_ref()
+                            .and_then(|b| b.track.as_ref())
+                            .map(|t| t.id.as_str()),
+                    )
+                });
+                if secondary.is_some() || a.secondary_bot.is_some() {
+                    let def = a.compiled.definition.clone();
+                    let mut bot = a.secondary_bot.take().unwrap_or_else(|| {
+                        BotState::new(
+                            &format!("{}:secondary", a.motion.id),
+                            &def,
+                            self.seed,
+                            a.bot.as_ref().map_or(AiLevel::Normal, |b| b.ai_level),
+                        )
+                    });
+                    bot.update_contact(&a, &def, secondary, time);
+                    a.secondary_bot = Some(bot);
+                }
+            }
             let player = orders.get(&a.motion.id).and_then(|o| o.guns.as_ref());
             let weapons = orders
                 .get(&a.motion.id)

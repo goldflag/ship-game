@@ -300,10 +300,7 @@ impl PvePlan {
                 } else {
                     search(leader, battle)
                 };
-                orders.insert(
-                    leader.motion.id.clone(),
-                    (movement, contact.map(|c| c.id.clone())),
-                );
+                orders.insert(leader.motion.id.clone(), (movement, None));
             } else if let Some(threat) = contact.filter(|c| {
                 front_collapsed
                     || (c.estimated_position[0] - leader.motion.x)
@@ -312,25 +309,19 @@ impl PvePlan {
             }) {
                 orders.insert(
                     leader.motion.id.clone(),
-                    (
-                        withdraw(leader, battle, threat.estimated_position),
-                        Some(threat.id.clone()),
-                    ),
+                    (withdraw(leader, battle, threat.estimated_position), None),
                 );
             } else if !leader
                 .navigation
                 .as_ref()
                 .is_some_and(|n| matches!(n.order, Movement::Route { .. }))
             {
-                orders.insert(
-                    leader.motion.id.clone(),
-                    (patrol(leader, battle), contact.map(|c| c.id.clone())),
-                );
+                orders.insert(leader.motion.id.clone(), (patrol(leader, battle), None));
             }
             for (i, ship) in ships.iter().skip(1).enumerate() {
                 orders.insert(
                     ship.motion.id.clone(),
-                    (escort(ship, leader, self, i), contact.map(|c| c.id.clone())),
+                    (escort(ship, leader, self, i), None),
                 );
             }
         }

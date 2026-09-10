@@ -16,7 +16,7 @@ fn content() -> &'static Content {
             Catalog::load(&std::fs::read("../../.build/naval-content/manifest.json").unwrap())
                 .unwrap(),
         );
-        let compiled = ["fletcher", "enterprise-cv6"]
+        let compiled = ["fletcher", "enterprise-cv6", "bismarck"]
             .into_iter()
             .map(|id| {
                 (
@@ -129,13 +129,18 @@ fn team_projection_omits_unobserved_fleets_private_totals_and_records() {
     // team's records stay private.
     let scores = before["records"]["scores"].as_object().unwrap();
     assert!(!scores.is_empty());
-    assert!(scores.keys().all(|id| a
-        .actors
-        .iter()
-        .any(|actor| actor.team == TeamId::A && actor.motion.id == *id)));
-    assert!(scores.values().all(|score| score["damageLog"].as_array().unwrap().is_empty()
-        && score["damageDealt"] == 0.0
-        && score["frags"] == 0));
+    assert!(scores.keys().all(|id| {
+        a.actors
+            .iter()
+            .any(|actor| actor.team == TeamId::A && actor.motion.id == *id)
+    }));
+    assert!(
+        scores
+            .values()
+            .all(|score| score["damageLog"].as_array().unwrap().is_empty()
+                && score["damageDealt"] == 0.0
+                && score["frags"] == 0)
+    );
     assert_eq!(before["records"]["shellHistory"], serde_json::json!([]));
     assert!(!before.to_string().contains("enemy-private-id"));
     a.actors[1].motion.x = 19000.0;
@@ -174,7 +179,11 @@ fn observed_enemy_is_a_report_and_silhouette_without_an_inspectable_damage_model
     assert!(!frame.to_string().contains("enemy-private-id"));
     assert!(frame["contacts"][0].get("damage").is_none());
     assert!(frame["observedShips"][0].get("mounts").is_none());
-    assert!(frame["observedShips"][0]["health"].as_f64().is_some_and(|hp| (0.0..=1.0).contains(&hp)));
+    assert!(
+        frame["observedShips"][0]["health"]
+            .as_f64()
+            .is_some_and(|hp| (0.0..=1.0).contains(&hp))
+    );
     assert!(
         frame["observedShips"][0]["id"]
             .as_str()
@@ -255,10 +264,16 @@ fn visible_reports_publish_sampled_health_without_private_damage_or_changing_leg
     };
     let mut damaged = own(&a);
     let mut intact = own(&b);
-    assert_eq!(damaged["observedShips"][0]["health"], 1.0 / a.actors[1].damage.max_integrity);
+    assert_eq!(
+        damaged["observedShips"][0]["health"],
+        1.0 / a.actors[1].damage.max_integrity
+    );
     assert_eq!(intact["observedShips"][0]["health"], 1.0);
     for frame in [&mut damaged, &mut intact] {
-        frame["observedShips"][0].as_object_mut().unwrap().remove("health");
+        frame["observedShips"][0]
+            .as_object_mut()
+            .unwrap()
+            .remove("health");
     }
     assert_eq!(damaged, intact);
     let frame = own(&a);
@@ -405,4 +420,105 @@ fn witnessed_aircraft_loss_retires_its_map_contact() {
 #[test]
 fn unwitnessed_aircraft_loss_preserves_the_last_known_report() {
     aircraft_loss_report(false);
+}
+
+fn mixed_battle() -> Battle {
+    let (catalog, compiled) = content();
+    let setup = serde_json::from_value(serde_json::json!({
+        "ships": [
+            {"id":"own","presetId":"bismarck","team":"a","controller":"bot","aiLevel":"hard","spawn":{"x":0,"z":0,"heading":0}},
+            {"id":"capital","presetId":"bismarck","team":"b","controller":"bot","aiLevel":"static","spawn":{"x":6500,"z":0,"heading":0}},
+            {"id":"screen","presetId":"fletcher","team":"b","controller":"bot","aiLevel":"static","spawn":{"x":5500,"z":1500,"heading":0}}
+        ],
+        "seed":54321,"mapId":"north-atlantic","weather":"clear","spawnDistance":16000,"windSpeed":0,
+        "missionRules":catalog.missions["pve-fleet-v1"]
+    })).unwrap();
+    Battle::new(catalog.clone(), compiled, setup).unwrap()
+}
+
+#[test]
+fn batteries_choose_suitable_contacts_and_respect_focus_orders() {
+    use naval_sim::{battle::Orders, rules::TeamId};
+    let mut b = mixed_battle();
+    b.step(&BTreeMap::new());
+    let capital = b.sensors.track(TeamId::A, "capital").unwrap().id.clone();
+    let screen = b.sensors.track(TeamId::A, "screen").unwrap().id.clone();
+    let own = &b.actors[0];
+    assert_eq!(own.target_id.as_ref(), Some(&capital));
+    assert_eq!(
+        own.secondary_bot
+            .as_ref()
+            .unwrap()
+            .track
+            .as_ref()
+            .unwrap()
+            .id,
+        screen
+    );
+    assert!(!own.bot.as_ref().unwrap().ready(None));
+    assert!(!own.secondary_bot.as_ref().unwrap().ready(None));
+    let mut orders = BTreeMap::new();
+    let mut order = Orders {
+        target_id: Some(screen.clone()),
+        ..Default::default()
+    };
+    orders.insert("own".into(), order.clone());
+    b.step(&orders);
+    assert_eq!(b.actors[0].target_id.as_ref(), Some(&screen));
+    assert_eq!(
+        b.actors[0]
+            .secondary_bot
+            .as_ref()
+            .unwrap()
+            .track
+            .as_ref()
+            .unwrap()
+            .id,
+        screen
+    );
+    order.target_id = Some(capital.clone());
+    orders.insert("own".into(), order);
+    b.step(&orders);
+    assert_eq!(
+        b.actors[0]
+            .secondary_bot
+            .as_ref()
+            .unwrap()
+            .track
+            .as_ref()
+            .unwrap()
+            .id,
+        capital
+    );
+}
+
+#[test]
+fn actual_gunfire_refreshes_visibility_and_silence_expires_it() {
+    let mut b = mixed_battle();
+    let mut fired = false;
+    let mut main_fired = false;
+    let mut secondary_fired = false;
+    for _ in 0..30 * naval_sim::rules::TICK_RATE {
+        b.step(&BTreeMap::new());
+        let own = &b.actors[0];
+        for (mount, state) in own.definition().mounts.iter().zip(&own.mounts) {
+            if state.reload > 0.0 {
+                if mount.battery == "main" { main_fired = true; }
+                if mount.battery == "secondary" { secondary_fired = true; }
+            }
+        }
+        if own.firing_visibility_seconds == 20.0 && main_fired && secondary_fired {
+            fired = true;
+            break;
+        }
+    }
+    assert!(fired, "both batteries must fire real salvos at their separate contacts");
+    assert!(naval_sim::sensors::entities(&b.actors, &b.aviation).iter().find(|e| e.id == "own").unwrap().firing);
+    b.actors[0].bot.as_mut().unwrap().ai_level = naval_sim::bots::AiLevel::Static;
+    b.actors[0].secondary_bot.as_mut().unwrap().ai_level = naval_sim::bots::AiLevel::Static;
+    for _ in 0..21 * naval_sim::rules::TICK_RATE {
+        b.step(&BTreeMap::new());
+    }
+    assert_eq!(b.actors[0].firing_visibility_seconds, 0.0);
+    assert!(!naval_sim::sensors::entities(&b.actors, &b.aviation).iter().find(|e| e.id == "own").unwrap().firing);
 }
