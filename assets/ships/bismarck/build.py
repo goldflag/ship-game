@@ -183,7 +183,23 @@ for s in DEF['structures']:
  if roof:
   shields={'bridge-wings':1.35,'fore-aa-platform':.98,'foretop-platform':1.30,'aft-director-platform':.74}
   if s['id'] in ['navigation-roof','foretop-roof','bridge-admiral-platform','conning-platform']:continue
-  if s['id'] not in shields:rail(s['id'],[(x,y,top+.005) for x,y in pts],.85,1.55,col=supercol)
+  if s['id']=='signal-platform':
+   # Leave optical ports in the guardrail for the transverse nightfinders.
+   chain=[]
+   for a,b in zip(pts,pts[1:]+pts[:1]):
+    ts=[0,1]+[(cut-a[0])/(b[0]-a[0]) for cut in [14.05,16.15] if abs(b[0]-a[0])>1e-7 and min(a[0],b[0])<cut<max(a[0],b[0])]
+    ts=sorted(ts)
+    for lo,hi in zip(ts,ts[1:]):
+     pa=tuple(a[k]+(b[k]-a[k])*lo for k in [0,1]);pb=tuple(a[k]+(b[k]-a[k])*hi for k in [0,1])
+     gap=14.05<(pa[0]+pb[0])/2<16.15 and abs((pa[1]+pb[1])/2)>5.5
+     if gap:
+      if len(chain)>1:rail(s['id'],[(x,y,top+.005) for x,y in chain],.85,1.55,False,col=supercol)
+      chain=[]
+     else:
+      if not chain:chain=[pa]
+      chain.append(pb)
+   if len(chain)>1:rail(s['id'],[(x,y,top+.005) for x,y in chain],.85,1.55,False,col=supercol)
+  elif s['id'] not in shields:rail(s['id'],[(x,y,top+.005) for x,y in pts],.85,1.55,col=supercol)
   if s['id'] in shields:
    # Sheet bulwarks and their inclined wind lip break up the repeated open
    # handrails. Leave the after edge open for passage and mast access.
@@ -293,7 +309,7 @@ for sign in [-1,1]:
   ('Forward exterior stair',(42.8,8.05,8.4),(39.5,8.05,10.75),6.9),
   ('Bridge stair',(35.4,7.2,10.75),(32.1,7.2,13.0),6.0),
   ('Navigation bridge stair',(30.2,7.2,13.0),(27.4,7.2,15.5),6.2),
-  ('Signal bridge access',(21.8,5.1,15.5),(17.9,5.1,20.75),4.2),
+  ('Signal bridge access',(23.0,5.1,15.5),(19.3,5.1,20.75),3.3),
   ('Searchlight gallery stair',(12.4,5.1,20.75),(17.1,5.1,24.72),4.4),
   ('Aft platform access',(-50.4,9.1,5.8),(-47.2,9.1,8.4),8.0),
   ('Aft deck stair',(-46.5,8.4,8.4),(-43.5,8.4,10.75),7.8),
@@ -552,12 +568,12 @@ rod('After derrick boom',(-43,0,16.0),(-48,0,21.5),.09,materials['edge'],detailc
 rod('After derrick cable',(-43,0,26.5),(-48,0,21.5),.018,materials['dark'],detailcol,vertices=5)
 # Aircraft hangar roof camber and folding leaves follow the approved model.
 # The eaves and door sills follow the raised blueprint decks.
-for name,x,y,length,breadth,base in [('Port single hangar',8.8,6.7,11.8,5.5,12.1),('Starboard single hangar',8.8,-6.7,11.8,5.5,12.1),('Double hangar',-24.6,0,12.8,14.2,13.2)]:
- rise=.85 if breadth<7 else 1.12
+for name,x,y,length,breadth,base in [('Port single hangar',6.0,5.55,11.8,4.6,12.1),('Starboard single hangar',6.0,-5.55,11.8,4.6,12.1),('Double hangar',-20.9,0,9.82,11.4,13.15)]:
+ rise=.15 if breadth<7 else .12
  arc=[(y+breadth*(i/16-.5),base+rise*math.sin(math.pi*i/16)) for i in range(17)]
  roofvs=[(xx,yy,zz) for xx in [x-length/2,x+length/2] for yy,zz in arc]
- mesh(name+' curved roof',roofvs,[(i,i+1,i+18,i+17) for i in range(16)]+[tuple(reversed(range(17))),tuple(range(17,34))],materials['roof'],supercol,True)
- for xx in [x-length/2+.15,x,x+length/2-.15]:polyline(name+' roof seam',[(xx,yy,zz+.025) for yy,zz in arc],.028,materials['edge'])
+ if breadth<7:mesh(name+' curved roof',roofvs,[(i,i+1,i+18,i+17) for i in range(16)]+[tuple(reversed(range(17))),tuple(range(17,34))],materials['roof'],supercol,True)
+ for xx in ([x-length/2+.15,x,x+length/2-.15] if breadth<7 else []):polyline(name+' roof seam',[(xx,yy,zz+.025) for yy,zz in arc],.028,materials['edge'])
  # The double hangar opens forward; the side hangars open aft onto handling deck.
  xx=x+(length/2+.035)*(1 if breadth>7 else -1);floor=8.4;doorheight=base-floor-.12
  leaves=12 if breadth>7 else 6;opening=breadth-.65
@@ -573,9 +589,10 @@ rail('Funnel aft cross gallery',[(-9.28,-4.4,17.83),(-9.28,4.4,17.83)],.88,1.6,F
 for sign in [-1,1]:rod('Cross gallery bracket',(-9.1,sign*3,17.63),(-7.4,sign*3,16.1),.075,materials['naval'],supercol,vertices=6)
 
 boat_support=SupportSurface([*hullcol.objects,*supercol.objects])
-def boat(name,x,y,z,length,breadth,cabin=False):
+def boat(name,x,y,z,length,breadth,cabin=False,yaw=0,keel=None,support_surface=None):
+ before=set(bpy.data.objects)
  # Seat the keel consistently above the actual roof, including raised platforms.
- z=boat_support.below(x,y,z+5)+.40
+ z=boat_support.below(x,y,z+5)+.40 if keel is None else keel
  # Original pgsb708 visual interpretation: fine raked stem, flared topsides,
  # narrower rounded transom and visibly hollow timber interior. The closed
  # double skin gives an actual gunwale thickness rather than an open mesh rim.
@@ -614,28 +631,28 @@ def boat(name,x,y,z,length,breadth,cabin=False):
  # All cradle feet raycast original support surfaces; their arms meet the hull.
  for t in [-.27,.25]:
   xx=x+length*t;half,sheer=shape(t)
-  box(name+' cradle crossbeam',(xx,y,z-.14),(.23,breadth*.83,.22),materials['edge'],detailcol)
+  box(name+' cradle crossbeam',(xx,y,z-.03),(.23,breadth*.83,.12),materials['edge'],detailcol)
   for sign in [-1,1]:
-   yy=y+sign*breadth*.28;floor=boat_support.below(xx,yy,z-.27)
-   box(name+' cradle leg',(xx,yy,(floor+z-.05)/2),(.21,.20,z-.05-floor+.02),materials['edge'],detailcol)
-   rod(name+' fitted cradle arm',(xx,y,z-.12),(xx,y+sign*half*.85,z+depth*.55+sheer),.057,materials['edge'],detailcol,vertices=8)
+   yy=y+sign*breadth*.28;foot=Vector((xx-x,yy-y,0));foot.rotate(Matrix.Rotation(yaw,3,'Z'));floor=(support_surface or boat_support).below(x+foot.x,y+foot.y,z+.025)
+   box(name+' cradle leg',(xx,yy,(floor+z+.02)/2),(.21,.20,max(.04,z+.04-floor)),materials['edge'],detailcol)
+   rod(name+' fitted cradle arm',(xx,y,z-.01),(xx,y+sign*half*.85,z+depth*.55+sheer),.057,materials['edge'],detailcol,vertices=8)
  if cabin:
   # Long low after cabin, shallow sloped wheelhouse and a flush forward deck.
   outline=[(x+t*length,y+w*breadth*.49) for t,w,sh in stations]+[(x+t*length,y-w*breadth*.49) for t,w,sh in reversed(stations)]
   extrude(name+' launch deck',outline,z+depth-.015,.06,materials['deck'],detailcol)
-  cabx=x-length*.13;cabbase=z+depth+.045;cabheight=.79
-  pts=rounded_rect(cabx,y,length*.43,breadth*.67,.20,3)
+  gig='gig' in name.lower();cabx=x-length*(.08 if gig else .13);cabbase=z+depth+.045;cabheight=.90 if gig else .95;cablength=length*(.32 if gig else .43)
+  pts=rounded_rect(cabx,y,cablength,breadth*.67,.20,3)
   extrude(name+' cabin sides',pts,cabbase,cabheight,materials['naval'],detailcol,.025)
-  roof=rounded_rect(cabx,y,length*.45,breadth*.71,.22,3)
+  roof=rounded_rect(cabx,y,cablength+.20,breadth*.71,.22,3)
   n=len(roof);ridge=[(a,b*.88+y*.12,cabbase+cabheight+.16) for a,b in roof]
   mesh(name+' cambered cabin roof',[(a,b,cabbase+cabheight) for a,b in roof]+ridge,[tuple(range(n,2*n))]+[(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)],materials['canvas'],detailcol)
   for sign in [-1,1]:
    for t in [-.155,-.055,.065,.155]:
-    xx=cabx+length*t;yy=y+sign*breadth*.339
+    xx=cabx+cablength*t/.43;yy=y+sign*breadth*.339
     box(name+' framed cabin port',(xx,yy,cabbase+.48),(length*.074,.045,.42),materials['edge'],detailcol)
     box(name+' cabin glazing',(xx,yy+sign*.027,cabbase+.48),(length*.060,.025,.32),materials['glass'],detailcol)
-   box(name+' windscreen frame',(cabx+length*.217,y+sign*breadth*.16,cabbase+.49),(.045,breadth*.27,.45),materials['edge'],detailcol)
-   box(name+' windscreen',(cabx+length*.242-.018,y+sign*breadth*.16,cabbase+.49),(.020,breadth*.23,.35),materials['glass'],detailcol)
+   box(name+' windscreen frame',(cabx+cablength*.505,y+sign*breadth*.16,cabbase+.49),(.045,breadth*.27,.45),materials['edge'],detailcol)
+   box(name+' windscreen',(cabx+cablength*.505+.027,y+sign*breadth*.16,cabbase+.49),(.020,breadth*.23,.35),materials['glass'],detailcol)
   hatch(name+' cabin hatch',cabx-length*.10,y,cabbase+cabheight+.17,.78,.62)
   for t in [-.43,.35]:
    for sign in [-1,1]:rod(name+' cleat',(x+length*t-.14,y+sign*breadth*.21,z+depth+.20),(x+length*t+.14,y+sign*breadth*.21,z+depth+.20),.024,materials['edge'],detailcol,vertices=8)
@@ -650,13 +667,22 @@ def boat(name,x,y,z,length,breadth,cabin=False):
    yy=y+sign*breadth*.21;zz=z+depth*.87+.09
    rod(name+' stowed oar shaft',(x-length*.33,yy,zz),(x+length*.23,yy,zz),.025,materials['wood'],detailcol,vertices=8)
    extrude(name+' shaped oar blade',[(x-length*.43,yy-.075),(x-length*.43,yy+.075),(x-length*.35,yy+.095),(x-length*.30,yy+.025),(x-length*.30,yy-.025),(x-length*.35,yy-.095)],zz-.015,.030,materials['wood'],detailcol)
+ # Rotate the original boat and cradle together; all cradle feet use world support.
+ if yaw:
+  transform=Matrix.Translation((x,y,0))@Matrix.Rotation(yaw,4,'Z')@Matrix.Translation((-x,-y,0))
+  bpy.context.view_layer.update()
+  for ob in set(bpy.data.objects)-before:ob.matrix_world=transform@ob.matrix_world
+ return set(bpy.data.objects)-before
+# The approved A fit has asymmetric forward stowage: two nested port cutters,
+# a starboard captain's gig, and two lower outboard admiral's gigs.
+for yy in [4.06,6.38]:
+ cutter=boat('Port cutter',5.97,yy,12.63,8.70,2.07,False,keel=12.63)
+ boat('Nested port longboat',6.0,yy,13.54,6.31,1.65,False,keel=13.54,support_surface=SupportSurface(list(cutter)))
+boat('Starboard captain gig',6.31,-3.88,12.39,9.21,2.56,True,keel=12.39)
 for sign in [-1,1]:
- # The reference's forward bank consists of open rowing boats.
- for yy,length in [(4.9,8.5),(6.85,9.2),(8.8,10.0)]:
-  boat('Forward cutter',9.5,sign*yy,12.5,length,1.65,False)
- boat('Aft motor launch',-24.3,sign*5.2,12.32,11.7,2.85,True)
- boat('Aft cutter',-25.3,sign*1.85,12.35,9.2,2.45,False)
- boat('After dinghy',-33.1,sign*6.9,9.56,7.6,2.05,False)
+ boat('Admiral gig',6.85,sign*9.30,10.83,11.14,2.67,True,keel=10.83)
+ boat('Outer aft motor launch',-21.95,sign*6.86,11.6,11.54,3.00,True,keel=11.60)
+ boat('Inner aft motor launch',-19.56,sign*2.91,13.59,11.54,3.00,True,yaw=-sign*math.radians(13.846),keel=13.59)
 
 def truss(name,a,b,width,depth):
  a,b=Vector(a),Vector(b);axis=(b-a).normalized();side=axis.cross(Vector((0,0,1))).normalized()*width/2;up=axis.cross(side).normalized()*depth/2
@@ -861,7 +887,7 @@ for sign in [-1,1]:
   y*=sign;z=aa_support.below(x,y,z+3);box('Ready ammunition locker',(x,y,z+.62),(1.05,.64,1.24),materials['naval'],detailcol)
   box('Ammunition locker lid',(x,y,z+1.28),(1.1,.69,.08),materials['roof'],detailcol)
   rod('Locker handle',(x-.12,y+sign*.34,z+.8),(x+.12,y+sign*.34,z+.8),.022,materials['dark'],detailcol,vertices=6)
- for x,y,z in [(36,4.9,12.65),(7,10.7,8.6),(-42,7.9,9.4)]:
+ for x,y,z in [(36,4.9,12.65),(-42,7.9,9.4)]:
   y*=sign;z=aa_support.below(x,y,z+4)+.09;pts=[(xx,yy,z+.3) for xx,yy in rounded_rect(x,y,2.55,1.28,.56,5)];polyline('Carley float buoyant tube',pts,.17,materials['canvas'],closed=True,vertices=8)
   for xx in [-.85,-.45,0,.45,.85]:rod('Carley float floor',(x+xx,y-.52,z+.22),(x+xx,y+.52,z+.22),.033,materials['wood'],detailcol,vertices=6)
   for xx in [-.75,.75]:box('Carley float cradle',(x+xx,y,z+.025),(.12,1.12,.22),materials['edge'],detailcol)
