@@ -125,10 +125,18 @@ fn team_projection_omits_unobserved_fleets_private_totals_and_records() {
     assert_eq!(before["actors"].as_array().unwrap().len(), 1);
     assert!(before["afloatKg"][1].is_null());
     assert!(before["contacts"].as_array().unwrap().is_empty());
-    assert_eq!(
-        before["records"],
-        serde_json::json!({"scores":{},"shellHistory":[]})
-    );
+    // Own vessels carry a live score sheet; the shell history and every other
+    // team's records stay private.
+    let scores = before["records"]["scores"].as_object().unwrap();
+    assert!(!scores.is_empty());
+    assert!(scores.keys().all(|id| a
+        .actors
+        .iter()
+        .any(|actor| actor.team == TeamId::A && actor.motion.id == *id)));
+    assert!(scores.values().all(|score| score["damageLog"].as_array().unwrap().is_empty()
+        && score["damageDealt"] == 0.0
+        && score["frags"] == 0));
+    assert_eq!(before["records"]["shellHistory"], serde_json::json!([]));
     assert!(!before.to_string().contains("enemy-private-id"));
     a.actors[1].motion.x = 19000.0;
     a.actors[1].motion.heading = 0.7;

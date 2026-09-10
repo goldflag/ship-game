@@ -21,16 +21,25 @@ test('PvE helm restores regular ship instruments without granting them to follow
     expect(helm).toContain(instrument);
   }
   expect(helm.match(/aria-label="Weapons"/g)).toHaveLength(1);
+  // Following keeps the helm instruments as read-only captain's orders and hides only the sight.
   for (const state of [
     { ...data, controlledShipId: undefined, spectatedShipId: simulation.ship.id },
     { ...data, controlledShipId: 'another-ship', spectatedShipId: simulation.ship.id },
-    { ...data, airOperationsOpen: true },
   ]) {
     const html = render(state);
-    expect(html).not.toContain('Ship condition and helm');
+    expect(html).toContain('Ship condition and helm');
+    expect(html).toContain('Navigation minimap');
+    expect(html).toContain('aria-label="Following ship"');
+    expect(html).toContain('fleet-following');
     expect(html).not.toContain('fleet-sight-chase');
-    expect(html).not.toContain('Navigation minimap');
+    expect(html).not.toContain('Order wheel');
+    expect(html).not.toContain('class="fleet-shell-cycle"');
   }
+  const chart = render({ ...data, airOperationsOpen: true });
+  expect(chart).not.toContain('Ship condition and helm');
+  expect(chart).not.toContain('fleet-sight-chase');
+  expect(chart).not.toContain('Navigation minimap');
+  expect(chart).toContain('aria-label="Fleet roster"');
 });
 
 test('the compact shell cycle exposes the current load, next choice, stocks and remapped shortcut', () => {

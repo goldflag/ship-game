@@ -12,6 +12,7 @@ import './AirOperations.css';
 import { AirMapNavigation } from './airMapNavigation';
 import { duration, mission, roleIcon, roleLabel } from './airFormat';
 import { AirWingManifest } from './AirWingManifest';
+import { markerOpacity } from './fleetStats';
 
 // Camera motion is rendered every frame; combat telemetry intentionally stays at 10 Hz.
 // Move the overlay directly so camera motion never waits for a React telemetry render.
@@ -27,7 +28,16 @@ export function useMapProjection(ref: RefObject<HTMLElement | SVGSVGElement | nu
           const forward = point && game.projectAirMap(x + Math.sin(heading) * 10, z - Math.cos(heading) * 10, y);
           return { glyph, angle: point && forward ? Math.atan2(forward[0] - point[0], point[1] - forward[1]) * 180 / Math.PI : undefined };
         });
-        return { element, point, headings };
+        // A ship marker stands in for a hull too small to read; once the model
+        // itself is legible on screen the marker fades and only the label stays.
+        let fade: number | undefined;
+        if (element.dataset.mapFade && point) {
+          const [length, heading] = element.dataset.mapFade.split(',').map(Number);
+          const bow = game.projectAirMap(x + Math.sin(heading) * length / 2, z - Math.cos(heading) * length / 2, y);
+          const stern = game.projectAirMap(x - Math.sin(heading) * length / 2, z + Math.cos(heading) * length / 2, y);
+          if (bow && stern) fade = markerOpacity(Math.hypot(bow[0] - stern[0], bow[1] - stern[1]));
+        }
+        return { element, point, headings, fade };
       });
       const paths = Array.from(ref.current?.querySelectorAll<SVGPathElement>('[data-map-path]') ?? [], element => {
         const points = JSON.parse(element.dataset.mapPath!) as Vec3[];
@@ -35,13 +45,14 @@ export function useMapProjection(ref: RefObject<HTMLElement | SVGSVGElement | nu
       });
       // Projection reads the viewport. Complete those reads before any overlay
       // writes, so one marker cannot force layout for the following marker.
-      for (const { element, point, headings } of markers) {
+      for (const { element, point, headings, fade } of markers) {
         element.style.display = point ? '' : 'none';
         if (!point) continue;
         const [left, top] = point;
         if (element instanceof SVGElement) element.setAttribute('transform', `translate(${left} ${top})`);
         else { element.style.left = `${left}px`; element.style.top = `${top}px`; }
         for (const { glyph, angle } of headings) if (angle !== undefined) glyph.setAttribute('transform', `rotate(${angle})`);
+        if (fade !== undefined) (element.querySelector<SVGElement | HTMLElement>('[data-map-glyph]') ?? element).style.opacity = String(fade);
       }
       for (const { element, path } of paths) element.setAttribute('d', path);
     };

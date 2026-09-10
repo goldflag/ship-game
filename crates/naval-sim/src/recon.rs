@@ -181,6 +181,7 @@ impl CoverageGrid {
                                 feature: [position[0], 5.0, position[2]],
                                 length_m: 100.0,
                                 preset_id: None,
+                                role: None,
                                 cues: VisualCues::default(),
                                 motion: Default::default(),
                                 aircraft: None,

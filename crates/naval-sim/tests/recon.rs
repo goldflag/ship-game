@@ -15,6 +15,7 @@ fn observer() -> VisualEntity {
         feature: [-3000.0, 25.0, 500.0],
         length_m: 100.0,
         preset_id: None,
+        role: None,
         cues: VisualCues::default(),
         motion: Default::default(),
         aircraft: None,

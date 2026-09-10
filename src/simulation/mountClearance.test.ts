@@ -1,20 +1,42 @@
 import { expect, test } from 'bun:test';
 import blueprint from '../../assets/ships/cleveland/blueprint.json';
+import yamato from '../../assets/ships/yamato/blueprint.json';
 import catalog from '../../assets/parts/guns.json';
 import { compileShip, type ShipBlueprint } from '../ships/blueprint';
 import { mountPoseClear, moveMountWithClearance } from './mountClearance';
 import { createMountState, updateMount } from './weapons';
-import { radians } from './geometry';
+import { clamp, radians } from './geometry';
 const fixture=()=>{
   const definition=compileShip(structuredClone(blueprint) as unknown as ShipBlueprint,catalog);
   return {definition,states:definition.mounts.map(createMountState)};
 };
+test('closed-body and installation profiles compile independently and reject incomplete or mixed encodings',()=>{
+  const d=compileShip(yamato,catalog),states=d.mounts.map(createMountState);
+  expect(d.mountClearance!.mountIds).toHaveLength(d.mounts.length);
+  // The TypeScript migration reference only resolves installation envelopes;
+  // closed-body motion is owned by the native/WASM resolver.
+  expect(mountPoseClear(d,0,states[0],states)).toBe(true);
+  const c=structuredClone(blueprint) as unknown as ShipBlueprint;
+  const profile=c.mountClearance!;
+  for (const incomplete of [
+    {version:1,marginM:.02,basis:'test'},
+    {version:1,marginM:.02,basis:'test',bodies:[]},
+    {version:1,marginM:.02,basis:'test',mountIds:['main-1']},
+    {...profile,mounts:undefined},
+    {...profile,structures:undefined},
+    {...profile,neighbors:undefined},
+    {...profile,mountIds:['main-1'],bodies:[]},
+  ]) {
+    c.mountClearance=incomplete as ShipBlueprint['mountClearance'];
+    expect(()=>compileShip(c,catalog)).toThrow('mountClearance');
+  }
+});
 test('installation interlocks validate references and positive envelope dimensions',()=>{
   const b=structuredClone(blueprint) as unknown as ShipBlueprint;
-  b.mountClearance!.neighbors[0]=['main-1','missing'];
+  b.mountClearance!.neighbors![0]=['main-1','missing'];
   expect(()=>compileShip(b,catalog)).toThrow('selected mount pairs');
-  b.mountClearance!.neighbors[0]=['main-1','main-2'];
-  b.mountClearance!.mounts[0].body!.size[1]=0;
+  b.mountClearance!.neighbors![0]=['main-1','main-2'];
+  b.mountClearance!.mounts![0].body!.size[1]=0;
   expect(()=>compileShip(b,catalog)).toThrow('clearance body dimension');
 });
 test('neutral installed poses have clearance throughout the enclosed recoil stroke',()=>{
@@ -43,6 +65,31 @@ test('independently held main guns prevent crossing barrels and gunhouses',()=>{
   expect(mountPoseClear(d,0,states[0],states)).toBe(true);
   states[0]=createMountState(d.mounts[0]);states[1].train=radians(90);
   expect(mountPoseClear(d,0,target,states)).toBe(true);
+});
+test('half-degree preview steps can lower away after stopping beside an overhead platform',()=>{
+  const {definition:d,states}=fixture(),i=d.mounts.findIndex(m=>m.id==='secondary-2'),s=states[i];
+  const move=(train:number,elevation:number)=>{
+    for(let pass=0;pass<1440;pass++) {
+      const before={train:s.train,elevation:s.elevation};
+      const next={train:s.train+clamp(train-s.train,-radians(.5),radians(.5)),elevation:s.elevation+clamp(elevation-s.elevation,-radians(.5),radians(.5))};
+      if(!moveMountWithClearance(d,i,s,next,states)) {
+        moveMountWithClearance(d,i,s,{train:next.train,elevation:s.elevation},states);
+        moveMountWithClearance(d,i,s,{train:s.train,elevation:next.elevation},states);
+      }
+      expect(mountPoseClear(d,i,s,states)).toBe(true);
+      if(Math.abs(s.train-before.train)+Math.abs(s.elevation-before.elevation)<1e-9) break;
+    }
+  };
+  move(0,radians(85));
+  expect(s.elevation).toBeLessThan(radians(70));
+  move(radians(-90),s.elevation);
+  move(s.train,radians(85));
+  move(0,radians(85));
+  expect(s.train).toBeLessThan(0);
+  move(s.train,radians(1));
+  expect(s.elevation).toBeCloseTo(radians(1),10);
+  move(0,radians(1));
+  expect(s.train).toBeCloseTo(0,10);
 });
 test('combat tracking uses the motion interlock and remains able to lower and turn away',()=>{
   const {definition:d,states}=fixture(),i=d.mounts.findIndex(m=>m.id==='secondary-2'),s=states[i],m=d.mounts[i];

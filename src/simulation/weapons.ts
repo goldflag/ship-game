@@ -11,7 +11,7 @@ export { GRAVITY } from './ballistics';
 export type MountDefinition = ShipDefinition['mounts'][number];
 // Compiled definitions are immutable during a battle, like the hull/armor caches.
 // Every barrel used to rebuild every other gunhouse box on every fixed tick.
-const barrelObstructions = new WeakMap<MountState, { definition: ShipDefinition; mount: MountDefinition; train: number; elevation: number; blocked: boolean; carriers: string }>();
+const barrelObstructions = new WeakMap<MountState, { definition: ShipDefinition; mount: MountDefinition; train: number; elevation: number; blocked: boolean; carriers: number[] }>();
 const obstructionTrees = new WeakMap<ShipDefinition, BarrelObstructionTree>();
 const carriedIndices = new WeakMap<ShipDefinition, number[]>();
 function carriedMounts(definition: ShipDefinition): number[] {
@@ -82,6 +82,13 @@ export function muzzleLocal(m: MountDefinition, state: Pick<MountState, 'train' 
   return add(mountPosition(m, state), [Math.cos(bearing) * lateral + Math.sin(bearing) * forward, w.pivotHeight + barrelHeightOffset(w, barrel) * Math.cos(state.elevation) + (w.muzzleForward - w.trunnionForward) * Math.sin(state.elevation), Math.sin(bearing) * lateral - Math.cos(bearing) * forward]);
 }
 export const muzzleWorld = (m: MountDefinition, state: MountState, barrel: number, pose: Pose) => localToWorld(muzzleLocal(m, state, barrel), pose);
+/** Upright immersion needs only muzzle height; heading cannot affect it. */
+function muzzleHeight(m: MountDefinition, state: MountState, pose: Pose): number {
+  if (pose.roll !== 0 || pose.pitch !== 0) return muzzleWorld(m, state, 0, pose)[1];
+  const w = m.weapon;
+  return mountPosition(m, state)[1] + (w.pivotHeight + barrelHeightOffset(w, 0) * Math.cos(state.elevation)
+    + (w.muzzleForward - w.trunnionForward) * Math.sin(state.elevation)) + pose.y;
+}
 /** The aiming reference is the battery mount's barrel center, including odd/single layouts. */
 export function muzzleCenterLocal(m: MountDefinition, state: Pick<MountState, 'train' | 'elevation' | 'carrier'>): Vec3 {
   const w = m.weapon, count = w.barrelCount ?? 2, bearing = mountBearing(m, state), position = mountPosition(m, state);
@@ -128,7 +135,7 @@ export function updateMount(m: MountDefinition, state: MountState, definition: S
   state.recoil = Math.max(0, state.recoil - dt / 1.4);
   if (state.hp <= 0) { state.status = 'disabled'; return false; }
   if (availableAmmunition(state) < (m.weapon.barrelCount ?? 2)) { state.status = 'empty'; return false; }
-  if ((definition.submarine && hullDepth(pose) > .5) || muzzleWorld(m, state, 0, pose)[1] <= (pose.waveHeave ?? 0)) { state.status = 'submerged'; return false; }
+  if ((definition.submarine && hullDepth(pose) > .5) || muzzleHeight(m, state, pose) <= (pose.waveHeave ?? 0)) { state.status = 'submerged'; return false; }
   // Warm-start from the previous desired muzzle and flight time. Reacquisition
   // still converges in three iterations; continuous tracking needs only one.
   // Heading and inherited velocity are recomputed each tick, even for a cached
@@ -169,10 +176,10 @@ export function updateMount(m: MountDefinition, state: MountState, definition: S
   // Readiness depends on the actual barrel path, even while tracking an unreachable reticle.
   const previousObstruction = barrelObstructions.get(state);
   const carried = carriedMounts(definition);
-  const trains = carried.length ? definition.mounts.map((_, i) => mountedStates?.[i].train ?? 0) : [];
-  const carriers = carried.length ? trains.join(',') : '';
   const unchanged = !m.parentMountId && previousObstruction?.definition === definition && previousObstruction.mount === m
-    && previousObstruction.train === state.train && previousObstruction.elevation === state.elevation && previousObstruction.carriers === carriers;
+    && previousObstruction.train === state.train && previousObstruction.elevation === state.elevation
+    && (!carried.length || previousObstruction.carriers.every((train, i) => train === (mountedStates?.[i].train ?? 0)));
+  const trains = !unchanged && carried.length ? definition.mounts.map((_, i) => mountedStates?.[i].train ?? 0) : [];
   const breech = add(mountPosition(m, state), [0, w.pivotHeight, 0]);
   let obstructed = unchanged ? previousObstruction.blocked : false;
   for (let barrel = 0; !unchanged && barrel < (w.barrelCount ?? 2) && !obstructed; barrel++) {
@@ -190,7 +197,7 @@ export function updateMount(m: MountDefinition, state: MountState, definition: S
   }
   // Obstructions are fixed in hull coordinates. Ship motion, reload and recoil
   // cannot change this test; any actual traverse/elevation change recomputes it.
-  if (!unchanged) barrelObstructions.set(state, { definition, mount: m, train: state.train, elevation: state.elevation, blocked: obstructed, carriers });
+  if (!unchanged) barrelObstructions.set(state, { definition, mount: m, train: state.train, elevation: state.elevation, blocked: obstructed, carriers: trains });
   if (obstructed || !motionClear) { state.status = 'blocked'; return false; }
   if (!reachable) { state.status = 'out-of-range'; return false; }
   if (desiredTrain < minimumTrain - 1e-6 || desiredTrain > maximumTrain + 1e-6 || desiredElevation < radians(w.elevationMinDeg) - 1e-6 || desiredElevation > radians(w.elevationMaxDeg) + 1e-6) { state.status = 'out-of-arc'; return false; }
