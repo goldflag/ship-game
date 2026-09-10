@@ -34,6 +34,8 @@ export interface Aircraft {
   controls: FlightControls; previousControls?: FlightControls; previousAttitude?: FlightAttitude; pilot: AirPilot;
   deckSlot?: number; flightId?: string; recoveryRequestedAt?: number; lossReason?: string;
   navigationTarget?: Vec3; sortie?: number; search?: SearchProgress;
+  /** Native presentation publishes activity, without private pilot/controller state. */
+  behavior?: { recoveryNotice?: string; evasionNotice?: string; maneuver?: string };
   /** A loss leaves combat immediately; its unpowered airframe continues to sea level. */
   wreck?: { age: number; rollRate: number; impacted: boolean };
 }

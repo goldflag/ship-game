@@ -245,6 +245,15 @@ pub fn update_observed(
                 crate::sensors::line_visible(position, actual.position, k.islands, k.terrain)
             });
             if clear
+                && nearer_distance(
+                    sub(endpoint, hit_position),
+                    if heavy { 100.0 } else { 45.0 },
+                )
+                .is_some()
+            {
+                crate::aircraft_defense::near_fire(actual, position);
+            }
+            if clear
                 && nearer_distance(sub(endpoint, hit_position), if heavy { 14.0 } else { 6.0 })
                     .is_some()
             {

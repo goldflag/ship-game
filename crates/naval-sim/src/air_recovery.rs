@@ -32,7 +32,9 @@ pub fn status(actor: &Vessel, sea: Option<(&SeaState, f64)>) -> CarrierRecovery 
         CarrierRecovery::Closed {
             reason: reason.into(),
         }
-    } else if service_available(actor, sea) {
+    } else if service_available(actor, sea)
+        && !crate::aircraft_recovery::turn_delays_recovery(actor)
+    {
         CarrierRecovery::Open
     } else {
         CarrierRecovery::Delayed

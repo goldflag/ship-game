@@ -5,6 +5,34 @@ use crate::{
     definition::Vec3,
     geometry::*,
 };
+use serde::{Deserialize, Serialize};
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FormationState {
+    pub kind: String,
+    pub offset: Vec3,
+}
+
+pub fn formation_kind(f: &AirFlight, p: &Aircraft, seed: u32) -> &'static str {
+    if p.pilot.attack_stage.as_deref() == Some("run") {
+        return if p.role == "torpedo-bomber" {
+            "line-abreast"
+        } else {
+            "trail"
+        };
+    }
+    if p.role == "fighter" {
+        return "pairs";
+    }
+    let key = gunnery_seed(&format!("{}/{}/layout", f.id, p.sortie.unwrap_or(0)), seed);
+    match key % 3 {
+        0 => "vic",
+        1 => "sections",
+        _ => "echelon",
+    }
+}
+
 pub fn formation_offset(f: &AirFlight, p: &Aircraft, time: f64, seed: u32) -> Vec3 {
     let slot = f.plane_ids.iter().position(|id| id == &p.id).unwrap_or(0);
     if slot == 0 {
@@ -12,18 +40,60 @@ pub fn formation_offset(f: &AirFlight, p: &Aircraft, time: f64, seed: u32) -> Ve
     }
     let row = (slot as f64 / 2.0).ceil();
     let side = if slot % 2 != 0 { -1.0 } else { 1.0 };
+    let layout_seed = gunnery_seed(&format!("{}/{}/layout", f.id, p.sortie.unwrap_or(0)), seed);
+    let spacing = 0.92 + f64::from(layout_seed % 17) * 0.01;
+    let spread = if p
+        .pilot
+        .defense
+        .as_ref()
+        .is_some_and(|s| s.spread_seconds > 0.0)
+    {
+        1.7
+    } else {
+        1.0
+    };
+    let (x, z) = match formation_kind(f, p, seed) {
+        "line-abreast" => (side * row * 65.0, row * 8.0),
+        "trail" => (side * 18.0, slot as f64 * 70.0),
+        "pairs" => (
+            if slot % 2 == 1 { -42.0 } else { 0.0 } + (slot / 2) as f64 * 80.0,
+            (slot / 2) as f64 * 85.0 + (slot % 2) as f64 * 35.0,
+        ),
+        "sections" => {
+            let member = slot % 3;
+            let section = (slot / 3) as f64;
+            (
+                section * 130.0
+                    + match member {
+                        1 => -38.0,
+                        2 => 38.0,
+                        _ => 0.0,
+                    },
+                section * 140.0 + if member == 0 { 0.0 } else { 38.0 },
+            )
+        }
+        "echelon" => (
+            slot as f64 * 35.0 * if layout_seed % 2 == 0 { 1.0 } else { -1.0 },
+            slot as f64 * 38.0,
+        ),
+        _ => (side * row * 40.0, row * 36.0),
+    };
     let phase = f64::from(gunnery_seed(
         &format!("{}/{}/formation", p.id, p.sortie.unwrap_or(0)),
         seed,
     )) / 4294967296.0
         * std::f64::consts::TAU;
     [
-        side * row * 32.0 + (time * 0.31 + phase).sin() * 1.5,
+        x * spacing * spread + (time * 0.19 + phase).sin() * 3.0,
         row * 3.0 + (time * 0.23 + phase * 2.0).sin() * 0.7,
-        row * 27.0 + (time * 0.27 + phase * 3.0).sin() * 2.0,
+        z * spacing + (time * 0.17 + phase * 3.0).sin() * 4.0,
     ]
 }
-pub fn formation_leader(f: &AirFlight, planes: &[Aircraft], endurance: &crate::air_rules::EndurancePolicy) -> Option<usize> {
+pub fn formation_leader(
+    f: &AirFlight,
+    planes: &[Aircraft],
+    endurance: &crate::air_rules::EndurancePolicy,
+) -> Option<usize> {
     f.plane_ids
         .iter()
         .filter_map(|id| planes.iter().position(|p| &p.id == id))
@@ -41,8 +111,15 @@ pub fn formation_position(
     seed: u32,
 ) -> Vec3 {
     let offset = sub(
-        formation_offset(f, p, time, seed),
-        formation_offset(f, leader, time, seed),
+        p.pilot
+            .formation
+            .as_ref()
+            .map_or_else(|| formation_offset(f, p, time, seed), |s| s.offset),
+        leader
+            .pilot
+            .formation
+            .as_ref()
+            .map_or_else(|| formation_offset(f, leader, time, seed), |s| s.offset),
     );
     let (c, s) = (leader.heading.cos(), leader.heading.sin());
     add(
@@ -62,6 +139,16 @@ pub fn fly_formation(
     time: f64,
     seed: u32,
 ) {
+    let desired = formation_offset(f, p, time, seed);
+    let kind = formation_kind(f, p, seed).to_owned();
+    let state = p.pilot.formation.get_or_insert_with(|| FormationState {
+        kind: kind.clone(),
+        offset: desired,
+    });
+    state.kind = kind;
+    for (axis, target) in desired.into_iter().enumerate() {
+        state.offset[axis] += clamp(target - state.offset[axis], -8.0 * dt, 8.0 * dt);
+    }
     let slot = formation_position(f, p, leader, time, seed);
     let offset = sub(slot, leader.position);
     let speed = length(leader.velocity).max(34.0);

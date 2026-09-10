@@ -140,14 +140,21 @@ impl Aviation {
         &self,
         p: &Aircraft,
         knowledge: Option<Knowledge<'_>>,
+        radius: f64,
     ) -> Vec<Aircraft> {
         let Some(k) = knowledge else {
-            return self.planes().into_iter().cloned().collect();
+            return self
+                .iter_planes()
+                .filter(|a| in_flight(a) && length(sub(a.position, p.position)) <= radius)
+                .cloned()
+                .collect();
         };
         let mut planes: Vec<_> = self
             .planes()
             .into_iter()
-            .filter(|a| a.team == p.team)
+            .filter(|a| {
+                a.team == p.team && in_flight(a) && length(sub(a.position, p.position)) <= radius
+            })
             .cloned()
             .collect();
         for c in k
@@ -155,6 +162,9 @@ impl Aviation {
             .iter_contacts(p.team)
             .filter(|c| c.kind == ContactKind::Aircraft && locally_observed(c, p, k.tick))
         {
+            if length(sub(report_point(c, k.tick), p.position)) > radius {
+                continue;
+            }
             // The own-aircraft template supplies required mechanical fields to
             // the existing pilot math; every target-dependent field is replaced.
             let mut observed = p.clone();
@@ -219,6 +229,13 @@ impl Aviation {
         } else {
             burst.hit
         };
+        if length(sub(
+            burst.end,
+            add(target.position, scale(target.velocity, gun.time)),
+        )) < 45.0
+        {
+            crate::aircraft_defense::near_fire(target, p.position);
+        }
         if hit {
             target.hp -= air_gunnery::FIGHTER_DAMAGE
                 * clamp((gun.alignment - 0.996) / 0.004, 0.3, 1.0)

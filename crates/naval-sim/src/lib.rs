@@ -32,6 +32,8 @@ pub mod aircraft_accuracy;
 pub mod aircraft_deck;
 pub mod aircraft_flight;
 pub mod aircraft_formation;
+pub mod aircraft_defense;
+pub mod aircraft_recovery;
 pub mod aircraft_tactics;
 pub mod aviation;
 pub mod aviation_step;

@@ -152,6 +152,14 @@ pub struct AirWreck {
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AirPilot {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub maneuver: Option<crate::aircraft_tactics::FighterManeuver>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub formation: Option<crate::aircraft_formation::FormationState>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub defense: Option<crate::aircraft_defense::DefenseState>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub recovery: Option<crate::aircraft_recovery::RecoveryProgress>,
     pub fire_discipline: Option<crate::air_gunnery::FireDiscipline>,
     pub think: f64,
     pub hostile_id: Option<String>,

@@ -598,6 +598,7 @@ impl Aviation {
         let wing = actor.definition().air_wing.as_ref().unwrap();
         let ground = self.ground[&p.model_id].clone();
         p.cooldown = (p.cooldown - dt).max(0.0);
+        crate::aircraft_defense::tick(p, dt);
         if terminal(p) {
             return;
         }
@@ -854,6 +855,17 @@ impl Aviation {
             return;
         }
         if matches!(p.phase.as_str(), "returning" | "landing") {
+            if p.phase == "returning"
+                && p.role != "fighter"
+                && p.hp >= 25.0
+                && !self.rules.endurance.needs_recall(p.flight_time, false)
+                && length(sub(p.position, carrier)) > 4000.0
+            {
+                let observations = self.pilot_aircraft(p, ctx.knowledge, 1800.0);
+                if crate::aircraft_defense::evade_bomber(p, &observations, index, ctx.seed, dt) {
+                    return;
+                }
+            }
             self.recover_plane(p, actor, index, landing_clearance, carrier, ctx, dt);
             return;
         }
@@ -937,147 +949,156 @@ impl Aviation {
             .any(|o| o.id != p.id && occupies_launch_lane(o, actor));
         let available = service_available(actor, ctx.sea);
         let reserved = !managed || landing_clearance == Some(p.id.as_str());
+        let progress_target = match p.pilot.recovery_stage.as_deref() {
+            Some("downwind") => local_to_world(
+                [
+                    recovery_position[0] + side * 900.0,
+                    recovery_position[1] + 180.0,
+                    recovery_position[2] + 2800.0,
+                ],
+                actor.motion.pose(),
+            ),
+            Some("base") => approach,
+            _ => carrier,
+        };
+        crate::aircraft_recovery::track_progress(p, length(sub(progress_target, p.position)), dt);
+        let retry = p.pilot.recovery.as_ref().unwrap().retry_seconds > 0.0;
+        let hold_reason = if !available {
+            Some(
+                if actor.motion.roll.abs() >= 0.22 || actor.motion.pitch.abs() >= 0.15 {
+                    "Deck motion · Holding for a steady deck"
+                } else {
+                    "Flight deck unavailable · Holding"
+                },
+            )
+        } else if crate::aircraft_recovery::turn_delays_recovery(actor) {
+            Some("Carrier turning too sharply · Steady the course to recover aircraft")
+        } else if retry {
+            Some("Approach missed · Rejoining the circuit")
+        } else {
+            None
+        };
+        p.pilot.recovery.as_mut().unwrap().notice = hold_reason.map(str::to_owned).or_else(|| {
+            Some(
+                if p.phase == "landing" {
+                    "Landing"
+                } else if busy || managed && !reserved {
+                    "Recovery queue · Waiting for a clear deck"
+                } else {
+                    "Joining the carrier approach"
+                }
+                .into(),
+            )
+        });
+        if hold_reason.is_some() {
+            p.phase = "returning".into();
+            p.pilot.recovery_stage = Some("marshal".into());
+            let anchor = local_to_world(
+                [
+                    850.0,
+                    220.0 + (index % 3) as f64 * 45.0,
+                    recovery_position[2] + 1600.0,
+                ],
+                actor.motion.pose(),
+            );
+            fly(
+                p,
+                orbit_point(p, anchor, 750.0 + (index % 3) as f64 * 90.0, 1.0),
+                80.0,
+                dt,
+                FlightOptions::default(),
+            );
+            return;
+        }
         if p.phase == "returning" {
-            if !available {
-                p.pilot.recovery_stage = Some("marshal".into());
-                let anchor = local_to_world(
-                    [
-                        850.0,
-                        220.0 + (index % 3) as f64 * 45.0,
-                        recovery_position[2] + 1600.0,
-                    ],
-                    actor.motion.pose(),
+            if p.pilot
+                .recovery_stage
+                .as_ref()
+                .is_none_or(|s| s == "marshal")
+            {
+                p.pilot.recovery_stage = Some(
+                    if aft > 700.0
+                        && (local[0] - recovery_position[0]).abs() < 100.0
+                        && wrap_angle(p.heading - actor.motion.heading).abs() < 0.25
+                    {
+                        "final"
+                    } else {
+                        "downwind"
+                    }
+                    .into(),
                 );
-                fly(
-                    p,
-                    orbit_point(p, anchor, 650.0 + (index % 3) as f64 * 90.0, 1.0),
-                    70.0,
-                    dt,
-                    FlightOptions::default(),
-                );
-            } else {
-                if p.pilot
-                    .recovery_stage
-                    .as_ref()
-                    .is_none_or(|s| s == "marshal")
-                {
-                    p.pilot.recovery_stage = Some(
-                        if aft > 700.0
-                            && (local[0] - recovery_position[0]).abs() < 100.0
-                            && wrap_angle(p.heading - actor.motion.heading).abs() < 0.25
-                        {
-                            "final"
-                        } else {
-                            "downwind"
-                        }
-                        .into(),
-                    );
-                }
-                match p.pilot.recovery_stage.as_deref() {
-                    Some("downwind") => {
-                        let downwind = local_to_world(
-                            [
-                                recovery_position[0] + side * 900.0,
-                                recovery_position[1] + 180.0 + (index % 3) as f64 * 25.0,
-                                recovery_position[2] + 2800.0,
-                            ],
-                            actor.motion.pose(),
-                        );
-                        fly(
-                            p,
-                            downwind,
-                            70.0 + actor.motion.speed.max(0.0),
-                            dt,
-                            FlightOptions::default(),
-                        );
-                        if length(sub(p.position, downwind)) < 300.0 {
-                            p.pilot.recovery_stage = Some("base".into());
-                        }
-                    }
-                    Some("base") => {
-                        fly(
-                            p,
-                            approach,
-                            58.0 + actor.motion.speed.max(0.0),
-                            dt,
-                            FlightOptions::default(),
-                        );
-                        if length(sub(p.position, approach)) < 250.0 {
-                            p.pilot.recovery_stage = Some("final".into());
-                        }
-                    }
-                    Some("final") => {
-                        let intercept = local_to_world(
-                            [
-                                recovery_position[0],
-                                recovery_position[1] + 90.0_f64.max(aft * 0.06),
-                                recovery_position[2] + 150.0_f64.max(aft - 600.0),
-                            ],
-                            actor.motion.pose(),
-                        );
-                        fly(
-                            p,
-                            intercept,
-                            38.0 + actor.motion.speed.max(0.0),
-                            dt,
-                            FlightOptions::default(),
-                        );
-                        let separated =
-                            self.wing(&actor.motion.id).unwrap().planes.iter().all(|o| {
-                                o.id == p.id
-                                    || o.phase != "landing"
-                                    || (aft
-                                        - (world_to_local(o.position, actor.motion.pose())[2]
-                                            - recovery_position[2]))
-                                        .abs()
-                                        > 60.0
-                            });
-                        if landing_clearance == Some(p.id.as_str())
-                            && reserved
-                            && separated
-                            && (!busy || aft > 900.0)
-                            && aft > 550.0
-                            && (local[0] - recovery_position[0]).abs() < 70.0
-                            && wrap_angle(p.heading - actor.motion.heading).abs() < 0.2
-                        {
-                            p.phase = "landing".into();
-                            p.timer = 0.0;
-                        } else if aft < 500.0 {
-                            p.pilot.recovery_stage = Some("marshal".into());
-                        }
-                    }
-                    _ => {}
-                }
             }
-        } else if !available || !reserved {
+            match p.pilot.recovery_stage.as_deref() {
+                Some("downwind") => {
+                    let downwind = local_to_world(
+                        [
+                            recovery_position[0] + side * 900.0,
+                            recovery_position[1] + 180.0 + (index % 3) as f64 * 25.0,
+                            recovery_position[2] + 2800.0,
+                        ],
+                        actor.motion.pose(),
+                    );
+                    fly(
+                        p,
+                        downwind,
+                        70.0 + actor.motion.speed.max(0.0),
+                        dt,
+                        FlightOptions::default(),
+                    );
+                    if length(sub(p.position, downwind)) < 300.0 {
+                        p.pilot.recovery_stage = Some("base".into());
+                    }
+                }
+                Some("base") => {
+                    fly(
+                        p,
+                        approach,
+                        58.0 + actor.motion.speed.max(0.0),
+                        dt,
+                        FlightOptions::default(),
+                    );
+                    if length(sub(p.position, approach)) < 250.0 {
+                        p.pilot.recovery_stage = Some("final".into());
+                    }
+                }
+                Some("final") => {
+                    crate::aircraft_recovery::fly_final(p, actor, recovery_position, false, dt);
+                    let separated = self.wing(&actor.motion.id).unwrap().planes.iter().all(|o| {
+                        o.id == p.id
+                            || o.phase != "landing"
+                            || (aft
+                                - (world_to_local(o.position, actor.motion.pose())[2]
+                                    - recovery_position[2]))
+                                .abs()
+                                > 60.0
+                    });
+                    if landing_clearance == Some(p.id.as_str())
+                        && reserved
+                        && separated
+                        && (!busy || aft > 900.0)
+                        && aft > 550.0
+                        && (local[0] - recovery_position[0]).abs() < 70.0
+                        && wrap_angle(p.heading - actor.motion.heading).abs() < 0.2
+                    {
+                        p.phase = "landing".into();
+                        p.timer = 0.0;
+                    } else if aft < 500.0 {
+                        p.pilot.recovery_stage = Some("marshal".into());
+                    }
+                }
+                _ => {}
+            }
+        } else if !reserved {
             p.phase = "returning".into();
             p.pilot.recovery_stage = Some("marshal".into());
             fly(p, approach, 70.0, dt, FlightOptions::default());
         } else {
-            let look = 140.0;
-            let next_aft = aft - look;
-            let height = next_aft * 0.06;
-            let lead = look / (length(p.velocity) - actor.motion.speed).max(20.0);
-            let aim = add(
-                local_to_world(
-                    [
-                        recovery_position[0],
-                        recovery_position[1] + ground.clearance + height,
-                        recovery_position[2] + next_aft,
-                    ],
-                    actor.motion.pose(),
-                ),
-                scale(actor.motion.velocity(), lead),
-            );
-            fly(
+            crate::aircraft_recovery::fly_final(
                 p,
-                aim,
-                40.0 + actor.motion.speed.max(0.0),
+                actor,
+                add(recovery_position, [0.0, ground.clearance, 0.0]),
+                true,
                 dt,
-                FlightOptions {
-                    landing: true,
-                    ..Default::default()
-                },
             );
             let next = world_to_local(p.position, actor.motion.pose());
             let deck_y = recovery_position[1] + ground.clearance;
@@ -1155,6 +1176,26 @@ impl Aviation {
         if matches!(flight.as_ref().map(|f| &f.order), Some(AirOrder::Return)) {
             p.phase = "returning".into();
             return;
+        }
+        let withdrawing_scout = matches!(
+            flight.as_ref().map(|f| &f.order),
+            Some(AirOrder::SearchArea {
+                policy: SearchPolicy::Report | SearchPolicy::Shadow,
+                ..
+            })
+        );
+        if p.role != "fighter" && !withdrawing_scout {
+            let observations = self.pilot_aircraft(p, ctx.knowledge, 1800.0);
+            let slot = flight
+                .as_ref()
+                .and_then(|f| f.plane_ids.iter().position(|id| id == &p.id))
+                .unwrap_or(0);
+            if crate::aircraft_defense::evade_bomber(p, &observations, slot, ctx.seed, dt) {
+                if let Some(search) = &mut p.search {
+                    search.elapsed_seconds += dt;
+                }
+                return;
+            }
         }
         if self.search_mission(p, flight, ctx, dt) {
             return;
@@ -1504,7 +1545,7 @@ impl Aviation {
                 _ => {}
             }
         }
-        let pilots = self.pilot_aircraft(p, ctx.knowledge);
+        let pilots = self.pilot_aircraft(p, ctx.knowledge, 8000.0);
         let planes: Vec<_> = pilots.iter().collect();
         let target_flight = flight.as_ref().and_then(|f| match &f.order {
             AirOrder::Intercept { flight_id } => Some(flight_id.as_str()),
@@ -1578,6 +1619,9 @@ impl Aviation {
         } else {
             p.phase = "outbound".into();
             p.pilot.aim_time = 0.0;
+            p.pilot.break_time = 0.0;
+            p.pilot.break_cooldown = (p.pilot.break_cooldown - dt).max(0.0);
+            p.pilot.maneuver = None;
             if let Some(f) = flight
                 && let AirOrder::InterceptContact { contact_id } = &f.order
                 && let Some(k) = ctx.knowledge

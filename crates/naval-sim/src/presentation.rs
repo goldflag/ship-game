@@ -6,6 +6,24 @@ use serde::{
     ser::{Error, SerializeMap, SerializeSeq, SerializeStruct},
 };
 
+/// Keep both tree and streaming projections consistent. Only the small pilot
+/// record needs a temporary value; hulls and other large state keep streaming.
+pub(crate) fn aircraft_behavior(
+    pilot: &serde_json::Value,
+) -> serde_json::Map<String, serde_json::Value> {
+    let mut behavior = serde_json::Map::new();
+    for (name, value) in [
+        ("recoveryNotice", &pilot["recovery"]["notice"]),
+        ("evasionNotice", &pilot["defense"]["notice"]),
+        ("maneuver", &pilot["maneuver"]["kind"]),
+    ] {
+        if value.is_string() {
+            behavior.insert(name.into(), value.clone());
+        }
+    }
+    behavior
+}
+
 pub(crate) struct Presentation<'a>(pub Snapshot<'a>);
 impl Serialize for Presentation<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
@@ -57,6 +75,7 @@ enum Field {
     Keep,
     Drop,
     Empty,
+    Behavior,
     Nested(Mode),
 }
 impl Mode {
@@ -64,8 +83,8 @@ impl Mode {
         match (self, key) {
             (Self::Actor(_), "bot")
             | (Self::Mount, "leadCache" | "aaDiscipline")
-            | (Self::AimCache, "point")
-            | (Self::Plane, "pilot") => Field::Drop,
+            | (Self::AimCache, "point") => Field::Drop,
+            (Self::Plane, "pilot") => Field::Behavior,
             (Self::Actor(_), "damage") => Field::Nested(Self::Damage),
             (Self::Actor(_), "mounts") => Field::Nested(Self::Mount),
             (Self::Damage, "stability") => Field::Nested(Self::Stability),
@@ -129,6 +148,10 @@ impl<S: SerializeStruct> SerializeStruct for FilterStruct<S> {
             Field::Keep => self.inner.serialize_field(key, value),
             Field::Drop => Ok(()),
             Field::Empty => self.inner.serialize_field(key, &[] as &[u8]),
+            Field::Behavior => self.inner.serialize_field(
+                "behavior",
+                &aircraft_behavior(&serde_json::to_value(value).map_err(S::Error::custom)?),
+            ),
             Field::Nested(mode) => self.inner.serialize_field(key, &Filtered(value, mode)),
         }
     }
@@ -152,6 +175,8 @@ impl<S: SerializeMap> SerializeMap for FilterMap<S> {
         self.field = self.mode.field(name);
         if matches!(self.field, Field::Drop) {
             Ok(())
+        } else if matches!(self.field, Field::Behavior) {
+            self.inner.serialize_key("behavior")
         } else {
             self.inner.serialize_key(key)
         }
@@ -161,6 +186,9 @@ impl<S: SerializeMap> SerializeMap for FilterMap<S> {
             Field::Keep => self.inner.serialize_value(value),
             Field::Drop => Ok(()),
             Field::Empty => self.inner.serialize_value(&[] as &[u8]),
+            Field::Behavior => self.inner.serialize_value(&aircraft_behavior(
+                &serde_json::to_value(value).map_err(S::Error::custom)?,
+            )),
             Field::Nested(mode) => self.inner.serialize_value(&Filtered(value, mode)),
         }
     }

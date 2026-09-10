@@ -93,7 +93,13 @@ impl Battle {
         }
         for wing in frame["wings"].as_array_mut().unwrap() {
             for plane in wing["state"]["planes"].as_array_mut().unwrap() {
-                plane.as_object_mut().unwrap().remove("pilot");
+                let plane = plane.as_object_mut().unwrap();
+                if let Some(pilot) = plane.remove("pilot") {
+                    plane.insert(
+                        "behavior".into(),
+                        serde_json::Value::Object(crate::presentation::aircraft_behavior(&pilot)),
+                    );
+                }
             }
         }
         for shell in frame["shells"].as_array_mut().unwrap() {
