@@ -54,6 +54,8 @@ export function airWingTelemetry(actor: FleetActor, actors: FleetActor[]) {
     const recoveryNotice = status === 'returning' ? flying.find(p => p.behavior?.recoveryNotice?.includes('Holding') || p.behavior?.recoveryNotice?.includes('Steady the course'))?.behavior?.recoveryNotice
       ?? flying.find(p => p.behavior?.recoveryNotice)?.behavior?.recoveryNotice : undefined;
     const evading = status === 'on-mission' || status === 'returning' ? flying.find(p => !!p.behavior?.evasionNotice) : undefined;
+    // Sortie notices describe the current flight, not landed/service history.
+    const sortieNotice = flying.length > 0 || status === 'launching' ? f.notice : undefined;
     const maneuverNotice = status === 'on-mission' && lead.role === 'fighter' ? ({
       'defensive-break': 'Defensive break', extend: 'Extending for another pass',
       'high-yo-yo': 'Climbing to reduce closure', reposition: 'Repositioning for a firing pass',
@@ -67,7 +69,7 @@ export function airWingTelemetry(actor: FleetActor, actors: FleetActor[]) {
       canRaise: !pendingClearance && raiseable, canStow: !pendingClearance && stowable,
       canRepair: !pendingClearance && (stowable || surviving.some(p => p.phase === 'hangar' && (p.hp < state.deck!.repairCeilingHp || (p.role === 'fighter' ? p.ammo < FIGHTER_AMMO_BURSTS : !p.payload)))),
       canRearm: !pendingClearance && allOnDeck, canLaunch: !pendingClearance && allOnDeck && surviving.every(p => p.hp >= 25),
-      reason: state.recovery?.kind === 'closed' ? state.recovery.reason : pendingClearance ? 'Clearing space for flight operations' : flying.length && surviving.some(p => !airborne(p)) ? 'Waiting for group members to return'
+      reason: state.recovery?.kind === 'closed' ? state.recovery.reason : pendingClearance ? 'Clearing space for flight operations' : flying.some(p => ['returning', 'landing'].includes(p.phase)) && surviving.some(p => !airborne(p)) ? 'Waiting for group members to return'
         : surviving.some(p => p.phase === 'repairing') ? 'Repair in progress'
         : allOnDeck && surviving.some(p => p.hp < 25) ? 'Repair below before launching' : undefined } : undefined;
     return [{ id: f.id, name: f.name, squadronId: f.squadronId, role: lead.role, order: structuredClone(f.order), active, status,
@@ -84,7 +86,7 @@ export function airWingTelemetry(actor: FleetActor, actors: FleetActor[]) {
       heading: lead.heading, route, search, targetName: target?.definition.name ?? escort?.name ?? (reportMission ? 'reported contact' : undefined),
       etaSeconds: flying.length && (status === 'returning' || f.order.kind === 'attack') ? Math.ceil(distance / Math.max(35, length(lead.velocity))) : undefined,
       queuePosition: queueIndex >= 0 ? queueIndex + 1 : undefined,
-      notice: evading?.behavior?.evasionNotice ?? recoveryNotice ?? f.notice ?? maneuverNotice ?? (flying.some(lowEndurance) ? 'Low endurance · Returning to carrier' : undefined), aircraftIds: planes.map(p => p.id), deck,
+      notice: evading?.behavior?.evasionNotice ?? recoveryNotice ?? sortieNotice ?? maneuverNotice ?? (flying.some(lowEndurance) ? 'Low endurance · Returning to carrier' : undefined), aircraftIds: planes.map(p => p.id), deck,
     } satisfies FlightSummary];
   });
   return {

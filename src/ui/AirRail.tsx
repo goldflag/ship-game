@@ -46,7 +46,7 @@ const loaded = (p: Aircraft) => p.role === 'fighter' ? p.ammo > 0 : p.payload;
 const planeTitle = (p: Aircraft) => `${p.id.split('/').at(-1)} · ${Math.ceil(Math.max(0, p.hp))}% · ${p.lossReason ?? p.phase}${loaded(p) ? ' · armed' : p.role === 'fighter' ? ' · no ammunition' : ' · no payload'}`;
 /** A group with a deck record has to be raised and cleared before it can fly again. */
 const grounded = (f: FlightSummary) => !!f.deck && !f.active && !f.deck.canLaunch;
-const statusLabel = (f: FlightSummary) => f.active && f.order.kind === 'patrol' ? 'Loitering' : AIR_STATUS_LABELS[f.status];
+const statusLabel = (f: FlightSummary) => f.status === 'on-mission' ? f.activity : AIR_STATUS_LABELS[f.status];
 /** The detail after the status is dropped when it only repeats it ("Ready · Ready"). */
 const detail = (f: FlightSummary) => { const text = f.active ? mission(f) : f.activity; return text === statusLabel(f) ? '' : text; };
 
@@ -81,7 +81,7 @@ export function AirRail({ carriers, flights, planesOf, selectedIds, hoverId, arm
         const hp = Math.round(Math.max(0, p.hp));
         return <Fragment key={p.id}>{i > 0 ? ' · ' : ''}{hp < 50 ? <b>{hp}%</b> : `${hp}%`}</Fragment>;
       })}</span></div>}
-      <p className="air-rail-order"><b>{ORDER_LABELS[flight.order.kind] ?? flight.activity}</b> · {mission(flight)}</p>
+      <p className="air-rail-order">{['on-mission', 'launching'].includes(flight.status) ? <><b>{ORDER_LABELS[flight.order.kind] ?? flight.activity}</b> · {mission(flight)}</> : <b>{flight.activity}</b>}</p>
       <div className="air-rail-row air-rail-verbs" role="group" aria-label={`${flight.name} orders`}>{verbsFor(flight).map(verb =>
         <button key={verb} disabled={verbDisabled(flight, verb)} aria-pressed={armed === verb} onClick={() => onVerb(verb)}>{VERBS[verb].label}<kbd>{VERBS[verb].key}</kbd></button>)}</div>
       {hasBoundary && <div className="air-rail-search">

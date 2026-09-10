@@ -15,6 +15,7 @@ import { AirWingManifest } from './AirWingManifest';
 import { markerOpacity } from './fleetStats';
 import { aircraftShortName } from './aircraftNames';
 import { reportState } from './reconReports';
+import { projectAirMarker } from './airMarkerProjection';
 
 // Camera motion is rendered every frame; combat telemetry intentionally stays at 10 Hz.
 // Move the overlay directly so camera motion never waits for a React telemetry render.
@@ -24,7 +25,7 @@ export function useMapProjection(ref: RefObject<HTMLElement | SVGSVGElement | nu
     const update = () => {
       const markers = Array.from(ref.current?.querySelectorAll<HTMLElement | SVGElement>('[data-map-position]') ?? [], element => {
         const [x, y, z] = JSON.parse(element.dataset.mapPosition!) as number[];
-        const point = element.dataset.contactMarker ? game.projectContact(element.dataset.contactMarker) : game.projectAirMap(x, z, y);
+        const point = projectAirMarker(game, element.dataset, [x, y, z]);
         const headings = Array.from(element.querySelectorAll<SVGElement>('[data-map-heading]'), glyph => {
           const heading = Number(glyph.dataset.mapHeading);
           const forward = point && game.projectAirMap(x + Math.sin(heading) * 10, z - Math.cos(heading) * 10, y);

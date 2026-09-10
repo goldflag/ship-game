@@ -752,7 +752,6 @@ export class Game {
         this.rig.update(pose, pose.y, realDt);
       }
       this.battlefieldCamera.applyTransition(realDt);
-      this.cameraFrameListeners.forEach(listener => listener());
       this.environment.setShadowFocus(this.waterViewFocus?.update(this.fleetViews, this.camera,
         !this.inPort && !this.airOperationsOpen && !this.battlefieldCamera.transitioning && this.rig.magnification > 1.5));
       this.environment.update(this.camera, dt);
@@ -769,6 +768,8 @@ export class Game {
         view.updateRenderMatrices();
       });
       this.aircraftView.update(this.simulation, this.camera, !this.inspecting && (!this.inPort || this.playerView?.inspection.mode === 'exterior'), this.inPort, new Map(this.fleetViews.map(view => [view.actor.motion.id, view.root])), this.airOperationsOpen ? undefined : this.cameraShipView.actor.motion.id, presentationDt);
+      // Labels use the aircraft poses just drawn this frame, including observed smoothing.
+      this.cameraFrameListeners.forEach(listener => listener());
       this.effects.update(this.simulation, presentationDt, this.camera, this.rig.binoculars && !this.shellFollow.view, this.fleetViews, !!this.shellFollow.view);
       this.funnelSmoke.root.visible = !this.inspecting && (!this.inPort || this.playerView!.inspection.mode === 'exterior');
       this.funnelSmoke.update(this.inPort ? [this.playerView!] : this.fleetViews, presentationDt, this.camera,
@@ -958,14 +959,27 @@ export class Game {
     const point = projectShipLabel(new THREE.Vector3(x, altitude, z), this.camera, this.host.clientWidth / this.hudScale, this.host.clientHeight / this.hudScale);
     return point ? [point.x, point.y] : null;
   }
-  projectContact(id: string): [number, number] | null {
+  private contactPosition(id: string): Vec3 | undefined {
     const report = this.simulation.observationTracks?.find(contact => contact.id === id);
-    if (!report) return null;
-    // Keep current report markers on their smoothed exterior. Lost/unidentified
-    // tracks retain their published estimate, without any private actor lookup.
+    if (!report) return;
     const exterior = report.status === 'tracked' ? (report.kind === 'aircraft' ? this.aircraftView.observedPosition(id) : this.observedShipViews?.position(id)) : undefined;
-    const position = reportPosition(report, this.simulation.tick);
-    return this.projectAirMap(exterior?.x ?? position[0], exterior?.z ?? position[2], exterior?.y ?? position[1]);
+    return exterior ? [exterior.x, exterior.y, exterior.z] : reportPosition(report, this.simulation.tick);
+  }
+  projectContact(id: string): [number, number] | null {
+    const position = this.contactPosition(id);
+    return position ? this.projectAirMap(position[0], position[2], position[1]) : null;
+  }
+  projectContactGroup(ids: string[]): [number, number] | null {
+    const positions = ids.flatMap(id => { const position = this.contactPosition(id); return position ? [position] : []; });
+    if (!positions.length) return null;
+    const center = positions.reduce<Vec3>((sum, p) => [sum[0] + p[0] / positions.length, sum[1] + p[1] / positions.length, sum[2] + p[2] / positions.length], [0, 0, 0]);
+    return this.projectAirMap(center[0], center[2], center[1]);
+  }
+  projectAircraft(id: string): [number, number] | null {
+    const plane = this.simulation.aircraft.find(p => p.id === id && airborne(p));
+    if (!plane) return null;
+    const position = new THREE.Vector3(...plane.previousPosition).lerp(new THREE.Vector3(...plane.position), this.simulation.interpolationAlpha);
+    return this.projectAirMap(position.x, position.z, position.y);
   }
   projectAirMapPath(points: Vec3[], closed = false, filled = false): string {
     return filled ? projectAirMapPolygon(points, this.camera, this.host.clientWidth / this.hudScale, this.host.clientHeight / this.hudScale)

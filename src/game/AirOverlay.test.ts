@@ -70,3 +70,20 @@ test('map paths clip near, far and viewport crossings without joining invisible 
   const separated = game.projectAirMapPath([[0, 0, -100], [100, 0, 100], [-100, 0, 100], [0, 0, -100]]);
   expect(separated.match(/M/g)).toHaveLength(2);
 });
+
+test('individual plane and contact group projections use displayed positions between telemetry samples', () => {
+  const { game, plane } = fixture(1);
+  Object.assign(plane, { id: 'plane' });
+  Object.assign(game.simulation, { aircraft: [plane] });
+  expect(game.projectAircraft('plane')).toEqual(game.projectAirMap(150, 0, 420));
+  Object.assign(game.simulation, { interpolationAlpha: .75 });
+  expect(game.projectAircraft('plane')).toEqual(game.projectAirMap(175, 0, 420));
+  const positions = { a: new Vector3(100, 400, 0), b: new Vector3(300, 400, 0) };
+  Object.assign(game.simulation, { tick: 0, observationTracks: Object.keys(positions).map(id => ({ id, kind: 'aircraft', status: 'tracked', lastObservedTick: 0, estimatedPosition: [999, 400, 0], measuredPosition: [50, 400, 0], velocity: [0, 0, 0] })) });
+  Reflect.set(game, 'aircraftView', { observedPosition: (id: 'a' | 'b') => positions[id] });
+  expect(game.projectContactGroup(['a', 'b'])).toEqual(game.projectAirMap(200, 0, 400));
+  positions.a.x += 100; positions.b.x += 100;
+  expect(game.projectContactGroup(['a', 'b'])).toEqual(game.projectAirMap(300, 0, 400));
+  game.simulation.observationTracks![0].status = 'stale';
+  expect(game.projectContact('a')).toEqual(game.projectAirMap(50, 0, 400));
+});
