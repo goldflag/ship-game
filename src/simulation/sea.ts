@@ -24,6 +24,9 @@ export function seaHeight(sea: SeaState, x: number, z: number, time: number): nu
 }
 export function seaResponse(actor: FleetActor, sea: SeaState, time: number) {
   const h = actor.definition.hull, p = actor.motion;
+  // Positive roll raises starboard: a starboard turn heels outward to port.
+  const turnRoll = clamp(p.speed * p.yawRate / 9.81 * .3, -.06, .06);
+  if (sea.amplitudeM === 0) return { heave: 0, roll: 0 + turnRoll, pitch: 0 };
   const depth = actor.submarine ? hullDepth(p) : 0;
   const attenuation = Math.exp(-depth / 8);
   const at = (x: number, z: number) => {
@@ -32,8 +35,6 @@ export function seaResponse(actor: FleetActor, sea: SeaState, time: number) {
   };
   let heave = 0;
   for (const z of [-.4, -.2, 0, .2, .4]) for (const x of [-.3, .3]) heave += at(x * h.beam, z * h.length) / 10;
-  // Positive roll raises starboard: a starboard turn heels outward to port.
-  const turnRoll = clamp(p.speed * p.yawRate / 9.81 * .3, -.06, .06);
   return { heave, roll: clamp((at(h.beam * .4, 0) - at(-h.beam * .4, 0)) / (h.beam * .8), -.18, .18) + turnRoll,
     pitch: clamp((at(0, -h.length * .4) - at(0, h.length * .4)) / (h.length * .8), -.08, .08) };
 }

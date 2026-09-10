@@ -32,7 +32,9 @@ test('bots give the player time to get underway before their opening shots', () 
     for (let tick = 0; tick < 8 * 60; tick++) sim.step(stop, intent);
     expect(sim.events.some(event => event.kind === 'shot')).toBe(false);
     expect(sim.player.damage.integrity).toBe(sim.player.damage.maxIntegrity);
-    for (let tick = 0; tick < 32 * 60; tick++) sim.step(stop, intent);
+    const fired = () => sim.actors.slice(1).every(actor => actor.mounts.some((mount, i) =>
+      mount.ammo < actor.definition.mounts[i].weapon.ammoPerBarrel * (actor.definition.mounts[i].weapon.barrelCount ?? 2)));
+    for (let tick = 0; tick < 32 * 60 && !fired(); tick++) sim.step(stop, intent);
     for (const actor of sim.actors.slice(1)) {
       expect(actor.mounts.some((mount, i) => mount.ammo < actor.definition.mounts[i].weapon.ammoPerBarrel * (actor.definition.mounts[i].weapon.barrelCount ?? 2))).toBe(true);
     }
@@ -99,7 +101,7 @@ test('an early target loss cannot shorten the opening acquisition window', () =>
 test('battle seeds vary courses and opening shots while resets reproduce crew decisions', () => {
   const opening = (sim: CombatSimulation) => {
     let firstShot: number | undefined;
-    for (let tick = 0; tick < 25 * 60; tick++) {
+    for (let tick = 0; tick < 25 * 60 && firstShot === undefined; tick++) {
       sim.step(stop, intent);
       firstShot ??= sim.events.find(event => event.kind === 'shot')?.tick;
     }
