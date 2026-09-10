@@ -41,7 +41,7 @@ export class Viewer {
     this.renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
     this.renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
     this.renderer.setClearColor(0x202225);
-    this.renderer.domElement.setAttribute('aria-label', 'Ship model comparison. Drag to orbit, right-drag to pan, scroll to zoom. Keyboard: arrows pan, plus or minus zoom, Home fits both models.');
+    this.renderer.domElement.setAttribute('aria-label', 'Model comparison. Drag to orbit, right-drag to pan, scroll to zoom. Keyboard: arrows pan, plus or minus zoom, Home fits both models.');
     this.renderer.domElement.tabIndex = 0;
     host.append(this.renderer.domElement);
     this.scene.add(new THREE.HemisphereLight(0xeaf4f5, 0x40555d, 2.2));
@@ -135,7 +135,7 @@ export class Viewer {
     });
   }
   clearModel() { this.modelVersion++; this.clear(this.ours); this.articulation = undefined; this.weapon = undefined; this.render(); }
-  async loadShip(url: string, component?: { assemblyId: string; weapon: GunPart; installed: boolean }) {
+  async loadShip(url: string, component?: { assemblyId: string; weapon: GunPart; installed: boolean }, gridMetres = component ? 1 : 10) {
     const version = ++this.modelVersion;
     const gltf = await this.loader.loadAsync(url);
     if (!this.alive || version !== this.modelVersion) { this.disposeObject(gltf.scene); return false; }
@@ -145,7 +145,7 @@ export class Viewer {
     this.clear(this.ours); this.tint(model, 0x6fe4d5); this.ours.add(model);
     this.weapon = component?.weapon;
     this.articulation = component ? new ComponentArticulation(model, component.assemblyId) : undefined;
-    this.grid.scale.setScalar(component ? .1 : 1);
+    this.grid.scale.setScalar(gridMetres / 10);
     this.style({}); this.fit(); return true;
   }
   componentPose(yaw: number, elevation: number, recoil: number) { if (this.weapon) this.articulation?.pose(this.weapon, yaw, elevation, recoil); this.render(); return this.dimensions(); }

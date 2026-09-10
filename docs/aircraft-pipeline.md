@@ -114,6 +114,8 @@ Each brake joint carries `pairedNode` and `rotationMultiplier`. The plates have 
 
 ## Drawing comparison and review
 
+For GameModels3D or local GLB comparison, run `bun run model:viewer` and choose **Planes**, or open `http://127.0.0.1:5180/?aircraft=f4f-4-wildcat`. It reads the published aircraft catalog and offers LOD selection, a one-metre grid, synchronized overlay/side-by-side views and saved reference alignment. See the [model viewer guide](../tools/ship-overlay/README.md) for source IDs and variant limitations.
+
 Open `/aircraft-review.html` for the standalone Three.js inspector. It loads the published model with manual LOD0/1/2 selection, supports orbit and fixed views, previews propeller/control/gear, arrestor-hook, wing-fold and split-brake movement, and provides a one-meter grid. It does not instantiate combat. `window.aircraftReviewDiagnostics()` reports the loaded model, camera, bounds, render statistics and recognized joints; `window.aircraftReview.select(id, lod)`, `.view(view)` and `.pose({propellerAngle, controlsAngle, gearFraction, hookFraction, diveBrakeAngle, wingFoldFraction})` provide repeatable review hooks. The diagnostics include the selected LOD, and `diveBrakeAngle` drives the upper/lower plates with their recorded opposite signs. Inspect the additional gun and turret joints through Blender MCP and the retained articulated views.
 
 [scripts/aircraft/compare.py](../scripts/aircraft/compare.py) independently decodes the exported GLB's vertices, indices and scene transforms, then projects them over the retained side and top drawings using their fixed pixel datums. It does not fit the model silhouette to the drawing or read Blender geometry. NumPy and Pillow are required. Run it separately after building or publishing:
