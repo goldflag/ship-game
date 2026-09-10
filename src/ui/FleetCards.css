@@ -1,0 +1,104 @@
+/* Mirrored fleet cards: our fleet under the clock, the enemy under the tools.
+ * Both are the same component with the accent swapped, and both sit light
+ * enough on the sea that the chart underneath still reads. */
+.fleet-card {
+  position:absolute; top:58px; width:330px; max-height:calc(100% - 300px);
+  overflow:auto; overscroll-behavior:contain; scrollbar-width:thin;
+  background:#0b1e2799; border:1px solid #c9dce022; border-radius:2px;
+  text-shadow:0 1px 3px #07131bcc;
+  --acc:var(--fleet-active, #86e4c5);
+}
+.fleet-card.own { left:24px; }
+.fleet-card.foe { right:24px; --acc:#ffb5a6; }
+/* The sea shows through, so the panel keeps a shadow the parent turns off. */
+.fleet-command .fleet-card :is(button, table, p, h2, h4) { text-shadow:0 1px 3px #07131bcc; }
+
+.fleet-command .fleet-card h2 {
+  margin:0; padding:9px 12px 6px; display:flex; justify-content:space-between; align-items:baseline; gap:8px;
+  font:500 15px/1 'Barlow Condensed',sans-serif; letter-spacing:.02em; color:var(--acc);
+}
+.fleet-command .fleet-card h2 span { font:400 11px 'Barlow',sans-serif; color:var(--fleet-muted); text-align:right; }
+.fleet-card > p { margin:0; padding:6px 12px 10px; color:var(--fleet-muted); font-size:12px; }
+
+/* Section and formation headers: the same brass hairline divides both cards. */
+.fleet-card-head {
+  box-sizing:border-box; margin:0; display:flex; justify-content:space-between; align-items:baseline; gap:8px;
+  padding:7px 12px 3px; font:500 11px 'Barlow',sans-serif; color:var(--fleet-muted);
+  border-top:1px solid #e8c56c33;
+}
+.fleet-card-head > span:first-child { color:var(--fleet-text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.fleet-card-head > :last-child { flex-shrink:0; font-weight:400; color:var(--fleet-muted); font-size:11px; }
+.fleet-card-head kbd { margin-right:6px; }
+.fleet-command .fleet-card .fleet-card-head {
+  width:100%; min-height:0; gap:8px; justify-content:space-between; border:0; border-top:1px solid #e8c56c33;
+  border-radius:0; background:none; text-align:left; white-space:nowrap; cursor:pointer;
+}
+.fleet-command .fleet-card .fleet-card-head:hover:not(:disabled),
+.fleet-command .fleet-card .fleet-card-head[aria-pressed=true] { border-color:#e8c56c33; }
+.fleet-command .fleet-card .fleet-card-head:hover:not(:disabled) > span:first-child,
+.fleet-command .fleet-card .fleet-card-head[aria-pressed=true] > span:first-child { color:var(--fleet-gold); }
+
+/* One row shape for every ship and every air group on either side. */
+.fleet-command .fleet-card .fleet-card-row {
+  display:grid; grid-template-columns:20px 1fr auto; gap:0 8px; align-items:center;
+  width:100%; padding:4px 12px; min-height:0;
+  border:0; border-top:1px solid #c9dce022; border-radius:0; background:none;
+  text-align:left; white-space:normal; font-size:12px; color:inherit; cursor:pointer;
+}
+.fleet-card-row > * { min-width:0; }
+.fleet-command .fleet-card .fleet-card-row:hover:not(:disabled),
+.fleet-command .fleet-card .fleet-card-row.hovered { background:#c9dce012; border-color:#c9dce022; color:inherit; }
+.fleet-command .fleet-card.own .fleet-card-row[aria-pressed=true] { background:#e8c56c14; border-color:#c9dce022; color:inherit; }
+.fleet-command .fleet-card.foe .fleet-card-row[aria-pressed=true] { background:#ffb5a614; border-color:#c9dce022; color:inherit; }
+
+.fleet-card-glyph { width:20px; height:20px; overflow:visible; color:var(--acc); }
+.fleet-card-glyph .fleet-card-hull { fill:#102c37; stroke:currentColor; stroke-width:1.5; }
+.fleet-card-glyph .fleet-card-mark { fill:currentColor; stroke:none; }
+.fleet-card-glyph.estimated .fleet-card-hull { stroke-dasharray:3 2; }
+.fleet-card-glyph.faded { opacity:.5; }
+.fleet-card-row.warn .fleet-card-glyph { color:var(--fleet-gold); }
+.fleet-card-row.lost .fleet-card-glyph { opacity:.45; }
+
+.fleet-card-name { font-weight:500; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.fleet-card-name small { display:block; font-weight:400; font-size:10.5px; color:var(--fleet-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.fleet-card-name small.brass { color:var(--fleet-gold); }
+.fleet-card.foe .fleet-card-name { color:#ffb5a6; }
+.fleet-card.foe .fleet-card-row.last-known .fleet-card-name,
+.fleet-card.foe .fleet-card-row.confirmed-sinking .fleet-card-name { color:#ffb5a6aa; }
+.fleet-card-row.lost .fleet-card-name { color:var(--fleet-muted); }
+.fleet-card-row[aria-pressed=true] .fleet-card-name { color:var(--fleet-gold); }
+
+.fleet-card-value { text-align:right; white-space:nowrap; font:500 13px/1.1 'Barlow Condensed',sans-serif; color:var(--acc); }
+.fleet-card-value small { display:block; font:400 10px/1.3 'Barlow',sans-serif; color:var(--fleet-muted); }
+.fleet-card-row.warn .fleet-card-value { color:var(--fleet-gold); }
+.fleet-card-row.lost .fleet-card-value { color:var(--fleet-muted); }
+
+/* Air groups sit on a narrower glyph column: the airframe, not a hull. */
+.fleet-command .fleet-card .fleet-card-row.air { grid-template-columns:14px 1fr auto; gap:0 7px; padding:3px 12px; font-size:11.5px; }
+.fleet-card-plane { width:14px; height:14px; overflow:visible; fill:var(--acc); }
+.fleet-card-row.air .fleet-card-value { font-size:11.5px; }
+
+.fleet-card-foot { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:5px 12px 8px; border-top:1px solid #c9dce022; font-size:11px; color:var(--fleet-muted); }
+.fleet-card-foot > span { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.fleet-command .fleet-card .fleet-card-foot button { min-height:0; gap:3px; padding:2px 6px; border:0; border-radius:0; background:none; color:var(--fleet-text); font-size:11px; }
+.fleet-command .fleet-card .fleet-card-foot button:hover:not(:disabled) { color:var(--fleet-gold); border:0; }
+
+.fleet-card-comparison { width:100%; border-collapse:collapse; font-size:12px; border-top:1px solid #e8c56c44; margin-top:2px; }
+.fleet-card-comparison th { padding:7px 12px 3px; font-weight:400; color:var(--fleet-muted); font-size:10.5px; text-align:right; }
+.fleet-card-comparison th:first-child { text-align:left; font:500 12px 'Barlow',sans-serif; color:var(--fleet-text); }
+.fleet-card-comparison th small { display:block; font-size:10px; }
+.fleet-card-comparison td { padding:3px 12px; text-align:right; color:var(--fleet-text); vertical-align:top; }
+.fleet-card-comparison td:first-child { text-align:left; color:var(--fleet-muted); }
+.fleet-card-comparison td:nth-child(2) { color:var(--fleet-active); }
+.fleet-card-comparison td:nth-child(3) { color:#ffb5a6; }
+.fleet-card-comparison td small { display:block; color:var(--fleet-muted); font-size:10.5px; }
+.fleet-card-comparison tr:last-child td { padding-bottom:9px; }
+
+@container hud (max-width:1050px) {
+  .fleet-card { width:280px; }
+}
+@container hud (max-width:720px) {
+  .fleet-card { top:56px; width:240px; max-height:36%; }
+  .fleet-card.own { left:12px; }
+  .fleet-card.foe { right:12px; }
+}

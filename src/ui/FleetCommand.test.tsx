@@ -40,6 +40,9 @@ test('the chart shows every formation, the enemy fleet and an order wheel with h
   expect(html).toContain('aria-label="Fleet roster"');
   expect(html).toContain('<kbd>1</kbd>Bismarck');
   expect(html).toContain('12.4k dmg · 1 sunk');
+  expect(html).toContain('aria-label="Own fleet"');
+  // The own card reports the standing order beside each ship, the roster only its score.
+  expect(html).toContain('Route · 19 kn · Waypoint 1/2');
   expect(html).toContain('aria-label="Enemy fleet"');
   expect(html).toContain('Yamato');
   expect(html).toContain('1 torpedo bomber');
@@ -62,6 +65,7 @@ test('helm command overlay stays compact so regular instruments have the full lo
   expect(html).toContain('Give back helm');
   expect(html).not.toContain('Order wheel');
   expect(html).not.toContain('Enemy fleet');
+  expect(html).not.toContain('Own fleet');
   expect(html).not.toContain('Fleet roster');
 });
 
@@ -74,6 +78,7 @@ test('following keeps one compact panel with the helm and the chart a key away',
   expect(html).toContain('Fleet command <kbd>M</kbd>');
   expect(html).toContain('Weapons policy');
   expect(html).not.toContain('Order wheel');
+  expect(html).not.toContain('Own fleet');
   expect(html).not.toContain('Give back helm');
 });
 
