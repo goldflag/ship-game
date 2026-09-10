@@ -151,8 +151,8 @@ function FleetHudInstruments({ data, game, visible, bindings }: FleetHudProps) {
   const followingShip = fleetCommand && !commandingShip && !data.airOperationsOpen;
   const following = followingShell || !!data.followedAircraftId || !!data.combat?.playerSunk || followingShip;
 
-  if (fleetCommand && data.airOperationsOpen) return <div className="fleet-hud" inert={!visible} style={{ visibility: visible ? undefined : 'hidden' }}>
-    <FleetCommand data={data} game={game!} bindings={bindings}/>
+  if (fleetCommand && data.airOperationsOpen) return <div className="fleet-hud">
+    <FleetCommand data={data} game={game!} bindings={bindings} instrumentsVisible={visible}/>
   </div>;
 
   return <div className={`fleet-hud ${visible ? '' : 'fleet-hud-hidden'} ${data.airOperationsOpen ? 'fleet-air-map' : ''} ${data.binoculars ? 'fleet-in-optics' : ''} ${commandingShip ? 'fleet-command-helm' : ''} ${followingShip ? 'fleet-following' : ''}`} inert={!visible && !data.airOperationsOpen} style={{ '--map-factor': mapSize / 400 } as CSSProperties}>

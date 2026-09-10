@@ -52,3 +52,18 @@ test('fleet ship spectating includes aircraft nametags without opening carrier c
   expect(html).toContain('Squadron names and status');
   expect(html).not.toContain('air-manifest');
 });
+
+test('hiding the fleet HUD keeps the M-mode camera surface interactive and removes instruments', () => {
+  const simulation = new CombatSimulation(shipPreset('fletcher'));
+  const data = { ship: simulation.ship, order: 1, camera: 'Chase' as const, trail: [], fps: 60, backend: 'test', airOperationsOpen: true,
+    fleetCommandMode: true, combat: simulation.telemetry('main', [0, 0, -5000]) };
+  const game = { simulation, selectedShipIds: [], selectedFlightIds: [], controlGroups: new Map() } as unknown as import('../game/Game').Game;
+  const render = (visible: boolean) => renderToStaticMarkup(<FleetHud data={data} game={game} visible={visible} bindings={defaultKeybindings()}/>);
+  const hidden = render(false);
+  expect(hidden).not.toContain('inert=""');
+  expect(hidden).not.toContain('visibility:hidden');
+  expect(hidden).toContain('Fleet command chart');
+  expect(hidden).not.toContain('Own fleet');
+  expect(hidden).not.toContain('Fleet views');
+  expect(render(true)).toContain('Own fleet');
+});

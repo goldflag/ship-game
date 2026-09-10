@@ -1,5 +1,5 @@
 import { Select, SelectOption } from './components';
-import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
+import { useEffect, useRef, useState, type SVGProps, type PointerEvent as ReactPointerEvent } from 'react';
 import type { Game } from '../game/Game';
 import type { Telemetry } from '../game/types';
 import type { Keybindings } from '../game/keybindings';
@@ -86,7 +86,7 @@ const weaponLabel = { guns: 'Guns', aa: 'AA', torpedoes: 'Torpedoes' } as const;
 /** Orders live at the cursor: a wheel beside the selected ship, a bar beside
  * selected air groups, a popover on a report. Chrome stays at the edges. Every
  * actual order still travels through Rust. */
-export function FleetCommand({ data, game, bindings }: { data: Telemetry; game: Game; bindings: Keybindings }) {
+export function FleetCommand({ data, game, bindings, instrumentsVisible = true }: { data: Telemetry; game: Game; bindings: Keybindings; instrumentsVisible?: boolean }) {
   const combat = data.combat!;
   const mapOpen = !!data.airOperationsOpen;
   const tick = game.simulation.tick;
@@ -156,8 +156,8 @@ export function FleetCommand({ data, game, bindings }: { data: Telemetry; game: 
   const actionable = combat.result === 'active' && game.simulation.phase === 'running';
   const selectedContact = enemies.find(c => c.id === contactId);
   const selectedReport = observations.find(c => c.id === contactId);
-  const current = useRef({ data, armed, filter, selected, selectedFlights, actionable, contactId, airOpen });
-  current.current = { data, armed, filter, selected, selectedFlights, actionable, contactId, airOpen };
+  const current = useRef({ data, armed, filter, selected, selectedFlights, actionable, contactId, airOpen, instrumentsVisible });
+  current.current = { data, armed, filter, selected, selectedFlights, actionable, contactId, airOpen, instrumentsVisible };
   /** A unit chosen from a list may be off the chart; bring it into view without touching zoom. */
   const reveal = (x: number, z: number) => { if (map.current && !game.projectAirMap(x, z)) game.centerAirMapOn(x, z); };
   const selectShips = (shipIds: string[]) => { setFilter('ships'); game.selectFleetShips(shipIds); game.selectFlights([]); setContactId(undefined); setArmed(undefined); };
@@ -235,7 +235,7 @@ export function FleetCommand({ data, game, bindings }: { data: Telemetry; game: 
   };
   const water = (event: { clientX: number; clientY: number; shiftKey: boolean }, right: boolean) => {
     const rect = map.current?.getBoundingClientRect();
-    if (!rect || !actionable) return;
+    if (!rect || !actionable || !instrumentsVisible) return;
     const point = game.airMapWater(event.clientX - rect.left, event.clientY - rect.top);
     if (!point) return;
     if (selectedFlights.length && armed === 'search') issueSearch(point);
@@ -278,26 +278,27 @@ export function FleetCommand({ data, game, bindings }: { data: Telemetry; game: 
       if (document.querySelector('dialog[open]') || event.altKey) return;
       const element = event.target as HTMLElement;
       if (element?.matches('input, textarea, select') || element?.closest('[role=combobox], [role=listbox]') || element?.isContentEditable || (element?.closest('button, [role=button]') && event.code === 'Space')) return;
-      const digit = /^Digit[1-9]$/.test(event.code) ? Number(event.code.at(-1)) : 0;
+      const showing = current.current.instrumentsVisible;
+      const digit = showing && /^Digit[1-9]$/.test(event.code) ? Number(event.code.at(-1)) : 0;
       const mapActive = !!current.current.data.airOperationsOpen;
       const toggle = bindings.airOperations.includes(event.code);
       const plain = !event.ctrlKey && !event.metaKey;
       const letter = plain && /^Key[A-Z]$/.test(event.code) ? event.code.slice(3) : '';
-      const speed = plain && ['Equal', 'NumpadAdd'].includes(event.code) ? 1 : plain && ['Minus', 'NumpadSubtract'].includes(event.code) ? -1 : 0;
+      const speed = showing && plain && ['Equal', 'NumpadAdd'].includes(event.code) ? 1 : showing && plain && ['Minus', 'NumpadSubtract'].includes(event.code) ? -1 : 0;
       const angle = mapActive && event.shiftKey && /^Arrow/.test(event.code);
       if (angle) game.orbitAirMap(event.code === 'ArrowLeft' ? -12 : event.code === 'ArrowRight' ? 12 : 0, event.code === 'ArrowUp' ? 12 : event.code === 'ArrowDown' ? -12 : 0);
       const pan = !angle && mapActive && plain && /^Arrow/.test(event.code) && nav.current.key(event.code, true);
-      const shipKey = ['G', 'H', 'E', 'F', 'C', 'V', 'T'].includes(letter) && current.current.selected.length > 0 && !current.current.selectedFlights.length;
-      const airKey = ['L', 'A', 'D', 'I', 'E', 'R', 'S'].includes(letter) && current.current.selectedFlights.length > 0;
-      const handled = toggle || event.code === 'Space' || (!mapActive && letter === 'T' && !!current.current.data.spectatedShipId) || (mapActive && (digit || pan || angle || event.code === 'Escape' || shipKey || airKey || speed));
+      const shipKey = showing && ['G', 'H', 'E', 'F', 'C', 'V', 'T'].includes(letter) && current.current.selected.length > 0 && !current.current.selectedFlights.length;
+      const airKey = showing && ['L', 'A', 'D', 'I', 'E', 'R', 'S'].includes(letter) && current.current.selectedFlights.length > 0;
+      const handled = toggle || event.code === 'Space' || (showing && !mapActive && letter === 'T' && !!current.current.data.spectatedShipId) || (mapActive && (digit || pan || angle || event.code === 'Escape' || shipKey || airKey || speed));
       if (!handled) return;
       event.preventDefault(); event.stopImmediatePropagation();
       if (event.repeat) return;
       if (toggle) { if (mapActive) game.followFleetShip(game.selectedShipIds[0] ?? game.simulation.ship.id); else game.enterFleetCommand(); }
       else if (event.code === 'Space') game.toggleTacticalPause();
-      else if (!mapActive && letter === 'T') { if (current.current.data.spectatedShipId && current.current.actionable) game.takeFleetHelm(current.current.data.spectatedShipId); }
+      else if (showing && !mapActive && letter === 'T') { if (current.current.data.spectatedShipId && current.current.actionable) game.takeFleetHelm(current.current.data.spectatedShipId); }
       else if (digit) { const f = handlers.current.formations.find(f => f.index === digit); if (f) handlers.current.selectFormation(f); }
-      else if (event.code === 'Escape') handlers.current.escape();
+      else if (event.code === 'Escape') { if (showing) handlers.current.escape(); else game.setPaused(true); }
       else if (speed) handlers.current.adjustSpeed(speed);
       else if (airKey) handlers.current.airAction(letter);
       else if (shipKey) handlers.current.shipAction(letter);
@@ -340,10 +341,15 @@ export function FleetCommand({ data, game, bindings }: { data: Telemetry; game: 
     window.addEventListener('pointerup', release); window.addEventListener('pointercancel', release);
     return () => { window.removeEventListener('pointerup', release); window.removeEventListener('pointercancel', release); };
   }, []);
+  useEffect(() => {
+    if (!instrumentsVisible) {
+      nav.current.clear(); drag.current = undefined; setBox(undefined); setArmed(undefined);
+    }
+  }, [instrumentsVisible]);
   const startDrag = (event: ReactPointerEvent<Element>) => {
     if (event.button === 2) return;
     // The middle button turns the camera; a plain left drag pans the water.
-    const mode = fleetDragMode(event.button, event.shiftKey, event.ctrlKey || event.metaKey || event.altKey, !!armed);
+    const mode = fleetDragMode(event.button, event.shiftKey, event.ctrlKey || event.metaKey || event.altKey, !!armed || !instrumentsVisible);
     drag.current = { x: event.clientX, y: event.clientY, lastX: event.clientX, lastY: event.clientY, mode, pointerId: event.pointerId, additive: event.ctrlKey || event.metaKey, moved: false };
   };
   const dragMap = (event: ReactPointerEvent<SVGSVGElement>) => {
@@ -365,7 +371,7 @@ export function FleetCommand({ data, game, bindings }: { data: Telemetry; game: 
     drag.current = undefined; setBox(undefined);
     if (!d?.moved) return;
     ignoreClick.current = event.button === 0;
-    if (d.mode !== 'select' || armed) return;
+    if (d.mode !== 'select' || armed || !instrumentsVisible) return;
     const rect = event.currentTarget.getBoundingClientRect();
     const inside = (x: number, y: number) => x + rect.left >= Math.min(d.x, event.clientX) && x + rect.left <= Math.max(d.x, event.clientX) && y + rect.top >= Math.min(d.y, event.clientY) && y + rect.top <= Math.max(d.y, event.clientY);
     const scaleX = rect.width / event.currentTarget.clientWidth, scaleY = rect.height / event.currentTarget.clientHeight;
@@ -464,18 +470,27 @@ export function FleetCommand({ data, game, bindings }: { data: Telemetry; game: 
   const planesOf = (flight: { aircraftIds: string[] }) => wings.flatMap(({ owner }) => owner.airWing!.planes.filter(p => flight.aircraftIds.includes(p.id)));
   const selectedTrackCluster = selectedReport?.kind === 'aircraft' ? clusters.find(c => c.trackIds.includes(selectedReport.id)) : undefined;
 
+  const chartInteraction: SVGProps<SVGSVGElement> = {
+    onKeyDown: e => { if (instrumentsVisible && armed === 'search' && e.key === 'Enter') { e.preventDefault(); const r = e.currentTarget.getBoundingClientRect(); water({ clientX: r.left + r.width / 2, clientY: r.top + r.height / 2, shiftKey: false }, false); } },
+    onMouseDown: e => { if (e.button === 1) e.preventDefault(); }, onAuxClick: e => e.preventDefault(),
+    onPointerDown: startDrag, onPointerMove: dragMap, onPointerUp: endDrag,
+    onPointerCancel: () => { drag.current = undefined; setBox(undefined); },
+    onClick: e => { if (ignoreClick.current) { ignoreClick.current = false; return; } water(e, false); },
+    onContextMenu: e => { e.preventDefault(); if (e.ctrlKey || e.metaKey || e.altKey || drag.current?.moved) return; water(e, true); },
+    onWheel: e => { const r = e.currentTarget.getBoundingClientRect(); game.zoomAirMap(e.deltaY, e.clientX - r.left, e.clientY - r.top); },
+  };
+  // H hides instruments, not the surface receiving map camera gestures.
+  if (!instrumentsVisible) return <div className="fleet-command fleet-command-map">
+    <svg ref={map} className="fleet-command-chart" tabIndex={0} aria-label="Fleet command chart" {...chartInteraction}/>
+  </div>;
+
   return <div onClickCapture={e => {
     if (armed !== 'move' || !(e.target as Element).closest('.fleet-command-chart, .air-squadron-labels')) return;
     e.stopPropagation();
     if (ignoreClick.current) { ignoreClick.current = false; return; }
     water(e, false);
   }} className={`fleet-command fleet-command-map${railOpen ? ' rail-open' : ''}`}>
-    <svg ref={map} className="fleet-command-chart" tabIndex={0} aria-label="Fleet command chart" data-armed={armed ? true : undefined}
-      onKeyDown={e => { if (armed === 'search' && e.key === 'Enter') { e.preventDefault(); const r = e.currentTarget.getBoundingClientRect(); water({ clientX: r.left + r.width / 2, clientY: r.top + r.height / 2, shiftKey: false }, false); } }}
-      onMouseDown={e => { if (e.button === 1) e.preventDefault(); }} onAuxClick={e => e.preventDefault()}
-      onPointerDown={startDrag} onPointerMove={dragMap} onPointerUp={endDrag} onPointerCancel={() => { drag.current = undefined; setBox(undefined); }}
-      onClick={e => { if (ignoreClick.current) { ignoreClick.current = false; return; } water(e, false); }}
-      onContextMenu={e => { e.preventDefault(); if (e.ctrlKey || e.metaKey || e.altKey || drag.current?.moved) return; water(e, true); }} onWheel={e => { const r = e.currentTarget.getBoundingClientRect(); game.zoomAirMap(e.deltaY, e.clientX - r.left, e.clientY - r.top); }}>
+    <svg ref={map} className="fleet-command-chart" tabIndex={0} aria-label="Fleet command chart" data-armed={armed ? true : undefined} {...chartInteraction}>
       {armed === 'search' && <svg x="50%" y="50%" width="1" height="1" overflow="visible" className="fleet-command-search-center" aria-hidden="true"><path d="M-12 0H12M0-12V12"/></svg>}
       <ReconnaissanceCoverage coverage={game.simulation.reconCoverage} tick={tick}/>
       {boundary && <path className="fleet-command-boundary" data-map-path={JSON.stringify(circlePoints(0, 0, boundary.radiusM))} data-closed="true"/>}
