@@ -96,6 +96,12 @@ export function briefingControlGroups(briefing: { groups: readonly { id: string;
   return groups;
 }
 
+/** Temporarily off while the anchorage is reworked: its 41 MiB of scenery downloads in
+ * three serialized waves and is the largest remaining stage of cold start — about 4 s on
+ * localhost and 14 s on a 50 Mbit line. The port keeps the ship, ocean and sky. Set this
+ * back to true to restore the backdrop; nothing else needs changing. */
+const HARBOR_BACKDROP = false;
+
 export class Game {
   definition: typeof selectedShip;
   simulation: BattleSession;
@@ -425,11 +431,13 @@ export class Game {
     // ocean detail and buoy motion; it cannot move ship hitboxes or muzzle positions.
     this.shipWake = new ShipWake(this.water.wake, this.ship, this.scene, this.renderer);
     for (const buoy of BUOYS) this.addBuoy(buoy);
-    this.callbacks.progress('Building the naval anchorage', 0.72);
-    this.harbor = await createHarborBackdrop(this.settings.quality);
-    this.harbor.visible = this.inPort;
-    this.scene.add(this.harbor);
-    this.assertActive();
+    if (HARBOR_BACKDROP) {
+      this.callbacks.progress('Building the naval anchorage', 0.72);
+      this.harbor = await createHarborBackdrop(this.settings.quality);
+      this.harbor.visible = this.inPort;
+      this.scene.add(this.harbor);
+      this.assertActive();
+    }
 
     this.callbacks.progress('Preparing ocean effects and lighting', 0.82);
     this.scenePass = pass(this.scene, this.camera);
