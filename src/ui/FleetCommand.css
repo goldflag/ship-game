@@ -1,95 +1,231 @@
-/* Selected study D: a compact roster and a selection card around the sea. */
-.fleet-command { position:absolute; inset:0; pointer-events:none; color:var(--fleet-text, #f0f5f3); font:400 13px/1.35 'Barlow',sans-serif; text-shadow:none; }
+/* At the cursor: orders on a wheel beside the ship, chrome at the edges, the sea in between. */
+.fleet-command { position:absolute; inset:0; pointer-events:none; color:var(--fleet-text, #f0f5f3); font:400 13px/1.35 'Barlow',sans-serif; text-shadow:0 2px 4px #07131bea; font-variant-numeric:tabular-nums; }
 .fleet-command button,.fleet-command input,.fleet-command select { font:inherit; color:inherit; }
-.fleet-command button { display:inline-flex; align-items:center; justify-content:center; gap:6px; padding:6px 9px; min-height:32px; border:1px solid var(--fleet-line); border-radius:2px; background:#132d38; cursor:pointer; }
+.fleet-command button { box-sizing:border-box; display:inline-flex; align-items:center; justify-content:center; gap:6px; padding:4px 9px; min-height:30px; border:1px solid var(--fleet-line); border-radius:2px; background:#0b1e27d8; cursor:pointer; text-shadow:none; white-space:nowrap; }
 .fleet-command button:hover:not(:disabled) { color:var(--fleet-gold); border-color:currentColor; }
-.fleet-command button[aria-pressed=true] { color:var(--fleet-active); background:#132d38; border-color:var(--fleet-active); }
+.fleet-command button[aria-pressed=true] { color:var(--fleet-gold); border-color:var(--fleet-gold); }
 .fleet-command button:disabled { color:var(--fleet-muted); opacity:.5; cursor:default; }
 .game-shell .fleet-command :is(button, input, select, [role=button]):focus-visible { outline:2px solid var(--fleet-gold) !important; outline-offset:3px; }
-.fleet-command :is(input,select) { min-height:32px; min-width:0; max-width:100%; padding:4px 6px; border:1px solid var(--fleet-line); border-radius:2px; background:#0e2530; }
+.fleet-command :is(input,select) { min-height:30px; min-width:0; max-width:100%; padding:4px 6px; border:1px solid var(--fleet-line); border-radius:2px; background:#0e2530; }
 .fleet-command label { display:flex; align-items:center; gap:6px; color:var(--fleet-muted); font-size:12px; }
+.fleet-command .ui-select { min-height:30px; padding:4px 8px; font-size:12px; }
 .fleet-command h2 { margin:0; font:500 22px/1.1 'Barlow Condensed',sans-serif; }
 .fleet-command p { margin:0; }
 .fleet-command small { font-size:11px; color:var(--fleet-muted); }
-.fleet-command :is(section, .fleet-command-top, .fleet-command-paused) { pointer-events:auto; }
-.fleet-command section { background:#102c37f5; border:1px solid var(--fleet-line); border-radius:2px; }
-.fleet-command section>header { display:flex; align-items:center; gap:10px; padding:8px 10px; border-bottom:1px solid var(--fleet-line); }
-.fleet-command section>header h2 { flex:1; font-size:18px; }
-.fleet-command section>header h2 span { color:var(--fleet-active); font-size:14px; margin-left:8px; }
-.fleet-command-chart { position:absolute; inset:0; width:100%; height:100%; pointer-events:auto; touch-action:none; }
+.fleet-command kbd { display:inline-block; font:500 10px/1.2 'Barlow Condensed',sans-serif; min-width:16px; padding:1px 4px; border:1px solid var(--fleet-line); border-radius:1px; color:var(--fleet-muted); text-align:center; text-shadow:none; }
+.fleet-command button kbd { margin-left:2px; }
+.fleet-command :is(section, nav, header, .fleet-command-paused, .fleet-command-anchors > *, .fleet-command-recon .fleet-recon-legend) { pointer-events:auto; }
+
+/* Chart */
+.fleet-command-chart { position:absolute; inset:0; width:100%; height:100%; pointer-events:auto; touch-action:none; cursor:grab; }
+.fleet-command-chart:active { cursor:grabbing; }
 .fleet-command-chart[data-armed] { cursor:crosshair; }
+.game-shell .fleet-command-chart:focus-visible,.fleet-command-chart:focus-visible { outline:none !important; }
+.fleet-command-chart text { font-family:'Barlow',sans-serif; }
 .fleet-command-marker { color:var(--fleet-active); cursor:pointer; }
 .fleet-command-marker.enemy { color:#ffb5a6; }
 .fleet-command-marker.unidentified { color:#edf1ec; }
 .fleet-command-marker.selected { color:var(--fleet-gold); }
+.fleet-command-marker.warn text.fleet-command-marker-order,.fleet-command-marker.warn .fleet-command-hull-fill { fill:var(--fleet-gold); }
 .fleet-command-marker path { fill:#102c37; stroke:currentColor; stroke-width:1.5; }
 .fleet-command-hitbox { fill:transparent; stroke:none; }
 .fleet-command-marker.selected .fleet-command-hitbox { stroke:currentColor; stroke-width:1; }
+.fleet-command-hover-ring { fill:none; stroke:#f0f5f3; stroke-width:1.5; }
+.fleet-command-marker.hovered text:first-of-type { fill:#ffffff; }
 .fleet-command-marker text { fill:currentColor; font-size:12px; font-weight:500; stroke:#07131b; stroke-width:3px; paint-order:stroke; }
-.fleet-command-marker .fleet-command-marker-order { font-size:10px; fill:#edf1ec; }
+.fleet-command-marker .fleet-command-marker-order,.fleet-command-cluster .fleet-command-marker-order { font-size:10.5px; font-weight:400; fill:#dbe6e4; }
+.fleet-command-hull-track { fill:#c9dce03a; }
+.fleet-command-hull-fill { fill:currentColor; }
 .fleet-command-marker:focus-visible { outline:2px solid var(--fleet-gold); }
 .fleet-command-route { fill:none; stroke:var(--fleet-gold); stroke-width:1.2; stroke-dasharray:6 5; pointer-events:none; }
 .fleet-command-boundary,.fleet-command-boundary-warning,.fleet-command-uncertainty { fill:none; pointer-events:none; stroke-width:1; }
 .fleet-command-boundary { stroke:var(--fleet-gold); stroke-width:2; }
 .fleet-command-boundary-warning { stroke:var(--fleet-gold); opacity:.3; stroke-dasharray:3 9; }
-.fleet-command-boundary-label { position:absolute; right:24px; bottom:288px; color:var(--fleet-muted); font-size:11px; text-shadow:0 2px 3px #07131b; }
 .fleet-command-uncertainty { stroke:#ffb5a6; fill:#ffb5a608; stroke-dasharray:4 5; }
 .fleet-command-marker.report.lost path,.fleet-command-marker.report.stale path { stroke-dasharray:3 3; }
 .fleet-command-marker.report.stale,.fleet-command-uncertainty.stale { opacity:.55; }
-.fleet-command-report p+p { margin-top:8px; }
+.fleet-command-marker[data-report-state="last-known"] { opacity:.55; }
+.fleet-command-marker[data-report-state="estimated"] > path { stroke-dasharray:3 2; }
+.fleet-command-marker[data-report-state="confirmed-sinking"] { opacity:.6; }
 .fleet-command-box { position:absolute; border:1px solid var(--fleet-active); background:#86e4c515; pointer-events:none; }
-.fleet-command-top { position:absolute; left:286px; right:24px; top:24px; display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
-.fleet-command-top>div { display:flex; align-items:baseline; gap:12px; padding:6px 0; text-shadow:0 2px 4px #07131b; white-space:nowrap; }
-.fleet-command-top strong { font:500 21px 'Barlow Condensed',sans-serif; }
-.fleet-command-top time { color:var(--fleet-muted); }
-.fleet-command-top nav { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:5px; }
-.fleet-command-roster { position:absolute; left:0; top:0; width:242px; border-top:0; border-left:0; border-radius:0; max-height:calc(100% - 310px); display:flex; flex-direction:column; }
-.fleet-command-roster-list { overflow:auto; scrollbar-width:thin; }
-.fleet-command-roster-list>button { display:block; width:100%; padding:9px 10px; border:0; border-bottom:1px solid var(--fleet-line); background:transparent; text-align:left; }
-.fleet-command-roster-list>button>span { display:flex; justify-content:space-between; gap:10px; }
-.fleet-command-roster-list strong { font-weight:500; }
-.fleet-command-roster-list b { color:var(--fleet-active); font-size:12px; font-weight:500; }
-.fleet-command-roster-list small { display:block; margin-top:4px; }
-.fleet-command-roster nav { display:flex; flex-wrap:wrap; gap:4px; padding:7px; }
-.fleet-command-roster nav button { font-size:11px; }
-.fleet-command-roster form { display:flex; flex-wrap:wrap; gap:7px; padding:10px; border-top:1px solid var(--fleet-line); }
-.fleet-command-roster form label:first-child { display:grid; flex:1 0 100%; }
-.fleet-command-contacts { position:absolute; top:82px; right:24px; width:270px; max-height:calc(100% - 380px); overflow:auto; }
-.fleet-command-contacts>button { display:block; width:100%; border:0; border-bottom:1px solid var(--fleet-line); text-align:left; padding:10px; }
-.fleet-command-contacts>button strong { color:#ffb5a6; font-weight:500; }
-.fleet-command-contacts small { display:block; margin-top:4px; }
-.fleet-command-contacts>p { padding:12px; }
-.fleet-command-paused { position:absolute; top:78px; left:50%; transform:translateX(-50%); padding:6px 10px; background:#132d38; color:var(--fleet-gold); border:1px solid var(--fleet-line); font-size:12px; text-align:center; }
-.fleet-command-card { position:absolute; bottom:16px; left:50%; transform:translateX(-50%); width:min(870px, calc(100% - 48px)); display:grid; grid-template-columns:225px minmax(0, 1fr); max-height:260px; overflow:auto; }
-.fleet-command-identity { padding:14px; border-right:1px solid var(--fleet-line); }
-.fleet-command-identity h2 { margin-bottom:8px; }
-.fleet-command-thumbnail { display:block; width:160px; max-width:100%; height:48px; object-fit:contain; object-position:left center; }
-.fleet-command-identity p { color:var(--fleet-muted); font-size:12px; margin:8px 0 12px; }
-.fleet-command-identity>div { display:flex; flex-wrap:wrap; gap:5px; }
-.fleet-command-return { margin-top:10px; width:100%; }
-.fleet-command-orders { padding:12px 14px; min-width:0; }
-.fleet-command-buttons { display:flex; flex-wrap:wrap; align-items:center; gap:5px; }
-.fleet-command-buttons label { margin-left:4px; }
-.fleet-command-weapons { display:flex; flex-wrap:wrap; gap:5px; margin-top:8px; }
-.fleet-command-weapons button { font-size:11px; background:transparent; }
-.fleet-command-standing { margin-top:10px; max-height:70px; overflow:auto; color:var(--fleet-muted); font-size:12px; }
-.fleet-command-standing p+p { margin-top:4px; }
-.fleet-command-standing strong { font-weight:500; color:#edf1ec; }
-.fleet-command-armed { display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-top:10px !important; color:var(--fleet-gold); }
-.fleet-command-feedback { margin-top:8px; font-size:11px; color:var(--fleet-muted); }
-.fleet-command-feedback p[data-state=accepted] { color:var(--fleet-active); }
-.fleet-command-feedback p[data-state=rejected] { color:#ffb5a6; }
-.fleet-command-feedback p[data-state=superseded] { color:var(--fleet-gold); }
-.fleet-command-card.raised { bottom:230px; }
-.fleet-command-air { position:absolute; left:0; right:0; bottom:0; height:218px; border-bottom:0; border-left:0; border-right:0; border-radius:0; display:flex; flex-direction:column; }
-.fleet-command-air-body { display:flex; gap:14px; min-height:0; padding:10px; }
-.fleet-command-flights { display:flex; gap:6px; overflow:auto; min-width:0; flex:1; padding-bottom:5px; scrollbar-width:thin; }
-.fleet-command-flights>button { display:block; flex:0 0 168px; text-align:left; }
-.fleet-command-flights>button>span { display:flex; align-items:center; gap:6px; margin-bottom:5px; }
-.fleet-command-flights strong { flex:1; font-weight:500; }
-.fleet-command-flights b { color:var(--fleet-active); font-weight:500; }
-.fleet-command-flights small { display:block; margin-top:3px; }
-.fleet-command-decks { flex:0 0 270px; overflow:auto; font-size:12px; }
+.fleet-command-course { opacity:.55; pointer-events:none; }
+.fleet-command-course.selected { opacity:1; }
+.fleet-command-waypoint { color:var(--fleet-gold); }
+.fleet-command-waypoint :is(circle,path) { fill:none; stroke:currentColor; stroke-width:1.5; }
+.fleet-command-waypoint text { fill:currentColor; font-size:11px; paint-order:stroke; stroke:#07131b; stroke-width:3px; }
+.fleet-command-move-preview { fill:none; stroke:var(--fleet-gold); stroke-width:1.6; stroke-dasharray:5 4; pointer-events:none; }
+.fleet-command-move-preview text { fill:var(--fleet-gold); stroke:#07131b; stroke-width:3px; paint-order:stroke; font-size:11px; }
+.fleet-command-search-trail { fill:none; stroke:var(--fleet-active); stroke-width:3; pointer-events:none; }
+.fleet-command-search-center { pointer-events:none; fill:none; stroke:var(--fleet-gold); stroke-width:2; }
+.fleet-command-bracket path { fill:none; stroke:#e6eff0; stroke-opacity:.45; stroke-width:1; stroke-dasharray:5 4; pointer-events:none; }
+.fleet-command-bracket.selected path { stroke:var(--fleet-gold); stroke-opacity:.8; }
+.fleet-command-bracket-label { cursor:pointer; }
+.fleet-command-bracket-key { fill:#0b1e27; stroke:#c9dce066; }
+.fleet-command-bracket.selected .fleet-command-bracket-key { stroke:var(--fleet-gold); }
+.fleet-command-bracket-index { font:500 10px 'Barlow Condensed',sans-serif; fill:#f0f5f3; text-anchor:middle; }
+.fleet-command-bracket-name { font-size:11px; font-weight:500; fill:#e6eff0; paint-order:stroke; stroke:#07131b; stroke-width:3px; }
+.fleet-command-bracket-label:hover .fleet-command-bracket-name,.fleet-command-bracket-label:focus-visible .fleet-command-bracket-name { fill:var(--fleet-gold); }
+.fleet-command-plane { color:var(--fleet-active); cursor:pointer; }
+.fleet-command-plane path { fill:currentColor; stroke:#07131b; stroke-width:.6; }
+.fleet-command-plane.enemy { color:#ffb5a6; }
+.fleet-command-plane.unidentified { color:#edf1ec; }
+.fleet-command-plane.selected { color:var(--fleet-gold); }
+.fleet-command-plane.hurt path { fill:var(--fleet-gold); }
+.fleet-command-plane.stale,.fleet-command-plane.lost { opacity:.55; }
+.fleet-command-plane .fleet-command-smoke { fill:none; stroke:#c8cfd2; stroke-width:1.4; stroke-linecap:round; opacity:.8; }
+.fleet-command-plane .fleet-command-hull-fill { fill:var(--fleet-active); }
+.fleet-command-plane.hurt .fleet-command-hull-fill { fill:var(--fleet-gold); }
+.fleet-command-cluster text { fill:#ffb5a6; font-size:12px; font-weight:500; paint-order:stroke; stroke:#07131b; stroke-width:3px; }
+.fleet-command-cluster.stale { opacity:.6; }
+.fleet-command-cluster.selected text { fill:var(--fleet-gold); }
+
+/* Anchored controls follow their subject across the chart. */
+.fleet-command-anchors { position:absolute; inset:0; pointer-events:none; overflow:hidden; z-index:3; }
+.fleet-command-anchors > * { position:absolute; }
+.fleet-command-wheel-anchor { width:0; height:0; }
+.fleet-command-wheel-block { position:absolute; left:100px; top:-118px; width:420px; display:grid; gap:6px; }
+.fleet-command-wheel-title { display:grid; gap:2px; padding-left:12px; }
+.fleet-command-wheel-title strong { font:600 18px/1 'Barlow Condensed',sans-serif; letter-spacing:.03em; text-transform:uppercase; color:var(--fleet-gold); }
+.fleet-command-wheel-title small { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.fleet-command-wheel-row { display:flex; align-items:center; gap:8px; }
+.fleet-wheel { display:block; flex-shrink:0; overflow:visible; }
+.fleet-wheel-item { cursor:pointer; }
+.fleet-wheel-item path { fill:#0b1e27e0; stroke:#c9dce04a; stroke-width:1; transition:fill .12s; }
+.fleet-wheel-item text { font:500 12px 'Barlow',sans-serif; fill:#f0f5f3; text-anchor:middle; pointer-events:none; }
+.fleet-wheel-item .fleet-wheel-sub { font-size:9.5px; fill:#bfcfd3; }
+.fleet-wheel-item:hover path,.fleet-wheel-item:focus-visible path { fill:#142d38; stroke:var(--fleet-gold); }
+.fleet-wheel-item.armed path { fill:#3a3420; stroke:var(--fleet-gold); }
+.fleet-wheel-item.armed text { fill:var(--fleet-gold); }
+.fleet-wheel-item.disabled { cursor:default; opacity:.45; }
+.fleet-wheel-item:focus-visible { outline:none; }
+.fleet-wheel-hub { fill:#0b1e27e8; stroke:#c9dce04a; }
+.fleet-wheel-hull { fill:none; stroke:var(--fleet-active); stroke-width:3; }
+.fleet-wheel-hp { font:500 15px 'Barlow Condensed',sans-serif; fill:var(--fleet-active); text-anchor:middle; }
+.fleet-command-wheel-actions { display:grid; gap:4px; }
+.fleet-command-wheel-actions button { justify-content:space-between; }
+.fleet-command-cancel { color:var(--fleet-gold); }
+.fleet-command-weapons { display:flex; gap:12px; padding-left:12px; }
+.fleet-command-weapons button { min-height:22px; padding:0; border:0; background:none; font-size:12px; text-shadow:0 2px 4px #07131bea; }
+.fleet-command-weapons button i { width:8px; height:8px; border-radius:50%; border:1px solid var(--fleet-active); }
+.fleet-command-weapons button[aria-pressed=true] i { background:var(--fleet-active); }
+.fleet-command-weapons button[aria-pressed=true] { color:var(--fleet-text); border:0; }
+.fleet-command-weapons button[aria-pressed=false] { color:var(--fleet-muted); }
+.fleet-command-weapons button[aria-pressed=false] i { border-color:var(--fleet-muted); }
+.fleet-command-armed { padding-left:12px; color:var(--fleet-gold); font-size:12px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.fleet-command-straggler { display:flex; flex-wrap:wrap; align-items:center; gap:6px; transform:translate(-50%, 26px); width:max-content; max-width:420px; padding:5px 9px; background:#0b1e27e6; border:1px solid var(--fleet-line); border-radius:2px; color:var(--fleet-gold); font-size:11.5px; text-shadow:none; }
+.fleet-command-straggler button { min-height:24px; padding:2px 8px; font-size:11.5px; }
+.fleet-command-airbar-anchor { width:0; height:0; }
+.fleet-command-airbar.raised { top:auto; bottom:12px; }
+.fleet-command-airbar { position:absolute; left:40px; top:16px; width:340px; display:grid; gap:6px; padding:8px; background:#0b1e27ee; border:1px solid var(--fleet-line); border-radius:2px; text-shadow:none; }
+.fleet-command-airbar header { display:flex; justify-content:space-between; align-items:baseline; gap:8px; padding:0 2px; font-size:12px; color:var(--fleet-muted); }
+.fleet-command-airbar header strong { font:600 16px/1 'Barlow Condensed',sans-serif; color:var(--fleet-gold); letter-spacing:.02em; }
+.fleet-command-airbar header span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.fleet-command-planes { display:grid; gap:4px; padding:2px 2px 6px; border-bottom:1px solid var(--fleet-line); }
+.fleet-command-plane-row { display:grid; grid-template-columns:72px 1fr auto; gap:8px; align-items:center; font-size:11px; color:var(--fleet-muted); }
+.fleet-command-plane-row b { color:var(--fleet-text); font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.fleet-command-plane-bars { display:flex; gap:3px; flex-wrap:wrap; }
+.fleet-command-plane-bars i { width:22px; height:5px; background:#c9dce02e; position:relative; }
+.fleet-command-plane-bars i::after { content:''; position:absolute; inset:0 auto 0 0; width:var(--hp); background:var(--fleet-active); }
+.fleet-command-plane-bars i.hurt::after { background:var(--fleet-gold); }
+.fleet-command-plane-bars i.lost { background:#ffb5a626; } .fleet-command-plane-bars i.lost::after { width:0; }
+.fleet-command-buttons { display:flex; flex-wrap:wrap; align-items:center; gap:4px; }
+.fleet-command-buttons button { min-height:28px; padding:3px 8px; font-size:12px; background:none; }
+.fleet-command-search label { gap:4px; }
+.fleet-command-airbar .fleet-command-service { margin:2px 0 0; padding-top:6px; border-top:1px solid var(--fleet-line); }
+.fleet-command-airbar .fleet-command-service p { margin-top:4px; font-size:11px; color:var(--fleet-muted); }
+.fleet-command-airbar footer { display:flex; justify-content:space-between; align-items:center; gap:8px; font-size:11.5px; color:var(--fleet-muted); }
+.fleet-command-airbar footer button { min-height:24px; padding:2px 6px; border:0; background:none; color:var(--fleet-text); }
+.fleet-command-popover-anchor { width:0; height:0; }
+.fleet-command-popover { position:absolute; left:-292px; top:-24px; width:262px; display:grid; gap:6px; padding:10px 12px; background:#0b1e27ee; border:1px solid var(--fleet-line); border-left:2px solid #ffb5a6; border-radius:2px; text-shadow:none; font-size:12px; color:#d7e1e2; line-height:1.45; }
+.fleet-command-popover strong { font:600 16px/1 'Barlow Condensed',sans-serif; color:#ffb5a6; letter-spacing:.02em; }
+.fleet-command-popover-hint { color:var(--fleet-muted); }
+
+/* Edges */
+.fleet-command-top { position:absolute; left:24px; right:24px; top:18px; display:flex; align-items:flex-start; justify-content:space-between; gap:16px; pointer-events:none; }
+.fleet-command-top > div { display:flex; align-items:center; gap:12px; pointer-events:auto; }
+.fleet-command-top time { font:500 26px/1 'Barlow Condensed',sans-serif; }
+.fleet-command-hint { font-size:12px; color:var(--fleet-muted); }
+.fleet-command-hint kbd { margin:0 1px; }
+.fleet-command-top nav { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:6px; pointer-events:auto; }
+.fleet-command-top nav button { background:none; border-color:transparent; color:var(--fleet-muted); text-shadow:0 2px 4px #07131bea; }
+.fleet-command-top nav button:hover:not(:disabled) { border-color:var(--fleet-line); color:var(--fleet-text); }
+.fleet-command-top nav button[aria-pressed=true] { color:var(--fleet-active); border-color:var(--fleet-line); background:#132d38; text-shadow:none; }
+.fleet-simulation-speed { display:inline-flex; gap:2px; align-items:center; }
+.fleet-simulation-speed button { min-width:0; min-height:24px; padding:2px 5px; border:0; border-bottom:2px solid transparent; border-radius:0; background:none; font:500 14px/1 'Barlow Condensed',sans-serif; color:var(--fleet-muted); text-shadow:0 2px 4px #07131bea; }
+.fleet-simulation-speed button[aria-pressed=true] { color:var(--fleet-active); border-bottom-color:var(--fleet-active); }
+.fleet-command-paused { position:absolute; top:62px; left:50%; transform:translateX(-50%); padding:6px 10px; background:#132d38; color:var(--fleet-gold); border:1px solid var(--fleet-line); font-size:12px; text-align:center; text-shadow:none; }
+
+.fleet-command-enemy { position:absolute; right:24px; top:58px; width:312px; max-height:calc(100% - 300px); overflow:auto; scrollbar-width:thin; background:#0b1e27e8; border:1px solid var(--fleet-line); border-radius:2px; text-shadow:none; }
+.fleet-command-enemy h2 { padding:9px 12px 6px; font:500 15px/1 'Barlow Condensed',sans-serif; letter-spacing:.02em; display:flex; justify-content:space-between; align-items:baseline; gap:8px; }
+.fleet-command-enemy h2 span { font:400 11px 'Barlow',sans-serif; color:var(--fleet-muted); text-align:right; }
+.fleet-command-enemy > p { padding:6px 12px 10px; color:var(--fleet-muted); font-size:12px; }
+.fleet-command .fleet-command-enemy-row { white-space:normal; display:grid; grid-template-columns:16px 1fr auto; gap:0 8px; align-items:start; width:100%; padding:6px 12px; border:0; border-top:1px solid #c9dce022; border-radius:0; background:none; text-align:left; font-size:12px; }
+.fleet-command .fleet-command-enemy-row[aria-pressed=true],.fleet-command .fleet-command-enemy-row.selected { background:#ffb5a614; border-color:#c9dce022; color:inherit; }
+.fleet-command-enemy-row strong { font-weight:500; color:#ffb5a6; }
+.fleet-command-enemy-row.last-known strong,.fleet-command-enemy-row.confirmed-sinking strong { color:#ffb5a6aa; }
+.fleet-command-enemy-row small { display:block; color:var(--fleet-muted); font-size:11px; }
+.fleet-command-enemy-glyph { width:9px; height:9px; margin:5px 0 0 2px; background:#ffb5a6; transform:rotate(45deg) scale(.85); }
+.fleet-command-enemy-glyph.estimated { background:none; border:1px solid #ffb5a6; }
+.fleet-command-enemy-glyph.last-known,.fleet-command-enemy-glyph.confirmed-sinking { opacity:.5; }
+.fleet-command-enemy-plane { width:15px; height:15px; margin-top:1px; fill:#ffb5a6; }
+.fleet-command-enemy-row > span:nth-child(2) { min-width:0; }
+.fleet-command-enemy-range { color:var(--fleet-text); text-align:right; font-size:12px; white-space:nowrap; }
+.fleet-command-enemy-range small { color:var(--fleet-muted); }
+.fleet-command-comparison { width:100%; border-collapse:collapse; font-size:12px; border-top:1px solid #e8c56c44; margin-top:2px; }
+.fleet-command-comparison th { padding:7px 12px 3px; font-weight:400; color:var(--fleet-muted); font-size:10.5px; text-align:right; }
+.fleet-command-comparison th:first-child { text-align:left; font:500 12px 'Barlow',sans-serif; color:var(--fleet-text); }
+.fleet-command-comparison th small { display:block; font-size:10px; }
+.fleet-command-comparison td { padding:3px 12px; text-align:right; color:var(--fleet-text); vertical-align:top; }
+.fleet-command-comparison td:first-child { text-align:left; color:var(--fleet-muted); }
+.fleet-command-comparison td:nth-child(2) { color:var(--fleet-active); }
+.fleet-command-comparison td:nth-child(3) { color:#ffb5a6; }
+.fleet-command-comparison td small { display:block; color:var(--fleet-muted); font-size:10.5px; }
+.fleet-command-comparison tr:last-child td { padding-bottom:9px; }
+
+.fleet-command-roster { position:absolute; left:24px; bottom:22px; display:flex; gap:22px; align-items:flex-end; flex-wrap:wrap; max-width:calc(100% - 420px); }
+.fleet-command-formation { display:grid; gap:6px; }
+.fleet-command .fleet-command-formation-name { justify-content:flex-start; gap:7px; min-height:0; padding:2px 0; border:0; background:none; font:500 12px 'Barlow',sans-serif; text-shadow:0 2px 4px #07131bea; }
+.fleet-command .fleet-command-formation-name[aria-pressed=true] { color:var(--fleet-gold); border:0; }
+.fleet-command-formation-name small { color:var(--fleet-muted); font-weight:400; }
+.fleet-command-tokens { display:flex; gap:10px; }
+.fleet-command .fleet-command-token { display:grid; justify-items:center; gap:3px; width:84px; min-height:0; padding:0; border:0; background:none; font-size:11px; color:var(--fleet-muted); text-shadow:0 2px 4px #07131bea; white-space:nowrap; }
+.fleet-command .fleet-command-token[aria-pressed=true] { border:0; }
+.fleet-command-token svg { width:42px; height:42px; display:block; }
+.fleet-command-token-ring { fill:#0b1e27d8; stroke:#c9dce033; }
+.fleet-command-token-hull { fill:none; stroke:var(--fleet-active); stroke-width:2.5; }
+.fleet-command-token.warn .fleet-command-token-hull { stroke:var(--fleet-gold); }
+.fleet-command-token path { fill:#f0f5f3; }
+.fleet-command .fleet-command-token[aria-pressed=true] path { fill:var(--fleet-gold); }
+.fleet-command-token-name { color:var(--fleet-text); font-weight:500; }
+.fleet-command-token[aria-pressed=true] .fleet-command-token-name,.fleet-command-token.warn .fleet-command-token-name { color:var(--fleet-gold); }
+.fleet-command .fleet-command-token:hover:not(:disabled) { border:0; color:var(--fleet-muted); }
+.fleet-command-token.hovered .fleet-command-token-ring { stroke:#f0f5f3; stroke-width:1.5; }
+.fleet-command-token.hovered .fleet-command-token-name { text-decoration:underline; text-underline-offset:3px; }
+.fleet-command-token-score { color:var(--fleet-active); }
+.fleet-command-token.lost { opacity:.45; }
+.fleet-command-ticker { position:absolute; left:50%; bottom:22px; transform:translateX(-50%); text-align:center; font-size:11.5px; color:var(--fleet-muted); line-height:1.7; pointer-events:none; }
+.fleet-command-ticker p[data-state=accepted] { color:var(--fleet-active); }
+.fleet-command-ticker p[data-state=rejected] { color:#ffb5a6; }
+.fleet-command-ticker p[data-state=superseded] { color:var(--fleet-gold); }
+.fleet-command-recon { position:absolute; right:24px; bottom:22px; display:grid; justify-items:end; gap:2px; color:#b2c2bf; font-size:11px; pointer-events:none; text-align:right; }
+.fleet-command-controls-hint { color:var(--fleet-muted); }
+.fleet-recon-coverage { pointer-events:none; }
+
+.fleet-command-air { position:absolute; left:0; right:0; bottom:0; z-index:2; height:236px; background:#0b1e27f4; border-top:1px solid var(--fleet-line); display:flex; flex-direction:column; text-shadow:none; }
+.fleet-command-air > header { display:flex; align-items:center; gap:10px; padding:8px 12px; border-bottom:1px solid var(--fleet-line); }
+.fleet-command-air > header h2 { flex:1; font-size:18px; }
+.fleet-command-carriers { display:flex; gap:5px; min-width:0; max-width:75%; overflow:auto; }
+.fleet-command-carriers button { flex-shrink:0; }
+.fleet-command-air-body { display:flex; gap:14px; min-height:0; padding:8px 12px; }
+.fleet-command-flights { display:grid; grid-auto-rows:min-content; gap:2px; overflow:auto; min-width:0; flex:1; scrollbar-width:thin; }
+.fleet-command-flights > button { display:grid; grid-template-columns:18px 1fr auto; gap:0 8px; align-items:center; text-align:left; border:0; border-bottom:1px solid #c9dce022; border-radius:0; background:none; padding:6px 8px; min-height:0; }
+.fleet-command-flights > button[aria-pressed=true] { background:#e8c56c12; }
+.fleet-command-flights strong { font-weight:500; }
+.fleet-command-flights small { display:block; }
+.fleet-command-dots { display:inline-flex; gap:2px; }
+.fleet-command-dots i { width:6px; height:6px; background:currentColor; }
+.fleet-command-dots i.x { opacity:.2; }
+.fleet-command-decks { flex:0 0 300px; overflow:auto; font-size:12px; }
 .fleet-command-deck+.fleet-command-deck { border-top:1px solid var(--fleet-line); margin-top:10px; padding-top:10px; }
 .fleet-command-deck>strong { display:block; margin-bottom:3px; font-weight:500; }
 .fleet-command-deck p { color:var(--fleet-muted); font-size:11px; }
@@ -99,79 +235,39 @@
 .fleet-command-deck li { display:flex; align-items:center; gap:6px; border-top:1px solid var(--fleet-line); padding:5px 0; }
 .fleet-command-deck li>div:first-child { flex:1; min-width:0; }
 .fleet-command-deck li span,.fleet-command-deck li small { display:block; overflow-wrap:anywhere; }
-.fleet-command-deck li button { font-size:11px; padding:4px 6px; }
-.fleet-command-service { margin:8px 0; padding-top:8px; border-top:1px solid var(--fleet-line); }
-.fleet-command-service p { margin-top:5px; color:var(--fleet-muted); font-size:12px; }
-.fleet-command-follow .fleet-command-top { left:24px; }
-.fleet-command-entry { position:absolute; top:120px; left:24px; color:var(--fleet-active); border:1px solid var(--fleet-line); border-radius:2px; background:#102c37; padding:7px 10px; font:500 13px 'Barlow',sans-serif; }
-.fleet-command-helm .fleet-command-card { left:24px; transform:none; width:270px; grid-template-columns:1fr; max-height:45%; }
-.fleet-command-helm .fleet-command-identity { border:0; }
-.fleet-command-helm .fleet-command-orders { display:none; }
-@container hud (max-width:1050px) {
-  .fleet-command-top { left:242px; right:16px; }
-  .fleet-command-top>div { display:none; }
-  .fleet-command-roster { left:0; top:0; width:208px; }
-  .fleet-command-card { width:calc(100% - 32px); grid-template-columns:195px minmax(0, 1fr); }
-  .fleet-command-air { left:0; right:0; }
-  .fleet-command-decks { flex-basis:180px; }
-}
-@container hud (max-width:720px) {
-  .fleet-command-top,.fleet-command-follow .fleet-command-top { left:12px; right:12px; top:12px; justify-content:flex-end; }
-  .fleet-command-top nav { gap:4px; }
-  .fleet-command button { font-size:12px; min-height:32px; padding:5px 7px; }
-  .fleet-command kbd { display:none; }
-  .fleet-command-roster { top:0; left:0; width:190px; max-height:28%; }
-  .fleet-command-contacts { top:92px; right:12px; width:230px; max-height:32%; }
-  .fleet-command-paused { top:76px; width:max-content; max-width:calc(100% - 24px); font-size:11px; }
-  .fleet-command-card { bottom:12px; width:calc(100% - 24px); grid-template-columns:150px minmax(0, 1fr); max-height:34%; }
-  .fleet-command-identity,.fleet-command-orders { padding:10px; }
-  .fleet-command h2 { font-size:18px; }
-  .fleet-command-identity p { font-size:11px; }
-  .fleet-command-card.raised { bottom:calc(22% + 24px); }
-  .fleet-command-air { left:0; right:0; bottom:0; height:22%; }
-  .fleet-command-air>header { padding:6px 8px; gap:6px; }
-  .fleet-command-air>header label { max-width:55%; font-size:11px; }
-  .fleet-command-decks { flex-basis:140px; }
-  .fleet-command-flights>button { flex-basis:148px; }
-  .fleet-command-helm .fleet-command-card { left:12px; width:190px; }
-}
-@media (prefers-reduced-motion:reduce) { .fleet-command * { scroll-behavior:auto; } }
-
+.fleet-command-deck li button { font-size:11px; padding:4px 6px; min-height:24px; }
 .fleet-command-deck-actions { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:4px; max-width:50%; }
 .fleet-command-deck-policy { margin:7px 0 4px; flex-wrap:wrap; }
+.fleet-command-service p { margin-top:5px; color:var(--fleet-muted); font-size:12px; }
 
-.fleet-command-search { margin:10px 0; }
-.fleet-command-search>p { margin-top:6px; font-size:11px; color:var(--fleet-muted); }
-.fleet-command-search-trail { fill:none; stroke:var(--fleet-active); stroke-width:3; pointer-events:none; }
+/* Follow and helm: one panel at the top left; the helm instruments own the rest. */
+.fleet-command-panel { position:absolute; left:0; top:0; width:470px; min-height:72px; padding:9px 12px 10px; display:grid; gap:5px; background:#0f2732; border-right:1px solid var(--fleet-line); border-bottom:1px solid var(--fleet-line); text-shadow:none; }
+.fleet-command-panel h2 { font:600 16px/1 'Barlow Condensed',sans-serif; letter-spacing:.02em; display:flex; align-items:baseline; gap:8px; }
+.fleet-command-panel h2 small { font:400 11px 'Barlow',sans-serif; color:var(--fleet-active); }
+.fleet-command-panel > p { font-size:11px; color:var(--fleet-muted); }
+.fleet-command-panel-actions { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.fleet-command-panel .fleet-simulation-speed { margin-right:4px; }
+.fleet-command-panel .fleet-simulation-speed button { text-shadow:none; }
+.fleet-command-panel .fleet-command-weapons { padding-left:0; }
+.fleet-command-panel .fleet-command-weapons button { text-shadow:none; }
+.fleet-command-panel .fleet-command-feedback { color:var(--fleet-gold); font-size:11px; }
 
-.game-shell .fleet-command-chart:focus-visible,.fleet-command-chart:focus-visible { outline:none !important; }
-.fleet-command-search-center { pointer-events:none; fill:none; stroke:var(--fleet-gold); stroke-width:2; }
-
-.fleet-command-chart { cursor:grab; }
-.fleet-command-chart:active { cursor:grabbing; }
-.fleet-command-course { opacity:.55; pointer-events:none; }
-.fleet-command-course.selected { opacity:1; }
-.fleet-command-waypoint { color:var(--fleet-gold); }
-.fleet-command-waypoint :is(circle,path) { fill:none; stroke:currentColor; stroke-width:1.5; }
-.fleet-command-waypoint text { fill:currentColor; font-size:11px; paint-order:stroke; stroke:#07131b; stroke-width:3px; }
-.fleet-command-move-preview { fill:none; stroke:var(--fleet-gold); stroke-width:1.6; stroke-dasharray:5 4; pointer-events:none; }
-.fleet-command-aircraft-thumbnail { display:block; width:100%; height:60px; object-fit:contain; }
-.fleet-command-carriers { display:flex; gap:5px; min-width:0; max-width:75%; overflow:auto; }
-.fleet-command-carriers button { flex-shrink:0; }
-.fleet-command-helm-controls { position:absolute; left:0; top:0; display:flex; align-items:center; flex-wrap:wrap; gap:6px; max-width:420px; padding:8px; }
-.fleet-command-helm-controls strong { flex-basis:100%; }
-
-.fleet-simulation-speed { display:inline-flex; gap:0; align-items:center; }
-.fleet-simulation-speed button { min-width:34px; padding:6px; border-radius:0; }
-.fleet-simulation-speed button + button { border-left:0; }
-.fleet-command-helm-controls .fleet-simulation-speed { margin-left:auto; }
-
-.fleet-command-recon { position:absolute; left:286px; top:116px; display:flex; flex-wrap:wrap; gap:8px 18px; color:#b2c2bf; font-size:11px; pointer-events:none; }
-.fleet-command-marker[data-report-state="last-known"] { opacity:.55; }
-.fleet-command-marker[data-report-state="estimated"] > path { stroke-dasharray:3 2; }
-.fleet-command-marker[data-report-state="confirmed-sinking"] { opacity:.6; }
-.fleet-command-formation p { margin:4px 0; color:var(--fleet-gold); }
-
-.fleet-command-marker[data-contact-kind="aircraft"]:not(.selected):not(:hover):not(:focus) text { display:none; }
-.fleet-command-marker[data-contact-kind="aircraft"]:not(.selected) > path { transform:scale(.65); }
-.fleet-command-recon .fleet-recon-legend { pointer-events:auto; }
+@container hud (max-width:1050px) {
+  .fleet-command-hint { display:none; }
+  .fleet-command-enemy { width:280px; }
+  .fleet-command-roster { max-width:calc(100% - 340px); }
+  .fleet-command-wheel-block { width:360px; }
+}
+@container hud (max-width:720px) {
+  .fleet-command-top { left:12px; right:12px; top:12px; }
+  .fleet-command button { font-size:12px; }
+  .fleet-command kbd { display:none; }
+  .fleet-command-enemy { top:56px; right:12px; width:240px; max-height:36%; }
+  .fleet-command-roster { left:12px; bottom:12px; max-width:calc(100% - 24px); gap:12px; }
+  .fleet-command-token { width:64px; }
+  .fleet-command-ticker,.fleet-command-recon { display:none; }
+  .fleet-command-air { height:34%; }
+  .fleet-command-decks { flex-basis:160px; }
+  .fleet-command-panel { width:calc(100% - 12px); }
+}
+@media (prefers-reduced-motion:reduce) { .fleet-command * { scroll-behavior:auto; transition:none; } }

@@ -36,6 +36,10 @@ export interface BattleSession extends Omit<Pick<CombatSimulation, keyof CombatS
  readonly fleetOrders?: Record<string, FleetOrderState>;
  readonly orderReceipts?: OrderReceipt[];
  readonly queuedOrderCount?: number;
+ /** Live score sheet for owned vessels: damage dealt and ships sunk. */
+ readonly shipScores?: Record<string, { damageDealt: number; frags: number }>;
+ /** Aircraft losses seen so far: own from the wing, enemy from observed loss events. */
+ readonly aircraftLosses?: { own: number; enemy: number };
  readonly simulationSpeed?: 1 | 2 | 4;
  setSimulationSpeed?(speed: 1 | 2 | 4): void;
  releaseHelm?(): boolean;

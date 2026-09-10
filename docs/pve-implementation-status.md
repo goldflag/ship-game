@@ -1,5 +1,19 @@
 # PvE implementation status
 
+## Fleet command redesign "At the cursor" (2026-09-09)
+
+The in-battle command screen now follows the selected redesign in [docs/fleet-command-redesign](fleet-command-redesign/README.md). Orders open on a wheel beside the selected ship (`src/ui/OrderWheel.tsx`), air orders on a bar beside the selected groups, and a report in a popover; every anchored control follows its subject across the chart through the existing projection hook. The old command card, contacts panel and task-group form are gone.
+
+- **Formations are the groups.** `src/ui/fleetFormations.ts` derives each formation from escort orders (a leader plus everything escorting it), numbered and named from the setup groups; the chart draws a dashed bracket with a numbered label, the roster at the foot shows every formation and every ship, and keys 1–9 select a formation. Ctrl+number saving is removed.
+- **Individual aircraft, both sides.** Own airborne planes and every reported enemy aircraft draw as typed silhouettes (`src/ui/planeGlyphs.ts`); own planes show HP bars when their group is selected, reported planes cluster into typed groups (`airClusters` in `src/ui/fleetStats.ts`) and show damage only as observed smoke. Rust now classifies aircraft tracks as Fighter, Dive bomber or Torpedo bomber once evidence is strong (`sensors.rs`), never their owner or state.
+- **Chart labels** carry hull bar, percentage and knots for own ships and the observed condition for reports; a formation leader's label sits to port so escorts stay readable. Markers fade once the hull is legible on screen (`data-map-fade`, `markerOpacity`).
+- **Enemy fleet panel** with a battle comparison (damage dealt, tonnage afloat, aircraft, ships lost). Our column is exact; theirs is built only from reports. The PvE team frame now carries the owning team's live score sheet (damage dealt, frags, and a hit log addressed through public contact IDs) in `team_view.rs`; other teams' records and the shell history stay private. `SnapshotSession` exposes `shipScores` and counts observed aircraft losses.
+- **Hotkeys**: G H E F arm Move, Hold, Escort, Focus fire; C cycles formation shape; + and − change speed; V follows, T takes the helm; 1–9 select formations; L A D I E R S for air orders. Right-click remains the fast path. M stays the chart toggle, which is why Move is G.
+- **Chart controls**: left-drag pans, middle-drag orbits, Shift-drag selects, scroll zooms.
+- **Follow** keeps the whole helm HUD with the captain's telegraph and rudder orders shown read-only, a compact top-left panel (Take helm, Fleet command, weapons policy) and no sight.
+
+Validation: `tsc` clean; 114 client tests across the UI, session and game suites plus the full serial suite pass; `cargo clippy -p naval-sim --all-targets --release -D warnings` clean; the team-projection test now asserts own scores are present and private data absent. A headless Chromium/WebGPU run walked port → setup → battle → pause → wheel → Move → formation key → aircraft drawer → Loiter → launch → follow → hover → middle-drag orbit; screenshots and the drivers are under ignored `.build/fleet-command-redesign/`. Known follow-ups: squadron labels of groups loitering at one station still stack, and a floating air bar can sit over water the player wants to click when the aircraft drawer is open.
+
 ## Master integration for PR #137 (2026-09-09)
 
 Resolved conflicts against `master` at `201f7da3`, retaining the desktop PvE scope alongside the newer ships, rendering optimizations and combat updates. Durable carrier inputs were combined before regenerating every runtime ship affected by the shared blueprint source change. All ship and aircraft checks pass; both carriers' five fixed review views were rendered with isolated local Blender and inspected.
