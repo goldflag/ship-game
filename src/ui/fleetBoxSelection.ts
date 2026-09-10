@@ -14,3 +14,16 @@ export function fleetBoxSelection(ships: readonly Candidate[], planes: readonly 
 export function fleetDragMode(button: number, shift: boolean, orbit: boolean, armed: boolean): 'select' | 'orbit' | 'pan' {
   return button === 0 && shift && !armed ? 'select' : button === 1 || orbit ? 'orbit' : 'pan';
 }
+
+export type FleetWaterAction = 'search' | 'air' | 'cancel-move' | 'move' | 'clear';
+/** What a click on open water does on the fleet chart. A destination spends the
+ * selection: a plain click sends the ships and hands them back, Shift keeps them in
+ * hand to extend the route, and the right button leaves the move without ordering. */
+export function fleetWaterAction(armed: 'move' | 'search' | 'squadron' | 'other' | undefined,
+  o: { right: boolean; shift: boolean; flights: boolean; lead: boolean }): FleetWaterAction | undefined {
+  if (o.flights && armed === 'search') return 'search';
+  if (o.flights && (o.right || armed === 'squadron')) return 'air';
+  if (armed === 'move') return o.right ? 'cancel-move' : 'move';
+  if (o.right || (!armed && o.shift && o.lead && !o.flights)) return 'move';
+  return armed ? undefined : 'clear';
+}

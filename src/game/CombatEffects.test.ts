@@ -51,9 +51,9 @@ test('heavy AA bursts at the recorded endpoint after flight, survives history ev
     sim.tick = 2; effects.update(sim, 0, camera);
     expect(effects.diagnostics().flakSmoke).toBe(0);
     for (let i = 0; i < 128; i++) sim['emit']({ kind: 'aircraft-recovered', position: [0, 0, 0], shipId: 'target', message: 'Other combat' });
-    sim.tick = 120; effects.update(sim, 0, camera, true);
+    sim.tick = 120; effects.update(sim, 0, camera, sim.player.motion.id);
     expect(effects.diagnostics().flakSmoke).toBe(0);
-    sim.tick = 121; effects.update(sim, 0, camera, true);
+    sim.tick = 121; effects.update(sim, 0, camera, sim.player.motion.id);
     expect(effects.diagnostics().flakSmoke).toBe(8);
     expect(effects.diagnostics().flashes).toBeGreaterThan(0);
     const mesh = effects.root.getObjectByName('Heavy AA burst smoke') as InstancedMesh;
@@ -62,17 +62,17 @@ test('heavy AA bursts at the recorded endpoint after flight, survives history ev
     const volume = mesh.geometry.getAttribute('effectVolume');
     expect(Array.from({ length: 8 }, (_, i) => volume.getZ(i)).some(heat => heat > 1)).toBe(true);
     const before = [...mesh.instanceMatrix.array], beforeSim = JSON.stringify(sim);
-    effects.update(sim, 0, camera, true);
+    effects.update(sim, 0, camera, sim.player.motion.id);
     expect([...mesh.instanceMatrix.array]).toEqual(before);
     expect(effects.diagnostics().flakSmoke).toBe(8);
     effects.setWind(10, 0);
     const x = sphere.getX(0);
-    effects.update(sim, .5, camera, true);
+    effects.update(sim, .5, camera, sim.player.motion.id);
     expect(sphere.getX(0)).toBeGreaterThan(x);
     expect(effects.diagnostics().flashes).toBe(0);
     expect(Array.from({ length: 8 }, (_, i) => volume.getZ(i)).every(heat => heat < .01)).toBe(true);
     expect(JSON.stringify(sim)).toBe(beforeSim);
-    effects.update(sim, 8, camera, true);
+    effects.update(sim, 8, camera, sim.player.motion.id);
     expect(effects.diagnostics().flakSmoke).toBe(0);
     effects.reset(); effects.update(sim, 0, camera);
     expect(effects.diagnostics().flakSmoke).toBe(0);
@@ -196,18 +196,18 @@ test('optics hide existing and new own-ship smoke while other smoke remains and 
   sim.events.push(event);
   effects.update(sim, 0, camera);
   expect(effects.diagnostics().smoke).toBe(3);
-  effects.update(sim, .1, camera, true);
+  effects.update(sim, .1, camera, sim.player.motion.id);
   expect(effects.diagnostics().smoke).toBe(0);
   sim.events.push({ ...event, sequence: 2 }, { ...event, sequence: 3, shipId: 'target' });
-  effects.update(sim, .1, camera, true);
+  effects.update(sim, .1, camera, sim.player.motion.id);
   expect(effects.diagnostics().smoke).toBe(3);
   effects.update(sim, 0, camera);
   expect(effects.diagnostics().smoke).toBe(9);
   sim.events.push({ ...event, sequence: 4, kind: 'penetration', normal: [-1, 0, 0] },
     { ...event, sequence: 5, kind: 'module', detonation: true });
-  effects.update(sim, 0, camera, true);
+  effects.update(sim, 0, camera, sim.player.motion.id);
   expect(effects.diagnostics().smoke).toBe(3); // Own impact and magazine smoke are hidden too.
-  effects.update(sim, 13, camera, true);
+  effects.update(sim, 13, camera, sim.player.motion.id);
   effects.update(sim, 0, camera);
   expect(effects.diagnostics().smoke).toBe(0);
   effects.reset();
@@ -499,7 +499,7 @@ test('the shell follow camera hides shell vapor trails without dropping their hi
     expect(effects.diagnostics().shellTrails.segments).toBeGreaterThan(0);
     for (const age of [.2, .3]) {
       shell.age = age; shell.position[0] = (age - .1) * 820;
-      effects.update(sim, .1, camera, false, undefined, true);
+      effects.update(sim, .1, camera, undefined, undefined, true);
       expect(effects.diagnostics().shellTrails).toEqual({ histories: 1, segments: 0 });
     }
     expect((effects.root.getObjectByName('Shell vapor trails') as InstancedMesh).visible).toBe(false);

@@ -162,6 +162,9 @@ describe('keyboard gameplay controls', () => {
     key('keyup', 'Equal');
     key('keydown', 'Minus'); expect(actions.chartSize).toHaveBeenLastCalledWith(-1);
     key('keydown', 'Digit1'); expect(actions.weaponGroup).not.toHaveBeenCalled();
+    // The glasses are a view control too, so a spectator raises them without the helm.
+    key('keydown', 'ShiftLeft', { shiftKey: true }); key('keyup', 'ShiftLeft');
+    expect(actions.optics).toHaveBeenCalledTimes(2);
   });
 
   test('depth preset hotkeys support rebinding and ignore repeat, pause and dialogs', () => {

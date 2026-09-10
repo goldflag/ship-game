@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { fleetBoxSelection, fleetDragMode } from './fleetBoxSelection';
+import { fleetBoxSelection, fleetDragMode, fleetWaterAction } from './fleetBoxSelection';
 import type { Vec3 } from '../ships/blueprint';
 
 const contains = ([x, , z]: Vec3) => x >= 10 && x <= 20 && z >= 10 && z <= 20;
@@ -21,4 +21,27 @@ test('Shift-left drag selects, Ctrl/Cmd adds to the box selection, and unshifted
   expect(fleetDragMode(0, false, true, false)).toBe('orbit');
   expect(fleetDragMode(1, true, false, false)).toBe('orbit');
   expect(fleetDragMode(0, true, false, true)).toBe('pan');
+});
+
+test('a destination is one click: plain sends and releases, Shift extends, right leaves the move', () => {
+  const water = { right: false, shift: false, flights: false, lead: true };
+  expect(fleetWaterAction('move', water)).toBe('move');
+  expect(fleetWaterAction('move', { ...water, shift: true })).toBe('move');
+  expect(fleetWaterAction('move', { ...water, right: true })).toBe('cancel-move');
+  // Outside the move order the chart keeps its own idioms: right-click orders, plain clears.
+  expect(fleetWaterAction(undefined, { ...water, right: true })).toBe('move');
+  expect(fleetWaterAction(undefined, { ...water, shift: true })).toBe('move');
+  expect(fleetWaterAction(undefined, { ...water, shift: true, lead: false })).toBe('clear');
+  expect(fleetWaterAction(undefined, water)).toBe('clear');
+  // An armed order that wants a unit ignores water rather than clearing the selection.
+  expect(fleetWaterAction('other', water)).toBeUndefined();
+});
+
+test('selected air groups take the water click before any ship order does', () => {
+  const air = { right: false, shift: false, flights: true, lead: true };
+  expect(fleetWaterAction('search', air)).toBe('search');
+  expect(fleetWaterAction('squadron', air)).toBe('air');
+  expect(fleetWaterAction(undefined, { ...air, right: true })).toBe('air');
+  expect(fleetWaterAction(undefined, { ...air, shift: true })).toBe('clear');
+  expect(fleetWaterAction('search', { ...air, flights: false })).toBeUndefined();
 });
