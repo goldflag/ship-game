@@ -71,6 +71,9 @@ pub struct DamageState {
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Combatant {
+    /// Content lookup tables for this ship's definition; never published.
+    #[serde(skip)]
+    pub index: std::sync::Arc<crate::vessel::ShipIndex>,
     #[serde(skip)]
     pub sea: Option<(crate::environment::SeaState, f64)>,
     pub depth_charge_launchers: Vec<crate::depth_charges::DepthChargeLauncherState>,
@@ -84,6 +87,7 @@ pub struct Combatant {
 impl Combatant {
     pub fn new(id: impl Into<String>, def: &ShipDefinition) -> Self {
         Self {
+            index: std::sync::Arc::new(crate::vessel::ShipIndex::new(def)),
             sea: None,
             torpedo_tubes: def
                 .torpedo_tubes

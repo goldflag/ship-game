@@ -122,19 +122,31 @@ pub fn operate_observed(
         |c| bots::clear_lane_to(actor, c.estimated_position, ctx.actors),
     );
     let velocity = actor.motion.velocity();
+    // Held by value: the mount loop mutates the actor while it reads the index.
+    let ship_index = actor.index.clone();
+    let index = ship_index
+        .of(def)
+        .filter(|ix| ix.mounts == def.mounts.len() && ix.modules == def.modules.len());
+    // The observable-contact filter is a property of the ship, not the mount.
+    let mut observable = vec![];
+    if let Some(k) = knowledge.filter(|_| policy.aa) {
+        anti_aircraft::observable_air(actor, k, &mut observable);
+    }
     for (i, m) in def.mounts.iter().enumerate() {
         update_mount_carrier(def, i, &mut actor.mounts);
         if actor.damage.stability.combat_lost
             || m.magazine_id.as_ref().is_some_and(|id| {
-                def.modules
-                    .iter()
-                    .find(|m| &m.id == id)
-                    .is_some_and(|module| {
-                        equipment_condition(actor, def, module, None).availability == 0.0
-                    })
+                // The magazine module index is compiled with the ship.
+                let module = match index {
+                    Some(ix) => ix.mount_magazine[i].map(|j| &def.modules[j]),
+                    None => def.modules.iter().find(|m| &m.id == id),
+                };
+                module.is_some_and(|module| {
+                    equipment_condition(actor, def, module, None).availability == 0.0
+                })
             })
         {
-            actor.mounts[i].status = "disabled".into();
+            actor.mounts[i].status = MountStatus::Disabled;
             continue;
         }
         let independent_secondary = knowledge.is_some() && m.battery == "secondary";
@@ -153,6 +165,12 @@ pub fn operate_observed(
         } else {
             lane
         };
+        // Detaching moves the mount out instead of cloning it: the caches and
+        // the id allocate nothing, and the stand-in keeps every scalar a
+        // neighbouring mount reads while this one is updated.
+        let detached = actor.mounts[i].detached();
+        let previous_reload = detached.reload;
+        let mut state = std::mem::replace(&mut actor.mounts[i], detached);
         let bot = if independent_secondary {
             actor.secondary_bot.as_ref()
         } else {
@@ -165,10 +183,10 @@ pub fn operate_observed(
                 p.battery == m.battery && p.weapon_group_id.as_ref().is_none_or(|id| id == group)
             });
         let manual = selected && player.unwrap().weapon_group_id.is_some();
-        let mut state = actor.mounts[i].clone();
         if !manual
             && policy.aa
-            && anti_aircraft::update_observed(
+            && anti_aircraft::update_observed_at(
+                i,
                 actor,
                 m,
                 &mut state,
@@ -179,16 +197,18 @@ pub fn operate_observed(
                 ctx.sequence,
                 ctx.events,
                 knowledge,
+                &observable,
             )
         {
-            if state.reload > actor.mounts[i].reload {
+            if state.reload > previous_reload {
                 actor.firing_visibility_seconds = crate::sensors::FIRING_VISIBILITY_SECONDS;
             }
             actor.mounts[i] = state;
             continue;
         }
         if !allowed {
-            update_mount(
+            update_mount_at(
+                i,
                 m,
                 &mut state,
                 def,
@@ -214,7 +234,7 @@ pub fn operate_observed(
                 state.queue_ammunition(m, *kind)
             }
             let Some(point) = p.aim else {
-                state.status = "out-of-arc".into();
+                state.status = MountStatus::OutOfArc;
                 actor.mounts[i] = state;
                 continue;
             };
@@ -263,7 +283,8 @@ pub fn operate_observed(
             }
             fire = policy.guns && in_range && lane && bot.is_some_and(|b| b.ready(Some(m)));
         }
-        let aligned = update_mount(
+        let aligned = update_mount_at(
+            i,
             m,
             &mut state,
             def,
@@ -275,7 +296,7 @@ pub fn operate_observed(
             &compiled.obstructions,
             &actor.mounts,
         );
-        if !actor.damage.sunk && fire && aligned && state.status == "ready" {
+        if !actor.damage.sunk && fire && aligned && state.status == MountStatus::Ready {
             if actor.controller == Controller::Bot
                 && let Some(bot) = if independent_secondary {
                     actor.secondary_bot.as_mut()
