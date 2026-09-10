@@ -156,6 +156,12 @@ describe('keyboard gameplay controls', () => {
     key('keyup', 'ControlLeft'); expect(actions.cursor).toHaveBeenLastCalledWith(false);
     key('keydown', 'ShiftLeft'); events.dispatchEvent(new Event('blur')); key('keyup', 'ShiftLeft');
     expect(actions.optics).toHaveBeenCalledTimes(1);
+    // Following a teammate hands the helm to its captain; the minimap keys stay live.
+    input.setEnabled(false);
+    key('keydown', 'Equal'); expect(actions.chartSize).toHaveBeenLastCalledWith(1);
+    key('keyup', 'Equal');
+    key('keydown', 'Minus'); expect(actions.chartSize).toHaveBeenLastCalledWith(-1);
+    key('keydown', 'Digit1'); expect(actions.weaponGroup).not.toHaveBeenCalled();
   });
 
   test('depth preset hotkeys support rebinding and ignore repeat, pause and dialogs', () => {

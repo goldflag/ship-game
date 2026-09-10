@@ -377,10 +377,11 @@ test('fleet selection and camera follow keep captains active; helm transfer resu
   const views = simulation.actors.map(actor => ({ actor, definition: actor.definition, motion: actor.motion }));
   let clears = 0;
   const input = { isEnabled: true, order: 1, rudderOrder: 0, clear() { clears++; }, setEnabled(value: boolean) { this.isEnabled = value; this.clear(); }, setOrder(value: number) { this.order = value; }, setRudder(value: number) { this.rudderOrder = value; } };
+  const battlefieldCamera = new BattlefieldCamera(camera);
   const game = Object.assign(Object.create(Game.prototype), {
     simulation, definition: simulation.definition, rig, camera, fleetViews: views, playerView: views[0], targetView: views.at(-1),
     inPort: false, selectedBattery: 'main', currentAim: [0, 0, -7500], ammunition: {}, shellFollow: new ShellFollow(), input,
-    battlefieldCamera: new BattlefieldCamera(camera), selectedShipIds: [], controlGroups: new Map(), host: { clientWidth: 1280, clientHeight: 800 },
+    battlefieldCamera, selectedShipIds: [], controlGroups: new Map(), host: { clientWidth: 1280, clientHeight: 800 },
     environment: { setChartFog() {} },
   }) as Game;
   const update = () => (game as unknown as { updateSpectator(): void }).updateSpectator();
@@ -392,6 +393,9 @@ test('fleet selection and camera follow keep captains active; helm transfer resu
     game.enterFleetCommand(); advance(); update();
     expect(game.airOperationsOpen).toBe(true);
     expect(simulation.controlledShipId).toBeUndefined();
+    // Let the ascent finish the way the frame loop does, so the camera sits overhead.
+    battlefieldCamera.update(); battlefieldCamera.applyTransition(2);
+    expect(camera.position.y).toBeGreaterThan(1000);
     game.selectFleetShips(['friendly-1', 'enemy-1']);
     expect(game.selectedShipIds).toEqual(['friendly-1']);
     expect(simulation.player).toBe(carrier);
@@ -399,6 +403,13 @@ test('fleet selection and camera follow keep captains active; helm transfer resu
     expect(game.airOperationsOpen).toBe(false);
     expect(game.spectatedShipId).toBe('friendly-1');
     expect(simulation.controlledShipId).toBeUndefined();
+    // Leaving the chart descends from the overhead pose instead of cutting to the ship.
+    expect(battlefieldCamera.transitioning).toBe(true);
+    battlefieldCamera.applyTransition(0);
+    expect(camera.position.y).toBeGreaterThan(1000);
+    // Switching between hulls already on the water stays a cut.
+    game.spectateTeammate('player');
+    expect(battlefieldCamera.transitioning).toBe(false);
     game.takeFleetHelm('friendly-1'); advance(); update();
     expect(simulation.controlledShipId).toBe('friendly-1');
     expect(input.isEnabled).toBe(true);
