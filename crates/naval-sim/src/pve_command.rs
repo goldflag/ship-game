@@ -204,7 +204,7 @@ impl PvePlan {
                 let Some(leader) = ships.first() else {
                     continue;
                 };
-                let movement = if group.station == GroupStation::Rear {
+                let movement = if team == TeamId::B && group.station == GroupStation::Rear {
                     patrol(leader, battle)
                 } else if team == TeamId::B {
                     search(leader, battle)
