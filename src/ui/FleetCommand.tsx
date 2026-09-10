@@ -31,7 +31,7 @@ import { PLANE_GLYPHS } from './planeGlyphs';
 import { SHIP_GLYPHS, shipClassFromReport, shipClassOf } from './shipGlyphs';
 import { EnemyFleet, bearingLabel, rangeLabel } from './EnemyFleet';
 import { OwnFleetCard, type OwnFleetAircraft, type OwnFleetShip } from './OwnFleet';
-import { AirRail } from './AirRail';
+import { FlightLine } from './FlightLine';
 import { FleetRoster, type RosterShip } from './FleetRoster';
 import { OrderWheel, type WheelItem } from './OrderWheel';
 import './FleetCommand.css';
@@ -144,6 +144,8 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
   const [contactId, setContactId] = useState<string>();
   const [hoverId, setHoverId] = useState<string>();
   const [hoverFlightId, setHoverFlightId] = useState<string>();
+  const [deckOpen, setDeckOpen] = useState<string>();
+  useEffect(() => { if (!airOpen) setDeckOpen(undefined); }, [airOpen]);
   const map = useRef<SVGSVGElement>(null);
   const anchors = useRef<HTMLDivElement>(null);
   const nav = useRef(new AirMapNavigation());
@@ -273,12 +275,15 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
   // Esc closes what is open, innermost first; the battle menu is the last resort.
   const escape = () => {
     if (armed) setArmed(undefined);
+    else if (deckOpen) setDeckOpen(undefined);
     else if (contactId) { setContactId(undefined); game.selectTarget(''); }
     else if (airOpen) setAirOpen(false);
     else if (selected.length || selectedFlights.length) selectShips([]);
     else game.setPaused(true);
   };
-  const handlers = useRef({ airAction, shipAction, adjustSpeed, selectFormation, formations, escape }); handlers.current = { airAction, shipAction, adjustSpeed, selectFormation, formations, escape };
+  /** With the flight line up the digit keys pick air groups in line order, as the boxes are numbered. */
+  const selectFlightAt = (index: number) => { const flight = flights[index]; if (flight) selectAir(flight.id); };
+  const handlers = useRef({ airAction, shipAction, adjustSpeed, selectFormation, selectFlightAt, formations, escape }); handlers.current = { airAction, shipAction, adjustSpeed, selectFormation, selectFlightAt, formations, escape };
   useEffect(() => {
     const keydown = (event: KeyboardEvent) => {
       if (document.querySelector('dialog[open]') || event.altKey) return;
@@ -303,6 +308,7 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
       if (toggle) { if (mapActive) game.followFleetShip(game.selectedShipIds[0] ?? game.simulation.ship.id); else game.enterFleetCommand(); }
       else if (event.code === 'Space') game.toggleTacticalPause();
       else if (showing && !mapActive && letter === 'T') { if (current.current.data.spectatedShipId && current.current.actionable) game.takeFleetHelm(current.current.data.spectatedShipId); }
+      else if (digit && current.current.airOpen) handlers.current.selectFlightAt(digit - 1);
       else if (digit) { const f = handlers.current.formations.find(f => f.index === digit); if (f) handlers.current.selectFormation(f); }
       else if (event.code === 'Escape') { if (showing) handlers.current.escape(); else game.setPaused(true); }
       else if (speed) handlers.current.adjustSpeed(speed);
@@ -444,7 +450,7 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
     airborne: wings.reduce((n, { wing }) => n + wing.groups.reduce((m, f) => m + f.airborne, 0), 0),
     onDeck: wings.reduce((n, { wing }) => n + wing.onDeck, 0), inHangar: wings.reduce((n, { wing }) => n + wing.inHangar, 0),
   };
-  const railOpen = airOpen && wings.length > 0;
+  const lineOpen = airOpen && wings.length > 0;
   const comparison = battleComparison({
     own: ships.map(s => { const a = actorOf(s.id); return { id: s.id, massKg: a?.definition.hull.massKg ?? 0, integrity: a?.damage.integrity ?? 0, maxIntegrity: a?.damage.maxIntegrity ?? 0, lost: s.physicalLost }; }),
     scores, tracks: observations, massOf: id => shipPreset(id).hull.massKg, enemyLostShips: combat.contacts.filter(c => c.team === 'enemy' && c.physicalLost).length, ownAircraft, enemyAircraftLost: game.simulation.aircraftLosses?.enemy,
@@ -458,8 +464,8 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
     { kind: 'speed', label: `${speedKn} kn`, sub: '+ / −' },
   ];
   const armedHint = typeof armed === 'object' ? `Choose ${armed.target}` : armed === 'search' ? 'Choose the area center on water, or pan with arrow keys and press Enter at chart center' : armed === 'move' ? 'Choose water · Shift adds a waypoint' : armed === 'escort' ? 'Choose a friendly leader' : armed === 'focus' ? 'Choose an enemy contact' : '';
-  // Near the right edge — or the open air rail — the wheel opens to port of the unit instead of running under it.
-  const flipAt = (x: number, z: number) => { if (!map.current) return ''; const point = game.projectAirMap(x, z); return point ? `${point[0] > map.current.clientWidth - (railOpen ? 340 : 0) - 560 ? 'flip' : ''} ${point[1] > map.current.clientHeight - 420 ? 'flip-up' : ''}` : ''; };
+  // Near the right edge the wheel opens to port of the unit instead of running under it.
+  const flipAt = (x: number, z: number) => { if (!map.current) return ''; const point = game.projectAirMap(x, z); return point ? `${point[0] > map.current.clientWidth - 560 ? 'flip' : ''} ${point[1] > map.current.clientHeight - 420 ? 'flip-up' : ''}` : ''; };
   const chip = (name: string) => <div className="fleet-command-wheel-chip"><strong>{name}</strong><span>{armedHint}</span><button onClick={() => setArmed(undefined)}>Cancel<kbd>Esc</kbd></button></div>;
   const onWheel = (kind: string, shift: boolean) => {
     if (kind === 'move') arm('move'); else if (kind === 'hold') hold(); else if (kind === 'escort') arm('escort'); else if (kind === 'focus') arm('focus');
@@ -495,7 +501,7 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
     e.stopPropagation();
     if (ignoreClick.current) { ignoreClick.current = false; return; }
     water(e, false);
-  }} className={`fleet-command fleet-command-map${railOpen ? ' rail-open' : ''}`}>
+  }} className={`fleet-command fleet-command-map${lineOpen ? ' air-open' : ''}`}>
     <svg ref={map} className="fleet-command-chart" tabIndex={0} aria-label="Fleet command chart" data-armed={armed ? true : undefined} {...chartInteraction}>
       {armed === 'search' && <svg x="50%" y="50%" width="1" height="1" overflow="visible" className="fleet-command-search-center" aria-hidden="true"><path d="M-12 0H12M0-12V12"/></svg>}
       <ReconnaissanceCoverage coverage={game.simulation.reconCoverage} tick={tick}/>
@@ -635,13 +641,13 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
               <button onClick={() => game.followAircraft?.(planesOf(selectedFlights[0]).find(p => airborne(p))?.id ?? '')} disabled={!planesOf(selectedFlights[0]).some(p => airborne(p))}><Icon name="camera" size={13}/>Follow lead</button>
             </div>
           </div>
-          <div className="fleet-command-planes">{selectedFlights.map(f => <div key={f.id} className="fleet-command-plane-row" onMouseEnter={() => setHoverFlightId(f.id)} onMouseLeave={() => setHoverFlightId(undefined)}><b>{f.name}</b><span className="fleet-command-plane-bars">{planesOf(f).map(p => <i key={p.id} className={p.hp <= 0 || ['lost', 'withdrawn'].includes(p.phase) ? 'lost' : p.hp < 50 ? 'hurt' : ''} style={{ ['--hp' as string]: `${Math.max(0, Math.min(100, p.hp))}%` }} title={`${p.id.split('/').at(-1)} · ${Math.ceil(p.hp)}% · ${p.lossReason ?? p.phase}${p.role === 'fighter' ? p.ammo > 0 ? ' · armed' : ' · no ammunition' : p.payload ? ' · armed' : ' · no payload'}`}/>)}</span><span>{f.surviving}/{f.total}</span></div>)}</div>
-          {boundary && <div className="fleet-command-buttons fleet-command-search">
+          {!lineOpen && <div className="fleet-command-planes">{selectedFlights.map(f => <div key={f.id} className="fleet-command-plane-row" onMouseEnter={() => setHoverFlightId(f.id)} onMouseLeave={() => setHoverFlightId(undefined)}><b>{f.name}</b><span className="fleet-command-plane-bars">{planesOf(f).map(p => <i key={p.id} className={p.hp <= 0 || ['lost', 'withdrawn'].includes(p.phase) ? 'lost' : p.hp < 50 ? 'hurt' : ''} style={{ ['--hp' as string]: `${Math.max(0, Math.min(100, p.hp))}%` }} title={`${p.id.split('/').at(-1)} · ${Math.ceil(p.hp)}% · ${p.lossReason ?? p.phase}${p.role === 'fighter' ? p.ammo > 0 ? ' · armed' : ' · no ammunition' : p.payload ? ' · armed' : ' · no payload'}`}/>)}</span><span>{f.surviving}/{f.total}</span></div>)}</div>}
+          {boundary && !lineOpen && <div className="fleet-command-buttons fleet-command-search">
             <label>Radius<Select value={searchRadius} onValueChange={v => setSearchRadius(Number(v))}>{[2000, 4000, 6000].map(v => <SelectOption key={v} value={v}>{v / 1000} km</SelectOption>)}</Select></label>
             <label>Altitude<Select value={searchAltitude} onValueChange={v => setSearchAltitude(v as SearchAltitude)}><SelectOption value="low">Low · 200 m</SelectOption><SelectOption value="medium">Medium · 850 m</SelectOption><SelectOption value="high">High · 1,500 m</SelectOption></Select></label>
             <label>On contact<Select value={searchPolicy} onValueChange={v => setSearchPolicy(v as SearchPolicy)}><SelectOption value="report">Report only</SelectOption><SelectOption value="shadow">Shadow and report</SelectOption><SelectOption value="strike">Search and strike</SelectOption></Select></label>
           </div>}
-          <AirGroupService flights={selectedFlights} enabled={actionable} command={(groups, action) => { const accepted = groups.filter(f => game.commandDeck(f.id, action)); setArmed(undefined); setFeedback(`${accepted.length} group service orders queued`); }}/>
+          {!lineOpen && <AirGroupService flights={selectedFlights} enabled={actionable} command={(groups, action) => { const accepted = groups.filter(f => game.commandDeck(f.id, action)); setArmed(undefined); setFeedback(`${accepted.length} group service orders queued`); }}/>}
           {selectedFlights.some(f => f.notice) && <p className="fleet-command-notice" role="status">{selectedFlights.filter(f => f.notice).map(f => `${f.name} · ${f.notice}`).join(' / ')}</p>}
         </div>}
       </div>}
@@ -679,9 +685,9 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
       airOpen={airOpen} {...(wings.length > 0 ? { aircraft: ownWing, onOpenAir: () => { setAirOpen(true); setFilter('aircraft'); } } : {})}/>
     <EnemyFleet tracks={observations} clusters={clusters} tick={tick} origin={origin} selectedId={contactId} onSelect={selectReport} nameOf={reportName} comparison={comparison}/>
     {data.tacticalPaused && <p className="fleet-command-paused" role="status">Tactical pause · Both fleets stopped · {game.simulation.queuedOrderCount ?? 0} orders queued for resume</p>}
-    <FleetRoster formations={formations} ships={rosterShips} selectedIds={ids} hoverId={hoverId} onHover={setHoverId} onSelectShip={selectShip} onSelectFormation={selectFormation}/>
+    {!lineOpen && <FleetRoster formations={formations} ships={rosterShips} selectedIds={ids} hoverId={hoverId} onHover={setHoverId} onSelectShip={selectShip} onSelectFormation={selectFormation}/>}
     <div className="fleet-command-ticker" role="status">{feedback && <p>{feedback}</p>}{receipts.map(r => <p key={r.sequence} data-state={r.state}>{ships.find(s => s.id === r.shipId)?.name ?? r.shipId} · {r.command.replaceAll('-', ' ')} {r.state}{r.message ? ` · ${r.message}` : ''}</p>)}</div>
-    {railOpen && <AirRail
+    {lineOpen && <FlightLine
       carriers={wings.map(({ owner, wing }) => ({ id: owner.motion.id, name: nameFor(owner.motion.id), hull: ships.find(s => s.id === owner.motion.id)?.integrity ?? 0,
         kn: Math.round(Math.abs((owner.motion.speed ?? 0) * KNOTS_PER_MPS)), order: standingOrder(orders[owner.motion.id], nameFor), wing }))}
       flights={flights} planesOf={planesOf} selectedIds={game.selectedFlightIds} hoverId={hoverFlightId}
@@ -694,6 +700,7 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
       onDeckPolicy={(id, policy) => { if (game.setDeckPolicy(id, policy)) setFeedback(`${nameFor(id)} · Deck policy order queued`); }}
       onPrioritize={(id, request) => { if (game.prioritizeDeckTask(id, request)) setFeedback(`${nameFor(id)} · Next deck task requested`); }}
       onCancelTask={(id, request) => { if (game.cancelDeckTask(id, request)) setFeedback(`${nameFor(id)} · Deck cancellation queued`); }}
+      deckOpen={deckOpen} onToggleDeck={setDeckOpen}
       onClose={() => setAirOpen(false)}/>}
   </div>;
 }
