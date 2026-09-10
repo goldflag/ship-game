@@ -57,7 +57,7 @@ export function BattleDialog({ initialMode, initialShipId, loading, onClose, ini
   const [duelBusy, setDuelBusy] = useState(false); const [status, setStatus] = useState<LobbyStatus>({ message: '' });
   const connection = useRef<MatchConnection | undefined>(undefined); const transferred = useRef(false); const active = useRef(true);
 
-  useEffect(() => { active.current = true; return () => { active.current = false; if (!transferred.current) connection.current?.cancel(); controller.current?.abort(); draftRef.current?.dispose(); }; }, []);
+  useEffect(() => { active.current = true; return () => { active.current = false; if (!transferred.current) connection.current?.cancel(); controller.current?.abort(); draftRef.current?.dispose(); PveDraft.release(); }; }, []);
   useEffect(() => { if (loading) dialog.current?.close(); else if (!dialog.current?.open) dialog.current?.showModal(); }, [loading]);
   useEffect(() => { saveBattleMode(mode); }, [mode]);
   useEffect(() => {
