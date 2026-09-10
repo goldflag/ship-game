@@ -42,3 +42,13 @@ test('cells derive armament from bursts or payload and recolor damaged, critical
   expect(aircraftState(aircraft({ phase: 'outbound', status: 'on-mission' }))).toBe('Outbound');
   expect(aircraftState(aircraft({ phase: 'lost', status: 'lost', lossReason: 'Shot down' }))).toBe('Shot down');
 });
+
+test('fleet ship spectating includes aircraft nametags without opening carrier controls', () => {
+  const simulation = new CombatSimulation(shipPreset('fletcher'));
+  const data = { ship: simulation.ship, order: 1, camera: 'Chase' as const, trail: [], fps: 60, backend: 'test', airOperationsOpen: false,
+    fleetCommandMode: true, spectatedShipId: simulation.ship.id, combat: simulation.telemetry('main', [0, 0, -5000]) };
+  const game = { simulation, selectedShipIds: [], selectedFlightIds: [], controlGroups: new Map() } as unknown as import('../game/Game').Game;
+  const html = renderToStaticMarkup(<FleetHud data={data} game={game} visible={true} bindings={defaultKeybindings()}/>);
+  expect(html).toContain('Squadron names and status');
+  expect(html).not.toContain('air-manifest');
+});

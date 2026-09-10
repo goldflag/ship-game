@@ -15,6 +15,8 @@ import { AirGroupService } from './CarrierDeck';
 import { KNOTS_PER_MPS } from '../simulation/ship';
 import { SquadronLabels, useMapProjection } from './AirOperations';
 import { AirMapNavigation } from './airMapNavigation';
+import { fleetBoxSelection, fleetDragMode } from './fleetBoxSelection';
+import { fleetAirCourse } from './fleetAirCourse';
 import { actionAvailable, SQUADRON_ACTIONS, squadronTargetOrder, type SquadronAction, type SquadronTarget } from './airCommands';
 import { duration, mission } from './airFormat';
 import { Icon } from './Icons';
@@ -338,10 +340,10 @@ export function FleetCommand({ data, game, bindings }: { data: Telemetry; game: 
     window.addEventListener('pointerup', release); window.addEventListener('pointercancel', release);
     return () => { window.removeEventListener('pointerup', release); window.removeEventListener('pointercancel', release); };
   }, []);
-  const startDrag = (event: ReactPointerEvent<SVGSVGElement>) => {
+  const startDrag = (event: ReactPointerEvent<Element>) => {
     if (event.button === 2) return;
     // The middle button turns the camera; a plain left drag pans the water.
-    const mode = event.button === 1 || event.ctrlKey || event.metaKey || event.altKey ? 'orbit' : event.button === 0 && event.shiftKey && !armed ? 'select' : 'pan';
+    const mode = fleetDragMode(event.button, event.shiftKey, event.ctrlKey || event.metaKey || event.altKey, !!armed);
     drag.current = { x: event.clientX, y: event.clientY, lastX: event.clientX, lastY: event.clientY, mode, pointerId: event.pointerId, additive: event.ctrlKey || event.metaKey, moved: false };
   };
   const dragMap = (event: ReactPointerEvent<SVGSVGElement>) => {
@@ -367,8 +369,15 @@ export function FleetCommand({ data, game, bindings }: { data: Telemetry; game: 
     const rect = event.currentTarget.getBoundingClientRect();
     const inside = (x: number, y: number) => x + rect.left >= Math.min(d.x, event.clientX) && x + rect.left <= Math.max(d.x, event.clientX) && y + rect.top >= Math.min(d.y, event.clientY) && y + rect.top <= Math.max(d.y, event.clientY);
     const scaleX = rect.width / event.currentTarget.clientWidth, scaleY = rect.height / event.currentTarget.clientHeight;
-    if (filter === 'ships') selectShips([...(d.additive ? game.selectedShipIds : []), ...ships.filter(s => { const p = game.projectAirMap(s.x, s.z); return !s.physicalLost && p && inside(p[0] * scaleX, p[1] * scaleY); }).map(s => s.id)]);
-    else { game.selectFlights([...(d.additive ? game.selectedFlightIds : []), ...flights.filter(f => { const p = game.projectAirMap(f.position[0], f.position[2], f.position[1]); return f.airborne > 0 && p && inside(p[0] * scaleX, p[1] * scaleY); }).map(f => f.id)]); game.selectFleetShips([]); }
+    const selection = fleetBoxSelection(
+      ships.filter(s => !s.physicalLost).map(s => ({ id: s.id, position: [s.x, 0, s.z] })),
+      ownPlanes.filter(p => !!p.flightId).map(p => ({ id: p.id, flightId: p.flightId!, position: p.position })),
+      filter, position => { const p = game.projectAirMap(position[0], position[2], position[1]); return !!p && inside(p[0] * scaleX, p[1] * scaleY); });
+    if (selection.kind === 'ships') selectShips([...new Set([...(d.additive ? game.selectedShipIds : []), ...selection.ids])]);
+    else {
+      game.selectFlights([...(d.additive ? game.selectedFlightIds : []), ...selection.ids]);
+      game.selectFleetShips([]); setFilter('aircraft'); setContactId(undefined); setArmed(undefined);
+    }
   };
   // Receipt references survive display-history eviction. Accepted routes remain
   // visible until an authority frame after acknowledgement has been consumed.
@@ -489,11 +498,11 @@ export function FleetCommand({ data, game, bindings }: { data: Telemetry; game: 
       {flights.filter(f => f.active || f.airborne > 0).map(f => {
         const on = game.selectedFlightIds.includes(f.id), carrier = ships.find(s => s.id === f.ownerId);
         const from: Vec3 = f.airborne > 0 ? f.position : carrier ? [carrier.x, 0, carrier.z] : f.position;
-        const station: Vec3 = [f.destination[0], 0, f.destination[2]], patrol = f.order.kind === 'patrol', search = f.order.kind === 'search-area' ? f.order : undefined;
-        // Loitering pilots steer at a moving orbit point; the chart shows the station itself, not the tangent.
-        const path: Vec3[] = patrol ? [from, station] : f.route.length > 1 ? f.route : f.airborne === 0 && f.order.kind !== 'return' ? [from, station] : [];
+        const patrol = f.order.kind === 'patrol', search = f.order.kind === 'search-area' ? f.order : undefined;
+        const { path, station, contactId: destinationContact } = fleetAirCourse(f, from, observations, tick);
         return <g key={`air-${f.id}`} className={`fleet-command-air-course ${on ? 'selected' : ''} ${f.airborne === 0 ? 'planned' : ''}`} aria-label={`${f.name} course`}>
           {path.length > 1 && <path className="fleet-command-air-route" data-map-path={JSON.stringify(path)}/>}
+          {destinationContact && <g className="fleet-command-air-target" data-contact-marker={destinationContact} data-map-position={JSON.stringify(station)}><circle r="7"/><path d="M-11 0H11M0-11V11"/></g>}
           {patrol && <><path className="fleet-command-loiter" data-map-path={JSON.stringify(circlePoints(station[0], station[2], LOITER_RADIUS_M))} data-closed="true"/><g className="fleet-command-air-target" data-map-position={JSON.stringify(station)}><circle r="7"/><path d="M-11 0H11M0-11V11"/></g></>}
           {search && <path className="fleet-command-search-area" data-map-path={JSON.stringify(circlePoints(search.center[0], search.center[1], search.radiusM))} data-closed="true"/>}
         </g>;
@@ -623,7 +632,9 @@ export function FleetCommand({ data, game, bindings }: { data: Telemetry; game: 
     </div>
     <div className="fleet-command-recon"><ReconnaissanceLegend coverage={game.simulation.reconCoverage}/>{game.simulation.reconCoverage && <span>{coverageTick === undefined ? 'Point at water for search age' : `Here: observed ${observationAge(coverageTick, tick)}`}</span>}</div>
     {box && <div className="fleet-command-box" style={{ left: box.x, top: box.y, width: box.width, height: box.height }}/>}
-    <SquadronLabels data={data} game={game} onSelect={(id, additive) => { selectAir(id, additive); }} onTarget={(id, team) => { if (armed === 'search') { setFeedback('Choose water for the center of the search area.'); return true; } if (typeof armed !== 'object') return false; issueAir({ kind: 'squadron', id, team }); return true; }} onOrder={(id, team) => issueAir({ kind: 'squadron', id, team })}/>
+    <SquadronLabels data={data} game={game} onPointerDown={e => {
+      if (e.button === 0 && e.shiftKey && !armed) { startDrag(e); map.current?.setPointerCapture(e.pointerId); e.preventDefault(); }
+    }} onSelect={(id, additive) => { if (ignoreClick.current) { ignoreClick.current = false; return; } selectAir(id, additive); }} onTarget={(id, team) => { if (armed === 'search') { setFeedback('Choose water for the center of the search area.'); return true; } if (typeof armed !== 'object') return false; issueAir({ kind: 'squadron', id, team }); return true; }} onOrder={(id, team) => issueAir({ kind: 'squadron', id, team })}/>
     <header className="fleet-command-top">
       <div><time>{duration(tick / 60)}</time><SimulationSpeed game={game} data={data}/></div>
       <nav aria-label="Fleet views">

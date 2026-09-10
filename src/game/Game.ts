@@ -1027,7 +1027,8 @@ export class Game {
     this.battlefieldCamera.applyTransition(0);
   }
   followAircraft(id: string): void {
-    if (this.simulation.player.damage.sunk || this.inPort || this.inspecting || !this.simulation.player.airWing?.planes.some(p => p.id === id && p.phase !== 'lost' && (airborne(p) || onFlightDeck(p)))) return;
+    const carriers = this.fleetCommandMode ? this.simulation.actors.filter(a => a.team === this.simulation.player.team) : [this.simulation.player];
+    if ((!this.fleetCommandMode && this.simulation.player.damage.sunk) || this.inPort || this.inspecting || !carriers.some(a => a.airWing?.planes.some(p => p.id === id && !['lost', 'withdrawn'].includes(p.phase) && (airborne(p) || onFlightDeck(p))))) return;
     this.endFollow();
     if (this.airOperationsOpen) this.setAirOperationsOpen(false);
     this.followedAircraftId = id;
@@ -1048,7 +1049,8 @@ export class Game {
   private followedView(alpha: number): ShellView | undefined {
     const plane = this.simulation.aircraft.find(p => p.id === this.followedAircraftId && !['lost', 'withdrawn'].includes(p.phase));
     const carrier = plane && this.fleetViews.find(v => v.actor.motion.id === plane.ownerId);
-    const view = plane && carrier ? aircraftFollowView(plane, this.simulation.player, carrier.motion, alpha) : undefined;
+    const owner = plane && this.simulation.actors.find(a => a.motion.id === plane.ownerId);
+    const view = plane && carrier && owner ? aircraftFollowView(plane, owner, carrier.motion, alpha) : undefined;
     if (this.followedAircraftId && !view) this.endFollow();
     return view ?? this.shellFollow.view;
   }
@@ -1085,6 +1087,8 @@ export class Game {
       this.lastFleetHelmId = this.simulation.controlledShipId;
       if (lost) this.enterFleetCommand();
     }
+    // Automatic ship selection must not replace an explicitly followed aircraft.
+    if (this.followedAircraftId) return;
     if (this.fleetCommandMode && this.simulation.controlledShipId && !this.airOperationsOpen) {
       this.spectatedShipId = undefined;
       const enabled = !this.paused && !this.tacticalPause;

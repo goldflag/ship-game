@@ -13,6 +13,8 @@ import { AirMapNavigation } from './airMapNavigation';
 import { duration, mission, roleIcon, roleLabel } from './airFormat';
 import { AirWingManifest } from './AirWingManifest';
 import { markerOpacity } from './fleetStats';
+import { aircraftShortName } from './aircraftNames';
+import { reportState } from './reconReports';
 
 // Camera motion is rendered every frame; combat telemetry intentionally stays at 10 Hz.
 // Move the overlay directly so camera motion never waits for a React telemetry render.
@@ -74,11 +76,18 @@ function SquadronIcon({ role, size = 20 }: { role: FlightSummary['role']; size?:
 
 export function SquadronLabels({ data, game, onOrder, onTarget, onSelect, onPointerDown }: { data: Telemetry; game: Game | null; onOrder?(id: string, team: string): void; onTarget?(id: string, team: string): boolean; onSelect?(id: string, additive?: boolean): void; onPointerDown?(event: PointerEvent<Element>): void }) {
   const labels = useRef<HTMLDivElement>(null);
+  const reports = game?.simulation.observationTracks ?? [];
+  const observedPlanes = data.airOperationsOpen ? [] : (game?.simulation.observedAircraft ?? []).filter(p =>
+    p.observers.includes(data.spectatedShipId ?? data.ship.id) && reports.some(r => r.id === p.id && reportState(r, game!.simulation.tick) === 'current'));
   useLayoutEffect(() => {
     if (!game) return;
     const update = () => {
       const projections = Array.from(labels.current?.querySelectorAll<HTMLElement>('[data-flight-id]') ?? [], element =>
         ({ element, point: game.projectSquadron(element.dataset.ownerId!, element.dataset.flightId!) }));
+      for (const element of labels.current?.querySelectorAll<HTMLElement>('[data-aircraft-contact]') ?? []) {
+        const contact = game.projectContact(element.dataset.aircraftContact!);
+        projections.push({ element, point: contact ? { x: contact[0], y: contact[1] } : null });
+      }
       for (const { element, point } of projections) {
         element.style.display = point ? '' : 'none';
         if (point) { element.style.left = `${point.x}px`; element.style.top = `${point.y}px`; }
@@ -86,8 +95,11 @@ export function SquadronLabels({ data, game, onOrder, onTarget, onSelect, onPoin
     };
     update();
     return game.onCameraFrame(update);
-  }, [game, data.squadronMarkers]);
+  }, [game, data.squadronMarkers, data.spectatedShipId, data.ship.id]);
   return <div ref={labels} className={`air-squadron-labels ${data.airOperationsOpen ? 'air-labels-map' : ''}`} aria-label="Squadron names and status">
+    {observedPlanes.map(p => <span key={p.id} className="air-squadron-tag air-hostile" data-aircraft-contact={p.id} style={{ display: 'none' }}>
+      <Icon name="aircraft" size={20}/><span><strong>{aircraftShortName(p.modelId) ?? 'Enemy aircraft'}</strong><small>{reports.find(r => r.id === p.id)?.classification ?? 'Aircraft'}</small></span>
+    </span>)}
     {data.squadronMarkers?.map(f => <button key={f.id} className={`air-squadron-tag ${f.team === 'enemy' ? 'air-hostile' : 'air-friendly'} ${(data.selectedFlightIds ?? [data.selectedFlightId]).includes(f.id) ? 'air-selected' : ''}`}
       onPointerDown={onPointerDown} data-flight-id={f.id} data-owner-id={f.ownerId} style={{ left: f.screen?.x, top: f.screen?.y, display: f.screen ? undefined : 'none' }} title={`${f.name} · ${roleLabel(f.role)} · ${mission(f)} · ${f.hp}% condition`}
       aria-label={`${f.name} · ${roleLabel(f.role)} · ${f.surviving} aircraft · ${f.activity}`}

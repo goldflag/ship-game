@@ -47,9 +47,9 @@ function fakeWater() {
 }
 
 /** Exercise the real frame loop and exported joints, replacing only browser/GPU services. */
-async function frameHarness(shipId = 'bismarck') {
+async function frameHarness(shipId = 'bismarck', fleet = false) {
   const model = await loadShipJoints(shipId);
-  const simulation = new CombatSimulation(shipPreset(shipId));
+  const simulation = new CombatSimulation(shipPreset(shipId), fleet ? { friendlyBots: [shipPreset(shipId)], enemies: [shipPreset(shipId)] } : undefined);
   simulation.ship.speed = simulation.definition.handling.forwardSpeed;
   const camera = new PerspectiveCamera(52, 16 / 9, .5, 60000);
   const rig = new CameraRig(camera, { addEventListener() {} } as unknown as HTMLCanvasElement);
@@ -69,7 +69,7 @@ async function frameHarness(shipId = 'bismarck') {
     setOrder: (order: number) => { helm.throttle = ENGINE_ORDERS[order]; },
     setRudder: (rudder: number) => { helm.rudder = rudder; } };
   const game = Object.assign(Object.create(Game.prototype), {
-    definition: simulation.definition, simulation, playerView, targetView, fleetViews: [playerView, targetView], camera, rig, ship: new Group(), shellFollow: new ShellFollow(),
+    definition: simulation.definition, simulation, playerView, targetView, fleetViews: [playerView, targetView, ...simulation.actors.filter(a => a !== simulation.player && a !== simulation.target).map(a => new ShipView(model.scene.clone(true), a.definition, a))], camera, rig, ship: new Group(), shellFollow: new ShellFollow(),
     renderer: { domElement: { setAttribute() {} } }, manualAim: false, battlefieldCamera, cameraFrameListeners: new Set(), fleetVisibility: new FleetVisibility(),
     host: { clientWidth: 1440, clientHeight: 900 }, airOperationsOpen: false,
     shipLabels: { update() {} }, hitLabels: { update() {} }, torpedoPreview: { update() {} },
@@ -544,4 +544,28 @@ test('pausing during the map descent freezes combat while the camera finishes, a
   expect(rigEnabled(rig)).toBe(false);
   game.setPaused(false);
   expect(rigEnabled(rig)).toBe(true);
+});
+
+
+test('fleet Follow lead leaves the chart and keeps tracking a friendly carrier plane across frames', async () => {
+  const { game, simulation, camera, battlefieldCamera } = await frameHarness('enterprise-cv6', true);
+  Reflect.set(game, 'fleetCommandMode', true);
+  Reflect.set(game, 'selectedShipIds', []);
+  const carrier = simulation.actors[1], plane = carrier.airWing!.planes[0];
+  plane.deckSlot = 0;
+  // Freeze authoritative movement so camera motion can be measured independently.
+  game.paused = true;
+  game.setAirOperationsOpen(true);
+  game.followAircraft(plane.id);
+  expect(game.airOperationsOpen).toBe(false);
+  let time = 0;
+  for (let i = 0; i < 100; i++) await game.frame(time += 1000 / 60);
+  expect(battlefieldCamera.transitioning).toBe(false);
+  expect(followedAircraft(game)).toBe(plane.id);
+  const view = Reflect.get(game, 'fleetViews').find((v: ShipView) => v.actor === carrier) as ShipView;
+  const deck = new Vector3(...localToWorld(aircraftDeckSpot(carrier, plane), view.motion));
+  expect(camera.position.distanceTo(deck)).toBeLessThan(100);
+  game.returnToShip();
+  await game.frame(time += 1000 / 60);
+  expect(followedAircraft(game)).toBeUndefined();
 });
