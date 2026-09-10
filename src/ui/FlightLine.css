@@ -1,0 +1,107 @@
+/* Flight line: the custom-battle squadron row at the foot of the chart. One chip
+ * per carrier, one box per air group, the verbs for the selection in a bar above,
+ * a detail card while a box is hovered and the flight deck as a popover. The
+ * right edge stays free for the ticker and the reconnaissance legend. */
+/* Above the anchored wheels: chrome at the edge stays usable when a unit sits under it; the wheel already flips up near the foot. */
+.flight-line { position:absolute; left:24px; right:300px; bottom:16px; display:grid; gap:8px; justify-items:start; text-shadow:none; z-index:4; }
+
+/* Verb bar: the selection's orders with their keys, then camera, then deck service for a group on deck or below. */
+.flight-line-bar { display:flex; flex-wrap:wrap; align-items:center; gap:4px; min-height:26px; margin-left:172px; }
+.fleet-command .flight-line-bar button { min-height:26px; padding:3px 8px; font-size:11px; }
+.flight-line-bar .flight-line-sep { width:1px; height:18px; margin:0 3px; background:var(--fleet-line); }
+.flight-line-hint { margin-left:6px; font-size:11px; color:var(--fleet-muted); white-space:nowrap; text-shadow:0 2px 4px #07131bea; }
+.flight-line-hint b { font-weight:500; color:var(--fleet-gold); }
+.flight-line-hint kbd { margin:0 1px; }
+.flight-line-bar .fleet-command-service { display:flex; flex-wrap:wrap; align-items:center; gap:4px; }
+.flight-line-bar .fleet-command-service p { font-size:11px; color:var(--fleet-muted); }
+.flight-line-search { display:flex; flex-wrap:wrap; align-items:center; gap:4px; margin-left:172px; padding:5px 8px; background:#0b1e27d8; border:1px solid var(--fleet-line); border-radius:2px; }
+.fleet-command .flight-line-search label { gap:4px; font-size:11px; }
+.fleet-command .flight-line-search .ui-select { min-height:24px; padding:2px 6px; font-size:11px; }
+
+/* The row scrolls sideways once a second carrier's boxes run past the edge. */
+.flight-line-row { display:flex; align-items:flex-end; gap:5px; max-width:100%; overflow-x:auto; overscroll-behavior-x:contain; scrollbar-width:thin; padding-top:2px; }
+.flight-line-carrier { flex:none; width:164px; min-width:0; margin-right:3px; padding:6px 9px 7px; display:grid; gap:3px; border:1px solid var(--fleet-line); border-radius:2px; background:#0b1e27b8; font-size:11px; color:var(--fleet-muted); }
+.flight-line-carrier > * { min-width:0; }
+.flight-line-carrier-name { display:flex; justify-content:space-between; align-items:baseline; gap:6px; }
+.flight-line-carrier-name b { min-width:0; font:500 14px/1 'Barlow Condensed',sans-serif; letter-spacing:.02em; color:var(--fleet-text, #f0f5f3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.flight-line-carrier-name span { flex:none; font:500 12px/1 'Barlow Condensed',sans-serif; color:var(--fleet-active); white-space:nowrap; }
+.flight-line-carrier-name span.warn { color:var(--fleet-gold); }
+.flight-line-figures { display:flex; justify-content:space-between; gap:6px; font:500 13px/1.1 'Barlow Condensed',sans-serif; color:var(--fleet-text, #f0f5f3); }
+.flight-line-figures span { display:grid; gap:1px; }
+.flight-line-figures small { font:400 9px 'Barlow',sans-serif; color:var(--fleet-muted); letter-spacing:.04em; text-transform:uppercase; }
+.flight-line-figures i { font-style:normal; font-size:11px; color:var(--fleet-muted); }
+.flight-line-task { color:var(--fleet-active); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.flight-line-task[data-suspended] { color:var(--fleet-gold); }
+.fleet-command .flight-line-deck-toggle { justify-content:flex-start; width:100%; min-height:0; padding:2px 5px; border-color:#c9dce022; background:none; font-size:10.5px; white-space:nowrap; }
+.flight-line-deck-toggle b { font-weight:500; }
+.flight-line-deck-toggle svg { margin-left:auto; }
+
+/* One air group: name and key, the aircraft, count, status, a tick per plane, armed and endurance. */
+.fleet-command .flight-line-box { position:relative; flex:none; display:grid; width:90px; min-height:0; padding:5px 6px 6px; gap:0; justify-items:stretch; align-content:start; border:1px solid var(--fleet-line); border-radius:2px; background:#0b1e2799; text-align:left; font-size:10px; line-height:1.3; color:var(--fleet-text, #f0f5f3); text-shadow:0 2px 4px #07131bea; white-space:normal; }
+.fleet-command .flight-line-box:hover:not(:disabled) { color:inherit; border-color:#f0f5f3aa; }
+.fleet-command .flight-line-box.hovered { border-color:#f0f5f3aa; }
+.fleet-command .flight-line-box[aria-pressed=true] { color:var(--fleet-gold); border-color:var(--fleet-gold); background:#1a2f34cc; }
+.flight-line-box-head { display:flex; justify-content:space-between; align-items:center; gap:4px; }
+.flight-line-box-head strong { min-width:0; font:500 13px/1 'Barlow Condensed',sans-serif; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.flight-line-box-head kbd { min-width:14px; padding:1px 3px; font-size:9px; }
+.flight-line-aircraft { display:block; width:76px; height:34px; margin-top:2px; object-fit:contain; filter:drop-shadow(0 2px 2px #07131b); }
+.flight-line-box.decked .flight-line-aircraft { opacity:.45; }
+.flight-line-count { position:absolute; right:6px; top:36px; font:500 13px/1 'Barlow Condensed',sans-serif; color:var(--fleet-text, #f0f5f3); text-shadow:0 2px 3px #07131b; }
+.flight-line-count small { font-size:10px; color:var(--fleet-muted); }
+.flight-line-box[aria-pressed=true] .flight-line-count { color:var(--fleet-gold); }
+.flight-line-status { display:flex; align-items:center; gap:4px; min-height:13px; margin-top:2px; color:var(--fleet-text, #f0f5f3); white-space:nowrap; }
+.flight-line-status svg { flex:none; width:12px; height:12px; overflow:visible; color:var(--fleet-active); }
+.flight-line-status svg path { fill:currentColor; stroke:none; }
+.flight-line-status span { min-width:0; overflow:hidden; text-overflow:ellipsis; }
+.flight-line-status.notice,.flight-line-status.notice svg { color:var(--fleet-gold); }
+.flight-line-status.decked,.flight-line-status.decked svg { color:var(--fleet-muted); }
+.flight-line-ticks { display:flex; gap:2px; margin-top:4px; }
+.flight-line-ticks i { flex:1; height:3px; background:#a8bcb94a; }
+.flight-line-ticks i.armed { background:var(--fleet-active); }
+.flight-line-ticks i.hurt { background:var(--fleet-gold); }
+.flight-line-ticks i.empty { background:none; box-shadow:inset 0 0 0 1px var(--fleet-active); }
+.flight-line-ticks i.lost { background:#ffb5a626; }
+.flight-line-foot { display:flex; justify-content:space-between; align-items:center; gap:4px; margin-top:3px; font:500 10.5px/1 'Barlow Condensed',sans-serif; color:var(--fleet-muted); white-space:nowrap; }
+.flight-line-foot b { font-weight:500; color:var(--fleet-text, #f0f5f3); }
+.flight-line-foot b.dim { color:var(--fleet-muted); }
+.fleet-command .flight-line-hide { align-self:flex-end; min-height:26px; margin-left:3px; padding:3px 7px; border-color:#c9dce022; background:none; color:var(--fleet-muted); font-size:11px; }
+
+/* Detail card above the hovered box: manifest cells, HP list, order and notice. */
+.flight-line-card,.flight-line-deck { position:absolute; bottom:calc(100% + 8px); left:var(--left, 0px); width:300px; display:grid; gap:5px; padding:8px 10px 9px; background:#0b1e27ee; border:1px solid var(--fleet-line); border-left:2px solid var(--fleet-gold); border-radius:2px; font-size:11.5px; color:var(--fleet-text, #f0f5f3); }
+.flight-line-card { pointer-events:none; }
+.flight-line-card::after { content:''; position:absolute; left:30px; top:100%; border:6px solid transparent; border-top-color:var(--fleet-line); }
+.flight-line-card-head,.flight-line-deck-head { display:flex; justify-content:space-between; align-items:baseline; gap:8px; }
+.flight-line-card-head b { font:500 14px/1 'Barlow Condensed',sans-serif; letter-spacing:.02em; color:var(--fleet-gold); }
+.flight-line-card-head span { font:500 12px/1 'Barlow Condensed',sans-serif; }
+.flight-line-card-head span small { margin-left:3px; font:400 10px 'Barlow',sans-serif; color:var(--fleet-muted); }
+.flight-line-order b { font-weight:500; color:var(--fleet-gold); }
+.flight-line-planes { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:4px 8px; font-size:10.5px; color:var(--fleet-muted); }
+.flight-line-planes > span:last-child { white-space:nowrap; }
+.flight-line-planes b { font-weight:500; color:var(--fleet-gold); }
+.flight-line-cells { display:flex; gap:3px; }
+.flight-line-notice { font-size:10.5px; color:var(--fleet-gold); }
+
+/* Flight deck popover from the carrier chip: policy, task, service and the handling queue. */
+.flight-line-deck { width:320px; border-left-color:var(--fleet-active); }
+.flight-line-deck-head b { font:500 14px/1 'Barlow Condensed',sans-serif; letter-spacing:.02em; }
+.fleet-command .flight-line-deck-head button { min-height:22px; padding:2px 6px; border:0; background:none; color:var(--fleet-muted); font-size:11px; }
+.flight-line-deck .fleet-command-deck>strong { display:none; }
+.flight-line-deck .fleet-command-deck p { font-size:11px; }
+.flight-line-deck .fleet-command-deck-policy { margin:4px 0 2px; }
+.flight-line-deck .fleet-command-deck .ui-select { min-height:24px; padding:2px 6px; font-size:11px; }
+
+/* While the line is up the ticker keeps to the right, above the legend. */
+.fleet-command-map.air-open .fleet-command-ticker { left:auto; right:24px; bottom:64px; transform:none; text-align:right; }
+.fleet-command-map.air-open .fleet-command-paused { left:50%; }
+
+@container hud (max-width:1050px) {
+  .flight-line { right:24px; }
+  .fleet-command-map.air-open .fleet-command-recon { display:none; }
+}
+@container hud (max-width:720px) {
+  .flight-line { left:12px; right:12px; bottom:12px; }
+  .flight-line-bar,.flight-line-search { margin-left:0; }
+  .flight-line-carrier { width:150px; }
+  .flight-line-hint { display:none; }
+}
+@media (prefers-reduced-motion:reduce) { .flight-line * { transition:none; scroll-behavior:auto; } }

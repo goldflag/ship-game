@@ -12,8 +12,10 @@ const services: { action: DeckServiceAction; label: string; available: 'canRaise
 ];
 const taskLabel = (action: string) => services.find(s => s.action === action)?.label ?? 'Launch';
 
-export function AirGroupService({ flights, enabled, command }: {
+export function AirGroupService({ flights, enabled, command, compact = false }: {
   flights: FlightSummary[]; enabled: boolean; command: (flights: FlightSummary[], action: DeckServiceAction) => void;
+  /** Buttons and reasons only, for a bar that already shows where each group is. */
+  compact?: boolean;
 }) {
   const managed = flights.filter(f => f.deck);
   if (!managed.length) return null;
@@ -23,7 +25,7 @@ export function AirGroupService({ flights, enabled, command }: {
       return <button key={service.action} disabled={!enabled || !eligible.length} title={service.hint}
         onClick={() => command(eligible, service.action)}>{service.label}{managed.length > 1 && ` (${eligible.length})`}</button>;
     })}</div>
-    <p>{managed.reduce((n, f) => n + f.deck!.onDeck, 0)} on deck · {managed.reduce((n, f) => n + f.deck!.inHangar, 0)} in hangar · {managed.reduce((n, f) => n + f.airborne, 0)} airborne</p>
+    {!compact && <p>{managed.reduce((n, f) => n + f.deck!.onDeck, 0)} on deck · {managed.reduce((n, f) => n + f.deck!.inHangar, 0)} in hangar · {managed.reduce((n, f) => n + f.airborne, 0)} airborne</p>}
     {managed.filter(f => f.rearmSeconds > 0).map(f => <p key={f.id}>{f.name} · Current service {duration(f.rearmSeconds)} remaining</p>)}
     {[...new Set(managed.map(f => f.deck!.reason).filter(Boolean))].map(reason => <p key={reason}>{reason}</p>)}
   </div>;
