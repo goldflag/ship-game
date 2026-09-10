@@ -567,8 +567,26 @@ tj=empty('gear.tail',(X(tU),0,tbase),root,axis='spanwise',fixed=bool(G.get('fixe
 tube('tail oleo',[(X(tU),0,tbase),(X(tU+.006),0,tz)],.026,'metal',tj)
 cylinder('tail tyre',(X(tU+.006),-.063,tz),(X(tU+.006),.063,tz),.135,'rubber',tj,n=24)
 cylinder('tail hub',(X(tU+.006),-.066,tz),(X(tU+.006),.066,tz),.058,'metal',tj,n=16)
-hu=.86;hz=body_dims(hu)[1];hook=empty('arrestor.hook',(X(hu),0,hz),root,axis='spanwise')
-tube('arrestor hook',[(X(hu),0,hz),(X(.973),0,hz-.10),(X(.98),0,hz-.22),(X(.965),0,hz-.24)],.025,'metal',hook)
+# Stow the original hook against the measured underside, above the tyre plane.
+# A fork clears the centerline tail wheel throughout deployment. The shank and
+# shoe are an explicit mechanical approximation, not a variant reconstruction.
+hu=min(.86,GEAR['tailU']-.055);hz=body_dims(hu)[1]-.025
+hook=empty('arrestor.hook',(X(hu),0,hz),root,axis='spanwise')
+# Retraction moves the tail wheel aft as well as upward. Keep the fork open
+# through that swept volume before joining its arms at the shoe.
+tailBase=body_dims(GEAR['tailU'])[1]
+tailDx=X(GEAR['tailU']+.006)-X(GEAR['tailU']);tailDz=GEAR['tailWheelZM']-tailBase
+tailRear=min(X(GEAR['tailU'])+tailDx*math.cos(a)+tailDz*math.sin(a)
+    for a in np.linspace(0,math.pi*.43*.5,65))-.135
+forkU=max(.97,.5-(tailRear-.045)/L);tipU=max(.99,forkU+.08/L)
+tipZ=body_dims(tipU)[1]-.06
+for sign in [-1,1]:
+    y=sign*.15
+    tube('hook mounting lug',[(X(hu),y,hz+.045),(X(hu),y,hz-.045)],.035,'frame',root)
+    tube('arrestor fork shank',[(X(hu),y,hz),(X(.92),y,body_dims(.92)[1]-.055),
+        (X(forkU),y,body_dims(forkU)[1]-.055),(X(tipU),0,tipZ)],.025,'metal',hook)
+cylinder('hook hinge pin',(X(hu),-.20,hz),(X(hu),.20,hz),.032,'metal',hook,n=16)
+tube('arrestor hook shoe',[(X(tipU),0,tipZ),(X(tipU)+-.05,0,tipZ-.04),(X(tipU)+.03,0,tipZ-.075)],.025,'metal',hook)
 empty('socket.deck',(gx,0,wheelZ-wheelR),root);empty('socket.payload',(X(.46),0,body_dims(.46)[1]-.025),root)
 # Flush short gun tubes follow the real wing leading edge, without overscaled rods.
 if SPEC['role'] in ['Fighter','Fighter-bomber'] or G.get('turret'):
@@ -655,6 +673,10 @@ for level,ratio in [(1,.45),(2,.20)]:
     lodMeshes=[]
     for obj in collection.objects:
         if obj.type=='MESH':
+            # Small contact mechanisms retain their exact clearance at every
+            # LOD. Decimating a 25 mm hook can move its fitted stop by centimetres.
+            if obj.parent and obj.parent.get('nodeId') in ['arrestor.hook','gear.tail']:
+                continue
             original=obj.data
             mod=obj.modifiers.new('Distance detail','DECIMATE');mod.ratio=ratio;mod.use_collapse_triangulate=True;mod.delimit={'UV','MATERIAL'}
             bpy.context.view_layer.update()

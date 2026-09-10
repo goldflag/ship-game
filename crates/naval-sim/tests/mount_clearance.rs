@@ -1,5 +1,5 @@
 use naval_sim::{
-    definition::{MountClearanceProfile, ShipDefinition},
+    definition::{MountClearanceProfile, MountClearanceProfileMountsItem, ShipDefinition},
     geometry::radians,
     motion::ShipState,
     mount_clearance::{ClearancePose, MountClearance},
@@ -200,11 +200,75 @@ fn crossing_barrels() -> ShipDefinition {
     def.mount_clearance = Some(MountClearanceProfile {
         version: 1.0,
         margin_m: 0.02,
-        mount_ids: def.mounts.iter().map(|m| m.id.clone()).collect(),
-        bodies: vec![],
+        mount_ids: Some(def.mounts.iter().map(|m| m.id.clone()).collect()),
+        bodies: Some(vec![]),
         basis: "Independent crossing-barrel regression".into(),
+        ..Default::default()
     });
     def
+}
+
+#[test]
+fn clearance_encodings_are_exclusive_and_complete() {
+    let mut def = crossing_barrels();
+    let swept = def.mount_clearance.clone().unwrap();
+    def.mount_clearance.as_mut().unwrap().bodies = None;
+    assert!(MountClearance::new(&def).is_err());
+
+    let installed = MountClearanceProfile {
+        version: 1.0,
+        margin_m: 0.02,
+        basis: "Installation encoding merge regression".into(),
+        mounts: Some(vec![MountClearanceProfileMountsItem {
+            mount_id: def.mounts[0].id.clone(),
+            barrel_radius_m: 0.2,
+            body: None,
+        }]),
+        structures: Some(vec![]),
+        neighbors: Some(vec![]),
+        ..Default::default()
+    };
+    def.mount_clearance = Some(installed.clone());
+    assert!(MountClearance::new(&def).unwrap().is_none());
+    def.mount_clearance.as_mut().unwrap().neighbors = None;
+    assert!(MountClearance::new(&def).is_err());
+
+    def.mount_clearance = Some(MountClearanceProfile {
+        mount_ids: swept.mount_ids,
+        bodies: swept.bodies,
+        ..installed
+    });
+    assert!(MountClearance::new(&def).is_err());
+    let states: Vec<_> = def.mounts.iter().map(MountState::new).collect();
+    let mut state = states[0].clone();
+    assert!(!naval_sim::mount_clearance::move_mount_with_clearance(
+        &def,
+        0,
+        &mut state,
+        (radians(10.0), radians(20.0)),
+        &states,
+    ));
+    near(state.train, states[0].train);
+    near(state.elevation, states[0].elevation);
+}
+
+#[test]
+fn swept_resolution_preserves_asymmetric_mount_travel_limits() {
+    let mut def = crossing_barrels();
+    def.mounts[0].traverse_limits_deg = Some([-30.0, 0.0]);
+    let cache = MountClearance::new(&def).unwrap().unwrap();
+    let initial = poses(&def);
+    let accepted = cache.resolve(
+        &def,
+        0,
+        &initial,
+        ClearancePose {
+            train: radians(30.0),
+            ..initial[0]
+        },
+    );
+    assert!(!accepted.blocked);
+    near(accepted.pose.train, 0.0);
 }
 
 #[test]

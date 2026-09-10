@@ -1,15 +1,22 @@
 //! Renderer-free naval simulation shared by the native server and browser WASM.
 pub mod catalog;
 pub mod definition;
+pub mod fleet_evasion;
 pub mod geometry;
-pub mod motion;
 pub mod mobility;
-pub mod mount_frames;
+pub mod motion;
+pub mod installation_clearance;
 pub mod mount_clearance;
+pub mod mount_frames;
+pub mod navigation;
 pub mod rules;
 
 pub mod ballistics;
 
+pub mod deck_contact;
+pub mod deck_navigation;
+pub mod deck_operations;
+pub mod flight_deck;
 pub mod floodwater;
 pub mod hull;
 pub mod hydrostatics;
@@ -19,6 +26,7 @@ pub mod environment;
 pub mod trace;
 
 pub mod air_gunnery;
+pub mod air_rules;
 pub mod aircraft;
 pub mod aircraft_accuracy;
 pub mod aircraft_deck;
@@ -56,9 +64,19 @@ pub mod capability;
 pub mod gunnery;
 
 pub mod battle;
+pub mod mission;
+pub mod pve;
+mod pve_command;
+pub mod recon;
+pub mod sensors;
 
 pub mod records;
 
-pub mod snapshot;
 mod presentation;
+pub mod snapshot;
+mod team_view;
 pub const SIMULATION_BUILD: &str = env!("NAVAL_SIMULATION_BUILD");
+
+pub mod air_recovery;
+pub mod air_search;
+pub mod pve_air;

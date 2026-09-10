@@ -1,13 +1,51 @@
 //! Physical gun movement interlocks. All inputs are original authored CPU data;
 //! neither rendering meshes nor firing rays participate in movement acceptance.
 use crate::{
-    definition::{GunPart, ShipDefinition, Vec3},
+    definition::{GunPart, MountClearanceProfile, ShipDefinition, Vec3},
     geometry::*,
     mount_frames::mount_frame,
     structure::{bounds, structural_surfaces},
     weapons::{MountState, barrel_height, barrel_offset},
 };
 use serde::{Deserialize, Serialize};
+
+// Keep the installation preview/combat entry points stable while each geometry
+// encoding retains its own collision algorithm.
+pub use crate::installation_clearance::{mount_pose_clear, move_mount_with_clearance};
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum ClearanceMode {
+    SweptBodies,
+    Installation,
+}
+
+pub(crate) fn clearance_mode(profile: &MountClearanceProfile) -> Result<ClearanceMode, String> {
+    let bodies = profile.mount_ids.is_some() || profile.bodies.is_some();
+    let installation =
+        profile.mounts.is_some() || profile.structures.is_some() || profile.neighbors.is_some();
+    if bodies == installation {
+        return Err("Mount clearance requires exactly one geometry encoding".into());
+    }
+    let (mode, min_margin, max_margin) = if bodies {
+        if profile.mount_ids.is_none() || profile.bodies.is_none() {
+            return Err("Mount clearance bodies require mountIds and bodies".into());
+        }
+        (ClearanceMode::SweptBodies, 0.0, 0.2)
+    } else {
+        if profile.mounts.is_none() || profile.structures.is_none() || profile.neighbors.is_none() {
+            return Err("Installation clearance requires mounts, structures and neighbors".into());
+        }
+        (ClearanceMode::Installation, 0.001, 0.5)
+    };
+    if profile.version != 1.0
+        || !profile.margin_m.is_finite()
+        || !(min_margin..=max_margin).contains(&profile.margin_m)
+        || profile.basis.trim().is_empty()
+    {
+        return Err("Invalid mount clearance profile".into());
+    }
+    Ok(mode)
+}
 
 #[derive(Clone, Copy, Debug, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -70,25 +108,41 @@ impl Chunk {
     fn new(mut triangles: Vec<[Vec3; 3]>) -> Self {
         let bounds = Box3::points(triangles.iter().flatten().copied());
         if triangles.len() <= 12 {
-            return Self { bounds, triangles, children: None };
+            return Self {
+                bounds,
+                triangles,
+                children: None,
+            };
         }
-        let axis = (0..3).max_by(|&a, &b| bounds.size[a].total_cmp(&bounds.size[b])).unwrap();
+        let axis = (0..3)
+            .max_by(|&a, &b| bounds.size[a].total_cmp(&bounds.size[b]))
+            .unwrap();
         triangles.sort_unstable_by(|a, b| {
             let center = |t: &[Vec3; 3]| t.iter().map(|p| p[axis]).sum::<f64>();
             center(a).total_cmp(&center(b))
         });
         let right = triangles.split_off(triangles.len() / 2);
-        Self { bounds, triangles: vec![], children: Some(Box::new([Self::new(triangles), Self::new(right)])) }
+        Self {
+            bounds,
+            triangles: vec![],
+            children: Some(Box::new([Self::new(triangles), Self::new(right)])),
+        }
     }
     fn distance(&self, capsule: Capsule, bounds: Box3, nearest: &mut f64) {
-        if bounds.separation(self.bounds) - capsule.radius >= *nearest { return; }
+        if bounds.separation(self.bounds) - capsule.radius >= *nearest {
+            return;
+        }
         if let Some(children) = &self.children {
-            let first = usize::from(bounds.separation(children[1].bounds) < bounds.separation(children[0].bounds));
+            let first = usize::from(
+                bounds.separation(children[1].bounds) < bounds.separation(children[0].bounds),
+            );
             children[first].distance(capsule, bounds, nearest);
             children[1 - first].distance(capsule, bounds, nearest);
         } else {
             for triangle in &self.triangles {
-                *nearest = nearest.min(segment_triangle_distance(capsule.a, capsule.b, *triangle) - capsule.radius);
+                *nearest = nearest.min(
+                    segment_triangle_distance(capsule.a, capsule.b, *triangle) - capsule.radius,
+                );
             }
         }
     }
@@ -163,14 +217,17 @@ impl MountClearance {
         let Some(profile) = &def.mount_clearance else {
             return Ok(None);
         };
-        if profile.version != 1.0
-            || !profile.margin_m.is_finite()
-            || !(0.0..=0.2).contains(&profile.margin_m)
-        {
-            return Err("Invalid mount clearance profile".into());
+        if clearance_mode(profile)? == ClearanceMode::Installation {
+            crate::installation_clearance::validate_profile(def)?;
+            return Ok(None);
         }
+        let mount_ids = profile
+            .mount_ids
+            .as_ref()
+            .expect("validated bodies encoding");
+        let authored_bodies = profile.bodies.as_ref().expect("validated bodies encoding");
         let mut enabled = vec![false; def.mounts.len()];
-        for id in &profile.mount_ids {
+        for id in mount_ids {
             let index = def
                 .mounts
                 .iter()
@@ -250,7 +307,7 @@ impl MountClearance {
                 }
             }
         }
-        for body in &profile.bodies {
+        for body in authored_bodies {
             let mount = body
                 .mount_id
                 .as_ref()
@@ -357,12 +414,12 @@ impl MountClearance {
             };
         }
         let w = &def.mounts[index].weapon;
+        let [min_train, max_train] = def.mounts[index]
+            .traverse_limits_deg
+            .unwrap_or([-w.traverse_deg, w.traverse_deg])
+            .map(radians);
         let requested = ClearancePose {
-            train: clamp(
-                requested.train,
-                -radians(w.traverse_deg),
-                radians(w.traverse_deg),
-            ),
+            train: clamp(requested.train, min_train, max_train),
             elevation: clamp(
                 requested.elevation,
                 radians(w.elevation_min_deg),
@@ -468,10 +525,10 @@ impl MountClearance {
         let mut result = vec![false; def.mounts.len()];
         result[index] = true;
         for i in index + 1..def.mounts.len() {
-            if let Some(parent) = &def.mounts[i].parent_mount_id {
-                if let Some(p) = def.mounts[..i].iter().position(|m| &m.id == parent) {
-                    result[i] = result[p];
-                }
+            if let Some(parent) = &def.mounts[i].parent_mount_id
+                && let Some(p) = def.mounts[..i].iter().position(|m| &m.id == parent)
+            {
+                result[i] = result[p];
             }
         }
         result
@@ -782,17 +839,25 @@ mod tests {
     use super::*;
     #[test]
     fn spatial_tree_matches_exhaustive_triangle_distance() {
-        let triangles: Vec<_> = (0..80).map(|i| {
-            let x = (i % 10) as f64 * 2.0;
-            let z = (i / 10) as f64 * 3.0;
-            [[x, 0.0, z], [x + 1.0, 0.5, z], [x, 0.0, z + 2.0]]
-        }).collect();
+        let triangles: Vec<_> = (0..80)
+            .map(|i| {
+                let x = (i % 10) as f64 * 2.0;
+                let z = (i / 10) as f64 * 3.0;
+                [[x, 0.0, z], [x + 1.0, 0.5, z], [x, 0.0, z + 2.0]]
+            })
+            .collect();
         let body = Body::new("test".into(), None, false, triangles.clone());
         for i in 0..100 {
             let x = i as f64 * 0.23 - 2.0;
-            let capsule = Capsule { a: [x, -0.2, 1.0], b: [x + 0.4, 0.8, 17.0], radius: 0.12 };
+            let capsule = Capsule {
+                a: [x, -0.2, 1.0],
+                b: [x + 0.4, 0.8, 17.0],
+                radius: 0.12,
+            };
             for limit in [0.02, 1.0, 100.0] {
-                let exhaustive = triangles.iter().fold(limit, |gap: f64, t| gap.min(segment_triangle_distance(capsule.a, capsule.b, *t) - capsule.radius));
+                let exhaustive = triangles.iter().fold(limit, |gap: f64, t| {
+                    gap.min(segment_triangle_distance(capsule.a, capsule.b, *t) - capsule.radius)
+                });
                 assert!((body.distance(capsule, limit) - exhaustive).abs() < 1e-10);
             }
         }

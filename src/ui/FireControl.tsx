@@ -1,17 +1,18 @@
 import { Select, SelectOption } from './components';
 import { useState } from 'react';
 import type { Game } from '../game/Game';
-import type { CombatTelemetry } from '../simulation/combat';
+import { hasFullTarget, type CombatTelemetry } from '../simulation/combat';
 import type { ControlPriority } from '../simulation/damageControl';
 import './FireControl.css';
 
 /** Existing CPU crew orders, exposed without interrupting the battle. */
 export function FireControl({ combat, game, observedName }: { combat: CombatTelemetry; game: Game | null; observedName?: string }) {
   const [open, setOpen] = useState(false);
-  const [target, setTarget] = useState(false);
+  const [targetRequested, setTarget] = useState(false);
+  const target = targetRequested && hasFullTarget(combat);
   const ownBurning = combat.playerFires.filter(f => f.intensity > 0).length;
   const ownCooling = combat.playerFires.length - ownBurning;
-  const fires = target ? combat.targetFireDetails : combat.playerFires;
+  const fires = target ? combat.targetFireDetails ?? [] : combat.playerFires;
   const control = combat.control;
   const canOrder = !observedName && !combat.playerSunk;
   const priority = canOrder ? game?.controlPriority ?? control.priority : control.priority;
@@ -28,7 +29,7 @@ export function FireControl({ combat, game, observedName }: { combat: CombatTele
     {open && <div id="fire-control-detail" className="fleet-fire-detail">
       <div className="fleet-fire-tabs" role="group" aria-label="Fire report ship">
         <button aria-pressed={!target} onClick={() => setTarget(false)}>{observedName ? 'Observed ship' : 'Own ship'}</button>
-        <button aria-pressed={target} onClick={() => setTarget(true)}>Target · {combat.targetFires} fires</button>
+        {hasFullTarget(combat) && <button aria-pressed={target} onClick={() => setTarget(true)}>Target · {combat.targetFires} fires</button>}
       </div>
       {target ? <p className="fleet-fire-note">{combat.targetName}{combat.targetSunk ? ' · Sunk' : ''}</p> : <>
         {observedName ? <p className="fleet-fire-note">{observedName} · Automatic crew orders</p> : <label className="fleet-fire-priority">Crew priority<Select value={priority} disabled={!canOrder} onValueChange={value => order(value as ControlPriority)}>

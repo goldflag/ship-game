@@ -20,10 +20,10 @@ export async function articulation(shipId: string) {
   if (game.definition.id !== shipId) await game.switchShip(shipPreset(shipId));
   const results = [];
   for (const trainFraction of [-1, 1]) {
-    const d = game.previewArticulation({ trainFraction, elevationFraction: 1, recoilFraction: 1 });
+    const d = await game.previewArticulation({ trainFraction, elevationFraction: 1, recoilFraction: 1 });
     results.push({ shipId, contentHash: d.contentHash, trainFraction, maxMuzzleErrorM: d.maxMuzzleErrorM, maxTorpedoMuzzleErrorM: d.maxTorpedoMuzzleErrorM });
   }
-  game.previewArticulation(null);
+  await game.previewArticulation(null);
   return results;
 }
 
