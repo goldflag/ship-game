@@ -773,11 +773,10 @@ fn fleet_collisions_and_grounding_match_reference() {
     }
 }
 #[test]
-fn aircraft_flight_controls_discipline_and_strike_error_match_reference() {
+fn aircraft_mechanisms_and_shared_fire_discipline_match_reference() {
     use naval_sim::{
         air_gunnery::{FireDiscipline, gunnery_seed, step_discipline},
         aircraft::Aircraft,
-        aircraft_accuracy::strike_aim_error,
         aircraft_flight::{FlightOptions, fly, step_mechanisms},
     };
     let fixture: Value = serde_json::from_str(include_str!(
@@ -827,17 +826,23 @@ fn aircraft_flight_controls_discipline_and_strike_error_match_reference() {
                 .iter()
                 .find(|c| c["tick"] == tick)
             {
-                // Fighter dispersion has intentional gameplay tuning covered by
-                // air_balance; retain the frozen flight, discipline and strike contract.
-                let actual =
-                    json!({"tick":tick,"plane":plane,"strike":strike_aim_error(&plane,0.7,5739,2)});
-                let mut expected = expected.clone();
-                expected.as_object_mut().unwrap().remove("burst");
-                compare(
-                    &actual,
-                    &expected,
-                    &format!("{}.flight@{tick}", plane.model_id),
-                );
+                // Flight and strike tuning intentionally diverge from the frozen
+                // TypeScript reference. Native aircraft_performance and air_balance
+                // tests cover those behaviors; retain independent mechanism timing
+                // and shared fire-discipline compatibility here.
+                let actual = json!({
+                    "gear": plane.controls.gear,
+                    "hook": plane.controls.hook,
+                    "propeller": plane.controls.propeller,
+                    "discipline": plane.pilot.fire_discipline,
+                });
+                let expected = json!({
+                    "gear": expected["plane"]["controls"]["gear"],
+                    "hook": expected["plane"]["controls"]["hook"],
+                    "propeller": expected["plane"]["controls"]["propeller"],
+                    "discipline": expected["plane"]["pilot"]["fireDiscipline"],
+                });
+                compare(&actual, &expected, &format!("{}.mechanisms@{tick}", plane.model_id));
             }
         }
     }

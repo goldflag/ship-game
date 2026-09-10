@@ -25,70 +25,8 @@ pub fn fighter_target(
     dt: f64,
     target_flight: Option<&str>,
 ) -> Option<usize> {
-    p.pilot.think -= dt;
-    let current = planes.iter().position(|o| {
-        Some(&o.id) == p.pilot.hostile_id.as_ref()
-            && target_flight.is_none_or(|id| o.flight_id.as_deref() == Some(id))
-            && o.team != p.team
-            && in_flight(o)
-    });
-    if p.pilot.think > 0.0
-        && let Some(i) = current
-        && length(sub(planes[i].position, p.position)) < 6500.0
-        && length(sub(planes[i].position, carrier)) < 7500.0
-    {
-        return Some(i);
-    }
-    p.pilot.think = 0.65;
-    let mut engagements = std::collections::BTreeMap::<&str, u32>::new();
-    for ally in planes {
-        if ally.id != p.id
-            && ally.team == p.team
-            && in_flight(ally)
-            && let Some(id) = &ally.pilot.hostile_id
-        {
-            *engagements.entry(id).or_default() += 1;
-        }
-    }
-    let mut best = None;
-    let mut best_score = f64::INFINITY;
-    for (i, o) in planes.iter().enumerate() {
-        if o.team == p.team
-            || !in_flight(o)
-            || target_flight.is_some_and(|id| o.flight_id.as_deref() != Some(id))
-        {
-            continue;
-        }
-        let distance = length(sub(o.position, p.position));
-        let home = length(sub(o.position, carrier));
-        if distance > 6500.0 || home > 7500.0 {
-            continue;
-        }
-        let inbound = dot(o.velocity, sub(carrier, o.position)) > 0.0;
-        let threat = if o.payload && inbound && home < 4500.0 {
-            0.5
-        } else {
-            1.0
-        };
-        let engaged = engagements.get(o.id.as_str()).copied().unwrap_or(0);
-        let score = (distance + home * 0.15)
-            * threat
-            * if Some(i) == current { 0.7 } else { 1.0 }
-            * (1.0 + f64::from(engaged) * 0.35)
-            * if distance < 2200.0
-                && planes.iter().any(|ally| {
-                    ally.id != p.id && ally.team == p.team && in_flight(ally) && threatens(o, ally)
-                })
-            {
-                0.55
-            } else {
-                1.0
-            };
-        if score < best_score {
-            best = Some(i);
-            best_score = score;
-        }
-    }
+    p.pilot.think = (p.pilot.think - dt).max(0.0);
+    let best = crate::fighter_coordination::target(p, planes, carrier, target_flight);
     let id = best.map(|i| planes[i].id.clone());
     if p.pilot.hostile_id != id {
         p.pilot.aim_time = 0.0;
@@ -131,6 +69,25 @@ pub fn fighter_gun_aim(p: &Aircraft, hostile: &Aircraft) -> FighterAim {
         distance: length(relative),
         point: add(hostile.position, scale(hostile.velocity, time)),
     }
+}
+/// Accumulate a continuous firing solution, independently of navigation lead.
+pub fn fighter_fire_ready(
+    p: &mut Aircraft,
+    gun: &FighterAim,
+    pursuing: bool,
+    lane_clear: bool,
+    dt: f64,
+) -> bool {
+    let panic = p.pilot.fire_discipline.as_ref().is_some_and(|d| d.panic);
+    let on_aim = pursuing
+        && gun.distance > 80.0
+        && gun.distance < if panic { 220.0 } else { 320.0 }
+        && gun.alignment > if panic { 0.9985 } else { 0.997 }
+        && p.bank.abs() < 1.15
+        && lane_clear
+        && p.cooldown <= 0.0;
+    p.pilot.aim_time = if on_aim { p.pilot.aim_time + dt } else { 0.0 };
+    on_aim && p.pilot.aim_time >= if panic { 0.45 } else { 0.18 } && p.cooldown <= 0.0
 }
 pub fn clear_fighter_lane(p: &Aircraft, aim: Vec3, planes: &[&Aircraft]) -> bool {
     let ray = sub(aim, p.position);
@@ -207,7 +164,12 @@ pub fn steer_fighter(p: &mut Aircraft, hostile: &Aircraft, planes: &[&Aircraft],
                 116.0,
                 4.0,
             ))
-        } else if distance < 150.0 || distance < 280.0 && closing > 45.0 && alignment > 0.7 {
+        } else if distance < 150.0
+            || distance < 280.0
+                && closing > 45.0
+                && alignment > 0.7
+                && dot(forward, normalize(hostile.velocity)) > 0.6
+        {
             Some((
                 "extend",
                 add(
@@ -221,6 +183,9 @@ pub fn steer_fighter(p: &mut Aircraft, hostile: &Aircraft, planes: &[&Aircraft],
             && alignment < 0.75
             && speed_advantage > 20.0
             && p.position[1] > 150.0
+            // Spend existing height advantage closing on a lower target;
+            // another climb would repeatedly postpone low-level interception.
+            && p.position[1] - hostile.position[1] < 150.0
         {
             let mut point = add(hostile.position, scale(hostile.velocity, -1.5));
             point[1] = p.position[1] + 120.0;
@@ -284,7 +249,19 @@ pub fn steer_fighter(p: &mut Aircraft, hostile: &Aircraft, planes: &[&Aircraft],
     } else {
         aim
     };
-    fly(p, navigation_aim, speed, dt, FlightOptions::default());
+    // Convert a substantial altitude advantage before passing overhead. The
+    // normal flight controller still owns pitch rate and low-altitude pullout.
+    let diving = p.position[1] > hostile.position[1] + 150.0;
+    fly(
+        p,
+        navigation_aim,
+        speed,
+        dt,
+        FlightOptions {
+            dive: diving,
+            ..FlightOptions::default()
+        },
+    );
     true
 }
 pub fn orbit_point(p: &Aircraft, anchor: Vec3, radius: f64, side: f64) -> Vec3 {

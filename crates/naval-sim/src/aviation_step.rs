@@ -66,7 +66,7 @@ pub fn air_torpedo() -> TorpedoPart {
         running_depth_m: 2.0,
         reload_seconds: 35.0,
         launch_interval_seconds: 3.0,
-        damage: 480.0,
+        damage: 160.0,
         breach_area_m2: 0.55,
     }
 }
@@ -388,6 +388,7 @@ impl Aviation {
         if dt <= 0.0 {
             return;
         }
+        self.step_air_operations(ctx.actors, ctx.sea, time);
         for w in &mut self.wings {
             for p in &mut w.state.planes {
                 p.previous_position = p.position;
@@ -866,6 +867,9 @@ impl Aviation {
                     return;
                 }
             }
+            if p.phase == "returning" && self.package_withdrawal(p, dt) {
+                return;
+            }
             self.recover_plane(p, actor, index, landing_clearance, carrier, ctx, dt);
             return;
         }
@@ -1236,6 +1240,9 @@ impl Aviation {
         let Some(target) = self.strike_solution(p, flight, ctx, dt) else {
             return;
         };
+        if self.package_guidance(p, target.point, target.heading, dt) {
+            return;
+        }
         let target_point = add(
             target.point,
             strike_aim_error(p, target.heading, ctx.seed, p.sortie.unwrap_or(0)),
@@ -1339,6 +1346,17 @@ impl Aviation {
             let height = (p.position[1] - 1.0 - target_point[1]).max(0.0);
             let fall = (p.velocity[1] + (p.velocity[1].powi(2) + 19.62 * height).sqrt()) / 9.81;
             let aim = add(target_point, scale(target.velocity, fall));
+            // Track the ballistic aim's angular motion as well as heading error.
+            // Pure pursuit lags a crossing ship by several metres at release.
+            // As altitude falls, the remaining bomb time shrinks: under the
+            // current vertical velocity, d(fall)/dt = vy / sqrt(vy² + 2gh).
+            let offset = sub(aim, p.position);
+            let fall_rate = p.velocity[1]
+                / (p.velocity[1].powi(2) + 19.62 * height).sqrt().max(1.0);
+            let relative_velocity = sub(scale(target.velocity, 1.0 + fall_rate), p.velocity);
+            let aim_turn_rate = (-offset[2] * relative_velocity[0]
+                + offset[0] * relative_velocity[2])
+                / (offset[0].powi(2) + offset[2].powi(2)).max(10000.0);
             fly(
                 p,
                 [aim[0], target_point[1], aim[2]],
@@ -1347,6 +1365,7 @@ impl Aviation {
                 FlightOptions {
                     dive: true,
                     bank_limit: Some(0.5),
+                    turn_rate: aim_turn_rate.clamp(-0.15, 0.15),
                     ..Default::default()
                 },
             );
@@ -1356,7 +1375,7 @@ impl Aviation {
             let landing = add(p.position, scale(p.velocity, release_fall));
             let impact_aim = add(target_point, scale(target.velocity, release_fall));
             let error = (landing[0] - impact_aim[0]).hypot(landing[2] - impact_aim[2]);
-            if error < 22.0 && p.pitch < -0.25 && p.position[1] > target_point[1] + 90.0 {
+            if error < 3.0 && p.pitch < -0.25 && p.position[1] > target_point[1] + 90.0 {
                 let id = ctx.next_id();
                 let bomb = self.ground[&p.model_id]
                     .bomb
@@ -1412,9 +1431,12 @@ impl Aviation {
             let aim =
                 torpedo_intercept(entry, future, target.velocity, torpedo_speed(weapon.speed))
                     .unwrap_or(future);
+            let approach = crate::aircraft_strike::torpedo_approach_point(
+                p.position, length(p.velocity), target_point, target.velocity, torpedo_speed(weapon.speed),
+            );
             fly(
                 p,
-                [aim[0], 26.0, aim[2]],
+                approach,
                 70.0,
                 dt,
                 FlightOptions {
@@ -1578,19 +1600,23 @@ impl Aviation {
             p.phase = "attack".into();
             let pursuing = steer_fighter(p, &hostile, &planes, dt);
             let gun = fighter_gun_aim(p, &hostile);
-            let on_aim = pursuing
-                && gun.distance > 80.0
-                && gun.distance < 600.0
-                && gun.alignment > if panic { 0.94 } else { 0.996 }
-                && clear_fighter_lane(p, gun.point, &planes);
-            p.pilot.aim_time = if on_aim { p.pilot.aim_time + dt } else { 0.0 };
-            if on_aim && p.pilot.aim_time >= if panic { 0.04 } else { 0.12 } && p.cooldown <= 0.0 {
+            let lane_clear = clear_fighter_lane(p, gun.point, &planes);
+            if fighter_fire_ready(p, &gun, pursuing, lane_clear, dt) {
                 let burst = fighter_burst(p, gun.point, ctx.seed, p.sortie.unwrap_or(0));
                 if !clear_fighter_lane(p, burst.end, &planes) {
                     return;
                 }
                 p.ammo -= 1.0;
-                p.cooldown = 0.4;
+                // A two-burst opportunity followed by a longer assessment pause.
+                // Each burst still requires a newly settled, clear solution.
+                p.cooldown = if panic {
+                    1.6
+                } else if p.ammo as u32 % 2 == 0 {
+                    1.5
+                } else {
+                    0.25
+                };
+                p.pilot.aim_time = 0.0;
                 ctx.events.push(DamageEvent {
                     kind: "aircraft-fire".into(),
                     position: p.position,
@@ -1636,8 +1662,27 @@ impl Aviation {
                 self.search_report(p, c, k.tick, dt);
                 return;
             }
-            let anchor = [patrol[0], 420.0_f64.max(patrol[1] + 80.0), patrol[2]];
-            if leader.is_none_or(|l| l.phase == "attack")
+            let area_defense = flight.as_ref().is_none_or(|f| {
+                matches!(f.order, AirOrder::Defend { .. } | AirOrder::Patrol { .. })
+            });
+            let slot = planes
+                .iter()
+                .filter(|a| {
+                    a.team == p.team
+                        && a.flight_id == p.flight_id
+                        && a.role == "fighter"
+                        && a.id < p.id
+                        && in_flight(a)
+                })
+                .count();
+            let altitude: f64 = if area_defense && (slot / 2) % 2 == 1 {
+                1100.0
+            } else {
+                420.0
+            };
+            let anchor = [patrol[0], altitude.max(patrol[1] + 80.0), patrol[2]];
+            if area_defense
+                || leader.is_none_or(|l| l.phase == "attack")
                 || !follow(p, flight.as_ref(), leader, dt, time, ctx.seed)
             {
                 let point = orbit_point(p, anchor, 1000.0, 1.0);

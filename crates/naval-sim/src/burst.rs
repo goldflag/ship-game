@@ -7,7 +7,7 @@ use crate::{
     impact::{DamageEvent, ImpactRecord, ShellEffect},
     machinery::{equipment_box, equipment_pose},
     protection::plate_response,
-    shell::{Shell, damage_shell_hull, local_damage_evidence},
+    shell::{LocalDamageEvidence, Shell, damage_shell_hull, local_damage_evidence},
     vessel::Vessel,
 };
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -16,6 +16,7 @@ enum TargetKind {
     Mount,
     Boundary,
     Room,
+    Structure,
 }
 struct Target {
     kind: TargetKind,
@@ -142,6 +143,33 @@ pub fn burst_shell(shell: &mut Shell, actors: &mut [Vessel]) -> Vec<DamageEvent>
                 );
             }
         }
+        // A bomb contacting an upper deck can transmit blast into nearby hull
+        // structure. Each path below pays the same intervening protection as
+        // equipment rays; ordinary HE shells and water near misses are unchanged.
+        if shell.bomb.is_some()
+            && shell.last_hit_ship_id.as_deref() == Some(actor.motion.id.as_str())
+            && let Some(local) = &def.local_damage
+        {
+            for (i, r) in local
+                .regions
+                .iter()
+                .enumerate()
+                .filter(|(_, r)| r.kind == "hull")
+            {
+                target(
+                    TargetKind::Structure,
+                    i,
+                    r.id.clone(),
+                    r.name.clone(),
+                    nearest(origin, r.center, r.size),
+                );
+            }
+        }
+        let structural_weight: f64 = targets
+            .iter()
+            .filter(|t| t.kind == TargetKind::Structure)
+            .map(|t| 1.0 - t.distance / radius)
+            .sum();
         targets.sort_by(|a, b| {
             a.distance
                 .total_cmp(&b.distance)
@@ -254,6 +282,51 @@ pub fn burst_shell(shell: &mut Shell, actors: &mut [Vessel]) -> Vec<DamageEvent>
             let mut damage = 0.0;
             let mut connection_ids = None;
             match target.kind {
+                TargetKind::Structure => {
+                    let r = &def.local_damage.as_ref().unwrap().regions[target.index];
+                    let state = &actor.damage.regions[target.index];
+                    let local = LocalDamageEvidence {
+                        region_id: r.id.clone(),
+                        region_name: r.name.clone(),
+                        condition: state.hp / state.maximum,
+                        multiplier: (2.0 * state.hp / state.maximum).min(1.0),
+                    };
+                    let cap = shell.he.as_ref().unwrap().damage * 0.35;
+                    let previous = shell
+                        .hull_damage_consumed
+                        .get(&actor.motion.id)
+                        .copied()
+                        .unwrap_or(0.0);
+                    let share = cap * (1.0 - target.distance / radius) / structural_weight.max(1.0)
+                        * exposure;
+                    let hull_damage =
+                        damage_shell_hull(shell, actor, (previous + share).min(cap), Some(&local));
+                    if hull_damage > 0.0 {
+                        events.push(DamageEvent {
+                            kind: "burst".into(),
+                            position,
+                            ship_id: actor.motion.id.clone(),
+                            message: format!("Bomb blast · {}", target.name),
+                            shell: Some(effect.clone()),
+                            impact: Some(ImpactRecord {
+                                shell_id: shell.id,
+                                ship_id: actor.motion.id.clone(),
+                                target_id: target.id,
+                                target_name: target.name,
+                                kind: "structure".into(),
+                                position: target.point,
+                                outcome: "damaged".into(),
+                                hull_damage: Some(hull_damage),
+                                local_damage: Some(local),
+                                penetration_before_mm: fragment,
+                                penetration_after_mm: budget,
+                                ..Default::default()
+                            }),
+                            ..Default::default()
+                        });
+                    }
+                    continue;
+                }
                 TargetKind::Room => {
                     heat_room(actor, def, target.index, amount);
                     continue;
@@ -318,6 +391,7 @@ pub fn burst_shell(shell: &mut Shell, actors: &mut [Vessel]) -> Vec<DamageEvent>
                         TargetKind::Mount => "mount",
                         TargetKind::Boundary => "boundary",
                         TargetKind::Room => "room",
+                        TargetKind::Structure => "structure",
                     }
                     .into(),
                     position: target.point,

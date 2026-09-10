@@ -90,6 +90,9 @@ fn launch(
 #[derive(Debug, Default, PartialEq)]
 struct Engagement {
     fighter_kills: usize,
+    high_kills: usize,
+    low_kills: usize,
+    low_kills_before_release: usize,
     aa_kills: usize,
     fighter_shots: usize,
     aa_shots: usize,
@@ -105,7 +108,7 @@ struct Engagement {
 /// Transit bombers keep their payload and cross the fleet at 850 m.
 fn engagement(scenario: &str, fighters: bool, aa: usize, seed: u32) -> Engagement {
     let c = catalog();
-    let role = if scenario == "transit" {
+    let role = if matches!(scenario, "transit" | "mixed") {
         "dive-bomber"
     } else {
         scenario
@@ -134,7 +137,10 @@ fn engagement(scenario: &str, fighters: bool, aa: usize, seed: u32) -> Engagemen
         c.air_profiles["pve-air-v1"].clone(),
     )
     .unwrap();
-    let ids = launch(
+    // Calibrate the original six defenders; continuous relief is tested in
+    // air_operations. The attacking carrier may still launch mixed groups.
+    air.carrier_rules.get_mut("defender").unwrap().active_flights = Some(1);
+    let mut ids = launch(
         &mut air,
         &actors,
         "attacker",
@@ -144,6 +150,18 @@ fn engagement(scenario: &str, fighters: bool, aa: usize, seed: u32) -> Engagemen
             point: [-6000.0, altitude, 0.0],
         },
     );
+    if scenario == "mixed" {
+        ids.extend(launch(
+            &mut air,
+            &actors,
+            "attacker",
+            "torpedo-bomber",
+            [5000.0, 90.0, 650.0],
+            AirOrder::Patrol {
+                point: [-6000.0, 90.0, 0.0],
+            },
+        ));
+    }
     if fighters {
         launch(
             &mut air,
@@ -170,23 +188,25 @@ fn engagement(scenario: &str, fighters: bool, aa: usize, seed: u32) -> Engagemen
     }
     if scenario != "transit" {
         let contact = reports.track(TeamId::B, "defender").unwrap().id.clone();
-        let flight = air
-            .wing("attacker")
-            .unwrap()
-            .flights
-            .iter()
-            .find(|f| f.plane_ids.contains(&ids[0]))
-            .unwrap()
-            .id
-            .clone();
-        assert!(air.order_flight(
-            &actors[1],
-            &flight,
-            AirOrder::Strike {
-                contact_id: contact
-            },
-            &actors
-        ));
+        for first in ids.chunks(6).map(|group| &group[0]) {
+            let flight = air
+                .wing("attacker")
+                .unwrap()
+                .flights
+                .iter()
+                .find(|f| f.plane_ids.contains(first))
+                .unwrap()
+                .id
+                .clone();
+            assert!(air.order_flight(
+                &actors[1],
+                &flight,
+                AirOrder::Strike {
+                    contact_id: contact.clone()
+                },
+                &actors
+            ));
+        }
     }
     let mut result = Engagement::default();
     let mut sequence = 0;
@@ -228,7 +248,11 @@ fn engagement(scenario: &str, fighters: bool, aa: usize, seed: u32) -> Engagemen
             1.0 / 60.0,
             tick as f64 / 60.0,
         );
-        for (before, after) in before.into_iter().zip(health(&air)) {
+        for (index, (before, after)) in before.into_iter().zip(health(&air)).enumerate() {
+            let target = air.iter_planes().find(|p| p.id == ids[index]).unwrap();
+            result.low_kills_before_release += usize::from(
+                before > 0.0 && after == 0.0 && target.role == "torpedo-bomber" && target.payload,
+            );
             result.fighter_damage += (before - after).max(0.0);
             result.fighter_kills += usize::from(before > 0.0 && after == 0.0);
         }
@@ -266,6 +290,8 @@ fn engagement(scenario: &str, fighters: bool, aa: usize, seed: u32) -> Engagemen
         let p = air.iter_planes().find(|p| p.id == id).unwrap();
         result.releases += usize::from(!p.payload);
         result.survivors += usize::from(p.hp > 0.0);
+        result.high_kills += usize::from(p.hp <= 0.0 && p.role == "dive-bomber");
+        result.low_kills += usize::from(p.hp <= 0.0 && p.role == "torpedo-bomber");
     }
     result
 }
@@ -340,5 +366,28 @@ fn undefended_strikes_remain_viable_for_both_bomber_roles() {
         let result = engagement(role, false, 0, 5739);
         assert_eq!(result.releases, 6, "{role}: {result:?}");
         assert_eq!(result.survivors, 6, "{role}: {result:?}");
+    }
+}
+
+#[test]
+fn mixed_raid_cap_covers_both_altitudes_and_retains_ammunition() {
+    for seed in [1, 5739, 98765] {
+        let result = engagement("mixed", true, 0, seed);
+        assert!(
+            result.high_kills > 0 && result.low_kills > 0,
+            "CAP left one altitude uncovered, seed {seed}: {result:?}"
+        );
+        assert!(
+            result.low_kills_before_release > 0,
+            "low-sector defense arrived after torpedo release, seed {seed}: {result:?}"
+        );
+        assert!(
+            result.fighter_shots < 84,
+            "CAP exhausted its next-wave reserve: {result:?}"
+        );
+        assert!(
+            result.releases < 12,
+            "CAP only engaged after every release: {result:?}"
+        );
     }
 }
