@@ -47,25 +47,27 @@ pub fn fly(p: &mut Aircraft, point: Vec3, requested_speed: f64, dt: f64, options
         return;
     }
     p.navigation_target = Some(point);
-    let (bank, roll_rate, climb, acceleration, min_speed) = match p.role.as_str() {
-        "fighter" => (1.12, 0.85, 0.24, 7.0, 38.0),
-        "dive-bomber" => (0.85, 0.5, 0.18, 4.5, 36.0),
-        _ => (0.72, 0.4, 0.15, 3.5, 34.0),
-    };
+    let performance = crate::aircraft_performance::performance_for(p);
+    let min_speed = performance.min_speed;
     let speed = length(p.velocity).max(min_speed);
     let (dx, dz) = (point[0] - p.position[0], point[2] - p.position[2]);
     let horizontal = dx.hypot(dz);
     let error = wrap_angle(dx.atan2(-dz) - p.heading);
     let max_bank = options
         .bank_limit
-        .unwrap_or(if options.landing { 0.38 } else { bank });
+        .unwrap_or(if options.landing {
+            0.38
+        } else {
+            performance.max_bank
+        })
+        .min(performance.max_bank);
     let desired = clamp(
         -((error / 2.2 + options.turn_rate) * speed / 9.81).atan(),
         -max_bank,
         max_bank,
     );
     let (old_bank, old_pitch) = (p.bank, p.pitch);
-    p.bank = approach(p.bank, desired, roll_rate, dt);
+    p.bank = approach(p.bank, desired, performance.roll_rate, dt);
     let turn = -9.81 * p.bank.tan() / (speed * p.pitch.cos()).max(30.0);
     p.heading = wrap_angle(p.heading + turn * dt);
     let mut desired_pitch = clamp(
@@ -75,7 +77,9 @@ pub fn fly(p: &mut Aircraft, point: Vec3, requested_speed: f64, dt: f64, options
                 .max(if options.landing { 45.0 } else { speed * 2.0 }),
         ),
         if options.dive { -1.05 } else { -0.24 },
-        climb,
+        performance
+            .climb_pitch
+            .min((performance.climb_rate / speed).min(1.0).asin()),
     );
     let pullout = 22.0 + (-p.velocity[1]).max(0.0) * 3.0;
     if !options.landing && p.position[1] < pullout {
@@ -87,9 +91,36 @@ pub fn fly(p: &mut Aircraft, point: Vec3, requested_speed: f64, dt: f64, options
         if options.dive { 0.25 } else { 0.18 },
         dt,
     );
-    let drag = p.bank.abs() * 3.0 + p.controls.brakes * 14.0;
-    let target = (requested_speed - p.pitch.sin() * 30.0 - drag).max(min_speed);
-    let next = approach(speed, target, acceleration, dt);
+    // Recovery and launch prescribe carrier-relative speeds. Cruise/attack orders
+    // use airframe scaling so differences are present below the maximum speed too.
+    let prescribed = options.landing || p.phase == "takeoff";
+    let requested = requested_speed
+        * if prescribed {
+            1.0
+        } else {
+            performance.speed_scale
+        };
+    let drag = p.bank.abs() * performance.turn_drag + p.controls.brakes * 14.0;
+    let target = (requested.min(performance.max_speed) - p.pitch.sin() * 30.0 - drag)
+        .clamp(min_speed, performance.max_speed);
+    // Climbing spends kinetic energy against gravity; bank adds induced drag.
+    // Descents recover energy, with airspeed bounded by the airframe limit.
+    let energy_cost = if prescribed {
+        0.0
+    } else {
+        9.81 * p.pitch.sin() + performance.turn_drag * p.bank.sin().powi(2) * 0.45
+    };
+    let acceleration = (performance.acceleration - energy_cost).max(0.5);
+    let next = approach(
+        speed,
+        target,
+        if target >= speed {
+            acceleration
+        } else {
+            performance.acceleration + energy_cost.max(0.0)
+        },
+        dt,
+    );
     p.velocity = scale(p.forward(), next);
     p.position = add(p.position, scale(p.velocity, dt));
     p.controls.aileron = clamp((p.bank - old_bank) / dt * 0.45, -0.35, 0.35);
