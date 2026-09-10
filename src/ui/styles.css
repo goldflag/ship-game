@@ -2,6 +2,7 @@
   font-family: 'Barlow', sans-serif;
   color: #edf1ec;
   background: #132d38;
+  color-scheme: dark;
   font-synthesis: none;
   --ink: #10252e;
   --muted: #bacbd0;
@@ -9,6 +10,13 @@
   --line: #cfdfdf35;
 }
 * { box-sizing: border-box; }
+/* Scrollbars are thin, dark and quiet everywhere: a translucent thumb on a transparent track.
+   Chrome and Firefox use the standard properties; WebKit-only browsers use the pseudo-elements. */
+* { scrollbar-width: thin; scrollbar-color: #8ea3aa4d transparent; }
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-track, *::-webkit-scrollbar-corner { background: transparent; }
+*::-webkit-scrollbar-thumb { background: #8ea3aa4d; border-radius: 4px; }
+*::-webkit-scrollbar-thumb:hover { background: #a9bcc38c; }
 body { margin: 0; overflow: hidden; }
 html, body { overscroll-behavior: none; }
 .game-shell {

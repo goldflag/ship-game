@@ -32,7 +32,7 @@
   background: var(--control-surface); color: var(--control-text); text-shadow: none;
   font: 400 14px/1.35 'Barlow', sans-serif; text-align: left; letter-spacing: normal; text-transform: none;
   overflow: auto; overscroll-behavior: contain; scrollbar-width: thin;
-  scrollbar-color: var(--control-muted) var(--control-surface);
+  scrollbar-color: #8ea3aa66 transparent;
   box-shadow: 0 8px 24px #06172066; pointer-events: auto;
 }
 .ui-select-option { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 36px; padding: 8px; cursor: pointer; overflow-wrap: anywhere; }

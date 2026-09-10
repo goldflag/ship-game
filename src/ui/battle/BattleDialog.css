@@ -9,7 +9,6 @@
 .battle-dialog kbd { font:500 10px/1.2 'Barlow Condensed',sans-serif; min-width:15px; padding:0 3px; border-color:currentColor; opacity:.8; }
 .battle-sr-only { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
 .battle-dialog .ui-select,.battle-dialog .ui-input:not([type=range],[type=radio]) { min-height:32px; padding:4px 9px; font-size:13px; }
-.battle-dialog input[type=search]::-webkit-search-cancel-button { filter:invert(.8); }
 
 /* Top bar: title, mode tabs, close. */
 .battle-top { height:52px; flex-shrink:0; display:flex; align-items:center; gap:18px; padding:0 18px; border-bottom:1px solid var(--battle-line); }
