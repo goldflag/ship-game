@@ -5,7 +5,10 @@ export function projectAirMarker(game: Game, marker: DOMStringMap, [x, y, z]: Ve
   if (marker.plane) return game.projectAircraft(marker.plane);
   if (marker.track) return game.projectContact(marker.track);
   if (marker.contactGroup) return game.projectContactGroup(JSON.parse(marker.contactGroup) as string[]);
-  return marker.contactMarker ? game.projectContact(marker.contactMarker) : game.projectAirMap(x, z, y);
+  if (marker.contactMarker) return game.projectContact(marker.contactMarker);
+  // Own hulls anchor above their rendered top: with the camera level with the water the
+  // sea-level point sits on the hull, and the label would cover the ship it names.
+  return (marker.shipMarker && game.projectFleetShip(marker.shipMarker)) || game.projectAirMap(x, z, y);
 }
 
 /** Project both ends of the direction from one pose, independently of label interpolation. */

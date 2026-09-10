@@ -115,6 +115,8 @@ export class Game {
   private playerView?: ShipView;
   private targetView?: ShipView;
   private fleetViews: ShipView[] = [];
+  /** Label anchor height per rendered hull, measured once from the authored model. */
+  private fleetShipTops = new WeakMap<ShipView, number>();
   private fleetDraws?: FleetShipDraws;
   private observedShipViews = new ObservedShipViews();
   private readonly fleetVisibility = new FleetVisibility();
@@ -567,7 +569,7 @@ export class Game {
       this.currentAim = session.aimAt(undefined, this.battery, this.weaponGroupId);
       this.controlGroups.clear();
       this.pveStartingGroups.forEach((group, slot) => this.controlGroups.set(slot, { name: group.name, shipIds: [...group.shipIds], formation: group.formation }));
-      this.tacticalPause = false; this.enterFleetCommand(); this.fitAirMap();
+      this.tacticalPause = false; this.enterFleetCommand(false); this.fitAirMap();
       await this.frame(performance.now(), true);
     } finally {
       this.switchingShip = false; this.lastTime = performance.now();
@@ -923,11 +925,13 @@ export class Game {
   selectFleetShips(ids: string[]): void {
     this.selectedShipIds = [...new Set(ids)].filter(id => this.simulation.actors.some(a => a.motion.id === id && a.team === 'friendly' && !physicalLoss(a)));
   }
-  enterFleetCommand(): void {
+  /** Open the fleet chart. Leaving a ship's helm keeps that ship selected so the next order
+   * has a recipient; a battle that opens on the chart starts with nothing selected. */
+  enterFleetCommand(preselect = true): void {
     if (this.inPort || !this.simulation.releaseHelm) return;
     this.fleetCommandMode = true;
     this.simulation.releaseHelm();
-    if (!this.selectedShipIds.length) this.selectFleetShips([this.simulation.ship.id]);
+    if (preselect && !this.selectedShipIds.length) this.selectFleetShips([this.simulation.ship.id]);
     this.setAirOperationsOpen(true);
     this.input.setEnabled(false);
     this.rig.releasePointer();
@@ -973,6 +977,23 @@ export class Game {
   projectAirMap(x: number, z: number, altitude = 0): [number, number] | null {
     // Use the same depth and viewport clipping as ship-view nametags.
     const point = projectShipLabel(new THREE.Vector3(x, altitude, z), this.camera, this.host.clientWidth / this.hudScale, this.host.clientHeight / this.hudScale);
+    return point ? [point.x, point.y] : null;
+  }
+  /** Screen point above a friendly hull's rendered top, where the ship-view nametag sits, so a
+   * fleet-chart marker rides over the ship however low the camera is. Null off screen or when
+   * the hull has no rendered model, in which case the marker stays at the telemetry position. */
+  projectFleetShip(id: string): [number, number] | null {
+    const view = this.fleetViews.find(v => v.actor.motion.id === id);
+    if (!view || !view.root.visible || view.motion.y <= -40) return null;
+    let top = this.fleetShipTops.get(view);
+    if (top === undefined) {
+      const bounds = new THREE.Box3().setFromObject(view.root.children[0]);
+      top = (bounds.isEmpty() ? view.definition.hull.depth : bounds.max.y - view.root.position.y) + 5;
+      this.fleetShipTops.set(view, top);
+    }
+    view.root.updateWorldMatrix(true, false);
+    const anchor = new THREE.Vector3(0, top, 0).applyMatrix4(view.root.matrixWorld);
+    const point = projectShipLabel(anchor, this.camera, this.host.clientWidth / this.hudScale, this.host.clientHeight / this.hudScale);
     return point ? [point.x, point.y] : null;
   }
   private contactPosition(id: string): Vec3 | undefined {
@@ -1268,7 +1289,7 @@ export class Game {
       this.audio?.departure();
       this.currentAim = this.simulation.aimAt(this.aimModule, this.battery, this.weaponGroupId);
       this.rig.aimAt(this.currentAim, this.simulation.ship);
-      if (this.simulation.missionRules) this.enterFleetCommand();
+      if (this.simulation.missionRules) this.enterFleetCommand(false);
       else this.rig.capturePointer();
     }
     this.renderer.domElement.setAttribute('aria-label', `${this.definition.name} ocean scene. ${inPort ? 'Drag to orbit; scroll to zoom.' : 'Click to capture mouse. Mouse to aim; left mouse to fire; Shift for binoculars; Control for cursor; Escape to pause.'}`);

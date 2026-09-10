@@ -370,6 +370,28 @@ test('spectating follows only surviving teammates, cycles duplicates, and resets
   } finally { rig.dispose(); }
 });
 
+test('a battle that opens on the fleet chart selects nothing; leaving a helm keeps that ship selected', async () => {
+  const simulation = await HeadlessSession.create({ playerShipId: 'enterprise-cv6', friendlyBots: ['fletcher'], enemies: ['baltimore'], spawnDistance: 7500 });
+  const camera = new PerspectiveCamera(52, 1.6, .5, 60000);
+  const rig = new CameraRig(camera, new EventTarget() as HTMLCanvasElement);
+  const views = simulation.actors.map(actor => ({ actor, definition: actor.definition, motion: actor.motion }));
+  const input = { isEnabled: true, clear() {}, setEnabled(value: boolean) { this.isEnabled = value; }, setOrder() {}, setRudder() {} };
+  const game = Object.assign(Object.create(Game.prototype), {
+    simulation, definition: simulation.definition, rig, camera, fleetViews: views, playerView: views[0], targetView: views.at(-1),
+    inPort: false, selectedBattery: 'main', currentAim: [0, 0, -7500], ammunition: {}, shellFollow: new ShellFollow(), input,
+    battlefieldCamera: new BattlefieldCamera(camera), selectedShipIds: [], controlGroups: new Map(), host: { clientWidth: 1280, clientHeight: 800 },
+    environment: { setChartFog() {} },
+  }) as Game;
+  try {
+    game.enterFleetCommand(false);
+    expect(game.fleetCommandMode).toBe(true);
+    expect(game.selectedShipIds).toEqual([]);
+    game.followFleetShip('player');
+    game.enterFleetCommand();
+    expect(game.selectedShipIds).toEqual(['player']);
+  } finally { simulation.dispose(); rig.dispose(); }
+});
+
 test('fleet selection and camera follow keep captains active; helm transfer resumes standing orders without resetting another actor', async () => {
   const simulation = await HeadlessSession.create({ playerShipId: 'enterprise-cv6', friendlyBots: ['fletcher'], enemies: ['baltimore'], spawnDistance: 7500 });
   const camera = new PerspectiveCamera(52, 1.6, .5, 60000);

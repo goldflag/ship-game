@@ -5,7 +5,7 @@ import type { Placement } from '../../multiplayer/generated/Placement';
 import { shipPreset } from '../../ships/presets';
 import { botSelection, setupSpawns, validateSpawns, type BattleSetup, type SpawnPose, type Team } from '../../simulation/battle';
 import { formationStations, stationPosition } from '../formationStations';
-import { deploymentIslands, placementError, unitName } from '../pveSetup';
+import { deploymentIslands, moveFormation, placementError, unitName } from '../pveSetup';
 import { shipClassOf } from '../shipGlyphs';
 
 /** One ship on the deployment chart. `spawn` matches the worker's Placement shape so formation helpers apply directly. */
@@ -58,6 +58,28 @@ export function pveDeployment(briefing: PveBriefing, placements: readonly Placem
     labels: { north: 'NO CONTACTS REPORTED', south: 'FRIENDLY DEPLOYMENT' }, error: placementError(briefing, [...placements]) };
 }
 export const applyPveDeployment = (units: readonly ChartUnit[]): Placement[] => units.map(unit => ({ id: unit.id, spawn: unit.spawn }));
+
+/** First chart of a mission: every group on the stations of its cruising formation, centred
+ * where the worker put it. The worker's own layout is a compact two-column block whatever the
+ * formation, so without this a group would show one shape here and sail another. Stations
+ * that reach a coast or the boundary slide astern, up to 3 km, before the group gives up and
+ * keeps the worker's layout. */
+export function initialPvePlacements(briefing: PveBriefing, formations: Readonly<Record<string, Formation>> = {}): Placement[] {
+  const seed = briefing.setup.ships.flatMap(ship => ship.spawn ? [{ id: ship.id, spawn: ship.spawn }] : []);
+  const deployment = pveDeployment(briefing, seed, formations);
+  let units = deployment.units;
+  for (const group of deployment.groups) {
+    const members = units.filter(unit => unit.groupId === group.id), ids = members.map(unit => unit.id);
+    if (members.length < 2) continue;
+    const center = unitsCenter(members), heading = members[0].spawn.heading;
+    const arranged = arrangeFormation(units, group.id, group.formation ?? 'column');
+    for (let astern = 0; astern <= 3000; astern += 500) {
+      const candidate = moveFormation(arranged, ids, center.x - Math.sin(heading) * astern, center.z + Math.cos(heading) * astern);
+      if (!placementError(briefing, applyPveDeployment(candidate))) { units = candidate; break; }
+    }
+  }
+  return applyPveDeployment(units);
+}
 
 /** Put one group's ships on their formation stations. The guide — the group's first
  * unit — keeps the position and heading the player gave it; every follower takes the

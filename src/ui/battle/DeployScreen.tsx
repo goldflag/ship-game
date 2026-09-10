@@ -36,6 +36,8 @@ export function DeployScreen({ deployment, onChange, onReset, disabled, tools, f
   const firstGroup = deployment.groups.find(group => deployment.units.some(unit => unit.groupId === group.id));
   const [selection, setSelection] = useState<ChartSelection>(firstGroup ? { kind: 'group', id: firstGroup.id } : undefined);
   const [scope, setScope] = useState<ChartScope>('group');
+  // Pointing at a row lights its marker on the chart and pointing at a marker lights its row.
+  const [hover, setHover] = useState<ChartSelection>();
   const [history, setHistory] = useState<ChartUnit[][]>([]);
   const fit = useMemo(() => fitRadius(deployment), [fitKey]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { setHistory([]); }, [fitKey]);
@@ -79,13 +81,15 @@ export function DeployScreen({ deployment, onChange, onReset, disabled, tools, f
         {deployment.groups.map(group => {
           const members = units.filter(unit => unit.groupId === group.id), ids = members.map(unit => unit.id);
           if (!members.length) return null;
-          const groupSelected = selection?.kind === 'group' && selection.id === group.id;
+          const groupSelected = selection?.kind === 'group' && selection.id === group.id, groupHovered = hover?.kind === 'group' && hover.id === group.id;
           return <div key={group.id} className={`deploy-group ${group.side}`}>
-            <button type="button" className="deploy-group-row" draggable={!disabled} disabled={disabled} aria-pressed={groupSelected} onDragStart={event => rosterDrag(event, ids, { kind: 'group', id: group.id })} onClick={() => setSelection({ kind: 'group', id: group.id })}>
+            <button type="button" className={`deploy-group-row ${groupHovered ? 'is-hovered' : ''}`} draggable={!disabled} disabled={disabled} aria-pressed={groupSelected} onDragStart={event => rosterDrag(event, ids, { kind: 'group', id: group.id })} onClick={() => setSelection({ kind: 'group', id: group.id })}
+              onPointerEnter={() => setHover({ kind: 'group', id: group.id })} onPointerLeave={() => setHover(undefined)}>
               <strong>{group.name}</strong><span>{members.length} {members.length === 1 ? 'ship' : 'ships'}</span><em>{formatHeading(members[0].spawn.heading)}</em>
             </button>
-            <ul>{members.map(unit => { number++; const own = selection?.kind === 'ship' && selection.id === unit.id;
-              return <li key={unit.id}><button type="button" className="deploy-ship-row" draggable={!disabled} disabled={disabled} aria-pressed={own} onDragStart={event => rosterDrag(event, [unit.id], { kind: 'ship', id: unit.id })} onClick={() => setSelection({ kind: 'ship', id: unit.id })}>
+            <ul>{members.map(unit => { number++; const own = selection?.kind === 'ship' && selection.id === unit.id, hovered = hover?.kind === 'ship' && hover.id === unit.id;
+              return <li key={unit.id}><button type="button" className={`deploy-ship-row ${hovered ? 'is-hovered' : ''}`} draggable={!disabled} disabled={disabled} aria-pressed={own} onDragStart={event => rosterDrag(event, [unit.id], { kind: 'ship', id: unit.id })} onClick={() => setSelection({ kind: 'ship', id: unit.id })}
+                onPointerEnter={() => setHover({ kind: 'ship', id: unit.id })} onPointerLeave={() => setHover(undefined)}>
                 <span className="deploy-ship-number">{number}</span><ShipThumbnail presetId={unit.presetId} width={56}/><span className="deploy-ship-name">{unit.name}</span><NationFlag nation={shipIdentity(unit.presetId).nation}/>
               </button></li>; })}</ul>
           </div>;
@@ -113,7 +117,7 @@ export function DeployScreen({ deployment, onChange, onReset, disabled, tools, f
       </div>
     </aside>
     <div className="deploy-chart-wrap">
-      <DeploymentChart deployment={deployment} fit={fit} onChange={onChange} onCommit={commit} selection={selection} onSelect={setSelection} scope={scope} onScopeChange={scopeChange} disabled={disabled}/>
+      <DeploymentChart deployment={deployment} fit={fit} onChange={onChange} onCommit={commit} selection={selection} onSelect={setSelection} hover={hover} onHover={setHover} scope={scope} onScopeChange={scopeChange} disabled={disabled}/>
       <div className="deploy-legend" aria-hidden="true"><span className="selected">Selected</span><span className="friendly">Friendly</span>{deployment.groups.some(group => group.side === 'enemy') && <span className="enemy">Enemy</span>}{deployment.friendlyMinZ !== undefined && <span className="sector">Friendly sector</span>}</div>
       <p className={`deploy-status ${deployment.error ? 'is-error' : ''}`} role="status">{deployment.error || 'Placement clear.'}<span>Scroll to zoom · drag water to pan · click water to deselect · <kbd>Home</kbd> shows everything</span></p>
     </div>

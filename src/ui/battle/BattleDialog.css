@@ -207,6 +207,7 @@
 .deploy-ship-name { flex:1; min-width:0; font:500 14px 'Barlow Condensed',sans-serif; color:#edf1ec; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .deploy-group-row:hover:not(:disabled),.deploy-ship-row:hover:not(:disabled) { background:#d9eeed0e; }
 .deploy-group-row[aria-pressed=true],.deploy-ship-row[aria-pressed=true] { border-color:var(--battle-mint); background:#86e4c512; }
+.deploy-group-row.is-hovered,.deploy-ship-row.is-hovered { background:#d9eeed14; border-color:#d9eeed33; color:#e9f6f0; }
 .deploy-tools { flex-shrink:0; display:grid; gap:8px; padding:12px 14px; border-top:1px solid var(--battle-line); font-size:12px; color:var(--battle-muted); }
 .deploy-formation { display:grid; gap:4px; }
 .deploy-formation .rail-field { margin:0; }
@@ -250,10 +251,14 @@
 .chart-ship text { fill:#f4f7f5; font-weight:500; }
 .chart-ship-hit { fill:transparent; stroke:none; }
 .chart-ship.is-focus .chart-ship-hit { stroke:currentColor; stroke-width:1.5; stroke-opacity:.7; }
+.chart-ship.is-hovered .chart-ship-hit { stroke:currentColor; stroke-width:1.5; stroke-opacity:.45; }
+.chart-ship.is-hovered .chart-hull { fill:#154650; }
 .chart-ship:focus-visible .chart-ship-hit { stroke:var(--battle-brass); stroke-width:2; }
 .chart-frame { fill:none; stroke:var(--battle-mint); stroke-opacity:.35; stroke-width:1; stroke-dasharray:3 5; cursor:pointer; }
 .chart-group.enemy .chart-frame { stroke:var(--battle-salmon); }
 .chart-group.is-selected .chart-frame { fill:#86e4c50a; stroke-opacity:1; stroke-dasharray:6 4; cursor:move; }
+.chart-group.is-hovered .chart-frame { stroke-opacity:.8; }
+.chart-group.is-hovered .chart-tag rect { stroke-opacity:.9; }
 .chart-group.enemy.is-selected .chart-frame { fill:#ffb5a60a; }
 .chart-frame:focus-visible { stroke:var(--battle-brass); stroke-opacity:1; }
 .chart-tag { cursor:move; }
