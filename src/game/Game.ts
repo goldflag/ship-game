@@ -55,11 +55,11 @@ import { ENGINE_ORDERS, FIXED_DT } from '../simulation/ship';
 import { DEPTH_STEP_M, orderDepth } from '../simulation/submarine';
 import { GunAimIndicators } from './GunAimIndicators';
 import { HitDirectionIndicators } from './HitDirectionIndicators';
-import { disposeObjects } from './disposeObjects';
+import { disposeObjects, disposeObjectsExcept } from './disposeObjects';
 import { CombatEffects } from './CombatEffects';
 import { configureRenderOrder } from './renderOrder';
 import type { GameAudio } from './GameAudio';
-import type { Ammunition, Battery, Vec3 } from '../ships/blueprint';
+import type { Ammunition, Battery, ShipDefinition, Vec3 } from '../ships/blueprint';
 import { gunTraverseAtFraction } from '../ships/armament';
 import type { InspectionMode } from '../ships/inspection';
 import { selectedShip, shipPreset, shipPresets } from '../ships/presets';
@@ -124,7 +124,14 @@ export class Game {
   private visualWaveSampler?: VisualWaveSampler;
   private fleetModels: THREE.Group[] = [];
   /** Public hulls a mission may reveal, brought aboard the first time a contact needs one. */
-  private recognition?: { models: Map<string, THREE.Group>; palette: ShipMaterialPalette; asked: Set<string> };
+  private recognition?: { models: Map<string, THREE.Group>; asked: Set<string> };
+  /** Derived hull templates from fleets this session has already built. Fetching, parsing,
+   * painting and batching a hull costs around 1.9 s, and the next battle usually wants the
+   * same ones, so they are kept — in least-recently-used order and capped, because each one
+   * holds tens of megabytes of vertex data. The fleet at sea is always retained. */
+  private readonly hulls = new Map<string, THREE.Group>();
+  /** One palette for every hull kept, so paint still collapses across cached fleets. */
+  private readonly palette = new ShipMaterialPalette();
   private shipLabels: ShipLabels;
   private hitLabels: HitLabels;
   private torpedoPreview = new TorpedoPreview();
@@ -625,7 +632,6 @@ export class Game {
     const actorDefinitions = new Map(simulation.actors.map(actor => [actor.definition.id, actor.definition]));
     const definitions = [...actorDefinitions.values()];
     const models = new Map<string, THREE.Group>();
-    const palette = new ShipMaterialPalette();
     const views: ShipView[] = [];
     const clones: THREE.Group[] = [];
     let draws: FleetShipDraws | undefined;
@@ -637,13 +643,9 @@ export class Game {
       progress?.(simulation.missionRules ? 'Preparing the fleet' : `Loading ${definitions[0].name}`, 0.08);
       for (const def of definitions) {
         this.assertActive();
-        const model = (await loadShipModel(assetUrl(def.modelUrl))).scene;
+        const model = await this.hull(def);
         models.set(def.id, model);
         this.assertActive();
-        const hash = 'contentHash' in def ? def.contentHash : undefined;
-        if (!hash || model.userData.definitionHash !== hash) throw new Error('The ship model and definition have different versions. Rebuild the ship assets and reload.');
-        palette.apply(model);
-        batchShipModel(model);
         // Report-only exteriors clone the original geometry; they never use
         // FleetShipDraws' detail buffers. Only actor-backed ShipViews need LODs.
         // Keep the full public catalog loaded independently of hidden enemies.
@@ -673,7 +675,7 @@ export class Game {
       this.playerDamageFeedback = new HullDamageFeedback(simulation.player.damage.integrity);
       this.audio?.reset(simulation);
       this.fleetModels = [...models.values()]; this.loadedModel = models.get(definition.id);
-      this.recognition = simulation.missionRules ? { models, palette, asked: new Set(models.keys()) } : undefined;
+      this.recognition = simulation.missionRules ? { models, asked: new Set(models.keys()) } : undefined;
       this.observedShipViews?.setModels(simulation.missionRules ? models : new Map(), this.recognition && (presetId => this.loadRecognitionModel(presetId)));
       this.fleetViews = views; this.playerView = views.find(view => view.actor === simulation.player)!;
       this.shipWake?.reset();
@@ -695,14 +697,50 @@ export class Game {
       this.rig.setBridge(definition.viewpoints?.bridge);
       this.rig.setHullLength(definition.hull.length);
       this.renderer.domElement.setAttribute('aria-label', `${definition.name} ocean scene. Drag to orbit; scroll to zoom.`);
-      disposeObjects(...previous);
+      disposeObjectsExcept({ roots: [...this.hulls.values()], materials: this.palette.sharedMaterials() }, ...previous, ...this.trimHulls(models));
     } catch (error) {
       simulation.dispose?.();
       draws?.dispose();
       views.forEach(view => { view.impactMarks.dispose(); view.rig.dispose(); });
-      disposeObjects(...models.values(), ...clones, ...views.map(view => view.root));
+      disposeObjectsExcept({ roots: [...this.hulls.values()], materials: this.palette.sharedMaterials() }, ...clones, ...views.map(view => view.root));
       throw error;
     }
+  }
+
+  /** How many derived hulls to keep beyond the fleet at sea. Enough for a repeat sortie with
+   * the same fleet plus the hulls it met, small enough that an idle port is not holding a
+   * battle's worth of vertex data. */
+  private static readonly HULL_CACHE = 8;
+
+  /** A derived hull template: fetched, painted and batched once, then reused. */
+  private async hull(definition: ShipDefinition): Promise<THREE.Group> {
+    const hash = 'contentHash' in definition ? definition.contentHash as string : undefined;
+    const key = `${definition.id}:${hash ?? ''}`;
+    const cached = this.hulls.get(key);
+    // Reinserting keeps the map in least-recently-used order for trimHulls.
+    if (cached) { this.hulls.delete(key); this.hulls.set(key, cached); return cached; }
+    const model = (await loadShipModel(assetUrl(definition.modelUrl))).scene;
+    if (!hash || model.userData.definitionHash !== hash) {
+      disposeObjects(model);
+      throw new Error('The ship model and definition have different versions. Rebuild the ship assets and reload.');
+    }
+    this.palette.apply(model);
+    batchShipModel(model);
+    this.hulls.set(key, model);
+    return model;
+  }
+
+  /** Drop the least recently used hulls once the fleet at sea is settled, and hand them back
+   * so they are retired alongside the rest of the outgoing scene. */
+  private trimHulls(fleet: ReadonlyMap<string, THREE.Group>): THREE.Group[] {
+    const afloat = new Set(fleet.values());
+    const evicted: THREE.Group[] = [];
+    for (const [key, model] of this.hulls) {
+      if (this.hulls.size <= Game.HULL_CACHE) break;
+      if (afloat.has(model)) continue;
+      this.hulls.delete(key); evicted.push(model);
+    }
+    return evicted;
   }
 
   /** Bring aboard a hull the mission has just revealed. Loading the whole public catalog
@@ -718,20 +756,14 @@ export class Game {
     if (definition.id !== presetId) return;
     recognition.asked.add(presetId);
     void (async () => {
-      let model: THREE.Group | undefined;
       try {
-        model = (await loadShipModel(assetUrl(definition.modelUrl))).scene;
-        if (this.disposed || recognition !== this.recognition) { disposeObjects(model); return; }
-        const hash = 'contentHash' in definition ? definition.contentHash : undefined;
-        if (!hash || model.userData.definitionHash !== hash) throw new Error(`${definition.name} model and definition have different versions.`);
-        recognition.palette.apply(model);
-        batchShipModel(model);
+        const model = await this.hull(definition);
+        if (this.disposed || recognition !== this.recognition) return;
         recognition.models.set(presetId, model);
         this.fleetModels.push(model);
         if (definition.airWing) await this.aircraftView.load(definition.airWing.squadrons.map(squadron => squadron.modelId), !!(this.renderer.backend as { isWebGPUBackend?: boolean }).isWebGPUBackend);
       } catch (error) {
         // A hull that will not load stays undrawn rather than costing the battle.
-        if (model) disposeObjects(model);
         console.warn(`Recognition model unavailable: ${presetId}`, error);
       }
     })();
@@ -1534,8 +1566,9 @@ export class Game {
         for (const material of Array.isArray(object.material) ? object.material : [object.material]) materials.add(material);
       }
     });
-    // A model loaded after unmount may not have reached scene.add yet.
-    for (const model of new Set([...this.fleetModels, this.loadedModel ?? this.ship])) model.traverse(object => {
+    // A model loaded after unmount may not have reached scene.add yet, and a kept hull from
+    // an earlier fleet is in neither the scene nor the current one.
+    for (const model of new Set([...this.fleetModels, ...this.hulls.values(), this.loadedModel ?? this.ship])) model.traverse(object => {
       if (object instanceof THREE.Mesh) {
         geometries.add(object.geometry);
         for (const material of Array.isArray(object.material) ? object.material : [object.material]) materials.add(material);
@@ -1547,6 +1580,7 @@ export class Game {
       material.dispose();
     });
     textures.forEach(texture => texture.dispose());
+    this.hulls.clear();
     this.renderer.dispose();
     this.renderer.domElement.remove();
   }

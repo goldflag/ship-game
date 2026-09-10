@@ -12,6 +12,7 @@ import { ShellFollow } from './ShellFollow';
 import { BattlefieldCamera } from './BattlefieldCamera';
 import { ShipView } from './ShipView';
 import { ObservedShipViews } from './ObservedShipViews';
+import { ShipMaterialPalette } from './ShipMaterialPalette';
 import { CombatSimulation } from '../simulation/combat';
 import { shipPreset, shipPresets } from '../ships/presets';
 import * as ShipDetail from './ShipDetail';
@@ -62,6 +63,7 @@ async function port(storageMatrices = false) {
     funnelSmoke: { diagnostics() { return {}; } },
     shipLabels: { setFleet() {} },
     ship: new Group(), inPort: true, disposed: false, switchingShip: false, frameWaiters: [], observedShipViews: new ObservedShipViews(),
+    hulls: new Map(), palette: new ShipMaterialPalette(),
     renderer: { backend: { isWebGPUBackend: storageMatrices }, domElement: { setAttribute() {} } },
     environment: new VisualEnvironment({ effects: { setWind() {}, setSun() {}, setIllumination() {} }, funnelSmoke: { setWind() {} }, sunAnchor: new Group() }),
   }) as Game;
@@ -533,4 +535,42 @@ test('task groups become numbered control groups carrying the formation the play
   ]);
   // An empty group takes no slot, and without a draft record each group keeps its own formation.
   expect([...briefingControlGroups(briefing)].map(([slot, group]) => [slot, group.formation])).toEqual([[1, 'line-abreast'], [2, 'column']]);
+});
+
+test('a second sortie with the same fleet reuses the hulls the first one built', async () => {
+  const { game, rig } = await port();
+  const loaded: string[] = [];
+  const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async url => {
+    const id = String(url).split('/').pop()!.replace('.glb', '');
+    loaded.push(id);
+    const gltf = await model(id); gltf.scene.name = id; return gltf;
+  });
+  const setup = { playerShipId: 'bismarck', friendlyBots: ['fletcher'], enemies: ['iowa'], spawnDistance: 5000 };
+  try {
+    await game.prepareBattle(setup);
+    expect([...loaded].sort()).toEqual(['bismarck', 'fletcher', 'iowa']);
+    loaded.length = 0;
+    // A whole new fleet, built from hulls the first sortie already parsed, painted and batched.
+    await game.prepareBattle(setup);
+    expect(loaded).toEqual([]);
+    loaded.length = 0;
+    await game.prepareBattle({ ...setup, enemies: ['yamato'] });
+    expect(loaded).toEqual(['yamato']);
+  } finally { loader.mockRestore(); rig.dispose(); game.simulation.dispose?.(); }
+}, 30000);
+
+test('kept hulls are capped, least recently used first, and never take the fleet at sea with them', async () => {
+  const { game, rig } = await port();
+  const internals = game as unknown as { hulls: Map<string, Group>; trimHulls(fleet: ReadonlyMap<string, Group>): Group[] };
+  try {
+    for (let index = 0; index < 12; index++) internals.hulls.set(`hull-${index}`, new Group());
+    // The oldest entry is still afloat, so the sweep has to step over it.
+    const afloat = new Map([['afloat', internals.hulls.get('hull-0')!]]);
+    const evicted = internals.trimHulls(afloat);
+    expect(internals.hulls.size).toBe(8);
+    expect(evicted).toHaveLength(4);
+    expect(internals.hulls.has('hull-0')).toBe(true);
+    expect(['hull-1', 'hull-2', 'hull-3', 'hull-4'].every(key => !internals.hulls.has(key))).toBe(true);
+    expect(internals.trimHulls(afloat)).toEqual([]);
+  } finally { rig.dispose(); game.simulation.dispose?.(); }
 });
