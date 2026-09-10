@@ -529,3 +529,48 @@ fn a_visible_torpedo_dodge_opens_real_clearance_then_resumes_the_order() {
         "physical dodge must open useful clearance: {dodging}"
     );
 }
+
+#[test]
+fn ship_in_shore_safety_margin_can_sail_out_to_open_water() {
+    let mut ships = vec![ship("dd", "fletcher", 950.0, 0.0)];
+    ships[0].motion.heading = std::f64::consts::FRAC_PI_2;
+    let islands = vec![island("island", 0.0, 0.0)];
+    let orders = vec![route(vec![[3000.0, 0.0]])];
+    assert!(islands[0].radius(950.0, 0.0) > 1.2, "ship starts in water");
+    for tick in 0..60 * 600 {
+        step(&mut ships, &orders, &islands, tick);
+    }
+    assert!(gap(&ships[0], [3000.0, 0.0]) < 150.0,
+        "outward route stalled: position=({}, {}), status={:?}",
+        ships[0].motion.x, ships[0].motion.z, ships[0].navigation.as_ref().unwrap().status);
+}
+
+#[test]
+fn shore_margin_recovery_takes_a_detour_instead_of_crossing_land() {
+    let mut ships = vec![ship("dd", "fletcher", 950.0, 0.0)];
+    ships[0].motion.heading = std::f64::consts::FRAC_PI_2;
+    let islands = vec![island("island", 0.0, 0.0)];
+    let orders = vec![route(vec![[-3000.0, 0.0]])];
+    let half_length = ships[0].definition().hull.length * 0.5;
+    for tick in 0..60 * 1200 {
+        step(&mut ships, &orders, &islands, tick);
+        let a = &ships[0];
+        assert!((a.motion.x / (650.0 * 1.22 + half_length))
+            .hypot(a.motion.z / (1000.0 * 1.22 + half_length)) > 1.0,
+            "recovery must preserve hull clearance at tick {tick}");
+    }
+    assert!(gap(&ships[0], [-3000.0, 0.0]) < 150.0, "did not complete recovery detour");
+}
+
+#[test]
+fn shore_margin_recovery_never_relaxes_the_hull_or_destination_clearance() {
+    let islands = vec![island("island", 0.0, 0.0)];
+    for (from, to) in [(820.0, [3000.0, 0.0]), (950.0, [970.0, 300.0])] {
+        let a = ship("dd", "fletcher", from, 0.0);
+        let order = route(vec![to]);
+        let mut state = NavigationState::new(order.clone());
+        let command = navigation::command(&a, &[], &islands, &order, &mut state, 0, 15.0);
+        assert_eq!(state.status, NavigationStatus::Blocked);
+        assert_eq!(command.throttle, 0.0);
+    }
+}

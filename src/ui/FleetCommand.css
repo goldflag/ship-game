@@ -276,3 +276,13 @@
 .fleet-command-plane.selected .fleet-command-plane-health { display:initial; }
 .fleet-command-plane-health .fleet-command-hull-fill { fill:currentColor; }
 .fleet-command-bracket path,.fleet-command-route,.fleet-command-air-route { stroke-linejoin:round; stroke-linecap:round; }
+
+/* Blocked orders remain legible without selecting or hovering their ship. */
+.fleet-command-course.blocked { opacity:1; }
+.fleet-command-course.blocked > path { stroke:var(--fleet-gold); stroke-width:2.5; stroke-dasharray:7 5; }
+.fleet-command-marker .fleet-command-route-alert { color:var(--fleet-gold); pointer-events:none; }
+.fleet-command-marker .fleet-command-route-alert path { fill:#102c37; stroke:currentColor; stroke-width:1.5; }
+.fleet-command-marker .fleet-command-route-alert text { fill:currentColor; font-size:11px; font-weight:500; }
+.fleet-command-token .fleet-route-warning { display:flex; align-items:center; justify-content:center; gap:3px; color:var(--fleet-gold); font-size:10px; }
+.fleet-command-token .fleet-route-warning svg { width:12px; height:12px; flex:none; }
+.fleet-command .fleet-command-token .fleet-route-warning path { fill:none; stroke:currentColor; }
