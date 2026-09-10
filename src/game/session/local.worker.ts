@@ -12,6 +12,9 @@ let runtime: LocalRuntime | undefined;
 let planner: PvePlanner | undefined;
 let previous: Snapshot | undefined;
 let profile = false;
+/** Hulls whose damage-control detail the session still reads. Empty keeps every
+ * ship's, which is what the first frame after init, deploy or restart wants. */
+let detail: string[] = [];
 let content: Promise<Uint8Array> | undefined;
 function loadContent() {
   return content ??= (async () => {
@@ -22,7 +25,7 @@ function loadContent() {
 }
 // Requests are serialized: initialization cannot race a queued tick batch.
 let chain = Promise.resolve();
-self.onmessage = (event: MessageEvent<{ type: 'options' } | { type: 'validate'; placements: Placement[] } | { type: 'init'; setup: BattleSetup; profile?: boolean } | { type: 'plan'; request: PveRequest; profile?: boolean } | { type: 'deploy'; placements: Placement[]; formations?: Record<string, Formation> } | { type: 'restart' } | { type: 'advance'; commands: CommandEnvelope[]; ticks: number }>) => {
+self.onmessage = (event: MessageEvent<{ type: 'options' } | { type: 'validate'; placements: Placement[] } | { type: 'init'; setup: BattleSetup; profile?: boolean } | { type: 'plan'; request: PveRequest; profile?: boolean } | { type: 'deploy'; placements: Placement[]; formations?: Record<string, Formation> } | { type: 'restart' } | { type: 'advance'; commands: CommandEnvelope[]; ticks: number; detailShipIds?: string[] }>) => {
   chain = chain.then(async () => {
     try {
       const message = event.data;
@@ -44,14 +47,14 @@ self.onmessage = (event: MessageEvent<{ type: 'options' } | { type: 'validate'; 
       } else if (message.type === 'deploy') {
         if (!planner) throw new Error('Prepare a mission before deploying.');
         const next = planner.start(JSON.stringify(message.placements), JSON.stringify(message.formations ?? {}));
-        runtime?.free(); runtime = next; previous = undefined;
+        runtime?.free(); runtime = next; previous = undefined; detail = [];
         planner.free(); planner = undefined;
       } else if (message.type === 'init') {
         const next = new LocalRuntime(await loadContent(), JSON.stringify(message.setup));
-        runtime?.free(); runtime = next; previous = undefined;
+        runtime?.free(); runtime = next; previous = undefined; detail = [];
       } else if (message.type === 'restart') {
         if (!runtime) throw new Error('No active mission to restart.');
-        runtime.restart_pve(); previous = undefined;
+        runtime.restart_pve(); previous = undefined; detail = [];
       } else {
         if (!runtime) throw new Error('Battle worker is not initialized.');
         for (const command of message.commands) {
@@ -61,12 +64,15 @@ self.onmessage = (event: MessageEvent<{ type: 'options' } | { type: 'validate'; 
           } catch (error) { self.postMessage({ type: 'ack', sequence: command.sequence, accepted: false, message: String(error), command: command.command.type, shipId: command.shipId }); }
         }
         if (!Number.isInteger(message.ticks) || message.ticks < 1 || message.ticks > 24) throw new Error('Invalid local tick batch.');
+        const ids = message.detailShipIds ?? [];
+        if (!Array.isArray(ids) || ids.length > 4 || ids.some(id => typeof id !== 'string')) throw new Error('Invalid snapshot detail.');
+        detail = ids;
         // Keep the runtime's bounded fixed-step API; high speed batches never
         // alter timestep or block the rendering/input thread.
         for (let left = message.ticks; left > 0; left -= 6) runtime.step(Math.min(6, left));
       }
       const stepped = profile ? performance.now() : 0;
-      const json = runtime!.snapshot();
+      const json = runtime!.detailed_snapshot(detail);
       const serialized = profile ? performance.now() : 0;
       const frame = decodeSnapshot(json);
       const decoded = profile ? performance.now() : 0;

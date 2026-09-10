@@ -169,6 +169,13 @@ fn main() {
         other => panic!("unknown scenario {other}"),
     };
     let server = scenario == "server";
+    // What the browser session asks for: the followed or helm hull, plus the
+    // inspected target in a custom battle. See LocalRuntime::detailed_snapshot.
+    let detail: Vec<String> = match scenario {
+        "surface" | "carrier" => vec!["own-0".into()],
+        "custom" => vec!["player".into(), "enemy-0".into()],
+        _ => Vec::new(),
+    };
     let baseline = server.then(|| runtime.full_knowledge_value().unwrap());
     let mut tick = 0u64;
     let (mut step_ms, mut snap_ms, mut bytes) = (0.0, 0.0, 0usize);
@@ -193,7 +200,7 @@ fn main() {
                     bytes += delta_bytes(baseline, &value);
                     finished |= value["outcome"].is_object();
                 } else {
-                    let json = runtime.snapshot().unwrap();
+                    let json = runtime.detailed_snapshot(detail.clone()).unwrap();
                     bytes += json.len();
                     finished |= json.contains("\"phase\":\"finished\"");
                 }

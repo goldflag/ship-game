@@ -25,13 +25,40 @@ complete Rust snapshots, including combat events and renderer identity updates.
 
 Local fleet command batches routine presentation at 20 Hz of wall time, including
 fast-forward. Authoritative combat remains at 60 ticks per simulated second.
-Queued orders and manual helm retain a 60 Hz dispatch opportunity; batches remain
-bounded at 100 ms of requested wall time. Tests cover 1×/2×/4× equivalence, 120 Hz
-displays, pause/restart, prompt orders and taking the helm.
+Queued orders and manual helm retain a 60 Hz dispatch opportunity; a batch stays
+bounded at six ticks per speed step and never exceeds 24. One batch is in flight
+at a time, and the next one is posted from the worker's reply rather than the
+following render frame: the worker keeps stepping while the frame draws, a round
+trip that overruns a frame no longer costs the next one, and simulation speed
+stops depending on frame rate. Unspent simulated time is carried as debt up to
+one simulated second instead of being discarded at the old 0.4 s clamp, so a slow
+round trip is repaid rather than dropped. `achievedSpeed` reports the simulated
+seconds per wall second actually reached over the last two-second window; the
+speed control shows it when the worker cannot hold the requested setting, leaving
+the choice to step down with the player. Tests cover 1×/2×/4× equivalence, 120 Hz
+displays, pause/restart, prompt orders, taking the helm, dispatch from the reply
+and debt carried across a round trip longer than the old clamp.
 
 Live PvE snapshots stream owned hull fields through the shared presentation
 serializer, remapping target IDs through the team boundary. Contacts, effects,
 aircraft and scores retain the existing team projection, and finished missions
 retain their debrief path. Native differential tests compare every field against
 the original tree projection for both teams, including unavailable targets and
-finished battles. See [fleet speed measurements](../../../docs/pve-speed-performance.md).
+finished battles.
+
+Compartment-derived damage is half of a fleet-command frame, and most of it has
+one reader. The `advance` message names the hulls whose damage-control panel can
+be on screen: the followed or helm ship, plus the fully known target whose fire
+report a custom battle shows. `LocalRuntime.detailed_snapshot` narrows both the
+team projection and the full-knowledge streaming projection to that list; an
+empty list keeps every ship's, which is what the server, the migration checks and
+the first frame after init, deploy or restart use.
+
+Only portable pumping and flood connections leave a narrowed hull entirely. Its
+rooms keep their compartment positions and carry `heat` and `intensity`, because
+hull fire effects and the inspection view read every ship's room fires by index;
+the six fields behind the panel's fire report (fuel, initial fuel, ignition heat,
+heat per damage, trend and suppression) do not travel. Compartments stay whole
+for every ship: the fleet HUD places fire markers at their centres and flooding
+is drawn from their water volumes. The differential tests compare the narrowed
+tree and streaming projections field for field. See [fleet speed measurements](../../../docs/pve-speed-performance.md).

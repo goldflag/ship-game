@@ -28,6 +28,54 @@ fn same(a: &Value, b: &Value, path: &str) {
     }
 }
 
+/// Portable pumping and flood connections travel only for the hull whose panel is
+/// on screen; every other hull keeps its rooms in place but carries only the two
+/// fields hull fire effects and the inspection view read. Compartments stay whole.
+fn check_detail(actors: &[Value], detail: &[&str], path: &str) {
+    assert!(!actors.is_empty(), "{path}");
+    for actor in actors {
+        let id = actor["motion"]["id"].as_str().unwrap();
+        let kept = detail.contains(&id);
+        let rooms = actor["damage"]["control"]["rooms"].as_array().unwrap();
+        let pumping = actor["damage"]["control"]["pumping"].as_array().unwrap();
+        let connections = actor["damage"]["connections"].as_array().unwrap();
+        let compartments = actor["damage"]["compartments"].as_array().unwrap();
+        assert!(!compartments.is_empty(), "{path} {id} compartments");
+        assert_eq!(
+            rooms.len(),
+            compartments.len(),
+            "{path} {id} rooms keep their compartment positions"
+        );
+        for room in rooms {
+            let keys: Vec<_> = room
+                .as_object()
+                .unwrap()
+                .keys()
+                .map(String::as_str)
+                .collect();
+            if kept {
+                assert!(
+                    keys.contains(&"fuel") && keys.contains(&"trend"),
+                    "{path} {id} room detail"
+                );
+            } else {
+                assert_eq!(keys, ["heat", "intensity"], "{path} {id} narrowed room");
+            }
+        }
+        assert_eq!(!pumping.is_empty(), kept, "{path} {id} pumping");
+        assert_eq!(!connections.is_empty(), kept, "{path} {id} connections");
+        // Everything else the panel does not read stays exactly as before.
+        assert!(
+            actor["damage"]["control"]["mounts"].is_array(),
+            "{path} {id}"
+        );
+        assert!(
+            actor["damage"]["control"]["teams"].is_array(),
+            "{path} {id}"
+        );
+    }
+}
+
 #[test]
 fn streamed_large_battle_preserves_every_presentation_field_and_authority_state() {
     let catalog = Arc::new(
@@ -84,6 +132,31 @@ fn streamed_large_battle_preserves_every_presentation_field_and_authority_state(
             serde_json::from_str(&serde_json::to_string(&battle.presentation_snapshot()).unwrap())
                 .unwrap();
         same(&actual, &expected, &format!("tick {tick}"));
+        // The narrowed projections must also agree, field for field, and must
+        // keep the detail hulls' damage-control state and drop everyone else's.
+        let detail = ["a-0".to_string(), "b-0".to_string()];
+        let expected: Value = serde_json::from_str(
+            &serde_json::to_string(
+                &battle
+                    .detailed_presentation_value(
+                        naval_sim::snapshot::PresentationView::FullKnowledge,
+                        &detail,
+                    )
+                    .unwrap(),
+            )
+            .unwrap(),
+        )
+        .unwrap();
+        let actual: Value = serde_json::from_str(
+            &serde_json::to_string(&battle.detailed_presentation_snapshot(&detail)).unwrap(),
+        )
+        .unwrap();
+        same(&actual, &expected, &format!("narrowed tick {tick}"));
+        check_detail(
+            actual["actors"].as_array().unwrap(),
+            &["a-0", "b-0"],
+            &format!("tick {tick}"),
+        );
         assert_eq!(
             serde_json::to_string(&battle.snapshot()).unwrap(),
             before,
@@ -152,6 +225,31 @@ fn streamed_team_hulls_preserve_visibility_targets_damage_and_debrief() {
             )
             .unwrap();
             same(&actual, &expected, &format!("team {team:?}, tick {tick}"));
+            let detail = [battle.actors[0].motion.id.clone()];
+            let expected: Value = serde_json::from_str(
+                &serde_json::to_string(
+                    &battle
+                        .detailed_presentation_value(PresentationView::Team(team), &detail)
+                        .unwrap(),
+                )
+                .unwrap(),
+            )
+            .unwrap();
+            let actual: Value = serde_json::from_str(
+                &serde_json::to_string(&battle.detailed_team_presentation_snapshot(team, &detail))
+                    .unwrap(),
+            )
+            .unwrap();
+            same(
+                &actual,
+                &expected,
+                &format!("narrowed team {team:?}, tick {tick}"),
+            );
+            check_detail(
+                actual["actors"].as_array().unwrap(),
+                &[&detail[0]],
+                &format!("team {team:?}, tick {tick}"),
+            );
             assert_eq!(before, serde_json::to_string(&battle.snapshot()).unwrap());
             assert!(
                 actual["actors"]
