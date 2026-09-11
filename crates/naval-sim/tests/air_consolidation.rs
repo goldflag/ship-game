@@ -8,7 +8,7 @@ use naval_sim::{
     catalog::Catalog,
     deck_operations::DeckAction,
     rules::TeamId,
-    vessel::{CompiledShip, Controller, Vessel},
+    vessel::{Controller, Vessel},
 };
 use std::{
     collections::BTreeSet,
@@ -32,7 +32,7 @@ fn setup(preset: &str) -> (Vec<Vessel>, Aviation) {
         let mut actor = Vessel::new(
             id,
             team,
-            Arc::new(CompiledShip::new(catalog().definitions[preset].clone()).unwrap()),
+            Arc::new(catalog().compile(preset).unwrap()),
         );
         actor.controller = Controller::Player;
         actor

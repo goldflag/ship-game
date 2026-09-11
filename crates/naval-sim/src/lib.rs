@@ -20,6 +20,7 @@ pub mod deck_operations;
 pub mod flight_deck;
 pub mod floodwater;
 pub mod hull;
+pub mod hydro_table;
 pub mod hydrostatics;
 
 pub mod environment;

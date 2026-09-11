@@ -10,7 +10,7 @@ use naval_sim::{
     geometry::{length, local_to_world, sub},
     impact::DamageEvent,
     rules::TeamId,
-    vessel::{CompiledShip, Controller, Vessel},
+    vessel::{Controller, Vessel},
 };
 use std::sync::{Arc, OnceLock};
 
@@ -24,7 +24,7 @@ fn setup() -> (Vec<Vessel>, Aviation) {
     let mut actor = Vessel::new(
         "carrier",
         TeamId::A,
-        Arc::new(CompiledShip::new(catalog().definitions["enterprise-cv6"].clone()).unwrap()),
+        Arc::new(catalog().compile("enterprise-cv6").unwrap()),
     );
     actor.controller = Controller::Player;
     let actors = vec![actor];

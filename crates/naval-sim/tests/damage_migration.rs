@@ -51,7 +51,7 @@ fn damage_flooding_crews_and_submarines_match_existing_hulls() {
     for case in fixture["cases"].as_array().unwrap() {
         let id = case["id"].as_str().unwrap();
         let def = &catalog.definitions[id];
-        let hydro = HullHydrostatics::new(&def.hull);
+        let hydro = HullHydrostatics::new(&def.hull, catalog.hydrostatics.get(id));
         let mut actor = Combatant::new(id, def);
         actor.motion.roll = 0.13;
         actor.motion.pitch = -0.01;
@@ -340,12 +340,7 @@ fn patched(baseline: &Value, patches: &Value) -> Value {
 }
 #[test]
 fn complete_projectile_flight_and_bursts_match_reference() {
-    use naval_sim::{
-        projectile::advance_projectile,
-        rules::TeamId,
-        shell::Shell,
-        vessel::{CompiledShip, Vessel},
-    };
+    use naval_sim::{projectile::advance_projectile, rules::TeamId, shell::Shell, vessel::Vessel};
     let catalog =
         Catalog::load(&std::fs::read("../../.build/naval-content/manifest.json").unwrap()).unwrap();
     let fixture: Value = serde_json::from_str(include_str!(
@@ -354,8 +349,7 @@ fn complete_projectile_flight_and_bursts_match_reference() {
     .unwrap();
     for case in fixture["cases"].as_array().unwrap() {
         let id = case["id"].as_str().unwrap();
-        let compiled =
-            std::sync::Arc::new(CompiledShip::new(catalog.definitions[id].clone()).unwrap());
+        let compiled = std::sync::Arc::new(catalog.compile(id).unwrap());
         for (i, shot) in case["shots"].as_array().unwrap().iter().enumerate() {
             let mut actors = vec![Vessel::new(id, TeamId::A, compiled.clone())];
             let mut shell: Shell = serde_json::from_value(shot["initial"].clone()).unwrap();
@@ -420,7 +414,9 @@ fn seeded_bot_observations_helm_and_gun_aim_match_reference() {
         .map(|(id, d)| {
             (
                 id.clone(),
-                std::sync::Arc::new(CompiledShip::new(d.clone()).unwrap()),
+                std::sync::Arc::new(
+                    CompiledShip::new(d.clone(), catalog.hydrostatics.get(id)).unwrap(),
+                ),
             )
         })
         .collect();
@@ -505,7 +501,7 @@ fn torpedo_training_swept_hits_and_depth_charge_trajectories_match() {
         depth_charges,
         rules::TeamId,
         torpedoes::{self, Torpedo},
-        vessel::{CompiledShip, Vessel},
+        vessel::Vessel,
     };
     let catalog =
         Catalog::load(&std::fs::read("../../.build/naval-content/manifest.json").unwrap()).unwrap();
@@ -515,8 +511,7 @@ fn torpedo_training_swept_hits_and_depth_charge_trajectories_match() {
     .unwrap();
     for case in fixture["cases"].as_array().unwrap() {
         let id = case["id"].as_str().unwrap();
-        let compiled =
-            std::sync::Arc::new(CompiledShip::new(catalog.definitions[id].clone()).unwrap());
+        let compiled = std::sync::Arc::new(catalog.compile(id).unwrap());
         let def = compiled.definition.clone();
         let mut actor = Vessel::new(id, TeamId::A, compiled);
         actor.motion = serde_json::from_value(case["motion"].clone()).unwrap();
@@ -667,13 +662,12 @@ fn centerline_contact_roundoff_preserves_side_and_breach_normal() {
 }
 #[test]
 fn symmetric_ram_axis_is_stable_across_heading_roundoff() {
-    use naval_sim::{
-        collisions::resolve_ship_collisions,
-        rules::TeamId,
-        vessel::{CompiledShip, Vessel},
-    };
-    let def = serde_json::from_str(include_str!("../../../public/models/fletcher.json")).unwrap();
-    let compiled = std::sync::Arc::new(CompiledShip::new(def).unwrap());
+    use naval_sim::{collisions::resolve_ship_collisions, rules::TeamId, vessel::Vessel};
+    let catalog = naval_sim::catalog::Catalog::load(
+        &std::fs::read("../../.build/naval-content/manifest.json").unwrap(),
+    )
+    .unwrap();
+    let compiled = std::sync::Arc::new(catalog.compile("fletcher").unwrap());
     let ram = |heading| {
         let mut actors = vec![
             Vessel::new("a", TeamId::A, compiled.clone()),
@@ -717,7 +711,9 @@ fn fleet_collisions_and_grounding_match_reference() {
         .map(|(id, d)| {
             (
                 id.clone(),
-                std::sync::Arc::new(CompiledShip::new(d.clone()).unwrap()),
+                std::sync::Arc::new(
+                    CompiledShip::new(d.clone(), catalog.hydrostatics.get(id)).unwrap(),
+                ),
             )
         })
         .collect();
@@ -842,19 +838,18 @@ fn aircraft_mechanisms_and_shared_fire_discipline_match_reference() {
                     "propeller": expected["plane"]["controls"]["propeller"],
                     "discipline": expected["plane"]["pilot"]["fireDiscipline"],
                 });
-                compare(&actual, &expected, &format!("{}.mechanisms@{tick}", plane.model_id));
+                compare(
+                    &actual,
+                    &expected,
+                    &format!("{}.mechanisms@{tick}", plane.model_id),
+                );
             }
         }
     }
 }
 #[test]
 fn carrier_launch_admission_and_deck_loss_match_reference() {
-    use naval_sim::{
-        aviation::Aviation,
-        aviation_step::AirContext,
-        rules::TeamId,
-        vessel::{CompiledShip, Vessel},
-    };
+    use naval_sim::{aviation::Aviation, aviation_step::AirContext, rules::TeamId, vessel::Vessel};
     use std::sync::Arc;
     let catalog =
         Catalog::load(&std::fs::read("../../.build/naval-content/manifest.json").unwrap()).unwrap();
@@ -864,7 +859,7 @@ fn carrier_launch_admission_and_deck_loss_match_reference() {
     .unwrap();
     for c in fixture["cases"].as_array().unwrap() {
         let id = c["id"].as_str().unwrap();
-        let compiled = Arc::new(CompiledShip::new(catalog.definitions[id].clone()).unwrap());
+        let compiled = Arc::new(catalog.compile(id).unwrap());
         let mut actors = vec![
             Vessel::new("carrier", TeamId::A, compiled.clone()),
             Vessel::new("opponent", TeamId::B, compiled),
@@ -986,7 +981,12 @@ fn complete_battles_match_reference() {
     let compiled: BTreeMap<_, _> = catalog
         .definitions
         .iter()
-        .map(|(id, d)| (id.clone(), Arc::new(CompiledShip::new(d.clone()).unwrap())))
+        .map(|(id, d)| {
+            (
+                id.clone(),
+                Arc::new(CompiledShip::new(d.clone(), catalog.hydrostatics.get(id)).unwrap()),
+            )
+        })
         .collect();
     let fixture: Value = serde_json::from_str(include_str!(
         "../../../assets/gameplay/migration/battles.v1.json"

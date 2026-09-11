@@ -18,15 +18,7 @@ fn battle(plan: &PvePlan) -> naval_sim::battle::Battle {
     let compiled = COMPILED.get_or_init(|| {
         ["fletcher", "enterprise-cv6"]
             .into_iter()
-            .map(|id| {
-                (
-                    id.into(),
-                    Arc::new(
-                        naval_sim::vessel::CompiledShip::new(catalog().definitions[id].clone())
-                            .unwrap(),
-                    ),
-                )
-            })
+            .map(|id| (id.into(), Arc::new(catalog().compile(id).unwrap())))
             .collect()
     });
     // Restrict only this focused command fixture's available pool.

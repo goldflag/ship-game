@@ -66,17 +66,20 @@ fn an_unchanged_rebuild_leaves_a_body_identical() {
         }
     }
 }
+/// The mesh solver's flotation shortcut still rests on this: at -bound every
+/// vertex is kept, so the sample cannot depend on attitude. The published table
+/// makes the same claim structurally, by holding one fully immersed entry.
 #[test]
 fn the_fully_immersed_sample_does_not_depend_on_attitude() {
     let catalog = catalog();
     for (id, def) in &catalog.definitions {
         let hull = &def.hull;
-        let hydro = HullHydrostatics::new(hull);
+        let mesh = HullHydrostatics::new(hull, None);
         let bound = hull.length + hull.beam + hull.draft + hull.depth;
-        let full = hydro.sample(-bound, 0.0, 0.0);
-        assert_eq!(full.volume.to_bits(), hydro.full_volume().to_bits(), "{id}");
+        let full = mesh.sample(-bound, 0.0, 0.0);
+        assert_eq!(full.volume.to_bits(), mesh.full_volume().to_bits(), "{id}");
         for (roll, pitch) in ATTITUDES {
-            let sample = hydro.sample(-bound, roll, pitch);
+            let sample = mesh.sample(-bound, roll, pitch);
             assert_eq!(sample.volume.to_bits(), full.volume.to_bits(), "{id}");
             for axis in 0..3 {
                 assert_eq!(
@@ -86,5 +89,14 @@ fn the_fully_immersed_sample_does_not_depend_on_attitude() {
                 );
             }
         }
+        // The table is solved by the TypeScript twin's copy of that same mesh,
+        // so its published total must land on the same displacement.
+        let table = HullHydrostatics::new(hull, catalog.hydrostatics.get(id));
+        assert!(
+            (table.full_volume() - full.volume).abs() < full.volume * 1e-9,
+            "{id}: table {} mesh {}",
+            table.full_volume(),
+            full.volume
+        );
     }
 }

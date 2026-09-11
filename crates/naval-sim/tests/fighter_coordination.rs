@@ -4,7 +4,7 @@ use naval_sim::{
     aviation::Aviation,
     catalog::Catalog,
     rules::TeamId,
-    vessel::{CompiledShip, Vessel},
+    vessel::Vessel,
 };
 use std::sync::{Arc, OnceLock};
 fn fixture() -> Vec<Aircraft> {
@@ -15,7 +15,7 @@ fn fixture() -> Vec<Aircraft> {
     let carrier = Vessel::new(
         "home",
         TeamId::A,
-        Arc::new(CompiledShip::new(catalog.definitions["enterprise-cv6"].clone()).unwrap()),
+        Arc::new(catalog.compile("enterprise-cv6").unwrap()),
     );
     let air = Aviation::new(&[carrier], catalog.aircraft.clone());
     let template = air.planes()[0].clone();

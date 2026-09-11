@@ -31,7 +31,7 @@ fn catalog() -> Arc<Catalog> {
         .clone()
 }
 fn compiled(id: &str) -> Arc<CompiledShip> {
-    Arc::new(CompiledShip::new(catalog().definitions[id].clone()).unwrap())
+    Arc::new(catalog().compile(id).unwrap())
 }
 
 fn bomb_at(a: &mut [Vessel], id: i64, is_bomb: bool) -> f64 {

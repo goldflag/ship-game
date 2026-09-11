@@ -181,8 +181,11 @@ impl ProjectileMigration {
             .get(&input.preset_id)
             .ok_or_else(|| error("Unknown preset"))?;
         if !self.compiled.contains_key(&input.preset_id) {
-            let content =
-                naval_sim::vessel::CompiledShip::new(definition.clone()).map_err(error)?;
+            let content = naval_sim::vessel::CompiledShip::new(
+                definition.clone(),
+                self.catalog.hydrostatics.get(&input.preset_id),
+            )
+            .map_err(error)?;
             self.compiled
                 .insert(input.preset_id.clone(), std::sync::Arc::new(content));
         }
@@ -221,7 +224,13 @@ impl BattleRuntime {
                     .ok_or_else(|| error("Unknown ship preset"))?;
                 compiled.insert(
                     s.preset_id.clone(),
-                    Arc::new(naval_sim::vessel::CompiledShip::new(def.clone()).map_err(error)?),
+                    Arc::new(
+                        naval_sim::vessel::CompiledShip::new(
+                            def.clone(),
+                            catalog.hydrostatics.get(&s.preset_id),
+                        )
+                        .map_err(error)?,
+                    ),
                 );
             }
         }
@@ -677,7 +686,11 @@ impl PvePlanner {
                 self.compiled.insert(
                     ship.preset_id.clone(),
                     std::sync::Arc::new(
-                        naval_sim::vessel::CompiledShip::new(def.clone()).map_err(error)?,
+                        naval_sim::vessel::CompiledShip::new(
+                            def.clone(),
+                            self.catalog.hydrostatics.get(&ship.preset_id),
+                        )
+                        .map_err(error)?,
                     ),
                 );
             }
