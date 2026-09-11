@@ -223,6 +223,7 @@ impl Battle {
                 json!({"id":c.id,"presetId":e.preset_id,"position":e.position,
                 "heading":e.motion.heading,"pitch":e.motion.pitch,"roll":e.motion.roll,
                 "velocity":e.motion.velocity,"observedTick":c.last_observed_tick,"health":e.health,
+                "mounts":e.mounts,"launchers":e.launchers,
                 "observers":c.sources.iter().map(|s| &s.observer_id).collect::<Vec<_>>()})
             })
             .collect();

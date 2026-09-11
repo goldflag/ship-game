@@ -72,6 +72,7 @@ import { ShellFollow, type ShellView } from './ShellFollow';
 import { sightAim, torpedoCourseAim } from './aiming';
 import { createHarborBackdrop, type HarborBackdrop } from './HarborBackdrop';
 import { ShipWake } from './ShipWake';
+import type { WakeShip } from './FleetWakeFoam';
 import { ShipFunnelSmoke } from './ShipFunnelSmoke';
 import type { GameCallbacks, PerformanceReadout } from './types';
 
@@ -899,7 +900,7 @@ export class Game {
       if (this.inPort) this.playerView!.root.visible = true;
       else this.fleetViews.forEach(view => { view.root.visible = view !== opticsHull; });
       this.harbor?.update(dt, this.camera);
-      this.shipWake!.update(this.inPort ? [this.playerView!] : this.fleetViews, dt, this.simulation.events, this.camera);
+      this.shipWake!.update(this.inPort ? [this.playerView!] : this.wakeShips(), dt, this.simulation.events, this.camera);
       // Fixed-step mode with zero delta renders without stepping the wake's
       // leapfrog/foam integrators. Host-clock update(0) would still step them.
       this.water!.deterministic = this.paused || this.tacticalPause;
@@ -1329,6 +1330,12 @@ export class Game {
         aim, spectating ? group?.id : this.weaponGroupId, subject),
     };
   }
+  /** Every hull on the water leaves a wake: the fleet's views and the reported
+   * enemy exteriors. The camera's hull leads so the swell solver centres on it. */
+  private wakeShips(): WakeShip[] {
+    const focus = this.cameraShipView;
+    return [focus, ...this.fleetViews.filter(view => view !== focus), ...this.observedShipViews?.wakeShips() ?? []];
+  }
   private get cameraShipView(): ShipView {
     return this.fleetViews.find(view => view.actor.motion.id === this.spectatedShipId)
       ?? (this.inspecting ? this.targetView! : this.playerView!);
@@ -1384,7 +1391,11 @@ export class Game {
     this.rig.setHullLength(view.definition.hull.length);
     this.rig.setSubmarine(view.definition.submarine);
     this.rig.update(view.motion, view.motion.y, 0, true);
-    this.rig.releasePointer();
+    // Following a captain in fleet command steers the camera like holding the helm:
+    // the mouse looks around at once and Ctrl frees the cursor for the orders panel.
+    // A sunk player's spectator keeps the cursor for the teammate picker.
+    if (this.fleetCommandMode && !this.paused) this.rig.capturePointer();
+    else this.rig.releasePointer();
   }
   cycleSpectator(direction: number): void {
     const candidates = this.spectatorCandidates;
