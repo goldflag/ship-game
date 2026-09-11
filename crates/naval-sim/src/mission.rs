@@ -55,6 +55,49 @@ pub struct MissionRules {
     pub duration_seconds: Option<u64>,
     pub timeout: TimeoutPolicy,
 }
+/// Versioned PvE simulation cadence, in the style of `visual-sensors.v2.json`:
+/// content, not a client flag. A battle applies it only while it carries
+/// mission rules, so custom battles and the multiplayer server (which never set
+/// `mission_rules`) keep the per-tick path bit for bit. Every entry counts
+/// `Battle::tick`, never wall time, so 1x and 4x remain identical.
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct SimulationCadence {
+    pub version: u32,
+    /// The captain-loop `capability::update`; the post-damage call stays per tick.
+    pub capability_ticks: u64,
+    /// Fire spread, heat and damage-control jobs, integrated with a matching dt.
+    pub damage_control_ticks: u64,
+    /// Interval of the hydrostatic solve inside `update_stability`.
+    pub stability_interval_seconds: f64,
+}
+impl Default for SimulationCadence {
+    fn default() -> Self {
+        serde_json::from_str(include_str!("../../../assets/gameplay/pve-cadence.v1.json"))
+            .expect("versioned PvE cadence")
+    }
+}
+impl SimulationCadence {
+    /// Per-tick cadence: the shape the non-mission path already runs.
+    pub const PER_TICK: Self = Self {
+        version: 1,
+        capability_ticks: 1,
+        damage_control_ticks: 1,
+        stability_interval_seconds: 0.5,
+    };
+    pub fn validate(&self) -> Result<(), String> {
+        let ticks = 1..=60;
+        if self.version != 1
+            || !ticks.contains(&self.capability_ticks)
+            || !ticks.contains(&self.damage_control_ticks)
+            || !self.stability_interval_seconds.is_finite()
+            || !(crate::rules::DT..=1.0).contains(&self.stability_interval_seconds)
+        {
+            return Err("Invalid PvE simulation cadence".into());
+        }
+        Ok(())
+    }
+}
 #[derive(Clone, Copy, Debug, Default, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase")]
 pub struct FleetTotals {

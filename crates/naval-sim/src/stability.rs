@@ -80,11 +80,17 @@ fn wreck_depth(def: &ShipDefinition) -> f64 {
         -50.0_f64.max((def.hull.length / 2.0).hypot(def.hull.beam / 2.0) + def.hull.depth + 10.0)
     }
 }
+/// `interval` is how often the hydrostatic solve runs: half a second for every
+/// battle without mission rules, and whatever the PvE cadence asset says for a
+/// mission. Roll and pitch still integrate every tick; between solves they use
+/// the linearised righting arm about the last sampled attitude, which is what
+/// keeps a longer interval from injecting energy into a short hull.
 pub fn update_stability(
     actor: &mut Combatant,
     def: &ShipDefinition,
     hydro: &HullHydrostatics,
     dt: f64,
+    interval: f64,
     sea: Option<SeaResponse>,
 ) {
     let Some(profile) = &def.stability else {
@@ -97,8 +103,8 @@ pub fn update_stability(
     let s = &mut damage.stability;
     let p = &mut actor.motion;
     s.elapsed += dt;
-    if s.elapsed >= 0.5 {
-        s.elapsed %= 0.5;
+    if s.elapsed >= interval {
+        s.elapsed %= interval;
         let mut work = std::mem::take(&mut s.scratch);
         if s.water.len() > def.compartments.len() {
             s.water.truncate(def.compartments.len());

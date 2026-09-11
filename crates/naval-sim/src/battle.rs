@@ -108,6 +108,9 @@ pub struct Battle {
     navigation_reports: [Vec<crate::sensors::ContactTrack>; 2],
     pub(crate) visual_conditions: crate::sensors::VisualConditions,
     visual_rules: crate::sensors::VisualRules,
+    /// PvE simulation cadence, loaded from content. `PER_TICK` for every battle
+    /// without mission rules, so custom battles and the server never sample it.
+    cadence: crate::mission::SimulationCadence,
     displacement: Vec<u64>,
     rules: Rules,
     /// Every actor's recorded track and formation axis, kept outside navigation
@@ -246,6 +249,14 @@ impl Battle {
         aviation.airspace = setup.mission_rules.as_ref().map(|m| m.area.clone());
         let visual_conditions =
             crate::sensors::VisualConditions::resolve(&catalog, &setup.map_id, &setup.weather);
+        let cadence = match setup.mission_rules {
+            Some(_) => {
+                let cadence = crate::mission::SimulationCadence::default();
+                cadence.validate()?;
+                cadence
+            }
+            None => crate::mission::SimulationCadence::PER_TICK,
+        };
         Ok(Self {
             records: Default::default(),
             catalog,
@@ -275,8 +286,25 @@ impl Battle {
             navigation_reports: Default::default(),
             visual_conditions,
             visual_rules: Default::default(),
+            cadence,
             active_projectiles: vec![],
         })
+    }
+    /// The cadence this battle runs on: content for a mission, `PER_TICK` for
+    /// every custom battle and every server match.
+    pub fn cadence(&self) -> crate::mission::SimulationCadence {
+        self.cadence
+    }
+    /// Test and diagnostic seam only: nothing on the client or protocol side can
+    /// reach it, so a PvE cadence stays a property of installed content.
+    #[doc(hidden)]
+    pub fn set_cadence(
+        &mut self,
+        cadence: crate::mission::SimulationCadence,
+    ) -> Result<(), String> {
+        cadence.validate()?;
+        self.cadence = cadence;
+        Ok(())
     }
     pub fn survivors(&self) -> Vec<Survivor> {
         self.actors
@@ -436,6 +464,7 @@ impl Battle {
             .mission_rules
             .as_ref()
             .map(|_| &self.navigation_reports);
+        let capability_sweep = self.tick.is_multiple_of(self.cadence.capability_ticks);
         let mut commands = Vec::with_capacity(self.actors.len());
         // The actor stays in place: every callee here already skips the ship it
         // is steering (by identity or by team), so an index-based split shows
@@ -447,7 +476,14 @@ impl Battle {
             let actor_id = self.actors[i].motion.id.clone();
             let team = self.actors[i].team;
             let wing = self.aviation.wing(&actor_id);
-            capability::update(&mut self.actors[i], &def, wing);
+            // The post-damage call at the end of the previous tick already left
+            // this state current; nothing between the two touches its inputs.
+            // On the mission cadence the sweep is a refresh, not a dependency:
+            // gunnery re-derives the disabled set from `combat_lost` and
+            // magazine availability, and mission scoring reads raw state.
+            if capability_sweep {
+                capability::update(&mut self.actors[i], &def, wing);
+            }
             let order = orders.get(&actor_id);
             let mut command = HelmCommand::default();
             if self.actors[i].physical_loss().is_some() {
@@ -893,6 +929,15 @@ impl Battle {
             &self.aviation,
             &mut events,
         );
+        // Fires and damage-control work integrate over a whole window on the
+        // mission cadence: the same equations, one explicit Euler step of
+        // `damage_control_ticks * DT` instead of that many tick-sized ones.
+        // Hits still raise heat every tick through `damage_control::heat_*`.
+        let control_ticks = self.cadence.damage_control_ticks;
+        let control_step = self
+            .tick
+            .is_multiple_of(control_ticks)
+            .then(|| control_ticks as f64 * DT);
         for (i, a) in self.actors.iter_mut().enumerate() {
             let compiled = a.compiled.clone();
             let def = &compiled.definition;
@@ -902,7 +947,13 @@ impl Battle {
                 a.damage.control.priority = priority.clone();
                 a.damage.control.focus = focus.clone()
             }
-            for e in crate::damage_control::update_damage_control(a, def, DT, None) {
+            let ignitions = match control_step {
+                Some(dt) => crate::damage_control::update_damage_control(a, def, dt, None),
+                // Between windows the standing pump assignments in
+                // `damage.control.pumping` keep running, unchanged.
+                None => Vec::new(),
+            };
+            for e in ignitions {
                 let m = def.modules.iter().find(|m| m.id == e.module_id).unwrap();
                 events.push(DamageEvent {
                     kind: "module".into(),
@@ -925,6 +976,7 @@ impl Battle {
                 def,
                 &compiled.hydro,
                 DT,
+                self.cadence.stability_interval_seconds,
                 response,
                 (self.sea.amplitude_m != 0.0).then_some((&self.sea, time)),
             );

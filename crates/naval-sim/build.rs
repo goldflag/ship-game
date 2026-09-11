@@ -30,6 +30,7 @@ fn main() {
         "assets/gameplay/pve-mission.v1.json",
         "assets/gameplay/legacy-air.v1.json",
         "assets/gameplay/visual-sensors.v2.json",
+        "assets/gameplay/pve-cadence.v1.json",
     ] {
         files.push(root.join(file))
     }
