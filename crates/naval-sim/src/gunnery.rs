@@ -9,7 +9,7 @@ use crate::{
     machinery::{electrical_power, equipment_condition, mount_support},
     mount_frames::update_mount_carrier,
     shell::Shell,
-    vessel::{Controller, Vessel},
+    vessel::{Controller, Fleet, Vessel},
     weapons::*,
 };
 use std::collections::BTreeMap;
@@ -69,7 +69,9 @@ pub fn group_id(m: &MountDefinition) -> String {
     format!("{}:gun:{}", m.battery, fields)
 }
 pub struct GunneryContext<'a> {
-    pub actors: &'a [Vessel],
+    /// Every ship but the one being operated, in fleet order. The operated ship
+    /// is borrowed mutably out of the same vector, so it cannot be in here.
+    pub actors: Fleet<'a>,
     pub aviation: &'a mut Aviation,
     pub shells: &'a mut Vec<Shell>,
     pub sequence: &'a mut i64,
@@ -327,16 +329,16 @@ pub fn operate_observed(
                     "Secondary"
                 }
             );
+            // One attitude serves every barrel of the salvo, and the shot
+            // direction as well.
+            let pose = actor.motion.pose();
+            let basis = Basis::of(pose);
             for barrel in 0..barrels {
-                let position = local_to_world(muzzle_local(m, &state, barrel), actor.motion.pose());
+                let position = basis.local_to_world(muzzle_local(m, &state, barrel));
                 let shot = *ctx.dispersion;
                 *ctx.dispersion = ctx.dispersion.wrapping_add(1);
-                let direction = dispersed_direction(
-                    shot_direction(m, &state, actor.motion.pose()),
-                    spread,
-                    ctx.seed,
-                    shot,
-                );
+                let direction =
+                    dispersed_direction(shot_direction(m, &state, pose), spread, ctx.seed, shot);
                 let speed = dispersed_speed(
                     w.muzzle_speed,
                     w.ballistics

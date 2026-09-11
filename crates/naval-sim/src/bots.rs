@@ -7,7 +7,7 @@ use crate::{
     motion::{HelmCommand, ShipState},
     rules::DT,
     torpedoes::torpedo_intercept,
-    vessel::Vessel,
+    vessel::{Fleet, Vessel},
     weapons::{Ammunition, MountState, muzzle_center_world, solve_ballistic},
 };
 use serde::{Deserialize, Serialize};
@@ -809,14 +809,14 @@ fn aim_solution(
     state.lead_cache = Some(crate::weapons::LeadCache { time, point });
     add(point, scale(velocity, time))
 }
-pub fn clear_firing_lane(actor: &Vessel, target: &Vessel, actors: &[Vessel]) -> bool {
+pub fn clear_firing_lane(actor: &Vessel, target: &Vessel, actors: Fleet<'_>) -> bool {
     clear_lane_to(
         actor,
         [target.motion.x, target.motion.y, target.motion.z],
         actors,
     )
 }
-pub fn clear_lane_to(actor: &Vessel, point: Vec3, actors: &[Vessel]) -> bool {
+pub fn clear_lane_to(actor: &Vessel, point: Vec3, actors: Fleet<'_>) -> bool {
     let (dx, dz) = (point[0] - actor.motion.x, point[2] - actor.motion.z);
     let squared = dx * dx + dz * dz;
     if squared < 1.0 {

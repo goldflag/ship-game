@@ -1,12 +1,20 @@
 # Graphics settings study
 
-Design study for a configurable Graphics tab in the pause-menu settings dialog, prepared on September 8, 2026 after the custom-battle rendering optimizations. Nothing here is implemented; `src/ui/SettingsDialog.tsx` still offers Ocean detail and Render scale behind an "Apply & reload port" button.
+Design study for a configurable Graphics tab in the pause-menu settings dialog, prepared on September 8, 2026 after the custom-battle rendering optimizations, and implemented on September 10, 2026. The catalog below records what the renderer can expose; the [implementation](#implementation) section records what shipped and where it differs.
+
+## Implementation
+
+- `src/game/graphicsSettings.ts` owns the `GraphicsSettings` shape, the Low/Medium/High/Ultra presets, sanitizing, the `fleet-graphics-settings` storage key and a one-time migration of the legacy `bismarck-settings` tier and render scale. Diagnostics that still construct `Game` with `{ quality, resolution }` are migrated the same way.
+- `Game.applyGraphics()` diffs the changed rows and touches only their subsystems: pixel ratio and `resize()`, the frame interval honored by `scheduleFrame()`, the display pipeline (none, FXAA or three's SMAA node over the same composited frame), `water.ssr.enabled`, `sky.setQualityLevel()` with the game's smaller reflection bake budget and god rays kept off, the sun shadow map size and normal bias (or `castShadow` off), the meshopt pixel budget passed to `FleetShipDraws.update()`, the wingspan thresholds in `AircraftView`, and an emission density on every `EffectParticlePool` plus the funnel smoke rate.
+- The ocean tier and terrain density are read when the port loads (`Game.launchedGraphics` records them). In port the footer offers "Reload port to apply now"; after a battle, returning to port rebuilds the port automatically when either row changed.
+- Telemetry carries a `performance` readout (mode, FPS, frame time, framebuffer size, backend and, in Detailed mode, ship draw, particle and aircraft counts) rendered by `PerformanceCounter` in the HUD and the port and by the dialog's head strip.
+- Differences from the study: Clouds Ultra does not enable sun shafts, because the game keeps Sky Pro's god rays off for its exposure; the Combat effects row thins particle emission evenly through a fixed-stride sequence instead of per-effect counts, and leaves the impact-mark cap alone.
 
 Open [index.html](index.html) in a browser for the interactive prototype. It draws the proposed dialog over a captured port frame, with all four tabs laid out in the wide format. Hash states select review captures: `#port` (default), `#custom`, `#battle,pending`, `#low`, `#ultra`, `#menu`, `#hud`, `#keys`, `#sound`. The frame-rate readout in the prototype is an illustrative model of relative cost; the real dialog reads renderer telemetry.
 
 Review captures: [Graphics in port, High preset](desktop.png), [in battle with a pending ocean change](battle-pending.png), [Keybindings](keybindings.png), [HUD](hud.png) and [390 px wide](narrow.png).
 
-## What the game exposes today
+## What the game exposed before
 
 | Control | What it changes | Apply |
 | --- | --- | --- |

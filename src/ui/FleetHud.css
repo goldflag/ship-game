@@ -7,6 +7,7 @@
 .fleet-hud kbd { font:500 10px/1.2 'Barlow Condensed',sans-serif; min-width:18px; padding:2px 4px; border-radius:1px; }
 .fleet-fps { position:absolute; top:6px; left:var(--fleet-edge); color:var(--fleet-muted); font-size:10px; line-height:1; white-space:nowrap; }
 .fleet-fps strong { color:#edf5f2; font-weight:500; display:inline-block; text-align:right; min-width:3ch; margin-right:3px; }
+.fleet-fps .performance-detail { display:block; margin-top:4px; font-size:9px; letter-spacing:.02em; color:var(--fleet-muted); }
 .fleet-compass { position:absolute; top:24px; left:50%; transform:translateX(-50%); width:272px; text-align:center; }
 .fleet-compass-tape { position:relative; height:27px; overflow:hidden; mask-image:linear-gradient(90deg,transparent,black 14%,black 86%,transparent); }
 .fleet-compass-tape span { position:absolute; top:0; transform:translateX(-50%); font-size:10px; color:var(--fleet-muted); }

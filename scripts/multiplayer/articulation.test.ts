@@ -3,6 +3,9 @@ import init, { preview_articulation_json } from '../../src/generated/naval-wasm/
 import yamato from '../../public/models/yamato.json';
 import bismarck from '../../public/models/bismarck.json';
 import cleveland from '../../public/models/cleveland.json';
+// Yamato is published with box obstructions; her retired closed-body profile
+// stays here so the swept WASM resolver keeps its real-geometry coverage.
+import sweptClearance from '../../src/simulation/fixtures/yamato-swept-clearance.json';
 import type { ClearancePose, ClearanceResult } from '../../src/game/articulationPreview';
 
 beforeAll(async () => {
@@ -13,21 +16,24 @@ function resolve(def: unknown, poses: ClearancePose[], targets: ClearancePose[])
   return JSON.parse(preview_articulation_json(JSON.stringify(def), JSON.stringify(poses), JSON.stringify(targets)));
 }
 
-test('published Yamato preview stops depression at physical contact and can elevate away', () => {
-  expect(yamato.mountClearance.mountIds.length).toBe(yamato.mounts.length);
+const sweptYamato = { ...yamato, mountClearance: sweptClearance };
+
+test('the swept Yamato profile stops depression at physical contact and can elevate away', () => {
+  expect('mountClearance' in yamato).toBe(false);
+  expect(sweptClearance.mountIds.length).toBe(yamato.mounts.length);
   const poses = initial(yamato), targets = structuredClone(poses);
   targets[1].elevation = -5 * Math.PI / 180;
-  const results = resolve(yamato, poses, targets);
+  const results = resolve(sweptYamato, poses, targets);
   expect(results[1].blocked).toBe(true);
   expect(results[1].obstructionId).toBeTruthy();
   expect(results[1].pose.elevation).toBeGreaterThan(targets[1].elevation);
   const achieved = results.map(r => r.pose);
   const recoil = achieved.map(p => ({ ...p, recoil: 1 }));
-  const recoiled = resolve(yamato, achieved, recoil);
+  const recoiled = resolve(sweptYamato, achieved, recoil);
   expect(recoiled[1].pose.elevation).toBeCloseTo(achieved[1].elevation, 10);
   expect(recoiled[1].pose.recoil).toBe(1);
   targets[1].elevation = 20 * Math.PI / 180;
-  const raised = resolve(yamato, recoiled.map(r => r.pose), targets);
+  const raised = resolve(sweptYamato, recoiled.map(r => r.pose), targets);
   expect(raised[1].blocked).toBe(false);
   expect(raised[1].pose.elevation).toBeCloseTo(targets[1].elevation, 10);
 });
@@ -58,7 +64,7 @@ test('preview applies installed asymmetric traverse stops', () => {
 test('preview rejects mixed and incomplete clearance profiles before dispatching either resolver', () => {
   const poses = initial(cleveland);
   const profiles = [
-    [{ ...cleveland.mountClearance, mountIds: yamato.mountClearance.mountIds, bodies: yamato.mountClearance.bodies }, 'exactly one geometry encoding'],
+    [{ ...cleveland.mountClearance, mountIds: sweptClearance.mountIds, bodies: sweptClearance.bodies }, 'exactly one geometry encoding'],
     [{ ...cleveland.mountClearance, structures: undefined }, 'requires mounts, structures and neighbors'],
     [{ ...cleveland.mountClearance, neighbors: undefined }, 'requires mounts, structures and neighbors'],
   ] as const;

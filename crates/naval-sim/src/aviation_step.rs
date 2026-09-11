@@ -1486,7 +1486,15 @@ impl Aviation {
                 && p.bank.abs() < 0.12
                 && p.pitch.abs() < 0.08
                 && aligned
-                && clear_torpedo_lane(actor, entry, aim, torpedo_speed(weapon.speed), ctx.actors)
+                && clear_torpedo_lane(
+                    actor,
+                    entry,
+                    aim,
+                    torpedo_speed(weapon.speed),
+                    // The whole fleet: the dropping aircraft's own carrier is
+                    // in it, and the lane check skips the launching ship by id.
+                    crate::vessel::Fleet::all(ctx.actors),
+                )
             {
                 let id = ctx.next_id();
                 ctx.releases.push(AirRelease {

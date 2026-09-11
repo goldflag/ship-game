@@ -6,7 +6,7 @@ use crate::{
     geometry::*,
     machinery::{equipment_condition, launcher_available},
     structure::{StructuralSurface, structural_hits, structural_surfaces},
-    vessel::Vessel,
+    vessel::{Fleet, Vessel},
 };
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct TubeState {
@@ -217,7 +217,7 @@ pub fn clear_torpedo_lane(
     origin: Vec3,
     aim: Vec3,
     speed: f64,
-    actors: &[Vessel],
+    actors: Fleet<'_>,
 ) -> bool {
     let (dx, dz) = (aim[0] - origin[0], aim[2] - origin[2]);
     let range = dx.hypot(dz);

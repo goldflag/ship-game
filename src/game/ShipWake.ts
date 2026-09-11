@@ -1,7 +1,7 @@
 import { Camera, Mesh, Vector3, type Node, type Object3D, type Scene, type WebGPURenderer } from 'three/webgpu';
 import { max } from 'three/tsl';
 import { WaterSurfaceMaterial, type WaterSystem } from '../../vendor/threejs-water-pro/build/index.js';
-import { FleetWakeFoam, type WakeShip } from './FleetWakeFoam';
+import { FleetWakeFoam, WAKE_ATLAS_CAPACITY, type WakeShip } from './FleetWakeFoam';
 import type { CombatEvent } from '../simulation/combat';
 
 /** Render-side wake configuration; driven by ship motion, independent of the helm. */
@@ -51,6 +51,12 @@ export class ShipWake {
     for (const event of freshEvents) this.eventSequence = Math.max(this.eventSequence, event.sequence);
     const focus = ships[0]?.motion;
     if (focus) this.anchor.position.set(focus.x, 1, focus.z);
+    // The foam atlas holds a fixed number of trails. A battle larger than that
+    // keeps the focus hull and the trails nearest to it.
+    if (ships.length > WAKE_ATLAS_CAPACITY) {
+      const span = (ship: WakeShip) => Math.hypot(ship.motion.x - this.anchor.position.x, ship.motion.z - this.anchor.position.z);
+      ships = [ships[0], ...ships.slice(1).sort((a, b) => span(a) - span(b))].slice(0, WAKE_ATLAS_CAPACITY);
+    }
     // The pinned vendor solver accepts 16 generators. Give its local swell
     // field to the nearest eight hulls; the foam atlas covers every ship.
     const nearby = ships.filter(ship => Math.abs(ship.motion.x - this.anchor.position.x) < 900

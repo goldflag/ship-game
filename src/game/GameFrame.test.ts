@@ -1,3 +1,4 @@
+import { DEFAULT_GRAPHICS } from './graphicsSettings';
 import { afterEach, beforeEach, expect, spyOn, test } from 'bun:test';
 import { Color, DirectionalLight, Group, PerspectiveCamera, Vector3, InstancedBufferGeometry, InstancedMesh, MeshBasicMaterial } from 'three/webgpu';
 import { loadShipJoints } from '../../scripts/diagnostics/load-ship-joints';
@@ -72,11 +73,11 @@ async function frameHarness(shipId = 'bismarck', fleet = false) {
     definition: simulation.definition, simulation, playerView, targetView, fleetViews: [playerView, targetView, ...simulation.actors.filter(a => a !== simulation.player && a !== simulation.target).map(a => new ShipView(model.scene.clone(true), a.definition, a))], camera, rig, ship: new Group(), shellFollow: new ShellFollow(),
     renderer: { domElement: { setAttribute() {} } }, manualAim: false, battlefieldCamera, cameraFrameListeners: new Set(), fleetVisibility: new FleetVisibility(),
     host: { clientWidth: 1440, clientHeight: 900 }, airOperationsOpen: false,
-    shipLabels: { update() {} }, hitLabels: { update() {} }, torpedoPreview: { update() {} },
+    shipLabels: { update() {}, setObserved() {} }, hitLabels: { update() {} }, torpedoPreview: { update() {} },
     playerDamageFeedback: new HullDamageFeedback(simulation.player.damage.integrity),
     gunAim: { update(points: GunAimPoint[], _camera: PerspectiveCamera, visible: boolean) { gunAimFrames.push({ points, visible }); } },
     hitDirections: { update() {} },
-    lastTime: 0, hudTime: Infinity, lastTrailTick: 0, trail: [], fps: 60, battery: 'main',
+    lastTime: 0, hudTime: Infinity, lastTrailTick: 0, trail: [], fps: 60, battery: 'main', settings: DEFAULT_GRAPHICS,
     ammunition: { main: 'ap', secondary: 'ap' },
     paused: false, inPort: false, inspecting: false, input,
     aircraftView: { root: new Group(), update() {}, warmupParts() { return () => {}; } },
@@ -427,6 +428,22 @@ test('the frame feeds every fleet wake the rendered pose, and only the player in
   game.setInPort(true);
   await game.frame(200);
   expect(frames.at(-1)!.ships).toEqual([playerView]);
+});
+
+test('reported enemy exteriors leave wakes behind the fleet, and the camera hull leads the list', async () => {
+  const { game, playerView, targetView } = await frameHarness();
+  const frames: unknown[][] = [];
+  const observed = { root: new Group(), motion: { x: 3000, y: 0, z: -3000, heading: 1, speed: 9 }, definition: shipPreset('bismarck') };
+  Object.assign(game, {
+    shipWake: { update(ships: unknown[]) { frames.push([...ships]); }, reset() {} },
+    observedShipViews: { root: new Group(), update() {}, wakeShips: () => [observed] },
+  });
+  await game.frame(100);
+  expect(frames.at(-1)).toEqual([playerView, targetView, observed]);
+  // The swell solver centres on the hull the camera rides, whichever it is.
+  game.inspecting = true;
+  await game.frame(200);
+  expect(frames.at(-1)).toEqual([targetView, playerView, observed]);
 });
 
 test('binoculars, then shell follow, then death: the follow never feeds the sight and death forbids returning to optics', async () => {

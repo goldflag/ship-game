@@ -26,7 +26,9 @@ pub struct Snapshot<'a> {
     pub torpedoes: &'a [Torpedo],
     pub depth_charges: &'a [DepthCharge],
     pub releases: &'a [AirRelease],
-    pub events: &'a [Event],
+    /// The event ring buffer, which serialises as the same JSON array a slice
+    /// did. Kept as the deque so a snapshot needs no contiguity pass.
+    pub events: &'a std::collections::VecDeque<Event>,
     pub outcome: &'a Option<Outcome>,
     pub records: &'a Records,
     pub afloat_kg: [u64; 2],

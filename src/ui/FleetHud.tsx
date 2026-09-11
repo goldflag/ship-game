@@ -1,4 +1,5 @@
 import { FireControl } from './FireControl';
+import { PerformanceCounter } from './PerformanceCounter';
 import { FleetCommand } from './FleetCommand';
 import { AirOperations, SquadronLabels } from './AirOperations';
 import { FlightControl } from './FlightControl';
@@ -165,7 +166,7 @@ function FleetHudInstruments({ data, game, visible, bindings }: FleetHudProps) {
     </BattleStatus>}
     {data.combat && !data.airOperationsOpen && !data.inspecting && <FireControl combat={data.combat} game={game} observedName={data.spectatedShipId && !commandingShip ? selectedShip.name : undefined}/>}
     </div>
-    <span className="fleet-fps" aria-label={`${data.fps} frames per second`}><strong>{data.fps || '—'}</strong> FPS</span>
+    <PerformanceCounter className="fleet-fps" fps={data.fps} performance={data.performance}/>
     {data.combat?.battle && <BattleDamageLog combat={data.combat} obscured={!!data.inspecting}/>}
 
     {followingShell && <div className="fleet-shell-status" role="status" title="Move mouse to orbit; drag when the cursor is released. Scroll to zoom."><strong>{data.shellFollow === 'impact' ? 'Shell impact' : 'Following shell'}</strong><span>{data.shellFollow === 'impact' ? 'Returning to ship…' : `${bindingLabel(bindings, 'shellFollow')} to return to ship`}</span></div>}

@@ -18,6 +18,7 @@ export interface InputActions {
   emergencyBlow?(): void;
   periscope?(): void;
   airOperations?(): void;
+  simulationSpeed?(): void;
   isSpectating?(): boolean;
   cycleSpectator?(direction: number): void;
 }
@@ -41,7 +42,7 @@ export class InputController {
         if (this.shiftTap) this.actions.optics();
         this.shiftTap = false;
       }
-      if (this.enabled && (e.code === 'ControlLeft' || e.code === 'ControlRight') && !this.keys.has('ControlLeft') && !this.keys.has('ControlRight')) this.actions.cursor(false);
+      if ((e.code === 'ControlLeft' || e.code === 'ControlRight') && !this.keys.has('ControlLeft') && !this.keys.has('ControlRight')) this.actions.cursor(false);
     }, options);
     window.addEventListener('blur', () => this.clear(), options);
   }
@@ -79,9 +80,15 @@ export class InputController {
       // while the helm is not the player's, such as when following a teammate.
       if (action === 'chartLarger') this.actions.chartSize(1);
       if (action === 'chartSmaller') this.actions.chartSize(-1);
+      // Simulation speed is the battle's clock, not the helm's: it answers while
+      // following a captain or reading the fleet chart, like the chart size keys.
+      if (action === 'simulationSpeed') this.actions.simulationSpeed?.();
       // Optics are a view control too: a spectator following a teammate raises the
       // same glasses without holding that ship's helm.
       if (shift) this.shiftTap = true;
+      // So is the cursor: a follower's mouse steers the camera the way a helm's does,
+      // and Ctrl hands the cursor back to the panels the same way.
+      if (control) this.actions.cursor(true);
     }
     if (!this.enabled) return;
     this.keys.add(key);
@@ -93,7 +100,6 @@ export class InputController {
       if (action === 'stop') this.setOrder(1);
       if (action === 'camera') this.actions.camera();
       if (action === 'recenter') this.actions.recenter();
-      if (control) this.actions.cursor(true);
       const weaponIndex = WEAPON_GROUP_ACTIONS.findIndex(id => id === action);
       if (weaponIndex >= 0) this.actions.weaponGroup(weaponIndex);
       if (action === 'shellFollow') this.actions.shellFollow();

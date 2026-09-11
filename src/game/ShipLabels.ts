@@ -21,14 +21,20 @@ type Label = {
   lossAmount: number; lossOpacity: number; integrity: number;
 };
 
+/** A hull drawn from an observation report rather than a simulated actor: the PvE
+ * enemy fleet. Health is the sampled fraction the report carries, absent when stale. */
+export interface ObservedLabelReport { id: string; name: string; health?: number; sunk?: boolean }
+type ObservedLabel = { root: HTMLDivElement; name: HTMLElement; meter: HTMLDivElement; fill: HTMLDivElement; health: HTMLSpanElement; text: string; percent: number | undefined; sunk: boolean };
+
 /** Screen overlay follows rendered hull poses at frame rate, without React rerenders. */
 export class ShipLabels {
   private root = document.createElement('div');
   private labels: Label[] = [];
+  private observed = new Map<string, ObservedLabel>();
   private width = 1;
   private height = 1;
 
-  constructor(host: HTMLElement) {
+  constructor(host: HTMLElement, private observedAnchor: (id: string) => Vector3 | undefined = () => undefined) {
     this.root.className = 'ship-label-layer';
     this.root.setAttribute('role', 'group');
     this.root.setAttribute('aria-label', 'Ship names and hull condition');
@@ -62,6 +68,48 @@ export class ShipLabels {
       const top = bounds.isEmpty() ? actor.definition.hull.depth : bounds.max.y - view.root.position.y;
       return [{ actor, view, root, meter, fill, health, loss, damageNumber, feedback: new HullDamageFeedback(actor.damage.integrity), anchor: new Vector3(0, top + 5, 0), hp: -1, sunk: false, lossAmount: -1, lossOpacity: -1, integrity: -1 }];
     });
+  }
+
+  /** Keep one label per reported exterior. Reports have no damage model, so the
+   * meter shows the observed fraction and hides when the observation is stale. */
+  setObserved(reports: readonly ObservedLabelReport[]): void {
+    const active = new Set(reports.map(report => report.id));
+    for (const [id, label] of this.observed) if (!active.has(id)) { label.root.remove(); this.observed.delete(id); }
+    for (const report of reports) {
+      let label = this.observed.get(report.id);
+      if (!label) {
+        const root = document.createElement('div');
+        root.className = 'ship-label ship-label-enemy ship-label-observed';
+        root.dataset.shipId = report.id;
+        root.hidden = true;
+        const tag = document.createElement('div'); tag.className = 'ship-label-tag';
+        const name = document.createElement('strong'); name.className = 'ship-label-name';
+        const health = document.createElement('span'); health.className = 'ship-label-health';
+        const meter = document.createElement('div'); meter.className = 'ship-label-meter';
+        meter.setAttribute('role', 'meter'); meter.setAttribute('aria-valuemin', '0'); meter.setAttribute('aria-valuemax', '100');
+        const fill = document.createElement('div'); fill.className = 'ship-label-fill';
+        meter.appendChild(fill);
+        tag.append(name, meter, health); root.appendChild(tag); this.root.appendChild(root);
+        label = { root, name, meter, fill, health, text: '', percent: -1, sunk: false };
+        this.observed.set(report.id, label);
+      }
+      if (label.text !== report.name) {
+        label.text = report.name; label.name.textContent = report.name;
+        label.meter.setAttribute('aria-label', `${report.name}, Enemy ${report.id.split('-').at(-1)}, observed hull condition`);
+      }
+      const percent = report.sunk || report.health === undefined ? undefined : Math.round(MathUtils.clamp(report.health, 0, 1) * 100);
+      if (label.percent !== percent) {
+        label.percent = percent;
+        label.meter.hidden = percent === undefined; label.health.hidden = percent === undefined;
+        if (percent !== undefined) {
+          label.health.textContent = `${percent}%`;
+          label.meter.setAttribute('aria-valuenow', String(percent));
+          label.meter.setAttribute('aria-valuetext', `${percent} percent hull condition observed`);
+          label.fill.style.transform = `scaleX(${percent / 100})`;
+        }
+      }
+      if (label.sunk !== !!report.sunk) { label.sunk = !!report.sunk; label.root.classList.toggle('ship-label-sinking', label.sunk); }
+    }
   }
 
   resize(width: number, height: number): void { this.width = width; this.height = height; }
@@ -107,7 +155,13 @@ export class ShipLabels {
       root.hidden = !point;
       if (point) root.style.transform = `translate(${point.x.toFixed(2)}px, ${point.y.toFixed(2)}px)`;
     }
+    for (const [id, label] of this.observed) {
+      const anchor = this.observedAnchor(id);
+      const point = anchor && anchor.y > -40 ? projectShipLabel(anchor, camera, this.width, this.height) : null;
+      label.root.hidden = !point;
+      if (point) label.root.style.transform = `translate(${point.x.toFixed(2)}px, ${point.y.toFixed(2)}px)`;
+    }
   }
 
-  dispose(): void { this.root.remove(); this.labels = []; }
+  dispose(): void { this.root.remove(); this.labels = []; this.observed.clear(); }
 }

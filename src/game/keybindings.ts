@@ -25,6 +25,7 @@ export const INPUT_ACTIONS = [
   { id: 'chartLarger', label: 'Increase minimap size', group: 'View' },
   { id: 'chartSmaller', label: 'Decrease minimap size', group: 'View' },
   { id: 'airOperations', label: 'Open / close air operations map', group: 'View' },
+  { id: 'simulationSpeed', label: 'Cycle simulation speed (1× / 2× / 4×)', group: 'View' },
 ] as const;
 
 export type InputAction = typeof INPUT_ACTIONS[number]['id'];
@@ -45,6 +46,7 @@ export function defaultKeybindings(): Keybindings {
     surface: ['KeyU', null], dive50: ['KeyJ', null],
     chartLarger: ['Equal', 'NumpadAdd'], chartSmaller: ['Minus', 'NumpadSubtract'],
     airOperations: ['KeyM', null], periscope: ['KeyP', null],
+    simulationSpeed: ['KeyN', null],
   };
 }
 
@@ -100,7 +102,7 @@ export function keybindingsOf(value: unknown): Keybindings {
     result[id] = [pair[0], pair[1]];
   }
   // Add new actions to older saves without discarding existing custom controls.
-  const additions: readonly string[] = [...WEAPON_GROUP_ACTIONS, 'shellFollow', 'shellType', 'torpedoes', 'depthCharges', 'dive', 'rise', 'emergencyBlow', 'airOperations', 'periscope', 'surface', 'dive50'];
+  const additions: readonly string[] = [...WEAPON_GROUP_ACTIONS, 'shellFollow', 'shellType', 'torpedoes', 'depthCharges', 'dive', 'rise', 'emergencyBlow', 'airOperations', 'periscope', 'surface', 'dive50', 'simulationSpeed'];
   for (const id of [...missing.filter(id => !additions.includes(id)), ...missing.filter(id => additions.includes(id))]) {
     const preferred = defaults[id].filter((code): code is string => code !== null && !used.has(code));
     if (!additions.includes(id) && preferred.length !== defaults[id].filter(Boolean).length) return defaults;

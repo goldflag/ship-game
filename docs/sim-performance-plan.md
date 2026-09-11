@@ -113,6 +113,41 @@ Gate: equality over 600 s in all three scenarios, all `naval-sim` tests,
 `damage_migration` goldens untouched. Expected result: step time roughly
 halved in every mode.
 
+**Phase 1 leftovers — landed.** 1a, 1b, 1c and 1d each left a few items to
+whoever owned the file, and a cleanup PR closed them:
+
+- **The second actor loop's split borrow.** The gunnery and underwater loop
+  still lifted its ship out of `actors` with `remove` and put it back with
+  `insert` — two whole-vector memmoves per ship per tick — because the callees
+  needed the rest of the fleet as `&[Vessel]` while the ship was `&mut`.
+  `vessel::Fleet` is that view without the moves: `Fleet::split` cuts the
+  vector around the index and hands back `(&mut Vessel, Fleet)`, whose `iter`
+  chains the two surrounding slices into the original order. Every reader of
+  `GunneryContext.actors` and of `operate_underwater`'s fleet already skipped
+  the operating ship by id (`bots::clear_lane_to`, `anti_aircraft::clear_lane`,
+  `torpedoes::clear_torpedo_lane`); `depth_charges::bot_should_drop` relied on
+  its absence and still gets it, because `Fleet` excludes it by construction.
+  The aviation torpedo-drop check takes `Fleet::all`, the whole vector, as it
+  always did.
+- **`Battle::events` as a ring buffer.** `emit` did `events.remove(0)` on a
+  128-entry `Vec` of `Event`; the team windows had already become `VecDeque`.
+  `Snapshot` now holds `&VecDeque<Event>`, which serialises as the same JSON
+  array in the same order, so nothing needs a contiguity pass at snapshot time.
+- **One rotation basis per pose.** `geometry::Basis` holds the six trig values
+  `rotate` derived from a `Pose`, and `rotate`, `local_to_world` and
+  `world_to_local` are now wrappers that build one and apply it — so a basis is
+  bit-identical to them by construction, which
+  `geometry::tests::a_basis_reproduces_the_free_rotation_bit_for_bit` asserts
+  on 20,000 random poses. It is hoisted where one attitude serves several
+  rotations: the gunnery and AA barrel loops, `weapons::update_mount_at` (the
+  submerged check plus each pass of the lead solve), the carried-mount
+  clearance segments, `sensors::entities`, `contacts::ship_contacts` and the
+  per-shell hull bounding test in `projectile`.
+
+`contacts::ship_contacts`'s result `Vec` and its `trains` buffer were left
+alone: both are behind the shell's bounding-box reject, so they allocate only
+for a hull the shell actually reaches, not per tick.
+
 ### Phase 2. Transport (local modes)
 
 | PR | Content | Why |
@@ -340,6 +375,38 @@ gun crews that commit to a target) rather than for the step time.
   skip proxies whose source did not change (11% of main-thread time).
 - `AirOperations` map projection at the 20 Hz snapshot cadence instead of every
   frame.
+
+### Yamato clearance
+
+Landed, outside the numbered phases because it is a content decision rather
+than a code one. Yamato was the only ship with a closed-body `mountClearance`
+profile: 906 authored contact bodies swept against every mount's barrel,
+gunhouse and recoil envelope on every tick a gun moved. It was 68% of the
+30-ship custom benchmark step, about 0.13 s of native step per simulated second
+per Yamato in combat, and one Yamato alone could not hold 4× in fleet command.
+
+The profile is removed from `assets/ships/yamato/blueprint.json`, so she takes
+the same box-`obstructions` path as the rest of the fleet: mounts reach their
+catalog arcs, and a line of fire crossing an obstruction box reports the mount
+blocked. What is lost is barrels stopping visually at AA tubs and rangefinders
+in the 3D close-up, and the helm-view `blocked` label for those cases; nominal
+arcs are unchanged. Model acceptance check 4 stays a visual review.
+
+| Scenario | Step before | after |
+| --- | ---: | ---: |
+| custom, 150 s (4 Yamatos) | 138.8 s | 12.8 s |
+| server, 150 s (4 Yamatos) | 95.0 s | 13.8 s |
+
+The gate ran on a busy machine; an interleaved min-of-three A/B on `custom`,
+swapping only the content manifest under one binary, puts it at 107.7 s → 13.0 s,
+8.3× on the step. Snapshot time and bytes are unchanged (they grow slightly,
+because guns that no longer stop keep firing).
+
+`surface` and `carrier` carry no Yamato and stay byte-identical on the gate.
+The mesh solver itself is unchanged and still covered: the retired profile is
+kept as `src/simulation/fixtures/yamato-swept-clearance.json`, which the native
+`mount_clearance` tests and the WASM articulation preview test load as their
+fixture. Cleveland keeps the installation-envelope encoding in production.
 
 ## Also noticed
 

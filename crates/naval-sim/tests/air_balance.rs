@@ -265,7 +265,7 @@ fn engagement(scenario: &str, fighters: bool, aa: usize, seed: u32) -> Engagemen
                     &actors[i],
                     &actors[i].definition().mounts[j],
                     &mut state,
-                    &actors,
+                    naval_sim::vessel::Fleet::all(&actors),
                     &mut air,
                     1.0 / 60.0,
                     seed,
