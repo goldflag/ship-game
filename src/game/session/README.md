@@ -8,16 +8,35 @@ Fleet UI selection and camera follow are independent of `controlledShipId`. `rel
 
 The local `CommandQueue` bounds pending intent at 128 commands and retains explicit queued/sent/accepted/rejected/superseded receipts. A new movement order supersedes pending movement for that ship; route appends and separate weapon priorities preserve their order. Local tactical pause stops tick dispatch while still accepting commands. On resume the worker validates every queued command in sequence through Rust. Remote sessions continue on server time.
 
-The local worker parses and normalizes snapshots before sending ordered, lossless
-changes. The receiver checks the preceding tick and copies changed paths, keeping
-earlier snapshots intact for interpolation. This transport relies on one owned
-worker with serialized requests; it is separate from reconnectable online deltas.
-Scalar changes travel directly and object patches use keyed fields to avoid
-per-value wrappers and key/value tuple allocations during structured cloning.
-Explicit `undefined` replacements remain wrapped, and prototype-named fields are
-written as own data properties. Unchanged subtrees retain their identity.
-`localSnapshotDelta.test.ts` compares transferred carrier battles against the
-complete Rust snapshots, including combat events and renderer identity updates.
+Ordered, lossless changes travel from the worker, and the receiver checks the
+preceding tick and copies changed paths, keeping earlier snapshots intact for
+interpolation. This transport relies on one owned worker with serialized
+requests; it is separate from reconnectable online deltas. Scalar changes travel
+directly and object patches use keyed fields to avoid per-value wrappers and
+key/value tuple allocations during structured cloning. Explicit `undefined`
+replacements remain wrapped, and prototype-named fields are written as own data
+properties. Unchanged subtrees retain their identity.
+
+Rust produces those changes. `LocalRuntime.snapshot_delta` walks the live
+simulation once against a shadow of the frame it published last and writes only
+what moved, in the shape `applyLocalDelta` consumes, so the worker parses a few
+kilobytes rather than parsing a whole frame, stripping its nulls and diffing it
+structurally — two full walks it no longer makes. The shadow is normalized the
+way the old decoder normalized: a field whose value turns null is reported as
+removed, because the frame the renderer holds has no such key. It keeps fields in
+emission order behind a cursor rather than in a map, and holds numbers unboxed,
+so an unchanged field costs a comparison; patch text is written lazily, and keys
+and container headers reach the buffer only once something below them moves.
+Numbers are compared as the client would read them, integers apart from floats
+and floats bit for bit. Each frame carries the baseline tick the client must be
+holding; a runtime with no baseline — after init, deploy or restart — sends a
+complete frame. `detailShipIds` narrowing works unchanged: the fields it adds and
+removes travel as ordinary additions and removals.
+`localSnapshotDelta.test.ts` applies real Rust patches through a carrier battle
+whose detail list changes mid-stream and compares each rebuilt frame against the
+complete Rust snapshot, including combat events and renderer identity updates;
+`crates/naval-sim/tests/frame_delta.rs` does the same natively for the
+full-knowledge and team projections.
 
 `MatchConnection` handles admission, per-tab reconnect tokens, socket replacement, bounded decompression and match metadata. `RemoteBattleSession` publishes addressed commands and interpolates snapshots while the server owns time. The load-ready message is sent after model loading and initial scene rendering, not when the socket connects.
 

@@ -121,10 +121,55 @@ halved in every mode.
 | 2b narrowing | send damage-control rooms, pumping and connections only for the helm or followed ship; drop `shell_history` and the unread presentation fields in PvE | compartment-derived fields are 52% of a 650 KB snapshot; custom battle sends one every tick |
 | 2c delta | emit the delta from Rust against the previous frame, or a columnar binary frame, and skip `JSON.parse` plus the two structural walks | 12 to 13% of worker time and most of its GC in PvE; proportionally more in custom battle at 60 Hz |
 
+2c is done, as a Rust-side structural delta (`crates/naval-sim/src/frame_delta.rs`).
+The columnar binary frame was not needed: once the frame is diffed where it is
+produced, what is left on the JavaScript side is a parse of a few kilobytes, and
+a binary hot path would still need the same walk plus reassembly work in the
+worker. A serializer compares each leaf against a shadow of the last published
+frame and writes only what moved. Two things make that shadow cheaper than the
+JSON tree the first prototype used: fields sit in emission order behind a cursor
+instead of in a map, and numbers are unboxed. Patch text is written lazily, so an
+unchanged field costs one comparison and no formatting.
+
+Worker-only measurements (M5 Pro, WASM, carrier scenario, second minute,
+`scripts/diagnostics/pve-speed.ts --transport json|delta`):
+
+| Batch | Path | Step | Serialize | Decode | Delta | Apply | Bytes/min | Throughput |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 1 | complete frames | 4636 | 5319 | 3817 | 2756 | 19 | 2118 MB | 3.6× |
+| 1 | Rust patches | 4289 | 6431 | 81 | 214 | 34 | 36 MB | 5.4× |
+| 12 | complete frames | 4088 | 453 | 312 | 226 | 2 | 176 MB | 11.8× |
+| 12 | Rust patches | 4169 | 591 | 10 | 23 | 4 | 3.5 MB | 12.5× |
+
+The Rust walk costs about 25% more than plain serialization, and removes
+everything after it: at the custom-battle cadence the transport drops from 11.9 s
+to 6.7 s per simulated minute and the worker's throughput ceiling rises by half.
+Payload falls by 98%, which is also 98% less structured cloning per frame.
+
+The native harness, paired runs of 120 simulated seconds with
+`--full-snapshot` for the old path, shows the same trade with the narrowing of
+2b applied:
+
+| Scenario | Snapshot ms | Bytes |
+| --- | ---: | ---: |
+| surface | 288 → 317 | 250.5 MB → 7.5 MB |
+| carrier | 643 → 799 | 270.7 MB → 7.7 MB |
+| custom | 10375 → 12910 | 10249 MB → 943 MB |
+
+In the browser (M5 Pro, Chrome, WebGPU, 1280 × 800, High): fleet command holds an
+honest 4× on the carrier scenario at 120 FPS with the worker spending 19.6 s
+stepping, 2.9 s emitting patches and 52 ms parsing them over 60 s. A custom
+battle with the default diagnostic roster holds 119 FPS with no frame over
+50 ms, and the transport is 1.6% of the worker's time — that battle is now
+entirely step-bound, which is phase 1's problem. The equality gate is
+`identical` for all four scenarios: the step is untouched.
+
 Server: measure `presentation_value` plus delta cost per match first; the tree
 projection is slower than the streaming one, but the delta needs the tree.
 Decide after the measurement whether to move the server to a streamed baseline
-plus patch generation.
+plus patch generation. `FrameDelta` is projection-agnostic and could serve it,
+but the server publishes against an immutable match baseline, not the previous
+frame, so it is a separate decision.
 
 ### Phase 3. Content resolution (all modes)
 
