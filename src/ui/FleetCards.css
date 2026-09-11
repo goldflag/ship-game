@@ -104,3 +104,4 @@
 }
 
 .fleet-card-name .fleet-route-warning { display:inline-flex; margin-left:5px; vertical-align:middle; color:var(--fleet-gold); }
+.fleet-card.foe .fleet-card-name small.fleet-card-threat { color:#ffb5a6; }

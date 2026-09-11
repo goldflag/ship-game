@@ -235,7 +235,7 @@ impl Battle {
                         "id":c.id,"modelId":aircraft.model_id,"position":e.position,
                         "heading":e.motion.heading,"pitch":e.motion.pitch,"roll":e.motion.roll,
                         "velocity":e.motion.velocity,"observedTick":c.last_observed_tick,"health":e.health,
-                        "controls":aircraft.controls,"wingFold":aircraft.wing_fold,
+                        "controls":aircraft.controls,"wingFold":aircraft.wing_fold,"payload":aircraft.payload,
                         "observers":c.sources.iter().map(|s| &s.observer_id).collect::<Vec<_>>()
                     })
                 })

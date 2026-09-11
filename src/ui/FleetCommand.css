@@ -298,3 +298,28 @@
 .fleet-command-token .fleet-route-warning { display:flex; align-items:center; justify-content:center; gap:3px; color:var(--fleet-gold); font-size:10px; }
 .fleet-command-token .fleet-route-warning svg { width:12px; height:12px; flex:none; }
 .fleet-command .fleet-command-token .fleet-route-warning path { fill:none; stroke:currentColor; }
+
+/* Armament on the markers. An own fighter carries a four-cell belt off its
+   starboard wing (brass on the last cell); a bomber carries its weapon as a dark
+   stripe or dot inside the silhouette until release, when the silhouette goes
+   hollow. Enemy bombers get the same mark from what observers have seen. */
+.fleet-command-belt { pointer-events:none; }
+.fleet-command-belt rect { fill:#c9dce04a; }
+.fleet-command-belt rect.on { fill:currentColor; }
+.fleet-command-belt.low rect.on { fill:var(--fleet-gold); }
+.fleet-command-plane .fleet-command-ordnance { fill:#07131b; stroke:none; }
+.fleet-command-plane-tag { fill:#f0f5f3; font-size:10.5px; font-weight:500; paint-order:stroke; stroke:#07131b; stroke-width:3px; pointer-events:none; }
+.fleet-command-plane-tag.low { fill:var(--fleet-gold); }
+.fleet-command-plane-tag.spent { fill:var(--fleet-muted); }
+/* Intent: a dashed salmon line from a reported strike to the own ship on its course, full strength when that group is selected. */
+.fleet-command-intent { fill:none; stroke:#ffb5a6; stroke-width:1.1; stroke-dasharray:7 5; stroke-linecap:round; opacity:.6; pointer-events:none; }
+.fleet-command-intent.selected { stroke:var(--fleet-gold); stroke-width:1.6; opacity:1; }
+#fleet-command-intent-arrow path { fill:#ffb5a6; }
+#fleet-command-intent-arrow-selected path { fill:var(--fleet-gold); }
+/* Inbound badge under a threatened ship's label: a pip per plane, then count, type and time to release. */
+.fleet-command-inbound { color:#ffb5a6; pointer-events:none; }
+.fleet-command-inbound rect { fill:currentColor; }
+.fleet-command-inbound rect.released { fill:none; stroke:currentColor; stroke-width:.8; }
+.fleet-command-inbound rect.unobserved { fill:none; stroke:currentColor; stroke-width:.8; stroke-dasharray:1.5 1; }
+.fleet-command-inbound text { fill:currentColor; font-size:10.5px; font-weight:500; }
+.fleet-command-popover .fleet-command-strike { color:#ffb5a6; }

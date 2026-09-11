@@ -5,6 +5,8 @@ import { PLANE_GLYPHS } from './planeGlyphs';
 import { SHIP_GLYPHS, shipClassFromReport, shipClassOf } from './shipGlyphs';
 import { conditionReport, observationAge, reportPosition, reportState } from './reconReports';
 import type { AirCluster, BattleComparison } from './fleetStats';
+import { loadLabel, type AirStrike } from './airIntent';
+import { duration } from './airFormat';
 
 export const bearingLabel = (dx: number, dz: number) => `${String(Math.round(((Math.atan2(dx, -dz) * 180 / Math.PI) % 360 + 360) % 360) % 360).padStart(3, '0')}°`;
 export const rangeLabel = (dx: number, dz: number) => `${(Math.hypot(dx, dz) / 1000).toFixed(1)} km`;
@@ -13,8 +15,8 @@ const tonnes = (kg: number) => `${Math.round(kg / 1000).toLocaleString()} t`;
 /** What observers have reported, in the same card shape as our own fleet: the
  * hulls they have seen, the aircraft they have counted, and the running battle
  * comparison whose enemy column is only ever what was actually spotted. */
-export function EnemyFleet({ tracks, clusters, tick, origin, selectedId, onSelect, nameOf, comparison }: {
-  tracks: readonly ContactTrack[]; clusters: readonly AirCluster[]; tick: number; origin: { x: number; z: number };
+export function EnemyFleet({ tracks, clusters, strikes = [], tick, origin, selectedId, onSelect, nameOf, comparison }: {
+  tracks: readonly ContactTrack[]; clusters: readonly AirCluster[]; strikes?: readonly AirStrike[]; tick: number; origin: { x: number; z: number };
   selectedId?: string; onSelect(track: ContactTrack): void; nameOf(track: ContactTrack): string; comparison: BattleComparison;
 }) {
   const surface = tracks.filter(t => t.kind === 'surface').map(t => ({ track: t, position: reportPosition(t, tick), state: reportState(t, tick) }))
@@ -39,11 +41,13 @@ export function EnemyFleet({ tracks, clusters, tick, origin, selectedId, onSelec
     {clusters.map(cluster => {
       const first = tracks.find(t => t.id === cluster.trackIds[0])!;
       const selected = cluster.trackIds.includes(selectedId ?? '');
+      const strike = strikes.find(s => s.cluster.id === cluster.id);
       const bearing = `${rangeLabel(cluster.position[0] - origin.x, cluster.position[2] - origin.z)} ${bearingLabel(cluster.position[0] - origin.x, cluster.position[2] - origin.z)}`;
       return <button key={cluster.id} className={`fleet-card-row air ${cluster.stale ? 'last-known' : 'current'} ${selected ? 'selected' : ''}`} aria-pressed={selected} onClick={() => onSelect(first)}>
         <svg className="fleet-card-plane" viewBox="-12 -12 24 24" aria-hidden="true"><path d={PLANE_GLYPHS[cluster.type]} transform="scale(1.25)"/></svg>
         <span className="fleet-card-name">{cluster.label}{cluster.model ? ` · ${cluster.model}` : ''}
-          <small>{cluster.stale ? `last known · ${observationAge(cluster.lastObservedTick, tick)} · ${bearing}` : `current · ${bearing}`}{cluster.smoking ? ` · ${cluster.smoking} smoking` : ''}</small></span>
+          <small>{cluster.stale ? `last known · ${observationAge(cluster.lastObservedTick, tick)} · ${bearing}` : `current · ${bearing}`}{cluster.smoking ? ` · ${cluster.smoking} smoking` : ''}</small>
+          {strike && !cluster.stale && (loadLabel(strike) || strike.intent) && <small className={strike.intent ? 'fleet-card-threat' : undefined}>{[loadLabel(strike), strike.intent && `heading for ${strike.intent.name} · release in ${duration(strike.intent.releaseSeconds)}`].filter(Boolean).join(' · ')}</small>}</span>
         <span className="fleet-card-value">{cluster.count} seen</span>
       </button>;
     })}

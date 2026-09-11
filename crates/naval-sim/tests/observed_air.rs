@@ -630,8 +630,10 @@ fn spotted_aircraft_publish_only_visible_exteriors_and_stop_when_sight_is_lost()
             .iter()
             .any(|id| id == "own")
     );
+    // A slung torpedo or bomb is exterior state, like wing fold; rounds and orders stay private.
+    assert_eq!(exterior["payload"], plane.payload);
     for field in [
-        "ownerId", "hp", "ammo", "payload", "order", "pilot", "targetId", "flightId", "behavior",
+        "ownerId", "hp", "ammo", "order", "pilot", "targetId", "flightId", "behavior",
     ] {
         assert!(exterior.get(field).is_none(), "private field {field}");
     }

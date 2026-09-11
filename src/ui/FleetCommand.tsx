@@ -33,6 +33,8 @@ import { FORMATIONS, formationLabel, formationStations, STATION_RADIUS_M, type S
 import type { Formation } from '../multiplayer/generated/Formation';
 import { airClusters, battleComparison, reportedAircraftType } from './fleetStats';
 import { PLANE_GLYPHS } from './planeGlyphs';
+import { airStrikes, loadLabel, threatens } from './airIntent';
+import { AmmoBelt, InboundBadge, OrdnanceMark } from './AirArmamentMarks';
 import { SHIP_GLYPHS, shipClassFromReport, shipClassOf } from './shipGlyphs';
 import { EnemyFleet, bearingLabel, rangeLabel } from './EnemyFleet';
 import { OwnFleetCard, type OwnFleetAircraft, type OwnFleetShip } from './OwnFleet';
@@ -157,6 +159,15 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
     </g>;
   };
   const clusters = airClusters(observations, tick, 900, observedModels);
+  // What observers can say about each reported air group: the weapons still slung
+  // under current sightings, and the own ship its course is closing on.
+  const strikes = airStrikes(clusters, observations, observedModels, tick, ships.filter(s => !s.physicalLost).map(s => ({ id: s.id, name: nameFor(s.id), x: s.x, z: s.z })));
+  const strikeOf = (trackId: string) => strikes.find(s => s.cluster.trackIds.includes(trackId));
+  const threats = strikes.filter(threatens);
+  const payloadOf = (c: ContactTrack) => reportState(c, tick) === 'current' ? observedModels.find(o => o.id === c.id)?.payload : undefined;
+  /** The fighter group best placed to meet a contact: airborne and armed first, then ready on deck, nearest first. */
+  const interceptorFor = (position: Vec3) => flights.filter(f => f.role === 'fighter' && f.armed > 0 && (f.active || f.deck?.canLaunch))
+    .sort((a, b) => Number(b.active) - Number(a.active) || Math.hypot(a.position[0] - position[0], a.position[2] - position[2]) - Math.hypot(b.position[0] - position[0], b.position[2] - position[2]))[0];
   const [coveragePoint, setCoveragePoint] = useState<[number, number]>();
   const coverage = game.simulation.reconCoverage;
   const coverageTick = coveragePoint && coverage ? coverage.cells.find(c => Math.abs(c.x - coveragePoint[0]) <= coverage.cellSizeM / 2 && Math.abs(c.z - coveragePoint[1]) <= coverage.cellSizeM / 2)?.lastObservedTick : undefined;
@@ -194,6 +205,8 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
   const actionable = combat.result === 'active' && game.simulation.phase === 'running';
   const selectedContact = enemies.find(c => c.id === contactId);
   const selectedReport = observations.find(c => c.id === contactId);
+  const selectedStrike = selectedReport?.kind === 'aircraft' ? strikeOf(selectedReport.id) : undefined;
+  const interceptor = selectedReport?.kind === 'aircraft' ? interceptorFor(reportPosition(selectedReport, tick)) : undefined;
   const current = useRef({ data, armed, filter, selected, selectedFlights, actionable, contactId, airOpen, instrumentsVisible });
   current.current = { data, armed, filter, selected, selectedFlights, actionable, contactId, airOpen, instrumentsVisible };
   /** A unit chosen from a list may be off the chart; bring it into view without touching zoom. */
@@ -578,6 +591,10 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
     water(e, false);
   }} className={`fleet-command fleet-command-map${lineOpen ? ' air-open' : ''}`}>
     <svg ref={map} className="fleet-command-chart" tabIndex={0} aria-label="Fleet command chart" data-armed={armed ? true : undefined} {...chartInteraction}>
+      <defs>
+        <marker id="fleet-command-intent-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L8 4 0 8Z"/></marker>
+        <marker id="fleet-command-intent-arrow-selected" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L8 4 0 8Z"/></marker>
+      </defs>
       {armed === 'search' && <svg x="50%" y="50%" width="1" height="1" overflow="visible" className="fleet-command-search-center" aria-hidden="true"><path d="M-12 0H12M0-12V12"/></svg>}
       <ReconnaissanceCoverage coverage={game.simulation.reconCoverage} tick={tick}/>
       {boundary && <path className="fleet-command-boundary" data-map-path={JSON.stringify(circlePoints(0, 0, boundary.radiusM))} data-closed="true"/>}
@@ -666,7 +683,8 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
           </g>}
           <text x={label.x} y={label.y} textAnchor={label.anchor}>{own ? nameFor(s.id) : s.name}</text>
           {own && <><rect className="fleet-command-hull-track" x={label.barX} y={label.barY} width="40" height="3"/><rect className="fleet-command-hull-fill" x={side === 'port' ? -14 - 40 * hp : label.barX} y={label.barY} width={40 * hp} height="3"/>
-            <text className="fleet-command-marker-order" x={label.x} y={label.orderY} textAnchor={label.anchor}>{Math.round(s.integrity * 100)}% · {kn} kn{status === 'straggling' ? ' · straggling' : status === 'evading-aircraft' || status === 'evading-torpedo' ? ' · evading' : ''}</text></>}
+            <text className="fleet-command-marker-order" x={label.x} y={label.orderY} textAnchor={label.anchor}>{Math.round(s.integrity * 100)}% · {kn} kn{status === 'straggling' ? ' · straggling' : status === 'evading-aircraft' || status === 'evading-torpedo' ? ' · evading' : ''}</text>
+            <InboundBadge strikes={threats.filter(t => t.intent.shipId === s.id)} x={side === 'above' ? -20 : label.barX} y={side === 'above' ? 30 : label.orderY + 14}/></>}
           {!own && <text className="fleet-command-marker-order" x="14" y="11">{s.status === 'operational' ? 'contact' : s.status.replaceAll('-', ' ')}</text>}
         </g>;
       })}
@@ -680,23 +698,30 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
         <text x="16" y="-3">{reportName(c)}</text><text className="fleet-command-marker-order" x="16" y="11">{c.affiliation === 'unknown' ? 'affiliation unknown' : reportState(c, tick) === 'current' ? (c.visibleCondition?.sinking || c.visibleCondition?.fire || c.visibleCondition?.heavySmoke || c.visibleCondition?.listing ? conditionReport(c, tick).split(' · ')[0].toLowerCase() : '') : `${reportState(c, tick).replaceAll('-', ' ')} · ${reportAge(c, tick)}`}</text>
         {healthMarker(c, 16, 18)}
       </g>; })}
+      {threats.map(t => { const ship = ships.find(s => s.id === t.intent.shipId); if (!ship) return null;
+        const dx = ship.x - t.cluster.position[0], dz = ship.z - t.cluster.position[2], range = Math.hypot(dx, dz), short = Math.min(range * .5, 150);
+        return <path key={`intent-${t.cluster.id}`} className={`fleet-command-intent ${t.cluster.trackIds.includes(contactId ?? '') ? 'selected' : ''}`} data-intent-target={ship.id} aria-hidden="true"
+          data-map-path={JSON.stringify([t.cluster.position, [ship.x - dx / range * short, 0, ship.z - dz / range * short]])} markerEnd={`url(#fleet-command-intent-arrow${t.cluster.trackIds.includes(contactId ?? '') ? '-selected' : ''})`}/>; })}
       {ownPlanes.map(p => { const flight = flights.find(f => f.id === p.flightId), on = !!flight && game.selectedFlightIds.includes(flight.id), unarmed = p.role === 'fighter' ? p.ammo <= 0 : !p.payload; return <g key={p.id} data-map-position={JSON.stringify(p.position)} data-plane={p.id} data-map-fade={`13,${p.heading},6,14`} className={`fleet-command-plane friendly ${on ? 'selected' : ''} ${p.hp < 50 ? 'hurt' : ''} ${unarmed ? 'unarmed' : ''} ${hoverFlightId && hoverFlightId === p.flightId ? 'hovered' : ''}`}
         onClick={e => { e.stopPropagation(); if (ignoreClick.current) { ignoreClick.current = false; return; } if (flight) selectAir(flight.id, e.shiftKey || e.ctrlKey || e.metaKey); }}>
         <circle r="8" className="fleet-command-hitbox"/>
-        <g data-map-glyph="true" data-map-heading={p.heading}><path d={PLANE_GLYPHS[p.role]} transform="scale(.9)"/></g>
+        <g data-map-glyph="true" data-map-heading={p.heading}><path d={PLANE_GLYPHS[p.role]} transform="scale(.9)"/><OrdnanceMark role={p.role} carrying={p.payload}/></g>
+        {p.role === 'fighter' && <AmmoBelt bursts={p.ammo}/>}
+        {hoverFlightId && hoverFlightId === p.flightId && <text className={`fleet-command-plane-tag ${p.role === 'fighter' && p.ammo <= 0 || p.role !== 'fighter' && !p.payload ? 'spent' : p.role === 'fighter' && p.ammo <= 4 ? 'low' : ''}`} x="13" y="-11">
+          {(flight?.aircraftIds.indexOf(p.id) ?? -1) + 1 || '·'} · {p.role === 'fighter' ? p.ammo > 0 ? `${p.ammo} bursts` : 'guns empty' : p.payload ? p.role === 'dive-bomber' ? 'bomb' : 'torpedo' : 'released'}</text>}
         <PlaneHealth hp={p.hp / 100} name={flight?.name ?? 'Aircraft'}/>
       </g>; })}
-      {observations.filter(c => c.kind === 'aircraft').map(c => { const position = reportPosition(c, tick), [vx, , vz] = c.velocity, damaged = c.visibleCondition?.fire || c.visibleCondition?.heavySmoke; return <g key={c.id} data-map-position={JSON.stringify(position)} data-track={c.id} data-contact-kind="aircraft" data-map-fade={`13,${Math.atan2(vx, -vz)},6,14`} data-report-state={reportState(c, tick)} className={`fleet-command-plane ${c.affiliation === 'hostile' ? 'enemy' : 'unidentified'} ${c.status} ${contactId === c.id ? 'selected' : ''}`}
+      {observations.filter(c => c.kind === 'aircraft').map(c => { const position = reportPosition(c, tick), [vx, , vz] = c.velocity, damaged = c.visibleCondition?.fire || c.visibleCondition?.heavySmoke, type = reportedAircraftType(c, observedModels).type, load = payloadOf(c); return <g key={c.id} data-map-position={JSON.stringify(position)} data-track={c.id} data-contact-kind="aircraft" data-map-fade={`13,${Math.atan2(vx, -vz)},6,14`} data-report-state={reportState(c, tick)} className={`fleet-command-plane ${c.affiliation === 'hostile' ? 'enemy' : 'unidentified'} ${c.status} ${contactId === c.id ? 'selected' : ''} ${load === false ? 'unarmed' : ''}`}
         role="button" tabIndex={0} aria-label={`${reportName(c)} · ${c.status} · observed ${reportAge(c, tick)}`}
         onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); selectReport(c); } }}
         onClick={e => { e.stopPropagation(); if (ignoreClick.current) { ignoreClick.current = false; return; } selectReport(c); }} onContextMenu={e => { e.preventDefault(); e.stopPropagation(); if (e.ctrlKey || e.metaKey || e.altKey || drag.current?.moved) return; selectReport(c, true); }}>
         <title>{`${reportName(c)} · ${reportState(c, tick).replaceAll('-', ' ')} · ${reportAge(c, tick)}`}</title>
         <circle r="8" className="fleet-command-hitbox"/>
-        <g data-map-glyph="true" data-map-heading={Math.atan2(vx, -vz)}><path d={PLANE_GLYPHS[reportedAircraftType(c, observedModels).type]} transform="scale(.9)"/>{damaged && <path className="fleet-command-smoke" d="M0 6q-3 6 -1 12"/>}</g>
+        <g data-map-glyph="true" data-map-heading={Math.atan2(vx, -vz)}><path d={PLANE_GLYPHS[type]} transform="scale(.9)"/><OrdnanceMark role={type} carrying={load}/>{damaged && <path className="fleet-command-smoke" d="M0 6q-3 6 -1 12"/>}</g>
         <PlaneHealth hp={healthOf(c)} name={reportName(c)}/>
       </g>; })}
       {clusters.map(cluster => <g key={cluster.id} data-contact-group={JSON.stringify(cluster.trackIds)} data-map-position={JSON.stringify(cluster.position)} className={`fleet-command-cluster ${cluster.stale ? 'stale' : ''} ${cluster.trackIds.includes(contactId ?? '') ? 'selected' : ''}`} aria-hidden="true">
-        <text x="20" y="-2">{cluster.label}{cluster.model ? ` · ${cluster.model}` : ''}</text><text className="fleet-command-marker-order" x="20" y="11">{cluster.stale ? `last known · ${observationAge(cluster.lastObservedTick, tick)}` : cluster.smoking ? `${cluster.smoking} smoking` : ''}</text>
+        <text x="20" y="-2">{cluster.label}{cluster.model ? ` · ${cluster.model}` : ''}</text><text className="fleet-command-marker-order" x="20" y="11">{cluster.stale ? `last known · ${observationAge(cluster.lastObservedTick, tick)}` : (({ strike }) => [strike && loadLabel(strike), strike?.intent && `for ${strike.intent.name}`, cluster.smoking && `${cluster.smoking} smoking`].filter(Boolean).join(' · '))({ strike: strikes.find(s => s.cluster.id === cluster.id) })}</text>
       </g>)}
     </svg>
     <div ref={anchors} className="fleet-command-anchors">
@@ -744,8 +769,11 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
           {selectedReport ? <p>{selectedReport.affiliation === 'hostile' ? 'Hostile' : 'Affiliation unknown'} · {reportState(selectedReport, tick).replaceAll('-', ' ')} · {bearingLabel(selectedContact.x - origin.x, selectedContact.z - origin.z)} · {rangeLabel(selectedContact.x - origin.x, selectedContact.z - origin.z)}{selectedReport.visibleCondition?.sinking ? '' : ` · ±${reportUncertainty(selectedReport)}`}</p> : <p>Hostile · {bearingLabel(selectedContact.x - origin.x, selectedContact.z - origin.z)} · {rangeLabel(selectedContact.x - origin.x, selectedContact.z - origin.z)}</p>}
           {selectedReport && <p>Reported by {selectedReport.sources.map(source => ships.find(s => s.id === source.observerId)?.name ?? 'Friendly aircraft').filter((name, i, names) => names.indexOf(name) === i).join(', ') || 'Fleet lookouts'}, observed {reportAge(selectedReport, tick)}. {selectedReport.kind === 'surface' ? conditionReport(selectedReport, tick).split(' · ')[0] : 'Heading and speed are estimates from your observers.'}</p>}
           {selectedReport && healthOf(selectedReport) !== undefined && <p>{Math.round(healthOf(selectedReport)! * 100)}% HP remaining</p>}
+          {selectedStrike && <p className="fleet-command-strike">{[`${selectedStrike.cluster.count} seen`, loadLabel(selectedStrike),
+            selectedStrike.intent ? `heading for ${selectedStrike.intent.name} · ${rangeLabel(selectedStrike.intent.rangeM, 0)} · release in ${duration(selectedStrike.intent.releaseSeconds)}` : selectedStrike.cluster.type !== 'fighter' && !selectedStrike.cluster.stale && !!loadLabel(selectedStrike) && 'no own ship on its course'].filter(Boolean).join(' · ')}</p>}
           <p className="fleet-command-popover-hint">{selectedReport?.visibleCondition?.sinking ? 'Loss confirmed by an observer. This report is no longer a target.' : selectedReport?.status === 'stale' ? 'Search the reported area to reacquire this contact.' : selectedReport?.kind === 'aircraft' ? 'Select a fighter group and Intercept to engage.' : 'Right-click with ships selected to focus fire, or with bombers selected to strike.'}</p>
           <div className="fleet-command-buttons">
+            {selectedReport?.kind === 'aircraft' && interceptor && <button disabled={!actionable || selectedReport.status === 'stale'} onClick={() => { if (game.commandSquadron(interceptor.id, { kind: 'intercept', flightId: selectedReport.id })) setFeedback(`${interceptor.name} · Intercept order queued`); else setFeedback(`${interceptor.name} is not available to intercept.`); }}><Icon name="aircraft" size={13}/>Intercept · {interceptor.name}</button>}
             <button disabled={!actionable || !selectedFlights.length && !flights.some(f => f.role !== 'fighter' || true)} onClick={() => { if (!current.current.selectedFlights.length) { setFeedback('Select air groups first, then search here.'); return; } arm('search'); }}><Icon name="target" size={13}/>Search here<kbd>S</kbd></button>
             <button onClick={() => { setContactId(undefined); game.selectTarget(''); }}>Close<kbd>Esc</kbd></button>
           </div>
@@ -770,7 +798,7 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
     </header>
     <OwnFleetCard formations={formations} ships={ownShips} selectedIds={ids} hoverId={hoverId} onHover={setHoverId} onSelectShip={selectShip} onSelectFormation={selectFormation}
       airOpen={airOpen} {...(wings.length > 0 ? { aircraft: ownWing, onOpenAir: () => { setAirOpen(true); setFilter('aircraft'); } } : {})}/>
-    <EnemyFleet tracks={observations} clusters={clusters} tick={tick} origin={origin} selectedId={contactId} onSelect={selectReport} nameOf={reportName} comparison={comparison}/>
+    <EnemyFleet tracks={observations} clusters={clusters} strikes={strikes} tick={tick} origin={origin} selectedId={contactId} onSelect={selectReport} nameOf={reportName} comparison={comparison}/>
     {data.tacticalPaused && <p className="fleet-command-paused" role="status">Tactical pause · Both fleets stopped · {game.simulation.queuedOrderCount ?? 0} orders queued for resume</p>}
     {!lineOpen && <FleetRoster formations={formations} ships={rosterShips} selectedIds={ids} hoverId={hoverId} onHover={setHoverId} onSelectShip={selectShip} onSelectFormation={selectFormation}/>}
     <div className="fleet-command-ticker" role="status">{feedback && <p>{feedback}</p>}{receipts.map(r => <p key={r.sequence} data-state={r.state}>{ships.find(s => s.id === r.shipId)?.name ?? r.shipId} · {r.command.replaceAll('-', ' ')} {r.state}{r.message ? ` · ${r.message}` : ''}</p>)}</div>
