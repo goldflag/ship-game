@@ -385,3 +385,11 @@ The full plan remains unfinished. Next carrier requirements are actual three-tyr
 Next physical work must include fitted wires/obstructions and hook clearance, actual moving platforms/empty cycles, below-deck loading and separate reservation/occupancy telemetry. The existing loading endpoints differ from modeled floors: Enterprise's floor top is 8.1915 m versus its 10.1 m endpoint; Shōkaku's upper floor is 10 m versus its 9.4 m endpoint. Correcting these needs matching floor apertures, landing transitions and a verified below-deck transfer before hiding aircraft. These are proposed gameplay mechanisms, not historical claims.
 
 The complete PvE objective remains active, including the wider gameplay, mission, UI and performance work listed above. This slice does not activate the managed production profile.
+
+### Carrier air doctrine checkpoint (2026-09-10)
+
+- A native fleet-command run (seed 1, Hard, Pacific islands) showed the previous commander sending all twelve bomber flights of both carriers at one contact within fifteen seconds; when that ship sank, 56 aircraft orbited its last report for the rest of the battle because the strike controller only ever looked up its own contact id and the commander still counted the orbiting flights as an active strike.
+- Strike pilots now retarget to a ship they can see or return armed once a report is seen sinking or after 90 seconds of searching its last position. Escorts release when their strike turns for home.
+- The commander is a doctrine: patrol levels driven by reported aircraft, per-class strike budgets shared across carriers, waves and a bomber reserve by difficulty, escorts per package, and re-scouting when no report is fresh. See [Air operations](air-operations.md).
+- Validation: new `strike_retarget` and `pve_generation` doctrine tests, and the ignored `pve_air_doctrine` native run (20 simulated minutes in about a minute of release time). The pre-existing `carrier_loss` failure `a_homeless_strike_releases_its_bombs_then_withdraws_without_fabricated_kills` reproduces on master and is unrelated.
+

@@ -4,7 +4,10 @@ use naval_sim::{
     pve::{FleetShip, GroupStation, Placement, PvePlan, PveRequest, TaskGroup, eligible_presets},
     rules::TeamId,
 };
-use std::{collections::BTreeSet, sync::OnceLock};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    sync::OnceLock,
+};
 fn catalog() -> &'static Catalog {
     static CONTENT: OnceLock<Catalog> = OnceLock::new();
     CONTENT.get_or_init(|| {
@@ -638,5 +641,221 @@ fn enemy_groups_deploy_on_the_station_table_in_a_seeded_formation() {
     assert!(
         chosen.iter().map(|(_, f)| f).collect::<BTreeSet<_>>().len() > 1,
         "the seed must actually vary the surface force's formation: {chosen:?}"
+    );
+}
+
+/// Enemy carriers plus fletchers only, so the compiled fixture covers the
+/// opponent, and the player's ships parked where the enemy carrier sees them.
+fn observed_fixture(level: AiLevel, player: &[&str]) -> (PvePlan, naval_sim::battle::Battle) {
+    let mut content = catalog().clone();
+    content
+        .definitions
+        .retain(|id, _| id == "enterprise-cv6" || id == "fletcher");
+    let mut request = request(83, player, "north-atlantic");
+    request.difficulty = level;
+    let plan = PvePlan::generate(&content, request).unwrap();
+    let mut battle = battle(&plan);
+    let own_carrier = battle
+        .actors
+        .iter()
+        .find(|a| a.team == TeamId::B && a.definition().air_wing.is_some())
+        .unwrap()
+        .motion
+        .clone();
+    for (i, a) in battle
+        .actors
+        .iter_mut()
+        .filter(|a| a.team == TeamId::A)
+        .enumerate()
+    {
+        a.motion.x = own_carrier.x + i as f64 * 1500.0;
+        a.motion.z = own_carrier.z + 5000.0;
+    }
+    (plan, battle)
+}
+fn observe(battle: &mut naval_sim::battle::Battle) {
+    use naval_sim::sensors;
+    battle.sensors.update(
+        battle.tick,
+        &sensors::entities(&battle.actors, &battle.aviation),
+        &battle.islands,
+        &[],
+        sensors::VisualConditions::resolve(catalog(), "north-atlantic", "clear"),
+        &sensors::VisualRules::default(),
+    );
+}
+/// Apply every enemy air order at each decision tick without stepping the
+/// battle, so queued flights stay counted as committed.
+fn commit_orders(
+    plan: &PvePlan,
+    battle: &mut naval_sim::battle::Battle,
+    rounds: u64,
+    cadence: u64,
+) {
+    use naval_sim::pve_air::AirIntent;
+    for _ in 0..rounds {
+        battle.tick += cadence;
+        observe(battle);
+        for d in plan.enemy_air_directives(battle) {
+            if let AirIntent::Order(order) = d.intent {
+                battle.command_air(&d.carrier_id, &d.flight_id, order);
+            }
+        }
+    }
+}
+fn strikes_by_contact(battle: &naval_sim::battle::Battle) -> BTreeMap<String, (usize, usize)> {
+    use naval_sim::aircraft::AirOrder;
+    let mut out: BTreeMap<String, (usize, usize)> = BTreeMap::new();
+    for a in battle.actors.iter().filter(|a| a.team == TeamId::B) {
+        let Some(wing) = battle.aviation.wing(&a.motion.id) else {
+            continue;
+        };
+        for f in &wing.flights {
+            let AirOrder::Strike { contact_id } = &f.order else {
+                continue;
+            };
+            let role = wing
+                .planes
+                .iter()
+                .find(|p| f.plane_ids.contains(&p.id))
+                .map(|p| p.role.clone())
+                .unwrap_or_default();
+            let slot = out.entry(contact_id.clone()).or_default();
+            if role == "dive-bomber" {
+                slot.0 += 1;
+            } else {
+                slot.1 += 1;
+            }
+        }
+    }
+    out
+}
+fn orders_of(battle: &naval_sim::battle::Battle) -> Vec<naval_sim::aircraft::AirOrder> {
+    battle
+        .actors
+        .iter()
+        .filter(|a| a.team == TeamId::B)
+        .filter_map(|a| battle.aviation.wing(&a.motion.id))
+        .flat_map(|w| w.flights.iter().map(|f| f.order.clone()))
+        .collect()
+}
+
+#[test]
+fn strike_budgets_favor_the_identified_carrier_and_stop_at_the_wave_limit() {
+    use naval_sim::aircraft::AirOrder;
+    let (plan, mut battle) = observed_fixture(AiLevel::Hard, &["enterprise-cv6", "fletcher"]);
+    commit_orders(&plan, &mut battle, 40, 180);
+    let contacts = battle.sensors.contacts(TeamId::B);
+    let carrier = contacts
+        .iter()
+        .find(|c| c.identified_preset_id.as_deref() == Some("enterprise-cv6"))
+        .expect("the player's carrier is a tracked report");
+    let destroyer = contacts
+        .iter()
+        .find(|c| c.identified_preset_id.as_deref() == Some("fletcher"))
+        .unwrap();
+    let strikes = strikes_by_contact(&battle);
+    let on_carrier = strikes.get(&carrier.id).copied().unwrap_or_default();
+    assert!(
+        on_carrier.0 >= 2 && on_carrier.1 >= 2 && on_carrier.0 <= 3 && on_carrier.1 <= 3,
+        "Hard commits two to three dive and torpedo flights at an identified carrier, got {on_carrier:?}"
+    );
+    let on_destroyer = strikes.get(&destroyer.id).copied().unwrap_or_default();
+    assert!(
+        on_destroyer.0 <= 1 && on_destroyer.1 == 0,
+        "a small warship draws at most one dive flight, got {on_destroyer:?}"
+    );
+    let total: usize = strikes.values().map(|(d, t)| d + t).sum();
+    assert!(
+        total <= 6,
+        "a Hard carrier keeps at most six bomber flights inbound, got {total}"
+    );
+    let orders = orders_of(&battle);
+    assert!(
+        orders
+            .iter()
+            .filter(|o| matches!(o, AirOrder::Defend { .. }))
+            .count()
+            == 1,
+        "one patrol flight with no hostile aircraft reported"
+    );
+    let escorts = orders
+        .iter()
+        .filter(|o| matches!(o, AirOrder::Escort { .. }))
+        .count();
+    assert!(
+        (1..=3).contains(&escorts),
+        "escorts scale with strike packages while a fighter reserve stays home, got {escorts}"
+    );
+}
+
+#[test]
+fn two_small_contacts_each_draw_one_flight_instead_of_a_pile_on() {
+    let (plan, mut battle) =
+        observed_fixture(AiLevel::Normal, &["enterprise-cv6", "fletcher", "fletcher"]);
+    // Only the two destroyers are in sight; the player's carrier is far off.
+    let carrier = battle
+        .actors
+        .iter_mut()
+        .find(|a| a.motion.id == "ship-0")
+        .unwrap();
+    carrier.motion.x += 60000.0;
+    commit_orders(&plan, &mut battle, 20, 300);
+    let strikes = strikes_by_contact(&battle);
+    assert_eq!(
+        strikes.len(),
+        2,
+        "both destroyers are targeted: {strikes:?}"
+    );
+    assert!(
+        strikes.values().all(|&(d, t)| d == 1 && t == 0),
+        "one dive flight each, no torpedo flights: {strikes:?}"
+    );
+}
+
+#[test]
+fn reported_hostile_aircraft_double_the_patrol_before_any_scout_leaves() {
+    use naval_sim::aircraft::AirOrder;
+    let (plan, mut battle) = observed_fixture(AiLevel::Normal, &["enterprise-cv6"]);
+    // The player's carrier puts fighters up 5 km from the enemy carrier.
+    let own = battle
+        .aviation
+        .squadron_flights(&battle.actors[0])
+        .into_iter()
+        .find(|f| f.id.contains("vf-6"))
+        .unwrap();
+    assert!(battle.command_air("ship-0", &own.id, AirOrder::Defend { target_id: None }));
+    for _ in 0..1500 {
+        battle.step(&BTreeMap::new());
+    }
+    battle.tick = battle.tick.next_multiple_of(300);
+    observe(&mut battle);
+    let seen_aircraft = battle
+        .sensors
+        .contacts(TeamId::B)
+        .iter()
+        .any(|c| c.kind == naval_sim::sensors::ContactKind::Aircraft);
+    assert!(seen_aircraft, "the enemy must have reported the fighters");
+    let mut defends = 0;
+    for _ in 0..2 {
+        for d in plan.enemy_air_directives(&battle) {
+            if let naval_sim::pve_air::AirIntent::Order(order) = d.intent {
+                if matches!(order, AirOrder::Defend { .. }) {
+                    defends += 1;
+                }
+                battle.command_air(&d.carrier_id, &d.flight_id, order);
+            }
+        }
+        battle.tick += 300;
+        observe(&mut battle);
+    }
+    let orders = orders_of(&battle);
+    let on_patrol = orders
+        .iter()
+        .filter(|o| matches!(o, AirOrder::Defend { .. }))
+        .count();
+    assert!(
+        on_patrol >= 2 && defends >= 1,
+        "two patrol flights under an air threat, got {on_patrol} ({orders:?})"
     );
 }
