@@ -36,6 +36,8 @@ export class CameraRig {
   private dragging = false;
   private inPort = false;
   private enabled = true;
+  /** A held overlay (the helm wheel) reads the mouse itself: the view holds still and clicks do not fire. */
+  private held = false;
   private inspecting = false;
   private pointerId = -1;
   private previous = { x: 0, y: 0 };
@@ -62,7 +64,7 @@ export class CameraRig {
     private actions: { pause(): void; aim(): void; optics(): void } = { pause() {}, aim() {}, optics() {} }) {
     const options = { signal: this.abort.signal };
     canvas.addEventListener('pointerdown', e => {
-      if (!this.enabled || (e.button !== 0 && e.button !== 2)) return;
+      if (!this.enabled || this.held || (e.button !== 0 && e.button !== 2)) return;
       if (this.shellView && this.pointerLocked) return;
       if (!this.shellView && !this.inPort && !this.inspecting && e.pointerType === 'mouse') {
         if (!this.pointerLocked) { this.capturePointer(); return; }
@@ -75,7 +77,7 @@ export class CameraRig {
       canvas.setPointerCapture(e.pointerId);
     }, options);
     canvas.addEventListener('pointermove', e => {
-      if (!this.enabled) return;
+      if (!this.enabled || this.held) return;
       const locked = this.pointerLocked;
       if (!locked && (!this.dragging || e.pointerId !== this.pointerId)) return;
       const dx = locked ? e.movementX : e.clientX - this.previous.x;
@@ -169,6 +171,11 @@ export class CameraRig {
   setEnabled(enabled: boolean): void {
     this.enabled = enabled;
     if (!enabled) { this.dragging = false; this.releasePointer(); }
+  }
+  /** Hold the view still while an overlay owns the mouse; the pointer stays captured. */
+  setHeld(held: boolean): void {
+    this.held = held;
+    if (held) { this.dragging = false; this.mouseFire = false; }
   }
   setInspecting(inspecting: boolean): void {
     this.setShellView();

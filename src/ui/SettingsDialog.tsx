@@ -251,7 +251,7 @@ export function SettingsDialog({ graphics, launched, performance, inBattle, onGr
           <div className="note-list"><p>Guns & impacts covers batteries, shell splashes, torpedo launches and hits. Controls & instruments covers menu clicks, the telegraph and alarms.</p><p>Sound settings are saved in this browser.</p></div>
         </div>
       </section> : <section aria-label="Keybindings">
-        <p className="keybinding-instructions" id="keybinding-instructions">Select a binding, then press a key. Esc cancels a change. Delete clears a binding. Keep at least one key per action. Esc, Tab and Enter stay reserved for menus.</p>
+        <p className="keybinding-instructions" id="keybinding-instructions">Select a binding, then press a key. Esc cancels a change. Delete clears a binding. Keep at least one key per action. Esc and Enter stay reserved for menus.</p>
         <div className="settings-columns">
           {(['Helm', 'Gunnery', 'View'] as const).map(group => <div className="settings-column keybinding-group" key={group}>
             <h3>{group}</h3>

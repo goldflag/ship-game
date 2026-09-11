@@ -16,6 +16,7 @@ import { ShellCycle } from './ShellCycle';
 import { DepthControl } from './DepthControl';
 import { BattleStatus } from './BattleStatus';
 import { BattleDamageLog } from './BattleDamageLog';
+import { HelmWheel } from './HelmWheel';
 import { ShipContext, useShip } from './ShipContext';
 import './FleetHud.css';
 import { bindingLabel, WEAPON_GROUP_ACTIONS, type Keybindings } from '../game/keybindings';
@@ -151,6 +152,7 @@ function FleetHudInstruments({ data, game, visible, bindings }: FleetHudProps) {
   // weapons read as instruments and only the chart or Take helm changes that.
   const followingShip = fleetCommand && !commandingShip && !data.airOperationsOpen;
   const following = followingShell || !!data.followedAircraftId || !!data.combat?.playerSunk || followingShip;
+  const wheel = !!data.helmWheel && !data.airOperationsOpen;
 
   if (fleetCommand && data.airOperationsOpen) return <div className="fleet-hud">
     <FleetCommand data={data} game={game!} bindings={bindings} instrumentsVisible={visible}/>
@@ -161,7 +163,7 @@ function FleetHudInstruments({ data, game, visible, bindings }: FleetHudProps) {
     <BearingTape degrees={degrees}/>
     {!fleetCommand && game?.simulation.missionRules && game.simulation.releaseHelm && !game.simulation.networked && <button className="fleet-command-entry" onClick={() => game.enterFleetCommand()}>Fleet command</button>}
     <div className="fleet-reports">
-    {!fleetCommand && data.combat?.battle && <BattleStatus combat={data.combat} game={game} spectatedShipId={data.spectatedShipId}>
+    {!fleetCommand && data.combat?.battle && <BattleStatus combat={data.combat} game={game} spectatedShipId={data.spectatedShipId} bindings={bindings}>
       {data.combat.airWing && !data.airOperationsOpen && <FlightControl combat={data.combat} game={game} bindings={bindings}/>}
     </BattleStatus>}
     {data.combat && !data.airOperationsOpen && !data.inspecting && <FireControl combat={data.combat} game={game} observedName={data.spectatedShipId && !commandingShip ? selectedShip.name : undefined}/>}
@@ -171,7 +173,8 @@ function FleetHudInstruments({ data, game, visible, bindings }: FleetHudProps) {
 
     {followingShell && <div className="fleet-shell-status" role="status" title="Move mouse to orbit; drag when the cursor is released. Scroll to zoom."><strong>{data.shellFollow === 'impact' ? 'Shell impact' : 'Following shell'}</strong><span>{data.shellFollow === 'impact' ? 'Returning to ship…' : `${bindingLabel(bindings, 'shellFollow')} to return to ship`}</span></div>}
     {data.followedAircraftId && <div className="fleet-shell-status fleet-aircraft-status" title="Move mouse to orbit; drag when the cursor is released. Scroll to zoom."><strong>Following {data.followedAircraftId.split('/').slice(1).join(' / ')}</strong><button onClick={e => { game?.returnToShip(); e.currentTarget.blur(); }}>Return to ship</button><span>{bindingLabel(bindings, 'camera')} or {bindingLabel(bindings, 'recenter')} to return · Hold Ctrl to use controls</span></div>}
-    {!data.inspecting && !following && !data.airOperationsOpen && <div className={`fleet-sight ${data.binoculars ? 'fleet-sight-optics' : 'fleet-sight-chase'}`} aria-hidden="true">
+    {wheel && <HelmWheel data={data} game={game} bindings={bindings}/>}
+    {!data.inspecting && !following && !data.airOperationsOpen && !wheel && <div className={`fleet-sight ${data.binoculars ? 'fleet-sight-optics' : 'fleet-sight-chase'}`} aria-hidden="true">
       {data.binoculars ? <><svg className="fleet-scope-scale" height="180" fill="none">
         <line x1="0" y1="90" x2="100%" y2="90" stroke="currentColor"/>
         {/* Percentage positions widen the ruler without stretching its marks or labels. */}
@@ -190,7 +193,7 @@ function FleetHudInstruments({ data, game, visible, bindings }: FleetHudProps) {
         </div></> :
         <svg viewBox="0 0 44 44" fill="none"><path d="M3 22h9m20 0h9M22 3v9m0 20v9" stroke="currentColor"/><circle cx="22" cy="22" r="5" stroke="currentColor"/><circle cx="22" cy="22" r="1" fill="currentColor"/></svg>}
     </div>}
-    {!data.pointerLocked && !data.inspecting && !following && !data.airOperationsOpen && <button className="fleet-capture-hint" onClick={() => game?.capturePointer()}>Click sea to aim <span>Hold Ctrl for cursor</span></button>}
+    {!data.pointerLocked && !data.inspecting && !following && !data.airOperationsOpen && !wheel && <button className="fleet-capture-hint" onClick={() => game?.capturePointer()}>Click sea to aim <span>Hold Ctrl for cursor</span></button>}
 
     <section className="fleet-ship" aria-label="Ship condition and helm">
       {damage && damage.amount > 0 && <p className="fleet-hit-notice" role="status" style={{ opacity: damage.opacity }}><strong>−{Math.max(1, Math.round(damage.amount)).toLocaleString()}</strong><span>Hull damaged</span></p>}
