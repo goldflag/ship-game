@@ -2,15 +2,12 @@ import init, { LocalRuntime, PvePlanner } from '../../generated/naval-wasm/naval
 import manifestUrl from '../../../.build/naval-content/manifest.json?url';
 import type { BattleSetup } from '../../multiplayer/generated/BattleSetup';
 import type { CommandEnvelope } from '../../multiplayer/generated/CommandEnvelope';
-import { decodeSnapshot } from './snapshotCodec';
-import { localDelta } from './localSnapshotDelta';
-import type { Snapshot } from './SnapshotSession';
+import type { LocalDelta } from './localSnapshotDelta';
 import type { PveRequest } from '../../multiplayer/generated/PveRequest';
 import type { Placement } from '../../multiplayer/generated/Placement';
 import type { Formation } from '../../multiplayer/generated/Formation';
 let runtime: LocalRuntime | undefined;
 let planner: PvePlanner | undefined;
-let previous: Snapshot | undefined;
 let profile = false;
 /** Hulls whose damage-control detail the session still reads. Empty keeps every
  * ship's, which is what the first frame after init, deploy or restart wants. */
@@ -47,14 +44,15 @@ self.onmessage = (event: MessageEvent<{ type: 'options' } | { type: 'validate'; 
       } else if (message.type === 'deploy') {
         if (!planner) throw new Error('Prepare a mission before deploying.');
         const next = planner.start(JSON.stringify(message.placements), JSON.stringify(message.formations ?? {}));
-        runtime?.free(); runtime = next; previous = undefined; detail = [];
+        runtime?.free(); runtime = next; detail = [];
         planner.free(); planner = undefined;
       } else if (message.type === 'init') {
         const next = new LocalRuntime(await loadContent(), JSON.stringify(message.setup));
-        runtime?.free(); runtime = next; previous = undefined; detail = [];
+        runtime?.free(); runtime = next; detail = [];
       } else if (message.type === 'restart') {
         if (!runtime) throw new Error('No active mission to restart.');
-        runtime.restart_pve(); previous = undefined; detail = [];
+        // A restarted runtime holds no baseline, so the next frame travels whole.
+        runtime.restart_pve(); detail = [];
       } else {
         if (!runtime) throw new Error('Battle worker is not initialized.');
         for (const command of message.commands) {
@@ -71,17 +69,18 @@ self.onmessage = (event: MessageEvent<{ type: 'options' } | { type: 'validate'; 
         // alter timestep or block the rendering/input thread.
         for (let left = message.ticks; left > 0; left -= 6) runtime.step(Math.min(6, left));
       }
+      // Rust walks the frame once and writes only what moved, so the worker
+      // parses a patch instead of parsing, normalizing and diffing a frame.
       const stepped = profile ? performance.now() : 0;
-      const json = runtime!.detailed_snapshot(detail);
+      const json = runtime!.snapshot_delta(detail);
       const serialized = profile ? performance.now() : 0;
-      const frame = decodeSnapshot(json);
+      const frame = JSON.parse(json) as { baseTick: number | null; tick: number; delta?: LocalDelta };
       const decoded = profile ? performance.now() : 0;
-      const delta = localDelta(previous, frame);
+      if (!Number.isSafeInteger(frame.tick) || frame.tick < 0) throw new Error('Invalid battle snapshot.');
       const timing = profile ? { tick: frame.tick, ticks: message.type === 'advance' ? message.ticks : 0,
         step: stepped - started, serialize: serialized - stepped, decode: decoded - serialized,
-        delta: performance.now() - decoded, bytes: json.length } : undefined;
-      self.postMessage({ type: 'snapshot', reset: message.type === 'restart', baseTick: previous?.tick, delta, timing });
-      previous = frame;
+        delta: 0, bytes: json.length } : undefined;
+      self.postMessage({ type: 'snapshot', reset: message.type === 'restart', baseTick: frame.baseTick ?? undefined, delta: frame.delta, timing });
     } catch (error) { self.postMessage({ type: 'error', message: String(error) }); }
   });
 };

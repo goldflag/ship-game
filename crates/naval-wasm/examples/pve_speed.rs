@@ -2,13 +2,15 @@
 //! the simulation equality gate. Runs the same `PvePlanner`/`LocalRuntime` code
 //! the browser worker runs, without WASM or rendering.
 //!
-//! cargo run --release -p naval-wasm --example pve_speed -- [scenario] [seconds] [batch] [--dump PATH] [--no-snapshot]
+//! cargo run --release -p naval-wasm --example pve_speed -- [scenario] [seconds] [batch] [--dump PATH] [--no-snapshot] [--full-snapshot]
 //!
 //! Scenarios: `surface` and `carrier` (fleet command, team projection, default
 //! 12-tick batches like 4× at 20 Hz), `custom` (15-ship custom battle, full
 //! snapshot every tick like the 60 Hz local session), `server` (same battle,
 //! the match worker's tree projection plus baseline delta every 3 ticks).
 //! `--dump` writes the complete final state for byte comparison across builds.
+//! The local scenarios publish Rust-emitted patches, as the worker does;
+//! `--full-snapshot` times the complete-frame path they replaced instead.
 use std::time::Instant;
 
 fn pve_request(scenario: &str) -> serde_json::Value {
@@ -120,6 +122,7 @@ fn main() {
     let mut positional = Vec::new();
     let mut dump = None;
     let mut snapshot = true;
+    let mut patches = true;
     let mut i = 0;
     while i < args.len() {
         match args[i].as_str() {
@@ -128,6 +131,7 @@ fn main() {
                 i += 1;
             }
             "--no-snapshot" | "nosnapshot" => snapshot = false,
+            "--full-snapshot" => patches = false,
             other => positional.push(other.to_string()),
         }
         i += 1;
@@ -199,6 +203,11 @@ fn main() {
                     let value = runtime.full_knowledge_value().unwrap();
                     bytes += delta_bytes(baseline, &value);
                     finished |= value["outcome"].is_object();
+                } else if patches {
+                    // The browser worker's path: one walk, only what moved.
+                    let json = runtime.snapshot_delta(detail.clone()).unwrap();
+                    bytes += json.len();
+                    finished |= json.contains("\"phase\":\"finished\"");
                 } else {
                     let json = runtime.detailed_snapshot(detail.clone()).unwrap();
                     bytes += json.len();
