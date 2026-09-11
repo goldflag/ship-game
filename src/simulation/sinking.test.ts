@@ -35,7 +35,10 @@ test('surviving underwater hits produce a visible live list with normal damage c
 });
 
 test('uneven flooding lists a fighting ship with full hull HP; draining lets it recover', () => {
-  const f = fixture(-1);
+  // Reserve spaces are fewer and larger, and their envelopes now follow the
+  // residual volume rather than the quarter they were cut from, so the same
+  // fraction of the same side is a slightly smaller upsetting moment.
+  const f = fixture(-1, .07);
   advance(f, 60);
   expect(f.actor.damage.sunk).toBe(false);
   expect(f.actor.damage.integrity).toBe(f.actor.damage.maxIntegrity);
@@ -71,7 +74,7 @@ test('a lost hull continues trimming toward flooded bow or stern', () => {
 });
 
 test('a capsized hull continues responding to water after loss', () => {
-  const f = fixture(-1, .2);
+  const f = fixture(-1, .3);
   for (let i = 0; i < 120 * 60 && !f.actor.damage.sunk; i++) updateFlooding(f.actor, f.def, 1 / 60);
   expect(f.actor.damage.defeatCause).toBe('capsize');
   const roll = f.actor.motion.roll;

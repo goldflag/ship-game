@@ -161,13 +161,46 @@ recognisable — the same ships afloat, drafts within centimetres — because th
 change is a resolution change, not a model change. Goldens regenerated from the
 TypeScript twin.
 
-**3b flood spaces.** Regenerate consistently: strips at 40 m × 3 m, eight
-reserve cells, and apply the same generator to every ship (six ships have
-strips today, the rest do not). Re-tune pump rates, recapture
-`assets/gameplay/migration/damage.v1.json`. Halves snapshot bytes as a side
-effect. Note the cost: compartments are part of the compiled definition, whose
-hash is stamped into every baked model, so this one does require rebuilding the
-fleet's GLBs.
+**3b flood spaces — landed.** Both generators now run on every ship: side
+strips at 40 m × 3 m, one reserve space per quarter-length per side, and every
+hand-authored room kept. Pump rates became a rate per cubic metre of space, so
+coarsening the grid redistributes a ship's pumping instead of dividing it.
+
+Three things the regeneration turned up, each fixed here:
+
+- End spaces stayed at 1.5 m. They are a slim centreline box that has to fit
+  whole inside a fining bow or stern, and a 3 m box often does not; a band that
+  found no space left a waterline hit there with nothing to open.
+- A reserve space is bounded by the residual volume it actually holds, not by
+  the quarter it was cut from. A full-depth envelope let its flood region claim
+  a waterline hit whose real space behind the plating is a machinery room.
+- The fallback for an opening no flood region covers now prefers a space level
+  with the hole. A breach a metre under should not find a wing void above the
+  waterline because it is a few centimetres nearer.
+
+Convoy hulls calibrate their own loading in `assets/ships/convoy`, so
+`author-stability.ts` no longer overwrites an existing stability block.
+
+Fleet totals: 1244 flood spaces become 690, and 39146 flood cells become
+19434. Total flood capacity moves by −2.7% and total pumping by −1.7%; no ship
+moves more than 7% on capacity.
+
+| Scenario | Step | Snapshot | Bytes |
+| --- | --- | --- | --- |
+| surface, 600 s | 19.1 s → 17.1 s (10.3%) | 2.7 s → 2.2 s | 1557 → 1296 MB |
+| carrier, 600 s | 23.5 s → 22.8 s (2.9%) | 4.5 s → 4.2 s | 1770 → 1596 MB |
+| custom, 150 s | 94.7 s → 88.9 s (6.1%) | 17.4 s → 13.6 s | 16572 → 13028 MB |
+| server, 150 s | 97.4 s → 91.6 s (6.0%) | 50.9 s → 35.9 s | 2701 → 2557 MB |
+
+Snapshot bytes fall 10 to 21%, not the half the plan hoped: rooms halved, but
+a room's own fields are only part of what a snapshot carries. The server's
+tree projection is the biggest winner, 29% off its own cost.
+
+Compartments are part of the compiled definition, whose hash is stamped into
+every baked model, so this does rebuild the fleet's GLBs.
+
+Together with 3a: surface 43.9 s → 17.1 s, carrier 46.4 s → 22.8 s, custom
+180.5 s → 88.9 s, server 144.7 s → 91.6 s.
 
 ### Phase 4. PvE-only rules
 

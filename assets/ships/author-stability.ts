@@ -41,7 +41,11 @@ const QUARTERS = 4, BANDS = 1;
 // Cells are the residual hull volume these spaces actually hold, so they set
 // both the flooding cost and the free-surface shape. One band spans the whole
 // depth, so it needs the vertical resolution the three bands used to supply.
-const GRID: [number, number, number] = [4, 6, 6];
+const GRID: [number, number, number] = [2, 3, 3];
+// Boundary cells subdivide rather than being dropped whole, so a coarse grid
+// still follows the hull: three levels recover the residual volume revision 1
+// found with a twelve-times-finer grid, at a third of the cells.
+const DEPTH = 3;
 // Per cubic metre of space: revision 1's flat rate per room, divided by the
 // fleet's total authored reserve capacity, so a ship's pumping is redistributed
 // rather than divided when the grid coarsens.
@@ -55,7 +59,9 @@ for (const id of requestedShips.length ? requestedShips : ['bismarck', 'yamato',
   b.floodRegions = b.floodRegions?.filter(c => !c.id.startsWith('reserve-region-'));
   const old = [...b.compartments], h = b.hull, base = hydrostatics(h), full = hydrostatics(h, -h.length);
   const gm = h.beam * .07;
-  b.stability = { version: 1, dryCenterOfGravity: [0, initialMetacenter(h) - gm, base.center[2]], buoyancyScale: h.massKg / (1025 * base.volume), shellThicknessMm: 12,
+  // Convoy hulls calibrate their own loading in assets/ships/convoy; this
+  // command cuts their residual spaces without overwriting it.
+  b.stability ??= { version: 1, dryCenterOfGravity: [0, initialMetacenter(h) - gm, base.center[2]], buoyancyScale: h.massKg / (1025 * base.volume), shellThicknessMm: 12,
     basis: 'Estimated loading: dry CG calibrated to an initial GM of 7% beam; longitudinal CG matches modeled buoyancy at reference waterline. Uniform buoyancy scale reconciles stated mass with the authored hull volume. ' + (b.structuralPlating ? 'Outer shell uses the blueprint structural plating thickness. ' : 'Unmapped outer shell uses 12 mm steel. ') + 'Residual flood cells conservatively exclude retained room boxes; partitions, permeability and access are game estimates.' };
   for (let zi = 0; zi < QUARTERS; zi++) for (let side = 0; side < 2; side++) for (let yi = 0; yi < BANDS; yi++) {
     const z0 = -h.length / 2 + h.length * zi / QUARTERS, z1 = z0 + h.length / QUARTERS;
@@ -76,14 +82,20 @@ for (const id of requestedShips.length ? requestedShips : ['bismarck', 'yamato',
         for (const room of old) pieces = pieces.flatMap(piece => subtract(piece, room));
         cells.push(...pieces);
       };
-      fill({center,size}, 1);
+      fill({center,size}, DEPTH);
     }
     if (!cells.length) continue;
     const before=cells.reduce((n,c)=>n+c.size[0]*c.size[1]*c.size[2],0);
     cells=mergeCells(cells);
     const after=cells.reduce((n,c)=>n+c.size[0]*c.size[1]*c.size[2],0);
     if(Math.abs(before-after)>Math.max(.01,before*1e-6)) throw new Error('Cell merge changed volume');
-    const roomId = `reserve-cell-${zi}-${side}-${yi}`, center: Vec3 = [(x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2], size: Vec3 = [x1 - x0, y1 - y0, z1 - z0];
+    // Bound the space by the residual volume it actually holds, not by the
+    // quarter it was cut from. A full-depth envelope would let its flood region
+    // claim a waterline hit whose real space behind the plating is a machinery
+    // room, and the hit would then open a void that has nothing down there.
+    const lo = [0, 1, 2].map(a => Math.min(...cells.map(c => c.center[a] - c.size[a] / 2)));
+    const hi = [0, 1, 2].map(a => Math.max(...cells.map(c => c.center[a] + c.size[a] / 2)));
+    const roomId = `reserve-cell-${zi}-${side}-${yi}`, center = lo.map((n, a) => (n + hi[a]) / 2) as Vec3, size = lo.map((n, a) => hi[a] - n) as Vec3;
     const capacityM3 = cells.reduce((n, c) => n + c.size[0] * c.size[1] * c.size[2] * .85, 0);
     const c: Compartment = { id: roomId, name: `${side ? 'Starboard' : 'Port'} reserve space ${zi + 1} · estimated`, center, size, cells, capacityM3, pumpM3PerSecond: capacityM3 * RESERVE_PUMP };
     b.compartments.push(c);

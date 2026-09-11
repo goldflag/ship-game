@@ -29,6 +29,10 @@ const overlaps = (c: Compartment, axis: number, a: number, z: number) => high(c,
 // struck, and the strips below are wide enough to be worth pumping. Revision 1
 // used 20 m by 1.5 m strips, which put 150 rooms in a battleship.
 const STRIP_LENGTH = 40, STRIP_HEIGHT = 3;
+// End spaces stay at revision 1's height. They are a slim centreline box that
+// has to fit whole inside a fining bow or stern, and a 3 m box often does not:
+// a band that finds no space leaves a waterline hit there with no space to open.
+const END_HEIGHT = 1.5;
 // Per cubic metre of space, so coarsening the grid redistributes a ship's
 // pumping instead of dividing it: revision 1's flat rate per room, divided by
 // the fleet's total authored capacity in each class.
@@ -71,8 +75,8 @@ for (let z0 = start; z0 < finish; z0 += STRIP_LENGTH, zi++) {
 // conservative boxes instead of extending a rectangular room through the stem.
 for (const [side, sign] of [['bow', -1], ['stern', 1]] as const) {
   let yi = 0;
-  for (let y0 = bottom; y0 < top; y0 += STRIP_HEIGHT, yi++) {
-    const y1 = Math.min(top, y0 + STRIP_HEIGHT), midY = (y0 + y1) / 2;
+  for (let y0 = bottom; y0 < top; y0 += END_HEIGHT, yi++) {
+    const y1 = Math.min(top, y0 + END_HEIGHT), midY = (y0 + y1) / 2;
     const cells: number[] = [];
     for (let distance = 1; distance < 35; distance++) {
       const z = sign * (hull.length / 2 - distance);

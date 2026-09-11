@@ -102,12 +102,24 @@ export { systemHealth } from './machinery';
 
 /** Split the same strip approximation used by inflow at authored room heights.
  * An opening across a watertight deck can reach the room below its center. */
+/** Fallback when no flood region covers an opening. An opening admits water to
+ * whatever lies behind it at that height, so prefer a space the point is level
+ * with; a hull breach a metre under should not find a wing void above the
+ * waterline just because it is a few centimetres nearer. */
+function nearestRoom(def: ShipDefinition, point: Vec3): number | undefined {
+  const boxes = (c: ShipDefinition['compartments'][number]) => c.cells ?? [c];
+  const distance = (c: ShipDefinition['compartments'][number]) => Math.min(...boxes(c).map(cell => Math.hypot(...point.map((n, axis) => Math.max(0, Math.abs(n - cell.center[axis]) - cell.size[axis] / 2)))));
+  const level = (c: ShipDefinition['compartments'][number]) => boxes(c).some(cell => Math.abs(point[1] - cell.center[1]) <= cell.size[1] / 2);
+  const rooms = def.compartments.map((c, index) => ({ index, c }));
+  const pool = rooms.filter(r => level(r.c));
+  return (pool.length ? pool : rooms).map(r => ({ index: r.index, distance: distance(r.c) })).sort((a, b) => a.distance - b.distance)[0]?.index;
+}
 function exteriorBreaches(actor: Combatant, def: ShipDefinition, point: Vec3, normal: Vec3, shell: Shell): NonNullable<ImpactRecord['breachAssignments']> {
   const area = shell.caliberM ** 2, radius = Math.sqrt(area / Math.PI), bottom = point[1] - radius, top = point[1] + radius;
   if (!def.floodRegions || Math.abs(normal[1]) > .5) {
-    const room = def.compartments.map((c, i) => ({ i, distance: Math.min(...(c.cells ?? [c]).map(cell => Math.hypot(...point.map((n, axis) => Math.max(0, Math.abs(n - cell.center[axis]) - cell.size[axis] / 2))))) })).sort((a, b) => a.distance - b.distance)[0];
-    if (!room) return [];
-    const c = actor.damage.compartments[room.i];
+    const index = nearestRoom(def, point);
+    if (index === undefined) return [];
+    const c = actor.damage.compartments[index];
     return [{ compartmentId: c.id, areaM2: addBreach(c, point, area, shell.id, radius, normal), position: [...point] }];
   }
   const regions = def.floodRegions.filter(r => (!r.face || (r.face === 'bow' || r.face === 'stern'
@@ -119,8 +131,8 @@ function exteriorBreaches(actor: Combatant, def: ShipDefinition, point: Vec3, no
     const position: Vec3 = [point[0], (cuts[i - 1] + cuts[i]) / 2, point[2]];
     const region = regions.find(r => contains(r, position));
     if (!region) {
-      const nearest = def.compartments.map((c, index) => ({ index, distance: Math.min(...(c.cells ?? [c]).map(cell => Math.hypot(...position.map((n, axis) => Math.max(0, Math.abs(n - cell.center[axis]) - cell.size[axis] / 2))))) })).sort((a,b) => a.distance-b.distance)[0];
-      if (nearest) { const c = actor.damage.compartments[nearest.index]; result.push({ compartmentId: c.id, areaM2: addBreach(c, position, area * (cuts[i] - cuts[i-1]) / (2 * radius), shell.id, (cuts[i]-cuts[i-1])/2, normal), position }); }
+      const nearest = nearestRoom(def, position);
+      if (nearest !== undefined) { const c = actor.damage.compartments[nearest]; result.push({ compartmentId: c.id, areaM2: addBreach(c, position, area * (cuts[i] - cuts[i-1]) / (2 * radius), shell.id, (cuts[i]-cuts[i-1])/2, normal), position }); }
       continue;
     }
     const c = actor.damage.compartments.find(c => c.id === region.compartmentId);
