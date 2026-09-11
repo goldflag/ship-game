@@ -89,6 +89,17 @@ export abstract class SnapshotSession implements BattleSession {
   fleetNotices: FleetNotice[] = [];
   private selectionRequest?: { id: string | null; until: number };
   private lastControl = '';
+  private followedShipId?: string;
+  /** The camera's ship, when it is not the helm ship. Only this hull's
+   * damage-control panel is on screen, so only it needs the detail behind it. */
+  setFollowedShip(id?: string): void { this.followedShipId = id; }
+  /** Hulls whose damage-control rooms, portable pumping and flood connections a
+   * consumer reads: the followed or helm ship, and the fully known target whose
+   * fire report a custom battle shows. Everything else travels without them. */
+  protected get detailShipIds(): string[] {
+    const subject = this.followedShipId ?? this.controlledShipId ?? (this.actors.length ? this.player.motion.id : undefined);
+    return [...new Set([subject, this.target?.motion.id].filter((id): id is string => !!id))];
+  }
   constructor(readonly setup: BattleSetup, readonly ownTeam: TeamId = 'a', readonly playerIndex = 0) {
     this.mapId = setup.mapId as OceanMapId; this.seed = setup.seed; this.spawnDistance = setup.spawnDistance;
     this.islands = setup.missionRules ? mapIslands(this.mapId, 16000, setup.missionRules.budget.maxShips).map(island => ({ ...island, z: island.z + 8000 }))
@@ -102,7 +113,7 @@ export abstract class SnapshotSession implements BattleSession {
   protected abstract send(shipId: string, command: Command): void;
   protected resetIntents(): void {
     this.selectionRequest = undefined; this.targetContactId = undefined; this.target = undefined;
-    this.fireQueued = false; this.autopilot = undefined; this.lastControl = '';
+    this.fireQueued = false; this.autopilot = undefined; this.lastControl = ''; this.followedShipId = undefined;
     this.depthM = null; this.emergencyBlow = null; this.orderNoticeUntil = 0;
     this.connectionStatus = ''; this.controlledShipId = undefined;
   }

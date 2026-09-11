@@ -390,6 +390,16 @@ impl LocalRuntime {
         Ok(())
     }
     pub fn snapshot(&self) -> Result<String, JsValue> {
+        self.detailed_snapshot(Vec::new())
+    }
+    /// `detail` names the hulls whose damage-control rooms, portable pumping and
+    /// flood connections the client actually reads: the followed or helm ship
+    /// and, in a custom battle, the inspected target. Half of a fleet-command
+    /// frame is those three fields; an empty list keeps them for every ship.
+    pub fn detailed_snapshot(&self, detail: Vec<String>) -> Result<String, JsValue> {
+        if detail.len() > 4 || detail.iter().any(|id| id.len() > 64) {
+            return Err(error("Invalid snapshot detail"));
+        }
         #[derive(serde::Serialize)]
         #[serde(rename_all = "camelCase")]
         struct LocalFrame<'a, T: serde::Serialize> {
@@ -414,7 +424,7 @@ impl LocalRuntime {
                 frame: self
                     .session
                     .battle
-                    .team_presentation_snapshot(naval_sim::rules::TeamId::A),
+                    .detailed_team_presentation_snapshot(naval_sim::rules::TeamId::A, &detail),
                 selected_ship_ids: [selected[0].selected_ship_id.as_deref(), None],
                 fleet_orders,
                 fleet_notices,
@@ -428,9 +438,10 @@ impl LocalRuntime {
             let mut frame = self
                 .session
                 .battle
-                .presentation_value(naval_sim::snapshot::PresentationView::Team(
-                    naval_sim::rules::TeamId::A,
-                ))
+                .detailed_presentation_value(
+                    naval_sim::snapshot::PresentationView::Team(naval_sim::rules::TeamId::A),
+                    &detail,
+                )
                 .map_err(error)?;
             if self.session.battle.outcome.is_some()
                 && let Some(plan) = &self.pve_plan
@@ -447,7 +458,7 @@ impl LocalRuntime {
             .map_err(error);
         }
         let frame = LocalFrame {
-            frame: self.session.battle.presentation_snapshot(),
+            frame: self.session.battle.detailed_presentation_snapshot(&detail),
             selected_ship_ids: [
                 selected[0].selected_ship_id.as_deref(),
                 selected[1].selected_ship_id.as_deref(),

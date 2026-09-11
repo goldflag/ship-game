@@ -30,6 +30,8 @@ export interface Telemetry {
   controlledShipId?: string;
   tacticalPaused?: boolean;
   simulationSpeed?: 1 | 2 | 4;
+  /** Simulated seconds per wall second actually reached at that setting. */
+  achievedSpeed?: number;
   selectedFlightId?: string;
   selectedFlightIds?: string[];
   airMap?: import('../ui/airChart').ChartView;

@@ -166,6 +166,8 @@
 .fleet-simulation-speed { display:inline-flex; gap:2px; align-items:center; }
 .fleet-simulation-speed button { min-width:0; min-height:24px; padding:2px 5px; border:0; border-bottom:2px solid transparent; border-radius:0; background:none; font:500 14px/1 'Barlow Condensed',sans-serif; color:var(--fleet-muted); text-shadow:0 2px 4px #07131bea; }
 .fleet-simulation-speed button[aria-pressed=true] { color:var(--fleet-active); border-bottom-color:var(--fleet-active); }
+.fleet-simulation-speed button.fleet-speed-overrun[aria-pressed=true] { color:var(--fleet-warning,#e8a33d); border-bottom-color:var(--fleet-warning,#e8a33d); }
+.fleet-speed-achieved { margin-left:3px; font:500 11px/1 'Barlow Condensed',sans-serif; color:var(--fleet-warning,#e8a33d); text-shadow:0 2px 4px #07131bea; }
 .fleet-command-paused { position:absolute; top:62px; left:50%; transform:translateX(-50%); padding:6px 10px; background:#132d38; color:var(--fleet-gold); border:1px solid var(--fleet-line); font-size:12px; text-align:center; text-shadow:none; }
 
 .fleet-command-roster { position:absolute; left:24px; bottom:22px; display:flex; gap:22px; align-items:flex-end; flex-wrap:wrap; max-width:calc(100% - 420px); }
