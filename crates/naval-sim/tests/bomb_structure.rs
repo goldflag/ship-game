@@ -61,7 +61,8 @@ fn target(armor_mm: f64) -> Vessel {
     Vessel::new(
         "target",
         TeamId::A,
-        Arc::new(CompiledShip::new(Arc::new(def)).unwrap()),
+        // A synthetic armour box has no published table; the mesh solver stands in.
+        Arc::new(CompiledShip::new(Arc::new(def), None).unwrap()),
     )
 }
 fn burst(distance: f64, armor_mm: f64, bomb: bool) -> (f64, Vec<naval_sim::impact::DamageEvent>) {

@@ -53,7 +53,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .map(|(id, d)| {
             Ok((
                 id.clone(),
-                Arc::new(naval_sim::vessel::CompiledShip::new(d.clone())?),
+                Arc::new(naval_sim::vessel::CompiledShip::new(
+                    d.clone(),
+                    catalog.hydrostatics.get(id),
+                )?),
             ))
         })
         .collect::<Result<_, String>>()?;

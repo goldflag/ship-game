@@ -2,7 +2,7 @@ import { meanHullY } from './ship';
 import { launcherAvailable, equipmentCondition, systemHealth } from './machinery';
 import type { ShipDefinition, Vec3 } from '../ships/blueprint';
 import type { Combatant } from './damage';
-import { flotation, hydrostatics, rightingArms } from './hydrostatics';
+import { flotation, hullVolume, hydrostatics, rightingArms } from './hydrostatics';
 import { levelAtVolume, waterBody, type WaterBody } from './floodwater';
 import { clamp, localToWorld } from './geometry';
 import { availableAmmunition } from './weapons';
@@ -35,7 +35,7 @@ export function updateStability(actor: Combatant, def: ShipDefinition, dt: numbe
     const water = state.water.reduce((sum, w) => sum + w.volume, 0), mass = def.hull.massKg + water * 1025;
     const center = profile.dryCenterOfGravity.map((n, axis) => (n * def.hull.massKg + state.water.reduce((sum, w) => sum + w.volume * 1025 * w.center[axis], 0)) / mass) as Vec3;
     const volume = mass / (1025 * profile.buoyancyScale);
-    let full = fullCache.get(def); if (full === undefined) { full = hydrostatics(def.hull, -(def.hull.length + def.hull.beam + def.hull.draft + def.hull.depth)).volume; fullCache.set(def, full); }
+    let full = fullCache.get(def); if (full === undefined) { full = hullVolume(def.hull); fullCache.set(def, full); }
     state.displacementM3 = volume; state.reserveM3 = Math.max(0, full - volume);
     if (!actor.damage.sunk && volume >= full) { actor.damage.sunk = true; actor.damage.defeatCause = 'flooding'; state.status = 'sinking'; state.combatLost = true; }
     if (!sea && !actor.damage.sunk && water === 0 && actor.motion.y === 0 && actor.motion.roll === 0 && actor.motion.pitch === 0 && state.rollRate === 0 && state.pitchRate === 0) { state.targetY = 0; state.rollArm = 0; state.pitchArm = 0; return; }

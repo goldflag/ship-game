@@ -1,7 +1,6 @@
 use naval_sim::{
     battle::{Battle, BattleSetup},
     catalog::Catalog,
-    vessel::CompiledShip,
 };
 use serde_json::{Value, json};
 use std::{collections::BTreeMap, sync::Arc};
@@ -101,7 +100,7 @@ fn streamed_large_battle_preserves_every_presentation_field_and_authority_state(
     let mut compiled = BTreeMap::new();
     for id in roster {
         compiled.entry(id.into()).or_insert_with(|| {
-            Arc::new(CompiledShip::new(catalog.definitions[id].clone()).unwrap())
+            Arc::new(catalog.compile(id).unwrap())
         });
     }
     let ships: Vec<_> = ["a", "b"].into_iter().flat_map(|team| roster.iter().enumerate().map(move |(i, id)| json!({
@@ -188,12 +187,7 @@ fn streamed_team_hulls_preserve_visibility_targets_damage_and_debrief() {
     let compiled = setup
         .ships
         .iter()
-        .map(|s| {
-            (
-                s.preset_id.clone(),
-                Arc::new(CompiledShip::new(catalog.definitions[&s.preset_id].clone()).unwrap()),
-            )
-        })
+        .map(|s| (s.preset_id.clone(), Arc::new(catalog.compile(&s.preset_id).unwrap())))
         .collect();
     let mut battle = Battle::new(catalog, &compiled, setup).unwrap();
     for tick in [0, 30, 600, 601] {

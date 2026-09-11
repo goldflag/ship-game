@@ -6,7 +6,7 @@ use naval_sim::{
     catalog::Catalog,
     geometry::length,
     rules::TeamId,
-    vessel::{CompiledShip, Controller, Vessel},
+    vessel::{Controller, Vessel},
 };
 use std::sync::{Arc, OnceLock};
 fn catalog() -> &'static Catalog {
@@ -19,7 +19,7 @@ fn carrier(id: &str, preset: &str, team: TeamId) -> Vessel {
     let mut a = Vessel::new(
         id,
         team,
-        Arc::new(CompiledShip::new(catalog().definitions[preset].clone()).unwrap()),
+        Arc::new(catalog().compile(preset).unwrap()),
     );
     a.controller = Controller::Player;
     a

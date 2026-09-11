@@ -3,6 +3,7 @@ use crate::{
     damage::Combatant,
     definition::{ShipDefinition, Vec3},
     geometry::length,
+    hydro_table::HydrostaticTable,
     hydrostatics::HullHydrostatics,
     rules::TeamId,
     weapons::Obstructions,
@@ -204,7 +205,13 @@ pub struct CompiledShip {
     pub weapon_group_ids: Vec<String>,
 }
 impl CompiledShip {
-    pub fn new(definition: Arc<ShipDefinition>) -> Result<Self, String> {
+    /// `hydrostatics` is the class's published lookup. Without it the hull
+    /// falls back to clipping its sections, which is the reference solver but
+    /// far too slow for a battle.
+    pub fn new(
+        definition: Arc<ShipDefinition>,
+        hydrostatics: Option<&HydrostaticTable>,
+    ) -> Result<Self, String> {
         let d = &definition;
         let deck_surface = crate::deck_contact::DeckSurface::new(d);
         if d.air_wing
@@ -252,7 +259,7 @@ impl CompiledShip {
             torpedo_hull: crate::torpedoes::torpedo_hull(d)?,
             collision_profile: crate::collisions::profile(&d.hull),
             contacts: ContactGeometry::new(d)?,
-            hydro: HullHydrostatics::new(&d.hull),
+            hydro: HullHydrostatics::new(&d.hull, hydrostatics),
             obstructions: Obstructions::new(d),
             weapon_group_ids: d.mounts.iter().map(crate::gunnery::group_id).collect(),
             definition,

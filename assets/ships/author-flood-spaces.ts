@@ -1,4 +1,4 @@
-/** Original provisional flood-space authoring recipe, revision 1.
+/** Original provisional flood-space authoring recipe, revision 2.
  * Retains existing room IDs. Conservative side strips follow the authored hull,
  * exclude existing room boxes, and use CLOSED estimated watertight partitions.
  * These are gameplay subdivisions, not recovered historical compartment plans.
@@ -24,14 +24,23 @@ const existing = [...b.compartments], hull = b.hull;
 const low = (c: Compartment, axis: number) => c.center[axis] - c.size[axis] / 2;
 const high = (c: Compartment, axis: number) => c.center[axis] + c.size[axis] / 2;
 const overlaps = (c: Compartment, axis: number, a: number, z: number) => high(c, axis) > a && low(c, axis) < z;
+// Flooding cost and snapshot size scale with the number of spaces, and nothing
+// in the game names one: a hit still floods the side it struck, at the height it
+// struck, and the strips below are wide enough to be worth pumping. Revision 1
+// used 20 m by 1.5 m strips, which put 150 rooms in a battleship.
+const STRIP_LENGTH = 40, STRIP_HEIGHT = 3;
+// Per cubic metre of space, so coarsening the grid redistributes a ship's
+// pumping instead of dividing it: revision 1's flat rate per room, divided by
+// the fleet's total authored capacity in each class.
+const STRIP_PUMP = 1.379e-5, END_PUMP = 1.53e-4;
 const bottom = Math.max(-6, -hull.draft + .2), top = Math.min(3, Math.max(...hull.deckHeights.map(p => p[1])) - .2);
 const start = -hull.length / 2 + 4, finish = hull.length / 2 - 4;
 let zi = 0;
-for (let z0 = start; z0 < finish; z0 += 20, zi++) {
-  const z1 = Math.min(z0 + 20, finish), midZ = (z0 + z1) / 2;
+for (let z0 = start; z0 < finish; z0 += STRIP_LENGTH, zi++) {
+  const z1 = Math.min(z0 + STRIP_LENGTH, finish), midZ = (z0 + z1) / 2;
   let yi = 0;
-  for (let y0 = bottom; y0 < top; y0 += 1.5, yi++) {
-    const y1 = Math.min(y0 + 1.5, top), midY = (y0 + y1) / 2;
+  for (let y0 = bottom; y0 < top; y0 += STRIP_HEIGHT, yi++) {
+    const y1 = Math.min(y0 + STRIP_HEIGHT, top), midY = (y0 + y1) / 2;
     const zs = [z0, midZ, z1, ...(hull.sections ?? []).map(s => hull.length / 2 - s.station).filter(z => z > z0 && z < z1)];
     let outer = hull.beam / 2;
     for (const z of zs) for (const y of [y0, midY, y1]) {
@@ -50,7 +59,8 @@ for (let z0 = start; z0 < finish; z0 += 20, zi++) {
       const inner = Math.max(.05, nearest ? edge(nearest) + .06 : outer - 2);
       let room = nearest;
       if (outer - inner > .2) {
-        room = { id: `flood-strip-${side}-${zi}-${yi}`, name: `${side === 'port' ? 'Port' : 'Starboard'} outer space ${zi + 1}.${yi + 1} · estimated`, center: [sign * (inner + outer) / 2, midY, midZ], size: [outer - inner, (y1 - y0) * .98, (z1 - z0) * .98], capacityM3: (outer - inner) * (y1 - y0) * .98 * (z1 - z0) * .98 * .72, pumpM3PerSecond: .001 };
+        room = { id: `flood-strip-${side}-${zi}-${yi}`, name: `${side === 'port' ? 'Port' : 'Starboard'} outer space ${zi + 1}.${yi + 1} · estimated`, center: [sign * (inner + outer) / 2, midY, midZ], size: [outer - inner, (y1 - y0) * .98, (z1 - z0) * .98], capacityM3: (outer - inner) * (y1 - y0) * .98 * (z1 - z0) * .98 * .72, pumpM3PerSecond: 0 };
+        room.pumpM3PerSecond = room.capacityM3 * STRIP_PUMP;
         b.compartments.push(room);
       }
       if (room) b.floodRegions.push({ id: `side-region-${side}-${zi}-${yi}`, face: side, compartmentId: room.id, center: [sign * (hull.beam / 4 + .5), midY, midZ], size: [hull.beam / 2 + 1, y1 - y0, z1 - z0] });
@@ -61,8 +71,8 @@ for (let z0 = start; z0 < finish; z0 += 20, zi++) {
 // conservative boxes instead of extending a rectangular room through the stem.
 for (const [side, sign] of [['bow', -1], ['stern', 1]] as const) {
   let yi = 0;
-  for (let y0 = bottom; y0 < top; y0 += 1.5, yi++) {
-    const y1 = Math.min(top, y0 + 1.5), midY = (y0 + y1) / 2;
+  for (let y0 = bottom; y0 < top; y0 += STRIP_HEIGHT, yi++) {
+    const y1 = Math.min(top, y0 + STRIP_HEIGHT), midY = (y0 + y1) / 2;
     const cells: number[] = [];
     for (let distance = 1; distance < 35; distance++) {
       const z = sign * (hull.length / 2 - distance);
@@ -76,7 +86,8 @@ for (const [side, sign] of [['bow', -1], ['stern', 1]] as const) {
     }
     if (!cells.length) continue;
     const first = cells[0], last = Math.min(cells.at(-1)!, first + 9), length = last - first + .98;
-    const room: Compartment = { id: `flood-end-${side}-${yi}`, name: `${side === 'bow' ? 'Bow' : 'Stern'} end space ${yi + 1} · estimated`, center: [0, midY, sign * (hull.length / 2 - (first + last) / 2)], size: [.8, (y1 - y0) * .98, length], capacityM3: .8 * (y1 - y0) * .98 * length * .72, pumpM3PerSecond: .001 };
+    const room: Compartment = { id: `flood-end-${side}-${yi}`, name: `${side === 'bow' ? 'Bow' : 'Stern'} end space ${yi + 1} · estimated`, center: [0, midY, sign * (hull.length / 2 - (first + last) / 2)], size: [.8, (y1 - y0) * .98, length], capacityM3: .8 * (y1 - y0) * .98 * length * .72, pumpM3PerSecond: 0 };
+    room.pumpM3PerSecond = room.capacityM3 * END_PUMP;
     b.compartments.push(room);
     b.floodRegions.push({ id: `end-region-${side}-${yi}`, face: side, compartmentId: room.id, center: [0, midY, sign * (hull.length / 2 - 17.5)], size: [hull.beam + 1, y1 - y0, 35] });
   }

@@ -25,6 +25,7 @@ struct Manifest {
     missions: Vec<crate::mission::MissionRules>,
     air_profiles: Vec<crate::air_rules::AirRules>,
     ships: Vec<ManifestShip>,
+    hydrostatics: Vec<crate::hydro_table::HydrostaticTable>,
     terrain: Vec<crate::environment::TerrainField>,
     maps: serde_json::Value,
     conditions: serde_json::Value,
@@ -48,6 +49,9 @@ pub struct ContentIdentity {
 pub struct Catalog {
     pub aircraft: BTreeMap<String, crate::aircraft_deck::GroundPose>,
     pub definitions: BTreeMap<String, Arc<ShipDefinition>>,
+    /// Solved once at content time from the same hulls, so both simulations
+    /// float a ship on identical numbers.
+    pub hydrostatics: BTreeMap<String, crate::hydro_table::HydrostaticTable>,
     pub fleet_entries: BTreeMap<String, FleetEntry>,
     pub identities: Vec<ContentIdentity>,
     pub manifest_hash: String,
@@ -62,6 +66,14 @@ pub fn sha256(bytes: &[u8]) -> String {
     format!("{:x}", Sha256::digest(bytes))
 }
 impl Catalog {
+    /// Compiled geometry for one class, carrying its published hydrostatics.
+    pub fn compile(&self, id: &str) -> Result<crate::vessel::CompiledShip, String> {
+        let definition = self
+            .definitions
+            .get(id)
+            .ok_or_else(|| format!("Unknown ship class {id}"))?;
+        crate::vessel::CompiledShip::new(definition.clone(), self.hydrostatics.get(id))
+    }
     pub fn map_ids(&self) -> Result<Vec<String>, String> {
         environment_ids(&self.maps, "maps")
     }
@@ -110,6 +122,11 @@ impl Catalog {
                 .map(|p| (p.id.clone(), p))
                 .collect(),
             definitions: BTreeMap::new(),
+            hydrostatics: manifest
+                .hydrostatics
+                .into_iter()
+                .map(|t| (t.id.clone(), t))
+                .collect(),
             fleet_entries: BTreeMap::new(),
             identities: Vec::new(),
             manifest_hash: sha256(bytes),
