@@ -10,6 +10,9 @@ use crate::{
     vessel::{Controller, Vessel},
     weapons::*,
 };
+/// Ticks a mount holds its air track before looking for a nearer one. Firing,
+/// lead and damage stay per tick; only the search is on this cadence.
+pub const AA_SELECT_TICKS: u32 = 6;
 pub fn range(m: &MountDefinition) -> f64 {
     let w = &m.weapon;
     if w.elevation_max_deg < 70.0 || w.caliber_m > 0.14 {
@@ -184,33 +187,76 @@ pub fn update_observed_at(
     let origin = local_to_world(muzzle_local(m, state, 0), actor.motion.pose());
     let mut closest = reach;
     let mut target = None;
-    if let Some(k) = knowledge {
-        for c in observable {
-            if let Some(d) = nearer_distance(sub(c.point, origin), closest)
-                && let Some(id) = k.sensors.resolve_contact(actor.team, &c.track.id)
+    // Hold the chosen track for AA_SELECT_TICKS. Lead, fire, dispersion and
+    // damage below still run every tick against its current position; only the
+    // search for a better track is on a cadence. A track that dies, leaves
+    // range or stops being visible fails the check here and the search runs
+    // again on this same tick.
+    let held = state.aa_select.is_some_and(|n| n > 0);
+    if held && let Some(id) = state.aa_track.as_deref() {
+        if let Some(k) = knowledge {
+            if let Some(c) = observable.iter().find(|c| c.track.id == id)
+                && let Some(d) = nearer_distance(sub(c.point, origin), closest)
+                && let Some(resolved) = k.sensors.resolve_contact(actor.team, &c.track.id)
             {
                 closest = d;
-                target = Some((id, c.point, c.track.velocity));
+                target = Some((resolved, c.point, c.track.velocity));
             }
+        } else if let Some(p) = air.iter_planes().find(|p| p.id == id)
+            && p.hp > 0.0
+            && p.team != actor.team
+            && airborne(p)
+            && !on_flight_deck(p)
+            && let Some(d) = nearer_distance(sub(p.position, origin), closest)
+        {
+            closest = d;
+            target = Some((p.id.as_str(), p.position, p.velocity));
         }
-    } else {
-        for p in air.iter_planes() {
-            if p.hp <= 0.0 || p.team == actor.team || !airborne(p) || on_flight_deck(p) {
-                continue;
+    }
+    let searched = target.is_none();
+    if searched {
+        if let Some(k) = knowledge {
+            for c in observable {
+                if let Some(d) = nearer_distance(sub(c.point, origin), closest)
+                    && let Some(id) = k.sensors.resolve_contact(actor.team, &c.track.id)
+                {
+                    closest = d;
+                    target = Some((id, c.point, c.track.velocity));
+                }
             }
-            if let Some(d) = nearer_distance(sub(p.position, origin), closest) {
-                closest = d;
-                target = Some((p.id.as_str(), p.position, p.velocity))
+        } else {
+            for p in air.iter_planes() {
+                if p.hp <= 0.0 || p.team == actor.team || !airborne(p) || on_flight_deck(p) {
+                    continue;
+                }
+                if let Some(d) = nearer_distance(sub(p.position, origin), closest) {
+                    closest = d;
+                    target = Some((p.id.as_str(), p.position, p.velocity))
+                }
             }
         }
     }
-    let Some((target_id, target_position, target_velocity)) = target else {
+    let target_id = target.map(|(id, _, _)| id.to_owned());
+    if searched {
+        // Mounts are staggered by a hash of their id so a ship's whole battery
+        // does not search on the same tick.
+        state.aa_select = Some(if state.aa_select.is_none() {
+            gunnery_seed(&state.id, 0) % AA_SELECT_TICKS + 1
+        } else {
+            AA_SELECT_TICKS
+        });
+        if state.aa_track.as_deref() != target_id.as_deref() {
+            state.aa_track = target_id.clone();
+        }
+    } else if let Some(n) = state.aa_select.as_mut() {
+        *n -= 1;
+    }
+    let (Some(target_id), Some((_, target_position, target_velocity))) = (target_id, target) else {
         if let Some(s) = state.aa_discipline.as_mut() {
             step_discipline(s, dt, 0.0, 0, false)
         }
         return false;
     };
-    let target_id = target_id.to_owned();
     let discipline = state.aa_discipline.get_or_insert_with(Default::default);
     let inbound = dot(target_velocity, sub(origin, target_position)) > 0.0;
     let pressure = 1.0 - state.hp / 100.0

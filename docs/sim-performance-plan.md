@@ -303,10 +303,36 @@ fire cadence by design.
 
 ### Phase 5. Behaviour changes worth doing everywhere
 
-Owner decision. Both are balance changes and need the air tests rebaselined:
+Owner decision. Both are balance changes and needed the air tests rebaselined.
+Implemented; see [air operations](air-operations.md), "Decision cadence".
 
-- honour `pilot.think` (0.65 s) so pilots stop re-deciding 60 times a second
-- AA target selection every 6 ticks with firing and damage still per tick
+- `pilot.think` (0.65 s) is honoured. The timer was already decremented and the
+  TypeScript twin already gated on it; Rust simply never read it and re-ran the
+  whole flight allocation 60 times a second. A track is held only while it still
+  passes the allocator's own eligibility, so the pause can never keep a target
+  the scan would have rejected; a dead, departed or out-of-sector track is
+  dropped and re-scanned on the same tick. Everything else a fighter does stays
+  per tick: flight integration, gun lead, release, evasion, lane and formation
+  keeping.
+- AA target selection runs every 6 ticks per mount, staggered across a battery
+  by a hash of the mount id. Lead, dispersion, firing, ammunition and damage
+  stay per tick against the held track, which is dropped at once if it dies or
+  leaves range or visibility. The held track lives in `#[serde(skip)]` mount
+  fields and, on the TypeScript side, in a `WeakMap` beside the mount, so no
+  snapshot, save or migration fixture carries a cadence.
+
+Both key off simulated ticks, so 1×, 4× and the server stay identical.
+
+They bought almost no step time. Interleaved A/B on the native gate (M5 Pro,
+three rounds each, shared machine) puts surface, carrier and custom all within
+run-to-run noise, ±3%; the fighter-heavy `air_balance` suite runs about 3%
+faster. The premise behind this phase — that re-deciding at 60 Hz is expensive —
+was true of the old code, but phase 1b and 1c already removed what made it
+expensive: `PlaneView` replaced the per-tick `Aircraft` clone, and the AA
+observer filter moved to once per ship. What is left of both decisions is a
+handful of comparisons over a short list. Phase 5 is therefore a balance
+question, not a performance one; it was landed for the behaviour (pilots and
+gun crews that commit to a target) rather than for the step time.
 
 ### Phase 6. Main thread (all modes)
 

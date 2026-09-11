@@ -40,6 +40,25 @@ export function antiAircraftCandidates(actor: FleetActor, planes: readonly Aircr
     && Math.abs(p.position[2] - actor.motion.z) <= reach!);
 }
 
+/** Ticks a mount holds its air track before looking for a nearer one. Firing,
+ * lead and damage stay per tick; only the search runs on this cadence. Kept
+ * beside the mount rather than on it: a cadence is not authority state and must
+ * never reach a snapshot or a migration fixture. */
+const AA_SELECT_TICKS = 6;
+interface AaTracking { target?: string; select?: number }
+const aaTracking = new WeakMap<MountState, AaTracking>();
+function aaTrack(state: MountState): AaTracking {
+  let t = aaTracking.get(state);
+  if (!t) aaTracking.set(state, t = {});
+  return t;
+}
+/** Record a completed search. The first one staggers this mount by a hash of
+ * its id so a ship's whole battery does not search on the same tick. */
+function aaSearched(state: MountState, t: AaTracking, target?: string) {
+  t.select = t.select === undefined ? gunnerySeed(state.id, 0) % AA_SELECT_TICKS + 1 : AA_SELECT_TICKS;
+  t.target = target;
+}
+
 function clearLane(actor: FleetActor, from: [number, number, number], to: [number, number, number], ctx: AirContext) {
   const delta = sub(to, from), distance = length(delta), direction = normalize(delta);
   if (ctx.planes.some(p => {
@@ -63,16 +82,31 @@ export function updateAntiAircraft(actor: FleetActor, m: MountDefinition, state:
   const range = antiAircraftRange(m);
   if (!range || actor.damage.sunk || actor.damage.stability.combatLost || meanHullY(actor.motion) < -1 || state.hp <= 0 || state.ammo <= 0
     || (actor.controller === 'bot' && isPassiveAi(actor.bot?.aiLevel))) return false;
+  const tracking = aaTrack(state);
   if (candidates?.length === 0) {
+    aaSearched(state, tracking, undefined);
     if (state.aaDiscipline) stepFireDiscipline(state.aaDiscipline, dt, 0, 0, false);
     return false;
   }
   const origin = muzzleWorld(m, state, 0, actor.motion);
   let target: Aircraft | undefined, closest = range;
-  for (const p of candidates ?? ctx.planes) {
-    // Earlier guns can kill a candidate in this same tick. Preserve that check
-    // and stable nearest-target ties; aircraft movement follows all ship guns.
-    if (p.hp <= 0 || (!candidates && (p.team === actor.team || !airborne(p) || onFlightDeck(p)))) continue;
+  const pool = candidates ?? ctx.planes;
+  // Earlier guns can kill a candidate in this same tick. Preserve that check
+  // and stable nearest-target ties; aircraft movement follows all ship guns.
+  const eligible = (p: Aircraft) => p.hp > 0 && (!!candidates || (p.team !== actor.team && airborne(p) && !onFlightDeck(p)));
+  // Hold the chosen track until the selection timer comes due. A track that
+  // died, left range or left the candidate list fails here, and the search
+  // below then runs on this same tick.
+  if (tracking.select && tracking.target !== undefined) {
+    const held = pool.find(p => p.id === tracking.target);
+    if (held && eligible(held)) {
+      const distance = Math.hypot(held.position[0] - origin[0], held.position[1] - origin[1], held.position[2] - origin[2]);
+      if (distance < closest) { target = held; closest = distance; }
+    }
+  }
+  const searched = !target;
+  if (searched) for (const p of pool) {
+    if (!eligible(p)) continue;
     const dx = p.position[0] - origin[0], dy = p.position[1] - origin[1], dz = p.position[2] - origin[2];
     if (Math.abs(dx) >= closest || Math.abs(dy) >= closest || Math.abs(dz) >= closest) continue;
     // Reject clear losers before the scale-safe hypot; keep its original exact
@@ -81,6 +115,8 @@ export function updateAntiAircraft(actor: FleetActor, m: MountDefinition, state:
     const distance = Math.hypot(dx, dy, dz);
     if (distance < closest) { target = p; closest = distance; }
   }
+  if (searched) aaSearched(state, tracking, target?.id);
+  else tracking.select!--;
   if (!target) {
     if (state.aaDiscipline) stepFireDiscipline(state.aaDiscipline, dt, 0, 0, false);
     return false;

@@ -18,6 +18,22 @@ fn threatens(hostile: &PlaneView<'_>, ally: &PlaneView<'_>) -> bool {
         && dot(normalize(hostile.velocity), normalize(delta)) > 0.85
         && dot(normalize(ally.velocity), normalize(scale(delta, -1.0))) < -0.55
 }
+/// A pilot re-assesses this often, as the TypeScript twin always has. Between
+/// assessments the flight, the guns and the evasion reactions still run every
+/// tick; only the choice of track is held.
+pub const THINK_SECONDS: f64 = 0.65;
+/// True while a held track is still one the allocator itself would accept.
+/// Mirrors `fighter_coordination::target`'s own eligibility so pausing the
+/// scan can never keep a target the scan would have rejected.
+fn holdable(p: &Aircraft, o: &PlaneView<'_>, anchor: Vec3, explicit: Option<&str>) -> bool {
+    let range = length(sub(o.position, anchor));
+    o.team != p.team
+        && o.in_flight()
+        && explicit.is_none_or(|id| o.flight_id == Some(id))
+        && range < 7500.0
+        && length(sub(o.position, p.position)) < 6500.0
+        && (explicit.is_some() || range < 3500.0 || dot(o.velocity, sub(anchor, o.position)) > 0.0)
+}
 pub fn fighter_target(
     p: &mut Aircraft,
     planes: &[PlaneView<'_>],
@@ -26,6 +42,19 @@ pub fn fighter_target(
     target_flight: Option<&str>,
 ) -> Option<usize> {
     p.pilot.think = (p.pilot.think - dt).max(0.0);
+    // Hold the current track until the think timer expires. The allocation scan
+    // is the expensive half of a fighter's tick and nothing downstream needs it
+    // at 60 Hz; a track that has died, left the sector or turned away is dropped
+    // at once, which re-runs the scan on the same tick.
+    if p.pilot.think > 0.0
+        && let Some(id) = p.pilot.hostile_id.as_deref()
+        && let Some(held) = planes
+            .iter()
+            .position(|o| o.id == id && holdable(p, o, carrier, target_flight))
+    {
+        return Some(held);
+    }
+    p.pilot.think = THINK_SECONDS;
     let best = crate::fighter_coordination::target(p, planes, carrier, target_flight);
     let id = best.map(|i| planes[i].id);
     // The stored identity is unchanged when it already matches, so the string
