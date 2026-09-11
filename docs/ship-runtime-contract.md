@@ -47,12 +47,38 @@ Optional `gunhouseShape`, `gunhouseBaseHeight`, `rollerRadius`, `rangefinderWidt
 Runtime yaw rotates around +Y with a negative clockwise angle; elevation rotates around +X; visual recoil translates along +Z. Fixed barbettes remain outside the yaw joint. The `hull.surface` node identifies the actual hull envelope for measurement. `assemblyId` records logical ownership of mesh pieces. Non-rendering simulation objects use `exportRole = simulation` and are excluded from the GLB.
 
 Flexible gun covers may export shape keys with `gunCoverElevationId` naming the
-retained elevation joint and `gunCoverAngles` listing increasing positive angles
-in degrees, one per target; the base shape is zero degrees. `ShipView` blends
+retained elevation joint and `gunCoverAngles` listing increasing angles
+in degrees, one per target. The base shape is zero degrees unless
+`gunCoverBaseAngle` specifies another finite angle below the first target, allowing
+bags to follow gun depression as well as elevation. `ShipView` blends
 adjacent shapes using the displayed CPU gun angle. These meshes remain outside
 rigid batches. Authoring drivers provide the equivalent Blender inspection pose;
 export preserves every shape across the coordinate conversion and freezes the
 initial driver weights. Cloth deformation never changes firing or hit geometry.
+
+An installation may declare `travelClearance.version: 1` on its mount. Its
+original `surface` vertices and triangles use the untrained mount frame (+X
+starboard, +Y up, -Z forward), moving with the base and any parent carrier.
+`barrels` lists axial capsules with `fromM`, `toM`, `heightM`, `radiusM` and
+`recoils`, relative to each bore's elevation pivot. The CPU reserves the complete
+recoil stroke and advances train/elevation only through clear intervals, keeping
+a 1 mm separation at stops. When a combined move is obstructed, a free axis can
+continue. Each tick retains one checked joint path, including interpolation.
+Blocked movement cannot fire. These surfaces provide no armor protection.
+For display snapshots spanning several ticks, the renderer uses the same CPU
+clearance query to choose a clear direct or single-corner interpolation path.
+It holds the preceding pose when neither path is recoverable, then adopts the
+next authoritative sample. This interpolation never mutates simulation state;
+disabled mounts still take their authoritative stopped pose immediately.
+
+Author these contact proxies from original installation inputs and keep their
+coverage explicit. They represent physical clearance, not evidence of historical
+mechanical travel stops. The first application covers the barrels, cooling fins,
+flash hiders and gas cylinders against Kongō's carried AA platforms, caps and
+canvas. It does not cover other moving mechanisms, independently moving neighbor
+guns, or obstacles that move relative to the mounting base. Those still require
+their own geometry and acceptance checks. The development articulation hook
+continues to force raw catalog poses for inspection; it bypasses normal aiming.
 
 Batching preserves parent and assembly boundaries. Empty joints and sockets survive export. Gameplay identifies components by stable IDs, never GLB node indices or human-readable names. Export checks verify the actual GLB hull bounds, pivot positions, hierarchy, and every muzzle position at three angular configurations per mount. The initial performance guardrails are 500,000 triangles and 30 MiB per model; they are regression guardrails, not a validated fleet-performance promise.
 
@@ -114,6 +140,8 @@ Battle weather supplies a deterministic renderer-free long-wave envelope (`sea.t
 
 Ship contacts resolve at 60 Hz after all hulls move and before weapon solutions and hits. `collisions.ts` derives a convex horizontal footprint from each definition's `hull.halfBreadths` in the documented stern-station frame. Hull mass plus floodwater weights separation and inelastic impulses; a rectangular waterplane approximation supplies yaw inertia. Impacts change forward speed, starboard `swaySpeed` and yaw rate, with water resistance settling sideways motion. Ballistic inheritance and target leading include this drift. Contacts apply equally to all teams and controllers. A conservative deck-to-keel vertical envelope, expanded for list/trim, allows sufficiently submerged wrecks to clear other ships. This is a discrete, planar gameplay model with convex envelopes, not mesh contact or detailed hydrostatics. It uses no GPU wave samples. Closing contact dissipates energy into localized hull damage and positional breaches; resting overlap does not repeatedly inflict impact damage. Grounding uses keel samples against an offshore continuation of the authored coast slope, includes draft/heading, and damages the hull above a minimum inward impact speed. Glancing ground contacts remove inward velocity while retaining motion along shore. Normal sailing distances per tick are small compared with the registered hull widths; arbitrary teleports or extreme externally injected speeds are not swept collision queries.
 
+Gunhouse facet meshes may declare named `apertures` as ordered vertex-index boundary loops. These loops close the topology check but generate no geometry or armor: the surrounding facets must form a consistently wound enclosure with only those declared openings. Use them for gun ports that continue through the front plate and roof. Undeclared holes, duplicate indices, reversed loops and boundaries that do not follow exposed mesh edges fail compilation. The original facets remain the shared visual and CPU protection surfaces.
+
 ### Renderer bindings, diagnostics and inspection
 
 Surface ships follow the current CPU wave height every 60 Hz tick with a 1.5-second heave response. The expensive flotation solve stays at 2 Hz; its mean-height corrections also ease in, retaining the 1 m/s limit. This avoids abrupt vertical-speed impulses in inherited shell velocity and gun-aim circles while preserving wave motion and flooding settlement.
@@ -122,7 +150,7 @@ Target inspection draws armor, modules, compartments and floodwater as an X-ray 
 
 Surface-hit events additionally retain shell type (AP by default), caliber, outcome and local impact position/normal/direction. Fixed impacts use ship-local coordinates; mounted impacts use the stable mount ID and yaw-local frame sampled at collision time. `ShipImpactMarks` projects these onto nearby, outward-facing visual triangles and parents batched decals to the actual struck mesh. Internal module damage and non-exterior physical armor do not create exterior decals. A proxy without a matching visible face within 3 m leaves no floating mark. The latest 96 marks per ship survive movement and pause, hide for inspection and clear on damage-state replacement. Rendering never changes damage, flooding or the blueprint. `scripts/diagnostics/ship-impacts.html` provides a repeatable development review on the real ocean scene; `renderedShips` diagnostics expose mark and batch counts.
 
-Diagnostics also identify the loaded ship/hash, renderer backend and camera matrices for reproducible browser review. In the development port, `window.shipTrialArticulation({trainFraction: 1, elevationFraction: 1, recoilFraction: 1})` previews the catalog limits on the actual loaded model. Train spans -1 to 1; elevation and recoil span 0 to 1. Passing `null` restores the original mount state. Launching restores it automatically. This review hook is unavailable in production and cannot change joints during combat.
+Diagnostics also identify the loaded ship/hash, renderer backend and camera matrices for reproducible browser review. The read-only `mountPoses` array includes every player mount’s authoritative train and elevation in radians, normalized recoil, status and ammunition, including automatic AA outside the selected surface battery. In the development port, `window.shipTrialArticulation({trainFraction: 1, elevationFraction: 1, recoilFraction: 1})` previews the catalog limits on the actual loaded model. Train spans -1 to 1; elevation and recoil span 0 to 1. Passing `null` restores the original mount state. Launching restores it automatically. This review hook is unavailable in production and cannot change joints during combat.
 
 Use `mounts` to pose neighbors independently, for example `window.shipTrialArticulation({trainFraction: 0, elevationFraction: 0, recoilFraction: 0, mounts: {'main-3': {trainFraction: .6}, 'bofors-turret-3': {trainFraction: -.7, elevationFraction: .8, recoilFraction: 1}}})` on Iowa. Overrides use stable mount IDs and the same bounded fractions. Unknown IDs and nonfinite values are rejected before any pose changes.
 

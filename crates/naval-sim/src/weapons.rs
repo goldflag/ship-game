@@ -413,8 +413,21 @@ pub fn update_mount(
     );
     let train_rate = radians(w.traverse_rate_deg) * dt * work;
     let elevation_rate = radians(w.elevation_rate_deg) * dt * work;
-    s.train += clamp(train - s.train, -train_rate, train_rate);
-    s.elevation += clamp(elevation - s.elevation, -elevation_rate, elevation_rate);
+    let next_train = s.train + clamp(train - s.train, -train_rate, train_rate);
+    let next_elevation =
+        s.elevation + clamp(elevation - s.elevation, -elevation_rate, elevation_rate);
+    let (train, elevation, blocked) = crate::gun_clearance::advance_gun_motion(
+        m,
+        s.train,
+        s.elevation,
+        next_train,
+        next_elevation,
+    );
+    s.train = train;
+    s.elevation = elevation;
+    if blocked {
+        return reject(s, "blocked");
+    }
     // A parent can move an obstruction even when this gun has not traversed.
     // Use the detached mount's updated train when posing its own descendants.
     let carried: Vec<_> = obstructions

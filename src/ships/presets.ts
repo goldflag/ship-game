@@ -1,3 +1,4 @@
+import kongo from '../../public/models/kongo.json';
 import kingGeorgeV from '../../public/models/king-george-v.json';
 import bismarck from '../../public/models/bismarck.json';
 import yamato from '../../public/models/yamato.json';
@@ -17,6 +18,7 @@ import type { ShipDefinition } from './blueprint';
 
 /** Historical presets share the same compiled definition and renderer contract. */
 export const shipPresets = {
+  kongo,
   bismarck,
   yamato,
   iowa,

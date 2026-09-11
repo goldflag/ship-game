@@ -60,7 +60,7 @@ async function port() {
     funnelSmoke: { diagnostics() { return {}; } },
     shipLabels: { setFleet() {} },
     ship: new Group(), inPort: true, disposed: false, switchingShip: false,
-    renderer: { domElement: { setAttribute() {} } },
+    renderer: { backend: { isWebGPUBackend: false }, domElement: { setAttribute() {} } },
     environment: new VisualEnvironment({ effects: { setWind() {}, setSun() {}, setIllumination() {} }, funnelSmoke: { setWind() {} }, sunAnchor: new Group() }),
   }) as Game;
   return { game, scene, harbor, camera, rig, playerView };

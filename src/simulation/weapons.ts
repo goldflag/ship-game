@@ -5,6 +5,7 @@ import { add, clamp, length, localToWorld, normalize, radians, rotate, sub, wrap
 import { GRAVITY, solveDragArc, travelFactor } from './ballistics';
 import { BarrelObstructionTree, gunMountObstructions, segmentIntersectsBox } from './obstruction';
 import { mountBearing, mountPosition, mountFrame, type CarrierFrame } from './mountFrames';
+import { advanceGunMotion } from './gunClearance';
 export { GRAVITY } from './ballistics';
 export type MountDefinition = ShipDefinition['mounts'][number];
 // Compiled definitions are immutable during a battle, like the hull/armor caches.
@@ -152,8 +153,11 @@ export function updateMount(m: MountDefinition, state: MountState, definition: S
   const w = m.weapon, limit = radians(w.traverseDeg);
   const train = clamp(desiredTrain, -limit, limit), elevation = clamp(desiredElevation, radians(w.elevationMinDeg), radians(w.elevationMaxDeg));
   // Traverse through the permitted interval; never shortcut across the forbidden stern sector.
-  state.train += clamp(train - state.train, -radians(w.traverseRateDeg) * dt * workRate, radians(w.traverseRateDeg) * dt * workRate);
-  state.elevation += clamp(elevation - state.elevation, -radians(w.elevationRateDeg) * dt * workRate, radians(w.elevationRateDeg) * dt * workRate);
+  const nextTrain = state.train + clamp(train - state.train, -radians(w.traverseRateDeg) * dt * workRate, radians(w.traverseRateDeg) * dt * workRate);
+  const nextElevation = state.elevation + clamp(elevation - state.elevation, -radians(w.elevationRateDeg) * dt * workRate, radians(w.elevationRateDeg) * dt * workRate);
+  const movement = advanceGunMotion(m, state.train, state.elevation, nextTrain, nextElevation);
+  state.train = movement.train; state.elevation = movement.elevation;
+  if (movement.blocked) { state.status = 'blocked'; return false; }
   // Readiness depends on the actual barrel path, even while tracking an unreachable reticle.
   const previousObstruction = barrelObstructions.get(state);
   const carried = carriedMounts(definition);

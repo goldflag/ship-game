@@ -1182,6 +1182,7 @@ export class Game {
       torpedoLaunchers: this.simulation.player.torpedoLaunchers,
       depthCharges: this.simulation.depthCharges.map(c => ({ id: c.id, ownerId: c.ownerId, position: [...c.position], submerged: c.submerged, detonationDepthM: c.weapon.detonationDepthM })),
       combat: this.simulation.telemetry(this.battery, this.currentAim, this.weaponGroupId),
+      mountPoses: this.simulation.player.mounts.map(m => ({ id: m.id, train: m.train, elevation: m.elevation, recoil: m.recoil, status: m.status, ammo: m.ammo })),
       fleet: this.simulation.actors.map(actor => ({ id: actor.motion.id, definitionId: actor.definition.id, team: actor.team, controller: actor.controller, aiLevel: actor.bot?.aiLevel, targetId: actor.targetId, motion: { ...actor.motion }, submarine: actor.submarine ? { ...actor.submarine } : undefined, ammo: actor.mounts.reduce((n, m) => n + m.ammo, 0), integrity: actor.damage.integrity })),
       renderedShips: this.fleetViews.map(view => ({ id: view.actor.motion.id, visible: view.root.visible,
         impactMarks: view.impactMarks.count, impactDrawCalls: view.impactMarks.drawCalls })),

@@ -13,6 +13,7 @@ import { PreparedPoseGroup } from './FrameScene';
 import { ShipPoseMatrices } from './ShipPoseMatrices';
 import { ShipRigView } from './ShipRigView';
 import { gunAimPoints } from './gunAim';
+import { gunPosePath, interpolateGunPath, type GunPose } from '../simulation/gunClearance';
 
 /** Renderer adapter. Simulation geometry and transforms come from the same definition. */
 export class ShipView {
@@ -29,13 +30,14 @@ export class ShipView {
   private motionSource: Combatant['motion'];
   private previousMounts: Combatant['mounts'];
   private renderedMounts: Combatant['mounts'];
+  private clearancePaths: ({ from: GunPose; to: GunPose; path: GunPose[] } | undefined)[] = [];
   private previousLaunchers: number[];
   private renderedLaunchers: NonNullable<Combatant['torpedoLaunchers']>;
   private launcherBindings: THREE.Object3D[];
   private tubeBindings: THREE.Object3D[];
   get internals() { return this.inspection.root; }
   private bindings: { yaw: THREE.Object3D; elevation: THREE.Object3D[]; recoil: THREE.Object3D[]; muzzles: THREE.Object3D[] }[];
-  private gunCovers: { mesh: THREE.Mesh; elevation: THREE.Object3D; angles: number[] }[] = [];
+  private gunCovers: { mesh: THREE.Mesh; elevation: THREE.Object3D; angles: number[]; baseAngle: number }[] = [];
   private surfaces: { material: THREE.MeshStandardMaterial | THREE.MeshStandardNodeMaterial; opacity: number; transparent: boolean; depthWrite: boolean }[] = [];
   private inspecting = false;
   private readonly poseMatrices: ShipPoseMatrices;
@@ -80,11 +82,12 @@ export class ShipView {
     model.traverse(o => {
       if (!(o instanceof THREE.Mesh) || !o.userData.gunCoverElevationId) return;
       const angles: number[] = o.userData.gunCoverAngles;
+      const baseAngle: number = o.userData.gunCoverBaseAngle ?? 0;
       if (!Array.isArray(angles) || !angles.length || angles.length !== o.morphTargetInfluences?.length ||
-          angles.some((a, i) => !Number.isFinite(a) || a <= (angles[i - 1] ?? 0))) {
+          !Number.isFinite(baseAngle) || angles.some((a, i) => !Number.isFinite(a) || a <= (angles[i - 1] ?? baseAngle))) {
         throw new Error(`Ship export has invalid gun-cover shapes on ${o.name}. Rebuild with bun run ship:build ${definition.id}`);
       }
-      this.gunCovers.push({ mesh: o, elevation: node(o.userData.gunCoverElevationId), angles });
+      this.gunCovers.push({ mesh: o, elevation: node(o.userData.gunCoverElevationId), angles, baseAngle });
     });
     this.launcherBindings = (definition.torpedoLaunchers ?? []).map(l => node(`${l.id}.yaw`));
     this.tubeBindings = (definition.torpedoTubes ?? []).map(t => node(`${t.id}.muzzle`));
@@ -194,6 +197,15 @@ export class ShipView {
         const stopped = key !== 'recoil' && (currentMount.hp <= 0 || currentMount.status === 'disabled' || this.actor.damage.sunk);
         m[key] = stopped ? currentMount[key] : THREE.MathUtils.lerp(previousMount[key], currentMount[key], t);
       }
+      const definition=this.definition.mounts[i];
+      if(definition.travelClearance&&t>0&&t<1&&currentMount.hp>0&&currentMount.status!=='disabled'&&!this.actor.damage.sunk){
+        let cached=this.clearancePaths[i];
+        if(!cached||cached.from.train!==previousMount.train||cached.from.elevation!==previousMount.elevation||cached.to.train!==currentMount.train||cached.to.elevation!==currentMount.elevation){
+          const from={train:previousMount.train,elevation:previousMount.elevation},to={train:currentMount.train,elevation:currentMount.elevation};
+          cached={from,to,path:gunPosePath(definition,from,to)};this.clearancePaths[i]=cached;
+        }
+        Object.assign(m,interpolateGunPath(definition,cached.path,cached.to,t));
+      }
     });
     updateMountCarriers(this.definition, mounts);
     this.bindings.forEach((b, i) => {
@@ -205,11 +217,11 @@ export class ShipView {
     });
     // Cloth is visual-only: the same interpolated gun angle drives its shapes.
     // Its fixed seam remains on the gunhouse while its collar follows pitch.
-    for (const { mesh, elevation, angles } of this.gunCovers) {
-      const degrees = THREE.MathUtils.clamp(THREE.MathUtils.radToDeg(elevation.rotation.x), 0, angles.at(-1)!);
+    for (const { mesh, elevation, angles, baseAngle } of this.gunCovers) {
+      const degrees = THREE.MathUtils.clamp(THREE.MathUtils.radToDeg(elevation.rotation.x), baseAngle, angles.at(-1)!);
       const weights = mesh.morphTargetInfluences!;
       weights.fill(0);
-      const upper = angles.findIndex(a => a >= degrees), lowerAngle = angles[upper - 1] ?? 0;
+      const upper = angles.findIndex(a => a >= degrees), lowerAngle = angles[upper - 1] ?? baseAngle;
       const fraction = (degrees - lowerAngle) / (angles[upper] - lowerAngle);
       weights[upper] = fraction;
       if (upper > 0) weights[upper - 1] = 1 - fraction;

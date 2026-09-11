@@ -6,13 +6,14 @@ import yamato from '../../assets/ships/yamato/blueprint.json';
 import baltimore from '../../assets/ships/baltimore/blueprint.json';
 import enterprise from '../../assets/ships/enterprise-cv6/blueprint.json';
 import kingGeorgeV from '../../assets/ships/king-george-v/blueprint.json';
+import kongo from '../../assets/ships/kongo/blueprint.json';
 import { hydrostatics, flotation, initialMetacenter, rightingArms } from './hydrostatics';
 import { waterBody } from './floodwater';
 import { CombatSimulation } from './combat';
 import { hitShip, updateFlooding, type Shell } from './damage';
 import { updateCapability, updateStability, waterLevel } from './stability';
 import { hullContacts } from './hullContact';
-const presets = [bismarck, yamato, baltimore, enterprise, kingGeorgeV];
+const presets = [bismarck, yamato, baltimore, enterprise, kingGeorgeV, kongo];
 const fixture = (b: unknown = bismarck) => { const def = compileShip(b, catalog); def.compartments.forEach(c => c.pumpM3PerSecond = 0); const sim = new CombatSimulation(def); return { def, sim, a: sim.player }; };
 const box: Hull = { kind: 'authored-stations-v1', length: 100, beam: 20, draft: 5, depth: 10, massKg: 10e6, waterplaneAreaM2: 2000, reserveBuoyancyM3: 10000, halfBreadths: [[0, 10], [100, 10]], keelHeights: [[0, -5], [100, -5]], deckHeights: [[0, 5], [100, 5]] };
 

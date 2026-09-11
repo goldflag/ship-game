@@ -7,18 +7,44 @@ import { compileShip } from '../ships/blueprint';
 import { ShipView } from './ShipView';
 import { shipPreset } from '../ships/presets';
 import * as THREE from 'three/webgpu';
+import { gunClearance } from '../simulation/gunClearance';
 
-test('Iowa exported blast bags keep fixed seams and follow gun collars through interpolated elevation', async () => {
-  const definition = shipPreset('iowa');
-  const model = await new GLTFLoader().parseAsync(await Bun.file('public/models/iowa.glb').arrayBuffer(), '');
+test('display interpolation follows a clear joint path without changing authoritative snapshots', async()=>{
+  const definition=structuredClone(shipPreset('kongo'));
+  const index=definition.mounts.findIndex(m=>m.id==='aa25-01'),m=definition.mounts[index];
+  m.travelClearance!.surface={vertices:[[-.01,-.21,-1.5],[.01,-.21,-1.5],[0,1.79,-1.5]],triangles:[[0,1,2]]};
+  const model=await new GLTFLoader().parseAsync(await Bun.file('public/models/kongo.glb').arrayBuffer(),'');
+  const sim=new CombatSimulation(definition),view=new ShipView(model.scene,definition,sim.player);
+  const nodes=new Map<string,THREE.Object3D>();model.scene.traverse(o=>{if(o.userData.nodeId)nodes.set(o.userData.nodeId,o);});
+  const state=sim.player.mounts[index];state.train=-.5;state.elevation=0;view.snap();view.capturePreviousPose();
+  state.train=.5;state.elevation=.5;
+  expect(gunClearance(m,0,.25)).toBeLessThan(0); // Unconstrained midpoint crosses the fixture wall.
+  for(const alpha of [0,.2,.4,.5,.6,.8,1]){
+    view.update(alpha);
+    const train=-nodes.get(m.id+'.yaw')!.rotation.y;
+    const elevation=nodes.get(m.id+'.center.elevation')!.rotation.x;
+    expect(gunClearance(m,train,elevation)).toBeGreaterThanOrEqual(0);
+    if(alpha===.5)expect(elevation).toBeCloseTo(.5);
+    expect(state.train).toBe(.5);expect(state.elevation).toBe(.5);
+    expect(Math.max(...view.muzzleErrors())).toBeLessThan(.025);
+  }
+});
+
+for (const { id, prefix, count, collarX, radius, initial, poses } of [
+  { id: 'iowa', prefix: 'main-', count: 9, collarX: 6.91 - 3.657, radius: .647, initial: 0, poses: [2.5, 11, 22.5, 38, 45] },
+  { id: 'kongo', prefix: 'main-', count: 8, collarX: 5.45 - 2.76, radius: .515, initial: -5, poses: [-5, -2.5, 0, 2.5, 19, 38, 43] },
+  { id: 'kongo', prefix: 'casemate-', count: 8, collarX: 1.65, radius: .255, initial: -5, poses: [-5, -2.5, 0, 7.5, 15, 20] },
+]) test(`${id} ${prefix} exported blast bags keep fixed seams and follow gun collars through interpolated elevation`, async () => {
+  const definition = shipPreset(id);
+  const model = await new GLTFLoader().parseAsync(await Bun.file(`public/models/${id}.glb`).arrayBuffer(), '');
   const sim = new CombatSimulation(definition), view = new ShipView(model.scene, definition, sim.player);
   const nodes = new Map<string, THREE.Object3D>(), covers: THREE.Mesh[] = [];
   model.scene.traverse(o => {
     if (o.userData.nodeId) nodes.set(o.userData.nodeId, o);
-    if (o instanceof THREE.Mesh && o.userData.gunCoverElevationId) covers.push(o);
+    if (o instanceof THREE.Mesh && o.userData.gunCoverElevationId?.startsWith(prefix)) covers.push(o);
   });
-  expect(covers).toHaveLength(9);
-  sim.player.mounts.forEach(m => { m.elevation = 0; });
+  expect(covers).toHaveLength(count);
+  sim.player.mounts.forEach(m => { m.elevation = initial * Math.PI / 180; });
   view.snap(); view.root.updateMatrixWorld(true);
   const seams = covers.map(mesh => {
     const elevation = nodes.get(mesh.userData.gunCoverElevationId)!;
@@ -27,15 +53,15 @@ test('Iowa exported blast bags keep fixed seams and follow gun collars through i
       const p = mesh.getVertexPosition(i, new THREE.Vector3());
       if (mesh.geometry.morphAttributes.position!.every(a => new THREE.Vector3().fromBufferAttribute(a, i).length() < 1e-7)) fixed.push({ index: i, position: p.clone() });
       elevation.worldToLocal(mesh.localToWorld(p));
-      if (Math.abs(p.z + 6.91 - 3.657) < .003 && Math.abs(Math.hypot(p.x, p.y) - .647) < .003) collar.push(i);
+      if (Math.abs(p.z + collarX) < .003 && Math.abs(Math.hypot(p.x, p.y) - radius) < .003) collar.push(i);
     }
     expect(fixed.length).toBeGreaterThanOrEqual(40); expect(collar.length).toBeGreaterThanOrEqual(40);
     return { mesh, elevation, fixed, collar };
   });
-  for (const degrees of [2.5, 11, 22.5, 38, 45]) {
+  for (const degrees of poses) {
     view.capturePreviousPose();
     sim.player.mounts.forEach((m, i) => {
-      if (i < 3) Object.assign(m, { elevation: degrees * Math.PI / 180, recoil: i / 2 });
+      if (definition.mounts[i].id.startsWith(prefix)) Object.assign(m, { elevation: degrees * Math.PI / 180, recoil: (i % 3) / 2 });
     });
     for (const alpha of [.37, 1]) {
       view.update(alpha); view.root.updateMatrixWorld(true);
@@ -43,8 +69,8 @@ test('Iowa exported blast bags keep fixed seams and follow gun collars through i
         for (const { index, position } of fixed) expect(mesh.getVertexPosition(index, new THREE.Vector3()).distanceTo(position)).toBeLessThan(1e-6);
         for (const index of collar) {
           const p = elevation.worldToLocal(mesh.localToWorld(mesh.getVertexPosition(index, new THREE.Vector3())));
-          expect(Math.abs(p.z + 6.91 - 3.657)).toBeLessThan(.01);
-          expect(Math.abs(Math.hypot(p.x, p.y) - .647)).toBeLessThan(.01);
+          expect(Math.abs(p.z + collarX)).toBeLessThan(.01);
+          expect(Math.abs(Math.hypot(p.x, p.y) - radius)).toBeLessThan(.01);
         }
       }
       expect(Math.max(...view.muzzleErrors())).toBeLessThan(.025);

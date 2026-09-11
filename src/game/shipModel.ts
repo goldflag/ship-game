@@ -7,6 +7,7 @@ const identities: Record<string, { type: string; nation: string }> = {
   yukikaze: { type: 'Destroyer', nation: 'Japan' },
   bismarck: { type: 'Battleship', nation: 'Germany' },
   yamato: { type: 'Battleship', nation: 'Japan' },
+  kongo: { type: 'Battleship', nation: 'Japan' },
   iowa: { type: 'Battleship', nation: 'United States' },
   'king-george-v': { type: 'Battleship', nation: 'United Kingdom' },
   baltimore: { type: 'Heavy cruiser', nation: 'United States' },

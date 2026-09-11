@@ -34,3 +34,11 @@ test('changing a mount in the blueprint changes the compiled ship without ship-s
   const d = compileShip(b, catalog);
   expect(d.mounts[0].position[2]).toBe(blueprint.mounts[0].position[2] + 2);
 });
+
+test('supports dense wartime gun fits while bounding mount counts', () => {
+  const b = structuredClone(blueprint);
+  b.mounts.push(...Array.from({ length: 128 - b.mounts.length }, (_, i) => ({ ...structuredClone(blueprint.mounts.at(-1)!), id: `mount-${i}` })));
+  expect(compileShip(b, catalog).mounts).toHaveLength(128);
+  b.mounts.push({ ...structuredClone(blueprint.mounts[0]), id: 'mount-overflow' });
+  expect(() => compileShip(b, catalog)).toThrow(/at most 128/);
+});

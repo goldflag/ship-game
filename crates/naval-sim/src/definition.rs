@@ -80,6 +80,14 @@ pub struct GunPartGunhouseMeshFacesItem {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct GunPartGunhouseMeshAperturesItem {
+    #[serde(rename = "id")]
+    pub id: String,
+    #[serde(rename = "indices")]
+    pub indices: Vec<f64>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct GunPartGunhouseMeshProvenance {
     #[serde(rename = "sourceId")]
     pub source_id: String,
@@ -97,6 +105,8 @@ pub struct GunPartGunhouseMesh {
     pub vertices: Vec<[f64; 3]>,
     #[serde(rename = "faces")]
     pub faces: Vec<GunPartGunhouseMeshFacesItem>,
+    #[serde(rename = "apertures")]
+    pub apertures: Option<Vec<GunPartGunhouseMeshAperturesItem>>,
     #[serde(rename = "provenance")]
     pub provenance: Option<GunPartGunhouseMeshProvenance>,
 }
@@ -197,6 +207,8 @@ pub struct MountDefinition {
     pub rangefinder: bool,
     #[serde(rename = "parentMountId")]
     pub parent_mount_id: Option<String>,
+    #[serde(rename = "travelClearance", default)]
+    pub travel_clearance: Option<TravelClearance>,
     #[serde(rename = "traverseDeg")]
     pub traverse_deg: Option<f64>,
     #[serde(rename = "magazineId")]
@@ -205,6 +217,22 @@ pub struct MountDefinition {
     pub fire: Option<FireProfile>,
     #[serde(rename = "weapon")]
     pub weapon: GunPart,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ClearanceBarrel {
+    pub from_m: f64,
+    pub to_m: f64,
+    pub height_m: f64,
+    pub radius_m: f64,
+    pub recoils: bool,
+}
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct TravelClearance {
+    pub version: u32,
+    pub surface: AuthoredSurface,
+    pub barrels: Vec<ClearanceBarrel>,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
