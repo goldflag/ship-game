@@ -4,6 +4,7 @@ import { useState, type ReactNode } from 'react';
 import { Icon } from './Icons';
 import type { Game } from '../game/Game';
 import type { CombatTelemetry } from '../simulation/combat';
+import { bindingLabel, type Keybindings } from '../game/keybindings';
 
 type Contact = CombatTelemetry['contacts'][number];
 export const contactLabel = (contact: Contact) => contact.controller === 'player' && contact.team === 'friendly' ? `${contact.name} (You)` : `${contact.name} #${contact.id.split('-').at(-1)}`;
@@ -31,7 +32,7 @@ function TeamStatus({ team, combat, game, expanded, onToggle }: { team: Contact[
   </div>;
 }
 
-export function BattleStatus({ combat, game, children, spectatedShipId }: { combat: CombatTelemetry; game: Game | null; children?: ReactNode; spectatedShipId?: string }) {
+export function BattleStatus({ combat, game, children, spectatedShipId, bindings }: { combat: CombatTelemetry; game: Game | null; children?: ReactNode; spectatedShipId?: string; bindings?: Keybindings }) {
   const [expandedTeam, setExpandedTeam] = useState<Contact['team'] | null>(null);
   const teammates = combat.contacts.filter(contact => contact.team === 'friendly' && contact.controller !== 'player' && !lost(contact));
   return <section className="fleet-battle" aria-label="Battle status">
@@ -57,6 +58,7 @@ export function BattleStatus({ combat, game, children, spectatedShipId }: { comb
           </Select>
           <Button variant="icon" disabled={teammates.length < 2} onClick={event => { game?.cycleSpectator(1); event.currentTarget.blur(); }} aria-label="Spectate next teammate" title="Next teammate · Right arrow" aria-keyshortcuts="ArrowRight"><Icon name="chevron" size={16} style={{ transform: 'rotate(-90deg)' }}/></Button>
         </div>
+        {game?.simulation.selectShip && <Button onClick={event => { game.openHelmWheel('sunk'); event.currentTarget.blur(); }} aria-keyshortcuts={bindings?.helmWheel[0] ?? undefined}>Take a helm{bindings && <kbd>{bindingLabel(bindings, 'helmWheel')}</kbd>}</Button>}
         <small>← / → switch teammates · Hold Ctrl for cursor</small>
         <small>Click sea to look around · Scroll to zoom</small>
       </> : <small role="status">No teammates remaining to spectate</small>}

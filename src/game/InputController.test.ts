@@ -18,7 +18,7 @@ describe('keyboard gameplay controls', () => {
     Object.defineProperty(globalThis, 'window', { configurable: true, value: events });
     Object.defineProperty(globalThis, 'document', { configurable: true, value: { querySelector: () => modal ? {} : null } });
     Object.defineProperty(globalThis, 'HTMLElement', { configurable: true, value: class {} });
-    actions = { isSpectating: mock(() => false), cycleSpectator: mock(), pause: mock(), camera: mock(), recenter: mock(), hud: mock(), fullscreen: mock(), optics: mock(), weaponGroup: mock(), cursor: mock(), chartSize: mock(), shellFollow: mock(), shellType: mock(), depth: mock(), depthPreset: mock(), emergencyBlow: mock(), periscope: mock(), airOperations: mock(), simulationSpeed: mock() };
+    actions = { isSpectating: mock(() => false), cycleSpectator: mock(), pause: mock(), camera: mock(), recenter: mock(), hud: mock(), fullscreen: mock(), optics: mock(), weaponGroup: mock(), cursor: mock(), chartSize: mock(), shellFollow: mock(), shellType: mock(), depth: mock(), depthPreset: mock(), emergencyBlow: mock(), periscope: mock(), airOperations: mock(), simulationSpeed: mock(), helmWheel: mock() };
     input = new InputController(actions, defaultKeybindings());
   });
   afterEach(() => {
@@ -248,5 +248,22 @@ describe('keyboard gameplay controls', () => {
     expect(key('keydown', 'KeyW', { metaKey: true }).defaultPrevented).toBe(false);
     key('keydown', 'KeyW', { ctrlKey: true }); expect(input.order).toBe(1);
     key('keydown', 'KeyQ'); events.dispatchEvent(new Event('blur')); expect(input.firing).toBe(false);
+  });
+
+  test('the helm wheel is held on Tab: pressed once, released on key up or window blur, even without the helm', () => {
+    expect(key('keydown', 'Tab').defaultPrevented).toBe(true);
+    key('keydown', 'Tab', { repeat: true });
+    expect(actions.helmWheel).toHaveBeenCalledTimes(1);
+    expect(actions.helmWheel).toHaveBeenLastCalledWith(true);
+    key('keyup', 'Tab');
+    expect(actions.helmWheel).toHaveBeenLastCalledWith(false);
+    expect(actions.helmWheel).toHaveBeenCalledTimes(2);
+    input.setEnabled(false);
+    key('keydown', 'Tab');
+    expect(actions.helmWheel).toHaveBeenLastCalledWith(true);
+    events.dispatchEvent(new Event('blur'));
+    expect(actions.helmWheel).toHaveBeenLastCalledWith(false);
+    modal = true; key('keydown', 'Tab');
+    expect(actions.helmWheel).toHaveBeenCalledTimes(4);
   });
 });

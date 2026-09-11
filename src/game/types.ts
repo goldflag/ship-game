@@ -21,6 +21,7 @@ export interface PerformanceReadout {
   backend: string;
   detail?: { shipInstances: number; reducedInstances: number; particles: number; aircraft: number };
 }
+export interface HelmWheelState { reason: 'held' | 'sunk'; highlightId?: string }
 export interface Telemetry {
   mapId?: OceanMapId;
   islands?: Island[];
@@ -41,6 +42,8 @@ export interface Telemetry {
   fleetCommandMode?: boolean;
   selectedShipIds?: string[];
   controlledShipId?: string;
+  /** The ship picker is up: held on its key, or offered after the helm ship sank. */
+  helmWheel?: HelmWheelState;
   tacticalPaused?: boolean;
   simulationSpeed?: 1 | 2 | 4;
   /** Simulated seconds per wall second actually reached at that setting. */

@@ -108,7 +108,7 @@ export function presentationTelemetry(view: TelemetryView, battery: Battery, aim
       remainingSeconds: view.remainingSeconds === undefined ? Math.max(0, BATTLE_RULES.durationSeconds - view.tick / BATTLE_RULES.tickRate) : view.remainingSeconds,
       afloatKg: view.outcome?.afloatKg ?? view.afloatKg, outcome: view.outcome,
       contacts: view.actors.map(actor => ({ id: actor.motion.id, shipId: actor.definition.id, name: actor.definition.name, team: actor.team, controller: actor.controller,
-        targetId: actor.targetId, x: actor.motion.x, z: actor.motion.z, heading: actor.motion.heading, integrity: actor.damage.integrity / actor.damage.maxIntegrity, sunk: actor.damage.sunk, status: actor.damage.stability.status, combatLost: actor.damage.stability.combatLost, physicalLost: !!physicalLoss(actor) })),
+        targetId: actor.targetId, x: actor.motion.x, z: actor.motion.z, heading: actor.motion.heading, speed: actor.motion.speed, integrity: actor.damage.integrity / actor.damage.maxIntegrity, sunk: actor.damage.sunk, status: actor.damage.stability.status, combatLost: actor.damage.stability.combatLost, physicalLost: !!physicalLoss(actor) })),
       playerStatus: subject.damage.stability.status,
       playerList: ship.roll * 180 / Math.PI, playerTrim: ship.pitch * 180 / Math.PI, playerDraftChange: -meanHullY(ship),
       control: structuredClone(subject.damage.control),

@@ -412,6 +412,59 @@ test('a battle that opens on the fleet chart selects nothing; leaving a helm kee
   } finally { simulation.dispose(); rig.dispose(); }
 });
 
+test('the helm wheel swaps hulls in a custom battle: held on its key, offered once after a sinking, never spectating a live helm', async () => {
+  const simulation = await HeadlessSession.create({ playerShipId: 'bismarck', friendlyBots: ['fletcher', 'baltimore'], enemies: ['mogami'], spawnDistance: 7500 });
+  const camera = new PerspectiveCamera(52, 1.6, .5, 60000);
+  const rig = new CameraRig(camera, new EventTarget() as HTMLCanvasElement);
+  const views = simulation.actors.map(actor => ({ actor, definition: actor.definition, motion: actor.motion }));
+  const input = { isEnabled: true, order: 1, rudderOrder: 0, clear() {}, setEnabled(value: boolean) { this.isEnabled = value; }, setOrder(value: number) { this.order = value; }, setRudder(value: number) { this.rudderOrder = value; } };
+  const game = Object.assign(Object.create(Game.prototype), {
+    simulation, definition: simulation.definition, rig, camera, fleetViews: views, playerView: views[0], targetView: views.at(-1),
+    inPort: false, selectedBattery: 'main', currentAim: [0, 0, -7500], ammunition: {}, shellFollow: new ShellFollow(), input,
+    battlefieldCamera: new BattlefieldCamera(camera), selectedShipIds: [], controlGroups: new Map(), host: { clientWidth: 1280, clientHeight: 800 },
+    environment: { setChartFog() {} }, callbacks: { pause() {} },
+  }) as Game;
+  const update = () => (game as unknown as { updateSpectator(): void }).updateSpectator();
+  const advance = () => simulation.advance(.1, { throttle: 0, rudder: 0 }, { aim: [0, 0, -7500], battery: 'main', fire: false });
+  const held = spyOn(rig, 'setHeld');
+  try {
+    advance(); update();
+    expect(simulation.controlledShipId).toBe('player');
+    expect(game.spectatedShipId).toBeUndefined(); // a live helm is never handed a spectator
+    expect(game.helmCandidates.map(a => a.motion.id)).toEqual(['friendly-1', 'friendly-2']);
+    game.openHelmWheel('held');
+    expect(game.helmWheel).toEqual({ reason: 'held' });
+    expect(held).toHaveBeenLastCalledWith(true);
+    game.highlightHelmCandidate('enemy-1'); expect(game.helmWheel?.highlightId).toBeUndefined();
+    game.highlightHelmCandidate('friendly-1'); expect(game.helmWheel?.highlightId).toBe('friendly-1');
+    // Releasing the key without a pick just closes the wheel.
+    game.highlightHelmCandidate(undefined); game.releaseHelmWheel();
+    expect(game.helmWheel).toBeUndefined(); expect(held).toHaveBeenLastCalledWith(false);
+    expect(simulation.controlledShipId).toBe('player');
+    game.openHelmWheel('held'); game.highlightHelmCandidate('friendly-2'); game.releaseHelmWheel();
+    expect(game.helmWheel).toBeUndefined();
+    // The camera lands on the hull at once while the session confirms the helm.
+    expect(game.spectatedShipId).toBe('friendly-2');
+    advance();
+    expect(simulation.controlledShipId).toBe('friendly-2');
+    expect(simulation.player.motion.id).toBe('friendly-2');
+    expect(simulation.actors[0].motion.id).toBe('player');
+    // The old hull keeps sailing under its captain; the wheel now centres on the new one.
+    expect(game.helmCandidates.map(a => a.motion.id).sort()).toEqual(['friendly-1', 'player']);
+    // Losing the new hull offers the wheel once; Esc leaves it closed until another sinking.
+    Object.assign(game, { spectatedShipId: undefined });
+    simulation.player.damage.sunk = true; update();
+    expect(game.helmWheel).toEqual({ reason: 'sunk' });
+    game.closeHelmWheel(); update();
+    expect(game.helmWheel).toBeUndefined();
+    game.openHelmWheel('held'); expect(game.helmWheel?.reason).toBe('held');
+    game.releaseHelmWheel();
+    // A sunk-offered wheel does not close on key release; a pick or Esc does.
+    game.openHelmWheel('sunk'); game.releaseHelmWheel(); expect(game.helmWheel?.reason).toBe('sunk');
+    game.setPaused(true); expect(game.helmWheel).toBeUndefined();
+  } finally { simulation.dispose(); rig.dispose(); }
+});
+
 test('fleet selection and camera follow keep captains active; helm transfer resumes standing orders without resetting another actor', async () => {
   const simulation = await HeadlessSession.create({ playerShipId: 'enterprise-cv6', friendlyBots: ['fletcher'], enemies: ['baltimore'], spawnDistance: 7500 });
   const camera = new PerspectiveCamera(52, 1.6, .5, 60000);
