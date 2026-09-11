@@ -32,3 +32,9 @@ test('failed and corrupt transfers reject so the existing loading screen can off
   await expect(loadShipModel('/models/ship.glb', true)).rejects.toThrow('404');
   await expect(loadShipModel('/models/ship.glb', true)).rejects.toThrow();
 });
+
+test('the definition version keys the browser cache so a new build never pairs with a stale model', async () => {
+  fetchSpy = spyOn(globalThis, 'fetch').mockResolvedValue(new Response(gzipSync(model)));
+  expect((await loadShipModel('/naval/models/ship.glb', true, 'abc123')).scene.getObjectByName('hull')).toBeDefined();
+  expect(fetchSpy).toHaveBeenCalledWith('/naval/models/ship.glb.gz?v=abc123');
+});
