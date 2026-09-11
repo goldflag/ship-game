@@ -90,6 +90,16 @@ test('older saves gain periscope without taking a custom P binding', () => {
   expect(keybindingsOf(loaded)).toEqual(loaded);
 });
 
+test('older saves gain the simulation speed key without taking a custom N binding', () => {
+  const { simulationSpeed: _newAction, ...saved } = defaultKeybindings();
+  saved.camera = ['KeyN', null];
+  const loaded = keybindingsOf(saved);
+  expect(loaded.camera).toEqual(saved.camera);
+  expect(loaded.simulationSpeed[0]).toBeTruthy();
+  expect(loaded.simulationSpeed).not.toContain('KeyN');
+  expect(keybindingsOf(loaded)).toEqual(loaded);
+});
+
 test('older saves gain surface and deep-dive shortcuts without taking custom U or J keys', () => {
   const { surface: _surface, dive50: _dive50, ...saved } = defaultKeybindings();
   saved.camera = ['KeyU', null]; saved.fire = ['KeyJ', null];

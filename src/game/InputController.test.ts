@@ -18,7 +18,7 @@ describe('keyboard gameplay controls', () => {
     Object.defineProperty(globalThis, 'window', { configurable: true, value: events });
     Object.defineProperty(globalThis, 'document', { configurable: true, value: { querySelector: () => modal ? {} : null } });
     Object.defineProperty(globalThis, 'HTMLElement', { configurable: true, value: class {} });
-    actions = { isSpectating: mock(() => false), cycleSpectator: mock(), pause: mock(), camera: mock(), recenter: mock(), hud: mock(), fullscreen: mock(), optics: mock(), weaponGroup: mock(), cursor: mock(), chartSize: mock(), shellFollow: mock(), shellType: mock(), depth: mock(), depthPreset: mock(), emergencyBlow: mock(), periscope: mock(), airOperations: mock() };
+    actions = { isSpectating: mock(() => false), cycleSpectator: mock(), pause: mock(), camera: mock(), recenter: mock(), hud: mock(), fullscreen: mock(), optics: mock(), weaponGroup: mock(), cursor: mock(), chartSize: mock(), shellFollow: mock(), shellType: mock(), depth: mock(), depthPreset: mock(), emergencyBlow: mock(), periscope: mock(), airOperations: mock(), simulationSpeed: mock() };
     input = new InputController(actions, defaultKeybindings());
   });
   afterEach(() => {
@@ -110,6 +110,17 @@ describe('keyboard gameplay controls', () => {
     input.setEnabled(false); key('keydown', 'KeyV');
     expect(actions.camera).toHaveBeenCalledTimes(1);
     key('keydown', 'Escape'); expect(actions.pause).toHaveBeenCalledTimes(1);
+  });
+  test('the simulation speed key cycles once per press, even while the helm is not the player\'s', () => {
+    key('keydown', 'KeyN'); key('keydown', 'KeyN', { repeat: true });
+    expect(actions.simulationSpeed).toHaveBeenCalledTimes(1);
+    // Following a captain or reading the chart disables helm input, not the battle clock.
+    input.setEnabled(false); key('keydown', 'KeyN');
+    expect(actions.simulationSpeed).toHaveBeenCalledTimes(2);
+    input.setEnabled(true);
+    const bindings = defaultKeybindings(); bindings.simulationSpeed = ['KeyY', null]; input.setBindings(bindings);
+    key('keydown', 'KeyN'); expect(actions.simulationSpeed).toHaveBeenCalledTimes(2);
+    key('keydown', 'KeyY'); expect(actions.simulationSpeed).toHaveBeenCalledTimes(3);
   });
   test('air operations opens once per press and respects remapped controls', () => {
     key('keydown', 'KeyM'); key('keydown', 'KeyM', { repeat: true });

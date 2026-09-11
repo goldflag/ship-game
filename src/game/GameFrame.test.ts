@@ -72,7 +72,7 @@ async function frameHarness(shipId = 'bismarck', fleet = false) {
     definition: simulation.definition, simulation, playerView, targetView, fleetViews: [playerView, targetView, ...simulation.actors.filter(a => a !== simulation.player && a !== simulation.target).map(a => new ShipView(model.scene.clone(true), a.definition, a))], camera, rig, ship: new Group(), shellFollow: new ShellFollow(),
     renderer: { domElement: { setAttribute() {} } }, manualAim: false, battlefieldCamera, cameraFrameListeners: new Set(), fleetVisibility: new FleetVisibility(),
     host: { clientWidth: 1440, clientHeight: 900 }, airOperationsOpen: false,
-    shipLabels: { update() {} }, hitLabels: { update() {} }, torpedoPreview: { update() {} },
+    shipLabels: { update() {}, setObserved() {} }, hitLabels: { update() {} }, torpedoPreview: { update() {} },
     playerDamageFeedback: new HullDamageFeedback(simulation.player.damage.integrity),
     gunAim: { update(points: GunAimPoint[], _camera: PerspectiveCamera, visible: boolean) { gunAimFrames.push({ points, visible }); } },
     hitDirections: { update() {} },
