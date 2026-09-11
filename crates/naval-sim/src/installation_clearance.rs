@@ -56,6 +56,17 @@ pub(crate) fn validate_profile(d: &ShipDefinition) -> Result<(), String> {
         {
             return Err("Invalid installation clearance body".into());
         }
+        if let Some(fittings) = &entry.fittings
+            && (fittings.len() > 64
+                || fittings.iter().any(|c| {
+                    !matches!(c.joint.as_str(), "yaw" | "elevation")
+                        || c.a.iter().chain(c.b.iter()).any(|v| !v.is_finite())
+                        || !c.radius_m.is_finite()
+                        || !(0.001..=2.0).contains(&c.radius_m)
+                }))
+        {
+            return Err("Invalid installation clearance fitting".into());
+        }
     }
     let mut seen_structures = HashSet::new();
     for entry in structures {
@@ -242,13 +253,35 @@ fn barrels(m: &MountDefinition, p: Angles, e: &Entry, margin: f64) -> Vec<Capsul
             f,
         )
     };
-    (0..w.barrel_count.unwrap_or(2.0) as usize)
+    let mut result: Vec<Capsule> = (0..w.barrel_count.unwrap_or(2.0) as usize)
         .map(|i| Capsule {
             a: point(w.trunnion_forward - 0.65 - w.recoil_m, i),
             b: point(w.muzzle_forward + 0.05, i),
             radius: e.barrel_radius_m + margin,
         })
-        .collect()
+        .collect();
+    for c in e.fittings.as_deref().unwrap_or_default() {
+        let point = |v: Vec3| {
+            local_to_world(
+                if c.joint == "yaw" {
+                    v
+                } else {
+                    [
+                        v[0],
+                        w.pivot_height + v[1] * cs - v[2] * sn,
+                        -w.trunnion_forward + v[2] * cs + v[1] * sn,
+                    ]
+                },
+                f,
+            )
+        };
+        result.push(Capsule {
+            a: point(c.a),
+            b: point(c.b),
+            radius: c.radius_m + margin,
+        });
+    }
+    result
 }
 fn capsule_body(c: Capsule, m: &MountDefinition, p: Angles, e: &Entry, margin: f64) -> bool {
     let Some(body) = &e.body else { return false };
@@ -311,6 +344,13 @@ fn pose_clear(
     let margin = profile.margin_m + extra_margin;
     let own = barrels(m, pose, entry, margin);
     if own.iter().any(|c| {
+        d.obstructions
+            .iter()
+            .any(|b| segment_box(c.a, c.b, b.center, b.size.map(|s| s + 2.0 * c.radius)).is_some())
+    }) {
+        return false;
+    }
+    if own.iter().any(|c| {
         profile
             .structures
             .as_deref()
@@ -341,9 +381,10 @@ fn pose_clear(
         };
         let j = d.mounts.iter().position(|m| &m.id == id).unwrap();
         let other = &d.mounts[j];
-        let op = states
-            .get(j)
-            .map_or((0.0, radians(1.0)), |s| (s.train, s.elevation));
+        let op = states.get(j).map_or(
+            (0.0, radians(other.initial_elevation_deg.unwrap_or(1.0))),
+            |s| (s.train, s.elevation),
+        );
         let oe = entries.iter().find(|e| &e.mount_id == id).unwrap();
         let their = barrels(other, op, oe, margin);
         if own.iter().any(|a| {
@@ -432,10 +473,30 @@ pub fn move_mount_with_clearance(
         .ceil()
         .max(1.0) as usize;
     let start = (s.train, s.elevation);
-    let reach = w
+    let mut reach = w
         .gunhouse_size
         .iter()
         .fold(w.muzzle_forward.abs() + w.recoil_m + 1.0, |a, b| a.max(*b));
+    if let Some(entry) = d
+        .mount_clearance
+        .as_ref()
+        .and_then(|p| p.mounts.as_ref())
+        .and_then(|entries| entries.iter().find(|e| e.mount_id == d.mounts[index].id))
+    {
+        for c in entry.fittings.as_deref().unwrap_or_default() {
+            for v in [c.a, c.b] {
+                reach = reach.max(
+                    norm2(v).sqrt()
+                        + c.radius_m
+                        + if c.joint == "elevation" {
+                            w.trunnion_forward.abs() + w.pivot_height
+                        } else {
+                            0.0
+                        },
+                );
+            }
+        }
+    }
     let margin = reach * (train.abs() + elevation.abs()) / steps as f64;
     for i in 1..=steps {
         let next = (

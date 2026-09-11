@@ -223,6 +223,7 @@ fn clearance_encodings_are_exclusive_and_complete() {
             mount_id: def.mounts[0].id.clone(),
             barrel_radius_m: 0.2,
             body: None,
+            fittings: None,
         }]),
         structures: Some(vec![]),
         neighbors: Some(vec![]),

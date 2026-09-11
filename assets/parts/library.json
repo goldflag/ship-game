@@ -93,6 +93,27 @@
       "inputs": [
         "scripts/ships/blender_barrels.py"
       ]
+    },
+    "german-cruiser-203": {
+      "path": "assets/parts/german-cruiser-guns/geometry.py",
+      "function": "create_main",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
+    },
+    "german-cruiser-105": {
+      "path": "assets/parts/german-cruiser-guns/geometry.py",
+      "function": "create_secondary",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
+    },
+    "german-cruiser-light": {
+      "path": "assets/parts/german-cruiser-guns/geometry.py",
+      "function": "create_light",
+      "inputs": [
+        "scripts/ships/blender_barrels.py"
+      ]
     }
   },
   "components": [
@@ -463,6 +484,54 @@
       "review": "unreviewed",
       "limitations": "Original interpretation of approved GameModels3D Fubuki A. Game performance and mechanical limits provisional; installation review required.",
       "builder": "ijn-type-93"
+    },
+    {
+      "partId": "skc34-203-twin",
+      "nation": "Germany",
+      "family": "20.3 cm C/34 twin",
+      "review": "unreviewed",
+      "limitations": "Original pgsc108 A reconstruction; review in progress. Gameplay limits and small fittings provisional; installed clearance requires ship review.",
+      "builder": "german-cruiser-203"
+    },
+    {
+      "partId": "skc34-203-twin-rf",
+      "nation": "Germany",
+      "family": "20.3 cm C/34 twin \u00b7 rangefinder",
+      "review": "unreviewed",
+      "limitations": "Original pgsc108 A reconstruction; review in progress. Gameplay limits and small fittings provisional; installed clearance requires ship review.",
+      "builder": "german-cruiser-203"
+    },
+    {
+      "partId": "skc33-105-c31-twin",
+      "nation": "Germany",
+      "family": "10.5 cm C/33 twin \u00b7 C/31 shield",
+      "review": "unreviewed",
+      "limitations": "Original pgsc108 A reconstruction; review in progress. Gameplay limits and small fittings provisional; installed clearance requires ship review.",
+      "builder": "german-cruiser-105"
+    },
+    {
+      "partId": "flak38-20-single",
+      "nation": "Germany",
+      "family": "2 cm Flak 38 single \u00b7 case bag",
+      "review": "unreviewed",
+      "limitations": "Original pgsc108 A reconstruction; review in progress. Gameplay limits and small fittings provisional; installed clearance requires ship review.",
+      "builder": "german-cruiser-light"
+    },
+    {
+      "partId": "flak38-m43u-20-twin",
+      "nation": "Germany",
+      "family": "2 cm Flak 38 M43U twin",
+      "review": "unreviewed",
+      "limitations": "Original pgsc108 A reconstruction; review in progress. Gameplay limits and small fittings provisional; installed clearance requires ship review.",
+      "builder": "german-cruiser-light"
+    },
+    {
+      "partId": "flak28-40-single",
+      "nation": "Germany",
+      "family": "4 cm Flak 28 single",
+      "review": "unreviewed",
+      "limitations": "Original pgsc108 A reconstruction; review in progress. Gameplay limits and small fittings provisional; installed clearance requires ship review.",
+      "builder": "german-cruiser-light"
     }
   ]
 }

@@ -199,6 +199,8 @@ pub struct MountDefinition {
     pub bearing_deg: f64,
     #[serde(rename = "rangefinder")]
     pub rangefinder: bool,
+    #[serde(rename = "initialElevationDeg")]
+    pub initial_elevation_deg: Option<f64>,
     #[serde(rename = "parentMountId")]
     pub parent_mount_id: Option<String>,
     #[serde(rename = "traverseDeg")]
@@ -382,6 +384,18 @@ pub struct MountClearanceProfileMountsItemBody {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct MountClearanceProfileMountsItemFittingsItem {
+    #[serde(rename = "joint")]
+    pub joint: String,
+    #[serde(rename = "a")]
+    pub a: [f64; 3],
+    #[serde(rename = "b")]
+    pub b: [f64; 3],
+    #[serde(rename = "radiusM")]
+    pub radius_m: f64,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct MountClearanceProfileMountsItem {
     #[serde(rename = "mountId")]
     pub mount_id: String,
@@ -389,6 +403,8 @@ pub struct MountClearanceProfileMountsItem {
     pub barrel_radius_m: f64,
     #[serde(rename = "body")]
     pub body: Option<MountClearanceProfileMountsItemBody>,
+    #[serde(rename = "fittings")]
+    pub fittings: Option<Vec<MountClearanceProfileMountsItemFittingsItem>>,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
