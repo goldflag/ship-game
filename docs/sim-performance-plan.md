@@ -150,10 +150,25 @@ Add a versioned cadence entry to the mission rules asset, in the style of
 
 ### Phase 5. Behaviour changes worth doing everywhere
 
-Owner decision. Both are balance changes and need the air tests rebaselined:
+Owner decision. Both are balance changes and needed the air tests rebaselined.
+Implemented; see [air operations](air-operations.md), "Decision cadence".
 
-- honour `pilot.think` (0.65 s) so pilots stop re-deciding 60 times a second
-- AA target selection every 6 ticks with firing and damage still per tick
+- `pilot.think` (0.65 s) is honoured. The timer was already decremented and the
+  TypeScript twin already gated on it; Rust simply never read it and re-ran the
+  whole flight allocation 60 times a second. A track is held only while it still
+  passes the allocator's own eligibility, so the pause can never keep a target
+  the scan would have rejected; a dead, departed or out-of-sector track is
+  dropped and re-scanned on the same tick. Everything else a fighter does stays
+  per tick: flight integration, gun lead, release, evasion, lane and formation
+  keeping.
+- AA target selection runs every 6 ticks per mount, staggered across a battery
+  by a hash of the mount id. Lead, dispersion, firing, ammunition and damage
+  stay per tick against the held track, which is dropped at once if it dies or
+  leaves range or visibility. The held track lives in `#[serde(skip)]` mount
+  fields and, on the TypeScript side, in a `WeakMap` beside the mount, so no
+  snapshot, save or migration fixture carries a cadence.
+
+Both key off simulated ticks, so 1×, 4× and the server stay identical.
 
 ### Phase 6. Main thread (all modes)
 

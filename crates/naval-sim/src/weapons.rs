@@ -79,6 +79,14 @@ pub struct MountState {
     pub queued: Option<Ammunition>,
     pub status: MountStatus,
     pub aim_cache: Option<AimCache>,
+    /// The air track this mount is firing at and the ticks left before it looks
+    /// for a nearer one. A cadence, never authority state: a restored battle
+    /// simply searches on its first tick, and it must never reach a snapshot,
+    /// a client or a migration fixture.
+    #[serde(skip)]
+    pub aa_track: Option<String>,
+    #[serde(skip)]
+    pub aa_select: Option<u32>,
     #[serde(skip)]
     blocked_cache: Option<BlockedCache>,
     #[serde(skip)]
@@ -132,6 +140,8 @@ impl MountState {
             aim_cache: None,
             lead_cache: None,
             aa_discipline: None,
+            aa_track: None,
+            aa_select: None,
             blocked_cache: None,
             clearance_cache: None,
         }
@@ -157,6 +167,8 @@ impl MountState {
             queued: self.queued,
             status: self.status,
             aim_cache: self.aim_cache.clone(),
+            aa_track: None,
+            aa_select: None,
             blocked_cache: None,
             clearance_cache: None,
         }
