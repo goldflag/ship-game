@@ -106,27 +106,38 @@ pub struct DamageEvent {
     pub blast_radius_m: Option<f64>,
     pub water_burst_y: Option<f64>,
 }
+fn boxes(c: &crate::definition::Compartment) -> Vec<(Vec3, Vec3)> {
+    c.cells.as_ref().map_or_else(
+        || vec![(c.center, c.size)],
+        |cells| cells.iter().map(|c| (c.center, c.size)).collect(),
+    )
+}
+/// Fallback when no flood region covers an opening. An opening admits water to
+/// whatever lies behind it at that height, so prefer a space the point is level
+/// with; a hull breach a metre under should not find a wing void above the
+/// waterline just because it is a few centimetres nearer.
 fn nearest_room(def: &ShipDefinition, point: Vec3) -> Option<usize> {
+    let distance = |c: &crate::definition::Compartment| {
+        boxes(c)
+            .into_iter()
+            .map(|(center, size)| {
+                length(std::array::from_fn(|i| {
+                    ((point[i] - center[i]).abs() - size[i] / 2.0).max(0.0)
+                }))
+            })
+            .fold(f64::INFINITY, f64::min)
+    };
+    let level = |c: &crate::definition::Compartment| {
+        boxes(c)
+            .into_iter()
+            .any(|(center, size)| (point[1] - center[1]).abs() <= size[1] / 2.0)
+    };
+    let any_level = def.compartments.iter().any(&level);
     def.compartments
         .iter()
         .enumerate()
-        .min_by(|(_, a), (_, b)| {
-            let distance = |c: &crate::definition::Compartment| {
-                let cells: Vec<_> = c.cells.as_ref().map_or_else(
-                    || vec![(c.center, c.size)],
-                    |cells| cells.iter().map(|c| (c.center, c.size)).collect(),
-                );
-                cells
-                    .into_iter()
-                    .map(|(center, size)| {
-                        length(std::array::from_fn(|i| {
-                            ((point[i] - center[i]).abs() - size[i] / 2.0).max(0.0)
-                        }))
-                    })
-                    .fold(f64::INFINITY, f64::min)
-            };
-            distance(a).total_cmp(&distance(b))
-        })
+        .filter(|(_, c)| !any_level || level(c))
+        .min_by(|(_, a), (_, b)| distance(a).total_cmp(&distance(b)))
         .map(|(i, _)| i)
 }
 pub fn exterior_breaches(
