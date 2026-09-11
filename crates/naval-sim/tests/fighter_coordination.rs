@@ -1,10 +1,6 @@
 use naval_sim::{
-    aircraft::Aircraft,
-    aircraft_tactics::fighter_target,
-    aviation::Aviation,
-    catalog::Catalog,
-    rules::TeamId,
-    vessel::Vessel,
+    aircraft::Aircraft, aircraft_tactics::fighter_target, aviation::Aviation, catalog::Catalog,
+    rules::TeamId, vessel::Vessel,
 };
 use std::sync::{Arc, OnceLock};
 fn fixture() -> Vec<Aircraft> {

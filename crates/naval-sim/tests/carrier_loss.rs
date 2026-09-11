@@ -24,13 +24,7 @@ fn setup(preset: &str) -> (Vec<Vessel>, Aviation, Sensors) {
         ("enemy", "fletcher", TeamId::B),
     ]
     .into_iter()
-    .map(|(id, preset, team)| {
-        Vessel::new(
-            id,
-            team,
-            Arc::new(catalog().compile(preset).unwrap()),
-        )
-    })
+    .map(|(id, preset, team)| Vessel::new(id, team, Arc::new(catalog().compile(preset).unwrap())))
     .collect();
     actors[1].motion.x = 4000.0;
     actors[2].motion.z = -5000.0;

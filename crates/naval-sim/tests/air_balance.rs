@@ -20,11 +20,7 @@ fn catalog() -> &'static Catalog {
     })
 }
 fn vessel(id: &str, preset: &str, team: TeamId, x: f64, z: f64) -> Vessel {
-    let mut vessel = Vessel::new(
-        id,
-        team,
-        Arc::new(catalog().compile(preset).unwrap()),
-    );
+    let mut vessel = Vessel::new(id, team, Arc::new(catalog().compile(preset).unwrap()));
     vessel.controller = Controller::Player;
     vessel.motion.x = x;
     vessel.motion.z = z;
@@ -139,7 +135,10 @@ fn engagement(scenario: &str, fighters: bool, aa: usize, seed: u32) -> Engagemen
     .unwrap();
     // Calibrate the original six defenders; continuous relief is tested in
     // air_operations. The attacking carrier may still launch mixed groups.
-    air.carrier_rules.get_mut("defender").unwrap().active_flights = Some(1);
+    air.carrier_rules
+        .get_mut("defender")
+        .unwrap()
+        .active_flights = Some(1);
     let mut ids = launch(
         &mut air,
         &actors,

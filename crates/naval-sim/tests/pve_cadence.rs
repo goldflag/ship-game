@@ -34,7 +34,13 @@ fn content() -> &'static Content {
             .map(|id| {
                 (
                     id.to_owned(),
-                    Arc::new(CompiledShip::new(catalog.definitions[id].clone()).unwrap()),
+                    Arc::new(
+                        CompiledShip::new(
+                            catalog.definitions[id].clone(),
+                            catalog.hydrostatics.get(id),
+                        )
+                        .unwrap(),
+                    ),
                 )
             })
             .collect();

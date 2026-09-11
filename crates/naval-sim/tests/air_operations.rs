@@ -24,11 +24,7 @@ fn actors() -> Vec<Vessel> {
     ]
     .into_iter()
     .map(|(id, preset, team, x)| {
-        let mut a = Vessel::new(
-            id,
-            team,
-            Arc::new(catalog().compile(preset).unwrap()),
-        );
+        let mut a = Vessel::new(id, team, Arc::new(catalog().compile(preset).unwrap()));
         a.controller = Controller::Player;
         a.motion.x = x;
         a

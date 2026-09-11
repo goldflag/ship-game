@@ -504,8 +504,7 @@ fn missing_or_unsupported_contact_geometry_is_rejected() {
 
 #[test]
 fn unsupported_placement_preserves_the_aircraft_and_its_previous_controls() {
-    let compiled =
-        Arc::new(catalog().compile("enterprise-cv6").unwrap());
+    let compiled = Arc::new(catalog().compile("enterprise-cv6").unwrap());
     let actor = Vessel::new("carrier", TeamId::A, compiled);
     let mut wing = create_air_wing(
         actor.definition(),

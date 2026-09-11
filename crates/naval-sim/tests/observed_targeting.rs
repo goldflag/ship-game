@@ -498,8 +498,12 @@ fn actual_gunfire_refreshes_visibility_and_silence_expires_it() {
         let own = &b.actors[0];
         for (mount, state) in own.definition().mounts.iter().zip(&own.mounts) {
             if state.reload > 0.0 {
-                if mount.battery == "main" { main_fired = true; }
-                if mount.battery == "secondary" { secondary_fired = true; }
+                if mount.battery == "main" {
+                    main_fired = true;
+                }
+                if mount.battery == "secondary" {
+                    secondary_fired = true;
+                }
             }
         }
         if own.firing_visibility_seconds == 20.0 && main_fired && secondary_fired {
@@ -507,13 +511,28 @@ fn actual_gunfire_refreshes_visibility_and_silence_expires_it() {
             break;
         }
     }
-    assert!(fired, "both batteries must fire real salvos at their separate contacts");
-    assert!(naval_sim::sensors::entities(&b.actors, &b.aviation).iter().find(|e| e.id == "own").unwrap().firing);
+    assert!(
+        fired,
+        "both batteries must fire real salvos at their separate contacts"
+    );
+    assert!(
+        naval_sim::sensors::entities(&b.actors, &b.aviation)
+            .iter()
+            .find(|e| e.id == "own")
+            .unwrap()
+            .firing
+    );
     b.actors[0].bot.as_mut().unwrap().ai_level = naval_sim::bots::AiLevel::Static;
     b.actors[0].secondary_bot.as_mut().unwrap().ai_level = naval_sim::bots::AiLevel::Static;
     for _ in 0..21 * naval_sim::rules::TICK_RATE {
         b.step(&BTreeMap::new());
     }
     assert_eq!(b.actors[0].firing_visibility_seconds, 0.0);
-    assert!(!naval_sim::sensors::entities(&b.actors, &b.aviation).iter().find(|e| e.id == "own").unwrap().firing);
+    assert!(
+        !naval_sim::sensors::entities(&b.actors, &b.aviation)
+            .iter()
+            .find(|e| e.id == "own")
+            .unwrap()
+            .firing
+    );
 }
