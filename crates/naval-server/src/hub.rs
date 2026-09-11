@@ -446,7 +446,7 @@ mod tests {
         );
         let compiled = Arc::new(BTreeMap::from([(
             "fletcher".into(),
-            Arc::new(CompiledShip::new(catalog.definitions["fletcher"].clone()).unwrap()),
+            Arc::new(catalog.compile("fletcher").unwrap()),
         )]));
         let path =
             std::env::temp_dir().join(format!("naval-lobby-{}.sqlite", uuid::Uuid::new_v4()));

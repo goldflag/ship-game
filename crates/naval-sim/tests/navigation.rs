@@ -23,7 +23,7 @@ fn content() -> &'static BTreeMap<&'static str, Arc<CompiledShip>> {
             .map(|id| {
                 let bytes = std::fs::read(format!("../../public/models/{id}.json")).unwrap();
                 let def: ShipDefinition = serde_json::from_slice(&bytes).unwrap();
-                (id, Arc::new(CompiledShip::new(Arc::new(def)).unwrap()))
+                (id, Arc::new(CompiledShip::new(Arc::new(def), None).unwrap()))
             })
             .collect()
     })

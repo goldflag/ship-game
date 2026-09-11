@@ -1372,7 +1372,8 @@ mod torpedo_contact_tests {
         ]);
         def = serde_json::from_value(value).unwrap();
         let weapon = def.torpedo_tubes.as_ref().unwrap()[0].weapon.clone();
-        let compiled = Arc::new(CompiledShip::new(Arc::new(def)).unwrap());
+        // A synthetic hull has no published table; the mesh solver stands in.
+        let compiled = Arc::new(CompiledShip::new(Arc::new(def), None).unwrap());
         let mut actors = vec![Vessel::new("target", TeamId::B, compiled)];
         let direction = [radians(angle).sin(), 0.0, radians(angle).cos()];
         let point = [-3.0, -weapon.running_depth_m, 0.0];

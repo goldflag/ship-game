@@ -17,6 +17,8 @@ import libertyCollier from '../../public/models/liberty-collier.json';
 import victoryCargo from '../../public/models/victory-cargo.json';
 import flower from '../../public/models/flower-corvette.json';
 import type { ShipDefinition } from './blueprint';
+import hydrostatics from '../../assets/gameplay/hydrostatics.v1.json';
+import { registerHydrostaticTable, type HydrostaticTable } from '../simulation/hydrostatics';
 
 /** Historical presets share the same compiled definition and renderer contract. */
 export const shipPresets = {
@@ -39,6 +41,16 @@ export const shipPresets = {
   yukikaze,
   fubuki,
 };
+// Derived hull content, published separately because the blueprint compiler's
+// own output is hashed into the baked model. Attaching it here is what makes
+// every consumer of a preset hull interpolate the same table the Rust
+// simulation loads from the manifest.
+// multiplayer:content rejects a table whose hull has moved on; the maintenance
+// command that solves them reads these presets before the file exists.
+for (const [id, definition] of Object.entries(shipPresets)) {
+  const table = (hydrostatics.ships as unknown as Record<string, HydrostaticTable & { contentHash: string }>)[id];
+  if (table?.contentHash === definition.contentHash) registerHydrostaticTable((definition as unknown as ShipDefinition).hull, table);
+}
 const retiredPresetAliases: Record<string, keyof typeof shipPresets> = {
   'liberty-deck-cargo': 'liberty-collier', 'liberty-troopship': 'victory-cargo',
 };

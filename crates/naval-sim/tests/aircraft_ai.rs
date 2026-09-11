@@ -6,7 +6,7 @@ use naval_sim::{
     geometry::local_to_world,
     motion::{HelmCommand, step_ship},
     rules::TeamId,
-    vessel::{CompiledShip, Controller, Vessel},
+    vessel::{Controller, Vessel},
 };
 use std::{
     collections::BTreeSet,
@@ -23,7 +23,7 @@ fn carrier(id: &str, preset: &str, team: TeamId) -> Vessel {
     let mut a = Vessel::new(
         id,
         team,
-        Arc::new(CompiledShip::new(catalog().definitions[preset].clone()).unwrap()),
+        Arc::new(catalog().compile(preset).unwrap()),
     );
     a.controller = Controller::Player;
     a
@@ -366,13 +366,13 @@ fn fighter_dogfights_are_effective_finite_and_replay_exactly() {
                 "a",
                 TeamId::A,
                 Arc::new(
-                    CompiledShip::new(catalog().definitions["enterprise-cv6"].clone()).unwrap(),
+                    catalog().compile("enterprise-cv6").unwrap(),
                 ),
             ),
             Vessel::new(
                 "b",
                 TeamId::B,
-                Arc::new(CompiledShip::new(catalog().definitions["shokaku"].clone()).unwrap()),
+                Arc::new(catalog().compile("shokaku").unwrap()),
             ),
         ];
         for (i, a) in actors.iter_mut().enumerate() {

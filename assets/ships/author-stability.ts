@@ -1,4 +1,4 @@
-/** Original revision-1 load and residual-space calibration; no historical loading claim. */
+/** Original revision-2 load and residual-space calibration; no historical loading claim. */
 import { readFile, writeFile } from 'node:fs/promises';
 import { compileShip, type ShipBlueprint, type Vec3, type Compartment } from '../../src/ships/blueprint';
 import { hullContains } from '../../src/simulation/hull';
@@ -33,6 +33,19 @@ function subtract(cell: Cell, room: Cell): Cell[] {
   }
   return out;
 }
+// One reserve space per quarter of the length per side. Revision 1 split each
+// of those three ways vertically, so a battleship carried 24 of them and several
+// thousand flood cells, all of it invisible to the player: nothing in the game
+// names a reserve space, and a hit still floods the quarter and side it struck.
+const QUARTERS = 4, BANDS = 1;
+// Cells are the residual hull volume these spaces actually hold, so they set
+// both the flooding cost and the free-surface shape. One band spans the whole
+// depth, so it needs the vertical resolution the three bands used to supply.
+const GRID: [number, number, number] = [4, 6, 6];
+// Per cubic metre of space: revision 1's flat rate per room, divided by the
+// fleet's total authored reserve capacity, so a ship's pumping is redistributed
+// rather than divided when the grid coarsens.
+const RESERVE_PUMP = 9.641e-7;
 const requestedShips = process.argv.slice(2);
 for (const id of requestedShips.length ? requestedShips : ['bismarck', 'yamato', 'baltimore', 'enterprise-cv6', 'king-george-v']) {
   if (!/^[a-z][a-z0-9-]{0,63}$/.test(id)) throw new Error('Expected a ship ID');
@@ -44,13 +57,13 @@ for (const id of requestedShips.length ? requestedShips : ['bismarck', 'yamato',
   const gm = h.beam * .07;
   b.stability = { version: 1, dryCenterOfGravity: [0, initialMetacenter(h) - gm, base.center[2]], buoyancyScale: h.massKg / (1025 * base.volume), shellThicknessMm: 12,
     basis: 'Estimated loading: dry CG calibrated to an initial GM of 7% beam; longitudinal CG matches modeled buoyancy at reference waterline. Uniform buoyancy scale reconciles stated mass with the authored hull volume. ' + (b.structuralPlating ? 'Outer shell uses the blueprint structural plating thickness. ' : 'Unmapped outer shell uses 12 mm steel. ') + 'Residual flood cells conservatively exclude retained room boxes; partitions, permeability and access are game estimates.' };
-  for (let zi = 0; zi < 4; zi++) for (let side = 0; side < 2; side++) for (let yi = 0; yi < 3; yi++) {
-    const z0 = -h.length / 2 + h.length * zi / 4, z1 = z0 + h.length / 4;
-    const bottom = -h.draft, top = Math.max(...h.deckHeights.map(p => p[1])), y0 = bottom + (top - bottom) * yi / 3, y1 = bottom + (top - bottom) * (yi + 1) / 3;
+  for (let zi = 0; zi < QUARTERS; zi++) for (let side = 0; side < 2; side++) for (let yi = 0; yi < BANDS; yi++) {
+    const z0 = -h.length / 2 + h.length * zi / QUARTERS, z1 = z0 + h.length / QUARTERS;
+    const bottom = -h.draft, top = Math.max(...h.deckHeights.map(p => p[1])), y0 = bottom + (top - bottom) * yi / BANDS, y1 = bottom + (top - bottom) * (yi + 1) / BANDS;
     const x0 = side ? 0 : -h.beam / 2, x1 = x0 + h.beam / 2;
     let cells: NonNullable<Compartment['cells']> = [];
-    for (let z = 0; z < 12; z++) for (let x = 0; x < 6; x++) for (let y = 0; y < 3; y++) {
-      const size: Vec3 = [(x1 - x0) / 6, (y1 - y0) / 3, (z1 - z0) / 12];
+    for (let z = 0; z < GRID[2]; z++) for (let x = 0; x < GRID[0]; x++) for (let y = 0; y < GRID[1]; y++) {
+      const size: Vec3 = [(x1 - x0) / GRID[0], (y1 - y0) / GRID[1], (z1 - z0) / GRID[2]];
       const center: Vec3 = [x0 + (x + .5) * size[0], y0 + (y + .5) * size[1], z0 + (z + .5) * size[2]];
       const fill = (cell: { center: Vec3; size: Vec3 }, depth: number) => {
         const inside = [-1,1].flatMap(sx => [-1,1].flatMap(sy => [-1,1].map(sz => hullContains(h, [cell.center[0]+sx*cell.size[0]/2, cell.center[1]+sy*cell.size[1]/2, cell.center[2]+sz*cell.size[2]/2]))));
@@ -63,7 +76,7 @@ for (const id of requestedShips.length ? requestedShips : ['bismarck', 'yamato',
         for (const room of old) pieces = pieces.flatMap(piece => subtract(piece, room));
         cells.push(...pieces);
       };
-      fill({center,size}, 2);
+      fill({center,size}, 1);
     }
     if (!cells.length) continue;
     const before=cells.reduce((n,c)=>n+c.size[0]*c.size[1]*c.size[2],0);
@@ -71,7 +84,8 @@ for (const id of requestedShips.length ? requestedShips : ['bismarck', 'yamato',
     const after=cells.reduce((n,c)=>n+c.size[0]*c.size[1]*c.size[2],0);
     if(Math.abs(before-after)>Math.max(.01,before*1e-6)) throw new Error('Cell merge changed volume');
     const roomId = `reserve-cell-${zi}-${side}-${yi}`, center: Vec3 = [(x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2], size: Vec3 = [x1 - x0, y1 - y0, z1 - z0];
-    const c: Compartment = { id: roomId, name: `${side ? 'Starboard' : 'Port'} ${['deep', 'middle', 'upper'][yi]} reserve space ${zi + 1} · estimated`, center, size, cells, capacityM3: cells.reduce((n, c) => n + c.size[0] * c.size[1] * c.size[2] * .85, 0), pumpM3PerSecond: .001 };
+    const capacityM3 = cells.reduce((n, c) => n + c.size[0] * c.size[1] * c.size[2] * .85, 0);
+    const c: Compartment = { id: roomId, name: `${side ? 'Starboard' : 'Port'} reserve space ${zi + 1} · estimated`, center, size, cells, capacityM3, pumpM3PerSecond: capacityM3 * RESERVE_PUMP };
     b.compartments.push(c);
     b.floodRegions ??= []; b.floodRegions.push({ id: `reserve-region-${zi}-${side}-${yi}`, compartmentId: c.id, center, size });
     // Retain sealed estimated access to the closest existing space. A hit must

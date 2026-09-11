@@ -464,7 +464,7 @@ mod tests {
         );
         let compiled = Arc::new(BTreeMap::from([(
             "fletcher".into(),
-            Arc::new(CompiledShip::new(catalog.definitions["fletcher"].clone()).unwrap()),
+            Arc::new(catalog.compile("fletcher").unwrap()),
         )]));
         let setup = BattleSetup {
             ships: [TeamId::A, TeamId::B]

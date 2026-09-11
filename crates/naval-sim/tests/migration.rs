@@ -120,8 +120,9 @@ fn buoyancy_floodwater_and_weapon_training_match_reference() {
     let catalog = Catalog::load(&bytes).unwrap();
     let f = fixture();
     for case in f["hydro"].as_array().unwrap() {
-        let d = &catalog.definitions[case["id"].as_str().unwrap()];
-        let h = HullHydrostatics::new(&d.hull);
+        let id = case["id"].as_str().unwrap();
+        let d = &catalog.definitions[id];
+        let h = HullHydrostatics::new(&d.hull, catalog.hydrostatics.get(id));
         let sample = h.sample(-1.2, 0.21, -0.013);
         near(
             sample.volume,

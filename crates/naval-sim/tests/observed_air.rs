@@ -22,12 +22,7 @@ fn content() -> &'static Content {
         );
         let compiled = ["fletcher", "enterprise-cv6"]
             .into_iter()
-            .map(|id| {
-                (
-                    id.into(),
-                    Arc::new(CompiledShip::new(catalog.definitions[id].clone()).unwrap()),
-                )
-            })
+            .map(|id| (id.into(), Arc::new(catalog.compile(id).unwrap())))
             .collect();
         (catalog, compiled)
     })
