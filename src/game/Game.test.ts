@@ -178,7 +178,7 @@ test('failed ship loads preserve the old ship and allow retry', async () => {
     loader.mockResolvedValue(invalid);
     await expect(game.switchShip(shipPreset('yamato'))).rejects.toThrow('different versions');
     expect(scene.children).toContain(playerView.root);
-    loader.mockImplementation(async url => model(String(url).split('/').pop()!.replace('.glb', '')));
+    loader.mockImplementation(async url => model(String(url).split('/').pop()!.replace(/\.glb(\?.*)?$/, '')));
     for (const id of ['yamato', 'baltimore', 'enterprise-cv6', 'type-viic', 'bismarck']) {
       await game.switchShip(shipPreset(id));
       expect(game.definition.id).toBe(id);
@@ -208,7 +208,7 @@ test('a second request cannot replace an in-flight switch; disposed games never 
 test.each([false, true])('battle loading binds each mixed fleet hull and selected target to its own exported joints (storage matrices: %s)', async storageMatrices => {
   const { game, scene, harbor, rig } = await port(storageMatrices);
   const aircraftLoader = spyOn((game as unknown as { aircraftView: { load(modelIds: string[], storageMatrices?: boolean): Promise<void> } }).aircraftView, 'load');
-  const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async url => model(String(url).split('/').pop()!.replace('.glb', '')));
+  const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async url => model(String(url).split('/').pop()!.replace(/\.glb(\?.*)?$/, '')));
   try {
     await game.prepareBattle({ playerShipId: 'baltimore', friendlyBots: ['bismarck', { shipId: 'bismarck', aiLevel: 'hard' }],
       enemies: [{ shipId: 'yamato', aiLevel: 'static' }, { shipId: 'enterprise-cv6', aiLevel: 'moving' }],
@@ -244,7 +244,7 @@ test('battle preparation reports each loading stage in order for the loading scr
   let active = 0, peak = 0;
   const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async url => {
     peak = Math.max(peak, ++active);
-    try { return await model(String(url).split('/').pop()!.replace('.glb', '')); }
+    try { return await model(String(url).split('/').pop()!.replace(/\.glb(\?.*)?$/, '')); }
     finally { active--; }
   });
   const stages: [string, number][] = [];
@@ -269,7 +269,7 @@ test.each(['yamato', 'enterprise-cv6'])('PvE prepares detail only for owned hull
   const { game, rig } = await port();
   const loaded: string[] = [], detailed: string[] = [];
   const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async url => {
-    const id = String(url).split('/').pop()!.replace('.glb', '');
+    const id = String(url).split('/').pop()!.replace(/\.glb(\?.*)?$/, '');
     loaded.push(id);
     const gltf = await model(id);
     gltf.scene.name = id;
@@ -314,13 +314,13 @@ test('one failed fleet asset leaves the port intact and the same battle can be r
   const setup = { playerShipId: 'baltimore', friendlyBots: ['bismarck'], enemies: ['yamato', 'enterprise-cv6'], spawnDistance: 5000 };
   const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async url => {
     if (String(url).includes('enterprise')) throw new Error('Fleet asset unavailable');
-    return model(String(url).split('/').pop()!.replace('.glb', ''));
+    return model(String(url).split('/').pop()!.replace(/\.glb(\?.*)?$/, ''));
   });
   try {
     await expect(game.prepareBattle(setup)).rejects.toThrow('Fleet asset unavailable');
     expect(scene.children).toContain(playerView.root);
     expect(game.definition.id).toBe('bismarck');
-    loader.mockImplementation(async url => model(String(url).split('/').pop()!.replace('.glb', '')));
+    loader.mockImplementation(async url => model(String(url).split('/').pop()!.replace(/\.glb(\?.*)?$/, '')));
     await game.prepareBattle(setup);
     expect(game.simulation.actors).toHaveLength(4);
   } finally { loader.mockRestore(); rig.dispose(); }
@@ -328,7 +328,7 @@ test('one failed fleet asset leaves the port intact and the same battle can be r
 
 test('failed aircraft loads leave the current port intact and allow another launch attempt', async () => {
   const { game, scene, playerView, rig } = await port();
-  const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async url => model(String(url).split('/').pop()!.replace('.glb', '')));
+  const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async url => model(String(url).split('/').pop()!.replace(/\.glb(\?.*)?$/, '')));
   const view = (game as unknown as { aircraftView: { load(): Promise<void> } }).aircraftView;
   // Create the rejection when called, after the asynchronous ship loads finish.
   const aircraftLoader = spyOn(view, 'load').mockImplementation(async () => { throw new Error('Aircraft unavailable'); });
@@ -541,7 +541,7 @@ test('a second sortie with the same fleet reuses the hulls the first one built',
   const { game, rig } = await port();
   const loaded: string[] = [];
   const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(async url => {
-    const id = String(url).split('/').pop()!.replace('.glb', '');
+    const id = String(url).split('/').pop()!.replace(/\.glb(\?.*)?$/, '');
     loaded.push(id);
     const gltf = await model(id); gltf.scene.name = id; return gltf;
   });

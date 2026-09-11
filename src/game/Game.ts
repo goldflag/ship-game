@@ -727,7 +727,7 @@ export class Game {
     const cached = this.hulls.get(key);
     // Reinserting keeps the map in least-recently-used order for trimHulls.
     if (cached) { this.hulls.delete(key); this.hulls.set(key, cached); return cached; }
-    const model = (await loadShipModel(assetUrl(definition.modelUrl))).scene;
+    const model = (await loadShipModel(assetUrl(definition.modelUrl), undefined, hash)).scene;
     if (!hash || model.userData.definitionHash !== hash) {
       disposeObjects(model);
       throw new Error('The ship model and definition have different versions. Rebuild the ship assets and reload.');
