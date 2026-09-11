@@ -159,9 +159,12 @@ pub fn advance_projectile(
             }) {
                 continue;
             }
+            // Both ends of the flight segment go through the same hull
+            // attitude, for every shell against every ship it might reach.
+            let basis = actor.motion.basis();
             if !segment_overlaps_box(
-                world_to_local(from, actor.motion.pose()),
-                world_to_local(end, actor.motion.pose()),
+                basis.world_to_local(from),
+                basis.world_to_local(end),
                 actor.compiled.shell_center,
                 actor.compiled.shell_size,
             ) {

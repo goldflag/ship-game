@@ -7,7 +7,7 @@ use crate::{
     geometry::*,
     impact::{AirburstEffect, AircraftEffect, DamageEvent},
     machinery::mount_support,
-    vessel::{Controller, Vessel},
+    vessel::{Controller, Fleet, Vessel},
     weapons::*,
 };
 /// Ticks a mount holds its air track before looking for a nearer one. Firing,
@@ -38,7 +38,7 @@ fn nearer_distance(delta: Vec3, closest: f64) -> Option<f64> {
     let distance = length(delta);
     (distance < closest).then_some(distance)
 }
-fn clear_lane(actor: &Vessel, from: Vec3, to: Vec3, actors: &[Vessel], air: &Aviation) -> bool {
+fn clear_lane(actor: &Vessel, from: Vec3, to: Vec3, actors: Fleet<'_>, air: &Aviation) -> bool {
     let delta = sub(to, from);
     let distance = length(delta);
     let direction = scale(delta, 1.0 / if distance == 0.0 { 1.0 } else { distance });
@@ -54,9 +54,11 @@ fn clear_lane(actor: &Vessel, from: Vec3, to: Vec3, actors: &[Vessel], air: &Avi
     }) && !actors.iter().any(|f| {
         f.motion.id != actor.motion.id && f.team == actor.team && !f.damage.sunk && {
             let h = &f.definition().hull;
+            // Both ends of the segment go through the same hull attitude.
+            let basis = f.motion.basis();
             segment_box(
-                world_to_local(from, f.motion.pose()),
-                world_to_local(to, f.motion.pose()),
+                basis.world_to_local(from),
+                basis.world_to_local(to),
                 [0.0, (h.depth - 2.0 * h.draft) / 2.0, 0.0],
                 [h.beam, h.depth, h.length],
             )
@@ -106,7 +108,7 @@ pub fn update(
     actor: &Vessel,
     m: &MountDefinition,
     state: &mut MountState,
-    actors: &[Vessel],
+    actors: Fleet<'_>,
     air: &mut Aviation,
     dt: f64,
     seed: u32,
@@ -122,7 +124,7 @@ pub fn update_observed(
     actor: &Vessel,
     m: &MountDefinition,
     state: &mut MountState,
-    actors: &[Vessel],
+    actors: Fleet<'_>,
     air: &mut Aviation,
     dt: f64,
     seed: u32,
@@ -163,7 +165,7 @@ pub fn update_observed_at(
     actor: &Vessel,
     m: &MountDefinition,
     state: &mut MountState,
-    actors: &[Vessel],
+    actors: Fleet<'_>,
     air: &mut Aviation,
     dt: f64,
     seed: u32,
@@ -309,7 +311,10 @@ pub fn update_observed_at(
     if !aligned || state.status != MountStatus::Ready {
         return true;
     }
-    let muzzle = local_to_world(muzzle_local(m, state, 0), actor.motion.pose());
+    // One attitude for the mount's own muzzle and for every barrel below.
+    let pose = actor.motion.pose();
+    let basis = Basis::of(pose);
+    let muzzle = basis.local_to_world(muzzle_local(m, state, 0));
     if !clear_lane(actor, muzzle, crew_aim, actors, air) {
         state.status = MountStatus::Blocked;
         return true;
@@ -323,10 +328,10 @@ pub fn update_observed_at(
         .map_or(0.0, |b| b.drag_per_second);
     let mut shots = vec![];
     for barrel in 0..barrels {
-        let position = local_to_world(muzzle_local(m, state, barrel), actor.motion.pose());
+        let position = basis.local_to_world(muzzle_local(m, state, barrel));
         *sequence += 1;
         let direction = dispersed_direction(
-            shot_direction(m, state, actor.motion.pose()),
+            shot_direction(m, state, pose),
             aa_spread(closest) + (1.0 - fire_control) * 0.0015,
             seed,
             *sequence as u32,

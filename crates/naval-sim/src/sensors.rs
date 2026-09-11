@@ -679,13 +679,13 @@ pub fn entities(actors: &[Vessel], aviation: &Aviation) -> Vec<VisualEntity> {
             let feature = def.modules.iter().max_by(|a, b| {
                 (a.center[1] + a.size[1] / 2.0).total_cmp(&(b.center[1] + b.size[1] / 2.0))
             });
+            // The eye, the feature, every burning mount and every smoking vent
+            // share this hull's attitude for the tick.
+            let basis = a.motion.basis();
             let top = |module: Option<&crate::definition::Module>, fallback| {
-                crate::geometry::local_to_world(
-                    module.map_or([0.0, fallback, 0.0], |m| {
-                        [m.center[0], m.center[1] + m.size[1] / 2.0, m.center[2]]
-                    }),
-                    a.motion.pose(),
-                )
+                basis.local_to_world(module.map_or([0.0, fallback, 0.0], |m| {
+                    [m.center[0], m.center[1] + m.size[1] / 2.0, m.center[2]]
+                }))
             };
             let mut cues = crate::recon::VisualCues {
                 listing: a.motion.roll.abs() >= 12.0_f64.to_radians(),
@@ -703,14 +703,11 @@ pub fn entities(actors: &[Vessel], aviation: &Aviation) -> Vec<VisualEntity> {
                 .filter(|(_, f)| f.intensity >= 0.35)
             {
                 let mount = crate::mount_frames::mount_frame(def, index, &|i| a.mounts[i].train);
-                let point = crate::geometry::local_to_world(
-                    [
-                        mount.x,
-                        mount.y + def.mounts[index].weapon.gunhouse_size[2],
-                        mount.z,
-                    ],
-                    a.motion.pose(),
-                );
+                let point = basis.local_to_world([
+                    mount.x,
+                    mount.y + def.mounts[index].weapon.gunhouse_size[2],
+                    mount.z,
+                ]);
                 if point[1] > 0.0 {
                     cues.fire = Some(point);
                     cues.smoke = Some(point);
@@ -726,7 +723,7 @@ pub fn entities(actors: &[Vessel], aviation: &Aviation) -> Vec<VisualEntity> {
                     .zip(&def.compartments)
                     .filter(|(fire, _)| fire.intensity >= 0.35)
                     .filter_map(|(_, compartment)| compartment.fire.as_ref()?.vent_position)
-                    .map(|point| crate::geometry::local_to_world(point, a.motion.pose()))
+                    .map(|point| basis.local_to_world(point))
                     .find(|point| point[1] > 0.0);
             }
             VisualEntity {

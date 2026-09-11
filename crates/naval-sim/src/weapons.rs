@@ -394,8 +394,10 @@ impl Obstructions {
             e.mount_id.as_deref() != Some(mount_id)
                 && segment_box(from, to, e.center, e.size).is_some()
         }) || self.carried.iter().zip(poses).any(|((_, boxes), pose)| {
-            let from = world_to_local(from, *pose);
-            let to = world_to_local(to, *pose);
+            // Both ends of the segment go through the same carrier frame.
+            let basis = Basis::of(*pose);
+            let from = basis.world_to_local(from);
+            let to = basis.world_to_local(to);
             boxes.iter().any(|e| {
                 e.mount_id.as_deref() != Some(mount_id)
                     && segment_box(from, to, e.center, e.size).is_some()
@@ -451,6 +453,9 @@ pub fn update_mount_at(
     obstructions: &Obstructions,
     mounted_states: &[MountState],
 ) -> bool {
+    // The hull holds one attitude for this call, and the muzzle check plus each
+    // pass of the lead solve below rotate through it.
+    let basis = p.basis();
     let work = gun_work_rate(power);
     let was_reloading = s.reload > 0.0;
     s.reload = (s.reload - dt * work).max(0.0);
@@ -473,7 +478,7 @@ pub fn update_mount_at(
         return reject(s, MountStatus::Empty);
     }
     if d.submarine.is_some() && p.depth() > 0.5
-        || local_to_world(muzzle_local(m, s, 0), p.pose())[1] <= p.wave_heave
+        || basis.local_to_world(muzzle_local(m, s, 0))[1] <= p.wave_heave
     {
         return reject(s, MountStatus::Submerged);
     }
@@ -496,10 +501,12 @@ pub fn update_mount_at(
         let Some(aim) = aim else {
             break;
         };
-        let midpoint = local_to_world(
-            muzzle_center_local(m, desired_train, desired_elevation, s.carrier),
-            p.pose(),
-        );
+        let midpoint = basis.local_to_world(muzzle_center_local(
+            m,
+            desired_train,
+            desired_elevation,
+            s.carrier,
+        ));
         let drag = m
             .weapon
             .ballistics
@@ -519,10 +526,7 @@ pub fn update_mount_at(
             break;
         };
         time = solution.time;
-        let direction = normalize(world_to_local(
-            add([p.x, p.y, p.z], solution.direction),
-            p.pose(),
-        ));
+        let direction = normalize(basis.world_to_local(add([p.x, p.y, p.z], solution.direction)));
         desired_train = wrap_angle(
             direction[0].atan2(-direction[2])
                 - radians(m.bearing_deg)
