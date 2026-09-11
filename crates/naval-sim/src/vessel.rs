@@ -8,9 +8,186 @@ use crate::{
     weapons::Obstructions,
 };
 use std::{
+    collections::HashMap,
     ops::{Deref, DerefMut},
     sync::Arc,
 };
+/// Content-derived lookup tables. Every entry reproduces the first-match
+/// semantics of the `find`/`position` scans it replaces, so results are
+/// unchanged; only the repeated string comparisons disappear.
+#[derive(Clone, Debug, Default)]
+pub struct ShipIndex {
+    /// Identity of the definition this was built from: the heap buffer of
+    /// `modules` survives moves of the definition and only a clone changes it.
+    modules_ptr: usize,
+    pub modules: usize,
+    pub compartments: usize,
+    pub mounts: usize,
+    module_by_id: HashMap<String, usize>,
+    mount_by_id: HashMap<String, usize>,
+    /// Per module index, the first module with the same id (usually itself).
+    module_first: Vec<usize>,
+    /// Per module index, its compartment, or `None` when unauthored or unknown.
+    module_room: Vec<Option<usize>>,
+    /// Per mount index, the module index of its magazine.
+    pub mount_magazine: Vec<Option<usize>>,
+    /// Per module index, the mounts drawing from it as their magazine.
+    magazine_mounts: Vec<Vec<usize>>,
+    by_kind: HashMap<String, Vec<usize>>,
+    empty: Vec<usize>,
+    pub directors: Vec<usize>,
+    pub coverage: bool,
+    mount_directors: Vec<Vec<usize>>,
+    /// `(submerged, surface)` engine modules for submarines.
+    pub submarine_engines: Option<(Vec<Option<usize>>, Vec<Option<usize>>)>,
+    pub propulsion: Vec<PropulsionIndex>,
+}
+#[derive(Clone, Debug, Default)]
+pub struct PropulsionIndex {
+    pub share: f64,
+    pub boilers: Vec<Option<usize>>,
+    pub drives: Vec<Option<usize>>,
+    pub shafts: Vec<Option<usize>>,
+}
+impl ShipIndex {
+    pub fn new(d: &ShipDefinition) -> Self {
+        let mut module_by_id: HashMap<String, usize> = HashMap::new();
+        for (i, m) in d.modules.iter().enumerate() {
+            module_by_id.entry(m.id.clone()).or_insert(i);
+        }
+        let mut mount_by_id: HashMap<String, usize> = HashMap::new();
+        for (i, m) in d.mounts.iter().enumerate() {
+            mount_by_id.entry(m.id.clone()).or_insert(i);
+        }
+        let mut room_by_id: HashMap<&str, usize> = HashMap::new();
+        for (i, c) in d.compartments.iter().enumerate() {
+            room_by_id.entry(c.id.as_str()).or_insert(i);
+        }
+        let mut by_kind: HashMap<String, Vec<usize>> = HashMap::new();
+        for (i, m) in d.modules.iter().enumerate() {
+            by_kind.entry(m.kind.clone()).or_default().push(i);
+        }
+        let module_index = |id: &String| module_by_id.get(id).copied();
+        let mut magazine_mounts = vec![vec![]; d.modules.len()];
+        let mount_magazine: Vec<_> = d
+            .mounts
+            .iter()
+            .map(|m| m.magazine_id.as_ref().and_then(&module_index))
+            .collect();
+        for (i, m) in d.mounts.iter().enumerate() {
+            let Some(id) = &m.magazine_id else { continue };
+            for (j, module) in d.modules.iter().enumerate() {
+                if &module.id == id {
+                    magazine_mounts[j].push(i);
+                }
+            }
+        }
+        let directors: Vec<_> = by_kind.get("fire-control").cloned().unwrap_or_default();
+        let coverage = directors
+            .iter()
+            .any(|i| d.modules[*i].serves_mount_ids.is_some());
+        let mount_directors = d
+            .mounts
+            .iter()
+            .map(|mount| {
+                directors
+                    .iter()
+                    .copied()
+                    .filter(|i| {
+                        d.modules[*i]
+                            .serves_mount_ids
+                            .as_ref()
+                            .is_some_and(|ids| ids.iter().any(|s| *s == mount.id))
+                    })
+                    .collect()
+            })
+            .collect();
+        Self {
+            modules_ptr: d.modules.as_ptr() as usize,
+            modules: d.modules.len(),
+            compartments: d.compartments.len(),
+            mounts: d.mounts.len(),
+            module_first: d
+                .modules
+                .iter()
+                .map(|m| module_by_id[&m.id])
+                .collect::<Vec<_>>(),
+            module_room: d
+                .modules
+                .iter()
+                .map(|m| {
+                    m.compartment_id
+                        .as_ref()
+                        .and_then(|id| room_by_id.get(id.as_str()).copied())
+                })
+                .collect(),
+            mount_magazine,
+            magazine_mounts,
+            directors,
+            coverage,
+            mount_directors,
+            submarine_engines: d.submarine.as_ref().map(|s| {
+                (
+                    s.submerged_engine_ids.iter().map(&module_index).collect(),
+                    s.surface_engine_ids.iter().map(&module_index).collect(),
+                )
+            }),
+            propulsion: d
+                .propulsion
+                .iter()
+                .flat_map(|p| &p.groups)
+                .map(|g| PropulsionIndex {
+                    share: g.share,
+                    boilers: g.boiler_ids.iter().map(&module_index).collect(),
+                    drives: g.drive_ids.iter().map(&module_index).collect(),
+                    shafts: g.shaft_ids.iter().map(&module_index).collect(),
+                })
+                .collect(),
+            by_kind,
+            module_by_id,
+            mount_by_id,
+            empty: vec![],
+        }
+    }
+    /// `Some` only for the definition this index was compiled from; every
+    /// caller falls back to the original scan otherwise.
+    pub fn of<'a>(&'a self, d: &ShipDefinition) -> Option<&'a Self> {
+        (self.modules_ptr == d.modules.as_ptr() as usize).then_some(self)
+    }
+    /// Position of a module borrowed from `d.modules`, without scanning.
+    pub fn position(&self, module: &crate::definition::Module) -> Option<usize> {
+        let stride = size_of::<crate::definition::Module>();
+        let offset = (module as *const _ as usize).checked_sub(self.modules_ptr)?;
+        let i = offset / stride;
+        (offset % stride == 0 && i < self.modules).then_some(i)
+    }
+    /// Module state parallel to `d.modules`, resolved like `find(|m| m.id == id)`.
+    pub fn module_state(&self, i: usize) -> usize {
+        self.module_first[i]
+    }
+    pub fn module(&self, id: &str) -> Option<usize> {
+        self.module_by_id.get(id).copied()
+    }
+    pub fn mount(&self, id: &str) -> Option<usize> {
+        self.mount_by_id.get(id).copied()
+    }
+    pub fn room(&self, i: usize) -> Option<usize> {
+        self.module_room[i]
+    }
+    pub fn magazine_mounts(&self, i: usize) -> &[usize] {
+        &self.magazine_mounts[i]
+    }
+    pub fn kind(&self, kind: &str) -> &[usize] {
+        self.by_kind.get(kind).unwrap_or(&self.empty)
+    }
+    /// Directors serving `mount`, matching the `mount_support` filter exactly.
+    pub fn served(&self, mount: Option<&str>) -> Option<&[usize]> {
+        match mount {
+            Some(id) if self.coverage => Some(&self.mount_directors[self.mount(id)?]),
+            _ => Some(&self.directors),
+        }
+    }
+}
 /// Built once when trusted content loads, then shared by every vessel and match.
 #[derive(Clone, Debug)]
 pub struct CompiledShip {

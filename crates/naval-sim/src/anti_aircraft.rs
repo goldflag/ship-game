@@ -61,6 +61,41 @@ fn clear_lane(actor: &Vessel, from: Vec3, to: Vec3, actors: &[Vessel], air: &Avi
         }
     })
 }
+/// A hostile air contact this ship can see, with its position extrapolated to
+/// the current tick. The filter behind it costs a string comparison per
+/// observation source per contact, and was repeated for every AA mount.
+pub struct AirContact<'a> {
+    pub track: &'a crate::sensors::ContactTrack,
+    pub point: Vec3,
+}
+/// Contacts every AA mount of this ship would consider, in the order the mount
+/// loop saw them. Computed once per ship per tick.
+pub fn observable_air<'a>(
+    actor: &Vessel,
+    k: crate::sensors::Knowledge<'a>,
+    out: &mut Vec<AirContact<'a>>,
+) {
+    out.clear();
+    for c in k.sensors.iter_contacts(actor.team) {
+        if c.kind != crate::sensors::ContactKind::Aircraft
+            || c.affiliation != crate::sensors::Affiliation::Hostile
+            || k.tick.saturating_sub(c.last_observed_tick) > 2 * crate::rules::TICK_RATE
+            || !c.sources.iter().any(|s| s.observer_id == actor.motion.id)
+        {
+            continue;
+        }
+        out.push(AirContact {
+            track: c,
+            point: add(
+                c.measured_position,
+                scale(
+                    c.velocity,
+                    (k.tick - c.last_observed_tick) as f64 / crate::rules::TICK_RATE as f64,
+                ),
+            ),
+        });
+    }
+}
 /// The state is detached from the actor during this call. AA claims at most one
 /// update of a mount; the surface path advances it only if this returns false.
 #[allow(clippy::too_many_arguments)]
@@ -92,6 +127,48 @@ pub fn update_observed(
     events: &mut Vec<DamageEvent>,
     knowledge: Option<crate::sensors::Knowledge<'_>>,
 ) -> bool {
+    let index = actor
+        .definition()
+        .mounts
+        .iter()
+        .position(|mount| mount.id == m.id)
+        .unwrap_or(0);
+    let mut observable = vec![];
+    if let Some(k) = knowledge {
+        observable_air(actor, k, &mut observable);
+    }
+    update_observed_at(
+        index,
+        actor,
+        m,
+        state,
+        actors,
+        air,
+        dt,
+        seed,
+        sequence,
+        events,
+        knowledge,
+        &observable,
+    )
+}
+/// The caller supplies the mount's index and this ship's observable air
+/// contacts, both of which were recomputed for every mount.
+#[allow(clippy::too_many_arguments)]
+pub fn update_observed_at(
+    index: usize,
+    actor: &Vessel,
+    m: &MountDefinition,
+    state: &mut MountState,
+    actors: &[Vessel],
+    air: &mut Aviation,
+    dt: f64,
+    seed: u32,
+    sequence: &mut i64,
+    events: &mut Vec<DamageEvent>,
+    knowledge: Option<crate::sensors::Knowledge<'_>>,
+    observable: &[AirContact<'_>],
+) -> bool {
     let reach = range(m);
     if reach == 0.0
         || actor.damage.sunk
@@ -108,26 +185,12 @@ pub fn update_observed(
     let mut closest = reach;
     let mut target = None;
     if let Some(k) = knowledge {
-        for c in k.sensors.iter_contacts(actor.team) {
-            if c.kind != crate::sensors::ContactKind::Aircraft
-                || c.affiliation != crate::sensors::Affiliation::Hostile
-                || k.tick.saturating_sub(c.last_observed_tick) > 2 * crate::rules::TICK_RATE
-                || !c.sources.iter().any(|s| s.observer_id == actor.motion.id)
-            {
-                continue;
-            }
-            let point = add(
-                c.measured_position,
-                scale(
-                    c.velocity,
-                    (k.tick - c.last_observed_tick) as f64 / crate::rules::TICK_RATE as f64,
-                ),
-            );
-            if let Some(d) = nearer_distance(sub(point, origin), closest)
-                && let Some(id) = k.sensors.resolve_contact(actor.team, &c.id)
+        for c in observable {
+            if let Some(d) = nearer_distance(sub(c.point, origin), closest)
+                && let Some(id) = k.sensors.resolve_contact(actor.team, &c.track.id)
             {
                 closest = d;
-                target = Some((id, point, c.velocity));
+                target = Some((id, c.point, c.track.velocity));
             }
         }
     } else {
@@ -184,7 +247,8 @@ pub fn update_observed(
     }
     let velocity = actor.motion.velocity();
     let (power, fire_control) = mount_support(actor, actor.definition(), Some(&m.id), None);
-    let aligned = update_mount(
+    let aligned = update_mount_at(
+        index,
         m,
         state,
         actor.definition(),
@@ -196,12 +260,12 @@ pub fn update_observed(
         &actor.compiled.obstructions,
         &actor.mounts,
     );
-    if !aligned || state.status != "ready" {
+    if !aligned || state.status != MountStatus::Ready {
         return true;
     }
     let muzzle = local_to_world(muzzle_local(m, state, 0), actor.motion.pose());
     if !clear_lane(actor, muzzle, crew_aim, actors, air) {
-        state.status = "blocked".into();
+        state.status = MountStatus::Blocked;
         return true;
     }
     let heavy = m.weapon.caliber_m > 0.08;
@@ -228,7 +292,7 @@ pub fn update_observed(
             drag,
         );
         if !clear_lane(actor, position, endpoint, actors, air) {
-            state.status = "blocked".into();
+            state.status = MountStatus::Blocked;
             return true;
         }
         shots.push((position, direction, endpoint));

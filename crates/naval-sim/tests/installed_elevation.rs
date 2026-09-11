@@ -2,7 +2,7 @@ use naval_sim::{
     definition::ShipDefinition,
     gunnery::group_id,
     motion::ShipState,
-    weapons::{MountState, Obstructions, update_mount},
+    weapons::{MountState, MountStatus, Obstructions, update_mount},
 };
 
 #[test]
@@ -25,7 +25,7 @@ fn installed_stop_preserves_battery_selection_and_limits_authoritative_aiming() 
     );
     assert!(!ready);
     assert!((state.elevation - (-3.0_f64).to_radians()).abs() < 1e-10);
-    assert_eq!(state.status, "out-of-arc");
+    assert_eq!(state.status, MountStatus::OutOfArc);
 }
 
 #[test]
@@ -43,7 +43,7 @@ fn installed_aa_ceiling_preserves_group_and_limits_authoritative_aiming() {
     let mut state = MountState::new(&m);
     assert!(!update_mount(&m, &mut state, &d, &ShipState::new("test"), aim, 10.0, [0.0;3], 1.0, &Obstructions::new(&d), &[]));
     assert!((state.elevation - 78.0_f64.to_radians()).abs() < 1e-10);
-    assert_eq!(state.status, "out-of-arc");
+    assert_eq!(state.status, MountStatus::OutOfArc);
     let mut free = MountState::new(&unrestricted);
     assert!(update_mount(&unrestricted, &mut free, &d, &ShipState::new("test"), aim, 10.0, [0.0;3], 1.0, &Obstructions::new(&d), &[]));
 }
