@@ -411,9 +411,10 @@ impl LocalRuntime {
         let fleet_notices = self.session.fleet_notices(0);
         if self.session.battle.mission_rules.is_some() && self.session.battle.outcome.is_none() {
             return serde_json::to_string(&LocalFrame {
-                frame: self.session.battle.team_presentation_snapshot(
-                    naval_sim::rules::TeamId::A,
-                ),
+                frame: self
+                    .session
+                    .battle
+                    .team_presentation_snapshot(naval_sim::rules::TeamId::A),
                 selected_ship_ids: [selected[0].selected_ship_id.as_deref(), None],
                 fleet_orders,
                 fleet_notices,
@@ -459,6 +460,22 @@ impl LocalRuntime {
     }
 }
 impl LocalRuntime {
+    /// Complete authority state for native diagnostics and the simulation
+    /// equality gate. Not exported to JavaScript: a live mission must never
+    /// hand the client full knowledge.
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn migration_snapshot_json(&self) -> Result<String, JsValue> {
+        serde_json::to_string(&self.session.battle.snapshot()).map_err(error)
+    }
+    /// The match worker's full-knowledge tree projection, for native benchmarks
+    /// of the server publication path.
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn full_knowledge_value(&self) -> Result<serde_json::Value, JsValue> {
+        self.session
+            .battle
+            .presentation_value(naval_sim::snapshot::PresentationView::FullKnowledge)
+            .map_err(error)
+    }
     fn from_battle(
         battle: naval_sim::battle::Battle,
         pve_plan: Option<naval_sim::pve::PvePlan>,
