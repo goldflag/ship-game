@@ -88,6 +88,8 @@ export class AircraftView {
     }
   }
   resize(height: number) { this.height = Math.max(1, height); this.contacts.resize(height); }
+  /** Multiplier on the wingspan thresholds that keep fuller airframes; above 1 simplifies sooner. */
+  detailScale = 1;
   load(modelIds: readonly string[] = Object.keys(GAMEPLAY_AIRCRAFT), storageMatrices = false): Promise<void> {
     const ids = [...new Set(modelIds)];
     if (ids.some(id => !Object.hasOwn(GAMEPLAY_AIRCRAFT, id))) return Promise.reject(new Error('Unsupported combat aircraft'));
@@ -234,7 +236,7 @@ export class AircraftView {
     // Keep the lowest-detail airframe at every distance. The contact supplements
     // thin/subpixel geometry instead of replacing it at a hard zoom threshold.
     if (!deck && !inPort && !crashing && span < 9) this.silhouettes++;
-    const lod = span > 90 ? 0 : span > 28 ? 1 : 2;
+    const lod = span > 90 * this.detailScale ? 0 : span > 28 * this.detailScale ? 1 : 2;
     const model = this.models.get(`${plane.modelId}/${lod}`);
     if (!model) return;
     for (const { source, batches } of model.meshes) if (model.count >= batches.length * BATCH_CAPACITY) {

@@ -559,6 +559,11 @@ export class CombatEffects {
     this.detailedProjectiles.publish(0);
     this.lights.forEach(item => { item.age = 1; item.light.intensity = 0; }); this.sequence = 0;
   }
+  /** Fraction of combat particles emitted; funnel smoke has its own rate. */
+  setDensity(density: number): void {
+    for (const pool of this.pools) pool.density = density;
+    this.localFires.setDensity(density);
+  }
   diagnostics() {
     return { shells: this.shellCount, torpedoes: this.torpedoCount, depthCharges: this.depthChargeCount, smoke: this.smoke.count + this.aircraftSmoke.count + this.flakSmoke.count + this.localFires.diagnostics().smoke, aircraftSmoke: this.aircraftSmoke.count, flakSmoke: this.flakSmoke.count, spray: this.spray.count + this.spouts.count + this.mist.count,
       flashes: this.fire.count + this.localFires.diagnostics().flames, foam: this.foam.count, shellTrails: this.shellTrails.diagnostics(),
