@@ -22,7 +22,7 @@ fn carrier() -> Vessel {
         "carrier",
         TeamId::A,
         SHIP.get_or_init(|| {
-            Arc::new(CompiledShip::new(catalog().definitions["enterprise-cv6"].clone()).unwrap())
+            Arc::new(catalog().compile("enterprise-cv6").unwrap())
         })
         .clone(),
     );

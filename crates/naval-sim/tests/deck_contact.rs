@@ -11,7 +11,7 @@ use naval_sim::{
     flight_deck::DeckPose,
     geometry::{Pose, add, cross, dot, length, local_to_world, rotate, sub, world_to_local},
     rules::TeamId,
-    vessel::{CompiledShip, Vessel},
+    vessel::Vessel,
 };
 use std::{
     f64::consts::PI,
@@ -395,7 +395,7 @@ fn aircraft_contacts_ride_the_platform_through_intermediate_lift_heights() {
 #[test]
 fn fitted_contact_composes_with_translated_pitched_and_rolled_carrier() {
     for id in CARRIERS {
-        let compiled = Arc::new(CompiledShip::new(catalog().definitions[id].clone()).unwrap());
+        let compiled = Arc::new(catalog().compile(id).unwrap());
         let mut actor = Vessel::new("carrier", TeamId::A, compiled);
         actor.motion.x = 730.0;
         actor.motion.y = -0.9;
@@ -505,7 +505,7 @@ fn missing_or_unsupported_contact_geometry_is_rejected() {
 #[test]
 fn unsupported_placement_preserves_the_aircraft_and_its_previous_controls() {
     let compiled =
-        Arc::new(CompiledShip::new(catalog().definitions["enterprise-cv6"].clone()).unwrap());
+        Arc::new(catalog().compile("enterprise-cv6").unwrap());
     let actor = Vessel::new("carrier", TeamId::A, compiled);
     let mut wing = create_air_wing(
         actor.definition(),
@@ -668,7 +668,7 @@ fn parked_contact_cache_follows_carrier_motion_without_drift_and_rebuilds_after_
     let mut actor = Vessel::new(
         "carrier",
         TeamId::A,
-        Arc::new(CompiledShip::new(c.definitions["enterprise-cv6"].clone()).unwrap()),
+        Arc::new(c.compile("enterprise-cv6").unwrap()),
     );
     let mut air = naval_sim::aviation::Aviation::new(&[actor.clone()], c.aircraft.clone());
     let plane = &mut air.wings[0].state.planes[0];

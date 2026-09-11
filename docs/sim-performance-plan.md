@@ -173,15 +173,46 @@ frame, so it is a separate decision.
 
 ### Phase 3. Content resolution (all modes)
 
-- Hydrostatic table per ship class built at content time: heel × trim × draft
-  to volume and centroid, about 300 KB per class, trilinear lookup with
-  analytic slopes. Accuracy test against the mesh sampler. Replaces about one
-  million vertex clips per ship per half second on Yamato and the Type VIIC.
-- Regenerate flood spaces consistently: strips at 40 m × 3 m, eight reserve
-  cells, and apply the same generator to every ship (six ships have strips
-  today, the rest do not). Re-tune pump rates, recapture
-  `assets/gameplay/migration/damage.v1.json`.
-- Both halve snapshot bytes as a side effect.
+**3a hydrostatic table — landed.** `bun run ship:hydrostatics` publishes
+`assets/gameplay/hydrostatics.v1.json`: per class, the immersion, displacement
+and buoyancy centroid over 16 heels × 27 trims × 33 displacements, 371 KB of
+base64 f32. Both simulations read it — TypeScript through a `Hull`-keyed
+registration in `src/ships/presets.ts`, Rust out of the manifest — so they
+cannot drift apart, and the mesh solver stays as the reference both are
+measured against.
+
+Two things the plan did not anticipate. Trilinear interpolation is not enough:
+at a fixed displacement the buoyancy centroid travels along an arc whose radius
+is the metacentric height, several hundred metres longitudinally on a
+battleship, so a chord between tabulated trims misses by metres. Cubic Hermite
+over heel and trim follows the arc and keeps the grid small. And the table
+cannot live in the compiled definition, whose hash is baked into the model
+file: publishing it there would invalidate every GLB.
+
+Accuracy against the mesh solver, every catalog hull, heel to 60°, trim to 20°,
+displacement from a third of the hull to nine tenths: draft within 74 mm, roll
+arm within 11 cm, pitch arm within 46 cm — a fifth of a degree of settled list
+and a twentieth of a degree of settled trim. Flotation plus the two slope
+probes cost 7538 µs across the fleet and now cost 6.3 µs.
+
+| Scenario | Step before | after | Snapshot before | after |
+| --- | ---: | ---: | ---: | ---: |
+| surface, 600 s | 43.9 s | 19.1 s | 3.8 s | 2.7 s |
+| carrier, 600 s | 46.4 s | 23.5 s | 6.2 s | 4.5 s |
+| custom, 150 s | 180.5 s | 94.7 s | 27.2 s | 17.4 s |
+
+Result-changing, as expected: every scenario differs. Final states stay
+recognisable — the same ships afloat, drafts within centimetres — because the
+change is a resolution change, not a model change. Goldens regenerated from the
+TypeScript twin.
+
+**3b flood spaces.** Regenerate consistently: strips at 40 m × 3 m, eight
+reserve cells, and apply the same generator to every ship (six ships have
+strips today, the rest do not). Re-tune pump rates, recapture
+`assets/gameplay/migration/damage.v1.json`. Halves snapshot bytes as a side
+effect. Note the cost: compartments are part of the compiled definition, whose
+hash is stamped into every baked model, so this one does require rebuilding the
+fleet's GLBs.
 
 ### Phase 4. PvE-only rules
 

@@ -9,7 +9,7 @@ use naval_sim::{
     catalog::Catalog,
     rules::TeamId,
     sensors::{self, Knowledge, Sensors, VisualConditions, VisualRules},
-    vessel::{CompiledShip, Controller, Vessel},
+    vessel::{Controller, Vessel},
 };
 use std::sync::{Arc, OnceLock};
 
@@ -23,7 +23,7 @@ fn vessel(id: &str, preset: &str, team: TeamId, x: f64, z: f64) -> Vessel {
     let mut vessel = Vessel::new(
         id,
         team,
-        Arc::new(CompiledShip::new(catalog().definitions[preset].clone()).unwrap()),
+        Arc::new(catalog().compile(preset).unwrap()),
     );
     vessel.controller = Controller::Player;
     vessel.motion.x = x;

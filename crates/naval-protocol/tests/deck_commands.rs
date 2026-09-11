@@ -6,7 +6,7 @@ use naval_sim::{
     catalog::Catalog,
     deck_operations::{DeckAction, DeckPolicy},
     rules::TeamId,
-    vessel::{CompiledShip, Controller},
+    vessel::Controller,
 };
 use std::{collections::BTreeMap, sync::Arc};
 fn envelope(sequence: u32, ship: &str, command: Command) -> CommandEnvelope {
@@ -69,12 +69,7 @@ fn owned_carriers_receive_deck_commands_without_taking_the_destroyer_helm() {
     catalog.air_profiles.insert(rules.id.clone(), rules.clone());
     let compiled: BTreeMap<_, _> = ["enterprise-cv6", "shokaku", "fletcher"]
         .into_iter()
-        .map(|id| {
-            (
-                id.into(),
-                Arc::new(CompiledShip::new(catalog.definitions[id].clone()).unwrap()),
-            )
-        })
+        .map(|id| (id.into(), Arc::new(catalog.compile(id).unwrap())))
         .collect();
     let ships = [
         ("enterprise", "enterprise-cv6", TeamId::A),

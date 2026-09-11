@@ -8,7 +8,7 @@ use naval_sim::{
     deck_operations::DeckAction,
     rules::TeamId,
     sensors::{self, Knowledge, Sensors},
-    vessel::{CompiledShip, Vessel},
+    vessel::Vessel,
 };
 use std::sync::{Arc, OnceLock};
 fn catalog() -> &'static Catalog {
@@ -28,7 +28,7 @@ fn setup(preset: &str) -> (Vec<Vessel>, Aviation, Sensors) {
         Vessel::new(
             id,
             team,
-            Arc::new(CompiledShip::new(catalog().definitions[preset].clone()).unwrap()),
+            Arc::new(catalog().compile(preset).unwrap()),
         )
     })
     .collect();

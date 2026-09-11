@@ -11,7 +11,7 @@ use naval_sim::{
     protection::plate_hit,
     rules::{DT, TeamId},
     shell::Shell,
-    vessel::{CompiledShip, Vessel},
+    vessel::Vessel,
     weapons::{MountState, MountStatus, Obstructions, muzzle_local, shot_direction, update_mount},
 };
 use std::{collections::BTreeMap, sync::Arc};
@@ -195,7 +195,7 @@ fn parent_motion_invalidates_a_stationary_neighbors_clearance() {
 fn iowa_roof_bofors_fires_from_the_moving_main_turret() {
     let catalog =
         Catalog::load(&std::fs::read("../../.build/naval-content/manifest.json").unwrap()).unwrap();
-    let compiled = Arc::new(CompiledShip::new(catalog.definitions["iowa"].clone()).unwrap());
+    let compiled = Arc::new(catalog.compile("iowa").unwrap());
     let mut actor = Vessel::new("iowa", TeamId::A, compiled.clone());
     let def = &compiled.definition;
     let child = def
@@ -216,7 +216,7 @@ fn iowa_roof_bofors_fires_from_the_moving_main_turret() {
     let carrier = Vessel::new(
         "carrier",
         TeamId::B,
-        Arc::new(CompiledShip::new(catalog.definitions["enterprise-cv6"].clone()).unwrap()),
+        Arc::new(catalog.compile("enterprise-cv6").unwrap()),
     );
     let mut air = Aviation::new(&[carrier], catalog.aircraft.clone());
     air.wings[0].state.planes.truncate(1);

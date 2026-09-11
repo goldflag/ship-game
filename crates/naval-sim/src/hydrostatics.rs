@@ -2,6 +2,7 @@ use crate::{
     definition::{Hull, Vec3},
     geometry::{Pose, rotate},
     hull::hull_section,
+    hydro_table::HydrostaticTable,
 };
 #[derive(Clone, Debug)]
 struct Slice {
@@ -15,6 +16,9 @@ pub struct HullHydrostatics {
     slices: Vec<Slice>,
     bound: f64,
     full: Hydrostatics,
+    /// Published content. Absent only for a hull the catalog has no table for,
+    /// which then falls back to the mesh solver the table was solved from.
+    table: Option<HydrostaticTable>,
 }
 #[derive(Clone, Copy, Debug, serde::Serialize)]
 pub struct Hydrostatics {
@@ -29,7 +33,7 @@ pub struct Flotation {
     pub afloat: bool,
 }
 impl HullHydrostatics {
-    pub fn new(h: &Hull) -> Self {
+    pub fn new(h: &Hull, table: Option<&HydrostaticTable>) -> Self {
         let mut stations: Vec<f64> = vec![0.0, h.length];
         stations.extend(h.half_breadths.iter().map(|p| p[0]));
         if let Some(ss) = &h.sections {
@@ -52,11 +56,28 @@ impl HullHydrostatics {
                 volume: 0.0,
                 center: [0.0; 3],
             },
+            table: table.cloned(),
         };
-        result.full = result.sample(-result.bound, 0.0, 0.0);
+        result.full = match &result.table {
+            Some(t) => Hydrostatics {
+                volume: t.full_volume,
+                center: t.full_center,
+            },
+            None => result.mesh_sample(-result.bound, 0.0, 0.0),
+        };
         result
     }
     pub fn sample(&self, y: f64, roll: f64, pitch: f64) -> Hydrostatics {
+        if let Some(t) = &self.table {
+            let (volume, center) = t.sample(y, roll, pitch);
+            return Hydrostatics { volume, center };
+        }
+        self.mesh_sample(y, roll, pitch)
+    }
+    /// Clips every hull section at the given immersion. The published table is
+    /// solved from and measured against this; it stays the reference, not the
+    /// path a battle takes.
+    pub fn mesh_sample(&self, y: f64, roll: f64, pitch: f64) -> Hydrostatics {
         let nx = roll.sin() * pitch.cos();
         let ny = roll.cos() * pitch.cos();
         let nz = -pitch.sin();
@@ -97,6 +118,27 @@ impl HullHydrostatics {
         self.full.volume
     }
     pub fn flotation(&self, volume: f64, roll: f64, pitch: f64) -> Flotation {
+        if let Some(t) = &self.table {
+            if volume >= t.full_volume {
+                return Flotation {
+                    volume: t.full_volume,
+                    center: t.full_center,
+                    y: -self.bound,
+                    afloat: false,
+                };
+            }
+            let (y, center) = t.flotation(volume, roll, pitch);
+            return Flotation {
+                volume,
+                center,
+                y,
+                afloat: true,
+            };
+        }
+        self.mesh_flotation(volume, roll, pitch)
+    }
+    /// Bisects the mesh solver for the immersion that displaces `volume`.
+    pub fn mesh_flotation(&self, volume: f64, roll: f64, pitch: f64) -> Flotation {
         // At y = -bound the clip limit is at least bound - length / 2, which is
         // beyond every |n . vertex| a section polygon can reach (half breadth
         // plus depth plus draft), so `clipped_moment` keeps every vertex and
@@ -121,7 +163,7 @@ impl HullHydrostatics {
             }
         }
         let y = (low + high) / 2.0;
-        let s = self.sample(y, roll, pitch);
+        let s = self.mesh_sample(y, roll, pitch);
         Flotation {
             volume: s.volume,
             center: s.center,

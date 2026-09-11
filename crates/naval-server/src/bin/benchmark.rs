@@ -6,7 +6,7 @@ use naval_sim::{
     bots::AiLevel,
     catalog::Catalog,
     rules::TeamId,
-    vessel::{CompiledShip, Controller},
+    vessel::Controller,
 };
 use std::{collections::BTreeMap, sync::Arc, time::Instant};
 fn main() {
@@ -52,12 +52,7 @@ fn main() {
     }
     let compiled = ids
         .iter()
-        .map(|id| {
-            (
-                id.to_string(),
-                Arc::new(CompiledShip::new(catalog.definitions[*id].clone()).unwrap()),
-            )
-        })
+        .map(|id| (id.to_string(), Arc::new(catalog.compile(*id).unwrap())))
         .collect::<BTreeMap<_, _>>();
     let setup = BattleSetup {
         ships: [TeamId::A, TeamId::B]

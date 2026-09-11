@@ -29,6 +29,7 @@
     "ship:overlay": "vite --config vite.overlay.config.ts",
     "ship:overlay:check": "tsc --project tsconfig.overlay.json --noEmit && bun test tools/ship-overlay scripts/parts",
     "ship:new": "bun scripts/ships/new.ts",
+    "ship:hydrostatics": "bun scripts/ships/hydrostatics.ts",
     "git:setup": "bun scripts/git/setup.ts",
     "test:workflow": "bun test scripts/git scripts/ships",
     "multiplayer:definitions": "bun scripts/multiplayer/generate-rust-definitions.ts",
