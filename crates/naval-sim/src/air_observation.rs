@@ -17,6 +17,20 @@ pub(super) fn report_point(c: &ContactTrack, tick: u64) -> Vec3 {
         });
     add(c.measured_position, scale(c.velocity, age))
 }
+/// Orbiting a lost or stale report ends after this long at the search area;
+/// the pilot then retargets or returns. A ship seen sinking ends it at once.
+const SEARCH_DEADLINE_SECONDS: f64 = 90.0;
+/// A strike may shift to another ship it can see within this range.
+const RETARGET_RANGE_M: f64 = 8000.0;
+pub(super) fn dead_report(c: &ContactTrack) -> bool {
+    c.visible_condition.as_ref().is_some_and(|v| v.sinking)
+}
+fn reset_attack(p: &mut Aircraft) {
+    p.pilot.attack_heading = None;
+    p.pilot.attack_stage = None;
+    p.pilot.attempts = 0;
+    p.pilot.search_seconds = 0.0;
+}
 pub(super) fn locally_observed(c: &ContactTrack, p: &Aircraft, tick: u64) -> bool {
     c.affiliation == Affiliation::Hostile
         && c.sources.iter().any(|s| {
@@ -72,65 +86,143 @@ impl Aviation {
     ) -> Option<StrikeSolution> {
         if !p.payload {
             crate::aircraft::set_str(&mut p.phase, "returning");
+            if let Some(f) = flight
+                && f.notice
+                    .as_deref()
+                    .is_some_and(|n| n.starts_with("Target "))
+            {
+                f.notice = None;
+            }
             return None;
         }
-        if let Some(k) = ctx.knowledge {
-            let contact = p
-                .target_id
-                .as_ref()
-                .and_then(|id| k.sensors.contact(p.team, id))
-                .filter(|c| {
-                    c.kind == ContactKind::Surface && c.affiliation == Affiliation::Hostile
-                });
-            if let Some(c) = contact {
-                if !locally_observed(c, p, k.tick) {
-                    if let Some(f) = flight {
-                        f.notice = Some(
-                            if matches!(c.status, TrackStatus::Lost | TrackStatus::Stale) {
-                                "Contact lost · Searching last report"
-                            } else {
-                                "Following report · Acquiring target locally"
-                            }
-                            .into(),
-                        );
-                    }
-                    self.search_report(p, c, k.tick, dt);
-                    return None;
-                }
-                if let Some(f) = flight {
-                    f.notice = None;
-                }
-                let mut point = report_point(c, k.tick);
-                point[1] = point[1].max(0.0);
+        let Some(k) = ctx.knowledge else {
+            if let Some(target) = ctx.actors.iter().find(|a| {
+                Some(&a.motion.id) == p.target_id.as_ref()
+                    && a.team != p.team
+                    && a.physical_loss().is_none()
+                    && a.motion.y > -8.0
+            }) {
                 return Some(StrikeSolution {
-                    point,
-                    velocity: c.velocity,
-                    heading: c.pose().heading,
+                    point: [
+                        target.motion.x,
+                        (target.motion.y + target.definition().hull.depth
+                            - target.definition().hull.draft)
+                            .max(0.0),
+                        target.motion.z,
+                    ],
+                    velocity: target.motion.velocity(),
+                    heading: target.motion.heading,
                 });
             }
-        } else if let Some(target) = ctx.actors.iter().find(|a| {
-            Some(&a.motion.id) == p.target_id.as_ref()
-                && a.team != p.team
-                && a.physical_loss().is_none()
-                && a.motion.y > -8.0
-        }) {
-            return Some(StrikeSolution {
-                point: [
-                    target.motion.x,
-                    (target.motion.y + target.definition().hull.depth
-                        - target.definition().hull.draft)
-                        .max(0.0),
-                    target.motion.z,
-                ],
-                velocity: target.motion.velocity(),
-                heading: target.motion.heading,
-            });
+            if let Some(f) = flight {
+                f.notice = Some("Target unavailable · Returning armed".into());
+            }
+            crate::aircraft::set_str(&mut p.phase, "returning");
+            return None;
+        };
+        // A wingmate's retarget changes the flight order; the flight stays on
+        // one ship instead of each aircraft picking its own.
+        if let Some(f) = flight.as_ref()
+            && let AirOrder::Strike { contact_id } = &f.order
+            && p.target_id.as_ref() != Some(contact_id)
+        {
+            p.target_id = Some(contact_id.clone());
+            reset_attack(p);
         }
-        if let Some(f) = flight {
-            f.notice = Some("Target unavailable · Returning armed".into());
+        let surface = |c: &&ContactTrack| {
+            c.kind == ContactKind::Surface && c.affiliation == Affiliation::Hostile
+        };
+        let mut contact = p
+            .target_id
+            .as_ref()
+            .and_then(|id| k.sensors.contact(p.team, id))
+            .filter(surface);
+        let lost =
+            contact.is_none_or(dead_report) || p.pilot.search_seconds >= SEARCH_DEADLINE_SECONDS;
+        if lost {
+            let prefix = if contact.is_none() {
+                "Target unavailable"
+            } else {
+                "Target lost"
+            };
+            // Only a ship this pilot can see right now qualifies; a report
+            // alone never redirects a strike.
+            let next = k
+                .sensors
+                .iter_contacts(p.team)
+                .filter(|c| c.targetable() && locally_observed(c, p, k.tick))
+                .map(|c| {
+                    let point = report_point(c, k.tick);
+                    (
+                        (point[0] - p.position[0]).hypot(point[2] - p.position[2]),
+                        c,
+                    )
+                })
+                .filter(|(distance, _)| *distance <= RETARGET_RANGE_M)
+                .min_by(|a, b| a.0.total_cmp(&b.0).then(a.1.id.cmp(&b.1.id)))
+                .map(|(_, c)| c);
+            match next {
+                Some(c) => {
+                    p.target_id = Some(c.id.clone());
+                    reset_attack(p);
+                    if let Some(f) = flight {
+                        if matches!(f.order, AirOrder::Strike { .. }) {
+                            f.order = AirOrder::Strike {
+                                contact_id: c.id.clone(),
+                            };
+                        }
+                        f.notice = Some(format!(
+                            "{prefix} · Attacking {}",
+                            c.classification.as_deref().unwrap_or("contact")
+                        ));
+                    }
+                    contact = Some(c);
+                }
+                None => {
+                    if let Some(f) = flight {
+                        f.notice = Some(format!("{prefix} · Returning armed"));
+                    }
+                    crate::aircraft::set_str(&mut p.phase, "returning");
+                    return None;
+                }
+            }
         }
-        crate::aircraft::set_str(&mut p.phase, "returning");
-        None
+        let c = contact.unwrap();
+        if !locally_observed(c, p, k.tick) {
+            if let Some(f) = flight {
+                f.notice = Some(
+                    if matches!(c.status, TrackStatus::Lost | TrackStatus::Stale) {
+                        "Contact lost · Searching last report"
+                    } else {
+                        "Following report · Acquiring target locally"
+                    }
+                    .into(),
+                );
+            }
+            let anchor = report_point(c, k.tick);
+            let radius = c.uncertainty_m.clamp(650.0, 2500.0);
+            if (p.position[0] - anchor[0]).hypot(p.position[2] - anchor[2]) <= radius + 900.0 {
+                p.pilot.search_seconds += dt;
+            }
+            self.search_report(p, c, k.tick, dt);
+            return None;
+        }
+        p.pilot.search_seconds = 0.0;
+        // A retarget notice stays through the attack; search notices clear.
+        if let Some(f) = flight
+            && f.notice
+                .as_deref()
+                .is_some_and(|n| n.starts_with("Contact lost") || n.starts_with("Following report"))
+        {
+            f.notice = None;
+        }
+        let mut point = report_point(c, k.tick);
+        point[1] = point[1].max(0.0);
+        Some(StrikeSolution {
+            point,
+            velocity: c.velocity,
+            heading: c.pose().heading,
+        })
     }
 
     /// Preserve own physical aircraft for formation/clear-fire checks. Hostile

@@ -1579,17 +1579,27 @@ impl Aviation {
                     }
                 }
                 AirOrder::Escort { flight_id: id } => {
-                    let target = self.iter_planes().find(|o| {
-                        o.flight_id.as_ref() == Some(id) && airborne(o) && !on_flight_deck(o)
-                    });
-                    if let Some(target) = target {
+                    let escorted: Vec<_> = self
+                        .iter_planes()
+                        .filter(|o| {
+                            o.flight_id.as_ref() == Some(id) && airborne(o) && !on_flight_deck(o)
+                        })
+                        .collect();
+                    // Stay with the strike until it heads home; an escort over
+                    // an empty sea defends the carrier instead.
+                    let striking = escorted
+                        .iter()
+                        .find(|o| !matches!(o.phase.as_str(), "returning" | "landing"));
+                    if let Some(target) = striking {
                         patrol = target.position;
-                    } else if !self.wings.iter().any(|w| {
-                        w.state
-                            .flights
-                            .iter()
-                            .any(|f| &f.id == id && active_flight(f, &w.state.planes))
-                    }) {
+                    } else if !escorted.is_empty()
+                        || !self.wings.iter().any(|w| {
+                            w.state
+                                .flights
+                                .iter()
+                                .any(|f| &f.id == id && active_flight(f, &w.state.planes))
+                        })
+                    {
                         f.order = AirOrder::Defend { target_id: None };
                         f.notice = Some("Escort complete · Defending carrier".into());
                     }

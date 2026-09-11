@@ -172,6 +172,12 @@ pub struct AirPilot {
     pub attempts: u32,
     pub recovery_stage: Option<String>,
     pub recovery_side: Option<f64>,
+    /// Seconds spent orbiting a lost strike report; bounds the search.
+    #[serde(default, skip_serializing_if = "is_zero")]
+    pub search_seconds: f64,
+}
+fn is_zero(v: &f64) -> bool {
+    *v == 0.0
 }
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
