@@ -99,7 +99,7 @@ fn damage_flooding_crews_and_submarines_match_existing_hulls() {
                     .map_or(String::new(), |r| r.id.clone());
             }
             update_damage_control(&mut actor, def, 1.0 / 60.0, None);
-            update_flooding(&mut actor, def, &hydro, 1.0 / 60.0, None, None);
+            update_flooding(&mut actor, def, &hydro, 1.0 / 60.0, 0.5, None, None);
             step_submarine(
                 &mut actor,
                 def,

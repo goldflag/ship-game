@@ -16,6 +16,7 @@ pub fn update_flooding(
     def: &ShipDefinition,
     hydro: &HullHydrostatics,
     dt: f64,
+    stability_interval: f64,
     response: Option<SeaResponse>,
     sea: Option<(&SeaState, f64)>,
 ) {
@@ -26,7 +27,7 @@ pub fn update_flooding(
         actor.damage.sunk = true;
         actor.damage.defeat_cause = Some("hull-failure".into());
     }
-    update_stability(actor, def, hydro, dt, response);
+    update_stability(actor, def, hydro, dt, stability_interval, response);
     let power = if def.compartments.iter().any(|c| c.pump_m3_per_second > 0.0) {
         electrical_power(actor, def, sea)
     } else {
