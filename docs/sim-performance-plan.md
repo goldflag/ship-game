@@ -52,7 +52,7 @@ reverse; for the server only the step and its own projection matter.
 | Rust-emitted delta instead of parse + diff in JS | yes | yes | n/a | no |
 | Pilot decisions on the `think` timer (0.65 s, as the TS twin) | yes | yes | yes | yes, rebaseline air tests |
 | AA target selection every 6 ticks, fire every tick | yes | yes | yes | yes, rebaseline air tests |
-| Legacy stability path, capability once per tick, fire trend every 30 ticks, drop dead telemetry | yes | no | no | PvE only, gated on mission rules |
+| Hydrostatic solve at 1 s, capability sweep every 6 ticks, fire on a 30-tick accumulator, drop dead telemetry | yes | no | no | PvE only, gated on mission rules |
 | `ShipRenderProxy` visibility cache, air-map projection at 20 Hz | yes | yes | n/a | no |
 
 Two facts make the gating safe. The server never sets `mission_rules`
@@ -140,13 +140,57 @@ plus patch generation.
 
 ### Phase 4. PvE-only rules
 
-Add a versioned cadence entry to the mission rules asset, in the style of
-`visual-sensors.v2.json`:
+Landed. `assets/gameplay/pve-cadence.v1.json` is a versioned cadence asset in
+the style of `visual-sensors.v2.json`: `include_str!`-loaded into
+`mission::SimulationCadence`, covered by the `NAVAL_SIMULATION_BUILD` digest, and
+read by `Battle` only when `mission_rules.is_some()`. Every battle without
+mission rules holds `SimulationCadence::PER_TICK`, which is the per-tick path
+expression for expression, so custom battles and the server are bit-identical.
+Each entry counts `Battle::tick`, never wall time, so 1x and 4x agree.
 
-- stability model: legacy linear path when the table from phase 3 is not enough
-- `capability::update` once per tick or every 6 ticks
-- fire spread on a 30-tick accumulator
-- dead telemetry omitted from the team projection
+Measured shares of native step time first, with wall-clock probes around each
+phase on the integration branch (600 s, snapshots off):
+
+| Phase | surface | carrier |
+| --- | ---: | ---: |
+| hydrostatic solve in `update_stability` | 34.2% | 24.7% |
+| captain-loop `capability::update` | 7.7% | 10.1% |
+| `update_damage_control` | 2.5% | 1.8% |
+
+What the asset sets, and what it costs:
+
+- `stabilityIntervalSeconds: 1.0`. The 0.5 s hydrostatic solve was still a
+  quarter to a third of the step after the flooding work, far past the 8% bar,
+  so `update_stability` takes its interval as a parameter (0.5 s everywhere
+  else). Roll and pitch still integrate every tick about the last sampled
+  attitude, which is what the slope linearisation is for. Fletcher in
+  `storm-clouds` for ten simulated minutes peaks at 5.86 degrees of roll on the
+  one-second solve against 5.94 on the half-second one, and does not grow over
+  the run. PvE keeps the mesh hydrostatics, `"flooding"` sinking and capsize;
+  the legacy linear path was not needed.
+- `capabilityTicks: 6`. Only the captain-loop sweep is cadenced; the
+  post-damage call stays per tick. That call already leaves the state current
+  and nothing between the two touches its inputs, so the sweep is a refresh:
+  a mission battle that shoots, burns and sinks is byte-identical with it at 6
+  and at 1.
+- `damageControlTicks: 30`. Fires, spread, suppression and damage-control job
+  assignment integrate one explicit Euler step of 0.5 s per window instead of
+  thirty tick-sized ones. Step-wise outputs: fire `heat`, `intensity`, `fuel`
+  and `trend`, portable `pumping` rates, team assignment and job setup timers,
+  mount and module burn-down, magazine `ignition` and therefore cook-off timing
+  (up to half a second late). Hits still raise heat every tick through
+  `damage_control::heat_room` / `heat_module` / `heat_mount`, and
+  `capability::update` still sets `combat_lost` every tick. Threshold crossings
+  can land one window apart, a bounded transient of up to one burn intensity
+  that settles back inside 0.01; it does not accumulate. This is the smallest
+  of the three wins, under 3% of the step.
+- Dead telemetry is handled by the transport work, not here.
+
+Result, interleaved A/B of native step time over 600 s with snapshots off, best
+of three on a shared machine: surface 28.7 s to 21.1 s (26.5% less), carrier
+32.0 s to 25.4 s (20.6% less). The equality gate reports `identical` for
+`custom` and `server`, and `DIFFERENT` for `surface` and `carrier`, which is the
+fire cadence by design.
 
 ### Phase 5. Behaviour changes worth doing everywhere
 
