@@ -1,6 +1,9 @@
 import { expect, test } from 'bun:test';
 import blueprint from '../../assets/ships/cleveland/blueprint.json';
 import yamato from '../../assets/ships/yamato/blueprint.json';
+// Yamato is authored with box obstructions; her retired closed-body profile is
+// kept as a fixture so the encoding stays covered on real authored geometry.
+import sweptClearance from './fixtures/yamato-swept-clearance.json';
 import catalog from '../../assets/parts/guns.json';
 import { compileShip, type ShipBlueprint } from '../ships/blueprint';
 import { mountPoseClear, moveMountWithClearance } from './mountClearance';
@@ -11,7 +14,9 @@ const fixture=()=>{
   return {definition,states:definition.mounts.map(createMountState)};
 };
 test('closed-body and installation profiles compile independently and reject incomplete or mixed encodings',()=>{
-  const d=compileShip(yamato,catalog),states=d.mounts.map(createMountState);
+  expect('mountClearance' in yamato).toBe(false);
+  const swept={...structuredClone(yamato),mountClearance:sweptClearance} as unknown as ShipBlueprint;
+  const d=compileShip(swept,catalog),states=d.mounts.map(createMountState);
   expect(d.mountClearance!.mountIds).toHaveLength(d.mounts.length);
   // The TypeScript migration reference only resolves installation envelopes;
   // closed-body motion is owned by the native/WASM resolver.

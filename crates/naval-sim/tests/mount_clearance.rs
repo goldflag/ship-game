@@ -9,6 +9,20 @@ use naval_sim::{
 fn yamato() -> ShipDefinition {
     serde_json::from_str(include_str!("../../../public/models/yamato.json")).unwrap()
 }
+/// The published Yamato moves on box obstructions like every other ship; her
+/// authored closed-body profile was retired because the swept mesh solver
+/// dominated the simulation step. The retired profile stays as a fixture so
+/// this solver keeps its real-geometry regression coverage.
+fn swept_yamato() -> ShipDefinition {
+    let mut def = yamato();
+    def.mount_clearance = Some(
+        serde_json::from_str(include_str!(
+            "../../../src/simulation/fixtures/yamato-swept-clearance.json"
+        ))
+        .unwrap(),
+    );
+    def
+}
 fn poses(def: &ShipDefinition) -> Vec<ClearancePose> {
     def.mounts
         .iter()
@@ -21,7 +35,7 @@ fn near(a: f64, b: f64) {
 
 #[test]
 fn yamato_neutral_pose_and_observed_depression_collisions() {
-    let def = yamato();
+    let def = swept_yamato();
     let cache = MountClearance::new(&def).unwrap().unwrap();
     let initial = poses(&def);
     for i in 0..def.mounts.len() {
@@ -70,7 +84,7 @@ fn yamato_neutral_pose_and_observed_depression_collisions() {
 
 #[test]
 fn yamato_intermediate_sweep_cannot_cross_the_superstructure() {
-    let def = yamato();
+    let def = swept_yamato();
     let cache = MountClearance::new(&def).unwrap().unwrap();
     // Raise first, traverse toward the bridge, then lower at the researched
     // aft-secondary end sector. Each accepted increment must remain physical.
@@ -128,7 +142,7 @@ fn yamato_intermediate_sweep_cannot_cross_the_superstructure() {
 
 #[test]
 fn native_weapon_update_keeps_the_achieved_pose_blocked() {
-    let def = yamato();
+    let def = swept_yamato();
     let obstructions = Obstructions::new(&def);
     let mut states: Vec<_> = def.mounts.iter().map(MountState::new).collect();
     let mount = &def.mounts[1];
@@ -165,14 +179,81 @@ fn native_weapon_update_keeps_the_achieved_pose_blocked() {
 
 #[test]
 fn unconfigured_ships_do_not_create_clearance_caches() {
-    let mut def = yamato();
-    def.mount_clearance = None;
+    // The published Yamato is one of these ships: she carries no profile at all.
+    let def = yamato();
+    assert!(def.mount_clearance.is_none());
     assert!(MountClearance::new(&def).unwrap().is_none());
     assert!(Obstructions::new(&def).clearance.is_none());
+    let mut swept = swept_yamato();
+    swept.mount_clearance = None;
+    assert!(MountClearance::new(&swept).unwrap().is_none());
+    assert!(Obstructions::new(&swept).clearance.is_none());
+}
+
+fn drive(
+    def: &ShipDefinition,
+    obstructions: &Obstructions,
+    index: usize,
+    target: [f64; 3],
+    ticks: usize,
+    states: &mut Vec<MountState>,
+) -> MountState {
+    let mut state = states[index].clone();
+    for _ in 0..ticks {
+        update_mount(
+            &def.mounts[index],
+            &mut state,
+            def,
+            &ShipState::new("test"),
+            Some(target),
+            1.0 / 60.0,
+            [0.0; 3],
+            1.0,
+            obstructions,
+            states,
+        );
+        states[index] = state.clone();
+    }
+    state
+}
+
+#[test]
+fn published_yamato_mounts_move_and_respect_their_obstruction_boxes() {
+    let def = yamato();
+    let obstructions = Obstructions::new(&def);
+    assert!(obstructions.clearance.is_none(), "box obstructions only");
+    let mut states: Vec<_> = def.mounts.iter().map(MountState::new).collect();
+    // The superfiring forward turret reaches a beam target through its arc.
+    let beam = drive(&def, &obstructions, 1, [12_000.0, 0.0, 0.0], 4800, &mut states);
+    assert!(
+        (beam.train - radians(90.0)).abs() < radians(2.0),
+        "main-2 must traverse to the beam: {beam:?}"
+    );
+    assert_ne!(beam.status, MountStatus::Blocked);
+    // Firing across the lower forward turret stays blocked by its box.
+    let over_main1 = drive(&def, &obstructions, 1, [0.0, 0.0, -130.0], 4800, &mut states);
+    assert_eq!(over_main1.status, MountStatus::Blocked);
+    // Every mount still moves toward a distant target off the starboard bow.
+    let mut states: Vec<_> = def.mounts.iter().map(MountState::new).collect();
+    for index in 0..def.mounts.len() {
+        let s = drive(
+            &def,
+            &obstructions,
+            index,
+            [8_000.0, 0.0, -8_000.0],
+            4800,
+            &mut states,
+        );
+        assert!(
+            s.train.abs() > radians(1.0) || s.elevation.abs() > radians(0.1),
+            "{} never moved: {s:?}",
+            def.mounts[index].id
+        );
+    }
 }
 
 fn crossing_barrels() -> ShipDefinition {
-    let mut def = yamato();
+    let mut def = swept_yamato();
     def.mounts.truncate(2);
     def.structures = None;
     def.structural_plating = None;
