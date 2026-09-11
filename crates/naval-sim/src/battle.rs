@@ -89,9 +89,11 @@ pub struct Battle {
     pub torpedoes: Vec<Torpedo>,
     pub depth_charges: Vec<DepthCharge>,
     pub air_releases: Vec<AirRelease>,
-    pub events: Vec<Event>,
-    /// Ring buffers: the bound drops the oldest event, which on a `Vec` moved
-    /// the whole 128-entry window on every emission.
+    /// Ring buffer: the bound drops the oldest event, which on a `Vec` moved
+    /// the whole 128-entry window on every emission. `VecDeque` serialises as
+    /// the same JSON array, in the same order.
+    pub events: std::collections::VecDeque<Event>,
+    /// Ring buffers, for the same reason.
     pub(crate) team_events: [std::collections::VecDeque<Event>; 2],
     team_event_sequence: [u64; 2],
     pub tick: u64,
@@ -266,7 +268,7 @@ impl Battle {
             torpedoes: vec![],
             depth_charges: vec![],
             air_releases: vec![],
-            events: vec![],
+            events: Default::default(),
             team_events: Default::default(),
             team_event_sequence: [0; 2],
             tick: 0,
@@ -384,13 +386,13 @@ impl Battle {
         }
         self.records.event(&event, self.tick, &self.actors);
         self.event_sequence += 1;
-        self.events.push(Event {
+        self.events.push_back(Event {
             sequence: self.event_sequence,
             tick: self.tick,
             data: event,
         });
         if self.events.len() > 128 {
-            self.events.remove(0);
+            self.events.pop_front();
         }
     }
     fn contacts(&mut self, impacts: Vec<HullImpact>) {
@@ -754,17 +756,21 @@ impl Battle {
         }
         let mut events = vec![];
         for i in 0..self.actors.len() {
-            let mut a = self.actors.remove(i);
-            let target = a
-                .target_id
-                .as_ref()
-                .and_then(|id| self.actors.iter().find(|t| t.motion.id == *id));
+            // The ship used to be lifted out of the vector and put back so the
+            // gunnery and underwater callees could hold the rest as `&[Vessel]`.
+            // Splitting the vector around it gives the same view — every other
+            // actor, in fleet order — without the two memmoves.
+            let target_index = self.actors[i].target_id.as_ref().and_then(|id| {
+                (0..self.actors.len()).find(|&j| j != i && self.actors[j].motion.id == *id)
+            });
             let contact = self
                 .mission_rules
                 .as_ref()
-                .and(a.target_id.as_deref())
-                .and_then(|id| self.sensors.contact(a.team, id))
+                .and(self.actors[i].target_id.as_deref())
+                .and_then(|id| self.sensors.contact(self.actors[i].team, id))
                 .filter(|c| c.targetable());
+            let (a, fleet) = crate::vessel::Fleet::split(&mut self.actors, i);
+            let target = target_index.and_then(|j| fleet.get(j));
             if self.mission_rules.is_some() && a.controller == Controller::Bot {
                 let secondary = bots::battery_mount(&a, true).and_then(|mount| {
                     self.sensors.battery_target(
@@ -799,9 +805,9 @@ impl Battle {
                 .get(&a.motion.id)
                 .map_or_else(WeaponsPolicy::default, |o| o.weapons);
             gunnery::operate_observed(
-                &mut a,
+                a,
                 &mut GunneryContext {
-                    actors: &self.actors,
+                    actors: fleet,
                     aviation: &mut self.aviation,
                     shells: &mut self.shells,
                     sequence: &mut self.sequence,
@@ -824,8 +830,8 @@ impl Battle {
                     }),
             );
             operate_underwater(
-                &mut a,
-                &self.actors,
+                a,
+                fleet,
                 target,
                 contact.is_some(),
                 player,
@@ -835,7 +841,6 @@ impl Battle {
                 &mut events,
                 weapons,
             );
-            self.actors.insert(i, a);
         }
         self.aviation.step(
             &mut AirContext {
@@ -1047,7 +1052,7 @@ impl Battle {
 #[allow(clippy::too_many_arguments)]
 fn operate_underwater(
     a: &mut Vessel,
-    actors: &[Vessel],
+    actors: crate::vessel::Fleet<'_>,
     target: Option<&Vessel>,
     observed_target: bool,
     player: Option<&PlayerGunOrders>,

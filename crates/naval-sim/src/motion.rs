@@ -56,6 +56,11 @@ impl ShipState {
             heading: self.heading,
         }
     }
+    /// The hull's rotation basis, for a caller that rotates more than one point
+    /// through the same attitude. Identical to `pose()` fed to `rotate`.
+    pub fn basis(&self) -> crate::geometry::Basis {
+        crate::geometry::Basis::of(self.pose())
+    }
     pub fn mean_y(&self) -> f64 {
         self.y - self.wave_heave
     }

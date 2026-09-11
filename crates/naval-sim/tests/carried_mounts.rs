@@ -241,7 +241,7 @@ fn iowa_roof_bofors_fires_from_the_moving_main_turret() {
         operate(
             &mut actor,
             &mut GunneryContext {
-                actors: &[],
+                actors: naval_sim::vessel::Fleet::all(&[]),
                 aviation: &mut air,
                 shells: &mut shells,
                 sequence: &mut sequence,

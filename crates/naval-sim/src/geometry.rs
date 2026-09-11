@@ -59,39 +59,66 @@ pub struct Pose {
     pub roll: f64,
     pub pitch: f64,
 }
+/// The six trigonometric values a pose resolves to, plus its origin, computed
+/// once for a pose that serves more than one rotation. A ship holds one attitude
+/// for the whole tick, and `rotate` was called from the module, mount, muzzle,
+/// sensor and hull paths, each recomputing the same three sines and cosines.
+///
+/// Every product below is the expression the free functions evaluate, operand
+/// for operand and in the same order, so a basis is bit-identical to them:
+/// `rotate`, `local_to_world` and `world_to_local` are now thin wrappers that
+/// build a basis and apply it.
+#[derive(Clone, Copy, Debug)]
+pub struct Basis {
+    cr: f64,
+    sr: f64,
+    cp: f64,
+    sp: f64,
+    ch: f64,
+    sh: f64,
+    origin: Vec3,
+}
+impl Basis {
+    pub fn of(p: Pose) -> Self {
+        Self {
+            cr: p.roll.cos(),
+            sr: p.roll.sin(),
+            cp: p.pitch.cos(),
+            sp: p.pitch.sin(),
+            ch: p.heading.cos(),
+            sh: p.heading.sin(),
+            origin: [p.x, p.y, p.z],
+        }
+    }
+    pub fn rotate(&self, v: Vec3) -> Vec3 {
+        let (cr, sr, cp, sp, ch, sh) = (self.cr, self.sr, self.cp, self.sp, self.ch, self.sh);
+        let x = cr * v[0] - sr * v[1];
+        let y = sr * v[0] + cr * v[1];
+        let yy = cp * y - sp * v[2];
+        let z = sp * y + cp * v[2];
+        [ch * x - sh * z, yy, sh * x + ch * z]
+    }
+    pub fn local_to_world(&self, v: Vec3) -> Vec3 {
+        add(self.rotate(v), self.origin)
+    }
+    pub fn world_to_local(&self, v: Vec3) -> Vec3 {
+        let p = sub(v, self.origin);
+        let (ch, sh, cp, sp, cr, sr) = (self.ch, self.sh, self.cp, self.sp, self.cr, self.sr);
+        let x = ch * p[0] + sh * p[2];
+        let zz = -sh * p[0] + ch * p[2];
+        let y = cp * p[1] + sp * zz;
+        let z = -sp * p[1] + cp * zz;
+        [cr * x + sr * y, -sr * x + cr * y, z]
+    }
+}
 pub fn rotate(v: Vec3, p: Pose) -> Vec3 {
-    let (cr, sr, cp, sp, ch, sh) = (
-        p.roll.cos(),
-        p.roll.sin(),
-        p.pitch.cos(),
-        p.pitch.sin(),
-        p.heading.cos(),
-        p.heading.sin(),
-    );
-    let x = cr * v[0] - sr * v[1];
-    let y = sr * v[0] + cr * v[1];
-    let yy = cp * y - sp * v[2];
-    let z = sp * y + cp * v[2];
-    [ch * x - sh * z, yy, sh * x + ch * z]
+    Basis::of(p).rotate(v)
 }
 pub fn local_to_world(v: Vec3, p: Pose) -> Vec3 {
-    add(rotate(v, p), [p.x, p.y, p.z])
+    Basis::of(p).local_to_world(v)
 }
 pub fn world_to_local(v: Vec3, pose: Pose) -> Vec3 {
-    let p = sub(v, [pose.x, pose.y, pose.z]);
-    let (ch, sh, cp, sp, cr, sr) = (
-        pose.heading.cos(),
-        pose.heading.sin(),
-        pose.pitch.cos(),
-        pose.pitch.sin(),
-        pose.roll.cos(),
-        pose.roll.sin(),
-    );
-    let x = ch * p[0] + sh * p[2];
-    let zz = -sh * p[0] + ch * p[2];
-    let y = cp * p[1] + sp * zz;
-    let z = -sp * p[1] + cp * zz;
-    [cr * x + sr * y, -sr * x + cr * y, z]
+    Basis::of(pose).world_to_local(v)
 }
 #[derive(Clone, Copy, Debug)]
 pub struct SegmentHit {
@@ -149,4 +176,41 @@ pub fn contains(center: Vec3, size: Vec3, p: Vec3) -> bool {
 }
 pub fn segment_overlaps_box(from: Vec3, to: Vec3, center: Vec3, size: Vec3) -> bool {
     segment_box(from, to, center, size.map(|s| s + 2e-5)).is_some()
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    /// A pseudo-random stream, so the comparison covers the pose space without
+    /// a dependency. The comparison is bit-for-bit: a rounded one would not
+    /// prove the hoisted basis leaves the simulation's arithmetic alone.
+    fn sample(state: &mut u64) -> f64 {
+        *state = state
+            .wrapping_mul(6_364_136_223_846_793_005)
+            .wrapping_add(1_442_695_040_888_963_407);
+        ((*state >> 11) as f64 / (1u64 << 53) as f64) * 2.0 - 1.0
+    }
+    #[test]
+    fn a_basis_reproduces_the_free_rotation_bit_for_bit() {
+        let mut state = 0x5eed_1234_9abc_def0;
+        for _ in 0..20_000 {
+            let pose = Pose {
+                x: sample(&mut state) * 9000.0,
+                y: sample(&mut state) * 40.0,
+                z: sample(&mut state) * 9000.0,
+                heading: sample(&mut state) * std::f64::consts::PI,
+                roll: sample(&mut state) * 1.2,
+                pitch: sample(&mut state) * 0.6,
+            };
+            let v = [
+                sample(&mut state) * 300.0,
+                sample(&mut state) * 300.0,
+                sample(&mut state) * 300.0,
+            ];
+            let basis = Basis::of(pose);
+            let bits = |v: Vec3| v.map(f64::to_bits);
+            assert_eq!(bits(rotate(v, pose)), bits(basis.rotate(v)));
+            assert_eq!(bits(local_to_world(v, pose)), bits(basis.local_to_world(v)));
+            assert_eq!(bits(world_to_local(v, pose)), bits(basis.world_to_local(v)));
+        }
+    }
 }

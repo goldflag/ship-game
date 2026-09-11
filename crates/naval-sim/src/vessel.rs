@@ -313,6 +313,57 @@ impl Vessel {
         &self.compiled.definition
     }
 }
+/// The fleet as seen from one ship that is borrowed mutably out of it: every
+/// other actor, in the order they hold in `Battle::actors`.
+///
+/// The ship-operating loop used to lift its actor out of the vector with
+/// `remove` and put it back with `insert`, two whole-vector memmoves per ship
+/// per tick, purely so the callees could hold `&[Vessel]` while the actor was
+/// `&mut`. `Fleet` is that view without the moves: `split` cuts the vector
+/// around the index and hands back the actor plus the two surrounding slices,
+/// which iterate as one sequence in the original order.
+#[derive(Clone, Copy)]
+pub struct Fleet<'a> {
+    before: &'a [Vessel],
+    after: &'a [Vessel],
+    /// The index `before` and `after` are cut around, so `get` still answers in
+    /// the whole vector's coordinates. `usize::MAX` for a whole fleet.
+    index: usize,
+}
+impl<'a> Fleet<'a> {
+    /// The whole fleet, for a caller that is not one of its ships.
+    pub fn all(actors: &'a [Vessel]) -> Self {
+        Self {
+            before: actors,
+            after: &[],
+            index: usize::MAX,
+        }
+    }
+    /// The actor at `index`, mutably, and every other actor in original order.
+    pub fn split(actors: &'a mut [Vessel], index: usize) -> (&'a mut Vessel, Self) {
+        let (before, rest) = actors.split_at_mut(index);
+        let (actor, after) = rest.split_first_mut().expect("index within the fleet");
+        (
+            actor,
+            Self {
+                before,
+                after,
+                index,
+            },
+        )
+    }
+    pub fn iter(&self) -> impl Iterator<Item = &'a Vessel> {
+        self.before.iter().chain(self.after.iter())
+    }
+    /// The actor at a whole-vector index, or `None` for the split-out one.
+    pub fn get(&self, index: usize) -> Option<&'a Vessel> {
+        match index.cmp(&self.index) {
+            std::cmp::Ordering::Less => self.before.get(index),
+            std::cmp::Ordering::Equal => None,
+            std::cmp::Ordering::Greater => self.after.get(index - self.index - 1),
+        }
+    }
+}
 impl Deref for Vessel {
     type Target = Combatant;
     fn deref(&self) -> &Combatant {

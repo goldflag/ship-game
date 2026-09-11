@@ -6,7 +6,7 @@ use crate::{
     machinery::{equipment_condition, launcher_available},
     motion::ShipState,
     torpedoes::damage_underwater_blast,
-    vessel::Vessel,
+    vessel::{Fleet, Vessel},
 };
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct DepthChargeLauncherState {
@@ -175,7 +175,7 @@ pub fn bot_should_drop(
     actor: &Vessel,
     target: &Vessel,
     l: &ChargeDefinition,
-    actors: &[Vessel],
+    actors: Fleet<'_>,
 ) -> bool {
     if (actor.motion.x - target.motion.x).hypot(actor.motion.z - target.motion.z)
         > actor.definition().hull.length + target.definition().hull.length + l.weapon.blast_radius_m
@@ -198,6 +198,8 @@ pub fn bot_should_drop(
     };
     predict(target) < l.weapon.blast_radius_m * 0.75
         && predict(actor) >= l.weapon.blast_radius_m
+        // The dropping ship is outside the fleet view on purpose: the clause
+        // above is its own clearance check, at its own threshold.
         && !actors
             .iter()
             .any(|a| a.team == actor.team && predict(a) < l.weapon.blast_radius_m)
