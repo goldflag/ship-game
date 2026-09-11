@@ -170,6 +170,17 @@ Implemented; see [air operations](air-operations.md), "Decision cadence".
 
 Both key off simulated ticks, so 1×, 4× and the server stay identical.
 
+They bought almost no step time. Interleaved A/B on the native gate (M5 Pro,
+three rounds each, shared machine) puts surface, carrier and custom all within
+run-to-run noise, ±3%; the fighter-heavy `air_balance` suite runs about 3%
+faster. The premise behind this phase — that re-deciding at 60 Hz is expensive —
+was true of the old code, but phase 1b and 1c already removed what made it
+expensive: `PlaneView` replaced the per-tick `Aircraft` clone, and the AA
+observer filter moved to once per ship. What is left of both decisions is a
+handful of comparisons over a short list. Phase 5 is therefore a balance
+question, not a performance one; it was landed for the behaviour (pilots and
+gun crews that commit to a target) rather than for the step time.
+
 ### Phase 6. Main thread (all modes)
 
 - `ShipRenderProxy.update` and `sourceVisible`: cache visibility per frame,
