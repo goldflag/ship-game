@@ -854,7 +854,7 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
     if (!modules.some(m => m.id === wing.serviceModuleId)) fail('airWing.serviceModuleId', 'unknown service module');
     numeric(wing.launchIntervalSeconds, 'airWing.launchIntervalSeconds', 1, 60);
     numeric(wing.rearmSeconds, 'airWing.rearmSeconds', 5, 600);
-    for (const [key, max] of [['flightSize', 6], ['deckCapacity', 24], ['maxActiveFlights', 4]] as const) {
+    for (const [key, max] of [['flightSize', 6], ['deckCapacity', 24], ['maxActiveFlights', 8]] as const) {
       if (wing[key] !== undefined) {
         numeric(wing[key], `airWing.${key}`, 1, max);
         if (!Number.isInteger(wing[key])) fail(`airWing.${key}`, 'expected an integer');

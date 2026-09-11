@@ -47,7 +47,7 @@ fn launch(
         .id;
     assert_eq!(
         air.launch_squadron(actor, squadron, None, Some(order), actors, None, None),
-        6
+        4
     );
     let mut ids = vec![];
     for (slot, p) in air
@@ -187,7 +187,7 @@ fn engagement(scenario: &str, fighters: bool, aa: usize, seed: u32) -> Engagemen
     }
     if scenario != "transit" {
         let contact = reports.track(TeamId::B, "defender").unwrap().id.clone();
-        for first in ids.chunks(6).map(|group| &group[0]) {
+        for first in ids.chunks(4).map(|group| &group[0]) {
             let flight = air
                 .wing("attacker")
                 .unwrap()
@@ -363,8 +363,8 @@ fn fighter_cover_prevents_more_torpedo_releases_than_aa_alone() {
 fn undefended_strikes_remain_viable_for_both_bomber_roles() {
     for role in ["dive-bomber", "torpedo-bomber"] {
         let result = engagement(role, false, 0, 5739);
-        assert_eq!(result.releases, 6, "{role}: {result:?}");
-        assert_eq!(result.survivors, 6, "{role}: {result:?}");
+        assert_eq!(result.releases, 4, "{role}: {result:?}");
+        assert_eq!(result.survivors, 4, "{role}: {result:?}");
     }
 }
 

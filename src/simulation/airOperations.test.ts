@@ -15,23 +15,23 @@ function fixture() {
   return { sim, run, wing, events };
 }
 
-test('48 aircraft start hidden in the hangar with nine stable legacy squadron selections', () => {
+test('48 aircraft start hidden in the hangar with twelve stable legacy squadron selections', () => {
   const { sim, run, wing } = fixture(); run(1 / 60);
   expect(sim.player.airWing!.planes).toHaveLength(48);
   expect(sim.player.airWing!.planes.filter(onFlightDeck)).toHaveLength(0);
-  expect(wing().groups).toHaveLength(9);
-  expect(wing().groups.map(f => f.total)).toEqual([6, 6, 4, 6, 6, 4, 6, 6, 4]);
+  expect(wing().groups).toHaveLength(12);
+  expect(wing().groups.map(f => f.total)).toEqual([4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4]);
   expect(wing().groups.every(f => f.status === 'ready')).toBe(true);
   expect(wing().inHangar).toBe(48); expect(wing().counts.ready).toBe(48);
   expect(wing().flights.filter(p => p.followable)).toHaveLength(0);
   expect(wing().squadrons.map(s => s.total)).toEqual([16, 16, 16]);
 });
 
-test('six-plane flights retain separate orders and four active slots include queued flights', () => {
+test('four-plane flights retain separate orders and six active slots include queued flights', () => {
   const { sim, wing } = fixture();
-  for (const squadron of ['vf-6', 'vb-6', 'vt-6', 'vf-6']) expect(sim.launchAircraft(squadron)).toBe(6);
+  for (const squadron of ['vf-6', 'vb-6', 'vt-6', 'vf-6', 'vb-6', 'vt-6']) expect(sim.launchAircraft(squadron)).toBe(4);
   expect(sim.launchAircraft('vb-6')).toBe(0);
-  expect(wing().activeFlights).toBe(4);
+  expect(wing().activeFlights).toBe(6);
   expect(wing().counts.launching).toBe(24);
   const flights = sim.player.airWing!.flights;
   const strike = flights[1], otherTarget = sim.actors[2];
@@ -46,14 +46,14 @@ test('six-plane flights retain separate orders and four active slots include que
   expect(sim.orderFlight('enemy/flight-1', { kind: 'return' })).toBe(false);
   sim.recallAircraft(strike.id);
   expect(wing().groups.find(f => f.id === strike.id)!.active).toBe(false);
-  expect(wing().counts.launching).toBe(18);
-  expect(wing().counts.ready).toBe(30);
-  expect(sim.launchAircraft('vb-6')).toBe(6);
+  expect(wing().counts.launching).toBe(20);
+  expect(wing().counts.ready).toBe(28);
+  expect(sim.launchAircraft('vb-6')).toBe(4);
 });
 
 test('a full 24-plane rotation recovers, rearms and launches again without endurance losses', () => {
   const { sim, run, wing, events } = fixture();
-  for (const squadron of ['vf-6', 'vb-6', 'vt-6', 'vf-6']) sim.launchAircraft(squadron);
+  for (const squadron of ['vf-6', 'vb-6', 'vt-6', 'vf-6', 'vb-6', 'vt-6']) sim.launchAircraft(squadron);
   for (let second = 0; second < 1250; second++) {
     run(1);
     if (second === 260) sim.recallAircraft();
@@ -65,7 +65,7 @@ test('a full 24-plane rotation recovers, rearms and launches again without endur
   expect(lost).toEqual([]);
   expect(wing().counts.ready).toBe(48);
   expect(events.filter(e => e.kind === 'aircraft-recovered')).toHaveLength(24);
-  expect(sim.launchAircraft('vt-6')).toBe(6);
+  expect(sim.launchAircraft('vt-6')).toBe(4);
   run(75);
-  expect(sim.player.airWing!.planes.filter(airborne)).toHaveLength(6);
+  expect(sim.player.airWing!.planes.filter(airborne)).toHaveLength(4);
 }, 60000); // Full launch/recovery/rearm cycles can exceed 30 s on Windows.

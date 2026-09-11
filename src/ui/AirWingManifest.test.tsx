@@ -17,9 +17,9 @@ const hud = (airOperationsOpen: boolean, visible = true) => {
 
 test('the wing manifest lists every squadron and aircraft of the wing in M view only', () => {
   const html = hud(true);
-  expect(html.match(/class="air-manifest-row /g)).toHaveLength(9);
+  expect(html.match(/class="air-manifest-row /g)).toHaveLength(12);
   expect(html.match(/class="air-manifest-cell"/g)).toHaveLength(48);
-  expect(html).toContain('Flights 0/4 · Deck 0/12 · Hangar 48');
+  expect(html).toContain('Flights 0/6 · Deck 0/12 · Hangar 48');
   expect(html).toContain('16 ready · 0 airborne · 16 armed');
   expect(html).toContain('--condition:1;--armament:1');
   expect(html).not.toContain('Deck operations suspended');

@@ -173,7 +173,7 @@ fn relief_uses_existing_inventory_and_launches_before_the_original_returns() {
         "replacement must use normal launch/deck progression"
     );
     assert_eq!(air.operations.stations[0].groups.len(), 2);
-    // Four untouched fighters remain reserved, while the original still covers.
+    // Eight untouched fighters remain reserved, while the original still covers.
     assert_eq!(
         air.wing("carrier")
             .unwrap()
@@ -181,7 +181,7 @@ fn relief_uses_existing_inventory_and_launches_before_the_original_returns() {
             .iter()
             .filter(|p| p.role == "fighter" && p.flight_id.is_none())
             .count(),
-        4
+        8
     );
     assert!(
         air.wing("carrier")
@@ -334,9 +334,21 @@ fn offensive_allocation_is_preserved_instead_of_draining_the_last_reserve() {
         &actors,
         0,
         "fighter",
-        AirOrder::Escort { flight_id: bomber },
+        AirOrder::Escort {
+            flight_id: bomber.clone(),
+        },
     );
     airborne(&mut air, "carrier", &escort, [0.0, 850.0, 0.0]);
+    // Sixteen fighters form four groups of four. Two escorts and the station
+    // leave a single untouched group, which must stay in reserve.
+    let second_escort = launch(
+        &mut air,
+        &actors,
+        0,
+        "fighter",
+        AirOrder::Escort { flight_id: bomber },
+    );
+    airborne(&mut air, "carrier", &second_escort, [0.0, 850.0, 0.0]);
     let cap = launch(
         &mut air,
         &actors,

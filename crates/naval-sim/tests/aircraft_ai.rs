@@ -155,12 +155,12 @@ fn all_roles_recover_on_both_carriers_through_normal_turns() {
 }
 
 #[test]
-fn recovery_handles_six_aircraft_and_a_carrier_straightening() {
+fn recovery_handles_a_full_flight_and_a_carrier_straightening() {
     recover(
         "enterprise-cv6",
         "torpedo-bomber",
         0.32,
-        6,
+        4,
         [1500.0, 300.0, -1000.0],
         Some(180.0),
     );
@@ -168,7 +168,7 @@ fn recovery_handles_six_aircraft_and_a_carrier_straightening() {
         "shokaku",
         "dive-bomber",
         0.0,
-        6,
+        4,
         [-1200.0, 850.0, 3500.0],
         None,
     );
@@ -236,7 +236,7 @@ fn planes(
             None,
             None
         ),
-        6
+        4
     );
     let f = air.wing("carrier").unwrap().flights[0].clone();
     let mut ps: Vec<_> = air
@@ -397,7 +397,7 @@ fn fighter_dogfights_are_effective_finite_and_replay_exactly() {
                     None,
                     None
                 ),
-                6
+                4
             );
             for (slot, p) in air
                 .wing_mut(&a.motion.id)
@@ -487,7 +487,7 @@ fn a_full_bomber_flight_recovers_without_straightening_the_carrier() {
         "enterprise-cv6",
         "dive-bomber",
         0.32,
-        6,
+        4,
         [1500.0, 850.0, -3500.0],
         None,
     );

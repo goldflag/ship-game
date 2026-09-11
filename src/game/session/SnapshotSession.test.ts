@@ -344,12 +344,12 @@ test('simplified PvE carrier presentation uses unlimited slots and the admitted 
   try {
     const wing = airWingTelemetry(session.player, session.actors)!;
     expect(wing.maxActiveFlights).toBeNull();
-    expect(wing.groups).toHaveLength(9);
+    expect(wing.groups).toHaveLength(12);
     expect(wing.groups.every(group => group.enduranceSeconds === 2400)).toBe(true);
     expect(wing.deck).toBeUndefined();
     for (const group of wing.groups) expect(session.commandSquadron(group.id, { kind: 'patrol', point: [0, 600, 11000] })).toBe(true);
     session.applyRaw(session.runtime.snapshot());
-    expect(airWingTelemetry(session.player, session.actors)!.activeFlights).toBe(9);
+    expect(airWingTelemetry(session.player, session.actors)!.activeFlights).toBe(12);
     expect(session.player.airWing!.planes).toHaveLength(48);
     expect(session.player.airWing!.planes.every(p => p.phase === 'queued')).toBe(true);
   } finally { session.dispose(); }

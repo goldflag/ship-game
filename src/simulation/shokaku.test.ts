@@ -27,7 +27,7 @@ test('Shokaku fits the 1941 guns and balanced gameplay air group through the com
   expect(sim.player.airWing!.planes).toHaveLength(48);
   expect(definition.airWing!.squadrons.map(s => [s.role, s.count])).toEqual([["fighter", 16], ["dive-bomber", 16], ["torpedo-bomber", 16]]);
   const flights = squadronFlights(sim.player);
-  expect(flights.map(f => f.planeIds.length)).toEqual([6, 6, 4, 6, 6, 4, 6, 6, 4]);
+  expect(flights.map(f => f.planeIds.length)).toEqual([4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4]);
   expect(hasFoldingWings('a6m2-zero')).toBe(false);
   expect(hasFoldingWings('b5n2-kate')).toBe(false);
   expect(hasFoldingWings('d3a1-val')).toBe(false);
@@ -41,13 +41,13 @@ test('Japanese aircraft launch, recover, service and preserve squadron inventory
     expect(commandSquadron(sim.player, flight.id, { kind: 'patrol', point: [1000, 0, -1800] }, sim.actors)).toBe(true);
   }
   run(40);
-  expect(sim.player.airWing!.planes.filter(p => p.phase === 'outbound')).toHaveLength(18);
+  expect(sim.player.airWing!.planes.filter(p => p.phase === 'outbound')).toHaveLength(12);
   expect(sim.player.airWing!.planes.filter(p => p.phase === 'outbound').every(p => p.wingFold === 0)).toBe(true);
   sim.recallAircraft(); run(750, () => sim.player.airWing!.planes.every(p => p.phase === 'ready'));
   expect(sim.player.airWing!.planes.every(p => p.phase === 'ready')).toBe(true);
-  expect(events.filter(e => e.kind === 'aircraft-recovered')).toHaveLength(18);
+  expect(events.filter(e => e.kind === 'aircraft-recovered')).toHaveLength(12);
   expect(squadronFlights(sim.player).map(f => f.planeIds)).toEqual(before);
-  expect(sim.launchAircraft('shokaku-fighters')).toBe(6);
+  expect(sim.launchAircraft('shokaku-fighters')).toBe(4);
   sim.reset();
   expect(sim.player.airWing!.planes).toHaveLength(48);
   expect(sim.player.airWing!.planes.every(p => p.phase === 'ready')).toBe(true);
@@ -55,9 +55,9 @@ test('Japanese aircraft launch, recover, service and preserve squadron inventory
 
 test('Japanese attacks retain their bomb and torpedo variants after release', () => {
   const { sim, run, events } = fixture();
-  expect(sim.launchAircraft('shokaku-dive')).toBe(6);
-  expect(sim.launchAircraft('shokaku-torpedo')).toBe(6);
-  run(580, () => sim.shells.length === 6 && sim.torpedoes.length === 6);
+  expect(sim.launchAircraft('shokaku-dive')).toBe(4);
+  expect(sim.launchAircraft('shokaku-torpedo')).toBe(4);
+  run(580, () => sim.shells.length === 4 && sim.torpedoes.length === 4);
   expect(events.some(e => e.kind === 'bomb-release')).toBe(true);
   expect(sim.shells.some(s => s.weaponLabel === 'Type 99 No. 25 250 kg bomb' && s.he?.explosiveKg === 60)).toBe(true);
   expect(events.some(e => e.kind === 'torpedo-launch')).toBe(true);

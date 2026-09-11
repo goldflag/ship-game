@@ -68,12 +68,12 @@ for (const squadron of ['vb-6', 'vt-6']) test(`${squadron} holds its ingress for
   const { sim, flight, planes, releases, step, time } = fixture(squadron);
   sim.commandSquadron(flight.id, { kind: 'attack', targetId: sim.target.motion.id });
   let heldFormation = false;
-  for (let i = 0; i < 300 * 60 && releases.length < 6; i++) {
+  for (let i = 0; i < 300 * 60 && releases.length < 4; i++) {
     step();
     if (time() > 50 && planes[0].pilot.attackStage === 'ingress'
       && planes.every(p => length(sub(p.position, formationPosition(flight, p, planes[0], time(), sim.seed))) < 20)) heldFormation = true;
   }
   expect(heldFormation).toBe(true);
-  expect(releases).toHaveLength(6);
+  expect(releases).toHaveLength(4);
   expect(Math.max(...releases) - Math.min(...releases)).toBeLessThan(8);
 });

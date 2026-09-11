@@ -27675,9 +27675,9 @@
     "serviceModuleId": "aviation-service",
     "launchIntervalSeconds": 2,
     "rearmSeconds": 35,
-    "flightSize": 6,
+    "flightSize": 4,
     "deckCapacity": 12,
-    "maxActiveFlights": 4,
+    "maxActiveFlights": 6,
     "squadrons": [
       {
         "id": "shokaku-fighters",
