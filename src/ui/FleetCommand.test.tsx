@@ -218,3 +218,30 @@ test("the guide's label clears its escorts: to port in column, above the marker 
   expect(screen).toContain('<text x="14" y="-3" text-anchor="start">Fletcher</text>');
   expect(screen).toContain('3 ships · Screen');
 });
+
+test('a reported strike shows its slung weapons, the ship on its course and the time to release', () => {
+  const { render, simulation, id } = fixture();
+  const ship = simulation.ship;
+  const carrying = { id: 'tb-1', kind: 'aircraft', status: 'tracked', affiliation: 'hostile', classification: 'Torpedo bomber', identifiedPresetId: null, identificationConfidence: 1,
+    estimatedPosition: [ship.x + 4000, 30, ship.z], measuredPosition: [ship.x + 4000, 30, ship.z], velocity: [-60, 0, 0], uncertaintyM: 40, firstObservedTick: 0, lastObservedTick: simulation.tick, sources: [] };
+  const released = { ...carrying, id: 'tb-2', estimatedPosition: [ship.x + 4100, 30, ship.z + 200], measuredPosition: [ship.x + 4100, 30, ship.z + 200] };
+  const exterior = (track: typeof carrying, payload: boolean) => ({ id: track.id, modelId: 'tbd-1-devastator', position: track.estimatedPosition, heading: -Math.PI / 2, velocity: track.velocity, observedTick: simulation.tick, observers: [id], controls: {}, wingFold: 0, payload });
+  Object.assign(simulation, { observationTracks: [carrying, released], observedAircraft: [exterior(carrying, true), exterior(released, false)] });
+  const html = render();
+  // The plane seen after release goes hollow; the one still carrying keeps its stripe.
+  expect(html).toMatch(/data-track="tb-2"[^>]*class="fleet-command-plane enemy tracked  unarmed"/);
+  expect(html).toMatch(/data-track="tb-1"[^>]*class="fleet-command-plane enemy tracked  "/);
+  expect(html).toContain('fleet-command-ordnance');
+  // Course-inferred intent: a line to Bismarck and a badge under its label, with the load and the release time.
+  expect(html).toContain(`data-intent-target="${id}"`);
+  expect(html).toContain('marker-end="url(#fleet-command-intent-arrow)"');
+  expect(html).toContain('2 torpedo bombers inbound · 1 carrying · release in 0:5');
+  expect(html).toContain('1 carrying · 1 released · for Bismarck');
+  expect(html).toContain('1 carrying · 1 released · heading for Bismarck · release in 0:5');
+  // A group seen wholly after release threatens nothing.
+  Object.assign(simulation, { observedAircraft: [exterior(carrying, false), exterior(released, false)] });
+  const spent = render();
+  expect(spent).not.toContain('fleet-command-intent ');
+  expect(spent).not.toContain('fleet-command-inbound');
+  expect(spent).toContain('2 released');
+});

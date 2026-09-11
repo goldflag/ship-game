@@ -9,7 +9,7 @@ import { AIR_STATUS_LABELS, airStatus, type AirWingTelemetry, type FlightSummary
 import { assetUrl } from '../assetUrl';
 import { AirGroupService, CarrierDeck } from './CarrierDeck';
 import { actionAvailable, SQUADRON_ACTIONS } from './airCommands';
-import { duration, mission } from './airFormat';
+import { duration, groupArmament, mission } from './airFormat';
 import { Select, SelectOption } from './components';
 import { Icon } from './Icons';
 import { PLANE_GLYPHS } from './planeGlyphs';
@@ -100,7 +100,7 @@ export function FlightLine({ carriers, flights, planesOf, selectedIds, hoverId, 
   const verbDisabled = (verb: AirVerb) => !actionable || !selected.some(f => canVerb(f, verb));
   const decked = selected.filter(f => f.deck && !f.active);
   const hint = selected.length === 0 ? <>Select a group · <kbd>1</kbd>–<kbd>9</kbd> · or click its planes on the chart</>
-    : selected.length === 1 ? <><b>{selected[0].name}</b> · {selected[0].active ? mission(selected[0]) : selected[0].activity}{selected[0].notice ? ` · ${selected[0].notice}` : ''}</>
+    : selected.length === 1 ? <><b>{selected[0].name}</b> · {selected[0].active ? mission(selected[0]) : selected[0].activity} · {groupArmament(planesOf(selected[0])).label}{selected[0].notice ? ` · ${selected[0].notice}` : ''}</>
     : <><b>{selected.length} air groups</b> · {[...new Set(selected.map(f => f.carrierName))].join(', ')}</>;
 
   const bar = <div className="flight-line-bar" role="group" aria-label="Air group orders">
@@ -148,6 +148,7 @@ export function FlightLine({ carriers, flights, planesOf, selectedIds, hoverId, 
     const model = (planes.find(p => !lost(p)) ?? planes[0])?.modelId;
     const onDeck = flight.airborne === 0;
     const on = selectedIds.includes(flight.id);
+    const armament = groupArmament(planes);
     return <button key={flight.id} className={['flight-line-box', onDeck && 'decked', hoverId === flight.id && 'hovered'].filter(Boolean).join(' ')} data-flight-id={flight.id} aria-pressed={on}
       aria-label={`${flight.name} · ${flight.surviving} of ${flight.total} aircraft · ${flight.armed} armed · ${statusLabel(flight)}${index < 9 ? ` · key ${index + 1}` : ''}`}
       title={`${flight.carrierName} · ${flight.active ? mission(flight) : flight.activity}${flight.notice ? ` · ${flight.notice}` : ''}`}
@@ -158,14 +159,14 @@ export function FlightLine({ carriers, flights, planesOf, selectedIds, hoverId, 
       <span className="flight-line-count">{flight.surviving}<small>/{flight.total}</small></span>
       <span className={`flight-line-status ${flight.notice ? 'notice' : onDeck ? 'decked' : ''}`}><svg viewBox="-12 -12 24 24" aria-hidden="true"><path d={PLANE_GLYPHS[flight.role]} transform="scale(1.1)"/></svg><span>{flight.notice ?? statusLabel(flight)}</span></span>
       <span className="flight-line-ticks" aria-hidden="true">{planes.map(p => <i key={p.id} className={lost(p) ? 'lost' : p.hp < 50 ? 'hurt' : loaded(p) ? 'armed' : 'empty'} title={planeTitle(p)}/>)}</span>
-      <span className="flight-line-foot"><b className={flight.armed ? undefined : 'dim'}>{flight.armed}/{flight.surviving} armed</b><span>{whereabouts(flight).replace('in hangar', 'hangar').replace('on deck', 'deck')}</span></span>
+      <span className="flight-line-foot"><b className={armament.empty ? 'dim' : armament.low ? 'low' : undefined}>{armament.label}</b><span>{whereabouts(flight).replace('in hangar', 'hangar').replace('on deck', 'deck')}</span></span>
     </button>;
   };
 
   const card = hovered && (() => {
     const planes = planesOf(hovered), alive = planes.filter(p => !lost(p));
     return <div className="flight-line-card" role="tooltip" style={{ '--left': `${cardLeft}px` } as CSSProperties}>
-      <div className="flight-line-card-head"><b>{hovered.name}</b><span>{hovered.surviving}/{hovered.total}<small>{hovered.armed} armed · {whereabouts(hovered)}{hovered.airborne > 0 && hovered.enduranceSeconds !== null ? ' endurance' : ''}</small></span></div>
+      <div className="flight-line-card-head"><b>{hovered.name}</b><span>{hovered.surviving}/{hovered.total}<small>{groupArmament(planes).label} · {whereabouts(hovered)}{hovered.airborne > 0 && hovered.enduranceSeconds !== null ? ' endurance' : ''}</small></span></div>
       <p className="flight-line-order">{orderLine(hovered)}</p>
       <div className="flight-line-planes">
         <span className="flight-line-cells">{planes.map(p => <i key={p.id} className="air-manifest-cell" data-status={airStatus(p)} data-condition={condition(p)} title={planeTitle(p)}

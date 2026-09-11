@@ -47,7 +47,7 @@ function render(over: Partial<FlightLineProps> = {}) {
   return renderToStaticMarkup(<FlightLine {...props}/>);
 }
 
-test('the line shows one chip per carrier and one box per group with picture, count, key, status, ticks, armed and endurance', () => {
+test('the line shows one chip per carrier and one box per group with picture, count, key, status, ticks, armament and endurance', () => {
   const html = render();
   expect(html).toContain('aria-label="Air groups"');
   expect(html).toContain('aria-label="USS Enterprise (CV-6) air wing"');
@@ -65,8 +65,10 @@ test('the line shows one chip per carrier and one box per group with picture, co
   expect(html).toContain('6<small>/6</small>');
   expect(html).toContain('4<small>/5</small>');
   expect(html).toContain('<span>Loitering</span>');
-  expect(html).toContain('6/6 armed</b><span>27:40</span>');
-  expect(html).toContain('0/4 armed</b><span>hangar</span>');
+  // The foot counts what is actually left: bursts for fighters, planes still carrying for bombers.
+  expect(html).toContain('<b>80 bursts</b><span>27:40</span>');
+  expect(html).toContain('<b class="dim">0 carrying</b><span>hangar</span>');
+  expect(html).toContain('<b>Fighter 1</b> · Loiter at station · 80 bursts');
   // The notice replaces the status line in brass.
   expect(html).toContain('flight-line-status notice');
   expect(html).toContain('<span>Repair below · 2:40</span>');
@@ -130,14 +132,14 @@ test('hovering a box marks it and raises a card with manifest cells, the HP list
   const html = render({ hoverId: 'f1' });
   expect(html).toContain('flight-line-box hovered');
   expect(html).toContain('role="tooltip"');
-  expect(html).toContain('<b>Fighter 1</b><span>6/6<small>6 armed · 27:40 endurance</small></span>');
+  expect(html).toContain('<b>Fighter 1</b><span>6/6<small>80 bursts · 27:40 endurance</small></span>');
   expect(html).toContain('<b>Loiter</b> · Loiter at station');
   expect(html.match(/class="air-manifest-cell"/g)).toHaveLength(6);
   expect(html).toContain('data-condition="damaged"');
   expect(html).toContain('100% · 100% · 100% · <b>41%</b> · 100% · 100%');
   expect(render()).not.toContain('role="tooltip"');
   const below = render({ hoverId: 'd3' });
-  expect(below).toContain('<b>Dive 3</b><span>4/5<small>0 armed · in hangar</small></span>');
+  expect(below).toContain('<b>Dive 3</b><span>4/5<small>0 carrying · in hangar</small></span>');
   expect(below).toContain('data-status="lost"');
   expect(below).toContain('flight-line-notice');
 });

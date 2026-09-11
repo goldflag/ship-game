@@ -64,6 +64,7 @@
 .flight-line-foot { display:flex; justify-content:space-between; align-items:center; gap:4px; margin-top:3px; font:500 10.5px/1 'Barlow Condensed',sans-serif; color:var(--fleet-muted); white-space:nowrap; }
 .flight-line-foot b { font-weight:500; color:var(--fleet-text, #f0f5f3); }
 .flight-line-foot b.dim { color:var(--fleet-muted); }
+.flight-line-foot b.low { color:var(--fleet-gold); }
 .fleet-command .flight-line-hide { align-self:flex-end; min-height:26px; margin-left:3px; padding:3px 7px; border-color:#c9dce022; background:none; color:var(--fleet-muted); font-size:11px; }
 
 /* Detail card above the hovered box: manifest cells, HP list, order and notice. */
