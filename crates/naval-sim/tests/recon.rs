@@ -21,6 +21,8 @@ fn observer() -> VisualEntity {
         aircraft: None,
         firing: false,
         health: 1.0,
+        mounts: Vec::new(),
+        launchers: Vec::new(),
     }
 }
 fn target() -> VisualEntity {

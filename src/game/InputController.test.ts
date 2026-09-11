@@ -165,6 +165,12 @@ describe('keyboard gameplay controls', () => {
     key('keydown', 'ControlLeft', { ctrlKey: true });
     expect(actions.cursor).toHaveBeenLastCalledWith(true);
     key('keyup', 'ControlLeft'); expect(actions.cursor).toHaveBeenLastCalledWith(false);
+    // A follower without the helm still steers the camera, so Ctrl still frees and returns the cursor.
+    input.setEnabled(false);
+    key('keydown', 'ControlRight', { ctrlKey: true }); expect(actions.cursor).toHaveBeenLastCalledWith(true);
+    key('keyup', 'ControlRight'); expect(actions.cursor).toHaveBeenLastCalledWith(false);
+    expect(actions.cursor).toHaveBeenCalledTimes(4);
+    input.setEnabled(true);
     key('keydown', 'ShiftLeft'); events.dispatchEvent(new Event('blur')); key('keyup', 'ShiftLeft');
     expect(actions.optics).toHaveBeenCalledTimes(1);
     // Following a teammate hands the helm to its captain; the minimap keys stay live.

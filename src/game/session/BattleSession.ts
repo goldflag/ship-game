@@ -14,7 +14,9 @@ import type { MissionRules } from '../../multiplayer/generated/MissionRules';
 import type { ReconCoverage } from '../../multiplayer/generated/ReconCoverage';
 /** Health is a sampled 0–1 fraction; absent on older snapshots. */
 export interface ObservedPose { health?: number; id: string; position: Vec3; heading: number; pitch?: number; roll?: number; velocity: Vec3; observedTick: number; observers: string[] }
-export interface ObservedShip extends ObservedPose { presetId: string }
+/** Gun attitudes are visible from outside: `[train, elevation, recoil]` per mount and the train of each
+ * torpedo launcher, both in definition order. Readiness and ammunition are not. Absent on older snapshots. */
+export interface ObservedShip extends ObservedPose { presetId: string; mounts?: [number, number, number][]; launchers?: number[] }
 /** A slung torpedo or bomb is visible from outside, so the observation carries it; rounds are not. Absent on older snapshots. */
 export interface ObservedAircraft extends ObservedPose { modelId: string; controls: import('../../simulation/aircraftFlight').FlightControls; wingFold: number; payload?: boolean }
 export interface BattleDebrief {

@@ -430,6 +430,22 @@ test('the frame feeds every fleet wake the rendered pose, and only the player in
   expect(frames.at(-1)!.ships).toEqual([playerView]);
 });
 
+test('reported enemy exteriors leave wakes behind the fleet, and the camera hull leads the list', async () => {
+  const { game, playerView, targetView } = await frameHarness();
+  const frames: unknown[][] = [];
+  const observed = { root: new Group(), motion: { x: 3000, y: 0, z: -3000, heading: 1, speed: 9 }, definition: shipPreset('bismarck') };
+  Object.assign(game, {
+    shipWake: { update(ships: unknown[]) { frames.push([...ships]); }, reset() {} },
+    observedShipViews: { root: new Group(), update() {}, wakeShips: () => [observed] },
+  });
+  await game.frame(100);
+  expect(frames.at(-1)).toEqual([playerView, targetView, observed]);
+  // The swell solver centres on the hull the camera rides, whichever it is.
+  game.inspecting = true;
+  await game.frame(200);
+  expect(frames.at(-1)).toEqual([targetView, playerView, observed]);
+});
+
 test('binoculars, then shell follow, then death: the follow never feeds the sight and death forbids returning to optics', async () => {
   const { game, simulation, camera, rig, playerView, gunAimFrames, input } = await frameHarness();
   const requests = spyOn(simulation, 'requestFire');

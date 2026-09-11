@@ -173,7 +173,18 @@ fn observed_enemy_is_a_report_and_silhouette_without_an_inspectable_damage_model
     assert_eq!(frame["observedShips"].as_array().unwrap().len(), 1);
     assert!(!frame.to_string().contains("enemy-private-id"));
     assert!(frame["contacts"][0].get("damage").is_none());
-    assert!(frame["observedShips"][0].get("mounts").is_none());
+    // Gun attitudes are visible from outside, as arrays of train, elevation and
+    // recoil travel only; readiness, ammunition and mount hit points stay private.
+    let mounts = frame["observedShips"][0]["mounts"].as_array().unwrap();
+    assert_eq!(mounts.len(), a.actors[1].mounts.len());
+    assert!(mounts.iter().all(|m| {
+        m.as_array()
+            .is_some_and(|m| m.len() == 3 && m.iter().all(|v| v.is_number()))
+    }));
+    let exterior = frame["observedShips"][0].to_string();
+    for private in ["reload", "ammo", "loaded", "status", "carrier", "leadCache"] {
+        assert!(!exterior.contains(private), "{private} leaked");
+    }
     assert!(
         frame["observedShips"][0]["health"]
             .as_f64()

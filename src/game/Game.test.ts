@@ -441,10 +441,13 @@ test('fleet selection and camera follow keep captains active; helm transfer resu
     game.selectFleetShips(['friendly-1', 'enemy-1']);
     expect(game.selectedShipIds).toEqual(['friendly-1']);
     expect(simulation.player).toBe(carrier);
+    const capture = spyOn(rig, 'capturePointer');
     game.followFleetShip('friendly-1'); update();
     expect(game.airOperationsOpen).toBe(false);
     expect(game.spectatedShipId).toBe('friendly-1');
     expect(simulation.controlledShipId).toBeUndefined();
+    // Following steers the camera with the mouse like the helm does: the cursor is taken at once.
+    expect(capture).toHaveBeenCalled();
     // Leaving the chart descends from the overhead pose instead of cutting to the ship.
     expect(battlefieldCamera.transitioning).toBe(true);
     battlefieldCamera.applyTransition(0);

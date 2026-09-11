@@ -21,6 +21,8 @@ fn entity(id: &str, team: TeamId, kind: ContactKind, x: f64, altitude: f64) -> V
         aircraft: None,
         firing: false,
         health: 1.0,
+        mounts: Vec::new(),
+        launchers: Vec::new(),
     }
 }
 fn clear() -> VisualConditions {

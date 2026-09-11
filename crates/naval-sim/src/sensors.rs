@@ -147,6 +147,11 @@ pub struct VisualEntity {
     pub aircraft: Option<AircraftExterior>,
     /// Hull or airframe health fraction, sampled only while visible.
     pub health: f64,
+    /// Gun attitudes anyone can see from outside: train, elevation and recoil
+    /// travel per mount, in definition order. Readiness and ammunition stay private.
+    pub mounts: Vec<[f64; 3]>,
+    /// Torpedo launcher train per launcher, in definition order.
+    pub launchers: Vec<f64>,
 }
 /// Only externally visible pose and mechanisms are retained at acquisition.
 #[derive(Clone, Debug, Default)]
@@ -746,6 +751,17 @@ pub fn entities(actors: &[Vessel], aviation: &Aviation) -> Vec<VisualEntity> {
                 },
                 health: (a.damage.integrity / a.damage.max_integrity).clamp(0.0, 1.0),
                 aircraft: None,
+                mounts: a
+                    .mounts
+                    .iter()
+                    .map(|m| [m.train, m.elevation, m.recoil])
+                    .collect(),
+                launchers: def
+                    .torpedo_launchers
+                    .iter()
+                    .flatten()
+                    .map(|l| a.launcher_trains.get(&l.id).copied().unwrap_or(0.0))
+                    .collect(),
             }
         })
         .collect();
@@ -787,6 +803,8 @@ pub fn entities(actors: &[Vessel], aviation: &Aviation) -> Vec<VisualEntity> {
                     wing_fold: p.wing_fold,
                     payload: p.payload,
                 }),
+                mounts: Vec::new(),
+                launchers: Vec::new(),
             }),
     );
     entities.sort_by(|a, b| a.id.cmp(&b.id));
