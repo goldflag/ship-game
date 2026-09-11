@@ -19,6 +19,8 @@ use crate::{
     vessel::{Controller, Vessel},
 };
 use std::collections::BTreeMap;
+type GroundMap = BTreeMap<String, crate::aircraft_deck::GroundPose>;
+use crate::aircraft_deck::GroundPose;
 #[path = "air_observation.rs"]
 mod observation;
 #[path = "air_search_step.rs"]
@@ -87,7 +89,7 @@ pub fn lose(p: &mut Aircraft, events: &mut Vec<DamageEvent>, reason: &str) {
         });
     }
     p.hp = 0.0;
-    p.phase = "lost".into();
+    crate::aircraft::set_str(&mut p.phase, "lost");
     p.loss_reason = Some(reason.into());
     p.deck_slot = None;
     events.push(DamageEvent {
@@ -156,7 +158,7 @@ fn step_wreck(p: &mut Aircraft, events: &mut Vec<DamageEvent>, dt: f64) {
     }
 }
 impl Aviation {
-    fn deck_spot(&self, actor: &Vessel, p: &Aircraft) -> Vec3 {
+    fn deck_spot(&self, actor: &Vessel, p: &Aircraft, ground: &GroundMap) -> Vec3 {
         let wing = actor.definition().air_wing.as_ref().unwrap();
         let index = p.deck_slot.unwrap_or(0);
         let count = self
@@ -165,7 +167,7 @@ impl Aviation {
         let span = (actor.definition().hull.length * 0.76).min((count as f64 - 1.0) * 14.0);
         [
             wing.launch_position[0] - 10.0,
-            wing.launch_position[1] + self.ground[&p.model_id].clearance,
+            wing.launch_position[1] + ground[&p.model_id].clearance,
             wing.recovery_position[2] - 15.0 - span
                 + if count > 1 {
                     index as f64 * span / (count - 1) as f64
@@ -174,7 +176,7 @@ impl Aviation {
                 },
         ]
     }
-    fn spot_aircraft(&mut self, actor: &Vessel, p: &mut Aircraft) -> bool {
+    fn spot_aircraft(&mut self, actor: &Vessel, p: &mut Aircraft, ground: &GroundMap) -> bool {
         if p.deck_slot.is_some() {
             return true;
         }
@@ -196,8 +198,8 @@ impl Aviation {
             reserve.deck_datum = None;
             reserve.deck_position = None;
         }
-        let spot = self.deck_spot(actor, p);
-        deck_pose(p, actor, spot, &self.ground[&p.model_id]);
+        let spot = self.deck_spot(actor, p, ground);
+        deck_pose(p, actor, spot, &ground[&p.model_id]);
         p.previous_position = p.position;
         true
     }
@@ -388,6 +390,7 @@ impl Aviation {
         if dt <= 0.0 {
             return;
         }
+        let ground_map = std::mem::take(&mut self.ground);
         self.step_air_operations(ctx.actors, ctx.sea, time);
         for w in &mut self.wings {
             for p in &mut w.state.planes {
@@ -439,7 +442,7 @@ impl Aviation {
                 ops.step(
                     &mut self.wings[wi].state,
                     actor,
-                    &self.ground,
+                    &ground_map,
                     service_equipment_available(actor, ctx.sea),
                     service_available(actor, ctx.sea),
                     dt,
@@ -520,6 +523,7 @@ impl Aviation {
                     approaching,
                     landing_clearance.as_deref(),
                     &leaders,
+                    &ground_map,
                     ctx,
                     dt,
                     time,
@@ -582,6 +586,7 @@ impl Aviation {
                 ctx.releases.remove(i);
             }
         }
+        self.ground = ground_map;
     }
     #[allow(clippy::too_many_arguments)]
     fn step_plane(
@@ -592,12 +597,13 @@ impl Aviation {
         approaching: bool,
         landing_clearance: Option<&str>,
         leaders: &BTreeMap<String, Aircraft>,
+        ground_map: &GroundMap,
         ctx: &mut AirContext<'_>,
         dt: f64,
         time: f64,
     ) {
         let wing = actor.definition().air_wing.as_ref().unwrap();
-        let ground = self.ground[&p.model_id].clone();
+        let ground = &ground_map[&p.model_id];
         p.cooldown = (p.cooldown - dt).max(0.0);
         crate::aircraft_defense::tick(p, dt);
         if terminal(p) {
@@ -634,19 +640,19 @@ impl Aviation {
         }
         if actor.damage.sunk && (on_flight_deck(p) || !airborne(p)) {
             p.hp = 0.0;
-            p.phase = "lost".into();
+            crate::aircraft::set_str(&mut p.phase, "lost");
             p.deck_slot = None;
             p.loss_reason = Some("Carrier lost".into());
             return;
         }
         if matches!(p.phase.as_str(), "ready" | "queued" | "rearming") {
             if p.deck_slot.is_some() {
-                deck_pose(p, actor, self.deck_spot(actor, p), &ground);
+                deck_pose(p, actor, self.deck_spot(actor, p, ground_map), ground);
             }
             if p.phase == "rearming" && service_available(actor, ctx.sea) {
                 p.timer -= dt;
                 if p.timer <= 0.0 {
-                    p.phase = "ready".into();
+                    crate::aircraft::set_str(&mut p.phase, "ready");
                     p.timer = 0.0;
                     p.deck_slot = None;
                     p.deck_datum = None;
@@ -670,9 +676,9 @@ impl Aviation {
                     .planes
                     .iter()
                     .any(|o| matches!(o.phase.as_str(), "taxi" | "rollout" | "parking"))
-                && self.spot_aircraft(actor, p)
+                && self.spot_aircraft(actor, p, ground_map)
             {
-                p.phase = "takeoff".into();
+                crate::aircraft::set_str(&mut p.phase, "takeoff");
                 p.timer = 0.0;
                 p.flight_time = 0.0;
                 self.wing_mut(&actor.motion.id).unwrap().launch_cooldown =
@@ -685,7 +691,7 @@ impl Aviation {
                     p,
                     actor,
                     add(wing.launch_position, [0.0, ground.clearance, 0.0]),
-                    &ground,
+                    ground,
                 );
                 p.previous_position = p.position;
                 ctx.event(p, "aircraft-launch", format!("{} launched", p.model_id));
@@ -696,7 +702,7 @@ impl Aviation {
             if p.phase == "taxi" && p.wing_fold > 0.0
                 || p.phase == "parking" && ground.folding_wings && p.wing_fold < 1.0
             {
-                deck_pose(p, actor, p.deck_position.unwrap(), &ground);
+                deck_pose(p, actor, p.deck_position.unwrap(), ground);
                 return;
             }
             if p.phase == "rollout" {
@@ -710,14 +716,14 @@ impl Aviation {
                         local[1],
                         local[2] - (35.0 * (1.0 - p.timer / 1.2)).max(0.0) * dt,
                     ],
-                    &ground,
+                    ground,
                 );
                 if p.timer >= 1.2 {
                     service_plane(p, wing.rearm_seconds);
                 }
             } else {
                 let destination = if p.phase == "parking" {
-                    self.deck_spot(actor, p)
+                    self.deck_spot(actor, p, ground_map)
                 } else {
                     add(wing.launch_position, [0.0, ground.clearance, 0.0])
                 };
@@ -733,19 +739,19 @@ impl Aviation {
                     waypoint,
                     if p.phase == "taxi" { 35.0 } else { 12.0 },
                     dt,
-                    &ground,
+                    ground,
                 ) && length(sub(waypoint, destination)) < 0.1;
                 if arrived && p.phase == "parking" {
                     service_plane(p, wing.rearm_seconds);
                 } else if arrived && !service_available(actor, ctx.sea) {
-                    p.phase = "parking".into();
+                    crate::aircraft::set_str(&mut p.phase, "parking");
                 } else if arrived {
-                    p.phase = "takeoff".into();
+                    crate::aircraft::set_str(&mut p.phase, "takeoff");
                     p.timer = 0.0;
                     p.flight_time = 0.0;
                     self.wing_mut(&actor.motion.id).unwrap().launch_cooldown =
                         wing.launch_interval_seconds;
-                    deck_pose(p, actor, destination, &ground);
+                    deck_pose(p, actor, destination, ground);
                     ctx.event(p, "aircraft-launch", format!("{} launched", p.model_id));
                 }
             }
@@ -760,7 +766,7 @@ impl Aviation {
         if (self.rules.endurance.needs_recall(p.flight_time, false) || p.hp < 25.0)
             && p.phase != "landing"
         {
-            p.phase = "returning".into();
+            crate::aircraft::set_str(&mut p.phase, "returning");
         }
         let carrier = local_to_world(
             add(wing.recovery_position, [0.0, ground.clearance, 0.0]),
@@ -796,7 +802,7 @@ impl Aviation {
                             position: [local[0], launch[1], local[2]],
                             heading: 0.0,
                         },
-                        &ground,
+                        ground,
                     ) {
                         p.timer -= dt;
                         if let Some(position) = p.deck_datum {
@@ -807,14 +813,14 @@ impl Aviation {
                                     position,
                                     heading: p.deck_heading.unwrap_or(0.0),
                                 },
-                                &ground,
+                                ground,
                             );
                         }
                         p.velocity = actor.motion.velocity();
                         return;
                     }
                 } else {
-                    deck_pose(p, actor, local, &ground);
+                    deck_pose(p, actor, local, ground);
                 }
                 if managed && p.timer <= dt {
                     ctx.event(p, "aircraft-launch", format!("{} launched", p.model_id));
@@ -847,7 +853,7 @@ impl Aviation {
                 );
             }
             if p.timer > TAKEOFF_ROLL_SECONDS + TAKEOFF_CLIMB_SECONDS {
-                p.phase = "outbound".into();
+                crate::aircraft::set_str(&mut p.phase, "outbound");
                 p.timer = 0.0;
                 p.deck_datum = None;
                 p.deck_position = None;
@@ -870,7 +876,16 @@ impl Aviation {
             if p.phase == "returning" && self.package_withdrawal(p, dt) {
                 return;
             }
-            self.recover_plane(p, actor, index, landing_clearance, carrier, ctx, dt);
+            self.recover_plane(
+                p,
+                actor,
+                index,
+                landing_clearance,
+                carrier,
+                ground_map,
+                ctx,
+                dt,
+            );
             return;
         }
         let mut flight = self
@@ -880,7 +895,17 @@ impl Aviation {
             .iter()
             .find(|f| Some(&f.id) == p.flight_id.as_ref())
             .cloned();
-        self.mission_plane(p, actor, carrier, &mut flight, leaders, ctx, dt, time);
+        self.mission_plane(
+            p,
+            actor,
+            carrier,
+            &mut flight,
+            leaders,
+            ground,
+            ctx,
+            dt,
+            time,
+        );
         if let Some(flight) = flight
             && let Some(f) = self
                 .wing_mut(&actor.motion.id)
@@ -894,7 +919,7 @@ impl Aviation {
     }
 }
 fn service_plane(p: &mut Aircraft, seconds: f64) {
-    p.phase = "rearming".into();
+    crate::aircraft::set_str(&mut p.phase, "rearming");
     p.timer = aircraft_service_seconds(seconds, p.hp);
     p.deck_slot = None;
     p.deck_datum = None;
@@ -910,6 +935,7 @@ impl Aviation {
         index: usize,
         landing_clearance: Option<&str>,
         carrier: Vec3,
+        ground_map: &GroundMap,
         ctx: &mut AirContext<'_>,
         dt: f64,
     ) {
@@ -930,7 +956,7 @@ impl Aviation {
         } else {
             wing.recovery_position
         };
-        let ground = self.ground[&p.model_id].clone();
+        let ground = &ground_map[&p.model_id];
         let local = world_to_local(p.position, actor.motion.pose());
         let aft = local[2] - recovery_position[2];
         let side = *p
@@ -995,8 +1021,8 @@ impl Aviation {
             )
         });
         if hold_reason.is_some() {
-            p.phase = "returning".into();
-            p.pilot.recovery_stage = Some("marshal".into());
+            crate::aircraft::set_str(&mut p.phase, "returning");
+            set_opt_str(&mut p.pilot.recovery_stage, "marshal");
             let anchor = local_to_world(
                 [
                     850.0,
@@ -1020,7 +1046,8 @@ impl Aviation {
                 .as_ref()
                 .is_none_or(|s| s == "marshal")
             {
-                p.pilot.recovery_stage = Some(
+                set_opt_str(
+                    &mut p.pilot.recovery_stage,
                     if aft > 700.0
                         && (local[0] - recovery_position[0]).abs() < 100.0
                         && wrap_angle(p.heading - actor.motion.heading).abs() < 0.25
@@ -1028,8 +1055,7 @@ impl Aviation {
                         "final"
                     } else {
                         "downwind"
-                    }
-                    .into(),
+                    },
                 );
             }
             match p.pilot.recovery_stage.as_deref() {
@@ -1050,7 +1076,7 @@ impl Aviation {
                         FlightOptions::default(),
                     );
                     if length(sub(p.position, downwind)) < 300.0 {
-                        p.pilot.recovery_stage = Some("base".into());
+                        set_opt_str(&mut p.pilot.recovery_stage, "base");
                     }
                 }
                 Some("base") => {
@@ -1062,7 +1088,7 @@ impl Aviation {
                         FlightOptions::default(),
                     );
                     if length(sub(p.position, approach)) < 250.0 {
-                        p.pilot.recovery_stage = Some("final".into());
+                        set_opt_str(&mut p.pilot.recovery_stage, "final");
                     }
                 }
                 Some("final") => {
@@ -1084,17 +1110,17 @@ impl Aviation {
                         && (local[0] - recovery_position[0]).abs() < 70.0
                         && wrap_angle(p.heading - actor.motion.heading).abs() < 0.2
                     {
-                        p.phase = "landing".into();
+                        crate::aircraft::set_str(&mut p.phase, "landing");
                         p.timer = 0.0;
                     } else if aft < 500.0 {
-                        p.pilot.recovery_stage = Some("marshal".into());
+                        set_opt_str(&mut p.pilot.recovery_stage, "marshal");
                     }
                 }
                 _ => {}
             }
         } else if !reserved {
-            p.phase = "returning".into();
-            p.pilot.recovery_stage = Some("marshal".into());
+            crate::aircraft::set_str(&mut p.phase, "returning");
+            set_opt_str(&mut p.pilot.recovery_stage, "marshal");
             fly(p, approach, 70.0, dt, FlightOptions::default());
         } else {
             crate::aircraft_recovery::fly_final(
@@ -1112,12 +1138,12 @@ impl Aviation {
                 && (next[1] - deck_y).abs() < 0.35
                 && wrap_angle(p.heading - actor.motion.heading).abs() < 0.12
             {
-                if busy || !reserved || !managed && !self.spot_aircraft(actor, p) {
-                    p.phase = "returning".into();
-                    p.pilot.recovery_stage = Some("marshal".into());
+                if busy || !reserved || !managed && !self.spot_aircraft(actor, p, ground_map) {
+                    crate::aircraft::set_str(&mut p.phase, "returning");
+                    set_opt_str(&mut p.pilot.recovery_stage, "marshal");
                     return;
                 }
-                p.phase = "rollout".into();
+                crate::aircraft::set_str(&mut p.phase, "rollout");
                 p.timer = 0.0;
                 if managed {
                     if !crate::deck_operations::place(
@@ -1127,22 +1153,22 @@ impl Aviation {
                             position: [next[0], recovery_position[1], next[2]],
                             heading: 0.0,
                         },
-                        &ground,
+                        ground,
                     ) {
-                        p.phase = "returning".into();
-                        p.pilot.recovery_stage = Some("marshal".into());
+                        crate::aircraft::set_str(&mut p.phase, "returning");
+                        set_opt_str(&mut p.pilot.recovery_stage, "marshal");
                         p.deck_slot = None;
                         return;
                     }
                 } else {
-                    deck_pose(p, actor, [next[0], deck_y, next[2]], &ground);
+                    deck_pose(p, actor, [next[0], deck_y, next[2]], ground);
                 }
                 ctx.event(p, "aircraft-recovered", format!("{} landed", p.model_id));
             } else if next[2] < recovery_position[2] - 30.0
                 || aft < 250.0 && (next[0] - recovery_position[0]).abs() > 30.0
             {
-                p.phase = "returning".into();
-                p.pilot.recovery_stage = Some("marshal".into());
+                crate::aircraft::set_str(&mut p.phase, "returning");
+                set_opt_str(&mut p.pilot.recovery_stage, "marshal");
             }
         }
     }
@@ -1173,12 +1199,13 @@ impl Aviation {
         carrier: Vec3,
         flight: &mut Option<AirFlight>,
         leaders: &BTreeMap<String, Aircraft>,
+        ground: &GroundPose,
         ctx: &mut AirContext<'_>,
         dt: f64,
         time: f64,
     ) {
         if matches!(flight.as_ref().map(|f| &f.order), Some(AirOrder::Return)) {
-            p.phase = "returning".into();
+            crate::aircraft::set_str(&mut p.phase, "returning");
             return;
         }
         let withdrawing_scout = matches!(
@@ -1217,7 +1244,7 @@ impl Aviation {
                 },
                 point[2],
             ];
-            p.phase = "outbound".into();
+            crate::aircraft::set_str(&mut p.phase, "outbound");
             if !follow(p, flight.as_ref(), leader, dt, time, ctx.seed) {
                 let point = orbit_point(p, anchor, 850.0, 1.0);
                 fly(
@@ -1256,9 +1283,11 @@ impl Aviation {
             && p.pilot.attack_stage.as_deref() != Some("egress")
         {
             p.pilot.attack_heading = l.pilot.attack_heading;
-            p.pilot.attack_stage.get_or_insert("ingress".into());
+            if p.pilot.attack_stage.is_none() {
+                set_opt_str(&mut p.pilot.attack_stage, "ingress");
+            }
             if l.pilot.attack_stage.as_deref() == Some("run") {
-                p.pilot.attack_stage = Some("run".into());
+                set_opt_str(&mut p.pilot.attack_stage, "run");
             }
         }
         let ingress = strike_ingress(p, target.heading, target_point);
@@ -1279,7 +1308,7 @@ impl Aviation {
                             2100.0
                         })
         {
-            p.phase = "outbound".into();
+            crate::aircraft::set_str(&mut p.phase, "outbound");
             if follow(p, flight.as_ref(), leader, dt, time, ctx.seed) {
                 return;
             }
@@ -1291,15 +1320,15 @@ impl Aviation {
             if distance > 1800.0 {
                 p.pilot.attempts += 1;
                 if p.pilot.attempts >= 2 {
-                    p.phase = "returning".into();
+                    crate::aircraft::set_str(&mut p.phase, "returning");
                 } else {
-                    p.pilot.attack_stage = Some("ingress".into());
+                    set_opt_str(&mut p.pilot.attack_stage, "ingress");
                 }
             }
             return;
         }
         if p.pilot.attack_stage.as_deref() == Some("ingress") {
-            p.phase = "outbound".into();
+            crate::aircraft::set_str(&mut p.phase, "outbound");
             fly(
                 p,
                 ingress,
@@ -1318,7 +1347,7 @@ impl Aviation {
                 }
                 && (p.position[1] - ingress[1]).abs() < 120.0
             {
-                p.pilot.attack_stage = Some("run".into());
+                set_opt_str(&mut p.pilot.attack_stage, "run");
             }
             return;
         }
@@ -1341,7 +1370,7 @@ impl Aviation {
                 return;
             }
         }
-        p.phase = "attack".into();
+        crate::aircraft::set_str(&mut p.phase, "attack");
         if p.role == "dive-bomber" {
             let height = (p.position[1] - 1.0 - target_point[1]).max(0.0);
             let fall = (p.velocity[1] + (p.velocity[1].powi(2) + 19.62 * height).sqrt()) / 9.81;
@@ -1351,8 +1380,8 @@ impl Aviation {
             // As altitude falls, the remaining bomb time shrinks: under the
             // current vertical velocity, d(fall)/dt = vy / sqrt(vy² + 2gh).
             let offset = sub(aim, p.position);
-            let fall_rate = p.velocity[1]
-                / (p.velocity[1].powi(2) + 19.62 * height).sqrt().max(1.0);
+            let fall_rate =
+                p.velocity[1] / (p.velocity[1].powi(2) + 19.62 * height).sqrt().max(1.0);
             let relative_velocity = sub(scale(target.velocity, 1.0 + fall_rate), p.velocity);
             let aim_turn_rate = (-offset[2] * relative_velocity[0]
                 + offset[0] * relative_velocity[2])
@@ -1377,7 +1406,7 @@ impl Aviation {
             let error = (landing[0] - impact_aim[0]).hypot(landing[2] - impact_aim[2]);
             if error < 3.0 && p.pitch < -0.25 && p.position[1] > target_point[1] + 90.0 {
                 let id = ctx.next_id();
-                let bomb = self.ground[&p.model_id]
+                let bomb = ground
                     .bomb
                     .as_ref()
                     .expect("Missing aircraft bomb definition");
@@ -1402,7 +1431,7 @@ impl Aviation {
                 let effect = ShellEffect::from_shell(&shell);
                 ctx.shells.push(shell);
                 p.payload = false;
-                p.phase = "returning".into();
+                crate::aircraft::set_str(&mut p.phase, "returning");
                 ctx.events.push(DamageEvent {
                     kind: "bomb-release".into(),
                     position: p.position,
@@ -1418,13 +1447,10 @@ impl Aviation {
             } else if p.position[1] < target_point[1] + 100.0
                 || dot(sub(target_point, p.position), forward) < -100.0
             {
-                p.pilot.attack_stage = Some("egress".into());
+                set_opt_str(&mut p.pilot.attack_stage, "egress");
             }
         } else {
-            let weapon = self.ground[&p.model_id]
-                .torpedo
-                .clone()
-                .unwrap_or_else(air_torpedo);
+            let weapon = ground.torpedo.clone().unwrap_or_else(air_torpedo);
             let fall = (-3.0 + (9.0 + 19.62 * p.position[1].max(0.0)).sqrt()) / 9.81;
             let entry = add(p.position, scale([p.velocity[0], 0.0, p.velocity[2]], fall));
             let future = add(target_point, scale(target.velocity, fall));
@@ -1432,7 +1458,11 @@ impl Aviation {
                 torpedo_intercept(entry, future, target.velocity, torpedo_speed(weapon.speed))
                     .unwrap_or(future);
             let approach = crate::aircraft_strike::torpedo_approach_point(
-                p.position, length(p.velocity), target_point, target.velocity, torpedo_speed(weapon.speed),
+                p.position,
+                length(p.velocity),
+                target_point,
+                target.velocity,
+                torpedo_speed(weapon.speed),
             );
             fly(
                 p,
@@ -1467,11 +1497,11 @@ impl Aviation {
                     weapon: Some(weapon),
                 });
                 p.payload = false;
-                p.phase = "returning".into();
+                crate::aircraft::set_str(&mut p.phase, "returning");
                 ctx.event(p, "aircraft-release", "Torpedo away".into());
             }
             if distance < 550.0 && p.payload {
-                p.pilot.attack_stage = Some("egress".into());
+                set_opt_str(&mut p.pilot.attack_stage, "egress");
             }
         }
     }
@@ -1489,7 +1519,7 @@ impl Aviation {
         time: f64,
     ) {
         if p.ammo == 0.0 || self.rules.endurance.needs_recall(p.flight_time, true) {
-            p.phase = "returning".into();
+            crate::aircraft::set_str(&mut p.phase, "returning");
             return;
         }
         let mut patrol = carrier;
@@ -1518,17 +1548,17 @@ impl Aviation {
                         f.notice = Some("Following aircraft report · Acquiring locally".into());
                     } else {
                         f.notice = Some("Aircraft report unavailable · Returning".into());
-                        p.phase = "returning".into();
+                        crate::aircraft::set_str(&mut p.phase, "returning");
                         return;
                     }
                 }
                 AirOrder::Intercept { flight_id: id } => {
                     if ctx.knowledge.is_some() {
                         f.notice = Some("Interception requires an aircraft report".into());
-                        p.phase = "returning".into();
+                        crate::aircraft::set_str(&mut p.phase, "returning");
                         return;
                     }
-                    let target = self.planes().into_iter().find(|o| {
+                    let target = self.iter_planes().find(|o| {
                         o.flight_id.as_ref() == Some(id)
                             && o.team != p.team
                             && airborne(o)
@@ -1549,7 +1579,7 @@ impl Aviation {
                     }
                 }
                 AirOrder::Escort { flight_id: id } => {
-                    let target = self.planes().into_iter().find(|o| {
+                    let target = self.iter_planes().find(|o| {
                         o.flight_id.as_ref() == Some(id) && airborne(o) && !on_flight_deck(o)
                     });
                     if let Some(target) = target {
@@ -1567,15 +1597,13 @@ impl Aviation {
                 _ => {}
             }
         }
-        let pilots = self.pilot_aircraft(p, ctx.knowledge, 8000.0);
-        let planes: Vec<_> = pilots.iter().collect();
+        let planes = self.pilot_aircraft(p, ctx.knowledge, 8000.0);
         let target_flight = flight.as_ref().and_then(|f| match &f.order {
             AirOrder::Intercept { flight_id } => Some(flight_id.as_str()),
             AirOrder::InterceptContact { contact_id } => Some(contact_id.as_str()),
             _ => None,
         });
-        let target =
-            fighter_target(p, &planes, patrol, dt, target_flight).map(|i| planes[i].clone());
+        let target = fighter_target(p, &planes, patrol, dt, target_flight).map(|i| planes[i]);
         let pressure = 1.0 - p.hp / 100.0
             + if target
                 .as_ref()
@@ -1597,7 +1625,7 @@ impl Aviation {
             if let Some(f) = flight {
                 f.notice = None;
             }
-            p.phase = "attack".into();
+            crate::aircraft::set_str(&mut p.phase, "attack");
             let pursuing = steer_fighter(p, &hostile, &planes, dt);
             let gun = fighter_gun_aim(p, &hostile);
             let lane_clear = clear_fighter_lane(p, gun.point, &planes);
@@ -1640,10 +1668,13 @@ impl Aviation {
                     }),
                     ..Default::default()
                 });
-                self.apply_fighter_hit(p, &hostile, &burst, &gun, ctx);
+                // The identity outlives the borrowed view so the physical
+                // resolver can take the wing mutably.
+                let hostile_id = hostile.id.to_owned();
+                self.apply_fighter_hit(p, &hostile_id, &burst, &gun, ctx);
             }
         } else {
-            p.phase = "outbound".into();
+            crate::aircraft::set_str(&mut p.phase, "outbound");
             p.pilot.aim_time = 0.0;
             p.pilot.break_time = 0.0;
             p.pilot.break_cooldown = (p.pilot.break_cooldown - dt).max(0.0);
@@ -1669,10 +1700,10 @@ impl Aviation {
                 .iter()
                 .filter(|a| {
                     a.team == p.team
-                        && a.flight_id == p.flight_id
+                        && a.flight_id == p.flight_id.as_deref()
                         && a.role == "fighter"
-                        && a.id < p.id
-                        && in_flight(a)
+                        && a.id < p.id.as_str()
+                        && a.in_flight()
                 })
                 .count();
             let altitude: f64 = if area_defense && (slot / 2) % 2 == 1 {

@@ -197,17 +197,75 @@ pub struct AirRelease {
     pub weapon: Option<crate::definition::TorpedoPart>,
 }
 pub const FIGHTER_AMMO_BURSTS: f64 = 16.0;
-pub fn terminal(p: &Aircraft) -> bool {
-    matches!(p.phase.as_str(), "lost" | "withdrawn")
+/// Assign a closed-set string in place. The stored bytes are identical to
+/// `*slot = value.into()`; only the allocation is reused.
+#[inline]
+pub fn set_str(slot: &mut String, value: &str) {
+    if slot != value {
+        slot.clear();
+        slot.push_str(value);
+    }
 }
-pub fn airborne(p: &Aircraft) -> bool {
+#[inline]
+pub fn set_opt_str(slot: &mut Option<String>, value: &str) {
+    match slot {
+        Some(existing) => set_str(existing, value),
+        None => *slot = Some(value.to_owned()),
+    }
+}
+pub fn terminal_phase(phase: &str) -> bool {
+    matches!(phase, "lost" | "withdrawn")
+}
+pub fn airborne_phase(phase: &str) -> bool {
     matches!(
-        p.phase.as_str(),
+        phase,
         "takeoff" | "outbound" | "attack" | "returning" | "landing"
     )
 }
+pub fn terminal(p: &Aircraft) -> bool {
+    terminal_phase(&p.phase)
+}
+pub fn airborne(p: &Aircraft) -> bool {
+    airborne_phase(&p.phase)
+}
 pub fn in_flight(p: &Aircraft) -> bool {
     airborne(p) && p.hp > 0.0
+}
+/// What a pilot is permitted to observe about another aircraft, borrowed
+/// rather than cloned. Every field carries exactly the value the previous
+/// `Aircraft` copy carried, so pilot decisions are unchanged; the fields the
+/// pilot controllers never read are simply absent.
+#[derive(Clone, Copy, Debug)]
+pub struct PlaneView<'a> {
+    pub id: &'a str,
+    pub flight_id: Option<&'a str>,
+    pub hostile_id: Option<&'a str>,
+    pub team: TeamId,
+    pub role: &'a str,
+    pub phase: &'a str,
+    pub position: Vec3,
+    pub velocity: Vec3,
+    pub hp: f64,
+    pub ammo: f64,
+}
+impl<'a> PlaneView<'a> {
+    pub fn of(p: &'a Aircraft) -> Self {
+        Self {
+            id: &p.id,
+            flight_id: p.flight_id.as_deref(),
+            hostile_id: p.pilot.hostile_id.as_deref(),
+            team: p.team,
+            role: &p.role,
+            phase: &p.phase,
+            position: p.position,
+            velocity: p.velocity,
+            hp: p.hp,
+            ammo: p.ammo,
+        }
+    }
+    pub fn in_flight(&self) -> bool {
+        airborne_phase(self.phase) && self.hp > 0.0
+    }
 }
 pub fn on_flight_deck(p: &Aircraft) -> bool {
     p.deck_slot.is_some()

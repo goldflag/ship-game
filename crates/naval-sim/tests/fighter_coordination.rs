@@ -46,7 +46,7 @@ fn fixture() -> Vec<Aircraft> {
 #[test]
 fn a_six_plane_cap_splits_between_high_and_low_inbound_tracks() {
     let all = fixture();
-    let refs: Vec<_> = all.iter().collect();
+    let refs: Vec<_> = all.iter().map(naval_sim::aircraft::PlaneView::of).collect();
     let assignments: Vec<_> = all[..6]
         .iter()
         .map(|p| {
@@ -96,13 +96,13 @@ fn panic_does_not_spend_ammunition_on_a_distant_unsettled_solution() {
 }
 
 fn assignments(all: &[Aircraft]) -> Vec<String> {
-    let refs: Vec<_> = all.iter().collect();
+    let refs: Vec<_> = all.iter().map(naval_sim::aircraft::PlaneView::of).collect();
     all.iter()
         .filter(|p| p.team == TeamId::A)
         .map(|p| {
             let mut p = p.clone();
             let i = fighter_target(&mut p, &refs, [0.; 3], 1., None).unwrap();
-            refs[i].id.clone()
+            refs[i].id.to_owned()
         })
         .collect()
 }
@@ -152,7 +152,7 @@ fn defenders_release_departing_tracks_but_explicit_intercepts_continue() {
     let mut p = all[0].clone();
     p.pilot.hostile_id = Some(all[6].id.clone());
     p.pilot.think = 1.;
-    let refs: Vec<_> = all.iter().collect();
+    let refs: Vec<_> = all.iter().map(naval_sim::aircraft::PlaneView::of).collect();
     assert!(fighter_target(&mut p, &refs, [0.; 3], 1. / 60., None).is_none());
     assert!(fighter_target(&mut p, &refs, [0.; 3], 1. / 60., Some("enemy")).is_some());
 }
@@ -188,7 +188,8 @@ fn a_fighter_with_height_advantage_descends_instead_of_repeated_high_yoyos() {
     p.heading = -std::f64::consts::FRAC_PI_2;
     hostile.position = [0., 90., 300.];
     hostile.velocity = [-80., 0., 0.];
-    naval_sim::aircraft_tactics::steer_fighter(&mut p, &hostile, &[&hostile], 1. / 60.);
+    let view = naval_sim::aircraft::PlaneView::of(&hostile);
+    naval_sim::aircraft_tactics::steer_fighter(&mut p, &view, &[view], 1. / 60.);
     assert_ne!(p.pilot.maneuver.as_ref().unwrap().kind, "high-yo-yo");
     assert!(
         p.navigation_target.unwrap()[1] < 850.,
@@ -207,7 +208,8 @@ fn diving_pursuit_spends_height_before_overtaking_a_low_target() {
     hostile.position = [0., 90., 0.];
     hostile.velocity = [-80., 0., 0.];
     for _ in 0..120 {
-        naval_sim::aircraft_tactics::steer_fighter(&mut p, &hostile, &[&hostile], 1. / 60.);
+        let view = naval_sim::aircraft::PlaneView::of(&hostile);
+        naval_sim::aircraft_tactics::steer_fighter(&mut p, &view, &[view], 1. / 60.);
         hostile.position[0] -= 80. / 60.;
     }
     assert!(

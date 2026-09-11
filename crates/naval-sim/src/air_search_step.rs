@@ -27,7 +27,7 @@ impl Aviation {
             return false;
         };
         let Some(k) = ctx.knowledge else {
-            p.phase = "returning".into();
+            crate::aircraft::set_str(&mut p.phase, "returning");
             return true;
         };
         let progress = p.search.get_or_insert_with(|| {
@@ -49,7 +49,7 @@ impl Aviation {
         }
         if progress.elapsed_seconds >= progress.deadline_seconds {
             f.notice = Some("Search time complete · Returning".into());
-            p.phase = "returning".into();
+            crate::aircraft::set_str(&mut p.phase, "returning");
             return true;
         }
         let reports = k.sensors.iter_contacts(p.team);
@@ -61,11 +61,12 @@ impl Aviation {
             });
         if policy != SearchPolicy::Strike && (threatened || p.hp < 60.0) {
             f.notice = Some("Scout withdrawing · Preserving aircraft".into());
-            p.phase = "returning".into();
+            crate::aircraft::set_str(&mut p.phase, "returning");
             return true;
         }
         if policy != SearchPolicy::Report && p.target_id.is_none() {
-            p.target_id = reports.clone()
+            p.target_id = reports
+                .clone()
                 .filter(local)
                 .filter(|c| c.kind == ContactKind::Surface && c.affiliation == Affiliation::Hostile)
                 .filter(|c| {
@@ -90,7 +91,7 @@ impl Aviation {
                 progress.shadow_seconds += dt;
                 if progress.shadow_seconds >= 120.0 {
                     f.notice = Some("Shadow complete · Returning".into());
-                    p.phase = "returning".into();
+                    crate::aircraft::set_str(&mut p.phase, "returning");
                     return true;
                 }
                 if !observation::locally_observed(c, p, k.tick) {
@@ -108,7 +109,7 @@ impl Aviation {
                 }
                 let point = orbit_point(p, anchor, 3000.0, 1.0);
                 f.notice = Some("Shadowing · Reporting without attacking".into());
-                p.phase = "outbound".into();
+                crate::aircraft::set_str(&mut p.phase, "outbound");
                 fly(
                     p,
                     point,
@@ -126,7 +127,7 @@ impl Aviation {
         let progress = p.search.as_mut().unwrap();
         let Some(endpoint) = progress.route.get(progress.waypoint).copied() else {
             f.notice = Some("Sweep complete · Returning".into());
-            p.phase = "returning".into();
+            crate::aircraft::set_str(&mut p.phase, "returning");
             return true;
         };
         let origin = if progress.waypoint == 0 {
@@ -164,7 +165,7 @@ impl Aviation {
             progress.route.len(),
             altitude.metres() as u32
         ));
-        p.phase = "outbound".into();
+        crate::aircraft::set_str(&mut p.phase, "outbound");
         fly(
             p,
             point,
