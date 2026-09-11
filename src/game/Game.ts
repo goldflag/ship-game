@@ -13,7 +13,7 @@ import { projectShipLabel } from './ShipLabels';
 import { projectAirMapPath } from './AirMapProjection';
 import { projectAirMapPolygon } from './AirMapPolygon';
 import { squadronFlights, airborne, onFlightDeck, type AirOrder } from '../simulation/aircraft';
-import { reportPosition } from '../ui/reconReports';
+import { reportName, reportPosition } from '../ui/reconReports';
 import { aircraftFollowView } from './AircraftFollow';
 import { AircraftView } from './AircraftView';
 import { oceanMap, DEFAULT_MAP, landHeight } from '../maps/catalog';
@@ -47,7 +47,7 @@ import { ObservedShipViews } from './ObservedShipViews';
 import { FleetVisibility } from './FleetVisibility';
 import { ArmorOverlay } from './ArmorOverlay';
 import { InspectionHover, type InspectionHoverInfo } from './InspectionHover';
-import { ShipLabels } from './ShipLabels';
+import { ShipLabels, type ObservedLabelReport } from './ShipLabels';
 import { HitLabels } from './HitLabels';
 import { TorpedoPreview } from './TorpedoPreview';
 import { HullDamageFeedback } from './HullDamageFeedback';
@@ -270,7 +270,7 @@ export class Game {
     this.renderer.domElement.setAttribute('aria-label', `${this.definition.name} ocean scene. Drag to orbit; scroll to zoom.`);
     this.renderer.domElement.tabIndex = 0;
     this.host.appendChild(this.renderer.domElement);
-    this.shipLabels = new ShipLabels(this.host);
+    this.shipLabels = new ShipLabels(this.host, id => this.observedShipViews?.labelAnchor(id));
     this.hitLabels = new HitLabels(this.host);
     this.gunAim = new GunAimIndicators(this.host);
     this.hitDirections = new HitDirectionIndicators(this.host.parentElement ?? this.host);
@@ -286,6 +286,7 @@ export class Game {
       optics: () => this.toggleBinoculars(), weaponGroup: index => this.selectWeaponSlot(index),
       cursor: released => { if (released) this.rig.releasePointer(); else if (!this.airOperationsOpen && !document.querySelector('dialog[open]')) this.rig.capturePointer(); },
       chartSize: direction => this.resizeChart(direction),
+      simulationSpeed: () => this.cycleSimulationSpeed(),
       shellFollow: () => this.toggleShellFollow(),
       shellType: () => this.cycleAmmunition(),
       isSpectating: () => !this.inPort && this.simulation.isBattle && this.simulation.player.damage.sunk,
@@ -825,6 +826,7 @@ export class Game {
       this.fleetViews.forEach(view => view.updateMotion(alpha));
       this.observedShipViews?.update(this.simulation.observedShips ?? [], this.simulation.tick, !this.inPort && !this.inspecting,
         this.airOperationsOpen ? undefined : this.cameraShipView.actor.motion.id, presentationDt);
+      this.shipLabels.setObserved(this.observedLabelReports());
       // A salvo must not synchronously project scars onto every struck hull.
       // Share the budget across the fleet and rotate which hull gets first use.
       const impactBudget = { remainingMs: 2 };
@@ -1095,6 +1097,19 @@ export class Game {
     const point = projectShipLabel(anchor, this.camera, this.host.clientWidth / this.hudScale, this.host.clientHeight / this.hudScale);
     return point ? [point.x, point.y] : null;
   }
+  /** Enemy hulls in a PvE battle are reports, not actors: they carry the chart's
+   * name for the contact and the observed hull fraction while the sighting is fresh. */
+  private observedLabelReports(): ObservedLabelReport[] {
+    const reports = this.simulation.observedShips;
+    if (!reports?.length) return [];
+    const tick = this.simulation.tick;
+    const tracks = new Map((this.simulation.observationTracks ?? []).map(track => [track.id, track]));
+    return reports.map(report => {
+      const track = tracks.get(report.id);
+      const fresh = report.health !== undefined && Number.isFinite(report.health) && tick - report.observedTick <= 60;
+      return { id: report.id, name: track ? reportName(track) : 'Surface contact', health: fresh ? report.health : undefined, sunk: !!track?.visibleCondition?.sinking };
+    });
+  }
   private contactPosition(id: string): Vec3 | undefined {
     const report = this.simulation.observationTracks?.find(contact => contact.id === id);
     if (!report) return;
@@ -1311,6 +1326,12 @@ export class Game {
     if (this.inPort || this.paused || this.simulation.player.damage.sunk) return;
     if (this.simulation.setDepth) this.simulation.setDepth(depthM, emergency);
     else orderDepth(this.simulation.player, this.definition, depthM, emergency);
+  }
+  /** 1× → 2× → 4× → 1×. The session refuses the change outside an active PvE battle. */
+  cycleSimulationSpeed(): void {
+    if (this.inPort || this.simulation.networked || !this.simulation.setSimulationSpeed) return;
+    const speeds = [1, 2, 4] as const;
+    this.simulation.setSimulationSpeed(speeds[(speeds.indexOf(this.simulation.simulationSpeed ?? 1) + 1) % speeds.length]);
   }
   resizeChart(direction: number): void { if (this.airOperationsOpen) { this.zoomAirMap(-direction * 220); return; } this.chartSize = THREE.MathUtils.clamp(this.chartSize + direction, 0, 4); }
   togglePeriscope(): void {

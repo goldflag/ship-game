@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { Euler, Group, Quaternion } from 'three/webgpu';
+import { BoxGeometry, Euler, Group, Mesh, Quaternion } from 'three/webgpu';
 import { ObservedShipViews } from './ObservedShipViews';
 import type { ObservedShip } from './session/BattleSession';
 
@@ -80,4 +80,22 @@ test('paused reports stay still, extrapolation stays bounded, and removed observ
   expect(views.root.children).toHaveLength(0);
   views.update([report({ position: [500, 0, 0], observedTick: 600 })], 600, true, undefined, 0);
   expect(views.root.children[0].position.toArray()).toEqual([500, 0, 0]);
+});
+
+test('a visible exterior offers an overhead label anchor above the hull; a hidden one offers none', () => {
+  const views = new ObservedShipViews();
+  const template = new Group();
+  const mesh = new Mesh(new BoxGeometry(20, 30, 200)); mesh.position.y = 15; template.add(mesh);
+  views.setModels(new Map([['fletcher', template]]));
+  const sighting = report({ position: [1000, 0, -2000], observers: ['forward-destroyer'] });
+  views.update([sighting], 0, true, 'forward-destroyer', 0);
+  const anchor = views.labelAnchor('contact-0-1')!;
+  expect(anchor.x).toBeCloseTo(1000, 3); expect(anchor.z).toBeCloseTo(-2000, 3);
+  // Top of the measured hull plus clearance, whatever pose the root later takes.
+  expect(anchor.y).toBeCloseTo(35, 3);
+  views.update([sighting], 0, true, 'rear-carrier', 0);
+  expect(views.labelAnchor('contact-0-1')).toBeUndefined();
+  views.update([sighting], 0, false, 'forward-destroyer', 0);
+  expect(views.labelAnchor('contact-0-1')).toBeUndefined();
+  expect(views.labelAnchor('nobody')).toBeUndefined();
 });

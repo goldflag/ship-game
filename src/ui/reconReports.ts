@@ -1,6 +1,10 @@
 import type { ContactTrack } from '../multiplayer/generated/ContactTrack';
 import type { ReconCoverage } from '../multiplayer/generated/ReconCoverage';
 import type { Vec3 } from '../ships/blueprint';
+import { shipPreset } from '../ships/presets';
+
+/** What the chart and the overhead label call a contact: the identified class, else the observed classification. */
+export const reportName = (track: ContactTrack): string => track.identifiedPresetId ? shipPreset(track.identifiedPresetId).name : track.classification ?? (track.kind === 'aircraft' ? 'Aircraft contact' : 'Surface contact');
 
 export type ReportState = 'current' | 'last-known' | 'estimated' | 'confirmed-sinking';
 export function reportState(report: ContactTrack, tick: number): ReportState {

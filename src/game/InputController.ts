@@ -18,6 +18,7 @@ export interface InputActions {
   emergencyBlow?(): void;
   periscope?(): void;
   airOperations?(): void;
+  simulationSpeed?(): void;
   isSpectating?(): boolean;
   cycleSpectator?(direction: number): void;
 }
@@ -79,6 +80,9 @@ export class InputController {
       // while the helm is not the player's, such as when following a teammate.
       if (action === 'chartLarger') this.actions.chartSize(1);
       if (action === 'chartSmaller') this.actions.chartSize(-1);
+      // Simulation speed is the battle's clock, not the helm's: it answers while
+      // following a captain or reading the fleet chart, like the chart size keys.
+      if (action === 'simulationSpeed') this.actions.simulationSpeed?.();
       // Optics are a view control too: a spectator following a teammate raises the
       // same glasses without holding that ship's helm.
       if (shift) this.shiftTap = true;

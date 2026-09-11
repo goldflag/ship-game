@@ -39,7 +39,8 @@ test('PvE helm restores regular ship instruments without granting them to follow
   expect(chart).not.toContain('Ship condition and helm');
   expect(chart).not.toContain('fleet-sight-chase');
   expect(chart).not.toContain('Navigation minimap');
-  expect(chart).toContain('aria-label="Fleet roster"');
+  expect(chart).toContain('aria-label="Own fleet"');
+  expect(chart).not.toContain('Fleet roster');
 });
 
 test('the compact shell cycle exposes the current load, next choice, stocks and remapped shortcut', () => {

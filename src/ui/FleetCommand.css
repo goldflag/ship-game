@@ -167,30 +167,10 @@
 .fleet-simulation-speed button { min-width:0; min-height:24px; padding:2px 5px; border:0; border-bottom:2px solid transparent; border-radius:0; background:none; font:500 14px/1 'Barlow Condensed',sans-serif; color:var(--fleet-muted); text-shadow:0 2px 4px #07131bea; }
 .fleet-simulation-speed button[aria-pressed=true] { color:var(--fleet-active); border-bottom-color:var(--fleet-active); }
 .fleet-simulation-speed button.fleet-speed-overrun[aria-pressed=true] { color:var(--fleet-warning,#e8a33d); border-bottom-color:var(--fleet-warning,#e8a33d); }
+.fleet-simulation-speed kbd { margin-left:4px; }
 .fleet-speed-achieved { margin-left:3px; font:500 11px/1 'Barlow Condensed',sans-serif; color:var(--fleet-warning,#e8a33d); text-shadow:0 2px 4px #07131bea; }
 .fleet-command-paused { position:absolute; top:62px; left:50%; transform:translateX(-50%); padding:6px 10px; background:#132d38; color:var(--fleet-gold); border:1px solid var(--fleet-line); font-size:12px; text-align:center; text-shadow:none; }
 
-.fleet-command-roster { position:absolute; left:24px; bottom:22px; display:flex; gap:22px; align-items:flex-end; flex-wrap:wrap; max-width:calc(100% - 420px); }
-.fleet-command-formation { display:grid; gap:6px; }
-.fleet-command .fleet-command-formation-name { justify-content:flex-start; gap:7px; min-height:0; padding:2px 0; border:0; background:none; font:500 12px 'Barlow',sans-serif; text-shadow:0 2px 4px #07131bea; }
-.fleet-command .fleet-command-formation-name[aria-pressed=true] { color:var(--fleet-gold); border:0; }
-.fleet-command-formation-name small { color:var(--fleet-muted); font-weight:400; }
-.fleet-command-tokens { display:flex; gap:10px; }
-.fleet-command .fleet-command-token { display:grid; justify-items:center; gap:3px; width:84px; min-height:0; padding:0; border:0; background:none; font-size:11px; color:var(--fleet-muted); text-shadow:0 2px 4px #07131bea; white-space:nowrap; }
-.fleet-command .fleet-command-token[aria-pressed=true] { border:0; }
-.fleet-command-token svg { width:42px; height:42px; display:block; }
-.fleet-command-token-ring { fill:#0b1e27d8; stroke:#c9dce033; }
-.fleet-command-token-hull { fill:none; stroke:var(--fleet-active); stroke-width:2.5; }
-.fleet-command-token.warn .fleet-command-token-hull { stroke:var(--fleet-gold); }
-.fleet-command-token path { fill:#f0f5f3; }
-.fleet-command .fleet-command-token[aria-pressed=true] path { fill:var(--fleet-gold); }
-.fleet-command-token-name { color:var(--fleet-text); font-weight:500; }
-.fleet-command-token[aria-pressed=true] .fleet-command-token-name,.fleet-command-token.warn .fleet-command-token-name { color:var(--fleet-gold); }
-.fleet-command .fleet-command-token:hover:not(:disabled) { border:0; color:var(--fleet-muted); }
-.fleet-command-token.hovered .fleet-command-token-ring { stroke:#f0f5f3; stroke-width:1.5; }
-.fleet-command-token.hovered .fleet-command-token-name { text-decoration:underline; text-underline-offset:3px; }
-.fleet-command-token-score { color:var(--fleet-active); }
-.fleet-command-token.lost { opacity:.45; }
 .fleet-command-ticker { position:absolute; left:50%; bottom:22px; transform:translateX(-50%); text-align:center; font-size:11.5px; color:var(--fleet-muted); line-height:1.7; pointer-events:none; }
 .fleet-command-ticker p[data-state=accepted] { color:var(--fleet-active); }
 .fleet-command-ticker p[data-state=rejected] { color:#ffb5a6; }
@@ -227,15 +207,12 @@
 
 @container hud (max-width:1050px) {
   .fleet-command-hint { display:none; }
-  .fleet-command-roster { max-width:calc(100% - 340px); }
   .fleet-command-wheel-block { width:360px; }
 }
 @container hud (max-width:720px) {
   .fleet-command-top { left:12px; right:12px; top:12px; }
   .fleet-command button { font-size:12px; }
   .fleet-command kbd { display:none; }
-  .fleet-command-roster { left:12px; bottom:12px; max-width:calc(100% - 24px); gap:12px; }
-  .fleet-command-token { width:64px; }
   .fleet-command-ticker,.fleet-command-recon { display:none; }
   .fleet-command-panel { width:calc(100% - 12px); }
 }
@@ -297,9 +274,6 @@
 .fleet-command-marker .fleet-command-route-alert { color:var(--fleet-gold); pointer-events:none; }
 .fleet-command-marker .fleet-command-route-alert path { fill:#102c37; stroke:currentColor; stroke-width:1.5; }
 .fleet-command-marker .fleet-command-route-alert text { fill:currentColor; font-size:11px; font-weight:500; }
-.fleet-command-token .fleet-route-warning { display:flex; align-items:center; justify-content:center; gap:3px; color:var(--fleet-gold); font-size:10px; }
-.fleet-command-token .fleet-route-warning svg { width:12px; height:12px; flex:none; }
-.fleet-command .fleet-command-token .fleet-route-warning path { fill:none; stroke:currentColor; }
 
 /* Armament on the markers. An own fighter carries a four-cell belt off its
    starboard wing (brass on the last cell); a bomber carries its weapon as a dark

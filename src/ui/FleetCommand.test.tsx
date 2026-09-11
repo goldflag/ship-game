@@ -43,11 +43,13 @@ test('unselected owned routes retain waypoint markers and stale aircraft never d
 test('the chart shows every formation, the enemy fleet and an order wheel with hotkeys for the selected ship', () => {
   const { render, data, id } = fixture();
   const html = render({ ...data, selectedShipIds: [id] });
-  expect(html).toContain('aria-label="Fleet roster"');
+  // The corner card is the only order of battle; the foot roster that repeated it is gone.
+  expect(html).not.toContain('Fleet roster');
+  expect(html).not.toContain('fleet-command-token');
   expect(html).toContain('<kbd>1</kbd>Bismarck');
   expect(html).toContain('12.4k dmg · 1 sunk');
   expect(html).toContain('aria-label="Own fleet"');
-  // The own card reports the standing order beside each ship, the roster only its score.
+  // The own card reports the standing order beside each ship.
   expect(html).toContain('Route · 19 kn · Waypoint 1/2');
   expect(html).toContain('aria-label="Enemy fleet"');
   expect(html).toContain('Yamato');
@@ -123,7 +125,8 @@ test('an unselected blocked ship exposes its route and warnings, then clears the
   expect(html).toContain('fleet-command-course blocked');
   expect(html).toContain('fleet-command-route-alert');
   expect(html).toContain('Bismarck route blocked · Reassign destination');
-  expect(html.match(/class="fleet-route-warning"/g)).toHaveLength(2);
+  // One warning, on the own fleet card row; the foot roster no longer repeats it.
+  expect(html.match(/class="fleet-route-warning"/g)).toHaveLength(1);
   expect(html).not.toContain('Bismarck waypoint 2');
   expect(html).toContain('[300,0,400]');
   order.navigation.status = 'following-route';
@@ -156,7 +159,7 @@ test('the formation picker acts on the selected group and explains itself when t
   const whole = render(owned.map(c => c.id));
   expect(whole).toContain('aria-label="Formation"');
   for (const label of ['Column', 'Double column', 'Triple column', 'Screen', 'Line abreast']) expect(whole).toContain(`>${label}</button>`);
-  // The group sails in column until the picker says otherwise, and says so on the rail and in the roster.
+  // The group sails in column until the picker says otherwise, and says so on the rail and in the own fleet card.
   expect(whole).toContain('aria-pressed="true">Column</button>');
   expect(whole).toContain('Line ahead. Followers turn in succession');
   expect(whole).toContain('3 ships · Column');
@@ -175,7 +178,7 @@ test('choosing a formation records it on the control group and re-stations every
   const members = owned.map((c, i) => ({ id: c.id, shipClass: classes[i] }));
   expect(classes).toEqual(['battleship', 'destroyer', 'cruiser']);
   expect(applyGroupFormation(game, group, 'screen', members)).toBe('2 escort orders queued · Screen');
-  // The group keeps how it sails, so the roster, the chart and a later Move all agree.
+  // The group keeps how it sails, so the card, the chart and a later Move all agree.
   expect(controlGroups.get(1)).toEqual({ name: 'Group 1', shipIds: owned.map(c => c.id), formation: 'screen' });
   // Cruiser inside, destroyer outside: role order decides the slots, and every order carries both.
   expect(escorts.map(e => [e.id, e.formation, e.slot, e.radiusM])).toEqual([

@@ -97,3 +97,62 @@ test('overhead condition percentages, meters and loss spans use each ship maximu
     else Reflect.deleteProperty(globalThis, 'document');
   }
 });
+
+test('reported enemy hulls get a named label with the observed condition, hidden while unseen', () => {
+  class Element {
+    children: Element[] = [];
+    className = ''; textContent = ''; hidden = false;
+    style: Record<string, string> = {}; dataset: Record<string, string> = {};
+    attributes = new Map<string, string>();
+    classes = new Set<string>();
+    classList = { toggle: (name: string, on: boolean) => { if (on) this.classes.add(name); else this.classes.delete(name); } };
+    parent?: Element;
+    append(...children: Element[]) { children.forEach(child => { child.parent = this; this.children.push(child); }); }
+    appendChild(child: Element) { this.append(child); }
+    replaceChildren() { this.children = []; }
+    remove() { if (this.parent) this.parent.children = this.parent.children.filter(child => child !== this); }
+    setAttribute(name: string, value: string) { this.attributes.set(name, value); }
+    find(name: string): Element | undefined {
+      return this.className === name ? this : this.children.map(child => child.find(name)).find(Boolean);
+    }
+  }
+  const original = Object.getOwnPropertyDescriptor(globalThis, 'document');
+  Object.defineProperty(globalThis, 'document', { configurable: true, value: { createElement: () => new Element() } });
+  try {
+    const anchors = new Map<string, Vector3 | undefined>([['contact-0-3', new Vector3(0, 30, -5000)]]);
+    const host = new Element(), labels = new ShipLabels(host as unknown as HTMLElement, id => anchors.get(id));
+    labels.resize(1600, 900);
+    const camera = new PerspectiveCamera(52, 16 / 9, .5, 60000);
+    camera.coordinateSystem = WebGPUCoordinateSystem;
+    Reflect.set(camera, '_reversedDepth', true);
+    camera.updateProjectionMatrix();
+    labels.setObserved([{ id: 'contact-0-3', name: 'Large warship', health: .62 }]);
+    labels.update(camera, 0);
+    const label = host.find('ship-label ship-label-enemy ship-label-observed')!;
+    expect(label.hidden).toBe(false);
+    expect(label.dataset.shipId).toBe('contact-0-3');
+    expect(host.find('ship-label-name')!.textContent).toBe('Large warship');
+    expect(host.find('ship-label-health')!.textContent).toBe('62%');
+    expect(host.find('ship-label-fill')!.style.transform).toBe('scaleX(0.62)');
+    expect(host.find('ship-label-meter')!.attributes.get('aria-valuenow')).toBe('62');
+    // Identification renames the label in place; a stale sighting keeps the name but drops the meter.
+    labels.setObserved([{ id: 'contact-0-3', name: 'Yamato' }]);
+    labels.update(camera, 1);
+    expect(host.find('ship-label-name')!.textContent).toBe('Yamato');
+    expect(host.find('ship-label-meter')!.hidden).toBe(true);
+    expect(host.find('ship-label-health')!.hidden).toBe(true);
+    labels.setObserved([{ id: 'contact-0-3', name: 'Yamato', health: .1, sunk: true }]);
+    labels.update(camera, 2);
+    expect(label.classes.has('ship-label-sinking')).toBe(true);
+    expect(host.find('ship-label-meter')!.hidden).toBe(true);
+    // No visible exterior, no label; the report itself is still a contact on the chart.
+    anchors.set('contact-0-3', undefined);
+    labels.update(camera, 3);
+    expect(label.hidden).toBe(true);
+    labels.setObserved([]);
+    expect(host.find('ship-label ship-label-enemy ship-label-observed')).toBeUndefined();
+  } finally {
+    if (original) Object.defineProperty(globalThis, 'document', original);
+    else Reflect.deleteProperty(globalThis, 'document');
+  }
+});

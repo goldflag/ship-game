@@ -10,7 +10,7 @@ export class ObservedShipViews {
   readonly root = new THREE.Group();
   private models: ReadonlyMap<string, THREE.Group> = new Map();
   private request?: (presetId: string) => void;
-  private views = new Map<string, { presetId: string; root: THREE.Group }>();
+  private views = new Map<string, { presetId: string; root: THREE.Group; top: number }>();
   private motion = new ObservedMotion();
 
   setModels(models: ReadonlyMap<string, THREE.Group>, request?: (presetId: string) => void): void {
@@ -36,7 +36,9 @@ export class ObservedShipViews {
         const clone = model.clone(true);
         clone.traverse(node => { node.updateMatrix(); node.matrixAutoUpdate = false; });
         root.add(clone); this.root.add(root);
-        view = { presetId: report.presetId, root }; this.views.set(report.id, view);
+        // Measure the recognition model once, before the root takes the report's pose.
+        const bounds = new THREE.Box3().setFromObject(clone);
+        view = { presetId: report.presetId, root, top: bounds.isEmpty() ? 12 : bounds.max.y }; this.views.set(report.id, view);
       }
       // Ship cameras require that ship's own current visual report. The fleet
       // chart can use any friendly observer's permitted exterior observation.
@@ -47,6 +49,13 @@ export class ObservedShipViews {
     }
   }
   position(id: string): THREE.Vector3 | undefined { return this.views.get(id)?.root.position; }
+  /** World point above the drawn exterior for an overhead label; nothing while the report has no visible hull. */
+  labelAnchor(id: string): THREE.Vector3 | undefined {
+    const view = this.views.get(id);
+    if (!view || !this.root.visible || !view.root.visible) return;
+    view.root.updateWorldMatrix(true, false);
+    return new THREE.Vector3(0, view.top + 5, 0).applyMatrix4(view.root.matrixWorld);
+  }
   clear(): void { this.root.clear(); this.views.clear(); this.motion.clear(); }
   dispose(): void { this.clear(); this.models = new Map(); this.request = undefined; this.root.removeFromParent(); }
 }
