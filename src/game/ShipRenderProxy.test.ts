@@ -34,6 +34,44 @@ test('flat surfaces follow articulated joints and inspection without changing th
   expect(model.visible).toBe(true);
 });
 
+test('an unchanged frame rewrites no matrix, and a shared visibility cache matches the plain walk', () => {
+  const root = new THREE.Group(), model = new THREE.Group(), hull = new THREE.Mesh(new THREE.BoxGeometry(), new THREE.MeshStandardMaterial());
+  const mast = new THREE.Mesh(new THREE.BoxGeometry(), new THREE.MeshStandardMaterial());
+  root.add(model); model.add(hull); hull.add(mast);
+  const view = { root, model, impactMarks: { get renderMeshes() { return [].values(); } } } as unknown as ShipView;
+  const proxy = new ShipRenderProxy(view);
+  const cache = new Map<THREE.Object3D, boolean>();
+  try {
+    root.updateMatrixWorld(true); proxy.update(undefined, 1080, cache);
+    proxy.root.updateMatrixWorld(true);
+    const [hullProxy, mastProxy] = proxy.root.children as THREE.Mesh[];
+    expect(hullProxy.matrixWorldNeedsUpdate).toBe(false);
+    // Nothing moved: the pose already on the proxy stands, and three keeps its world matrix.
+    cache.clear(); proxy.update(undefined, 1080, cache);
+    expect(hullProxy.matrixWorldNeedsUpdate).toBe(false);
+    expect(mastProxy.matrixWorldNeedsUpdate).toBe(false);
+    // The shared ancestors are resolved once; a surface asked about once is not worth an entry.
+    expect(cache.size).toBe(3);
+    mast.rotation.y = .3; root.updateMatrixWorld(true);
+    cache.clear(); proxy.update(undefined, 1080, cache);
+    expect(hullProxy.matrixWorldNeedsUpdate).toBe(false);
+    expect(mastProxy.matrixWorldNeedsUpdate).toBe(true);
+    expect(mastProxy.matrix.elements).toEqual(mast.matrixWorld.elements);
+    proxy.root.updateMatrixWorld(true);
+    // Hiding a parent hides both copies through the cache, exactly as the uncached walk does.
+    hull.visible = false;
+    cache.clear(); proxy.update(undefined, 1080, cache);
+    expect(proxy.root.children).toHaveLength(0);
+    expect(proxy.sourceVisible(mast)).toBe(false);
+    hull.visible = true; root.position.z = 90; root.updateMatrixWorld(true);
+    cache.clear(); proxy.update(undefined, 1080, cache);
+    expect(proxy.root.children).toHaveLength(2);
+    for (const copy of proxy.root.children as THREE.Mesh[]) expect(copy.matrixWorldNeedsUpdate).toBe(true);
+    proxy.root.updateMatrixWorld(true);
+    expect(mastProxy.matrixWorld.elements).toEqual(mast.matrixWorld.elements);
+  } finally { proxy.dispose(); }
+});
+
 test('impact proxies share scars, follow their receivers and retire when scars are cleared', () => {
   const root = new THREE.Group(), model = new THREE.Group(), receiver = new THREE.Mesh(new THREE.BoxGeometry(), new THREE.MeshStandardMaterial());
   root.add(model); model.add(receiver);

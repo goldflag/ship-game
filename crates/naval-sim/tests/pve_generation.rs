@@ -1,0 +1,861 @@
+use naval_sim::{
+    bots::AiLevel,
+    catalog::Catalog,
+    pve::{FleetShip, GroupStation, Placement, PvePlan, PveRequest, TaskGroup, eligible_presets},
+    rules::TeamId,
+};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    sync::OnceLock,
+};
+fn catalog() -> &'static Catalog {
+    static CONTENT: OnceLock<Catalog> = OnceLock::new();
+    CONTENT.get_or_init(|| {
+        Catalog::load(&std::fs::read("../../.build/naval-content/manifest.json").unwrap()).unwrap()
+    })
+}
+fn battle(plan: &PvePlan) -> naval_sim::battle::Battle {
+    use std::{collections::BTreeMap, sync::Arc};
+    static COMPILED: OnceLock<BTreeMap<String, Arc<naval_sim::vessel::CompiledShip>>> =
+        OnceLock::new();
+    let compiled = COMPILED.get_or_init(|| {
+        ["fletcher", "enterprise-cv6"]
+            .into_iter()
+            .map(|id| (id.into(), Arc::new(catalog().compile(id).unwrap())))
+            .collect()
+    });
+    // Restrict only this focused command fixture's available pool.
+    naval_sim::battle::Battle::new(Arc::new(catalog().clone()), compiled, plan.restart_setup())
+        .unwrap()
+}
+fn request(seed: u32, ids: &[&str], map: &str) -> PveRequest {
+    PveRequest {
+        version: 1,
+        seed,
+        map_id: map.into(),
+        weather: "clear".into(),
+        difficulty: AiLevel::Normal,
+        ships: ids
+            .iter()
+            .enumerate()
+            .map(|(i, id)| FleetShip {
+                id: format!("ship-{i}"),
+                preset_id: (*id).into(),
+                group_id: if id.contains("enterprise") || *id == "shokaku" {
+                    "rear"
+                } else {
+                    "front"
+                }
+                .into(),
+            })
+            .collect(),
+        groups: vec![
+            TaskGroup {
+                id: "front".into(),
+                name: "Surface force".into(),
+                station: GroupStation::Front,
+                formation: None,
+            },
+            TaskGroup {
+                id: "rear".into(),
+                name: "Carrier force".into(),
+                station: GroupStation::Rear,
+                formation: None,
+            },
+        ],
+    }
+}
+#[test]
+fn generated_fleets_scale_to_selected_fleet_and_respect_every_hard_cap_across_maps() {
+    let catalog = catalog();
+    let rules = &catalog.missions["pve-fleet-v1"];
+    let mut complements = BTreeSet::new();
+    let mut layouts = BTreeSet::new();
+    for map in catalog.map_ids().unwrap() {
+        for seed in 0..24 {
+            let ids = if seed % 2 == 0 {
+                vec!["bismarck", "baltimore", "fletcher", "fletcher"]
+            } else {
+                vec!["enterprise-cv6", "baltimore", "fletcher", "fletcher"]
+            };
+            let plan = PvePlan::generate(catalog, request(seed, &ids, &map)).unwrap();
+            let setup = plan.restart_setup();
+            let own = rules
+                .budget
+                .resolve(
+                    &ids.iter().map(|id| (*id).into()).collect::<Vec<_>>(),
+                    catalog,
+                )
+                .unwrap();
+            let enemy: Vec<_> = setup.ships.iter().filter(|s| s.team == TeamId::B).collect();
+            let total = rules
+                .budget
+                .resolve(
+                    &enemy
+                        .iter()
+                        .map(|s| s.preset_id.clone())
+                        .collect::<Vec<_>>(),
+                    catalog,
+                )
+                .unwrap();
+            assert!(
+                (0.85..=1.15)
+                    .contains(&(total.displacement_kg as f64 / own.displacement_kg as f64))
+            );
+            let environment = catalog
+                .resolve_pve_environment(&map, "clear", seed, rules, None)
+                .unwrap();
+            for (index, ship) in setup.ships.iter().enumerate() {
+                let p = ship.spawn.as_ref().unwrap();
+                assert!(rules.area.contains(
+                    [p.x, p.z],
+                    catalog.definitions[&ship.preset_id].hull.length / 2.0
+                ));
+                assert!(if ship.team == TeamId::A {
+                    p.z >= 7000.0
+                } else {
+                    p.z <= -7000.0
+                });
+                assert!(setup.ships[..index].iter().all(|s| {
+                    let o = s.spawn.as_ref().unwrap();
+                    (o.x - p.x).hypot(o.z - p.z) >= 350.0
+                }));
+                assert!(environment.islands.iter().all(|i| {
+                    let mut expanded = i.clone();
+                    expanded.rx += 250.0;
+                    expanded.rz += 250.0;
+                    expanded.radius(p.x, p.z) > 1.05
+                }));
+            }
+            complements.insert(
+                enemy
+                    .iter()
+                    .map(|s| s.preset_id.clone())
+                    .collect::<Vec<_>>(),
+            );
+            layouts.insert(serde_json::to_string(&enemy).unwrap());
+        }
+    }
+    assert!(
+        complements.len() > 8,
+        "Generator must vary actual complements"
+    );
+    assert!(layouts.len() >= 24);
+}
+#[test]
+fn tiny_fleet_and_one_preset_catalog_have_a_small_legal_opponent() {
+    let mut content = catalog().clone();
+    content.definitions.retain(|id, _| id == "fletcher");
+    let plan = PvePlan::generate(&content, request(42, &["fletcher"], "north-atlantic")).unwrap();
+    assert_eq!(plan.restart_setup().ships.len(), 2);
+    assert!(
+        plan.restart_setup()
+            .ships
+            .iter()
+            .all(|s| s.preset_id == "fletcher")
+    );
+    assert_eq!(eligible_presets(&content), ["fletcher"]);
+    // Reject the entire reserved namespace, independent of actual enemy size.
+    for id in ["opponent-1", "opponent-15", "opponent-99999"] {
+        let mut req = request(42, &["fletcher"], "north-atlantic");
+        req.ships[0].id = id.into();
+        assert!(PvePlan::generate(&content, req).is_err());
+    }
+}
+#[test]
+fn seed_repeats_setup_and_friendly_placement_never_rerolls_or_exposes_enemy() {
+    let content = catalog();
+    let req = request(51, &["baltimore", "fletcher"], "pacific-islands");
+    let mut plan = PvePlan::generate(content, req.clone()).unwrap();
+    let repeat = PvePlan::generate(content, req).unwrap();
+    let initial = serde_json::to_value(plan.restart_setup()).unwrap();
+    assert_eq!(
+        initial,
+        serde_json::to_value(repeat.restart_setup()).unwrap()
+    );
+    let briefing = plan.briefing(content);
+    assert!(briefing.setup.ships.iter().all(|s| s.team == TeamId::A));
+    assert!(
+        !serde_json::to_string(&briefing)
+            .unwrap()
+            .contains("opponent-")
+    );
+    let enemy_before: Vec<_> = plan
+        .restart_setup()
+        .ships
+        .into_iter()
+        .filter(|s| s.team == TeamId::B)
+        .collect();
+    let placements: Vec<_> = briefing
+        .setup
+        .ships
+        .iter()
+        .enumerate()
+        .map(|(i, s)| Placement {
+            id: s.id.clone(),
+            spawn: naval_sim::battle::Spawn {
+                x: i as f64 * 750.0,
+                z: 9000.0,
+                heading: 0.2,
+            },
+        })
+        .collect();
+    let changed = plan.deploy(content, placements.clone()).unwrap();
+    let enemy_after: Vec<_> = changed
+        .ships
+        .into_iter()
+        .filter(|s| s.team == TeamId::B)
+        .collect();
+    assert_eq!(
+        serde_json::to_value(enemy_before).unwrap(),
+        serde_json::to_value(enemy_after).unwrap()
+    );
+    let accepted = serde_json::to_value(plan.restart_setup()).unwrap();
+    let mut invalid = placements;
+    invalid[0].spawn.z = -8000.0;
+    assert!(plan.deploy(content, invalid).is_err());
+    assert_eq!(
+        accepted,
+        serde_json::to_value(plan.restart_setup()).unwrap(),
+        "Rejected placement is atomic"
+    );
+}
+#[test]
+fn mission_geography_is_independent_of_private_roster_and_initial_pool_excludes_unsupported_ships()
+{
+    let content = catalog();
+    let eligible = eligible_presets(content);
+    assert!(eligible.contains(&"shokaku".into()));
+    for id in [
+        "type-viic",
+        "liberty-cargo",
+        "liberty-collier",
+        "victory-cargo",
+    ] {
+        assert!(!eligible.contains(&id.into()));
+    }
+    for map in content.map_ids().unwrap() {
+        let small = PvePlan::generate(content, request(55, &["fletcher"], &map))
+            .unwrap()
+            .briefing(content);
+        let large = PvePlan::generate(
+            content,
+            request(55, &["iowa", "bismarck", "baltimore", "fletcher"], &map),
+        )
+        .unwrap()
+        .briefing(content);
+        let environment = |setup: &naval_sim::battle::BattleSetup| {
+            serde_json::to_value(
+                content
+                    .resolve_pve_environment(
+                        &setup.map_id,
+                        &setup.weather,
+                        setup.seed,
+                        setup.mission_rules.as_ref().unwrap(),
+                        setup.wind_speed,
+                    )
+                    .unwrap(),
+            )
+            .unwrap()
+        };
+        assert_eq!(environment(&small.setup), environment(&large.setup));
+    }
+}
+
+#[test]
+fn opening_orders_keep_escorts_but_leave_all_player_group_routes_unassigned() {
+    use naval_sim::navigation::Movement;
+    let mut content = catalog().clone();
+    content
+        .definitions
+        .retain(|id, _| matches!(id.as_str(), "fletcher" | "enterprise-cv6"));
+    let mut req = request(
+        812,
+        &["enterprise-cv6", "fletcher", "fletcher"],
+        "north-atlantic",
+    );
+    req.ships[1].group_id = "rear".into();
+    let plan = PvePlan::generate(&content, req).unwrap();
+    let battle = battle(&plan);
+    let orders = plan.initial_directives(&battle);
+    assert!(matches!(&orders["ship-0"].0, Movement::HoldArea { .. }));
+    assert!(matches!(&orders["ship-1"].0,Movement::Escort{leader_id,..} if leader_id=="ship-0"));
+    assert!(matches!(&orders["ship-2"].0, Movement::HoldArea { .. }));
+    assert!(orders.values().all(|(_, target)| target.is_none()));
+}
+#[test]
+fn enemy_search_orders_do_not_change_when_unobserved_friendly_ships_move() {
+    let mut content = catalog().clone();
+    content.definitions.retain(|id, _| id == "fletcher");
+    let plan = PvePlan::generate(
+        &content,
+        request(83, &["fletcher", "fletcher"], "north-atlantic"),
+    )
+    .unwrap();
+    let mut battle = battle(&plan);
+    let before = serde_json::to_value(plan.enemy_directives(&battle)).unwrap();
+    for actor in battle.actors.iter_mut().filter(|a| a.team == TeamId::A) {
+        actor.motion.x = 18000.0;
+        actor.motion.z = 12000.0;
+        actor.motion.heading = 1.2;
+    }
+    let after = serde_json::to_value(plan.enemy_directives(&battle)).unwrap();
+    assert_eq!(before, after);
+    assert!(
+        plan.enemy_directives(&battle)
+            .keys()
+            .all(|id| id.starts_with("opponent-"))
+    );
+}
+
+#[test]
+fn enemy_air_commander_scouts_before_striking_uses_reports_and_keeps_fighter_support() {
+    use naval_sim::{aircraft::AirOrder, pve_air::AirIntent, sensors};
+    let mut content = catalog().clone();
+    content.definitions.retain(|id, _| id == "enterprise-cv6");
+    let plan =
+        PvePlan::generate(&content, request(83, &["enterprise-cv6"], "north-atlantic")).unwrap();
+    let mut battle = battle(&plan);
+    assert!(plan.enemy_air_directives(&battle).is_empty());
+    battle.tick = 300;
+    let directives = plan.enemy_air_directives(&battle);
+    assert_eq!(directives.len(), 1);
+    let cap = &directives[0];
+    assert!(cap.carrier_id.starts_with("opponent-"));
+    let AirIntent::Order(order @ AirOrder::Defend { .. }) = &cap.intent else {
+        panic!("initial air decision must protect the carrier")
+    };
+    assert!(battle.command_air(&cap.carrier_id, &cap.flight_id, order.clone()));
+    battle.tick = 600;
+    let before = serde_json::to_value(plan.enemy_air_directives(&battle)).unwrap();
+    for a in battle.actors.iter_mut().filter(|a| a.team == TeamId::A) {
+        a.motion.x = 18000.0;
+        a.motion.z = 12000.0;
+        a.motion.heading = 1.2;
+        a.damage.integrity *= 0.25;
+    }
+    assert_eq!(
+        before,
+        serde_json::to_value(plan.enemy_air_directives(&battle)).unwrap()
+    );
+    let scout = plan.enemy_air_directives(&battle).remove(0);
+    let AirIntent::Order(order @ AirOrder::SearchArea { .. }) = scout.intent else {
+        panic!("no contact: search")
+    };
+    assert!(battle.command_air(&scout.carrier_id, &scout.flight_id, order));
+    let own_carrier = battle
+        .actors
+        .iter()
+        .find(|a| a.team == TeamId::B)
+        .unwrap()
+        .motion
+        .clone();
+    for a in battle.actors.iter_mut().filter(|a| a.team == TeamId::A) {
+        a.motion.x = own_carrier.x;
+        a.motion.z = own_carrier.z + 5000.0;
+    }
+    for _ in 0..6 {
+        battle.tick += 60;
+        battle.sensors.update(
+            battle.tick,
+            &sensors::entities(&battle.actors, &battle.aviation),
+            &battle.islands,
+            &[],
+            sensors::VisualConditions::resolve(catalog(), "north-atlantic", "clear"),
+            &sensors::VisualRules::default(),
+        );
+    }
+    battle.tick = 1200;
+    let strike = plan.enemy_air_directives(&battle).remove(0);
+    let AirIntent::Order(order @ AirOrder::Strike { .. }) = strike.intent else {
+        panic!("observed surface contact: commit a strike")
+    };
+    let AirOrder::Strike { contact_id } = &order else {
+        unreachable!()
+    };
+    assert!(battle.sensors.contact(TeamId::B, contact_id).is_some());
+    assert!(!contact_id.starts_with("ship-"));
+    assert!(battle.command_air(&strike.carrier_id, &strike.flight_id, order));
+    battle.tick = 1500;
+    let escort = plan.enemy_air_directives(&battle).remove(0);
+    let AirIntent::Order(order @ AirOrder::Escort { .. }) = escort.intent else {
+        panic!("strike needs a fighter escort")
+    };
+    assert!(battle.command_air(&escort.carrier_id, &escort.flight_id, order));
+    assert!(
+        battle.aviation.wing("ship-0").unwrap().flights.is_empty(),
+        "the commander never launches the human's aircraft"
+    );
+    assert_eq!(
+        battle.aviation.wing(&cap.carrier_id).unwrap().flights.len(),
+        4
+    );
+}
+
+#[test]
+fn enemy_front_loss_repositions_carriers_and_keeps_surviving_escorts_with_them() {
+    use naval_sim::{navigation::Movement, sensors};
+    let mut content = catalog().clone();
+    content
+        .definitions
+        .retain(|id, _| matches!(id.as_str(), "fletcher" | "enterprise-cv6"));
+    let plan = (0..50)
+        .map(|seed| {
+            PvePlan::generate(
+                &content,
+                request(
+                    seed,
+                    &["enterprise-cv6", "fletcher", "fletcher", "fletcher"],
+                    "north-atlantic",
+                ),
+            )
+            .unwrap()
+        })
+        .find(|p| {
+            let b = battle(p);
+            b.actors
+                .iter()
+                .any(|a| a.team == TeamId::B && a.definition().air_wing.is_some())
+                && p.initial_directives(&b).iter().any(|(id, (m, _))| {
+                    id.starts_with("opponent-")
+                        && matches!(m,Movement::Route{waypoints,..} if waypoints.len()==6)
+                })
+        })
+        .unwrap();
+    let mut battle = battle(&plan);
+    battle.islands.clear();
+    for (i, a) in battle.actors.iter_mut().enumerate() {
+        a.motion.x = i as f64 * 500.0;
+        a.motion.z = if a.team == TeamId::A { -6000.0 } else { 0.0 };
+    }
+    for tick in (0..=600).step_by(60) {
+        battle.sensors.update(
+            tick,
+            &sensors::entities(&battle.actors, &battle.aviation),
+            &[],
+            &[],
+            sensors::VisualConditions::resolve(catalog(), "north-atlantic", "clear"),
+            &sensors::VisualRules::default(),
+        );
+    }
+    battle.tick = 600;
+    // The carrier is outside the close-threat withdrawal threshold. Only the
+    // subsequent loss of the front should change its rear patrol into retreat.
+    let carrier_id = battle
+        .actors
+        .iter_mut()
+        .find(|a| a.team == TeamId::B && a.definition().air_wing.is_some())
+        .map(|a| {
+            a.motion.z = 6000.0;
+            a.motion.id.clone()
+        })
+        .unwrap();
+    assert!(matches!(
+        &plan.enemy_directives(&battle)[&carrier_id].0,
+        Movement::Route { looped: true, .. }
+    ));
+    let opening = plan.initial_directives(&battle);
+    let front_leaders: Vec<_> = opening
+        .iter()
+        .filter(|(id, (m, _))| {
+            id.starts_with("opponent-")
+                && matches!(m,Movement::Route{waypoints,..} if waypoints.len()==6)
+        })
+        .map(|(id, _)| id.clone())
+        .collect();
+    let front: Vec<_> = opening
+        .iter()
+        .filter(|(id, (m, _))| {
+            front_leaders.contains(id)
+                || matches!(m,Movement::Escort{leader_id,..} if front_leaders.contains(leader_id))
+        })
+        .map(|(id, _)| id.clone())
+        .collect();
+    for a in battle
+        .actors
+        .iter_mut()
+        .filter(|a| front.contains(&a.motion.id))
+    {
+        a.damage.sunk = true;
+    }
+    let directives = plan.enemy_directives(&battle);
+    let carrier = battle
+        .actors
+        .iter()
+        .find(|a| a.team == TeamId::B && a.definition().air_wing.is_some())
+        .unwrap();
+    let (movement, target) = &directives[&carrier.motion.id];
+    assert!(
+        target.is_none(),
+        "movement directives must leave battery targets to captains"
+    );
+    let contacts = battle.sensors.contacts(TeamId::B);
+    let contact = contacts.iter().find(|c| c.targetable()).unwrap();
+    let Movement::Route {
+        waypoints,
+        looped: false,
+        ..
+    } = movement
+    else {
+        panic!("exposed carrier must withdraw, got {movement:?}")
+    };
+    let before = (carrier.motion.x - contact.estimated_position[0])
+        .hypot(carrier.motion.z - contact.estimated_position[2]);
+    let after = (waypoints[0][0] - contact.estimated_position[0])
+        .hypot(waypoints[0][1] - contact.estimated_position[2]);
+    assert!(
+        after > before + 2000.0,
+        "retreat must open range: {before} -> {after}"
+    );
+    assert!(
+        directives
+            .values()
+            .all(|(_, t)| t.as_ref().is_none_or(|id| id.starts_with("contact-")))
+    );
+    for (id, (movement, _)) in &directives {
+        if id != &carrier.motion.id && !front.contains(id) {
+            assert!(
+                matches!(movement,Movement::Escort{leader_id,..} if leader_id==&carrier.motion.id)
+            );
+        }
+    }
+    let before = serde_json::to_value(&directives).unwrap();
+    for a in battle.actors.iter_mut().filter(|a| a.team == TeamId::A) {
+        a.motion.x = 18000.0;
+        a.motion.z = 15000.0;
+        a.damage.integrity *= 0.1;
+    }
+    assert_eq!(
+        before,
+        serde_json::to_value(plan.enemy_directives(&battle)).unwrap(),
+        "hidden manoeuvres and damage cannot retarget retreat"
+    );
+}
+
+/// The opposing admiral deploys and sails his groups from the same station table
+/// the player's chart uses, and a formation the mission seed chose for him.
+#[test]
+fn enemy_groups_deploy_on_the_station_table_in_a_seeded_formation() {
+    use naval_sim::{
+        formations::{MIN_STATION_OFFSET_M, StationClass, formation_stations},
+        navigation::{Formation, Movement},
+    };
+    let mut content = catalog().clone();
+    content
+        .definitions
+        .retain(|id, _| matches!(id.as_str(), "fletcher" | "enterprise-cv6"));
+    let mut chosen = BTreeSet::new();
+    let fleets: [&[&str]; 3] = [
+        &["fletcher", "fletcher"],
+        &["enterprise-cv6", "fletcher", "fletcher", "fletcher"],
+        &[
+            "fletcher", "fletcher", "fletcher", "fletcher", "fletcher", "fletcher",
+        ],
+    ];
+    for (seed, fleet) in (0..24).flat_map(|seed| fleets.iter().map(move |fleet| (seed, *fleet))) {
+        let plan = PvePlan::generate(&content, request(seed, fleet, "north-atlantic")).unwrap();
+        let battle = battle(&plan);
+        let definition = |id: &str| {
+            &content.definitions[&plan
+                .restart_setup()
+                .ships
+                .iter()
+                .find(|s| s.id == id)
+                .unwrap()
+                .preset_id]
+        };
+        let orders = plan.initial_directives(&battle);
+        let mut groups: std::collections::BTreeMap<String, Vec<String>> = Default::default();
+        for (id, (movement, _)) in orders.iter().filter(|(id, _)| id.starts_with("opponent-")) {
+            let Movement::Escort {
+                leader_id, offset, ..
+            } = movement
+            else {
+                continue;
+            };
+            assert!(
+                (MIN_STATION_OFFSET_M..=5000.0).contains(&offset[0].hypot(offset[1])),
+                "{id} is ordered to an unissuable station {offset:?}"
+            );
+            groups
+                .entry(leader_id.clone())
+                .or_default()
+                .push(id.clone());
+        }
+        assert!(!groups.is_empty(), "seed {seed} produced no enemy escorts");
+        for (leader, mut followers) in groups {
+            // Same order the live group forms up in: flight decks first, then
+            // the heaviest hull, ties on id.
+            followers.sort_by(|a, b| {
+                let (x, y) = (definition(a), definition(b));
+                y.air_wing
+                    .is_some()
+                    .cmp(&x.air_wing.is_some())
+                    .then(y.hull.mass_kg.total_cmp(&x.hull.mass_kg))
+                    .then(a.cmp(b))
+            });
+            let Movement::Escort { formation, .. } = &orders[&followers[0]].0 else {
+                unreachable!()
+            };
+            let carrier = definition(&leader).air_wing.is_some();
+            assert_eq!(
+                carrier,
+                *formation == Formation::Screen,
+                "a carrier keeps a screen and a surface force does not"
+            );
+            if !carrier {
+                let size = followers.len() + 1;
+                chosen.insert((size, format!("{formation:?}")));
+                if size <= 2 {
+                    assert_eq!(*formation, Formation::Column);
+                }
+                if size >= 5 {
+                    assert_ne!(*formation, Formation::Column);
+                }
+            }
+            let stations = formation_stations(
+                *formation,
+                (leader.as_str(), StationClass::of(definition(&leader))),
+                &followers
+                    .iter()
+                    .map(|id| (id.clone(), StationClass::of(definition(id))))
+                    .collect::<Vec<_>>(),
+            );
+            for station in &stations {
+                let Movement::Escort { offset, slot, .. } = &orders[&station.id].0 else {
+                    unreachable!()
+                };
+                // The group deployed on its stations, so the offsets the escort
+                // orders derive from those placements are the table's own.
+                assert!(
+                    (offset[0] - station.offset[0]).abs() < 1.0
+                        && (offset[1] - station.offset[1]).abs() < 1.0,
+                    "seed {seed}: {} is stationed {offset:?}, not {:?}",
+                    station.id,
+                    station.offset
+                );
+                assert_eq!(*slot, station.slot);
+            }
+        }
+    }
+    assert!(
+        chosen.iter().map(|(_, f)| f).collect::<BTreeSet<_>>().len() > 1,
+        "the seed must actually vary the surface force's formation: {chosen:?}"
+    );
+}
+
+/// Enemy carriers plus fletchers only, so the compiled fixture covers the
+/// opponent, and the player's ships parked where the enemy carrier sees them.
+fn observed_fixture(level: AiLevel, player: &[&str]) -> (PvePlan, naval_sim::battle::Battle) {
+    let mut content = catalog().clone();
+    content
+        .definitions
+        .retain(|id, _| id == "enterprise-cv6" || id == "fletcher");
+    let mut request = request(83, player, "north-atlantic");
+    request.difficulty = level;
+    let plan = PvePlan::generate(&content, request).unwrap();
+    let mut battle = battle(&plan);
+    let own_carrier = battle
+        .actors
+        .iter()
+        .find(|a| a.team == TeamId::B && a.definition().air_wing.is_some())
+        .unwrap()
+        .motion
+        .clone();
+    for (i, a) in battle
+        .actors
+        .iter_mut()
+        .filter(|a| a.team == TeamId::A)
+        .enumerate()
+    {
+        a.motion.x = own_carrier.x + i as f64 * 1500.0;
+        a.motion.z = own_carrier.z + 5000.0;
+    }
+    (plan, battle)
+}
+fn observe(battle: &mut naval_sim::battle::Battle) {
+    use naval_sim::sensors;
+    battle.sensors.update(
+        battle.tick,
+        &sensors::entities(&battle.actors, &battle.aviation),
+        &battle.islands,
+        &[],
+        sensors::VisualConditions::resolve(catalog(), "north-atlantic", "clear"),
+        &sensors::VisualRules::default(),
+    );
+}
+/// Apply every enemy air order at each decision tick without stepping the
+/// battle, so queued flights stay counted as committed.
+fn commit_orders(
+    plan: &PvePlan,
+    battle: &mut naval_sim::battle::Battle,
+    rounds: u64,
+    cadence: u64,
+) {
+    use naval_sim::pve_air::AirIntent;
+    for _ in 0..rounds {
+        battle.tick += cadence;
+        observe(battle);
+        for d in plan.enemy_air_directives(battle) {
+            if let AirIntent::Order(order) = d.intent {
+                battle.command_air(&d.carrier_id, &d.flight_id, order);
+            }
+        }
+    }
+}
+fn strikes_by_contact(battle: &naval_sim::battle::Battle) -> BTreeMap<String, (usize, usize)> {
+    use naval_sim::aircraft::AirOrder;
+    let mut out: BTreeMap<String, (usize, usize)> = BTreeMap::new();
+    for a in battle.actors.iter().filter(|a| a.team == TeamId::B) {
+        let Some(wing) = battle.aviation.wing(&a.motion.id) else {
+            continue;
+        };
+        for f in &wing.flights {
+            let AirOrder::Strike { contact_id } = &f.order else {
+                continue;
+            };
+            let role = wing
+                .planes
+                .iter()
+                .find(|p| f.plane_ids.contains(&p.id))
+                .map(|p| p.role.clone())
+                .unwrap_or_default();
+            let slot = out.entry(contact_id.clone()).or_default();
+            if role == "dive-bomber" {
+                slot.0 += 1;
+            } else {
+                slot.1 += 1;
+            }
+        }
+    }
+    out
+}
+fn orders_of(battle: &naval_sim::battle::Battle) -> Vec<naval_sim::aircraft::AirOrder> {
+    battle
+        .actors
+        .iter()
+        .filter(|a| a.team == TeamId::B)
+        .filter_map(|a| battle.aviation.wing(&a.motion.id))
+        .flat_map(|w| w.flights.iter().map(|f| f.order.clone()))
+        .collect()
+}
+
+#[test]
+fn strike_budgets_favor_the_identified_carrier_and_stop_at_the_wave_limit() {
+    use naval_sim::aircraft::AirOrder;
+    let (plan, mut battle) = observed_fixture(AiLevel::Hard, &["enterprise-cv6", "fletcher"]);
+    commit_orders(&plan, &mut battle, 40, 180);
+    let contacts = battle.sensors.contacts(TeamId::B);
+    let carrier = contacts
+        .iter()
+        .find(|c| c.identified_preset_id.as_deref() == Some("enterprise-cv6"))
+        .expect("the player's carrier is a tracked report");
+    let destroyer = contacts
+        .iter()
+        .find(|c| c.identified_preset_id.as_deref() == Some("fletcher"))
+        .unwrap();
+    let strikes = strikes_by_contact(&battle);
+    let on_carrier = strikes.get(&carrier.id).copied().unwrap_or_default();
+    assert!(
+        on_carrier.0 >= 2 && on_carrier.1 >= 2 && on_carrier.0 <= 3 && on_carrier.1 <= 3,
+        "Hard commits two to three dive and torpedo flights at an identified carrier, got {on_carrier:?}"
+    );
+    let on_destroyer = strikes.get(&destroyer.id).copied().unwrap_or_default();
+    assert!(
+        on_destroyer.0 <= 1 && on_destroyer.1 == 0,
+        "a small warship draws at most one dive flight, got {on_destroyer:?}"
+    );
+    let total: usize = strikes.values().map(|(d, t)| d + t).sum();
+    assert!(
+        total <= 6,
+        "a Hard carrier keeps at most six bomber flights inbound, got {total}"
+    );
+    let orders = orders_of(&battle);
+    assert!(
+        orders
+            .iter()
+            .filter(|o| matches!(o, AirOrder::Defend { .. }))
+            .count()
+            == 1,
+        "one patrol flight with no hostile aircraft reported"
+    );
+    let escorts = orders
+        .iter()
+        .filter(|o| matches!(o, AirOrder::Escort { .. }))
+        .count();
+    assert!(
+        (1..=3).contains(&escorts),
+        "escorts scale with strike packages while a fighter reserve stays home, got {escorts}"
+    );
+}
+
+#[test]
+fn two_small_contacts_each_draw_one_flight_instead_of_a_pile_on() {
+    let (plan, mut battle) =
+        observed_fixture(AiLevel::Normal, &["enterprise-cv6", "fletcher", "fletcher"]);
+    // Only the two destroyers are in sight; the player's carrier is far off.
+    let carrier = battle
+        .actors
+        .iter_mut()
+        .find(|a| a.motion.id == "ship-0")
+        .unwrap();
+    carrier.motion.x += 60000.0;
+    commit_orders(&plan, &mut battle, 20, 300);
+    let strikes = strikes_by_contact(&battle);
+    assert_eq!(
+        strikes.len(),
+        2,
+        "both destroyers are targeted: {strikes:?}"
+    );
+    assert!(
+        strikes.values().all(|&(d, t)| d == 1 && t == 0),
+        "one dive flight each, no torpedo flights: {strikes:?}"
+    );
+}
+
+#[test]
+fn reported_hostile_aircraft_double_the_patrol_before_any_scout_leaves() {
+    use naval_sim::aircraft::AirOrder;
+    let (plan, mut battle) = observed_fixture(AiLevel::Normal, &["enterprise-cv6"]);
+    // The player's carrier puts fighters up 5 km from the enemy carrier.
+    let own = battle
+        .aviation
+        .squadron_flights(&battle.actors[0])
+        .into_iter()
+        .find(|f| f.id.contains("vf-6"))
+        .unwrap();
+    assert!(battle.command_air("ship-0", &own.id, AirOrder::Defend { target_id: None }));
+    for _ in 0..1500 {
+        battle.step(&BTreeMap::new());
+    }
+    battle.tick = battle.tick.next_multiple_of(300);
+    observe(&mut battle);
+    let seen_aircraft = battle
+        .sensors
+        .contacts(TeamId::B)
+        .iter()
+        .any(|c| c.kind == naval_sim::sensors::ContactKind::Aircraft);
+    assert!(seen_aircraft, "the enemy must have reported the fighters");
+    let mut defends = 0;
+    for _ in 0..2 {
+        for d in plan.enemy_air_directives(&battle) {
+            if let naval_sim::pve_air::AirIntent::Order(order) = d.intent {
+                if matches!(order, AirOrder::Defend { .. }) {
+                    defends += 1;
+                }
+                battle.command_air(&d.carrier_id, &d.flight_id, order);
+            }
+        }
+        battle.tick += 300;
+        observe(&mut battle);
+    }
+    let orders = orders_of(&battle);
+    let on_patrol = orders
+        .iter()
+        .filter(|o| matches!(o, AirOrder::Defend { .. }))
+        .count();
+    assert!(
+        on_patrol >= 2 && defends >= 1,
+        "two patrol flights under an air threat, got {on_patrol} ({orders:?})"
+    );
+}

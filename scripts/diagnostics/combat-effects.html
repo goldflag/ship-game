@@ -104,7 +104,7 @@ window.review = {
     await nextFrame(); return game.diagnostics();
   },
   async shellFollowStill(zoomDelta = 0, orbit = false) {
-    game.stopShellFollow();
+    game.returnToShip();
     prepare('tracers'); advance(.65);
     game.setPaused(false);
     window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyT', key: 't' }));

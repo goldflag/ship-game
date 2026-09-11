@@ -1,3 +1,4 @@
+import { torpedoSpeed } from './mobility';
 import { HULL_HP_SCALE } from './durability';
 import { expect, test } from 'bun:test';
 import blueprint from '../../assets/ships/type-viic/blueprint.json';
@@ -8,10 +9,10 @@ import enterprise from '../../assets/ships/enterprise-cv6/blueprint.json';
 import catalog from '../../assets/parts/guns.json';
 import { compileShip, type Vec3 } from '../ships/blueprint';
 import { CombatSimulation } from './combat';
-import { clearTorpedoLane, damageTorpedoHit, firstTorpedoHit, torpedoIntercept, type Torpedo, type TubeState } from './torpedoes';
+import { clearTorpedoLane, glancingDudChance, torpedoDudRoll, damageTorpedoHit, firstTorpedoHit, torpedoIntercept, type Torpedo, type TubeState } from './torpedoes';
 import { FIXED_DT } from './ship';
 import { botTorpedoAim } from './bots';
-import { localToWorld, normalize, scale, sub } from './geometry';
+import { add, localToWorld, normalize, scale, sub } from './geometry';
 import type { FleetActor } from './battle';
 import { updateCapability } from './stability';
 
@@ -20,11 +21,11 @@ const helm = { throttle: 0, rudder: 0 }, ahead: Vec3 = [0, 0, -1500];
 const intent = (aim: Vec3 = ahead, fire = false) => ({ aim, fire, battery: 'torpedo' as const });
 const rounds = (sim: CombatSimulation) => sim.player.torpedoTubes!.reduce((n, t) => n + t.ammo, 0);
 const step = (sim: CombatSimulation, ticks: number, aim = ahead, fire = false) => { for (let i = 0; i < ticks; i++) sim.step(helm, intent(aim, fire)); };
-const projectile = (ownerId = 'player', distance = 400): Torpedo => ({ id: 1, ownerId, tubeId: 'bow-tube-1', position: [0, -2, -400], velocity: [0, 0, -definition.torpedoTubes![0].weapon.speed], distance, age: 0, weapon: definition.torpedoTubes![0].weapon });
+const projectile = (ownerId = 'player', distance = 400): Torpedo => ({ id: 1, ownerId, tubeId: 'bow-tube-1', position: [0, -2, -400], velocity: [0, 0, -torpedoSpeed(definition.torpedoTubes![0].weapon.speed)], distance, age: 0, weapon: definition.torpedoTubes![0].weapon });
 const broadsideRound = (actor: FleetActor, station: number): Torpedo => {
   const t = projectile();
   t.position = localToWorld([-4, -2, station], actor.motion);
-  t.velocity = scale(normalize(sub(localToWorld([4, -2, station], actor.motion), t.position)), t.weapon.speed);
+  t.velocity = scale(normalize(sub(localToWorld([4, -2, station], actor.motion), t.position)), torpedoSpeed(t.weapon.speed));
   return t;
 };
 
@@ -98,7 +99,7 @@ test('torpedoes stay underwater at fixed speed, keep their launch course and exp
   const t = sim.torpedoes[0], velocity: Vec3 = [...t.velocity];
   step(sim, 300, [1500, 0, 0]);
   expect(t.velocity).toEqual(velocity); expect(t.position[1]).toBeCloseTo(-2, 6);
-  expect(t.distance).toBeCloseTo(t.weapon.speed * 301 * FIXED_DT, 6);
+  expect(t.distance).toBeCloseTo(torpedoSpeed(t.weapon.speed) * 301 * FIXED_DT, 6);
   t.distance = t.weapon.rangeM - .1; step(sim, 1);
   expect(sim.torpedoes).toHaveLength(0); expect(sim.events.at(-1)?.kind).toBe('torpedo-expired');
   expect(t.distance).toBe(t.weapon.rangeM);
@@ -123,7 +124,7 @@ test.each([bismarck, yamato, baltimore, enterprise])('torpedoes strike each exis
 
 test('contact before arming is a dud; armed hits apply flooding and score only actual enemy damage', () => {
   const sim = new CombatSimulation(definition); sim.target.motion.x = 0; sim.target.motion.z = -600;
-  const t = projectile('player', 0); t.position = [-4, -2, -600]; t.velocity = [t.weapon.speed, 0, 0];
+  const t = projectile('player', 0); t.position = [-4, -2, -600]; t.velocity = [torpedoSpeed(t.weapon.speed), 0, 0];
   sim.torpedoes.push(t); step(sim, 15);
   expect(sim.target.damage.integrity).toBe(sim.target.damage.maxIntegrity);
   expect(sim.events.some(e => e.kind === 'torpedo-dud')).toBe(true);
@@ -170,7 +171,8 @@ test('torpedo openings retain their position and magazine damage does not invent
   expect(magazine.detonated).toBe(false);
   expect(magazine.hp).toBeLessThan(definition.modules.find(m => m.id === magazine.id)!.hp);
   const hullLoss = before - sim.target.damage.integrity;
-  expect(hullLoss).toBeGreaterThan(projectile().weapon.damage * .625 * .9 * HULL_HP_SCALE);
+  // A full hit exhausts the light hull; damage cannot exceed its remaining HP.
+  expect(hullLoss).toBe(before);
   expect(hullLoss).toBeLessThanOrEqual(projectile().weapon.damage * .625 * HULL_HP_SCALE);
   updateCapability(sim.target, definition);
   expect(sim.target.damage.integrity).toBe(before - hullLoss);
@@ -198,17 +200,19 @@ test('loaded tubes preserve fighting strength after gun loss and recover after m
   expect(sim.player.damage.stability.combatLost).toBe(true);
 });
 
-test('torpedoes damage and score against a disarmed but afloat opponent', () => {
+test('torpedoes sink and score against a disarmed but afloat light hull', () => {
   const sim = new CombatSimulation(definition);
   sim.target.mounts.forEach(m => m.hp = 0);
   sim.target.torpedoTubes!.forEach(t => t.ammo = 0);
   updateCapability(sim.target, definition);
   expect(sim.target.damage.stability.combatLost).toBe(true);
+  expect(sim.telemetry('torpedo', ahead).playerFrags).toBe(0);
   sim.torpedoes.push(broadsideRound(sim.target, 11.3));
   step(sim, 15);
   expect(sim.events.some(e => e.kind === 'torpedo-hit')).toBe(true);
   expect(sim.telemetry('torpedo', ahead).playerDamageDealt).toBeGreaterThan(0);
-  expect(sim.telemetry('torpedo', ahead).playerFrags).toBe(0);
+  expect(sim.target.damage.integrity).toBe(0);
+  expect(sim.telemetry('torpedo', ahead).playerFrags).toBe(1);
 });
 
 test('bot lead intercepts a crossing target; friendly ships block the predicted torpedo lane', () => {
@@ -282,4 +286,40 @@ test('128 existing torpedoes do not suppress a loaded tube launch', () => {
   sim.requestFire(); step(sim, 1);
   expect(sim.torpedoes).toHaveLength(129);
   expect(rounds(sim)).toBe(13);
+});
+
+test('contact pistol is reliable outside extreme glancing angles and seeded per projectile', () => {
+  const chance = (degrees: number) => glancingDudChance([Math.sin(degrees * Math.PI / 180), 0, Math.cos(degrees * Math.PI / 180)], [1, 0, 0]);
+  expect(chance(90)).toBe(0);
+  expect(chance(45)).toBe(0);
+  expect(chance(20)).toBeCloseTo(0);
+  expect(chance(10)).toBeCloseTo(.45);
+  expect(chance(0)).toBeCloseTo(.9);
+  expect(glancingDudChance([-1, 0, 0], [-1, 0, 0])).toBe(0);
+  expect(torpedoDudRoll(123, 42)).toBe(0.41204642434604466); // Shared native/TS vector.
+  expect(torpedoDudRoll(124, 42)).not.toBe(torpedoDudRoll(123, 42));
+});
+
+test('an armed glancing dud is consumed without damage, flooding or score', () => {
+  const target = compileShip(blueprint, catalog);
+  target.hull.sections = [0, target.hull.length].map(station => ({ station, points: [[0, -4], [3, -4], [3, 4]] }));
+  const run = () => {
+    const sim = new CombatSimulation(definition, { enemies: [target], friendlyBots: [], spawnDistance: 1000 }, 123);
+    sim.target.controller = 'idle';
+    const direction: Vec3 = [Math.sin(Math.PI / 18), 0, Math.cos(Math.PI / 18)];
+    const t = { ...projectile(), id: 42 };
+    const contact = localToWorld([-3, -t.weapon.runningDepthM, 0], sim.target.motion);
+    const end = localToWorld(add([-3, -t.weapon.runningDepthM, 0], direction), sim.target.motion);
+    t.velocity = scale(normalize(sub(end, contact)), torpedoSpeed(t.weapon.speed));
+    t.position = sub(contact, scale(t.velocity, FIXED_DT / 2));
+    sim.torpedoes.push(t); step(sim, 1);
+    expect(sim.torpedoes).toHaveLength(0);
+    expect(sim.target.damage.integrity).toBe(sim.target.damage.maxIntegrity);
+    expect(sim.target.damage.compartments.every(c => c.breachAreaM2 === 0)).toBe(true);
+    expect(sim.telemetry('torpedo', ahead).playerDamageDealt).toBe(0);
+    expect(sim.telemetry('torpedo', ahead).damageLog).toHaveLength(0);
+    return sim.events.find(e => e.kind === 'torpedo-dud');
+  };
+  expect(run()).toMatchObject({ message: 'Torpedo dud · glancing impact', hullDamage: 0 });
+  expect(run()).toEqual(run());
 });

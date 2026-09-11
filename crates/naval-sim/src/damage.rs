@@ -71,6 +71,9 @@ pub struct DamageState {
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Combatant {
+    /// Content lookup tables for this ship's definition; never published.
+    #[serde(skip)]
+    pub index: std::sync::Arc<crate::vessel::ShipIndex>,
     #[serde(skip)]
     pub sea: Option<(crate::environment::SeaState, f64)>,
     pub depth_charge_launchers: Vec<crate::depth_charges::DepthChargeLauncherState>,
@@ -84,6 +87,7 @@ pub struct Combatant {
 impl Combatant {
     pub fn new(id: impl Into<String>, def: &ShipDefinition) -> Self {
         Self {
+            index: std::sync::Arc::new(crate::vessel::ShipIndex::new(def)),
             sea: None,
             torpedo_tubes: def
                 .torpedo_tubes
@@ -124,9 +128,8 @@ impl Combatant {
     }
 }
 pub fn max_hull_integrity(def: &ShipDefinition) -> f64 {
-    ((300.0 + 1450.0 * (def.hull.mass_kg / 70_000_000.0).sqrt()) / 10.0).round()
-        * 10.0
-        * HULL_HP_SCALE
+    // Gentle small-hull bonus (mass^0.8), anchored to Bismarck’s existing 50,750 HP.
+    ((def.hull.mass_kg / 43_978_000.0).powf(0.8) * 1450.0 * HULL_HP_SCALE).round()
 }
 impl DamageState {
     pub fn new(def: &ShipDefinition) -> Self {

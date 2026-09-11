@@ -66,7 +66,8 @@ test('Flower follows registered Cobalt 1941 GA landmarks and early-war equipment
 
 for (const def of definitions) {
   test(`${def.id}: hull-contained flood cells, machinery, positive reserve and restoring stability`, () => {
-    for (const room of def.compartments) for (const cell of room.cells!) for (let i=0;i<8;i++) {
+    // Generated side strips are plain boxes; only the residual reserve spaces carry cells.
+    for (const room of def.compartments) for (const cell of room.cells ?? [room]) for (let i=0;i<8;i++) {
       const point=cell.center.map((n,a)=>n+((i>>a)&1?1:-1)*cell.size[a]/2) as Vec3;
       expect(hullContains(def.hull,point)).toBe(true);
     }

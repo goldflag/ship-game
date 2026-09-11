@@ -1,11 +1,11 @@
 import type { CSSProperties } from 'react';
-export function Icon({ name, size = 20, style }: { name: 'settings' | 'power' | 'anchor' | 'pause' | 'play' | 'camera' | 'expand' | 'close' | 'arrow' | 'compass' | 'he' | 'shell' | 'repair' | 'ship' | 'turret' | 'target' | 'plus' | 'minus' | 'schematic' | 'download' | 'copy' | 'chevron' | 'fighter' | 'aircraft' | 'bomb' | 'torpedo'; size?: number; style?: CSSProperties }) {
+export function Icon({ name, size = 20, style }: { name: 'warning' | 'settings' | 'power' | 'anchor' | 'pause' | 'play' | 'camera' | 'expand' | 'close' | 'arrow' | 'compass' | 'he' | 'shell' | 'repair' | 'ship' | 'turret' | 'target' | 'plus' | 'minus' | 'chevron' | 'fighter' | 'aircraft' | 'bomb' | 'torpedo'; size?: number; style?: CSSProperties }) {
   const paths = {
+    warning: <><path d="M12 3 2 21h20Z"/><path d="M12 9v5m0 3v.5"/></>,
     aircraft: <path d="M12 2c-1 0-1.5 2-1.5 4v3L3 13v2l7.5-2v5L8 20v1l4-1 4 1v-1l-2.5-2v-5l7.5 2v-2l-7.5-4V6C13.5 4 13 2 12 2Z"/>,
     fighter: <><path d="M3 21V10c0-2 2-5 2-5s2 3 2 5v11ZM3 13h4M3 18h4M10 21V7c0-2 2-5 2-5s2 3 2 5v14ZM10 10h4M10 18h4M17 21V10c0-2 2-5 2-5s2 3 2 5v11ZM17 13h4M17 18h4"/></>,
     bomb: <><path d="M9 8h6v8a3 3 0 0 1-6 0ZM9 8 7 3l5 2 5-2-2 5M9 11h6M12 2v3"/></>,
     torpedo: <><path d="M6 9h11a3 3 0 0 1 0 6H6ZM6 9 3 6v12l3-3M9 9v6M1 9v6"/></>,
-    schematic: <><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 15h18M15 3v18M6 11l2-4h3l2 4ZM6 18h6M18 6v6"/></>,
     download: <><path d="M12 3v12m-5-5 5 5 5-5M4 15v6h16v-6"/></>,
     copy: <><rect x="8" y="8" width="12" height="13" rx="1"/><path d="M16 8V3H3v13h5"/></>,
     anchor: <><circle cx="12" cy="5" r="2"/><path d="M12 7v14M7 11h10M3 14v3c0 2 5 4 9 4s9-2 9-4v-3M3 14l3 2M21 14l-3 2"/></>,

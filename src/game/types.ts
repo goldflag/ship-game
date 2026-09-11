@@ -5,9 +5,22 @@ import type { CombatTelemetry } from '../simulation/combat';
 import type { ShellFollow } from './ShellFollow';
 import type { HullDamageCue } from './HullDamageFeedback';
 
+import { DEFAULT_GRAPHICS, type GraphicsSettings, type PerformanceReadoutMode } from './graphicsSettings';
+
+/** Mesh density tier read by the harbor and island builders. */
 export type Quality = 'medium' | 'high' | 'ultra';
-export interface GameSettings { quality: Quality; resolution: number; }
-export const DEFAULT_SETTINGS: GameSettings = { quality: 'high', resolution: 1 };
+export type GameSettings = GraphicsSettings;
+export const DEFAULT_SETTINGS: GameSettings = DEFAULT_GRAPHICS;
+/** Renderer telemetry for the FPS counter and the settings readout. */
+export interface PerformanceReadout {
+  mode: PerformanceReadoutMode;
+  fps: number;
+  frameMs: number;
+  width: number;
+  height: number;
+  backend: string;
+  detail?: { shipInstances: number; reducedInstances: number; particles: number; aircraft: number };
+}
 export interface Telemetry {
   mapId?: OceanMapId;
   islands?: Island[];
@@ -25,12 +38,20 @@ export interface Telemetry {
   followedAircraftId?: string;
   spectatedShipId?: string;
   airOperationsOpen?: boolean;
+  fleetCommandMode?: boolean;
+  selectedShipIds?: string[];
+  controlledShipId?: string;
+  tacticalPaused?: boolean;
+  simulationSpeed?: 1 | 2 | 4;
+  /** Simulated seconds per wall second actually reached at that setting. */
+  achievedSpeed?: number;
   selectedFlightId?: string;
   selectedFlightIds?: string[];
   airMap?: import('../ui/airChart').ChartView;
   squadronMarkers?: (import('../simulation/airTelemetry').FlightSummary & { team: import('../simulation/battle').Team; ownerId: string; screen: { x: number; y: number } | null })[];
   fps: number;
   backend: string;
+  performance?: PerformanceReadout;
   trail: { x: number; z: number }[];
   combat?: CombatTelemetry;
   playerDamage?: HullDamageCue;

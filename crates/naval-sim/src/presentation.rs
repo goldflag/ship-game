@@ -1,18 +1,42 @@
 //! Stream the presentation projection without first allocating a JSON tree for
 //! the entire authority state. Unmodified subtrees use their normal serializer.
-use crate::{bots::AiLevel, snapshot::Snapshot, vessel::Vessel};
+use crate::{
+    battle::Battle,
+    bots::AiLevel,
+    rules::TeamId,
+    snapshot::{Snapshot, detailed},
+    vessel::Vessel,
+};
 use serde::{
     Serialize, Serializer,
     ser::{Error, SerializeMap, SerializeSeq, SerializeStruct},
 };
 
-pub(crate) struct Presentation<'a>(pub Snapshot<'a>);
+/// Keep both tree and streaming projections consistent. Only the small pilot
+/// record needs a temporary value; hulls and other large state keep streaming.
+pub(crate) fn aircraft_behavior(
+    pilot: &serde_json::Value,
+) -> serde_json::Map<String, serde_json::Value> {
+    let mut behavior = serde_json::Map::new();
+    for (name, value) in [
+        ("recoveryNotice", &pilot["recovery"]["notice"]),
+        ("evasionNotice", &pilot["defense"]["notice"]),
+        ("maneuver", &pilot["maneuver"]["kind"]),
+    ] {
+        if value.is_string() {
+            behavior.insert(name.into(), value.clone());
+        }
+    }
+    behavior
+}
+
+pub(crate) struct Presentation<'a>(pub Snapshot<'a>, pub &'a [String]);
 impl Serialize for Presentation<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let f = &self.0;
         let mut s = serializer.serialize_struct("Snapshot", 12)?;
         s.serialize_field("tick", &f.tick)?;
-        s.serialize_field("actors", &Actors(f.actors))?;
+        s.serialize_field("actors", &Actors(f.actors, self.1))?;
         s.serialize_field("wings", &Filtered(f.wings, Mode::Wing))?;
         s.serialize_field("shells", &Filtered(f.shells, Mode::Shell))?;
         s.serialize_field("torpedoes", f.torpedoes)?;
@@ -26,15 +50,68 @@ impl Serialize for Presentation<'_> {
         s.end()
     }
 }
-struct Actors<'a>(&'a [Vessel]);
+struct Actors<'a>(&'a [Vessel], &'a [String]);
 impl Serialize for Actors<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let mut s = serializer.serialize_seq(Some(self.0.len()))?;
         for actor in self.0 {
             s.serialize_element(&Filtered(
                 actor,
-                Mode::Actor(actor.bot.as_ref().map(|b| b.ai_level)),
+                Mode::Actor(
+                    actor.bot.as_ref().map(|b| b.ai_level),
+                    detailed(self.1, &actor.motion.id),
+                ),
             ))?;
+        }
+        s.end()
+    }
+}
+
+pub(crate) struct TeamPresentation<'a>(pub &'a Battle, pub TeamId, pub &'a [String]);
+impl Serialize for TeamPresentation<'_> {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        let fields = self
+            .0
+            .team_presentation_fields(self.1)
+            .map_err(S::Error::custom)?;
+        let mut s = serializer.serialize_map(None)?;
+        for (key, value) in fields
+            .as_object()
+            .ok_or_else(|| S::Error::custom("Invalid team projection"))?
+        {
+            if key != "actors" {
+                s.serialize_entry(key, value)?;
+            }
+        }
+        s.serialize_entry("actors", &TeamActors(self.0, self.1, self.2))?;
+        s.end()
+    }
+}
+struct TeamActors<'a>(&'a Battle, TeamId, &'a [String]);
+impl Serialize for TeamActors<'_> {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        #[derive(Serialize)]
+        #[serde(rename_all = "camelCase")]
+        struct Actor<'a> {
+            #[serde(flatten)]
+            fields: Filtered<'a, Vessel>,
+            target_id: Option<String>,
+        }
+        let mut s = serializer.serialize_seq(None)?;
+        for actor in self.0.actors.iter().filter(|a| a.team == self.1) {
+            s.serialize_element(&Actor {
+                fields: Filtered(
+                    actor,
+                    Mode::TeamActor(
+                        actor.bot.as_ref().map(|b| b.ai_level),
+                        detailed(self.2, &actor.motion.id),
+                    ),
+                ),
+                target_id: actor
+                    .target_id
+                    .as_deref()
+                    .and_then(|id| self.0.public_entity_id(id, self.1)),
+            })?;
         }
         s.end()
     }
@@ -42,8 +119,12 @@ impl Serialize for Actors<'_> {
 
 #[derive(Clone, Copy)]
 enum Mode {
-    Actor(Option<AiLevel>),
-    Damage,
+    /// The flag is whether this hull keeps its damage-control detail.
+    Actor(Option<AiLevel>, bool),
+    TeamActor(Option<AiLevel>, bool),
+    Damage(bool),
+    Control,
+    Room,
     Stability,
     Mount,
     AimCache,
@@ -57,18 +138,34 @@ enum Field {
     Keep,
     Drop,
     Empty,
+    Behavior,
     Nested(Mode),
 }
 impl Mode {
     fn field(self, key: &str) -> Field {
         match (self, key) {
-            (Self::Actor(_), "bot")
+            (Self::Actor(..) | Self::TeamActor(..), "bot")
+            | (Self::TeamActor(..), "targetId")
             | (Self::Mount, "leadCache" | "aaDiscipline")
-            | (Self::AimCache, "point")
-            | (Self::Plane, "pilot") => Field::Drop,
-            (Self::Actor(_), "damage") => Field::Nested(Self::Damage),
-            (Self::Actor(_), "mounts") => Field::Nested(Self::Mount),
-            (Self::Damage, "stability") => Field::Nested(Self::Stability),
+            | (Self::AimCache, "point") => Field::Drop,
+            (Self::Plane, "pilot") => Field::Behavior,
+            (Self::Actor(_, detail) | Self::TeamActor(_, detail), "damage") => {
+                Field::Nested(Self::Damage(detail))
+            }
+            (Self::Actor(..) | Self::TeamActor(..), "mounts") => Field::Nested(Self::Mount),
+            (Self::Damage(_), "stability") => Field::Nested(Self::Stability),
+            // Portable pumping and flood connections reach only the on-screen
+            // damage-control panel, and the fire it reports needs six of a room's
+            // eight fields. Hull fire effects and the inspection view read the
+            // other two for every ship, so rooms keep their positions.
+            (Self::Damage(true), "control") => Field::Keep,
+            (Self::Damage(false), "control") => Field::Nested(Self::Control),
+            (Self::Damage(false), "connections") | (Self::Control, "pumping") => Field::Empty,
+            (Self::Control, "rooms") => Field::Nested(Self::Room),
+            (
+                Self::Room,
+                "fuel" | "initialFuel" | "ignitionHeat" | "heatPerDamage" | "trend" | "suppressed",
+            ) => Field::Drop,
             (Self::Stability, "water") => Field::Empty,
             (Self::Mount, "aimCache") => Field::Nested(Self::AimCache),
             (Self::Wing, "state") => Field::Nested(Self::WingState),
@@ -129,11 +226,15 @@ impl<S: SerializeStruct> SerializeStruct for FilterStruct<S> {
             Field::Keep => self.inner.serialize_field(key, value),
             Field::Drop => Ok(()),
             Field::Empty => self.inner.serialize_field(key, &[] as &[u8]),
+            Field::Behavior => self.inner.serialize_field(
+                "behavior",
+                &aircraft_behavior(&serde_json::to_value(value).map_err(S::Error::custom)?),
+            ),
             Field::Nested(mode) => self.inner.serialize_field(key, &Filtered(value, mode)),
         }
     }
     fn end(mut self) -> Result<S::Ok, S::Error> {
-        if let Mode::Actor(Some(level)) = self.mode {
+        if let Mode::Actor(Some(level), _) | Mode::TeamActor(Some(level), _) = self.mode {
             self.inner.serialize_field("aiLevel", &level)?;
         }
         self.inner.end()
@@ -152,6 +253,8 @@ impl<S: SerializeMap> SerializeMap for FilterMap<S> {
         self.field = self.mode.field(name);
         if matches!(self.field, Field::Drop) {
             Ok(())
+        } else if matches!(self.field, Field::Behavior) {
+            self.inner.serialize_key("behavior")
         } else {
             self.inner.serialize_key(key)
         }
@@ -161,11 +264,14 @@ impl<S: SerializeMap> SerializeMap for FilterMap<S> {
             Field::Keep => self.inner.serialize_value(value),
             Field::Drop => Ok(()),
             Field::Empty => self.inner.serialize_value(&[] as &[u8]),
+            Field::Behavior => self.inner.serialize_value(&aircraft_behavior(
+                &serde_json::to_value(value).map_err(S::Error::custom)?,
+            )),
             Field::Nested(mode) => self.inner.serialize_value(&Filtered(value, mode)),
         }
     }
     fn end(mut self) -> Result<S::Ok, S::Error> {
-        if let Mode::Actor(Some(level)) = self.mode {
+        if let Mode::Actor(Some(level), _) | Mode::TeamActor(Some(level), _) = self.mode {
             self.inner.serialize_entry("aiLevel", &level)?;
         }
         self.inner.end()

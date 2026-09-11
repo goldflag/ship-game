@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "id": "hsienyang-gamemodels3d-maintained-v1",
+  "basis": "Preserve the approved GameModels3D-only source scheme, original paint colors, markings, image boundaries and deck coverings. Shared maintained finish; no new historical color claim.",
+  "materials": {
+    "naval": {
+      "paint": "hsienyang-authored-naval",
+      "finish": "painted-steel",
+      "existing": "image",
+      "imageLayout": {
+        "bounds": [0, 5.7, 0, 5.7]
+      }
+    },
+    "roof": {
+      "paint": "hsienyang-authored-roof",
+      "finish": "painted-deck",
+      "existing": "image",
+      "imageLayout": {
+        "bounds": [0, 5.7, 0, 5.7]
+      }
+    },
+    "edge": {
+      "paint": "hsienyang-authored-edge",
+      "finish": "painted-steel",
+      "existing": "image",
+      "imageLayout": {
+        "bounds": [0, 5.7, 0, 5.7]
+      }
+    },
+    "hullgray": {
+      "paint": "hsienyang-authored-hullgray",
+      "finish": "painted-steel",
+      "existing": "image",
+      "imageLayout": {
+        "bounds": [0, 5.7, 0, 5.7]
+      }
+    },
+    "underwater": {
+      "paint": "hsienyang-authored-underwater",
+      "finish": "underwater-coating",
+      "existing": "image",
+      "imageLayout": {
+        "bounds": [0, 5.7, 0, 5.7]
+      }
+    },
+    "deck": {
+      "paint": "hsienyang-authored-deck",
+      "finish": "painted-deck",
+      "existing": "image",
+      "imageLayout": {
+        "bounds": [0, 5.7, 0, 5.7]
+      }
+    },
+    "wood": {
+      "paint": "hsienyang-authored-wood",
+      "finish": "wood",
+      "existing": "image",
+      "imageLayout": {
+        "bounds": [0, 5.7, 0, 5.7]
+      }
+    }
+  }
+}

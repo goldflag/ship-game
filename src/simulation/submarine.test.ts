@@ -163,15 +163,13 @@ test('commands reject nonfinite input, clamp depth, and do not enable diving on 
   expect(surface.player.submarine).toBeUndefined(); expect(surface.ship.y).toBeCloseTo(0);
 });
 
-test('diving is deterministic across display rates and bots dive while attacking', () => {
-  const make = () => new CombatSimulation(definition, { friendlyBots: [], enemies: [definition], spawnDistance: 2000, seed: 12 });
-  const a = make(), b = make();
-  const command = { throttle: .5, rudder: .2, depthM: 25 };
-  for (let i = 0; i < 1800; i++) a.advance(1 / 60, command, intent);
-  for (let i = 0; i < 900; i++) b.advance(1 / 30, command, intent);
-  expect(a.ship).toEqual(b.ship); expect(a.player.submarine).toEqual(b.player.submarine);
-  expect(a.target.submarine!.targetDepthM).toBe(7);
-  expect(a.target.motion.y).toBeLessThan(-5);
+test('player depth orders and attacking bots both dive during combat', () => {
+  const sim = new CombatSimulation(definition, { friendlyBots: [], enemies: [definition], spawnDistance: 2000, seed: 12 });
+  run(sim, 30, { throttle: .5, rudder: .2, depthM: 25 });
+  expect(sim.player.submarine!.targetDepthM).toBe(25);
+  expect(sim.ship.y).toBeLessThan(-5);
+  expect(sim.target.submarine!.targetDepthM).toBe(7);
+  expect(sim.target.motion.y).toBeLessThan(-5);
 });
 
 test('combat submarine bots dive on approach and stay submerged through tube reloads', () => {

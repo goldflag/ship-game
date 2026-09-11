@@ -1,3 +1,4 @@
+import { shipPresets } from '../ships/presets';
 import { describe, expect, test } from 'bun:test';
 import { createShipState, stepShip, SingleplayerSimulation, BISMARCK } from './ship';
 
@@ -51,4 +52,34 @@ describe('ship simulation', () => {
     expect(sim.ship.speed).toBe(0);
     expect(sim.ship.rudder).toBe(0);
   });
+});
+
+test('fleet agility retains authored speed limits and gradual acceleration', () => {
+  for (const definition of Object.values(shipPresets)) {
+    for (const h of [definition.handling, ...('submarine' in definition ? [definition.submarine.submergedHandling] : [])]) {
+      const ship = createShipState();
+      for (let i = 0; i < 600; i++) stepShip(ship, { throttle: 1, rudder: 0 }, h);
+      expect(ship.speed).toBeGreaterThan(Math.min(h.forwardSpeed, h.acceleration * 12.4));
+      expect(ship.speed).toBeLessThanOrEqual(Math.min(h.forwardSpeed, h.acceleration * 12.6));
+      for (let i = 0; i < 60000; i++) stepShip(ship, { throttle: 1, rudder: 0 }, h);
+      expect(ship.speed).toBe(h.forwardSpeed);
+      stepShip(ship, { throttle: -1, rudder: 0 }, h);
+      expect(ship.speed).toBeGreaterThan(0);
+      for (let i = 0; i < 60000; i++) stepShip(ship, { throttle: -1, rudder: 0 }, h);
+      expect(ship.speed).toBe(-h.reverseSpeed);
+    }
+  }
+});
+
+test('steering builds smoothly and settles sooner without instant heading changes', () => {
+  const ship = createShipState();
+  ship.speed = BISMARCK.forwardSpeed;
+  stepShip(ship, { throttle: 1, rudder: 1 });
+  expect(ship.rudder).toBeLessThan(.01);
+  expect(ship.yawRate).toBeLessThan(.001);
+  for (let i = 0; i < 1800; i++) stepShip(ship, { throttle: 1, rudder: 1 });
+  expect(ship.yawRate).toBeGreaterThan(.016);
+  expect(ship.speed).toBeLessThan(BISMARCK.forwardSpeed);
+  for (let i = 0; i < 600; i++) stepShip(ship, { throttle: 1, rudder: 0 });
+  expect(ship.yawRate).toBeLessThan(.0003);
 });

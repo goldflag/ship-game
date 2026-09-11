@@ -6,15 +6,28 @@ import { createHash } from 'node:crypto';
 import { mkdir } from 'node:fs/promises';
 import { shipPresets } from '../../src/ships/presets';
 import rules from '../../assets/gameplay/battle-rules.v1.json';
+import pveMission from '../../assets/gameplay/pve-mission.v1.json';
+import legacyAir from '../../assets/gameplay/legacy-air.v1.json';
+import pveAir from '../../assets/gameplay/pve-air.v1.json';
+import { aircraftDeckGeometry } from './aircraft-deck-geometry';
+import hydrostatics from '../../assets/gameplay/hydrostatics.v1.json';
 const digest = (bytes: string) => createHash('sha256').update(bytes).digest('hex');
 const ships = await Promise.all(Object.entries(shipPresets).map(async ([id, definition]) => {
   const json = await Bun.file(`public/models/${id}.json`).text();
   if (JSON.parse(json).contentHash !== definition.contentHash) throw new Error(`Catalog content mismatch: ${id}`);
   return { id, contentHash: definition.contentHash, sha256: digest(json), json };
 }));
+// Derived hull content: the two simulations must interpolate the same solved
+// table or their goldens drift, so it ships in the manifest rather than being
+// rebuilt per host.
+const hydro = Object.entries(shipPresets).map(([id, definition]) => {
+  const table = (hydrostatics.ships as Record<string, { contentHash: string }>)[id];
+  if (table?.contentHash !== definition.contentHash) throw new Error(`Stale hydrostatic table: ${id}. Run bun run ship:hydrostatics`);
+  return { id, ...table };
+});
 const manifest = {
-  version: 1, rulesVersion: rules.version, ships,
-  aircraft: [...new Set(Object.values(shipPresets).flatMap(def => def.airWing?.squadrons.map(s => s.modelId) ?? []))].map(id => ({ id, ...aircraftGroundPose(id), bomb: aircraftBomb(id), torpedo: aircraftTorpedo(id) })),
+  version: 1, rulesVersion: rules.version, missions: [pveMission], airProfiles: [legacyAir, pveAir], ships, hydrostatics: hydro,
+  aircraft: await Promise.all([...new Set(Object.values(shipPresets).flatMap(def => def.airWing?.squadrons.map(s => s.modelId) ?? []))].map(async id => ({ id, ...aircraftGroundPose(id), deckGeometry: await aircraftDeckGeometry(id), bomb: aircraftBomb(id), torpedo: aircraftTorpedo(id) }))),
   terrain: [...new Map(maps.maps.flatMap(map => map.land.islands.map(island => {
     const recipe = { ...island, style: map.land.style };
     return [`${island.seed}:${recipe.style}`, { seed: island.seed, style: recipe.style, samples: Array.from(terrainField(recipe)) }] as const;

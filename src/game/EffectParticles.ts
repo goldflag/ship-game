@@ -187,7 +187,19 @@ export class EffectParticlePool {
       wind: 0, angle: 0, spin: 0, stretch: 1, fadeIn: 0, align: 'billboard', waterline: false, surfaceY: 0, distance: 0 }));
   }
 
+  /** Fraction of requested particles that enter the pool. Skipped requests receive a
+   * detached scratch particle so callers keep their emission code unchanged. */
+  density = 1;
+  private densityPhase = 0;
+  private scratch?: EffectParticle;
+
   emit(position: THREE.Vector3, sourceId?: string): EffectParticle {
+    if (this.density < 1) {
+      // A fixed-stride sequence thins every effect evenly, without a random stream.
+      this.densityPhase += this.density;
+      if (this.densityPhase < 1) return this.scratch ??= { ...this.particles[0], position: new THREE.Vector3(), velocity: new THREE.Vector3(), color: new THREE.Color() };
+      this.densityPhase -= 1;
+    }
     const p = this.particles[this.cursor++ % this.capacity];
     p.position.copy(position); p.velocity.set(0, 0, 0); p.color.setRGB(1, 1, 1);
     p.age = 0; p.life = 1; p.size = 1; p.growth = 0; p.opacity = 1;

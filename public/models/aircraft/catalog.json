@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75",
+  "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de",
   "coordinates": {
     "units": "meters",
     "right": "+X",
@@ -17,7 +17,7 @@
       "length": 9.06,
       "wingspan": 12,
       "modelUrl": "/models/aircraft/a6m2-zero.glb",
-      "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75",
+      "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de",
       "nodeIds": [
         "aircraft.root",
         "propeller.spin",
@@ -30,7 +30,8 @@
         "gear.starboard",
         "gear.tail",
         "socket.payload",
-        "socket.deck"
+        "socket.deck",
+        "arrestor.hook"
       ],
       "switchDistancesM": [
         120,
@@ -41,19 +42,19 @@
           "level": 0,
           "modelUrl": "/models/aircraft/a6m2-zero.glb",
           "switchDistanceM": 0,
-          "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75"
+          "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de"
         },
         {
           "level": 1,
           "modelUrl": "/models/aircraft/LOD1/a6m2-zero-lod1.glb",
           "switchDistanceM": 120,
-          "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75"
+          "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de"
         },
         {
           "level": 2,
           "modelUrl": "/models/aircraft/LOD2/a6m2-zero-lod2.glb",
           "switchDistanceM": 400,
-          "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75"
+          "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de"
         }
       ]
     },
@@ -66,7 +67,7 @@
       "length": 10.2,
       "wingspan": 14.37,
       "modelUrl": "/models/aircraft/d3a1-val.glb",
-      "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75",
+      "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de",
       "nodeIds": [
         "aircraft.root",
         "propeller.spin",
@@ -79,7 +80,8 @@
         "gear.starboard",
         "gear.tail",
         "socket.payload",
-        "socket.deck"
+        "socket.deck",
+        "arrestor.hook"
       ],
       "switchDistancesM": [
         120,
@@ -90,19 +92,19 @@
           "level": 0,
           "modelUrl": "/models/aircraft/d3a1-val.glb",
           "switchDistanceM": 0,
-          "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75"
+          "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de"
         },
         {
           "level": 1,
           "modelUrl": "/models/aircraft/LOD1/d3a1-val-lod1.glb",
           "switchDistanceM": 120,
-          "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75"
+          "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de"
         },
         {
           "level": 2,
           "modelUrl": "/models/aircraft/LOD2/d3a1-val-lod2.glb",
           "switchDistanceM": 400,
-          "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75"
+          "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de"
         }
       ]
     },
@@ -115,7 +117,7 @@
       "length": 10.3,
       "wingspan": 15.5,
       "modelUrl": "/models/aircraft/b5n2-kate.glb",
-      "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75",
+      "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de",
       "nodeIds": [
         "aircraft.root",
         "propeller.spin",
@@ -128,7 +130,8 @@
         "gear.starboard",
         "gear.tail",
         "socket.payload",
-        "socket.deck"
+        "socket.deck",
+        "arrestor.hook"
       ],
       "switchDistancesM": [
         120,
@@ -139,19 +142,19 @@
           "level": 0,
           "modelUrl": "/models/aircraft/b5n2-kate.glb",
           "switchDistanceM": 0,
-          "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75"
+          "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de"
         },
         {
           "level": 1,
           "modelUrl": "/models/aircraft/LOD1/b5n2-kate-lod1.glb",
           "switchDistanceM": 120,
-          "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75"
+          "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de"
         },
         {
           "level": 2,
           "modelUrl": "/models/aircraft/LOD2/b5n2-kate-lod2.glb",
           "switchDistanceM": 400,
-          "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75"
+          "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de"
         }
       ]
     },
@@ -164,7 +167,7 @@
       "length": 9.12,
       "wingspan": 11,
       "modelUrl": "/models/aircraft/a6m5-zero.glb",
-      "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75",
+      "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de",
       "nodeIds": [
         "aircraft.root",
         "propeller.spin",
@@ -177,7 +180,8 @@
         "gear.starboard",
         "gear.tail",
         "socket.payload",
-        "socket.deck"
+        "socket.deck",
+        "arrestor.hook"
       ],
       "switchDistancesM": [
         120,
@@ -188,19 +192,19 @@
           "level": 0,
           "modelUrl": "/models/aircraft/a6m5-zero.glb",
           "switchDistanceM": 0,
-          "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75"
+          "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de"
         },
         {
           "level": 1,
           "modelUrl": "/models/aircraft/LOD1/a6m5-zero-lod1.glb",
           "switchDistanceM": 120,
-          "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75"
+          "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de"
         },
         {
           "level": 2,
           "modelUrl": "/models/aircraft/LOD2/a6m5-zero-lod2.glb",
           "switchDistanceM": 400,
-          "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75"
+          "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de"
         }
       ]
     },
@@ -213,7 +217,7 @@
       "length": 10.22,
       "wingspan": 11.5,
       "modelUrl": "/models/aircraft/d4y2-judy.glb",
-      "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75",
+      "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de",
       "nodeIds": [
         "aircraft.root",
         "propeller.spin",
@@ -226,7 +230,8 @@
         "gear.starboard",
         "gear.tail",
         "socket.payload",
-        "socket.deck"
+        "socket.deck",
+        "arrestor.hook"
       ],
       "switchDistancesM": [
         120,
@@ -237,19 +242,19 @@
           "level": 0,
           "modelUrl": "/models/aircraft/d4y2-judy.glb",
           "switchDistanceM": 0,
-          "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75"
+          "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de"
         },
         {
           "level": 1,
           "modelUrl": "/models/aircraft/LOD1/d4y2-judy-lod1.glb",
           "switchDistanceM": 120,
-          "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75"
+          "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de"
         },
         {
           "level": 2,
           "modelUrl": "/models/aircraft/LOD2/d4y2-judy-lod2.glb",
           "switchDistanceM": 400,
-          "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75"
+          "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de"
         }
       ]
     },
@@ -262,7 +267,7 @@
       "length": 10.9,
       "wingspan": 14.9,
       "modelUrl": "/models/aircraft/b6n2-jill.glb",
-      "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75",
+      "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de",
       "nodeIds": [
         "aircraft.root",
         "propeller.spin",
@@ -275,7 +280,8 @@
         "gear.starboard",
         "gear.tail",
         "socket.payload",
-        "socket.deck"
+        "socket.deck",
+        "arrestor.hook"
       ],
       "switchDistancesM": [
         120,
@@ -286,19 +292,19 @@
           "level": 0,
           "modelUrl": "/models/aircraft/b6n2-jill.glb",
           "switchDistanceM": 0,
-          "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75"
+          "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de"
         },
         {
           "level": 1,
           "modelUrl": "/models/aircraft/LOD1/b6n2-jill-lod1.glb",
           "switchDistanceM": 120,
-          "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75"
+          "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de"
         },
         {
           "level": 2,
           "modelUrl": "/models/aircraft/LOD2/b6n2-jill-lod2.glb",
           "switchDistanceM": 400,
-          "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75"
+          "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de"
         }
       ]
     },
@@ -311,7 +317,7 @@
       "length": 8.76,
       "wingspan": 11.58,
       "modelUrl": "/models/aircraft/f4f-4-wildcat.glb",
-      "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75",
+      "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de",
       "nodeIds": [
         "aircraft.root",
         "propeller.spin",
@@ -325,6 +331,7 @@
         "gear.tail",
         "socket.payload",
         "socket.deck",
+        "arrestor.hook",
         "wing.fold.port",
         "wing.fold.starboard"
       ],
@@ -337,19 +344,19 @@
           "level": 0,
           "modelUrl": "/models/aircraft/f4f-4-wildcat.glb",
           "switchDistanceM": 0,
-          "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75"
+          "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de"
         },
         {
           "level": 1,
           "modelUrl": "/models/aircraft/LOD1/f4f-4-wildcat-lod1.glb",
           "switchDistanceM": 120,
-          "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75"
+          "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de"
         },
         {
           "level": 2,
           "modelUrl": "/models/aircraft/LOD2/f4f-4-wildcat-lod2.glb",
           "switchDistanceM": 400,
-          "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75"
+          "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de"
         }
       ]
     },
@@ -362,56 +369,7 @@
       "length": 10.06,
       "wingspan": 12.65,
       "modelUrl": "/models/aircraft/sbd-3-dauntless.glb",
-      "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75",
-      "nodeIds": [
-        "aircraft.root",
-        "propeller.spin",
-        "control.rudder",
-        "control.elevator.port",
-        "control.elevator.starboard",
-        "control.aileron.port",
-        "control.aileron.starboard",
-        "gear.port",
-        "gear.starboard",
-        "gear.tail",
-        "socket.payload",
-        "socket.deck"
-      ],
-      "switchDistancesM": [
-        120,
-        400
-      ],
-      "lods": [
-        {
-          "level": 0,
-          "modelUrl": "/models/aircraft/sbd-3-dauntless.glb",
-          "switchDistanceM": 0,
-          "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75"
-        },
-        {
-          "level": 1,
-          "modelUrl": "/models/aircraft/LOD1/sbd-3-dauntless-lod1.glb",
-          "switchDistanceM": 120,
-          "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75"
-        },
-        {
-          "level": 2,
-          "modelUrl": "/models/aircraft/LOD2/sbd-3-dauntless-lod2.glb",
-          "switchDistanceM": 400,
-          "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75"
-        }
-      ]
-    },
-    {
-      "id": "tbd-1-devastator",
-      "name": "Douglas TBD-1 Devastator",
-      "nation": "United States",
-      "role": "Torpedo bomber",
-      "year": 1942,
-      "length": 10.67,
-      "wingspan": 15.24,
-      "modelUrl": "/models/aircraft/tbd-1-devastator.glb",
-      "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75",
+      "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de",
       "nodeIds": [
         "aircraft.root",
         "propeller.spin",
@@ -425,6 +383,57 @@
         "gear.tail",
         "socket.payload",
         "socket.deck",
+        "arrestor.hook"
+      ],
+      "switchDistancesM": [
+        120,
+        400
+      ],
+      "lods": [
+        {
+          "level": 0,
+          "modelUrl": "/models/aircraft/sbd-3-dauntless.glb",
+          "switchDistanceM": 0,
+          "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de"
+        },
+        {
+          "level": 1,
+          "modelUrl": "/models/aircraft/LOD1/sbd-3-dauntless-lod1.glb",
+          "switchDistanceM": 120,
+          "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de"
+        },
+        {
+          "level": 2,
+          "modelUrl": "/models/aircraft/LOD2/sbd-3-dauntless-lod2.glb",
+          "switchDistanceM": 400,
+          "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de"
+        }
+      ]
+    },
+    {
+      "id": "tbd-1-devastator",
+      "name": "Douglas TBD-1 Devastator",
+      "nation": "United States",
+      "role": "Torpedo bomber",
+      "year": 1942,
+      "length": 10.67,
+      "wingspan": 15.24,
+      "modelUrl": "/models/aircraft/tbd-1-devastator.glb",
+      "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de",
+      "nodeIds": [
+        "aircraft.root",
+        "propeller.spin",
+        "control.rudder",
+        "control.elevator.port",
+        "control.elevator.starboard",
+        "control.aileron.port",
+        "control.aileron.starboard",
+        "gear.port",
+        "gear.starboard",
+        "gear.tail",
+        "socket.payload",
+        "socket.deck",
+        "arrestor.hook",
         "wing.fold.port",
         "wing.fold.starboard"
       ],
@@ -437,19 +446,19 @@
           "level": 0,
           "modelUrl": "/models/aircraft/tbd-1-devastator.glb",
           "switchDistanceM": 0,
-          "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75"
+          "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de"
         },
         {
           "level": 1,
           "modelUrl": "/models/aircraft/LOD1/tbd-1-devastator-lod1.glb",
           "switchDistanceM": 120,
-          "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75"
+          "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de"
         },
         {
           "level": 2,
           "modelUrl": "/models/aircraft/LOD2/tbd-1-devastator-lod2.glb",
           "switchDistanceM": 400,
-          "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75"
+          "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de"
         }
       ]
     },
@@ -462,7 +471,7 @@
       "length": 10.24,
       "wingspan": 13.06,
       "modelUrl": "/models/aircraft/f6f-5-hellcat.glb",
-      "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75",
+      "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de",
       "nodeIds": [
         "aircraft.root",
         "propeller.spin",
@@ -475,7 +484,8 @@
         "gear.starboard",
         "gear.tail",
         "socket.payload",
-        "socket.deck"
+        "socket.deck",
+        "arrestor.hook"
       ],
       "switchDistancesM": [
         120,
@@ -486,19 +496,19 @@
           "level": 0,
           "modelUrl": "/models/aircraft/f6f-5-hellcat.glb",
           "switchDistanceM": 0,
-          "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75"
+          "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de"
         },
         {
           "level": 1,
           "modelUrl": "/models/aircraft/LOD1/f6f-5-hellcat-lod1.glb",
           "switchDistanceM": 120,
-          "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75"
+          "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de"
         },
         {
           "level": 2,
           "modelUrl": "/models/aircraft/LOD2/f6f-5-hellcat-lod2.glb",
           "switchDistanceM": 400,
-          "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75"
+          "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de"
         }
       ]
     },
@@ -511,7 +521,7 @@
       "length": 11.18,
       "wingspan": 15.16,
       "modelUrl": "/models/aircraft/sb2c-4-helldiver.glb",
-      "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75",
+      "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de",
       "nodeIds": [
         "aircraft.root",
         "propeller.spin",
@@ -524,7 +534,8 @@
         "gear.starboard",
         "gear.tail",
         "socket.payload",
-        "socket.deck"
+        "socket.deck",
+        "arrestor.hook"
       ],
       "switchDistancesM": [
         120,
@@ -535,19 +546,19 @@
           "level": 0,
           "modelUrl": "/models/aircraft/sb2c-4-helldiver.glb",
           "switchDistanceM": 0,
-          "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75"
+          "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de"
         },
         {
           "level": 1,
           "modelUrl": "/models/aircraft/LOD1/sb2c-4-helldiver-lod1.glb",
           "switchDistanceM": 120,
-          "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75"
+          "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de"
         },
         {
           "level": 2,
           "modelUrl": "/models/aircraft/LOD2/sb2c-4-helldiver-lod2.glb",
           "switchDistanceM": 400,
-          "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75"
+          "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de"
         }
       ]
     },
@@ -560,7 +571,7 @@
       "length": 12.48,
       "wingspan": 16.51,
       "modelUrl": "/models/aircraft/tbf-1c-avenger.glb",
-      "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75",
+      "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de",
       "nodeIds": [
         "aircraft.root",
         "propeller.spin",
@@ -573,7 +584,8 @@
         "gear.starboard",
         "gear.tail",
         "socket.payload",
-        "socket.deck"
+        "socket.deck",
+        "arrestor.hook"
       ],
       "switchDistancesM": [
         120,
@@ -584,19 +596,19 @@
           "level": 0,
           "modelUrl": "/models/aircraft/tbf-1c-avenger.glb",
           "switchDistanceM": 0,
-          "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75"
+          "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de"
         },
         {
           "level": 1,
           "modelUrl": "/models/aircraft/LOD1/tbf-1c-avenger-lod1.glb",
           "switchDistanceM": 120,
-          "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75"
+          "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de"
         },
         {
           "level": 2,
           "modelUrl": "/models/aircraft/LOD2/tbf-1c-avenger-lod2.glb",
           "switchDistanceM": 400,
-          "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75"
+          "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de"
         }
       ]
     },
@@ -609,7 +621,7 @@
       "length": 10.2,
       "wingspan": 12.5,
       "modelUrl": "/models/aircraft/f4u-1d-corsair.glb",
-      "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75",
+      "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de",
       "nodeIds": [
         "aircraft.root",
         "propeller.spin",
@@ -622,7 +634,8 @@
         "gear.starboard",
         "gear.tail",
         "socket.payload",
-        "socket.deck"
+        "socket.deck",
+        "arrestor.hook"
       ],
       "switchDistancesM": [
         120,
@@ -633,19 +646,19 @@
           "level": 0,
           "modelUrl": "/models/aircraft/f4u-1d-corsair.glb",
           "switchDistanceM": 0,
-          "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75"
+          "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de"
         },
         {
           "level": 1,
           "modelUrl": "/models/aircraft/LOD1/f4u-1d-corsair-lod1.glb",
           "switchDistanceM": 120,
-          "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75"
+          "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de"
         },
         {
           "level": 2,
           "modelUrl": "/models/aircraft/LOD2/f4u-1d-corsair-lod2.glb",
           "switchDistanceM": 400,
-          "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75"
+          "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de"
         }
       ]
     }

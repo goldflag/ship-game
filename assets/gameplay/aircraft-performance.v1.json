@@ -1,0 +1,114 @@
+{
+  "version": 1,
+  "description": "Provisional gameplay calibration in metres, seconds and radians; not historical performance measurements. Payload penalty is a fractional reduction; health further reduces available power and control authority.",
+  "profiles": {
+    "fighter": {
+      "max_speed": 140,
+      "speed_scale": 1,
+      "max_bank": 1.12,
+      "roll_rate": 0.85,
+      "climb_pitch": 0.24,
+      "climb_rate": 24,
+      "acceleration": 7,
+      "min_speed": 38,
+      "turn_drag": 3,
+      "payload_penalty": 0.08
+    },
+    "dive-bomber": {
+      "max_speed": 118,
+      "speed_scale": 1,
+      "max_bank": 0.85,
+      "roll_rate": 0.5,
+      "climb_pitch": 0.18,
+      "climb_rate": 17,
+      "acceleration": 4.5,
+      "min_speed": 36,
+      "turn_drag": 3,
+      "payload_penalty": 0.1
+    },
+    "torpedo-bomber": {
+      "max_speed": 108,
+      "speed_scale": 1,
+      "max_bank": 0.72,
+      "roll_rate": 0.4,
+      "climb_pitch": 0.15,
+      "climb_rate": 13,
+      "acceleration": 3.5,
+      "min_speed": 34,
+      "turn_drag": 3,
+      "payload_penalty": 0.14
+    },
+    "f4f-4-wildcat": {
+      "max_speed": 142,
+      "speed_scale": 1,
+      "max_bank": 1.09,
+      "roll_rate": 0.96,
+      "climb_pitch": 0.23,
+      "climb_rate": 22,
+      "acceleration": 6.8,
+      "min_speed": 38,
+      "turn_drag": 3.3,
+      "payload_penalty": 0.08
+    },
+    "a6m2-zero": {
+      "max_speed": 148,
+      "speed_scale": 1.035,
+      "max_bank": 1.2,
+      "roll_rate": 0.77,
+      "climb_pitch": 0.27,
+      "climb_rate": 27,
+      "acceleration": 7.7,
+      "min_speed": 36,
+      "turn_drag": 2.5,
+      "payload_penalty": 0.08
+    },
+    "sbd-3-dauntless": {
+      "max_speed": 119,
+      "speed_scale": 1,
+      "max_bank": 0.85,
+      "roll_rate": 0.52,
+      "climb_pitch": 0.18,
+      "climb_rate": 17,
+      "acceleration": 4.6,
+      "min_speed": 36,
+      "turn_drag": 3.2,
+      "payload_penalty": 0.1
+    },
+    "d3a1-val": {
+      "max_speed": 116,
+      "speed_scale": 0.98,
+      "max_bank": 0.93,
+      "roll_rate": 0.57,
+      "climb_pitch": 0.2,
+      "climb_rate": 19,
+      "acceleration": 4.9,
+      "min_speed": 35,
+      "turn_drag": 2.9,
+      "payload_penalty": 0.1
+    },
+    "tbd-1-devastator": {
+      "max_speed": 102,
+      "speed_scale": 0.96,
+      "max_bank": 0.7,
+      "roll_rate": 0.38,
+      "climb_pitch": 0.15,
+      "climb_rate": 12,
+      "acceleration": 3.5,
+      "min_speed": 34,
+      "turn_drag": 3.6,
+      "payload_penalty": 0.14
+    },
+    "b5n2-kate": {
+      "max_speed": 113,
+      "speed_scale": 1.025,
+      "max_bank": 0.77,
+      "roll_rate": 0.44,
+      "climb_pitch": 0.17,
+      "climb_rate": 15,
+      "acceleration": 4.1,
+      "min_speed": 34,
+      "turn_drag": 3.2,
+      "payload_penalty": 0.14
+    }
+  }
+}

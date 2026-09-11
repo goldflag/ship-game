@@ -2,49 +2,43 @@ import { expect, test } from 'bun:test';
 import { shipPreset } from '../ships/presets';
 import { CombatSimulation } from './combat';
 import { createDamage, maxHullIntegrity } from './damage';
-import { HULL_HP_SCALE } from './durability';
 
-const health = [['yamato', 1750], ['bismarck', 1450], ['enterprise-cv6', 1180], ['baltimore', 1020]] as const;
+const health = [['yamato', 73553], ['bismarck', 50750], ['enterprise-cv6', 33237], ['baltimore', 24255]] as const;
 
 test('preset hull health scales with authored displacement', () => {
   for (const [id, hp] of health) {
     const state = createDamage(shipPreset(id));
-    expect(state.integrity).toBe(hp * HULL_HP_SCALE);
-    expect(state.maxIntegrity).toBe(hp * HULL_HP_SCALE);
+    expect(state.integrity).toBe(hp);
+    expect(state.maxIntegrity).toBe(hp);
   }
   // Future blueprints follow the same rule without depending on a preset ID.
   const custom = structuredClone(shipPreset('baltimore'));
   custom.id = 'custom-hull';
   custom.hull.massKg = 20_000_000;
-  expect(maxHullIntegrity(custom)).toBe(1080 * HULL_HP_SCALE);
+  expect(maxHullIntegrity(custom)).toBe(27019);
   custom.hull.massKg *= 2;
-  expect(maxHullIntegrity(custom)).toBe(1400 * HULL_HP_SCALE);
+  expect(maxHullIntegrity(custom)).toBe(47043);
   custom.armor = []; custom.modules = []; custom.mounts = [];
-  expect(maxHullIntegrity(custom)).toBe(1400 * HULL_HP_SCALE);
+  expect(maxHullIntegrity(custom)).toBe(47043);
   custom.hull.massKg = 1000;
-  expect(maxHullIntegrity(custom)).toBeGreaterThanOrEqual(300);
+  expect(maxHullIntegrity(custom)).toBe(10);
 });
 
-test('destroyer-sized custom hulls retain useful HP with diminishing gains from extra mass', () => {
+test('custom hulls receive a gentle small-ship bonus without flat base HP', () => {
   const custom = structuredClone(shipPreset('baltimore'));
-  custom.id = 'custom-destroyer';
-  const samples = [[1000, 470], [2000, 550], [3000, 600], [4000, 650]];
-  const actual = samples.map(([tonnes, hp]) => {
-    custom.hull.massKg = tonnes * 1000;
-    const integrity = createDamage(custom).integrity;
-    expect(integrity).toBe(hp * HULL_HP_SCALE);
-    return integrity;
-  });
-  // Doubling displacement increases endurance without doubling it.
-  expect(actual[3]).toBeGreaterThan(actual[1]);
-  expect(actual[3]).toBeLessThan(actual[1] * 2);
-  let previous = 0;
-  for (let tonnes = 1000; tonnes <= 100_000; tonnes += 1000) {
-    custom.hull.massKg = tonnes * 1000;
-    const hp = maxHullIntegrity(custom);
-    expect(hp).toBeGreaterThanOrEqual(previous);
-    previous = hp;
+  custom.id = 'custom-hull';
+  // Doubling tonnage gives about 74% more HP, rather than 100% or the old square-root bonus.
+  for (const massKg of [10_000, 769_000, 1_000_000, 4_000_000, 20_000_000, 100_000_000]) {
+    custom.hull.massKg = massKg;
+    const hp = createDamage(custom).integrity;
+    custom.hull.massKg *= 2;
+    expect(maxHullIntegrity(custom) / hp).toBeGreaterThan(1.7);
+    expect(maxHullIntegrity(custom) / hp).toBeLessThan(1.8);
   }
+});
+
+test('U-boat durability stays near the requested 2,000 HP', () => {
+  expect(maxHullIntegrity(shipPreset('type-viic'))).toBe(1993);
 });
 
 test('mixed fleet telemetry and resets use each hull maximum', () => {
@@ -53,13 +47,13 @@ test('mixed fleet telemetry and resets use each hull maximum', () => {
   });
   for (const actor of sim.actors) actor.damage.integrity *= .6;
   const telemetry = sim.telemetry('main', [0, 0, -5000]);
-  expect(telemetry.playerMaxIntegrity).toBe(1750 * HULL_HP_SCALE);
+  expect(telemetry.playerMaxIntegrity).toBe(73553);
   expect(telemetry.playerIntegrity).toBeCloseTo(.6);
   expect(telemetry.targetIntegrity).toBeCloseTo(.6);
   for (const contact of telemetry.contacts) expect(contact.integrity).toBeCloseTo(.6);
   sim.selectTarget('enemy-2');
   expect(sim.telemetry('main', [0, 0, -5000]).targetIntegrity).toBeCloseTo(.6);
   sim.reset();
-  expect(sim.actors.map(actor => actor.damage.integrity)).toEqual(health.map(([, hp]) => hp * HULL_HP_SCALE));
+  expect(sim.actors.map(actor => actor.damage.integrity)).toEqual(health.map(([, hp]) => hp));
   expect(sim.telemetry('main', [0, 0, -5000]).contacts.every(c => c.integrity === 1)).toBe(true);
 });

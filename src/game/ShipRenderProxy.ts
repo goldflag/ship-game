@@ -1,12 +1,18 @@
 import * as THREE from 'three/webgpu';
 import type { ShipView } from './ShipView';
 
+/** One flat copy of a source surface, with the world matrix and parenting last applied to it.
+ * A surface that has not moved since the previous frame writes nothing at all. */
+type Copy = { source: THREE.Mesh; proxy: THREE.Mesh; matrix: Float64Array; drawn: boolean };
+
 /** Flat render objects share geometry/materials with the retained authoring
  * hierarchy. CPU joints and decal receivers stay in that original hierarchy. */
 export class ShipRenderProxy {
   readonly root = new THREE.Group();
-  private readonly surfaces = new Map<THREE.Mesh, THREE.Mesh>();
-  private readonly marks = new Map<THREE.Mesh, THREE.Mesh>();
+  /** Surfaces first, in traversal order, then live impact marks. */
+  private readonly copies: Copy[] = [];
+  private surfaceCount = 0;
+  private readonly marks = new Map<THREE.Mesh, Copy>();
   private readonly modelVisible: boolean;
   private readonly markBounds = new THREE.Sphere();
   private readonly markCenter = new THREE.Vector3();
@@ -15,8 +21,9 @@ export class ShipRenderProxy {
     this.modelVisible = view.model.visible;
     this.root.name = `${view.root.name} render surfaces`;
     view.model.traverse(object => {
-      if (object instanceof THREE.Mesh) this.surfaces.set(object, this.create(object));
+      if (object instanceof THREE.Mesh) this.copies.push(this.create(object));
     });
+    this.surfaceCount = this.copies.length;
     view.model.visible = false;
   }
 
@@ -30,6 +37,7 @@ export class ShipRenderProxy {
     return supported;
   }
 
+  /** Ships share the cache within a frame: one walk per node, not one per surface. */
   sourceVisible(source: THREE.Object3D, cache?: Map<THREE.Object3D, boolean>): boolean {
     if (cache) {
       const known = cache.get(source);
@@ -45,42 +53,64 @@ export class ShipRenderProxy {
     return true;
   }
 
-  private create(source: THREE.Mesh): THREE.Mesh {
+  private create(source: THREE.Mesh): Copy {
     const proxy = new THREE.Mesh(source.geometry, source.material);
     proxy.name = source.name; proxy.matrixAutoUpdate = false;
     proxy.castShadow = source.castShadow; proxy.receiveShadow = source.receiveShadow;
     proxy.renderOrder = source.renderOrder;
     proxy.onBeforeRender = source.onBeforeRender; proxy.onAfterRender = source.onAfterRender;
-    return proxy;
+    // NaN never matches a real matrix, so the first frame always writes.
+    return { source, proxy, matrix: new Float64Array(16).fill(NaN), drawn: false };
   }
 
-  update(camera?: THREE.Camera, framebufferHeight = 1080): void {
-    for (const [source, proxy] of this.marks) if (!source.parent) {
-      proxy.removeFromParent(); this.marks.delete(source);
+  update(camera?: THREE.Camera, framebufferHeight = 1080, cache?: Map<THREE.Object3D, boolean>): void {
+    for (let i = this.copies.length - 1; i >= this.surfaceCount; i--) {
+      const retired = this.copies[i];
+      if (retired.source.parent) continue;
+      retired.proxy.removeFromParent(); this.marks.delete(retired.source); this.copies.splice(i, 1);
     }
-    for (const source of this.view.impactMarks.renderMeshes) if (!this.marks.has(source)) this.marks.set(source, this.create(source));
-    for (const objects of [this.surfaces, this.marks]) for (const [source, proxy] of objects) {
-      proxy.layers.mask = source.layers.mask;
-      proxy.visible = source.layers.mask !== 0 && this.sourceVisible(source);
+    for (const source of this.view.impactMarks.renderMeshes) if (!this.marks.has(source)) {
+      const copy = this.create(source); this.marks.set(source, copy); this.copies.push(copy);
+    }
+    for (const copy of this.copies) {
+      const { source, proxy } = copy, mask = source.layers.mask;
+      if (proxy.layers.mask !== mask) proxy.layers.mask = mask;
+      // Only the shared ancestors are worth caching: a surface itself is asked about once.
+      let visible = mask !== 0 && ((source as THREE.Object3D) === this.view.model ? this.modelVisible : source.visible) &&
+        (!source.parent || this.sourceVisible(source.parent, cache));
       const diameter = source.userData.maximumMarkDiameter as number | undefined;
-      if (proxy.visible && diameter !== undefined && camera && source.geometry.boundingSphere) {
+      if (visible && diameter !== undefined && camera && source.geometry.boundingSphere) {
         this.markBounds.copy(source.geometry.boundingSphere).applyMatrix4(source.matrixWorld);
         const depth = -this.markCenter.copy(this.markBounds.center).applyMatrix4(camera.matrixWorldInverse).z;
         const nearest = (camera as THREE.PerspectiveCamera).isPerspectiveCamera ? Math.max(.001, depth - this.markBounds.radius) : 1;
         const pixels = diameter * source.matrixWorld.getMaxScaleOnAxis() * Math.abs(camera.projectionMatrix.elements[5]) * framebufferHeight * .5 / nearest;
         // Retain every scar; binoculars restore it as soon as it resolves.
-        if (pixels < .5) proxy.visible = false;
+        if (pixels < .5) visible = false;
       }
-      if (proxy.visible) {
-        if (proxy.parent !== this.root) this.root.add(proxy);
-        proxy.matrix.copy(source.matrixWorld); proxy.matrixWorldNeedsUpdate = true;
-      } else proxy.removeFromParent();
+      proxy.visible = visible;
+      if (!visible) {
+        if (copy.drawn) { proxy.removeFromParent(); copy.drawn = false; }
+        continue;
+      }
+      const elements = source.matrixWorld.elements, applied = copy.matrix;
+      if (copy.drawn) {
+        // Translation moves first for anything under way; a static turret exits after three reads.
+        if (applied[12] === elements[12] && applied[13] === elements[13] && applied[14] === elements[14] && same(applied, elements)) continue;
+      } else { this.root.add(proxy); copy.drawn = true; }
+      proxy.matrix.copy(source.matrixWorld); proxy.matrixWorldNeedsUpdate = true;
+      applied.set(elements);
     }
   }
 
   dispose(): void {
     this.view.model.visible = this.modelVisible;
     this.root.clear(); this.root.removeFromParent();
-    this.surfaces.clear(); this.marks.clear(); // Sources own all shared resources.
+    this.copies.length = 0; this.surfaceCount = 0; this.marks.clear(); // Sources own all shared resources.
   }
+}
+
+/** Rotation, scale and the homogeneous row; the translation is compared before this. */
+function same(applied: Float64Array, elements: number[]): boolean {
+  for (let i = 0; i < 12; i++) if (applied[i] !== elements[i]) return false;
+  return applied[15] === elements[15];
 }

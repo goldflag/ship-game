@@ -53,6 +53,39 @@ function freezeFrame(value: unknown): void {
   for (const child of Object.values(value)) freezeFrame(child);
 }
 
+test('Rust-emitted patches rebuild the decoded frame, its identities and its events', async () => {
+  const source = await HeadlessSession.create({ playerShipId: 'bismarck', friendlyBots: ['enterprise-cv6', 'fletcher'], enemies: ['enterprise-cv6', 'baltimore'], spawnDistance: 5000 });
+  const receiver = new Receiver(source.setup);
+  let received: Snapshot | undefined, fullBytes = 0, patchBytes = 0;
+  try {
+    for (let step = 0; step < 120; step++) {
+      // The panel detail follows the camera; changing it moves whole subtrees
+      // in and out of the frame between one patch and the next.
+      const detail = step < 40 ? ['player'] : step < 80 ? ['player', 'enemy-1'] : [];
+      const json = source.runtime.snapshot_delta(detail);
+      const { baseTick, tick, delta } = JSON.parse(json) as { baseTick: number | null; tick: number; delta?: unknown };
+      expect(baseTick ?? undefined).toBe(received?.tick);
+      received = applyLocalDelta(received, structuredClone(delta) as never) as Snapshot;
+      expect(received.tick).toBe(tick);
+      freezeFrame(received); receiver.receive(received);
+      // The complete projection is what the renderer sees today; the patched
+      // frame has to equal it field for field, absent optionals included.
+      const complete = decodeSnapshot(source.runtime.detailed_snapshot(detail));
+      expect(received).toEqual(complete);
+      // The reference session reads every hull's damage-control detail, so
+      // compare renderer state on the frames that carry all of it.
+      if (!detail.length) {
+        expect(receiver.actors.map(({ definition, ...state }) => state)).toEqual(source.actors.map(({ definition, ...state }) => state));
+        expect(receiver.events).toEqual(source.events);
+        expect(receiver.shells).toEqual(source.shells);
+      }
+      fullBytes += JSON.stringify(complete).length; patchBytes += json.length;
+      source.advance(.1, { throttle: .5, rudder: .25 }, { aim: [0, 0, -5000], battery: 'main', fire: true });
+    }
+    expect(patchBytes).toBeLessThan(fullBytes * .2);
+  } finally { source.dispose(); }
+}, 60000);
+
 test('real carrier snapshots remain exact through transfer and renderer identity updates', async () => {
   const source = await HeadlessSession.create({ playerShipId: 'bismarck', friendlyBots: ['enterprise-cv6', 'fletcher'], enemies: ['enterprise-cv6', 'baltimore'], spawnDistance: 5000 });
   const receiver = new Receiver(source.setup);

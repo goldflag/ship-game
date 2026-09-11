@@ -12,32 +12,96 @@ import './AirOperations.css';
 import { AirMapNavigation } from './airMapNavigation';
 import { duration, mission, roleIcon, roleLabel } from './airFormat';
 import { AirWingManifest } from './AirWingManifest';
+import { markerOpacity } from './fleetStats';
+import { aircraftShortName } from './aircraftNames';
+import { smoothMapPath } from '../game/smoothMapPath';
+import { reportState } from './reconReports';
+import { projectAirMarker, projectMapHeading } from './airMarkerProjection';
+
+type Marker = {
+  element: HTMLElement | SVGElement; svg: boolean; position: Vec3;
+  /** Reads a live aircraft, contact or hull pose, so it moves between snapshots. */
+  tracking: boolean;
+  headings: { glyph: SVGElement; heading: number; angle?: number }[];
+  fade?: number[]; details: NodeListOf<SVGElement>; glyph: SVGElement | HTMLElement;
+  point: [number, number] | null; opacity?: number; close: boolean;
+};
+type Route = { element: SVGPathElement; points: Vec3[]; closed: boolean; filled: boolean; path: string };
 
 // Camera motion is rendered every frame; combat telemetry intentionally stays at 10 Hz.
 // Move the overlay directly so camera motion never waits for a React telemetry render.
-function useMapProjection(ref: RefObject<HTMLElement | SVGSVGElement | null>, game: Game | null, active: boolean) {
+export function useMapProjection(ref: RefObject<HTMLElement | SVGSVGElement | null>, game: Game | null, active: boolean) {
+  const rendered = useRef(true);
+  // Any render can add, move or reselect a marker; nothing else edits the overlay.
+  useLayoutEffect(() => { rendered.current = true; });
   useEffect(() => {
     if (!active || !game) return;
-    const update = () => {
-      const markers = Array.from(ref.current?.querySelectorAll<HTMLElement | SVGElement>('[data-map-position]') ?? [], element => {
-        const [x, y, z] = JSON.parse(element.dataset.mapPosition!) as number[];
-        return { element, point: game.projectAirMap(x, z, y) };
+    let markers: Marker[] = [], routes: Route[] = [], tracked = 0, stamp: number | undefined;
+    const collect = () => {
+      markers = Array.from(ref.current?.querySelectorAll<HTMLElement | SVGElement>('[data-map-position]') ?? [], element => {
+        const marker = element.dataset;
+        return {
+          element, svg: element instanceof SVGElement, position: JSON.parse(marker.mapPosition!) as Vec3,
+          tracking: !!(marker.plane || marker.track || marker.contactGroup || marker.contactMarker || marker.shipMarker),
+          headings: Array.from(element.querySelectorAll<SVGElement>('[data-map-heading]'), glyph => ({ glyph, heading: Number(glyph.dataset.mapHeading) })),
+          // "length,heading[,start,end]": the span in metres along the heading and the on-screen pixel band over which the marker fades.
+          fade: marker.mapFade?.split(',').map(Number),
+          details: element.querySelectorAll<SVGElement>('[data-map-detail]'),
+          glyph: element.querySelector<SVGElement | HTMLElement>('[data-map-glyph]') ?? element,
+          point: null, close: false,
+        };
       });
-      const paths = Array.from(ref.current?.querySelectorAll<SVGPathElement>('[data-map-path]') ?? [], element => {
+      routes = Array.from(ref.current?.querySelectorAll<SVGPathElement>('[data-map-path]') ?? [], element => {
         const points = JSON.parse(element.dataset.mapPath!) as Vec3[];
-        return { element, path: game.projectAirMapPath(points, !!element.dataset.closed) };
+        return { element, points: element.dataset.mapSmooth ? smoothMapPath(points, !!element.dataset.closed) : points, closed: !!element.dataset.closed, filled: !!element.dataset.mapFill, path: '' };
       });
+      tracked = markers.reduce((n, marker) => n + (marker.tracking ? 1 : 0), 0);
+    };
+    const update = () => {
+      const moved = rendered.current;
+      if (moved) { rendered.current = false; collect(); }
+      // Everything but a live pose depends only on the camera and the last render.
+      const still = !moved && stamp !== undefined && stamp === game.mapProjectionStamp;
+      stamp = game.mapProjectionStamp;
+      if (still && !tracked) return;
       // Projection reads the viewport. Complete those reads before any overlay
       // writes, so one marker cannot force layout for the following marker.
-      for (const { element, point } of markers) {
+      for (const marker of markers) {
+        if (still && !marker.tracking) continue;
+        const [x, y, z] = marker.position;
+        marker.point = projectAirMarker(game, marker.element.dataset, marker.position);
+        if (still) continue;
+        for (const heading of marker.headings) heading.angle = projectMapHeading(game, marker.position, heading.heading);
+        // A ship marker stands in for a hull too small to read; once the model
+        // itself is legible on screen the marker fades and only the label stays.
+        marker.opacity = undefined; marker.close = false;
+        if (marker.fade && marker.point) {
+          const [length, heading, start, end] = marker.fade;
+          const bow = game.projectAirMap(x + Math.sin(heading) * length / 2, z - Math.cos(heading) * length / 2, y);
+          const stern = game.projectAirMap(x - Math.sin(heading) * length / 2, z + Math.cos(heading) * length / 2, y);
+          if (bow && stern) {
+            marker.close = Math.hypot(bow[0] - stern[0], bow[1] - stern[1]) >= 14;
+            marker.opacity = markerOpacity(Math.hypot(bow[0] - stern[0], bow[1] - stern[1]), Number.isFinite(start) ? start : undefined, Number.isFinite(end) ? end : undefined);
+          }
+        }
+      }
+      if (!still) for (const route of routes) route.path = game.projectAirMapPath(route.points, route.closed, route.filled);
+      for (const marker of markers) {
+        if (still && !marker.tracking) continue;
+        const { element, point } = marker;
         element.style.display = point ? '' : 'none';
         if (!point) continue;
         const [left, top] = point;
-        if (element instanceof SVGElement) element.setAttribute('transform', `translate(${left} ${top})`);
+        if (marker.svg) element.setAttribute('transform', `translate(${left} ${top})`);
         else { element.style.left = `${left}px`; element.style.top = `${top}px`; }
+        if (still) continue;
+        for (const { glyph, angle } of marker.headings) if (angle !== undefined) glyph.setAttribute('transform', `rotate(${angle})`);
+        for (const detail of marker.details) detail.style.display = marker.close || element.classList.contains('selected') ? 'initial' : 'none';
+        if (marker.opacity !== undefined) marker.glyph.style.opacity = String(marker.opacity);
       }
-      for (const { element, path } of paths) element.setAttribute('d', path);
+      if (!still) for (const route of routes) route.element.setAttribute('d', route.path);
     };
+    rendered.current = true;
     update();
     return game.onCameraFrame(update);
   }, [ref, game, active]);
@@ -55,11 +119,18 @@ function SquadronIcon({ role, size = 20 }: { role: FlightSummary['role']; size?:
 
 export function SquadronLabels({ data, game, onOrder, onTarget, onSelect, onPointerDown }: { data: Telemetry; game: Game | null; onOrder?(id: string, team: string): void; onTarget?(id: string, team: string): boolean; onSelect?(id: string, additive?: boolean): void; onPointerDown?(event: PointerEvent<Element>): void }) {
   const labels = useRef<HTMLDivElement>(null);
+  const reports = game?.simulation?.observationTracks ?? [];
+  const observedPlanes = data.airOperationsOpen ? [] : (game?.simulation.observedAircraft ?? []).filter(p =>
+    p.observers.includes(data.spectatedShipId ?? data.ship.id) && reports.some(r => r.id === p.id && reportState(r, game!.simulation.tick) === 'current'));
   useLayoutEffect(() => {
     if (!game) return;
     const update = () => {
       const projections = Array.from(labels.current?.querySelectorAll<HTMLElement>('[data-flight-id]') ?? [], element =>
         ({ element, point: game.projectSquadron(element.dataset.ownerId!, element.dataset.flightId!) }));
+      for (const element of labels.current?.querySelectorAll<HTMLElement>('[data-aircraft-contact]') ?? []) {
+        const contact = game.projectContact(element.dataset.aircraftContact!);
+        projections.push({ element, point: contact ? { x: contact[0], y: contact[1] } : null });
+      }
       for (const { element, point } of projections) {
         element.style.display = point ? '' : 'none';
         if (point) { element.style.left = `${point.x}px`; element.style.top = `${point.y}px`; }
@@ -67,13 +138,16 @@ export function SquadronLabels({ data, game, onOrder, onTarget, onSelect, onPoin
     };
     update();
     return game.onCameraFrame(update);
-  }, [game, data.squadronMarkers]);
+  }, [game, data.squadronMarkers, data.spectatedShipId, data.ship.id]);
   return <div ref={labels} className={`air-squadron-labels ${data.airOperationsOpen ? 'air-labels-map' : ''}`} aria-label="Squadron names and status">
+    {observedPlanes.map(p => <span key={p.id} className="air-squadron-tag air-hostile" data-aircraft-contact={p.id} style={{ display: 'none' }}>
+      <Icon name="aircraft" size={20}/><span><strong>{aircraftShortName(p.modelId) ?? 'Enemy aircraft'}</strong><small>{reports.find(r => r.id === p.id)?.classification ?? 'Aircraft'}</small></span>
+    </span>)}
     {data.squadronMarkers?.map(f => <button key={f.id} className={`air-squadron-tag ${f.team === 'enemy' ? 'air-hostile' : 'air-friendly'} ${(data.selectedFlightIds ?? [data.selectedFlightId]).includes(f.id) ? 'air-selected' : ''}`}
       onPointerDown={onPointerDown} data-flight-id={f.id} data-owner-id={f.ownerId} style={{ left: f.screen?.x, top: f.screen?.y, display: f.screen ? undefined : 'none' }} title={`${f.name} · ${roleLabel(f.role)} · ${mission(f)} · ${f.hp}% condition`}
       aria-label={`${f.name} · ${roleLabel(f.role)} · ${f.surviving} aircraft · ${f.activity}`}
       tabIndex={data.airOperationsOpen ? 0 : -1}
-      onClick={e => { if ((e.metaKey || e.ctrlKey || !onTarget?.(f.id, f.team)) && f.ownerId === data.ship.id) { if (onSelect) onSelect(f.id, e.metaKey || e.ctrlKey); else game?.selectFlight(f.id, e.metaKey || e.ctrlKey); } e.currentTarget.blur(); }}
+      onClick={e => { if ((e.metaKey || e.ctrlKey || !onTarget?.(f.id, f.team)) && (f.ownerId === data.ship.id || (game?.fleetCommandMode && f.team === 'friendly'))) { if (onSelect) onSelect(f.id, e.metaKey || e.ctrlKey); else game?.selectFlight(f.id, e.metaKey || e.ctrlKey); } e.currentTarget.blur(); }}
       onContextMenu={e => { if (data.airOperationsOpen) { e.preventDefault(); if (!e.ctrlKey && !e.metaKey) onOrder?.(f.id, f.team); } }}>
       <SquadronIcon role={f.role}/><span><strong>{f.name} · {f.surviving}</strong><small>{f.activity}</small></span>
     </button>)}
@@ -125,7 +199,7 @@ export function AirOperations({ data, game, bindings, instrumentsVisible = true 
     setFeedback(accepted.length ? `${accepted.length} squadron${accepted.length === 1 ? '' : 's'} · Order received${rejected.length ? ` · ${rejected.map(f => f.name).join(', ')} unable to accept: check role, readiness and flight slots.` : ''}`
       : !canCommand ? 'Carrier unavailable · Battle ended or carrier lost.'
       : !wing.available && flights.some(f => !f.active) ? 'Launch suspended · Check carrier damage, list and trim.'
-      : wing.activeFlights >= wing.maxActiveFlights && flights.some(f => !f.active) ? `All ${wing.maxActiveFlights} flight slots occupied · Recover a squadron to launch.`
+      : wing.maxActiveFlights !== null && wing.activeFlights >= wing.maxActiveFlights && flights.some(f => !f.active) ? `All ${wing.maxActiveFlights} flight slots occupied · Recover a squadron to launch.`
       : 'Order unavailable · Check role, readiness, armament, endurance and the 30 km command range.');
   };
   const setSelection = (ids: string[]) => {
@@ -347,7 +421,7 @@ export function AirOperations({ data, game, bindings, instrumentsVisible = true 
           <button aria-keyshortcuts="x" disabled={!canCommand || !wing.activeFlights} onClick={e => { perform('X'); e.currentTarget.blur(); }}>Recall all<kbd>X</kbd></button>
         </nav>
         {feedback && <p className="air-order-feedback" role="status">{feedback}</p>}
-        {details && selected && <div className="air-aircraft-detail" aria-label={`${selected.name} aircraft`}><strong>{selected.name} · {mission(selected)} · {selected.hp}% condition</strong><p>{selected.armed} armed · Endurance {duration(selected.enduranceSeconds)}{selected.queuePosition ? ` · Recovery #${selected.queuePosition}` : ''}{selected.notice && ` · ${selected.notice}`}</p>
+        {details && selected && <div className="air-aircraft-detail" aria-label={`${selected.name} aircraft`}><strong>{selected.name} · {mission(selected)} · {selected.hp}% condition</strong><p>{selected.armed} armed{selected.enduranceSeconds !== null && ` · Endurance ${duration(selected.enduranceSeconds)}`}{selected.queuePosition ? ` · Recovery #${selected.queuePosition}` : ''}{selected.notice && ` · ${selected.notice}`}</p>
           {aircraft.map(p => <div key={p.id}><span>Aircraft {p.id.split('/').at(-1)} · {Math.ceil(p.hp)}% · {p.lossReason ?? p.phase}</span><button disabled={!p.followable} onClick={() => game?.followAircraft(p.id)}>Follow</button></div>)}
         </div>}
       </>}

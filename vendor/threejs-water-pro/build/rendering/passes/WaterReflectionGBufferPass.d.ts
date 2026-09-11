@@ -7,6 +7,8 @@
  * The G-buffer always runs at full resolution so the reflection direction
  * stays anti-aliased at distant grazing angles; only the SSR march resolution
  * scales.
+ * RGBA32F retains meter-valued depth precision at naval ranges; nearest sampling
+ * preserves discontinuities and does not require float-linear filtering.
  */
 import * as THREE from "three/webgpu";
 import type { UniformNode } from "three/webgpu";

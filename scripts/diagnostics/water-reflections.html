@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Distant ship reflections · runtime review</title>
+<style>
+  body{margin:0;background:#132d38;color:#edf1ec;font:14px sans-serif}
+  #scene{width:1280px;height:720px}canvas{display:block}
+  #status{position:fixed;left:16px;top:16px;background:#132d38;padding:8px}
+</style>
+<div id="scene"></div><output id="status">Preparing reflection review…</output>
+<script type="module">
+import * as THREE from 'three/webgpu';
+import { Game } from '/src/game/Game.ts';
+
+// Real game renderer, model, water and post-processing, with a stationary target.
+// ?legacy=1 restores the old reflection range and player shadow anchor.
+const params = new URLSearchParams(location.search);
+// Exercise Three.js's real WebGL fallback with ?webgl=1.
+if(params.has('webgl') && navigator.gpu) navigator.gpu.requestAdapter=async()=>null;
+const status = document.querySelector('#status');
+const game = new Game(document.querySelector('#scene'), {quality:params.get('quality')??'high',resolution:1}, {
+  progress:label=>status.textContent=label,ready:()=>{},telemetry:()=>{},pause:()=>{},hud:()=>{},
+  error:message=>{status.textContent=message;window.reviewError=message;},
+});
+game.scheduleFrame=()=>{};game.start(); await game.initialization;
+if(window.reviewError) throw new Error(window.reviewError);
+game.setInPort(false); game.setPaused(true);
+game.rig.update=()=>{}; game.rig.binoculars=true;
+function prepare(range=5000,magnification=24) {
+  Object.assign(game.simulation.target.motion,{x:range,z:0,heading:0});
+  game.targetView.snap(); game.targetView.root.visible=true;
+  game.camera.fov=2*Math.atan(Math.tan(52*Math.PI/360)/magnification)*180/Math.PI;
+  game.camera.position.set(0,29,0); game.camera.lookAt(range,14,0);
+  game.camera.updateProjectionMatrix(); game.camera.updateMatrixWorld();
+  return {range,magnification};
+}
+async function still() {
+  // PassNode caches once per renderer animation frame. Explicitly advance that
+  // clock for background-tab captures so a camera change cannot return old pixels.
+  for(let i=0;i<2;i++) {
+    game.renderer._nodes.nodeFrame.update();
+    await game.frame(performance.now());
+  }
+  // WebGL may discard the default framebuffer after an async frame finishes.
+  // Present the prepared post-process textures and capture synchronously.
+  game.pipeline.render();
+  return game.renderer.domElement.toDataURL('image/png');
+}
+
+const focus = game.waterViewFocus,baseDistance=game.water.ssr.maxDistance;
+if(params.has('legacy')) game.waterViewFocus={update:()=>undefined};
+if(params.has('calm')) {game.water.waves.amplitude.value=0;game.water.waves.dirty=true;}
+game.water.deterministic=true;game.water.syncToTick(3600);await game.water.update(1/60);
+prepare(Number(params.get('range')??5000),Number(params.get('zoom')??24));await still();status.hidden=true;
+async function measure() {
+  const target=game.water.renderPassManager.ssrPass.renderTarget;
+  const pixels=await game.renderer.readRenderTargetPixelsAsync(target,0,0,target.width,target.height);
+  let count=0,confidence=0;
+  for(let i=3;i<pixels.length;i+=4) {
+    const alpha=THREE.DataUtils.fromHalfFloat(pixels[i]);
+    if(alpha>.01) count++;
+    confidence+=alpha;
+  }
+  return {count,confidence,range:game.water.ssr.maxDistance,steps:game.water.ssr.stepCount,
+    shadow:game.water.lighting.sunLight.target.position.toArray(),backend:game.renderer.backend.constructor.name};
+}
+async function check() {
+  const cases=[],base=baseDistance;
+  for(const range of [5000,20000]) {
+    prepare(range,24);
+    game.waterViewFocus={update:()=>{game.water.ssr.maxDistance=base;return undefined;}};
+    await still();const legacy=await measure();
+    game.waterViewFocus=focus;await still();const zoomed=await measure();
+    cases.push({range,legacy,zoomed,passed:zoomed.confidence>legacy.confidence*5+100 && zoomed.shadow[0]===range});
+  }
+  prepare(5000,1);await still();const restored=await measure();
+  const passed=cases.every(c=>c.passed)&&restored.range===base&&restored.shadow[0]===game.ship.position.x;
+  prepare(Number(params.get('range')??5000),Number(params.get('zoom')??24));await still();
+  return {passed,cases,restored};
+}
+window.reflectionReview={game,prepare,still,measure,focus,check};
+window.reflectionResult=await measure();
+if(params.has('test')) window.reflectionResult=await check();
+</script></html>

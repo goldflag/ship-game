@@ -1,6 +1,6 @@
 {
   "aircraftId": "b5n2-kate",
-  "contentHash": "c92e3ad403eaf41a38348521d00d5137a9f88ba74ec672ec122f4799bcd4bd75",
+  "contentHash": "9d6ebba0b0bdc20b49bcce720042edb7029327b7dbd5d5b95c3d11f6462956de",
   "projection": "orthographic",
   "authoringAxes": "+X nose, +Y port, +Z up",
   "views": [
@@ -52,7 +52,7 @@
         0.0,
         0.10000000149011612
       ],
-      "scale": 11.307801246643066,
+      "scale": 11.411474227905273,
       "size": [
         1400,
         1050

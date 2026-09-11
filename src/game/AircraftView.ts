@@ -1,13 +1,15 @@
+import { ObservedMotion } from './ObservedMotion';
+import type { Aircraft } from '../simulation/aircraft';
 import type { BattleSession } from './session/BattleSession';
 import { ExpandableInstances } from './ExpandableInstances';
 import { assetUrl } from '../assetUrl';
 import * as THREE from 'three/webgpu';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 import { aircraftDeckSpot, onFlightDeck } from '../simulation/aircraft';
 import { aircraftAttitude, aircraftControls } from '../simulation/aircraftFlight';
-import { aircraftGroundPose } from '../simulation/aircraftGroundPose';
+import { aircraftDeckRotation } from './AircraftDeckPresentation';
 import { disposeObjects } from './disposeObjects';
+import { loadShipModel } from './loadShipModel';
 import { AircraftContacts } from './AircraftContacts';
 import { AircraftGunfire } from './AircraftGunfire';
 import { aircraftOrdnanceGeometry } from '../../assets/effects/naval/aircraft-ordnance';
@@ -53,11 +55,13 @@ export class AircraftView {
   readonly root = new THREE.Group();
   private models = new Map<string, Model>();
   private contacts = new AircraftContacts();
+  private observedMotion = new ObservedMotion();
   private gunfire = new AircraftGunfire(true);
   private matrix = new THREE.Matrix4();
   private transform = new THREE.Matrix4();
   private position = new THREE.Vector3();
   private quaternion = new THREE.Quaternion();
+  private hullQuaternion = new THREE.Quaternion();
   private unit = new THREE.Vector3(1, 1, 1);
   private payloadGeometry = aircraftOrdnanceGeometry('torpedo');
   private bombGeometry = aircraftOrdnanceGeometry('bomb');
@@ -84,6 +88,8 @@ export class AircraftView {
     }
   }
   resize(height: number) { this.height = Math.max(1, height); this.contacts.resize(height); }
+  /** Multiplier on the wingspan thresholds that keep fuller airframes; above 1 simplifies sooner. */
+  detailScale = 1;
   load(modelIds: readonly string[] = Object.keys(GAMEPLAY_AIRCRAFT), storageMatrices = false): Promise<void> {
     const ids = [...new Set(modelIds)];
     if (ids.some(id => !Object.hasOwn(GAMEPLAY_AIRCRAFT, id))) return Promise.reject(new Error('Unsupported combat aircraft'));
@@ -96,7 +102,7 @@ export class AircraftView {
     const palette = new ShipMaterialPalette();
     const results = await Promise.allSettled(ids.flatMap(id => [0, 1, 2].filter(lod => !previous.has(`${id}/${lod}`)).map(async lod => {
       const url = assetUrl(lod ? `models/aircraft/LOD${lod}/${id}-lod${lod}.glb` : `models/aircraft/${id}.glb`);
-      const root = (await new GLTFLoader().loadAsync(url)).scene;
+      const root = (await loadShipModel(url)).scene;
       // The shared authoring-node boundaries preserve propellers, controls,
       // landing gear and sockets while rigid paint surfaces share a draw.
       palette.apply(root); batchShipModel(root);
@@ -131,7 +137,7 @@ export class AircraftView {
     const failure = results.find(r => r.status === 'rejected');
     if (failure?.status === 'rejected') { this.clearModels(new Set([...this.models.keys()].filter(key => !previous.has(key)))); throw failure.reason; }
   }
-  update(sim: BattleSession, camera: THREE.Camera, visible: boolean, inPort = false, carrierRoots = new Map<string, THREE.Object3D>()) {
+  update(sim: BattleSession, camera: THREE.Camera, visible: boolean, inPort = false, carrierRoots = new Map<string, THREE.Object3D>(), observerId?: string, dt = 1 / 60) {
     this.root.visible = visible;
     if (!visible) return;
     for (const model of this.models.values()) model.count = 0;
@@ -139,7 +145,7 @@ export class AircraftView {
     this.frustum.setFromProjectionMatrix(this.matrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse), camera.coordinateSystem, camera.reversedDepth);
     const actors = new Map(sim.actors.map(a => [a.motion.id, a]));
     this.contacts.begin();
-    let payloadCount = 0, bombCount = 0;
+    this.payloadCount = 0; this.bombCount = 0;
     const alpha = sim.interpolationAlpha;
     for (const plane of sim.aircraft) {
       const crashing = plane.phase === 'lost' && plane.wreck && !plane.wreck.impacted;
@@ -148,14 +154,13 @@ export class AircraftView {
       if (!deck && !crashing && !['takeoff', 'outbound', 'attack', 'returning', 'landing'].includes(plane.phase)) continue;
       const actor = actors.get(plane.ownerId)!;
       if (deck) {
-        const local = ['ready', 'queued', 'rearming'].includes(plane.phase) ? aircraftDeckSpot(actor, plane) : plane.deckPosition!;
+        const local = plane.deckPosition ?? aircraftDeckSpot(actor, plane);
         this.position.fromArray(local);
         const carrierRoot = carrierRoots.get(plane.ownerId);
         if (carrierRoot) {
           this.position.applyMatrix4(carrierRoot.matrixWorld);
-          this.quaternion.copy(carrierRoot.quaternion);
-          if (plane.phase === 'taxi' || plane.phase === 'parking') this.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -(plane.deckHeading ?? plane.heading - actor.motion.heading)));
-          this.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), aircraftGroundPose(plane.modelId).pitch));
+          aircraftDeckRotation(plane, actor.motion, this.quaternion);
+          this.quaternion.premultiply(carrierRoot.getWorldQuaternion(this.hullQuaternion));
         } else {
           this.position.fromArray(plane.position);
           this.quaternion.setFromEuler(new THREE.Euler(plane.pitch, -plane.heading, plane.bank, 'YXZ'));
@@ -165,53 +170,20 @@ export class AircraftView {
         const attitude = aircraftAttitude(plane, alpha);
         this.quaternion.setFromEuler(new THREE.Euler(attitude.pitch, -attitude.heading, attitude.bank, 'YXZ'));
       }
-      const dimensions = this.models.get(`${plane.modelId}/0`);
-      if (!dimensions) continue;
-      this.sphere.set(this.position, dimensions.radius);
-      // Aircraft do not cast fleet shadows; water captures share this camera.
-      // Keep the nearby radius conservative through wing fold and control travel.
-      if (!inPort && !this.frustum.intersectsSphere(this.sphere)) { this.culled++; continue; }
-      const depth = -this.viewPosition.copy(this.position).applyMatrix4(camera.matrixWorldInverse).z;
-      const span = dimensions.wingspan * camera.projectionMatrix.elements[5] * this.height / (2 * Math.max(.001, depth));
-      if (!deck && !inPort && !crashing) this.contacts.add(this.position, dimensions.wingspan, camera, aircraftAttitude(plane, alpha).bank);
-      // Keep the lowest-detail airframe at every distance. The contact supplements
-      // thin/subpixel geometry instead of replacing it at a hard zoom threshold.
-      if (!deck && !inPort && !crashing && span < 9) this.silhouettes++;
-      const lod = span > 90 ? 0 : span > 28 ? 1 : 2;
-      const model = this.models.get(`${plane.modelId}/${lod}`);
-      if (!model) continue;
-      for (const { source, batches } of model.meshes) if (model.count >= batches.length * BATCH_CAPACITY) {
-        const batch = aircraftBatch(source, batches[0].name, model.storageMatrices);
-        this.root.add(batch); batches.push(batch);
-      }
-      this.transform.compose(this.position, this.quaternion, this.unit);
-      const controls = aircraftControls(plane, alpha), gear = 1 - controls.gear;
-      for (const { object, id, rotation } of model.joints) {
-        object.rotation.copy(rotation);
-        if (id.startsWith('wing.fold.')) object.rotateOnAxis(new THREE.Vector3().fromArray(object.userData.foldAxis), plane.wingFold * Number(object.userData.foldAngleDegrees) * Math.PI / 180);
-        if (id === 'propeller.spin') object.rotateZ(controls.propeller);
-        if (id.startsWith('gear.') && !object.userData.fixed && object.userData.articulation !== 'fixed') {
-          const angle = gear * Math.PI * .43 * (id.endsWith('.port') ? 1 : -1) * (id.endsWith('.tail') ? .5 : 1);
-          if (object.userData.axis === 'spanwise') object.rotateX(angle); else object.rotateZ(angle);
-        }
-        if (id.startsWith('control.aileron.')) object.rotateX(controls.aileron * (id.endsWith('.port') ? 1 : -1));
-        if (id.startsWith('control.elevator.')) object.rotateX(controls.elevator);
-        if (id === 'control.rudder') object.rotateY(controls.rudder);
-        if (id === 'arrestor.hook') object.rotateX(controls.hook * .65);
-        if (id.startsWith('diveBrake.')) object.rotateX(controls.brakes * .55 * Number(object.userData.rotationMultiplier ?? 1));
-      }
-      model.root.updateMatrixWorld(true);
-      for (const { source, batches } of model.meshes) batches[Math.floor(model.count / BATCH_CAPACITY)].setMatrixAt(model.count % BATCH_CAPACITY, this.matrix.multiplyMatrices(this.transform, source.matrixWorld));
-      for (const parts of model.parts) parts.setPose(model.count, this.transform);
-      if (plane.payload && !['ready', 'queued', 'rearming', 'parking', 'rollout'].includes(plane.phase) && payloadCount < 768) {
-        const socket = model.joints.find(j => j.id === 'socket.payload')?.object;
-        this.matrix.copy(this.transform);
-        if (socket) this.matrix.multiply(socket.matrixWorld);
-        if (plane.role === 'dive-bomber') { this.bombs.setMatrixAt(bombCount++, this.matrix); }
-        else this.payloads.setMatrixAt(payloadCount++, this.matrix);
-      }
-      model.count++;
+      const payload = plane.payload && !['ready', 'queued', 'rearming', 'parking', 'rollout'].includes(plane.phase)
+        ? plane.role === 'dive-bomber' ? 'bomb' : 'torpedo' : undefined;
+      this.drawAircraft(plane, camera, inPort, deck, !!crashing, alpha, aircraftAttitude(plane, alpha).bank, payload);
     }
+    const reports = inPort ? [] : sim.observedAircraft ?? [];
+    this.observedMotion.update(reports, sim.tick, dt);
+    for (const plane of reports) {
+      if (observerId && !plane.observers.includes(observerId)) continue;
+      const pose = this.observedMotion.get(plane.id)!;
+      this.position.copy(pose.position); this.quaternion.copy(pose.rotation);
+      // Recognition exteriors have no owner, mission, health or ammunition.
+      this.drawAircraft(plane, camera, false, false, false, 1, plane.roll ?? 0);
+    }
+
     for (const model of this.models.values()) {
       for (const parts of model.parts) parts.publish(model.count);
       for (const { batches } of model.meshes) batches.forEach((batch, i) => {
@@ -237,19 +209,69 @@ export class AircraftView {
       this.releaseRotation.setFromEuler(new THREE.Euler(release.pitch, -release.heading, release.bank, 'YXZ'));
       // Fins progressively weathercock the body into its falling trajectory.
       this.releaseRotation.slerp(this.quaternion, 1 - Math.exp(-age * 3));
-      this.bombs.setMatrixAt(bombCount++, this.matrix.compose(this.position, this.releaseRotation, this.unit));
+      this.bombs.setMatrixAt(this.bombCount++, this.matrix.compose(this.position, this.releaseRotation, this.unit));
     }
     for (const release of sim.airReleases) {
       this.position.fromArray(release.position);
       this.quaternion.setFromUnitVectors(this.nose, this.direction.fromArray(release.velocity).normalize());
-      this.payloads.setMatrixAt(payloadCount++, this.matrix.compose(this.position, this.quaternion, this.unit));
+      this.payloads.setMatrixAt(this.payloadCount++, this.matrix.compose(this.position, this.quaternion, this.unit));
     }
-    this.payloadCount = payloadCount; this.payloads.visible = payloadCount > 0;
-    this.payloads.publish(payloadCount);
-    this.bombCount = bombCount; this.bombs.visible = bombCount > 0;
-    this.bombs.publish(bombCount);
+    this.payloads.visible = this.payloadCount > 0;
+    this.payloads.publish(this.payloadCount);
+    this.bombs.visible = this.bombCount > 0;
+    this.bombs.publish(this.bombCount);
     this.gunfire.update(sim, camera);
   }
+  private drawAircraft(plane: Pick<Aircraft, 'modelId' | 'wingFold' | 'controls' | 'previousControls'>,
+    camera: THREE.Camera, inPort: boolean, deck: boolean, crashing: boolean, alpha: number, bank: number, payload?: 'bomb' | 'torpedo'): void {
+    const dimensions = this.models.get(`${plane.modelId}/0`);
+    if (!dimensions) return;
+    this.sphere.set(this.position, dimensions.radius);
+    // Aircraft do not cast fleet shadows; water captures share this camera.
+    // Keep the nearby radius conservative through wing fold and control travel.
+    if (!inPort && !this.frustum.intersectsSphere(this.sphere)) { this.culled++; return; }
+    const depth = -this.viewPosition.copy(this.position).applyMatrix4(camera.matrixWorldInverse).z;
+    const span = dimensions.wingspan * camera.projectionMatrix.elements[5] * this.height / (2 * Math.max(.001, depth));
+    if (!deck && !inPort && !crashing) this.contacts.add(this.position, dimensions.wingspan, camera, bank);
+    // Keep the lowest-detail airframe at every distance. The contact supplements
+    // thin/subpixel geometry instead of replacing it at a hard zoom threshold.
+    if (!deck && !inPort && !crashing && span < 9) this.silhouettes++;
+    const lod = span > 90 * this.detailScale ? 0 : span > 28 * this.detailScale ? 1 : 2;
+    const model = this.models.get(`${plane.modelId}/${lod}`);
+    if (!model) return;
+    for (const { source, batches } of model.meshes) if (model.count >= batches.length * BATCH_CAPACITY) {
+      const batch = aircraftBatch(source, batches[0].name, model.storageMatrices);
+      this.root.add(batch); batches.push(batch);
+    }
+    this.transform.compose(this.position, this.quaternion, this.unit);
+    const controls = aircraftControls(plane, alpha), gear = 1 - controls.gear;
+    for (const { object, id, rotation } of model.joints) {
+      object.rotation.copy(rotation);
+      if (id.startsWith('wing.fold.')) object.rotateOnAxis(new THREE.Vector3().fromArray(object.userData.foldAxis), plane.wingFold * Number(object.userData.foldAngleDegrees) * Math.PI / 180);
+      if (id === 'propeller.spin') object.rotateZ(controls.propeller);
+      if (id.startsWith('gear.') && !object.userData.fixed && object.userData.articulation !== 'fixed') {
+        const angle = gear * Math.PI * .43 * (id.endsWith('.port') ? 1 : -1) * (id.endsWith('.tail') ? .5 : 1);
+        if (object.userData.axis === 'spanwise') object.rotateX(angle); else object.rotateZ(angle);
+      }
+      if (id.startsWith('control.aileron.')) object.rotateX(controls.aileron * (id.endsWith('.port') ? 1 : -1));
+      if (id.startsWith('control.elevator.')) object.rotateX(controls.elevator);
+      if (id === 'control.rudder') object.rotateY(controls.rudder);
+      if (id === 'arrestor.hook') object.rotateX(controls.hook * .65);
+      if (id.startsWith('diveBrake.')) object.rotateX(controls.brakes * .55 * Number(object.userData.rotationMultiplier ?? 1));
+    }
+    model.root.updateMatrixWorld(true);
+    for (const { source, batches } of model.meshes) batches[Math.floor(model.count / BATCH_CAPACITY)].setMatrixAt(model.count % BATCH_CAPACITY, this.matrix.multiplyMatrices(this.transform, source.matrixWorld));
+    for (const parts of model.parts) parts.setPose(model.count, this.transform);
+    if (payload && this.payloadCount < 768) {
+      const socket = model.joints.find(j => j.id === 'socket.payload')?.object;
+      this.matrix.copy(this.transform);
+      if (socket) this.matrix.multiply(socket.matrixWorld);
+      if (payload === 'bomb') { this.bombs.setMatrixAt(this.bombCount++, this.matrix); }
+      else this.payloads.setMatrixAt(this.payloadCount++, this.matrix);
+    }
+    model.count++;
+  }
+  observedPosition(id: string) { return this.observedMotion.get(id)?.position; }
   diagnostics() { return { models: this.models.size, instances: [...this.models.values()].reduce((n, m) => n + m.count, 0), batches: [...this.models.values()].reduce((n, m) => n + Math.ceil(m.count / BATCH_CAPACITY) * m.meshes.length + (m.count ? m.parts.length : 0), 0), culled: this.culled, silhouettes: this.silhouettes, contacts: this.contacts.count, payloads: this.payloadCount + this.bombCount, bombs: this.bombCount, tracers: this.gunfire.diagnostics() }; }
   warmupParts(): () => void {
     const restore: (() => void)[] = [];
@@ -267,6 +289,7 @@ export class AircraftView {
       disposeObjects(model.root); this.models.delete(key);
     }
   }
+  reset(): void { this.observedMotion.clear(); this.gunfire.reset(); this.contacts.begin(); this.contacts.finish(); }
   async dispose() {
     await this.loadPromise?.catch(() => {});
     this.clearModels(); this.root.removeFromParent(); this.gunfire.dispose();

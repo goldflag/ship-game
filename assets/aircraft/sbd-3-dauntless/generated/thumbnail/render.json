@@ -3,9 +3,9 @@
   "aircraftId": "sbd-3-dauntless",
   "method": "local-blender",
   "blenderVersion": "5.2.0 LTS",
-  "modelHash": "5579d6db8b84f67e05b04141a9f11a39cb1f2a04e1cf6ca153ac111f3481fde4",
+  "modelHash": "2dd0a19356ce09994555bd2a9c6d34c8524658f7e5c56b4f4423f4400d0aa434",
   "recipeHash": "4dac62f77e03bd34d839afece76b69a852415f46fd2d524f1968006c869223bb",
-  "imageHash": "5a582f1508e95f714a1ecb5133a623e539b08c7450f5319eda57acd51515ef21",
+  "imageHash": "944fcc45d4872763cacc8e281b30a99e567f24e35dd8e441fb3cad7212235c3c",
   "importedAxes": "nose +Y, starboard +X, up +Z",
   "projection": "orthographic",
   "location": [

@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "id": "mogami-reference-maintained-v1",
+  "basis": "Existing approved GameModels3D A-hull palette; interpreted linear RGB, not measured historical paint. Original subtle operational wear.",
+  "palette": {
+    "mogami-reference-upperworks": [0.125, 0.145, 0.16],
+    "mogami-reference-hull": [0.13, 0.15, 0.16],
+    "mogami-reference-horizontal": [0.105, 0.12, 0.13],
+    "mogami-reference-fittings": [0.19, 0.215, 0.235],
+    "mogami-reference-underwater": [0.20, 0.225, 0.13],
+    "mogami-reference-linoleum": [0.235, 0.14, 0.085],
+    "mogami-reference-wood": [0.27, 0.18, 0.105]
+  },
+  "materials": {
+    "naval": { "paint": "mogami-reference-upperworks", "finish": "painted-steel" },
+    "hullgray": { "paint": "mogami-reference-hull", "finish": "painted-steel", "projection": "hull" },
+    "roof": { "paint": "mogami-reference-horizontal", "finish": "painted-deck" },
+    "edge": { "paint": "mogami-reference-fittings", "finish": "painted-steel" },
+    "underwater": { "paint": "mogami-reference-underwater", "finish": "underwater-coating", "projection": "hull" },
+    "linoleum": { "paint": "mogami-reference-linoleum", "finish": "linoleum" },
+    "wood": { "paint": "mogami-reference-wood", "finish": "wood" }
+  },
+  "hull": { "bounds": [-101, 101, -7, 10], "pixelsPerMeter": 16, "waterline": 0, "stainStrength": 0.16, "runoffStrength": 0.16 }
+}

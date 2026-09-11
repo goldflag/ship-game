@@ -515,5 +515,8 @@ for kind in ['armor','modules','compartments','obstructions']:
 scene['definitionHash']=D['contentHash'];scene['configuration']=D['configuration'];scene['historicalAccuracy']='In progress; see discrepancy register'
 from blender_rig import create_flagstaffs
 create_flagstaffs(D)
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'appearance'))
+from surface import apply_appearance
+apply_appearance(scene,M,Path(__file__).with_name('appearance.json'))
 bpy.ops.wm.save_as_mainfile(filepath=str(OUT/'source.blend'))
 print('ENTERPRISE SOURCE',len(scene.objects),'objects',flush=True)

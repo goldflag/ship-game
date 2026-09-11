@@ -36,7 +36,7 @@ The vendored Fresnel shader's grazing-angle guard is reduced from 0.05 to 0.0001
 
 Black Flag's custom absorption coefficients remove over 99% of green/blue scene light along a 50 m underwater column, making the VIIC disappear at ordinary chase distances. `VisualEnvironment.update` (called from `Game.frame`) now scales those coefficients from their original values to 5% using a smooth transition as the camera moves from sea level to 2 m below it. This gives the underwater view 20 times the absorption distance while retaining the blue water color and distant haze. It is a gameplay visibility adjustment, not measured Atlantic water clarity.
 
-The game now disables surface refraction and animated underwater distortion. Above-water views use the water medium color instead of showing submerged geometry through the surface; submerged cameras retain an unwarped view and underwater fog. Opaque scene captures still supply shoreline depth and ship reflections, but transparent effects are omitted from the surface capture. The separate water-depth pass runs only when underwater rendering is enabled. The sky reflections, FFT cascades, foam and wakes retain their quality settings. See the [vendor patch](../vendor/threejs-water-pro/PATCHES.md#optional-refraction-removal). If a diagnostic re-enables distortion, its intensity still eases to 15% below the surface using the saved preset value.
+The game shows submerged hulls and terrain through the surface using an undistorted scene sample, attenuated by the water column depth. Surface refraction and animated underwater distortion remain disabled; submerged cameras retain their unwarped view and underwater fog. Straight-through visibility reuses the opaque scene capture and the surface fragment's depth, so it does not require the separate surface water-depth pass or transparent-effect capture. That depth pass still runs for underwater fog. Sky reflections, FFT cascades, foam and wakes retain their quality settings. See the [vendor patch](../vendor/threejs-water-pro/PATCHES.md#straight-through-surface-visibility). If a diagnostic re-enables distortion, its intensity still eases to 15% below the surface using the saved preset value.
 
 The original linear RGB coefficients are saved once after loading the preset. Each frame derives its values from that copy, so repeated dives cannot accumulate the adjustment. Surface, tactical and above-water periscope cameras restore the original coefficients. The change uses Water Pro's public color uniforms; simulation depth, waves and the vendored shader remain separate.
 
@@ -53,6 +53,28 @@ The demo's image-based sky is replaced by Sky Pro's animated clouds and atmosphe
 Water Pro's `scene.fogNode` owns distance fog, including transparent effects and the ocean's sky-color blend. The final composition uses Water Pro's output directly, without Sky Pro's additional `applyTo` fog pass: that pass reads opaque depth behind transparent smoke and can erase it at the ocean horizon. Sky Pro still supplies the sky, clouds, lighting and reflections. See the [horizon regression review](../assets/effects/naval/reports/validation.md#horizon-smoke-cutoff-2026-09-05).
 
 The game requests reversed depth for centimeter-scale ship details at long battle ranges. Three.js gives the main scene pass a floating-point depth attachment, retaining the 0.5 m battle near plane and 60 km far plane. Sky Pro 2.2.0's sky and cirrus background shaders require their constant far-depth value to match the active backend (0 for reversed depth, 1 otherwise); volumetric clouds already project their hit distance through the camera. Water and smoke use Three.js's depth conversion nodes, which account for reversed depth. See the [distant ship depth review](../assets/reviews/ship-depth/README.md) for the GPU regression fixture and matching 24× captures.
+
+## Zoomed ship reflections and shadows
+
+Above 1.5× magnification in battle, `WaterViewFocus` selects the visible hull nearest
+the center of the rendered view. Its range extends water reflection rays to twice
+the camera-to-hull distance, capped at the camera far plane. The existing sun/moon
+shadow map follows that hull with its original size and resolution. Returning to
+an ordinary view, the air map or port restores the normal reflection range and
+shadow anchor. Selection is independent of combat targeting and works while paused.
+
+High and Ultra retain screen-space ship reflections; Medium keeps them disabled.
+The water shader clips reflection rays to the viewport, refines geometry hits more
+precisely and uses full-float reflection depth to avoid distant speckling. Screen-space
+reflections still omit offscreen geometry and break up with wave slopes. This extends
+the reflected ship silhouette on water and the ship's own sun/moon shading; the custom
+water surface does not receive a separate directional shadow.
+
+The development fixture `/scripts/diagnostics/water-reflections.html?test` compares
+the old range against zoomed coverage at 5 km and 20 km, then checks restoration.
+Use `&calm` for a mirror comparison or `&webgl` for the fallback renderer. It exposes
+`window.reflectionResult.passed` and `reflectionReview.still()` for inspected images.
+Temporary captures belong in `.build/`. See the [vendor patch](../vendor/threejs-water-pro/PATCHES.md#naval-range-ship-reflections).
 
 ## Ship wake
 

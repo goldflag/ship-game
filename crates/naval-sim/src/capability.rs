@@ -14,24 +14,33 @@ pub fn update(actor: &mut Combatant, def: &ShipDefinition, wing: Option<&AirWing
             actor.damage.stability.status = "sinking".into()
         }
         for m in &mut actor.mounts {
-            m.status = "disabled".into()
+            m.status = crate::weapons::MountStatus::Disabled
         }
         return;
     }
+    // One hashed lookup replaces a full scan of the module list; both resolve
+    // the first module with the id, exactly as `find` did.
+    let index = actor.index.of(def);
+    let module_of = |id: &str| match index {
+        Some(ix) => ix.module(id),
+        None => def.modules.iter().position(|m| m.id == id),
+    };
+    let parallel = index.is_some_and(|ix| actor.damage.modules.len() == ix.modules);
     let hp = |id: &str| {
-        actor
-            .damage
-            .modules
-            .iter()
-            .find(|m| m.id == id)
-            .map_or(0.0, |m| m.hp)
+        if parallel {
+            module_of(id).map_or(0.0, |i| actor.damage.modules[i].hp)
+        } else {
+            actor
+                .damage
+                .modules
+                .iter()
+                .find(|m| m.id == id)
+                .map_or(0.0, |m| m.hp)
+        }
     };
-    let available = |id: &str| {
-        def.modules
-            .iter()
-            .find(|m| m.id == id)
-            .is_some_and(|m| equipment_condition(actor, def, m, None).availability > 0.0)
-    };
+    let available_at =
+        |i: usize| equipment_condition(actor, def, &def.modules[i], None).availability > 0.0;
+    let available = |id: &str| module_of(id).is_some_and(&available_at);
     let armed = wing.is_some_and(|w| {
         w.planes.iter().any(|p| {
             matches!(
@@ -43,7 +52,7 @@ pub fn update(actor: &mut Combatant, def: &ShipDefinition, wing: Option<&AirWing
     let reserves = wing.is_some_and(|w| {
         w.planes
             .iter()
-            .any(|p| p.phase != "lost" && p.role != "fighter")
+            .any(|p| !crate::aircraft::terminal(p) && p.role != "fighter")
     });
     let service = def.air_wing.as_ref().map(|w| w.service_module_id.as_str());
     let mut usable = armed || reserves && service.is_some_and(available);
@@ -108,7 +117,7 @@ pub fn update(actor: &mut Combatant, def: &ShipDefinition, wing: Option<&AirWing
     }
     for (i, m) in actor.mounts.iter_mut().enumerate() {
         if actor.damage.stability.combat_lost || disabled[i] {
-            m.status = "disabled".into()
+            m.status = crate::weapons::MountStatus::Disabled
         }
     }
 }

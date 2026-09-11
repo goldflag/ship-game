@@ -218,7 +218,7 @@ test('target selection uses each enemy definition and rejects friendly IDs', () 
   expect(sim.selectTarget('enemy-2')).toBe(true);
   const data = sim.telemetry('main', sim.aimAt());
   expect(data.targetName).toBe(shipPreset('enterprise-cv6').name);
-  expect(data.modules.map(module => module.id)).toEqual(shipPreset('enterprise-cv6').modules.map(module => module.id));
+  expect(data.modules!.map(module => module.id)).toEqual(shipPreset('enterprise-cv6').modules.map(module => module.id));
   expect(data.contacts).toHaveLength(4);
 });
 

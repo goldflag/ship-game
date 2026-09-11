@@ -102,6 +102,7 @@ export class LocalizedFireEffects {
     }
     this.flames.publish(camera, hiddenSourceId); this.smoke.publish(camera, hiddenSourceId);
   }
+  setDensity(density: number): void { this.flames.density = density; this.smoke.density = density; }
   diagnostics() { return { sources: this.sourceCount, flames: this.flames.count, smoke: this.smoke.count, capacity: this.flames.capacity + this.smoke.capacity }; }
   reset(): void { this.flames.reset(); this.smoke.reset(); this.smokeTime = 0; this.time = 0; this.sourceCount = 0; }
   dispose(): void { this.root.removeFromParent(); this.flames.dispose(); this.smoke.dispose(); this.flameMap.dispose(); this.smokeMap.dispose(); }

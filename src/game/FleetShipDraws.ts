@@ -59,7 +59,9 @@ export class FleetShipDraws {
     }
   }
   /** Call after interpolating all hull/joint matrices and choosing view visibility. */
-  update(camera?: THREE.Camera, framebufferHeight = 1080): void {
+  /** `detailBudgetPx` is the projected surface error a reduced level may show;
+   * a level already in use keeps a 40% wider budget so silhouettes stay stable. */
+  update(camera?: THREE.Camera, framebufferHeight = 1080, detailBudgetPx = 1.25): void {
     this.visibleInstances = 0; this.reducedInstances = 0; this.subpixelInstances = 0;
     this.visibility.clear();
     const projection = camera ? Math.abs(camera.projectionMatrix.elements[5]) * framebufferHeight * .5 : 0;
@@ -93,9 +95,8 @@ export class FleetShipDraws {
           else {
             const scale = source.mesh.matrixWorld.getMaxScaleOnAxis();
             for (let i = 1; i < source.levels!.length; i++) {
-              // Allow about one pixel of distant surface error. Hysteresis
-              // keeps a stationary silhouette stable near a threshold.
-              const budget = i <= source.level ? 1.75 : 1.25;
+              // Hysteresis keeps a stationary silhouette stable near a threshold.
+              const budget = i <= source.level ? detailBudgetPx * 1.4 : detailBudgetPx;
               if (source.levels![i].error * scale * pixelsPerMetre <= budget) level = i;
             }
           }
@@ -108,7 +109,7 @@ export class FleetShipDraws {
     }
     this.proxies.forEach((proxy, view) => {
       proxy.root.visible = view.renderActive !== false;
-      if (proxy.root.visible) proxy.update(camera, framebufferHeight);
+      if (proxy.root.visible) proxy.update(camera, framebufferHeight, this.visibility);
     });
   }
   diagnostics() { return { batches: this.batches.length, instances: this.visibleInstances, reduced: this.reducedInstances, subpixel: this.subpixelInstances }; }

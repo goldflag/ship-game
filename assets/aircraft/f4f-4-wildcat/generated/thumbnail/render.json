@@ -3,9 +3,9 @@
   "aircraftId": "f4f-4-wildcat",
   "method": "local-blender",
   "blenderVersion": "5.2.0 LTS",
-  "modelHash": "827a4d3e9c46a72dd591aee12c4dafeea526d8e13528956249da0c6591c81ac3",
+  "modelHash": "986a7555073306b31bfef8b3de37f9ed5249f863ecda4a82511a072f64947d71",
   "recipeHash": "4dac62f77e03bd34d839afece76b69a852415f46fd2d524f1968006c869223bb",
-  "imageHash": "9da013da963ba9282c10016a9dee8bbf04b36907c4bcca8d1358e522169f69d1",
+  "imageHash": "a8f345564f4b1b3bd15198ffc8def6b609dcb1f9de604f1d8b8a1e3c98007ccb",
   "importedAxes": "nose +Y, starboard +X, up +Z",
   "projection": "orthographic",
   "location": [

@@ -333,6 +333,8 @@ impl Hub {
                 weather: environment.weather.clone(),
                 spawn_distance: Rules::default().spawn_distance_m as f64,
                 wind_speed: None,
+                mission_rules: None,
+                air_rules: None,
             };
             let id = uuid::Uuid::new_v4().to_string();
             let handle = worker::spawn(
@@ -444,7 +446,7 @@ mod tests {
         );
         let compiled = Arc::new(BTreeMap::from([(
             "fletcher".into(),
-            Arc::new(CompiledShip::new(catalog.definitions["fletcher"].clone()).unwrap()),
+            Arc::new(catalog.compile("fletcher").unwrap()),
         )]));
         let path =
             std::env::temp_dir().join(format!("naval-lobby-{}.sqlite", uuid::Uuid::new_v4()));

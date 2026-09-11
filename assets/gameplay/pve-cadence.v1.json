@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "capabilityTicks": 6,
+  "damageControlTicks": 30,
+  "stabilityIntervalSeconds": 1.0
+}

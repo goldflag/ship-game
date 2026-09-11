@@ -18,6 +18,7 @@ export interface InputActions {
   emergencyBlow?(): void;
   periscope?(): void;
   airOperations?(): void;
+  simulationSpeed?(): void;
   isSpectating?(): boolean;
   cycleSpectator?(direction: number): void;
 }
@@ -38,10 +39,10 @@ export class InputController {
     window.addEventListener('keyup', e => {
       this.keys.delete(e.code);
       if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
-        if (this.enabled && this.shiftTap) this.actions.optics();
+        if (this.shiftTap) this.actions.optics();
         this.shiftTap = false;
       }
-      if (this.enabled && (e.code === 'ControlLeft' || e.code === 'ControlRight') && !this.keys.has('ControlLeft') && !this.keys.has('ControlRight')) this.actions.cursor(false);
+      if ((e.code === 'ControlLeft' || e.code === 'ControlRight') && !this.keys.has('ControlLeft') && !this.keys.has('ControlRight')) this.actions.cursor(false);
     }, options);
     window.addEventListener('blur', () => this.clear(), options);
   }
@@ -75,6 +76,19 @@ export class InputController {
       if (key === 'Escape') this.actions.pause();
       if (action === 'hud') this.actions.hud();
       if (action === 'fullscreen') this.actions.fullscreen();
+      // Resizing the chart is a view control like the HUD toggle: it stays live
+      // while the helm is not the player's, such as when following a teammate.
+      if (action === 'chartLarger') this.actions.chartSize(1);
+      if (action === 'chartSmaller') this.actions.chartSize(-1);
+      // Simulation speed is the battle's clock, not the helm's: it answers while
+      // following a captain or reading the fleet chart, like the chart size keys.
+      if (action === 'simulationSpeed') this.actions.simulationSpeed?.();
+      // Optics are a view control too: a spectator following a teammate raises the
+      // same glasses without holding that ship's helm.
+      if (shift) this.shiftTap = true;
+      // So is the cursor: a follower's mouse steers the camera the way a helm's does,
+      // and Ctrl hands the cursor back to the panels the same way.
+      if (control) this.actions.cursor(true);
     }
     if (!this.enabled) return;
     this.keys.add(key);
@@ -86,12 +100,8 @@ export class InputController {
       if (action === 'stop') this.setOrder(1);
       if (action === 'camera') this.actions.camera();
       if (action === 'recenter') this.actions.recenter();
-      if (shift) this.shiftTap = true;
-      if (control) this.actions.cursor(true);
       const weaponIndex = WEAPON_GROUP_ACTIONS.findIndex(id => id === action);
       if (weaponIndex >= 0) this.actions.weaponGroup(weaponIndex);
-      if (action === 'chartLarger') this.actions.chartSize(1);
-      if (action === 'chartSmaller') this.actions.chartSize(-1);
       if (action === 'shellFollow') this.actions.shellFollow();
       if (action === 'shellType') this.actions.shellType?.();
       if (action === 'dive') this.actions.depth?.(1);
@@ -107,6 +117,7 @@ export class InputController {
   setOrder(order: number): void { this.order = Math.max(0, Math.min(ENGINE_ORDERS.length - 1, Math.round(order))); }
   setRudder(rudder: number): void { if (Number.isFinite(rudder)) this.rudderOrder = Math.max(-1, Math.min(1, Math.round(rudder * 2) / 2)); }
   setEnabled(enabled: boolean): void { this.enabled = enabled; this.clear(); }
+  get isEnabled(): boolean { return this.enabled; }
   clear(): void { this.keys.clear(); this.shiftTap = false; }
   setBindings(bindings: Keybindings): void { this.bindings = bindings; this.clear(); }
   private held(action: InputAction): boolean { return this.bindings[action].some(key => key !== null && this.keys.has(key)); }

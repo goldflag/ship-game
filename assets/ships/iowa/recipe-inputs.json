@@ -3,6 +3,10 @@
   "files": [
     "assets/ships/iowa/fittings.py",
     "assets/ships/iowa/main_battery.py",
-    "assets/ships/iowa/superstructure.py"
+    "assets/ships/iowa/superstructure.py",
+    "assets/ships/appearance/surface.py",
+    "assets/ships/appearance/finishes.json",
+    "assets/ships/iowa/appearance.json",
+    "assets/ships/appearance/decking.py"
   ]
 }

@@ -1,3 +1,4 @@
+import { torpedoSpeed } from './mobility';
 import { presentationAim, presentationTelemetry } from './presentation';
 import { BATTLE_RULES, afloatKg, evaluateOutcome, matchDisplacementKg, physicalLoss, type BattleOutcome } from './battleRules';
 import { surfaceGunAllowed } from '../ships/armament';
@@ -18,13 +19,13 @@ import { equipmentIntegrity } from './durability';
 import { fireReadout, regionReadout, type FireReadout } from './damageReadout';
 import { DamageLog, type DamageLogEntry } from './damageLog';
 import { createShipState, FIXED_DT, stepShip, hullDepth, meanHullY, type HelmCommand } from './ship';
-import { add, clamp, localToWorld, scale, sub } from './geometry';
+import { add, clamp, worldToLocal, localToWorld, scale, sub } from './geometry';
 import { availableAmmunition, createMountState, GRAVITY, gunWorkRate, queueAmmunition, selectAmmunition, solveBallistic } from './weapons';
 import { travelFactor } from './ballistics';
 import { BATTLE_SPAWN_DISTANCE, deployment, validateSpawns, type SpawnPositions, MAX_TEAM_SHIPS, validateSpawnDistance, type BattleFleet, type BattleResult, type FleetActor, type Team } from './battle';
 import { botShouldDropDepthCharge, createDepthChargeLauncherState, damageDepthCharge, launchDepthCharge, stepDepthCharge, updateDepthChargeLauncher, type DepthCharge } from './depthCharges';
 import { botHelm, botReadyToFire, botTarget, botTorpedoAim, createBotState, shipVelocity, updateBot } from './bots';
-import { clearTorpedoLane, createTubeState, damageTorpedoHit, firstTorpedoHit, torpedoIntercept, trainTorpedoLaunchers, tubeLocalPosition, tubeSolution, type Torpedo } from './torpedoes';
+import { clearTorpedoLane, createTubeState, glancingDudChance, torpedoDudRoll, damageTorpedoHit, firstTorpedoHit, torpedoIntercept, trainTorpedoLaunchers, tubeLocalPosition, tubeSolution, type Torpedo } from './torpedoes';
 import { createSubmarineState, stepSubmarine, submarinePropulsion } from './submarine';
 import { resolveShipCollisions } from './collisions';
 import type { HullImpact } from './contactDamage';
@@ -34,7 +35,8 @@ import { createDamage, systemHealth, updateFlooding, type BallisticEffectData, t
 export interface CombatIntent { aim: Vec3; fire: boolean; battery: Battery; weaponGroupId?: string; ammunition?: Ammunition; controlPriority?: ControlPriority; controlFocus?: string; }
 export interface CombatEvent extends BallisticEffectData { sequence: number; tick: number; kind: DamageEvent['kind'] | 'shot' | 'splash' | 'torpedo-launch' | 'torpedo-hit' | 'torpedo-dud' | 'torpedo-expired' | 'aircraft-launch' | 'aircraft-recovered' | 'aircraft-lost' | 'aircraft-crash' | 'aircraft-fire' | 'aircraft-release' | 'bomb-release' | 'depth-charge-launch' | 'depth-charge-splash' | 'depth-charge-blast' | 'depth-charge-hit'; aircraft?: { id: string; caliberM?: number; panic?: boolean; dragPerSecond?: number; target?: Vec3; tracerSpeed?: number; direction?: Vec3; velocity?: Vec3; airburst?: { flightTime: number; caliberM: number }; attitude?: { heading: number; pitch: number; bank: number } }; depthCharge?: { id: number; radiusM: number }; torpedo?: { id: number; velocity: Vec3; diameterM: number }; position: Vec3; message: string; shipId: string; hullDamage?: number; impact?: ImpactRecord; defeatCause?: DefeatCause; }
 export interface ShellHistory { shellId: number; ownerId: string; tick: number; ammunition: Ammunition; impacts: ImpactRecord[]; outcome: 'flying' | 'splash' | 'passed-through' | 'expired' | 'stopped' | 'ricochet' | 'internal' | 'burst'; }
-export interface CombatTelemetry {
+export interface FullCombatTelemetry {
+  targetKnowledge?: 'full';
   playerSupport: { power: number; fireControl: number }; targetSupport: { power: number; fireControl: number };
   playerFires: FireReadout[]; targetFireDetails: FireReadout[];
   targetRegions: { id: string; name: string; condition: number }[];
@@ -54,7 +56,7 @@ export interface CombatTelemetry {
   targetDepthM?: number;
   contacts: { id: string; name: string; shipId: string; team: Team; controller: FleetActor['controller']; targetId?: string; x: number; z: number; heading: number; integrity: number; sunk: boolean; status: VesselStatus; combatLost: boolean; physicalLost: boolean }[];
   battle: boolean; result: BattleResult; playerSunk: boolean;
-  remainingSeconds: number; afloatKg: [number, number]; outcome?: BattleOutcome;
+  remainingSeconds: number | null; afloatKg: [number | null, number | null]; outcome?: BattleOutcome;
   targetPower: number; targetSteering: number; targetSunk: boolean; targetUnderway: boolean;
   mounts: { id: string; name: string; status: string; reload: number; ammo: number; loaded?: Ammunition; queued?: Ammunition }[];
   modules: ({ id: string; name: string; condition: number } & EquipmentCondition)[]; message: string;
@@ -70,6 +72,11 @@ export interface CombatTelemetry {
   damageLog: DamageLogEntry[];
   targetPosition: { x: number; z: number; heading: number };
   batteries: { battery: Battery; ammunition: Ammunition; ammo: number; ready: number; total: number; reload: number }[];
+}
+type TargetTelemetryKeys = Extract<keyof FullCombatTelemetry, `target${string}`> | 'modules' | 'shellHistory';
+export type CombatTelemetry = FullCombatTelemetry | (Omit<FullCombatTelemetry, TargetTelemetryKeys> & Partial<Pick<FullCombatTelemetry, Exclude<TargetTelemetryKeys, 'targetKnowledge'>>> & { targetKnowledge: 'none' | 'contact' });
+export function hasFullTarget(combat: CombatTelemetry): combat is FullCombatTelemetry {
+  return combat.targetKnowledge !== 'none' && combat.targetKnowledge !== 'contact';
 }
 export class CombatSimulation {
   readonly player: FleetActor;
@@ -316,10 +323,10 @@ export class CombatSimulation {
         const solution = tubeSolution(actor, tube, state, aim ?? [NaN, 0, NaN], FIXED_DT);
         const origin = solution.origin;
         if (state.status === 'ready' && actor.tubeLaunchCooldown! > 0) state.status = 'reloading';
-        if (state.status === 'ready' && actor.controller === 'bot' && aim && !clearTorpedoLane(actor, origin, aim, tube.weapon.speed, this.actors)) state.status = 'blocked';
+        if (state.status === 'ready' && actor.controller === 'bot' && aim && !clearTorpedoLane(actor, origin, aim, torpedoSpeed(tube.weapon.speed), this.actors)) state.status = 'blocked';
         const fire = actor === this.player ? aimValid && selectedWeapon('torpedo', tube.weapon, intent.battery, intent.weaponGroupId) && (intent.fire || this.fireQueued) : actor.controller === 'bot' && !!target && botReadyToFire(actor);
         if (!fire || state.status !== 'ready') return;
-        const velocity: Vec3 = [Math.sin(solution.heading) * tube.weapon.speed, 0, -Math.cos(solution.heading) * tube.weapon.speed];
+        const velocity: Vec3 = [Math.sin(solution.heading) * torpedoSpeed(tube.weapon.speed), 0, -Math.cos(solution.heading) * torpedoSpeed(tube.weapon.speed)];
         const torpedo: Torpedo = { id: ++this.shellSequence, ownerId: actor.motion.id, tubeId: tube.id, position: origin, velocity, age: 0, distance: 0, weapon: tube.weapon };
         this.torpedoes.push(torpedo);
         state.ammo--; state.reload = state.ammo ? tube.weapon.reloadSeconds : 0; state.status = state.ammo ? 'reloading' : 'empty';
@@ -378,8 +385,8 @@ export class CombatSimulation {
   private stepTorpedoes(): void {
     for (let i = this.torpedoes.length - 1; i >= 0; i--) {
       const torpedo = this.torpedoes[i], from: Vec3 = [...torpedo.position], w = torpedo.weapon;
-      const travel = Math.min(w.speed * FIXED_DT, w.rangeM - torpedo.distance);
-      const to = add(from, scale(torpedo.velocity, travel / w.speed));
+      const travel = Math.min(torpedoSpeed(w.speed) * FIXED_DT, w.rangeM - torpedo.distance);
+      const to = add(from, scale(torpedo.velocity, travel / torpedoSpeed(w.speed)));
       // A simple depth keeper settles from the tube datum onto the selected fixed run depth.
       if (from[1] > 0) {
         to[1] = Math.max(-w.runningDepthM, from[1] + torpedo.velocity[1] * FIXED_DT - .5 * GRAVITY * FIXED_DT ** 2);
@@ -396,16 +403,19 @@ export class CombatSimulation {
       }
       if (hit) {
         const { actor, point } = hit, armed = torpedo.distance + travel * hit.t >= w.armingDistanceM;
+        const direction = sub(worldToLocal(to, actor.motion), worldToLocal(from, actor.motion));
+        const glancing = armed && torpedoDudRoll(this.seed, torpedo.id) < glancingDudChance(direction, hit.normal);
+        const detonates = armed && !glancing;
         const hp = actor.damage.integrity, alreadyLost = !!physicalLoss(actor);
-        const message = armed ? damageTorpedoHit(torpedo, actor, point) : 'Torpedo dud · impact before arming';
-        if (armed) updateCapability(actor, actor.definition);
+        const message = detonates ? damageTorpedoHit(torpedo, actor, point) : glancing ? 'Torpedo dud · glancing impact' : 'Torpedo dud · impact before arming';
+        if (detonates) updateCapability(actor, actor.definition);
         const owner = this.actors.find(a => a.motion.id === torpedo.ownerId);
-        if (armed && !alreadyLost && owner && owner.team !== actor.team) {
+        if (detonates && !alreadyLost && owner && owner.team !== actor.team) {
           if (owner === this.player) this.playerDamageDealt += Math.max(0, hp - actor.damage.integrity);
           this.recordDamage(owner, actor, torpedo.id, `${w.name}${torpedo.tubeId === 'aircraft.payload' ? ' · Air torpedo' : ' · Torpedo'}`, Math.max(0, hp - actor.damage.integrity));
           this.lastDamager.set(actor.motion.id, owner.motion.id);
         }
-        this.emit({ kind: armed ? 'torpedo-hit' : 'torpedo-dud', position: localToWorld(point, actor.motion), shipId: actor.motion.id, message, hullDamage: Math.max(0, hp - actor.damage.integrity), torpedo: evidence });
+        this.emit({ kind: detonates ? 'torpedo-hit' : 'torpedo-dud', position: localToWorld(point, actor.motion), shipId: actor.motion.id, message, hullDamage: Math.max(0, hp - actor.damage.integrity), torpedo: evidence });
       }
       torpedo.position = to; torpedo.distance += travel;
       if (!hit && torpedo.distance >= w.rangeM - 1e-6) this.emit({ kind: 'torpedo-expired', position: [...to], shipId: torpedo.ownerId, message: 'Torpedo reached maximum range', torpedo: evidence });

@@ -2,6 +2,13 @@
   "version": 1,
   "files": [
     "assets/ships/bismarck/paint.py",
-    "assets/ships/bismarck/paint-scheme.json"
+    "assets/ships/bismarck/paint-scheme.json",
+    "assets/ships/appearance/surface.py",
+    "assets/ships/appearance/finishes.json",
+    "assets/ships/bismarck/appearance.json",
+    "assets/parts/library.py",
+    "assets/parts/library.json",
+    "assets/parts/german-battleship-guns/sk_c34.py",
+    "assets/parts/german-battleship-guns/sk_c30.py"
   ]
 }

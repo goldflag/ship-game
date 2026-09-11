@@ -51,9 +51,9 @@ test('secondary slopes leave air above the nose and retain distinct front and ro
     const pose={x:m.position[0],y:m.position[1],z:m.position[2],heading:train,roll:0,pitch:0};
     const trains=d.mounts.map((_,j)=>j===i?train:0);
     const trace=(a:Vec3,b:Vec3)=>protectionTrace(localToWorld(a,pose),localToWorld(b,pose),d,trains);
-    expect(trace([-4,2.45,-2.2],[4,2.45,-2.2])).toEqual([]);
-    expect(trace([0,1.0,-6],[0,1.0,0])[0]?.thicknessMm).toBe(80);
-    expect(trace([0,5,1.5],[0,1,1.5])[0]?.thicknessMm).toBe(20);
+    expect(trace([-4,2.45,-3],[4,2.45,-3])).toEqual([]);
+    expect(trace([-2,.5,-2],[4,.5,-1])[0]?.thicknessMm).toBe(80);
+    expect(trace([-3,5,0],[-3,1,0])[0]?.thicknessMm).toBe(20);
   }
 });
 test('a shell at a coplanar plate seam crosses one layer, preserving spatially separated backing', () => {

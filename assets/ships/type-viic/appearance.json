@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "id": "type-viic-maintained-v1",
+  "basis": "Preserve original recipe colors, scheme, markings and deck coverings. Shared maintained finish; no new historical color claim.",
+  "materials": {
+    "naval": {
+      "paint": "type-viic-authored-naval",
+      "finish": "painted-steel"
+    },
+    "roof": {
+      "paint": "type-viic-authored-roof",
+      "finish": "painted-deck"
+    },
+    "edge": {
+      "paint": "type-viic-authored-edge",
+      "finish": "painted-steel"
+    },
+    "hullgray": {
+      "paint": "type-viic-authored-hullgray",
+      "finish": "painted-steel",
+      "projection": "hull"
+    },
+    "underwater": {
+      "paint": "type-viic-authored-underwater",
+      "finish": "underwater-coating",
+      "projection": "hull"
+    },
+    "deck": {
+      "paint": "type-viic-authored-deck",
+      "finish": "wood",
+      "existing": "image",
+      "imageLayout": {
+        "bounds": [
+          0,
+          12.192,
+          0,
+          1.44
+        ]
+      }
+    },
+    "wood": {
+      "paint": "type-viic-authored-wood",
+      "finish": "wood"
+    }
+  },
+  "hull": {
+    "bounds": [
+      -33.550225,
+      33.550225,
+      -5.7625,
+      3.84
+    ],
+    "pixelsPerMeter": 16,
+    "waterline": 0,
+    "stainStrength": 0.16,
+    "runoffStrength": 0.16
+  },
+  "decking": {
+    "deck": {
+      "plankLength": 3.048,
+      "plankWidth": 0.12,
+      "seamWidth": 0.003,
+      "coating": "original gray-green finish"
+    }
+  }
+}

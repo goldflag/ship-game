@@ -18,7 +18,7 @@ describe('keyboard gameplay controls', () => {
     Object.defineProperty(globalThis, 'window', { configurable: true, value: events });
     Object.defineProperty(globalThis, 'document', { configurable: true, value: { querySelector: () => modal ? {} : null } });
     Object.defineProperty(globalThis, 'HTMLElement', { configurable: true, value: class {} });
-    actions = { isSpectating: mock(() => false), cycleSpectator: mock(), pause: mock(), camera: mock(), recenter: mock(), hud: mock(), fullscreen: mock(), optics: mock(), weaponGroup: mock(), cursor: mock(), chartSize: mock(), shellFollow: mock(), shellType: mock(), depth: mock(), depthPreset: mock(), emergencyBlow: mock(), periscope: mock(), airOperations: mock() };
+    actions = { isSpectating: mock(() => false), cycleSpectator: mock(), pause: mock(), camera: mock(), recenter: mock(), hud: mock(), fullscreen: mock(), optics: mock(), weaponGroup: mock(), cursor: mock(), chartSize: mock(), shellFollow: mock(), shellType: mock(), depth: mock(), depthPreset: mock(), emergencyBlow: mock(), periscope: mock(), airOperations: mock(), simulationSpeed: mock() };
     input = new InputController(actions, defaultKeybindings());
   });
   afterEach(() => {
@@ -111,6 +111,17 @@ describe('keyboard gameplay controls', () => {
     expect(actions.camera).toHaveBeenCalledTimes(1);
     key('keydown', 'Escape'); expect(actions.pause).toHaveBeenCalledTimes(1);
   });
+  test('the simulation speed key cycles once per press, even while the helm is not the player\'s', () => {
+    key('keydown', 'KeyN'); key('keydown', 'KeyN', { repeat: true });
+    expect(actions.simulationSpeed).toHaveBeenCalledTimes(1);
+    // Following a captain or reading the chart disables helm input, not the battle clock.
+    input.setEnabled(false); key('keydown', 'KeyN');
+    expect(actions.simulationSpeed).toHaveBeenCalledTimes(2);
+    input.setEnabled(true);
+    const bindings = defaultKeybindings(); bindings.simulationSpeed = ['KeyY', null]; input.setBindings(bindings);
+    key('keydown', 'KeyN'); expect(actions.simulationSpeed).toHaveBeenCalledTimes(2);
+    key('keydown', 'KeyY'); expect(actions.simulationSpeed).toHaveBeenCalledTimes(3);
+  });
   test('air operations opens once per press and respects remapped controls', () => {
     key('keydown', 'KeyM'); key('keydown', 'KeyM', { repeat: true });
     expect(actions.airOperations).toHaveBeenCalledTimes(1);
@@ -154,8 +165,23 @@ describe('keyboard gameplay controls', () => {
     key('keydown', 'ControlLeft', { ctrlKey: true });
     expect(actions.cursor).toHaveBeenLastCalledWith(true);
     key('keyup', 'ControlLeft'); expect(actions.cursor).toHaveBeenLastCalledWith(false);
+    // A follower without the helm still steers the camera, so Ctrl still frees and returns the cursor.
+    input.setEnabled(false);
+    key('keydown', 'ControlRight', { ctrlKey: true }); expect(actions.cursor).toHaveBeenLastCalledWith(true);
+    key('keyup', 'ControlRight'); expect(actions.cursor).toHaveBeenLastCalledWith(false);
+    expect(actions.cursor).toHaveBeenCalledTimes(4);
+    input.setEnabled(true);
     key('keydown', 'ShiftLeft'); events.dispatchEvent(new Event('blur')); key('keyup', 'ShiftLeft');
     expect(actions.optics).toHaveBeenCalledTimes(1);
+    // Following a teammate hands the helm to its captain; the minimap keys stay live.
+    input.setEnabled(false);
+    key('keydown', 'Equal'); expect(actions.chartSize).toHaveBeenLastCalledWith(1);
+    key('keyup', 'Equal');
+    key('keydown', 'Minus'); expect(actions.chartSize).toHaveBeenLastCalledWith(-1);
+    key('keydown', 'Digit1'); expect(actions.weaponGroup).not.toHaveBeenCalled();
+    // The glasses are a view control too, so a spectator raises them without the helm.
+    key('keydown', 'ShiftLeft', { shiftKey: true }); key('keyup', 'ShiftLeft');
+    expect(actions.optics).toHaveBeenCalledTimes(2);
   });
 
   test('depth preset hotkeys support rebinding and ignore repeat, pause and dialogs', () => {

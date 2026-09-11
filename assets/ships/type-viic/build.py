@@ -312,4 +312,9 @@ landmark('saddle-maximum',(0,3.076575,-.82))
 scene['definitionHash']=definition['contentHash']
 from blender_rig import create_flagstaffs
 create_flagstaffs(definition)
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'appearance'))
+from surface import apply_appearance
+from decking import apply_decking
+apply_decking(scene,materials,Path(__file__).with_name('appearance.json'))
+apply_appearance(scene,materials,Path(__file__).with_name('appearance.json'))
 bpy.ops.wm.save_as_mainfile(filepath=str(out/'source.blend'))

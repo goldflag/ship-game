@@ -1,3 +1,4 @@
+import { torpedoSpeed } from './mobility';
 import { physicalLoss } from './battleRules';
 import { HULL_HP_SCALE } from './durability';
 import type { Ammunition, ShipDefinition, Vec3 } from '../ships/blueprint';
@@ -168,7 +169,7 @@ export function botTorpedoAim(actor: FleetActor, tube: TubeDefinition): Vec3 | n
   const bot = actor.bot, track = bot?.track;
   if (!bot || !track) return null;
   const point = add([track.pose.x, 0, track.pose.z], scale(track.velocity, bot.time - track.observedAt));
-  return torpedoIntercept(localToWorld(tube.position, actor.motion), point, track.velocity, tube.weapon.speed);
+  return torpedoIntercept(localToWorld(tube.position, actor.motion), point, track.velocity, torpedoSpeed(tube.weapon.speed));
 }
 
 /** Crew cadence is additional to the shared physical reload and alignment checks. */
