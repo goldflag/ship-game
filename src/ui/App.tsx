@@ -9,7 +9,8 @@ import { Button } from './components';
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Game } from '../game/Game';
 import { createShipState } from '../simulation/ship';
-import { DEFAULT_SETTINGS, type GameSettings, type Telemetry } from '../game/types';
+import type { Telemetry } from '../game/types';
+import { GRAPHICS_STORAGE_KEY, launchMatches, loadGraphicsSettings, type GraphicsSettings } from '../game/graphicsSettings';
 import { Icon } from './Icons';
 import { FleetHud } from './FleetHud';
 import { BinocularOverlay } from './BinocularOverlay';
@@ -32,15 +33,6 @@ import './GunAimIndicators.css';
 import './HitDirectionIndicators.css';
 
 const INITIAL_TELEMETRY: Telemetry = { ship: createShipState(), order: 1, camera: 'Chase', fps: 0, backend: 'webgpu', trail: [] };
-function loadSettings(): GameSettings {
-  try {
-    const saved = JSON.parse(localStorage.getItem('bismarck-settings') ?? '{}');
-    return {
-      quality: ['medium', 'high', 'ultra'].includes(saved.quality) ? saved.quality : DEFAULT_SETTINGS.quality,
-      resolution: [0.65, 0.8, 1].includes(saved.resolution) ? saved.resolution : DEFAULT_SETTINGS.resolution,
-    };
-  } catch { return DEFAULT_SETTINGS; }
-}
 
 export function App() {
   const [selectedShip, setSelectedShip] = useState(initialShip);
@@ -51,7 +43,8 @@ export function App() {
   const host = useRef<HTMLDivElement>(null);
   const game = useRef<Game | null>(null);
   const dialog = useRef<HTMLDialogElement>(null);
-  const [settings, setSettings] = useState(loadSettings);
+  const [graphics, setGraphics] = useState(loadGraphicsSettings);
+  const graphicsRef = useRef(graphics);
   const [bindings, setBindings] = useState(loadKeybindings);
   const [audioSettings, setAudioSettings] = useState(loadAudioSettings);
   const [hudSettings, setHudSettings] = useState(loadHudSettings);
@@ -88,7 +81,7 @@ export function App() {
     setPveBriefing(undefined); setBattleOpen(false); setSortieOpen(false); setBattleLoading(null); battlePending.current = false;
     setSwitching(false); setSwitchError(''); switchPending.current = false;
     setReady(false); setError(''); setPaused(false); setSettingsOpen(false); setData(INITIAL_TELEMETRY); setPhase('garage');
-    const session = new Game(host.current!, settings, {
+    const session = new Game(host.current!, graphicsRef.current, {
       progress: (label, progress) => active && setLoading({ label, progress }),
       ready: () => active && setReady(true),
       telemetry: value => {
@@ -120,7 +113,7 @@ export function App() {
       if (import.meta.env.DEV) { delete reviewWindow.shipTrialDiagnostics; delete reviewWindow.shipTrialArticulation; delete reviewWindow.shipTrialAdvance; }
       void session.dispose();
     };
-  }, [generation, settings]);
+  }, [generation]);
 
   useEffect(() => { game.current?.setHudScale(hudScale); }, [hudScale]);
 
@@ -191,7 +184,11 @@ export function App() {
     } finally { if (game.current === session) battlePending.current = false; }
   };
   const returnToPort = async () => {
-    try { await game.current?.returnToPort(); setPhase('garage'); }
+    try {
+      await game.current?.returnToPort(); setPhase('garage');
+      // Ocean and terrain rows chosen during the battle need a rebuilt port.
+      if (game.current && !launchMatches(game.current.launchedGraphics, graphicsRef.current)) setGeneration(value => value + 1);
+    }
     catch (error) { setError(error instanceof Error ? error.message : String(error)); }
   };
   const restartPve = async () => {
@@ -251,12 +248,13 @@ export function App() {
     }
   };
 
-  const applySettings = (draft: GameSettings) => {
-    setSettingsOpen(false);
-    try { localStorage.setItem('bismarck-settings', JSON.stringify(draft)); } catch { /* Storage is optional. */ }
-    if (JSON.stringify(settings) === JSON.stringify(draft)) setGeneration(value => value + 1);
-    else setSettings({ ...draft });
+  const changeGraphics = (next: GraphicsSettings): boolean => {
+    graphicsRef.current = next; setGraphics(next);
+    game.current?.applyGraphics(next);
+    try { localStorage.setItem(GRAPHICS_STORAGE_KEY, JSON.stringify(next)); return true; }
+    catch { return false; }
   };
+  const reloadPort = () => { setSettingsOpen(false); setGeneration(value => value + 1); };
 
   const changeBindings = (next: Keybindings): boolean => {
     bindingsRef.current = next;
@@ -290,7 +288,7 @@ export function App() {
       if (!(target instanceof HTMLElement && target.closest('input, textarea, [contenteditable]:not([contenteditable="false"])'))) event.preventDefault();
     }}>
     <div ref={host} className="ocean-viewport" inert={!ready || !!error} data-ship-labels={phase === 'sailing' && hud && ready && !error && !data.airOperationsOpen} />
-    {phase === 'garage' && ready && !error && !battleOpen && <Garage key={selectedShip.id} switching={switching} switchError={switchError} onSelectShip={switchShip} game={game.current} ready={ready} fps={data.fps} onBattle={pressBattle} onChooseBattle={openSortieBoard} lastMode={battleMode} onSettings={() => game.current?.setPaused(true)}/>}
+    {phase === 'garage' && ready && !error && !battleOpen && <Garage key={selectedShip.id} switching={switching} switchError={switchError} onSelectShip={switchShip} game={game.current} ready={ready} fps={data.fps} performance={data.performance} onBattle={pressBattle} onChooseBattle={openSortieBoard} lastMode={battleMode} onSettings={() => game.current?.setPaused(true)}/>}
     {phase === 'garage' && sortieOpen && !battleOpen && <SortieBoard lastMode={battleMode} onChoose={openBattle} onClose={() => setSortieOpen(false)}/>}
     {battleOpen && <BattleDialog initialMode={battleMode} initialShipId={selectedShip.id} loading={!!battleLoading} onClose={() => setBattleOpen(false)}
       setup={battleSetup} onSetupChange={setBattleSetup} onLaunchCustom={() => void launch()} customError={battleError}
@@ -333,6 +331,6 @@ export function App() {
         <span><kbd>{bindingLabel(bindings, 'fullscreen')}</kbd> Fullscreen</span>
       </div>}
     </dialog>
-    {settingsOpen && paused && ready && !error && <SettingsDialog settings={settings} bindings={bindings} audioSettings={audioSettings} hudSettings={hudSettings} hudScale={hudScale} onHudChange={changeHud} onAudioChange={changeAudio} onPreviewSound={id => game.current?.audio?.preview(id)} onBindingsChange={changeBindings} onApply={applySettings} onClose={() => setSettingsOpen(false)}/>}
+    {settingsOpen && paused && ready && !error && <SettingsDialog graphics={graphics} launched={game.current?.launchedGraphics} performance={data.performance} inBattle={phase === 'sailing'} onGraphicsChange={changeGraphics} onReloadPort={reloadPort} bindings={bindings} audioSettings={audioSettings} hudSettings={hudSettings} hudScale={hudScale} onHudChange={changeHud} onAudioChange={changeAudio} onPreviewSound={id => game.current?.audio?.preview(id)} onBindingsChange={changeBindings} onClose={() => setSettingsOpen(false)}/>}
   </main></ShipContext>;
 }

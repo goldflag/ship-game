@@ -3,6 +3,8 @@ import { assetUrl } from '../assetUrl';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { InspectionTooltip } from "./InspectionTooltip";
 import { Icon } from "./Icons";
+import { PerformanceCounter } from "./PerformanceCounter";
+import type { PerformanceReadout } from "../game/types";
 import "./Garage.css";
 import type { Game } from "../game/Game";
 import { shipModel, shipIdentity, shipClass, SHIP_CLASSES, type ShipClass } from "../game/shipModel";
@@ -117,6 +119,7 @@ type GarageState = {
   ready: boolean;
   settings: () => void;
   fps: number;
+  performance?: PerformanceReadout;
 };
 function SetSail({ state }: { state: GarageState }) {
   return (
@@ -307,12 +310,7 @@ function PortLayout({ state }: { state: GarageState }) {
           <Icon name="anchor" size={26} />
           <strong>FLEET COMMAND</strong>
         </div>
-        <div
-          className="garage-preview-meta"
-          aria-label={`${state.fps || 0} frames per second`}
-        >
-          {state.fps || "—"} FPS
-        </div>
+        <PerformanceCounter className="garage-preview-meta" fps={state.fps} performance={state.performance} />
         <div className="garage-classic-deploy">
           <SetSail state={state} />
         </div>
@@ -387,6 +385,7 @@ interface Props {
   switchError: string;
   onSelectShip: (id: string) => void;
   fps: number;
+  performance?: PerformanceReadout;
   onBattle: () => void;
   onChooseBattle: () => void;
   lastMode: BattleMode;
@@ -397,6 +396,7 @@ export function Garage({
   game,
   ready,
   fps,
+  performance,
   onBattle,
   onChooseBattle,
   lastMode,
@@ -446,6 +446,7 @@ export function Garage({
     ready: ready && !switching,
     settings: onSettings,
     fps,
+    performance,
   };
 
   return (
