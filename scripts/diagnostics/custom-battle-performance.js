@@ -6,6 +6,9 @@ const params = new URLSearchParams(location.search);
 const seconds = Number(params.get('seconds') ?? 60);
 const roster = (params.get('roster') ?? 'bismarck,yamato,baltimore,fletcher,king-george-v,flower-corvette,enterprise-cv6').split(',');
 const review = window.review = { ready: false, rows: [], phases: {}, errors: [] };
+// Measure the battle, not the sortie board that would otherwise sit in front of
+// the dialog. `SORTIE_BOARD_STORAGE_KEY`.
+try { localStorage.setItem('naval-sortie-board-v1', 'skip'); } catch { /* private window */ }
 let renderProfile;
 let loaded = false, begun = 0, previous;
 const start = Game.prototype.start, prepare = Game.prototype.prepareBattle, setPort = Game.prototype.setInPort, frame = Game.prototype.frame;
