@@ -72,8 +72,14 @@ await import('/src/main.tsx');
 const wait = async predicate => { while (!predicate()) await new Promise(r=>setTimeout(r,50)); };
 const button = text => [...document.querySelectorAll('button')].find(b=>b.textContent.toLowerCase().includes(text));
 await wait(()=>loaded);
-await wait(()=>button('custom battle')); button('custom battle').click();
-await wait(()=>document.querySelector('button[title="Add an enemy bot"]')); document.querySelector('button[title="Add an enemy bot"]').click();
+// Garage BATTLE opens the sortie board (or the dialog straight away when the board is skipped).
+await wait(()=>button('battle')); button('battle').click();
+await wait(()=>button('custom battle') || button('deploy fleet')); button('custom battle')?.click();
+// Choose the enemy's card, then the enemy lane places it.
+const card = () => [...document.querySelectorAll('button.ship-card-pick')].find(b => b.getAttribute('aria-label')?.toLowerCase().startsWith(`choose ${roster[0].replace(/-/g,' ')}`)) ?? document.querySelector('button.ship-card-pick');
+await wait(()=>card()); card().click();
+await wait(()=>document.querySelector('section.fleet-lane.enemy.is-accepting')); document.querySelector('section.fleet-lane.enemy').click();
+await wait(()=>button('deploy fleet') && !button('deploy fleet').disabled); button('deploy fleet').click();
 await wait(()=>button('start battle') && !button('start battle').disabled); button('start battle').click();
 await wait(()=>review.ready);
 const g = review.game;
