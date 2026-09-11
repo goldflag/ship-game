@@ -21,6 +21,19 @@ pub enum ProjectileEnd {
     Splash,
     Expired,
 }
+impl ProjectileEnd {
+    /// The serde kebab-case name, without routing a fieldless enum through
+    /// `serde_json::Value` once per completed shell.
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Burst => "burst",
+            Self::Stopped => "stopped",
+            Self::PassedThrough => "passed-through",
+            Self::Splash => "splash",
+            Self::Expired => "expired",
+        }
+    }
+}
 fn inside_hull(point: Vec3, actors: &[Vessel], owner: &str) -> bool {
     actors.iter().any(|a| {
         a.motion.id != owner

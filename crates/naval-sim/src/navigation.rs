@@ -411,10 +411,11 @@ pub fn formation_report(
         stragglers: vec![],
         speed_limit_mps: maximum,
     };
-    for follower in actors
-        .iter()
-        .filter(|a| a.team == leader.team && a.physical_loss().is_none())
-    {
+    // A leader never escorts itself; Battle passes the whole fleet, so skip it
+    // here rather than handing every caller a copy without the leader in it.
+    for follower in actors.iter().filter(|a| {
+        a.motion.id != leader.motion.id && a.team == leader.team && a.physical_loss().is_none()
+    }) {
         let Some(
             order @ Movement::Escort {
                 leader_id, offset, ..
@@ -795,7 +796,10 @@ pub fn command_observed(
         } => {
             radius = (*radius_m * 0.1).clamp(40.0, 100.0);
             if let Some(leader) = actors.iter().find(|b| {
-                b.motion.id == *leader_id && b.team == a.team && b.physical_loss().is_none()
+                b.motion.id != a.motion.id
+                    && b.motion.id == *leader_id
+                    && b.team == a.team
+                    && b.physical_loss().is_none()
             }) {
                 state.lost_hold = None;
                 let station = station_for(order, leader, trails.get(leader_id)).unwrap();

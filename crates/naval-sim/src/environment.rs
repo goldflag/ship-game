@@ -19,27 +19,62 @@ pub struct SeaResponse {
     pub roll: f64,
     pub pitch: f64,
 }
+/// The wave-number, direction and angular frequency of one component. They
+/// depend only on the sea state, so a sampler hoists them out of the sample
+/// loop; the surviving expression is the original one, operand for operand.
+#[derive(Clone, Copy, Debug)]
+pub struct Wave {
+    k: f64,
+    cos: f64,
+    sin: f64,
+    omega: f64,
+    phase: f64,
+}
+impl Wave {
+    fn new(direction: f64, wavelength: f64, phase: f64) -> Self {
+        let k = std::f64::consts::TAU / wavelength;
+        Self {
+            k,
+            cos: direction.cos(),
+            sin: direction.sin(),
+            omega: (9.81 * k).sqrt(),
+            phase,
+        }
+    }
+    fn sample(&self, x: f64, z: f64, time: f64) -> f64 {
+        (self.k * (x * self.cos + z * self.sin) - self.omega * time + self.phase).sin()
+    }
+}
+/// Both components of a sea state, resolved once for many samples.
+#[derive(Clone, Copy, Debug)]
+pub struct Waves([Wave; 2]);
 impl SeaState {
+    pub fn waves(&self) -> Waves {
+        Waves([
+            Wave::new(self.direction, self.wavelength_m, self.phase),
+            Wave::new(
+                self.direction + 0.8,
+                self.wavelength_m * 0.57,
+                self.phase + 2.0,
+            ),
+        ])
+    }
     pub fn height(&self, x: f64, z: f64, time: f64) -> f64 {
         if self.amplitude_m == 0.0 {
             return 0.0;
         }
-        let sample = |direction: f64, wavelength: f64, phase: f64| {
-            let k = std::f64::consts::TAU / wavelength;
-            (k * (x * direction.cos() + z * direction.sin()) - (9.81 * k).sqrt() * time + phase)
-                .sin()
-        };
+        self.height_at(&self.waves(), x, z, time)
+    }
+    pub fn height_at(&self, waves: &Waves, x: f64, z: f64, time: f64) -> f64 {
+        if self.amplitude_m == 0.0 {
+            return 0.0;
+        }
         self.amplitude_m
-            * (0.7 * sample(self.direction, self.wavelength_m, self.phase)
-                + 0.3
-                    * sample(
-                        self.direction + 0.8,
-                        self.wavelength_m * 0.57,
-                        self.phase + 2.0,
-                    ))
+            * (0.7 * waves.0[0].sample(x, z, time) + 0.3 * waves.0[1].sample(x, z, time))
     }
     pub fn response(&self, h: &Hull, p: &ShipState, submarine: bool, time: f64) -> SeaResponse {
         let attenuation = (-(if submarine { p.depth() } else { 0.0 }) / 8.0).exp();
+        let waves = self.waves();
         let at = |x: f64, z: f64| {
             let point = local_to_world(
                 [x, 0.0, z],
@@ -50,7 +85,7 @@ impl SeaState {
                     ..Pose::default()
                 },
             );
-            self.height(point[0], point[2], time) * attenuation
+            self.height_at(&waves, point[0], point[2], time) * attenuation
         };
         let mut heave = 0.0;
         for z in [-0.4, -0.2, 0.0, 0.2, 0.4] {

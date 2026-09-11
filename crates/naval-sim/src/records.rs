@@ -57,18 +57,25 @@ pub struct Records {
     last_damager: BTreeMap<String, String>,
     #[serde(skip)]
     credited: BTreeSet<String>,
+    /// Whether the actor at each index was afloat when the tick opened, in
+    /// actor order. A reused parallel vector: the identities are already in
+    /// `actors`, so nothing needs cloning to answer "was this a live target".
     #[serde(skip)]
-    eligible: BTreeSet<String>,
+    eligible: Vec<bool>,
+    #[serde(skip)]
+    keep: Vec<i64>,
+    #[serde(skip)]
+    counts: Vec<(String, i32)>,
 }
 impl Records {
     pub fn begin_tick(&mut self, actors: &[Vessel]) {
-        self.eligible = actors
-            .iter()
-            .filter(|a| a.physical_loss().is_none())
-            .map(|a| a.motion.id.clone())
-            .collect();
+        self.eligible.clear();
+        self.eligible
+            .extend(actors.iter().map(|a| a.physical_loss().is_none()));
         for a in actors {
-            self.scores.entry(a.motion.id.clone()).or_default();
+            if !self.scores.contains_key(&a.motion.id) {
+                self.scores.insert(a.motion.id.clone(), Default::default());
+            }
         }
     }
     pub fn event(&mut self, e: &DamageEvent, tick: u64, actors: &[Vessel]) {
@@ -165,15 +172,18 @@ impl Records {
         tick: u64,
         actors: &[Vessel],
     ) {
-        if !self.eligible.contains(victim) {
-            return;
-        }
         let Some(a) = actors.iter().find(|a| a.motion.id == owner) else {
             return;
         };
-        let Some(b) = actors.iter().find(|a| a.motion.id == victim) else {
+        let Some(j) = actors.iter().position(|a| a.motion.id == victim) else {
             return;
         };
+        // Both lookups are pure, so testing eligibility after them keeps the
+        // original "unknown or already lost victims score nothing" behaviour.
+        if !self.eligible.get(j).copied().unwrap_or(false) {
+            return;
+        }
+        let b = &actors[j];
         if a.team == b.team {
             return;
         }
@@ -231,30 +241,46 @@ impl Records {
             .into()
         }
     }
-    pub fn finish_tick(&mut self, actors: &[Vessel], active: &BTreeSet<i64>) {
+    /// `active` is the sorted list of projectile ids still in flight.
+    pub fn finish_tick(&mut self, actors: &[Vessel], active: &[i64]) {
         for a in actors {
-            if a.physical_loss().is_some()
-                && self.credited.insert(a.motion.id.clone())
-                && let Some(owner) = self.last_damager.get(&a.motion.id)
-            {
-                self.scores.entry(owner.clone()).or_default().frags += 1;
-            }
-        }
-        let mut counts = BTreeMap::new();
-        let mut keep = BTreeSet::new();
-        for h in self.shell_history.iter().rev() {
-            if h.outcome == "flying" {
-                keep.insert(h.shell_id);
+            if a.physical_loss().is_none() || self.credited.contains(&a.motion.id) {
                 continue;
             }
-            let count = counts.entry(h.owner_id.clone()).or_insert(0);
-            *count += 1;
-            if *count <= 16 {
-                keep.insert(h.shell_id);
+            self.credited.insert(a.motion.id.clone());
+            if let Some(owner) = self.last_damager.get(&a.motion.id).cloned() {
+                self.scores.entry(owner).or_default().frags += 1;
             }
         }
-        self.shell_history.retain(|h| keep.contains(&h.shell_id));
+        // Both ledgers are rebuilt every tick; reuse their storage and keep the
+        // owner strings, so a steady battle stops allocating here entirely.
+        let counts = &mut self.counts;
+        for c in counts.iter_mut() {
+            c.1 = 0;
+        }
+        let keep = &mut self.keep;
+        keep.clear();
+        for h in self.shell_history.iter().rev() {
+            if h.outcome == "flying" {
+                keep.push(h.shell_id);
+                continue;
+            }
+            let count = match counts.iter_mut().find(|c| c.0 == h.owner_id) {
+                Some(c) => &mut c.1,
+                None => {
+                    counts.push((h.owner_id.clone(), 0));
+                    &mut counts.last_mut().unwrap().1
+                }
+            };
+            *count += 1;
+            if *count <= 16 {
+                keep.push(h.shell_id);
+            }
+        }
+        keep.sort_unstable();
+        self.shell_history
+            .retain(|h| keep.binary_search(&h.shell_id).is_ok());
         self.sources
-            .retain(|id, _| active.contains(id) || keep.contains(id));
+            .retain(|id, _| active.binary_search(id).is_ok() || keep.binary_search(id).is_ok());
     }
 }
