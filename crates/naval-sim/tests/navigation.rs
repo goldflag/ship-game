@@ -23,7 +23,10 @@ fn content() -> &'static BTreeMap<&'static str, Arc<CompiledShip>> {
             .map(|id| {
                 let bytes = std::fs::read(format!("../../public/models/{id}.json")).unwrap();
                 let def: ShipDefinition = serde_json::from_slice(&bytes).unwrap();
-                (id, Arc::new(CompiledShip::new(Arc::new(def), None).unwrap()))
+                (
+                    id,
+                    Arc::new(CompiledShip::new(Arc::new(def), None).unwrap()),
+                )
             })
             .collect()
     })
@@ -621,9 +624,13 @@ fn ship_in_shore_safety_margin_can_sail_out_to_open_water() {
     for tick in 0..60 * 600 {
         step(&mut ships, &orders, &islands, tick);
     }
-    assert!(gap(&ships[0], [3000.0, 0.0]) < 150.0,
+    assert!(
+        gap(&ships[0], [3000.0, 0.0]) < 150.0,
         "outward route stalled: position=({}, {}), status={:?}",
-        ships[0].motion.x, ships[0].motion.z, ships[0].navigation.as_ref().unwrap().status);
+        ships[0].motion.x,
+        ships[0].motion.z,
+        ships[0].navigation.as_ref().unwrap().status
+    );
 }
 
 #[test]
@@ -636,11 +643,17 @@ fn shore_margin_recovery_takes_a_detour_instead_of_crossing_land() {
     for tick in 0..60 * 1200 {
         step(&mut ships, &orders, &islands, tick);
         let a = &ships[0];
-        assert!((a.motion.x / (650.0 * 1.22 + half_length))
-            .hypot(a.motion.z / (1000.0 * 1.22 + half_length)) > 1.0,
-            "recovery must preserve hull clearance at tick {tick}");
+        assert!(
+            (a.motion.x / (650.0 * 1.22 + half_length))
+                .hypot(a.motion.z / (1000.0 * 1.22 + half_length))
+                > 1.0,
+            "recovery must preserve hull clearance at tick {tick}"
+        );
     }
-    assert!(gap(&ships[0], [-3000.0, 0.0]) < 150.0, "did not complete recovery detour");
+    assert!(
+        gap(&ships[0], [-3000.0, 0.0]) < 150.0,
+        "did not complete recovery detour"
+    );
 }
 
 #[test]
@@ -650,7 +663,16 @@ fn shore_margin_recovery_never_relaxes_the_hull_or_destination_clearance() {
         let a = ship("dd", "fletcher", from, 0.0);
         let order = route(vec![to]);
         let mut state = NavigationState::new(order.clone());
-        let command = navigation::command(&a, &[], &islands, &order, &mut state, 0, 15.0, &Trails::new());
+        let command = navigation::command(
+            &a,
+            &[],
+            &islands,
+            &order,
+            &mut state,
+            0,
+            15.0,
+            &Trails::new(),
+        );
         assert_eq!(state.status, NavigationStatus::Blocked);
         assert_eq!(command.throttle, 0.0);
     }

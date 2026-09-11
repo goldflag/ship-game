@@ -32,7 +32,9 @@ fn decoded(json: &str) -> Value {
 }
 
 fn catalog() -> Arc<Catalog> {
-    Arc::new(Catalog::load(&std::fs::read("../../.build/naval-content/manifest.json").unwrap()).unwrap())
+    Arc::new(
+        Catalog::load(&std::fs::read("../../.build/naval-content/manifest.json").unwrap()).unwrap(),
+    )
 }
 
 /// Every frame travels as a patch; the client's copy must match the frame it
@@ -87,7 +89,13 @@ fn full_knowledge_patches_rebuild_the_decoded_frame_through_a_large_battle() {
     let mut compiled = BTreeMap::new();
     for id in roster {
         compiled.entry(id.to_string()).or_insert_with(|| {
-            Arc::new(CompiledShip::new(catalog.definitions[id].clone()).unwrap())
+            Arc::new(
+                CompiledShip::new(
+                    catalog.definitions[id].clone(),
+                    catalog.hydrostatics.get(id),
+                )
+                .unwrap(),
+            )
         });
     }
     let ships: Vec<_> = ["a", "b"]
@@ -148,7 +156,13 @@ fn team_patches_rebuild_the_decoded_frame_including_contacts_and_events() {
         .map(|s| {
             (
                 s.preset_id.clone(),
-                Arc::new(CompiledShip::new(catalog.definitions[&s.preset_id].clone()).unwrap()),
+                Arc::new(
+                    CompiledShip::new(
+                        catalog.definitions[&s.preset_id].clone(),
+                        catalog.hydrostatics.get(&s.preset_id),
+                    )
+                    .unwrap(),
+                ),
             )
         })
         .collect();

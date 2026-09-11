@@ -29,11 +29,7 @@ fn setup(preset: &str) -> (Vec<Vessel>, Aviation) {
     ]
     .into_iter()
     .map(|(id, team)| {
-        let mut actor = Vessel::new(
-            id,
-            team,
-            Arc::new(catalog().compile(preset).unwrap()),
-        );
+        let mut actor = Vessel::new(id, team, Arc::new(catalog().compile(preset).unwrap()));
         actor.controller = Controller::Player;
         actor
     })

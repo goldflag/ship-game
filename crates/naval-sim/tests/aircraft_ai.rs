@@ -20,11 +20,7 @@ fn catalog() -> &'static Catalog {
     })
 }
 fn carrier(id: &str, preset: &str, team: TeamId) -> Vessel {
-    let mut a = Vessel::new(
-        id,
-        team,
-        Arc::new(catalog().compile(preset).unwrap()),
-    );
+    let mut a = Vessel::new(id, team, Arc::new(catalog().compile(preset).unwrap()));
     a.controller = Controller::Player;
     a
 }
@@ -365,9 +361,7 @@ fn fighter_dogfights_are_effective_finite_and_replay_exactly() {
             Vessel::new(
                 "a",
                 TeamId::A,
-                Arc::new(
-                    catalog().compile("enterprise-cv6").unwrap(),
-                ),
+                Arc::new(catalog().compile("enterprise-cv6").unwrap()),
             ),
             Vessel::new(
                 "b",

@@ -545,11 +545,12 @@ fn enemy_groups_deploy_on_the_station_table_in_a_seeded_formation() {
     let fleets: [&[&str]; 3] = [
         &["fletcher", "fletcher"],
         &["enterprise-cv6", "fletcher", "fletcher", "fletcher"],
-        &["fletcher", "fletcher", "fletcher", "fletcher", "fletcher", "fletcher"],
+        &[
+            "fletcher", "fletcher", "fletcher", "fletcher", "fletcher", "fletcher",
+        ],
     ];
     for (seed, fleet) in (0..24).flat_map(|seed| fleets.iter().map(move |fleet| (seed, *fleet))) {
-        let plan =
-            PvePlan::generate(&content, request(seed, fleet, "north-atlantic")).unwrap();
+        let plan = PvePlan::generate(&content, request(seed, fleet, "north-atlantic")).unwrap();
         let battle = battle(&plan);
         let definition = |id: &str| {
             &content.definitions[&plan
@@ -573,7 +574,10 @@ fn enemy_groups_deploy_on_the_station_table_in_a_seeded_formation() {
                 (MIN_STATION_OFFSET_M..=5000.0).contains(&offset[0].hypot(offset[1])),
                 "{id} is ordered to an unissuable station {offset:?}"
             );
-            groups.entry(leader_id.clone()).or_default().push(id.clone());
+            groups
+                .entry(leader_id.clone())
+                .or_default()
+                .push(id.clone());
         }
         assert!(!groups.is_empty(), "seed {seed} produced no enemy escorts");
         for (leader, mut followers) in groups {

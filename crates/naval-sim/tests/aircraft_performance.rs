@@ -16,11 +16,7 @@ fn catalog() -> &'static Catalog {
     })
 }
 fn carrier(id: &str, preset: &str, team: TeamId) -> Vessel {
-    let mut a = Vessel::new(
-        id,
-        team,
-        Arc::new(catalog().compile(preset).unwrap()),
-    );
+    let mut a = Vessel::new(id, team, Arc::new(catalog().compile(preset).unwrap()));
     a.controller = Controller::Player;
     a
 }

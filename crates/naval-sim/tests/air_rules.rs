@@ -21,10 +21,8 @@ fn carrier() -> Vessel {
     let mut actor = Vessel::new(
         "carrier",
         TeamId::A,
-        SHIP.get_or_init(|| {
-            Arc::new(catalog().compile("enterprise-cv6").unwrap())
-        })
-        .clone(),
+        SHIP.get_or_init(|| Arc::new(catalog().compile("enterprise-cv6").unwrap()))
+            .clone(),
     );
     actor.controller = Controller::Player;
     actor
@@ -240,28 +238,102 @@ fn pve_profile_keeps_simplified_launches_and_long_finite_endurance() {
     let flights = aviation.squadron_flights(actor);
     assert_eq!(flights.len(), 9);
     for flight in &flights {
-        assert_eq!(aviation.launch_squadron(actor, &flight.squadron_id, None, Some(patrol()), &actors, Some(&flight.id), None), flight.plane_ids.len());
+        assert_eq!(
+            aviation.launch_squadron(
+                actor,
+                &flight.squadron_id,
+                None,
+                Some(patrol()),
+                &actors,
+                Some(&flight.id),
+                None
+            ),
+            flight.plane_ids.len()
+        );
     }
     assert_eq!(aviation.wing("carrier").unwrap().planes.len(), 48);
-    assert!(aviation.wing("carrier").unwrap().planes.iter().all(|p| p.phase == "queued"));
+    assert!(
+        aviation
+            .wing("carrier")
+            .unwrap()
+            .planes
+            .iter()
+            .all(|p| p.phase == "queued")
+    );
     // Launch queue still takes time; admitting nine groups does not teleport planes airborne.
     step(&mut aviation, &actors);
-    assert!(aviation.wing("carrier").unwrap().planes.iter().filter(|p| p.phase == "queued").count() > 30);
+    assert!(
+        aviation
+            .wing("carrier")
+            .unwrap()
+            .planes
+            .iter()
+            .filter(|p| p.phase == "queued")
+            .count()
+            > 30
+    );
     for p in aviation.wing_mut("carrier").unwrap().planes.iter_mut() {
-        p.phase = "outbound".into(); p.flight_time = 1200.0;
-        p.position = [5000.0, 600.0, -5000.0]; p.velocity = [0.0, 0.0, -80.0];
+        p.phase = "outbound".into();
+        p.flight_time = 1200.0;
+        p.position = [5000.0, 600.0, -5000.0];
+        p.velocity = [0.0, 0.0, -80.0];
     }
     step(&mut aviation, &actors);
-    assert!(aviation.wing("carrier").unwrap().planes.iter().all(|p| p.phase == "outbound"));
+    assert!(
+        aviation
+            .wing("carrier")
+            .unwrap()
+            .planes
+            .iter()
+            .all(|p| p.phase == "outbound")
+    );
     let wing = aviation.wing("carrier").unwrap();
-    assert!(naval_sim::aircraft_formation::formation_leader(&wing.flights[0], &wing.planes, &aviation.rules.endurance).is_some());
-    assert!(naval_sim::aircraft_formation::formation_leader(&wing.flights[0], &wing.planes, &AirRules::legacy().endurance).is_none());
-    for p in aviation.wing_mut("carrier").unwrap().planes.iter_mut() { p.flight_time = 1921.0; }
+    assert!(
+        naval_sim::aircraft_formation::formation_leader(
+            &wing.flights[0],
+            &wing.planes,
+            &aviation.rules.endurance
+        )
+        .is_some()
+    );
+    assert!(
+        naval_sim::aircraft_formation::formation_leader(
+            &wing.flights[0],
+            &wing.planes,
+            &AirRules::legacy().endurance
+        )
+        .is_none()
+    );
+    for p in aviation.wing_mut("carrier").unwrap().planes.iter_mut() {
+        p.flight_time = 1921.0;
+    }
     step(&mut aviation, &actors);
-    assert!(aviation.wing("carrier").unwrap().planes.iter().all(|p| p.phase == "returning"));
-    for p in aviation.wing_mut("carrier").unwrap().planes.iter_mut() { p.flight_time = 2401.0; }
+    assert!(
+        aviation
+            .wing("carrier")
+            .unwrap()
+            .planes
+            .iter()
+            .all(|p| p.phase == "returning")
+    );
+    for p in aviation.wing_mut("carrier").unwrap().planes.iter_mut() {
+        p.flight_time = 2401.0;
+    }
     step(&mut aviation, &actors);
-    assert!(aviation.wing("carrier").unwrap().planes.iter().all(|p| p.phase == "lost"));
-    assert_eq!(AirRules::legacy().resolve(actor.definition()).unwrap().active_flights, Some(4));
+    assert!(
+        aviation
+            .wing("carrier")
+            .unwrap()
+            .planes
+            .iter()
+            .all(|p| p.phase == "lost")
+    );
+    assert_eq!(
+        AirRules::legacy()
+            .resolve(actor.definition())
+            .unwrap()
+            .active_flights,
+        Some(4)
+    );
     assert!(AirRules::legacy().endurance.needs_recall(261.0, true));
 }
