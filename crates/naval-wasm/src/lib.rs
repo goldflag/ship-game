@@ -305,6 +305,36 @@ pub struct LocalRuntime {
     session: naval_protocol::session::Session,
     pve_plan: Option<naval_sim::pve::PvePlan>,
     enemy_air_sequence: u32,
+    /// The frame this runtime last published, so the next one can travel as a
+    /// patch. Dropped with the runtime on init, deploy and restart, which is
+    /// exactly when the client discards its own baseline.
+    delta: naval_sim::frame_delta::FrameDelta,
+}
+
+/// What to do with the assembled frame. The three information-boundary branches
+/// build different frame types, so the destination is a parameter rather than a
+/// second copy of the branches.
+trait FrameSink {
+    type Out;
+    fn take<T: serde::Serialize>(self, frame: &T) -> Result<Self::Out, JsValue>;
+}
+struct AsText;
+impl FrameSink for AsText {
+    type Out = String;
+    fn take<T: serde::Serialize>(self, frame: &T) -> Result<String, JsValue> {
+        serde_json::to_string(frame).map_err(error)
+    }
+}
+struct AsDelta<'a>(&'a mut naval_sim::frame_delta::FrameDelta);
+impl FrameSink for AsDelta<'_> {
+    /// The tick the client is holding, and whether anything moved. The patch
+    /// itself stays in the runtime's reused buffer.
+    type Out = (Option<u64>, bool);
+    fn take<T: serde::Serialize>(self, frame: &T) -> Result<Self::Out, JsValue> {
+        let baseline = self.0.baseline_tick();
+        let changed = self.0.encode(frame).map_err(error)?;
+        Ok((baseline, changed))
+    }
 }
 #[wasm_bindgen]
 impl LocalRuntime {
@@ -397,78 +427,110 @@ impl LocalRuntime {
     /// and, in a custom battle, the inspected target. Half of a fleet-command
     /// frame is those three fields; an empty list keeps them for every ship.
     pub fn detailed_snapshot(&self, detail: Vec<String>) -> Result<String, JsValue> {
-        if detail.len() > 4 || detail.iter().any(|id| id.len() > 64) {
-            return Err(error("Invalid snapshot detail"));
+        present(&self.session, &self.pve_plan, &detail, AsText)
+    }
+    /// The same frame as [`Self::detailed_snapshot`], as an ordered patch against
+    /// the one this runtime published last, in the shape `localSnapshotDelta.ts`
+    /// applies: `{"baseTick":n|null,"tick":n,"delta":<patch>}`. `delta` is absent
+    /// when nothing moved, and `baseTick` is null for the first frame of a
+    /// battle, which travels whole. The worker parses the patch instead of
+    /// parsing, null-stripping and diffing a whole frame.
+    pub fn snapshot_delta(&mut self, detail: Vec<String>) -> Result<String, JsValue> {
+        let (baseline, changed) = present(
+            &self.session,
+            &self.pve_plan,
+            &detail,
+            AsDelta(&mut self.delta),
+        )?;
+        let mut out = String::from("{\"baseTick\":");
+        match baseline {
+            Some(tick) => out.push_str(&tick.to_string()),
+            None => out.push_str("null"),
         }
-        #[derive(serde::Serialize)]
-        #[serde(rename_all = "camelCase")]
-        struct LocalFrame<'a, T: serde::Serialize> {
-            #[serde(flatten)]
-            frame: T,
-            selected_ship_ids: [Option<&'a str>; 2],
-            fleet_orders:
-                std::collections::BTreeMap<String, naval_protocol::session::FleetOrderState>,
-            fleet_notices: &'a [naval_protocol::session::FleetNotice],
-            phase: &'static str,
+        out.push_str(",\"tick\":");
+        out.push_str(&self.session.battle.tick.to_string());
+        if changed {
+            out.push_str(",\"delta\":");
+            out.push_str(self.delta.patch());
         }
-        let selected = &self.session.control.players;
-        let phase = if self.session.battle.outcome.is_some() {
-            "finished"
-        } else {
-            "running"
-        };
-        let fleet_orders = self.session.fleet_orders(0);
-        let fleet_notices = self.session.fleet_notices(0);
-        if self.session.battle.mission_rules.is_some() && self.session.battle.outcome.is_none() {
-            return serde_json::to_string(&LocalFrame {
-                frame: self
-                    .session
-                    .battle
-                    .detailed_team_presentation_snapshot(naval_sim::rules::TeamId::A, &detail),
-                selected_ship_ids: [selected[0].selected_ship_id.as_deref(), None],
-                fleet_orders,
-                fleet_notices,
-                phase,
-            })
-            .map_err(error);
-        }
-        if self.session.battle.mission_rules.is_some() {
-            // Team projection is the information boundary. Never replace it
-            // with the full-knowledge streaming serializer for a live mission.
-            let mut frame = self
-                .session
+        out.push('}');
+        Ok(out)
+    }
+}
+
+/// Assemble the local frame behind the information boundary and hand it to
+/// `sink`. A live mission never reaches the full-knowledge serializer.
+fn present<S: FrameSink>(
+    session: &naval_protocol::session::Session,
+    pve_plan: &Option<naval_sim::pve::PvePlan>,
+    detail: &[String],
+    sink: S,
+) -> Result<S::Out, JsValue> {
+    if detail.len() > 4 || detail.iter().any(|id| id.len() > 64) {
+        return Err(error("Invalid snapshot detail"));
+    }
+    #[derive(serde::Serialize)]
+    #[serde(rename_all = "camelCase")]
+    struct LocalFrame<'a, T: serde::Serialize> {
+        #[serde(flatten)]
+        frame: T,
+        selected_ship_ids: [Option<&'a str>; 2],
+        fleet_orders: std::collections::BTreeMap<String, naval_protocol::session::FleetOrderState>,
+        fleet_notices: &'a [naval_protocol::session::FleetNotice],
+        phase: &'static str,
+    }
+    let selected = &session.control.players;
+    let phase = if session.battle.outcome.is_some() {
+        "finished"
+    } else {
+        "running"
+    };
+    let fleet_orders = session.fleet_orders(0);
+    let fleet_notices = session.fleet_notices(0);
+    if session.battle.mission_rules.is_some() && session.battle.outcome.is_none() {
+        return sink.take(&LocalFrame {
+            frame: session
                 .battle
-                .detailed_presentation_value(
-                    naval_sim::snapshot::PresentationView::Team(naval_sim::rules::TeamId::A),
-                    &detail,
-                )
-                .map_err(error)?;
-            if self.session.battle.outcome.is_some()
-                && let Some(plan) = &self.pve_plan
-            {
-                frame["debrief"]["mission"] = plan.debrief();
-            }
-            return serde_json::to_string(&LocalFrame {
-                frame,
-                selected_ship_ids: [selected[0].selected_ship_id.as_deref(), None],
-                fleet_orders,
-                fleet_notices,
-                phase,
-            })
-            .map_err(error);
-        }
-        let frame = LocalFrame {
-            frame: self.session.battle.detailed_presentation_snapshot(&detail),
-            selected_ship_ids: [
-                selected[0].selected_ship_id.as_deref(),
-                selected[1].selected_ship_id.as_deref(),
-            ],
+                .detailed_team_presentation_snapshot(naval_sim::rules::TeamId::A, detail),
+            selected_ship_ids: [selected[0].selected_ship_id.as_deref(), None],
             fleet_orders,
             fleet_notices,
             phase,
-        };
-        serde_json::to_string(&frame).map_err(error)
+        });
     }
+    if session.battle.mission_rules.is_some() {
+        // Team projection is the information boundary. Never replace it
+        // with the full-knowledge streaming serializer for a live mission.
+        let mut frame = session
+            .battle
+            .detailed_presentation_value(
+                naval_sim::snapshot::PresentationView::Team(naval_sim::rules::TeamId::A),
+                detail,
+            )
+            .map_err(error)?;
+        if session.battle.outcome.is_some()
+            && let Some(plan) = pve_plan
+        {
+            frame["debrief"]["mission"] = plan.debrief();
+        }
+        return sink.take(&LocalFrame {
+            frame,
+            selected_ship_ids: [selected[0].selected_ship_id.as_deref(), None],
+            fleet_orders,
+            fleet_notices,
+            phase,
+        });
+    }
+    sink.take(&LocalFrame {
+        frame: session.battle.detailed_presentation_snapshot(detail),
+        selected_ship_ids: [
+            selected[0].selected_ship_id.as_deref(),
+            selected[1].selected_ship_id.as_deref(),
+        ],
+        fleet_orders,
+        fleet_notices,
+        phase,
+    })
 }
 impl LocalRuntime {
     /// Complete authority state for native diagnostics and the simulation
@@ -517,6 +579,7 @@ impl LocalRuntime {
             session,
             pve_plan,
             enemy_air_sequence: 0,
+            delta: Default::default(),
         })
     }
 }

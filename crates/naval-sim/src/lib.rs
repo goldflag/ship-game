@@ -79,6 +79,7 @@ pub mod sensors;
 
 pub mod records;
 
+pub mod frame_delta;
 mod presentation;
 pub mod snapshot;
 mod team_view;
