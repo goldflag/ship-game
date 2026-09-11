@@ -52127,9 +52127,9 @@
         "count": 16
       }
     ],
-    "flightSize": 6,
+    "flightSize": 4,
     "deckCapacity": 12,
-    "maxActiveFlights": 4
+    "maxActiveFlights": 6
   },
   "localDamage": {
     "version": 1,

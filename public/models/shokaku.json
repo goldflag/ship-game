@@ -28615,9 +28615,9 @@
     "serviceModuleId": "aviation-service",
     "launchIntervalSeconds": 2,
     "rearmSeconds": 35,
-    "flightSize": 6,
+    "flightSize": 4,
     "deckCapacity": 12,
-    "maxActiveFlights": 4,
+    "maxActiveFlights": 6,
     "squadrons": [
       {
         "id": "shokaku-fighters",
@@ -29806,5 +29806,5 @@
     "basis": "Original game calibration: eight longitudinal sections, independent sides and three height bands, with separate gunhouse budgets. Generator/director proxy positions and fire loads are estimated; no historical structural tolerance, electrical routing, ventilation or crew-performance claim."
   },
   "compilerVersion": 1,
-  "contentHash": "c5ce6b81caf65f363173dff007bc3660e6e686134222b6eb8b694fd36e207668"
+  "contentHash": "7c93c8dd4f251d63f0bb0d232834a87dc73e1b7f5f4640417d2ec06b32368ff0"
 }

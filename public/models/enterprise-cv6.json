@@ -54157,9 +54157,9 @@
         "count": 16
       }
     ],
-    "flightSize": 6,
+    "flightSize": 4,
     "deckCapacity": 12,
-    "maxActiveFlights": 4
+    "maxActiveFlights": 6
   },
   "localDamage": {
     "version": 1,
@@ -55674,5 +55674,5 @@
     ]
   },
   "compilerVersion": 1,
-  "contentHash": "7bf932c654d34415bf07ed63a01c12e38d2d69e44b9b58eb1a2e7f7572024cf9"
+  "contentHash": "6ae4e0ced9e142508c602a014d25c2f84b9d885a53de282fe85f754a86abaecc"
 }

@@ -14,7 +14,7 @@ function fixture() {
   return { sim, ctx, run, groups };
 }
 
-test('a ready six-plane bomber squadron launches to water within ten seconds and retains its static station', () => {
+test('a ready four-plane bomber squadron launches to water within ten seconds and retains its static station', () => {
   const { sim, run, groups } = fixture();
   const squadron = groups().find(f => f.role === 'dive-bomber')!;
   const ids = squadron.aircraftIds;
@@ -69,12 +69,12 @@ test('squadron identity, losses and hotkey order persist across recall and relau
   lost.phase = 'lost'; lost.hp = 0;
   sim.recallAircraft(fighter.id); run(650);
   const ready = groups()[0];
-  expect(ready.status).toBe('ready'); expect(ready.surviving).toBe(5);
+  expect(ready.status).toBe('ready'); expect(ready.surviving).toBe(3);
   expect(groups().map(f => ({ id: f.id, aircraftIds: f.aircraftIds }))).toEqual(initial);
   expect(sim.commandSquadron(fighter.id, { kind: 'patrol', point: [1000, 420, 0] })).toBe(true);
   run(10.2);
   expect(lost.phase).toBe('lost');
-  expect(sim.player.airWing!.planes.filter(p => p.flightId === fighter.id && p.phase === 'outbound')).toHaveLength(5);
+  expect(sim.player.airWing!.planes.filter(p => p.flightId === fighter.id && p.phase === 'outbound')).toHaveLength(3);
   expect(squadronFlights(sim.player).map(f => f.id)).toEqual(initial.map(f => f.id));
 });
 
@@ -82,7 +82,7 @@ test('landed matching survivors combine without reviving losses or skipping serv
   const { sim, run, groups } = fixture();
   const [first, second] = squadronFlights(sim.player);
   const state = sim.player.airWing!;
-  const survivors = state.planes.filter(p => first.planeIds.slice(0, 2).includes(p.id) || second.planeIds.slice(0, 3).includes(p.id));
+  const survivors = state.planes.filter(p => first.planeIds.slice(0, 2).includes(p.id) || second.planeIds.slice(0, 2).includes(p.id));
   for (const p of state.planes.filter(p => first.planeIds.includes(p.id) || second.planeIds.includes(p.id))) {
     p.flightId = first.planeIds.includes(p.id) ? first.id : second.id;
     p.phase = survivors.includes(p) ? 'rearming' : 'lost';
@@ -91,7 +91,7 @@ test('landed matching survivors combine without reviving losses or skipping serv
   const originalIds = state.planes.map(p => p.id);
   run(1 / 60);
   expect(groups().some(f => f.id === second.id)).toBe(false);
-  expect(groups().find(f => f.id === first.id)!.surviving).toBe(5);
+  expect(groups().find(f => f.id === first.id)!.surviving).toBe(4);
   expect(sim.commandSquadron(first.id, { kind: 'defend' })).toBe(false);
   expect(survivors.every(p => p.flightId === first.id && p.hp === 20 && p.timer > 9)).toBe(true);
   run(11);
@@ -99,16 +99,16 @@ test('landed matching survivors combine without reviving losses or skipping serv
   expect(sim.commandSquadron(first.id, { kind: 'defend' })).toBe(true);
   expect(survivors.every(p => p.phase === 'queued')).toBe(true);
   expect(state.planes.map(p => p.id)).toEqual(originalIds);
-  expect(state.planes.filter(p => p.phase === 'lost')).toHaveLength(7);
+  expect(state.planes.filter(p => p.phase === 'lost')).toHaveLength(4);
   expect(new Set(state.flights.flatMap(f => f.planeIds)).size).toBe(state.flights.flatMap(f => f.planeIds).length);
 });
 
 for (const blocker of ['airborne', 'deck', 'capacity', 'model', 'role'] as const) test(`squadron consolidation respects ${blocker}`, () => {
   const { sim, run, groups } = fixture();
   const [first, second] = squadronFlights(sim.player);
-  const keep = blocker === 'capacity' ? 4 : 2;
+  const keep = blocker === 'capacity' ? 3 : 2;
   const all = sim.player.airWing!.planes;
-  // Isolate the pair: the 16-plane pool also has a four-plane group that
+  // Isolate the pair: the 16-plane pool also has other four-plane groups that
   // could legitimately consolidate with either damaged group.
   const pairIds = new Set([...first.planeIds, ...second.planeIds]);
   for (const p of all) if (!pairIds.has(p.id)) { p.phase = 'lost'; p.hp = 0; }

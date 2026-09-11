@@ -126,7 +126,7 @@ fn six_aerial_torpedoes_leave_a_healthy_capital_ship_fighting() {
         let remaining = a.damage.integrity / a.damage.max_integrity;
         assert!(
             remaining > 0.35,
-            "{sid} almost destroyed by one six-plane wave: remaining={remaining}"
+            "{sid} almost destroyed by one six-torpedo wave: remaining={remaining}"
         );
         assert!(
             a.damage.compartments.iter().any(|c| c.breach_area_m2 > 0.0),
@@ -204,7 +204,7 @@ fn strike(preset: &str, role: &str, moving: bool, seed: u32) -> (usize, usize) {
             None,
             None
         ),
-        6
+        4
     );
     let mut ids = vec![];
     for (slot, p) in b
@@ -337,7 +337,7 @@ fn bombers_can_hit_small_stationary_ships_without_guaranteed_hits() {
             releases += r;
             hits += h;
         }
-        assert!(releases >= 15, "{target}: only {releases} released");
+        assert!(releases >= 10, "{target}: only {releases} released");
         assert!(
             hits >= 5 && hits < releases,
             "{target}: {hits}/{releases} hit; small ships must be viable, fallible targets"

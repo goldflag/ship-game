@@ -138,7 +138,7 @@ fn unlimited_four_plane_groups_admit_a_full_wing_without_changing_inventory() {
                 Some(&flight.id),
                 None
             ),
-            if index == 0 { 6 } else { 0 }
+            if index == 0 { 4 } else { 0 }
         );
     }
 }
@@ -161,14 +161,14 @@ fn disabled_endurance_removes_order_recall_and_exhaustion_deadlines_but_keeps_co
             Some(&flight.id),
             None
         ),
-        6
+        4
     );
     for p in aviation
         .wing_mut("carrier")
         .unwrap()
         .planes
         .iter_mut()
-        .take(6)
+        .take(4)
     {
         p.phase = "outbound".into();
         p.flight_time = 2000.0;
@@ -182,7 +182,7 @@ fn disabled_endurance_removes_order_recall_and_exhaustion_deadlines_but_keeps_co
         .unwrap()
         .planes
         .iter()
-        .take(6)
+        .take(4)
         .collect();
     assert!(aviation.valid_order(actor, &flight.id, &planes, &patrol(), &actors, false));
     assert!(!timed.valid_order(actor, &flight.id, &planes, &patrol(), &actors, false));
@@ -194,7 +194,7 @@ fn disabled_endurance_removes_order_recall_and_exhaustion_deadlines_but_keeps_co
             .unwrap()
             .planes
             .iter()
-            .take(6)
+            .take(4)
             .all(|p| p.phase == "outbound" && p.flight_time > 2000.0)
     );
     assert!(
@@ -203,7 +203,7 @@ fn disabled_endurance_removes_order_recall_and_exhaustion_deadlines_but_keeps_co
             .unwrap()
             .planes
             .iter()
-            .take(6)
+            .take(4)
             .all(|p| p.phase == "lost" && p.loss_reason.as_deref() == Some("Endurance exhausted"))
     );
     aviation.wing_mut("carrier").unwrap().planes[0].hp = 24.0;
@@ -230,13 +230,13 @@ fn pve_profile_keeps_simplified_launches_and_long_finite_endurance() {
     let rules = catalog().air_profiles["pve-air-v1"].clone();
     assert!(rules.validate_selection(catalog()).is_ok());
     let resolved = rules.resolve(actor.definition()).unwrap();
-    assert_eq!(resolved.group_size, 6);
+    assert_eq!(resolved.group_size, 4);
     assert_eq!(resolved.deck_capacity, 12);
     assert_eq!(resolved.active_flights, None);
     assert_eq!(rules.deck_cycle, naval_sim::air_rules::DeckCycle::Legacy);
     let mut aviation = Aviation::with_rules(&actors, catalog().aircraft.clone(), rules).unwrap();
     let flights = aviation.squadron_flights(actor);
-    assert_eq!(flights.len(), 9);
+    assert_eq!(flights.len(), 12);
     for flight in &flights {
         assert_eq!(
             aviation.launch_squadron(
@@ -260,7 +260,7 @@ fn pve_profile_keeps_simplified_launches_and_long_finite_endurance() {
             .iter()
             .all(|p| p.phase == "queued")
     );
-    // Launch queue still takes time; admitting nine groups does not teleport planes airborne.
+    // Launch queue still takes time; admitting twelve groups does not teleport planes airborne.
     step(&mut aviation, &actors);
     assert!(
         aviation
@@ -333,7 +333,7 @@ fn pve_profile_keeps_simplified_launches_and_long_finite_endurance() {
             .resolve(actor.definition())
             .unwrap()
             .active_flights,
-        Some(4)
+        Some(6)
     );
     assert!(AirRules::legacy().endurance.needs_recall(261.0, true));
 }

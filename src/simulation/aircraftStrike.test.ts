@@ -15,10 +15,10 @@ for (const distance of [1000, 5000]) for (const speed of [0, 8.5]) for (const sq
       nextId: () => ++id, emit: e => { if (e.kind === 'bomb-release' || e.kind === 'aircraft-release') released++; } };
     const group = squadronFlights(sim.player).find(f => f.squadronId === squadron)!;
     expect(sim.commandSquadron(group.id, { kind: 'attack', targetId: sim.target.motion.id })).toBe(true);
-    for (let tick = 0; tick < 300 * 60 && released < 6; tick++) {
+    for (let tick = 0; tick < 300 * 60 && released < 4; tick++) {
       sim.target.motion.x += speed / 60;
       stepAircraft(ctx, 1 / 60, tick / 60);
     }
-    expect(released).toBe(6);
+    expect(released).toBe(4);
   });
 }
