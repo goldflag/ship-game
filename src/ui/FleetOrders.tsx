@@ -14,7 +14,6 @@ export function FleetOrders({ game, combat }: { game: Game | null; combat: Comba
   return <details className="fleet-orders"><summary>Fleet orders</summary>
     <label>Order vessel <select aria-label="Order vessel" value={id} onChange={e => setRecipient(e.target.value)}>{ships.map(s => <option value={s.id} key={s.id}>{s.name} · {s.id}</option>)}</select></label>
     <div className="fleet-orders-controls">
-      <button disabled={!enabled || id === session.ship.id} onClick={() => send(() => session.selectShip?.(id), 'Command transfer requested')}>Take helm</button>
       <button disabled={!enabled} onClick={() => send(() => session.holdShip?.(id), 'Hold position ordered')}>Hold</button>
       <button disabled={!enabled} onClick={() => send(() => session.automateShip?.(id), 'Autonomous movement ordered')}>Autonomous</button>
       <button disabled={!enabled || !combat.targetId} onClick={() => { if (combat.targetId) send(() => session.focusShip?.(id, combat.targetId!), 'Focus target ordered'); }}>Attack selected enemy</button>

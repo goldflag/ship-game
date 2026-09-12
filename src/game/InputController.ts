@@ -21,6 +21,8 @@ export interface InputActions {
   simulationSpeed?(): void;
   isSpectating?(): boolean;
   cycleSpectator?(direction: number): void;
+  /** The helm wheel is held open like binoculars: true on press, false on release. */
+  helmWheel?(held: boolean): void;
 }
 
 export class InputController {
@@ -38,13 +40,14 @@ export class InputController {
     window.addEventListener('keydown', this.onDown, options);
     window.addEventListener('keyup', e => {
       this.keys.delete(e.code);
+      if (this.bindings.helmWheel.includes(e.code)) this.actions.helmWheel?.(false);
       if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
         if (this.shiftTap) this.actions.optics();
         this.shiftTap = false;
       }
       if ((e.code === 'ControlLeft' || e.code === 'ControlRight') && !this.keys.has('ControlLeft') && !this.keys.has('ControlRight')) this.actions.cursor(false);
     }, options);
-    window.addEventListener('blur', () => this.clear(), options);
+    window.addEventListener('blur', () => { this.clear(); this.actions.helmWheel?.(false); }, options);
   }
 
   private onDown = (event: KeyboardEvent) => {
@@ -89,6 +92,9 @@ export class InputController {
       // So is the cursor: a follower's mouse steers the camera the way a helm's does,
       // and Ctrl hands the cursor back to the panels the same way.
       if (control) this.actions.cursor(true);
+      // The helm wheel picks the next ship to command, so it answers while the
+      // current helm is a captain's or already on the bottom.
+      if (action === 'helmWheel') this.actions.helmWheel?.(true);
     }
     if (!this.enabled) return;
     this.keys.add(key);

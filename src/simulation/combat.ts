@@ -54,7 +54,7 @@ export interface FullCombatTelemetry {
   targetMounts: { id: string; name: string; condition: number }[];
   targetId: string; targetName: string; targetRange: number;
   targetDepthM?: number;
-  contacts: { id: string; name: string; shipId: string; team: Team; controller: FleetActor['controller']; targetId?: string; x: number; z: number; heading: number; integrity: number; sunk: boolean; status: VesselStatus; combatLost: boolean; physicalLost: boolean }[];
+  contacts: { id: string; name: string; shipId: string; team: Team; controller: FleetActor['controller']; targetId?: string; x: number; z: number; heading: number; speed: number; integrity: number; sunk: boolean; status: VesselStatus; combatLost: boolean; physicalLost: boolean }[];
   battle: boolean; result: BattleResult; playerSunk: boolean;
   remainingSeconds: number | null; afloatKg: [number | null, number | null]; outcome?: BattleOutcome;
   targetPower: number; targetSteering: number; targetSunk: boolean; targetUnderway: boolean;

@@ -376,6 +376,38 @@ gun crews that commit to a target) rather than for the step time.
 - `AirOperations` map projection at the 20 Hz snapshot cadence instead of every
   frame.
 
+### Yamato clearance
+
+Landed, outside the numbered phases because it is a content decision rather
+than a code one. Yamato was the only ship with a closed-body `mountClearance`
+profile: 906 authored contact bodies swept against every mount's barrel,
+gunhouse and recoil envelope on every tick a gun moved. It was 68% of the
+30-ship custom benchmark step, about 0.13 s of native step per simulated second
+per Yamato in combat, and one Yamato alone could not hold 4× in fleet command.
+
+The profile is removed from `assets/ships/yamato/blueprint.json`, so she takes
+the same box-`obstructions` path as the rest of the fleet: mounts reach their
+catalog arcs, and a line of fire crossing an obstruction box reports the mount
+blocked. What is lost is barrels stopping visually at AA tubs and rangefinders
+in the 3D close-up, and the helm-view `blocked` label for those cases; nominal
+arcs are unchanged. Model acceptance check 4 stays a visual review.
+
+| Scenario | Step before | after |
+| --- | ---: | ---: |
+| custom, 150 s (4 Yamatos) | 138.8 s | 12.8 s |
+| server, 150 s (4 Yamatos) | 95.0 s | 13.8 s |
+
+The gate ran on a busy machine; an interleaved min-of-three A/B on `custom`,
+swapping only the content manifest under one binary, puts it at 107.7 s → 13.0 s,
+8.3× on the step. Snapshot time and bytes are unchanged (they grow slightly,
+because guns that no longer stop keep firing).
+
+`surface` and `carrier` carry no Yamato and stay byte-identical on the gate.
+The mesh solver itself is unchanged and still covered: the retired profile is
+kept as `src/simulation/fixtures/yamato-swept-clearance.json`, which the native
+`mount_clearance` tests and the WASM articulation preview test load as their
+fixture. Cleveland keeps the installation-envelope encoding in production.
+
 ## Also noticed
 
 Collisions and grounding are simulated every tick but raise no map alert in

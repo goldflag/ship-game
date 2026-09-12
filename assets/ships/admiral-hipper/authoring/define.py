@@ -26,9 +26,16 @@ sections=[]
 for s in sorted(set(p[0] for tab in [outline,deck,keel] for p in tab)):
  w=interp(outline,s)
  k,t=interp(keel,s),interp(deck,s)
- # Rounded bilge, near-vertical topsides amidships, increasing bow flare.
+ # Full rounded bilges amidships, finer stern run and increasing bow flare.
+ # The source's maximum underwater beam lies below the waterline; keeping
+ # the lower control points near the keel avoids an erroneous V-shaped body.
  flare=max(0,min(1,(s-165)/43));stern=max(0,1-s/35)
- factors=[(0,0),(.22,.045),(.64,.17),(.90,.31),(.985-.16*flare,.48),(1-.12*flare,.69),(1-.06*flare,.84),(1,1)]
+ x=s-101.4
+ fullness=max(0,min(1,(x+55)/40,(95-x)/80))
+ fine=[0,.05,.23,.42,.73,.92,.96,.96,.98,1]
+ full=[0,.38,.65,.77,.91,1,1,.966,.95,1]
+ heights=[0,.015,.055,.09,.19,.385,.475,.63,.82,1]
+ factors=[((a+(b-a)*fullness)*(1-flare*.30*(1-h)),h) for a,b,h in zip(fine,full,heights)]
  sections.append({'station':s,'points':[[round(w*wf*(1-.06*stern*(1-hf)),4),round(k+(t-k)*hf,4)] for wf,hf in factors]})
 def shape(id,name,pts,base,top,material='naval',roof=None):
  d={'id':id,'name':name,'footprint':[[-y,round(-x+ORIGIN,4)] for x,y in pts],'baseY':base,'height':round(top-base,4),'material':material}
@@ -54,12 +61,22 @@ structures=[
  shape('tower-director-base','Main director base',[(21.25, 0), (21.45, -0.2), (24.2, -2.6), (24.7, -2.73), (25.05, -2.68), (25.5, -2.38), (25.7, -1.75), (25.82, -0.9), (25.84, 0), (25.82, 0.9), (25.7, 1.75), (25.5, 2.38), (25.05, 2.68), (24.7, 2.73), (24.2, 2.6), (21.45, 0.2)],25.2,27.12),
  shape('funnel-base','Funnel lower uptake',rr(10.7,0,10.0,4.08,1.95,8),4.6,16.65),
  shape('funnel-jacket','Funnel jacket',rr(10.7,0,10.6,4.52,2.20,8),16.65,18.75),
- shape('hangar','Aircraft hangar',rr(-5.575,0,20.45,7.1,.35),4.6,12.2,roof=[(x,y,12.2-(1.1 if abs(y)>3 else 0)) for x,y in rr(-5.575,0,20.45,7.1,.35)]),
+ shape('hangar','Aircraft hangar',rr(-5.575,0,20.45,7.1,.35),4.6,12.2),
  shape('aft-shelter','Aft shelter and battery deck',[(-53,-2.6),(-50,-4),(-44,-6.5),(-26,-6.5),(-25,-5.64),(-24,-4.69),(-19,-4.69),(-18,-4),(-17,-2.8),(-17,2.8),(-18,4),(-19,4.69),(-24,4.69),(-25,5.64),(-26,6.5),(-44,6.5),(-50,4),(-53,2.6)],4.75,7.18),
  shape('aft-deckhouse','Aft command deckhouse',[(-41.5, -2.5), (-41, -3.42), (-39, -4.87), (-38, -5.22), (-32, -5.28), (-31, -4.98), (-30, -4.28), (-29.5, -3.96), (-25, -3.96), (-24.5, -4.29), (-24, -4.7), (-21, -4.73), (-20, -5.7), (-19, -6.14), (-18, -5.73), (-17.4, -3.1), (-17.4, 3.1), (-18, 5.73), (-19, 6.14), (-20, 5.7), (-21, 4.73), (-24, 4.7), (-24.5, 4.29), (-25, 3.96), (-29.5, 3.96), (-30, 4.28), (-31, 4.98), (-32, 5.28), (-38, 5.22), (-39, 4.87), (-41, 3.42), (-41.5, 2.5)],7.18,9.72),
  shape('aft-director-house','Aft director house',[(-38.8,0),(-38,1.1),(-37,1.84),(-36,2.89),(-35,3.89),(-29,3.89),(-28,2.68),(-27.6,0),(-28,-2.68),(-29,-3.89),(-35,-3.89),(-36,-2.89),(-37,-1.84),(-38,-1.1)],9.72,11.8),
  shape('aft-director-base','Aft main director pedestal',[(-37, 0), (-36, -0.88), (-34, -1.53), (-32.5, -1.65), (-31.5, -1.56), (-31, -1.43), (-30.5, -0.85), (-30.2, 0), (-30.5, 0.85), (-31, 1.43), (-31.5, 1.56), (-32.5, 1.65), (-34, 1.53), (-36, 0.88)],11.85,14.2),
 ]
+# The hangar has a raised flat center and sloping roof shoulders. Perimeter
+# heights alone lose the ridge, which also carries the catapult bearing.
+hangar=next(s for s in structures if s['id']=='hangar')
+section=[(-3.55,4.6),(-3.55,10.65),(-2.9,12.2),(2.9,12.2),(3.55,10.65),(3.55,4.6)]
+vertices=[[-y,z,round(-x+ORIGIN,4)] for x in [-15.8,4.65] for y,z in section]
+triangles=[]
+for i in range(1,5):triangles.extend([[0,i+1,i],[6,6+i,7+i]])
+for i in range(6):
+ j=(i+1)%6;triangles.extend([[i,j,j+6],[i,j+6,i+6]])
+hangar['surface']={'vertices':vertices,'triangles':triangles}
 # Director housings are part of the same authored structure contract, so the
 # physical optical shoulders also constrain nearby elevating AA guards.
 for key,x,base in [('forward',23.7,27.5),('aft',-31.6,14.2)]:

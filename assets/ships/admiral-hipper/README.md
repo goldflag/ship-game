@@ -10,10 +10,8 @@ Approved limitation: the source lacks its left-hand propeller asset; construct a
 
 ## Status
 
-Authoring and acceptance review are in progress. The ship is registered as a playable candidate. Final geometry, attachments and whole-ship articulation checks remain outstanding.
+The playable preset uses the approved A/AB exterior fit, eight 203 mm guns, the matching secondary/AA variants and four triple torpedo launchers. Original authoring inputs provide the hull, superstructure, physical equipment supports, articulated assemblies and provisional damage/flooding layout.
 
-Known review gap: underwater inspection suggests some propeller-shaft support ends are not seated against the hull. Correct and verify those attachments, review remaining fittings, and complete matched views and independent-neighbor articulation on the exact published model before acceptance.
-
-Build with `bun run ship:build admiral-hipper`; inspect with `bun run ship:review admiral-hipper` and `bun run model:viewer` after registration.
+Build with `bun run ship:build admiral-hipper`; inspect the current five fixed views with `bun run ship:review admiral-hipper` and compare the published model in `bun run model:viewer`. Model review covers attachments, matched hull/turret/bridge proportions, exposed gun mechanisms and combined traverse/elevation/recoil with independently moving neighbors. Gameplay calibration and the internal arrangement retain the limitations in the approved brief above.
 
 When revising the original layout, run `authoring/define.py`, then `authoring/equipment.py`, followed by `bun assets/ships/author-local-damage.ts admiral-hipper` and `bun assets/ships/author-damage-control.ts admiral-hipper`. The definition helper replaces structures and modules; the later steps restore their equipment and gameplay profiles before building.

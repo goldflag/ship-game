@@ -8,6 +8,9 @@ import { createMountState } from './weapons';
 
 const definition = compileShip(blueprint, catalog);
 const helm = { throttle: 0, rudder: 0 };
+// These exercise 25–30 simulated seconds of the TypeScript migration reference
+// with every fitted gun active. Allow for the parallel fleet test runner.
+const scenarioTimeoutMs = 120_000;
 
 test.each([-1, 1])('Hipper trains and fires all four main turrets on broadside %s', side => {
   const sim = new CombatSimulation(definition);
@@ -21,7 +24,7 @@ test.each([-1, 1])('Hipper trains and fires all four main turrets on broadside %
   expect(shots).toHaveLength(8);
   expect(new Set(shots.map(e => JSON.stringify(e.position))).size).toBe(8);
   expect(main.map(m => m.ammo)).toEqual(before.map(n => n - 2));
-}, 30000);
+}, scenarioTimeoutMs);
 
 test.each([-1, 1])('Hipper launches the two outboard triple banks on side %s and resets', side => {
   const sim = new CombatSimulation(definition);
@@ -35,7 +38,7 @@ test.each([-1, 1])('Hipper launches the two outboard triple banks on side %s and
   sim.reset();
   expect(sim.torpedoes).toHaveLength(0);
   expect(sim.player.torpedoTubes!.reduce((n, tube) => n + tube.ammo, 0)).toBe(12);
-}, 30000);
+}, scenarioTimeoutMs);
 
 test('Hipper tower AA starts seated, elevates, and stops its projecting guard above the gallery', () => {
   const states = definition.mounts.map(createMountState);
