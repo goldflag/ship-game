@@ -5,6 +5,25 @@ import { attribute, materialMetalness, materialRoughness } from 'three/tsl';
  * materials can share draws, including across different ship definitions. */
 export class ShipMaterialPalette {
   private readonly materials = new Map<string, THREE.MeshStandardNodeMaterial>();
+  /** One serialization scratchpad for every material: three caches images and textures
+   * inside it, so a texture is described once instead of once per material. */
+  private readonly meta = { textures: {}, images: {}, geometries: {}, materials: {}, shapes: {}, skeletons: {}, animations: {}, nodes: {} } as Parameters<THREE.Material['toJSON']>[0] & { images: Record<string, { uuid: string; url: string }> };
+
+  /** Distinguishing key for a paintable material. Only the image UUID reaches the key, so
+   * seed the image cache first: left to itself three re-encodes every texture to a base64
+   * PNG through a 2D canvas, which costs seconds per fleet and is discarded immediately. */
+  private materialKey(material: THREE.MeshStandardMaterial): string {
+    for (const value of Object.values(material)) {
+      const source = (value as THREE.Texture | null)?.isTexture ? (value as THREE.Texture).source : undefined;
+      if (source) this.meta.images[source.uuid] ??= { uuid: source.uuid, url: '' };
+    }
+    const { metadata: _metadata, uuid: _uuid, name: _name, color: _color, roughness: _roughness, metalness: _metalness, userData: _userData, ...data } = material.toJSON(this.meta);
+    return JSON.stringify(data);
+  }
+
+  /** The shared paint outlives the hulls that used it; a palette kept across fleets must
+   * keep its materials out of the disposal sweep or the next reuse hands back a dead one. */
+  sharedMaterials(): Iterable<THREE.Material> { return this.materials.values(); }
 
   apply(root: THREE.Object3D): void {
     const derived = new Map<THREE.BufferGeometry, Map<string, THREE.BufferGeometry>>();
@@ -16,12 +35,7 @@ export class ShipMaterialPalette {
         material.transparent || material.vertexColors || material.clippingPlanes || object.morphTargetInfluences?.length ||
         material.onBeforeCompile !== THREE.Material.prototype.onBeforeCompile ||
         material.customProgramCacheKey !== THREE.Material.prototype.customProgramCacheKey) return;
-      // Supplying metadata avoids serializing embedded texture pixels. Texture
-      // UUIDs remain in the key: distinct image/sampler resources never collapse.
-      const { metadata: _metadata, uuid: _uuid, name: _name, color: _color, roughness: _roughness, metalness: _metalness, userData: _userData, ...data } = material.toJSON({
-        textures: {}, images: {}, geometries: {}, materials: {}, shapes: {}, skeletons: {}, animations: {}, nodes: {},
-      });
-      const key = JSON.stringify(data);
+      const key = this.materialKey(material);
       let shared = this.materials.get(key);
       if (!shared) {
         shared = new THREE.MeshStandardNodeMaterial().copy(material as unknown as THREE.MeshStandardNodeMaterial);

@@ -182,9 +182,9 @@ test('HE can ignite room fuel without equipment, while intact armor blocks that 
 test('blueprints reject invalid region ownership and nonfinite fire profiles', () => {
   const badMount = structuredClone(blueprint); badMount.localDamage.regions.find(r => r.kind === 'mount')!.mountId = 'missing';
   expect(() => compileShip(badMount, catalog)).toThrow('unknown mount');
-  const badFuel = structuredClone(blueprint); badFuel.compartments[0].fire.fuelSeconds = -1;
+  const badFuel = structuredClone(blueprint); badFuel.compartments[0].fire!.fuelSeconds = -1;
   expect(() => compileShip(badFuel, catalog)).toThrow('fuelSeconds');
-  const badHeat = structuredClone(blueprint); badHeat.compartments[0].fire.heatPerDamage = NaN;
+  const badHeat = structuredClone(blueprint); badHeat.compartments[0].fire!.heatPerDamage = NaN;
   expect(() => compileShip(badHeat, catalog)).toThrow('heatPerDamage');
 });
 

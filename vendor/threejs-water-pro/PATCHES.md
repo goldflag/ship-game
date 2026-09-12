@@ -1,5 +1,32 @@
 # Local patches to Water Pro 3.5.1
 
+## Naval-range ship reflections
+
+The game's zoomed view can extend SSR rays to tens of kilometres. The bundle's
+SSR DDA now clips the projected ray to the viewport before distributing its
+existing step budget. The reciprocal-depth interval uses the same clip fraction,
+preserving perspective-correct marching. Binary hit refinement uses eight steps
+instead of four to resolve the existing 2 m tolerance across longer ray intervals.
+
+`Fp`, the water reflection G-buffer allocator, uses nearest-filtered RGBA32F
+instead of RGBA16F. Its alpha stores view depth in meters: half-float spacing is
+4 m at 5 km and 16 m at 20 km, exceeding the hit tolerance and producing missing
+or speckled reflections. Full-float storage adds eight bytes per full-resolution
+pixel; hit refinement adds four depth reads per candidate crossing. The DDA step
+cap, result texture, strength and quality feature gates stay unchanged. Preserve
+these changes and the corresponding declarations when replacing the vendor bundle.
+
+The actual-game diagnostic is `/scripts/diagnostics/water-reflections.html?test`.
+It compares a stationary Bismarck at 5 km and 20 km with the original ray range,
+then checks ordinary-view restoration. `&calm` removes wave displacement for a
+mirror comparison; `&webgl` selects the fallback backend. Temporary GPU readbacks
+and inspected before/after captures live under `.build/`.
+
+High-quality WebGPU captures show wave-distorted reflections at both ranges.
+WebGL passes the reflection-buffer and restoration checks too, but its final
+canvas capture remains black in this fixture, as in the earlier surface-visibility
+review. That fallback's final composition is not visually certified here.
+
 ## Straight-through surface visibility
 
 The game enables the creation-only `surfaceTransmissionEnabled` option while

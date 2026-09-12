@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "cadenceTicks": 6,
+  "lostAfterSeconds": 0,
+  "staleSurfaceSeconds": 90,
+  "staleAirSeconds": 45,
+  "surfaceLargeRangeM": 11000,
+  "surfaceSmallRangeM": 9000,
+  "airLargeRangeM": 18000,
+  "airSmallRangeM": 10000,
+  "surfaceLowAirRangeM": 5000,
+  "surfaceHighAirRangeM": 8000,
+  "airToAirRangeM": 7000
+}

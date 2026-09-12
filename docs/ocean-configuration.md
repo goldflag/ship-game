@@ -54,6 +54,28 @@ Water Pro's `scene.fogNode` owns distance fog, including transparent effects and
 
 The game requests reversed depth for centimeter-scale ship details at long battle ranges. Three.js gives the main scene pass a floating-point depth attachment, retaining the 0.5 m battle near plane and 60 km far plane. Sky Pro 2.2.0's sky and cirrus background shaders require their constant far-depth value to match the active backend (0 for reversed depth, 1 otherwise); volumetric clouds already project their hit distance through the camera. Water and smoke use Three.js's depth conversion nodes, which account for reversed depth. See the [distant ship depth review](../assets/reviews/ship-depth/README.md) for the GPU regression fixture and matching 24× captures.
 
+## Zoomed ship reflections and shadows
+
+Above 1.5× magnification in battle, `WaterViewFocus` selects the visible hull nearest
+the center of the rendered view. Its range extends water reflection rays to twice
+the camera-to-hull distance, capped at the camera far plane. The existing sun/moon
+shadow map follows that hull with its original size and resolution. Returning to
+an ordinary view, the air map or port restores the normal reflection range and
+shadow anchor. Selection is independent of combat targeting and works while paused.
+
+High and Ultra retain screen-space ship reflections; Medium keeps them disabled.
+The water shader clips reflection rays to the viewport, refines geometry hits more
+precisely and uses full-float reflection depth to avoid distant speckling. Screen-space
+reflections still omit offscreen geometry and break up with wave slopes. This extends
+the reflected ship silhouette on water and the ship's own sun/moon shading; the custom
+water surface does not receive a separate directional shadow.
+
+The development fixture `/scripts/diagnostics/water-reflections.html?test` compares
+the old range against zoomed coverage at 5 km and 20 km, then checks restoration.
+Use `&calm` for a mirror comparison or `&webgl` for the fallback renderer. It exposes
+`window.reflectionResult.passed` and `reflectionReview.still()` for inspected images.
+Temporary captures belong in `.build/`. See the [vendor patch](../vendor/threejs-water-pro/PATCHES.md#naval-range-ship-reflections).
+
 ## Ship wake
 
 `src/game/ShipWake.ts` combines Water Pro's wave displacement with independent per-ship foam histories in `src/game/WakeFoam.ts`, packed into one shared texture by `src/game/FleetWakeFoam.ts`. Both are sampled by the actual water material, so foam follows the ocean's displacement, lighting and bubble texture. There is no floating decal or flat plane above the sea.

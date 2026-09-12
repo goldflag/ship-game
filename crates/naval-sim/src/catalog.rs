@@ -22,7 +22,10 @@ struct Manifest {
     aircraft: Vec<crate::aircraft_deck::GroundPose>,
     version: u32,
     rules_version: u32,
+    missions: Vec<crate::mission::MissionRules>,
+    air_profiles: Vec<crate::air_rules::AirRules>,
     ships: Vec<ManifestShip>,
+    hydrostatics: Vec<crate::hydro_table::HydrostaticTable>,
     terrain: Vec<crate::environment::TerrainField>,
     maps: serde_json::Value,
     conditions: serde_json::Value,
@@ -46,18 +49,31 @@ pub struct ContentIdentity {
 pub struct Catalog {
     pub aircraft: BTreeMap<String, crate::aircraft_deck::GroundPose>,
     pub definitions: BTreeMap<String, Arc<ShipDefinition>>,
+    /// Solved once at content time from the same hulls, so both simulations
+    /// float a ship on identical numbers.
+    pub hydrostatics: BTreeMap<String, crate::hydro_table::HydrostaticTable>,
     pub fleet_entries: BTreeMap<String, FleetEntry>,
     pub identities: Vec<ContentIdentity>,
     pub manifest_hash: String,
     pub terrain: Vec<crate::environment::TerrainField>,
     pub maps: serde_json::Value,
     pub conditions: serde_json::Value,
+    pub missions: BTreeMap<String, crate::mission::MissionRules>,
+    pub air_profiles: BTreeMap<String, crate::air_rules::AirRules>,
 }
 
 pub fn sha256(bytes: &[u8]) -> String {
     format!("{:x}", Sha256::digest(bytes))
 }
 impl Catalog {
+    /// Compiled geometry for one class, carrying its published hydrostatics.
+    pub fn compile(&self, id: &str) -> Result<crate::vessel::CompiledShip, String> {
+        let definition = self
+            .definitions
+            .get(id)
+            .ok_or_else(|| format!("Unknown ship class {id}"))?;
+        crate::vessel::CompiledShip::new(definition.clone(), self.hydrostatics.get(id))
+    }
     pub fn map_ids(&self) -> Result<Vec<String>, String> {
         environment_ids(&self.maps, "maps")
     }
@@ -72,6 +88,33 @@ impl Catalog {
                 "unsupported manifest or rules version".into(),
             ));
         }
+        let mut missions = BTreeMap::new();
+        for mission in manifest.missions {
+            mission.validate_profile().map_err(ContentError::Invalid)?;
+            if missions.insert(mission.id.clone(), mission).is_some() {
+                return Err(ContentError::Invalid("Duplicate mission profile".into()));
+            }
+        }
+        let mut air_profiles = BTreeMap::new();
+        for profile in manifest.air_profiles {
+            profile.validate().map_err(ContentError::Invalid)?;
+            if air_profiles.insert(profile.id.clone(), profile).is_some() {
+                return Err(ContentError::Invalid(
+                    "Duplicate air operations profile".into(),
+                ));
+            }
+        }
+        if air_profiles.get("legacy-air-v1") != Some(&crate::air_rules::AirRules::legacy()) {
+            return Err(ContentError::Invalid(
+                "Missing or altered legacy air profile".into(),
+            ));
+        }
+        if missions
+            .values()
+            .any(|m| !air_profiles.contains_key(&m.air_profile_id))
+        {
+            return Err(ContentError::Invalid("Missing mission air profile".into()));
+        }
         let mut catalog = Self {
             aircraft: manifest
                 .aircraft
@@ -79,12 +122,19 @@ impl Catalog {
                 .map(|p| (p.id.clone(), p))
                 .collect(),
             definitions: BTreeMap::new(),
+            hydrostatics: manifest
+                .hydrostatics
+                .into_iter()
+                .map(|t| (t.id.clone(), t))
+                .collect(),
             fleet_entries: BTreeMap::new(),
             identities: Vec::new(),
             manifest_hash: sha256(bytes),
             terrain: manifest.terrain,
             maps: manifest.maps,
             conditions: manifest.conditions,
+            missions,
+            air_profiles,
         };
         catalog.map_ids().map_err(ContentError::Invalid)?;
         catalog.weather_ids().map_err(ContentError::Invalid)?;
@@ -99,6 +149,7 @@ impl Catalog {
             !p.pitch.is_finite()
                 || !p.clearance.is_finite()
                 || p.clearance <= 0.0
+                || p.deck_geometry.as_ref().is_some_and(|g| !g.valid())
                 || p.bomb
                     .as_ref()
                     .is_none_or(|b| !positive(&[b.caliber_m, b.he.damage, b.he.explosive_kg]))
@@ -179,6 +230,9 @@ fn ids_unique<'a>(ids: impl Iterator<Item = &'a str>) -> bool {
 }
 pub fn validate_definition(d: &ShipDefinition) -> Result<(), ContentError> {
     let fail = || ContentError::Invalid(format!("invalid compiled definition {}", d.id));
+    if let Some(layout) = d.air_wing.as_ref().and_then(|w| w.deck_layout.as_ref()) {
+        crate::flight_deck::validate(d, layout).map_err(ContentError::Invalid)?;
+    }
     if d.schema_version != 1.0
         || d.compiler_version != 1.0
         || d.coordinates != "meters-y-up-bow-negative-z"
@@ -217,6 +271,19 @@ pub fn validate_definition(d: &ShipDefinition) -> Result<(), ContentError> {
     }
     for (i, mount) in d.mounts.iter().enumerate() {
         if let Some(c) = &mount.travel_clearance {
+            if d.mount_clearance.as_ref().is_some_and(|p| {
+                p.mount_ids
+                    .as_ref()
+                    .is_some_and(|ids| ids.contains(&mount.id))
+                    || p.mounts
+                        .as_ref()
+                        .is_some_and(|entries| entries.iter().any(|e| e.mount_id == mount.id))
+            }) {
+                return Err(ContentError::Invalid(format!(
+                    "{}: use either travelClearance or mountClearance, not both",
+                    mount.id
+                )));
+            }
             let vertices = &c.surface.vertices;
             if c.version != 1
                 || !(3..=2048).contains(&vertices.len())

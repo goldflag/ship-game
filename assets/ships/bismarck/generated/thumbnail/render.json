@@ -1,21 +1,21 @@
 {
-  "contentHash": "5f8ce9dc7caf9a494d839a69cfdf24a8d575a5b4f65f95096775940122e08ed0",
+  "contentHash": "6a87d818bce03d79ff32165bdbd4e55049aa467460387d8f5da004584b8b3af4",
   "recipeHash": "256a1dc45e1c85022e44fb81b4bfe8f52c7059b64d36d447ac8cb2b66820355b",
-  "imageHash": "b931e3f27a9245ae79b483dfbe94102b100fb9f8d9a1ecb80c1d635670fe41c9",
+  "imageHash": "870fc272d24cbe86847044a0d1032f2d5897bdf37477ce41f30bbfc2378013f7",
   "input": "validated runtime GLB",
   "importedAxes": "bow +Y, starboard +X, up +Z",
   "projection": "orthographic",
   "location": [
-    -453.4241027832031,
-    158.6984100341797,
-    216.99685668945312
+    -455.6563415527344,
+    159.47984313964844,
+    217.99911499023438
   ],
   "rotationEuler": [
-    1.1691492795944214,
-    -5.355552801233898e-8,
-    -1.9074710607528687
+    1.1691491603851318,
+    -2.3330225928930304e-7,
+    -1.9074712991714478
   ],
-  "scale": 256.65234375,
+  "scale": 256.6676940917969,
   "resolution": [
     600,
     180

@@ -11,7 +11,8 @@ export function readSnapshot(value: unknown): Snapshot {
     if (Array.isArray(value)) { for (const child of value) normalize(child); return; }
     const object = value as Record<string, unknown>;
     for (const key of Object.keys(object)) {
-      if (object[key] === null) delete object[key];
+      // Unlimited is an explicit operating policy, not a missing optional field.
+      if (object[key] === null && key !== 'activeFlightLimit') delete object[key];
       else normalize(object[key]);
     }
   };

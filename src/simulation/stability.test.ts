@@ -56,8 +56,10 @@ for (const b of presets) test(`${b.id}: shell and flooding coverage include both
 
 test('asymmetric water produces mirrored list; symmetric loading sinks deeper without list', () => {
   const left = fixture(), right = fixture(), symmetric = fixture();
-  const li = left.def.compartments.findIndex(c => c.id === 'reserve-cell-1-0-1'), ri = right.def.compartments.findIndex(c => c.id === 'reserve-cell-1-1-1');
-  const amount = Math.min(left.def.compartments[li].capacityM3, right.def.compartments[ri].capacityM3) * .8;
+  const li = left.def.compartments.findIndex(c => c.id === 'reserve-cell-1-0-0'), ri = right.def.compartments.findIndex(c => c.id === 'reserve-cell-1-1-0');
+  // A reserve space now spans a whole quarter of the hull's depth, so 80% of
+  // one is a flooding case no ship rides out; a fifth still lists it visibly.
+  const amount = Math.min(left.def.compartments[li].capacityM3, right.def.compartments[ri].capacityM3) * .2;
   left.a.damage.compartments[li].waterM3 = amount; right.a.damage.compartments[ri].waterM3 = amount;
   symmetric.a.damage.compartments[li].waterM3 = amount; symmetric.a.damage.compartments[ri].waterM3 = amount;
   for (let i = 0; i < 120; i++) for (const { a, def } of [left, right, symmetric]) updateStability(a, def, .5);

@@ -6,7 +6,7 @@ use naval_sim::{
         advance_gun_motion, clear_gun_motion, gun_clearance, segment_triangle_distance,
     },
     motion::ShipState,
-    weapons::{Ammunition, MountState, Obstructions, update_mount},
+    weapons::{Ammunition, MountState, MountStatus, Obstructions, update_mount},
 };
 
 fn kongo() -> ShipDefinition {
@@ -25,6 +25,23 @@ fn kongo() -> ShipDefinition {
         m.travel_clearance = serde_json::from_value(input["travelClearance"].clone()).unwrap();
     }
     d
+}
+#[test]
+fn one_mount_cannot_have_two_independent_motion_resolvers() {
+    let mut d = kongo();
+    d.mount_clearance = Some(
+        serde_json::from_value(serde_json::json!({
+            "version":1,"marginM":0.01,"basis":"conflicting encodings fixture",
+            "mounts":[{"mountId":"main-1","barrelRadiusM":0.5}],"structures":[],"neighbors":[]
+        }))
+        .unwrap(),
+    );
+    assert!(
+        validate_definition(&d)
+            .unwrap_err()
+            .to_string()
+            .contains("either travelClearance or mountClearance")
+    );
 }
 #[test]
 fn distances_cover_interiors_parallel_edges_and_crossings() {
@@ -99,7 +116,7 @@ fn aiming_stops_then_elevates_away_without_firing() {
             &states,
         );
     }
-    assert_eq!(s.status, "blocked");
+    assert_eq!(s.status, MountStatus::Blocked);
     assert!(gun_clearance(m, s.train, s.elevation) >= 0.0);
     let low = s.elevation;
     for _ in 0..20 {
@@ -184,6 +201,9 @@ fn main_and_casemate_barrels_stop_before_authored_structures_and_reverse() {
     let d = kongo();
     validate_definition(&d).unwrap();
     let mut cases = vec![
+        ("main-1".to_string(), -18.125, -5.0),
+        ("main-1".to_string(), 18.125, -5.0),
+        ("main-1".to_string(), -36.25, -5.0),
         ("main-2".to_string(), -145.0, 43.0),
         ("main-3".to_string(), -145.0, 43.0),
     ];

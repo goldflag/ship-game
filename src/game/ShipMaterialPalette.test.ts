@@ -34,3 +34,15 @@ test('surface parameters remain per vertex; distinct textures and custom materia
   expect(meshes[4].material).toBe(materials[4]); expect(meshes[5].material).toBe(materials[5]);
   expect(meshes[4].geometry).toBe(geometry); expect(meshes[5].geometry).toBe(geometry);
 });
+
+test('texture pixels are never read while keying materials', () => {
+  // Serializing a texture encodes it to a base64 PNG (or copies out every sample), costs
+  // seconds across a fleet, and is thrown away — the key only needs the image UUID.
+  let reads = 0;
+  const image = { width: 4, height: 4, get data() { reads++; return new Uint8Array(64); } };
+  const root = new THREE.Group(), geometry = new THREE.BoxGeometry(), palette = new ShipMaterialPalette();
+  const textured = () => new THREE.MeshStandardMaterial({ map: new THREE.Texture(image as unknown as ImageData) });
+  root.add(...[textured(), textured(), textured()].map(material => new THREE.Mesh(geometry, material)));
+  palette.apply(root);
+  expect(reads).toBe(0);
+});

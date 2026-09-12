@@ -1,0 +1,102 @@
+{
+  "version": 1,
+  "id": "enterprise-cv6-maintained-v1",
+  "basis": "Preserve original recipe colors, scheme, markings and deck coverings. Shared maintained finish; no new historical color claim.",
+  "materials": {
+    "naval": {
+      "paint": "enterprise-cv6-authored-naval",
+      "finish": "painted-steel"
+    },
+    "roof": {
+      "paint": "enterprise-cv6-authored-roof",
+      "finish": "painted-deck"
+    },
+    "edge": {
+      "paint": "enterprise-cv6-authored-edge",
+      "finish": "painted-steel"
+    },
+    "hullgray": {
+      "paint": "enterprise-cv6-authored-hullgray",
+      "finish": "painted-steel",
+      "projection": "hull"
+    },
+    "antifouling": {
+      "paint": "enterprise-cv6-authored-antifouling",
+      "finish": "underwater-coating",
+      "projection": "hull"
+    },
+    "boot": {
+      "paint": "enterprise-cv6-authored-boot",
+      "finish": "underwater-coating",
+      "projection": "hull"
+    },
+    "deck": {
+      "paint": "enterprise-cv6-authored-deck",
+      "finish": "wood"
+    },
+    "elevator": {
+      "paint": "enterprise-cv6-authored-elevator",
+      "finish": "painted-deck"
+    },
+    "steel-deck": {
+      "paint": "enterprise-cv6-authored-steel-deck",
+      "finish": "painted-deck"
+    },
+    "hangar": {
+      "paint": "enterprise-cv6-authored-hangar",
+      "finish": "painted-steel"
+    },
+    "raft": {
+      "paint": "enterprise-cv6-authored-raft",
+      "finish": "painted-steel"
+    },
+    "plank0": {
+      "paint": "enterprise-cv6-authored-deck-stain",
+      "finish": "wood"
+    },
+    "plank1": {
+      "paint": "enterprise-cv6-authored-deck-stain",
+      "finish": "wood"
+    },
+    "plank2": {
+      "paint": "enterprise-cv6-authored-deck-stain",
+      "finish": "wood"
+    },
+    "plank3": {
+      "paint": "enterprise-cv6-authored-deck-stain",
+      "finish": "wood"
+    },
+    "plank4": {
+      "paint": "enterprise-cv6-authored-deck-stain",
+      "finish": "wood"
+    },
+    "plank5": {
+      "paint": "enterprise-cv6-authored-deck-stain",
+      "finish": "wood"
+    },
+    "plank6": {
+      "paint": "enterprise-cv6-authored-deck-stain",
+      "finish": "wood"
+    },
+    "plank7": {
+      "paint": "enterprise-cv6-authored-deck-stain",
+      "finish": "wood"
+    },
+    "plank8": {
+      "paint": "enterprise-cv6-authored-deck-stain",
+      "finish": "wood"
+    }
+  },
+  "hull": {
+    "bounds": [
+      -123.3678,
+      123.3678,
+      -8.912099999999999,
+      12.9855
+    ],
+    "pixelsPerMeter": 16,
+    "waterline": 0,
+    "stainStrength": 0.16,
+    "runoffStrength": 0.16
+  }
+}

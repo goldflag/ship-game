@@ -48,7 +48,7 @@ def create(h,mats):
      for z in [9.2,12,15,18.2]:
       x=-9.75-(z-9)*2.47/9.2
       rod('aftertower.ladder-foot',(x,sign*.38,z),(x-.20,sign*.38,z),.025,mats['naval'],vertices=6)
-    
+
     # Gallery access: narrow walkways beside the after uptake leave the mouth
     # and the space underneath open, as in the approved quarter view.
     for sign in [-1,1]:

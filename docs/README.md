@@ -9,8 +9,9 @@ Start with [AGENTS.md](../AGENTS.md) for repository rules. Read the task's curre
 | Agree a new ship and its references | [Collaborative brief](ship-pipeline.md#start-a-new-ship-collaboratively) | User-approved vessel, fit, paint and reference policy in the ship README |
 | Create or modify a ship | [Ship pipeline](ship-pipeline.md) | Per-ship blueprint, original recipes and component catalog |
 | Iterate on ship geometry with Blender MCP | [MCP authoring loop](ship-build-reference.md#blender-mcp-authoring-loop) | Live scene inspection, durable recipe edits and clean rebuild verification |
-| Overlay ship/reference models | [Model library and comparison app](../tools/ship-overlay/README.md) | Our runtime GLB plus ignored local reference geometry |
+| Compare ships, aircraft and reference models | [Model library and comparison app](../tools/ship-overlay/README.md) | Our runtime GLB plus ignored local reference geometry |
 | Review model quality | [Ship model review](ship-model-review.md) | Four required visual checks on the exact published model |
+| Paint ships consistently | [Ship appearance](ship-appearance.md) | Shared finishes, named paints and approved ship-specific schemes |
 | Reuse equipment or browse standalone models | [Shared components](shared-components.md), [model viewer](../tools/ship-overlay/README.md) | Component catalog, original builders and published ship assemblies |
 | Change ship components or combat | [Runtime/component reference](ship-runtime-contract.md) | Validated definitions and renderer-free simulation |
 | Build, export or compare ships | [Build/reference details](ship-build-reference.md) | Build scripts, input hashes and published model/thumbnail validation |
@@ -20,9 +21,13 @@ Start with [AGENTS.md](../AGENTS.md) for repository rules. Read the task's curre
 | Change bot behavior | [Bot behavior](bot-behavior.md) | Seeded, renderer-free crew decisions |
 | Change ocean rendering | [Ocean configuration](ocean-configuration.md) | Visual ocean settings; CPU combat poses stay authoritative |
 | Work on port or HUD UI | [Garage design](garage-mockups/README.md), [HUD design](hud-mockups/README.md), [shared controls](../src/ui/components/README.md) | Existing naval instrument styling and current runtime UI |
+| Add or change graphics settings | [Graphics settings study](graphics-settings/README.md) | Renderer knobs, their apply timing and the proposed live-apply Graphics tab |
 | Develop Rust multiplayer | [Implementation status](rust-multiplayer-implementation.md), [reviewed proposal](rust-multiplayer-plan.md), [Fable critique](rust-multiplayer-critique-fable.md), [review response](rust-multiplayer-review-response.md) | Shared Rust authority for online/custom battles, local validation and measured deployment limits |
+| Develop PvE fleet command | [Agreed plan](pve-fleet-command-plan.md), [implementation status](pve-implementation-status.md), [selected UI D](pve-ui-studies/README.md) | Rust orders, observation, mission and air rules; approved selection/follow/helm workflows |
 | Investigate test execution | [Test performance](test-performance.md) | Repository test runner and measured execution notes |
+| Measure fleet-command speed | [Fleet command speed](pve-speed-performance.md) | Actual 1×/2×/4× progress, fixed fleet scenarios and worker throughput |
 | Profile custom battles | [Custom battle performance](custom-battle-performance.md) | Actual application, Rust worker, frame intervals and graphics warmup |
+| Speed up the simulation | [Simulation performance plan](sim-performance-plan.md) | Native profiling harness, equality gate and the phased optimization plan across fleet command, custom battles and the server |
 
 ## Asset inputs and review
 

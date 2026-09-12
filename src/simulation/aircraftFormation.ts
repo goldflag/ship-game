@@ -16,9 +16,11 @@ export function formationOffset(flight: AirFlight, p: Aircraft, time: number, se
     row * 27 + Math.sin(time * .27 + phase * 3) * 2];
 }
 
-export function formationLeader(flight: AirFlight, planes: Aircraft[]): Aircraft | undefined {
-  return flight.planeIds.map(id => planes.find(p => p.id === id)).find(p => p && p.hp >= 25
-    && p.flightTime <= 470 && (p.phase === 'outbound' || p.phase === 'attack'));
+export function formationLeader(flight: AirFlight, planes: Aircraft[], byId?: ReadonlyMap<string, Aircraft>): Aircraft | undefined {
+  for (const id of flight.planeIds) {
+    const p = byId ? byId.get(id) : planes.find(p => p.id === id);
+    if (p && p.hp >= 25 && p.flightTime <= 470 && (p.phase === 'outbound' || p.phase === 'attack')) return p;
+  }
 }
 
 export function formationPosition(flight: AirFlight, p: Aircraft, leader: Aircraft, time: number, seed: number): Vec3 {

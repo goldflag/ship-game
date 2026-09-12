@@ -9,4 +9,9 @@ for side in [-1,1]:
     for x in [-9.3,-11.5]:
         recipe['rod']('aft-bridge-sponsons.beam',(x,side*3.9,deck),(x,side*6.8,deck),.07,recipe['materials']['naval'])
         recipe['rod']('aft-bridge-sponsons.knee',(x,side*3.9,deck-1.35),(x,side*6.65,deck),.065,recipe['materials']['naval'])
+
+import sys
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'appearance'))
+from surface import apply_appearance
+apply_appearance(recipe['scene'],recipe['materials'],Path(__file__).with_name('appearance.json'))
 recipe['bpy'].ops.wm.save_as_mainfile(filepath=str(recipe['out']/'source.blend'))

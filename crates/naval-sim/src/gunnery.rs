@@ -9,7 +9,7 @@ use crate::{
     machinery::{electrical_power, equipment_condition, mount_support},
     mount_frames::update_mount_carrier,
     shell::Shell,
-    vessel::{Controller, Vessel},
+    vessel::{Controller, Fleet, Vessel},
     weapons::*,
 };
 use std::collections::BTreeMap;
@@ -35,8 +35,8 @@ pub fn group_id(m: &MountDefinition) -> String {
         w.penetration_mm,
         w.damage,
         w.traverse_rate_deg,
-        w.elevation_min_deg,
-        w.elevation_max_deg,
+        w.catalog_elevation_min_deg.unwrap_or(w.elevation_min_deg),
+        w.catalog_elevation_max_deg.unwrap_or(w.elevation_max_deg),
         w.elevation_rate_deg,
         b.map_or(0.0, |b| b.drag_per_second),
         b.map_or(0.0, |b| b.dispersion_rad),
@@ -69,7 +69,9 @@ pub fn group_id(m: &MountDefinition) -> String {
     format!("{}:gun:{}", m.battery, fields)
 }
 pub struct GunneryContext<'a> {
-    pub actors: &'a [Vessel],
+    /// Every ship but the one being operated, in fleet order. The operated ship
+    /// is borrowed mutably out of the same vector, so it cannot be in here.
+    pub actors: Fleet<'a>,
     pub aviation: &'a mut Aviation,
     pub shells: &'a mut Vec<Shell>,
     pub sequence: &'a mut i64,
@@ -86,26 +88,96 @@ pub fn operate(
     target: Option<&Vessel>,
     player: Option<&PlayerGunOrders>,
 ) {
+    operate_with_policy(
+        actor,
+        ctx,
+        target,
+        player,
+        crate::navigation::WeaponsPolicy::default(),
+    );
+}
+
+pub fn operate_with_policy(
+    actor: &mut Vessel,
+    ctx: &mut GunneryContext<'_>,
+    target: Option<&Vessel>,
+    player: Option<&PlayerGunOrders>,
+    policy: crate::navigation::WeaponsPolicy,
+) {
+    operate_observed(actor, ctx, target, None, player, policy, None);
+}
+#[allow(clippy::too_many_arguments)]
+pub fn operate_observed(
+    actor: &mut Vessel,
+    ctx: &mut GunneryContext<'_>,
+    target: Option<&Vessel>,
+    contact: Option<&crate::sensors::ContactTrack>,
+    player: Option<&PlayerGunOrders>,
+    policy: crate::navigation::WeaponsPolicy,
+    knowledge: Option<crate::sensors::Knowledge<'_>>,
+) {
     let compiled = actor.compiled.clone();
     let def = &compiled.definition;
     let power = electrical_power(actor, def, None);
-    let lane = target.is_some_and(|t| bots::clear_firing_lane(actor, t, ctx.actors));
+    let lane = contact.map_or_else(
+        || target.is_some_and(|t| bots::clear_firing_lane(actor, t, ctx.actors)),
+        |c| bots::clear_lane_to(actor, c.estimated_position, ctx.actors),
+    );
     let velocity = actor.motion.velocity();
+    // Held by value: the mount loop mutates the actor while it reads the index.
+    let ship_index = actor.index.clone();
+    let index = ship_index
+        .of(def)
+        .filter(|ix| ix.mounts == def.mounts.len() && ix.modules == def.modules.len());
+    // The observable-contact filter is a property of the ship, not the mount.
+    let mut observable = vec![];
+    if let Some(k) = knowledge.filter(|_| policy.aa) {
+        anti_aircraft::observable_air(actor, k, &mut observable);
+    }
     for (i, m) in def.mounts.iter().enumerate() {
         update_mount_carrier(def, i, &mut actor.mounts);
         if actor.damage.stability.combat_lost
             || m.magazine_id.as_ref().is_some_and(|id| {
-                def.modules
-                    .iter()
-                    .find(|m| &m.id == id)
-                    .is_some_and(|module| {
-                        equipment_condition(actor, def, module, None).availability == 0.0
-                    })
+                // The magazine module index is compiled with the ship.
+                let module = match index {
+                    Some(ix) => ix.mount_magazine[i].map(|j| &def.modules[j]),
+                    None => def.modules.iter().find(|m| &m.id == id),
+                };
+                module.is_some_and(|module| {
+                    equipment_condition(actor, def, module, None).availability == 0.0
+                })
             })
         {
-            actor.mounts[i].status = "disabled".into();
+            actor.mounts[i].status = MountStatus::Disabled;
             continue;
         }
+        let independent_secondary = knowledge.is_some() && m.battery == "secondary";
+        let contact = if independent_secondary {
+            actor
+                .secondary_bot
+                .as_ref()
+                .and_then(|b| b.track.as_ref())
+                .and_then(|t| knowledge.unwrap().sensors.contact(actor.team, &t.id))
+                .filter(|c| c.targetable())
+        } else {
+            contact
+        };
+        let lane = if independent_secondary {
+            contact.is_some_and(|c| bots::clear_lane_to(actor, c.estimated_position, ctx.actors))
+        } else {
+            lane
+        };
+        // Detaching moves the mount out instead of cloning it: the caches and
+        // the id allocate nothing, and the stand-in keeps every scalar a
+        // neighbouring mount reads while this one is updated.
+        let detached = actor.mounts[i].detached();
+        let previous_reload = detached.reload;
+        let mut state = std::mem::replace(&mut actor.mounts[i], detached);
+        let bot = if independent_secondary {
+            actor.secondary_bot.as_ref()
+        } else {
+            actor.bot.as_ref()
+        };
         let allowed = anti_aircraft::surface_allowed(def, m);
         let group = &compiled.weapon_group_ids[i];
         let selected = allowed
@@ -113,9 +185,10 @@ pub fn operate(
                 p.battery == m.battery && p.weapon_group_id.as_ref().is_none_or(|id| id == group)
             });
         let manual = selected && player.unwrap().weapon_group_id.is_some();
-        let mut state = actor.mounts[i].clone();
         if !manual
-            && anti_aircraft::update(
+            && policy.aa
+            && anti_aircraft::update_observed_at(
+                i,
                 actor,
                 m,
                 &mut state,
@@ -125,13 +198,19 @@ pub fn operate(
                 ctx.seed,
                 ctx.sequence,
                 ctx.events,
+                knowledge,
+                &observable,
             )
         {
+            if state.reload > previous_reload {
+                actor.firing_visibility_seconds = crate::sensors::FIRING_VISIBILITY_SECONDS;
+            }
             actor.mounts[i] = state;
             continue;
         }
         if !allowed {
-            update_mount(
+            update_mount_at(
+                i,
                 m,
                 &mut state,
                 def,
@@ -157,12 +236,34 @@ pub fn operate(
                 state.queue_ammunition(m, *kind)
             }
             let Some(point) = p.aim else {
-                state.status = "out-of-arc".into();
+                state.status = MountStatus::OutOfArc;
                 actor.mounts[i] = state;
                 continue;
             };
             aim = Some(point);
             fire = p.fire && selected;
+        } else if actor.controller == Controller::Bot
+            && let Some(c) = contact
+        {
+            let ammunition = if m.weapon.he.is_some()
+                && c.classification.as_deref() != Some("Large warship")
+                && state.available(Ammunition::He) >= m.weapon.barrel_count.unwrap_or(2.0)
+            {
+                Ammunition::He
+            } else {
+                Ammunition::Ap
+            };
+            state.select_ammunition(m, ammunition);
+            let in_range = (c.estimated_position[0] - actor.motion.x)
+                .hypot(c.estimated_position[2] - actor.motion.z)
+                <= bots::gun_range(m);
+            if in_range
+                && state.hp > 0.0
+                && state.available(state.loaded) >= m.weapon.barrel_count.unwrap_or(2.0)
+            {
+                aim = Some(bots::aim_contact(bot, &actor.motion, c, m, &mut state));
+            }
+            fire = policy.guns && in_range && lane && bot.is_some_and(|b| b.ready(Some(m)));
         } else if actor.controller == Controller::Bot
             && let Some(t) = target
         {
@@ -174,7 +275,7 @@ pub fn operate(
                 && state.available(state.loaded) >= m.weapon.barrel_count.unwrap_or(2.0)
             {
                 aim = Some(bots::aim(
-                    actor.bot.as_ref(),
+                    bot,
                     &actor.motion,
                     t,
                     t.definition(),
@@ -182,9 +283,10 @@ pub fn operate(
                     &mut state,
                 ))
             }
-            fire = in_range && lane && actor.bot.as_ref().is_some_and(|b| b.ready(Some(m)));
+            fire = policy.guns && in_range && lane && bot.is_some_and(|b| b.ready(Some(m)));
         }
-        let aligned = update_mount(
+        let aligned = update_mount_at(
+            i,
             m,
             &mut state,
             def,
@@ -196,13 +298,20 @@ pub fn operate(
             &compiled.obstructions,
             &actor.mounts,
         );
-        if !actor.damage.sunk && fire && aligned && state.status == "ready" {
+        if !actor.damage.sunk && fire && aligned && state.status == MountStatus::Ready {
             if actor.controller == Controller::Bot
-                && let Some(bot) = actor.bot.as_mut()
+                && let Some(bot) = if independent_secondary {
+                    actor.secondary_bot.as_mut()
+                } else {
+                    actor.bot.as_mut()
+                }
             {
                 bot.did_fire(m)
             }
             let barrels = state.expend_salvo(m, m.weapon.reload_seconds);
+            if barrels > 0 {
+                actor.firing_visibility_seconds = crate::sensors::FIRING_VISIBILITY_SECONDS;
+            }
             let w = &m.weapon;
             let spread = w.ballistics.as_ref().map_or(0.0, |b| b.dispersion_rad)
                 + (1.0 - mount_support(actor, def, Some(&m.id), None).1) * 0.0015;
@@ -220,16 +329,16 @@ pub fn operate(
                     "Secondary"
                 }
             );
+            // One attitude serves every barrel of the salvo, and the shot
+            // direction as well.
+            let pose = actor.motion.pose();
+            let basis = Basis::of(pose);
             for barrel in 0..barrels {
-                let position = local_to_world(muzzle_local(m, &state, barrel), actor.motion.pose());
+                let position = basis.local_to_world(muzzle_local(m, &state, barrel));
                 let shot = *ctx.dispersion;
                 *ctx.dispersion = ctx.dispersion.wrapping_add(1);
-                let direction = dispersed_direction(
-                    shot_direction(m, &state, actor.motion.pose()),
-                    spread,
-                    ctx.seed,
-                    shot,
-                );
+                let direction =
+                    dispersed_direction(shot_direction(m, &state, pose), spread, ctx.seed, shot);
                 let speed = dispersed_speed(
                     w.muzzle_speed,
                     w.ballistics

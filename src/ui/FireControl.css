@@ -1,5 +1,5 @@
 /* A compact alert opens the existing crew orders; the sea remains the main view. */
-.fleet-reports { position:absolute; top:22px; left:var(--fleet-edge); max-height:calc(100% - 44px); overflow:auto; pointer-events:auto; scrollbar-width:thin; }
+.fleet-reports { position:absolute; top:26px; left:var(--fleet-edge); max-height:calc(100% - 44px); overflow:auto; pointer-events:auto; scrollbar-width:thin; }
 .fleet-reports .fleet-battle { position:static; width:auto; }
 .fleet-fire-control { position:relative; margin-top:12px; width:280px; max-width:calc(100cqw - 2 * var(--fleet-edge)); pointer-events:auto; }
 .fleet-fire-toggle { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; min-height:32px; padding:4px 0; border:0; border-bottom:1px solid var(--fleet-line); border-radius:0; background:transparent; color:var(--fleet-muted); text-align:left; text-shadow:inherit; }
@@ -39,7 +39,7 @@
   .fleet-fire-list { max-height:26cqh; }
 }
 @container (max-height:620px) {
-  .fleet-reports { top:14px; }
+  .fleet-reports { top:20px; }
   .fleet-fire-detail { max-height:calc(100cqh - 110px); overflow:auto; }
   .fleet-fire-list { max-height:24cqh; }
 }

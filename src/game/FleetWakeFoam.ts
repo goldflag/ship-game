@@ -1,12 +1,21 @@
-import { DataTexture, LinearFilter, RedFormat, Vector4, type Camera, type Node, type Texture, type WebGPURenderer } from 'three/webgpu';
+import { DataTexture, LinearFilter, RedFormat, Vector4, type Camera, type Node, type Object3D, type Texture, type WebGPURenderer } from 'three/webgpu';
 import { Fn, If, Loop, float, max, mx_noise_float, smoothstep, texture, uniform, uniformArray, vec2, vec3 } from 'three/tsl';
 import { WakeFoam, WAKE_EXTENT, wakeStampBudget } from './WakeFoam';
-import type { ShipView } from './ShipView';
+import type { ShipDefinition } from '../ships/blueprint';
+import type { ShipState } from '../simulation/ship';
 import type { CombatEvent } from '../simulation/combat';
 import { WakeFoamGpu, WakeStampCollector } from './WakeFoamGpu';
 
-export type WakeShip = Pick<ShipView, 'root' | 'motion' | 'definition'>;
+/** Any drawn hull with a pose and a definition leaves a wake: a simulated actor's
+ * view or a report-only exterior alike. The root identifies the trail between frames. */
+export interface WakeShip {
+  root: Object3D;
+  motion: Pick<ShipState, 'x' | 'y' | 'z' | 'heading' | 'speed'>;
+  definition: Pick<ShipDefinition, 'hull' | 'handling'>;
+}
 const TILES = 8;
+/** Trails the atlas can hold at once. */
+export const WAKE_ATLAS_CAPACITY = TILES * TILES;
 
 /** One texture binding for the fleet, with independent world-space tiles so
  * opponents kilometres away retain the same trail detail as the player. */
@@ -59,7 +68,7 @@ export class FleetWakeFoam {
     for (const [root, entry] of this.entries) if (!roots.has(root)) {
       entry.foam.dispose(); this.entries.delete(root); this.gpuDirty = true;
     }
-    if (ships.length > TILES * TILES) throw new Error('Fleet exceeds wake atlas capacity');
+    if (ships.length > WAKE_ATLAS_CAPACITY) throw new Error('Fleet exceeds wake atlas capacity');
     if (dt > 0) this.time.value += dt;
     this.count.value = ships.length;
     ships.forEach((ship, slot) => {

@@ -1,3 +1,4 @@
+use crate::mount_clearance::move_mount_with_clearance;
 use crate::{
     ballistics::{Arc, GRAVITY, solve_drag_arc, travel_factor},
     definition::{GunPart, MountDefinition, ShipDefinition, Vec3},
@@ -12,6 +13,43 @@ pub enum Ammunition {
     #[default]
     Ap,
     He,
+}
+/// The published mount status. A closed set written only by this module,
+/// `gunnery`, `anti_aircraft` and `capability`; the JSON is byte-identical to
+/// the strings it replaces.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum MountStatus {
+    Ready,
+    Reloading,
+    #[default]
+    Turning,
+    Disabled,
+    Empty,
+    Submerged,
+    Blocked,
+    OutOfRange,
+    OutOfArc,
+}
+impl MountStatus {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Ready => "ready",
+            Self::Reloading => "reloading",
+            Self::Turning => "turning",
+            Self::Disabled => "disabled",
+            Self::Empty => "empty",
+            Self::Submerged => "submerged",
+            Self::Blocked => "blocked",
+            Self::OutOfRange => "out-of-range",
+            Self::OutOfArc => "out-of-arc",
+        }
+    }
+}
+impl std::fmt::Display for MountStatus {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.as_str())
+    }
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -39,10 +77,38 @@ pub struct MountState {
     pub he_ammo: f64,
     pub loaded: Ammunition,
     pub queued: Option<Ammunition>,
-    pub status: String,
+    pub status: MountStatus,
     pub aim_cache: Option<AimCache>,
+    /// The air track this mount is firing at and the ticks left before it looks
+    /// for a nearer one. A cadence, never authority state: a restored battle
+    /// simply searches on its first tick, and it must never reach a snapshot,
+    /// a client or a migration fixture.
+    #[serde(skip)]
+    pub aa_track: Option<String>,
+    #[serde(skip)]
+    pub aa_select: Option<u32>,
     #[serde(skip)]
     blocked_cache: Option<BlockedCache>,
+    #[serde(skip)]
+    clearance_cache: Option<ClearanceCache>,
+}
+/// Per-mount working buffers. They were reallocated for every mount of every
+/// ship on every tick; nothing survives between calls, only the capacity.
+#[derive(Default)]
+struct MountScratch {
+    poses: Vec<crate::mount_clearance::ClearancePose>,
+    key: Vec<[f64; 2]>,
+    carried: Vec<Pose>,
+}
+thread_local! {
+    static SCRATCH: std::cell::RefCell<MountScratch> = Default::default();
+}
+#[derive(Clone, Debug)]
+struct ClearanceCache {
+    geometry: usize,
+    poses: Vec<[f64; 2]>,
+    requested: [f64; 2],
+    result: crate::mount_clearance::ClearanceResult,
 }
 #[derive(Clone, Debug)]
 struct BlockedCache {
@@ -69,12 +135,42 @@ impl MountState {
             loaded: Ammunition::Ap,
             hp: 100.0,
             recoil: 0.0,
-            status: "turning".into(),
+            status: MountStatus::Turning,
             queued: None,
             aim_cache: None,
             lead_cache: None,
             aa_discipline: None,
+            aa_track: None,
+            aa_select: None,
             blocked_cache: None,
+            clearance_cache: None,
+        }
+    }
+    /// A stand-in left in the mount vector while this mount is detached for its
+    /// own update. Every scalar a neighbour reads (train, elevation, recoil,
+    /// carrier, reload) is preserved; only the id and the private caches, which
+    /// no neighbour reads, are dropped, so it costs no allocation.
+    pub fn detached(&self) -> Self {
+        Self {
+            carrier: self.carrier,
+            aa_discipline: self.aa_discipline.clone(),
+            lead_cache: self.lead_cache.clone(),
+            id: String::new(),
+            train: self.train,
+            elevation: self.elevation,
+            reload: self.reload,
+            ammo: self.ammo,
+            hp: self.hp,
+            recoil: self.recoil,
+            he_ammo: self.he_ammo,
+            loaded: self.loaded,
+            queued: self.queued,
+            status: self.status,
+            aim_cache: self.aim_cache.clone(),
+            aa_track: None,
+            aa_select: None,
+            blocked_cache: None,
+            clearance_cache: None,
         }
     }
     pub fn available(&self, kind: Ammunition) -> f64 {
@@ -91,7 +187,7 @@ impl MountState {
         }
         self.reload = reload;
         self.recoil = 1.0;
-        self.status = "reloading".into();
+        self.status = MountStatus::Reloading;
         count as usize
     }
     pub fn select_ammunition(&mut self, m: &MountDefinition, requested: Ammunition) {
@@ -233,6 +329,7 @@ struct Obstruction {
 pub struct Obstructions {
     entries: Vec<Obstruction>,
     carried: Vec<(usize, Vec<Obstruction>)>,
+    pub clearance: Option<crate::mount_clearance::MountClearance>,
 }
 impl Obstructions {
     pub fn new(d: &ShipDefinition) -> Self {
@@ -285,15 +382,22 @@ impl Obstructions {
                 entries.extend(boxes);
             }
         }
-        Self { entries, carried }
+        Self {
+            entries,
+            carried,
+            clearance: crate::mount_clearance::MountClearance::new(d)
+                .expect("validated original mount clearance geometry"),
+        }
     }
     fn intersects(&self, from: Vec3, to: Vec3, mount_id: &str, poses: &[Pose]) -> bool {
         self.entries.iter().any(|e| {
             e.mount_id.as_deref() != Some(mount_id)
                 && segment_box(from, to, e.center, e.size).is_some()
         }) || self.carried.iter().zip(poses).any(|((_, boxes), pose)| {
-            let from = world_to_local(from, *pose);
-            let to = world_to_local(to, *pose);
+            // Both ends of the segment go through the same carrier frame.
+            let basis = Basis::of(*pose);
+            let from = basis.world_to_local(from);
+            let to = basis.world_to_local(to);
             boxes.iter().any(|e| {
                 e.mount_id.as_deref() != Some(mount_id)
                     && segment_box(from, to, e.center, e.size).is_some()
@@ -314,6 +418,44 @@ pub fn update_mount(
     obstructions: &Obstructions,
     mounted_states: &[MountState],
 ) -> bool {
+    let index = d
+        .mounts
+        .iter()
+        .position(|mount| mount.id == m.id)
+        .unwrap_or(0);
+    update_mount_at(
+        index,
+        m,
+        s,
+        d,
+        p,
+        aim,
+        dt,
+        inherited,
+        power,
+        obstructions,
+        mounted_states,
+    )
+}
+/// The caller already knows the mount's position; the string scan for it was
+/// per mount per tick. Behaviour is otherwise identical to `update_mount`.
+#[allow(clippy::too_many_arguments)]
+pub fn update_mount_at(
+    index: usize,
+    m: &MountDefinition,
+    s: &mut MountState,
+    d: &ShipDefinition,
+    p: &ShipState,
+    aim: Option<Vec3>,
+    dt: f64,
+    inherited: Vec3,
+    power: f64,
+    obstructions: &Obstructions,
+    mounted_states: &[MountState],
+) -> bool {
+    // The hull holds one attitude for this call, and the muzzle check plus each
+    // pass of the lead solve below rotate through it.
+    let basis = p.basis();
     let work = gun_work_rate(power);
     let was_reloading = s.reload > 0.0;
     s.reload = (s.reload - dt * work).max(0.0);
@@ -325,20 +467,20 @@ pub fn update_mount(
         s.aim_cache = None;
     }
     s.recoil = (s.recoil - dt / 1.4).max(0.0);
-    let reject = |s: &mut MountState, status: &str| {
-        s.status = status.into();
+    let reject = |s: &mut MountState, status: MountStatus| {
+        s.status = status;
         false
     };
     if s.hp <= 0.0 {
-        return reject(s, "disabled");
+        return reject(s, MountStatus::Disabled);
     }
     if s.available(s.loaded) < m.weapon.barrel_count.unwrap_or(2.0) {
-        return reject(s, "empty");
+        return reject(s, MountStatus::Empty);
     }
     if d.submarine.is_some() && p.depth() > 0.5
-        || local_to_world(muzzle_local(m, s, 0), p.pose())[1] <= p.wave_heave
+        || basis.local_to_world(muzzle_local(m, s, 0))[1] <= p.wave_heave
     {
-        return reject(s, "submerged");
+        return reject(s, MountStatus::Submerged);
     }
     let cache = s
         .aim_cache
@@ -359,10 +501,12 @@ pub fn update_mount(
         let Some(aim) = aim else {
             break;
         };
-        let midpoint = local_to_world(
-            muzzle_center_local(m, desired_train, desired_elevation, s.carrier),
-            p.pose(),
-        );
+        let midpoint = basis.local_to_world(muzzle_center_local(
+            m,
+            desired_train,
+            desired_elevation,
+            s.carrier,
+        ));
         let drag = m
             .weapon
             .ballistics
@@ -382,10 +526,7 @@ pub fn update_mount(
             break;
         };
         time = solution.time;
-        let direction = normalize(world_to_local(
-            add([p.x, p.y, p.z], solution.direction),
-            p.pose(),
-        ));
+        let direction = normalize(basis.world_to_local(add([p.x, p.y, p.z], solution.direction)));
         desired_train = wrap_angle(
             direction[0].atan2(-direction[2])
                 - radians(m.bearing_deg)
@@ -404,8 +545,11 @@ pub fn update_mount(
         None
     };
     let w = &m.weapon;
-    let limit = radians(w.traverse_deg);
-    let train = clamp(desired_train, -limit, limit);
+    let [lo, hi] = m
+        .traverse_limits_deg
+        .unwrap_or([-w.traverse_deg, w.traverse_deg])
+        .map(radians);
+    let train = clamp(desired_train, lo, hi);
     let elevation = clamp(
         desired_elevation,
         radians(w.elevation_min_deg),
@@ -413,44 +557,110 @@ pub fn update_mount(
     );
     let train_rate = radians(w.traverse_rate_deg) * dt * work;
     let elevation_rate = radians(w.elevation_rate_deg) * dt * work;
-    let next_train = s.train + clamp(train - s.train, -train_rate, train_rate);
-    let next_elevation =
+    let requested_train = s.train + clamp(train - s.train, -train_rate, train_rate);
+    let requested_elevation =
         s.elevation + clamp(elevation - s.elevation, -elevation_rate, elevation_rate);
-    let (train, elevation, blocked) = crate::gun_clearance::advance_gun_motion(
-        m,
-        s.train,
-        s.elevation,
-        next_train,
-        next_elevation,
-    );
-    s.train = train;
-    s.elevation = elevation;
-    if blocked {
-        return reject(s, "blocked");
+    let mut mechanically_blocked = false;
+    if m.travel_clearance.is_some() {
+        let (train, elevation, blocked) = crate::gun_clearance::advance_gun_motion(
+            m,
+            s.train,
+            s.elevation,
+            requested_train,
+            requested_elevation,
+        );
+        s.train = train;
+        s.elevation = elevation;
+        mechanically_blocked = blocked;
+    } else if let Some(clearance) = &obstructions.clearance {
+        if clearance.enabled(index) {
+            // Physical movement needs actual independent neighbors. Legacy
+            // callers without a complete pose array must fail closed.
+            if mounted_states.len() != d.mounts.len() {
+                return reject(s, MountStatus::Blocked);
+            }
+            let accepted = SCRATCH.with_borrow_mut(|scratch| {
+                let (poses, key) = (&mut scratch.poses, &mut scratch.key);
+                poses.clear();
+                poses.extend(
+                    mounted_states
+                        .iter()
+                        .map(crate::mount_clearance::ClearancePose::from),
+                );
+                poses[index] = crate::mount_clearance::ClearancePose::from(&*s);
+                key.clear();
+                key.extend(poses.iter().map(|p| [p.train, p.elevation]));
+                let requested = [requested_train, requested_elevation];
+                let geometry = clearance as *const _ as usize;
+                if let Some(cache) = s.clearance_cache.as_ref().filter(|c| {
+                    c.geometry == geometry && c.poses == *key && c.requested == requested
+                }) {
+                    return cache.result.clone();
+                }
+                let result = clearance.resolve(
+                    d,
+                    index,
+                    poses,
+                    crate::mount_clearance::ClearancePose {
+                        train: requested_train,
+                        elevation: requested_elevation,
+                        recoil: s.recoil,
+                    },
+                );
+                s.clearance_cache = Some(ClearanceCache {
+                    geometry,
+                    poses: key.clone(),
+                    requested,
+                    result: result.clone(),
+                });
+                result
+            });
+            s.train = accepted.pose.train;
+            s.elevation = accepted.pose.elevation;
+            mechanically_blocked = accepted.blocked;
+        } else {
+            s.train = requested_train;
+            s.elevation = requested_elevation;
+        }
+    } else {
+        // Installation envelopes retain the same interleaved axis fallback
+        // used by the preview. A profile selects exactly one geometry encoding.
+        let next = (requested_train, requested_elevation);
+        let index = if d.mount_clearance.is_some() {
+            index
+        } else {
+            0
+        };
+        let mut motion_clear = move_mount_with_clearance(d, index, s, next, mounted_states);
+        if !motion_clear {
+            move_mount_with_clearance(d, index, s, (next.0, s.elevation), mounted_states);
+            move_mount_with_clearance(d, index, s, (s.train, next.1), mounted_states);
+            motion_clear = (s.train - next.0).abs() < 1e-9 && (s.elevation - next.1).abs() < 1e-9;
+        }
+        mechanically_blocked = !motion_clear;
     }
     // A parent can move an obstruction even when this gun has not traversed.
     // Use the detached mount's updated train when posing its own descendants.
-    let carried: Vec<_> = obstructions
-        .carried
-        .iter()
-        .map(|(index, _)| {
-            mount_frame(d, *index, &|i| {
+    let blocked = SCRATCH.with_borrow_mut(|scratch| {
+        let carried = &mut scratch.carried;
+        carried.clear();
+        carried.extend(obstructions.carried.iter().map(|(carrier, _)| {
+            mount_frame(d, *carrier, &|i| {
                 if d.mounts[i].id == m.id {
                     s.train
                 } else {
                     mounted_states[i].train
                 }
             })
-        })
-        .collect();
-    let blocked = if let Some(cache) = s.blocked_cache.as_ref().filter(|c| {
-        c.train == s.train
-            && c.elevation == s.elevation
-            && c.carrier == s.carrier
-            && c.carried == carried
-    }) {
-        cache.blocked
-    } else {
+        }));
+        if let Some(cache) = s.blocked_cache.as_ref().filter(|c| {
+            c.train == s.train
+                && c.elevation == s.elevation
+                && c.carrier == s.carrier
+                && c.carried == *carried
+        }) {
+            return cache.blocked;
+        }
         let breech = add(mount_position(m, s), [0.0, w.pivot_height, 0.0]);
         let blocked = (0..w.barrel_count.unwrap_or(2.0) as usize).any(|barrel| {
             let muzzle = muzzle_local(m, s, barrel);
@@ -459,36 +669,41 @@ pub fn update_mount(
                 breech,
                 add(muzzle, scale(direction, d.hull.length)),
                 &m.id,
-                &carried,
+                carried,
             )
         });
         s.blocked_cache = Some(BlockedCache {
             train: s.train,
             elevation: s.elevation,
             carrier: s.carrier,
-            carried,
+            carried: carried.clone(),
             blocked,
         });
         blocked
-    };
-    if blocked {
-        return reject(s, "blocked");
+    });
+    if blocked || mechanically_blocked {
+        return reject(s, MountStatus::Blocked);
     }
     if !reachable {
-        return reject(s, "out-of-range");
+        return reject(s, MountStatus::OutOfRange);
     }
-    if desired_train.abs() > limit + 1e-6
+    if desired_train < lo - 1e-6
+        || desired_train > hi + 1e-6
         || desired_elevation < radians(w.elevation_min_deg) - 1e-6
         || desired_elevation > radians(w.elevation_max_deg) + 1e-6
     {
-        return reject(s, "out-of-arc");
+        return reject(s, MountStatus::OutOfArc);
     }
     if (desired_train - s.train).abs() >= 0.0015
         || (desired_elevation - s.elevation).abs() >= 0.0008
     {
-        return reject(s, "turning");
+        return reject(s, MountStatus::Turning);
     }
-    s.status = if s.reload > 0.0 { "reloading" } else { "ready" }.into();
+    s.status = if s.reload > 0.0 {
+        MountStatus::Reloading
+    } else {
+        MountStatus::Ready
+    };
     true
 }
 

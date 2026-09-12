@@ -810,5 +810,8 @@ scene['definitionHash']=D['contentHash'];scene['historicalConfiguration']=D['con
 scene['accuracyStatus']='Game reconstruction; see discrepancy register for evidence and limits.'
 from blender_rig import create_flagstaffs
 create_flagstaffs(D)
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'appearance'))
+from surface import apply_appearance
+apply_appearance(scene,materials,Path(__file__).with_name('appearance.json'))
 bpy.ops.wm.save_as_mainfile(filepath=str(OUT/'source.blend'))
 print('King George V original source:',len(scene.objects),'objects')

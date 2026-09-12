@@ -127,14 +127,18 @@ function translate(body: Body, normal: Point, distance: number): void {
  * Iteration propagates contact through a fleet pile-up in stable actor order.
  */
 export function resolveShipCollisions(actors: readonly FleetActor[], emit?: (impact: HullImpact) => void): void {
-  const bodies = actors.map(body);
+  const bodies: (Body | undefined)[] = [];
+  const radii = actors.map(actor => Math.hypot(actor.definition.hull.length, actor.definition.hull.beam) / 2);
   for (let pass = 0; pass < SOLVER_PASSES; pass++) {
     let touching = false;
-    for (let i = 0; i < bodies.length; i++) for (let j = i + 1; j < bodies.length; j++) {
-      const a = bodies[i], b = bodies[j], hit = contact(a, b);
+    for (let i = 0; i < actors.length; i++) for (let j = i + 1; j < actors.length; j++) {
+      // Most fleets are kilometers apart. Build transformed hull polygons only
+      // for nearby pairs; repeat the broad phase after every solver correction.
+      const am = actors[i].motion, bm = actors[j].motion;
+      if (Math.hypot(am.x - bm.x, am.z - bm.z) > radii[i] + radii[j]) continue;
+      const a = bodies[i] ??= body(actors[i]), b = bodies[j] ??= body(actors[j]), hit = contact(a, b);
       if (!hit) continue;
       touching = true;
-      const am = a.actor.motion, bm = b.actor.motion;
       const ra = { x: hit.point.x - am.x, z: hit.point.z - am.z };
       const rb = { x: hit.point.x - bm.x, z: hit.point.z - bm.z };
       const av = motionVelocity(am), bv = motionVelocity(bm);

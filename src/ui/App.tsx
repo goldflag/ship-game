@@ -1,11 +1,16 @@
+import { PveResults } from './PveResults';
+import type { PveRequest } from '../multiplayer/generated/PveRequest';
+import type { PveBriefing } from '../multiplayer/generated/PveBriefing';
+import type { PveDraft } from '../game/session/PveDraft';
+import type { Placement } from '../multiplayer/generated/Placement';
 import { battleExitLabel } from '../game/session/BattleSession';
-import { MultiplayerDialog } from './MultiplayerDialog';
 import { RemoteBattleSession } from '../game/session/RemoteBattleSession';
 import { Button } from './components';
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Game } from '../game/Game';
 import { createShipState } from '../simulation/ship';
-import { DEFAULT_SETTINGS, type GameSettings, type Telemetry } from '../game/types';
+import type { Telemetry } from '../game/types';
+import { GRAPHICS_STORAGE_KEY, launchMatches, loadGraphicsSettings, type GraphicsSettings } from '../game/graphicsSettings';
 import { Icon } from './Icons';
 import { FleetHud } from './FleetHud';
 import { BinocularOverlay } from './BinocularOverlay';
@@ -13,7 +18,9 @@ import { Garage } from './Garage';
 import { selectedShip as initialShip, shipPreset } from '../ships/presets';
 import { ShipContext } from './ShipContext';
 import { bindingLabel, KEYBINDING_STORAGE_KEY, loadKeybindings, type Keybindings } from '../game/keybindings';
-import { BattleSetupDialog } from './BattleSetupDialog';
+import { BattleDialog } from './battle/BattleDialog';
+import { loadBattleMode, loadSkipSortieBoard, type BattleMode } from './battle/battleModes';
+import { SortieBoard } from './battle/SortieBoard';
 import { BattleLoadingScreen, type BattleLoadingState } from './BattleLoadingScreen';
 import { BATTLE_SPAWN_DISTANCE, type BattleSetup } from '../simulation/battle';
 import { SettingsDialog } from './SettingsDialog';
@@ -26,15 +33,6 @@ import './GunAimIndicators.css';
 import './HitDirectionIndicators.css';
 
 const INITIAL_TELEMETRY: Telemetry = { ship: createShipState(), order: 1, camera: 'Chase', fps: 0, backend: 'webgpu', trail: [] };
-function loadSettings(): GameSettings {
-  try {
-    const saved = JSON.parse(localStorage.getItem('bismarck-settings') ?? '{}');
-    return {
-      quality: ['medium', 'high', 'ultra'].includes(saved.quality) ? saved.quality : DEFAULT_SETTINGS.quality,
-      resolution: [0.65, 0.8, 1].includes(saved.resolution) ? saved.resolution : DEFAULT_SETTINGS.resolution,
-    };
-  } catch { return DEFAULT_SETTINGS; }
-}
 
 export function App() {
   const [selectedShip, setSelectedShip] = useState(initialShip);
@@ -45,25 +43,33 @@ export function App() {
   const host = useRef<HTMLDivElement>(null);
   const game = useRef<Game | null>(null);
   const dialog = useRef<HTMLDialogElement>(null);
-  const [settings, setSettings] = useState(loadSettings);
+  const [graphics, setGraphics] = useState(loadGraphicsSettings);
+  const graphicsRef = useRef(graphics);
   const [bindings, setBindings] = useState(loadKeybindings);
   const [audioSettings, setAudioSettings] = useState(loadAudioSettings);
   const [hudSettings, setHudSettings] = useState(loadHudSettings);
-  const hudScale = useHudScale(hudSettings);
-  const hudScaleRef = useRef(hudScale);
-  hudScaleRef.current = hudScale;
+  const preferredHudScale = useHudScale(hudSettings);
+  const hudScaleRef = useRef(preferredHudScale);
   const audioSettingsRef = useRef(audioSettings);
   const bindingsRef = useRef(bindings);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [generation, setGeneration] = useState(0);
   const [data, setData] = useState(INITIAL_TELEMETRY);
+  // Fleet command uses responsive panels; keep automatic text at its authored
+  // size instead of shrinking an RTS interface to the ship instrument baseline.
+  const hudScale = data.fleetCommandMode && hudSettings.mode === 'auto' ? Math.max(hudSettings.scale, preferredHudScale) : preferredHudScale;
+  hudScaleRef.current = hudScale;
   const [loading, setLoading] = useState({ label: 'Preparing the harbor', progress: 0 });
   const [ready, setReady] = useState(false);
   const [paused, setPaused] = useState(false);
   const [error, setError] = useState('');
   const [hud, setHud] = useState(true);
-  const [multiplayerOpen, setMultiplayerOpen] = useState(false);
-  const [battleSetupOpen, setBattleSetupOpen] = useState(false);
+  const [pveRestarting, setPveRestarting] = useState(false);
+  const [pveRequest, setPveRequest] = useState<PveRequest>();
+  const [pveBriefing, setPveBriefing] = useState<PveBriefing>();
+  const [battleOpen, setBattleOpen] = useState(false);
+  const [sortieOpen, setSortieOpen] = useState(false);
+  const [battleMode, setBattleMode] = useState<BattleMode>(loadBattleMode);
   const [battleSetup, setBattleSetup] = useState<BattleSetup>({ playerShipId: initialShip.id, friendlyBots: [], enemies: [], spawnDistance: BATTLE_SPAWN_DISTANCE, mapId: 'north-atlantic', timeHours: 12, cloudCover: 38, windSpeed: 9 });
   const [battleLoading, setBattleLoading] = useState<BattleLoadingState | null>(null);
   const [battleError, setBattleError] = useState('');
@@ -72,10 +78,10 @@ export function App() {
 
   useEffect(() => {
     let active = true;
-    setBattleSetupOpen(false); setBattleLoading(null); battlePending.current = false;
+    setPveBriefing(undefined); setBattleOpen(false); setSortieOpen(false); setBattleLoading(null); battlePending.current = false;
     setSwitching(false); setSwitchError(''); switchPending.current = false;
     setReady(false); setError(''); setPaused(false); setSettingsOpen(false); setData(INITIAL_TELEMETRY); setPhase('garage');
-    const session = new Game(host.current!, settings, {
+    const session = new Game(host.current!, graphicsRef.current, {
       progress: (label, progress) => active && setLoading({ label, progress }),
       ready: () => active && setReady(true),
       telemetry: value => {
@@ -107,7 +113,7 @@ export function App() {
       if (import.meta.env.DEV) { delete reviewWindow.shipTrialDiagnostics; delete reviewWindow.shipTrialArticulation; delete reviewWindow.shipTrialAdvance; }
       void session.dispose();
     };
-  }, [generation, settings]);
+  }, [generation]);
 
   useEffect(() => { game.current?.setHudScale(hudScale); }, [hudScale]);
 
@@ -131,11 +137,15 @@ export function App() {
     return () => { active = false; };
   }, [phase]);
 
-  const openBattleSetup = () => {
+  const openBattle = (mode: BattleMode = loadBattleMode()) => {
     if (!ready || switchPending.current) return;
     setBattleSetup(value => ({ ...value, playerShipId: selectedShip.id }));
-    setBattleError(''); setBattleSetupOpen(true);
+    if (pveRequest) setPveRequest({ ...pveRequest, seed: crypto.getRandomValues(new Uint32Array(1))[0] });
+    setPveBriefing(undefined); setBattleError(''); setBattleMode(mode); setSortieOpen(false); setBattleOpen(true);
   };
+  /** The sortie board explains the modes before setup. Players who have made up their mind can skip it. */
+  const openSortieBoard = () => { if (ready && !switchPending.current) setSortieOpen(true); };
+  const pressBattle = () => { if (loadSkipSortieBoard()) openBattle(); else openSortieBoard(); };
   const launch = async () => {
     const session = game.current;
     if (!ready || !session || switchPending.current || battlePending.current) return;
@@ -149,20 +159,56 @@ export function App() {
       const url = new URL(window.location.href); url.searchParams.set('ship', definition.id);
       window.history.replaceState(null, '', url);
       setBattleLoading({ label: 'Getting underway', progress: 0.95, leaving: false });
-      setBattleSetupOpen(false); setHud(true); setPhase('sailing');
+      setBattleOpen(false); setHud(true); setPhase('sailing');
     } catch (error) {
       if (game.current === session) { setBattleLoading(null); setBattleError(error instanceof Error ? error.message : String(error)); }
     } finally {
       if (game.current === session) battlePending.current = false;
     }
   };
+  const launchPve = async (draft: PveDraft, placements: Placement[]) => {
+    const session = game.current;
+    if (!ready || !session || switchPending.current || battlePending.current) throw new Error('The port is still preparing.');
+    battlePending.current = true;
+    setBattleSetup(value => ({ ...value, mapId: draft.briefing.setup.mapId as BattleSetup['mapId'] }));
+    setPveBriefing(draft.briefing); setPveRequest(draft.request);
+    setBattleLoading({ label: 'Preparing mission waters', progress: 0, leaving: false });
+    try {
+      await session.preparePveBattle(draft, placements, (label, progress) => { if (game.current === session) setBattleLoading({ label, progress, leaving: false }); });
+      if (game.current !== session) return;
+      selectedRef.current = session.definition; setSelectedShip(session.definition);
+      setBattleOpen(false); setHud(true); setPhase('sailing');
+    } catch (error) {
+      if (game.current === session) setBattleLoading(null);
+      throw error;
+    } finally { if (game.current === session) battlePending.current = false; }
+  };
   const returnToPort = async () => {
-    try { await game.current?.returnToPort(); setPhase('garage'); }
+    try {
+      await game.current?.returnToPort(); setPhase('garage');
+      // Ocean and terrain rows chosen during the battle need a rebuilt port.
+      if (game.current && !launchMatches(game.current.launchedGraphics, graphicsRef.current)) setGeneration(value => value + 1);
+    }
     catch (error) { setError(error instanceof Error ? error.message : String(error)); }
+  };
+  const restartPve = async () => {
+    const session = game.current;
+    if (!session || pveRestarting) return;
+    setPveRestarting(true);
+    try { await session.restartPveBattle(); }
+    finally { setPveRestarting(false); }
+  };
+  const newPveBattle = async () => {
+    const session = game.current;
+    if (!session || !pveRequest) throw new Error('The previous mission is unavailable.');
+    await session.returnToPort();
+    setPveRequest({ ...pveRequest, seed: crypto.getRandomValues(new Uint32Array(1))[0] });
+    setPhase('garage'); setBattleMode('pve'); setBattleOpen(true);
   };
   const onlineBattle = async (remote: RemoteBattleSession) => {
     const current = game.current;
     if (!current) { remote.surrender(); return; }
+    setPveBriefing(undefined);
     const friendly = remote.setup.ships.filter(s => s.team === remote.ownTeam);
     const player = friendly.find(s => s.id === remote.ship.id)!;
     setBattleSetup({ playerShipId: player.presetId, friendlyBots: friendly.filter(s => s !== player).map(s => s.presetId), enemies: remote.setup.ships.filter(s => s.team !== remote.ownTeam).map(s => s.presetId), mapId: remote.mapId, spawnDistance: remote.spawnDistance, ...remote.metadata.environment });
@@ -171,7 +217,7 @@ export function App() {
       await current.prepareOnlineBattle(remote, (label, progress) => setBattleLoading({ label, progress, leaving: false }));
       if (current !== game.current) { remote.dispose(); return; }
       selectedRef.current = current.definition; setSelectedShip(current.definition);
-      setMultiplayerOpen(false); setHud(true); setPhase('sailing');
+      setBattleOpen(false); setHud(true); setPhase('sailing');
     } catch (error) { setBattleLoading(null); remote.surrender(); throw error; }
   };
   const resume = () => {
@@ -180,7 +226,7 @@ export function App() {
     if (phase === 'sailing') game.current?.capturePointer();
   };
 
-  useEffect(() => { document.title = `${selectedShip.name} — Custom Battle`; }, [selectedShip]);
+  useEffect(() => { document.title = phase === 'sailing' && pveBriefing ? 'Fleet Command — PvE' : `${selectedShip.name} — Custom Battle`; }, [selectedShip, phase, pveBriefing]);
 
   const switchShip = async (id: string) => {
     const session = game.current;
@@ -202,12 +248,13 @@ export function App() {
     }
   };
 
-  const applySettings = (draft: GameSettings) => {
-    setSettingsOpen(false);
-    try { localStorage.setItem('bismarck-settings', JSON.stringify(draft)); } catch { /* Storage is optional. */ }
-    if (JSON.stringify(settings) === JSON.stringify(draft)) setGeneration(value => value + 1);
-    else setSettings({ ...draft });
+  const changeGraphics = (next: GraphicsSettings): boolean => {
+    graphicsRef.current = next; setGraphics(next);
+    game.current?.applyGraphics(next);
+    try { localStorage.setItem(GRAPHICS_STORAGE_KEY, JSON.stringify(next)); return true; }
+    catch { return false; }
   };
+  const reloadPort = () => { setSettingsOpen(false); setGeneration(value => value + 1); };
 
   const changeBindings = (next: Keybindings): boolean => {
     bindingsRef.current = next;
@@ -241,14 +288,17 @@ export function App() {
       if (!(target instanceof HTMLElement && target.closest('input, textarea, [contenteditable]:not([contenteditable="false"])'))) event.preventDefault();
     }}>
     <div ref={host} className="ocean-viewport" inert={!ready || !!error} data-ship-labels={phase === 'sailing' && hud && ready && !error && !data.airOperationsOpen} />
-    {phase === 'garage' && ready && !error && <Garage key={selectedShip.id} switching={switching} switchError={switchError} onSelectShip={switchShip} game={game.current} ready={ready} fps={data.fps} onLaunch={openBattleSetup} onMultiplayer={() => setMultiplayerOpen(true)} onSettings={() => game.current?.setPaused(true)}/>}
-    {multiplayerOpen && <MultiplayerDialog loading={!!battleLoading} initialShipId={selectedShip.id} onBattle={onlineBattle} onClose={() => setMultiplayerOpen(false)}/>}
-    {battleSetupOpen && !battleLoading && <BattleSetupDialog setup={battleSetup} onChange={setBattleSetup} onLaunch={launch} onClose={() => setBattleSetupOpen(false)} error={battleError}/>}
+    {phase === 'garage' && ready && !error && !battleOpen && <Garage key={selectedShip.id} switching={switching} switchError={switchError} onSelectShip={switchShip} game={game.current} ready={ready} fps={data.fps} performance={data.performance} onBattle={pressBattle} onChooseBattle={openSortieBoard} lastMode={battleMode} onSettings={() => game.current?.setPaused(true)}/>}
+    {phase === 'garage' && sortieOpen && !battleOpen && <SortieBoard lastMode={battleMode} onChoose={openBattle} onClose={() => setSortieOpen(false)}/>}
+    {battleOpen && <BattleDialog initialMode={battleMode} initialShipId={selectedShip.id} loading={!!battleLoading} onClose={() => setBattleOpen(false)}
+      setup={battleSetup} onSetupChange={setBattleSetup} onLaunchCustom={() => void launch()} customError={battleError}
+      pveRequest={pveRequest} onLaunchPve={launchPve} onOnlineBattle={onlineBattle}/>}
     {phase === 'sailing' && ready && !error && <><BinocularOverlay data={data}/><div className="hud-viewport">
-      <FleetHud data={data} game={game.current} visible={hud} bindings={bindings}/>
+      <FleetHud key={game.current?.battleRevision} data={data} game={game.current} visible={hud} bindings={bindings}/>
       {!hud && <button className="restore-hud" onClick={() => setHud(true)}>Show instruments <kbd>{bindingLabel(bindings, 'hud')}</kbd></button>}
     </div></>}
-    {battleLoading && ready && !error && <BattleLoadingScreen setup={battleSetup} state={battleLoading} multiplayer={!!game.current?.simulation.networked} onLeft={() => setBattleLoading(null)}/>}
+    {phase === 'sailing' && ready && !error && game.current?.simulation.missionRules && game.current.simulation.outcome && game.current.simulation.debrief && game.current.simulation.result !== 'active' && <PveResults result={game.current.simulation.result} outcome={game.current.simulation.outcome} debrief={game.current.simulation.debrief} onRestart={restartPve} onNewBattle={newPveBattle} onPort={returnToPort}/>}
+    {battleLoading && ready && !error && <BattleLoadingScreen briefing={pveBriefing} setup={battleSetup} state={battleLoading} multiplayer={!!game.current?.simulation.networked} onLeft={() => setBattleLoading(null)}/>}
 
     {!ready && !error && <section className="startup-screen" aria-labelledby="startup-title">
       <div className="startup-content">
@@ -267,9 +317,10 @@ export function App() {
     </section>}
 
     <dialog ref={dialog} className={`pause-menu ${settingsOpen ? 'pause-menu-covered' : ''}`} aria-labelledby="pause-title" onCancel={e => { e.preventDefault(); resume(); }}>
-      <div className="menu-heading"><h2 id="pause-title">{phase === 'garage' ? 'In port.' : 'At your command.'}</h2><Button variant="icon" aria-label={phase === 'garage' ? 'Close menu' : 'Resume battle'} onClick={resume}><Icon name="close"/></Button></div>
-      <p className="menu-description">{phase === 'garage' ? 'Prepare for your next voyage.' : game.current?.simulation.networked ? 'The online battle continues while this menu is open.' : 'Battle paused. Your engine order is held.'}</p>
+      <div className="menu-heading"><h2 id="pause-title">{phase === 'garage' ? 'In port.' : 'Paused'}</h2><Button variant="icon" aria-label={phase === 'garage' ? 'Close menu' : 'Resume battle'} onClick={resume}><Icon name="close"/></Button></div>
+      {phase === 'garage' && <p className="menu-description">Prepare for your next voyage.</p>}
       <Button autoFocus variant="primary" onClick={resume}>{phase === 'garage' ? 'Back to port' : 'Resume battle'} <Icon name={phase === 'garage' ? 'anchor' : 'play'} size={18}/></Button>
+      {phase === 'sailing' && game.current?.simulation.missionRules && <Button disabled={pveRestarting} variant="secondary" onClick={() => void restartPve().catch(e => setError(e instanceof Error ? e.message : String(e)))}>{pveRestarting ? 'Restarting…' : 'Restart this battle'}</Button>}
       {phase === 'sailing' && <Button variant="secondary" className="restart-button" onClick={() => void returnToPort()}>{battleExitLabel(game.current?.simulation)} <Icon name="anchor" size={18}/></Button>}
       <Button variant="secondary" className="menu-action" onClick={() => setSettingsOpen(true)}>Settings <Icon name="settings" size={18}/></Button>
       <Button variant="secondary" className="menu-action close-game-button" onClick={closeGame}>Close game <Icon name="power" size={18}/></Button>
@@ -280,6 +331,6 @@ export function App() {
         <span><kbd>{bindingLabel(bindings, 'fullscreen')}</kbd> Fullscreen</span>
       </div>}
     </dialog>
-    {settingsOpen && paused && ready && !error && <SettingsDialog settings={settings} bindings={bindings} audioSettings={audioSettings} hudSettings={hudSettings} hudScale={hudScale} onHudChange={changeHud} onAudioChange={changeAudio} onPreviewSound={id => game.current?.audio?.preview(id)} onBindingsChange={changeBindings} onApply={applySettings} onClose={() => setSettingsOpen(false)}/>}
+    {settingsOpen && paused && ready && !error && <SettingsDialog graphics={graphics} launched={game.current?.launchedGraphics} performance={data.performance} inBattle={phase === 'sailing'} onGraphicsChange={changeGraphics} onReloadPort={reloadPort} bindings={bindings} audioSettings={audioSettings} hudSettings={hudSettings} hudScale={hudScale} onHudChange={changeHud} onAudioChange={changeAudio} onPreviewSound={id => game.current?.audio?.preview(id)} onBindingsChange={changeBindings} onClose={() => setSettingsOpen(false)}/>}
   </main></ShipContext>;
 }

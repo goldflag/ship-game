@@ -99,6 +99,7 @@ test('an obstructed diagonal retains a free axis to reach a clear low-angle targ
 },30000);
 
 test('invalid travel clearance fails compilation before motion consumes it',()=>{
+  expect(()=>compileShip({...blueprint,mountClearance:{version:1,marginM:.01,basis:'conflicting encodings fixture',mounts:[{mountId:'main-1',barrelRadiusM:.5}],structures:[],neighbors:[]}},catalog)).toThrow(/either travelClearance or mountClearance/);
   for(const change of [
     (c:TravelClearance)=>c.version=2 as 1,
     (c:TravelClearance)=>c.surface.triangles[0][0]=999999,
@@ -114,7 +115,7 @@ test('invalid travel clearance fails compilation before motion consumes it',()=>
 
 
 test('main and casemate barrels stop before authored galleries and deck edges, then reverse clear',()=>{
-  const cases:[string,number,number][]=[['main-2',-145,43],['main-3',-145,43]];
+  const cases:[string,number,number][]=[['main-1',-18.125,-5],['main-1',18.125,-5],['main-1',-36.25,-5],['main-2',-145,43],['main-3',-145,43]];
   for(const side of ['port','starboard'])for(let i=1;i<=3;i++)cases.push([`casemate-${side}-${i}`,side==='port'?-75:75,-5]);
   cases.push(['casemate-port-2',-62.428845355,16.815735405],['casemate-starboard-2',56.25,20]);
   cases.push(['casemate-port-4',-56.25,20],['casemate-starboard-4',56.25,20]);

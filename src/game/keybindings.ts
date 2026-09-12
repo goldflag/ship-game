@@ -25,6 +25,8 @@ export const INPUT_ACTIONS = [
   { id: 'chartLarger', label: 'Increase minimap size', group: 'View' },
   { id: 'chartSmaller', label: 'Decrease minimap size', group: 'View' },
   { id: 'airOperations', label: 'Open / close air operations map', group: 'View' },
+  { id: 'simulationSpeed', label: 'Cycle simulation speed (1× / 2× / 4×)', group: 'View' },
+  { id: 'helmWheel', label: 'Hold to pick a ship to command', group: 'View' },
 ] as const;
 
 export type InputAction = typeof INPUT_ACTIONS[number]['id'];
@@ -45,11 +47,13 @@ export function defaultKeybindings(): Keybindings {
     surface: ['KeyU', null], dive50: ['KeyJ', null],
     chartLarger: ['Equal', 'NumpadAdd'], chartSmaller: ['Minus', 'NumpadSubtract'],
     airOperations: ['KeyM', null], periscope: ['KeyP', null],
+    simulationSpeed: ['KeyN', null],
+    helmWheel: ['Tab', null],
   };
 }
 
 export function isBindableKey(code: string): boolean {
-  return /^(Key[A-Z]|Digit[0-9]|Numpad[0-9]|Arrow(Up|Down|Left|Right)|Space|Backquote|Minus|Equal|BracketLeft|BracketRight|Backslash|Semicolon|Quote|Comma|Period|Slash|Numpad(Add|Subtract|Multiply|Divide|Decimal))$/.test(code);
+  return /^(Key[A-Z]|Digit[0-9]|Numpad[0-9]|Arrow(Up|Down|Left|Right)|Space|Tab|Backquote|Minus|Equal|BracketLeft|BracketRight|Backslash|Semicolon|Quote|Comma|Period|Slash|Numpad(Add|Subtract|Multiply|Divide|Decimal))$/.test(code);
 }
 
 export function keyLabel(code: string | null): string {
@@ -68,7 +72,7 @@ export function bindingLabel(bindings: Keybindings, action: InputAction): string
 
 export function bindingError(bindings: Keybindings, action: InputAction, slot: 0 | 1, code: string | null): string | null {
   if (code === null) return bindings[action][slot === 0 ? 1 : 0] ? null : 'Keep at least one key for this action.';
-  if (!isBindableKey(code)) return 'Choose a letter, number, arrow, Space, or punctuation key.';
+  if (!isBindableKey(code)) return 'Choose a letter, number, arrow, Space, Tab, or punctuation key.';
   for (const entry of INPUT_ACTIONS) {
     if (bindings[entry.id].some((key, index) => key === code && (entry.id !== action || index !== slot))) {
       return `${keyLabel(code)} is already assigned to ${entry.label.toLowerCase()}. Change that binding first.`;
@@ -100,7 +104,7 @@ export function keybindingsOf(value: unknown): Keybindings {
     result[id] = [pair[0], pair[1]];
   }
   // Add new actions to older saves without discarding existing custom controls.
-  const additions: readonly string[] = [...WEAPON_GROUP_ACTIONS, 'shellFollow', 'shellType', 'torpedoes', 'depthCharges', 'dive', 'rise', 'emergencyBlow', 'airOperations', 'periscope', 'surface', 'dive50'];
+  const additions: readonly string[] = [...WEAPON_GROUP_ACTIONS, 'shellFollow', 'shellType', 'torpedoes', 'depthCharges', 'dive', 'rise', 'emergencyBlow', 'airOperations', 'periscope', 'surface', 'dive50', 'simulationSpeed', 'helmWheel'];
   for (const id of [...missing.filter(id => !additions.includes(id)), ...missing.filter(id => additions.includes(id))]) {
     const preferred = defaults[id].filter((code): code is string => code !== null && !used.has(code));
     if (!additions.includes(id) && preferred.length !== defaults[id].filter(Boolean).length) return defaults;

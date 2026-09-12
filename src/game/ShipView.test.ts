@@ -6,8 +6,40 @@ import { CombatSimulation } from '../simulation/combat';
 import { compileShip } from '../ships/blueprint';
 import { ShipView } from './ShipView';
 import { shipPreset } from '../ships/presets';
+import { gunTraverseAtFraction, gunTraverseLimitsDeg } from '../ships/armament';
 import * as THREE from 'three/webgpu';
 import { gunClearance } from '../simulation/gunClearance';
+
+test('Cleveland exported joints retain asymmetric wing travel and independent neighboring poses during interpolation', async () => {
+  const definition = shipPreset('cleveland');
+  const bytes = await Bun.file('public/models/cleveland.glb').arrayBuffer();
+  const length = new DataView(bytes).getUint32(12, true);
+  const gltf = JSON.parse(new TextDecoder().decode(new Uint8Array(bytes, 20, length)));
+  const nodes = gltf.nodes.map(({ mesh: _mesh, ...node }: { mesh?: number }) => node);
+  const model = await new GLTFLoader().parseAsync(JSON.stringify({ asset: gltf.asset, scene: gltf.scene, scenes: gltf.scenes, nodes }), '');
+  const sim = new CombatSimulation(definition), view = new ShipView(model.scene, definition, sim.player);
+  expect(view.muzzleErrors()).toHaveLength(67);
+  const joint = (id: string) => { let result: THREE.Object3D | undefined; model.scene.traverse(o => { if (o.userData.nodeId === id) result = o; }); return result!; };
+  for (const fraction of [-1, -.5, 0, .5, 1]) for (const elevation of [0, .5, 1]) {
+    view.capturePreviousPose();
+    sim.player.mounts.forEach((state, i) => {
+      const m = definition.mounts[i], w = m.weapon;
+      state.train = gunTraverseAtFraction(m, i % 2 ? -fraction : fraction);
+      state.elevation = (w.elevationMinDeg + elevation * (w.elevationMaxDeg - w.elevationMinDeg)) * Math.PI / 180;
+      state.recoil = i % 2 ? .8 : .2;
+    });
+    for (const alpha of [0, .35, .7, 1]) {
+      view.update(alpha);
+      expect(Math.max(...view.muzzleErrors())).toBeLessThan(.025);
+      for (const m of definition.mounts.filter(m => m.traverseLimitsDeg)) {
+        const train = -joint(`${m.id}.yaw`).rotation.y - m.bearingDeg * Math.PI / 180;
+        const [low, high] = gunTraverseLimitsDeg(m).map(n => n * Math.PI / 180);
+        expect(train).toBeGreaterThanOrEqual(low - 1e-6);
+        expect(train).toBeLessThanOrEqual(high + 1e-6);
+      }
+    }
+  }
+});
 
 test('display interpolation follows a clear joint path without changing authoritative snapshots', async()=>{
   const definition=structuredClone(shipPreset('kongo'));
@@ -330,6 +362,33 @@ test('Fletcher gun and torpedo joints follow interpolated CPU poses on both broa
   expect(Math.max(...view.torpedoMuzzleErrors())).toBeLessThan(.025);
 });
 
+test('Fubuki independent gun and triple-bank poses retain CPU socket alignment on the published hierarchy', async () => {
+  const def = shipPreset('fubuki'), bytes = await Bun.file('public/models/fubuki.glb').arrayBuffer();
+  const gltf = JSON.parse(new TextDecoder().decode(new Uint8Array(bytes, 20, new DataView(bytes).getUint32(12, true))));
+  const nodes = gltf.nodes.map(({ mesh: _mesh, ...node }: { mesh?: number }) => node);
+  const model = await new GLTFLoader().parseAsync(JSON.stringify({ asset: gltf.asset, scene: gltf.scene, scenes: gltf.scenes, nodes }), '');
+  const sim = new CombatSimulation(def), view = new ShipView(model.scene, def, sim.player);
+  expect(view.muzzleErrors()).toHaveLength(22); expect(view.torpedoMuzzleErrors()).toHaveLength(9);
+  for (const fraction of [-1, -.7, -.2, 0, .3, .8, 1]) {
+    view.capturePreviousPose();
+    sim.player.mounts.forEach((m,i) => {
+      const w = def.mounts[i].weapon;
+      Object.assign(m, { train: fraction * (i % 2 ? -1 : 1) * w.traverseDeg * Math.PI / 180,
+        elevation: (w.elevationMinDeg + (i % 3) / 2 * (w.elevationMaxDeg-w.elevationMinDeg)) * Math.PI / 180, recoil: (i % 3) / 2 });
+    });
+    sim.player.torpedoLaunchers!.forEach((l,i) => l.train = fraction * (i % 2 ? -1 : 1) * 2 * Math.PI / 3);
+    Object.assign(sim.ship, { x: 170, z: -430, heading: 1.7, roll: -.08, pitch: .045 });
+    for (const alpha of [0, .25, .5, .75, 1]) {
+      view.update(alpha);
+      expect(Math.max(...view.muzzleErrors())).toBeLessThan(.025);
+      expect(Math.max(...view.torpedoMuzzleErrors())).toBeLessThan(.025);
+    }
+  }
+  sim.reset(); view.snap();
+  expect(Math.max(...view.muzzleErrors())).toBeLessThan(.025);
+  expect(Math.max(...view.torpedoMuzzleErrors())).toBeLessThan(.025);
+});
+
 test('launcher IDs bind reordered battle snapshots and bounded interpolation stays inside travel stops', async () => {
   const def = shipPreset('yukikaze');
   const bytes = await Bun.file('public/models/yukikaze.glb').arrayBuffer();
@@ -358,4 +417,44 @@ test('launcher IDs bind reordered battle snapshots and bounded interpolation sta
   }
   sim.reset(); view.snap();
   expect(Math.max(...view.torpedoMuzzleErrors())).toBeLessThan(.001);
+});
+
+test('Hsienyang AA fabric keeps both attachment seams seated through depression and elevation', async () => {
+  const definition = shipPreset('gleaves');
+  const model = await new GLTFLoader().parseAsync(await Bun.file('public/models/gleaves.glb').arrayBuffer(), '');
+  const sim = new CombatSimulation(definition), view = new ShipView(model.scene, definition, sim.player);
+  view.snap(); view.updateRenderMatrices();
+  const nodes = new Map<string, THREE.Object3D>(), bags: THREE.Mesh[] = [];
+  model.scene.traverse(o => {
+    if (o.userData.nodeId) nodes.set(o.userData.nodeId, o);
+    if (o instanceof THREE.Mesh && String(o.userData.nodeId).endsWith('.case-bag')) bags.push(o);
+  });
+  expect(bags).toHaveLength(10);
+  const seams = bags.flatMap(mesh => ['front', 'rear'].map(end => {
+    const marker = nodes.get(`${mesh.userData.nodeId}-${end}`)!;
+    expect(marker).toBeDefined();
+    const local = Array.from({ length: mesh.geometry.attributes.position.count }, (_, i) =>
+      marker.worldToLocal(mesh.localToWorld(mesh.getVertexPosition(i, new THREE.Vector3()))));
+    // Select the attachment edge on the frame axis, not a nearby fold.
+    const vertices = local.map((p, i) => ({ p, i })).filter(({ p }) => Math.hypot(p.y, p.z) < .001 && Math.abs(p.x) < .1);
+    expect(vertices.length).toBeGreaterThanOrEqual(2);
+    return { mesh, marker, vertices };
+  }));
+  for (const fraction of [0, .035, .22, .5, .83, 1]) {
+    view.capturePreviousPose();
+    sim.player.mounts.forEach((state, i) => {
+      const w = definition.mounts[i].weapon;
+      state.elevation = THREE.MathUtils.degToRad(w.elevationMinDeg + fraction * (w.elevationMaxDeg - w.elevationMinDeg));
+      state.train = (i % 2 ? -1 : 1) * fraction * THREE.MathUtils.degToRad(w.traverseDeg);
+    });
+    for (const alpha of [.37, 1]) {
+      view.update(alpha); view.updateRenderMatrices();
+      // Full diagnostic update also refreshes retained non-rendering markers.
+      expect(Math.max(...view.muzzleErrors())).toBeLessThan(.002);
+      for (const { mesh, marker, vertices } of seams) for (const { p, i } of vertices) {
+        const actual = marker.worldToLocal(mesh.localToWorld(mesh.getVertexPosition(i, new THREE.Vector3())));
+        expect(actual.distanceTo(p)).toBeLessThan(.003);
+      }
+    }
+  }
 });

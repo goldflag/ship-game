@@ -33,6 +33,10 @@ function fixture(options: { textured?: boolean; bodyCopies?: number } = {}) {
     nodes[offset + 1].children = [nodes.length];
     nodes.push({ mesh: 1 });
   }
+  const hook = nodes[aircraftNodeIds.indexOf('arrestor.hook')];
+  hook.translation = [0, 0, 2];
+  hook.children = [nodes.length];
+  nodes.push({ mesh: 1 });
   nodes[0].children!.push(nodes.length);
   nodes.push({ mesh: 0 });
   const gltf = {
@@ -75,9 +79,18 @@ describe('aircraft GLB contract', () => {
   test('measures exported binary geometry and exercises every independent control', () => {
     const report = inspectAircraftGlb(fixture().encode(), aircraft, contentHash);
     expect(report.measured).toEqual({ wingspan: 10, height: 1, length: 8 });
-    expect(report.triangles).toBe(7);
-    expect(report.joints).toHaveLength(6);
+    expect(report.triangles).toBe(8);
+    expect(report.joints).toHaveLength(7);
     expect(report.joints.every(joint => joint.maximumVertexTravel > 0.005)).toBe(true);
+  });
+  test('requires the hook to retain its independent moving geometry', () => {
+    const source = fixture();
+    const hook = source.gltf.nodes[aircraftNodeIds.indexOf('arrestor.hook')];
+    source.gltf.nodes[0].children!.push(...hook.children!);
+    hook.children = [];
+    expect(() => inspectAircraftGlb(source.encode(), aircraft, contentHash)).toThrow('arrestor.hook has no independently parented moving geometry');
+    hook.extras!.nodeId = 'missing-hook';
+    expect(() => inspectAircraftGlb(source.encode(), aircraft, contentHash)).toThrow('Missing required export node arrestor.hook');
   });
   test('rejects stale source hash and mismatched aircraft identity', () => {
     const source = fixture();
@@ -142,7 +155,7 @@ describe('aircraft GLB contract', () => {
     expect(() => inspectAircraftGlb(fixture().encode(), aircraft, contentHash, { requireTexturedSurface: true })).toThrow('Production aircraft needs UVs');
     const source = fixture({ textured: true });
     const report = inspectAircraftGlb(source.encode(), aircraft, contentHash, { requireTexturedSurface: true });
-    expect(report.surfaces).toEqual({ uvPrimitives: 7, texturedPrimitives: 7, normalPrimitives: 7, embeddedImages: 1 });
+    expect(report.surfaces).toEqual({ uvPrimitives: 8, texturedPrimitives: 8, normalPrimitives: 8, embeddedImages: 1 });
     delete source.gltf.meshes[0].primitives[0].attributes.TEXCOORD_0;
     expect(() => inspectAircraftGlb(source.encode(), aircraft, contentHash)).toThrow('needs a finite TEXCOORD_0');
   });
@@ -160,11 +173,11 @@ describe('aircraft GLB contract', () => {
     corrupt.binary.writeUInt32LE(0, 120);
     expect(() => inspectAircraftGlb(corrupt.encode(), aircraft, contentHash)).toThrow('invalid signature');
   });
-  test('all three LOD binaries retain dimensions, source identity, textures and six independent controls', () => {
+  test('all three LOD binaries retain dimensions, source identity, textures and independent controls including the hook', () => {
     const models = [40, 15, 3].map(bodyCopies => fixture({ textured: true, bodyCopies }).encode()) as [Buffer, Buffer, Buffer];
     const reports = inspectAircraftLods(models, aircraft, contentHash, { requireTexturedSurface: true });
-    expect(reports.map(report => report.triangles)).toEqual([46, 21, 9]);
-    expect(reports.every(report => report.joints.length === 6)).toBe(true);
+    expect(reports.map(report => report.triangles)).toEqual([47, 22, 10]);
+    expect(reports.every(report => report.joints.length === 7)).toBe(true);
     const stale = fixture({ bodyCopies: 3 });
     stale.gltf.scenes[0].extras.contentHash = 'old-lod-source';
     expect(() => inspectAircraftLods([models[0], models[1], stale.encode()], aircraft, contentHash)).toThrow('source hash is stale');

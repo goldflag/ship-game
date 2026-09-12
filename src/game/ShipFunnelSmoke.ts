@@ -63,6 +63,8 @@ export class ShipFunnelSmoke {
     this.root.add(this.pool.mesh);
   }
 
+  /** Emission rate multiplier from the combat effects setting. */
+  density = 1;
   setWind(speed: number, direction: number): void {
     this.wind.set(Math.cos(direction), 0, Math.sin(direction)).multiplyScalar(speed * .35);
   }
@@ -91,7 +93,7 @@ export class ShipFunnelSmoke {
           emitter.previous.copy(this.origin); emitter.credit = 0; emitter.initialized = true;
         }
         if (power > .01 && this.origin.y > .3 && step > 0) {
-          const rate = (2.5 + load * 1.5) * Math.sqrt(power), interval = 1 / rate;
+          const rate = (2.5 + load * 1.5) * Math.sqrt(power) * this.density, interval = 1 / rate;
           emitter.credit += step;
           while (emitter.credit + 1e-9 >= interval) {
             emitter.credit = Math.max(0, emitter.credit - interval);

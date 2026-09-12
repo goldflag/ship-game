@@ -3,7 +3,7 @@ import type { HEProjectile, TorpedoPart } from '../ships/blueprint';
 export const DEFAULT_AIR_TORPEDO: TorpedoPart = {
   id: 'mark-13-game', name: 'Air-dropped torpedo', kind: 'torpedo', diameterM: .57, lengthM: 4.1,
   speed: 23, rangeM: 4500, armingDistanceM: 180, runningDepthM: 2, reloadSeconds: 35,
-  launchIntervalSeconds: 3, damage: 480, breachAreaM2: .55,
+  launchIntervalSeconds: 3, damage: 160, breachAreaM2: .55,
 };
 const type91: TorpedoPart = {
   ...DEFAULT_AIR_TORPEDO, id: 'type91-mod2-game', name: 'Type 91 Mod 2 aerial torpedo',

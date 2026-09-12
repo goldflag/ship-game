@@ -1,76 +1,68 @@
 use crate::{
-    aircraft::{Aircraft, in_flight},
+    aircraft::{Aircraft, PlaneView, set_opt_str, set_str},
     aircraft_flight::{FlightOptions, fly},
     definition::Vec3,
     geometry::*,
 };
+#[derive(Clone, Debug, Default, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FighterManeuver {
+    pub kind: String,
+    pub speed: f64,
+    pub pursuit_seconds: f64,
+}
+
+fn threatens(hostile: &PlaneView<'_>, ally: &PlaneView<'_>) -> bool {
+    let delta = sub(ally.position, hostile.position);
+    length(delta) < 650.0
+        && dot(normalize(hostile.velocity), normalize(delta)) > 0.85
+        && dot(normalize(ally.velocity), normalize(scale(delta, -1.0))) < -0.55
+}
+/// A pilot re-assesses this often, as the TypeScript twin always has. Between
+/// assessments the flight, the guns and the evasion reactions still run every
+/// tick; only the choice of track is held.
+pub const THINK_SECONDS: f64 = 0.65;
+/// True while a held track is still one the allocator itself would accept.
+/// Mirrors `fighter_coordination::target`'s own eligibility so pausing the
+/// scan can never keep a target the scan would have rejected.
+fn holdable(p: &Aircraft, o: &PlaneView<'_>, anchor: Vec3, explicit: Option<&str>) -> bool {
+    let range = length(sub(o.position, anchor));
+    o.team != p.team
+        && o.in_flight()
+        && explicit.is_none_or(|id| o.flight_id == Some(id))
+        && range < 7500.0
+        && length(sub(o.position, p.position)) < 6500.0
+        && (explicit.is_some() || range < 3500.0 || dot(o.velocity, sub(anchor, o.position)) > 0.0)
+}
 pub fn fighter_target(
     p: &mut Aircraft,
-    planes: &[&Aircraft],
+    planes: &[PlaneView<'_>],
     carrier: Vec3,
     dt: f64,
     target_flight: Option<&str>,
 ) -> Option<usize> {
-    p.pilot.think -= dt;
-    let current = planes.iter().position(|o| {
-        Some(&o.id) == p.pilot.hostile_id.as_ref()
-            && target_flight.is_none_or(|id| o.flight_id.as_deref() == Some(id))
-            && o.team != p.team
-            && in_flight(o)
-    });
+    p.pilot.think = (p.pilot.think - dt).max(0.0);
+    // Hold the current track until the think timer expires. The allocation scan
+    // is the expensive half of a fighter's tick and nothing downstream needs it
+    // at 60 Hz; a track that has died, left the sector or turned away is dropped
+    // at once, which re-runs the scan on the same tick.
     if p.pilot.think > 0.0
-        && let Some(i) = current
-        && length(sub(planes[i].position, p.position)) < 6500.0
-        && length(sub(planes[i].position, carrier)) < 7500.0
+        && let Some(id) = p.pilot.hostile_id.as_deref()
+        && let Some(held) = planes
+            .iter()
+            .position(|o| o.id == id && holdable(p, o, carrier, target_flight))
     {
-        return Some(i);
+        return Some(held);
     }
-    p.pilot.think = 0.65;
-    let mut engagements = std::collections::BTreeMap::<&str, u32>::new();
-    for ally in planes {
-        if ally.id != p.id
-            && ally.team == p.team
-            && in_flight(ally)
-            && let Some(id) = &ally.pilot.hostile_id
-        {
-            *engagements.entry(id).or_default() += 1;
-        }
-    }
-    let mut best = None;
-    let mut best_score = f64::INFINITY;
-    for (i, o) in planes.iter().enumerate() {
-        if o.team == p.team
-            || !in_flight(o)
-            || target_flight.is_some_and(|id| o.flight_id.as_deref() != Some(id))
-        {
-            continue;
-        }
-        let distance = length(sub(o.position, p.position));
-        let home = length(sub(o.position, carrier));
-        if distance > 6500.0 || home > 7500.0 {
-            continue;
-        }
-        let inbound = dot(o.velocity, sub(carrier, o.position)) > 0.0;
-        let threat = if o.payload && inbound && home < 4500.0 {
-            0.5
-        } else {
-            1.0
-        };
-        let engaged = engagements.get(o.id.as_str()).copied().unwrap_or(0);
-        let score = (distance + home * 0.15)
-            * threat
-            * if Some(i) == current { 0.7 } else { 1.0 }
-            * (1.0 + f64::from(engaged) * 0.35);
-        if score < best_score {
-            best = Some(i);
-            best_score = score;
-        }
-    }
-    let id = best.map(|i| planes[i].id.clone());
-    if p.pilot.hostile_id != id {
+    p.pilot.think = THINK_SECONDS;
+    let best = crate::fighter_coordination::target(p, planes, carrier, target_flight);
+    let id = best.map(|i| planes[i].id);
+    // The stored identity is unchanged when it already matches, so the string
+    // is only reallocated when the pilot actually switches tracks.
+    if p.pilot.hostile_id.as_deref() != id {
         p.pilot.aim_time = 0.0;
+        p.pilot.hostile_id = id.map(str::to_owned);
     }
-    p.pilot.hostile_id = id;
     best
 }
 #[derive(Clone, Copy, Debug, serde::Serialize)]
@@ -81,7 +73,7 @@ pub struct FighterAim {
     pub distance: f64,
     pub point: Vec3,
 }
-pub fn fighter_gun_aim(p: &Aircraft, hostile: &Aircraft) -> FighterAim {
+pub fn fighter_gun_aim(p: &Aircraft, hostile: &PlaneView<'_>) -> FighterAim {
     let relative = sub(hostile.position, p.position);
     let velocity = sub(hostile.velocity, p.velocity);
     let a = dot(velocity, velocity) - 720.0_f64.powi(2);
@@ -109,12 +101,31 @@ pub fn fighter_gun_aim(p: &Aircraft, hostile: &Aircraft) -> FighterAim {
         point: add(hostile.position, scale(hostile.velocity, time)),
     }
 }
-pub fn clear_fighter_lane(p: &Aircraft, aim: Vec3, planes: &[&Aircraft]) -> bool {
+/// Accumulate a continuous firing solution, independently of navigation lead.
+pub fn fighter_fire_ready(
+    p: &mut Aircraft,
+    gun: &FighterAim,
+    pursuing: bool,
+    lane_clear: bool,
+    dt: f64,
+) -> bool {
+    let panic = p.pilot.fire_discipline.as_ref().is_some_and(|d| d.panic);
+    let on_aim = pursuing
+        && gun.distance > 80.0
+        && gun.distance < if panic { 220.0 } else { 320.0 }
+        && gun.alignment > if panic { 0.9985 } else { 0.997 }
+        && p.bank.abs() < 1.15
+        && lane_clear
+        && p.cooldown <= 0.0;
+    p.pilot.aim_time = if on_aim { p.pilot.aim_time + dt } else { 0.0 };
+    on_aim && p.pilot.aim_time >= if panic { 0.45 } else { 0.18 } && p.cooldown <= 0.0
+}
+pub fn clear_fighter_lane(p: &Aircraft, aim: Vec3, planes: &[PlaneView<'_>]) -> bool {
     let ray = sub(aim, p.position);
     let distance = length(ray);
     let direction = normalize(ray);
     !planes.iter().any(|o| {
-        if o.id == p.id || o.team != p.team || !in_flight(o) {
+        if o.id == p.id || o.team != p.team || !o.in_flight() {
             return false;
         }
         let relative = sub(o.position, p.position);
@@ -122,15 +133,21 @@ pub fn clear_fighter_lane(p: &Aircraft, aim: Vec3, planes: &[&Aircraft]) -> bool
         along > 0.0 && along < distance && length(sub(relative, scale(direction, along))) < 18.0
     })
 }
-pub fn steer_fighter(p: &mut Aircraft, hostile: &Aircraft, planes: &[&Aircraft], dt: f64) -> bool {
+pub fn steer_fighter(
+    p: &mut Aircraft,
+    hostile: &PlaneView<'_>,
+    planes: &[PlaneView<'_>],
+    dt: f64,
+) -> bool {
     let delta = sub(hostile.position, p.position);
     let distance = length(delta);
     p.pilot.break_cooldown = (p.pilot.break_cooldown - dt).max(0.0);
+    p.pilot.break_time = (p.pilot.break_time - dt).max(0.0);
     let forward = normalize(p.velocity);
     let threatened = planes.iter().any(|o| {
         o.team != p.team
             && o.role == "fighter"
-            && in_flight(o)
+            && o.in_flight()
             && length(sub(o.position, p.position)) < 450.0
             && dot(forward, normalize(sub(o.position, p.position))) < -0.65
             && dot(
@@ -138,32 +155,105 @@ pub fn steer_fighter(p: &mut Aircraft, hostile: &Aircraft, planes: &[&Aircraft],
                 normalize(sub(p.position, o.position)),
             ) > 0.9
     });
-    if p.pilot.break_time <= 0.0
-        && p.pilot.break_cooldown <= 0.0
-        && (distance < 160.0 || threatened)
-    {
-        p.pilot.break_time = 4.0;
-        p.pilot.break_cooldown = 11.0;
-        let side = if !p.id.encode_utf16().last().unwrap_or(0).is_multiple_of(2) {
-            1.0
+    let closing = dot(sub(p.velocity, hostile.velocity), normalize(delta));
+    let alignment = dot(forward, normalize(delta));
+    let speed_advantage = length(p.velocity) - length(hostile.velocity);
+    let maneuver = p.pilot.maneuver.get_or_insert_default();
+    maneuver.pursuit_seconds = if alignment < 0.8 && distance < 1400.0 {
+        maneuver.pursuit_seconds + dt
+    } else {
+        0.0
+    };
+    if p.pilot.break_time <= 0.0 && p.pilot.break_cooldown <= 0.0 {
+        let key = crate::air_gunnery::SeedKey::new(0)
+            .text(&p.id)
+            .text("/")
+            .number(p.sortie.unwrap_or(0))
+            .text("/maneuver")
+            .finish();
+        let side = if key % 2 == 0 { 1.0 } else { -1.0 };
+        let choice = if threatened {
+            // Draw a pursuer across a nearby wingman's nose when one is available.
+            let support = planes
+                .iter()
+                .filter(|a| {
+                    a.id != p.id && a.team == p.team && a.role == "fighter" && a.in_flight()
+                })
+                .filter(|a| length(sub(a.position, p.position)) < 1600.0)
+                .min_by(|a, b| {
+                    length(sub(a.position, p.position))
+                        .total_cmp(&length(sub(b.position, p.position)))
+                });
+            let heading = support.map_or(p.heading + side * 1.1, |a| {
+                (a.position[0] - p.position[0]).atan2(p.position[2] - a.position[2])
+            });
+            Some((
+                "defensive-break",
+                add(
+                    p.position,
+                    [
+                        heading.sin() * 1100.0,
+                        if p.position[1] > 300.0 && key % 3 == 0 {
+                            -80.0
+                        } else {
+                            90.0
+                        },
+                        -heading.cos() * 1100.0,
+                    ],
+                ),
+                116.0,
+                4.0,
+            ))
+        } else if distance < 150.0
+            || distance < 280.0
+                && closing > 45.0
+                && alignment > 0.7
+                && dot(forward, normalize(hostile.velocity)) > 0.6
+        {
+            Some((
+                "extend",
+                add(
+                    p.position,
+                    [p.heading.sin() * 1400.0, 60.0, -p.heading.cos() * 1400.0],
+                ),
+                120.0,
+                4.5,
+            ))
+        } else if distance < 1000.0
+            && alignment < 0.75
+            && speed_advantage > 20.0
+            && p.position[1] > 150.0
+            // Spend existing height advantage closing on a lower target;
+            // another climb would repeatedly postpone low-level interception.
+            && p.position[1] - hostile.position[1] < 150.0
+        {
+            let mut point = add(hostile.position, scale(hostile.velocity, -1.5));
+            point[1] = p.position[1] + 120.0;
+            Some(("high-yo-yo", point, 88.0, 3.5))
+        } else if maneuver.pursuit_seconds > 18.0 && distance > 350.0 {
+            let mut point = add(hostile.position, scale(hostile.velocity, -3.0));
+            point[0] += side * 350.0;
+            point[2] += side * 180.0;
+            point[1] = (hostile.position[1] - 80.0).max(100.0);
+            Some(("reposition", point, 108.0, 4.0))
         } else {
-            -1.0
+            None
         };
-        p.pilot.break_point = Some(add(
-            p.position,
-            [
-                (p.heading + side * 0.85).sin() * 1100.0,
-                if p.position[1] < 200.0 { 90.0 } else { 40.0 },
-                -(p.heading + side * 0.85).cos() * 1100.0,
-            ],
-        ));
+        if let Some((kind, point, speed, seconds)) = choice {
+            set_str(&mut maneuver.kind, kind);
+            maneuver.speed = speed;
+            maneuver.pursuit_seconds = 0.0;
+            p.pilot.break_point = Some(point);
+            p.pilot.break_time = seconds;
+            p.pilot.break_cooldown = seconds + 7.0;
+        }
     }
     if p.pilot.break_time > 0.0
         && let Some(point) = p.pilot.break_point
     {
-        p.pilot.break_time -= dt;
         p.pilot.aim_time = 0.0;
-        fly(p, point, 116.0, dt, FlightOptions::default());
+        let speed = p.pilot.maneuver.as_ref().unwrap().speed;
+        fly(p, point, speed, dt, FlightOptions::default());
         return false;
     }
     let aim = add(
@@ -181,7 +271,39 @@ pub fn steer_fighter(p: &mut Aircraft, hostile: &Aircraft, planes: &[&Aircraft],
     } else {
         115.0
     };
-    fly(p, aim, speed, dt, FlightOptions::default());
+    let covering = planes
+        .iter()
+        .any(|a| a.id != p.id && a.team == p.team && a.in_flight() && threatens(hostile, a));
+    set_str(
+        &mut p.pilot.maneuver.as_mut().unwrap().kind,
+        if covering {
+            "cover-wingman"
+        } else if tail {
+            "tail-pursuit"
+        } else {
+            "lead-pursuit"
+        },
+    );
+    // Trim excess closure before reaching the overshoot gate. Gun lead remains
+    // independent of this navigation aim and still requires a clear friendly lane.
+    let navigation_aim = if tail && distance < 450.0 && closing > 12.0 {
+        add(hostile.position, scale(hostile.velocity, -0.7))
+    } else {
+        aim
+    };
+    // Convert a substantial altitude advantage before passing overhead. The
+    // normal flight controller still owns pitch rate and low-altitude pullout.
+    let diving = p.position[1] > hostile.position[1] + 150.0;
+    fly(
+        p,
+        navigation_aim,
+        speed,
+        dt,
+        FlightOptions {
+            dive: diving,
+            ..FlightOptions::default()
+        },
+    );
     true
 }
 pub fn orbit_point(p: &Aircraft, anchor: Vec3, radius: f64, side: f64) -> Vec3 {
@@ -203,7 +325,7 @@ pub fn strike_ingress(p: &mut Aircraft, target_heading: f64, target: Vec3) -> Ve
         } else {
             (target[0] - p.position[0]).atan2(p.position[2] - target[2])
         });
-        p.pilot.attack_stage = Some("ingress".into());
+        set_opt_str(&mut p.pilot.attack_stage, "ingress");
     }
     let heading = p.pilot.attack_heading.unwrap();
     let stand = if p.role == "torpedo-bomber" {

@@ -27,6 +27,8 @@ Open `http://127.0.0.1:5180/?part=type96-25-triple`. Choose a component from the
 
 `part:build all` builds registered reusable variants only. `part:check all` checks their freshness and exported joint/socket presence; run builds first in a fresh clone. `model:viewer:check` checks TypeScript and viewer/library tests. `ship:overlay` and `ship:overlay:check` remain compatible aliases.
 
+Gun parts may specify `recoilM: 0` for stationary external barrels; retain their standard recoil joints and muzzle sockets. Catalog elevation may extend to +90°. Each part's researched limits still bound the CPU pose and review controls, and installed clearance must be reviewed separately.
+
 All standalone generated GLBs, Blender scenes and logs stay under ignored `.build/parts/<part-id>/`. They are regenerated from original inputs, not committed. The viewer serves only current previews, using hashes of the selected part, builder and dependencies. Missing or stale previews show a build instruction and can still offer a clearly labeled installed preview. A failed build retains `.staging` for diagnosis; inspect its log and confirm no process owns it before removing it and retrying. `BLENDER_BIN` selects a local Blender executable.
 
 ## Install in a ship

@@ -21,6 +21,19 @@ pub enum ProjectileEnd {
     Splash,
     Expired,
 }
+impl ProjectileEnd {
+    /// The serde kebab-case name, without routing a fieldless enum through
+    /// `serde_json::Value` once per completed shell.
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Burst => "burst",
+            Self::Stopped => "stopped",
+            Self::PassedThrough => "passed-through",
+            Self::Splash => "splash",
+            Self::Expired => "expired",
+        }
+    }
+}
 fn inside_hull(point: Vec3, actors: &[Vessel], owner: &str) -> bool {
     actors.iter().any(|a| {
         a.motion.id != owner
@@ -146,9 +159,12 @@ pub fn advance_projectile(
             }) {
                 continue;
             }
+            // Both ends of the flight segment go through the same hull
+            // attitude, for every shell against every ship it might reach.
+            let basis = actor.motion.basis();
             if !segment_overlaps_box(
-                world_to_local(from, actor.motion.pose()),
-                world_to_local(end, actor.motion.pose()),
+                basis.world_to_local(from),
+                basis.world_to_local(end),
                 actor.compiled.shell_center,
                 actor.compiled.shell_size,
             ) {

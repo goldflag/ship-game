@@ -12,6 +12,7 @@ Authored hull: 246.736 m long, 28.0416 m beam, 7.9121 m draft. These are model i
 
 - **Exterior:** Dimensional reconstruction from CV-6 contract offsets, CV-5 as-built plans and CV-6 1942 photos. not certified 100% accurate.
 - **Internals:** Physical protection surfaces and contained provisional room envelopes. Thickness families, boundaries, capacities, flooding and ballistics remain estimates.
+- **Air wing:** Global gameplay complement of 48 aircraft: 16 fighters, 16 dive bombers and 16 torpedo bombers. Aircraft types remain specific to this ship; this is not a historical manifest.
 - **Weapons:** 8 single 5-inch/38, 4 quadruple 1.1-inch, 30 single 20 mm. Local fitting geometry, some placements and ballistic/damage values remain provisional.
 
 ```sh
@@ -24,3 +25,8 @@ bun run ship:check enterprise-cv6
 Keep the current fixed views in `generated/review/`. Ship report/reference archives are removed. Research downloads, diagnostic results and extra captures belong in ignored `.build/`; do not recreate a tracked archive. Keep source links and lasting limitations here.
 
 Follow the [ship pipeline](../../../docs/ship-pipeline.md) and [model review](../../../docs/ship-model-review.md).
+
+Appearance follows the [shared fleet finish](../../../docs/ship-appearance.md).
+`appearance.json` preserves this recipe’s colors, scheme and deck coverings while
+adding the shared matte materials and restrained original surface wear. Existing
+markings and plank detail remain intact; this is not a new historical-accuracy claim.

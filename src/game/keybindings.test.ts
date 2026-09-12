@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { bindingError, bindingLabel, defaultKeybindings, keybindingsOf } from './keybindings';
+import { bindingError, bindingLabel, defaultKeybindings, isBindableKey, keybindingsOf, keyLabel } from './keybindings';
 
 describe('player keybindings', () => {
   test('older saves gain shell selection without taking a custom E binding', () => {
@@ -90,6 +90,16 @@ test('older saves gain periscope without taking a custom P binding', () => {
   expect(keybindingsOf(loaded)).toEqual(loaded);
 });
 
+test('older saves gain the simulation speed key without taking a custom N binding', () => {
+  const { simulationSpeed: _newAction, ...saved } = defaultKeybindings();
+  saved.camera = ['KeyN', null];
+  const loaded = keybindingsOf(saved);
+  expect(loaded.camera).toEqual(saved.camera);
+  expect(loaded.simulationSpeed[0]).toBeTruthy();
+  expect(loaded.simulationSpeed).not.toContain('KeyN');
+  expect(keybindingsOf(loaded)).toEqual(loaded);
+});
+
 test('older saves gain surface and deep-dive shortcuts without taking custom U or J keys', () => {
   const { surface: _surface, dive50: _dive50, ...saved } = defaultKeybindings();
   saved.camera = ['KeyU', null]; saved.fire = ['KeyJ', null];
@@ -124,4 +134,15 @@ test('legacy category bindings migrate to direct slots without losing other keys
   expect(loaded.weaponGroup5).not.toContain('Digit5');
   expect(new Set(Object.values(loaded).flat().filter(Boolean)).size).toBe(Object.values(loaded).flat().filter(Boolean).length);
   expect(keybindingsOf(loaded)).toEqual(loaded);
+});
+
+test('older saves gain the helm wheel on Tab, and Tab is bindable while other menu keys stay reserved', () => {
+  const { helmWheel: _helmWheel, ...saved } = defaultKeybindings();
+  const loaded = keybindingsOf(saved);
+  expect(loaded.helmWheel).toEqual(['Tab', null]);
+  expect(keybindingsOf(loaded)).toEqual(loaded);
+  expect(isBindableKey('Tab')).toBe(true);
+  expect(isBindableKey('Enter')).toBe(false);
+  expect(isBindableKey('Escape')).toBe(false);
+  expect(keyLabel('Tab')).toBe('Tab');
 });

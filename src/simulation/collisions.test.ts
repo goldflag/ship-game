@@ -163,19 +163,14 @@ test('ten-ship pile-ups and coincident spawns separate without invalid state', (
   positions.slice(1).forEach((x, i) => expect(x - positions[i]).toBeGreaterThanOrEqual(beam - .005));
 });
 
-test('collision movement is deterministic across display rates and reset clears contact motion', () => {
-  const runs = [30, 60, 144].map(fps => {
-    const sim = new CombatSimulation(boxDefinition());
-    Object.assign(sim.ship, { z: 120, speed: 12 });
-    Object.assign(sim.target.motion, { x: 0, z: 0, heading: Math.PI / 2 });
-    for (let frame = 0; frame < fps * 10; frame++) sim.advance(1 / fps, { throttle: 1, rudder: 0 }, intent);
-    return sim;
-  });
-  expect(runs[0].actors).toEqual(runs[1].actors);
-  expect(runs[1].actors).toEqual(runs[2].actors);
-  expect(Math.abs(runs[0].target.motion.swaySpeed)).toBeGreaterThan(1);
-  runs[0].reset();
-  for (const actor of runs[0].actors) {
+test('reset clears collision-induced sway and yaw', () => {
+  const sim = new CombatSimulation(boxDefinition());
+  Object.assign(sim.ship, { z: 120, speed: 12 });
+  Object.assign(sim.target.motion, { x: 0, z: 0, heading: Math.PI / 2 });
+  for (let tick = 0; tick < 600; tick++) sim.step({ throttle: 1, rudder: 0 }, intent);
+  expect(Math.abs(sim.target.motion.swaySpeed)).toBeGreaterThan(1);
+  sim.reset();
+  for (const actor of sim.actors) {
     expect(actor.motion.swaySpeed).toBe(0);
     expect(actor.motion.yawRate).toBe(0);
   }

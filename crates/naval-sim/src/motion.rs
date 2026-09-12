@@ -1,3 +1,4 @@
+use crate::mobility;
 use crate::{
     definition::{Handling, Vec3},
     geometry::{Pose, clamp},
@@ -55,6 +56,11 @@ impl ShipState {
             heading: self.heading,
         }
     }
+    /// The hull's rotation basis, for a caller that rotates more than one point
+    /// through the same attitude. Identical to `pose()` fed to `rotate`.
+    pub fn basis(&self) -> crate::geometry::Basis {
+        crate::geometry::Basis::of(self.pose())
+    }
     pub fn mean_y(&self) -> f64 {
         self.y - self.wave_heave
     }
@@ -100,21 +106,21 @@ pub fn step_ship(
         * power.sqrt()
         * (1.0 - turn_loss)
         * (1.0 - environment.map_or(0.0, |e| e.resistance));
-    s.rudder = approach(s.rudder, rudder, h.rudder_rate * DT);
+    s.rudder = approach(s.rudder, rudder, h.rudder_rate * mobility::RUDDER_RATE * DT);
     let braking = target.abs() < s.speed.abs() || sign(target) != sign(s.speed);
     s.speed = approach(
         s.speed,
         target,
         if braking {
-            h.braking
+            h.braking * mobility::BRAKING
         } else {
-            h.acceleration * power
+            h.acceleration * mobility::ACCELERATION * power
         } * DT,
     );
     let authority = clamp(s.speed / h.forward_speed, -0.4, 1.0);
-    let yaw = s.rudder * h.max_yaw_rate * authority;
+    let yaw = s.rudder * h.max_yaw_rate * mobility::MAX_YAW_RATE * authority;
     s.yaw_rate += (yaw - s.yaw_rate)
-        * (1.0 - (-DT / clamp(2.4 * 0.019 / h.max_yaw_rate.max(0.001), 0.8, 6.0)).exp());
+        * (1.0 - (-DT * mobility::YAW_RESPONSE / clamp(2.4 * 0.019 / h.max_yaw_rate.max(0.001), 0.8, 6.0)).exp());
     s.heading = (s.heading + s.yaw_rate * DT + std::f64::consts::TAU) % std::f64::consts::TAU;
     s.sway_speed += (-s.yaw_rate * s.speed * 1.5 - s.sway_speed) * (1.0 - (-DT / 4.0).exp());
     if let Some(e) = environment {

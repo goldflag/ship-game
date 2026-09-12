@@ -86,14 +86,15 @@ test('closed boundaries contain fire and opened paths can spread it', () => {
   expect(a.damage.control.rooms[link.toIndex].intensity).toBeGreaterThan(0);
 });
 
-test('damage control resets and uses identical fixed ticks at different display rates', () => {
-  const x = fixture(), y = fixture();
-  const initial = structuredClone(x.a.damage.control);
-  for (const f of [x, y]) heatMount(f.a, 0, 100);
+test('reset restores damage-control state after fighting a fire', () => {
+  const { sim, a } = fixture();
+  const initial = structuredClone(a.damage.control);
+  heatMount(a, 0, 100);
   const intent = { battery: 'main' as const, aim: [0, 0, -1000] as [number, number, number], fire: false, controlPriority: 'fires' as const };
-  for (let i = 0; i < 600; i++) x.sim.advance(1 / 60, { throttle: 0, rudder: 0 }, intent);
-  for (let i = 0; i < 300; i++) y.sim.advance(1 / 30, { throttle: 0, rudder: 0 }, intent);
-  expect(x.a.damage).toEqual(y.a.damage); x.sim.reset(); expect(x.a.damage.control).toEqual(initial);
+  for (let tick = 0; tick < 600; tick++) sim.step({ throttle: 0, rudder: 0 }, intent);
+  expect(a.damage.control).not.toEqual(initial);
+  sim.reset();
+  expect(a.damage.control).toEqual(initial);
 });
 
 test('a freed team does not take another team’s job and reset its setup progress', () => {

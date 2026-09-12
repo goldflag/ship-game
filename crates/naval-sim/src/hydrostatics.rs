@@ -2,6 +2,7 @@ use crate::{
     definition::{Hull, Vec3},
     geometry::{Pose, rotate},
     hull::hull_section,
+    hydro_table::HydrostaticTable,
 };
 #[derive(Clone, Debug)]
 struct Slice {
@@ -14,7 +15,10 @@ struct Slice {
 pub struct HullHydrostatics {
     slices: Vec<Slice>,
     bound: f64,
-    full: f64,
+    full: Hydrostatics,
+    /// Published content. Absent only for a hull the catalog has no table for,
+    /// which then falls back to the mesh solver the table was solved from.
+    table: Option<HydrostaticTable>,
 }
 #[derive(Clone, Copy, Debug, serde::Serialize)]
 pub struct Hydrostatics {
@@ -29,7 +33,7 @@ pub struct Flotation {
     pub afloat: bool,
 }
 impl HullHydrostatics {
-    pub fn new(h: &Hull) -> Self {
+    pub fn new(h: &Hull, table: Option<&HydrostaticTable>) -> Self {
         let mut stations: Vec<f64> = vec![0.0, h.length];
         stations.extend(h.half_breadths.iter().map(|p| p[0]));
         if let Some(ss) = &h.sections {
@@ -48,12 +52,32 @@ impl HullHydrostatics {
                 })
                 .collect(),
             bound: h.length + h.beam + h.draft + h.depth,
-            full: 0.0,
+            full: Hydrostatics {
+                volume: 0.0,
+                center: [0.0; 3],
+            },
+            table: table.cloned(),
         };
-        result.full = result.sample(-result.bound, 0.0, 0.0).volume;
+        result.full = match &result.table {
+            Some(t) => Hydrostatics {
+                volume: t.full_volume,
+                center: t.full_center,
+            },
+            None => result.mesh_sample(-result.bound, 0.0, 0.0),
+        };
         result
     }
     pub fn sample(&self, y: f64, roll: f64, pitch: f64) -> Hydrostatics {
+        if let Some(t) = &self.table {
+            let (volume, center) = t.sample(y, roll, pitch);
+            return Hydrostatics { volume, center };
+        }
+        self.mesh_sample(y, roll, pitch)
+    }
+    /// Clips every hull section at the given immersion. The published table is
+    /// solved from and measured against this; it stays the reference, not the
+    /// path a battle takes.
+    pub fn mesh_sample(&self, y: f64, roll: f64, pitch: f64) -> Hydrostatics {
         let nx = roll.sin() * pitch.cos();
         let ny = roll.cos() * pitch.cos();
         let nz = -pitch.sin();
@@ -75,11 +99,52 @@ impl HullHydrostatics {
             },
         }
     }
+    /// Volume alone, for the flotation bisection. The area accumulation is the
+    /// same expression on the same floats in the same order as `sample`, so the
+    /// volume is bit-identical; only the unused x and y moments are dropped.
+    fn sampled_volume(&self, y: f64, roll: f64, pitch: f64) -> f64 {
+        let nx = roll.sin() * pitch.cos();
+        let ny = roll.cos() * pitch.cos();
+        let nz = -pitch.sin();
+        let mut volume = 0.0;
+        for s in &self.slices {
+            let area = clipped_area(&s.polygon, nx, ny, -y - nz * s.z);
+            let v = area * s.dz;
+            volume += v;
+        }
+        volume
+    }
     pub fn full_volume(&self) -> f64 {
-        self.full
+        self.full.volume
     }
     pub fn flotation(&self, volume: f64, roll: f64, pitch: f64) -> Flotation {
-        let full = self.sample(-self.bound, roll, pitch);
+        if let Some(t) = &self.table {
+            if volume >= t.full_volume {
+                return Flotation {
+                    volume: t.full_volume,
+                    center: t.full_center,
+                    y: -self.bound,
+                    afloat: false,
+                };
+            }
+            let (y, center) = t.flotation(volume, roll, pitch);
+            return Flotation {
+                volume,
+                center,
+                y,
+                afloat: true,
+            };
+        }
+        self.mesh_flotation(volume, roll, pitch)
+    }
+    /// Bisects the mesh solver for the immersion that displaces `volume`.
+    pub fn mesh_flotation(&self, volume: f64, roll: f64, pitch: f64) -> Flotation {
+        // At y = -bound the clip limit is at least bound - length / 2, which is
+        // beyond every |n . vertex| a section polygon can reach (half breadth
+        // plus depth plus draft), so `clipped_moment` keeps every vertex and
+        // never interpolates: the sample does not depend on roll or pitch and
+        // equals the fully immersed sample taken once in `new`.
+        let full = self.full;
         if volume >= full.volume {
             return Flotation {
                 volume: full.volume,
@@ -91,14 +156,14 @@ impl HullHydrostatics {
         let (mut low, mut high) = (-self.bound, self.bound);
         for _ in 0..27 {
             let y = (low + high) / 2.0;
-            if self.sample(y, roll, pitch).volume > volume {
+            if self.sampled_volume(y, roll, pitch) > volume {
                 low = y;
             } else {
                 high = y;
             }
         }
         let y = (low + high) / 2.0;
-        let s = self.sample(y, roll, pitch);
+        let s = self.mesh_sample(y, roll, pitch);
         Flotation {
             volume: s.volume,
             center: s.center,
@@ -145,6 +210,44 @@ fn clipped_moment(polygon: &[[f64; 2]], nx: f64, ny: f64, limit: f64) -> (f64, f
         (0.0, 0.0, 0.0)
     } else {
         (area.abs() / 2.0, x / (3.0 * area), y / (3.0 * area))
+    }
+}
+/// `clipped_moment` with the moment accumulation removed. Every operation that
+/// feeds `area` is unchanged and in the same order, so the result is the same
+/// f64 as `clipped_moment(..).0`.
+fn clipped_area(polygon: &[[f64; 2]], nx: f64, ny: f64, limit: f64) -> f64 {
+    let (mut area, mut count, mut first, mut last) = (0.0, 0, [0.0, 0.0], [0.0, 0.0]);
+    let mut append = |p: [f64; 2]| {
+        if count == 0 {
+            first = p;
+        } else {
+            let cross = last[0] * p[1] - p[0] * last[1];
+            area += cross;
+        }
+        count += 1;
+        last = p;
+    };
+    for i in 0..polygon.len() {
+        let a = polygon[i];
+        let b = polygon[(i + 1) % polygon.len()];
+        let da = nx * a[0] + ny * a[1] - limit;
+        let db = nx * b[0] + ny * b[1] - limit;
+        if da <= 0.0 {
+            append(a);
+        }
+        if da < 0.0 && db > 0.0 || da > 0.0 && db < 0.0 {
+            let t = da / (da - db);
+            append([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]);
+        }
+    }
+    if count > 0 {
+        let cross = last[0] * first[1] - first[0] * last[1];
+        area += cross;
+    }
+    if area.abs() < 1e-12 {
+        0.0
+    } else {
+        area.abs() / 2.0
     }
 }
 pub fn righting_arms(b: Vec3, g: Vec3, roll: f64, pitch: f64) -> (f64, f64) {

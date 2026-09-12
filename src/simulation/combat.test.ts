@@ -1,6 +1,6 @@
 import { burstShell } from './burst';
 import { updateDamageControl } from './damageControl';
-import { expect, test } from 'bun:test';
+import { expect, spyOn, test } from 'bun:test';
 import blueprint from '../../assets/ships/bismarck/blueprint.json';
 import catalog from '../../assets/parts/guns.json';
 import { compileShip, type Vec3 } from '../ships/blueprint';
@@ -163,13 +163,34 @@ test('aimed salvos obey reloads and ammunition while damaging the target', () =>
   for (let i = 0; i < 200; i++) sim.step(stop, { aim: [NaN, 0, 0], fire: true, battery: 'main' });
   expect(sim.events.filter(e => e.kind === 'shot').length).toBe(8);
 });
-test('same commands at 30, 60 and 144 fps yield identical combat state', () => {
-  const states = [30, 60, 144].map(fps => {
-    const sim = new CombatSimulation(definition()), aim = sim.aimAt('engine-port');
-    for (let i = 0; i < fps * 25; i++) sim.advance(1 / fps, stop, { aim, fire: true, battery: 'main' });
-    return JSON.stringify({ tick: sim.tick, player: sim.player, target: sim.target, shells: sim.shells, events: sim.events });
+test('advance accumulates fractional time, bounds stalls and applies input before each fixed tick', () => {
+  const sim = new CombatSimulation(definition());
+  const helm = { throttle: 0, rudder: .2 };
+  const intent = { aim: [0, 0, -1000] as Vec3, fire: false, battery: 'main' as const };
+  const throttles: number[] = [];
+  let inputs = 0;
+  const step = spyOn(sim, 'step').mockImplementation((command, order) => {
+    expect(command).toBe(helm); expect(order).toBe(intent);
+    throttles.push(command.throttle);
   });
-  expect(states[0]).toBe(states[1]); expect(states[1]).toBe(states[2]);
+  const advance = (dt: number) => sim.advance(dt, helm, intent, () => { helm.throttle = ++inputs; });
+  try {
+    advance(FIXED_DT / 4); advance(FIXED_DT / 4);
+    expect(inputs).toBe(0);
+    advance(FIXED_DT / 2);
+    expect(throttles).toEqual([1]);
+    advance(FIXED_DT / 2);
+    for (const dt of [0, -1, NaN, Infinity, -Infinity]) advance(dt);
+    expect(throttles).toEqual([1]);
+    advance(FIXED_DT / 2);
+    expect(throttles).toEqual([1, 2]);
+    advance(1); // A stalled frame contributes at most 100 ms, or six ticks.
+    expect(throttles).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
+    advance(FIXED_DT / 2); sim.reset(); advance(FIXED_DT / 2);
+    expect(throttles).toHaveLength(8);
+    advance(FIXED_DT / 2);
+    expect(throttles).toHaveLength(9);
+  } finally { step.mockRestore(); }
 });
 test('reset replaces the trial target state without invalidating renderer bindings', () => {
   const sim = new CombatSimulation(definition()), target = sim.target;
@@ -178,7 +199,8 @@ test('reset replaces the trial target state without invalidating renderer bindin
   expect(sim.target).toBe(target); expect(target.damage.integrity).toBe(target.damage.maxIntegrity); expect(target.motion.y).toBe(0);
 });
 test('shot and splash events retain matching caliber and independent velocity snapshots', () => {
-  const sim = new CombatSimulation(definition()), aim: Vec3 = [450, .5, 0];
+  // Keep the near-water target within the raised turrets' -1° depression limit.
+  const sim = new CombatSimulation(definition()), aim: Vec3 = [650, .5, 0];
   for (let i = 0; i < 1800; i++) sim.step(stop, { aim, fire: false, battery: 'main' });
   sim.step(stop, { aim, fire: true, battery: 'main' });
   const shots = sim.events.filter(e => e.kind === 'shot');

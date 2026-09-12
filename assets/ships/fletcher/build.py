@@ -771,6 +771,10 @@ paint=bpy.data.images.new('Fletcher original naval paint',width=wtex,height=htex
 paint.colorspace_settings.name='Non-Color';paint.pixels.foreach_set(pixels);paint.pack()
 for key in ['naval','hullgray']:
     mat=materials[key];node=mat.node_tree.nodes.new('ShaderNodeTexImage');node.image=paint;node.interpolation='Linear';node.extension='EXTEND'
+    # Some original fittings have other UV layers. Bind the authored paint map
+    # explicitly so export never falls back to an unrelated active layer.
+    uv_node=mat.node_tree.nodes.new('ShaderNodeUVMap');uv_node.uv_map='OriginalPaintUV'
+    mat.node_tree.links.new(uv_node.outputs['UV'],node.inputs['Vector'])
     mat.node_tree.links.new(node.outputs['Color'],mat.node_tree.nodes['Principled BSDF'].inputs['Base Color'])
 bpy.context.view_layer.update()
 for o in col.objects:
@@ -789,5 +793,8 @@ scene['definitionHash']=definition['contentHash'];scene['authoringRevision']=3
 scene['referenceBoundary']='Original blueprint / catalog / recipe only; reference rasters used for human review.'
 from blender_rig import create_flagstaffs
 create_flagstaffs(definition)
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'appearance'))
+from surface import apply_appearance
+apply_appearance(scene,materials,Path(__file__).with_name('appearance.json'))
 bpy.ops.wm.save_as_mainfile(filepath=str(out/'source.blend'))
 print('FLETCHER REVISION 3',len(col.objects),'original objects',flush=True)

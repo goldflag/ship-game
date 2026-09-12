@@ -216,7 +216,7 @@ export class ShipView {
       b.recoil.forEach(n => { n.position.z = mounts[i].recoil * this.definition.mounts[i].weapon.recoilM; });
     });
     // Cloth is visual-only: the same interpolated gun angle drives its shapes.
-    // Its fixed seam remains on the gunhouse while its collar follows pitch.
+    // Fixed seams stay on the gunhouse or carriage; moving seams follow pitch.
     for (const { mesh, elevation, angles, baseAngle } of this.gunCovers) {
       const degrees = THREE.MathUtils.clamp(THREE.MathUtils.radToDeg(elevation.rotation.x), baseAngle, angles.at(-1)!);
       const weights = mesh.morphTargetInfluences!;

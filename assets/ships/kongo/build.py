@@ -33,6 +33,8 @@ for key,color in colors.items():
   m.diffuse_color=(*color[:3],.16)
   m.surface_render_method='DITHERED'
  mats[key]=m
+# Aviation linoleum keeps its original color with its own surface finish.
+mats['linoleum']=mats['red'].copy();mats['linoleum'].name='Kongo linoleum'
 def mesh(name,vs,fs,mat,col=col,smooth=False):
  data=bpy.data.meshes.new(name);data.from_pydata(vs,[],fs);data.update()
  o=bpy.data.objects.new(name,data);col.objects.link(o)
@@ -349,14 +351,9 @@ def chain_link(name,center,along,tilt):
   for j in range(k):
    q=p+.029*(radial*math.cos(math.tau*j/k)+normal*math.sin(math.tau*j/k));vs.append(tuple(q))
  mesh(name,vs,[(i*k+j,i*k+(j+1)%k,((i+1)%n)*k+(j+1)%k,((i+1)%n)*k+j) for i in range(n) for j in range(k)],mats['edge'],smooth=True)
+from capstans import create as create_capstan
 def capstan(name,x,y,r=.62,height=.75):
- z=deck(x)+.055
- cyl(name+'.foot',(x,y,z+.09),r*1.32,.18,mats['naval'])
- cyl(name+'.drum',(x,y,z+.18+height/2),r,height,mats['edge'],r2=r*.82)
- cyl(name+'.head',(x,y,z+.18+height),r*1.15,.13,mats['naval'])
- for i in range(8):
-  a=i*math.tau/8
-  rod(name+'.rib',(x+r*math.cos(a),y+r*math.sin(a),z+.2),(x+r*.83*math.cos(a),y+r*.83*math.sin(a),z+height+.13),.035,mats['naval'],vertices=5)
+ create_capstan(dict(cyl=cyl,rod=rod),mats,deck,name,x,y,r,height)
 for sign in [-1,1]:
  hawse_x=98;hawse_y=sign*min(2.3,width(hawse_x)-.95)
  start=Vector((hawse_x,hawse_y,deck(hawse_x)+.14));end=Vector((76,sign*3.1,deck(76)+.14))
@@ -395,21 +392,9 @@ flight_core=next(s for s in d['structures'] if s['id']=='aviation-deckhouse')
 flight_outline=[(-z,-x) for x,z in flight_plate['footprint']]
 core_outline=[(-z,-x) for x,z in flight_core['footprint']]
 prism('aviation.deckhouse',core_outline,flight_core['baseY'],flight_core['baseY']+flight_core['height'])
-prism('aviation.linoleum',flight_outline,flight_plate['baseY'],flight_plate['baseY']+flight_plate['height'],mats['red'])
-def flight_edges(x):
- ys=[]
- for a,b in zip(flight_outline,flight_outline[1:]+flight_outline[:1]):
-  if min(a[0],b[0])<=x<max(a[0],b[0]):ys.append(a[1]+(b[1]-a[1])*(x-a[0])/(b[0]-a[0]))
- return min(ys),max(ys)
-for x in [-56,-54,-52,-50,-48,-46,-44,-42,-40,-38,-36,-34,-32]:
- y0,y1=flight_edges(x)
- box('aviation.deck-beam',(x,(y0+y1)/2,7.065),(.16,y1-y0,.19),mats['naval'])
- rod('aviation.deck-seam',(x,y0+.08,7.26),(x,y1-.08,7.26),.014,mats['canvas'],vertices=5)
-for a,b in zip(flight_outline,flight_outline[1:]+flight_outline[:1]):
- rod('aviation.deck-edge',(*a,7.22),(*b,7.22),.055,mats['naval'],vertices=8)
-for y in [-3.0,3.0]:
- rod('aviation.handling-rail',(-55.6,y,7.38),(-31.7,y,7.38),.055,mats['edge'],vertices=8)
- for x in [-55.5,-52,-48,-44,-40,-36,-32]:box('aviation.rail-foot',(x,y,7.32),(.22,.24,.14),mats['naval'])
+prism('aviation.linoleum',flight_outline,flight_plate['baseY'],flight_plate['baseY']+flight_plate['height'],mats['linoleum'])
+from aviation_fittings import create as create_aviation_fittings
+create_aviation_fittings(dict(box=box,rod=rod),mats,flight_outline)
 cyl('catapult.fixed-seat',(-50.36,0,7.445),1.7,.39,mats['naval'],vertices=48)
 cyl('catapult.roller',(-50.36,0,7.72),1.62,.16,mats['edge'],vertices=48)
 catapult_aft,catapult_forward=-58.02,-38.44
@@ -454,4 +439,9 @@ for z in [7,9,11,13,15,17,19,21]:
 for o in set(col.objects)-before:o.parent=yaw;o['assemblyId']='main-4'
 scene['definitionHash']=d['contentHash']
 create_flagstaffs(d)
+sys.path.insert(0,str(ROOT/'assets/ships/appearance'))
+from surface import apply_appearance
+from decking import apply_decking
+apply_appearance(scene,mats,Path(__file__).with_name('appearance.json'))
+apply_decking(scene,mats,Path(__file__).with_name('appearance.json'))
 bpy.ops.wm.save_as_mainfile(filepath=str(out/'source.blend'))

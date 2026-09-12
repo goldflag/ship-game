@@ -38,6 +38,7 @@ export default defineConfig({
         aircraftReview: fileURLToPath(new URL('./aircraft-review.html', import.meta.url)),
         fleetPerformance: fileURLToPath(new URL('./scripts/diagnostics/live-performance.html', import.meta.url)),
         customBattlePerformance: fileURLToPath(new URL('./scripts/diagnostics/custom-battle-performance.html', import.meta.url)),
+        pveSpeed: fileURLToPath(new URL('./scripts/diagnostics/pve-speed.html', import.meta.url)),
       },
       output: { manualChunks: { 'three-engine': ['three/webgpu', 'three/tsl'], 'react': ['react', 'react-dom/client'] } },
     },

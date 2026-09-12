@@ -188,3 +188,36 @@ def apply_paint(scene, materials, scheme_path):
                 uv.data[loop_index].uv = (u, v)
     scene['paintScheme'] = spec['id']
     print('BALTIC PAINT', json.dumps({'sideFaces': side_faces, 'deckFaces': deck_faces, 'images': 2}), flush=True)
+
+
+def consolidate_finish_uvs(scene):
+    """Share one UV channel between disjoint Baltic and plain-painted faces.
+
+    Preserve every original atlas coordinate. The shared finish only owns the
+    faces whose materials explicitly sample SurfaceUV; these can occupy UVMap
+    too without adding another full vertex attribute to this large model.
+    """
+    finish_materials = {
+        material for material in bpy.data.materials
+        if material.use_nodes and any(node.type == 'UVMAP' and node.uv_map == 'SurfaceUV'
+                                      for node in material.node_tree.nodes)
+    }
+    for obj in scene.objects:
+        if obj.type != 'MESH':
+            continue
+        source = obj.data.uv_layers.get('SurfaceUV')
+        if source is None:
+            continue
+        target = obj.data.uv_layers.get('UVMap')
+        if target is None:
+            source.name = 'UVMap'
+            continue
+        for face in obj.data.polygons:
+            if obj.data.materials[face.material_index] in finish_materials:
+                for index in face.loop_indices:
+                    target.data[index].uv = source.data[index].uv
+        obj.data.uv_layers.remove(source)
+    for material in finish_materials:
+        for node in material.node_tree.nodes:
+            if node.type == 'UVMAP' and node.uv_map == 'SurfaceUV':
+                node.uv_map = 'UVMap'

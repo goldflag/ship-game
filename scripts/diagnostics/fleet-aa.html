@@ -17,22 +17,21 @@ game.rig.update=()=>{};
 async function still(){for(let i=0;i<2;i++){game.renderer._nodes.nodeFrame.update();await game.frame(performance.now());}game.pipeline.render();return game.renderer.domElement.toDataURL('image/png');}
 const poses=[];
 for(const trainFraction of [-1,0,1])for(const elevationFraction of [0,.5,1]){
-  game.previewArticulation({trainFraction,elevationFraction,recoilFraction:.75});
+  const review=await game.previewArticulation({trainFraction,elevationFraction,recoilFraction:.75});
   await still();
-  poses.push({trainFraction,elevationFraction,maxMuzzleError:Math.max(...game.playerView.muzzleErrors())});
+  poses.push({trainFraction,elevationFraction,articulation:review.articulation,maxMuzzleError:Math.max(...game.playerView.muzzleErrors())});
 }
 // Neighboring mounts must also be checked in different poses after integration.
 for(let offset=0;offset<3;offset++){
-  game.simulation.player.mounts.forEach((state,i)=>{
-    const gun=definition.mounts[i].weapon,phase=(i+offset)%3;
-    state.train=(phase-1)*gun.traverseDeg*Math.PI/180;
-    state.elevation=(gun.elevationMinDeg+(gun.elevationMaxDeg-gun.elevationMinDeg)*phase/2)*Math.PI/180;
-    state.recoil=phase/2;
-  });
-  game.playerView.update();await still();
-  poses.push({independentNeighbors:offset,maxMuzzleError:Math.max(...game.playerView.muzzleErrors())});
+  const mounts=Object.fromEntries(definition.mounts.map((mount,i)=>{
+    const phase=(i+offset)%3;
+    return [mount.id,{trainFraction:phase-1,elevationFraction:phase/2,recoilFraction:phase/2}];
+  }));
+  const review=await game.previewArticulation({trainFraction:0,elevationFraction:.5,recoilFraction:0,mounts});
+  await still();
+  poses.push({independentNeighbors:offset,articulation:review.articulation,maxMuzzleError:Math.max(...game.playerView.muzzleErrors())});
 }
-game.previewArticulation(null);
+await game.previewArticulation(null);
 await game.prepareBattle({playerShipId:definition.id,friendlyBots:[],enemies:['enterprise-cv6'],spawnDistance:1000,sea:'Fair'});
 game.setInPort(false);game.setPaused(true);game.simulation.target.controller='idle';
 const planes=game.simulation.target.airWing.planes.slice(0,6),fired=new Set();

@@ -121,14 +121,12 @@ fn box_contacts(
         return;
     };
     let key = format!("{prefix}:entry");
-    let transform = |point, normal, t| {
-        let p = pose.unwrap_or_default();
-        PlateHit {
-            t,
-            point: local_to_world(point, p),
-            normal: rotate(normal, p),
-            on_edge: false,
-        }
+    let basis = Basis::of(pose.unwrap_or_default());
+    let transform = |point, normal, t| PlateHit {
+        t,
+        point: basis.local_to_world(point),
+        normal: basis.rotate(normal),
+        on_edge: false,
     };
     if enters_box(from, to, center, size) && !shell.visited.contains(&key) {
         hits.push(ShipContact::new(
@@ -171,8 +169,9 @@ pub fn ship_contacts(
     def: &ShipDefinition,
     geometry: &ContactGeometry,
 ) -> Vec<ShipContact> {
-    let from = world_to_local(from_world, actor.motion.pose());
-    let to = world_to_local(to_world, actor.motion.pose());
+    let hull = actor.motion.basis();
+    let from = hull.world_to_local(from_world);
+    let to = hull.world_to_local(to_world);
     let trains: Vec<_> = actor.mounts.iter().map(|m| m.train).collect();
     let mut hits = vec![];
     let ship = &actor.motion.id;
@@ -204,17 +203,18 @@ pub fn ship_contacts(
         let (center, size) = equipment_box(def, m);
         let key = format!("{ship}:module:{}", m.id);
         let (a, b) = pose.map_or((from, to), |p| {
-            (world_to_local(from, p), world_to_local(to, p))
+            let basis = Basis::of(p);
+            (basis.world_to_local(from), basis.world_to_local(to))
         });
         if !shell.visited.contains(&key)
             && let Some(hit) = segment_box(a, b, center, size)
         {
-            let p = pose.unwrap_or_default();
+            let basis = Basis::of(pose.unwrap_or_default());
             hits.push(ShipContact::new(
                 PlateHit {
                     t: hit.t,
-                    point: local_to_world(hit.point, p),
-                    normal: rotate(hit.normal, p),
+                    point: basis.local_to_world(hit.point),
+                    normal: basis.rotate(hit.normal),
                     on_edge: false,
                 },
                 key,
@@ -256,11 +256,12 @@ pub fn ship_contacts(
             continue;
         }
         let pose = mount_frame(def, i, &|j| trains[j]);
+        let basis = Basis::of(pose);
         let w = &m.weapon;
         box_contacts(
             shell,
-            world_to_local(from, pose),
-            world_to_local(to, pose),
+            basis.world_to_local(from),
+            basis.world_to_local(to),
             [0.0, w.gunhouse_size[2] / 2.0, 0.0],
             [w.gunhouse_size[1], w.gunhouse_size[2], w.gunhouse_size[0]],
             &format!("{ship}:mount:{}", m.id),

@@ -1,5 +1,6 @@
+import { torpedoSpeed, effectiveHandling } from '../simulation/mobility';
 import type { GunPart, ShipDefinition } from './blueprint';
-import { ANTI_AIRCRAFT_MAX_CALIBER_M, antiAircraftRange, torpedoArcLabel } from './armament';
+import { ANTI_AIRCRAFT_MAX_CALIBER_M, antiAircraftRange, gunTraverseLimitsDeg, torpedoArcLabel } from './armament';
 import { maxHullIntegrity } from '../simulation/damage';
 import { KNOTS_PER_MPS } from '../simulation/ship';
 import { GRAVITY } from '../simulation/weapons';
@@ -66,16 +67,22 @@ export function shipScores(def: ShipDefinition): StatScore[] {
     { id: 'survivability', label: 'Survivability', score: score(70 * maxHullIntegrity(def) / r.hullIntegrity + 30 * armorMm / r.armorMm), help: `Approximation from displacement and thickest plate against ${r.armorMm} mm. Flooding and stability determine whether the ship sinks.` },
     { id: 'artillery', label: 'Artillery', score: score(70 * damagePerMinute(main) / r.mainDamagePerMinute + 30 * penetration / r.penetrationMm), help: `Main battery damage per minute against ${format(r.mainDamagePerMinute)} and penetration against ${r.penetrationMm} mm.` },
     { id: 'airDefense', label: 'Air defense', score: score(100 * damagePerMinute(dualPurposeMounts(def)) / r.dualPurposeDamagePerMinute), help: `Damage per minute from registered guns of ${Math.round(r.dualPurposeCaliberM * 1000)} mm or less with at least 70° elevation, against ${format(r.dualPurposeDamagePerMinute)}. Ships without AA-capable guns score zero.` },
-    { id: 'maneuverability', label: 'Maneuverability', score: score(40 * knots(def.handling.forwardSpeed) / r.speedKn + 60 * def.handling.maxYawRate / r.yawRateRadPerSecond), help: `Top speed against ${r.speedKn} kn and turning rate against ${(r.yawRateRadPerSecond * 180 / Math.PI).toFixed(1)}°/s.` },
+    { id: 'maneuverability', label: 'Maneuverability', score: score(40 * knots(def.handling.forwardSpeed) / r.speedKn + 60 * effectiveHandling(def.handling).maxYawRate / r.yawRateRadPerSecond), help: `Top speed against ${r.speedKn} kn and turning rate against ${(r.yawRateRadPerSecond * 180 / Math.PI).toFixed(1)}°/s.` },
     { id: 'concealment', label: 'Concealment', score: score(100 * (r.largestPlanRootM - planRoot) / (r.largestPlanRootM - r.smallestPlanRootM)), help: 'Smaller waterline plan (length × beam) scores higher. Detection is not yet simulated.' },
   ];
 }
 
-function batteryRows(mounts: ShipDefinition['mounts'], withName: boolean): StatRow[] {
+function batteryRows(mounts: ShipDefinition['mounts'], withName: boolean, definition: ShipDefinition): StatRow[] {
   const weapon = mounts[0].weapon;
   const groups = new Map<number, number>();
   for (const mount of mounts) groups.set(barrels(mount.weapon), (groups.get(barrels(mount.weapon)) ?? 0) + 1);
   const layout = [...groups].map(([barrels, count]) => `${count} × ${barrels}`).join(' + ');
+  const traverse = (mount: ShipDefinition['mounts'][number]) => {
+    const [low, high] = gunTraverseLimitsDeg(mount);
+    return `${low === -high ? `±${high}°` : `${low}° to ${high}°`} · ${mount.weapon.traverseRateDeg}°/s`;
+  };
+  const traverseRows = new Set(mounts.map(traverse)).size === 1 ? [{ label: 'Traverse', value: traverse(mounts[0]), help: 'Travel relative to the mount’s neutral bearing and training speed.' }]
+    : mounts.map(mount => ({ label: `Traverse · ${mount.name}`, value: traverse(mount), help: 'Travel relative to this mount’s neutral bearing and training speed.' }));
   return [
     ...(withName ? [{ label: weapon.name, value: layout, help: 'Mounts × barrels per mount.', text: true }] : [{ label: 'Layout', value: layout, help: 'Mounts × barrels per mount.' }]),
     { label: 'Reload', value: format(weapon.reloadSeconds, weapon.reloadSeconds < 10 ? 1 : 0), unit: 's', help: 'Seconds between salvos from one mount.' },
@@ -86,7 +93,8 @@ function batteryRows(mounts: ShipDefinition['mounts'], withName: boolean): StatR
     { label: 'Shell mass', value: format(weapon.projectileMassKg, weapon.projectileMassKg < 10 ? 2 : 0), unit: 'kg', help: 'Projectile mass carried by each shot.' },
     { label: 'Maximum range', value: format(maximumRangeM(weapon) / 1000, 1), unit: 'km', help: 'Maximum flat-water range with drag over the permitted low arc, capped by the fire-control solver.' },
     { label: 'Elevation', value: `${weapon.elevationMinDeg}° to ${weapon.elevationMaxDeg}°`, help: 'Barrel elevation limits.' },
-    { label: 'Traverse', value: `±${weapon.traverseDeg}° · ${weapon.traverseRateDeg}°/s`, help: 'Training arc either side of the mount bearing and training speed.' },
+    ...((mounts.some(m => m.travelClearance) || definition.mountClearance?.mounts?.some(e => mounts.some(m => m.id === e.mountId)) || definition.mountClearance?.mountIds?.some(id => mounts.some(m => m.id === id))) ? [{ label: 'Motion clearance', value: 'Interlocked', help: 'Fitted guns stop at installation clearance limits. Reachable elevation depends on bearing and surrounding equipment.' }] : []),
+    ...traverseRows,
     { label: 'Ammunition', value: format(mounts.reduce((n, m) => n + m.weapon.ammoPerBarrel * barrels(m.weapon), 0)), unit: 'rounds', help: 'Rounds for the whole battery. Firing a salvo spends one per barrel.' },
     { label: 'Gunhouse armor', value: format(weapon.armorMm), unit: 'mm', help: 'Nominal gunhouse protection used when no authored gunhouse plates exist.' },
   ];
@@ -95,7 +103,7 @@ function batteryRows(mounts: ShipDefinition['mounts'], withName: boolean): StatR
 /** Everything the sheet prints is read from the compiled definition combat uses. */
 export function shipStatistics(def: ShipDefinition): StatSection[] {
   const main = mainMounts(def), secondary = def.mounts.filter(m => m.battery === 'secondary');
-  const hp = maxHullIntegrity(def), h = def.hull, handling = def.handling;
+  const hp = maxHullIntegrity(def), h = def.hull, handling = effectiveHandling(def.handling);
   const engines = def.modules.filter(m => m.kind === 'engine').length, magazines = def.modules.filter(m => m.kind === 'magazine').length, steering = def.modules.filter(m => m.kind === 'steering').length;
   const floodingM3 = def.compartments.reduce((n, c) => n + c.capacityM3, 0), pumpM3PerMinute = def.compartments.reduce((n, c) => n + c.pumpM3PerSecond, 0) * 60;
   const survivability: StatSection = {
@@ -133,12 +141,12 @@ export function shipStatistics(def: ShipDefinition): StatSection[] {
   };
   const mainBattery: StatSection | undefined = main.length ? {
     id: 'main-battery', title: 'Main battery', headline: format(Math.round(main[0].weapon.caliberM * 1000)), headlineUnit: 'mm', headlineHelp: `${main[0].weapon.name}. Caliber sets the shell and the gunhouse envelope.`,
-    rows: [{ label: 'Gun', value: [...new Set(main.map(m => m.weapon.name))].join(' / '), help: 'Weapons fitted to the main battery mounts.', text: true }, ...batteryRows(main, false)],
+    rows: [{ label: 'Gun', value: [...new Set(main.map(m => m.weapon.name))].join(' / '), help: 'Weapons fitted to the main battery mounts.', text: true }, ...batteryRows(main, false, def)],
   } : undefined;
   const secondaryGroups = [...new Map(secondary.map(m => [m.partId, secondary.filter(s => s.partId === m.partId)])).values()];
   const secondaryBattery: StatSection | undefined = secondary.length ? {
     id: 'secondary-battery', title: 'Secondary battery', headline: format(secondary.reduce((n, m) => n + barrels(m.weapon), 0)), headlineUnit: 'barrels', headlineHelp: 'Barrels across every secondary mount. Secondary batteries fire under their own control.',
-    rows: secondaryGroups.flatMap(group => batteryRows(group, true).filter(row => secondaryGroups.length === 1 || ['Reload', 'Damage per minute', 'Maximum range', 'Penetration'].includes(row.label) || row.text)),
+    rows: secondaryGroups.flatMap(group => batteryRows(group, true, def).filter(row => secondaryGroups.length === 1 || ['Reload', 'Damage per minute', 'Maximum range', 'Penetration', 'Motion clearance'].includes(row.label) || row.text)),
     collapsed: true,
   } : undefined;
   const tubes = def.torpedoTubes ?? [];
@@ -152,7 +160,7 @@ export function shipStatistics(def: ShipDefinition): StatSection[] {
         { label: 'Weapon', value: weapon.name, help: 'Torpedo component fitted to these tubes.', text: true },
         { label: 'Diameter', value: format(weapon.diameterM * 1000), unit: 'mm', help: 'Diameter of the torpedo body.' },
         { label: 'Ammunition', value: format(group.reduce((n, t) => n + t.ammo, 0)), unit: 'rounds', help: 'Initial ammunition across these tubes, including reloads.' },
-        { label: 'Speed', value: format(knots(weapon.speed)), unit: 'kn', help: 'Constant speed after launch; no homing or later steering.' },
+        { label: 'Speed', value: format(knots(torpedoSpeed(weapon.speed))), unit: 'kn', help: 'Constant speed after launch; no homing or later steering.' },
         { label: 'Maximum range', value: format(weapon.rangeM / 1000, 1), unit: 'km', help: 'Maximum distance before the torpedo expires.' },
         { label: 'Running depth', value: format(weapon.runningDepthM, 1), unit: 'm', help: 'Depth below the CPU sea datum, reached gradually after launch.' },
         { label: 'Arming distance', value: format(weapon.armingDistanceM), unit: 'm', help: 'Earlier contact is a harmless dud. Provisional game tuning.' },

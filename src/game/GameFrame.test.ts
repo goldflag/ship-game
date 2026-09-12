@@ -1,6 +1,7 @@
+import { DEFAULT_GRAPHICS } from './graphicsSettings';
 import { afterEach, beforeEach, expect, spyOn, test } from 'bun:test';
 import { Color, DirectionalLight, Group, PerspectiveCamera, Vector3, InstancedBufferGeometry, InstancedMesh, MeshBasicMaterial } from 'three/webgpu';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { loadShipJoints } from '../../scripts/diagnostics/load-ship-joints';
 import { CombatSimulation } from '../simulation/combat';
 import { ENGINE_ORDERS, FIXED_DT } from '../simulation/ship';
 import { localToWorld, wrapAngle } from '../simulation/geometry';
@@ -47,12 +48,9 @@ function fakeWater() {
 }
 
 /** Exercise the real frame loop and exported joints, replacing only browser/GPU services. */
-async function frameHarness(shipId = 'bismarck') {
-  const bytes = await Bun.file(new URL(`../../public/models/${shipId}.glb`, import.meta.url)).arrayBuffer();
-  const gltf = JSON.parse(new TextDecoder().decode(new Uint8Array(bytes, 20, new DataView(bytes).getUint32(12, true))));
-  const nodes = gltf.nodes.map(({ mesh: _mesh, ...node }: { mesh?: number }) => node);
-  const model = await new GLTFLoader().parseAsync(JSON.stringify({ asset: gltf.asset, scene: gltf.scene, scenes: gltf.scenes, nodes }), '');
-  const simulation = new CombatSimulation(shipPreset(shipId));
+async function frameHarness(shipId = 'bismarck', fleet = false) {
+  const model = await loadShipJoints(shipId);
+  const simulation = new CombatSimulation(shipPreset(shipId), fleet ? { friendlyBots: [shipPreset(shipId)], enemies: [shipPreset(shipId)] } : undefined);
   simulation.ship.speed = simulation.definition.handling.forwardSpeed;
   const camera = new PerspectiveCamera(52, 16 / 9, .5, 60000);
   const rig = new CameraRig(camera, { addEventListener() {} } as unknown as HTMLCanvasElement);
@@ -72,14 +70,14 @@ async function frameHarness(shipId = 'bismarck') {
     setOrder: (order: number) => { helm.throttle = ENGINE_ORDERS[order]; },
     setRudder: (rudder: number) => { helm.rudder = rudder; } };
   const game = Object.assign(Object.create(Game.prototype), {
-    definition: simulation.definition, simulation, playerView, targetView, fleetViews: [playerView, targetView], camera, rig, ship: new Group(), shellFollow: new ShellFollow(),
+    definition: simulation.definition, simulation, playerView, targetView, fleetViews: [playerView, targetView, ...simulation.actors.filter(a => a !== simulation.player && a !== simulation.target).map(a => new ShipView(model.scene.clone(true), a.definition, a))], camera, rig, ship: new Group(), shellFollow: new ShellFollow(),
     renderer: { domElement: { setAttribute() {} } }, manualAim: false, battlefieldCamera, cameraFrameListeners: new Set(), fleetVisibility: new FleetVisibility(),
     host: { clientWidth: 1440, clientHeight: 900 }, airOperationsOpen: false,
-    shipLabels: { update() {} }, hitLabels: { update() {} }, torpedoPreview: { update() {} },
+    shipLabels: { update() {}, setObserved() {} }, hitLabels: { update() {} }, torpedoPreview: { update() {} },
     playerDamageFeedback: new HullDamageFeedback(simulation.player.damage.integrity),
     gunAim: { update(points: GunAimPoint[], _camera: PerspectiveCamera, visible: boolean) { gunAimFrames.push({ points, visible }); } },
     hitDirections: { update() {} },
-    lastTime: 0, hudTime: Infinity, lastTrailTick: 0, trail: [], fps: 60, battery: 'main',
+    lastTime: 0, hudTime: Infinity, lastTrailTick: 0, trail: [], fps: 60, battery: 'main', settings: DEFAULT_GRAPHICS,
     ammunition: { main: 'ap', secondary: 'ap' },
     paused: false, inPort: false, inspecting: false, input,
     aircraftView: { root: new Group(), update() {}, warmupParts() { return () => {}; } },
@@ -201,6 +199,8 @@ test('turning through north takes the short heading path without changing author
 
 test('firing enters shell view without feeding its camera into aim, freezes on pause and restores optics', async () => {
   const { game, simulation, camera, rig, playerView, gunAimFrames } = await frameHarness();
+  const effectsUpdate = spyOn(Reflect.get(game, 'effects') as { update(...args: unknown[]): void }, 'update');
+  const hidesShellTrails = () => effectsUpdate.mock.calls.at(-1)![5];
   game.manualAim = true;
   rig.aimAt([2500, 0, -2500], playerView.motion);
   game.toggleBinoculars();
@@ -210,11 +210,14 @@ test('firing enters shell view without feeding its camera into aim, freezes on p
   for (let i = 0; i < 600; i++) await game.frame(time += 1000 / 60);
   expect(gunAimFrames.at(-1)!.visible).toBe(true);
   expect(gunAimFrames.at(-1)!.points).toHaveLength(4);
+  expect(hidesShellTrails()).toBe(false);
   game.toggleShellFollow();
   simulation.requestFire();
   await game.frame(time += 1000 / 60);
   expect(game.shellFollow.phase).toBe('flight');
   expect(gunAimFrames.at(-1)).toEqual({ points: [], visible: false });
+  // Riding the round shows the physical projectiles without their vapor trails.
+  expect(hidesShellTrails()).toBe(true);
   expect(rig.binoculars).toBe(false);
   expect(playerView.root.visible).toBe(true);
   const aim = [...game.currentAim];
@@ -230,6 +233,8 @@ test('firing enters shell view without feeding its camera into aim, freezes on p
   game.paused = false;
   game.toggleShellFollow();
   expect(game.shellFollow.phase).toBe('off');
+  await game.frame(time += 1000 / 60);
+  expect(hidesShellTrails()).toBe(false);
   expect(rig.binoculars).toBe(true);
   expect(camera.fov).toBeCloseTo(fov, 10);
   expect(camera.position.distanceTo(playerView.root.position)).toBeLessThan(100);
@@ -252,17 +257,6 @@ test('death exits binoculars without a surviving teammate and prevents scope ree
   expect(playerView.root.visible).toBe(true);
   game.toggleBinoculars();
   expect(rig.binoculars).toBe(false);
-});
-
-test('shell-follow cannot restore binoculars after player death', async () => {
-  const { game, simulation, rig, camera } = await frameHarness();
-  await game.frame(16);
-  game.toggleBinoculars();
-  rig.setShellView({ position: [0, 100, 0], velocity: [0, 0, -100] });
-  simulation.player.damage.sunk = true;
-  await game.frame(32);
-  expect(rig.binoculars).toBe(false);
-  expect(camera.fov).toBeCloseTo(52);
 });
 
 test('target inspection follows the interpolated underway target and resets without a streak', async () => {
@@ -436,6 +430,22 @@ test('the frame feeds every fleet wake the rendered pose, and only the player in
   expect(frames.at(-1)!.ships).toEqual([playerView]);
 });
 
+test('reported enemy exteriors leave wakes behind the fleet, and the camera hull leads the list', async () => {
+  const { game, playerView, targetView } = await frameHarness();
+  const frames: unknown[][] = [];
+  const observed = { root: new Group(), motion: { x: 3000, y: 0, z: -3000, heading: 1, speed: 9 }, definition: shipPreset('bismarck') };
+  Object.assign(game, {
+    shipWake: { update(ships: unknown[]) { frames.push([...ships]); }, reset() {} },
+    observedShipViews: { root: new Group(), update() {}, wakeShips: () => [observed] },
+  });
+  await game.frame(100);
+  expect(frames.at(-1)).toEqual([playerView, targetView, observed]);
+  // The swell solver centres on the hull the camera rides, whichever it is.
+  game.inspecting = true;
+  await game.frame(200);
+  expect(frames.at(-1)).toEqual([targetView, playerView, observed]);
+});
+
 test('binoculars, then shell follow, then death: the follow never feeds the sight and death forbids returning to optics', async () => {
   const { game, simulation, camera, rig, playerView, gunAimFrames, input } = await frameHarness();
   const requests = spyOn(simulation, 'requestFire');
@@ -551,4 +561,39 @@ test('pausing during the map descent freezes combat while the camera finishes, a
   expect(rigEnabled(rig)).toBe(false);
   game.setPaused(false);
   expect(rigEnabled(rig)).toBe(true);
+});
+
+
+test('fleet Follow lead leaves the chart and keeps tracking a friendly carrier plane across frames', async () => {
+  const { game, simulation, camera, battlefieldCamera } = await frameHarness('enterprise-cv6', true);
+  Reflect.set(game, 'fleetCommandMode', true);
+  Reflect.set(game, 'selectedShipIds', []);
+  const carrier = simulation.actors[1], plane = carrier.airWing!.planes[0];
+  plane.deckSlot = 0;
+  // Freeze authoritative movement so camera motion can be measured independently.
+  game.paused = true;
+  game.setAirOperationsOpen(true);
+  game.followAircraft(plane.id);
+  expect(game.airOperationsOpen).toBe(false);
+  let time = 0;
+  for (let i = 0; i < 100; i++) await game.frame(time += 1000 / 60);
+  expect(battlefieldCamera.transitioning).toBe(false);
+  expect(followedAircraft(game)).toBe(plane.id);
+  const view = Reflect.get(game, 'fleetViews').find((v: ShipView) => v.actor === carrier) as ShipView;
+  const deck = new Vector3(...localToWorld(aircraftDeckSpot(carrier, plane), view.motion));
+  expect(camera.position.distanceTo(deck)).toBeLessThan(100);
+  game.returnToShip();
+  await game.frame(time += 1000 / 60);
+  expect(followedAircraft(game)).toBeUndefined();
+});
+
+test('camera overlay listeners receive aircraft presentation from the current frame', async () => {
+  const { game } = await frameHarness();
+  let aircraftFrame = 0;
+  Reflect.get(game, 'aircraftView').update = () => { aircraftFrame++; };
+  const observed: number[] = [];
+  Reflect.get(game, 'cameraFrameListeners').add(() => observed.push(aircraftFrame));
+  await game.frame(1000 / 60);
+  await game.frame(2000 / 60);
+  expect(observed).toEqual([1, 2]);
 });

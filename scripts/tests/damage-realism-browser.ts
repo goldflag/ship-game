@@ -49,9 +49,9 @@ export async function articulationReview() {
   cancelAnimationFrame(game.raf); await game.frameTask; cancelAnimationFrame(game.raf);
   const result = [];
   for (const trainFraction of [-1, 1]) {
-    const d = game.previewArticulation({ trainFraction, elevationFraction: 1, recoilFraction: 1 });
+    const d = await game.previewArticulation({ trainFraction, elevationFraction: 1, recoilFraction: 1 });
     result.push({ shipId: d.shipId, contentHash: d.contentHash, trainFraction, maxMuzzleErrorM: d.maxMuzzleErrorM });
   }
-  game.previewArticulation(null); game.scheduleFrame();
+  await game.previewArticulation(null); game.scheduleFrame();
   return result;
 }

@@ -125,7 +125,10 @@ test('Kongo bridge plating leaves glazing and the crew-eye sightline open', () =
 test('Kongo aircraft deck preserves the aft gap and space below its overhang', () => {
   const def = definition();
   const contact = (from: Vec3, to: Vec3) => structuralHits(from, to, def).length > 0;
-  expect(contact([3.8, 6, 54], [3.8, 7.1, 54])).toBe(false);
+  // Open space between the authored underside beams remains traversable.
+  expect(contact([3.8, 6, 54.3], [3.8, 7.1, 54.3])).toBe(false);
+  expect(structuralHits([3.8, 6, 54], [3.8, 7.1, 54], def)
+    .some(hit => hit.surface.id === 'fixed-fitting-aviation-deck-beam')).toBe(true);
   expect(contact([3.8, 7.1, 54], [3.8, 7.4, 54])).toBe(true);
   expect(contact([0, 6, 54], [0, 7.1, 54])).toBe(true);
   expect(contact([6, 6, 58], [6, 7.4, 58])).toBe(false);
