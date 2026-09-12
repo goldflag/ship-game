@@ -10,6 +10,7 @@ from deck_rails import create as create_rails
 from casemate_belt import openings
 from aviation_fittings import create as create_aviation
 from capstans import create as create_capstan
+from weather_deck import height as weather_height
 from sync_galleries import rod as collect_rod, mesh, write_structures
 
 path = Path(__file__).resolve().parent.parent/'blueprint.json'
@@ -54,9 +55,9 @@ def capstan_helpers(group):
                 rod=lambda name, *a, **kw: collect_rod(group, *a, **kw))
 for sign in [-1, 1]:
     create_capstan(capstan_helpers(f'wildcat-{sign}'), mats,
-                   lambda x: interp(h['deckHeights'], x+h['length']/2),
+                   lambda x: weather_height(h, x, sign*3.1),
                    'ground-tackle.wildcat', 76, sign*3.1, .62, .48)
 create_capstan(capstan_helpers('center-capstan'), mats,
-               lambda x: interp(h['deckHeights'], x+h['length']/2),
+               lambda x: weather_height(h, x, 0),
                'ground-tackle.center-capstan', 85, 0, .78, 1.12)
 write_structures(path, 'fixed-fitting-')

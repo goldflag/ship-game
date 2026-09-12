@@ -3,7 +3,7 @@ import math
 
 def create(helpers, mats, deck, name, x, y, r=.62, height=.75):
  cyl, rod = helpers["cyl"], helpers["rod"]
- z=deck(x)+.055
+ z=deck(x)-.025
  cyl(name+'.foot',(x,y,z+.09),r*1.32,.18,mats['naval'])
  cyl(name+'.drum',(x,y,z+.18+height/2),r,height,mats['edge'],r2=r*.82)
  cyl(name+'.head',(x,y,z+.18+height),r*1.15,.13,mats['naval'])

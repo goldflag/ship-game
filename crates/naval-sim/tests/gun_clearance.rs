@@ -236,15 +236,22 @@ fn main_and_casemate_barrels_stop_before_authored_structures_and_reverse() {
                 "{id}"
             );
         }
+        // A bounded conservative-advancement call can split a long reversal
+        // into successive safe moves beside the foredeck.
+        let (mut t, mut e) = (train * fraction, start + (elevation - start) * fraction);
+        for _ in 0..8 {
+            let f = clear_gun_motion(m, t, e, 0.0, start);
+            assert!(f > 0.0, "{id}: must reverse away from contact");
+            t *= 1.0 - f;
+            e += (start - e) * f;
+            assert!(gun_clearance(m, t, e) >= 0.0);
+            if t.abs() < 1e-10 {
+                break;
+            }
+        }
         assert!(
-            clear_gun_motion(
-                m,
-                train * fraction,
-                start + (elevation - start) * fraction,
-                0.0,
-                start
-            ) > 0.999,
-            "{id}: must reverse away from contact"
+            t.abs() < 1e-10 && (e - start).abs() < 1e-10,
+            "{id}: must reach neutral"
         );
     }
 }

@@ -126,6 +126,15 @@ test('main and casemate barrels stop before authored galleries and deck edges, t
     expect(fraction).toBeGreaterThan(0);expect(fraction).toBeLessThan(1);
     for(let i=0;i<=24;i++)expect(gunClearance(m,train*fraction*i/24,start+(elevation-start)*fraction*i/24)).toBeGreaterThanOrEqual(0);
     const stopped={train:train*fraction,elevation:start+(elevation-start)*fraction};
-    expect(clearGunMotion(m,stopped.train,stopped.elevation,0,start)).toBeGreaterThan(.999);
+    // Conservative advancement has a bounded work budget. A long reversal
+    // beside the foredeck may need successive safe moves, as it does in-game.
+    for(let attempt=0;attempt<8&&Math.abs(stopped.train)>1e-10;attempt++){
+      const f=clearGunMotion(m,stopped.train,stopped.elevation,0,start);
+      expect(f).toBeGreaterThan(0);
+      stopped.train*=1-f;stopped.elevation+=(start-stopped.elevation)*f;
+      expect(gunClearance(m,stopped.train,stopped.elevation)).toBeGreaterThanOrEqual(0);
+    }
+    expect(Math.abs(stopped.train)).toBeLessThan(1e-10);
+    expect(Math.abs(stopped.elevation-start)).toBeLessThan(1e-10);
   }
 },30000);

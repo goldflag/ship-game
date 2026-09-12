@@ -10,6 +10,7 @@ sys.path.insert(0,str(Path(__file__).resolve().parent/'authoring'))
 from floatplane import create as create_floatplane
 from deck_rails import create as create_deck_rails
 from turret_roof import create as create_turret_roof
+from weather_deck import camber as deck_camber, height as weather_height
 out=Path(os.environ['SHIP_OUTPUT'])
 d=json.loads(Path(os.environ['SHIP_DEFINITION']).read_text())
 bpy.ops.object.select_all(action='SELECT');bpy.ops.object.delete(use_global=False)
@@ -112,7 +113,8 @@ bm.to_mesh(o.data);bm.free()
 vs=[]
 for s in h['sections']:
  x=s['station']-half;w,z=s['points'][-1]
- vs.extend([(x,-w,z+.02),(x,0,z+.10),(x,w,z+.02)])
+ camber=deck_camber(x)
+ vs.extend([(x,-w,z+.02),(x,0,z+camber),(x,w,z+.02)])
 weather_faces=[(i*3+j,(i+1)*3+j,(i+1)*3+j+1,i*3+j+1) for i in range(len(h['sections'])-1) for j in range(2)]
 # Give the deck skin a closed underside before subtracting casemate wells.
 # Boolean difference on the former open sheet could retain cutter caps.
@@ -126,6 +128,9 @@ weather_faces += [tuple(i+weather_count for i in reversed(face)) for face in wea
 weather_faces += [(b,a,a+weather_count,b+weather_count) for a,b in weather_edges.values()]
 vs += [(x,y,z-.04) for x,y,z in vs[:]]
 mesh('deck.weather',vs,weather_faces,mats['wood'])
+# The connected stem cap uses the same original surface as CPU structure hits.
+stem=next(s for s in d['structures'] if s['id']=='bow-stem-cap')['surface']
+mesh('bow.stem-cap',[(-z,-x,y) for x,y,z in stem['vertices']],stem['triangles'],mats['naval'])
 # Shared original belt recipe preserves the same well surfaces in CPU contacts.
 from casemate_belt import create as create_casemate_belt, openings as belt_openings
 create_casemate_belt(prism,d['mounts'],mats['naval'],mats['wood'])
@@ -353,35 +358,35 @@ def chain_link(name,center,along,tilt):
  mesh(name,vs,[(i*k+j,i*k+(j+1)%k,((i+1)%n)*k+(j+1)%k,((i+1)%n)*k+j) for i in range(n) for j in range(k)],mats['edge'],smooth=True)
 from capstans import create as create_capstan
 def capstan(name,x,y,r=.62,height=.75):
- create_capstan(dict(cyl=cyl,rod=rod),mats,deck,name,x,y,r,height)
+ create_capstan(dict(cyl=cyl,rod=rod),mats,lambda u:weather_height(h,u,y),name,x,y,r,height)
 for sign in [-1,1]:
  hawse_x=98;hawse_y=sign*min(2.3,width(hawse_x)-.95)
- start=Vector((hawse_x,hawse_y,deck(hawse_x)+.14));end=Vector((76,sign*3.1,deck(76)+.14))
+ start=Vector((hawse_x,hawse_y,weather_height(h,hawse_x,hawse_y)+.14));end=Vector((76,sign*3.1,deck(76)+.14))
  delta=end-start;steps=round(delta.length/.24)
  # Sloping rubbing bed sits directly on the cambered deck.
  outline=[(hawse_x+.7,hawse_y-.55),(hawse_x+.7,hawse_y+.55),(75.0,sign*3.1+.63),(75.0,sign*3.1-.63)]
- vs=[(x,y,deck(x)+off) for off in [.03,.095] for x,y in outline]
+ vs=[(x,y,weather_height(h,x,y)+off) for off in [-.01,.065] for x,y in outline]
  mesh('ground-tackle.chain-bed',vs,[(3,2,1,0),(4,5,6,7),(0,1,5,4),(1,2,6,5),(2,3,7,6),(3,0,4,7)],mats['edge'])
  for i in range(steps):
-  p=start+delta*(i/(steps-1));p.z=deck(p.x)+.20
+  p=start+delta*(i/(steps-1));p.z=weather_height(h,p.x,p.y)+.17
   chain_link('ground-tackle.chain-link',p,delta,.65 if i%2 else -.65)
  # Hawse opening and raised collar, with chain visibly entering the throat.
- prism('ground-tackle.hawse-base',oval(hawse_x,hawse_y,.9,.58,24),deck(hawse_x)+.06,deck(hawse_x)+.19,mats['naval'])
- prism('ground-tackle.hawse-throat',oval(hawse_x,hawse_y,.54,.29,24),deck(hawse_x)+.19,deck(hawse_x)+.205,mats['dark'])
+ prism('ground-tackle.hawse-base',oval(hawse_x,hawse_y,.9,.58,24),weather_height(h,hawse_x,hawse_y)+.06,weather_height(h,hawse_x,hawse_y)+.19,mats['naval'])
+ prism('ground-tackle.hawse-throat',oval(hawse_x,hawse_y,.54,.29,24),weather_height(h,hawse_x,hawse_y)+.19,weather_height(h,hawse_x,hawse_y)+.205,mats['dark'])
  for i in range(5):
-  chain_link('ground-tackle.hawse-chain',(hawse_x+i*.16,hawse_y,deck(hawse_x)+.23-i*.035),(1,0,-.2),.65 if i%2 else -.65)
+  chain_link('ground-tackle.hawse-chain',(hawse_x+i*.16,hawse_y,weather_height(h,hawse_x,hawse_y)+.23-i*.035),(1,0,-.2),.65 if i%2 else -.65)
  capstan('ground-tackle.wildcat',76,sign*3.1,.62,.48)
  # The approved foredeck is clear at X=75.9, Y=±1.7; the previous extra
  # warping heads here were unsupported additions directly below the muzzles.
  # Paired bollards share a bolted deck plate.
  for x,y in [(103,1.3),(94,4.9),(83,7.1),(68,9.5)]:
-  y=sign*min(y,width(x+.75)-.65);z=deck(x)+.07
+  y=sign*min(y,width(x+.75)-.65);z=weather_height(h,x,y)+.05
   box('mooring.bollard-plate',(x,y,z),(1.5,.72,.12),mats['naval'])
   for dx in [-.45,.45]:
    cyl('mooring.bollard',(x+dx,y,z+.40),.22,.69,mats['naval'])
    cyl('mooring.bollard-head',(x+dx,y,z+.73),.29,.12,mats['edge'])
  for x,y in [(88,1.0),(79,5.0),(69,3.8)]:
-  y*=sign;z=deck(x)
+  y*=sign;z=weather_height(h,x,y)-.02
   prism('foredeck.hatch-coaming',rect(x-.65,x+.65,y-.45,y+.45,.1),z+.02,z+.25,mats['edge'])
   box('foredeck.hatch-lid',(x,y,z+.29),(1.34,.94,.08),mats['naval'])
   for dx in [-.46,.46]:rod('foredeck.hatch-dog',(x+dx,y-.38,z+.34),(x+dx,y+.38,z+.34),.025,mats['edge'],vertices=6)

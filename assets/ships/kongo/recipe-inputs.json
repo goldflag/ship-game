@@ -25,6 +25,7 @@
     "assets/ships/kongo/authoring/sync_fixed_fittings.py",
     "assets/ships/kongo/authoring/sync_galleries.py",
     "assets/ships/kongo/authoring/sync_gun_clearance.ts",
-    "assets/ships/kongo/authoring/turret_roof.py"
+    "assets/ships/kongo/authoring/turret_roof.py",
+    "assets/ships/kongo/authoring/weather_deck.py"
   ]
 }
