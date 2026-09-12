@@ -48,7 +48,11 @@ export interface MountClearanceProfile {
   /** Fixed bodies use hull coordinates; mounted fittings use yaw-local coordinates. */
   bodies?: { id: string; mountId?: string; surface: AuthoredSurface }[];
   /** Conservative envelopes for reviewed hull-mounted installations. */
-  mounts?: { mountId: string; barrelRadiusM: number; body?: { center: Vec3; size: Vec3 } }[];
+  mounts?: { mountId: string; barrelRadiusM: number; body?: { center: Vec3; size: Vec3 };
+    /** Original fitting envelopes. Elevating points are trunnion-relative;
+     * yaw points are mount-relative. Include full recoil travel in endpoints. */
+    fittings?: { joint: 'yaw' | 'elevation'; a: Vec3; b: Vec3; radiusM: number }[];
+  }[];
   structures?: { structureId: string; topExtensionM: number }[];
   neighbors?: [string, string][];
 }
@@ -97,6 +101,8 @@ export interface PartCatalog { schemaVersion: 1; parts: GunPart[]; torpedoes?: T
 export interface Mount {
   id: string; name: string; partId: string; battery: 'main' | 'secondary'; position: Vec3;
   bearingDeg: number; rangefinder: boolean;
+  /** Seated starting/stow angle; does not narrow the mechanical travel. */
+  initialElevationDeg?: number;
   /** Riding on another mount's yaw assembly. Position/bearing remain the
    * ship-space neutral datums; the carrier must precede this mount. */
   parentMountId?: string;
@@ -495,6 +501,9 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
     if (!parts.some(p => p.id === m.partId)) fail(String(m.id), `unknown part ${m.partId}`);
     literal(m.battery, ['main', 'secondary'], `${m.id}.battery`);
     literal(m.rangefinder, [true, false], `${m.id}.rangefinder`);
+    if (m.initialElevationDeg !== undefined) numeric(m.initialElevationDeg, `${m.id}.initialElevationDeg`,
+      Number(m.elevationMinDeg ?? parts.find(p=>p.id===m.partId)!.elevationMinDeg),
+      Number(m.elevationMaxDeg ?? parts.find(p=>p.id===m.partId)!.elevationMaxDeg));
     const pos = vector(m.position, `${m.id}.position`);
     const envelope = b.mountEnvelope === undefined ? h : record(b.mountEnvelope, 'mountEnvelope');
     if (Math.abs(pos[0]) > (envelope.beam as number) / 2 || Math.abs(pos[2]) > (envelope.length as number) / 2) fail(String(m.id), 'mount lies outside the hull envelope');
@@ -569,6 +578,12 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
       const m = mounts.find(m => m.id === e.mountId);
       if (!m || m.parentMountId !== undefined || selected.has(String(e.mountId))) fail('mountClearance.mounts', 'expected unique hull-mounted gun IDs');
       selected.add(String(e.mountId)); numeric(e.barrelRadiusM, 'clearance barrel radius', .01, 2);
+      if (e.fittings !== undefined) for (const value of list(e.fittings, 'clearance fittings', 64)) {
+        const fitting = record(value, 'clearance fitting');
+        literal(fitting.joint, ['yaw', 'elevation'], 'clearance fitting joint');
+        vector(fitting.a, 'clearance fitting endpoint'); vector(fitting.b, 'clearance fitting endpoint');
+        numeric(fitting.radiusM, 'clearance fitting radius', .001, 2);
+      }
       if (e.body !== undefined) {
         const body = record(e.body, 'clearance body'); vector(body.center, 'clearance body center');
         vector(body.size, 'clearance body size').forEach(n => numeric(n, 'clearance body dimension', .01, 30));

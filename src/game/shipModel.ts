@@ -2,6 +2,7 @@ import { assetUrl } from '../assetUrl';
 import type { ShipDefinition } from '../ships/blueprint';
 
 const identities: Record<string, { type: string; nation: string }> = {
+  'admiral-hipper': { type: 'Heavy cruiser', nation: 'Germany' },
   'type-viic': { type: 'Submarine', nation: 'Germany' },
   fletcher: { type: 'Destroyer', nation: 'United States' },
   gleaves: { type: 'Destroyer', nation: 'Republic of China' },

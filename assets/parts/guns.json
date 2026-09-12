@@ -16883,6 +16883,1496 @@
         "penetrationReferenceSpeedMps": 530,
         "basis": "Provisional game calibration for the approved Fubuki A visual fit."
       }
+    },
+    {
+      "id": "skc34-203-twin",
+      "name": "20.3 cm C/34 twin",
+      "kind": "gun",
+      "barrelCount": 2,
+      "caliberM": 0.203,
+      "gunhouseSize": [
+        8.05,
+        6.64,
+        2.64
+      ],
+      "pivotHeight": 1.0235,
+      "trunnionForward": 1.884,
+      "muzzleForward": 11.15,
+      "barrelSpacing": 2.16,
+      "barbetteRadius": 3.02,
+      "massKg": 249000,
+      "traverseDeg": 150,
+      "traverseRateDeg": 6,
+      "elevationMinDeg": -5,
+      "elevationMaxDeg": 37,
+      "elevationRateDeg": 8,
+      "reloadSeconds": 13,
+      "muzzleSpeed": 925,
+      "projectileMassKg": 122,
+      "penetrationMm": 270,
+      "damage": 40,
+      "recoilM": 0.55,
+      "ammoPerBarrel": 120,
+      "armorMm": 80,
+      "mountingStyle": "enclosed",
+      "ballistics": {
+        "dragPerSecond": 0.03758,
+        "dispersionRad": 0.0016,
+        "muzzleSpeedSigmaFraction": 0.005,
+        "basis": "Provisional game calibration for the approved pgsc108 visual fit; not historical ballistics or mechanical-stop certification."
+      },
+      "barrelBaseRadius": 0.265,
+      "gunhouseMesh": {
+        "version": 1,
+        "vertices": [
+          [
+            -5.45,
+            -2.63,
+            0.06
+          ],
+          [
+            -4.75,
+            -3.32,
+            0.06
+          ],
+          [
+            1.7,
+            -3.32,
+            0.06
+          ],
+          [
+            2.6,
+            -2.6,
+            0.06
+          ],
+          [
+            2.6,
+            2.6,
+            0.06
+          ],
+          [
+            1.7,
+            3.32,
+            0.06
+          ],
+          [
+            -4.75,
+            3.32,
+            0.06
+          ],
+          [
+            -5.45,
+            2.63,
+            0.06
+          ],
+          [
+            -5.45,
+            -2.63,
+            1.68
+          ],
+          [
+            -4.75,
+            -3.32,
+            1.68
+          ],
+          [
+            1.7,
+            -3.32,
+            1.68
+          ],
+          [
+            2.02,
+            -2.6,
+            1.68
+          ],
+          [
+            2.02,
+            2.6,
+            1.68
+          ],
+          [
+            1.7,
+            3.32,
+            1.68
+          ],
+          [
+            -4.75,
+            3.32,
+            1.68
+          ],
+          [
+            -5.45,
+            2.63,
+            1.68
+          ],
+          [
+            -5.1,
+            -2.33,
+            2.64
+          ],
+          [
+            -4.56,
+            -2.85,
+            2.64
+          ],
+          [
+            1.1,
+            -2.85,
+            2.64
+          ],
+          [
+            1.45,
+            -2.26,
+            2.64
+          ],
+          [
+            1.45,
+            2.26,
+            2.64
+          ],
+          [
+            1.1,
+            2.85,
+            2.64
+          ],
+          [
+            -4.56,
+            2.85,
+            2.64
+          ],
+          [
+            -5.1,
+            2.33,
+            2.64
+          ]
+        ],
+        "faces": [
+          {
+            "id": "floor-1",
+            "indices": [
+              7,
+              6,
+              5
+            ],
+            "thicknessMm": 20,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-2",
+            "indices": [
+              7,
+              5,
+              4
+            ],
+            "thicknessMm": 20,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-3",
+            "indices": [
+              7,
+              4,
+              3
+            ],
+            "thicknessMm": 20,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-4",
+            "indices": [
+              7,
+              3,
+              2
+            ],
+            "thicknessMm": 20,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-5",
+            "indices": [
+              7,
+              2,
+              1
+            ],
+            "thicknessMm": 20,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-6",
+            "indices": [
+              7,
+              1,
+              0
+            ],
+            "thicknessMm": 20,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-0-1",
+            "indices": [
+              0,
+              1,
+              9
+            ],
+            "thicknessMm": 80,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-0-2",
+            "indices": [
+              0,
+              9,
+              8
+            ],
+            "thicknessMm": 80,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-1-1",
+            "indices": [
+              1,
+              2,
+              10
+            ],
+            "thicknessMm": 80,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-1-2",
+            "indices": [
+              1,
+              10,
+              9
+            ],
+            "thicknessMm": 80,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-2-1",
+            "indices": [
+              2,
+              3,
+              11
+            ],
+            "thicknessMm": 80,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-2-2",
+            "indices": [
+              2,
+              11,
+              10
+            ],
+            "thicknessMm": 80,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-3-1",
+            "indices": [
+              3,
+              4,
+              12
+            ],
+            "thicknessMm": 80,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-3-2",
+            "indices": [
+              3,
+              12,
+              11
+            ],
+            "thicknessMm": 80,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-4-1",
+            "indices": [
+              4,
+              5,
+              13
+            ],
+            "thicknessMm": 80,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-4-2",
+            "indices": [
+              4,
+              13,
+              12
+            ],
+            "thicknessMm": 80,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-5-1",
+            "indices": [
+              5,
+              6,
+              14
+            ],
+            "thicknessMm": 80,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-5-2",
+            "indices": [
+              5,
+              14,
+              13
+            ],
+            "thicknessMm": 80,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-6-1",
+            "indices": [
+              6,
+              7,
+              15
+            ],
+            "thicknessMm": 80,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-6-2",
+            "indices": [
+              6,
+              15,
+              14
+            ],
+            "thicknessMm": 80,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-7-1",
+            "indices": [
+              7,
+              0,
+              8
+            ],
+            "thicknessMm": 80,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-7-2",
+            "indices": [
+              7,
+              8,
+              15
+            ],
+            "thicknessMm": 80,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-0-1",
+            "indices": [
+              8,
+              9,
+              17
+            ],
+            "thicknessMm": 40,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-0-2",
+            "indices": [
+              8,
+              17,
+              16
+            ],
+            "thicknessMm": 40,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-1-1",
+            "indices": [
+              9,
+              10,
+              18
+            ],
+            "thicknessMm": 40,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-1-2",
+            "indices": [
+              9,
+              18,
+              17
+            ],
+            "thicknessMm": 40,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-2-1",
+            "indices": [
+              10,
+              11,
+              19
+            ],
+            "thicknessMm": 40,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-2-2",
+            "indices": [
+              10,
+              19,
+              18
+            ],
+            "thicknessMm": 40,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-3-1",
+            "indices": [
+              11,
+              12,
+              20
+            ],
+            "thicknessMm": 40,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-3-2",
+            "indices": [
+              11,
+              20,
+              19
+            ],
+            "thicknessMm": 40,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-4-1",
+            "indices": [
+              12,
+              13,
+              21
+            ],
+            "thicknessMm": 40,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-4-2",
+            "indices": [
+              12,
+              21,
+              20
+            ],
+            "thicknessMm": 40,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-5-1",
+            "indices": [
+              13,
+              14,
+              22
+            ],
+            "thicknessMm": 40,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-5-2",
+            "indices": [
+              13,
+              22,
+              21
+            ],
+            "thicknessMm": 40,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-6-1",
+            "indices": [
+              14,
+              15,
+              23
+            ],
+            "thicknessMm": 40,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-6-2",
+            "indices": [
+              14,
+              23,
+              22
+            ],
+            "thicknessMm": 40,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-7-1",
+            "indices": [
+              15,
+              8,
+              16
+            ],
+            "thicknessMm": 40,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-7-2",
+            "indices": [
+              15,
+              16,
+              23
+            ],
+            "thicknessMm": 40,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "roof-1",
+            "indices": [
+              16,
+              17,
+              18
+            ],
+            "thicknessMm": 30,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "roof-2",
+            "indices": [
+              16,
+              18,
+              19
+            ],
+            "thicknessMm": 30,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "roof-3",
+            "indices": [
+              16,
+              19,
+              20
+            ],
+            "thicknessMm": 30,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "roof-4",
+            "indices": [
+              16,
+              20,
+              21
+            ],
+            "thicknessMm": 30,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "roof-5",
+            "indices": [
+              16,
+              21,
+              22
+            ],
+            "thicknessMm": 30,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "roof-6",
+            "indices": [
+              16,
+              22,
+              23
+            ],
+            "thicknessMm": 30,
+            "material": "steel",
+            "finish": "roof"
+          }
+        ],
+        "provenance": {
+          "sourceId": "gm3d-pgsc108",
+          "basis": "estimated",
+          "note": "Original faceted enclosure interpreted from approved model; armor is provisional game steel."
+        }
+      },
+      "ap": {
+        "armingResistanceMm": 33.83,
+        "fuzeDelaySeconds": 0.035,
+        "explosiveKg": 3.05,
+        "fragmentPenetrationMm": 16.24,
+        "basis": "Provisional game calibration for the approved pgsc108 visual fit; not historical ballistics or mechanical-stop certification."
+      },
+      "he": {
+        "explosiveKg": 9.76,
+        "fragmentPenetrationMm": 33.83,
+        "damage": 80,
+        "stockFraction": 0.4,
+        "basis": "Provisional game calibration for the approved pgsc108 visual fit; not historical ballistics or mechanical-stop certification."
+      }
+    },
+    {
+      "id": "skc34-203-twin-rf",
+      "name": "20.3 cm C/34 twin \u00b7 rangefinder",
+      "kind": "gun",
+      "barrelCount": 2,
+      "caliberM": 0.203,
+      "gunhouseSize": [
+        8.05,
+        6.64,
+        2.64
+      ],
+      "pivotHeight": 1.0235,
+      "trunnionForward": 1.884,
+      "muzzleForward": 11.15,
+      "barrelSpacing": 2.16,
+      "barbetteRadius": 3.02,
+      "massKg": 249000,
+      "traverseDeg": 150,
+      "traverseRateDeg": 6,
+      "elevationMinDeg": -5,
+      "elevationMaxDeg": 37,
+      "elevationRateDeg": 8,
+      "reloadSeconds": 13,
+      "muzzleSpeed": 925,
+      "projectileMassKg": 122,
+      "penetrationMm": 270,
+      "damage": 40,
+      "recoilM": 0.55,
+      "ammoPerBarrel": 120,
+      "armorMm": 80,
+      "mountingStyle": "enclosed",
+      "ballistics": {
+        "dragPerSecond": 0.03758,
+        "dispersionRad": 0.0016,
+        "muzzleSpeedSigmaFraction": 0.005,
+        "basis": "Provisional game calibration for the approved pgsc108 visual fit; not historical ballistics or mechanical-stop certification."
+      },
+      "barrelBaseRadius": 0.265,
+      "gunhouseMesh": {
+        "version": 1,
+        "vertices": [
+          [
+            -5.45,
+            -2.63,
+            0.06
+          ],
+          [
+            -4.75,
+            -3.32,
+            0.06
+          ],
+          [
+            1.7,
+            -3.32,
+            0.06
+          ],
+          [
+            2.6,
+            -2.6,
+            0.06
+          ],
+          [
+            2.6,
+            2.6,
+            0.06
+          ],
+          [
+            1.7,
+            3.32,
+            0.06
+          ],
+          [
+            -4.75,
+            3.32,
+            0.06
+          ],
+          [
+            -5.45,
+            2.63,
+            0.06
+          ],
+          [
+            -5.45,
+            -2.63,
+            1.68
+          ],
+          [
+            -4.75,
+            -3.32,
+            1.68
+          ],
+          [
+            1.7,
+            -3.32,
+            1.68
+          ],
+          [
+            2.02,
+            -2.6,
+            1.68
+          ],
+          [
+            2.02,
+            2.6,
+            1.68
+          ],
+          [
+            1.7,
+            3.32,
+            1.68
+          ],
+          [
+            -4.75,
+            3.32,
+            1.68
+          ],
+          [
+            -5.45,
+            2.63,
+            1.68
+          ],
+          [
+            -5.1,
+            -2.33,
+            2.64
+          ],
+          [
+            -4.56,
+            -2.85,
+            2.64
+          ],
+          [
+            1.1,
+            -2.85,
+            2.64
+          ],
+          [
+            1.45,
+            -2.26,
+            2.64
+          ],
+          [
+            1.45,
+            2.26,
+            2.64
+          ],
+          [
+            1.1,
+            2.85,
+            2.64
+          ],
+          [
+            -4.56,
+            2.85,
+            2.64
+          ],
+          [
+            -5.1,
+            2.33,
+            2.64
+          ]
+        ],
+        "faces": [
+          {
+            "id": "floor-1",
+            "indices": [
+              7,
+              6,
+              5
+            ],
+            "thicknessMm": 20,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-2",
+            "indices": [
+              7,
+              5,
+              4
+            ],
+            "thicknessMm": 20,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-3",
+            "indices": [
+              7,
+              4,
+              3
+            ],
+            "thicknessMm": 20,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-4",
+            "indices": [
+              7,
+              3,
+              2
+            ],
+            "thicknessMm": 20,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-5",
+            "indices": [
+              7,
+              2,
+              1
+            ],
+            "thicknessMm": 20,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "floor-6",
+            "indices": [
+              7,
+              1,
+              0
+            ],
+            "thicknessMm": 20,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-0-1",
+            "indices": [
+              0,
+              1,
+              9
+            ],
+            "thicknessMm": 80,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-0-2",
+            "indices": [
+              0,
+              9,
+              8
+            ],
+            "thicknessMm": 80,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-1-1",
+            "indices": [
+              1,
+              2,
+              10
+            ],
+            "thicknessMm": 80,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-1-2",
+            "indices": [
+              1,
+              10,
+              9
+            ],
+            "thicknessMm": 80,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-2-1",
+            "indices": [
+              2,
+              3,
+              11
+            ],
+            "thicknessMm": 80,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-2-2",
+            "indices": [
+              2,
+              11,
+              10
+            ],
+            "thicknessMm": 80,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-3-1",
+            "indices": [
+              3,
+              4,
+              12
+            ],
+            "thicknessMm": 80,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-3-2",
+            "indices": [
+              3,
+              12,
+              11
+            ],
+            "thicknessMm": 80,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-4-1",
+            "indices": [
+              4,
+              5,
+              13
+            ],
+            "thicknessMm": 80,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-4-2",
+            "indices": [
+              4,
+              13,
+              12
+            ],
+            "thicknessMm": 80,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-5-1",
+            "indices": [
+              5,
+              6,
+              14
+            ],
+            "thicknessMm": 80,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-5-2",
+            "indices": [
+              5,
+              14,
+              13
+            ],
+            "thicknessMm": 80,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-6-1",
+            "indices": [
+              6,
+              7,
+              15
+            ],
+            "thicknessMm": 80,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-6-2",
+            "indices": [
+              6,
+              15,
+              14
+            ],
+            "thicknessMm": 80,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-7-1",
+            "indices": [
+              7,
+              0,
+              8
+            ],
+            "thicknessMm": 80,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-0-7-2",
+            "indices": [
+              7,
+              8,
+              15
+            ],
+            "thicknessMm": 80,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-0-1",
+            "indices": [
+              8,
+              9,
+              17
+            ],
+            "thicknessMm": 40,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-0-2",
+            "indices": [
+              8,
+              17,
+              16
+            ],
+            "thicknessMm": 40,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-1-1",
+            "indices": [
+              9,
+              10,
+              18
+            ],
+            "thicknessMm": 40,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-1-2",
+            "indices": [
+              9,
+              18,
+              17
+            ],
+            "thicknessMm": 40,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-2-1",
+            "indices": [
+              10,
+              11,
+              19
+            ],
+            "thicknessMm": 40,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-2-2",
+            "indices": [
+              10,
+              19,
+              18
+            ],
+            "thicknessMm": 40,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-3-1",
+            "indices": [
+              11,
+              12,
+              20
+            ],
+            "thicknessMm": 40,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-3-2",
+            "indices": [
+              11,
+              20,
+              19
+            ],
+            "thicknessMm": 40,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-4-1",
+            "indices": [
+              12,
+              13,
+              21
+            ],
+            "thicknessMm": 40,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-4-2",
+            "indices": [
+              12,
+              21,
+              20
+            ],
+            "thicknessMm": 40,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-5-1",
+            "indices": [
+              13,
+              14,
+              22
+            ],
+            "thicknessMm": 40,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-5-2",
+            "indices": [
+              13,
+              22,
+              21
+            ],
+            "thicknessMm": 40,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-6-1",
+            "indices": [
+              14,
+              15,
+              23
+            ],
+            "thicknessMm": 40,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-6-2",
+            "indices": [
+              14,
+              23,
+              22
+            ],
+            "thicknessMm": 40,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-7-1",
+            "indices": [
+              15,
+              8,
+              16
+            ],
+            "thicknessMm": 40,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "wall-1-7-2",
+            "indices": [
+              15,
+              16,
+              23
+            ],
+            "thicknessMm": 40,
+            "material": "steel",
+            "finish": "naval"
+          },
+          {
+            "id": "roof-1",
+            "indices": [
+              16,
+              17,
+              18
+            ],
+            "thicknessMm": 30,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "roof-2",
+            "indices": [
+              16,
+              18,
+              19
+            ],
+            "thicknessMm": 30,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "roof-3",
+            "indices": [
+              16,
+              19,
+              20
+            ],
+            "thicknessMm": 30,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "roof-4",
+            "indices": [
+              16,
+              20,
+              21
+            ],
+            "thicknessMm": 30,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "roof-5",
+            "indices": [
+              16,
+              21,
+              22
+            ],
+            "thicknessMm": 30,
+            "material": "steel",
+            "finish": "roof"
+          },
+          {
+            "id": "roof-6",
+            "indices": [
+              16,
+              22,
+              23
+            ],
+            "thicknessMm": 30,
+            "material": "steel",
+            "finish": "roof"
+          }
+        ],
+        "provenance": {
+          "sourceId": "gm3d-pgsc108",
+          "basis": "estimated",
+          "note": "Original faceted enclosure interpreted from approved model; armor is provisional game steel."
+        }
+      },
+      "ap": {
+        "armingResistanceMm": 33.83,
+        "fuzeDelaySeconds": 0.035,
+        "explosiveKg": 3.05,
+        "fragmentPenetrationMm": 16.24,
+        "basis": "Provisional game calibration for the approved pgsc108 visual fit; not historical ballistics or mechanical-stop certification."
+      },
+      "he": {
+        "explosiveKg": 9.76,
+        "fragmentPenetrationMm": 33.83,
+        "damage": 80,
+        "stockFraction": 0.4,
+        "basis": "Provisional game calibration for the approved pgsc108 visual fit; not historical ballistics or mechanical-stop certification."
+      }
+    },
+    {
+      "id": "skc33-105-c31-twin",
+      "name": "10.5 cm C/33 twin \u00b7 C/31 shield",
+      "kind": "gun",
+      "barrelCount": 2,
+      "caliberM": 0.105,
+      "gunhouseSize": [
+        3.71,
+        3.78,
+        2.52
+      ],
+      "pivotHeight": 1.8915,
+      "trunnionForward": -0.5415,
+      "muzzleForward": 4.896,
+      "barrelSpacing": 0.66,
+      "barbetteRadius": 1.26,
+      "massKg": 27000,
+      "traverseDeg": 180,
+      "traverseRateDeg": 18,
+      "elevationMinDeg": -5,
+      "elevationMaxDeg": 80,
+      "elevationRateDeg": 18,
+      "reloadSeconds": 4,
+      "muzzleSpeed": 900,
+      "projectileMassKg": 15.1,
+      "penetrationMm": 50,
+      "damage": 12,
+      "recoilM": 0.18,
+      "ammoPerBarrel": 400,
+      "armorMm": 5,
+      "mountingStyle": "open-pedestal",
+      "ballistics": {
+        "dragPerSecond": 0.07903,
+        "dispersionRad": 0.0016,
+        "muzzleSpeedSigmaFraction": 0.005,
+        "basis": "Provisional game calibration for the approved pgsc108 visual fit; not historical ballistics or mechanical-stop certification."
+      }
+    },
+    {
+      "id": "flak38-20-single",
+      "name": "2 cm Flak 38 single \u00b7 case bag",
+      "kind": "gun",
+      "barrelCount": 1,
+      "caliberM": 0.02,
+      "gunhouseSize": [
+        1.5,
+        1.54,
+        2.1
+      ],
+      "pivotHeight": 1.554,
+      "trunnionForward": -0.5,
+      "muzzleForward": 1.238,
+      "barrelSpacing": 0.1,
+      "barbetteRadius": 0.48,
+      "massKg": 500,
+      "traverseDeg": 180,
+      "traverseRateDeg": 30,
+      "elevationMinDeg": -5,
+      "elevationMaxDeg": 80,
+      "elevationRateDeg": 25,
+      "reloadSeconds": 0.15,
+      "muzzleSpeed": 830,
+      "projectileMassKg": 0.12,
+      "penetrationMm": 9,
+      "damage": 2,
+      "recoilM": 0.04,
+      "ammoPerBarrel": 1000,
+      "armorMm": 5,
+      "mountingStyle": "open-pedestal",
+      "ballistics": {
+        "dragPerSecond": 0.33273,
+        "dispersionRad": 0.0016,
+        "muzzleSpeedSigmaFraction": 0.005,
+        "basis": "Provisional game calibration for the approved pgsc108 visual fit; not historical ballistics or mechanical-stop certification."
+      }
+    },
+    {
+      "id": "flak38-m43u-20-twin",
+      "name": "2 cm Flak 38 M43U twin",
+      "kind": "gun",
+      "barrelCount": 2,
+      "caliberM": 0.02,
+      "gunhouseSize": [
+        1.55,
+        1.32,
+        1.9
+      ],
+      "pivotHeight": 1.242,
+      "trunnionForward": -0.5,
+      "muzzleForward": 1.3575,
+      "barrelSpacing": 0.2805,
+      "barbetteRadius": 0.48,
+      "massKg": 900,
+      "traverseDeg": 180,
+      "traverseRateDeg": 30,
+      "elevationMinDeg": -5,
+      "elevationMaxDeg": 80,
+      "elevationRateDeg": 25,
+      "reloadSeconds": 0.16,
+      "muzzleSpeed": 830,
+      "projectileMassKg": 0.12,
+      "penetrationMm": 9,
+      "damage": 2,
+      "recoilM": 0.04,
+      "ammoPerBarrel": 1000,
+      "armorMm": 5,
+      "mountingStyle": "open-pedestal",
+      "ballistics": {
+        "dragPerSecond": 0.33273,
+        "dispersionRad": 0.0016,
+        "muzzleSpeedSigmaFraction": 0.005,
+        "basis": "Provisional game calibration for the approved pgsc108 visual fit; not historical ballistics or mechanical-stop certification."
+      }
+    },
+    {
+      "id": "flak28-40-single",
+      "name": "4 cm Flak 28 single",
+      "kind": "gun",
+      "barrelCount": 1,
+      "caliberM": 0.04,
+      "gunhouseSize": [
+        1.7,
+        2.08,
+        2.4
+      ],
+      "pivotHeight": 1.2975,
+      "trunnionForward": 0.05,
+      "muzzleForward": 2.973,
+      "barrelSpacing": 0.1,
+      "barbetteRadius": 0.49,
+      "massKg": 2100,
+      "traverseDeg": 180,
+      "traverseRateDeg": 30,
+      "elevationMinDeg": -5,
+      "elevationMaxDeg": 80,
+      "elevationRateDeg": 25,
+      "reloadSeconds": 0.5,
+      "muzzleSpeed": 850,
+      "projectileMassKg": 0.9,
+      "penetrationMm": 18,
+      "damage": 5,
+      "recoilM": 0.04,
+      "ammoPerBarrel": 1000,
+      "armorMm": 5,
+      "mountingStyle": "open-pedestal",
+      "ballistics": {
+        "dragPerSecond": 0.18173,
+        "dispersionRad": 0.0016,
+        "muzzleSpeedSigmaFraction": 0.005,
+        "basis": "Provisional game calibration for the approved pgsc108 visual fit; not historical ballistics or mechanical-stop certification."
+      }
     }
   ],
   "torpedoes": [

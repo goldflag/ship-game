@@ -172,3 +172,70 @@ fn active_kernel_enforces_asymmetric_travel_and_platform_interlocks() {
     assert_eq!(states[i].train, 0.0);
     assert_eq!(states[i].status, MountStatus::Blocked);
 }
+
+#[test]
+fn projecting_fittings_follow_their_joint_and_stop_before_overhead_structure() {
+    let (mut d, mut states) = fixture();
+    let m = &mut d.mounts[0];
+    m.position = [0.0; 3];
+    m.bearing_deg = 0.0;
+    m.weapon.trunnion_forward = 0.0;
+    m.weapon.pivot_height = 2.0;
+    m.weapon.muzzle_forward = 1.0;
+    m.weapon.barrel_count = Some(1.0);
+    m.weapon.barrel_spacing = 0.0;
+    m.weapon.recoil_m = 0.0;
+    m.initial_elevation_deg = Some(30.0);
+    assert_eq!(MountState::new(m).elevation, radians(30.0));
+    let id = m.id.clone();
+    d.structures = Some(serde_json::from_value(serde_json::json!([{
+        "id":"overhead", "name":"Overhead fitting", "footprint":[[-0.5,-7.0],[0.5,-7.0],[0.5,-5.5],[-0.5,-5.5]],
+        "baseY":4.5,"height":1.0,"material":"naval"
+    }])).unwrap());
+    d.mount_clearance = Some(serde_json::from_value(serde_json::json!({
+        "version":1,"marginM":0.02,"basis":"Original fitting test",
+        "mounts":[{"mountId":id,"barrelRadiusM":0.05,"fittings":[{"joint":"elevation","a":[0,0,-5],"b":[0,0,-7],"radiusM":0.03}]}],
+        "structures":[{"structureId":"overhead","topExtensionM":0}],"neighbors":[]
+    })).unwrap());
+    assert!(MountClearance::new(&d).unwrap().is_none());
+    states[0].train = 0.0;
+    states[0].elevation = 0.0;
+    assert!(mount_pose_clear(&d, 0, (0.0, 0.0), &states, 0.0));
+    assert!(!mount_pose_clear(&d, 0, (0.0, radians(30.0)), &states, 0.0));
+    assert!(!move_to(&d, 0, &mut states, (0.0, radians(50.0))));
+    assert!(states[0].elevation > 0.0);
+    assert!(move_to(&d, 0, &mut states, (0.0, 0.0)));
+    let mut fixed = d.clone();
+    fixed.mount_clearance.as_mut().unwrap().structures = Some(vec![]);
+    fixed.structures = Some(vec![]);
+    fixed.obstructions = serde_json::from_value(
+        serde_json::json!([{"id":"deck-fitting","center":[0,5,-6.25],"size":[1,1,1.5]}]),
+    )
+    .unwrap();
+    assert!(!mount_pose_clear(
+        &fixed,
+        0,
+        (0.0, radians(30.0)),
+        &states,
+        0.0
+    ));
+    assert!(mount_pose_clear(&fixed, 0, (0.0, 0.0), &states, 0.0));
+    let entry = &mut d.mount_clearance.as_mut().unwrap().mounts.as_mut().unwrap()[0];
+    let c = &mut entry.fittings.as_mut().unwrap()[0];
+    c.joint = "yaw".into();
+    c.a = [4.0, 2.0, 0.0];
+    c.b = [6.0, 2.0, 0.0];
+    let s = &mut d.structures.as_mut().unwrap()[0];
+    s.footprint = vec![[4.5, -0.5], [5.5, -0.5], [5.5, 0.5], [4.5, 0.5]];
+    s.base_y = 1.5;
+    for elevation in [0.0, radians(80.0)] {
+        assert!(!mount_pose_clear(&d, 0, (0.0, elevation), &states, 0.0));
+    }
+    assert!(mount_pose_clear(&d, 0, (radians(90.0), 0.0), &states, 0.0));
+    d.mount_clearance.as_mut().unwrap().mounts.as_mut().unwrap()[0]
+        .fittings
+        .as_mut()
+        .unwrap()[0]
+        .joint = "unsupported".into();
+    assert!(MountClearance::new(&d).is_err());
+}

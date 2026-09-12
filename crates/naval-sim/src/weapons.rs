@@ -125,7 +125,7 @@ impl MountState {
             carrier: None,
             id: m.id.clone(),
             train: 0.0,
-            elevation: radians(1.0),
+            elevation: radians(m.initial_elevation_deg.unwrap_or(1.0)),
             reload: 0.0,
             ammo: m.weapon.ammo_per_barrel * count,
             he_ammo: (m.weapon.ammo_per_barrel

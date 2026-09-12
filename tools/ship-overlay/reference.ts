@@ -45,6 +45,7 @@ export function aircraftScheme(aircraft: AircraftReference): Scheme {
 }
 /** World of Warships vehicles on GameModels3D that match roster presets. Presets without a WoWS counterpart have no suggestion. */
 export const suggestedVehicles: Record<string, string> = {
+  'admiral-hipper': 'pgsc108',
   bismarck: 'pgsb708', yamato: 'pjsb018', iowa: 'pasb018', 'king-george-v': 'pbsb107',
   baltimore: 'pasc108', mogami: 'pjsc009', 'enterprise-cv6': 'pasa518', shokaku: 'pjsa108',
   'type-viic': 'pgss206', fletcher: 'pasd021', yukikaze: 'pjsd718', fubuki: 'pjsd106',

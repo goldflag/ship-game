@@ -82,7 +82,10 @@ function barrels(m: MountDefinition,p: Pose,e: Entry,margin: number): Capsule[] 
     return localToWorld([barrelOffset(w,barrel),w.pivotHeight+travel*sn+row*cs,-w.trunnionForward-travel*cs+row*sn],f);
   };
   // Enclose both recoil endpoints at every pose; firing cannot introduce a new contact.
-  return Array.from({length:w.barrelCount??2},(_,i)=>({a:point(w.trunnionForward-.65-w.recoilM,i),b:point(w.muzzleForward+.05,i),radius:e.barrelRadiusM+margin}));
+  const fittedPoint=(v:Vec3,joint:'yaw'|'elevation'):Vec3=>localToWorld(joint==='yaw'?v:
+    [v[0],w.pivotHeight+v[1]*cs-v[2]*sn,-w.trunnionForward+v[2]*cs+v[1]*sn],f);
+  return [...Array.from({length:w.barrelCount??2},(_,i)=>({a:point(w.trunnionForward-.65-w.recoilM,i),b:point(w.muzzleForward+.05,i),radius:e.barrelRadiusM+margin})),
+    ...(e.fittings??[]).map(c=>({a:fittedPoint(c.a,c.joint),b:fittedPoint(c.b,c.joint),radius:c.radiusM+margin}))];
 }
 function capsuleBody(c: Capsule,m: MountDefinition,p: Pose,e: Entry,margin: number): boolean {
   if (!e.body) return false;
@@ -104,10 +107,11 @@ export function mountPoseClear(def: ShipDefinition,index: number,pose: Pose,stat
   const profile=def.mountClearance,m=def.mounts[index],entry=profile?.mounts?.find(e=>e.mountId===m.id);
   if (!profile || !entry) return true;
   const margin=profile.marginM+extraMargin,own=barrels(m,pose,entry,margin);
+  if (own.some(c=>def.obstructions.some(b=>segmentBox(c.a,c.b,{center:b.center,size:b.size.map(s=>s+2*c.radius) as Vec3})))) return false;
   if (own.some(c=>prisms(def).some(p=>capsulePrism(c,p)))) return false;
   for (const pair of (profile.neighbors ?? [])) {
     const otherId=pair[0]===m.id?pair[1]:pair[1]===m.id?pair[0]:undefined;if (!otherId) continue;
-    const j=def.mounts.findIndex(m=>m.id===otherId),other=def.mounts[j],otherPose=states?.[j]??{train:0,elevation:radians(1)},otherEntry=profile.mounts!.find(e=>e.mountId===otherId)!;
+    const j=def.mounts.findIndex(m=>m.id===otherId),other=def.mounts[j],otherPose=states?.[j]??{train:0,elevation:radians(other.initialElevationDeg??1)},otherEntry=profile.mounts!.find(e=>e.mountId===otherId)!;
     const their=barrels(other,otherPose,otherEntry,margin);
     if (own.some(a=>their.some(b=>segments(a.a,a.b,b.a,b.b)<=(a.radius+b.radius)**2) || capsuleBody(a,other,otherPose,otherEntry,margin)) || their.some(c=>capsuleBody(c,m,pose,entry,margin)) || bodies(m,pose,entry,other,otherPose,otherEntry,margin)) return false;
   }
@@ -122,7 +126,9 @@ export function moveMountWithClearance(def: ShipDefinition,index: number,state: 
   // its smaller padding can admit a pose that the next equal-size step rejects.
   const steps=Math.max(1,Math.ceil(Math.max(Math.abs(train),Math.abs(elevation))/radians(.25)-1e-9)),start={...state};
   // A sum of rotational arc lengths bounds every barrel and body point between samples.
-  const reach=Math.max(Math.abs(w.muzzleForward)+w.recoilM+1,...w.gunhouseSize),margin=reach*(Math.abs(train)+Math.abs(elevation))/steps;
+  const entry=def.mountClearance?.mounts?.find(e=>e.mountId===def.mounts[index].id);
+  const fittingReach=(entry?.fittings??[]).flatMap(c=>[c.a,c.b].map(v=>Math.hypot(...v)+c.radiusM+(c.joint==='elevation'?Math.abs(w.trunnionForward)+w.pivotHeight:0)));
+  const reach=Math.max(Math.abs(w.muzzleForward)+w.recoilM+1,...w.gunhouseSize,...fittingReach),margin=reach*(Math.abs(train)+Math.abs(elevation))/steps;
   for (let i=1;i<=steps;i++) {
     const next={train:start.train+train*i/steps,elevation:start.elevation+elevation*i/steps};
     if (!mountPoseClear(def,index,next,states,margin)) return false;

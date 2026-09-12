@@ -1,0 +1,89 @@
+{
+  "version": 1,
+  "id": "admiral-hipper-plain-v1",
+  "basis": "Original linear RGB interpretation of approved pgsc108 plain finish; no historical paint claim.",
+  "palette": {
+    "hipper-source-gray": [
+      0.2,
+      0.235,
+      0.24
+    ],
+    "hipper-source-hull": [
+      0.155,
+      0.185,
+      0.19
+    ],
+    "hipper-source-horizontal": [
+      0.105,
+      0.125,
+      0.13
+    ],
+    "hipper-source-underwater": [
+      0.23,
+      0.055,
+      0.035
+    ],
+    "hipper-source-timber": [
+      0.31,
+      0.235,
+      0.145
+    ],
+    "hipper-source-linoleum": [
+      0.21,
+      0.09,
+      0.065
+    ]
+  },
+  "materials": {
+    "naval": {
+      "paint": "hipper-source-gray",
+      "finish": "painted-steel"
+    },
+    "hullgray": {
+      "paint": "hipper-source-hull",
+      "finish": "painted-steel",
+      "projection": "hull"
+    },
+    "roof": {
+      "paint": "hipper-source-horizontal",
+      "finish": "painted-deck"
+    },
+    "edge": {
+      "paint": "hipper-source-gray",
+      "finish": "painted-steel"
+    },
+    "underwater": {
+      "paint": "hipper-source-underwater",
+      "finish": "underwater-coating",
+      "projection": "hull"
+    },
+    "wood": {
+      "paint": "hipper-source-timber",
+      "finish": "wood"
+    },
+    "linoleum": {
+      "paint": "hipper-source-linoleum",
+      "finish": "linoleum"
+    }
+  },
+  "hull": {
+    "bounds": [
+      -104,
+      104,
+      -8,
+      7
+    ],
+    "pixelsPerMeter": 12,
+    "waterline": 0,
+    "stainStrength": 0.12,
+    "runoffStrength": 0.1
+  },
+  "decking": {
+    "wood": {
+      "plankLength": 3.4,
+      "plankWidth": 0.16,
+      "seamWidth": 0.003,
+      "coating": "bare"
+    }
+  }
+}
