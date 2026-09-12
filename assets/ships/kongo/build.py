@@ -10,7 +10,7 @@ sys.path.insert(0,str(Path(__file__).resolve().parent/'authoring'))
 from floatplane import create as create_floatplane
 from deck_rails import create as create_deck_rails
 from turret_roof import create as create_turret_roof
-from weather_deck import camber as deck_camber, height as weather_height
+from weather_deck import geometry as weather_geometry, height as weather_height, prepare_mesh as prepare_weather_mesh
 out=Path(os.environ['SHIP_OUTPUT'])
 d=json.loads(Path(os.environ['SHIP_DEFINITION']).read_text())
 bpy.ops.object.select_all(action='SELECT');bpy.ops.object.delete(use_global=False)
@@ -109,25 +109,9 @@ bmesh.ops.bisect_plane(bm,geom=list(bm.verts)+list(bm.edges)+list(bm.faces),
 bmesh.ops.recalc_face_normals(bm,faces=list(bm.faces))
 for face in bm.faces:face.material_index=1 if face.calc_center_median().z < -1.30001 else 0
 bm.to_mesh(o.data);bm.free()
-# A cambered weather deck follows the same original section table.
-vs=[]
-for s in h['sections']:
- x=s['station']-half;w,z=s['points'][-1]
- camber=deck_camber(x)
- vs.extend([(x,-w,z+.02),(x,0,z+camber),(x,w,z+.02)])
-weather_faces=[(i*3+j,(i+1)*3+j,(i+1)*3+j+1,i*3+j+1) for i in range(len(h['sections'])-1) for j in range(2)]
-# Give the deck skin a closed underside before subtracting casemate wells.
-# Boolean difference on the former open sheet could retain cutter caps.
-weather_count=len(vs);weather_edges={}
-for face in weather_faces:
- for a,b in zip(face,face[1:]+face[:1]):
-  key=tuple(sorted((a,b)))
-  if key in weather_edges:del weather_edges[key]
-  else:weather_edges[key]=(a,b)
-weather_faces += [tuple(i+weather_count for i in reversed(face)) for face in weather_faces[:]]
-weather_faces += [(b,a,a+weather_count,b+weather_count) for a,b in weather_edges.values()]
-vs += [(x,y,z-.04) for x,y,z in vs[:]]
-mesh('deck.weather',vs,weather_faces,mats['wood'])
+# The same closed weather-deck skin supplies the CPU contact surface.
+vs, weather_faces = weather_geometry(h)
+prepare_weather_mesh(mesh('deck.weather',vs,weather_faces,mats['wood']).data)
 # The connected stem cap uses the same original surface as CPU structure hits.
 stem=next(s for s in d['structures'] if s['id']=='bow-stem-cap')['surface']
 mesh('bow.stem-cap',[(-z,-x,y) for x,y,z in stem['vertices']],stem['triangles'],mats['naval'])
@@ -418,6 +402,8 @@ create_floatplane(dict(mesh=mesh,rod=rod,box=box,joint=joint),mats)
 for num,x,z in [(1,60.1,5.15),(2,47.3,8.44),(3,-24.2,5.99),(4,-65.25,3.64)]:
  base=min(deck(x),z)
  cyl(f'barbette-{num}.wall',(x,0,(base+z)/2),4.4,max(.12,z-base),mats['naval'],vertices=64)
+from aft_aa_seats import create as create_aft_aa_seats
+create_aft_aa_seats(dict(mesh=mesh,cyl=cyl),mats,h,d['mounts'])
 # Shared equipment uses the registered original builders.
 for mount in d['mounts']:
  create_mount(mount,col,dict(mesh=mesh,box=box,cyl=cyl,rod=rod),mats)

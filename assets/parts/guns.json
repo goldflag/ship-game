@@ -20220,9 +20220,9 @@
         0.85,
         2.08
       ],
-      "pivotHeight": 1.46,
-      "trunnionForward": -0.4,
-      "muzzleForward": 1.2,
+      "pivotHeight": 1.2966,
+      "trunnionForward": -0.3222,
+      "muzzleForward": 1.2537,
       "barrelSpacing": 0.1,
       "caliberM": 0.025,
       "traverseDeg": 90,

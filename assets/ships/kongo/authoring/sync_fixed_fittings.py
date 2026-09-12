@@ -3,14 +3,15 @@
 Run with Blender Python, then sync_gun_clearance.ts. No scene or generated mesh
 is read; these are the same recipe primitives that render the fitted metal.
 """
-import json, math, sys
+import bpy, json, math, sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from deck_rails import create as create_rails
 from casemate_belt import openings
 from aviation_fittings import create as create_aviation
 from capstans import create as create_capstan
-from weather_deck import height as weather_height
+from weather_deck import height as weather_height, geometry as weather_geometry, prepare_mesh as prepare_weather_mesh
+from aft_aa_seats import create as create_aft_aa_seats
 from sync_galleries import rod as collect_rod, mesh, write_structures
 
 path = Path(__file__).resolve().parent.parent/'blueprint.json'
@@ -60,4 +61,31 @@ for sign in [-1, 1]:
 create_capstan(capstan_helpers('center-capstan'), mats,
                lambda x: weather_height(h, x, 0),
                'ground-tackle.center-capstan', 85, 0, .78, 1.12)
+# Keep each installed seat/shield assembly as one disconnected surface.
+create_aft_aa_seats(dict(
+    mesh=lambda name, *a, **kw: mesh(name.split('.')[0], *a, **kw),
+    cyl=lambda name, *a, **kw: cyl(name.split('.')[0], *a, **kw)), mats, h, b['mounts'])
+# Apply the same original casemate cutters to the closed weather-deck skin.
+# Temporary objects are constructed here; no generated scene is consumed.
+vertices, faces = weather_geometry(h)
+data = bpy.data.meshes.new('weather-contact');data.from_pydata(vertices, [], faces);data.update()
+prepare_weather_mesh(data)
+weather = bpy.data.objects.new('weather-contact', data);bpy.context.collection.objects.link(weather)
+for mount, outline in openings(b['mounts']):
+    n = len(outline)
+    points = [(x,y,z) for z in (mount['position'][1]-.02, 7.46) for x,y in outline]
+    triangles = [tuple(reversed(range(n))),tuple(range(n,n*2))]
+    triangles += [(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)]
+    data = bpy.data.meshes.new('casemate-contact-cut');data.from_pydata(points, [], triangles);data.update()
+    cutter = bpy.data.objects.new('casemate-contact-cut', data);bpy.context.collection.objects.link(cutter)
+    bpy.context.view_layer.objects.active = weather
+    mod = weather.modifiers.new('Authored casemate recess', 'BOOLEAN')
+    mod.operation = 'DIFFERENCE';mod.solver = 'EXACT';mod.object = cutter
+    bpy.ops.object.modifier_apply(modifier=mod.name)
+    bpy.data.objects.remove(cutter, do_unlink=True)
+# Blender tessellation preserves concave boundaries around the open wells.
+weather.data.calc_loop_triangles()
+mesh('weather-deck', [tuple(v.co) for v in weather.data.vertices],
+     [tuple(t.vertices) for t in weather.data.loop_triangles])
+bpy.data.objects.remove(weather, do_unlink=True)
 write_structures(path, 'fixed-fitting-')

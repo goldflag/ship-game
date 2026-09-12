@@ -88,15 +88,20 @@ test('CPU aiming holds a blocked installation and can elevate away without spend
   expect(s.elevation).toBeGreaterThan(low+.1);expect(s.ammo).toBe(ammo);
 },30000);
 
-test('an obstructed diagonal retains a free axis to reach a clear low-angle target',()=>{
-  const m=mounts.find(m=>m.id==='aa25-02')!;let train=0,elevation=rad(1);
-  for(let i=0;i<160;i++){
-    const p=advanceGunMotion(m,train,elevation,Math.min(rad(90),train+.02),Math.max(rad(-10),elevation-.014));
-    expect(gunClearance(m,(train+p.train)/2,(elevation+p.elevation)/2)).toBeGreaterThanOrEqual(-1e-8);
-    train=p.train;elevation=p.elevation;
-  }
-  expect(train).toBeCloseTo(rad(90),8);expect(elevation).toBeCloseTo(rad(-10),8);
-},30000);
+for (const [id, direction] of [['aa25-01', 1], ['aa25-02', -1]] as const) {
+  test(`${id}: an obstructed diagonal retains a free axis to reach an inboard low-angle target`,()=>{
+    const m=mounts.find(m=>m.id===id)!;let train=0,elevation=rad(1);
+    // Mirrored installations have opposite inboard directions; the destination
+    // is clear even though simultaneous train/depression meets a shield edge.
+    expect(gunClearance(m,direction*rad(90),rad(-10))).toBeGreaterThan(0);
+    for(let i=0;i<160;i++){
+      const p=advanceGunMotion(m,train,elevation,direction*Math.min(rad(90),direction*train+.02),Math.max(rad(-10),elevation-.014));
+      expect(gunClearance(m,(train+p.train)/2,(elevation+p.elevation)/2)).toBeGreaterThanOrEqual(-1e-8);
+      train=p.train;elevation=p.elevation;
+    }
+    expect(train).toBeCloseTo(direction*rad(90),8);expect(elevation).toBeCloseTo(rad(-10),8);
+  },30000);
+}
 
 test('invalid travel clearance fails compilation before motion consumes it',()=>{
   expect(()=>compileShip({...blueprint,mountClearance:{version:1,marginM:.01,basis:'conflicting encodings fixture',mounts:[{mountId:'main-1',barrelRadiusM:.5}],structures:[],neighbors:[]}},catalog)).toThrow(/either travelClearance or mountClearance/);

@@ -160,22 +160,26 @@ fn catalog_rejects_invalid_clearance_geometry() {
 #[test]
 fn free_axis_reaches_a_clear_target_and_never_cuts_the_corner() {
     let d = kongo();
-    let m = d.mounts.iter().find(|m| m.id == "aa25-02").unwrap();
-    let (mut t, mut e) = (0.0, radians(1.0));
-    for _ in 0..160 {
-        let (nt, ne, _) = advance_gun_motion(
-            m,
-            t,
-            e,
-            radians(90.0).min(t + 0.02),
-            radians(-10.0).max(e - 0.014),
-        );
-        assert!(gun_clearance(m, (t + nt) / 2.0, (e + ne) / 2.0) >= -1e-8);
-        t = nt;
-        e = ne;
+    for (id, direction) in [("aa25-01", 1.0), ("aa25-02", -1.0)] {
+        let m = d.mounts.iter().find(|m| m.id == id).unwrap();
+        let (mut t, mut e) = (0.0, radians(1.0));
+        // The mirrored installations reach clear inboard targets in opposite directions.
+        assert!(gun_clearance(m, direction * radians(90.0), radians(-10.0)) > 0.0);
+        for _ in 0..160 {
+            let (nt, ne, _) = advance_gun_motion(
+                m,
+                t,
+                e,
+                direction * radians(90.0).min(direction * t + 0.02),
+                radians(-10.0).max(e - 0.014),
+            );
+            assert!(gun_clearance(m, (t + nt) / 2.0, (e + ne) / 2.0) >= -1e-8);
+            t = nt;
+            e = ne;
+        }
+        assert!((t - direction * radians(90.0)).abs() < 1e-8);
+        assert!((e - radians(-10.0)).abs() < 1e-8);
     }
-    assert!((t - radians(90.0)).abs() < 1e-8);
-    assert!((e - radians(-10.0)).abs() < 1e-8);
 }
 
 #[test]

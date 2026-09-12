@@ -29,27 +29,34 @@ def create_mount(m,col,helpers,materials):
  def lc(o,p=yaw):return local(o,p,name)
  lc(cyl(name+'.foundation',(0,0,.07),sp['barbetteRadius'],.14,materials['edge'],vertices=32),base)
  # Source single mount: low pedestal and an open fork raked aft of its axis.
- trunnion=sp['trunnionForward']
- lc(cyl(name+'.pedestal',(0,0,.45),.16,.64,materials['naval'],vertices=24,r2=.105))
- lc(box(name+'.saddle',(0,0,.80),(.34,.40,.12),materials['naval']))
+ trunnion=sp['trunnionForward'];pivot=sp['pivotHeight']
+ kongo=sp['id']=='type96-25-kongo-single'
+ # Distinct low fork and compact magazine in the approved Kongō model.
+ fork_side=.137 if kongo else .17
+ bearing_end=.172 if kongo else .24
+ bearing_radius=.047 if kongo else .10
+ lc(cyl(name+'.pedestal',(0,0,.48 if kongo else .45),.16,.70 if kongo else .64,materials['naval'],vertices=24,r2=.105))
+ lc(box(name+'.saddle',(0,0,.80),(.19,.344,.08) if kongo else (.34,.40,.12),materials['naval']))
  for side in [-1,1]:
-  profile=[(.14,.77),(-.10,.77),(trunnion-.12,1.40),(trunnion,1.54),(trunnion+.13,1.40)]
-  vs=[(xx,side*.17+dy,zz) for dy in [-.035,.035] for xx,zz in profile];nn=len(profile)
+  profile=([(.094,.833),(-.10,.833),(trunnion-.047,pivot),
+            (trunnion,pivot+.047),(trunnion+.047,pivot)] if kongo else
+           [(.14,.77),(-.10,.77),(trunnion-.12,pivot-.06),(trunnion,pivot+.08),(trunnion+.13,pivot-.06)])
+  vs=[(xx,side*fork_side+dy,zz) for dy in [-.035,.035] for xx,zz in profile];nn=len(profile)
   lc(mesh(name+'.open-fork',vs,[tuple(reversed(range(nn))),tuple(range(nn,2*nn))]+[(i,(i+1)%nn,(i+1)%nn+nn,i+nn) for i in range(nn)],materials['naval']))
-  lc(rod(name+'.bearing',(trunnion,side*.10,1.46),(trunnion,side*.24,1.46),.10,materials['edge'],vertices=20))
- lc(rod(name+'.trunnion-axle',(trunnion,-.23,1.46),(trunnion,.23,1.46),.045,materials['edge']))
+  lc(rod(name+'.bearing',(trunnion,side*.10,pivot),(trunnion,side*bearing_end,pivot),bearing_radius,materials['edge'],vertices=20))
+ lc(rod(name+'.trunnion-axle',(trunnion,-(.16 if kongo else .23),pivot),(trunnion,.16 if kongo else .23,pivot),.022 if kongo else .045,materials['edge']))
  for angle in [0,120,240]:
   theta=math.radians(angle);foot_radius=sp['barbetteRadius']*.29/.35
   vs=[(.12*math.cos(theta),.12*math.sin(theta),.16),(foot_radius*math.cos(theta),foot_radius*math.sin(theta),.16),(.10*math.cos(theta),.10*math.sin(theta),.42)]
   gusset=mesh(name+'.foot-gusset',vs,[(0,1,2)],materials['naval']);mod=gusset.modifiers.new('Gusset thickness','SOLIDIFY');mod.thickness=.022;lc(gusset,base)
- elev=empty(name+'.center.elevation',(trunnion,0,1.46));elev.parent=yaw;elev.rotation_euler.y=-math.radians(1)
+ elev=empty(name+'.center.elevation',(trunnion,0,pivot));elev.parent=yaw;elev.rotation_euler.y=-math.radians(1)
  rec=empty(name+'.center.recoil',(0,0,0));rec.parent=elev
  muzzle=empty(name+'.center.muzzle',(sp['muzzleForward']-trunnion,0,0));muzzle.parent=rec
  lc(box(name+'.receiver',(-.32,0,0),(.72,.15,.18),materials['edge']),rec)
  lc(box(name+'.cradle',(-.13,0,-.10),(.74,.18,.10),materials['naval']),elev)
  lc(box(name+'.magazine-socket',(-.28,0,.13),(.28,.20,.10),materials['naval']),rec)
- lc(box(name+'.box-magazine',(-.28,0,.37),(.27,.17,.40),materials['edge']),rec)
- lc(box(name+'.magazine-cap',(-.28,0,.58),(.30,.19,.04),materials['naval']),rec)
+ lc(box(name+'.box-magazine',(-.28,0,.2965 if kongo else .37),(.27,.17,.253 if kongo else .40),materials['edge']),rec)
+ lc(box(name+'.magazine-cap',(-.28,0,.434 if kongo else .58),(.30,.19,.022 if kongo else .04),materials['naval']),rec)
  lc(rod(name+'.gas-cylinder',(-.1,0,-.10),(.70,0,-.10),.032,materials['naval']),elev)
  length=sp['muzzleForward']-trunnion
  lc(rod(name+'.barrel',(0,0,0),(length,0,0),.041,materials['edge'],r2=.025,vertices=20),rec)
