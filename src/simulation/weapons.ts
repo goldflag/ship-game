@@ -6,6 +6,7 @@ import { add, clamp, length, localToWorld, normalize, radians, rotate, sub, wrap
 import { GRAVITY, solveDragArc, travelFactor } from './ballistics';
 import { BarrelObstructionTree, gunMountObstructions, segmentIntersectsBox } from './obstruction';
 import { mountBearing, mountPosition, mountFrame, type CarrierFrame } from './mountFrames';
+import { advanceGunMotion } from './gunClearance';
 import { moveMountWithClearance } from './mountClearance';
 export { GRAVITY } from './ballistics';
 export type MountDefinition = ShipDefinition['mounts'][number];
@@ -166,8 +167,13 @@ export function updateMount(m: MountDefinition, state: MountState, definition: S
     elevation: state.elevation + clamp(elevation - state.elevation, -radians(w.elevationRateDeg) * dt * workRate, radians(w.elevationRateDeg) * dt * workRate),
   };
   const mountIndex = definition.mountClearance ? definition.mounts.findIndex(other => other.id === m.id) : 0;
-  let motionClear = moveMountWithClearance(definition, mountIndex, state, next, mountedStates);
-  if (!motionClear) {
+  let motionClear: boolean;
+  if (m.travelClearance) {
+    const movement = advanceGunMotion(m, state.train, state.elevation, next.train, next.elevation);
+    state.train = movement.train; state.elevation = movement.elevation;
+    motionClear = !movement.blocked;
+  } else motionClear = moveMountWithClearance(definition, mountIndex, state, next, mountedStates);
+  if (!motionClear && !m.travelClearance) {
     // A blocked elevation must not prevent traversing away from a platform.
     moveMountWithClearance(definition, mountIndex, state, { train: next.train, elevation: state.elevation }, mountedStates);
     moveMountWithClearance(definition, mountIndex, state, { train: state.train, elevation: next.elevation }, mountedStates);

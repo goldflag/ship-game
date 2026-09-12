@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+import { rustTool } from './toolchain';
 import fixture from '../../assets/gameplay/migration/reference.v1.json';
 // Built explicitly by multiplayer:wasm; do not silently skip a missing WASM build.
 const modulePath = '../../src/generated/naval-wasm/naval_wasm.js';
@@ -44,6 +46,14 @@ try {
 } finally { migration.free(); }
 console.log(`WASM verified ${flights} complete shell trajectories, damage records, bursts and water entries against the TypeScript reference.`);
 const battles = JSON.parse(await readFile(new URL('../../assets/gameplay/migration/battles.v1.json', import.meta.url), 'utf8'));
+// Airframe performance has intentionally superseded the frozen TS flight model.
+// Compare complete carrier snapshots against the current native engine instead.
+const native = Bun.spawn([rustTool('cargo'), 'run', '--release', '--locked', '-p', 'naval-sim', '--example', 'carrier_checkpoints'], {
+ cwd: fileURLToPath(new URL('../..', import.meta.url)), stdout: 'pipe', stderr: 'inherit',
+});
+const nativeOutput = await new Response(native.stdout).text();
+assert.equal(await native.exited, 0, 'native carrier checkpoint generation');
+const carrierCheckpoints = JSON.parse(nativeOutput);
 let battleTicks = 0;
 for (const c of battles.cases) {
  const runtime = new wasm.BattleRuntime(await readFile(new URL('../../.build/naval-content/manifest.json', import.meta.url)), JSON.stringify(c.setup));
@@ -64,10 +74,14 @@ for (const c of battles.cases) {
     for (const patch of checkpoint.patches) {let parent = expected; for (const key of patch.path.slice(0,-1)) parent = parent[key]; parent[patch.path.at(-1)] = patch.value;}
     const actual = JSON.parse(runtime.migration_snapshot());
     actual.score = actual.records.scores.player; actual.shellHistory = actual.records.shellHistory;
-    compare(actual, expected, `${c.id}.battle@${tick}`);
+    if (carrierCheckpoints[c.id]) {
+     compare(actual, carrierCheckpoints[c.id][tick], `${c.id}.native/WASM@${tick}`);
+     // Launch admission and deck roll still match the frozen migration model.
+     if (tick <= 60) compare(actual, expected, `${c.id}.battle@${tick}`);
+    } else compare(actual, expected, `${c.id}.battle@${tick}`);
    }
    battleTicks++;
   }
  } finally { runtime.free(); }
 }
-console.log(`WASM verified ${battleTicks} complete battle ticks, including carrier sorties, AA, underwater weapons, damage records and shell history.`);
+console.log(`WASM verified ${battleTicks} battle ticks: frozen surface parity and current native carrier parity, including sorties, AA, underwater weapons, damage records and shell history.`);

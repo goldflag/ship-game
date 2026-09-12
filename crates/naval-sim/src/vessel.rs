@@ -40,9 +40,10 @@ pub struct ShipIndex {
     pub coverage: bool,
     mount_directors: Vec<Vec<usize>>,
     /// `(submerged, surface)` engine modules for submarines.
-    pub submarine_engines: Option<(Vec<Option<usize>>, Vec<Option<usize>>)>,
+    pub submarine_engines: Option<SubmarineEngineIndices>,
     pub propulsion: Vec<PropulsionIndex>,
 }
+pub type SubmarineEngineIndices = (Vec<Option<usize>>, Vec<Option<usize>>);
 #[derive(Clone, Debug, Default)]
 pub struct PropulsionIndex {
     pub share: f64,
@@ -98,7 +99,7 @@ impl ShipIndex {
                         d.modules[*i]
                             .serves_mount_ids
                             .as_ref()
-                            .is_some_and(|ids| ids.iter().any(|s| *s == mount.id))
+                            .is_some_and(|ids| ids.contains(&mount.id))
                     })
                     .collect()
             })

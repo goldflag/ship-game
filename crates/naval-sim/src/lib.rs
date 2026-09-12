@@ -65,6 +65,7 @@ pub mod submarine;
 pub mod torpedoes;
 pub mod vessel;
 pub mod weapons;
+pub mod gun_clearance;
 
 pub mod anti_aircraft;
 pub mod capability;

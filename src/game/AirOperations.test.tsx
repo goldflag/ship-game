@@ -71,7 +71,8 @@ test('merged air groups retain selection through snapshots and deduplicate subse
   expect(game.selectedFlightIds).toEqual([first.id]);
   first.notice = 'Combined with Fighter 2 in hangar · 4 aircraft';
   const html = renderToStaticMarkup(<FleetCommand data={{ ship: simulation.ship, order: 1, camera: 'Chase', trail: [], fps: 60, backend: 'test', airOperationsOpen: true, combat: simulation.telemetry('main', [0, 0, -5000]) }} game={game} bindings={defaultKeybindings()}/>);
-  expect(html).toContain('role="status">Fighter 1 · Combined with Fighter 2 in hangar · 4 aircraft');
+  // Landed groups retain selection, while telemetry hides old sortie notices.
+  expect(html).not.toContain('Combined with Fighter 2 in hangar');
   game.selectFlight(first.id);
   expect(game.selectedFlightIds).toEqual([]);
   game.selectFlight(first.id);

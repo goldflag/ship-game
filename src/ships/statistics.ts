@@ -93,7 +93,7 @@ function batteryRows(mounts: ShipDefinition['mounts'], withName: boolean, defini
     { label: 'Shell mass', value: format(weapon.projectileMassKg, weapon.projectileMassKg < 10 ? 2 : 0), unit: 'kg', help: 'Projectile mass carried by each shot.' },
     { label: 'Maximum range', value: format(maximumRangeM(weapon) / 1000, 1), unit: 'km', help: 'Maximum flat-water range with drag over the permitted low arc, capped by the fire-control solver.' },
     { label: 'Elevation', value: `${weapon.elevationMinDeg}° to ${weapon.elevationMaxDeg}°`, help: 'Barrel elevation limits.' },
-    ...((definition.mountClearance?.mounts?.some(e => mounts.some(m => m.id === e.mountId)) || definition.mountClearance?.mountIds?.some(id => mounts.some(m => m.id === id))) ? [{ label: 'Motion clearance', value: 'Interlocked', help: 'Fitted guns stop before entering a platform or neighboring turret. Reachable elevation depends on bearing and nearby gun positions.' }] : []),
+    ...((mounts.some(m => m.travelClearance) || definition.mountClearance?.mounts?.some(e => mounts.some(m => m.id === e.mountId)) || definition.mountClearance?.mountIds?.some(id => mounts.some(m => m.id === id))) ? [{ label: 'Motion clearance', value: 'Interlocked', help: 'Fitted guns stop at installation clearance limits. Reachable elevation depends on bearing and surrounding equipment.' }] : []),
     ...traverseRows,
     { label: 'Ammunition', value: format(mounts.reduce((n, m) => n + m.weapon.ammoPerBarrel * barrels(m.weapon), 0)), unit: 'rounds', help: 'Rounds for the whole battery. Firing a salvo spends one per barrel.' },
     { label: 'Gunhouse armor', value: format(weapon.armorMm), unit: 'mm', help: 'Nominal gunhouse protection used when no authored gunhouse plates exist.' },

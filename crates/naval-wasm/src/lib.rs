@@ -112,14 +112,34 @@ pub fn preview_articulation_json(
     }
     let mut results = Vec::with_capacity(poses.len());
     for (index, target) in targets.into_iter().enumerate() {
-        let result = clearance.as_ref().map_or_else(
-            || ClearanceResult {
-                pose: target,
-                blocked: false,
-                obstruction_id: None,
-            },
-            |cache| cache.resolve(&def, index, &poses, target),
-        );
+        let result = if def.mounts[index].travel_clearance.is_some() {
+            let from = poses[index];
+            let (train, elevation, blocked) = naval_sim::gun_clearance::advance_gun_motion(
+                &def.mounts[index],
+                from.train,
+                from.elevation,
+                target.train,
+                target.elevation,
+            );
+            ClearanceResult {
+                pose: ClearancePose {
+                    train,
+                    elevation,
+                    recoil: target.recoil,
+                },
+                blocked,
+                obstruction_id: blocked.then(|| "travel-clearance".into()),
+            }
+        } else {
+            clearance.as_ref().map_or_else(
+                || ClearanceResult {
+                    pose: target,
+                    blocked: false,
+                    obstruction_id: None,
+                },
+                |cache| cache.resolve(&def, index, &poses, target),
+            )
+        };
         poses[index] = result.pose;
         results.push(result);
     }

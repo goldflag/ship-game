@@ -3,6 +3,8 @@ import init, { preview_articulation_json } from '../../src/generated/naval-wasm/
 import yamato from '../../public/models/yamato.json';
 import bismarck from '../../public/models/bismarck.json';
 import cleveland from '../../public/models/cleveland.json';
+import kongo from '../../public/models/kongo.json';
+import { gunClearance } from '../../src/simulation/gunClearance';
 // Yamato is published with box obstructions; her retired closed-body profile
 // stays here so the swept WASM resolver keeps its real-geometry coverage.
 import sweptClearance from '../../src/simulation/fixtures/yamato-swept-clearance.json';
@@ -17,6 +19,31 @@ function resolve(def: unknown, poses: ClearancePose[], targets: ClearancePose[])
 }
 
 const sweptYamato = { ...yamato, mountClearance: sweptClearance };
+
+test('Kongō WASM preview keeps installed barrel stops and can reverse at full recoil', () => {
+  const poses = initial(kongo), targets = structuredClone(poses);
+  for (const [id, train, elevation] of [['main-3', -145, 43], ['casemate-port-2', -62.4, 16.8], ['aa25-01', 0, -10]] as const) {
+    const index = kongo.mounts.findIndex(m => m.id === id), mount = kongo.mounts[index];
+    targets[index] = { train: train * Math.PI / 180, elevation: elevation * Math.PI / 180, recoil: 1 };
+    // Roof AA can have a clear endpoint beyond a shield: the intervening
+    // path must still stop, so exercise contacts along the whole request.
+    expect(Math.min(...Array.from({ length: 41 }, (_, step) => {
+      const t = step / 40;
+      return gunClearance(mount, targets[index].train * t, poses[index].elevation + (targets[index].elevation - poses[index].elevation) * t);
+    }))).toBeLessThan(0);
+    const stopped = resolve(kongo, poses, targets)[index];
+    expect(stopped.blocked).toBe(true);
+    expect(stopped.obstructionId).toBe('travel-clearance');
+    expect(gunClearance(mount, stopped.pose.train, stopped.pose.elevation)).toBeGreaterThan(0);
+    expect(stopped.pose.recoil).toBe(1);
+    const current = structuredClone(poses); current[index] = stopped.pose;
+    const reversed = resolve(kongo, current, poses)[index];
+    expect(reversed.blocked).toBe(false);
+    expect(reversed.pose.train).toBeCloseTo(poses[index].train, 9);
+    expect(reversed.pose.elevation).toBeCloseTo(poses[index].elevation, 9);
+    targets[index] = poses[index];
+  }
+});
 
 test('the swept Yamato profile stops depression at physical contact and can elevate away', () => {
   expect('mountClearance' in yamato).toBe(false);

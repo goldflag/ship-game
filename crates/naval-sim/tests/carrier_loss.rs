@@ -47,11 +47,12 @@ fn setup(preset: &str) -> (Vec<Vessel>, Aviation, Sensors) {
     air.airspace = Some(catalog().missions["pve-fleet-v1"].area.clone());
     (actors, air, Sensors::default())
 }
-fn step(
+fn step_dt(
     actors: &[Vessel],
     air: &mut Aviation,
     reports: &Sensors,
     tick: u64,
+    dt: f64,
 ) -> Vec<naval_sim::impact::DamageEvent> {
     let mut events = vec![];
     air.step(
@@ -71,10 +72,18 @@ fn step(
             seed: 123,
             sea: None,
         },
-        0.25,
+        dt,
         tick as f64 / 60.0,
     );
     events
+}
+fn step(
+    actors: &[Vessel],
+    air: &mut Aviation,
+    reports: &Sensors,
+    tick: u64,
+) -> Vec<naval_sim::impact::DamageEvent> {
+    step_dt(actors, air, reports, tick, 0.25)
 }
 fn airborne(actors: &[Vessel], air: &mut Aviation, role: &str) -> String {
     let f = air
@@ -439,7 +448,9 @@ fn a_homeless_strike_releases_its_bombs_then_withdraws_without_fabricated_kills(
     actors[0].damage.sunk = true;
     let mut releases = 0;
     let mut withdrawals = 0;
-    for tick in (375..375 + 180 * 60).step_by(15) {
+    // Match the 60 Hz flight integrator: a quarter-second step can skip the
+    // dive bomber's narrow ballistic release window entirely.
+    for tick in 375..375 + 180 * 60 {
         if tick % 60 == 0 {
             reports.update(
                 tick,
@@ -450,7 +461,7 @@ fn a_homeless_strike_releases_its_bombs_then_withdraws_without_fabricated_kills(
                 &sensors::VisualRules::default(),
             );
         }
-        for event in step(&actors, &mut air, &reports, tick) {
+        for event in step_dt(&actors, &mut air, &reports, tick, 1.0 / 60.0) {
             if event.kind == "bomb-release" {
                 releases += 1;
             }

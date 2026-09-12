@@ -39,12 +39,13 @@ export function isolateAssembly(scene: THREE.Object3D, assemblyId: string) {
 
 export class ComponentArticulation {
   private joints: { node: THREE.Object3D; suffix: string; rotation: THREE.Quaternion; position: THREE.Vector3 }[] = [];
-  private covers: { mesh: THREE.Mesh; angles: number[] }[] = [];
+  private covers: { mesh: THREE.Mesh; angles: number[]; baseAngle: number }[] = [];
   constructor(root: THREE.Object3D, assemblyId: string) {
     root.traverse(node => {
       if (node instanceof THREE.Mesh && String(node.userData.gunCoverElevationId ?? '').startsWith(`${assemblyId}.`)) {
         const angles = node.userData.gunCoverAngles;
-        if (Array.isArray(angles) && angles.length && angles.length === node.morphTargetInfluences?.length && angles.every((a, i) => Number.isFinite(a) && a > (angles[i - 1] ?? 0))) this.covers.push({ mesh: node, angles });
+        const baseAngle = node.userData.gunCoverBaseAngle ?? 0;
+        if (Number.isFinite(baseAngle) && Array.isArray(angles) && angles.length && angles.length === node.morphTargetInfluences?.length && angles.every((a, i) => Number.isFinite(a) && a > (angles[i - 1] ?? baseAngle))) this.covers.push({ mesh: node, angles, baseAngle });
       }
       const id = String(node.userData.nodeId ?? '');
       if (!id.startsWith(`${assemblyId}.`)) return;
@@ -63,10 +64,11 @@ export class ComponentArticulation {
       }
       else joint.node.position.z += THREE.MathUtils.clamp(recoil, 0, 1) * weapon.recoilM;
     }
-    for (const { mesh, angles } of this.covers) {
-      const angle = THREE.MathUtils.clamp(elevation, 0, Math.min(weapon.elevationMaxDeg, angles.at(-1)!));
+    for (const { mesh, angles, baseAngle } of this.covers) {
+      const gunAngle = THREE.MathUtils.clamp(elevation, weapon.elevationMinDeg, weapon.elevationMaxDeg);
+      const angle = THREE.MathUtils.clamp(gunAngle, baseAngle, angles.at(-1)!);
       const weights = mesh.morphTargetInfluences!; weights.fill(0);
-      const upper = angles.findIndex(a => a >= angle), lower = angles[upper - 1] ?? 0;
+      const upper = angles.findIndex(a => a >= angle), lower = angles[upper - 1] ?? baseAngle;
       const fraction = (angle - lower) / (angles[upper] - lower);
       weights[upper] = fraction; if (upper > 0) weights[upper - 1] = 1 - fraction;
     }
