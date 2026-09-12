@@ -52,7 +52,7 @@ fn main() {
     }
     let compiled = ids
         .iter()
-        .map(|id| (id.to_string(), Arc::new(catalog.compile(*id).unwrap())))
+        .map(|id| (id.to_string(), Arc::new(catalog.compile(id).unwrap())))
         .collect::<BTreeMap<_, _>>();
     let setup = BattleSetup {
         ships: [TeamId::A, TeamId::B]

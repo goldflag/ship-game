@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "files": [
+    "assets/parts/german-battleship-guns/sk_c30.py",
+    "assets/parts/german-cruiser-guns/geometry.py",
+    "assets/parts/library.json",
+    "assets/parts/library.py",
+    "assets/ships/admiral-hipper/appearance.json",
+    "assets/ships/admiral-hipper/authoring/platforms.py",
+    "assets/ships/appearance/decking.py",
+    "assets/ships/appearance/finishes.json",
+    "assets/ships/appearance/surface.py"
+  ]
+}

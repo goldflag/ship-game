@@ -82,7 +82,13 @@ pub fn formation_offset(f: &AirFlight, p: &Aircraft, time: f64, seed: u32) -> Ve
             )
         }
         "echelon" => (
-            slot as f64 * 35.0 * if layout_seed % 2 == 0 { 1.0 } else { -1.0 },
+            slot as f64
+                * 35.0
+                * if layout_seed.is_multiple_of(2) {
+                    1.0
+                } else {
+                    -1.0
+                },
             slot as f64 * 38.0,
         ),
         _ => (side * row * 40.0, row * 36.0),

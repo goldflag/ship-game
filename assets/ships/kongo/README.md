@@ -38,7 +38,7 @@ Run the applicable synchronization before `bun run ship:compile kongo` and a cle
 | Main-turret roof platforms | `python3 .../sync_turret_roof.py` |
 | Casemate belt | Blender `.../sync_casemate_belt.py` |
 | Hull protection | `python3 .../sync_hull_armor.py` |
-| Hull or internal rooms | `bun assets/ships/author-stability.ts kongo` |
+| Hull or internal rooms | `bun assets/ships/author-stability.ts kongo`; after hull changes also `bun .../sync_loading.ts` |
 | Hull, structures or 356/152 mm barrel recipes | `bun .../sync_gun_clearance.ts` |
 | Main gunhouse facets | Blender `assets/parts/ijn-356/sync_shape.py` |
 

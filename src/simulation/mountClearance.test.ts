@@ -115,3 +115,43 @@ test('definitions without installed interlocks preserve existing actuator behavi
   expect(moveMountWithClearance(d,0,states[0],target,states)).toBe(true);
   expect(states[0].train).toBe(target.train);expect(states[0].elevation).toBe(target.elevation);
 });
+
+test('projecting elevating fittings stop at overhead structure and can lower away',()=>{
+  const {definition:d,states}=fixture(),m=d.mounts[0];
+  m.position=[0,0,0];m.bearingDeg=0;m.weapon={...m.weapon,trunnionForward:0,pivotHeight:2,muzzleForward:1,barrelCount:1,barrelSpacing:0,recoilM:0};
+  d.structures=[{id:'overhead',name:'Overhead fitting',footprint:[[-.5,-7],[.5,-7],[.5,-5.5],[-.5,-5.5]],baseY:4.5,height:1,material:'naval'}];
+  d.mountClearance={version:1,marginM:.02,basis:'Original fitting test',mounts:[{mountId:m.id,barrelRadiusM:.05,fittings:[{joint:'elevation',a:[0,0,-5],b:[0,0,-7],radiusM:.03}]}],structures:[{structureId:'overhead',topExtensionM:0}],neighbors:[]};
+  states[0].train=0;states[0].elevation=0;
+  expect(mountPoseClear(d,0,states[0],states)).toBe(true);
+  expect(mountPoseClear(d,0,{train:0,elevation:radians(30)},states)).toBe(false);
+  expect(moveMountWithClearance(d,0,states[0],{train:0,elevation:radians(50)},states)).toBe(false);
+  expect(states[0].elevation).toBeGreaterThan(0);
+  expect(moveMountWithClearance(d,0,states[0],{train:0,elevation:0},states)).toBe(true);
+  const fixed=structuredClone(d);fixed.mountClearance!.structures=[];fixed.structures=[];
+  fixed.obstructions=[{id:'deck-fitting',center:[0,5,-6.25],size:[1,1,1.5]}];
+  expect(mountPoseClear(fixed,0,{train:0,elevation:radians(30)},states)).toBe(false);
+  expect(mountPoseClear(fixed,0,{train:0,elevation:0},states)).toBe(true);
+});
+test('yaw fitting envelopes follow train and stay independent of elevation',()=>{
+  const {definition:d,states}=fixture(),m=d.mounts[0];m.position=[0,0,0];m.bearingDeg=0;m.weapon={...m.weapon,trunnionForward:0,pivotHeight:2,muzzleForward:1,barrelCount:1,barrelSpacing:0,recoilM:0};
+  d.structures=[{id:'side',name:'Side fitting',footprint:[[4.5,-.5],[5.5,-.5],[5.5,.5],[4.5,.5]],baseY:1.5,height:1,material:'naval'}];
+  d.mountClearance={version:1,marginM:.02,basis:'Original fitting test',mounts:[{mountId:m.id,barrelRadiusM:.05,fittings:[{joint:'yaw',a:[4,2,0],b:[6,2,0],radiusM:.03}]}],structures:[{structureId:'side',topExtensionM:0}],neighbors:[]};
+  for(const elevation of [0,radians(80)])expect(mountPoseClear(d,0,{train:0,elevation},states)).toBe(false);
+  expect(mountPoseClear(d,0,{train:radians(90),elevation:0},states)).toBe(true);
+});
+
+test('fitting schema rejects invalid joints and radii, and stow poses must fit installed limits',()=>{
+  const b=structuredClone(blueprint) as unknown as ShipBlueprint;
+  b.mounts[0].initialElevationDeg=20;
+  const d=compileShip(b,catalog);
+  expect(createMountState(d.mounts[0]).elevation).toBe(radians(20));
+  b.mounts[0].initialElevationDeg=100;
+  expect(()=>compileShip(b,catalog)).toThrow('initialElevationDeg');
+  delete b.mounts[0].initialElevationDeg;
+  const e=b.mountClearance!.mounts![0];
+  e.fittings=[{joint:'yaw',a:[0,1,0],b:[0,1,1],radiusM:0}];
+  expect(()=>compileShip(b,catalog)).toThrow('clearance fitting radius');
+  e.fittings[0].radiusM=.02;
+  e.fittings[0].joint='unsupported' as 'yaw';
+  expect(()=>compileShip(b,catalog)).toThrow('clearance fitting joint');
+});

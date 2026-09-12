@@ -1,5 +1,6 @@
 import kongo from '../../public/models/kongo.json';
 import cleveland from '../../public/models/cleveland.json';
+import admiralHipper from '../../public/models/admiral-hipper.json';
 import kingGeorgeV from '../../public/models/king-george-v.json';
 import bismarck from '../../public/models/bismarck.json';
 import yamato from '../../public/models/yamato.json';
@@ -24,6 +25,7 @@ import { registerHydrostaticTable, type HydrostaticTable } from '../simulation/h
 /** Historical presets share the same compiled definition and renderer contract. */
 export const shipPresets = {
   kongo,
+  'admiral-hipper': admiralHipper,
   cleveland,
   bismarck,
   yamato,
