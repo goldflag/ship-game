@@ -11,7 +11,7 @@ const rad=(degrees:number)=>degrees*Math.PI/180;
 
 test('pruned Kongō clearance preserves contacts across catalog travel against every authored structure',()=>{
   const surfaces=structuralSurfaces(def);
-  for(const m of def.mounts.filter(m=>m.id.startsWith('main-')||m.id.startsWith('casemate-'))){
+  for(const m of def.mounts.filter(m=>m.id.startsWith('main-')||m.id.startsWith('casemate-')||['aa25-35','aa25-48'].includes(m.id))){
     const vertices:Vec3[]=[],triangles:[number,number,number][]=[];
     const angle=rad(m.bearingDeg),c=Math.cos(angle),s=Math.sin(angle);
     for(const surface of surfaces){
@@ -102,6 +102,27 @@ for (const [id, direction] of [['aa25-01', 1], ['aa25-02', -1]] as const) {
     expect(train).toBeCloseTo(direction*rad(90),8);expect(elevation).toBeCloseTo(rad(-10),8);
   },30000);
 }
+
+test('aft single-AA receivers stop at shield ends and can elevate clear before traversing',()=>{
+  for(const m of def.mounts.filter(m=>/^aa25-(3[5-9]|4[0-8])$/.test(m.id)))for(const direction of [-1,1]){
+    expect(gunClearance(m,direction*rad(90),rad(37.5))).toBeLessThan(0);
+    let train=0,elevation=rad(1);
+    const approach=(targetTrain:number,targetElevation:number)=>{
+      for(let i=0;i<200;i++){
+        const toward=(a:number,b:number,step:number)=>a+Math.sign(b-a)*Math.min(step,Math.abs(b-a));
+        const p=advanceGunMotion(m,train,elevation,toward(train,targetTrain,.03),toward(elevation,targetElevation,.02));
+        expect(gunClearance(m,(train+p.train)/2,(elevation+p.elevation)/2)).toBeGreaterThanOrEqual(-1e-8);
+        train=p.train;elevation=p.elevation;
+      }
+    };
+    approach(direction*rad(90),rad(37.5));
+    expect(Math.abs(train)).toBeLessThan(rad(90));
+    expect(gunClearance(m,train,elevation)).toBeGreaterThan(0);
+    approach(direction*rad(90),rad(85));
+    expect(train).toBeCloseTo(direction*rad(90),8);
+    expect(elevation).toBeCloseTo(rad(85),8);
+  }
+},120000);
 
 test('invalid travel clearance fails compilation before motion consumes it',()=>{
   expect(()=>compileShip({...blueprint,mountClearance:{version:1,marginM:.01,basis:'conflicting encodings fixture',mounts:[{mountId:'main-1',barrelRadiusM:.5}],structures:[],neighbors:[]}},catalog)).toThrow(/either travelClearance or mountClearance/);

@@ -158,6 +158,48 @@ fn catalog_rejects_invalid_clearance_geometry() {
 }
 
 #[test]
+fn aft_single_receivers_stop_at_shields_and_elevate_clear_before_traversing() {
+    let d = kongo();
+    validate_definition(&d).unwrap();
+    for number in 35..=48 {
+        let id = format!("aa25-{number}");
+        let m = d.mounts.iter().find(|m| m.id == id).unwrap();
+        for direction in [-1.0, 1.0] {
+            let target_train = direction * radians(90.0);
+            assert!(gun_clearance(m, target_train, radians(37.5)) < 0.0, "{id}");
+            let (mut train, mut elevation) = (0.0, radians(1.0));
+            // Reserve full recoil while approaching the shield, then lift the
+            // receiver clear. Both backends must allow this escape path.
+            for pitch in [37.5, 85.0] {
+                let target_elevation = radians(pitch);
+                for _ in 0..200 {
+                    let (nt, ne, _) = advance_gun_motion(
+                        m,
+                        train,
+                        elevation,
+                        train + (target_train - train).clamp(-0.03, 0.03),
+                        elevation + (target_elevation - elevation).clamp(-0.02, 0.02),
+                    );
+                    assert!(
+                        gun_clearance(m, (train + nt) / 2.0, (elevation + ne) / 2.0) >= -1e-8,
+                        "{id}"
+                    );
+                    train = nt;
+                    elevation = ne;
+                }
+                assert!(gun_clearance(m, train, elevation) > 0.0, "{id}");
+                if pitch == 37.5 {
+                    assert!(train.abs() < radians(90.0), "{id}");
+                } else {
+                    assert!((train - target_train).abs() < 1e-8, "{id}");
+                    assert!((elevation - target_elevation).abs() < 1e-8, "{id}");
+                }
+            }
+        }
+    }
+}
+
+#[test]
 fn free_axis_reaches_a_clear_target_and_never_cuts_the_corner() {
     let d = kongo();
     for (id, direction) in [("aa25-01", 1.0), ("aa25-02", -1.0)] {

@@ -3,19 +3,28 @@ import { fileURLToPath } from 'node:url';
 import { barrelHeightOffset, barrelOffset, compileShip, type ShipDefinition, type Vec3, type TravelClearance } from '../../../../src/ships/blueprint';
 import { structuralSurfaces } from '../../../../src/simulation/structure';
 
-// Original barrel envelopes reserve full recoil against the authored hull and
+// Original tube/receiver envelopes reserve full recoil against the authored hull and
 // structures. Fittings absent from those surfaces and moving neighbors require
 // separate coverage; these are not historical mechanical stops.
+const aftSingle = (id: string) => /^aa25-(3[5-9]|4[0-8])$/.test(id);
+const controlled = (id: string) => id.startsWith('main-') || id.startsWith('casemate-') || aftSingle(id);
+
 export function addStructureClearance(definition: ShipDefinition): void {
   const surfaces = structuralSurfaces(definition);
-  for (const mount of definition.mounts.filter(m => m.id.startsWith('main-') || m.id.startsWith('casemate-'))) {
-    const main = mount.id.startsWith('main-'), weapon = mount.weapon;
-    const expected = main ? 'type41-356-kongo-twin' : 'type41-152-kongo-casemate';
+  for (const mount of definition.mounts.filter(m => controlled(m.id))) {
+    const main = mount.id.startsWith('main-'), single = aftSingle(mount.id), weapon = mount.weapon;
+    const expected = single ? 'type96-25-kongo-single' : main ? 'type41-356-kongo-twin' : 'type41-152-kongo-casemate';
     if (weapon.id !== expected) throw new Error(`${mount.id}: review the barrel envelope for the changed variant`);
     const trunnion = weapon.trunnionForward, length = weapon.muzzleForward - trunnion;
     // Enclose the turned tube, locking bands/lugs and strap bridge in the
     // original ijn-356 recipe; the casemate profile follows ijn-152's tube.
-    const barrels: TravelClearance['barrels'] = main ? [
+    const barrels: TravelClearance['barrels'] = single ? [
+      // Original type96-single receiver box: x=-.68..+.04, y=±.075, z=±.09.
+      // The capsule encloses its cross-section and reserves the full recoil.
+      { fromM: -.68, toM: .04, heightM: 0, radiusM: Math.hypot(.075, .09), recoils: true },
+      { fromM: 0, toM: length, heightM: 0, radiusM: .055, recoils: true },
+      { fromM: -.1, toM: .7, heightM: -.1, radiusM: .032, recoils: false },
+    ] : main ? [
       { fromM: -.75, toM: 7.7-trunnion, heightM: 0, radiusM: .5, recoils: true },
       { fromM: 6.065-trunnion, toM: 7.535-trunnion, heightM: 0, radiusM: .625, recoils: true },
       { fromM: 7.7-trunnion, toM: 11-trunnion, heightM: 0, radiusM: .43, recoils: true },
@@ -89,10 +98,10 @@ if (import.meta.main) {
   const catalog = JSON.parse(readFileSync(new URL('../../../parts/guns.json', import.meta.url), 'utf8'));
   const definition = compileShip(blueprint, catalog);
   addStructureClearance(definition);
-  for (const mount of definition.mounts) if (mount.id.startsWith('main-') || mount.id.startsWith('casemate-')) {
+  for (const mount of definition.mounts) if (controlled(mount.id)) {
     blueprint.mounts.find((m: { id: string }) => m.id === mount.id).travelClearance = mount.travelClearance;
   }
   compileShip(blueprint, catalog);
   writeFileSync(path, JSON.stringify(blueprint, null, 2)+'\n');
-  console.log('Synchronized main and casemate barrel clearance against authored structures.');
+  console.log('Synchronized main/casemate tubes and aft single-AA receiver clearance against authored structures.');
 }
