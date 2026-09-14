@@ -29,6 +29,9 @@ pub struct CompartmentState {
     pub water_m3: f64,
     pub breach_area_m2: f64,
     pub breaches: Vec<Breach>,
+    /// Native display plane for constructed rooms; historical snapshots keep their existing shape.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub water_level_y: Option<f64>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -168,6 +171,14 @@ impl DamageState {
                     water_m3: 0.0,
                     breach_area_m2: 0.0,
                     breaches: vec![],
+                    water_level_y: c.volumes.as_ref().map(|cells| {
+                        cells
+                            .iter()
+                            .flat_map(|c| {
+                                c.faces.iter().flat_map(|f| f.vertices.iter().map(|p| p[1]))
+                            })
+                            .fold(f64::INFINITY, f64::min)
+                    }),
                 })
                 .collect(),
             connections: def

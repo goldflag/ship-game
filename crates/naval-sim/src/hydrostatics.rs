@@ -10,10 +10,16 @@ struct Slice {
     dz: f64,
     polygon: Vec<[f64; 2]>,
 }
+#[derive(Clone, Debug)]
+struct PolyCell {
+    shape: crate::definition::ConvexVolume,
+    full: crate::construction_geometry::Moments,
+    vertices: Vec<Vec3>,
+}
 /// Immutable precomputed geometry belongs to compiled content, shared by all matches.
 #[derive(Clone, Debug)]
 pub struct HullHydrostatics {
-    cells: Option<Vec<crate::definition::ConvexVolume>>,
+    cells: Option<Vec<PolyCell>>,
     slices: Vec<Slice>,
     bound: f64,
     full: Hydrostatics,
@@ -44,7 +50,20 @@ impl HullHydrostatics {
         stations.sort_by(f64::total_cmp);
         stations.dedup();
         let mut result = Self {
-            cells: h.volume.as_ref().map(|v|v.cells.clone()),
+            cells: h.volume.as_ref().map(|v| {
+                v.cells
+                    .iter()
+                    .map(|c| PolyCell {
+                        shape: c.clone(),
+                        full: crate::construction_geometry::moments(c),
+                        vertices: c
+                            .faces
+                            .iter()
+                            .flat_map(|f| f.vertices.iter().copied())
+                            .collect(),
+                    })
+                    .collect()
+            }),
             slices: stations
                 .windows(2)
                 .map(|p| Slice {
@@ -58,7 +77,11 @@ impl HullHydrostatics {
                 volume: 0.0,
                 center: [0.0; 3],
             },
-            table: if h.volume.is_some() { None } else { table.cloned() },
+            table: if h.volume.is_some() {
+                None
+            } else {
+                table.cloned()
+            },
         };
         result.full = match &result.table {
             Some(t) => Hydrostatics {
@@ -83,9 +106,31 @@ impl HullHydrostatics {
         let nx = roll.sin() * pitch.cos();
         let ny = roll.cos() * pitch.cos();
         let nz = -pitch.sin();
-        if let Some(cells)=&self.cells {
-            let m=crate::construction_geometry::submerged(cells,[nx,ny,nz],-y);
-            return Hydrostatics{volume:m.volume,center:m.center()};
+        if let Some(cells) = &self.cells {
+            let n = [nx, ny, nz];
+            let mut m = crate::construction_geometry::Moments::default();
+            for cell in cells {
+                let (mut inside, mut outside) = (false, false);
+                for &p in &cell.vertices {
+                    if crate::geometry::dot(n, p) <= -y {
+                        inside = true;
+                    } else {
+                        outside = true;
+                    }
+                }
+                if !inside {
+                    continue;
+                }
+                if !outside {
+                    m.add(cell.full);
+                } else if let Some(c) = crate::construction_geometry::clip(&cell.shape, n, -y) {
+                    m.add(crate::construction_geometry::moments(&c));
+                }
+            }
+            return Hydrostatics {
+                volume: m.volume,
+                center: m.center(),
+            };
         }
         let (mut volume, mut x, mut cy, mut z) = (0.0, 0.0, 0.0, 0.0);
         for s in &self.slices {
@@ -109,7 +154,9 @@ impl HullHydrostatics {
     /// same expression on the same floats in the same order as `sample`, so the
     /// volume is bit-identical; only the unused x and y moments are dropped.
     fn sampled_volume(&self, y: f64, roll: f64, pitch: f64) -> f64 {
-        if self.cells.is_some() { return self.mesh_sample(y,roll,pitch).volume; }
+        if self.cells.is_some() {
+            return self.mesh_sample(y, roll, pitch).volume;
+        }
         let nx = roll.sin() * pitch.cos();
         let ny = roll.cos() * pitch.cos();
         let nz = -pitch.sin();

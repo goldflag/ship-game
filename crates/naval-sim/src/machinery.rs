@@ -70,23 +70,49 @@ pub fn equipment_condition(
             .find(|m| m.id == module.id)
             .map_or(0.0, |m| m.hp),
     };
+    // Propellers and rudders lose capability with exposed vertical span. This
+    // bounded envelope estimate permits partial immersion; it never moves the
+    // authored fitting or adjusts the hull's displacement/CG.
+    let immersion = if def.hull.volume.is_some()
+        && (module.role.as_deref() == Some("shaft") || module.kind == "steering")
+    {
+        let bottom = local_to_world(
+            [
+                module.center[0],
+                module.center[1] - module.size[1] * 0.5,
+                module.center[2],
+            ],
+            actor.motion.pose(),
+        );
+        let top = local_to_world(
+            [
+                module.center[0],
+                module.center[1] + module.size[1] * 0.5,
+                module.center[2],
+            ],
+            actor.motion.pose(),
+        );
+        let surface = sea.map_or(0., |(s, t)| s.height(top[0], top[2], t));
+        ((surface - bottom[1].min(top[1])) / (top[1] - bottom[1]).abs().max(1e-6)).clamp(0., 1.)
+    } else {
+        1.
+    };
     let reason = if hp <= 0.0 {
         EquipmentReason::Destroyed
-    } else if def.hull.volume.is_some()
-        && (module.role.as_deref() == Some("shaft") || module.kind == "steering")
-        && {
-            let top = local_to_world(
-                [
-                    module.center[0],
-                    module.center[1] + module.size[1] * 0.5,
-                    module.center[2],
-                ],
-                actor.motion.pose(),
-            );
-            top[1] > sea.map_or(0., |(s, t)| s.height(top[0], top[2], t))
-        }
-    {
+    } else if immersion <= 0. {
         EquipmentReason::Unimmersed
+    } else if def.hull.volume.is_some() && module.role.as_deref() == Some("boiler") && {
+        let top = local_to_world(
+            [
+                module.center[0],
+                module.center[1] + module.size[1] * 0.5,
+                module.center[2],
+            ],
+            actor.motion.pose(),
+        );
+        top[1] <= sea.map_or(0., |(s, t)| s.height(top[0], top[2], t))
+    } {
+        EquipmentReason::Flooded
     } else if let Some(tolerance) = module.immersion_tolerance_m {
         let center = equipment_center(actor, def, module);
         let datum = local_to_world(
@@ -131,7 +157,7 @@ pub fn equipment_condition(
         ) {
             0.0
         } else {
-            hp / module.hp
+            hp / module.hp * immersion
         },
     }
 }

@@ -11,6 +11,14 @@ fn error(e: impl std::fmt::Display) -> JsValue {
 pub fn compile_construction(source_json: &str, catalog_json: &str) -> Result<String, JsValue> {
     naval_sim::construction::compile_json(source_json, catalog_json).map_err(error)
 }
+#[wasm_bindgen]
+pub fn suggest_construction(
+    source_json: &str,
+    catalog_json: &str,
+    part_ids_json: &str,
+) -> Result<String, JsValue> {
+    naval_sim::construction::suggest_json(source_json, catalog_json, part_ids_json).map_err(error)
+}
 /// Development port inspection uses the same physical movement resolver as combat.
 #[wasm_bindgen]
 pub fn preview_articulation_json(
@@ -326,6 +334,68 @@ pub struct LocalRuntime {
     delta: naval_sim::frame_delta::FrameDelta,
 }
 
+#[cfg(test)]
+mod construction_trial_tests {
+    use super::*;
+    #[test]
+    fn trial_uses_hp_units_resets_delta_and_disables_opponent_orders() {
+        use naval_sim::{
+            battle::{BattleSetup, ShipSetup},
+            bots::AiLevel,
+            rules::TeamId,
+            vessel::Controller,
+        };
+        let setup = BattleSetup {
+            ships: [("player", TeamId::A), ("target", TeamId::B)]
+                .into_iter()
+                .map(|(id, team)| ShipSetup {
+                    id: id.into(),
+                    preset_id: "fletcher".into(),
+                    team,
+                    controller: if team == TeamId::A {
+                        Controller::Player
+                    } else {
+                        Controller::Bot
+                    },
+                    ai_level: AiLevel::Normal,
+                    spawn: None,
+                })
+                .collect(),
+            seed: 7,
+            map_id: "north-atlantic".into(),
+            weather: "clear".into(),
+            spawn_distance: 3000.,
+            wind_speed: Some(0.),
+            mission_rules: None,
+            air_rules: None,
+        };
+        let manifest = std::fs::read("../../.build/naval-content/manifest.json").unwrap();
+        let setup = serde_json::to_string(&setup).unwrap();
+        let mut runtime =
+            LocalRuntime::with_construction(&manifest, &setup, "[]", "[]", true).unwrap();
+        let health = runtime.session.battle.actors[0].damage.integrity;
+        runtime.snapshot_delta(vec![]).unwrap();
+        runtime
+            .trial_action(r#"{"kind":"damage","actorId":"player","amount":10}"#)
+            .unwrap();
+        assert_eq!(
+            runtime.session.battle.actors[0].damage.integrity,
+            health - 10.
+        );
+        let delta: serde_json::Value =
+            serde_json::from_str(&runtime.snapshot_delta(vec![]).unwrap()).unwrap();
+        assert!(delta["baseTick"].is_null());
+        let target = &runtime.session.control.ships["target"];
+        assert!(!target.weapons.guns && !target.weapons.aa && !target.weapons.torpedoes);
+        assert!(matches!(
+            target.movement,
+            naval_sim::navigation::Movement::Hold
+        ));
+        let reset = LocalRuntime::with_construction(&manifest, &setup, "[]", "[]", true).unwrap();
+        assert_eq!(reset.session.battle.actors[0].damage.integrity, health);
+    }
+}
+
 /// What to do with the assembled frame. The three information-boundary branches
 /// build different frame types, so the destination is a parameter rather than a
 /// second copy of the branches.
@@ -369,24 +439,37 @@ impl LocalRuntime {
         use std::{collections::BTreeMap, sync::Arc};
         if setup.len() > 65536
             || sources_json.len() > naval_sim::construction::MAX_SOURCE_BYTES * 4
-            || catalog_json.len() > naval_sim::construction::MAX_CATALOG_BYTES
+            || catalog_json.len() > naval_sim::construction::MAX_CATALOG_BYTES * 8
         {
             return Err(error("Local construction input exceeds size limit"));
         }
-        let setup: naval_sim::battle::BattleSetup = serde_json::from_str(setup).map_err(error)?;
+        let mut setup: naval_sim::battle::BattleSetup =
+            serde_json::from_str(setup).map_err(error)?;
         if setup.mission_rules.is_some() {
             return Err(error(
                 "Construction is available only in local custom battles and trials",
             ));
         }
+        if trial {
+            for ship in &mut setup.ships {
+                if ship.team == naval_sim::rules::TeamId::B {
+                    ship.ai_level = naval_sim::bots::AiLevel::Static;
+                    ship.controller = naval_sim::vessel::Controller::Bot;
+                }
+            }
+        }
         let sources: Vec<naval_sim::definition::ConstructionSource> =
             serde_json::from_str(sources_json).map_err(error)?;
-        let parts: naval_sim::definition::ConstructionCatalog =
-            serde_json::from_str(catalog_json).map_err(error)?;
+        let parts: Vec<naval_sim::definition::ConstructionCatalog> =
+            if catalog_json.trim_start().starts_with('[') {
+                serde_json::from_str(catalog_json).map_err(error)?
+            } else {
+                vec![serde_json::from_str(catalog_json).map_err(error)?]
+            };
         let catalog = Arc::new(
             naval_sim::catalog::Catalog::load(manifest)
                 .map_err(error)?
-                .with_constructions(&sources, &parts)
+                .with_construction_catalogs(&sources, &parts)
                 .map_err(error)?,
         );
         let mut compiled = BTreeMap::new();
@@ -401,6 +484,24 @@ impl LocalRuntime {
         let battle = naval_sim::battle::Battle::new(catalog, &compiled, setup).map_err(error)?;
         let mut runtime = Self::from_battle(battle, None)?;
         runtime.trial = trial;
+        if trial {
+            for actor in runtime
+                .session
+                .battle
+                .actors
+                .iter()
+                .filter(|a| a.team == naval_sim::rules::TeamId::B)
+            {
+                if let Some(control) = runtime.session.control.ships.get_mut(&actor.motion.id) {
+                    control.movement = naval_sim::navigation::Movement::Hold;
+                    control.weapons = naval_sim::navigation::WeaponsPolicy {
+                        guns: false,
+                        aa: false,
+                        torpedoes: false,
+                    };
+                }
+            }
+        }
         Ok(runtime)
     }
     pub fn construction_definitions(&self) -> Result<String, JsValue> {
@@ -456,7 +557,13 @@ impl LocalRuntime {
                 actor.damage.stability.elapsed = 1.;
             }
             "damage" => {
-                naval_sim::damage::damage_hull(actor, action.amount, None);
+                // The trial API accepts displayed HP, while the shared combat
+                // helper accepts the historical unscaled damage unit.
+                naval_sim::damage::damage_hull(
+                    actor,
+                    action.amount / naval_sim::damage::HULL_HP_SCALE,
+                    None,
+                );
             }
             "module-damage" => {
                 let i = actor
@@ -469,6 +576,7 @@ impl LocalRuntime {
             }
             _ => return Err(error("Unknown trial action")),
         }
+        self.delta = Default::default();
         Ok(())
     }
     pub fn command(&mut self, json: &str) -> Result<(), JsValue> {

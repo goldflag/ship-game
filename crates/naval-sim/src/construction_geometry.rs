@@ -8,6 +8,19 @@ pub const EPS: f64 = 1e-8;
 pub const MAX_CELLS: usize = 4096;
 pub type Polygon = Vec<Vec3>;
 pub type Cell = ConvexVolume;
+pub fn check_budget(cells: &[Cell]) -> Result<(), String> {
+    if cells.len() > MAX_CELLS
+        || cells.iter().any(|c| c.faces.len() > 128)
+        || cells
+            .iter()
+            .map(|c| c.faces.iter().map(|f| f.vertices.len()).sum::<usize>())
+            .sum::<usize>()
+            > 131072
+    {
+        return Err("Geometry exceeds 4096 convex cells, 128 faces per cell, or 131072 face vertices; simplify the design".into());
+    }
+    Ok(())
+}
 
 pub fn normal(p: &[Vec3]) -> Vec3 {
     normalize(cross(sub(p[1], p[0]), sub(p[2], p[0])))
@@ -204,6 +217,7 @@ pub fn subtract_all(mut cells: Vec<Cell>, cutters: &[Cell]) -> Result<Vec<Cell>,
             }
         }
         cells = next;
+        check_budget(&cells)?;
     }
     Ok(cells)
 }
@@ -212,6 +226,7 @@ pub fn union(cells: &[Cell]) -> Result<Vec<Cell>, String> {
     for c in cells {
         let additions = subtract_all(vec![c.clone()], &out)?;
         out.extend(additions);
+        check_budget(&out)?;
         if out.len() > MAX_CELLS {
             return Err("Geometry exceeds 4096 convex cells".into());
         }

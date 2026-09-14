@@ -190,4 +190,10 @@ pub fn update_flooding(
         actor.motion.pitch += (pitch - actor.motion.pitch) * blend;
     }
     update_sinking(actor, def, dt);
+    if def.hull.volume.is_some() {
+        for i in 0..def.compartments.len() {
+            let y = water_level(actor, def, i, None);
+            actor.damage.compartments[i].water_level_y = Some(y);
+        }
+    }
 }

@@ -48,6 +48,229 @@ pub fn compile_json(source: &str, catalog: &str) -> Result<String, String> {
     let catalog: ConstructionCatalog = serde_json::from_str(catalog).map_err(|e| e.to_string())?;
     to_json(&compile(&source, &catalog))
 }
+pub fn suggest_json(source: &str, catalog: &str, part_ids: &str) -> Result<String, String> {
+    if source.len() > MAX_SOURCE_BYTES || catalog.len() > MAX_CATALOG_BYTES || part_ids.len() > 4096
+    {
+        return Err("Suggestion input exceeds size limit".into());
+    }
+    let source: ConstructionSource = serde_json::from_str(source).map_err(|e| e.to_string())?;
+    let catalog: ConstructionCatalog = serde_json::from_str(catalog).map_err(|e| e.to_string())?;
+    let ids: Vec<String> = serde_json::from_str(part_ids).map_err(|e| e.to_string())?;
+    to_json(&suggest(&source, &catalog, &ids))
+}
+/// Deterministic bounded proposal. Existing instances never move; every accepted
+/// addition passes the same complete compiler as manual edits. Failure is atomic.
+pub fn suggest(
+    source: &ConstructionSource,
+    catalog: &ConstructionCatalog,
+    ids: &[String],
+) -> ConstructionSuggestion {
+    let fail = |code: &str, message: String, id: Option<&str>| ConstructionSuggestion {
+        source: source.clone(),
+        diagnostics: vec![error(code, message, id)],
+    };
+    if ids.len() > 16 {
+        return fail(
+            "suggestion-limit",
+            "Suggest at most 16 equipment parts at once".into(),
+            None,
+        );
+    }
+    let mut result = source.clone();
+    let mut requested = vec![];
+    for id in ids {
+        let Some(p) = catalog.equipment.iter().find(|p| p.id == *id) else {
+            return fail("missing-part", format!("Unknown requested part {id}"), None);
+        };
+        if !result
+            .construction
+            .equipment
+            .iter()
+            .any(|e| e.part_id == *id)
+            && !requested
+                .iter()
+                .any(|p: &&ConstructionEquipmentPart| p.id == *id)
+        {
+            requested.push(p);
+        }
+    }
+    requested.sort_by_key(|p| match p.kind.as_str() {
+        "engine" => 0,
+        "magazine" => 1,
+        "funnel" => 2,
+        "propeller" => 3,
+        "rudder" => 4,
+        "gun" => 5,
+        _ => 6,
+    });
+    let mut attempts = 0;
+    for part in requested {
+        let preview = compile(&result, catalog);
+        let Some(def) = preview.definition.as_ref() else {
+            return ConstructionSuggestion {
+                source: source.clone(),
+                diagnostics: preview.diagnostics,
+            };
+        };
+        let socket = part
+            .sockets
+            .as_ref()
+            .and_then(|s| s.iter().find(|s| s.id == "attachment"));
+        let offset = socket.map_or([0.; 3], |s| s.position);
+        let direction = socket.map_or([0., -1., 0.], |s| s.direction);
+        let mut patches: Vec<(Vec<Vec3>, Vec3, f64)> = preview
+            .surfaces
+            .iter()
+            .filter(|s| {
+                !s.open
+                    && if part.placement == "internal" {
+                        s.normal[1] < -0.95
+                    } else {
+                        dot(s.normal, direction) < -0.95
+                    }
+            })
+            .map(|s| {
+                (
+                    s.vertices.clone(),
+                    s.normal,
+                    if part.placement == "internal" {
+                        -s.thickness_mm / 1000.
+                    } else {
+                        0.
+                    },
+                )
+            })
+            .collect();
+        if part.placement == "internal" {
+            patches.extend(def.armor.iter().filter_map(|a| {
+                a.plate
+                    .as_ref()
+                    .filter(|p| p.exterior == Some(false) && cg::normal(&p.vertices)[1] > 0.95)
+                    .map(|p| {
+                        (
+                            p.vertices.clone(),
+                            cg::normal(&p.vertices),
+                            a.thickness_mm / 2000.,
+                        )
+                    })
+            }));
+        }
+        let mut candidates = vec![];
+        for (polygon, normal, inset) in patches {
+            let (center, size) = crate::structure::bounds(polygon.iter().copied());
+            let fixed = (0..3)
+                .max_by(|a, b| normal[*a].abs().total_cmp(&normal[*b].abs()))
+                .unwrap();
+            let axes: Vec<_> = (0..3).filter(|i| *i != fixed).collect();
+            let mut values = vec![vec![], vec![]];
+            for (j, &a) in axes.iter().enumerate() {
+                let half = part.size[a] * 0.5;
+                let lo = center[a] - size[a] * 0.5 + half;
+                let hi = center[a] + size[a] * 0.5 - half;
+                if lo > hi {
+                    values[j].push(center[a]);
+                } else {
+                    values[j].push(center[a]);
+                    let step = (part.size[a] + 0.25).max(0.5);
+                    let mut v = lo;
+                    while v <= hi + 1e-8 && values[j].len() < 16 {
+                        values[j].push((v * 4.).round() / 4.);
+                        v += step;
+                    }
+                }
+            }
+            for &a in &values[0] {
+                for &b in &values[1] {
+                    let mut p = center;
+                    p[axes[0]] = a;
+                    p[axes[1]] = b;
+                    p = add(p, scale(normal, inset));
+                    candidates.push(sub(p, offset));
+                }
+            }
+        }
+        // Favor low internal loads and submerged appendages; then stable source frame order.
+        candidates.sort_by(|a, b| {
+            a[1].total_cmp(&b[1])
+                .then_with(|| a[2].total_cmp(&b[2]))
+                .then_with(|| a[0].total_cmp(&b[0]))
+        });
+        candidates.dedup_by(|a, b| length(sub(*a, *b)) < 1e-7);
+        let mut accepted = None;
+        let mut last = None;
+        for position in candidates {
+            if attempts >= 256 {
+                break;
+            }
+            attempts += 1;
+            let mut id = format!("auto-{}", part.id.chars().take(48).collect::<String>());
+            let mut serial = 1;
+            while result.construction.equipment.iter().any(|e| e.id == id) {
+                id = format!(
+                    "auto-{}-{serial}",
+                    part.id.chars().take(48).collect::<String>()
+                );
+                serial += 1;
+            }
+            let e = ConstructionEquipment {
+                id,
+                part_id: part.id.clone(),
+                position,
+                bearing_deg: 0.,
+                magazine_id: None,
+                power_source_id: if matches!(part.kind.as_str(), "funnel" | "propeller") {
+                    result
+                        .construction
+                        .equipment
+                        .iter()
+                        .find(|e| {
+                            catalog
+                                .equipment
+                                .iter()
+                                .any(|p| p.id == e.part_id && p.kind == "engine")
+                        })
+                        .map(|e| e.id.clone())
+                } else {
+                    None
+                },
+            };
+            let mut candidate = result.clone();
+            candidate.construction.equipment.push(e);
+            let compiled = compile(&candidate, catalog);
+            if compiled.definition.is_some() {
+                accepted = Some(candidate);
+                break;
+            }
+            last = compiled
+                .diagnostics
+                .into_iter()
+                .find(|d| d.severity == "error");
+        }
+        let Some(candidate) = accepted else {
+            return fail(
+                "suggestion-fit",
+                format!(
+                    "Could not place {} within 256 attempts; {}",
+                    part.name,
+                    last.map_or(
+                        "add a suitably sized flat support or internal floor".into(),
+                        |d| d.message
+                    )
+                ),
+                Some(&part.id),
+            );
+        };
+        result = candidate;
+    }
+    result.revision = format!(
+        "suggest-{}",
+        &sha256(&serde_json::to_vec(&result).unwrap())[..24]
+    );
+    ConstructionSuggestion {
+        source: result,
+        diagnostics: vec![],
+    }
+}
 /// TypeScript optional properties are omitted, rather than encoded as JSON null.
 pub fn to_json(value: &impl serde::Serialize) -> Result<String, String> {
     fn omit(value: &mut serde_json::Value) {
@@ -71,8 +294,10 @@ pub fn to_json(value: &impl serde::Serialize) -> Result<String, String> {
     serde_json::to_string(&value).map_err(|e| e.to_string())
 }
 pub fn compile(source: &ConstructionSource, catalog: &ConstructionCatalog) -> ConstructionResult {
-    let content_hash =
-        sha256(&serde_json::to_vec(&(COMPILER, source, catalog)).unwrap_or_default());
+    let content_hash = sha256(
+        &serde_json::to_vec(&(COMPILER, crate::SIMULATION_BUILD, source, catalog))
+            .unwrap_or_default(),
+    );
     let mut out = ConstructionResult {
         source_id: source.id.clone(),
         revision: source.revision.clone(),
@@ -409,6 +634,7 @@ fn build(
                 STEEL_DENSITY,
             ));
             material.extend(occupied);
+            cg::check_budget(&material).map_err(fail)?;
         }
     }
     let (center, dimensions) = crate::structure::bounds(
@@ -439,6 +665,7 @@ fn build(
         }
         contributions.push(mass(b.id.clone(), "bulkhead", &occupied, STEEL_DENSITY));
         material.extend(occupied);
+        cg::check_budget(&material).map_err(fail)?;
     }
     let material_volume = cg::total(&material).volume;
     let mut interior = cg::subtract_all(cells.clone(), &material).map_err(fail)?;
@@ -510,6 +737,30 @@ fn build(
             .collect::<String>();
         groups.entry(format!("room{key}")).or_default().push(cell);
     }
+    let groups: Vec<_> = groups
+        .into_iter()
+        .flat_map(|(id, cells)| {
+            let pieces = connected_spaces(cells);
+            let count = pieces.len();
+            pieces.into_iter().enumerate().map(move |(i, cells)| {
+                (
+                    if count == 1 {
+                        id.clone()
+                    } else {
+                        format!("{id}-space-{i}")
+                    },
+                    cells,
+                )
+            })
+        })
+        .collect();
+    if groups.len() > 256 {
+        return Err(error(
+            "geometry-limit",
+            "Subdivision exceeds 256 connected rooms",
+            None,
+        ));
+    }
     for (id, volumes) in groups {
         let m = cg::total(&volumes);
         if m.volume < 1e-6 {
@@ -532,27 +783,26 @@ fn build(
         });
     }
     assign_rooms(&mut def)?;
-    def.openings = Some(
-        out.surfaces
-            .iter()
-            .filter(|s| s.open)
-            .filter_map(|s| {
-                let position = scale(
-                    s.vertices.iter().copied().fold([0.; 3], add),
-                    1. / s.vertices.len() as f64,
-                );
-                let inside = sub(position, scale(s.normal, 0.001));
-                nearest_room(&def, inside).map(|room| ConstructionOpening {
-                    id: s.id.clone(),
+    let mut openings = vec![];
+    for s in out.surfaces.iter().filter(|s| s.open) {
+        for room in &def.compartments {
+            for polygon in room_plane_faces(room, s.normal, dot(s.normal, s.vertices[0])) {
+                let polygon = intersect_polygons(polygon, &s.vertices);
+                if cg::area(&polygon) <= 1e-8 {
+                    continue;
+                }
+                openings.push(ConstructionOpening {
+                    id: format!("{}-{}-{}", s.id, room.id, openings.len()),
                     compartment_id: room.id.clone(),
-                    position,
+                    position: polygon_center(&polygon),
                     normal: s.normal,
-                    area_m2: s.area_m2,
+                    area_m2: cg::area(&polygon),
                     ..Default::default()
-                })
-            })
-            .collect(),
-    );
+                });
+            }
+        }
+    }
+    def.openings = Some(openings);
     for (id, kind, polygon) in penetrations {
         let position = scale(
             polygon.iter().copied().fold([0.; 3], add),
@@ -633,6 +883,68 @@ fn build(
             }
         }
     }
+    // Closed walls use the existing protection-linked damage path. Only true
+    // usable faces on both sides receive a transfer portal; a bounding box gap
+    // or a package occupying the passage cannot connect rooms.
+    for b in &boundaries {
+        let mut n = [0.; 3];
+        n[axis(&b.axis)] = 1.;
+        for armor in def
+            .armor
+            .iter()
+            .filter(|a| a.name == b.id && a.exterior == Some(false))
+        {
+            let plate = &armor.plate.as_ref().unwrap().vertices;
+            for left in &def.compartments {
+                for mut a in room_plane_faces(left, n, b.offset - b.thickness_mm / 2000.) {
+                    for p in &mut a {
+                        p[axis(&b.axis)] = b.offset;
+                    }
+                    let a = intersect_polygons(a, plate);
+                    if cg::area(&a) < 1e-8 {
+                        continue;
+                    }
+                    for right in def.compartments.iter().filter(|r| r.id != left.id) {
+                        for mut p in room_plane_faces(
+                            right,
+                            scale(n, -1.),
+                            -(b.offset + b.thickness_mm / 2000.),
+                        ) {
+                            for v in &mut p {
+                                v[axis(&b.axis)] = b.offset;
+                            }
+                            let polygon = intersect_polygons(a.clone(), &p);
+                            let area = cg::area(&polygon);
+                            if area < 1e-8 {
+                                continue;
+                            }
+                            let (center, mut size) =
+                                crate::structure::bounds(polygon.iter().copied());
+                            size[axis(&b.axis)] = b.thickness_mm / 1000. + 0.002;
+                            def.connections.push(FloodConnection {
+                                id: Some(format!("portal-{}-{}", b.id, def.connections.len())),
+                                from_id: left.id.clone(),
+                                to_id: right.id.clone(),
+                                state: Some("closed".into()),
+                                area_m2: area,
+                                position: Some(polygon_center(&polygon)),
+                                armor_id: Some(armor.id.clone()),
+                                bounds: Some(FloodConnectionBounds { center, size }),
+                                ..Default::default()
+                            });
+                        }
+                    }
+                }
+            }
+        }
+    }
+    if def.connections.len() > 512 || def.openings.as_ref().unwrap().len() > 4096 {
+        return Err(error(
+            "geometry-limit",
+            "Subdivision exceeds bounded flooding portal count",
+            None,
+        ));
+    }
     let void_volume: f64 = def.compartments.iter().map(|r| r.capacity_m3).sum();
     def.local_damage = Some(ShipDefinitionLocalDamage {
         version: 1.,
@@ -706,6 +1018,24 @@ fn build(
     });
     let hydro = crate::hydrostatics::HullHydrostatics::new(&def.hull, None);
     let float = hydro.flotation(total_mass / SEA_DENSITY, 0., 0.);
+    if def.modules.iter().any(|m| {
+        (m.role.as_deref() == Some("shaft") || m.kind == "steering")
+            && m.center[1] + m.size[1] * 0.5 > -float.y
+    }) {
+        warn(
+            out,
+            "propulsor-exposure",
+            "Propeller or rudder is partly above the estimated waterline; exposure reduces its runtime capability",
+        );
+    }
+    def.hull.waterplane_area_m2 = if float.afloat {
+        ((hydro.sample(float.y - 0.0001, 0., 0.).volume
+            - hydro.sample(float.y + 0.0001, 0., 0.).volume)
+            / 0.0002)
+            .max(0.)
+    } else {
+        0.
+    };
     let eps = 0.001;
     let f2 = hydro.flotation(total_mass / SEA_DENSITY, eps, 0.);
     let arm0 = crate::hydrostatics::righting_arms(float.center, cg, 0., 0.).0;
@@ -812,6 +1142,64 @@ fn axis(a: &str) -> usize {
         _ => 2,
     }
 }
+fn polygon_center(polygon: &[Vec3]) -> Vec3 {
+    scale(
+        polygon.iter().copied().fold([0.; 3], add),
+        1. / polygon.len() as f64,
+    )
+}
+fn intersect_polygons(mut polygon: Vec<Vec3>, clip: &[Vec3]) -> Vec<Vec3> {
+    let normal = cg::normal(clip);
+    for i in 0..clip.len() {
+        let side = normalize(cross(sub(clip[(i + 1) % clip.len()], clip[i]), normal));
+        polygon = cg::clip_polygon(&polygon, side, dot(side, clip[i]));
+        if polygon.len() < 3 {
+            return vec![];
+        }
+    }
+    polygon
+}
+fn room_plane_faces(room: &Compartment, normal: Vec3, offset: f64) -> Vec<Vec<Vec3>> {
+    room.volumes
+        .iter()
+        .flatten()
+        .flat_map(|c| &c.faces)
+        .filter(|f| {
+            dot(cg::normal(&f.vertices), normal) > 1. - 1e-7
+                && f.vertices
+                    .iter()
+                    .all(|v| (dot(normal, *v) - offset).abs() < 1e-7)
+        })
+        .map(|f| f.vertices.clone())
+        .collect()
+}
+fn connected_spaces(mut cells: Vec<cg::Cell>) -> Vec<Vec<cg::Cell>> {
+    cells.sort_by(|a, b| {
+        let (a, b) = (cg::bounds(a).0, cg::bounds(b).0);
+        a[0].total_cmp(&b[0])
+            .then(a[1].total_cmp(&b[1]))
+            .then(a[2].total_cmp(&b[2]))
+    });
+    let mut remaining: Vec<_> = cells.into_iter().map(Some).collect();
+    let mut groups = vec![];
+    while let Some(start) = remaining.iter().position(Option::is_some) {
+        let mut group = vec![remaining[start].take().unwrap()];
+        let mut i = 0;
+        while i < group.len() {
+            for next in &mut remaining {
+                if next
+                    .as_ref()
+                    .is_some_and(|cell| cg::connected(&group[i], cell))
+                {
+                    group.push(next.take().unwrap());
+                }
+            }
+            i += 1;
+        }
+        groups.push(group);
+    }
+    groups
+}
 fn nearest_room(def: &ShipDefinition, p: Vec3) -> Option<&Compartment> {
     def.compartments
         .iter()
@@ -865,6 +1253,22 @@ fn equipment(
                 Some(&e.id),
             ));
         };
+        if e.power_source_id.as_ref().is_some_and(|id| {
+            !matches!(p.kind.as_str(), "propeller" | "funnel")
+                || !c.equipment.iter().any(|e| {
+                    &e.id == id
+                        && catalog
+                            .equipment
+                            .iter()
+                            .any(|p| p.id == e.part_id && p.kind == "engine")
+                })
+        }) {
+            return Err(error(
+                "power-link",
+                "Power connection must reference a fitted engine",
+                Some(&e.id),
+            ));
+        }
         if !finite(e.position)
             || !e.bearing_deg.is_finite()
             || e.bearing_deg.abs() > 3600.
@@ -1008,6 +1412,15 @@ fn equipment(
             cg::contains(h, attachment)
                 || length(sub(cg::closest_point(h, attachment), attachment)) <= 0.05
         });
+        let attached = attached
+            && (p.placement != "underwater"
+                || out.surfaces.iter().any(|s| {
+                    !s.open
+                        && length(sub(
+                            cg::closest_point(&cg::prism(&s.vertices, 0.001), attachment),
+                            attachment,
+                        )) <= 0.05
+                }));
         if !attached {
             return Err(error(
                 "equipment-attachment",
@@ -1102,6 +1515,7 @@ fn equipment(
                     "funnel" => Some("boiler".into()),
                     _ => None,
                 },
+                torpedo_launcher_id: (p.kind == "torpedo-launcher").then(|| e.id.clone()),
                 serves_mount_ids: if p.kind == "director" {
                     Some(
                         c.equipment
@@ -1213,7 +1627,7 @@ fn equipment(
                 def.torpedo_tubes
                     .get_or_insert_default()
                     .push(TubeDefinition {
-                        id: format!("{}-tube-{}", e.id, i + 1),
+                        id: format!("{}.tube-{}", e.id, i + 1),
                         name: p.name.clone(),
                         part_id: w.id.clone(),
                         position: local_to_world(offset, pose),
@@ -1320,11 +1734,24 @@ fn equipment(
     } else {
         0.
     };
-    let yaw_inertia = m * (dims[0] * dims[0] + dims[2] * dims[2]) / 12.;
+    let center_of_gravity = scale(
+        masses
+            .iter()
+            .map(|c| scale(c.center, c.mass_kg))
+            .fold([0.; 3], add),
+        1. / m,
+    );
+    let yaw_inertia: f64 = masses
+        .iter()
+        .map(|c| {
+            let r = sub(c.center, center_of_gravity);
+            c.inertia_kg_m2[1] + c.mass_kg * (r[0] * r[0] + r[2] * r[2])
+        })
+        .sum();
     let rudder_moment: f64 = fitted
         .iter()
         .filter(|(_, p)| p.kind == "rudder")
-        .map(|(e, p)| p.rudder_area_m2.unwrap_or(0.) * e.position[2].abs())
+        .map(|(e, p)| p.rudder_area_m2.unwrap_or(0.) * (e.position[2] - center_of_gravity[2]).abs())
         .sum();
     def.handling = Handling {
         forward_speed: speed,
@@ -1697,6 +2124,89 @@ mod tests {
         assert!((water.level - 0.005).abs() < 1e-6);
     }
     #[test]
+    fn closed_bulkhead_isolates_water_and_damage_transfer_conserves_it() {
+        let (mut s, c) = fixture();
+        s.construction.boundaries.push(ConstructionBoundary {
+            id: "wall".into(),
+            axis: "z".into(),
+            offset: 0.,
+            thickness_mm: 10.,
+        });
+        let d = compiled(&s, &c);
+        assert_eq!(d.compartments.len(), 2);
+        assert!(!d.connections.is_empty());
+        assert!(
+            d.connections
+                .iter()
+                .all(|c| c.state.as_deref() == Some("closed")
+                    && d.armor.iter().any(|a| Some(&a.id) == c.armor_id.as_ref()))
+        );
+        let hydro = crate::hydrostatics::HullHydrostatics::new(&d.hull, None);
+        let mut actor = crate::damage::Combatant::new("rooms", &d);
+        let source = actor.damage.connections[0].from_index;
+        let target = actor.damage.connections[0].to_index;
+        let water = d.compartments[source].capacity_m3 * 0.8;
+        actor.damage.compartments[source].water_m3 = water;
+        crate::flooding::update_flooding(&mut actor, &d, &hydro, 0.01, 0.5, None, None);
+        assert_eq!(actor.damage.compartments[target].water_m3, 0.);
+        actor.damage.connections[0].state = "damaged".into();
+        actor.damage.connections[0].damage_area_m2 = 0.1;
+        crate::flooding::update_flooding(&mut actor, &d, &hydro, 0.01, 0.5, None, None);
+        assert!(actor.damage.compartments[target].water_m3 > 0.);
+        assert!(
+            (actor
+                .damage
+                .compartments
+                .iter()
+                .map(|c| c.water_m3)
+                .sum::<f64>()
+                - water)
+                .abs()
+                < 1e-8
+        );
+        assert!(
+            actor
+                .damage
+                .compartments
+                .iter()
+                .all(|c| c.water_level_y.is_some())
+        );
+        s.construction.surfaces.push(ConstructionSurfaceAssignment {
+            primitive_id: "box".into(),
+            face: "top".into(),
+            open: Some(true),
+            thickness_mm: 0.,
+            material: "steel".into(),
+            paint: "naval-gray".into(),
+        });
+        let open = compiled(&s, &c);
+        for room in &open.compartments {
+            assert!(
+                open.openings
+                    .as_ref()
+                    .unwrap()
+                    .iter()
+                    .any(|o| o.compartment_id == room.id)
+            );
+        }
+        s.construction.boundaries.clear();
+        assert_eq!(compiled(&s, &c).compartments.len(), 1);
+    }
+    #[test]
+    fn occupied_interior_barrier_cannot_join_disconnected_air_spaces() {
+        let (mut s, c) = fixture();
+        s.construction.loads.push(ConstructionLoad {
+            id: "package".into(),
+            name: "Sealed package".into(),
+            mass_kg: 100.,
+            center: [0.; 3],
+            size: [9.98, 3.98, 0.1],
+        });
+        let d = compiled(&s, &c);
+        assert_eq!(d.compartments.len(), 2);
+        assert!(d.connections.is_empty());
+    }
+    #[test]
     fn cloned_catalog_admits_only_recompiled_local_sources() {
         let trusted = crate::catalog::Catalog::load(
             &std::fs::read("../../.build/naval-content/manifest.json").unwrap(),
@@ -1712,5 +2222,263 @@ mod tests {
         assert_eq!(local.manifest_hash, trusted.manifest_hash);
         assert!(local.compile(&d.id).is_ok());
         assert!(trusted.compile(&d.id).is_err());
+    }
+    fn equipped_fixture() -> (ConstructionSource, ConstructionCatalog) {
+        let (mut s, mut c) = fixture();
+        let weapons: PartCatalog =
+            serde_json::from_str(include_str!("../../../assets/parts/guns.json")).unwrap();
+        let gun = weapons
+            .parts
+            .iter()
+            .find(|p| p.id == "us-5in38-mk30-mod0-single")
+            .unwrap()
+            .clone();
+        c.weapons.parts.push(gun.clone());
+        for (id, kind, placement, size, center, mass_kg) in [
+            (
+                "engine-part",
+                "engine",
+                "internal",
+                [2., 2., 3.],
+                [0., 1., 0.],
+                10000.,
+            ),
+            (
+                "magazine-part",
+                "magazine",
+                "internal",
+                [2., 2., 3.],
+                [0., 1., 0.],
+                1000.,
+            ),
+            (
+                "funnel-part",
+                "funnel",
+                "deck",
+                [1., 3., 1.],
+                [0., 1.5, 0.],
+                1000.,
+            ),
+            (
+                "screw-part",
+                "propeller",
+                "underwater",
+                [0.5, 0.5, 0.5],
+                [0.; 3],
+                100.,
+            ),
+            (
+                "rudder-part",
+                "rudder",
+                "underwater",
+                [0.2, 0.8, 1.],
+                [0., -0.4, 0.],
+                100.,
+            ),
+            ("gun-part", "gun", "deck", [3., 2., 3.], [0., 1., 0.], 0.),
+        ] {
+            c.equipment.push(ConstructionEquipmentPart {
+                id: id.into(),
+                name: id.into(),
+                kind: kind.into(),
+                placement: placement.into(),
+                size,
+                bounds_center: center,
+                center_of_gravity: center,
+                mass_kg: (mass_kg > 0.).then_some(mass_kg),
+                model_url: format!("/models/components/{id}/test.glb"),
+                content_hash: "test".into(),
+                gun_part_id: (kind == "gun").then(|| gun.id.clone()),
+                power_kw: (kind == "engine").then_some(1000.),
+                exhaust_kw: (kind == "funnel").then_some(1000.),
+                thrust_efficiency: (kind == "propeller").then_some(0.6),
+                rudder_area_m2: (kind == "rudder").then_some(0.8),
+                ammunition_capacity: (kind == "magazine").then_some(1000.),
+                occupancy: if kind == "gun" {
+                    Some(vec![ConstructionEquipmentPartOccupancyItem {
+                        center: [0., -0.5, 0.],
+                        size: [2., 1., 2.],
+                    }])
+                } else if kind == "funnel" {
+                    Some(vec![ConstructionEquipmentPartOccupancyItem {
+                        center: [0., -0.25, 0.],
+                        size: [1., 0.5, 1.],
+                    }])
+                } else {
+                    None
+                },
+                sockets: Some(vec![ConstructionEquipmentPartSocketsItem {
+                    id: "attachment".into(),
+                    kind: "support".into(),
+                    position: if kind == "propeller" {
+                        [0., 0., -0.25]
+                    } else {
+                        [0.; 3]
+                    },
+                    direction: if kind == "propeller" {
+                        [0., 0., -1.]
+                    } else if kind == "rudder" {
+                        [0., 1., 0.]
+                    } else {
+                        [0., -1., 0.]
+                    },
+                }]),
+                ..Default::default()
+            });
+        }
+        for (id, part, position) in [
+            ("engine", "engine-part", [-3., -1.99, 2.]),
+            ("magazine", "magazine-part", [3., -1.99, -4.]),
+            ("gun", "gun-part", [0., 2., -5.]),
+            ("funnel", "funnel-part", [0., 2., 5.]),
+            ("screw", "screw-part", [0., -1.5, 10.25]),
+            ("rudder", "rudder-part", [2., -2., 7.]),
+        ] {
+            s.construction.equipment.push(ConstructionEquipment {
+                id: id.into(),
+                part_id: part.into(),
+                position,
+                bearing_deg: 0.,
+                ..Default::default()
+            });
+        }
+        (s, c)
+    }
+    #[test]
+    fn equipped_loading_penetrations_and_real_machinery_damage() {
+        let (s, c) = equipped_fixture();
+        let d = compiled(&s, &c);
+        assert_eq!(d.mounts[0].weapon.mass_kg, c.weapons.parts[0].mass_kg);
+        assert!(d.loading.as_ref().unwrap().power_kw > 0.);
+        assert!(d.handling.forward_speed > 0.);
+        assert!(d.mount_clearance.is_some());
+        let mut bare = s.clone();
+        bare.construction.equipment.clear();
+        let bare = compiled(&bare, &c);
+        assert!(
+            (bare.loading.unwrap().material_volume_m3
+                - d.loading.as_ref().unwrap().material_volume_m3
+                - 0.05)
+                .abs()
+                < 1e-6
+        );
+        let hydro = crate::hydrostatics::HullHydrostatics::new(&d.hull, None);
+        let mut actor = crate::damage::Combatant::new("armed", &d);
+        let screw = d
+            .modules
+            .iter()
+            .find(|m| m.role.as_deref() == Some("shaft"))
+            .unwrap();
+        actor.motion.y = -screw.center[1];
+        let half = crate::machinery::equipment_condition(&actor, &d, screw, None);
+        assert!((half.availability - 0.5).abs() < 1e-7);
+        actor.motion.y += screw.size[1];
+        assert_eq!(
+            crate::machinery::equipment_condition(&actor, &d, screw, None).availability,
+            0.
+        );
+        actor.motion.y = -3.;
+        crate::flooding::update_flooding(&mut actor, &d, &hydro, 0.01, 0.5, None, None);
+        assert_eq!(
+            actor
+                .damage
+                .compartments
+                .iter()
+                .map(|c| c.water_m3)
+                .sum::<f64>(),
+            0.
+        );
+        actor.mounts[0].hp = 0.;
+        crate::flooding::update_flooding(&mut actor, &d, &hydro, 0.01, 0.5, None, None);
+        assert!(
+            actor
+                .damage
+                .compartments
+                .iter()
+                .map(|c| c.water_m3)
+                .sum::<f64>()
+                > 0.
+        );
+        let engine = d.modules.iter().find(|m| m.id == "engine").unwrap();
+        let room = d
+            .compartments
+            .iter()
+            .position(|r| Some(r.id.as_str()) == engine.compartment_id.as_deref())
+            .unwrap();
+        actor.damage.compartments[room].water_m3 = d.compartments[room].capacity_m3;
+        actor.damage.stability.water.clear();
+        assert_eq!(
+            crate::machinery::equipment_condition(&actor, &d, engine, None).availability,
+            0.
+        );
+        crate::damage::damage_hull(&mut actor, 1e9, None);
+        crate::flooding::update_flooding(&mut actor, &d, &hydro, 0.01, 0.5, None, None);
+        assert!(actor.damage.sunk);
+        assert_eq!(actor.damage.defeat_cause.as_deref(), Some("hull-failure"));
+        let fresh = crate::damage::Combatant::new("reset", &d);
+        assert!(fresh.mounts[0].hp > 0.);
+        assert_eq!(fresh.damage.compartments[0].water_m3, 0.);
+    }
+    #[test]
+    fn intrinsic_well_never_carves_side_armor() {
+        let (mut s, c) = equipped_fixture();
+        s.construction
+            .equipment
+            .retain(|e| matches!(e.id.as_str(), "gun" | "magazine"));
+        s.construction
+            .equipment
+            .iter_mut()
+            .find(|e| e.id == "gun")
+            .unwrap()
+            .position = [4.5, 2., 4.];
+        let result = compile(&s, &c);
+        assert!(result.definition.is_none());
+        assert!(result.diagnostics.iter().any(|d| d.code == "equipment-fit"));
+    }
+    #[test]
+    fn proposals_preserve_existing_instances_and_fail_atomically() {
+        let (mut s, c) = equipped_fixture();
+        s.construction.equipment.retain(|e| e.id == "engine");
+        let old = serde_json::to_value(&s.construction.equipment).unwrap();
+        let proposed = suggest(&s, &c, &["magazine-part".into()]);
+        assert!(
+            proposed.diagnostics.is_empty(),
+            "{:?}",
+            proposed.diagnostics
+        );
+        assert_eq!(
+            serde_json::to_value(&proposed.source.construction.equipment[..1]).unwrap(),
+            old
+        );
+        assert!(compile(&proposed.source, &c).definition.is_some());
+        let failed = suggest(&s, &c, &["absent".into()]);
+        assert_eq!(
+            serde_json::to_value(failed.source).unwrap(),
+            serde_json::to_value(s).unwrap()
+        );
+        assert_eq!(failed.diagnostics[0].code, "missing-part");
+    }
+    #[test]
+    fn mixed_retained_catalogs_match_every_revision_exactly() {
+        let trusted = crate::catalog::Catalog::load(
+            &std::fs::read("../../.build/naval-content/manifest.json").unwrap(),
+        )
+        .unwrap();
+        let (s, c) = fixture();
+        let mut newer = s.clone();
+        newer.revision = "two".into();
+        newer.construction.catalog_revision = "test-two".into();
+        let mut next = c.clone();
+        next.revision = "test-two".into();
+        assert!(
+            trusted
+                .with_construction_catalogs(&[s.clone(), newer.clone()], &[c.clone(), next])
+                .is_ok()
+        );
+        assert!(
+            trusted
+                .with_construction_catalogs(&[s, newer], &[c])
+                .is_err()
+        );
     }
 }

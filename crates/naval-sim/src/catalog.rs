@@ -66,6 +66,34 @@ pub fn sha256(bytes: &[u8]) -> String {
     format!("{:x}", Sha256::digest(bytes))
 }
 impl Catalog {
+    pub fn with_construction_catalogs(
+        &self,
+        sources: &[crate::definition::ConstructionSource],
+        parts: &[crate::definition::ConstructionCatalog],
+    ) -> Result<Self, ContentError> {
+        if sources.len() > 32
+            || parts.len() > 32
+            || !ids_unique(parts.iter().map(|p| p.revision.as_str()))
+        {
+            return Err(ContentError::Invalid(
+                "Invalid local source/catalog count or duplicate catalog revisions".into(),
+            ));
+        }
+        let mut local = self.clone();
+        for source in sources {
+            let catalog = parts
+                .iter()
+                .find(|p| p.revision == source.construction.catalog_revision)
+                .ok_or_else(|| {
+                    ContentError::Invalid(format!(
+                        "Missing retained catalog revision {}",
+                        source.construction.catalog_revision
+                    ))
+                })?;
+            local = local.with_constructions(std::slice::from_ref(source), catalog)?;
+        }
+        Ok(local)
+    }
     /// Source-only local admission. Clone leaves trusted manifest identities and hashes untouched.
     /// Immutable local IDs include content revision; no browser-supplied derived geometry is trusted.
     pub fn with_constructions(
@@ -294,31 +322,26 @@ pub fn validate_definition(d: &ShipDefinition) -> Result<(), ContentError> {
         return Err(fail());
     }
     let h = &d.hull;
-    if !positive(&[
-        h.mass_kg,
-        h.length,
-        h.beam,
-        h.draft,
-        h.depth,
-        h.waterplane_area_m2,
-    ]) || if h.kind == "constructed-volume-v1" {
-        [
-            d.handling.forward_speed,
-            d.handling.reverse_speed,
-            d.handling.acceleration,
-            d.handling.braking,
-            d.handling.rudder_rate,
-            d.handling.max_yaw_rate,
-        ]
-        .iter()
-        .any(|v| !v.is_finite() || *v < 0.)
-    } else {
-        !positive(&[
-            d.handling.forward_speed,
-            d.handling.acceleration,
-            d.handling.braking,
-        ])
-    } {
+    if !positive(&[h.mass_kg, h.length, h.beam, h.draft, h.depth])
+        || if h.kind == "constructed-volume-v1" {
+            [
+                d.handling.forward_speed,
+                d.handling.reverse_speed,
+                d.handling.acceleration,
+                d.handling.braking,
+                d.handling.rudder_rate,
+                d.handling.max_yaw_rate,
+            ]
+            .iter()
+            .any(|v| !v.is_finite() || *v < 0.)
+        } else {
+            !positive(&[
+                d.handling.forward_speed,
+                d.handling.acceleration,
+                d.handling.braking,
+            ])
+        }
+    {
         return Err(fail());
     }
     if h.kind == "constructed-volume-v1" {
@@ -359,6 +382,15 @@ pub fn validate_definition(d: &ShipDefinition) -> Result<(), ContentError> {
     if !ids_unique(d.mounts.iter().map(|m| m.id.as_str()))
         || !ids_unique(d.modules.iter().map(|m| m.id.as_str()))
         || !ids_unique(d.compartments.iter().map(|m| m.id.as_str()))
+    {
+        return Err(fail());
+    }
+    if !h.waterplane_area_m2.is_finite()
+        || if h.kind == "constructed-volume-v1" {
+            h.waterplane_area_m2 < 0.
+        } else {
+            h.waterplane_area_m2 <= 0.
+        }
     {
         return Err(fail());
     }
