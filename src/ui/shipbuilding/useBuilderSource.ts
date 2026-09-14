@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { ConstructionResult, ConstructionSource, ConstructionSuggestion } from '../../ships/blueprint';
 import { createConstructionHistory, editConstruction, undoConstruction, redoConstruction, ConstructionRevisionGate } from '../../ships/constructionHistory';
 import { ConstructionAutosave, type ConstructionSaveState } from '../../ships/constructionAutosave';
+import { startingHullBlock } from '../../ships/constructionStarter';
 import { openConstructionStore, type ConstructionStore } from '../../ships/constructionStore';
 import { decodeConstructionSource, loadSavedConstructionWithCatalog, newConstructionId } from '../../ships/constructionEditor';
 
@@ -13,7 +14,7 @@ export interface BuilderCompiler {
 export function freshConstruction(template: ConstructionSource, blank = false): ConstructionSource {
   const source = structuredClone(template); source.id = newConstructionId('design'); source.revision = newConstructionId('revision');
   source.name = blank ? 'Untitled design' : template.name;
-  if (blank) Object.assign(source.construction, { primitives: [], surfaces: [], equipment: [], boundaries: [], loads: [] });
+  if (blank) Object.assign(source.construction, { primitives: [startingHullBlock()], surfaces: [], equipment: [], boundaries: [], loads: [] });
   return source;
 }
 
@@ -132,7 +133,16 @@ export function useBuilderSource({ starterSource, initialSource, initialDesignId
     setWriterEpoch(value => value + 1);
   };
 
-  return { source, history, store, ready, result, compiling, compileError, error, setError, saveState, edit, undo, redo, flush, replace,
+  const removeDesign = async (designId: string, revisionId: string, replacement: ConstructionSource) => {
+    if (!store) throw new Error('Local storage is unavailable. Retry when browser storage is available.');
+    const current = designId === sourceRef.current.id;
+    if (current) await flush();
+    await store.remove(designId, current ? head.current! : revisionId);
+    // The old writer is drained before deletion and never saves the deleted source again.
+    if (current) await replace(replacement, null, false, true);
+  };
+
+  return { source, history, store, ready, result, compiling, compileError, error, setError, saveState, edit, undo, redo, flush, replace, removeDesign,
     retrySave: () => saver.current?.retry(), retryCompile: () => setCompileAgain(value => value + 1),
     currentResult: result?.revision === source.revision && result.sourceId === source.id ? result : undefined };
 }

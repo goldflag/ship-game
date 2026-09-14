@@ -18,6 +18,11 @@ import { shipPreset, shipPresets } from '../ships/presets';
 import * as ShipDetail from './ShipDetail';
 import pveRules from '../../assets/gameplay/pve-mission.v1.json';
 import type { MissionRules } from '../multiplayer/generated/MissionRules';
+import initConstruction, { compile_construction } from '../generated/naval-wasm/naval_wasm';
+import catalogJson from '../../public/models/components/catalog.json';
+import type { ConstructionCatalog, ConstructionResult } from '../ships/blueprint';
+import { createStarterSource } from '../ships/constructionStarter';
+import { registerLocalShip, removeLocalShip } from '../ships/localShips';
 
 // Camera controls now also listen for pointer-lock and focus changes.
 const browserNames = ['window', 'document'] as const;
@@ -187,6 +192,28 @@ test('failed ship loads preserve the old ship and allow retry', async () => {
       expect(game.diagnostics().maxMuzzleErrorM).toBeLessThan(.025);
     }
   } finally { loader.mockRestore(); rig.dispose(); }
+});
+
+test('saved construction revisions load into port and replace the previously inspected design', async () => {
+  await initConstruction({ module_or_path: await Bun.file(new URL('../generated/naval-wasm/naval_wasm_bg.wasm', import.meta.url)).arrayBuffer() });
+  const catalog = catalogJson as ConstructionCatalog, source = createStarterSource(catalog, 'blank');
+  source.construction.primitives.push({ id: 'hull', kind: 'box', size: [8, 5, 48], position: [0, 0, 0], rotationDeg: 0 });
+  const compile = () => JSON.parse(compile_construction(JSON.stringify(source), JSON.stringify(catalog))) as ConstructionResult;
+  const { game, scene, harbor, rig } = await port();
+  try {
+    const first = registerLocalShip(source, compile());
+    await game.switchShip(first.definition);
+    expect(game.definition.contentHash).toBe(first.result.contentHash);
+    expect(scene.children).toContain(harbor);
+    source.name = 'Revised harbor design'; source.revision = crypto.randomUUID(); source.construction.primitives[0].size[2] = 60;
+    const next = registerLocalShip(source, compile());
+    await game.switchShip(next.definition);
+    expect(game.definition.name).toBe(source.name);
+    expect(game.definition.contentHash).toBe(next.result.contentHash);
+    expect(game.definition.hull.length).toBe(60);
+    expect(game.simulation.definition.id).toBe(next.definition.id);
+    expect(scene.children).toContain(harbor);
+  } finally { removeLocalShip(source.id); rig.dispose(); }
 });
 
 test('a second request cannot replace an in-flight switch; disposed games never attach the result', async () => {

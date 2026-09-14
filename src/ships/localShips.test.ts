@@ -12,7 +12,7 @@ const catalog = catalogJson as ConstructionCatalog;
 beforeAll(async () => { await init({ module_or_path: await Bun.file(new URL('../generated/naval-wasm/naval_wasm_bg.wasm', import.meta.url)).arrayBuffer() }); });
 function fixture() {
   const source = createStarterSource(catalog, 'blank'); source.name = 'Local test vessel';
-  source.construction.primitives.push({ id: 'hull', kind: 'box', size: [10, 6, 40], position: [0, 0, 0], rotationDeg: 0 });
+  source.construction.primitives = [{ id: 'hull', kind: 'box', size: [10, 6, 40], position: [0, 0, 0], rotationDeg: 0 }];
   const result = JSON.parse(compile_construction(JSON.stringify(source), JSON.stringify(catalog))) as ConstructionResult;
   expect(result.diagnostics.filter(d => d.severity === 'error')).toEqual([]); return { source, result };
 }

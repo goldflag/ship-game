@@ -1,6 +1,7 @@
 import type { ConstructionCatalog, ConstructionEquipment, ConstructionEquipmentPart, ConstructionPrimitive, ConstructionSource, Vec3 } from './blueprint';
 
 export type ConstructionStarter = 'patrol' | 'catamaran' | 'blank';
+export const startingHullBlock = (): ConstructionPrimitive => ({ id: 'hull', kind: 'box', size: [1, 1, 1], position: [0, 0, 0], rotationDeg: 0 });
 /** Generic editable source, not a precompiled ship or historical reconstruction.
  * Every placement remains visible and is checked by the same native compiler. */
 export function createStarterSource(catalog: ConstructionCatalog, kind: ConstructionStarter = 'patrol'): ConstructionSource {
@@ -9,7 +10,7 @@ export function createStarterSource(catalog: ConstructionCatalog, kind: Construc
     revision: crypto.randomUUID(), coordinates: 'meters-y-up-bow-negative-z',
     construction: { version: 1, catalogRevision: catalog.revision, defaultThicknessMm: 16, primitives: [], surfaces: [], equipment: [], boundaries: [], loads: [] },
   };
-  if (kind === 'blank') return source;
+  if (kind === 'blank') { source.construction.primitives.push(startingHullBlock()); return source; }
   const primitives = source.construction.primitives;
   const box = (id: string, size: Vec3, position: Vec3, shape: ConstructionPrimitive['kind'] = 'box', rotationDeg = 0) => primitives.push({ id, kind: shape, size, position, rotationDeg });
   if (kind === 'catamaran') {

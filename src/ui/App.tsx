@@ -15,7 +15,7 @@ import { Icon } from './Icons';
 import { FleetHud } from './FleetHud';
 import { BinocularOverlay } from './BinocularOverlay';
 import { Garage } from './Garage';
-import { selectedShip as initialShip, shipPreset } from '../ships/presets';
+import { selectedShip as initialShip } from '../ships/presets';
 import { ShipContext } from './ShipContext';
 import { bindingLabel, KEYBINDING_STORAGE_KEY, loadKeybindings, type Keybindings } from '../game/keybindings';
 import { BattleDialog } from './battle/BattleDialog';
@@ -35,9 +35,12 @@ import { Shipbuilder } from './shipbuilding/Shipbuilder';
 import { TrialControls } from './shipbuilding/TrialControls';
 import type { ConstructionCatalog, ConstructionResult, ConstructionSource, ConstructionSuggestion } from '../ships/blueprint';
 import { loadConstructionCatalog } from '../ships/constructionEquipment';
-import { registerLocalShip, resolveShip } from '../ships/localShips';
+import { localShips, registerLocalShip, removeLocalShip, resolveShip } from '../ships/localShips';
 import { restoreLocalShips } from '../ships/constructionLibrary';
 import { ConstructionClient } from '../ships/constructionClient';
+import { openConstructionStore } from '../ships/constructionStore';
+import { loadSavedConstructionWithCatalog } from '../ships/constructionEditor';
+import { createStarterSource } from '../ships/constructionStarter';
 
 const INITIAL_TELEMETRY: Telemetry = { ship: createShipState(), order: 1, camera: 'Chase', fps: 0, backend: 'webgpu', trail: [] };
 
@@ -86,6 +89,8 @@ export function App() {
   const builderSource = useRef<ConstructionSource | undefined>(undefined);
   const [builderError, setBuilderError] = useState('');
   const [builderOpening, setBuilderOpening] = useState(false);
+  const builderRequest = useRef<string | undefined>(undefined);
+  const [libraryLoading, setLibraryLoading] = useState(false);
   const [trial, setTrial] = useState(false);
 
   useEffect(() => {
@@ -135,6 +140,16 @@ export function App() {
   }, [paused, ready, error, builder]);
 
   useEffect(() => { if (builder) game.current?.input.setEnabled(false); }, [builder]);
+
+  useEffect(() => {
+    if (!ready || builder || phase !== 'garage') return;
+    const abort = new AbortController();
+    setLibraryLoading(true);
+    void restoreLocalShips(abort.signal).catch(error => {
+      if (!abort.signal.aborted) setBuilderError(`Saved ships could not be loaded: ${error instanceof Error ? error.message : String(error)}`);
+    }).finally(() => { if (!abort.signal.aborted) setLibraryLoading(false); });
+    return () => abort.abort();
+  }, [ready, !!builder, phase]);
 
   // Let React unmount the setup dialog before the scene takes focus for aiming.
   // Keep loading visible through the battle's actual render-pass warmup.
@@ -210,10 +225,20 @@ export function App() {
     catch (error) { setError(error instanceof Error ? error.message : String(error)); }
   };
 
-  const openBuilder = async () => {
+  const openBuilder = async (designId?: string) => {
     if (!ready || builderOpening || switchPending.current || phase !== 'garage') return;
+    builderRequest.current = designId;
     setBuilderOpening(true); setBuilderError('');
-    try { setBuilder({ source: builderSource.current, catalog: await loadConstructionCatalog(builderSource.current?.construction.catalogRevision) }); }
+    try {
+      if (designId) {
+        const store = await openConstructionStore();
+        try { const loaded = await loadSavedConstructionWithCatalog(store, designId); builderSource.current = loaded.source; setBuilder({ source: loaded.source, catalog: loaded.catalog }); }
+        finally { store.close(); }
+      } else {
+        const catalog = await loadConstructionCatalog(), source = createStarterSource(catalog, 'blank');
+        builderSource.current = source; setBuilder({ source, catalog });
+      }
+    }
     catch (error) { setBuilderError(error instanceof Error ? error.message : String(error)); }
     finally { setBuilderOpening(false); }
   };
@@ -276,22 +301,48 @@ export function App() {
 
   const switchShip = async (id: string) => {
     const session = game.current;
-    if (!ready || phase !== 'garage' || !session || switchPending.current || id === selectedShip.id) return;
+    if (!ready || phase !== 'garage' || !session || switchPending.current) return;
     switchPending.current = true; setSwitching(true); setSwitchError('');
     try {
-      const definition = shipPreset(id);
+      const definition = resolveShip(id);
       await session.switchShip(definition);
       if (game.current !== session) return;
       selectedRef.current = definition;
       setSelectedShip(definition);
       const url = new URL(window.location.href);
-      url.searchParams.set('ship', definition.id);
+      if (definition.construction) url.searchParams.delete('ship');
+      else url.searchParams.set('ship', definition.id);
       window.history.replaceState(null, '', url);
     } catch (error) {
       if (game.current === session) setSwitchError(error instanceof Error ? error.message : String(error));
     } finally {
       if (game.current === session) { switchPending.current = false; setSwitching(false); }
     }
+  };
+
+  const deletedDesign = (designId: string) => {
+    const ship = localShips().find(ship => ship.source.id === designId);
+    removeLocalShip(designId);
+    if (builderSource.current?.id === designId) builderSource.current = undefined;
+    if (!ship) return;
+    const id = ship.definition.id;
+    setBattleSetup(setup => ({ ...setup, playerShipId: setup.playerShipId === id ? initialShip.id : setup.playerShipId,
+      friendlyBots: setup.friendlyBots.filter(bot => (typeof bot === 'string' ? bot : bot.shipId) !== id), enemies: setup.enemies.filter(bot => (typeof bot === 'string' ? bot : bot.shipId) !== id) }));
+    if (selectedRef.current.id === id) void switchShip(initialShip.id);
+  };
+
+  const closeBuilder = async (source: ConstructionSource, result?: ConstructionResult) => {
+    builderSource.current = source;
+    if (!result) {
+      const compiler = new ConstructionClient();
+      try { result = await compiler.compile(source); }
+      finally { compiler.dispose(); }
+    }
+    if (result?.definition && !result.diagnostics.some(item => item.severity === 'error')) {
+      const ship = registerLocalShip(source, result);
+      await switchShip(ship.definition.id);
+    }
+    setBuilder(null); game.current?.input.setEnabled(true);
   };
 
   const changeGraphics = (next: GraphicsSettings): boolean => {
@@ -334,13 +385,13 @@ export function App() {
       if (!(target instanceof HTMLElement && target.closest('input, textarea, [contenteditable]:not([contenteditable="false"])'))) event.preventDefault();
     }}>
     <div ref={host} className="ocean-viewport" inert={!ready || !!error} data-ship-labels={phase === 'sailing' && hud && ready && !error && !data.airOperationsOpen} />
-    {phase === 'garage' && ready && !error && !battleOpen && !builder && <Garage key={selectedShip.id} switching={switching} switchError={switchError} onSelectShip={switchShip} game={game.current} ready={ready} fps={data.fps} performance={data.performance} onBattle={pressBattle} onBuild={() => void openBuilder()} onChooseBattle={openSortieBoard} lastMode={battleMode} onSettings={() => game.current?.setPaused(true)}/>}
+    {phase === 'garage' && ready && !error && !battleOpen && !builder && <Garage key={selectedShip.id} switching={switching || builderOpening} switchError={switchError} onSelectShip={switchShip} game={game.current} ready={ready} fps={data.fps} performance={data.performance} onBattle={pressBattle} onBuild={() => void openBuilder()} onEditDesign={id => void openBuilder(id)} onDeleteDesign={deletedDesign} libraryLoading={libraryLoading} onChooseBattle={openSortieBoard} lastMode={battleMode} onSettings={() => game.current?.setPaused(true)}/>}
     {phase === 'garage' && sortieOpen && !battleOpen && <SortieBoard lastMode={battleMode} onChoose={openBattle} onClose={() => setSortieOpen(false)}/>}
     {battleOpen && <BattleDialog initialMode={battleMode} initialShipId={selectedShip.id} loading={!!battleLoading} onClose={() => setBattleOpen(false)}
       setup={battleSetup} onSetupChange={setBattleSetup} onLaunchCustom={() => void launch()} customError={battleError}
       pveRequest={pveRequest} onLaunchPve={launchPve} onOnlineBattle={onlineBattle}/>}
-    {builder && phase === 'garage' && <Shipbuilder suggestLayout={suggestLayout} catalog={builder.catalog} initialSource={builder.source} onSave={source => { builderSource.current = source; }} onLaunch={launchTrial} onClose={() => { setBuilder(null); game.current?.input.setEnabled(true); }}/>}
-    {phase === 'garage' && (builderOpening || builderError) && <div className="shipbuilder-entry-status" role={builderError ? 'alert' : 'status'}>{builderError || 'Opening shipbuilder…'}{builderError && <Button onClick={() => void openBuilder()}>Retry</Button>}</div>}
+    {builder && phase === 'garage' && <Shipbuilder suggestLayout={suggestLayout} catalog={builder.catalog} initialSource={builder.source} onDelete={deletedDesign} onSave={source => { builderSource.current = source; }} onLaunch={launchTrial} onClose={closeBuilder}/>}
+    {phase === 'garage' && (builderOpening || builderError) && <div className="shipbuilder-entry-status" role={builderError ? 'alert' : 'status'}>{builderError || 'Opening shipbuilder…'}{builderError && <Button onClick={() => void openBuilder(builderRequest.current)}>Retry</Button>}</div>}
     {trial && phase === 'sailing' && ready && !error && !battleLoading && game.current && <TrialControls game={game.current} onReturn={returnToPort}/>}
     {phase === 'sailing' && ready && !error && <><BinocularOverlay data={data}/><div className="hud-viewport">
       <FleetHud key={game.current?.battleRevision} data={data} game={game.current} visible={hud} bindings={bindings}/>

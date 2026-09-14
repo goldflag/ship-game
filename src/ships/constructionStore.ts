@@ -48,6 +48,8 @@ export interface ConstructionStore {
   load(designId: string): Promise<{ head: ConstructionDesignHead; revision: ConstructionRevision }>;
   revisions(designId: string): Promise<ConstructionRevision[]>;
   save(input: SaveConstructionSource): Promise<ConstructionRevision>;
+  /** Delete the head and every retained revision atomically, only if the listed head is still current. */
+  remove(designId: string, expectedRevisionId: string): Promise<void>;
   close(): void;
 }
 
@@ -185,6 +187,20 @@ export async function openConstructionStore(options: { name?: string; indexedDB?
     revisions: designId => transaction('readonly', (tx, result) => {
       const request = tx.objectStore('revisions').index('designId').getAll(designId);
       request.onsuccess = () => result((request.result as ConstructionRevision[]).sort((a, b) => b.createdAt - a.createdAt || b.id.localeCompare(a.id)));
+    }),
+    remove: (designId, expectedRevisionId) => transaction<void>('readwrite', (tx, result, fail) => {
+      const heads = tx.objectStore('designs'), request = heads.get(designId);
+      request.onsuccess = () => {
+        const current = request.result as Partial<ConstructionDesignHead> | undefined;
+        if (current && (current.revisionId ?? '') !== expectedRevisionId) {
+          fail(new ConstructionStoreError('conflict', 'This design changed in another editor. Review its latest revision before deleting it.'));
+          return;
+        }
+        heads.delete(designId);
+        const revisions = tx.objectStore('revisions').index('designId').openCursor(IDBKeyRange.only(designId));
+        revisions.onsuccess = () => { const cursor = revisions.result; if (cursor) { cursor.delete(); cursor.continue(); } };
+        result(undefined);
+      };
     }),
     save: input => {
       const sourceJson = encodeConstructionSource(input.source);

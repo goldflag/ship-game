@@ -6,9 +6,9 @@ import '../../src/ui/styles.css';
 import { Shipbuilder } from '../../src/ui/shipbuilding/Shipbuilder';
 import { loadConstructionCatalog } from '../../src/ships/constructionEquipment';
 import { createStarterSource } from '../../src/ships/constructionStarter';
-import type { ConstructionResult, ConstructionSource } from '../../src/ships/blueprint';
+import type { ConstructionResult, ConstructionSource, Vec3 } from '../../src/ships/blueprint';
 
-declare global { interface Window { shipbuilderReview?: { source?: ConstructionSource; launched?: ConstructionResult; close(): void }; } }
+declare global { interface Window { shipbuilderReview?: { source?: ConstructionSource; launched?: ConstructionResult; close(): void }; shipbuilderViewport?: { camera: { projectionMatrix: unknown }; project?(point: Vec3): unknown }; } }
 
 /** Independent mounted surface for editor/browser review; runtime trial integration is checked through App. */
 export async function mountShipbuilderReview(source?: ConstructionSource) {
@@ -22,164 +22,182 @@ export async function mountShipbuilderReview(source?: ConstructionSource) {
   return { equipmentCount: catalog.equipment.length, catalogRevision: catalog.revision };
 }
 
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+const source = () => window.shipbuilderReview?.source;
+/** The ledger heading carries "compiling…" until the current revision has a native result. */
+const compiled = () => !document.querySelector('.sb-ledger h4 span');
+function waiter(checks: string[], timeout = 45000) {
+  return async (condition: () => unknown, label: string) => {
+    const start = performance.now();
+    while (!condition()) {
+      if (performance.now() - start > timeout) throw new Error(`Timed out: ${label}`);
+      await sleep(25);
+    }
+    checks.push(label);
+  };
+}
+/** Slipway rails controls: tabs by name, rail tools by their title, hotbar slots by number, keys on the body. */
+export const controls = {
+  /** React commits and the viewport's prop update both land before the next paint; wait two frames past the pressed state. */
+  settled: async (condition: () => unknown, label: string) => {
+    const start = performance.now();
+    while (!condition()) { if (performance.now() - start > 5000) throw new Error(`Control did not settle: ${label}`); await sleep(20); }
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve(undefined))));
+  },
+  tab: async (name: string) => { const button = [...document.querySelectorAll<HTMLButtonElement>('.sb-tabs button')].find(item => item.textContent?.trim() === name); if (!button) throw new Error(`Tab unavailable: ${name}`); button.click(); await controls.settled(() => button.getAttribute('aria-selected') === 'true', name); },
+  tool: async (name: string) => { const button = [...document.querySelectorAll<HTMLButtonElement>('.sb-rail button')].find(item => item.title.startsWith(`${name} (`)); if (!button || button.disabled) throw new Error(`Tool unavailable: ${name}`); button.click(); await controls.settled(() => button.getAttribute('aria-pressed') !== 'false', name); },
+  slot: async (index: number) => { const button = document.querySelectorAll<HTMLButtonElement>('.sb-hotbar .sb-slot')[index - 1]; if (!button || button.disabled) throw new Error(`Slot unavailable: ${index}`); button.click(); await controls.settled(() => true, `slot ${index}`); },
+  key: (key: string, options: KeyboardEventInit = {}) => document.body.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, ...options })),
+  warnings: () => document.querySelector('.sb-warn')?.textContent ?? '',
+  rowButton: (text: string) => [...document.querySelectorAll<HTMLButtonElement>('.sb-warn .row button')].find(button => button.textContent?.trim().startsWith(text)),
+  menu: async (text: string) => {
+    document.querySelector<HTMLButtonElement>('.sb-meta')!.click(); await sleep(30);
+    const item = [...document.querySelectorAll<HTMLButtonElement>('.sb-menu button')].find(button => button.textContent?.trim() === text);
+    if (!item || item.disabled) throw new Error(`Menu item unavailable: ${text}`); item.click(); await sleep(30);
+  },
+  /** Synthetic pointers have no browser capture lifetime; the actual raycast against native faces still runs. */
+  click: (x: number, y: number, options: PointerEventInit = {}) => {
+    const canvas = document.querySelector<HTMLCanvasElement>('.sb-canvas canvas')!;
+    canvas.setPointerCapture = canvas.releasePointerCapture = () => {};
+    const point = { bubbles: true, pointerId: 41, pointerType: 'mouse', button: 0, clientX: x, clientY: y, ...options };
+    canvas.dispatchEvent(new PointerEvent('pointermove', point)); canvas.dispatchEvent(new PointerEvent('pointerdown', { ...point, buttons: 1 })); canvas.dispatchEvent(new PointerEvent('pointerup', point));
+  },
+  /** Screen position of a ship-space point through the live camera. */
+  screen: async (point: Vec3): Promise<[number, number]> => {
+    const THREE = await import('three');
+    const viewport = window.shipbuilderViewport as unknown as { camera: InstanceType<typeof THREE.Camera> } | undefined;
+    if (!viewport) throw new Error('The viewport dev hook is unavailable; run against the Vite dev server.');
+    const projected = new THREE.Vector3(...point).project(viewport.camera);
+    const bounds = document.querySelector('.sb-canvas canvas')!.getBoundingClientRect();
+    return [bounds.x + (projected.x + 1) * bounds.width / 2, bounds.y + (1 - projected.y) * bounds.height / 2];
+  },
+};
+
 /** The native solver adds missing internals; applying or undoing never changes the hull. */
 export async function checkShipbuilderSuggestions() {
   const catalog = await loadConstructionCatalog(), template = createStarterSource(catalog);
   template.construction.equipment = [];
   window.shipbuilderReview?.close(); await mountShipbuilderReview(template);
-  const checks: string[] = [];
-  const source = () => window.shipbuilderReview?.source;
-  const wait = async (condition: () => unknown, label: string) => {
-    const start = performance.now();
-    while (!condition()) {
-      if (performance.now() - start > 45000) throw new Error(`Timed out: ${label}`);
-      await new Promise(resolve => setTimeout(resolve, 25));
-    }
-    checks.push(label);
-  };
-  const find = (text: string) => [...document.querySelectorAll<HTMLButtonElement>('.shipbuilder button')].find(button => button.textContent?.trim() === text);
-  const click = (text: string) => { const button = find(text); if (!button || button.disabled) throw new Error(`Button unavailable: ${text}`); button.click(); };
-  await wait(() => source() && !document.querySelector('.shipbuilder-compile')?.textContent?.includes('Compiling'), 'hull-only source compiles and saves');
+  const checks: string[] = [], wait = waiter(checks);
+  await wait(() => source() && compiled(), 'hull-only source compiles and saves');
   const before = JSON.stringify(source()!.construction);
-  if (find('Tools')?.offsetParent) { click('Tools'); await new Promise(resolve => setTimeout(resolve, 25)); }
-  click('Equipment'); await new Promise(resolve => setTimeout(resolve, 25)); click('Suggest internals');
-  await wait(() => find('Apply suggestion'), 'native missing-internals proposal is available');
+  await controls.tab('Internals'); await controls.tool('Suggest');
+  await wait(() => controls.rowButton('Apply'), 'native missing-internals proposal is available');
   if (JSON.stringify(source()!.construction) !== before) throw new Error('Proposal changed source before apply');
   checks.push('proposal keeps saved source unchanged until apply');
-  const name = document.querySelector<HTMLInputElement>('.shipbuilder-name')!;
+  const name = document.querySelector<HTMLInputElement>('.sb-name')!;
   Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(name, 'Changed while reviewing layout');
   name.dispatchEvent(new Event('input', { bubbles: true }));
-  await wait(() => find('Apply suggestion')?.disabled, 'editing fences an obsolete proposal');
-  await wait(() => !find('Suggest internals')?.disabled, 'new source compilation leaves suggestions available');
-  click('Suggest internals'); await wait(() => find('Apply suggestion') && !find('Apply suggestion')!.disabled, 'current revision receives a fresh proposal');
-  click('Apply suggestion'); await wait(() => source()!.construction.equipment.length >= 2, 'one apply saves machinery and magazine');
-  document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', ctrlKey: true, bubbles: true }));
+  await wait(() => controls.rowButton('Apply')?.disabled, 'editing fences an obsolete proposal');
+  await wait(() => compiled(), 'new source compilation leaves suggestions available');
+  await controls.tool('Suggest'); await wait(() => controls.rowButton('Apply') && !controls.rowButton('Apply')!.disabled, 'current revision receives a fresh proposal');
+  controls.rowButton('Apply')!.click(); await wait(() => source()!.construction.equipment.length >= 2, 'one apply saves machinery and magazine');
+  controls.key('z', { ctrlKey: true });
   await wait(() => JSON.stringify(source()!.construction) === before, 'one undo restores exact hull and module references');
-  await wait(() => !find('Suggest internals')?.disabled, 'restored hull is compiled before another suggestion');
+  await wait(() => compiled(), 'restored hull is compiled before another suggestion');
+  await controls.tab('Fittings');
+  document.querySelector<HTMLButtonElement>('.sb-slot.more')!.click(); await sleep(30);
   const oversized = catalog.equipment.find(part => part.id === 'sk-c34-380-twin')!;
-  const fitting = [...document.querySelectorAll<HTMLButtonElement>('.shipbuilder-catalog button')].find(button => button.textContent?.startsWith(oversized.name))!;
-  fitting.click(); await new Promise(resolve => setTimeout(resolve, 25)); click('Suggest selected fitting');
-  await wait(() => document.querySelector('.shipbuilder-suggestion .shipbuilder-error'), 'oversized fitting produces a native placement explanation');
-  if (find('Apply suggestion') || JSON.stringify(source()!.construction) !== before) throw new Error('Failed layout modified source');
+  const fitting = [...document.querySelectorAll<HTMLButtonElement>('.sb-drawer .sb-slot')].find(button => button.getAttribute('aria-label') === oversized.name);
+  if (!fitting) throw new Error('Drawer does not list the oversized fitting'); fitting.click(); await sleep(30);
+  await controls.tool('Suggest');
+  await wait(() => document.querySelector('.sb-warn .row .sb-dot.block') && controls.rowButton('Dismiss'), 'oversized fitting produces a native placement explanation');
+  if (controls.rowButton('Apply') || JSON.stringify(source()!.construction) !== before) throw new Error('Failed layout modified source');
   checks.push('failed proposal preserves source and has no apply action');
   window.shipbuilderReview!.close();
   return { passed: checks.length, checks };
 }
 
-/** Armor presets and both painting paths preserve the authored protection and openings. */
+/** Armor slots apply to the selected faces; both painting paths preserve protection and openings. */
 export async function checkShipbuilderArmor() {
   const catalog = await loadConstructionCatalog(), template = createStarterSource(catalog);
   template.construction.equipment = []; template.construction.boundaries = []; template.construction.surfaces = [];
   window.shipbuilderReview?.close(); await mountShipbuilderReview(template);
-  const checks: string[] = [], source = () => window.shipbuilderReview?.source;
-  const wait = async (condition: () => unknown, label: string) => {
-    const start = performance.now();
-    while (!condition()) {
-      if (performance.now() - start > 45000) throw new Error(`Timed out: ${label}`);
-      await new Promise(resolve => setTimeout(resolve, 25));
-    }
-    checks.push(label);
-  };
-  const find = (text: string) => [...document.querySelectorAll<HTMLButtonElement>('.shipbuilder button')].find(button => button.textContent?.trim() === text);
-  const click = (text: string) => { const button = find(text); if (!button || button.disabled) throw new Error(`Button unavailable: ${text}`); button.click(); };
-  await wait(() => source() && !document.querySelector('.shipbuilder-compile')?.textContent?.includes('Compiling'), 'armor fixture compiles and saves');
-  if (find('Tools')?.offsetParent) { click('Tools'); await new Promise(resolve => setTimeout(resolve, 25)); }
-  click('Surfaces'); await new Promise(resolve => setTimeout(resolve, 25)); click('All exposed faces');
+  const checks: string[] = [], wait = waiter(checks);
+  await wait(() => source() && compiled(), 'armor fixture compiles and saves');
+  const top = await controls.screen([0, 2.5, 0]), side = await controls.screen([4, 0, 0]);
+  await controls.tab('Armor'); await controls.tool('Area'); controls.click(...top);
+  await wait(() => document.querySelector('[data-tag="faces"]'), 'area selection lights every top face and tags it');
   const original = JSON.stringify(source()!.construction);
-  document.querySelector<HTMLButtonElement>('[aria-label="Armor preset"]')!.click();
-  await new Promise(resolve => setTimeout(resolve, 25));
-  [...document.querySelectorAll<HTMLElement>('[role="option"]')].find(option => option.textContent?.trim() === '100 mm armor steel')!.click();
-  await new Promise(resolve => setTimeout(resolve, 25));
-  if (JSON.stringify(source()!.construction) !== original) throw new Error('Choosing a preset applied an unconfirmed source edit');
-  checks.push('choosing an armor preset leaves the source unchanged until apply');
-  click('Apply to selected faces');
-  await wait(() => source()!.construction.surfaces.every(surface => surface.thicknessMm === 100 && surface.material === 'armor-steel'), 'armor preset applies exact millimeter thickness and material');
-  await wait(() => document.querySelector('[aria-label="Selected face armor"]')?.textContent?.includes('100 mm · Armor steel'), 'selected inspection reports current native thickness and coverage');
-  // A different pending protection setting must not leak into either paint-only action.
-  document.querySelector<HTMLButtonElement>('[aria-label="Armor preset"]')!.click();
-  await new Promise(resolve => setTimeout(resolve, 25));
-  [...document.querySelectorAll<HTMLElement>('[role="option"]')].find(option => option.textContent?.trim() === 'Structural skin')!.click();
-  await new Promise(resolve => setTimeout(resolve, 25));
-  document.querySelector<HTMLButtonElement>('[aria-label="Sea blue"]')!.click(); await new Promise(resolve => setTimeout(resolve, 25)); click('Paint selected faces');
-  await wait(() => source()!.construction.surfaces.every(surface => surface.paint === 'sea-blue'), 'bulk painting changes the selected paint');
-  if (!source()!.construction.surfaces.every(surface => surface.thicknessMm === 100 && surface.material === 'armor-steel')) throw new Error('Bulk painting changed protection');
-  checks.push('bulk painting preserves thickness and material');
-  click('Open to sea');
-  await wait(() => source()!.construction.surfaces.every(surface => surface.open), 'explicit openings are saved before repainting');
-  await wait(() => document.querySelector('[aria-label="Selected face armor"]')?.textContent?.includes('Open to sea'), 'inspection distinguishes openings from protected skin');
-  document.querySelector<HTMLButtonElement>('[aria-label="Red oxide"]')!.click();
-  [...document.querySelectorAll('label')].find(label => label.textContent?.trim() === 'Paint clicked faces')!.querySelector<HTMLInputElement>('input')!.click();
-  click('Top');
-  if (find('Tools')?.getAttribute('aria-expanded') === 'true') click('Tools');
-  await new Promise(resolve => setTimeout(resolve, 100));
-  const canvas = document.querySelector('canvas')!, host = canvas.parentElement!, bounds = canvas.getBoundingClientRect();
-  // Synthetic pointers have no browser capture lifetime; the actual native-face raycast still runs.
-  const capture = host.setPointerCapture; host.setPointerCapture = () => {};
-  try {
-    const point = { bubbles: true, pointerId: 41, pointerType: 'mouse', button: 0, clientX: bounds.x + bounds.width / 2, clientY: bounds.y + bounds.height / 2 };
-    canvas.dispatchEvent(new PointerEvent('pointerdown', point)); canvas.dispatchEvent(new PointerEvent('pointerup', point));
-  } finally { host.setPointerCapture = capture; }
+  await controls.slot(5);
+  await wait(() => source()!.construction.surfaces.some(surface => surface.face === 'top') && source()!.construction.surfaces.filter(surface => surface.face === 'top').every(surface => surface.thicknessMm === 100 && surface.material === 'armor-steel'), 'a belt slot applies exact millimeter thickness and material to the selection');
+  if (source()!.construction.surfaces.some(surface => surface.face !== 'top')) throw new Error('Armor leaked onto unselected faces');
+  checks.push('unselected faces keep their structural skin');
+  await controls.slot(8);
+  const custom = document.querySelector<HTMLInputElement>('.sb-hotbar .sb-slot input');
+  if (!custom) throw new Error('Custom slot did not open its millimetre field');
+  Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(custom, '37'); custom.dispatchEvent(new Event('input', { bubbles: true }));
+  custom.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+  await wait(() => source()!.construction.surfaces.filter(surface => surface.face === 'top').every(surface => surface.thicknessMm === 37), 'custom millimetres apply to the selection');
+  await wait(() => document.querySelector('.sb-armor-groups')?.textContent?.includes('37 mm · Armor steel'), 'the ledger reports native thickness and coverage');
+  await controls.tab('Paint'); await wait(() => compiled(), 'native faces are current before painting');
+  await controls.tool('Area'); controls.click(...top);
+  await wait(() => document.querySelector('[data-tag="faces"]'), 'paint layer selects the same area');
+  await controls.slot(5);
+  await wait(() => source()!.construction.surfaces.filter(surface => surface.face === 'top').every(surface => surface.paint === 'sea-blue'), 'a paint slot changes the selected paint');
+  if (!source()!.construction.surfaces.filter(surface => surface.face === 'top').every(surface => surface.thicknessMm === 37 && surface.material === 'armor-steel')) throw new Error('Painting changed protection');
+  checks.push('painting preserves thickness and material');
+  await controls.tab('Armor'); await wait(() => compiled(), 'native faces are current before opening');
+  await controls.tool('Opening'); controls.click(...top);
+  await wait(() => source()!.construction.surfaces.filter(surface => surface.face === 'top').every(surface => surface.open), 'the opening tool opens the clicked face and its mirror');
+  await wait(() => document.querySelector('.sb-armor-groups')?.textContent?.includes('Open to sea'), 'the ledger distinguishes openings from protected skin');
+  await controls.tab('Paint'); await controls.tool('Paint'); await controls.slot(6); await wait(() => compiled(), 'native faces are current before a clicked-face paint');
+  controls.click(...side);
   await wait(() => source()!.construction.surfaces.some(surface => surface.paint === 'red-oxide'), 'clicked-face painting reaches the native selected surface');
-  if (!source()!.construction.surfaces.every(surface => surface.thicknessMm === 100 && surface.material === 'armor-steel' && surface.open)) throw new Error('Clicked-face painting changed protection or closed an opening');
+  if (!source()!.construction.surfaces.filter(surface => surface.face === 'top').every(surface => surface.thicknessMm === 37 && surface.material === 'armor-steel' && surface.open)) throw new Error('Clicked-face painting changed protection or closed an opening');
   checks.push('clicked-face painting preserves armor, material and openings');
   const beforeUndo = structuredClone(source()!.construction);
-  document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', ctrlKey: true, bubbles: true }));
-  await wait(() => source()!.construction.surfaces.every(surface => surface.paint === 'sea-blue'), 'one undo restores the paint stroke');
-  if (JSON.stringify(source()!.construction.surfaces.map(({ paint: _paint, ...surface }) => surface)) !== JSON.stringify(beforeUndo.surfaces.map(({ paint: _paint, ...surface }) => surface))) throw new Error('Paint undo changed surface references');
+  controls.key('z', { ctrlKey: true });
+  await wait(() => !source()!.construction.surfaces.some(surface => surface.paint === 'red-oxide'), 'one undo restores the paint stroke');
+  if (JSON.stringify(source()!.construction.surfaces.filter(surface => surface.face === 'top')) !== JSON.stringify(beforeUndo.surfaces.filter(surface => surface.face === 'top'))) throw new Error('Paint undo changed unrelated surface references');
   checks.push('paint undo retains exact protection and stable source face references');
+  if (JSON.stringify(source()!.construction) === original) throw new Error('No edit reached the source');
   window.shipbuilderReview!.close();
   return { passed: checks.length, checks };
 }
 
 export async function checkShipbuilderEditing() {
-  const checks: string[] = [];
-  const wait = async (condition: () => unknown, message: string) => {
-    const start = performance.now();
-    while (!condition()) {
-      if (performance.now() - start > 15000) throw new Error(`Timed out: ${message}`);
-      await new Promise(resolve => setTimeout(resolve, 25));
-    }
-    checks.push(message);
-  };
-  const button = (text: string) => {
-    const element = [...document.querySelectorAll<HTMLButtonElement>('button')].find(button => button.textContent?.trim() === text);
-    if (!element || element.disabled) throw new Error(`Button unavailable: ${text}`);
-    element.click();
-  };
-  const source = () => window.shipbuilderReview!.source!;
-  const key = (key: string, options: KeyboardEventInit = {}) => document.body.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, ...options }));
+  window.shipbuilderReview?.close(); await mountShipbuilderReview();
+  const checks: string[] = [], wait = waiter(checks, 20000);
   await wait(() => source(), 'initial source saved');
-  const tools = [...document.querySelectorAll<HTMLButtonElement>('button')].find(button => button.textContent?.trim() === 'Tools');
-  if (tools && tools.offsetParent && tools.getAttribute('aria-expanded') !== 'true') { tools.click(); await new Promise(resolve => setTimeout(resolve, 25)); }
-  button('Blank'); await wait(() => source().construction.primitives.length === 0, 'blank design remains saveable');
-  button('Place at coordinates'); await wait(() => source().construction.primitives.length === 1, 'coordinate placement saves a hull primitive');
-  key('a', { ctrlKey: true }); await new Promise(resolve => setTimeout(resolve, 20));
-  key('d', { ctrlKey: true }); await wait(() => source().construction.primitives.length === 2, 'copy creates new stable IDs');
-  const copiedIds = source().construction.primitives.map(part => part.id);
-  if (new Set(copiedIds).size !== 2) throw new Error('Copy reused a primitive ID');
-  key('z', { ctrlKey: true }); await wait(() => source().construction.primitives.length === 1, 'undo restores source');
-  key('z', { ctrlKey: true, shiftKey: true }); await wait(() => source().construction.primitives.length === 2, 'redo restores exact source references');
-  if (source().construction.primitives.map(part => part.id).join() !== copiedIds.join()) throw new Error('Redo changed stable IDs');
-  button('Surfaces');
-  await wait(() => [...document.querySelectorAll<HTMLButtonElement>('button')].some(button => button.textContent?.trim() === 'All exposed faces' && !button.disabled), 'native compiled faces become selectable');
-  button('All exposed faces'); await new Promise(resolve => setTimeout(resolve, 20));
-  const thickness = [...document.querySelectorAll('label')].find(label => label.textContent?.startsWith('Thickness'))?.querySelector('input');
-  if (!thickness) throw new Error('Armor thickness field missing');
-  thickness.focus(); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(thickness, '37'); thickness.dispatchEvent(new Event('input', { bubbles: true }));
-  await new Promise(resolve => setTimeout(resolve, 20)); thickness.blur();
-  // A background embedded page may not receive a native focus transition.
-  thickness.dispatchEvent(new FocusEvent('focusout', { bubbles: true }));
-  await new Promise(resolve => setTimeout(resolve, 20));
-  button('Apply to selected faces'); await wait(() => source().construction.surfaces.some(surface => surface.thicknessMm === 37), 'millimeter armor assignments save through the actual controls');
-  button('Open to sea'); await wait(() => source().construction.surfaces.some(surface => surface.open), 'explicit openings remain distinct from armor');
-  key('z', { ctrlKey: true }); await wait(() => source().construction.surfaces.every(surface => !surface.open), 'undo restores closed skin and armor together');
-  button('Rooms'); await new Promise(resolve => setTimeout(resolve, 25)); button('Split with bulkhead'); await wait(() => source().construction.boundaries.length === 1, 'internal boundary source survives autosave');
-  button('Equipment');
-  await new Promise(resolve => setTimeout(resolve, 25));
-  const part = document.querySelector<HTMLButtonElement>('.shipbuilder-catalog button'); if (!part) throw new Error('Catalog unavailable'); part.click();
-  await new Promise(resolve => setTimeout(resolve, 20)); button('Place at coordinates');
-  await wait(() => source().construction.equipment.length === 1, 'fixed equipment placement remains saved even with a fit error');
-  const saved = structuredClone(source());
+  const previousId = source()!.id;
+  await controls.menu('New design'); await wait(() => source()!.id !== previousId && source()!.construction.primitives.length === 1, 'new design starts with one hull block');
+  await wait(compiled, 'starter block compiles');
+  const center = await controls.screen([0, .5, 0]);
+  const first = structuredClone(source()!.construction.primitives[0]);
+  controls.click(...center, { button: 2 }); await sleep(50);
+  if (source()!.construction.primitives.length !== 1) throw new Error('Right-click deleted the last block');
+  await controls.tool('Erase'); controls.click(...center); await sleep(50);
+  if (source()!.construction.primitives.length !== 1) throw new Error('Erase deleted the last block');
+  controls.key('a', { ctrlKey: true }); await sleep(30); controls.key('Delete'); await sleep(50);
+  if (JSON.stringify(source()!.construction.primitives) !== JSON.stringify([first])) throw new Error('Delete changed the last block');
+  checks.push('right-click, Erase and Delete all protect the final hull block');
+  controls.key('m'); await controls.tool('Place');
+  controls.click(...center); await wait(() => source()!.construction.primitives.length === 2, 'a click adds a block on the existing hull');
+  const second = source()!.construction.primitives[1];
+  const offsets = second.position.map((value, axis) => Math.abs(value - first.position[axis]));
+  if (offsets.filter(value => Math.abs(value - 1) < 1e-6).length !== 1 || offsets.filter(value => value < 1e-6).length !== 2) throw new Error(`Block is not face to face with the starter: ${JSON.stringify([first.position, second.position])}`);
+  checks.push('a new block aligns face to face with the centered starter');
+  controls.key('z', { ctrlKey: true }); await wait(() => source()!.construction.primitives.length === 1, 'undo returns to the starter block');
+  controls.key('z', { ctrlKey: true, shiftKey: true }); await wait(() => source()!.construction.primitives.length === 2, 'redo restores the placed block');
+  controls.key('a', { ctrlKey: true }); await sleep(20);
+  controls.key('d', { ctrlKey: true }); await wait(() => source()!.construction.primitives.length === 4, 'copy creates new stable IDs');
+  const copiedIds = source()!.construction.primitives.map(part => part.id);
+  if (new Set(copiedIds).size !== 4) throw new Error('Copy reused a primitive ID');
+  controls.key('z', { ctrlKey: true }); await wait(() => source()!.construction.primitives.length === 2, 'undo restores source');
+  controls.key('z', { ctrlKey: true, shiftKey: true }); await wait(() => source()!.construction.primitives.length === 4, 'redo restores exact source references');
+  if (source()!.construction.primitives.map(part => part.id).join() !== copiedIds.join()) throw new Error('Redo changed stable IDs');
+  await wait(() => compiled() && document.querySelector('[data-tag="group"]'), 'the selection tag follows the copied group');
+  await controls.tab('Armor'); await wait(() => compiled(), 'native compiled faces become selectable');
+  await controls.tool('Area'); controls.click(...center); await wait(() => document.querySelector('[data-tag="faces"]'), 'area selection tags the picked faces');
+  await controls.slot(4); await wait(() => source()!.construction.surfaces.some(surface => surface.thicknessMm === 50), 'millimeter armor assignments save through the actual controls');
+  await wait(() => compiled(), 'armor assignment compiles');
+  await controls.tool('Opening'); controls.click(...center); await wait(() => source()!.construction.surfaces.some(surface => surface.open), 'explicit openings remain distinct from armor');
+  controls.key('z', { ctrlKey: true }); await wait(() => source()!.construction.surfaces.every(surface => !surface.open), 'undo restores closed skin and armor together');
+  await controls.tab('Internals'); await wait(() => compiled(), 'internals layer has a compiled hull'); await controls.tool('Bulkhead'); controls.click(...center); await wait(() => source()!.construction.boundaries.length === 1, 'internal boundary source survives autosave');
+  await controls.tab('Fittings'); await wait(() => compiled(), 'fittings layer has a compiled hull'); await controls.slot(1); controls.click(...center);
+  await wait(() => source()!.construction.equipment.length >= 1, 'fixed equipment placement remains saved even with a fit error');
+  const saved = structuredClone(source()!);
   const { openConstructionStore } = await import('../../src/ships/constructionStore');
   const store = await openConstructionStore();
   try {

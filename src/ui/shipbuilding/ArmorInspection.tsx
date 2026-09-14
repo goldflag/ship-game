@@ -15,12 +15,18 @@ export function armorInspectionGroups(surfaces: readonly ConstructionSurface[]) 
   return [...groups.entries()].map(([id, group]) => ({ id, ...group }));
 }
 
+export function describeArmorGroup(surface: Pick<ConstructionSurface, 'open' | 'thicknessMm' | 'material' | 'paint'>) {
+  return surface.open ? 'Open to sea' : `${surface.thicknessMm.toLocaleString()} mm · ${surface.material === 'armor-steel' ? 'Armor steel' : 'Structural steel'}`;
+}
+export const paintName = (id: string) => CONSTRUCTION_PAINTS.find(paint => paint.id === id)?.name ?? id;
+
+/** Coverage lines for the ledger: one per distinct protection and paint. */
 export function ArmorInspection({ surfaces, label }: { surfaces: readonly ConstructionSurface[]; label: string }) {
-  return <div aria-label={label}>
+  return <div aria-label={label} className="sb-armor-groups">
     {armorInspectionGroups(surfaces).map(({ id, surface, areaM2, faces }) => <p key={id}>
-      {surface.open ? 'Open to sea' : `${surface.thicknessMm.toLocaleString()} mm · ${surface.material === 'armor-steel' ? 'Armor steel' : 'Structural steel'}`}
-      <small className="shipbuilder-help">{areaM2.toLocaleString(undefined, { maximumFractionDigits: 2 })} m² · {faces.size} {faces.size === 1 ? 'surface' : 'surfaces'} · {CONSTRUCTION_PAINTS.find(paint => paint.id === surface.paint)?.name ?? surface.paint}</small>
+      {describeArmorGroup(surface)}
+      <small>{areaM2.toLocaleString(undefined, { maximumFractionDigits: 2 })} m² · {faces.size} {faces.size === 1 ? 'surface' : 'surfaces'} · {paintName(surface.paint)}</small>
     </p>)}
-    {!surfaces.length && <p className="shipbuilder-help">No exposed faces in the current compiled selection.</p>}
+    {!surfaces.length && <p><small>No exposed faces in the current compiled selection.</small></p>}
   </div>;
 }

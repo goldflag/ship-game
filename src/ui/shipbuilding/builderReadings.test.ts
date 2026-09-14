@@ -1,0 +1,37 @@
+import { expect, test } from 'bun:test';
+import type { ConstructionResult, ConstructionSource, ConstructionSurface } from '../../ships/blueprint';
+import { hullBounds, ledgerRows, massGroups, pieceMassKg, warningEntries } from './builderReadings';
+
+const surface = (id: string, primitiveId: string, material: string, areaM2: number, thicknessMm: number): ConstructionSurface =>
+  ({ id, primitiveId, face: 'port', vertices: [], normal: [-1, 0, 0], areaM2, thicknessMm, material, paint: 'naval-gray', open: false });
+const source = { construction: { primitives: [{ id: 'hull', kind: 'box', size: [8, 5, 48], position: [0, 0, 0], rotationDeg: 0 }, { id: 'deck', kind: 'box', size: [4, 1, 10], position: [0, 3, 0], rotationDeg: 90 }],
+  surfaces: [], equipment: [], boundaries: [{ id: 'w', axis: 'z', offset: 0, thicknessMm: 8 }], loads: [] } } as unknown as ConstructionSource;
+const result = {
+  surfaces: [surface('hull:port', 'hull', 'armor-steel', 100, 50), surface('deck:port', 'deck', 'steel', 20, 0)],
+  diagnostics: [{ severity: 'warning', code: 'unstable', message: 'GM low' }, { severity: 'error', code: 'equipment-fit', message: 'Gun overlaps', sourceId: 'gun' }, { severity: 'warning', code: 'auxiliary-services', message: 'Services note' }],
+  loading: { massKg: 2_310_000, waterlineY: -1.2, rollMetacentricHeightM: 1.12, powerKw: 3000, estimatedSpeedMps: 10, usableVolumeM3: 900, centerOfGravity: [0, 0.4, 1.2],
+    contributions: [{ id: 'skin-hull:port-0', kind: 'skin', massKg: 40000 }, { id: 'skin-deck:port-1', kind: 'skin', massKg: 5000 }, { id: 'w', kind: 'bulkhead', massKg: 1000 }, { id: 'engine', kind: 'equipment', massKg: 35000 }, { id: 'engine-service', kind: 'service', massKg: 500 }] },
+  definition: { compartments: [{}, {}], mounts: [{}], torpedoTubes: [] },
+} as unknown as ConstructionResult;
+
+test('hull bounds include rotated pieces', () => {
+  expect(hullBounds(source)).toEqual({ min: [-5, -2.5, -24], max: [5, 3.5, 24] });
+});
+
+test('ledger rows read draft from the keel, tone warned readings and add a layer row', () => {
+  const rows = ledgerRows(source, result, 'armor');
+  expect(rows.find(row => row.label === 'Draft')?.value).toBe('1.3 m');
+  expect(rows.find(row => row.label === 'GM')).toEqual({ label: 'GM', value: '1.12 m', tone: 'warn' });
+  expect(rows.find(row => row.label === 'Speed')?.value).toBe('19.4 kn');
+  expect(rows.at(-1)).toEqual({ label: 'Coverage', value: '83 % of 120 m²', tone: undefined });
+  expect(ledgerRows(source, result, 'internals').at(-1)?.value).toBe('2 · 1 walls');
+  expect(ledgerRows(source, undefined, 'hull').at(-1)).toEqual({ label: 'Hull pieces', value: '2 / 512', tone: undefined });
+});
+
+test('mass groups split armor skin from structural skin and warnings keep blocks apart from notes', () => {
+  const groups = massGroups(result);
+  expect(groups.map(group => group.massKg)).toEqual([5000, 40000, 1000, 35000, 500]);
+  expect(pieceMassKg(result, 'hull')).toBe(40000);
+  expect(pieceMassKg(result, 'missing')).toBeUndefined();
+  expect(warningEntries(result.diagnostics).map(entry => entry.tone)).toEqual(['block', 'warn', 'note']);
+});
