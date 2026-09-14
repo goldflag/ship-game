@@ -127,6 +127,18 @@ pub struct ChargeReach {
 pub fn reach(position: Vec3, motion: &ShipState, def: &ShipDefinition) -> ChargeReach {
     let local = world_to_local(position, motion.pose());
     let h = &def.hull;
+    if let Some(v) = &h.volume {
+        let point = v
+            .cells
+            .iter()
+            .map(|c| crate::construction_geometry::closest_point(c, local))
+            .min_by(|a, b| length(sub(*a, local)).total_cmp(&length(sub(*b, local))))
+            .unwrap_or(local);
+        return ChargeReach {
+            point,
+            distance: length(sub(local, point)),
+        };
+    }
     let z = clamp(local[2], -h.length / 2.0, h.length / 2.0);
     let station = h.length / 2.0 - z;
     let interpolate = |points: &[[f64; 2]]| {

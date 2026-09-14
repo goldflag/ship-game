@@ -238,6 +238,9 @@ impl WaterBody {
         })
     }
     pub fn level_at_volume(&self, room: &Compartment, volume: f64) -> f64 {
+        if room.volumes.is_some() && volume != self.volume {
+            return exact_water(room, volume, self.roll, self.pitch).0;
+        }
         if volume == self.volume {
             self.level
         } else {
@@ -264,6 +267,13 @@ pub fn refresh(
     body.volume = volume;
     body.roll = roll;
     body.pitch = pitch;
+    if room.volumes.is_some() {
+        let (level, area, center) = exact_water(room, volume, roll, pitch);
+        body.level = level;
+        body.area = area;
+        body.center = center;
+        return;
+    }
     let mut shape = body.shape.take().unwrap_or_default();
     if volume == 0.0 {
         let (lowest, highest) = dry_bounds(room, roll, pitch);
@@ -314,4 +324,37 @@ pub fn water_body_with(
 }
 pub fn water_body(room: &Compartment, volume: f64, roll: f64, pitch: f64) -> WaterBody {
     water_body_with(room, volume, roll, pitch, &mut Scratch::default())
+}
+fn exact_water(room: &Compartment, volume: f64, roll: f64, pitch: f64) -> (f64, f64, Vec3) {
+    let cells = room.volumes.as_ref().unwrap();
+    let n = orientation(roll, pitch).0;
+    let (mut lo, mut hi) = cells
+        .iter()
+        .flat_map(|c| c.faces.iter().flat_map(|f| f.vertices.iter()))
+        .fold((f64::INFINITY, f64::NEG_INFINITY), |(lo, hi), p| {
+            let y = dot(*p, n);
+            (lo.min(y), hi.max(y))
+        });
+    let volume = volume.clamp(0., room.capacity_m3);
+    if volume <= 0. {
+        return (lo, 0., room.center);
+    }
+    if volume >= room.capacity_m3 {
+        return (hi, 0., crate::construction_geometry::total(cells).center());
+    }
+    for _ in 0..30 {
+        let mid = (lo + hi) * 0.5;
+        if crate::construction_geometry::submerged(cells, n, mid).volume < volume {
+            lo = mid;
+        } else {
+            hi = mid;
+        }
+    }
+    let level = (lo + hi) * 0.5;
+    let m = crate::construction_geometry::submerged(cells, n, level);
+    let e = 0.0001;
+    let area = (crate::construction_geometry::submerged(cells, n, level + e).volume
+        - crate::construction_geometry::submerged(cells, n, level - e).volume)
+        / (2. * e);
+    (level, area.max(0.), m.center())
 }

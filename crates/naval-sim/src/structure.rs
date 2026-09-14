@@ -138,6 +138,25 @@ impl StructuralSurface {
         }
     }
 }
+pub fn construction_surfaces(
+    v: &crate::definition::ConstructionGeometry,
+) -> Vec<StructuralSurface> {
+    v.surfaces
+        .iter()
+        .filter(|s| !s.open)
+        .enumerate()
+        .map(|(i, s)| {
+            StructuralSurface::new(
+                format!("{}-{i}", s.id),
+                s.id.clone(),
+                s.vertices.clone(),
+                (1..s.vertices.len() - 1).map(|i| [0, i, i + 1]).collect(),
+                s.thickness_mm,
+                true,
+            )
+        })
+        .collect()
+}
 pub fn structural_surfaces(def: &ShipDefinition) -> Result<Vec<StructuralSurface>, String> {
     let Some(plating) = &def.structural_plating else {
         return Ok(vec![]);

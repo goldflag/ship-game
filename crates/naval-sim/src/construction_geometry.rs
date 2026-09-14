@@ -109,6 +109,51 @@ pub fn contains(c: &Cell, p: Vec3) -> bool {
         .iter()
         .all(|f| dot(normal(&f.vertices), sub(p, f.vertices[0])) <= EPS)
 }
+pub fn closest_point(c: &Cell, p: Vec3) -> Vec3 {
+    if contains(c, p) {
+        return p;
+    }
+    let mut best = ([0.; 3], f64::INFINITY);
+    let mut consider = |q: Vec3| {
+        let d = dot(sub(p, q), sub(p, q));
+        if d < best.1 {
+            best = (q, d);
+        }
+    };
+    for f in &c.faces {
+        let n = normal(&f.vertices);
+        let q = sub(p, scale(n, dot(n, sub(p, f.vertices[0]))));
+        if (0..f.vertices.len()).all(|i| {
+            dot(
+                cross(
+                    sub(f.vertices[(i + 1) % f.vertices.len()], f.vertices[i]),
+                    sub(q, f.vertices[i]),
+                ),
+                n,
+            ) >= -EPS
+        }) {
+            consider(q);
+        }
+        for i in 0..f.vertices.len() {
+            let a = f.vertices[i];
+            let v = sub(f.vertices[(i + 1) % f.vertices.len()], a);
+            let t = (dot(sub(p, a), v) / dot(v, v)).clamp(0., 1.);
+            consider(add(a, scale(v, t)));
+        }
+    }
+    best.0
+}
+pub fn room_distance(room: &crate::definition::Compartment, p: Vec3) -> f64 {
+    if let Some(cells) = &room.volumes {
+        return cells
+            .iter()
+            .map(|c| length(sub(p, closest_point(c, p))))
+            .fold(f64::INFINITY, f64::min);
+    }
+    length(std::array::from_fn(|i| {
+        ((p[i] - room.center[i]).abs() - room.size[i] * 0.5).max(0.)
+    }))
+}
 pub fn bounds(c: &Cell) -> (Vec3, Vec3) {
     crate::structure::bounds(c.faces.iter().flat_map(|f| f.vertices.iter().copied()))
 }

@@ -327,6 +327,7 @@ struct Obstruction {
 }
 #[derive(Clone, Debug)]
 pub struct Obstructions {
+    hull: Option<crate::hull_contact::HullContacts>,
     entries: Vec<Obstruction>,
     carried: Vec<(usize, Vec<Obstruction>)>,
     pub clearance: Option<crate::mount_clearance::MountClearance>,
@@ -383,6 +384,11 @@ impl Obstructions {
             }
         }
         Self {
+            hull: d
+                .hull
+                .volume
+                .as_ref()
+                .map(|_| crate::hull_contact::HullContacts::new(&d.hull)),
             entries,
             carried,
             clearance: crate::mount_clearance::MountClearance::new(d)
@@ -390,6 +396,13 @@ impl Obstructions {
         }
     }
     fn intersects(&self, from: Vec3, to: Vec3, mount_id: &str, poses: &[Pose]) -> bool {
+        if self
+            .hull
+            .as_ref()
+            .is_some_and(|h| !h.query(from, to).is_empty())
+        {
+            return true;
+        }
         self.entries.iter().any(|e| {
             e.mount_id.as_deref() != Some(mount_id)
                 && segment_box(from, to, e.center, e.size).is_some()

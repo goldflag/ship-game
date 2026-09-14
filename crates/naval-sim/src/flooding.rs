@@ -35,7 +35,7 @@ pub fn update_flooding(
     };
     for (i, c) in def.compartments.iter().enumerate() {
         let internal = water_level(actor, def, i, None);
-        let inflow: f64 = actor.damage.compartments[i]
+        let mut inflow: f64 = actor.damage.compartments[i]
             .breaches
             .iter()
             .map(|b| {
@@ -67,6 +67,32 @@ pub fn update_flooding(
                 0.6 * b.area_m2 / (2.0 * b.radius_m) * (2.0_f64 * 9.81).sqrt() * flow
             })
             .sum();
+        // Explicit openings are persistent geometry state, independent of repairable breaches.
+        for opening in def
+            .openings
+            .iter()
+            .flatten()
+            .filter(|o| o.compartment_id == c.id)
+        {
+            if opening
+                .sealed_by_mount_id
+                .as_ref()
+                .is_some_and(|id| actor.mounts.iter().any(|m| m.id == *id && m.hp > 0.))
+                || opening.sealed_by_module_id.as_ref().is_some_and(|id| {
+                    actor
+                        .damage
+                        .modules
+                        .iter()
+                        .any(|m| m.id == *id && m.hp > 0.)
+                })
+            {
+                continue;
+            }
+            let world = local_to_world(opening.position, actor.motion.pose());
+            let external = sea.map_or(0., |(s, t)| s.height(world[0], world[2], t));
+            let head = (external - world[1]).max(0.) - (internal - world[1]).max(0.);
+            inflow += 0.6 * opening.area_m2 * sign(head) * (2. * 9.81 * head.abs()).sqrt();
+        }
         let pumping = if actor.damage.sunk {
             0.0
         } else {

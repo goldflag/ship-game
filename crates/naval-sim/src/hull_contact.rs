@@ -112,6 +112,14 @@ impl HullContacts {
                 });
             }
         };
+        if let Some(v) = &h.volume {
+            for s in v.surfaces.iter().filter(|s| !s.open) {
+                for i in 1..s.vertices.len() - 1 {
+                    triangle(s.vertices[0], s.vertices[i], s.vertices[i + 1]);
+                }
+            }
+            return Self::tree(ts);
+        }
         for ss in stations.windows(2) {
             let (az, bz) = (ss[0], ss[1]);
             let (a, b) = (edge(h, az), edge(h, bz));

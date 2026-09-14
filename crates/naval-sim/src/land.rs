@@ -33,7 +33,7 @@ pub fn resolve_land_contact(
                 island.height_at(field, x, z).max(-45.0)
             }
         };
-        let points: Vec<_> = hull
+        let mut points: Vec<_> = hull
             .keel_heights
             .iter()
             .flat_map(|[station, keel]| {
@@ -49,6 +49,14 @@ pub fn resolve_land_contact(
                 })
             })
             .collect();
+        if let Some(v) = &hull.volume {
+            points = v
+                .surfaces
+                .iter()
+                .filter(|s| s.normal[1] < 0.)
+                .flat_map(|s| s.vertices.iter().map(|p| local_to_world(*p, ship.pose())))
+                .collect();
+        }
         let Some(position) = points.iter().find(|p| bottom(p[0], p[2]) >= p[1]).copied() else {
             continue;
         };

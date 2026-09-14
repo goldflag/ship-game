@@ -117,6 +117,17 @@ fn boxes(c: &crate::definition::Compartment) -> Vec<(Vec3, Vec3)> {
 /// with; a hull breach a metre under should not find a wing void above the
 /// waterline just because it is a few centimetres nearer.
 fn nearest_room(def: &ShipDefinition, point: Vec3) -> Option<usize> {
+    if def.hull.volume.is_some() {
+        return def
+            .compartments
+            .iter()
+            .enumerate()
+            .min_by(|(_, a), (_, b)| {
+                crate::construction_geometry::room_distance(a, point)
+                    .total_cmp(&crate::construction_geometry::room_distance(b, point))
+            })
+            .map(|(i, _)| i);
+    }
     let distance = |c: &crate::definition::Compartment| {
         boxes(c)
             .into_iter()

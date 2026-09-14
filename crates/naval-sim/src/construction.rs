@@ -46,7 +46,29 @@ pub fn compile_json(source: &str, catalog: &str) -> Result<String, String> {
     }
     let source: ConstructionSource = serde_json::from_str(source).map_err(|e| e.to_string())?;
     let catalog: ConstructionCatalog = serde_json::from_str(catalog).map_err(|e| e.to_string())?;
-    serde_json::to_string(&compile(&source, &catalog)).map_err(|e| e.to_string())
+    to_json(&compile(&source, &catalog))
+}
+/// TypeScript optional properties are omitted, rather than encoded as JSON null.
+pub fn to_json(value: &impl serde::Serialize) -> Result<String, String> {
+    fn omit(value: &mut serde_json::Value) {
+        match value {
+            serde_json::Value::Object(o) => {
+                o.retain(|_, v| !v.is_null());
+                for v in o.values_mut() {
+                    omit(v);
+                }
+            }
+            serde_json::Value::Array(a) => {
+                for v in a {
+                    omit(v);
+                }
+            }
+            _ => {}
+        }
+    }
+    let mut value = serde_json::to_value(value).map_err(|e| e.to_string())?;
+    omit(&mut value);
+    serde_json::to_string(&value).map_err(|e| e.to_string())
 }
 pub fn compile(source: &ConstructionSource, catalog: &ConstructionCatalog) -> ConstructionResult {
     let content_hash =
@@ -273,6 +295,41 @@ fn build(
     }
     let cells = cg::union(&raw).map_err(fail)?;
     let envelope = cg::total(&cells);
+    // Catalog-declared installation wells cross only the supporting exterior deck.
+    // Their enclosures seal the penetration; they do not carve nearby side armor.
+    let mut wells = vec![];
+    for e in &c.equipment {
+        if let Some(p) = catalog
+            .equipment
+            .iter()
+            .find(|p| p.id == e.part_id && p.placement == "deck")
+        {
+            if !finite(e.position) || !e.bearing_deg.is_finite() {
+                return Err(error(
+                    "equipment-data",
+                    "Invalid installation transform",
+                    Some(&e.id),
+                ));
+            }
+            for space in p.occupancy.iter().flatten() {
+                if !finite(space.center) || !size(space.size) {
+                    return Err(error(
+                        "equipment-data",
+                        "Invalid installation well",
+                        Some(&e.id),
+                    ));
+                }
+                let cell = cg::transform(
+                    &cg::box_cell(space.center, space.size),
+                    e.position,
+                    [1.; 3],
+                    -e.bearing_deg.to_radians(),
+                );
+                wells.push((e.id.clone(), p.kind.clone(), cell));
+            }
+        }
+    }
+    let mut penetrations = vec![];
     for (i, p) in primitives.iter().enumerate() {
         for f in &raw[i].faces {
             let face = face_name(&f.vertices, p);
@@ -289,6 +346,26 @@ fn build(
                     .iter()
                     .flat_map(|patch| cg::exposed(patch, other, i < j))
                     .collect();
+            }
+            if cg::normal(&f.vertices)[1] > 0.95 {
+                for (id, kind, well) in &wells {
+                    let mut remaining = vec![];
+                    for patch in patches {
+                        let mut covered = patch.clone();
+                        for plane in &well.faces {
+                            let n = cg::normal(&plane.vertices);
+                            covered = cg::clip_polygon(&covered, n, dot(n, plane.vertices[0]));
+                            if covered.len() < 3 {
+                                break;
+                            }
+                        }
+                        if covered.len() >= 3 && cg::area(&covered) > 1e-8 {
+                            penetrations.push((id.clone(), kind.clone(), covered));
+                        }
+                        remaining.extend(cg::exposed(&patch, well, false));
+                    }
+                    patches = remaining;
+                }
             }
             for patch in patches {
                 if patch.len() < 3 || cg::area(&patch) < cg::EPS {
@@ -471,10 +548,29 @@ fn build(
                     position,
                     normal: s.normal,
                     area_m2: s.area_m2,
+                    ..Default::default()
                 })
             })
             .collect(),
     );
+    for (id, kind, polygon) in penetrations {
+        let position = scale(
+            polygon.iter().copied().fold([0.; 3], add),
+            1. / polygon.len() as f64,
+        );
+        if let Some(room) = nearest_room(&def, sub(position, [0., 0.05, 0.])) {
+            let opening = ConstructionOpening {
+                id: format!("well-{id}"),
+                compartment_id: room.id.clone(),
+                position,
+                normal: [0., 1., 0.],
+                area_m2: cg::area(&polygon),
+                sealed_by_mount_id: (kind == "gun").then(|| id.clone()),
+                sealed_by_module_id: (kind != "gun").then_some(id),
+            };
+            def.openings.as_mut().unwrap().push(opening);
+        }
+    }
     def.armor = out
         .surfaces
         .iter()
@@ -505,6 +601,57 @@ fn build(
             }
         })
         .collect();
+    for b in &boundaries {
+        let a = axis(&b.axis);
+        let mut n = [0.; 3];
+        n[a] = 1.;
+        for (i, cell) in cells.iter().enumerate() {
+            if let Some(cut) = cg::clip(cell, n, b.offset) {
+                for f in cut
+                    .faces
+                    .iter()
+                    .filter(|f| f.vertices.iter().all(|p| (p[a] - b.offset).abs() < 1e-7))
+                {
+                    let (center, size) = crate::structure::bounds(f.vertices.iter().copied());
+                    def.armor.push(Armor {
+                        id: format!("boundary-{}-{i}", b.id),
+                        name: b.id.clone(),
+                        thickness_mm: b.thickness_mm,
+                        center,
+                        size,
+                        plate: Some(ArmorPlate {
+                            vertices: f.vertices.clone(),
+                            material: "steel".into(),
+                            exterior: Some(false),
+                            surface_id: Some(b.id.clone()),
+                            ..Default::default()
+                        }),
+                        exterior: Some(false),
+                        ..Default::default()
+                    });
+                }
+            }
+        }
+    }
+    let void_volume: f64 = def.compartments.iter().map(|r| r.capacity_m3).sum();
+    def.local_damage = Some(ShipDefinitionLocalDamage {
+        version: 1.,
+        basis: "Fixed mass-based hull HP distributed by usable room volume; subdivision adds no HP"
+            .into(),
+        regions: def
+            .compartments
+            .iter()
+            .map(|r| DamageRegion {
+                id: r.id.clone(),
+                name: r.name.clone(),
+                kind: "hull".into(),
+                durability_fraction: r.capacity_m3 / void_volume,
+                center: r.center,
+                size: r.size,
+                ..Default::default()
+            })
+            .collect(),
+    });
     let total_mass: f64 = contributions.iter().map(|m| m.mass_kg).sum();
     if total_mass <= 0. {
         return Err(error("loading", "No physical material mass", None));
@@ -602,10 +749,61 @@ fn build(
         internals: "Bounded exact volume clipping; gameplay machinery".into(),
         weapons: "Original component catalog".into(),
     };
+    if !def.mounts.is_empty() {
+        let mut bodies: Vec<_> = def
+            .hull
+            .volume
+            .as_ref()
+            .unwrap()
+            .cells
+            .iter()
+            .enumerate()
+            .map(|(i, c)| MountClearanceProfileBodiesItem {
+                id: format!("hull-cell-{i}"),
+                mount_id: None,
+                surface: surface_mesh(c),
+            })
+            .collect();
+        bodies.extend(
+            def.obstructions
+                .iter()
+                .map(|b| MountClearanceProfileBodiesItem {
+                    id: b.id.clone(),
+                    mount_id: None,
+                    surface: surface_mesh(&cg::box_cell(b.center, b.size)),
+                }),
+        );
+        def.mount_clearance=Some(MountClearanceProfile{version:1.,margin_m:0.01,basis:"Catalog gunhouses/barrels with full recoil envelope against exact hull cells and fixed equipment envelopes".into(),mount_ids:Some(def.mounts.iter().map(|m|m.id.clone()).collect()),bodies:Some(bodies),..Default::default()});
+        let clearance = crate::mount_clearance::MountClearance::new(&def)
+            .map_err(|e| error("clearance", e, None))?
+            .unwrap();
+        let poses = vec![crate::mount_clearance::ClearancePose::default(); def.mounts.len()];
+        for (i, m) in def.mounts.iter().enumerate() {
+            if clearance.minimum_clearance(&def, i, &poses, 1.).0 <= 0. {
+                return Err(error(
+                    "weapon-clearance",
+                    "Gun barrels intersect installed geometry at the initial pose",
+                    Some(&m.id),
+                ));
+            }
+        }
+    }
     crate::catalog::validate_definition(&def)
         .map_err(|e| error("definition", e.to_string(), None))?;
     out.definition = Some(def);
     Ok(())
+}
+fn surface_mesh(cell: &cg::Cell) -> AuthoredSurface {
+    let mut s = AuthoredSurface::default();
+    for f in &cell.faces {
+        let base = s.vertices.len();
+        s.vertices.extend(&f.vertices);
+        s.triangles.extend(
+            (1..f.vertices.len() - 1)
+                .map(|i| [base as f64, (base + i) as f64, (base + i + 1) as f64]),
+        );
+    }
+    s
 }
 fn axis(a: &str) -> usize {
     match a {
@@ -617,38 +815,613 @@ fn axis(a: &str) -> usize {
 fn nearest_room(def: &ShipDefinition, p: Vec3) -> Option<&Compartment> {
     def.compartments
         .iter()
-        .min_by(|a, b| length(sub(a.center, p)).total_cmp(&length(sub(b.center, p))))
+        .min_by(|a, b| cg::room_distance(a, p).total_cmp(&cg::room_distance(b, p)))
 }
-fn assign_rooms(_def: &mut ShipDefinition) -> Result<(), ConstructionDiagnostic> {
+fn assign_rooms(def: &mut ShipDefinition) -> Result<(), ConstructionDiagnostic> {
+    for i in 0..def.modules.len() {
+        if def.modules[i].placement.as_deref() == Some("fixed") {
+            continue;
+        }
+        let p = def.modules[i].center;
+        let Some(room) = nearest_room(def, p) else {
+            return Err(error(
+                "module-room",
+                "No floodable interior for equipment",
+                Some(&def.modules[i].id),
+            ));
+        };
+        def.modules[i].compartment_id = Some(room.id.clone());
+    }
     Ok(())
 }
 #[allow(clippy::too_many_arguments)]
 fn equipment(
     c: &ConstructionData,
-    _catalog: &ConstructionCatalog,
-    _hull: &[cg::Cell],
+    catalog: &ConstructionCatalog,
+    hull: &[cg::Cell],
     _material: &[cg::Cell],
-    _interior: &mut Vec<cg::Cell>,
-    _mass: &mut Vec<ConstructionMass>,
+    interior: &mut Vec<cg::Cell>,
+    masses: &mut Vec<ConstructionMass>,
     def: &mut ShipDefinition,
-    _out: &mut ConstructionResult,
+    out: &mut ConstructionResult,
 ) -> Result<(), ConstructionDiagnostic> {
-    if !c.equipment.is_empty() {
+    if catalog.equipment.len() > 256
+        || !unique(catalog.equipment.iter().map(|p| p.id.as_str()))
+        || !unique(catalog.weapons.parts.iter().map(|p| p.id.as_str()))
+    {
         return Err(error(
-            "equipment",
-            "Equipment compilation is not yet available",
+            "catalog",
+            "Invalid equipment catalog identities/count",
             None,
         ));
     }
-    def.handling = Handling {
-        forward_speed: 0.,
-        reverse_speed: 0.,
-        acceleration: 0.,
-        braking: 0.1,
-        rudder_rate: 0.3,
-        max_yaw_rate: 0.,
+    let mut fitted = vec![];
+    let mut all_envelopes: Vec<(String, cg::Cell)> = vec![];
+    for e in &c.equipment {
+        let Some(p) = catalog.equipment.iter().find(|p| p.id == e.part_id) else {
+            return Err(error(
+                "missing-part",
+                "Exact equipment part is unavailable in this catalog revision",
+                Some(&e.id),
+            ));
+        };
+        if !finite(e.position)
+            || !e.bearing_deg.is_finite()
+            || e.bearing_deg.abs() > 3600.
+            || !size(p.size)
+            || !finite(p.bounds_center)
+            || !finite(p.center_of_gravity)
+            || !p.model_url.starts_with("/models/components/")
+            || p.content_hash.is_empty()
+            || ![
+                "gun",
+                "torpedo-launcher",
+                "engine",
+                "magazine",
+                "funnel",
+                "propeller",
+                "rudder",
+                "mast",
+                "director",
+            ]
+            .contains(&p.kind.as_str())
+            || !["internal", "deck", "underwater"].contains(&p.placement.as_str())
+        {
+            return Err(error(
+                "equipment-data",
+                "Equipment transform, model identity or fixed dimensions are invalid",
+                Some(&e.id),
+            ));
+        }
+        for n in [
+            p.power_kw,
+            p.exhaust_kw,
+            p.thrust_efficiency,
+            p.rudder_area_m2,
+            p.service_mass_kg,
+            p.ammunition_capacity,
+        ]
+        .into_iter()
+        .flatten()
+        {
+            if !n.is_finite() || !(0.0..=1e9).contains(&n) {
+                return Err(error(
+                    "equipment-data",
+                    "Invalid equipment capability",
+                    Some(&e.id),
+                ));
+            }
+        }
+        let pose = Pose {
+            x: e.position[0],
+            y: e.position[1],
+            z: e.position[2],
+            heading: e.bearing_deg.to_radians(),
+            ..Default::default()
+        };
+        let transform_cell = |center: Vec3, size: Vec3| {
+            cg::transform(
+                &cg::box_cell(center, size),
+                e.position,
+                [1.; 3],
+                -e.bearing_deg.to_radians(),
+            )
+        };
+        let envelope = transform_cell(p.bounds_center, p.size);
+        for (other, cell) in &all_envelopes {
+            if cg::intersection(&envelope, cell).is_some_and(|x| cg::moments(&x).volume > 1e-5) {
+                return Err(error(
+                    "equipment-overlap",
+                    format!("Equipment intersects {other}"),
+                    Some(&e.id),
+                ));
+            }
+        }
+        all_envelopes.push((e.id.clone(), envelope.clone()));
+        let mut occupied = vec![];
+        if p.placement == "internal" {
+            occupied.push(envelope.clone());
+        }
+        if let Some(spaces) = &p.occupancy {
+            if spaces.len() > 16 {
+                return Err(error(
+                    "equipment-data",
+                    "Too many intrinsic equipment spaces",
+                    Some(&e.id),
+                ));
+            }
+            for space in spaces {
+                if !finite(space.center) || !size(space.size) {
+                    return Err(error(
+                        "equipment-data",
+                        "Invalid intrinsic equipment space",
+                        Some(&e.id),
+                    ));
+                }
+                let volume = transform_cell(space.center, space.size);
+                if p.placement == "deck" {
+                    occupied.extend(hull.iter().filter_map(|h| cg::intersection(&volume, h)));
+                } else {
+                    occupied.push(volume);
+                }
+            }
+        }
+        let occupied = cg::union(&occupied).map_err(|x| error("equipment-fit", x, Some(&e.id)))?;
+        if !occupied.is_empty() {
+            let outside = cg::subtract_all(occupied.clone(), interior)
+                .map_err(|x| error("equipment-fit", x, Some(&e.id)))?;
+            if cg::total(&outside).volume > 1e-5 {
+                return Err(error(
+                    "equipment-fit",
+                    "Package intersects inward plating, internal wall, another load or exterior water",
+                    Some(&e.id),
+                ));
+            }
+            *interior = cg::subtract_all(interior.clone(), &occupied)
+                .map_err(|x| error("equipment-fit", x, Some(&e.id)))?;
+        }
+        // Check the explicit original attachment socket (or the package's base datum).
+        // Small 5 cm installation tolerance is independent of the 1 m hull grid.
+        let local_attachment = p
+            .sockets
+            .as_ref()
+            .and_then(|s| s.iter().find(|s| s.id == "attachment"))
+            .map_or(
+                if p.placement == "internal" {
+                    [
+                        p.bounds_center[0],
+                        p.bounds_center[1] - p.size[1] / 2.,
+                        p.bounds_center[2],
+                    ]
+                } else {
+                    [0.; 3]
+                },
+                |s| s.position,
+            );
+        let attachment = local_to_world(local_attachment, pose);
+        let supports = if p.placement == "internal" {
+            _material
+        } else {
+            hull
+        };
+        let attached = supports.iter().any(|h| {
+            cg::contains(h, attachment)
+                || length(sub(cg::closest_point(h, attachment), attachment)) <= 0.05
+        });
+        if !attached {
+            return Err(error(
+                "equipment-attachment",
+                "Equipment attachment has no physical hull support within 5 cm",
+                Some(&e.id),
+            ));
+        }
+        if p.placement == "deck"
+            && hull.iter().any(|h| {
+                cg::intersection(&envelope, h)
+                    .is_some_and(|x| cg::moments(&x).volume > p.size[0] * p.size[2] * 0.005)
+            })
+        {
+            return Err(error(
+                "equipment-fit",
+                "Exterior equipment body overlaps the hull; use its original support datum (5 mm fitted-base tolerance)",
+                Some(&e.id),
+            ));
+        }
+        let weapon = if p.kind == "gun" {
+            Some(
+                catalog
+                    .weapons
+                    .parts
+                    .iter()
+                    .find(|w| Some(w.id.as_str()) == p.gun_part_id.as_deref())
+                    .ok_or_else(|| {
+                        error("weapon", "Missing canonical gun definition", Some(&e.id))
+                    })?,
+            )
+        } else {
+            None
+        };
+        let mass_kg = weapon.map_or(p.mass_kg.unwrap_or(0.), |w| w.mass_kg);
+        if !mass_kg.is_finite() || mass_kg <= 0. || mass_kg > 1e9 {
+            return Err(error(
+                "equipment-mass",
+                "Equipment requires a positive catalog mass",
+                Some(&e.id),
+            ));
+        }
+        let center = local_to_world(p.center_of_gravity, pose);
+        let mut load = mass(
+            e.id.clone(),
+            "equipment",
+            &[envelope.clone()],
+            mass_kg / cg::moments(&envelope).volume,
+        );
+        load.center = center;
+        load.mass_kg = mass_kg;
+        // Box inertia translated from the catalog bounds center to the authored CG.
+        load.inertia_kg_m2 =
+            cg::moments(&envelope).inertia(mass_kg / cg::moments(&envelope).volume, center);
+        masses.push(load);
+        if let Some(service) = p.service_mass_kg.filter(|x| *x > 0.) {
+            masses.push(ConstructionMass {
+                id: format!("{}-service", e.id),
+                kind: "service".into(),
+                mass_kg: service,
+                center,
+                inertia_kg_m2: std::array::from_fn(|i| {
+                    masses.last().unwrap().inertia_kg_m2[i] * service / mass_kg
+                }),
+            });
+        }
+        let (box_center, box_size) = cg::bounds(&envelope);
+        let module_kind = match p.kind.as_str() {
+            "engine" | "propeller" | "funnel" => Some("engine"),
+            "magazine" => Some("magazine"),
+            "rudder" => Some("steering"),
+            "director" => Some("fire-control"),
+            "torpedo-launcher" => Some("launcher"),
+            _ => None,
+        };
+        if let Some(kind) = module_kind {
+            def.modules.push(Module {
+                id: e.id.clone(),
+                name: p.name.clone(),
+                kind: kind.into(),
+                center: box_center,
+                size: box_size,
+                hp: (mass_kg.sqrt() * 2.).max(40.),
+                placement: (p.placement != "internal").then(|| "fixed".into()),
+                immersion_tolerance_m: if p.placement == "internal" {
+                    Some((p.size[1] * 0.2).max(0.1))
+                } else {
+                    None
+                },
+                role: match p.kind.as_str() {
+                    "engine" => Some("combined-drive".into()),
+                    "propeller" => Some("shaft".into()),
+                    "funnel" => Some("boiler".into()),
+                    _ => None,
+                },
+                serves_mount_ids: if p.kind == "director" {
+                    Some(
+                        c.equipment
+                            .iter()
+                            .filter(|x| {
+                                catalog
+                                    .equipment
+                                    .iter()
+                                    .any(|p| p.id == x.part_id && p.kind == "gun")
+                            })
+                            .map(|x| x.id.clone())
+                            .collect(),
+                    )
+                } else {
+                    None
+                },
+                ..Default::default()
+            });
+        }
+        if let Some(w) = weapon {
+            if !w.mass_kg.is_finite()
+                || !w.muzzle_speed.is_finite()
+                || w.muzzle_speed <= 0.
+                || !w.projectile_mass_kg.is_finite()
+                || w.projectile_mass_kg <= 0.
+                || !w.ammo_per_barrel.is_finite()
+                || w.ammo_per_barrel < 1.
+                || !w.barbette_radius.is_finite()
+                || w.barbette_radius <= 0.
+            {
+                return Err(error(
+                    "weapon",
+                    "Invalid canonical weapon statistics",
+                    Some(&e.id),
+                ));
+            }
+            let magazine = resolve_magazine(c, catalog, e)?;
+            def.mounts.push(MountDefinition {
+                id: e.id.clone(),
+                name: p.name.clone(),
+                part_id: w.id.clone(),
+                battery: if w.caliber_m >= 0.1 {
+                    "main"
+                } else {
+                    "secondary"
+                }
+                .into(),
+                position: e.position,
+                bearing_deg: e.bearing_deg,
+                magazine_id: Some(magazine.id.clone()),
+                weapon: w.clone(),
+                rangefinder: false,
+                ..Default::default()
+            });
+            let stock = w.ammo_per_barrel * w.barrel_count.unwrap_or(2.);
+            let kg = stock * w.projectile_mass_kg;
+            masses.push(ConstructionMass {
+                id: format!("{}-ammunition", e.id),
+                kind: "ammunition".into(),
+                mass_kg: kg,
+                center: magazine_load_center(catalog, magazine),
+                inertia_kg_m2: magazine_load_inertia(catalog, magazine, kg),
+            });
+        }
+        if p.kind == "torpedo-launcher" {
+            let w = catalog
+                .weapons
+                .torpedoes
+                .iter()
+                .flatten()
+                .find(|w| Some(w.id.as_str()) == p.torpedo_part_id.as_deref())
+                .ok_or_else(|| {
+                    error(
+                        "weapon",
+                        "Missing canonical torpedo definition",
+                        Some(&e.id),
+                    )
+                })?;
+            let offsets = p
+                .tube_offsets
+                .as_ref()
+                .filter(|o| !o.is_empty() && o.len() <= 8)
+                .ok_or_else(|| {
+                    error(
+                        "weapon",
+                        "Torpedo launcher needs 1–8 original tube offsets",
+                        Some(&e.id),
+                    )
+                })?;
+            let magazine = resolve_magazine(c, catalog, e)?;
+            def.torpedo_launchers
+                .get_or_insert_default()
+                .push(TorpedoLauncher {
+                    id: e.id.clone(),
+                    name: p.name.clone(),
+                    position: e.position,
+                    traverse_rate_deg: 10.,
+                    launch_arcs_deg: vec![[-180., 180.]],
+                    ..Default::default()
+                });
+            for (i, &offset) in offsets.iter().enumerate() {
+                if !finite(offset) {
+                    return Err(error(
+                        "weapon",
+                        "Invalid torpedo muzzle offset",
+                        Some(&e.id),
+                    ));
+                }
+                def.torpedo_tubes
+                    .get_or_insert_default()
+                    .push(TubeDefinition {
+                        id: format!("{}-tube-{}", e.id, i + 1),
+                        name: p.name.clone(),
+                        part_id: w.id.clone(),
+                        position: local_to_world(offset, pose),
+                        bearing_deg: e.bearing_deg,
+                        arc_deg: 0.,
+                        ammo: 1.,
+                        magazine_id: magazine.id.clone(),
+                        launcher_id: Some(e.id.clone()),
+                        launcher_module_id: Some(e.id.clone()),
+                        weapon: w.clone(),
+                    });
+            }
+        }
+        if p.kind != "gun" && p.placement != "internal" {
+            def.obstructions.push(Volume {
+                id: e.id.clone(),
+                center: box_center,
+                size: box_size,
+            });
+        }
+        fitted.push((e, p));
+    }
+    // Validate magazine stocks together, so repeated mounts cannot each consume the same capacity.
+    for (e, p) in &fitted {
+        if p.kind == "magazine" {
+            let stock: f64 = def
+                .mounts
+                .iter()
+                .filter(|m| m.magazine_id.as_deref() == Some(e.id.as_str()))
+                .map(|m| m.weapon.ammo_per_barrel * m.weapon.barrel_count.unwrap_or(2.))
+                .sum();
+            if stock > p.ammunition_capacity.unwrap_or(0.) {
+                return Err(error(
+                    "magazine-capacity",
+                    "Magazine cannot hold all initially loaded rounds",
+                    Some(&e.id),
+                ));
+            }
+        }
+    }
+    let mut power = 0.;
+    let mut groups = vec![];
+    for (engine, part) in fitted.iter().filter(|(_, p)| p.kind == "engine") {
+        let funnels: Vec<_> = fitted
+            .iter()
+            .filter(|(e, p)| {
+                p.kind == "funnel"
+                    && (e.power_source_id.as_deref() == Some(engine.id.as_str())
+                        || (e.power_source_id.is_none()
+                            && fitted.iter().filter(|(_, p)| p.kind == "engine").count() == 1))
+            })
+            .collect();
+        let props: Vec<_> = fitted
+            .iter()
+            .filter(|(e, p)| {
+                p.kind == "propeller"
+                    && (e.power_source_id.as_deref() == Some(engine.id.as_str())
+                        || (e.power_source_id.is_none()
+                            && fitted.iter().filter(|(_, p)| p.kind == "engine").count() == 1))
+            })
+            .collect();
+        let exhaust: f64 = funnels
+            .iter()
+            .map(|(_, p)| p.exhaust_kw.unwrap_or(0.))
+            .sum();
+        if props.is_empty() || exhaust == 0. {
+            continue;
+        }
+        let efficiency = props
+            .iter()
+            .map(|(_, p)| p.thrust_efficiency.unwrap_or(0.6).clamp(0.01, 1.))
+            .sum::<f64>()
+            / props.len() as f64;
+        let kw = part.power_kw.unwrap_or(0.).min(exhaust) * efficiency;
+        power += kw;
+        groups.push(PropulsionGroup {
+            id: engine.id.clone(),
+            share: kw,
+            boiler_ids: funnels.iter().map(|(e, _)| e.id.clone()).collect(),
+            drive_ids: vec![engine.id.clone()],
+            shaft_ids: props.iter().map(|(e, _)| e.id.clone()).collect(),
+        });
+    }
+    for g in &mut groups {
+        g.share /= power.max(1.);
+    }
+    def.propulsion=Some(ShipDefinitionPropulsion{groups,basis:"Catalog power limited by linked exhaust and propeller efficiency; machinery availability and immersion apply at runtime".into()});
+    let m: f64 = masses.iter().map(|m| m.mass_kg).sum();
+    let (_, dims) = crate::structure::bounds(
+        hull.iter()
+            .flat_map(|c| c.faces.iter().flat_map(|f| f.vertices.iter().copied())),
+    );
+    let wetted: f64 = out
+        .surfaces
+        .iter()
+        .filter(|s| s.normal[1] < 0.5)
+        .map(|s| s.area_m2)
+        .sum();
+    // Bounded gameplay resistance P = (rho/2) Cf S v³, limited by a Froude wave factor.
+    let speed = if power > 0. {
+        (power * 1000. / (0.5 * SEA_DENSITY * 0.008 * wetted.max(1.)))
+            .cbrt()
+            .min(0.5 * (9.81 * dims[2]).sqrt())
+    } else {
+        0.
     };
+    let yaw_inertia = m * (dims[0] * dims[0] + dims[2] * dims[2]) / 12.;
+    let rudder_moment: f64 = fitted
+        .iter()
+        .filter(|(_, p)| p.kind == "rudder")
+        .map(|(e, p)| p.rudder_area_m2.unwrap_or(0.) * e.position[2].abs())
+        .sum();
+    def.handling = Handling {
+        forward_speed: speed,
+        reverse_speed: speed * 0.35,
+        acceleration: if speed > 0. {
+            (power * 1000. / (m * speed.max(1.))).min(2.)
+        } else {
+            0.
+        },
+        braking: 0.12 + speed * 0.015,
+        rudder_rate: 0.35,
+        max_yaw_rate: if power > 0. {
+            (0.5 * SEA_DENSITY * speed * speed * rudder_moment / yaw_inertia.max(1.))
+                .sqrt()
+                .min(0.25)
+        } else {
+            0.
+        },
+    };
+    out.loading = Some(ConstructionLoading {
+        power_kw: power,
+        estimated_speed_mps: speed,
+        ..Default::default()
+    });
     Ok(())
+}
+fn magazine_load_center(catalog: &ConstructionCatalog, e: &ConstructionEquipment) -> Vec3 {
+    let p = catalog
+        .equipment
+        .iter()
+        .find(|p| p.id == e.part_id)
+        .unwrap();
+    local_to_world(
+        p.bounds_center,
+        Pose {
+            x: e.position[0],
+            y: e.position[1],
+            z: e.position[2],
+            heading: e.bearing_deg.to_radians(),
+            ..Default::default()
+        },
+    )
+}
+fn magazine_load_inertia(
+    catalog: &ConstructionCatalog,
+    e: &ConstructionEquipment,
+    kg: f64,
+) -> Vec3 {
+    let p = catalog
+        .equipment
+        .iter()
+        .find(|p| p.id == e.part_id)
+        .unwrap();
+    let cell = cg::transform(
+        &cg::box_cell(p.bounds_center, p.size),
+        e.position,
+        [1.; 3],
+        -e.bearing_deg.to_radians(),
+    );
+    cg::moments(&cell).inertia(
+        kg / cg::moments(&cell).volume,
+        magazine_load_center(catalog, e),
+    )
+}
+
+fn resolve_magazine<'a>(
+    c: &'a ConstructionData,
+    catalog: &ConstructionCatalog,
+    e: &ConstructionEquipment,
+) -> Result<&'a ConstructionEquipment, ConstructionDiagnostic> {
+    let magazines: Vec<_> = c
+        .equipment
+        .iter()
+        .filter(|e| {
+            catalog
+                .equipment
+                .iter()
+                .any(|p| p.id == e.part_id && p.kind == "magazine")
+        })
+        .collect();
+    e.magazine_id
+        .as_ref()
+        .and_then(|id| magazines.iter().find(|m| m.id == *id).copied())
+        .or_else(|| {
+            if e.magazine_id.is_none() && magazines.len() == 1 {
+                Some(magazines[0])
+            } else {
+                None
+            }
+        })
+        .ok_or_else(|| {
+            error(
+                "magazine-link",
+                "Weapon needs a valid magazine assignment",
+                Some(&e.id),
+            )
+        })
 }
 
 #[cfg(test)]
@@ -734,5 +1507,210 @@ mod tests {
             count += 1;
         }
         assert!(count > 0);
+    }
+    fn compiled(s: &ConstructionSource, c: &ConstructionCatalog) -> ShipDefinition {
+        let r = compile(s, c);
+        r.definition.expect(&format!("{:?}", r.diagnostics))
+    }
+    fn catamaran() -> (ConstructionSource, ConstructionCatalog) {
+        let (mut s, c) = fixture();
+        s.id = "catamaran".into();
+        s.construction.primitives = vec![
+            ConstructionPrimitive {
+                id: "port".into(),
+                kind: "box".into(),
+                position: [-4., 0., 0.],
+                size: [3., 4., 20.],
+                rotation_deg: 0.,
+            },
+            ConstructionPrimitive {
+                id: "starboard".into(),
+                kind: "box".into(),
+                position: [4., 0., 0.],
+                size: [3., 4., 20.],
+                rotation_deg: 0.,
+            },
+            ConstructionPrimitive {
+                id: "bridge".into(),
+                kind: "box".into(),
+                position: [0., 2.5, 0.],
+                size: [11., 1., 4.],
+                rotation_deg: 0.,
+            },
+        ];
+        (s, c)
+    }
+    #[test]
+    fn connected_catamaran_keeps_water_channel_in_every_final_query() {
+        let (s, c) = catamaran();
+        let d = compiled(&s, &c);
+        let hydro = crate::hydrostatics::HullHydrostatics::new(&d.hull, None);
+        assert!((hydro.sample(0., 0., 0.).volume - 240.).abs() < 1e-6);
+        assert!(!crate::hull::hull_contains(&d.hull, [0.; 3]));
+        assert!(crate::hull::hull_contains(&d.hull, [0., 2.5, 0.]));
+        let from = [0., 0., -30.];
+        let to = [0., 0., 30.];
+        assert!(
+            crate::hull_contact::HullContacts::new(&d.hull)
+                .query(from, to)
+                .is_empty()
+        );
+        let geometry = crate::contacts::ContactGeometry::new(&d).unwrap();
+        let actor = crate::damage::Combatant::new("cat", &d);
+        assert!(
+            crate::contacts::ship_contacts(
+                &crate::shell::Shell::default(),
+                from,
+                to,
+                &actor,
+                &d,
+                &geometry
+            )
+            .is_empty()
+        );
+        assert!(
+            crate::structure::structural_hits(
+                from,
+                to,
+                &crate::torpedoes::torpedo_hull(&d).unwrap()
+            )
+            .is_empty()
+        );
+    }
+    #[test]
+    fn physical_ship_contacts_do_not_fill_catamaran_gap() {
+        use crate::{
+            rules::TeamId,
+            vessel::{CompiledShip, Vessel},
+        };
+        use std::sync::Arc;
+        let (s, c) = catamaran();
+        let d = compiled(&s, &c);
+        let (mut small, parts) = fixture();
+        small.id = "small".into();
+        small.construction.primitives[0].size = [1., 1., 2.];
+        let tiny = compiled(&small, &parts);
+        let a = Vessel::new(
+            "cat",
+            TeamId::A,
+            Arc::new(CompiledShip::new(Arc::new(d), None).unwrap()),
+        );
+        let mut b = Vessel::new(
+            "small",
+            TeamId::B,
+            Arc::new(CompiledShip::new(Arc::new(tiny), None).unwrap()),
+        );
+        b.motion.z = 5.;
+        let mut actors = vec![a, b];
+        crate::collisions::resolve_ship_collisions(&mut actors);
+        assert_eq!(actors[0].motion.x, 0.);
+        assert_eq!(actors[1].motion.x, 0.);
+        assert_eq!(actors[1].motion.z, 5.);
+        actors[1].motion.x = 4.;
+        crate::collisions::resolve_ship_collisions(&mut actors);
+        assert!((actors[1].motion.x - 4.).abs() > 0.1);
+    }
+    #[test]
+    fn actual_load_position_changes_cg_stability_and_attitude() {
+        let (mut s, c) = fixture();
+        s.construction.loads.push(ConstructionLoad {
+            id: "cargo".into(),
+            name: "Visible cargo".into(),
+            mass_kg: 10000.,
+            center: [3., -1., 0.],
+            size: [1., 0.5, 1.],
+        });
+        let low = compiled(&s, &c);
+        s.construction.loads[0].center[1] = 1.;
+        let high = compiled(&s, &c);
+        assert!(
+            high.loading.as_ref().unwrap().roll_metacentric_height_m
+                < low.loading.as_ref().unwrap().roll_metacentric_height_m
+        );
+        assert!(low.loading.as_ref().unwrap().center_of_gravity[0] > 0.);
+        let hydro = crate::hydrostatics::HullHydrostatics::new(&low.hull, None);
+        let mut actor = crate::damage::Combatant::new("test", &low);
+        crate::stability::update_stability(&mut actor, &low, &hydro, 1. / 60., 0.5, None);
+        assert!(actor.motion.roll < 0.);
+        assert_ne!(actor.damage.stability.target_y, 0.);
+        // No calibration is introduced for unsafe drafts.
+        s.construction.loads[0].mass_kg = 1e7;
+        let bad = compile(&s, &c);
+        assert!(bad.definition.is_some());
+        assert!(bad.diagnostics.iter().any(|d| d.code == "overloaded"));
+        assert_eq!(
+            bad.definition.unwrap().stability.unwrap().buoyancy_scale,
+            1.
+        );
+    }
+    #[test]
+    fn armor_uses_submillimeter_space_and_changes_draft() {
+        let (mut s, c) = fixture();
+        let thin = compiled(&s, &c);
+        s.construction.surfaces.push(ConstructionSurfaceAssignment {
+            primitive_id: "box".into(),
+            face: "starboard".into(),
+            thickness_mm: 200.,
+            material: "armor-steel".into(),
+            paint: "naval-gray".into(),
+            open: None,
+        });
+        let thick = compiled(&s, &c);
+        let a = thin.loading.unwrap();
+        let b = thick.loading.unwrap();
+        assert!(b.mass_kg > a.mass_kg);
+        assert!(b.waterline_y > a.waterline_y);
+        assert!(b.usable_volume_m3 < a.usable_volume_m3);
+        assert!(b.center_of_gravity[0] > a.center_of_gravity[0]);
+        s.construction.loads.push(ConstructionLoad {
+            id: "edge-load".into(),
+            name: "Edge load".into(),
+            mass_kg: 100.,
+            center: [4.8, 0., 0.],
+            size: [0.1, 1., 1.],
+        });
+        assert!(compile(&s, &c).definition.is_none());
+    }
+    #[test]
+    fn submerged_opening_floods_without_subtracting_buoyancy_twice() {
+        let (mut s, c) = fixture();
+        s.construction.surfaces.push(ConstructionSurfaceAssignment {
+            primitive_id: "box".into(),
+            face: "top".into(),
+            thickness_mm: 0.,
+            material: "steel".into(),
+            paint: "naval-gray".into(),
+            open: Some(true),
+        });
+        let d = compiled(&s, &c);
+        assert_eq!(d.openings.as_ref().unwrap().len(), 1);
+        let mut actor = crate::damage::Combatant::new("open", &d);
+        actor.motion.y = -3.;
+        let hydro = crate::hydrostatics::HullHydrostatics::new(&d.hull, None);
+        let volume = hydro.full_volume();
+        crate::flooding::update_flooding(&mut actor, &d, &hydro, 0.1, 0.5, None, None);
+        assert!(actor.damage.compartments[0].water_m3 > 0.);
+        assert_eq!(hydro.full_volume(), volume);
+        let room = &d.compartments[0];
+        let water = crate::floodwater::water_body(room, room.capacity_m3 * 0.5, 0., 0.);
+        assert!((water.volume - room.capacity_m3 * 0.5).abs() < 1e-8);
+        assert!((water.level - 0.005).abs() < 1e-6);
+    }
+    #[test]
+    fn cloned_catalog_admits_only_recompiled_local_sources() {
+        let trusted = crate::catalog::Catalog::load(
+            &std::fs::read("../../.build/naval-content/manifest.json").unwrap(),
+        )
+        .unwrap();
+        let before = trusted.definitions.len();
+        let (s, c) = fixture();
+        let d = compiled(&s, &c);
+        let local = trusted.with_constructions(&[s], &c).unwrap();
+        assert_eq!(trusted.definitions.len(), before);
+        assert_eq!(local.definitions.len(), before + 1);
+        assert_eq!(local.identities.len(), trusted.identities.len());
+        assert_eq!(local.manifest_hash, trusted.manifest_hash);
+        assert!(local.compile(&d.id).is_ok());
+        assert!(trusted.compile(&d.id).is_err());
     }
 }

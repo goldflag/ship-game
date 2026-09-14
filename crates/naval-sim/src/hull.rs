@@ -55,6 +55,12 @@ pub fn hull_section(h: &Hull, station: f64) -> Vec<[f64; 2]> {
         .collect()
 }
 pub fn hull_contains(h: &Hull, [x, y, z]: Vec3) -> bool {
+    if let Some(v) = &h.volume {
+        return v
+            .cells
+            .iter()
+            .any(|c| crate::construction_geometry::contains(c, [x, y, z]));
+    }
     let station = h.length / 2.0 - z;
     if station < 0.0 || station > h.length {
         return false;

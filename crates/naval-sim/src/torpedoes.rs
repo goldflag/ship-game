@@ -242,6 +242,9 @@ pub fn clear_torpedo_lane(
     })
 }
 pub fn torpedo_hull(def: &ShipDefinition) -> Result<Vec<StructuralSurface>, String> {
+    if let Some(v) = &def.hull.volume {
+        return Ok(crate::structure::construction_surfaces(v));
+    }
     let mut d = def.clone();
     let h = &def.hull;
     let interpolate = |points: &[[f64; 2]], s: f64| {
@@ -409,6 +412,9 @@ pub fn damage_underwater_blast(
         .enumerate()
         .min_by(|(_, a), (_, b)| {
             let dist = |c: &crate::definition::Compartment| {
+                if c.volumes.is_some() {
+                    return crate::construction_geometry::room_distance(c, point);
+                }
                 c.cells.as_ref().map_or_else(
                     || distance(c.center, c.size),
                     |cells| {

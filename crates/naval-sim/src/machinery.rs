@@ -11,6 +11,7 @@ pub enum EquipmentReason {
     Damaged,
     Destroyed,
     Flooded,
+    Unimmersed,
 }
 #[derive(Clone, Copy, Debug)]
 pub struct EquipmentCondition {
@@ -71,6 +72,21 @@ pub fn equipment_condition(
     };
     let reason = if hp <= 0.0 {
         EquipmentReason::Destroyed
+    } else if def.hull.volume.is_some()
+        && (module.role.as_deref() == Some("shaft") || module.kind == "steering")
+        && {
+            let top = local_to_world(
+                [
+                    module.center[0],
+                    module.center[1] + module.size[1] * 0.5,
+                    module.center[2],
+                ],
+                actor.motion.pose(),
+            );
+            top[1] > sea.map_or(0., |(s, t)| s.height(top[0], top[2], t))
+        }
+    {
+        EquipmentReason::Unimmersed
     } else if let Some(tolerance) = module.immersion_tolerance_m {
         let center = equipment_center(actor, def, module);
         let datum = local_to_world(
@@ -111,7 +127,7 @@ pub fn equipment_condition(
         reason,
         availability: if matches!(
             reason,
-            EquipmentReason::Destroyed | EquipmentReason::Flooded
+            EquipmentReason::Destroyed | EquipmentReason::Flooded | EquipmentReason::Unimmersed
         ) {
             0.0
         } else {

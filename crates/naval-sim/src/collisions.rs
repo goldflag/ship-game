@@ -42,6 +42,9 @@ pub fn damage_hull_contact(
     let local = local_damage_evidence(actor, def, point, None, None);
     let dealt = damage_hull(actor, amount, local.as_ref().map(|l| l.region_id.as_str()));
     let distance = |c: &crate::definition::Compartment| {
+        if c.volumes.is_some() {
+            return crate::construction_geometry::room_distance(c, point);
+        }
         let cell = |center: Vec3, size: Vec3| {
             length(std::array::from_fn(|i| {
                 ((point[i] - center[i]).abs() - size[i] / 2.0).max(0.0)
@@ -87,6 +90,20 @@ pub fn profile(hull: &Hull) -> Vec<Point> {
             ]
         })
         .collect();
+    if let Some(v) = &hull.volume {
+        stations = v
+            .cells
+            .iter()
+            .flat_map(|c| {
+                c.faces
+                    .iter()
+                    .flat_map(|f| f.vertices.iter().map(|p| [p[0], p[2]]))
+            })
+            .collect();
+    }
+    convex_profile(stations)
+}
+fn convex_profile(mut stations: Vec<Point>) -> Vec<Point> {
     stations.sort_by(|a, b| a[0].total_cmp(&b[0]).then_with(|| a[1].total_cmp(&b[1])));
     let half = |points: &[Point]| {
         let mut result: Vec<Point> = vec![];
@@ -113,6 +130,8 @@ pub fn profile(hull: &Hull) -> Vec<Point> {
     points
 }
 struct Body {
+    pieces: Vec<crate::construction_geometry::Cell>,
+    constructed: bool,
     motion: ShipState,
     points: Vec<Point>,
     radius: f64,
@@ -135,6 +154,47 @@ impl Body {
                 .sum::<f64>();
         let tilt = p.roll.sin().abs() * h.beam / 2.0 + p.pitch.sin().abs() * h.length / 2.0;
         Self {
+            pieces: if let Some(v) = &h.volume {
+                v.cells
+                    .iter()
+                    .map(|c| crate::definition::ConvexVolume {
+                        faces: c
+                            .faces
+                            .iter()
+                            .map(|f| crate::definition::ConvexVolumeFacesItem {
+                                vertices: f
+                                    .vertices
+                                    .iter()
+                                    .map(|q| crate::geometry::local_to_world(*q, p.pose()))
+                                    .collect(),
+                            })
+                            .collect(),
+                    })
+                    .collect()
+            } else {
+                let profile = &actor.compiled.collision_profile;
+                let top = h
+                    .deck_heights
+                    .iter()
+                    .map(|p| p[1])
+                    .fold(f64::NEG_INFINITY, f64::max);
+                let polygon: Vec<_> = profile.iter().map(|q| [q[0], top, q[1]]).rev().collect();
+                let cell = crate::construction_geometry::prism(&polygon, top + h.draft);
+                vec![crate::definition::ConvexVolume {
+                    faces: cell
+                        .faces
+                        .iter()
+                        .map(|f| crate::definition::ConvexVolumeFacesItem {
+                            vertices: f
+                                .vertices
+                                .iter()
+                                .map(|q| crate::geometry::local_to_world(*q, p.pose()))
+                                .collect(),
+                        })
+                        .collect(),
+                }]
+            },
+            constructed: h.volume.is_some(),
             motion: p.clone(),
             points: actor
                 .compiled
@@ -151,7 +211,13 @@ impl Body {
                     .fold(f64::NEG_INFINITY, f64::max)
                 + tilt,
             inverse_mass: 1.0 / mass,
-            inverse_inertia: 12.0 / (mass * (h.length.powi(2) + h.beam.powi(2))),
+            inverse_inertia: actor
+                .definition()
+                .loading
+                .as_ref()
+                .map_or(12.0 / (mass * (h.length.powi(2) + h.beam.powi(2))), |l| {
+                    1. / (l.inertia_kg_m2[1] * mass / l.mass_kg)
+                }),
         }
     }
     fn impulse(&mut self, lever: Point, direction: Point, magnitude: f64) {
@@ -171,6 +237,14 @@ impl Body {
         for p in &mut self.points {
             p[0] += dx;
             p[1] += dz;
+        }
+        for c in &mut self.pieces {
+            for f in &mut c.faces {
+                for p in &mut f.vertices {
+                    p[0] += dx;
+                    p[2] += dz;
+                }
+            }
         }
     }
 }
@@ -194,9 +268,42 @@ fn contact(a: &Body, b: &Body) -> Option<Contact> {
     {
         return None;
     }
+    if a.constructed || b.constructed {
+        let mut contacts = vec![];
+        for ac in &a.pieces {
+            for bc in &b.pieces {
+                if !crate::construction_geometry::intersection(ac, bc)
+                    .is_some_and(|c| crate::construction_geometry::moments(&c).volume > 1e-8)
+                {
+                    continue;
+                }
+                let ap = convex_profile(
+                    ac.faces
+                        .iter()
+                        .flat_map(|f| f.vertices.iter().map(|p| [p[0], p[2]]))
+                        .collect(),
+                );
+                let bp = convex_profile(
+                    bc.faces
+                        .iter()
+                        .flat_map(|f| f.vertices.iter().map(|p| [p[0], p[2]]))
+                        .collect(),
+                );
+                if let Some(c) = planar_contact(&ap, &bp) {
+                    contacts.push(c);
+                }
+            }
+        }
+        return contacts
+            .into_iter()
+            .min_by(|a, b| a.depth.total_cmp(&b.depth));
+    }
+    planar_contact(&a.points, &b.points)
+}
+fn planar_contact(a: &[Point], b: &[Point]) -> Option<Contact> {
     let mut depth = f64::INFINITY;
     let mut normal = [0.0; 2];
-    for points in [&a.points, &b.points] {
+    for points in [a, b] {
         for i in 0..points.len() {
             let (p, q) = (points[i], points[(i + 1) % points.len()]);
             let length = (q[0] - p[0]).hypot(q[1] - p[1]);
@@ -204,8 +311,8 @@ fn contact(a: &Body, b: &Body) -> Option<Contact> {
                 continue;
             }
             let axis = [-(q[1] - p[1]) / length, (q[0] - p[0]) / length];
-            let (amin, amax) = project(a.points.iter().copied(), axis);
-            let (bmin, bmax) = project(b.points.iter().copied(), axis);
+            let (amin, amax) = project(a.iter().copied(), axis);
+            let (bmin, bmax) = project(b.iter().copied(), axis);
             if amax < bmin || bmax < amin {
                 return None;
             }
@@ -228,20 +335,14 @@ fn contact(a: &Body, b: &Body) -> Option<Contact> {
         return None;
     }
     let tangent = [-normal[1], normal[0]];
-    let (_, aface) = project(a.points.iter().copied(), normal);
-    let (bface, _) = project(b.points.iter().copied(), normal);
+    let (_, aface) = project(a.iter().copied(), normal);
+    let (bface, _) = project(b.iter().copied(), normal);
     let (amin, amax) = project(
-        a.points
-            .iter()
-            .copied()
-            .filter(|p| aface - dot(*p, normal) < 0.01),
+        a.iter().copied().filter(|p| aface - dot(*p, normal) < 0.01),
         tangent,
     );
     let (bmin, bmax) = project(
-        b.points
-            .iter()
-            .copied()
-            .filter(|p| dot(*p, normal) - bface < 0.01),
+        b.iter().copied().filter(|p| dot(*p, normal) - bface < 0.01),
         tangent,
     );
     let along = (amin.max(bmin) + amax.min(bmax)) / 2.0;

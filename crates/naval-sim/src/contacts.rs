@@ -64,7 +64,10 @@ impl ContactGeometry {
     pub fn new(def: &ShipDefinition) -> Result<Self, String> {
         Ok(Self {
             structural: structural_surfaces(def)?,
-            hull: if def.stability.is_some() && def.structural_plating.is_none() {
+            hull: if def.stability.is_some()
+                && def.structural_plating.is_none()
+                && def.hull.volume.is_none()
+            {
                 Some(HullContacts::new(&def.hull))
             } else {
                 None

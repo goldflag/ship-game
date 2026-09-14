@@ -327,6 +327,8 @@ export interface ConstructionLoading {
 }
 export interface ConstructionOpening {
   id: string; compartmentId: string; position: Vec3; normal: Vec3; areaM2: number;
+  /** Catalog installation well remains sealed while its fitted enclosure survives. */
+  sealedByMountId?: string; sealedByModuleId?: string;
 }
 export interface ConstructionDiagnostic {
   severity: 'error' | 'warning'; code: string; message: string; sourceId?: string;

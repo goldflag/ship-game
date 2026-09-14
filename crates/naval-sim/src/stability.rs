@@ -139,7 +139,8 @@ pub fn update_stability(
             s.status = "sinking".into();
             s.combat_lost = true;
         }
-        if sea.is_none()
+        if def.hull.volume.is_none()
+            && sea.is_none()
             && !damage.sunk
             && water == 0.0
             && p.y == 0.0
@@ -203,14 +204,24 @@ pub fn update_stability(
         + 9.81
             * (s.roll_arm
                 + s.roll_slope.unwrap_or(0.0) * (p.roll - s.sample_roll.unwrap_or(p.roll)))
-            / (def.hull.beam * 0.4).powi(2)
+            / def
+                .loading
+                .as_ref()
+                .map_or((def.hull.beam * 0.4).powi(2), |l| {
+                    l.inertia_kg_m2[2] / l.mass_kg
+                })
             * dt)
         * (-dt / 4.0).exp();
     s.pitch_rate = (s.pitch_rate
         + 9.81
             * (s.pitch_arm
                 + s.pitch_slope.unwrap_or(0.0) * (p.pitch - s.sample_pitch.unwrap_or(p.pitch)))
-            / (def.hull.length * 0.28).powi(2)
+            / def
+                .loading
+                .as_ref()
+                .map_or((def.hull.length * 0.28).powi(2), |l| {
+                    l.inertia_kg_m2[0] / l.mass_kg
+                })
             * dt)
         * (-dt / 3.0).exp();
     p.roll = clamp(

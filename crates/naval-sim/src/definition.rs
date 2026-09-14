@@ -381,6 +381,10 @@ pub struct ConstructionOpening {
     pub normal: [f64; 3],
     #[serde(rename = "areaM2")]
     pub area_m2: f64,
+    #[serde(rename = "sealedByMountId")]
+    pub sealed_by_mount_id: Option<String>,
+    #[serde(rename = "sealedByModuleId")]
+    pub sealed_by_module_id: Option<String>,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]

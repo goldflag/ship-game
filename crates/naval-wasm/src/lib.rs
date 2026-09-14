@@ -6,6 +6,11 @@ use wasm_bindgen::prelude::*;
 fn error(e: impl std::fmt::Display) -> JsValue {
     JsValue::from_str(&e.to_string())
 }
+/// Pure authoritative source compilation. JSON outputs always echo the source revision.
+#[wasm_bindgen]
+pub fn compile_construction(source_json: &str, catalog_json: &str) -> Result<String, JsValue> {
+    naval_sim::construction::compile_json(source_json, catalog_json).map_err(error)
+}
 /// Development port inspection uses the same physical movement resolver as combat.
 #[wasm_bindgen]
 pub fn preview_articulation_json(
@@ -311,6 +316,7 @@ impl BattleRuntime {
 /// Local battles use the exact addressed command handler used by match workers.
 #[wasm_bindgen]
 pub struct LocalRuntime {
+    trial: bool,
     session: naval_protocol::session::Session,
     pve_plan: Option<naval_sim::pve::PvePlan>,
     enemy_air_sequence: u32,
@@ -351,6 +357,119 @@ impl LocalRuntime {
     pub fn new(manifest: &[u8], setup: &str) -> Result<LocalRuntime, JsValue> {
         let runtime = BattleRuntime::new(manifest, setup)?;
         Self::from_battle(runtime.battle, None)
+    }
+    /// Local source admission is deliberately absent from BattleRuntime and the online protocol.
+    pub fn with_construction(
+        manifest: &[u8],
+        setup: &str,
+        sources_json: &str,
+        catalog_json: &str,
+        trial: bool,
+    ) -> Result<LocalRuntime, JsValue> {
+        use std::{collections::BTreeMap, sync::Arc};
+        if setup.len() > 65536
+            || sources_json.len() > naval_sim::construction::MAX_SOURCE_BYTES * 4
+            || catalog_json.len() > naval_sim::construction::MAX_CATALOG_BYTES
+        {
+            return Err(error("Local construction input exceeds size limit"));
+        }
+        let setup: naval_sim::battle::BattleSetup = serde_json::from_str(setup).map_err(error)?;
+        if setup.mission_rules.is_some() {
+            return Err(error(
+                "Construction is available only in local custom battles and trials",
+            ));
+        }
+        let sources: Vec<naval_sim::definition::ConstructionSource> =
+            serde_json::from_str(sources_json).map_err(error)?;
+        let parts: naval_sim::definition::ConstructionCatalog =
+            serde_json::from_str(catalog_json).map_err(error)?;
+        let catalog = Arc::new(
+            naval_sim::catalog::Catalog::load(manifest)
+                .map_err(error)?
+                .with_constructions(&sources, &parts)
+                .map_err(error)?,
+        );
+        let mut compiled = BTreeMap::new();
+        for ship in &setup.ships {
+            if !compiled.contains_key(&ship.preset_id) {
+                compiled.insert(
+                    ship.preset_id.clone(),
+                    Arc::new(catalog.compile(&ship.preset_id).map_err(error)?),
+                );
+            }
+        }
+        let battle = naval_sim::battle::Battle::new(catalog, &compiled, setup).map_err(error)?;
+        let mut runtime = Self::from_battle(battle, None)?;
+        runtime.trial = trial;
+        Ok(runtime)
+    }
+    pub fn construction_definitions(&self) -> Result<String, JsValue> {
+        let definitions: std::collections::BTreeMap<_, _> = self
+            .session
+            .battle
+            .actors
+            .iter()
+            .filter(|a| a.definition().hull.volume.is_some())
+            .map(|a| (a.preset_id.clone(), a.definition()))
+            .collect();
+        naval_sim::construction::to_json(&definitions).map_err(error)
+    }
+    /// Trial controls never enter the network command envelope. Damage cannot modify source.
+    pub fn trial_action(&mut self, json: &str) -> Result<(), JsValue> {
+        #[derive(serde::Deserialize)]
+        #[serde(rename_all = "camelCase", deny_unknown_fields)]
+        struct Action {
+            kind: String,
+            actor_id: String,
+            compartment_id: Option<String>,
+            module_id: Option<String>,
+            amount: f64,
+        }
+        if !self.trial || self.pve_plan.is_some() {
+            return Err(error("Trial controls are unavailable in this session"));
+        }
+        if json.len() > 4096 {
+            return Err(error("Trial action exceeds size limit"));
+        }
+        let action: Action = serde_json::from_str(json).map_err(error)?;
+        if !action.amount.is_finite() || action.amount < 0. || action.amount > 1e9 {
+            return Err(error("Invalid trial amount"));
+        }
+        let actor = self
+            .session
+            .battle
+            .actors
+            .iter_mut()
+            .find(|a| a.motion.id == action.actor_id)
+            .ok_or_else(|| error("Unknown trial actor"))?;
+        match action.kind.as_str() {
+            "flood" => {
+                let i = actor
+                    .definition()
+                    .compartments
+                    .iter()
+                    .position(|c| Some(c.id.as_str()) == action.compartment_id.as_deref())
+                    .ok_or_else(|| error("Unknown trial compartment"))?;
+                actor.damage.compartments[i].water_m3 = action
+                    .amount
+                    .min(actor.definition().compartments[i].capacity_m3);
+                actor.damage.stability.elapsed = 1.;
+            }
+            "damage" => {
+                naval_sim::damage::damage_hull(actor, action.amount, None);
+            }
+            "module-damage" => {
+                let i = actor
+                    .definition()
+                    .modules
+                    .iter()
+                    .position(|m| Some(m.id.as_str()) == action.module_id.as_deref())
+                    .ok_or_else(|| error("Unknown trial module"))?;
+                actor.damage.modules[i].hp = (actor.damage.modules[i].hp - action.amount).max(0.);
+            }
+            _ => return Err(error("Unknown trial action")),
+        }
+        Ok(())
     }
     pub fn command(&mut self, json: &str) -> Result<(), JsValue> {
         if json.len() > naval_protocol::MAX_COMMAND_BYTES {
@@ -586,6 +705,7 @@ impl LocalRuntime {
         }
         Ok(Self {
             session,
+            trial: false,
             pve_plan,
             enemy_air_sequence: 0,
             delta: Default::default(),
