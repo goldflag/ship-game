@@ -18,6 +18,7 @@ export interface ConstructionDesignHead {
   updatedAt: number;
   schemaVersion: number;
   catalogRevision: string;
+  readError?: string;
 }
 
 export interface ConstructionRevision {
@@ -48,6 +49,13 @@ export interface ConstructionStore {
   revisions(designId: string): Promise<ConstructionRevision[]>;
   save(input: SaveConstructionSource): Promise<ConstructionRevision>;
   close(): void;
+}
+
+function isHead(value: unknown): value is ConstructionDesignHead {
+  if (!value || typeof value !== 'object') return false;
+  const head = value as ConstructionDesignHead;
+  return typeof head.id === 'string' && typeof head.name === 'string' && typeof head.revisionId === 'string' && !!head.revisionId
+    && Number.isFinite(head.updatedAt) && Number.isFinite(head.schemaVersion) && typeof head.catalogRevision === 'string';
 }
 
 function storageError(error: unknown): ConstructionStoreError {
@@ -147,15 +155,25 @@ export async function openConstructionStore(options: { name?: string; indexedDB?
 
   return {
     close: () => database.close(),
-    list: () => transaction('readonly', (tx, result) => {
+    list: () => transaction('readonly', (tx, result, fail) => {
       const request = tx.objectStore('designs').getAll();
-      request.onsuccess = () => result((request.result as ConstructionDesignHead[]).sort((a, b) => b.updatedAt - a.updatedAt));
+      request.onsuccess = () => {
+        const rows: ConstructionDesignHead[] = [];
+        for (const value of request.result as unknown[]) {
+          if (isHead(value)) { rows.push(value); continue; }
+          const head = value as Partial<ConstructionDesignHead> | undefined;
+          if (!head || typeof head.id !== 'string') { fail(new ConstructionStoreError('corrupt', 'The local library index is damaged. Its source revisions are preserved.')); return; }
+          rows.push({ id: head.id, name: typeof head.name === 'string' ? head.name : 'Unreadable design', revisionId: typeof head.revisionId === 'string' ? head.revisionId : '', updatedAt: 0, schemaVersion: 0, catalogRevision: '', readError: 'Library entry is damaged. Recover an earlier source revision.' });
+        }
+        result(rows.sort((a, b) => b.updatedAt - a.updatedAt));
+      };
     }),
     load: designId => transaction('readonly', (tx, result, fail) => {
       const headRequest = tx.objectStore('designs').get(designId);
       headRequest.onsuccess = () => {
         const head = headRequest.result as ConstructionDesignHead | undefined;
         if (!head) { fail(new ConstructionStoreError('not-found', 'This local design no longer exists. Choose another design or start a new one.')); return; }
+        if (!isHead(head)) { fail(new ConstructionStoreError('corrupt', 'This library entry is damaged. Recover an earlier source revision; its original data is preserved.')); return; }
         const revisionRequest = tx.objectStore('revisions').get(head.revisionId);
         revisionRequest.onsuccess = () => {
           const revision = revisionRequest.result as ConstructionRevision | undefined;
@@ -180,6 +198,7 @@ export async function openConstructionStore(options: { name?: string; indexedDB?
         const request = heads.get(input.designId);
         request.onsuccess = () => {
           const current = request.result as ConstructionDesignHead | undefined;
+          if (current && !isHead(current)) { fail(new ConstructionStoreError('corrupt', 'This library entry is damaged. Recover its source into a new design; the original is preserved.')); return; }
           if ((current?.revisionId ?? null) !== input.expectedRevisionId) {
             fail(new ConstructionStoreError('conflict', 'A newer revision was saved in another editor. Download this draft, then reopen the latest revision or save this draft as a new design.'));
             return;

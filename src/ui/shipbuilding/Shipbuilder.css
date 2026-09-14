@@ -1,0 +1,156 @@
+.shipbuilder {
+  --builder-ink: #0c1b26;
+  --builder-panel: #10232e;
+  --builder-text: #edf1ec;
+  --builder-muted: #bacbd0;
+  --builder-line: #c2d5da35;
+  --builder-accent: #e0c58d;
+  --builder-ready: #94d9bf;
+  --builder-error: #f0ad98;
+  position: fixed; inset: 0; z-index: 80; display: grid;
+  grid-template-rows: 62px minmax(0, 1fr) 34px;
+  background: var(--builder-ink); color: var(--builder-text);
+  font: 400 13px/1.4 'Barlow', sans-serif; font-variant-numeric: tabular-nums;
+  color-scheme: dark;
+}
+.shipbuilder *, .shipbuilder *::before, .shipbuilder *::after { box-sizing: border-box; }
+.shipbuilder ::selection { background: var(--builder-accent); color: var(--builder-ink); }
+.shipbuilder :focus-visible { outline: 2px solid var(--builder-accent); outline-offset: 2px; }
+.shipbuilder input { caret-color: var(--builder-accent); }
+.shipbuilder h1, .shipbuilder h2, .shipbuilder h3, .shipbuilder p { margin: 0; }
+.shipbuilder h1 { font: 500 24px/1 'Barlow Condensed', sans-serif; }
+.shipbuilder h2 { font: 500 22px/1.2 'Barlow Condensed', sans-serif; margin: 0 0 10px; }
+.shipbuilder h3 { font: 500 18px/1.2 'Barlow Condensed', sans-serif; margin: 24px 0 10px; }
+.shipbuilder p { margin: 8px 0 12px; overflow-wrap: anywhere; }
+.shipbuilder label { display: flex; flex-direction: column; gap: 6px; margin: 12px 0; min-width: 0; }
+.shipbuilder fieldset { margin: 0; padding: 0; border: 0; min-width: 0; }
+.shipbuilder small { font-size: 11px; color: var(--builder-muted); }
+.shipbuilder .ui-button, .shipbuilder .ui-select, .shipbuilder .ui-input { font-size: 12px; min-width: 0; }
+.shipbuilder .ui-button { min-height: 34px; padding: 6px 9px; }
+.shipbuilder .ui-input, .shipbuilder .ui-select { width: 100%; }
+.shipbuilder .ui-button[aria-pressed=true] { color: var(--builder-accent); border-color: var(--builder-accent); background: #273c43; }
+.shipbuilder .ui-button.primary-button { color: #152b32; }
+.shipbuilder-header { display: flex; align-items: center; gap: 16px; padding: 10px 18px; border-bottom: 1px solid var(--builder-line); background: var(--builder-panel); }
+.shipbuilder-title { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
+.shipbuilder-title > svg { color: var(--builder-accent); }
+.shipbuilder-header .shipbuilder-name { width: min(30vw, 330px); margin-right: auto; background: transparent; border-color: transparent; font-size: 16px; }
+.shipbuilder-header .shipbuilder-name:hover, .shipbuilder-header .shipbuilder-name:focus { border-color: var(--builder-line); }
+.shipbuilder-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.shipbuilder-workspace { position: relative; display: grid; grid-template-columns: 248px minmax(0, 1fr) 280px; min-height: 0; }
+.shipbuilder-tools, .shipbuilder-inspector { min-height: 0; min-width: 0; display: flex; flex-direction: column; background: var(--builder-panel); }
+.shipbuilder-tools { border-right: 1px solid var(--builder-line); }
+.shipbuilder-inspector { border-left: 1px solid var(--builder-line); }
+.shipbuilder-scroll { padding: 18px 16px 28px; overflow: auto; min-height: 0; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #7a949c #10232e; }
+.shipbuilder-tabs { display: flex; flex-wrap: wrap; gap: 3px; padding: 10px 10px 8px; border-bottom: 1px solid var(--builder-line); }
+.shipbuilder-tabs .ui-button { flex: 1 1 auto; background: transparent; border-color: transparent; padding: 6px 7px; }
+.shipbuilder-tabs .ui-button[aria-pressed=true] { border-bottom-color: var(--builder-accent); }
+.shipbuilder-help { color: var(--builder-muted); font-size: 12px; line-height: 1.45; }
+small.shipbuilder-help { display: block; margin-top: 4px; overflow-wrap: anywhere; }
+.shipbuilder-tool-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.shipbuilder-vector { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
+.shipbuilder-row { display: grid; grid-template-columns: 80px minmax(0, 1fr); gap: 10px; }
+.shipbuilder-number { min-width: 0; }
+.shipbuilder-number > span { display: flex; justify-content: space-between; gap: 4px; font-size: 11px; align-items: baseline; }
+.shipbuilder-number .ui-input { padding: 6px; font-size: 13px; }
+.shipbuilder-number > small, .shipbuilder-number input[aria-invalid=true] { color: var(--builder-error); }
+.shipbuilder-number input[aria-invalid=true] { border-color: var(--builder-error); }
+.shipbuilder-list { display: grid; gap: 4px; margin: 12px 0; }
+.shipbuilder-list .ui-button { justify-content: flex-start; text-align: left; width: 100%; }
+.shipbuilder-list .ui-button > span { min-width: 0; overflow-wrap: anywhere; }
+.shipbuilder-list small { display: block; margin-top: 3px; }
+.shipbuilder-catalog { max-height: 280px; overflow: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+.shipbuilder-selection-count { color: var(--builder-accent); }
+.shipbuilder-swatches { display: flex; gap: 6px; margin: 10px 0 14px; }
+.shipbuilder .shipbuilder-swatches .ui-button { width: 24px; min-height: 26px; padding: 0; border: 1px solid #c2d5da66; }
+.shipbuilder .shipbuilder-swatches .ui-button[aria-pressed=true] { outline: 2px solid var(--builder-accent); outline-offset: 2px; }
+.shipbuilder .shipbuilder-check { display: flex; flex-direction: row; align-items: center; gap: 7px; }
+.shipbuilder .shipbuilder-check input { width: auto; }
+.shipbuilder-suggestion { border-top: 1px solid var(--builder-line); margin-top: 12px; padding-top: 4px; }
+.shipbuilder-scene { min-width: 0; min-height: 0; position: relative; display: grid; grid-template-rows: 46px minmax(0, 1fr) auto; background: #19323f; }
+.shipbuilder-viewbar { display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-bottom: 1px solid var(--builder-line); overflow: auto; }
+.shipbuilder-viewbar .shipbuilder-actions { flex-wrap: nowrap; }
+.shipbuilder-viewbar .ui-button { white-space: nowrap; background: transparent; border-color: transparent; }
+.shipbuilder-viewbar .ui-button[aria-pressed=true] { border-color: var(--builder-line); }
+.shipbuilder-viewport { min-width: 0; min-height: 0; position: relative; }
+.shipbuilder-canvas { position: absolute; inset: 0; touch-action: none; }
+.shipbuilder-canvas canvas { display: block; width: 100%; height: 100%; }
+.shipbuilder-scene-labels { position: absolute; left: 14px; top: 60px; right: 14px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; pointer-events: none; color: #d2dfe2; font-size: 11px; }
+.shipbuilder-scene-labels > span { display: inline-flex; align-items: center; gap: 5px; }
+.shipbuilder-scene-labels i { display: inline-block; width: 6px; height: 6px; border-radius: 50%; }
+.shipbuilder-cg { background: var(--builder-accent); }
+.shipbuilder-buoyancy { background: var(--builder-ready); margin-left: 6px; }
+.shipbuilder-scene-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; padding: 8px 12px; border-top: 1px solid var(--builder-line); background: #17303d; }
+.shipbuilder-scene-controls > .ui-select { width: auto; min-width: 130px; }
+.shipbuilder-scene-controls > label { margin: 0; }
+.shipbuilder-scene-controls .shipbuilder-number { width: 108px; display: flex; flex-direction: row; align-items: center; }
+.shipbuilder-scene-controls .shipbuilder-number > span { display: block; }
+.shipbuilder-scene-controls .shipbuilder-number input { width: 55px; }
+.shipbuilder-empty { position: absolute; top: 38%; left: 50%; transform: translateX(-50%); max-width: 340px; width: calc(100% - 40px); text-align: center; background: #10232eed; padding: 20px; border: 1px solid var(--builder-line); }
+.shipbuilder-empty p { color: var(--builder-muted); }
+.shipbuilder-view-error { position: absolute; left: 16px; right: 16px; bottom: 20px; background: var(--builder-panel); padding: 12px; color: var(--builder-error); }
+.shipbuilder-compile { color: var(--builder-ready); margin-bottom: 12px; }
+.shipbuilder-diagnostic { padding: 10px 0; border-top: 1px solid var(--builder-line); }
+.shipbuilder-diagnostic strong { font-weight: 500; color: var(--builder-accent); }
+.shipbuilder-diagnostic.error strong, .shipbuilder-error { color: var(--builder-error); }
+.shipbuilder-diagnostic p { margin: 4px 0 8px; font-size: 12px; }
+.shipbuilder-readings { margin: 16px 0; }
+.shipbuilder-readings > div { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 7px 0; border-bottom: 1px solid var(--builder-line); }
+.shipbuilder-readings dt { color: var(--builder-muted); }
+.shipbuilder-readings dd { margin: 0; text-align: right; }
+.shipbuilder details { padding: 12px 0; border-top: 1px solid var(--builder-line); }
+.shipbuilder summary { cursor: pointer; color: var(--builder-accent); }
+.shipbuilder-mass { max-height: 320px; overflow: auto; scrollbar-width: thin; }
+.shipbuilder-mass > div { display: flex; justify-content: space-between; gap: 12px; margin-top: 10px; }
+.shipbuilder-mass span { min-width: 0; }
+.shipbuilder-mass small { display: block; overflow-wrap: anywhere; }
+.shipbuilder-mass b { flex-shrink: 0; font-weight: 400; }
+.shipbuilder-revisions > div { padding: 10px 0; border-bottom: 1px solid var(--builder-line); }
+.shipbuilder-revisions small { display: block; margin: 2px 0 8px; }
+.shipbuilder-footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 8px 16px; border-top: 1px solid var(--builder-line); color: var(--builder-muted); font-size: 11px; white-space: nowrap; overflow: auto; }
+.shipbuilder-footer .saved { color: var(--builder-ready); }
+.shipbuilder-notice { position: absolute; left: 264px; right: 296px; bottom: 106px; display: flex; align-items: flex-start; gap: 12px; flex-wrap: wrap; background: var(--builder-panel); border: 1px solid var(--builder-line); padding: 14px; box-shadow: 0 8px 20px #06152266; }
+.shipbuilder-notice p { flex: 1; margin: 0; min-width: 140px; }
+.shipbuilder-notice.error { color: var(--builder-error); }
+.shipbuilder-notice > .icon-button { margin-left: auto; }
+.shipbuilder .shipbuilder-mobile-toggle, .shipbuilder .shipbuilder-inspect-toggle { display: none; }
+@media (max-width: 1200px) {
+  .shipbuilder-workspace { grid-template-columns: 220px minmax(0, 1fr) 246px; }
+  .shipbuilder-header { gap: 9px; padding-inline: 12px; }
+  .shipbuilder-scroll { padding-inline: 12px; }
+  .shipbuilder-notice { left: 234px; right: 260px; }
+}
+@media (max-width: 980px) {
+  .shipbuilder-workspace { grid-template-columns: 230px minmax(0, 1fr); }
+  .shipbuilder-inspector { display: none; }
+  .shipbuilder .shipbuilder-inspect-toggle { display: inline-flex; }
+  .shipbuilder-workspace.inspect-open .shipbuilder-inspector { display: flex; position: absolute; top: 46px; bottom: 0; right: 0; width: 280px; z-index: 5; }
+  .shipbuilder-notice { right: 16px; }
+  .shipbuilder-header .shipbuilder-name { width: 22vw; }
+  .shipbuilder-footer > span:last-child { display: none; }
+}
+@media (max-width: 680px) {
+  .shipbuilder { grid-template-rows: 96px minmax(0, 1fr) 34px; }
+  .shipbuilder-header { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; grid-template-rows: 32px 32px; gap: 6px 10px; padding: 10px; }
+  .shipbuilder-title { grid-column: 1; grid-row: 1; }
+  .shipbuilder h1 { font-size: 22px; }
+  .shipbuilder-header .shipbuilder-name { grid-column: 1; grid-row: 2; width: 100%; padding-left: 0; }
+  .shipbuilder-header > .shipbuilder-actions { grid-column: 2 / 4; grid-row: 2; justify-content: flex-end; }
+  .shipbuilder-header > .primary-button { grid-column: 2; grid-row: 1; }
+  .shipbuilder-header > .icon-button { grid-column: 3; grid-row: 1; }
+  .shipbuilder-workspace { display: block; }
+  .shipbuilder-scene { width: 100%; height: 100%; }
+  .shipbuilder-tools { display: none; }
+  .shipbuilder .shipbuilder-mobile-toggle { display: inline-flex; }
+  .shipbuilder-workspace.tools-open .shipbuilder-tools { display: flex; position: absolute; left: 0; top: 46px; bottom: 0; width: min(280px, 88vw); z-index: 5; box-shadow: 8px 0 20px #06152244; }
+  .shipbuilder-viewbar { padding-inline: 5px; gap: 0; }
+  .shipbuilder-viewbar .ui-button { padding-inline: 7px; }
+  .shipbuilder-scene-controls { gap: 8px; padding: 8px; }
+  .shipbuilder-scene-labels { top: 56px; font-size: 10px; }
+  .shipbuilder-notice { left: 10px; right: 10px; bottom: 105px; z-index: 8; }
+  .shipbuilder-footer { padding-inline: 10px; }
+  .shipbuilder-footer > span:nth-child(3) { display: none; }
+}
+@media (pointer: coarse) {
+  .shipbuilder .ui-button { min-height: 40px; }
+  .shipbuilder-viewbar { overflow-x: auto; }
+}
