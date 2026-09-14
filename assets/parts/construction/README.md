@@ -36,6 +36,12 @@ contribution. Deck support and access around the package remain installation
 responsibilities. Machinery envelopes include service clearance within the
 fixed package; a smaller visible casing does not release that space.
 
+For guns with an intrinsic working well, the native compiler derives a fixed
+steel support and deck collar inside that space, meeting the original roller
+sole at the canonical barbette radius. These use the authored construction
+thickness and contribute structural mass and protection without additional
+buoyancy. The original gun, its reserved space and its pivots remain unchanged.
+
 Manifests preserve `component.*` node IDs, local/world matrices and parent IDs.
 At placement the renderer replaces `component` with the stable instance ID in
 node/assembly properties and flexible-gun-cover references. Guns retain their
@@ -82,6 +88,29 @@ These values are fixed by catalog revision. They do not claim historical
 engineering certification. Funnel capacity consumes engine exhaust demand and
 does not create propulsion power. Director connection is typed fire control;
 mast geometry itself carries no invented combat bonus.
+
+The generic diesel's 35 t dry package and occupied envelope include its auxiliary
+generator, fixed bilge pump and portable maintenance equipment. Its existing 5 t
+service allowance covers crew, spares and fuel at this abstraction. The native
+compiler reserves 2% of the rated engine power for auxiliary service (60 kW of
+the 3,000 kW package), leaving 2,940 kW for propulsion before propeller efficiency.
+It assigns 0.02 m³/s fixed pumping to this package's actual machinery compartment;
+smaller dry packages scale down and larger ones remain capped at that capacity.
+A package with at least 400 kg of declared service allowance contributes one
+automatic four-person work party, capped at eight per ship.
+These capacities are explicit gameplay assumptions, not researched engineering
+ratings or additional free machinery mass. Auxiliary fittings and their routes
+are represented within the package rather than separately modeled or placed.
+
+Auxiliary electricity and fixed pumping depend on the actual engine condition,
+immersion and linked exhaust availability. Destroying a propeller does not by
+itself remove electricity; missing or unavailable machinery/exhaust does.
+Portable pumping on a constructed ship also needs available auxiliary power.
+The native compiler emits the package assumptions in its diagnostic/basis;
+runtime behavior and capacities remain owned by native simulation, not by the
+asset manifest or a second set of equipment statistics. The exact finite repair,
+patching and portable-pump rules live in
+[construction services](../../../docs/construction-services.md).
 
 All registry review states remain `unreviewed`. Inspected standalone geometry,
 retained articulation and source fidelity are different checks from clearance
