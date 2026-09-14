@@ -5,6 +5,12 @@ magazine, diesel machinery, funnel, propeller, rudder and mast. The twin-hull
 starter preserves an exterior water channel and deliberately shows an asymmetric
 machinery layout. Both are generic sandbox designs, not historical vessels.
 
+The machinery package includes auxiliary electricity, a fixed bilge pump and an
+automatic work party within its declared mass and service allowance. Damage,
+immersion and exhaust loss affect those services. See
+[machinery services](construction-services.md) for the reserved power, pumping
+rates and repair limits.
+
 Use Hull to select or place pieces, Surfaces for armor/paint/openings, Equipment
 for fixed original parts, and Rooms for decks and watertight bulkheads. The hull
 grid is 1 m; equipment placement uses 0.25 m. Orbit, top, side and bow views and a
