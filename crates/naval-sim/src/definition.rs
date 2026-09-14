@@ -326,6 +326,64 @@ pub struct ChargeDefinition {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionMass {
+    #[serde(rename = "id")]
+    pub id: String,
+    #[serde(rename = "kind")]
+    pub kind: String,
+    #[serde(rename = "massKg")]
+    pub mass_kg: f64,
+    #[serde(rename = "center")]
+    pub center: [f64; 3],
+    #[serde(rename = "inertiaKgM2")]
+    pub inertia_kg_m2: [f64; 3],
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionLoading {
+    #[serde(rename = "massKg")]
+    pub mass_kg: f64,
+    #[serde(rename = "centerOfGravity")]
+    pub center_of_gravity: [f64; 3],
+    #[serde(rename = "inertiaKgM2")]
+    pub inertia_kg_m2: [f64; 3],
+    #[serde(rename = "contributions")]
+    pub contributions: Vec<ConstructionMass>,
+    #[serde(rename = "envelopeVolumeM3")]
+    pub envelope_volume_m3: f64,
+    #[serde(rename = "materialVolumeM3")]
+    pub material_volume_m3: f64,
+    #[serde(rename = "usableVolumeM3")]
+    pub usable_volume_m3: f64,
+    #[serde(rename = "waterlineY")]
+    pub waterline_y: f64,
+    #[serde(rename = "buoyancyCenter")]
+    pub buoyancy_center: [f64; 3],
+    #[serde(rename = "rollMetacentricHeightM")]
+    pub roll_metacentric_height_m: f64,
+    #[serde(rename = "powerKw")]
+    pub power_kw: f64,
+    #[serde(rename = "estimatedSpeedMps")]
+    pub estimated_speed_mps: f64,
+    #[serde(rename = "basis")]
+    pub basis: String,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionOpening {
+    #[serde(rename = "id")]
+    pub id: String,
+    #[serde(rename = "compartmentId")]
+    pub compartment_id: String,
+    #[serde(rename = "position")]
+    pub position: [f64; 3],
+    #[serde(rename = "normal")]
+    pub normal: [f64; 3],
+    #[serde(rename = "areaM2")]
+    pub area_m2: f64,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct DamageControlProfile {
     #[serde(rename = "version")]
     pub version: f64,
@@ -514,6 +572,52 @@ pub struct HullSectionsItem {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConvexVolumeFacesItem {
+    #[serde(rename = "vertices")]
+    pub vertices: Vec<[f64; 3]>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConvexVolume {
+    #[serde(rename = "faces")]
+    pub faces: Vec<ConvexVolumeFacesItem>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionSurface {
+    #[serde(rename = "id")]
+    pub id: String,
+    #[serde(rename = "primitiveId")]
+    pub primitive_id: String,
+    #[serde(rename = "face")]
+    pub face: String,
+    #[serde(rename = "vertices")]
+    pub vertices: Vec<[f64; 3]>,
+    #[serde(rename = "normal")]
+    pub normal: [f64; 3],
+    #[serde(rename = "areaM2")]
+    pub area_m2: f64,
+    #[serde(rename = "thicknessMm")]
+    pub thickness_mm: f64,
+    #[serde(rename = "material")]
+    pub material: String,
+    #[serde(rename = "paint")]
+    pub paint: String,
+    #[serde(rename = "open")]
+    pub open: bool,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionGeometry {
+    #[serde(rename = "version")]
+    pub version: f64,
+    #[serde(rename = "cells")]
+    pub cells: Vec<ConvexVolume>,
+    #[serde(rename = "surfaces")]
+    pub surfaces: Vec<ConstructionSurface>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct Hull {
     #[serde(rename = "kind")]
     pub kind: String,
@@ -539,6 +643,8 @@ pub struct Hull {
     pub keel_heights: Vec<[f64; 2]>,
     #[serde(rename = "sections")]
     pub sections: Option<Vec<HullSectionsItem>>,
+    #[serde(rename = "volume")]
+    pub volume: Option<ConstructionGeometry>,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
@@ -825,6 +931,8 @@ pub struct Compartment {
     pub fire: Option<FireProfile>,
     #[serde(rename = "cells")]
     pub cells: Option<Vec<CompartmentCellsItem>>,
+    #[serde(rename = "volumes")]
+    pub volumes: Option<Vec<ConvexVolume>>,
     #[serde(rename = "id")]
     pub id: String,
     #[serde(rename = "center")]
@@ -974,6 +1082,98 @@ pub struct ShipDefinitionAccuracy {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionPrimitive {
+    #[serde(rename = "id")]
+    pub id: String,
+    #[serde(rename = "kind")]
+    pub kind: String,
+    #[serde(rename = "size")]
+    pub size: [f64; 3],
+    #[serde(rename = "position")]
+    pub position: [f64; 3],
+    #[serde(rename = "rotationDeg")]
+    pub rotation_deg: f64,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionSurfaceAssignment {
+    #[serde(rename = "primitiveId")]
+    pub primitive_id: String,
+    #[serde(rename = "face")]
+    pub face: String,
+    #[serde(rename = "thicknessMm")]
+    pub thickness_mm: f64,
+    #[serde(rename = "material")]
+    pub material: String,
+    #[serde(rename = "paint")]
+    pub paint: String,
+    #[serde(rename = "open")]
+    pub open: Option<bool>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionEquipment {
+    #[serde(rename = "id")]
+    pub id: String,
+    #[serde(rename = "partId")]
+    pub part_id: String,
+    #[serde(rename = "position")]
+    pub position: [f64; 3],
+    #[serde(rename = "bearingDeg")]
+    pub bearing_deg: f64,
+    #[serde(rename = "magazineId")]
+    pub magazine_id: Option<String>,
+    #[serde(rename = "powerSourceId")]
+    pub power_source_id: Option<String>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionBoundary {
+    #[serde(rename = "id")]
+    pub id: String,
+    #[serde(rename = "axis")]
+    pub axis: String,
+    #[serde(rename = "offset")]
+    pub offset: f64,
+    #[serde(rename = "thicknessMm")]
+    pub thickness_mm: f64,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionLoad {
+    #[serde(rename = "name")]
+    pub name: String,
+    #[serde(rename = "massKg")]
+    pub mass_kg: f64,
+    #[serde(rename = "id")]
+    pub id: String,
+    #[serde(rename = "center")]
+    pub center: [f64; 3],
+    #[serde(rename = "size")]
+    pub size: [f64; 3],
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionData {
+    #[serde(rename = "version")]
+    pub version: f64,
+    #[serde(rename = "catalogRevision")]
+    pub catalog_revision: String,
+    #[serde(rename = "defaultThicknessMm")]
+    pub default_thickness_mm: f64,
+    #[serde(rename = "primitives")]
+    pub primitives: Vec<ConstructionPrimitive>,
+    #[serde(rename = "surfaces")]
+    pub surfaces: Vec<ConstructionSurfaceAssignment>,
+    #[serde(rename = "equipment")]
+    pub equipment: Vec<ConstructionEquipment>,
+    #[serde(rename = "boundaries")]
+    pub boundaries: Vec<ConstructionBoundary>,
+    #[serde(rename = "loads")]
+    pub loads: Vec<ConstructionLoad>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct ShipDefinition {
     #[serde(rename = "compilerVersion")]
     pub compiler_version: f64,
@@ -983,6 +1183,14 @@ pub struct ShipDefinition {
     pub torpedo_tubes: Option<Vec<TubeDefinition>>,
     #[serde(rename = "depthChargeLaunchers")]
     pub depth_charge_launchers: Option<Vec<ChargeDefinition>>,
+    #[serde(rename = "contentHash")]
+    pub content_hash: Option<String>,
+    #[serde(rename = "constructionRevision")]
+    pub construction_revision: Option<String>,
+    #[serde(rename = "loading")]
+    pub loading: Option<ConstructionLoading>,
+    #[serde(rename = "openings")]
+    pub openings: Option<Vec<ConstructionOpening>>,
     #[serde(rename = "schemaVersion")]
     pub schema_version: f64,
     #[serde(rename = "id")]
@@ -1041,4 +1249,142 @@ pub struct ShipDefinition {
     pub viewpoints: Option<ShipDefinitionViewpoints>,
     #[serde(rename = "accuracy")]
     pub accuracy: ShipDefinitionAccuracy,
+    #[serde(rename = "construction")]
+    pub construction: Option<ConstructionData>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionSource {
+    #[serde(rename = "revision")]
+    pub revision: String,
+    #[serde(rename = "construction")]
+    pub construction: ConstructionData,
+    #[serde(rename = "schemaVersion")]
+    pub schema_version: f64,
+    #[serde(rename = "id")]
+    pub id: String,
+    #[serde(rename = "name")]
+    pub name: String,
+    #[serde(rename = "coordinates")]
+    pub coordinates: String,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionDiagnostic {
+    #[serde(rename = "severity")]
+    pub severity: String,
+    #[serde(rename = "code")]
+    pub code: String,
+    #[serde(rename = "message")]
+    pub message: String,
+    #[serde(rename = "sourceId")]
+    pub source_id: Option<String>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionResult {
+    #[serde(rename = "sourceId")]
+    pub source_id: String,
+    #[serde(rename = "revision")]
+    pub revision: String,
+    #[serde(rename = "contentHash")]
+    pub content_hash: String,
+    #[serde(rename = "definition")]
+    pub definition: Option<ShipDefinition>,
+    #[serde(rename = "surfaces")]
+    pub surfaces: Vec<ConstructionSurface>,
+    #[serde(rename = "diagnostics")]
+    pub diagnostics: Vec<ConstructionDiagnostic>,
+    #[serde(rename = "loading")]
+    pub loading: Option<ConstructionLoading>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct PartCatalog {
+    #[serde(rename = "schemaVersion")]
+    pub schema_version: f64,
+    #[serde(rename = "parts")]
+    pub parts: Vec<GunPart>,
+    #[serde(rename = "torpedoes")]
+    pub torpedoes: Option<Vec<TorpedoPart>>,
+    #[serde(rename = "depthCharges")]
+    pub depth_charges: Option<Vec<DepthChargePart>>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionEquipmentPartOccupancyItem {
+    #[serde(rename = "center")]
+    pub center: [f64; 3],
+    #[serde(rename = "size")]
+    pub size: [f64; 3],
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionEquipmentPartSocketsItem {
+    #[serde(rename = "id")]
+    pub id: String,
+    #[serde(rename = "kind")]
+    pub kind: String,
+    #[serde(rename = "position")]
+    pub position: [f64; 3],
+    #[serde(rename = "direction")]
+    pub direction: [f64; 3],
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionEquipmentPart {
+    #[serde(rename = "id")]
+    pub id: String,
+    #[serde(rename = "name")]
+    pub name: String,
+    #[serde(rename = "kind")]
+    pub kind: String,
+    #[serde(rename = "size")]
+    pub size: [f64; 3],
+    #[serde(rename = "boundsCenter")]
+    pub bounds_center: [f64; 3],
+    #[serde(rename = "centerOfGravity")]
+    pub center_of_gravity: [f64; 3],
+    #[serde(rename = "massKg")]
+    pub mass_kg: Option<f64>,
+    #[serde(rename = "placement")]
+    pub placement: String,
+    #[serde(rename = "occupancy")]
+    pub occupancy: Option<Vec<ConstructionEquipmentPartOccupancyItem>>,
+    #[serde(rename = "sockets")]
+    pub sockets: Option<Vec<ConstructionEquipmentPartSocketsItem>>,
+    #[serde(rename = "gunPartId")]
+    pub gun_part_id: Option<String>,
+    #[serde(rename = "torpedoPartId")]
+    pub torpedo_part_id: Option<String>,
+    #[serde(rename = "tubeOffsets")]
+    pub tube_offsets: Option<Vec<[f64; 3]>>,
+    #[serde(rename = "powerKw")]
+    pub power_kw: Option<f64>,
+    #[serde(rename = "exhaustKw")]
+    pub exhaust_kw: Option<f64>,
+    #[serde(rename = "thrustEfficiency")]
+    pub thrust_efficiency: Option<f64>,
+    #[serde(rename = "rudderAreaM2")]
+    pub rudder_area_m2: Option<f64>,
+    #[serde(rename = "serviceMassKg")]
+    pub service_mass_kg: Option<f64>,
+    #[serde(rename = "ammunitionCapacity")]
+    pub ammunition_capacity: Option<f64>,
+    #[serde(rename = "modelUrl")]
+    pub model_url: String,
+    #[serde(rename = "contentHash")]
+    pub content_hash: String,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionCatalog {
+    #[serde(rename = "schemaVersion")]
+    pub schema_version: f64,
+    #[serde(rename = "revision")]
+    pub revision: String,
+    #[serde(rename = "weapons")]
+    pub weapons: PartCatalog,
+    #[serde(rename = "equipment")]
+    pub equipment: Vec<ConstructionEquipmentPart>,
 }

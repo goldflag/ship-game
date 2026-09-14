@@ -134,11 +134,13 @@ export interface SubmarineDefinition {
   appendages: { bowPlanes: string[]; sternPlanes: string[]; rudders: string[]; propellers: string[] };
 }
 export interface Hull {
-  kind: 'authored-stations-v1'; length: number; beam: number; draft: number; depth: number;
+  kind: 'authored-stations-v1' | 'constructed-volume-v1'; length: number; beam: number; draft: number; depth: number;
   massKg: number; waterplaneAreaM2: number; reserveBuoyancyM3: number;
   halfBreadths: [number, number][]; deckHeights: [number, number][]; keelHeights: [number, number][];
   /** Station is measured from the stern; points are [half breadth, height above waterline], keel to deck. */
   sections?: { station: number; points: [number, number][] }[];
+  /** Authoritative disjoint partial volumes. Station tables are broad bounds only for this variant. */
+  volume?: ConstructionGeometry;
 }
 export interface AuthoredStructure {
   id: string; name: string; footprint: [number, number][];
@@ -166,6 +168,8 @@ export interface Compartment extends Volume {
   fire?: FireProfile;
   /** Optional disjoint conservative cells, in ship coordinates, for compound voids. */
   cells?: { center: Vec3; size: Vec3 }[];
+  /** Exact disjoint usable voids after inward plating and equipment occupancy. */
+  volumes?: ConvexVolume[];
 }
 /** Finite combustible load and heat response; values are game calibration. */
 export interface FireProfile {
@@ -262,12 +266,92 @@ export interface ShipBlueprint {
   /** Optional crew-eye position in the shared ship coordinate frame. */
   viewpoints?: { bridge: Vec3 };
   accuracy: { exterior: string; internals: string; weapons: string };
+  /** Additive source extension; omitted historical blueprints retain their authoring path. */
+  construction?: ConstructionData;
 }
 export interface ShipDefinition extends Omit<ShipBlueprint, 'mounts' | 'torpedoTubes' | 'depthChargeLaunchers'> {
   compilerVersion: 1;
   mounts: (Mount & { weapon: GunPart })[];
   torpedoTubes?: (TorpedoTube & { weapon: TorpedoPart })[];
   depthChargeLaunchers?: (DepthChargeLauncher & { weapon: DepthChargePart })[];
+  contentHash?: string;
+  constructionRevision?: string;
+  loading?: ConstructionLoading;
+  openings?: ConstructionOpening[];
+}
+
+/** Same versioned blueprint family, before Rust derives hull/loading/system fields. */
+export interface ConstructionSource extends Pick<ShipBlueprint, 'schemaVersion' | 'id' | 'name' | 'coordinates'> {
+  revision: string;
+  construction: ConstructionData;
+}
+export interface ConstructionPrimitive {
+  id: string; kind: 'box' | 'wedge' | 'corner' | 'inverse-corner';
+  /** Envelope centered at position. Shapes occupy normalized [-.5,.5]^3, then scale and yaw. */
+  size: Vec3; position: Vec3; rotationDeg: number;
+}
+export interface ConstructionSurfaceAssignment {
+  primitiveId: string; face: 'port' | 'starboard' | 'bottom' | 'top' | 'bow' | 'stern' | 'slope';
+  thicknessMm: number; material: 'steel' | 'armor-steel'; paint: string; open?: boolean;
+}
+export interface ConstructionEquipment {
+  id: string; partId: string; position: Vec3; bearingDeg: number;
+  magazineId?: string; powerSourceId?: string;
+}
+export interface ConstructionBoundary {
+  id: string; axis: 'x' | 'y' | 'z'; offset: number; thicknessMm: number;
+}
+export interface ConstructionLoad extends Volume { name: string; massKg: number; }
+export interface ConstructionData {
+  version: 1; catalogRevision: string; defaultThicknessMm: number;
+  primitives: ConstructionPrimitive[]; surfaces: ConstructionSurfaceAssignment[];
+  equipment: ConstructionEquipment[]; boundaries: ConstructionBoundary[]; loads: ConstructionLoad[];
+}
+/** Convex closed outward-facing polygons; generated, never accepted as local source input. */
+export interface ConvexVolume { faces: { vertices: Vec3[] }[]; }
+export interface ConstructionSurface {
+  id: string; primitiveId: string; face: string; vertices: Vec3[];
+  normal: Vec3; areaM2: number; thicknessMm: number; material: string; paint: string; open: boolean;
+}
+export interface ConstructionGeometry { version: 1; cells: ConvexVolume[]; surfaces: ConstructionSurface[]; }
+export interface ConstructionMass {
+  id: string; kind: string; massKg: number; center: Vec3; inertiaKgM2: Vec3;
+}
+export interface ConstructionLoading {
+  massKg: number; centerOfGravity: Vec3;
+  /** Principal-axis diagonal in ship coordinates about dry CG, [pitch, yaw, roll]. */
+  inertiaKgM2: Vec3; contributions: ConstructionMass[];
+  envelopeVolumeM3: number; materialVolumeM3: number; usableVolumeM3: number;
+  waterlineY: number; buoyancyCenter: Vec3; rollMetacentricHeightM: number;
+  powerKw: number; estimatedSpeedMps: number; basis: string;
+}
+export interface ConstructionOpening {
+  id: string; compartmentId: string; position: Vec3; normal: Vec3; areaM2: number;
+}
+export interface ConstructionDiagnostic {
+  severity: 'error' | 'warning'; code: string; message: string; sourceId?: string;
+}
+export interface ConstructionResult {
+  sourceId: string; revision: string; contentHash: string;
+  definition?: ShipDefinition; surfaces: ConstructionSurface[];
+  diagnostics: ConstructionDiagnostic[]; loading?: ConstructionLoading;
+}
+export interface ConstructionEquipmentPart {
+  id: string; name: string;
+  kind: 'gun' | 'torpedo-launcher' | 'engine' | 'magazine' | 'funnel' | 'propeller' | 'rudder' | 'mast' | 'director';
+  size: Vec3; boundsCenter: Vec3; centerOfGravity: Vec3;
+  /** Required for non-guns; guns use the mass of the referenced canonical GunPart. */
+  massKg?: number;
+  placement: 'internal' | 'deck' | 'underwater';
+  occupancy?: { center: Vec3; size: Vec3 }[];
+  sockets?: { id: string; kind: string; position: Vec3; direction: Vec3 }[];
+  gunPartId?: string; torpedoPartId?: string; tubeOffsets?: Vec3[];
+  powerKw?: number; exhaustKw?: number; thrustEfficiency?: number; rudderAreaM2?: number;
+  serviceMassKg?: number; ammunitionCapacity?: number;
+  modelUrl: string; contentHash: string;
+}
+export interface ConstructionCatalog {
+  schemaVersion: 1; revision: string; weapons: PartCatalog; equipment: ConstructionEquipmentPart[];
 }
 
 const fail = (path: string, message: string): never => { throw new Error(`${path}: ${message}`); };

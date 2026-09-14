@@ -1,5 +1,7 @@
 //! Renderer-free naval simulation shared by the native server and browser WASM.
 pub mod catalog;
+pub mod construction_geometry;
+pub mod construction;
 pub mod definition;
 pub mod fleet_evasion;
 pub mod formations;

@@ -13,6 +13,7 @@ struct Slice {
 /// Immutable precomputed geometry belongs to compiled content, shared by all matches.
 #[derive(Clone, Debug)]
 pub struct HullHydrostatics {
+    cells: Option<Vec<crate::definition::ConvexVolume>>,
     slices: Vec<Slice>,
     bound: f64,
     full: Hydrostatics,
@@ -43,6 +44,7 @@ impl HullHydrostatics {
         stations.sort_by(f64::total_cmp);
         stations.dedup();
         let mut result = Self {
+            cells: h.volume.as_ref().map(|v|v.cells.clone()),
             slices: stations
                 .windows(2)
                 .map(|p| Slice {
@@ -56,7 +58,7 @@ impl HullHydrostatics {
                 volume: 0.0,
                 center: [0.0; 3],
             },
-            table: table.cloned(),
+            table: if h.volume.is_some() { None } else { table.cloned() },
         };
         result.full = match &result.table {
             Some(t) => Hydrostatics {
@@ -81,6 +83,10 @@ impl HullHydrostatics {
         let nx = roll.sin() * pitch.cos();
         let ny = roll.cos() * pitch.cos();
         let nz = -pitch.sin();
+        if let Some(cells)=&self.cells {
+            let m=crate::construction_geometry::submerged(cells,[nx,ny,nz],-y);
+            return Hydrostatics{volume:m.volume,center:m.center()};
+        }
         let (mut volume, mut x, mut cy, mut z) = (0.0, 0.0, 0.0, 0.0);
         for s in &self.slices {
             let (area, mx, my) = clipped_moment(&s.polygon, nx, ny, -y - nz * s.z);
@@ -103,6 +109,7 @@ impl HullHydrostatics {
     /// same expression on the same floats in the same order as `sample`, so the
     /// volume is bit-identical; only the unused x and y moments are dropped.
     fn sampled_volume(&self, y: f64, roll: f64, pitch: f64) -> f64 {
+        if self.cells.is_some() { return self.mesh_sample(y,roll,pitch).volume; }
         let nx = roll.sin() * pitch.cos();
         let ny = roll.cos() * pitch.cos();
         let nz = -pitch.sin();

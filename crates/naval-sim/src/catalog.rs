@@ -176,6 +176,9 @@ impl Catalog {
                 )));
             }
             let definition: ShipDefinition = serde_json::from_value(value)?;
+            if definition.hull.kind == "constructed-volume-v1" || definition.id.starts_with("local-") {
+                return Err(ContentError::Invalid("Local construction is not trusted manifest content".into()));
+            }
             if entry.id != definition.id || catalog.definitions.contains_key(&entry.id) {
                 return Err(ContentError::Invalid(format!(
                     "duplicate or mismatched ship {}",
@@ -248,13 +251,19 @@ pub fn validate_definition(d: &ShipDefinition) -> Result<(), ContentError> {
         h.draft,
         h.depth,
         h.waterplane_area_m2,
-    ]) || !positive(&[
-        d.handling.forward_speed,
-        d.handling.acceleration,
-        d.handling.braking,
-    ]) {
+    ]) || if h.kind == "constructed-volume-v1" {
+        [d.handling.forward_speed,d.handling.reverse_speed,d.handling.acceleration,d.handling.braking,d.handling.rudder_rate,d.handling.max_yaw_rate].iter().any(|v|!v.is_finite()||*v<0.)
+    } else { !positive(&[d.handling.forward_speed,d.handling.acceleration,d.handling.braking]) } {
         return Err(fail());
     }
+    if h.kind == "constructed-volume-v1" {
+        let Some(v)=&h.volume else {return Err(fail());};
+        if !d.id.starts_with("local-")||v.version!=1.||v.cells.is_empty()||v.cells.len()>crate::construction_geometry::MAX_CELLS||v.surfaces.len()>8192||d.stability.as_ref().is_none_or(|s|s.buoyancy_scale!=1.) {return Err(fail());}
+        for c in &v.cells {
+            if c.faces.len()<4||c.faces.len()>128||c.faces.iter().any(|f|f.vertices.len()<3||f.vertices.len()>128||f.vertices.iter().flatten().any(|x|!x.is_finite()||x.abs()>2000.)){return Err(fail());}
+            let m=crate::construction_geometry::moments(c);if !m.volume.is_finite()||m.volume<=0. {return Err(fail());}
+        }
+    } else if h.kind!="authored-stations-v1"||h.volume.is_some(){return Err(fail());}
     if !ids_unique(d.mounts.iter().map(|m| m.id.as_str()))
         || !ids_unique(d.modules.iter().map(|m| m.id.as_str()))
         || !ids_unique(d.compartments.iter().map(|m| m.id.as_str()))
