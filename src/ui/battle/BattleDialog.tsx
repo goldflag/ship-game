@@ -36,7 +36,7 @@ const defaultRequest = (): PveRequest => ({ version: 1, seed: missionSeed(), map
 
 /** One battle screen for every mode: catalog, drop lanes and waters, then the deployment chart. */
 export function BattleDialog({ initialMode, initialShipId, loading, onClose, initialStep = 'fleet', setup, onSetupChange, onLaunchCustom, customError, pveRequest, onLaunchPve, onOnlineBattle }: Props) {
-  useSyncExternalStore(subscribeLocalShips, localShips);
+  useSyncExternalStore(subscribeLocalShips, localShips, localShips);
   const dialog = useRef<HTMLDialogElement>(null);
   const [mode, setMode] = useState<BattleMode>(initialMode);
   const [step, setStep] = useState<'fleet' | 'deploy'>(initialStep);

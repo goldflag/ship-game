@@ -84,10 +84,10 @@ test('a formation preset stations a group around its guide and leaves every othe
 test('the first chart puts each group on its formation stations around the centre the worker chose', () => {
   // The worker packs a group two abreast whatever formation it will sail; the chart must not show that.
   const ship = (id: string, presetId: string, x: number, z: number) => ({ id, presetId, team: 'a', controller: 'bot', aiLevel: 'normal', spawn: { x, z, heading: 0 } });
-  const briefing = { generationVersion: 1, setup: { ships: [ship('bb', 'bismarck', -400, 8000), ship('ca', 'baltimore', 400, 8000), ship('dd', 'fletcher', -400, 8700), ship('cv', 'enterprise-cv6', -400, 16500), ship('cl', 'atlanta', 400, 16500), ship('lone', 'fletcher', 0, 12000)],
+  const briefing = { generationVersion: 1, setup: { ships: [ship('bb', 'bismarck', -400, 8000), ship('ca', 'baltimore', 400, 8000), ship('dd', 'fletcher', -400, 8700), ship('cv', 'enterprise-cv6', -400, 16500), ship('cl', 'cleveland', 400, 16500), ship('lone', 'fletcher', 0, 12000)],
     mapId: 'pacific-islands', weather: 'clear', seed: 1, spawnDistance: 16000, windSpeed: null, missionRules: mission },
     groups: [{ id: 'front', name: 'Screen', station: 'front' }, { id: 'rear', name: 'Carriers', station: 'rear', formation: 'line-abreast' }, { id: 'solo', name: 'Picket', station: 'front' }],
-    assignments: [{ id: 'bb', presetId: 'bismarck', groupId: 'front' }, { id: 'ca', presetId: 'baltimore', groupId: 'front' }, { id: 'dd', presetId: 'fletcher', groupId: 'front' }, { id: 'cv', presetId: 'enterprise-cv6', groupId: 'rear' }, { id: 'cl', presetId: 'atlanta', groupId: 'rear' }, { id: 'lone', presetId: 'fletcher', groupId: 'solo' }],
+    assignments: [{ id: 'bb', presetId: 'bismarck', groupId: 'front' }, { id: 'ca', presetId: 'baltimore', groupId: 'front' }, { id: 'dd', presetId: 'fletcher', groupId: 'front' }, { id: 'cv', presetId: 'enterprise-cv6', groupId: 'rear' }, { id: 'cl', presetId: 'cleveland', groupId: 'rear' }, { id: 'lone', presetId: 'fletcher', groupId: 'solo' }],
     totals: { displacementKg: 1, ships: 6, aircraft: 48 }, eligiblePresets: [], deploymentMinZ: 7000 } as unknown as PveBriefing;
   const placements = initialPvePlacements(briefing);
   const at = (id: string) => placements.find(p => p.id === id)!.spawn;
@@ -106,8 +106,10 @@ test('the first chart puts each group on its formation stations around the centr
   // battle area keeps the worker's layout instead of starting with a placement error.
   const rearColumn = initialPvePlacements(briefing, { rear: 'column' });
   expect(rearColumn.find(p => p.id === 'cl')!.spawn.x).toBeCloseTo(0); expect(rearColumn.find(p => p.id === 'cl')!.spawn.z - rearColumn.find(p => p.id === 'cv')!.spawn.z).toBeCloseTo(roleInterval('carrier'));
-  const edge = { ...briefing, setup: { ...briefing.setup, ships: [ship('bb', 'bismarck', -400, 24500), ship('ca', 'baltimore', 400, 24500)] }, assignments: briefing.assignments.slice(0, 2) } as PveBriefing;
-  expect(initialPvePlacements(edge).map(p => p.spawn)).toEqual([{ x: -400, z: 24500, heading: 0 }, { x: 400, z: 24500, heading: 0 }]);
+  const edgeZ = mission.area.radiusM - 150; // Both hulls fit abreast; the column's aft station crosses the boundary.
+  const edge = { ...briefing, setup: { ...briefing.setup, ships: [ship('bb', 'bismarck', -400, edgeZ), ship('ca', 'baltimore', 400, edgeZ)] }, assignments: briefing.assignments.slice(0, 2) } as PveBriefing;
+  expect(pveDeployment(edge, edge.setup.ships.map(s => ({ id: s.id, spawn: s.spawn! }))).error).toBe('');
+  expect(initialPvePlacements(edge).map(p => p.spawn)).toEqual([{ x: -400, z: edgeZ, heading: 0 }, { x: 400, z: edgeZ, heading: 0 }]);
   // A column whose recentred head would leave the friendly sector slides astern instead of giving up.
   const south = 7000; // The worker's pair block sits on the sector edge; the recentred column's head would cross it.
   const coast = { ...briefing, setup: { ...briefing.setup, ships: [ship('bb', 'bismarck', -400, south), ship('ca', 'baltimore', 400, south), ship('dd', 'fletcher', -400, south + 700), ship('cl', 'cleveland', 400, south + 700)] },
