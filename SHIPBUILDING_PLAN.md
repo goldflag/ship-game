@@ -1,6 +1,6 @@
 # Shipbuilding implementation plan
 
-Status: implementation in progress. Shared source, native compilation, local storage, production equipment and builder integration are implemented; end-to-end acceptance and integration checks are underway.
+Status: MVP implemented and accepted on 2026-09-13/14. The production build, source persistence, physical construction, trials and local custom-battle paths are verified. Existing full-suite failures are recorded below; they were reproduced on unchanged baseline code and were not suppressed.
 
 Planning date: 2026-09-13. Code inspected at commit `5cec0bfc`; implementing agents must recheck current code and follow the integration workflow before making changes.
 
@@ -423,17 +423,76 @@ Revisit the ranges after S1 proves the geometry and after S3 proves the runtime/
 ### Completion tracking
 
 - [x] S0 — Contract and compatibility proof
-- [ ] S1 — General hull volume, loading and flotation
-- [ ] S2 — Editable hulls, armor and local source saves
-- [ ] S3 — One complete armed-ship trial
-- [ ] S4 — Suggested internal layouts and diagnostics
-- [ ] S5 — Curated catalog and custom battles
-- [ ] S6 — MVP completion and documentation
+- [x] S1 — General hull volume, loading and flotation
+- [x] S2 — Editable hulls, armor and local source saves
+- [x] S3 — One complete armed-ship trial
+- [x] S4 — Suggested internal layouts and diagnostics
+- [x] S5 — Curated catalog and custom battles
+- [x] S6 — MVP completion and documentation
 
 ### Implementation notes
 
-The current technical contract is documented in [Local shipbuilding](docs/shipbuilding.md). S0 uses bounded unions of convex polyhedra and attributed exterior polygons, with continuous primitive dimensions and a stable source coordinate frame. The generator consumes explicit shared interfaces rather than heterogeneous object unions. Native analytic box/wedge/overlap fixtures, historical JSON validation, real WASM compilation and local identity/mode-boundary tests justify this choice.
+The current contracts and controls are in [Local shipbuilding](docs/shipbuilding.md),
+[the editor guide](src/ui/shipbuilding/README.md),
+[machinery services](docs/construction-services.md) and
+[the original equipment catalog notes](assets/parts/construction/README.md).
+Sections 4 and 10's effort ranges describe the planning baseline, not current
+missing features or measured delivery time.
 
-Integrated foundations: `8089d151` (contract/geometry proof), `6027ef3f` (equipped native compiler and physical consumers), `5d68abf0` (suggestion contract), `4130d6e5`/`847a72c8` (transactional storage), `cd3fde4a`/`2c16d3fe` (14 original published equipment assets), `35f3ab2b`/`5ed063ab` (editor/recovery), and `e386de17` (local sessions, model composition and App integration). The initial real IndexedDB workflow passed nine assertions, and the editor's actual browser workflow passed fourteen editing/save/reload/disposal assertions. Root compile-race/local-identity tests and existing session/mode regressions pass; trial damage-unit verification is pending the native hardening integration.
+The shared version-1 family has explicit construction-version and geometry-kind
+discriminators. Generated Rust interfaces consume the same source types; no
+second player blueprint or browser physics implementation was introduced.
+Bounded convex-polyhedron unions retain partial volumes, concavity, asymmetry and
+connected multiple hulls. Native attributed surfaces, material occupancy and
+voids supply both inspection and battle physics. Source coordinates and IDs stay
+stable; the compiler never adds hidden ballast or corrects a poor design's CG.
 
-All historical outputs became stale through the shared schema fingerprint. Clean fleet rebuilds are in progress; no hashes were rewritten to bypass freshness. S1–S6 completion boxes remain open until their full physical, browser, combat and production acceptance is demonstrated. HP/integrity defeat remains part of the required implementation.
+| Slice | Integrated changes and acceptance evidence |
+| --- | --- |
+| S0–S1 | `8089d151`, `6027ef3f`, `5d68abf0`, `3eb1a9ea`, `bb2845c4`: generated schema and historical validation; analytic box/wedge/overlap checks; catamaran water gaps in displacement, shell, torpedo and ship contact; inward armor, loading/attitude, open flooding and conserved room transfer. Full native/WASM derived results agree within relative `1e-8`. Overload and off-center/high loading lose through the existing flooding/capsize rules. |
+| S2 | `4130d6e5`, `847a72c8`, `35f3ab2b`, `5ed063ab`, `14318aa0`, `89c0df65`: source history, transactional IndexedDB revisions, retained catalogs, recoverable invalid drafts, brushes/copy/mirror, armor presets and paint preservation. Actual browser checks cover nine storage assertions, fourteen editing/save/reload/disposal assertions and twelve native-face armor assertions. Final desktop and narrow layouts were captured and inspected. |
+| S3 | `e386de17`, `d09720ef`, `39acdbda`, `65a3544a`: frozen local source admission, production gzip component loading, exact torpedo train, trial damage/HP and reset. A static production patrol moves, steers, fires, floods, loses machinery, takes HP damage and resets. A 25 mm side-armor refit changes mass/draft/list and survives return/relaunch. Actual WASM HP exhaustion resolves a battle with correct identity/tonnage and a clean new session. |
+| S4 | `230dfd46`, `c2c5c073`, `a7ed050b`, `0180af35`: undoable native suggestions, physical support wells, rooms/openings/fit diagnostics, engine-owned electrical supply, fixed/portable pumps and finite automatic repairs. Eleven browser suggestion assertions pass, including failed-fit preservation. Native tests cover independent room pumps, engine/exhaust immersion and damage, finite repairs and unchanged loading. The final production trial assigns its work party and removes injected machinery-room water. |
+| S5 | `cd3fde4a`, `2c16d3fe`, `5653629d`, `f79d2361`, `51f31c41`, `8b0d3856`: fifteen fixed original variants. All 28 fixture installations have physical supports; 19 publication/model tests and 391 assertions pass. Actual compressed GLBs match native gun muzzles within 2.23 mm and torpedo sockets within 0.0003 mm. Actual gun/director, AA and five-tube torpedo engagements pass. Independent neighboring mounts and a real overhead obstruction stop movement; the unobstructed original Mk4 reaches 87°. Production reload and a 2v2 battle use three copies of a saved revision plus a historical ship; unsupported modes explicitly exclude local designs. |
+| S6 | Current guides, production/browser review and bounded performance fixtures complete the loop. Final native supports and services produce launchable 266.380 t and 106,433.267 t designs. Editing, compilation, IndexedDB, production launch and small native battles were measured on an Apple M5 Pro with 48 GiB RAM; the guide records complexity, timings and exclusions. |
+
+### Final validation and baseline failures
+
+- `bun run build` passes, including generated runtime preparation, TypeScript,
+  component publication, historical ship freshness and aircraft freshness.
+  The shared schema fingerprint required a clean historical fleet rebuild and
+  hydrostatic refresh (`f17935c8`); `ship:check all` passes. No hashes or binary
+  sides were chosen to bypass checks, and the Bismarck baseline was preserved.
+- Final focused native validation passes 63 tests; additional native presentation
+  and real WASM/session checks pass. Whole-result native/WASM comparisons cover
+  patrol, connected catamaran and large fixtures. The installed model suite
+  exercises actual published assets and native poses, including intermediate
+  interpolation and independently moving neighbors.
+- The complete `bun run test` run processed 205 files in 106.2 s with four
+  existing failures: Hipper settling in `sea.test.ts`, absent Hipper stability in
+  `mechanics.test.ts`, the missing Hipper expected-count entry in
+  `ShipFunnelSmoke.test.ts`, and the merged-air-group notice in
+  `AirOperations.test.tsx`. All four reproduce with identical assertions on
+  unchanged `011dc2e5`; their source and Hipper inputs are byte-identical.
+- The full native workspace run has two existing failing targets:
+  `carrier_loss` expects four bomb releases but gets zero, and
+  `damage_migration::complete_battles_match_reference` differs in Enterprise's
+  aircraft trace. Both reproduce on unchanged `5cec0bfc`. Consequently
+  `multiplayer:check` remains red. `multiplayer:check-wasm` passes 54 motion
+  checkpoints and 72 shell trajectories before the same Enterprise trace:
+  tick-600 plane X is `0.25923245464249123`, expected `0.2608870648614513`.
+  A separate untouched-baseline WASM build reproduces that exact value.
+- Clippy with `-D warnings` still reports 14 existing library lints in aviation,
+  vessel, battle and frame-delta code. Construction-owned lints were corrected;
+  no suppressions or fixture relaxations were added.
+
+Temporary logs, baseline reproductions, native comparisons and inspected images
+remain in ignored `.build/shipbuilding/` in the main and three independent worker
+checkouts. The current guide records the lasting approximations: whole-face
+openings, axis-aligned internal boundaries, fixed package/service loading,
+diagonal equipment inertia, lumped flooding and bounded layout/clearance queries.
+The large fixture has simple geometry; neither its tonnage nor the observed
+browser frame counter is a maximum-complexity or fleet-performance guarantee.
+Optional ammunition mass updates, specialized protection tools and file import
+remain deferred; source backup export is available. No custom carrier/submarine,
+multiplayer construction, hull cutting or adjustable custom-hull UI was added.

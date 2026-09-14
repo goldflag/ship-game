@@ -151,9 +151,28 @@ The September 2026 checks used an Apple M5 Pro with 48 GiB memory and 18 logical
 CPUs. The synthetic large source in
 [construction-editor-performance.ts](../scripts/tests/construction-editor-performance.ts)
 has two hull primitives, seven equipment instances and three internal boundaries.
-It is a roughly 106,408 t volume/loading fixture, not a detailed battleship or a
-maximum-complexity fixture. Its measured warm worker compile was 6.2 ms, a revised
-compile 5.5 ms, mean source/history edit 0.012 ms, and IndexedDB save 0.9 ms.
+It is a 106,433.267 t volume/loading fixture with 513 native surface patches,
+including fixed equipment supports. Its simple geometry does not establish
+maximum-complexity performance. Final browser measurements used the production
+compiler, auxiliary services and retained catalog `383c61d7…`:
+
+| Source | Mass | Native patches | Worker compile | Recompile | Mean edit/history | IndexedDB save / reload |
+| --- | --- | --- | --- | --- | --- | --- |
+| Armed patrol | 266.380 t | 457 | 62.9 ms | 13.9 ms | 0.012 ms | 0.5 / 0.2 ms |
+| Synthetic large hull | 106,433.267 t | 513 | 12.5 ms | 12.3 ms | 0.012 ms | 1.5 / 0.4 ms |
+
+Assets were cached. The patrol sample starts a new worker/WASM instance and the
+large sample reuses it. These measurements exclude rendering and launching.
+Separate native/WASM compilation of the same large source agreed on the complete
+derived result; median compilation was 3.327 ms native and 14.218 ms in WASM,
+including JSON parsing in the latter.
+
+A renderer-free large-ship trial against stationary Liberty advanced 600 ticks
+in a median 15.332 ms in WASM. A three-actor fixture with a 60%-flooded patrol
+compartment, its dry sister and stationary Fletcher took 1.459–1.497 s for 600
+ticks over three runs, including automatic pumping. The worst measured tick was
+6.19 ms. These bounded scenarios exclude rendering and snapshot serialization;
+they do not establish a frame-rate or fleet-size guarantee.
 
 Actual static production trials loaded the armed patrol starter in 12.65 s, an
 armor refit in 12.72 s, and the large fixture in 12.29 s. These timings run from
@@ -167,6 +186,12 @@ flooding, changed attitude, machinery loss, HP damage and reset. The large trial
 spawned with its derived mass and HP, operated its rudder and gun, and accelerated
 slowly with the same small machinery package. A separate two-versus-two custom
 battle used three copies of one saved revision alongside a historical preset.
+The final production patrol, including physical supports and auxiliary services,
+weighs 266.380 t with 854 HP. It reached 11.4 kn, steered to starboard and fired
+three rounds. Injecting 1% water into its actual machinery room assigned the
+automatic party and reduced water from 6.5 to 6.1 m³. Disabling the engine stopped
+pumping and propulsion; reset restored zero water, 360 rounds, full condition and
+neutral controls. Return reopened the undamaged source with its original loading.
 Browser background throttling prevented a useful sustained frame-rate sample;
 these results do not establish a frame-rate or fleet-size guarantee.
 
