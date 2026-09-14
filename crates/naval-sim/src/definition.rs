@@ -1392,3 +1392,11 @@ pub struct ConstructionCatalog {
     #[serde(rename = "equipment")]
     pub equipment: Vec<ConstructionEquipmentPart>,
 }
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionSuggestion {
+    #[serde(rename = "source")]
+    pub source: ConstructionSource,
+    #[serde(rename = "diagnostics")]
+    pub diagnostics: Vec<ConstructionDiagnostic>,
+}

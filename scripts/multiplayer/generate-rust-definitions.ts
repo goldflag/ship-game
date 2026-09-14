@@ -56,7 +56,7 @@ function rustType(original: ts.Type, hint: string): string {
 }
 rustType(root, 'ShipDefinition');
 // Additional source/result roots share the same type graph and generator. No object unions.
-for (const name of ['ConstructionSource', 'ConstructionResult', 'ConstructionCatalog']) {
+for (const name of ['ConstructionSource', 'ConstructionResult', 'ConstructionCatalog', 'ConstructionSuggestion']) {
   const node = file.statements.find(s => ts.isInterfaceDeclaration(s) && s.name.text === name);
   if (!node) throw new Error(`Missing schema root ${name}`);
   rustType(checker.getTypeAtLocation(node), name);

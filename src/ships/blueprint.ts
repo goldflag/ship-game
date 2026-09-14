@@ -355,6 +355,7 @@ export interface ConstructionEquipmentPart {
 export interface ConstructionCatalog {
   schemaVersion: 1; revision: string; weapons: PartCatalog; equipment: ConstructionEquipmentPart[];
 }
+export interface ConstructionSuggestion { source: ConstructionSource; diagnostics: ConstructionDiagnostic[]; }
 
 const fail = (path: string, message: string): never => { throw new Error(`${path}: ${message}`); };
 const record = (value: unknown, path: string): Record<string, unknown> =>
