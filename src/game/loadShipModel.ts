@@ -7,11 +7,13 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
  * inside the fingerprinted JS bundle. A browser that cached the previous build's model
  * would otherwise pair it with the new definition and fail the hash check, so the
  * version (the definition's content hash) rides along as a query to key the cache. */
-export async function loadShipModel(url: string, compressed = import.meta.env.PROD, version?: string) {
+export async function loadShipModel(url: string, compressed = import.meta.env.PROD, version?: string, signal?: AbortSignal) {
   const loader = new GLTFLoader();
   const query = version ? `?v=${encodeURIComponent(version)}` : '';
-  if (!compressed || typeof DecompressionStream === 'undefined') return loader.loadAsync(url + query);
-  const response = await fetch(`${url}.gz${query}`);
+  const transfer = compressed && typeof DecompressionStream !== 'undefined';
+  if (!transfer && !signal) return loader.loadAsync(url + query);
+  const request = `${url}${transfer ? '.gz' : ''}${query}`;
+  const response = await (signal ? fetch(request, { signal }) : fetch(request));
   if (!response.ok) throw new Error(`Unable to load ship model (${response.status}): ${url}`);
   let bytes = await response.arrayBuffer();
   const header = new Uint8Array(bytes, 0, Math.min(2, bytes.byteLength));

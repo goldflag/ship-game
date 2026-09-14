@@ -1,5 +1,5 @@
 import * as THREE from 'three/webgpu';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { loadShipModel } from './loadShipModel';
 import type { ConstructionResult, ConstructionSource, ConstructionSurface } from '../ships/blueprint';
 import { constructionEquipmentModelUrl, loadConstructionCatalog, prefixComponentNodeId } from '../ships/constructionEquipment';
 import { CONSTRUCTION_FINISH, constructionPaintColor } from '../ships/constructionPaints';
@@ -66,16 +66,13 @@ export async function createConstructionModel(source: ConstructionSource, result
   try {
     if (source.construction.equipment.length) {
       const catalog = await loadConstructionCatalog(source.construction.catalogRevision); abort(signal);
-      const loader = new GLTFLoader();
       for (const instance of source.construction.equipment) {
         abort(signal);
         const part = catalog.equipment.find(p => p.id === instance.partId);
         if (!part) throw new Error(`Equipment unavailable: ${instance.partId}. The source design is preserved.`);
         let template = templates.get(part.id);
         if (!template) {
-          const response = await fetch(constructionEquipmentModelUrl(part), { signal });
-          if (!response.ok) throw new Error(`Unable to load ${part.name} (${response.status}).`);
-          const asset = await loader.parseAsync(await response.arrayBuffer(), '');
+          const asset = await loadShipModel(constructionEquipmentModelUrl(part), undefined, part.contentHash, signal);
           template = asset.scene; templates.set(part.id, template); abort(signal);
           if (template.userData.definitionHash !== part.contentHash) throw new Error(`Equipment identity mismatch: ${part.name}.`);
         }
