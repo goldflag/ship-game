@@ -66,7 +66,7 @@ export async function equipmentHash(root: string, part: EquipmentSource) {
   const entry = registry.components.find(e => e.partId === part.id)!;
   const b = registry.builders[entry.builder];
   const paths = ['assets/parts/construction/library.py', b.path, ...b.inputs, 'scripts/parts/equipment_build.py', 'scripts/ships/export.py'];
-  return digest(JSON.stringify([1, part, b, ...await Promise.all(paths.map(p => readFile(join(root,p),'utf8')))]));
+  return digest(JSON.stringify([1, part, entry, b, ...await Promise.all(paths.map(p => readFile(join(root,p),'utf8')))]));
 }
 export async function buildEquipment(root: string, part: EquipmentSource) {
   if (part.kind === 'gun') {

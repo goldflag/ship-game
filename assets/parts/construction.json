@@ -473,7 +473,7 @@
       "kind": "funnel",
       "size": [
         3.49,
-        8.94,
+        8.935,
         5.22
       ],
       "boundsCenter": [
@@ -555,7 +555,7 @@
       "size": [
         4.3,
         4.3,
-        2.5
+        2.32
       ],
       "boundsCenter": [
         0,
@@ -593,7 +593,7 @@
       "kind": "rudder",
       "size": [
         0.5,
-        2.9,
+        2.8,
         3.05
       ],
       "boundsCenter": [
@@ -645,14 +645,14 @@
       "name": "Fletcher aftermast",
       "kind": "mast",
       "size": [
-        3.58,
-        10.6,
-        1
+        3.524,
+        10.502,
+        0.838
       ],
       "boundsCenter": [
         0,
-        5.25,
-        0.25
+        5.251,
+        0.159
       ],
       "centerOfGravity": [
         0,
@@ -683,14 +683,14 @@
       "name": "Fletcher Mk37 director",
       "kind": "director",
       "size": [
-        4.75,
-        6.1,
-        3.5
+        4.732,
+        6.002,
+        3.392
       ],
       "boundsCenter": [
         0,
-        3,
-        0.16
+        3.001,
+        0.155
       ],
       "centerOfGravity": [
         0,
@@ -729,6 +729,98 @@
         }
       ],
       "massKg": 6500
+    },
+    {
+      "id": "generic-propeller-1200",
+      "name": "1.2 m four-blade screw",
+      "kind": "propeller",
+      "size": [
+        1.22,
+        1.22,
+        0.72
+      ],
+      "boundsCenter": [
+        0,
+        0,
+        -0.06
+      ],
+      "centerOfGravity": [
+        0,
+        0,
+        0
+      ],
+      "massKg": 110,
+      "placement": "underwater",
+      "thrustEfficiency": 0.6,
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "shaft",
+          "position": [
+            0,
+            0,
+            -0.42
+          ],
+          "direction": [
+            0,
+            0,
+            -1
+          ]
+        }
+      ]
+    },
+    {
+      "id": "generic-rudder-1000",
+      "name": "1 m balanced rudder",
+      "kind": "rudder",
+      "size": [
+        0.2,
+        1.13,
+        0.8
+      ],
+      "boundsCenter": [
+        0,
+        -0.065,
+        0.28
+      ],
+      "centerOfGravity": [
+        0,
+        -0.1,
+        0.22
+      ],
+      "massKg": 85,
+      "placement": "underwater",
+      "rudderAreaM2": 0.72,
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0.5,
+            0
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        },
+        {
+          "id": "steering",
+          "kind": "steering",
+          "position": [
+            0,
+            0.5,
+            0
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        }
+      ]
     }
   ]
 }

@@ -1,8 +1,8 @@
 import { describe, test, expect } from 'bun:test';
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, mkdir, cp, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
-import { publishImmutable, checkPublishedEquipment } from './publish';
+import { publishImmutable, checkPublishedEquipment, publishEquipment } from './publish';
 import { readEquipment, inspectEquipmentModel } from './equipment';
 const root=resolve(import.meta.dir,'../..');
 
@@ -26,6 +26,32 @@ describe('source-backed equipment publication',()=>{
       expect([...await readFile(join(target,'model.glb'))]).toEqual([1,2,3]);
     } finally {await rm(dir,{recursive:true,force:true});}
   });
+  test('changing the curated selection preserves other assets and exact older catalogs',async()=>{
+    const temp=await mkdtemp(join(tmpdir(),'equipment-catalog-'));
+    try {
+      for(const dir of ['assets/parts','scripts/parts','scripts/ships']) {
+        await mkdir(resolve(temp,dir,'..'),{recursive:true});
+        await cp(join(root,dir),join(temp,dir),{recursive:true});
+      }
+      const source=JSON.parse(await readFile(join(temp,'assets/parts/construction.json'),'utf8'));
+      const fixture=JSON.parse(await readFile(join(root,'public/models/components/catalog.json'),'utf8'));
+      for(const p of source.equipment) {
+        const path=join('.build/parts',p.gunPartId ?? p.id,'model.glb');
+        await mkdir(resolve(temp,path,'..'),{recursive:true});
+        // Validated standalone publication is a test output-cache fixture, never authoring geometry.
+        const asset=fixture.equipment.find((e:{id:string})=>e.id===p.id).modelUrl;
+        await cp(join(root,'public',asset),join(temp,path));
+      }
+      const first=await publishEquipment(temp);
+      source.equipment.pop();
+      await writeFile(join(temp,'assets/parts/construction.json'),JSON.stringify(source));
+      const second=await publishEquipment(temp);
+      expect(second.revision).not.toBe(first.revision);
+      for(const p of second.equipment) expect(p.modelUrl).toBe(first.equipment.find(e=>e.id===p.id)!.modelUrl);
+      const retained=JSON.parse(await readFile(join(temp,'public/models/components/catalogs',first.revision,'catalog.json'),'utf8'));
+      expect(retained).toEqual(first);
+    } finally {await rm(temp,{recursive:true,force:true});}
+  });
   test('rejects a stale hash, lost socket and external runtime texture dependency',async()=>{
     const catalog=JSON.parse(await readFile(join(root,'public/models/components/catalog.json'),'utf8'));
     const p=catalog.equipment.find((p:any)=>p.kind==='torpedo-launcher');
@@ -41,6 +67,19 @@ describe('source-backed equipment publication',()=>{
     expect(()=>inspectEquipmentModel(rewrite(lost),p.contentHash,p)).toThrow('Missing equipment joint/socket');
     doc.images=[{uri:'/api/texture/preview-only.png'}];
     expect(()=>inspectEquipmentModel(rewrite(doc),p.contentHash,p)).toThrow('embed all');
+  });
+  test('support sockets coincide with actual sole, stock and shaft bounds without hidden overlap',async()=>{
+    const c=JSON.parse(await readFile(join(root,'public/models/components/catalog.json'),'utf8'));
+    for(const p of c.equipment) {
+      const s=p.sockets.find((s:any)=>s.id==='attachment');
+      const axis=s.direction.findIndex((n:number)=>Math.abs(n)===1);
+      expect(axis).toBeGreaterThanOrEqual(0);
+      const authoredPlane=p.boundsCenter[axis]+s.direction[axis]*p.size[axis]/2;
+      expect(Math.abs(authoredPlane-s.position[axis])).toBeLessThan(.002);
+      const model=inspectEquipmentModel(await readFile(join(root,'public',p.modelUrl)),p.contentHash);
+      const actualPlane=model.boundsCenter[axis]+s.direction[axis]*model.size[axis]/2;
+      expect(Math.abs(actualPlane-s.position[axis])).toBeLessThan(.002);
+    }
   });
   test('curation has original registrations and distinct internal installation space',async()=>{
     const {equipment}=await readEquipment(root);

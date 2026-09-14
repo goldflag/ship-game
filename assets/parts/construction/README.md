@@ -75,7 +75,8 @@ service/fuel allowance; this is a declared gameplay estimate, not a historical
 engine rating. The 3 × 2.5 × 4 m magazine has 1.8 t dry mass and capacity for
 1,000 rounds; loaded ammunition mass belongs to the authoritative compiler.
 Fletcher-derived fitting masses and functional capacities are also provisional
-package estimates: torpedo bank 18 t, funnel 8.5 t/12,000 kW exhaust capacity,
+package estimates: torpedo bank 18 t **including its five ready torpedoes** (no
+reserve torpedoes or additional torpedo-ammunition mass), funnel 8.5 t/12,000 kW exhaust capacity,
 screw 2.5 t/0.65 efficiency, rudder 2.6 t/7 m², mast 0.45 t, director 6.5 t.
 These values are fixed by catalog revision. They do not claim historical
 engineering certification. Funnel capacity consumes engine exhaust demand and
@@ -87,3 +88,17 @@ retained articulation and source fidelity are different checks from clearance
 on a constructed ship. Every installation still needs physical attachment,
 intermediate traverse/elevation/recoil and independently posed neighbor checks.
 No component publication alone certifies S5 in-game acceptance.
+
+The generic small-boat appendages are separately authored fixed variants:
+`generic-propeller-1200` is a 1.2 m four-blade screw (110 kg, 0.60 efficiency),
+and `generic-rudder-1000` is a 1 m-deep balanced foil (85 kg, 0.72 m²). Their
+package values and pitches are provisional engineering estimates. They retain
+`.spin` / `.yaw` and attachment sockets at the forward shaft seat / upper stock.
+They are built at their own metre dimensions; neither the catalog nor renderer
+rescales a Fletcher component to obtain these variants.
+
+Attachment metadata follows the actual sole, stock or shaft seat. Fixed envelopes
+meet that support plane within 1 mm; rounding does not add invisible material
+below a mast foot or beyond a shaft socket. For guns and funnels, intrinsic
+occupancy may cross the support plane as a sealed installation well; the shared
+compiler decides fit and damage behavior without shrinking the package.

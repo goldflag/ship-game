@@ -59,7 +59,7 @@ export async function publishEquipment(taskRoot=root, rebuild=false) {
       }
       const inspection=inspectEquipmentModel(bytes,hash,p,before.catalog.parts.find(g=>g.id===p.gunPartId));
       for (let k=0;k<3;k++) if (Math.abs(inspection.boundsCenter[k]-p.boundsCenter[k])+inspection.size[k]/2 > p.size[k]/2+.025) throw new Error(`${p.id}: visible model exceeds authored size/boundsCenter on axis ${k}; review dimensions before publishing`);
-      const modelSha256=digest(bytes), revision=digest(JSON.stringify([1,p,hash,modelSha256,before.identity]));
+      const modelSha256=digest(bytes), revision=digest(JSON.stringify([1,p,hash,modelSha256]));
       const modelUrl=`/models/components/${p.id}/${revision}/model.glb`;
       const entry:ConstructionEquipmentPart={...p,modelUrl,contentHash:hash};
       const review=p.kind==='gun' ? before.library.components.find(e=>e.partId===p.gunPartId) : before.registry.components.find(e=>e.partId===p.id);
@@ -91,7 +91,7 @@ export async function checkPublishedEquipment(taskRoot=root) {
     const bytes=await readFile(join(directory,'model.glb'));
     const manifest=JSON.parse(await readFile(join(directory,'manifest.json'),'utf8')) as PublishedEquipmentManifest;
     const inspection=inspectEquipmentModel(bytes,contentHash,source,beforeWeapon(catalog,source));
-    const revision=digest(JSON.stringify([1,source,contentHash,digest(bytes),expected.identity]));
+    const revision=digest(JSON.stringify([1,source,contentHash,digest(bytes)]));
     const review=source.kind==='gun' ? expected.library.components.find(e=>e.partId===source.gunPartId) : expected.registry.components.find(e=>e.partId===source.id);
     const expectedManifest:PublishedEquipmentManifest={schemaVersion:1,partId:p.id,revision,contentHash,modelSha256:digest(bytes),nodePrefix:'component',modelUrl,...inspection,review:review?.review ?? 'unreviewed',limitations:review?.limitations ?? 'Original source adaptation or generic engineering package; package mass/capabilities are provisional and installed clearance remains design-specific.',basis:sourceDocumentation};
     if (!modelUrl.includes('/'+revision+'/') || JSON.stringify(manifest)!==JSON.stringify(expectedManifest)) throw new Error(`Published equipment integrity failure: ${p.id}`);

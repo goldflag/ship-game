@@ -40,6 +40,20 @@
       "path": "assets/parts/construction/geometry.py",
       "function": "create_magazine",
       "inputs": []
+    },
+    "generic-propeller-1200": {
+      "path": "assets/parts/construction/small_appendages.py",
+      "function": "create_small_propeller",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-rudder-1000": {
+      "path": "assets/parts/construction/small_appendages.py",
+      "function": "create_small_rudder",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
     }
   },
   "components": [
@@ -90,6 +104,18 @@
       "builder": "generic-magazine-1000",
       "review": "unreviewed",
       "limitations": "Original generic engineering package; dimensions, mass and capabilities are declared gameplay estimates, not a historical reconstruction."
+    },
+    {
+      "partId": "generic-propeller-1200",
+      "builder": "generic-propeller-1200",
+      "review": "unreviewed",
+      "limitations": "Original generic small-boat appendage with fixed dimensions; mass and capability are declared engineering estimates. Installation support and immersion require design review."
+    },
+    {
+      "partId": "generic-rudder-1000",
+      "builder": "generic-rudder-1000",
+      "review": "unreviewed",
+      "limitations": "Original generic small-boat appendage with fixed dimensions; mass and capability are declared engineering estimates. Installation support and immersion require design review."
     }
   ]
 }
