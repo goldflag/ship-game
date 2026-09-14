@@ -66,6 +66,71 @@ export async function checkShipbuilderSuggestions() {
   return { passed: checks.length, checks };
 }
 
+/** Armor presets and both painting paths preserve the authored protection and openings. */
+export async function checkShipbuilderArmor() {
+  const catalog = await loadConstructionCatalog(), template = createStarterSource(catalog);
+  template.construction.equipment = []; template.construction.boundaries = []; template.construction.surfaces = [];
+  window.shipbuilderReview?.close(); await mountShipbuilderReview(template);
+  const checks: string[] = [], source = () => window.shipbuilderReview?.source;
+  const wait = async (condition: () => unknown, label: string) => {
+    const start = performance.now();
+    while (!condition()) {
+      if (performance.now() - start > 45000) throw new Error(`Timed out: ${label}`);
+      await new Promise(resolve => setTimeout(resolve, 25));
+    }
+    checks.push(label);
+  };
+  const find = (text: string) => [...document.querySelectorAll<HTMLButtonElement>('.shipbuilder button')].find(button => button.textContent?.trim() === text);
+  const click = (text: string) => { const button = find(text); if (!button || button.disabled) throw new Error(`Button unavailable: ${text}`); button.click(); };
+  await wait(() => source() && !document.querySelector('.shipbuilder-compile')?.textContent?.includes('Compiling'), 'armor fixture compiles and saves');
+  if (find('Tools')?.offsetParent) { click('Tools'); await new Promise(resolve => setTimeout(resolve, 25)); }
+  click('Surfaces'); await new Promise(resolve => setTimeout(resolve, 25)); click('All exposed faces');
+  const original = JSON.stringify(source()!.construction);
+  document.querySelector<HTMLButtonElement>('[aria-label="Armor preset"]')!.click();
+  await new Promise(resolve => setTimeout(resolve, 25));
+  [...document.querySelectorAll<HTMLElement>('[role="option"]')].find(option => option.textContent?.trim() === '100 mm armor steel')!.click();
+  await new Promise(resolve => setTimeout(resolve, 25));
+  if (JSON.stringify(source()!.construction) !== original) throw new Error('Choosing a preset applied an unconfirmed source edit');
+  checks.push('choosing an armor preset leaves the source unchanged until apply');
+  click('Apply to selected faces');
+  await wait(() => source()!.construction.surfaces.every(surface => surface.thicknessMm === 100 && surface.material === 'armor-steel'), 'armor preset applies exact millimeter thickness and material');
+  await wait(() => document.querySelector('[aria-label="Selected face armor"]')?.textContent?.includes('100 mm · Armor steel'), 'selected inspection reports current native thickness and coverage');
+  // A different pending protection setting must not leak into either paint-only action.
+  document.querySelector<HTMLButtonElement>('[aria-label="Armor preset"]')!.click();
+  await new Promise(resolve => setTimeout(resolve, 25));
+  [...document.querySelectorAll<HTMLElement>('[role="option"]')].find(option => option.textContent?.trim() === 'Structural skin')!.click();
+  await new Promise(resolve => setTimeout(resolve, 25));
+  document.querySelector<HTMLButtonElement>('[aria-label="Sea blue"]')!.click(); await new Promise(resolve => setTimeout(resolve, 25)); click('Paint selected faces');
+  await wait(() => source()!.construction.surfaces.every(surface => surface.paint === 'sea-blue'), 'bulk painting changes the selected paint');
+  if (!source()!.construction.surfaces.every(surface => surface.thicknessMm === 100 && surface.material === 'armor-steel')) throw new Error('Bulk painting changed protection');
+  checks.push('bulk painting preserves thickness and material');
+  click('Open to sea');
+  await wait(() => source()!.construction.surfaces.every(surface => surface.open), 'explicit openings are saved before repainting');
+  await wait(() => document.querySelector('[aria-label="Selected face armor"]')?.textContent?.includes('Open to sea'), 'inspection distinguishes openings from protected skin');
+  document.querySelector<HTMLButtonElement>('[aria-label="Red oxide"]')!.click();
+  [...document.querySelectorAll('label')].find(label => label.textContent?.trim() === 'Paint clicked faces')!.querySelector<HTMLInputElement>('input')!.click();
+  click('Top');
+  if (find('Tools')?.getAttribute('aria-expanded') === 'true') click('Tools');
+  await new Promise(resolve => setTimeout(resolve, 100));
+  const canvas = document.querySelector('canvas')!, host = canvas.parentElement!, bounds = canvas.getBoundingClientRect();
+  // Synthetic pointers have no browser capture lifetime; the actual native-face raycast still runs.
+  const capture = host.setPointerCapture; host.setPointerCapture = () => {};
+  try {
+    const point = { bubbles: true, pointerId: 41, pointerType: 'mouse', button: 0, clientX: bounds.x + bounds.width / 2, clientY: bounds.y + bounds.height / 2 };
+    canvas.dispatchEvent(new PointerEvent('pointerdown', point)); canvas.dispatchEvent(new PointerEvent('pointerup', point));
+  } finally { host.setPointerCapture = capture; }
+  await wait(() => source()!.construction.surfaces.some(surface => surface.paint === 'red-oxide'), 'clicked-face painting reaches the native selected surface');
+  if (!source()!.construction.surfaces.every(surface => surface.thicknessMm === 100 && surface.material === 'armor-steel' && surface.open)) throw new Error('Clicked-face painting changed protection or closed an opening');
+  checks.push('clicked-face painting preserves armor, material and openings');
+  const beforeUndo = structuredClone(source()!.construction);
+  document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', ctrlKey: true, bubbles: true }));
+  await wait(() => source()!.construction.surfaces.every(surface => surface.paint === 'sea-blue'), 'one undo restores the paint stroke');
+  if (JSON.stringify(source()!.construction.surfaces.map(({ paint: _paint, ...surface }) => surface)) !== JSON.stringify(beforeUndo.surfaces.map(({ paint: _paint, ...surface }) => surface))) throw new Error('Paint undo changed surface references');
+  checks.push('paint undo retains exact protection and stable source face references');
+  window.shipbuilderReview!.close();
+  return { passed: checks.length, checks };
+}
+
 export async function checkShipbuilderEditing() {
   const checks: string[] = [];
   const wait = async (condition: () => unknown, message: string) => {

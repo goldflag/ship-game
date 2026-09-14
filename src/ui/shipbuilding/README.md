@@ -7,7 +7,7 @@ The port's **Shipbuilder** opens a source editor around the shared Rust/WASM con
 1. Start with **Patrol hull**, or choose **Connected catamaran** and press **Starter hull**. **Blank** creates an empty, saveable source.
 2. Use **Hull** to choose a primitive and set its dimensions. **Place at coordinates** and **Place row** use the displayed grid; **Place** and **Brush** use the viewport's grid plane. Top/orbit uses Y, side uses X and bow uses Z from the placement coordinates.
 3. Click to select a piece; Shift-click adds or removes a piece from the selection. Copy makes new stable IDs and selects the copies. Mirror makes a copy across the centerline and preserves its face assignments and equipment links.
-4. In **Surfaces**, click exposed faces or select an area group, then apply millimeter thickness, material and a named paint. The mint lines show inward armor depth. **Open to sea** removes the selected skin; zero armor still retains structural skin. Two-tone and disruptive paints are generic sandbox schemes.
+4. In **Surfaces**, click exposed faces or select an area group, then apply millimeter thickness, material and a named paint. Armor presets set the next assignment; **Apply to selected faces** commits it. **Inspect selected faces** and **Hull armor coverage** show native thickness, exposed area, material, paint and openings. The mint lines show inward armor depth. **Paint selected faces** and **Paint clicked faces** change only paint, preserving armor and openings. **Open to sea** removes the selected skin; zero armor still retains structural skin. Two-tone and disruptive paints are generic sandbox schemes.
 5. **Equipment** places published original variants at their fixed dimensions. **Suggest internals** proposes missing internal equipment families; **Suggest selected fitting** finds a position for the selected variant. Existing equipment stays in place. Inspect the proposed additions or fit errors, then **Apply suggestion** as one undoable edit. **Inspect** exposes placement and magazine/power assignments. Use **Rooms** to add or move decks and bulkheads; deleting a boundary merges its neighboring spaces after compilation.
 6. Inspect native diagnostics. Errors prevent trial launch; warnings allow a trial of an unsafe design. **Sea trial** passes an immutable source/result pair to the owning application. Trial damage never enters the source store.
 
@@ -42,6 +42,8 @@ Optional props:
 
 The default compiler is `ConstructionClient`, using a dedicated module worker. New source revisions cancel obsolete work; completed results must match both source identity and revision before enabling launch. The preview disposes obsolete groups, geometry, materials and textures, and releases the canvas/WebGL context on unmount. Previous compiled surfaces can remain visible while a new revision compiles; their diagnostics do not enable launch for the new revision.
 
+Only canonical faces belonging to source hull primitives can receive armor, paint or opening assignments. Native fixed equipment-support surfaces remain rendered and included in coverage inspection; they never become editable hull keys. Face IDs containing colons are retained without splitting the primitive identity.
+
 ## Source storage and recovery
 
 `openConstructionStore()` in `src/ships/constructionStore.ts` opens IndexedDB database `fleet-command-construction`. It returns `list`, `load`, `revisions`, `save` and `close`. `save` accepts a source, its schema/catalog versions and `expectedRevisionId`; one transaction writes the immutable revision and advances the design head. A stale head rejects the whole transaction. No compiled geometry, runtime damage or renderer objects are stored.
@@ -58,15 +60,17 @@ Run the pure command/history/autosave/source-reader tests:
 
 ```sh
 bun test src/ships/constructionEditor.test.ts src/ships/constructionHistory.test.ts src/ships/constructionAutosave.test.ts src/ships/constructionStore.test.ts src/ui/shipbuilding/editorNumbers.test.ts
+bun test src/ui/shipbuilding/ArmorInspection.test.tsx
 bunx tsc --noEmit
 bun run build
 ```
 
-Two browser helpers run against the real application toolchain and IndexedDB without test-only storage dependencies:
+Browser helpers run against the real application toolchain and IndexedDB without test-only storage dependencies:
 
 - `checkConstructionStore()` from `scripts/tests/construction-store-browser.ts`: exact large-source close/reopen, competing writers, aborted transaction rollback and source recovery.
 - `mountShipbuilderReview()` then `checkShipbuilderEditing()` from `scripts/tests/shipbuilder-browser.tsx`: actual React controls, source references, armor/openings, equipment/boundaries, save/reopen and canvas disposal.
 - `checkShipbuilderSuggestions()` from the same module: native missing-internal proposals, saved-source isolation, obsolete-proposal fencing, one-command apply and exact undo.
+- `checkShipbuilderArmor()` from the same module: presets, native selected-face/coverage readings, bulk and clicked-face painting without protection changes, explicit openings and paint undo.
 - `measureConstructionEditing()` from `scripts/tests/construction-editor-performance.ts`: source/history editing, actual worker/WASM compilation and IndexedDB save/reload for the patrol starter and a synthetic large hull. Mass is reported by Rust; this helper does not measure rendering, launch or battle performance.
 
 The helpers are Vite modules for browser evaluation. The review surface is independent of App; exercise port entry, actual trials and custom battles through App as separate integration checks. Temporary browser captures and measurements belong in ignored `.build/`.

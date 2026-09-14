@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ConstructionCatalog, ConstructionPrimitive, ConstructionResult, ConstructionSource, ConstructionSuggestion, ConstructionSurfaceAssignment, Vec3 } from '../../ships/blueprint';
-import { assignConstructionSurfaces, CONSTRUCTION_FACES, copyConstructionSelection, moveConstructionSelection, newConstructionId, removeConstructionSelection, rotateConstructionSelection, surfaceKey } from '../../ships/constructionEditor';
+import { assignConstructionSurfaces, CONSTRUCTION_FACES, copyConstructionSelection, editableConstructionSurfaces, moveConstructionSelection, newConstructionId, removeConstructionSelection, rotateConstructionSelection, surfaceKey } from '../../ships/constructionEditor';
 import { Button, Input, Select, SelectOption } from '../components';
 import { Icon } from '../Icons';
 import { BuilderViewport, type BuilderDisplay, type BuilderPick, type BuilderView, type ConstructionModelFactory } from './BuilderViewport';
 import { NumberField } from './NumberField';
+import { ArmorInspection } from './ArmorInspection';
 import { BuilderLibrary, downloadConstructionSource } from './BuilderLibrary';
 import { CONSTRUCTION_PAINTS } from './paints';
 import { normalizedBearing, snapCoordinate } from './editorNumbers';
@@ -36,6 +37,12 @@ const SHAPES: { id: string; name: string; kind: ConstructionPrimitive['kind']; s
   { id: 'shallow', name: 'Shallow slope', kind: 'wedge', size: [4, 1, 4] }, { id: 'long', name: 'Long slope', kind: 'wedge', size: [4, 2, 8] },
 ];
 const axisNames = ['X', 'Y', 'Z'];
+const ARMOR_PRESETS = [
+  { id: 'skin', name: 'Structural skin', thicknessMm: 0, material: 'steel' },
+  { id: '25', name: '25 mm armor steel', thicknessMm: 25, material: 'armor-steel' },
+  { id: '100', name: '100 mm armor steel', thicknessMm: 100, material: 'armor-steel' },
+  { id: '300', name: '300 mm armor steel', thicknessMm: 300, material: 'armor-steel' },
+] as const;
 const format = (number: number | undefined, digits = 1) => number === undefined || !Number.isFinite(number) ? '—' : number.toLocaleString(undefined, { maximumFractionDigits: digits });
 
 export function Shipbuilder(props: ShipbuilderProps) {
@@ -88,7 +95,8 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const equipmentPart = catalog.equipment.find(part => part.id === (selectedEquipment?.partId ?? partId));
   const selectedItem = selectedPrimitive ?? selectedEquipment;
   const gridStep = workbench === 'equipment' ? .25 : 1;
-  const allSurfaceKeys = useMemo(() => [...new Set((editor.currentResult?.surfaces ?? []).map(surface => surfaceKey(surface.primitiveId, surface.face)))], [editor.currentResult]);
+  const editableSurfaces = useMemo(() => editableConstructionSurfaces(source, editor.currentResult?.surfaces ?? []), [source, editor.currentResult]);
+  const allSurfaceKeys = useMemo(() => [...new Set(editableSurfaces.map(surface => surfaceKey(surface.primitiveId, surface.face)))], [editableSurfaces]);
   const fail = (cause: unknown) => editor.setError(cause instanceof Error ? cause.message : String(cause));
   const run = (label: string, command: (draft: ConstructionSource) => void) => { editor.setError(''); setNotice(''); editor.edit(label, command); };
   const requestSuggestion = props.suggestLayout ?? (compiler.suggest ? (source: ConstructionSource, ids: string[], signal?: AbortSignal) => compiler.suggest!(source, ids, signal) : undefined);
@@ -130,7 +138,9 @@ export function Shipbuilder(props: ShipbuilderProps) {
   };
   const pick = (pick: BuilderPick) => {
     if (workbench === 'surfaces' && pick.surface) {
-      if (paintBrush) run('Paint surface', draft => assignConstructionSurfaces(draft, new Set([pick.surface!]), { thicknessMm: armor, material, paint }));
+      if (!editor.currentResult) { setNotice('Face editing will resume when this source has a compiled preview.'); return; }
+      if (!allSurfaceKeys.includes(pick.surface)) { setNotice('This fixed equipment support follows its fitting. Choose a hull face to edit armor or paint.'); return; }
+      if (paintBrush) paintFaces(new Set([pick.surface]));
       else setSurfaces(current => { const next = pick.additive ? new Set(current) : new Set<string>(); if (next.has(pick.surface!)) next.delete(pick.surface!); else next.add(pick.surface!); return next; });
       if (pick.id) choose(pick.id, pick.additive); return;
     }
@@ -139,6 +149,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
     if (pick.id) choose(pick.id, pick.additive); else if (!pick.additive) setSelected(new Set());
   };
   const applySurface = (values: Partial<Pick<ConstructionSurfaceAssignment, 'thicknessMm' | 'material' | 'paint' | 'open'>>, label: string) => run(label, draft => assignConstructionSurfaces(draft, surfaces, values));
+  const paintFaces = (keys: ReadonlySet<string>) => run('Paint faces', draft => assignConstructionSurfaces(draft, keys, { paint }));
   const newDesign = async (blank: boolean) => {
     try { await editor.replace(freshConstruction(createStarterSource(props.catalog, blank ? 'blank' : starterKind), blank), null, false); setWorkbench('hull'); setFitRequest(value => value + 1); }
     catch (cause) { fail(cause); }
@@ -229,14 +240,18 @@ export function Shipbuilder(props: ShipbuilderProps) {
           </>}
           {workbench === 'surfaces' && <><h2>Armor & paint</h2><p className="shipbuilder-help">Click a face, then Shift-click to add faces. Assignments follow the source face across every mesh patch.</p>
             <div className="shipbuilder-actions"><Button disabled={!allSurfaceKeys.length} onClick={() => setSurfaces(new Set(allSurfaceKeys))}>All exposed faces</Button><Button onClick={() => setSurfaces(new Set())}>Clear</Button></div>
-            <label>Face area<Select value="choose" onValueChange={face => setSurfaces(new Set(allSurfaceKeys.filter(key => key.endsWith(`:${face}`) && (!selected.size || selected.has(key.split(':')[0])))))}><SelectOption value="choose">Select a face area…</SelectOption>{CONSTRUCTION_FACES.map(face => <SelectOption key={face} value={face}>{face}</SelectOption>)}</Select></label>
+            <label>Face area<Select value="choose" onValueChange={face => setSurfaces(new Set(editableSurfaces.filter(surface => surface.face === face && (!selected.size || selected.has(surface.primitiveId))).map(surface => surfaceKey(surface.primitiveId, surface.face))))}><SelectOption value="choose">Select a face area…</SelectOption>{CONSTRUCTION_FACES.map(face => <SelectOption key={face} value={face}>{face}</SelectOption>)}</Select></label>
             <p className="shipbuilder-selection-count">{surfaces.size} source faces selected</p>
+            <details><summary>Inspect selected faces</summary><ArmorInspection label="Selected face armor" surfaces={(editor.currentResult?.surfaces ?? []).filter(surface => surfaces.has(surfaceKey(surface.primitiveId, surface.face)))}/></details>
+            <label>Armor preset<Select aria-label="Armor preset" value={ARMOR_PRESETS.find(preset => preset.thicknessMm === armor && preset.material === material)?.id ?? 'custom'} onValueChange={value => { const preset = ARMOR_PRESETS.find(preset => preset.id === value); if (preset) { setArmor(preset.thicknessMm); setMaterial(preset.material); } }}><SelectOption value="custom">Custom thickness</SelectOption>{ARMOR_PRESETS.map(preset => <SelectOption key={preset.id} value={preset.id}>{preset.name}</SelectOption>)}</Select></label>
             <NumberField label="Thickness" unit="mm" value={armor} min={0} max={1000} step={1} onChange={setArmor}/>
             <label>Material<Select value={material} onValueChange={value => setMaterial(value as typeof material)}><SelectOption value="steel">Structural steel</SelectOption><SelectOption value="armor-steel">Armor steel</SelectOption></Select></label>
             <label>Naval paint<Select value={paint} onValueChange={setPaint}>{CONSTRUCTION_PAINTS.map(paint => <SelectOption key={paint.id} value={paint.id}>{paint.name}</SelectOption>)}</Select></label>
             <div className="shipbuilder-swatches">{CONSTRUCTION_PAINTS.map(entry => <Button key={entry.id} aria-label={entry.name} title={entry.name} aria-pressed={paint === entry.id} style={{ backgroundColor: entry.color }} onClick={() => setPaint(entry.id)}/>)}</div>
             <Button variant="primary" disabled={!surfaces.size} onClick={() => applySurface({ thicknessMm: armor, material, paint }, 'Apply armor and paint')}>Apply to selected faces</Button>
+            <Button disabled={!surfaces.size} onClick={() => paintFaces(surfaces)}>Paint selected faces</Button>
             <label className="shipbuilder-check"><Input type="checkbox" checked={paintBrush} onChange={event => setPaintBrush(event.target.checked)}/>Paint clicked faces</label>
+            <p className="shipbuilder-help">Painting preserves armor, material and openings. Presets set the next armor assignment; apply it to the selected faces.</p>
             <div className="shipbuilder-actions"><Button disabled={!surfaces.size} onClick={() => applySurface({ open: true }, 'Open selected faces')}>Open to sea</Button><Button disabled={!surfaces.size} onClick={() => applySurface({ open: false }, 'Close selected faces')}>Close skin</Button></div>
             <p className="shipbuilder-help">Thickness grows inward; mint lines show its depth. Zero armor retains structural skin. Openings remove the skin and admit water when submerged.</p>
             <h3>Sandbox schemes</h3><div className="shipbuilder-actions"><Button onClick={() => run('Apply two-tone paint', draft => { for (const face of CONSTRUCTION_FACES) assignConstructionSurfaces(draft, new Set(allSurfaceKeys.filter(key => key.endsWith(`:${face}`))), { paint: face === 'top' ? 'deck-gray' : 'naval-gray' }); })}>Two tone</Button><Button onClick={() => run('Apply disruptive paint', draft => { for (const primitive of draft.construction.primitives) assignConstructionSurfaces(draft, new Set(allSurfaceKeys.filter(key => key.startsWith(`${primitive.id}:`))), { paint: Math.abs(Math.floor(primitive.position[2] / 12)) % 2 ? 'sea-blue' : 'light-gray' }); })}>Disruptive</Button></div>
@@ -273,6 +288,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
         <div className="shipbuilder-diagnostics">{editor.currentResult?.diagnostics.map((diagnostic, index) => <div key={`${diagnostic.code}-${index}`} className={`shipbuilder-diagnostic ${diagnostic.severity}`}><strong>{diagnostic.severity === 'error' ? 'Fix before launch' : 'Trial warning'}</strong><p>{diagnostic.message}</p>{diagnostic.sourceId && <Button onClick={() => { choose(diagnostic.sourceId!); setDisplay('internals'); }}>Inspect affected part</Button>}</div>)}</div>
         <dl className="shipbuilder-readings"><div><dt>Loaded mass</dt><dd>{format(metrics && metrics.massKg / 1000)} t</dd></div><div><dt>Predicted waterline</dt><dd>{format(metrics?.waterlineY, 2)} m</dd></div><div><dt>Roll stability (GM)</dt><dd>{format(metrics?.rollMetacentricHeightM, 2)} m</dd></div><div><dt>Power</dt><dd>{format(metrics?.powerKw, 0)} kW</dd></div><div><dt>Estimated speed</dt><dd>{format(metrics && metrics.estimatedSpeedMps * 1.943844)} kn</dd></div><div><dt>Usable interior</dt><dd>{format(metrics?.usableVolumeM3)} m³</dd></div><div><dt>CG · X / Y / Z</dt><dd>{metrics?.centerOfGravity.map(value => format(value, 2)).join(' / ') ?? '—'}</dd></div></dl>
         {metrics && <details><summary>Mass breakdown</summary><div className="shipbuilder-mass">{metrics.contributions.slice().sort((a, b) => b.massKg - a.massKg).map(item => <div key={item.id}><span>{item.kind}<small>{item.id}</small></span><b>{format(item.massKg / 1000, 2)} t</b></div>)}</div><p className="shipbuilder-help">{metrics.basis}</p></details>}
+        <details><summary>Hull armor coverage</summary><ArmorInspection label="Hull armor coverage" surfaces={editor.currentResult?.surfaces ?? []}/></details>
         {result?.definition?.mounts.length ? <details><summary>Gun firing arcs</summary>{result.definition.mounts.map(mount => <p key={mount.id}>{mount.name}<small className="shipbuilder-help">Bearing {format(mount.bearingDeg)}° · traverse ±{format(mount.traverseDeg ?? mount.weapon.traverseDeg)}° · elevation {format(mount.weapon.elevationMinDeg)}° to {format(mount.weapon.elevationMaxDeg)}°</small></p>)}</details> : null}
         <details><summary>All fitted pieces · {data.primitives.length + data.equipment.length}</summary><div className="shipbuilder-list">{[...data.primitives.map(part => ({ id: part.id, name: `${part.kind} · ${part.size.join(' × ')} m` })), ...data.equipment.map(part => ({ id: part.id, name: catalog.equipment.find(entry => entry.id === part.partId)?.name ?? part.partId }))].map(item => <Button key={item.id} aria-pressed={selected.has(item.id)} onClick={event => choose(item.id, event.shiftKey)}>{item.name}</Button>)}</div></details>
       </div></aside>

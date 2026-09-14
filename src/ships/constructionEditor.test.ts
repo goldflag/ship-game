@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test';
-import type { ConstructionCatalog, ConstructionSource } from './blueprint';
+import type { ConstructionCatalog, ConstructionSource, ConstructionSurface } from './blueprint';
 import type { ConstructionStore } from './constructionStore';
-import { assignConstructionSurfaces, copyConstructionSelection, decodeConstructionSource, decodeSavedConstruction, loadSavedConstructionWithCatalog, mirroredFace, mirroredPrimitive, removeConstructionSelection, surfaceKey } from './constructionEditor';
+import { assignConstructionSurfaces, copyConstructionSelection, decodeConstructionSource, decodeSavedConstruction, editableConstructionSurfaces, loadSavedConstructionWithCatalog, mirroredFace, mirroredPrimitive, removeConstructionSelection, surfaceKey } from './constructionEditor';
 
 const source = (): ConstructionSource => ({ schemaVersion: 1, id: 'draft', revision: 'r1', name: 'Draft', coordinates: 'meters-y-up-bow-negative-z', construction: {
   version: 1, catalogRevision: 'c1', defaultThicknessMm: 12,
@@ -40,6 +40,20 @@ test('surface painting touches the selected source face only and does not close 
   expect(draft.construction.surfaces[0]).toMatchObject({ thicknessMm: 30, paint: 'sea-blue', open: true });
   assignConstructionSurfaces(draft, new Set([surfaceKey('hull', 'top')]), { open: false });
   expect(draft.construction.surfaces[1]).toMatchObject({ face: 'top', thicknessMm: 12, material: 'steel' });
+});
+
+test('derived fitting supports never become editable hull faces and colon-bearing IDs remain intact', () => {
+  const draft = source(); draft.construction.primitives[0].id = 'hull:port';
+  const face = { id: 'native-face', primitiveId: 'hull:port', face: 'port', vertices: [], normal: [-1, 0, 0], areaM2: 1,
+    thicknessMm: 16, material: 'steel', paint: 'naval-gray', open: false } as ConstructionSurface;
+  const surfaces = [face, { ...face, primitiveId: 'equipment:gun-forward', face: 'installation-outer' },
+    { ...face, primitiveId: 'equipment:gun-forward' }, { ...face, face: 'installation-top' }];
+  const editable = editableConstructionSurfaces(draft, surfaces);
+  expect(editable).toEqual([face]);
+  assignConstructionSurfaces(draft, new Set(editable.map(surface => surfaceKey(surface.primitiveId, surface.face))), { paint: 'sea-blue' });
+  expect(draft.construction.surfaces.at(-1)).toMatchObject({ primitiveId: 'hull:port', face: 'port', paint: 'sea-blue' });
+  expect(draft.construction.surfaces.some(surface => surface.primitiveId.startsWith('equipment:'))).toBe(false);
+  expect(surfaces).toHaveLength(4);
 });
 
 test('removing envelope clears owned surface assignments but keeps equipment as editable fit errors', () => {

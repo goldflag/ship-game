@@ -1,4 +1,4 @@
-import type { ConstructionSource, ConstructionPrimitive, ConstructionSurfaceAssignment, Vec3 } from './blueprint';
+import type { ConstructionSource, ConstructionPrimitive, ConstructionSurface, ConstructionSurfaceAssignment, Vec3 } from './blueprint';
 import { normalizedBearing } from '../ui/shipbuilding/editorNumbers';
 import { ConstructionStoreError, readConstructionSource, type ConstructionRevision, type ConstructionStore } from './constructionStore';
 import { loadConstructionCatalog } from './constructionEquipment';
@@ -7,6 +7,12 @@ export const CONSTRUCTION_FACES = ['port', 'starboard', 'bottom', 'top', 'bow', 
 export type ConstructionFace = ConstructionSurfaceAssignment['face'];
 export const newConstructionId = (prefix: string) => `${prefix}-${crypto.randomUUID()}`;
 export const surfaceKey = (primitiveId: string, face: string) => `${primitiveId}:${face}`;
+
+/** Native equipment supports stay visible but are not editable hull source assignments. */
+export function editableConstructionSurfaces(source: ConstructionSource, surfaces: readonly ConstructionSurface[]): ConstructionSurface[] {
+  const primitiveIds = new Set(source.construction.primitives.map(primitive => primitive.id));
+  return surfaces.filter(surface => primitiveIds.has(surface.primitiveId) && CONSTRUCTION_FACES.includes(surface.face as ConstructionFace));
+}
 
 /** Syntax check for safe editing only. Rust retains all geometry, fit, loading and launch validation. */
 export function decodeConstructionSource(value: unknown): ConstructionSource {
