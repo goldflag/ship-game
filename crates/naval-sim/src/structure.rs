@@ -143,7 +143,7 @@ pub fn construction_surfaces(
 ) -> Vec<StructuralSurface> {
     v.surfaces
         .iter()
-        .filter(|s| !s.open)
+        .filter(|s| !s.open && !crate::construction_installation::internal(s))
         .enumerate()
         .map(|(i, s)| {
             StructuralSurface::new(

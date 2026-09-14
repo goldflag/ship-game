@@ -38,7 +38,7 @@ fn compile(source: &ConstructionSource, catalog: &ConstructionCatalog) -> ShipDe
     let result = construction::compile(source, catalog);
     result
         .definition
-        .expect(&format!("{:?}", result.diagnostics))
+        .unwrap_or_else(|| panic!("{:?}", result.diagnostics))
 }
 fn load(source: &mut ConstructionSource, mass: f64, center: Vec3) {
     source.construction.loads.push(ConstructionLoad {
@@ -440,4 +440,225 @@ fn trainable_torpedoes_use_one_absolute_rotation_for_sockets_damage_and_launch()
         let direction = battle.actors[0].motion.heading + battle.actors[0].launcher_trains["bank"];
         assert!(wrap_angle(shot.velocity[0].atan2(-shot.velocity[2]) - direction).abs() < 1e-9);
     }
+}
+
+#[test]
+fn original_turret_rim_has_fixed_support_mass_and_single_internal_protection() {
+    use naval_sim::{
+        construction_geometry as cg,
+        contacts::{ContactGeometry, contact_armor, ship_contacts},
+        hull_contact::HullContacts,
+        shell::Shell,
+    };
+    let (mut source, mut catalog) = fixture();
+    source.construction.primitives[0].size = [16., 12., 60.];
+    catalog.weapons =
+        serde_json::from_str(include_str!("../../../assets/parts/guns.json")).unwrap();
+    let weapon = catalog
+        .weapons
+        .parts
+        .iter()
+        .find(|w| w.id == "us-6in47-mk16-cleveland")
+        .unwrap();
+    let radius = weapon.barbette_radius;
+    catalog.equipment = vec![
+        ConstructionEquipmentPart {
+            id: "magazine".into(),
+            name: "Magazine".into(),
+            kind: "magazine".into(),
+            placement: "internal".into(),
+            size: [2.; 3],
+            bounds_center: [0., 1., 0.],
+            center_of_gravity: [0., 1., 0.],
+            mass_kg: Some(1000.),
+            ammunition_capacity: Some(1000.),
+            model_url: "/models/components/test.glb".into(),
+            content_hash: "test".into(),
+            ..Default::default()
+        },
+        ConstructionEquipmentPart {
+            id: "original-gun".into(),
+            name: "Original gun".into(),
+            kind: "gun".into(),
+            placement: "deck".into(),
+            size: [6.24, 3.421, 13.265],
+            bounds_center: [0., 1.71, -0.844],
+            center_of_gravity: [0., 1.15, 0.],
+            gun_part_id: Some(weapon.id.clone()),
+            occupancy: Some(vec![ConstructionEquipmentPartOccupancyItem {
+                center: [0., -2., 0.],
+                size: [radius * 2., 4., radius * 2.],
+            }]),
+            model_url: "/models/components/test.glb".into(),
+            content_hash: "test".into(),
+            ..Default::default()
+        },
+    ];
+    let bare = compile(&source, &catalog);
+    source.construction.equipment = vec![
+        ConstructionEquipment {
+            id: "magazine".into(),
+            part_id: "magazine".into(),
+            position: [-5., -5.99, 10.],
+            ..Default::default()
+        },
+        ConstructionEquipment {
+            id: "gun".into(),
+            part_id: "original-gun".into(),
+            position: [0., 6., 0.],
+            bearing_deg: 180.,
+            magazine_id: Some("magazine".into()),
+            ..Default::default()
+        },
+    ];
+    let def = compile(&source, &catalog);
+    let geometry = def.hull.volume.as_ref().unwrap();
+    let top: Vec<_> = geometry
+        .surfaces
+        .iter()
+        .filter(|s| s.face == "installation-top")
+        .collect();
+    assert!(!top.is_empty());
+    for i in 0..64 {
+        let a = i as f64 * std::f64::consts::TAU / 64.;
+        let point = [radius * a.cos(), 6., radius * a.sin()];
+        assert!(
+            top.iter()
+                .any(|s| cg::contains(&cg::prism(&s.vertices, 0.001), point)),
+            "unsupported rim {i}"
+        );
+    }
+    let thickness = 0.01;
+    let inner = radius - thickness / (std::f64::consts::PI / 64.).cos();
+    let area = |r: f64| 32. * r * r * (std::f64::consts::TAU / 64.).sin();
+    let support_volume = (area(radius) - area(inner)) * (4. - thickness)
+        + (4. * radius * radius - area(inner)) * thickness;
+    let loading = def.loading.as_ref().unwrap();
+    let support = loading
+        .contributions
+        .iter()
+        .find(|m| m.kind == "installation")
+        .unwrap();
+    assert!((support.mass_kg - support_volume * 7850.).abs() < 1e-5);
+    assert!(
+        (loading.material_volume_m3 - bare.loading.as_ref().unwrap().material_volume_m3
+            + 4. * radius * radius * thickness
+            - support_volume)
+            .abs()
+            < 1e-7
+    );
+    assert!((HullHydrostatics::new(&def.hull, None).full_volume() - 11520.).abs() < 1e-6);
+    assert!(
+        HullContacts::new(&def.hull)
+            .query([0., 4., 0.], [5., 4., 0.])
+            .is_empty(),
+        "internal supports cannot become hull envelope"
+    );
+    let angle = std::f64::consts::PI / 64.;
+    let to = [angle.cos() * 5., 4., angle.sin() * 5.];
+    let actor = Combatant::new("support", &def);
+    let cache = ContactGeometry::new(&def).unwrap();
+    let hits = ship_contacts(&Shell::default(), [0., 4., 0.], to, &actor, &def, &cache);
+    assert_eq!(hits.len(), 1, "no duplicate inner/outer wall charges");
+    let armor = contact_armor(&def, &hits[0]);
+    assert_eq!(armor.thickness_mm, 10.);
+    assert_eq!(armor.exterior, Some(false));
+    let opening = def
+        .openings
+        .as_ref()
+        .unwrap()
+        .iter()
+        .find(|o| o.sealed_by_mount_id.as_deref() == Some("gun"))
+        .unwrap();
+    assert!((opening.area_m2 - area(inner)).abs() < 1e-7);
+}
+
+#[test]
+fn original_oerlikon_reaches_full_elevation_but_stops_at_a_real_overhead_beam() {
+    use naval_sim::mount_clearance::{ClearancePose, MountClearance};
+    let (mut source, mut catalog) = fixture();
+    source.construction.primitives[0].size = [12., 20., 40.];
+    catalog.weapons =
+        serde_json::from_str(include_str!("../../../assets/parts/guns.json")).unwrap();
+    catalog.equipment = vec![
+        ConstructionEquipmentPart {
+            id: "magazine".into(),
+            name: "Magazine".into(),
+            kind: "magazine".into(),
+            placement: "internal".into(),
+            size: [2.; 3],
+            bounds_center: [0., 1., 0.],
+            center_of_gravity: [0., 1., 0.],
+            mass_kg: Some(1000.),
+            ammunition_capacity: Some(2000.),
+            model_url: "/models/components/test.glb".into(),
+            content_hash: "test".into(),
+            ..Default::default()
+        },
+        ConstructionEquipmentPart {
+            id: "aa".into(),
+            name: "Oerlikon".into(),
+            kind: "gun".into(),
+            placement: "deck".into(),
+            size: [1.6, 1.9, 2.4],
+            bounds_center: [0., 0.95, 0.],
+            center_of_gravity: [0., 1., 0.],
+            gun_part_id: Some("us-20mm-oerlikon-mk4-hsienyang".into()),
+            model_url: "/models/components/test.glb".into(),
+            content_hash: "test".into(),
+            ..Default::default()
+        },
+    ];
+    source.construction.equipment = vec![
+        ConstructionEquipment {
+            id: "magazine".into(),
+            part_id: "magazine".into(),
+            position: [-4., -9.99, 0.],
+            ..Default::default()
+        },
+        ConstructionEquipment {
+            id: "aa".into(),
+            part_id: "aa".into(),
+            position: [0., 10., 0.],
+            magazine_id: Some("magazine".into()),
+            ..Default::default()
+        },
+    ];
+    let def = compile(&source, &catalog);
+    let cache = MountClearance::new(&def).unwrap().unwrap();
+    for degrees in [-5_f64, 0., 30., 60., 87.] {
+        let target = ClearancePose {
+            train: 0.,
+            elevation: degrees.to_radians(),
+            recoil: 1.,
+        };
+        let result = cache.resolve(&def, 0, &[ClearancePose::default()], target);
+        assert!(!result.blocked, "{degrees}: {:?}", result.obstruction_id);
+        assert!((result.pose.elevation - target.elevation).abs() < 1e-8);
+    }
+    for (id, position, size) in [
+        ("pillar", [3., 11.5, 0.], [0.4, 3., 1.]),
+        ("beam", [0., 13., 0.], [8., 0.5, 1.]),
+    ] {
+        source.construction.primitives.push(ConstructionPrimitive {
+            id: id.into(),
+            kind: "box".into(),
+            position,
+            size,
+            rotation_deg: 0.,
+        });
+    }
+    let def = compile(&source, &catalog);
+    let cache = MountClearance::new(&def).unwrap().unwrap();
+    let result = cache.resolve(
+        &def,
+        0,
+        &[ClearancePose::default()],
+        ClearancePose {
+            elevation: 87_f64.to_radians(),
+            ..Default::default()
+        },
+    );
+    assert!(result.blocked);
+    assert!(result.pose.elevation < 87_f64.to_radians());
 }

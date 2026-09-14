@@ -162,7 +162,7 @@ pub fn suggest(
                 .max_by(|a, b| normal[*a].abs().total_cmp(&normal[*b].abs()))
                 .unwrap();
             let axes: Vec<_> = (0..3).filter(|i| *i != fixed).collect();
-            let mut values = vec![vec![], vec![]];
+            let mut values = [vec![], vec![]];
             for (j, &a) in axes.iter().enumerate() {
                 let half = part.size[a] * 0.5;
                 let lo = center[a] - size[a] * 0.5 + half;
@@ -667,7 +667,7 @@ fn build(
         material.extend(occupied);
         cg::check_budget(&material).map_err(fail)?;
     }
-    let material_volume = cg::total(&material).volume;
+    let mut material_volume = cg::total(&material).volume;
     let mut interior = cg::subtract_all(cells.clone(), &material).map_err(fail)?;
     // Source loads are visible occupied packages, never invisible ballast.
     for l in &c.loads {
@@ -683,7 +683,7 @@ fn build(
         let mut point = mass(
             l.id.clone(),
             "load",
-            &[load.clone()],
+            std::slice::from_ref(&load),
             l.mass_kg / cg::moments(&load).volume,
         );
         point.mass_kg = l.mass_kg;
@@ -717,6 +717,61 @@ fn build(
         &mut def,
         out,
     )?;
+    for installation in crate::construction_installation::derive(c, catalog)
+        .map_err(|e| error("installation-support", e, None))?
+    {
+        if cg::total(&cg::subtract_all(installation.solids.clone(), &cells).map_err(fail)?).volume
+            > 1e-6
+        {
+            return Err(error(
+                "installation-support",
+                "Original fixed barbette extends outside the hull; provide a fully backed working well",
+                Some(&installation.id),
+            ));
+        }
+        if !installation
+            .solids
+            .iter()
+            .any(|a| material.iter().any(|b| cg::connected(a, b)))
+        {
+            return Err(error(
+                "installation-support",
+                "Barbette collar has no physical connection to hull plating or an internal deck",
+                Some(&installation.id),
+            ));
+        }
+        let occupied = cg::subtract_all(installation.solids, &material).map_err(fail)?;
+        material_volume += cg::total(&occupied).volume;
+        contributions.push(mass(
+            format!("{}-installation", installation.id),
+            "installation",
+            &occupied,
+            STEEL_DENSITY,
+        ));
+        material.extend(occupied);
+        cg::check_budget(&material).map_err(fail)?;
+        // A destroyed installation exposes only the actual bore; its fixed
+        // collar and trunk remain ordinary physical material.
+        for (id, kind, polygon) in &mut penetrations {
+            if *id == installation.id && kind == "gun" {
+                for f in &installation.bore.faces {
+                    let n = cg::normal(&f.vertices);
+                    *polygon = cg::clip_polygon(polygon, n, dot(n, f.vertices[0]));
+                    if polygon.len() < 3 {
+                        break;
+                    }
+                }
+            }
+        }
+        out.surfaces.extend(installation.surfaces);
+        if out.surfaces.len() > 8192 {
+            return Err(error(
+                "complexity",
+                "Installation surfaces exceed the 8192 surface limit",
+                Some(&installation.id),
+            ));
+        }
+    }
     // Boundaries have already removed physical material. Split by source plane to keep
     // stable room names even when partial pieces/triangulation change.
     let mut groups = BTreeMap::<String, Vec<cg::Cell>>::new();
@@ -773,7 +828,7 @@ fn build(
         );
         def.compartments.push(Compartment {
             id,
-            name: "Interior".into(),
+            name: format!("Compartment {}", def.compartments.len() + 1),
             center,
             size,
             capacity_m3: m.volume,
@@ -804,6 +859,9 @@ fn build(
     }
     def.openings = Some(openings);
     for (id, kind, polygon) in penetrations {
+        if polygon.len() < 3 || cg::area(&polygon) < 1e-8 {
+            continue;
+        }
         let position = scale(
             polygon.iter().copied().fold([0.; 3], add),
             1. / polygon.len() as f64,
@@ -824,17 +882,25 @@ fn build(
     def.armor = out
         .surfaces
         .iter()
-        .filter(|s| !s.open)
+        .filter(|s| {
+            !s.open
+                && (!crate::construction_installation::internal(s)
+                    || crate::construction_installation::protective(s))
+        })
         .enumerate()
         .map(|(i, s)| {
             let (center, size) = crate::structure::bounds(s.vertices.iter().copied());
             Armor {
-                id: format!("skin-{i}"),
+                id: if crate::construction_installation::internal(s) {
+                    s.id.clone()
+                } else {
+                    format!("skin-{i}")
+                },
                 name: s.id.clone(),
                 center,
                 size,
                 thickness_mm: s.thickness_mm,
-                exterior: Some(true),
+                exterior: Some(!crate::construction_installation::internal(s)),
                 plate: Some(ArmorPlate {
                     vertices: s.vertices.clone(),
                     material: if s.material == "armor-steel" {
@@ -843,7 +909,7 @@ fn build(
                         "steel"
                     }
                     .into(),
-                    exterior: Some(true),
+                    exterior: Some(!crate::construction_installation::internal(s)),
                     surface_id: Some(s.id.clone()),
                     ..Default::default()
                 }),
@@ -1043,6 +1109,29 @@ fn build(
     let gm = -(arm1 - arm0) / eps;
     let power = out.loading.as_ref().map_or(0., |l| l.power_kw);
     let speed = out.loading.as_ref().map_or(0., |l| l.estimated_speed_mps);
+    let rudder_moment: f64 = c
+        .equipment
+        .iter()
+        .filter_map(|e| {
+            catalog
+                .equipment
+                .iter()
+                .find(|p| p.id == e.part_id && p.kind == "rudder")
+                .map(|p| p.rudder_area_m2.unwrap_or(0.) * (e.position[2] - cg[2]).abs())
+        })
+        .sum();
+    def.handling.acceleration = if speed > 0. {
+        (power * 1000. / (total_mass * speed.max(1.))).min(2.)
+    } else {
+        0.
+    };
+    def.handling.max_yaw_rate = if power > 0. {
+        (0.5 * SEA_DENSITY * speed * speed * rudder_moment / inertia[1].max(1.))
+            .sqrt()
+            .min(0.25)
+    } else {
+        0.
+    };
     let loading=ConstructionLoading{mass_kg:total_mass,center_of_gravity:cg,inertia_kg_m2:inertia,contributions,envelope_volume_m3:envelope.volume,material_volume_m3:material_volume,usable_volume_m3:def.compartments.iter().map(|r|r.capacity_m3).sum(),waterline_y:if float.afloat {-float.y}else{high},buoyancy_center:float.center,roll_metacentric_height_m:gm,power_kw:power,estimated_speed_mps:speed,basis:"Steel 7850 kg/m³; seawater 1025 kg/m³; exact convex clipping; fixed catalog service load and initial projectile stock; no hidden ballast".into()};
     if !float.afloat {
         warn(
@@ -1466,7 +1555,7 @@ fn equipment(
         let mut load = mass(
             e.id.clone(),
             "equipment",
-            &[envelope.clone()],
+            std::slice::from_ref(&envelope),
             mass_kg / cg::moments(&envelope).volume,
         );
         load.center = center;
@@ -1739,7 +1828,6 @@ fn equipment(
         g.share /= power.max(1.);
     }
     def.propulsion=Some(ShipDefinitionPropulsion{groups,basis:"Catalog power limited by linked exhaust and propeller efficiency; machinery availability and immersion apply at runtime".into()});
-    let m: f64 = masses.iter().map(|m| m.mass_kg).sum();
     let (_, dims) = crate::structure::bounds(
         hull.iter()
             .flat_map(|c| c.faces.iter().flat_map(|f| f.vertices.iter().copied())),
@@ -1758,42 +1846,13 @@ fn equipment(
     } else {
         0.
     };
-    let center_of_gravity = scale(
-        masses
-            .iter()
-            .map(|c| scale(c.center, c.mass_kg))
-            .fold([0.; 3], add),
-        1. / m,
-    );
-    let yaw_inertia: f64 = masses
-        .iter()
-        .map(|c| {
-            let r = sub(c.center, center_of_gravity);
-            c.inertia_kg_m2[1] + c.mass_kg * (r[0] * r[0] + r[2] * r[2])
-        })
-        .sum();
-    let rudder_moment: f64 = fitted
-        .iter()
-        .filter(|(_, p)| p.kind == "rudder")
-        .map(|(e, p)| p.rudder_area_m2.unwrap_or(0.) * (e.position[2] - center_of_gravity[2]).abs())
-        .sum();
     def.handling = Handling {
         forward_speed: speed,
         reverse_speed: speed * 0.35,
-        acceleration: if speed > 0. {
-            (power * 1000. / (m * speed.max(1.))).min(2.)
-        } else {
-            0.
-        },
+        acceleration: 0., // Set from final loaded mass after fixed supports.
         braking: 0.12 + speed * 0.015,
         rudder_rate: 0.35,
-        max_yaw_rate: if power > 0. {
-            (0.5 * SEA_DENSITY * speed * speed * rudder_moment / yaw_inertia.max(1.))
-                .sqrt()
-                .min(0.25)
-        } else {
-            0.
-        },
+        max_yaw_rate: 0., // Set from final distributed inertia and CG.
     };
     out.loading = Some(ConstructionLoading {
         power_kw: power,
@@ -1922,7 +1981,7 @@ mod tests {
         let result: ConstructionResult = serde_json::from_str(&encoded).unwrap();
         let d = result
             .definition
-            .expect(&format!("{:?}", result.diagnostics));
+            .unwrap_or_else(|| panic!("{:?}", result.diagnostics));
         crate::catalog::validate_definition(&d).unwrap();
         assert!(d.id.starts_with("local-"));
         assert_eq!(d.hull.kind, "constructed-volume-v1");
@@ -1961,7 +2020,8 @@ mod tests {
     }
     fn compiled(s: &ConstructionSource, c: &ConstructionCatalog) -> ShipDefinition {
         let r = compile(s, c);
-        r.definition.expect(&format!("{:?}", r.diagnostics))
+        r.definition
+            .unwrap_or_else(|| panic!("{:?}", r.diagnostics))
     }
     fn catamaran() -> (ConstructionSource, ConstructionCatalog) {
         let (mut s, c) = fixture();
@@ -2321,7 +2381,7 @@ mod tests {
                 occupancy: if kind == "gun" {
                     Some(vec![ConstructionEquipmentPartOccupancyItem {
                         center: [0., -0.5, 0.],
-                        size: [2., 1., 2.],
+                        size: [2.6, 1., 2.6],
                     }])
                 } else if kind == "funnel" {
                     Some(vec![ConstructionEquipmentPartOccupancyItem {
@@ -2382,7 +2442,15 @@ mod tests {
         assert!(
             (bare.loading.unwrap().material_volume_m3
                 - d.loading.as_ref().unwrap().material_volume_m3
-                - 0.05)
+                + d.loading
+                    .as_ref()
+                    .unwrap()
+                    .contributions
+                    .iter()
+                    .filter(|m| m.kind == "installation")
+                    .map(|m| m.mass_kg / STEEL_DENSITY)
+                    .sum::<f64>()
+                - 0.0776)
                 .abs()
                 < 1e-6
         );

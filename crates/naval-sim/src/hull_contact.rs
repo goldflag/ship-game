@@ -113,7 +113,11 @@ impl HullContacts {
             }
         };
         if let Some(v) = &h.volume {
-            for s in v.surfaces.iter().filter(|s| !s.open) {
+            for s in v
+                .surfaces
+                .iter()
+                .filter(|s| !s.open && !crate::construction_installation::internal(s))
+            {
                 for i in 1..s.vertices.len() - 1 {
                     triangle(s.vertices[0], s.vertices[i], s.vertices[i + 1]);
                 }

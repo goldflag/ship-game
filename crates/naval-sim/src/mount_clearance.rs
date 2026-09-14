@@ -548,7 +548,7 @@ impl MountClearance {
             .iter()
             .enumerate()
             .map(|(i, m)| {
-                barrel_capsules(&m.weapon, poses[i].elevation)
+                barrel_capsules(&m.weapon, poses[i].elevation, def.hull.volume.is_some())
                     .into_iter()
                     .map(|c| c.transformed(frames[i]))
                     .collect()
@@ -617,7 +617,11 @@ impl MountClearance {
     }
 }
 
-fn barrel_capsules(w: &GunPart, elevation: f64) -> Vec<Capsule> {
+fn barrel_capsules(w: &GunPart, elevation: f64, constructed: bool) -> Vec<Capsule> {
+    if constructed && w.mounting_style.as_deref() == Some("oerlikon") && w.barrel_count == Some(1.)
+    {
+        return oerlikon_mk4_capsules(w, elevation);
+    }
     let mut result = vec![];
     let radius = w
         .barrel_base_radius
@@ -678,6 +682,64 @@ fn barrel_capsules(w: &GunPart, elevation: f64) -> Vec<Capsule> {
         }
     }
     result
+}
+
+/// Conservative rigid fitting envelopes from assets/parts/us-oerlikon/geometry.py.
+/// Coordinates are lateral/up/forward relative to the retained trunnion. Keep
+/// the original short receiver and shoulder cups, rather than the generic large
+/// exposed-gun breech. This path is opt-in for constructed Mk4 installations;
+/// historical installation clearance remains unchanged.
+fn oerlikon_mk4_capsules(w: &GunPart, elevation: f64) -> Vec<Capsule> {
+    let mut pieces = vec![
+        ([0., 0., -0.465], [0., 0., 0.4], 0.105),
+        ([0., 0., 0.1], [0., 0., 1.0], 0.059),
+        (
+            [0., 0., 1.0],
+            [0., 0., w.muzzle_forward - w.trunnion_forward + 0.005],
+            0.035_f64.max(w.barrel_base_radius.unwrap_or(0.035)),
+        ),
+        ([0., 0.1855, 0.02], [0., 0.1855, 0.2], 0.15),
+        ([-0.234, 0., -0.424], [0.234, 0., -0.424], 0.021),
+        ([0., 0.045, -0.48], [0.057, 0.43, -0.085], 0.012),
+        ([0.057, 0.43, -0.085], [0.057, 0.43, -0.085], 0.091),
+    ];
+    for lateral in [-0.2115, 0.1015] {
+        pieces.push(([-lateral, 0., -0.424], [-lateral, 0.13, -0.784], 0.023));
+        let path = [
+            (-0.595, -0.07),
+            (-0.735, -0.02),
+            (-0.754, 0.085),
+            (-0.695, 0.185),
+            (-0.59, 0.187),
+        ];
+        for p in path.windows(2) {
+            pieces.push((
+                [-lateral, p[0].1 + 0.09, p[0].0 - 0.034],
+                [-lateral, p[1].1 + 0.09, p[1].0 - 0.034],
+                0.033,
+            ));
+        }
+        pieces.push(([-lateral, 0.02, -0.424], [-lateral, 0.175, -0.48], 0.014));
+        pieces.push(([-lateral, 0.175, -0.48], [-lateral, 0.09, -0.605], 0.019));
+    }
+    let point = |p: Vec3| {
+        [
+            p[0],
+            w.pivot_height + p[2] * elevation.sin() + p[1] * elevation.cos(),
+            -(w.trunnion_forward + p[2] * elevation.cos() - p[1] * elevation.sin()),
+        ]
+    };
+    pieces
+        .into_iter()
+        .map(|(mut a, b, radius)| {
+            a[2] -= w.recoil_m;
+            Capsule {
+                a: point(a),
+                b: point(b),
+                radius,
+            }
+        })
+        .collect()
 }
 
 fn gunhouse(w: &GunPart) -> Vec<[Vec3; 3]> {

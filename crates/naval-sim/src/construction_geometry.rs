@@ -196,10 +196,10 @@ pub fn subtract(a: &Cell, b: &Cell) -> Vec<Cell> {
         let Some(c) = inside else { break };
         let n = normal(&f.vertices);
         let d = dot(n, f.vertices[0]);
-        if let Some(piece) = clip(&c, scale(n, -1.), -d) {
-            if moments(&piece).volume > EPS {
-                out.push(piece);
-            }
+        if let Some(piece) = clip(&c, scale(n, -1.), -d)
+            && moments(&piece).volume > EPS
+        {
+            out.push(piece);
         }
         inside = clip(&c, n, d);
     }
@@ -380,7 +380,7 @@ pub fn moments(c: &Cell) -> Moments {
             }
         }
     }
-    for k in 0..3 {
+    for (k, _) in origin.iter().enumerate() {
         m.second[k] += 2. * origin[k] * m.first[k] + origin[k] * origin[k] * m.volume;
         m.first[k] += origin[k] * m.volume;
     }
