@@ -1,0 +1,734 @@
+{
+  "schemaVersion": 1,
+  "equipment": [
+    {
+      "id": "us-5in38-mk30-mod0-single",
+      "name": "5-inch/38 Mk30 mod.0",
+      "kind": "gun",
+      "size": [
+        3.135,
+        3.868,
+        7.951
+      ],
+      "boundsCenter": [
+        0,
+        1.434,
+        -0.647
+      ],
+      "centerOfGravity": [
+        0,
+        1.1,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "us-5in38-mk30-mod0-single",
+      "occupancy": [
+        {
+          "center": [
+            0,
+            -0.9,
+            0
+          ],
+          "size": [
+            2.6,
+            1.8,
+            2.6
+          ]
+        }
+      ],
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "ammunition",
+          "kind": "ammunition",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "us-6in47-mk16-cleveland",
+      "name": "6-inch/47 Mk16 triple",
+      "kind": "gun",
+      "size": [
+        6.24,
+        3.421,
+        13.265
+      ],
+      "boundsCenter": [
+        0,
+        1.71,
+        -0.844
+      ],
+      "centerOfGravity": [
+        0,
+        1.15,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "us-6in47-mk16-cleveland",
+      "occupancy": [
+        {
+          "center": [
+            0,
+            -2,
+            0
+          ],
+          "size": [
+            5.4,
+            4,
+            5.4
+          ]
+        }
+      ],
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "ammunition",
+          "kind": "ammunition",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sk-c34-380-twin",
+      "name": "38 cm SK C/34 twin",
+      "kind": "gun",
+      "size": [
+        10.101,
+        3.461,
+        26.683
+      ],
+      "boundsCenter": [
+        0,
+        1.72,
+        -4.561
+      ],
+      "centerOfGravity": [
+        0,
+        1.5,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "sk-c34-380-twin",
+      "occupancy": [
+        {
+          "center": [
+            0,
+            -3,
+            0
+          ],
+          "size": [
+            9.9,
+            6,
+            9.9
+          ]
+        }
+      ],
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            -0.01,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "ammunition",
+          "kind": "ammunition",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "us-20mm-oerlikon-mk4-hsienyang",
+      "name": "20 mm Oerlikon Mk4 single",
+      "kind": "gun",
+      "size": [
+        1.401,
+        1.67,
+        2.495
+      ],
+      "boundsCenter": [
+        0,
+        0.835,
+        -0.14
+      ],
+      "centerOfGravity": [
+        0,
+        0.85,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "us-20mm-oerlikon-mk4-hsienyang",
+      "occupancy": [],
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "ammunition",
+          "kind": "ammunition",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fletcher-quintuple-533",
+      "name": "Fletcher 533 mm quintuple torpedo bank",
+      "kind": "torpedo-launcher",
+      "size": [
+        3.78,
+        2.65,
+        7.24
+      ],
+      "boundsCenter": [
+        0,
+        1.225,
+        0.05
+      ],
+      "centerOfGravity": [
+        0,
+        0.7,
+        0.1
+      ],
+      "placement": "deck",
+      "torpedoPartId": "us-mk15-fast",
+      "tubeOffsets": [
+        [
+          -1.3,
+          0.84,
+          -3.55
+        ],
+        [
+          -0.65,
+          0.84,
+          -3.55
+        ],
+        [
+          0,
+          0.84,
+          -3.55
+        ],
+        [
+          0.65,
+          0.84,
+          -3.55
+        ],
+        [
+          1.3,
+          0.84,
+          -3.55
+        ]
+      ],
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            -0.1,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ],
+      "massKg": 18000
+    },
+    {
+      "id": "generic-diesel-3000kw",
+      "name": "3,000 kW diesel machinery package",
+      "kind": "engine",
+      "size": [
+        3,
+        3,
+        6
+      ],
+      "boundsCenter": [
+        0,
+        1.5,
+        0
+      ],
+      "centerOfGravity": [
+        0,
+        1.1,
+        0
+      ],
+      "placement": "internal",
+      "powerKw": 3000,
+      "serviceMassKg": 5000,
+      "occupancy": [
+        {
+          "center": [
+            0,
+            1.5,
+            0
+          ],
+          "size": [
+            3,
+            3,
+            6
+          ]
+        }
+      ],
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "drive",
+          "kind": "shaft",
+          "position": [
+            0,
+            1.11,
+            3
+          ],
+          "direction": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "exhaust",
+          "kind": "exhaust",
+          "position": [
+            0,
+            3,
+            0
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        }
+      ],
+      "massKg": 35000
+    },
+    {
+      "id": "generic-magazine-1000",
+      "name": "1,000-round magazine package",
+      "kind": "magazine",
+      "size": [
+        3,
+        2.5,
+        4
+      ],
+      "boundsCenter": [
+        0,
+        1.25,
+        0
+      ],
+      "centerOfGravity": [
+        0,
+        1,
+        0
+      ],
+      "placement": "internal",
+      "ammunitionCapacity": 1000,
+      "occupancy": [
+        {
+          "center": [
+            0,
+            1.25,
+            0
+          ],
+          "size": [
+            3,
+            2.5,
+            4
+          ]
+        }
+      ],
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "ammunition",
+          "kind": "ammunition",
+          "position": [
+            0,
+            2.5,
+            0
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        }
+      ],
+      "massKg": 1800
+    },
+    {
+      "id": "fletcher-funnel",
+      "name": "Fletcher forward funnel",
+      "kind": "funnel",
+      "size": [
+        3.49,
+        8.94,
+        5.22
+      ],
+      "boundsCenter": [
+        0,
+        4.3975,
+        0.6142
+      ],
+      "centerOfGravity": [
+        0,
+        3.5,
+        0.4
+      ],
+      "placement": "deck",
+      "exhaustKw": 12000,
+      "occupancy": [
+        {
+          "center": [
+            0,
+            -0.5,
+            0
+          ],
+          "size": [
+            2.5,
+            1,
+            3
+          ]
+        }
+      ],
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            -0.07,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "exhaust-in",
+          "kind": "exhaust",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "exhaust-out",
+          "kind": "exhaust",
+          "position": [
+            0,
+            7.9,
+            1.185
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        }
+      ],
+      "massKg": 8500
+    },
+    {
+      "id": "fletcher-propeller-starboard",
+      "name": "Fletcher 4.2 m starboard screw",
+      "kind": "propeller",
+      "size": [
+        4.3,
+        4.3,
+        2.5
+      ],
+      "boundsCenter": [
+        0,
+        0,
+        -0.16
+      ],
+      "centerOfGravity": [
+        0,
+        0,
+        0
+      ],
+      "placement": "underwater",
+      "thrustEfficiency": 0.65,
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "shaft",
+          "position": [
+            0,
+            0,
+            -1.32
+          ],
+          "direction": [
+            0,
+            0,
+            -1
+          ]
+        }
+      ],
+      "massKg": 2500
+    },
+    {
+      "id": "fletcher-rudder",
+      "name": "Fletcher balanced rudder",
+      "kind": "rudder",
+      "size": [
+        0.5,
+        2.9,
+        3.05
+      ],
+      "boundsCenter": [
+        0,
+        -0.65,
+        0.025
+      ],
+      "centerOfGravity": [
+        0,
+        -0.75,
+        0
+      ],
+      "placement": "underwater",
+      "rudderAreaM2": 7,
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0.75,
+            0
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        },
+        {
+          "id": "steering",
+          "kind": "steering",
+          "position": [
+            0,
+            0.75,
+            0
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        }
+      ],
+      "massKg": 2600
+    },
+    {
+      "id": "fletcher-aft-mast",
+      "name": "Fletcher aftermast",
+      "kind": "mast",
+      "size": [
+        3.58,
+        10.6,
+        1
+      ],
+      "boundsCenter": [
+        0,
+        5.25,
+        0.25
+      ],
+      "centerOfGravity": [
+        0,
+        4,
+        0.2
+      ],
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ],
+      "massKg": 450
+    },
+    {
+      "id": "fletcher-mk37-director",
+      "name": "Fletcher Mk37 director",
+      "kind": "director",
+      "size": [
+        4.75,
+        6.1,
+        3.5
+      ],
+      "boundsCenter": [
+        0,
+        3,
+        0.16
+      ],
+      "centerOfGravity": [
+        0,
+        2.65,
+        0
+      ],
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "fire-control",
+          "kind": "fire-control",
+          "position": [
+            0,
+            2.05,
+            0
+          ],
+          "direction": [
+            0,
+            0,
+            -1
+          ]
+        }
+      ],
+      "massKg": 6500
+    }
+  ]
+}

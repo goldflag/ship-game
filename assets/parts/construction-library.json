@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "builders": {
+    "fletcher-quintuple-533": {
+      "path": "assets/parts/construction/geometry.py",
+      "function": "create_torpedo_launcher",
+      "inputs": []
+    },
+    "fletcher-funnel": {
+      "path": "assets/parts/construction/geometry.py",
+      "function": "create_funnel",
+      "inputs": []
+    },
+    "fletcher-propeller-starboard": {
+      "path": "assets/parts/construction/geometry.py",
+      "function": "create_propeller",
+      "inputs": []
+    },
+    "fletcher-rudder": {
+      "path": "assets/parts/construction/geometry.py",
+      "function": "create_rudder",
+      "inputs": []
+    },
+    "fletcher-aft-mast": {
+      "path": "assets/parts/construction/geometry.py",
+      "function": "create_mast",
+      "inputs": []
+    },
+    "fletcher-mk37-director": {
+      "path": "assets/parts/construction/geometry.py",
+      "function": "create_director",
+      "inputs": []
+    },
+    "generic-diesel-3000kw": {
+      "path": "assets/parts/construction/geometry.py",
+      "function": "create_engine",
+      "inputs": []
+    },
+    "generic-magazine-1000": {
+      "path": "assets/parts/construction/geometry.py",
+      "function": "create_magazine",
+      "inputs": []
+    }
+  },
+  "components": [
+    {
+      "partId": "fletcher-quintuple-533",
+      "builder": "fletcher-quintuple-533",
+      "review": "unreviewed",
+      "limitations": "Adapted original Fletcher source; fixed package mass and capabilities are estimates. Per-design attachment and moving-neighbor clearance require installation review."
+    },
+    {
+      "partId": "fletcher-funnel",
+      "builder": "fletcher-funnel",
+      "review": "unreviewed",
+      "limitations": "Adapted original Fletcher source; fixed package mass and capabilities are estimates. Per-design attachment and moving-neighbor clearance require installation review."
+    },
+    {
+      "partId": "fletcher-propeller-starboard",
+      "builder": "fletcher-propeller-starboard",
+      "review": "unreviewed",
+      "limitations": "Adapted original Fletcher source; fixed package mass and capabilities are estimates. Per-design attachment and moving-neighbor clearance require installation review."
+    },
+    {
+      "partId": "fletcher-rudder",
+      "builder": "fletcher-rudder",
+      "review": "unreviewed",
+      "limitations": "Adapted original Fletcher source; fixed package mass and capabilities are estimates. Per-design attachment and moving-neighbor clearance require installation review."
+    },
+    {
+      "partId": "fletcher-aft-mast",
+      "builder": "fletcher-aft-mast",
+      "review": "unreviewed",
+      "limitations": "Adapted original Fletcher source; fixed package mass and capabilities are estimates. Per-design attachment and moving-neighbor clearance require installation review."
+    },
+    {
+      "partId": "fletcher-mk37-director",
+      "builder": "fletcher-mk37-director",
+      "review": "unreviewed",
+      "limitations": "Adapted original Fletcher source; fixed package mass and capabilities are estimates. Per-design attachment and moving-neighbor clearance require installation review."
+    },
+    {
+      "partId": "generic-diesel-3000kw",
+      "builder": "generic-diesel-3000kw",
+      "review": "unreviewed",
+      "limitations": "Original generic engineering package; dimensions, mass and capabilities are declared gameplay estimates, not a historical reconstruction."
+    },
+    {
+      "partId": "generic-magazine-1000",
+      "builder": "generic-magazine-1000",
+      "review": "unreviewed",
+      "limitations": "Original generic engineering package; dimensions, mass and capabilities are declared gameplay estimates, not a historical reconstruction."
+    }
+  ]
+}

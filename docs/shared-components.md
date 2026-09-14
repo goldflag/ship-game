@@ -31,6 +31,19 @@ Gun parts may specify `recoilM: 0` for stationary external barrels; retain their
 
 All standalone generated GLBs, Blender scenes and logs stay under ignored `.build/parts/<part-id>/`. They are regenerated from original inputs, not committed. The viewer serves only current previews, using hashes of the selected part, builder and dependencies. Missing or stale previews show a build instruction and can still offer a clearly labeled installed preview. A failed build retains `.staging` for diagnosis; inspect its log and confirm no process owns it before removing it and retrying. `BLENDER_BIN` selects a local Blender executable.
 
+## Production construction equipment
+
+The curated construction collection adds real non-gun families through
+`assets/parts/construction-library.json` and the shared `ConstructionEquipmentPart`
+contract. `bun run part:publish` builds its registered originals and publishes
+immutable models, manifests and exact catalog revisions under
+`public/models/components/`. `bun run part:published:check` verifies this retained
+publication without needing preview files or Blender. The production build runs
+that check; runtime fetches use the existing base-path helper. See
+[construction equipment](../assets/parts/construction/README.md) for package
+estimates, original source registrations, attachment datums and retained joints.
+Standalone viewer previews continue to live only in `.build/parts/`.
+
 ## Install in a ship
 
 1. Confirm the exact variant matches the approved ship fit. Check its limitations and review status in the viewer. Reuse existing reference approvals; this library does not authorize a different historical fit.

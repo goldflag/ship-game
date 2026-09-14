@@ -8,6 +8,17 @@ const root = resolve(import.meta.dir, '../..');
 const [action = 'list', id = 'all'] = process.argv.slice(2);
 if (!['list', 'inputs', 'build', 'check'].includes(action)) throw new Error('Usage: bun run part:list | part:inputs|build|check <part-id|all>');
 const { library, catalog } = await readLibrary(root);
+const { readEquipment, equipmentInputs, equipmentHash, buildEquipment, inspectEquipmentModel } = await import('./equipment');
+const { equipment, registry } = await readEquipment(root);
+const nonGuns = equipment.filter(p => p.kind !== 'gun' && (id === 'all' || id === p.id));
+for (const part of nonGuns) {
+  if (action === 'list') { console.log(`${part.id}\t${part.name}\treusable recipe (${part.kind})\t${registry.components.find(e=>e.partId===part.id)!.review}`); continue; }
+  if (action === 'inputs') { console.log(JSON.stringify({ version: 1, files: await equipmentInputs(root,part.id) },null,2)); continue; }
+  if (action === 'build') await buildEquipment(root,part);
+  inspectEquipmentModel(await readFile(join(root,'.build/parts',part.id,'model.glb')),await equipmentHash(root,part),part);
+  console.log(`${part.id}: ${action} passed (geometry review: unreviewed)`);
+}
+if (nonGuns.length && id !== 'all') process.exit(0);
 const entries = library.components.filter(e => id === 'all' ? action === 'list' || !!e.builder : e.partId === id);
 if (!entries.length) throw new Error(`Unknown component: ${id}`);
 for (const entry of entries) {
