@@ -13,6 +13,7 @@ import { PreparedPoseGroup } from './FrameScene';
 import { ShipPoseMatrices } from './ShipPoseMatrices';
 import { ShipRigView } from './ShipRigView';
 import { gunAimPoints } from './gunAim';
+import { gunPosePath, interpolateGunPath, type GunPose } from '../simulation/gunClearance';
 
 /** Renderer adapter. Simulation geometry and transforms come from the same definition. */
 export class ShipView {
@@ -29,6 +30,7 @@ export class ShipView {
   private motionSource: Combatant['motion'];
   private previousMounts: Combatant['mounts'];
   private renderedMounts: Combatant['mounts'];
+  private clearancePaths: ({ from: GunPose; to: GunPose; path: GunPose[] } | undefined)[] = [];
   private previousLaunchers: number[];
   private renderedLaunchers: NonNullable<Combatant['torpedoLaunchers']>;
   private launcherBindings: THREE.Object3D[];
@@ -194,6 +196,15 @@ export class ShipView {
         // across later display frames. Recoil may still settle independently.
         const stopped = key !== 'recoil' && (currentMount.hp <= 0 || currentMount.status === 'disabled' || this.actor.damage.sunk);
         m[key] = stopped ? currentMount[key] : THREE.MathUtils.lerp(previousMount[key], currentMount[key], t);
+      }
+      const definition=this.definition.mounts[i];
+      if(definition.travelClearance&&t>0&&t<1&&currentMount.hp>0&&currentMount.status!=='disabled'&&!this.actor.damage.sunk){
+        let cached=this.clearancePaths[i];
+        if(!cached||cached.from.train!==previousMount.train||cached.from.elevation!==previousMount.elevation||cached.to.train!==currentMount.train||cached.to.elevation!==currentMount.elevation){
+          const from={train:previousMount.train,elevation:previousMount.elevation},to={train:currentMount.train,elevation:currentMount.elevation};
+          cached={from,to,path:gunPosePath(definition,from,to)};this.clearancePaths[i]=cached;
+        }
+        Object.assign(m,interpolateGunPath(definition,cached.path,cached.to,t));
       }
     });
     updateMountCarriers(this.definition, mounts);

@@ -1657,7 +1657,7 @@ impl Aviation {
                 // Each burst still requires a newly settled, clear solution.
                 p.cooldown = if panic {
                     1.6
-                } else if p.ammo as u32 % 2 == 0 {
+                } else if (p.ammo as u32).is_multiple_of(2) {
                     1.5
                 } else {
                     0.25

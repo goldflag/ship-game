@@ -561,7 +561,18 @@ pub fn update_mount_at(
     let requested_elevation =
         s.elevation + clamp(elevation - s.elevation, -elevation_rate, elevation_rate);
     let mut mechanically_blocked = false;
-    if let Some(clearance) = &obstructions.clearance {
+    if m.travel_clearance.is_some() {
+        let (train, elevation, blocked) = crate::gun_clearance::advance_gun_motion(
+            m,
+            s.train,
+            s.elevation,
+            requested_train,
+            requested_elevation,
+        );
+        s.train = train;
+        s.elevation = elevation;
+        mechanically_blocked = blocked;
+    } else if let Some(clearance) = &obstructions.clearance {
         if clearance.enabled(index) {
             // Physical movement needs actual independent neighbors. Legacy
             // callers without a complete pose array must fail closed.

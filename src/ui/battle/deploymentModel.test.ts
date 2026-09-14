@@ -106,8 +106,9 @@ test('the first chart puts each group on its formation stations around the centr
   // battle area keeps the worker's layout instead of starting with a placement error.
   const rearColumn = initialPvePlacements(briefing, { rear: 'column' });
   expect(rearColumn.find(p => p.id === 'cl')!.spawn.x).toBeCloseTo(0); expect(rearColumn.find(p => p.id === 'cl')!.spawn.z - rearColumn.find(p => p.id === 'cv')!.spawn.z).toBeCloseTo(roleInterval('carrier'));
-  const edge = { ...briefing, setup: { ...briefing.setup, ships: [ship('bb', 'bismarck', -400, 24500), ship('ca', 'baltimore', 400, 24500)] }, assignments: briefing.assignments.slice(0, 2) } as PveBriefing;
-  expect(initialPvePlacements(edge).map(p => p.spawn)).toEqual([{ x: -400, z: 24500, heading: 0 }, { x: 400, z: 24500, heading: 0 }]);
+  const edgeZ = mission.area.radiusM - 200; // Seed hulls fit, but the column's aft station crosses the boundary.
+  const edge = { ...briefing, setup: { ...briefing.setup, ships: [ship('bb', 'bismarck', -400, edgeZ), ship('ca', 'baltimore', 400, edgeZ)] }, assignments: briefing.assignments.slice(0, 2) } as PveBriefing;
+  expect(initialPvePlacements(edge).map(p => p.spawn)).toEqual([{ x: -400, z: edgeZ, heading: 0 }, { x: 400, z: edgeZ, heading: 0 }]);
   // A column whose recentred head would leave the friendly sector slides astern instead of giving up.
   const south = 7000; // The worker's pair block sits on the sector edge; the recentred column's head would cross it.
   const coast = { ...briefing, setup: { ...briefing.setup, ships: [ship('bb', 'bismarck', -400, south), ship('ca', 'baltimore', 400, south), ship('dd', 'fletcher', -400, south + 700), ship('cl', 'cleveland', 400, south + 700)] },

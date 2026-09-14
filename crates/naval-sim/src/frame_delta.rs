@@ -58,7 +58,9 @@ impl Name {
 
 /// The previous frame, held the way the walk reads it. Numbers and booleans are
 /// unboxed; the shapes the walk does not descend into keep their rendered text.
+#[derive(Default)]
 enum Node {
+    #[default]
     Null,
     Bool(bool),
     Int(i128),
@@ -127,12 +129,6 @@ impl Node {
             Self::Object(entries) => entries.iter().find(|(name, _)| name.is(key)).map(|e| &e.1),
             _ => None,
         }
-    }
-}
-
-impl Default for Node {
-    fn default() -> Self {
-        Self::Null
     }
 }
 
@@ -675,7 +671,11 @@ impl<'a> Serializer for Diff<'a> {
     fn serialize_tuple(self, _len: usize) -> Result<DiffSeq<'a>, Error> {
         Ok(DiffSeq::new(self))
     }
-    fn serialize_tuple_struct(self, _name: &'static str, _len: usize) -> Result<DiffSeq<'a>, Error> {
+    fn serialize_tuple_struct(
+        self,
+        _name: &'static str,
+        _len: usize,
+    ) -> Result<DiffSeq<'a>, Error> {
         Ok(DiffSeq::new(self))
     }
     fn serialize_map(self, _len: Option<usize>) -> Result<DiffObject<'a>, Error> {
@@ -948,7 +948,9 @@ mod tests {
     fn nested_arrays_of_objects_patch_only_the_element_that_moved() {
         let mut delta = FrameDelta::default();
         delta
-            .encode(&json!({"actors": [{"id": "a", "p": [0.0, 1.0]}, {"id": "b", "p": [2.0, 3.0]}]}))
+            .encode(
+                &json!({"actors": [{"id": "a", "p": [0.0, 1.0]}, {"id": "b", "p": [2.0, 3.0]}]}),
+            )
             .unwrap();
         assert!(
             delta

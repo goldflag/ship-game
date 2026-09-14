@@ -1,0 +1,57 @@
+{
+  "version": 1,
+  "id": "kongo-authored-maintained-v1",
+  "basis": "Existing approved GameModels3D-only reconstruction palette retained from the original recipe; interpreted colors and plank scale, not measured historical paint or construction.",
+  "materials": {
+    "naval": {
+      "paint": "kongo-authored-naval",
+      "finish": "painted-steel"
+    },
+    "roof": {
+      "paint": "kongo-authored-roof",
+      "finish": "painted-deck"
+    },
+    "hullgray": {
+      "paint": "kongo-authored-hullgray",
+      "finish": "painted-steel",
+      "projection": "hull"
+    },
+    "edge": {
+      "paint": "kongo-authored-edge",
+      "finish": "painted-steel"
+    },
+    "red": {
+      "paint": "kongo-authored-red",
+      "finish": "underwater-coating",
+      "projection": "hull"
+    },
+    "wood": {
+      "paint": "kongo-authored-wood",
+      "finish": "wood"
+    },
+    "linoleum": {
+      "paint": "kongo-authored-linoleum",
+      "finish": "linoleum"
+    }
+  },
+  "hull": {
+    "bounds": [
+      -110.5,
+      110.5,
+      -9,
+      9
+    ],
+    "pixelsPerMeter": 16,
+    "waterline": 0,
+    "stainStrength": 0.16,
+    "runoffStrength": 0.16
+  },
+  "decking": {
+    "wood": {
+      "plankLength": 3,
+      "plankWidth": 0.15,
+      "seamWidth": 0.003,
+      "coating": "unpainted"
+    }
+  }
+}

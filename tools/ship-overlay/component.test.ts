@@ -37,3 +37,21 @@ test('elevation and recoil follow the articulated bore and reset without accumul
   expect(recoil.position.z).toBe(0);
   pose.pose(weapon, 0, 0, 0); expect(elevation.rotation.x).toBeCloseTo(0);
 });
+
+test('gun covers follow elevation from a depressed base shape and reset with the barrels', () => {
+  const root = new THREE.Group(), elevation = new THREE.Group();
+  elevation.userData.nodeId = 'main.left.elevation'; root.add(elevation);
+  const cover = new THREE.Mesh(new THREE.BufferGeometry());
+  cover.userData = { gunCoverElevationId: 'main.left.elevation', gunCoverBaseAngle: -5, gunCoverAngles: [0, 20, 45] };
+  cover.morphTargetInfluences = [0, 0, 0]; root.add(cover);
+  const weapon = catalog.parts.find(p => p.id === 'type41-356-kongo-twin') as GunPart;
+  const pose = new ComponentArticulation(root, 'main');
+  for (const [angle, expected] of [
+    [10, [.5, .5, 0]], [43, [0, .08, .92]],
+    [-2.5, [.5, 0, 0]], [-5, [0, 0, 0]], [0, [1, 0, 0]],
+  ] as const) {
+    pose.pose(weapon, 0, angle, 1);
+    expect(elevation.rotation.x).toBeCloseTo(THREE.MathUtils.degToRad(angle));
+    expected.forEach((weight, i) => expect(cover.morphTargetInfluences![i]).toBeCloseTo(weight));
+  }
+});

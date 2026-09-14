@@ -308,9 +308,9 @@ fn formation_layouts_vary_by_sortie_and_role_and_change_without_teleporting() {
     ps[1].pilot.attack_stage = Some("run".into());
     fly_formation(&mut ps[1], &leader, &f, 1.0 / 60.0, 1.0 / 60.0, 5739);
     assert_eq!(ps[1].pilot.formation.as_ref().unwrap().kind, "line-abreast");
-    for axis in 0..3 {
+    for (axis, value) in before.iter().enumerate() {
         assert!(
-            (ps[1].pilot.formation.as_ref().unwrap().offset[axis] - before[axis]).abs()
+            (ps[1].pilot.formation.as_ref().unwrap().offset[axis] - value).abs()
                 <= 8.0 / 60.0 + 1e-9
         );
     }

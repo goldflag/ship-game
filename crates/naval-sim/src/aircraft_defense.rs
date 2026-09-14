@@ -108,13 +108,13 @@ pub fn evade_bomber(
             if slot % 2 == 1 { -1.0 } else { 1.0 }
         } else if across.abs() > 0.1 {
             -across.signum()
-        } else if key % 2 == 0 {
+        } else if key.is_multiple_of(2) {
             1.0
         } else {
             -1.0
         };
         state.heading = p.heading + state.side * (0.35 + (key % 5) as f64 * 0.055);
-        let descend = key % 3 == 0 && p.position[1] > 250.0;
+        let descend = key.is_multiple_of(3) && p.position[1] > 250.0;
         state.altitude = (p.position[1] + if descend { -65.0 } else { 45.0 }).max(70.0);
         state.maneuver_seconds = 4.0 + (key % 3) as f64;
         state.cooldown = state.maneuver_seconds + 10.0;

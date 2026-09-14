@@ -772,7 +772,7 @@ impl Battle {
             let (a, fleet) = crate::vessel::Fleet::split(&mut self.actors, i);
             let target = target_index.and_then(|j| fleet.get(j));
             if self.mission_rules.is_some() && a.controller == Controller::Bot {
-                let secondary = bots::battery_mount(&a, true).and_then(|mount| {
+                let secondary = bots::battery_mount(a, true).and_then(|mount| {
                     self.sensors.battery_target(
                         a.team,
                         [a.motion.x, a.motion.y, a.motion.z],
@@ -796,7 +796,7 @@ impl Battle {
                             a.bot.as_ref().map_or(AiLevel::Normal, |b| b.ai_level),
                         )
                     });
-                    bot.update_contact(&a, &def, secondary, time);
+                    bot.update_contact(a, &def, secondary, time);
                     a.secondary_bot = Some(bot);
                 }
             }
@@ -942,7 +942,7 @@ impl Battle {
         let control_step = self
             .tick
             .is_multiple_of(control_ticks)
-            .then(|| control_ticks as f64 * DT);
+            .then_some(control_ticks as f64 * DT);
         for (i, a) in self.actors.iter_mut().enumerate() {
             let compiled = a.compiled.clone();
             let def = &compiled.definition;

@@ -196,7 +196,7 @@ fn drive(
     index: usize,
     target: [f64; 3],
     ticks: usize,
-    states: &mut Vec<MountState>,
+    states: &mut [MountState],
 ) -> MountState {
     let mut state = states[index].clone();
     for _ in 0..ticks {
@@ -224,14 +224,28 @@ fn published_yamato_mounts_move_and_respect_their_obstruction_boxes() {
     assert!(obstructions.clearance.is_none(), "box obstructions only");
     let mut states: Vec<_> = def.mounts.iter().map(MountState::new).collect();
     // The superfiring forward turret reaches a beam target through its arc.
-    let beam = drive(&def, &obstructions, 1, [12_000.0, 0.0, 0.0], 4800, &mut states);
+    let beam = drive(
+        &def,
+        &obstructions,
+        1,
+        [12_000.0, 0.0, 0.0],
+        4800,
+        &mut states,
+    );
     assert!(
         (beam.train - radians(90.0)).abs() < radians(2.0),
         "main-2 must traverse to the beam: {beam:?}"
     );
     assert_ne!(beam.status, MountStatus::Blocked);
     // Firing across the lower forward turret stays blocked by its box.
-    let over_main1 = drive(&def, &obstructions, 1, [0.0, 0.0, -130.0], 4800, &mut states);
+    let over_main1 = drive(
+        &def,
+        &obstructions,
+        1,
+        [0.0, 0.0, -130.0],
+        4800,
+        &mut states,
+    );
     assert_eq!(over_main1.status, MountStatus::Blocked);
     // Every mount still moves toward a distant target off the starboard bow.
     let mut states: Vec<_> = def.mounts.iter().map(MountState::new).collect();

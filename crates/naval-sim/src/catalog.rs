@@ -270,6 +270,55 @@ pub fn validate_definition(d: &ShipDefinition) -> Result<(), ContentError> {
         }
     }
     for (i, mount) in d.mounts.iter().enumerate() {
+        if let Some(c) = &mount.travel_clearance {
+            if d.mount_clearance.as_ref().is_some_and(|p| {
+                p.mount_ids
+                    .as_ref()
+                    .is_some_and(|ids| ids.contains(&mount.id))
+                    || p.mounts
+                        .as_ref()
+                        .is_some_and(|entries| entries.iter().any(|e| e.mount_id == mount.id))
+            }) {
+                return Err(ContentError::Invalid(format!(
+                    "{}: use either travelClearance or mountClearance, not both",
+                    mount.id
+                )));
+            }
+            let vertices = &c.surface.vertices;
+            if c.version != 1
+                || !(3..=2048).contains(&vertices.len())
+                || !(1..=4096).contains(&c.surface.triangles.len())
+                || !(1..=16).contains(&c.barrels.len())
+                || vertices.iter().flatten().any(|v| !v.is_finite())
+                || c.barrels.iter().any(|p| {
+                    ![p.from_m, p.to_m, p.height_m, p.radius_m]
+                        .iter()
+                        .all(|v| v.is_finite())
+                        || p.from_m < -50.0
+                        || p.to_m > 50.0
+                        || p.to_m <= p.from_m
+                        || p.height_m.abs() > 10.0
+                        || !(0.001..=5.0).contains(&p.radius_m)
+                })
+            {
+                return Err(fail());
+            }
+            for ids in &c.surface.triangles {
+                if ids.iter().any(|i| {
+                    !i.is_finite() || i.fract() != 0.0 || *i < 0.0 || *i >= vertices.len() as f64
+                }) {
+                    return Err(fail());
+                }
+                let [a, b, c] = ids.map(|i| vertices[i as usize]);
+                if crate::geometry::length(crate::geometry::cross(
+                    crate::geometry::sub(b, a),
+                    crate::geometry::sub(c, a),
+                )) < 1e-8
+                {
+                    return Err(fail());
+                }
+            }
+        }
         if mount
             .parent_mount_id
             .as_ref()

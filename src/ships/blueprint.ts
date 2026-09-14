@@ -84,7 +84,7 @@ export interface GunPart {
   /** Original authored gunhouse vertices in the mount's forward/port/up frame. */
   gunhouseShape?: { footprint: [number, number][]; roof: Vec3[] };
   /** Versioned original facets shared by the visual enclosure and physical armor. */
-  gunhouseMesh?: { version: 1; vertices: Vec3[]; faces: { id: string; indices: [number, number, number]; thicknessMm: number; material: 'KC' | 'Wh' | 'steel'; finish: 'naval' | 'roof' }[]; provenance?: Armor['provenance'] };
+  gunhouseMesh?: { version: 1; vertices: Vec3[]; faces: { id: string; indices: [number, number, number]; thicknessMm: number; material: 'KC' | 'Wh' | 'steel'; finish: 'naval' | 'roof' }[]; apertures?: { id: string; indices: number[] }[]; provenance?: Armor['provenance'] };
 }
 export const barrelIds = (weapon: GunPart): readonly string[] => {
   switch (weapon.barrelCount ?? 2) {
@@ -98,6 +98,14 @@ export const barrelIds = (weapon: GunPart): readonly string[] => {
 export const barrelOffset = (weapon: GunPart, index: number): number => ((weapon.barrelCount === 8 ? index % 4 - 1.5 : index - ((weapon.barrelCount ?? 2) - 1) / 2)) * weapon.barrelSpacing;
 export const barrelHeightOffset = (weapon: GunPart, index: number): number => weapon.barrelCount === 8 ? (index < 4 ? -.5 : .5) * weapon.barrelVerticalSpacing! : 0;
 export interface PartCatalog { schemaVersion: 1; parts: GunPart[]; torpedoes?: TorpedoPart[]; depthCharges?: DepthChargePart[]; }
+/** Original installation geometry in the untrained mount frame. It follows
+ * the mounting base (including a carrier), never the gun's own train. */
+export interface TravelClearance {
+  version: 1;
+  surface: AuthoredSurface;
+  /** Axial capsules relative to each bore's elevation pivot. */
+  barrels: { fromM: number; toM: number; heightM: number; radiusM: number; recoils: boolean }[];
+}
 export interface Mount {
   id: string; name: string; partId: string; battery: 'main' | 'secondary'; position: Vec3;
   bearingDeg: number; rangefinder: boolean;
@@ -106,6 +114,7 @@ export interface Mount {
   /** Riding on another mount's yaw assembly. Position/bearing remain the
    * ship-space neutral datums; the carrier must precede this mount. */
   parentMountId?: string;
+  travelClearance?: TravelClearance;
   /** Installed half-sector about bearingDeg, at most the catalog capability. */
   traverseDeg?: number;
   /** Installed depression stop, between the catalog minimum and level. */
@@ -481,7 +490,20 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
       faces.forEach(f=>{validateTriangle(f.indices,vertices,'gunhouse face');numeric(f.thicknessMm,'gunhouse thickness',.1,2000);literal(f.material,['KC','Wh','steel'],'gunhouse material');literal(f.finish,['naval','roof'],'gunhouse finish');});
       const edges=new Map<string,{count:number;winding:number}>();
       faces.forEach(f=>{const ids=f.indices as number[];ids.forEach((a,i)=>{const c=ids[(i+1)%3],key=[a,c].sort((a,b)=>a-b).join(':');const edge=edges.get(key)??{count:0,winding:0};edge.count++;edge.winding+=a<c?1:-1;edges.set(key,edge);});});
-      if (!faces.length || [...edges.values()].some(e=>e.count!==2||e.winding!==0)) fail(String(p.id),'gunhouse facets must form a closed consistently wound enclosure');
+      // Explicit open boundary loops are topology metadata, never armor plates.
+      const apertures=list(mesh.apertures??[],'gunhouseMesh.apertures',16).map(a=>record(a,'gunhouse aperture'));
+      unique(apertures,'gunhouse apertures');
+      apertures.forEach(aperture=>{
+        id(aperture.id,'gunhouse aperture id');
+        const loop=list(aperture.indices,'gunhouse aperture indices',128).map(n=>numeric(n,'gunhouse aperture index',0,vertices.length-1));
+        if(loop.length<3 || new Set(loop).size!==loop.length || loop.some(n=>!Number.isInteger(n))) fail(String(p.id),'aperture requires at least three distinct vertex indices');
+        loop.forEach((a,i)=>{
+          const c=loop[(i+1)%loop.length],key=[a,c].sort((a,b)=>a-b).join(':'),edge=edges.get(key);
+          if(!edge || edge.count!==1 || edge.winding!==(a<c?-1:1)) return fail(String(p.id),'aperture must close an existing consistently wound open boundary');
+          edge.count++;edge.winding+=a<c?1:-1;
+        });
+      });
+      if (!faces.length || [...edges.values()].some(e=>e.count!==2||e.winding!==0)) fail(String(p.id),'gunhouse facets must form a closed consistently wound enclosure except for declared apertures');
     }
   });
   if (b.damageControl !== undefined) {
@@ -494,7 +516,7 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
     for (const k of ['suppressionPerSecond', 'portablePumpM3PerSecond', 'repairHpPerSecond', 'patchM2PerSecond', 'maxPatchM2']) numeric(d[k], `damageControl.${k}`, .000001, 10);
     for (const k of ['repairCeiling', 'flashProtection']) numeric(d[k], `damageControl.${k}`, 0, 1);
   }
-  const mounts = list(b.mounts, 'mounts', 64).map((m, i) => record(m, `mounts[${i}]`));
+  const mounts = list(b.mounts, 'mounts', 128).map((m, i) => record(m, `mounts[${i}]`));
   unique(mounts, 'mounts');
   mounts.forEach((m, index) => {
     text(m.name, `${m.id}.name`); id(m.partId, `${m.id}.partId`);
@@ -526,9 +548,32 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
       id(m.parentMountId, `${m.id}.parentMountId`);
       if (!mounts.slice(0, index).some(parent => parent.id === m.parentMountId)) fail(String(m.id), 'parent mount must precede its child (no missing parents or cycles)');
     }
+    if (m.travelClearance !== undefined) {
+      const path = `${m.id}.travelClearance`, c = record(m.travelClearance, path);
+      literal(c.version, [1], `${path}.version`);
+      const surface = record(c.surface, `${path}.surface`);
+      const vertices = list(surface.vertices, `${path}.vertices`, 2048).map((v, i) => vector(v, `${path}.vertices[${i}]`));
+      if (vertices.length < 3) fail(path, 'clearance needs at least three vertices');
+      const triangles = list(surface.triangles, `${path}.triangles`, 4096);
+      if (!triangles.length) fail(path, 'clearance needs triangles');
+      triangles.forEach(t => validateTriangle(t, vertices, path));
+      const barrels = list(c.barrels, `${path}.barrels`, 16);
+      if (!barrels.length) fail(path, 'clearance needs barrel capsules');
+      barrels.forEach((value, i) => {
+        const p = record(value, `${path}.barrels[${i}]`);
+        numeric(p.fromM, path, -50, 50); numeric(p.toM, path, -50, 50);
+        if ((p.toM as number) <= (p.fromM as number)) fail(path, 'capsule ends must increase');
+        numeric(p.heightM, path, -10, 10); numeric(p.radiusM, path, .001, 5);
+        literal(p.recoils, [true, false], path);
+      });
+    }
   });
   if (b.mountClearance !== undefined) {
     const profile = record(b.mountClearance, 'mountClearance');
+    const participants = profile.mountIds ?? (Array.isArray(profile.mounts) ? profile.mounts.map(e => record(e, 'clearance mount').mountId) : []);
+    if (Array.isArray(participants) && mounts.some(m => m.travelClearance && participants.includes(m.id))) {
+      fail('mountClearance', 'a mount must use either travelClearance or mountClearance, not both');
+    }
     literal(profile.version, [1], 'mountClearance.version');
     text(profile.basis, 'mountClearance.basis');
     const bodies = profile.mountIds !== undefined || profile.bodies !== undefined;

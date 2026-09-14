@@ -411,6 +411,13 @@ pub fn mount_pose_clear(
     states: &[MountState],
     extra_margin: f64,
 ) -> bool {
+    if let Some(mount) = d.mounts.get(index).filter(|m| m.travel_clearance.is_some()) {
+        return pose.0.is_finite()
+            && pose.1.is_finite()
+            && extra_margin.is_finite()
+            && extra_margin >= 0.0
+            && crate::gun_clearance::gun_clearance(mount, pose.0, pose.1) >= extra_margin;
+    }
     let Some(profile) = &d.mount_clearance else {
         return true;
     };
@@ -436,6 +443,21 @@ pub fn move_mount_with_clearance(
     target: Angles,
     states: &[MountState],
 ) -> bool {
+    if let Some(mount) = d.mounts.get(index).filter(|m| m.travel_clearance.is_some()) {
+        if !target.0.is_finite() || !target.1.is_finite() {
+            return false;
+        }
+        let (train, elevation, blocked) = crate::gun_clearance::advance_gun_motion(
+            mount,
+            s.train,
+            s.elevation,
+            target.0,
+            target.1,
+        );
+        s.train = train;
+        s.elevation = elevation;
+        return !blocked;
+    }
     let installation = match d.mount_clearance.as_ref().map(clearance_mode).transpose() {
         Ok(Some(ClearanceMode::Installation)) => true,
         Ok(_) => false,

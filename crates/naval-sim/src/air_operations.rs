@@ -233,7 +233,7 @@ impl Aviation {
                             .iter()
                             .filter(|p| flight.plane_ids.contains(&p.id) && !terminal(p))
                             .all(|p| {
-                                p.hp >= self.rules.repair_ceiling_hp.min(45.0).max(25.0)
+                                p.hp >= self.rules.repair_ceiling_hp.clamp(25.0, 45.0)
                                     && p.ammo >= FIGHTER_AMMO_BURSTS * 0.75
                             });
                         if serviced
@@ -279,10 +279,9 @@ impl Aviation {
         if let Some(f) = self
             .wing_mut(owner)
             .and_then(|w| w.flights.iter_mut().find(|f| f.id == id))
+            && f.notice.as_deref() != Some(notice)
         {
-            if f.notice.as_deref() != Some(notice) {
-                f.notice = Some(notice.into());
-            }
+            f.notice = Some(notice.into());
         }
     }
     fn patrol_spare(
