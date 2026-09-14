@@ -1,3 +1,4 @@
+import finishes from '../../assets/ships/appearance/finishes.json';
 /** Sandbox paints, using shared painted-steel/deck finish values and an 8 m
  * metric repeat. These are design colors, not claims about historical schemes. */
 export const CONSTRUCTION_PAINTS = [
@@ -10,4 +11,10 @@ export const CONSTRUCTION_PAINTS = [
   { id: 'boot-top-black', name: 'Boot topping', color: '#253035' },
 ] as const;
 export const constructionPaintColor = (id: string) => CONSTRUCTION_PAINTS.find(p => p.id === id)?.color ?? '#7c8c91';
-export const CONSTRUCTION_FINISH = { steelRoughness: 0.78, deckRoughness: 0.84, metalness: 0, tileMeters: 8 } as const;
+export const CONSTRUCTION_FINISH = {
+  steelRoughness: finishes.finishes['painted-steel'].roughness,
+  deckRoughness: finishes.finishes['painted-deck'].roughness,
+  metalness: finishes.finishes['painted-steel'].metallic,
+  tileMeters: finishes.finishes['painted-steel'].tileMeters,
+  grain: finishes.finishes['painted-steel'].grain,
+} as const;

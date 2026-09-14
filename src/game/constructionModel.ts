@@ -8,6 +8,17 @@ import { CONSTRUCTION_FINISH, constructionPaintColor } from '../ships/constructi
  * to source faces; triangulation and material batching never become source IDs. */
 export function createConstructionHull(surfaces: readonly ConstructionSurface[]): THREE.Group {
   const group = new THREE.Group(); group.name = 'Constructed hull';
+  const textureSize = 128, pixels = new Uint8Array(textureSize * textureSize * 4);
+  // Subtle repeatable coating grain. UVs remain in ship coordinates, so adjacent
+  // primitives have neither a paint reset nor a visible block boundary.
+  for (let y = 0; y < textureSize; y++) for (let x = 0; x < textureSize; x++) {
+    const wave = Math.sin(x * 2 * Math.PI / textureSize * 7) * Math.cos(y * 2 * Math.PI / textureSize * 11);
+    const value = Math.round(255 * (1 - CONSTRUCTION_FINISH.grain * (1 + wave)));
+    const i = 4 * (y * textureSize + x); pixels[i] = pixels[i + 1] = pixels[i + 2] = value; pixels[i + 3] = 255;
+  }
+  const coating = new THREE.DataTexture(pixels, textureSize, textureSize);
+  coating.name = 'Shared metric naval coating'; coating.wrapS = coating.wrapT = THREE.RepeatWrapping;
+  coating.magFilter = THREE.LinearFilter; coating.minFilter = THREE.LinearMipmapLinearFilter; coating.generateMipmaps = true; coating.needsUpdate = true;
   const batches = new Map<string, { paint: string; deck: boolean; positions: number[]; normals: number[]; uv: number[]; faces: ConstructionSurface[] }>();
   for (const surface of surfaces) {
     if (surface.open || surface.vertices.length < 3) continue;
@@ -30,12 +41,13 @@ export function createConstructionHull(surfaces: readonly ConstructionSurface[])
     geometry.setAttribute('normal', new THREE.Float32BufferAttribute(batch.normals, 3));
     geometry.setAttribute('uv', new THREE.Float32BufferAttribute(batch.uv, 2));
     geometry.computeBoundingBox(); geometry.computeBoundingSphere();
-    const material = new THREE.MeshStandardMaterial({ color: constructionPaintColor(batch.paint), roughness: batch.deck ? CONSTRUCTION_FINISH.deckRoughness : CONSTRUCTION_FINISH.steelRoughness, metalness: CONSTRUCTION_FINISH.metalness, side: THREE.DoubleSide });
+    const material = new THREE.MeshStandardMaterial({ color: constructionPaintColor(batch.paint), map: coating, roughness: batch.deck ? CONSTRUCTION_FINISH.deckRoughness : CONSTRUCTION_FINISH.steelRoughness, metalness: CONSTRUCTION_FINISH.metalness, side: THREE.DoubleSide });
     material.name = `construction.${key}`;
     const mesh = new THREE.Mesh(geometry, material); mesh.name = `hull.${key}`;
     mesh.userData = { assemblyId: 'hull', nodeId: mesh.name, constructionSurfaces: batch.faces };
     mesh.castShadow = mesh.receiveShadow = true; group.add(mesh);
   }
+  if (!batches.size) coating.dispose();
   return group;
 }
 

@@ -164,6 +164,13 @@ The desktop MVP is delivered; see [implementation status](docs/pve-implementatio
 
 ## Architecture
 
+The port's **Shipbuilder** creates local surface ships from editable hull pieces,
+armor, equipment and internal boundaries. Save drafts in the local library,
+launch a sea trial, or bring compiled designs into Custom battle as player or AI
+ships. Historical presets remain non-editable; online and campaign content stays
+separate. See the [shipbuilding guide](docs/shipbuilding.md) for controls, source
+identity, physical approximations and recovery.
+
 Production builds publish losslessly compressed ship transfers alongside the original GLBs. `src/game/loadShipModel.ts` decompresses them before the normal GLTF parse and definition-hash check; development uses the original models. The build also extracts the supplied ocean/sky libraries' embedded textures into separate hashed files, allowing the game code to start before every texture downloads. Both steps preserve the original asset bytes. See the [startup measurements](assets/reviews/startup/README.md).
 
 Fleet loading prepares one ship type at a time to limit overlapping parse and geometry buffers. PvE preloads the public recognition catalog without revealing the enemy roster, but generates runtime detail levels only for the friendly ship types: observed exteriors use the original geometry and do not consume those buffers. Hit-surface caches retain triangle-range bounds and use one temporary query mesh, keeping dense models from allocating thousands of persistent mesh objects. See the [memory regression checks](assets/reviews/runtime-memory/README.md).
@@ -188,7 +195,7 @@ Sound uses an [original ElevenLabs-generated naval set](assets/audio/naval/READM
 - `src/ui/`: the selected [Fleet action HUD](docs/hud-mockups/README.md), port, helm instruments, live battery readiness, targeting and damage feedback. Telemetry updates at 10 Hz; the **Battle** screen in `src/ui/battle/` configures custom, fleet command and 1v1 fleets in port.
 - `vendor/`: supplied proprietary Pro runtime bundles and licenses. Their original terms remain in force.
 
-Combat uses velocity-aware AP penetration and delayed fuzes, protected AP/HE bursts, finite ammunition, local fires, machinery failures, timed damage-control teams and compartment flooding. Flotation and righting moments come from the authored hull and a declared provisional loading calibration. Floodwater moves under heel and trim; seawater can enter or leave openings. Ships can be immobile, disarmed, disabled afloat, sinking or capsized. Gameplay hull durability and local equipment condition are tracked separately; hull exhaustion, flooding and capsize can each sink a ship. The internal layouts, fuel, crew performance, loading and protection values remain game approximations. Networking, player shipbuilding, individual crew, detailed spall and hull fracture remain future work. Submarine dive planes, propellers and rudders animate from CPU motion through the blueprint’s retained joints; other non-gun fittings remain visual.
+Combat uses velocity-aware AP penetration and delayed fuzes, protected AP/HE bursts, finite ammunition, local fires, machinery failures, timed damage-control teams and compartment flooding. Flotation and righting moments come from the authored hull and a declared provisional loading calibration. Floodwater moves under heel and trim; seawater can enter or leave openings. Ships can be immobile, disarmed, disabled afloat, sinking or capsized. Gameplay hull durability and local equipment condition are tracked separately; hull exhaustion, flooding and capsize can each sink a ship. The internal layouts, fuel, crew performance, loading and protection values remain game approximations. Player construction derives loading and convex-volume geometry in Rust; historical presets retain their declared loading calibrations. Individual crew, detailed spall and hull fracture remain future work. Submarine dive planes, propellers and rudders animate from CPU motion through the blueprint’s retained joints; other non-gun fittings remain visual.
 
 Bismarck, Yamato, Baltimore and Enterprise have full hull-end and major-structure coverage. Their fidelity geometry and retained room IDs are integrated with the damage model; legacy armor volumes remain supported for other definitions. See the [integration record](docs/fleet-fidelity-integration.md) for the independently identified validation snapshots.
 

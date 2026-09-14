@@ -1,6 +1,6 @@
 # Shipbuilding implementation plan
 
-Status: agreed product scope; implementation has not started.
+Status: implementation in progress. Shared source, native compilation, local storage, production equipment and builder integration are implemented; end-to-end acceptance and integration checks are underway.
 
 Planning date: 2026-09-13. Code inspected at commit `5cec0bfc`; implementing agents must recheck current code and follow the integration workflow before making changes.
 
@@ -422,7 +422,7 @@ Revisit the ranges after S1 proves the geometry and after S3 proves the runtime/
 
 ### Completion tracking
 
-- [ ] S0 — Contract and compatibility proof
+- [x] S0 — Contract and compatibility proof
 - [ ] S1 — General hull volume, loading and flotation
 - [ ] S2 — Editable hulls, armor and local source saves
 - [ ] S3 — One complete armed-ship trial
@@ -432,4 +432,8 @@ Revisit the ranges after S1 proves the geometry and after S3 proves the runtime/
 
 ### Implementation notes
 
-No implementation choices have yet been validated by the proposed geometry/runtime proofs. Record decisions, commits and completed validation here as work proceeds. Do not mark the questionnaire's superseded HP-removal proposal as an outstanding requirement.
+The current technical contract is documented in [Local shipbuilding](docs/shipbuilding.md). S0 uses bounded unions of convex polyhedra and attributed exterior polygons, with continuous primitive dimensions and a stable source coordinate frame. The generator consumes explicit shared interfaces rather than heterogeneous object unions. Native analytic box/wedge/overlap fixtures, historical JSON validation, real WASM compilation and local identity/mode-boundary tests justify this choice.
+
+Integrated foundations: `8089d151` (contract/geometry proof), `6027ef3f` (equipped native compiler and physical consumers), `5d68abf0` (suggestion contract), `4130d6e5`/`847a72c8` (transactional storage), `cd3fde4a`/`2c16d3fe` (14 original published equipment assets), `35f3ab2b`/`5ed063ab` (editor/recovery), and `e386de17` (local sessions, model composition and App integration). The initial real IndexedDB workflow passed nine assertions, and the editor's actual browser workflow passed fourteen editing/save/reload/disposal assertions. Root compile-race/local-identity tests and existing session/mode regressions pass; trial damage-unit verification is pending the native hardening integration.
+
+All historical outputs became stale through the shared schema fingerprint. Clean fleet rebuilds are in progress; no hashes were rewritten to bypass freshness. S1–S6 completion boxes remain open until their full physical, browser, combat and production acceptance is demonstrated. HP/integrity defeat remains part of the required implementation.

@@ -37,6 +37,7 @@ import type { ConstructionCatalog, ConstructionResult, ConstructionSource } from
 import { loadConstructionCatalog } from '../ships/constructionEquipment';
 import { registerLocalShip, resolveShip } from '../ships/localShips';
 import { restoreLocalShips } from '../ships/constructionLibrary';
+import { ConstructionClient } from '../ships/constructionClient';
 
 const INITIAL_TELEMETRY: Telemetry = { ship: createShipState(), order: 1, camera: 'Chase', fps: 0, backend: 'webgpu', trail: [] };
 
@@ -231,6 +232,23 @@ export function App() {
     } catch (error) { setBattleLoading(null); throw error; }
     finally { battlePending.current = false; }
   };
+  const suggestLayout = async (source: ConstructionSource): Promise<ConstructionSource> => {
+    const catalog = await loadConstructionCatalog(source.construction.catalogRevision);
+    const installed = new Set(source.construction.equipment.map(e => catalog.equipment.find(p => p.id === e.partId)?.kind));
+    const partIds = (['engine', 'magazine', 'gun', 'funnel', 'propeller', 'rudder'] as const).filter(kind => !installed.has(kind)).flatMap(kind => {
+      const choices = catalog.equipment.filter(p => p.kind === kind).sort((a, b) => a.size[0] * a.size[1] * a.size[2] - b.size[0] * b.size[1] * b.size[2]);
+      const part = kind === 'gun' ? choices.find(p => p.id === 'us-5in38-mk30-mod0-single') ?? choices[0] : choices[0];
+      return part ? [part.id] : [];
+    });
+    if (!partIds.length) throw new Error('The basic equipment is already fitted. Select an installed part to adjust its position or connections.');
+    const client = new ConstructionClient();
+    try {
+      const result = await client.suggest(source, partIds);
+      const error = result.diagnostics.find(d => d.severity === 'error');
+      if (error) throw new Error(error.message);
+      return result.source;
+    } finally { client.dispose(); }
+  };
   const restartPve = async () => {
     const session = game.current;
     if (!session || pveRestarting) return;
@@ -333,7 +351,7 @@ export function App() {
     {battleOpen && <BattleDialog initialMode={battleMode} initialShipId={selectedShip.id} loading={!!battleLoading} onClose={() => setBattleOpen(false)}
       setup={battleSetup} onSetupChange={setBattleSetup} onLaunchCustom={() => void launch()} customError={battleError}
       pveRequest={pveRequest} onLaunchPve={launchPve} onOnlineBattle={onlineBattle}/>}
-    {builder && phase === 'garage' && <Shipbuilder catalog={builder.catalog} initialSource={builder.source} onSave={source => { builderSource.current = source; }} onLaunch={launchTrial} onClose={() => { setBuilder(null); game.current?.input.setEnabled(true); }}/>}
+    {builder && phase === 'garage' && <Shipbuilder suggestLayout={suggestLayout} catalog={builder.catalog} initialSource={builder.source} onSave={source => { builderSource.current = source; }} onLaunch={launchTrial} onClose={() => { setBuilder(null); game.current?.input.setEnabled(true); }}/>}
     {phase === 'garage' && (builderOpening || builderError) && <div className="shipbuilder-entry-status" role={builderError ? 'alert' : 'status'}>{builderError || 'Opening shipbuilder…'}{builderError && <Button onClick={() => void openBuilder()}>Retry</Button>}</div>}
     {trial && phase === 'sailing' && ready && !error && !battleLoading && game.current && <TrialControls game={game.current} onReturn={returnToPort}/>}
     {phase === 'sailing' && ready && !error && <><BinocularOverlay data={data}/><div className="hud-viewport">

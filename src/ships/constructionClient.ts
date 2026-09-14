@@ -1,4 +1,4 @@
-import type { ConstructionResult, ConstructionSource } from './blueprint';
+import type { ConstructionResult, ConstructionSource, ConstructionSuggestion } from './blueprint';
 
 export interface ConstructionWorker {
   postMessage(message: unknown): void;
@@ -8,7 +8,7 @@ export interface ConstructionWorker {
 }
 interface Pending {
   id: number; sourceId: string; revision: string;
-  resolve(result: ConstructionResult): void; reject(error: Error): void;
+  resolve(result: ConstructionResult | ConstructionSuggestion): void; reject(error: Error): void;
   cleanup(): void;
 }
 const cancelled = () => new DOMException('Design compilation cancelled.', 'AbortError');
@@ -23,6 +23,12 @@ export class ConstructionClient {
   constructor(private readonly createWorker: () => ConstructionWorker = () => new Worker(new URL('./construction.worker.ts', import.meta.url), { type: 'module' })) {}
 
   compile(source: ConstructionSource, signal?: AbortSignal): Promise<ConstructionResult> {
+    return this.request(source, 'compile', [], signal) as Promise<ConstructionResult>;
+  }
+  suggest(source: ConstructionSource, partIds: string[], signal?: AbortSignal): Promise<ConstructionSuggestion> {
+    return this.request(source, 'suggest', partIds, signal) as Promise<ConstructionSuggestion>;
+  }
+  private request(source: ConstructionSource, type: 'compile' | 'suggest', partIds: string[], signal?: AbortSignal): Promise<ConstructionResult | ConstructionSuggestion> {
     if (this.disposed) return Promise.reject(new Error('The shipbuilder has closed.'));
     this.cancel();
     if (signal?.aborted) return Promise.reject(cancelled());
@@ -40,18 +46,19 @@ export class ConstructionClient {
           worker.onmessage = event => { if (this.worker === worker) this.receive(event.data); };
           worker.onerror = event => { if (this.worker === worker) this.stop(new Error(event.message || 'The design compiler could not start. Reload the builder to retry.')); };
         }
-        this.worker.postMessage({ type: 'compile', id, source: input });
+        this.worker.postMessage({ type, id, source: input, partIds });
       } catch (error) { this.stop(error instanceof Error ? error : new Error(String(error))); }
     });
   }
-  private receive(message: { id: number; result?: ConstructionResult; error?: string }) {
+  private receive(message: { id: number; result?: ConstructionResult; suggestion?: ConstructionSuggestion; sourceId?: string; revision?: string; error?: string }) {
     const pending = this.pending;
     if (!pending || message.id !== pending.id) return;
-    if (message.error || !message.result) { this.stop(new Error(message.error || 'The compiler returned no design.')); return; }
-    if (message.result.sourceId !== pending.sourceId || message.result.revision !== pending.revision) {
+    const result = message.result ?? message.suggestion;
+    if (message.error || !result) { this.stop(new Error(message.error || 'The compiler returned no design.')); return; }
+    if ((message.result?.sourceId ?? message.sourceId) !== pending.sourceId || (message.result?.revision ?? message.revision) !== pending.revision) {
       this.stop(new Error('The compiler returned a different design revision. Reopen the design to retry.')); return;
     }
-    this.pending = undefined; pending.cleanup(); pending.resolve(message.result);
+    this.pending = undefined; pending.cleanup(); pending.resolve(result);
   }
   private stop(error: Error) {
     const pending = this.pending; this.pending = undefined;
