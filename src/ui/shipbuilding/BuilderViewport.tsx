@@ -6,6 +6,7 @@ import { armorThicknessColor } from '../../ships/inspection';
 import { surfaceKey } from '../../ships/constructionEditor';
 import { constructionPaintColor } from './paints';
 import { snapCoordinate } from './editorNumbers';
+import { primitiveGeometry, placementGeometry, placementRotation, type BuilderPlacement } from './primitiveGeometry';
 
 export type BuilderView = 'orbit' | 'top' | 'side' | 'bow';
 export type BuilderDisplay = 'paint' | 'armor' | 'internals';
@@ -16,6 +17,7 @@ interface ViewportProps {
   selected: ReadonlySet<string>; selectedSurfaces: ReadonlySet<string>;
   view: BuilderView; display: BuilderDisplay; slice?: number; planePosition: Vec3;
   placement: boolean; brush: boolean; gridStep: number; fitRequest: number;
+  placementPiece?: BuilderPlacement;
   onPick(pick: BuilderPick): void; onStroke(points: Vec3[]): void;
   createModel?: ConstructionModelFactory;
 }
@@ -51,6 +53,7 @@ class Viewport {
   private details = new THREE.Group();
   private selection = new THREE.Group();
   private composed = new THREE.Group();
+  private ghost = new THREE.Group();
   private grid = new THREE.GridHelper(1000, 1000, '#759392', '#36555e');
   private water: THREE.Mesh;
   private resize: ResizeObserver;
@@ -64,7 +67,9 @@ class Viewport {
   private contentKey = '';
   private modelKey = '';
   private modelAbort?: AbortController;
-  private pointerStart?: { x: number; y: number; points: Vec3[] };
+  private pointerStart?: { id: number; x: number; y: number; moved: boolean; points: Vec3[] };
+  private hover?: { clientX: number; clientY: number };
+  private ghostKey = '';
   private currentView: BuilderView = 'orbit';
   private modelError: (message: string) => void;
 
@@ -80,14 +85,15 @@ class Viewport {
     const sun = new THREE.DirectionalLight('#fff2d2', 3); sun.position.set(-80, 150, -120); this.scene.add(sun);
     const water = new THREE.Mesh(new THREE.PlaneGeometry(4000, 4000), new THREE.MeshStandardMaterial({ color: '#214652', transparent: true, opacity: .32, roughness: .5, side: THREE.DoubleSide, depthWrite: false }));
     water.rotation.x = -Math.PI / 2; water.renderOrder = 2; this.water = water;
-    this.grid.position.y = -.03; this.scene.add(water, this.grid, this.hull, this.details, this.selection, this.composed);
+    this.ghost.name = 'Placement preview'; this.ghost.userData.placementPreview = true;
+    this.grid.position.y = -.03; this.scene.add(water, this.grid, this.hull, this.details, this.selection, this.composed, this.ghost);
     for (const material of Array.isArray(this.grid.material) ? this.grid.material : [this.grid.material]) { material.transparent = true; material.opacity = .22; material.depthWrite = false; }
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.enableDamping = true; this.controls.dampingFactor = .15;
     this.controls.minZoom = .08; this.controls.maxZoom = 100; this.controls.maxPolarAngle = Math.PI * .95;
     this.camera.position.set(65, 45, -75); this.controls.update();
     this.resize = new ResizeObserver(() => this.measure()); this.resize.observe(host); this.measure();
-    host.addEventListener('pointerdown', this.down); host.addEventListener('pointermove', this.move); host.addEventListener('pointerup', this.up); host.addEventListener('pointercancel', this.cancel);
+    host.addEventListener('pointerdown', this.down); host.addEventListener('pointermove', this.move); host.addEventListener('pointerup', this.up); host.addEventListener('pointercancel', this.cancel); host.addEventListener('pointerleave', this.leave);
     this.update(props); this.fit(); this.animate();
   }
 
@@ -100,7 +106,11 @@ class Viewport {
 
   fit() {
     const bounds = new THREE.Box3();
-    for (const surface of this.props.result?.surfaces ?? []) for (const point of surface.vertices) bounds.expandByPoint(new THREE.Vector3(...point));
+    // Source bounds remain available before compilation and for invalid drafts.
+    for (const primitive of this.props.source.construction.primitives) {
+      const rotation = new THREE.Euler(0, primitive.rotationDeg * Math.PI / 180, 0);
+      for (const x of [-.5, .5]) for (const y of [-.5, .5]) for (const z of [-.5, .5]) bounds.expandByPoint(new THREE.Vector3(x * primitive.size[0], y * primitive.size[1], z * primitive.size[2]).applyEuler(rotation).add(new THREE.Vector3(...primitive.position)));
+    }
     if (bounds.isEmpty()) bounds.set(new THREE.Vector3(-10, -5, -25), new THREE.Vector3(10, 5, 25));
     const size = bounds.getSize(new THREE.Vector3()), center = bounds.getCenter(new THREE.Vector3());
     this.fitExtent = Math.max(15, size.length() * .95);
@@ -118,31 +128,39 @@ class Viewport {
     const old = this.props; this.props = props;
     if (props.view !== this.currentView) this.setView(props.view);
     if (props.fitRequest !== old.fitRequest || props.source.id !== old.source.id || (!old.result && props.result)) this.fit();
-    this.controls.mouseButtons.LEFT = props.placement ? null as unknown as THREE.MOUSE : THREE.MOUSE.ROTATE;
+    // A click places; a drag still navigates. Only Brush owns the primary drag.
+    this.controls.mouseButtons.LEFT = props.placement && props.brush ? null as unknown as THREE.MOUSE : props.view === 'orbit' ? THREE.MOUSE.ROTATE : THREE.MOUSE.PAN;
     this.grid.position.set(0, 0, 0); this.grid.rotation.set(0, 0, 0);
     if (props.view === 'side') { this.grid.rotation.z = Math.PI / 2; this.grid.position.x = props.planePosition[0] - .03; }
     else if (props.view === 'bow') { this.grid.rotation.x = Math.PI / 2; this.grid.position.z = props.planePosition[2] + .03; }
     else this.grid.position.y = props.planePosition[1] - .03;
     this.water.position.y = props.result?.loading?.waterlineY ?? 0;
     this.water.visible = props.display !== 'internals';
-    const key = `${props.result?.contentHash}:${props.display}`;
+    const nativeSurfaces = props.result?.sourceId === props.source.id && props.result.revision === props.source.revision && props.result.surfaces.length ? props.result.surfaces : undefined;
+    const key = `${nativeSurfaces ? props.result!.contentHash : props.source.revision + ':draft'}:${props.display}`;
     if (key !== this.contentKey) {
       this.contentKey = key; release(this.hull); this.surfaceTriangles = []; this.pickMeshes = [];
       const vertices: number[] = [], colors: number[] = [];
-      for (const surface of props.result?.surfaces ?? []) {
+      for (const surface of nativeSurfaces ?? []) {
         if (surface.open && props.display === 'paint') continue;
         const color = new THREE.Color(props.display === 'armor' ? armorThicknessColor(surface.thicknessMm) : constructionPaintColor(surface.paint));
         fan(surface, vertices, colors, color);
         for (let i = 1; i < surface.vertices.length - 1; i++) this.surfaceTriangles.push(surface);
       }
-      const geometry = new THREE.BufferGeometry(); geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3)); geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3)); geometry.computeVertexNormals();
-      const mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .78, metalness: 0, side: THREE.DoubleSide, transparent: props.display === 'internals', opacity: props.display === 'internals' ? .15 : 1, depthWrite: props.display !== 'internals' }));
-      mesh.userData.hull = true; this.hull.add(mesh); this.pickMeshes.push(mesh);
+      if (nativeSurfaces) {
+        const geometry = new THREE.BufferGeometry(); geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3)); geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3)); geometry.computeVertexNormals();
+        const mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .78, metalness: 0, side: THREE.DoubleSide, transparent: props.display === 'internals', opacity: props.display === 'internals' ? .15 : 1, depthWrite: props.display !== 'internals' }));
+        mesh.userData.hull = true; this.hull.add(mesh); this.pickMeshes.push(mesh);
+      } else for (const primitive of props.source.construction.primitives) {
+        const mesh = new THREE.Mesh(primitiveGeometry(primitive.kind, primitive.size), new THREE.MeshStandardMaterial({ color: constructionPaintColor('naval-gray'), roughness: .78, side: THREE.DoubleSide, transparent: props.display === 'internals', opacity: props.display === 'internals' ? .15 : 1 }));
+        mesh.position.set(...primitive.position); mesh.rotation.y = primitive.rotationDeg * Math.PI / 180;
+        mesh.userData.sourceId = primitive.id; this.hull.add(mesh); this.pickMeshes.push(mesh);
+      }
     }
     const modelKey = `${props.source.revision}:${props.result?.contentHash}`;
     if (modelKey !== this.modelKey) {
       this.modelKey = modelKey; this.modelAbort?.abort(); release(this.composed);
-      if (props.createModel && props.result && props.result.revision === props.source.revision) {
+      if (props.createModel && props.result && nativeSurfaces) {
         const abort = new AbortController(); this.modelAbort = abort;
         props.createModel(props.source, props.result, abort.signal).then(group => {
           if (this.dead || abort.signal.aborted || modelKey !== this.modelKey) { release(group); return; }
@@ -150,11 +168,17 @@ class Viewport {
         }).catch(error => { if (!abort.signal.aborted && !this.dead) this.modelError(`Equipment preview: ${error instanceof Error ? error.message : String(error)}`); });
       }
     }
-    this.composed.visible = props.display === 'paint';
+    this.composed.visible = props.display === 'paint' && !!nativeSurfaces;
     // Native surfaces remain the pick target even when shared composition renders the exterior.
-    this.hull.visible = props.display !== 'paint' || !this.composed.children.length;
+    this.hull.visible = !this.composed.visible || !this.composed.children.length;
     release(this.details); release(this.selection);
-    this.pickMeshes = this.pickMeshes.filter(mesh => mesh.userData.hull);
+    this.pickMeshes = this.pickMeshes.filter(mesh => mesh.parent === this.hull);
+    if (!nativeSurfaces) for (const object of this.hull.children) {
+      const mesh = object as THREE.Mesh;
+      if (!props.selected.has(mesh.userData.sourceId)) continue;
+      const edges = new THREE.LineSegments(new THREE.EdgesGeometry(mesh.geometry), new THREE.LineBasicMaterial({ color: '#efd5a0', depthTest: false }));
+      edges.position.copy(mesh.position); edges.rotation.copy(mesh.rotation); this.selection.add(edges);
+    }
     for (const part of props.source.construction.equipment) {
       const entry = props.catalog.equipment.find(entry => entry.id === part.partId);
       if (!entry) continue;
@@ -168,7 +192,7 @@ class Viewport {
       const box = new THREE.Mesh(new THREE.BoxGeometry(...size), new THREE.MeshBasicMaterial({ color: '#e0c58d', transparent: true, opacity: props.selected.has(wall.id) ? .3 : .09, depthWrite: false }));
       box.position.setComponent(axis, wall.offset); box.userData.sourceId = wall.id; box.visible = props.display === 'internals' || props.selected.has(wall.id); this.details.add(box); if (box.visible) this.pickMeshes.push(box);
     }
-    for (const surface of props.result?.surfaces ?? []) {
+    for (const surface of nativeSurfaces ?? []) {
       const chosen = props.selectedSurfaces.has(surfaceKey(surface.primitiveId, surface.face));
       if (!chosen && !props.selected.has(surface.primitiveId)) continue;
       const points = surface.vertices.map(vertex => new THREE.Vector3(...vertex).addScaledVector(new THREE.Vector3(...surface.normal), .025));
@@ -189,7 +213,23 @@ class Viewport {
       const marker = new THREE.Mesh(new THREE.SphereGeometry(Math.max(.25, this.span / 140), 12, 8), new THREE.MeshBasicMaterial({ color, depthTest: false }));
       marker.position.set(...point); marker.renderOrder = 10; this.details.add(marker);
     }
-    this.applyClip();
+    this.updateGhost(); this.applyClip();
+  }
+
+  private updateGhost() {
+    const piece = this.props.placementPiece, key = JSON.stringify(piece);
+    if (key !== this.ghostKey) {
+      this.ghostKey = key; release(this.ghost);
+      if (piece) {
+        const geometry = placementGeometry(piece);
+        const fill = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ color: '#e0c58d', transparent: true, opacity: .25, depthWrite: false, depthTest: false }));
+        const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geometry), new THREE.LineBasicMaterial({ color: '#efd5a0', depthTest: false, transparent: true, opacity: .9 }));
+        fill.renderOrder = 20; edges.renderOrder = 21; this.ghost.add(fill, edges);
+        this.ghost.rotation.y = placementRotation(piece);
+      }
+    }
+    this.ghost.visible = !!piece && this.props.placement && !!this.hover;
+    if (this.ghost.visible) this.ghost.position.set(...this.pick(this.hover!, false).position);
   }
 
   private applyClip() {
@@ -200,26 +240,30 @@ class Viewport {
     });
   }
 
-  private pick(event: PointerEvent): BuilderPick {
+  private pick(event: { clientX: number; clientY: number; shiftKey?: boolean; ctrlKey?: boolean; metaKey?: boolean }, surfaces = true): BuilderPick {
     const bounds = this.renderer.domElement.getBoundingClientRect();
     const ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2((event.clientX - bounds.left) / bounds.width * 2 - 1, -(event.clientY - bounds.top) / bounds.height * 2 + 1), this.camera);
-    const hits = ray.intersectObjects(this.pickMeshes, false).filter(hit => this.props.slice === undefined || hit.point.y <= this.props.slice);
+    const hits = surfaces ? ray.intersectObjects(this.pickMeshes, false).filter(hit => this.props.slice === undefined || hit.point.y <= this.props.slice) : [];
     const hit = hits[0];
     const surface = hit?.object.userData.hull ? this.surfaceTriangles[hit.faceIndex ?? -1] : undefined;
     const axis = this.props.view === 'side' ? 0 : this.props.view === 'bow' ? 2 : 1;
     const normal = new THREE.Vector3().setComponent(axis, 1);
     const plane = new THREE.Plane(normal, -this.props.planePosition[axis]);
     const point = ray.ray.intersectPlane(plane, new THREE.Vector3()) ?? hit?.point ?? new THREE.Vector3(...this.props.planePosition);
-    return { id: surface?.primitiveId ?? hit?.object.userData.sourceId, surface: surface && surfaceKey(surface.primitiveId, surface.face), position: point.toArray().map(value => snapCoordinate(value, this.props.gridStep)) as Vec3, additive: event.shiftKey || event.ctrlKey || event.metaKey };
+    return { id: surface?.primitiveId ?? hit?.object.userData.sourceId, surface: surface && surfaceKey(surface.primitiveId, surface.face), position: point.toArray().map(value => snapCoordinate(value, this.props.gridStep)) as Vec3, additive: !!(event.shiftKey || event.ctrlKey || event.metaKey) };
   }
 
   private down = (event: PointerEvent) => {
     if (event.button !== 0) return;
-    this.pointerStart = { x: event.clientX, y: event.clientY, points: this.props.placement && this.props.brush ? [this.pick(event).position] : [] };
-    this.host.setPointerCapture(event.pointerId);
+    this.pointerStart = { id: event.pointerId, x: event.clientX, y: event.clientY, moved: false, points: this.props.placement && this.props.brush ? [this.pick(event).position] : [] };
+    // Share OrbitControls' canvas capture instead of transferring it to the host.
+    this.renderer.domElement.setPointerCapture(event.pointerId);
   };
   private move = (event: PointerEvent) => {
-    if (!this.pointerStart || !this.props.placement || !this.props.brush) return;
+    this.hover = { clientX: event.clientX, clientY: event.clientY }; this.updateGhost();
+    if (!this.pointerStart || event.pointerId !== this.pointerStart.id) return;
+    this.pointerStart.moved ||= Math.hypot(event.clientX - this.pointerStart.x, event.clientY - this.pointerStart.y) >= 5;
+    if (!this.props.placement || !this.props.brush) return;
     const position = this.pick(event).position;
     const previous = this.pointerStart.points.at(-1) ?? position;
     const steps = Math.min(128, Math.max(...position.map((value, axis) => Math.ceil(Math.abs(value - previous[axis]) / this.props.gridStep))));
@@ -229,17 +273,19 @@ class Viewport {
     }
   };
   private up = (event: PointerEvent) => {
+    if (event.button !== 0 || event.pointerId !== this.pointerStart?.id) return;
     const start = this.pointerStart; this.pointerStart = undefined;
     if (!start) return;
     if (start.points.length) this.props.onStroke(start.points);
-    else if (Math.hypot(event.clientX - start.x, event.clientY - start.y) < 5) this.props.onPick(this.pick(event));
+    else if (!start.moved && Math.hypot(event.clientX - start.x, event.clientY - start.y) < 5) this.props.onPick(this.pick(event));
   };
-  private cancel = () => { this.pointerStart = undefined; };
-  private animate = () => { if (this.dead) return; this.controls.update(); this.renderer.render(this.scene, this.camera); this.frame = requestAnimationFrame(this.animate); };
+  private leave = () => { this.hover = undefined; this.ghost.visible = false; };
+  private cancel = () => { this.pointerStart = undefined; this.leave(); };
+  private animate = () => { if (this.dead) return; this.controls.update(); if (this.hover && this.props.placement) this.updateGhost(); this.renderer.render(this.scene, this.camera); this.frame = requestAnimationFrame(this.animate); };
 
   dispose() {
     this.dead = true; cancelAnimationFrame(this.frame); this.modelAbort?.abort(); this.resize.disconnect(); this.controls.dispose();
-    this.host.removeEventListener('pointerdown', this.down); this.host.removeEventListener('pointermove', this.move); this.host.removeEventListener('pointerup', this.up); this.host.removeEventListener('pointercancel', this.cancel);
+    this.host.removeEventListener('pointerdown', this.down); this.host.removeEventListener('pointermove', this.move); this.host.removeEventListener('pointerup', this.up); this.host.removeEventListener('pointercancel', this.cancel); this.host.removeEventListener('pointerleave', this.leave);
     release(this.scene); this.renderer.dispose(); this.renderer.forceContextLoss(); this.renderer.domElement.remove();
   }
 }

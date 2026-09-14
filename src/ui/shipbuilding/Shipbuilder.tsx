@@ -6,6 +6,7 @@ import { Icon } from '../Icons';
 import { BuilderViewport, type BuilderDisplay, type BuilderPick, type BuilderView, type ConstructionModelFactory } from './BuilderViewport';
 import { NumberField } from './NumberField';
 import { ArmorInspection } from './ArmorInspection';
+import type { BuilderPlacement } from './primitiveGeometry';
 import { BuilderLibrary, downloadConstructionSource } from './BuilderLibrary';
 import { CONSTRUCTION_PAINTS } from './paints';
 import { normalizedBearing, snapCoordinate } from './editorNumbers';
@@ -95,6 +96,10 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const equipmentPart = catalog.equipment.find(part => part.id === (selectedEquipment?.partId ?? partId));
   const selectedItem = selectedPrimitive ?? selectedEquipment;
   const gridStep = workbench === 'equipment' ? .25 : 1;
+  const placementPart = catalog.equipment.find(part => part.id === partId);
+  const placementPiece: BuilderPlacement | undefined = workbench === 'equipment'
+    ? placementPart && { kind: 'equipment', size: placementPart.size, boundsCenter: placementPart.boundsCenter, bearingDeg: bearing }
+    : { kind: 'hull', shape: SHAPES.find(entry => entry.id === shape)!.kind, size, rotationDeg: normalizedBearing(Math.round(bearing / 90) * 90) };
   const editableSurfaces = useMemo(() => editableConstructionSurfaces(source, editor.currentResult?.surfaces ?? []), [source, editor.currentResult]);
   const allSurfaceKeys = useMemo(() => [...new Set(editableSurfaces.map(surface => surfaceKey(surface.primitiveId, surface.face)))], [editableSurfaces]);
   const fail = (cause: unknown) => editor.setError(cause instanceof Error ? cause.message : String(cause));
@@ -192,7 +197,10 @@ export function Shipbuilder(props: ShipbuilderProps) {
       else if (modifier && event.key.toLowerCase() === 'd') { event.preventDefault(); copy(); }
       else if (modifier && event.key.toLowerCase() === 'a') { event.preventDefault(); setSelected(new Set([...data.primitives, ...data.equipment].map(part => part.id))); }
       else if (event.key === 'Delete' || event.key === 'Backspace') { event.preventDefault(); remove(); }
-      else if (event.key.toLowerCase() === 'r') run('Rotate selection', draft => rotateConstructionSelection(draft, selected));
+      else if (event.key.toLowerCase() === 'r') {
+        if (tool === 'place' || tool === 'brush') setBearing(value => normalizedBearing(value + 90));
+        else run('Rotate selection', draft => rotateConstructionSelection(draft, selected));
+      }
       else if (event.key === 'Home') { event.preventDefault(); setFitRequest(value => value + 1); }
       else if (event.key === 'Escape') { setTool('select'); setSelected(new Set()); setSurfaces(new Set()); }
     };
@@ -236,7 +244,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
             <div className="shipbuilder-vector">{position.map((value, axis) => <NumberField key={axis} label={axisNames[axis]} value={value} step={gridStep} onChange={value => setPosition(position.map((n, i) => i === axis ? snapCoordinate(value, gridStep) : n) as Vec3)}/>)}</div>
             <NumberField label="Rotation" value={bearing} min={0} max={360} step={workbench === 'hull' ? 90 : 15} unit="°" onChange={value => setBearing(workbench === 'hull' ? normalizedBearing(Math.round(value / 90) * 90) : normalizedBearing(value))}/>
             <div className="shipbuilder-row"><NumberField label="Repeat" value={count} min={1} max={128} unit="pieces" onChange={value => setCount(Math.round(value))}/><label>Direction<Select value={rowAxis} onValueChange={setRowAxis}><SelectOption value="z">Along length</SelectOption><SelectOption value="x">Across width</SelectOption><SelectOption value="y">Upward</SelectOption></Select></label></div>
-            <Button variant="primary" onClick={placeRow}>Place {count > 1 ? `${count} pieces` : 'at coordinates'}</Button><p className="shipbuilder-help">Click to place; drag Brush for a single undoable stroke. Right-drag pans, scroll zooms. Placement height sets the grid plane.</p>
+            <Button variant="primary" onClick={placeRow}>Place {count > 1 ? `${count} pieces` : 'at coordinates'}</Button><p className="shipbuilder-help">The translucent piece shows where a click will place it. Drag to orbit, right-drag to pan; scroll zooms. Brush drags place one undoable stroke. R rotates the next piece. Placement height sets the grid plane.</p>
           </>}
           {workbench === 'surfaces' && <><h2>Armor & paint</h2><p className="shipbuilder-help">Click a face, then Shift-click to add faces. Assignments follow the source face across every mesh patch.</p>
             <div className="shipbuilder-actions"><Button disabled={!allSurfaceKeys.length} onClick={() => setSurfaces(new Set(allSurfaceKeys))}>All exposed faces</Button><Button onClick={() => setSurfaces(new Set())}>Clear</Button></div>
@@ -269,7 +277,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
       <section className="shipbuilder-scene" aria-label="Design view"><div className="shipbuilder-viewbar"><Button className="shipbuilder-mobile-toggle" aria-expanded={toolsOpen} onClick={() => { setToolsOpen(value => !value); setInspectOpen(false); }}>Tools</Button>
         <div className="shipbuilder-actions" aria-label="View direction">{(['orbit', 'top', 'side', 'bow'] as const).map(value => <Button key={value} aria-pressed={view === value} onClick={() => setView(value)}>{value[0].toUpperCase() + value.slice(1)}</Button>)}</div><Button onClick={() => setFitRequest(value => value + 1)} title="Fit ship (Home)">Fit</Button>
         <Button className="shipbuilder-inspect-toggle" aria-expanded={inspectOpen} onClick={() => { setInspectOpen(value => !value); setToolsOpen(false); }}>Inspect</Button></div>
-        <BuilderViewport source={source} result={result} catalog={catalog} selected={selected} selectedSurfaces={surfaces} view={view} display={display} slice={slice} planePosition={position} gridStep={gridStep} placement={tool === 'place' || tool === 'brush'} brush={tool === 'brush'} fitRequest={fitRequest} onPick={pick} onStroke={place} createModel={props.createModel ?? createConstructionModel}/>
+        <BuilderViewport source={source} result={result} catalog={catalog} selected={selected} selectedSurfaces={surfaces} view={view} display={display} slice={slice} planePosition={position} gridStep={gridStep} placement={tool === 'place' || tool === 'brush'} placementPiece={placementPiece} brush={tool === 'brush'} fitRequest={fitRequest} onPick={pick} onStroke={place} createModel={props.createModel ?? createConstructionModel}/>
         <div className="shipbuilder-scene-labels"><span>Bow −Z · Starboard +X · Up +Y</span><span><i className="shipbuilder-cg"/>Center of gravity <i className="shipbuilder-buoyancy"/>Buoyancy</span></div>
         {!data.primitives.length && <div className="shipbuilder-empty"><h2>Your ship starts here</h2><p>Place a hull piece on the grid, or start with a fitted patrol hull.</p><Button variant="primary" onClick={() => void newDesign(false)}>Use starter hull</Button></div>}
         <div className="shipbuilder-scene-controls"><Select aria-label="Model display" value={display} onValueChange={value => setDisplay(value as BuilderDisplay)}><SelectOption value="paint">Painted steel</SelectOption><SelectOption value="armor">Armor thickness</SelectOption><SelectOption value="internals">Internals</SelectOption></Select><label className="shipbuilder-check"><Input type="checkbox" checked={slice !== undefined} onChange={event => setSlice(event.target.checked ? position[1] : undefined)}/>Deck slice</label>{slice !== undefined && <NumberField label="Cut height" value={slice} step={.25} onChange={setSlice}/>}</div>

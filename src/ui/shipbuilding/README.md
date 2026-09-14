@@ -5,13 +5,13 @@ The port's **Shipbuilder** opens a source editor around the shared Rust/WASM con
 ## First design
 
 1. Start with **Patrol hull**, or choose **Connected catamaran** and press **Starter hull**. **Blank** creates an empty, saveable source.
-2. Use **Hull** to choose a primitive and set its dimensions. **Place at coordinates** and **Place row** use the displayed grid; **Place** and **Brush** use the viewport's grid plane. Top/orbit uses Y, side uses X and bow uses Z from the placement coordinates.
+2. Use **Hull** to choose a primitive and set its dimensions. **Place at coordinates** and **Place row** use the displayed grid; **Place** and **Brush** show a translucent preview on the viewport's grid plane. The preview follows the chosen shape, dimensions and rotation; equipment uses its fixed bounds and original datum. Top/orbit uses Y, side uses X and bow uses Z from the placement coordinates.
 3. Click to select a piece; Shift-click adds or removes a piece from the selection. Copy makes new stable IDs and selects the copies. Mirror makes a copy across the centerline and preserves its face assignments and equipment links.
 4. In **Surfaces**, click exposed faces or select an area group, then apply millimeter thickness, material and a named paint. Armor presets set the next assignment; **Apply to selected faces** commits it. **Inspect selected faces** and **Hull armor coverage** show native thickness, exposed area, material, paint and openings. The mint lines show inward armor depth. **Paint selected faces** and **Paint clicked faces** change only paint, preserving armor and openings. **Open to sea** removes the selected skin; zero armor still retains structural skin. Two-tone and disruptive paints are generic sandbox schemes.
 5. **Equipment** places published original variants at their fixed dimensions. **Suggest internals** proposes missing internal equipment families; **Suggest selected fitting** finds a position for the selected variant. Existing equipment stays in place. Inspect the proposed additions or fit errors, then **Apply suggestion** as one undoable edit. **Inspect** exposes placement and magazine/power assignments. Use **Rooms** to add or move decks and bulkheads; deleting a boundary merges its neighboring spaces after compilation.
 6. Inspect native diagnostics. Errors prevent trial launch; warnings allow a trial of an unsafe design. **Sea trial** passes an immutable source/result pair to the owning application. Trial damage never enters the source store.
 
-Orbit, Top, Side and Bow are orthographic views. **Fit** frames the hull; **Deck slice** reveals internals below the selected height. At smaller widths, **Tools** and **Inspect** open the corresponding rail while retaining a view of the ship.
+Orbit, Top, Side and Bow are orthographic views. With **Place**, click to place a piece; drag to orbit in Orbit or pan in Top, Side and Bow. Right-drag pans and scrolling zooms. **Brush** uses the primary drag for one undoable placement stroke. **Fit** frames the hull, including invalid draft pieces; **Deck slice** reveals internals below the selected height. At smaller widths, **Tools** and **Inspect** open the corresponding rail while retaining a view of the ship.
 
 | Shortcut | Action |
 | --- | --- |
@@ -19,7 +19,7 @@ Orbit, Top, Side and Bow are orthographic views. **Fit** frames the hull; **Deck
 | Ctrl/Command Shift Z or Ctrl/Command Y | Redo |
 | Ctrl/Command D | Copy selected pieces |
 | Ctrl/Command A | Select hull and equipment |
-| R | Rotate selection 90 degrees |
+| R | Rotate the next piece in Place/Brush, or the selection, 90 degrees |
 | Delete / Backspace | Remove selection |
 | Home | Fit ship |
 | Escape | Return to selection and clear it |
@@ -40,7 +40,7 @@ Optional props:
 - `createModel`: override the shared source-backed preview composer. Each returned group belongs to the editor and must be independently disposable.
 - `suggestLayout(source, partIds, signal?)`: override the native layout request, returning `Promise<ConstructionSuggestion>` with a proposed source and diagnostics. By default the editor calls `ConstructionClient.suggest`. It applies the proposed equipment, boundaries and loads as one undoable edit only while the originating source revision is current. It never runs a separate layout or fit solver in JavaScript.
 
-The default compiler is `ConstructionClient`, using a dedicated module worker. New source revisions cancel obsolete work; completed results must match both source identity and revision before enabling launch. The preview disposes obsolete groups, geometry, materials and textures, and releases the canvas/WebGL context on unmount. Previous compiled surfaces can remain visible while a new revision compiles; their diagnostics do not enable launch for the new revision.
+The default compiler is `ConstructionClient`, using a dedicated module worker. New source revisions cancel obsolete work; completed results must match both source identity and revision before enabling launch. While compilation is pending, or validation returns no surfaces, the viewport renders selectable source primitives and equipment bounds so the draft remains visible and editable. These unmerged display envelopes do not derive armor, openings, union geometry or physical validity. Native surfaces and shared component models resume when available for the current revision. The preview disposes obsolete groups, geometry, materials and textures, and releases the canvas/WebGL context on unmount.
 
 Only canonical faces belonging to source hull primitives can receive armor, paint or opening assignments. Native fixed equipment-support surfaces remain rendered and physically inspectable; hull coverage counts only editable exterior hull skin. Fixed supports never become editable hull keys. Face IDs containing colons are retained without splitting the primitive identity.
 
@@ -61,6 +61,7 @@ Run the pure command/history/autosave/source-reader tests:
 ```sh
 bun test src/ships/constructionEditor.test.ts src/ships/constructionHistory.test.ts src/ships/constructionAutosave.test.ts src/ships/constructionStore.test.ts src/ui/shipbuilding/editorNumbers.test.ts
 bun test src/ui/shipbuilding/ArmorInspection.test.tsx
+bun test src/ui/shipbuilding/primitiveGeometry.test.ts
 bunx tsc --noEmit
 bun run build
 ```
@@ -71,6 +72,7 @@ Browser helpers run against the real application toolchain and IndexedDB without
 - `mountShipbuilderReview()` then `checkShipbuilderEditing()` from `scripts/tests/shipbuilder-browser.tsx`: actual React controls, source references, armor/openings, equipment/boundaries, save/reopen and canvas disposal.
 - `checkShipbuilderSuggestions()` from the same module: native missing-internal proposals, saved-source isolation, obsolete-proposal fencing, one-command apply and exact undo.
 - `checkShipbuilderArmor()` from the same module: presets, native selected-face/coverage readings, bulk and clicked-face painting without protection changes, explicit openings and paint undo.
+- `checkShipbuilderPlacement()` from `scripts/tests/shipbuilder-placement-browser.ts`: cursor preview, retained and selectable invalid drafts, camera orbit/pan, brush undo and gesture cancellation with the real renderer and native compiler. Synthetic pointer capture is stubbed; repeat camera gestures with browser mouse input to review capture behavior. The primitive geometry test compares preview shapes against native exterior polygons at every supported rotation.
 - `measureConstructionEditing()` from `scripts/tests/construction-editor-performance.ts`: source/history editing, actual worker/WASM compilation and IndexedDB save/reload for the patrol starter and a synthetic large hull. Mass is reported by Rust; this helper does not measure rendering, launch or battle performance.
 
 The helpers are Vite modules for browser evaluation. The review surface is independent of App; exercise port entry, actual trials and custom battles through App as separate integration checks. Temporary browser captures and measurements belong in ignored `.build/`.

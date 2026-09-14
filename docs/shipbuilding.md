@@ -17,6 +17,12 @@ grid is 1 m; equipment placement uses 0.25 m. Orbit, top, side and bow views and
 deck slice share source selections. Copy, mirror, brushes, bulk surface changes
 and undo/redo operate on stable source identities.
 
+Place shows a translucent preview at the snapped grid position. Click to place,
+drag to orbit (or pan in top/side/bow), and right-drag to pan. R rotates the next
+piece. Brush uses a drag for one undoable stroke. If a placement cannot compile,
+the hull and new pieces remain visible and selectable as draft envelopes while
+the diagnostics explain what needs fixing.
+
 The right-hand instruments show the native compiler's mass contributions, CG,
 waterline, roll stability, installed power, speed estimate and diagnostics.
 Errors block launch while leaving the draft editable and saveable. Overloading,
