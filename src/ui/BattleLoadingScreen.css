@@ -20,7 +20,7 @@
 .battle-loading-player span { color: #f0f5f3; font-weight: 500; }
 .battle-loading-status { display: flex; justify-content: space-between; font-size: 11px; letter-spacing: .1em; color: #bfced2; margin-bottom: 8px; text-transform: uppercase; }
 .battle-loading .loading-progress { height: 3px; }
-.battle-loading .loading-progress span { transition: width .35s ease; }
+.battle-loading .loading-progress span { transition-duration: .35s; }
 @keyframes battle-loading-arrive { from { opacity: 0; } to { opacity: 1; } }
 @keyframes battle-loading-depart { from { opacity: 1; } to { opacity: 0; } }
 @media (max-width: 760px) {

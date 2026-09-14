@@ -353,7 +353,7 @@ export function App() {
       <div className="startup-content">
         <h1 id="startup-title">Opening the harbor</h1>
         <p className="startup-status" role="status">{loading.label}…</p>
-        <div className="loading-progress" role="progressbar" aria-label="Preparing the harbor" aria-valuetext={loading.label} aria-valuenow={Math.round(loading.progress * 100)} aria-valuemin={0} aria-valuemax={100}><span style={{ width: `${loading.progress * 100}%` }}/></div>
+        <div className="loading-progress" role="progressbar" aria-label="Preparing the harbor" aria-valuetext={loading.label} aria-valuenow={Math.round(loading.progress * 100)} aria-valuemin={0} aria-valuemax={100}><span style={{ transform: `scaleX(${loading.progress})` }}/></div>
         <p className="startup-note">The first visit can take a little longer while ship models, ocean effects and lighting are prepared.</p>
       </div>
     </section>}

@@ -49,7 +49,7 @@ export function BattleLoadingScreen({ setup, state, onLeft, multiplayer, briefin
       <div className="battle-loading-status">
         <span role="status">{state.label}</span><span>{percent}%</span>
       </div>
-      <div className="loading-progress" role="progressbar" aria-label="Preparing the battle" aria-valuetext={state.label} aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100}><span style={{ width: `${percent}%` }}/></div>
+      <div className="loading-progress" role="progressbar" aria-label="Preparing the battle" aria-valuetext={state.label} aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100}><span style={{ transform: `scaleX(${percent / 100})` }}/></div>
     </div>
   </section>;
 }
