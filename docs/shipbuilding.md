@@ -74,6 +74,13 @@ skin without changing displacement or cutting side armor. The fitted enclosure
 seals the opening until its damage owner fails. Other impossible material or
 functional overlaps remain errors.
 
+Turret working wells contain a fixed steel trunk and deck collar supporting the
+original roller rim. Their material mass, CG and protection are included once;
+they do not create displaced volume. They use the design's default structural
+thickness, without inferring historical barbette armor. These derived equipment
+supports remain visible in inspection and follow their fitting rather than
+becoming editable hull-face assignments.
+
 Loading uses steel at 7,850 kg/m³, seawater at 1,025 kg/m³, real material positions,
 fixed equipment/service allowances and initial ammunition. No hidden ballast,
 CG adjustment or per-design buoyancy multiplier is added. Exact clipped volumes
