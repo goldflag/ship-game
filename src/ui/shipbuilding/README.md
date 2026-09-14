@@ -42,7 +42,7 @@ Optional props:
 
 The default compiler is `ConstructionClient`, using a dedicated module worker. New source revisions cancel obsolete work; completed results must match both source identity and revision before enabling launch. The preview disposes obsolete groups, geometry, materials and textures, and releases the canvas/WebGL context on unmount. Previous compiled surfaces can remain visible while a new revision compiles; their diagnostics do not enable launch for the new revision.
 
-Only canonical faces belonging to source hull primitives can receive armor, paint or opening assignments. Native fixed equipment-support surfaces remain rendered and included in coverage inspection; they never become editable hull keys. Face IDs containing colons are retained without splitting the primitive identity.
+Only canonical faces belonging to source hull primitives can receive armor, paint or opening assignments. Native fixed equipment-support surfaces remain rendered and physically inspectable; hull coverage counts only editable exterior hull skin. Fixed supports never become editable hull keys. Face IDs containing colons are retained without splitting the primitive identity.
 
 ## Source storage and recovery
 
