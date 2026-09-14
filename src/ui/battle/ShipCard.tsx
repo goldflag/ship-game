@@ -1,7 +1,8 @@
 import type { ComponentProps, DragEvent, ReactNode } from 'react';
 import { assetUrl } from '../../assetUrl';
 import { shipClass, shipIdentity } from '../../game/shipModel';
-import { shipPreset } from '../../ships/presets';
+import { localShip, resolveShip } from '../../ships/localShips';
+import { constructionPaintColor } from '../../ships/constructionPaints';
 import { Icon } from '../Icons';
 import { ShipClassIcon } from '../ShipClassIcons';
 import { aircraftCount } from '../pveSetup';
@@ -20,6 +21,17 @@ export function ShipMeta({ presetId }: { presetId: string }) {
 }
 export const shipDescription = (presetId: string) => { const identity = shipIdentity(presetId); return [identity.type, identity.nation].filter(Boolean).join(', '); };
 export function ShipThumbnail({ presetId, width = 72 }: { presetId: string; width?: number }) {
+  const local = localShip(presetId);
+  if (local?.thumbnail) return <img className="ship-thumbnail" src={local.thumbnail} width={width} height={Math.round(width * .3)} alt="" loading="lazy" draggable={false}/>;
+  if (local) {
+    const surfaces = local.result.surfaces.filter(s => !s.open), points = surfaces.flatMap(s => s.vertices);
+    const left = Math.min(...points.map(p => p[2])), right = Math.max(...points.map(p => p[2]));
+    const bottom = Math.min(...points.map(p => p[1])), top = Math.max(...points.map(p => p[1]));
+    const pad = Math.max(1, (right - left) * .03);
+    return <svg className="ship-thumbnail" width={width} height={Math.round(width * .3)} viewBox={`${left - pad} ${-top - pad} ${right - left + 2 * pad} ${top - bottom + 2 * pad}`} aria-hidden="true">
+      {surfaces.filter(s => s.normal[0] < -.01).map((s, i) => <polygon key={i} points={s.vertices.map(p => `${p[2]},${-p[1]}`).join(' ')} fill={constructionPaintColor(s.paint)}/>)}
+    </svg>;
+  }
   return <img className="ship-thumbnail" src={assetUrl(`models/${presetId}-thumbnail.png`)} width={width} height={Math.round(width * .3)} alt="" loading="lazy" draggable={false}/>;
 }
 
@@ -27,7 +39,7 @@ interface DragProps { draggable?: boolean; onDragStart?(event: DragEvent<HTMLEle
 interface CatalogCardProps extends DragProps { presetId: string; picked?: boolean; commanded?: boolean; unavailable?: string; disabled?: boolean; onPick?(): void; }
 /** Catalog row: the grip promises a drag; the button also picks the ship for a keyboard placement. */
 export function ShipCatalogCard({ presetId, picked, commanded, unavailable, disabled, onPick, draggable, onDragStart, onDragEnd }: CatalogCardProps) {
-  const ship = shipPreset(presetId), blocked = !!unavailable || !!disabled;
+  const ship = resolveShip(presetId), blocked = !!unavailable || !!disabled;
   return <li className={`ship-card ${commanded ? 'is-commanded' : ''} ${unavailable ? 'is-unavailable' : ''}`}>
     <button type="button" className="ship-card-pick" draggable={!!draggable && !blocked} disabled={blocked} aria-pressed={picked} aria-label={`Choose ${ship.name}, ${shipDescription(presetId)}`}
       title={unavailable || `${ship.name} · ${Math.round(ship.hull.length)} m · drag into a lane, or choose it and then choose a lane`} onClick={onPick} onDragStart={onDragStart} onDragEnd={onDragEnd}>
@@ -41,7 +53,7 @@ export function ShipCatalogCard({ presetId, picked, commanded, unavailable, disa
 interface ChipProps extends DragProps { presetId: string; name?: string; picked?: boolean; commanded?: boolean; onPick?(): void; pickLabel?: string; onRemove?(): void; removeLabel?: string; children?: ReactNode; className?: string; disabled?: boolean; }
 /** A ship in a lane. The right slot holds per-ship controls (an AI level, a command mark). */
 export function ShipChip({ presetId, name, picked, commanded, onPick, pickLabel, onRemove, removeLabel, children, className = '', disabled, draggable, onDragStart, onDragEnd }: ChipProps) {
-  const ship = shipPreset(presetId);
+  const ship = resolveShip(presetId);
   return <li className={`ship-chip ${commanded ? 'is-commanded' : ''} ${picked ? 'is-picked' : ''} ${className}`} draggable={!!draggable && !disabled} onDragStart={onDragStart} onDragEnd={onDragEnd}>
     <button type="button" className="ship-chip-pick" disabled={disabled || !onPick} aria-pressed={picked} aria-label={pickLabel ?? `Move ${name ?? ship.name}`} onClick={onPick}>
       <i className="ship-grip" aria-hidden="true"/><ShipThumbnail presetId={presetId} width={56}/>

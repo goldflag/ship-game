@@ -1,11 +1,12 @@
 import { shipPreset } from '../ships/presets';
+import { resolveShip } from '../ships/localShips';
 import { islandRadius, mapIslands, type OceanMapId } from '../maps/catalog';
 import type { FleetShip } from '../multiplayer/generated/FleetShip';
 import type { PveBriefing } from '../multiplayer/generated/PveBriefing';
 import type { Placement } from '../multiplayer/generated/Placement';
 import type { FleetBudget } from '../multiplayer/generated/FleetBudget';
 
-export const aircraftCount = (id: string) => shipPreset(id).airWing?.squadrons.reduce((n, s) => n + s.count, 0) ?? 0;
+export const aircraftCount = (id: string) => resolveShip(id).airWing?.squadrons.reduce((n, s) => n + s.count, 0) ?? 0;
 export const fleetTotals = (ships: FleetShip[]) => ships.reduce((sum, s) => ({ ships: sum.ships + 1, aircraft: sum.aircraft + aircraftCount(s.presetId), displacementKg: sum.displacementKg + shipPreset(s.presetId).hull.massKg }), { ships: 0, aircraft: 0, displacementKg: 0 });
 export function budgetError(ships: FleetShip[], budget: FleetBudget): string {
   const total = fleetTotals(ships);

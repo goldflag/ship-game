@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Game } from '../game/Game';
 import type { Telemetry } from '../game/types';
 import { bindingLabel, type Keybindings } from '../game/keybindings';
-import { shipPreset } from '../ships/presets';
+import { resolveShip } from '../ships/localShips';
 import { KNOTS_PER_MPS } from '../simulation/ship';
 import { SHIP_GLYPHS, shipClassOf } from './shipGlyphs';
 import './HelmWheel.css';
@@ -56,7 +56,7 @@ export function wheelNodes(data: Telemetry): WheelNode[] {
   const maxKm = Math.max(WHEEL_RINGS_KM.at(-1)!, ...others.map(o => o.km));
   const nodes = others.map(({ c, km, bearing }, index) => {
     const r = rangeRadius(km, maxKm), a = (bearing - 90) * Math.PI / 180;
-    return { id: c.id, name: c.name, shipClass: shipClassOf(shipPreset(c.shipId)), x: WHEEL_SIZE / 2 + Math.cos(a) * r, y: WHEEL_SIZE / 2 + Math.sin(a) * r,
+    return { id: c.id, name: c.name, shipClass: shipClassOf(resolveShip(c.shipId)), x: WHEEL_SIZE / 2 + Math.cos(a) * r, y: WHEEL_SIZE / 2 + Math.sin(a) * r,
       bearing, km, kn: Math.abs(c.speed * KNOTS_PER_MPS), integrity: c.integrity, status: c.status, key: index + 1 };
   });
   spread(nodes);

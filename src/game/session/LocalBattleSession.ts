@@ -12,6 +12,7 @@ import type { Placement } from '../../multiplayer/generated/Placement';
 import type { Formation } from '../../multiplayer/generated/Formation';
 import pveAir from '../../../assets/gameplay/pve-air.v1.json';
 import type { AirRules } from '../../multiplayer/generated/AirRules';
+import { localConstructionInput, type LocalConstructionInput, type LocalBattleOptions, type TrialAction } from './localConstruction';
 export function runtimeSetup(setup: BattleSetup, seed: number): RuntimeSetup {
   const spawns = setupSpawns(setup);
   const ships: RuntimeSetup['ships'] = [{ id: 'player', presetId: setup.playerShipId, team: 'a', controller: 'player', aiLevel: 'normal', spawn: spawns.friendly[0] }];
@@ -26,6 +27,8 @@ export function runtimeSetup(setup: BattleSetup, seed: number): RuntimeSetup {
 const MAX_BATCH_TICKS = 24, DEBT_SECONDS = 1, MEASURE_SECONDS = 2;
 export class LocalBattleSession extends SnapshotSession {
   readonly networked = false;
+  readonly trial: boolean;
+  readonly constructionShips: ReadonlyMap<string, NonNullable<LocalBattleOptions['revisions']>[number]>;
   private worker: Worker;
   private received?: Snapshot;
   private commands = new CommandQueue();
@@ -48,17 +51,20 @@ export class LocalBattleSession extends SnapshotSession {
   onFailure?: (message: string) => void;
   private fail(message: string) { this.pending = undefined; this.busy = false; this.connectionStatus = message; this.phase = 'cancelled'; this.dispose(); this.onFailure?.(message); }
   private restartRequest?: { resolve(): void; reject(error: Error): void; timer: ReturnType<typeof setTimeout> };
-  private constructor(setup: RuntimeSetup, worker = new Worker(new URL('./local.worker.ts', import.meta.url), { type: 'module' })) { super(setup); this.worker = worker; }
-  static async create(setup: BattleSetup): Promise<LocalBattleSession> {
-    const session = new LocalBattleSession(runtimeSetup(setup, crypto.getRandomValues(new Uint32Array(1))[0]));
-    return session.initialize({ type: 'init', setup: session.setup });
+  private constructor(setup: RuntimeSetup, worker = new Worker(new URL('./local.worker.ts', import.meta.url), { type: 'module' }), options: LocalBattleOptions = {}) {
+    super(setup, 'a', 0, new Map(options.revisions?.map(r => [r.definition.id, r.definition]))); this.worker = worker; this.trial = options.trial === true;
+    this.constructionShips = new Map(options.revisions?.map(r => [r.definition.id, r]));
+  }
+  static async create(setup: BattleSetup, options: LocalBattleOptions = {}): Promise<LocalBattleSession> {
+    const session = new LocalBattleSession(runtimeSetup(setup, crypto.getRandomValues(new Uint32Array(1))[0]), undefined, options);
+    return session.initialize({ type: 'init', setup: session.setup, construction: localConstructionInput(options) });
   }
   static async deploy(worker: Worker, briefing: PveBriefing, placements: Placement[], formations: Record<string, Formation> = {}): Promise<LocalBattleSession> {
     const setup = { ...briefing.setup, ships: briefing.setup.ships.map(ship => ({ ...ship, spawn: placements.find(p => p.id === ship.id)?.spawn ?? ship.spawn })) };
     const session = new LocalBattleSession(setup, worker);
     return session.initialize({ type: 'deploy', placements, formations });
   }
-  private async initialize(message: { type: 'init'; setup: RuntimeSetup } | { type: 'deploy'; placements: Placement[]; formations: Record<string, Formation> }): Promise<LocalBattleSession> {
+  private async initialize(message: { type: 'init'; setup: RuntimeSetup; construction?: LocalConstructionInput } | { type: 'deploy'; placements: Placement[]; formations: Record<string, Formation> }): Promise<LocalBattleSession> {
     const session = this;
     await new Promise<void>((resolve, reject) => {
       const timer = setTimeout(() => { session.dispose(); reject(new Error('Battle worker took too long to load.')); }, 120_000);
@@ -66,20 +72,23 @@ export class LocalBattleSession extends SnapshotSession {
       session.worker.onmessage = event => {
         const data = event.data;
         if (data.type === 'error') { clearTimeout(timer); session.fail(data.message); reject(new Error(data.message)); }
+        if (data.type === 'trial-error' && session.restartRequest) {
+          clearTimeout(session.restartRequest.timer); session.restartRequest.reject(new Error(data.message)); session.restartRequest = undefined; session.busy = false;
+        }
         if (data.type === 'ack') {
           session.commands.acknowledge(data.sequence, data.accepted ? 'accepted' : 'rejected', data.message);
           session.commandAcknowledged(data.accepted, data.message, data.command, data.shipId);
         }
         if (data.type === 'snapshot') {
           try {
-            if (data.reset) { session.received = undefined; session.pending = undefined; session.resetIntents(); }
+            if (data.reset) { session.received = undefined; session.pending = undefined; if (!data.trialAction) session.resetIntents(); }
             // The owned worker already parsed, validated and normalized this frame.
             if (data.baseTick !== session.received?.tick) throw new Error('Battle worker snapshot sequence changed.');
             const frame = applyLocalDelta(session.received, data.delta) as Snapshot;
             session.received = frame;
-            if (!session.actors.length || data.reset) { session.apply(frame); clearTimeout(timer); resolve(); } else session.pending = frame;
+            if (!session.actors.length || data.reset || data.trialAction) { session.pending = undefined; session.apply(frame); clearTimeout(timer); resolve(); } else session.pending = frame;
             session.busy = false;
-            if (data.reset && session.restartRequest) {
+            if ((data.reset || data.trialAction) && session.restartRequest) {
               clearTimeout(session.restartRequest.timer); session.restartRequest.resolve(); session.restartRequest = undefined;
             }
             // Post the next batch here rather than on the next render frame: the
@@ -139,6 +148,16 @@ export class LocalBattleSession extends SnapshotSession {
       this.worker.postMessage({ type: 'restart' });
     });
   }
+  private trialRequest(message: { type: 'trial-reset' } | { type: 'trial-action'; action: TrialAction }): Promise<void> {
+    if (!this.trial || this.disposed || this.restartRequest) return Promise.reject(new Error('Trial controls are unavailable right now.'));
+    this.commands.clear(); this.accumulator = 0; this.pending = undefined; this.busy = true;
+    return new Promise((resolve, reject) => {
+      this.restartRequest = { resolve, reject, timer: setTimeout(() => this.fail('Trial control took too long.'), 30_000) };
+      this.worker.postMessage(message);
+    });
+  }
+  resetTrial(): Promise<void> { return this.trialRequest({ type: 'trial-reset' }); }
+  trialAction(action: TrialAction): Promise<void> { return this.trialRequest({ type: 'trial-action', action }); }
   dispose() {
     this.disposed = true; this.worker.terminate(); this.commands.clear(); this.received = undefined;
     if (this.restartRequest) { clearTimeout(this.restartRequest.timer); this.restartRequest.reject(new Error(this.connectionStatus || 'Mission closed.')); this.restartRequest = undefined; }

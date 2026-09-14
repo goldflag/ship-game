@@ -3,9 +3,10 @@ import type { PveBriefing } from '../multiplayer/generated/PveBriefing';
 import { assetUrl } from '../assetUrl';
 import { oceanMap, DEFAULT_MAP } from '../maps/catalog';
 import { TIME_OF_DAY_PRESETS, WEATHER_PRESETS, formatBattleTime } from '../maps/conditions';
-import { shipPreset } from '../ships/presets';
+import { resolveShip } from '../ships/localShips';
 import { botSelection, type BattleSetup } from '../simulation/battle';
 import './BattleLoadingScreen.css';
+import { ShipThumbnail } from './battle/ShipCard';
 
 export interface BattleLoadingState { label: string; progress: number; leaving: boolean; }
 interface Props { briefing?: PveBriefing; multiplayer?: boolean; setup: BattleSetup; state: BattleLoadingState; onLeft(): void; }
@@ -28,8 +29,8 @@ export function BattleLoadingScreen({ setup, state, onLeft, multiplayer, briefin
   const percent = Math.round(Math.min(state.progress, 1) * 100);
   const roster = (ids: string[], team: 'Friendly' | 'Enemy') => <ol className="battle-loading-roster" aria-label={`${team} fleet`}>
     {ids.map((id, index) => <li key={`${team}-${index}`} className={!briefing && team === 'Friendly' && index === 0 ? 'battle-loading-player' : undefined}>
-      <img src={assetUrl(`models/${id}-thumbnail.png`)} width="120" height="36" alt=""/>
-      <span>{shipPreset(id).name}</span>
+      <ShipThumbnail presetId={id} width={120}/>
+      <span>{resolveShip(id).name}</span>
       {!briefing && team === 'Friendly' && index === 0 && <small>You</small>}
     </li>)}
   </ol>;

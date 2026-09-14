@@ -24,7 +24,7 @@ import { SimulationSpeed } from './SimulationSpeed';
 import { ReconnaissanceCoverage, ReconnaissanceLegend } from './Reconnaissance';
 import { reportState, reportPosition, reportName, conditionReport, observationAge } from './reconReports';
 import { advancePendingRoute, type PendingRoute } from './pendingFleetRoute';
-import { shipPreset } from '../ships/presets';
+import { resolveShip } from '../ships/localShips';
 import type { FleetNotice } from '../multiplayer/generated/FleetNotice';
 import { fleetFormations, type FleetFormation } from './fleetFormations';
 import type { BattleSession } from '../game/session/BattleSession';
@@ -230,7 +230,7 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
     ].filter(Boolean).join(' · '));
     setArmed(undefined);
   };
-  const stationShip = (ship: { id: string; shipId: string }) => ({ id: ship.id, shipClass: shipClassOf(actorOf(ship.id)?.definition ?? shipPreset(ship.shipId)) });
+  const stationShip = (ship: { id: string; shipId: string }) => ({ id: ship.id, shipClass: shipClassOf(actorOf(ship.id)?.definition ?? resolveShip(ship.shipId)) });
   /** How the group containing this ship sails: what the picker last set, or how its escorts stand now. */
   const formationOf = (id: string): Formation => formations.find(f => f.shipIds.includes(id))?.formation ?? 'column';
   const escort = (leaderId: string) => {
@@ -521,7 +521,7 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
   // The corner card is the whole order of battle: each ship's class glyph, score,
   // the standing order and the tonnage the comparison counts.
   const ownShips: OwnFleetShip[] = rosterShips.map(s => ({
-    ...s, warn: !!s.warn, shipClass: shipClassOf(actorOf(s.id)?.definition ?? shipPreset(ships.find(c => c.id === s.id)!.shipId)),
+    ...s, warn: !!s.warn, shipClass: shipClassOf(actorOf(s.id)?.definition ?? resolveShip(ships.find(c => c.id === s.id)!.shipId)),
     order: standingOrder(orders[s.id], nameFor), massKg: actorOf(s.id)?.definition.hull.massKg ?? 0,
   }));
   const ownWing: OwnFleetAircraft = {
@@ -532,7 +532,7 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
   const lineOpen = airOpen && wings.length > 0;
   const comparison = battleComparison({
     own: ships.map(s => { const a = actorOf(s.id); return { id: s.id, massKg: a?.definition.hull.massKg ?? 0, integrity: a?.damage.integrity ?? 0, maxIntegrity: a?.damage.maxIntegrity ?? 0, lost: s.physicalLost }; }),
-    scores, tracks: observations, massOf: id => shipPreset(id).hull.massKg, enemyLostShips: combat.contacts.filter(c => c.team === 'enemy' && c.physicalLost).length, ownAircraft, enemyAircraftLost: game.simulation.aircraftLosses?.enemy,
+    scores, tracks: observations, massOf: id => resolveShip(id).hull.massKg, enemyLostShips: combat.contacts.filter(c => c.team === 'enemy' && c.physicalLost).length, ownAircraft, enemyAircraftLost: game.simulation.aircraftLosses?.enemy,
   });
   const wheelItems: WheelItem[] = [
     { kind: 'move', label: 'Move', sub: armed === 'move' ? 'G · armed' : 'G', armed: armed === 'move', disabled: !actionable },
@@ -667,7 +667,7 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
           : side === 'above' ? { x: 0, anchor: 'middle' as const, y: -32, barX: -20, barY: -27, orderY: -16 }
           : { x: 14, anchor: 'start' as const, y: -3, barX: 14, barY: 2, orderY: 17 };
         const hp = Math.max(0, Math.min(1, s.integrity));
-        const definition = actor?.definition ?? shipPreset(s.shipId), glyph = SHIP_GLYPHS[shipClassOf(definition)];
+        const definition = actor?.definition ?? resolveShip(s.shipId), glyph = SHIP_GLYPHS[shipClassOf(definition)];
         return <g key={s.id} data-map-position={JSON.stringify([s.x, 0, s.z])} data-ship-marker={s.id} data-map-fade={`${definition.hull.length},${s.heading}`} className={`fleet-command-marker ${s.team} ${ids.includes(s.id) || s.id === contactId ? 'selected' : ''} ${hoverId === s.id ? 'hovered' : ''} ${warn ? 'warn' : ''}`}
           role="button" tabIndex={0} aria-label={`${nameFor(s.id) === 'assigned leader' ? s.name : nameFor(s.id)} · ${s.team}${own && status === 'blocked' ? ' · Route blocked · Reassign destination' : ''}`}
           onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); targetShip(s, false, e.shiftKey); } }}
@@ -686,7 +686,7 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
           {!own && <text className="fleet-command-marker-order" x="14" y="11">{s.status === 'operational' ? 'contact' : s.status.replaceAll('-', ' ')}</text>}
         </g>;
       })}
-      {observations.filter(c => c.kind === 'surface').map(c => { const glyph = SHIP_GLYPHS[c.identifiedPresetId ? shipClassOf(shipPreset(c.identifiedPresetId)) : shipClassFromReport(c.classification)], [rvx, , rvz] = c.velocity, heading = Math.atan2(rvx, -rvz); return <g key={c.id} data-map-position={JSON.stringify(reportPosition(c, tick))} data-contact-marker={c.id} data-contact-kind="surface" data-map-fade={`${c.identifiedPresetId ? shipPreset(c.identifiedPresetId).hull.length : 180},${heading}`} data-report-state={reportState(c, tick)} className={`fleet-command-marker ${c.affiliation === 'hostile' ? 'enemy' : 'unidentified'} report ${c.status} ${contactId === c.id ? 'selected' : ''}`}
+      {observations.filter(c => c.kind === 'surface').map(c => { const glyph = SHIP_GLYPHS[c.identifiedPresetId ? shipClassOf(resolveShip(c.identifiedPresetId)) : shipClassFromReport(c.classification)], [rvx, , rvz] = c.velocity, heading = Math.atan2(rvx, -rvz); return <g key={c.id} data-map-position={JSON.stringify(reportPosition(c, tick))} data-contact-marker={c.id} data-contact-kind="surface" data-map-fade={`${c.identifiedPresetId ? resolveShip(c.identifiedPresetId).hull.length : 180},${heading}`} data-report-state={reportState(c, tick)} className={`fleet-command-marker ${c.affiliation === 'hostile' ? 'enemy' : 'unidentified'} report ${c.status} ${contactId === c.id ? 'selected' : ''}`}
         role="button" tabIndex={0} aria-label={`${reportName(c)} · ${c.status} · observed ${reportAge(c, tick)} · uncertainty ${reportUncertainty(c)}`}
         onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); selectReport(c); } }}
         onClick={e => { e.stopPropagation(); if (ignoreClick.current) { ignoreClick.current = false; return; } selectReport(c); }} onContextMenu={e => { e.preventDefault(); e.stopPropagation(); if (e.ctrlKey || e.metaKey || e.altKey || drag.current?.moved) return; selectReport(c, true); }}>

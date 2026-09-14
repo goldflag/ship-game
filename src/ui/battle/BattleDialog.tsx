@@ -4,7 +4,9 @@ import { MatchConnection, pendingTicket, type JoinMode, type LobbyStatus, type R
 import type { Formation } from '../../multiplayer/generated/Formation';
 import type { Placement } from '../../multiplayer/generated/Placement';
 import type { PveRequest } from '../../multiplayer/generated/PveRequest';
-import { shipPreset, shipPresets } from '../../ships/presets';
+import { shipPresets } from '../../ships/presets';
+import { availableShipIds, isHistoricalShip, localShips, resolveShip, subscribeLocalShips } from '../../ships/localShips';
+import { useSyncExternalStore } from 'react';
 import type { BattleSetup } from '../../simulation/battle';
 import { Button } from '../components';
 import { Icon } from '../Icons';
@@ -34,6 +36,7 @@ const defaultRequest = (): PveRequest => ({ version: 1, seed: missionSeed(), map
 
 /** One battle screen for every mode: catalog, drop lanes and waters, then the deployment chart. */
 export function BattleDialog({ initialMode, initialShipId, loading, onClose, initialStep = 'fleet', setup, onSetupChange, onLaunchCustom, customError, pveRequest, onLaunchPve, onOnlineBattle }: Props) {
+  useSyncExternalStore(subscribeLocalShips, localShips);
   const dialog = useRef<HTMLDialogElement>(null);
   const [mode, setMode] = useState<BattleMode>(initialMode);
   const [step, setStep] = useState<'fleet' | 'deploy'>(initialStep);
@@ -53,7 +56,7 @@ export function BattleDialog({ initialMode, initialShipId, loading, onClose, ini
   const pendingCarry = useRef<string[] | undefined>(undefined);
   const controller = useRef<AbortController | undefined>(undefined);
   // 1v1 state. The connection is cancelled unless the match transfers into a battle.
-  const [fleet, setFleet] = useState([initialShipId]); const [code, setCode] = useState('');
+  const [fleet, setFleet] = useState(isHistoricalShip(initialShipId) ? [initialShipId] : []); const [code, setCode] = useState('');
   const [duelBusy, setDuelBusy] = useState(false); const [status, setStatus] = useState<LobbyStatus>({ message: '' });
   const connection = useRef<MatchConnection | undefined>(undefined); const transferred = useRef(false); const active = useRef(true);
 
@@ -71,7 +74,7 @@ export function BattleDialog({ initialMode, initialShipId, loading, onClose, ini
         const carried = carryToPve(current, pendingCarry.current ?? [], value.eligiblePresets, value.rules.budget, newId);
         pendingCarry.current = undefined;
         if (carried.ships.length) return carried;
-        const id = value.eligiblePresets.includes(initialShipId) ? initialShipId : value.eligiblePresets[0];
+        const id = value.eligiblePresets.includes(initialShipId) ? initialShipId : isHistoricalShip(initialShipId) ? value.eligiblePresets[0] : undefined;
         return id ? { ...current, ships: [{ id: newId(), presetId: id, groupId: (current.groups.find(group => group.station === (aircraftCount(id) ? 'rear' : 'front')) ?? current.groups[0]).id }] } : current;
       });
     }).catch(error => { if (!abort.signal.aborted) setOptionsError(String(error.message ?? error)); });
@@ -93,7 +96,7 @@ export function BattleDialog({ initialMode, initialShipId, loading, onClose, ini
     else if (next === 'duel') setFleet(current => carryToDuel(current, initialShipId, ids));
     else if (options) { const carried = carryToPve(request, ids, options.eligiblePresets, options.rules.budget, newId); if (carried !== request) changeRequest(carried); }
     else pendingCarry.current = ids;
-    setMode(next); setStep('fleet'); setTransfer(undefined); setMessage({ text: '', error: false });
+    setMode(next); setStep('fleet'); setTransfer(undefined); setMessage({ text: next !== 'custom' && ids.some(id => !isHistoricalShip(id)) ? 'Player designs are available in local custom battles and sea trials. Choose historical ships for this mode.' : '', error: false });
   };
   const preparePve = async () => {
     if (pveBusy || !options) return;
@@ -152,7 +155,7 @@ export function BattleDialog({ initialMode, initialShipId, loading, onClose, ini
     if (mode === 'duel') return duelBudget([...fleet, id]).error ?? '';
     return '';
   };
-  const transferName = !transfer ? '' : transfer.kind === 'catalog' ? shipPreset(transfer.id).name
+  const transferName = !transfer ? '' : transfer.kind === 'catalog' ? resolveShip(transfer.id).name
     : mode === 'pve' ? (request.ships.find(ship => ship.id === transfer.id) ? unitName(request.ships.find(ship => ship.id === transfer.id)!, request.ships) : '') : 'the ship';
   const customPlacement = mode === 'custom' && step === 'deploy' ? customDeployment(setup) : undefined;
   const pveInvalidText = mode === 'pve' ? pveInvalid(request, options) : '';
@@ -164,7 +167,7 @@ export function BattleDialog({ initialMode, initialShipId, loading, onClose, ini
     return { label: 'Find opponent', disabled: duelBusy || !!duelBudget(fleet).error, run: () => void join('queue') };
   })();
   const canResume = (() => { try { return pendingTicket(); } catch { return false; } })();
-  const statusText = message.text || customError || (busy ? (pveBusy ? 'Preparing your mission…' : status.message) : transfer ? `Choose a lane for ${transferName}.` : mode === 'pve' && optionsError ? optionsError : '');
+  const statusText = message.text || customError || (busy ? (pveBusy ? 'Preparing your mission…' : status.message) : transfer ? `Choose a lane for ${transferName}.` : mode === 'pve' && optionsError ? optionsError : mode !== 'custom' && !isHistoricalShip(initialShipId) ? 'Player designs stay in local custom battles and sea trials. Choose historical ships for this mode.' : '');
   const statusError = message.error || !!customError || (!!optionsError && !message.text && !busy);
 
   return <dialog ref={dialog} className="battle-dialog" aria-labelledby="battle-title" onCancel={event => { event.preventDefault(); if (transfer) setTransfer(undefined); else close(); }}>
@@ -181,7 +184,7 @@ export function BattleDialog({ initialMode, initialShipId, loading, onClose, ini
     {step === 'deploy' && mode === 'pve' && draft && <DeployScreen key={draft.briefing.setup.seed} deployment={pveDeployment(draft.briefing, placements, formations)} disabled={pveBusy} fitKey={String(draft.briefing.setup.seed)}
       onChange={units => setPlacements(applyPveDeployment(units))} onReset={() => setPlacements(initialPvePlacements(draft.briefing, formations))} onFormation={chooseFormation}/>}
     {step === 'fleet' && <div className="battle-body">
-      <ShipCatalog ships={mode === 'pve' && options ? ALL_SHIPS.filter(id => options.eligiblePresets.includes(id)) : ALL_SHIPS} hint={mode === 'custom' ? 'Drag into a lane' : mode === 'pve' ? 'Drag into a group' : 'Drag into a berth'} picked={transfer?.kind === 'catalog' ? transfer.id : undefined} commanded={mode === 'custom' ? setup.playerShipId : undefined}
+      <ShipCatalog ships={mode === 'custom' ? availableShipIds() : mode === 'pve' && options ? ALL_SHIPS.filter(id => options.eligiblePresets.includes(id)) : ALL_SHIPS} hint={mode === 'custom' ? 'Drag into a lane' : mode === 'pve' ? 'Drag into a group' : 'Drag into a berth'} picked={transfer?.kind === 'catalog' ? transfer.id : undefined} commanded={mode === 'custom' ? setup.playerShipId : undefined}
         disabled={catalogDisabled} unavailable={unavailable} onPick={pick} onDragStart={startCatalogDrag} onDragEnd={() => setTransfer(undefined)}/>
       <div className="battle-center">
         {mode === 'custom' && <CustomLanes setup={setup} onChange={next => { onSetupChange(next); setMessage({ text: '', error: false }); }} transfer={transfer} onTransfer={setTransfer} onError={notice} disabled={busy}/>}

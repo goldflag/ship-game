@@ -2,7 +2,7 @@ import { DEFAULT_MAP, mapIslands, type Island } from '../../maps/catalog';
 import type { Formation } from '../../multiplayer/generated/Formation';
 import type { PveBriefing } from '../../multiplayer/generated/PveBriefing';
 import type { Placement } from '../../multiplayer/generated/Placement';
-import { shipPreset } from '../../ships/presets';
+import { resolveShip } from '../../ships/localShips';
 import { botSelection, setupSpawns, validateSpawns, type BattleSetup, type SpawnPose, type Team } from '../../simulation/battle';
 import { formationStations, stationPosition } from '../formationStations';
 import { deploymentIslands, moveFormation, placementError, unitName } from '../pveSetup';
@@ -26,7 +26,7 @@ export interface Deployment {
 export const CUSTOM_GROUPS: readonly ChartGroup[] = [{ id: 'friendly', name: 'Friendly formation', side: 'friendly' }, { id: 'enemy', name: 'Enemy formation', side: 'enemy' }];
 const customName = (setup: BattleSetup, team: Team, index: number) => {
   const id = team === 'friendly' && index === 0 ? setup.playerShipId : botSelection(team === 'friendly' ? setup.friendlyBots[index - 1] : setup.enemies[index]).shipId;
-  return { presetId: id, name: `${shipPreset(id).name}${team === 'friendly' && index === 0 ? ' · You' : ''}` };
+  return { presetId: id, name: `${resolveShip(id).name}${team === 'friendly' && index === 0 ? ' · You' : ''}` };
 };
 export function customIslands(setup: BattleSetup): Island[] {
   return mapIslands(setup.mapId ?? DEFAULT_MAP, setup.spawnDistance, Math.max(setup.friendlyBots.length + 1, setup.enemies.length));
@@ -88,7 +88,7 @@ export function initialPvePlacements(briefing: PveBriefing, formations: Readonly
 export function arrangeFormation(units: readonly ChartUnit[], groupId: string, formation: Formation): ChartUnit[] {
   const members = units.filter(unit => unit.groupId === groupId);
   if (members.length < 2) return [...units];
-  const guide = members[0], station = (unit: ChartUnit) => ({ id: unit.id, shipClass: shipClassOf(shipPreset(unit.presetId)) });
+  const guide = members[0], station = (unit: ChartUnit) => ({ id: unit.id, shipClass: shipClassOf(resolveShip(unit.presetId)) });
   const stations = new Map(formationStations(formation, station(guide), members.slice(1).map(station)).map(entry => [entry.id, entry.offset]));
   return units.map(unit => {
     const offset = unit.groupId === groupId ? stations.get(unit.id) : undefined;

@@ -19,6 +19,7 @@ export function createStarterSource(catalog: ConstructionCatalog, kind: Construc
       box(`bow-${side}`, [4, 5, 8], [x, 0, -28], 'wedge', 180);
     }
     box('bridge-deck', [8, 1, 24], [0, 2, 0]);
+    box('gun-well-support', [4, 2, 4], [0, 1.5, -8]);
   } else {
     box('hull', [8, 5, 48], [0, 0, 0]);
     box('bow', [8, 5, 8], [0, 0, -28], 'wedge', 180);

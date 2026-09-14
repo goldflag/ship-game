@@ -9,7 +9,7 @@ import type { Formation } from '../../multiplayer/generated/Formation';
 import type { FleetOrderState } from '../../multiplayer/generated/FleetOrderState';
 import type { FleetNotice } from '../../multiplayer/generated/FleetNotice';
 import type { TeamId } from '../../multiplayer/generated/TeamId';
-import type { Ammunition, Battery, Vec3 } from '../../ships/blueprint';
+import type { Ammunition, Battery, ShipDefinition, Vec3 } from '../../ships/blueprint';
 import { shipPreset, shipPresets } from '../../ships/presets';
 import { mapIslands, type OceanMapId } from '../../maps/catalog';
 import type { WeatherId } from '../../maps/conditions';
@@ -100,7 +100,8 @@ export abstract class SnapshotSession implements BattleSession {
     const subject = this.followedShipId ?? this.controlledShipId ?? (this.actors.length ? this.player.motion.id : undefined);
     return [...new Set([subject, this.target?.motion.id].filter((id): id is string => !!id))];
   }
-  constructor(readonly setup: BattleSetup, readonly ownTeam: TeamId = 'a', readonly playerIndex = 0) {
+  constructor(readonly setup: BattleSetup, readonly ownTeam: TeamId = 'a', readonly playerIndex = 0,
+    private readonly localDefinitions: ReadonlyMap<string, ShipDefinition> = new Map()) {
     this.mapId = setup.mapId as OceanMapId; this.seed = setup.seed; this.spawnDistance = setup.spawnDistance;
     this.islands = setup.missionRules ? mapIslands(this.mapId, 16000, setup.missionRules.budget.maxShips).map(island => ({ ...island, z: island.z + 8000 }))
       : mapIslands(this.mapId, setup.spawnDistance, Math.max(...(['a', 'b'] as const).map(t => setup.ships.filter(s => s.team === t).length)));
@@ -134,7 +135,9 @@ export abstract class SnapshotSession implements BattleSession {
     const oldTick = this.tick;
     this.tick = frame.tick; this.interval = Math.max(1 / 60, (this.tick - oldTick) / 60); this.elapsed = 0;
     for (const wire of frame.actors) {
-      if (!Object.hasOwn(shipPresets, wire.presetId)) throw new Error('Snapshot references unavailable content.');
+      const definition = this.localDefinitions.get(wire.presetId)
+        ?? (Object.hasOwn(shipPresets, wire.presetId) ? shipPreset(wire.presetId) : undefined);
+      if (!definition) throw new Error(`Snapshot references unavailable content: ${wire.presetId}.`);
       const expected = this.setup.ships.find(s => s.id === wire.motion.id);
       if (!expected || expected.presetId !== wire.presetId || expected.team !== wire.team) throw new Error('Snapshot fleet changed.');
       const { presetId, team, aiLevel, launcherTrains, ...state } = wire;
@@ -142,7 +145,7 @@ export abstract class SnapshotSession implements BattleSession {
       // These stable renderer identities must not alias the retained wire frame:
       // local deltas reuse its unchanged paths in subsequent snapshots.
       const actor = existing ?? { ...state, motion: { ...state.motion }, damage: { ...state.damage },
-        definition: shipPreset(presetId), team: team === this.ownTeam ? 'friendly' : 'enemy' } as FleetActor;
+        definition, team: team === this.ownTeam ? 'friendly' : 'enemy' } as FleetActor;
       if (existing) {
         const { motion, damage, ...rest } = state;
         replaceObject(actor.motion, motion); replaceObject(actor.damage, damage); Object.assign(actor, rest);

@@ -15,6 +15,7 @@ import { ModelViewControls, PortInspection } from "./PortInspection";
 import { ShipStatistics } from "./ShipStatistics";
 import { ShipClassIcon } from "./ShipClassIcons";
 import { battleModeName, type BattleMode } from "./battle/battleModes";
+import { Button } from './components';
 
 const SHIPS = Object.values(shipPresets);
 const NATIONS = Array.from(new Set(SHIPS.map((ship) => shipIdentity(ship.id).nation).filter(Boolean))).sort();
@@ -113,6 +114,7 @@ type GarageState = {
   selectShip: (id: string) => void;
   /** The Battle button: the sortie board, or the last mode when the player chose to skip it. */
   battle: () => void;
+  build: () => void;
   /** The caret: always the sortie board. */
   chooseBattle: () => void;
   lastMode: BattleMode;
@@ -148,6 +150,7 @@ function SetSail({ state }: { state: GarageState }) {
         </button>
       </div>
       <small className="garage-battle-last">Last: <b>{battleModeName(state.lastMode)}</b></small>
+      <Button variant="secondary" disabled={!state.ready} onClick={state.build}>Shipbuilder</Button>
     </div>
   );
 }
@@ -387,6 +390,7 @@ interface Props {
   fps: number;
   performance?: PerformanceReadout;
   onBattle: () => void;
+  onBuild: () => void;
   onChooseBattle: () => void;
   lastMode: BattleMode;
   onSettings: () => void;
@@ -398,6 +402,7 @@ export function Garage({
   fps,
   performance,
   onBattle,
+  onBuild,
   onChooseBattle,
   lastMode,
   onSettings,
@@ -441,6 +446,7 @@ export function Garage({
       onSelectShip(id);
     },
     battle: onBattle,
+    build: onBuild,
     chooseBattle: onChooseBattle,
     lastMode,
     ready: ready && !switching,

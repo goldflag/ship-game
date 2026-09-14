@@ -31,6 +31,12 @@ import { useHudScale } from './useHudScale';
 import './ShipLabels.css';
 import './GunAimIndicators.css';
 import './HitDirectionIndicators.css';
+import { Shipbuilder } from './shipbuilding/Shipbuilder';
+import { TrialControls } from './shipbuilding/TrialControls';
+import type { ConstructionCatalog, ConstructionResult, ConstructionSource } from '../ships/blueprint';
+import { loadConstructionCatalog } from '../ships/constructionEquipment';
+import { registerLocalShip, resolveShip } from '../ships/localShips';
+import { restoreLocalShips } from '../ships/constructionLibrary';
 
 const INITIAL_TELEMETRY: Telemetry = { ship: createShipState(), order: 1, camera: 'Chase', fps: 0, backend: 'webgpu', trail: [] };
 
@@ -75,6 +81,11 @@ export function App() {
   const [battleError, setBattleError] = useState('');
   const battlePending = useRef(false);
   const [phase, setPhase] = useState<'garage' | 'sailing'>('garage');
+  const [builder, setBuilder] = useState<{ catalog: ConstructionCatalog; source?: ConstructionSource } | null>(null);
+  const builderSource = useRef<ConstructionSource | undefined>(undefined);
+  const [builderError, setBuilderError] = useState('');
+  const [builderOpening, setBuilderOpening] = useState(false);
+  const [trial, setTrial] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -118,9 +129,11 @@ export function App() {
   useEffect(() => { game.current?.setHudScale(hudScale); }, [hudScale]);
 
   useEffect(() => {
-    if (paused && ready && !error) dialog.current?.showModal();
+    if (paused && ready && !error && !builder) dialog.current?.showModal();
     else dialog.current?.close();
-  }, [paused, ready, error]);
+  }, [paused, ready, error, builder]);
+
+  useEffect(() => { if (builder) game.current?.input.setEnabled(false); }, [builder]);
 
   // Let React unmount the setup dialog before the scene takes focus for aiming.
   // Keep loading visible through the battle's actual render-pass warmup.
@@ -142,6 +155,7 @@ export function App() {
     setBattleSetup(value => ({ ...value, playerShipId: selectedShip.id }));
     if (pveRequest) setPveRequest({ ...pveRequest, seed: crypto.getRandomValues(new Uint32Array(1))[0] });
     setPveBriefing(undefined); setBattleError(''); setBattleMode(mode); setSortieOpen(false); setBattleOpen(true);
+    void restoreLocalShips().then(issues => { if (issues.length) setBattleError(`Some drafts need attention in Shipbuilder: ${issues.join(' · ')}`); }).catch(error => setBattleError(`Saved ships could not be loaded: ${error instanceof Error ? error.message : String(error)}`));
   };
   /** The sortie board explains the modes before setup. Players who have made up their mind can skip it. */
   const openSortieBoard = () => { if (ready && !switchPending.current) setSortieOpen(true); };
@@ -154,12 +168,12 @@ export function App() {
     try {
       await session.prepareBattle(battleSetup, (label, progress) => { if (game.current === session) setBattleLoading({ label, progress, leaving: false }); });
       if (game.current !== session) return;
-      const definition = shipPreset(battleSetup.playerShipId);
+      const definition = resolveShip(battleSetup.playerShipId);
       selectedRef.current = definition; setSelectedShip(definition);
-      const url = new URL(window.location.href); url.searchParams.set('ship', definition.id);
+      const url = new URL(window.location.href); if (!definition.construction) url.searchParams.set('ship', definition.id);
       window.history.replaceState(null, '', url);
       setBattleLoading({ label: 'Getting underway', progress: 0.95, leaving: false });
-      setBattleOpen(false); setHud(true); setPhase('sailing');
+      setTrial(false); setBattleOpen(false); setHud(true); setPhase('sailing');
     } catch (error) {
       if (game.current === session) { setBattleLoading(null); setBattleError(error instanceof Error ? error.message : String(error)); }
     } finally {
@@ -185,11 +199,37 @@ export function App() {
   };
   const returnToPort = async () => {
     try {
-      await game.current?.returnToPort(); setPhase('garage');
+      const wasTrial = trial;
+      await game.current?.returnToPort(); setPhase('garage'); setTrial(false);
+      if (game.current) { selectedRef.current = game.current.definition; setSelectedShip(game.current.definition); }
+      if (wasTrial && builderSource.current) setBuilder({ source: builderSource.current, catalog: await loadConstructionCatalog(builderSource.current.construction.catalogRevision) });
       // Ocean and terrain rows chosen during the battle need a rebuilt port.
       if (game.current && !launchMatches(game.current.launchedGraphics, graphicsRef.current)) setGeneration(value => value + 1);
     }
     catch (error) { setError(error instanceof Error ? error.message : String(error)); }
+  };
+
+  const openBuilder = async () => {
+    if (!ready || builderOpening || switchPending.current || phase !== 'garage') return;
+    setBuilderOpening(true); setBuilderError('');
+    try { setBuilder({ source: builderSource.current, catalog: await loadConstructionCatalog(builderSource.current?.construction.catalogRevision) }); }
+    catch (error) { setBuilderError(error instanceof Error ? error.message : String(error)); }
+    finally { setBuilderOpening(false); }
+  };
+  const launchTrial = async (source: ConstructionSource, result: ConstructionResult) => {
+    const session = game.current;
+    if (!session || battlePending.current) throw new Error('The harbor is still preparing.');
+    const revision = registerLocalShip(source, result);
+    const setup: BattleSetup = { playerShipId: revision.definition.id, friendlyBots: [], enemies: [{ shipId: 'liberty-cargo', aiLevel: 'easy' }], spawnDistance: 2500, mapId: 'north-atlantic', timeHours: 12, cloudCover: 10, windSpeed: 0 };
+    battlePending.current = true; setPveBriefing(undefined); setBattleSetup(setup);
+    setBattleLoading({ label: 'Preparing sea trial', progress: 0, leaving: false });
+    try {
+      await session.prepareBattle(setup, (label, progress) => setBattleLoading({ label, progress, leaving: false }), true);
+      if (game.current !== session) return;
+      builderSource.current = revision.source; setBuilder(null); setTrial(true);
+      selectedRef.current = revision.definition; setSelectedShip(revision.definition); setHud(true); setPhase('sailing');
+    } catch (error) { setBattleLoading(null); throw error; }
+    finally { battlePending.current = false; }
   };
   const restartPve = async () => {
     const session = game.current;
@@ -288,11 +328,14 @@ export function App() {
       if (!(target instanceof HTMLElement && target.closest('input, textarea, [contenteditable]:not([contenteditable="false"])'))) event.preventDefault();
     }}>
     <div ref={host} className="ocean-viewport" inert={!ready || !!error} data-ship-labels={phase === 'sailing' && hud && ready && !error && !data.airOperationsOpen} />
-    {phase === 'garage' && ready && !error && !battleOpen && <Garage key={selectedShip.id} switching={switching} switchError={switchError} onSelectShip={switchShip} game={game.current} ready={ready} fps={data.fps} performance={data.performance} onBattle={pressBattle} onChooseBattle={openSortieBoard} lastMode={battleMode} onSettings={() => game.current?.setPaused(true)}/>}
+    {phase === 'garage' && ready && !error && !battleOpen && !builder && <Garage key={selectedShip.id} switching={switching} switchError={switchError} onSelectShip={switchShip} game={game.current} ready={ready} fps={data.fps} performance={data.performance} onBattle={pressBattle} onBuild={() => void openBuilder()} onChooseBattle={openSortieBoard} lastMode={battleMode} onSettings={() => game.current?.setPaused(true)}/>}
     {phase === 'garage' && sortieOpen && !battleOpen && <SortieBoard lastMode={battleMode} onChoose={openBattle} onClose={() => setSortieOpen(false)}/>}
     {battleOpen && <BattleDialog initialMode={battleMode} initialShipId={selectedShip.id} loading={!!battleLoading} onClose={() => setBattleOpen(false)}
       setup={battleSetup} onSetupChange={setBattleSetup} onLaunchCustom={() => void launch()} customError={battleError}
       pveRequest={pveRequest} onLaunchPve={launchPve} onOnlineBattle={onlineBattle}/>}
+    {builder && phase === 'garage' && <Shipbuilder catalog={builder.catalog} initialSource={builder.source} onSave={source => { builderSource.current = source; }} onLaunch={launchTrial} onClose={() => { setBuilder(null); game.current?.input.setEnabled(true); }}/>}
+    {phase === 'garage' && (builderOpening || builderError) && <div className="shipbuilder-entry-status" role={builderError ? 'alert' : 'status'}>{builderError || 'Opening shipbuilder…'}{builderError && <Button onClick={() => void openBuilder()}>Retry</Button>}</div>}
+    {trial && phase === 'sailing' && ready && !error && !battleLoading && game.current && <TrialControls game={game.current} onReturn={returnToPort}/>}
     {phase === 'sailing' && ready && !error && <><BinocularOverlay data={data}/><div className="hud-viewport">
       <FleetHud key={game.current?.battleRevision} data={data} game={game.current} visible={hud} bindings={bindings}/>
       {!hud && <button className="restore-hud" onClick={() => setHud(true)}>Show instruments <kbd>{bindingLabel(bindings, 'hud')}</kbd></button>}
@@ -321,7 +364,7 @@ export function App() {
       {phase === 'garage' && <p className="menu-description">Prepare for your next voyage.</p>}
       <Button autoFocus variant="primary" onClick={resume}>{phase === 'garage' ? 'Back to port' : 'Resume battle'} <Icon name={phase === 'garage' ? 'anchor' : 'play'} size={18}/></Button>
       {phase === 'sailing' && game.current?.simulation.missionRules && <Button disabled={pveRestarting} variant="secondary" onClick={() => void restartPve().catch(e => setError(e instanceof Error ? e.message : String(e)))}>{pveRestarting ? 'Restarting…' : 'Restart this battle'}</Button>}
-      {phase === 'sailing' && <Button variant="secondary" className="restart-button" onClick={() => void returnToPort()}>{battleExitLabel(game.current?.simulation)} <Icon name="anchor" size={18}/></Button>}
+      {phase === 'sailing' && <Button variant="secondary" className="restart-button" onClick={() => void returnToPort()}>{trial ? 'Return to shipbuilder' : battleExitLabel(game.current?.simulation)} <Icon name="anchor" size={18}/></Button>}
       <Button variant="secondary" className="menu-action" onClick={() => setSettingsOpen(true)}>Settings <Icon name="settings" size={18}/></Button>
       <Button variant="secondary" className="menu-action close-game-button" onClick={closeGame}>Close game <Icon name="power" size={18}/></Button>
       {phase === 'sailing' && <div className="menu-controls">

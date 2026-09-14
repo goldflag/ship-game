@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState, type DragEvent, type KeyboardEvent, type PointerEvent as ReactPointerEvent } from 'react';
 import { coastOutline } from '../../maps/catalog';
-import { shipPreset } from '../../ships/presets';
+import { resolveShip } from '../../ships/localShips';
 import { dragFormation, rotateFormation, zoomDeployment, type DeploymentPoint } from '../deploymentGestures';
 import { formationLabel } from '../formationStations';
 import { moveFormation } from '../pveSetup';
@@ -238,12 +238,12 @@ export function DeploymentChart({ deployment, fit, onChange, onCommit, selection
       number++;
       const selected = active.some(other => other.id === unit.id), own = selection?.kind === 'ship' && selection.id === unit.id;
       const hovered = hover?.kind === 'ship' ? hover.id === unit.id : hover?.kind === 'group' && hover.id === unit.groupId;
-      const shipClass = shipClassOf(shipPreset(unit.presetId)), glyph = SHIP_GLYPHS[shipClass];
+      const shipClass = shipClassOf(resolveShip(unit.presetId)), glyph = SHIP_GLYPHS[shipClass];
       return <g key={unit.id} transform={`translate(${unit.spawn.x} ${unit.spawn.z})`} className={`chart-ship ${unit.side} ${selected ? 'is-selected' : ''} ${own ? 'is-focus' : ''} ${hovered ? 'is-hovered' : ''}`} role="button" tabIndex={disabled ? -1 : 0} aria-label={`Select ${unit.name}`} aria-pressed={own}
         onPointerDown={event => pressShip(event, unit)} onClick={event => event.stopPropagation()}
         onPointerEnter={() => onHover?.({ kind: 'ship', id: unit.id })} onPointerLeave={() => onHover?.(undefined)}
         onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.stopPropagation(); if (!disabled) onSelect(scope === 'ship' ? { kind: 'ship', id: unit.id } : { kind: 'group', id: unit.groupId }); } }}>
-        <title>{`${unit.name} · ${shipClass} · ${shipPreset(unit.presetId).hull.length.toFixed(0)} m · ${formatHeading(unit.spawn.heading)}`}</title>
+        <title>{`${unit.name} · ${shipClass} · ${resolveShip(unit.presetId).hull.length.toFixed(0)} m · ${formatHeading(unit.spawn.heading)}`}</title>
         <circle r={px(13)} className="chart-ship-hit"/>
         <g transform={`rotate(${headingDegrees(unit.spawn.heading)}) scale(${px(.95)})`}>
           <path className="chart-hull" d={glyph.hull}/><path className="chart-mark" d={glyph.mark}/>

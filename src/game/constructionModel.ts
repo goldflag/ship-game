@@ -73,6 +73,7 @@ export async function createConstructionModel(source: ConstructionSource, result
         installation.userData = { sourceId: instance.id, assemblyId: instance.id, equipmentKind: part.kind };
         model.traverse(node => {
           node.userData.sourceId = instance.id;
+          node.userData.constructionEquipmentKind = part.kind;
           for (const key of ['nodeId', 'gunCoverElevationId'] as const) if (node.userData[key]) node.userData[key] = prefixComponentNodeId(instance.id, node.userData[key]);
           if (node.userData.assemblyId) node.userData.assemblyId = node.userData.assemblyId === 'component' ? instance.id : prefixComponentNodeId(instance.id, node.userData.assemblyId);
           if (node.name.startsWith('component.')) node.name = prefixComponentNodeId(instance.id, node.name);

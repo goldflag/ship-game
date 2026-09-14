@@ -1,5 +1,6 @@
 import { mapIslands } from '../../maps/catalog';
 import { shipPreset, shipPresets } from '../../ships/presets';
+import { isHistoricalShip, localShip } from '../../ships/localShips';
 import { botSelection, MAX_TEAM_SHIPS, setupSpawns, validateSpawns, type BattleSetup, type BotSelection, type Team } from '../../simulation/battle';
 import { fleetBudget } from '../../simulation/battleRules';
 import type { FleetTransfer } from '../pveFleetEditing';
@@ -37,7 +38,7 @@ export function removeCustomBot(setup: BattleSetup, team: Team, index: number): 
 /** Catalog drops add a bot or take command; moving a bot keeps its AI level. The commanded ship never becomes a bot by dragging. */
 export function transferCustomShip(setup: BattleSetup, transfer: FleetTransfer, target: CustomTarget): { setup: BattleSetup; error?: string } {
   if (transfer.kind === 'catalog') {
-    if (!(transfer.id in shipPresets)) return { setup, error: 'That ship is unavailable.' };
+    if (!isHistoricalShip(transfer.id) && !localShip(transfer.id)) return { setup, error: 'That ship is unavailable. Open the saved design and compile it again.' };
     if (target === 'player') return { setup: setup.playerShipId === transfer.id ? setup : { ...setup, playerShipId: transfer.id } };
     if (customTeamFull(setup, target)) return { setup, error: `The ${target} team is full (${MAX_TEAM_SHIPS} ships).` };
     return { setup: addCustomBot(setup, target, { shipId: transfer.id, aiLevel: 'normal' }) };

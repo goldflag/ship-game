@@ -1,4 +1,4 @@
-import type { Armor, AuthoredSurface, ShipDefinition, Vec3 } from './blueprint';
+import type { Armor, AuthoredSurface, ConvexVolume, ShipDefinition, Vec3 } from './blueprint';
 import { structuralSurfaces } from '../simulation/structure';
 
 export type InspectionMode = 'exterior' | 'armor' | 'internals' | 'compartments';
@@ -20,6 +20,8 @@ export interface InspectionEntry {
   underwaterProtection?: { damageReduction: number; breachReduction: number };
   plate?: Armor['plate']; provenance?: Armor['provenance']; anchor?: Vec3;
   cells?: { center: Vec3; size: Vec3 }[];
+  volumes?: ConvexVolume[];
+  inwardPlate?: boolean;
   surface?: AuthoredSurface;
   thicknessMm?: number; capacityM3?: number; pumpM3PerSecond?: number; hp?: number;
   /** Name of the compartment housing a module. */
@@ -50,7 +52,7 @@ export function inspectionColor(entry: InspectionEntry): string {
 /** The port lists and renders the same volumes used by hit and flooding simulation. */
 export function inspectionEntries(def: ShipDefinition): InspectionEntry[] {
   return [
-    ...structuralSurfaces(def).map(s=>({id:`structure:${s.id}`,name:s.name,kind:'armor' as const,center:s.center,size:s.size,surface:s,thicknessMm:s.thicknessMm,
+    ...(def.hull.volume ? [] : structuralSurfaces(def)).map(s=>({id:`structure:${s.id}`,name:s.name,kind:'armor' as const,center:s.center,size:s.size,surface:s,thicknessMm:s.thicknessMm,
       provenance:{sourceId:'original-structure',basis:'estimated' as const,note:def.structuralPlating!.note}})),
     ...(def.underwaterProtection?.zones ?? []).map(z => ({
       id: `underwater-protection:${z.id}`, name: `${z.name} · ${Math.round(z.damageReduction * 100)}% damage / ${Math.round(z.breachReduction * 100)}% breach reduction`,
@@ -60,6 +62,7 @@ export function inspectionEntries(def: ShipDefinition): InspectionEntry[] {
     ...def.armor.map(a => {
       const mountIndex = def.mounts.findIndex(m => m.id === a.plate?.mountId);
       return { id: `armor:${a.id}`, name:a.name, kind:'armor' as const, center:a.center, size:a.size, thicknessMm:a.thicknessMm, plate:a.plate, provenance:a.provenance,
+        inwardPlate: !!def.construction && a.plate?.exterior === true,
         ...(mountIndex >= 0 ? { mountIndex, anchor:def.mounts[mountIndex].position, bearingDeg:def.mounts[mountIndex].bearingDeg } : {}) };
     }),
     ...def.mounts.flatMap((m, mountIndex) => def.armor.some(a => a.plate?.mountId === m.id) ? [] : [{
@@ -73,7 +76,7 @@ export function inspectionEntries(def: ShipDefinition): InspectionEntry[] {
       size: [m.weapon.gunhouseSize[1], m.weapon.gunhouseSize[2], m.weapon.gunhouseSize[0]] as Vec3,
     })),
     ...def.modules.map((m, moduleIndex) => ({ id: `module:${m.id}`, name: m.name, kind: m.kind, center: m.center, size: m.size, hp: m.hp, moduleIndex, consumers: m.kind === 'fire-control' ? def.mounts.filter(mount => m.servesMountIds === undefined || m.servesMountIds.includes(mount.id)).map(mount=>mount.name) : m.kind === 'launcher' ? [...(def.torpedoTubes ?? []),...(def.depthChargeLaunchers ?? [])].filter(l=>l.launcherModuleId===m.id).map(l=>l.name) : undefined, within: def.compartments.find(c => c.id === m.compartmentId)?.name })),
-    ...def.compartments.map((c, compartmentIndex) => ({ id: `compartment:${c.id}`, name: c.name, kind: 'compartment' as const, center: c.center, size: c.size, cells: c.cells, capacityM3: c.capacityM3, pumpM3PerSecond: c.pumpM3PerSecond, compartmentIndex })),
+    ...def.compartments.map((c, compartmentIndex) => ({ id: `compartment:${c.id}`, name: c.name, kind: 'compartment' as const, center: c.center, size: c.size, cells: c.cells, volumes: c.volumes, capacityM3: c.capacityM3, pumpM3PerSecond: c.pumpM3PerSecond, compartmentIndex })),
   ];
 }
 export function entriesForMode(entries: InspectionEntry[], mode: InspectionMode) {

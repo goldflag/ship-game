@@ -64,7 +64,10 @@ import type { GameAudio } from './GameAudio';
 import type { Ammunition, Battery, ShipDefinition, Vec3 } from '../ships/blueprint';
 import { gunTraverseAtFraction } from '../ships/armament';
 import type { InspectionMode } from '../ships/inspection';
-import { selectedShip, shipPreset, shipPresets } from '../ships/presets';
+import { selectedShip, shipPreset } from '../ships/presets';
+import { availableShipIds, freezeLocalFleet, isHistoricalShip, resolveShip, type LocalShipRevision, type IdentifiedShip } from '../ships/localShips';
+import { createConstructionModel } from './constructionModel';
+import type { TrialAction } from './session/localConstruction';
 import { resolveBattleFleet, validateBattleSetup, type BattleSetup, type FleetActor } from '../simulation/battle';
 import { InputController } from './InputController';
 import { CameraRig } from './CameraRig';
@@ -107,6 +110,7 @@ const HARBOR_BACKDROP = false;
 
 export class Game {
   definition: typeof selectedShip;
+  private portDefinition = selectedShip;
   simulation: BattleSession;
   fleetWaypointShipId?: string;
   readonly input: InputController;
@@ -548,18 +552,21 @@ export class Game {
       const simulation = new CombatSimulation(definition);
       Object.assign(simulation.ship, this.simulation.ship);
       await this.replaceFleet(simulation, definition);
+      this.portDefinition = definition;
     } finally { this.switchingShip = false; }
   }
 
   /** Load and validate the complete fleet before replacing the current port scene. */
-  async prepareBattle(setup: BattleSetup, progress?: BattleProgress): Promise<void> {
+  async prepareBattle(setup: BattleSetup, progress?: BattleProgress, trial = false): Promise<void> {
     if (this.disposed || !this.inPort || !this.playerView || this.switchingShip) throw new Error('Battle setup requires an idle, loaded port.');
-    validateBattleSetup(setup, Object.keys(shipPresets));
+    validateBattleSetup(setup, availableShipIds());
+    const revisions = freezeLocalFleet([setup.playerShipId, ...setup.friendlyBots.map(bot => typeof bot === 'string' ? bot : bot.shipId), ...setup.enemies.map(bot => typeof bot === 'string' ? bot : bot.shipId)]);
+    if (isHistoricalShip(this.definition.id)) this.portDefinition = this.definition;
     this.switchingShip = true;
     try {
       progress?.(`Charting ${oceanMap(setup.mapId ?? DEFAULT_MAP).name}`, 0.04);
-      const definition = shipPreset(setup.playerShipId);
-      const simulation = await LocalBattleSession.create(setup);
+      const definition = resolveShip(setup.playerShipId);
+      const simulation = await LocalBattleSession.create(setup, { revisions, trial });
       simulation.onFailure = message => this.callbacks.error(message);
       await this.replaceFleet(simulation, definition, progress);
       this.environment.setBattle({ timeOfDay: setup.timeOfDay ?? 'map', weather: setup.weather ?? 'map',
@@ -622,13 +629,34 @@ export class Game {
     } finally { this.switchingShip = false; }
   }
 
+  get isConstructionTrial(): boolean { return this.simulation instanceof LocalBattleSession && this.simulation.trial; }
+  async trialAction(action: TrialAction): Promise<void> {
+    if (!(this.simulation instanceof LocalBattleSession) || !this.simulation.trial) throw new Error('Open a sea trial to use damage controls.');
+    await this.simulation.trialAction(action);
+  }
+  async resetTrial(): Promise<void> {
+    const session = this.simulation;
+    if (!(session instanceof LocalBattleSession) || !session.trial || this.switchingShip || this.disposed) throw new Error('No trial is available to reset.');
+    this.switchingShip = true; this.setPaused(true); cancelAnimationFrame(this.raf);
+    this.input.clear(); this.input.setOrder(1); this.input.setRudder(0);
+    try {
+      await this.frameTask; cancelAnimationFrame(this.raf);
+      await session.resetTrial(); this.assertActive(); this.battleRevision++;
+      this.fleetViews.forEach(view => { view.impactMarks.clear(); view.snap(); });
+      this.syncControlledShip(); this.effects.reset(); this.funnelSmoke.reset(); this.shipWake?.reset(); this.audio?.reset(session);
+      this.playerDamageFeedback = new HullDamageFeedback(session.player.damage.integrity); this.trail = []; this.lastTrailTick = 0;
+      await this.frame(performance.now(), true);
+    } finally { this.switchingShip = false; this.lastTime = performance.now(); if (!this.disposed) { this.setPaused(false); this.scheduleFrame(); } }
+  }
+
   async returnToPort(): Promise<void> {
     if (this.switchingShip) return;
     this.simulation.surrender?.();
     this.setPaused(true);
     // replaceFleet requires a port scene, but must not reset the live authority.
     this.inPort = true;
-    try { await this.replaceFleet(new CombatSimulation(this.definition), this.definition); this.setInPort(true); }
+    const definition = this.definition.construction ? this.portDefinition : this.definition;
+    try { await this.replaceFleet(new CombatSimulation(definition), definition); this.setInPort(true); }
     catch (error) { this.inPort = false; throw error; }
   }
 
@@ -636,7 +664,8 @@ export class Game {
     if (this.playerView?.actor === this.simulation.player) return;
     const view = this.fleetViews.find(v => v.actor === this.simulation.player);
     if (!view) return;
-    this.playerView = view; this.definition = shipPreset(view.definition.id);
+    if (!view.definition.contentHash) throw new Error('The controlled ship has no content identity.');
+    this.playerView = view; this.definition = view.definition as IdentifiedShip;
     this.shipLabels.setFleet(this.fleetViews, this.simulation.actors, view.actor.motion.id);
     this.playerDamageFeedback = new HullDamageFeedback(view.actor.damage.integrity);
     this.rig.setBridge(this.definition.viewpoints?.bridge); this.rig.setHullLength(this.definition.hull.length);
@@ -670,7 +699,7 @@ export class Game {
       progress?.(simulation.missionRules ? 'Preparing the fleet' : `Loading ${definitions[0].name}`, 0.08);
       for (const def of definitions) {
         this.assertActive();
-        const model = await this.hull(def);
+        const model = await this.hull(def, simulation instanceof LocalBattleSession ? simulation.constructionShips.get(def.id) : undefined);
         models.set(def.id, model);
         this.assertActive();
         // Report-only exteriors clone the original geometry; they never use
@@ -740,13 +769,14 @@ export class Game {
   private static readonly HULL_CACHE = 8;
 
   /** A derived hull template: fetched, painted and batched once, then reused. */
-  private async hull(definition: ShipDefinition): Promise<THREE.Group> {
+  private async hull(definition: ShipDefinition, revision?: LocalShipRevision): Promise<THREE.Group> {
     const hash = 'contentHash' in definition ? definition.contentHash as string : undefined;
     const key = `${definition.id}:${hash ?? ''}`;
     const cached = this.hulls.get(key);
     // Reinserting keeps the map in least-recently-used order for trimHulls.
     if (cached) { this.hulls.delete(key); this.hulls.set(key, cached); return cached; }
-    const model = (await loadShipModel(assetUrl(definition.modelUrl), undefined, hash)).scene;
+    if (definition.construction && (!revision || revision.definition.contentHash !== hash)) throw new Error('The frozen design revision is unavailable. Return to the builder and launch again.');
+    const model = revision ? await createConstructionModel(revision.source, revision.result) : (await loadShipModel(assetUrl(definition.modelUrl), undefined, hash)).scene;
     if (!hash || model.userData.definitionHash !== hash) {
       disposeObjects(model);
       throw new Error('The ship model and definition have different versions. Rebuild the ship assets and reload.');

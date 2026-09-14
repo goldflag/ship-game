@@ -92,6 +92,12 @@ export class ShipView {
     if (definition.submarine) for (const kind of ['bowPlanes', 'sternPlanes', 'rudders', 'propellers'] as const) {
       this.appendages.push(...definition.submarine.appendages[kind].map((id, index) => ({ node: node(id), base: node(id).quaternion.clone(), kind, index })));
     }
+    if (definition.construction) for (const instance of definition.construction.equipment) {
+      for (const [suffix, kind] of [['spin', 'propellers'], ['yaw', 'rudders']] as const) {
+        const bound = nodes.get(`${instance.id}.${suffix}`);
+        if (bound && (kind !== 'rudders' || bound.userData.constructionEquipmentKind === 'rudder')) this.appendages.push({ node: bound, base: bound.quaternion.clone(), kind, index: this.appendages.length });
+      }
+    }
     this.rig = new ShipRigView(definition, nodes, actor.motion.id);
     // Only these bound joints change local transforms during play. Retain every
     // assembly/socket node, but compose its fixed local matrix once at loading.
@@ -200,7 +206,7 @@ export class ShipView {
     this.bindings.forEach((b, i) => {
       // A 180° imported quaternion can decompose into nonzero X/Z Euler angles.
       // Replace the complete joint rotation instead of retaining those alternate axes.
-      b.yaw.rotation.set(0, -(radians(this.definition.mounts[i].bearingDeg) + mounts[i].train), 0);
+      b.yaw.rotation.set(0, -(radians(this.definition.mounts[i].bearingDeg - (b.yaw.userData.constructionBearingDeg ?? 0)) + mounts[i].train), 0);
       b.elevation.forEach(n => { n.rotation.set(mounts[i].elevation, 0, 0); });
       b.recoil.forEach(n => { n.position.z = mounts[i].recoil * this.definition.mounts[i].weapon.recoilM; });
     });
@@ -222,7 +228,7 @@ export class ShipView {
       // Wire snapshots can reorder banks; bounded travel must also stay inside its stops.
       launcher.train = this.definition.torpedoLaunchers![i].traverseLimitsDeg
         ? THREE.MathUtils.lerp(previous, train, t) : previous + wrapAngle(train - previous) * t;
-      node.rotation.set(0, -this.renderedLaunchers[i].train, 0);
+      node.rotation.set(0, -this.renderedLaunchers[i].train + radians(node.userData.constructionBearingDeg ?? 0), 0);
     });
     this.appendages.forEach(({ node, base, kind, index }) => {
       node.quaternion.copy(base);

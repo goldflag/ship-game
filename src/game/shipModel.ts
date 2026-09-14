@@ -1,5 +1,6 @@
 import { assetUrl } from '../assetUrl';
 import type { ShipDefinition } from '../ships/blueprint';
+import { localShip } from '../ships/localShips';
 
 const identities: Record<string, { type: string; nation: string }> = {
   'admiral-hipper': { type: 'Heavy cruiser', nation: 'Germany' },
@@ -23,6 +24,7 @@ const identities: Record<string, { type: string; nation: string }> = {
   'flower-corvette': { type: 'Corvette', nation: 'Canada' },
 };
 export function shipIdentity(id: string) {
+  if (localShip(id)) return { type: 'Player design', nation: '' };
   return identities[id] ?? { type: 'Ship', nation: '' };
 }
 /** Port filter classes. Detailed types (heavy cruiser, cargo ship, corvette) fold into these. */
@@ -44,7 +46,7 @@ export function shipModel(selectedShip: ShipDefinition) {
   // The port and custom battle both use the selected compiled asset.
   return {
     id: selectedShip.id,
-    url: assetUrl(selectedShip.modelUrl),
+    url: selectedShip.construction ? '' : assetUrl(selectedShip.modelUrl),
     name: selectedShip.name,
     type: identity.type,
     nation: identity.nation,

@@ -42,7 +42,7 @@ export class ShipInspection {
     const shade = normalFlat.dot(vec3(-.55, .8, .7).normalize()).max(0).mul(.68).add(.32);
     const armorColor = materialColor.mul(mix(1, shade, this.armorShading));
     this.volumes = this.entries.map(entry => {
-      const geometry = entry.surface ? surfaceGeometry(entry, definition) : entry.plate ? plateGeometry(entry) : entry.cells ? cellGeometry(entry) : new THREE.BoxGeometry(...entry.size), group = new THREE.Group();
+      const geometry = entry.surface ? surfaceGeometry(entry, definition) : entry.plate ? plateGeometry(entry) : entry.volumes ? volumeGeometry(entry) : entry.cells ? cellGeometry(entry) : new THREE.BoxGeometry(...entry.size), group = new THREE.Group();
       group.position.fromArray(entry.anchor ?? entry.center); group.userData.inspectionId = entry.id;
       const color = inspectionColor(entry);
       const Material = entry.kind === 'armor' ? THREE.MeshBasicNodeMaterial : THREE.MeshBasicMaterial;
@@ -168,7 +168,7 @@ export class ShipInspection {
         if (fire > 0) { fill.material.color.set('#e69b57'); fill.material.opacity = .12; }
         if (this.mode === 'all' && entry.id !== this.selectedId && fraction <= .0001 && fire <= 0) group.visible = false;
         water.visible = fraction > .0001;
-        waterline!.value = compartmentWaterLevel(actor, this.definition, entry.compartmentIndex);
+        waterline!.value = this.definition.construction ? (actor.damage.compartments[entry.compartmentIndex] as { waterLevelY?: number }).waterLevelY ?? -1e6 : compartmentWaterLevel(actor, this.definition, entry.compartmentIndex);
       }
     });
   }
@@ -234,7 +234,7 @@ function plateGeometry(entry: InspectionEntry): THREE.BufferGeometry {
   const points = entry.plate!.vertices.map(p => new THREE.Vector3().fromArray(p));
   const normal = new THREE.Vector3().subVectors(points[1], points[0]).cross(new THREE.Vector3().subVectors(points[2], points[0])).normalize().multiplyScalar(entry.thicknessMm! / 2000);
   const center = entry.anchor ? new THREE.Vector3() : new THREE.Vector3().fromArray(entry.center);
-  const vertices = [-1,1].flatMap(sign => points.flatMap(p => p.clone().addScaledVector(normal, sign).sub(center).toArray()));
+  const vertices = (entry.inwardPlate ? [-2, 0] : [-1,1]).flatMap(sign => points.flatMap(p => p.clone().addScaledVector(normal, sign).sub(center).toArray()));
   const n=points.length, indices:number[]=[];
   for (let i=1;i<n-1;i++) indices.push(0,i+1,i,n,n+i,n+i+1);
   for (let i=0;i<n;i++) { const j=(i+1)%n; indices.push(i,j,n+j,i,n+j,n+i); }
@@ -244,4 +244,13 @@ function plateGeometry(entry: InspectionEntry): THREE.BufferGeometry {
 function cellGeometry(entry: InspectionEntry): THREE.BufferGeometry {
   const boxes = entry.cells!.map(c => new THREE.BoxGeometry(...c.size).translate(c.center[0] - entry.center[0], c.center[1] - entry.center[1], c.center[2] - entry.center[2]));
   const geometry = mergeGeometries(boxes)!; boxes.forEach(b => b.dispose()); return geometry;
+}
+
+/** Direct triangulation of native usable voids preserves sloped rooms and gaps. */
+function volumeGeometry(entry: InspectionEntry): THREE.BufferGeometry {
+  const positions: number[] = [];
+  for (const volume of entry.volumes!) for (const face of volume.faces) for (let i = 1; i < face.vertices.length - 1; i++) {
+    for (const point of [face.vertices[0], face.vertices[i], face.vertices[i + 1]]) positions.push(point[0] - entry.center[0], point[1] - entry.center[1], point[2] - entry.center[2]);
+  }
+  const geometry = new THREE.BufferGeometry(); geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3)); geometry.computeVertexNormals(); return geometry;
 }

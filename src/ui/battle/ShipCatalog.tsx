@@ -1,6 +1,6 @@
 import { useState, type DragEvent } from 'react';
 import { shipClass, shipIdentity, SHIP_CLASSES, type ShipClass } from '../../game/shipModel';
-import { shipPreset } from '../../ships/presets';
+import { resolveShip } from '../../ships/localShips';
 import { Input } from '../components';
 import { ShipClassIcon } from '../ShipClassIcons';
 import { NationFlag, nationLabel } from './NationFlag';
@@ -16,7 +16,7 @@ export function ShipCatalog({ ships, hint, picked, commanded, disabled, unavaila
   const nations = Array.from(new Set(ships.map(id => shipIdentity(id).nation).filter(Boolean))).sort();
   const terms = query.trim().toLocaleLowerCase().split(/\s+/).filter(Boolean);
   const shown = ships.filter(id => (classFilter === 'All' || shipClass(id) === classFilter) && (nation === 'All' || shipIdentity(id).nation === nation)
-    && terms.every(term => `${shipPreset(id).name} ${id} ${shipIdentity(id).type} ${shipIdentity(id).nation}`.toLocaleLowerCase().includes(term)));
+    && terms.every(term => `${resolveShip(id).name} ${id} ${shipIdentity(id).type} ${shipIdentity(id).nation}`.toLocaleLowerCase().includes(term)));
   const classes = SHIP_CLASSES.filter(entry => ships.some(id => shipClass(id) === entry));
   return <section className="battle-catalog" aria-labelledby="battle-catalog-title">
     <header className="catalog-head"><h3 id="battle-catalog-title">Ships</h3><span role="status" className="catalog-count">{shown.length} / {ships.length} hulls</span><span className="catalog-hint">{hint}</span></header>

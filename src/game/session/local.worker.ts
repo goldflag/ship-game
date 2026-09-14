@@ -6,6 +6,8 @@ import type { LocalDelta } from './localSnapshotDelta';
 import type { PveRequest } from '../../multiplayer/generated/PveRequest';
 import type { Placement } from '../../multiplayer/generated/Placement';
 import type { Formation } from '../../multiplayer/generated/Formation';
+import type { LocalConstructionInput, TrialAction } from './localConstruction';
+import { loadConstructionCatalog } from '../../ships/constructionEquipment';
 let runtime: LocalRuntime | undefined;
 let planner: PvePlanner | undefined;
 let profile = false;
@@ -13,6 +15,18 @@ let profile = false;
  * ship's, which is what the first frame after init, deploy or restart wants. */
 let detail: string[] = [];
 let content: Promise<Uint8Array> | undefined;
+let trialInit: { setup: BattleSetup; construction: LocalConstructionInput } | undefined;
+async function createRuntime(setup: BattleSetup, construction?: LocalConstructionInput): Promise<LocalRuntime> {
+  const manifest = await loadContent();
+  if (!construction) return new LocalRuntime(manifest, JSON.stringify(setup));
+  const catalogs = await Promise.all([...new Set(construction.sources.map(s => s.construction.catalogRevision))].map(revision => loadConstructionCatalog(revision)));
+  const next = LocalRuntime.with_construction(manifest, JSON.stringify(setup), JSON.stringify(construction.sources), JSON.stringify(catalogs), construction.trial);
+  try {
+    const definitions = JSON.parse(next.construction_definitions());
+    for (const [id, hash] of Object.entries(construction.expected)) if (definitions[id]?.contentHash !== hash) throw new Error('A design changed since its preview. Return to the builder and compile it again.');
+    return next;
+  } catch (error) { next.free(); throw error; }
+}
 function loadContent() {
   return content ??= (async () => {
     const [, response] = await Promise.all([init(), fetch(manifestUrl)]);
@@ -22,7 +36,7 @@ function loadContent() {
 }
 // Requests are serialized: initialization cannot race a queued tick batch.
 let chain = Promise.resolve();
-self.onmessage = (event: MessageEvent<{ type: 'options' } | { type: 'validate'; placements: Placement[] } | { type: 'init'; setup: BattleSetup; profile?: boolean } | { type: 'plan'; request: PveRequest; profile?: boolean } | { type: 'deploy'; placements: Placement[]; formations?: Record<string, Formation> } | { type: 'restart' } | { type: 'advance'; commands: CommandEnvelope[]; ticks: number; detailShipIds?: string[] }>) => {
+self.onmessage = (event: MessageEvent<{ type: 'options' } | { type: 'validate'; placements: Placement[] } | { type: 'init'; setup: BattleSetup; profile?: boolean; construction?: LocalConstructionInput } | { type: 'plan'; request: PveRequest; profile?: boolean } | { type: 'deploy'; placements: Placement[]; formations?: Record<string, Formation> } | { type: 'restart' } | { type: 'trial-reset' } | { type: 'trial-action'; action: TrialAction } | { type: 'advance'; commands: CommandEnvelope[]; ticks: number; detailShipIds?: string[] }>) => {
   chain = chain.then(async () => {
     try {
       const message = event.data;
@@ -47,8 +61,16 @@ self.onmessage = (event: MessageEvent<{ type: 'options' } | { type: 'validate'; 
         runtime?.free(); runtime = next; detail = [];
         planner.free(); planner = undefined;
       } else if (message.type === 'init') {
-        const next = new LocalRuntime(await loadContent(), JSON.stringify(message.setup));
+        const next = await createRuntime(message.setup, message.construction);
         runtime?.free(); runtime = next; detail = [];
+        trialInit = message.construction?.trial ? { setup: message.setup, construction: message.construction } : undefined;
+      } else if (message.type === 'trial-reset') {
+        if (!trialInit) throw new Error('No local trial to reset.');
+        const next = await createRuntime(trialInit.setup, trialInit.construction);
+        runtime?.free(); runtime = next; detail = [];
+      } else if (message.type === 'trial-action') {
+        if (!trialInit || !runtime) throw new Error('Trial controls are unavailable.');
+        runtime.trial_action(JSON.stringify(message.action)); runtime.step(1); detail = [];
       } else if (message.type === 'restart') {
         if (!runtime) throw new Error('No active mission to restart.');
         // A restarted runtime holds no baseline, so the next frame travels whole.
@@ -80,7 +102,7 @@ self.onmessage = (event: MessageEvent<{ type: 'options' } | { type: 'validate'; 
       const timing = profile ? { tick: frame.tick, ticks: message.type === 'advance' ? message.ticks : 0,
         step: stepped - started, serialize: serialized - stepped, decode: decoded - serialized,
         delta: 0, bytes: json.length } : undefined;
-      self.postMessage({ type: 'snapshot', reset: message.type === 'restart', baseTick: frame.baseTick ?? undefined, delta: frame.delta, timing });
-    } catch (error) { self.postMessage({ type: 'error', message: String(error) }); }
+      self.postMessage({ type: 'snapshot', reset: message.type === 'restart' || message.type === 'trial-reset' || (message.type === 'trial-action' && frame.baseTick == null), trialAction: message.type === 'trial-action', baseTick: frame.baseTick ?? undefined, delta: frame.delta, timing });
+    } catch (error) { self.postMessage({ type: event.data.type === 'trial-action' ? 'trial-error' : 'error', message: String(error) }); }
   });
 };

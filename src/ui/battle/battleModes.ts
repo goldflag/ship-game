@@ -62,9 +62,10 @@ export function carryToCustom(setup: BattleSetup, ids: readonly string[]): Battl
   return { ...setup, playerShipId: ids[0], friendlyBots: ids.slice(1).map(shipId => ({ shipId, aiLevel: 'normal' as const })), spawns: undefined };
 }
 export function carryToDuel(fleet: string[], initialShipId: string, ids: readonly string[]): string[] {
+  fleet = fleet.filter(id => definitions.has(id));
   if (!ids.length || fleet.length > 1 || (fleet.length === 1 && fleet[0] !== initialShipId)) return fleet;
   const next: string[] = [];
-  for (const id of ids) if (!fleetBudget([...next, id], definitions).error) next.push(id);
+  for (const id of ids) if (definitions.has(id) && !fleetBudget([...next, id], definitions).error) next.push(id);
   return next.length ? next : fleet;
 }
 export function carryToPve(request: PveRequest, ids: readonly string[], eligiblePresets: readonly string[], budget: FleetBudget, nextId: () => string): PveRequest {
