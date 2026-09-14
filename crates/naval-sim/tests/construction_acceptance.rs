@@ -49,6 +49,129 @@ fn load(source: &mut ConstructionSource, mass: f64, center: Vec3) {
         size: [0.5, 0.5, 1.],
     });
 }
+
+#[test]
+fn included_auxiliaries_follow_the_actual_engine_room_and_preserve_loading() {
+    use naval_sim::{damage_control::update_damage_control, machinery::electrical_power};
+    let (mut source, mut catalog) = fixture();
+    source.construction.primitives[0].size[1] = 8.;
+    source.construction.boundaries.push(ConstructionBoundary {
+        id: "center-wall".into(),
+        axis: "x".into(),
+        offset: 0.,
+        thickness_mm: 10.,
+    });
+    let bare = compile(&source, &catalog);
+    assert_eq!(
+        electrical_power(&Combatant::new("bare", &bare), &bare, None),
+        0.
+    );
+    for (id, kind, size, center, mass) in [
+        ("engine-part", "engine", [2., 2., 4.], [0., 1., 0.], 35_000.),
+        ("funnel-part", "funnel", [1., 2., 1.], [0., 1., 0.], 1_000.),
+    ] {
+        catalog.equipment.push(ConstructionEquipmentPart {
+            id: id.into(),
+            name: id.into(),
+            kind: kind.into(),
+            placement: if kind == "engine" { "internal" } else { "deck" }.into(),
+            size,
+            bounds_center: center,
+            center_of_gravity: center,
+            mass_kg: Some(mass),
+            power_kw: Some(3000.),
+            exhaust_kw: Some(3000.),
+            service_mass_kg: (kind == "engine").then_some(5000.),
+            model_url: "/models/components/test/model.glb".into(),
+            content_hash: "test".into(),
+            ..Default::default()
+        });
+    }
+    for (side, x) in [("port", -2.5), ("starboard", 2.5)] {
+        for (kind, y) in [("engine", -3.99), ("funnel", 4.)] {
+            source.construction.equipment.push(ConstructionEquipment {
+                id: format!("{side}-{kind}"),
+                part_id: format!("{kind}-part"),
+                position: [x, y, 0.],
+                bearing_deg: 0.,
+                power_source_id: (kind == "funnel").then(|| format!("{side}-engine")),
+                ..Default::default()
+            });
+        }
+    }
+    let def = compile(&source, &catalog);
+    assert!((def.hull.mass_kg - bare.hull.mass_kg - 82_000.).abs() < 1e-6);
+    assert_eq!(def.damage_control.as_ref().unwrap().teams, 2.);
+    assert_eq!(def.handling.forward_speed, 0.); // Auxiliaries need no propeller.
+    assert_eq!(def.modules.len(), 4); // No duplicate free generator proxy.
+    assert_eq!(def.compartments.len(), 2);
+    assert!(
+        def.compartments
+            .iter()
+            .all(|c| (c.pump_m3_per_second - 0.02).abs() < 1e-9)
+    );
+    let engine = def
+        .modules
+        .iter()
+        .position(|m| m.id == "port-engine")
+        .unwrap();
+    let other_engine = def
+        .modules
+        .iter()
+        .position(|m| m.id == "starboard-engine")
+        .unwrap();
+    let other_funnel = def
+        .modules
+        .iter()
+        .position(|m| m.id == "starboard-funnel")
+        .unwrap();
+    let room = def
+        .compartments
+        .iter()
+        .position(|c| Some(&c.id) == def.modules[engine].compartment_id.as_ref())
+        .unwrap();
+    let other_room = 1 - room;
+    let hydro = HullHydrostatics::new(&def.hull, None);
+    let mut actor = Combatant::new("services", &def);
+    assert_eq!(electrical_power(&actor, &def, None), 1.);
+    for c in &mut actor.damage.compartments {
+        c.water_m3 = 1.;
+    }
+    naval_sim::flooding::update_flooding(&mut actor, &def, &hydro, 1., 0.5, None, None);
+    assert!((actor.damage.compartments[room].water_m3 - 0.98).abs() < 1e-8);
+    actor.damage.modules[engine].hp *= 0.5;
+    assert_eq!(electrical_power(&actor, &def, None), 0.75);
+    naval_sim::flooding::update_flooding(&mut actor, &def, &hydro, 1., 0.5, None, None);
+    assert!((actor.damage.compartments[room].water_m3 - 0.97).abs() < 1e-8);
+    assert!((actor.damage.compartments[other_room].water_m3 - 0.96).abs() < 1e-8);
+    actor.damage.modules[engine].hp = 0.;
+    naval_sim::flooding::update_flooding(&mut actor, &def, &hydro, 1., 0.5, None, None);
+    assert!((actor.damage.compartments[room].water_m3 - 0.97).abs() < 1e-8);
+    assert!((actor.damage.compartments[other_room].water_m3 - 0.94).abs() < 1e-8);
+    actor.damage.modules[engine].hp = def.modules[engine].hp;
+    actor.damage.compartments[room].water_m3 = def.compartments[room].capacity_m3 * 0.4;
+    assert_eq!(electrical_power(&actor, &def, None), 0.5);
+    actor.damage.modules[other_funnel].hp = 0.;
+    assert_eq!(electrical_power(&actor, &def, None), 0.);
+    update_damage_control(&mut actor, &def, 10., None);
+    assert!(actor.damage.control.pumping.iter().all(|p| *p == 0.));
+
+    let mut repair = Combatant::new("repair", &def);
+    let initial_integrity = repair.damage.integrity;
+    repair.damage.modules[engine].hp = def.modules[engine].hp * 0.5;
+    repair.damage.modules[other_engine].hp = 0.;
+    let before = repair.damage.modules[engine].hp;
+    update_damage_control(&mut repair, &def, 4., None);
+    update_damage_control(&mut repair, &def, 10., None);
+    assert!((repair.damage.modules[engine].hp - before - 5.).abs() < 1e-9);
+    assert_eq!(repair.damage.modules[other_engine].hp, 0.);
+    assert_eq!(repair.damage.integrity, initial_integrity);
+    assert_eq!(repair.damage.control.spares, 75.);
+    assert_eq!(
+        Combatant::new("reset", &def).damage.modules[other_engine].hp,
+        def.modules[other_engine].hp
+    );
+}
 #[test]
 fn overloaded_source_launches_and_loses_without_free_buoyancy() {
     let (mut source, catalog) = fixture();
@@ -160,6 +283,7 @@ fn compiled_duplicates_keep_damage_water_and_linked_machinery_independent() {
     let def = compile(&source, &catalog);
     let mut one = Combatant::new("one", &def);
     let two = Combatant::new("two", &def);
+    assert!((def.loading.as_ref().unwrap().power_kw - 588.).abs() < 1e-9);
     assert_eq!(
         naval_sim::machinery::system_health(&one, &def, "engine", None),
         1.

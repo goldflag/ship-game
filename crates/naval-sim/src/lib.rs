@@ -3,6 +3,7 @@ pub mod catalog;
 pub mod construction_geometry;
 pub mod construction;
 mod construction_installation;
+mod construction_services;
 pub mod definition;
 pub mod fleet_evasion;
 pub mod formations;

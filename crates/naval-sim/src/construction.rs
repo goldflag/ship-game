@@ -838,6 +838,9 @@ fn build(
         });
     }
     assign_rooms(&mut def)?;
+    if let Some(diagnostic) = crate::construction_services::install(&mut def, catalog) {
+        out.diagnostics.push(diagnostic);
+    }
     let mut openings = vec![];
     for s in out.surfaces.iter().filter(|s| s.open) {
         for room in &def.compartments {
@@ -1609,7 +1612,7 @@ fn equipment(
                     None
                 },
                 role: match p.kind.as_str() {
-                    "engine" => Some("combined-drive".into()),
+                    "engine" if p.power_kw.unwrap_or(0.) > 0. => Some("combined-drive".into()),
                     "propeller" => Some("shaft".into()),
                     "funnel" => Some("boiler".into()),
                     _ => None,
@@ -1814,7 +1817,13 @@ fn equipment(
             .map(|(_, p)| p.thrust_efficiency.unwrap_or(0.6).clamp(0.01, 1.))
             .sum::<f64>()
             / props.len() as f64;
-        let kw = part.power_kw.unwrap_or(0.).min(exhaust) * efficiency;
+        let rated = part.power_kw.unwrap_or(0.);
+        let kw = (rated.min(exhaust) - rated * crate::construction_services::AUXILIARY_POWER_SHARE)
+            .max(0.)
+            * efficiency;
+        if kw == 0. {
+            continue;
+        }
         power += kw;
         groups.push(PropulsionGroup {
             id: engine.id.clone(),
@@ -1827,7 +1836,7 @@ fn equipment(
     for g in &mut groups {
         g.share /= power.max(1.);
     }
-    def.propulsion=Some(ShipDefinitionPropulsion{groups,basis:"Catalog power limited by linked exhaust and propeller efficiency; machinery availability and immersion apply at runtime".into()});
+    def.propulsion=Some(ShipDefinitionPropulsion{groups,basis:"Catalog power limited by linked exhaust, less 2% rated power reserved for included auxiliaries, then propeller efficiency; actual machinery availability and immersion apply at runtime".into()});
     let (_, dims) = crate::structure::bounds(
         hull.iter()
             .flat_map(|c| c.faces.iter().flat_map(|f| f.vertices.iter().copied())),

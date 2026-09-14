@@ -169,6 +169,9 @@ pub fn electrical_power(
     if actor.damage.sunk {
         return 0.0;
     }
+    if def.hull.volume.is_some() {
+        return crate::construction_services::availability(actor, def, None, sea);
+    }
     kind_average(actor, def, "generator", sea)
 }
 /// Mean availability over every module of a kind, or 1.0 when the ship has none.

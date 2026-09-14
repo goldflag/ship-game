@@ -96,7 +96,12 @@ pub fn update_flooding(
         let pumping = if actor.damage.sunk {
             0.0
         } else {
-            c.pump_m3_per_second * power + actor.damage.control.pumping[i]
+            let fixed_power = if def.hull.volume.is_some() && c.pump_m3_per_second > 0. {
+                crate::construction_services::availability(actor, def, Some(&c.id), sea)
+            } else {
+                power
+            };
+            c.pump_m3_per_second * fixed_power + actor.damage.control.pumping[i]
         };
         let state = &mut actor.damage.compartments[i];
         state.water_m3 = clamp(state.water_m3 + (inflow - pumping) * dt, 0.0, c.capacity_m3);

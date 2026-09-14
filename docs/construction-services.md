@@ -1,0 +1,18 @@
+# Constructed machinery services
+
+The construction compiler treats an `engine` catalog entry as a machinery package. Its declared dry mass and occupied envelope include the engine, auxiliary generator, fixed bilge pump and portable maintenance equipment. These functions share the installed engine module's health and immersion; compilation creates no additional generator mass, collision proxy or hidden ballast. The published 3,000 kW diesel package includes these auxiliaries in its 35,000 kg dry mass and 3 × 3 × 6 m occupied envelope.
+
+The version-1 gameplay abstraction reserves 2% of rated engine power for auxiliaries before propeller efficiency. For the published diesel this is 60 kW. Electrical service is the weighted availability of fitted machinery packages, limited by actual engine condition and linked funnel condition; the propeller is not required. An unpowered hull or an engine without linked exhaust supplies no electricity. Historical definitions retain their authored generator behavior.
+
+Each 35,000 kg package provides 0.02 m³/s fixed pumping in the connected usable compartment containing that engine. Smaller package mass scales this rate proportionally; larger packages remain capped at 0.02 m³/s. Multiple packages add capacity. The fixed pump in a flooded or destroyed engine's room stops even if another room still has power. The electrical bus uses these same bounded package ratings as weights. Detailed plumbing, switchboards and remote fixed-pump routing are outside this abstraction.
+
+A package with at least 400 kg of declared service allowance includes one automatic four-person work party, including tools and spares within that allowance. The published diesel's 5,000 kg service allowance includes that party and its supplies alongside operating fluids/fuel; no extra loading contribution is added. A ship receives at most eight parties. The existing damage-control scheduler assigns them to flooding, small breach patches and surviving equipment repairs:
+
+- Four-second setup; 0.004 m³/s portable pumping per party, scaled by available auxiliary electricity.
+- Forty finite repair points per party; 0.5 HP/s repairs up to 70% original equipment HP.
+- Patching at 0.0005 m²/s for individual breaches no larger than 0.03 m², using the existing spare budget.
+- Destroyed major equipment stays destroyed during the trial; a fresh runtime restores the unchanged source design.
+
+These are explicit game calibrations rather than historical engineering or crew claims. They do not author an unrequested combustible-load profile or change hull HP, flooding mass, displacement, CG or sinking rules. The compile result reports the included services as an `auxiliary-services` diagnostic, preserves existing compartment pump fields and records crew calibration in `damageControl.basis`.
+
+The native `construction_acceptance` tests cover two independent engine rooms, fixed-pump capacity, partial damage, destruction, engine immersion, exhaust loss, electrical failure of portable pumps, finite automatic repair, unchanged physical loading and clean reset.

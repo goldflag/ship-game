@@ -5,7 +5,7 @@ use crate::{
     environment::SeaState,
     geometry::{clamp, local_to_world},
     hull::hull_contains,
-    machinery::{EquipmentReason, equipment_condition},
+    machinery::{EquipmentReason, electrical_power, equipment_condition},
 };
 use serde::{Deserialize, Serialize};
 /// Closed set, written only here and published as the same JSON strings.
@@ -212,9 +212,8 @@ pub fn update_damage_control(
     // Held by value so the compiled index outlives the mutable borrows below.
     let compiled = actor.index.clone();
     let index = compiled.of(def);
-    let magazines = index.filter(|ix| {
-        ix.mounts == def.mounts.len() && actor.damage.modules.len() == ix.modules
-    });
+    let magazines = index
+        .filter(|ix| ix.mounts == def.mounts.len() && actor.damage.modules.len() == ix.modules);
     let mut scratch: Vec<usize> = vec![];
     let mut events = vec![];
     let Some(d) = &def.damage_control else {
@@ -223,6 +222,11 @@ pub fn update_damage_control(
     if actor.damage.sunk || dt <= 0.0 {
         return events;
     }
+    let portable_power = if def.hull.volume.is_some() {
+        electrical_power(actor, def, sea)
+    } else {
+        1.
+    };
     let c = &actor.damage.control;
     let mut jobs = vec![];
     let mut offer = |kind: JobKind, index: usize, id: &str, score: f64, category: &str| {
@@ -337,7 +341,9 @@ pub fn update_damage_control(
         match job.kind {
             JobKind::FireRoom => suppress_rooms[i] = work,
             JobKind::FireMount => suppress_mounts[i] = work,
-            JobKind::Pump => c.pumping[i] = d.portable_pump_m3_per_second * work / dt,
+            JobKind::Pump => {
+                c.pumping[i] = d.portable_pump_m3_per_second * portable_power * work / dt
+            }
             JobKind::Isolate => actor.damage.connections[i].state = "closed".into(),
             JobKind::Patch => {
                 let room = &mut actor.damage.compartments[i];
