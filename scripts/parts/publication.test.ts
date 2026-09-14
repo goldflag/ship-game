@@ -7,6 +7,18 @@ import { readEquipment, inspectEquipmentModel } from './equipment';
 const root=resolve(import.meta.dir,'../..');
 
 describe('source-backed equipment publication',()=>{
+  test('curated Oerlikon has a fixed original magazine that holds its canonical initial stock',async()=>{
+    const {equipment,catalog}=await readEquipment(root);
+    const gun=catalog.parts.find(p=>p.id==='us-20mm-oerlikon-mk4-hsienyang')!;
+    const small=equipment.find(p=>p.id==='generic-magazine-1000')!;
+    const long=equipment.find(p=>p.id==='generic-magazine-2000')!;
+    const stock=gun.ammoPerBarrel*(gun.barrelCount??2);
+    expect(small.ammunitionCapacity!).toBeLessThan(stock);
+    expect(long.ammunitionCapacity!).toBeGreaterThanOrEqual(stock);
+    expect(long.size).toEqual([3,2.5,8]);
+    expect(long.massKg).toBe(3600);
+    expect(small.size).toEqual([3,2.5,4]);
+  });
   test('current production assets preserve source variants and authoritative joint transforms',async()=>{
     const catalog=await checkPublishedEquipment(root);
     expect(catalog.equipment.some(p=>p.kind==='torpedo-launcher')).toBe(true);

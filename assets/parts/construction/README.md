@@ -102,3 +102,11 @@ meet that support plane within 1 mm; rounding does not add invisible material
 below a mast foot or beyond a shaft socket. For guns and funnels, intrinsic
 occupancy may cross the support plane as a sealed installation well; the shared
 compiler decides fit and damage behavior without shrinking the package.
+
+`generic-magazine-2000` is a separate fixed 3 × 2.5 × 8 m original rack package
+with 3.6 t dry mass and 2,000-round capacity. It uses the same registered magazine
+recipe, authored at twice the original length, and can hold the curated
+Oerlikon’s canonical 1,800-round load. Capacity and dry mass are provisional
+engineering estimates; ammunition mass still comes from the canonical weapon
+and native compiler. The fixed 1,000-round variant and previous publications
+remain available.

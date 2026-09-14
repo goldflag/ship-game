@@ -116,6 +116,12 @@
       "builder": "generic-rudder-1000",
       "review": "unreviewed",
       "limitations": "Original generic small-boat appendage with fixed dimensions; mass and capability are declared engineering estimates. Installation support and immersion require design review."
+    },
+    {
+      "partId": "generic-magazine-2000",
+      "builder": "generic-magazine-1000",
+      "review": "unreviewed",
+      "limitations": "Original fixed longer magazine using the registered generic rack recipe; capacity, dry mass and dimensions are explicit provisional package estimates. The 1000-round original remains available."
     }
   ]
 }

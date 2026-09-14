@@ -821,6 +821,73 @@
           ]
         }
       ]
+    },
+    {
+      "id": "generic-magazine-2000",
+      "name": "Long magazine \u00b7 2000 rounds",
+      "kind": "magazine",
+      "size": [
+        3,
+        2.5,
+        8
+      ],
+      "boundsCenter": [
+        0,
+        1.25,
+        0
+      ],
+      "centerOfGravity": [
+        0,
+        1,
+        0
+      ],
+      "placement": "internal",
+      "ammunitionCapacity": 2000,
+      "occupancy": [
+        {
+          "center": [
+            0,
+            1.25,
+            0
+          ],
+          "size": [
+            3,
+            2.5,
+            8
+          ]
+        }
+      ],
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "ammunition",
+          "kind": "ammunition",
+          "position": [
+            0,
+            2.5,
+            0
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        }
+      ],
+      "massKg": 3600
     }
   ]
 }
