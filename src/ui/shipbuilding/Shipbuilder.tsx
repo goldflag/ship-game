@@ -12,6 +12,7 @@ import { freshConstruction, useBuilderSource, type BuilderCompiler } from './use
 import { ConstructionClient } from '../../ships/constructionClient';
 import { createStarterSource, type ConstructionStarter } from '../../ships/constructionStarter';
 import { createConstructionModel } from '../../game/constructionModel';
+import { loadConstructionCatalog } from '../../ships/constructionEquipment';
 import './Shipbuilder.css';
 
 export interface ShipbuilderProps {
@@ -34,7 +35,7 @@ const SHAPES: { id: string; name: string; kind: ConstructionPrimitive['kind']; s
   { id: 'inverse-corner', name: 'Inside corner', kind: 'inverse-corner', size: [4, 4, 4] },
   { id: 'shallow', name: 'Shallow slope', kind: 'wedge', size: [4, 1, 4] }, { id: 'long', name: 'Long slope', kind: 'wedge', size: [4, 2, 8] },
 ];
-const axisNames = ['Starboard X', 'Height Y', 'Stern Z'];
+const axisNames = ['X', 'Y', 'Z'];
 const format = (number: number | undefined, digits = 1) => number === undefined || !Number.isFinite(number) ? '—' : number.toLocaleString(undefined, { maximumFractionDigits: digits });
 
 export function Shipbuilder(props: ShipbuilderProps) {
@@ -43,6 +44,14 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const [starterKind, setStarterKind] = useState<ConstructionStarter>('patrol');
   const editor = useBuilderSource({ ...props, starterSource, compiler, catalogRevision: props.catalog.revision });
   const { source, result } = editor, data = source.construction;
+  const [activeCatalog, setActiveCatalog] = useState(props.catalog);
+  const catalog = activeCatalog.revision === data.catalogRevision ? activeCatalog : { ...activeCatalog, equipment: [] };
+  useEffect(() => {
+    if (activeCatalog.revision === data.catalogRevision) return;
+    let active = true;
+    void loadConstructionCatalog(data.catalogRevision).then(catalog => { if (active) setActiveCatalog(catalog); }).catch(cause => { if (active) editor.setError(`The saved equipment revision is unavailable. ${cause instanceof Error ? cause.message : String(cause)}`); });
+    return () => { active = false; };
+  }, [data.catalogRevision, activeCatalog.revision]);
   const [workbench, setWorkbench] = useState<Workbench>('hull');
   const [tool, setTool] = useState<Tool>('select');
   const [view, setView] = useState<BuilderView>('orbit');
@@ -57,7 +66,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const [rowAxis, setRowAxis] = useState('z');
   const [slice, setSlice] = useState<number | undefined>();
   const [fitRequest, setFitRequest] = useState(0);
-  const [partId, setPartId] = useState(props.catalog.equipment[0]?.id ?? '');
+  const [partId, setPartId] = useState(catalog.equipment[0]?.id ?? '');
   const [partQuery, setPartQuery] = useState('');
   const [armor, setArmor] = useState(25);
   const [material, setMaterial] = useState<ConstructionSurfaceAssignment['material']>('steel');
@@ -75,7 +84,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const selectedPrimitive = data.primitives.find(part => selected.has(part.id));
   const selectedEquipment = data.equipment.find(part => selected.has(part.id));
   const selectedBoundary = data.boundaries.find(wall => selected.has(wall.id));
-  const equipmentPart = props.catalog.equipment.find(part => part.id === (selectedEquipment?.partId ?? partId));
+  const equipmentPart = catalog.equipment.find(part => part.id === (selectedEquipment?.partId ?? partId));
   const selectedItem = selectedPrimitive ?? selectedEquipment;
   const gridStep = workbench === 'equipment' ? .25 : 1;
   const allSurfaceKeys = useMemo(() => [...new Set((editor.currentResult?.surfaces ?? []).map(surface => surfaceKey(surface.primitiveId, surface.face)))], [editor.currentResult]);
@@ -89,15 +98,19 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const remove = () => { if (!selected.size) return; run('Remove selection', draft => removeConstructionSelection(draft, selected)); setSelected(new Set()); setSurfaces(new Set()); };
   const copy = (mirror = false) => {
     if (!selected.size) return;
-    let copied: string[] = [];
-    run(mirror ? 'Mirror selection' : 'Copy selection', draft => { copied = copyConstructionSelection(draft, selected, { mirror }); });
-    // React may evaluate an updater later; retain the original selection until the copy appears.
+    if (data.primitives.length + data.primitives.filter(part => selected.has(part.id)).length > 512 || data.equipment.length + data.equipment.filter(part => selected.has(part.id)).length > 128) {
+      editor.setError('This copy would exceed the design limit. Select fewer pieces or remove a section first.'); return;
+    }
+    const next = structuredClone(source);
+    const copied = copyConstructionSelection(next, selected, { mirror });
+    if (!copied.length) return;
+    run(mirror ? 'Mirror selection' : 'Copy selection', draft => { draft.construction = next.construction; });
+    setSelected(new Set(copied)); setSurfaces(new Set());
     setNotice(mirror ? 'Mirrored a copy across the centerline.' : 'Copied the selection 1 m to starboard.');
-    void copied;
   };
   const place = (points: Vec3[]) => {
     if (workbench === 'equipment') {
-      if (!props.catalog.equipment.some(part => part.id === partId)) return;
+      if (!catalog.equipment.some(part => part.id === partId)) return;
       if (data.equipment.length + points.length > 128) { editor.setError('A design supports up to 128 equipment instances. Remove a fitting before adding more.'); return; }
       run('Place equipment', draft => { for (const point of points) draft.construction.equipment.push({ id: newConstructionId('equipment'), partId, position: point.map(v => snapCoordinate(v, .25)) as Vec3, bearingDeg: normalizedBearing(bearing) }); });
     } else {
@@ -180,8 +193,8 @@ export function Shipbuilder(props: ShipbuilderProps) {
           </>}
           {workbench === 'equipment' && <><h2>Fit equipment</h2><p className="shipbuilder-help">Fixed variants use their original dimensions. Place on a supporting deck, inside the hull, or underwater as shown.</p>
             <Input type="search" aria-label="Find equipment" placeholder="Find a gun, engine or fitting" value={partQuery} onChange={event => setPartQuery(event.target.value)}/>
-            <div className="shipbuilder-list shipbuilder-catalog">{props.catalog.equipment.filter(part => `${part.name} ${part.kind}`.toLowerCase().includes(partQuery.toLowerCase())).map(part => <Button key={part.id} aria-pressed={partId === part.id} onClick={() => { setPartId(part.id); setTool('place'); }}><span>{part.name}<small>{part.kind} · {part.placement} · {part.size.map(value => format(value, 2)).join(' × ')} m</small></span></Button>)}</div>
-            {!props.catalog.equipment.length && <p>No equipment is available in this catalog.</p>}
+            <div className="shipbuilder-list shipbuilder-catalog">{catalog.equipment.filter(part => `${part.name} ${part.kind}`.toLowerCase().includes(partQuery.toLowerCase())).map(part => <Button key={part.id} aria-pressed={partId === part.id} onClick={() => { setPartId(part.id); setTool('place'); }}><span>{part.name}<small>{part.kind} · {part.placement} · {part.size.map(value => format(value, 2)).join(' × ')} m</small></span></Button>)}</div>
+            {!catalog.equipment.length && <p>No equipment is available in this catalog.</p>}
             <Button disabled={!props.suggestLayout || !!busy} onClick={() => void suggest()}>Suggest internals</Button>{!props.suggestLayout && <p className="shipbuilder-help">Use the starter hull for a fitted layout; manual placement remains available.</p>}
             {suggestion && <div className="shipbuilder-suggestion"><p>A layout is ready. Applying it is one undoable edit.</p><Button disabled={source.revision !== suggestionRevision} onClick={() => { run('Apply suggested internals', draft => { draft.construction.equipment = structuredClone(suggestion.construction.equipment); draft.construction.boundaries = structuredClone(suggestion.construction.boundaries); draft.construction.loads = structuredClone(suggestion.construction.loads); }); setSuggestion(undefined); }}>Apply suggestion</Button><Button onClick={() => setSuggestion(undefined)}>Dismiss</Button>{source.revision !== suggestionRevision && <p>The source changed. Request a new suggestion.</p>}</div>}
           </>}
@@ -219,18 +232,18 @@ export function Shipbuilder(props: ShipbuilderProps) {
       <section className="shipbuilder-scene" aria-label="Design view"><div className="shipbuilder-viewbar"><Button className="shipbuilder-mobile-toggle" aria-expanded={toolsOpen} onClick={() => { setToolsOpen(value => !value); setInspectOpen(false); }}>Tools</Button>
         <div className="shipbuilder-actions" aria-label="View direction">{(['orbit', 'top', 'side', 'bow'] as const).map(value => <Button key={value} aria-pressed={view === value} onClick={() => setView(value)}>{value[0].toUpperCase() + value.slice(1)}</Button>)}</div><Button onClick={() => setFitRequest(value => value + 1)} title="Fit ship (Home)">Fit</Button>
         <Button className="shipbuilder-inspect-toggle" aria-expanded={inspectOpen} onClick={() => { setInspectOpen(value => !value); setToolsOpen(false); }}>Inspect</Button></div>
-        <BuilderViewport source={source} result={result} catalog={props.catalog} selected={selected} selectedSurfaces={surfaces} view={view} display={display} slice={slice} planeY={position[1]} gridStep={gridStep} placement={tool === 'place' || tool === 'brush'} brush={tool === 'brush'} fitRequest={fitRequest} onPick={pick} onStroke={place} createModel={props.createModel ?? createConstructionModel}/>
+        <BuilderViewport source={source} result={result} catalog={catalog} selected={selected} selectedSurfaces={surfaces} view={view} display={display} slice={slice} planePosition={position} gridStep={gridStep} placement={tool === 'place' || tool === 'brush'} brush={tool === 'brush'} fitRequest={fitRequest} onPick={pick} onStroke={place} createModel={props.createModel ?? createConstructionModel}/>
         <div className="shipbuilder-scene-labels"><span>Bow −Z · Starboard +X · Up +Y</span><span><i className="shipbuilder-cg"/>Center of gravity <i className="shipbuilder-buoyancy"/>Buoyancy</span></div>
         {!data.primitives.length && <div className="shipbuilder-empty"><h2>Your ship starts here</h2><p>Place a hull piece on the grid, or start with a fitted patrol hull.</p><Button variant="primary" onClick={() => void newDesign(false)}>Use starter hull</Button></div>}
         <div className="shipbuilder-scene-controls"><Select aria-label="Model display" value={display} onValueChange={value => setDisplay(value as BuilderDisplay)}><SelectOption value="paint">Painted steel</SelectOption><SelectOption value="armor">Armor thickness</SelectOption><SelectOption value="internals">Internals</SelectOption></Select><label className="shipbuilder-check"><Input type="checkbox" checked={slice !== undefined} onChange={event => setSlice(event.target.checked ? position[1] : undefined)}/>Deck slice</label>{slice !== undefined && <NumberField label="Cut height" value={slice} step={.25} onChange={setSlice}/>}</div>
       </section>
       <aside className="shipbuilder-inspector" aria-label="Selection and diagnostics"><div className="shipbuilder-scroll">
         <h2>{selected.size ? `${selected.size} selected` : 'Ship condition'}</h2>
-        {selected.size > 0 && <><div className="shipbuilder-actions"><Button onClick={() => copy()}>Copy</Button><Button onClick={() => copy(true)}>Mirror</Button><Button onClick={remove}>Remove</Button></div><Button onClick={() => run('Rotate selection', draft => rotateConstructionSelection(draft, selected))}>Rotate 90°</Button></>}
+        {selected.size > 0 && <><div className="shipbuilder-actions"><Button disabled={!selectedItem} onClick={() => copy()}>Copy</Button><Button disabled={!selectedItem} onClick={() => copy(true)}>Mirror</Button><Button onClick={remove}>Remove</Button></div>{selectedItem && <Button onClick={() => run('Rotate selection', draft => rotateConstructionSelection(draft, selected))}>Rotate 90°</Button>}</>}
         {selectedItem && <><h3>{selectedPrimitive ? 'Hull piece' : equipmentPart?.name ?? selectedEquipment?.partId}</h3><small className="shipbuilder-help">{selectedItem.id}</small><div className="shipbuilder-vector">{selectedItem.position.map((value, axis) => <NumberField key={axis} label={axisNames[axis]} value={value} step={selectedPrimitive ? 1 : .25} onChange={next => { const delta: Vec3 = [0, 0, 0]; delta[axis] = snapCoordinate(next, selectedPrimitive ? 1 : .25) - value; run('Move selection', draft => moveConstructionSelection(draft, selected, delta)); }}/>)}</div>
           {selectedPrimitive && <div className="shipbuilder-vector">{selectedPrimitive.size.map((value, axis) => <NumberField key={axis} label={['Width', 'Height', 'Length'][axis]} min={1} max={500} value={value} onChange={value => run('Resize hull piece', draft => { draft.construction.primitives.find(part => part.id === selectedPrimitive.id)!.size[axis] = snapCoordinate(value, 1); })}/>)}</div>}
           <NumberField label="Bearing" unit="°" value={selectedPrimitive?.rotationDeg ?? selectedEquipment!.bearingDeg} min={0} max={360} step={selectedPrimitive ? 90 : 15} onChange={value => run('Set bearing', draft => { if (selectedPrimitive) draft.construction.primitives.find(part => part.id === selectedPrimitive.id)!.rotationDeg = normalizedBearing(Math.round(value / 90) * 90); else draft.construction.equipment.find(part => part.id === selectedEquipment!.id)!.bearingDeg = normalizedBearing(value); })}/>
-          {selectedEquipment && <>{(['magazineId', 'powerSourceId'] as const).map(link => <label key={link}>{link === 'magazineId' ? 'Magazine' : 'Power source'}<Select value={selectedEquipment[link] ?? ''} onValueChange={value => run('Connect equipment', draft => { const item = draft.construction.equipment.find(part => part.id === selectedEquipment.id)!; if (value) item[link] = value; else delete item[link]; })}><SelectOption value="">Automatic / unassigned</SelectOption>{data.equipment.filter(part => props.catalog.equipment.find(entry => entry.id === part.partId)?.kind === (link === 'magazineId' ? 'magazine' : 'engine')).map(part => <SelectOption key={part.id} value={part.id}>{props.catalog.equipment.find(entry => entry.id === part.partId)?.name} · {part.id.slice(-6)}</SelectOption>)}</Select></label>)}</>}
+          {selectedEquipment && <>{(['magazineId', 'powerSourceId'] as const).map(link => <label key={link}>{link === 'magazineId' ? 'Magazine' : 'Power source'}<Select value={selectedEquipment[link] ?? ''} onValueChange={value => run('Connect equipment', draft => { const item = draft.construction.equipment.find(part => part.id === selectedEquipment.id)!; if (value) item[link] = value; else delete item[link]; })}><SelectOption value="">Automatic / unassigned</SelectOption>{data.equipment.filter(part => catalog.equipment.find(entry => entry.id === part.partId)?.kind === (link === 'magazineId' ? 'magazine' : 'engine')).map(part => <SelectOption key={part.id} value={part.id}>{catalog.equipment.find(entry => entry.id === part.partId)?.name} · {part.id.slice(-6)}</SelectOption>)}</Select></label>)}</>}
         </>}
         {selectedBoundary && <><NumberField label="Boundary position" value={selectedBoundary.offset} onChange={value => run('Move boundary', draft => { draft.construction.boundaries.find(wall => wall.id === selectedBoundary.id)!.offset = snapCoordinate(value, 1); })}/><NumberField label="Boundary thickness" value={selectedBoundary.thicknessMm} min={.1} max={1000} unit="mm" onChange={value => run('Armor boundary', draft => { draft.construction.boundaries.find(wall => wall.id === selectedBoundary.id)!.thicknessMm = value; })}/><Button onClick={remove}>Merge rooms across boundary</Button></>}
         <h3>Design diagnostics</h3><div className="shipbuilder-compile" role="status">{editor.compiling ? 'Compiling this revision…' : editor.currentResult?.definition ? warningCount ? `Launchable · ${warningCount} warnings` : 'Ready for sea trial' : 'Draft needs attention'}</div>
@@ -239,7 +252,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
         <dl className="shipbuilder-readings"><div><dt>Loaded mass</dt><dd>{format(metrics && metrics.massKg / 1000)} t</dd></div><div><dt>Predicted waterline</dt><dd>{format(metrics?.waterlineY, 2)} m</dd></div><div><dt>Roll stability (GM)</dt><dd>{format(metrics?.rollMetacentricHeightM, 2)} m</dd></div><div><dt>Power</dt><dd>{format(metrics?.powerKw, 0)} kW</dd></div><div><dt>Estimated speed</dt><dd>{format(metrics && metrics.estimatedSpeedMps * 1.943844)} kn</dd></div><div><dt>Usable interior</dt><dd>{format(metrics?.usableVolumeM3)} m³</dd></div><div><dt>CG · X / Y / Z</dt><dd>{metrics?.centerOfGravity.map(value => format(value, 2)).join(' / ') ?? '—'}</dd></div></dl>
         {metrics && <details><summary>Mass breakdown</summary><div className="shipbuilder-mass">{metrics.contributions.slice().sort((a, b) => b.massKg - a.massKg).map(item => <div key={item.id}><span>{item.kind}<small>{item.id}</small></span><b>{format(item.massKg / 1000, 2)} t</b></div>)}</div><p className="shipbuilder-help">{metrics.basis}</p></details>}
         {result?.definition?.mounts.length ? <details><summary>Gun firing arcs</summary>{result.definition.mounts.map(mount => <p key={mount.id}>{mount.name}<small className="shipbuilder-help">Bearing {format(mount.bearingDeg)}° · traverse ±{format(mount.traverseDeg ?? mount.weapon.traverseDeg)}° · elevation {format(mount.weapon.elevationMinDeg)}° to {format(mount.weapon.elevationMaxDeg)}°</small></p>)}</details> : null}
-        <details><summary>All fitted pieces · {data.primitives.length + data.equipment.length}</summary><div className="shipbuilder-list">{[...data.primitives.map(part => ({ id: part.id, name: `${part.kind} · ${part.size.join(' × ')} m` })), ...data.equipment.map(part => ({ id: part.id, name: props.catalog.equipment.find(entry => entry.id === part.partId)?.name ?? part.partId }))].map(item => <Button key={item.id} aria-pressed={selected.has(item.id)} onClick={event => choose(item.id, event.shiftKey)}>{item.name}</Button>)}</div></details>
+        <details><summary>All fitted pieces · {data.primitives.length + data.equipment.length}</summary><div className="shipbuilder-list">{[...data.primitives.map(part => ({ id: part.id, name: `${part.kind} · ${part.size.join(' × ')} m` })), ...data.equipment.map(part => ({ id: part.id, name: catalog.equipment.find(entry => entry.id === part.partId)?.name ?? part.partId }))].map(item => <Button key={item.id} aria-pressed={selected.has(item.id)} onClick={event => choose(item.id, event.shiftKey)}>{item.name}</Button>)}</div></details>
       </div></aside>
     </div>
     {(editor.error || notice) && <div className={`shipbuilder-notice ${editor.error ? 'error' : ''}`} role={editor.error ? 'alert' : 'status'}><p>{editor.error || notice}</p>{editor.error && <div className="shipbuilder-actions"><Button onClick={() => downloadConstructionSource(JSON.stringify(source, null, 2), source.name)}>Download source</Button><Button onClick={() => void editor.retrySave()?.catch(fail)}>Retry save</Button><Button onClick={() => void saveCopy().catch(fail)}>Save a copy</Button></div>}<Button variant="icon" aria-label="Dismiss message" onClick={() => { editor.setError(''); setNotice(''); }}><Icon name="close" size={16}/></Button></div>}

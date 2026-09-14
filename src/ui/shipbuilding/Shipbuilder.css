@@ -26,7 +26,7 @@
 .shipbuilder fieldset { margin: 0; padding: 0; border: 0; min-width: 0; }
 .shipbuilder small { font-size: 11px; color: var(--builder-muted); }
 .shipbuilder .ui-button, .shipbuilder .ui-select, .shipbuilder .ui-input { font-size: 12px; min-width: 0; }
-.shipbuilder .ui-button { min-height: 34px; padding: 6px 9px; }
+.shipbuilder .ui-button { min-height: 34px; padding: 6px 9px; width: auto; flex: none; }
 .shipbuilder .ui-input, .shipbuilder .ui-select { width: 100%; }
 .shipbuilder .ui-button[aria-pressed=true] { color: var(--builder-accent); border-color: var(--builder-accent); background: #273c43; }
 .shipbuilder .ui-button.primary-button { color: #152b32; }

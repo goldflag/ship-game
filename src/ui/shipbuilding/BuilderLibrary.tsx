@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ConstructionSource } from '../../ships/blueprint';
 import type { ConstructionDesignHead, ConstructionRevision, ConstructionStore } from '../../ships/constructionStore';
-import { decodeSavedConstruction, loadSavedConstruction, newConstructionId } from '../../ships/constructionEditor';
+import { decodeSavedConstruction, loadSavedConstructionWithCatalog, newConstructionId } from '../../ships/constructionEditor';
+import { loadConstructionCatalog } from '../../ships/constructionEquipment';
 import { Button } from '../components';
 
 export function downloadConstructionSource(json: string, name = 'ship-source') {
@@ -20,27 +21,31 @@ export function BuilderLibrary({ store, catalogRevision, refresh, onOpen, onReco
   const [chosen, setChosen] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const request = useRef(0);
+  useEffect(() => () => { request.current++; }, []);
   useEffect(() => {
     let active = true;
     if (store) void store.list().then(designs => { if (active) setDesigns(designs); }).catch(cause => { if (active) setError(String(cause.message ?? cause)); });
     return () => { active = false; };
   }, [store, refresh]);
   const browse = async (id: string) => {
+    const token = ++request.current;
     setChosen(id); setError(''); setLoading(true);
-    try { setRevisions(await store!.revisions(id)); }
-    catch (cause) { setError(String((cause as Error).message ?? cause)); }
-    finally { setLoading(false); }
+    try { const revisions = await store!.revisions(id); if (request.current === token) setRevisions(revisions); }
+    catch (cause) { if (request.current === token) setError(String((cause as Error).message ?? cause)); }
+    finally { if (request.current === token) setLoading(false); }
   };
   const open = async () => {
     setError(''); setLoading(true);
-    try { const loaded = await loadSavedConstruction(store!, chosen, catalogRevision); await onOpen(loaded.source, loaded.head.revisionId); }
+    try { const loaded = await loadSavedConstructionWithCatalog(store!, chosen); await onOpen(loaded.source, loaded.head.revisionId); }
     catch (cause) { setError(String((cause as Error).message ?? cause)); }
     finally { setLoading(false); }
   };
   const recover = async (revision: ConstructionRevision) => {
     setError(''); setLoading(true);
     try {
-      const source = decodeSavedConstruction(revision, catalogRevision);
+      const catalog = await loadConstructionCatalog(revision.catalogRevision);
+      const source = decodeSavedConstruction(revision, catalog.revision);
       source.id = newConstructionId('design'); source.revision = newConstructionId('revision'); source.name = `${source.name.slice(0, 145)} recovered`;
       await onRecover(source);
     } catch (cause) { setError(String((cause as Error).message ?? cause)); }

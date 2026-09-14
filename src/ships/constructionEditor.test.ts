@@ -1,6 +1,7 @@
 import { expect, test } from 'bun:test';
-import type { ConstructionSource } from './blueprint';
-import { assignConstructionSurfaces, copyConstructionSelection, decodeConstructionSource, mirroredFace, mirroredPrimitive, removeConstructionSelection, surfaceKey } from './constructionEditor';
+import type { ConstructionCatalog, ConstructionSource } from './blueprint';
+import type { ConstructionStore } from './constructionStore';
+import { assignConstructionSurfaces, copyConstructionSelection, decodeConstructionSource, decodeSavedConstruction, loadSavedConstructionWithCatalog, mirroredFace, mirroredPrimitive, removeConstructionSelection, surfaceKey } from './constructionEditor';
 
 const source = (): ConstructionSource => ({ schemaVersion: 1, id: 'draft', revision: 'r1', name: 'Draft', coordinates: 'meters-y-up-bow-negative-z', construction: {
   version: 1, catalogRevision: 'c1', defaultThicknessMm: 12,
@@ -52,4 +53,18 @@ test('source decoder admits incomplete drafts and unresolved variants without su
   expect(decodeConstructionSource(draft)).toEqual(draft);
   expect(() => decodeConstructionSource({ ...draft, coordinates: 'blender-z-up' })).toThrow();
   expect(() => decodeConstructionSource({ ...draft, construction: { ...draft.construction, primitives: [{ position: [0, null, 0] }] } })).toThrow();
+});
+
+test('saved design loads its retained catalog revision rather than requiring the latest catalog', async () => {
+  const draft = source(), raw = JSON.stringify(draft);
+  const saved = { head: { id: 'draft', name: 'Draft', revisionId: 'saved-1', updatedAt: 1, schemaVersion: 1, catalogRevision: 'c1' },
+    revision: { formatVersion: 1 as const, id: 'saved-1', designId: 'draft', parentId: null, createdAt: 1, schemaVersion: 1, catalogRevision: 'c1', sourceJson: raw } };
+  const store = { load: async () => saved } as unknown as ConstructionStore;
+  const requested: (string | undefined)[] = [];
+  const catalog = { schemaVersion: 1, revision: 'c1', equipment: [], weapons: { schemaVersion: 1, parts: [] } } as ConstructionCatalog;
+  const result = await loadSavedConstructionWithCatalog(store, 'draft', async revision => { requested.push(revision); return catalog; });
+  expect(requested).toEqual(['c1']); expect(result.source).toEqual(draft); expect(result.catalog).toBe(catalog);
+  await expect(loadSavedConstructionWithCatalog(store, 'draft', async () => { throw new Error('revision missing'); })).rejects.toMatchObject({ code: 'catalog' });
+  expect(saved.revision.sourceJson).toBe(raw);
+  expect(() => decodeSavedConstruction({ ...saved.revision, designId: 'different-design' })).toThrow('identities disagree');
 });

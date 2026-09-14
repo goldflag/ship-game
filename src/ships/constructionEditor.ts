@@ -1,6 +1,7 @@
 import type { ConstructionSource, ConstructionPrimitive, ConstructionSurfaceAssignment, Vec3 } from './blueprint';
 import { normalizedBearing } from '../ui/shipbuilding/editorNumbers';
-import { readConstructionSource, type ConstructionRevision, type ConstructionStore } from './constructionStore';
+import { ConstructionStoreError, readConstructionSource, type ConstructionRevision, type ConstructionStore } from './constructionStore';
+import { loadConstructionCatalog } from './constructionEquipment';
 
 export const CONSTRUCTION_FACES = ['port', 'starboard', 'bottom', 'top', 'bow', 'stern', 'slope'] as const;
 export type ConstructionFace = ConstructionSurfaceAssignment['face'];
@@ -46,13 +47,23 @@ export function decodeConstructionSource(value: unknown): ConstructionSource {
   return structuredClone(value) as ConstructionSource;
 }
 
-export function decodeSavedConstruction(revision: ConstructionRevision, catalogRevision: string): ConstructionSource {
-  return readConstructionSource(revision, { schemaVersion: 1, catalogRevision, decode: decodeConstructionSource }).source;
+export function decodeSavedConstruction(revision: ConstructionRevision, catalogRevision = revision.catalogRevision): ConstructionSource {
+  const source = readConstructionSource(revision, { schemaVersion: 1, catalogRevision, decode: decodeConstructionSource }).source;
+  if (source.id !== revision.designId) throw new ConstructionStoreError('corrupt', 'The source and saved design identities disagree. Recover an earlier revision; the original is preserved.');
+  if (source.construction.catalogRevision !== revision.catalogRevision) throw new ConstructionStoreError('catalog', 'The source and saved catalog identities disagree. Recover an earlier revision; the original is preserved.');
+  return source;
 }
 
-export async function loadSavedConstruction(store: ConstructionStore, designId: string, catalogRevision: string) {
+export async function loadSavedConstruction(store: ConstructionStore, designId: string, catalogRevision?: string) {
   const saved = await store.load(designId);
   return { ...saved, source: decodeSavedConstruction(saved.revision, catalogRevision) };
+}
+
+/** Resolve the saved immutable catalog before showing any of its equipment dimensions. */
+export async function loadSavedConstructionWithCatalog(store: ConstructionStore, designId: string, resolveCatalog = loadConstructionCatalog) {
+  const saved = await loadSavedConstruction(store, designId);
+  try { return { ...saved, catalog: await resolveCatalog(saved.revision.catalogRevision) }; }
+  catch (cause) { throw new ConstructionStoreError('catalog', `The saved equipment revision could not be loaded. ${cause instanceof Error ? cause.message : String(cause)}. Download the original or recover a compatible revision; no equipment was substituted.`, { cause }); }
 }
 
 export function removeConstructionSelection(source: ConstructionSource, selected: ReadonlySet<string>): void {

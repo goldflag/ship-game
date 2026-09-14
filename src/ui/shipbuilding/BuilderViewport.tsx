@@ -14,7 +14,7 @@ export type ConstructionModelFactory = (source: ConstructionSource, result: Cons
 interface ViewportProps {
   source: ConstructionSource; result?: ConstructionResult; catalog: ConstructionCatalog;
   selected: ReadonlySet<string>; selectedSurfaces: ReadonlySet<string>;
-  view: BuilderView; display: BuilderDisplay; slice?: number; planeY: number;
+  view: BuilderView; display: BuilderDisplay; slice?: number; planePosition: Vec3;
   placement: boolean; brush: boolean; gridStep: number; fitRequest: number;
   onPick(pick: BuilderPick): void; onStroke(points: Vec3[]): void;
   createModel?: ConstructionModelFactory;
@@ -80,6 +80,7 @@ class Viewport {
     const water = new THREE.Mesh(new THREE.PlaneGeometry(4000, 4000), new THREE.MeshStandardMaterial({ color: '#214652', transparent: true, opacity: .32, roughness: .5, side: THREE.DoubleSide, depthWrite: false }));
     water.rotation.x = -Math.PI / 2; water.renderOrder = 2; this.water = water;
     this.grid.position.y = -.03; this.scene.add(water, this.grid, this.hull, this.details, this.selection, this.composed);
+    for (const material of Array.isArray(this.grid.material) ? this.grid.material : [this.grid.material]) { material.transparent = true; material.opacity = .22; material.depthWrite = false; }
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.enableDamping = true; this.controls.dampingFactor = .15;
     this.controls.minZoom = .08; this.controls.maxZoom = 100; this.controls.maxPolarAngle = Math.PI * .95;
@@ -100,7 +101,7 @@ class Viewport {
     for (const surface of this.props.result?.surfaces ?? []) for (const point of surface.vertices) bounds.expandByPoint(new THREE.Vector3(...point));
     if (bounds.isEmpty()) bounds.set(new THREE.Vector3(-10, -5, -25), new THREE.Vector3(10, 5, 25));
     const size = bounds.getSize(new THREE.Vector3()), center = bounds.getCenter(new THREE.Vector3());
-    this.span = Math.max(15, size.length() * 1.1 / Math.min(1, this.host.clientWidth / Math.max(1, this.host.clientHeight)));
+    this.span = Math.max(15, size.length() * .95 / Math.min(1, this.host.clientWidth / Math.max(1, this.host.clientHeight)));
     this.controls.target.copy(center); this.camera.zoom = 1;
     this.setView(this.props.view); this.measure();
   }
@@ -116,7 +117,10 @@ class Viewport {
     if (props.view !== this.currentView) this.setView(props.view);
     if (props.fitRequest !== old.fitRequest || props.source.id !== old.source.id || (!old.result && props.result)) this.fit();
     this.controls.mouseButtons.LEFT = props.placement ? null as unknown as THREE.MOUSE : THREE.MOUSE.ROTATE;
-    this.grid.position.y = props.planeY - .03;
+    this.grid.position.set(0, 0, 0); this.grid.rotation.set(0, 0, 0);
+    if (props.view === 'side') { this.grid.rotation.z = Math.PI / 2; this.grid.position.x = props.planePosition[0] - .03; }
+    else if (props.view === 'bow') { this.grid.rotation.x = Math.PI / 2; this.grid.position.z = props.planePosition[2] + .03; }
+    else this.grid.position.y = props.planePosition[1] - .03;
     this.water.position.y = props.result?.loading?.waterlineY ?? 0;
     this.water.visible = props.display !== 'internals';
     const key = `${props.result?.contentHash}:${props.display}`;
@@ -200,9 +204,11 @@ class Viewport {
     const hits = ray.intersectObjects(this.pickMeshes, false).filter(hit => this.props.slice === undefined || hit.point.y <= this.props.slice);
     const hit = hits[0];
     const surface = hit?.object.userData.hull ? this.surfaceTriangles[hit.faceIndex ?? -1] : undefined;
-    const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -this.props.planeY);
-    const point = ray.ray.intersectPlane(plane, new THREE.Vector3()) ?? hit?.point ?? new THREE.Vector3(0, this.props.planeY, 0);
-    return { id: surface?.primitiveId ?? hit?.object.userData.sourceId, surface: surface && surfaceKey(surface.primitiveId, surface.face), position: [snapCoordinate(point.x, this.props.gridStep), this.props.planeY, snapCoordinate(point.z, this.props.gridStep)], additive: event.shiftKey || event.ctrlKey || event.metaKey };
+    const axis = this.props.view === 'side' ? 0 : this.props.view === 'bow' ? 2 : 1;
+    const normal = new THREE.Vector3().setComponent(axis, 1);
+    const plane = new THREE.Plane(normal, -this.props.planePosition[axis]);
+    const point = ray.ray.intersectPlane(plane, new THREE.Vector3()) ?? hit?.point ?? new THREE.Vector3(...this.props.planePosition);
+    return { id: surface?.primitiveId ?? hit?.object.userData.sourceId, surface: surface && surfaceKey(surface.primitiveId, surface.face), position: point.toArray().map(value => snapCoordinate(value, this.props.gridStep)) as Vec3, additive: event.shiftKey || event.ctrlKey || event.metaKey };
   }
 
   private down = (event: PointerEvent) => {
@@ -213,7 +219,12 @@ class Viewport {
   private move = (event: PointerEvent) => {
     if (!this.pointerStart || !this.props.placement || !this.props.brush) return;
     const position = this.pick(event).position;
-    if (!this.pointerStart.points.some(point => point.every((v, i) => v === position[i])) && this.pointerStart.points.length < 128) this.pointerStart.points.push(position);
+    const previous = this.pointerStart.points.at(-1) ?? position;
+    const steps = Math.min(128, Math.max(...position.map((value, axis) => Math.ceil(Math.abs(value - previous[axis]) / this.props.gridStep))));
+    for (let step = 1; step <= steps && this.pointerStart.points.length < 128; step++) {
+      const point = position.map((value, axis) => snapCoordinate(previous[axis] + (value - previous[axis]) * step / steps, this.props.gridStep)) as Vec3;
+      if (!this.pointerStart.points.some(existing => existing.every((value, axis) => value === point[axis]))) this.pointerStart.points.push(point);
+    }
   };
   private up = (event: PointerEvent) => {
     const start = this.pointerStart; this.pointerStart = undefined;

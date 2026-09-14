@@ -3,7 +3,7 @@ import type { ConstructionResult, ConstructionSource } from '../../ships/bluepri
 import { createConstructionHistory, editConstruction, undoConstruction, redoConstruction, ConstructionRevisionGate } from '../../ships/constructionHistory';
 import { ConstructionAutosave, type ConstructionSaveState } from '../../ships/constructionAutosave';
 import { openConstructionStore, type ConstructionStore } from '../../ships/constructionStore';
-import { decodeConstructionSource, loadSavedConstruction, newConstructionId } from '../../ships/constructionEditor';
+import { decodeConstructionSource, loadSavedConstructionWithCatalog, newConstructionId } from '../../ships/constructionEditor';
 
 export interface BuilderCompiler { compile(source: ConstructionSource, signal?: AbortSignal): Promise<ConstructionResult>; dispose(): void; }
 export function freshConstruction(template: ConstructionSource, blank = false): ConstructionSource {
@@ -43,14 +43,14 @@ export function useBuilderSource({ starterSource, initialSource, initialDesignId
       if (!active) { storage.close(); return; }
       if (initialDesignId) {
         try {
-          const loaded = await loadSavedConstruction(storage, initialDesignId, catalogRevision);
+          const loaded = await loadSavedConstructionWithCatalog(storage, initialDesignId);
           if (!active) return;
           head.current = loaded.head.revisionId; lastQueued.current = loaded.source.revision;
           setHistory(createConstructionHistory(loaded.source)); setSaveState({ status: 'saved', token: 0, revision: loaded.revision });
         } catch (cause) { if (active) setError(cause instanceof Error ? cause.message : String(cause)); }
       } else if (initialSource) {
         try {
-          const loaded = await loadSavedConstruction(storage, initialSource.id, catalogRevision);
+          const loaded = await loadSavedConstructionWithCatalog(storage, initialSource.id);
           if (!active) return;
           if (loaded.source.revision === initialSource.revision) {
             head.current = loaded.head.revisionId; lastQueued.current = initialSource.revision;
