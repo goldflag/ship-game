@@ -51,7 +51,8 @@ test('full production GLBs preserve repeated gun and tube world muzzles against 
       elevation: (m.weapon.elevationMinDeg + .53 * (m.weapon.elevationMaxDeg - m.weapon.elevationMinDeg)) * Math.PI / 180, recoil: i % 2 ? .2 : .85 })) }));
   const expected = await nativeConstructionMuzzles({ definition, cases, node_ids: definition.mounts.map(m => barrelIds(m.weapon).map(id => `${m.id}.${id}.muzzle`)) });
   await published(async () => {
-    const model = await createConstructionModel(source, result), actor = actorFor(definition), view = new ShipView(model, definition, actor);
+    // An abortable load uses the composer's fetch path in this DOM-free test process.
+    const model = await createConstructionModel(source, result, new AbortController().signal), actor = actorFor(definition), view = new ShipView(model, definition, actor);
     const nodes = new Map<string, THREE.Object3D>(); model.traverse(n => { if (n.userData.nodeId) { expect(nodes.has(n.userData.nodeId)).toBe(false); nodes.set(n.userData.nodeId, n); } });
     try {
       expect(nodes.get('dd-a.yaw')).not.toBe(nodes.get('dd-b.yaw'));
@@ -68,7 +69,7 @@ test('full production GLBs preserve repeated gun and tube world muzzles against 
 test('rotated duplicate launcher sockets track absolute native train through interpolation', async () => {
   const source = equipmentReviewSource(catalog), result = compile(source), definition = result.definition!;
   await published(async () => {
-    const model = await createConstructionModel(source, result), actor = actorFor(definition), view = new ShipView(model, definition, actor);
+    const model = await createConstructionModel(source, result, new AbortController().signal), actor = actorFor(definition), view = new ShipView(model, definition, actor);
     try {
       for (const train of [-1.2, -.41, .37, 1.4]) {
         view.capturePreviousPose(); actor.torpedoLaunchers!.forEach((l, i) => { l.train = train * (i ? -1 : 1); });
