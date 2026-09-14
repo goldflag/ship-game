@@ -2,7 +2,7 @@ import type { ConstructionCatalog, ConstructionEquipment, ConstructionSource, Ve
 import { createStarterSource } from '../../src/ships/constructionStarter';
 
 /** A test platform, not a playable preset: fixed original parts spaced for independent sweeps. */
-export function equipmentReviewSource(catalog: ConstructionCatalog, kind: 'collection' | 'neighbors' | 'patrol' = 'collection'): ConstructionSource {
+export function equipmentReviewSource(catalog: ConstructionCatalog, kind: 'collection' | 'neighbors' | 'patrol' | 'overhead' = 'collection'): ConstructionSource {
   if (kind === 'patrol') return createStarterSource(catalog, 'patrol');
   const source = createStarterSource(catalog, 'blank');
   source.id = `equipment-review-${kind}`; source.revision = `equipment-review-${kind}-1`;
@@ -57,6 +57,13 @@ export function equipmentReviewSource(catalog: ConstructionCatalog, kind: 'colle
   for (const [id, p, x] of [['large-rudder', 'fletcher-rudder', -12], ['small-rudder', 'generic-rudder-1000', 12]] as const) {
     const seat = part(p).sockets!.find(s => s.id === 'attachment')!.position;
     put(id, p, [x, -10 - seat[1], 95]);
+  }
+  if (kind === 'overhead') {
+    source.name = 'Original AA with connected overhead obstruction';
+    source.construction.primitives.push(
+      { id: 'aa-pillar', kind: 'box', position: [-19, 11.5, 45], size: [.4, 3, 1], rotationDeg: 0 },
+      { id: 'aa-beam', kind: 'box', position: [-22, 13, 45], size: [8, .5, 1], rotationDeg: 0 },
+    );
   }
   return source;
 }

@@ -13,6 +13,7 @@ import { createMountState } from '../../src/simulation/weapons';
 import { createTubeState } from '../../src/simulation/torpedoes';
 import { equipmentReviewSource } from './construction-model-fixtures';
 import { nativeConstructionMuzzles } from './construction-model-native';
+import { installedSupportContacts } from './construction-model-support';
 
 const root = resolve(import.meta.dir, '../..'), catalog = catalogJson as ConstructionCatalog;
 beforeAll(async () => { await init({ module_or_path: await Bun.file(resolve(root, 'src/generated/naval-wasm/naval_wasm_bg.wasm')).arrayBuffer() }); });
@@ -56,6 +57,14 @@ test('full production GLBs preserve repeated gun and tube world muzzles against 
     const nodes = new Map<string, THREE.Object3D>(); model.traverse(n => { if (n.userData.nodeId) { expect(nodes.has(n.userData.nodeId)).toBe(false); nodes.set(n.userData.nodeId, n); } });
     try {
       expect(nodes.get('dd-a.yaw')).not.toBe(nodes.get('dd-b.yaw'));
+      for (const contact of installedSupportContacts(model, source, catalog)) {
+        expect(contact.contactVertices).toBeGreaterThan(0);
+        const instance = source.construction.equipment.find(p => p.id === contact.id)!;
+        const part = catalog.equipment.find(p => p.id === instance.partId)!;
+        // A few polygon-boundary vertices can miss through float rounding; a roller
+        // touching only the old square well's corners is not a supported installation.
+        if (part.kind === 'gun' && part.occupancy?.length) expect(contact.contactVertices / contact.candidates).toBeGreaterThan(.9);
+      }
       for (const c of expected) {
         c.poses.forEach((pose: object, i: number) => Object.assign(actor.mounts[i], pose)); Object.assign(actor.motion, c.motion);
         actor.torpedoLaunchers!.forEach(l => { l.train = c.launcherTrains[l.id]; });
@@ -86,4 +95,23 @@ test('native movement stops one mount against an independently held neighboring 
   const resolved = JSON.parse(preview_articulation_json(JSON.stringify(result.definition), JSON.stringify(initial), JSON.stringify(target)));
   expect(resolved[0].blocked).toBe(true); expect(resolved[0].obstructionId).toContain('near-b');
   expect(resolved[0].pose.train).toBeLessThan(Math.PI / 2); expect(resolved[1].pose).toEqual(target[1]);
+});
+
+test('the original Oerlikon reaches its declared elevation and stops at a real overhead beam', () => {
+  const definition = compile(equipmentReviewSource(catalog)).definition!;
+  const aa = definition.mounts.findIndex(m => m.id === 'aa-a');
+  let current = definition.mounts.map(() => ({ train: 0, elevation: 0, recoil: 0 }));
+  for (const fraction of [.2, .4, .6, .8, 1]) {
+    const requested = structuredClone(current);
+    requested[aa].elevation = definition.mounts[aa].weapon.elevationMaxDeg * Math.PI / 180 * fraction;
+    const resolved = JSON.parse(preview_articulation_json(JSON.stringify(definition), JSON.stringify(current), JSON.stringify(requested)));
+    expect(resolved[aa].blocked).toBe(false);
+    expect(resolved[aa].pose.elevation).toBeCloseTo(requested[aa].elevation, 8);
+    current = resolved.map((r: { pose: typeof current[number] }) => r.pose);
+  }
+  const obstructed = compile(equipmentReviewSource(catalog, 'overhead')).definition!;
+  const initial = obstructed.mounts.map(() => ({ train: 0, elevation: 0, recoil: 0 }));
+  const blocked = JSON.parse(preview_articulation_json(JSON.stringify(obstructed), JSON.stringify(initial), JSON.stringify(current)));
+  expect(blocked[aa].blocked).toBe(true);
+  expect(blocked[aa].pose.elevation).toBeLessThan(current[aa].elevation);
 });

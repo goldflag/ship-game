@@ -3,6 +3,8 @@ import { ShipView } from '../../src/game/ShipView';
 import { createConstructionModel, disposeConstructionModel } from '../../src/game/constructionModel';
 import { loadConstructionCatalog } from '../../src/ships/constructionEquipment';
 import type { ConstructionResult, ConstructionSource, Vec3 } from '../../src/ships/blueprint';
+import { barrelIds } from '../../src/ships/blueprint';
+import { installedSupportContacts } from './construction-model-support';
 import type { Combatant } from '../../src/simulation/damage';
 import { createDamage } from '../../src/simulation/damage';
 import { createShipState } from '../../src/simulation/ship';
@@ -21,7 +23,7 @@ export type NativeMuzzleCase = { motion: { x: number; y: number; z: number; head
 
 /** Invoke from a blank same-origin browser page. Uses production composition and ShipView,
  * full published meshes/materials, and the real WASM compiler/clearance resolver. */
-export async function constructionModelReview(kind: 'collection' | 'neighbors' | 'patrol' = 'collection', input?: ConstructionSource) {
+export async function constructionModelReview(kind: 'collection' | 'neighbors' | 'patrol' | 'overhead' = 'collection', input?: ConstructionSource) {
   const catalog = await loadConstructionCatalog(); await init();
   const source = input ?? equipmentReviewSource(catalog, kind);
   const result: ConstructionResult = JSON.parse(compile_construction(JSON.stringify(source), JSON.stringify(catalog)));
@@ -47,13 +49,13 @@ export async function constructionModelReview(kind: 'collection' | 'neighbors' |
   const nodes = new Map<string, THREE.Object3D>();
   model.traverse(n => { if (n.userData.nodeId) { if (nodes.has(n.userData.nodeId)) throw new Error(`Duplicate installed node ${n.userData.nodeId}`); nodes.set(n.userData.nodeId, n); } });
   const render = async () => { view.updateRenderMatrices(); await renderer.renderAsync(scene, camera); };
-  const focus = async (id?: string, angle: 'quarter' | 'side' | 'top' | 'under' = 'quarter') => {
+  const focus = async (id?: string, angle: 'quarter' | 'side' | 'top' | 'under' = 'quarter', contextScale = 1) => {
     const target = id ? model.children.find(n => n.name === id) : model;
     if (!target) throw new Error(`Unknown installation ${id}`);
     view.updateRenderMatrices();
     const bounds = new THREE.Box3().setFromObject(target), center = bounds.getCenter(new THREE.Vector3());
-    const size = bounds.getSize(new THREE.Vector3()), radius = Math.max(...size.toArray(), 2);
-    const offset = { quarter: [1.1, .75, 1.2], side: [1.65, .12, 0], top: [.001, 1.75, .001], under: [.85, -.6, 1.25] }[angle];
+    const size = bounds.getSize(new THREE.Vector3()), radius = Math.max(...size.toArray(), 2) * contextScale;
+    const offset = { quarter: [1.1, .75, 1.2], side: [1.85, .12, 0], top: [.001, 1.75, .001], under: [.85, -.6, 1.25] }[angle];
     camera.position.copy(center).add(new THREE.Vector3(...offset).multiplyScalar(radius)); camera.up.set(0, 1, 0); camera.lookAt(center); camera.updateMatrixWorld();
     await render();
     return renderer.domElement.toDataURL('image/png');
@@ -99,35 +101,7 @@ export async function constructionModelReview(kind: 'collection' | 'neighbors' |
     }
     return { checks, maxCpuMuzzleErrorM: Math.max(...checks.map(c => c.maxCpuMuzzleErrorM)), maxTorpedoMuzzleErrorM: Math.max(...checks.map(c => c.maxTorpedoMuzzleErrorM)), definitionHash: result.contentHash };
   };
-  const attachments = () => {
-    view.updateRenderMatrices(); view.root.updateMatrixWorld(true);
-    const hulls = model.children.filter((n): n is THREE.Mesh => n instanceof THREE.Mesh);
-    return source.construction.equipment.map(instance => {
-      const part = catalog.equipment.find(p => p.id === instance.partId)!;
-      const socket = part.sockets?.find(s => s.id === 'attachment');
-      if (!socket) throw new Error(`Missing support metadata ${instance.id}`);
-      const installation = model.children.find(n => n.name === instance.id)!;
-      const seat = installation.localToWorld(new THREE.Vector3(...socket.position));
-      const direction = new THREE.Vector3(...socket.direction).transformDirection(installation.matrixWorld);
-      let candidates = 0, contactVertices = 0, minimumGapM = Infinity;
-      const ray = new THREE.Raycaster();
-      installation.traverse(node => {
-        if (!(node instanceof THREE.Mesh)) return;
-        for (let i = 0; i < node.geometry.attributes.position.count; i++) {
-          const point = node.getVertexPosition(i, new THREE.Vector3()).applyMatrix4(node.matrixWorld);
-          if (Math.abs(point.clone().sub(seat).dot(direction)) > .002) continue;
-          candidates++;
-          ray.set(point.clone().addScaledVector(direction, -.03), direction); ray.far = .08;
-          const hit = ray.intersectObjects(hulls, false)[0];
-          if (!hit) continue;
-          const gap = Math.abs(hit.distance - .03); minimumGapM = Math.min(minimumGapM, gap);
-          // Machinery sits on inward shell plating; exterior rendering is its outer face.
-          if (gap <= (part.placement === 'internal' ? .02 : .003)) contactVertices++;
-        }
-      });
-      return { id: instance.id, candidates, contactVertices, minimumGapM: Number.isFinite(minimumGapM) ? minimumGapM : null };
-    });
-  };
+  const attachments = () => { view.updateRenderMatrices(); return installedSupportContacts(model, source, catalog); };
   const independence = () => {
     const duplicates = source.construction.equipment.filter((p, i, all) => all.findIndex(q => q.partId === p.partId) !== i);
     const checks = duplicates.filter(p => nodes.has(`${p.id}.yaw`)).map(p => {
@@ -141,8 +115,10 @@ export async function constructionModelReview(kind: 'collection' | 'neighbors' |
     return { independentPairs: checks };
   };
   const report = { source, result, componentCount: source.construction.equipment.length, nodeCount: nodes.size, modelHash: model.userData.definitionHash };
+  const nativeInput = (cases: Omit<NativeMuzzleCase, 'muzzles'>[]) => ({ definition, cases,
+    node_ids: definition.mounts.map(m => barrelIds(m.weapon).map(id => `${m.id}.${id}.muzzle`)) });
   await focus();
-  return { ...report, actor, view, model, nodes, renderer, focus, pose, sweep, compareNative, attachments, independence,
+  return { ...report, actor, view, model, nodes, renderer, focus, pose, sweep, nativeInput, compareNative, attachments, independence,
     dispose() { renderer.dispose(); disposeConstructionModel(model); host.remove(); } };
 }
 
@@ -180,6 +156,11 @@ export async function constructionRuntimeReview(enemy = 'liberty-cargo', trial =
     samples.push(sample); return sample;
   };
   return { source, result, session, view, model, samples, advance, events,
-    async reset() { await session.resetTrial(); view.snap(); return { tick: session.tick, damage: session.player.damage.integrity, sourceRevision: source.revision }; },
+    async reset() {
+      await session.resetTrial(); view.snap(); events.clear(); samples.length = 0;
+      maxGunMuzzleErrorM = 0; maxTorpedoMuzzleErrorM = 0;
+      return { tick: session.tick, damage: session.player.damage.integrity, sourceRevision: source.revision,
+        gunAmmunition: session.player.mounts.map(m => m.ammo), tubeAmmunition: session.player.torpedoTubes?.map(t => t.ammo) };
+    },
     dispose() { session.dispose(); disposeConstructionModel(model); } };
 }
