@@ -1,6 +1,6 @@
 import { assetUrl } from '../assetUrl';
-// Fleet harbor. Commander, daily orders and currency are illustrative local state.
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+// Fleet harbor: historical ships and saved local designs.
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { InspectionTooltip } from "./InspectionTooltip";
 import { Icon } from "./Icons";
 import { PerformanceCounter } from "./PerformanceCounter";
@@ -15,39 +15,14 @@ import { ModelViewControls, PortInspection } from "./PortInspection";
 import { ShipStatistics } from "./ShipStatistics";
 import { ShipClassIcon } from "./ShipClassIcons";
 import { battleModeName, type BattleMode } from "./battle/battleModes";
-import { Button } from './components';
+import { localShip, localShips, subscribeLocalShips } from '../ships/localShips';
+import { PortDesigns } from './PortDesigns';
 
 const SHIPS = Object.values(shipPresets);
 const NATIONS = Array.from(new Set(SHIPS.map((ship) => shipIdentity(ship.id).nation).filter(Boolean))).sort();
 const NATION_LABELS: Record<string, string> = { "United States": "USA", "United Kingdom": "UK" };
-type GarageGlyph = "credits" | "star" | "check" | "wreath";
-function Glyph({ name, size = 20 }: { name: GarageGlyph; size?: number }) {
-  const paths: Record<GarageGlyph, ReactNode> = {
-    credits: <path d="m12 3 8 5v8l-8 5-8-5V8ZM4 8l8 5 8-5M12 13v8" />,
-    star: <path d="m12 3 2.7 5.7 6.3.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.3-.9Z" />,
-    check: <path d="m5 12 4 4L19 6" />,
-    wreath: (
-      <>
-        <path d="M8 3C-2 9 2 19 10 21M16 3c10 6 6 16-2 18M4 8l4 2M3 13l5 1M5 18l4-1M20 8l-4 2m5 3-5 1m3 4-4-1" />
-        <path d="m12 6 1.5 3 3.5.5-2.5 2.5.6 3.5-3.1-1.7L8.9 15.5l.6-3.5L7 9.5l3.5-.5Z" />
-      </>
-    ),
-  };
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      {paths[name]}
-    </svg>
-  );
+function SelectedMark() {
+  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>;
 }
 function ShipProfile({ className = "" }: { className?: string }) {
   return (
@@ -78,7 +53,7 @@ function ShipProfile({ className = "" }: { className?: string }) {
 }
 function ShipThumbnail({ shipId }: { shipId: string }) {
   const [failed, setFailed] = useState(false);
-  return failed ? (
+  return localShip(shipId) ? <ShipClassIcon shipClass="Other" className="garage-local-thumbnail" width={96} /> : failed ? (
     <ShipProfile />
   ) : (
     <img
@@ -91,21 +66,6 @@ function ShipThumbnail({ shipId }: { shipId: string }) {
     />
   );
 }
-function ResourceWallet() {
-  return (
-    <div className="garage-wallet" aria-label="Illustrative currency balances">
-      <span>
-        <Glyph name="credits" size={17} />
-        2,450,000
-      </span>
-      <span>
-        <Glyph name="star" size={17} />
-        12,400
-      </span>
-      <b>CAPTAIN 08</b>
-    </div>
-  );
-}
 type GarageState = {
   inspection: InspectionMode;
   selectedVolume?: string;
@@ -115,6 +75,9 @@ type GarageState = {
   /** The Battle button: the sortie board, or the last mode when the player chose to skip it. */
   battle: () => void;
   build: () => void;
+  editDesign: (id: string) => void;
+  deleteDesign: (id: string) => void;
+  libraryLoading: boolean;
   /** The caret: always the sortie board. */
   chooseBattle: () => void;
   lastMode: BattleMode;
@@ -150,24 +113,6 @@ function SetSail({ state }: { state: GarageState }) {
         </button>
       </div>
       <small className="garage-battle-last">Last: <b>{battleModeName(state.lastMode)}</b></small>
-      <Button variant="secondary" disabled={!state.ready} onClick={state.build}>Shipbuilder</Button>
-    </div>
-  );
-}
-function Commander() {
-  return (
-    <div className="garage-commander">
-      <div className="garage-officer-badge">
-        <Icon name="anchor" size={35} />
-        <i />
-        <i />
-        <i />
-      </div>
-      <div>
-        <strong>OTTO REIMANN</strong>
-        <span>Commander · Level 8</span>
-        <small>2 skill points available</small>
-      </div>
     </div>
   );
 }
@@ -177,7 +122,6 @@ function StatisticsPanel() {
     <>
       <div className="garage-panel-title">
         <h2>Statistics</h2>
-        <span>VIII</span>
       </div>
       <ShipStatistics key={selectedShip.id} definition={selectedShip} />
     </>
@@ -185,16 +129,17 @@ function StatisticsPanel() {
 }
 function FleetCarousel({ state }: { state: GarageState }) {
   const selectedShip = useShip();
+  const local = useSyncExternalStore(subscribeLocalShips, localShips);
   const [classFilter, setClassFilter] = useState<"All" | ShipClass>("All");
   const [nationFilter, setNationFilter] = useState("All");
   const ships = useMemo(
     () =>
-      SHIPS.filter(
+      [...local.map(ship => ship.definition), ...SHIPS].filter(
         (ship) =>
           (classFilter === "All" || shipClass(ship.id) === classFilter) &&
-          (nationFilter === "All" || shipIdentity(ship.id).nation === nationFilter),
+          (nationFilter === "All" || (nationFilter === "My designs" ? !!localShip(ship.id) : shipIdentity(ship.id).nation === nationFilter)),
       ),
-    [classFilter, nationFilter],
+    [classFilter, nationFilter, local],
   );
   const trackRef = useRef<HTMLDivElement>(null);
   const [scrollState, setScrollState] = useState({ atStart: true, atEnd: true });
@@ -236,15 +181,15 @@ function FleetCarousel({ state }: { state: GarageState }) {
           ))}
         </div>
         <i aria-hidden="true" />
-        <div role="group" aria-label="Filter fleet by nation">
-          {["All", ...NATIONS].map((nation) => (
+        <div role="group" aria-label="Filter fleet by collection or nation">
+          {["All", "My designs", ...NATIONS].map((nation) => (
             <button
               key={nation}
               aria-pressed={nationFilter === nation}
-              aria-label={nation === "All" ? "All nations" : nation}
+              aria-label={nation === "All" ? "All ships" : nation}
               onClick={() => setNationFilter(nation)}
             >
-              {nation === "All" ? "All nations" : NATION_LABELS[nation] ?? nation}
+              {nation === "All" ? "All ships" : NATION_LABELS[nation] ?? nation}
             </button>
           ))}
         </div>
@@ -279,7 +224,7 @@ function FleetCarousel({ state }: { state: GarageState }) {
                     <ShipClassIcon shipClass={shipClass(ship.id)} width={24} />
                     {shipIdentity(ship.id).type}
                   </span>
-                  {selected && <Glyph name="check" size={14} />}
+                  {selected && <SelectedMark />}
                 </div>
                 <ShipThumbnail shipId={ship.id} />
                 <strong>{ship.name}</strong>
@@ -304,6 +249,7 @@ function FleetCarousel({ state }: { state: GarageState }) {
 function PortLayout({ state }: { state: GarageState }) {
   const selectedShip = useShip();
   const SHIP_MODEL = shipModel(selectedShip);
+  const local = useSyncExternalStore(subscribeLocalShips, localShips);
   return (
     <div
       className={`garage-layout garage-fleet-harbor ${state.inspection !== "exterior" ? "port-inspection-active" : "port-statistics-active"}`}
@@ -317,7 +263,6 @@ function PortLayout({ state }: { state: GarageState }) {
         <div className="garage-classic-deploy">
           <SetSail state={state} />
         </div>
-        <ResourceWallet />
         <button
           className="garage-settings"
           aria-label="Port settings"
@@ -330,33 +275,12 @@ function PortLayout({ state }: { state: GarageState }) {
       <section className="garage-classic-identity">
         <h1>{selectedShip.name.toUpperCase()}</h1>
         <div>
-          <span>VIII</span>
-          <span>{SHIP_MODEL.type}</span>
-          <span>
-            {SHIP_MODEL.nation} · {SHIP_MODEL.year}
-          </span>
+            <span>{SHIP_MODEL.type}</span>
+          {(SHIP_MODEL.nation || SHIP_MODEL.year) && <span>{[SHIP_MODEL.nation, SHIP_MODEL.year].filter(Boolean).join(" · ")}</span>}
         </div>
       </section>
       <div className="garage-classic-left">
-        <div className="garage-commander-link">
-          <Commander />
-        </div>
-        <section className="garage-daily-orders">
-          <div>
-            <Glyph name="wreath" size={22} />
-            <h2>Daily orders</h2>
-          </div>
-          <strong>A captain’s first command</strong>
-          <p>Get underway and put your ship through her paces.</p>
-          <div>
-            <span>Battles completed</span>
-            <b>0 / 1</b>
-          </div>
-          <i />
-          <small>
-            <Glyph name="credits" size={13} /> 25,000 credits
-          </small>
-        </section>
+        <PortDesigns ships={local} selectedId={selectedShip.id} ready={state.ready} preparing={state.libraryLoading} onNew={state.build} onEdit={state.editDesign} onInspect={state.selectShip} onDelete={state.deleteDesign}/>
       </div>
       <aside className="garage-classic-details">
         <ModelViewControls
@@ -391,6 +315,9 @@ interface Props {
   performance?: PerformanceReadout;
   onBattle: () => void;
   onBuild: () => void;
+  onEditDesign: (id: string) => void;
+  onDeleteDesign: (id: string) => void;
+  libraryLoading: boolean;
   onChooseBattle: () => void;
   lastMode: BattleMode;
   onSettings: () => void;
@@ -403,6 +330,9 @@ export function Garage({
   performance,
   onBattle,
   onBuild,
+  onEditDesign,
+  onDeleteDesign,
+  libraryLoading,
   onChooseBattle,
   lastMode,
   onSettings,
@@ -447,6 +377,9 @@ export function Garage({
     },
     battle: onBattle,
     build: onBuild,
+    editDesign: onEditDesign,
+    deleteDesign: onDeleteDesign,
+    libraryLoading,
     chooseBattle: onChooseBattle,
     lastMode,
     ready: ready && !switching,

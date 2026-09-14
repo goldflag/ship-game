@@ -1,0 +1,12 @@
+.design-delete { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.design-delete[data-confirming=true] { flex: 1 0 100%; flex-wrap: wrap; padding: 8px 0 12px; }
+.design-delete p { flex-basis: 100%; margin: 0; color: #edf1ec; font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+.design-delete button { min-height: 36px; padding: 6px 8px; border: 0; background: transparent; color: #ffb5a6; font: inherit; cursor: pointer; }
+.design-delete button:hover:not(:disabled) { background: #ffb5a618; }
+.design-delete button:focus-visible { outline: 2px solid #86e4c5; outline-offset: 2px; }
+.design-delete button:disabled { cursor: default; opacity: .45; }
+.design-delete .design-delete-confirm { color: #ffb5a6; }
+.design-delete p[role=alert] { color: #ffb5a6; }
+.shipbuilder .design-delete button { min-height: 36px; padding: 6px 8px; color: var(--sb-salmon); }
+.shipbuilder .design-delete p { color: var(--sb-text); }
+.shipbuilder .design-delete p[role=alert] { color: var(--sb-salmon); }

@@ -73,8 +73,10 @@ export async function loadSavedConstructionWithCatalog(store: ConstructionStore,
 }
 
 export function removeConstructionSelection(source: ConstructionSource, selected: ReadonlySet<string>): void {
-  source.construction.primitives = source.construction.primitives.filter(p => !selected.has(p.id));
-  source.construction.surfaces = source.construction.surfaces.filter(surface => !selected.has(surface.primitiveId));
+  // Bulk deletion leaves the oldest hull block and its face assignments intact.
+  const keep = source.construction.primitives.every(part => selected.has(part.id)) ? source.construction.primitives[0]?.id : undefined;
+  source.construction.primitives = source.construction.primitives.filter(part => !selected.has(part.id) || part.id === keep);
+  source.construction.surfaces = source.construction.surfaces.filter(surface => !selected.has(surface.primitiveId) || surface.primitiveId === keep);
   source.construction.equipment = source.construction.equipment.filter(part => !selected.has(part.id));
   source.construction.boundaries = source.construction.boundaries.filter(wall => !selected.has(wall.id));
   source.construction.loads = source.construction.loads.filter(load => !selected.has(load.id));

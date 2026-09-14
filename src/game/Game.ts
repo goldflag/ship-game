@@ -65,7 +65,7 @@ import type { Ammunition, Battery, ShipDefinition, Vec3 } from '../ships/bluepri
 import { gunTraverseAtFraction } from '../ships/armament';
 import type { InspectionMode } from '../ships/inspection';
 import { selectedShip, shipPreset } from '../ships/presets';
-import { availableShipIds, freezeLocalFleet, isHistoricalShip, resolveShip, type LocalShipRevision, type IdentifiedShip } from '../ships/localShips';
+import { availableShipIds, freezeLocalFleet, isHistoricalShip, localShip, resolveShip, type LocalShipRevision, type IdentifiedShip } from '../ships/localShips';
 import { createConstructionModel } from './constructionModel';
 import type { TrialAction } from './session/localConstruction';
 import { resolveBattleFleet, validateBattleSetup, type BattleSetup, type FleetActor } from '../simulation/battle';
@@ -546,7 +546,7 @@ export class Game {
   /** Replace only ship-owned resources; the harbor, ocean, renderer and camera stay alive. */
   async switchShip(definition: typeof selectedShip): Promise<void> {
     if (this.disposed || !this.inPort || !this.playerView || this.switchingShip) throw new Error('Ship switching requires an idle, loaded port.');
-    if (definition.id === this.definition.id) return;
+    if (definition.id === this.definition.id && definition.contentHash === this.definition.contentHash) return;
     this.switchingShip = true;
     try {
       const simulation = new CombatSimulation(definition);
@@ -699,7 +699,7 @@ export class Game {
       progress?.(simulation.missionRules ? 'Preparing the fleet' : `Loading ${definitions[0].name}`, 0.08);
       for (const def of definitions) {
         this.assertActive();
-        const model = await this.hull(def, simulation instanceof LocalBattleSession ? simulation.constructionShips.get(def.id) : undefined);
+        const model = await this.hull(def, simulation instanceof LocalBattleSession ? simulation.constructionShips.get(def.id) : localShip(def.id));
         models.set(def.id, model);
         this.assertActive();
         // Report-only exteriors clone the original geometry; they never use

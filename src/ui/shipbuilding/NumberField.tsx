@@ -1,25 +1,26 @@
 import { useEffect, useId, useState } from 'react';
-import { Input } from '../components';
 import { finiteFieldValue } from './editorNumbers';
 
-/** Keep partial input local; incomplete, NaN and infinite values never enter an authoring command. */
-export function NumberField({ label, value, min = -500, max = 500, step = 1, unit = 'm', onChange }: {
-  label: string; value: number; min?: number; max?: number; step?: number; unit?: string; onChange(value: number): void;
+/** Inline number entry inside an object tag. Partial input stays local;
+ * incomplete, NaN and infinite values never enter an authoring command. */
+export function NumberField({ label, value, min = -500, max = 500, step = 1, unit, digits = 2, onChange }: {
+  label?: string; value: number; min?: number; max?: number; step?: number; unit?: string; digits?: number; onChange(value: number): void;
 }) {
   const id = useId();
-  const [text, setText] = useState(String(value));
+  const shown = Number(value.toFixed(digits)).toString();
+  const [text, setText] = useState(shown);
   const [error, setError] = useState(false);
-  useEffect(() => { setText(String(value)); setError(false); }, [value]);
+  useEffect(() => { setText(shown); setError(false); }, [shown]);
   const commit = (candidate: string) => {
     const number = finiteFieldValue(candidate, min, max);
     setError(number === undefined);
     if (number !== undefined && number !== value) onChange(number);
   };
-  return <label className="shipbuilder-number" htmlFor={id}>
-    <span>{label}{unit && <small>{unit}</small>}</span>
-    <Input id={id} type="number" value={text} min={min} max={max} step={step} aria-invalid={error} aria-describedby={error ? `${id}-error` : undefined}
+  return <label className="sb-num" htmlFor={id} title={error ? `Enter ${min} to ${max}${unit ? ` ${unit}` : ''}` : label}>
+    {label && <span>{label}</span>}
+    <input id={id} type="number" value={text} min={min} max={max} step={step} aria-label={label} aria-invalid={error} style={{ width: `${Math.max(3, text.length + 1.2)}ch` }}
       onChange={event => { setText(event.target.value); setError(false); }} onBlur={event => commit(event.currentTarget.value)}
-      onKeyDown={event => { if (event.key === 'Enter') event.currentTarget.blur(); if (event.key === 'Escape') { setText(String(value)); setError(false); event.stopPropagation(); } }}/>
-    {error && <small id={`${id}-error`} role="alert">Enter {min} to {max} {unit}.</small>}
+      onKeyDown={event => { if (event.key === 'Enter') event.currentTarget.blur(); if (event.key === 'Escape') { setText(shown); setError(false); event.stopPropagation(); } }}/>
+    {unit && <em>{unit}</em>}
   </label>;
 }

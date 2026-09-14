@@ -1,6 +1,6 @@
 # Local shipbuilding
 
-Open **Shipbuilder** from the port. The patrol starter includes a gun, ammunition
+Choose **New design** in port for a design with one centered hull block, or **Edit design** to reopen a saved source. All drafts appear in the port’s Ship designs list; valid designs also appear in the fleet carousel and can be inspected in the harbor. Returning from the editor saves and shows a valid design without requiring a sea trial. The patrol starter includes a gun, ammunition
 magazine, diesel machinery, funnel, propeller, rudder and mast. The twin-hull
 starter preserves an exterior water channel and deliberately shows an asymmetric
 machinery layout. Both are generic sandbox designs, not historical vessels.
@@ -11,17 +11,26 @@ immersion and exhaust loss affect those services. See
 [machinery services](construction-services.md) for the reserved power, pumping
 rates and repair limits.
 
-Use Hull to select or place pieces, Surfaces for armor/paint/openings, Equipment
-for fixed original parts, and Rooms for decks and watertight bulkheads. The hull
-grid is 1 m; equipment placement uses 0.25 m. Orbit, top, side and bow views and a
-deck slice share source selections. Copy, mirror, brushes, bulk surface changes
-and undo/redo operate on stable source identities.
+Use Hull for pieces, Armor for plating and openings, Fittings for equipment,
+Internals for rooms and machinery, and Paint for finishes. The hull grid is 1 m;
+equipment placement uses 0.25 m. Orbit, Plan, Profile and Bow views and a deck
+slice share source selections. Copy, mirror, bulk surface changes and undo/redo
+operate on stable source identities.
 
-Place shows a translucent preview at the snapped grid position. Click to place,
-drag to orbit (or pan in top/side/bow), and right-drag to pan. R rotates the next
-piece. Brush uses a drag for one undoable stroke. If a placement cannot compile,
-the hull and new pieces remain visible and selectable as draft envelopes while
-the diagnostics explain what needs fixing.
+Place shows a snapped preview only on existing hull faces. Empty space has no placement target. Click to place, or drag to
+lay a run; Fill drags a rectangle. Every piece appears during the drag, including
+mirrored pieces and loaded equipment models. Release commits one undoable edit;
+Escape cancels. While placing, a drag from empty space orbits, right-drag pans and scrolling zooms. R
+rotates the next piece. Shift-drag selects enclosed blocks and visible fittings in any
+tool; Ctrl/⌘ adds to the selection. Right-click removes the targeted block or
+fitting, and its deletion can be undone. The last hull block is protected; deleting a whole selection leaves one block and its surface assignments. Hover outlines the block under the pointer.
+
+The editor has no ground grid or simulated water plane. If placement cannot
+compile, hull pieces remain visible as source envelopes while the diagnostics
+explain what needs fixing. Loaded funnels, turrets and other equipment retain
+their real models through edits and failed validation.
+
+Delete beside a saved design in port or the editor’s Designs menu asks for inline confirmation, then removes the design and all its saved revisions. Deleting the open design starts a fresh one-block design. Deleted ships leave the local fleet and battle selections.
 
 The right-hand instruments show the native compiler's mass contributions, CG,
 waterline, roll stability, installed power, speed estimate and diagnostics.

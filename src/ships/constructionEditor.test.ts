@@ -57,8 +57,9 @@ test('derived fitting supports never become editable hull faces and colon-bearin
 });
 
 test('removing envelope clears owned surface assignments but keeps equipment as editable fit errors', () => {
-  const draft = source(); removeConstructionSelection(draft, new Set(['hull']));
-  expect(draft.construction.primitives).toHaveLength(0); expect(draft.construction.surfaces).toHaveLength(0);
+  const draft = source(); draft.construction.primitives.push({ ...draft.construction.primitives[0], id: 'other-hull' });
+  removeConstructionSelection(draft, new Set(['hull']));
+  expect(draft.construction.primitives).toHaveLength(1); expect(draft.construction.surfaces).toHaveLength(0);
   expect(draft.construction.equipment).toHaveLength(2);
 });
 
@@ -81,4 +82,20 @@ test('saved design loads its retained catalog revision rather than requiring the
   await expect(loadSavedConstructionWithCatalog(store, 'draft', async () => { throw new Error('revision missing'); })).rejects.toMatchObject({ code: 'catalog' });
   expect(saved.revision.sourceJson).toBe(raw);
   expect(() => decodeSavedConstruction({ ...saved.revision, designId: 'different-design' })).toThrow('identities disagree');
+});
+
+
+test('deleting the last block preserves its shape, paint, armor and openings exactly', () => {
+  const draft = source(), before = structuredClone(draft);
+  removeConstructionSelection(draft, new Set(['hull']));
+  expect(draft).toEqual(before);
+});
+
+test('delete-all keeps one block and its surfaces while removing other selected pieces and fittings', () => {
+  const draft = source(), first = structuredClone(draft.construction.primitives[0]), skin = structuredClone(draft.construction.surfaces);
+  const copied = copyConstructionSelection(draft, new Set(['hull', 'gun', 'magazine']));
+  removeConstructionSelection(draft, new Set(['hull', 'gun', 'magazine', ...copied]));
+  expect(draft.construction.primitives).toEqual([first]);
+  expect(draft.construction.surfaces).toEqual(skin);
+  expect(draft.construction.equipment).toEqual([]);
 });

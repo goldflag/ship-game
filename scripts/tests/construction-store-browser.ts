@@ -36,6 +36,17 @@ export async function checkConstructionStore() {
     catch (error) { assert((error as { code: string }).code === 'unsupported-version', 'future source reports recoverable version error'); }
     revisions = await store.revisions(source.id);
     assert(revisions.find(revision => revision.id === first.id)?.sourceJson === first.sourceJson, 'failed load and recovery preserve original bytes');
+    const otherSource = await store.save({ ...input, designId: 'keep-me', expectedRevisionId: null });
+    try { await store.remove(source.id, first.id); throw new Error('stale delete was accepted'); }
+    catch (error) { assert((error as { code: string }).code === 'conflict', 'stale deletion cannot erase a newer revision'); }
+    assert((await store.revisions(source.id)).length === revisions.length, 'failed deletion preserves every revision');
+    await store.remove(source.id, recovered.id);
+    store.close(); store = await openConstructionStore({ name });
+    assert(!(await store.list()).some(head => head.id === source.id), 'deleted design stays absent after reopening storage');
+    assert((await store.revisions(source.id)).length === 0, 'deletion removes every retained source revision');
+    assert((await store.load('keep-me')).revision.id === otherSource.id, 'deletion preserves other designs');
+    try { await other.save({ ...input, expectedRevisionId: recovered.id }); throw new Error('stale save recreated design'); }
+    catch (error) { assert((error as { code: string }).code === 'conflict', 'another editor cannot autosave a deleted design back into the library'); }
     return { passed: checks.length, checks, sourceBytes: first.sourceJson.length };
   } finally {
     other?.close(); store.close();
