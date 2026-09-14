@@ -131,3 +131,38 @@ Analytic box/wedge checks use 1e-7 tolerances for small-fixture volume/centroids
 material overlap tests use 1e-6 kg. The implementation plan's execution record
 tracks actual native/WASM, browser, asset and performance validation. A standalone
 component check does not certify the movement envelope of every installation.
+
+## Measured scenarios and approximations
+
+The September 2026 checks used an Apple M5 Pro with 48 GiB memory and 18 logical
+CPUs. The synthetic large source in
+[construction-editor-performance.ts](../scripts/tests/construction-editor-performance.ts)
+has two hull primitives, seven equipment instances and three internal boundaries.
+It is a roughly 106,408 t volume/loading fixture, not a detailed battleship or a
+maximum-complexity fixture. Its measured warm worker compile was 6.2 ms, a revised
+compile 5.5 ms, mean source/history edit 0.012 ms, and IndexedDB save 0.9 ms.
+
+Actual static production trials loaded the armed patrol starter in 12.65 s, an
+armor refit in 12.72 s, and the large fixture in 12.29 s. These timings run from
+the Sea trial button to the trial controls becoming available, including model
+composition and renderer preparation. They used the initial reviewed compiler
+and current 15-part catalog while other development checks were running. They
+are individual observations, not latency guarantees.
+
+The patrol trial demonstrated propulsion, steering, ammunition use, compartment
+flooding, changed attitude, machinery loss, HP damage and reset. The large trial
+spawned with its derived mass and HP, operated its rudder and gun, and accelerated
+slowly with the same small machinery package. A separate two-versus-two custom
+battle used three copies of one saved revision alongside a historical preset.
+Browser background throttling prevented a useful sustained frame-rate sample;
+these results do not establish a frame-rate or fleet-size guarantee.
+
+Material and displacement integrals use the actual authored polyhedra. Equipment
+inertia uses fixed envelopes and the simulation consumes diagonal inertia,
+rather than a fully coupled tensor. Openings operate on whole exposed source
+faces; internal decks and bulkheads are full axis-aligned planes. Flow uses
+lumped opening area/pressure, terrain contact samples downward-facing vertices,
+and collision response retains the existing planar impulse model after testing
+actual cell intersection. Suggestions are bounded searches and can explain a
+fit failure without finding every feasible arrangement. Initial service and
+ammunition loading is fixed; expenditure does not recalculate dry mass.
