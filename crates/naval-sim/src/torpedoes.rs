@@ -208,7 +208,11 @@ pub fn tube_solution(
     .into();
     TubeSolution {
         origin,
-        heading,
+        heading: if def.hull.volume.is_some() && launcher.is_some() {
+            wrap_angle(actor.motion.heading + train)
+        } else {
+            heading
+        },
         range,
     }
 }

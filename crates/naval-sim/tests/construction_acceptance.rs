@@ -271,3 +271,173 @@ fn separated_hull_rays_miss_water_and_hit_only_the_selected_skin() {
     assert_eq!(contact_armor(&def, &hits[0]).thickness_mm, 50.);
     assert_eq!(contact_armor(&def, &hits[1]).thickness_mm, 10.);
 }
+
+#[test]
+fn trainable_torpedoes_use_one_absolute_rotation_for_sockets_damage_and_launch() {
+    use naval_sim::{
+        geometry::*,
+        torpedoes::{TubeState, tube_local_position, tube_solution},
+    };
+    for bearing in [-90., 90.] {
+        let (mut source, mut catalog) = fixture();
+        catalog.weapons =
+            serde_json::from_str(include_str!("../../../assets/parts/guns.json")).unwrap();
+        catalog.equipment = vec![
+            ConstructionEquipmentPart {
+                id: "magazine".into(),
+                name: "Magazine".into(),
+                kind: "magazine".into(),
+                placement: "internal".into(),
+                size: [2.; 3],
+                bounds_center: [0., 1., 0.],
+                center_of_gravity: [0., 1., 0.],
+                mass_kg: Some(1000.),
+                ammunition_capacity: Some(1000.),
+                model_url: "/models/components/test.glb".into(),
+                content_hash: "test".into(),
+                ..Default::default()
+            },
+            ConstructionEquipmentPart {
+                id: "bank".into(),
+                name: "Bank".into(),
+                kind: "torpedo-launcher".into(),
+                placement: "deck".into(),
+                size: [2., 1., 4.],
+                bounds_center: [0.1, 0.5, 0.2],
+                center_of_gravity: [0., 0.5, 0.],
+                mass_kg: Some(18000.),
+                torpedo_part_id: Some("us-mk15-fast".into()),
+                tube_offsets: Some(vec![[-0.5, 0.5, -2.], [0.5, 0.5, -2.]]),
+                model_url: "/models/components/test.glb".into(),
+                content_hash: "test".into(),
+                ..Default::default()
+            },
+        ];
+        source.construction.equipment = vec![
+            ConstructionEquipment {
+                id: "magazine".into(),
+                part_id: "magazine".into(),
+                position: [0., -1.99, 0.],
+                ..Default::default()
+            },
+            ConstructionEquipment {
+                id: "bank".into(),
+                part_id: "bank".into(),
+                position: [0., 2., 5.],
+                bearing_deg: bearing,
+                magazine_id: Some("magazine".into()),
+                ..Default::default()
+            },
+        ];
+        let def = compile(&source, &catalog);
+        let mut actor = Combatant::new("bank", &def);
+        actor.motion.heading = 0.3;
+        assert_eq!(actor.launcher_trains["bank"], bearing.to_radians());
+        let tube = &def.torpedo_tubes.as_ref().unwrap()[0];
+        assert_eq!(tube.id, "bank.tube-1");
+        assert_eq!(tube.position, [-0.5, 2.5, 3.]);
+        assert_eq!(tube.bearing_deg, 0.);
+        let module = def.modules.iter().find(|m| m.id == "bank").unwrap();
+        assert_eq!(module.center, [0.1, 2.5, 5.2]);
+        assert_eq!(module.size, [2., 1., 4.]);
+        for train in [bearing.to_radians(), 0.47, -0.63] {
+            actor.launcher_trains.insert("bank".into(), train);
+            let base = Pose {
+                heading: train,
+                ..Default::default()
+            };
+            let expected = add([0., 2., 5.], rotate([-0.5, 0.5, -2.], base));
+            assert!(length(sub(tube_local_position(&actor, &def, tube), expected)) < 1e-9);
+            assert!(
+                length(sub(
+                    naval_sim::machinery::equipment_center(&actor, &def, module),
+                    add([0., 2., 5.], rotate([0.1, 0.5, 0.2], base))
+                )) < 1e-9
+            );
+            let origin = local_to_world(expected, actor.motion.pose());
+            let heading = actor.motion.heading + train;
+            let aim = add(origin, [heading.sin() * 1000., 0., -heading.cos() * 1000.]);
+            let mut state = TubeState::new(tube);
+            let solution = tube_solution(&actor, &def, tube, &mut state, aim, 1. / 60., None);
+            assert_eq!(state.status, "ready");
+            assert!(wrap_angle(solution.heading - heading).abs() < 1e-9);
+            assert!(length(sub(solution.origin, origin)) < 1e-9);
+        }
+        // The actual battle launch consumes the same absolute heading.
+        use naval_sim::{
+            battle::{Battle, BattleSetup, Orders, ShipSetup},
+            bots::AiLevel,
+            catalog::Catalog,
+            gunnery::PlayerGunOrders,
+            rules::TeamId,
+            vessel::Controller,
+        };
+        use std::{collections::BTreeMap, sync::Arc};
+        let local =
+            Catalog::load(&std::fs::read("../../.build/naval-content/manifest.json").unwrap())
+                .unwrap()
+                .with_constructions(&[source], &catalog)
+                .unwrap();
+        let compiled = BTreeMap::from([
+            (def.id.clone(), Arc::new(local.compile(&def.id).unwrap())),
+            (
+                "fletcher".into(),
+                Arc::new(local.compile("fletcher").unwrap()),
+            ),
+        ]);
+        let setup = BattleSetup {
+            ships: vec![
+                ShipSetup {
+                    id: "player".into(),
+                    preset_id: def.id.clone(),
+                    team: TeamId::A,
+                    controller: Controller::Player,
+                    ai_level: AiLevel::Static,
+                    spawn: None,
+                },
+                ShipSetup {
+                    id: "target".into(),
+                    preset_id: "fletcher".into(),
+                    team: TeamId::B,
+                    controller: Controller::Idle,
+                    ai_level: AiLevel::Static,
+                    spawn: None,
+                },
+            ],
+            seed: 1,
+            map_id: "north-atlantic".into(),
+            weather: "clear".into(),
+            spawn_distance: 3000.,
+            wind_speed: Some(0.),
+            mission_rules: None,
+            air_rules: None,
+        };
+        let mut battle = Battle::new(Arc::new(local), &compiled, setup).unwrap();
+        let player = &battle.actors[0];
+        let direction = player.motion.heading + bearing.to_radians();
+        let origin = local_to_world([0., 2., 5.], player.motion.pose());
+        let aim = add(
+            origin,
+            [direction.sin() * 1000., 0., -direction.cos() * 1000.],
+        );
+        battle.step(&BTreeMap::from([(
+            "player".into(),
+            Orders {
+                guns: Some(PlayerGunOrders {
+                    battery: "torpedo".into(),
+                    weapon_group_id: None,
+                    aim: Some(aim),
+                    fire: true,
+                    ammunition: BTreeMap::new(),
+                }),
+                ..Default::default()
+            },
+        )]));
+        let shot = battle
+            .torpedoes
+            .first()
+            .expect("bank must fire at nonzero installed bearing");
+        let direction = battle.actors[0].motion.heading + battle.actors[0].launcher_trains["bank"];
+        assert!(wrap_angle(shot.velocity[0].atan2(-shot.velocity[2]) - direction).abs() < 1e-9);
+    }
+}

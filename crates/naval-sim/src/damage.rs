@@ -112,7 +112,15 @@ impl Combatant {
                 .torpedo_launchers
                 .iter()
                 .flatten()
-                .map(|l| (l.id.clone(), 0.0))
+                .map(|l| {
+                    (
+                        l.id.clone(),
+                        def.construction
+                            .as_ref()
+                            .and_then(|c| c.equipment.iter().find(|e| e.id == l.id))
+                            .map_or(0., |e| e.bearing_deg.to_radians()),
+                    )
+                })
                 .collect(),
         }
     }

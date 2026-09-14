@@ -1500,8 +1500,18 @@ fn equipment(
                 id: e.id.clone(),
                 name: p.name.clone(),
                 kind: kind.into(),
-                center: box_center,
-                size: box_size,
+                // Trainable launchers retain their original zero-bearing frame;
+                // absolute runtime train owns the one and only yaw transform.
+                center: if p.kind == "torpedo-launcher" {
+                    add(e.position, p.bounds_center)
+                } else {
+                    box_center
+                },
+                size: if p.kind == "torpedo-launcher" {
+                    p.size
+                } else {
+                    box_size
+                },
                 hp: (mass_kg.sqrt() * 2.).max(40.),
                 placement: (p.placement != "internal").then(|| "fixed".into()),
                 immersion_tolerance_m: if p.placement == "internal" {
@@ -1630,9 +1640,11 @@ fn equipment(
                         id: format!("{}.tube-{}", e.id, i + 1),
                         name: p.name.clone(),
                         part_id: w.id.clone(),
-                        position: local_to_world(offset, pose),
-                        bearing_deg: e.bearing_deg,
-                        arc_deg: 0.,
+                        position: add(e.position, offset),
+                        bearing_deg: 0.,
+                        // Match the existing trainable-bank alignment window;
+                        // projectile direction is still the physical absolute train.
+                        arc_deg: 2.,
                         ammo: 1.,
                         magazine_id: magazine.id.clone(),
                         launcher_id: Some(e.id.clone()),
@@ -1642,11 +1654,23 @@ fn equipment(
             }
         }
         if p.kind != "gun" && p.placement != "internal" {
-            def.obstructions.push(Volume {
-                id: e.id.clone(),
-                center: box_center,
-                size: box_size,
-            });
+            if p.kind == "torpedo-launcher" {
+                // Reserve the full train sweep for neighboring gun barrels.
+                // Damage/contact boxes still use the actual moving module pose.
+                let radius = (p.bounds_center[0].abs() + p.size[0] * 0.5)
+                    .hypot(p.bounds_center[2].abs() + p.size[2] * 0.5);
+                def.obstructions.push(Volume {
+                    id: format!("{}-sweep", e.id),
+                    center: add(e.position, [0., p.bounds_center[1], 0.]),
+                    size: [radius * 2., p.size[1], radius * 2.],
+                });
+            } else {
+                def.obstructions.push(Volume {
+                    id: e.id.clone(),
+                    center: box_center,
+                    size: box_size,
+                });
+            }
         }
         fitted.push((e, p));
     }
