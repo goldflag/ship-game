@@ -11,15 +11,59 @@ import type { ConstructionResult, ConstructionSource } from '../../src/ships/blu
 declare global { interface Window { shipbuilderReview?: { source?: ConstructionSource; launched?: ConstructionResult; close(): void }; } }
 
 /** Independent mounted surface for editor/browser review; runtime trial integration is checked through App. */
-export async function mountShipbuilderReview() {
+export async function mountShipbuilderReview(source?: ConstructionSource) {
   const catalog = await loadConstructionCatalog();
   const host = document.createElement('div'); document.body.replaceChildren(host); document.body.style.margin = '0';
   const root = createRoot(host);
   const review: NonNullable<Window['shipbuilderReview']> = { close: () => { root.unmount(); host.remove(); } };
   window.shipbuilderReview = review;
-  root.render(<Shipbuilder catalog={catalog} starterSource={createStarterSource(catalog)} onClose={review.close}
+  root.render(<Shipbuilder catalog={catalog} starterSource={source ?? createStarterSource(catalog)} onClose={review.close}
     onSave={source => { review.source = source; }} onLaunch={(_source, result) => { review.launched = result; }}/>);
   return { equipmentCount: catalog.equipment.length, catalogRevision: catalog.revision };
+}
+
+/** The native solver adds missing internals; applying or undoing never changes the hull. */
+export async function checkShipbuilderSuggestions() {
+  const catalog = await loadConstructionCatalog(), template = createStarterSource(catalog);
+  template.construction.equipment = [];
+  window.shipbuilderReview?.close(); await mountShipbuilderReview(template);
+  const checks: string[] = [];
+  const source = () => window.shipbuilderReview?.source;
+  const wait = async (condition: () => unknown, label: string) => {
+    const start = performance.now();
+    while (!condition()) {
+      if (performance.now() - start > 45000) throw new Error(`Timed out: ${label}`);
+      await new Promise(resolve => setTimeout(resolve, 25));
+    }
+    checks.push(label);
+  };
+  const find = (text: string) => [...document.querySelectorAll<HTMLButtonElement>('.shipbuilder button')].find(button => button.textContent?.trim() === text);
+  const click = (text: string) => { const button = find(text); if (!button || button.disabled) throw new Error(`Button unavailable: ${text}`); button.click(); };
+  await wait(() => source() && !document.querySelector('.shipbuilder-compile')?.textContent?.includes('Compiling'), 'hull-only source compiles and saves');
+  const before = JSON.stringify(source()!.construction);
+  if (find('Tools')?.offsetParent) { click('Tools'); await new Promise(resolve => setTimeout(resolve, 25)); }
+  click('Equipment'); await new Promise(resolve => setTimeout(resolve, 25)); click('Suggest internals');
+  await wait(() => find('Apply suggestion'), 'native missing-internals proposal is available');
+  if (JSON.stringify(source()!.construction) !== before) throw new Error('Proposal changed source before apply');
+  checks.push('proposal keeps saved source unchanged until apply');
+  const name = document.querySelector<HTMLInputElement>('.shipbuilder-name')!;
+  Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(name, 'Changed while reviewing layout');
+  name.dispatchEvent(new Event('input', { bubbles: true }));
+  await wait(() => find('Apply suggestion')?.disabled, 'editing fences an obsolete proposal');
+  await wait(() => !find('Suggest internals')?.disabled, 'new source compilation leaves suggestions available');
+  click('Suggest internals'); await wait(() => find('Apply suggestion') && !find('Apply suggestion')!.disabled, 'current revision receives a fresh proposal');
+  click('Apply suggestion'); await wait(() => source()!.construction.equipment.length >= 2, 'one apply saves machinery and magazine');
+  document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', ctrlKey: true, bubbles: true }));
+  await wait(() => JSON.stringify(source()!.construction) === before, 'one undo restores exact hull and module references');
+  await wait(() => !find('Suggest internals')?.disabled, 'restored hull is compiled before another suggestion');
+  const oversized = catalog.equipment.find(part => part.id === 'sk-c34-380-twin')!;
+  const fitting = [...document.querySelectorAll<HTMLButtonElement>('.shipbuilder-catalog button')].find(button => button.textContent?.startsWith(oversized.name))!;
+  fitting.click(); await new Promise(resolve => setTimeout(resolve, 25)); click('Suggest selected fitting');
+  await wait(() => document.querySelector('.shipbuilder-suggestion .shipbuilder-error'), 'oversized fitting produces a native placement explanation');
+  if (find('Apply suggestion') || JSON.stringify(source()!.construction) !== before) throw new Error('Failed layout modified source');
+  checks.push('failed proposal preserves source and has no apply action');
+  window.shipbuilderReview!.close();
+  return { passed: checks.length, checks };
 }
 
 export async function checkShipbuilderEditing() {
@@ -57,7 +101,10 @@ export async function checkShipbuilderEditing() {
   const thickness = [...document.querySelectorAll('label')].find(label => label.textContent?.startsWith('Thickness'))?.querySelector('input');
   if (!thickness) throw new Error('Armor thickness field missing');
   thickness.focus(); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(thickness, '37'); thickness.dispatchEvent(new Event('input', { bubbles: true }));
-  await new Promise(resolve => setTimeout(resolve, 20)); thickness.blur(); await new Promise(resolve => setTimeout(resolve, 20));
+  await new Promise(resolve => setTimeout(resolve, 20)); thickness.blur();
+  // A background embedded page may not receive a native focus transition.
+  thickness.dispatchEvent(new FocusEvent('focusout', { bubbles: true }));
+  await new Promise(resolve => setTimeout(resolve, 20));
   button('Apply to selected faces'); await wait(() => source().construction.surfaces.some(surface => surface.thicknessMm === 37), 'millimeter armor assignments save through the actual controls');
   button('Open to sea'); await wait(() => source().construction.surfaces.some(surface => surface.open), 'explicit openings remain distinct from armor');
   key('z', { ctrlKey: true }); await wait(() => source().construction.surfaces.every(surface => !surface.open), 'undo restores closed skin and armor together');

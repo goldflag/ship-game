@@ -1,11 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
-import type { ConstructionResult, ConstructionSource } from '../../ships/blueprint';
+import type { ConstructionResult, ConstructionSource, ConstructionSuggestion } from '../../ships/blueprint';
 import { createConstructionHistory, editConstruction, undoConstruction, redoConstruction, ConstructionRevisionGate } from '../../ships/constructionHistory';
 import { ConstructionAutosave, type ConstructionSaveState } from '../../ships/constructionAutosave';
 import { openConstructionStore, type ConstructionStore } from '../../ships/constructionStore';
 import { decodeConstructionSource, loadSavedConstructionWithCatalog, newConstructionId } from '../../ships/constructionEditor';
 
-export interface BuilderCompiler { compile(source: ConstructionSource, signal?: AbortSignal): Promise<ConstructionResult>; dispose(): void; }
+export interface BuilderCompiler {
+  compile(source: ConstructionSource, signal?: AbortSignal): Promise<ConstructionResult>;
+  suggest?(source: ConstructionSource, partIds: string[], signal?: AbortSignal): Promise<ConstructionSuggestion>;
+  dispose(): void;
+}
 export function freshConstruction(template: ConstructionSource, blank = false): ConstructionSource {
   const source = structuredClone(template); source.id = newConstructionId('design'); source.revision = newConstructionId('revision');
   source.name = blank ? 'Untitled design' : template.name;

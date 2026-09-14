@@ -33,7 +33,7 @@ import './GunAimIndicators.css';
 import './HitDirectionIndicators.css';
 import { Shipbuilder } from './shipbuilding/Shipbuilder';
 import { TrialControls } from './shipbuilding/TrialControls';
-import type { ConstructionCatalog, ConstructionResult, ConstructionSource } from '../ships/blueprint';
+import type { ConstructionCatalog, ConstructionResult, ConstructionSource, ConstructionSuggestion } from '../ships/blueprint';
 import { loadConstructionCatalog } from '../ships/constructionEquipment';
 import { registerLocalShip, resolveShip } from '../ships/localShips';
 import { restoreLocalShips } from '../ships/constructionLibrary';
@@ -232,22 +232,10 @@ export function App() {
     } catch (error) { setBattleLoading(null); throw error; }
     finally { battlePending.current = false; }
   };
-  const suggestLayout = async (source: ConstructionSource): Promise<ConstructionSource> => {
-    const catalog = await loadConstructionCatalog(source.construction.catalogRevision);
-    const installed = new Set(source.construction.equipment.map(e => catalog.equipment.find(p => p.id === e.partId)?.kind));
-    const partIds = (['engine', 'magazine', 'gun', 'funnel', 'propeller', 'rudder'] as const).filter(kind => !installed.has(kind)).flatMap(kind => {
-      const choices = catalog.equipment.filter(p => p.kind === kind).sort((a, b) => a.size[0] * a.size[1] * a.size[2] - b.size[0] * b.size[1] * b.size[2]);
-      const part = kind === 'gun' ? choices.find(p => p.id === 'us-5in38-mk30-mod0-single') ?? choices[0] : choices[0];
-      return part ? [part.id] : [];
-    });
-    if (!partIds.length) throw new Error('The basic equipment is already fitted. Select an installed part to adjust its position or connections.');
+  const suggestLayout = async (source: ConstructionSource, partIds: string[], signal?: AbortSignal): Promise<ConstructionSuggestion> => {
     const client = new ConstructionClient();
-    try {
-      const result = await client.suggest(source, partIds);
-      const error = result.diagnostics.find(d => d.severity === 'error');
-      if (error) throw new Error(error.message);
-      return result.source;
-    } finally { client.dispose(); }
+    try { return await client.suggest(source, partIds, signal); }
+    finally { client.dispose(); }
   };
   const restartPve = async () => {
     const session = game.current;

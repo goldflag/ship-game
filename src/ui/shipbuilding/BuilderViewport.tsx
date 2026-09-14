@@ -60,6 +60,7 @@ class Viewport {
   private frame = 0;
   private dead = false;
   private span = 70;
+  private fitExtent = 70;
   private contentKey = '';
   private modelKey = '';
   private modelAbort?: AbortController;
@@ -92,6 +93,7 @@ class Viewport {
 
   private measure() {
     const width = Math.max(1, this.host.clientWidth), height = Math.max(1, this.host.clientHeight);
+    this.span = this.fitExtent / Math.min(1, width / height);
     this.renderer.setSize(width, height); this.camera.left = -this.span * width / height / 2; this.camera.right = -this.camera.left;
     this.camera.top = this.span / 2; this.camera.bottom = -this.camera.top; this.camera.updateProjectionMatrix();
   }
@@ -101,9 +103,9 @@ class Viewport {
     for (const surface of this.props.result?.surfaces ?? []) for (const point of surface.vertices) bounds.expandByPoint(new THREE.Vector3(...point));
     if (bounds.isEmpty()) bounds.set(new THREE.Vector3(-10, -5, -25), new THREE.Vector3(10, 5, 25));
     const size = bounds.getSize(new THREE.Vector3()), center = bounds.getCenter(new THREE.Vector3());
-    this.span = Math.max(15, size.length() * .95 / Math.min(1, this.host.clientWidth / Math.max(1, this.host.clientHeight)));
+    this.fitExtent = Math.max(15, size.length() * .95);
     this.controls.target.copy(center); this.camera.zoom = 1;
-    this.setView(this.props.view); this.measure();
+    this.measure(); this.setView(this.props.view);
   }
 
   private setView(view: BuilderView) {

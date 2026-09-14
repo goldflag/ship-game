@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import type { ConstructionCatalog, ConstructionPrimitive, ConstructionResult, ConstructionSource, ConstructionSurfaceAssignment, Vec3 } from '../../ships/blueprint';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import type { ConstructionCatalog, ConstructionPrimitive, ConstructionResult, ConstructionSource, ConstructionSuggestion, ConstructionSurfaceAssignment, Vec3 } from '../../ships/blueprint';
 import { assignConstructionSurfaces, CONSTRUCTION_FACES, copyConstructionSelection, moveConstructionSelection, newConstructionId, removeConstructionSelection, rotateConstructionSelection, surfaceKey } from '../../ships/constructionEditor';
 import { Button, Input, Select, SelectOption } from '../components';
 import { Icon } from '../Icons';
@@ -25,7 +25,7 @@ export interface ShipbuilderProps {
   onLaunch(source: ConstructionSource, result: ConstructionResult): void | Promise<void>;
   onSave?(source: ConstructionSource): void;
   createModel?: ConstructionModelFactory;
-  suggestLayout?(source: ConstructionSource): Promise<ConstructionSource>;
+  suggestLayout?(source: ConstructionSource, partIds: string[], signal?: AbortSignal): Promise<ConstructionSuggestion>;
 }
 type Workbench = 'hull' | 'surfaces' | 'equipment' | 'rooms' | 'library';
 type Tool = 'select' | 'place' | 'brush' | 'erase';
@@ -39,7 +39,7 @@ const axisNames = ['X', 'Y', 'Z'];
 const format = (number: number | undefined, digits = 1) => number === undefined || !Number.isFinite(number) ? '—' : number.toLocaleString(undefined, { maximumFractionDigits: digits });
 
 export function Shipbuilder(props: ShipbuilderProps) {
-  const [compiler] = useState(() => props.compileClient ?? new ConstructionClient());
+  const [compiler] = useState<BuilderCompiler>(() => props.compileClient ?? new ConstructionClient());
   const [starterSource] = useState(() => props.starterSource ?? createStarterSource(props.catalog));
   const [starterKind, setStarterKind] = useState<ConstructionStarter>('patrol');
   const editor = useBuilderSource({ ...props, starterSource, compiler, catalogRevision: props.catalog.revision });
@@ -79,8 +79,9 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const [notice, setNotice] = useState('');
   const [toolsOpen, setToolsOpen] = useState(false);
   const [inspectOpen, setInspectOpen] = useState(false);
-  const [suggestion, setSuggestion] = useState<ConstructionSource>();
+  const [suggestion, setSuggestion] = useState<ConstructionSuggestion>();
   const [suggestionRevision, setSuggestionRevision] = useState('');
+  const suggestionRequest = useRef<AbortController | undefined>(undefined);
   const selectedPrimitive = data.primitives.find(part => selected.has(part.id));
   const selectedEquipment = data.equipment.find(part => selected.has(part.id));
   const selectedBoundary = data.boundaries.find(wall => selected.has(wall.id));
@@ -90,8 +91,11 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const allSurfaceKeys = useMemo(() => [...new Set((editor.currentResult?.surfaces ?? []).map(surface => surfaceKey(surface.primitiveId, surface.face)))], [editor.currentResult]);
   const fail = (cause: unknown) => editor.setError(cause instanceof Error ? cause.message : String(cause));
   const run = (label: string, command: (draft: ConstructionSource) => void) => { editor.setError(''); setNotice(''); editor.edit(label, command); };
+  const requestSuggestion = props.suggestLayout ?? (compiler.suggest ? (source: ConstructionSource, ids: string[], signal?: AbortSignal) => compiler.suggest!(source, ids, signal) : undefined);
+  const suggestionChanged = suggestion && JSON.stringify([data.equipment, data.boundaries, data.loads]) !== JSON.stringify([suggestion.source.construction.equipment, suggestion.source.construction.boundaries, suggestion.source.construction.loads]);
 
   useEffect(() => { setSelected(new Set()); setSurfaces(new Set()); setSuggestion(undefined); }, [source.id]);
+  useEffect(() => () => { suggestionRequest.current?.abort(); suggestionRequest.current = undefined; }, [source.revision]);
   const choose = (id: string, additive = false) => setSelected(current => {
     if (!additive) return new Set([id]); const next = new Set(current); if (next.has(id)) next.delete(id); else next.add(id); return next;
   });
@@ -151,10 +155,22 @@ export function Shipbuilder(props: ShipbuilderProps) {
     try { try { await editor.flush(); } catch { /* App receives the immutable source even if local storage is unavailable. */ } await props.onLaunch(structuredClone(source), structuredClone(current)); }
     catch (cause) { fail(cause); } finally { setBusy(''); }
   };
-  const suggest = async () => {
-    if (!props.suggestLayout) return; setBusy('Finding a layout'); const revision = source.revision;
-    try { const proposed = await props.suggestLayout(structuredClone(source)); setSuggestion(proposed); setSuggestionRevision(revision); }
-    catch (cause) { fail(cause); } finally { setBusy(''); }
+  const suggest = async (selectedPart = false) => {
+    if (!requestSuggestion) return;
+    const fittedKinds = new Set(data.equipment.map(instance => catalog.equipment.find(part => part.id === instance.partId)?.kind));
+    const ids = selectedPart ? [partId] : catalog.equipment.filter(part => {
+      if (part.placement !== 'internal' || fittedKinds.has(part.kind)) return false;
+      fittedKinds.add(part.kind); return true;
+    }).map(part => part.id).slice(0, 16);
+    setBusy('Finding a layout'); setSuggestion(undefined); const revision = source.revision;
+    const abort = new AbortController(); suggestionRequest.current?.abort(); suggestionRequest.current = abort;
+    try {
+      const proposed = await requestSuggestion(structuredClone(source), ids, abort.signal);
+      if (abort.signal.aborted) return;
+      if (proposed.source.id !== source.id || proposed.source.construction.catalogRevision !== data.catalogRevision) throw new Error('The layout belongs to a different design or equipment catalog. Request a new suggestion.');
+      setSuggestion(proposed); setSuggestionRevision(revision);
+    } catch (cause) { if (!abort.signal.aborted) fail(cause); }
+    finally { if (suggestionRequest.current === abort) suggestionRequest.current = undefined; setBusy(''); }
   };
   useEffect(() => {
     const key = (event: KeyboardEvent) => {
@@ -195,8 +211,14 @@ export function Shipbuilder(props: ShipbuilderProps) {
             <Input type="search" aria-label="Find equipment" placeholder="Find a gun, engine or fitting" value={partQuery} onChange={event => setPartQuery(event.target.value)}/>
             <div className="shipbuilder-list shipbuilder-catalog">{catalog.equipment.filter(part => `${part.name} ${part.kind}`.toLowerCase().includes(partQuery.toLowerCase())).map(part => <Button key={part.id} aria-pressed={partId === part.id} onClick={() => { setPartId(part.id); setTool('place'); }}><span>{part.name}<small>{part.kind} · {part.placement} · {part.size.map(value => format(value, 2)).join(' × ')} m</small></span></Button>)}</div>
             {!catalog.equipment.length && <p>No equipment is available in this catalog.</p>}
-            <Button disabled={!props.suggestLayout || !!busy} onClick={() => void suggest()}>Suggest internals</Button>{!props.suggestLayout && <p className="shipbuilder-help">Use the starter hull for a fitted layout; manual placement remains available.</p>}
-            {suggestion && <div className="shipbuilder-suggestion"><p>A layout is ready. Applying it is one undoable edit.</p><Button disabled={source.revision !== suggestionRevision} onClick={() => { run('Apply suggested internals', draft => { draft.construction.equipment = structuredClone(suggestion.construction.equipment); draft.construction.boundaries = structuredClone(suggestion.construction.boundaries); draft.construction.loads = structuredClone(suggestion.construction.loads); }); setSuggestion(undefined); }}>Apply suggestion</Button><Button onClick={() => setSuggestion(undefined)}>Dismiss</Button>{source.revision !== suggestionRevision && <p>The source changed. Request a new suggestion.</p>}</div>}
+            <div className="shipbuilder-actions"><Button disabled={!requestSuggestion || !!busy || editor.compiling} onClick={() => void suggest()}>Suggest internals</Button><Button disabled={!requestSuggestion || !!busy || editor.compiling || !catalog.equipment.some(part => part.id === partId)} onClick={() => void suggest(true)}>Suggest selected fitting</Button></div>
+            <p className="shipbuilder-help">Suggestions add missing equipment and keep your fitted pieces in place. Review the proposal before applying it.</p>
+            {!requestSuggestion && <p className="shipbuilder-help">Layout suggestions are unavailable in this compiler. Manual placement remains available.</p>}
+            {suggestion && <div className="shipbuilder-suggestion" role="status">
+              {suggestion.diagnostics.map((diagnostic, index) => <p key={`${diagnostic.code}-${index}`} className={diagnostic.severity === 'error' ? 'shipbuilder-error' : undefined}>{diagnostic.message}</p>)}
+              {!suggestion.diagnostics.some(diagnostic => diagnostic.severity === 'error') && <><p>{suggestionChanged ? 'A layout is ready. Applying it is one undoable edit.' : 'The requested equipment is already fitted. No source changes are needed.'}</p>{suggestionChanged && <Button disabled={source.revision !== suggestionRevision} onClick={() => { run('Apply suggested internals', draft => { draft.construction.equipment = structuredClone(suggestion.source.construction.equipment); draft.construction.boundaries = structuredClone(suggestion.source.construction.boundaries); draft.construction.loads = structuredClone(suggestion.source.construction.loads); }); setSuggestion(undefined); }}>Apply suggestion</Button>}</>}
+              <Button onClick={() => setSuggestion(undefined)}>Dismiss</Button>{source.revision !== suggestionRevision && <p>The source changed. Request a new suggestion.</p>}
+            </div>}
           </>}
           {(workbench === 'hull' || workbench === 'equipment') && <>
             <h3>Placement</h3><div className="shipbuilder-tool-grid">{(['select', 'place', 'brush', 'erase'] as const).map(value => <Button key={value} aria-pressed={tool === value} onClick={() => setTool(value)}>{value === 'erase' ? 'Remove' : value[0].toUpperCase() + value.slice(1)}</Button>)}</div>

@@ -36,26 +36,28 @@ export function BuilderLibrary({ store, catalogRevision, refresh, onOpen, onReco
     finally { if (request.current === token) setLoading(false); }
   };
   const open = async () => {
+    const token = ++request.current;
     setError(''); setLoading(true);
-    try { const loaded = await loadSavedConstructionWithCatalog(store!, chosen); await onOpen(loaded.source, loaded.head.revisionId); }
-    catch (cause) { setError(String((cause as Error).message ?? cause)); }
-    finally { setLoading(false); }
+    try { const loaded = await loadSavedConstructionWithCatalog(store!, chosen); if (request.current === token) await onOpen(loaded.source, loaded.head.revisionId); }
+    catch (cause) { if (request.current === token) setError(String((cause as Error).message ?? cause)); }
+    finally { if (request.current === token) setLoading(false); }
   };
   const recover = async (revision: ConstructionRevision) => {
+    const token = ++request.current;
     setError(''); setLoading(true);
     try {
       const catalog = await loadConstructionCatalog(revision.catalogRevision);
       const source = decodeSavedConstruction(revision, catalog.revision);
       source.id = newConstructionId('design'); source.revision = newConstructionId('revision'); source.name = `${source.name.slice(0, 145)} recovered`;
-      await onRecover(source);
-    } catch (cause) { setError(String((cause as Error).message ?? cause)); }
-    finally { setLoading(false); }
+      if (request.current === token) await onRecover(source);
+    } catch (cause) { if (request.current === token) setError(String((cause as Error).message ?? cause)); }
+    finally { if (request.current === token) setLoading(false); }
   };
   return <section aria-label="Local design library">
     <h2>Local designs</h2><p className="shipbuilder-help">Sources stay in this browser. Recovery opens a copy and preserves every original revision.</p>
     {!store && <p role="status">Local storage is unavailable. Download your current source to keep a backup.</p>}
     {store && !designs.length && <p>No designs saved yet. Start a hull; its source saves automatically.</p>}
-    <div className="shipbuilder-list">{designs.map(design => <Button key={design.id} aria-pressed={chosen === design.id} onClick={() => void browse(design.id)}><span>{design.name}<small>{design.readError ?? new Date(design.updatedAt).toLocaleString()}</small></span></Button>)}</div>
+    <div className="shipbuilder-list">{designs.map(design => <Button key={design.id} disabled={loading} aria-pressed={chosen === design.id} onClick={() => void browse(design.id)}><span>{design.name}<small>{design.readError ?? new Date(design.updatedAt).toLocaleString()}</small></span></Button>)}</div>
     {chosen && <><Button variant="primary" disabled={loading} onClick={() => void open()}>Open latest revision</Button><h3>Recover a source</h3><div className="shipbuilder-revisions">{revisions.map(revision => <div key={revision.id}><span>{new Date(revision.createdAt).toLocaleString()}<small>Source v{revision.schemaVersion}</small></span><div className="shipbuilder-actions"><Button disabled={loading} onClick={() => void recover(revision)}>Recover copy</Button><Button onClick={() => downloadConstructionSource(revision.sourceJson, `source-${revision.id}`)}>Download original</Button></div></div>)}</div></>}
     {loading && <p role="status">Reading source revisions…</p>}{error && <p role="alert" className="shipbuilder-error">{error}</p>}
   </section>;
