@@ -81,24 +81,38 @@ def mesh(name, vertices, faces, material, collection=None, smooth=False):
     return obj
 
 
-def box(name, location, dimensions, material, collection=None, bev=.035):
-    bpy.ops.mesh.primitive_cube_add(size=1, location=location)
-    obj = bpy.context.object
-    obj.scale = dimensions
-    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
-    finish(obj, name, material, collection)
-    if bev and min(dimensions) > .12:
-        modifier = obj.modifiers.new('Small fabricated edge', 'BEVEL')
-        modifier.width = min(bev, min(dimensions) / 5)
-        modifier.segments = 1
-        bpy.ops.object.modifier_apply(modifier=modifier.name)
+def primitive(name, geometry, location, material, collection):
+    data = bpy.data.meshes.new(name)
+    geometry.to_mesh(data)
+    geometry.free()
+    obj = bpy.data.objects.new(name, data)
+    (collection or col).objects.link(obj)
+    obj.location = location
+    if material: data.materials.append(material)
+    obj['assemblyId'] = name.split('.')[0]
     return obj
 
 
+def box(name, location, dimensions, material, collection=None, bev=.035):
+    # The same BMesh primitive/bevel operations used by Blender's operators,
+    # without a dependency-graph update for every fitting. Keep their UV layer.
+    geometry = bmesh.new()
+    geometry.loops.layers.uv.new('UVMap')
+    bmesh.ops.create_cube(geometry, size=1, calc_uvs=True)
+    geometry.transform(Matrix.Diagonal((*dimensions, 1)))
+    if bev and min(dimensions) > .12:
+        bmesh.ops.bevel(geometry, geom=list(geometry.edges), offset=min(bev, min(dimensions) / 5),
+                        segments=1, affect='EDGES', clamp_overlap=True)
+    return primitive(name, geometry, location, material, collection)
+
+
 def cyl(name, location, radius, depth, material, collection=None, vertices=20, r2=None):
-    bpy.ops.mesh.primitive_cone_add(vertices=vertices, radius1=radius,
-        radius2=radius if r2 is None else r2, depth=max(.001, depth), location=location)
-    obj = finish(bpy.context.object, name, material, collection)
+    geometry = bmesh.new()
+    geometry.loops.layers.uv.new('UVMap')
+    bmesh.ops.create_cone(geometry, cap_ends=True, cap_tris=False, segments=vertices,
+                         radius1=radius, radius2=radius if r2 is None else r2,
+                         depth=max(.001, depth), calc_uvs=True)
+    obj = primitive(name, geometry, location, material, collection)
     for face in obj.data.polygons:
         face.use_smooth = len(face.vertices) == 4
     return obj

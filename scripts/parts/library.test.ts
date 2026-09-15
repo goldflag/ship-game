@@ -1,5 +1,7 @@
 import { describe, test, expect } from 'bun:test';
-import { resolve } from 'node:path';
+import { resolve, join, dirname } from 'node:path';
+import { mkdtemp, mkdir, readFile, writeFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { componentHash, installationsFor, readLibrary, recipeInputs, validateLibrary } from './library';
 import { shipPresets } from '../../src/ships/presets';
 import type { ShipDefinition } from '../../src/ships/blueprint';
@@ -32,4 +34,24 @@ describe('original component library', () => {
     expect(recipeInputs(library, entry)).toContain('assets/parts/ijn-carrier-guns/geometry.py');
     expect(recipeInputs(library, entry).every(p => p.startsWith('assets/'))).toBe(true);
   });
+});
+
+
+test('component export helpers invalidate previews and missing dependencies fail closed', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'component-dependencies-'));
+  const entry = library.components.find(e => e.partId === 'type96-25-triple')!;
+  const part = catalog.parts.find(p => p.id === entry.partId)!;
+  const builder = library.builders[entry.builder!];
+  const helper = 'scripts/ships/blender_batching.py';
+  try {
+    for (const path of ['assets/parts/library.py', builder.path, ...builder.inputs, 'scripts/parts/build.py', 'scripts/ships/export.py', helper]) {
+      await mkdir(dirname(join(directory, path)), { recursive: true });
+      await writeFile(join(directory, path), await readFile(join(root, path)));
+    }
+    const before = await componentHash(directory, library, entry, part);
+    await writeFile(join(directory, helper), 'changed batching dependency');
+    expect(await componentHash(directory, library, entry, part)).not.toBe(before);
+    await rm(join(directory, helper));
+    expect(componentHash(directory, library, entry, part)).rejects.toThrow();
+  } finally { await rm(directory, { recursive: true, force: true }); }
 });

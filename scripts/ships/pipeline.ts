@@ -5,9 +5,13 @@ import { createHash } from 'node:crypto';
 import { Matrix4, Quaternion, Vector3 } from 'three';
 import { barrelOffset, barrelHeightOffset, barrelIds, compileShip, type ShipDefinition } from '../../src/ships/blueprint';
 import { gunTraverseAtFraction } from '../../src/ships/armament';
+import { fingerprints, geometryDefinition, fileHash, validFile } from './fingerprints';
 import { mountFrame } from '../../src/simulation/mountFrames';
 
 const root = resolve(import.meta.dir, '../..');
+const started = performance.now();
+const timings: Record<string, number | string> = {};
+const force = process.argv.includes('--force');
 const [action = 'check', shipId = 'bismarck'] = process.argv.slice(2);
 if (!['build', 'check', 'compile', 'review', 'thumbnail'].includes(action) || !/^[a-z][a-z0-9-]{0,63}$/.test(shipId)) throw new Error('Usage: bun scripts/ships/pipeline.ts build|check|compile|review|thumbnail <ship-id>');
 if (shipId === 'all') {
@@ -20,35 +24,23 @@ const catalog = JSON.parse(await readFile(join(root, 'assets/parts/guns.json'), 
 const blueprint = JSON.parse(await readFile(join(sourceDir, 'blueprint.json'), 'utf8'));
 const definition = compileShip(blueprint, catalog);
 if (definition.id !== shipId || definition.modelUrl !== `/models/${shipId}.glb`) throw new Error('Ship ID, directory and model URL must agree');
-const pythonRecipes = (await readdir(join(root, 'scripts/ships'))).filter(p => p.endsWith('.py')).sort().map(p => `scripts/ships/${p}`);
-// Optional versioned original components are shared only by their declared consumers.
-// Include the register itself so adding/removing dependencies also invalidates exports.
-const inputRegister = `assets/ships/${shipId}/recipe-inputs.json`;
-async function recipeInputs() {
-  if (!existsSync(join(root, inputRegister))) return [];
-  const register = JSON.parse(await readFile(join(root, inputRegister), 'utf8'));
-  if (register.version !== 1 || !Array.isArray(register.files) || register.files.some((p: unknown) => typeof p !== 'string' || !/^assets\/[a-zA-Z0-9_./-]+$/.test(p) || p.split('/').includes('..') || p.includes('/baseline/') || p.includes('/references/'))) throw new Error('Invalid original recipe input register');
-  return [inputRegister, ...register.files as string[]];
-}
-async function readRecipes() {
-  return Promise.all(['src/ships/blueprint.ts', 'src/ships/rig.ts', ...pythonRecipes, `assets/ships/${shipId}/build.py`, ...await recipeInputs()].map(p => readFile(join(root, p), 'utf8')));
-}
-const recipe = await readRecipes();
-const contentHash = createHash('sha256').update(JSON.stringify([definition, ...recipe])).digest('hex');
+const inputs = await fingerprints(root, shipId, definition);
+const contentHash = inputs.content;
+timings.compileAndFingerprint = (performance.now() - started) / 1000;
 const published = { ...definition, contentHash };
 const outputDir = join(root, 'public/models');
 // Presentation recipes have their own hash; changing a thumbnail does not change ship geometry.
 const thumbnailRecipe = join(root, 'assets/ships/thumbnail.py');
-const thumbnailRecipeHash = createHash('sha256').update(await readFile(thumbnailRecipe)).digest('hex');
+const thumbnailRecipeHash = inputs.thumbnail;
 const thumbnailDir = join(sourceDir, 'generated/thumbnail');
 const thumbnailOutput = join(outputDir, `${shipId}-thumbnail.png`);
 
 async function bakeThumbnail() {
   await runBlender(thumbnailRecipe);
-  if (createHash('sha256').update(await readFile(thumbnailRecipe)).digest('hex') !== thumbnailRecipeHash) throw new Error('Thumbnail recipe changed during rendering. Re-run ship:thumbnail.');
+  if ((await fingerprints(root, shipId, definition)).thumbnail !== thumbnailRecipeHash) throw new Error('Thumbnail recipe changed during rendering. Re-run ship:thumbnail.');
   const bytes = await readFile(join(stage, 'thumbnail.png'));
   const report = {
-    contentHash, recipeHash: thumbnailRecipeHash,
+    modelHash: inputs.model, recipeHash: thumbnailRecipeHash,
     imageHash: createHash('sha256').update(bytes).digest('hex'),
     ...JSON.parse(await readFile(join(stage, 'thumbnail-camera.json'), 'utf8')),
   };
@@ -63,7 +55,7 @@ async function bakeThumbnail() {
 async function checkThumbnail() {
   const report = JSON.parse(await readFile(join(thumbnailDir, 'render.json'), 'utf8'));
   const imageHash = createHash('sha256').update(await readFile(thumbnailOutput)).digest('hex');
-  if (report.contentHash !== contentHash || report.recipeHash !== thumbnailRecipeHash || report.imageHash !== imageHash) throw new Error(`Thumbnail is stale. Run bun run ship:thumbnail ${shipId}`);
+  if (report.modelHash !== inputs.model || report.recipeHash !== thumbnailRecipeHash || report.imageHash !== imageHash) throw new Error(`Thumbnail is stale. Run bun run ship:thumbnail ${shipId}`);
 }
 
 interface GltfNode { name?: string; mesh?: number; children?: number[]; matrix?: number[]; translation?: number[]; rotation?: number[]; scale?: number[]; extras?: Record<string, unknown>; }
@@ -205,35 +197,59 @@ function inspectGlb(bytes: Buffer, def: ShipDefinition) {
 }
 
 async function runBlender(script: string, extraEnv: Record<string, string> = {}) {
+  const begin = performance.now();
+  const label = script.split('/').at(-1)!;
   const executable = process.env.BLENDER_BIN ?? (existsSync('/Applications/Blender.app/Contents/MacOS/Blender') ? '/Applications/Blender.app/Contents/MacOS/Blender' : 'blender');
   // Original authoring recipes cannot read the reference cache, raw game model formats or baseline scenes.
   // This audit supplements the full cache-unavailable rebuild; it does not inspect native Blender internals.
-  const expression = `import sys, os, json, runpy
+  const expression = `import sys, os, json, runpy, time, importlib.util
+print("SHIP_STARTUP_SECONDS",time.time()-float(os.environ["SHIP_PROCESS_START"]),flush=True)
 reads=set()
 def audit(event,args):
  if event=='socket.connect': raise RuntimeError('Network access is not an authoring dependency')
  if event=='open' and isinstance(args[0],(str,bytes)):
   p=os.path.realpath(os.fsdecode(args[0]))
+  if p.endswith('.pyc') and '/__pycache__/' in p: p=importlib.util.source_from_cache(p)
   if '/reference-cache' in p or p.endswith(('.model','.geometry')) or '/bismarck/baseline/' in p:
    raise RuntimeError('Reference/baseline geometry is forbidden in original authoring: '+p)
   if p.startswith(${JSON.stringify(root)}): reads.add(os.path.relpath(p,${JSON.stringify(root)}))
 sys.addaudithook(audit)
+profile=None
+if os.environ.get('SHIP_PROFILE')=='1':
+ import cProfile
+ profile=cProfile.Profile();profile.enable()
+script_start=time.perf_counter()
 runpy.run_path(${JSON.stringify(script)},run_name='__main__')
-with open(${JSON.stringify(join(stage, 'authoring-reads.json'))},'w') as f: json.dump(sorted(reads),f,indent=2)
+if profile:
+ profile.disable()
+ profile.dump_stats(${JSON.stringify(join(stage, label + '.prof'))})
+ texture_seconds=sum(entry.totaltime for entry in profile.getstats() if hasattr(entry.code,'co_name') and entry.code.co_name in {'apply_appearance','apply_decking','apply_paint','consolidate_finish_uvs'})
+ with open(${JSON.stringify(join(stage, label + '.profile.json'))},'w') as f: json.dump({'scriptSeconds':time.perf_counter()-script_start,'textureSeconds':texture_seconds},f)
+with open(${JSON.stringify(join(stage, label + '.reads.json'))},'w') as f: json.dump(sorted(reads),f,indent=2)
 `;
-  const pythonArgs = script === join(sourceDir, 'build.py') ? ['--python-expr', expression] : ['--python', script];
+  const pythonArgs = ['--python-expr', expression];
   const child = Bun.spawn([executable, '--background', '--factory-startup', '--python-exit-code', '1', ...pythonArgs], {
-    cwd: root, env: { ...process.env, SHIP_OUTPUT: stage, SHIP_DEFINITION: join(stage, 'definition.json'), BISMARCK_SKIP_RENDER: '1', ...extraEnv }, stdout: 'pipe', stderr: 'pipe',
+    cwd: root, env: { ...process.env, SHIP_PROCESS_START: String(Date.now()/1000), SHIP_OUTPUT: stage, SHIP_DEFINITION: join(stage, script === join(sourceDir, 'build.py') || action === 'review' ? 'geometry-definition.json' : 'definition.json'), BISMARCK_SKIP_RENDER: '1', ...extraEnv }, stdout: 'pipe', stderr: 'pipe',
   });
   const [stdout, stderr, code] = await Promise.all([new Response(child.stdout).text(), new Response(child.stderr).text(), child.exited]);
-  await writeFile(join(stage, script.endsWith('export.py') ? 'export.log' : 'build.log'), stdout + stderr);
+  await writeFile(join(stage, label + '.log'), stdout + stderr);
   if (code !== 0) throw new Error(`Blender failed (${code}):\n${(stdout + stderr).slice(-6000)}`);
+  timings.blenderVersion = stdout.match(/Blender ([\d.]+)/)?.[1] ?? 'unknown';
+  timings[label] = (performance.now() - begin) / 1000;
+  timings[label + '.startup'] = Number(stdout.match(/SHIP_STARTUP_SECONDS ([\d.]+)/)?.[1] ?? 0);
+  if (script === join(sourceDir, 'build.py')) {
+    const reads = JSON.parse(await readFile(join(stage, label + '.reads.json'), 'utf8')) as string[];
+    const missing = reads.filter(path => /^(assets|scripts)\//.test(path) && !(path in inputs.sources));
+    if (missing.length) throw new Error(`Undeclared authoring inputs: ${missing.join(', ')}. Declare them in recipe-inputs.json.`);
+  }
   console.log(`${script.split('/').at(-1)} completed; log in ${stage}`);
 }
 
 if (action === 'check') {
   const current = JSON.parse(await readFile(join(outputDir, `${shipId}.json`), 'utf8'));
   if (JSON.stringify(current) !== JSON.stringify(published)) throw new Error('Compiled definition is stale. Run bun run ship:build ' + shipId);
+  const manifest = JSON.parse(await readFile(join(sourceDir, 'generated/build.json'), 'utf8'));
+  if (manifest.contentHash !== contentHash || manifest.geometry !== inputs.geometry || !await validFile(join(outputDir, `${shipId}.glb`), manifest.glbHash)) throw new Error(`Published model is stale or corrupt. Run bun run ship:build ${shipId}`);
   const report = inspectGlb(await readFile(join(outputDir, `${shipId}.glb`)), definition);
   await checkThumbnail();
   console.log(JSON.stringify(report, null, 2));
@@ -244,6 +260,7 @@ if (action === 'check') {
   try {
   await writeFile(join(lock, 'owner.json'), JSON.stringify({ pid: process.pid, action, started: new Date().toISOString() }));
   await mkdir(stage, { recursive: true });
+  await writeFile(join(stage, 'geometry-definition.json'), JSON.stringify({ ...geometryDefinition(definition), contentHash: inputs.geometry }));
   await writeFile(join(stage, 'definition.json'), JSON.stringify(published, null, 2) + '\n');
   if (action === 'compile') {
     console.log(`Validated blueprint and compiled ${join(stage, 'definition.json')}`);
@@ -260,19 +277,57 @@ if (action === 'check') {
     for (const file of await readdir(join(stage, 'renders'))) if (file.endsWith('.png') || file === 'cameras.json') await copyFile(join(stage, 'renders', file), join(reviewDir, file));
     console.log(`Orthographic review views: ${reviewDir}`);
   } else {
-  console.log(`Building ${shipId} (${contentHash.slice(0, 12)})`);
-  await runBlender(join(sourceDir, 'build.py'));
-  await runBlender(join(root, 'scripts/ships/export.py'));
+  console.log(`Building ${shipId} (${contentHash.slice(0, 12)})${force ? ' [forced: no stage reuse]' : ''}`);
+  const manifestPath = join(sourceDir, 'generated/build.json');
+  let cache: { geometry?: string; sourceHash?: string; contentHash?: string; glbHash?: string } = {};
+  try { cache = JSON.parse(await readFile(manifestPath, 'utf8')); } catch {}
+  const source = join(sourceDir, 'generated/source.blend');
+  const sourceHit = !force && cache.geometry === inputs.geometry && await validFile(source, cache.sourceHash);
+  const modelHit = !force && cache.contentHash === contentHash && await validFile(join(outputDir, `${shipId}.glb`), cache.glbHash);
+  if (sourceHit) {
+    await copyFile(source, join(stage, 'source.blend'));
+    timings.geometry = 'cached';
+  } else {
+    await runBlender(join(sourceDir, 'build.py'));
+    timings.geometry = 'executed';
+  }
+  if (modelHit) {
+    await copyFile(join(outputDir, `${shipId}.glb`), join(stage, 'model.glb'));
+    timings.export = 'cached';
+  } else {
+    await runBlender(join(root, 'scripts/ships/export.py'));
+    timings.export = 'executed';
+  }
+  const validationStart = performance.now();
   const report = inspectGlb(await readFile(join(stage, 'model.glb')), definition);
+  timings.validation = (performance.now() - validationStart) / 1000;
   const latestDefinition = compileShip(JSON.parse(await readFile(join(sourceDir, 'blueprint.json'), 'utf8')), JSON.parse(await readFile(join(root, 'assets/parts/guns.json'), 'utf8')));
-  const latestRecipes = await readRecipes();
-  if (createHash('sha256').update(JSON.stringify([latestDefinition, ...latestRecipes])).digest('hex') !== contentHash) throw new Error('Authoring inputs changed during the build. Re-run ship:build before publishing.');
+  if ((await fingerprints(root, shipId, latestDefinition)).content !== contentHash) throw new Error('Authoring inputs changed during the build. Re-run ship:build before publishing.');
   // Publish only validated output. Rename temporary siblings to avoid partial file writes.
   const products = [[join(stage, 'model.glb'), join(outputDir, `${shipId}.glb`)], [join(stage, 'definition.json'), join(outputDir, `${shipId}.json`)], [join(stage, 'source.blend'), join(sourceDir, 'generated/source.blend')]];
   for (const [from, to] of products) { await mkdir(resolve(to, '..'), { recursive: true }); await copyFile(from, to + '.tmp'); }
   for (const [, to] of products) await rename(to + '.tmp', to);
   await writeFile(join(stage, 'export.json'), JSON.stringify(report, null, 2) + '\n');
-  await bakeThumbnail();
+  await writeFile(manifestPath + '.tmp', JSON.stringify({ version: 1, geometry: inputs.geometry, contentHash, sourceHash: await fileHash(source), glbHash: await fileHash(join(outputDir, `${shipId}.glb`)) }, null, 2) + '\n');
+  await rename(manifestPath + '.tmp', manifestPath);
+  let thumbnailHit = false;
+  if (!force) try { await checkThumbnail(); thumbnailHit = true; } catch {}
+  if (thumbnailHit) timings.thumbnail = 'cached';
+  else { await bakeThumbnail(); timings.thumbnail = 'executed'; }
+  timings.total = (performance.now() - started) / 1000;
+  await writeFile(join(stage, 'timings.json'), JSON.stringify(timings, null, 2) + '\n');
+  if (process.env.SHIP_TIMINGS_DIR) {
+    const directory = resolve(root, process.env.SHIP_TIMINGS_DIR);
+    if (!directory.startsWith(join(root, '.build') + '/')) throw new Error('SHIP_TIMINGS_DIR must be below .build/');
+    await mkdir(directory, { recursive: true });
+    const detail: Record<string, unknown> = { shipId, force, ...timings };
+    if (timings.export === 'executed') detail.exportStages = JSON.parse(await readFile(join(stage, 'export-timings.json'), 'utf8'));
+    if (process.env.SHIP_PROFILE === '1') for (const label of ['build.py', 'export.py', 'thumbnail.py']) {
+      if (label in timings) detail[label + '.profile'] = JSON.parse(await readFile(join(stage, label + '.profile.json'), 'utf8'));
+    }
+    await writeFile(join(directory, shipId + '.json'), JSON.stringify(detail, null, 2) + '\n');
+  }
+  console.log(JSON.stringify(timings));
   console.log(JSON.stringify(report, null, 2));
   }
   } finally { await rm(lock, { recursive: true, force: true }); }

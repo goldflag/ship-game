@@ -30,12 +30,16 @@ def create_gun_mount(mount, collection, helpers, materials, deck_height):
         col.objects.link(node);node.location=loc;node.rotation_euler=rotation
         node['nodeId']=node.name;node['assemblyId']=mount['id']
         node.empty_display_size=1.5
-        bpy.context.view_layer.update()
         return node
+    def frame(node):
+        # These newly authored objects have no constraints. Compute their
+        # hierarchy directly instead of evaluating the entire ship per joint.
+        local=node.matrix_basis.copy()
+        return frame(node.parent) @ node.matrix_parent_inverse @ local if node.parent else local
     def attach(child,parent):
-        bpy.context.view_layer.update()
-        world=child.matrix_world.copy();child.parent=parent;child.matrix_parent_inverse=Matrix.Identity(4);child.matrix_world=world
-        bpy.context.view_layer.update()
+        world=frame(child)
+        child.parent=parent;child.matrix_parent_inverse=Matrix.Identity(4)
+        child.matrix_basis=frame(parent).inverted() @ world
     r=spec['barbetteRadius']
     base_height=spec.get('gunhouseBaseHeight',.25)
     barbette_top=zbase+base_height-.25
@@ -104,4 +108,5 @@ def create_gun_mount(mount, collection, helpers, materials, deck_height):
         if piece.type=='MESH':
             piece['assemblyId']=mount['id']
             if piece not in fixed_parts and piece.parent is None:attach(piece,yaw)
+    bpy.context.view_layer.update()
     return ob
