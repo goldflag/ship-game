@@ -42,6 +42,7 @@ const VIEWS: BuilderView[] = ['orbit', 'top', 'side', 'bow'];
 const VIEW_NAMES: Record<BuilderView, string> = { orbit: 'Orbit', top: 'Plan', side: 'Profile', bow: 'Bow' };
 const ARC_RADIUS = 12;
 const LIMITS = { primitives: 512, equipment: 128, boundaries: 24 };
+interface KeyHint { keys: string[]; label: string }
 const metres = (value: number) => Number(value.toFixed(2)).toLocaleString(undefined, { maximumFractionDigits: 2 });
 const signed = (value: number) => `${value < 0 ? '−' : value > 0 ? '+' : ''}${metres(Math.abs(value))}`;
 
@@ -84,13 +85,15 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const [suggestionRevision, setSuggestionRevision] = useState('');
   const suggestionRequest = useRef<AbortController | undefined>(undefined);
   const [helpOpen, setHelpOpen] = useState(false);
-  const [tip, setTip] = useState<{ title: string; detail: string; x: number; y: number }>();
+  const [tip, setTip] = useState<{ title: string; detail: string; x: number; y: number; key?: string; below?: boolean }>();
   const [slotImages] = useState(() => new SlotImages());
   useEffect(() => () => slotImages.dispose(), [slotImages]);
 
   const palette = useMemo(() => paletteFor(layer, catalog), [layer, catalog]);
   const imageFor = useSlotImages(slotImages, palette.drawer, catalog);
   const active = palette.drawer.find(item => item.id === slots[layer]) ?? palette.drawer[0];
+  const drawerName = layer === 'fittings' ? 'fittings' : layer === 'hull' ? 'shapes' : 'items';
+  const hasDrawer = palette.drawer.length > palette.bar.filter(item => item.kind !== 'empty').length || layer === 'fittings';
   const rail = BUILDER_RAIL[layer];
   const locked = !editor.ready || !!busy;
   const compiled = editor.currentResult;
@@ -372,6 +375,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
         return;
       }
       if (/^[1-9]$/.test(event.key)) { const item = palette.bar[Number(event.key) - 1]; if (item) selectSlot(item); return; }
+      if (event.key === '0') { if (hasDrawer) { setDrawer(value => !value); setTip(undefined); } return; }
       if (lower === 'q') cycleView(); else if (lower === 's') toggleSlice(); else if (lower === 'w') setWarningsOpen(value => !value);
       else if (lower === 'r') rotate(); else if (lower === 'm') setMirror(value => !value);
       else { const entry = rail.find(entry => entry.key.toLowerCase() === lower); if (entry) activateRail(entry); }
@@ -465,7 +469,12 @@ export function Shipbuilder(props: ShipbuilderProps) {
       default: return { title: '', detail: '' };
     }
   };
-  const showTip = (item: SlotItem, target: HTMLElement) => { if (item.kind === 'empty') return; const rect = target.getBoundingClientRect(); setTip({ ...describe(item), x: rect.left + rect.width / 2, y: rect.top }); };
+  // Palette tips hang under the bar, which the readout above the cards leaves free; drawer tips stay above their card. Each names the card's key.
+  const showTip = (item: SlotItem, target: HTMLElement) => {
+    if (item.kind === 'empty') return;
+    const rect = target.getBoundingClientRect(), below = !target.closest('.sb-drawer'), index = palette.bar.findIndex(entry => entry.id === item.id);
+    setTip({ ...describe(item), x: rect.left + rect.width / 2, y: below ? rect.bottom : rect.top, below, key: index >= 0 ? String(index + 1) : undefined });
+  };
   const hideTip = () => setTip(undefined);
   const face = (item: SlotItem) => {
     const image = imageFor(item);
@@ -489,7 +498,27 @@ export function Shipbuilder(props: ShipbuilderProps) {
       onPointerEnter={event => showTip(item, event.currentTarget)} onPointerLeave={hideTip} onFocus={event => showTip(item, event.currentTarget)} onBlur={hideTip} onClick={() => selectSlot(item)}>{face(item)}</button>;
   };
 
-  return <main className="shipbuilder" aria-label="Shipbuilder" data-layer={layer} aria-busy={!!busy}>
+  // ---- hotkey legend above the compass: the standing keys on the bottom row; the keys acting on the cursor piece, the selection or the picked faces on a row above.
+  // Keys already printed elsewhere (rail tools, W on the warnings lead, ⌘Z on undo, ? on Keys) stay off it.
+  const faceLayer = layer === 'armor' || layer === 'paint';
+  const movable = selectedPrimitives.length + selectedEquipment.length > 0;
+  const standing: KeyHint[] = [
+    { keys: ['1', '…', '9'], label: surfaces.size && faceLayer ? (layer === 'paint' ? 'Paint faces' : 'Assign armor') : 'Card' },
+    ...(hasDrawer ? [{ keys: ['0'], label: `All ${drawerName}` }] : []),
+    { keys: ['Q'], label: 'View' }, { keys: ['S'], label: 'Slice' }, ...(slice.on ? [{ keys: selected.size ? ['⇧PgUp', '⇧PgDn'] : ['PgUp', 'PgDn'], label: 'Slice height' }] : []),
+    { keys: ['Home'], label: 'Fit' },
+  ];
+  const acting: KeyHint[] = [];
+  if (!locked && piece && piece.kind !== 'boundary') acting.push({ keys: ['R'], label: piece.kind === 'hull' ? 'Rotate 90°' : 'Rotate 15°' });
+  else if (movable) acting.push({ keys: ['R'], label: selectedPrimitives.length ? 'Rotate 90°' : 'Rotate 15°' });
+  if (movable) acting.push({ keys: ['←→', '↑↓'], label: 'Nudge' }, { keys: ['PgUp', 'PgDn'], label: 'Raise · lower' }, { keys: ['⌘D'], label: 'Copy' }, { keys: ['⇧⌘D'], label: 'Mirror copy' });
+  if (selected.size) acting.push({ keys: ['⌫'], label: movable ? 'Remove' : 'Remove · merge rooms' });
+  if (surfaces.size && faceLayer) acting.push({ keys: ['⇧'], label: 'Click adds a face' });
+  const escape = drawer || designsOpen ? 'Close' : suggestion ? 'Dismiss layout' : measure ? 'End measure' : tool !== 'select' ? 'Select tool' : selected.size || surfaces.size ? 'Clear' : '';
+  if (escape) acting.push({ keys: ['Esc'], label: escape });
+  const chip = (hint: KeyHint) => <span key={hint.label} className="sb-key">{hint.keys.map((key, index) => <kbd key={index}>{key}</kbd>)}{hint.label}</span>;
+
+  return <main className="shipbuilder" aria-label="Shipbuilder" data-layer={layer} data-drawer={drawer || undefined} aria-busy={!!busy}>
     <BuilderViewport source={source} result={result} catalog={catalog} selected={selected} selectedSurfaces={surfaces} view={view} display={DISPLAY[layer]} slice={slice.on ? slice.y : undefined}
       gridStep={gridStep} gesture={locked ? 'none' : gesture} pickTargets={layer === 'armor' || layer === 'paint' ? 'hull' : 'all'} moveTargets={locked ? 'none' : moveTargets} placementPiece={locked ? undefined : piece} placementMirror={mirrorPiece} highlightFaces={layer === 'armor' || layer === 'paint'} rooms={layer === 'internals'}
       arcs={arcs} proposed={proposed} measure={measure} tags={tags} coords={coords} status={status} fitRequest={fitRequest} onPick={pick} onStroke={placeAt} onBoxSelect={boxSelect} onErase={erase} onMove={movePieces} createModel={props.createModel}/>
@@ -534,17 +563,21 @@ export function Shipbuilder(props: ShipbuilderProps) {
         <div className="sb-masskey">{masses.filter(group => group.massKg > 0).map(group => <span key={group.name} style={{ display: 'contents' }}><i style={{ background: group.color }}/><span>{group.name}</span><b>{formatTonnes(group.massKg, group.massKg < 1e5 ? 1 : 0)}</b></span>)}</div></>}
       {layer === 'armor' && <div className="sb-armor-groups" aria-label="Hull armor coverage">{armorInspectionGroups(editableSurfaces).sort((a, b) => b.areaM2 - a.areaM2).slice(0, 6).map(group => <p key={group.id}>{describeArmorGroup(group.surface)}<small>{format(group.areaM2, 0)} m² · {group.faces.size} face{group.faces.size === 1 ? '' : 's'}</small></p>)}</div>}
     </aside>
-    {drawer && <div className="sb-drawer" aria-label={`All ${layer === 'fittings' ? 'fittings' : layer === 'hull' ? 'shapes' : 'items'}`}>
-      <div className="sb-drawer-head"><span className="sb-lead">All {layer === 'fittings' ? 'fittings' : layer === 'hull' ? 'shapes' : 'items'}</span>
-        {layer === 'fittings' && <label className="sb-search">Find <input autoFocus type="search" aria-label="Find a fitting" placeholder="gun, screw, funnel…" value={query} onChange={event => setQuery(event.target.value)}/></label>}
+    {drawer && <div className="sb-drawer" aria-label={`All ${drawerName}`}>
+      <div className="sb-drawer-head"><span className="sb-lead">All {drawerName}</span>
+        {layer === 'fittings' && <label className="sb-search">Find <input autoFocus type="search" aria-label="Find a fitting" placeholder="gun, screw, funnel…" value={query} onChange={event => setQuery(event.target.value)} onKeyDown={event => { if (event.key === 'Escape') { event.stopPropagation(); setDrawer(false); setTip(undefined); } }}/></label>}
         <button className="sb-drawer-close" aria-label="Close" onClick={() => { setDrawer(false); setTip(undefined); }}>×</button></div>
       <div className="sb-drawer-grid" role="listbox">{drawerItems.map(item => slot(item))}{!drawerItems.length && <span className="sb-lead">No fitting matches</span>}</div>
     </div>}
     <div className="sb-hotbar" role="toolbar" aria-label="Palette">
       {palette.bar.map(item => slot(item))}
-      {palette.drawer.length > palette.bar.filter(item => item.kind !== 'empty').length || layer === 'fittings' ? <button className="sb-slot more" aria-expanded={drawer} aria-label={`All ${layer === 'fittings' ? 'fittings' : 'shapes'}`} onPointerEnter={event => { const rect = event.currentTarget.getBoundingClientRect(); setTip({ title: `All ${layer === 'fittings' ? 'fittings' : 'shapes'}`, detail: drawer ? 'close the full selection' : 'open the full selection', x: rect.left + rect.width / 2, y: rect.top }); }} onPointerLeave={hideTip} onClick={() => { setDrawer(value => !value); setTip(undefined); }}>…</button> : null}
+      {hasDrawer ? <button className="sb-slot more" aria-expanded={drawer} aria-label={`All ${drawerName}`} onPointerEnter={event => { const rect = event.currentTarget.getBoundingClientRect(); setTip({ title: `All ${drawerName}`, detail: drawer ? 'close the full selection' : 'open the full selection', x: rect.left + rect.width / 2, y: rect.bottom, below: true, key: '0' }); }} onPointerLeave={hideTip} onClick={() => { setDrawer(value => !value); setTip(undefined); }}>…</button> : null}
     </div>
-    {tip && <div className="sb-tip" role="tooltip" style={{ left: tip.x, top: tip.y }}><b>{tip.title}</b>{tip.detail}</div>}
+    <div className="sb-keys" aria-label="Hotkeys">
+      {acting.length > 0 && <div className="sb-keys-row acting">{acting.map(chip)}</div>}
+      <div className="sb-keys-row">{standing.map(chip)}</div>
+    </div>
+    {tip && <div className={`sb-tip ${tip.below ? 'below' : ''}`} role="tooltip" style={{ left: tip.x, top: tip.y }}><b>{tip.title}</b>{tip.detail}{tip.key && <kbd>{tip.key}</kbd>}</div>}
     <div className="sb-viewbar">
       <button onClick={cycleView} title="Cycle the view">View <b>{VIEW_NAMES[view]}</b></button>
       <button onClick={toggleSlice} title="Cut the ship above a height">Slice <b>{slice.on ? `${signed(slice.y)} m` : 'Off'}</b></button>

@@ -29,7 +29,8 @@ const VIEW: [string[], string][] = [
   [['W'], 'Collapse or expand the warnings'],
   [['M'], 'Mirror placements across the centerline'],
   [['Home'], 'Frame the ship'],
-  [['1', '…', '9'], 'Pick a palette card; … opens every card'],
+  [['1', '…', '9'], 'Pick a palette card'],
+  [['0'], 'Open or close every card of the layer'],
   [['?'], 'This list'],
 ];
 
