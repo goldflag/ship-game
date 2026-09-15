@@ -28,6 +28,7 @@ const VIEW: [string[], string][] = [
   [['S'], 'Slice the ship above a height'],
   [['W'], 'Collapse or expand the warnings'],
   [['M'], 'Mirror placements across the centerline'],
+  [['C'], 'Show or hide the centers of gravity and buoyancy'],
   [['Home'], 'Frame the ship'],
   [['1', '…', '9'], 'Pick a palette card'],
   [['0'], 'Open or close every card of the layer'],

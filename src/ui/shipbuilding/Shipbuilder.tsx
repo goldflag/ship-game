@@ -420,7 +420,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
       if (/^[1-9]$/.test(event.key)) { const item = palette.bar[Number(event.key) - 1]; if (item) selectSlot(item); return; }
       if (event.key === '0') { if (hasDrawer) { setDrawer(value => !value); setTip(undefined); } return; }
       if (lower === 'q') cycleView(); else if (lower === 's') toggleSlice(); else if (lower === 'w') setWarningsOpen(value => !value);
-      else if (lower === 'r') rotate(); else if (lower === 'm') setMirror(value => !value);
+      else if (lower === 'r') rotate(); else if (lower === 'm') setMirror(value => !value); else if (lower === 'c') setShowCenters(value => !value);
       else { const entry = rail.find(entry => entry.key.toLowerCase() === lower); if (entry) activateRail(entry); }
   };
   useEffect(() => {
@@ -542,14 +542,13 @@ export function Shipbuilder(props: ShipbuilderProps) {
   };
 
   // ---- hotkey legend above the compass: the standing keys on the bottom row; the keys acting on the cursor piece, the selection or the picked faces on a row above.
-  // Keys already printed elsewhere (rail tools, W on the warnings lead, ⌘Z on undo, ? on Keys) stay off it.
+  // Keys already printed elsewhere (rail tools, the view bar's Q S C M Home, W on the warnings lead, ⌘Z on undo, ? on Keys) stay off it.
   const faceLayer = layer === 'armor' || layer === 'paint';
   const movable = selectedPrimitives.length + selectedEquipment.length > 0;
   const standing: KeyHint[] = [
     { keys: palette.bar.length < 4 ? palette.bar.map((_, index) => String(index + 1)) : ['1', '…', '9'], label: surfaces.size && faceLayer ? (layer === 'paint' ? 'Paint faces' : 'Assign armor') : 'Card' },
     ...(hasDrawer ? [{ keys: ['0'], label: `All ${drawerName}` }] : []),
-    { keys: ['Q'], label: 'View' }, { keys: ['S'], label: 'Slice' }, ...(slice.on ? [{ keys: selected.size ? ['⇧PgUp', '⇧PgDn'] : ['PgUp', 'PgDn'], label: 'Slice height' }] : []),
-    { keys: ['Home'], label: 'Fit' },
+    ...(slice.on ? [{ keys: selected.size ? ['⇧PgUp', '⇧PgDn'] : ['PgUp', 'PgDn'], label: 'Slice height' }] : []),
   ];
   const acting: KeyHint[] = [];
   if (!locked && piece && piece.kind !== 'boundary') acting.push({ keys: ['R'], label: piece.kind === 'hull' ? 'Rotate 90°' : 'Rotate 15°' });
@@ -626,12 +625,12 @@ export function Shipbuilder(props: ShipbuilderProps) {
     </div>
     {tip && <div className={`sb-tip ${tip.below ? 'below' : ''}`} role="tooltip" style={{ left: tip.x, top: tip.y }}><b>{tip.title}</b>{tip.detail}{tip.key && <kbd>{tip.key}</kbd>}</div>}
     <div className="sb-viewbar">
-      <button onClick={cycleView} title="Cycle the view">View <b>{VIEW_NAMES[view]}</b></button>
-      <button onClick={toggleSlice} title="Cut the ship above a height">Slice <b>{slice.on ? `${signed(slice.y)} m` : 'Off'}</b></button>
-      <button aria-pressed={showCenters} onClick={() => setShowCenters(value => !value)} title="Show center of gravity (mass) and center of buoyancy markers">Centers <b>{showCenters ? 'On' : 'Off'}</b></button>
+      <button onClick={cycleView} title="Cycle the view (Q)">View <b>{VIEW_NAMES[view]}</b><kbd>Q</kbd></button>
+      <button onClick={toggleSlice} title="Cut the ship above a height (S)">Slice <b>{slice.on ? `${signed(slice.y)} m` : 'Off'}</b><kbd>S</kbd></button>
+      <button aria-pressed={showCenters} onClick={() => setShowCenters(value => !value)} title="Show center of gravity (mass) and center of buoyancy markers (C)">Centers <b>{showCenters ? 'On' : 'Off'}</b><kbd>C</kbd></button>
       <span title="Placement snaps to the face under the pointer">Snap <b>{gridStep === 1 ? '1 m' : '¼ m'}</b></span>
-      <button onClick={() => setMirror(value => !value)} title="Mirror placements across the centerline">Mirror <b>{mirror ? 'On' : 'Off'}</b></button>
-      <button onClick={fit} title="Frame the ship">Fit</button>
+      <button aria-pressed={mirror} onClick={() => setMirror(value => !value)} title="Mirror placements across the centerline (M)">Mirror <b>{mirror ? 'On' : 'Off'}</b><kbd>M</kbd></button>
+      <button onClick={fit} title="Frame the ship (Home)">Fit<kbd>Home</kbd></button>
     </div>
     {!data.primitives.length && <div className="sb-empty"><b>This design needs a starting block</b><button disabled={locked} onClick={() => run('Add starting block', draft => { draft.construction.primitives.push(startingHullBlock()); })}>Add a hull block</button> to keep building.</div>}
     {helpOpen && <HelpDialog onClose={() => setHelpOpen(false)}/>}
