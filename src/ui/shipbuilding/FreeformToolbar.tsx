@@ -74,7 +74,7 @@ export function FreeformToolbar({ primitive, settings: s, onChange, cycleUnit, o
     <div className="sb-freeform-footer">
       <div className="sb-freeform-row" role="group" aria-label="Hull views">
         {(['side','top','bow'] as const).map(v => <button key={v} onClick={() => onView(v)}>{v === 'side' ? 'Side' : v === 'top' ? 'Top' : 'Bow'}</button>)}
-        <button onClick={onProjection} title="Toggle orthographic and perspective cameras (O)">{perspective ? 'Perspective' : 'Orthographic'} <kbd>O</kbd></button>
+        <button onClick={onProjection} title="Toggle orthographic and perspective cameras (P)">{perspective ? 'Perspective' : 'Orthographic'} <kbd>P</kbd></button>
       </div>
       <p>{locked.length ? `${locked.join('/')} movement locked by symmetry. ` : ''}Drag handles to move; X/Y/Z handles lock direction. Esc cancels a drag.</p>
     </div>

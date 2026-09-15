@@ -6,7 +6,7 @@ import { BUILDER_LAYERS, BUILDER_RAIL } from './builderLayers';
 const MOUSE: [string, string][] = [
   ['Click', 'Select a piece, fitting, wall or face; Shift-click adds to the selection'],
   ['Drag a piece', 'Move it along the face under the pointer, snapped to the grid (1 m hull, ¼ m fittings)'],
-  ['Drag empty space', 'Orbit; pan in the Plan, Profile and Bow views'],
+  ['Drag empty space', 'Orbit; pan in orthographic Plan, Profile and Bow views'],
   ['Right-drag', 'Pan'],
   ['Wheel · middle-drag', 'Zoom · dolly'],
   ['Shift-drag', 'Box select; Ctrl or ⌘ adds to the selection'],
@@ -25,6 +25,7 @@ const EDITING: [string[], string][] = [
 ];
 const VIEW: [string[], string][] = [
   [['Q'], 'Cycle Orbit, Plan, Profile and Bow'],
+  [['P'], 'Toggle perspective / orthographic camera (perspective by default)'],
   [['S'], 'Slice the ship above a height'],
   [['W'], 'Collapse or expand the warnings'],
   [['M'], 'Mirror placements across the centerline'],

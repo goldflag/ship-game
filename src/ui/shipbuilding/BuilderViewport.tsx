@@ -334,7 +334,8 @@ class Viewport {
     }
     if (props.highlightFaces !== old.highlightFaces || props.slice !== old.slice || props.pickTargets !== old.pickTargets) { release(this.hoverGroup); this.hoverSurface = ''; }
     this.measureGroup.visible = !!props.measure;
-    if(this.freeformHandles.dragging) {this.hull.visible=false;this.composed.visible=false;this.selection.visible=false;}
+    // A held corner is already dragging, but has no preview until it moves.
+    if(this.vertexPreview.visible && this.vertexPreview.children.length) {this.hull.visible=false;this.composed.visible=false;this.selection.visible=false;}
     this.updateGhost(); this.updateStrokePreview(); if (this.hover) this.highlight(this.hover); this.applyClip();
   }
 

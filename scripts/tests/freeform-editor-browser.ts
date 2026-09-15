@@ -90,7 +90,7 @@ export async function checkFreeformEditor() {
   await click('Top');
   const viewport=window.shipbuilderViewport as unknown as {camera:{isOrthographicCamera?:boolean;isPerspectiveCamera?:boolean}};
   assert(viewport.camera.isOrthographicCamera,'Top uses an orthographic camera');
-  document.querySelector<HTMLButtonElement>('button[title="Toggle orthographic and perspective cameras (O)"]')!.click();await sleep();assert(viewport.camera.isPerspectiveCamera,'projection control uses a real perspective camera');
+  document.querySelector<HTMLButtonElement>('.sb-freeform-tools button[title="Toggle orthographic and perspective cameras (P)"]')!.click();await sleep();assert(viewport.camera.isPerspectiveCamera,'projection control uses a real perspective camera');
   controls.key('o');await sleep();assert(viewport.camera.isOrthographicCamera,'O restores orthographic projection');
   await click('Split…');assert(!!document.querySelector('.sb-freeform-popover'),'Split opens local axis and count controls');
   controls.key('Escape');await sleep();assert(!document.querySelector('.sb-freeform-popover')&&!!document.querySelector('.sb-freeform-tools'),'Escape closes Split and keeps the edit session');

@@ -105,6 +105,9 @@ export class FreeformHandles {
   }
   private cameraKey() { return [...this.camera().matrixWorld.elements,...this.camera().projectionMatrix.elements].join(','); }
   frame() {
+    // OrbitControls can change the pose after its last matrix update. Project
+    // through the same camera matrix the renderer will use this frame.
+    this.camera().updateMatrixWorld();
     if (this.drag && this.drag.camera !== this.cameraKey()) { this.cancel(); return; }
     const o = this.options, p = this.drag?.replacements.find(p => p.id === o?.id) ?? this.source?.construction.primitives.find(p => p.id === o?.id);
     this.element.hidden = !o || !p; if (!o || !p) return;

@@ -14,8 +14,11 @@ rates and repair limits.
 Use Hull for pieces, Armor for plating and openings, Fittings for equipment,
 Internals for rooms and machinery, and Paint for finishes. The hull grid is 1 m;
 equipment placement uses 0.25 m. Orbit, Plan, Profile and Bow views and a deck
-slice share source selections. Copy, mirror, bulk surface changes and undo/redo
-operate on stable source identities.
+slice share source selections. The camera starts in perspective; **Camera** in
+the view bar or **P** toggles orthographic projection while retaining the framing.
+The choice is shared across layers and freeform editing for the current editor
+session. Copy, mirror, bulk surface changes and undo/redo operate on stable source
+identities.
 
 Place shows a snapped preview only on existing hull faces. Empty space has no placement target. Click to place, or drag to
 lay a run; Fill drags a rectangle. Every piece appears during the drag, including
@@ -233,7 +236,7 @@ Choose **Vertex**, **Edge** or **Face** to move one corner, an edge's two corner
 
 **Move nearby corners** starts off. Enabling it also moves matching corners within 0.025 m on neighboring cube or freeform hulls, including matches at mirrored corners. Matches use the unchanged source at drag start; no persistent seam or block relationship is created. Equipment stays at its source placement. Native support/fit diagnostics identify equipment that loses support.
 
-Side, Top and Bow are orthographic camera presets. O and the projection button switch between orthographic and perspective cameras. One drag commits one undo step, including mirrored and nearby corners. Escape, right-click, lost pointer capture, window blur, changing editing options or projection, and returning to the drag origin cancel without writing source/history. **Reset edit** restores the selected block's shape at session entry; **Done** keeps edits and leaves freeform mode.
+Side, Top and Bow are orthographic camera presets. P and the projection button switch between orthographic and perspective cameras while retaining framing; O also works in freeform mode. One drag commits one undo step, including mirrored and nearby corners. Escape, right-click, lost pointer capture, window blur, changing editing options or projection, and returning to the drag origin cancel without writing source/history. **Reset edit** restores the selected block's shape at session entry; **Done** keeps edits and leaves freeform mode.
 
 **Split…** opens local axis and count controls. It cuts the block into 2–16 independent eight-corner children, preserves the trilinear corner-defined shape and outer face assignments, gives children new stable IDs, and starts new cut faces with structural skin. Escape closes the popover first. The split is one undo step and obeys the existing 512-piece split limit. On a warped block, these parameter cuts need not be world-aligned planes. Corners remain editable after undo, save and reopening.
 
