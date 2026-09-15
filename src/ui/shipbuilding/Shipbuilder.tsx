@@ -1,5 +1,5 @@
-import { VertexToolbar, type VertexSettings } from './VertexToolbar';
-import { canEditVertices, cornerVertices, editableCorners, replaceVertexPrimitives, splitVertexPrimitive, vertexEdit, VERTEX_UNITS } from '../../ships/constructionVertex';
+import { FreeformToolbar, type FreeformSettings } from './FreeformToolbar';
+import { canEditVertices, freeformEdit, replaceVertexPrimitives, selectionCenter, splitVertexPrimitive, VERTEX_UNITS } from '../../ships/constructionVertex';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { ConstructionBoundary, ConstructionCatalog, ConstructionEquipment, ConstructionPrimitive, ConstructionResult, ConstructionSource, ConstructionSuggestion, ConstructionSurfaceAssignment, Vec3 } from '../../ships/blueprint';
 import { CONSTRUCTION_LIMITS, assignConstructionSurfaces, copyConstructionSelection, editableConstructionSurfaces, mirroredFace, mirroredPrimitive, moveConstructionSelection, newConstructionId, removeConstructionSelection, rotateConstructionSelection, surfaceKey, type ConstructionFace } from '../../ships/constructionEditor';
@@ -38,7 +38,7 @@ export interface ShipbuilderProps {
 }
 
 const DISPLAY: Record<BuilderLayer, BuilderDisplay> = { hull: 'paint', armor: 'armor', internals: 'internals', fittings: 'paint', paint: 'paint' };
-const SHAPE_NAMES: Record<ConstructionPrimitive['kind'], string> = { box: 'Box', wedge: 'Wedge', corner: 'Corner out', 'inverse-corner': 'Corner in', vertex: 'Vertex hull' };
+const SHAPE_NAMES: Record<ConstructionPrimitive['kind'], string> = { box: 'Box', wedge: 'Wedge', corner: 'Corner out', 'inverse-corner': 'Corner in', vertex: 'Freeform hull' };
 const BOUNDARY_NAMES: Record<ConstructionBoundary['axis'], string> = { y: 'Deck', z: 'Bulkhead', x: 'Split' };
 const VIEWS: BuilderView[] = ['orbit', 'top', 'side', 'bow'];
 const VIEW_NAMES: Record<BuilderView, string> = { orbit: 'Orbit', top: 'Plan', side: 'Profile', bow: 'Bow' };
@@ -73,8 +73,8 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const [mirror, setMirror] = useState(true);
   const [showArcs, setShowArcs] = useState(false);
   const [showCenters, setShowCenters] = useState(true);
-  const [vertexSession, setVertexSession] = useState<{designId:string;baseline:ConstructionPrimitive}>();
-  const [vertexSettings, setVertexSettings] = useState<VertexSettings>({symmetry:true,axes:[true,false,false],unit:.2,axis:true,snap:false,splitAxis:2,count:4,corner:1});
+  const [freeformSession, setFreeformSession] = useState<{designId:string;baseline:ConstructionPrimitive}>();
+  const [freeformSettings, setFreeformSettings] = useState<FreeformSettings>({axes:[true,false,false],unit:.2,snap:false,splitAxis:2,count:4,selection:{mode:'vertex',index:1}});
   const [perspective,setPerspective] = useState(false);
   const [view, setView] = useState<BuilderView>('orbit');
   const [slice, setSlice] = useState<{ on: boolean; y: number; auto: boolean }>({ on: false, y: 0, auto: true });
@@ -106,8 +106,8 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const compiled = editor.currentResult;
   const selectedPrimitives = data.primitives.filter(part => selected.has(part.id));
   const selectedEquipment = data.equipment.filter(part => selected.has(part.id));
-  const vertexPrimitive = vertexSession?.designId === source.id && layer === 'hull' && tool === 'select' && selected.size === 1 && selected.has(vertexSession.baseline.id) ? data.primitives.find(p=>p.id===vertexSession.baseline.id && canEditVertices(p)) : undefined;
-  const vertexMode = !!vertexPrimitive;
+  const freeformPrimitive = freeformSession?.designId === source.id && layer === 'hull' && tool === 'select' && selected.size === 1 && selected.has(freeformSession.baseline.id) ? data.primitives.find(p=>p.id===freeformSession.baseline.id && canEditVertices(p)) : undefined;
+  const freeformMode = !!freeformPrimitive;
   const selectedBoundary = data.boundaries.find(wall => selected.has(wall.id));
   const partOf = (instance: ConstructionEquipment) => catalog.equipment.find(part => part.id === instance.partId);
   const editableSurfaces = useMemo(() => editableConstructionSurfaces(source, compiled?.surfaces ?? []), [source, compiled]);
@@ -115,29 +115,26 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const gridStep = layer === 'fittings' || (layer === 'internals' && tool === 'module') ? .25 : 1;
   const fail = (cause: unknown) => editor.setError(cause instanceof Error ? cause.message : String(cause));
   const run = (label: string, command: (draft: ConstructionSource) => void) => { if (locked) return; editor.setError(''); setNotice(''); editor.edit(label, command); };
-  const changeVertexSettings = (patch:Partial<VertexSettings>) => setVertexSettings(current => {
-    const next={...current,...patch}, available=editableCorners(next.symmetry,next.axes);
-    if(!available.includes(next.corner)) next.corner=available[0]; return next;
-  });
-  const cycleUnit = () => changeVertexSettings({unit:VERTEX_UNITS[(VERTEX_UNITS.findIndex(n=>n===vertexSettings.unit)+1)%VERTEX_UNITS.length]});
-  const enterVertices = () => {
+  const changeFreeformSettings = (patch:Partial<FreeformSettings>) => setFreeformSettings(current => ({...current,...patch}));
+  const cycleUnit = () => changeFreeformSettings({unit:VERTEX_UNITS[(VERTEX_UNITS.findIndex(n=>n===freeformSettings.unit)+1)%VERTEX_UNITS.length]});
+  const enterFreeform = () => {
     const p=selectedPrimitives[0];if(!p || selected.size!==1 || !canEditVertices(p))return;
-    setTool('select');setLayer('hull');setSlice(current=>({...current,on:false}));setDrawer(false);setSurfaces(new Set());setVertexSession({designId:source.id,baseline:structuredClone(p)});
+    setTool('select');setLayer('hull');setSlice(current=>({...current,on:false}));setDrawer(false);setSurfaces(new Set());setFreeformSession({designId:source.id,baseline:structuredClone(p)});
   };
-  const commitVertices = (replacements:ConstructionPrimitive[]) => run('Shape hull corners',draft=>replaceVertexPrimitives(draft,replacements));
-  const setCornerCoordinate = (axis:number,value:number) => {
-    if(!vertexPrimitive)return;const delta:Vec3=[0,0,0];
-    const original=cornerVertices(vertexPrimitive)[vertexSettings.corner][axis]*vertexPrimitive.size[axis];
-    delta[axis]=Math.round((value-original)/vertexSettings.unit)*vertexSettings.unit;
-    commitVertices(vertexEdit(source,vertexPrimitive.id,vertexSettings.corner,delta,vertexSettings.symmetry,vertexSettings.axes,vertexSettings.snap));
+  const commitFreeform = (replacements:ConstructionPrimitive[]) => { if(replacements.length) run('Shape freeform hull',draft=>replaceVertexPrimitives(draft,replacements)); };
+  const setSelectionCoordinate = (axis:number,value:number) => {
+    if(!freeformPrimitive)return;const delta:Vec3=[0,0,0];
+    const original=selectionCenter(freeformPrimitive,freeformSettings.selection)[axis];
+    delta[axis]=Math.round((value-original)/freeformSettings.unit)*freeformSettings.unit;
+    commitFreeform(freeformEdit(source,freeformPrimitive.id,freeformSettings.selection,delta,freeformSettings.axes,freeformSettings.snap));
   };
-  const splitVertices = () => {
-    if(!vertexPrimitive)return;
-    try {const next=structuredClone(source),ids=splitVertexPrimitive(next,vertexPrimitive.id,vertexSettings.splitAxis,vertexSettings.count);
-      run('Split hull block',draft=>{draft.construction=next.construction;});setSelected(new Set([ids[0]]));setVertexSession(undefined);
+  const splitFreeform = () => {
+    if(!freeformPrimitive)return;
+    try {const next=structuredClone(source),ids=splitVertexPrimitive(next,freeformPrimitive.id,freeformSettings.splitAxis,freeformSettings.count);
+      run('Split hull block',draft=>{draft.construction=next.construction;});setSelected(new Set([ids[0]]));setFreeformSession(undefined);
     }catch(cause){fail(cause);}
   };
-  useEffect(()=>{if(vertexSession&&!vertexMode)setVertexSession(undefined);},[vertexMode,source.id]);
+  useEffect(()=>{if(freeformSession&&!freeformMode)setFreeformSession(undefined);},[freeformMode,source.id]);
   const requestSuggestion = props.suggestLayout ?? (compiler.suggest ? (source: ConstructionSource, ids: string[], signal?: AbortSignal) => compiler.suggest!(source, ids, signal) : undefined);
   const suggestionChanged = suggestion && JSON.stringify([data.equipment, data.boundaries, data.loads]) !== JSON.stringify([suggestion.source.construction.equipment, suggestion.source.construction.boundaries, suggestion.source.construction.loads]);
 
@@ -164,9 +161,9 @@ export function Shipbuilder(props: ShipbuilderProps) {
 
   // ---- selection and editing
   const choose = (id: string, additive = false) => {
-    if(vertexSession && !additive && id!==vertexSession.baseline.id) {
+    if(freeformSession && !additive && id!==freeformSession.baseline.id) {
       const p=data.primitives.find(p=>p.id===id && canEditVertices(p));
-      setVertexSession(p?{designId:source.id,baseline:structuredClone(p)}:undefined);
+      setFreeformSession(p?{designId:source.id,baseline:structuredClone(p)}:undefined);
     }
     setSelected(current => {
       if (!additive) return new Set([id]);
@@ -390,8 +387,8 @@ export function Shipbuilder(props: ShipbuilderProps) {
       const modifier = event.ctrlKey || event.metaKey, lower = event.key.toLowerCase();
       if (modifier && lower === 'z') { event.preventDefault(); if (event.shiftKey) editor.redo(); else editor.undo(); return; }
       if (modifier && lower === 'y') { event.preventDefault(); editor.redo(); return; }
-      if (vertexMode && !modifier) {
-        if(event.key==='Escape'){setVertexSession(undefined);event.preventDefault();return;}
+      if (freeformMode && !modifier) {
+        if(event.key==='Escape'){setFreeformSession(undefined);event.preventDefault();return;}
         if(lower==='g'){cycleUnit();event.preventDefault();return;}
         if(lower==='o'){setPerspective(p=>!p);event.preventDefault();return;}
         if(lower!=='w' && event.key!=='Home') return;
@@ -461,13 +458,13 @@ export function Shipbuilder(props: ShipbuilderProps) {
   </> : piece.kind === 'equipment' && active?.kind === 'part' ? <>
     <b>{active.part.name}</b><span>{active.part.placement} · bearing {piece.bearingDeg}°</span>
   </> : piece.kind === 'boundary' ? <><b>{BOUNDARY_NAMES[piece.axis]}</b><span>on the 1 m grid</span></> : null;
-  if (!vertexMode && selectedPrimitives.length === 1 && !selectedEquipment.length) {
+  if (!freeformMode && selectedPrimitives.length === 1 && !selectedEquipment.length) {
     const primitive = selectedPrimitives[0], mass = pieceMassKg(compiled, primitive.id);
     const size = (axis: number, value: number) => run('Resize hull piece', draft => { draft.construction.primitives.find(part => part.id === primitive.id)!.size[axis] = value; });
     const move = (axis: number, value: number) => { const delta: Vec3 = [0, 0, 0]; delta[axis] = snapCoordinate(value, .25) - primitive.position[axis]; nudge(delta); };
     tags.push({ key: `piece-${primitive.id}`, anchor: primitive.position, dx: 70, dy: -78, tone: 'mint', content: <>
       <b>{SHAPE_NAMES[primitive.kind]} <NumberField value={primitive.size[0]} min={.25} max={500} onChange={value => size(0, value)}/> × <NumberField value={primitive.size[1]} min={.25} max={500} onChange={value => size(1, value)}/> × <NumberField value={primitive.size[2]} min={.25} max={500} onChange={value => size(2, value)}/> m</b>
-      {canEditVertices(primitive) && <button className="sb-edit-vertices" onClick={enterVertices}>Edit vertices</button>}
+      {canEditVertices(primitive) && <button className="sb-edit-freeform" onClick={enterFreeform}>Freeform hull</button>}
       {mass !== undefined ? `plating ${formatTonnes(mass)} · ` : ''}<NumberField label="x" value={primitive.position[0]} min={-1000} max={1000} onChange={value => move(0, value)}/> <NumberField label="y" value={primitive.position[1]} min={-1000} max={1000} onChange={value => move(1, value)}/> <NumberField label="z" value={primitive.position[2]} min={-1000} max={1000} onChange={value => move(2, value)}/> · {primitive.rotationDeg}° <kbd>R</kbd> · <kbd>⌫</kbd> remove · <kbd>⌘C</kbd> copy
     </> });
   } else if (selectedEquipment.length === 1 && !selectedPrimitives.length) {
@@ -556,21 +553,21 @@ export function Shipbuilder(props: ShipbuilderProps) {
   ];
   const acting: KeyHint[] = [];
   if (!locked && piece && piece.kind !== 'boundary') acting.push({ keys: ['R'], label: piece.kind === 'hull' ? 'Rotate 90°' : 'Rotate 15°' });
-  else if (movable) acting.push({ keys: ['R'], label: selectedPrimitives.length ? 'Rotate 90°' : 'Rotate 15°' });
-  if (movable) acting.push({ keys: ['←→', '↑↓'], label: 'Nudge' }, { keys: ['PgUp', 'PgDn'], label: 'Raise · lower' }, { keys: ['⌘C'], label: 'Copy' }, { keys: ['⇧⌘C'], label: 'Mirror copy' });
+  else if (movable && !freeformMode) acting.push({ keys: ['R'], label: selectedPrimitives.length ? 'Rotate 90°' : 'Rotate 15°' });
+  if (movable && !freeformMode) acting.push({ keys: ['←→', '↑↓'], label: 'Nudge' }, { keys: ['PgUp', 'PgDn'], label: 'Raise · lower' }, { keys: ['⌘C'], label: 'Copy' }, { keys: ['⇧⌘C'], label: 'Mirror copy' });
   if (selected.size) acting.push({ keys: ['⌫', '⌘X'], label: movable ? 'Remove' : 'Remove · merge rooms' });
   if (surfaces.size && faceLayer) acting.push({ keys: ['⇧'], label: 'Click adds a face' });
   const escape = drawer || designsOpen ? 'Close' : suggestion ? 'Dismiss layout' : measure ? 'End measure' : tool !== 'select' ? 'Select tool' : selected.size || surfaces.size ? 'Clear' : '';
   if (escape) acting.push({ keys: ['Esc'], label: escape });
   const chip = (hint: KeyHint) => <span key={hint.label} className="sb-key">{hint.keys.map((key, index) => <kbd key={index}>{key}</kbd>)}{hint.label}</span>;
 
-  return <main className={`shipbuilder ${vertexMode ? 'sb-vertex-mode' : ''}`} aria-label="Shipbuilder" data-layer={layer} data-drawer={drawer || undefined} aria-busy={!!busy}>
-    <BuilderViewport perspective={perspective} vertex={vertexPrimitive && !locked ? {...vertexSettings,id:vertexPrimitive.id,onSelect:corner=>changeVertexSettings({corner}),onCommit:commitVertices} : undefined} source={source} result={result} catalog={catalog} selected={selected} selectedSurfaces={surfaces} view={view} display={DISPLAY[layer]} slice={slice.on ? slice.y : undefined}
-      gridStep={gridStep} gesture={locked ? 'none' : gesture} pickTargets={layer === 'armor' || layer === 'paint' ? 'hull' : 'all'} moveTargets={locked || vertexMode ? 'none' : moveTargets} placementPiece={locked || vertexMode ? undefined : piece} placementMirror={mirrorPiece} highlightFaces={layer === 'armor' || layer === 'paint'} rooms={layer === 'internals'}
+  return <main className={`shipbuilder ${freeformMode ? 'sb-freeform-mode' : ''}`} aria-label="Shipbuilder" data-layer={layer} data-drawer={drawer || undefined} aria-busy={!!busy}>
+    <BuilderViewport perspective={perspective} freeform={freeformPrimitive && !locked ? {...freeformSettings,id:freeformPrimitive.id,onSelect:selection=>changeFreeformSettings({selection}),onCommit:commitFreeform} : undefined} source={source} result={result} catalog={catalog} selected={selected} selectedSurfaces={surfaces} view={view} display={DISPLAY[layer]} slice={slice.on ? slice.y : undefined}
+      gridStep={gridStep} gesture={locked ? 'none' : gesture} pickTargets={layer === 'armor' || layer === 'paint' ? 'hull' : 'all'} moveTargets={locked || freeformMode ? 'none' : moveTargets} placementPiece={locked || freeformMode ? undefined : piece} placementMirror={mirrorPiece} highlightFaces={layer === 'armor' || layer === 'paint'} rooms={layer === 'internals'}
       showCenters={showCenters} arcs={arcs} proposed={proposed} measure={measure} tags={tags} coords={coords} status={status} fitRequest={fitRequest} onPick={pick} onStroke={placeAt} onBoxSelect={boxSelect} onErase={erase} onMove={movePieces} createModel={props.createModel}/>
-    {vertexPrimitive && <VertexToolbar primitive={vertexPrimitive} settings={vertexSettings} onChange={changeVertexSettings} cycleUnit={cycleUnit} onCoordinate={setCornerCoordinate}
+    {freeformPrimitive && <FreeformToolbar primitive={freeformPrimitive} settings={freeformSettings} onChange={changeFreeformSettings} cycleUnit={cycleUnit} onCoordinate={setSelectionCoordinate}
       onView={v=>{setPerspective(false);setView(v);setFitRequest(n=>n+1);}} perspective={perspective} onProjection={()=>{setPerspective(p=>!p);}}
-      onReset={()=>run('Reset hull edit',draft=>replaceVertexPrimitives(draft,[vertexSession!.baseline]))} onSplit={splitVertices} onExit={()=>setVertexSession(undefined)}/>}
+      onReset={()=>run('Reset hull edit',draft=>replaceVertexPrimitives(draft,[freeformSession!.baseline]))} onSplit={splitFreeform} onExit={()=>setFreeformSession(undefined)}/>}
     <header className="sb-top">
       <button className="sb-port" disabled={!!busy} onClick={() => void close()} title="Save and return to port"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M8 1.5 3.5 6 8 10.5"/></svg>Port</button>
       <div className="sb-ship">
@@ -602,8 +599,8 @@ export function Shipbuilder(props: ShipbuilderProps) {
           {suggestionChanged && !suggestion.diagnostics.some(item => item.severity === 'error') && <button disabled={source.revision !== suggestionRevision} onClick={applySuggestion}>Apply <kbd>⏎</kbd></button>}<button onClick={() => setSuggestion(undefined)}>Dismiss</button></div>}
         {notice && <div className="row note" role="status"><i className="sb-dot note"/><span>{notice}</span></div>}
       </div>
-      <div className="sb-rail" role="toolbar" aria-label="Tools">{rail.map(entry => <button key={entry.id} className={entry.kind} disabled={locked} aria-pressed={entry.kind === 'tool' ? tool === entry.id : entry.kind === 'toggle' ? (entry.id === 'mirror' ? mirror : showArcs) : undefined} title={`${entry.name} (${entry.key})`} onClick={() => activateRail(entry)}><ToolGlyph name={entry.glyph}/><span>{entry.name}</span><kbd>{entry.key}</kbd></button>)}
-        {layer==='hull' && <button aria-pressed={vertexMode} disabled={locked || selected.size!==1 || !selectedPrimitives[0] || !canEditVertices(selectedPrimitives[0])} onClick={vertexMode?()=>setVertexSession(undefined):enterVertices} title="Select one cube or vertex hull, then edit its corners"><ToolGlyph name="Select"/><span>Vertices</span></button>}
+      <div className="sb-rail" role="toolbar" aria-label="Tools">{rail.filter(entry => !freeformMode || entry.id !== 'mirror').map(entry => <button key={entry.id} className={entry.kind} disabled={locked} aria-pressed={entry.kind === 'tool' ? tool === entry.id : entry.kind === 'toggle' ? (entry.id === 'mirror' ? mirror : showArcs) : undefined} title={`${entry.name} (${entry.key})`} onClick={() => activateRail(entry)}><ToolGlyph name={entry.glyph}/><span>{entry.name}</span><kbd>{entry.key}</kbd></button>)}
+        {layer==='hull' && <button aria-pressed={freeformMode} disabled={locked || selected.size!==1 || !selectedPrimitives[0] || !canEditVertices(selectedPrimitives[0])} onClick={freeformMode?()=>setFreeformSession(undefined):enterFreeform} title="Select one cube or freeform hull to edit vertices, edges and faces"><ToolGlyph name="Select"/><span>Freeform</span></button>}
         <button className="help" aria-haspopup="dialog" aria-expanded={helpOpen} title="Controls and hotkeys (?)" onClick={() => setHelpOpen(value => !value)}><ToolGlyph name="Keys"/><span>Keys</span><kbd>?</kbd></button></div>
     </div>
     <aside className="sb-ledger" aria-label="Ledger">

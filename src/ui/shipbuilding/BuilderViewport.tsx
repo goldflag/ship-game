@@ -1,4 +1,4 @@
-import { VertexHandles, type BuilderVertexOptions } from './VertexHandles';
+import { FreeformHandles, type BuilderFreeformOptions } from './FreeformHandles';
 import { cornerVertices, worldVertex } from '../../ships/constructionVertex';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import * as THREE from 'three';
@@ -27,7 +27,7 @@ export interface BuilderProposal { position: Vec3; bearingDeg: number; size: Vec
 export type BuilderMoveTargets = 'none' | 'equipment' | 'all';
 export type ConstructionModelFactory = (source: ConstructionSource, result: ConstructionResult, signal: AbortSignal) => Promise<THREE.Group>;
 export interface ViewportProps {
-  vertex?: BuilderVertexOptions; perspective?: boolean;
+  freeform?: BuilderFreeformOptions; perspective?: boolean;
   source: ConstructionSource; result?: ConstructionResult; catalog: ConstructionCatalog;
   selected: ReadonlySet<string>; selectedSurfaces: ReadonlySet<string>;
   view: BuilderView; display: BuilderDisplay; slice?: number;
@@ -100,7 +100,7 @@ class Viewport {
   private ortho = new THREE.OrthographicCamera(-50, 50, 35, -35, .1, 6000);
   private perspectiveCamera = new THREE.PerspectiveCamera(40, 1, .1, 5000);
   private camera: THREE.OrthographicCamera | THREE.PerspectiveCamera = this.ortho;
-  private vertexHandles: VertexHandles;
+  private freeformHandles: FreeformHandles;
   private vertexPreview = new THREE.Group();
   private scene = new THREE.Scene();
   private controls: OrbitControls;
@@ -164,7 +164,7 @@ class Viewport {
     this.strokePreview.name = 'Pieces in current drag'; this.strokePreview.userData.strokePreview = true;
     this.movePreview.name = 'Selection being moved'; this.movePreview.userData.movePreview = true; this.movePreview.visible = false;
     this.scene.add(this.hull, this.details, this.selection, this.hoverGroup, this.composed, this.equipment.group, this.arcGroup, this.proposedGroup, this.ghost, this.ghostMirror, this.ghostArc, this.fillPreview, this.strokePreview, this.movePreview, this.measureGroup);
-    this.vertexHandles = new VertexHandles(host, () => this.camera, replacements => this.previewVertices(replacements));
+    this.freeformHandles = new FreeformHandles(host, () => this.camera, replacements => this.previewVertices(replacements));
     this.scene.add(this.vertexPreview);
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.enableDamping = true; this.controls.dampingFactor = .15;
@@ -213,7 +213,7 @@ class Viewport {
 
   update(props: ViewportProps) {
     const old = this.props; this.props = props;
-    this.vertexHandles.update(props.source, props.vertex);
+    this.freeformHandles.update(props.source, props.freeform);
     if (!!props.perspective !== (this.camera instanceof THREE.PerspectiveCamera)) {
       const previous=this.camera, distance=previous.position.distanceTo(this.controls.target);
       this.camera=props.perspective?this.perspectiveCamera:this.ortho;
@@ -334,7 +334,7 @@ class Viewport {
     }
     if (props.highlightFaces !== old.highlightFaces || props.slice !== old.slice || props.pickTargets !== old.pickTargets) { release(this.hoverGroup); this.hoverSurface = ''; }
     this.measureGroup.visible = !!props.measure;
-    if(this.vertexHandles.dragging) {this.hull.visible=false;this.composed.visible=false;this.selection.visible=false;}
+    if(this.freeformHandles.dragging) {this.hull.visible=false;this.composed.visible=false;this.selection.visible=false;}
     this.updateGhost(); this.updateStrokePreview(); if (this.hover) this.highlight(this.hover); this.applyClip();
   }
 
@@ -659,7 +659,7 @@ class Viewport {
     const piece = this.props.placementPiece;
     if (start.button === 2) {
       const hit = clicked ? this.pick(event, 'all') : undefined;
-      if (hit?.id && !this.props.vertex) this.props.onErase(hit.id);
+      if (hit?.id && !this.props.freeform) this.props.onErase(hit.id);
     } else if (rect) {
       if (clicked) { const hit = this.pick(event, 'all'); this.props.onBoxSelect(hit?.id ? [hit.id] : [], true); }
       else this.props.onBoxSelect(boxSelectedPieces(this.props.source, this.props.catalog, this.camera, rect, this.host.clientWidth, this.host.clientHeight, this.props.slice, this.props.rooms), start.additive);
@@ -684,9 +684,9 @@ class Viewport {
   private key = (event: KeyboardEvent) => { if (event.key === 'Escape' && this.pointerStart) this.cancel(); };
   private animate = () => {
     if (this.dead) return;
-    if(!this.vertexHandles.dragging) this.controls.update();
+    if(!this.freeformHandles.dragging) this.controls.update();
     if (this.hover) { if (this.props.placementPiece) this.updateGhost(); this.highlight(this.hover); }
-    this.vertexHandles.frame(); this.renderer.render(this.scene, this.camera); this.placeTags();
+    this.freeformHandles.frame(); this.renderer.render(this.scene, this.camera); this.placeTags();
     if (!this.orientationRotation.equals(this.camera.quaternion)) {
       updateBuilderOrientation(this.orientation, this.camera);
       this.orientationRotation.copy(this.camera.quaternion);
@@ -695,7 +695,7 @@ class Viewport {
   };
 
   dispose() {
-    this.vertexHandles.dispose();
+    this.freeformHandles.dispose();
     this.dead = true; cancelAnimationFrame(this.frame); this.modelAbort?.abort(); this.resize.disconnect(); this.controls.dispose();
     this.strokePreview.clear(); this.equipment.dispose();
     const canvas = this.renderer.domElement;

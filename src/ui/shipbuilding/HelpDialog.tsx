@@ -33,8 +33,8 @@ const VIEW: [string[], string][] = [
   [['1', '…', '9'], 'Pick a palette card'],
   [['0'], 'Open or close every card of the layer'],
   [['?'], 'This list'],
-  [['G'], 'In vertex mode: cycle the move increment'],
-  [['O'], 'In vertex mode: toggle orthographic / perspective'],
+  [['G'], 'In Freeform hull: cycle the move increment'],
+  [['O'], 'In Freeform hull: toggle orthographic / perspective'],
 ];
 
 function Rows({ rows }: { rows: [ReactNode, string][] }) {
@@ -56,7 +56,7 @@ export function HelpDialog({ onClose }: { onClose(): void }) {
           <table><tbody>{BUILDER_LAYERS.map(layer => <tr key={layer.id}><th scope="row">{layer.name}</th><td>{BUILDER_RAIL[layer.id].map(entry => <span key={entry.id}><kbd>{entry.key}</kbd>{entry.name}</span>)}</td></tr>)}</tbody></table>
         </section>
       </div>
-      <p>Select one cube or vertex hull, then choose Vertices. Combine local symmetry axes, drag corners or enter coordinates. SNAP is opt-in; Split creates independent blocks. Reset edit restores the session-entry shape.</p>
+      <p>Select one cube or freeform hull, then choose Freeform. Select a vertex, edge or face; drag it in the view plane or use an X/Y/Z handle. Arrow keys nudge a focused axis handle. Mirror axes are local to the block; select none to turn symmetry off. An edge or face spanning a mirror plane cannot move across it. Coordinates edit the vertex position or translate an edge/face center. Move nearby corners is opt-in; Split creates independent blocks. Reset edit restores the block’s session-entry shape.</p>
       <p>Keys never act inside text or number fields. Mirror also reaches the twin face when painting armor or paint.</p>
     </div>
   </div>;
