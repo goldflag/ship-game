@@ -46,7 +46,7 @@ test('declared appearance changes invalidate consumers, missing inputs fail clos
   await put('assets/parts/paint.json', '{"roughness":0.7}');
   expect((await get()).geometry).not.toBe(before.geometry);
   await rm(join(root, 'assets/parts/paint.json'));
-  expect(get()).rejects.toThrow('Cannot fingerprint');
+  await expect(get()).rejects.toThrow('Cannot fingerprint');
 });
 test('export and thumbnail changes stop at their stage boundaries', async () => {
   const before = await get();
@@ -115,5 +115,5 @@ test('declared binary textures are hashed by bytes and deletion fails closed', a
   await writeFile(join(root, 'assets/parts/paint.png'), new Uint8Array([137, 80, 78, 71, 254]));
   expect((await get()).geometry).not.toBe(before.geometry);
   await rm(join(root, 'assets/parts/paint.png'));
-  expect(get()).rejects.toThrow('Cannot fingerprint');
+  await expect(get()).rejects.toThrow('Cannot fingerprint');
 });

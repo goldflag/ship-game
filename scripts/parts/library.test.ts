@@ -52,6 +52,6 @@ test('component export helpers invalidate previews and missing dependencies fail
     await writeFile(join(directory, helper), 'changed batching dependency');
     expect(await componentHash(directory, library, entry, part)).not.toBe(before);
     await rm(join(directory, helper));
-    expect(componentHash(directory, library, entry, part)).rejects.toThrow();
+    await expect(componentHash(directory, library, entry, part)).rejects.toThrow();
   } finally { await rm(directory, { recursive: true, force: true }); }
 });

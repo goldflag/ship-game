@@ -119,3 +119,31 @@ all profiling evidence in ignored `.build/`, never in ship report directories.
 
 A Blender/toolchain upgrade requires an explicit forced rebuild and review;
 these source identities do not certify identical output across toolchain versions.
+
+## Validation and integration
+
+Integrated the completed vertex-editor changes through `a4f7b592`. Its schema-only
+changes preserved every geometry/model identity: all source scenes and GLBs were
+reused and validated. Conflicting thumbnail metadata was repaired by real renders.
+Shared equipment was rebuilt through `part:publish`, and its retained models also
+passed comparison against the original published component versions.
+
+`ship:check all`, `part:published:check`, TypeScript checking and `bun run build`
+passed. Pipeline/component regression tests: 32 passed. Both Blender primitive
+and batching fixtures passed. Final tests used the repository-pinned Bun 1.3.3;
+the machine's Bun 1.2.18 stalls on the existing corrupt-gzip test.
+
+The full suite completed with 209 of 214 files passing. The five failing files
+reproduce their failures against baseline sources: `simulation/sea.test.ts`
+(intact Hipper settling), `simulation/mechanics.test.ts` (missing Hipper stability),
+`game/ShipFunnelSmoke.test.ts` (missing Hipper count), `game/AirOperations.test.tsx`
+(merged-flight notice) and `game/Game.test.ts` (saved construction fixture).
+These unrelated simulation/UI fixtures were not changed by this work.
+
+In-game acceptance ran in Chrome against the exact published fleet: five train
+fractions per ship, with independent elevation/recoil and neighboring mount
+overrides. All 95 pose cases passed; maximum gun muzzle alignment error was
+2.76 mm and torpedo muzzle error was below 0.004 mm, inside the existing 25 mm
+check. Inspected in-game views included Bismarck, Hipper, Iowa, Gleaves and Flower.
+The Orca browser's repeated closed-target failures were bypassed with this
+separate Chrome session; no unrelated Blender scene or editor work was changed.
