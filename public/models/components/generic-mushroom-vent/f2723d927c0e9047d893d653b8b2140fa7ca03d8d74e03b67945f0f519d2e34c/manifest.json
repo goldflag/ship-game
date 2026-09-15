@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "generic-mushroom-vent",
+  "revision": "f2723d927c0e9047d893d653b8b2140fa7ca03d8d74e03b67945f0f519d2e34c",
+  "contentHash": "716975504679d224ee5f743268da6e48f9595569f81932eef65ae0e5ca2696c7",
+  "modelSha256": "250b3e4905485f34f2372451365dc8b273f65925bfa441ac92b61d399be1ab3f",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/generic-mushroom-vent/f2723d927c0e9047d893d653b8b2140fa7ca03d8d74e03b67945f0f519d2e34c/model.glb",
+  "boundsCenter": [
+    0,
+    0.42500000447034836,
+    0
+  ],
+  "size": [
+    0.6899999976158142,
+    0.8500000089406967,
+    0.6899999976158142
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 1556,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original generic naval fitting with fixed attachment datum. Dimensions and dry mass are provisional engineering estimates, not a historical reconstruction. Boat/davits and doors/hatches remain stowed/closed. Searchlight is non-functional. Installed support and clearance require native validation and visual review.",
+  "basis": "assets/parts/construction/README.md"
+}

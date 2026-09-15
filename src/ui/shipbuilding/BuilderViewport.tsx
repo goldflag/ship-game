@@ -3,7 +3,7 @@ import { cornerVertices, worldVertex } from '../../ships/constructionVertex';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import type { ConstructionCatalog, ConstructionPrimitive, ConstructionResult, ConstructionSource, ConstructionSurface, Vec3 } from '../../ships/blueprint';
+import type { ConstructionCatalog, ConstructionEquipmentPart, ConstructionPrimitive, ConstructionResult, ConstructionSource, ConstructionSurface, Vec3 } from '../../ships/blueprint';
 import { armorThicknessColor } from '../../ships/inspection';
 import { surfaceKey } from '../../ships/constructionEditor';
 import { constructionPaintColor } from './paints';
@@ -11,6 +11,9 @@ import { snapCoordinate } from './editorNumbers';
 import { dominantAxis, fillLattice, pieceExtents, placementCenter, strokeSegment } from './placement';
 import { primitiveGeometry, placementGeometry, placementRotation, type BuilderPlacement } from './primitiveGeometry';
 import { createConstructionHull } from '../../game/constructionModel';
+import { createConstructionPathModel } from '../../game/constructionPathModel';
+import { equipmentPathBounds } from '../../ships/constructionPaths';
+import { appendPathPoint, pathAnchor } from './pathDrawing';
 import { EquipmentPreview } from './equipmentPreview';
 import { boxSelectedPieces } from './boxSelection';
 import { BuilderOrientation, updateBuilderOrientation } from './BuilderOrientation';
@@ -28,6 +31,8 @@ export type BuilderMoveTargets = 'none' | 'equipment' | 'all';
 export type ConstructionModelFactory = (source: ConstructionSource, result: ConstructionResult, signal: AbortSignal) => Promise<THREE.Group>;
 export interface ViewportProps {
   freeform?: BuilderFreeformOptions; perspective?: boolean;
+  pathDraft?: { part: ConstructionEquipmentPart; points: Vec3[]; slackM: number; mirror: boolean };
+  onPathPoint?(point: Vec3): void; onPathFinish?(): void;
   source: ConstructionSource; result?: ConstructionResult; catalog: ConstructionCatalog;
   selected: ReadonlySet<string>; selectedSurfaces: ReadonlySet<string>;
   view: BuilderView; display: BuilderDisplay; slice?: number;
@@ -60,6 +65,7 @@ function release(object: THREE.Object3D) {
   const textures = new Set<THREE.Texture>();
   object.traverse(child => {
     if (child.userData.sharedPreviewResources) return;
+    if (child instanceof THREE.InstancedMesh) child.dispose();
     const mesh = child as THREE.Mesh;
     if (mesh.geometry) geometries.add(mesh.geometry);
     if (mesh.material) for (const material of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) {
@@ -102,6 +108,8 @@ class Viewport {
   private camera: THREE.OrthographicCamera | THREE.PerspectiveCamera = this.ortho;
   private freeformHandles: FreeformHandles;
   private vertexPreview = new THREE.Group();
+  private pathPreview = new THREE.Group();
+  private pathPreviewKey = '';
   private scene = new THREE.Scene();
   private controls: OrbitControls;
   private hull = new THREE.Group();
@@ -165,7 +173,7 @@ class Viewport {
     this.movePreview.name = 'Selection being moved'; this.movePreview.userData.movePreview = true; this.movePreview.visible = false;
     this.scene.add(this.hull, this.details, this.selection, this.hoverGroup, this.composed, this.equipment.group, this.arcGroup, this.proposedGroup, this.ghost, this.ghostMirror, this.ghostArc, this.fillPreview, this.strokePreview, this.movePreview, this.measureGroup);
     this.freeformHandles = new FreeformHandles(host, () => this.camera, replacements => this.previewVertices(replacements));
-    this.scene.add(this.vertexPreview);
+    this.scene.add(this.vertexPreview, this.pathPreview);
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.enableDamping = true; this.controls.dampingFactor = .15;
     this.controls.minZoom = .08; this.controls.maxZoom = 100; this.controls.maxPolarAngle = Math.PI * .95;
@@ -173,7 +181,7 @@ class Viewport {
     this.resize = new ResizeObserver(() => this.measure()); this.resize.observe(host); this.measure();
     const canvas = this.renderer.domElement;
     canvas.addEventListener('pointerdown', this.down, true); canvas.addEventListener('pointermove', this.move); canvas.addEventListener('pointerup', this.up);
-    canvas.addEventListener('pointercancel', this.cancel); canvas.addEventListener('pointerleave', this.leave);
+    canvas.addEventListener('dblclick', this.finishPath); canvas.addEventListener('pointercancel', this.cancel); canvas.addEventListener('pointerleave', this.leave);
     canvas.addEventListener('lostpointercapture', this.cancel); window.addEventListener('keydown', this.key);
     window.addEventListener('blur', this.cancel);
     if (import.meta.env.DEV) (window as unknown as { shipbuilderViewport?: Viewport }).shipbuilderViewport = this;
@@ -280,8 +288,9 @@ class Viewport {
     for (const part of props.source.construction.equipment) {
       const entry = props.catalog.equipment.find(entry => entry.id === part.partId);
       if (!entry) continue;
-      const box = new THREE.Mesh(new THREE.BoxGeometry(...entry.size), new THREE.MeshBasicMaterial({ color: props.selected.has(part.id) ? BRASS : entry.placement === 'internal' ? READY : '#bacbd0', wireframe: true, transparent: true, opacity: props.selected.has(part.id) ? 1 : .55 }));
-      const datum = new THREE.Group(); datum.position.set(...part.position); datum.rotation.y = -part.bearingDeg * Math.PI / 180; box.position.set(...entry.boundsCenter);
+      const pathBounds = equipmentPathBounds(entry, part);
+      const box = new THREE.Mesh(new THREE.BoxGeometry(...pathBounds.size), new THREE.MeshBasicMaterial({ color: props.selected.has(part.id) ? BRASS : entry.placement === 'internal' ? READY : '#bacbd0', wireframe: true, transparent: true, opacity: props.selected.has(part.id) ? 1 : .55 }));
+      const datum = new THREE.Group(); datum.position.set(...part.position); datum.rotation.y = -part.bearingDeg * Math.PI / 180; box.position.set(...pathBounds.center);
       box.userData.sourceId = part.id; datum.add(box); this.details.add(datum);
       if (!this.equipment.has(part.id)) this.pickMeshes.push(box);
       datum.visible = props.display === 'internals' || props.selected.has(part.id) || (!this.equipment.has(part.id) && !(props.createModel && this.composed.children.length));
@@ -336,7 +345,7 @@ class Viewport {
     this.measureGroup.visible = !!props.measure;
     // A held corner is already dragging, but has no preview until it moves.
     if(this.vertexPreview.visible && this.vertexPreview.children.length) {this.hull.visible=false;this.composed.visible=false;this.selection.visible=false;}
-    this.updateGhost(); this.updateStrokePreview(); if (this.hover) this.highlight(this.hover); this.applyClip();
+    this.updatePathPreview(); this.updateGhost(); this.updateStrokePreview(); if (this.hover) this.highlight(this.hover); this.applyClip();
   }
 
   private previewVertices(replacements?: ConstructionPrimitive[]) {
@@ -498,15 +507,35 @@ class Viewport {
   /** HTML tags follow their world anchors each frame; React owns their content. */
   private placeTags() {
     const width = this.host.clientWidth, height = this.host.clientHeight;
+    const narrow = width <= 1100, builder = this.props.tags.length ? this.host.closest('.shipbuilder') : null;
+    const header = narrow ? builder?.querySelector<HTMLElement>('.sb-top') : null, palette = narrow ? builder?.querySelector<HTMLElement>('.sb-hotbar') : null;
+    const ledger = builder?.querySelector<HTMLElement>('.sb-ledger'), hostRect = builder ? this.host.getBoundingClientRect() : null;
+    const ledgerRect = ledger?.offsetWidth && ledger.offsetHeight ? ledger.getBoundingClientRect() : null;
+    const hostTop = hostRect?.top ?? 0;
+    // Keep editable tags beside the tool rail and between the wrapped header and palette.
+    const left = narrow ? 80 : 8, top = header ? header.getBoundingClientRect().bottom - hostTop + 12 : 60;
+    const bottom = narrow && palette?.offsetHeight ? palette.getBoundingClientRect().top - hostTop - 12 : height - 90;
     let leaders = '';
     for (const tag of this.props.tags) {
       const element = this.overlay.querySelector<HTMLElement>(`[data-tag="${CSS.escape(tag.key)}"]`);
       if (!element) continue;
       const screen = this.project(new THREE.Vector3(...tag.anchor));
       if (!screen) { element.style.visibility = 'hidden'; continue; }
-      const x = clamp(screen.x + tag.dx, 8, Math.max(8, width - element.offsetWidth - 8)), y = clamp(screen.y + tag.dy, 60, Math.max(60, height - element.offsetHeight - 90));
+      element.style.maxHeight = narrow ? `${Math.max(80, bottom - top)}px` : '';
+      const tagWidth = element.offsetWidth, tagHeight = element.offsetHeight;
+      let x = clamp(screen.x + tag.dx, left, Math.max(left, width - tagWidth - 8)), y = clamp(screen.y + tag.dy, top, Math.max(top, bottom - tagHeight));
+      if (ledgerRect) {
+        const ledgerLeft = ledgerRect.left - (hostRect?.left ?? 0) - 12, ledgerTop = ledgerRect.top - hostTop - 12;
+        const ledgerRight = ledgerRect.right - (hostRect?.left ?? 0) + 12, ledgerBottom = ledgerRect.bottom - hostTop + 12;
+        if (x < ledgerRight && x + tagWidth > ledgerLeft && y < ledgerBottom && y + tagHeight > ledgerTop) {
+          const beside = ledgerLeft - tagWidth, below = ledgerBottom;
+          // Choose the smallest move that leaves the whole editor clear of the Ledger.
+          if (below + tagHeight <= bottom && (beside < left || below - y < x - beside)) y = below;
+          else if (beside >= left) x = beside;
+        }
+      }
       element.style.visibility = 'visible'; element.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
-      const endX = tag.dx >= 0 ? x : x + element.offsetWidth, endY = y + element.offsetHeight / 2;
+      const endX = screen.x < x + tagWidth / 2 ? x : x + tagWidth, endY = y + tagHeight / 2;
       leaders += `<line x1="${screen.x.toFixed(1)}" y1="${screen.y.toFixed(1)}" x2="${endX.toFixed(1)}" y2="${endY.toFixed(1)}" stroke="${LEADER[tag.tone]}"/><circle cx="${screen.x.toFixed(1)}" cy="${screen.y.toFixed(1)}" r="2.5" fill="${LEADER[tag.tone]}"/>`;
     }
     // The readout sits under the palette: the ghost's cell while placing, the offset while moving a selection.
@@ -579,7 +608,7 @@ class Viewport {
       const item = equipment.find(part => part.id === id);
       if (item) {
         const datum = new THREE.Group(); datum.position.set(...item.position); datum.rotation.y = -item.bearingDeg * Math.PI / 180;
-        const ghost = this.equipment.clone(item.partId, true), part = this.props.catalog.equipment.find(entry => entry.id === item.partId);
+        const ghost = this.equipment.clone(item.partId, true, item.path), part = this.props.catalog.equipment.find(entry => entry.id === item.partId);
         if (ghost) datum.add(ghost);
         else if (part) { const box = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(...part.size)), new THREE.LineBasicMaterial({ color: BRASS_LIGHT, depthTest: false })); box.position.set(...part.boundsCenter); datum.add(box); }
         this.movePreview.add(datum); continue;
@@ -623,7 +652,9 @@ class Viewport {
       this.camera.position.copy(position); this.camera.quaternion.copy(rotation); this.controls.target.copy(target); this.camera.updateMatrixWorld(true);
       this.controls.enabled = false; event.stopImmediatePropagation(); event.preventDefault();
     }
-    const move = !box && event.button === 0 ? this.movePick(event) : undefined;
+    const path = !box && event.button === 0 && this.props.pathDraft ? this.pathPick(event) : undefined;
+    if (path) { this.controls.enabled = false; event.stopImmediatePropagation(); event.preventDefault(); }
+    const move = !box && !this.props.pathDraft && event.button === 0 ? this.movePick(event) : undefined;
     const start = !box && !move && event.button === 0 && this.props.gesture !== 'none' && this.props.placementPiece ? this.pick(event, 'hull') : undefined;
     // A press on the hull lays or moves pieces, so OrbitControls (which listens after this capture handler) must not orbit with the same drag; `up` and `cancel` re-enable it.
     if (start || move) this.controls.enabled = false;
@@ -633,7 +664,7 @@ class Viewport {
     this.updateGhost(); this.updateStrokePreview();
   };
   private move = (event: PointerEvent) => {
-    this.hover = { clientX: event.clientX, clientY: event.clientY }; this.updateGhost(); this.highlight(event);
+    this.hover = { clientX: event.clientX, clientY: event.clientY }; this.updatePathPreview(); this.updateGhost(); this.highlight(event);
     if (!this.pointerStart || event.pointerId !== this.pointerStart.id) return;
     this.pointerStart.moved ||= Math.hypot(event.clientX - this.pointerStart.x, event.clientY - this.pointerStart.y) >= 5;
     if (this.pointerStart.box) { this.showBox(event); return; }
@@ -660,7 +691,10 @@ class Viewport {
     const piece = this.props.placementPiece;
     if (start.button === 2) {
       const hit = clicked ? this.pick(event, 'all') : undefined;
-      if (hit?.id && !this.props.freeform) this.props.onErase(hit.id);
+      if (hit?.id && !this.props.freeform && !this.props.pathDraft) this.props.onErase(hit.id);
+    } else if (this.props.pathDraft && !rect) {
+      const point = clicked ? this.pathPick(event) : undefined;
+      if (point) this.props.onPathPoint?.(point);
     } else if (rect) {
       if (clicked) { const hit = this.pick(event, 'all'); this.props.onBoxSelect(hit?.id ? [hit.id] : [], true); }
       else this.props.onBoxSelect(boxSelectedPieces(this.props.source, this.props.catalog, this.camera, rect, this.host.clientWidth, this.host.clientHeight, this.props.slice, this.props.rooms), start.additive);
@@ -676,7 +710,28 @@ class Viewport {
       else this.props.onStroke(clicked ? [start.start.placement] : start.points);
     } else if (clicked) this.props.onPick(this.pick(event, this.props.placementPiece ? 'hull' : this.props.pickTargets));
   };
-  private leave = () => { this.hover = undefined; this.ghost.visible = false; this.ghostMirror.visible = false; this.ghostArc.visible = false; this.ghostPosition = undefined; release(this.hoverGroup); this.hoverSurface = ''; };
+  private pathPick(event: { clientX: number; clientY: number }): Vec3 | undefined {
+    const draft = this.props.pathDraft;
+    if (!draft) return undefined;
+    const hit = this.pick(event, draft.part.path?.kind === 'railing' ? 'hull' : 'all');
+    return hit && pathAnchor(draft.part, this.props.source, this.props.catalog, hit, this.props.gridStep);
+  }
+  private updatePathPreview() {
+    const draft = this.props.pathDraft, point = draft && this.hover && !this.navigating() ? this.pathPick(this.hover) : undefined;
+    const points = draft ? point ? appendPathPoint(draft.points, point) : draft.points : [];
+    const key = JSON.stringify([draft?.part.id, points, draft?.slackM, draft?.mirror]);
+    if (key === this.pathPreviewKey) return;
+    this.pathPreviewKey = key; release(this.pathPreview);
+    if (!draft || !points.length) return;
+    if (points.length > 1) {
+      this.pathPreview.add(createConstructionPathModel(draft.part, { points, slackM: draft.slackM }, true));
+      if (draft.mirror && points.some(p => Math.abs(p[0]) > 1e-6)) this.pathPreview.add(createConstructionPathModel(draft.part, { points: points.map(p => [-p[0], p[1], p[2]]), slackM: draft.slackM }, true));
+    }
+    const geometry = new THREE.SphereGeometry(.075, 8, 6), material = new THREE.MeshBasicMaterial({ color: BRASS_LIGHT, depthTest: false });
+    for (const p of points) { const marker = new THREE.Mesh(geometry, material); marker.position.set(...p); marker.renderOrder = 30; this.pathPreview.add(marker); }
+  }
+  private finishPath = (event: MouseEvent) => { if (this.props.pathDraft) { event.preventDefault(); this.props.onPathFinish?.(); } };
+  private leave = () => { this.hover = undefined; this.updatePathPreview(); this.ghost.visible = false; this.ghostMirror.visible = false; this.ghostArc.visible = false; this.ghostPosition = undefined; release(this.hoverGroup); this.hoverSurface = ''; };
   private cancel = () => {
     const pointer = this.pointerStart; this.pointerStart = undefined; this.controls.enabled = true;
     if (pointer && this.renderer.domElement.hasPointerCapture(pointer.id)) this.renderer.domElement.releasePointerCapture(pointer.id);
@@ -701,7 +756,7 @@ class Viewport {
     this.strokePreview.clear(); this.equipment.dispose();
     const canvas = this.renderer.domElement;
     canvas.removeEventListener('pointerdown', this.down, true); canvas.removeEventListener('pointermove', this.move); canvas.removeEventListener('pointerup', this.up);
-    canvas.removeEventListener('pointercancel', this.cancel); canvas.removeEventListener('pointerleave', this.leave);
+    canvas.removeEventListener('dblclick', this.finishPath); canvas.removeEventListener('pointercancel', this.cancel); canvas.removeEventListener('pointerleave', this.leave);
     canvas.removeEventListener('lostpointercapture', this.cancel); window.removeEventListener('keydown', this.key);
     window.removeEventListener('blur', this.cancel);
     release(this.scene); this.renderer.dispose(); this.renderer.forceContextLoss(); canvas.remove();

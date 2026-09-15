@@ -2,13 +2,24 @@ import { describe, test, expect } from 'bun:test';
 import { resolve, join, dirname } from 'node:path';
 import { mkdtemp, mkdir, readFile, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { componentHash, installationsFor, readLibrary, recipeInputs, validateLibrary } from './library';
+import { componentHash, componentItems, installationsFor, readLibrary, recipeInputs, validateLibrary } from './library';
 import { shipPresets } from '../../src/ships/presets';
 import type { ShipDefinition } from '../../src/ships/blueprint';
 const root = resolve(import.meta.dir, '../..');
 const { library, catalog } = await readLibrary(root);
 
 describe('original component library', () => {
+  test('non-gun equipment is discoverable with its real family and no fabricated weapon', async () => {
+    const items = await componentItems(root, []);
+    const director = items.find(p => p.partId === 'fletcher-mk37-director')!;
+    const rope = items.find(p => p.partId === 'generic-rope')!;
+    expect(director.equipment?.kind).toBe('director');
+    expect(director.weapon).toBeUndefined();
+    expect(rope.equipment?.path?.kind).toBe('rope');
+    expect(rope.family).toBe('rope');
+    expect(rope.weapon).toBeUndefined();
+    expect(new Set(items.map(p => p.partId)).size).toBe(items.length);
+  });
   test('every catalog part has explicit metadata and only real usage is listed', () => {
     expect(() => validateLibrary(library, catalog)).not.toThrow();
     const usages = installationsFor('oerlikon-20mm-single', Object.values(shipPresets) as unknown as ShipDefinition[]);

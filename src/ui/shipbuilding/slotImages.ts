@@ -5,6 +5,7 @@ import { constructionEquipmentModelUrl } from '../../ships/constructionEquipment
 import { loadShipModel } from '../../game/loadShipModel';
 import { constructionPaintColor } from './paints';
 import { CORNER_SIGNS } from '../../ships/constructionVertex';
+import { createConstructionPathModel } from '../../game/constructionPathModel';
 import { primitiveGeometry } from './primitiveGeometry';
 import type { SlotItem } from './builderLayers';
 
@@ -42,6 +43,7 @@ function cornerHandles(size: Vec3): THREE.Object3D[] {
 }
 
 async function partModel(part: ConstructionEquipmentPart, signal: AbortSignal): Promise<THREE.Object3D> {
+  if (part.path) return createConstructionPathModel(part);
   const asset = await loadShipModel(constructionEquipmentModelUrl(part), undefined, part.contentHash, signal);
   return asset.scene;
 }
@@ -49,6 +51,7 @@ async function partModel(part: ConstructionEquipmentPart, signal: AbortSignal): 
 function dispose(object: THREE.Object3D) {
   object.traverse(child => {
     const mesh = child as THREE.Mesh;
+    if (child instanceof THREE.InstancedMesh) child.dispose();
     mesh.geometry?.dispose();
     for (const material of mesh.material ? Array.isArray(mesh.material) ? mesh.material : [mesh.material] : []) {
       for (const value of Object.values(material)) if (value instanceof THREE.Texture) value.dispose();

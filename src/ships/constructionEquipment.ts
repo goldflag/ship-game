@@ -1,5 +1,25 @@
 import { assetUrl } from '../assetUrl';
-import type { ConstructionCatalog, ConstructionEquipmentPart } from './blueprint';
+import type { ConstructionCatalog, ConstructionEquipmentPart, ConstructionSource } from './blueprint';
+
+/** Describe an explicit catalog update; old source revisions keep their exact catalog. */
+export function constructionCatalogUpdate(source: ConstructionSource, current: ConstructionCatalog, next: ConstructionCatalog) {
+  if (source.construction.catalogRevision !== current.revision) throw new Error('Load this design’s equipment revision before updating its parts library.');
+  const used = new Set(source.construction.equipment.map(p => p.partId));
+  const changedParts: string[] = [], missingParts: string[] = [];
+  for (const id of used) {
+    const before = current.equipment.find(p => p.id === id), after = next.equipment.find(p => p.id === id);
+    if (!before || !after) { missingParts.push(before?.name ?? id); continue; }
+    if (before.contentHash !== after.contentHash) changedParts.push(before.name);
+  }
+  return { changedParts, missingParts };
+}
+
+/** Call inside one editor history command, after reviewing changed fitted variants. */
+export function updateConstructionCatalog(source: ConstructionSource, current: ConstructionCatalog, next: ConstructionCatalog): void {
+  const { missingParts } = constructionCatalogUpdate(source, current, next);
+  if (missingParts.length) throw new Error(`The new parts library is missing fitted parts: ${missingParts.join(', ')}. Keep this design’s existing library.`);
+  source.construction.catalogRevision = next.revision;
+}
 
 const hashPattern=/^[a-f0-9]{64}$/;
 const idPattern=/^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -19,7 +39,10 @@ export function parseConstructionCatalog(value:unknown):ConstructionCatalog {
     if(!vector(p.size) || p.size.some(x=>x<=0) || !vector(p.boundsCenter) || !vector(p.centerOfGravity) || !['internal','deck','underwater'].includes(p.placement)) throw new Error(`Invalid equipment dimensions: ${p.id}`);
     if(p.kind==='gun') {
       if(p.massKg!==undefined || !c.weapons.parts.some(g=>g.id===p.gunPartId)) throw new Error(`Missing canonical weapon: ${p.id}`);
-    } else if(!['torpedo-launcher','engine','magazine','funnel','propeller','rudder','mast','director'].includes(p.kind) || !Number.isFinite(p.massKg) || p.massKg!<=0) throw new Error(`Invalid equipment family/mass: ${p.id}`);
+    } else if(!['torpedo-launcher','engine','magazine','funnel','propeller','rudder','mast','director','deck-fitting'].includes(p.kind) || !Number.isFinite(p.massKg) || p.massKg!<=0) throw new Error(`Invalid equipment family/mass: ${p.id}`);
+    if(p.path && (p.kind!=='deck-fitting' || !['railing','rope','chain'].includes(p.path.kind)
+      || !Number.isFinite(p.path.diameterM) || p.path.diameterM<=0
+      || !Number.isFinite(p.path.massKgPerM) || p.path.massKgPerM<=0)) throw new Error(`Invalid path profile: ${p.id}`);
   }
   return c;
 }

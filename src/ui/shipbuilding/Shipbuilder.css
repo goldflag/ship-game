@@ -231,7 +231,13 @@
 
 @media (max-width: 1100px) {
   .shipbuilder { --sb-slot: 56px; }
-  .sb-tabs { gap: 14px; }
+  .sb-top { height: auto; flex-wrap: wrap; gap: 4px 12px; padding-top: 8px; }
+  .sb-ship { flex: 1; flex-wrap: wrap; gap: 3px 10px; }
+  .sb-name { width: 140px; }
+  .sb-tabs { order: 4; flex-basis: 100%; height: 32px; justify-content: center; gap: 14px; }
+  .sb-tabs button { height: 32px; }
+  .sb-left { top: 94px; }
+  .sb-tag { max-width: min(420px, calc(100% - 96px)); overflow-y: auto; scrollbar-width: thin; }
   .sb-ledger { width: 176px; }
 }
 @media (max-width: 1640px) {
@@ -244,7 +250,7 @@
 @media (max-width: 860px) {
   .sb-ledger, .sb-viewbar span { display: none; }
   .sb-name { width: 120px; }
-  .sb-top { gap: 12px; padding: 0 12px; }
+  .sb-top { padding-inline: 12px; }
 }
 @media (max-width: 740px) {
   .sb-top { height: auto; display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 4px 12px; padding-top: 12px; }
@@ -259,12 +265,22 @@
   .sb-left .sb-rail { min-height: 0; overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; pointer-events: auto; }
   .sb-left .sb-rail button { flex-shrink: 0; }
   .sb-menu { position: fixed; left: 12px; top: 64px; width: calc(100vw - 24px); max-width: none; z-index: 6; }
-  .sb-orientation { display: none; }
   .sb-viewbar { left: 12px; right: 12px; bottom: 8px; justify-content: center; flex-wrap: wrap; }
-  /* the two-row palette spans the width, so the view bar returns to a row beneath it */
-  .shipbuilder { --sb-bar-bottom: 52px; --sb-bar-height: calc((100vw - 52px) * 2 / 5 + 6px); }
-  .sb-viewbar { flex-direction: row; gap: 12px; }
-  .sb-orientation { bottom: 210px; }
+  /* Two rows keep every view control below the full-width palette. */
+  .shipbuilder { --sb-bar-bottom: 92px; --sb-bar-height: calc((100vw - 52px) * 2 / 5 + 6px); }
+  .sb-viewbar { left: 14px; right: 14px; bottom: 12px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px 10px; align-items: center; }
+  .sb-viewbar button { min-width: 0; min-height: 28px; white-space: normal; line-height: 1.25; }
+  .sb-viewbar kbd { display: none; }
+  .sb-orientation { bottom: calc(var(--sb-bar-bottom) + var(--sb-bar-height) + 18px); }
+  .shipbuilder:not(.sb-freeform-mode) .sb-top { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 12px; }
+  .shipbuilder:not(.sb-freeform-mode) .sb-ship { grid-column: 2; }
+  .shipbuilder:not(.sb-freeform-mode) .sb-name { flex-basis: 100%; width: 100%; }
+  .shipbuilder:not(.sb-freeform-mode) .sb-actions { grid-column: 1 / -1; width: 100%; margin: 0; }
+  .shipbuilder:not(.sb-freeform-mode) .sb-cmd { margin-left: auto; }
+  .shipbuilder:not(.sb-freeform-mode) .sb-tabs { grid-column: 1 / -1; width: 100%; margin: 0; justify-content: space-between; }
+  .shipbuilder:not(.sb-freeform-mode) .sb-left { top: 144px; }
+  .shipbuilder:not(.sb-freeform-mode) .sb-rail button { height: 44px; }
+  .sb-menu { position: fixed; left: 12px; right: 12px; top: 64px; width: auto; max-height: calc(100dvh - 88px); }
   .sb-hotbar { width: calc(100% - 28px); display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); }
   .shipbuilder .sb-hotbar .sb-slot { width: auto; height: auto; aspect-ratio: 1; min-width: 0; }
   .sb-drawer { width: calc(100% - 28px); max-width: none; }
@@ -354,4 +370,25 @@
   .sb-freeform-mode .sb-ledger {display:none;}
   .sb-freeform-mode .sb-rail button {height:36px;}
   .sb-freeform-mode .sb-rail button svg {width:16px;height:16px;}
+}
+
+/* Connected paths stay in the existing cursor readout and selected object tag. */
+.sb-cursor button, .sb-path-editor button { font: inherit; color: var(--sb-text, #edf1ec); background: #2f3438; border: 1px solid #cfdfdf35; border-radius: 3px; padding: 4px 7px; cursor: pointer; }
+.sb-cursor button:hover, .sb-path-editor button:hover { background: #383d41; }
+.sb-cursor button:disabled, .sb-path-editor button:disabled { opacity: .45; cursor: default; }
+.sb-cursor button:focus-visible, .sb-path-editor button:focus-visible { outline: 2px solid #e0c58d; outline-offset: 2px; }
+.sb-path-editor { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 8px; padding-top: 7px; border-top: 1px solid #cfdfdf35; }
+.sb-path-editor > span { display: flex; flex-wrap: wrap; gap: 5px; }
+
+.shipbuilder[data-path-drawing] .sb-cursor { width: max-content; max-width: min(900px, calc(100% - 36px)); flex-wrap: wrap; justify-content: center; gap: 6px 12px; white-space: normal; }
+.sb-cursor .sb-path-hint { flex-basis: 100%; text-align: center; }
+
+@media (max-width: 740px) {
+  /* The route prompt gets its own space beside the rail, above the palette. */
+  .shipbuilder[data-path-drawing]:not([data-drawer]) .sb-cursor { left: 80px; right: 14px; width: auto; max-width: none; max-height: 176px; transform: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: center; gap: 6px 10px; padding: 10px 12px; overflow-y: auto; scrollbar-width: thin; background: var(--sb-card); border: 1px solid var(--sb-line2); border-radius: 3px; text-shadow: none; }
+  .shipbuilder[data-path-drawing] .sb-cursor > :is(b, span, label) { grid-column: 1 / -1; }
+  .shipbuilder[data-path-drawing] .sb-cursor button { min-height: 28px; text-align: center; }
+  .shipbuilder[data-path-drawing] .sb-cursor .sb-path-hint { text-align: left; }
+  .shipbuilder[data-path-drawing] .sb-cursor .sb-coords { display: none; }
+  .shipbuilder[data-path-drawing] .sb-orientation { left: auto; right: 14px; width: 124px; bottom: calc(var(--sb-bar-bottom) + var(--sb-bar-height) + 200px); }
 }

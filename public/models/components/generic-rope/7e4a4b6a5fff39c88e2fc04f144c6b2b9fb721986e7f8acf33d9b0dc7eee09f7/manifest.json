@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "generic-rope",
+  "revision": "7e4a4b6a5fff39c88e2fc04f144c6b2b9fb721986e7f8acf33d9b0dc7eee09f7",
+  "contentHash": "7d89f99ce093c123cb73d822f6beebbdba1273d6c159e8890c502a34075cc9ec",
+  "modelSha256": "0cd23de4c314e98f399586711778f57baecc3f650586bd5642a95007c10fdbc2",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/generic-rope/7e4a4b6a5fff39c88e2fc04f144c6b2b9fb721986e7f8acf33d9b0dc7eee09f7/model.glb",
+  "boundsCenter": [
+    0,
+    0,
+    -2
+  ],
+  "size": [
+    0.045000478625296825,
+    0.045000001788195784,
+    4.000000005364418
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        -0.02250000089406967,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        -0.02250000089406967,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 44,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original generic four-metre path sample. Player route geometry follows its declared profile; mass and member dimensions are provisional engineering estimates. Native construction validates each installed path.",
+  "basis": "assets/parts/construction/README.md"
+}

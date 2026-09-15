@@ -7,7 +7,8 @@ import type { Aircraft } from './aircraft';
 
 export type Ship = { id: string; name: string; modelUrl: string; length: number; configuration: string; nation: string; type: string; shipClass: ShipClass; thumbnailUrl: string };
 export type LibraryKind = 'ship' | 'aircraft' | 'component';
-export const caliberMm = (part: ComponentItem) => Number((part.weapon.caliberM * 1000).toFixed(3));
+export const caliberMm = (part: ComponentItem) => part.weapon ? Number((part.weapon.caliberM * 1000).toFixed(3)) : undefined;
+const componentReading = (part: ComponentItem) => part.weapon ? `${caliberMm(part)} mm` : part.family.replaceAll('-', ' ');
 const NATION_LABELS: Record<string, string> = { 'United States': 'USA', 'United Kingdom': 'UK' };
 const nationLabel = (nation: string) => NATION_LABELS[nation] ?? nation;
 
@@ -36,8 +37,8 @@ function ComponentCard({ part, selected, thumbnails, onSelect }: { part: Compone
     return () => { active = false; observer.disconnect(); };
   }, [part, thumbnails]);
   return <li><button ref={button} className="card" aria-pressed={selected} data-id={part.partId}
-    aria-label={`${part.name}, ${caliberMm(part)} mm, ${part.nation}, ${part.partId}`} title={`${part.name}\n${part.partId}\n${part.builder ? 'Reusable source' : 'Installed preview'} · ${part.review}`} onClick={onSelect}>
-    <span className="card-top">{nationLabel(part.nation)} · {caliberMm(part)} mm</span>
+    aria-label={`${part.name}, ${componentReading(part)}, ${part.nation}, ${part.partId}`} title={`${part.name}\n${part.partId}\n${part.builder ? 'Reusable source' : 'Installed preview'} · ${part.review}`} onClick={onSelect}>
+    <span className="card-top">{nationLabel(part.nation)} · {componentReading(part)}</span>
     {image ? <img className="card-image" src={image} alt="" width="320" height="180"/> : <span className="card-placeholder">{failed ? 'No preview' : part.modelUrl || part.installations.length ? 'Rendering…' : 'No preview'}</span>}
     <strong>{part.name}</strong>
   </button></li>;
@@ -77,7 +78,7 @@ export function LibraryCarousel({ kind, onKind, ships, parts, aircraft, shipId, 
   const aircraftNations = useMemo(() => [...new Set(aircraft.map(a => a.nation))].sort(), [aircraft]);
   const roles = useMemo(() => [...new Set(aircraft.map(a => a.role))].sort(), [aircraft]);
   const filteredAircraft = useMemo(() => aircraft.filter(a => (aircraftNation === 'All' || a.nation === aircraftNation) && (role === 'All' || a.role === role) && `${a.name} ${a.id} ${a.year}`.toLowerCase().includes(aircraftSearch.trim().toLowerCase())), [aircraft, aircraftNation, role, aircraftSearch]);
-  const calibers = useMemo(() => [...new Set(parts.map(caliberMm))].sort((a, b) => a - b), [parts]);
+  const calibers = useMemo(() => [...new Set(parts.map(caliberMm).filter((v): v is number => v !== undefined))].sort((a, b) => a - b), [parts]);
   const filteredShips = useMemo(() => ships.filter(s => (shipClass === 'All' || s.shipClass === shipClass) && (shipNation === 'All' || s.nation === shipNation)), [ships, shipClass, shipNation]);
   const filteredParts = useMemo(() => parts.filter(p => (partNation === 'All' || p.nation === partNation) && (!caliber || caliberMm(p) === Number(caliber)) &&
     `${p.name} ${p.partId} ${p.family} ${p.nation}`.toLowerCase().includes(search.trim().toLowerCase())), [parts, search, partNation, caliber]);

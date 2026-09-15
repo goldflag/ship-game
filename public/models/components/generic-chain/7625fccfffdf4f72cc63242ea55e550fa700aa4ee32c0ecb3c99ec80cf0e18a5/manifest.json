@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "generic-chain",
+  "revision": "7625fccfffdf4f72cc63242ea55e550fa700aa4ee32c0ecb3c99ec80cf0e18a5",
+  "contentHash": "f73dbb42de5540ddc8719da76b419dfe93c33f9acaeae659434aab140178ca86",
+  "modelSha256": "d1a65eb3101e1c9ff19557a86c11dbfbfc8ce7305c1f63d793339cd93eaf9f29",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/generic-chain/7625fccfffdf4f72cc63242ea55e550fa700aa4ee32c0ecb3c99ec80cf0e18a5/model.glb",
+  "boundsCenter": [
+    1.9486485103997753e-7,
+    1.8598516583062663e-7,
+    -2.0000002368859833
+  ],
+  "size": [
+    0.1397537455062624,
+    0.13975376241592347,
+    4.208222450654993
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        -0.07000000029802322,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        -0.07000000029802322,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 13440,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original generic four-metre path sample. Player route geometry follows its declared profile; mass and member dimensions are provisional engineering estimates. Native construction validates each installed path.",
+  "basis": "assets/parts/construction/README.md"
+}

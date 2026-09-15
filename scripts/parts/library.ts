@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { join } from 'node:path';
-import type { GunPart, PartCatalog, ShipDefinition } from '../../src/ships/blueprint';
+import type { ConstructionEquipmentPart, GunPart, PartCatalog, ShipDefinition } from '../../src/ships/blueprint';
 
 export interface LibraryEntry {
   partId: string; nation: string; family: string; builder?: string;
@@ -17,7 +17,7 @@ export interface Installation {
   position: [number, number, number]; bearingDeg: number;
 }
 export interface ComponentItem extends LibraryEntry {
-  name: string; weapon: GunPart; installations: Installation[];
+  name: string; weapon?: GunPart; equipment?: Omit<ConstructionEquipmentPart, 'modelUrl' | 'contentHash'>; installations: Installation[];
   modelUrl?: string; previewStatus: 'current' | 'missing' | 'stale' | 'installation-only';
 }
 const originalPath = (p: string) => /^(assets\/parts|scripts\/ships)\/[a-zA-Z0-9_./-]+\.py$/.test(p) && !p.split('/').includes('..');
@@ -59,7 +59,7 @@ export function installationsFor(partId: string, ships: ShipDefinition[]): Insta
 }
 export async function componentItems(root: string, ships: ShipDefinition[]): Promise<ComponentItem[]> {
   const { library, catalog } = await readLibrary(root);
-  return Promise.all(library.components.map(async entry => {
+  const guns = await Promise.all(library.components.map(async entry => {
     const weapon = catalog.parts.find(p => p.id === entry.partId)!;
     const item: ComponentItem = { ...entry, name: weapon.name, weapon, installations: installationsFor(entry.partId, ships), previewStatus: entry.builder ? 'missing' : 'installation-only' };
     if (entry.builder) {
@@ -73,4 +73,28 @@ export async function componentItems(root: string, ships: ShipDefinition[]): Pro
     }
     return item;
   }));
+  const { readEquipment, equipmentHash, inspectEquipmentModel } = await import('./equipment');
+  const { equipment, registry } = await readEquipment(root);
+  const published = await readFile(join(root, 'public/models/components/catalog.json'), 'utf8').then(JSON.parse).catch(() => undefined);
+  const fittings = await Promise.all(equipment.filter(p => p.kind !== 'gun').map(async part => {
+    const entry = registry.components.find(e => e.partId === part.id)!;
+    const item: ComponentItem = { ...entry, name: part.name, nation: part.id.startsWith('fletcher-') ? 'United States' : 'Generic',
+      family: part.path?.kind ?? part.kind, equipment: part, installations: [], previewStatus: 'missing' };
+    const hash = await equipmentHash(root, part);
+    try {
+      const bytes = await readFile(join(root, '.build/parts', part.id, 'model.glb'));
+      inspectEquipmentModel(bytes, hash, part);
+      item.previewStatus = 'current'; item.modelUrl = `/api/components/${part.id}/model.glb?v=${hash}`;
+    } catch {
+      const retained = published?.equipment?.find((p: ConstructionEquipmentPart) => p.id === part.id && p.contentHash === hash);
+      if (retained && /^\/models\/components\/[a-z0-9-]+\/[a-f0-9]{64}\/model.glb$/.test(retained.modelUrl)) {
+        try {
+          inspectEquipmentModel(await readFile(join(root, 'public', retained.modelUrl)), hash, part);
+          item.previewStatus = 'current'; item.modelUrl = retained.modelUrl;
+        } catch { item.previewStatus = 'stale'; }
+      }
+    }
+    return item;
+  }));
+  return [...guns, ...fittings];
 }

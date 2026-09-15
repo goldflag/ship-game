@@ -1,0 +1,374 @@
+//! Connected deck fittings. Native code owns support, fit and distributed loading;
+//! the editor renders the same documented 16-interval parabolic sag approximation.
+use crate::{construction_geometry as cg, definition::*, geometry::*};
+
+const SAG_INTERVALS: usize = 16;
+const MAX_LENGTH_M: f64 = 500.;
+
+fn error(message: impl Into<String>, id: &str) -> ConstructionDiagnostic {
+    ConstructionDiagnostic {
+        severity: "error".into(),
+        code: "equipment-path".into(),
+        message: message.into(),
+        source_id: Some(id.into()),
+    }
+}
+fn finite(p: Vec3) -> bool {
+    p.iter().all(|x| x.is_finite() && x.abs() <= 1000.)
+}
+
+pub(crate) fn supported_surface(
+    surfaces: &[ConstructionSurface],
+    point: Vec3,
+    direction: Option<Vec3>,
+    deck_only: bool,
+    tolerance: f64,
+) -> bool {
+    surfaces.iter().any(|s| {
+        !s.open
+            && (!deck_only || s.normal[1] >= 0.35)
+            && direction.is_none_or(|d| dot(s.normal, d) <= -0.5)
+            && length(sub(
+                cg::closest_point(&cg::prism(&s.vertices, 0.001), point),
+                point,
+            )) <= tolerance
+    })
+}
+
+pub(crate) struct SupportSocket {
+    pub owner: String,
+    pub position: Vec3,
+    pub direction: Vec3,
+}
+
+#[derive(Clone)]
+pub(crate) struct Member {
+    pub a: Vec3,
+    pub b: Vec3,
+    pub radius: f64,
+    mass_kg: f64,
+}
+impl Member {
+    /// A narrow oriented box encloses the round member for conservative fit checks.
+    /// Unlike a route-wide AABB this preserves the empty space between members.
+    pub fn cell(&self) -> cg::Cell {
+        let along = normalize(sub(self.b, self.a));
+        let reference = if along[1].abs() < 0.95 {
+            [0., 1., 0.]
+        } else {
+            [1., 0., 0.]
+        };
+        let right = normalize(cross(reference, along));
+        let up = cross(along, right);
+        let center = scale(add(self.a, self.b), 0.5);
+        let mut cell = cg::box_cell(
+            [0.; 3],
+            [
+                2. * self.radius,
+                2. * self.radius,
+                length(sub(self.b, self.a)),
+            ],
+        );
+        for face in &mut cell.faces {
+            for p in &mut face.vertices {
+                *p = add(
+                    center,
+                    add(scale(right, p[0]), add(scale(up, p[1]), scale(along, p[2]))),
+                );
+            }
+        }
+        cell
+    }
+    fn inertia(&self, about: Vec3) -> Vec3 {
+        let delta = sub(self.b, self.a);
+        let len = length(delta);
+        let axis = scale(delta, 1. / len);
+        let shift = sub(scale(add(self.a, self.b), 0.5), about);
+        std::array::from_fn(|i| {
+            self.mass_kg
+                * (len * len / 12. * (1. - axis[i] * axis[i])
+                    + self.radius * self.radius / 4. * (1. + axis[i] * axis[i])
+                    + dot(shift, shift)
+                    - shift[i] * shift[i])
+        })
+    }
+}
+
+pub(crate) struct FittedPath {
+    pub cells: Vec<cg::Cell>,
+    pub mass: ConstructionMass,
+}
+
+pub(crate) fn compile(
+    e: &ConstructionEquipment,
+    p: &ConstructionEquipmentPart,
+    surfaces: &[ConstructionSurface],
+    hull: &[cg::Cell],
+    hull_index: &cg::Broadphase,
+    sockets: &[SupportSocket],
+    fitted: &[(String, cg::Cell)],
+    fitting_index: &cg::Broadphase,
+) -> Result<FittedPath, ConstructionDiagnostic> {
+    let source = e
+        .path
+        .as_ref()
+        .ok_or_else(|| error("Draw a connected path for this fitting", &e.id))?;
+    let profile = p
+        .path
+        .as_ref()
+        .ok_or_else(|| error("This fixed fitting cannot contain path points", &e.id))?;
+    let base_mass = p.mass_kg.unwrap_or(0.);
+    if p.kind != "deck-fitting"
+        || p.placement != "deck"
+        || !["railing", "rope", "chain"].contains(&profile.kind.as_str())
+        || !profile.diameter_m.is_finite()
+        || !(0.005..=0.2).contains(&profile.diameter_m)
+        || !profile.mass_kg_per_m.is_finite()
+        || !(0.01..=1000.).contains(&profile.mass_kg_per_m)
+        || !base_mass.is_finite()
+        || !(0.01..=10000.).contains(&base_mass)
+        || p.occupancy.as_ref().is_some_and(|x| !x.is_empty())
+        || [
+            p.power_kw,
+            p.exhaust_kw,
+            p.thrust_efficiency,
+            p.rudder_area_m2,
+            p.service_mass_kg,
+            p.ammunition_capacity,
+        ]
+        .iter()
+        .flatten()
+        .any(|x| *x != 0.)
+    {
+        return Err(error(
+            "Invalid catalog path profile or hardware mass",
+            &e.id,
+        ));
+    }
+    if !(2..=64).contains(&source.points.len()) || source.points.iter().any(|&p| !finite(p)) {
+        return Err(error(
+            "Use 2–64 finite local path points within 1000 m",
+            &e.id,
+        ));
+    }
+    let pose = Pose {
+        x: e.position[0],
+        y: e.position[1],
+        z: e.position[2],
+        heading: e.bearing_deg.to_radians(),
+        ..Default::default()
+    };
+    let points: Vec<_> = source
+        .points
+        .iter()
+        .map(|&p| local_to_world(p, pose))
+        .collect();
+    let lengths: Vec<_> = points.windows(2).map(|p| length(sub(p[1], p[0]))).collect();
+    if points.iter().any(|&p| !finite(p))
+        || lengths.iter().any(|&l| l < 0.05)
+        || lengths.iter().sum::<f64>() > MAX_LENGTH_M
+    {
+        return Err(error(
+            "Path segments must be at least 5 cm and total length at most 500 m",
+            &e.id,
+        ));
+    }
+    let railing = profile.kind == "railing";
+    let slack = source.slack_m.unwrap_or(0.);
+    let slack_limit = lengths.iter().copied().fold(40., f64::min) * 0.5;
+    if !slack.is_finite() || !(0.0..=slack_limit).contains(&slack) || (railing && slack != 0.) {
+        return Err(error(
+            "Slack must be 0–20 m and at most half the shortest segment; railings cannot sag",
+            &e.id,
+        ));
+    }
+    let mut members = vec![];
+    let mut anchors = vec![];
+    // Chain diameter describes the wire; the outer alternating-link envelope is
+    // Four wire diameters wide. Fit/inertia use that conservative circular envelope.
+    let radius = profile.diameter_m * if profile.kind == "chain" { 2. } else { 0.5 };
+    if railing {
+        let height = profile.height_m.unwrap_or(1.1);
+        let spacing = profile.post_spacing_m.unwrap_or(1.5);
+        let post_mass = profile.post_mass_kg.unwrap_or(0.);
+        if !height.is_finite()
+            || !(0.3..=3.).contains(&height)
+            || !spacing.is_finite()
+            || !(0.25..=3.).contains(&spacing)
+            || !post_mass.is_finite()
+            || !(0.01..=1000.).contains(&post_mass)
+        {
+            return Err(error(
+                "Invalid railing height, post spacing or post mass",
+                &e.id,
+            ));
+        }
+        for (span, &len) in points.windows(2).zip(&lengths) {
+            for y in [height / 3., height * 2. / 3., height] {
+                members.push(Member {
+                    a: add(span[0], [0., y, 0.]),
+                    b: add(span[1], [0., y, 0.]),
+                    radius,
+                    mass_kg: len * profile.mass_kg_per_m / 3.,
+                });
+            }
+            let intervals = (len / spacing).ceil() as usize;
+            for i in 0..=intervals {
+                let foot = add(
+                    span[0],
+                    scale(sub(span[1], span[0]), i as f64 / intervals as f64),
+                );
+                if anchors.iter().any(|&a| length(sub(a, foot)) < 1e-6) {
+                    continue;
+                }
+                anchors.push(foot);
+                members.push(Member {
+                    a: foot,
+                    b: add(foot, [0., height, 0.]),
+                    radius: radius * 1.25,
+                    mass_kg: post_mass,
+                });
+            }
+        }
+    } else {
+        if profile.height_m.is_some()
+            || profile.post_spacing_m.is_some()
+            || profile.post_mass_kg.is_some()
+        {
+            return Err(error(
+                "Rope and chain profiles cannot contain railing post settings",
+                &e.id,
+            ));
+        }
+        anchors.extend(points.iter().copied());
+        for span in points.windows(2) {
+            let sample = |i: usize| {
+                let t = i as f64 / SAG_INTERVALS as f64;
+                sub(
+                    add(span[0], scale(sub(span[1], span[0]), t)),
+                    [0., 4. * slack * t * (1. - t), 0.],
+                )
+            };
+            for i in 0..SAG_INTERVALS {
+                let (a, b) = (sample(i), sample(i + 1));
+                members.push(Member {
+                    a,
+                    b,
+                    radius,
+                    mass_kg: length(sub(b, a)) * profile.mass_kg_per_m,
+                });
+            }
+        }
+    }
+    let actual_length: f64 = if railing {
+        lengths.iter().sum()
+    } else {
+        members.iter().map(|m| length(sub(m.b, m.a))).sum()
+    };
+    if actual_length > MAX_LENGTH_M {
+        return Err(error("The sagging path length exceeds 500 m", &e.id));
+    }
+    let mut supported_by = vec![];
+    for &anchor in &anchors {
+        let tolerance = if profile.kind == "chain" {
+            (radius + 0.005).max(0.05)
+        } else {
+            0.05
+        };
+        if supported_surface(surfaces, anchor, None, railing, tolerance) {
+            continue;
+        }
+        let support = (!railing)
+            .then(|| {
+                sockets
+                    .iter()
+                    .find(|s| length(sub(s.position, anchor)) <= 0.05)
+            })
+            .flatten();
+        if let Some(support) = support {
+            supported_by.push(support);
+        } else {
+            return Err(error(
+                if railing {
+                    "Every railing post needs a supported deck surface within 5 cm"
+                } else {
+                    "Each rope or chain endpoint needs a hull surface or an explicit socket on hull-supported equipment within 5 cm"
+                },
+                &e.id,
+            ));
+        }
+    }
+    let cells: Vec<_> = members.iter().map(Member::cell).collect();
+    for (member, cell) in members.iter().zip(&cells) {
+        let fitted_tolerance = 4. * member.radius * member.radius * 0.005;
+        if hull_index.candidates(cell).iter().any(|&i| {
+            cg::intersection(cell, &hull[i])
+                .is_some_and(|x| cg::moments(&x).volume > fitted_tolerance)
+        }) {
+            return Err(error(
+                "A path member runs through the hull; raise its anchors or reduce slack",
+                &e.id,
+            ));
+        }
+        for i in fitting_index.candidates(cell) {
+            let (owner, other) = &fitted[i];
+            if let Some(overlap) =
+                cg::intersection(cell, other).filter(|x| cg::moments(x).volume > 1e-8)
+            {
+                // Explicit eyes/throats can sit inside a conservative catalog box.
+                // Their narrow outward corridor flares at 1:4 to accommodate a
+                // rope leaving an eye downward. A constant-width tunnel would
+                // mistake the empty box above a wide bedplate for the actual post.
+                // Behind-socket/body intersections still fail; the AABB grants no support.
+                let at_socket = supported_by.iter().any(|socket| {
+                    &socket.owner == owner
+                        && overlap.faces.iter().flat_map(|f| &f.vertices).all(|&v| {
+                            let delta = sub(v, socket.position);
+                            let along = dot(delta, socket.direction);
+                            along >= -radius * 1.5
+                                && length(sub(delta, scale(socket.direction, along)))
+                                    <= (radius * 2.5).max(0.075) + along.max(0.) * 0.25
+                        })
+                });
+                if !at_socket {
+                    return Err(error(
+                        format!("A path member intersects equipment {owner}"),
+                        &e.id,
+                    ));
+                }
+            }
+        }
+    }
+    let mass_kg = base_mass + members.iter().map(|m| m.mass_kg).sum::<f64>();
+    let ends = [points[0], *points.last().unwrap()];
+    let weighted_members = members.iter().fold([0.; 3], |sum, m| {
+        add(sum, scale(add(m.a, m.b), m.mass_kg * 0.5))
+    });
+    let center = scale(
+        add(
+            weighted_members,
+            scale(add(ends[0], ends[1]), base_mass * 0.5),
+        ),
+        1. / mass_kg,
+    );
+    let mut inertia = members
+        .iter()
+        .fold([0.; 3], |sum, m| add(sum, m.inertia(center)));
+    for end in ends {
+        let d = sub(end, center);
+        inertia = add(
+            inertia,
+            std::array::from_fn(|i| base_mass * 0.5 * (dot(d, d) - d[i] * d[i])),
+        );
+    }
+    Ok(FittedPath {
+        cells,
+        mass: ConstructionMass {
+            id: e.id.clone(),
+            kind: "equipment".into(),
+            mass_kg,
+            center,
+            inertia_kg_m2: inertia,
+        },
+    })
+}

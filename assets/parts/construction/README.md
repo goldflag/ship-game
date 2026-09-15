@@ -1,5 +1,43 @@
 # Construction equipment
 
+## Deck fittings and connected paths
+
+The first deck fittings collection adds bitts, fairleads, a capstan and anchor
+windlass, a stowed anchor, a lifeboat with cradles and paired davits, two vent
+styles, a watertight door, deck hatch, vertical ladder, inclined stairs, compact
+optical rangefinder and static searchlight. `deck_fittings.py` is their original
+generic naval recipe. They do not represent a researched vessel or exact service
+variant. Dimensions, dry masses and optical fire-control capability are declared
+game estimates. Doors and hatches are closed fittings; they do not cut hull
+openings. Boats and davits are stowed assemblies. The searchlight has no beam,
+light source, power demand, detection effect or runtime articulation.
+
+The compact rangefinder uses the existing director family. Other fixed fittings
+contribute their catalog mass without adding buoyancy or a combat bonus. The
+sole or rear mounting brackets define each attachment datum. Explicit rigging
+sockets identify real rope/chain attachment locations on supported fittings.
+
+Railing, rope and chain catalog entries describe connected paths. Their original
+four-metre standalone samples are in `path_fittings.py`; the editor and runtime
+render routes procedurally from the versioned local points and catalog profile.
+Bearing and translation act on the complete route. Rope/chain slack is the
+downward midpoint sag of each span: `4 * slackM * t * (1 - t)`, sampled at sixteen
+equal intervals. Railing posts divide each span into equal intervals no longer
+than the declared spacing, with shared corner posts counted once. Native
+construction owns support, hull clearance, length, mass, CG and inertia.
+
+The 45 mm rope is estimated at 1.2 kg/m; the 35 mm chain wire profile at 22 kg/m.
+The 1.1 m three-rail profile uses 40 mm rails, at most 1.5 m post spacing,
+8.4 kg/m of rail and 7 kg per post. Fixed end hardware allowances remain separate
+catalog values. These are loading approximations, not rated working loads or
+certified scantlings. Paths are limited to 64 points and 500 m overall; slack is
+bounded by half the shortest span and 20 m. Preview samples are not independent
+authoring inputs for player routes.
+
+The component viewer lists these non-gun families with the same immutable asset
+identity checks as construction. Temporary renders and diagnostic evidence stay
+in `.build/deck-fittings/`.
+
 The curated source catalog is `../construction.json`. Its fields use the shared
 `ConstructionEquipmentPart` contract, omitting the generated `modelUrl` and
 `contentHash` until publication. Guns reference `guns.json`; no gun mass, armor,

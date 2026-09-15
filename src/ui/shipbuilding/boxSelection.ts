@@ -1,3 +1,4 @@
+import { equipmentPathBounds } from '../../ships/constructionPaths';
 import { cornerVertices } from '../../ships/constructionVertex';
 import * as THREE from 'three';
 import type { ConstructionCatalog, ConstructionSource, Vec3 } from '../../ships/blueprint';
@@ -33,7 +34,10 @@ export function boxSelectedPieces(source: ConstructionSource, catalog: Construct
   }
   for (const item of source.construction.equipment) {
     const part = catalog.equipment.find(part => part.id === item.partId);
-    if (part && (internals || part.placement !== 'internal') && overlaps(item.position, part.size, -item.bearingDeg * Math.PI / 180, part.boundsCenter)) result.push(item.id);
+    if (part && (internals || part.placement !== 'internal')) {
+      const bounds = equipmentPathBounds(part, item);
+      if (overlaps(item.position, bounds.size, -item.bearingDeg * Math.PI / 180, bounds.center)) result.push(item.id);
+    }
   }
   return result;
 }
