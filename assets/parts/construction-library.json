@@ -54,6 +54,125 @@
       "inputs": [
         "assets/parts/construction/geometry.py"
       ]
+    },
+    "generic-railing": {
+      "path": "assets/parts/construction/path_fittings.py",
+      "function": "create_railing",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-rope": {
+      "path": "assets/parts/construction/path_fittings.py",
+      "function": "create_rope",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-chain": {
+      "path": "assets/parts/construction/path_fittings.py",
+      "function": "create_chain",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-twin-bitts": {
+      "path": "assets/parts/construction/deck_fittings.py",
+      "function": "create_twin_bitts",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-fairlead": {
+      "path": "assets/parts/construction/deck_fittings.py",
+      "function": "create_fairlead",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-capstan": {
+      "path": "assets/parts/construction/deck_fittings.py",
+      "function": "create_capstan",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-anchor-windlass": {
+      "path": "assets/parts/construction/deck_fittings.py",
+      "function": "create_anchor_windlass",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-stowed-anchor": {
+      "path": "assets/parts/construction/deck_fittings.py",
+      "function": "create_stowed_anchor",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-lifeboat-davits": {
+      "path": "assets/parts/construction/deck_fittings.py",
+      "function": "create_lifeboat_davits",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-mushroom-vent": {
+      "path": "assets/parts/construction/deck_fittings.py",
+      "function": "create_mushroom_vent",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-cowl-vent": {
+      "path": "assets/parts/construction/deck_fittings.py",
+      "function": "create_cowl_vent",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-watertight-door": {
+      "path": "assets/parts/construction/deck_fittings.py",
+      "function": "create_watertight_door",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-deck-hatch": {
+      "path": "assets/parts/construction/deck_fittings.py",
+      "function": "create_deck_hatch",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-optical-rangefinder": {
+      "path": "assets/parts/construction/deck_fittings.py",
+      "function": "create_optical_rangefinder",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-static-searchlight": {
+      "path": "assets/parts/construction/deck_fittings.py",
+      "function": "create_static_searchlight",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-vertical-ladder": {
+      "path": "assets/parts/construction/deck_fittings.py",
+      "function": "create_vertical_ladder",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-inclined-stairs": {
+      "path": "assets/parts/construction/deck_fittings.py",
+      "function": "create_inclined_stairs",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
     }
   },
   "components": [
@@ -122,6 +241,108 @@
       "builder": "generic-magazine-1000",
       "review": "unreviewed",
       "limitations": "Original fixed longer magazine using the registered generic rack recipe; capacity, dry mass and dimensions are explicit provisional package estimates. The 1000-round original remains available."
+    },
+    {
+      "partId": "generic-railing",
+      "builder": "generic-railing",
+      "review": "unreviewed",
+      "limitations": "Original generic four-metre path sample. Player route geometry follows its declared profile; mass and member dimensions are provisional engineering estimates. Native construction validates each installed path."
+    },
+    {
+      "partId": "generic-rope",
+      "builder": "generic-rope",
+      "review": "unreviewed",
+      "limitations": "Original generic four-metre path sample. Player route geometry follows its declared profile; mass and member dimensions are provisional engineering estimates. Native construction validates each installed path."
+    },
+    {
+      "partId": "generic-chain",
+      "builder": "generic-chain",
+      "review": "unreviewed",
+      "limitations": "Original generic four-metre path sample. Player route geometry follows its declared profile; mass and member dimensions are provisional engineering estimates. Native construction validates each installed path."
+    },
+    {
+      "partId": "generic-twin-bitts",
+      "builder": "generic-twin-bitts",
+      "review": "unreviewed",
+      "limitations": "Original generic naval fitting with fixed attachment datum. Dimensions and dry mass are provisional engineering estimates, not a historical reconstruction. Boat/davits and doors/hatches remain stowed/closed. Searchlight is non-functional. Installed support and clearance require native validation and visual review."
+    },
+    {
+      "partId": "generic-fairlead",
+      "builder": "generic-fairlead",
+      "review": "unreviewed",
+      "limitations": "Original generic naval fitting with fixed attachment datum. Dimensions and dry mass are provisional engineering estimates, not a historical reconstruction. Boat/davits and doors/hatches remain stowed/closed. Searchlight is non-functional. Installed support and clearance require native validation and visual review."
+    },
+    {
+      "partId": "generic-capstan",
+      "builder": "generic-capstan",
+      "review": "unreviewed",
+      "limitations": "Original generic naval fitting with fixed attachment datum. Dimensions and dry mass are provisional engineering estimates, not a historical reconstruction. Boat/davits and doors/hatches remain stowed/closed. Searchlight is non-functional. Installed support and clearance require native validation and visual review."
+    },
+    {
+      "partId": "generic-anchor-windlass",
+      "builder": "generic-anchor-windlass",
+      "review": "unreviewed",
+      "limitations": "Original generic naval fitting with fixed attachment datum. Dimensions and dry mass are provisional engineering estimates, not a historical reconstruction. Boat/davits and doors/hatches remain stowed/closed. Searchlight is non-functional. Installed support and clearance require native validation and visual review."
+    },
+    {
+      "partId": "generic-stowed-anchor",
+      "builder": "generic-stowed-anchor",
+      "review": "unreviewed",
+      "limitations": "Original generic naval fitting with fixed attachment datum. Dimensions and dry mass are provisional engineering estimates, not a historical reconstruction. Boat/davits and doors/hatches remain stowed/closed. Searchlight is non-functional. Installed support and clearance require native validation and visual review."
+    },
+    {
+      "partId": "generic-lifeboat-davits",
+      "builder": "generic-lifeboat-davits",
+      "review": "unreviewed",
+      "limitations": "Original generic naval fitting with fixed attachment datum. Dimensions and dry mass are provisional engineering estimates, not a historical reconstruction. Boat/davits and doors/hatches remain stowed/closed. Searchlight is non-functional. Installed support and clearance require native validation and visual review."
+    },
+    {
+      "partId": "generic-mushroom-vent",
+      "builder": "generic-mushroom-vent",
+      "review": "unreviewed",
+      "limitations": "Original generic naval fitting with fixed attachment datum. Dimensions and dry mass are provisional engineering estimates, not a historical reconstruction. Boat/davits and doors/hatches remain stowed/closed. Searchlight is non-functional. Installed support and clearance require native validation and visual review."
+    },
+    {
+      "partId": "generic-cowl-vent",
+      "builder": "generic-cowl-vent",
+      "review": "unreviewed",
+      "limitations": "Original generic naval fitting with fixed attachment datum. Dimensions and dry mass are provisional engineering estimates, not a historical reconstruction. Boat/davits and doors/hatches remain stowed/closed. Searchlight is non-functional. Installed support and clearance require native validation and visual review."
+    },
+    {
+      "partId": "generic-watertight-door",
+      "builder": "generic-watertight-door",
+      "review": "unreviewed",
+      "limitations": "Original generic naval fitting with fixed attachment datum. Dimensions and dry mass are provisional engineering estimates, not a historical reconstruction. Boat/davits and doors/hatches remain stowed/closed. Searchlight is non-functional. Installed support and clearance require native validation and visual review."
+    },
+    {
+      "partId": "generic-deck-hatch",
+      "builder": "generic-deck-hatch",
+      "review": "unreviewed",
+      "limitations": "Original generic naval fitting with fixed attachment datum. Dimensions and dry mass are provisional engineering estimates, not a historical reconstruction. Boat/davits and doors/hatches remain stowed/closed. Searchlight is non-functional. Installed support and clearance require native validation and visual review."
+    },
+    {
+      "partId": "generic-optical-rangefinder",
+      "builder": "generic-optical-rangefinder",
+      "review": "unreviewed",
+      "limitations": "Original generic naval fitting with fixed attachment datum. Dimensions and dry mass are provisional engineering estimates, not a historical reconstruction. Boat/davits and doors/hatches remain stowed/closed. Searchlight is non-functional. Installed support and clearance require native validation and visual review."
+    },
+    {
+      "partId": "generic-static-searchlight",
+      "builder": "generic-static-searchlight",
+      "review": "unreviewed",
+      "limitations": "Original generic naval fitting with fixed attachment datum. Dimensions and dry mass are provisional engineering estimates, not a historical reconstruction. Boat/davits and doors/hatches remain stowed/closed. Searchlight is non-functional. Installed support and clearance require native validation and visual review."
+    },
+    {
+      "partId": "generic-vertical-ladder",
+      "builder": "generic-vertical-ladder",
+      "review": "unreviewed",
+      "limitations": "Original generic naval fitting with fixed attachment datum. Dimensions and dry mass are provisional engineering estimates, not a historical reconstruction. Boat/davits and doors/hatches remain stowed/closed. Searchlight is non-functional. Installed support and clearance require native validation and visual review."
+    },
+    {
+      "partId": "generic-inclined-stairs",
+      "builder": "generic-inclined-stairs",
+      "review": "unreviewed",
+      "limitations": "Original generic naval fitting with fixed attachment datum. Dimensions and dry mass are provisional engineering estimates, not a historical reconstruction. Boat/davits and doors/hatches remain stowed/closed. Searchlight is non-functional. Installed support and clearance require native validation and visual review."
     }
   ]
 }

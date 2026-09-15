@@ -1,7 +1,7 @@
 //! Authoritative construction compiler, shared by native tests and local WASM sessions.
 use crate::{catalog::sha256, construction_geometry as cg, definition::*, geometry::*};
 use std::collections::{BTreeMap, BTreeSet};
-pub const COMPILER: &str = "construction-polyhedra-2";
+pub const COMPILER: &str = "construction-polyhedra-3";
 pub const MAX_SOURCE_BYTES: usize = 16_000_000;
 pub const MAX_CATALOG_BYTES: usize = 4_000_000;
 /// Source bounds; the editor mirrors them in `src/ships/constructionEditor.ts`.
@@ -98,6 +98,13 @@ pub fn suggest(
         let Some(p) = catalog.equipment.iter().find(|p| p.id == *id) else {
             return fail("missing-part", format!("Unknown requested part {id}"), None);
         };
+        if p.path.is_some() {
+            return fail(
+                "equipment-path",
+                "Draw connected fittings between chosen attachment points".into(),
+                None,
+            );
+        }
         if !result
             .construction
             .equipment
@@ -234,6 +241,7 @@ pub fn suggest(
                 position,
                 bearing_deg: 0.,
                 magazine_id: None,
+                path: None,
                 power_source_id: if matches!(part.kind.as_str(), "funnel" | "propeller") {
                     result
                         .construction
@@ -795,6 +803,7 @@ fn build(
         construction: Some(c.clone()),
         ..Default::default()
     };
+    let mut path_clearance = vec![];
     equipment(
         c,
         catalog,
@@ -804,6 +813,7 @@ fn build(
         &mut contributions,
         &mut def,
         out,
+        &mut path_clearance,
     )?;
     for installation in crate::construction_installation::derive(c, catalog)
         .map_err(|e| error("installation-support", e, None))?
@@ -1282,6 +1292,7 @@ fn build(
                     surface: surface_mesh(&cg::box_cell(b.center, b.size)),
                 }),
         );
+        bodies.extend(path_clearance);
         def.mount_clearance=Some(MountClearanceProfile{version:1.,margin_m:0.01,basis:"Catalog gunhouses/barrels with full recoil envelope against exact hull cells and fixed equipment envelopes".into(),mount_ids:Some(def.mounts.iter().map(|m|m.id.clone()).collect()),bodies:Some(bodies),..Default::default()});
         let clearance = crate::mount_clearance::MountClearance::new(&def)
             .map_err(|e| error("clearance", e, None))?
@@ -1414,6 +1425,7 @@ fn equipment(
     masses: &mut Vec<ConstructionMass>,
     def: &mut ShipDefinition,
     out: &mut ConstructionResult,
+    path_clearance: &mut Vec<MountClearanceProfileBodiesItem>,
 ) -> Result<(), ConstructionDiagnostic> {
     if catalog.equipment.len() > 256
         || !unique(catalog.equipment.iter().map(|p| p.id.as_str()))
@@ -1427,7 +1439,25 @@ fn equipment(
     }
     let mut fitted = vec![];
     let mut all_envelopes: Vec<(String, cg::Cell)> = vec![];
-    for e in &c.equipment {
+    let mut fitting_index = cg::Broadphase::new(8.);
+    let hull_index = cg::Broadphase::sized_for(hull);
+    let mut support_sockets = vec![];
+    let mut path_members = 0;
+    // A route can attach to an explicit eye only after its owning fixed fitting
+    // has independently passed hull support/fit. Source order cannot form cycles.
+    let is_path = |e: &&ConstructionEquipment| {
+        catalog
+            .equipment
+            .iter()
+            .find(|p| p.id == e.part_id)
+            .is_some_and(|p| p.path.is_some())
+    };
+    for e in c
+        .equipment
+        .iter()
+        .filter(|e| !is_path(e))
+        .chain(c.equipment.iter().filter(is_path))
+    {
         let Some(p) = catalog.equipment.iter().find(|p| p.id == e.part_id) else {
             return Err(error(
                 "missing-part",
@@ -1469,6 +1499,7 @@ fn equipment(
                 "rudder",
                 "mast",
                 "director",
+                "deck-fitting",
             ]
             .contains(&p.kind.as_str())
             || !["internal", "deck", "underwater"].contains(&p.placement.as_str())
@@ -1476,6 +1507,24 @@ fn equipment(
             return Err(error(
                 "equipment-data",
                 "Equipment transform, model identity or fixed dimensions are invalid",
+                Some(&e.id),
+            ));
+        }
+        if e.path.is_some() && p.path.is_none() {
+            return Err(error(
+                "equipment-path",
+                "This fixed fitting cannot contain path points",
+                Some(&e.id),
+            ));
+        }
+        if p.sockets
+            .iter()
+            .flatten()
+            .any(|s| !finite(s.position) || !finite(s.direction) || length(s.direction) < 1e-6)
+        {
+            return Err(error(
+                "equipment-data",
+                "Invalid equipment socket position or direction",
                 Some(&e.id),
             ));
         }
@@ -1497,6 +1546,70 @@ fn equipment(
                     Some(&e.id),
                 ));
             }
+        }
+        if p.kind == "deck-fitting"
+            && [
+                p.power_kw,
+                p.exhaust_kw,
+                p.thrust_efficiency,
+                p.rudder_area_m2,
+                p.service_mass_kg,
+                p.ammunition_capacity,
+            ]
+            .iter()
+            .flatten()
+            .any(|x| *x != 0.)
+        {
+            return Err(error(
+                "equipment-data",
+                "Deck fittings contribute mass without machinery or weapon capabilities",
+                Some(&e.id),
+            ));
+        }
+        if p.path.is_some() {
+            let path = crate::construction_paths::compile(
+                e,
+                p,
+                &out.surfaces,
+                hull,
+                &hull_index,
+                &support_sockets,
+                &all_envelopes,
+                &fitting_index,
+            )?;
+            path_members += path.cells.len();
+            if path_members > 16_384 {
+                return Err(error(
+                    "equipment-path",
+                    "Connected fittings exceed 16384 physical members; simplify the routes",
+                    Some(&e.id),
+                ));
+            }
+            masses.push(path.mass);
+            // Group separate closed members without filling any space between them.
+            // Each group remains below the existing per-body vertex budget.
+            for (i, cells) in path.cells.chunks(64).enumerate() {
+                let mut surface = AuthoredSurface::default();
+                for cell in cells {
+                    let mesh = surface_mesh(cell);
+                    let offset = surface.vertices.len() as f64;
+                    surface.vertices.extend(mesh.vertices);
+                    surface
+                        .triangles
+                        .extend(mesh.triangles.into_iter().map(|t| t.map(|x| x + offset)));
+                }
+                path_clearance.push(MountClearanceProfileBodiesItem {
+                    id: format!("{}-members-{i}", e.id),
+                    mount_id: None,
+                    surface,
+                });
+            }
+            for cell in path.cells {
+                fitting_index.insert(&cell);
+                all_envelopes.push((e.id.clone(), cell));
+            }
+            fitted.push((e, p));
+            continue;
         }
         let pose = Pose {
             x: e.position[0],
@@ -1523,6 +1636,7 @@ fn equipment(
                 ));
             }
         }
+        fitting_index.insert(&envelope);
         all_envelopes.push((e.id.clone(), envelope.clone()));
         let mut occupied = vec![];
         if p.placement == "internal" {
@@ -1585,6 +1699,12 @@ fn equipment(
                 |s| s.position,
             );
         let attachment = local_to_world(local_attachment, pose);
+        let attachment_direction = p
+            .sockets
+            .as_ref()
+            .and_then(|s| s.iter().find(|s| s.id == "attachment"))
+            .map_or([0., -1., 0.], |s| normalize(s.direction));
+        let world_direction = sub(local_to_world(attachment_direction, pose), e.position);
         let supports = if p.placement == "internal" {
             _material
         } else {
@@ -1594,6 +1714,15 @@ fn equipment(
             cg::contains(h, attachment)
                 || length(sub(cg::closest_point(h, attachment), attachment)) <= 0.05
         });
+        let attached = attached
+            && (p.kind != "deck-fitting"
+                || crate::construction_paths::supported_surface(
+                    &out.surfaces,
+                    attachment,
+                    Some(world_direction),
+                    false,
+                    0.05,
+                ));
         let attached = attached
             && (p.placement != "underwater"
                 || out.surfaces.iter().any(|s| {
@@ -1612,8 +1741,20 @@ fn equipment(
         }
         if p.placement == "deck"
             && hull.iter().any(|h| {
-                cg::intersection(&envelope, h)
-                    .is_some_and(|x| cg::moments(&x).volume > p.size[0] * p.size[2] * 0.005)
+                cg::intersection(&envelope, h).is_some_and(|x| {
+                    let base_area = if p.kind == "deck-fitting" {
+                        (0..3)
+                            .map(|i| {
+                                attachment_direction[i].abs()
+                                    * p.size[(i + 1) % 3]
+                                    * p.size[(i + 2) % 3]
+                            })
+                            .sum()
+                    } else {
+                        p.size[0] * p.size[2]
+                    };
+                    cg::moments(&x).volume > base_area * 0.005
+                })
             })
         {
             return Err(error(
@@ -1621,6 +1762,21 @@ fn equipment(
                 "Exterior equipment body overlaps the hull; use its original support datum (5 mm fitted-base tolerance)",
                 Some(&e.id),
             ));
+        }
+        if p.placement == "deck" {
+            support_sockets.extend(
+                p.sockets
+                    .iter()
+                    .flatten()
+                    .filter(|s| {
+                        s.id != "attachment" && matches!(s.kind.as_str(), "support" | "rigging")
+                    })
+                    .map(|s| crate::construction_paths::SupportSocket {
+                        owner: e.id.clone(),
+                        position: local_to_world(s.position, pose),
+                        direction: normalize(sub(local_to_world(s.direction, pose), e.position)),
+                    }),
+            );
         }
         let weapon = if p.kind == "gun" {
             Some(

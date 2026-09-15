@@ -11,6 +11,7 @@ const MOUSE: [string, string][] = [
   ['Wheel · middle-drag', 'Zoom · dolly'],
   ['Shift-drag', 'Box select; Ctrl or ⌘ adds to the selection'],
   ['Right-click', 'Remove the piece or fitting under the pointer'],
+  ['Railing · rope · chain', 'Click connected points; double-click or Enter finishes the path; Escape cancels; Backspace removes the last point'],
   ['While placing', 'Click places; a drag lays a run; Fill drags a rectangle'],
 ];
 const EDITING: [string[], string][] = [

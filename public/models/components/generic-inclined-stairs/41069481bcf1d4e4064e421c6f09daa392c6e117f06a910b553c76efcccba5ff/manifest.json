@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "generic-inclined-stairs",
+  "revision": "41069481bcf1d4e4064e421c6f09daa392c6e117f06a910b553c76efcccba5ff",
+  "contentHash": "b83f05f09a3f0a7b2a4ede8527eab7f4ef4c2b5ead055377b7ba5d9d40f20841",
+  "modelSha256": "5e6e3c189d08b3a633b468e86807df3af48f18c4c2ef61bce59f635c93a6ce2a",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/generic-inclined-stairs/41069481bcf1d4e4064e421c6f09daa392c6e117f06a910b553c76efcccba5ff/model.glb",
+  "boundsCenter": [
+    0,
+    1.4405000638216734,
+    -0.004999935626983643
+  ],
+  "size": [
+    0.8900001645088196,
+    2.881000127643347,
+    2.269999861717224
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 2448,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original generic naval fitting with fixed attachment datum. Dimensions and dry mass are provisional engineering estimates, not a historical reconstruction. Boat/davits and doors/hatches remain stowed/closed. Searchlight is non-functional. Installed support and clearance require native validation and visual review.",
+  "basis": "assets/parts/construction/README.md"
+}

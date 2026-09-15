@@ -6,13 +6,13 @@ import '../../src/ui/styles.css';
 import { Shipbuilder } from '../../src/ui/shipbuilding/Shipbuilder';
 import { loadConstructionCatalog } from '../../src/ships/constructionEquipment';
 import { createStarterSource } from '../../src/ships/constructionStarter';
-import type { ConstructionResult, ConstructionSource, Vec3 } from '../../src/ships/blueprint';
+import type { ConstructionCatalog, ConstructionResult, ConstructionSource, Vec3 } from '../../src/ships/blueprint';
 
 declare global { interface Window { shipbuilderReview?: { source?: ConstructionSource; launched?: ConstructionResult; close(): void }; shipbuilderViewport?: { camera: { projectionMatrix: unknown }; project?(point: Vec3): unknown }; } }
 
 /** Independent mounted surface for editor/browser review; runtime trial integration is checked through App. */
-export async function mountShipbuilderReview(source?: ConstructionSource) {
-  const catalog = await loadConstructionCatalog();
+export async function mountShipbuilderReview(source?: ConstructionSource, retainedCatalog?: ConstructionCatalog) {
+  const catalog = retainedCatalog ?? await loadConstructionCatalog();
   const host = document.createElement('div'); document.body.replaceChildren(host); document.body.style.margin = '0';
   const root = createRoot(host);
   const review: NonNullable<Window['shipbuilderReview']> = { close: () => { root.unmount(); host.remove(); } };

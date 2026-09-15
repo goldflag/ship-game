@@ -2,11 +2,11 @@ import { FreeformToolbar, type FreeformSettings } from './FreeformToolbar';
 import { canEditVertices, freeformEdit, replaceVertexPrimitives, selectionCenter, splitVertexPrimitive, VERTEX_UNITS } from '../../ships/constructionVertex';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { ConstructionBoundary, ConstructionCatalog, ConstructionEquipment, ConstructionPrimitive, ConstructionResult, ConstructionSource, ConstructionSuggestion, ConstructionSurfaceAssignment, Vec3 } from '../../ships/blueprint';
-import { CONSTRUCTION_LIMITS, assignConstructionSurfaces, copyConstructionSelection, editableConstructionSurfaces, mirroredFace, mirroredPrimitive, moveConstructionSelection, newConstructionId, removeConstructionSelection, rotateConstructionSelection, surfaceKey, type ConstructionFace } from '../../ships/constructionEditor';
+import { CONSTRUCTION_LIMITS, assignConstructionSurfaces, copyConstructionSelection, editableConstructionSurfaces, mirroredFace, mirroredPrimitive, mirroredEquipment, moveConstructionSelection, newConstructionId, removeConstructionSelection, rotateConstructionSelection, surfaceKey, type ConstructionFace } from '../../ships/constructionEditor';
 import { removeLocalShip } from '../../ships/localShips';
 import { ConstructionClient } from '../../ships/constructionClient';
 import { createStarterSource, startingHullBlock, type ConstructionStarter } from '../../ships/constructionStarter';
-import { loadConstructionCatalog } from '../../ships/constructionEquipment';
+import { constructionCatalogUpdate, updateConstructionCatalog, loadConstructionCatalog } from '../../ships/constructionEquipment';
 import { armorThicknessColor } from '../../ships/inspection';
 import { BuilderViewport, type BuilderArc, type BuilderDisplay, type BuilderGesture, type BuilderMoveTargets, type BuilderPick, type BuilderProposal, type BuilderTag, type BuilderView, type ConstructionModelFactory } from './BuilderViewport';
 import { BUILDER_LAYERS, BUILDER_RAIL, DEFAULT_TOOL, FAMILY_NAMES, formatTonnes, paletteFor, type BuilderLayer, type BuilderTool, type RailEntry, type SlotItem } from './builderLayers';
@@ -14,6 +14,9 @@ import { equipmentMassKg, format, hullBounds, ledgerRows, massGroups, pieceMassK
 import { SlotGlyph, ToolGlyph } from './builderGlyphs';
 import { DesignsMenu, downloadConstructionSource } from './DesignsMenu';
 import { HelpDialog } from './HelpDialog';
+import { pathProblem, pathSlackLimit, equipmentPathBounds } from '../../ships/constructionPaths';
+import { appendPathPoint, pathEquipment } from './pathDrawing';
+import { PathPointEditor } from './PathPointEditor';
 import { NumberField } from './NumberField';
 import { SlotImages, useSlotImages } from './slotImages';
 import { armorInspectionGroups, describeArmorGroup } from './ArmorInspection';
@@ -56,6 +59,8 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const editor = useBuilderSource({ ...props, starterSource, compiler, catalogRevision: props.catalog.revision });
   const { source, result } = editor, data = source.construction;
   const [activeCatalog, setActiveCatalog] = useState(props.catalog);
+  const [latestCatalog, setLatestCatalog] = useState(props.catalog);
+  useEffect(() => { let active = true; void loadConstructionCatalog().then(next => { if (active) setLatestCatalog(next); }).catch(() => {}); return () => { active = false; }; }, []);
   const catalog = activeCatalog.revision === data.catalogRevision ? activeCatalog : { ...activeCatalog, equipment: [] };
   useEffect(() => {
     if (activeCatalog.revision === data.catalogRevision) return;
@@ -70,6 +75,8 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const [customMm, setCustomMm] = useState(50);
   const [sizeOverride, setSizeOverride] = useState<Vec3>();
   const [bearing, setBearing] = useState(0);
+  const [pathPoints, setPathPoints] = useState<Vec3[]>([]);
+  const [ropeSlack, setRopeSlack] = useState(0);
   const [mirror, setMirror] = useState(true);
   const [showArcs, setShowArcs] = useState(false);
   const [showCenters, setShowCenters] = useState(true);
@@ -101,6 +108,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const active = palette.drawer.find(item => item.id === slots[layer]) ?? palette.drawer[0];
   const drawerName = layer === 'fittings' ? 'fittings' : layer === 'hull' ? 'shapes' : 'items';
   const hasDrawer = palette.drawer.length > palette.bar.filter(item => item.kind !== 'empty').length || layer === 'fittings';
+  const pathPart = layer === 'fittings' && tool === 'place' && active?.kind === 'part' && active.part.path ? active.part : undefined;
   const rail = BUILDER_RAIL[layer];
   const locked = !editor.ready || !!busy;
   const compiled = editor.currentResult;
@@ -138,6 +146,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const requestSuggestion = props.suggestLayout ?? (compiler.suggest ? (source: ConstructionSource, ids: string[], signal?: AbortSignal) => compiler.suggest!(source, ids, signal) : undefined);
   const suggestionChanged = suggestion && JSON.stringify([data.equipment, data.boundaries, data.loads]) !== JSON.stringify([suggestion.source.construction.equipment, suggestion.source.construction.boundaries, suggestion.source.construction.loads]);
 
+  useEffect(() => { setPathPoints([]); }, [source.id, pathPart?.id, layer, tool]);
   useEffect(() => { setSelected(new Set()); setSurfaces(new Set()); setSuggestion(undefined); setMeasure(undefined); }, [source.id]);
   useEffect(() => () => { suggestionRequest.current?.abort(); suggestionRequest.current = undefined; }, [source.revision]);
 
@@ -145,6 +154,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const piece = useMemo((): BuilderPlacement | undefined => {
     if (layer === 'hull' && (tool === 'place' || tool === 'fill') && active?.kind === 'shape') return { kind: 'hull', shape: active.shape.kind, size: sizeOverride ?? active.shape.size, rotationDeg: normalizedBearing(Math.round(bearing / 90) * 90) };
     if (((layer === 'fittings' && tool === 'place') || (layer === 'internals' && tool === 'module')) && active?.kind === 'part') {
+      if (active.part.path) return undefined;
       const gun = active.part.gunPartId ? catalog.weapons.parts.find(gun => gun.id === active.part.gunPartId) : undefined;
       return { kind: 'equipment', partId: active.part.id, size: active.part.size, boundsCenter: active.part.boundsCenter, bearingDeg: normalizedBearing(bearing), sockets: active.part.sockets, arc: gun ? { traverseDeg: gun.traverseDeg, radius: ARC_RADIUS } : undefined, inset: active.part.placement === 'internal' ? data.defaultThicknessMm / 1000 : undefined };
     }
@@ -157,7 +167,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
     if (piece.kind === 'equipment') return { ...piece, bearingDeg: normalizedBearing(-piece.bearingDeg), arc: undefined };
     return undefined;
   }, [mirror, piece]);
-  const gesture: BuilderGesture = tool === 'fill' ? 'fill' : tool === 'place' || tool === 'module' ? 'stroke' : 'none';
+  const gesture: BuilderGesture = pathPart ? 'none' : tool === 'fill' ? 'fill' : tool === 'place' || tool === 'module' ? 'stroke' : 'none';
 
   // ---- selection and editing
   const choose = (id: string, additive = false) => {
@@ -192,7 +202,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   };
   const nudge = (delta: Vec3) => { if (selected.size) run('Move selection', draft => moveConstructionSelection(draft, selected, delta)); };
   /** Select drags any piece, fitting or wall; placing fittings or modules still drags the ones already fitted. Face layers never move geometry. */
-  const moveTargets: BuilderMoveTargets = layer === 'armor' || layer === 'paint' ? 'none' : tool === 'select' ? 'all' : (layer === 'fittings' && tool === 'place') || tool === 'module' ? 'equipment' : 'none';
+  const moveTargets: BuilderMoveTargets = pathPart ? 'none' : layer === 'armor' || layer === 'paint' ? 'none' : tool === 'select' ? 'all' : (layer === 'fittings' && tool === 'place') || tool === 'module' ? 'equipment' : 'none';
   const movePieces = (ids: string[], delta: Vec3) => {
     if (locked || !ids.length) return;
     const moving = new Set(ids);
@@ -227,6 +237,18 @@ export function Shipbuilder(props: ShipbuilderProps) {
       run(parts.length > 1 ? 'Place fittings' : `Place ${active.name}`, draft => { draft.construction.equipment.push(...parts); });
     }
   };
+  const addPathPoint = (point: Vec3) => { if (pathPoints.length >= 64) { setNotice('64 points reached. Finish this path before starting another.'); return; } if (!locked) { setPathPoints(points => appendPathPoint(points, point)); clearSelection(); } };
+  const finishPath = () => {
+    if (!pathPart || locked) return;
+    const slackM = pathPart.path?.kind === 'rope' ? ropeSlack : 0, problem = pathProblem(pathPoints, slackM);
+    if (problem) { setNotice(problem); return; }
+    const item = pathEquipment(newConstructionId('path'), pathPart.id, pathPoints, slackM);
+    const parts = [item];
+    if (mirror && pathPoints.some(p => Math.abs(p[0]) > 1e-6)) parts.push({ ...mirroredEquipment(item), id: newConstructionId('path') });
+    if (data.equipment.length + parts.length > LIMITS.equipment) { setNotice('The fittings limit is reached. Remove a fitting before adding this path.'); return; }
+    run(`Draw ${pathPart.path!.kind} path`, draft => { draft.construction.equipment.push(...parts); });
+    setPathPoints([]); setSelected(new Set(parts.map(p => p.id))); setTool('select');
+  };
   const addBoundary = (axis: ConstructionBoundary['axis'], offset: number) => {
     if (data.boundaries.length >= LIMITS.boundaries) { editor.setError(`A design supports up to ${LIMITS.boundaries} decks and bulkheads. Merge rooms before adding more.`); return; }
     if (data.boundaries.some(wall => wall.axis === axis && Math.abs(wall.offset - offset) < 1e-6)) { setNotice(`A ${BOUNDARY_NAMES[axis].toLowerCase()} already sits at ${signed(offset)} m.`); return; }
@@ -259,7 +281,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   };
   const selectSlot = (item: SlotItem) => {
     if (item.kind === 'empty' || locked) return;
-    setSlots(current => ({ ...current, [layer]: item.id })); setSizeOverride(undefined); setTip(undefined);
+    setPathPoints([]); setSlots(current => ({ ...current, [layer]: item.id })); setSizeOverride(undefined); setTip(undefined);
     const faceTools: BuilderTool[] = ['apply', 'area', 'eyedrop', 'opening', 'select'];
     switch (item.kind) {
       case 'shape': if (tool !== 'place' && tool !== 'fill') setTool('place'); break;
@@ -268,7 +290,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
         break;
       case 'scheme': applyScheme(item.id); break;
       case 'tool': setTool(item.tool); break;
-      case 'part': setTool(layer === 'internals' ? 'module' : 'place'); break;
+      case 'part': setTool(layer === 'internals' ? 'module' : 'place'); if (item.part.path) clearSelection(); break;
     }
     setDrawer(false);
   };
@@ -319,6 +341,13 @@ export function Shipbuilder(props: ShipbuilderProps) {
       setNotice('Design deleted.');
     } finally { setBusy(''); }
   };
+  const partsUpdate = activeCatalog.revision === data.catalogRevision && latestCatalog.revision !== data.catalogRevision ? {
+    ...constructionCatalogUpdate(source, activeCatalog, latestCatalog),
+    onApply: () => {
+      try { run('Update parts library', draft => updateConstructionCatalog(draft, activeCatalog, latestCatalog)); setActiveCatalog(latestCatalog); setDesignsOpen(false); setPathPoints([]); setNotice('Parts library updated. Undo restores the previous library.'); }
+      catch (cause) { fail(cause); }
+    },
+  } : undefined;
   const saveCopy = async () => {
     setDesignsOpen(false);
     const copy = structuredClone(source); copy.id = newConstructionId('design'); copy.revision = newConstructionId('revision'); copy.name = `${copy.name.slice(0, 150)} copy`;
@@ -332,6 +361,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
     catch (cause) { fail(cause); } finally { setBusy(''); }
   };
   const suggest = async (selectedPart = false) => {
+    if (pathPart) { setNotice('Click connected points on the ship, then press Enter to finish this path.'); return; }
     if (!requestSuggestion || locked) return;
     const fittedKinds = new Set(data.equipment.map(instance => partOf(instance)?.kind));
     const ids = selectedPart ? (active?.kind === 'part' ? [active.id] : []) : catalog.equipment.filter(part => {
@@ -386,6 +416,12 @@ export function Shipbuilder(props: ShipbuilderProps) {
       if (event.key === '?') { event.preventDefault(); setHelpOpen(true); return; }
       if (locked) return;
       const modifier = event.ctrlKey || event.metaKey, lower = event.key.toLowerCase();
+      if (pathPart) {
+        if (event.key === 'Escape') { event.preventDefault(); setPathPoints([]); setTool('select'); setNotice(''); return; }
+        if (event.key === 'Enter') { event.preventDefault(); finishPath(); return; }
+        if (pathPoints.length && (event.key === 'Backspace' || modifier && lower === 'z')) { event.preventDefault(); setPathPoints(points => points.slice(0, -1)); return; }
+        if (pathPoints.length && (lower === 'r' || event.key === 'Delete')) return;
+      }
       if (modifier && lower === 'z') { event.preventDefault(); if (event.shiftKey) editor.redo(); else editor.undo(); return; }
       if (modifier && lower === 'y') { event.preventDefault(); editor.redo(); return; }
       if (!modifier && !event.altKey && lower === 'p') { event.preventDefault(); if (!event.repeat) toggleProjection(); return; }
@@ -435,7 +471,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const rows = useMemo(() => ledgerRows(source, compiled, layer), [source, compiled, layer]);
   const masses = useMemo(() => massGroups(compiled), [compiled]);
   const totalMass = masses.reduce((sum, group) => sum + group.massKg, 0);
-  const canLaunch = !!compiled?.definition && !blocks.length && !busy && editor.ready;
+  const canLaunch = !pathPoints.length && !!compiled?.definition && !blocks.length && !busy && editor.ready;
   const launchTitle = busy ? busy : editor.compiling ? 'Compiling this revision…' : blocks.length ? `${blocks.length} block${blocks.length === 1 ? '' : 's'} to fix before a trial` : compiled?.definition ? 'Launch a sea trial with this design' : 'Waiting for a compiled design';
   const saveTone = editor.saveState.status === 'saved' ? 'ok' : editor.saveState.status === 'error' ? 'bad' : 'saving';
   const saveText = editor.saveState.status === 'saved' ? 'Saved locally' : editor.saveState.status === 'error' ? 'Not saved · keep a backup' : 'Saving…';
@@ -448,12 +484,17 @@ export function Shipbuilder(props: ShipbuilderProps) {
   }, [piece]);
 
   const tags: BuilderTag[] = [];
-  const equipmentAnchor = (item: ConstructionEquipment): Vec3 => { const part = partOf(item), center = part ? rotateY(part.boundsCenter, bearingRadians(item.bearingDeg)) : [0, 0, 0]; return item.position.map((value, index) => value + center[index]) as Vec3; };
+  const equipmentAnchor = (item: ConstructionEquipment): Vec3 => { const part = partOf(item), center = part ? rotateY(equipmentPathBounds(part, item).center, bearingRadians(item.bearingDeg)) : [0, 0, 0]; return item.position.map((value, index) => value + center[index]) as Vec3; };
   // The cursor piece reads out above the palette instead of following the ghost; its size fields stay editable there.
   // The Armor layer keeps its millimetre field here, above the bar: a new value also assigns the selected faces.
   const armorItem = palette.drawer.find(item => item.kind === 'armor');
   const setThickness = (value: number) => { setCustomMm(value); setSlots(current => ({ ...current, armor: 'armor' })); if (armorItem && surfaces.size) applyItem(armorItem, surfaces, value); };
-  const status: ReactNode = locked ? null : layer === 'armor' ? <>
+  const status: ReactNode = locked ? null : pathPart ? <>
+    <b>{pathPart.name}</b><span>{pathPoints.length ? `${pathPoints.length} points · click to extend` : 'Click the first point on the ship'}</span>
+    {pathPart.path?.kind === 'rope' && <NumberField label="Rope slack" value={ropeSlack} min={0} max={pathSlackLimit(pathPoints)} step={.05} unit="m" onChange={setRopeSlack}/>}
+    <button disabled={pathPoints.length < 2} onClick={finishPath}>Finish <kbd>Enter</kbd></button><button onClick={() => { setPathPoints([]); setTool('select'); }}>Cancel <kbd>Esc</kbd></button>
+    <span className="sb-path-hint">{pathPart.path?.kind === 'railing' ? 'Deck supports every post' : 'Hull or fitting support sockets'} · double-click finishes</span>
+  </> : layer === 'armor' ? <>
     <b>Armor</b><NumberField value={customMm} min={0} max={1000} step={5} unit="mm" onChange={setThickness}/><span>{customMm > 0 ? 'armor steel' : 'structural skin, no armor'} · <kbd>1</kbd> assigns the selected faces</span>
   </> : !piece ? null : piece.kind === 'hull' && active?.kind === 'shape' ? <>
     <b>{active.name}</b><NumberField value={piece.size[0]} min={.25} max={500} step={1} onChange={value => setSizeOverride([value, piece.size[1], piece.size[2]])}/> × <NumberField value={piece.size[1]} min={.25} max={500} step={1} onChange={value => setSizeOverride([piece.size[0], value, piece.size[2]])}/> × <NumberField value={piece.size[2]} min={.25} max={500} step={1} onChange={value => setSizeOverride([piece.size[0], piece.size[1], value])}/> m<span>{piece.rotationDeg}°</span>
@@ -477,6 +518,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
     tags.push({ key: `part-${item.id}`, anchor: equipmentAnchor(item), dx: 82, dy: -92, tone: 'mint', content: <>
       <b>{part?.name ?? item.partId}</b>
       {mass !== undefined ? `${formatTonnes(mass)} · ` : ''}bearing <NumberField value={item.bearingDeg} min={0} max={360} step={15} unit="°" onChange={value => run('Set bearing', draft => { draft.construction.equipment.find(entry => entry.id === item.id)!.bearingDeg = normalizedBearing(value); })}/> · <NumberField label="x" value={item.position[0]} min={-1000} max={1000} step={.25} onChange={value => move(0, value)}/> <NumberField label="y" value={item.position[1]} min={-1000} max={1000} step={.25} onChange={value => move(1, value)}/> <NumberField label="z" value={item.position[2]} min={-1000} max={1000} step={.25} onChange={value => move(2, value)}/>
+      {part?.path && item.path && <PathPointEditor key={item.id} item={item} part={part} onChange={path => run('Edit fitting path', draft => { draft.construction.equipment.find(entry => entry.id === item.id)!.path = path; })}/>}
       {(part?.kind === 'gun' || part?.kind === 'torpedo-launcher') && link('magazineId', 'magazine', '· magazine')}{(part?.kind === 'funnel' || part?.kind === 'propeller') && link('powerSourceId', 'engine', '· power')} · <kbd>R</kbd> rotate · <kbd>⌫</kbd> remove
     </> });
   } else if (selected.size > 1) {
@@ -512,7 +554,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
       case 'shape': return { title: item.name, detail: `${item.shape.size.map(metres).join(' × ')} m · ${SHAPE_NAMES[item.shape.kind].toLowerCase()}` };
       case 'armor': return { title: 'Armor', detail: `${customMm > 0 ? `${customMm} mm armor steel` : 'structural skin without armor'} · set the thickness above the bar` };
       case 'opening': return { title: 'Opening', detail: 'removes the skin so the face admits water' };
-      case 'part': return { title: item.part.name, detail: `${item.note} · ${item.part.placement} · ${item.part.size.map(metres).join(' × ')} m` };
+      case 'part': return { title: item.part.name, detail: item.part.path ? `${item.note} · draw connected points` : `${item.note} · ${item.part.placement} · ${item.part.size.map(metres).join(' × ')} m` };
       case 'tool': case 'scheme': return { title: item.name, detail: item.note };
       case 'paint': return { title: item.name, detail: 'paint' };
       default: return { title: '', detail: '' };
@@ -559,31 +601,31 @@ export function Shipbuilder(props: ShipbuilderProps) {
   if (movable && !freeformMode) acting.push({ keys: ['←→', '↑↓'], label: 'Nudge' }, { keys: ['PgUp', 'PgDn'], label: 'Raise · lower' }, { keys: ['⌘C'], label: 'Copy' }, { keys: ['⇧⌘C'], label: 'Mirror copy' });
   if (selected.size) acting.push({ keys: ['⌫', '⌘X'], label: movable ? 'Remove' : 'Remove · merge rooms' });
   if (surfaces.size && faceLayer) acting.push({ keys: ['⇧'], label: 'Click adds a face' });
-  const escape = drawer || designsOpen ? 'Close' : suggestion ? 'Dismiss layout' : measure ? 'End measure' : tool !== 'select' ? 'Select tool' : selected.size || surfaces.size ? 'Clear' : '';
+  const escape = pathPart ? 'Cancel path' : drawer || designsOpen ? 'Close' : suggestion ? 'Dismiss layout' : measure ? 'End measure' : tool !== 'select' ? 'Select tool' : selected.size || surfaces.size ? 'Clear' : '';
   if (escape) acting.push({ keys: ['Esc'], label: escape });
   const chip = (hint: KeyHint) => <span key={hint.label} className="sb-key">{hint.keys.map((key, index) => <kbd key={index}>{key}</kbd>)}{hint.label}</span>;
 
-  return <main className={`shipbuilder ${freeformMode ? 'sb-freeform-mode' : ''}`} aria-label="Shipbuilder" data-layer={layer} data-drawer={drawer || undefined} aria-busy={!!busy}>
-    <BuilderViewport perspective={perspective} freeform={freeformPrimitive && !locked ? {...freeformSettings,id:freeformPrimitive.id,onSelect:selection=>changeFreeformSettings({selection}),onCommit:commitFreeform} : undefined} source={source} result={result} catalog={catalog} selected={selected} selectedSurfaces={surfaces} view={view} display={DISPLAY[layer]} slice={slice.on ? slice.y : undefined}
+  return <main className={`shipbuilder ${freeformMode ? 'sb-freeform-mode' : ''}`} aria-label="Shipbuilder" data-path-drawing={!!pathPart || undefined} data-layer={layer} data-drawer={drawer || undefined} aria-busy={!!busy}>
+    <BuilderViewport pathDraft={!locked && pathPart ? { part: pathPart, points: pathPoints, slackM: pathPart.path?.kind === 'rope' ? ropeSlack : 0, mirror } : undefined} onPathPoint={addPathPoint} onPathFinish={finishPath} perspective={perspective} freeform={freeformPrimitive && !locked ? {...freeformSettings,id:freeformPrimitive.id,onSelect:selection=>changeFreeformSettings({selection}),onCommit:commitFreeform} : undefined} source={source} result={result} catalog={catalog} selected={selected} selectedSurfaces={surfaces} view={view} display={DISPLAY[layer]} slice={slice.on ? slice.y : undefined}
       gridStep={gridStep} gesture={locked ? 'none' : gesture} pickTargets={layer === 'armor' || layer === 'paint' ? 'hull' : 'all'} moveTargets={locked || freeformMode ? 'none' : moveTargets} placementPiece={locked || freeformMode ? undefined : piece} placementMirror={mirrorPiece} highlightFaces={layer === 'armor' || layer === 'paint'} rooms={layer === 'internals'}
       showCenters={showCenters} arcs={arcs} proposed={proposed} measure={measure} tags={tags} coords={coords} status={status} fitRequest={fitRequest} onPick={pick} onStroke={placeAt} onBoxSelect={boxSelect} onErase={erase} onMove={movePieces} createModel={props.createModel}/>
     {freeformPrimitive && <FreeformToolbar primitive={freeformPrimitive} settings={freeformSettings} onChange={changeFreeformSettings} cycleUnit={cycleUnit} onCoordinate={setSelectionCoordinate}
       onView={v=>{setPerspective(false);setView(v);setFitRequest(n=>n+1);}} perspective={perspective} onProjection={toggleProjection}
       onReset={()=>run('Reset hull edit',draft=>replaceVertexPrimitives(draft,[freeformSession!.baseline]))} onSplit={splitFreeform} onExit={()=>setFreeformSession(undefined)}/>}
     <header className="sb-top">
-      <button className="sb-port" disabled={!!busy} onClick={() => void close()} title="Save and return to port"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M8 1.5 3.5 6 8 10.5"/></svg>Port</button>
+      <button className="sb-port" disabled={!!busy || !!pathPoints.length} onClick={() => void close()} title="Save and return to port"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M8 1.5 3.5 6 8 10.5"/></svg>Port</button>
       <div className="sb-ship">
         <input disabled={locked} className="sb-name" aria-label="Design name" maxLength={160} value={source.name} onChange={event => run('Rename design', draft => { draft.name = event.target.value; })}/>
-        <button className="sb-meta" aria-haspopup="menu" aria-expanded={designsOpen} onClick={() => setDesignsOpen(value => !value)}>{data.primitives.length} pieces · {data.equipment.length} fittings <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="m2 3.5 3 3 3-3"/></svg></button>
+        <button className="sb-meta" disabled={!!pathPoints.length} aria-haspopup="menu" aria-expanded={designsOpen} onClick={() => setDesignsOpen(value => !value)}>{data.primitives.length} pieces · {data.equipment.length} fittings <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="m2 3.5 3 3 3-3"/></svg></button>
         <i className={`sb-save ${saveTone}`} role="status">{saveText}</i>
-        {designsOpen && <DesignsMenu disabled={locked} store={editor.store} currentId={source.id} refresh={editor.saveState.revision?.id} onClose={() => setDesignsOpen(false)} onNew={kind => void newDesign(kind)} onSaveCopy={() => void saveCopy()} onDelete={deleteDesign}
+        {designsOpen && <DesignsMenu partsUpdate={partsUpdate} disabled={locked} store={editor.store} currentId={source.id} refresh={editor.saveState.revision?.id} onClose={() => setDesignsOpen(false)} onNew={kind => void newDesign(kind)} onSaveCopy={() => void saveCopy()} onDelete={deleteDesign}
           onDownload={() => { downloadConstructionSource(JSON.stringify(source, null, 2), source.name); setDesignsOpen(false); }}
           onOpen={async (next, revision) => { setDesignsOpen(false); await editor.replace(next, revision, true); switchLayer('hull'); }} onRecover={async next => { setDesignsOpen(false); await editor.replace(next, null, false); switchLayer('hull'); }}/>}
       </div>
       <nav className="sb-tabs" role="tablist" aria-label="Layers">{BUILDER_LAYERS.map(entry => <button key={entry.id} role="tab" aria-selected={layer === entry.id} onClick={() => switchLayer(entry.id)}>{entry.name}</button>)}</nav>
       <div className="sb-actions">
-        <button className="sb-undo" disabled={locked || !editor.history.past.length} onClick={editor.undo} title={editor.history.past.length ? `Undo ${editor.history.lastAction}` : 'Nothing to undo'}><kbd>⌘Z</kbd>{editor.history.past.length}</button>
-        <button className="sb-undo" disabled={locked || !editor.history.future.length} onClick={editor.redo} title="Redo (⇧⌘Z)"><kbd>⇧⌘Z</kbd>{editor.history.future.length}</button>
+        <button className="sb-undo" disabled={locked || !!pathPoints.length || !editor.history.past.length} onClick={editor.undo} title={editor.history.past.length ? `Undo ${editor.history.lastAction}` : 'Nothing to undo'}><kbd>⌘Z</kbd>{editor.history.past.length}</button>
+        <button className="sb-undo" disabled={locked || !!pathPoints.length || !editor.history.future.length} onClick={editor.redo} title="Redo (⇧⌘Z)"><kbd>⇧⌘Z</kbd>{editor.history.future.length}</button>
         <button className="sb-cmd" disabled={!canLaunch} title={launchTitle} onClick={() => void launch()}>{busy ? `${busy.toUpperCase()}…` : editor.saveState.status === 'error' ? 'TRIAL DRAFT' : 'SEA TRIALS'}<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M2 7h9M7.5 3.5 11 7l-3.5 3.5"/></svg></button>
       </div>
     </header>

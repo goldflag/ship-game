@@ -13,18 +13,20 @@ export function downloadConstructionSource(json: string, name = 'ship-source') {
 }
 
 /** The transient list under the ship's name: new designs, backups and local revisions. */
-export function DesignsMenu({ store, currentId, refresh, onClose, onNew, onSaveCopy, onDownload, onOpen, onRecover, onDelete, disabled }: {
+export function DesignsMenu({ store, currentId, refresh, onClose, onNew, onSaveCopy, onDownload, onOpen, onRecover, onDelete, disabled, partsUpdate }: {
   store?: ConstructionStore; disabled?: boolean; currentId: string; refresh?: string; onClose(): void;
   onNew(kind: ConstructionStarter): void; onSaveCopy(): void; onDownload(): void;
   onOpen(source: ConstructionSource, revisionId: string): Promise<void>;
   onRecover(source: ConstructionSource): Promise<void>;
   onDelete(designId: string, revisionId: string): Promise<void>;
+  partsUpdate?: { changedParts: string[]; missingParts: string[]; onApply(): void };
 }) {
   const [designs, setDesigns] = useState<ConstructionDesignHead[]>([]);
   const [revisions, setRevisions] = useState<ConstructionRevision[]>([]);
   const [chosen, setChosen] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [reviewParts, setReviewParts] = useState(false);
   const request = useRef(0);
   const menu = useRef<HTMLDivElement>(null);
   useEffect(() => () => { request.current++; }, []);
@@ -57,6 +59,15 @@ export function DesignsMenu({ store, currentId, refresh, onClose, onNew, onSaveC
   return <div ref={menu} className="sb-menu" role="menu" aria-label="Designs">
     <div className="sb-menu-row"><span className="sb-lead">New</span><button role="menuitem" disabled={loading || disabled} onClick={() => onNew('patrol')}>Patrol hull</button><button role="menuitem" disabled={loading || disabled} onClick={() => onNew('catamaran')}>Twin hull</button><button role="menuitem" disabled={loading || disabled} onClick={() => onNew('blank')}>New design</button></div>
     <div className="sb-menu-row"><span className="sb-lead">This design</span><button role="menuitem" disabled={loading || disabled} onClick={onSaveCopy}>Save as copy</button><button role="menuitem" disabled={loading || disabled} onClick={onDownload}>Download backup</button></div>
+    {partsUpdate && <div className="sb-menu-list">
+      <button role="menuitem" disabled={loading || disabled || !!partsUpdate.missingParts.length} onClick={() => {
+        if (partsUpdate.changedParts.length && !reviewParts) setReviewParts(true);
+        else partsUpdate.onApply();
+      }}>{reviewParts ? 'Apply parts update' : 'Update parts library'}</button>
+      {partsUpdate.missingParts.length > 0 ? <p role="status">Unavailable in the new library: {partsUpdate.missingParts.join(', ')}.</p>
+        : reviewParts ? <p role="status">Updates fitted variants: {partsUpdate.changedParts.join(', ')}. This design will recompile; Undo restores its previous library.</p>
+        : <p>Add the latest fittings to this design’s palette.</p>}
+    </div>}
     <div className="sb-menu-list">
       <span className="sb-lead">Local designs</span>
       {!store && <p>Local storage is unavailable. Download the current source to keep a backup.</p>}

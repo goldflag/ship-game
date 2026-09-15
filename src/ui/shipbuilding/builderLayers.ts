@@ -64,16 +64,16 @@ export type SlotItem =
   | { kind: 'empty'; id: string; name: string; note: string };
 
 export const HOTBAR_SIZE = 9;
-const FAMILY_ORDER: ConstructionEquipmentPart['kind'][] = ['gun', 'torpedo-launcher', 'funnel', 'director', 'mast', 'propeller', 'rudder', 'engine', 'magazine'];
+const FAMILY_ORDER: ConstructionEquipmentPart['kind'][] = ['gun', 'torpedo-launcher', 'funnel', 'director', 'mast', 'propeller', 'rudder', 'engine', 'magazine', 'deck-fitting'];
 export const FAMILY_NAMES: Record<ConstructionEquipmentPart['kind'], string> = {
-  gun: 'gun', 'torpedo-launcher': 'torpedoes', engine: 'machinery', magazine: 'magazine', funnel: 'funnel', propeller: 'screw', rudder: 'rudder', mast: 'mast', director: 'director',
+  'deck-fitting': 'deck fittings', gun: 'gun', 'torpedo-launcher': 'torpedoes', engine: 'machinery', magazine: 'magazine', funnel: 'funnel', propeller: 'screw', rudder: 'rudder', mast: 'mast', director: 'director',
 };
-export const formatTonnes = (kg: number, digits = 1) => `${(kg / 1000).toLocaleString(undefined, { maximumFractionDigits: digits })} t`;
+export const formatTonnes = (kg: number, digits = 1) => Math.abs(kg) < 1000 ? `${kg.toLocaleString(undefined, { maximumFractionDigits: 1 })} kg` : `${(kg / 1000).toLocaleString(undefined, { maximumFractionDigits: digits })} t`;
 
 export function partSlot(part: ConstructionEquipmentPart, catalog: ConstructionCatalog): SlotItem {
   const massKg = part.kind === 'gun' ? catalog.weapons.parts.find(gun => gun.id === part.gunPartId)?.massKg : part.massKg;
   const shortName = part.name.replace(/^Fletcher /, '').replace(/ package$/, '').replace(' machinery', '').replace(' mod.0', '').replace(' torpedo bank', '').replace('four-blade ', '').replace('starboard ', '').replace('-round magazine', ' rds');
-  return { kind: 'part', id: part.id, name: shortName, note: `${FAMILY_NAMES[part.kind]}${massKg ? ` · ${formatTonnes(massKg)}` : ''}`, part };
+  return { kind: 'part', id: part.id, name: shortName, note: part.path ? `${part.path.kind} path · ${formatTonnes(part.path.massKgPerM)}/m` : `${FAMILY_NAMES[part.kind]}${massKg ? ` · ${formatTonnes(massKg)}` : ''}`, part };
 }
 export function sortedParts(catalog: ConstructionCatalog, placement: (part: ConstructionEquipmentPart) => boolean): ConstructionEquipmentPart[] {
   return catalog.equipment.filter(placement).slice().sort((a, b) => FAMILY_ORDER.indexOf(a.kind) - FAMILY_ORDER.indexOf(b.kind) || a.name.localeCompare(b.name));

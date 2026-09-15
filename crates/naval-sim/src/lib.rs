@@ -5,6 +5,7 @@ pub mod construction;
 mod construction_vertex;
 mod construction_installation;
 mod construction_services;
+mod construction_paths;
 pub mod definition;
 pub mod fleet_evasion;
 pub mod formations;

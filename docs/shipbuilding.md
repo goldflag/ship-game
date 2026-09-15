@@ -52,6 +52,48 @@ Saved, valid designs also appear in **Custom battle**, where they can be the
 player, friendly bots or enemies, including repeated copies. Online and campaign
 modes continue to accept their historical content only.
 
+## Deck fittings and connected paths
+
+In **Fittings**, open the **…** drawer (or press **0**) and search the parts by
+name. The deck collection includes bitts, a roller fairlead, capstan, anchor
+windlass, stowed anchor, lifeboat with davits, cowl and mushroom vents, watertight
+door, deck hatch, vertical ladder, inclined stairs, compact optical rangefinder
+and **Searchlight (unlit)**. They are generic naval parts with estimated
+dimensions and masses. The rangefinder uses the existing director behavior.
+Other fixed deck fittings add mass without adding buoyancy or a combat bonus.
+Doors and hatches stay closed and do not cut hull openings; the boat and davits
+stay stowed. The searchlight is a static model with no beam, light source, power
+demand or detection effect.
+
+Railing, rope and chain use connected routes. Click each point on the ship, then
+choose **Finish**, press **Enter** or double-click. **Backspace** or **Ctrl/⌘Z**
+removes the last pending point; **Escape** or **Cancel** discards the route.
+The brass route is a preview until finished, when the entire route and any
+mirrored copy become one undoable edit. Finish or cancel before returning to
+port, opening Designs or starting a sea trial. Railings need deck support at
+every post. Rope and chain can attach to hull surfaces or the declared support
+and rigging sockets of fixed fittings; native diagnostics check attachment and
+clearance.
+
+Select a completed route to edit its position, bearing or individual points in
+the object tag. Point coordinates are relative to the route origin. **Insert
+point** divides a span at its midpoint; **Remove point** keeps at least two
+points. **Rope slack** sets the downward midpoint sag of each segment in metres,
+both while drawing and after placement. Slack is limited to half the shortest
+segment and 20 m. A route supports 2–64 points and at most 500 m, including its
+sag. Copying, moving, rotating and mirroring retain the connected route.
+
+On narrow screens, the drawing prompt scrolls in a compact card beside the tool
+rail, with Finish and Cancel above the palette. The view controls remain below
+the palette and the compass moves above the prompt.
+
+Saved designs keep their original parts catalog. **Designs → Update parts
+library** opts into the latest catalog as one undoable edit while preserving
+authored hull pieces, placements and routes. If fitted variants have changed,
+review the listed variants and choose **Apply parts update**. Missing fitted
+variants block the update. The design recompiles against the new catalog; Undo
+restores the previous catalog, and older saved revisions remain recoverable.
+
 ## Source and compilation
 
 The shared contract is [blueprint.ts](../src/ships/blueprint.ts).
@@ -72,6 +114,14 @@ Coordinates remain metres, +Y up, -Z bow and +X starboard. Compilation does not
 recenter a design or move the hull separately from its contents. Equipment yaw
 uses the existing clockwise bearing convention. Published parts retain their
 original datum and sockets; bounds centers are not replacement pivots.
+
+Connected fittings store `path.points` in equipment-local coordinates and an
+optional `path.slackM` in the same version-1 construction source. The catalog
+supplies the railing, rope or chain profile; the equipment position and bearing
+transform the whole route. Native compilation owns support, clearance, length,
+mass, center of gravity and inertia. Procedural route meshes in
+[constructionPathModel.ts](../src/game/constructionPathModel.ts) display those
+source points and catalog profiles without adding a second physics solver.
 
 [construction.rs](../crates/naval-sim/src/construction.rs) and
 [construction_geometry.rs](../crates/naval-sim/src/construction_geometry.rs)
