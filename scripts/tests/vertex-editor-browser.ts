@@ -37,7 +37,7 @@ export async function checkVertexEditor(){
  await click('Snap On');await click('Top');
  const viewport=window.shipbuilderViewport as unknown as {camera:{isOrthographicCamera?:boolean;isPerspectiveCamera?:boolean};props:{vertex?:unknown}};
  assert(viewport.camera.isOrthographicCamera,'Top uses an orthographic camera');
- document.querySelector<HTMLButtonElement>('button[title="Toggle orthographic and perspective cameras (O)"]')!.click();await sleep();assert(viewport.camera.isPerspectiveCamera,'View Mode uses a real perspective camera');
+ document.querySelector<HTMLButtonElement>('.sb-vertex-tools button[title="Toggle orthographic and perspective cameras (P)"]')!.click();await sleep();assert(viewport.camera.isPerspectiveCamera,'View Mode uses a real perspective camera');
  controls.key('o');await sleep();assert(viewport.camera.isOrthographicCamera,'O restores orthographic projection');
  await click('Axis On');assert(button('Axis Off').getAttribute('aria-pressed')==='false','plane dragging can be selected');
  await click('Split');await saved();assert(state().construction.primitives.length===5,'Split produces four independent children');assert(!document.querySelector('.sb-vertex-tools'),'split exits the edit session');
