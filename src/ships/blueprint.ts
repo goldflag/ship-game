@@ -286,9 +286,13 @@ export interface ConstructionSource extends Pick<ShipBlueprint, 'schemaVersion' 
   construction: ConstructionData;
 }
 export interface ConstructionPrimitive {
-  id: string; kind: 'box' | 'wedge' | 'corner' | 'inverse-corner';
+  id: string; kind: 'box' | 'wedge' | 'corner' | 'inverse-corner' | 'vertex';
   /** Envelope centered at position. Shapes occupy normalized [-.5,.5]^3, then scale and yaw. */
   size: Vec3; position: Vec3; rotationDeg: number;
+  /** Vertex hull v1: eight normalized local corners, ordered around bow then stern.
+   * Missing corners on a vertex hull mean the unit cube. Size scales this edit frame.
+   * Rust samples the trilinear solid; generated cells remain the physical authority. */
+  vertices?: Vec3[];
 }
 export interface ConstructionSurfaceAssignment {
   primitiveId: string; face: 'port' | 'starboard' | 'bottom' | 'top' | 'bow' | 'stern' | 'slope';

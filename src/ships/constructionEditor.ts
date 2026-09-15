@@ -34,7 +34,11 @@ export function decodeConstructionSource(value: unknown): ConstructionSource {
   string(data.catalogRevision, 'Catalog'); number(data.defaultThicknessMm, 'Skin thickness');
   for (const p of rows(data.primitives, 'Primitives')) {
     string(p.id, 'Primitive ID'); vector(p.size, 'Primitive size'); vector(p.position, 'Primitive position'); number(p.rotationDeg, 'Primitive rotation');
-    if (!['box', 'wedge', 'corner', 'inverse-corner'].includes(p.kind as string)) throw new Error('Unsupported primitive kind');
+    if (!['box', 'wedge', 'corner', 'inverse-corner', 'vertex'].includes(p.kind as string)) throw new Error('Unsupported primitive kind');
+    if (p.vertices !== undefined) {
+      if (p.kind !== 'vertex' || !Array.isArray(p.vertices) || p.vertices.length !== 8) throw new Error('Vertex hulls require eight local corners');
+      p.vertices.forEach(v => vector(v, 'Hull corner'));
+    }
   }
   for (const surface of rows(data.surfaces, 'Surfaces')) {
     string(surface.primitiveId, 'Surface primitive'); string(surface.paint, 'Paint'); number(surface.thicknessMm, 'Armor thickness');
@@ -97,6 +101,7 @@ export function rotateConstructionSelection(source: ConstructionSource, selected
 
 /** Source transform, not physical derivation. Corner profiles require an X/Z swap when reflected. */
 export function mirroredPrimitive(primitive: ConstructionPrimitive): ConstructionPrimitive {
+  if (primitive.kind === 'vertex' && primitive.vertices) return { ...structuredClone(primitive), position: [-primitive.position[0], primitive.position[1], primitive.position[2]], rotationDeg: normalizedBearing(-primitive.rotationDeg), vertices: [1,0,3,2,5,4,7,6].map(i => [-primitive.vertices![i][0], primitive.vertices![i][1], primitive.vertices![i][2]]) };
   const corner = primitive.kind === 'corner' || primitive.kind === 'inverse-corner';
   return { ...primitive, position: [-primitive.position[0], primitive.position[1], primitive.position[2]],
     size: corner ? [primitive.size[2], primitive.size[1], primitive.size[0]] : [...primitive.size],

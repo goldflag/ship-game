@@ -14,8 +14,11 @@ rates and repair limits.
 Use Hull for pieces, Armor for plating and openings, Fittings for equipment,
 Internals for rooms and machinery, and Paint for finishes. The hull grid is 1 m;
 equipment placement uses 0.25 m. Orbit, Plan, Profile and Bow views and a deck
-slice share source selections. Copy, mirror, bulk surface changes and undo/redo
-operate on stable source identities.
+slice share source selections. The camera starts in perspective; **Camera** in
+the view bar or **P** toggles orthographic projection while retaining the framing.
+The choice is shared across layers and vertex editing for the current editor
+session. Copy, mirror, bulk surface changes and undo/redo operate on stable source
+identities.
 
 Place shows a snapped preview only on existing hull faces. Empty space has no placement target. Click to place, or drag to
 lay a run; Fill drags a rectangle. Every piece appears during the drag, including
@@ -220,3 +223,21 @@ and collision response retains the existing planar impulse model after testing
 actual cell intersection. Suggestions are bounded searches and can explain a
 fit failure without finding every feasible arrangement. Initial service and
 ammunition loading is fixed; expenditure does not recalculate dry mass.
+
+### Vertex hulls
+
+Select one cube or vertex hull in the Hull layer and choose **Vertices** (or **Edit vertices** on its selection tag). The All shapes palette also includes a 4 m Vertex hull. Adjustable hull profiles are not part of this editor.
+
+Eight local corners remain fixed in topology. Symmetry starts on with X selected; combine X/Y/Z to expose four, two, or one representative corner. Edits reflect their displacement across the chosen local axes without rewriting an existing asymmetric shape. Turning symmetry off exposes all eight corners. Whole-block mirror copies retain the deformed geometry and its face assignments.
+
+**Unit** is a cycle button, also available with G: 0.05 → 0.1 → 0.2 → 0.5 → 1 → 2 m, then back to 0.05 m. It starts at 0.2 m and quantizes displacement from the start of an edit. With **Axis** on, the initial drag direction selects and locks one local axis. With Axis off, the drag uses the local coordinate plane most directly facing the camera. Selecting a corner exposes its metric local coordinates for keyboard entry.
+
+**Snap** starts off. Enabling it also moves matching corners within 0.025 m on neighboring cube or vertex hulls, including matches at mirrored corners. Matches are captured before each drag; no persistent seam or block relationship is created. Equipment stays at its source placement. The existing native support/fit diagnostics identify equipment that loses support.
+
+Side, Top and Bow are orthographic camera presets. The camera toggle and P switch between actual orthographic and perspective cameras while retaining the framing; O also works in vertex mode. A drag commits as one undo step, including mirrored and nearby corners. Escape, right-click, lost pointer capture and window blur cancel an active drag. **Reset edit** restores the selected block's shape at session entry; **Done** keeps edits and leaves vertex mode.
+
+**Split** cuts the block into 2–16 independent eight-corner children along the selected local parameter axis. It preserves the trilinear corner-defined shape and the outer face assignments, gives children new stable IDs, and starts new cut faces with structural skin. The split is one undo step and obeys the overall 512-piece limit. On a warped block, these parameter cuts need not be world-aligned planes. Corners remain editable after undo, save and reopening.
+
+The same version-1 construction source supports `kind: "vertex"` with optional `vertices: Vec3[]` (exactly eight finite normalized local coordinates). The order is the four bow corners `(-X,-Y), (+X,-Y), (+X,+Y), (-X,+Y)`, followed by the equivalent stern corners. Missing coordinates denote the cube; `size` scales the local edit frame and `rotationDeg` applies its quarter-turn yaw. Historical primitives remain compatible. Corner edits turn a box into a vertex hull without changing its ID.
+
+Rust owns the physical solid and exterior. Planar convex shapes use one convex cell. Warped faces use an unbiased fan through each bilinear face's center; this is a faceted approximation of the curved surface whose signed volume is exact. Convex neighboring cells and coplanar patches are combined without filling concavities. Render, collision, armor and buoyancy use the same compiled geometry. Split children may refine surface faceting, but preserve the underlying corner-defined surface and enclosed volume. Self-overlapping, folded, collapsed, out-of-bounds or overly complex drafts remain editable and saveable; they cannot launch until corrected. This eight-corner version supports dents whose faces remain oriented outward from the block center. It does not add arbitrary topology, tunnels, edge subdivision or smooth subdivision surfaces.

@@ -622,3 +622,125 @@ mod tests {
         assert!(!connected(&a, &box_cell([2., 2., 0.], [2.; 3])));
     }
 }
+
+/// Join coplanar patches only when their convex hull has exactly their combined
+/// area. This removes tessellation seams without filling a dent or an opening.
+pub fn merge_patches(mut patches: Vec<Polygon>) -> Vec<Polygon> {
+    loop {
+        let mut joined = None;
+        'search: for i in 0..patches.len() {
+            for j in 0..i {
+                let n = normal(&patches[i]);
+                if dot(n, normal(&patches[j])) < 1. - EPS
+                    || patches[j]
+                        .iter()
+                        .any(|p| dot(n, sub(*p, patches[i][0])).abs() > EPS)
+                {
+                    continue;
+                }
+                let u = normalize(sub(patches[i][1], patches[i][0]));
+                let v = cross(n, u);
+                let mut points = patches[i].clone();
+                points.extend_from_slice(&patches[j]);
+                points.sort_by(|a, b| {
+                    dot(*a, u)
+                        .total_cmp(&dot(*b, u))
+                        .then(dot(*a, v).total_cmp(&dot(*b, v)))
+                });
+                points.dedup_by(|a, b| length(sub(*a, *b)) < EPS);
+                let mut hull: Vec<Vec3> = vec![];
+                for p in &points {
+                    while hull.len() > 1
+                        && dot(
+                            cross(
+                                sub(hull[hull.len() - 1], hull[hull.len() - 2]),
+                                sub(*p, hull[hull.len() - 1]),
+                            ),
+                            n,
+                        ) <= EPS
+                    {
+                        hull.pop();
+                    }
+                    hull.push(*p);
+                }
+                let lower = hull.len();
+                for p in points.iter().rev().skip(1) {
+                    while hull.len() > lower
+                        && dot(
+                            cross(
+                                sub(hull[hull.len() - 1], hull[hull.len() - 2]),
+                                sub(*p, hull[hull.len() - 1]),
+                            ),
+                            n,
+                        ) <= EPS
+                    {
+                        hull.pop();
+                    }
+                    hull.push(*p);
+                }
+                hull.pop();
+                if (area(&hull) - area(&patches[i]) - area(&patches[j])).abs() < 1e-7 {
+                    joined = Some((i, j, hull));
+                    break 'search;
+                }
+            }
+        }
+        let Some((i, j, hull)) = joined else {
+            break;
+        };
+        patches.remove(i);
+        patches[j] = hull;
+    }
+    patches
+}
+/// Adjacent tetrahedra often form much larger convex cells. Remove only complete
+/// shared faces, then prove every retained plane contains both operands.
+pub fn coalesce_cells(mut cells: Vec<Cell>) -> Vec<Cell> {
+    loop {
+        let mut joined = None;
+        'search: for i in 0..cells.len() {
+            for j in 0..i {
+                let mut faces = vec![];
+                let mut shared = false;
+                for (a, b) in [(&cells[i], &cells[j]), (&cells[j], &cells[i])] {
+                    for f in &a.faces {
+                        let matches = b.faces.iter().any(|g| {
+                            f.vertices.len() == g.vertices.len()
+                                && dot(normal(&f.vertices), normal(&g.vertices)) < -1. + EPS
+                                && f.vertices
+                                    .iter()
+                                    .all(|p| g.vertices.iter().any(|q| length(sub(*p, *q)) < EPS))
+                        });
+                        if matches {
+                            shared = true;
+                        } else {
+                            faces.push(f.clone());
+                        }
+                    }
+                }
+                if !shared {
+                    continue;
+                }
+                let points: Vec<_> = faces.iter().flat_map(|f| f.vertices.iter()).collect();
+                if !faces.iter().all(|f| {
+                    let n = normal(&f.vertices);
+                    points.iter().all(|p| dot(n, sub(**p, f.vertices[0])) < EPS)
+                }) {
+                    continue;
+                }
+                let faces = merge_patches(faces.into_iter().map(|f| f.vertices).collect())
+                    .into_iter()
+                    .map(|vertices| ConvexVolumeFacesItem { vertices })
+                    .collect();
+                joined = Some((i, j, Cell { faces }));
+                break 'search;
+            }
+        }
+        let Some((i, j, cell)) = joined else {
+            break;
+        };
+        cells.remove(i);
+        cells[j] = cell;
+    }
+    cells
+}

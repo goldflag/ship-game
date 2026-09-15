@@ -1,7 +1,7 @@
 //! Authoritative construction compiler, shared by native tests and local WASM sessions.
 use crate::{catalog::sha256, construction_geometry as cg, definition::*, geometry::*};
 use std::collections::{BTreeMap, BTreeSet};
-pub const COMPILER: &str = "construction-polyhedra-1";
+pub const COMPILER: &str = "construction-polyhedra-2";
 pub const MAX_SOURCE_BYTES: usize = 16_000_000;
 pub const MAX_CATALOG_BYTES: usize = 4_000_000;
 /// Source bounds; the editor mirrors them in `src/ships/constructionEditor.ts`.
@@ -389,12 +389,13 @@ fn validate(
         ));
     }
     for p in &c.primitives {
-        if !size(p.size)
+        if (p.kind != "vertex" && p.vertices.is_some())
+            || !size(p.size)
             || !finite(p.position)
             || !p.rotation_deg.is_finite()
             || (p.rotation_deg / 90. - (p.rotation_deg / 90.).round()).abs() > 1e-8
             || p.rotation_deg.abs() > 3600.
-            || !["box", "wedge", "corner", "inverse-corner"].contains(&p.kind.as_str())
+            || !["box", "wedge", "corner", "inverse-corner", "vertex"].contains(&p.kind.as_str())
         {
             return Err(error(
                 "primitive",
@@ -512,25 +513,64 @@ fn build(
     let fail = |s: String| error("geometry", s, None);
     let mut primitives: Vec<_> = c.primitives.iter().collect();
     primitives.sort_by(|a, b| a.id.cmp(&b.id));
-    let raw: Vec<_> = primitives.iter().map(|p| primitive(p)).collect();
-    // Pairwise work only visits pieces whose bounds meet; every skipped pair is separated,
-    // for which the exact geometry operations are no-ops.
-    let index = cg::Broadphase::sized_for(&raw);
-    let neighbors: Vec<Vec<usize>> = (0..raw.len())
+    let raw: Vec<_> = primitives
+        .iter()
+        .map(|p| {
+            if p.kind == "vertex" {
+                crate::construction_vertex::build(p)
+                    .map_err(|message| error("vertex-hull", message, Some(&p.id)))
+            } else {
+                let cell = primitive(p);
+                let faces = cell
+                    .faces
+                    .iter()
+                    .map(|f| (face_name(&f.vertices, p), f.vertices.clone()))
+                    .collect();
+                Ok(crate::construction_vertex::VertexSolid {
+                    cells: vec![cell],
+                    faces,
+                })
+            }
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    // Index convex cells once, then collect their owning source-piece neighbors.
+    // Vertex solids may contain several cells; simple primitives retain the 10k-piece fast path.
+    let flat: Vec<_> = raw.iter().flat_map(|p| p.cells.iter().cloned()).collect();
+    let owners: Vec<_> = raw
+        .iter()
+        .enumerate()
+        .flat_map(|(i, p)| std::iter::repeat_n(i, p.cells.len()))
+        .collect();
+    cg::check_budget(&flat).map_err(fail)?;
+    let index = cg::Broadphase::sized_for(&flat);
+    let cell_neighbors: Vec<Vec<usize>> = (0..flat.len())
         .map(|i| {
             index
-                .candidates(&raw[i])
+                .candidates(&flat[i])
                 .into_iter()
-                .filter(|&j| j != i && !cg::separated(&raw[i], &raw[j]))
+                .filter(|&j| j != i && !cg::separated(&flat[i], &flat[j]))
                 .collect()
         })
         .collect();
+    let mut neighbors = vec![BTreeSet::new(); raw.len()];
+    for (i, nearby) in cell_neighbors.iter().enumerate() {
+        for &j in nearby {
+            if owners[i] != owners[j] {
+                neighbors[owners[i]].insert(owners[j]);
+            }
+        }
+    }
     let mut reached = vec![false; raw.len()];
     let mut queue = vec![0];
     reached[0] = true;
     while let Some(a) = queue.pop() {
         for &b in &neighbors[a] {
-            if !reached[b] && cg::connected(&raw[a], &raw[b]) {
+            if !reached[b]
+                && raw[a]
+                    .cells
+                    .iter()
+                    .any(|x| raw[b].cells.iter().any(|y| cg::connected(x, y)))
+            {
                 reached[b] = true;
                 queue.push(b);
             }
@@ -543,7 +583,7 @@ fn build(
             None,
         ));
     }
-    let cells = cg::union_near(&raw, &neighbors).map_err(fail)?;
+    let cells = cg::union_near(&flat, &cell_neighbors).map_err(fail)?;
     let envelope = cg::total(&cells);
     // Catalog-declared installation wells cross only the supporting exterior deck.
     // Their enclosures seal the penetration; they do not carve nearby side armor.
@@ -581,21 +621,22 @@ fn build(
     }
     let mut penetrations = vec![];
     for (i, p) in primitives.iter().enumerate() {
-        for f in &raw[i].faces {
-            let face = face_name(&f.vertices, p);
+        for (face, polygon) in &raw[i].faces {
+            let face = face.clone();
             let a = c
                 .surfaces
                 .iter()
                 .find(|a| a.primitive_id == p.id && a.face == face);
-            let mut patches = vec![f.vertices.clone()];
+            let mut patches = vec![polygon.clone()];
             for &j in &neighbors[i] {
-                let other = &raw[j];
-                patches = patches
-                    .iter()
-                    .flat_map(|patch| cg::exposed(patch, other, i < j))
-                    .collect();
+                for cell in &raw[j].cells {
+                    patches = patches
+                        .iter()
+                        .flat_map(|patch| cg::exposed(patch, cell, i < j))
+                        .collect();
+                }
             }
-            if cg::normal(&f.vertices)[1] > 0.95 {
+            if cg::normal(polygon)[1] > 0.95 {
                 for (id, kind, well) in &wells {
                     let mut remaining = vec![];
                     for patch in patches {
@@ -2008,6 +2049,7 @@ mod tests {
                     catalog_revision: "test".into(),
                     default_thickness_mm: 10.,
                     primitives: vec![ConstructionPrimitive {
+                        vertices: None,
                         id: "box".into(),
                         kind: "box".into(),
                         position: [0.; 3],
@@ -2027,6 +2069,70 @@ mod tests {
                 ..Default::default()
             },
         )
+    }
+    #[test]
+    fn vertex_hulls_compile_real_volume_and_retain_face_assignments() {
+        let (mut s, c) = fixture();
+        let original = compile(&s, &c).loading.unwrap().envelope_volume_m3;
+        s.construction.primitives[0].kind = "vertex".into();
+        let cube = compile(&s, &c);
+        assert!(cube.definition.is_some(), "{:?}", cube.diagnostics);
+        assert!((cube.loading.unwrap().envelope_volume_m3 - original).abs() < 1e-6);
+        s.construction.primitives[0].vertices = Some(vec![
+            [-0.5, -0.5, -0.5],
+            [0.5, -0.5, -0.5],
+            [0.3, 0.5, -0.5],
+            [-0.5, 0.5, -0.5],
+            [-0.5, -0.5, 0.5],
+            [0.5, -0.5, 0.5],
+            [0.5, 0.5, 0.5],
+            [-0.5, 0.5, 0.5],
+        ]);
+        s.construction.surfaces.push(ConstructionSurfaceAssignment {
+            primitive_id: "box".into(),
+            face: "starboard".into(),
+            thickness_mm: 25.,
+            material: "armor-steel".into(),
+            paint: "red-oxide".into(),
+            open: None,
+        });
+        let warped = compile(&s, &c);
+        assert!(warped.definition.is_some(), "{:?}", warped.diagnostics);
+        assert!(warped.loading.unwrap().envelope_volume_m3 < original);
+        assert!(
+            warped
+                .surfaces
+                .iter()
+                .filter(|s| s.face == "starboard")
+                .all(|s| s.paint == "red-oxide" && s.thickness_mm == 25.)
+        );
+        assert!(warped.surfaces.iter().all(|s| s.face != "slope"));
+        let mut split = s.clone();
+        let parent = s.construction.primitives[0].clone();
+        split.construction.surfaces.clear();
+        split.construction.primitives = (0..4)
+            .map(|i| {
+                let mut p = parent.clone();
+                p.id = format!("child-{i}");
+                p.size[2] /= 4.;
+                p.position[2] = -10. + 2.5 + i as f64 * 5.;
+                let v = p.vertices.as_mut().unwrap();
+                v[2][0] = 0.5 - 0.2 * (1. - i as f64 / 4.);
+                v[6][0] = 0.5 - 0.2 * (1. - (i + 1) as f64 / 4.);
+                p
+            })
+            .collect();
+        let children = compile(&split, &c);
+        assert!(children.definition.is_some(), "{:?}", children.diagnostics);
+        s.construction.primitives[0].vertices.as_mut().unwrap()[2] = [-2., -2., 2.];
+        let folded = compile(&s, &c);
+        assert!(folded.definition.is_none());
+        assert!(
+            folded
+                .diagnostics
+                .iter()
+                .any(|d| d.code == "vertex-hull" && d.source_id.as_deref() == Some("box"))
+        );
     }
     #[test]
     fn generated_source_to_valid_definition_round_trip() {
@@ -2086,6 +2192,7 @@ mod tests {
         s.id = "catamaran".into();
         s.construction.primitives = vec![
             ConstructionPrimitive {
+                vertices: None,
                 id: "port".into(),
                 kind: "box".into(),
                 position: [-4., 0., 0.],
@@ -2093,6 +2200,7 @@ mod tests {
                 rotation_deg: 0.,
             },
             ConstructionPrimitive {
+                vertices: None,
                 id: "starboard".into(),
                 kind: "box".into(),
                 position: [4., 0., 0.],
@@ -2100,6 +2208,7 @@ mod tests {
                 rotation_deg: 0.,
             },
             ConstructionPrimitive {
+                vertices: None,
                 id: "bridge".into(),
                 kind: "box".into(),
                 position: [0., 2.5, 0.],

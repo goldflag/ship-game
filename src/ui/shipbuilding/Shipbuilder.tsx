@@ -1,3 +1,5 @@
+import { VertexToolbar, type VertexSettings } from './VertexToolbar';
+import { canEditVertices, cornerVertices, editableCorners, replaceVertexPrimitives, splitVertexPrimitive, vertexEdit, VERTEX_UNITS } from '../../ships/constructionVertex';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { ConstructionBoundary, ConstructionCatalog, ConstructionEquipment, ConstructionPrimitive, ConstructionResult, ConstructionSource, ConstructionSuggestion, ConstructionSurfaceAssignment, Vec3 } from '../../ships/blueprint';
 import { CONSTRUCTION_LIMITS, assignConstructionSurfaces, copyConstructionSelection, editableConstructionSurfaces, mirroredFace, mirroredPrimitive, moveConstructionSelection, newConstructionId, removeConstructionSelection, rotateConstructionSelection, surfaceKey, type ConstructionFace } from '../../ships/constructionEditor';
@@ -36,7 +38,7 @@ export interface ShipbuilderProps {
 }
 
 const DISPLAY: Record<BuilderLayer, BuilderDisplay> = { hull: 'paint', armor: 'armor', internals: 'internals', fittings: 'paint', paint: 'paint' };
-const SHAPE_NAMES: Record<ConstructionPrimitive['kind'], string> = { box: 'Box', wedge: 'Wedge', corner: 'Corner out', 'inverse-corner': 'Corner in' };
+const SHAPE_NAMES: Record<ConstructionPrimitive['kind'], string> = { box: 'Box', wedge: 'Wedge', corner: 'Corner out', 'inverse-corner': 'Corner in', vertex: 'Vertex hull' };
 const BOUNDARY_NAMES: Record<ConstructionBoundary['axis'], string> = { y: 'Deck', z: 'Bulkhead', x: 'Split' };
 const VIEWS: BuilderView[] = ['orbit', 'top', 'side', 'bow'];
 const VIEW_NAMES: Record<BuilderView, string> = { orbit: 'Orbit', top: 'Plan', side: 'Profile', bow: 'Bow' };
@@ -44,6 +46,8 @@ const ARC_RADIUS = 12;
 const LIMITS = CONSTRUCTION_LIMITS;
 interface KeyHint { keys: string[]; label: string }
 const metres = (value: number) => Number(value.toFixed(2)).toLocaleString(undefined, { maximumFractionDigits: 2 });
+/** The card's corner label: whole metres stay bare, quarter and half plates read as fractions. */
+const dimensions = (size: Vec3) => size.map(value => value === .25 ? '¼' : value === .5 ? '½' : value === .75 ? '¾' : metres(value)).join('×');
 const signed = (value: number) => `${value < 0 ? '−' : value > 0 ? '+' : ''}${metres(Math.abs(value))}`;
 
 export function Shipbuilder(props: ShipbuilderProps) {
@@ -69,6 +73,9 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const [mirror, setMirror] = useState(true);
   const [showArcs, setShowArcs] = useState(false);
   const [showCenters, setShowCenters] = useState(true);
+  const [vertexSession, setVertexSession] = useState<{designId:string;baseline:ConstructionPrimitive}>();
+  const [vertexSettings, setVertexSettings] = useState<VertexSettings>({symmetry:true,axes:[true,false,false],unit:.2,axis:true,snap:false,splitAxis:2,count:4,corner:1});
+  const [perspective, setPerspective] = useState(true);
   const [view, setView] = useState<BuilderView>('orbit');
   const [slice, setSlice] = useState<{ on: boolean; y: number; auto: boolean }>({ on: false, y: 0, auto: true });
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -99,6 +106,8 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const compiled = editor.currentResult;
   const selectedPrimitives = data.primitives.filter(part => selected.has(part.id));
   const selectedEquipment = data.equipment.filter(part => selected.has(part.id));
+  const vertexPrimitive = vertexSession?.designId === source.id && layer === 'hull' && tool === 'select' && selected.size === 1 && selected.has(vertexSession.baseline.id) ? data.primitives.find(p=>p.id===vertexSession.baseline.id && canEditVertices(p)) : undefined;
+  const vertexMode = !!vertexPrimitive;
   const selectedBoundary = data.boundaries.find(wall => selected.has(wall.id));
   const partOf = (instance: ConstructionEquipment) => catalog.equipment.find(part => part.id === instance.partId);
   const editableSurfaces = useMemo(() => editableConstructionSurfaces(source, compiled?.surfaces ?? []), [source, compiled]);
@@ -106,6 +115,29 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const gridStep = layer === 'fittings' || (layer === 'internals' && tool === 'module') ? .25 : 1;
   const fail = (cause: unknown) => editor.setError(cause instanceof Error ? cause.message : String(cause));
   const run = (label: string, command: (draft: ConstructionSource) => void) => { if (locked) return; editor.setError(''); setNotice(''); editor.edit(label, command); };
+  const changeVertexSettings = (patch:Partial<VertexSettings>) => setVertexSettings(current => {
+    const next={...current,...patch}, available=editableCorners(next.symmetry,next.axes);
+    if(!available.includes(next.corner)) next.corner=available[0]; return next;
+  });
+  const cycleUnit = () => changeVertexSettings({unit:VERTEX_UNITS[(VERTEX_UNITS.findIndex(n=>n===vertexSettings.unit)+1)%VERTEX_UNITS.length]});
+  const enterVertices = () => {
+    const p=selectedPrimitives[0];if(!p || selected.size!==1 || !canEditVertices(p))return;
+    setTool('select');setLayer('hull');setSlice(current=>({...current,on:false}));setDrawer(false);setSurfaces(new Set());setVertexSession({designId:source.id,baseline:structuredClone(p)});
+  };
+  const commitVertices = (replacements:ConstructionPrimitive[]) => run('Shape hull corners',draft=>replaceVertexPrimitives(draft,replacements));
+  const setCornerCoordinate = (axis:number,value:number) => {
+    if(!vertexPrimitive)return;const delta:Vec3=[0,0,0];
+    const original=cornerVertices(vertexPrimitive)[vertexSettings.corner][axis]*vertexPrimitive.size[axis];
+    delta[axis]=Math.round((value-original)/vertexSettings.unit)*vertexSettings.unit;
+    commitVertices(vertexEdit(source,vertexPrimitive.id,vertexSettings.corner,delta,vertexSettings.symmetry,vertexSettings.axes,vertexSettings.snap));
+  };
+  const splitVertices = () => {
+    if(!vertexPrimitive)return;
+    try {const next=structuredClone(source),ids=splitVertexPrimitive(next,vertexPrimitive.id,vertexSettings.splitAxis,vertexSettings.count);
+      run('Split hull block',draft=>{draft.construction=next.construction;});setSelected(new Set([ids[0]]));setVertexSession(undefined);
+    }catch(cause){fail(cause);}
+  };
+  useEffect(()=>{if(vertexSession&&!vertexMode)setVertexSession(undefined);},[vertexMode,source.id]);
   const requestSuggestion = props.suggestLayout ?? (compiler.suggest ? (source: ConstructionSource, ids: string[], signal?: AbortSignal) => compiler.suggest!(source, ids, signal) : undefined);
   const suggestionChanged = suggestion && JSON.stringify([data.equipment, data.boundaries, data.loads]) !== JSON.stringify([suggestion.source.construction.equipment, suggestion.source.construction.boundaries, suggestion.source.construction.loads]);
 
@@ -131,10 +163,16 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const gesture: BuilderGesture = tool === 'fill' ? 'fill' : tool === 'place' || tool === 'module' ? 'stroke' : 'none';
 
   // ---- selection and editing
-  const choose = (id: string, additive = false) => setSelected(current => {
-    if (!additive) return new Set([id]);
-    const next = new Set(current); if (next.has(id)) next.delete(id); else next.add(id); return next;
-  });
+  const choose = (id: string, additive = false) => {
+    if(vertexSession && !additive && id!==vertexSession.baseline.id) {
+      const p=data.primitives.find(p=>p.id===id && canEditVertices(p));
+      setVertexSession(p?{designId:source.id,baseline:structuredClone(p)}:undefined);
+    }
+    setSelected(current => {
+      if (!additive) return new Set([id]);
+      const next = new Set(current); if (next.has(id)) next.delete(id); else next.add(id); return next;
+    });
+  };
   const clearSelection = () => { setSelected(new Set()); setSurfaces(new Set()); };
   const removePieces = (ids: ReadonlySet<string>, label = 'Remove selection') => {
     if (locked || !ids.size) return;
@@ -339,6 +377,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
     else if (entry.id === 'suggest') void suggest(layer === 'fittings');
   };
   const cycleView = () => setView(current => VIEWS[(VIEWS.indexOf(current) + 1) % VIEWS.length]);
+  const toggleProjection = () => setPerspective(value => !value);
   const toggleSlice = () => setSlice(current => ({ on: !current.on, y: current.on ? current.y : defaultSlice(), auto: false }));
   const fit = () => setFitRequest(value => value + 1);
 
@@ -352,6 +391,13 @@ export function Shipbuilder(props: ShipbuilderProps) {
       const modifier = event.ctrlKey || event.metaKey, lower = event.key.toLowerCase();
       if (modifier && lower === 'z') { event.preventDefault(); if (event.shiftKey) editor.redo(); else editor.undo(); return; }
       if (modifier && lower === 'y') { event.preventDefault(); editor.redo(); return; }
+      if (!modifier && !event.altKey && lower === 'p') { event.preventDefault(); if (!event.repeat) toggleProjection(); return; }
+      if (vertexMode && !modifier) {
+        if(event.key==='Escape'){setVertexSession(undefined);event.preventDefault();return;}
+        if(lower==='g'){cycleUnit();event.preventDefault();return;}
+        if(lower==='o'){toggleProjection();event.preventDefault();return;}
+        if(lower!=='w' && event.key!=='Home') return;
+      }
       // Without a selection, ⌘C and ⌘X stay with the browser so selected text still copies.
       if (modifier && lower === 'c') { if (!selected.size) return; event.preventDefault(); copy(event.shiftKey); return; }
       if (modifier && lower === 'x') { if (!selected.size) return; event.preventDefault(); remove(); return; }
@@ -378,7 +424,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
       if (/^[1-9]$/.test(event.key)) { const item = palette.bar[Number(event.key) - 1]; if (item) selectSlot(item); return; }
       if (event.key === '0') { if (hasDrawer) { setDrawer(value => !value); setTip(undefined); } return; }
       if (lower === 'q') cycleView(); else if (lower === 's') toggleSlice(); else if (lower === 'w') setWarningsOpen(value => !value);
-      else if (lower === 'r') rotate(); else if (lower === 'm') setMirror(value => !value);
+      else if (lower === 'r') rotate(); else if (lower === 'm') setMirror(value => !value); else if (lower === 'c') setShowCenters(value => !value);
       else { const entry = rail.find(entry => entry.key.toLowerCase() === lower); if (entry) activateRail(entry); }
   };
   useEffect(() => {
@@ -417,12 +463,13 @@ export function Shipbuilder(props: ShipbuilderProps) {
   </> : piece.kind === 'equipment' && active?.kind === 'part' ? <>
     <b>{active.part.name}</b><span>{active.part.placement} · bearing {piece.bearingDeg}°</span>
   </> : piece.kind === 'boundary' ? <><b>{BOUNDARY_NAMES[piece.axis]}</b><span>on the 1 m grid</span></> : null;
-  if (selectedPrimitives.length === 1 && !selectedEquipment.length) {
+  if (!vertexMode && selectedPrimitives.length === 1 && !selectedEquipment.length) {
     const primitive = selectedPrimitives[0], mass = pieceMassKg(compiled, primitive.id);
     const size = (axis: number, value: number) => run('Resize hull piece', draft => { draft.construction.primitives.find(part => part.id === primitive.id)!.size[axis] = value; });
     const move = (axis: number, value: number) => { const delta: Vec3 = [0, 0, 0]; delta[axis] = snapCoordinate(value, .25) - primitive.position[axis]; nudge(delta); };
     tags.push({ key: `piece-${primitive.id}`, anchor: primitive.position, dx: 70, dy: -78, tone: 'mint', content: <>
       <b>{SHAPE_NAMES[primitive.kind]} <NumberField value={primitive.size[0]} min={.25} max={500} onChange={value => size(0, value)}/> × <NumberField value={primitive.size[1]} min={.25} max={500} onChange={value => size(1, value)}/> × <NumberField value={primitive.size[2]} min={.25} max={500} onChange={value => size(2, value)}/> m</b>
+      {canEditVertices(primitive) && <button className="sb-edit-vertices" onClick={enterVertices}>Edit vertices</button>}
       {mass !== undefined ? `plating ${formatTonnes(mass)} · ` : ''}<NumberField label="x" value={primitive.position[0]} min={-1000} max={1000} onChange={value => move(0, value)}/> <NumberField label="y" value={primitive.position[1]} min={-1000} max={1000} onChange={value => move(1, value)}/> <NumberField label="z" value={primitive.position[2]} min={-1000} max={1000} onChange={value => move(2, value)}/> · {primitive.rotationDeg}° <kbd>R</kbd> · <kbd>⌫</kbd> remove · <kbd>⌘C</kbd> copy
     </> });
   } else if (selectedEquipment.length === 1 && !selectedPrimitives.length) {
@@ -462,7 +509,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
     if (target) tags.push({ key: `block-${firstBlock.sourceId}`, anchor: 'partId' in target ? equipmentAnchor(target) : target.position, dx: -262, dy: -80, tone: 'bad', content: <><b>Blocks launch</b><span>{firstBlock.message}</span></> });
   }
 
-  // Cards carry only the piece; its name and reading appear as a tooltip.
+  // Cards carry the piece, and hull cards its metre dimensions in the corner; the name and reading appear as a tooltip.
   const describe = (item: SlotItem): { title: string; detail: string } => {
     switch (item.kind) {
       case 'shape': return { title: item.name, detail: `${item.shape.size.map(metres).join(' × ')} m · ${SHAPE_NAMES[item.shape.kind].toLowerCase()}` };
@@ -483,7 +530,9 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const hideTip = () => setTip(undefined);
   const face = (item: SlotItem) => {
     const image = imageFor(item);
-    if (image) return <img src={image} alt="" draggable={false}/>;
+    const picture = image ? <img src={image} alt="" draggable={false}/> : null;
+    if (item.kind === 'shape') return <>{picture ?? <SlotGlyph item={item} customMm={customMm}/>}<i className="sb-dims">{dimensions(item.shape.size)}</i></>;
+    if (picture) return picture;
     switch (item.kind) {
       case 'armor': return <i className="sb-swatch" style={{ background: armorThicknessColor(customMm) }}><span>{customMm} mm</span></i>;
       case 'paint': return <i className="sb-swatch" style={{ background: item.color }}/>;
@@ -499,14 +548,13 @@ export function Shipbuilder(props: ShipbuilderProps) {
   };
 
   // ---- hotkey legend above the compass: the standing keys on the bottom row; the keys acting on the cursor piece, the selection or the picked faces on a row above.
-  // Keys already printed elsewhere (rail tools, W on the warnings lead, ⌘Z on undo, ? on Keys) stay off it.
+  // Keys already printed elsewhere (rail tools, the view bar's Q P S C M Home, W on the warnings lead, ⌘Z on undo, ? on Keys) stay off it.
   const faceLayer = layer === 'armor' || layer === 'paint';
   const movable = selectedPrimitives.length + selectedEquipment.length > 0;
   const standing: KeyHint[] = [
     { keys: palette.bar.length < 4 ? palette.bar.map((_, index) => String(index + 1)) : ['1', '…', '9'], label: surfaces.size && faceLayer ? (layer === 'paint' ? 'Paint faces' : 'Assign armor') : 'Card' },
     ...(hasDrawer ? [{ keys: ['0'], label: `All ${drawerName}` }] : []),
-    { keys: ['Q'], label: 'View' }, { keys: ['S'], label: 'Slice' }, ...(slice.on ? [{ keys: selected.size ? ['⇧PgUp', '⇧PgDn'] : ['PgUp', 'PgDn'], label: 'Slice height' }] : []),
-    { keys: ['Home'], label: 'Fit' },
+    ...(slice.on ? [{ keys: selected.size ? ['⇧PgUp', '⇧PgDn'] : ['PgUp', 'PgDn'], label: 'Slice height' }] : []),
   ];
   const acting: KeyHint[] = [];
   if (!locked && piece && piece.kind !== 'boundary') acting.push({ keys: ['R'], label: piece.kind === 'hull' ? 'Rotate 90°' : 'Rotate 15°' });
@@ -518,10 +566,13 @@ export function Shipbuilder(props: ShipbuilderProps) {
   if (escape) acting.push({ keys: ['Esc'], label: escape });
   const chip = (hint: KeyHint) => <span key={hint.label} className="sb-key">{hint.keys.map((key, index) => <kbd key={index}>{key}</kbd>)}{hint.label}</span>;
 
-  return <main className="shipbuilder" aria-label="Shipbuilder" data-layer={layer} data-drawer={drawer || undefined} aria-busy={!!busy}>
-    <BuilderViewport source={source} result={result} catalog={catalog} selected={selected} selectedSurfaces={surfaces} view={view} display={DISPLAY[layer]} slice={slice.on ? slice.y : undefined}
-      gridStep={gridStep} gesture={locked ? 'none' : gesture} pickTargets={layer === 'armor' || layer === 'paint' ? 'hull' : 'all'} moveTargets={locked ? 'none' : moveTargets} placementPiece={locked ? undefined : piece} placementMirror={mirrorPiece} highlightFaces={layer === 'armor' || layer === 'paint'} rooms={layer === 'internals'}
+  return <main className={`shipbuilder ${vertexMode ? 'sb-vertex-mode' : ''}`} aria-label="Shipbuilder" data-layer={layer} data-drawer={drawer || undefined} aria-busy={!!busy}>
+    <BuilderViewport perspective={perspective} vertex={vertexPrimitive && !locked ? {...vertexSettings,id:vertexPrimitive.id,onSelect:corner=>changeVertexSettings({corner}),onCommit:commitVertices} : undefined} source={source} result={result} catalog={catalog} selected={selected} selectedSurfaces={surfaces} view={view} display={DISPLAY[layer]} slice={slice.on ? slice.y : undefined}
+      gridStep={gridStep} gesture={locked ? 'none' : gesture} pickTargets={layer === 'armor' || layer === 'paint' ? 'hull' : 'all'} moveTargets={locked || vertexMode ? 'none' : moveTargets} placementPiece={locked || vertexMode ? undefined : piece} placementMirror={mirrorPiece} highlightFaces={layer === 'armor' || layer === 'paint'} rooms={layer === 'internals'}
       showCenters={showCenters} arcs={arcs} proposed={proposed} measure={measure} tags={tags} coords={coords} status={status} fitRequest={fitRequest} onPick={pick} onStroke={placeAt} onBoxSelect={boxSelect} onErase={erase} onMove={movePieces} createModel={props.createModel}/>
+    {vertexPrimitive && <VertexToolbar primitive={vertexPrimitive} settings={vertexSettings} onChange={changeVertexSettings} cycleUnit={cycleUnit} onCoordinate={setCornerCoordinate}
+      onView={v=>{setPerspective(false);setView(v);setFitRequest(n=>n+1);}} perspective={perspective} onProjection={toggleProjection}
+      onReset={()=>run('Reset hull edit',draft=>replaceVertexPrimitives(draft,[vertexSession!.baseline]))} onSplit={splitVertices} onExit={()=>setVertexSession(undefined)}/>}
     <header className="sb-top">
       <button className="sb-port" disabled={!!busy} onClick={() => void close()} title="Save and return to port"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M8 1.5 3.5 6 8 10.5"/></svg>Port</button>
       <div className="sb-ship">
@@ -554,6 +605,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
         {notice && <div className="row note" role="status"><i className="sb-dot note"/><span>{notice}</span></div>}
       </div>
       <div className="sb-rail" role="toolbar" aria-label="Tools">{rail.map(entry => <button key={entry.id} className={entry.kind} disabled={locked} aria-pressed={entry.kind === 'tool' ? tool === entry.id : entry.kind === 'toggle' ? (entry.id === 'mirror' ? mirror : showArcs) : undefined} title={`${entry.name} (${entry.key})`} onClick={() => activateRail(entry)}><ToolGlyph name={entry.glyph}/><span>{entry.name}</span><kbd>{entry.key}</kbd></button>)}
+        {layer==='hull' && <button aria-pressed={vertexMode} disabled={locked || selected.size!==1 || !selectedPrimitives[0] || !canEditVertices(selectedPrimitives[0])} onClick={vertexMode?()=>setVertexSession(undefined):enterVertices} title="Select one cube or vertex hull, then edit its corners"><ToolGlyph name="Select"/><span>Vertices</span></button>}
         <button className="help" aria-haspopup="dialog" aria-expanded={helpOpen} title="Controls and hotkeys (?)" onClick={() => setHelpOpen(value => !value)}><ToolGlyph name="Keys"/><span>Keys</span><kbd>?</kbd></button></div>
     </div>
     <aside className="sb-ledger" aria-label="Ledger">
@@ -579,12 +631,13 @@ export function Shipbuilder(props: ShipbuilderProps) {
     </div>
     {tip && <div className={`sb-tip ${tip.below ? 'below' : ''}`} role="tooltip" style={{ left: tip.x, top: tip.y }}><b>{tip.title}</b>{tip.detail}{tip.key && <kbd>{tip.key}</kbd>}</div>}
     <div className="sb-viewbar">
-      <button onClick={cycleView} title="Cycle the view">View <b>{VIEW_NAMES[view]}</b></button>
-      <button onClick={toggleSlice} title="Cut the ship above a height">Slice <b>{slice.on ? `${signed(slice.y)} m` : 'Off'}</b></button>
-      <button aria-pressed={showCenters} onClick={() => setShowCenters(value => !value)} title="Show center of gravity (mass) and center of buoyancy markers">Centers <b>{showCenters ? 'On' : 'Off'}</b></button>
+      <button onClick={cycleView} title="Cycle the view (Q)">View <b>{VIEW_NAMES[view]}</b><kbd>Q</kbd></button>
+      <button onClick={toggleProjection} title="Toggle orthographic and perspective cameras (P)">Camera <b>{perspective ? 'Perspective' : 'Orthographic'}</b><kbd>P</kbd></button>
+      <button onClick={toggleSlice} title="Cut the ship above a height (S)">Slice <b>{slice.on ? `${signed(slice.y)} m` : 'Off'}</b><kbd>S</kbd></button>
+      <button aria-pressed={showCenters} onClick={() => setShowCenters(value => !value)} title="Show center of gravity (mass) and center of buoyancy markers (C)">Centers <b>{showCenters ? 'On' : 'Off'}</b><kbd>C</kbd></button>
       <span title="Placement snaps to the face under the pointer">Snap <b>{gridStep === 1 ? '1 m' : '¼ m'}</b></span>
-      <button onClick={() => setMirror(value => !value)} title="Mirror placements across the centerline">Mirror <b>{mirror ? 'On' : 'Off'}</b></button>
-      <button onClick={fit} title="Frame the ship">Fit</button>
+      <button aria-pressed={mirror} onClick={() => setMirror(value => !value)} title="Mirror placements across the centerline (M)">Mirror <b>{mirror ? 'On' : 'Off'}</b><kbd>M</kbd></button>
+      <button onClick={fit} title="Frame the ship (Home)">Fit<kbd>Home</kbd></button>
     </div>
     {!data.primitives.length && <div className="sb-empty"><b>This design needs a starting block</b><button disabled={locked} onClick={() => run('Add starting block', draft => { draft.construction.primitives.push(startingHullBlock()); })}>Add a hull block</button> to keep building.</div>}
     {helpOpen && <HelpDialog onClose={() => setHelpOpen(false)}/>}

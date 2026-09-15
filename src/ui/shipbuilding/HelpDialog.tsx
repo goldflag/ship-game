@@ -6,7 +6,7 @@ import { BUILDER_LAYERS, BUILDER_RAIL } from './builderLayers';
 const MOUSE: [string, string][] = [
   ['Click', 'Select a piece, fitting, wall or face; Shift-click adds to the selection'],
   ['Drag a piece', 'Move it along the face under the pointer, snapped to the grid (1 m hull, ¼ m fittings)'],
-  ['Drag empty space', 'Orbit; pan in the Plan, Profile and Bow views'],
+  ['Drag empty space', 'Orbit; pan in orthographic Plan, Profile and Bow views'],
   ['Right-drag', 'Pan'],
   ['Wheel · middle-drag', 'Zoom · dolly'],
   ['Shift-drag', 'Box select; Ctrl or ⌘ adds to the selection'],
@@ -25,13 +25,17 @@ const EDITING: [string[], string][] = [
 ];
 const VIEW: [string[], string][] = [
   [['Q'], 'Cycle Orbit, Plan, Profile and Bow'],
+  [['P'], 'Toggle perspective / orthographic camera (perspective by default)'],
   [['S'], 'Slice the ship above a height'],
   [['W'], 'Collapse or expand the warnings'],
   [['M'], 'Mirror placements across the centerline'],
+  [['C'], 'Show or hide the centers of gravity and buoyancy'],
   [['Home'], 'Frame the ship'],
   [['1', '…', '9'], 'Pick a palette card'],
   [['0'], 'Open or close every card of the layer'],
   [['?'], 'This list'],
+  [['G'], 'In vertex mode: cycle the move increment'],
+  [['O'], 'In vertex mode: toggle orthographic / perspective'],
 ];
 
 function Rows({ rows }: { rows: [ReactNode, string][] }) {
@@ -53,6 +57,7 @@ export function HelpDialog({ onClose }: { onClose(): void }) {
           <table><tbody>{BUILDER_LAYERS.map(layer => <tr key={layer.id}><th scope="row">{layer.name}</th><td>{BUILDER_RAIL[layer.id].map(entry => <span key={entry.id}><kbd>{entry.key}</kbd>{entry.name}</span>)}</td></tr>)}</tbody></table>
         </section>
       </div>
+      <p>Select one cube or vertex hull, then choose Vertices. Combine local symmetry axes, drag corners or enter coordinates. SNAP is opt-in; Split creates independent blocks. Reset edit restores the session-entry shape.</p>
       <p>Keys never act inside text or number fields. Mirror also reaches the twin face when painting armor or paint.</p>
     </div>
   </div>;

@@ -36,3 +36,27 @@ test('draft and cursor shapes match the native exterior at every supported quart
     } finally { geometry.dispose(); }
   }
 });
+
+test('warped vertex drafts match native triangular boundaries, split solids compile, and edited ships remain launchable', () => {
+  const catalog = catalogJson as ConstructionCatalog;
+  const source=createStarterSource(catalog,'blank');
+  source.construction.primitives=[{id:'shape',kind:'vertex',size:[8,6,14],position:[7,-3,11],rotationDeg:90,
+    vertices:[[-.5,-.5,-.5],[.5,-.5,-.5],[.3,.5,-.5],[-.5,.5,-.5],[-.5,-.5,.5],[.5,-.5,.5],[.5,.5,.5],[-.5,.5,.5]]}];
+  const p=source.construction.primitives[0];
+  const native=JSON.parse(compile_construction(JSON.stringify(source),JSON.stringify(catalog))) as ConstructionResult;
+  expect(native.diagnostics.filter(d=>d.severity==='error')).toEqual([]);expect(native.definition).toBeDefined();
+  const g=primitiveGeometry('vertex',p.size,p.vertices).rotateY(Math.PI/2).translate(...p.position), positions=g.getAttribute('position');
+  let area=0;
+  for(let i=0;i<positions.count;i+=3){
+    const triangle=[0,1,2].map(k=>new THREE.Vector3().fromBufferAttribute(positions,i+k));
+    area+=new THREE.Triangle(...triangle as [THREE.Vector3,THREE.Vector3,THREE.Vector3]).getArea();
+    expect(native.surfaces.some(s=>triangle.every(p=>Math.abs(new THREE.Vector3(...s.normal).dot(p.clone().sub(new THREE.Vector3(...s.vertices[0]))))<1e-5))).toBe(true);
+  }
+  expect(area).toBeCloseTo(native.surfaces.reduce((sum,s)=>sum+s.areaM2,0),3);
+  g.dispose();
+  const {splitVertexPrimitive}=require('../../ships/constructionVertex') as typeof import('../../ships/constructionVertex');
+  splitVertexPrimitive(source,'shape',2,4);
+  const split=JSON.parse(compile_construction(JSON.stringify(source),JSON.stringify(catalog))) as ConstructionResult;
+  expect(split.diagnostics.filter(d=>d.severity==='error')).toEqual([]);expect(split.definition).toBeDefined();
+  expect(split.loading!.envelopeVolumeM3).toBeCloseTo(native.loading!.envelopeVolumeM3,5);
+});
