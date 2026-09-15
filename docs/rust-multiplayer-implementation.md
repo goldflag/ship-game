@@ -18,6 +18,21 @@ Transport uses compressed updates against an immutable match baseline supplied o
 
 ## Running locally
 
+`bun run dev`, `bun run typecheck` and the TypeScript test commands prepare WASM
+with the `wasm-dev` Rust profile: basic optimization, incremental compilation,
+16 code-generation units and no link-time optimization. It inherits release
+runtime settings, including disabled debug assertions and overflow checks.
+Use `bun run multiplayer:prepare:dev` to prepare this bundle directly, or
+`bun run multiplayer:wasm --dev` when the content manifest already exists.
+The first build populates a separate `target/wasm32-unknown-unknown/wasm-dev`
+cache. Development simulation throughput may be lower than release throughput.
+
+`bun run build`, `bun run multiplayer:prepare`, `bun run multiplayer:wasm`
+and `bun run multiplayer:check` retain the optimized release profile. Both
+profiles publish to `src/generated/naval-wasm`; each preparation regenerates
+bindings from its selected profile, so a production build replaces a prior
+development bundle. Use release builds for performance measurements.
+
 Use Bun 1.3.3, the pinned Rust toolchain, its `wasm32-unknown-unknown` target and `wasm-bindgen-cli` matching Cargo.lock (0.2.128).
 
 ```sh
