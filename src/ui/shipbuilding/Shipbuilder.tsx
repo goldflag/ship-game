@@ -46,6 +46,8 @@ const ARC_RADIUS = 12;
 const LIMITS = CONSTRUCTION_LIMITS;
 interface KeyHint { keys: string[]; label: string }
 const metres = (value: number) => Number(value.toFixed(2)).toLocaleString(undefined, { maximumFractionDigits: 2 });
+/** The card's corner label: whole metres stay bare, quarter and half plates read as fractions. */
+const dimensions = (size: Vec3) => size.map(value => value === .25 ? '¼' : value === .5 ? '½' : value === .75 ? '¾' : metres(value)).join('×');
 const signed = (value: number) => `${value < 0 ? '−' : value > 0 ? '+' : ''}${metres(Math.abs(value))}`;
 
 export function Shipbuilder(props: ShipbuilderProps) {
@@ -505,7 +507,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
     if (target) tags.push({ key: `block-${firstBlock.sourceId}`, anchor: 'partId' in target ? equipmentAnchor(target) : target.position, dx: -262, dy: -80, tone: 'bad', content: <><b>Blocks launch</b><span>{firstBlock.message}</span></> });
   }
 
-  // Cards carry only the piece; its name and reading appear as a tooltip.
+  // Cards carry the piece, and hull cards its metre dimensions in the corner; the name and reading appear as a tooltip.
   const describe = (item: SlotItem): { title: string; detail: string } => {
     switch (item.kind) {
       case 'shape': return { title: item.name, detail: `${item.shape.size.map(metres).join(' × ')} m · ${SHAPE_NAMES[item.shape.kind].toLowerCase()}` };
@@ -526,7 +528,9 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const hideTip = () => setTip(undefined);
   const face = (item: SlotItem) => {
     const image = imageFor(item);
-    if (image) return <img src={image} alt="" draggable={false}/>;
+    const picture = image ? <img src={image} alt="" draggable={false}/> : null;
+    if (item.kind === 'shape') return <>{picture ?? <SlotGlyph item={item} customMm={customMm}/>}<i className="sb-dims">{dimensions(item.shape.size)}</i></>;
+    if (picture) return picture;
     switch (item.kind) {
       case 'armor': return <i className="sb-swatch" style={{ background: armorThicknessColor(customMm) }}><span>{customMm} mm</span></i>;
       case 'paint': return <i className="sb-swatch" style={{ background: item.color }}/>;

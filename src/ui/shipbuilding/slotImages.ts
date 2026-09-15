@@ -4,6 +4,7 @@ import type { ConstructionCatalog, ConstructionEquipmentPart, ConstructionPrimit
 import { constructionEquipmentModelUrl } from '../../ships/constructionEquipment';
 import { loadShipModel } from '../../game/loadShipModel';
 import { constructionPaintColor } from './paints';
+import { CORNER_SIGNS } from '../../ships/constructionVertex';
 import { primitiveGeometry } from './primitiveGeometry';
 import type { SlotItem } from './builderLayers';
 
@@ -24,7 +25,20 @@ function shapeModel(kind: ConstructionPrimitive['kind'], size: Vec3): THREE.Obje
   const geometry = primitiveGeometry(kind, size), group = new THREE.Group();
   group.add(new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ color: constructionPaintColor('naval-gray'), roughness: .78, metalness: 0 })));
   group.add(new THREE.LineSegments(new THREE.EdgesGeometry(geometry, 20), new THREE.LineBasicMaterial({ color: '#dfe7e4', transparent: true, opacity: .55 })));
+  if (kind === 'vertex') group.add(...cornerHandles(size));
   return group;
+}
+
+/** A fresh vertex hull is a cube, so its card wears the editor's corner handles: a light square with a
+ * dark rim on all eight corners, drawn over the piece the way the on-screen handles are. */
+function cornerHandles(size: Vec3): THREE.Object3D[] {
+  const side = Math.max(...size) * .15, box = (scale: number) => new THREE.BoxGeometry(side * scale, side * scale, side * scale);
+  const rim = new THREE.MeshBasicMaterial({ color: '#1f2225', depthTest: false, depthWrite: false }), face = new THREE.MeshBasicMaterial({ color: '#edf1ec', depthTest: false, depthWrite: false });
+  return CORNER_SIGNS.map(sign => {
+    const handle = new THREE.Group(); handle.position.set(sign[0] * size[0] / 2, sign[1] * size[1] / 2, sign[2] * size[2] / 2);
+    const outline = new THREE.Mesh(box(1.5), rim), square = new THREE.Mesh(box(1), face); outline.renderOrder = 1; square.renderOrder = 2;
+    handle.add(outline, square); return handle;
+  });
 }
 
 async function partModel(part: ConstructionEquipmentPart, signal: AbortSignal): Promise<THREE.Object3D> {

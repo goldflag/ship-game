@@ -32,7 +32,8 @@ export const BUILDER_RAIL: Record<BuilderLayer, RailEntry[]> = {
 export const DEFAULT_TOOL: Record<BuilderLayer, BuilderTool> = { hull: 'place', armor: 'apply', internals: 'module', fittings: 'place', paint: 'apply' };
 
 export interface HullShape { id: string; name: string; note: string; kind: ConstructionPrimitive['kind']; size: Vec3 }
-/** Width × height × length in metres, on the 1 m hull grid. Quarter plates are the thinnest useful skin. */
+/** Width × height × length in metres, on the 1 m hull grid. Quarter plates are the thinnest useful skin.
+ * The first nine fill the keyed bar; the vertex hull rides in slot 9 so its editable corners are one key away. */
 export const HULL_SHAPES: HullShape[] = [
   { id: 'cube', name: 'Cube', note: '1 m', kind: 'box', size: [1, 1, 1] },
   { id: 'slab', name: 'Slab', note: '4 × 1 × 4', kind: 'box', size: [4, 1, 4] },
@@ -42,13 +43,13 @@ export const HULL_SHAPES: HullShape[] = [
   { id: 'long-slope', name: 'Long slope', note: '1 : 4', kind: 'wedge', size: [4, 1, 4] },
   { id: 'corner-out', name: 'Corner out', note: '4 m', kind: 'corner', size: [4, 4, 4] },
   { id: 'corner-in', name: 'Corner in', note: '4 m', kind: 'inverse-corner', size: [4, 4, 4] },
+  { id: 'vertex', name: 'Vertex hull', note: 'editable corners · 4 m', kind: 'vertex', size: [4, 4, 4] },
   { id: 'plate', name: 'Plate', note: '4 × ¼ × 4', kind: 'box', size: [4, .25, 4] },
   { id: 'block', name: 'Block', note: '4 m', kind: 'box', size: [4, 4, 4] },
   { id: 'wide-slab', name: 'Wide slab', note: '8 × 1 × 8', kind: 'box', size: [8, 1, 8] },
   { id: 'long-bar', name: 'Long bar', note: '1 × 1 × 8', kind: 'box', size: [1, 1, 8] },
   { id: 'hull-section', name: 'Hull section', note: '8 × 5 × 8', kind: 'box', size: [8, 5, 8] },
   { id: 'bow-wedge', name: 'Bow wedge', note: '8 × 5 × 8', kind: 'wedge', size: [8, 5, 8] },
-  { id: 'vertex', name: 'Vertex hull', note: 'Editable corners · 4 m', kind: 'vertex', size: [4, 4, 4] },
   { id: 'tall-wedge', name: 'Tall wedge', note: '4 × 8 × 4', kind: 'wedge', size: [4, 8, 4] },
 ];
 
