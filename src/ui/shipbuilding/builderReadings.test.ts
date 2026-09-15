@@ -20,12 +20,14 @@ test('hull bounds include rotated pieces', () => {
 
 test('ledger rows read draft from the keel, tone warned readings and add a layer row', () => {
   const rows = ledgerRows(source, result, 'armor');
+  expect(rows.slice(0, 3)).toEqual([{ label: 'Length', value: '48 m', tone: undefined }, { label: 'Beam', value: '10 m', tone: undefined }, { label: 'Height', value: '6 m', tone: undefined }]);
   expect(rows.find(row => row.label === 'Draft')?.value).toBe('1.3 m');
   expect(rows.find(row => row.label === 'GM')).toEqual({ label: 'GM', value: '1.12 m', tone: 'warn' });
   expect(rows.find(row => row.label === 'Speed')?.value).toBe('19.4 kn');
   expect(rows.at(-1)).toEqual({ label: 'Coverage', value: '83 % of 120 m²', tone: undefined });
   expect(ledgerRows(source, result, 'internals').at(-1)?.value).toBe('2 · 1 walls');
-  expect(ledgerRows(source, undefined, 'hull').at(-1)).toEqual({ label: 'Hull pieces', value: '2 / 512', tone: undefined });
+  expect(ledgerRows(source, undefined, 'hull').at(-1)).toEqual({ label: 'Hull pieces', value: '2 / 10,000', tone: undefined });
+  expect(ledgerRows(source, undefined, 'hull').slice(0, 3).map(row => row.value)).toEqual(['48 m', '10 m', '6 m']);
 });
 
 test('mass groups split armor skin from structural skin and warnings keep blocks apart from notes', () => {

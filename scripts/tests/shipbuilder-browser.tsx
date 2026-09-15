@@ -48,6 +48,12 @@ export const controls = {
   tool: async (name: string) => { const button = [...document.querySelectorAll<HTMLButtonElement>('.sb-rail button')].find(item => item.title.startsWith(`${name} (`)); if (!button || button.disabled) throw new Error(`Tool unavailable: ${name}`); button.click(); await controls.settled(() => button.getAttribute('aria-pressed') !== 'false', name); },
   slot: async (index: number) => { const button = document.querySelectorAll<HTMLButtonElement>('.sb-hotbar .sb-slot')[index - 1]; if (!button || button.disabled) throw new Error(`Slot unavailable: ${index}`); button.click(); await controls.settled(() => true, `slot ${index}`); },
   key: (key: string, options: KeyboardEventInit = {}) => document.body.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, ...options })),
+  /** The Armor layer's millimetre field above the bar; the number field commits on blur. */
+  thickness: async (mm: number) => {
+    const input = document.querySelector<HTMLInputElement>('.sb-cursor .sb-num input'); if (!input) throw new Error('Armor thickness field unavailable');
+    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(input, String(mm)); input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.dispatchEvent(new FocusEvent('focusout', { bubbles: true })); await controls.settled(() => true, `thickness ${mm}`);
+  },
   warnings: () => document.querySelector('.sb-warn')?.textContent ?? '',
   rowButton: (text: string) => [...document.querySelectorAll<HTMLButtonElement>('.sb-warn .row button')].find(button => button.textContent?.trim().startsWith(text)),
   menu: async (text: string) => {
@@ -119,16 +125,14 @@ export async function checkShipbuilderArmor() {
   await controls.tab('Armor'); await controls.tool('Area'); controls.click(...top);
   await wait(() => document.querySelector('[data-tag="faces"]'), 'area selection lights every top face and tags it');
   const original = JSON.stringify(source()!.construction);
-  await controls.slot(5);
-  await wait(() => source()!.construction.surfaces.some(surface => surface.face === 'top') && source()!.construction.surfaces.filter(surface => surface.face === 'top').every(surface => surface.thicknessMm === 100 && surface.material === 'armor-steel'), 'a belt slot applies exact millimeter thickness and material to the selection');
+  await controls.thickness(100);
+  await wait(() => source()!.construction.surfaces.some(surface => surface.face === 'top') && source()!.construction.surfaces.filter(surface => surface.face === 'top').every(surface => surface.thicknessMm === 100 && surface.material === 'armor-steel'), 'a typed thickness applies exact millimeters and armor steel to the selection');
   if (source()!.construction.surfaces.some(surface => surface.face !== 'top')) throw new Error('Armor leaked onto unselected faces');
   checks.push('unselected faces keep their structural skin');
-  await controls.slot(8);
-  const custom = document.querySelector<HTMLInputElement>('.sb-hotbar .sb-slot input');
-  if (!custom) throw new Error('Custom slot did not open its millimetre field');
-  Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(custom, '37'); custom.dispatchEvent(new Event('input', { bubbles: true }));
-  custom.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
-  await wait(() => source()!.construction.surfaces.filter(surface => surface.face === 'top').every(surface => surface.thicknessMm === 37), 'custom millimetres apply to the selection');
+  await controls.thickness(37);
+  await wait(() => source()!.construction.surfaces.filter(surface => surface.face === 'top').every(surface => surface.thicknessMm === 37), 'a second typed thickness replaces the first on the selection');
+  if (!document.querySelector('.sb-hotbar .sb-slot')?.textContent?.includes('37 mm')) throw new Error('The Armor card does not show the typed thickness');
+  checks.push('the Armor card carries the typed thickness');
   await wait(() => document.querySelector('.sb-armor-groups')?.textContent?.includes('37 mm · Armor steel'), 'the ledger reports native thickness and coverage');
   await controls.tab('Paint'); await wait(() => compiled(), 'native faces are current before painting');
   await controls.tool('Area'); controls.click(...top);
@@ -181,7 +185,7 @@ export async function checkShipbuilderEditing() {
   controls.key('z', { ctrlKey: true }); await wait(() => source()!.construction.primitives.length === 1, 'undo returns to the starter block');
   controls.key('z', { ctrlKey: true, shiftKey: true }); await wait(() => source()!.construction.primitives.length === 2, 'redo restores the placed block');
   controls.key('a', { ctrlKey: true }); await sleep(20);
-  controls.key('d', { ctrlKey: true }); await wait(() => source()!.construction.primitives.length === 4, 'copy creates new stable IDs');
+  controls.key('c', { ctrlKey: true }); await wait(() => source()!.construction.primitives.length === 4, 'copy creates new stable IDs');
   const copiedIds = source()!.construction.primitives.map(part => part.id);
   if (new Set(copiedIds).size !== 4) throw new Error('Copy reused a primitive ID');
   controls.key('z', { ctrlKey: true }); await wait(() => source()!.construction.primitives.length === 2, 'undo restores source');
@@ -190,7 +194,7 @@ export async function checkShipbuilderEditing() {
   await wait(() => compiled() && document.querySelector('[data-tag="group"]'), 'the selection tag follows the copied group');
   await controls.tab('Armor'); await wait(() => compiled(), 'native compiled faces become selectable');
   await controls.tool('Area'); controls.click(...center); await wait(() => document.querySelector('[data-tag="faces"]'), 'area selection tags the picked faces');
-  await controls.slot(4); await wait(() => source()!.construction.surfaces.some(surface => surface.thicknessMm === 50), 'millimeter armor assignments save through the actual controls');
+  await controls.slot(1); await wait(() => source()!.construction.surfaces.some(surface => surface.thicknessMm === 50), 'the Armor card assigns its current millimeters through the actual controls');
   await wait(() => compiled(), 'armor assignment compiles');
   await controls.tool('Opening'); controls.click(...center); await wait(() => source()!.construction.surfaces.some(surface => surface.open), 'explicit openings remain distinct from armor');
   controls.key('z', { ctrlKey: true }); await wait(() => source()!.construction.surfaces.every(surface => !surface.open), 'undo restores closed skin and armor together');
