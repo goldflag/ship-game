@@ -376,7 +376,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
         return;
       }
       if (/^[1-9]$/.test(event.key)) { const item = palette.bar[Number(event.key) - 1]; if (item) selectSlot(item); return; }
-      if (event.key === '0') { if (hasDrawer) { setDrawer(value => !value); setTip(undefined); } return; }
+      if (event.key === '0') { if (hasDrawer) { event.preventDefault(); setDrawer(value => !value); setTip(undefined); } return; }
       if (lower === 'q') cycleView(); else if (lower === 's') toggleSlice(); else if (lower === 'w') setWarningsOpen(value => !value);
       else if (lower === 'r') rotate(); else if (lower === 'm') setMirror(value => !value);
       else { const entry = rail.find(entry => entry.key.toLowerCase() === lower); if (entry) activateRail(entry); }
