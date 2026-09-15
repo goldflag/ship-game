@@ -250,9 +250,10 @@ impl Catalog {
                 )));
             }
             let definition: ShipDefinition = serde_json::from_value(value)?;
-            if definition.hull.kind == "constructed-volume-v1"
-                || definition.id.starts_with("local-")
-            {
+            // Published construction definitions are trusted by the same manifest
+            // digest/identity checks as legacy presets. Local drafts still enter
+            // only through source recompilation in with_constructions.
+            if definition.id.starts_with("local-") {
                 return Err(ContentError::Invalid(
                     "Local construction is not trusted manifest content".into(),
                 ));
@@ -348,8 +349,7 @@ pub fn validate_definition(d: &ShipDefinition) -> Result<(), ContentError> {
         let Some(v) = &h.volume else {
             return Err(fail());
         };
-        if !d.id.starts_with("local-")
-            || v.version != 1.
+        if v.version != 1.
             || v.cells.is_empty()
             || v.cells.len() > crate::construction_geometry::MAX_CELLS
             || v.surfaces.len() > 8192

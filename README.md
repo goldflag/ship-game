@@ -209,6 +209,17 @@ The shared simulation is ready to host outside the browser, but multiplayer tran
 
 ## Model pipeline
 
+New ship construction uses the custom editor and Rust compiler. Blender remains
+the permanent tool for reusable components; existing Blender-backed ships stay
+supported. See [agent construction authoring](docs/construction-authoring.md) for
+file-backed editing, batch commands, fixed views, sea trials and publication.
+
+```sh
+bun run ship:new my-ship --template patrol
+bun run ship:edit my-ship
+bun run ship:build my-ship
+```
+
 Historical ships use one versioned blueprint, the original component catalog and original Blender recipes. These produce a simulation definition, articulated GLB and port thumbnail. The [preset registry](src/ships/presets.ts) owns the playable roster. Generated models use meters, bow -Z, up +Y and waterline Y=0.
 
 ```sh

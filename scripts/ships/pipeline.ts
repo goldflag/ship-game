@@ -22,6 +22,12 @@ const sourceDir = join(root, 'assets/ships', shipId);
 const stage = join(root, '.build/ships', shipId);
 const catalog = JSON.parse(await readFile(join(root, 'assets/parts/guns.json'), 'utf8'));
 const blueprint = JSON.parse(await readFile(join(sourceDir, 'blueprint.json'), 'utf8'));
+if (blueprint.construction && !blueprint.hull) {
+  const { constructionPipeline } = await import('../construction/pipeline');
+  try { console.log(JSON.stringify(await constructionPipeline(root, action, shipId, force), null, 2)); }
+  catch (error) { console.error(JSON.stringify({ error: error instanceof Error ? error.message : String(error) })); process.exit(1); }
+  process.exit(0);
+}
 const definition = compileShip(blueprint, catalog);
 if (definition.id !== shipId || definition.modelUrl !== `/models/${shipId}.glb`) throw new Error('Ship ID, directory and model URL must agree');
 const inputs = await fingerprints(root, shipId, definition);

@@ -5,6 +5,7 @@ import { ConstructionAutosave, type ConstructionSaveState } from '../../ships/co
 import { startingHullBlock } from '../../ships/constructionStarter';
 import { openConstructionStore, type ConstructionStore } from '../../ships/constructionStore';
 import { decodeConstructionSource, loadSavedConstructionWithCatalog, newConstructionId } from '../../ships/constructionEditor';
+import { applyConstructionBatch, type ConstructionBatch } from '../../ships/constructionCommands';
 
 export interface BuilderCompiler {
   compile(source: ConstructionSource, signal?: AbortSignal): Promise<ConstructionResult>;
@@ -18,9 +19,11 @@ export function freshConstruction(template: ConstructionSource, blank = false): 
   return source;
 }
 
-export function useBuilderSource({ starterSource, initialSource, initialDesignId, compiler, catalogRevision, onSave }: {
+export function useBuilderSource({ starterSource, initialSource, initialDesignId, compiler, catalogRevision, onSave, openStore = openConstructionStore, repositoryId }: {
   starterSource: ConstructionSource; initialSource?: ConstructionSource; initialDesignId?: string; compiler: BuilderCompiler; catalogRevision: string;
   onSave?(source: ConstructionSource): void;
+  openStore?(): Promise<ConstructionStore>;
+  repositoryId?: string;
 }) {
   const [history, setHistory] = useState(() => createConstructionHistory(initialSource ?? freshConstruction(starterSource)));
   const source = history.source;
@@ -43,7 +46,7 @@ export function useBuilderSource({ starterSource, initialSource, initialDesignId
 
   useEffect(() => {
     let active = true; let opened: ConstructionStore | undefined;
-    void openConstructionStore().then(async storage => {
+    void openStore().then(async storage => {
       opened = storage;
       if (!active) { storage.close(); return; }
       if (initialDesignId) {
@@ -57,7 +60,7 @@ export function useBuilderSource({ starterSource, initialSource, initialDesignId
         try {
           const loaded = await loadSavedConstructionWithCatalog(storage, initialSource.id);
           if (!active) return;
-          if (loaded.source.revision === initialSource.revision) {
+          if (JSON.stringify(loaded.source) === JSON.stringify(initialSource)) {
             head.current = loaded.head.revisionId; lastQueued.current = initialSource.revision;
             setSaveState({ status: 'saved', token: 0, revision: loaded.revision });
           } else head.current = 'source-returned-from-trial'; // CAS rejects overwriting a newer edit in another tab.
@@ -122,6 +125,12 @@ export function useBuilderSource({ starterSource, initialSource, initialDesignId
   const redo = () => setHistory(current => { const next = redoConstruction(current); return next === current ? current : { ...next, source: { ...next.source, revision: newConstructionId('revision') } }; });
   const flush = async () => {
     if (!saver.current) throw new Error('Local saving is unavailable. Download this source before closing.');
+    // Agent callers may apply and flush before React's autosave effect runs.
+    const latest = sourceRef.current;
+    if (ready && lastQueued.current !== latest.revision) {
+      lastQueued.current = latest.revision;
+      saver.current.enqueue({ designId: latest.id, name: latest.name, source: latest, schemaVersion: latest.schemaVersion, catalogRevision: latest.construction.catalogRevision });
+    }
     await saver.current.flush();
   };
   const replace = async (next: ConstructionSource, revisionId: string | null, saved: boolean, retainDraft = false) => {
@@ -142,7 +151,51 @@ export function useBuilderSource({ starterSource, initialSource, initialDesignId
     if (current) await replace(replacement, null, false, true);
   };
 
-  return { source, history, store, ready, result, compiling, compileError, error, setError, saveState, edit, undo, redo, flush, replace, removeDesign,
+  const reloadRepository = async () => {
+    if (!store || !repositoryId) return;
+    if (saver.current?.unsaved) {
+      try { await saver.current.flush(); } catch { /* The rejected draft remains an undo step. */ }
+    }
+    const loaded = await loadSavedConstructionWithCatalog(store, repositoryId);
+    saver.current?.dispose(); head.current = loaded.head.revisionId; lastQueued.current = loaded.source.revision;
+    setHistory(current => editConstruction(current, 'Reload repository source', draft => Object.assign(draft, loaded.source)));
+    setResult(undefined); setError(''); setCompileError('');
+    setSaveState({ status: 'saved', token: 0, revision: loaded.revision });
+    setWriterEpoch(value => value + 1);
+  };
+  useEffect(() => {
+    if (!store || !repositoryId || !ready) return;
+    let active = true, checking = false;
+    const timer = setInterval(async () => {
+      if (checking) return;
+      checking = true;
+      const observedHead = head.current, observedRevision = sourceRef.current.revision;
+      try {
+        const loaded = await loadSavedConstructionWithCatalog(store, repositoryId);
+        if (!active || head.current !== observedHead || sourceRef.current.revision !== observedRevision || loaded.head.revisionId === head.current) return;
+        if (saver.current?.unsaved || sourceRef.current.revision !== lastQueued.current) {
+          setError('Repository source changed while this draft was being edited. Download a backup, then reload the repository source. Your draft remains editable.');
+          return;
+        }
+        saver.current?.dispose(); head.current = loaded.head.revisionId; lastQueued.current = loaded.source.revision;
+        setHistory(current => editConstruction(current, 'Updated repository source', draft => Object.assign(draft, loaded.source)));
+        setResult(undefined); setError(''); setSaveState({ status: 'saved', token: 0, revision: loaded.revision });
+        setWriterEpoch(value => value + 1);
+      } catch (cause) { if (active) setError(cause instanceof Error ? cause.message : String(cause)); }
+      finally { checking = false; }
+    }, 1200);
+    return () => { active = false; clearInterval(timer); };
+  }, [store, repositoryId, ready]);
+  const applyBatch = (batch: ConstructionBatch) => {
+    const next = applyConstructionBatch(sourceRef.current, batch);
+    setHistory(current => {
+      if (current.source.revision !== batch.expectedRevision) return current;
+      return editConstruction(current, batch.label, draft => Object.assign(draft, next));
+    });
+    sourceRef.current = next;
+    return structuredClone(next);
+  };
+  return { source, history, store, ready, result, compiling, compileError, error, setError, saveState, edit, applyBatch, reloadRepository, undo, redo, flush, replace, removeDesign,
     retrySave: () => saver.current?.retry(), retryCompile: () => setCompileAgain(value => value + 1),
     currentResult: result?.revision === source.revision && result.sourceId === source.id ? result : undefined };
 }

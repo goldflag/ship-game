@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "src",
+    "tools/construction",
+    "scripts/construction",
+    "vite.config.ts"
+  ]
+}

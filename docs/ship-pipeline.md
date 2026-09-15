@@ -1,6 +1,10 @@
 # Ship asset pipeline
 
-**Source of truth:** versioned `blueprint.json` + original component catalog + original geometry recipes. These produce a compiled simulation definition and an articulated visual model. Historical presets and future player-built ships use this same contract.
+**Source of truth:** versioned `blueprint.json` + original component catalog. New ships use the [custom construction editor and Rust compiler](construction-authoring.md); Blender remains the permanent tool for reusable components. Existing legacy ships retain their original geometry recipes. These produce a compiled simulation definition and an articulated visual model. Historical presets and future player-built ships use this same contract.
+
+The workflow below documents legacy Blender-backed ship recipes and the shared
+acceptance requirements. `ship:new` now creates a construction source by default;
+use `--legacy-blender` only to explicitly start that older recipe route.
 
 ## Read for your task
 

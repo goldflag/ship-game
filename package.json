@@ -51,7 +51,16 @@
     "part:build": "bun scripts/parts/pipeline.ts build",
     "part:check": "bun scripts/parts/pipeline.ts check",
     "part:publish": "bun scripts/parts/publish.ts publish",
-    "part:published:check": "bun scripts/parts/publish.ts check"
+    "part:published:check": "bun scripts/parts/publish.ts check",
+    "ship:edit": "bun scripts/construction/cli.ts edit",
+    "ship:inspect": "bun scripts/construction/cli.ts inspect",
+    "ship:apply": "bun scripts/construction/cli.ts apply",
+    "ship:import": "bun scripts/construction/cli.ts import",
+    "ship:export": "bun scripts/construction/cli.ts export",
+    "ship:render": "bun scripts/construction/cli.ts render",
+    "ship:trial": "bun scripts/construction/cli.ts trial",
+    "ship:register": "bun scripts/construction/cli.ts register",
+    "ship:authoring:check": "tsc --project tsconfig.construction.json --noEmit && bun test scripts/construction src/ships/constructionCommands.test.ts"
   },
   "dependencies": {
     "@fontsource/barlow": "^5.2.8",
@@ -67,6 +76,7 @@
     "@types/react-dom": "^19.1.0",
     "@types/three": "0.185.0",
     "@vitejs/plugin-react": "^4.5.0",
+    "playwright": "^1.63.0",
     "typescript": "~5.8.3",
     "vite": "^6.3.0"
   }
