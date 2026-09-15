@@ -20,7 +20,7 @@ const ships = await Promise.all(Object.entries(shipPresets).map(async ([id, defi
 // Derived hull content: the two simulations must interpolate the same solved
 // table or their goldens drift, so it ships in the manifest rather than being
 // rebuilt per host.
-const hydro = Object.entries(shipPresets).map(([id, definition]) => {
+const hydro = Object.entries(shipPresets).filter(([, definition]) => definition.hull.kind !== 'constructed-volume-v1').map(([id, definition]) => {
   const table = (hydrostatics.ships as Record<string, { contentHash: string }>)[id];
   if (table?.contentHash !== definition.contentHash) throw new Error(`Stale hydrostatic table: ${id}. Run bun run ship:hydrostatics`);
   return { id, ...table };

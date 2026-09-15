@@ -54,6 +54,13 @@ The ship fills a dry construction viewport without a ground grid or water plane,
 
 Shortcuts do not intercept text, number or select fields, and ⌘C / ⌘X stay with the browser while nothing is selected. The UI admits up to 10,000 hull primitives, 128 fittings and 24 boundaries (`CONSTRUCTION_LIMITS` in `constructionEditor.ts`, mirroring the native compiler); native complexity and fit diagnostics can impose tighter limits on a particular arrangement.
 
+## Repository authoring
+
+[Agent construction authoring](../../../docs/construction-authoring.md) connects
+this same editor to repository source files. `repositoryId` and `openStore` select
+the file adapter; `onEditorReady` supplies the shared batch/save interface. The
+local Designs menu imports JSON as an independent local copy.
+
 ## React integration
 
 Import `Shipbuilder` from `./Shipbuilder` and load a `ConstructionCatalog` with `loadConstructionCatalog`. Required props are `catalog`, `onClose(source, result?)` and `onLaunch(source, result)`. `onClose` runs after a successful save flush, receiving the saved source and its current compiled result when available. It may return a promise; the port uses this to register and display the saved revision before closing. `onLaunch` may return a promise; rejection leaves the editor open with an actionable error. If storage has failed, **TRIAL DRAFT** still supplies the immutable in-memory source to the application.

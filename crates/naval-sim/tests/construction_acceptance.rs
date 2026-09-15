@@ -789,3 +789,32 @@ fn original_oerlikon_reaches_full_elevation_but_stops_at_a_real_overhead_beam() 
     assert!(result.blocked);
     assert!(result.pose.elevation < 87_f64.to_radians());
 }
+
+#[test]
+fn published_construction_uses_trusted_manifest_admission_without_admitting_local_drafts() {
+    use naval_sim::catalog::Catalog;
+    use sha2::{Digest, Sha256};
+    let (source, parts) = fixture();
+    let mut definition = compile(&source, &parts);
+    let mut manifest: serde_json::Value = serde_json::from_slice(
+        &std::fs::read("../../.build/naval-content/manifest.json").unwrap(),
+    )
+    .unwrap();
+    let entry = |definition: &ShipDefinition| {
+        let json = serde_json::to_string(definition).unwrap();
+        serde_json::json!({"id": definition.id, "contentHash": definition.content_hash,
+            "sha256": format!("{:x}", Sha256::digest(json.as_bytes())), "json": json})
+    };
+    // Local IDs are forbidden even when the surrounding digest is correct.
+    manifest["ships"].as_array_mut().unwrap().push(entry(&definition));
+    assert!(Catalog::load(&serde_json::to_vec(&manifest).unwrap()).is_err());
+    manifest["ships"].as_array_mut().unwrap().pop();
+    definition.id = "published-construction-acceptance".into();
+    manifest["ships"].as_array_mut().unwrap().push(entry(&definition));
+    let accepted = Catalog::load(&serde_json::to_vec(&manifest).unwrap()).unwrap();
+    assert!(accepted.definitions.contains_key(&definition.id));
+    assert!(!accepted.hydrostatics.contains_key(&definition.id));
+    let last = manifest["ships"].as_array_mut().unwrap().last_mut().unwrap();
+    last["sha256"] = serde_json::json!("corrupt");
+    assert!(Catalog::load(&serde_json::to_vec(&manifest).unwrap()).is_err());
+}

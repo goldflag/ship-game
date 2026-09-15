@@ -22,6 +22,14 @@ The archived `ship:reference`, `ship:compare` and `ship:independence` commands, 
 
 For standalone original equipment and the general model viewer, see [shared components](shared-components.md). `part:build` uses the same registered callable that ship recipes import; its generated previews stay in `.build/parts/`.
 
+## Construction-backed ships
+
+The standard ship commands dispatch construction sources to the custom
+[construction pipeline](construction-authoring.md). These ships retain source JSON,
+GLB/definition, thumbnail and fixed reviews; they do not produce `source.blend`.
+Blender remains the reusable-component authoring tool and the backend for existing
+legacy ship recipes.
+
 ## Blender setup
 
 Use Blender MCP for the interactive authoring loop below. Batch generation, export, thumbnails and fixed review renders continue through the existing pipeline commands: `BLENDER_BIN` overrides the executable, with the standard macOS application or `blender` on PATH as defaults. Those commands start isolated Blender processes and do not require MCP or use the open interactive scene.

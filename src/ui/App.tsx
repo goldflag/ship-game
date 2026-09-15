@@ -31,7 +31,9 @@ import { useHudScale } from './useHudScale';
 import './ShipLabels.css';
 import './GunAimIndicators.css';
 import './HitDirectionIndicators.css';
-import { Shipbuilder } from './shipbuilding/Shipbuilder';
+import { Shipbuilder, type ConstructionEditorHandle } from './shipbuilding/Shipbuilder';
+import { openConstructionRepository } from '../ships/constructionRepository';
+declare global { interface Window { constructionEditor?: ConstructionEditorHandle } }
 import { TrialControls } from './shipbuilding/TrialControls';
 import type { ConstructionCatalog, ConstructionResult, ConstructionSource, ConstructionSuggestion } from '../ships/blueprint';
 import { loadConstructionCatalog } from '../ships/constructionEquipment';
@@ -39,7 +41,7 @@ import { localShips, registerLocalShip, removeLocalShip, resolveShip } from '../
 import { restoreLocalShips } from '../ships/constructionLibrary';
 import { ConstructionClient } from '../ships/constructionClient';
 import { openConstructionStore } from '../ships/constructionStore';
-import { loadSavedConstructionWithCatalog } from '../ships/constructionEditor';
+import { decodeConstructionSource, loadSavedConstructionWithCatalog } from '../ships/constructionEditor';
 import { createStarterSource } from '../ships/constructionStarter';
 
 const INITIAL_TELEMETRY: Telemetry = { ship: createShipState(), order: 1, camera: 'Chase', fps: 0, backend: 'webgpu', trail: [] };
@@ -85,7 +87,9 @@ export function App() {
   const [battleError, setBattleError] = useState('');
   const battlePending = useRef(false);
   const [phase, setPhase] = useState<'garage' | 'sailing'>('garage');
-  const [builder, setBuilder] = useState<{ catalog: ConstructionCatalog; source?: ConstructionSource } | null>(null);
+  const [builder, setBuilder] = useState<{ catalog: ConstructionCatalog; source?: ConstructionSource; repositoryId?: string } | null>(null);
+  const repositoryId = useRef<string | undefined>(undefined);
+  const repositoryOpened = useRef(false);
   const builderSource = useRef<ConstructionSource | undefined>(undefined);
   const [builderError, setBuilderError] = useState('');
   const [builderOpening, setBuilderOpening] = useState(false);
@@ -186,7 +190,7 @@ export function App() {
       if (game.current !== session) return;
       const definition = resolveShip(battleSetup.playerShipId);
       selectedRef.current = definition; setSelectedShip(definition);
-      const url = new URL(window.location.href); if (!definition.construction) url.searchParams.set('ship', definition.id);
+      const url = new URL(window.location.href); if (!definition.id.startsWith('local-')) url.searchParams.set('ship', definition.id);
       window.history.replaceState(null, '', url);
       setBattleLoading({ label: 'Getting underway', progress: 0.95, leaving: false });
       setTrial(false); setBattleOpen(false); setHud(true); setPhase('sailing');
@@ -218,7 +222,7 @@ export function App() {
       const wasTrial = trial;
       await game.current?.returnToPort(); setPhase('garage'); setTrial(false);
       if (game.current) { selectedRef.current = game.current.definition; setSelectedShip(game.current.definition); }
-      if (wasTrial && builderSource.current) setBuilder({ source: builderSource.current, catalog: await loadConstructionCatalog(builderSource.current.construction.catalogRevision) });
+      if (wasTrial && builderSource.current) setBuilder({ source: builderSource.current, catalog: await loadConstructionCatalog(builderSource.current.construction.catalogRevision), repositoryId: repositoryId.current });
       // Ocean and terrain rows chosen during the battle need a rebuilt port.
       if (game.current && !launchMatches(game.current.launchedGraphics, graphicsRef.current)) setGeneration(value => value + 1);
     }
@@ -227,7 +231,7 @@ export function App() {
 
   const openBuilder = async (designId?: string) => {
     if (!ready || builderOpening || switchPending.current || phase !== 'garage') return;
-    builderRequest.current = designId;
+    builderRequest.current = designId; repositoryId.current = undefined;
     setBuilderOpening(true); setBuilderError('');
     try {
       if (designId) {
@@ -242,6 +246,32 @@ export function App() {
     catch (error) { setBuilderError(error instanceof Error ? error.message : String(error)); }
     finally { setBuilderOpening(false); }
   };
+  useEffect(() => {
+    const id = import.meta.env.DEV ? new URLSearchParams(location.search).get('construction') : null;
+    if (!ready || !id || repositoryOpened.current) return;
+    repositoryOpened.current = true; setBuilderOpening(true);
+    void (async () => {
+      const store = await openConstructionRepository();
+      try {
+        const loaded = await loadSavedConstructionWithCatalog(store, id);
+        repositoryId.current = id; builderSource.current = loaded.source;
+        const trialKey = new URLSearchParams(location.search).get('constructionTrial');
+        if (trialKey) {
+          const savedDraft = sessionStorage.getItem('construction-trial.' + trialKey);
+          if (!savedDraft) throw new Error('Trial draft is unavailable. Reopen the repository editor and launch again.');
+          const draft = decodeConstructionSource(JSON.parse(savedDraft));
+          if (draft.id !== id) throw new Error('Trial draft belongs to another ship.');
+          const client = new ConstructionClient();
+          try {
+            await launchTrial(draft, await client.compile(draft));
+            sessionStorage.removeItem('construction-trial.' + trialKey);
+            const url = new URL(location.href); url.searchParams.delete('constructionTrial'); history.replaceState(null, '', url);
+          }
+          finally { client.dispose(); }
+        } else setBuilder({ source: loaded.source, catalog: loaded.catalog, repositoryId: id });
+      } finally { store.close(); }
+    })().catch(error => { setBuilderError(error instanceof Error ? error.message : String(error)); }).finally(() => setBuilderOpening(false));
+  }, [ready]);
   const launchTrial = async (source: ConstructionSource, result: ConstructionResult) => {
     const session = game.current;
     if (!session || battlePending.current) throw new Error('The harbor is still preparing.');
@@ -310,7 +340,7 @@ export function App() {
       selectedRef.current = definition;
       setSelectedShip(definition);
       const url = new URL(window.location.href);
-      if (definition.construction) url.searchParams.delete('ship');
+      if (definition.id.startsWith('local-')) url.searchParams.delete('ship');
       else url.searchParams.set('ship', definition.id);
       window.history.replaceState(null, '', url);
     } catch (error) {
@@ -390,7 +420,7 @@ export function App() {
     {battleOpen && <BattleDialog initialMode={battleMode} initialShipId={selectedShip.id} loading={!!battleLoading} onClose={() => setBattleOpen(false)}
       setup={battleSetup} onSetupChange={setBattleSetup} onLaunchCustom={() => void launch()} customError={battleError}
       pveRequest={pveRequest} onLaunchPve={launchPve} onOnlineBattle={onlineBattle}/>}
-    {builder && phase === 'garage' && <Shipbuilder suggestLayout={suggestLayout} catalog={builder.catalog} initialSource={builder.source} onDelete={deletedDesign} onSave={source => { builderSource.current = source; }} onLaunch={launchTrial} onClose={closeBuilder}/>}
+    {builder && phase === 'garage' && <Shipbuilder key={builder.repositoryId ?? builder.source?.id} repositoryId={builder.repositoryId} initialDesignId={builder.source ? undefined : builder.repositoryId} openStore={builder.repositoryId ? openConstructionRepository : undefined} onEditorReady={import.meta.env.DEV ? handle => { window.constructionEditor = handle; } : undefined} suggestLayout={suggestLayout} catalog={builder.catalog} initialSource={builder.source} onDelete={deletedDesign} onSave={source => { builderSource.current = source; }} onLaunch={launchTrial} onClose={closeBuilder}/>}
     {phase === 'garage' && (builderOpening || builderError) && <div className="shipbuilder-entry-status" role={builderError ? 'alert' : 'status'}>{builderError || 'Opening shipbuilder…'}{builderError && <Button onClick={() => void openBuilder(builderRequest.current)}>Retry</Button>}</div>}
     {trial && phase === 'sailing' && ready && !error && !battleLoading && game.current && <TrialControls game={game.current} onReturn={returnToPort}/>}
     {phase === 'sailing' && ready && !error && <><BinocularOverlay data={data}/><div className="hud-viewport">

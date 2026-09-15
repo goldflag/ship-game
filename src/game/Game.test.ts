@@ -197,7 +197,7 @@ test('failed ship loads preserve the old ship and allow retry', async () => {
 test('saved construction revisions load into port and replace the previously inspected design', async () => {
   await initConstruction({ module_or_path: await Bun.file(new URL('../generated/naval-wasm/naval_wasm_bg.wasm', import.meta.url)).arrayBuffer() });
   const catalog = catalogJson as ConstructionCatalog, source = createStarterSource(catalog, 'blank');
-  source.construction.primitives.push({ id: 'hull', kind: 'box', size: [8, 5, 48], position: [0, 0, 0], rotationDeg: 0 });
+  source.construction.primitives = [{ id: 'hull', kind: 'box', size: [8, 5, 48], position: [0, 0, 0], rotationDeg: 0 }];
   const compile = () => JSON.parse(compile_construction(JSON.stringify(source), JSON.stringify(catalog))) as ConstructionResult;
   const { game, scene, harbor, rig } = await port();
   try {

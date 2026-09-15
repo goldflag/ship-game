@@ -2,6 +2,10 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import type { ShipBlueprint } from '../../src/ships/blueprint';
+if (!process.argv.includes('--legacy-blender')) {
+  const child = Bun.spawn([process.execPath, resolve(import.meta.dir, '../construction/cli.ts'), 'new', ...process.argv.slice(2)], { stdout: 'inherit', stderr: 'inherit' });
+  process.exit(await child.exited);
+}
 const id = process.argv[2];
 if (!id || !/^[a-z][a-z0-9-]{0,63}$/.test(id)) throw new Error('Usage: bun run ship:new <lowercase-ship-id>');
 const root = resolve(import.meta.dir, '../..'), folder = resolve(root, 'assets/ships', id);

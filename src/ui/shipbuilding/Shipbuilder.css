@@ -98,7 +98,7 @@
 .sb-cmd:disabled { opacity: .45; }
 
 /* designs menu (the one transient surface) */
-.sb-menu { position: absolute; left: 0; top: calc(100% + 10px); z-index: 5; width: 360px; max-height: min(70vh, 560px); overflow: auto; padding: 12px 14px 14px; background: #1b1f22f2; border: 1px solid var(--sb-line2); border-radius: 2px; box-shadow: 0 12px 28px #0a0c0e99; text-shadow: none; display: grid; gap: 10px; scrollbar-width: thin; }
+.sb-menu { max-width: calc(100vw - 94px); overflow-wrap: anywhere; position: absolute; left: 0; top: calc(100% + 10px); z-index: 5; width: 360px; max-height: min(70vh, 560px); overflow: auto; padding: 12px 14px 14px; background: #1b1f22f2; border: 1px solid var(--sb-line2); border-radius: 2px; box-shadow: 0 12px 28px #0a0c0e99; text-shadow: none; display: grid; gap: 10px; scrollbar-width: thin; }
 .sb-menu-row { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
 .sb-menu-row .sb-lead { flex-basis: 100%; }
 .sb-menu button[role=menuitem] { color: var(--sb-brass); }
@@ -131,6 +131,8 @@
 .sb-warn .row.bad { color: var(--sb-salmon); }
 .sb-warn .row button { color: var(--sb-brass); white-space: nowrap; }
 .sb-warn .row button:hover { color: var(--sb-brass2); }
+.sb-warn .sb-repository-error { flex-wrap: wrap; align-items: baseline; max-width: min(620px, calc(100vw - 28px)); }
+.sb-warn .sb-repository-error > span { white-space: normal; overflow-wrap: anywhere; flex: 1 1 calc(100% - 24px); }
 .sb-warn .rows { display: grid; gap: 3px; max-height: 26vh; overflow: auto; scrollbar-width: thin; justify-items: start; }
 .sb-warn .rows > * { max-width: 100%; }
 .sb-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
@@ -245,6 +247,20 @@
   .sb-top { gap: 12px; padding: 0 12px; }
 }
 @media (max-width: 740px) {
+  .sb-top { height: auto; display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 4px 12px; padding-top: 12px; }
+  .sb-ship { display: grid; grid-template-columns: 1fr auto; gap: 4px 8px; }
+  .sb-name { grid-column: 1 / -1; width: 100%; }
+  .sb-save { white-space: normal; text-align: right; }
+  .sb-tabs { grid-column: 1 / -1; grid-row: 3; height: 34px; width: 100%; justify-content: space-between; gap: 8px; }
+  .sb-tabs button { height: 34px; }
+  .sb-actions { grid-column: 1 / -1; justify-self: end; }
+  .sb-left { top: 152px; bottom: calc(var(--sb-bar-bottom) + var(--sb-bar-height) + 48px); }
+  .sb-left .sb-warn { flex-shrink: 0; }
+  .sb-left .sb-rail { min-height: 0; overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; pointer-events: auto; }
+  .sb-left .sb-rail button { flex-shrink: 0; }
+  .sb-menu { position: fixed; left: 12px; top: 64px; width: calc(100vw - 24px); max-width: none; z-index: 6; }
+  .sb-orientation { display: none; }
+  .sb-viewbar { left: 12px; right: 12px; bottom: 8px; justify-content: center; flex-wrap: wrap; }
   /* the two-row palette spans the width, so the view bar returns to a row beneath it */
   .shipbuilder { --sb-bar-bottom: 52px; --sb-bar-height: calc((100vw - 52px) * 2 / 5 + 6px); }
   .sb-viewbar { flex-direction: row; gap: 12px; }

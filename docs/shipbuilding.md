@@ -1,5 +1,9 @@
 # Local shipbuilding
 
+For repository-backed ship construction, agent commands and publication, see
+[construction authoring](construction-authoring.md). Blender remains the permanent
+authoring tool for reusable components.
+
 Choose **New design** in port for a design with one centered hull block, or **Edit design** to reopen a saved source. All drafts appear in the port’s Ship designs list; valid designs also appear in the fleet carousel and can be inspected in the harbor. Returning from the editor saves and shows a valid design without requiring a sea trial. The patrol starter includes a gun, ammunition
 magazine, diesel machinery, funnel, propeller, rudder and mast. The twin-hull
 starter preserves an exterior water channel and deliberately shows an asymmetric
