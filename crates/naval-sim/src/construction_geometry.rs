@@ -5,19 +5,23 @@ use crate::{
     geometry::*,
 };
 pub const EPS: f64 = 1e-8;
-pub const MAX_CELLS: usize = 4096;
+pub const MAX_CELLS: usize = 65_536;
+pub const MAX_CELL_FACES: usize = 128;
+pub const MAX_FACE_VERTICES: usize = 2_097_152;
 pub type Polygon = Vec<Vec3>;
 pub type Cell = ConvexVolume;
 pub fn check_budget(cells: &[Cell]) -> Result<(), String> {
     if cells.len() > MAX_CELLS
-        || cells.iter().any(|c| c.faces.len() > 128)
+        || cells.iter().any(|c| c.faces.len() > MAX_CELL_FACES)
         || cells
             .iter()
             .map(|c| c.faces.iter().map(|f| f.vertices.len()).sum::<usize>())
             .sum::<usize>()
-            > 131072
+            > MAX_FACE_VERTICES
     {
-        return Err("Geometry exceeds 4096 convex cells, 128 faces per cell, or 131072 face vertices; simplify the design".into());
+        return Err(format!(
+            "Geometry exceeds {MAX_CELLS} convex cells, {MAX_CELL_FACES} faces per cell, or {MAX_FACE_VERTICES} face vertices; simplify the design"
+        ));
     }
     Ok(())
 }
@@ -211,15 +215,18 @@ pub fn subtract(a: &Cell, b: &Cell) -> Vec<Cell> {
     }
     out
 }
-pub fn subtract_all(mut cells: Vec<Cell>, cutters: &[Cell]) -> Result<Vec<Cell>, String> {
+pub fn subtract_all<'a>(
+    mut cells: Vec<Cell>,
+    cutters: impl IntoIterator<Item = &'a Cell>,
+) -> Result<Vec<Cell>, String> {
     for b in cutters {
         let mut next = vec![];
         for a in &cells {
             next.extend(subtract(a, b));
             if next.len() > MAX_CELLS {
-                return Err(
-                    "Geometry exceeds 4096 convex cells; simplify overlapping pieces".into(),
-                );
+                return Err(format!(
+                    "Geometry exceeds {MAX_CELLS} convex cells; simplify overlapping pieces"
+                ));
             }
         }
         cells = next;
@@ -234,10 +241,154 @@ pub fn union(cells: &[Cell]) -> Result<Vec<Cell>, String> {
         out.extend(additions);
         check_budget(&out)?;
         if out.len() > MAX_CELLS {
-            return Err("Geometry exceeds 4096 convex cells".into());
+            return Err(format!("Geometry exceeds {MAX_CELLS} convex cells"));
         }
     }
     Ok(out)
+}
+/// `union` for many cells: each new cell is cut only by the output of the earlier cells in
+/// its neighbor list, in output order. A cutter outside a cell's bounds never changes it,
+/// so the result matches the full scan when `neighbors` holds every non-separated pair.
+pub fn union_near(cells: &[Cell], neighbors: &[Vec<usize>]) -> Result<Vec<Cell>, String> {
+    let mut out: Vec<Cell> = vec![];
+    let mut produced: Vec<Vec<usize>> = vec![vec![]; cells.len()];
+    let mut vertices = 0usize;
+    for (i, c) in cells.iter().enumerate() {
+        let mut cutters: Vec<usize> = neighbors[i]
+            .iter()
+            .filter(|&&j| j < i)
+            .flat_map(|&j| produced[j].iter().copied())
+            .collect();
+        cutters.sort_unstable();
+        let additions = subtract_all(vec![c.clone()], cutters.iter().map(|&k| &out[k]))?;
+        for a in &additions {
+            vertices += a.faces.iter().map(|f| f.vertices.len()).sum::<usize>();
+            if a.faces.len() > MAX_CELL_FACES {
+                return Err(format!(
+                    "Geometry exceeds {MAX_CELL_FACES} faces in one convex cell; simplify the design"
+                ));
+            }
+        }
+        produced[i] = (out.len()..out.len() + additions.len()).collect();
+        out.extend(additions);
+        if out.len() > MAX_CELLS || vertices > MAX_FACE_VERTICES {
+            return Err(format!(
+                "Geometry exceeds {MAX_CELLS} convex cells, {MAX_CELL_FACES} faces per cell, or {MAX_FACE_VERTICES} face vertices; simplify the design"
+            ));
+        }
+    }
+    Ok(out)
+}
+
+/// Uniform-grid broadphase over convex cells. `candidates` lists, in ascending index order,
+/// every inserted cell whose bounding box comes within a small margin of the query box.
+/// Callers still apply the exact predicates (`separated`, `intersection`, `subtract`), and
+/// those are no-ops for separated pairs, so a scan through the index matches a full scan.
+pub struct Broadphase {
+    pitch: f64,
+    boxes: Vec<(Vec3, Vec3)>,
+    grid: std::collections::HashMap<[i64; 3], Vec<usize>>,
+}
+const BROADPHASE_MARGIN: f64 = 1e-6;
+impl Broadphase {
+    pub fn new(pitch: f64) -> Self {
+        Self {
+            pitch: if pitch.is_finite() {
+                pitch.max(1e-3)
+            } else {
+                8.
+            },
+            boxes: vec![],
+            grid: Default::default(),
+        }
+    }
+    /// A pitch near the typical cell extent, coarse enough that the largest cell spans few grid cells.
+    pub fn sized_for(cells: &[Cell]) -> Self {
+        let extents: Vec<f64> = cells
+            .iter()
+            .map(|c| {
+                let (lo, hi) = Self::extent(c);
+                (0..3).map(|i| hi[i] - lo[i]).fold(0., f64::max)
+            })
+            .collect();
+        let mean = extents.iter().sum::<f64>() / extents.len().max(1) as f64;
+        let largest = extents.iter().copied().fold(0., f64::max);
+        let mut index = Self::new(mean.clamp(2., 32.).max(largest / 64.));
+        for c in cells {
+            index.insert(c);
+        }
+        index
+    }
+    pub fn pitch(&self) -> f64 {
+        self.pitch
+    }
+    pub fn len(&self) -> usize {
+        self.boxes.len()
+    }
+    pub fn is_empty(&self) -> bool {
+        self.boxes.is_empty()
+    }
+    fn extent(c: &Cell) -> (Vec3, Vec3) {
+        let (mut lo, mut hi) = ([f64::INFINITY; 3], [f64::NEG_INFINITY; 3]);
+        for p in c.faces.iter().flat_map(|f| f.vertices.iter()) {
+            for i in 0..3 {
+                lo[i] = lo[i].min(p[i]);
+                hi[i] = hi[i].max(p[i]);
+            }
+        }
+        (lo, hi)
+    }
+    fn range(&self, lo: Vec3, hi: Vec3) -> ([i64; 3], [i64; 3]) {
+        let key = |v: f64| (v / self.pitch).clamp(-1e9, 1e9).floor() as i64;
+        let mut a = [0; 3];
+        let mut b = [0; 3];
+        for i in 0..3 {
+            a[i] = key(lo[i] - BROADPHASE_MARGIN);
+            b[i] = key(hi[i] + BROADPHASE_MARGIN).max(a[i]);
+        }
+        (a, b)
+    }
+    /// Appends a cell; its index is the number of cells inserted before it.
+    pub fn insert(&mut self, cell: &Cell) -> usize {
+        let (lo, hi) = Self::extent(cell);
+        let index = self.boxes.len();
+        self.boxes.push((lo, hi));
+        let (a, b) = self.range(lo, hi);
+        for x in a[0]..=b[0] {
+            for y in a[1]..=b[1] {
+                for z in a[2]..=b[2] {
+                    self.grid.entry([x, y, z]).or_default().push(index);
+                }
+            }
+        }
+        index
+    }
+    pub fn candidates(&self, cell: &Cell) -> Vec<usize> {
+        let (lo, hi) = Self::extent(cell);
+        self.candidates_box(lo, hi)
+    }
+    pub fn candidates_box(&self, lo: Vec3, hi: Vec3) -> Vec<usize> {
+        let (a, b) = self.range(lo, hi);
+        let mut out = vec![];
+        for x in a[0]..=b[0] {
+            for y in a[1]..=b[1] {
+                for z in a[2]..=b[2] {
+                    if let Some(list) = self.grid.get(&[x, y, z]) {
+                        out.extend(list.iter().copied().filter(|&k| {
+                            let (blo, bhi) = self.boxes[k];
+                            (0..3).all(|i| {
+                                blo[i] <= hi[i] + BROADPHASE_MARGIN
+                                    && lo[i] <= bhi[i] + BROADPHASE_MARGIN
+                            })
+                        }));
+                    }
+                }
+            }
+        }
+        out.sort_unstable();
+        out.dedup();
+        out
+    }
 }
 /// Remove the portion of a surface covered by another volume. Same-facing coincident
 /// skin has deterministic owner; opposing coincident faces are both interior.

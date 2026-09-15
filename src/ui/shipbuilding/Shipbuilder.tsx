@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { ConstructionBoundary, ConstructionCatalog, ConstructionEquipment, ConstructionPrimitive, ConstructionResult, ConstructionSource, ConstructionSuggestion, ConstructionSurfaceAssignment, Vec3 } from '../../ships/blueprint';
-import { assignConstructionSurfaces, copyConstructionSelection, editableConstructionSurfaces, mirroredFace, mirroredPrimitive, moveConstructionSelection, newConstructionId, removeConstructionSelection, rotateConstructionSelection, surfaceKey, type ConstructionFace } from '../../ships/constructionEditor';
+import { CONSTRUCTION_LIMITS, assignConstructionSurfaces, copyConstructionSelection, editableConstructionSurfaces, mirroredFace, mirroredPrimitive, moveConstructionSelection, newConstructionId, removeConstructionSelection, rotateConstructionSelection, surfaceKey, type ConstructionFace } from '../../ships/constructionEditor';
 import { removeLocalShip } from '../../ships/localShips';
 import { ConstructionClient } from '../../ships/constructionClient';
 import { CONSTRUCTION_SHAPE_NAMES as SHAPE_NAMES } from '../../ships/constructionShapes';
@@ -41,7 +41,8 @@ const BOUNDARY_NAMES: Record<ConstructionBoundary['axis'], string> = { y: 'Deck'
 const VIEWS: BuilderView[] = ['orbit', 'top', 'side', 'bow'];
 const VIEW_NAMES: Record<BuilderView, string> = { orbit: 'Orbit', top: 'Plan', side: 'Profile', bow: 'Bow' };
 const ARC_RADIUS = 12;
-const LIMITS = { primitives: 512, equipment: 128, boundaries: 24 };
+const LIMITS = CONSTRUCTION_LIMITS;
+interface KeyHint { keys: string[]; label: string }
 const metres = (value: number) => Number(value.toFixed(2)).toLocaleString(undefined, { maximumFractionDigits: 2 });
 const signed = (value: number) => `${value < 0 ? '−' : value > 0 ? '+' : ''}${metres(Math.abs(value))}`;
 
@@ -61,13 +62,13 @@ export function Shipbuilder(props: ShipbuilderProps) {
 
   const [layer, setLayer] = useState<BuilderLayer>('hull');
   const [tool, setTool] = useState<BuilderTool>('place');
-  const [slots, setSlots] = useState<Record<BuilderLayer, string>>({ hull: 'cube', armor: 'light-belt', internals: 'deck', fittings: '', paint: 'naval-gray' });
-  const [customMm, setCustomMm] = useState(25);
-  const [customOpen, setCustomOpen] = useState(false);
+  const [slots, setSlots] = useState<Record<BuilderLayer, string>>({ hull: 'cube', armor: 'armor', internals: 'deck', fittings: '', paint: 'naval-gray' });
+  const [customMm, setCustomMm] = useState(50);
   const [sizeOverride, setSizeOverride] = useState<Vec3>();
   const [bearing, setBearing] = useState(0);
   const [mirror, setMirror] = useState(true);
   const [showArcs, setShowArcs] = useState(false);
+  const [showCenters, setShowCenters] = useState(true);
   const [view, setView] = useState<BuilderView>('orbit');
   const [slice, setSlice] = useState<{ on: boolean; y: number; auto: boolean }>({ on: false, y: 0, auto: true });
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -84,13 +85,15 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const [suggestionRevision, setSuggestionRevision] = useState('');
   const suggestionRequest = useRef<AbortController | undefined>(undefined);
   const [helpOpen, setHelpOpen] = useState(false);
-  const [tip, setTip] = useState<{ title: string; detail: string; x: number; y: number }>();
+  const [tip, setTip] = useState<{ title: string; detail: string; x: number; y: number; key?: string; below?: boolean }>();
   const [slotImages] = useState(() => new SlotImages());
   useEffect(() => () => slotImages.dispose(), [slotImages]);
 
   const palette = useMemo(() => paletteFor(layer, catalog), [layer, catalog]);
   const imageFor = useSlotImages(slotImages, palette.drawer, catalog);
   const active = palette.drawer.find(item => item.id === slots[layer]) ?? palette.drawer[0];
+  const drawerName = layer === 'fittings' ? 'fittings' : layer === 'hull' ? 'shapes' : 'items';
+  const hasDrawer = palette.drawer.length > palette.bar.filter(item => item.kind !== 'empty').length || layer === 'fittings';
   const rail = BUILDER_RAIL[layer];
   const locked = !editor.ready || !!busy;
   const compiled = editor.currentResult;
@@ -209,8 +212,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
     const target = withMirrorFaces(keys);
     const assign = (label: string, values: Partial<Pick<ConstructionSurfaceAssignment, 'thicknessMm' | 'material' | 'paint' | 'open'>>) => run(label, draft => assignConstructionSurfaces(draft, target, values));
     switch (item.kind) {
-      case 'armor': assign(`Assign ${item.name.toLowerCase()} armor`, { thicknessMm: item.thicknessMm, material: item.material, open: false }); break;
-      case 'custom-armor': assign(`Assign ${thickness} mm armor`, { thicknessMm: thickness, material: thickness > 0 ? 'armor-steel' : 'steel', open: false }); break;
+      case 'armor': assign(`Assign ${thickness} mm armor`, { thicknessMm: thickness, material: thickness > 0 ? 'armor-steel' : 'steel', open: false }); break;
       case 'opening': assign('Open faces to sea', { open: true }); break;
       case 'paint': assign(`Paint ${item.name.toLowerCase()}`, { paint: item.id }); break;
     }
@@ -222,11 +224,11 @@ export function Shipbuilder(props: ShipbuilderProps) {
   };
   const selectSlot = (item: SlotItem) => {
     if (item.kind === 'empty' || locked) return;
-    setSlots(current => ({ ...current, [layer]: item.id })); setSizeOverride(undefined); setCustomOpen(item.kind === 'custom-armor'); setTip(undefined);
+    setSlots(current => ({ ...current, [layer]: item.id })); setSizeOverride(undefined); setTip(undefined);
     const faceTools: BuilderTool[] = ['apply', 'area', 'eyedrop', 'opening', 'select'];
     switch (item.kind) {
       case 'shape': if (tool !== 'place' && tool !== 'fill') setTool('place'); break;
-      case 'armor': case 'custom-armor': case 'opening': case 'paint':
+      case 'armor': case 'opening': case 'paint':
         if (surfaces.size) applyItem(item, surfaces); else if (!faceTools.includes(tool)) setTool('apply');
         break;
       case 'scheme': applyScheme(item.id); break;
@@ -248,7 +250,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
         case 'apply': if (active) applyItem(active, new Set([hit.surface])); break;
         case 'area': setSurfaces(current => { const next = hit.additive ? new Set(current) : new Set<string>(); for (const entry of editableSurfaces) if (entry.face === surface.face) next.add(surfaceKey(entry.primitiveId, entry.face)); return next; }); break;
         case 'eyedrop':
-          if (layer === 'armor') { setCustomMm(surface.thicknessMm); setSlots(current => ({ ...current, armor: 'custom' })); setNotice(`Custom slot set to ${surface.thicknessMm} mm from the picked face.`); }
+          if (layer === 'armor') { setCustomMm(surface.thicknessMm); setSlots(current => ({ ...current, armor: 'armor' })); setNotice(`Armor thickness set to ${surface.thicknessMm} mm from the picked face.`); }
           else { setSlots(current => ({ ...current, paint: surface.paint })); setNotice(`Paint slot set from the picked face.`); }
           setTool('apply'); break;
         case 'opening': run(surface.open ? 'Close skin' : 'Open faces to sea', draft => assignConstructionSurfaces(draft, withMirrorFaces(new Set([hit.surface!])), { open: !surface.open })); break;
@@ -325,7 +327,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
     return main ? main.position[1] + main.size[1] / 2 - .25 : 0;
   };
   const switchLayer = (next: BuilderLayer) => {
-    setLayer(next); setTool(DEFAULT_TOOL[next]); setSurfaces(new Set()); setDrawer(false); setQuery(''); setMeasure(undefined); setCustomOpen(false); setBearing(0); setTip(undefined);
+    setLayer(next); setTool(DEFAULT_TOOL[next]); setSurfaces(new Set()); setDrawer(false); setQuery(''); setMeasure(undefined); setBearing(0); setTip(undefined);
     setSlice(current => current.auto ? { on: next === 'internals', y: next === 'internals' ? defaultSlice() : current.y, auto: true } : current);
   };
   const activateRail = (entry: RailEntry) => {
@@ -350,11 +352,13 @@ export function Shipbuilder(props: ShipbuilderProps) {
       const modifier = event.ctrlKey || event.metaKey, lower = event.key.toLowerCase();
       if (modifier && lower === 'z') { event.preventDefault(); if (event.shiftKey) editor.redo(); else editor.undo(); return; }
       if (modifier && lower === 'y') { event.preventDefault(); editor.redo(); return; }
-      if (modifier && lower === 'd') { event.preventDefault(); copy(event.shiftKey); return; }
+      // Without a selection, ⌘C and ⌘X stay with the browser so selected text still copies.
+      if (modifier && lower === 'c') { if (!selected.size) return; event.preventDefault(); copy(event.shiftKey); return; }
+      if (modifier && lower === 'x') { if (!selected.size) return; event.preventDefault(); remove(); return; }
       if (modifier && lower === 'a') { event.preventDefault(); setSelected(new Set([...data.primitives, ...data.equipment].map(part => part.id))); return; }
       if (modifier) return;
       if (event.key === 'Escape') {
-        if (drawer) setDrawer(false); else if (designsOpen) setDesignsOpen(false); else if (customOpen) setCustomOpen(false); else if (suggestion) setSuggestion(undefined);
+        if (drawer) setDrawer(false); else if (designsOpen) setDesignsOpen(false); else if (suggestion) setSuggestion(undefined);
         else if (measure) setMeasure(undefined); else if (tool !== 'select') { setTool('select'); clearSelection(); } else clearSelection();
         return;
       }
@@ -372,6 +376,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
         return;
       }
       if (/^[1-9]$/.test(event.key)) { const item = palette.bar[Number(event.key) - 1]; if (item) selectSlot(item); return; }
+      if (event.key === '0') { if (hasDrawer) { setDrawer(value => !value); setTip(undefined); } return; }
       if (lower === 'q') cycleView(); else if (lower === 's') toggleSlice(); else if (lower === 'w') setWarningsOpen(value => !value);
       else if (lower === 'r') rotate(); else if (lower === 'm') setMirror(value => !value);
       else { const entry = rail.find(entry => entry.key.toLowerCase() === lower); if (entry) activateRail(entry); }
@@ -401,8 +406,13 @@ export function Shipbuilder(props: ShipbuilderProps) {
 
   const tags: BuilderTag[] = [];
   const equipmentAnchor = (item: ConstructionEquipment): Vec3 => { const part = partOf(item), center = part ? rotateY(part.boundsCenter, bearingRadians(item.bearingDeg)) : [0, 0, 0]; return item.position.map((value, index) => value + center[index]) as Vec3; };
-  // The cursor piece reads out under the palette instead of following the ghost; its size fields stay editable there.
-  const status: ReactNode = !piece || locked ? null : piece.kind === 'hull' && active?.kind === 'shape' ? <>
+  // The cursor piece reads out above the palette instead of following the ghost; its size fields stay editable there.
+  // The Armor layer keeps its millimetre field here, above the bar: a new value also assigns the selected faces.
+  const armorItem = palette.drawer.find(item => item.kind === 'armor');
+  const setThickness = (value: number) => { setCustomMm(value); setSlots(current => ({ ...current, armor: 'armor' })); if (armorItem && surfaces.size) applyItem(armorItem, surfaces, value); };
+  const status: ReactNode = locked ? null : layer === 'armor' ? <>
+    <b>Armor</b><NumberField value={customMm} min={0} max={1000} step={5} unit="mm" onChange={setThickness}/><span>{customMm > 0 ? 'armor steel' : 'structural skin, no armor'} · <kbd>1</kbd> assigns the selected faces</span>
+  </> : !piece ? null : piece.kind === 'hull' && active?.kind === 'shape' ? <>
     <b>{active.name}</b><NumberField value={piece.size[0]} min={.25} max={500} step={1} onChange={value => setSizeOverride([value, piece.size[1], piece.size[2]])}/> × <NumberField value={piece.size[1]} min={.25} max={500} step={1} onChange={value => setSizeOverride([piece.size[0], value, piece.size[2]])}/> × <NumberField value={piece.size[2]} min={.25} max={500} step={1} onChange={value => setSizeOverride([piece.size[0], piece.size[1], value])}/> m<span>{piece.rotationDeg}°</span>
   </> : piece.kind === 'equipment' && active?.kind === 'part' ? <>
     <b>{active.part.name}</b><span>{active.part.placement} · bearing {piece.bearingDeg}°</span>
@@ -413,7 +423,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
     const move = (axis: number, value: number) => { const delta: Vec3 = [0, 0, 0]; delta[axis] = snapCoordinate(value, .25) - primitive.position[axis]; nudge(delta); };
     tags.push({ key: `piece-${primitive.id}`, anchor: primitive.position, dx: 70, dy: -78, tone: 'mint', content: <>
       <b>{SHAPE_NAMES[primitive.kind]} <NumberField value={primitive.size[0]} min={.25} max={500} onChange={value => size(0, value)}/> × <NumberField value={primitive.size[1]} min={.25} max={500} onChange={value => size(1, value)}/> × <NumberField value={primitive.size[2]} min={.25} max={500} onChange={value => size(2, value)}/> m</b>
-      {mass !== undefined ? `plating ${formatTonnes(mass)} · ` : ''}<NumberField label="x" value={primitive.position[0]} min={-1000} max={1000} onChange={value => move(0, value)}/> <NumberField label="y" value={primitive.position[1]} min={-1000} max={1000} onChange={value => move(1, value)}/> <NumberField label="z" value={primitive.position[2]} min={-1000} max={1000} onChange={value => move(2, value)}/> · {primitive.rotationDeg}° <kbd>R</kbd> · <kbd>⌫</kbd> remove · <kbd>⌘D</kbd> copy
+      {mass !== undefined ? `plating ${formatTonnes(mass)} · ` : ''}<NumberField label="x" value={primitive.position[0]} min={-1000} max={1000} onChange={value => move(0, value)}/> <NumberField label="y" value={primitive.position[1]} min={-1000} max={1000} onChange={value => move(1, value)}/> <NumberField label="z" value={primitive.position[2]} min={-1000} max={1000} onChange={value => move(2, value)}/> · {primitive.rotationDeg}° <kbd>R</kbd> · <kbd>⌫</kbd> remove · <kbd>⌘C</kbd> copy
     </> });
   } else if (selectedEquipment.length === 1 && !selectedPrimitives.length) {
     const item = selectedEquipment[0], part = partOf(item), mass = equipmentMassKg(compiled, item.id);
@@ -429,7 +439,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
     const anchors = [...selectedPrimitives.map(part => part.position), ...selectedEquipment.map(equipmentAnchor)];
     const center = anchors.reduce((sum, point) => sum.map((value, index) => value + point[index] / anchors.length) as Vec3, [0, 0, 0] as Vec3);
     const mass = [...selectedPrimitives.map(part => pieceMassKg(compiled, part.id) ?? 0), ...selectedEquipment.map(part => equipmentMassKg(compiled, part.id) ?? 0)].reduce((sum, value) => sum + value, 0);
-    tags.push({ key: 'group', anchor: center, dx: 70, dy: -78, tone: 'mint', content: <><b>{selected.size} selected</b>{mass ? `${formatTonnes(mass)} · ` : ''}<kbd>R</kbd> rotate · <kbd>⌘D</kbd> copy · <kbd>⇧⌘D</kbd> mirror copy · <kbd>⌫</kbd> remove</> });
+    tags.push({ key: 'group', anchor: center, dx: 70, dy: -78, tone: 'mint', content: <><b>{selected.size} selected</b>{mass ? `${formatTonnes(mass)} · ` : ''}<kbd>R</kbd> rotate · <kbd>⌘C</kbd> copy · <kbd>⇧⌘C</kbd> mirror copy · <kbd>⌫</kbd> remove</> });
   } else if (selectedBoundary) {
     const wall = selectedBoundary, axis = { x: 0, y: 1, z: 2 }[wall.axis], bounds = hullBounds(source);
     const anchor = (bounds ? bounds.min.map((value, index) => (value + bounds.max[index]) / 2) : [0, 0, 0]) as Vec3; anchor[axis] = wall.offset;
@@ -443,7 +453,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
     const first = chosen[0], groups = armorInspectionGroups(chosen), area = chosen.reduce((sum, surface) => sum + surface.areaM2, 0);
     if (first) tags.push({ key: 'faces', anchor: surfaceCentroid(first), dx: 80, dy: -96, tone: 'mint', content: <>
       <b>{surfaces.size} face{surfaces.size === 1 ? '' : 's'} · {groups.length === 1 ? (layer === 'paint' ? `${groups[0].surface.paint.replace('-', ' ')}` : describeArmorGroup(groups[0].surface)) : `${groups.length} different ${layer === 'paint' ? 'paints' : 'thicknesses'}`}</b>
-      {format(area, 0)} m² · <kbd>1</kbd>–<kbd>9</kbd> {layer === 'paint' ? 'paint' : 'assign'} · <kbd>⇧</kbd>click adds · <kbd>Esc</kbd> clear
+      {format(area, 0)} m² · {layer === 'paint' ? <><kbd>1</kbd>–<kbd>9</kbd> paint</> : <><kbd>1</kbd> assign {customMm} mm · <kbd>2</kbd> open</>} · <kbd>⇧</kbd>click adds · <kbd>Esc</kbd> clear
     </> });
   }
   const firstBlock = blocks.find(entry => entry.sourceId);
@@ -456,8 +466,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const describe = (item: SlotItem): { title: string; detail: string } => {
     switch (item.kind) {
       case 'shape': return { title: item.name, detail: item.shape.note };
-      case 'armor': return { title: item.name, detail: item.thicknessMm ? `${item.thicknessMm} mm ${item.material === 'armor-steel' ? 'armor steel' : 'steel'}` : 'structural skin without armor' };
-      case 'custom-armor': return { title: 'Custom armor', detail: `${customMm} mm · click to enter a thickness` };
+      case 'armor': return { title: 'Armor', detail: `${customMm > 0 ? `${customMm} mm armor steel` : 'structural skin without armor'} · set the thickness above the bar` };
       case 'opening': return { title: 'Opening', detail: 'removes the skin so the face admits water' };
       case 'part': return { title: item.part.name, detail: `${item.note} · ${item.part.placement} · ${item.part.size.map(metres).join(' × ')} m` };
       case 'tool': case 'scheme': return { title: item.name, detail: item.note };
@@ -465,14 +474,18 @@ export function Shipbuilder(props: ShipbuilderProps) {
       default: return { title: '', detail: '' };
     }
   };
-  const showTip = (item: SlotItem, target: HTMLElement) => { if (item.kind === 'empty') return; const rect = target.getBoundingClientRect(); setTip({ ...describe(item), x: rect.left + rect.width / 2, y: rect.top }); };
+  // Palette tips hang under the bar, which the readout above the cards leaves free; drawer tips stay above their card. Each names the card's key.
+  const showTip = (item: SlotItem, target: HTMLElement) => {
+    if (item.kind === 'empty') return;
+    const rect = target.getBoundingClientRect(), below = !target.closest('.sb-drawer'), index = palette.bar.findIndex(entry => entry.id === item.id);
+    setTip({ ...describe(item), x: rect.left + rect.width / 2, y: below ? rect.bottom : rect.top, below, key: index >= 0 ? String(index + 1) : undefined });
+  };
   const hideTip = () => setTip(undefined);
   const face = (item: SlotItem) => {
     const image = imageFor(item);
     if (image) return <><img src={image} alt="" draggable={false}/>{item.kind === 'shape' && item.shape.kind === 'ballast' && <small className="sb-slot-weight">100 t</small>}</>;
     switch (item.kind) {
-      case 'armor': return <i className="sb-swatch" style={{ background: armorThicknessColor(item.thicknessMm) }}/>;
-      case 'custom-armor': return <i className="sb-swatch" style={{ background: armorThicknessColor(customMm) }}><span>{customMm}</span></i>;
+      case 'armor': return <i className="sb-swatch" style={{ background: armorThicknessColor(customMm) }}><span>{customMm} mm</span></i>;
       case 'paint': return <i className="sb-swatch" style={{ background: item.color }}/>;
       case 'scheme': return <i className="sb-swatch" style={{ background: item.id === 'two-tone' ? 'linear-gradient(#64716f 50%, #7c8c91 50%)' : 'repeating-linear-gradient(90deg, #405d70 0 25%, #b5bfbc 25% 50%)' }}/>;
       case 'empty': return null;
@@ -481,18 +494,34 @@ export function Shipbuilder(props: ShipbuilderProps) {
   };
   const slot = (item: SlotItem) => {
     const pressed = item.kind !== 'empty' && active?.id === item.id;
-    if (item.kind === 'custom-armor' && customOpen && pressed) return <div key={item.id} className="sb-slot custom" aria-pressed="true" style={{ background: armorThicknessColor(customMm) }}>
-      <input autoFocus type="number" aria-label="Custom armor thickness in millimetres" min={0} max={1000} step={1} defaultValue={customMm}
-        onKeyDown={event => { if (event.key === 'Enter') { const value = Number(event.currentTarget.value); if (Number.isFinite(value) && value >= 0 && value <= 1000) { setCustomMm(value); if (surfaces.size) applyItem(item, surfaces, value); } setCustomOpen(false); } if (event.key === 'Escape') { setCustomOpen(false); event.stopPropagation(); } }}
-        onBlur={event => { const value = Number(event.currentTarget.value); if (Number.isFinite(value) && value >= 0 && value <= 1000) setCustomMm(value); setCustomOpen(false); }}/><small>mm</small></div>;
     return <button key={item.id} className={`sb-slot ${item.kind === 'empty' ? 'empty' : ''}`} aria-pressed={pressed} aria-label={item.kind === 'part' ? item.part.name : item.name || undefined} disabled={item.kind === 'empty' || locked}
       onPointerEnter={event => showTip(item, event.currentTarget)} onPointerLeave={hideTip} onFocus={event => showTip(item, event.currentTarget)} onBlur={hideTip} onClick={() => selectSlot(item)}>{face(item)}</button>;
   };
 
-  return <main className="shipbuilder" aria-label="Shipbuilder" data-layer={layer} aria-busy={!!busy}>
+  // ---- hotkey legend above the compass: the standing keys on the bottom row; the keys acting on the cursor piece, the selection or the picked faces on a row above.
+  // Keys already printed elsewhere (rail tools, W on the warnings lead, ⌘Z on undo, ? on Keys) stay off it.
+  const faceLayer = layer === 'armor' || layer === 'paint';
+  const movable = selectedPrimitives.length + selectedEquipment.length > 0;
+  const standing: KeyHint[] = [
+    { keys: palette.bar.length < 4 ? palette.bar.map((_, index) => String(index + 1)) : ['1', '…', '9'], label: surfaces.size && faceLayer ? (layer === 'paint' ? 'Paint faces' : 'Assign armor') : 'Card' },
+    ...(hasDrawer ? [{ keys: ['0'], label: `All ${drawerName}` }] : []),
+    { keys: ['Q'], label: 'View' }, { keys: ['S'], label: 'Slice' }, ...(slice.on ? [{ keys: selected.size ? ['⇧PgUp', '⇧PgDn'] : ['PgUp', 'PgDn'], label: 'Slice height' }] : []),
+    { keys: ['Home'], label: 'Fit' },
+  ];
+  const acting: KeyHint[] = [];
+  if (!locked && piece && piece.kind !== 'boundary') acting.push({ keys: ['R'], label: piece.kind === 'hull' ? 'Rotate 90°' : 'Rotate 15°' });
+  else if (movable) acting.push({ keys: ['R'], label: selectedPrimitives.length ? 'Rotate 90°' : 'Rotate 15°' });
+  if (movable) acting.push({ keys: ['←→', '↑↓'], label: 'Nudge' }, { keys: ['PgUp', 'PgDn'], label: 'Raise · lower' }, { keys: ['⌘C'], label: 'Copy' }, { keys: ['⇧⌘C'], label: 'Mirror copy' });
+  if (selected.size) acting.push({ keys: ['⌫', '⌘X'], label: movable ? 'Remove' : 'Remove · merge rooms' });
+  if (surfaces.size && faceLayer) acting.push({ keys: ['⇧'], label: 'Click adds a face' });
+  const escape = drawer || designsOpen ? 'Close' : suggestion ? 'Dismiss layout' : measure ? 'End measure' : tool !== 'select' ? 'Select tool' : selected.size || surfaces.size ? 'Clear' : '';
+  if (escape) acting.push({ keys: ['Esc'], label: escape });
+  const chip = (hint: KeyHint) => <span key={hint.label} className="sb-key">{hint.keys.map((key, index) => <kbd key={index}>{key}</kbd>)}{hint.label}</span>;
+
+  return <main className="shipbuilder" aria-label="Shipbuilder" data-layer={layer} data-drawer={drawer || undefined} aria-busy={!!busy}>
     <BuilderViewport source={source} result={result} catalog={catalog} selected={selected} selectedSurfaces={surfaces} view={view} display={DISPLAY[layer]} slice={slice.on ? slice.y : undefined}
       gridStep={gridStep} gesture={locked ? 'none' : gesture} pickTargets={layer === 'armor' || layer === 'paint' ? 'hull' : 'all'} moveTargets={locked ? 'none' : moveTargets} placementPiece={locked ? undefined : piece} placementMirror={mirrorPiece} highlightFaces={layer === 'armor' || layer === 'paint'} rooms={layer === 'internals'}
-      arcs={arcs} proposed={proposed} measure={measure} tags={tags} coords={coords} status={status} fitRequest={fitRequest} onPick={pick} onStroke={placeAt} onBoxSelect={boxSelect} onErase={erase} onMove={movePieces} createModel={props.createModel}/>
+      showCenters={showCenters} arcs={arcs} proposed={proposed} measure={measure} tags={tags} coords={coords} status={status} fitRequest={fitRequest} onPick={pick} onStroke={placeAt} onBoxSelect={boxSelect} onErase={erase} onMove={movePieces} createModel={props.createModel}/>
     <header className="sb-top">
       <button className="sb-port" disabled={!!busy} onClick={() => void close()} title="Save and return to port"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M8 1.5 3.5 6 8 10.5"/></svg>Port</button>
       <div className="sb-ship">
@@ -534,20 +563,25 @@ export function Shipbuilder(props: ShipbuilderProps) {
         <div className="sb-masskey">{masses.filter(group => group.massKg > 0).map(group => <span key={group.name} style={{ display: 'contents' }}><i style={{ background: group.color }}/><span>{group.name}</span><b>{formatTonnes(group.massKg, group.massKg < 1e5 ? 1 : 0)}</b></span>)}</div></>}
       {layer === 'armor' && <div className="sb-armor-groups" aria-label="Hull armor coverage">{armorInspectionGroups(editableSurfaces).sort((a, b) => b.areaM2 - a.areaM2).slice(0, 6).map(group => <p key={group.id}>{describeArmorGroup(group.surface)}<small>{format(group.areaM2, 0)} m² · {group.faces.size} face{group.faces.size === 1 ? '' : 's'}</small></p>)}</div>}
     </aside>
-    {drawer && <div className="sb-drawer" aria-label={`All ${layer === 'fittings' ? 'fittings' : layer === 'hull' ? 'shapes' : 'items'}`}>
-      <div className="sb-drawer-head"><span className="sb-lead">All {layer === 'fittings' ? 'fittings' : layer === 'hull' ? 'shapes' : 'items'}</span>
-        {(layer === 'fittings' || layer === 'hull') && <label className="sb-search">Find <input autoFocus type="search" aria-label={layer === 'hull' ? 'Find a shape' : 'Find a fitting'} placeholder={layer === 'hull' ? 'bridge, cylinder, shell…' : 'gun, screw, funnel…'} value={query} onChange={event => setQuery(event.target.value)}/></label>}
+    {drawer && <div className="sb-drawer" aria-label={`All ${drawerName}`}>
+      <div className="sb-drawer-head"><span className="sb-lead">All {drawerName}</span>
+        {(layer === 'fittings' || layer === 'hull') && <label className="sb-search">Find <input autoFocus type="search" aria-label={layer === 'hull' ? 'Find a shape' : 'Find a fitting'} placeholder={layer === 'hull' ? 'bridge, cylinder, shell…' : 'gun, screw, funnel…'} value={query} onChange={event => setQuery(event.target.value)} onKeyDown={event => { if (event.key === 'Escape') { event.stopPropagation(); setDrawer(false); setTip(undefined); } }}/></label>}
         <button className="sb-drawer-close" aria-label="Close" onClick={() => { setDrawer(false); setTip(undefined); }}>×</button></div>
       <div className="sb-drawer-grid" role="listbox">{drawerItems.map(item => slot(item))}{!drawerItems.length && <span className="sb-lead">No {layer === 'hull' ? 'shape' : 'fitting'} matches</span>}</div>
     </div>}
     <div className="sb-hotbar" role="toolbar" aria-label="Palette">
       {palette.bar.map(item => slot(item))}
-      {palette.drawer.length > palette.bar.filter(item => item.kind !== 'empty').length || layer === 'fittings' ? <button className="sb-slot more" aria-expanded={drawer} aria-label={`All ${layer === 'fittings' ? 'fittings' : 'shapes'}`} onPointerEnter={event => { const rect = event.currentTarget.getBoundingClientRect(); setTip({ title: `All ${layer === 'fittings' ? 'fittings' : 'shapes'}`, detail: drawer ? 'close the full selection' : 'open the full selection', x: rect.left + rect.width / 2, y: rect.top }); }} onPointerLeave={hideTip} onClick={() => { setDrawer(value => !value); setTip(undefined); }}>…</button> : null}
+      {hasDrawer ? <button className="sb-slot more" aria-expanded={drawer} aria-label={`All ${drawerName}`} onPointerEnter={event => { const rect = event.currentTarget.getBoundingClientRect(); setTip({ title: `All ${drawerName}`, detail: drawer ? 'close the full selection' : 'open the full selection', x: rect.left + rect.width / 2, y: rect.bottom, below: true, key: '0' }); }} onPointerLeave={hideTip} onClick={() => { setDrawer(value => !value); setTip(undefined); }}>…</button> : null}
     </div>
-    {tip && <div className="sb-tip" role="tooltip" style={{ left: tip.x, top: tip.y }}><b>{tip.title}</b>{tip.detail}</div>}
+    <div className="sb-keys" aria-label="Hotkeys">
+      {acting.length > 0 && <div className="sb-keys-row acting">{acting.map(chip)}</div>}
+      <div className="sb-keys-row">{standing.map(chip)}</div>
+    </div>
+    {tip && <div className={`sb-tip ${tip.below ? 'below' : ''}`} role="tooltip" style={{ left: tip.x, top: tip.y }}><b>{tip.title}</b>{tip.detail}{tip.key && <kbd>{tip.key}</kbd>}</div>}
     <div className="sb-viewbar">
       <button onClick={cycleView} title="Cycle the view">View <b>{VIEW_NAMES[view]}</b></button>
       <button onClick={toggleSlice} title="Cut the ship above a height">Slice <b>{slice.on ? `${signed(slice.y)} m` : 'Off'}</b></button>
+      <button aria-pressed={showCenters} onClick={() => setShowCenters(value => !value)} title="Show center of gravity (mass) and center of buoyancy markers">Centers <b>{showCenters ? 'On' : 'Off'}</b></button>
       <span title="Placement snaps to the face under the pointer">Snap <b>{gridStep === 1 ? '1 m' : '¼ m'}</b></span>
       <button onClick={() => setMirror(value => !value)} title="Mirror placements across the centerline">Mirror <b>{mirror ? 'On' : 'Off'}</b></button>
       <button onClick={fit} title="Frame the ship">Fit</button>

@@ -176,9 +176,10 @@ builders, publication commands, retained revisions and provisional package data.
 Player save/compile/launch needs the production browser assets and WASM only;
 Blender and the model-viewer server are authoring/review tools.
 
-The compiler bounds source JSON to 2 MB and an individual catalog to 4 MB. A design
-allows 512 primitives, 128 equipment instances, 128 loads and 24 boundaries, with
-4,096 disjoint cells and 8,192 skin patches as derivation bounds. Piece dimensions
+The compiler bounds source JSON to 16 MB and an individual catalog to 4 MB. A design
+allows 10,000 primitives, 65,536 face assignments, 128 equipment instances, 128 loads
+and 24 boundaries, with 65,536 disjoint cells and 131,072 skin patches as derivation
+bounds. Piece dimensions
 are 0.01–500 m and finite positions lie within ±1,000 m. Complexity-limit failures
 preserve the source and require simplifying the offending geometry. These are
 technical bounds, not a promise that every maximal arrangement compiles quickly.

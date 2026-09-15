@@ -15,9 +15,9 @@ const MOUSE: [string, string][] = [
 ];
 const EDITING: [string[], string][] = [
   [['⌘Z', '⇧⌘Z'], 'Undo, redo (⌘Y also redoes)'],
-  [['⌘D', '⇧⌘D'], 'Copy 1 m to starboard, mirror-copy across the centerline'],
+  [['⌘C', '⇧⌘C'], 'Copy 1 m to starboard, mirror-copy across the centerline'],
   [['⌘A'], 'Select every hull piece and fitting'],
-  [['⌫'], 'Remove the selection; a wall merges its rooms'],
+  [['Del', '⌫', '⌘X'], 'Remove the selection; a wall merges its rooms'],
   [['←', '→', '↑', '↓'], 'Nudge the selection (1 m hull, ¼ m fittings)'],
   [['PgUp', 'PgDn'], 'Raise or lower the selection; with Shift, move the slice'],
   [['R'], 'Rotate the cursor piece or the selection (90° hull, 15° fittings)'],
@@ -29,7 +29,8 @@ const VIEW: [string[], string][] = [
   [['W'], 'Collapse or expand the warnings'],
   [['M'], 'Mirror placements across the centerline'],
   [['Home'], 'Frame the ship'],
-  [['1', '…', '9'], 'Pick a palette card; … opens every card'],
+  [['1', '…', '9'], 'Pick a palette card'],
+  [['0'], 'Open or close every card of the layer'],
   [['?'], 'This list'],
 ];
 

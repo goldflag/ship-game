@@ -6,6 +6,8 @@
   /* Studio sweep: a neutral grey ground lit at the centre and falling to dark at the edges, so hull paint reads true and only brass and mint carry colour. */
   --sb-sweep: radial-gradient(ellipse 70% 62% at 50% 46%, #3d4145 0%, #2a2d30 48%, #191b1e 100%);
   --sb-card: #24282bf5; --sb-card-hover: #2f3438; --sb-card-selected: #383d41; --sb-card-toggle: #253a37;
+  /* palette geometry: the readout, drawer and hotkey legend keep clear of the cards through these */
+  --sb-slot: 64px; --sb-bar-bottom: 60px; --sb-bar-height: var(--sb-slot); --sb-bar-width: calc(10 * var(--sb-slot) + 54px);
   position: fixed; inset: 0; z-index: 80; overflow: hidden; background: var(--sb-ground); color: var(--sb-text);
   font: 400 13px/1.35 'Barlow', sans-serif; font-variant-numeric: tabular-nums; text-shadow: 0 2px 5px #0d0f11b3; color-scheme: dark; user-select: none;
 }
@@ -47,11 +49,12 @@
 .sb-tag.bad { border-color: var(--sb-salmon); }
 .sb-tag.bad b { color: var(--sb-salmon); }
 .sb-tag kbd { margin: 0 1px; }
-/* cursor readout under the palette: the active piece with its size fields, then the ghost's cell or the move offset */
-.sb-cursor { position: absolute; left: 50%; bottom: 30px; transform: translateX(-50%); display: flex; align-items: baseline; gap: 14px; pointer-events: auto; font-size: 12px; color: var(--sb-muted); white-space: nowrap; }
+/* cursor readout above the palette: the active piece with its size fields, then the ghost's cell or the move offset; the open drawer covers its place */
+.sb-cursor { position: absolute; left: 50%; bottom: calc(var(--sb-bar-bottom) + var(--sb-bar-height) + 12px); transform: translateX(-50%); display: flex; align-items: baseline; gap: 14px; pointer-events: auto; font-size: 12px; color: var(--sb-muted); white-space: nowrap; }
 .sb-cursor b { font: 500 13px/1 'Barlow Condensed', sans-serif; color: var(--sb-text); letter-spacing: .02em; margin-right: 2px; }
 .sb-cursor > span { color: var(--sb-muted); }
 .sb-cursor .sb-num input { font: inherit; color: var(--sb-text); }
+.shipbuilder[data-drawer] .sb-cursor { display: none; }
 .sb-coords { visibility: hidden; font: 500 12px 'Barlow Condensed', sans-serif; color: var(--sb-mint); letter-spacing: .05em; white-space: nowrap; }
 .sb-num { display: inline-flex; align-items: baseline; gap: 2px; white-space: nowrap; }
 .sb-num > span { color: var(--sb-muted2); }
@@ -67,7 +70,7 @@
 .sb-empty button { color: var(--sb-brass); border-bottom: 1px solid currentColor; }
 
 /* chrome containers let the pointer through to the scene; only controls catch it */
-.sb-top, .sb-left, .sb-ledger, .sb-hotbar, .sb-viewbar, .sb-empty { pointer-events: none; }
+.sb-top, .sb-left, .sb-ledger, .sb-hotbar, .sb-keys, .sb-viewbar, .sb-empty { pointer-events: none; }
 .sb-top > *, .sb-warn > *, .sb-rail button, .sb-hotbar > *, .sb-drawer, .sb-viewbar > *, .sb-empty button, .sb-menu { pointer-events: auto; }
 
 /* top bar */
@@ -144,9 +147,9 @@
 .sb-rail button.help { margin-top: 8px; }
 
 /* hotbar + drawer: square cards showing the piece itself; names and readings are tooltips */
-.sb-hotbar { position: absolute; left: 50%; bottom: 60px; transform: translateX(-50%); display: flex; gap: 6px; }
+.sb-hotbar { position: absolute; left: 50%; bottom: var(--sb-bar-bottom); transform: translateX(-50%); display: flex; gap: 6px; }
 /* Keep card styles more specific than the button reset. */
-.shipbuilder .sb-slot { flex-shrink: 0; width: 64px; height: 64px; padding: 0; border: 1px solid var(--sb-line2); border-radius: 3px; background: var(--sb-card); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; color: var(--sb-text); text-shadow: none; }
+.shipbuilder .sb-slot { flex-shrink: 0; width: var(--sb-slot); height: var(--sb-slot); padding: 0; border: 1px solid var(--sb-line2); border-radius: 3px; background: var(--sb-card); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; color: var(--sb-text); text-shadow: none; }
 .sb-slot:hover:not(:disabled) { border-color: var(--sb-muted2); background: var(--sb-card-hover); }
 .sb-slot img { display: block; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
 .sb-slot-weight { position: absolute; bottom: 3px; right: 4px; font-size: 11px; color: var(--sb-text); background: var(--sb-card); padding: 1px 3px; }
@@ -156,12 +159,11 @@
 .shipbuilder .sb-slot:is([aria-pressed=true], [aria-expanded=true]) { border-color: var(--sb-brass); color: var(--sb-brass); background: var(--sb-card-selected); box-shadow: inset 0 0 0 1px var(--sb-brass); }
 .sb-slot.empty { border-style: dashed; opacity: .45; }
 .sb-slot.more { color: var(--sb-muted); font-size: 24px; line-height: 1; }
-.shipbuilder .sb-slot.custom { flex-direction: column; gap: 1px; }
-.sb-slot.custom input { width: 46px; font: 500 15px 'Barlow Condensed', sans-serif; text-align: center; padding: 0; color: #fff; border-bottom-color: #fffa; text-shadow: 0 1px 2px #000c; caret-color: #fff; }
-.sb-slot.custom small { font-size: 10px; color: #fff; text-shadow: 0 1px 2px #000c; }
 .sb-tip { position: absolute; z-index: 6; transform: translate(-50%, calc(-100% - 8px)); width: max-content; max-width: 280px; padding: 7px 10px; background: var(--sb-card); border: 1px solid var(--sb-line2); border-radius: 3px; font: 400 11.5px/1.45 'Barlow', sans-serif; color: var(--sb-muted); text-shadow: none; text-align: center; pointer-events: none; }
 .sb-tip b { display: block; font: 500 13px/1.3 'Barlow Condensed', sans-serif; color: var(--sb-text); letter-spacing: .02em; }
-.sb-drawer { position: absolute; left: 50%; bottom: 136px; transform: translateX(-50%); z-index: 4; width: max-content; max-width: min(760px, calc(100% - 28px)); padding: 10px 12px 12px; background: var(--sb-card); border: 1px solid var(--sb-line2); border-radius: 3px; box-shadow: 0 12px 28px #0a0c0e99; text-shadow: none; display: flex; flex-direction: column; gap: 10px; }
+.sb-tip.below { transform: translate(-50%, 8px); }
+.sb-tip kbd { margin-left: 6px; vertical-align: 1px; }
+.sb-drawer { position: absolute; left: 50%; bottom: calc(var(--sb-bar-bottom) + var(--sb-bar-height) + 12px); transform: translateX(-50%); z-index: 4; width: max-content; max-width: min(760px, calc(100% - 28px)); padding: 10px 12px 12px; background: var(--sb-card); border: 1px solid var(--sb-line2); border-radius: 3px; box-shadow: 0 12px 28px #0a0c0e99; text-shadow: none; display: flex; flex-direction: column; gap: 10px; }
 .sb-drawer-head { display: flex; align-items: center; gap: 14px; }
 .sb-drawer-head .sb-lead { white-space: nowrap; }
 .sb-drawer .sb-search { flex: 1; min-width: 0; display: flex; gap: 8px; align-items: center; font-size: 12px; color: var(--sb-muted); }
@@ -210,17 +212,28 @@
 .sb-armor-groups p { padding: 3px 0; border-bottom: 1px solid var(--sb-line); }
 .sb-armor-groups small { display: block; color: var(--sb-muted); }
 
+/* hotkey legend above the orientation compass: the standing keys on the bottom row, the keys acting on the cursor piece,
+   the selection or the picked faces on a row above. Rows wrap upward and stop short of the palette. */
+.sb-keys { position: absolute; left: 14px; bottom: 150px; max-width: max(150px, calc(50% - var(--sb-bar-width) / 2 - 34px)); display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.sb-keys-row { display: flex; flex-wrap: wrap-reverse; gap: 4px 12px; }
+.sb-key { display: inline-flex; align-items: baseline; gap: 4px; font: 500 11px/1.3 'Barlow Condensed', sans-serif; letter-spacing: .04em; color: var(--sb-muted); white-space: nowrap; }
+.sb-keys-row.acting .sb-key { color: var(--sb-text); }
+.sb-keys kbd { opacity: .8; }
+
 /* view bar */
 .sb-viewbar { position: absolute; right: 18px; bottom: 28px; display: flex; gap: 22px; font-size: 12px; color: var(--sb-muted); white-space: nowrap; }
 .sb-viewbar b { color: var(--sb-text); font-weight: 500; }
 .sb-viewbar button:hover b { color: var(--sb-brass2); }
 
 @media (max-width: 1100px) {
-  .sb-orientation { left: 76px; bottom: 142px; }
+  .shipbuilder { --sb-slot: 56px; }
   .sb-tabs { gap: 14px; }
   .sb-ledger { width: 176px; }
   .sb-viewbar { gap: 12px; }
-  .shipbuilder .sb-slot { width: 56px; height: 56px; }
+}
+/* a short window leaves no room for the legend under the rail */
+@media (max-width: 860px), (max-height: 800px) {
+  .sb-keys { display: none; }
 }
 @media (max-width: 860px) {
   .sb-ledger, .sb-viewbar span { display: none; }
@@ -229,6 +242,7 @@
   .sb-top { gap: 12px; padding: 0 12px; }
 }
 @media (max-width: 740px) {
+  .shipbuilder { --sb-bar-width: min(344px, calc(100vw - 28px)); --sb-bar-height: calc((var(--sb-bar-width) - 24px) * 2 / 5 + 6px); --sb-bar-bottom: 84px; }
   .sb-top { height: 118px; display: grid; grid-template-columns: 44px minmax(0, 1fr); grid-template-rows: 44px 30px 38px; gap: 0 12px; padding-top: 6px; }
   .sb-port { grid-column: 1; grid-row: 1; }
   .sb-ship { grid-column: 2; grid-row: 1; display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 8px; row-gap: 1px; }
@@ -244,14 +258,14 @@
   .sb-warn .row, .sb-warn .row span { min-width: 0; }
   .sb-warn .rows { max-height: 54px; }
   .sb-orientation { bottom: 244px; width: 120px; }
-  .sb-hotbar { width: min(344px, calc(100% - 28px)); bottom: 84px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .sb-hotbar { width: var(--sb-bar-width); display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); }
   .shipbuilder .sb-hotbar .sb-slot { width: auto; height: auto; aspect-ratio: 1; min-width: 0; }
-  .sb-cursor { bottom: 50px; width: calc(100% - 28px); justify-content: center; gap: 5px; font-size: 11px; }
+  .sb-cursor { width: calc(100% - 28px); justify-content: center; gap: 5px; font-size: 11px; }
   .sb-cursor b { max-width: 140px; overflow: hidden; text-overflow: ellipsis; }
   .sb-cursor .sb-coords { position: absolute; bottom: 24px; right: 0; }
   .sb-viewbar { left: 14px; right: 14px; bottom: 10px; justify-content: center; gap: 18px; font-size: 11px; }
   .sb-viewbar button { min-height: 30px; }
-  .sb-drawer { bottom: 234px; width: calc(100% - 28px); max-width: none; }
+  .sb-drawer { width: calc(100% - 28px); max-width: none; }
   .sb-drawer-grid { max-height: max(56px, calc(100dvh - 450px)); }
 }
 @media (prefers-reduced-motion: no-preference) {

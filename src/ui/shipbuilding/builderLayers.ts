@@ -1,4 +1,4 @@
-import type { ConstructionCatalog, ConstructionEquipmentPart, ConstructionPrimitive, ConstructionSurfaceAssignment, Vec3 } from '../../ships/blueprint';
+import type { ConstructionCatalog, ConstructionEquipmentPart, ConstructionPrimitive, Vec3 } from '../../ships/blueprint';
 import { CONSTRUCTION_PAINTS } from './paints';
 import { CONSTRUCTION_SHAPE_NAMES } from '../../ships/constructionShapes';
 
@@ -67,21 +67,9 @@ export const HULL_SHAPES: HullShape[] = [
   })),
 ];
 
-export interface ArmorPreset { id: string; name: string; note: string; thicknessMm: number; material: ConstructionSurfaceAssignment['material'] }
-export const ARMOR_PRESETS: ArmorPreset[] = [
-  { id: 'skin', name: 'Skin', note: 'structural', thicknessMm: 0, material: 'steel' },
-  { id: 'splinter', name: 'Splinter', note: '25 mm', thicknessMm: 25, material: 'armor-steel' },
-  { id: 'deck', name: 'Deck', note: '40 mm', thicknessMm: 40, material: 'armor-steel' },
-  { id: 'light-belt', name: 'Light belt', note: '50 mm', thicknessMm: 50, material: 'armor-steel' },
-  { id: 'belt', name: 'Belt', note: '100 mm', thicknessMm: 100, material: 'armor-steel' },
-  { id: 'heavy-belt', name: 'Heavy belt', note: '200 mm', thicknessMm: 200, material: 'armor-steel' },
-  { id: 'turret-face', name: 'Turret face', note: '300 mm', thicknessMm: 300, material: 'armor-steel' },
-];
-
 export type SlotItem =
   | { kind: 'shape'; id: string; name: string; note: string; shape: HullShape }
-  | { kind: 'armor'; id: string; name: string; note: string; thicknessMm: number; material: ConstructionSurfaceAssignment['material'] }
-  | { kind: 'custom-armor'; id: 'custom'; name: string; note: string }
+  | { kind: 'armor'; id: 'armor'; name: string; note: string }
   | { kind: 'opening'; id: 'opening'; name: string; note: string }
   | { kind: 'tool'; id: string; name: string; note: string; tool: BuilderTool }
   | { kind: 'part'; id: string; name: string; note: string; part: ConstructionEquipmentPart }
@@ -114,9 +102,9 @@ export function paletteFor(layer: BuilderLayer, catalog: ConstructionCatalog): {
       return { bar: shapes.slice(0, HOTBAR_SIZE), drawer: shapes };
     }
     case 'armor': {
-      const items: SlotItem[] = [...ARMOR_PRESETS.map((preset): SlotItem => ({ kind: 'armor', id: preset.id, name: preset.name, note: preset.note, thicknessMm: preset.thicknessMm, material: preset.material })),
-        { kind: 'custom-armor', id: 'custom', name: 'Custom', note: '… mm' }, { kind: 'opening', id: 'opening', name: 'Opening', note: 'open to sea' }];
-      return { bar: pad(items), drawer: items };
+      // The thickness is the editor's millimetre field, not a preset; the card shows the current value.
+      const items: SlotItem[] = [{ kind: 'armor', id: 'armor', name: 'Armor', note: 'thickness in mm' }, { kind: 'opening', id: 'opening', name: 'Opening', note: 'open to sea' }];
+      return { bar: items, drawer: items };
     }
     case 'internals': {
       const tools: SlotItem[] = [{ kind: 'tool', id: 'deck', name: 'Deck', note: 'level', tool: 'deck' }, { kind: 'tool', id: 'bulkhead', name: 'Bulkhead', note: 'transverse', tool: 'bulkhead' },

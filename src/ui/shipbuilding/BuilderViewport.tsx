@@ -33,7 +33,7 @@ export interface ViewportProps {
   pickTargets: 'hull' | 'all';
   moveTargets: BuilderMoveTargets;
   placementPiece?: BuilderPlacement; placementMirror?: BuilderPlacement;
-  highlightFaces: boolean; rooms: boolean;
+  highlightFaces: boolean; rooms: boolean; showCenters: boolean;
   arcs: BuilderArc[]; proposed: BuilderProposal[];
   measure?: { from: Vec3; to?: Vec3 };
   tags: BuilderTag[]; coords(position: Vec3): string;
@@ -293,7 +293,7 @@ class Viewport {
       }
     }
     const loading = props.result?.loading;
-    if (loading) for (const [point, color] of [[loading.centerOfGravity, BRASS], [loading.buoyancyCenter, READY]] as const) {
+    if (props.showCenters && loading) for (const [point, color] of [[loading.centerOfGravity, BRASS], [loading.buoyancyCenter, READY]] as const) {
       const marker = new THREE.Mesh(new THREE.SphereGeometry(Math.max(.25, this.span / 140), 12, 8), new THREE.MeshBasicMaterial({ color, depthTest: false }));
       marker.position.set(...point); marker.renderOrder = 10; this.details.add(marker);
     }
