@@ -7,7 +7,7 @@
   --sb-sweep: radial-gradient(ellipse 70% 62% at 50% 46%, #3d4145 0%, #2a2d30 48%, #191b1e 100%);
   --sb-card: #24282bf5; --sb-card-hover: #2f3438; --sb-card-selected: #383d41; --sb-card-toggle: #253a37;
   /* palette geometry: the readout, drawer and hotkey legend keep clear of the cards through these */
-  --sb-slot: 64px; --sb-bar-bottom: 60px; --sb-bar-height: var(--sb-slot); --sb-bar-width: calc(10 * var(--sb-slot) + 54px);
+  --sb-slot: 64px; --sb-bar-bottom: 24px; --sb-bar-height: var(--sb-slot); --sb-bar-width: calc(10 * var(--sb-slot) + 54px);
   position: fixed; inset: 0; z-index: 80; overflow: hidden; background: var(--sb-ground); color: var(--sb-text);
   font: 400 13px/1.35 'Barlow', sans-serif; font-variant-numeric: tabular-nums; text-shadow: 0 2px 5px #0d0f11b3; color-scheme: dark; user-select: none;
 }
@@ -153,6 +153,9 @@
 .sb-slot:hover:not(:disabled) { border-color: var(--sb-muted2); background: var(--sb-card-hover); }
 .sb-slot img { display: block; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
 .sb-slot > svg { width: 28px; height: 28px; opacity: .85; }
+/* hull cards print the piece's metres in the bottom-left corner, over the rendered piece */
+.sb-dims { position: absolute; left: 3px; bottom: 3px; padding: 2px 4px 1px; border-radius: 2px; background: #15181ad9; font: 500 11px/1 'Barlow Condensed', sans-serif; font-style: normal; letter-spacing: .03em; color: var(--sb-text); pointer-events: none; }
+.shipbuilder .sb-slot[aria-pressed=true] .sb-dims { color: var(--sb-brass2); }
 .sb-swatch { position: absolute; inset: 0; display: flex; align-items: flex-end; justify-content: flex-end; }
 .sb-swatch span { font: 500 13px/1 'Barlow Condensed', sans-serif; padding: 5px 6px; color: #fff; text-shadow: 0 1px 2px #000c; }
 .shipbuilder .sb-slot:is([aria-pressed=true], [aria-expanded=true]) { border-color: var(--sb-brass); color: var(--sb-brass); background: var(--sb-card-selected); box-shadow: inset 0 0 0 1px var(--sb-brass); }
@@ -218,8 +221,8 @@
 .sb-keys-row.acting .sb-key { color: var(--sb-text); }
 .sb-keys kbd { opacity: .8; }
 
-/* view bar */
-.sb-viewbar { position: absolute; right: 18px; bottom: 28px; display: flex; gap: 22px; font-size: 12px; color: var(--sb-muted); white-space: nowrap; }
+/* view bar: on the palette's bottom line at the right edge; it stacks into a column once a narrower window would run it into the cards */
+.sb-viewbar { position: absolute; right: 18px; bottom: 26px; display: flex; gap: 22px; font-size: 12px; color: var(--sb-muted); white-space: nowrap; }
 .sb-viewbar b { color: var(--sb-text); font-weight: 500; }
 .sb-viewbar button:hover b { color: var(--sb-brass2); }
 
@@ -227,7 +230,9 @@
   .shipbuilder { --sb-slot: 56px; }
   .sb-tabs { gap: 14px; }
   .sb-ledger { width: 176px; }
-  .sb-viewbar { gap: 12px; }
+}
+@media (max-width: 1640px) {
+  .sb-viewbar { flex-direction: column; align-items: flex-end; gap: 5px; }
 }
 /* a short window leaves no room for the legend under the rail */
 @media (max-width: 860px), (max-height: 800px) {
@@ -239,7 +244,9 @@
   .sb-top { gap: 12px; padding: 0 12px; }
 }
 @media (max-width: 740px) {
-  .shipbuilder { --sb-bar-height: calc((100vw - 52px) * 2 / 5 + 6px); }
+  /* the two-row palette spans the width, so the view bar returns to a row beneath it */
+  .shipbuilder { --sb-bar-bottom: 52px; --sb-bar-height: calc((100vw - 52px) * 2 / 5 + 6px); }
+  .sb-viewbar { flex-direction: row; gap: 12px; }
   .sb-orientation { bottom: 210px; }
   .sb-hotbar { width: calc(100% - 28px); display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); }
   .shipbuilder .sb-hotbar .sb-slot { width: auto; height: auto; aspect-ratio: 1; min-width: 0; }
