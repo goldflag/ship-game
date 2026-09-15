@@ -8,6 +8,8 @@ import type { Aircraft } from './aircraft';
 export type Ship = { id: string; name: string; modelUrl: string; length: number; configuration: string; nation: string; type: string; shipClass: ShipClass; thumbnailUrl: string };
 export type LibraryKind = 'ship' | 'aircraft' | 'component';
 export const caliberMm = (part: ComponentItem) => Number((part.weapon.caliberM * 1000).toFixed(3));
+const mountingShips = (part: ComponentItem) => [...new Map(part.installations.map(i => [i.shipId, i.shipName])).values()].sort();
+const caliberBandStart = (part: ComponentItem) => Math.floor(caliberMm(part) / 50) * 50;
 const NATION_LABELS: Record<string, string> = { 'United States': 'USA', 'United Kingdom': 'UK' };
 const nationLabel = (nation: string) => NATION_LABELS[nation] ?? nation;
 
@@ -23,6 +25,8 @@ function ShipCard({ ship, selected, onSelect }: { ship: Ship; selected: boolean;
   </button></li>;
 }
 function ComponentCard({ part, selected, thumbnails, onSelect }: { part: ComponentItem; selected: boolean; thumbnails: ComponentThumbnails; onSelect: () => void }) {
+  const ships = mountingShips(part);
+  const mountedOn = ships.length ? `Mounted on: ${ships.join(', ')}` : 'Not mounted in the current fleet';
   const button = useRef<HTMLButtonElement>(null);
   const [image, setImage] = useState(''), [failed, setFailed] = useState(false);
   useEffect(() => {
@@ -35,11 +39,12 @@ function ComponentCard({ part, selected, thumbnails, onSelect }: { part: Compone
     observer.observe(button.current!);
     return () => { active = false; observer.disconnect(); };
   }, [part, thumbnails]);
-  return <li><button ref={button} className="card" aria-pressed={selected} data-id={part.partId}
-    aria-label={`${part.name}, ${caliberMm(part)} mm, ${part.nation}, ${part.partId}`} title={`${part.name}\n${part.partId}\n${part.builder ? 'Reusable source' : 'Installed preview'} · ${part.review}`} onClick={onSelect}>
+  return <li><button ref={button} className="card component-card" aria-pressed={selected} data-id={part.partId}
+    aria-label={`${part.name}, ${caliberMm(part)} mm, ${part.nation}, ${part.partId}. ${mountedOn}`} title={`${part.name}\n${part.partId}\n${part.builder ? 'Reusable source' : 'Installed preview'} · ${part.review}`} onClick={onSelect}>
     <span className="card-top">{nationLabel(part.nation)} · {caliberMm(part)} mm</span>
     {image ? <img className="card-image" src={image} alt="" width="320" height="180"/> : <span className="card-placeholder">{failed ? 'No preview' : part.modelUrl || part.installations.length ? 'Rendering…' : 'No preview'}</span>}
     <strong>{part.name}</strong>
+    <span className="card-subtle">{mountedOn}</span>
   </button></li>;
 }
 
@@ -77,9 +82,9 @@ export function LibraryCarousel({ kind, onKind, ships, parts, aircraft, shipId, 
   const aircraftNations = useMemo(() => [...new Set(aircraft.map(a => a.nation))].sort(), [aircraft]);
   const roles = useMemo(() => [...new Set(aircraft.map(a => a.role))].sort(), [aircraft]);
   const filteredAircraft = useMemo(() => aircraft.filter(a => (aircraftNation === 'All' || a.nation === aircraftNation) && (role === 'All' || a.role === role) && `${a.name} ${a.id} ${a.year}`.toLowerCase().includes(aircraftSearch.trim().toLowerCase())), [aircraft, aircraftNation, role, aircraftSearch]);
-  const calibers = useMemo(() => [...new Set(parts.map(caliberMm))].sort((a, b) => a - b), [parts]);
+  const calibers = useMemo(() => Array.from({ length: Math.floor(Math.max(0, ...parts.map(caliberMm)) / 50) + 1 }, (_, i) => i * 50), [parts]);
   const filteredShips = useMemo(() => ships.filter(s => (shipClass === 'All' || s.shipClass === shipClass) && (shipNation === 'All' || s.nation === shipNation)), [ships, shipClass, shipNation]);
-  const filteredParts = useMemo(() => parts.filter(p => (partNation === 'All' || p.nation === partNation) && (!caliber || caliberMm(p) === Number(caliber)) &&
+  const filteredParts = useMemo(() => parts.filter(p => (partNation === 'All' || p.nation === partNation) && (!caliber || caliberBandStart(p) === Number(caliber)) &&
     `${p.name} ${p.partId} ${p.family} ${p.nation}`.toLowerCase().includes(search.trim().toLowerCase())), [parts, search, partNation, caliber]);
   const selectedId = kind === 'ship' ? shipId : kind === 'aircraft' ? aircraftId : partId;
   const count = kind === 'ship' ? filteredShips.length : kind === 'aircraft' ? filteredAircraft.length : filteredParts.length, total = kind === 'ship' ? ships.length : kind === 'aircraft' ? aircraft.length : parts.length;
@@ -115,7 +120,7 @@ export function LibraryCarousel({ kind, onKind, ships, parts, aircraft, shipId, 
       </> : <>
         <Pills label="Filter by nation" value={partNation} options={[{ value: 'All', label: 'All nations' }, ...partNations.map(n => ({ value: n, label: nationLabel(n) }))]} onChange={setPartNation}/>
         <i aria-hidden="true"/>
-        <select aria-label="Caliber" value={caliber} onChange={e => setCaliber(e.target.value)}><option value="">All calibers</option>{calibers.map(c => <option key={c} value={c}>{c} mm</option>)}</select>
+        <select aria-label="Caliber" title="Lower bound included; upper bound excluded" value={caliber} onChange={e => setCaliber(e.target.value)}><option value="">All calibers</option>{calibers.map(c => <option key={c} value={c}>{c}–{c + 50} mm</option>)}</select>
         <input type="search" aria-label="Find equipment" placeholder="Name, family or part ID" value={search} onChange={e => setSearch(e.target.value)}/>
       </>}
       <p className="carousel-count" role="status">{count} of {total}{filtered && count > 0 && !selectionVisible ? ' · selection outside filters' : ''}</p>

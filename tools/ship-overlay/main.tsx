@@ -35,6 +35,8 @@ function App() {
   const pairId = kind === 'ship' ? shipId : kind === 'aircraft' ? `aircraft:${aircraftId}` : `part:${partId}`;
   const selected = ships.find(s => s.id === shipId);
   const part = parts.find(p => p.partId === partId);
+  const partShips = part ? [...new Map(part.installations.map(i => [i.shipId, i.shipName])).values()].sort() : [];
+  const mountedOn = partShips.length ? `Mounted on: ${partShips.join(', ')}` : 'Not mounted in the current fleet.';
   const installed = part?.installations.find(i => `${i.shipId}:${i.mountId}` === installation) ?? part?.installations[0];
   const standalone = installation === 'recipe' && !!part?.modelUrl;
   const title = kind === 'ship' ? selected?.name : kind === 'aircraft' ? plane?.name : part?.name;
@@ -148,6 +150,7 @@ function App() {
         </section>}
         {kind === 'component' && part && <section className="library-picker">
           <p className="part-identity">{part.nation} · {part.builder ? 'Reusable source' : 'Awaiting source extraction'}</p><code className="part-id">{part.partId}</code>
+          <p className="subtle">{mountedOn}</p>
           <label htmlFor="installation">Preview source</label><select id="installation" value={standalone ? 'recipe' : installed ? `${installed.shipId}:${installed.mountId}` : 'none'} onChange={e => setInstallation(e.target.value)}>
             {part.modelUrl && <option value="recipe">Standalone shared component</option>}{part.installations.map(i => <option key={`${i.shipId}:${i.mountId}`} value={`${i.shipId}:${i.mountId}`}>{i.shipName} · {i.mountId}</option>)}{!part.modelUrl && !installed && <option value="none">No preview available</option>}
           </select>
