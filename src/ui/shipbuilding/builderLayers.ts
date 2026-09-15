@@ -48,6 +48,7 @@ export const HULL_SHAPES: HullShape[] = [
   { id: 'long-bar', name: 'Long bar', note: '1 × 1 × 8', kind: 'box', size: [1, 1, 8] },
   { id: 'hull-section', name: 'Hull section', note: '8 × 5 × 8', kind: 'box', size: [8, 5, 8] },
   { id: 'bow-wedge', name: 'Bow wedge', note: '8 × 5 × 8', kind: 'wedge', size: [8, 5, 8] },
+  { id: 'vertex', name: 'Vertex hull', note: 'Editable corners · 4 m', kind: 'vertex', size: [4, 4, 4] },
   { id: 'tall-wedge', name: 'Tall wedge', note: '4 × 8 × 4', kind: 'wedge', size: [4, 8, 4] },
 ];
 

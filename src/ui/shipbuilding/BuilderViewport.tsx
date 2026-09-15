@@ -1,7 +1,9 @@
+import { VertexHandles, type BuilderVertexOptions } from './VertexHandles';
+import { cornerVertices, worldVertex } from '../../ships/constructionVertex';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import type { ConstructionCatalog, ConstructionResult, ConstructionSource, ConstructionSurface, Vec3 } from '../../ships/blueprint';
+import type { ConstructionCatalog, ConstructionPrimitive, ConstructionResult, ConstructionSource, ConstructionSurface, Vec3 } from '../../ships/blueprint';
 import { armorThicknessColor } from '../../ships/inspection';
 import { surfaceKey } from '../../ships/constructionEditor';
 import { constructionPaintColor } from './paints';
@@ -25,6 +27,7 @@ export interface BuilderProposal { position: Vec3; bearingDeg: number; size: Vec
 export type BuilderMoveTargets = 'none' | 'equipment' | 'all';
 export type ConstructionModelFactory = (source: ConstructionSource, result: ConstructionResult, signal: AbortSignal) => Promise<THREE.Group>;
 export interface ViewportProps {
+  vertex?: BuilderVertexOptions; perspective?: boolean;
   source: ConstructionSource; result?: ConstructionResult; catalog: ConstructionCatalog;
   selected: ReadonlySet<string>; selectedSurfaces: ReadonlySet<string>;
   view: BuilderView; display: BuilderDisplay; slice?: number;
@@ -94,8 +97,12 @@ const signedMetres = (value: number) => `${value < 0 ? '−' : value > 0 ? '+' :
 
 class Viewport {
   private renderer: THREE.WebGLRenderer;
+  private ortho = new THREE.OrthographicCamera(-50, 50, 35, -35, .1, 6000);
+  private perspectiveCamera = new THREE.PerspectiveCamera(40, 1, .1, 5000);
+  private camera: THREE.OrthographicCamera | THREE.PerspectiveCamera = this.ortho;
+  private vertexHandles: VertexHandles;
+  private vertexPreview = new THREE.Group();
   private scene = new THREE.Scene();
-  private camera = new THREE.OrthographicCamera(-50, 50, 35, -35, .1, 6000);
   private controls: OrbitControls;
   private hull = new THREE.Group();
   private details = new THREE.Group();
@@ -157,6 +164,8 @@ class Viewport {
     this.strokePreview.name = 'Pieces in current drag'; this.strokePreview.userData.strokePreview = true;
     this.movePreview.name = 'Selection being moved'; this.movePreview.userData.movePreview = true; this.movePreview.visible = false;
     this.scene.add(this.hull, this.details, this.selection, this.hoverGroup, this.composed, this.equipment.group, this.arcGroup, this.proposedGroup, this.ghost, this.ghostMirror, this.ghostArc, this.fillPreview, this.strokePreview, this.movePreview, this.measureGroup);
+    this.vertexHandles = new VertexHandles(host, () => this.camera, replacements => this.previewVertices(replacements));
+    this.scene.add(this.vertexPreview);
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.enableDamping = true; this.controls.dampingFactor = .15;
     this.controls.minZoom = .08; this.controls.maxZoom = 100; this.controls.maxPolarAngle = Math.PI * .95;
@@ -174,16 +183,16 @@ class Viewport {
   private measure() {
     const width = Math.max(1, this.host.clientWidth), height = Math.max(1, this.host.clientHeight);
     this.span = this.fitExtent / Math.min(1, width / height);
-    this.renderer.setSize(width, height); this.camera.left = -this.span * width / height / 2; this.camera.right = -this.camera.left;
-    this.camera.top = this.span / 2; this.camera.bottom = -this.camera.top; this.camera.updateProjectionMatrix();
+    this.renderer.setSize(width, height); this.ortho.left = -this.span * width / height / 2; this.ortho.right = -this.ortho.left;
+    this.ortho.top = this.span / 2; this.ortho.bottom = -this.ortho.top; this.ortho.updateProjectionMatrix();
+    this.perspectiveCamera.aspect = width / height; this.perspectiveCamera.updateProjectionMatrix();
   }
 
   fit() {
     const bounds = new THREE.Box3();
     // Source bounds remain available before compilation and for invalid drafts.
     for (const primitive of this.props.source.construction.primitives) {
-      const rotation = new THREE.Euler(0, primitive.rotationDeg * Math.PI / 180, 0);
-      for (const x of [-.5, .5]) for (const y of [-.5, .5]) for (const z of [-.5, .5]) bounds.expandByPoint(new THREE.Vector3(x * primitive.size[0], y * primitive.size[1], z * primitive.size[2]).applyEuler(rotation).add(new THREE.Vector3(...primitive.position)));
+      for (const v of cornerVertices(primitive)) bounds.expandByPoint(new THREE.Vector3(...worldVertex(primitive, v)));
     }
     if (bounds.isEmpty()) bounds.set(new THREE.Vector3(-10, -5, -25), new THREE.Vector3(10, 5, 25));
     const size = bounds.getSize(new THREE.Vector3()), center = bounds.getCenter(new THREE.Vector3());
@@ -198,16 +207,28 @@ class Viewport {
 
   private setView(view: BuilderView) {
     const direction = view === 'top' ? [0, 1, .0001] : view === 'side' ? [1, 0, 0] : view === 'bow' ? [0, 0, -1] : [1, .7, -1.15];
-    this.camera.position.copy(this.controls.target).add(new THREE.Vector3(...direction).normalize().multiplyScalar(Math.max(200, this.span * 3)));
+    this.camera.position.copy(this.controls.target).add(new THREE.Vector3(...direction).normalize().multiplyScalar(this.camera instanceof THREE.PerspectiveCamera ? this.span / (2 * Math.tan(20 * Math.PI / 180)) : Math.max(200, this.span * 3)));
     this.camera.up.set(0, 1, 0); this.camera.lookAt(this.controls.target); this.controls.enableRotate = view === 'orbit'; this.controls.update(); this.currentView = view;
   }
 
   update(props: ViewportProps) {
     const old = this.props; this.props = props;
+    this.vertexHandles.update(props.source, props.vertex);
+    if (!!props.perspective !== (this.camera instanceof THREE.PerspectiveCamera)) {
+      const previous=this.camera, distance=previous.position.distanceTo(this.controls.target);
+      this.camera=props.perspective?this.perspectiveCamera:this.ortho;
+      const extent=previous instanceof THREE.PerspectiveCamera?2*distance*Math.tan(20*Math.PI/180)/previous.zoom:this.span/previous.zoom;
+      this.camera.position.copy(previous.position); this.camera.quaternion.copy(previous.quaternion);
+      if(this.camera instanceof THREE.PerspectiveCamera) {
+        this.camera.zoom=1;this.camera.position.sub(this.controls.target).setLength(extent/(2*Math.tan(20*Math.PI/180))).add(this.controls.target);
+      } else this.camera.zoom=this.span/extent;
+      this.controls.object=this.camera;this.camera.updateProjectionMatrix();this.controls.update();
+    }
     if (props.source.id !== old.source.id || props.gesture !== old.gesture || props.placementPiece !== old.placementPiece || props.moveTargets !== old.moveTargets) this.cancel();
     if (props.view !== this.currentView || props.fitRequest !== old.fitRequest || props.source.id !== old.source.id || (!old.result && props.result)) this.fit();
     // The primary button orbits (pans in construction views) and the secondary button pans. A primary press on the hull while placing lays pieces instead; `down` holds the controls for that drag.
-    this.controls.mouseButtons = { LEFT: props.view === 'orbit' ? THREE.MOUSE.ROTATE : THREE.MOUSE.PAN, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.PAN };
+    this.controls.mouseButtons = { LEFT: props.perspective || props.view === 'orbit' ? THREE.MOUSE.ROTATE : THREE.MOUSE.PAN, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.PAN };
+    this.controls.enableRotate = props.view === 'orbit' || !!props.perspective;
     const nativeSurfaces = props.result?.sourceId === props.source.id && props.result.revision === props.source.revision && props.result.surfaces.length ? props.result.surfaces : undefined;
     const key = `${props.source.id}:${nativeSurfaces ? props.result!.contentHash : props.source.revision + ':draft'}:${props.display}`;
     if (key !== this.contentKey) {
@@ -224,7 +245,7 @@ class Viewport {
         const mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .78, metalness: 0, side: THREE.DoubleSide, transparent: props.display === 'internals', opacity: props.display === 'internals' ? .15 : 1, depthWrite: props.display !== 'internals' }));
         mesh.userData.hull = true; this.hull.add(mesh); this.pickMeshes.push(mesh); this.hullMeshes.push(mesh);
       } else for (const primitive of props.source.construction.primitives) {
-        const mesh = new THREE.Mesh(primitiveGeometry(primitive.kind, primitive.size), new THREE.MeshStandardMaterial({ color: constructionPaintColor('naval-gray'), roughness: .78, side: THREE.DoubleSide, transparent: props.display === 'internals', opacity: props.display === 'internals' ? .15 : 1 }));
+        const mesh = new THREE.Mesh(primitiveGeometry(primitive.kind, primitive.size, primitive.vertices), new THREE.MeshStandardMaterial({ color: constructionPaintColor('naval-gray'), roughness: .78, side: THREE.DoubleSide, transparent: props.display === 'internals', opacity: props.display === 'internals' ? .15 : 1 }));
         mesh.position.set(...primitive.position); mesh.rotation.y = primitive.rotationDeg * Math.PI / 180;
         mesh.userData.sourceId = primitive.id; this.hull.add(mesh); this.pickMeshes.push(mesh); this.hullMeshes.push(mesh);
       }
@@ -247,7 +268,7 @@ class Viewport {
     this.equipment.group.visible = !(props.createModel && this.composed.visible && this.composed.children.length);
     // Native surfaces remain the pick target even when shared composition renders the exterior.
     this.hull.visible = !this.composed.visible || !this.composed.children.length;
-    release(this.details); release(this.selection);
+    release(this.details); release(this.selection); this.selection.visible=true;
     this.pickMeshes = this.pickMeshes.filter(mesh => mesh.parent === this.hull);
     this.equipment.group.traverse(node => { if (node instanceof THREE.Mesh) this.pickMeshes.push(node); });
     if (!nativeSurfaces) for (const object of this.hull.children) {
@@ -313,7 +334,23 @@ class Viewport {
     }
     if (props.highlightFaces !== old.highlightFaces || props.slice !== old.slice || props.pickTargets !== old.pickTargets) { release(this.hoverGroup); this.hoverSurface = ''; }
     this.measureGroup.visible = !!props.measure;
+    if(this.vertexHandles.dragging) {this.hull.visible=false;this.composed.visible=false;this.selection.visible=false;}
     this.updateGhost(); this.updateStrokePreview(); if (this.hover) this.highlight(this.hover); this.applyClip();
+  }
+
+  private previewVertices(replacements?: ConstructionPrimitive[]) {
+    release(this.vertexPreview);
+    this.vertexPreview.visible=!!replacements;
+    if (!replacements) { this.update(this.props); return; }
+    this.hull.visible=false; this.composed.visible=false; this.selection.visible=false;
+    const map=new Map(replacements.map(p=>[p.id,p]));
+    for(const original of this.props.source.construction.primitives) {
+      const p=map.get(original.id)??original;
+      const geometry=primitiveGeometry(p.kind,p.size,p.vertices);
+      const mesh=new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({color:constructionPaintColor('naval-gray'),roughness:.78,side:THREE.DoubleSide}));
+      mesh.position.set(...p.position);mesh.rotation.y=p.rotationDeg*Math.PI/180;this.vertexPreview.add(mesh);
+      if(map.has(p.id)) {const edges=new THREE.LineSegments(new THREE.EdgesGeometry(geometry),new THREE.LineBasicMaterial({color:BRASS_LIGHT}));edges.position.copy(mesh.position);edges.rotation.copy(mesh.rotation);this.vertexPreview.add(edges);}
+    }
   }
 
   private updateGhost() {
@@ -388,7 +425,7 @@ class Viewport {
       clippingPlanes: this.props.slice === undefined ? [] : [new THREE.Plane(new THREE.Vector3(0, -1, 0), this.props.slice)] });
     const primitive = this.props.source.construction.primitives.find(part => part.id === pick?.id);
     if (primitive && !this.props.highlightFaces) {
-      const geometry = primitiveGeometry(primitive.kind, primitive.size);
+      const geometry = primitiveGeometry(primitive.kind, primitive.size, primitive.vertices);
       const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geometry), material()); geometry.dispose();
       edges.position.set(...primitive.position); edges.rotation.y = primitive.rotationDeg * Math.PI / 180;
       edges.renderOrder = 25; this.hoverGroup.add(edges);
@@ -532,7 +569,7 @@ class Viewport {
     for (const id of ids) {
       const primitive = primitives.find(part => part.id === id);
       if (primitive) {
-        const geometry = primitiveGeometry(primitive.kind, primitive.size);
+        const geometry = primitiveGeometry(primitive.kind, primitive.size, primitive.vertices);
         const fill = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ color: BRASS, transparent: true, opacity: .22, depthWrite: false }));
         const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geometry), new THREE.LineBasicMaterial({ color: BRASS_LIGHT, depthTest: false }));
         for (const object of [fill, edges]) { object.position.set(...primitive.position); object.rotation.y = primitive.rotationDeg * Math.PI / 180; object.renderOrder = 20; this.movePreview.add(object); }
@@ -622,7 +659,7 @@ class Viewport {
     const piece = this.props.placementPiece;
     if (start.button === 2) {
       const hit = clicked ? this.pick(event, 'all') : undefined;
-      if (hit?.id) this.props.onErase(hit.id);
+      if (hit?.id && !this.props.vertex) this.props.onErase(hit.id);
     } else if (rect) {
       if (clicked) { const hit = this.pick(event, 'all'); this.props.onBoxSelect(hit?.id ? [hit.id] : [], true); }
       else this.props.onBoxSelect(boxSelectedPieces(this.props.source, this.props.catalog, this.camera, rect, this.host.clientWidth, this.host.clientHeight, this.props.slice, this.props.rooms), start.additive);
@@ -647,9 +684,9 @@ class Viewport {
   private key = (event: KeyboardEvent) => { if (event.key === 'Escape' && this.pointerStart) this.cancel(); };
   private animate = () => {
     if (this.dead) return;
-    this.controls.update();
+    if(!this.vertexHandles.dragging) this.controls.update();
     if (this.hover) { if (this.props.placementPiece) this.updateGhost(); this.highlight(this.hover); }
-    this.renderer.render(this.scene, this.camera); this.placeTags();
+    this.vertexHandles.frame(); this.renderer.render(this.scene, this.camera); this.placeTags();
     if (!this.orientationRotation.equals(this.camera.quaternion)) {
       updateBuilderOrientation(this.orientation, this.camera);
       this.orientationRotation.copy(this.camera.quaternion);
@@ -658,6 +695,7 @@ class Viewport {
   };
 
   dispose() {
+    this.vertexHandles.dispose();
     this.dead = true; cancelAnimationFrame(this.frame); this.modelAbort?.abort(); this.resize.disconnect(); this.controls.dispose();
     this.strokePreview.clear(); this.equipment.dispose();
     const canvas = this.renderer.domElement;

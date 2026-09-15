@@ -92,7 +92,7 @@ const sameVector = (a: Vec3, b: Vec3) => a.every((value, index) => near(value, b
 /** The existing piece that mirrors this one across the centerline: another piece, or itself when it straddles the centerline. */
 export function mirrorTwin(source: ConstructionSource, primitive: ConstructionPrimitive): ConstructionPrimitive | undefined {
   const expected = mirroredPrimitive(primitive);
-  const matches = (candidate: ConstructionPrimitive) => candidate.kind === expected.kind && sameVector(candidate.size, expected.size)
+  const matches = (candidate: ConstructionPrimitive) => candidate.kind === expected.kind && JSON.stringify(candidate.vertices) === JSON.stringify(expected.vertices) && sameVector(candidate.size, expected.size)
     && sameVector(candidate.position, expected.position) && near(normalizedBearing(candidate.rotationDeg), expected.rotationDeg);
   return source.construction.primitives.find(candidate => candidate.id !== primitive.id && matches(candidate)) ?? (matches(primitive) ? primitive : undefined);
 }

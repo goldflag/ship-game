@@ -109,3 +109,13 @@ Browser helpers run against the real application toolchain and IndexedDB without
 - `measureConstructionEditing()` from `scripts/tests/construction-editor-performance.ts`: source/history editing, actual worker/WASM compilation and IndexedDB save/reload for the patrol starter and a synthetic large hull. Mass is reported by Rust; this helper does not measure rendering, launch or battle performance.
 
 The helpers are Vite modules for browser evaluation. The review surface is independent of App; exercise port entry, actual trials and custom battles through App as separate integration checks. Temporary browser captures and measurements belong in ignored `.build/`.
+
+## Vertex editing
+
+Hull selection tags and the Vertices rail button enter the eight-corner editor for a single box or vertex hull. `VertexToolbar.tsx` owns the compact controls, numeric corner entry and UNIT cycle button; G cycles the same increments. The ordinary palette and placement readout yield space while the vertex toolbar is open.
+
+`VertexHandles.ts` owns screen-sized, focusable DOM handles and drag state. It projects through the viewport's active orthographic or perspective camera, fixes the local drag plane/axis after the initial gesture, and previews detached primitive replacements. Pointer release commits one source command. Cancellation never writes history, storage or neighboring hulls. `constructionVertex.ts` contains renderer-free source transforms for combinable symmetry, optional proximity matching and trilinear splitting. Neighbor matching uses a fixed 0.025 m tolerance independently of UNIT. `construction_vertex.rs` derives the bounded physical solid and retains canonical face identities on warped surfaces; source preview fans match its boundary geometry.
+
+The edit-session baseline is separate from undo history and changes only when a new vertex session begins. Reset restores that block's session-entry shape, including its original kind. Changing layer, tool or design ends the session. Selecting another editable block starts a fresh baseline; selecting other objects ends vertex mode. Native compile gating, autosave, fixed equipment placement and fit warnings remain shared with ordinary primitive edits.
+
+Validation adds `src/ships/constructionVertex.test.ts`, vertex cases in `primitiveGeometry.test.ts`, native construction tests, and `checkVertexEditor()` from `scripts/tests/vertex-editor-browser.ts`. The browser helper exercises the production controls, native compilation, symmetry combinations, UNIT/G cycling, SNAP/undo, projections, split and an exact IndexedDB reopen. Use real browser mouse drags separately to verify capture, movement planes, cancellation and one-command commits.

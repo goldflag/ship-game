@@ -14,6 +14,7 @@ fn fixture() -> (ConstructionSource, ConstructionCatalog) {
                 catalog_revision: "test".into(),
                 default_thickness_mm: 10.,
                 primitives: vec![ConstructionPrimitive {
+                    vertices: None,
                     id: "hull".into(),
                     kind: "box".into(),
                     position: [0.; 3],
@@ -353,6 +354,7 @@ fn separated_hull_rays_miss_water_and_hit_only_the_selected_skin() {
     ]
     .into_iter()
     .map(|(id, position, size)| ConstructionPrimitive {
+        vertices: None,
         id: id.into(),
         kind: "box".into(),
         position,
@@ -765,6 +767,7 @@ fn original_oerlikon_reaches_full_elevation_but_stops_at_a_real_overhead_beam() 
         ("beam", [0., 13., 0.], [8., 0.5, 1.]),
     ] {
         source.construction.primitives.push(ConstructionPrimitive {
+            vertices: None,
             id: id.into(),
             kind: "box".into(),
             position,

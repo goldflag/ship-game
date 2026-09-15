@@ -1,10 +1,21 @@
 import * as THREE from 'three';
 import { ConvexGeometry } from 'three/addons/geometries/ConvexGeometry.js';
+import { cornerVertices, VERTEX_FACES } from '../../ships/constructionVertex';
 import type { ConstructionEquipmentPart, ConstructionPrimitive, Vec3 } from '../../ships/blueprint';
 
 /** Display-only source envelopes for placement and invalid drafts. Rust remains
  * authoritative for unions, material, fit, loading and all battle geometry. */
-export function primitiveGeometry(kind: ConstructionPrimitive['kind'], size: Vec3): THREE.BufferGeometry {
+export function primitiveGeometry(kind: ConstructionPrimitive['kind'], size: Vec3, corners?: Vec3[]): THREE.BufferGeometry {
+  if (kind === 'vertex') {
+    const v = corners ?? cornerVertices({kind, size, position:[0,0,0],rotationDeg:0,id:''});
+    const positions:number[]=[];
+    for (const face of VERTEX_FACES) {
+      // Same unbiased bilinear face-center fan as the authoritative compiler.
+      const q=face.corners.map(i=>v[i]), center=q.reduce((a,v)=>a.map((n,k)=>n+v[k]/4) as Vec3,[0,0,0] as Vec3);
+      for(let i=0;i<4;i++) for(const point of [q[i],q[(i+1)%4],center]) positions.push(...point.map((n,k)=>n*size[k]));
+    }
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));g.computeVertexNormals();return g;
+  }
   const vertices: THREE.Vector3[] = [];
   for (const x of [-.5, .5]) for (const y of [-.5, .5]) for (const z of [-.5, .5]) {
     if (kind === 'wedge' && y + z > 0) continue;

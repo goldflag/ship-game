@@ -32,6 +32,8 @@ const VIEW: [string[], string][] = [
   [['1', '…', '9'], 'Pick a palette card'],
   [['0'], 'Open or close every card of the layer'],
   [['?'], 'This list'],
+  [['G'], 'In vertex mode: cycle the move increment'],
+  [['O'], 'In vertex mode: toggle orthographic / perspective'],
 ];
 
 function Rows({ rows }: { rows: [ReactNode, string][] }) {
@@ -53,6 +55,7 @@ export function HelpDialog({ onClose }: { onClose(): void }) {
           <table><tbody>{BUILDER_LAYERS.map(layer => <tr key={layer.id}><th scope="row">{layer.name}</th><td>{BUILDER_RAIL[layer.id].map(entry => <span key={entry.id}><kbd>{entry.key}</kbd>{entry.name}</span>)}</td></tr>)}</tbody></table>
         </section>
       </div>
+      <p>Select one cube or vertex hull, then choose Vertices. Combine local symmetry axes, drag corners or enter coordinates. SNAP is opt-in; Split creates independent blocks. Reset edit restores the session-entry shape.</p>
       <p>Keys never act inside text or number fields. Mirror also reaches the twin face when painting armor or paint.</p>
     </div>
   </div>;

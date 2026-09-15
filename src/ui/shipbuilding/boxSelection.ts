@@ -1,3 +1,4 @@
+import { cornerVertices } from '../../ships/constructionVertex';
 import * as THREE from 'three';
 import type { ConstructionCatalog, ConstructionSource, Vec3 } from '../../ships/blueprint';
 
@@ -23,7 +24,13 @@ export function boxSelectedPieces(source: ConstructionSource, catalog: Construct
     }
     return bounds.near <= 1 && bounds.far >= -1 && bounds.left >= rect.left && bounds.right <= rect.right && bounds.top >= rect.top && bounds.bottom <= rect.bottom;
   };
-  for (const part of source.construction.primitives) if (overlaps(part.position, part.size, part.rotationDeg * Math.PI / 180)) result.push(part.id);
+  for (const part of source.construction.primitives) {
+    if(part.kind==='vertex') {
+      const corners=cornerVertices(part).map(v=>v.map((n,k)=>n*part.size[k]));
+      const min=[0,1,2].map(k=>Math.min(...corners.map(v=>v[k]))),max=[0,1,2].map(k=>Math.max(...corners.map(v=>v[k])));
+      if(overlaps(part.position,max.map((n,k)=>n-min[k]) as Vec3,part.rotationDeg*Math.PI/180,min.map((n,k)=>(n+max[k])/2) as Vec3))result.push(part.id);
+    }else if (overlaps(part.position, part.size, part.rotationDeg * Math.PI / 180)) result.push(part.id);
+  }
   for (const item of source.construction.equipment) {
     const part = catalog.equipment.find(part => part.id === item.partId);
     if (part && (internals || part.placement !== 'internal') && overlaps(item.position, part.size, -item.bearingDeg * Math.PI / 180, part.boundsCenter)) result.push(item.id);

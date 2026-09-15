@@ -1097,6 +1097,8 @@ pub struct ConstructionPrimitive {
     pub position: [f64; 3],
     #[serde(rename = "rotationDeg")]
     pub rotation_deg: f64,
+    #[serde(rename = "vertices")]
+    pub vertices: Option<Vec<[f64; 3]>>,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
