@@ -68,6 +68,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const [bearing, setBearing] = useState(0);
   const [mirror, setMirror] = useState(true);
   const [showArcs, setShowArcs] = useState(false);
+  const [showCenters, setShowCenters] = useState(true);
   const [view, setView] = useState<BuilderView>('orbit');
   const [slice, setSlice] = useState<{ on: boolean; y: number; auto: boolean }>({ on: false, y: 0, auto: true });
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -520,7 +521,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   return <main className="shipbuilder" aria-label="Shipbuilder" data-layer={layer} data-drawer={drawer || undefined} aria-busy={!!busy}>
     <BuilderViewport source={source} result={result} catalog={catalog} selected={selected} selectedSurfaces={surfaces} view={view} display={DISPLAY[layer]} slice={slice.on ? slice.y : undefined}
       gridStep={gridStep} gesture={locked ? 'none' : gesture} pickTargets={layer === 'armor' || layer === 'paint' ? 'hull' : 'all'} moveTargets={locked ? 'none' : moveTargets} placementPiece={locked ? undefined : piece} placementMirror={mirrorPiece} highlightFaces={layer === 'armor' || layer === 'paint'} rooms={layer === 'internals'}
-      arcs={arcs} proposed={proposed} measure={measure} tags={tags} coords={coords} status={status} fitRequest={fitRequest} onPick={pick} onStroke={placeAt} onBoxSelect={boxSelect} onErase={erase} onMove={movePieces} createModel={props.createModel}/>
+      showCenters={showCenters} arcs={arcs} proposed={proposed} measure={measure} tags={tags} coords={coords} status={status} fitRequest={fitRequest} onPick={pick} onStroke={placeAt} onBoxSelect={boxSelect} onErase={erase} onMove={movePieces} createModel={props.createModel}/>
     <header className="sb-top">
       <button className="sb-port" disabled={!!busy} onClick={() => void close()} title="Save and return to port"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M8 1.5 3.5 6 8 10.5"/></svg>Port</button>
       <div className="sb-ship">
@@ -580,6 +581,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
     <div className="sb-viewbar">
       <button onClick={cycleView} title="Cycle the view">View <b>{VIEW_NAMES[view]}</b></button>
       <button onClick={toggleSlice} title="Cut the ship above a height">Slice <b>{slice.on ? `${signed(slice.y)} m` : 'Off'}</b></button>
+      <button aria-pressed={showCenters} onClick={() => setShowCenters(value => !value)} title="Show center of gravity (mass) and center of buoyancy markers">Centers <b>{showCenters ? 'On' : 'Off'}</b></button>
       <span title="Placement snaps to the face under the pointer">Snap <b>{gridStep === 1 ? '1 m' : '¼ m'}</b></span>
       <button onClick={() => setMirror(value => !value)} title="Mirror placements across the centerline">Mirror <b>{mirror ? 'On' : 'Off'}</b></button>
       <button onClick={fit} title="Frame the ship">Fit</button>
