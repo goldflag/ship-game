@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "fletcher-aft-mast",
+  "revision": "e52872f66d187a94012988cbb3b9a40a547b0a719b01fc1a3973da03fd6b00ec",
+  "contentHash": "5bd2ec38a3d72e0adb175e0ff0689cff66c6024dc19bbcc0463fb8d9c27c9a91",
+  "modelSha256": "bb9dd0525baba787f4e77fa8e48951341c8dcdcb0f9b47d7178c54092207b757",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/fletcher-aft-mast/e52872f66d187a94012988cbb3b9a40a547b0a719b01fc1a3973da03fd6b00ec/model.glb",
+  "boundsCenter": [
+    -1.1920928955078125e-7,
+    5.250738181173801,
+    0.1589805781841278
+  ],
+  "size": [
+    3.5236427783966064,
+    10.501476362347603,
+    0.8379611372947693
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 420,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Adapted original Fletcher source; fixed package mass and capabilities are estimates. Per-design attachment and moving-neighbor clearance require installation review.",
+  "basis": "assets/parts/construction/README.md"
+}

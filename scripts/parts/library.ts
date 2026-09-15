@@ -44,13 +44,13 @@ export async function readLibrary(root: string) {
 export function recipeInputs(library: Library, entry: LibraryEntry) {
   if (!entry.builder) throw new Error(`${entry.partId} has no reusable builder`);
   const builder = library.builders[entry.builder];
-  // scripts/ships/*.py are already hashed by the ship pipeline; its optional
-  // recipe register accepts assets/ inputs only.
+  // The ship pipeline discovers transitive local Python imports; its explicit
+  // recipe register accepts dynamic assets/ inputs only.
   return ['assets/parts/library.py', 'assets/parts/library.json', ...[builder.path, ...builder.inputs].filter(p => p.startsWith('assets/'))];
 }
 export async function componentHash(root: string, library: Library, entry: LibraryEntry, part: GunPart) {
   const builder = library.builders[entry.builder!];
-  const inputs = ['assets/parts/library.py', builder.path, ...builder.inputs, 'scripts/parts/build.py', 'scripts/ships/export.py'];
+  const inputs = ['assets/parts/library.py', builder.path, ...builder.inputs, 'scripts/parts/build.py', 'scripts/ships/export.py', 'scripts/ships/blender_batching.py'];
   const source = await Promise.all(inputs.map(p => readFile(join(root, p), 'utf8')));
   return createHash('sha256').update(JSON.stringify([1, entry, builder, part, ...source])).digest('hex');
 }

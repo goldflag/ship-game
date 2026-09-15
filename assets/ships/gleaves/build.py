@@ -63,8 +63,14 @@ def empty(name,loc):
     o['nodeId']=name;o['assemblyId']=name.split('.')[0];return o
 
 def attach(obj,parent):
-    bpy.context.view_layer.update(); world=obj.matrix_world.copy()
-    obj.parent=parent;obj.matrix_parent_inverse=Matrix.Identity(4);obj.matrix_world=world
+    # These original fittings have no constraints. Resolve their authored
+    # frames without reevaluating the entire detailed ship for each piece.
+    def frame(node):
+        local=node.matrix_basis.copy()
+        return frame(node.parent) @ node.matrix_parent_inverse @ local if node.parent else local
+    world=frame(obj)
+    obj.parent=parent;obj.matrix_parent_inverse=Matrix.Identity(4)
+    obj.matrix_basis=frame(parent).inverted() @ world
 
 def local(obj,parent,assembly=None):
     obj.parent=parent;obj.matrix_parent_inverse=Matrix.Identity(4)

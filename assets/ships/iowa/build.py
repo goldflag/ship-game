@@ -254,10 +254,15 @@ exec((Path(__file__).parent/'fittings.py').read_text(),globals())
 # keeps the editable source small without welding independent moving parts.
 bpy.context.view_layer.update()
 groups={}
+object_collections={}
+for collection in bpy.data.collections:
+    for obj in collection.objects:object_collections.setdefault(obj,collection)
 for obj in list(scene.objects):
     if obj.type=='MESH' and not obj.get('nodeId') and not obj.get('battery'):
-        key=(obj.parent,obj.get('assemblyId','hull'),obj.users_collection[0])
+        key=(obj.parent,obj.get('assemblyId','hull'),object_collections[obj])
         groups.setdefault(key,[]).append(obj)
+removed_objects=[]
+removed_meshes=set()
 for (parent,assembly,col),objects in groups.items():
     if len(objects)<2:continue
     vv=[];ff=[];slots=[];indices=[];smooth=[]
@@ -273,9 +278,10 @@ for (parent,assembly,col),objects in groups.items():
     ASSEMBLY=assembly;combined=mesh(assembly+' fittings',vv,ff,col=col);combined.parent=parent
     for mat in slots:combined.data.materials.append(mat)
     for p,index,s in zip(combined.data.polygons,indices,smooth):p.material_index=index;p.use_smooth=s
-    for obj in objects:
-        data=obj.data;bpy.data.objects.remove(obj,do_unlink=True)
-        if data.users==0:bpy.data.meshes.remove(data)
+    removed_objects.extend(objects)
+    removed_meshes.update(obj.data for obj in objects)
+bpy.data.batch_remove(removed_objects)
+bpy.data.batch_remove([data for data in removed_meshes if data.users==0])
 scene['definitionHash']=D['contentHash']
 scene['authoringNote']='Original Iowa A geometry; accepted source limitations are in the ship README.'
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'appearance'))

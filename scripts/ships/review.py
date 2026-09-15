@@ -11,8 +11,9 @@ bpy.ops.wm.open_mainfile(filepath=str(out/'source.blend'))
 scene = bpy.context.scene
 if scene.get('definitionHash') != definition['contentHash']:
     raise RuntimeError('Source is stale. Run ship:build before ship:review.')
+hidden = {obj for collection in bpy.data.collections if 'Studio' in collection.name or 'Measurement' in collection.name for obj in collection.objects}
 for obj in scene.objects:
-    obj.hide_render = obj.get('exportRole') == 'simulation' or any('Studio' in c.name or 'Measurement' in c.name for c in obj.users_collection)
+    obj.hide_render = obj.get('exportRole') == 'simulation' or obj in hidden
 scene.render.engine = 'BLENDER_WORKBENCH'
 scene.display.shading.light = 'STUDIO'
 scene.display.shading.color_type = 'MATERIAL'
