@@ -46,6 +46,9 @@ export class VertexHandles {
   }
   frame() {
     const o=this.options, p=this.drag?.replacements.find(p=>p.id===o?.id) ?? this.source?.construction.primitives.find(p=>p.id===o?.id);
+    // Controls can change the camera pose after updating its view matrix. Match
+    // the pose WebGL will render, rather than projecting through the previous one.
+    if(o&&p)this.camera().updateMatrixWorld();
     const visible=o&&p?editableCorners(o.symmetry,o.axes):[];
     this.buttons.forEach((b,i)=> {
       b.hidden=!visible.includes(i); if(b.hidden||!p||!o)return;
