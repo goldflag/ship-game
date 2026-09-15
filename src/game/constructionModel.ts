@@ -1,13 +1,16 @@
 import * as THREE from 'three/webgpu';
 import { loadShipModel } from './loadShipModel';
-import type { ConstructionResult, ConstructionSource, ConstructionSurface } from '../ships/blueprint';
+import type { ConstructionPrimitive, ConstructionResult, ConstructionSource, ConstructionSurface } from '../ships/blueprint';
+import { constructionVertexNormals, SMOOTH_HULL_SHAPES } from './constructionShading';
 import { constructionEquipmentModelUrl, loadConstructionCatalog, prefixComponentNodeId } from '../ships/constructionEquipment';
 import { CONSTRUCTION_FINISH, constructionPaintColor } from '../ships/constructionPaints';
 
 /** Render the native exterior exactly. Triangle attribution remains a reference
  * to source faces; triangulation and material batching never become source IDs. */
-export function createConstructionHull(surfaces: readonly ConstructionSurface[]): THREE.Group {
+export function createConstructionHull(surfaces: readonly ConstructionSurface[], primitives: readonly ConstructionPrimitive[] = []): THREE.Group {
   const group = new THREE.Group(); group.name = 'Constructed hull';
+  const smooth = new Set(primitives.filter(p => SMOOTH_HULL_SHAPES.has(p.kind)).map(p => p.id));
+  const normalAt = constructionVertexNormals(surfaces.filter(s => !s.open && smooth.has(s.primitiveId)).map(s => ({ ...s, group: s.primitiveId })));
   const textureSize = 128, pixels = new Uint8Array(textureSize * textureSize * 4);
   // Subtle repeatable coating grain. UVs remain in ship coordinates, so adjacent
   // primitives have neither a paint reset nor a visible block boundary.
@@ -28,7 +31,7 @@ export function createConstructionHull(surfaces: readonly ConstructionSurface[])
     const dominant = surface.normal.map(Math.abs).indexOf(Math.max(...surface.normal.map(Math.abs)));
     for (let i = 1; i < surface.vertices.length - 1; i++) {
       for (const point of [surface.vertices[0], surface.vertices[i], surface.vertices[i + 1]]) {
-        batch.positions.push(...point); batch.normals.push(...surface.normal);
+        batch.positions.push(...point); batch.normals.push(...(smooth.has(surface.primitiveId) ? normalAt(point, surface.normal, surface.primitiveId) : surface.normal));
         const a = dominant === 0 ? 2 : 0, b = dominant === 1 ? 2 : 1;
         batch.uv.push(point[a] / CONSTRUCTION_FINISH.tileMeters, point[b] / CONSTRUCTION_FINISH.tileMeters);
       }
@@ -58,7 +61,7 @@ function abort(signal?: AbortSignal) { if (signal?.aborted) throw new DOMExcepti
 export async function createConstructionModel(source: ConstructionSource, result: ConstructionResult, signal?: AbortSignal): Promise<THREE.Group> {
   if (source.id !== result.sourceId || source.revision !== result.revision) throw new Error('Model and design revisions do not match.');
   abort(signal);
-  const group = createConstructionHull(result.surfaces);
+  const group = createConstructionHull(result.surfaces, source.construction.primitives);
   group.name = source.name;
   group.userData.definitionHash = result.contentHash;
   group.userData.constructionRevision = source.revision;

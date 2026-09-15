@@ -1,18 +1,27 @@
 import * as THREE from 'three';
-import { ConvexGeometry } from 'three/addons/geometries/ConvexGeometry.js';
 import type { ConstructionEquipmentPart, ConstructionPrimitive, Vec3 } from '../../ships/blueprint';
+import { CONSTRUCTION_SHAPES } from '../../ships/constructionShapes';
+import { constructionVertexNormals, SMOOTH_HULL_SHAPES } from '../../game/constructionShading';
 
 /** Display-only source envelopes for placement and invalid drafts. Rust remains
  * authoritative for unions, material, fit, loading and all battle geometry. */
 export function primitiveGeometry(kind: ConstructionPrimitive['kind'], size: Vec3): THREE.BufferGeometry {
-  const vertices: THREE.Vector3[] = [];
-  for (const x of [-.5, .5]) for (const y of [-.5, .5]) for (const z of [-.5, .5]) {
-    if (kind === 'wedge' && y + z > 0) continue;
-    if (kind === 'corner' && x + y + z > -.5) continue;
-    if (kind === 'inverse-corner' && x + y + z > .5) continue;
-    vertices.push(new THREE.Vector3(x, y, z));
+  const positions: number[] = [], normals: number[] = [];
+  const faces = CONSTRUCTION_SHAPES[kind].map(face => {
+    const vertices = face.map(point => point.map((v, axis) => v * size[axis]) as Vec3);
+    const a = new THREE.Vector3(...vertices[0]), b = new THREE.Vector3(...vertices[1]), c = new THREE.Vector3(...vertices[2]);
+    return { vertices, normal: b.sub(a).cross(c.sub(a)).normalize().toArray() as Vec3, group: kind };
+  });
+  const normalAt = SMOOTH_HULL_SHAPES.has(kind) ? constructionVertexNormals(faces) : (_point: Vec3, normal: Vec3) => normal;
+  for (const face of faces) for (let i = 1; i < face.vertices.length - 1; i++) {
+    for (const point of [face.vertices[0], face.vertices[i], face.vertices[i + 1]]) {
+      positions.push(...point); normals.push(...normalAt(point, face.normal, kind));
+    }
   }
-  return new ConvexGeometry(vertices).scale(...size);
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+  return geometry;
 }
 
 export type BuilderPlacement =

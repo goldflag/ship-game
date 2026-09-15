@@ -1,7 +1,7 @@
 //! Authoritative construction compiler, shared by native tests and local WASM sessions.
 use crate::{catalog::sha256, construction_geometry as cg, definition::*, geometry::*};
 use std::collections::{BTreeMap, BTreeSet};
-pub const COMPILER: &str = "construction-polyhedra-1";
+pub const COMPILER: &str = "construction-polyhedra-2";
 pub const MAX_SOURCE_BYTES: usize = 2_000_000;
 pub const MAX_CATALOG_BYTES: usize = 4_000_000;
 const STEEL_DENSITY: f64 = 7850.;
@@ -376,7 +376,7 @@ fn validate(
             || !p.rotation_deg.is_finite()
             || (p.rotation_deg / 90. - (p.rotation_deg / 90.).round()).abs() > 1e-8
             || p.rotation_deg.abs() > 3600.
-            || !["box", "wedge", "corner", "inverse-corner"].contains(&p.kind.as_str())
+            || !crate::construction_shapes::KINDS.contains(&p.kind.as_str())
         {
             return Err(error(
                 "primitive",
@@ -442,15 +442,9 @@ fn validate(
     }
     Ok(())
 }
-fn primitive(p: &ConstructionPrimitive) -> cg::Cell {
-    let b = cg::box_cell([0.; 3], [1.; 3]);
-    let c = match p.kind.as_str() {
-        "wedge" => cg::clip(&b, normalize([0., 1., 1.]), 0.).unwrap(),
-        "corner" => cg::clip(&b, normalize([1., 1., 1.]), -0.5 / 3_f64.sqrt()).unwrap(),
-        "inverse-corner" => cg::clip(&b, normalize([1., 1., 1.]), 0.5 / 3_f64.sqrt()).unwrap(),
-        _ => b,
-    };
-    cg::transform(&c, p.position, p.size, p.rotation_deg.to_radians())
+fn primitive(p: &ConstructionPrimitive) -> Vec<cg::Cell> {
+    crate::construction_shapes::cells(&p.kind).unwrap().iter()
+        .map(|c| cg::transform(c, p.position, p.size, p.rotation_deg.to_radians())).collect()
 }
 fn face_name(p: &[Vec3], primitive: &ConstructionPrimitive) -> String {
     // Undo yaw to resolve the source face, independent of triangulation/position.
@@ -494,7 +488,10 @@ fn build(
     let fail = |s: String| error("geometry", s, None);
     let mut primitives: Vec<_> = c.primitives.iter().collect();
     primitives.sort_by(|a, b| a.id.cmp(&b.id));
-    let raw: Vec<_> = primitives.iter().map(|p| primitive(p)).collect();
+    let owned: Vec<_> = primitives.iter().flat_map(|p| primitive(p).into_iter().map(|cell| (*p,cell))).collect();
+    let primitives: Vec<_> = owned.iter().map(|(p,_)| *p).collect();
+    let raw: Vec<_> = owned.into_iter().map(|(_,cell)|cell).collect();
+    cg::check_budget(&raw).map_err(fail)?;
     let mut reached = BTreeSet::from([0]);
     loop {
         let old = reached.len();
@@ -669,6 +666,25 @@ fn build(
     }
     let mut material_volume = cg::total(&material).volume;
     let mut interior = cg::subtract_all(cells.clone(), &material).map_err(fail)?;
+    // Ballast is a visible construction block with a fixed 100-tonne payload.
+    // Its casing/armor is counted above; its fill occupies real interior space
+    // and contributes at the authored position, without adjusting buoyancy/CG.
+    for p in c.primitives.iter().filter(|p|p.kind == "ballast") {
+        let envelope = primitive(p);
+        let occupied: Vec<_> = interior.iter().flat_map(|room|envelope.iter().filter_map(|c|cg::intersection(room,c))).collect();
+        if cg::total(&occupied).volume < cg::EPS {
+            return Err(error("ballast-fit","Ballast fill has no space inside its casing, or overlaps another ballast block",Some(&p.id)));
+        }
+        // Overlapping ballast cannot hide two fixed weights in one envelope.
+        let other_ballast = c.primitives.iter().filter(|other|other.kind == "ballast" && other.id < p.id);
+        for other in other_ballast { if primitive(&other).iter().any(|a|envelope.iter().any(|b|cg::intersection(a,b).is_some_and(|c|cg::moments(&c).volume>cg::EPS))) {
+            return Err(error("ballast-fit","Ballast blocks must not overlap",Some(&p.id)));
+        } }
+        let mut payload = mass(p.id.clone(), "load", &occupied, 100_000. / cg::total(&occupied).volume);
+        payload.mass_kg = 100_000.;
+        contributions.push(payload);
+        interior = cg::subtract_all(interior, &envelope).map_err(fail)?;
+    }
     // Source loads are visible occupied packages, never invisible ballast.
     for l in &c.loads {
         let load = cg::box_cell(l.center, l.size);
@@ -1978,6 +1994,44 @@ mod tests {
                 ..Default::default()
             },
         )
+    }
+    #[test]
+    fn ballast_adds_exact_fixed_payload_and_displaces_real_interior() {
+        let (mut source,catalog) = fixture();
+        source.construction.primitives.push(ConstructionPrimitive { id:"weight".into(),kind:"box".into(),size:[3.,2.,3.],position:[2.,3.,0.],rotation_deg:0. });
+        let empty = compile(&source,&catalog).loading.unwrap();
+        source.construction.primitives[1].kind = "ballast".into();
+        let result = compile(&source,&catalog);
+        assert!(result.definition.is_some(),"{:?}",result.diagnostics);
+        let loaded = result.loading.unwrap();
+        assert!((loaded.mass_kg-empty.mass_kg-100_000.).abs()<1e-6);
+        assert!((loaded.envelope_volume_m3-empty.envelope_volume_m3).abs()<1e-7);
+        assert!(loaded.usable_volume_m3<empty.usable_volume_m3);
+        let weight = loaded.contributions.iter().find(|c|c.id == "weight").unwrap();
+        assert_eq!(weight.mass_kg,100_000.);
+        assert!((weight.center[0]-2.).abs()<1e-7);
+        assert!(loaded.center_of_gravity[0]>empty.center_of_gravity[0]);
+        source.construction.primitives[1].size = [4.,2.,4.];
+        assert_eq!(compile(&source,&catalog).loading.unwrap().contributions.iter().find(|c|c.id=="weight").unwrap().mass_kg,100_000.);
+        let mut duplicate = source.construction.primitives[1].clone(); duplicate.id = "weight2".into(); source.construction.primitives.push(duplicate);
+        assert!(compile(&source,&catalog).diagnostics.iter().any(|d|d.code == "ballast-fit"));
+    }
+    #[test]
+    fn every_library_shape_compiles_with_real_material_and_voids() {
+        for kind in crate::construction_shapes::KINDS {
+            let (mut source, catalog) = fixture();
+            source.construction.primitives[0].kind = (*kind).into();
+            source.construction.primitives[0].size = [8.,6.,10.];
+            let started = std::time::Instant::now();
+            let result = compile(&source, &catalog);
+            eprintln!("{kind}: {:?} {} surfaces",started.elapsed(),result.surfaces.len());
+            assert!(result.definition.is_some(),"{kind}: {:?}",result.diagnostics);
+            let definition = result.definition.unwrap();
+            crate::catalog::validate_definition(&definition).unwrap();
+            let loading = definition.loading.unwrap();
+            assert!(loading.mass_kg>0. && loading.envelope_volume_m3>0.,"{kind}");
+            assert!(loading.material_volume_m3<=loading.envelope_volume_m3+1e-6,"{kind}");
+        }
     }
     #[test]
     fn generated_source_to_valid_definition_round_trip() {

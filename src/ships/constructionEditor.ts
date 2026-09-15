@@ -1,5 +1,6 @@
 import type { ConstructionSource, ConstructionPrimitive, ConstructionSurface, ConstructionSurfaceAssignment, Vec3 } from './blueprint';
 import { normalizedBearing } from '../ui/shipbuilding/editorNumbers';
+import { CONSTRUCTION_SHAPES, shapeMirror } from './constructionShapes';
 import { ConstructionStoreError, readConstructionSource, type ConstructionRevision, type ConstructionStore } from './constructionStore';
 import { loadConstructionCatalog } from './constructionEquipment';
 
@@ -32,7 +33,7 @@ export function decodeConstructionSource(value: unknown): ConstructionSource {
   string(data.catalogRevision, 'Catalog'); number(data.defaultThicknessMm, 'Skin thickness');
   for (const p of rows(data.primitives, 'Primitives')) {
     string(p.id, 'Primitive ID'); vector(p.size, 'Primitive size'); vector(p.position, 'Primitive position'); number(p.rotationDeg, 'Primitive rotation');
-    if (!['box', 'wedge', 'corner', 'inverse-corner'].includes(p.kind as string)) throw new Error('Unsupported primitive kind');
+    if (typeof p.kind !== 'string' || !Object.hasOwn(CONSTRUCTION_SHAPES, p.kind)) throw new Error('Unsupported primitive kind');
   }
   for (const surface of rows(data.surfaces, 'Surfaces')) {
     string(surface.primitiveId, 'Surface primitive'); string(surface.paint, 'Paint'); number(surface.thicknessMm, 'Armor thickness');
@@ -95,14 +96,17 @@ export function rotateConstructionSelection(source: ConstructionSource, selected
 
 /** Source transform, not physical derivation. Corner profiles require an X/Z swap when reflected. */
 export function mirroredPrimitive(primitive: ConstructionPrimitive): ConstructionPrimitive {
-  const corner = primitive.kind === 'corner' || primitive.kind === 'inverse-corner';
+  const mirror = shapeMirror(primitive.kind);
   return { ...primitive, position: [-primitive.position[0], primitive.position[1], primitive.position[2]],
-    size: corner ? [primitive.size[2], primitive.size[1], primitive.size[0]] : [...primitive.size],
-    rotationDeg: normalizedBearing(-primitive.rotationDeg - (corner ? 90 : 0)) };
+    size: mirror.swap ? [primitive.size[2], primitive.size[1], primitive.size[0]] : [...primitive.size],
+    rotationDeg: normalizedBearing(-primitive.rotationDeg + mirror.yaw) };
 }
 
 export function mirroredFace(face: ConstructionFace, kind: ConstructionPrimitive['kind']): ConstructionFace {
-  if (kind === 'corner' || kind === 'inverse-corner') return ({ port: 'bow', bow: 'port', starboard: 'stern', stern: 'starboard' } as Partial<Record<ConstructionFace, ConstructionFace>>)[face] ?? face;
+  const { yaw } = shapeMirror(kind);
+  if (yaw === -90) return ({ port: 'bow', bow: 'port', starboard: 'stern', stern: 'starboard' } as Partial<Record<ConstructionFace, ConstructionFace>>)[face] ?? face;
+  if (yaw === 90) return ({ port: 'stern', stern: 'port', starboard: 'bow', bow: 'starboard' } as Partial<Record<ConstructionFace, ConstructionFace>>)[face] ?? face;
+  if (yaw === 180) return face === 'bow' ? 'stern' : face === 'stern' ? 'bow' : face;
   return face === 'port' ? 'starboard' : face === 'starboard' ? 'port' : face;
 }
 

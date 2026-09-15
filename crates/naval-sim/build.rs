@@ -31,6 +31,7 @@ fn main() {
         "assets/gameplay/legacy-air.v1.json",
         "assets/gameplay/visual-sensors.v2.json",
         "assets/gameplay/pve-cadence.v1.json",
+        "assets/parts/construction/hull_shapes.rs",
     ] {
         files.push(root.join(file))
     }

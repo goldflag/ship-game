@@ -5,6 +5,7 @@ import { constructionEquipmentModelUrl } from '../../ships/constructionEquipment
 import { loadShipModel } from '../../game/loadShipModel';
 import { constructionPaintColor } from './paints';
 import { primitiveGeometry } from './primitiveGeometry';
+import { SMOOTH_HULL_SHAPES } from '../../game/constructionShading';
 import type { SlotItem } from './builderLayers';
 
 /** Device pixels per card image; cards are 64 CSS px, so this stays crisp on 2× displays. */
@@ -23,7 +24,7 @@ export function slotImageKey(item: SlotItem, catalog: ConstructionCatalog): stri
 function shapeModel(kind: ConstructionPrimitive['kind'], size: Vec3): THREE.Object3D {
   const geometry = primitiveGeometry(kind, size), group = new THREE.Group();
   group.add(new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ color: constructionPaintColor('naval-gray'), roughness: .78, metalness: 0 })));
-  group.add(new THREE.LineSegments(new THREE.EdgesGeometry(geometry, 20), new THREE.LineBasicMaterial({ color: '#dfe7e4', transparent: true, opacity: .55 })));
+  group.add(new THREE.LineSegments(new THREE.EdgesGeometry(geometry, SMOOTH_HULL_SHAPES.has(kind) ? 45 : 20), new THREE.LineBasicMaterial({ color: '#dfe7e4', transparent: true, opacity: .55 })));
   return group;
 }
 

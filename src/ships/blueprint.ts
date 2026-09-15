@@ -286,7 +286,12 @@ export interface ConstructionSource extends Pick<ShipBlueprint, 'schemaVersion' 
   construction: ConstructionData;
 }
 export interface ConstructionPrimitive {
-  id: string; kind: 'box' | 'wedge' | 'corner' | 'inverse-corner';
+  id: string; kind: 'box' | 'wedge' | 'corner' | 'inverse-corner' | 'ballast' | 'pyramid'
+    | 'cylinder' | 'half-cylinder' | 'quarter-cylinder' | 'quarter-cylinder-wall'
+    | 'sphere' | 'hemisphere' | 'sphere-octant' | 'hemisphere-shell'
+    | 'half-hemisphere-shell' | 'quarter-hemisphere-shell' | 'parabolic-shell'
+    | 'cone' | 'hollow-cube' | 'concave-corner' | 'bridge' | 'diagonal-bridge'
+    | 'rounded-bridge' | 'bridge-panel' | 'diagonal-bridge-panel' | 'rounded-bridge-panel' | 'breakwater';
   /** Envelope centered at position. Shapes occupy normalized [-.5,.5]^3, then scale and yaw. */
   size: Vec3; position: Vec3; rotationDeg: number;
 }
