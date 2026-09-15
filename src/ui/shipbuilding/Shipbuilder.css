@@ -1,11 +1,13 @@
 /* Shipbuilder · "Slipway rails": tools on the left edge, palette along the bottom,
    ledger on the right edge. Compact cards group tools, palette slots and object values. */
 .shipbuilder {
-  --sb-text: #edf1ec; --sb-muted: #bacbd0; --sb-muted2: #93a7ad; --sb-line: #cfdfdf35; --sb-line2: #c0d4d26e;
-  --sb-brass: #e0c58d; --sb-brass2: #efd5a0; --sb-mint: #86e4c5; --sb-salmon: #ffb5a6; --sb-gold: #e8c56c; --sb-ink: #152b32; --sb-ground: #0b1c25;
-  --sb-card: #102833f5; --sb-card-hover: #1b3641; --sb-card-selected: #263c40; --sb-card-toggle: #173a3c;
+  --sb-text: #edf1ec; --sb-muted: #bcc3c7; --sb-muted2: #929a9f; --sb-line: #cfd4d835; --sb-line2: #cfd4d86e;
+  --sb-brass: #e0c58d; --sb-brass2: #efd5a0; --sb-mint: #86e4c5; --sb-salmon: #ffb5a6; --sb-gold: #e8c56c; --sb-ink: #1c1f22; --sb-ground: #1f2225; --sb-field: #1b1f22;
+  /* Studio sweep: a neutral grey ground lit at the centre and falling to dark at the edges, so hull paint reads true and only brass and mint carry colour. */
+  --sb-sweep: radial-gradient(ellipse 70% 62% at 50% 46%, #3d4145 0%, #2a2d30 48%, #191b1e 100%);
+  --sb-card: #24282bf5; --sb-card-hover: #2f3438; --sb-card-selected: #383d41; --sb-card-toggle: #253a37;
   position: fixed; inset: 0; z-index: 80; overflow: hidden; background: var(--sb-ground); color: var(--sb-text);
-  font: 400 13px/1.35 'Barlow', sans-serif; font-variant-numeric: tabular-nums; text-shadow: 0 2px 5px #061522b3; color-scheme: dark; user-select: none;
+  font: 400 13px/1.35 'Barlow', sans-serif; font-variant-numeric: tabular-nums; text-shadow: 0 2px 5px #0d0f11b3; color-scheme: dark; user-select: none;
 }
 .shipbuilder *, .shipbuilder *::before, .shipbuilder *::after { box-sizing: border-box; }
 .shipbuilder ::selection { background: var(--sb-brass); color: var(--sb-ink); }
@@ -21,7 +23,7 @@
 
 /* scene */
 .sb-viewport { position: absolute; inset: 0; }
-.sb-canvas { position: absolute; inset: 0; touch-action: none; background: var(--sb-ground); }
+.sb-canvas { position: absolute; inset: 0; touch-action: none; background: var(--sb-sweep) var(--sb-ground); }
 .sb-canvas canvas { display: block; width: 100%; height: 100%; }
 .sb-overlay { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .sb-leaders { position: absolute; inset: 0; width: 100%; height: 100%; }
@@ -58,7 +60,7 @@
 .sb-num input[aria-invalid=true] { border-bottom-color: var(--sb-salmon); color: var(--sb-salmon); }
 .sb-num em { font-style: normal; color: var(--sb-muted2); }
 .sb-tag b .sb-num input { font: inherit; color: var(--sb-text); }
-.sb-link { font: inherit; font-size: 11px; color: var(--sb-text); background: #0e2530; border: 1px solid var(--sb-line2); border-radius: 2px; padding: 1px 3px; max-width: 160px; text-shadow: none; }
+.sb-link { font: inherit; font-size: 11px; color: var(--sb-text); background: var(--sb-field); border: 1px solid var(--sb-line2); border-radius: 2px; padding: 1px 3px; max-width: 160px; text-shadow: none; }
 .sb-view-error { position: absolute; left: 90px; right: 260px; bottom: 120px; color: var(--sb-salmon); }
 .sb-empty { position: absolute; left: 50%; top: 42%; transform: translateX(-50%); text-align: center; color: var(--sb-muted); font-size: 14px; white-space: nowrap; }
 .sb-empty b { display: block; font: 500 22px/1.2 'Barlow Condensed', sans-serif; color: var(--sb-text); letter-spacing: .03em; margin-bottom: 4px; }
@@ -88,12 +90,12 @@
 .sb-actions { display: flex; align-items: center; gap: 10px; margin-left: auto; }
 .sb-undo { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--sb-muted); }
 .sb-undo:hover:not(:disabled) { color: var(--sb-text); }
-.sb-cmd { display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 14px; margin-left: 6px; background: var(--sb-brass); color: var(--sb-ink); border-radius: 2px; font: 600 15px/1 'Barlow Condensed', sans-serif; letter-spacing: .055em; text-shadow: none; box-shadow: 0 7px 24px #06131d33; white-space: nowrap; }
+.sb-cmd { display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 14px; margin-left: 6px; background: var(--sb-brass); color: var(--sb-ink); border-radius: 2px; font: 600 15px/1 'Barlow Condensed', sans-serif; letter-spacing: .055em; text-shadow: none; box-shadow: 0 7px 24px #0a0c0e33; white-space: nowrap; }
 .sb-cmd:hover:not(:disabled) { background: var(--sb-brass2); }
 .sb-cmd:disabled { opacity: .45; }
 
 /* designs menu (the one transient surface) */
-.sb-menu { position: absolute; left: 0; top: calc(100% + 10px); z-index: 5; width: 360px; max-height: min(70vh, 560px); overflow: auto; padding: 12px 14px 14px; background: #0e2530f2; border: 1px solid var(--sb-line2); border-radius: 2px; box-shadow: 0 12px 28px #06131d99; text-shadow: none; display: grid; gap: 10px; scrollbar-width: thin; }
+.sb-menu { position: absolute; left: 0; top: calc(100% + 10px); z-index: 5; width: 360px; max-height: min(70vh, 560px); overflow: auto; padding: 12px 14px 14px; background: #1b1f22f2; border: 1px solid var(--sb-line2); border-radius: 2px; box-shadow: 0 12px 28px #0a0c0e99; text-shadow: none; display: grid; gap: 10px; scrollbar-width: thin; }
 .sb-menu-row { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
 .sb-menu-row .sb-lead { flex-basis: 100%; }
 .sb-menu button[role=menuitem] { color: var(--sb-brass); }
@@ -158,7 +160,7 @@
 .sb-slot.custom small { font-size: 10px; color: #fff; text-shadow: 0 1px 2px #000c; }
 .sb-tip { position: absolute; z-index: 6; transform: translate(-50%, calc(-100% - 8px)); width: max-content; max-width: 280px; padding: 7px 10px; background: var(--sb-card); border: 1px solid var(--sb-line2); border-radius: 3px; font: 400 11.5px/1.45 'Barlow', sans-serif; color: var(--sb-muted); text-shadow: none; text-align: center; pointer-events: none; }
 .sb-tip b { display: block; font: 500 13px/1.3 'Barlow Condensed', sans-serif; color: var(--sb-text); letter-spacing: .02em; }
-.sb-drawer { position: absolute; left: 50%; bottom: 136px; transform: translateX(-50%); z-index: 4; width: max-content; max-width: min(760px, calc(100% - 28px)); padding: 10px 12px 12px; background: var(--sb-card); border: 1px solid var(--sb-line2); border-radius: 3px; box-shadow: 0 12px 28px #06131d99; text-shadow: none; display: flex; flex-direction: column; gap: 10px; }
+.sb-drawer { position: absolute; left: 50%; bottom: 136px; transform: translateX(-50%); z-index: 4; width: max-content; max-width: min(760px, calc(100% - 28px)); padding: 10px 12px 12px; background: var(--sb-card); border: 1px solid var(--sb-line2); border-radius: 3px; box-shadow: 0 12px 28px #0a0c0e99; text-shadow: none; display: flex; flex-direction: column; gap: 10px; }
 .sb-drawer-head { display: flex; align-items: center; gap: 14px; }
 .sb-drawer-head .sb-lead { white-space: nowrap; }
 .sb-drawer .sb-search { flex: 1; min-width: 200px; display: flex; gap: 8px; align-items: center; font-size: 12px; color: var(--sb-muted); }
@@ -168,8 +170,8 @@
 .sb-drawer-grid { display: flex; flex-wrap: wrap; gap: 6px; max-height: min(42vh, 320px); overflow-y: auto; scrollbar-width: thin; }
 
 /* controls and hotkeys dialog */
-.sb-help-backdrop { position: absolute; inset: 0; z-index: 20; background: #06131d99; display: flex; align-items: center; justify-content: center; padding: 24px; }
-.sb-help { width: min(900px, 100%); max-height: 100%; overflow: auto; scrollbar-width: thin; padding: 18px 22px 20px; background: #0e2530f8; border: 1px solid var(--sb-line2); border-radius: 3px; box-shadow: 0 16px 40px #06131dcc; text-shadow: none; }
+.sb-help-backdrop { position: absolute; inset: 0; z-index: 20; background: #0a0c0e99; display: flex; align-items: center; justify-content: center; padding: 24px; }
+.sb-help { width: min(900px, 100%); max-height: 100%; overflow: auto; scrollbar-width: thin; padding: 18px 22px 20px; background: #1b1f22f8; border: 1px solid var(--sb-line2); border-radius: 3px; box-shadow: 0 16px 40px #0a0c0ecc; text-shadow: none; }
 .sb-help header { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
 .sb-help h2 { margin: 0; font: 500 20px/1.2 'Barlow Condensed', sans-serif; letter-spacing: .04em; text-transform: uppercase; }
 .sb-help h3 { margin: 0 0 8px; font: 500 11px 'Barlow', sans-serif; letter-spacing: .09em; text-transform: uppercase; color: var(--sb-muted); }

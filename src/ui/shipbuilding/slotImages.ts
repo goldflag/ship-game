@@ -56,7 +56,7 @@ export class SlotImages {
   private disposed = false;
 
   constructor() {
-    this.scene.add(new THREE.HemisphereLight('#e5f1ef', '#45616d', 2.6));
+    this.scene.add(new THREE.HemisphereLight('#edf0f2', '#595c5f', 2.6));
     const sun = new THREE.DirectionalLight('#fff2d2', 3); sun.position.set(-80, 150, -120); this.scene.add(sun);
   }
 

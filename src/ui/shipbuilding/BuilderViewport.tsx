@@ -146,7 +146,7 @@ class Viewport {
     this.renderer.setClearColor(0x000000, 0);
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     host.append(this.renderer.domElement);
-    this.scene.add(new THREE.HemisphereLight('#e5f1ef', '#45616d', 2.6));
+    this.scene.add(new THREE.HemisphereLight('#edf0f2', '#595c5f', 2.6));
     const sun = new THREE.DirectionalLight('#fff2d2', 3); sun.position.set(-80, 150, -120); this.scene.add(sun);
     this.equipment = new EquipmentPreview(() => { this.ghostKey = ''; this.update(this.props); }, modelError);
     this.ghost.name = 'Placement preview'; this.ghost.userData.placementPreview = true;
