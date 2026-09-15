@@ -1,22 +1,22 @@
-/** Import through Vite and call checkVertexVisibility() on a blank page.
+/** Import through Vite and call checkFreeformVisibility() on a blank page.
  * Exercises the real viewport/React/pointer flow with no storage or worker. */
 import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import * as THREE from 'three';
 import type { ConstructionCatalog, ConstructionResult, Vec3 } from '../../src/ships/blueprint';
 import { createStarterSource } from '../../src/ships/constructionStarter';
-import { CORNER_SIGNS, VERTEX_FACES, replaceVertexPrimitives } from '../../src/ships/constructionVertex';
+import { CORNER_SIGNS, VERTEX_FACES, replaceVertexPrimitives, type HullSelection } from '../../src/ships/constructionVertex';
 import { BuilderViewport } from '../../src/ui/shipbuilding/BuilderViewport';
 import '../../src/ui/shipbuilding/Shipbuilder.css';
 
-type LiveViewport = { hull: THREE.Group; composed: THREE.Group; vertexPreview: THREE.Group; vertexHandles: { dragging: boolean }; update(props: unknown): void; props: unknown };
+type LiveViewport = { hull: THREE.Group; composed: THREE.Group; vertexPreview: THREE.Group; freeformHandles: { dragging: boolean }; update(props: unknown): void; props: unknown };
 const viewport = () => (window as unknown as { shipbuilderViewport: LiveViewport }).shipbuilderViewport;
 const tick = () => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 
-export async function checkVertexVisibility() {
+export async function checkFreeformVisibility() {
   const checks: string[] = [];
-  for (const compiled of [false, true]) {
-    const label = compiled ? 'compiled hull' : 'draft hull';
+  for (const mode of ['vertex','edge','face'] as const) for (const compiled of [false, true]) {
+    const label = `${mode} / ${compiled ? 'compiled hull' : 'draft hull'}`;
     const catalog = { schemaVersion: 1, revision: 'visibility-fixture', weapons: {}, equipment: [] } as ConstructionCatalog;
     const initial = createStarterSource(catalog, 'blank'); initial.construction.primitives[0].size = [4, 4, 4];
     const result: ConstructionResult | undefined = compiled ? {
@@ -31,14 +31,14 @@ export async function checkVertexVisibility() {
     } : undefined;
     let commits = 0;
     function Fixture() {
-      const [source, setSource] = useState(initial), [corner, setCorner] = useState(0);
+      const [source, setSource] = useState(initial), [selection, setSelection] = useState<HullSelection>({mode,index:0});
       return <main className="shipbuilder"><BuilderViewport source={source} result={result} catalog={catalog}
         selected={new Set(['hull'])} selectedSurfaces={new Set()} view="orbit" display="paint" gridStep={1}
         gesture="none" pickTargets="hull" moveTargets="none" highlightFaces={false} rooms={false} showCenters={false}
         arcs={[]} proposed={[]} tags={[]} coords={() => ''} fitRequest={0} onPick={() => {}} onStroke={() => {}}
         onBoxSelect={() => {}} onErase={() => {}} onMove={() => {}}
-        vertex={{ id: 'hull', corner, symmetry: false, axes: [false, false, false], unit: .2, axis: true, snap: false,
-          onSelect: setCorner, onCommit: replacements => { commits++; setSource(current => {
+        freeform={{ id: 'hull', selection, axes: [false, false, false], unit: .2, snap: false,
+          onSelect: setSelection, onCommit: replacements => { commits++; setSource(current => {
             const next = structuredClone(current); replaceVertexPrimitives(next, replacements); next.revision = crypto.randomUUID(); return next;
           }); } }}/></main>;
     }
@@ -47,14 +47,14 @@ export async function checkVertexVisibility() {
     const visible = (stage: string, preview = false) => {
       const v = viewport(); let meshes = 0;
       for (const group of [v.hull, v.composed, v.vertexPreview]) if (group.visible) group.traverseVisible(node => { if (node instanceof THREE.Mesh) meshes++; });
-      if (!meshes) throw new Error(`${label}: ${stage} hides every hull mesh (dragging=${v.vertexHandles.dragging}, previewMeshes=${v.vertexPreview.children.length})`);
+      if (!meshes) throw new Error(`${label}: ${stage} hides every hull mesh (dragging=${v.freeformHandles.dragging}, previewMeshes=${v.vertexPreview.children.length})`);
       const hasPreview = v.vertexPreview.visible && v.vertexPreview.children.length > 0;
       if (hasPreview !== preview) throw new Error(`${label}: ${stage} uses the wrong hull representation`);
       if (preview && (v.hull.visible || v.composed.visible)) throw new Error(`${label}: ${stage} draws both the original and deformed hull`);
       checks.push(`${label}: ${stage} stays visible`);
     };
     const begin = (corner: number) => {
-      const button = document.querySelectorAll<HTMLButtonElement>('.sb-vertex-handle')[corner], r = button.getBoundingClientRect();
+      const button = document.querySelectorAll<HTMLButtonElement>('.sb-freeform-handle')[corner], r = button.getBoundingClientRect();
       // Synthetic pointer events cannot acquire trusted capture. Only capture is stubbed.
       const capture = button.setPointerCapture, release = button.releasePointerCapture;
       button.setPointerCapture = button.releasePointerCapture = () => {};

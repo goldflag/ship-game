@@ -16,7 +16,7 @@ Internals for rooms and machinery, and Paint for finishes. The hull grid is 1 m;
 equipment placement uses 0.25 m. Orbit, Plan, Profile and Bow views and a deck
 slice share source selections. The camera starts in perspective; **Camera** in
 the view bar or **P** toggles orthographic projection while retaining the framing.
-The choice is shared across layers and vertex editing for the current editor
+The choice is shared across layers and freeform editing for the current editor
 session. Copy, mirror, bulk surface changes and undo/redo operate on stable source
 identities.
 
@@ -224,19 +224,21 @@ actual cell intersection. Suggestions are bounded searches and can explain a
 fit failure without finding every feasible arrangement. Initial service and
 ammunition loading is fixed; expenditure does not recalculate dry mass.
 
-### Vertex hulls
+### Freeform hulls
 
-Select one cube or vertex hull in the Hull layer and choose **Vertices** (or **Edit vertices** on its selection tag). The All shapes palette also includes a 4 m Vertex hull. Adjustable hull profiles are not part of this editor.
+Select one cube or freeform hull in the Hull layer and choose **Freeform** (or **Freeform hull** on its selection tag). Palette slot 9 supplies a 4 m Freeform hull. Adjustable hull profiles are not part of this editor.
 
-Eight local corners remain fixed in topology. Symmetry starts on with X selected; combine X/Y/Z to expose four, two, or one representative corner. Edits reflect their displacement across the chosen local axes without rewriting an existing asymmetric shape. Turning symmetry off exposes all eight corners. Whole-block mirror copies retain the deformed geometry and its face assignments.
+Choose **Vertex**, **Edge** or **Face** to move one corner, an edge's two corners or a face's four corners. The eight corners, twelve edges and six named faces keep fixed topology. Click a handle, edge or face to select it; the selection menu also reaches obscured components. Edge and face movement preserves the selected component's shape. Numeric coordinates show a vertex's position or an edge/face center in metric local block coordinates; editing the center translates the selection, without flattening it.
 
-**Unit** is a cycle button, also available with G: 0.05 → 0.1 → 0.2 → 0.5 → 1 → 2 m, then back to 0.05 m. It starts at 0.2 m and quantizes displacement from the start of an edit. With **Axis** on, the initial drag direction selects and locks one local axis. With Axis off, the drag uses the local coordinate plane most directly facing the camera. Selecting a corner exposes its metric local coordinates for keyboard entry.
+**Mirror X/Y/Z** reflects movement across the selected block's local planes. X starts on; no axes selected means symmetry off. Both sides remain selectable. Brass marks the selection and mint marks mirrored corners/components. An edge or face spanning a mirror plane cannot translate across it: the corresponding gizmo axis and coordinate field are disabled. For example, a top face can rise with X symmetry enabled but cannot slide sideways. Mirroring preserves existing asymmetry rather than forcing the shape to become symmetric. This is separate from whole-ship mirror placement, whose control is hidden during freeform editing. Whole-block mirror copies retain deformed geometry and face assignments.
 
-**Snap** starts off. Enabling it also moves matching corners within 0.025 m on neighboring cube or vertex hulls, including matches at mirrored corners. Matches are captured before each drag; no persistent seam or block relationship is created. Equipment stays at its source placement. The existing native support/fit diagnostics identify equipment that loses support.
+**Move step** cycles through 0.05 → 0.1 → 0.2 → 0.5 → 1 → 2 m, also with G. It starts at 0.2 m and quantizes displacement from the start of an edit. Drag an **X/Y/Z** gizmo handle to move along that explicit local axis; arrow keys nudge a focused axis handle. Drag the selected component or center handle in the local coordinate plane most directly facing the camera. Axes pointing directly toward the camera have no usable screen direction: change view or enter coordinates.
 
-Side, Top and Bow are orthographic camera presets. The camera toggle and P switch between actual orthographic and perspective cameras while retaining the framing; O also works in vertex mode. A drag commits as one undo step, including mirrored and nearby corners. Escape, right-click, lost pointer capture and window blur cancel an active drag. **Reset edit** restores the selected block's shape at session entry; **Done** keeps edits and leaves vertex mode.
+**Move nearby corners** starts off. Enabling it also moves matching corners within 0.025 m on neighboring cube or freeform hulls, including matches at mirrored corners. Matches use the unchanged source at drag start; no persistent seam or block relationship is created. Equipment stays at its source placement. Native support/fit diagnostics identify equipment that loses support.
 
-**Split** cuts the block into 2–16 independent eight-corner children along the selected local parameter axis. It preserves the trilinear corner-defined shape and the outer face assignments, gives children new stable IDs, and starts new cut faces with structural skin. The split is one undo step and obeys the overall 512-piece limit. On a warped block, these parameter cuts need not be world-aligned planes. Corners remain editable after undo, save and reopening.
+Side, Top and Bow are orthographic camera presets. P and the projection button switch between orthographic and perspective cameras while retaining framing; O also works in freeform mode. One drag commits one undo step, including mirrored and nearby corners. Escape, right-click, lost pointer capture, window blur, changing editing options or projection, and returning to the drag origin cancel without writing source/history. **Reset edit** restores the selected block's shape at session entry; **Done** keeps edits and leaves freeform mode.
+
+**Split…** opens local axis and count controls. It cuts the block into 2–16 independent eight-corner children, preserves the trilinear corner-defined shape and outer face assignments, gives children new stable IDs, and starts new cut faces with structural skin. Escape closes the popover first. The split is one undo step and obeys the existing 512-piece split limit. On a warped block, these parameter cuts need not be world-aligned planes. Corners remain editable after undo, save and reopening.
 
 The same version-1 construction source supports `kind: "vertex"` with optional `vertices: Vec3[]` (exactly eight finite normalized local coordinates). The order is the four bow corners `(-X,-Y), (+X,-Y), (+X,+Y), (-X,+Y)`, followed by the equivalent stern corners. Missing coordinates denote the cube; `size` scales the local edit frame and `rotationDeg` applies its quarter-turn yaw. Historical primitives remain compatible. Corner edits turn a box into a vertex hull without changing its ID.
 
