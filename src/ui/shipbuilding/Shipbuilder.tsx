@@ -75,7 +75,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const [showCenters, setShowCenters] = useState(true);
   const [vertexSession, setVertexSession] = useState<{designId:string;baseline:ConstructionPrimitive}>();
   const [vertexSettings, setVertexSettings] = useState<VertexSettings>({symmetry:true,axes:[true,false,false],unit:.2,axis:true,snap:false,splitAxis:2,count:4,corner:1});
-  const [perspective,setPerspective] = useState(false);
+  const [perspective, setPerspective] = useState(true);
   const [view, setView] = useState<BuilderView>('orbit');
   const [slice, setSlice] = useState<{ on: boolean; y: number; auto: boolean }>({ on: false, y: 0, auto: true });
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -377,6 +377,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
     else if (entry.id === 'suggest') void suggest(layer === 'fittings');
   };
   const cycleView = () => setView(current => VIEWS[(VIEWS.indexOf(current) + 1) % VIEWS.length]);
+  const toggleProjection = () => setPerspective(value => !value);
   const toggleSlice = () => setSlice(current => ({ on: !current.on, y: current.on ? current.y : defaultSlice(), auto: false }));
   const fit = () => setFitRequest(value => value + 1);
 
@@ -390,10 +391,11 @@ export function Shipbuilder(props: ShipbuilderProps) {
       const modifier = event.ctrlKey || event.metaKey, lower = event.key.toLowerCase();
       if (modifier && lower === 'z') { event.preventDefault(); if (event.shiftKey) editor.redo(); else editor.undo(); return; }
       if (modifier && lower === 'y') { event.preventDefault(); editor.redo(); return; }
+      if (!modifier && !event.altKey && lower === 'p') { event.preventDefault(); if (!event.repeat) toggleProjection(); return; }
       if (vertexMode && !modifier) {
         if(event.key==='Escape'){setVertexSession(undefined);event.preventDefault();return;}
         if(lower==='g'){cycleUnit();event.preventDefault();return;}
-        if(lower==='o'){setPerspective(p=>!p);event.preventDefault();return;}
+        if(lower==='o'){toggleProjection();event.preventDefault();return;}
         if(lower!=='w' && event.key!=='Home') return;
       }
       // Without a selection, ⌘C and ⌘X stay with the browser so selected text still copies.
@@ -546,7 +548,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   };
 
   // ---- hotkey legend above the compass: the standing keys on the bottom row; the keys acting on the cursor piece, the selection or the picked faces on a row above.
-  // Keys already printed elsewhere (rail tools, the view bar's Q S C M Home, W on the warnings lead, ⌘Z on undo, ? on Keys) stay off it.
+  // Keys already printed elsewhere (rail tools, the view bar's Q P S C M Home, W on the warnings lead, ⌘Z on undo, ? on Keys) stay off it.
   const faceLayer = layer === 'armor' || layer === 'paint';
   const movable = selectedPrimitives.length + selectedEquipment.length > 0;
   const standing: KeyHint[] = [
@@ -569,7 +571,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
       gridStep={gridStep} gesture={locked ? 'none' : gesture} pickTargets={layer === 'armor' || layer === 'paint' ? 'hull' : 'all'} moveTargets={locked || vertexMode ? 'none' : moveTargets} placementPiece={locked || vertexMode ? undefined : piece} placementMirror={mirrorPiece} highlightFaces={layer === 'armor' || layer === 'paint'} rooms={layer === 'internals'}
       showCenters={showCenters} arcs={arcs} proposed={proposed} measure={measure} tags={tags} coords={coords} status={status} fitRequest={fitRequest} onPick={pick} onStroke={placeAt} onBoxSelect={boxSelect} onErase={erase} onMove={movePieces} createModel={props.createModel}/>
     {vertexPrimitive && <VertexToolbar primitive={vertexPrimitive} settings={vertexSettings} onChange={changeVertexSettings} cycleUnit={cycleUnit} onCoordinate={setCornerCoordinate}
-      onView={v=>{setPerspective(false);setView(v);setFitRequest(n=>n+1);}} perspective={perspective} onProjection={()=>{setPerspective(p=>!p);}}
+      onView={v=>{setPerspective(false);setView(v);setFitRequest(n=>n+1);}} perspective={perspective} onProjection={toggleProjection}
       onReset={()=>run('Reset hull edit',draft=>replaceVertexPrimitives(draft,[vertexSession!.baseline]))} onSplit={splitVertices} onExit={()=>setVertexSession(undefined)}/>}
     <header className="sb-top">
       <button className="sb-port" disabled={!!busy} onClick={() => void close()} title="Save and return to port"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M8 1.5 3.5 6 8 10.5"/></svg>Port</button>
@@ -630,6 +632,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
     {tip && <div className={`sb-tip ${tip.below ? 'below' : ''}`} role="tooltip" style={{ left: tip.x, top: tip.y }}><b>{tip.title}</b>{tip.detail}{tip.key && <kbd>{tip.key}</kbd>}</div>}
     <div className="sb-viewbar">
       <button onClick={cycleView} title="Cycle the view (Q)">View <b>{VIEW_NAMES[view]}</b><kbd>Q</kbd></button>
+      <button onClick={toggleProjection} title="Toggle orthographic and perspective cameras (P)">Camera <b>{perspective ? 'Perspective' : 'Orthographic'}</b><kbd>P</kbd></button>
       <button onClick={toggleSlice} title="Cut the ship above a height (S)">Slice <b>{slice.on ? `${signed(slice.y)} m` : 'Off'}</b><kbd>S</kbd></button>
       <button aria-pressed={showCenters} onClick={() => setShowCenters(value => !value)} title="Show center of gravity (mass) and center of buoyancy markers (C)">Centers <b>{showCenters ? 'On' : 'Off'}</b><kbd>C</kbd></button>
       <span title="Placement snaps to the face under the pointer">Snap <b>{gridStep === 1 ? '1 m' : '¼ m'}</b></span>

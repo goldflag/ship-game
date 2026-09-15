@@ -14,8 +14,11 @@ rates and repair limits.
 Use Hull for pieces, Armor for plating and openings, Fittings for equipment,
 Internals for rooms and machinery, and Paint for finishes. The hull grid is 1 m;
 equipment placement uses 0.25 m. Orbit, Plan, Profile and Bow views and a deck
-slice share source selections. Copy, mirror, bulk surface changes and undo/redo
-operate on stable source identities.
+slice share source selections. The camera starts in perspective; **Camera** in
+the view bar or **P** toggles orthographic projection while retaining the framing.
+The choice is shared across layers and vertex editing for the current editor
+session. Copy, mirror, bulk surface changes and undo/redo operate on stable source
+identities.
 
 Place shows a snapped preview only on existing hull faces. Empty space has no placement target. Click to place, or drag to
 lay a run; Fill drags a rectangle. Every piece appears during the drag, including
@@ -231,7 +234,7 @@ Eight local corners remain fixed in topology. Symmetry starts on with X selected
 
 **Snap** starts off. Enabling it also moves matching corners within 0.025 m on neighboring cube or vertex hulls, including matches at mirrored corners. Matches are captured before each drag; no persistent seam or block relationship is created. Equipment stays at its source placement. The existing native support/fit diagnostics identify equipment that loses support.
 
-Side, Top and Bow are orthographic camera presets. View Mode and O switch between actual orthographic and perspective cameras while retaining the framing. A drag commits as one undo step, including mirrored and nearby corners. Escape, right-click, lost pointer capture and window blur cancel an active drag. **Reset edit** restores the selected block's shape at session entry; **Done** keeps edits and leaves vertex mode.
+Side, Top and Bow are orthographic camera presets. The camera toggle and P switch between actual orthographic and perspective cameras while retaining the framing; O also works in vertex mode. A drag commits as one undo step, including mirrored and nearby corners. Escape, right-click, lost pointer capture and window blur cancel an active drag. **Reset edit** restores the selected block's shape at session entry; **Done** keeps edits and leaves vertex mode.
 
 **Split** cuts the block into 2–16 independent eight-corner children along the selected local parameter axis. It preserves the trilinear corner-defined shape and the outer face assignments, gives children new stable IDs, and starts new cut faces with structural skin. The split is one undo step and obeys the overall 512-piece limit. On a warped block, these parameter cuts need not be world-aligned planes. Corners remain editable after undo, save and reopening.
 
