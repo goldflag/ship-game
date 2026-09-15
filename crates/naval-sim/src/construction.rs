@@ -2,8 +2,17 @@
 use crate::{catalog::sha256, construction_geometry as cg, definition::*, geometry::*};
 use std::collections::{BTreeMap, BTreeSet};
 pub const COMPILER: &str = "construction-polyhedra-1";
-pub const MAX_SOURCE_BYTES: usize = 2_000_000;
+pub const MAX_SOURCE_BYTES: usize = 16_000_000;
 pub const MAX_CATALOG_BYTES: usize = 4_000_000;
+/// Source bounds; the editor mirrors them in `src/ships/constructionEditor.ts`.
+pub const MAX_PRIMITIVES: usize = 10_000;
+pub const MAX_SURFACE_ASSIGNMENTS: usize = 65_536;
+pub const MAX_EQUIPMENT: usize = 128;
+pub const MAX_BOUNDARIES: usize = 24;
+/// Derived exposed skin patches, including installation supports.
+pub const MAX_SURFACES: usize = 131_072;
+/// Flooding portals between rooms; fragmented interiors reach this long before the cell budget.
+pub const MAX_CONNECTIONS: usize = 512;
 const STEEL_DENSITY: f64 = 7850.;
 const SEA_DENSITY: f64 = 1025.;
 
@@ -30,6 +39,13 @@ fn error(code: &str, message: impl Into<String>, id: Option<&str>) -> Constructi
         message: message.into(),
         source_id: id.map(str::to_owned),
     }
+}
+fn portal_limit() -> ConstructionDiagnostic {
+    error(
+        "geometry-limit",
+        "Subdivision exceeds bounded flooding portal count",
+        None,
+    )
 }
 fn warn(out: &mut ConstructionResult, code: &str, message: &str) {
     out.diagnostics.push(ConstructionDiagnostic {
@@ -347,15 +363,17 @@ fn validate(
         ));
     }
     if c.primitives.is_empty()
-        || c.primitives.len() > 512
-        || c.surfaces.len() > 4096
-        || c.equipment.len() > 128
-        || c.boundaries.len() > 24
-        || c.loads.len() > 128
+        || c.primitives.len() > MAX_PRIMITIVES
+        || c.surfaces.len() > MAX_SURFACE_ASSIGNMENTS
+        || c.equipment.len() > MAX_EQUIPMENT
+        || c.boundaries.len() > MAX_BOUNDARIES
+        || c.loads.len() > MAX_EQUIPMENT
     {
         return Err(error(
             "complexity",
-            "Use 1–512 hull primitives, at most 128 equipment/loads and 24 boundaries",
+            format!(
+                "Use 1–{MAX_PRIMITIVES} hull primitives, at most {MAX_SURFACE_ASSIGNMENTS} face assignments, {MAX_EQUIPMENT} equipment/loads and {MAX_BOUNDARIES} boundaries"
+            ),
             None,
         ));
     }
@@ -495,30 +513,37 @@ fn build(
     let mut primitives: Vec<_> = c.primitives.iter().collect();
     primitives.sort_by(|a, b| a.id.cmp(&b.id));
     let raw: Vec<_> = primitives.iter().map(|p| primitive(p)).collect();
-    let mut reached = BTreeSet::from([0]);
-    loop {
-        let old = reached.len();
-        for a in 0..raw.len() {
-            if reached.contains(&a) {
-                for b in 0..raw.len() {
-                    if !reached.contains(&b) && cg::connected(&raw[a], &raw[b]) {
-                        reached.insert(b);
-                    }
-                }
+    // Pairwise work only visits pieces whose bounds meet; every skipped pair is separated,
+    // for which the exact geometry operations are no-ops.
+    let index = cg::Broadphase::sized_for(&raw);
+    let neighbors: Vec<Vec<usize>> = (0..raw.len())
+        .map(|i| {
+            index
+                .candidates(&raw[i])
+                .into_iter()
+                .filter(|&j| j != i && !cg::separated(&raw[i], &raw[j]))
+                .collect()
+        })
+        .collect();
+    let mut reached = vec![false; raw.len()];
+    let mut queue = vec![0];
+    reached[0] = true;
+    while let Some(a) = queue.pop() {
+        for &b in &neighbors[a] {
+            if !reached[b] && cg::connected(&raw[a], &raw[b]) {
+                reached[b] = true;
+                queue.push(b);
             }
         }
-        if reached.len() == old {
-            break;
-        }
     }
-    if reached.len() != raw.len() {
+    if reached.iter().any(|r| !r) {
         return Err(error(
             "attachment",
             "Detached hull pieces need a physical face attachment or connecting beam",
             None,
         ));
     }
-    let cells = cg::union(&raw).map_err(fail)?;
+    let cells = cg::union_near(&raw, &neighbors).map_err(fail)?;
     let envelope = cg::total(&cells);
     // Catalog-declared installation wells cross only the supporting exterior deck.
     // Their enclosures seal the penetration; they do not carve nearby side armor.
@@ -563,10 +588,8 @@ fn build(
                 .iter()
                 .find(|a| a.primitive_id == p.id && a.face == face);
             let mut patches = vec![f.vertices.clone()];
-            for (j, other) in raw.iter().enumerate() {
-                if i == j || cg::separated(&raw[i], other) {
-                    continue;
-                }
+            for &j in &neighbors[i] {
+                let other = &raw[j];
                 patches = patches
                     .iter()
                     .flat_map(|patch| cg::exposed(patch, other, i < j))
@@ -611,21 +634,26 @@ fn build(
                     paint: a.map_or("naval-gray", |a| a.paint.as_str()).into(),
                     open: a.is_some_and(|a| a.open == Some(true)),
                 });
-                if out.surfaces.len() > 8192 {
+                if out.surfaces.len() > MAX_SURFACES {
                     return Err(error("complexity", "Exposed surface limit exceeded", None));
                 }
             }
         }
     }
-    let mut material = vec![];
+    let hull_index = cg::Broadphase::sized_for(&cells);
+    let mut material: Vec<cg::Cell> = vec![];
+    let mut material_index = cg::Broadphase::new(hull_index.pitch());
     let mut contributions = vec![];
     for (i, s) in out.surfaces.iter().enumerate().filter(|(_, s)| !s.open) {
         let solid = cg::prism(&s.vertices, s.thickness_mm / 1000.);
-        let clipped: Vec<_> = cells
-            .iter()
-            .filter_map(|c| cg::intersection(&solid, c))
+        let clipped: Vec<_> = hull_index
+            .candidates(&solid)
+            .into_iter()
+            .filter_map(|k| cg::intersection(&solid, &cells[k]))
             .collect();
-        let occupied = cg::subtract_all(clipped, &material).map_err(fail)?;
+        let cutters = material_index.candidates(&solid);
+        let occupied =
+            cg::subtract_all(clipped, cutters.iter().map(|&k| &material[k])).map_err(fail)?;
         if !occupied.is_empty() {
             contributions.push(mass(
                 format!("skin-{}-{i}", s.id),
@@ -633,6 +661,9 @@ fn build(
                 &occupied,
                 STEEL_DENSITY,
             ));
+            for cell in &occupied {
+                material_index.insert(cell);
+            }
             material.extend(occupied);
             cg::check_budget(&material).map_err(fail)?;
         }
@@ -651,11 +682,14 @@ fn build(
         let mut position = center;
         position[axis] = b.offset;
         let slab = cg::box_cell(position, size);
-        let occupied: Vec<_> = cells
-            .iter()
-            .filter_map(|c| cg::intersection(&slab, c))
-            .collect();
-        let occupied = cg::subtract_all(occupied, &material).map_err(fail)?;
+        let mut occupied = vec![];
+        for piece in cells.iter().filter_map(|c| cg::intersection(&slab, c)) {
+            let cutters = material_index.candidates(&piece);
+            occupied.extend(
+                cg::subtract_all(vec![piece], cutters.iter().map(|&k| &material[k]))
+                    .map_err(fail)?,
+            );
+        }
         if occupied.is_empty() {
             return Err(error(
                 "boundary",
@@ -664,11 +698,24 @@ fn build(
             ));
         }
         contributions.push(mass(b.id.clone(), "bulkhead", &occupied, STEEL_DENSITY));
+        for cell in &occupied {
+            material_index.insert(cell);
+        }
         material.extend(occupied);
         cg::check_budget(&material).map_err(fail)?;
     }
     let mut material_volume = cg::total(&material).volume;
-    let mut interior = cg::subtract_all(cells.clone(), &material).map_err(fail)?;
+    // Each hull cell loses only the plating near it; cells never interact, so this equals
+    // subtracting every material cell from every hull cell, in the same order.
+    let mut interior = Vec::with_capacity(cells.len());
+    for cell in &cells {
+        let cutters = material_index.candidates(cell);
+        interior.extend(
+            cg::subtract_all(vec![cell.clone()], cutters.iter().map(|&k| &material[k]))
+                .map_err(fail)?,
+        );
+    }
+    cg::check_budget(&interior).map_err(fail)?;
     // Source loads are visible occupied packages, never invisible ballast.
     for l in &c.loads {
         let load = cg::box_cell(l.center, l.size);
@@ -764,10 +811,10 @@ fn build(
             }
         }
         out.surfaces.extend(installation.surfaces);
-        if out.surfaces.len() > 8192 {
+        if out.surfaces.len() > MAX_SURFACES {
             return Err(error(
                 "complexity",
-                "Installation surfaces exceed the 8192 surface limit",
+                format!("Installation surfaces exceed the {MAX_SURFACES} surface limit"),
                 Some(&installation.id),
             ));
         }
@@ -1001,18 +1048,17 @@ fn build(
                                 bounds: Some(FloodConnectionBounds { center, size }),
                                 ..Default::default()
                             });
+                            if def.connections.len() > MAX_CONNECTIONS {
+                                return Err(portal_limit());
+                            }
                         }
                     }
                 }
             }
         }
     }
-    if def.connections.len() > 512 || def.openings.as_ref().unwrap().len() > 4096 {
-        return Err(error(
-            "geometry-limit",
-            "Subdivision exceeds bounded flooding portal count",
-            None,
-        ));
+    if def.connections.len() > MAX_CONNECTIONS || def.openings.as_ref().unwrap().len() > 4096 {
+        return Err(portal_limit());
     }
     let void_volume: f64 = def.compartments.iter().map(|r| r.capacity_m3).sum();
     def.local_damage = Some(ShipDefinitionLocalDamage {
@@ -1272,18 +1318,21 @@ fn connected_spaces(mut cells: Vec<cg::Cell>) -> Vec<Vec<cg::Cell>> {
             .then(a[1].total_cmp(&b[1]))
             .then(a[2].total_cmp(&b[2]))
     });
+    let index = cg::Broadphase::sized_for(&cells);
     let mut remaining: Vec<_> = cells.into_iter().map(Some).collect();
     let mut groups = vec![];
-    while let Some(start) = remaining.iter().position(Option::is_some) {
-        let mut group = vec![remaining[start].take().unwrap()];
+    let mut first = 0;
+    while let Some(start) = remaining[first..].iter().position(Option::is_some) {
+        first += start;
+        let mut group = vec![remaining[first].take().unwrap()];
         let mut i = 0;
         while i < group.len() {
-            for next in &mut remaining {
-                if next
+            for k in index.candidates(&group[i]) {
+                if remaining[k]
                     .as_ref()
                     .is_some_and(|cell| cg::connected(&group[i], cell))
                 {
-                    group.push(next.take().unwrap());
+                    group.push(remaining[k].take().unwrap());
                 }
             }
             i += 1;
@@ -1464,7 +1513,7 @@ fn equipment(
         }
         let occupied = cg::union(&occupied).map_err(|x| error("equipment-fit", x, Some(&e.id)))?;
         if !occupied.is_empty() {
-            let outside = cg::subtract_all(occupied.clone(), interior)
+            let outside = cg::subtract_all(occupied.clone(), interior.iter())
                 .map_err(|x| error("equipment-fit", x, Some(&e.id)))?;
             if cg::total(&outside).volume > 1e-5 {
                 return Err(error(

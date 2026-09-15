@@ -28,8 +28,7 @@ export function ToolGlyph({ name }: { name: string }) {
 export function SlotGlyph({ item, customMm }: { item: SlotItem; customMm: number }) {
   switch (item.kind) {
     case 'shape': return <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" aria-hidden="true"><path d={SHAPE_PATHS[item.id] ?? SHAPE_PATHS.cube}/></svg>;
-    case 'armor': return <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="3" width="14" height="14" fill={armorThicknessColor(item.thicknessMm)} stroke="#edf1ec55"/></svg>;
-    case 'custom-armor': return <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="3" width="14" height="14" fill={armorThicknessColor(customMm)} stroke="#edf1ec55"/></svg>;
+    case 'armor': return <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="3" width="14" height="14" fill={armorThicknessColor(customMm)} stroke="#edf1ec55"/></svg>;
     case 'paint': return <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="3" width="14" height="14" fill={item.color} stroke="#edf1ec55"/></svg>;
     case 'scheme': return <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="3" width="14" height="7" fill={item.id === 'two-tone' ? '#64716f' : '#405d70'} stroke="#edf1ec55"/><rect x="3" y="10" width="14" height="7" fill={item.id === 'two-tone' ? '#7c8c91' : '#b5bfbc'} stroke="#edf1ec55"/></svg>;
     case 'opening': return <ToolGlyph name="Opening"/>;

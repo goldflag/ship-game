@@ -1,5 +1,5 @@
 import type { ConstructionDiagnostic, ConstructionResult, ConstructionSource, ConstructionSurface } from '../../ships/blueprint';
-import { editableConstructionSurfaces } from '../../ships/constructionEditor';
+import { CONSTRUCTION_LIMITS, editableConstructionSurfaces } from '../../ships/constructionEditor';
 import type { BuilderLayer } from './builderLayers';
 
 /** Ledger and warnings-line content derived from the native compile result. */
@@ -34,13 +34,17 @@ const TONE_BY_CODE: Record<string, { label: string; tone: Tone }[]> = {
   unpowered: [{ label: 'Power', tone: 'warn' }, { label: 'Speed', tone: 'warn' }], 'propulsor-exposure': [{ label: 'Speed', tone: 'warn' }],
 };
 
-/** The derived readings the plan lists, with a layer-specific last row. */
+/** Hull dimensions from the source, the native readings, and a layer-specific last row. */
 export function ledgerRows(source: ConstructionSource, result: ConstructionResult | undefined, layer: BuilderLayer): LedgerRow[] {
   const loading = result?.loading, bounds = hullBounds(source), data = source.construction;
   const tones = new Map<string, Tone>();
   for (const diagnostic of result?.diagnostics ?? []) for (const entry of TONE_BY_CODE[diagnostic.code] ?? []) tones.set(entry.label, entry.tone);
   const row = (label: string, value: string, tone?: Tone): LedgerRow => ({ label, value, tone: tone ?? tones.get(label) });
+  const extent = (axis: number) => bounds ? `${format(bounds.max[axis] - bounds.min[axis])} m` : '—';
   const rows = [
+    row('Length', extent(2)),
+    row('Beam', extent(0)),
+    row('Height', extent(1)),
     row('Displacement', loading ? `${format(loading.massKg / 1000, loading.massKg < 1e6 ? 1 : 0)} t` : '—'),
     row('Draft', loading && bounds ? `${format(loading.waterlineY - bounds.min[1], 2)} m` : '—'),
     row('GM', loading ? `${format(loading.rollMetacentricHeightM, 2)} m` : '—'),
@@ -51,7 +55,7 @@ export function ledgerRows(source: ConstructionSource, result: ConstructionResul
   ];
   const surfaces = editableConstructionSurfaces(source, result?.surfaces ?? []);
   switch (layer) {
-    case 'hull': rows.push(row('Hull pieces', `${data.primitives.length} / 512`, data.primitives.length > 480 ? 'warn' : undefined)); break;
+    case 'hull': rows.push(row('Hull pieces', `${data.primitives.length.toLocaleString()} / ${CONSTRUCTION_LIMITS.primitives.toLocaleString()}`, data.primitives.length > CONSTRUCTION_LIMITS.primitives * .95 ? 'warn' : undefined)); break;
     case 'armor': {
       const total = surfaces.reduce((sum, surface) => sum + surface.areaM2, 0);
       const armored = surfaces.filter(surface => !surface.open && surface.thicknessMm > 0).reduce((sum, surface) => sum + surface.areaM2, 0);
@@ -60,12 +64,12 @@ export function ledgerRows(source: ConstructionSource, result: ConstructionResul
     }
     case 'internals': {
       const rooms = result?.definition?.compartments.length;
-      rows.push(row('Rooms', rooms === undefined ? '—' : `${rooms} · ${data.boundaries.length} walls`, data.boundaries.length >= 24 ? 'warn' : undefined));
+      rows.push(row('Rooms', rooms === undefined ? '—' : `${rooms} · ${data.boundaries.length} walls`, data.boundaries.length >= CONSTRUCTION_LIMITS.boundaries ? 'warn' : undefined));
       break;
     }
     case 'fittings': {
       const mounts = result?.definition?.mounts.length ?? 0, tubes = result?.definition?.torpedoTubes?.length ?? 0;
-      rows.push(row('Fittings', `${data.equipment.length} / 128 · ${mounts} guns · ${tubes} tubes`, data.equipment.length > 120 ? 'warn' : undefined));
+      rows.push(row('Fittings', `${data.equipment.length} / ${CONSTRUCTION_LIMITS.equipment} · ${mounts} guns · ${tubes} tubes`, data.equipment.length > CONSTRUCTION_LIMITS.equipment * .95 ? 'warn' : undefined));
       break;
     }
     case 'paint': {

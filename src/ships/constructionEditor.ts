@@ -7,6 +7,8 @@ export const CONSTRUCTION_FACES = ['port', 'starboard', 'bottom', 'top', 'bow', 
 export type ConstructionFace = ConstructionSurfaceAssignment['face'];
 export const newConstructionId = (prefix: string) => `${prefix}-${crypto.randomUUID()}`;
 export const surfaceKey = (primitiveId: string, face: string) => `${primitiveId}:${face}`;
+/** Source bounds, mirrored from the native compiler (crates/naval-sim/src/construction.rs). */
+export const CONSTRUCTION_LIMITS = { primitives: 10_000, surfaces: 65_536, equipment: 128, boundaries: 24 } as const;
 
 /** Native equipment supports stay visible but are not editable hull source assignments. */
 export function editableConstructionSurfaces(source: ConstructionSource, surfaces: readonly ConstructionSurface[]): ConstructionSurface[] {
