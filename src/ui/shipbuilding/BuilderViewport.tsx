@@ -1,3 +1,4 @@
+import { createBuilderGrid } from './builderGrid';
 import { FreeformHandles, type BuilderFreeformOptions } from './FreeformHandles';
 import { MoveHandles } from './MoveHandles';
 import { blockMoveConstraint } from './blockMovement';
@@ -118,6 +119,8 @@ class Viewport {
   private pathPreview = new THREE.Group();
   private pathPreviewKey = '';
   private scene = new THREE.Scene();
+  private floorGrid = new THREE.Group();
+  private gridKey = '';
   private controls: OrbitControls;
   private hull = new THREE.Group();
   private details = new THREE.Group();
@@ -178,7 +181,7 @@ class Viewport {
     this.measureLine.renderOrder = 22; this.measureGroup.add(this.measureLine); this.measureGroup.visible = false;
     this.strokePreview.name = 'Pieces in current drag'; this.strokePreview.userData.strokePreview = true;
     this.movePreview.name = 'Selection being moved'; this.movePreview.userData.movePreview = true; this.movePreview.visible = false;
-    this.scene.add(this.hull, this.details, this.selection, this.hoverGroup, this.composed, this.equipment.group, this.arcGroup, this.proposedGroup, this.ghost, this.ghostMirror, this.ghostArc, this.fillPreview, this.strokePreview, this.movePreview, this.measureGroup);
+    this.scene.add(this.floorGrid, this.hull, this.details, this.selection, this.hoverGroup, this.composed, this.equipment.group, this.arcGroup, this.proposedGroup, this.ghost, this.ghostMirror, this.ghostArc, this.fillPreview, this.strokePreview, this.movePreview, this.measureGroup);
     this.freeformHandles = new FreeformHandles(host, () => this.camera, replacements => this.previewVertices(replacements));
     this.moveHandles = new MoveHandles(host, () => this.camera);
     this.scene.add(this.vertexPreview, this.pathPreview);
@@ -211,8 +214,10 @@ class Viewport {
       for (const v of cornerVertices(primitive)) bounds.expandByPoint(new THREE.Vector3(...worldVertex(primitive, v)));
     }
     if (bounds.isEmpty()) bounds.set(new THREE.Vector3(-10, -5, -25), new THREE.Vector3(10, 5, 25));
+    this.hullSize.copy(bounds.getSize(new THREE.Vector3()));
+    // Keep the bow datum in frame in the views where the floor is readable.
+    if (this.props.view === 'orbit' || this.props.view === 'top') bounds.union(new THREE.Box3().setFromObject(this.floorGrid));
     const size = bounds.getSize(new THREE.Vector3()), center = bounds.getCenter(new THREE.Vector3());
-    this.hullSize.copy(size);
     const view = this.props.view, aspect = Math.max(1, this.host.clientWidth / Math.max(1, this.host.clientHeight));
     // Frame the ship for the chosen view: plan and profile need the length upright, the bow view only the section.
     const framed = view === 'top' ? Math.max(size.z, size.x * aspect) : view === 'side' ? Math.max(size.z, size.y * aspect) : view === 'bow' ? Math.max(size.x, size.y * aspect) : size.length() * .95;
@@ -242,10 +247,20 @@ class Viewport {
       this.controls.object=this.camera;this.camera.updateProjectionMatrix();this.controls.update();
     }
     if (props.source.id !== old.source.id || props.gesture !== old.gesture || props.placementPiece !== old.placementPiece || props.moveTargets !== old.moveTargets) this.cancel();
-    if (props.view !== this.currentView || props.fitRequest !== old.fitRequest || props.source.id !== old.source.id || (!old.result && props.result)) this.fit();
     // The primary button orbits (pans in construction views) and the secondary button pans. A primary press on the hull while placing lays pieces instead; `down` holds the controls for that drag.
     this.controls.mouseButtons = { LEFT: props.perspective || props.view === 'orbit' ? THREE.MOUSE.ROTATE : THREE.MOUSE.PAN, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.PAN };
     this.controls.enableRotate = props.view === 'orbit' || !!props.perspective;
+    const gridKey = `${props.source.id}:${props.source.revision}:${props.gridStep}`;
+    if (gridKey !== this.gridKey) {
+      this.gridKey = gridKey; release(this.floorGrid);
+      const bounds = new THREE.Box3();
+      for (const primitive of props.source.construction.primitives) {
+        for (const corner of cornerVertices(primitive)) bounds.expandByPoint(new THREE.Vector3(...worldVertex(primitive, corner)));
+      }
+      if (bounds.isEmpty()) bounds.set(new THREE.Vector3(-1, -1, -1), new THREE.Vector3(1, 1, 1));
+      this.floorGrid.add(createBuilderGrid(bounds, props.gridStep));
+    }
+    if (props.view !== this.currentView || props.fitRequest !== old.fitRequest || props.source.id !== old.source.id || (!old.result && props.result)) this.fit();
     const nativeSurfaces = props.result?.sourceId === props.source.id && props.result.revision === props.source.revision && props.result.surfaces.length ? props.result.surfaces : undefined;
     const key = `${props.source.id}:${nativeSurfaces ? props.result!.contentHash : props.source.revision + ':draft'}:${props.display}`;
     if (key !== this.contentKey) {
@@ -445,7 +460,9 @@ class Viewport {
   }
 
   private highlight(event: { clientX: number; clientY: number }) {
-    const pick = this.navigating() ? undefined : this.pick(event, this.props.pickTargets);
+    // During placement, the ghost/path already identifies the action. Keep its support block clear.
+    const placing = !!this.props.placementPiece || !!this.props.pathDraft;
+    const pick = this.navigating() || placing ? undefined : this.pick(event, this.props.pickTargets);
     const key = this.props.highlightFaces ? pick?.surface ?? '' : pick?.id ?? '';
     if (key === this.hoverSurface) return;
     this.hoverSurface = key; release(this.hoverGroup);
@@ -615,7 +632,7 @@ class Viewport {
       normal.setComponent(hit.axis, Math.sign(hit.normal?.[hit.axis] ?? 1) || 1);
       free[hit.axis] = false;
     }
-    const step = wall || ids.some(isPrimitive) ? 1 : .25;
+    const step = this.props.gridStep;
     return { ids, plane: new THREE.Plane().setFromNormalAndCoplanarPoint(normal.normalize(), origin), origin, free, step, delta: [0, 0, 0], built: false, constrain: blockMoveConstraint(this.props.source, new Set(ids)) };
   }
 
@@ -623,12 +640,12 @@ class Viewport {
     const props = this.props;
     const blocks = props.source.construction.primitives.filter(p => props.selected.has(p.id));
     if (props.freeform || props.moveTargets !== 'all' || !blocks.length) { this.moveHandles.update(); return; }
-    const ids = [...props.selected], key = JSON.stringify([props.source.id, props.source.revision, ids, props.slice, props.view, props.perspective]);
+    const ids = [...props.selected], key = JSON.stringify([props.source.id, props.source.revision, ids, props.slice, props.view, props.perspective, props.gridStep]);
     if (key !== this.moveConstraintKey) {
       this.moveConstraintKey = key; this.constrainMove = blockMoveConstraint(props.source, props.selected);
     }
     const anchor = blocks.reduce<Vec3>((sum, p) => sum.map((v, k) => v + p.position[k] / blocks.length) as Vec3, [0, 0, 0]);
-    this.moveHandles.update({ key, anchor, unit: 1, constrain: this.constrainMove,
+    this.moveHandles.update({ key, anchor, unit: props.gridStep, constrain: this.constrainMove,
       preview: (delta, blocked) => {
         if (!delta) { this.finishMove(); return; }
         this.moveOffset = delta; this.moveBlocked = !!blocked;

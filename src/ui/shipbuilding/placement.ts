@@ -71,7 +71,7 @@ export function placementCenter(piece: BuilderPlacement, hit: PlacementHit, step
   const normal = hit.normal;
   const axis = dominantAxis(normal), sign = Math.sign(normal[axis]) || 1;
   if (piece.kind === 'boundary') {
-    const offset = snapCoordinate(hit.point[{ x: 0, y: 1, z: 2 }[piece.axis]], 1);
+    const offset = snapCoordinate(hit.point[{ x: 0, y: 1, z: 2 }[piece.axis]], step);
     return hit.point.map((value, index) => index === { x: 0, y: 1, z: 2 }[piece.axis] ? offset : value) as Vec3;
   }
   const extents = pieceExtents(piece);
