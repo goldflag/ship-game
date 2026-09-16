@@ -10,7 +10,7 @@ import { armorThicknessColor } from '../../ships/inspection';
 import { surfaceKey } from '../../ships/constructionEditor';
 import { constructionPaintColor } from '../../ships/constructionPaints';
 import { snapCoordinate } from './editorNumbers';
-import { dominantAxis, fillLattice, pieceExtents, placementCenter, strokeSegment } from './placement';
+import { dominantAxis, fillLattice, pieceExtents, physicalPlacementHit, placementCenter, strokeSegment } from './placement';
 import { primitiveOutlineGeometry, primitiveGeometry, placementGeometry, placementRotation, type BuilderPlacement } from './primitiveGeometry';
 import { createConstructionHull } from '../../game/constructionModel';
 import { createConstructionPathModel } from '../../game/constructionPathModel';
@@ -433,7 +433,8 @@ class Viewport {
     const surface = hit.object.userData.hull ? this.surfaceTriangles[hit.faceIndex ?? -1] : undefined;
     const facing = hit.face ? hit.face.normal.clone().transformDirection(hit.object.matrixWorld) : ray.ray.direction.clone().negate();
     if (facing.dot(ray.ray.direction) > 0) facing.negate();
-    const normal = facing.toArray() as Vec3, axis = dominantAxis(normal), raw = hit.point.toArray() as Vec3;
+    const { point: raw, normal } = physicalPlacementHit({ point: hit.point.toArray() as Vec3, normal: facing.toArray() as Vec3 }, surface);
+    const axis = dominantAxis(normal);
     const supportId = surface?.primitiveId.startsWith('equipment:') ? surface.primitiveId.slice('equipment:'.length) : undefined;
     const id = supportId && this.props.source.construction.equipment.some(item => item.id === supportId) ? supportId : surface?.primitiveId ?? hit.object.userData.sourceId;
     const primitive = this.props.source.construction.primitives.find(part => part.id === id), piece = this.props.placementPiece;
