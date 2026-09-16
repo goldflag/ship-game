@@ -16,6 +16,7 @@ import { Icon } from './Icons';
 import { FleetHud } from './FleetHud';
 import { BinocularOverlay } from './BinocularOverlay';
 import { Garage } from './Garage';
+import type { AccountSession } from './AccountGate';
 import { selectedShip as initialShip } from '../ships/presets';
 import { ShipContext } from './ShipContext';
 import { bindingLabel, KEYBINDING_STORAGE_KEY, loadKeybindings, type Keybindings } from '../game/keybindings';
@@ -47,7 +48,7 @@ import { createStarterSource } from '../ships/constructionStarter';
 
 const INITIAL_TELEMETRY: Telemetry = { ship: createShipState(), order: 1, camera: 'Chase', fps: 0, backend: 'webgpu', trail: [] };
 
-export function App() {
+export function App({ account }: { account?: AccountSession }) {
   const [selectedShip, setSelectedShip] = useState(initialShip);
   const selectedRef = useRef(selectedShip);
   const [switching, setSwitching] = useState(false);
@@ -404,6 +405,15 @@ export function App() {
   const closeGame = () => {
     window.close();
   };
+  const [signingOut, setSigningOut] = useState(false);
+  const [signOutError, setSignOutError] = useState('');
+  const signOut = async () => {
+    if (!account) return;
+    setSigningOut(true); setSignOutError('');
+    try { await account.signOut(); }
+    catch { setSignOutError('Could not sign out. Retry when connected.'); }
+    finally { setSigningOut(false); }
+  };
   const changeHud = (next: HudSettings): boolean => {
     setHudSettings(next);
     try { localStorage.setItem(HUD_STORAGE_KEY, JSON.stringify(next)); return true; }
@@ -420,7 +430,7 @@ export function App() {
       if (!(target instanceof HTMLElement && target.closest('input, textarea, [contenteditable]:not([contenteditable="false"])'))) event.preventDefault();
     }}>
     <div ref={host} className="ocean-viewport" inert={!ready || !!error} data-ship-labels={phase === 'sailing' && hud && ready && !error && !data.airOperationsOpen} />
-    {phase === 'garage' && ready && !error && !battleOpen && !builder && <Garage key={selectedShip.id} switching={switching || builderOpening} switchError={switchError} onSelectShip={switchShip} game={game.current} ready={ready} fps={data.fps} performance={data.performance} onBattle={pressBattle} onBuild={() => void openBuilder()} onEditDesign={id => void openBuilder(id)} onDeleteDesign={deletedDesign} libraryLoading={libraryLoading} onChooseBattle={openSortieBoard} lastMode={battleMode} onSettings={() => game.current?.setPaused(true)}/>}
+    {phase === 'garage' && ready && !error && !battleOpen && !builder && <Garage key={selectedShip.id} switching={switching || builderOpening} switchError={switchError} onSelectShip={switchShip} game={game.current} ready={ready} fps={data.fps} performance={data.performance} onBattle={pressBattle} onBuild={() => void openBuilder()} onEditDesign={id => void openBuilder(id)} onDeleteDesign={deletedDesign} libraryLoading={libraryLoading} onChooseBattle={openSortieBoard} lastMode={battleMode} accountName={account?.name} onSettings={() => game.current?.setPaused(true)}/>}
     {phase === 'garage' && sortieOpen && !battleOpen && <SortieBoard lastMode={battleMode} onChoose={openBattle} onClose={() => setSortieOpen(false)}/>}
     {battleOpen && <BattleDialog initialMode={battleMode} initialShipId={selectedShip.id} loading={!!battleLoading} onClose={() => setBattleOpen(false)}
       setup={battleSetup} onSetupChange={setBattleSetup} onLaunchCustom={() => void launch()} customError={battleError}
@@ -459,6 +469,8 @@ export function App() {
       {phase === 'sailing' && <Button variant="secondary" className="restart-button" onClick={() => void returnToPort()}>{trial ? 'Return to shipbuilder' : battleExitLabel(game.current?.simulation)} <Icon name="anchor" size={18}/></Button>}
       <Button variant="secondary" className="menu-action" onClick={() => setSettingsOpen(true)}>Settings <Icon name="settings" size={18}/></Button>
       <Button variant="secondary" className="menu-action close-game-button" onClick={closeGame}>Close game <Icon name="power" size={18}/></Button>
+      {phase === 'garage' && account && <Button variant="secondary" className="menu-action" disabled={signingOut} onClick={() => void signOut()}>{signingOut ? 'Signing out…' : 'Sign out'}</Button>}
+      {signOutError && <p className="menu-error" role="alert">{signOutError}</p>}
       {phase === 'sailing' && <div className="menu-controls">
         <span><kbd>{bindingLabel(bindings, 'camera')}</kbd> Change camera</span>
         <span><kbd>{bindingLabel(bindings, 'recenter')}</kbd> Recenter view</span>
