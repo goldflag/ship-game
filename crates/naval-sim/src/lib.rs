@@ -1,6 +1,7 @@
 //! Renderer-free naval simulation shared by the native server and browser WASM.
 pub mod catalog;
 pub mod construction_geometry;
+pub mod compartment_geometry;
 #[path = "../../../assets/parts/construction/hull_shapes.rs"]
 pub mod construction_shapes;
 pub mod construction;
@@ -97,3 +98,5 @@ pub const SIMULATION_BUILD: &str = env!("NAVAL_SIMULATION_BUILD");
 pub mod air_recovery;
 pub mod air_search;
 pub mod pve_air;
+
+pub mod runtime_encoding;

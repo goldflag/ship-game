@@ -76,10 +76,12 @@ collection, 128 faces per cell and 16,384 flooding connections. Intermediate
 counts differ from final runtime cells. The compiled definition is large and
 source compilation/initial trial loading can take tens of seconds. Reset reuses
 the same verified immutable definitions and does not recompile the source.
-The compact published definition is approximately 77 MiB. Construction presets
-import it as JSON text to avoid TypeScript's per-leaf inference overhead; the
-game still loads the complete definition, and the production build reports a
-large bundle. This is not yet an optimized fleet-scale structural representation.
+The full compiled definition remains approximately 77 MiB as a build/debug artifact.
+Published play uses an exact indexed runtime projection (about 17.4 MB uncompressed)
+and loads it only when needed. This is still above the proposed 1 MB goal; exact
+clipped volumes remain expensive. See [runtime representation, benchmarks and
+limits](../../../docs/ship-runtime-performance.md). No compartment, armor or
+clearance simplification is enabled.
 
 The registered preset is `admiral-hipper-construction` (displayed as
 “Admiral Hipper · 1943 source fit”); the original `admiral-hipper` remains available.

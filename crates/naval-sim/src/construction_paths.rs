@@ -69,7 +69,7 @@ impl Member {
                 length(sub(self.b, self.a)),
             ],
         );
-        for face in &mut cell.faces {
+        for face in std::sync::Arc::make_mut(&mut cell.faces) {
             for p in &mut face.vertices {
                 *p = add(
                     center,

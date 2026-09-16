@@ -13,6 +13,7 @@ struct Slice {
 #[derive(Clone, Debug)]
 struct PolyCell {
     shape: crate::definition::ConvexVolume,
+    density: f64,
     full: crate::construction_geometry::Moments,
     vertices: Vec<Vec3>,
 }
@@ -50,20 +51,48 @@ impl HullHydrostatics {
         stations.sort_by(f64::total_cmp);
         stations.dedup();
         let mut result = Self {
-            cells: h.volume.as_ref().map(|v| {
-                v.cells
-                    .iter()
-                    .map(|c| PolyCell {
-                        shape: c.clone(),
-                        full: crate::construction_geometry::moments(c),
-                        vertices: c
-                            .faces
-                            .iter()
-                            .flat_map(|f| f.vertices.iter().copied())
-                            .collect(),
-                    })
-                    .collect()
-            }),
+            cells: if let Some(proxy) = &h.buoyancy {
+                Some(
+                    proxy
+                        .cells
+                        .iter()
+                        .map(|c| {
+                            let shape = crate::construction_geometry::box_cell(c.center, c.size);
+                            let mut full = crate::construction_geometry::moments(&shape);
+                            let density = c.volume_m3 / full.volume;
+                            full.volume *= density;
+                            full.first = full.first.map(|v| v * density);
+                            let vertices = shape
+                                .faces
+                                .iter()
+                                .flat_map(|f| f.vertices.iter().copied())
+                                .collect();
+                            PolyCell {
+                                shape,
+                                full,
+                                vertices,
+                                density,
+                            }
+                        })
+                        .collect(),
+                )
+            } else {
+                h.volume.as_ref().map(|v| {
+                    v.cells
+                        .iter()
+                        .map(|c| PolyCell {
+                            shape: c.clone(),
+                            density: 1.,
+                            full: crate::construction_geometry::moments(c),
+                            vertices: c
+                                .faces
+                                .iter()
+                                .flat_map(|f| f.vertices.iter().copied())
+                                .collect(),
+                        })
+                        .collect()
+                })
+            },
             slices: stations
                 .windows(2)
                 .map(|p| Slice {
@@ -124,7 +153,12 @@ impl HullHydrostatics {
                 if !outside {
                     m.add(cell.full);
                 } else if let Some(c) = crate::construction_geometry::clip(&cell.shape, n, -y) {
-                    m.add(crate::construction_geometry::moments(&c));
+                    let mut part = crate::construction_geometry::moments(&c);
+                    if cell.density != 1. {
+                        part.volume *= cell.density;
+                        part.first = part.first.map(|v| v * cell.density);
+                    }
+                    m.add(part);
                 }
             }
             return Hydrostatics {

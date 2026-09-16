@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { vendorTextures } from './scripts/build/vendor-textures';
 import { shipTransfers } from './scripts/build/ship-transfers';
 import { devPort } from './scripts/build/dev-port';
+import { presetIds } from './scripts/ships/runtime-assets';
 import { constructionFiles } from './scripts/construction/server';
 
 // Sky Pro resolves cloud volumes dynamically beside the final JS bundle.
@@ -20,7 +21,12 @@ export default defineConfig({
   plugins: [constructionFiles(root), devPort(root), react(), vendorTextures(), shipTransfers(`${root}public/models`), {
     name: 'exclude-retired-ship-reviews',
     // Old checkouts may still have ignored comparison pages in public/.
-    closeBundle() { rmSync(`${root}dist/ship-reference`, { recursive: true, force: true }); },
+    async closeBundle() {
+      rmSync(`${root}dist/ship-reference`, { recursive: true, force: true });
+      // Full compiler/debug JSON stays in the workspace; production uses the
+      // hash-checked indexed runtime assets and lightweight menu metadata.
+      for (const id of await presetIds(root)) rmSync(`${root}dist/models/${id}.json`, { force: true });
+    },
   }, {
     name: 'sky-pro-cloud-data',
     generateBundle() {
@@ -44,7 +50,7 @@ export default defineConfig({
       },
       output: { manualChunks: { 'three-engine': ['three/webgpu', 'three/tsl'], 'react': ['react', 'react-dom/client'] } },
     },
-    // Compiled ship definitions remain bundled for synchronous simulation access.
+    // Engine/rendering chunks dominate; preset simulation data is demand-loaded.
     chunkSizeWarningLimit: 7000,
   },
 });

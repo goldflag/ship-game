@@ -18,7 +18,7 @@ import { BinocularOverlay } from './BinocularOverlay';
 import { Garage } from './Garage';
 import type { AccountSession } from './AccountGate';
 import { STARTUP_INITIAL, StartupScreen, type StartupReporter } from './StartupScreen';
-import { selectedShip as initialShip } from '../ships/presets';
+import { selectedShip as initialShip, loadShipPresets } from '../ships/presets';
 import { ShipContext } from './ShipContext';
 import { bindingLabel, KEYBINDING_STORAGE_KEY, loadKeybindings, type Keybindings } from '../game/keybindings';
 import { BattleDialog } from './battle/BattleDialog';
@@ -49,7 +49,31 @@ import { createStarterSource } from '../ships/constructionStarter';
 
 const INITIAL_TELEMETRY: Telemetry = { ship: createShipState(), order: 1, camera: 'Chase', fps: 0, backend: 'webgpu', trail: [] };
 
-export function App({ account, startup }: { account?: AccountSession; startup?: StartupReporter }) {
+type AppProps = { account?: AccountSession; startup?: StartupReporter };
+export function App(props: AppProps) {
+  const admissionReporter = useRef(props.startup); admissionReporter.current = props.startup;
+  const [attempt, setAttempt] = useState(0);
+  const [admission, setAdmission] = useState<'loading' | 'ready' | 'failed'>('loading');
+  useEffect(() => {
+    let active = true;
+    setAdmission('loading');
+    admissionReporter.current?.progress('Loading ship', STARTUP_INITIAL.progress);
+    loadShipPresets([initialShip.id]).then(
+      () => { if (active) setAdmission('ready'); },
+      () => { if (active) { setAdmission('failed'); admissionReporter.current?.done(); } },
+    );
+    return () => { active = false; };
+  }, [attempt]);
+  if (admission === 'ready') return <Harbor {...props} />;
+  if (admission === 'loading') return props.startup ? null : <StartupScreen label="Loading ship" progress={STARTUP_INITIAL.progress} />;
+  return <main className="account-screen"><section className="account-form">
+    <h1>Fleet Command</h1>
+    <p role="alert">Unable to load the selected ship. Check your connection and retry.</p>
+    <button className="account-primary" onClick={() => setAttempt(value => value + 1)}>Retry loading ship</button>
+  </section></main>;
+}
+
+function Harbor({ account, startup }: AppProps) {
   const [selectedShip, setSelectedShip] = useState(initialShip);
   const selectedRef = useRef(selectedShip);
   const [switching, setSwitching] = useState(false);
@@ -344,6 +368,7 @@ export function App({ account, startup }: { account?: AccountSession; startup?: 
     if (!ready || phase !== 'garage' || !session || switchPending.current) return;
     switchPending.current = true; setSwitching(true); setSwitchError('');
     try {
+      await loadShipPresets([id]);
       const definition = resolveShip(id);
       await session.switchShip(definition);
       if (game.current !== session) return;

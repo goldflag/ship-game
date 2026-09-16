@@ -4,7 +4,7 @@ import { terrainField } from '../../src/maps/terrain';
 import maps from '../../assets/maps/environments.v1.json';
 import { createHash } from 'node:crypto';
 import { mkdir } from 'node:fs/promises';
-import { shipPresets } from '../../src/ships/presets';
+import { runtimeAssets } from '../ships/runtime-assets';
 import rules from '../../assets/gameplay/battle-rules.v1.json';
 import pveMission from '../../assets/gameplay/pve-mission.v1.json';
 import legacyAir from '../../assets/gameplay/legacy-air.v1.json';
@@ -12,11 +12,8 @@ import pveAir from '../../assets/gameplay/pve-air.v1.json';
 import { aircraftDeckGeometry } from './aircraft-deck-geometry';
 import hydrostatics from '../../assets/gameplay/hydrostatics.v1.json';
 const digest = (bytes: string) => createHash('sha256').update(bytes).digest('hex');
-const ships = await Promise.all(Object.entries(shipPresets).map(async ([id, definition]) => {
-  const json = await Bun.file(`public/models/${id}.json`).text();
-  if (JSON.parse(json).contentHash !== definition.contentHash) throw new Error(`Catalog content mismatch: ${id}`);
-  return { id, contentHash: definition.contentHash, sha256: digest(json), json };
-}));
+const { ships, summaries } = await runtimeAssets();
+const shipPresets = summaries as Record<string, import('../../src/ships/blueprint').ShipDefinition>;
 // Derived hull content: the two simulations must interpolate the same solved
 // table or their goldens drift, so it ships in the manifest rather than being
 // rebuilt per host.
@@ -38,4 +35,6 @@ const manifest = {
 const json = JSON.stringify(manifest);
 await mkdir('.build/naval-content', { recursive: true });
 await Bun.write('.build/naval-content/manifest.json', json);
+const index = { ...manifest, ships: ships.map(({ json, ...entry }) => ({ ...entry, url: '/models/runtime/' + entry.id + '.nsd' })) };
+await Bun.write('.build/naval-content/index.json', JSON.stringify(index));
 console.log(`Naval content: ${ships.length} definitions; SHA-256 ${digest(json)}`);

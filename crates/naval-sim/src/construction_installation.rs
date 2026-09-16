@@ -100,7 +100,7 @@ pub fn derive(
         };
         let outer = cylinder(radius, low - thickness, top + thickness);
         for cell in &collar {
-            for face in &cell.faces {
+            for face in cell.faces.iter() {
                 let n = cg::normal(&face.vertices);
                 if n[1] > 0.99 {
                     surface("installation-top", face.vertices.clone());

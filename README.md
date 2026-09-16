@@ -183,6 +183,8 @@ ships. Historical presets remain non-editable; online and campaign content stays
 separate. See the [shipbuilding guide](docs/shipbuilding.md) for controls, source
 identity, physical approximations and recovery.
 
+Preset menus use lightweight metadata; ship definitions and hydrostatic tables load on demand before simulation. Indexed runtime definitions retain exact gameplay geometry while sharing repeated records; native collision and hydrostatic consumers share immutable cell faces. See [runtime sizes, benchmarks and limits](docs/ship-runtime-performance.md).
+
 Production builds publish losslessly compressed ship transfers alongside the original GLBs. `src/game/loadShipModel.ts` decompresses them before the normal GLTF parse and definition-hash check; development uses the original models. The build also extracts the supplied ocean/sky libraries' embedded textures into separate hashed files, allowing the game code to start before every texture downloads. Both steps preserve the original asset bytes. See the [startup measurements](assets/reviews/startup/README.md).
 
 Fleet loading prepares one ship type at a time to limit overlapping parse and geometry buffers. PvE preloads the public recognition catalog without revealing the enemy roster, but generates runtime detail levels only for the friendly ship types: observed exteriors use the original geometry and do not consume those buffers. Hit-surface caches retain triangle-range bounds and use one temporary query mesh, keeping dense models from allocating thousands of persistent mesh objects. See the [memory regression checks](assets/reviews/runtime-memory/README.md).

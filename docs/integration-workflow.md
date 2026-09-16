@@ -67,7 +67,11 @@ changes. Commit refreshed assets; summarize validation in the task response or P
 ## Keeping additions local
 
 `src/ships/presets.ts` is the runtime roster and the source for `ship:check all`.
-Keep one import/property per line. Do not add another ship list to `package.json`
+Keep one `preset(id)` property per line. Regenerate derived runtime assets and
+`src/ships/presetCatalog.json` with `bun run multiplayer:content` after resolving
+the roster and published definitions; validate with `bun run ship:runtime:check`.
+Do not resolve generated metadata independently of those inputs.
+Do not add another ship list to `package.json`
 or a hard-coded preset count to the README. New per-ship documentation belongs
 under `assets/ships/<id>/`; shared documentation should describe the workflow.
 
