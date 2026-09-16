@@ -16,16 +16,18 @@ class Socket {
   binary(value: unknown, metadata = false) { const gzip=gzipSync(JSON.stringify(value)); const bytes=new Uint8Array(gzip.length+(metadata?1:0)); bytes.set(gzip,metadata?1:0); this.onmessage?.({data:bytes.buffer}); }
 }
 test('compressed handshake survives following deltas and reconnect resets command epoch', async () => {
-  const names=['WebSocket','sessionStorage','location','DecompressionStream'] as const;
+  const names=['WebSocket','sessionStorage','location','DecompressionStream','fetch'] as const;
   const descriptors=names.map(name=>Object.getOwnPropertyDescriptor(globalThis,name));
   const stored=new Map([['naval-match-ticket-v1','test-ticket']]);
   const NativeDecompression=globalThis.DecompressionStream; let decodes=0;
   function DelayedDecompression(format: CompressionFormat) { const stream=new NativeDecompression(format); if(++decodes!==3) return stream; return {writable:stream.writable,readable:stream.readable.pipeThrough(new TransformStream({async transform(chunk,controller){await sleep(1500);controller.enqueue(chunk);}}))}; }
-  const overrides={DecompressionStream:DelayedDecompression,WebSocket:Socket, sessionStorage:{getItem:(k:string)=>stored.get(k),removeItem:(k:string)=>stored.delete(k)},location:{href:'http://localhost/',protocol:'http:'}};
+  const content=JSON.stringify({artifacts:[]});
+  const contentHash=new Bun.CryptoHasher('sha256').update(content).digest('hex');
+  const overrides={fetch:async()=>new Response(content),DecompressionStream:DelayedDecompression,WebSocket:Socket, sessionStorage:{getItem:(k:string)=>stored.get(k),removeItem:(k:string)=>stored.delete(k)},location:{href:'http://localhost/',protocol:'http:'}};
   for(const name of names) Object.defineProperty(globalThis,name,{value:overrides[name],configurable:true,writable:true});
   const local=await HeadlessSession.create({playerShipId:'fletcher',friendlyBots:['fletcher'],enemies:['fletcher'],spawnDistance:5000});
   const baseline=JSON.parse(local.runtime.snapshot());
-  const metadata={type:'matched',matchId:'test',player:0,team:'a',connectionEpoch:2,version,setup:local.setup,environment:{timeOfDay:'morning',weather:'clear'},baseline};
+  const metadata={contentHash,type:'matched',matchId:'test',player:0,team:'a',connectionEpoch:2,version,setup:local.setup,environment:{timeOfDay:'morning',weather:'clear'},baseline};
   const frame={...baseline,tick:3,phase:'running',loaded:[true,true],connected:[true,true]};
   const connection=MatchConnection.resume(()=>{});
   try {
@@ -54,4 +56,19 @@ test('compressed handshake survives following deltas and reconnect resets comman
 test('only a running online battle offers forfeiture', () => {
   for(const phase of ['loading','countdown','cancelled','finished']) expect(battleExitLabel({networked:true,phase,result:'active'})).toBe('Return to port');
   expect(battleExitLabel({networked:true,phase:'running',result:'active'})).toBe('Forfeit and return to port');
+});
+
+test('a mismatched construction manifest cannot create a session or send Ready', async () => {
+  const names=['WebSocket','sessionStorage','location','fetch'] as const;
+  const descriptors=names.map(name=>Object.getOwnPropertyDescriptor(globalThis,name));
+  const stored=new Map([['naval-match-ticket-v1','hash-test-ticket']]);
+  const overrides={WebSocket:Socket,sessionStorage:{getItem:(k:string)=>stored.get(k),removeItem:(k:string)=>stored.delete(k)},location:{href:'http://localhost/',protocol:'http:'},fetch:async()=>new Response(JSON.stringify({artifacts:[]}))};
+  for(const name of names)Object.defineProperty(globalThis,name,{value:overrides[name],configurable:true,writable:true});
+  const connection=MatchConnection.resume(()=>{});
+  try {
+    const socket=Socket.instances.at(-1)!;
+    socket.binary({type:'matched',matchId:'hash-test',version,contentHash:'0'.repeat(64),setup:{ships:[]}},true);
+    await expect(connection.matched).rejects.toThrow('content hash mismatch');
+    expect(socket.sent.some(m=>m.type==='ready')).toBe(false);
+  } finally {connection.close(true);names.forEach((name,i)=>{const d=descriptors[i];if(d)Object.defineProperty(globalThis,name,d);else delete(globalThis as any)[name];});}
 });

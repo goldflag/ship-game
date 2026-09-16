@@ -1,3 +1,4 @@
+import { savedReference } from '../../ships/constructionCloud';
 import { DeleteDesignButton } from '../DeleteDesignButton';
 import { useEffect, useRef, useState } from 'react';
 import type { ConstructionSource } from '../../ships/blueprint';
@@ -13,15 +14,15 @@ export function downloadConstructionSource(json: string, name = 'ship-source') {
 }
 
 /** The transient list under the ship's name: new designs, backups and local revisions. */
-export function DesignsMenu({ store, currentId, refresh, onClose, onNew, onSaveCopy, onDownload, onOpen, onRecover, onDelete, onImport, disabled, partsUpdate }: {
+export function DesignsMenu({ store, currentId, refresh, onClose, onNew, onSaveCopy, onDownload, onOpen, onRecover, onDelete, disabled, partsUpdate }: {
   store?: ConstructionStore; disabled?: boolean; currentId: string; refresh?: string; onClose(): void;
-  onImport?(): void;
   onNew(kind: ConstructionStarter): void; onSaveCopy(): void; onDownload(): void;
   onOpen(source: ConstructionSource, revisionId: string): Promise<void>;
   onRecover(source: ConstructionSource): Promise<void>;
   onDelete(designId: string, revisionId: string): Promise<void>;
   partsUpdate?: { changedParts: string[]; missingParts: string[]; onApply(): void };
 }) {
+  currentId = savedReference(currentId)?.designId ?? currentId;
   const [designs, setDesigns] = useState<ConstructionDesignHead[]>([]);
   const [revisions, setRevisions] = useState<ConstructionRevision[]>([]);
   const [chosen, setChosen] = useState('');
@@ -59,7 +60,7 @@ export function DesignsMenu({ store, currentId, refresh, onClose, onNew, onSaveC
   const when = (time: number) => new Date(time).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
   return <div ref={menu} className="sb-menu" role="menu" aria-label="Designs">
     <div className="sb-menu-row"><span className="sb-lead">New</span><button role="menuitem" disabled={loading || disabled} onClick={() => onNew('patrol')}>Patrol hull</button><button role="menuitem" disabled={loading || disabled} onClick={() => onNew('catamaran')}>Twin hull</button><button role="menuitem" disabled={loading || disabled} onClick={() => onNew('blank')}>New design</button></div>
-    <div className="sb-menu-row"><span className="sb-lead">This design</span>{onImport && <button role="menuitem" disabled={loading || disabled} onClick={onImport}>Import source</button>}<button role="menuitem" disabled={loading || disabled} onClick={onSaveCopy}>Save as copy</button><button role="menuitem" disabled={loading || disabled} onClick={onDownload}>Download backup</button></div>
+    <div className="sb-menu-row"><span className="sb-lead">This design</span><button role="menuitem" disabled={loading || disabled} onClick={onSaveCopy}>Save as copy</button><button role="menuitem" disabled={loading || disabled} onClick={onDownload}>Download backup</button></div>
     {partsUpdate && <div className="sb-menu-list">
       <button role="menuitem" disabled={loading || disabled || !!partsUpdate.missingParts.length} onClick={() => {
         if (partsUpdate.changedParts.length && !reviewParts) setReviewParts(true);
@@ -70,8 +71,8 @@ export function DesignsMenu({ store, currentId, refresh, onClose, onNew, onSaveC
         : <p>Add the latest fittings to this design’s palette.</p>}
     </div>}
     <div className="sb-menu-list">
-      <span className="sb-lead">Local designs</span>
-      {!store && <p>Local storage is unavailable. Download the current source to keep a backup.</p>}
+      <span className="sb-lead">Saved designs</span>
+      {!store && <p>Account storage is unavailable. Download the current source to keep a backup.</p>}
       {store && !designs.length && <p>No designs saved yet. Sources save here automatically.</p>}
       {designs.map(design => <div className="sb-menu-design" key={design.id}>
         <button role="menuitem" disabled={loading || disabled} aria-pressed={chosen === design.id} onClick={() => browse(design.id)}>
@@ -90,7 +91,7 @@ export function DesignsMenu({ store, currentId, refresh, onClose, onNew, onSaveC
         <button role="menuitem" disabled={loading || disabled} onClick={() => recover(revision)}>Recover copy</button>
         <button role="menuitem" onClick={() => downloadConstructionSource(revision.sourceJson, `source-${revision.id}`)}>Download</button></div>)}
     </div>}
-    {loading && <p role="status">Updating local designs…</p>}
+    {loading && <p role="status">Updating saved designs…</p>}
     {error && <p role="alert" className="bad">{error}</p>}
   </div>;
 }

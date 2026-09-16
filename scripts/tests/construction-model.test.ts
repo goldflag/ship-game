@@ -16,7 +16,7 @@ import { createDamage, type Combatant } from '../../src/simulation/damage';
 import { createShipState } from '../../src/simulation/ship';
 import { createMountState } from '../../src/simulation/weapons';
 import { createTubeState } from '../../src/simulation/torpedoes';
-import { deckFittingsFixture, equipmentReviewSource } from './construction-model-fixtures';
+import { cruiserEquipmentFixture, deckFittingsFixture, equipmentReviewSource } from './construction-model-fixtures';
 import { nativeConstructionMuzzles } from './construction-model-native';
 import { installedSupportContacts } from './construction-model-support';
 
@@ -42,7 +42,9 @@ test('every published part has a supported fixture while weapons retain canonica
   expect(result.diagnostics.filter(d => d.severity === 'error')).toEqual([]);
   expect(result.definition!.mounts).toHaveLength(8);
   expect(result.definition!.torpedoTubes).toHaveLength(10);
-  const fittings = deckFittingsFixture(catalog), fitted = [...source.construction.equipment, ...fittings.construction.equipment];
+  const fittings = deckFittingsFixture(catalog), cruiser = cruiserEquipmentFixture(catalog);
+  expect(compile(cruiser).diagnostics.filter(d => d.severity === 'error')).toEqual([]);
+  const fitted = [...source.construction.equipment, ...fittings.construction.equipment, ...cruiser.construction.equipment];
   expect(compile(fittings).diagnostics.filter(d => d.severity === 'error')).toEqual([]);
   expect([...new Set(fitted.map(p => p.partId))].sort()).toEqual(catalog.equipment.map(p => p.id).sort());
   expect(result.definition!.torpedoTubes!.map(t => t.id)).toEqual(['torpedo-a', 'torpedo-b'].flatMap(id => Array.from({ length: 5 }, (_, i) => `${id}.tube-${i + 1}`)));

@@ -6,7 +6,7 @@ The port's **New design** and **Edit design** actions open a source editor aroun
 
 The ship fills a dry construction viewport without a ground grid or water plane, over a neutral studio sweep (a radial grey gradient lit at the centre) rather than the port's maritime blue; the chrome is neutral grey and the scene's hemisphere ground light is neutral so paint colours read true. Chrome follows the Fleet action instrument language of [DESIGN.md](../../../DESIGN.md). Compact maritime cards group palette slots, tool buttons and object values; the top bar and ledger stay open to the scene.
 
-- **Top bar.** `‹ Port` saves and returns. The design name is an inline field; the reading beside it (`12 pieces · 7 fittings`) opens the **Designs** menu: a new one-block design, Patrol / Twin hull templates, Save as copy, Download backup, and the local designs with their revisions (open latest, recover a copy, download the original, delete the design). The save state reads *Saved locally*, *Saving…* or *Not saved · keep a backup* in mint or salmon. Layer tabs sit in the middle. Undo and redo show their depth; **SEA TRIALS** is the one brass command and is disabled while a block exists or the revision is compiling.
+- **Top bar.** `‹ Port` saves and returns. The design name is an inline field; the reading beside it (`12 pieces · 7 fittings`) opens the **Designs** menu: a new one-block design, Patrol / Twin hull templates, Save as copy, Download backup, and account designs with their revisions (open latest, recover a copy, download the original, delete the design). The save state reads *Saved*, *Saving…* or *Not saved · keep a backup* in mint or salmon. Layer tabs sit in the middle. Undo and redo show their depth; **SEA TRIALS** is the one brass command and is disabled while a block exists or the revision is compiling.
 - **Warnings line** (upper left). `N BLOCKS · M WARNINGS`, expanded to one row per native diagnostic; **W** collapses it. Blocks (salmon) stop a trial and name the fix; warnings (gold) let an unsafe design sail; design notes (mint) are informational. A row with a source reference selects the affected part. Storage or compile errors, layout proposals and short notices appear as rows in the same strip.
 - **Tool rail** (left edge) changes with the layer; each tool prints its key. Each button is a bordered maritime card. The active tool has a brass border and tinted fill; enabled toggles (Mirror, Arc) use mint. The last card, **Keys** (`?`), opens a dialog listing every mouse control and hotkey, with each layer's tools taken from the rail definitions.
 - **Hotbar** (bottom). Nine square cards keyed **1–9** hold the layer's palette and show the piece itself: hull shapes and catalog parts are rendered from their real geometry by one offscreen context the first time a layer opens (`slotImages.ts`, cached for the session), armor and paint cards are full swatches, and internals tools keep their glyphs. Hull cards print the piece's metres in their bottom-left corner and the vertex hull card wears its corner handles; the ballast card also carries a small **100 t** label. Hovering or focusing a card shows its name and reading in a tooltip. The active card is outlined in brass; the trailing `…` (**0**) opens a boxed panel above the bar with every card. Both Hull and Fittings panels have a search field. A card's tooltip hangs under the bar and ends with its key. Above the cards a readout names the cursor piece with its editable size fields (or a fitting's placement and bearing) and the ghost's cell coordinates; while a selection is being dragged it shows the offset instead, and the open drawer takes its place. The palette sits near the bottom edge with the view controls on the same line at the right, stacked into a column on windows under 1640 px; below 740 px the palette wraps into two rows above the view controls.
@@ -97,11 +97,18 @@ The default compiler is `ConstructionClient`, using a dedicated module worker. N
 
 Only canonical faces belonging to source hull primitives can receive armor, paint or opening assignments. Native fixed equipment-support surfaces remain rendered and physically inspectable; hull coverage counts only editable exterior hull skin. Fixed supports never become editable hull keys. Face IDs containing colons are retained without splitting the primitive identity.
 
-Module map: `builderLayers.ts` (layers, rails, palettes), `placement.ts` (face-adjacent snapping, runs, fills, mirror twins), `pathDrawing.ts` (pending route points and support-socket anchoring), `PathPointEditor.tsx` (inline route coordinates, point insertion/removal and rope slack), `builderReadings.ts` (ledger rows, mass groups, warnings), `BuilderViewport.tsx` (three.js scene, picking, ghost, move drags, tags, arcs), `slotImages.ts` (offscreen card renders of hull shapes and catalog parts), `HelpDialog.tsx` (controls and hotkeys), `DesignsMenu.tsx`, `NumberField.tsx` (inline tag fields), `useBuilderSource.ts` (history, autosave, compile gate). In development the viewport exposes itself as `window.shipbuilderViewport` for browser checks.
+Module map: `builderLayers.ts` (layers, rails, palettes), `placement.ts` (face-adjacent snapping, runs, fills, mirror twins), `pathDrawing.ts` (pending route points and support-socket anchoring), `PathPointEditor.tsx` (inline route coordinates, point insertion/removal and rope slack), `builderReadings.ts` (ledger rows, mass groups, warnings), `BuilderViewport.tsx` (three.js scene, picking, ghost, move drags, tags, arcs), `slotImages.ts` (offscreen card renders of hull shapes and catalog parts), `HelpDialog.tsx` (controls and hotkeys), `DesignsMenu.tsx`, `NumberField.tsx` (inline tag fields), `useBuilderSource.ts` (React, storage opening and compile gate), `src/ships/constructionRevisionOwner.ts` (history, revision adoption, autosave ordering and conflict recovery). In development the viewport exposes itself as `window.shipbuilderViewport` for browser checks.
 
 ## Source storage and recovery
 
 `openConstructionStore()` in `src/ships/constructionStore.ts` opens IndexedDB database `fleet-command-construction`. It returns `list`, `load`, `revisions`, `save`, `remove` and `close`. `save` accepts a source, its schema/catalog versions and `expectedRevisionId`; one transaction writes the immutable revision and advances the design head. A stale head rejects the whole transaction. No compiled geometry, runtime damage or renderer objects are stored.
+
+`ConstructionRevisionOwner` owns editable history, the acknowledged save head and
+source adoption for replacement, repository reload and polling. Edits enqueue
+synchronously, so the agent editor handle can apply, read and flush a revision in
+one turn; compiled output is available only for the exact current revision and
+adoption. The React hook subscribes to that state and retains compiler debounce,
+cancellation and browser lifecycle handling.
 
 `ConstructionAutosave` serializes writes and coalesces pending edits. It advances the expected head only after commit and retains the newest unsaved draft after an error. Source undo/redo is separate from autosave and compile results, retaining up to 50 undo steps. Saved revisions remain available after reopening the app; the store does not prune them automatically. Delete in the editor menu or port list uses an inline confirmation and atomically removes the design and every retained revision. Concurrent edits reject a stale deletion, and stale autosaves cannot recreate a deleted head. Deleting the open design drains its writer and opens a new one-block design.
 
@@ -120,6 +127,13 @@ bun test src/ui/shipbuilding/primitiveGeometry.test.ts
 bunx tsc --noEmit
 bun run build
 ```
+
+`bun run ship:browser:check` automates the repository-authoring, storage,
+design-deletion and shipbuilder-editing helpers below in headed Chromium;
+append `--headless` for CI. It uses disposable files and fresh browser storage.
+Install Chromium with `bunx playwright install chromium`, or set
+`CONSTRUCTION_CHROME` to an existing executable. Failure screenshots are saved
+under ignored `.build/construction-browser/`.
 
 Browser helpers run against the real application toolchain and IndexedDB without test-only storage dependencies. `scripts/diagnostics/shipbuilder.html` mounts the editor alone on the Vite dev server for layout review; import the check modules from that page:
 

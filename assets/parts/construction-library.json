@@ -174,6 +174,130 @@
         "assets/parts/construction/geometry.py"
       ]
     },
+    "german-cruiser-funnel-cap": {
+      "path": "assets/parts/german-cruiser-equipment/geometry.py",
+      "function": "create_funnel_cap",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "german-cruiser-screw-port": {
+      "path": "assets/parts/german-cruiser-equipment/geometry.py",
+      "function": "create_screw",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "german-cruiser-screw-starboard": {
+      "path": "assets/parts/german-cruiser-equipment/geometry.py",
+      "function": "create_screw",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "german-cruiser-rudder": {
+      "path": "assets/parts/german-cruiser-equipment/geometry.py",
+      "function": "create_rudder",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "steam-machinery-82000kw": {
+      "path": "assets/parts/german-cruiser-equipment/geometry.py",
+      "function": "create_steam_package",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "cruiser-magazine-50000": {
+      "path": "assets/parts/construction/geometry.py",
+      "function": "create_magazine",
+      "inputs": []
+    },
+    "german-triple-533": {
+      "path": "assets/parts/german-cruiser-equipment/geometry.py",
+      "function": "create_triple_launcher",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "german-sl8-director": {
+      "path": "assets/parts/german-cruiser-equipment/geometry.py",
+      "function": "create_sl_eight",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "german-cruiser-catapult": {
+      "path": "assets/parts/german-cruiser-equipment/geometry.py",
+      "function": "create_catapult",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "german-cutter-750": {
+      "path": "assets/parts/german-cruiser-equipment/geometry.py",
+      "function": "create_launch",
+      "inputs": [
+        "assets/parts/construction/geometry.py",
+        "scripts/ships/blender_fidelity.py"
+      ]
+    },
+    "german-traffic-boat-1170": {
+      "path": "assets/parts/german-cruiser-equipment/geometry.py",
+      "function": "create_launch",
+      "inputs": [
+        "assets/parts/construction/geometry.py",
+        "scripts/ships/blender_fidelity.py"
+      ]
+    },
+    "german-motor-launch-900": {
+      "path": "assets/parts/german-cruiser-equipment/geometry.py",
+      "function": "create_launch",
+      "inputs": [
+        "assets/parts/construction/geometry.py",
+        "scripts/ships/blender_fidelity.py"
+      ]
+    },
+    "german-open-launch-1000": {
+      "path": "assets/parts/german-cruiser-equipment/geometry.py",
+      "function": "create_launch",
+      "inputs": [
+        "assets/parts/construction/geometry.py",
+        "scripts/ships/blender_fidelity.py"
+      ]
+    },
+    "german-guarded-director-optic": {
+      "path": "assets/parts/german-cruiser-equipment/geometry.py",
+      "function": "create_guarded_optic",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "german-cruiser-capstan": {
+      "path": "assets/parts/german-cruiser-deck-fittings/geometry.py",
+      "function": "create_capstan",
+      "inputs": [
+        "assets/parts/construction/geometry.py",
+        "assets/parts/construction/deck_fittings.py"
+      ]
+    },
+    "german-cruiser-deck-hatch": {
+      "path": "assets/parts/german-cruiser-deck-fittings/geometry.py",
+      "function": "create_hatch",
+      "inputs": [
+        "assets/parts/construction/geometry.py",
+        "assets/parts/construction/deck_fittings.py"
+      ]
+    },
+    "german-cruiser-searchlight": {
+      "path": "assets/parts/german-cruiser-deck-fittings/geometry.py",
+      "function": "create_searchlight",
+      "inputs": [
+        "assets/parts/construction/geometry.py",
+        "assets/parts/construction/deck_fittings.py"
+      ]
+    },
     "generic-steam-plant-36000kw": {
       "path": "assets/parts/construction/capital_machinery.py",
       "function": "create_steam_plant",
@@ -357,6 +481,108 @@
       "builder": "generic-inclined-stairs",
       "review": "unreviewed",
       "limitations": "Original generic naval fitting with fixed attachment datum. Dimensions and dry mass are provisional engineering estimates, not a historical reconstruction. Boat/davits and doors/hatches remain stowed/closed. Searchlight is non-functional. Installed support and clearance require native validation and visual review."
+    },
+    {
+      "partId": "german-cruiser-funnel-cap",
+      "builder": "german-cruiser-funnel-cap",
+      "review": "unreviewed",
+      "limitations": "Original Hipper source adaptation, or explicitly provisional machinery/magazine package. Fresh external reference verification incomplete. Per-installation attachment and articulation review required."
+    },
+    {
+      "partId": "german-cruiser-screw-port",
+      "builder": "german-cruiser-screw-port",
+      "review": "unreviewed",
+      "limitations": "Original Hipper source adaptation, or explicitly provisional machinery/magazine package. Fresh external reference verification incomplete. Per-installation attachment and articulation review required."
+    },
+    {
+      "partId": "german-cruiser-screw-starboard",
+      "builder": "german-cruiser-screw-starboard",
+      "review": "unreviewed",
+      "limitations": "Original Hipper source adaptation, or explicitly provisional machinery/magazine package. Fresh external reference verification incomplete. Per-installation attachment and articulation review required."
+    },
+    {
+      "partId": "german-cruiser-rudder",
+      "builder": "german-cruiser-rudder",
+      "review": "unreviewed",
+      "limitations": "Original Hipper source adaptation, or explicitly provisional machinery/magazine package. Fresh external reference verification incomplete. Per-installation attachment and articulation review required."
+    },
+    {
+      "partId": "steam-machinery-82000kw",
+      "builder": "steam-machinery-82000kw",
+      "review": "unreviewed",
+      "limitations": "Original Hipper source adaptation, or explicitly provisional machinery/magazine package. Fresh external reference verification incomplete. Per-installation attachment and articulation review required."
+    },
+    {
+      "partId": "cruiser-magazine-50000",
+      "builder": "cruiser-magazine-50000",
+      "review": "unreviewed",
+      "limitations": "Original Hipper source adaptation, or explicitly provisional machinery/magazine package. Fresh external reference verification incomplete. Per-installation attachment and articulation review required."
+    },
+    {
+      "partId": "german-triple-533",
+      "builder": "german-triple-533",
+      "review": "unreviewed",
+      "limitations": "Original Hipper source adaptation, or explicitly provisional machinery/magazine package. Fresh external reference verification incomplete. Per-installation attachment and articulation review required."
+    },
+    {
+      "partId": "german-sl8-director",
+      "builder": "german-sl8-director",
+      "review": "unreviewed",
+      "limitations": "Original approved Hipper source adaptation; fresh external verification incomplete."
+    },
+    {
+      "partId": "german-cruiser-catapult",
+      "builder": "german-cruiser-catapult",
+      "review": "unreviewed",
+      "limitations": "Original approved Hipper source adaptation; fresh external verification incomplete."
+    },
+    {
+      "partId": "german-cutter-750",
+      "builder": "german-cutter-750",
+      "review": "unreviewed",
+      "limitations": "Original Hipper source boat, fixed stowed pose; no boat-launching simulation."
+    },
+    {
+      "partId": "german-traffic-boat-1170",
+      "builder": "german-traffic-boat-1170",
+      "review": "unreviewed",
+      "limitations": "Original Hipper source boat, fixed stowed pose; no boat-launching simulation."
+    },
+    {
+      "partId": "german-motor-launch-900",
+      "builder": "german-motor-launch-900",
+      "review": "unreviewed",
+      "limitations": "Original Hipper source boat, fixed stowed pose; no boat-launching simulation."
+    },
+    {
+      "partId": "german-open-launch-1000",
+      "builder": "german-open-launch-1000",
+      "review": "unreviewed",
+      "limitations": "Original Hipper source boat, fixed stowed pose; no boat-launching simulation."
+    },
+    {
+      "partId": "german-guarded-director-optic",
+      "builder": "german-guarded-director-optic",
+      "review": "unreviewed",
+      "limitations": "Original source outer optical tube and protective guard, mounted on a separate ship-authored director housing."
+    },
+    {
+      "partId": "german-cruiser-capstan",
+      "builder": "german-cruiser-capstan",
+      "review": "unreviewed",
+      "limitations": "Original approved local Hipper component; fresh external reference verification incomplete. Static fitting; per-installation review required."
+    },
+    {
+      "partId": "german-cruiser-deck-hatch",
+      "builder": "german-cruiser-deck-hatch",
+      "review": "unreviewed",
+      "limitations": "Original approved local Hipper component; fresh external reference verification incomplete. Static fitting; per-installation review required."
+    },
+    {
+      "partId": "german-cruiser-searchlight",
+      "builder": "german-cruiser-searchlight",
+      "review": "unreviewed",
+      "limitations": "Original approved local Hipper component; fresh external reference verification incomplete. Static fitting; per-installation review required."
     },
     {
       "partId": "generic-steam-plant-36000kw",

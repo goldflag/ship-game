@@ -32,117 +32,138 @@ pub fn preview_articulation_json(
     current: &str,
     requested: &str,
 ) -> Result<String, JsValue> {
-    use naval_sim::{
-        definition::ShipDefinition,
-        mount_clearance::{
-            ClearancePose, ClearanceResult, MountClearance, move_mount_with_clearance,
-        },
-        weapons::MountState,
-    };
-    let def: ShipDefinition = serde_json::from_str(definition).map_err(error)?;
-    let mut poses: Vec<ClearancePose> = serde_json::from_str(current).map_err(error)?;
-    let mut targets: Vec<ClearancePose> = serde_json::from_str(requested).map_err(error)?;
-    if poses.len() != def.mounts.len() || targets.len() != poses.len() {
-        return Err(error("Articulation requires one pose per mount"));
+    ArticulationPreview::new(definition)?.resolve(current, requested)
+}
+
+/// One immutable reviewed definition and its native collision acceleration data.
+/// Repeated sample poses retain exactly the stateless resolver's behavior.
+#[wasm_bindgen]
+pub struct ArticulationPreview {
+    definition: naval_sim::definition::ShipDefinition,
+    clearance: Option<naval_sim::mount_clearance::MountClearance>,
+}
+#[wasm_bindgen]
+impl ArticulationPreview {
+    #[wasm_bindgen(constructor)]
+    pub fn new(definition: &str) -> Result<ArticulationPreview, JsValue> {
+        let definition = serde_json::from_str(definition).map_err(error)?;
+        let clearance =
+            naval_sim::mount_clearance::MountClearance::new(&definition).map_err(error)?;
+        Ok(Self {
+            definition,
+            clearance,
+        })
     }
-    if !poses.iter().chain(&targets).all(|p| {
-        [p.train, p.elevation, p.recoil]
-            .iter()
-            .all(|v| v.is_finite())
-    }) {
-        return Err(error("Articulation poses must be finite"));
-    }
-    for (index, target) in targets.iter_mut().enumerate() {
-        let weapon = &def.mounts[index].weapon;
-        let limits = def.mounts[index]
-            .traverse_limits_deg
-            .unwrap_or([-weapon.traverse_deg, weapon.traverse_deg]);
-        *target = ClearancePose {
-            train: target
-                .train
-                .clamp(limits[0].to_radians(), limits[1].to_radians()),
-            elevation: target.elevation.clamp(
-                weapon.elevation_min_deg.to_radians(),
-                weapon.elevation_max_deg.to_radians(),
-            ),
-            recoil: target.recoil.clamp(0.0, 1.0),
+    pub fn resolve(&self, current: &str, requested: &str) -> Result<String, JsValue> {
+        use naval_sim::{
+            mount_clearance::{ClearancePose, ClearanceResult, move_mount_with_clearance},
+            weapons::MountState,
         };
-    }
-    // Validate either profile encoding before entering its native resolver.
-    let clearance = MountClearance::new(&def).map_err(error)?;
-    if def
-        .mount_clearance
-        .as_ref()
-        .is_some_and(|p| p.mounts.is_some())
-    {
-        let mut states: Vec<_> = def
-            .mounts
-            .iter()
-            .zip(&poses)
-            .map(|(mount, pose)| {
-                let mut state = MountState::new(mount);
-                state.train = pose.train;
-                state.elevation = pose.elevation;
-                state.recoil = pose.recoil;
-                state
-            })
-            .collect();
-        // Interleave small actuator steps against the independently moving neighbors.
-        // The native helper encloses each intervening arc and the full recoil stroke.
-        let step = 0.5_f64.to_radians();
-        for _ in 0..1440 {
-            let mut moved = false;
-            for (index, target) in targets.iter().enumerate() {
-                let mut state = states[index].clone();
-                let before = (state.train, state.elevation);
-                let next = (
-                    state.train + (target.train - state.train).clamp(-step, step),
-                    state.elevation + (target.elevation - state.elevation).clamp(-step, step),
-                );
-                if !move_mount_with_clearance(&def, index, &mut state, next, &states) {
-                    let train_only = (next.0, state.elevation);
-                    move_mount_with_clearance(&def, index, &mut state, train_only, &states);
-                    let elevation_only = (state.train, next.1);
-                    move_mount_with_clearance(&def, index, &mut state, elevation_only, &states);
-                }
-                moved |= (state.train - before.0).abs() + (state.elevation - before.1).abs() > 1e-9;
-                states[index] = state;
-            }
-            if !moved {
-                break;
-            }
+        let def = &self.definition;
+        let mut poses: Vec<ClearancePose> = serde_json::from_str(current).map_err(error)?;
+        let mut targets: Vec<ClearancePose> = serde_json::from_str(requested).map_err(error)?;
+        if poses.len() != def.mounts.len() || targets.len() != poses.len() {
+            return Err(error("Articulation requires one pose per mount"));
         }
-        let results: Vec<_> = states
-            .iter()
-            .zip(&targets)
-            .map(|(state, target)| ClearanceResult {
-                pose: ClearancePose {
-                    train: state.train,
-                    elevation: state.elevation,
-                    recoil: target.recoil,
+        if !poses.iter().chain(&targets).all(|p| {
+            [p.train, p.elevation, p.recoil]
+                .iter()
+                .all(|v| v.is_finite())
+        }) {
+            return Err(error("Articulation poses must be finite"));
+        }
+        for (index, target) in targets.iter_mut().enumerate() {
+            let weapon = &def.mounts[index].weapon;
+            let limits = def.mounts[index]
+                .traverse_limits_deg
+                .unwrap_or([-weapon.traverse_deg, weapon.traverse_deg]);
+            *target = ClearancePose {
+                train: target
+                    .train
+                    .clamp(limits[0].to_radians(), limits[1].to_radians()),
+                elevation: target.elevation.clamp(
+                    weapon.elevation_min_deg.to_radians(),
+                    weapon.elevation_max_deg.to_radians(),
+                ),
+                recoil: target.recoil.clamp(0.0, 1.0),
+            };
+        }
+        let clearance = &self.clearance;
+        if def
+            .mount_clearance
+            .as_ref()
+            .is_some_and(|p| p.mounts.is_some())
+        {
+            let mut states: Vec<_> = def
+                .mounts
+                .iter()
+                .zip(&poses)
+                .map(|(mount, pose)| {
+                    let mut state = MountState::new(mount);
+                    state.train = pose.train;
+                    state.elevation = pose.elevation;
+                    state.recoil = pose.recoil;
+                    state
+                })
+                .collect();
+            // Interleave small actuator steps against the independently moving neighbors.
+            // The native helper encloses each intervening arc and the full recoil stroke.
+            let step = 0.5_f64.to_radians();
+            for _ in 0..1440 {
+                let mut moved = false;
+                for (index, target) in targets.iter().enumerate() {
+                    let mut state = states[index].clone();
+                    let before = (state.train, state.elevation);
+                    let next = (
+                        state.train + (target.train - state.train).clamp(-step, step),
+                        state.elevation + (target.elevation - state.elevation).clamp(-step, step),
+                    );
+                    if !move_mount_with_clearance(&def, index, &mut state, next, &states) {
+                        let train_only = (next.0, state.elevation);
+                        move_mount_with_clearance(&def, index, &mut state, train_only, &states);
+                        let elevation_only = (state.train, next.1);
+                        move_mount_with_clearance(&def, index, &mut state, elevation_only, &states);
+                    }
+                    moved |=
+                        (state.train - before.0).abs() + (state.elevation - before.1).abs() > 1e-9;
+                    states[index] = state;
+                }
+                if !moved {
+                    break;
+                }
+            }
+            let results: Vec<_> = states
+                .iter()
+                .zip(&targets)
+                .map(|(state, target)| ClearanceResult {
+                    pose: ClearancePose {
+                        train: state.train,
+                        elevation: state.elevation,
+                        recoil: target.recoil,
+                    },
+                    blocked: (state.train - target.train).abs()
+                        + (state.elevation - target.elevation).abs()
+                        >= 1e-7,
+                    obstruction_id: None,
+                })
+                .collect();
+            return serde_json::to_string(&results).map_err(error);
+        }
+        let mut results = Vec::with_capacity(poses.len());
+        for (index, target) in targets.into_iter().enumerate() {
+            let result = clearance.as_ref().map_or_else(
+                || ClearanceResult {
+                    pose: target,
+                    blocked: false,
+                    obstruction_id: None,
                 },
-                blocked: (state.train - target.train).abs()
-                    + (state.elevation - target.elevation).abs()
-                    >= 1e-7,
-                obstruction_id: None,
-            })
-            .collect();
-        return serde_json::to_string(&results).map_err(error);
+                |cache| cache.resolve(&def, index, &poses, target),
+            );
+            poses[index] = result.pose;
+            results.push(result);
+        }
+        serde_json::to_string(&results).map_err(error)
     }
-    let mut results = Vec::with_capacity(poses.len());
-    for (index, target) in targets.into_iter().enumerate() {
-        let result = clearance.as_ref().map_or_else(
-            || ClearanceResult {
-                pose: target,
-                blocked: false,
-                obstruction_id: None,
-            },
-            |cache| cache.resolve(&def, index, &poses, target),
-        );
-        poses[index] = result.pose;
-        results.push(result);
-    }
-    serde_json::to_string(&results).map_err(error)
 }
 #[wasm_bindgen]
 pub fn rules_json() -> String {
@@ -331,6 +352,7 @@ impl BattleRuntime {
 #[wasm_bindgen]
 pub struct LocalRuntime {
     trial: bool,
+    trial_setup: Option<naval_sim::battle::BattleSetup>,
     session: naval_protocol::session::Session,
     pve_plan: Option<naval_sim::pve::PvePlan>,
     enemy_air_sequence: u32,
@@ -343,6 +365,37 @@ pub struct LocalRuntime {
 #[cfg(test)]
 mod construction_trial_tests {
     use super::*;
+    #[test]
+    fn articulation_preview_keeps_requests_independent() {
+        let json = std::fs::read_to_string("../../public/models/fletcher.json").unwrap();
+        let preview = ArticulationPreview::new(&json).unwrap();
+        let count = preview.definition.mounts.len();
+        let rest = serde_json::to_string(&vec![
+            naval_sim::mount_clearance::ClearancePose {
+                train: 0.,
+                elevation: 0.,
+                recoil: 0.,
+            };
+            count
+        ])
+        .unwrap();
+        let target = serde_json::to_string(&vec![
+            naval_sim::mount_clearance::ClearancePose {
+                train: 0.02,
+                elevation: 0.1,
+                recoil: 0.5,
+            };
+            count
+        ])
+        .unwrap();
+        let first = preview.resolve(&rest, &target).unwrap();
+        preview.resolve(&target, &rest).unwrap();
+        assert_eq!(first, preview.resolve(&rest, &target).unwrap());
+        assert_eq!(
+            first,
+            preview_articulation_json(&json, &rest, &target).unwrap()
+        );
+    }
     #[test]
     fn trial_uses_hp_units_resets_delta_and_disables_opponent_orders() {
         use naval_sim::{
@@ -397,8 +450,18 @@ mod construction_trial_tests {
             target.movement,
             naval_sim::navigation::Movement::Hold
         ));
-        let reset = LocalRuntime::with_construction(&manifest, &setup, "[]", "[]", true).unwrap();
-        assert_eq!(reset.session.battle.actors[0].damage.integrity, health);
+        let compiled = runtime.session.battle.actors[0].compiled.clone();
+        runtime.reset_trial().unwrap();
+        assert_eq!(runtime.session.battle.tick, 0);
+        assert_eq!(runtime.session.battle.actors[0].damage.integrity, health);
+        assert!(std::sync::Arc::ptr_eq(
+            &compiled,
+            &runtime.session.battle.actors[0].compiled
+        ));
+        let frame: serde_json::Value =
+            serde_json::from_str(&runtime.snapshot_delta(vec![]).unwrap()).unwrap();
+        assert!(frame["baseTick"].is_null());
+        assert!(!runtime.session.control.ships["target"].weapons.guns);
     }
 }
 
@@ -487,28 +550,60 @@ impl LocalRuntime {
                 );
             }
         }
+        let trial_setup = trial.then(|| setup.clone());
         let battle = naval_sim::battle::Battle::new(catalog, &compiled, setup).map_err(error)?;
         let mut runtime = Self::from_battle(battle, None)?;
         runtime.trial = trial;
+        runtime.trial_setup = trial_setup;
         if trial {
-            for actor in runtime
-                .session
-                .battle
-                .actors
-                .iter()
-                .filter(|a| a.team == naval_sim::rules::TeamId::B)
-            {
-                if let Some(control) = runtime.session.control.ships.get_mut(&actor.motion.id) {
-                    control.movement = naval_sim::navigation::Movement::Hold;
-                    control.weapons = naval_sim::navigation::WeaponsPolicy {
-                        guns: false,
-                        aa: false,
-                        torpedoes: false,
-                    };
-                }
-            }
+            runtime.hold_trial_opponents();
         }
         Ok(runtime)
+    }
+    fn hold_trial_opponents(&mut self) {
+        for actor in self
+            .session
+            .battle
+            .actors
+            .iter()
+            .filter(|a| a.team == naval_sim::rules::TeamId::B)
+        {
+            if let Some(control) = self.session.control.ships.get_mut(&actor.motion.id) {
+                control.movement = naval_sim::navigation::Movement::Hold;
+                control.weapons = naval_sim::navigation::WeaponsPolicy {
+                    guns: false,
+                    aa: false,
+                    torpedoes: false,
+                };
+            }
+        }
+    }
+    /// Reset combat state against the same verified immutable ship definitions.
+    /// A trial reset must not rerun source CSG or observe later catalog edits.
+    pub fn reset_trial(&mut self) -> Result<(), JsValue> {
+        let setup = self
+            .trial_setup
+            .clone()
+            .ok_or_else(|| error("No local trial to reset"))?;
+        let compiled = self
+            .session
+            .battle
+            .actors
+            .iter()
+            .map(|a| (a.preset_id.clone(), a.compiled.clone()))
+            .collect();
+        let battle = naval_sim::battle::Battle::new(
+            self.session.battle.catalog.clone(),
+            &compiled,
+            setup.clone(),
+        )
+        .map_err(error)?;
+        let mut next = Self::from_battle(battle, None)?;
+        next.trial = true;
+        next.trial_setup = Some(setup);
+        next.hold_trial_opponents();
+        *self = next;
+        Ok(())
     }
     pub fn construction_definitions(&self) -> Result<String, JsValue> {
         let definitions: std::collections::BTreeMap<_, _> = self
@@ -820,6 +915,7 @@ impl LocalRuntime {
         Ok(Self {
             session,
             trial: false,
+            trial_setup: None,
             pve_plan,
             enemy_air_sequence: 0,
             delta: Default::default(),

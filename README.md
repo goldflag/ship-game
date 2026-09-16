@@ -19,11 +19,13 @@ starting their dev server to honor the reservation.
 
 ### 1v1 multiplayer
 
-Run `bun run multiplayer:server` alongside the development server, then choose **Battle** in port and the **1v1 online** tab. Drag ships into the eight berths (the first berth is your initial command ship) before finding an opponent or creating/joining an invite from the **Match** panel. Each side may bring **200,000 metric tonnes**, **8 vessels** and **2 carriers**. The server draws a map, weather and time of day; night has a 10% weight. Destroy the opposing fleet or have more original tonnage afloat at 30 minutes. Equal tonnage and mutual destruction draw.
+An account is required for the game and shipbuilder. Saved designs synchronize across devices and can join online fleets alongside historical presets. See [accounts and custom multiplayer](docs/accounts.md).
+
+Run the account, compiler and multiplayer services described in [accounts](docs/accounts.md) alongside the development server, then choose **Battle** in port and the **1v1 online** tab. Drag ships into the eight berths (the first berth is your initial command ship) before finding an opponent or creating/joining an invite from the **Match** panel. Each side may bring **200,000 metric tonnes**, **8 vessels** and **2 carriers**. The server draws a map, weather and time of day; night has a 10% weight. Destroy the opposing fleet or have more original tonnage afloat at 30 minutes. Equal tonnage and mutual destruction draw.
 
 Hold Ctrl and open **Fleet orders** to take the helm of another surviving owned ship or issue movement and target orders. Carrier orders remain available through Air operations. Menus and tab blur do not pause online matches. Reconnection reserves your side for 90 seconds; explicitly returning to port forfeits an active match. After a reload, choose **Reconnect to previous battle** in the 1v1 online Match panel.
 
-See [Rust multiplayer setup, architecture and validation](docs/rust-multiplayer-implementation.md) for toolchain installation, server settings, content identity and deployment requirements. The service is implemented locally; no public backend is provisioned by this repository change.
+See [Rust multiplayer setup, architecture and validation](docs/rust-multiplayer-implementation.md) for toolchain installation, server settings and content identity. The public frontend and multiplayer backend run at **https://ships.tomato.gg** on Hermes in a separate Docker Compose project; see [deployment and operations](docs/deployment.md).
 
 ### Cloning without the asset archive
 
@@ -38,6 +40,10 @@ git sparse-checkout set --no-cone '/*' '!/assets'
 Aircraft and other non-ship reference/review archives still use Git LFS (see `.gitattributes`). `GIT_LFS_SKIP_SMUDGE=1` skips their downloads; fetch originals when needed for those pipelines. Ship report/reference archives and comparison pages have been removed. Ship research and diagnostics stay in ignored `.build/`.
 
 ### Deploying under a sub-path
+
+The complete Hermes deployment uses `bun run deploy:hermes` at the domain root,
+with separate web/server containers and persistent match storage. See the
+[deployment guide](docs/deployment.md). The following describes the older static-only deployment.
 
 Set `BASE_PATH` to the mount point when building. Every asset URL resolves through `src/assetUrl.ts` against Vite's base, so the same build works at the site root or under a prefix:
 
@@ -205,7 +211,7 @@ Combat uses velocity-aware AP penetration and delayed fuzes, protected AP/HE bur
 
 Bismarck, Yamato, Baltimore and Enterprise have full hull-end and major-structure coverage. Their fidelity geometry and retained room IDs are integrated with the damage model; legacy armor volumes remain supported for other definitions. See the [integration record](docs/fleet-fidelity-integration.md) for the independently identified validation snapshots.
 
-The shared simulation is ready to host outside the browser, but multiplayer transport and server command validation are not implemented. Battle weather drives deterministic CPU heave, roll, pitch, wind leeway and added resistance. GPU wave detail remains visual; combat hulls and their hitboxes use the same CPU pose.
+The shared simulation runs in the browser for local battles and in the authoritative Rust server for multiplayer, with validated player commands and WebSocket snapshots. Battle weather drives deterministic CPU heave, roll, pitch, wind leeway and added resistance. GPU wave detail remains visual; combat hulls and their hitboxes use the same CPU pose.
 
 ## Model pipeline
 

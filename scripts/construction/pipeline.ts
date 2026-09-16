@@ -8,7 +8,7 @@ import type { ReviewView } from '../../tools/construction/review';
 
 export const REVIEW_VIEWS: ReviewView[] = ['profile', 'plan', 'bow', 'stern', 'quarter'];
 const json = (value: unknown) => JSON.stringify(value, null, 2) + '\n';
-const producerFiles = ['src/game/constructionModel.ts', 'src/ships/constructionEquipment.ts', 'src/ships/constructionPaints.ts', 'src/game/loadShipModel.ts', 'tools/construction/review.ts', 'scripts/construction/pipeline.ts', 'assets/ships/appearance/finishes.json'];
+const producerFiles = ['src/game/constructionModel.ts', 'src/game/constructionShading.ts', 'src/ships/constructionEquipment.ts', 'src/ships/constructionPaints.ts', 'src/game/loadShipModel.ts', 'tools/construction/review.ts', 'scripts/construction/pipeline.ts', 'assets/ships/appearance/finishes.json', 'crates/naval-wasm/src/lib.rs', 'crates/naval-sim/src/catalog.rs', 'crates/naval-sim/src/mount_clearance.rs'];
 export async function constructionProducerHash(root: string) {
   const files = [...producerFiles, ...((await readdir(join(root, 'crates/naval-sim/src'))).filter(n => n.startsWith('construction') && n.endsWith('.rs')).map(n => 'crates/naval-sim/src/' + n))];
   const parts = await Promise.all(files.map(async file => file + ':' + digest(await readFile(join(root, file)))));
@@ -53,6 +53,9 @@ export async function constructionPipeline(root: string, action: string, id: str
   }
   const contentHash = digest(result.contentHash + ':' + producer);
   const definition: ShipDefinition = { ...result.definition, id, modelUrl: '/models/' + id + '.glb', contentHash };
+  // Derived convex geometry is large; indentation can triple this runtime asset.
+  // Keep editable source and small manifests readable, but ship compact JSON.
+  const definitionJson = JSON.stringify(definition) + '\n';
   const paths = { model: join(output, id + '.glb'), definition: join(output, id + '.json'), thumbnail: join(output, id + '-thumbnail.png'), manifest: join(sourceDir, 'generated/build.json') };
   const check = async (includeThumbnail = true) => {
     const manifest = JSON.parse(await readFile(paths.manifest, 'utf8'));
@@ -63,14 +66,14 @@ export async function constructionPipeline(root: string, action: string, id: str
       const thumbnail = await readFile(paths.thumbnail).catch(() => undefined);
       if (!thumbnail || digest(thumbnail) !== manifest.thumbnailHash) throw new Error('Constructed thumbnail changed or is missing. Run bun run ship:thumbnail ' + id);
     }
-    if (def.toString() !== json(definition)) throw new Error('Published construction definition differs from the native compiler.');
+    if (def.toString() !== definitionJson) throw new Error('Published construction definition differs from the native compiler.');
     inspectConstructionGlb(model, definition);
     return manifest;
   };
   if (action === 'check') { await check(); return { id, action, contentHash }; }
   await mkdir(stage, { recursive: true });
   if (action === 'compile') {
-    await writeFile(join(stage, 'definition.json'), json(definition));
+    await writeFile(join(stage, 'definition.json'), definitionJson);
     await writeFile(join(stage, 'construction-result.json'), json(result));
     return { id, action, contentHash, path: join(stage, 'definition.json'), diagnostics: result.diagnostics };
   }
@@ -90,12 +93,12 @@ export async function constructionPipeline(root: string, action: string, id: str
         const bytes = Buffer.from(glb.slice(glb.indexOf(',') + 1), 'base64');
         inspectConstructionGlb(bytes, definition);
         await writeFile(join(stage, 'model.glb'), bytes);
-        await writeFile(join(stage, 'definition.json'), json(definition));
+        await writeFile(join(stage, 'definition.json'), definitionJson);
         await assertCurrent();
-        await page.evaluate(async value => {
+        await page.evaluate(async modelUrl => {
           window.constructionReview!.dispose();
-          window.constructionReview = await window.constructionReviewModule!.openReview(value);
-        }, { ...input, modelUrl: '/@fs' + join(stage, 'model.glb') });
+          window.constructionReview = await window.constructionReviewModule!.openReview({ ...window.constructionReviewInput!, modelUrl });
+        }, '/@fs' + join(stage, 'model.glb'));
       }
       const articulation = await page.evaluate(() => window.constructionReview!.sweep());
       if (articulation.maxMuzzleErrorM > .025) throw new Error('Exported articulation diverges from CPU poses.');
@@ -107,7 +110,7 @@ export async function constructionPipeline(root: string, action: string, id: str
     await assertCurrent();
     if (action === 'build') {
       await atomic(paths.model, await readFile(join(stage, 'model.glb')));
-      await atomic(paths.definition, json(definition));
+      await atomic(paths.definition, definitionJson);
     }
     const png = (data: string) => Buffer.from(data.slice(data.indexOf(',') + 1), 'base64');
     if (action !== 'review') {

@@ -35,6 +35,7 @@ export function decodeConstructionSource(value: unknown): ConstructionSource {
   string(data.catalogRevision, 'Catalog'); number(data.defaultThicknessMm, 'Skin thickness');
   for (const p of rows(data.primitives, 'Primitives')) {
     string(p.id, 'Primitive ID'); vector(p.size, 'Primitive size'); vector(p.position, 'Primitive position'); number(p.rotationDeg, 'Primitive rotation');
+    if (p.smoothGroup !== undefined) string(p.smoothGroup, 'Smooth group');
     if (typeof p.kind !== 'string' || (p.kind !== 'vertex' && !Object.hasOwn(CONSTRUCTION_SHAPES, p.kind))) throw new Error('Unsupported primitive kind');
     if (p.vertices !== undefined) {
       if (p.kind !== 'vertex' || !Array.isArray(p.vertices) || p.vertices.length !== 8) throw new Error('Vertex hulls require eight local corners');
@@ -48,6 +49,25 @@ export function decodeConstructionSource(value: unknown): ConstructionSource {
   }
   for (const part of rows(data.equipment, 'Equipment')) {
     string(part.id, 'Equipment ID'); string(part.partId, 'Equipment variant'); vector(part.position, 'Equipment position'); number(part.bearingDeg, 'Equipment bearing');
+    if (part.gun !== undefined) {
+      const gun = object(part.gun, 'Gun installation');
+      if (gun.battery !== undefined && !['main', 'secondary'].includes(gun.battery as string)) throw new Error('Unsupported gun battery');
+      for (const key of ['initialElevationDeg', 'traverseDeg', 'elevationMinDeg', 'elevationMaxDeg']) if (gun[key] !== undefined) number(gun[key], key);
+      if (gun.traverseLimitsDeg !== undefined) {
+        if (!Array.isArray(gun.traverseLimitsDeg) || gun.traverseLimitsDeg.length !== 2) throw new Error('Gun traverse limits require two angles');
+        gun.traverseLimitsDeg.forEach(value => number(value, 'Gun traverse limit'));
+      }
+    }
+    if (part.launcher !== undefined) {
+      const launcher = object(part.launcher, 'Launcher installation');
+      const angles = (value: unknown) => {
+        if (!Array.isArray(value) || value.length !== 2) throw new Error('Launcher limits require two angles');
+        value.forEach(v => number(v, 'Launcher angle'));
+      };
+      angles(launcher.traverseLimitsDeg);
+      if (!Array.isArray(launcher.launchArcsDeg) || launcher.launchArcsDeg.length < 1 || launcher.launchArcsDeg.length > 8) throw new Error('Launcher requires 1–8 firing arcs');
+      launcher.launchArcsDeg.forEach(angles);
+    }
     if (part.path !== undefined) {
       const path = object(part.path, 'Equipment path');
       if (!Array.isArray(path.points) || path.points.length < 2 || path.points.length > 64) throw new Error('Equipment paths require 2–64 points');
@@ -68,7 +88,7 @@ export function decodeConstructionSource(value: unknown): ConstructionSource {
 
 export function decodeSavedConstruction(revision: ConstructionRevision, catalogRevision = revision.catalogRevision): ConstructionSource {
   const source = readConstructionSource(revision, { schemaVersion: 1, catalogRevision, decode: decodeConstructionSource }).source;
-  if (source.id !== revision.designId) throw new ConstructionStoreError('corrupt', 'The source and saved design identities disagree. Recover an earlier revision; the original is preserved.');
+  if (source.id !== (revision.sourceId ?? revision.designId)) throw new ConstructionStoreError('corrupt', 'The source and saved design identities disagree. Recover an earlier revision; the original is preserved.');
   if (source.construction.catalogRevision !== revision.catalogRevision) throw new ConstructionStoreError('catalog', 'The source and saved catalog identities disagree. Recover an earlier revision; the original is preserved.');
   return source;
 }

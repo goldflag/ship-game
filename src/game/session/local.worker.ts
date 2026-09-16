@@ -35,6 +35,8 @@ function loadContent() {
   })();
 }
 // Requests are serialized: initialization cannot race a queued tick batch.
+// LocalWorkerOperation correlates setup replies by this order and retires the
+// worker if a reply is abandoned; never publish unsolicited setup replies.
 let chain = Promise.resolve();
 self.onmessage = (event: MessageEvent<{ type: 'options' } | { type: 'validate'; placements: Placement[] } | { type: 'init'; setup: BattleSetup; profile?: boolean; construction?: LocalConstructionInput } | { type: 'plan'; request: PveRequest; profile?: boolean } | { type: 'deploy'; placements: Placement[]; formations?: Record<string, Formation> } | { type: 'restart' } | { type: 'trial-reset' } | { type: 'trial-action'; action: TrialAction } | { type: 'advance'; commands: CommandEnvelope[]; ticks: number; detailShipIds?: string[] }>) => {
   chain = chain.then(async () => {
@@ -65,9 +67,8 @@ self.onmessage = (event: MessageEvent<{ type: 'options' } | { type: 'validate'; 
         runtime?.free(); runtime = next; detail = [];
         trialInit = message.construction?.trial ? { setup: message.setup, construction: message.construction } : undefined;
       } else if (message.type === 'trial-reset') {
-        if (!trialInit) throw new Error('No local trial to reset.');
-        const next = await createRuntime(trialInit.setup, trialInit.construction);
-        runtime?.free(); runtime = next; detail = [];
+        if (!trialInit || !runtime) throw new Error('No local trial to reset.');
+        runtime.reset_trial(); detail = [];
       } else if (message.type === 'trial-action') {
         if (!trialInit || !runtime) throw new Error('Trial controls are unavailable.');
         runtime.trial_action(JSON.stringify(message.action)); runtime.step(1); detail = [];

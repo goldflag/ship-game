@@ -1722,6 +1722,1137 @@
       "massKg": 145
     },
     {
+      "id": "skc34-203-twin",
+      "name": "20.3 cm C/34 twin",
+      "kind": "gun",
+      "size": [
+        6.770199980926514,
+        3.045199934732914,
+        16.624214534340982
+      ],
+      "boundsCenter": [
+        -2.384185791015625e-07,
+        1.3224999643862247,
+        -2.839007217579427
+      ],
+      "centerOfGravity": [
+        0,
+        0.6652750000000001,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "skc34-203-twin",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            -0.20000000298023224,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "skc34-203-twin-rf",
+      "name": "20.3 cm C/34 twin \u00b7 rangefinder",
+      "kind": "gun",
+      "size": [
+        8.040200438690185,
+        3.5101998489022255,
+        16.624214534340982
+      ],
+      "boundsCenter": [
+        -2.384185791015625e-07,
+        1.5549999214708805,
+        -2.839007217579427
+      ],
+      "centerOfGravity": [
+        0,
+        0.6652750000000001,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "skc34-203-twin-rf",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            -0.20000000298023224,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "skc33-105-c31-twin",
+      "name": "10.5 cm C/33 twin \u00b7 C/31 shield",
+      "kind": "gun",
+      "size": [
+        3.5021999742507934,
+        2.5861325288531587,
+        7.456611314662302
+      ],
+      "boundsCenter": [
+        -0.038999974727630615,
+        1.2929662644265794,
+        -1.1682057145516098
+      ],
+      "centerOfGravity": [
+        0,
+        1.229475,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "skc33-105-c31-twin",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "flak-37-bismarck-1941",
+      "name": "3.7 cm twin AA",
+      "kind": "gun",
+      "size": [
+        1.9201999570846557,
+        2.0420521761894226,
+        3.1017001312174974
+      ],
+      "boundsCenter": [
+        5.960464477539063e-08,
+        0.9209260903298855,
+        -0.21931327370269948
+      ],
+      "centerOfGravity": [
+        0,
+        1.057875,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "flak-37-bismarck-1941",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            -0.09999999776482582,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "flak38-m43u-20-twin",
+      "name": "2 cm Flak 38 M43U twin",
+      "kind": "gun",
+      "size": [
+        1.3202001120567322,
+        1.9502000923871994,
+        3.331654059815978
+      ],
+      "boundsCenter": [
+        2.9802322387695312e-08,
+        0.965000044554472,
+        -0.28892577112735696
+      ],
+      "centerOfGravity": [
+        0,
+        0.8073,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "flak38-m43u-20-twin",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            -0.010000001639127731,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "flak38-20-single",
+      "name": "2 cm Flak 38 single \u00b7 case bag",
+      "kind": "gun",
+      "size": [
+        1.0306348170757293,
+        2.1841256332701176,
+        2.6150160392533555
+      ],
+      "boundsCenter": [
+        -0.06977911293506622,
+        1.081962814995931,
+        0.06939343613058713
+      ],
+      "centerOfGravity": [
+        0,
+        1.0101,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "flak38-20-single",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            -0.010000001639127731,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "flak28-40-single",
+      "name": "4 cm Flak 28 single",
+      "kind": "gun",
+      "size": [
+        2.060199942779541,
+        1.9239607762873467,
+        4.1008135666191885
+      ],
+      "boundsCenter": [
+        0,
+        0.9518803865045457,
+        -0.9228066068798457
+      ],
+      "centerOfGravity": [
+        0,
+        0.8433750000000001,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "flak28-40-single",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            -0.010000001639127731,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "german-cruiser-funnel-cap",
+      "name": "German cruiser swept open funnel cap",
+      "kind": "funnel",
+      "size": [
+        4.519999980926514,
+        4.71999979019165,
+        10.600000381469727
+      ],
+      "boundsCenter": [
+        0,
+        2.359999895095825,
+        0
+      ],
+      "centerOfGravity": [
+        0,
+        2.375,
+        0
+      ],
+      "massKg": 8500,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ],
+      "exhaustKw": 82000
+    },
+    {
+      "id": "german-cruiser-screw-port",
+      "name": "German cruiser 3.4 m screw \u00b7 port",
+      "kind": "propeller",
+      "size": [
+        3.178108428259184,
+        2.8037486672380307,
+        2.4500001156330145
+      ],
+      "boundsCenter": [
+        0.012749023493866973,
+        -0.2805581139990284,
+        -0.37499998629093156
+      ],
+      "centerOfGravity": [
+        0,
+        0,
+        -0.35
+      ],
+      "massKg": 2900,
+      "placement": "underwater",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            -1.6
+          ],
+          "direction": [
+            0,
+            0,
+            -1
+          ]
+        }
+      ],
+      "thrustEfficiency": 0.65
+    },
+    {
+      "id": "german-cruiser-screw-starboard",
+      "name": "German cruiser 3.4 m screw \u00b7 starboard",
+      "kind": "propeller",
+      "size": [
+        3.1781084527809575,
+        2.803748548033022,
+        2.4500001156330145
+      ],
+      "boundsCenter": [
+        0.012749152009627895,
+        0.2805581045678661,
+        -0.37499998629093156
+      ],
+      "centerOfGravity": [
+        0,
+        0,
+        -0.35
+      ],
+      "massKg": 2900,
+      "placement": "underwater",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            -1.6
+          ],
+          "direction": [
+            0,
+            0,
+            -1
+          ]
+        }
+      ],
+      "thrustEfficiency": 0.65
+    },
+    {
+      "id": "german-cruiser-rudder",
+      "name": "German cruiser balanced rudder",
+      "kind": "rudder",
+      "size": [
+        0.4400004386108237,
+        5.000000179607701,
+        5.700000047683716
+      ],
+      "boundsCenter": [
+        1.2536026598730654e-07,
+        -2.500000062624605,
+        1.649999976158142
+      ],
+      "centerOfGravity": [
+        0,
+        -2.5,
+        1.65
+      ],
+      "massKg": 5500,
+      "placement": "underwater",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "stock-bearing",
+          "position": [
+            0,
+            -1.7,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ],
+      "rudderAreaM2": 18
+    },
+    {
+      "id": "steam-machinery-82000kw",
+      "name": "82,000 kW steam machinery package",
+      "kind": "engine",
+      "size": [
+        12.000001907348633,
+        3.82000008225441,
+        20
+      ],
+      "boundsCenter": [
+        0,
+        1.910000041127205,
+        0
+      ],
+      "centerOfGravity": [
+        0,
+        2,
+        0
+      ],
+      "massKg": 2400000,
+      "placement": "internal",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ],
+      "powerKw": 82000,
+      "serviceMassKg": 600000
+    },
+    {
+      "id": "cruiser-magazine-50000",
+      "name": "Cruiser magazine \u00b7 50,000 round capacity",
+      "kind": "magazine",
+      "size": [
+        8.000000953674316,
+        3.0000000558793545,
+        16
+      ],
+      "boundsCenter": [
+        0,
+        1.5000000279396772,
+        0
+      ],
+      "centerOfGravity": [
+        0,
+        1.5,
+        0
+      ],
+      "massKg": 65000,
+      "placement": "internal",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ],
+      "ammunitionCapacity": 50000
+    },
+    {
+      "id": "german-triple-533",
+      "name": "German 533 mm triple launcher",
+      "kind": "torpedo-launcher",
+      "size": [
+        3.1400002241134644,
+        1.8519999757409096,
+        8.210000038146973
+      ],
+      "boundsCenter": [
+        1.7881393432617188e-07,
+        0.9259999878704548,
+        -0.565000057220459
+      ],
+      "centerOfGravity": [
+        0,
+        0.93,
+        -0.56
+      ],
+      "massKg": 12000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ],
+      "torpedoPartId": "g7a-ti-fast",
+      "tubeOffsets": [
+        [
+          -0.7215,
+          0.507,
+          -4.67
+        ],
+        [
+          0,
+          0.507,
+          -4.67
+        ],
+        [
+          0.7215,
+          0.507,
+          -4.67
+        ]
+      ]
+    },
+    {
+      "id": "german-sl8-director",
+      "name": "German SL8 spherical AA director",
+      "kind": "deck-fitting",
+      "size": [
+        4.400000095367432,
+        3.309999853372574,
+        3.893599033355713
+      ],
+      "boundsCenter": [
+        0,
+        1.654999926686287,
+        0
+      ],
+      "centerOfGravity": [
+        0,
+        1.51,
+        0
+      ],
+      "massKg": 5000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ],
+      "fitting": [
+        {
+          "center": [
+            0,
+            0.15,
+            0
+          ],
+          "size": [
+            3.5,
+            0.3,
+            3.5
+          ]
+        },
+        {
+          "center": [
+            0,
+            1.75,
+            0
+          ],
+          "size": [
+            4.4,
+            0.4,
+            0.4
+          ]
+        },
+        {
+          "center": [
+            0,
+            0.4127082705392281,
+            0
+          ],
+          "size": [
+            3.5624761781911767,
+            0.30752218731909386,
+            3.5624761781911767
+          ]
+        },
+        {
+          "center": [
+            0,
+            0.7331791139674627,
+            0
+          ],
+          "size": [
+            3.7898800731875353,
+            0.3334194995373754,
+            3.7898800731875353
+          ]
+        },
+        {
+          "center": [
+            0,
+            1.0741066045094336,
+            0
+          ],
+          "size": [
+            3.893599130955043,
+            0.34843548154656623,
+            3.893599130955043
+          ]
+        },
+        {
+          "center": [
+            0,
+            1.424364384507322,
+            0
+          ],
+          "size": [
+            3.893599130955043,
+            0.35208007844921063,
+            3.893599130955043
+          ]
+        },
+        {
+          "center": [
+            0,
+            1.7725215971343733,
+            0
+          ],
+          "size": [
+            3.870248422543504,
+            0.3442343468048923,
+            3.870248422543504
+          ]
+        },
+        {
+          "center": [
+            0,
+            2.1072159387444964,
+            0
+          ],
+          "size": [
+            3.7205900112671357,
+            0.3251543364153542,
+            3.7205900112671357
+          ]
+        },
+        {
+          "center": [
+            0,
+            2.4175244739508077,
+            0
+          ],
+          "size": [
+            3.4495080823458353,
+            0.2954627339972684,
+            3.4495080823458353
+          ]
+        },
+        {
+          "center": [
+            0,
+            2.6933201116774583,
+            0
+          ],
+          "size": [
+            3.065849544812826,
+            0.2561285414560319,
+            3.065849544812826
+          ]
+        },
+        {
+          "center": [
+            0,
+            2.9256021083911676,
+            0
+          ],
+          "size": [
+            2.5821353077337914,
+            0.20843545197138758,
+            2.5821353077337914
+          ]
+        },
+        {
+          "center": [
+            0,
+            3.1067898123562836,
+            0
+          ],
+          "size": [
+            2.014151653398155,
+            0.1539399559588439,
+            2.014151653398155
+          ]
+        },
+        {
+          "center": [
+            0,
+            3.230970062406746,
+            0
+          ],
+          "size": [
+            1.3804350432449364,
+            0.09442054414208112,
+            1.3804350432449364
+          ]
+        },
+        {
+          "center": [
+            0,
+            3.2940901672388936,
+            0
+          ],
+          "size": [
+            0.7016671701674154,
+            0.03181966552221338,
+            0.7016671701674154
+          ]
+        },
+        {
+          "center": [
+            -1.75,
+            1.75,
+            -0.28
+          ],
+          "size": [
+            0.36,
+            0.36,
+            0.2
+          ]
+        },
+        {
+          "center": [
+            1.75,
+            1.75,
+            -0.28
+          ],
+          "size": [
+            0.36,
+            0.36,
+            0.2
+          ]
+        }
+      ]
+    },
+    {
+      "id": "german-cruiser-catapult",
+      "name": "German cruiser lattice catapult",
+      "kind": "deck-fitting",
+      "size": [
+        2.359999895095825,
+        1.3219999819993973,
+        12.650181770324707
+      ],
+      "boundsCenter": [
+        0,
+        0.6609999909996986,
+        -1.1050000190734863
+      ],
+      "centerOfGravity": [
+        0,
+        0.665,
+        -1.1
+      ],
+      "massKg": 12000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "german-cutter-750",
+      "name": "german cutter 750",
+      "kind": "deck-fitting",
+      "size": [
+        2.002000570297241,
+        1.58928644657135,
+        7.581789255142212
+      ],
+      "boundsCenter": [
+        -2.384185791015625e-07,
+        0.794643223285675,
+        0.0003324747085571289
+      ],
+      "centerOfGravity": [
+        0,
+        0.6,
+        0
+      ],
+      "massKg": 1400,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "german-traffic-boat-1170",
+      "name": "german traffic boat 1170",
+      "kind": "deck-fitting",
+      "size": [
+        2.9150006771087646,
+        1.7200002670288086,
+        11.77921199798584
+      ],
+      "boundsCenter": [
+        3.5762786865234375e-07,
+        0.8599998950958252,
+        0.0003466606140136719
+      ],
+      "centerOfGravity": [
+        0,
+        0.6,
+        0
+      ],
+      "massKg": 3000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "german-motor-launch-900",
+      "name": "german motor launch 900",
+      "kind": "deck-fitting",
+      "size": [
+        2.585000991821289,
+        1.71999990940094,
+        9.084400653839111
+      ],
+      "boundsCenter": [
+        2.384185791015625e-07,
+        0.8599998354911804,
+        0.0003154277801513672
+      ],
+      "centerOfGravity": [
+        0,
+        0.6,
+        0
+      ],
+      "massKg": 3000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "german-open-launch-1000",
+      "name": "german open launch 1000",
+      "kind": "deck-fitting",
+      "size": [
+        2.6400012969970703,
+        1.5915206670761108,
+        10.08138370513916
+      ],
+      "boundsCenter": [
+        3.5762786865234375e-07,
+        0.7957602143287659,
+        0.0003342628479003906
+      ],
+      "centerOfGravity": [
+        0,
+        0.6,
+        0
+      ],
+      "massKg": 1400,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "german-guarded-director-optic",
+      "name": "German guarded director outer optical tube",
+      "kind": "deck-fitting",
+      "size": [
+        0.7980002528428931,
+        0.7580004346370496,
+        1.394000073671354
+      ],
+      "boundsCenter": [
+        -1.4901157779911856e-08,
+        -0.019999995827675143,
+        -0.6970000022649818
+      ],
+      "centerOfGravity": [
+        0,
+        0,
+        -0.7
+      ],
+      "massKg": 260,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            0,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "id": "german-cruiser-capstan",
+      "name": "German cruiser capstan 1.36 m",
+      "kind": "deck-fitting",
+      "size": [
+        1.36,
+        0.885,
+        1.36
+      ],
+      "boundsCenter": [
+        0,
+        0.4425,
+        0
+      ],
+      "centerOfGravity": [
+        0,
+        0.4425,
+        0
+      ],
+      "massKg": 480,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "german-cruiser-deck-hatch",
+      "name": "German cruiser raised hatch 1.51 m",
+      "kind": "deck-fitting",
+      "size": [
+        1.2,
+        0.305,
+        1.51
+      ],
+      "boundsCenter": [
+        0,
+        0.1525,
+        0
+      ],
+      "centerOfGravity": [
+        0,
+        0.1525,
+        0
+      ],
+      "massKg": 170,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "german-cruiser-searchlight",
+      "name": "German cruiser fork searchlight 1.4 m",
+      "kind": "deck-fitting",
+      "size": [
+        1.74,
+        2.15,
+        1.415
+      ],
+      "boundsCenter": [
+        0,
+        1.075,
+        -0.2575
+      ],
+      "centerOfGravity": [
+        0,
+        1.075,
+        -0.2575
+      ],
+      "massKg": 280,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
       "id": "generic-steam-plant-36000kw",
       "name": "36 MW boiler and geared-turbine plant",
       "kind": "engine",

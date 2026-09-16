@@ -2,7 +2,7 @@ import { FreeformToolbar, type FreeformSettings } from './FreeformToolbar';
 import { canEditVertices, freeformEdit, replaceVertexPrimitives, selectionCenter, splitVertexPrimitive, VERTEX_UNITS } from '../../ships/constructionVertex';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { ConstructionBoundary, ConstructionCatalog, ConstructionEquipment, ConstructionPrimitive, ConstructionResult, ConstructionSource, ConstructionSuggestion, ConstructionSurfaceAssignment, Vec3 } from '../../ships/blueprint';
-import { CONSTRUCTION_LIMITS, decodeConstructionSource, assignConstructionSurfaces, copyConstructionSelection, editableConstructionSurfaces, mirroredFace, mirroredPrimitive, mirroredEquipment, moveConstructionSelection, newConstructionId, removeConstructionSelection, rotateConstructionSelection, surfaceKey, type ConstructionFace } from '../../ships/constructionEditor';
+import { CONSTRUCTION_LIMITS, assignConstructionSurfaces, copyConstructionSelection, editableConstructionSurfaces, mirroredFace, mirroredPrimitive, mirroredEquipment, moveConstructionSelection, newConstructionId, removeConstructionSelection, rotateConstructionSelection, surfaceKey, type ConstructionFace } from '../../ships/constructionEditor';
 import { removeLocalShip } from '../../ships/localShips';
 import { ConstructionClient } from '../../ships/constructionClient';
 import { CONSTRUCTION_SHAPE_NAMES as SHAPE_NAMES } from '../../ships/constructionShapes';
@@ -115,7 +115,6 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const [suggestion, setSuggestion] = useState<ConstructionSuggestion>();
   const [suggestionRevision, setSuggestionRevision] = useState('');
   const suggestionRequest = useRef<AbortController | undefined>(undefined);
-  const importFile = useRef<HTMLInputElement>(null);
   const [helpOpen, setHelpOpen] = useState(false);
   const [tip, setTip] = useState<{ title: string; detail: string; x: number; y: number; key?: string; below?: boolean }>();
   const [slotImages] = useState(() => new SlotImages());
@@ -373,26 +372,15 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const saveCopy = async () => {
     setDesignsOpen(false);
     const copy = structuredClone(source); copy.id = newConstructionId('design'); copy.revision = newConstructionId('revision'); copy.name = `${copy.name.slice(0, 150)} copy`;
-    try { await editor.replace(copy, null, false, true); setNotice('A new local design now holds this draft.'); } catch (cause) { fail(cause); }
-  };
-  const importSource = async (file?: File) => {
-    if (!file) return;
-    setBusy('Importing');
-    try {
-      if (file.size > 16 * 1024 * 1024) throw new Error('Source exceeds 16 MB.');
-      const imported = decodeConstructionSource(JSON.parse(await file.text()));
-      await loadConstructionCatalog(imported.construction.catalogRevision);
-      if (props.repositoryId) editor.edit('Import source', draft => Object.assign(draft, imported, { id: props.repositoryId }));
-      else await editor.replace(freshConstruction(imported), null, false);
-      setDesignsOpen(false); setFitRequest(value => value + 1);
-    } catch (cause) { fail(cause); } finally { setBusy(''); if (importFile.current) importFile.current.value = ''; }
+    try { await editor.replace(copy, null, false, true); setNotice('A new design now holds this draft.'); } catch (cause) { fail(cause); }
   };
   const saveLocalCopy = async () => {
     let storage: ConstructionStore | undefined;
-    try { storage = await openConstructionStore(); const copy = freshConstruction(source); await storage.save({ designId: copy.id, name: copy.name, source: copy, schemaVersion: 1, catalogRevision: copy.construction.catalogRevision, expectedRevisionId: null }); setNotice('A local copy is available in the port Ship designs list.'); setDesignsOpen(false); } catch (cause) { fail(cause); } finally { storage?.close(); }
+    try { storage = await openConstructionStore(); const copy = freshConstruction(source); await storage.save({ designId: copy.id, name: copy.name, source: copy, schemaVersion: 1, catalogRevision: copy.construction.catalogRevision, expectedRevisionId: null }); setNotice('A saved copy is available in the port Ship designs list.'); setDesignsOpen(false); } catch (cause) { fail(cause); } finally { storage?.close(); }
   };
   const close = async () => { setBusy('Saving'); try { await editor.flush(); await props.onClose(structuredClone(source), compiled); } catch (cause) { fail(cause); } finally { setBusy(''); } };
   const launch = async () => {
+    const source = editor.readSource(), compiled = editor.readResult();
     if (!compiled?.definition || compiled.diagnostics.some(item => item.severity === 'error')) return;
     setBusy('Launching');
     try { try { await editor.flush(); } catch { /* App receives the immutable source even if local storage is unavailable. */ } await props.onLaunch(structuredClone(source), structuredClone(compiled)); }
@@ -400,7 +388,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   };
   useEffect(() => {
     if (!editor.ready) return;
-    props.onEditorReady?.({ source: () => structuredClone(source), result: () => compiled && structuredClone(compiled), apply: editor.applyBatch, flush: editor.flush, launch, undo: editor.undo, redo: editor.redo });
+    props.onEditorReady?.({ source: editor.readSource, result: editor.readResult, apply: editor.applyBatch, flush: editor.flush, launch, undo: editor.undo, redo: editor.redo });
     return () => props.onEditorReady?.(undefined);
   }, [source, compiled, editor.ready, editor.saveState]);
   const suggest = async (selectedPart = false) => {
@@ -517,7 +505,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const canLaunch = !pathPoints.length && !!compiled?.definition && !blocks.length && !busy && editor.ready;
   const launchTitle = busy ? busy : editor.compiling ? 'Compiling this revision…' : blocks.length ? `${blocks.length} block${blocks.length === 1 ? '' : 's'} to fix before a trial` : compiled?.definition ? 'Launch a sea trial with this design' : 'Waiting for a compiled design';
   const saveTone = editor.saveState.status === 'saved' ? 'ok' : editor.saveState.status === 'error' ? 'bad' : 'saving';
-  const saveText = editor.saveState.status === 'saved' ? (props.repositoryId ? 'Saved to repository' : 'Saved locally') : editor.saveState.status === 'error' ? 'Not saved · keep a backup' : 'Saving…';
+  const saveText = editor.saveState.status === 'saved' ? (props.repositoryId ? 'Saved to repository' : 'Saved to account') : editor.saveState.status === 'error' ? 'Not saved · keep a backup' : 'Saving…';
   const arcs: BuilderArc[] = showArcs && layer === 'fittings' && compiled?.definition ? compiled.definition.mounts.map(mount => ({ position: mount.position, bearingDeg: mount.bearingDeg, traverseDeg: mount.traverseDeg ?? mount.weapon.traverseDeg, radius: ARC_RADIUS, color: '#86e4c5' })) : [];
   const proposed: BuilderProposal[] = suggestion && suggestionChanged ? suggestion.source.construction.equipment.filter(item => !data.equipment.some(existing => existing.id === item.id)).flatMap(item => { const part = partOf(item); return part ? [{ position: item.position, bearingDeg: item.bearingDeg, size: part.size, boundsCenter: part.boundsCenter }] : []; }) : [];
   const drawerItems = query ? palette.drawer.filter(item => `${item.name} ${item.note} ${item.kind === 'part' ? `${item.part.name} ${FAMILY_NAMES[item.part.kind]} ${item.part.placement}` : ''}`.toLowerCase().includes(query.toLowerCase())) : palette.drawer;
@@ -661,13 +649,12 @@ export function Shipbuilder(props: ShipbuilderProps) {
         <input disabled={locked} className="sb-name" aria-label="Design name" maxLength={160} value={source.name} onChange={event => run('Rename design', draft => { draft.name = event.target.value; })}/>
         <button className="sb-meta" disabled={!!pathPoints.length} aria-haspopup="menu" aria-expanded={designsOpen} onClick={() => setDesignsOpen(value => !value)}>{data.primitives.length} pieces · {data.equipment.length} fittings <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="m2 3.5 3 3 3-3"/></svg></button>
         <i className={`sb-save ${saveTone}`} role="status">{saveText}</i>
-        {designsOpen && !props.repositoryId && <DesignsMenu partsUpdate={partsUpdate} onImport={() => importFile.current?.click()} disabled={locked} store={editor.store} currentId={source.id} refresh={editor.saveState.revision?.id} onClose={() => setDesignsOpen(false)} onNew={kind => void newDesign(kind)} onSaveCopy={() => void saveCopy()} onDelete={deleteDesign}
+        {designsOpen && !props.repositoryId && <DesignsMenu partsUpdate={partsUpdate} disabled={locked} store={editor.store} currentId={source.id} refresh={editor.saveState.revision?.id} onClose={() => setDesignsOpen(false)} onNew={kind => void newDesign(kind)} onSaveCopy={() => void saveCopy()} onDelete={deleteDesign}
           onDownload={() => { downloadConstructionSource(JSON.stringify(source, null, 2), source.name); setDesignsOpen(false); }}
           onOpen={async (next, revision) => { setDesignsOpen(false); await editor.replace(next, revision, true); switchLayer('hull'); }} onRecover={async next => { setDesignsOpen(false); await editor.replace(next, null, false); switchLayer('hull'); }}/>}
-        <input ref={importFile} type="file" accept=".json,application/json" hidden aria-label="Import ship source" onChange={event => void importSource(event.target.files?.[0])}/>
         {designsOpen && props.repositoryId && <div className="sb-menu" role="menu" aria-label="Repository source">
           <div className="sb-menu-row"><span className="sb-lead">Source</span><span>{props.repositoryId}/blueprint.json</span></div>
-          <div className="sb-menu-row"><button role="menuitem" disabled={locked} onClick={() => importFile.current?.click()}>Import source</button><button role="menuitem" onClick={() => downloadConstructionSource(JSON.stringify(source, null, 2), source.name)}>Download backup</button></div>
+          <div className="sb-menu-row"><button role="menuitem" onClick={() => downloadConstructionSource(JSON.stringify(source, null, 2), source.name)}>Download backup</button></div>
           <div className="sb-menu-row"><button role="menuitem" disabled={locked} onClick={() => void editor.reloadRepository().then(() => setDesignsOpen(false)).catch(fail)}>Reload repository</button><button role="menuitem" disabled={locked} onClick={() => void saveLocalCopy()}>Save local copy</button><button role="menuitem" onClick={() => setDesignsOpen(false)}>Close</button></div>
         </div>}
       </div>
