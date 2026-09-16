@@ -2,6 +2,7 @@ export type GraphicsPreset = 'low' | 'medium' | 'high' | 'ultra';
 export type OceanQuality = 'low' | 'medium' | 'high' | 'ultra';
 export type CloudQuality = 'low' | 'medium' | 'high' | 'ultra';
 export type ShadowQuality = 'off' | 'low' | 'medium' | 'high';
+export type WaterShadowQuality = 'off' | 'low' | 'medium' | 'high';
 export type ModelDetail = 'low' | 'medium' | 'high' | 'full';
 export type TerrainQuality = 'medium' | 'high';
 export type EffectsQuality = 'low' | 'medium' | 'high';
@@ -21,6 +22,8 @@ export interface GraphicsSettings {
   reflections: Reflections;
   clouds: CloudQuality;
   shadows: ShadowQuality;
+  /** Filtering of ship shadows on the sea; requires scene shadows. Applies live. */
+  waterShadows: WaterShadowQuality;
   modelDetail: ModelDetail;
   /** Harbor and island mesh density; applies when the port next loads or the next battle starts. */
   terrain: TerrainQuality;
@@ -35,10 +38,10 @@ export const FRAME_LIMITS: readonly FrameLimit[] = [0, 120, 60, 30];
 
 /** High reproduces the ocean, sky, shadow and terrain choices of the former High tier exactly. */
 export const GRAPHICS_PRESETS: Readonly<Record<GraphicsPreset, Readonly<GraphicsSettings>>> = {
-  low: { renderScale: 75, frameLimit: 0, antialiasing: 'fxaa', ocean: 'low', reflections: 'sky', clouds: 'low', shadows: 'off', modelDetail: 'low', terrain: 'medium', effects: 'low', readout: 'fps' },
-  medium: { renderScale: 100, frameLimit: 0, antialiasing: 'fxaa', ocean: 'medium', reflections: 'sky', clouds: 'medium', shadows: 'low', modelDetail: 'medium', terrain: 'medium', effects: 'medium', readout: 'fps' },
-  high: { renderScale: 100, frameLimit: 0, antialiasing: 'fxaa', ocean: 'high', reflections: 'scene', clouds: 'medium', shadows: 'medium', modelDetail: 'high', terrain: 'high', effects: 'high', readout: 'fps' },
-  ultra: { renderScale: 100, frameLimit: 0, antialiasing: 'smaa', ocean: 'ultra', reflections: 'scene', clouds: 'high', shadows: 'high', modelDetail: 'full', terrain: 'high', effects: 'high', readout: 'fps' },
+  low: { renderScale: 75, frameLimit: 0, antialiasing: 'fxaa', ocean: 'low', reflections: 'sky', clouds: 'low', shadows: 'off', waterShadows: 'off', modelDetail: 'low', terrain: 'medium', effects: 'low', readout: 'fps' },
+  medium: { renderScale: 100, frameLimit: 0, antialiasing: 'fxaa', ocean: 'medium', reflections: 'sky', clouds: 'medium', shadows: 'low', waterShadows: 'low', modelDetail: 'medium', terrain: 'medium', effects: 'medium', readout: 'fps' },
+  high: { renderScale: 100, frameLimit: 0, antialiasing: 'fxaa', ocean: 'high', reflections: 'scene', clouds: 'medium', shadows: 'medium', waterShadows: 'high', modelDetail: 'high', terrain: 'high', effects: 'high', readout: 'fps' },
+  ultra: { renderScale: 100, frameLimit: 0, antialiasing: 'smaa', ocean: 'ultra', reflections: 'scene', clouds: 'high', shadows: 'high', waterShadows: 'high', modelDetail: 'full', terrain: 'high', effects: 'high', readout: 'fps' },
 };
 export const PRESET_ORDER: readonly GraphicsPreset[] = ['low', 'medium', 'high', 'ultra'];
 export const DEFAULT_GRAPHICS: Readonly<GraphicsSettings> = GRAPHICS_PRESETS.high;
@@ -55,6 +58,8 @@ export function sanitizeRenderScale(value: unknown, fallback = DEFAULT_GRAPHICS.
 export function sanitizeGraphicsSettings(value: unknown): GraphicsSettings {
   const saved = value && typeof value === 'object' ? value as Partial<GraphicsSettings> : {};
   const base: GraphicsSettings = { ...DEFAULT_GRAPHICS };
+  // Older saves inherit the water tier associated with their shadow budget.
+  const inheritedWater = saved.shadows === 'off' ? 'off' : saved.shadows === 'low' ? 'low' : base.waterShadows;
   return {
     renderScale: sanitizeRenderScale(saved.renderScale, base.renderScale),
     frameLimit: FRAME_LIMITS.includes(saved.frameLimit as FrameLimit) ? saved.frameLimit as FrameLimit : base.frameLimit,
@@ -63,6 +68,7 @@ export function sanitizeGraphicsSettings(value: unknown): GraphicsSettings {
     reflections: oneOf(saved.reflections, ['sky', 'scene'], base.reflections),
     clouds: oneOf(saved.clouds, ['low', 'medium', 'high', 'ultra'], base.clouds),
     shadows: oneOf(saved.shadows, ['off', 'low', 'medium', 'high'], base.shadows),
+    waterShadows: oneOf(saved.waterShadows, ['off', 'low', 'medium', 'high'], saved.waterShadows === undefined ? inheritedWater : base.waterShadows),
     modelDetail: oneOf(saved.modelDetail, ['low', 'medium', 'high', 'full'], base.modelDetail),
     terrain: oneOf(saved.terrain, ['medium', 'high'], base.terrain),
     effects: oneOf(saved.effects, ['low', 'medium', 'high'], base.effects),

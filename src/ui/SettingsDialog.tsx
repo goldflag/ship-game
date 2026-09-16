@@ -49,6 +49,7 @@ const GRAPHICS_COLUMNS: { group: string; rows: SelectRow[] }[][] = [
     { id: 'reflections', label: 'Water reflections', cost: 3, hint: 'Ships and sky traces hulls and smoke into the water. The heaviest single effect in a large fleet.', options: [['sky', 'Sky only'], ['scene', 'Ships and sky']] },
     { id: 'clouds', label: 'Clouds', cost: 3, hint: 'Volumetric cloud detail and cloud light in reflections.', options: TIERS },
     { id: 'shadows', label: 'Shadows', cost: 2, hint: 'Sun shadows across decks, hulls and the harbor.', options: [['off', 'Off'], ['low', 'Low'], ['medium', 'Medium'], ['high', 'High']] },
+    { id: 'waterShadows', label: 'Water shadows', cost: 2, hint: 'Higher quality softens ship shadows on the sea. Lower settings save GPU time.', options: [['off', 'Off'], ['low', 'Low'], ['medium', 'Medium'], ['high', 'High']] },
   ] }],
   [{ group: 'Detail and effects', rows: [
     { id: 'modelDetail', label: 'Ship and aircraft detail', cost: 1, hint: 'How close a hull or airframe must be before it keeps its full geometry.', options: [['low', 'Low'], ['medium', 'Medium'], ['high', 'High'], ['full', 'Full']] },
@@ -151,10 +152,11 @@ export function SettingsDialog({ graphics, launched, performance, inBattle, onGr
   const preview = (width: number, height: number) => ({ width: `${width * hudScale}%`, height: `${height * hudScale}%` });
   const renderSelectRow = (row: SelectRow) => {
     const isPending = !!launched && row.later && launched[row.id as 'ocean' | 'terrain'] !== graphics[row.id];
+    const disabled = row.id === 'waterShadows' && graphics.shadows === 'off';
     return <div className={`settings-row ${isPending ? 'pending' : ''}`} key={row.id}>
       <div className="label"><span id={`graphics-${row.id}-label`}>{row.label}</span><CostMeter cost={row.cost}/></div>
-      <p className="hint">{row.later && <span className="setting-tag">{inBattle ? 'After battle' : 'Next battle'}</span>}<span>{row.hint}</span></p>
-      <div className="control"><Select id={`graphics-${row.id}`} aria-labelledby={`graphics-${row.id}-label`} value={String(graphics[row.id])} onValueChange={value => setRow(row, value)}>
+      <p className="hint" id={`graphics-${row.id}-hint`}>{row.later && <span className="setting-tag">{inBattle ? 'After battle' : 'Next battle'}</span>}<span>{disabled ? 'Enable Shadows above to cast shadows on water.' : row.hint}</span></p>
+      <div className="control"><Select id={`graphics-${row.id}`} aria-labelledby={`graphics-${row.id}-label`} aria-describedby={`graphics-${row.id}-hint`} disabled={disabled} value={String(graphics[row.id])} onValueChange={value => setRow(row, value)}>
         {row.options.map(([value, label]) => <SelectOption key={value} value={value}>{label}</SelectOption>)}
       </Select></div>
     </div>;
