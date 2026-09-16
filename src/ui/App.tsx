@@ -1,3 +1,4 @@
+import { savedReference } from '../ships/constructionCloud';
 import { PveResults } from './PveResults';
 import type { PveRequest } from '../multiplayer/generated/PveRequest';
 import type { PveBriefing } from '../multiplayer/generated/PveBriefing';
@@ -220,7 +221,9 @@ export function App() {
   const returnToPort = async () => {
     try {
       const wasTrial = trial;
+      const online=game.current?.simulation.networked;
       await game.current?.returnToPort(); setPhase('garage'); setTrial(false);
+      if(online && game.current) setBattleSetup(previous=>({...previous,playerShipId:game.current!.definition.id,friendlyBots:[],enemies:[]}));
       if (game.current) { selectedRef.current = game.current.definition; setSelectedShip(game.current.definition); }
       if (wasTrial && builderSource.current) setBuilder({ source: builderSource.current, catalog: await loadConstructionCatalog(builderSource.current.construction.catalogRevision), repositoryId: repositoryId.current });
       // Ocean and terrain rows chosen during the battle need a rebuilt port.
@@ -351,9 +354,9 @@ export function App() {
   };
 
   const deletedDesign = (designId: string) => {
-    const ship = localShips().find(ship => ship.source.id === designId);
-    removeLocalShip(designId);
-    if (builderSource.current?.id === designId) builderSource.current = undefined;
+    const ship = localShips().find(ship => ship.source.id === designId || savedReference(ship.source.id)?.designId===designId);
+    removeLocalShip(ship?.source.id ?? designId);
+    if (builderSource.current?.id === (ship?.source.id ?? designId)) builderSource.current = undefined;
     if (!ship) return;
     const id = ship.definition.id;
     setBattleSetup(setup => ({ ...setup, playerShipId: setup.playerShipId === id ? initialShip.id : setup.playerShipId,
@@ -362,12 +365,14 @@ export function App() {
   };
 
   const closeBuilder = async (source: ConstructionSource, result?: ConstructionResult) => {
+    const session = game.current;
     builderSource.current = source;
     if (!result) {
       const compiler = new ConstructionClient();
       try { result = await compiler.compile(source); }
       finally { compiler.dispose(); }
     }
+    if (!session || game.current !== session) return;
     if (result?.definition && !result.diagnostics.some(item => item.severity === 'error')) {
       const ship = registerLocalShip(source, result);
       await switchShip(ship.definition.id);

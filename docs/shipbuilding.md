@@ -1,8 +1,10 @@
-# Local shipbuilding
+# Shipbuilding
 
 For repository-backed ship construction, agent commands and publication, see
 [construction authoring](construction-authoring.md). Blender remains the permanent
 authoring tool for reusable components.
+
+An account is required. Source revisions save to PostgreSQL; IndexedDB retains account-scoped recovery drafts. Saved valid designs can join online fleets alongside historical presets, within the [online construction limits](accounts.md#online-construction). Campaign missions still use historical presets.
 
 Choose **New design** in port for a design with one centered hull block, or **Edit design** to reopen a saved source. All drafts appear in the port’s Ship designs list; valid designs also appear in the fleet carousel and can be inspected in the harbor. Returning from the editor saves and shows a valid design without requiring a sea trial. The patrol starter includes a gun, ammunition
 magazine, diesel machinery, funnel, propeller, rudder and mast. The twin-hull
@@ -203,12 +205,15 @@ and source revision accompany the definition and model. A dedicated bounded
 worker compiles each editor revision. Cancellation terminates in-flight native
 work; stale messages cannot replace the active preview.
 
-IndexedDB database `fleet-command-construction` stores source revisions and a
-transactional current-revision pointer. Compare-and-swap writes reject stale
-tabs, and older revisions remain recoverable. Invalid physical drafts may be
-saved. Missing catalog versions, corrupt data, newer schemas and quota failures
-show recovery guidance without overwriting originals. Catalog versions are loaded
-exactly, including retained historical catalogs. Source export is a local backup.
+PostgreSQL stores account-owned immutable revisions and a transactional current
+revision pointer. Compare-and-swap rejects stale devices; idempotency keys make
+network retries safe. Invalid physical drafts may be saved. Missing catalogs,
+corrupt data, newer schemas and quota failures show recovery guidance without
+overwriting originals. IndexedDB holds account-scoped unsaved recovery drafts;
+“Saved” requires a server acknowledgement. The old `fleet-command-construction`
+database is available only through explicit import into the account library.
+Catalog versions load exactly, including retained historical versions. Source
+export remains a local backup. See [account storage](accounts.md#source-storage-and-recovery).
 
 [localShips.ts](../src/ships/localShips.ts) is a port presentation registry.
 Each battle freezes its own selected revisions. `LocalRuntime.with_construction`

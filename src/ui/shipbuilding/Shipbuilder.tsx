@@ -373,7 +373,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const saveCopy = async () => {
     setDesignsOpen(false);
     const copy = structuredClone(source); copy.id = newConstructionId('design'); copy.revision = newConstructionId('revision'); copy.name = `${copy.name.slice(0, 150)} copy`;
-    try { await editor.replace(copy, null, false, true); setNotice('A new local design now holds this draft.'); } catch (cause) { fail(cause); }
+    try { await editor.replace(copy, null, false, true); setNotice('A new design now holds this draft.'); } catch (cause) { fail(cause); }
   };
   const importSource = async (file?: File) => {
     if (!file) return;
@@ -389,7 +389,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   };
   const saveLocalCopy = async () => {
     let storage: ConstructionStore | undefined;
-    try { storage = await openConstructionStore(); const copy = freshConstruction(source); await storage.save({ designId: copy.id, name: copy.name, source: copy, schemaVersion: 1, catalogRevision: copy.construction.catalogRevision, expectedRevisionId: null }); setNotice('A local copy is available in the port Ship designs list.'); setDesignsOpen(false); } catch (cause) { fail(cause); } finally { storage?.close(); }
+    try { storage = await openConstructionStore(); const copy = freshConstruction(source); await storage.save({ designId: copy.id, name: copy.name, source: copy, schemaVersion: 1, catalogRevision: copy.construction.catalogRevision, expectedRevisionId: null }); setNotice('A saved copy is available in the port Ship designs list.'); setDesignsOpen(false); } catch (cause) { fail(cause); } finally { storage?.close(); }
   };
   const close = async () => { setBusy('Saving'); try { await editor.flush(); await props.onClose(structuredClone(source), compiled); } catch (cause) { fail(cause); } finally { setBusy(''); } };
   const launch = async () => {
@@ -517,7 +517,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const canLaunch = !pathPoints.length && !!compiled?.definition && !blocks.length && !busy && editor.ready;
   const launchTitle = busy ? busy : editor.compiling ? 'Compiling this revision…' : blocks.length ? `${blocks.length} block${blocks.length === 1 ? '' : 's'} to fix before a trial` : compiled?.definition ? 'Launch a sea trial with this design' : 'Waiting for a compiled design';
   const saveTone = editor.saveState.status === 'saved' ? 'ok' : editor.saveState.status === 'error' ? 'bad' : 'saving';
-  const saveText = editor.saveState.status === 'saved' ? (props.repositoryId ? 'Saved to repository' : 'Saved locally') : editor.saveState.status === 'error' ? 'Not saved · keep a backup' : 'Saving…';
+  const saveText = editor.saveState.status === 'saved' ? (props.repositoryId ? 'Saved to repository' : 'Saved to account') : editor.saveState.status === 'error' ? 'Not saved · keep a backup' : 'Saving…';
   const arcs: BuilderArc[] = showArcs && layer === 'fittings' && compiled?.definition ? compiled.definition.mounts.map(mount => ({ position: mount.position, bearingDeg: mount.bearingDeg, traverseDeg: mount.traverseDeg ?? mount.weapon.traverseDeg, radius: ARC_RADIUS, color: '#86e4c5' })) : [];
   const proposed: BuilderProposal[] = suggestion && suggestionChanged ? suggestion.source.construction.equipment.filter(item => !data.equipment.some(existing => existing.id === item.id)).flatMap(item => { const part = partOf(item); return part ? [{ position: item.position, bearingDeg: item.bearingDeg, size: part.size, boundsCenter: part.boundsCenter }] : []; }) : [];
   const drawerItems = query ? palette.drawer.filter(item => `${item.name} ${item.note} ${item.kind === 'part' ? `${item.part.name} ${FAMILY_NAMES[item.part.kind]} ${item.part.placement}` : ''}`.toLowerCase().includes(query.toLowerCase())) : palette.drawer;

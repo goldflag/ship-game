@@ -1,0 +1,7 @@
+FROM caddy:2.10-alpine
+# This service binds only 8080. Remove the image's privileged-port file
+# capability so it can execute with Compose's empty capability bounding set.
+RUN setcap -r /usr/bin/caddy
+COPY deploy/Caddyfile /etc/caddy/Caddyfile
+COPY dist /srv
+EXPOSE 8080

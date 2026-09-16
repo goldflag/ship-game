@@ -1,3 +1,5 @@
+import { sessionShip } from './sessionShips';
+import { onAccountChange } from '../accounts/session';
 import type { ConstructionResult, ConstructionSource, ShipDefinition } from './blueprint';
 import { shipPreset, shipPresets } from './presets';
 
@@ -54,7 +56,7 @@ export function localShip(id: string): LocalShipRevision | undefined { return sn
 /** Unknown IDs are errors. A missing saved design must never become Bismarck. */
 export function resolveShip(id: string): IdentifiedShip {
   if (isHistoricalShip(id)) return shipPreset(id);
-  const entry = localShip(id);
+  const entry = localShip(id) ?? sessionShip(id);
   if (!entry) throw new Error(`Ship unavailable: ${id}. Open its saved design and compile it again.`);
   return entry.definition;
 }
@@ -67,3 +69,5 @@ export function freezeLocalFleet(ids: readonly string[]): readonly LocalShipRevi
     return [entry];
   });
 }
+
+onAccountChange(() => { bySource.clear(); changed(); });

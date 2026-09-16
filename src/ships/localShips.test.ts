@@ -16,13 +16,13 @@ function fixture() {
   const result = JSON.parse(compile_construction(JSON.stringify(source), JSON.stringify(catalog))) as ConstructionResult;
   expect(result.diagnostics.filter(d => d.severity === 'error')).toEqual([]); return { source, result };
 }
-test('custom selection supports duplicates, stays local, and freezes the battle revision', () => {
+test('custom selection supports duplicates and online fleet selection without changing the historical roster', () => {
   const { source, result } = fixture();
   try {
     const entry = registerLocalShip(source, result), id = entry.definition.id, frozen = freezeLocalFleet([id, id, 'fletcher']);
     expect(frozen).toHaveLength(1); expect(resolveShip(id).name).toBe(source.name);
-    expect(transferDuelShip([], { kind: 'catalog', id }, 'fleet').error).toBeTruthy();
-    expect(carryToDuel([id], id, [id])).toEqual([]);
+    expect(transferDuelShip([], { kind: 'catalog', id }, 'fleet').fleet).toEqual([id]);
+    expect(carryToDuel([id], id, [id])).toEqual([id]);
     const setup = { playerShipId: 'fletcher', friendlyBots: [], enemies: [], spawnDistance: 5000 };
     const first = transferCustomShip(setup, { kind: 'catalog', id }, 'enemy');
     const second = transferCustomShip(first.setup, { kind: 'catalog', id }, 'enemy');

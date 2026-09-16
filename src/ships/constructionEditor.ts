@@ -68,7 +68,7 @@ export function decodeConstructionSource(value: unknown): ConstructionSource {
 
 export function decodeSavedConstruction(revision: ConstructionRevision, catalogRevision = revision.catalogRevision): ConstructionSource {
   const source = readConstructionSource(revision, { schemaVersion: 1, catalogRevision, decode: decodeConstructionSource }).source;
-  if (source.id !== revision.designId) throw new ConstructionStoreError('corrupt', 'The source and saved design identities disagree. Recover an earlier revision; the original is preserved.');
+  if (source.id !== (revision.sourceId ?? revision.designId)) throw new ConstructionStoreError('corrupt', 'The source and saved design identities disagree. Recover an earlier revision; the original is preserved.');
   if (source.construction.catalogRevision !== revision.catalogRevision) throw new ConstructionStoreError('catalog', 'The source and saved catalog identities disagree. Recover an earlier revision; the original is preserved.');
   return source;
 }

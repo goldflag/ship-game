@@ -1,19 +1,22 @@
+import { testAccount, verifyMatchContent } from './test-accounts';
 import { expandSnapshot } from '../../src/multiplayer/snapshotDelta';
 import assert from 'node:assert/strict';
 import { gunzipSync } from 'node:zlib';
 import version from '../../src/generated/naval-version.json';
 const base = process.env.NAVAL_TEST_URL ?? 'http://127.0.0.1:8787';
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+const cookies = new Map<string,string>();
 async function join(mode: string, inviteCode?: string) {
-  const response = await fetch(`${base}/api/join`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ fleet: ['fletcher', 'fletcher'], mode, inviteCode, version }) });
-  assert.equal(response.status, 200, await response.clone().text()); return response.json();
+  const cookie = await testAccount(base);
+  const response = await fetch(`${base}/api/join`, { method: 'POST', headers: { 'content-type': 'application/json',cookie,origin:new URL(base).origin }, body: JSON.stringify({ fleet: ['fletcher', 'fletcher'].map(presetId=>({kind:'historical',presetId})), mode, inviteCode, version }) });
+  assert.equal(response.status, 200, await response.clone().text()); const result=await response.json();cookies.set(result.ticket,cookie);return result;
 }
 function connect(ticket: string) {
-  const socket = new WebSocket(base.replace(/^http/, 'ws') + '/api/socket'); socket.binaryType = 'arraybuffer';
-  const messages: any[] = []; let latest: any;
+  const socket = new WebSocket(base.replace(/^http/, 'ws') + '/api/socket', {headers:{cookie:cookies.get(ticket)!,origin:new URL(base).origin}}); socket.binaryType = 'arraybuffer';
+  const messages: any[] = []; let latest: any, matched:any;
   socket.onopen = () => socket.send(JSON.stringify({ type: 'hello', ticket, version }));
-  socket.onmessage = e => { const message = typeof e.data === 'string' ? JSON.parse(e.data) : JSON.parse(gunzipSync(new Uint8Array(e.data)[0] === 0 ? new Uint8Array(e.data).subarray(1) : new Uint8Array(e.data)).toString()); if (message.type === 'snapshot-delta') latest = expandSnapshot(messages.findLast(m => m.type === 'matched').baseline, message); else { messages.push(message); if(message.type === 'error') console.error(message); } };
-  return { socket, messages, get frame() { return latest; }, send(message: object) { socket.send(JSON.stringify(message)); } };
+  socket.onmessage = async e => { const message = typeof e.data === 'string' ? JSON.parse(e.data) : JSON.parse(gunzipSync(new Uint8Array(e.data)[0] === 0 ? new Uint8Array(e.data).subarray(1) : new Uint8Array(e.data)).toString()); if (message.type === 'snapshot-delta') latest = expandSnapshot(matched.baseline, message); else { if(message.type==='matched') { matched=message; await verifyMatchContent(base,cookies.get(ticket)!,ticket,message.contentHash); } messages.push(message); if(message.type === 'error') console.error(message); } };
+  return { socket, messages, get frame() { return latest; }, send(message: object) { socket.send(JSON.stringify({...message,...((message as any).type==='ready'?{contentHash:matched.contentHash}:{})})); } };
 }
 async function until<T>(read: () => T, label: string): Promise<NonNullable<T>> {
   const deadline = Date.now() + 15000;
@@ -25,7 +28,7 @@ const cancelledGuest = await join('join-invite', cancelledHost.inviteCode);
 const cancelledHostSocket = connect(cancelledHost.ticket);
 const cancelled = connect(cancelledGuest.ticket);
 await until(() => cancelled.messages.some(m => m.type === 'matched'), 'pair before cancellation');
-assert.equal((await fetch(`${base}/api/cancel`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ ticket: cancelledHost.ticket }) })).status, 204);
+assert.equal((await fetch(`${base}/api/cancel`, { method: 'POST', headers: { 'content-type': 'application/json',cookie:cookies.get(cancelledHost.ticket)!,origin:new URL(base).origin }, body: JSON.stringify({ ticket: cancelledHost.ticket }) })).status, 204);
 try {
   await until(() => cancelled.frame?.phase === 'cancelled', 'cancel after pairing');
   assert.equal(cancelled.frame.tick, 0); assert.equal(cancelled.frame.outcome, null);
