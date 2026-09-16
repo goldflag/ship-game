@@ -32,6 +32,9 @@ rotates the next piece. Shift-drag selects enclosed blocks and visible fittings 
 tool; Ctrl/⌘ adds to the selection. Right-click removes the targeted block or
 fitting, and its deletion can be undone. The last hull block is protected; deleting a whole selection leaves one block and its surface assignments. Hover outlines the block under the pointer.
 
+Flat mating faces snap exactly. Curved or pointed contacts seat into the support
+by at most 5 cm, creating a physical attachment instead of a single-point touch.
+
 The editor has no ground grid or simulated water plane. If placement cannot
 compile, hull pieces remain visible as source envelopes while the diagnostics
 explain what needs fixing. Loaded funnels, turrets and other equipment retain
@@ -113,6 +116,21 @@ equipment instances, boundaries, loads and an exact equipment-catalog revision.
 The grid is a placement aid, not the physical discretization. Box, wedge, corner
 and inverse-corner pieces use continuous dimensions and quarter-turn hull yaw.
 Sizes produce slabs and long/shallow slopes without rounding away partial volume.
+The Hull drawer also includes a square pyramid (⅓ hull), cylinders and partial
+cylinders, spheres and domes, open dome shells, a cone, round hollow cube,
+concave corner, six windowed bridge blocks/panels (straight, diagonal and rounded
+in each form), and a generic supported breakwater. Closed shapes and their
+open-shell counterparts remain separate entries. Both Hull and Fittings drawers
+have search; Hull searches shape names and notes. Size controls cover the
+reference images' duplicate block dimensions; curved pieces use one smooth
+visual treatment.
+
+**100 t ballast** is a Hull block with a fixed 100,000 kg payload plus its
+structural casing and any assigned armor. Resizing changes its occupied volume,
+not the payload mass. It excludes its fill from floodable space and contributes
+mass, CG and inertia at the placed position. Overlapping ballast blocks are
+rejected. The ballast remains visible, selectable, copyable and undoable like
+other hull blocks.
 
 Coordinates remain metres, +Y up, -Z bow and +X starboard. Compilation does not
 recenter a design or move the hull separately from its contents. Equipment yaw
@@ -133,6 +151,16 @@ perform the authoritative derivation. WASM exports `compile_construction` and
 `suggest_construction`; the native `compile_construction` example accepts the
 same source/catalog JSON. TypeScript owns commands, storage and rendering, and
 does not provide a second construction-physics implementation.
+
+Original reusable block recipes live in
+[`hull_shapes.rs`](../assets/parts/construction/hull_shapes.rs). They emit convex
+cells for Rust and the display-only shape library during `multiplayer:prepare`.
+Thumbnails, cursor ghosts and invalid drafts use those emitted exterior polygons;
+compiled previews and battles use the final native union. Open windows, shell
+interiors and the hollow cube's bore remain actual exterior gaps. Curves use
+16 circumferential segments and smooth lighting; buoyancy and contact use the
+bounded polygons. Wall, rim and mullion proportions scale with the block's size.
+These are generic construction shapes, without a historical vessel claim.
 
 Compilation unions convex polyhedra, clips shared exterior faces, unions inward
 material occupancy and subtracts material/equipment from room volume. Duplicate

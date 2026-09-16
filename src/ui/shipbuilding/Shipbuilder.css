@@ -154,6 +154,7 @@
 .shipbuilder .sb-slot { flex-shrink: 0; width: var(--sb-slot); height: var(--sb-slot); padding: 0; border: 1px solid var(--sb-line2); border-radius: 3px; background: var(--sb-card); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; color: var(--sb-text); text-shadow: none; }
 .sb-slot:hover:not(:disabled) { border-color: var(--sb-muted2); background: var(--sb-card-hover); }
 .sb-slot img { display: block; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+.sb-slot-weight { position: absolute; bottom: 3px; right: 4px; font-size: 11px; color: var(--sb-text); background: var(--sb-card); padding: 1px 3px; }
 .sb-slot > svg { width: 28px; height: 28px; opacity: .85; }
 /* hull cards print the piece's metres in the bottom-left corner, over the rendered piece */
 .sb-dims { position: absolute; left: 3px; bottom: 3px; padding: 2px 4px 1px; border-radius: 2px; background: #15181ad9; font: 500 11px/1 'Barlow Condensed', sans-serif; font-style: normal; letter-spacing: .03em; color: var(--sb-text); pointer-events: none; }
@@ -170,8 +171,9 @@
 .sb-drawer { position: absolute; left: 50%; bottom: calc(var(--sb-bar-bottom) + var(--sb-bar-height) + 12px); transform: translateX(-50%); z-index: 4; width: max-content; max-width: min(760px, calc(100% - 28px)); padding: 10px 12px 12px; background: var(--sb-card); border: 1px solid var(--sb-line2); border-radius: 3px; box-shadow: 0 12px 28px #0a0c0e99; text-shadow: none; display: flex; flex-direction: column; gap: 10px; }
 .sb-drawer-head { display: flex; align-items: center; gap: 14px; }
 .sb-drawer-head .sb-lead { white-space: nowrap; }
-.sb-drawer .sb-search { flex: 1; min-width: 200px; display: flex; gap: 8px; align-items: center; font-size: 12px; color: var(--sb-muted); }
-.sb-drawer .sb-search input { flex: 1; font-size: 13px; padding: 3px 0; }
+.sb-drawer .sb-search { flex: 1; min-width: 0; display: flex; gap: 8px; align-items: center; font-size: 12px; color: var(--sb-muted); }
+.sb-drawer .sb-search input { flex: 1; min-width: 0; width: 170px; font-size: 13px; padding: 3px 0; }
+.sb-drawer .sb-search input::placeholder { color: var(--sb-muted); opacity: 1; }
 .sb-drawer-close { margin-left: auto; color: var(--sb-muted); font-size: 18px; line-height: 1; padding: 0 2px; }
 .sb-drawer-close:hover { color: var(--sb-text); }
 .sb-drawer-grid { display: flex; flex-wrap: wrap; gap: 6px; max-height: min(42vh, 320px); overflow-y: auto; scrollbar-width: thin; }
@@ -249,7 +251,8 @@
 }
 @media (max-width: 860px) {
   .sb-ledger, .sb-viewbar span { display: none; }
-  .sb-name { width: 120px; }
+  .sb-ship { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 8px; row-gap: 1px; }
+  .sb-name { grid-column: 1 / -1; width: 100%; min-width: 0; }
   .sb-top { padding-inline: 12px; }
 }
 @media (max-width: 740px) {
@@ -282,9 +285,31 @@
   .shipbuilder:not(.sb-freeform-mode) .sb-rail button { height: 44px; }
   .sb-menu { position: fixed; left: 12px; right: 12px; top: 64px; width: auto; max-height: calc(100dvh - 88px); }
   .sb-hotbar { width: calc(100% - 28px); display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .shipbuilder { --sb-bar-width: min(344px, calc(100vw - 28px)); --sb-bar-height: calc((var(--sb-bar-width) - 24px) * 2 / 5 + 6px); --sb-bar-bottom: 84px; }
+  .sb-top { height: 118px; display: grid; grid-template-columns: 44px minmax(0, 1fr); grid-template-rows: 44px 30px 38px; gap: 0 12px; padding-top: 6px; }
+  .sb-port { grid-column: 1; grid-row: 1; }
+  .sb-ship { grid-column: 2; grid-row: 1; display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 8px; row-gap: 1px; }
+  .sb-name { grid-column: 1 / -1; width: 100%; min-width: 0; }
+  .sb-meta { min-width: 0; font-size: 10px; }
+  .sb-save { font-size: 10px; }
+  .sb-actions { grid-column: 1 / -1; grid-row: 2; justify-content: flex-end; margin: 0; }
+  .sb-tabs { grid-column: 1 / -1; grid-row: 3; justify-content: space-between; height: 38px; margin: 0; gap: 8px; }
+  .sb-tabs button { height: 38px; }
+  .sb-menu { position: fixed; top: 52px; left: 12px; width: calc(100vw - 24px); }
+  .sb-left { top: 128px; right: 14px; max-width: none; gap: 10px; }
+  .sb-warn, .sb-warn .rows { width: 100%; min-width: 0; }
+  .sb-warn .row, .sb-warn .row span { min-width: 0; }
+  .sb-warn .rows { max-height: 54px; }
+  .sb-orientation { bottom: 244px; width: 120px; }
+  .sb-hotbar { width: var(--sb-bar-width); display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); }
   .shipbuilder .sb-hotbar .sb-slot { width: auto; height: auto; aspect-ratio: 1; min-width: 0; }
+  .sb-cursor { width: calc(100% - 28px); justify-content: center; gap: 5px; font-size: 11px; }
+  .sb-cursor b { max-width: 140px; overflow: hidden; text-overflow: ellipsis; }
+  .sb-cursor .sb-coords { position: absolute; bottom: 24px; right: 0; }
+  .sb-viewbar { left: 14px; right: 14px; bottom: 10px; justify-content: center; gap: 18px; font-size: 11px; }
+  .sb-viewbar button { min-height: 30px; }
   .sb-drawer { width: calc(100% - 28px); max-width: none; }
-  .sb-drawer-grid { max-height: calc(100vh - 320px); }
+  .sb-drawer-grid { max-height: max(56px, calc(100dvh - 450px)); }
 }
 @media (prefers-reduced-motion: no-preference) {
   .sb-slot, .sb-tabs button, .sb-rail button, .sb-cmd { transition: color .16s ease-out, border-color .16s ease-out, background-color .16s ease-out; }

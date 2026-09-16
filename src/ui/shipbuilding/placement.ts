@@ -2,6 +2,11 @@ import type { ConstructionEquipment, ConstructionEquipmentPart, ConstructionPrim
 import { mirroredPrimitive } from '../../ships/constructionEditor';
 import { normalizedBearing, snapCoordinate } from './editorNumbers';
 import type { BuilderPlacement } from './primitiveGeometry';
+import { CONSTRUCTION_SHAPES } from '../../ships/constructionShapes';
+import { CORNER_SIGNS, VERTEX_FACES } from '../../ships/constructionVertex';
+
+/** An unwarped vertex hull is the unit box; its warped corners live on the source piece. */
+const VERTEX_SHAPE: Vec3[][] = VERTEX_FACES.map(face => face.corners.map(i => CORNER_SIGNS[i].map(v => v / 2) as Vec3));
 
 /** Placement arithmetic for the cursor ghost: pieces sit on the face under the
  * pointer, snapped to the grid in the face plane. Rust still validates the result. */
@@ -17,6 +22,18 @@ export function rotateY(vector: Vec3, radians: number): Vec3 {
 }
 /** Bearings are clockwise from the bow; three.js rotation.y is counter-clockwise. */
 export const bearingRadians = (bearingDeg: number) => -bearingDeg * Math.PI / 180;
+
+const hullFacesCache = new Map<string, Vec3[][]>();
+function hullFaces(piece: Extract<BuilderPlacement, { kind: 'hull' }>): Vec3[][] {
+  const key = `${piece.shape}:${piece.size.join(',')}:${piece.rotationDeg}`;
+  let faces = hullFacesCache.get(key);
+  if (!faces) {
+    faces = (piece.shape === 'vertex' ? VERTEX_SHAPE : CONSTRUCTION_SHAPES[piece.shape]).map(face => face.map(vertex => rotateY(vertex.map((v, i) => v * piece.size[i]) as Vec3, piece.rotationDeg * Math.PI / 180)));
+    if (hullFacesCache.size >= 32) hullFacesCache.delete(hullFacesCache.keys().next().value!);
+    hullFacesCache.set(key, faces);
+  }
+  return faces;
+}
 
 /** Axis-aligned extents of a piece in ship coordinates. */
 export function pieceExtents(piece: BuilderPlacement): Vec3 {
@@ -43,9 +60,20 @@ export function placementCenter(piece: BuilderPlacement, hit: PlacementHit, step
   }
   const extents = pieceExtents(piece);
   if (piece.kind === 'hull') {
-    return hit.point.map((value, index) => index === axis
+    const center = hit.point.map((value, index) => index === axis
       ? value + sign * extents[index] / 2
       : snapCoordinate(value - extents[index] / 2 - (hit.snapOrigin?.[index] ?? 0), step) + extents[index] / 2 + (hit.snapOrigin?.[index] ?? 0)) as Vec3;
+    const faces = hullFaces(piece);
+    const dot = (v: Vec3) => v[0] * normal[0] + v[1] * normal[1] + v[2] * normal[2];
+    let support = Infinity;
+    for (const face of faces) for (const vertex of face) support = Math.min(support, dot(vertex));
+    const hasContactFace = faces.some(face => face.every(point => Math.abs(dot(point) - support) < 1e-7));
+    // A tangent sphere (or a pointed/edge contact) needs a small physical seat.
+    // Flat mating faces retain exact face-to-face placement. Keep the two grid
+    // coordinates and resolve only the coordinate normal to the hit plane.
+    const seat = hasContactFace ? 0 : Math.min(.05, Math.min(...piece.size) * .05);
+    center[axis] += (dot(hit.point) - dot(center) - support - seat) / normal[axis];
+    return center;
   }
   const attach = attachmentOffset(piece, piece.bearingDeg), inset = piece.inset ?? 0;
   // Vertical hits seat the attachment point on the face; wall hits push the whole envelope off the face.

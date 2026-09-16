@@ -5,6 +5,7 @@ import type { ConstructionBoundary, ConstructionCatalog, ConstructionEquipment, 
 import { CONSTRUCTION_LIMITS, decodeConstructionSource, assignConstructionSurfaces, copyConstructionSelection, editableConstructionSurfaces, mirroredFace, mirroredPrimitive, mirroredEquipment, moveConstructionSelection, newConstructionId, removeConstructionSelection, rotateConstructionSelection, surfaceKey, type ConstructionFace } from '../../ships/constructionEditor';
 import { removeLocalShip } from '../../ships/localShips';
 import { ConstructionClient } from '../../ships/constructionClient';
+import { CONSTRUCTION_SHAPE_NAMES as SHAPE_NAMES } from '../../ships/constructionShapes';
 import { createStarterSource, startingHullBlock, type ConstructionStarter } from '../../ships/constructionStarter';
 import { constructionCatalogUpdate, updateConstructionCatalog, loadConstructionCatalog } from '../../ships/constructionEquipment';
 import { armorThicknessColor } from '../../ships/inspection';
@@ -58,7 +59,6 @@ export interface ShipbuilderProps {
 }
 
 const DISPLAY: Record<BuilderLayer, BuilderDisplay> = { hull: 'paint', armor: 'armor', internals: 'internals', fittings: 'paint', paint: 'paint' };
-const SHAPE_NAMES: Record<ConstructionPrimitive['kind'], string> = { box: 'Box', wedge: 'Wedge', corner: 'Corner out', 'inverse-corner': 'Corner in', vertex: 'Freeform hull' };
 const BOUNDARY_NAMES: Record<ConstructionBoundary['axis'], string> = { y: 'Deck', z: 'Bulkhead', x: 'Split' };
 const VIEWS: BuilderView[] = ['orbit', 'top', 'side', 'bow'];
 const VIEW_NAMES: Record<BuilderView, string> = { orbit: 'Orbit', top: 'Plan', side: 'Profile', bow: 'Bow' };
@@ -498,7 +498,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
         return;
       }
       if (/^[1-9]$/.test(event.key)) { const item = palette.bar[Number(event.key) - 1]; if (item) selectSlot(item); return; }
-      if (event.key === '0') { if (hasDrawer) { setDrawer(value => !value); setTip(undefined); } return; }
+      if (event.key === '0') { if (hasDrawer) { event.preventDefault(); setDrawer(value => !value); setTip(undefined); } return; }
       if (lower === 'q') cycleView(); else if (lower === 's') toggleSlice(); else if (lower === 'w') setWarningsOpen(value => !value);
       else if (lower === 'r') rotate(); else if (lower === 'm') setMirror(value => !value); else if (lower === 'c') setShowCenters(value => !value);
       else { const entry = rail.find(entry => entry.key.toLowerCase() === lower); if (entry) activateRail(entry); }
@@ -520,7 +520,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const saveText = editor.saveState.status === 'saved' ? (props.repositoryId ? 'Saved to repository' : 'Saved locally') : editor.saveState.status === 'error' ? 'Not saved · keep a backup' : 'Saving…';
   const arcs: BuilderArc[] = showArcs && layer === 'fittings' && compiled?.definition ? compiled.definition.mounts.map(mount => ({ position: mount.position, bearingDeg: mount.bearingDeg, traverseDeg: mount.traverseDeg ?? mount.weapon.traverseDeg, radius: ARC_RADIUS, color: '#86e4c5' })) : [];
   const proposed: BuilderProposal[] = suggestion && suggestionChanged ? suggestion.source.construction.equipment.filter(item => !data.equipment.some(existing => existing.id === item.id)).flatMap(item => { const part = partOf(item); return part ? [{ position: item.position, bearingDeg: item.bearingDeg, size: part.size, boundsCenter: part.boundsCenter }] : []; }) : [];
-  const drawerItems = layer === 'fittings' && query ? palette.drawer.filter(item => item.kind === 'part' && `${item.part.name} ${FAMILY_NAMES[item.part.kind]} ${item.part.placement}`.toLowerCase().includes(query.toLowerCase())) : palette.drawer;
+  const drawerItems = query ? palette.drawer.filter(item => `${item.name} ${item.note} ${item.kind === 'part' ? `${item.part.name} ${FAMILY_NAMES[item.part.kind]} ${item.part.placement}` : ''}`.toLowerCase().includes(query.toLowerCase())) : palette.drawer;
   const coords = useCallback((position: Vec3) => {
     const text = `x ${signed(position[0])} · y ${signed(position[1])} · z ${signed(position[2])}`;
     return piece?.kind === 'equipment' ? `${text} · ${piece.bearingDeg}°` : piece?.kind === 'boundary' ? `${BOUNDARY_NAMES[piece.axis]} at ${signed(position[{ x: 0, y: 1, z: 2 }[piece.axis]])} m` : text;
@@ -594,7 +594,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   // Cards carry the piece, and hull cards its metre dimensions in the corner; the name and reading appear as a tooltip.
   const describe = (item: SlotItem): { title: string; detail: string } => {
     switch (item.kind) {
-      case 'shape': return { title: item.name, detail: `${item.shape.size.map(metres).join(' × ')} m · ${SHAPE_NAMES[item.shape.kind].toLowerCase()}` };
+      case 'shape': return { title: item.name, detail: item.shape.note };
       case 'armor': return { title: 'Armor', detail: `${customMm > 0 ? `${customMm} mm armor steel` : 'structural skin without armor'} · set the thickness above the bar` };
       case 'opening': return { title: 'Opening', detail: 'removes the skin so the face admits water' };
       case 'part': return { title: item.part.name, detail: item.part.path ? `${item.note} · draw connected points` : `${item.note} · ${item.part.placement} · ${item.part.size.map(metres).join(' × ')} m` };
@@ -613,7 +613,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const face = (item: SlotItem) => {
     const image = imageFor(item);
     const picture = image ? <img src={image} alt="" draggable={false}/> : null;
-    if (item.kind === 'shape') return <>{picture ?? <SlotGlyph item={item} customMm={customMm}/>}<i className="sb-dims">{dimensions(item.shape.size)}</i></>;
+    if (item.kind === 'shape') return <>{picture ?? <SlotGlyph item={item} customMm={customMm}/>}<i className="sb-dims">{dimensions(item.shape.size)}</i>{item.shape.kind === 'ballast' && <small className="sb-slot-weight">100 t</small>}</>;
     if (picture) return picture;
     switch (item.kind) {
       case 'armor': return <i className="sb-swatch" style={{ background: armorThicknessColor(customMm) }}><span>{customMm} mm</span></i>;
@@ -707,9 +707,9 @@ export function Shipbuilder(props: ShipbuilderProps) {
     </aside>
     {drawer && <div className="sb-drawer" aria-label={`All ${drawerName}`}>
       <div className="sb-drawer-head"><span className="sb-lead">All {drawerName}</span>
-        {layer === 'fittings' && <label className="sb-search">Find <input autoFocus type="search" aria-label="Find a fitting" placeholder="gun, screw, funnel…" value={query} onChange={event => setQuery(event.target.value)} onKeyDown={event => { if (event.key === 'Escape') { event.stopPropagation(); setDrawer(false); setTip(undefined); } }}/></label>}
+        {(layer === 'fittings' || layer === 'hull') && <label className="sb-search">Find <input autoFocus type="search" aria-label={layer === 'hull' ? 'Find a shape' : 'Find a fitting'} placeholder={layer === 'hull' ? 'bridge, cylinder, shell…' : 'gun, screw, funnel…'} value={query} onChange={event => setQuery(event.target.value)} onKeyDown={event => { if (event.key === 'Escape') { event.stopPropagation(); setDrawer(false); setTip(undefined); } }}/></label>}
         <button className="sb-drawer-close" aria-label="Close" onClick={() => { setDrawer(false); setTip(undefined); }}>×</button></div>
-      <div className="sb-drawer-grid" role="listbox">{drawerItems.map(item => slot(item))}{!drawerItems.length && <span className="sb-lead">No fitting matches</span>}</div>
+      <div className="sb-drawer-grid" role="listbox">{drawerItems.map(item => slot(item))}{!drawerItems.length && <span className="sb-lead">No {layer === 'hull' ? 'shape' : 'fitting'} matches</span>}</div>
     </div>}
     <div className="sb-hotbar" role="toolbar" aria-label="Palette">
       {palette.bar.map(item => slot(item))}

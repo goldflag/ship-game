@@ -1,6 +1,8 @@
 //! Renderer-free naval simulation shared by the native server and browser WASM.
 pub mod catalog;
 pub mod construction_geometry;
+#[path = "../../../assets/parts/construction/hull_shapes.rs"]
+pub mod construction_shapes;
 pub mod construction;
 mod construction_vertex;
 mod construction_installation;

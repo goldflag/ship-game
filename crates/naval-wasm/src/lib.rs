@@ -11,6 +11,12 @@ fn error(e: impl std::fmt::Display) -> JsValue {
 pub fn compile_construction(source_json: &str, catalog_json: &str) -> Result<String, JsValue> {
     naval_sim::construction::compile_json(source_json, catalog_json).map_err(error)
 }
+
+/// Display-only shape library generated from the native construction recipes.
+#[wasm_bindgen]
+pub fn construction_shape_library() -> String {
+    naval_sim::construction_shapes::display_library()
+}
 #[wasm_bindgen]
 pub fn suggest_construction(
     source_json: &str,

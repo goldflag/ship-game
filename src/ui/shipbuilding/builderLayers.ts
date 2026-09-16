@@ -1,5 +1,6 @@
 import type { ConstructionCatalog, ConstructionEquipmentPart, ConstructionPrimitive, Vec3 } from '../../ships/blueprint';
 import { CONSTRUCTION_PAINTS } from './paints';
+import { CONSTRUCTION_SHAPE_NAMES } from '../../ships/constructionShapes';
 
 /** Layer tabs, tool rails and hotbar palettes of the "Slipway rails" editor.
  * Pure data: the component maps these onto source commands. */
@@ -51,6 +52,21 @@ export const HULL_SHAPES: HullShape[] = [
   { id: 'hull-section', name: 'Hull section', note: '8 × 5 × 8', kind: 'box', size: [8, 5, 8] },
   { id: 'bow-wedge', name: 'Bow wedge', note: '8 × 5 × 8', kind: 'wedge', size: [8, 5, 8] },
   { id: 'tall-wedge', name: 'Tall wedge', note: '4 × 8 × 4', kind: 'wedge', size: [4, 8, 4] },
+  ...([
+    ['ballast', [3, 1.5, 3]],
+    ['pyramid', [4, 4, 4]], ['cylinder', [4, 4, 4]], ['half-cylinder', [2, 4, 4]],
+    ['quarter-cylinder', [4, 4, 4]], ['quarter-cylinder-wall', [4, 4, 4]],
+    ['sphere', [4, 4, 4]], ['hemisphere', [4, 2, 4]], ['sphere-octant', [4, 4, 4]],
+    ['hemisphere-shell', [4, 2, 4]], ['half-hemisphere-shell', [2, 2, 4]],
+    ['quarter-hemisphere-shell', [4, 4, 4]], ['parabolic-shell', [4, 1, 4]],
+    ['cone', [4, 4, 4]], ['hollow-cube', [4, 4, 4]], ['concave-corner', [4, 4, 4]],
+    ['bridge', [4, 3, 4]], ['diagonal-bridge', [4, 3, 4]], ['rounded-bridge', [4, 3, 4]],
+    ['bridge-panel', [4, 3, .25]], ['diagonal-bridge-panel', [4, 3, 4]],
+    ['rounded-bridge-panel', [4, 3, 4]], ['breakwater', [8, 1.5, 2]],
+  ] satisfies [ConstructionPrimitive['kind'], Vec3][]).map(([kind, size]): HullShape => ({
+    id: kind, kind, name: CONSTRUCTION_SHAPE_NAMES[kind], size,
+    note: `${size.join(' × ')} m${kind === 'ballast' ? ' · 100 t fixed load + casing' : kind.includes('shell') ? ' · open underneath' : kind.includes('bridge') ? ' · open windows' : ''}`,
+  })),
 ];
 
 export type SlotItem =

@@ -194,6 +194,12 @@ pub fn subtract(a: &Cell, b: &Cell) -> Vec<Cell> {
     if separated(a, b) {
         return vec![a.clone()];
     }
+    // An overlapping AABB is common for neighboring curve facets. Splitting by
+    // a non-intersecting cutter preserves volume but needlessly fragments it.
+    // Prove actual positive-volume contact before introducing any cut planes.
+    if intersection(a, b).is_none_or(|overlap| moments(&overlap).volume <= EPS) {
+        return vec![a.clone()];
+    }
     let mut inside = Some(a.clone());
     let mut out = vec![];
     for f in &b.faces {
@@ -388,6 +394,15 @@ impl Broadphase {
 /// skin has deterministic owner; opposing coincident faces are both interior.
 pub fn exposed(p: &[Vec3], b: &Cell, keep_coincident: bool) -> Vec<Polygon> {
     let pn = normal(p);
+    // Nearby curved cells share bounding boxes without covering this face.
+    // Reject those before splitting: otherwise unrelated clipping planes create
+    // hundreds of sliver patches on a single open shell or window frame.
+    let mut overlap = p.to_vec();
+    for f in &b.faces {
+        let n = normal(&f.vertices);
+        overlap = clip_polygon(&overlap, n, dot(n, f.vertices[0]));
+        if overlap.len() < 3 || area(&overlap) < EPS { return vec![p.to_vec()]; }
+    }
     for f in &b.faces {
         let n = normal(&f.vertices);
         let d = dot(n, f.vertices[0]);
@@ -620,6 +635,30 @@ mod tests {
         let a = box_cell([0.; 3], [2.; 3]);
         assert!(connected(&a, &box_cell([2., 0., 0.], [2.; 3])));
         assert!(!connected(&a, &box_cell([2., 2., 0.], [2.; 3])));
+    }
+
+    #[test]
+    fn nearby_diagonal_walls_do_not_fragment_disjoint_geometry() {
+        let wall = box_cell([0.; 3], [4., 1., 0.25]);
+        let yaw = std::f64::consts::FRAC_PI_4;
+        let a = transform(&wall, [0.; 3], [1.; 3], yaw);
+        let b = transform(&wall, [1., 0., 0.], [1.; 3], yaw);
+        assert!(!separated(&a, &b), "axis-aligned bounds overlap");
+        assert!(intersection(&a, &b).is_none(), "walls have no physical contact");
+        let remainder = subtract(&a, &b);
+        assert_eq!(remainder.len(), 1, "unrelated planes must not split a wall");
+        near(total(&remainder).volume, 1.);
+        for face in &a.faces {
+            let patches = exposed(&face.vertices, &b, false);
+            assert_eq!(patches.len(), 1, "uncovered faces stay intact");
+            near(area(&patches[0]), area(&face.vertices));
+        }
+
+        // A genuinely overlapping cutter still removes the physical overlap.
+        let overlap = transform(&wall, [yaw.cos(), 0., -yaw.sin()], [1.; 3], yaw);
+        let remainder = subtract(&a, &overlap);
+        near(total(&remainder).volume, 0.25);
+        near(total(&union(&[a, overlap]).unwrap()).volume, 1.25);
     }
 }
 
