@@ -1,5 +1,4 @@
 import { ObservedMotion } from './ObservedMotion';
-import type { Aircraft } from '../simulation/aircraft';
 import type { BattleSession } from './session/BattleSession';
 import { ExpandableInstances } from './ExpandableInstances';
 import { assetUrl } from '../assetUrl';
@@ -18,6 +17,7 @@ import { ShipMaterialPalette } from './ShipMaterialPalette';
 import { batchShipModel } from './ShipBatching';
 import { GAMEPLAY_AIRCRAFT } from '../ships/blueprint';
 import { AircraftPartsBatch, aircraftPartGroups } from './AircraftPartsBatch';
+import type { Aircraft } from '../game/session/elements';
 
 // Authored deck capacity is bounded at 24; hangar aircraft have no scene instance.
 // Three may bind the full matrix array as uniforms even when few instances draw.
@@ -198,7 +198,7 @@ export class AircraftView {
     }
     this.contacts.finish();
     for (const bomb of sim.shells) {
-      if (!bomb.bomb || bomb.lodged) continue;
+      if (!bomb.bomb) continue;
       // Sample the same one-tick presentation delay as the aircraft, bounded by release.
       const lag = Math.min(bomb.age, (1 - alpha) * FIXED_DT), age = bomb.age - lag;
       this.position.fromArray(bomb.position).addScaledVector(this.direction.fromArray(bomb.velocity), -lag);

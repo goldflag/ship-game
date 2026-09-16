@@ -1,11 +1,10 @@
-import type { Aircraft } from '../simulation/aircraft';
 import { aircraftDeckSpot, onFlightDeck } from '../simulation/aircraft';
-import type { FleetActor } from '../simulation/battle';
 import { aircraftAttitude } from '../simulation/aircraftFlight';
 import { add, localToWorld, scale, sub, type Pose } from '../simulation/geometry';
 import type { ShellView } from './ShellFollow';
 import { Euler, Quaternion, Vector3 } from 'three/webgpu';
 import { aircraftDeckRotation } from './AircraftDeckPresentation';
+import type { Aircraft, FleetActor } from '../game/session/elements';
 
 /** Camera samples the same interpolated flight/deck poses as the aircraft renderer. */
 export function aircraftFollowView(plane: Aircraft, actor: FleetActor, hull: Pose, alpha: number): ShellView | undefined {

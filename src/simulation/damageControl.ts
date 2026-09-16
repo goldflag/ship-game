@@ -4,7 +4,8 @@ import { addBreach, type Combatant, type DamageEvent } from './damage';
 import { clamp, localToWorld } from './geometry';
 import { hullContains } from './hull';
 
-export type ControlPriority = 'balanced' | 'fires' | 'flooding' | 'repairs';
+export type { ControlPriority } from '../multiplayer/generated/ControlPriority';
+import type { ControlPriority } from '../multiplayer/generated/ControlPriority';
 export interface FireState { heat: number; fuel: number; intensity: number; initialFuel: number; ignitionHeat: number; heatPerDamage: number; trend: 'growing' | 'contained' | 'cooling' | 'out'; suppressed: boolean; }
 export interface ControlJob { kind: 'fire-room' | 'fire-mount' | 'isolate' | 'patch' | 'pump' | 'repair-module' | 'repair-mount'; index: number; setup: number; }
 export interface ControlState {

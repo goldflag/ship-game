@@ -1,5 +1,4 @@
 import { Fragment, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
-import type { Aircraft } from '../simulation/aircraft';
 import { FIGHTER_AMMO_BURSTS } from '../simulation/aircraft';
 import type { DeckServiceAction } from '../game/session/BattleSession';
 import type { DeckPolicy } from '../multiplayer/generated/DeckPolicy';
@@ -15,6 +14,7 @@ import { Icon } from './Icons';
 import { PLANE_GLYPHS } from './planeGlyphs';
 import './AirWingManifest.css';
 import './FlightLine.css';
+import type { Aircraft } from '../game/session/elements';
 
 export type AirVerb = 'patrol' | 'attack' | 'defend' | 'intercept' | 'escort' | 'return' | 'search';
 export interface FlightLineCarrier { id: string; name: string; hull: number; kn: number; order: string; wing: AirWingTelemetry }

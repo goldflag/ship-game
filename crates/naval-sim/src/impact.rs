@@ -11,20 +11,23 @@ use crate::{
     weapons::Ammunition,
 };
 use serde::{Deserialize, Serialize};
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 pub struct BreachAssignment {
     pub compartment_id: String,
     pub area_m2: f64,
     pub position: Vec3,
 }
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(optional_fields)]
 pub struct ImpactRecord {
+    #[ts(type = "number")]
     pub shell_id: i64,
     pub ship_id: String,
     pub target_id: String,
     pub target_name: String,
+    #[ts(as = "crate::frame_vocabulary::ImpactKind")]
     pub kind: String,
     pub position: Vec3,
     pub thickness_mm: Option<f64>,
@@ -34,10 +37,12 @@ pub struct ImpactRecord {
     pub fragment_budget_mm: Option<f64>,
     pub impact_speed_mps: Option<f64>,
     pub exit_speed_mps: Option<f64>,
+    #[ts(as = "Option<crate::frame_vocabulary::FuzeState>")]
     pub fuze: Option<String>,
     pub fuze_remaining_seconds: Option<f64>,
     pub penetration_before_mm: f64,
     pub penetration_after_mm: f64,
+    #[ts(as = "crate::frame_vocabulary::ImpactOutcome")]
     pub outcome: String,
     pub damage: Option<f64>,
     pub compartment_id: Option<String>,
@@ -49,23 +54,28 @@ pub struct ImpactRecord {
     pub connection_ids: Option<Vec<String>>,
     pub breach_assignments: Option<Vec<BreachAssignment>>,
 }
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(optional_fields)]
 pub struct SurfaceImpact {
     pub position: Vec3,
     pub normal: Vec3,
     pub direction: Vec3,
     pub mount_id: Option<String>,
+    #[ts(as = "crate::frame_vocabulary::SurfaceOutcome")]
     pub outcome: String,
 }
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(optional_fields)]
 pub struct ShellEffect {
+    #[ts(type = "number")]
     pub id: i64,
     pub caliber_m: f64,
     pub velocity: Vec3,
     pub ammunition: Option<Ammunition>,
     #[serde(rename = "type")]
+    #[ts(as = "crate::frame_vocabulary::ShellType")]
     pub shell_type: String,
 }
 impl ShellEffect {
@@ -86,14 +96,17 @@ impl ShellEffect {
         }
     }
 }
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(optional_fields)]
 pub struct DamageEvent {
     pub hull_damage: Option<f64>,
+    #[ts(as = "Option<crate::frame_vocabulary::DefeatCause>")]
     pub defeat_cause: Option<String>,
     pub depth_charge: Option<DepthChargeEffect>,
     pub aircraft: Option<AircraftEffect>,
     pub torpedo: Option<TorpedoEffect>,
+    #[ts(as = "crate::frame_vocabulary::EventKind")]
     pub kind: String,
     pub position: Vec3,
     pub message: String,
@@ -736,8 +749,9 @@ fn exterior(a: &crate::definition::Armor, hit: &ShipContact) -> bool {
         || a.exterior.is_none() && a.plate.is_none() && hit.key.ends_with(":entry")
 }
 
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(optional_fields)]
 pub struct AircraftEffect {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub caliber_m: Option<f64>,
@@ -751,23 +765,25 @@ pub struct AircraftEffect {
     pub drag_per_second: Option<f64>,
     pub airburst: Option<AirburstEffect>,
 }
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 pub struct AirburstEffect {
     pub flight_time: f64,
     pub caliber_m: f64,
 }
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 pub struct TorpedoEffect {
+    #[ts(type = "number")]
     pub id: i64,
     pub velocity: Vec3,
     pub diameter_m: f64,
 }
 
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 pub struct DepthChargeEffect {
+    #[ts(type = "number")]
     pub id: i64,
     pub radius_m: f64,
 }

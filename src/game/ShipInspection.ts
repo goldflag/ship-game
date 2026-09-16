@@ -7,10 +7,10 @@ import { mountFrame } from '../simulation/mountFrames';
 import { materialColor, mix, normalFlat, uniform, vec3 } from 'three/tsl';
 import type { ShipDefinition } from '../ships/blueprint';
 import { entryInMode, inspectionColor, inspectionEntries, type InspectionMode, type InspectionEntry } from '../ships/inspection';
-import type { Combatant } from '../simulation/damage';
 import { equipmentCondition } from '../simulation/machinery';
 import { EXTERIOR_PLATING_REPLACEMENT_M } from '../simulation/structure';
 import { regionCondition } from '../simulation/localDamage';
+import type { Combatant } from '../game/session/elements';
 
 /** Shared port and combat X-ray geometry. No simulation state is changed by inspection. */
 export class ShipInspection {

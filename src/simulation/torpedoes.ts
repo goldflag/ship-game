@@ -1,14 +1,12 @@
 import { hullDepth } from './ship';
 import type { ShipDefinition, TorpedoPart, Vec3 } from '../ships/blueprint';
-import type { FleetActor } from './battle';
+import type { FleetActor } from '../game/session/elements';
 import { add, localToWorld, radians, rotate, sub, wrapAngle, scale } from './geometry';
 import { launcherAvailable, equipmentCondition } from './machinery';
 
 export type TubeDefinition = NonNullable<ShipDefinition['torpedoTubes']>[number];
-export interface TubeState {
-  id: string; ammo: number; reload: number;
-  status: 'ready' | 'reloading' | 'turning' | 'out-of-arc' | 'out-of-range' | 'too-close' | 'disabled' | 'empty' | 'blocked' | 'too-deep' | 'above-water';
-}
+export type { TubeState } from '../game/session/elements';
+import type { TubeState } from '../game/session/elements';
 export interface TorpedoLauncherState { id: string; train: number; }
 export interface Torpedo {
   id: number; ownerId: string; tubeId: string; position: Vec3; velocity: Vec3;

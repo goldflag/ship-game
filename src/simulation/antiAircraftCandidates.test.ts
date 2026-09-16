@@ -1,7 +1,12 @@
 import { expect, test } from 'bun:test';
 import { antiAircraftCandidates, antiAircraftRange, updateAntiAircraft } from './antiAircraft';
 import { airborne, onFlightDeck, type AirContext } from './aircraft';
-import { CombatSimulation, type CombatEvent } from './combat';
+import { CombatSimulation as Fixture, type CombatEvent } from './combat';
+import type { FleetActor } from './battle';
+import type { Aircraft } from './aircraft';
+/** The fixture's hulls are the engine's own; these tests drive the engine with them. */
+type EngineFixture = Fixture & { player: FleetActor; target: FleetActor; actors: FleetActor[]; aircraft: Aircraft[] };
+const CombatSimulation = Fixture as unknown as new (...args: ConstructorParameters<typeof Fixture>) => EngineFixture;
 import { shipPreset, shipPresets } from '../ships/presets';
 import { muzzleWorld } from './weapons';
 
@@ -29,7 +34,7 @@ test('indexed AA matches the full scan, including ties and kills by earlier guns
     const sim = new CombatSimulation(shipPreset('bismarck'), { friendlyBots: [], enemies: [shipPreset('enterprise-cv6')] });
     const planes = sim.target.airWing!.planes;
     for (const [i, plane] of planes.entries()) Object.assign(plane, { phase: i < 3 ? 'outbound' : 'ready', position: [700, 250, 0], velocity: [0, 0, 0] });
-    const candidates = antiAircraftCandidates(sim.player, sim.aircraft.filter(p => airborne(p) && !onFlightDeck(p)));
+    const candidates = antiAircraftCandidates(sim.player, (sim.aircraft as Aircraft[]).filter(p => airborne(p) && !onFlightDeck(p)));
     if (killFirst) planes[0].hp = 0;
     const events: Omit<CombatEvent, 'tick' | 'sequence'>[] = [];
     let sequence = 0;

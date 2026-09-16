@@ -1,8 +1,8 @@
 import legacyAir from '../../assets/gameplay/legacy-air.v1.json';
 import type { EndurancePolicy } from '../multiplayer/generated/EndurancePolicy';
 import type { AircraftRole, Vec3 } from '../ships/blueprint';
-import type { FleetActor } from './battle';
-import { FIGHTER_AMMO_BURSTS, terminalAircraft, squadronFlights, activeFlight, airServiceAvailable, airborne, deckCapacity, flightSize, onFlightDeck, recoveryQueue, type Aircraft, type AirOrder } from './aircraft';
+import type { FleetActor, Aircraft } from '../game/session/elements';
+import { FIGHTER_AMMO_BURSTS, terminalAircraft, squadronFlights, activeFlight, airServiceAvailable, airborne, deckCapacity, flightSize, onFlightDeck, recoveryQueue, type AirOrder } from './aircraft';
 import { length, sub } from './geometry';
 
 export type AirStatus = 'withdrawn' | 'ready' | 'launching' | 'on-mission' | 'returning' | 'servicing' | 'lost' | 'hangar' | 'handling';
@@ -101,7 +101,7 @@ export function airWingTelemetry(actor: FleetActor, actors: FleetActor[]) {
       return { id: s.id, name: s.name, role: s.role, total: s.count, ready: planes.filter(p => p.phase === 'ready').length,
         queued: planes.filter(p => ['queued', 'taxi'].includes(p.phase)).length, airborne: planes.filter(airborne).length,
         rearming: planes.filter(p => airStatus(p) === 'servicing').length, lost: planes.filter(p => p.phase === 'lost').length,
-        rearmSeconds: Math.ceil(Math.max(0, ...planes.filter(p => p.phase === 'rearming').map(p => p.timer))), kills: planes.reduce((n, p) => n + p.kills, 0) };
+        rearmSeconds: Math.ceil(Math.max(0, ...planes.filter(p => p.phase === 'rearming').map(p => p.timer))), kills: planes.reduce((n, p) => n + (p.kills ?? 0), 0) };
     }),
     groups,
     flights: state.planes.map(p => ({ id: p.id, flightId: p.flightId, modelId: p.modelId, role: p.role, phase: p.phase, status: airStatus(p),

@@ -1,11 +1,12 @@
 import type { ShipDefinition } from '../ships/blueprint';
 import { launcherAvailable, equipmentCondition, systemHealth } from './machinery';
 import { availableAmmunition } from './weapons';
-import type { Combatant } from './damage';
+import type { Combatant } from '../game/session/elements';
 import { levelAtVolume, waterBody, type WaterBody } from './floodwater';
 import { localToWorld } from './geometry';
 
-export type VesselStatus = 'operational' | 'immobile' | 'disarmed' | 'disabled' | 'sinking' | 'capsized';
+export type { VesselStatus } from '../game/session/elements';
+import type { VesselStatus } from '../game/session/elements';
 export interface StabilityState {
   sampleRoll?: number; samplePitch?: number; rollSlope?: number; pitchSlope?: number;
   elapsed: number; targetY: number; rollRate: number; pitchRate: number; capsizeSeconds: number; water: WaterBody[];

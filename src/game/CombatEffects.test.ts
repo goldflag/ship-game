@@ -4,10 +4,10 @@ import blueprint from '../../assets/ships/bismarck/blueprint.json';
 import catalog from '../../assets/parts/guns.json';
 import submarine from '../../assets/ships/type-viic/blueprint.json';
 import { compileShip } from '../ships/blueprint';
-import { CombatSimulation, type CombatEvent } from '../simulation/combat';
-import type { Shell } from '../simulation/damage';
+import { CombatSimulation } from '../simulation/combat';
 import { CombatEffects } from './CombatEffects';
 import { EffectParticlePool, effectTexture } from './EffectParticles';
+import type { CombatEvent, Shell } from '../game/session/elements';
 
 test('offscreen exhaust keeps drifting and returns at its current pose without losing edge billboards', () => {
   const texture = effectTexture('smoke'), pool = new EffectParticlePool(4, texture, false, undefined, false, true);
@@ -192,7 +192,7 @@ test('torpedo foam has an aerated center instead of a hollow splash ring', () =>
 test('optics hide existing and new own-ship smoke while other smoke remains and ages normally', () => {
   const sim = new CombatSimulation(compileShip(blueprint, catalog)), effects = new CombatEffects(), camera = new Camera();
   const event: CombatEvent = { sequence: 1, tick: 0, kind: 'shot', position: [0, 10, 0], message: 'Test gun', shipId: 'player',
-    shell: { id: 1, caliberM: .38, velocity: [820, 0, 0] } };
+    shell: { id: 1, caliberM: .38, velocity: [820, 0, 0], type: 'AP' } };
   sim.events.push(event);
   effects.update(sim, 0, camera);
   expect(effects.diagnostics().smoke).toBe(3);
@@ -239,7 +239,7 @@ test('spray reaches the same position at different frame rates and falls out at 
 test('salvos are bounded, do not replay events, pause cleanly, and reset without ghosts', () => {
   const sim = new CombatSimulation(compileShip(blueprint, catalog)), effects = new CombatEffects(), camera = new Camera();
   const event: CombatEvent = { sequence: 1, tick: 0, kind: 'shot', position: [0, 10, 0], message: 'Test gun', shipId: 'player',
-    shell: { id: 1, caliberM: .38, velocity: [820, 0, 0] } };
+    shell: { id: 1, caliberM: .38, velocity: [820, 0, 0], type: 'AP' } };
   sim.events.push(event);
   const before = JSON.stringify(sim);
   effects.update(sim, .1, camera);
@@ -282,7 +282,7 @@ test('water spray returns to the sampled impact height above and below mean sea 
 test('airborne water responds to environment light without re-emitting the splash', () => {
   const sim = new CombatSimulation(compileShip(blueprint, catalog)), effects = new CombatEffects(), camera = new Camera();
   sim.events.push({ sequence: 1, tick: 0, kind: 'splash', position: [0, 0, 0], message: 'Test splash', shipId: 'player',
-    shell: { id: 1, caliberM: .38, velocity: [790, -85, 0] } });
+    shell: { id: 1, caliberM: .38, velocity: [790, -85, 0], type: 'AP' } });
   effects.update(sim, 0, camera); effects.update(sim, .5, camera);
   const before = effects.diagnostics();
   effects.setSun(new Vector3(0, 1, 0), .08); effects.update(sim, 0, camera);
@@ -297,7 +297,7 @@ test('airborne water responds to environment light without re-emitting the splas
 test('large-gun fire remains in the gas at 0.35 seconds and cools completely into smoke', () => {
   const sim = new CombatSimulation(compileShip(blueprint, catalog)), effects = new CombatEffects(), camera = new Camera();
   sim.events.push({ sequence: 1, tick: 0, kind: 'shot', position: [0, 10, 0], message: 'Test gun', shipId: 'player',
-    shell: { id: 1, caliberM: .38, velocity: [820, 0, 0] } });
+    shell: { id: 1, caliberM: .38, velocity: [820, 0, 0], type: 'AP' } });
   effects.update(sim, 0, camera); effects.update(sim, .35, camera);
   const mesh = effects.root.getObjectByName('Propellant and impact volumes') as InstancedMesh;
   const state = mesh.geometry.getAttribute('effectVolume'), sphere = mesh.geometry.getAttribute('effectSphere');
@@ -317,7 +317,7 @@ test('large-gun fire remains in the gas at 0.35 seconds and cools completely int
 test('water droplets stay round through their apex instead of rotating as long rods', () => {
   const sim = new CombatSimulation(compileShip(blueprint, catalog)), effects = new CombatEffects(), camera = new Camera();
   sim.events.push({ sequence: 1, tick: 0, kind: 'splash', position: [0, 0, 0], message: 'Test splash', shipId: 'player',
-    shell: { id: 1, caliberM: .38, velocity: [790, -85, 0] } });
+    shell: { id: 1, caliberM: .38, velocity: [790, -85, 0], type: 'AP' } });
   effects.update(sim, 0, camera);
   const mesh = effects.root.getObjectByName('Water droplets and mist') as InstancedMesh;
   const matrix = new Matrix4(), x = new Vector3(), y = new Vector3();
@@ -362,7 +362,7 @@ test('the shell pool keeps its shader capacity through empty frames, salvos and 
     Array.from({ length: mount.weapon.barrelCount }, (_, barrel): Shell => ({ id: ++nextShellId, ownerId: sim.player.motion.id,
       position: [mount.position[0] + barrel * 2, mount.position[1] + 6, mount.position[2] - nextShellId * 3],
       velocity: [mount.weapon.muzzleSpeed, 40, 0], age: 0, caliberM: mount.weapon.caliberM,
-      damage: mount.weapon.damage, penetrationMm: mount.weapon.penetrationMm, visited: [] })));
+      damage: mount.weapon.damage, penetrationMm: mount.weapon.penetrationMm })));
   const check = () => {
     effects.update(sim, 0, camera);
     // Three's instancing shader sizes its buffer from count when it first compiles.
@@ -404,7 +404,7 @@ test('shell-follow and binoculars expose the detailed round; distant shells use 
   const sim = new CombatSimulation(compileShip(blueprint, catalog)), effects = new CombatEffects();
   const camera = new PerspectiveCamera(52, 16 / 9, .1, 30000);
   const shell = { id: 1, ownerId: 'player', position: [0, 0, -20] as [number, number, number],
-    velocity: [800, 0, 0] as [number, number, number], age: 1, caliberM: .38, visited: [], penetrationMm: 0, damage: 0 };
+    velocity: [800, 0, 0] as [number, number, number], age: 1, caliberM: .38, penetrationMm: 0, damage: 0 };
   sim.shells.push(shell);
   const body = effects.root.getObjectByName('Shell bodies') as InstancedMesh;
   const detailed = effects.root.getObjectByName('Detailed shell bodies') as InstancedMesh;
@@ -426,7 +426,7 @@ test('tracers end at the CPU shell, grow from the muzzle, and stay legible acros
   const sim = new CombatSimulation(compileShip(blueprint, catalog)), effects = new CombatEffects();
   const camera = new PerspectiveCamera(52, 16 / 9, .1, 30000);
   const shell = { id: 1, ownerId: 'player', position: [0, 100, -1000] as [number, number, number],
-    velocity: [820, 40, 0] as [number, number, number], age: .01, caliberM: .38, visited: [], penetrationMm: 0, damage: 0 };
+    velocity: [820, 40, 0] as [number, number, number], age: .01, caliberM: .38, penetrationMm: 0, damage: 0 };
   sim.shells.push(shell);
   const streak = effects.root.getObjectByName('Shell streaks') as InstancedMesh;
   const glow = effects.root.getObjectByName('Shell glows') as InstancedMesh;
@@ -458,13 +458,6 @@ test('tracers end at the CPU shell, grow from the muzzle, and stay legible acros
     const paused = [...streak.instanceMatrix.array];
     effects.update(sim, 0, camera);
     expect([...streak.instanceMatrix.array]).toEqual(paused);
-    // Lodged rounds awaiting their fuze must not leave a luminous trail in the hull.
-    sim.shells[0].lodged = { shipId: 'target', position: [0, 0, 0] };
-    effects.update(sim, 0, camera);
-    streak.getMatrixAt(0, matrix);
-    expect(new Vector3().setFromMatrixScale(matrix).y).toBe(0);
-    glow.getMatrixAt(0, matrix);
-    expect(new Vector3().setFromMatrixScale(matrix).x).toBe(0);
   } finally { effects.dispose(); }
 });
 
@@ -474,7 +467,7 @@ test('manual shell heads and trails distinguish AA, secondary and main calibers 
   const calibers = [.02, .037, .105, .15, .38, .46];
   try {
     for (const [id, caliberM] of calibers.entries()) sim.shells.push({ id, ownerId: 'player',
-      position: [0, 100, -1000], velocity: [820, 0, 0], age: .1, caliberM, visited: [], penetrationMm: 0, damage: 0 });
+      position: [0, 100, -1000], velocity: [820, 0, 0], age: .1, caliberM, penetrationMm: 0, damage: 0 });
     for (const range of [1000, 5000]) for (const fov of [52, 8]) {
       for (const shell of sim.shells) shell.position[2] = -range;
       camera.fov = fov; camera.updateProjectionMatrix(); camera.updateMatrixWorld();
@@ -497,7 +490,7 @@ test('the shell follow camera hides shell vapor trails without dropping their hi
   const sim = new CombatSimulation(compileShip(blueprint, catalog)), effects = new CombatEffects();
   const camera = new PerspectiveCamera(52, 16 / 9, .1, 30000);
   try {
-    const shell: Shell = { id: 1, ownerId: 'player', position: [0, 100, -1000], velocity: [820, 0, 0], age: .1, caliberM: .38, visited: [], penetrationMm: 0, damage: 0 };
+    const shell: Shell = { id: 1, ownerId: 'player', position: [0, 100, -1000], velocity: [820, 0, 0], age: .1, caliberM: .38, penetrationMm: 0, damage: 0 };
     sim.shells.push(shell);
     effects.update(sim, .1, camera);
     expect(effects.diagnostics().shellTrails.segments).toBeGreaterThan(0);

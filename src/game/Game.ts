@@ -13,7 +13,7 @@ import { airWingTelemetry } from '../simulation/airTelemetry';
 import { projectShipLabel } from './ShipLabels';
 import { projectAirMapPath } from './AirMapProjection';
 import { projectAirMapPolygon } from './AirMapPolygon';
-import { squadronFlights, airborne, onFlightDeck, type AirOrder } from '../simulation/aircraft';
+import { squadronFlights, airborne, onFlightDeck } from '../simulation/aircraft';
 import { reportName, reportPosition } from '../ui/reconReports';
 import { aircraftFollowView } from './AircraftFollow';
 import { AircraftView } from './AircraftView';
@@ -22,7 +22,6 @@ import { createBattleLandscape, disposeBattleLandscape } from './BattleLandscape
 import { VisualEnvironment } from './VisualEnvironment';
 import { WaterViewFocus } from './WaterViewFocus';
 import { updateWaterShadows } from './WaterShadows';
-import type { ControlPriority } from '../simulation/damageControl';
 import * as THREE from 'three/webgpu';
 import { Fn, float, max, mix, pass, renderOutput, rtt, vec4 } from 'three/tsl';
 import { fxaa } from 'three/addons/tsl/display/FXAANode.js';
@@ -56,7 +55,7 @@ import { HitLabels } from './HitLabels';
 import { TorpedoPreview } from './TorpedoPreview';
 import { HullDamageFeedback } from './HullDamageFeedback';
 import { ENGINE_ORDERS, FIXED_DT } from '../simulation/ship';
-import { DEPTH_STEP_M, orderDepth } from '../simulation/submarine';
+import { DEPTH_STEP_M } from '../simulation/submarine';
 import { GunAimIndicators } from './GunAimIndicators';
 import { HitDirectionIndicators } from './HitDirectionIndicators';
 import { disposeObjects, disposeObjectsExcept } from './disposeObjects';
@@ -70,7 +69,7 @@ import { selectedShip, shipPreset, loadShipPresets } from '../ships/presets';
 import { availableShipIds, freezeLocalFleet, isHistoricalShip, localShip, resolveShip, type LocalShipRevision, type IdentifiedShip } from '../ships/localShips';
 import { createConstructionModel } from './constructionModel';
 import type { TrialAction } from './session/localConstruction';
-import { resolveBattleFleet, validateBattleSetup, type BattleSetup, type FleetActor } from '../simulation/battle';
+import { resolveBattleFleet, validateBattleSetup, type BattleSetup } from '../simulation/battle';
 import { InputController } from './InputController';
 import { CameraRig } from './CameraRig';
 import { ShellFollow, type ShellView } from './ShellFollow';
@@ -80,6 +79,9 @@ import { ShipWake } from './ShipWake';
 import type { WakeShip } from './FleetWakeFoam';
 import { ShipFunnelSmoke } from './ShipFunnelSmoke';
 import type { GameCallbacks, HelmWheelState, PerformanceReadout } from './types';
+import type { AirOrder } from '../multiplayer/generated/AirOrder';
+import type { ControlPriority } from '../multiplayer/generated/ControlPriority';
+import type { FleetActor } from '../game/session/elements';
 
 export const BUOYS = [
   { x: -160, z: -800, color: '#b84734' }, { x: 160, z: -800, color: '#42a789' },
@@ -1533,8 +1535,7 @@ export class Game {
   recallAircraft(flightId?: string): void { if (!this.inPort && !this.paused) this.simulation.recallAircraft(flightId); }
   setDepth(depthM: number, emergency = false): void {
     if (this.inPort || this.paused || this.simulation.player.damage.sunk) return;
-    if (this.simulation.setDepth) this.simulation.setDepth(depthM, emergency);
-    else orderDepth(this.simulation.player, this.definition, depthM, emergency);
+    this.simulation.setDepth?.(depthM, emergency);
   }
   /** 1× → 2× → 4× → 1×. The session refuses the change outside an active PvE battle. */
   cycleSimulationSpeed(): void {
@@ -1761,7 +1762,7 @@ export class Game {
       renderedAircraft: this.aircraftView.diagnostics(),
       aircraft: this.simulation.aircraft.map(p => ({ ...p, position: [...p.position] })),
       airReleases: this.simulation.airReleases.map(p => ({ ...p })),
-      torpedoes: this.simulation.torpedoes.map(t => ({ id: t.id, ownerId: t.ownerId, tubeId: t.tubeId, position: [...t.position], distance: t.distance, armed: t.distance >= t.weapon.armingDistanceM })),
+      torpedoes: this.simulation.torpedoes.map(t => ({ id: t.id, ownerId: t.ownerId, tubeId: t.tubeId, position: [...t.position], distance: t.distance, armed: t.distance >= (t.weapon.armingDistanceM ?? 0) })),
       events: this.simulation.events.slice(-20) };
   }
   /** Bounded fixed-tick rehearsal for development review on slow render hosts. */

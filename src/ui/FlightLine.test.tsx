@@ -1,8 +1,8 @@
 import { expect, test } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { FlightLine, type FlightLineCarrier, type FlightLineFlight, type FlightLineProps } from './FlightLine';
-import type { Aircraft } from '../simulation/aircraft';
 import type { AirWingTelemetry } from '../simulation/airTelemetry';
+import type { Aircraft } from '../game/session/elements';
 
 const plane = (id: string, over: Partial<Aircraft> = {}): Aircraft => ({ id, role: 'fighter', modelId: 'f4f-4-wildcat', phase: 'outbound', hp: 100, ammo: 16, payload: false, ...over } as Aircraft);
 

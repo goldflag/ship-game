@@ -3,7 +3,7 @@ use crate::{
     vessel::Vessel,
 };
 use std::collections::BTreeMap;
-#[derive(Clone, Debug, serde::Serialize)]
+#[derive(Clone, Debug, serde::Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 pub struct CarrierWing {
     pub owner_id: String,

@@ -4,7 +4,7 @@ import { PerspectiveCamera, Vector3 } from 'three/webgpu';
 import { CombatSimulation } from '../simulation/combat';
 import { shipPreset } from '../ships/presets';
 import { FIXED_DT, motionVelocity } from '../simulation/ship';
-import { updateMount } from '../simulation/weapons';
+import { updateMount, type MountState } from '../simulation/weapons';
 import type { Vec3 } from '../ships/blueprint';
 import { gunAimPoints, type GunAimPoint } from './gunAim';
 import { groupGunAim, placeGunAimLabels, projectGunAim } from './GunAimIndicators';
@@ -18,7 +18,7 @@ test('loaded guns show their current direction before traversing and converge on
   expect(untrained.every(point => point.status === 'turning' && !point.aligned)).toBe(true);
   expect(Math.abs(untrained[0].point[0] - aim[0])).toBeGreaterThan(4000);
   expect(JSON.stringify(sim.player)).toBe(before);
-  const mount = sim.definition.mounts[0], state = sim.player.mounts[0];
+  const mount = sim.definition.mounts[0], state = sim.player.mounts[0] as MountState;
   for (let i = 0; i < 2400; i++) updateMount(mount, state, sim.definition, sim.ship, aim, FIXED_DT);
   const trained = gunAimPoints(sim.player, sim.definition, 'main', aim)[0];
   expect(trained.aligned).toBe(true);
@@ -34,7 +34,7 @@ test('loaded guns show their current direction before traversing and converge on
 test('trained turret centers stay on the reticle at every binocular magnification', () => {
   for (const shipId of ['bismarck', 'yamato', 'baltimore', 'enterprise-cv6']) {
     const sim = new CombatSimulation(shipPreset(shipId)), aim: Vec3 = [shipId === 'enterprise-cv6' ? -1800 : 1800, .5, 0];
-    const mount = sim.definition.mounts[0], state = sim.player.mounts[0];
+    const mount = sim.definition.mounts[0], state = sim.player.mounts[0] as MountState;
     for (let i = 0; i < 3600; i++) updateMount(mount, state, sim.definition, sim.ship, aim, FIXED_DT);
     for (const zoom of [1, 2, 4, 6, 8, 12, 16, 24]) {
       const camera = new PerspectiveCamera(2 * Math.atan(Math.tan(52 * Math.PI / 360) / zoom) * 180 / Math.PI, 1.6, .25, 60000);
@@ -50,7 +50,7 @@ test('moving and turning ship solutions line up and switching batteries preserve
   const sim = new CombatSimulation(shipPreset('bismarck'));
   Object.assign(sim.ship, { heading: .2, speed: 13, swaySpeed: 1.5 });
   const aim: Vec3 = [5000, 10, -2000];
-  const mount = sim.definition.mounts[0], state = sim.player.mounts[0];
+  const mount = sim.definition.mounts[0], state = sim.player.mounts[0] as MountState;
   for (let i = 0; i < 2400; i++) updateMount(mount, state, sim.definition, sim.ship, aim, FIXED_DT, motionVelocity(sim.ship));
   expect(gunAimPoints(sim.player, sim.definition, 'main', aim)[0].aligned).toBe(true);
   const secondary = gunAimPoints(sim.player, sim.definition, 'secondary', aim);

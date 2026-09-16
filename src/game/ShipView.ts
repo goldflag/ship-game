@@ -1,7 +1,6 @@
 import * as THREE from 'three/webgpu';
 import type { Battery, ShipDefinition, Vec3 } from '../ships/blueprint';
 import { barrelIds } from '../ships/blueprint';
-import type { Combatant } from '../simulation/damage';
 import { radians, wrapAngle } from '../simulation/geometry';
 import { updateMountCarriers } from '../simulation/mountFrames';
 import { muzzleWorld, shotDirection } from '../simulation/weapons';
@@ -13,6 +12,7 @@ import { PreparedPoseGroup } from './FrameScene';
 import { ShipPoseMatrices } from './ShipPoseMatrices';
 import { ShipRigView } from './ShipRigView';
 import { gunAimPoints } from './gunAim';
+import type { Combatant } from '../game/session/elements';
 
 /** Renderer adapter. Simulation geometry and transforms come from the same definition. */
 export class ShipView {

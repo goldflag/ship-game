@@ -5,18 +5,20 @@ use crate::{
     rules::DT,
 };
 use serde::{Deserialize, Serialize};
-#[derive(Clone, Copy, Debug, Default, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Default, Serialize, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[ts(optional_fields)]
 pub struct HelmCommand {
     pub throttle: f64,
     pub rudder: f64,
     pub depth_m: Option<f64>,
     pub emergency_blow: Option<bool>,
 }
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 pub struct ShipState {
     pub id: String,
+    #[ts(type = "number")]
     pub tick: u64,
     pub x: f64,
     pub y: f64,

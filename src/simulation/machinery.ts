@@ -4,7 +4,7 @@ import { hullDepth } from './ship';
 import { waterLevel } from './stability';
 import { localToWorld } from './geometry';
 import type { Module, ShipDefinition } from '../ships/blueprint';
-import type { Combatant } from './damage';
+import type { Combatant } from '../game/session/elements';
 
 export interface EquipmentCondition { availability: number; reason: 'operational' | 'damaged' | 'destroyed' | 'flooded'; }
 type MachineryLayout = { modules: Map<string, { module: Module; index: number }>; rooms: Map<string, number>; generators: Module[]; directors: Module[]; coverage?: Map<string, Module[]> };

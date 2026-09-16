@@ -1,9 +1,10 @@
 import { expect, test } from 'bun:test';
 import { shipPreset } from '../ships/presets';
 import type { ShipDefinition, Vec3 } from '../ships/blueprint';
-import { CombatSimulation, type CombatEvent } from '../simulation/combat';
+import { CombatSimulation } from '../simulation/combat';
 import { FIXED_DT } from '../simulation/ship';
 import { HitDirectionFeedback } from './HitDirectionFeedback';
+import type { CombatEvent } from '../game/session/elements';
 
 function fixture() {
   const definition: ShipDefinition = { ...shipPreset('baltimore'), mounts: [], modules: [], propulsion: undefined,
@@ -13,7 +14,7 @@ function fixture() {
 function report(sim: CombatSimulation, bearing = 0, overrides: Partial<CombatEvent> = {}) {
   const id = (sim.events.at(-1)?.sequence ?? 0) + 1;
   sim.events.push({ sequence: id, tick: sim.tick, kind: 'stopped', position: [0, 1, 0], message: 'Armor hit', shipId: sim.player.motion.id,
-    shell: { id, caliberM: .38, velocity: [-Math.sin(bearing) * 820, -20, Math.cos(bearing) * 820] }, ...overrides });
+    shell: { id, caliberM: .38, velocity: [-Math.sin(bearing) * 820, -20, Math.cos(bearing) * 820], type: 'AP' }, ...overrides });
 }
 
 test('stopped shells point toward their source without requiring hull damage or mutating combat', () => {
@@ -27,7 +28,7 @@ test('stopped shells point toward their source without requiring hull damage or 
     const sim = fixture(), hp = sim.player.damage.integrity;
     // A round the belt stops: the authoritative tick reports it without hull damage.
     sim.events.push({ sequence: 1, tick: sim.tick, kind: 'stopped', position: approach.position, message: 'Armor hit',
-      shipId: sim.player.motion.id, shell: { id: 1, caliberM: .38, velocity: approach.velocity } });
+      shipId: sim.player.motion.id, shell: { id: 1, caliberM: .38, velocity: approach.velocity, type: 'AP' } });
     expect(sim.player.damage.integrity).toBe(hp);
     const before = JSON.stringify(sim);
     const cues = new HitDirectionFeedback().update(sim, 0);
@@ -93,7 +94,7 @@ test('splashes, other victims and events without a usable shell direction never 
   report(sim, 0, { shipId: sim.target.motion.id });
   report(sim, 0, { shell: undefined });
   for (const velocity of [[0, -100, 0], [NaN, 0, 820], [0, Infinity, 820]] as Vec3[])
-    report(sim, 0, { shell: { id: sim.events.length + 1, caliberM: .38, velocity } });
+    report(sim, 0, { shell: { id: sim.events.length + 1, caliberM: .38, velocity, type: 'AP' } });
   expect(feedback.update(sim, 0)).toEqual([]);
   report(sim, Math.PI, { kind: 'module' });
   expect(feedback.update(sim, 0)).toHaveLength(1);

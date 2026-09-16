@@ -1,5 +1,5 @@
 import type { AircraftRole, Vec3 } from '../ships/blueprint';
-import type { AirOrder } from '../simulation/aircraft';
+import type { AirOrder } from '../multiplayer/generated/AirOrder';
 
 export const SQUADRON_ACTIONS = [
   { kind: 'patrol', key: 'L', label: 'Loiter', target: 'water', role: 'all' },

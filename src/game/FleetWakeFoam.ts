@@ -2,9 +2,8 @@ import { DataTexture, LinearFilter, RedFormat, Vector4, type Camera, type Node, 
 import { Fn, If, Loop, float, max, mx_noise_float, smoothstep, texture, uniform, uniformArray, vec2, vec3 } from 'three/tsl';
 import { WakeFoam, WAKE_EXTENT, wakeStampBudget } from './WakeFoam';
 import type { ShipDefinition } from '../ships/blueprint';
-import type { ShipState } from '../simulation/ship';
-import type { CombatEvent } from '../simulation/combat';
 import { WakeFoamGpu, WakeStampCollector } from './WakeFoamGpu';
+import type { ShipState, CombatEvent } from '../game/session/elements';
 
 /** Any drawn hull with a pose and a definition leaves a wake: a simulated actor's
  * view or a report-only exterior alike. The root identifies the trail between frames. */

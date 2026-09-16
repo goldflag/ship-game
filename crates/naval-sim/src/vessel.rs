@@ -264,8 +264,9 @@ impl CompiledShip {
         })
     }
 }
-#[derive(Clone, Debug, serde::Serialize)]
+#[derive(Clone, Debug, serde::Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(optional_fields)]
 pub struct Vessel {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub navigation: Option<crate::navigation::NavigationState>,
@@ -273,6 +274,9 @@ pub struct Vessel {
     pub tube_launch_cooldown: f64,
     pub depth_charge_cooldown: f64,
     pub controller: Controller,
+    /// Published as the hull's AI level alone; tracking, targeting caches and
+    /// RNG stay private (see `presentation::Mode::field`).
+    #[ts(rename = "aiLevel", as = "Option<crate::bots::AiLevel>")]
     pub bot: Option<crate::bots::BotState>,
     #[serde(skip)]
     pub firing_visibility_seconds: f64,

@@ -1,5 +1,6 @@
-import { ENGINE_ORDERS, type HelmCommand } from '../simulation/ship';
+import { ENGINE_ORDERS } from '../simulation/ship';
 import { INPUT_ACTIONS, WEAPON_GROUP_ACTIONS, loadKeybindings, type InputAction, type Keybindings } from './keybindings';
+import type { HelmCommand } from '../game/session/elements';
 
 export interface InputActions {
   pause(): void;

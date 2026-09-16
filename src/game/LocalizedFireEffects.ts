@@ -1,11 +1,10 @@
 import type { BattleSession } from './session/BattleSession';
 import * as THREE from 'three/webgpu';
 import { mountFrame } from '../simulation/mountFrames';
-import type { Combatant } from '../simulation/damage';
-import type { ShipState } from '../simulation/ship';
 import type { Vec3 } from '../ships/blueprint';
 import { localToWorld } from '../simulation/geometry';
 import { EffectParticlePool, effectTexture } from './EffectParticles';
+import type { Combatant, ShipState } from '../game/session/elements';
 
 interface FireSource { actor: Combatant; position: Vec3; local: Vec3; pose: ShipState; train: number; intensity: number; size: number; mount: boolean; score: number; phase: number; }
 export interface FireDisplayPose { actor: Combatant; motion: ShipState; }

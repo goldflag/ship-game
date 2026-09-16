@@ -6,24 +6,26 @@ import { type AirWingTelemetry } from './airTelemetry';
 import { DEFAULT_AI_LEVEL, type ShipAiLevel } from './aiLevels';
 import { DEFAULT_MAP, mapIslands, type Island, type OceanMapId } from '../maps/catalog';
 import { type VesselStatus } from './stability';
-import { type ControlPriority, type ControlState } from './damageControl';
+import { type ControlPriority } from './damageControl';
+import type { ControlState, FleetActor as SessionActor, Shell as SessionShell, Torpedo as SessionTorpedo, DepthCharge as SessionDepthCharge, AirRelease as SessionAirRelease } from '../game/session/elements';
 import type { Ammunition, Battery, ShipDefinition, Vec3 } from '../ships/blueprint';
 import { type EquipmentCondition } from './machinery';
 import { type FireReadout } from './damageReadout';
 import { DamageLog, type DamageLogEntry } from './damageLog';
 import { createShipState, FIXED_DT, type HelmCommand } from './ship';
-import { availableAmmunition, createMountState, queueAmmunition, selectAmmunition } from './weapons';
+import { availableAmmunition, createMountState, queueAmmunition, selectAmmunition, type MountState } from './weapons';
 import { BATTLE_SPAWN_DISTANCE, deployment, validateSpawns, type SpawnPositions, MAX_TEAM_SHIPS, validateSpawnDistance, type BattleFleet, type BattleResult, type FleetActor, type Team } from './battle';
 import { createDepthChargeLauncherState, type DepthCharge } from './depthCharges';
 import { createBotState } from './bots';
 import { createTubeState, type Torpedo } from './torpedoes';
 import { createSubmarineState } from './submarine';
 import { createSeaState, type SeaState } from './sea';
-import { createDamage, type BallisticEffectData, type DamageEvent, type Shell, type ImpactRecord, type DefeatCause } from './damage';
+import { createDamage, type Shell, type DefeatCause } from './damage';
 
 export interface CombatIntent { aim: Vec3; fire: boolean; battery: Battery; weaponGroupId?: string; ammunition?: Ammunition; controlPriority?: ControlPriority; controlFocus?: string; }
-export interface CombatEvent extends BallisticEffectData { sequence: number; tick: number; kind: DamageEvent['kind'] | 'shot' | 'splash' | 'torpedo-launch' | 'torpedo-hit' | 'torpedo-dud' | 'torpedo-expired' | 'aircraft-launch' | 'aircraft-recovered' | 'aircraft-lost' | 'aircraft-crash' | 'aircraft-fire' | 'aircraft-release' | 'bomb-release' | 'depth-charge-launch' | 'depth-charge-splash' | 'depth-charge-blast' | 'depth-charge-hit'; aircraft?: { id: string; caliberM?: number; panic?: boolean; dragPerSecond?: number; target?: Vec3; tracerSpeed?: number; direction?: Vec3; velocity?: Vec3; airburst?: { flightTime: number; caliberM: number }; attitude?: { heading: number; pitch: number; bank: number } }; depthCharge?: { id: number; radiusM: number }; torpedo?: { id: number; velocity: Vec3; diameterM: number }; position: Vec3; message: string; shipId: string; hullDamage?: number; impact?: ImpactRecord; defeatCause?: DefeatCause; }
-export interface ShellHistory { shellId: number; ownerId: string; tick: number; ammunition: Ammunition; impacts: ImpactRecord[]; outcome: 'flying' | 'splash' | 'passed-through' | 'expired' | 'stopped' | 'ricochet' | 'internal' | 'burst'; }
+/** Declared with the frame, in Rust (`naval_sim::battle::Event`, `records`). */
+export type { CombatEvent, ShellHistory } from '../game/session/elements';
+import type { CombatEvent, ShellHistory } from '../game/session/elements';
 export interface FullCombatTelemetry {
   targetKnowledge?: 'full';
   playerSupport: { power: number; fireControl: number }; targetSupport: { power: number; fireControl: number };
@@ -68,9 +70,10 @@ export function hasFullTarget(combat: CombatTelemetry): combat is FullCombatTele
   return combat.targetKnowledge !== 'none' && combat.targetKnowledge !== 'contact';
 }
 export class CombatSimulation {
-  readonly player: FleetActor;
-  target: FleetActor;
-  readonly actors: FleetActor[];
+  // The fixture publishes the frame's element shapes; its own hulls are supersets.
+  readonly player: SessionActor;
+  target: SessionActor;
+  readonly actors: SessionActor[];
   readonly isBattle: boolean;
   readonly spawnDistance: number;
   readonly mapId: OceanMapId;
@@ -81,15 +84,15 @@ export class CombatSimulation {
   outcome?: BattleOutcome;
   private readonly displacement = new Map<string, number>();
   private survivors() { return this.actors.map(a => ({ team: a.team === 'friendly' ? 'a' as const : 'b' as const, displacementKg: this.displacement.get(a.motion.id)!, physicalLoss: physicalLoss(a) })); }
-  readonly shells: Shell[] = [];
-  readonly torpedoes: Torpedo[] = [];
-  readonly depthCharges: DepthCharge[] = [];
-  readonly airReleases: AirRelease[] = [];
+  readonly shells: SessionShell[] = [];
+  readonly torpedoes: SessionTorpedo[] = [];
+  readonly depthCharges: SessionDepthCharge[] = [];
+  readonly airReleases: SessionAirRelease[] = [];
   get aircraft() { return this.actors.flatMap(a => a.airWing?.planes ?? []); }
-  launchAircraft(squadronId: string) { return this.isBattle && this.result === 'active' ? launchSquadron(this.player, squadronId, this.target) : 0; }
-  recallAircraft(flightId?: string) { if (this.isBattle && this.result === 'active') recallAircraft(this.player, flightId); }
-  commandSquadron(id: string, order: AirOrder) { return this.isBattle && this.result === 'active' && commandSquadron(this.player, id, order, this.actors); }
-  orderFlight(flightId: string, order: AirOrder) { return this.isBattle && this.result === 'active' && orderFlight(this.player, flightId, order, this.actors); }
+  launchAircraft(squadronId: string) { return this.isBattle && this.result === 'active' ? launchSquadron(this.player as FleetActor, squadronId, this.target as FleetActor) : 0; }
+  recallAircraft(flightId?: string) { if (this.isBattle && this.result === 'active') recallAircraft(this.player as FleetActor, flightId); }
+  commandSquadron(id: string, order: AirOrder) { return this.isBattle && this.result === 'active' && commandSquadron(this.player as FleetActor, id, order, this.actors as FleetActor[]); }
+  orderFlight(flightId: string, order: AirOrder) { return this.isBattle && this.result === 'active' && orderFlight(this.player as FleetActor, flightId, order, this.actors as FleetActor[]); }
   readonly events: CombatEvent[] = [];
   /** In-flight histories plus the last 16 completed shells per owner. */
   readonly shellHistory: ShellHistory[] = [];
@@ -102,7 +105,7 @@ export class CombatSimulation {
     this.ammunitionSelection[weaponGroupId ?? battery] = type;
     this.definition.mounts.forEach((mount, i) => {
       if (!selectedWeapon(mount.battery, mount.weapon, battery, weaponGroupId)) return;
-      const state = this.player.mounts[i];
+      const state = this.player.mounts[i] as MountState;
       if (immediate && availableAmmunition(state, type) >= mount.weapon.barrelCount) selectAmmunition(mount, state, type);
       else queueAmmunition(mount, state, type);
     });
@@ -159,7 +162,7 @@ export class CombatSimulation {
     this.clearCombat(); this.tick = 0; this.accumulator = 0; this.result = 'active'; this.outcome = undefined;
   }
   private createActor(id: string, definition: ShipDefinition, team: Team, controller: FleetActor['controller'], aiLevel: ShipAiLevel = DEFAULT_AI_LEVEL): FleetActor {
-    return { definition, team, controller, helm: { throttle: 0, rudder: 0 }, sea: { state: this.sea, time: 0 }, airWing: createAirWing(definition, id, team), motion: createShipState(id), mounts: definition.mounts.map(createMountState), damage: createDamage(definition),
+    return { definition, presetId: definition.id, team, controller, helm: { throttle: 0, rudder: 0 }, sea: { state: this.sea, time: 0 }, airWing: createAirWing(definition, id, team), motion: createShipState(id), mounts: definition.mounts.map(createMountState), damage: createDamage(definition),
       torpedoTubes: (definition.torpedoTubes ?? []).map(createTubeState), tubeLaunchCooldown: 0,
       torpedoLaunchers: (definition.torpedoLaunchers ?? []).map(l => ({ id: l.id, train: 0 })),
       depthChargeLaunchers: (definition.depthChargeLaunchers ?? []).map(createDepthChargeLauncherState), depthChargeCooldown: 0,
@@ -203,7 +206,7 @@ export class CombatSimulation {
   advance(_dt: number, _helm: HelmCommand, _intent: CombatIntent, _beforeStep?: () => void): void {}
   step(_helm: HelmCommand, _intent: CombatIntent): void {}
   /** Ship instruments may observe a teammate; player death and scoring remain session-owned. */
-  telemetry(battery: Battery, aim: Vec3, weaponGroupId?: string, subject: FleetActor = this.player): CombatTelemetry {
+  telemetry(battery: Battery, aim: Vec3, weaponGroupId?: string, subject: SessionActor = this.player): CombatTelemetry {
     return presentationTelemetry({ ...this, ship: this.ship, aircraft: this.aircraft, ammunitionSelection: this.ammunitionSelection,
       playerDamageDealt: this.playerDamageDealt, playerFrags: this.playerFrags, damageLog: this.damageLog.snapshot(), afloatKg: afloatKg(this.survivors()) }, battery, aim, weaponGroupId, subject);
   }

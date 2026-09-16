@@ -1,5 +1,6 @@
 import { physicalLoss } from './battleRules';
-import type { Combatant, Shell } from './damage';
+import type { Shell } from './damage';
+import type { Combatant } from '../game/session/elements';
 import type { ShipDefinition, Vec3 } from '../ships/blueprint';
 import { consumeStructure, type LocalDamageEvidence } from './localDamage';
 

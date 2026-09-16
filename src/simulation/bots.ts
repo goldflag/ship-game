@@ -4,7 +4,7 @@ import { motionVelocity } from './ship';
 import { clamp, length, wrapAngle, type Pose } from './geometry';
 import { crewSkill, DEFAULT_AI_LEVEL, isShipAiLevel, type ShipAiLevel } from './aiLevels';
 
-export const shipVelocity = (actor: FleetActor): Vec3 => motionVelocity(actor.motion);
+export const shipVelocity = (actor: Pick<FleetActor, 'motion'>): Vec3 => motionVelocity(actor.motion);
 interface GunOrder { fireAt: number; alongHull: number; height: number; acrossError: number; rangeError: number; }
 interface TargetTrack {
   id: string; fireAt: number; observedAt: number; observeAt: number;

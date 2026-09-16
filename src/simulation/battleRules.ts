@@ -1,6 +1,6 @@
 import rules from '../../assets/gameplay/battle-rules.v1.json';
 import type { ShipDefinition } from '../ships/blueprint';
-import type { Combatant } from './damage';
+import type { Combatant } from '../game/session/elements';
 
 export const BATTLE_RULES = Object.freeze(rules);
 export type MatchTeam = 'a' | 'b';

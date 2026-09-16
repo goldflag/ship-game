@@ -1,11 +1,11 @@
 import type { Island, OceanMapId } from '../maps/catalog';
 import type { CameraMode } from './CameraRig';
-import type { ShipState } from '../simulation/ship';
 import type { CombatTelemetry } from '../simulation/combat';
 import type { ShellFollow } from './ShellFollow';
 import type { HullDamageCue } from './HullDamageFeedback';
 
 import type { PerformanceReadoutMode } from './graphicsSettings';
+import type { ShipState } from '../game/session/elements';
 
 /** Renderer telemetry for the FPS counter and the settings readout. */
 export interface PerformanceReadout {

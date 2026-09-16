@@ -16,7 +16,7 @@ import { shipVelocity } from './bots';
 import { torpedoIntercept, tubeLocalPosition } from './torpedoes';
 import { systemHealth } from './damage';
 import type { Ammunition, Battery, Vec3 } from '../ships/blueprint';
-import type { FleetActor } from './battle';
+import type { FleetActor } from '../game/session/elements';
 import type { CombatSimulation, CombatTelemetry } from './combat';
 import type { DamageLogEntry } from './damageLog';
 export type AimView = Pick<CombatSimulation, 'player' | 'definition' | 'ship'> & { target?: FleetActor; targetContact?: import('../multiplayer/generated/ContactTrack').ContactTrack };

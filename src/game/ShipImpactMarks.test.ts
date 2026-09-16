@@ -3,9 +3,9 @@ import * as THREE from 'three/webgpu';
 // Exercise the installed renderer's real sort/reversal, not a copy of its algorithm.
 // @ts-expect-error Three does not publish declarations for its internal RenderList.
 import RenderList from 'three/src/renderers/common/RenderList.js';
-import type { CombatEvent } from '../simulation/combat';
 import { configureRenderOrder } from './renderOrder';
 import { impactStyle, MAX_SHIP_IMPACT_MARKS, ShipImpactMarks } from './ShipImpactMarks';
+import type { CombatEvent } from '../game/session/elements';
 
 const event = (sequence = 1): CombatEvent => ({ sequence, tick: sequence, kind: 'penetration', shipId: 'target',
   position: [0, 0, 1], message: 'Test strike', shell: { id: sequence, caliberM: .38, type: 'AP', velocity: [0, 0, -820] },

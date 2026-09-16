@@ -8,12 +8,12 @@ import type { FleetOrderState } from '../../multiplayer/generated/FleetOrderStat
 import type { FleetNotice } from '../../multiplayer/generated/FleetNotice';
 import type { OrderReceipt } from './commandQueue';
 import type { Formation } from '../../multiplayer/generated/Formation';
-import type { FleetActor } from '../../simulation/battle';
 import type { ContactTrack } from '../../multiplayer/generated/ContactTrack';
 import type { ObservedShip } from '../../multiplayer/generated/ObservedShip';
 import type { ObservedAircraft } from '../../multiplayer/generated/ObservedAircraft';
 import type { MissionRules } from '../../multiplayer/generated/MissionRules';
 import type { ReconCoverage } from '../../multiplayer/generated/ReconCoverage';
+import type { FleetActor } from '../../game/session/elements';
 /** Observed contacts are declared with the frame, in Rust (`naval_sim::snapshot`). */
 export type { ObservedShip } from '../../multiplayer/generated/ObservedShip';
 export type { ObservedAircraft } from '../../multiplayer/generated/ObservedAircraft';

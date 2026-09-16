@@ -1,5 +1,5 @@
 import type { Module, ShipDefinition, Vec3 } from '../ships/blueprint';
-import type { Combatant } from './damage';
+import type { Combatant } from '../game/session/elements';
 import { localToWorld, sub, type Pose } from './geometry';
 
 /** Launcher-specific yaw path; directors remain fixed. Pose is ship-local. */

@@ -8,29 +8,10 @@ import type { ShipState } from './ship';
 import type { MountState } from './weapons';
 import { scale } from './geometry';
 
-export interface Breach { position: Vec3; areaM2: number; radiusM: number; shellId: number; normal?: Vec3; footprintAreaM2?: number; initialAreaM2?: number; }
-export interface CompartmentState { id: string; waterM3: number; breachAreaM2: number; breaches: Breach[]; }
-export interface ConnectionState { id: string; state: 'open' | 'closed' | 'damaged'; damageAreaM2: number; fromIndex: number; toIndex: number; }
+/** Declared with the frame, in Rust (`naval_sim::damage`, `impact`, `shell`). */
+export type { Breach, CompartmentState, ConnectionState, DefeatCause, ImpactRecord, ShellType, SurfaceImpact } from '../game/session/elements';
+import type { Breach, CompartmentState, ConnectionState, DefeatCause, ImpactRecord, ShellType, SurfaceImpact, Shell as WireShell } from '../game/session/elements';
 export const connectionId = (c: FloodConnection) => c.id ?? `${c.fromId}:${c.toId}`;
-export type DefeatCause = 'structural-fallback' | 'hull-failure' | 'flooding' | 'magazine' | 'capsize' | 'weapons-lost' | 'ammunition-exhausted';
-export interface ImpactRecord {
-  shellId: number; shipId: string; targetId: string; targetName: string;
-  /** Position is ship-local; DamageEvent.position is world-space. */
-  kind: 'armor' | 'module' | 'mount' | 'boundary' | 'burst'; position: Vec3;
-  thicknessMm?: number; material?: string; obliquityDeg?: number; resistanceMm?: number;
-  fragmentBudgetMm?: number;
-  impactSpeedMps?: number;
-  exitSpeedMps?: number; fuze?: 'unarmed' | 'armed'; fuzeRemainingSeconds?: number;
-  penetrationBeforeMm: number; penetrationAfterMm: number;
-  outcome: 'penetrated' | 'ricochet' | 'stopped' | 'damaged' | 'destroyed' | 'detonation' | 'backing';
-  damage?: number; compartmentId?: string; breachAreaM2?: number; terminal?: boolean;
-  /** Actual gameplay HP lost, distinct from the local equipment damage above. */
-  hullDamage?: number;
-  localDamage?: LocalDamageEvidence;
-  throughWreckage?: boolean;
-  connectionIds?: string[];
-  breachAssignments?: { compartmentId: string; areaM2: number; position: Vec3 }[];
-}
 export interface DamageState {
   regions: RegionState[];
   control: ControlState; stability: StabilityState;
@@ -38,25 +19,11 @@ export interface DamageState {
   integrity: number; maxIntegrity: number; hullDamageRemainder: number; modules: { id: string; hp: number; detonated: boolean; ignition: number }[];
   compartments: CompartmentState[]; connections: ConnectionState[]; sunk: boolean; defeatCause?: DefeatCause;
 }
-export interface Combatant { sea?: { state: import('./sea').SeaState; time: number }; torpedoLaunchers?: import('./torpedoes').TorpedoLauncherState[]; depthChargeLaunchers?: { id: string; ammo: number }[]; airWing?: import('./aircraft').AirWingState; motion: ShipState; mounts: MountState[]; damage: DamageState; torpedoTubes?: { id: string; ammo: number }[]; submarine?: import('./submarine').SubmarineState; }
-export type ShellType = 'AP' | 'HE';
-export interface SurfaceImpact {
-  position: Vec3; normal: Vec3; direction: Vec3; mountId?: string;
-  outcome: 'penetration' | 'stopped' | 'ricochet';
-}
-export interface Shell {
-  id: number; ownerId: string; position: Vec3; velocity: Vec3; age: number;
-  /** Captured at launch so later weapon selection cannot change damage attribution. */
-  weaponLabel?: string;
-  /** Release attitude identifies an aircraft bomb and preserves visual separation. */
-  bomb?: { heading: number; pitch: number; bank: number };
-  penetrationMm: number; damage: number; caliberM: number; visited: string[];
-  dragPerSecond?: number;
-  /** Water drag captured on entry; retained through ticks and serialization. */
-  waterDragPerSecond?: number;
-  ap?: APProjectile;
-  he?: HEProjectile; ammunition?: Ammunition;
-  type?: ShellType;
+export interface Combatant { sea?: { state: import('./sea').SeaState; time: number }; torpedoLaunchers: import('./torpedoes').TorpedoLauncherState[]; depthChargeLaunchers: import('./depthCharges').DepthChargeLauncherState[]; airWing?: import('./aircraft').AirWingState; motion: ShipState; mounts: MountState[]; damage: DamageState; torpedoTubes: import('./torpedoes').TubeState[]; submarine?: import('./submarine').SubmarineState; }
+/** The engine's shell keeps the private ledger the frame drops (`#[ts(skip)]`
+ * on `naval_sim::shell::Shell`); the published shape is the generated one. */
+export interface Shell extends WireShell {
+  penetrationMm: number; damage: number; visited: string[];
   remainingModuleDamage?: number;
   /** Per-victim hull damage already paid by this projectile. */
   hullDamage?: Record<string, number>;

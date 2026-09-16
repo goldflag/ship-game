@@ -3,7 +3,6 @@ import type { Game } from '../game/Game';
 import type { Telemetry } from '../game/types';
 import { bindingLabel, type Keybindings } from '../game/keybindings';
 import { AIR_STATUS_LABELS, type AirStatus, type AirWingTelemetry, type FlightSummary } from '../simulation/airTelemetry';
-import type { AirOrder } from '../simulation/aircraft';
 import type { Vec3 } from '../ships/blueprint';
 import { chartPoint, chartWorld } from './airChart';
 import { actionAvailable, SQUADRON_ACTIONS, squadronTargetOrder, type SquadronAction, type SquadronTarget } from './airCommands';
@@ -17,6 +16,7 @@ import { aircraftShortName } from './aircraftNames';
 import { smoothMapPath } from '../game/smoothMapPath';
 import { reportState } from './reconReports';
 import { projectAirMarker, projectMapHeading } from './airMarkerProjection';
+import type { AirOrder } from '../multiplayer/generated/AirOrder';
 
 type Marker = {
   element: HTMLElement | SVGElement; svg: boolean; position: Vec3;

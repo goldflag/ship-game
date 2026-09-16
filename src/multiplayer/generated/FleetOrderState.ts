@@ -8,4 +8,4 @@ import type { WeaponsPolicy } from "./WeaponsPolicy";
  * An owner's acknowledged standing orders, without another team's plans or
  * transient held input. Camera and UI selection never enter this contract.
  */
-export type FleetOrderState = { movement: MovementOrder, weapons: WeaponsPolicy, formationPolicy: FormationPolicy, targetId: string | null, manual: boolean, navigation: NavigationState | null, };
+export type FleetOrderState = { movement: MovementOrder, weapons: WeaponsPolicy, formationPolicy: FormationPolicy, targetId?: string, manual: boolean, navigation?: NavigationState, };

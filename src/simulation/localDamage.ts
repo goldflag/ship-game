@@ -1,5 +1,5 @@
 import type { DamageRegion, ShipDefinition, Vec3 } from '../ships/blueprint';
-import type { Combatant } from './damage';
+import type { Combatant } from '../game/session/elements';
 import { HULL_HP_SCALE } from './durability';
 import { contains } from './geometry';
 

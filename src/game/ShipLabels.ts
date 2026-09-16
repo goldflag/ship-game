@@ -1,7 +1,7 @@
 import { Box3, MathUtils, Vector3, WebGPUCoordinateSystem, type Camera } from 'three/webgpu';
-import type { FleetActor } from '../simulation/battle';
 import type { ShipView } from './ShipView';
 import { HullDamageFeedback } from './HullDamageFeedback';
+import type { FleetActor } from '../game/session/elements';
 
 type ScreenPoint = { x: number; y: number };
 

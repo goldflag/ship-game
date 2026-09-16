@@ -6,7 +6,6 @@ import type { Command } from '../../multiplayer/generated/Command';
 import { botSelection, setupSpawns, type BattleSetup } from '../../simulation/battle';
 import { DEFAULT_MAP } from '../../maps/catalog';
 import type { CombatIntent } from '../../simulation/combat';
-import type { HelmCommand } from '../../simulation/ship';
 import { decodeFrameUpdate, type FrameUpdate } from './frameDelta';
 import { CommandQueue } from './commandQueue';
 import type { PveBriefing } from '../../multiplayer/generated/PveBriefing';
@@ -15,6 +14,7 @@ import type { Formation } from '../../multiplayer/generated/Formation';
 import pveAir from '../../../assets/gameplay/pve-air.v1.json';
 import type { AirRules } from '../../multiplayer/generated/AirRules';
 import { localConstructionInput, type LocalConstructionInput, type LocalBattleOptions, type TrialAction } from './localConstruction';
+import type { HelmCommand } from '../../game/session/elements';
 export function runtimeSetup(setup: BattleSetup, seed: number): RuntimeSetup {
   const spawns = setupSpawns(setup);
   const ships: RuntimeSetup['ships'] = [{ id: 'player', presetId: setup.playerShipId, team: 'a', controller: 'player', aiLevel: 'normal', spawn: spawns.friendly[0] }];

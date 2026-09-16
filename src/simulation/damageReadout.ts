@@ -1,6 +1,6 @@
 import type { ShipDefinition, Vec3 } from '../ships/blueprint';
-import type { Combatant } from './damage';
-import type { FireState } from './damageControl';
+import type { Combatant } from '../game/session/elements';
+import type { FireState } from '../game/session/elements';
 import { regionCondition } from './localDamage';
 
 export interface FireReadout { id: string; name: string; intensity: number; fuelFraction: number; status: string; threat?: string; crew: string; location: string; setupSeconds: number; }
@@ -11,8 +11,8 @@ export function fireReadout(actor: Combatant, def: ShipDefinition): FireReadout[
     const setupSeconds = team?.setup ?? 0;
     const point: Vec3 = kind === 'fire-room' ? def.compartments[index].center : def.mounts[index].position;
     const location = `${point[2] < -def.hull.length * .2 ? 'Forward' : point[2] > def.hull.length * .2 ? 'Aft' : 'Amidships'} · ${point[0] < -1 ? 'Port' : point[0] > 1 ? 'Starboard' : 'Centreline'}`;
-    return { id, name, intensity: f.intensity, fuelFraction: f.initialFuel ? f.fuel / f.initialFuel : 0,
-      status: f.intensity <= 0 ? f.fuel <= 0 ? 'Burned out · cooling' : 'Cooling' : f.suppressed ? 'Being fought' : f.trend === 'growing' ? 'Growing' : 'Steady',
+    return { id, name, intensity: f.intensity, fuelFraction: f.initialFuel ? (f.fuel ?? 0) / f.initialFuel : 0,
+      status: f.intensity <= 0 ? (f.fuel ?? 0) <= 0 ? 'Burned out · cooling' : 'Cooling' : f.suppressed ? 'Being fought' : f.trend === 'growing' ? 'Growing' : 'Steady',
       crew: actor.damage.sunk ? 'Crews unavailable' : !team ? 'Awaiting crew' : setupSeconds > 0 ? 'Crew deploying' : f.intensity > 0 ? 'Suppressing fire' : 'Cooling space',
       location, setupSeconds, threat };
   };

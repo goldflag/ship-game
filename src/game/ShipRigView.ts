@@ -1,10 +1,10 @@
 import * as THREE from 'three/webgpu';
 import type { ShipDefinition } from '../ships/blueprint';
 import type { EnsignDesign } from '../ships/rig';
-import type { Combatant } from '../simulation/damage';
 import { motionVelocity } from '../simulation/ship';
 import { ensignAspects, rasterEnsign } from '../../assets/parts/ensigns';
 import { FlagCloth } from './FlagCloth';
+import type { Combatant } from '../game/session/elements';
 
 const textures = new Map<EnsignDesign, { texture: THREE.DataTexture; users: number }>();
 function retainTexture(design: EnsignDesign): THREE.DataTexture {

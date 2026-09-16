@@ -1,12 +1,12 @@
 import type { BattleSession } from './session/BattleSession';
 import * as THREE from 'three/webgpu';
 import { attribute } from 'three/tsl';
-import type { CombatEvent } from '../simulation/combat';
 import type { Vec3 } from '../ships/blueprint';
 import { FIXED_DT } from '../simulation/ship';
 import { ballisticStep } from '../simulation/ballistics';
 import { effectTexture } from './EffectParticles';
 import { ExpandableInstances } from './ExpandableInstances';
+import type { CombatEvent } from '../game/session/elements';
 
 const CAPACITY = 512;
 const UP = new THREE.Vector3(0, 1, 0);

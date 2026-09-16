@@ -2,7 +2,6 @@ import { DEFAULT_MAP, mapIslands, islandRadius, type Island, isOceanMapId, type 
 import { isTimeOfDayId, isWeatherId, type BattleConditions, type TimeOfDayId, type WeatherId } from '../maps/conditions';
 import type { ShipDefinition } from '../ships/blueprint';
 import type { Combatant } from './damage';
-import type { TubeState } from './torpedoes';
 import type { BotState } from './bots';
 import { DEFAULT_AI_LEVEL, isShipAiLevel, type ShipAiLevel } from './aiLevels';
 
@@ -10,7 +9,8 @@ export const BATTLE_SPAWN_DISTANCE = 5000;
 export const MIN_BATTLE_SPAWN_DISTANCE = 1000;
 export const MAX_BATTLE_SPAWN_DISTANCE = 20000;
 export const MAX_TEAM_SHIPS = 30;
-export type Team = 'friendly' | 'enemy';
+export type { Team } from '../game/session/elements';
+import type { Team } from '../game/session/elements';
 export type BattleResult = 'active' | 'victory' | 'defeat' | 'draw';
 /** Plain IDs/definitions remain supported for existing scenarios; they use Normal AI. */
 export type BotSelection = string | { shipId: string; aiLevel: ShipAiLevel };
@@ -27,17 +27,18 @@ export interface BattleSetup extends BattleConditions {
   mapId?: OceanMapId; timeOfDay?: TimeOfDayId; weather?: WeatherId;
 }
 export interface BattleFleet { friendlyBots: BattleBot[]; enemies: BattleBot[]; spawnDistance?: number; seed?: number; mapId?: OceanMapId; weather?: WeatherId; windSpeed?: number; spawns?: SpawnPositions; }
+/** The engine's hull keeps its bot; the published shape is the generated
+ * `Vessel` and the session's `FleetActor` (see `src/game/session/elements.ts`). */
 export interface FleetActor extends Combatant {
   definition: ShipDefinition;
+  presetId: string;
   team: Team;
   controller: 'player' | 'bot' | 'idle';
   /** Last applied helm command, for instrument readouts. */
-  helm?: import('./ship').HelmCommand;
+  helm: import('./ship').HelmCommand;
   targetId?: string;
-  torpedoTubes?: TubeState[];
-  tubeLaunchCooldown?: number;
-  depthChargeLaunchers?: import('./depthCharges').DepthChargeLauncherState[];
-  depthChargeCooldown?: number;
+  tubeLaunchCooldown: number;
+  depthChargeCooldown: number;
   bot?: BotState;
 }
 

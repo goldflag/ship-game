@@ -39,6 +39,7 @@ pub const MAX_FLEET_NOTICES: usize = 32;
 /// transient held input. Camera and UI selection never enter this contract.
 #[derive(Clone, Debug, serde::Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(optional_fields)]
 pub struct FleetOrderState {
     pub movement: MovementOrder,
     pub weapons: WeaponsPolicy,

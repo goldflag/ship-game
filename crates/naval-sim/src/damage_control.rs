@@ -9,7 +9,7 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 /// Closed set, written only here and published as the same JSON strings.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "lowercase")]
 pub enum FireTrend {
     Growing,
@@ -20,7 +20,7 @@ pub enum FireTrend {
 }
 /// Damage-control job kinds. Variants are declared in the byte order of their
 /// serialized names so the `Ord` used to break score ties is unchanged.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "kebab-case")]
 pub enum JobKind {
     FireMount,
@@ -31,16 +31,23 @@ pub enum JobKind {
     RepairModule,
     RepairMount,
 }
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(optional_fields)]
 pub struct FireState {
     pub heat: f64,
+    #[ts(as = "Option<_>")]
     pub fuel: f64,
     pub intensity: f64,
+    #[ts(as = "Option<_>")]
     pub initial_fuel: f64,
+    #[ts(as = "Option<_>")]
     pub ignition_heat: f64,
+    #[ts(as = "Option<_>")]
     pub heat_per_damage: f64,
+    #[ts(as = "Option<_>")]
     pub trend: FireTrend,
+    #[ts(as = "Option<_>")]
     pub suppressed: bool,
 }
 impl FireState {
@@ -58,14 +65,15 @@ impl FireState {
         }
     }
 }
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, ts_rs::TS)]
 pub struct ControlJob {
     pub kind: JobKind,
     pub index: usize,
     pub setup: f64,
 }
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, ts_rs::TS)]
 pub struct ControlState {
+    #[ts(type = "import('./ControlPriority').ControlPriority")]
     pub priority: String,
     pub focus: String,
     pub spares: f64,

@@ -6,35 +6,9 @@ export const KNOTS_PER_MPS = 1.94384449;
 export const ENGINE_ORDERS = [-1, 0, 0.25, 0.5, 0.75, 1] as const;
 export const ENGINE_LABELS = ['ASTERN', 'STOP', 'SLOW', 'HALF', 'THREE-QUARTER', 'FULL'];
 
-export interface HelmCommand {
-  throttle: number;
-  rudder: number;
-  depthM?: number;
-  emergencyBlow?: boolean;
-}
-
-export interface ShipState {
-  id: string;
-  tick: number;
-  x: number;
-  z: number;
-  y: number;
-  roll: number;
-  pitch: number;
-  heading: number;
-  speed: number;
-  /** Sideways velocity toward starboard, in m/s (turning and contact impulses). */
-  swaySpeed: number;
-  rudder: number;
-  yawRate: number;
-  distance: number;
-  /** World-space vertical velocity, used by diving hulls and weapon inheritance. */
-  verticalSpeed?: number;
-  /** Wave displacement, excluded from ballast depth and draft readouts. */
-  waveHeave?: number;
-  driftX?: number;
-  driftZ?: number;
-}
+/** Declared with the frame, in Rust (`naval_sim::motion`). */
+export type { HelmCommand } from '../multiplayer/generated/HelmCommand';
+export type { ShipState } from '../multiplayer/generated/ShipState';
 
 export const BISMARCK = {
   length: 250.5,
@@ -51,6 +25,7 @@ export function createShipState(id = 'player'): ShipState {
   return { id, tick: 0, x: 0, y: 0, z: 0, roll: 0, pitch: 0, heading: 0, speed: 0, swaySpeed: 0, rudder: 0, yawRate: 0, distance: 0, verticalSpeed: 0, waveHeave: 0, driftX: 0, driftZ: 0 };
 }
 
+import type { ShipState } from '../multiplayer/generated/ShipState';
 export const meanHullY = (state: { y: number; waveHeave?: number }): number => state.y - (state.waveHeave ?? 0);
 export const hullDepth = (state: { y: number; waveHeave?: number }): number => Math.max(0, -meanHullY(state));
 

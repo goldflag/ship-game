@@ -1,10 +1,11 @@
 import { mapIslands } from '../../maps/catalog';
 import { shipPreset, shipPresets } from '../../ships/presets';
 import { isHistoricalShip, localShip, localShips } from '../../ships/localShips';
-import { botSelection, MAX_TEAM_SHIPS, setupSpawns, validateSpawns, type BattleSetup, type BotSelection, type Team } from '../../simulation/battle';
+import { botSelection, MAX_TEAM_SHIPS, setupSpawns, validateSpawns, type BattleSetup, type BotSelection } from '../../simulation/battle';
 import { fleetBudget } from '../../simulation/battleRules';
 import type { FleetTransfer } from '../pveFleetEditing';
 import { customIslands } from './deploymentModel';
+import type { Team } from '../../game/session/elements';
 
 export type { FleetTransfer };
 export type CustomTarget = Team | 'player';

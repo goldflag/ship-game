@@ -1,14 +1,8 @@
 import { FIXED_DT } from './ship';
 
-export interface DamageLogEntry {
-  id: number;
-  tick: number;
-  sourceId: string;
-  targetId: string;
-  weapon: string;
-  damage: number;
-  hits: number;
-}
+/** Declared with the frame, in Rust (`naval_sim::records`). */
+export type { DamageLogEntry } from '../game/session/elements';
+import type { DamageLogEntry } from '../game/session/elements';
 
 /** A bounded battle record, independent of the short-lived visual event queue. */
 export class DamageLog {

@@ -36,9 +36,10 @@ pub enum DeckAction {
     Repair,
     Launch,
 }
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 pub struct DeckRequest {
+    #[ts(type = "number")]
     pub id: u64,
     pub flight_id: String,
     pub action: DeckAction,
@@ -46,11 +47,13 @@ pub struct DeckRequest {
 }
 /// The wire name of [`DeckStatus::active_flight_limit`], whose null travels.
 pub const ACTIVE_FLIGHT_LIMIT_FIELD: &str = "activeFlightLimit";
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(optional_fields)]
 pub struct DeckStatus {
     pub queue: Vec<DeckRequest>,
     pub policy: DeckPolicy,
+    #[ts(type = "number", optional)]
     pub next_request_id: Option<u64>,
     pub current_plane_id: Option<String>,
     pub task: Option<String>,
@@ -65,6 +68,7 @@ pub struct DeckStatus {
     /// keeps as null; every other `None` in a frame is an absent key. Declared
     /// here as [`ACTIVE_FLIGHT_LIMIT_FIELD`] and honoured by
     /// [`crate::frame_delta::KEEP_NULL`].
+    #[ts(optional = false)]
     pub active_flight_limit: Option<usize>,
     pub endurance: crate::air_rules::EndurancePolicy,
     pub repair_ceiling_hp: f64,

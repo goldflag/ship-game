@@ -17,33 +17,24 @@ import type { Ammunition, Battery, ShipDefinition, Vec3 } from '../../ships/blue
 import { shipPreset, shipPresets } from '../../ships/presets';
 import { mapIslands, type OceanMapId } from '../../maps/catalog';
 import type { WeatherId } from '../../maps/conditions';
-import type { FleetActor, BattleResult } from '../../simulation/battle';
-import type { CombatIntent, CombatEvent, ShellHistory } from '../../simulation/combat';
-import type { DamageLogEntry } from '../../simulation/damageLog';
-import type { Shell } from '../../simulation/damage';
-import type { Torpedo } from '../../simulation/torpedoes';
-import type { DepthCharge } from '../../simulation/depthCharges';
-import { squadronFlights, type AirOrder, type AirWingState, type AirRelease } from '../../simulation/aircraft';
+import type { BattleResult } from '../../simulation/battle';
+import type { CombatIntent } from '../../simulation/combat';
+import { squadronFlights } from '../../simulation/aircraft';
 import { physicalLoss, type BattleOutcome } from '../../simulation/battleRules';
 import { presentationAim, presentationTelemetry } from '../../simulation/presentation';
 import { createSeaState } from '../../simulation/sea';
 import { updateMountCarriers } from '../../simulation/mountFrames';
-import type { HelmCommand } from '../../simulation/ship';
+import type { Aircraft, Vessel, CarrierWing, Records, FleetActor, CombatEvent, ShellHistory, DamageLogEntry, Shell, Torpedo, DepthCharge, AirRelease, HelmCommand } from './elements';
+import type { AirOrder } from '../../multiplayer/generated/AirOrder';
 
 /** The frame the renderer consumes is declared once, in Rust
  * (`naval_sim::snapshot::BattleFrame` flattened into
- * `naval_protocol::frame::SessionFrame`) and generated here. The eight
- * collections below are the projections whose element shapes Rust does not
- * declare yet: a hull without its bot, a shell without its damage ledger. Their
- * elements remain the retired engine's types, passed as the frame's type
- * parameters, until they are declared in Rust, which is the next candidate;
- * the frame itself no longer is. */
-type WireActor = Omit<FleetActor, 'definition' | 'team' | 'bot' | 'airWing'> & {
-  presetId: string; team: TeamId; aiLevel?: NonNullable<FleetActor['bot']>['aiLevel']; launcherTrains: Record<string, number>;
-};
-type WireWing = { ownerId: string; state: AirWingState };
-type WireRecords = { scores: Record<string, { damageDealt: number; frags: number; damageLog: DamageLogEntry[] }>; shellHistory: ShellHistory[] };
-export type Snapshot = SessionFrame<BattleFrame<WireActor[], WireWing[], Shell[], Torpedo[], DepthCharge[], AirRelease[], CombatEvent[], WireRecords>>;
+ * `naval_protocol::frame::SessionFrame`) and generated here, with its element
+ * shapes: the eight collections are the generated projections of the
+ * simulation objects (`Vessel`, `CarrierWing`, `Shell`, …), declared on those
+ * objects with the presentation filter's drops and gated by
+ * `crates/naval-sim/tests/frame_types.rs`. Nothing below is typed by hand. */
+export type Snapshot = SessionFrame<BattleFrame<Vessel[], CarrierWing[], Shell[], Torpedo[], DepthCharge[], AirRelease[], CombatEvent[], Records>>;
 function replaceObject<T extends object>(target: T, value: T): void {
   for (const key of Object.keys(target) as (keyof T)[]) if (!(key in value)) delete target[key];
   Object.assign(target, value);
@@ -139,12 +130,12 @@ export abstract class SnapshotSession implements BattleSession {
       if (!definition) throw new Error(`Snapshot references unavailable content: ${wire.presetId}.`);
       const expected = this.setup.ships.find(s => s.id === wire.motion.id);
       if (!expected || expected.presetId !== wire.presetId || expected.team !== wire.team) throw new Error('Snapshot fleet changed.');
-      const { presetId, team, aiLevel, launcherTrains, ...state } = wire;
+      const { team, aiLevel, launcherTrains, ...state } = wire;
       const existing = this.actors.find(a => a.motion.id === state.motion.id);
       // These stable renderer identities must not alias the retained wire frame:
       // local deltas reuse its unchanged paths in subsequent snapshots.
-      const actor = existing ?? { ...state, motion: { ...state.motion }, damage: { ...state.damage },
-        definition, team: team === this.ownTeam ? 'friendly' : 'enemy' } as FleetActor;
+      const actor: FleetActor = existing ?? { ...state, motion: { ...state.motion }, damage: { ...state.damage }, torpedoLaunchers: [],
+        definition, team: team === this.ownTeam ? 'friendly' : 'enemy' };
       if (existing) {
         const { motion, damage, ...rest } = state;
         replaceObject(actor.motion, motion); replaceObject(actor.damage, damage); Object.assign(actor, rest);
@@ -155,14 +146,14 @@ export abstract class SnapshotSession implements BattleSession {
         updateMountCarriers(actor.definition, actor.mounts);
       }
       // AI diagnostics are public; tracking, targeting caches and RNG remain private.
-      actor.bot = aiLevel ? { aiLevel } as FleetActor['bot'] : undefined;
+      actor.bot = aiLevel ? { aiLevel } : undefined;
       actor.torpedoLaunchers = Object.entries(launcherTrains).map(([id, train]) => ({ id, train }));
       actor.sea = { state: this.sea, time: this.tick / 60 };
       const wing = frame.wings.find(w => w.ownerId === actor.motion.id)?.state;
       if (wing) {
         const previous = new Map(actor.airWing?.planes.map(p => [p.id, p]) ?? []);
         const planes = wing.planes.map(wirePlane => {
-          const p = { ...wirePlane, team: actor.team };
+          const p: Aircraft = { ...wirePlane, team: actor.team };
           const old = previous.get(p.id);
           if (old) {
             p.previousPosition = old.position;

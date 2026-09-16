@@ -7,6 +7,7 @@ import { GRAVITY, solveDragArc, travelFactor } from './ballistics';
 import { BarrelObstructionTree, gunMountObstructions, segmentIntersectsBox } from './obstruction';
 import { mountBearing, mountPosition, mountFrame, type CarrierFrame } from './mountFrames';
 import { moveMountWithClearance } from './mountClearance';
+import type { MountState as SessionMount } from '../game/session/elements';
 export { GRAVITY } from './ballistics';
 export type MountDefinition = ShipDefinition['mounts'][number];
 // Compiled definitions are immutable during a battle, like the hull/armor caches.
@@ -30,21 +31,17 @@ function obstructionTree(definition: ShipDefinition) {
   }
   return tree;
 }
-export interface MountState {
-  /** Derived CPU carrier pose, refreshed before operation; absent on hull mounts. */
-  carrier?: CarrierFrame;
+/** The engine's mount keeps what the frame drops: the derived carrier pose,
+ * AA discipline and lead/aim caches. The published shape is the generated one. */
+export interface MountState extends Omit<import('../game/session/elements').MountState, 'aimCache'> {
   aaDiscipline?: import('./airGunnery').FireDiscipline;
-  id: string; train: number; elevation: number; reload: number; ammo: number; hp: number; recoil: number;
-  /** Total rounds include the HE subset; rounds are consumed when fired. */
-  heAmmo: number; loaded: Ammunition; queued?: Ammunition;
-  status: 'ready' | 'reloading' | 'turning' | 'out-of-range' | 'blocked' | 'out-of-arc' | 'empty' | 'disabled' | 'submerged';
   aimCache?: { time: number; train: number; elevation: number; point: Vec3 };
   leadCache?: { time: number; point: Vec3 };
 }
 export const createMountState = (m: MountDefinition): MountState => ({ id: m.id, train: 0, elevation: radians(m.initialElevationDeg ?? 1), reload: 0,
   ammo: m.weapon.ammoPerBarrel * m.weapon.barrelCount, heAmmo: Math.floor(m.weapon.ammoPerBarrel * (m.weapon.he?.stockFraction ?? 0)) * m.weapon.barrelCount,
   loaded: 'ap', hp: 100, recoil: 0, status: 'turning' });
-export const availableAmmunition = (state: MountState, type = state.loaded): number => type === 'he' ? Math.max(0, Math.min(state.ammo, state.heAmmo)) : Math.max(0, state.ammo - state.heAmmo);
+export const availableAmmunition = (state: Pick<SessionMount, 'loaded' | 'ammo' | 'heAmmo'>, type = state.loaded): number => type === 'he' ? Math.max(0, Math.min(state.ammo, state.heAmmo)) : Math.max(0, state.ammo - state.heAmmo);
 /** Reload, traverse and elevation all slow together as electrical power fails. The HUD divides displayed reload by the same rate. */
 export const gunWorkRate = (power: number): number => .25 + .75 * clamp(power, 0, 1);
 /** Spend one complete salvo of the loaded type and begin the reload and recoil.
@@ -81,9 +78,9 @@ export function muzzleLocal(m: MountDefinition, state: Pick<MountState, 'train' 
   const lateral = barrelOffset(w, barrel);
   return add(mountPosition(m, state), [Math.cos(bearing) * lateral + Math.sin(bearing) * forward, w.pivotHeight + barrelHeightOffset(w, barrel) * Math.cos(state.elevation) + (w.muzzleForward - w.trunnionForward) * Math.sin(state.elevation), Math.sin(bearing) * lateral - Math.cos(bearing) * forward]);
 }
-export const muzzleWorld = (m: MountDefinition, state: MountState, barrel: number, pose: Pose) => localToWorld(muzzleLocal(m, state, barrel), pose);
+export const muzzleWorld = (m: MountDefinition, state: SessionMount, barrel: number, pose: Pose) => localToWorld(muzzleLocal(m, state, barrel), pose);
 /** Upright immersion needs only muzzle height; heading cannot affect it. */
-function muzzleHeight(m: MountDefinition, state: MountState, pose: Pose): number {
+function muzzleHeight(m: MountDefinition, state: SessionMount, pose: Pose): number {
   if (pose.roll !== 0 || pose.pitch !== 0) return muzzleWorld(m, state, 0, pose)[1];
   const w = m.weapon;
   return mountPosition(m, state)[1] + (w.pivotHeight + barrelHeightOffset(w, 0) * Math.cos(state.elevation)
@@ -107,8 +104,8 @@ export function muzzleCenterLocal(m: MountDefinition, state: Pick<MountState, 't
   }
   return [x, y, z];
 }
-export const muzzleCenterWorld = (m: MountDefinition, state: MountState, pose: Pose) => localToWorld(muzzleCenterLocal(m, state), pose);
-export function shotDirection(m: MountDefinition, state: MountState, pose: Pose): Vec3 {
+export const muzzleCenterWorld = (m: MountDefinition, state: SessionMount, pose: Pose) => localToWorld(muzzleCenterLocal(m, state), pose);
+export function shotDirection(m: MountDefinition, state: SessionMount, pose: Pose): Vec3 {
   const bearing = mountBearing(m, state);
   return rotate([Math.sin(bearing) * Math.cos(state.elevation), Math.sin(state.elevation), -Math.cos(bearing) * Math.cos(state.elevation)], pose);
 }

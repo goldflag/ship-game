@@ -4,13 +4,13 @@ import { ExpandableInstances } from './ExpandableInstances';
 import { localToWorld } from '../simulation/geometry';
 import * as THREE from 'three/webgpu';
 import { nodeObject, uniform } from 'three/tsl';
-import type { CombatEvent } from '../simulation/combat';
 import { FIXED_DT } from '../simulation/ship';
 import { EffectParticlePool, effectTexture } from './EffectParticles';
 import { EffectDepthTextureNode, effectVolumeMaterial, effectVolumeTexture } from './EffectVolume';
 import { WaterPlumes } from './WaterPlumes';
 import { shellGeometry } from '../../assets/effects/naval/shellGeometry';
 import { ShellTrails } from './ShellTrails';
+import type { CombatEvent } from '../game/session/elements';
 
 const UP = new THREE.Vector3(0, 1, 0);
 const WARM = new THREE.Color('#ffe7b6');
@@ -312,7 +312,7 @@ export class CombatEffects {
       this.dummy.updateMatrix(); this.projectiles.setMatrixAt(i, this.dummy.matrix);
       // In shell-follow range the luminous head recedes to reveal the metal round.
       const tracking = THREE.MathUtils.smoothstep(this.cameraPosition.distanceTo(this.position), 65, 150);
-      const luminous = !shell.lodged && shell.waterDragPerSecond === undefined;
+      const luminous = shell.waterDragPerSecond === undefined;
       // Caliber also scales the screen-space visibility floor. A shared floor
       // made 20 mm rounds look as large as main-battery shells at equal range.
       const caliberScale = Math.sqrt(shell.caliberM / .38);

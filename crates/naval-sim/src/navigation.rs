@@ -310,6 +310,7 @@ pub enum FormationPolicy {
 }
 #[derive(Clone, Debug, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(optional_fields)]
 pub struct Straggler {
     pub ship_id: String,
     pub available_speed_mps: f64,
@@ -317,6 +318,7 @@ pub struct Straggler {
 }
 #[derive(Clone, Debug, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(optional_fields)]
 pub struct FormationReport {
     pub stragglers: Vec<Straggler>,
     pub speed_limit_mps: f64,
@@ -343,6 +345,7 @@ pub enum NavigationStatus {
 
 #[derive(Clone, Debug, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(optional_fields)]
 pub struct NavigationState {
     pub order: Movement,
     pub waypoint: usize,

@@ -5,11 +5,12 @@ import { mountFrame } from '../../simulation/mountFrames';
 import { muzzleWorld } from '../../simulation/weapons';
 import { localToWorld, sub, length } from '../../simulation/geometry';
 import { decodeSnapshot } from './snapshotCodec';
-import { squadronFlights, type AirOrder } from '../../simulation/aircraft';
+import { squadronFlights } from '../../simulation/aircraft';
 import pveRules from '../../../assets/gameplay/pve-mission.v1.json';
 import type { MissionRules } from '../../multiplayer/generated/MissionRules';
 import { managedDeckFixture } from '../../../scripts/multiplayer/managed-deck-fixture';
 import { airWingTelemetry } from '../../simulation/airTelemetry';
+import type { AirOrder } from '../../multiplayer/generated/AirOrder';
 const setup = { playerShipId: 'enterprise-cv6', friendlyBots: ['fletcher', 'type-viic'], enemies: ['baltimore'], spawnDistance: 5000 };
 test('managed deck commands and queues retain carrier ownership and policies through real WASM snapshots', async () => {
   const content = new Uint8Array(await Bun.file(new URL('../../../.build/naval-content/manifest.json', import.meta.url)).arrayBuffer());
@@ -162,7 +163,7 @@ test('Iowa carries its roof gun through real WASM snapshots without mutating del
     // Applying a decoded frame must also leave that frame untouched for later deltas.
     const frameToApply = decodeSnapshot(session.runtime.snapshot());
     (session as any).apply(frameToApply);
-    expect(frameToApply.actors[0].mounts[child].carrier).toBeUndefined();
+    expect('carrier' in frameToApply.actors[0].mounts[child]).toBe(false);
     expect(session.player.mounts[child].carrier).toBeDefined();
   } finally { session.dispose(); }
 });

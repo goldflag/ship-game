@@ -13,8 +13,8 @@ import type { BattleSetup } from '../../multiplayer/generated/BattleSetup';
 import type { TeamId } from '../../multiplayer/generated/TeamId';
 import type { Command } from '../../multiplayer/generated/Command';
 import type { CombatIntent } from '../../simulation/combat';
-import type { HelmCommand } from '../../simulation/ship';
 import type { TimeOfDayId, WeatherId } from '../../maps/conditions';
+import type { HelmCommand } from '../../game/session/elements';
 export type JoinMode = 'queue' | 'create-invite' | 'join-invite';
 export interface MatchMetadata {
   /** The immutable match baseline: every update is a patch against it, so a
