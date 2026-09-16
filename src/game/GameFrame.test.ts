@@ -2,8 +2,10 @@ import { DEFAULT_GRAPHICS } from './graphicsSettings';
 import { afterEach, beforeEach, expect, spyOn, test } from 'bun:test';
 import { Color, DirectionalLight, Group, PerspectiveCamera, Vector3, InstancedBufferGeometry, InstancedMesh, MeshBasicMaterial } from 'three/webgpu';
 import { loadShipJoints } from '../../scripts/diagnostics/load-ship-joints';
-import { CombatSimulation } from '../simulation/combat';
-import { ENGINE_ORDERS, FIXED_DT } from '../simulation/ship';
+import { CombatSimulation, type CombatIntent } from '../simulation/combat';
+import { ENGINE_ORDERS, FIXED_DT, motionVelocity, type HelmCommand } from '../simulation/ship';
+import { seaHeight } from '../simulation/sea';
+import { availableAmmunition, expendSalvo, muzzleWorld, shotDirection, updateMount } from '../simulation/weapons';
 import { localToWorld, wrapAngle } from '../simulation/geometry';
 import { aircraftDeckSpot } from '../simulation/aircraft';
 import { shipPreset } from '../ships/presets';
@@ -47,10 +49,79 @@ function fakeWater() {
   };
 }
 
+/** The authoritative state one fixed tick publishes to the renderer, staged by the
+ * harness. Combat resolution belongs to the Rust simulation; these frame tests only
+ * need a hull that makes way, guns that train and fire, and a sea that lifts the
+ * hull, so the fixture writes exactly those fields the renderer reads. */
+function stageTicks(sim: CombatSimulation) {
+  let accumulator = 0, sequence = 0, queued = false;
+  const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
+  const approach = (n: number, target: number, amount: number) => n + clamp(target - n, -amount, amount);
+  const step = (helm: HelmCommand, intent: CombatIntent) => {
+    const time = sim.tick * FIXED_DT;
+    for (const actor of sim.actors) {
+      const motion = actor.motion, handling = actor.definition.handling;
+      const command = actor === sim.player ? helm : { throttle: sim.targetUnderway ? .25 : 0, rudder: 0 };
+      actor.sea = { state: sim.sea, time };
+      actor.helm = command;
+      motion.speed = approach(motion.speed, clamp(command.throttle, -1, 1) * handling.forwardSpeed, handling.acceleration * FIXED_DT);
+      motion.rudder = approach(motion.rudder, clamp(command.rudder, -1, 1), handling.rudderRate * FIXED_DT);
+      motion.yawRate = motion.rudder * handling.maxYawRate * clamp(motion.speed / handling.forwardSpeed, -.4, 1);
+      motion.heading = (motion.heading + motion.yawRate * FIXED_DT + Math.PI * 2) % (Math.PI * 2);
+      const velocity = motionVelocity(motion);
+      motion.x += velocity[0] * FIXED_DT; motion.z += velocity[2] * FIXED_DT;
+      motion.distance += Math.abs(motion.speed) * FIXED_DT;
+      const heave = seaHeight(sim.sea, motion.x, motion.z, time);
+      motion.verticalSpeed = (heave - motion.y) / FIXED_DT; motion.waveHeave = heave; motion.y = heave;
+      motion.tick++;
+      const aim = actor === sim.player ? intent.aim : undefined;
+      const fire = actor === sim.player && (intent.fire || queued) && !actor.damage.sunk;
+      actor.definition.mounts.forEach((mount, i) => {
+        const state = actor.mounts[i];
+        const aligned = updateMount(mount, state, actor.definition, motion, aim, FIXED_DT, velocity);
+        if (!fire || !aligned || state.status !== 'ready' || mount.battery !== intent.battery) return;
+        if (availableAmmunition(state) < mount.weapon.barrelCount) return;
+        const barrels = expendSalvo(mount, state);
+        const direction = shotDirection(mount, state, motion);
+        for (let barrel = 0; barrel < barrels; barrel++) {
+          const position = muzzleWorld(mount, state, barrel, motion);
+          const shellVelocity = direction.map((n, axis) => n * mount.weapon.muzzleSpeed + velocity[axis]) as Vec3;
+          const id = ++sequence;
+          sim.shells.push({ id, ownerId: motion.id, position, velocity: shellVelocity, age: 0, caliberM: mount.weapon.caliberM,
+            damage: mount.weapon.damage, penetrationMm: mount.weapon.penetrationMm, visited: [], ammunition: state.loaded });
+          sim.events.push({ kind: 'shot', position: [...position], shipId: motion.id, message: `${mount.name} fired`, sequence: id,
+            tick: sim.tick, shell: { id, caliberM: mount.weapon.caliberM, velocity: [...shellVelocity] } });
+        }
+      });
+    }
+    queued = false;
+    for (let i = sim.shells.length - 1; i >= 0; i--) {
+      const shell = sim.shells[i];
+      shell.position = shell.position.map((n, axis) => n + shell.velocity[axis] * FIXED_DT) as Vec3;
+      shell.velocity = [shell.velocity[0], shell.velocity[1] - 9.81 * FIXED_DT, shell.velocity[2]];
+      shell.age += FIXED_DT;
+      if (shell.position[1] < -1 || shell.age > 90) sim.shells.splice(i, 1);
+    }
+    sim.tick++;
+  };
+  sim.requestFire = () => { queued = true; };
+  sim.advance = (dt: number, helm: HelmCommand, intent: CombatIntent, beforeStep?: () => void) => {
+    accumulator += Number.isFinite(dt) ? clamp(dt, 0, .1) : 0;
+    while (accumulator + 1e-10 >= FIXED_DT) {
+      beforeStep?.();
+      step(helm, intent);
+      accumulator = Math.max(0, accumulator - FIXED_DT);
+    }
+    // The renderer interpolates from the simulation's own leftover tick fraction.
+    Reflect.set(sim, 'accumulator', accumulator);
+  };
+  return sim;
+}
+
 /** Exercise the real frame loop and exported joints, replacing only browser/GPU services. */
 async function frameHarness(shipId = 'bismarck', fleet = false) {
   const model = await loadShipJoints(shipId);
-  const simulation = new CombatSimulation(shipPreset(shipId), fleet ? { friendlyBots: [shipPreset(shipId)], enemies: [shipPreset(shipId)] } : undefined);
+  const simulation = stageTicks(new CombatSimulation(shipPreset(shipId), fleet ? { friendlyBots: [shipPreset(shipId)], enemies: [shipPreset(shipId)] } : undefined));
   simulation.ship.speed = simulation.definition.handling.forwardSpeed;
   const camera = new PerspectiveCamera(52, 16 / 9, .5, 60000);
   const rig = new CameraRig(camera, { addEventListener() {} } as unknown as HTMLCanvasElement);
@@ -179,7 +250,7 @@ test('turning through north takes the short heading path without changing author
   helm.rudder = 1;
   Object.assign(simulation.ship, { heading: Math.PI * 2 - .0001, yawRate: simulation.definition.handling.maxYawRate, rudder: 1 });
   playerView.snap();
-  const reference = new CombatSimulation(simulation.definition);
+  const reference = stageTicks(new CombatSimulation(simulation.definition));
   Object.assign(reference.ship, simulation.ship);
   let time = 0;
   let previousHeading = playerView.motion.heading;

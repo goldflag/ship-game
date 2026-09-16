@@ -29,7 +29,7 @@ pub struct CompartmentState {
     pub water_m3: f64,
     pub breach_area_m2: f64,
     pub breaches: Vec<Breach>,
-    /// Native display plane for constructed rooms; historical snapshots keep their existing shape.
+    /// Native display plane for constructed rooms; omitted when unset.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub water_level_y: Option<f64>,
 }
@@ -148,8 +148,8 @@ impl DamageState {
         Self {
             regions: def
                 .local_damage
+                .regions
                 .iter()
-                .flat_map(|d| &d.regions)
                 .map(|r| RegionState {
                     id: r.id.clone(),
                     hp: r.durability_fraction * maximum,
@@ -247,7 +247,7 @@ pub fn damage_region<'a>(
     mount: Option<&str>,
     module: Option<&str>,
 ) -> Option<&'a crate::definition::DamageRegion> {
-    let regions = &def.local_damage.as_ref()?.regions;
+    let regions = &def.local_damage.regions;
     if let Some(id) = module
         && let Some(r) = regions.iter().find(|r| r.module_id.as_deref() == Some(id))
     {
@@ -285,9 +285,7 @@ pub fn damage_blast_hull(
     point: Vec3,
     amount: f64,
 ) -> f64 {
-    let Some(local) = &def.local_damage else {
-        return damage_hull(actor, amount, None);
-    };
+    let local = &def.local_damage;
     let radius = 10.0_f64.max(amount.max(0.0).cbrt() * 3.0);
     let regions: Vec<_> = local
         .regions

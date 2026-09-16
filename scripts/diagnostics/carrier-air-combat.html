@@ -2,11 +2,12 @@
 <style>body{margin:0;background:#132d38;color:#edf1ec;font:14px sans-serif}#scene{width:1280px;height:720px}canvas{display:block}output{position:fixed;left:12px;top:12px;background:#132d38;padding:8px}</style>
 <div id="scene"></div><output>Loading AA review…</output><script type="module">
 import { Game } from '/src/game/Game.ts';
+import { GRAPHICS_PRESETS } from '/src/game/graphicsSettings.ts';
 import { shipPreset } from '/src/ships/presets.ts';
 window.addEventListener('unhandledrejection',event=>window.reviewError=String(event.reason));
 const status=document.querySelector('output');let ready;
 const loaded=new Promise(resolve=>ready=resolve);
-const game=new Game(document.querySelector('#scene'),{quality:'medium',sea:'Fair',resolution:1},{
+const game=new Game(document.querySelector('#scene'),GRAPHICS_PRESETS.medium,{
   ready,progress:s=>status.textContent=s,telemetry:()=>{},pause:()=>{},hud:()=>{},error:s=>window.reviewError=s,
 },shipPreset('bismarck'));
 window.reviewGame=game;game.start();await loaded;

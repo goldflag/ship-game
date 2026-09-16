@@ -8,7 +8,7 @@ test('a remote ship report gives the chart an exterior but cannot reveal it to a
   const views = new ObservedShipViews();
   const template = new Group(); template.name = 'Public recognition model';
   views.setModels(new Map([['fletcher', template]]));
-  const report: ObservedShip = { id: 'contact-0-1', presetId: 'fletcher', position: [1000, 0, -2000], heading: 0, velocity: [0, 0, -10], observedTick: 120, observers: ['forward-destroyer'] };
+  const report: ObservedShip = { id: 'contact-0-1', presetId: 'fletcher', position: [1000, 0, -2000], heading: 0, pitch: 0, roll: 0, health: 1, mounts: [], launchers: [], velocity: [0, 0, -10], observedTick: 120, observers: ['forward-destroyer'] };
   views.update([report], 150, true, 'rear-carrier');
   expect(views.root.children).toHaveLength(1);
   const exterior = views.root.children[0];
@@ -24,8 +24,8 @@ test('a remote ship report gives the chart an exterior but cannot reveal it to a
 });
 
 const report = (overrides: Partial<ObservedShip> = {}): ObservedShip => ({
-  id: 'contact-0-1', presetId: 'fletcher', position: [0, 0, 0], heading: 0,
-  velocity: [0, 0, -10], observedTick: 0, observers: ['forward-destroyer'], ...overrides,
+  id: 'contact-0-1', presetId: 'fletcher', position: [0, 0, 0], heading: 0, pitch: 0, roll: 0, health: 1,
+  mounts: [], launchers: [], velocity: [0, 0, -10], observedTick: 0, observers: ['forward-destroyer'], ...overrides,
 });
 const renderer = () => {
   const views = new ObservedShipViews();
@@ -129,9 +129,6 @@ test('reported gun and launcher attitudes move the recognition model joints and 
   expect(node('gun-1.yaw').rotation.y).toBeCloseTo(0, 3);
   expect(node('gun-1.center.recoil').position.z).toBeCloseTo(0, 3);
   expect(node('torpedo-forward.yaw').rotation.y).toBeCloseTo(0, 3);
-  // Older snapshots carry no attitudes: the joints stay where they are.
-  views.update([report({ observedTick: 120 })], 120, true, 'forward-destroyer', 1 / 60);
-  expect(node('gun-1.yaw').rotation.y).toBeCloseTo(0, 3);
 });
 
 test('a visible exterior leaves a wake with its drawn pose and reported way; a hidden one leaves none', () => {

@@ -66,13 +66,13 @@ export interface GunPart {
   catalogElevationMaxDeg?: number;
   reloadSeconds: number; muzzleSpeed: number; projectileMassKg: number;
   penetrationMm: number; damage: number; recoilM: number; ammoPerBarrel: number; armorMm: number;
-  /** Optional calibrated flight model; omitted v1 parts retain vacuum/no spread. */
-  ballistics?: { dragPerSecond: number; dispersionRad: number; muzzleSpeedSigmaFraction?: number; penetrationReferenceSpeedMps?: number; basis: string };
+  /** Calibrated flight model; every catalog part declares one. */
+  ballistics: { dragPerSecond: number; dispersionRad: number; muzzleSpeedSigmaFraction?: number; penetrationReferenceSpeedMps?: number; basis: string };
   /** Omitted original v1 parts remain inert/contact-only projectiles. */
   ap?: APProjectile;
   he?: HEProjectile;
-  /** Omitted in original v1 twin parts. Spacing is between adjacent barrel axes. */
-  barrelCount?: 1 | 2 | 3 | 4 | 8;
+  /** Spacing is between adjacent barrel axes. */
+  barrelCount: 1 | 2 | 3 | 4 | 8;
   /** Vertical bore-axis spacing for an octuple two-row mount. */
   barrelVerticalSpacing?: number;
   mountingStyle?: 'enclosed' | 'open-pedestal' | 'open-quad' | 'oerlikon' | 'pom-pom';
@@ -87,7 +87,7 @@ export interface GunPart {
   gunhouseMesh?: { version: 1; vertices: Vec3[]; faces: { id: string; indices: [number, number, number]; thicknessMm: number; material: 'KC' | 'Wh' | 'steel'; finish: 'naval' | 'roof' }[]; provenance?: Armor['provenance'] };
 }
 export const barrelIds = (weapon: GunPart): readonly string[] => {
-  switch (weapon.barrelCount ?? 2) {
+  switch (weapon.barrelCount) {
     case 1: return ['center'];
     case 3: return ['left', 'center', 'right'];
     case 4: return ['left-outer', 'left', 'right', 'right-outer'];
@@ -95,7 +95,7 @@ export const barrelIds = (weapon: GunPart): readonly string[] => {
     default: return ['left', 'right'];
   }
 };
-export const barrelOffset = (weapon: GunPart, index: number): number => ((weapon.barrelCount === 8 ? index % 4 - 1.5 : index - ((weapon.barrelCount ?? 2) - 1) / 2)) * weapon.barrelSpacing;
+export const barrelOffset = (weapon: GunPart, index: number): number => ((weapon.barrelCount === 8 ? index % 4 - 1.5 : index - (weapon.barrelCount - 1) / 2)) * weapon.barrelSpacing;
 export const barrelHeightOffset = (weapon: GunPart, index: number): number => weapon.barrelCount === 8 ? (index < 4 ? -.5 : .5) * weapon.barrelVerticalSpacing! : 0;
 export interface PartCatalog { schemaVersion: 1; parts: GunPart[]; torpedoes?: TorpedoPart[]; depthCharges?: DepthChargePart[]; }
 export interface Mount {
@@ -157,7 +157,7 @@ export interface Module extends Volume {
   /** A launcher box is authored in the zero-bearing ship frame. */
   torpedoLauncherId?: string;
   protectionMm?: number;
-  /** Omitted on every director retains legacy global coverage. */
+  /** Directors declare the mounts they serve. */
   servesMountIds?: string[];
   /** Water above the equipment's lower face disables it. Omit for sealed equipment. */
   immersionToleranceM?: number;
@@ -228,21 +228,20 @@ export interface FlightDeckLayout {
 export interface AirWingDefinition {
   version: 1; launchPosition: Vec3; recoveryPosition: Vec3; serviceModuleId: string;
   launchIntervalSeconds: number; rearmSeconds: number;
-  /** Optional v1 operations limits; older blueprints retain three-plane launches. */
-  flightSize?: number; deckCapacity?: number; maxActiveFlights?: number;
+  flightSize: number; deckCapacity: number; maxActiveFlights: number;
   deckLayout?: FlightDeckLayout;
   squadrons: { id: string; name: string; modelId: string; role: AircraftRole; count: number }[];
 }
 export interface ShipBlueprint {
   schemaVersion: 1; id: string; name: string; configuration: string;
   coordinates: 'meters-y-up-bow-negative-z'; modelUrl: string;
-  damageControl?: DamageControlProfile;
+  damageControl: DamageControlProfile;
   /** Optional CPU motion interlocks, fitted to reviewed installation geometry.
    * These are explicit game clearance envelopes, not historical firing sectors. */
   mountClearance?: MountClearanceProfile;
   /** Ship-local underwater defense coverage; reductions are gameplay calibration. */
   underwaterProtection?: { version: 1; basis: string; zones: (Volume & { name: string; damageReduction: number; breachReduction: number })[] };
-  localDamage?: { version: 1; regions: DamageRegion[]; basis: string };
+  localDamage: { version: 1; regions: DamageRegion[]; basis: string };
   stability?: { version: 1; dryCenterOfGravity: Vec3; buoyancyScale: number; shellThicknessMm: number; basis: string };
   hull: Hull; handling: Handling; mounts: Mount[]; armor: Armor[];
   torpedoTubes?: TorpedoTube[];
@@ -497,6 +496,8 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
       });
     });
     if (record(sections[0], 'section').station !== 0 || previous !== h.length) fail('hull.sections', 'sections must span the hull length');
+    const counts = sections.map(value => (record(value, 'section').points as unknown[]).length);
+    if (counts.some(count => count !== counts[0])) fail('hull.sections', 'hull sections require matching point counts');
   }
   if (b.mountEnvelope !== undefined) {
     const envelope = record(b.mountEnvelope, 'mountEnvelope');
@@ -531,8 +532,6 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
     numeric(plating.hullMm,'structuralPlating.hullMm',.1,100);numeric(plating.superstructureMm,'structuralPlating.superstructureMm',.1,100);
     text(plating.note,'structuralPlating.note');
     if (!h.sections) fail('structuralPlating','requires authored hull sections');
-    const sections=h.sections as {points:unknown[]}[];
-    if (sections.some(s=>s.points.length!==sections[0].points.length)) fail('structuralPlating','hull sections require matching point counts');
   }
   if (b.viewpoints !== undefined) {
     const viewpoints = record(b.viewpoints, 'viewpoints');
@@ -555,7 +554,7 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
     numeric(p.elevationMaxDeg, `${p.id}.elevationMaxDeg`, 0, 90);
     if ((p.muzzleForward as number) <= (p.trunnionForward as number)) fail(String(p.id), 'muzzle must be forward of the trunnion');
     if (!Number.isInteger(p.ammoPerBarrel)) fail(String(p.id), 'ammunition must be an integer');
-    if (p.ballistics !== undefined) {
+    {
       const flight = record(p.ballistics, `${p.id}.ballistics`);
       numeric(flight.dragPerSecond, 'ballistics.dragPerSecond', 0, .5);
       numeric(flight.dispersionRad, 'ballistics.dispersionRad', 0, .02);
@@ -581,7 +580,7 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
       text(he.basis, 'he.basis');
       if ((he.explosiveKg as number) >= (p.projectileMassKg as number)) fail(`${p.id}.he`, 'explosive filling must be less than projectile mass');
     }
-    if (p.barrelCount !== undefined) literal(p.barrelCount, [1, 2, 3, 4, 8], `${p.id}.barrelCount`);
+    literal(p.barrelCount, [1, 2, 3, 4, 8], `${p.id}.barrelCount`);
     if (p.mountingStyle !== undefined) literal(p.mountingStyle, ['enclosed', 'open-pedestal', 'open-quad', 'oerlikon', 'pom-pom'], `${p.id}.mountingStyle`);
     if (p.barrelCount === 8 && p.mountingStyle !== 'pom-pom') fail(String(p.id), 'eight barrels require the pom-pom common-cradle recipe');
     if (p.barrelCount === 8 || p.barrelVerticalSpacing !== undefined) numeric(p.barrelVerticalSpacing, `${p.id}.barrelVerticalSpacing`, .001, 10);
@@ -605,7 +604,7 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
       if (!faces.length || [...edges.values()].some(e=>e.count!==2||e.winding!==0)) fail(String(p.id),'gunhouse facets must form a closed consistently wound enclosure');
     }
   });
-  if (b.damageControl !== undefined) {
+  {
     const d = record(b.damageControl, 'damageControl');
     literal(d.version, [1], 'damageControl.version'); text(d.basis, 'damageControl.basis');
     const teams = numeric(d.teams, 'damageControl.teams', 0, 16);
@@ -781,7 +780,7 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
       if (new Set(ids).size !== ids.length || ids.some(id => !mounts.some(mount => mount.id === id))) fail(String(m.id), 'invalid director mount coverage');
     }
   });
-  if (modules.some(m => m.servesMountIds !== undefined) && modules.some(m => m.kind === 'fire-control' && m.servesMountIds === undefined)) fail('modules', 'explicit coverage requires every director to declare served mounts');
+  if (modules.some(m => m.kind === 'fire-control' && m.servesMountIds === undefined)) fail('modules', 'every director must declare served mounts');
   if (b.underwaterProtection !== undefined) {
     const protection = record(b.underwaterProtection, 'underwaterProtection');
     literal(protection.version, [1], 'underwaterProtection.version');
@@ -799,7 +798,7 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
         fail(String(z.id), 'underwater protection outside submerged hull envelope');
     });
   }
-  if (b.localDamage !== undefined) {
+  {
     const local = record(b.localDamage, 'localDamage');
     literal(local.version, [1], 'localDamage.version'); text(local.basis, 'localDamage.basis');
     const regions = volumes(local.regions, 'localDamage.regions');
@@ -991,10 +990,8 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
     numeric(wing.launchIntervalSeconds, 'airWing.launchIntervalSeconds', 1, 60);
     numeric(wing.rearmSeconds, 'airWing.rearmSeconds', 5, 600);
     for (const [key, max] of [['flightSize', 6], ['deckCapacity', 24], ['maxActiveFlights', 4]] as const) {
-      if (wing[key] !== undefined) {
-        numeric(wing[key], `airWing.${key}`, 1, max);
-        if (!Number.isInteger(wing[key])) fail(`airWing.${key}`, 'expected an integer');
-      }
+      numeric(wing[key], `airWing.${key}`, 1, max);
+      if (!Number.isInteger(wing[key])) fail(`airWing.${key}`, 'expected an integer');
     }
     const squadrons = list(wing.squadrons, 'airWing.squadrons', 3).map(s => record(s, 'squadron'));
     if (!squadrons.length) fail('airWing.squadrons', 'requires aircraft');

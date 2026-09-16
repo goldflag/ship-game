@@ -1,5 +1,5 @@
 import type { ConstructionCatalog, ConstructionEquipmentPart, ConstructionPrimitive, Vec3 } from '../../ships/blueprint';
-import { CONSTRUCTION_PAINTS } from './paints';
+import { CONSTRUCTION_PAINTS } from '../../ships/constructionPaints';
 import { CONSTRUCTION_SHAPE_NAMES } from '../../ships/constructionShapes';
 
 /** Layer tabs, tool rails and hotbar palettes of the "Slipway rails" editor.

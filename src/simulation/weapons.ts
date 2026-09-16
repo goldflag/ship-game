@@ -42,7 +42,7 @@ export interface MountState {
   leadCache?: { time: number; point: Vec3 };
 }
 export const createMountState = (m: MountDefinition): MountState => ({ id: m.id, train: 0, elevation: radians(m.initialElevationDeg ?? 1), reload: 0,
-  ammo: m.weapon.ammoPerBarrel * (m.weapon.barrelCount ?? 2), heAmmo: Math.floor(m.weapon.ammoPerBarrel * (m.weapon.he?.stockFraction ?? 0)) * (m.weapon.barrelCount ?? 2),
+  ammo: m.weapon.ammoPerBarrel * m.weapon.barrelCount, heAmmo: Math.floor(m.weapon.ammoPerBarrel * (m.weapon.he?.stockFraction ?? 0)) * m.weapon.barrelCount,
   loaded: 'ap', hp: 100, recoil: 0, status: 'turning' });
 export const availableAmmunition = (state: MountState, type = state.loaded): number => type === 'he' ? Math.max(0, Math.min(state.ammo, state.heAmmo)) : Math.max(0, state.ammo - state.heAmmo);
 /** Reload, traverse and elevation all slow together as electrical power fails. The HUD divides displayed reload by the same rate. */
@@ -51,7 +51,7 @@ export const gunWorkRate = (power: number): number => .25 + .75 * clamp(power, 0
  * Readiness is the caller's decision; the shared stock model (total rounds with an
  * HE subset) and the post-salvo state live here for every firing path. */
 export function expendSalvo(m: MountDefinition, state: MountState, reloadSeconds = m.weapon.reloadSeconds): number {
-  const barrels = m.weapon.barrelCount ?? 2;
+  const barrels = m.weapon.barrelCount;
   state.ammo -= barrels;
   if (state.loaded === 'he') state.heAmmo -= barrels;
   state.reload = reloadSeconds; state.recoil = 1; state.status = 'reloading';
@@ -70,10 +70,10 @@ export function selectAmmunition(m: MountDefinition, state: MountState, requeste
 export function queueAmmunition(m: MountDefinition, state: MountState, requested: Ammunition): void {
   const type = requested === 'he' && !m.weapon.he ? 'ap' : requested;
   if (type === state.loaded) { delete state.queued; return; }
-  if (availableAmmunition(state, type) < (m.weapon.barrelCount ?? 2)) return;
+  if (availableAmmunition(state, type) < m.weapon.barrelCount) return;
   state.queued = type;
   // An empty gun has no current salvo to preserve.
-  if (state.reload === 0 && availableAmmunition(state) < (m.weapon.barrelCount ?? 2)) selectAmmunition(m, state, type);
+  if (state.reload === 0 && availableAmmunition(state) < m.weapon.barrelCount) selectAmmunition(m, state, type);
 }
 export function muzzleLocal(m: MountDefinition, state: Pick<MountState, 'train' | 'elevation' | 'carrier'>, barrel: number): Vec3 {
   const bearing = mountBearing(m, state), w = m.weapon;
@@ -91,7 +91,7 @@ function muzzleHeight(m: MountDefinition, state: MountState, pose: Pose): number
 }
 /** The aiming reference is the battery mount's barrel center, including odd/single layouts. */
 export function muzzleCenterLocal(m: MountDefinition, state: Pick<MountState, 'train' | 'elevation' | 'carrier'>): Vec3 {
-  const w = m.weapon, count = w.barrelCount ?? 2, bearing = mountBearing(m, state), position = mountPosition(m, state);
+  const w = m.weapon, count = w.barrelCount, bearing = mountBearing(m, state), position = mountPosition(m, state);
   const forward = w.trunnionForward + (w.muzzleForward - w.trunnionForward) * Math.cos(state.elevation);
   const cosine = Math.cos(bearing), sine = Math.sin(bearing);
   const vertical = w.pivotHeight + (w.muzzleForward - w.trunnionForward) * Math.sin(state.elevation);
@@ -134,7 +134,7 @@ export function updateMount(m: MountDefinition, state: MountState, definition: S
   }
   state.recoil = Math.max(0, state.recoil - dt / 1.4);
   if (state.hp <= 0) { state.status = 'disabled'; return false; }
-  if (availableAmmunition(state) < (m.weapon.barrelCount ?? 2)) { state.status = 'empty'; return false; }
+  if (availableAmmunition(state) < m.weapon.barrelCount) { state.status = 'empty'; return false; }
   if ((definition.submarine && hullDepth(pose) > .5) || muzzleHeight(m, state, pose) <= (pose.waveHeave ?? 0)) { state.status = 'submerged'; return false; }
   // Warm-start from the previous desired muzzle and flight time. Reacquisition
   // still converges in three iterations; continuous tracking needs only one.
@@ -146,7 +146,7 @@ export function updateMount(m: MountDefinition, state: MountState, definition: S
   let flightTime = cache?.time ?? (aim ? length(sub(aim, [pose.x, pose.y, pose.z])) / m.weapon.muzzleSpeed : 0);
   for (let i = 0; aim && i < (cache ? 1 : 3); i++) {
     const midpoint = localToWorld(muzzleCenterLocal(m, { train: desiredTrain, elevation: desiredElevation, carrier: state.carrier }), pose);
-    const drag = m.weapon.ballistics?.dragPerSecond ?? 0;
+    const drag = m.weapon.ballistics.dragPerSecond;
     const inheritedTravel = travelFactor(flightTime, drag);
     const relativeAim: Vec3 = [aim[0] - inheritedVelocity[0] * inheritedTravel,
       aim[1] - inheritedVelocity[1] * inheritedTravel, aim[2] - inheritedVelocity[2] * inheritedTravel];
@@ -182,7 +182,7 @@ export function updateMount(m: MountDefinition, state: MountState, definition: S
   const trains = !unchanged && carried.length ? definition.mounts.map((_, i) => mountedStates?.[i].train ?? 0) : [];
   const breech = add(mountPosition(m, state), [0, w.pivotHeight, 0]);
   let obstructed = unchanged ? previousObstruction.blocked : false;
-  for (let barrel = 0; !unchanged && barrel < (w.barrelCount ?? 2) && !obstructed; barrel++) {
+  for (let barrel = 0; !unchanged && barrel < w.barrelCount && !obstructed; barrel++) {
     const muzzle = muzzleLocal(m, state, barrel);
     const direction = normalize(sub(muzzle, breech));
     const beyond: Vec3 = [muzzle[0] + direction[0] * definition.hull.length,

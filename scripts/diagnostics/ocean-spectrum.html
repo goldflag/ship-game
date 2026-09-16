@@ -12,6 +12,7 @@
   // Private-field inspection is intentionally confined here: Water Pro 3.5.1's
   // public API does not expose the initial Fourier coefficients for readback.
   import { Game } from '/src/game/Game.ts';
+  import { GRAPHICS_PRESETS } from '/src/game/graphicsSettings.ts';
   import { WaterSystem } from '/vendor/threejs-water-pro/build/index.js';
   const query = new URLSearchParams(location.search);
   const quality = query.get('quality') ?? 'high';
@@ -23,7 +24,7 @@
       originalCreate(renderer, scene, camera, tier, { ...options, seed: Number(query.get('seed')) });
   }
   let initializationError;
-  const game = new Game(document.querySelector('#scene'), { quality, resolution: 1 }, {
+  const game = new Game(document.querySelector('#scene'), (GRAPHICS_PRESETS[quality] ?? GRAPHICS_PRESETS.high), {
     progress: noop, ready: noop, telemetry: noop, pause: noop, hud: noop,
     error: message => { initializationError = message; },
   });

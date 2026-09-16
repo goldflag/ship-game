@@ -51,14 +51,6 @@
       "contentHash": "ec22a64efdb7c3b60676705b07adadbc5a11c095a238e3c5166a7a824bff9f7f",
       "glbSha256": "c9484164f6ce08146cf34155c266888f0e625f880d2ac6a7d120c7dea16c58da"
     },
-    "liberty-deck-cargo": {
-      "contentHash": "dff920815d4d40967aa7d2c8d387778906ef1f48e7ac5af04edf130af57e47e1",
-      "glbSha256": "7c1ae8d2079acf960d0f5923d2ad4e77d4f8668e82888da665dc4d39f486f561"
-    },
-    "liberty-troopship": {
-      "contentHash": "5ceb4b20bdf3e0573a8ad22b385716244273e9e3be2df799bc44d8b26e27f1b3",
-      "glbSha256": "a9b412942c56d2d79cf35608ee7007cb753caebba40cd0850acbddb496be4add"
-    },
     "type-viic": {
       "contentHash": "57b226f0b3326ad44d734511e2b4e0d22f45972fc41df79a92f9438ade70cff1",
       "glbSha256": "1c0aa4d9cad935acfae6a79674afac49b82532975796bf49c67e739144a30753"

@@ -16,8 +16,7 @@ bun run ship:edit my-ship
 ```
 
 `ship:new` defaults to a one-block construction source. Templates are `blank`,
-`patrol` and `catamaran`; these are original sandbox layouts. Use
-`--legacy-blender` only when explicitly starting a legacy ship recipe.
+`patrol` and `catamaran`; these are original sandbox layouts.
 The brief/reference approvals in the ship pipeline still apply to historical
 vessels. A generic template does not establish historical accuracy.
 

@@ -77,7 +77,7 @@ the deployed release. It does not produce qualification evidence or waive build,
 migration, backup or health checks. Without this explicit override, a successful
 host qualification remains mandatory.
 
-## PostgreSQL cutover
+## Deployment settings
 
 `/opt/ships/settings.env` must provide `POSTGRES_PASSWORD`, `API_DB_PASSWORD`,
 `BATTLE_DB_PASSWORD`, `MIGRATION_DB_PASSWORD`, `BETTER_AUTH_SECRET` and
@@ -96,26 +96,16 @@ SHIP_QUALIFICATION=.build/qualification/approved.json bun run deploy:hermes
 The script checks the protocol/simulation/content identity and a digest of all
 shipped runtime inputs (including auth/server code and web assets), builds one compatible
 release, drains Rust with its 35-minute shutdown grace, recreates the private
-network while preserving volumes, then starts PostgreSQL and migrations. It copies the stopped SQLite volume, including WAL, to a retained
-backup. `services/db/import-sqlite.ts` imports all records in one transaction and
-verifies IDs, terminal flags and JSON equivalence before commit. Legacy anonymous
-rows retain null account ownership. The first PostgreSQL startup records any
-remaining incomplete match as a server-restart abort.
-
-The script retains the SQLite volume/backups and records the PostgreSQL cutover
-marker. It takes a PostgreSQL `pg_dump -Fc` before starting the new services.
+network while preserving volumes, then starts PostgreSQL and migrations. It takes a PostgreSQL `pg_dump -Fc` before starting the new services.
 After activation, verify signup/login, ship saving, multiplayer smoke tests and
 account/design/result survival through a restart. Update the external edge
 Caddy configuration only when installing a new domain, preserving existing sites.
 
 ## Recovery and rollback
 
-Never run `docker compose down -v`. Keep SQLite backups for forensic recovery,
-but after any new account/design writes, the old SQLite deployment is **not** a
-safe rollback. Select a PostgreSQL-compatible release with compatible migrations
+Never run `docker compose down -v`. Select a PostgreSQL-compatible release with compatible migrations
 and protocol/content. Drain the current battle service before replacing images.
-Do not restore a pre-cutover dump over new account or design writes as a routine
-rollback. Restore a database only as an explicit disaster-recovery operation.
+Restore a database only as an explicit disaster-recovery operation.
 
 Inspect services with `docker compose ps`, `docker compose logs --tail=100 api
 server compiler`, and `curl --fail https://ships.tomato.gg/api/health`. Use

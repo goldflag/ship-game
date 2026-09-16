@@ -1,9 +1,10 @@
 import { assetUrl } from '../assetUrl';
 import * as THREE from 'three/webgpu';
 import { attribute, cameraViewMatrix, color, float, mix, positionLocal, texture, triplanarTexture, vec3, vec4 } from 'three/tsl';
-import { islandHeight, islandRadius, islandRim, type Island, type OceanMap } from '../maps/catalog';
+import { islandHeight, islandRadius, type Island, type OceanMap } from '../maps/catalog';
+import { islandRim } from '../maps/terrain';
 import { smooth, terrainNoise } from '../maps/terrain';
-import type { Quality } from './types';
+import type { TerrainQuality } from './graphicsSettings';
 import { disposeObjects } from './disposeObjects';
 
 function terrainMaterial(map: OceanMap): THREE.MeshStandardMaterial | THREE.MeshStandardNodeMaterial {
@@ -36,7 +37,7 @@ function terrainMaterial(map: OceanMap): THREE.MeshStandardMaterial | THREE.Mesh
 }
 
 /** The mesh resolves both watershed-scale ridges and narrow coastal terraces. */
-export function createBattleLandscape(map: OceanMap, islands: readonly Island[], quality: Quality): THREE.Group {
+export function createBattleLandscape(map: OceanMap, islands: readonly Island[], quality: TerrainQuality): THREE.Group {
   const root = new THREE.Group(); root.name = `${map.name} coastline`;
   if(!islands.length)return root;
   const material=terrainMaterial(map);
@@ -80,7 +81,7 @@ export function createBattleLandscape(map: OceanMap, islands: readonly Island[],
 }
 
 /** Dense, irregular groves at real tree scale. Transparent crowns reuse the retained CC0 tree scan. */
-function addForest(root:THREE.Group,island:Island,quality:Quality):void {
+function addForest(root:THREE.Group,island:Island,quality:TerrainQuality):void {
   if(typeof document==='undefined')return;
   let seed=island.seed;
   const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};

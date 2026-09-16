@@ -168,7 +168,7 @@ impl DeckSurface {
         ground: &GroundPose,
         at: DeckPose,
     ) -> Option<ContactPose> {
-        let model = ground.deck_geometry.as_ref()?;
+        let model = &ground.deck_geometry;
         let layout = ship.air_wing.as_ref()?.deck_layout.as_ref()?;
         // A transferring aircraft rides its lowered platform. Fit to that
         // platform's shape, translated by its current handling datum.

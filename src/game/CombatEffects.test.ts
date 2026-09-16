@@ -356,8 +356,13 @@ test('the shell pool keeps its shader capacity through empty frames, salvos and 
   const pool = effects.root.getObjectByName('Shell bodies') as InstancedMesh;
   const tracers = ['Shell streaks', 'Shell glows'].map(name => effects.root.getObjectByName(name) as InstancedMesh);
   const matrix = new Matrix4(), scale = new Vector3();
-  const helm = { throttle: 0, rudder: 0 };
-  const intent = { aim: [1800, 0, 0] as [number, number, number], battery: 'main' as const, fire: false };
+  // A main-battery salvo as the authoritative tick publishes it: one round per barrel.
+  let nextShellId = 0;
+  const salvo = () => sim.definition.mounts.filter(mount => mount.battery === 'main').flatMap(mount =>
+    Array.from({ length: mount.weapon.barrelCount }, (_, barrel): Shell => ({ id: ++nextShellId, ownerId: sim.player.motion.id,
+      position: [mount.position[0] + barrel * 2, mount.position[1] + 6, mount.position[2] - nextShellId * 3],
+      velocity: [mount.weapon.muzzleSpeed, 40, 0], age: 0, caliberM: mount.weapon.caliberM,
+      damage: mount.weapon.damage, penetrationMm: mount.weapon.penetrationMm, visited: [] })));
   const check = () => {
     effects.update(sim, 0, camera);
     // Three's instancing shader sizes its buffer from count when it first compiles.
@@ -379,16 +384,15 @@ test('the shell pool keeps its shader capacity through empty frames, salvos and 
   };
   try {
     check();
-    for (let i = 0; i < 3600; i++) sim.step(helm, intent);
-    sim.step(helm, { ...intent, fire: true });
+    sim.shells.push(...salvo());
     expect(sim.shells).toHaveLength(8);
     check();
     sim.shells.splice(1);
     check();
     sim.reset();
+    expect(sim.shells).toHaveLength(0);
     check();
-    for (let i = 0; i < 3600; i++) sim.step(helm, intent);
-    sim.step(helm, { ...intent, fire: true });
+    sim.shells.push(...salvo());
     expect(sim.shells).toHaveLength(8);
     check();
   } finally {

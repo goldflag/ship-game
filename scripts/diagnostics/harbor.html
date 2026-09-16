@@ -8,12 +8,13 @@
 <script type="module">
 const parameters=new URLSearchParams(location.search);
 const { Game } = await import('/src/game/Game.ts');
+const { GRAPHICS_PRESETS } = await import('/src/game/graphicsSettings.ts');
 const quality=parameters.get('quality') || 'high';
 window.errors=[];
 addEventListener('error',e=>window.errors.push(e.message));
 addEventListener('unhandledrejection',e=>window.errors.push(String(e.reason)));
 const status=document.querySelector('#status');
-const game=new Game(document.querySelector('#scene'),{quality,resolution:1},{
+const game=new Game(document.querySelector('#scene'),(GRAPHICS_PRESETS[quality] ?? GRAPHICS_PRESETS.high),{
  progress:(text)=>status.textContent=text,
  ready:()=>{window.ready=true;status.textContent='Ready';},
  telemetry:data=>{window.telemetry=data;},pause:()=>{},hud:()=>{},error:error=>{window.errors.push(error);status.textContent=error;}

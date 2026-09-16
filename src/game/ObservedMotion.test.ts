@@ -5,7 +5,7 @@ import type { ObservedPose } from './session/BattleSession';
 test.each([1, 2, 4])('10 Hz aircraft samples stay smooth on render frames at %sx, including repeated worker ticks', speed => {
   const motion = new ObservedMotion();
   let last = 0, movingFrames = 0;
-  const report: ObservedPose = { id: 'contact', position: [0, 400, 0], velocity: [90, 0, 0], heading: Math.PI / 2, observedTick: 0, observers: ['own'] };
+  const report: ObservedPose = { id: 'contact', position: [0, 400, 0], velocity: [90, 0, 0], heading: Math.PI / 2, pitch: 0, roll: 0, health: 1, observedTick: 0, observers: ['own'] };
   motion.update([report], 0, 0);
   for (let frame = 1; frame <= 180; frame++) {
     // Worker responses at 20 Hz; visibility is sampled at 10 Hz. Rendering

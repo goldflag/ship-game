@@ -148,9 +148,9 @@ pub fn burst_shell(shell: &mut Shell, actors: &mut [Vessel]) -> Vec<DamageEvent>
         // equipment rays; ordinary HE shells and water near misses are unchanged.
         if shell.bomb.is_some()
             && shell.last_hit_ship_id.as_deref() == Some(actor.motion.id.as_str())
-            && let Some(local) = &def.local_damage
         {
-            for (i, r) in local
+            for (i, r) in def
+                .local_damage
                 .regions
                 .iter()
                 .enumerate()
@@ -283,7 +283,7 @@ pub fn burst_shell(shell: &mut Shell, actors: &mut [Vessel]) -> Vec<DamageEvent>
             let mut connection_ids = None;
             match target.kind {
                 TargetKind::Structure => {
-                    let r = &def.local_damage.as_ref().unwrap().regions[target.index];
+                    let r = &def.local_damage.regions[target.index];
                     let state = &actor.damage.regions[target.index];
                     let local = LocalDamageEvidence {
                         region_id: r.id.clone(),

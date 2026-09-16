@@ -12,6 +12,7 @@
 import * as THREE from 'three/webgpu';
 import { uniform, vec3, float, sqrt, dot, normalize, max, length } from 'three/tsl';
 import { Game } from '/src/game/Game.ts';
+import { GRAPHICS_PRESETS } from '/src/game/graphicsSettings.ts';
 
 // Real game renderer, model, water and post-processing, with a stationary target.
 // ?legacy=1 restores the old grazing clamp as a negative control.
@@ -19,7 +20,7 @@ const params = new URLSearchParams(location.search);
 // Exercise Three.js's real WebGL fallback with ?webgl=1.
 if(params.has('webgl') && navigator.gpu) navigator.gpu.requestAdapter=async()=>null;
 const status = document.querySelector('#status');
-const game = new Game(document.querySelector('#scene'), {quality:params.get('quality')??'high',resolution:1}, {
+const game = new Game(document.querySelector('#scene'), (GRAPHICS_PRESETS[params.get('quality')] ?? GRAPHICS_PRESETS.high), {
   progress:label=>status.textContent=label,ready:()=>{},telemetry:()=>{},pause:()=>{},hud:()=>{},
   error:message=>{status.textContent=message;window.reviewError=message;},
 });

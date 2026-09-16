@@ -156,13 +156,13 @@ pub struct GunPart {
     #[serde(rename = "armorMm")]
     pub armor_mm: f64,
     #[serde(rename = "ballistics")]
-    pub ballistics: Option<GunPartBallistics>,
+    pub ballistics: GunPartBallistics,
     #[serde(rename = "ap")]
     pub ap: Option<APProjectile>,
     #[serde(rename = "he")]
     pub he: Option<HEProjectile>,
     #[serde(rename = "barrelCount")]
-    pub barrel_count: Option<f64>,
+    pub barrel_count: f64,
     #[serde(rename = "barrelVerticalSpacing")]
     pub barrel_vertical_spacing: Option<f64>,
     #[serde(rename = "mountingStyle")]
@@ -836,11 +836,11 @@ pub struct AirWingDefinition {
     #[serde(rename = "rearmSeconds")]
     pub rearm_seconds: f64,
     #[serde(rename = "flightSize")]
-    pub flight_size: Option<f64>,
+    pub flight_size: f64,
     #[serde(rename = "deckCapacity")]
-    pub deck_capacity: Option<f64>,
+    pub deck_capacity: f64,
     #[serde(rename = "maxActiveFlights")]
-    pub max_active_flights: Option<f64>,
+    pub max_active_flights: f64,
     #[serde(rename = "deckLayout")]
     pub deck_layout: Option<FlightDeckLayout>,
     #[serde(rename = "squadrons")]
@@ -1250,13 +1250,13 @@ pub struct ShipDefinition {
     #[serde(rename = "modelUrl")]
     pub model_url: String,
     #[serde(rename = "damageControl")]
-    pub damage_control: Option<DamageControlProfile>,
+    pub damage_control: DamageControlProfile,
     #[serde(rename = "mountClearance")]
     pub mount_clearance: Option<MountClearanceProfile>,
     #[serde(rename = "underwaterProtection")]
     pub underwater_protection: Option<ShipDefinitionUnderwaterProtection>,
     #[serde(rename = "localDamage")]
-    pub local_damage: Option<ShipDefinitionLocalDamage>,
+    pub local_damage: ShipDefinitionLocalDamage,
     #[serde(rename = "stability")]
     pub stability: Option<ShipDefinitionStability>,
     #[serde(rename = "hull")]

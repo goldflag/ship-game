@@ -32,6 +32,6 @@ export function fireReadout(actor: Combatant, def: ShipDefinition): FireReadout[
   })].sort((a, b) => b.intensity - a.intensity || a.id.localeCompare(b.id));
 }
 export function regionReadout(actor: Combatant, def: ShipDefinition) {
-  return (def.localDamage?.regions ?? []).map(r => ({ id: r.id, name: r.name, condition: regionCondition(actor, r.id) }))
+  return def.localDamage.regions.map(r => ({ id: r.id, name: r.name, condition: regionCondition(actor, r.id) }))
     .filter(r => r.condition < .999).sort((a, b) => a.condition - b.condition || a.id.localeCompare(b.id));
 }

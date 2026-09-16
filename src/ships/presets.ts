@@ -58,11 +58,7 @@ for (const [id, definition] of Object.entries(shipPresets)) {
   const table = (hydrostatics.ships as unknown as Record<string, HydrostaticTable & { contentHash: string }>)[id];
   if (table?.contentHash === definition.contentHash) registerHydrostaticTable((definition as unknown as ShipDefinition).hull, table);
 }
-const retiredPresetAliases: Record<string, keyof typeof shipPresets> = {
-  'liberty-deck-cargo': 'liberty-collier', 'liberty-troopship': 'victory-cargo',
-};
 export function shipPreset(id: string | null): ShipDefinition & { contentHash: string } {
-  if (id && Object.hasOwn(retiredPresetAliases, id)) id = retiredPresetAliases[id];
   return (id && Object.hasOwn(shipPresets, id) ? shipPresets[id as keyof typeof shipPresets] : bismarck) as ShipDefinition & { contentHash: string };
 }
 export const selectedShip = shipPreset(typeof window === 'undefined' ? null : new URLSearchParams(window.location.search).get('ship'));

@@ -230,7 +230,7 @@ pub fn permanently_incapable(a: &Vessel, wing: Option<&AirWingState>) -> bool {
     let def = a.definition();
     let module_intact = |id: &str| a.damage.modules.iter().any(|m| m.id == id && m.hp > 0.0);
     if def.mounts.iter().zip(&a.mounts).any(|(m, s)| {
-        let salvo = m.weapon.barrel_count.unwrap_or(2.0);
+        let salvo = m.weapon.barrel_count;
         crate::anti_aircraft::surface_allowed(def, m)
             && s.hp > 0.0
             && (s.available(Ammunition::Ap) >= salvo

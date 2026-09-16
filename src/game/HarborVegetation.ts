@@ -3,6 +3,7 @@ import * as THREE from 'three/webgpu';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { attribute, cameraPosition, color, mix, positionGeometry, texture, vec3, vec4 } from 'three/tsl';
 import { coastDistance, noise, terrainHeight, westCoast } from './HarborTerrain';
+import type { TerrainQuality } from './graphicsSettings';
 import { random } from './HarborGeometry';
 
 type Placement = { x: number; y: number; z: number; scale: number; angle: number; width?:number; height?:number; depth?:number };
@@ -31,7 +32,7 @@ export function instances(root: THREE.Group, source: THREE.Object3D, positions: 
   });
 }
 
-export async function createHarborVegetation(quality: string, lots: {x:number;z:number;w:number;d:number;angle:number}[] = [], gardenTrees: {x:number;z:number}[] = []): Promise<THREE.Group> {
+export async function createHarborVegetation(quality: TerrainQuality, lots: {x:number;z:number;w:number;d:number;angle:number}[] = [], gardenTrees: {x:number;z:number}[] = []): Promise<THREE.Group> {
   const root = new THREE.Group(); root.name = 'Coastal woodland and natural rock';
   const loader = new THREE.TextureLoader(), modelLoader = new GLTFLoader();
   const loadShape = async (name: string): Promise<{height:number;cardHeight:number;cardWidth:number}> => {

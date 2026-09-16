@@ -25,13 +25,13 @@ export const SCORE_REFERENCES = {
 } as const;
 
 const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
-const barrels = (weapon: GunPart) => weapon.barrelCount ?? 2;
+const barrels = (weapon: GunPart) => weapon.barrelCount;
 const salvoDamage = (weapon: GunPart) => barrels(weapon) * weapon.damage;
 const damagePerMinute = (mounts: ShipDefinition['mounts']) => mounts.reduce((n, m) => n + salvoDamage(m.weapon) * 60 / m.weapon.reloadSeconds, 0);
 /** Flat-water range of the low ballistic arc, limited by elevation and the solver's range cap. */
 export function maximumRangeM(weapon: GunPart): number {
   const elevation = Math.min(weapon.elevationMaxDeg, 45) * Math.PI / 180;
-  const drag = weapon.ballistics?.dragPerSecond ?? 0;
+  const drag = weapon.ballistics.dragPerSecond;
   if (drag < 1e-8) return Math.min(MAX_BALLISTIC_RANGE_M, weapon.muzzleSpeed ** 2 * Math.sin(2 * elevation) / GRAVITY);
   const rangeAt = (angle: number) => {
     const velocity: [number, number, number] = [weapon.muzzleSpeed * Math.cos(angle), weapon.muzzleSpeed * Math.sin(angle), 0];

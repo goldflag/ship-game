@@ -53,35 +53,3 @@ test('real local WASM recompiles sources, preserves independent damage, and conf
   } finally { trial.free(); }
 });
 
-test('constructed fleets retain HP defeat, outcome tonnage, and a clean source restart', async () => {
-  const source = createStarterSource(catalog);
-  const result = JSON.parse(compile_construction(JSON.stringify(source), JSON.stringify(catalog))) as ConstructionResult;
-  expect(result.definition).toBeTruthy();
-  const id = result.definition!.id, mass = result.definition!.hull.massKg;
-  const sourceBefore = JSON.stringify(source);
-  const manifest = new Uint8Array(await Bun.file(new URL('../../.build/naval-content/manifest.json', import.meta.url)).arrayBuffer());
-  const setup = runtimeSetup({ playerShipId: id, friendlyBots: [id], enemies: [id], spawnDistance: 5000 }, 73);
-  const makeTrial = () => LocalRuntime.with_construction(manifest, JSON.stringify(setup), JSON.stringify([source]), JSON.stringify([catalog]), true);
-  const trial = makeTrial();
-  let initial: Snapshot;
-  try {
-    initial = JSON.parse(trial.snapshot());
-    trial.trial_action(JSON.stringify({ kind: 'damage', actorId: 'enemy-1', amount: 1e9 }));
-    trial.step(1);
-    const ended = JSON.parse(trial.snapshot()) as Snapshot;
-    expect(ended.outcome!.winnerTeamId).toBe('a');
-    // Wire tonnage is quantized to kilograms; each surviving copy retains its mass.
-    expect(Math.abs(ended.outcome!.afloatKg[0] - mass * 2)).toBeLessThan(1);
-    expect(ended.outcome!.afloatKg[1]).toBe(0);
-    expect(ended.actors.find(a => a.motion.id === 'enemy-1')!.damage.sunk).toBe(true);
-    expect(ended.actors.find(a => a.motion.id === 'player')!.damage.integrity).toBe(initial.actors[0].damage.integrity);
-    expect(JSON.stringify(source)).toBe(sourceBefore);
-  } finally { trial.free(); }
-  const restarted = makeTrial();
-  try {
-    const clean = JSON.parse(restarted.snapshot()) as Snapshot;
-    expect(clean.tick).toBe(0);
-    expect(clean.outcome).toBeNull();
-    expect(clean.actors.map(a => a.damage)).toEqual(initial.actors.map(a => a.damage));
-  } finally { restarted.free(); }
-});

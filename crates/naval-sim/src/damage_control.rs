@@ -76,22 +76,22 @@ pub struct ControlState {
 }
 impl ControlState {
     pub fn new(def: &ShipDefinition) -> Self {
-        let d = def.damage_control.as_ref();
+        let d = &def.damage_control;
         Self {
             priority: "balanced".into(),
             focus: String::new(),
-            spares: d.map_or(0.0, |d| d.repair_points),
+            spares: d.repair_points,
             rooms: def
                 .compartments
                 .iter()
-                .map(|c| FireState::new(d.map_or(0.0, |d| d.room_fuel_seconds), c.fire.as_ref()))
+                .map(|c| FireState::new(d.room_fuel_seconds, c.fire.as_ref()))
                 .collect(),
             mounts: def
                 .mounts
                 .iter()
-                .map(|m| FireState::new(d.map_or(0.0, |d| d.mount_fuel_seconds), m.fire.as_ref()))
+                .map(|m| FireState::new(d.mount_fuel_seconds, m.fire.as_ref()))
                 .collect(),
-            teams: vec![None; d.map_or(0, |d| d.teams as usize)],
+            teams: vec![None; d.teams as usize],
             pumping: vec![0.0; def.compartments.len()],
         }
     }
@@ -163,7 +163,7 @@ fn wet(actor: &Combatant, def: &ShipDefinition, i: usize) -> f64 {
     actor.damage.compartments[i].water_m3 / def.compartments[i].capacity_m3
 }
 pub fn heat_room(actor: &mut Combatant, def: &ShipDefinition, i: usize, damage: f64) {
-    if def.damage_control.is_none() || wet(actor, def, i) >= 0.25 {
+    if wet(actor, def, i) >= 0.25 {
         return;
     }
     if let Some(f) = actor.damage.control.rooms.get_mut(i)
@@ -173,9 +173,6 @@ pub fn heat_room(actor: &mut Combatant, def: &ShipDefinition, i: usize, damage: 
     }
 }
 pub fn heat_module(actor: &mut Combatant, def: &ShipDefinition, i: usize, damage: f64) {
-    if def.damage_control.is_none() {
-        return;
-    }
     let m = &def.modules[i];
     let Some(room) = compartment_of(actor.index.of(def), def, i) else {
         return;
@@ -216,9 +213,7 @@ pub fn update_damage_control(
         .filter(|ix| ix.mounts == def.mounts.len() && actor.damage.modules.len() == ix.modules);
     let mut scratch: Vec<usize> = vec![];
     let mut events = vec![];
-    let Some(d) = &def.damage_control else {
-        return events;
-    };
+    let d = &def.damage_control;
     if actor.damage.sunk || dt <= 0.0 {
         return events;
     }

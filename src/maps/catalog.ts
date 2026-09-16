@@ -1,5 +1,4 @@
 import { islandRim, sampleTerrain } from './terrain';
-export { islandRim } from './terrain';
 import source from '../../assets/maps/environments.v1.json';
 
 export type OceanMapId = 'north-atlantic' | 'pacific-islands' | 'arctic-passage' | 'indian-volcanic-coast';

@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { decodeSnapshot } from './SnapshotSession';
+import { decodeSnapshot } from './snapshotCodec';
 
 test('worker transfer preserves absent optional fields and positional null slots', () => {
   const decoded = decodeSnapshot(JSON.stringify({ tick: 0, actors: [{ optional: null, nested: { absent: null, value: 4 }, slots: [null, { absent: null }] }] }));

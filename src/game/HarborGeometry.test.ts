@@ -21,7 +21,7 @@ test('town walls have one visible surface at each facade bay', () => {
 
 // This test uses the actual rendered triangle mesh, including its diagonal and
 // float32 coordinates, rather than comparing two copies of a noise function.
-for (const quality of ['medium', 'high']) test(`terrain roots match the rendered ${quality} surface`, () => {
+for (const quality of ['medium', 'high'] as const) test(`terrain roots match the rendered ${quality} surface`, () => {
   const map = new THREE.Texture();
   const textures = new Proxy({} as Record<string, THREE.Texture>, { get: () => map });
   const terrain = createHarborTerrain(textures, quality);

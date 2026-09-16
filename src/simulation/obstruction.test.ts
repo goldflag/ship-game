@@ -31,7 +31,7 @@ test('obstruction tree matches every hull and gunhouse during intermediate trave
       state.train = fraction * mount.weapon.traverseDeg * Math.PI / 180;
       state.elevation = (.4 + fraction * .4) * mount.weapon.elevationMaxDeg * Math.PI / 180;
       const from = add(mount.position, [0, mount.weapon.pivotHeight, 0]);
-      for (let barrel = 0; barrel < (mount.weapon.barrelCount ?? 2); barrel++) {
+      for (let barrel = 0; barrel < mount.weapon.barrelCount; barrel++) {
         const muzzle = muzzleLocal(mount, state, barrel);
         const to = add(muzzle, scale(normalize(sub(muzzle, from)), definition.hull.length));
         expect(tree.intersects(from, to, mount.id)).toBe(entries.some(e => e.mountId !== mount.id && segmentIntersectsBox(from, to, e.box)));

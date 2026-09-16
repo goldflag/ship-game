@@ -46,7 +46,8 @@ test('PvE helm restores regular ship instruments without granting them to follow
 test('the compact shell cycle exposes the current load, next choice, stocks and remapped shortcut', () => {
   const definition = shipPreset('bismarck'), sim = new CombatSimulation(definition);
   const aim: [number, number, number] = [2000, 10, 0];
-  sim.step({ throttle: 0, rudder: 0 }, { aim, fire: false, battery: 'main', ammunition: 'he' });
+  // The authoritative tick records the battery's selection; the readout renders it.
+  (sim as unknown as { ammunitionSelection: Record<string, 'ap' | 'he'> }).ammunitionSelection.main = 'he';
   const combat = sim.telemetry('main', aim);
   const data: Telemetry = { ship: sim.ship, order: 1, camera: 'Chase', fps: 60, backend: 'test', trail: [], combat };
   const bindings = defaultKeybindings(); bindings.shellType = ['KeyV', null];

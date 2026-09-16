@@ -28,11 +28,7 @@ export interface GraphicsSettings {
   readout: PerformanceReadoutMode;
 }
 
-/** The shape saved before graphics became configurable per subsystem. */
-export interface LegacyGameSettings { quality: 'medium' | 'high' | 'ultra'; resolution: number; }
-
 export const GRAPHICS_STORAGE_KEY = 'fleet-graphics-settings';
-export const LEGACY_STORAGE_KEY = 'bismarck-settings';
 export const RENDER_SCALE_MIN = 50;
 export const RENDER_SCALE_STEP = 5;
 export const FRAME_LIMITS: readonly FrameLimit[] = [0, 120, 60, 30];
@@ -55,12 +51,10 @@ export function sanitizeRenderScale(value: unknown, fallback = DEFAULT_GRAPHICS.
   return Math.max(RENDER_SCALE_MIN, Math.min(100, stepped));
 }
 
-/** Accepts the current shape, the legacy `{ quality, resolution }` object, or garbage. */
+/** Accepts the current shape or garbage. */
 export function sanitizeGraphicsSettings(value: unknown): GraphicsSettings {
-  const saved = value && typeof value === 'object' ? value as Partial<GraphicsSettings> & Partial<LegacyGameSettings> : {};
-  const legacy = !('ocean' in saved) && typeof saved.quality === 'string' ? saved as Partial<LegacyGameSettings> : undefined;
-  const base: GraphicsSettings = legacy ? { ...GRAPHICS_PRESETS[oneOf(legacy.quality, ['medium', 'high', 'ultra'], 'high')] } : { ...DEFAULT_GRAPHICS };
-  if (legacy) return { ...base, renderScale: sanitizeRenderScale(typeof legacy.resolution === 'number' ? legacy.resolution * 100 : undefined, base.renderScale) };
+  const saved = value && typeof value === 'object' ? value as Partial<GraphicsSettings> : {};
+  const base: GraphicsSettings = { ...DEFAULT_GRAPHICS };
   return {
     renderScale: sanitizeRenderScale(saved.renderScale, base.renderScale),
     frameLimit: FRAME_LIMITS.includes(saved.frameLimit as FrameLimit) ? saved.frameLimit as FrameLimit : base.frameLimit,
@@ -76,13 +70,10 @@ export function sanitizeGraphicsSettings(value: unknown): GraphicsSettings {
   };
 }
 
-/** The new key wins; the legacy key migrates a saved tier and render scale once. */
 export function loadGraphicsSettings(): GraphicsSettings {
   try {
     const current = localStorage.getItem(GRAPHICS_STORAGE_KEY);
-    if (current) return sanitizeGraphicsSettings(JSON.parse(current));
-    const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
-    return legacy ? sanitizeGraphicsSettings(JSON.parse(legacy)) : { ...DEFAULT_GRAPHICS };
+    return current ? sanitizeGraphicsSettings(JSON.parse(current)) : { ...DEFAULT_GRAPHICS };
   } catch { return { ...DEFAULT_GRAPHICS }; }
 }
 

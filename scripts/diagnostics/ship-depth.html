@@ -11,6 +11,7 @@
 <script type="module">
 import * as THREE from 'three/webgpu';
 import { Game } from '/src/game/Game.ts';
+import { GRAPHICS_PRESETS } from '/src/game/graphicsSettings.ts';
 
 // Real game renderer, model, water and post-processing, with a stationary target.
 // ?standard=1 preserves the old depth configuration for an A/B comparison.
@@ -20,7 +21,7 @@ if(params.has('webgl') && navigator.gpu) navigator.gpu.requestAdapter=async()=>n
 const status = document.querySelector('#status');
 let ready;
 const loaded = new Promise(resolve => ready = resolve);
-const game = new Game(document.querySelector('#scene'), {quality:'medium',resolution:1}, {
+const game = new Game(document.querySelector('#scene'), GRAPHICS_PRESETS.medium, {
   progress:label=>status.textContent=label,ready,telemetry:()=>{},pause:()=>{},hud:()=>{},
   error:message=>{status.textContent=message;window.reviewError=message;},
 });

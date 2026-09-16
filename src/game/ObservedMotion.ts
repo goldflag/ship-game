@@ -19,7 +19,7 @@ export class ObservedMotion {
     for (const report of reports) {
       const seconds = Math.min(.1, Math.max(0, (this.clock - report.observedTick) / 60));
       this.target.fromArray(report.position).addScaledVector(this.velocity.fromArray(report.velocity), seconds);
-      this.rotation.setFromEuler(this.euler.set(report.pitch ?? 0, -report.heading, report.roll ?? 0));
+      this.rotation.setFromEuler(this.euler.set(report.pitch, -report.heading, report.roll));
       const pose = this.poses.get(report.id);
       if (pose) { pose.position.lerp(this.target, blend); pose.rotation.slerp(this.rotation, blend); }
       else this.poses.set(report.id, { position: this.target.clone(), rotation: this.rotation.clone() });

@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import { readFileSync, readdirSync, rmSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { vendorTextures } from './scripts/build/vendor-textures';
 import { shipTransfers } from './scripts/build/ship-transfers';
@@ -18,10 +18,6 @@ export default defineConfig({
   // Serve from a sub-path with e.g. BASE_PATH=/naval/ bun run build; runtime asset URLs go through src/assetUrl.ts.
   base: basePath,
   plugins: [constructionFiles(root), devPort(root), react(), vendorTextures(), shipTransfers(`${root}public/models`), {
-    name: 'exclude-retired-ship-reviews',
-    // Old checkouts may still have ignored comparison pages in public/.
-    closeBundle() { rmSync(`${root}dist/ship-reference`, { recursive: true, force: true }); },
-  }, {
     name: 'sky-pro-cloud-data',
     generateBundle() {
       for (const name of readdirSync(skyData)) {

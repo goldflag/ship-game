@@ -20,12 +20,13 @@
 </nav>
 <script type="module">
 import { Game } from '/src/game/Game.ts';
+import { GRAPHICS_PRESETS } from '/src/game/graphicsSettings.ts';
 import { muzzleWorld } from '/src/simulation/weapons.ts';
 import { ballisticStep } from '/src/simulation/ballistics.ts';
 import { normalize, scale, sub } from '/src/simulation/geometry.ts';
 
 let ready; const loaded = new Promise(resolve => ready = resolve);
-const game = new Game(document.querySelector('#scene'), {quality:'medium',resolution:1}, {
+const game = new Game(document.querySelector('#scene'), GRAPHICS_PRESETS.medium, {
   progress: message => window.reviewProgress = message, ready, telemetry:()=>{},pause:()=>{},hud:()=>{},error:message=>window.reviewError=message,
 });
 game.start(); await loaded; game.setInPort(false); game.setPaused(true); game.rig.update=()=>{};

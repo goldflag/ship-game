@@ -6,12 +6,12 @@ import { contains } from './geometry';
 export interface RegionState { id: string; hp: number; maximum: number; }
 export interface LocalDamageEvidence { regionId: string; regionName: string; condition: number; multiplier: number; }
 export function createRegions(def: ShipDefinition, hullHp: number): RegionState[] {
-  return (def.localDamage?.regions ?? []).map(r => ({ id: r.id, hp: r.durabilityFraction * hullHp, maximum: r.durabilityFraction * hullHp }));
+  return def.localDamage.regions.map(r => ({ id: r.id, hp: r.durabilityFraction * hullHp, maximum: r.durabilityFraction * hullHp }));
 }
 /** Explicit mount ownership wins over fixed volumes. Fixed overlaps choose the
  * smallest volume, so a bridge does not consume the machinery below it. */
 export function damageRegion(def: ShipDefinition, point: Vec3, mountId?: string, moduleId?: string): DamageRegion | undefined {
-  const regions = def.localDamage?.regions;
+  const regions = def.localDamage.regions;
   if (!regions) return;
   if (moduleId) { const owned = regions.find(r => r.moduleId === moduleId); if (owned) return owned; }
   if (mountId) return regions.find(r => r.mountId === mountId);

@@ -64,7 +64,7 @@ export class ObservedShipViews {
         const joints = bindJoints(clone, definition);
         view = {
           presetId: report.presetId, root, top: bounds.isEmpty() ? 12 : bounds.max.y, definition, joints,
-          mounts: report.mounts?.map(m => [...m] as [number, number, number]) ?? [], launchers: [...report.launchers ?? []],
+          mounts: report.mounts.map(m => [...m] as [number, number, number]), launchers: [...report.launchers],
           motion: { x: 0, y: 0, z: 0, heading: report.heading, speed: 0 },
         };
         this.views.set(report.id, view);
@@ -89,14 +89,10 @@ export class ObservedShipViews {
   }
   private articulate(view: View, report: ObservedShip, blend: number): void {
     const { joints } = view;
-    if (report.mounts) {
-      if (view.mounts.length !== report.mounts.length) view.mounts = report.mounts.map(m => [...m] as [number, number, number]);
-      else view.mounts.forEach((m, i) => { for (let k = 0; k < 3; k++) m[k] += (report.mounts![i][k] - m[k]) * blend; });
-    }
-    if (report.launchers) {
-      if (view.launchers.length !== report.launchers.length) view.launchers = [...report.launchers];
-      else view.launchers.forEach((train, i) => { view.launchers[i] = train + (report.launchers![i] - train) * blend; });
-    }
+    if (view.mounts.length !== report.mounts.length) view.mounts = report.mounts.map(m => [...m] as [number, number, number]);
+    else view.mounts.forEach((m, i) => { for (let k = 0; k < 3; k++) m[k] += (report.mounts[i][k] - m[k]) * blend; });
+    if (view.launchers.length !== report.launchers.length) view.launchers = [...report.launchers];
+    else view.launchers.forEach((train, i) => { view.launchers[i] = train + (report.launchers[i] - train) * blend; });
     // Mount train is a bounded interval, as on a simulated hull: no wrapping through forbidden arcs.
     joints.mounts.forEach((joint, i) => {
       const state = view.mounts[i];

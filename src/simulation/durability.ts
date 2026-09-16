@@ -7,9 +7,6 @@ import { consumeStructure, type LocalDamageEvidence } from './localDamage';
  * historical presets and custom blueprints; preserves relative endurance. */
 export const HULL_HP_SCALE = 35;
 
-/** AP penetration costs 65% of authored damage before scaling and saturation. */
-export const HULL_DAMAGE = { penetration: .65, overpenetration: .15, equipment: .85, hePenetration: .35, heEquipment: .5 } as const;
-
 /** Accepts authored damage units; returns whole gameplay HP lost. Fractional
  * consumption carries forward so splitting a hit never erases small damage. */
 export function damageHull(actor: Combatant, amount: number, regionId?: string): number {
@@ -25,7 +22,6 @@ export function damageHull(actor: Combatant, amount: number, regionId?: string):
 /** Underwater shock distributes one finite budget over nearby hull structure.
  * A torpedo does not squeeze its entire blast into one shell-sized region. */
 export function damageBlastHull(actor: Combatant, def: ShipDefinition, point: Vec3, amount: number): number {
-  if (!def.localDamage) return damageHull(actor, amount);
   const radius = Math.max(10, Math.cbrt(Math.max(0, amount)) * 3);
   const regions = def.localDamage.regions.filter(r => r.kind === 'hull').map(r => {
     const distance = Math.hypot(...point.map((n, i) => Math.max(0, Math.abs(n - r.center[i]) - r.size[i] / 2)));
@@ -52,11 +48,6 @@ export function damageShellHull(shell: Shell, actor: Combatant, total: number, l
   consumed[actor.motion.id] = previous + (dealt + actor.damage.hullDamageRemainder - remainder) / HULL_HP_SCALE;
   ledger[actor.motion.id] = (ledger[actor.motion.id] ?? 0) + dealt;
   return dealt;
-}
-
-export function penetrationHullDamage(shell: Shell, resistanceMm: number): number {
-  const arming = shell.ap?.armingResistanceMm ?? shell.caliberM * 1000 / 6;
-  return shell.damage * (resistanceMm >= arming ? HULL_DAMAGE.penetration : HULL_DAMAGE.overpenetration);
 }
 
 export function equipmentIntegrity(actor: Combatant, def: ShipDefinition): number {

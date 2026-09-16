@@ -58,7 +58,7 @@ impl DeckOperations {
         }
         let p = &state.planes[index];
         let g = &ground[&p.model_id];
-        let model = g.deck_geometry.as_ref().unwrap();
+        let model = &g.deck_geometry;
         let layout = actor
             .definition()
             .air_wing

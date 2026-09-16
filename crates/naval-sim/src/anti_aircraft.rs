@@ -282,7 +282,7 @@ pub fn update_observed_at(
     } else {
         aim
     };
-    let barrels = m.weapon.barrel_count.unwrap_or(2.0) as usize;
+    let barrels = m.weapon.barrel_count as usize;
     if state.available(state.loaded) < barrels as f64 {
         state.select_ammunition(
             m,
@@ -321,11 +321,7 @@ pub fn update_observed_at(
     }
     let heavy = m.weapon.caliber_m > 0.08;
     let burst_time = state.aim_cache.as_ref().map_or(flight_time, |c| c.time);
-    let drag = m
-        .weapon
-        .ballistics
-        .as_ref()
-        .map_or(0.0, |b| b.drag_per_second);
+    let drag = m.weapon.ballistics.drag_per_second;
     let mut shots = vec![];
     for barrel in 0..barrels {
         let position = basis.local_to_world(muzzle_local(m, state, barrel));

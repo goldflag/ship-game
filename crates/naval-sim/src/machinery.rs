@@ -214,19 +214,13 @@ pub fn mount_support(
     let power = electrical_power(actor, def, sea);
     let indexed = actor.index.of(def);
     let served = indexed.and_then(|ix| ix.served(id));
-    let (coverage, directors) = match indexed {
-        Some(ix) => (id.is_some() && ix.coverage, ix.directors.len()),
-        None => (
-            id.is_some()
-                && def
-                    .modules
-                    .iter()
-                    .any(|m| m.kind == "fire-control" && m.serves_mount_ids.is_some()),
-            def.modules
-                .iter()
-                .filter(|m| m.kind == "fire-control")
-                .count(),
-        ),
+    let directors = match indexed {
+        Some(ix) => ix.directors.len(),
+        None => def
+            .modules
+            .iter()
+            .filter(|m| m.kind == "fire-control")
+            .count(),
     };
     let best = match served {
         Some(served) => served
@@ -238,17 +232,16 @@ pub fn mount_support(
             .iter()
             .filter(|m| m.kind == "fire-control")
             .filter(|m| {
-                !coverage
-                    || m.serves_mount_ids
-                        .as_ref()
-                        .is_some_and(|ids| ids.iter().any(|s| Some(s.as_str()) == id))
+                m.serves_mount_ids
+                    .as_ref()
+                    .is_some_and(|ids| ids.iter().any(|s| Some(s.as_str()) == id))
             })
             .map(|m| equipment_condition(actor, def, m, sea).availability)
             .fold(0.0, f64::max),
     };
     (
         power,
-        if !coverage && directors == 0 {
+        if directors == 0 {
             1.0
         } else {
             best * (0.35 + 0.65 * power)

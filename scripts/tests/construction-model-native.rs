@@ -23,7 +23,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         for (i, (mount, pose)) in input.definition.mounts.iter().zip(&case.poses).enumerate() {
             let mut state = MountState::new(mount);
             state.train = pose.train; state.elevation = pose.elevation; state.recoil = pose.recoil;
-            let count = mount.weapon.barrel_count.unwrap_or(2.) as usize;
+            let count = mount.weapon.barrel_count as usize;
             for barrel in 0..count {
                 let position = add(local_to_world(muzzle_local(mount, &state, barrel), case.motion),
                     scale(shot_direction(mount, &state, case.motion), -pose.recoil * mount.weapon.recoil_m));

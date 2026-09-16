@@ -5,7 +5,7 @@ import { createHarborTerrain } from './HarborTerrain';
 import { createHarborVegetation } from './HarborVegetation';
 import { HarborStructures } from './HarborStructures';
 import { dressHarbor } from './HarborDressing';
-import type { Quality } from './types';
+import type { TerrainQuality } from './graphicsSettings';
 
 export class HarborBackdrop extends THREE.Group {
   private elapsed = 0;
@@ -20,7 +20,7 @@ export class HarborBackdrop extends THREE.Group {
 
   constructor() { super(); this.name = 'North Atlantic naval anchorage'; }
 
-  async build(quality: Quality): Promise<void> {
+  async build(quality: TerrainQuality): Promise<void> {
     const { materials: m, textures } = await loadHarborMaterials();
     Object.values(textures).forEach(t => this.ownedTextures.add(t));
     this.add(createHarborTerrain(textures, quality));
@@ -95,6 +95,6 @@ export class HarborBackdrop extends THREE.Group {
   }
 }
 
-export async function createHarborBackdrop(quality:Quality):Promise<HarborBackdrop> {
+export async function createHarborBackdrop(quality:TerrainQuality):Promise<HarborBackdrop> {
   const harbor=new HarborBackdrop();await harbor.build(quality);return harbor;
 }

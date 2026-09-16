@@ -1,4 +1,3 @@
-import { MOBILITY } from './mobility';
 
 /** Shared, renderer-free gameplay state. Distances: meters. Time: seconds.
  * Heading is clockwise from north (-Z); X points east. */
@@ -61,57 +60,3 @@ export function motionVelocity(state: ShipState): import('../ships/blueprint').V
 }
 
 const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
-const finite = (n: number) => Number.isFinite(n) ? n : 0;
-const approach = (n: number, target: number, amount: number) => n + clamp(target - n, -amount, amount);
-
-/** One fixed tick. Local input, a bot, or an authoritative server supplies the same command. */
-export function stepShip(state: ShipState, command: HelmCommand, handling: import('../ships/blueprint').Handling = BISMARCK, power = 1, steering = 1, environment?: { resistance: number; drift: [number, number] }): void {
-  const throttle = clamp(finite(command.throttle), -1, 1);
-  const rudder = clamp(finite(command.rudder), -1, 1) * clamp(finite(steering), 0, 1);
-  const availablePower = clamp(finite(power), 0, 1);
-  // Rudder lift costs forward thrust. The loss builds with actual rudder and
-  // speed, rather than instantly following a helm command.
-  const turnLoss = .22 * state.rudder ** 2 * clamp(Math.abs(state.speed) / handling.forwardSpeed, 0, 1);
-  const targetSpeed = throttle * (throttle < 0 ? handling.reverseSpeed : handling.forwardSpeed) * Math.sqrt(availablePower) * (1 - turnLoss) * (1 - (environment?.resistance ?? 0));
-  state.rudder = approach(state.rudder, rudder, handling.rudderRate * MOBILITY.rudderRate * FIXED_DT);
-  const braking = Math.abs(targetSpeed) < Math.abs(state.speed) || Math.sign(targetSpeed) !== Math.sign(state.speed);
-  state.speed = approach(state.speed, targetSpeed, (braking ? handling.braking * MOBILITY.braking : handling.acceleration * MOBILITY.acceleration * availablePower) * FIXED_DT);
-  // A stationary rudder has no authority; going astern reverses its effect.
-  const authority = clamp(state.speed / handling.forwardSpeed, -0.4, 1);
-  const targetYaw = state.rudder * handling.maxYawRate * MOBILITY.maxYawRate * authority;
-  state.yawRate += (targetYaw - state.yawRate) * (1 - Math.exp(-FIXED_DT * MOBILITY.yawResponse / clamp(2.4 * .019 / Math.max(.001, handling.maxYawRate), .8, 6)));
-  state.heading = (state.heading + state.yawRate * FIXED_DT + Math.PI * 2) % (Math.PI * 2);
-  // Turning develops outward sideslip; water resistance also settles contact
-  // impulses. This is a damped maneuvering approximation, not instant strafing.
-  const swayTarget = -state.yawRate * state.speed * 1.5;
-  state.swaySpeed += (swayTarget - state.swaySpeed) * (1 - Math.exp(-FIXED_DT / 4));
-  if (environment) {
-    const blend = 1 - Math.exp(-FIXED_DT / 20);
-    state.driftX = (state.driftX ?? 0) + (environment.drift[0] - (state.driftX ?? 0)) * blend;
-    state.driftZ = (state.driftZ ?? 0) + (environment.drift[1] - (state.driftZ ?? 0)) * blend;
-  }
-  const velocity = motionVelocity(state);
-  state.x += velocity[0] * FIXED_DT;
-  state.z += velocity[2] * FIXED_DT;
-  state.distance += Math.hypot(state.speed, state.swaySpeed) * FIXED_DT;
-  state.tick++;
-}
-
-/** Limits tab-resume catch-up while preserving a constant simulation step. */
-export class SingleplayerSimulation {
-  readonly ship = createShipState();
-  private accumulator = 0;
-
-  advance(dt: number, command: HelmCommand): void {
-    this.accumulator += clamp(finite(dt), 0, 0.1);
-    while (this.accumulator + 1e-10 >= FIXED_DT) {
-      stepShip(this.ship, command);
-      this.accumulator = Math.max(0, this.accumulator - FIXED_DT);
-    }
-  }
-
-  reset(): void {
-    Object.assign(this.ship, createShipState());
-    this.accumulator = 0;
-  }
-}

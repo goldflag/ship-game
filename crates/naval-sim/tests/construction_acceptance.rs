@@ -103,7 +103,7 @@ fn included_auxiliaries_follow_the_actual_engine_room_and_preserve_loading() {
     }
     let def = compile(&source, &catalog);
     assert!((def.hull.mass_kg - bare.hull.mass_kg - 82_000.).abs() < 1e-6);
-    assert_eq!(def.damage_control.as_ref().unwrap().teams, 2.);
+    assert_eq!(def.damage_control.teams, 2.);
     assert_eq!(def.handling.forward_speed, 0.); // Auxiliaries need no propeller.
     assert_eq!(def.modules.len(), 4); // No duplicate free generator proxy.
     assert_eq!(def.compartments.len(), 2);

@@ -1,11 +1,12 @@
 {
   "schemaVersion": 1,
-  "revision": "185760e91ac01932f75202bf49d0b3967fd557fc225dbf3a0e2c881562779718",
+  "revision": "b4c0049f9f1db8f499ba53d187afe842478ad967ab1af03e09c100c637c42397",
   "weapons": {
     "schemaVersion": 1,
     "parts": [
       {
         "id": "sk-c34-380-twin",
+        "barrelCount": 2,
         "name": "38 cm twin mount",
         "kind": "gun",
         "massKg": 1052000,
@@ -783,6 +784,7 @@
       },
       {
         "id": "sk-c28-150-twin",
+        "barrelCount": 2,
         "name": "15 cm twin mount",
         "kind": "gun",
         "massKg": 114000,
@@ -18688,8 +18690,8 @@
           ]
         }
       ],
-      "modelUrl": "/models/components/sk-c34-380-twin/fffb2726b6c3e653d149d54753dc5917a772b5b74d003b6d371ef2d3911bd9e8/model.glb",
-      "contentHash": "9fb05f126a61a7690f1940b6ab41143352d5484f24224591b224b3efe2abdc64"
+      "modelUrl": "/models/components/sk-c34-380-twin/1fc719cfd80505123cae70b9c252dd7730015be46d6f4e73254e508429dc19da/model.glb",
+      "contentHash": "9ff12b224c81db3a8b3f6e7834dda5c9f6e80d7ed64d1a82b0e427ff17ec6e57"
     },
     {
       "id": "us-20mm-oerlikon-mk4-hsienyang",

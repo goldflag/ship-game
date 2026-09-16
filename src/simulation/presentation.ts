@@ -38,7 +38,7 @@ export function presentationAim(view: AimView, moduleId?: string, battery: Batte
       return torpedoIntercept(localToWorld(tubeLocalPosition(view.player, tube), view.ship), aim, shipVelocity(view.target), torpedoSpeed(tube.weapon.speed)) ?? aim;
     }
     const weapon = view.definition.mounts.find(m => selectedWeapon(m.battery, m.weapon, battery, weaponGroupId))?.weapon;
-    const speed = weapon?.muzzleSpeed ?? 820, drag = weapon?.ballistics?.dragPerSecond ?? 0;
+    const speed = weapon?.muzzleSpeed ?? 820, drag = weapon?.ballistics.dragPerSecond ?? 0;
     const from: Vec3 = [view.ship.x, view.ship.y + 8, view.ship.z];
     let time = Math.hypot(aim[0] - view.ship.x, aim[2] - view.ship.z) / speed;
     for (let i = 0; i < 3; i++) {

@@ -6,7 +6,7 @@
   "coordinates": "meters-y-up-bow-negative-z",
   "construction": {
     "version": 1,
-    "catalogRevision": "95919c9c054185b692a052a15579f7dd2548b3b1a3a21e2dae49fdaabf802d50",
+    "catalogRevision": "b4c0049f9f1db8f499ba53d187afe842478ad967ab1af03e09c100c637c42397",
     "defaultThicknessMm": 18,
     "primitives": [
       {

@@ -551,12 +551,10 @@ mod tests {
             "fletcher".into(),
             Arc::new(catalog.compile("fletcher").unwrap()),
         )]));
-        let path =
-            std::env::temp_dir().join(format!("naval-lobby-{}.sqlite", uuid::Uuid::new_v4()));
         Arc::new(Hub::new(
             catalog,
             compiled,
-            Writer::open(&path, 8).unwrap(),
+            Writer::memory(8).0,
             2,
             None,
             vec![],

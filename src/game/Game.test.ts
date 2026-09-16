@@ -318,7 +318,8 @@ test.each(['yamato', 'enterprise-cv6'])('PvE prepares detail only for owned hull
     // A hull the mission reveals is fetched at that moment and drawn once it lands. The
     // report already names the preset, so this asks for nothing the player was not told.
     const contact = { id: 'contact-0-1', presetId: enemy, position: [0, 0, -8000] as [number, number, number],
-      heading: 0, velocity: [0, 0, 0] as [number, number, number], observedTick: 0, observers: [] };
+      heading: 0, pitch: 0, roll: 0, health: 1, mounts: [], launchers: [],
+      velocity: [0, 0, 0] as [number, number, number], observedTick: 0, observers: [] };
     const observed = (game as unknown as { observedShipViews: ObservedShipViews }).observedShipViews;
     observed.update([contact], 0, true);
     expect(observed.root.children).toHaveLength(0);

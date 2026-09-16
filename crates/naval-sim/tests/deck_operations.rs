@@ -89,8 +89,6 @@ fn step(a: &mut Aviation, actors: &[Vessel], time: &mut f64, dt: f64) {
         );
         let limit = a.ground[&p.model_id]
             .deck_geometry
-            .as_ref()
-            .unwrap()
             .hook_deck_fraction;
         assert!(
             p.controls.hook <= limit,
@@ -842,10 +840,10 @@ fn a_lift_can_move_during_the_final_roll_only_after_the_runway_clears_it() {
                         position: layout.elevators[0].position,
                         heading: 0.0,
                     };
-                    let obstructed = g.deck_geometry.as_ref().unwrap().sweep.swept_overlap(
+                    let obstructed = g.deck_geometry.sweep.swept_overlap(
                         at,
                         end,
-                        raised_ground.deck_geometry.as_ref().unwrap().parked,
+                        raised_ground.deck_geometry.parked,
                         top,
                     );
                     if obstructed {

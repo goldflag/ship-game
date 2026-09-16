@@ -10,6 +10,7 @@
 <div id="scene"></div><output id="status">Preparing the review renderer…</output>
 <script type="module">
 import { Game } from '/src/game/Game.ts';
+import { GRAPHICS_PRESETS } from '/src/game/graphicsSettings.ts';
 import { CameraRig } from '/src/game/CameraRig.ts';
 
 // A development-only capture surface. Uses the actual Game, CPU simulation,
@@ -17,7 +18,7 @@ import { CameraRig } from '/src/game/CameraRig.ts';
 const status = document.querySelector('#status');
 let ready;
 const loaded = new Promise(resolve => ready = resolve);
-const game = new Game(document.querySelector('#scene'), { quality:'medium', resolution:1 }, {
+const game = new Game(document.querySelector('#scene'), GRAPHICS_PRESETS.medium, {
   progress: label => status.textContent = label, ready,
   telemetry: () => {}, pause: () => {}, hud: () => {},
   error: message => { status.textContent = message; window.reviewError = message; },

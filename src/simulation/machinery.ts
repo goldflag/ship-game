@@ -15,7 +15,7 @@ function layout(def: ShipDefinition): MachineryLayout {
     result = { modules: new Map(def.modules.map((module, index) => [module.id, { module, index }])),
       rooms: new Map(def.compartments.map((room, index) => [room.id, index])),
       generators: def.modules.filter(m => m.kind === 'generator'), directors: def.modules.filter(m => m.kind === 'fire-control') };
-    if (result.directors.some(m => m.servesMountIds !== undefined)) result.coverage = new Map(def.mounts.map(m => [m.id, result!.directors.filter(d => d.servesMountIds!.includes(m.id))]));
+    result.coverage = new Map(def.mounts.map(m => [m.id, result!.directors.filter(d => d.servesMountIds!.includes(m.id))]));
     layouts.set(def, result);
   }
   return result;

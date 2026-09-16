@@ -641,7 +641,7 @@ fn barrel_capsules(w: &GunPart, elevation: f64, constructed: bool) -> Vec<Capsul
     if constructed && matches!(w.id.as_str(), "flak38-m43u-20-twin" | "flak38-20-single" | "flak28-40-single") {
         return german_light_capsules(w, elevation);
     }
-    if constructed && w.mounting_style.as_deref() == Some("oerlikon") && w.barrel_count == Some(1.)
+    if constructed && w.mounting_style.as_deref() == Some("oerlikon") && w.barrel_count == 1.0
     {
         return oerlikon_mk4_capsules(w, elevation);
     }
@@ -686,7 +686,7 @@ fn barrel_capsules(w: &GunPart, elevation: f64, constructed: bool) -> Vec<Capsul
             (trunnion, w.muzzle_forward + 0.035, radius),
         ]
     };
-    for barrel in 0..w.barrel_count.unwrap_or(2.0) as usize {
+    for barrel in 0..w.barrel_count as usize {
         let (x, row) = (barrel_offset(w, barrel), barrel_height(w, barrel));
         let point = |forward: f64| {
             let along = forward - trunnion;
@@ -714,7 +714,7 @@ fn german_light_capsules(w: &GunPart, elevation: f64) -> Vec<Capsule> {
     let twin = w.id == "flak38-m43u-20-twin";
     let bofors = w.id == "flak28-40-single";
     let mut result = vec![];
-    for barrel in 0..w.barrel_count.unwrap_or(1.) as usize {
+    for barrel in 0..w.barrel_count as usize {
         let x = barrel_offset(w, barrel);
         let mut pieces = vec![
             ([0.,0.,-0.72],[0.,0.,0.45],0.205),
@@ -966,7 +966,7 @@ mod tests {
             for degrees in [-5_f64, 0., 30., 80.] {
                 let angle = degrees.to_radians();
                 let capsules = german_light_capsules(w, angle);
-                for barrel in 0..w.barrel_count.unwrap_or(1.) as usize {
+                for barrel in 0..w.barrel_count as usize {
                     let x = barrel_offset(w, barrel);
                     for recoil in [0., w.recoil_m] {
                         for p in [[0.,0.,w.muzzle_forward-w.trunnion_forward], [0.,0.,-0.715], [0.,-0.24,0.62], [0.,-0.11,-0.79], [0.2,0.61,if id == "flak28-40-single" {-0.32} else {-0.11}]] {

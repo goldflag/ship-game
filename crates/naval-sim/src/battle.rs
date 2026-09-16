@@ -66,9 +66,7 @@ pub struct Orders {
     pub movement: Movement,
     pub target_id: Option<String>,
     pub control: Option<(String, String)>,
-    #[serde(default)]
     pub weapons: WeaponsPolicy,
-    #[serde(default)]
     pub formation_policy: navigation::FormationPolicy,
 }
 #[derive(Clone, Debug, Serialize)]

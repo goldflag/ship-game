@@ -3,6 +3,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { Vector2 } from 'three/webgpu';
 import { Game } from '../../src/game/Game';
+import { GRAPHICS_PRESETS } from '../../src/game/graphicsSettings';
 import { FleetHud } from '../../src/ui/FleetHud';
 import { ShipContext } from '../../src/ui/ShipContext';
 import { shipPreset } from '../../src/ships/presets';
@@ -18,7 +19,7 @@ const host = document.createElement('div'); host.className = 'ocean-viewport'; d
 const hud = document.createElement('div'); document.body.appendChild(hud);
 const root = createRoot(hud), noop = () => {};
 const definition = shipPreset('type-viic');
-const game: any = new Game(host, {quality:'high',resolution:1}, { progress:noop,ready:noop,pause:noop,hud:noop,telemetry:noop,error:message=>{window.reviewError=message;} }, definition);
+const game: any = new Game(host, GRAPHICS_PRESETS.high, { progress:noop,ready:noop,pause:noop,hud:noop,telemetry:noop,error:message=>{window.reviewError=message;} }, definition);
 game.scheduleFrame=noop; game.setInPort(true); game.start();
 await game.initialization;
 await game.prepareBattle({playerShipId:'type-viic',friendlyBots:[],enemies:['bismarck'],spawnDistance:5000});

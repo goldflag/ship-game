@@ -90,9 +90,7 @@ pub enum Command {
         leader_id: String,
         offset: [f64; 2],
         radius_m: f64,
-        #[serde(default)]
         formation: naval_sim::navigation::Formation,
-        #[serde(default)]
         slot: u32,
     },
     Weapons {

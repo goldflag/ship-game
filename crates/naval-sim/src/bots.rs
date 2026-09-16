@@ -405,7 +405,7 @@ pub fn ammunition(def: &ShipDefinition, mount: &MountDefinition, state: &MountSt
         } else {
             Ammunition::Ap
         };
-    let count = mount.weapon.barrel_count.unwrap_or(2.0);
+    let count = mount.weapon.barrel_count;
     if state.available(preferred) >= count {
         preferred
     } else if preferred == Ammunition::Ap
@@ -787,11 +787,7 @@ fn aim_solution(
         || (point[0] - from[0]).hypot(point[2] - from[2]) / mount.weapon.muzzle_speed,
         |c| c.time,
     );
-    let drag = mount
-        .weapon
-        .ballistics
-        .as_ref()
-        .map_or(0.0, |b| b.drag_per_second);
+    let drag = mount.weapon.ballistics.drag_per_second;
     for _ in 0..if cached.is_some() { 1 } else { 3 } {
         let Some(solution) = solve_ballistic(
             from,

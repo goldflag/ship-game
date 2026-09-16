@@ -1,5 +1,6 @@
 import * as THREE from 'three/webgpu';
 import { color, float, mix, normalLocal, positionLocal, texture, triplanarTexture } from 'three/tsl';
+import type { TerrainQuality } from './graphicsSettings';
 
 const clamp = THREE.MathUtils.clamp;
 const smooth = (a: number, b: number, x: number) => THREE.MathUtils.smoothstep(x, a, b);
@@ -55,10 +56,10 @@ function terrainProfileHeight(x: number, z: number): number {
 }
 
 const terrainSize = 1000;
-const terrainSegments = (quality: string) => quality === 'medium' ? 44 : 64;
+const terrainSegments = (quality: TerrainQuality) => quality === 'medium' ? 44 : 64;
 
 /** Height of the visible triangle, so scenery shares the terrain's actual surface. */
-export function terrainHeight(x: number, z: number, quality = 'high'): number {
+export function terrainHeight(x: number, z: number, quality: TerrainQuality = 'high'): number {
   const segments = terrainSegments(quality), spacing = terrainSize / segments;
   const x0 = Math.floor(x / terrainSize) * terrainSize, z0 = Math.floor(z / terrainSize) * terrainSize;
   const ix = Math.min(segments - 1, Math.floor((x - x0) / spacing));
@@ -77,7 +78,7 @@ export function terrainHeight(x: number, z: number, quality = 'high'): number {
   return c + (b - c) * (1 - u) + (d - c) * (1 - v);
 }
 
-export function createHarborTerrain(textures: Record<string, THREE.Texture>, quality: string): THREE.Group {
+export function createHarborTerrain(textures: Record<string, THREE.Texture>, quality: TerrainQuality): THREE.Group {
   const root = new THREE.Group(); root.name = 'Continuous coastal terrain';
   const material = new THREE.MeshStandardNodeMaterial({ roughness: .95, vertexColors: true });
   const grass = triplanarTexture(texture(textures['meadow-color']), null, null, float(1 / 32));

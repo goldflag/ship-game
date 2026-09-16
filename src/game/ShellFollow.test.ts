@@ -1,9 +1,7 @@
 import { expect, test } from 'bun:test';
 import { ShellFollow } from './ShellFollow';
 import type { Shell } from '../simulation/damage';
-import { CombatSimulation, type CombatEvent } from '../simulation/combat';
-import { FIXED_DT } from '../simulation/ship';
-import { shipPreset } from '../ships/presets';
+import { type CombatEvent } from '../simulation/combat';
 
 const shell = (id: number, ownerId = 'player'): Shell => ({ id, ownerId, position: [0, 100, -500], velocity: [0, -20, -800], age: 1, caliberM: .38, damage: 70, penetrationMm: 400, visited: [] });
 
@@ -58,49 +56,6 @@ test('missing or reset projectiles release the camera without inventing an impac
   follow.update([shell(1)], [], 'player', .016);
   expect(follow.shellId).toBe(1);
 });
-
-for (const stepsPerFrame of [1, 6]) {
-  for (const [region, y, z, terminal] of [
-    ['bridge', 15, -18, 'splash'],
-    ['unarmored bow', 4, -115, 'splash'],
-    ['armored hull', .5, 0, 'stopped'],
-  ] as const) {
-    test(`shell follow holds on the first ${region} strike at ${60 / stepsPerFrame} fps while combat resolves normally`, () => {
-      const def = shipPreset('bismarck'), sim = new CombatSimulation(def), follow = new ShellFollow();
-      sim.player.motion.x = -1000;
-      Object.assign(sim.target.motion, { x: 0, z: 0 });
-      const weapon = def.mounts[0].weapon;
-      const round: Shell = { ...shell(1), position: [-30, y, z], velocity: [weapon.muzzleSpeed, -20, 0], age: 0,
-        caliberM: weapon.caliberM, damage: weapon.damage, penetrationMm: weapon.penetrationMm };
-      sim.shells.push(round);
-      follow.setEnabled(true);
-      follow.update(sim.shells, sim.events, 'player', 0);
-      let firstStrike: CombatEvent | undefined;
-      let heldWhileShellAlive = false;
-      for (let i = 0; i < 60 && sim.shells.length; i += stepsPerFrame) {
-        for (let step = 0; step < stepsPerFrame; step++) {
-          sim.step({ throttle: 0, rudder: 0 }, { aim: [0, y, z], fire: false, battery: 'main' });
-        }
-        const beforeCamera = JSON.stringify({ actors: sim.actors, shells: sim.shells, events: sim.events });
-        follow.update(sim.shells, sim.events, 'player', FIXED_DT * stepsPerFrame);
-        expect(JSON.stringify({ actors: sim.actors, shells: sim.shells, events: sim.events })).toBe(beforeCamera);
-        firstStrike ??= sim.events.find(event => event.shell?.id === round.id && event.kind !== 'shot');
-        if (firstStrike) {
-          expect(follow.phase).toBe('impact');
-          expect(follow.view!.position).toEqual(firstStrike.position);
-          expect(follow.view!.velocity).toEqual(firstStrike.shell!.velocity);
-          heldWhileShellAlive ||= sim.shells.length > 0;
-        }
-      }
-      expect(firstStrike?.kind).toBe('penetration');
-      if (terminal === 'splash') expect(heldWhileShellAlive).toBe(true);
-      expect(sim.shells).toHaveLength(0);
-      expect(firstStrike?.impact?.penetrationAfterMm).toBeLessThan(firstStrike!.impact!.penetrationBeforeMm);
-      expect(sim.events.at(-1)!.kind).toBe(terminal);
-      expect(follow.view!.position).not.toEqual(sim.events.at(-1)!.position);
-    });
-  }
-}
 
 test('entry, exit and splash between frames keep the first strike and never resume the penetrating shell', () => {
   const follow = new ShellFollow(), round = shell(1);

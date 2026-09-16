@@ -5,7 +5,6 @@ import { add, clamp, length, scale, wrapAngle } from './geometry';
 export interface FlightControls { gear: number; hook: number; brakes: number; aileron: number; elevator: number; rudder: number; propeller: number; }
 export interface FlightAttitude { heading: number; pitch: number; bank: number; }
 export const TAKEOFF_ROLL_SECONDS = 3.6;
-export const TAKEOFF_CLIMB_SECONDS = 2.4;
 export const initialFlightControls = (): FlightControls => ({ gear: 1, hook: 0, brakes: 0, aileron: 0, elevator: 0, rudder: 0, propeller: 0 });
 export const approachValue = (value: number, target: number, rate: number, dt: number) => value + clamp(target - value, -rate * dt, rate * dt);
 
@@ -47,22 +46,6 @@ export function flyAircraft(p: Aircraft, point: Vec3, requestedSpeed: number, dt
   p.controls.aileron = clamp((p.bank - oldBank) / dt * .45, -.35, .35);
   p.controls.elevator = clamp(-(p.pitch - oldPitch) / dt * .8 - Math.abs(p.bank) * .035, -.3, .3);
   p.controls.rudder = clamp(turnRate * .28, -.16, .16);
-}
-
-export function stepFlightMechanisms(p: Aircraft, dt: number, deck: boolean) {
-  const c = p.controls;
-  const parked = ['ready', 'queued', 'rearming'].includes(p.phase);
-  const gearDown = deck || p.phase === 'landing' || (p.phase === 'takeoff' && p.timer < TAKEOFF_ROLL_SECONDS + 1.5);
-  c.gear = approachValue(c.gear, gearDown ? 1 : 0, .35, dt);
-  c.hook = approachValue(c.hook, p.phase === 'landing' || p.phase === 'rollout' ? 1 : 0, .5, dt);
-  c.brakes = approachValue(c.brakes, p.role === 'dive-bomber' && p.phase === 'attack' && p.pitch < -.3 && p.payload ? 1 : 0, .8, dt);
-  // Keep the angle bounded, with interpolation across its wrap in the renderer.
-  c.propeller = wrapAngle(c.propeller + (parked ? 0 : deck ? 35 : 95) * dt);
-  if (deck) {
-    c.aileron = approachValue(c.aileron, 0, .5, dt);
-    c.elevator = approachValue(c.elevator, 0, .5, dt);
-    c.rudder = approachValue(c.rudder, 0, .5, dt);
-  }
 }
 
 export function aircraftAttitude(p: Pick<Aircraft, 'heading' | 'pitch' | 'bank' | 'previousAttitude'>, alpha: number): FlightAttitude {

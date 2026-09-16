@@ -120,7 +120,7 @@ struct BlockedCache {
 }
 impl MountState {
     pub fn new(m: &MountDefinition) -> Self {
-        let count = m.weapon.barrel_count.unwrap_or(2.0);
+        let count = m.weapon.barrel_count;
         Self {
             carrier: None,
             id: m.id.clone(),
@@ -180,7 +180,7 @@ impl MountState {
         }
     }
     pub fn expend_salvo(&mut self, m: &MountDefinition, reload: f64) -> usize {
-        let count = m.weapon.barrel_count.unwrap_or(2.0);
+        let count = m.weapon.barrel_count;
         self.ammo -= count;
         if self.loaded == Ammunition::He {
             self.he_ammo -= count;
@@ -214,11 +214,11 @@ impl MountState {
             self.queued = None;
             return;
         }
-        if self.available(kind) < m.weapon.barrel_count.unwrap_or(2.0) {
+        if self.available(kind) < m.weapon.barrel_count {
             return;
         }
         self.queued = Some(kind);
-        if self.reload == 0.0 && self.available(self.loaded) < m.weapon.barrel_count.unwrap_or(2.0)
+        if self.reload == 0.0 && self.available(self.loaded) < m.weapon.barrel_count
         {
             self.select_ammunition(m, kind);
         }
@@ -228,14 +228,14 @@ pub fn gun_work_rate(power: f64) -> f64 {
     0.25 + 0.75 * clamp(power, 0.0, 1.0)
 }
 pub fn barrel_offset(w: &GunPart, i: usize) -> f64 {
-    (if w.barrel_count == Some(8.0) {
+    (if w.barrel_count == 8.0 {
         (i % 4) as f64 - 1.5
     } else {
-        i as f64 - (w.barrel_count.unwrap_or(2.0) - 1.0) / 2.0
+        i as f64 - (w.barrel_count - 1.0) / 2.0
     }) * w.barrel_spacing
 }
 pub fn barrel_height(w: &GunPart, i: usize) -> f64 {
-    if w.barrel_count == Some(8.0) {
+    if w.barrel_count == 8.0 {
         (if i < 4 { -0.5 } else { 0.5 }) * w.barrel_vertical_spacing.unwrap()
     } else {
         0.0
@@ -267,7 +267,7 @@ pub fn muzzle_center_local(
     carrier: Option<CarrierFrame>,
 ) -> Vec3 {
     let w = &m.weapon;
-    let count = w.barrel_count.unwrap_or(2.0);
+    let count = w.barrel_count;
     let bearing = radians(m.bearing_deg) + carrier.map_or(0.0, |c| c.heading) + train;
     let position = carrier.map_or(m.position, |c| c.position);
     let forward = w.trunnion_forward + (w.muzzle_forward - w.trunnion_forward) * elevation.cos();
@@ -487,7 +487,7 @@ pub fn update_mount_at(
     if s.hp <= 0.0 {
         return reject(s, MountStatus::Disabled);
     }
-    if s.available(s.loaded) < m.weapon.barrel_count.unwrap_or(2.0) {
+    if s.available(s.loaded) < m.weapon.barrel_count {
         return reject(s, MountStatus::Empty);
     }
     if d.submarine.is_some() && p.depth() > 0.5
@@ -520,11 +520,7 @@ pub fn update_mount_at(
             desired_elevation,
             s.carrier,
         ));
-        let drag = m
-            .weapon
-            .ballistics
-            .as_ref()
-            .map_or(0.0, |b| b.drag_per_second);
+        let drag = m.weapon.ballistics.drag_per_second;
         let travel = travel_factor(time, drag);
         let relative = [
             aim[0] - inherited[0] * travel,
@@ -664,7 +660,7 @@ pub fn update_mount_at(
             return cache.blocked;
         }
         let breech = add(mount_position(m, s), [0.0, w.pivot_height, 0.0]);
-        let blocked = (0..w.barrel_count.unwrap_or(2.0) as usize).any(|barrel| {
+        let blocked = (0..w.barrel_count as usize).any(|barrel| {
             let muzzle = muzzle_local(m, s, barrel);
             let direction = normalize(sub(muzzle, breech));
             obstructions.intersects(

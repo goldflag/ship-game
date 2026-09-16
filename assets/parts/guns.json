@@ -3,6 +3,7 @@
   "parts": [
     {
       "id": "sk-c34-380-twin",
+      "barrelCount": 2,
       "name": "38 cm twin mount",
       "kind": "gun",
       "massKg": 1052000,
@@ -780,6 +781,7 @@
     },
     {
       "id": "sk-c28-150-twin",
+      "barrelCount": 2,
       "name": "15 cm twin mount",
       "kind": "gun",
       "massKg": 114000,

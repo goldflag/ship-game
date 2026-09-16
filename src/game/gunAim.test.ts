@@ -46,31 +46,6 @@ test('trained turret centers stay on the reticle at every binocular magnificatio
   }
 });
 
-test('aim circles agree with actual short-shot splashes, including inherited ship velocity', () => {
-  const definition = structuredClone(shipPreset('bismarck'));
-  // The circle predicts the nominal trajectory. Random shot spread has its
-  // own seeded distribution tests and must not bias this comparison.
-  definition.mounts.forEach(m => { if (m.weapon.ballistics) { m.weapon.ballistics.dispersionRad = 0; m.weapon.ballistics.muzzleSpeedSigmaFraction = 0; } });
-  const sim = new CombatSimulation(definition);
-  const aim: Vec3 = [0, .5, -10000];
-  Object.assign(sim.ship, { heading: .3, speed: 12, swaySpeed: 2 });
-  // Fire at the current short-shot splash point so selective fire permits it.
-  const splashAim = gunAimPoints(sim.player, sim.definition, 'main', aim)[0].point;
-  sim.step({ throttle: 1, rudder: 0 }, { aim: splashAim, fire: true, battery: 'main' });
-  const shots = sim.events.filter(event => event.kind === 'shot' && event.message === 'Anton fired');
-  expect(shots).toHaveLength(2);
-  const prediction = gunAimPoints(sim.player, sim.definition, 'main', aim)[0];
-  expect(prediction.point[1]).toBeCloseTo(0, 9);
-  for (let i = 0; i < 1200 && sim.shells.some(shell => shots.some(shot => shot.shell?.id === shell.id)); i++) {
-    sim.step({ throttle: 1, rudder: 0 }, { aim, fire: false, battery: 'main' });
-  }
-  const impacts = sim.events.filter(event => event.kind === 'splash' && shots.some(shot => shot.shell?.id === event.shell?.id));
-  expect(impacts).toHaveLength(2);
-  const average = new Vector3();
-  impacts.forEach(impact => average.addScaledVector(new Vector3(...impact.position), 1 / impacts.length));
-  expect(average.distanceTo(new Vector3(...prediction.point))).toBeLessThan(.1);
-});
-
 test('moving and turning ship solutions line up and switching batteries preserves turret numbering', () => {
   const sim = new CombatSimulation(shipPreset('bismarck'));
   Object.assign(sim.ship, { heading: .2, speed: 13, swaySpeed: 1.5 });

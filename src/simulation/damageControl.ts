@@ -56,30 +56,16 @@ export function createControl(def: ShipDefinition): ControlState {
   const d = def.damageControl;
   const fire = (fuel: number, profile?: FireProfile): FireState => ({ heat: 0, intensity: 0, fuel: profile?.fuelSeconds ?? fuel,
     initialFuel: profile?.fuelSeconds ?? fuel, ignitionHeat: profile?.ignitionHeat ?? .6, heatPerDamage: profile?.heatPerDamage ?? .01, trend: 'out', suppressed: false });
-  return { priority: 'balanced', focus: '', spares: d?.repairPoints ?? 0,
-    rooms: def.compartments.map(c => fire(d?.roomFuelSeconds ?? 0, c.fire)), mounts: def.mounts.map(m => fire(d?.mountFuelSeconds ?? 0, m.fire)),
-    teams: Array.from({ length: d?.teams ?? 0 }, () => null), pumping: def.compartments.map(() => 0) };
-}
-export function directControl(actor: Combatant, priority: ControlPriority, focus = ''): void {
-  if (!['balanced', 'fires', 'flooding', 'repairs'].includes(priority)) return;
-  const c = actor.damage.control;
-  // Re-score existing jobs on the next tick. Only a reassigned team pays setup;
-  // a priority order must not send every working crew back to its station.
-  c.priority = priority; c.focus = focus;
+  return { priority: 'balanced', focus: '', spares: d.repairPoints,
+    rooms: def.compartments.map(c => fire(d.roomFuelSeconds, c.fire)), mounts: def.mounts.map(m => fire(d.mountFuelSeconds, m.fire)),
+    teams: Array.from({ length: d.teams }, () => null), pumping: def.compartments.map(() => 0) };
 }
 function wet(actor: Combatant, def: ShipDefinition, index: number): number {
   return actor.damage.compartments[index].waterM3 / def.compartments[index].capacityM3;
 }
-export function heatModule(actor: Combatant, def: ShipDefinition, index: number, deliveredDamage: number): void {
-  if (!def.damageControl) return;
-  const m = def.modules[index], room = moduleRooms(def)[index];
-  if (room < 0 || wet(actor, def, room) >= .25) return;
-  heatRoom(actor, def, room, deliveredDamage);
-  if (m.kind === 'magazine') actor.damage.modules[index].ignition += deliveredDamage / 150;
-}
 export function heatRoom(actor: Combatant, def: ShipDefinition, index: number, deliveredDamage: number): void {
   const fire = actor.damage.control.rooms[index];
-  if (!def.damageControl || !fire || fire.fuel <= 0 || wet(actor, def, index) >= .25) return;
+  if (!fire || fire.fuel <= 0 || wet(actor, def, index) >= .25) return;
   fire.heat = Math.min(2, fire.heat + Math.max(0, deliveredDamage) * fire.heatPerDamage);
 }
 export function heatMount(actor: Combatant, index: number, deliveredDamage: number): void {
@@ -92,7 +78,7 @@ export function heatMount(actor: Combatant, index: number, deliveredDamage: numb
 export function updateDamageControl(actor: Combatant, def: ShipDefinition, dt: number, emit: (e: DamageEvent) => void): void {
   const d = def.damageControl, c = actor.damage.control;
   c.pumping.fill(0);
-  if (!d || actor.damage.sunk || dt <= 0) return;
+  if (actor.damage.sunk || dt <= 0) return;
   // Intact ships have no jobs, heat, ignition or water to evolve. Read live
   // state each tick so direct hits, flooding and restored snapshots immediately
   // enter the full control loop; no cached "undamaged" flag can go stale.

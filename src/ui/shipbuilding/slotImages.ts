@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import type { ConstructionCatalog, ConstructionEquipmentPart, ConstructionPrimitive, Vec3 } from '../../ships/blueprint';
 import { constructionEquipmentModelUrl } from '../../ships/constructionEquipment';
 import { loadShipModel } from '../../game/loadShipModel';
-import { constructionPaintColor } from './paints';
+import { constructionPaintColor } from '../../ships/constructionPaints';
 import { CORNER_SIGNS } from '../../ships/constructionVertex';
 import { createConstructionPathModel } from '../../game/constructionPathModel';
 import { primitiveGeometry } from './primitiveGeometry';

@@ -17,12 +17,7 @@ export function hullSection(hull: Hull, station: number): Point[] {
   }
   const ss = hull.sections, i = Math.max(1, ss.findIndex(s => s.station >= station));
   const a = ss[i - 1], b = ss[i], t = (station - a.station) / (b.station - a.station);
-  let right: Point[];
-  if (a.points.length === b.points.length) right = a.points.map(([x, y], j) => [x + (b.points[j][0] - x) * t, y + (b.points[j][1] - y) * t]);
-  else {
-    const low = a.points[0][1] * (1 - t) + b.points[0][1] * t, high = a.points.at(-1)![1] * (1 - t) + b.points.at(-1)![1] * t;
-    right = Array.from({ length: 17 }, (_, j) => { const y = low + (high - low) * j / 16; return [interpolate(a.points.map(([x, y]) => [y, x]), y) * (1 - t) + interpolate(b.points.map(([x, y]) => [y, x]), y) * t, y]; });
-  }
+  const right: Point[] = a.points.map(([x, y], j) => [x + (b.points[j][0] - x) * t, y + (b.points[j][1] - y) * t]);
   return [...right.map(([x, y]): Point => [-x, y]).reverse(), ...right];
 }
 function slices(hull: Hull): Slice[] {
