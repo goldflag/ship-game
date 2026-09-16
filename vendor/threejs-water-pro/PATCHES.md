@@ -107,3 +107,26 @@ the original TypeScript implementation. Preserve this patch when replacing
 the bundle until upstream has an equivalent correction. Run the production
 shader regression in `/scripts/diagnostics/water-detail.html`; see
 `assets/reviews/water-detail/README.md` for before/after evidence.
+
+## Directional ship shadows on water
+
+`WaterSurfaceMaterial.setSunShadowNode` binds an optional Three.js shadow node and
+retains it across material graph rebuilds (sky, masks, foam and wake bindings).
+The game samples the directional light's existing depth texture after scene
+rendering, avoiding a duplicate shadow map and caster pass. Three.js retains
+ownership of that map; the game rebinds it if the texture changes. Disabling shadows
+removes the node from the water graph as well. The game's receiver branches
+before sampling outside the shadow frustum, avoiding nine wasted texture reads
+on distant water while retaining the original filter within its coverage.
+
+The fragment samples at the wave-displaced world position. Visibility attenuates
+the lit water pigment, SSS and glints; foam retains its ambient component. Sky
+and scene reflections remain intact. The effect fades with celestial intensity
+and does not darken the underwater-facing surface. Ambient water retains 45% of
+its pigment in full shadow; this is artistic tuning, not a radiometric model.
+
+Validation: `/scripts/diagnostics/water-shadows.html?test` exercises the actual
+game renderer with a fixed ship, light and ocean time, including live settings.
+Use `&calm` or `&webgl` for the corresponding variants.
+
+The game-side Water shadows quality control builds one-, four-, or nine-comparison kernels for Low/Medium/High, or unbinds the hook for Off. Quality changes reuse the same depth texture and keep the bounds branch.

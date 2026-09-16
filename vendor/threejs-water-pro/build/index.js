@@ -4173,7 +4173,8 @@ function bj(r) {
     sunDir: V,
     sunIntensity: c,
     viewDir: k,
-    waterColorWithSSS: x
+    waterColorWithSSS: x,
+    sunVisibility = O(1)
   } = r, l = z(
     x,
     e,
@@ -4201,7 +4202,7 @@ function bj(r) {
     P.y.add(o),
     P.z.add(o)
   );
-  const s = GA(qA(n, V), 0, 1), G = R(
+  const s = GA(qA(n, V), 0, 1).mul(sunVisibility), G = R(
     p.combinedFoamColor.x.mul(O(0.3).add(s.mul(0.7))),
     p.combinedFoamColor.y.mul(O(0.3).add(s.mul(0.7))),
     p.combinedFoamColor.z.mul(O(0.3).add(s.mul(0.7)))
@@ -4246,7 +4247,8 @@ function Mj(r) {
     foamFieldSampler: P,
     rainRipples: H,
     wakeFieldSampler: o,
-    waterDepth: s
+    waterDepth: s,
+    sunShadow = null
   } = r, { clipPlane: G, maskEnabled: u, sun: i } = A, { vSampleCoords: M, vHierarchicalCoords: K, worldX: b, worldZ: T } = t;
   return Y(() => {
     q.mask && xj(q.mask, u), lj(G.cameraForward, G.distance);
@@ -4311,14 +4313,20 @@ function Mj(r) {
       });
       TA.assign(wA.surfaceColor);
     });
+    // Sample at the actual displaced world position. Preserve ambient water
+    // and reflected sky; only the illuminated pigment, SSS, glints and foam
+    // lose their celestial light. Fade with light intensity and below water.
+    const sunVisibility = sunShadow
+      ? z(O(1), sunShadow, GA(i.intensity, 0, 1).mul(B)).toVar()
+      : O(1);
     const uA = x.build({
       viewDir: Z,
       sunDir: xA,
       waveNormal: C,
-      waterColor: sA,
+      waterColor: sA.mul(z(O(0.45), O(1), sunVisibility)),
       distanceToCamera: pA,
       transmissionColor: n._transmissionColorNode,
-      sunIntensity: i.intensity,
+      sunIntensity: i.intensity.mul(sunVisibility),
       fadeEnd: _.fadeEnd
     }), bA = uj({
       coords: { fragWorldX: m, fragWorldZ: N },
@@ -4344,7 +4352,8 @@ function Mj(r) {
       refractedSceneColor: kA,
       sparkle: c,
       sunDir: xA,
-      sunIntensity: i.intensity,
+      sunIntensity: i.intensity.mul(sunVisibility),
+      sunVisibility,
       viewDir: Z,
       waterColorWithSSS: uA
     }), RA = ij({
@@ -4366,6 +4375,7 @@ function Mj(r) {
   })();
 }
 class zp extends S.MeshBasicNodeMaterial {
+  _sunShadowNode = null;
   oceanSim;
   sky = null;
   // Quality tier features - determines which shader nodes are included
@@ -4519,6 +4529,13 @@ class zp extends S.MeshBasicNodeMaterial {
   setFoamFieldSampler(A) {
     this._foamFieldSampler = A, this.setupMaterial(), this.needsUpdate = !0;
   }
+  /** Optional shared directional shadow; retained when the water graph rebuilds. */
+  setSunShadowNode(node) {
+    if (this._sunShadowNode === node) return;
+    this._sunShadowNode = node;
+    this.setupMaterial();
+    this.needsUpdate = !0;
+  }
   setupMaterial() {
     this.transparent = !0, this.blending = S.CustomBlending, this.blendSrc = S.OneFactor, this.blendDst = S.OneMinusSrcAlphaFactor, this.blendEquation = S.AddEquation, this.side = S.DoubleSide, this.depthWrite = !0, this.polygonOffset = !0, this.polygonOffsetFactor = 0, this.polygonOffsetUnits = 1;
     const A = {
@@ -4565,6 +4582,7 @@ class zp extends S.MeshBasicNodeMaterial {
       rainRipples: this.rainRipples,
       wakeFieldSampler: this._wakeFieldSampler,
       waterDepth: this._waterDepth,
+      sunShadow: this._sunShadowNode,
       isWebGL: this.oceanSim.getCapabilities().backend === "webgl"
     });
   }
