@@ -253,7 +253,7 @@ fn barrels(m: &MountDefinition, p: Angles, e: &Entry, margin: f64) -> Vec<Capsul
             f,
         )
     };
-    let mut result: Vec<Capsule> = (0..w.barrel_count.unwrap_or(2.0) as usize)
+    let mut result: Vec<Capsule> = (0..w.barrel_count as usize)
         .map(|i| Capsule {
             a: point(w.trunnion_forward - 0.65 - w.recoil_m, i),
             b: point(w.muzzle_forward + 0.05, i),

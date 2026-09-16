@@ -6,7 +6,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import type { ConstructionCatalog, ConstructionEquipmentPart, ConstructionPrimitive, ConstructionResult, ConstructionSource, ConstructionSurface, Vec3 } from '../../ships/blueprint';
 import { armorThicknessColor } from '../../ships/inspection';
 import { surfaceKey } from '../../ships/constructionEditor';
-import { constructionPaintColor } from './paints';
+import { constructionPaintColor } from '../../ships/constructionPaints';
 import { snapCoordinate } from './editorNumbers';
 import { dominantAxis, fillLattice, pieceExtents, placementCenter, strokeSegment } from './placement';
 import { primitiveGeometry, placementGeometry, placementRotation, type BuilderPlacement } from './primitiveGeometry';

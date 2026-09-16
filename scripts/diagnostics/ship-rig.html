@@ -3,9 +3,10 @@
 <div id="scene"></div><pre id="status">Loading ship rig review…</pre>
 <script type="module">
 import { Game } from '/src/game/Game.ts';
+import { GRAPHICS_PRESETS } from '/src/game/graphicsSettings.ts';
 import { shipPreset } from '/src/ships/presets.ts';
 const noop=()=>{}, params=new URLSearchParams(location.search);
-const game=new Game(document.querySelector('#scene'), {quality:'medium',resolution:1}, {
+const game=new Game(document.querySelector('#scene'), GRAPHICS_PRESETS.medium, {
   progress:noop,ready:noop,telemetry:noop,pause:noop,hud:noop,error:m=>document.querySelector('#status').textContent=m,
 }, shipPreset(params.get('ship')));
 window.rigGame=game;

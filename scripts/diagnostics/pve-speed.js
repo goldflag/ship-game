@@ -1,5 +1,6 @@
 // Actual fleet-command UI, local worker and rendering. Temporary results belong in .build/.
 import { Game } from '/src/game/Game.ts';
+import { GRAPHICS_PRESETS } from '/src/game/graphicsSettings.ts';
 import { PveDraft } from '/src/game/session/PveDraft.ts';
 import { pveSpeedScenario } from './pve-speed-scenario.ts';
 const params = new URLSearchParams(location.search);
@@ -26,7 +27,7 @@ PveDraft.create = function (_, signal) { return create.call(this, request, signa
 let loaded = false, begun = 0, previous, windowStart = 0, windowTick = 0, firstTick = 0, rows = [];
 Game.prototype.start = function () {
   review.game = this;
-  this.settings = { ...this.settings, quality: params.get('quality') ?? 'high', resolution: 1 };
+  this.settings = { ...this.settings, ...(GRAPHICS_PRESETS[params.get('quality')] ?? GRAPHICS_PRESETS.high), renderScale: 100 };
   this.rig.capturePointer = () => {};
   const ready = this.callbacks.ready;
   this.callbacks.ready = () => { ready(); loaded = true; };

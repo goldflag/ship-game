@@ -1,11 +1,9 @@
-import { meanHullY } from './ship';
+import type { ShipDefinition } from '../ships/blueprint';
 import { launcherAvailable, equipmentCondition, systemHealth } from './machinery';
-import type { ShipDefinition, Vec3 } from '../ships/blueprint';
-import type { Combatant } from './damage';
-import { flotation, hullVolume, hydrostatics, rightingArms } from './hydrostatics';
-import { levelAtVolume, waterBody, type WaterBody } from './floodwater';
-import { clamp, localToWorld } from './geometry';
 import { availableAmmunition } from './weapons';
+import type { Combatant } from './damage';
+import { levelAtVolume, waterBody, type WaterBody } from './floodwater';
+import { localToWorld } from './geometry';
 
 export type VesselStatus = 'operational' | 'immobile' | 'disarmed' | 'disabled' | 'sinking' | 'capsized';
 export interface StabilityState {
@@ -16,7 +14,6 @@ export interface StabilityState {
   combatLost: boolean;
 }
 export const createStability = (): StabilityState => ({ elapsed: .5, targetY: 0, rollRate: 0, pitchRate: 0, capsizeSeconds: 0, water: [], rollArm: 0, pitchArm: 0, displacementM3: 0, reserveM3: 0, status: 'operational', combatLost: false });
-const fullCache = new WeakMap<ShipDefinition, number>();
 /** Read-only sea-relative waterplane shared by physics and inspection. Volume
  * queries use the full fill curve at the last 2 Hz hydrostatic orientation. */
 export function waterLevel(actor: Combatant, def: ShipDefinition, i: number, volume = actor.damage.compartments[i].waterM3): number {
@@ -25,85 +22,6 @@ export function waterLevel(actor: Combatant, def: ShipDefinition, i: number, vol
   const body = actor.damage.stability.water[i] ?? waterBody(room, state.waterM3, actor.motion.roll, actor.motion.pitch);
   return actor.motion.y + levelAtVolume(room, body, volume);
 }
-export function updateStability(actor: Combatant, def: ShipDefinition, dt: number, sea?: { heave: number; roll: number; pitch: number }): void {
-  const state = actor.damage.stability, profile = def.stability;
-  if (!profile || dt <= 0 || actor.damage.sunk && actor.motion.y <= wreckDepth(def)) return;
-  state.elapsed += dt;
-  if (state.elapsed >= .5) {
-    state.elapsed %= .5;
-    state.water = def.compartments.map((c, i) => waterBody(c, actor.damage.compartments[i].waterM3, actor.motion.roll, actor.motion.pitch));
-    const water = state.water.reduce((sum, w) => sum + w.volume, 0), mass = def.hull.massKg + water * 1025;
-    const center = profile.dryCenterOfGravity.map((n, axis) => (n * def.hull.massKg + state.water.reduce((sum, w) => sum + w.volume * 1025 * w.center[axis], 0)) / mass) as Vec3;
-    const volume = mass / (1025 * profile.buoyancyScale);
-    let full = fullCache.get(def); if (full === undefined) { full = hullVolume(def.hull); fullCache.set(def, full); }
-    state.displacementM3 = volume; state.reserveM3 = Math.max(0, full - volume);
-    if (!actor.damage.sunk && volume >= full) { actor.damage.sunk = true; actor.damage.defeatCause = 'flooding'; state.status = 'sinking'; state.combatLost = true; }
-    if (!sea && !actor.damage.sunk && water === 0 && actor.motion.y === 0 && actor.motion.roll === 0 && actor.motion.pitch === 0 && state.rollRate === 0 && state.pitchRate === 0) { state.targetY = 0; state.rollArm = 0; state.pitchArm = 0; return; }
-    // A lost ship still has weight and buoyancy. Evaluate its actual immersion:
-    // solving for an afloat equilibrium would pull a sinking wreck back up.
-    const f = actor.submarine || actor.damage.sunk ? { ...hydrostatics(def.hull, actor.motion.y, actor.motion.roll, actor.motion.pitch), y: actor.motion.y } : flotation(def.hull, volume, actor.motion.roll, actor.motion.pitch);
-    const arms = rightingArms(f.center, center, actor.motion.roll, actor.motion.pitch);
-    // The expensive flotation solve runs at 2 Hz. Holding its torque constant
-    // between samples injects energy into short hulls. Linearize the restoring
-    // arm locally so the 60 Hz integrator sees the changing attitude instead.
-    const epsilon = .0001, p = actor.motion;
-    state.sampleRoll = p.roll; state.samplePitch = p.pitch;
-    state.rollSlope = (rightingArms(hydrostatics(def.hull, f.y, p.roll + epsilon, p.pitch).center, center, p.roll + epsilon, p.pitch).roll - arms.roll) / epsilon;
-    state.pitchSlope = (rightingArms(hydrostatics(def.hull, f.y, p.roll, p.pitch + epsilon).center, center, p.roll, p.pitch + epsilon).pitch - arms.pitch) / epsilon;
-    const wave = actor.damage.sunk ? undefined : sea;
-    state.rollArm = arms.roll + (wave?.roll ?? 0) * def.hull.beam * .07;
-    state.pitchArm = arms.pitch + (wave?.pitch ?? 0) * def.hull.length * .4;
-    state.targetY = f.y;
-  }
-  if (actor.damage.sunk) actor.motion.waveHeave = 0;
-  const step = dt;
-  // Ballast owns intentional submarine depth; stability still owns damage loads.
-  if (!actor.submarine && !actor.damage.sunk) {
-    const previousY = actor.motion.y, previousHeave = actor.motion.waveHeave ?? 0;
-    const meanY = meanHullY(actor.motion);
-    // Sea samples arrive at 60 Hz independently of the expensive 2 Hz flotation
-    // solve. Ease heave continuously, like a surfaced submarine: chasing held
-    // samples at a fixed speed made vertical velocity start/stop abruptly and
-    // kicked the inherited shell velocity and gun-aim circles twice a second.
-    const blend = 1 - Math.exp(-step / 1.5);
-    actor.motion.waveHeave = previousHeave + ((sea?.heave ?? 0) - previousHeave) * blend;
-    // Small flotation corrections must also ease in; snapping to a freshly
-    // sampled equilibrium creates a one-tick vertical-velocity impulse.
-    actor.motion.y = meanY + clamp((state.targetY - meanY) * blend, -step, step) + actor.motion.waveHeave;
-    actor.motion.verticalSpeed = (actor.motion.y - previousY) / step;
-  }
-  state.rollRate = (state.rollRate + 9.81 * (state.rollArm + (state.rollSlope ?? 0) * (actor.motion.roll - (state.sampleRoll ?? actor.motion.roll))) / (def.hull.beam * .4) ** 2 * step) * Math.exp(-step / 4);
-  state.pitchRate = (state.pitchRate + 9.81 * (state.pitchArm + (state.pitchSlope ?? 0) * (actor.motion.pitch - (state.samplePitch ?? actor.motion.pitch))) / (def.hull.length * .28) ** 2 * step) * Math.exp(-step / 3);
-  actor.motion.roll = clamp(actor.motion.roll + state.rollRate * step, -Math.PI, Math.PI);
-  actor.motion.pitch = clamp(actor.motion.pitch + state.pitchRate * step, -Math.PI / 2, Math.PI / 2);
-  if (Math.abs(actor.motion.roll) === Math.PI && state.rollRate * actor.motion.roll > 0) state.rollRate = 0;
-  if (Math.abs(actor.motion.pitch) === Math.PI / 2 && state.pitchRate * actor.motion.pitch > 0) state.pitchRate = 0;
-  // Finite-angle loss: sustained past 100 degrees with an outward/neutral arm.
-  // Negative initial GM alone is deliberately insufficient (a loll equilibrium may exist).
-  const inverted = Math.abs(actor.motion.roll) > 100 * Math.PI / 180 && state.rollArm * actor.motion.roll >= -.01;
-  state.capsizeSeconds = inverted ? state.capsizeSeconds + step : 0;
-  if (state.capsizeSeconds >= 10) {
-    if (!actor.damage.sunk) actor.damage.defeatCause = 'capsize';
-    actor.damage.sunk = true; state.status = 'capsized'; state.combatLost = true;
-  }
-}
-
-/** Retire wreck motion only once even an end-on hull is below the sea. This is
- * a bounded gameplay descent, not a seabed or trapped-air simulation. */
-function wreckDepth(def: ShipDefinition): number {
-  return def.submarine ? -1000 : -Math.max(50, Math.hypot(def.hull.length / 2, def.hull.beam / 2) + def.hull.depth + 10);
-}
-export function updateSinking(actor: Combatant, def: ShipDefinition, dt: number): void {
-  if (!actor.damage.sunk || dt <= 0) return;
-  const motion = actor.motion;
-  // Preserve downward momentum on loss and gradually gather speed. Roll and
-  // trim remain driven by the flooding solver, with no random death pose.
-  const speed = Math.max(-.65, Math.min(-.08, motion.verticalSpeed ?? 0) - .015 * dt);
-  const y = Math.min(motion.y, Math.max(wreckDepth(def), motion.y + speed * dt));
-  motion.verticalSpeed = (y - motion.y) / dt;
-  motion.y = y;
-}
-
 export function updateCapability(actor: Combatant, def: ShipDefinition): void {
   const s = actor.damage.stability;
   if (actor.damage.sunk || actor.damage.integrity <= 0) {
@@ -125,7 +43,7 @@ export function updateCapability(actor: Combatant, def: ShipDefinition): void {
   // Scan live mounts directly: no per-tick array of wrapper objects, and each
   // magazine's condition also supplies the immediate individual failure status.
   for (let i = 0; i < def.mounts.length; i++) {
-    const m = def.mounts[i], state = actor.mounts[i], barrels = m.weapon.barrelCount ?? 2;
+    const m = def.mounts[i], state = actor.mounts[i], barrels = m.weapon.barrelCount;
     const salvo = availableAmmunition(state, 'ap') >= barrels || !!m.weapon.he && availableAmmunition(state, 'he') >= barrels;
     gunAmmunition ||= salvo;
     const supply = m.magazineId ? equipmentCondition(actor, def, m.magazineId) : undefined;

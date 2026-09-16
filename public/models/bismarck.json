@@ -23218,6 +23218,7 @@
       },
       "weapon": {
         "id": "sk-c34-380-twin",
+        "barrelCount": 2,
         "name": "38 cm twin mount",
         "kind": "gun",
         "massKg": 1052000,
@@ -24015,6 +24016,7 @@
       "traverseDeg": 138,
       "weapon": {
         "id": "sk-c34-380-twin",
+        "barrelCount": 2,
         "name": "38 cm twin mount",
         "kind": "gun",
         "massKg": 1052000,
@@ -24811,6 +24813,7 @@
       },
       "weapon": {
         "id": "sk-c34-380-twin",
+        "barrelCount": 2,
         "name": "38 cm twin mount",
         "kind": "gun",
         "massKg": 1052000,
@@ -25607,6 +25610,7 @@
       },
       "weapon": {
         "id": "sk-c34-380-twin",
+        "barrelCount": 2,
         "name": "38 cm twin mount",
         "kind": "gun",
         "massKg": 1052000,
@@ -26403,6 +26407,7 @@
       },
       "weapon": {
         "id": "sk-c28-150-twin",
+        "barrelCount": 2,
         "name": "15 cm twin mount",
         "kind": "gun",
         "massKg": 114000,
@@ -26822,6 +26827,7 @@
       },
       "weapon": {
         "id": "sk-c28-150-twin",
+        "barrelCount": 2,
         "name": "15 cm twin mount",
         "kind": "gun",
         "massKg": 114000,
@@ -27241,6 +27247,7 @@
       },
       "weapon": {
         "id": "sk-c28-150-twin",
+        "barrelCount": 2,
         "name": "15 cm twin mount",
         "kind": "gun",
         "massKg": 114000,
@@ -27660,6 +27667,7 @@
       },
       "weapon": {
         "id": "sk-c28-150-twin",
+        "barrelCount": 2,
         "name": "15 cm twin mount",
         "kind": "gun",
         "massKg": 114000,
@@ -28079,6 +28087,7 @@
       },
       "weapon": {
         "id": "sk-c28-150-twin",
+        "barrelCount": 2,
         "name": "15 cm twin mount",
         "kind": "gun",
         "massKg": 114000,
@@ -28498,6 +28507,7 @@
       },
       "weapon": {
         "id": "sk-c28-150-twin",
+        "barrelCount": 2,
         "name": "15 cm twin mount",
         "kind": "gun",
         "massKg": 114000,
@@ -99661,5 +99671,5 @@
     ]
   },
   "compilerVersion": 1,
-  "contentHash": "065dceb5b9e9c799eb3f1e979f24b39d00b61a488d175b9b96f978532d2c5718"
+  "contentHash": "4e990a59423ffc941df404ffe6591f5179e39250a28498a52c5f98dc3b27ac18"
 }

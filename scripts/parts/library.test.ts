@@ -25,7 +25,6 @@ describe('original component library', () => {
     const usages = installationsFor('oerlikon-20mm-single', Object.values(shipPresets) as unknown as ShipDefinition[]);
     expect(usages.some(i => i.shipId === 'enterprise-cv6')).toBe(true);
     expect(usages.some(i => i.shipId === 'iowa')).toBe(false); // distinct accepted source variant
-    expect(usages.some(i => i.shipId === 'liberty-troopship')).toBe(false); // retired preset
   });
   test('rejects ambiguous identities and non-original builder paths', () => {
     const duplicate = structuredClone(library); duplicate.components.push(duplicate.components[0]);

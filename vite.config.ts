@@ -19,12 +19,10 @@ export default defineConfig({
   // Serve from a sub-path with e.g. BASE_PATH=/naval/ bun run build; runtime asset URLs go through src/assetUrl.ts.
   base: basePath,
   plugins: [constructionFiles(root), devPort(root), react(), vendorTextures(), shipTransfers(`${root}public/models`), {
-    name: 'exclude-retired-ship-reviews',
-    // Old checkouts may still have ignored comparison pages in public/.
+    name: 'trim-preset-debug-json',
+    // Full compiler/debug JSON stays in the workspace; production uses the
+    // hash-checked indexed runtime assets and lightweight menu metadata.
     async closeBundle() {
-      rmSync(`${root}dist/ship-reference`, { recursive: true, force: true });
-      // Full compiler/debug JSON stays in the workspace; production uses the
-      // hash-checked indexed runtime assets and lightweight menu metadata.
       for (const id of await presetIds(root)) rmSync(`${root}dist/models/${id}.json`, { force: true });
     },
   }, {

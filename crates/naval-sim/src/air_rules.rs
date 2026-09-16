@@ -103,9 +103,7 @@ pub struct AirRules {
     pub endurance: EndurancePolicy,
     pub launch_group_seconds: f64,
     pub repair_ceiling_hp: f64,
-    #[serde(default)]
     pub deck_cycle: DeckCycle,
-    #[serde(default)]
     pub consolidation: ConsolidationPolicy,
 }
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize, TS)]
@@ -188,11 +186,9 @@ impl AirRules {
                 Ok(value as usize)
             }
         };
-        let group_size = self
-            .group_size
-            .unwrap_or(integer(wing.flight_size.unwrap_or(3.0), 12)?);
+        let group_size = self.group_size.unwrap_or(integer(wing.flight_size, 12)?);
         let physical_capacity = match &self.deck_cycle {
-            DeckCycle::Legacy => integer(wing.deck_capacity.unwrap_or(18.0), 100)?,
+            DeckCycle::Legacy => integer(wing.deck_capacity, 100)?,
             DeckCycle::Managed { .. } => {
                 let layout = wing
                     .deck_layout
@@ -207,7 +203,7 @@ impl AirRules {
             return Err("Air profile exceeds the authored deck capacity".into());
         }
         let active_flights = match self.active_flights {
-            ActiveFlights::Authored => Some(integer(wing.max_active_flights.unwrap_or(4.0), 100)?),
+            ActiveFlights::Authored => Some(integer(wing.max_active_flights, 100)?),
             ActiveFlights::Limited { maximum } => Some(maximum),
             ActiveFlights::Unlimited => None,
         };

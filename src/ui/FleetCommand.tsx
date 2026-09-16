@@ -145,8 +145,8 @@ export function FleetCommand({ data, game, bindings, instrumentsVisible = true }
   const ownPlanes = wings.flatMap(({ owner }) => owner.airWing!.planes.filter(airborne));
   const observedModels = game.simulation.observedAircraft ?? [];
   const enemyHealth = new Map([...(game.simulation.observedShips ?? []), ...observedModels]
-    .filter(o => o.health !== undefined && Number.isFinite(o.health) && tick - o.observedTick <= 60)
-    .map(o => [o.id, Math.max(0, Math.min(1, o.health!))]));
+    .filter(o => Number.isFinite(o.health) && tick - o.observedTick <= 60)
+    .map(o => [o.id, Math.max(0, Math.min(1, o.health))]));
   const healthOf = (c: ContactTrack) => reportState(c, tick) === 'current' ? enemyHealth.get(c.id) : undefined;
   const healthMarker = (c: ContactTrack, x: number, y: number) => {
     const hp = healthOf(c);

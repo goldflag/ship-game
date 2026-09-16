@@ -22,8 +22,8 @@ export function weaponGroupId(battery: Battery, weapon: Weapon): string {
   return `${battery}:gun:${JSON.stringify([
     w.caliberM, w.reloadSeconds, w.muzzleSpeed, w.projectileMassKg, w.penetrationMm, w.damage,
     w.traverseRateDeg, w.catalogElevationMinDeg ?? w.elevationMinDeg, w.catalogElevationMaxDeg ?? w.elevationMaxDeg, w.elevationRateDeg,
-    b?.dragPerSecond ?? 0, b?.dispersionRad ?? 0, b?.muzzleSpeedSigmaFraction ?? 0,
-    b?.penetrationReferenceSpeedMps ?? w.muzzleSpeed,
+    b.dragPerSecond, b.dispersionRad, b.muzzleSpeedSigmaFraction ?? 0,
+    b.penetrationReferenceSpeedMps ?? w.muzzleSpeed,
     ap ? [ap.armingResistanceMm, ap.fuzeDelaySeconds, ap.explosiveKg, ap.fragmentPenetrationMm] : null,
     he ? [he.explosiveKg, he.fragmentPenetrationMm, he.damage] : null,
   ])}`;

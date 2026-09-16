@@ -1,7 +1,8 @@
 import { expect, test } from 'bun:test';
 import { applyLocalDelta, localDelta } from './localSnapshotDelta';
 import { HeadlessSession } from '../../../scripts/multiplayer/headless-session';
-import { decodeSnapshot, SnapshotSession, type Snapshot } from './SnapshotSession';
+import { SnapshotSession, type Snapshot } from './SnapshotSession';
+import { decodeSnapshot } from './snapshotCodec';
 
 test('scalar changes preserve zero, false, empty text, null and explicit undefined', () => {
   for (const next of [0, false, '', null, undefined, 4, true, 'target']) {

@@ -92,7 +92,7 @@ fn failed_takeoff_follows_the_moving_carrier_and_emits_launch_only_once_after_re
     p.wing_fold = 0.0;
     p.timer = 0.0;
     let initial_root = p.deck_position.unwrap();
-    let patches = ground.deck_geometry.as_ref().unwrap().tyres.clone();
+    let patches = ground.deck_geometry.tyres.clone();
     let mut events = vec![];
     let mut time = 0.0;
     for expected_launches in [0, 1] {
@@ -100,8 +100,6 @@ fn failed_takeoff_follows_the_moving_carrier_and_emits_launch_only_once_after_re
             .get_mut(&ground.id)
             .unwrap()
             .deck_geometry
-            .as_mut()
-            .unwrap()
             .tyres = Arc::new(vec![]);
         let timer = a.wings[0].state.planes[0].timer;
         let datum = a.wings[0].state.planes[0].deck_datum;
@@ -142,8 +140,6 @@ fn failed_takeoff_follows_the_moving_carrier_and_emits_launch_only_once_after_re
             .get_mut(&ground.id)
             .unwrap()
             .deck_geometry
-            .as_mut()
-            .unwrap()
             .tyres = patches.clone();
         tick(&mut a, &actors, &mut events, &mut time);
         assert!(a.wings[0].state.planes[0].timer > timer);
@@ -173,16 +169,13 @@ fn failed_initial_raise_preserves_hangar_state_reservations_and_retries_the_same
         .clone();
     let patches = a.ground[&model]
         .deck_geometry
-        .as_ref()
-        .unwrap()
         .tyres
         .clone();
     a.ground
         .get_mut(&model)
         .unwrap()
         .deck_geometry
-        .as_mut()
-        .unwrap()
+        
         .tyres = Arc::new(
         patches
             .iter()
@@ -200,7 +193,7 @@ fn failed_initial_raise_preserves_hangar_state_reservations_and_retries_the_same
     );
     // Keep the route geometry admissible while its actual contact patches are
     // unsupported; this reaches placement after successful route planning.
-    assert!(a.ground[&model].deck_geometry.as_ref().unwrap().valid());
+    assert!(a.ground[&model].deck_geometry.valid());
     let request = a
         .deck_command("carrier", &flight.id, DeckAction::Raise)
         .unwrap();
@@ -236,8 +229,7 @@ fn failed_initial_raise_preserves_hangar_state_reservations_and_retries_the_same
         .get_mut(&model)
         .unwrap()
         .deck_geometry
-        .as_mut()
-        .unwrap()
+        
         .tyres = patches;
     tick(&mut a, &actors, &mut events, &mut time);
     let wing = &a.wings[0].state;

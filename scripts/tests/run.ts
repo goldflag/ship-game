@@ -6,48 +6,23 @@ const cwd = resolve(import.meta.dir, '../..');
 // Scheduling hints from full-suite measurements, not a test roster. Discovery
 // below still runs every file, including new tests without an estimate.
 const seconds: Record<string, number> = {
-  'src/simulation/antiAircraft.test.ts': 5,
-  'src/simulation/machinery.test.ts': 12,
   'src/game/ShipDetail.test.ts': 6,
-  'src/simulation/stability.test.ts': 5,
-  'src/simulation/aircraft.test.ts': 7,
-  'src/simulation/aiLevels.test.ts': 8,
-  'src/simulation/combat.test.ts': 7,
-  'src/simulation/bots.test.ts': 6,
-  'src/simulation/battle.test.ts': 15,
-  'src/simulation/airOperations.test.ts': 8,
-  'src/simulation/submarine.test.ts': 15,
   'src/game/CombatEffects.test.ts': 6,
-  'src/simulation/sinking.test.ts': 7,
   'src/ships/inspection.test.ts': 6,
-  'src/simulation/aircraftAccuracy.test.ts': 10,
-  'src/simulation/damageControl.test.ts': 4,
-  'src/simulation/sea.test.ts': 9,
   'src/game/GameFrame.test.ts': 6,
   'src/game/ShipBatching.test.ts': 5,
-  'src/simulation/shokaku.test.ts': 4,
-  'src/simulation/weaponGroups.test.ts': 4,
   'src/game/ShipPoseMatrices.test.ts': 3,
   'src/game/ShipRenderAssemblies.test.ts': 3,
   'src/game/Game.test.ts': 5,
   'src/game/session/localSnapshotDelta.test.ts': 5,
   'src/game/session/SnapshotSession.test.ts': 3,
-  'src/simulation/aircraftFlight.test.ts': 4,
-  'src/simulation/collisions.test.ts': 3,
   'src/game/ShipView.test.ts': 3,
-  'src/simulation/convoy.test.ts': 3,
 };
 
 // Keep long independent scenarios from serializing the end of a run. A final
 // complementary filter always runs every other test, including renamed/new
 // tests, so these are scheduling hints rather than a second test roster.
-const scenarios: Record<string, [prefix: string, seconds: number][]> = {
-  'src/simulation/machinery.test.ts': [['Yamato wing', 6]],
-  'src/simulation/stability.test.ts': [['asymmetric water', 2], ['yamato:', 1]],
-  'src/simulation/submarine.test.ts': [['ballast takes', 5], ['submerged guns', 4], ['combat submarine bots', 2]],
-  'src/simulation/battle.test.ts': [['every bot maneuvers', 9], ['bot combat produces', 3]],
-  'src/simulation/aircraftAccuracy.test.ts': [['vb-6 ', 4], ['vt-6 ', 4]],
-};
+const scenarios: Record<string, [prefix: string, seconds: number][]> = {};
 
 /** Literal prefixes form disjoint groups; the last group covers all other names. */
 export function testNamePatterns(prefixes: string[]): string[] {

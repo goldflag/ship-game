@@ -3,7 +3,7 @@ import { currentAccount } from '../accounts/session';
 export const CONSTRUCTION_DATABASE = 'fleet-command-construction';
 const DATABASE_VERSION = 1;
 
-export type ConstructionStoreErrorCode = 'unavailable' | 'quota' | 'blocked' | 'unsupported-version' | 'catalog' | 'migration' | 'corrupt' | 'conflict' | 'not-found';
+export type ConstructionStoreErrorCode = 'unavailable' | 'quota' | 'blocked' | 'unsupported-version' | 'catalog' | 'corrupt' | 'conflict' | 'not-found';
 
 export class ConstructionStoreError extends Error {
   constructor(readonly code: ConstructionStoreErrorCode, message: string, options?: ErrorOptions) {
@@ -89,15 +89,13 @@ export interface ConstructionSourceReader<T> {
   schemaVersion: number;
   catalogRevision: string;
   decode(value: unknown): T;
-  /** Migrate a detached copy. The caller must explicitly save it as a new revision. */
-  migrate?(value: unknown, fromVersion: number): unknown;
 }
 
-export function readConstructionSource<T>(revision: ConstructionRevision, reader: ConstructionSourceReader<T>): { source: T; migrated: boolean } {
+export function readConstructionSource<T>(revision: ConstructionRevision, reader: ConstructionSourceReader<T>): { source: T } {
   if (!revision || revision.formatVersion !== 1 || typeof revision.sourceJson !== 'string') {
     throw new ConstructionStoreError('corrupt', 'This revision cannot be read. Recover an earlier revision or download the original for repair.');
   }
-  if (revision.schemaVersion > reader.schemaVersion || (revision.schemaVersion !== reader.schemaVersion && !reader.migrate)) {
+  if (revision.schemaVersion !== reader.schemaVersion) {
     throw new ConstructionStoreError('unsupported-version', `Source version ${revision.schemaVersion} is unsupported here. Open a compatible game version or recover an earlier revision; the original is preserved.`);
   }
   if (revision.catalogRevision !== reader.catalogRevision) {
@@ -106,13 +104,8 @@ export function readConstructionSource<T>(revision: ConstructionRevision, reader
   let value: unknown;
   try { value = JSON.parse(revision.sourceJson); }
   catch (cause) { throw new ConstructionStoreError('corrupt', 'This source is damaged. Recover an earlier revision or download the original for repair.', { cause }); }
-  const migrated = revision.schemaVersion !== reader.schemaVersion;
-  if (migrated) {
-    try { value = reader.migrate!(value, revision.schemaVersion); }
-    catch (cause) { throw new ConstructionStoreError('migration', 'This source could not be upgraded. Its original revision is preserved; recover an earlier version or download it for repair.', { cause }); }
-  }
-  try { return { source: reader.decode(value), migrated }; }
-  catch (cause) { throw new ConstructionStoreError(migrated ? 'migration' : 'corrupt', 'The saved source could not be opened. Recover an earlier revision or download the original; no saved data has changed.', { cause }); }
+  try { return { source: reader.decode(value) }; }
+  catch (cause) { throw new ConstructionStoreError('corrupt', 'The saved source could not be opened. Recover an earlier revision or download the original; no saved data has changed.', { cause }); }
 }
 
 /** Factory injection permits real IndexedDB browser tests without a runtime dependency. */

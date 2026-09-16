@@ -168,8 +168,6 @@ fn contacts(ground: &GroundPose) -> Vec<Vec3> {
     let (s, c) = ground.pitch.sin_cos();
     ground
         .deck_geometry
-        .as_ref()
-        .unwrap()
         .support
         .iter()
         .map(|p| {
@@ -190,8 +188,6 @@ fn assert_contact(
 ) {
     for (i, patches) in ground
         .deck_geometry
-        .as_ref()
-        .unwrap()
         .tyres
         .iter()
         .enumerate()
@@ -338,7 +334,7 @@ fn all_six_models_rest_on_both_carriers_at_every_startup_spot_and_intermediate_h
                         && at.position[2] == 35.0
                         && (at.heading - PI / 4.0).abs() < 1e-8)
                 {
-                    samples.push(serde_json::json!({"ship":id,"model":ground.id,"modelHash":ground.deck_geometry.as_ref().unwrap().model_hash,"datum":at.position,"heading":at.heading,"root":fitted.root,"attitude":fitted.attitude,"contacts":contacts(ground)}));
+                    samples.push(serde_json::json!({"ship":id,"model":ground.id,"modelHash":ground.deck_geometry.model_hash,"datum":at.position,"heading":at.heading,"root":fitted.root,"attitude":fitted.attitude,"contacts":contacts(ground)}));
                 }
             }
         }
@@ -491,11 +487,8 @@ fn missing_or_unsupported_contact_geometry_is_rejected() {
         position: [0.0, 16.5, 40.0],
         heading: 0.0,
     };
-    let mut missing = ground.clone();
-    missing.deck_geometry = None;
-    assert!(surface.fit(ship, &missing, at).is_none());
     let mut empty = ground.clone();
-    Arc::make_mut(&mut empty.deck_geometry.as_mut().unwrap().tyres).clear();
+    Arc::make_mut(&mut empty.deck_geometry.tyres).clear();
     assert!(
         surface.fit(ship, &empty, at).is_none(),
         "Empty tyre patches must not be accepted as contact"

@@ -5,12 +5,8 @@ import type { CombatTelemetry } from '../simulation/combat';
 import type { ShellFollow } from './ShellFollow';
 import type { HullDamageCue } from './HullDamageFeedback';
 
-import { DEFAULT_GRAPHICS, type GraphicsSettings, type PerformanceReadoutMode } from './graphicsSettings';
+import type { PerformanceReadoutMode } from './graphicsSettings';
 
-/** Mesh density tier read by the harbor and island builders. */
-export type Quality = 'medium' | 'high' | 'ultra';
-export type GameSettings = GraphicsSettings;
-export const DEFAULT_SETTINGS: GameSettings = DEFAULT_GRAPHICS;
 /** Renderer telemetry for the FPS counter and the settings readout. */
 export interface PerformanceReadout {
   mode: PerformanceReadoutMode;

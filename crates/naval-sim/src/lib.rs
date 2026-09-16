@@ -34,8 +34,6 @@ pub mod hydrostatics;
 
 pub mod environment;
 
-pub mod trace;
-
 pub mod air_gunnery;
 pub mod air_operations;
 pub mod air_rules;

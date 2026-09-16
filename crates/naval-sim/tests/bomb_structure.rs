@@ -25,7 +25,7 @@ fn target(armor_mm: f64) -> Vessel {
     def.structural_plating = None;
     def.stability = None;
     def.air_wing = None;
-    def.local_damage = Some(ShipDefinitionLocalDamage {
+    def.local_damage = ShipDefinitionLocalDamage {
         version: 1.0,
         basis: "isolated structural blast test".into(),
         regions: vec![DamageRegion {
@@ -37,7 +37,7 @@ fn target(armor_mm: f64) -> Vessel {
             durability_fraction: 1.0,
             ..Default::default()
         }],
-    });
+    };
     if armor_mm > 0.0 {
         def.armor.push(Armor {
             id: "test-deck".into(),

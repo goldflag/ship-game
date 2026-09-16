@@ -19,8 +19,6 @@ fn pose(position: [f64; 3]) -> DeckPose {
 fn envelope(model: &str) -> Envelope {
     catalog().aircraft[model]
         .deck_geometry
-        .as_ref()
-        .unwrap()
         .parked
 }
 
@@ -62,7 +60,7 @@ fn authored_startup_packing_fits_both_real_wings_and_their_elevator() {
     // Current Japanese rigs have no folding hinges. Their actual full span,
     // including the Kate's 15.5 m wing, must participate in admission.
     for id in ["a6m2-zero", "d3a1-val", "b5n2-kate"] {
-        let g = catalog().aircraft[id].deck_geometry.as_ref().unwrap();
+        let g = &catalog().aircraft[id].deck_geometry;
         assert_eq!(g.parked.min, g.spread.min);
         assert_eq!(g.parked.max, g.spread.max);
     }
@@ -99,8 +97,6 @@ fn full_deck_needs_physical_clearance_before_recovery_but_forward_launch_lane_is
         for pool in &wing.squadrons {
             let arrival = catalog().aircraft[&pool.model_id]
                 .deck_geometry
-                .as_ref()
-                .unwrap()
                 .spread;
             let blocked = |from, to| {
                 layout.spots.iter().any(|s| {
@@ -129,15 +125,13 @@ fn full_deck_needs_physical_clearance_before_recovery_but_forward_launch_lane_is
 fn installed_aircraft_geometry_rejects_nonphysical_or_incomplete_sweep_bounds() {
     let mut geometry = catalog().aircraft["tbd-1-devastator"]
         .deck_geometry
-        .clone()
-        .unwrap();
+        .clone();
     assert!(geometry.valid());
     geometry.sweep.max[0] = geometry.parked.max[0];
     assert!(!geometry.valid());
     geometry = catalog().aircraft["tbd-1-devastator"]
         .deck_geometry
-        .clone()
-        .unwrap();
+        .clone();
     geometry.parked.min[1] = -3.0;
     assert!(!geometry.valid());
 }

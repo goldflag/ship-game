@@ -22,17 +22,6 @@ test('unsupported versions, missing catalog and corrupt data leave the original 
   }
 });
 
-test('migration reads a detached source and cannot overwrite its original even on failure', () => {
-  const saved = revision();
-  const before = saved.sourceJson;
-  const migrated = readConstructionSource(saved, { ...reader, schemaVersion: 2, migrate: value => ({ ...value as object, name: 'upgraded' }) });
-  expect(migrated.migrated).toBe(true);
-  expect(migrated.source).toHaveProperty('name', 'upgraded');
-  expect(saved.sourceJson).toBe(before);
-  expect(() => readConstructionSource(saved, { ...reader, schemaVersion: 2, migrate: () => { throw new Error('cannot migrate'); } })).toThrow('could not be upgraded');
-  expect(saved.sourceJson).toBe(before);
-});
-
 test('compiler-invalid drafts remain serializable; non-finite numeric values cannot silently turn into null', () => {
   expect(JSON.parse(encodeConstructionSource({ primitives: [], overlappingEquipment: true }))).toEqual({ primitives: [], overlappingEquipment: true });
   expect(() => encodeConstructionSource({ dimensions: [1, Infinity, 2] })).toThrow('cannot be saved');

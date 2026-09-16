@@ -31,7 +31,7 @@ fn both_full_decks_have_an_order_of_clear_paths_to_the_launch_datum() {
                     .model_id;
                 (
                     &s.id,
-                    catalog().aircraft[model].deck_geometry.as_ref().unwrap(),
+                    &catalog().aircraft[model].deck_geometry,
                     pose(s.position),
                 )
             })
@@ -93,10 +93,7 @@ fn empty_deck_allows_recovery_to_elevator_and_rejects_unsupported_destinations()
             occupied: &[],
         };
         for pool in &wing.squadrons {
-            let model = catalog().aircraft[&pool.model_id]
-                .deck_geometry
-                .as_ref()
-                .unwrap();
+            let model = &catalog().aircraft[&pool.model_id].deck_geometry;
             assert!(
                 traffic
                     .route(
@@ -128,10 +125,7 @@ fn routing_yields_within_budget_and_invalidates_paths_when_the_deck_changes() {
     let wing = ship.air_wing.as_ref().unwrap();
     let layout = wing.deck_layout.as_ref().unwrap();
     let pool = wing.squadrons.iter().find(|p| p.role == "fighter").unwrap();
-    let model = catalog().aircraft[&pool.model_id]
-        .deck_geometry
-        .as_ref()
-        .unwrap();
+    let model = &catalog().aircraft[&pool.model_id].deck_geometry;
     let from = pose(
         layout
             .spots

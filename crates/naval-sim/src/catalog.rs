@@ -225,7 +225,7 @@ impl Catalog {
             !p.pitch.is_finite()
                 || !p.clearance.is_finite()
                 || p.clearance <= 0.0
-                || p.deck_geometry.as_ref().is_some_and(|g| !g.valid())
+                || !p.deck_geometry.valid()
                 || p.bomb
                     .as_ref()
                     .is_none_or(|b| !positive(&[b.caliber_m, b.he.damage, b.he.explosive_kg]))
@@ -441,7 +441,7 @@ pub fn validate_definition(d: &ShipDefinition) -> Result<(), ContentError> {
         {
             return Err(fail());
         }
-        if ![1.0, 2.0, 3.0, 4.0, 8.0].contains(&mount.weapon.barrel_count.unwrap_or(2.0)) {
+        if ![1.0, 2.0, 3.0, 4.0, 8.0].contains(&mount.weapon.barrel_count) {
             return Err(fail());
         }
     }

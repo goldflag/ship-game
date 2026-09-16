@@ -51,7 +51,7 @@ pub(crate) fn install(
     }
     let teams = teams.min(8);
     if teams > 0 {
-        def.damage_control = Some(DamageControlProfile {
+        def.damage_control = DamageControlProfile {
             version: 1.,
             teams: teams as f64,
             setup_seconds: 4.,
@@ -66,7 +66,7 @@ pub(crate) fn install(
             max_patch_m2: 0.03,
             flash_protection: 0.,
             basis: "Included machinery service allowance: one automatic four-person work party per package with at least 400 kg declared service load, maximum eight; finite spares, powered portable pumps, repair only surviving equipment to 70%; gameplay calibration, no additional mass".into(),
-        });
+        };
     }
     Some(ConstructionDiagnostic {
         severity: "warning".into(),

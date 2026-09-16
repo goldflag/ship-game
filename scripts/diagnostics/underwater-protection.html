@@ -8,6 +8,7 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { Game } from '/src/game/Game.ts';
+import { GRAPHICS_PRESETS } from '/src/game/graphicsSettings.ts';
 import { GameAudio } from '/src/game/GameAudio.ts';
 import { shipPreset } from '/src/ships/presets.ts';
 import { ShipContext } from '/src/ui/ShipContext.ts';
@@ -28,7 +29,7 @@ const hud=createRoot(document.querySelector('#hud')), bindings=defaultKeybinding
 let ready, game, iteration=0; const loaded=new Promise(resolve=>ready=resolve);
 const audio = new GameAudio({muted:true,master:.65,effects:.8,interface:.65});
 const paint=()=>hud.render(React.createElement(ShipContext.Provider,{value:definition,key:iteration},React.createElement(FleetHud,{game,bindings,visible:true,data:{ship:game.simulation.ship,order:5,camera:'Chase',fps:60,backend:game.water?.backend??'webgpu',trail:[],pointerLocked:true,combat:game.simulation.telemetry(game.battery,game.currentAim)}})));
-game=new Game(document.querySelector('#scene'),{quality:'medium',resolution:1},{progress:label=>status.textContent=label,ready,telemetry:()=>{},pause:()=>{},hud:()=>{},error:message=>{window.reviewError=message;status.textContent=message;}},definition,audio);
+game=new Game(document.querySelector('#scene'),GRAPHICS_PRESETS.medium,{progress:label=>status.textContent=label,ready,telemetry:()=>{},pause:()=>{},hud:()=>{},error:message=>{window.reviewError=message;status.textContent=message;}},definition,audio);
 window.reviewGame=game;game.start();await loaded;
 try {
 game.setInPort(true);

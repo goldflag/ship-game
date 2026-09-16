@@ -7,7 +7,8 @@ import type { FleetReference } from '../../multiplayer/generated/FleetReference'
 import { assetUrl } from '../../assetUrl';
 import { expandSnapshot } from '../../multiplayer/snapshotDelta';
 import version from '../../generated/naval-version.json';
-import { SnapshotSession, readSnapshot, type Snapshot } from './SnapshotSession';
+import { SnapshotSession, type Snapshot } from './SnapshotSession';
+import { readSnapshot } from './snapshotCodec';
 import type { BattleSetup } from '../../multiplayer/generated/BattleSetup';
 import type { TeamId } from '../../multiplayer/generated/TeamId';
 import type { Command } from '../../multiplayer/generated/Command';

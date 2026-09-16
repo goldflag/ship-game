@@ -26,7 +26,7 @@ import * as THREE from 'three/webgpu';
 import { Fn, float, max, mix, pass, renderOutput, rtt, vec4 } from 'three/tsl';
 import { fxaa } from 'three/addons/tsl/display/FXAANode.js';
 import { smaa } from 'three/addons/tsl/display/SMAANode.js';
-import { aircraftDetailScale, cloudTier, effectsDensity, frameIntervalMs, sanitizeGraphicsSettings, shadowMapSize, shipDetailBudgetPx, type GraphicsSettings, type LegacyGameSettings } from './graphicsSettings';
+import { aircraftDetailScale, cloudTier, effectsDensity, frameIntervalMs, sanitizeGraphicsSettings, shadowMapSize, shipDetailBudgetPx, type GraphicsSettings } from './graphicsSettings';
 import { VisualWaveSampler } from './VisualWaveSampler';
 import { UnderwaterPassVisibility } from './UnderwaterPassVisibility';
 import { FrameScene } from './FrameScene';
@@ -272,7 +272,7 @@ export class Game {
   private detailBudgetPx = 1.25;
   private cloudTask: Promise<void> = Promise.resolve();
 
-  constructor(private host: HTMLElement, settings: GraphicsSettings | LegacyGameSettings, private callbacks: GameCallbacks, definition = selectedShip, readonly audio?: GameAudio) {
+  constructor(private host: HTMLElement, settings: GraphicsSettings, private callbacks: GameCallbacks, definition = selectedShip, readonly audio?: GameAudio) {
     this.settings = sanitizeGraphicsSettings(settings);
     this.launchedGraphics = { ocean: this.settings.ocean, terrain: this.settings.terrain };
     this.frameIntervalMs = frameIntervalMs(this.settings.frameLimit);
@@ -1286,7 +1286,7 @@ export class Game {
     const tracks = new Map((this.simulation.observationTracks ?? []).map(track => [track.id, track]));
     return reports.map(report => {
       const track = tracks.get(report.id);
-      const fresh = report.health !== undefined && Number.isFinite(report.health) && tick - report.observedTick <= 60;
+      const fresh = Number.isFinite(report.health) && tick - report.observedTick <= 60;
       return { id: report.id, name: track ? reportName(track) : 'Surface contact', health: fresh ? report.health : undefined, sunk: !!track?.visibleCondition?.sinking };
     });
   }
@@ -1518,7 +1518,7 @@ export class Game {
     if (this.inPort || this.paused || this.airOperationsOpen || this.simulation.player.damage.sunk ||
       (this.battery !== 'main' && this.battery !== 'secondary')) return;
     const available = this.definition.mounts.some((mount, i) => selectedWeapon(mount.battery, mount.weapon, this.battery, this.weaponGroupId) &&
-      (type === 'ap' || mount.weapon.he) && availableAmmunition(this.simulation.player.mounts[i], type) >= (mount.weapon.barrelCount ?? 2));
+      (type === 'ap' || mount.weapon.he) && availableAmmunition(this.simulation.player.mounts[i], type) >= mount.weapon.barrelCount);
     if (!available) return;
     this.ammunition[this.weaponGroupId ?? this.battery] = type;
     this.simulation.orderAmmunition(this.battery, type, immediate, this.weaponGroupId);

@@ -1,5 +1,6 @@
 // Real application and Rust worker, measured from the first battle frame.
 import { Game } from '/src/game/Game.ts';
+import { GRAPHICS_PRESETS } from '/src/game/graphicsSettings.ts';
 import { fleetBatchSubmissionStats, setFleetBatchBundlesEnabled } from '/src/game/FleetBatchInstancing.ts';
 import { profileRenderPasses } from './profile-render-passes.js';
 const params = new URLSearchParams(location.search);
@@ -21,7 +22,7 @@ Game.prototype.start = function () {
   review.game = this;
   review.setBundles = enabled => setFleetBatchBundlesEnabled(this.renderer.backend, enabled);
   if (params.get('bundles') === '0') review.setBundles(false);
-  this.settings = { ...this.settings, quality: params.get('quality') ?? 'high', resolution: 1 };
+  this.settings = { ...this.settings, ...(GRAPHICS_PRESETS[params.get('quality')] ?? GRAPHICS_PRESETS.high), renderScale: 100 };
   this.rig.capturePointer = () => {};
   const ready = this.callbacks.ready;
   this.callbacks.ready = () => { ready(); loaded = true; };

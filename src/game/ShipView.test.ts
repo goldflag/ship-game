@@ -3,6 +3,8 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import blueprint from '../../assets/ships/bismarck/blueprint.json';
 import catalog from '../../assets/parts/guns.json';
 import { CombatSimulation } from '../simulation/combat';
+import { updateMount } from '../simulation/weapons';
+import { FIXED_DT } from '../simulation/ship';
 import { compileShip } from '../ships/blueprint';
 import { ShipView } from './ShipView';
 import { shipPreset } from '../ships/presets';
@@ -120,7 +122,7 @@ test('a turret disabled during a tick stops its rendered traverse and elevation 
   const view = new ShipView(model.scene, sim.definition, sim.player);
   const mount = sim.player.mounts[0], definition = sim.definition.mounts[0];
   view.capturePreviousPose();
-  sim.step({ throttle: 0, rudder: 0 }, { aim: [5000, 100, 0], fire: false, battery: 'main' });
+  updateMount(definition, mount, sim.definition, sim.ship, [5000, 100, 0], FIXED_DT);
   expect(mount.train).not.toBe(0);
   // A hit lands after gun training in this same fixed tick.
   mount.hp = 0; mount.status = 'disabled';
@@ -136,7 +138,7 @@ test('a turret disabled during a tick stops its rendered traverse and elevation 
   }
   for (let tick = 0; tick < 120; tick++) {
     view.capturePreviousPose();
-    sim.step({ throttle: 1, rudder: 1 }, { aim: [-5000, 0, 500], fire: true, battery: 'main' });
+    updateMount(definition, mount, sim.definition, sim.ship, [-5000, 0, 500], FIXED_DT);
     view.update(.5);
     expect(yaw.rotation.y).toBeCloseTo(expectedTrain, 10);
   }

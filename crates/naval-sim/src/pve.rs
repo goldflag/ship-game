@@ -117,7 +117,7 @@ fn strength(def: &ShipDefinition) -> f64 {
         .iter()
         .filter(|m| crate::anti_aircraft::surface_allowed(def, m))
         .map(|m| {
-            m.weapon.caliber_m.powi(2) * m.weapon.barrel_count.unwrap_or(2.0)
+            m.weapon.caliber_m.powi(2) * m.weapon.barrel_count
                 / m.weapon.reload_seconds.max(1.0)
         })
         .sum();

@@ -9,11 +9,12 @@
   // Dev-only integration check. Reads private Water Pro 3.5.1 GPU fields because
   // the public API has no CPU wake sampling. Never included in the production build.
   import { Game } from '/src/game/Game.ts';
+  import { GRAPHICS_PRESETS } from '/src/game/graphicsSettings.ts';
   import { BISMARCK } from '/src/simulation/ship.ts';
   const noop = () => {};
   const quality = new URLSearchParams(location.search).get('quality') ?? 'high';
   let error;
-  const game = new Game(document.querySelector('#scene'), {quality,resolution:1}, {
+  const game = new Game(document.querySelector('#scene'), (GRAPHICS_PRESETS[quality] ?? GRAPHICS_PRESETS.high), {
     progress:noop, ready:noop, telemetry:noop, pause:noop, hud:noop, error:m=>{error=m;},
   });
   window.wakeGame=game;

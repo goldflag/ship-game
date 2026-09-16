@@ -11,6 +11,7 @@
 <div id="scene"></div><output id="status">Preparing ship impact review…</output>
 <script type="module">
 import { Game } from '/src/game/Game.ts';
+import { GRAPHICS_PRESETS } from '/src/game/graphicsSettings.ts';
 import { hitShip } from '/src/simulation/damage.ts';
 import { localToWorld } from '/src/simulation/geometry.ts';
 
@@ -19,7 +20,7 @@ import { localToWorld } from '/src/simulation/geometry.ts';
 const status = document.querySelector('#status');
 let ready;
 const loaded = new Promise(resolve => ready = resolve);
-const game = new Game(document.querySelector('#scene'), {quality:'medium',resolution:1}, {
+const game = new Game(document.querySelector('#scene'), GRAPHICS_PRESETS.medium, {
   progress: label => status.textContent=label, ready,
   telemetry:()=>{},pause:()=>{},hud:()=>{},error:message=>{status.textContent=message;window.reviewError=message;},
 });

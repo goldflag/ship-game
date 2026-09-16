@@ -1,6 +1,6 @@
 import type { ConstructionSurface } from '../../ships/blueprint';
 import { surfaceKey } from '../../ships/constructionEditor';
-import { CONSTRUCTION_PAINTS } from './paints';
+import { CONSTRUCTION_PAINTS } from '../../ships/constructionPaints';
 
 /** Display totals use the compiler's exposed patch areas, never primitive box estimates. */
 export function armorInspectionGroups(surfaces: readonly ConstructionSurface[]) {

@@ -26,11 +26,7 @@ export const shipPresets = {
   'yukikaze': preset('yukikaze'),
   'fubuki': preset('fubuki'),
 };
-const retiredPresetAliases: Record<string, keyof typeof shipPresets> = {
-  'liberty-deck-cargo': 'liberty-collier', 'liberty-troopship': 'victory-cargo',
-};
 export function shipPreset(id: string | null): ShipDefinition & { contentHash: string } {
-  if (id && Object.hasOwn(retiredPresetAliases, id)) id = retiredPresetAliases[id];
   return (id && Object.hasOwn(shipPresets, id) ? shipPresets[id as keyof typeof shipPresets] : shipPresets.bismarck) as ShipDefinition & { contentHash: string };
 }
 // Preserve synchronous fixtures/CLI access. Browser admission belongs to App's

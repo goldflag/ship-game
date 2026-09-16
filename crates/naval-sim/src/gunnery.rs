@@ -26,7 +26,7 @@ pub struct PlayerGunOrders {
 /// adapter. Normalize integral JSON numbers to JavaScript's stable group keys.
 pub fn group_id(m: &MountDefinition) -> String {
     let w = &m.weapon;
-    let b = w.ballistics.as_ref();
+    let b = &w.ballistics;
     let mut fields = serde_json::json!([
         w.caliber_m,
         w.reload_seconds,
@@ -38,12 +38,10 @@ pub fn group_id(m: &MountDefinition) -> String {
         w.catalog_elevation_min_deg.unwrap_or(w.elevation_min_deg),
         w.catalog_elevation_max_deg.unwrap_or(w.elevation_max_deg),
         w.elevation_rate_deg,
-        b.map_or(0.0, |b| b.drag_per_second),
-        b.map_or(0.0, |b| b.dispersion_rad),
-        b.map_or(0.0, |b| b.muzzle_speed_sigma_fraction.unwrap_or(0.0)),
-        b.map_or(w.muzzle_speed, |b| b
-            .penetration_reference_speed_mps
-            .unwrap_or(w.muzzle_speed)),
+        b.drag_per_second,
+        b.dispersion_rad,
+        b.muzzle_speed_sigma_fraction.unwrap_or(0.0),
+        b.penetration_reference_speed_mps.unwrap_or(w.muzzle_speed),
         w.ap.as_ref().map(|a| [
             a.arming_resistance_mm,
             a.fuze_delay_seconds,
@@ -247,7 +245,7 @@ pub fn operate_observed(
         {
             let ammunition = if m.weapon.he.is_some()
                 && c.classification.as_deref() != Some("Large warship")
-                && state.available(Ammunition::He) >= m.weapon.barrel_count.unwrap_or(2.0)
+                && state.available(Ammunition::He) >= m.weapon.barrel_count
             {
                 Ammunition::He
             } else {
@@ -259,7 +257,7 @@ pub fn operate_observed(
                 <= bots::gun_range(m);
             if in_range
                 && state.hp > 0.0
-                && state.available(state.loaded) >= m.weapon.barrel_count.unwrap_or(2.0)
+                && state.available(state.loaded) >= m.weapon.barrel_count
             {
                 aim = Some(bots::aim_contact(bot, &actor.motion, c, m, &mut state));
             }
@@ -272,7 +270,7 @@ pub fn operate_observed(
                 <= bots::gun_range(m);
             if in_range
                 && state.hp > 0.0
-                && state.available(state.loaded) >= m.weapon.barrel_count.unwrap_or(2.0)
+                && state.available(state.loaded) >= m.weapon.barrel_count
             {
                 aim = Some(bots::aim(
                     bot,
@@ -313,7 +311,7 @@ pub fn operate_observed(
                 actor.firing_visibility_seconds = crate::sensors::FIRING_VISIBILITY_SECONDS;
             }
             let w = &m.weapon;
-            let spread = w.ballistics.as_ref().map_or(0.0, |b| b.dispersion_rad)
+            let spread = w.ballistics.dispersion_rad
                 + (1.0 - mount_support(actor, def, Some(&m.id), None).1) * 0.0015;
             let ammo = if state.loaded == Ammunition::He {
                 "HE"
@@ -341,9 +339,7 @@ pub fn operate_observed(
                     dispersed_direction(shot_direction(m, &state, pose), spread, ctx.seed, shot);
                 let speed = dispersed_speed(
                     w.muzzle_speed,
-                    w.ballistics
-                        .as_ref()
-                        .map_or(0.0, |b| b.muzzle_speed_sigma_fraction.unwrap_or(0.0)),
+                    w.ballistics.muzzle_speed_sigma_fraction.unwrap_or(0.0),
                     ctx.seed,
                     shot,
                 );
@@ -360,9 +356,9 @@ pub fn operate_observed(
                     } else {
                         velocity_penetration(
                             w.penetration_mm,
-                            w.ballistics.as_ref().map_or(w.muzzle_speed, |b| {
-                                b.penetration_reference_speed_mps.unwrap_or(w.muzzle_speed)
-                            }),
+                            w.ballistics
+                                .penetration_reference_speed_mps
+                                .unwrap_or(w.muzzle_speed),
                             length(shell_velocity),
                         )
                     },
@@ -379,7 +375,7 @@ pub fn operate_observed(
                     } else {
                         None
                     },
-                    drag_per_second: Some(w.ballistics.as_ref().map_or(0.0, |b| b.drag_per_second)),
+                    drag_per_second: Some(w.ballistics.drag_per_second),
                     ..Default::default()
                 };
                 ctx.events.push(DamageEvent {

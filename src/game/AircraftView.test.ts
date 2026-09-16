@@ -272,7 +272,7 @@ test('spotted enemy airframes render and move between reports, use local lookout
     const sim: import('./session/BattleSession').BattleSession = new CombatSimulation(shipPreset('fletcher'));
     const report: import('./session/BattleSession').ObservedAircraft = {
       id: 'contact-0-7', modelId: 'f4f-4-wildcat', position: [0, 300, 0], velocity: [80, 0, 0],
-      heading: Math.PI / 2, pitch: .1, roll: .3, observedTick: 0, observers: ['player'], wingFold: 0,
+      heading: Math.PI / 2, pitch: .1, roll: .3, health: 1, payload: false, observedTick: 0, observers: ['player'], wingFold: 0,
       controls: { gear: 0, hook: 0, brakes: 0, aileron: .1, elevator: 0, rudder: 0, propeller: 1 },
     };
     Object.assign(sim, { observedAircraft: [report] });

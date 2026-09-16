@@ -273,7 +273,7 @@ fn crossing_barrels() -> ShipDefinition {
         w.pivot_height = 1.0;
         w.trunnion_forward = 0.0;
         w.muzzle_forward = 10.0;
-        w.barrel_count = Some(1.0);
+        w.barrel_count = 1.0;
         w.barrel_base_radius = Some(0.2);
         w.recoil_m = 0.4;
         w.traverse_deg = 150.0;

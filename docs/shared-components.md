@@ -25,7 +25,7 @@ bun run model:viewer
 
 Open `http://127.0.0.1:5180/?part=type96-25-triple`. Choose a component from the bottom thumbnail carousel. Filter by nation and caliber, or search by family, name or stable part ID. Thumbnails are rendered from the same actual standalone or installed geometry as the viewer. Select **Standalone shared component** or a specific installed mount as the preview source. Inspect original materials, fixed views, dimensions, wireframe and traverse/elevation/recoil. **Overlay** and **Side by side** retain the existing local GLB and GameModels3D comparison workflow. Standalone previews use a neutral palette; ship instances can supply their own materials.
 
-`part:build all` builds registered reusable variants only. `part:check all` checks their freshness and exported joint/socket presence; run builds first in a fresh clone. `model:viewer:check` checks TypeScript and viewer/library tests. `ship:overlay` and `ship:overlay:check` remain compatible aliases.
+`part:build all` builds registered reusable variants only. `part:check all` checks their freshness and exported joint/socket presence; run builds first in a fresh clone. `model:viewer:check` checks TypeScript and viewer/library tests.
 
 Gun parts may specify `recoilM: 0` for stationary external barrels; retain their standard recoil joints and muzzle sockets. Catalog elevation may extend to +90°. Each part's researched limits still bound the CPU pose and review controls, and installed clearance must be reviewed separately.
 

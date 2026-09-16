@@ -492,8 +492,7 @@ mod tests {
             air_rules: None,
         };
         let id = uuid::Uuid::new_v4().to_string();
-        let path = std::env::temp_dir().join(format!("naval-worker-{id}.sqlite"));
-        let writer = Writer::open(&path, 8).unwrap();
+        let writer = Writer::memory(8).0;
         spawn(
             id,
             setup,
@@ -621,9 +620,7 @@ mod tests {
     }
     #[test]
     fn panic_guard_releases_slot_and_persists_abort() {
-        let path =
-            std::env::temp_dir().join(format!("naval-panic-{}.sqlite", uuid::Uuid::new_v4()));
-        let writer = Writer::open(&path, 8).unwrap();
+        let (writer, records) = Writer::memory(8);
         let finished = Arc::new(AtomicBool::new(false));
         let guard = CompletionGuard {
             id: "panic".into(),
@@ -642,18 +639,13 @@ mod tests {
         );
         assert!(finished.load(Ordering::Acquire));
         writer.flush().unwrap();
-        let db = rusqlite::Connection::open(&path).unwrap();
-        let value: String = db
-            .query_row(
-                "SELECT record FROM matches WHERE id='panic' AND finished=1",
-                [],
-                |r| r.get(0),
-            )
-            .unwrap();
-        assert_eq!(
-            serde_json::from_str::<serde_json::Value>(&value).unwrap()["abortReason"],
-            "worker-panic"
-        );
+        let records = records.lock().unwrap();
+        let (_, record, finished) = records
+            .iter()
+            .find(|(id, _, _)| id == "panic")
+            .expect("the guard persists an abort record");
+        assert!(finished);
+        assert_eq!(record["abortReason"], "worker-panic");
     }
     #[tokio::test]
     async fn first_terminal_action_survives_later_surrenders_and_shutdown() {

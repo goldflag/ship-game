@@ -1,7 +1,8 @@
 /** Test adapter: actual WASM authority, with synchronous scheduling instead of a
  * browser worker. GPU scene tests can bind the exact production snapshots. */
 import init, { LocalRuntime, PvePlanner } from '../../src/generated/naval-wasm/naval_wasm';
-import { SnapshotSession, decodeSnapshot } from '../../src/game/session/SnapshotSession';
+import { SnapshotSession } from '../../src/game/session/SnapshotSession';
+import { decodeSnapshot } from '../../src/game/session/snapshotCodec';
 import { runtimeSetup } from '../../src/game/session/LocalBattleSession';
 import type { BattleSetup } from '../../src/simulation/battle';
 import type { Command } from '../../src/multiplayer/generated/Command';

@@ -36,7 +36,7 @@ fn fixture() -> ShipDefinition {
     let mut child = d
         .mounts
         .iter()
-        .find(|m| m.weapon.barrel_count == Some(1.0))
+        .find(|m| m.weapon.barrel_count == 1.0)
         .unwrap()
         .clone();
     child.id = "child".into();
@@ -163,7 +163,7 @@ fn parent_motion_invalidates_a_stationary_neighbors_clearance() {
         m.weapon.gunhouse_size = [2.0; 3];
         m.weapon.mounting_style = None;
         m.weapon.pivot_height = 1.0;
-        m.weapon.barrel_count = Some(1.0);
+        m.weapon.barrel_count = 1.0;
     }
     let mut states: Vec<_> = d.mounts.iter().map(MountState::new).collect();
     let mut gun = states[2].clone();

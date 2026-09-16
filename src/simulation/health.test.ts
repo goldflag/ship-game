@@ -1,18 +1,18 @@
 import { expect, test } from 'bun:test';
-import { shipPreset } from '../ships/presets';
+import { loadShipPreset, shipPreset } from '../ships/presets';
 import { CombatSimulation } from './combat';
 import { createDamage, maxHullIntegrity } from './damage';
 
 const health = [['yamato', 73553], ['bismarck', 50750], ['enterprise-cv6', 33237], ['baltimore', 24255]] as const;
 
-test('preset hull health scales with authored displacement', () => {
+test('preset hull health scales with authored displacement', async () => {
   for (const [id, hp] of health) {
     const state = createDamage(shipPreset(id));
     expect(state.integrity).toBe(hp);
     expect(state.maxIntegrity).toBe(hp);
   }
   // Future blueprints follow the same rule without depending on a preset ID.
-  const custom = structuredClone(shipPreset('baltimore'));
+  const custom = structuredClone(await loadShipPreset('baltimore'));
   custom.id = 'custom-hull';
   custom.hull.massKg = 20_000_000;
   expect(maxHullIntegrity(custom)).toBe(27019);
@@ -24,8 +24,8 @@ test('preset hull health scales with authored displacement', () => {
   expect(maxHullIntegrity(custom)).toBe(10);
 });
 
-test('custom hulls receive a gentle small-ship bonus without flat base HP', () => {
-  const custom = structuredClone(shipPreset('baltimore'));
+test('custom hulls receive a gentle small-ship bonus without flat base HP', async () => {
+  const custom = structuredClone(await loadShipPreset('baltimore'));
   custom.id = 'custom-hull';
   // Doubling tonnage gives about 74% more HP, rather than 100% or the old square-root bonus.
   for (const massKg of [10_000, 769_000, 1_000_000, 4_000_000, 20_000_000, 100_000_000]) {

@@ -23,7 +23,7 @@ const SHORE_BUFFER_M: f64 = 150.0;
 pub enum Movement {
     #[default]
     Autonomous,
-    /// Legacy stop order; new fleet commands use HoldArea for station keeping.
+    /// Stop order; station keeping instead uses HoldArea.
     Hold,
     Move {
         position: [f64; 2],
@@ -44,9 +44,7 @@ pub enum Movement {
         leader_id: String,
         offset: [f64; 2],
         radius_m: f64,
-        #[serde(default)]
         formation: Formation,
-        #[serde(default)]
         slot: u32,
     },
 }

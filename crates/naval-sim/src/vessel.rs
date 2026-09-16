@@ -37,7 +37,6 @@ pub struct ShipIndex {
     by_kind: HashMap<String, Vec<usize>>,
     empty: Vec<usize>,
     pub directors: Vec<usize>,
-    pub coverage: bool,
     mount_directors: Vec<Vec<usize>>,
     /// `(submerged, surface)` engine modules for submarines.
     pub submarine_engines: Option<(Vec<Option<usize>>, Vec<Option<usize>>)>,
@@ -84,9 +83,6 @@ impl ShipIndex {
             }
         }
         let directors: Vec<_> = by_kind.get("fire-control").cloned().unwrap_or_default();
-        let coverage = directors
-            .iter()
-            .any(|i| d.modules[*i].serves_mount_ids.is_some());
         let mount_directors = d
             .mounts
             .iter()
@@ -98,7 +94,7 @@ impl ShipIndex {
                         d.modules[*i]
                             .serves_mount_ids
                             .as_ref()
-                            .is_some_and(|ids| ids.iter().any(|s| *s == mount.id))
+                            .is_some_and(|ids| ids.contains(&mount.id))
                     })
                     .collect()
             })
@@ -125,7 +121,6 @@ impl ShipIndex {
             mount_magazine,
             magazine_mounts,
             directors,
-            coverage,
             mount_directors,
             submarine_engines: d.submarine.as_ref().map(|s| {
                 (
@@ -184,8 +179,8 @@ impl ShipIndex {
     /// Directors serving `mount`, matching the `mount_support` filter exactly.
     pub fn served(&self, mount: Option<&str>) -> Option<&[usize]> {
         match mount {
-            Some(id) if self.coverage => Some(&self.mount_directors[self.mount(id)?]),
-            _ => Some(&self.directors),
+            Some(id) => Some(&self.mount_directors[self.mount(id)?]),
+            None => Some(&self.directors),
         }
     }
 }

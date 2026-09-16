@@ -1,5 +1,6 @@
 // Isolated diagnostic entry: runs the real App, HUD, audio and Game animation loop.
 import { Game } from '/src/game/Game.ts';
+import { GRAPHICS_PRESETS } from '/src/game/graphicsSettings.ts';
 import { mixedSimulation, reviewHelm, reviewIntent } from './mixed-fleet.ts';
 import { CombatSimulation } from '/src/simulation/combat.ts';
 import { shipPreset, shipPresets } from '/src/ships/presets.ts';
@@ -20,7 +21,7 @@ const beginBattle = Game.prototype.setInPort;
 let loaded = false, sailing = false;
 Game.prototype.start = function () {
   window.review = { game: this, ready: false };
-  this.settings = { quality, resolution: 1 };
+  this.settings = { ...(GRAPHICS_PRESETS[quality] ?? GRAPHICS_PRESETS.medium), renderScale: 100 };
   this.rig.capturePointer = () => {};
   const ready = this.callbacks.ready;
   this.callbacks.ready = () => { ready(); loaded = true; };

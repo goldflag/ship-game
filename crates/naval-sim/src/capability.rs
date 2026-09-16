@@ -61,7 +61,7 @@ pub fn update(actor: &mut Combatant, def: &ShipDefinition, wing: Option<&AirWing
     let mut disabled = vec![];
     for (i, m) in def.mounts.iter().enumerate() {
         let s = &actor.mounts[i];
-        let n = m.weapon.barrel_count.unwrap_or(2.0);
+        let n = m.weapon.barrel_count;
         let loaded = s.available(Ammunition::Ap) >= n
             || m.weapon.he.is_some() && s.available(Ammunition::He) >= n;
         any_salvo |= loaded;

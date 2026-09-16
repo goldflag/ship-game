@@ -558,7 +558,7 @@ Stress up to 30 ships and 200 aircraft combined, all available aircraft airborne
 
 Review map/ship camera transitions, fog-of-war silhouettes, readable contact ages, formation paths, order acknowledgements and actual deck articulation at desktop and compact sizes. Retain seeded diagnostics and captures for the implementation under review.
 
-Follow the ship pipeline validation matrix at the implementation baseline. Run relevant Rust unit/integration tests, `bun run multiplayer:check` for shared native/WASM/protocol behavior, relevant TypeScript/session tests and `bun run build`. Use `bun run multiplayer:fixtures` only for an intentional reviewed fixture/contract update. Shared default behavior remains covered by compatibility regressions. Definition/hash changes require affected compile/build/check and model acceptance; retain evidence as prescribed by the current pipeline. This documentation revision does not change simulation, definitions or model outputs.
+Follow the ship pipeline validation matrix at the implementation baseline. Run relevant Rust unit/integration tests, `bun run multiplayer:check` for shared native/WASM/protocol behavior, relevant TypeScript/session tests and `bun run build`. Shared default behavior remains covered by compatibility regressions. Definition/hash changes require affected compile/build/check and model acceptance; retain evidence as prescribed by the current pipeline. This documentation revision does not change simulation, definitions or model outputs.
 
 For separate implementation worktrees or integration, first follow [the integration workflow](integration-workflow.md). Resolve durable authoring inputs before stale outputs; never select a binary side or rewrite hashes to suppress validation failures.
 

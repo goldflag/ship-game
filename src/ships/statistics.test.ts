@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { shipPreset, shipPresets } from './presets';
+import { loadShipPreset, shipPreset, shipPresets } from './presets';
 import { maximumRangeM, shipScores, shipStatistics } from './statistics';
 import { maxHullIntegrity } from '../simulation/damage';
 
@@ -52,8 +52,8 @@ test('category scores stay within 0-100 and separate the presets by their simula
   expect(shipScores(shipPreset('bismarck')).map(s => s.id)).toEqual(['survivability', 'artillery', 'airDefense', 'maneuverability', 'concealment']);
 });
 
-test('air defense excludes small guns that cannot elevate to engage aircraft', () => {
-  const def = structuredClone(shipPreset('king-george-v'));
+test('air defense excludes small guns that cannot elevate to engage aircraft', async () => {
+  const def = structuredClone(await loadShipPreset('king-george-v'));
   def.mounts.forEach(mount => { mount.weapon.elevationMaxDeg = 45; });
   expect(shipScores(def).find(score => score.id === 'airDefense')!.score).toBe(0);
 });
@@ -62,8 +62,8 @@ test('maximum range follows the low-arc solver: elevation limited, then capped a
   const bismarck = shipPreset('bismarck').mounts[0].weapon;
   expect(maximumRangeM(bismarck)).toBeLessThanOrEqual(30000);
   // Elevation above 45° never extends the low arc past its 45° maximum.
-  expect(maximumRangeM({ ...bismarck, ballistics: undefined, muzzleSpeed: 400, elevationMaxDeg: 85 })).toBeCloseTo(400 ** 2 / 9.81, 3);
-  expect(maximumRangeM({ ...bismarck, ballistics: undefined, muzzleSpeed: 400, elevationMaxDeg: 30 })).toBeCloseTo(400 ** 2 * Math.sin(Math.PI / 3) / 9.81, 3);
+  expect(maximumRangeM({ ...bismarck, ballistics: { ...bismarck.ballistics, dragPerSecond: 0 }, muzzleSpeed: 400, elevationMaxDeg: 85 })).toBeCloseTo(400 ** 2 / 9.81, 3);
+  expect(maximumRangeM({ ...bismarck, ballistics: { ...bismarck.ballistics, dragPerSecond: 0 }, muzzleSpeed: 400, elevationMaxDeg: 30 })).toBeCloseTo(400 ** 2 * Math.sin(Math.PI / 3) / 9.81, 3);
   const slow = { ...bismarck, muzzleSpeed: 400 };
-  expect(maximumRangeM(slow)).toBeLessThan(maximumRangeM({ ...slow, ballistics: undefined }));
+  expect(maximumRangeM(slow)).toBeLessThan(maximumRangeM({ ...slow, ballistics: { ...bismarck.ballistics, dragPerSecond: 0 } }));
 });

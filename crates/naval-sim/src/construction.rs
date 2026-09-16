@@ -1135,7 +1135,7 @@ fn build(
         return Err(portal_limit(def.connections.len(), def.openings.as_ref().unwrap().len()));
     }
     let void_volume: f64 = def.compartments.iter().map(|r| r.capacity_m3).sum();
-    def.local_damage = Some(ShipDefinitionLocalDamage {
+    def.local_damage = ShipDefinitionLocalDamage {
         version: 1.,
         basis: "Fixed mass-based hull HP distributed by usable room volume; subdivision adds no HP"
             .into(),
@@ -1152,7 +1152,7 @@ fn build(
                 ..Default::default()
             })
             .collect(),
-    });
+    };
     let total_mass: f64 = contributions.iter().map(|m| m.mass_kg).sum();
     if total_mass <= 0. {
         return Err(error("loading", "No physical material mass", None));
@@ -1898,22 +1898,18 @@ fn equipment(
                     _ => None,
                 },
                 torpedo_launcher_id: (p.kind == "torpedo-launcher").then(|| e.id.clone()),
-                serves_mount_ids: if p.kind == "director" {
-                    Some(
-                        c.equipment
-                            .iter()
-                            .filter(|x| {
-                                catalog
-                                    .equipment
-                                    .iter()
-                                    .any(|p| p.id == x.part_id && p.kind == "gun")
-                            })
-                            .map(|x| x.id.clone())
-                            .collect(),
-                    )
-                } else {
-                    None
-                },
+                serves_mount_ids: (p.kind == "director").then(|| {
+                    c.equipment
+                        .iter()
+                        .filter(|x| {
+                            catalog
+                                .equipment
+                                .iter()
+                                .any(|p| p.id == x.part_id && p.kind == "gun")
+                        })
+                        .map(|x| x.id.clone())
+                        .collect()
+                }),
                 ..Default::default()
             });
         }
@@ -1971,7 +1967,7 @@ fn equipment(
                 rangefinder: false,
                 ..Default::default()
             });
-            let stock = w.ammo_per_barrel * w.barrel_count.unwrap_or(2.);
+            let stock = w.ammo_per_barrel * w.barrel_count;
             let kg = stock * w.projectile_mass_kg;
             masses.push(ConstructionMass {
                 id: format!("{}-ammunition", e.id),
@@ -2086,7 +2082,7 @@ fn equipment(
                 .mounts
                 .iter()
                 .filter(|m| m.magazine_id.as_deref() == Some(e.id.as_str()))
-                .map(|m| m.weapon.ammo_per_barrel * m.weapon.barrel_count.unwrap_or(2.))
+                .map(|m| m.weapon.ammo_per_barrel * m.weapon.barrel_count)
                 .sum();
             if stock > p.ammunition_capacity.unwrap_or(0.) {
                 return Err(error(

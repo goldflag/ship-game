@@ -9,7 +9,7 @@ const track = (id: string, over: Partial<ContactTrack> = {}): ContactTrack => ({
   id, kind: 'aircraft', status: 'tracked', affiliation: 'hostile', classification: 'Torpedo bomber', identifiedPresetId: null, identificationConfidence: 1,
   estimatedPosition: [4000, 30, 0], measuredPosition: [4000, 30, 0], velocity: [-60, 0, 0], uncertaintyM: 50, firstObservedTick: 0, lastObservedTick: 100, sources: [], ...over,
 });
-const seen = (id: string, payload: boolean): ObservedAircraft => ({ id, modelId: 'tbd-1-devastator', position: [4000, 30, 0], heading: 0, velocity: [-60, 0, 0], observedTick: 100, observers: ['bb'], controls: {} as ObservedAircraft['controls'], wingFold: 0, payload });
+const seen = (id: string, payload: boolean): ObservedAircraft => ({ id, modelId: 'tbd-1-devastator', position: [4000, 30, 0], heading: 0, pitch: 0, roll: 0, health: 1, velocity: [-60, 0, 0], observedTick: 100, observers: ['bb'], controls: {} as ObservedAircraft['controls'], wingFold: 0, payload });
 
 test('a strike heads for the ship inside its course cone and releases short of it', () => {
   const intent = inferredTarget([4000, 30, 0], [-60, 0, 0], 'torpedo-bomber', ships);

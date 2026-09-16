@@ -9,7 +9,7 @@ export function aircraftDeckRotation(plane: Aircraft, hull: Pick<Pose, 'heading'
     target.setFromEuler(new Euler(hull.pitch, -hull.heading, hull.roll, 'YXZ')).invert();
     return target.multiply(new Quaternion().setFromEuler(new Euler(plane.pitch, -plane.heading, plane.bank, 'YXZ')));
   }
-  // Older snapshots may only identify a parking slot, without a fitted CPU pose.
+  // A rearmed plane has its deck pose cleared and is identified only by its parking slot.
   const heading = plane.deckHeading ?? (plane.phase === 'taxi' || plane.phase === 'parking' ? plane.heading - hull.heading : 0);
   return target.setFromEuler(new Euler(aircraftGroundPose(plane.modelId).pitch, -heading, 0, 'YXZ'));
 }

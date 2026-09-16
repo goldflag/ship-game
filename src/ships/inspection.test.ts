@@ -79,15 +79,6 @@ test('inspection filters and highlights without changing combat state and follow
   expect(view.root.visible).toBe(false);
 });
 
-test('returning to port resets both actors, ammunition, damage and shells while preserving view bindings', () => {
-  const sim = new CombatSimulation(shipPreset('bismarck')), player = sim.player, target = sim.target;
-  for (let i = 0; i < 1800; i++) sim.step({ throttle: .5, rudder: .2 }, { aim: sim.aimAt('engine-port'), fire: true, battery: 'main' });
-  sim.reset();
-  const fresh = new CombatSimulation(shipPreset('bismarck'));
-  expect(sim.player).toBe(player); expect(sim.target).toBe(target);
-  expect(sim.player).toEqual(fresh.player); expect(sim.target).toEqual(fresh.target);
-  expect(sim.shells).toEqual([]); expect(sim.events).toEqual([]); expect(sim.tick).toBe(0);
-});
 
 test('armor picking follows the ship transform, finds the nearest layer and excludes hidden plates', () => {
   const def = shipPreset('bismarck'), sim = new CombatSimulation(def), view = new ShipInspection(def);

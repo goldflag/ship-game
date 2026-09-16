@@ -84,11 +84,7 @@ export function bindingError(bindings: Keybindings, action: InputAction, slot: 0
 export function keybindingsOf(value: unknown): Keybindings {
   const defaults = defaultKeybindings();
   if (!value || typeof value !== 'object' || Array.isArray(value)) return defaults;
-  // Old category shortcuts become the first four direct slots. Preserve custom keys.
   const saved = { ...value } as Record<string, unknown>;
-  for (const [index, old] of ['mainBattery', 'secondaryBattery', 'torpedoes', 'depthCharges'].entries()) {
-    saved[WEAPON_GROUP_ACTIONS[index]] ??= saved[old];
-  }
   const result = defaultKeybindings();
   const used = new Set<string>();
   const missing: InputAction[] = [];
@@ -104,7 +100,7 @@ export function keybindingsOf(value: unknown): Keybindings {
     result[id] = [pair[0], pair[1]];
   }
   // Add new actions to older saves without discarding existing custom controls.
-  const additions: readonly string[] = [...WEAPON_GROUP_ACTIONS, 'shellFollow', 'shellType', 'torpedoes', 'depthCharges', 'dive', 'rise', 'emergencyBlow', 'airOperations', 'periscope', 'surface', 'dive50', 'simulationSpeed', 'helmWheel'];
+  const additions: readonly string[] = [...WEAPON_GROUP_ACTIONS, 'shellFollow', 'shellType', 'dive', 'rise', 'emergencyBlow', 'airOperations', 'periscope', 'surface', 'dive50', 'simulationSpeed', 'helmWheel'];
   for (const id of [...missing.filter(id => !additions.includes(id)), ...missing.filter(id => additions.includes(id))]) {
     const preferred = defaults[id].filter((code): code is string => code !== null && !used.has(code));
     if (!additions.includes(id) && preferred.length !== defaults[id].filter(Boolean).length) return defaults;

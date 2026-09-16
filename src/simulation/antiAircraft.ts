@@ -27,7 +27,7 @@ export function antiAircraftCandidates(actor: FleetActor, planes: readonly Aircr
       if (!range) continue;
       // Triangle bound covers every barrel through traverse, elevation and hull roll.
       const offset = mountOriginRadius(actor.definition, index) + Math.abs(w.pivotHeight) + Math.abs(w.trunnionForward)
-        + Math.abs(w.muzzleForward - w.trunnionForward) + Math.abs(w.barrelSpacing) * (w.barrelCount ?? 2) + (w.barrelVerticalSpacing ?? 0);
+        + Math.abs(w.muzzleForward - w.trunnionForward) + Math.abs(w.barrelSpacing) * w.barrelCount + (w.barrelVerticalSpacing ?? 0);
       reach = Math.max(reach, range + offset + 1e-6);
     }
     reachByDefinition.set(actor.definition, reach);
@@ -125,7 +125,7 @@ export function updateAntiAircraft(actor: FleetActor, m: MountDefinition, state:
   const inbound = dot(target.velocity, sub(origin, target.position)) > 0;
   const pressure = (1 - state.hp / 100) + (inbound ? Math.max(0, 1 - closest / 1500) : 0);
   stepFireDiscipline(discipline, dt, pressure, gunnerySeed(`${actor.motion.id}:${m.id}`, ctx.seed ?? 0));
-  const barrels = m.weapon.barrelCount ?? 2;
+  const barrels = m.weapon.barrelCount;
   if (availableAmmunition(state) < barrels) selectAmmunition(m, state, state.loaded === 'ap' ? 'he' : 'ap');
   const velocity = motionVelocity(actor.motion);
   const flightTime = closest / m.weapon.muzzleSpeed;
@@ -144,7 +144,7 @@ export function updateAntiAircraft(actor: FleetActor, m: MountDefinition, state:
   for (let barrel = 0; barrel < barrels; barrel++) {
     const position = muzzleWorld(m, state, barrel, actor.motion);
     const direction = dispersedDirection(shotDirection(m, state, actor.motion), AIR_GUNNERY.aaSpread(closest) + directorDispersion(support.fireControl), ctx.seed ?? 0, ctx.nextId());
-    const endpoint = ballisticStep(position, add(scale(direction, m.weapon.muzzleSpeed), velocity), burstTime, m.weapon.ballistics?.dragPerSecond ?? 0).position;
+    const endpoint = ballisticStep(position, add(scale(direction, m.weapon.muzzleSpeed), velocity), burstTime, m.weapon.ballistics.dragPerSecond).position;
     if (!clearLane(actor, position, endpoint, ctx)) { state.status = 'blocked'; return true; }
     shots.push({ position, direction, endpoint });
   }
@@ -153,7 +153,7 @@ export function updateAntiAircraft(actor: FleetActor, m: MountDefinition, state:
   for (const { position, direction, endpoint } of shots) {
     if (length(sub(endpoint, aim)) < (heavy ? 14 : 6)) target.hp -= AIR_GUNNERY.aaDamage(m.weapon.caliberM);
     ctx.emit({ kind: 'aircraft-fire', shipId: actor.motion.id, position, message: `${m.name} · AA fire`,
-      aircraft: { id: target.id, target: endpoint, caliberM: m.weapon.caliberM, tracerSpeed: m.weapon.muzzleSpeed, direction, velocity: [...velocity], panic: discipline.panic, dragPerSecond: m.weapon.ballistics?.dragPerSecond ?? 0,
+      aircraft: { id: target.id, target: endpoint, caliberM: m.weapon.caliberM, tracerSpeed: m.weapon.muzzleSpeed, direction, velocity: [...velocity], panic: discipline.panic, dragPerSecond: m.weapon.ballistics.dragPerSecond,
         ...(heavy ? { airburst: { flightTime: burstTime, caliberM: m.weapon.caliberM } } : {}) } });
   }
   return true;

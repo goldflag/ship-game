@@ -182,7 +182,7 @@ fn projecting_fittings_follow_their_joint_and_stop_before_overhead_structure() {
     m.weapon.trunnion_forward = 0.0;
     m.weapon.pivot_height = 2.0;
     m.weapon.muzzle_forward = 1.0;
-    m.weapon.barrel_count = Some(1.0);
+    m.weapon.barrel_count = 1.0;
     m.weapon.barrel_spacing = 0.0;
     m.weapon.recoil_m = 0.0;
     m.initial_elevation_deg = Some(30.0);

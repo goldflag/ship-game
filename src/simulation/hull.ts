@@ -20,16 +20,7 @@ export function hullContains(hull: Hull, [x, y, z]: Vec3): boolean {
   const sections = hull.sections;
   const index = Math.max(1, sections.findIndex(s => s.station >= station));
   const a = sections[index - 1], b = sections[index], t = (station - a.station) / (b.station - a.station);
-  let points: [number, number][];
-  if (a.points.length === b.points.length) points = a.points.map(([width, height], i) => [width + (b.points[i][0] - width) * t, height + (b.points[i][1] - height) * t]);
-  else {
-    // Different sample counts are legal authoring data: interpolate breadth at a
-    // common height rather than coupling the CPU envelope to a mesh tessellation.
-    const bottom = a.points[0][1] * (1 - t) + b.points[0][1] * t;
-    const top = a.points.at(-1)![1] * (1 - t) + b.points.at(-1)![1] * t;
-    if (y < bottom || y > top) return false;
-    return Math.abs(x) <= interpolate(a.points.map(([w, h]) => [h, w]), y) * (1 - t) + interpolate(b.points.map(([w, h]) => [h, w]), y) * t;
-  }
+  const points: [number, number][] = a.points.map(([width, height], i) => [width + (b.points[i][0] - width) * t, height + (b.points[i][1] - height) * t]);
   if (y < points[0][1] - 1e-7 || y > points.at(-1)![1] + 1e-7) return false;
   // Horizontal chines can have repeated heights. Choose the outside endpoint.
   let width = 0;

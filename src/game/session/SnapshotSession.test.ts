@@ -4,7 +4,7 @@ import { weaponGroups } from '../../ships/weaponGroups';
 import { mountFrame } from '../../simulation/mountFrames';
 import { muzzleWorld } from '../../simulation/weapons';
 import { localToWorld, sub, length } from '../../simulation/geometry';
-import { decodeSnapshot } from './SnapshotSession';
+import { decodeSnapshot } from './snapshotCodec';
 import { squadronFlights, type AirOrder } from '../../simulation/aircraft';
 import pveRules from '../../../assets/gameplay/pve-mission.v1.json';
 import type { MissionRules } from '../../multiplayer/generated/MissionRules';

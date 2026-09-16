@@ -123,19 +123,6 @@ test('retired gunnery bindings are discarded while other saved controls survive'
   expect(bindingError(loaded, 'fire', 0, 'KeyG')).toBeNull();
 });
 
-test('legacy category bindings migrate to direct slots without losing other keys or colliding with new slots', () => {
-  const saved: Record<string, unknown> = { ...defaultKeybindings() };
-  for (let i = 1; i <= 10; i++) delete saved[`weaponGroup${i}`];
-  Object.assign(saved, { mainBattery: ['KeyL', null], secondaryBattery: ['Digit2', null], torpedoes: ['Digit3', null], depthCharges: ['Digit4', null], fire: ['Digit5', null] });
-  const loaded = keybindingsOf(saved);
-  expect(loaded.weaponGroup1).toEqual(['KeyL', null]);
-  expect(loaded.weaponGroup3).toEqual(['Digit3', null]);
-  expect(loaded.fire).toEqual(['Digit5', null]);
-  expect(loaded.weaponGroup5).not.toContain('Digit5');
-  expect(new Set(Object.values(loaded).flat().filter(Boolean)).size).toBe(Object.values(loaded).flat().filter(Boolean).length);
-  expect(keybindingsOf(loaded)).toEqual(loaded);
-});
-
 test('older saves gain the helm wheel on Tab, and Tab is bindable while other menu keys stay reserved', () => {
   const { helmWheel: _helmWheel, ...saved } = defaultKeybindings();
   const loaded = keybindingsOf(saved);

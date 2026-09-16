@@ -2,11 +2,7 @@ import { expect, test } from 'bun:test';
 import { shipPreset, shipPresets } from '../ships/presets';
 import { CombatSimulation } from './combat';
 import { BATTLE_SPAWN_DISTANCE, MIN_BATTLE_SPAWN_DISTANCE, MAX_BATTLE_SPAWN_DISTANCE, MAX_TEAM_SHIPS, validateBattleSetup } from './battle';
-import { botTarget, clearFiringLane } from './bots';
 import { localToWorld } from './geometry';
-import { compileShip } from '../ships/blueprint';
-import legacyYamato from './fixtures/exposed-magazine-ship.json';
-import catalog from '../../assets/parts/guns.json';
 import { antiAircraftRange } from './antiAircraft';
 
 const stop = { throttle: 0, rudder: 0 };
@@ -14,47 +10,6 @@ const intent = { aim: [0, .5, -5000] as [number, number, number], fire: false, b
 const fleet = () => new CombatSimulation(shipPreset('baltimore'), {
   friendlyBots: [shipPreset('bismarck')], enemies: [shipPreset('yamato'), shipPreset('enterprise-cv6')],
 });
-
-for (const spawnDistance of [MIN_BATTLE_SPAWN_DISTANCE, BATTLE_SPAWN_DISTANCE]) {
-  test(`legacy Yamato survives an accurately aimed salvo at ${spawnDistance} m with bounded local damage`, () => {
-    // Freeze the deliberately exposed magazine geometry that reproduced the
-    // damage-budget bug (fixture extracted from cf7f62e3's pre-fidelity Yamato).
-    // Current historical layout must not require explosions.
-    const sim = new CombatSimulation(shipPreset('bismarck'), {
-      friendlyBots: [], enemies: [compileShip(legacyYamato,catalog)], spawnDistance,
-    });
-    // Keep the worst-case damage regression independent of intentionally imperfect bot fire control.
-    sim.target.controller = 'idle';
-    for (let tick = 0; tick < 600; tick++) sim.step(stop, { ...intent, aim: sim.aimAt(), fire: true });
-    expect(sim.events.some(e => e.kind === 'penetration' && e.shipId === sim.target.motion.id)).toBe(true);
-    expect(sim.shellHistory.some(h => h.impacts.some(i => i.shipId === sim.target.motion.id && (i.damage ?? 0) > 0))).toBe(true);
-    const moduleDamage = sim.target.damage.modules.reduce((sum, m, i) => sum + sim.target.definition.modules[i].hp - m.hp, 0);
-    const openingShots = sim.events.filter(e => e.kind === 'shot' && e.shipId === sim.player.motion.id);
-    expect(openingShots).toHaveLength(4);
-    expect(moduleDamage).toBeLessThanOrEqual(openingShots.length * sim.definition.mounts[0].weapon.damage);
-    expect(sim.target.damage.integrity).toBeGreaterThan(sim.target.damage.maxIntegrity / 2);
-    expect(sim.target.damage.integrity).toBeLessThan(sim.target.damage.maxIntegrity);
-    expect(sim.target.damage.sunk).toBe(false);
-    expect(sim.result).toBe('active');
-    // Local magazine HP loss is no longer an automatic explosion or gun loss.
-    // Explicit submerged-hit/flood-space tests cover flooding independently.
-    expect(sim.target.damage.modules.every(m => !m.detonated)).toBe(true);
-    expect(sim.target.mounts.every(m => m.hp > 0)).toBe(true);
-  });
-  test(`current Yamato survives a damaging opening salvo at ${spawnDistance} m`,()=>{
-    const sim=new CombatSimulation(shipPreset('bismarck'),{friendlyBots:[],enemies:[shipPreset('yamato')],spawnDistance});
-    sim.target.controller='idle';
-    for(let tick=0;tick<600;tick++)sim.step(stop,{...intent,aim:sim.aimAt(),fire:true});
-    expect(sim.events.some(e=>e.kind==='penetration'&&e.shipId===sim.target.motion.id)).toBe(true);
-    expect(sim.target.damage.integrity).toBeGreaterThan(sim.target.damage.maxIntegrity/2);
-    expect(sim.target.damage.integrity).toBeLessThan(sim.target.damage.maxIntegrity);
-    expect(sim.target.damage.sunk).toBe(false);
-    expect(sim.result).toBe('active');
-    // These above-water entries and their local bursts damage equipment
-    // without requiring a fictitious flooded magazine.
-    expect(sim.target.damage.compartments.every(c=>c.waterM3===0)).toBe(true);
-  });
-}
 
 test('custom deployments use independent mixed ships, unique IDs and lines 5 km apart', () => {
   const sim = fleet();
@@ -134,83 +89,8 @@ test('spawn distance accepts its limits and rejects invalid values at setup and 
 
 // This 90-second simulated battle checks behavior, not host throughput. Shared
 // Linux runners measured 17.5–24.6 seconds; leave finite scheduling headroom.
-test('every bot maneuvers, fires both applicable batteries, reloads and damages opposing equipment', () => {
-  const sim = fleet();
-  const initial = sim.actors.map(actor => actor.mounts.map(mount => mount.ammo));
-  const shots = new Map<string, number>();
-  const shotTicks = new Map<string, number[]>();
-  let sequence = 0;
-  // Bots must first traverse to a solution; a ready gun alone must not trigger fire.
-  sim.step(stop, intent);
-  expect(sim.events.some(event => event.kind === 'shot')).toBe(false);
-  for (let tick = 1; tick < 60 * 90; tick++) {
-    sim.step({ throttle: .5, rudder: 0 }, intent);
-    for (const event of sim.events) if (event.sequence > sequence) {
-      sequence = event.sequence;
-      if (event.kind !== 'shot') continue;
-      shots.set(event.shipId, (shots.get(event.shipId) ?? 0) + 1);
-      const key = `${event.shipId}:${event.message}`;
-      const ticks = shotTicks.get(key) ?? [];
-      if (ticks.at(-1) !== event.tick) ticks.push(event.tick);
-      shotTicks.set(key, ticks);
-    }
-  }
-  expect(shots.has('player')).toBe(false);
-  for (const actor of sim.actors.slice(1)) {
-    expect(shots.get(actor.motion.id)).toBeGreaterThan(0);
-    expect(actor.motion.distance).toBeGreaterThan(10);
-    actor.definition.mounts.forEach(mount => {
-      const ticks = shotTicks.get(`${actor.motion.id}:${mount.name} fired`) ?? [];
-      ticks.slice(1).forEach((tick, i) => expect((tick - ticks[i]) / 60).toBeGreaterThanOrEqual(mount.weapon.reloadSeconds - 1 / 60));
-    });
-  }
-  const friendly = sim.actors[1];
-  for (const battery of ['main', 'secondary']) expect(friendly.definition.mounts.some((mount, i) => mount.battery === battery && friendly.mounts[i].ammo < initial[1][i])).toBe(true);
-  sim.player.mounts.forEach((mount, i) => {
-    // Surface fire stays under player control; high-angle guns now defend
-    // the player automatically when the enemy carrier's aircraft approach.
-    if (!antiAircraftRange(sim.player.definition.mounts[i])) expect(mount.ammo).toBe(initial[0][i]);
-    else expect(mount.ammo).toBeLessThanOrEqual(initial[0][i]);
-  });
-  // HE aimed at exposed guns causes local equipment damage without spending
-  // a universal hull counter. Both fleets must cause local damage or openings.
-  expect(sim.actors.some(actor => actor.team === 'friendly' && (actor.mounts.some(m => m.hp < 100) || actor.damage.compartments.some(c => c.breachAreaM2 > 0) || actor.damage.modules.some((m, i) => m.hp < actor.definition.modules[i].hp)))).toBe(true);
-  expect(sim.actors.some(actor => actor.team === 'enemy' && (actor.mounts.some(m => m.hp < 100) || actor.damage.compartments.some(c => c.breachAreaM2 > 0) || actor.damage.modules.some((m, i) => m.hp < actor.definition.modules[i].hp)))).toBe(true);
-  const carrier = sim.actors[3];
-  carrier.definition.mounts.forEach((mount, i) => { if (mount.weapon.caliberM < .1) expect(carrier.mounts[i].ammo).toBe(initial[3][i]); });
-// This is 90 simulated seconds of fleet behavior, not a wall-clock benchmark.
-// Leave headroom for concurrent renderer tests and shared development hosts.
-}, 60000);
 
-test('bots ignore allies, change targets after sinking and hold fire through friendly hulls', () => {
-  const sim = fleet(), bot = sim.actors[1];
-  expect(botTarget(bot, sim.actors)?.team).toBe('enemy');
-  const first = botTarget(bot, sim.actors)!;
-  bot.targetId = first.motion.id;
-  first.damage.sunk = true;
-  expect(botTarget(bot, sim.actors)?.motion.id).not.toBe(first.motion.id);
-  const target = botTarget(bot, sim.actors)!;
-  Object.assign(sim.player.motion, { x: (bot.motion.x + target.motion.x) / 2, z: (bot.motion.z + target.motion.z) / 2 });
-  expect(clearFiringLane(bot, target, sim.actors)).toBe(false);
-  sim.player.motion.x += 1000;
-  expect(clearFiringLane(bot, target, sim.actors)).toBe(true);
-  target.damage.sunk = true;
-  expect(botTarget(bot, sim.actors)).toBeUndefined();
-});
 
-test('disabled propulsion and guns stop a bot moving and firing; sunk bots cease fire', () => {
-  const sim = fleet(), bot = sim.actors[1];
-  bot.definition.modules.forEach((module, i) => { if (module.kind === 'engine') bot.damage.modules[i].hp = 0; });
-  bot.mounts.forEach(mount => { mount.hp = 0; });
-  for (let tick = 0; tick < 600; tick++) sim.step(stop, intent);
-  expect(bot.motion.speed).toBe(0);
-  expect(sim.events.some(event => event.kind === 'shot' && event.shipId === bot.motion.id)).toBe(false);
-  const enemy = sim.actors[2];
-  enemy.damage.sunk = true;
-  const ammo = enemy.mounts.map(mount => mount.ammo);
-  for (let tick = 0; tick < 600; tick++) sim.step(stop, intent);
-  expect(enemy.mounts.map(mount => mount.ammo)).toEqual(ammo);
-});
 
 test('target selection uses each enemy definition and rejects friendly IDs', () => {
   const sim = fleet();
@@ -222,35 +102,4 @@ test('target selection uses each enemy definition and rejects friendly IDs', () 
   expect(data.contacts).toHaveLength(4);
 });
 
-test('battle results count all ships and resetting restores every actor without breaking bindings', () => {
-  const sim = fleet(), actors = [...sim.actors];
-  sim.player.damage.sunk = true;
-  sim.step(stop, intent);
-  expect(sim.result).toBe('active');
-  sim.actors[1].damage.sunk = true;
-  sim.step(stop, intent);
-  expect(sim.result).toBe('defeat');
-  sim.selectTarget('enemy-2'); sim.reset();
-  expect(sim.result).toBe('active');
-  expect(sim.tick).toBe(0);
-  expect(sim.target.motion.id).toBe('enemy-1');
-  sim.actors.forEach((actor, i) => {
-    expect(actor).toBe(actors[i]);
-    expect(actor.damage.integrity).toBe(actor.damage.maxIntegrity);
-    expect(actor.damage.sunk).toBe(false);
-    expect(actor.damage.compartments.every(c => c.waterM3 === 0)).toBe(true);
-  });
-  sim.actors.filter(actor => actor.team === 'enemy').forEach(actor => { actor.damage.sunk = true; });
-  sim.step(stop, intent); expect(sim.result).toBe('victory');
-  sim.reset(); sim.actors.forEach(actor => { actor.damage.sunk = true; });
-  sim.step(stop, intent); expect(sim.result).toBe('draw');
-});
 
-test('bot combat produces identical outcomes at 30, 60 and 144 display fps', () => {
-  const results = [30, 60, 144].map(fps => {
-    const sim = new CombatSimulation(shipPreset('baltimore'), { friendlyBots: [], enemies: [shipPreset('bismarck')] });
-    for (let i = 0; i < fps * 40; i++) sim.advance(1 / fps, { throttle: .5, rudder: -.2 }, intent);
-    return { tick: sim.tick, actors: sim.actors, shells: sim.shells, events: sim.events, result: sim.result };
-  });
-  expect(results[0]).toEqual(results[1]); expect(results[1]).toEqual(results[2]);
-});

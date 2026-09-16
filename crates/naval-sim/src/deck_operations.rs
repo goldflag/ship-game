@@ -147,11 +147,10 @@ pub fn place(p: &mut Aircraft, actor: &Vessel, at: DeckPose, ground: &GroundPose
     }) else {
         return false;
     };
-    if let Some(geometry) = &ground.deck_geometry {
-        p.controls.hook = p.controls.hook.min(geometry.hook_deck_fraction);
-        if let Some(previous) = &mut p.previous_controls {
-            previous.hook = previous.hook.min(geometry.hook_deck_fraction);
-        }
+    let geometry = &ground.deck_geometry;
+    p.controls.hook = p.controls.hook.min(geometry.hook_deck_fraction);
+    if let Some(previous) = &mut p.previous_controls {
+        previous.hook = previous.hook.min(geometry.hook_deck_fraction);
     }
     p.deck_local_attitude = Some(crate::aircraft_flight::FlightAttitude {
         heading: fitted.attitude.heading,
@@ -226,11 +225,10 @@ impl DeckOperations {
             let g = ground
                 .get(&p.model_id)
                 .ok_or("Missing aircraft ground pose")?;
-            let model = g
-                .deck_geometry
-                .as_ref()
-                .filter(|m| m.valid())
-                .ok_or("Managed operations require measured aircraft geometry")?;
+            let model = &g.deck_geometry;
+            if !model.valid() {
+                return Err("Managed operations require measured aircraft geometry".into());
+            }
             if !layout.elevators.iter().any(|e| {
                 model.parked.max[0] - model.parked.min[0] <= e.width_m
                     && model.parked.max[2] - model.parked.min[2] <= e.length_m
@@ -427,7 +425,7 @@ impl DeckOperations {
             })
             .map(|p| {
                 let g = &ground[&p.model_id];
-                let model = g.deck_geometry.as_ref().unwrap();
+                let model = &g.deck_geometry;
                 let mut envelope = if g.folding_wings && p.wing_fold >= 1.0 {
                     model.parked
                 } else {
@@ -583,7 +581,7 @@ impl DeckOperations {
                 if ground[&p.model_id].folding_wings && p.wing_fold < 1.0 {
                     continue;
                 }
-                let model = ground[&p.model_id].deck_geometry.as_ref().unwrap();
+                let model = &ground[&p.model_id].deck_geometry;
                 let Some((elevator, lift)) = layout.elevators.iter().enumerate().find(|(_, e)| {
                     model.parked.max[0] - model.parked.min[0] <= e.width_m
                         && model.parked.max[2] - model.parked.min[2] <= e.length_m
@@ -803,7 +801,7 @@ impl DeckOperations {
             return;
         };
         let g = &ground[&state.planes[index].model_id];
-        let model = g.deck_geometry.as_ref().unwrap();
+        let model = &g.deck_geometry;
         let mut finished = false;
         match job.stage {
             Stage::Planning => {

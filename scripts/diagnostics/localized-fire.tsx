@@ -4,6 +4,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { CombatSimulation } from '../../src/simulation/combat';
 import { Game } from '../../src/game/Game';
+import { GRAPHICS_PRESETS } from '../../src/game/graphicsSettings';
 import { FleetHud } from '../../src/ui/FleetHud';
 import { ShipContext } from '../../src/ui/ShipContext';
 import { defaultKeybindings } from '../../src/game/keybindings';
@@ -17,7 +18,7 @@ let Hud = FleetHud;
 const root = createRoot(document.querySelector('#hud')!);
 let ready!: () => void;
 const loaded = new Promise<void>(resolve => ready = resolve);
-const game = new Game(document.querySelector('#scene')!, { quality: 'medium', resolution: 1 }, {
+const game = new Game(document.querySelector('#scene')!, GRAPHICS_PRESETS.medium, {
   progress: message => status.textContent = message, ready, telemetry() {}, pause() {}, hud() {},
   error: message => { status.textContent = message; Object.assign(window, { reviewError: message }); },
 });

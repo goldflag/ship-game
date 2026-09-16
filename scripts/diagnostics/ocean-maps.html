@@ -6,11 +6,12 @@
 <div id="scene"></div><output>Loading map review…</output>
 <script type="module">
 import { Game } from '/src/game/Game.ts';
+import { GRAPHICS_PRESETS } from '/src/game/graphicsSettings.ts';
 const output=document.querySelector('output');
 window.errors=[];
 addEventListener('error',e=>errors.push(e.message));addEventListener('unhandledrejection',e=>errors.push(String(e.reason)));
 const noop=()=>{};
-const game=new Game(document.querySelector('#scene'),{quality:'high',resolution:1/Math.min(devicePixelRatio,1.5)},{progress:text=>output.textContent=text,ready:noop,telemetry:noop,pause:noop,hud:noop,error:message=>errors.push(message)});
+const game=new Game(document.querySelector('#scene'),{...GRAPHICS_PRESETS.high,renderScale:100/Math.min(devicePixelRatio,1.5)},{progress:text=>output.textContent=text,ready:noop,telemetry:noop,pause:noop,hud:noop,error:message=>errors.push(message)});
 window.game=game;
 game.scheduleFrame=noop;
 game.setInPort(true);game.start();await game.initialization;

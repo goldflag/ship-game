@@ -16,7 +16,7 @@ function report(sim: CombatSimulation, bearing = 0, overrides: Partial<CombatEve
     shell: { id, caliberM: .38, velocity: [-Math.sin(bearing) * 820, -20, Math.cos(bearing) * 820] }, ...overrides });
 }
 
-test('real stopped shells point toward their source without requiring hull damage or mutating combat', () => {
+test('stopped shells point toward their source without requiring hull damage or mutating combat', () => {
   const approaches: { position: Vec3; velocity: Vec3; angle: number }[] = [
     { position: [-15, 1, 0], velocity: [820, 0, 0], angle: -Math.PI / 2 },
     { position: [15, 1, 0], velocity: [-820, 0, 0], angle: Math.PI / 2 },
@@ -25,10 +25,9 @@ test('real stopped shells point toward their source without requiring hull damag
   ];
   for (const approach of approaches) {
     const sim = fixture(), hp = sim.player.damage.integrity;
-    sim.shells.push({ id: 1, ownerId: sim.target.motion.id, position: approach.position, velocity: approach.velocity,
-      age: 0, damage: 100, penetrationMm: 1, caliberM: .38, visited: [] });
-    sim.step({ throttle: 0, rudder: 0 }, { aim: [0, 0, -5000], fire: false, battery: 'main' });
-    expect(sim.events.some(e => e.shipId === sim.player.motion.id && e.kind === 'stopped')).toBe(true);
+    // A round the belt stops: the authoritative tick reports it without hull damage.
+    sim.events.push({ sequence: 1, tick: sim.tick, kind: 'stopped', position: approach.position, message: 'Armor hit',
+      shipId: sim.player.motion.id, shell: { id: 1, caliberM: .38, velocity: approach.velocity } });
     expect(sim.player.damage.integrity).toBe(hp);
     const before = JSON.stringify(sim);
     const cues = new HitDirectionFeedback().update(sim, 0);

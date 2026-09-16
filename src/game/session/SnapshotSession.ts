@@ -26,9 +26,6 @@ import { createSeaState } from '../../simulation/sea';
 import { updateMountCarriers } from '../../simulation/mountFrames';
 import type { HelmCommand } from '../../simulation/ship';
 
-/** Wire state is decoded once at the authority boundary. Optional Rust values
- * become absent JS properties; null deck slots must never look like deck poses. */
-export { decodeSnapshot, readSnapshot } from './snapshotCodec';
 type WireActor = Omit<FleetActor, 'definition' | 'team' | 'bot' | 'airWing'> & {
   presetId: string; team: TeamId; aiLevel?: NonNullable<FleetActor['bot']>['aiLevel']; launcherTrains: Record<string, number>;
 };

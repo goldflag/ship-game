@@ -55,18 +55,9 @@ docker compose down
 docker compose up -d --wait postgres
 docker compose run --rm -T --interactive=false migrate
 mkdir -p /opt/ships/backups
-if [ ! -f /opt/ships/postgresql-cutover ]; then
-  backup="/opt/ships/backups/sqlite-$release"
-  mkdir -p "$backup"
-  # Preserve database plus WAL from the stopped server, without modifying its volume.
-  docker run --rm -v ships_matches:/source:ro -v "$backup:/backup" alpine:3.22 sh -c 'cp -a /source/. /backup/'
-  test -f "$backup/matches.sqlite"
-  docker compose run --rm -T --interactive=false -v "$backup:/backup:ro" migrate bun services/db/import-sqlite.ts /backup/matches.sqlite
-fi
-# A PostgreSQL backup is mandatory for every later release as well.
+# A PostgreSQL backup is mandatory for every release.
 docker compose exec -T postgres pg_dump -U ships_admin -d ships -Fc > "/opt/ships/backups/postgres-$release.dump"
 docker compose up -d --wait --wait-timeout 120 compiler api server web
-touch /opt/ships/postgresql-cutover
 # Once accounts/design writes begin, rollback must preserve PostgreSQL.
 if [ -L /opt/ships/current ]; then ln -sfn "$(readlink /opt/ships/current)" /opt/ships/previous; fi
 ln -sfn "/opt/ships/releases/$release" /opt/ships/current
