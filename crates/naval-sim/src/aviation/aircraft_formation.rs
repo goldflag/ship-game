@@ -1,10 +1,9 @@
-use crate::{
+use super::{
     air_gunnery::SeedKey,
     aircraft::{AirFlight, Aircraft, set_str},
     aircraft_flight::{FlightOptions, fly},
-    definition::Vec3,
-    geometry::*,
 };
+use crate::{definition::Vec3, geometry::*};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -23,7 +22,7 @@ fn layout_seed(f: &AirFlight, p: &Aircraft, seed: u32) -> u32 {
         .finish()
 }
 
-pub fn formation_kind(f: &AirFlight, p: &Aircraft, seed: u32) -> &'static str {
+pub(super) fn formation_kind(f: &AirFlight, p: &Aircraft, seed: u32) -> &'static str {
     if p.pilot.attack_stage.as_deref() == Some("run") {
         return if p.role == "torpedo-bomber" {
             "line-abreast"
@@ -42,7 +41,7 @@ pub fn formation_kind(f: &AirFlight, p: &Aircraft, seed: u32) -> &'static str {
     }
 }
 
-pub fn formation_offset(f: &AirFlight, p: &Aircraft, time: f64, seed: u32) -> Vec3 {
+pub(super) fn formation_offset(f: &AirFlight, p: &Aircraft, time: f64, seed: u32) -> Vec3 {
     let slot = f.plane_ids.iter().position(|id| id == &p.id).unwrap_or(0);
     if slot == 0 {
         return [0.0; 3];
@@ -102,10 +101,10 @@ pub fn formation_offset(f: &AirFlight, p: &Aircraft, time: f64, seed: u32) -> Ve
         z * spacing + (time * 0.17 + phase * 3.0).sin() * 4.0,
     ]
 }
-pub fn formation_leader(
+pub(super) fn formation_leader(
     f: &AirFlight,
     planes: &[Aircraft],
-    endurance: &crate::air_rules::EndurancePolicy,
+    endurance: &crate::aviation::air_rules::EndurancePolicy,
 ) -> Option<usize> {
     f.plane_ids
         .iter()
@@ -116,7 +115,7 @@ pub fn formation_leader(
                 && matches!(planes[i].phase.as_str(), "outbound" | "attack")
         })
 }
-pub fn formation_position(
+pub(super) fn formation_position(
     f: &AirFlight,
     p: &Aircraft,
     leader: &Aircraft,
@@ -144,7 +143,7 @@ pub fn formation_position(
         ],
     )
 }
-pub fn fly_formation(
+pub(super) fn fly_formation(
     p: &mut Aircraft,
     leader: &Aircraft,
     f: &AirFlight,
@@ -183,4 +182,52 @@ pub fn fly_formation(
             ..Default::default()
         },
     );
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::aviation::{
+        air_rules::AirRules,
+        test_support::{catalog, planes},
+    };
+    use std::collections::BTreeSet;
+
+    #[test]
+    fn formation_layouts_vary_by_sortie_and_role_and_change_without_teleporting() {
+        let (f, mut ps) = planes("torpedo-bomber");
+        let layouts: BTreeSet<_> = (0..64)
+            .map(|seed| formation_kind(&f, &ps[1], seed))
+            .collect();
+        assert_eq!(layouts.len(), 3);
+        assert_eq!(
+            formation_offset(&f, &ps[1], 30.0, 5739),
+            formation_offset(&f, &ps[1], 30.0, 5739)
+        );
+        let leader = ps[0].clone();
+        fly_formation(&mut ps[1], &leader, &f, 1.0 / 60.0, 0.0, 5739);
+        let before = ps[1].pilot.formation.as_ref().unwrap().offset;
+        let position = ps[1].position;
+        ps[1].pilot.attack_stage = Some("run".into());
+        fly_formation(&mut ps[1], &leader, &f, 1.0 / 60.0, 1.0 / 60.0, 5739);
+        assert_eq!(ps[1].pilot.formation.as_ref().unwrap().kind, "line-abreast");
+        for axis in 0..3 {
+            assert!(
+                (ps[1].pilot.formation.as_ref().unwrap().offset[axis] - before[axis]).abs()
+                    <= 8.0 / 60.0 + 1e-9
+            );
+        }
+        assert!(crate::geometry::length(crate::geometry::sub(position, ps[1].position)) < 2.0);
+        let (f, ps) = planes("fighter");
+        assert_eq!(formation_kind(&f, &ps[0], 5739), "pairs");
+    }
+    #[test]
+    fn formation_leaders_need_endurance_left_under_the_selected_policy() {
+        let (f, mut ps) = planes("fighter");
+        for p in &mut ps {
+            p.flight_time = 1200.0;
+        }
+        let pve = &catalog().air_profiles["pve-air-v1"].endurance;
+        assert!(formation_leader(&f, &ps, pve).is_some());
+        assert!(formation_leader(&f, &ps, &AirRules::legacy().endurance).is_none());
+    }
 }

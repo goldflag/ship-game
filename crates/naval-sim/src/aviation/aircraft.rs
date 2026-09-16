@@ -51,7 +51,7 @@ pub enum SearchAltitude {
     High,
 }
 impl SearchAltitude {
-    pub fn metres(self) -> f64 {
+    pub(super) fn metres(self) -> f64 {
         match self {
             Self::Low => 200.0,
             Self::Medium => 850.0,
@@ -120,7 +120,7 @@ pub struct Aircraft {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub deck_datum: Option<Vec3>,
     #[serde(skip)]
-    pub deck_local_attitude: Option<crate::aircraft_flight::FlightAttitude>,
+    pub deck_local_attitude: Option<crate::aviation::aircraft_flight::FlightAttitude>,
     pub deck_position: Option<Vec3>,
     pub deck_heading: Option<f64>,
     pub timer: f64,
@@ -128,9 +128,9 @@ pub struct Aircraft {
     pub cooldown: f64,
     pub target_id: Option<String>,
     pub kills: u32,
-    pub controls: crate::aircraft_flight::FlightControls,
-    pub previous_controls: Option<crate::aircraft_flight::FlightControls>,
-    pub previous_attitude: Option<crate::aircraft_flight::FlightAttitude>,
+    pub controls: crate::aviation::aircraft_flight::FlightControls,
+    pub previous_controls: Option<crate::aviation::aircraft_flight::FlightControls>,
+    pub previous_attitude: Option<crate::aviation::aircraft_flight::FlightAttitude>,
     pub pilot: AirPilot,
     pub deck_slot: Option<usize>,
     pub flight_id: Option<String>,
@@ -153,14 +153,14 @@ pub struct AirWreck {
 #[serde(rename_all = "camelCase")]
 pub struct AirPilot {
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub maneuver: Option<crate::aircraft_tactics::FighterManeuver>,
+    pub maneuver: Option<crate::aviation::aircraft_tactics::FighterManeuver>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub formation: Option<crate::aircraft_formation::FormationState>,
+    pub formation: Option<crate::aviation::aircraft_formation::FormationState>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub defense: Option<crate::aircraft_defense::DefenseState>,
+    pub defense: Option<crate::aviation::aircraft_defense::DefenseState>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub recovery: Option<crate::aircraft_recovery::RecoveryProgress>,
-    pub fire_discipline: Option<crate::air_gunnery::FireDiscipline>,
+    pub recovery: Option<crate::aviation::aircraft_recovery::RecoveryProgress>,
+    pub fire_discipline: Option<crate::aviation::air_gunnery::FireDiscipline>,
     pub think: f64,
     pub hostile_id: Option<String>,
     pub aim_time: f64,
@@ -183,9 +183,9 @@ fn is_zero(v: &f64) -> bool {
 #[serde(rename_all = "camelCase")]
 pub struct AirWingState {
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub recovery: Option<crate::air_recovery::CarrierRecovery>,
+    pub recovery: Option<crate::aviation::air_recovery::CarrierRecovery>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub deck: Option<crate::deck_operations::DeckStatus>,
+    pub deck: Option<crate::aviation::deck_operations::DeckStatus>,
     pub planes: Vec<Aircraft>,
     pub launch_cooldown: f64,
     pub flights: Vec<AirFlight>,
@@ -202,27 +202,27 @@ pub struct AirRelease {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub weapon: Option<crate::definition::TorpedoPart>,
 }
-pub const FIGHTER_AMMO_BURSTS: f64 = 16.0;
+pub(super) const FIGHTER_AMMO_BURSTS: f64 = 16.0;
 /// Assign a closed-set string in place. The stored bytes are identical to
 /// `*slot = value.into()`; only the allocation is reused.
 #[inline]
-pub fn set_str(slot: &mut String, value: &str) {
+pub(super) fn set_str(slot: &mut String, value: &str) {
     if slot != value {
         slot.clear();
         slot.push_str(value);
     }
 }
 #[inline]
-pub fn set_opt_str(slot: &mut Option<String>, value: &str) {
+pub(super) fn set_opt_str(slot: &mut Option<String>, value: &str) {
     match slot {
         Some(existing) => set_str(existing, value),
         None => *slot = Some(value.to_owned()),
     }
 }
-pub fn terminal_phase(phase: &str) -> bool {
+pub(super) fn terminal_phase(phase: &str) -> bool {
     matches!(phase, "lost" | "withdrawn")
 }
-pub fn airborne_phase(phase: &str) -> bool {
+pub(super) fn airborne_phase(phase: &str) -> bool {
     matches!(
         phase,
         "takeoff" | "outbound" | "attack" | "returning" | "landing"
@@ -234,7 +234,7 @@ pub fn terminal(p: &Aircraft) -> bool {
 pub fn airborne(p: &Aircraft) -> bool {
     airborne_phase(&p.phase)
 }
-pub fn in_flight(p: &Aircraft) -> bool {
+pub(super) fn in_flight(p: &Aircraft) -> bool {
     airborne(p) && p.hp > 0.0
 }
 /// What a pilot is permitted to observe about another aircraft, borrowed
@@ -242,7 +242,7 @@ pub fn in_flight(p: &Aircraft) -> bool {
 /// `Aircraft` copy carried, so pilot decisions are unchanged; the fields the
 /// pilot controllers never read are simply absent.
 #[derive(Clone, Copy, Debug)]
-pub struct PlaneView<'a> {
+pub(super) struct PlaneView<'a> {
     pub id: &'a str,
     pub flight_id: Option<&'a str>,
     pub hostile_id: Option<&'a str>,
@@ -255,7 +255,7 @@ pub struct PlaneView<'a> {
     pub ammo: f64,
 }
 impl<'a> PlaneView<'a> {
-    pub fn of(p: &'a Aircraft) -> Self {
+    pub(super) fn of(p: &'a Aircraft) -> Self {
         Self {
             id: &p.id,
             flight_id: p.flight_id.as_deref(),
@@ -269,11 +269,11 @@ impl<'a> PlaneView<'a> {
             ammo: p.ammo,
         }
     }
-    pub fn in_flight(&self) -> bool {
+    pub(super) fn in_flight(&self) -> bool {
         airborne_phase(self.phase) && self.hp > 0.0
     }
 }
-pub fn on_flight_deck(p: &Aircraft) -> bool {
+pub(crate) fn on_flight_deck(p: &Aircraft) -> bool {
     p.deck_slot.is_some()
         && matches!(
             p.phase.as_str(),
@@ -287,7 +287,7 @@ pub fn on_flight_deck(p: &Aircraft) -> bool {
                 | "lowering"
                 | "launch-ready"
         )
-        || p.phase == "takeoff" && p.timer <= crate::aircraft_flight::TAKEOFF_ROLL_SECONDS
+        || p.phase == "takeoff" && p.timer <= crate::aviation::aircraft_flight::TAKEOFF_ROLL_SECONDS
 }
 pub fn active_flight(f: &AirFlight, planes: &[Aircraft]) -> bool {
     planes.iter().any(|p| {
@@ -305,11 +305,11 @@ pub fn active_flight(f: &AirFlight, planes: &[Aircraft]) -> bool {
             )
     })
 }
-pub fn aircraft_service_seconds(base: f64, hp: f64) -> f64 {
+pub(super) fn aircraft_service_seconds(base: f64, hp: f64) -> f64 {
     base * (1.0 + (100.0 - hp.clamp(0.0, 100.0)) / 100.0)
 }
 impl Aircraft {
-    pub fn forward(&self) -> Vec3 {
+    pub(super) fn forward(&self) -> Vec3 {
         [
             self.heading.sin() * self.pitch.cos(),
             self.pitch.sin(),
@@ -321,7 +321,7 @@ pub fn create_air_wing(
     def: &crate::definition::ShipDefinition,
     owner_id: &str,
     team: TeamId,
-    ground: &std::collections::BTreeMap<String, crate::aircraft_deck::GroundPose>,
+    ground: &std::collections::BTreeMap<String, crate::aviation::aircraft_deck::GroundPose>,
 ) -> Option<AirWingState> {
     let wing = def.air_wing.as_ref()?;
     Some(AirWingState {

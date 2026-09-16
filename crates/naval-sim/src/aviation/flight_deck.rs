@@ -84,7 +84,7 @@ pub struct DeckPose {
     pub heading: f64,
 }
 impl Envelope {
-    pub fn corners(self, pose: DeckPose, margin: f64) -> [[f64; 2]; 4] {
+    pub(super) fn corners(self, pose: DeckPose, margin: f64) -> [[f64; 2]; 4] {
         let (s, c) = pose.heading.sin_cos();
         [
             [self.min[0] - margin, self.min[2] - margin],
@@ -165,7 +165,7 @@ impl Envelope {
     }
 }
 
-pub fn inside(polygon: &[[f64; 2]], x: f64, z: f64) -> bool {
+pub(super) fn inside(polygon: &[[f64; 2]], x: f64, z: f64) -> bool {
     let mut result = false;
     if polygon.len() < 3 {
         return false;
@@ -181,7 +181,10 @@ pub fn inside(polygon: &[[f64; 2]], x: f64, z: f64) -> bool {
     }
     result
 }
-pub fn validate(definition: &ShipDefinition, layout: &FlightDeckLayout) -> Result<(), String> {
+pub(crate) fn validate(
+    definition: &ShipDefinition,
+    layout: &FlightDeckLayout,
+) -> Result<(), String> {
     let structures = definition.structures.as_deref().unwrap_or_default();
     let surface = structures
         .iter()

@@ -1,8 +1,7 @@
 //! Self-contained presentation state. Transport adapters may encode a baseline
 //! against this state; simulation objects never come back from clients.
 use crate::{
-    aircraft::AirRelease,
-    aviation::CarrierWing,
+    aviation::{AirRelease, CarrierWing},
     battle::{Battle, Event},
     depth_charges::DepthCharge,
     records::Records,

@@ -6,11 +6,13 @@
 //! carrier can recover and rearm, hold a reserve, escort in proportion and
 //! thicken the patrol when hostile aircraft are reported. Every carrier reads
 //! one team-wide allocation so two carriers hit two ships, not one.
-use crate::{
+use super::{
     aircraft::{AirFlight, AirOrder, Aircraft, SearchAltitude, SearchPolicy, active_flight},
+    deck_operations::DeckAction,
+};
+use crate::{
     battle::Battle,
     bots::AiLevel,
-    deck_operations::DeckAction,
     pve::PvePlan,
     rules::{TICK_RATE, TeamId},
     sensors::{Affiliation, ContactKind, ContactTrack},
@@ -427,7 +429,7 @@ impl PvePlan {
                 let reported = wing.planes.iter().any(|p| {
                     p.role != "fighter"
                         && p.hp > 0.0
-                        && (crate::aircraft::airborne(p) && !p.payload
+                        && (crate::aviation::aircraft::airborne(p) && !p.payload
                             || p.sortie.unwrap_or(0) > 0
                                 && matches!(
                                     p.phase.as_str(),

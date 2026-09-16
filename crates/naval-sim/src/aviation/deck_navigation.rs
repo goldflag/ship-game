@@ -1,8 +1,8 @@
 //! Bounded ground-route search. A route includes its turns: a clear parking spot
 //! and runway do not by themselves imply that an aircraft can move between them.
+use super::flight_deck::{AircraftDeckGeometry, DeckPose, Envelope, inside};
 use crate::{
     definition::ShipDefinition,
-    flight_deck::{AircraftDeckGeometry, DeckPose, Envelope, inside},
     geometry::{length, sub, wrap_angle},
 };
 use std::{
@@ -10,9 +10,9 @@ use std::{
     collections::{BTreeMap, BinaryHeap},
 };
 
-pub struct DeckTraffic<'a> {
+pub(super) struct DeckTraffic<'a> {
     pub ship: &'a ShipDefinition,
-    pub surface: &'a crate::deck_contact::DeckSurface,
+    pub surface: &'a crate::aviation::deck_contact::DeckSurface,
     /// Excludes the moving aircraft; includes occupied and reserved destinations.
     pub occupied: &'a [(Envelope, DeckPose)],
 }
@@ -43,7 +43,7 @@ fn polygons_overlap(a: &[[f64; 2]], b: &[[f64; 2]]) -> bool {
 }
 
 impl DeckTraffic<'_> {
-    pub fn clear(&self, model: &AircraftDeckGeometry, pose: DeckPose) -> bool {
+    pub(super) fn clear(&self, model: &AircraftDeckGeometry, pose: DeckPose) -> bool {
         let Some(layout) = self
             .ship
             .air_wing
@@ -98,7 +98,7 @@ impl DeckTraffic<'_> {
                 })
         })
     }
-    pub fn segment_clear(
+    pub(super) fn segment_clear(
         &self,
         model: &AircraftDeckGeometry,
         from: DeckPose,
@@ -153,7 +153,7 @@ impl DeckTraffic<'_> {
     }
     /// Start a search against an immutable deck revision. Increment the revision
     /// whenever an occupied/reserved pose, fold state or ship definition changes.
-    pub fn begin_route(
+    pub(super) fn begin_route(
         &self,
         model: &AircraftDeckGeometry,
         from: DeckPose,
@@ -175,7 +175,8 @@ impl DeckTraffic<'_> {
     }
     /// Blocking convenience for offline layout validation. Simulation callers
     /// must retain a search and advance it with a per-tick node budget instead.
-    pub fn route(
+    #[cfg(test)]
+    pub(super) fn route(
         &self,
         model: &AircraftDeckGeometry,
         from: DeckPose,
@@ -196,7 +197,7 @@ type Key = (i16, i16, u8);
 const SEARCH_LIMIT: usize = 6000;
 
 #[derive(Clone, Debug)]
-pub enum RouteProgress {
+pub(super) enum RouteProgress {
     Pending,
     Found(Vec<DeckPose>),
     Blocked,
@@ -207,7 +208,7 @@ pub enum RouteProgress {
 /// pivots. Every edge is checked against the same revision. A search owns its
 /// aircraft geometry, so switching aircraft cannot reuse another model's path.
 #[derive(Clone, Debug)]
-pub struct RouteSearch {
+pub(super) struct RouteSearch {
     model: AircraftDeckGeometry,
     ship_id: String,
     revision: u64,
@@ -230,13 +231,14 @@ impl RouteSearch {
             heading: f64::from(k.2) * std::f64::consts::FRAC_PI_4,
         }
     }
-    pub fn visited_nodes(&self) -> usize {
+    #[cfg(test)]
+    pub(super) fn visited_nodes(&self) -> usize {
         self.visited
     }
     /// Work is bounded by node expansions, not elapsed wall time, preserving
     /// replay determinism. A zero budget performs no geometry work. Direct
     /// connection and initial-turn validation consume the first work unit.
-    pub fn advance(
+    pub(super) fn advance(
         &mut self,
         traffic: &DeckTraffic<'_>,
         revision: u64,
@@ -368,5 +370,190 @@ impl Ord for Candidate {
             .estimate
             .total_cmp(&self.estimate)
             .then_with(|| other.key.cmp(&self.key))
+    }
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::aviation::{deck_contact::DeckSurface, test_support::catalog};
+
+    fn pose(position: [f64; 3]) -> DeckPose {
+        DeckPose {
+            position,
+            heading: 0.0,
+        }
+    }
+
+    #[test]
+    fn both_full_decks_have_an_order_of_clear_paths_to_the_launch_datum() {
+        for id in ["enterprise-cv6", "shokaku"] {
+            let ship = &catalog().definitions[id];
+            let wing = ship.air_wing.as_ref().unwrap();
+            let layout = wing.deck_layout.as_ref().unwrap();
+            let mut remaining: Vec<_> = layout
+                .spots
+                .iter()
+                .map(|s| {
+                    let model = &wing
+                        .squadrons
+                        .iter()
+                        .find(|p| p.role == s.preferred_role)
+                        .unwrap()
+                        .model_id;
+                    (
+                        &s.id,
+                        &catalog().aircraft[model].deck_geometry,
+                        pose(s.position),
+                    )
+                })
+                .collect();
+            remaining.sort_by(|a, b| {
+                a.2.position[2]
+                    .total_cmp(&b.2.position[2])
+                    .then_with(|| a.2.position[0].abs().total_cmp(&b.2.position[0].abs()))
+            });
+            let mut cleared = vec![];
+            while !remaining.is_empty() {
+                let mut found = None;
+                for (i, &(name, model, from)) in remaining.iter().enumerate() {
+                    let occupied: Vec<_> = remaining
+                        .iter()
+                        .enumerate()
+                        .filter(|(j, _)| *j != i)
+                        .map(|(_, (_, g, p))| (g.parked, *p))
+                        .collect();
+                    let traffic = DeckTraffic {
+                        ship,
+                        surface: &DeckSurface::new(ship).unwrap(),
+                        occupied: &occupied,
+                    };
+                    if let Some(route) = traffic.route(model, from, pose(layout.launch_start)) {
+                        assert_eq!(route.last().unwrap().position, layout.launch_start);
+                        let mut previous = from;
+                        for point in route {
+                            assert!(traffic.segment_clear(model, previous, point));
+                            previous = point;
+                        }
+                        cleared.push(name.clone());
+                        found = Some(i);
+                        break;
+                    }
+                }
+                let Some(index) = found else {
+                    panic!(
+                        "{id}: no safe departure after {:?}; remaining {:?}",
+                        cleared,
+                        remaining.iter().map(|p| p.0).collect::<Vec<_>>()
+                    )
+                };
+                remaining.remove(index);
+            }
+            assert_eq!(cleared.len(), 24);
+        }
+    }
+
+    #[test]
+    fn empty_deck_allows_recovery_to_elevator_and_rejects_unsupported_destinations() {
+        for id in ["enterprise-cv6", "shokaku"] {
+            let ship = &catalog().definitions[id];
+            let wing = ship.air_wing.as_ref().unwrap();
+            let layout = wing.deck_layout.as_ref().unwrap();
+            let traffic = DeckTraffic {
+                ship,
+                surface: &DeckSurface::new(ship).unwrap(),
+                occupied: &[],
+            };
+            for pool in &wing.squadrons {
+                let model = &catalog().aircraft[&pool.model_id].deck_geometry;
+                assert!(
+                    traffic
+                        .route(
+                            model,
+                            pose(layout.recovery_stop),
+                            pose(layout.elevators[0].position)
+                        )
+                        .is_some(),
+                    "{id} / {}",
+                    pool.model_id
+                );
+                assert!(
+                    traffic
+                        .route(
+                            model,
+                            pose(layout.recovery_stop),
+                            pose([100.0, layout.recovery_stop[1], 0.0])
+                        )
+                        .is_none()
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn routing_yields_within_budget_and_invalidates_paths_when_the_deck_changes() {
+        let ship = &catalog().definitions["enterprise-cv6"];
+        let wing = ship.air_wing.as_ref().unwrap();
+        let layout = wing.deck_layout.as_ref().unwrap();
+        let pool = wing.squadrons.iter().find(|p| p.role == "fighter").unwrap();
+        let model = &catalog().aircraft[&pool.model_id].deck_geometry;
+        let from = pose(
+            layout
+                .spots
+                .iter()
+                .find(|s| s.preferred_role == "fighter")
+                .unwrap()
+                .position,
+        );
+        let to = pose(layout.launch_start);
+        let traffic = DeckTraffic {
+            ship,
+            surface: &DeckSurface::new(ship).unwrap(),
+            occupied: &[],
+        };
+        let mut search = traffic.begin_route(model, from, to, 7);
+        assert!(matches!(
+            search.advance(&traffic, 7, 0),
+            RouteProgress::Pending
+        ));
+        assert_eq!(search.visited_nodes(), 0);
+        assert!(matches!(
+            search.advance(&traffic, 7, 1),
+            RouteProgress::Pending
+        ));
+        assert_eq!(search.visited_nodes(), 1);
+        assert!(matches!(
+            search.advance(&traffic, 8, 16),
+            RouteProgress::Invalidated
+        ));
+        assert_eq!(search.visited_nodes(), 1);
+        // An invalidated search cannot resume even if the old revision is supplied.
+        assert!(matches!(
+            search.advance(&traffic, 7, 16),
+            RouteProgress::Invalidated
+        ));
+
+        let mut search = traffic.begin_route(model, from, to, 8);
+        let path = loop {
+            let before = search.visited_nodes();
+            let result = search.advance(&traffic, 8, 16).clone();
+            assert!(search.visited_nodes() - before <= 16);
+            match result {
+                RouteProgress::Pending => continue,
+                RouteProgress::Found(path) => break path,
+                other => panic!("Expected a clear route around the island: {other:?}"),
+            }
+        };
+        assert_eq!(path.last().unwrap().position, to.position);
+        let mut previous = from;
+        for point in path {
+            assert!(traffic.segment_clear(model, previous, point));
+            previous = point;
+        }
+        // A completed route is stale too; callers must reserve before changing the
+        // deck revision or publishing it to a moving aircraft.
+        assert!(matches!(
+            search.advance(&traffic, 9, 0),
+            RouteProgress::Invalidated
+        ));
     }
 }

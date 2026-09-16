@@ -1,12 +1,9 @@
 //! Local, deterministic flight allocation. Hostile priority consumes measured
 //! kinematics only; role, stores, health and enemy flight identity are irrelevant.
-use crate::{
-    aircraft::{Aircraft, PlaneView},
-    definition::Vec3,
-    geometry::*,
-};
+use super::aircraft::{Aircraft, PlaneView};
+use crate::{definition::Vec3, geometry::*};
 
-pub fn target(
+pub(super) fn target(
     p: &Aircraft,
     planes: &[PlaneView<'_>],
     anchor: Vec3,
