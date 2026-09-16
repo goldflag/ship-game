@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "generic-steam-plant-36000kw",
+  "revision": "cce123f3c6549194454743ac3014903ca2341ae55a35622eb4c7ac53d563de6d",
+  "contentHash": "2e5f5968bf42b9a640ab82d16a2b0dabdc24b13709d84e79afbcb027865f9c0f",
+  "modelSha256": "d0fdb40d98073d951755fa9f38be0557d0c21da5751e1e8c2c5ca94da970e375",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/generic-steam-plant-36000kw/cce123f3c6549194454743ac3014903ca2341ae55a35622eb4c7ac53d563de6d/model.glb",
+  "boundsCenter": [
+    0,
+    2.6800001561641693,
+    0
+  ],
+  "size": [
+    10.000001907348633,
+    5.360000312328339,
+    22
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 4140,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original generic capital-ship package. Geometry, plant power, mass and exhaust capacity are explicit gameplay estimates; no historical plant or thermodynamic certification. Review each installation.",
+  "basis": "assets/parts/construction/README.md"
+}

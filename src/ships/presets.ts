@@ -1,3 +1,4 @@
+import constructedResolute from '../../public/models/resolute.json';
 import constructedAdmiralHipperConstructionJson from '../../public/models/admiral-hipper-construction.json?raw';
 import cleveland from '../../public/models/cleveland.json';
 import admiralHipper from '../../public/models/admiral-hipper.json';
@@ -25,6 +26,7 @@ import { registerHydrostaticTable, type HydrostaticTable } from '../simulation/h
 /** Historical presets share the same compiled definition and renderer contract. */
 const constructedAdmiralHipperConstruction = JSON.parse(constructedAdmiralHipperConstructionJson) as ShipDefinition;
 export const shipPresets = {
+  "resolute": constructedResolute,
   "admiral-hipper-construction": constructedAdmiralHipperConstruction,
   'admiral-hipper': admiralHipper,
   cleveland,

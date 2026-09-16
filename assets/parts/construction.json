@@ -2851,6 +2851,127 @@
           ]
         }
       ]
+    },
+    {
+      "id": "generic-steam-plant-36000kw",
+      "name": "36 MW boiler and geared-turbine plant",
+      "kind": "engine",
+      "size": [
+        10,
+        6,
+        22
+      ],
+      "boundsCenter": [
+        0,
+        3,
+        0
+      ],
+      "centerOfGravity": [
+        0,
+        2.2,
+        0
+      ],
+      "massKg": 1800000,
+      "placement": "internal",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ],
+      "powerKw": 36000,
+      "serviceMassKg": 200000,
+      "occupancy": [
+        {
+          "center": [
+            0,
+            3,
+            0
+          ],
+          "size": [
+            10,
+            6,
+            22
+          ]
+        }
+      ]
+    },
+    {
+      "id": "generic-capital-funnel",
+      "name": "Capital-ship oval funnel",
+      "kind": "funnel",
+      "size": [
+        6,
+        11.1,
+        10.5
+      ],
+      "boundsCenter": [
+        0,
+        5.55,
+        0.4
+      ],
+      "centerOfGravity": [
+        0,
+        4.5,
+        0
+      ],
+      "massKg": 75000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "exhaust-out",
+          "kind": "exhaust",
+          "position": [
+            0,
+            10.7,
+            0.91
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        }
+      ],
+      "exhaustKw": 36000,
+      "occupancy": [
+        {
+          "center": [
+            0,
+            -0.5,
+            0
+          ],
+          "size": [
+            5,
+            1,
+            8
+          ]
+        }
+      ]
     }
   ]
 }

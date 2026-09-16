@@ -3,6 +3,7 @@ import type { ShipDefinition } from '../ships/blueprint';
 import { localShip } from '../ships/localShips';
 
 const identities: Record<string, { type: string; nation: string }> = {
+  resolute: { type: 'Battleship', nation: '' },
   'admiral-hipper': { type: 'Heavy cruiser', nation: 'Germany' },
   'type-viic': { type: 'Submarine', nation: 'Germany' },
   fletcher: { type: 'Destroyer', nation: 'United States' },
