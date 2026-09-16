@@ -44,6 +44,8 @@ pub struct DeckRequest {
     pub action: DeckAction,
     pub automatic: bool,
 }
+/// The wire name of [`DeckStatus::active_flight_limit`], whose null travels.
+pub const ACTIVE_FLIGHT_LIMIT_FIELD: &str = "activeFlightLimit";
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DeckStatus {
@@ -58,6 +60,11 @@ pub struct DeckStatus {
     pub occupied: usize,
     pub capacity: usize,
     pub group_size: usize,
+    /// `None` is the "unlimited" operating policy, not a missing optional. It is
+    /// the one field the frame codec sends as an explicit null and the client
+    /// keeps as null; every other `None` in a frame is an absent key. Declared
+    /// here as [`ACTIVE_FLIGHT_LIMIT_FIELD`] and honoured by
+    /// [`crate::frame_delta::KEEP_NULL`].
     pub active_flight_limit: Option<usize>,
     pub endurance: crate::air_rules::EndurancePolicy,
     pub repair_ceiling_hp: f64,

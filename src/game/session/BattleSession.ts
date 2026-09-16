@@ -10,15 +10,15 @@ import type { OrderReceipt } from './commandQueue';
 import type { Formation } from '../../multiplayer/generated/Formation';
 import type { FleetActor } from '../../simulation/battle';
 import type { ContactTrack } from '../../multiplayer/generated/ContactTrack';
+import type { ObservedShip } from '../../multiplayer/generated/ObservedShip';
+import type { ObservedAircraft } from '../../multiplayer/generated/ObservedAircraft';
 import type { MissionRules } from '../../multiplayer/generated/MissionRules';
 import type { ReconCoverage } from '../../multiplayer/generated/ReconCoverage';
-/** Health is a sampled 0–1 fraction. */
-export interface ObservedPose { health: number; id: string; position: Vec3; heading: number; pitch: number; roll: number; velocity: Vec3; observedTick: number; observers: string[] }
-/** Gun attitudes are visible from outside: `[train, elevation, recoil]` per mount and the train of each
- * torpedo launcher, both in definition order. Readiness and ammunition are not. */
-export interface ObservedShip extends ObservedPose { presetId: string; mounts: [number, number, number][]; launchers: number[] }
-/** A slung torpedo or bomb is visible from outside, so the observation carries it; rounds are not. */
-export interface ObservedAircraft extends ObservedPose { modelId: string; controls: import('../../simulation/aircraftFlight').FlightControls; wingFold: number; payload: boolean }
+/** Observed contacts are declared with the frame, in Rust (`naval_sim::snapshot`). */
+export type { ObservedShip } from '../../multiplayer/generated/ObservedShip';
+export type { ObservedAircraft } from '../../multiplayer/generated/ObservedAircraft';
+/** What a ship and an aircraft observation share: a sampled pose and who saw it. */
+export type ObservedPose = Pick<ObservedShip, keyof ObservedShip & keyof ObservedAircraft>;
 export interface BattleDebrief {
  seed: number;
  tick: number;

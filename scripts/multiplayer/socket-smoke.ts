@@ -1,5 +1,5 @@
 import { testAccount, verifyMatchContent } from './test-accounts';
-import { expandSnapshot } from '../../src/multiplayer/snapshotDelta';
+import { decodeFrameUpdate } from '../../src/game/session/frameDelta';
 import assert from 'node:assert/strict';
 import { gunzipSync } from 'node:zlib';
 import version from '../../src/generated/naval-version.json';
@@ -15,7 +15,7 @@ function connect(ticket: string) {
   const socket = new WebSocket(base.replace(/^http/, 'ws') + '/api/socket', {headers:{cookie:cookies.get(ticket)!,origin:new URL(base).origin}}); socket.binaryType = 'arraybuffer';
   const messages: any[] = []; let latest: any, matched:any;
   socket.onopen = () => socket.send(JSON.stringify({ type: 'hello', ticket, version }));
-  socket.onmessage = async e => { const message = typeof e.data === 'string' ? JSON.parse(e.data) : JSON.parse(gunzipSync(new Uint8Array(e.data)[0] === 0 ? new Uint8Array(e.data).subarray(1) : new Uint8Array(e.data)).toString()); if (message.type === 'snapshot-delta') latest = expandSnapshot(matched.baseline, message); else { if(message.type==='matched') { matched=message; await verifyMatchContent(base,cookies.get(ticket)!,ticket,message.contentHash); } messages.push(message); if(message.type === 'error') console.error(message); } };
+  socket.onmessage = async e => { const message = typeof e.data === 'string' ? JSON.parse(e.data) : JSON.parse(gunzipSync(new Uint8Array(e.data)[0] === 0 ? new Uint8Array(e.data).subarray(1) : new Uint8Array(e.data)).toString()); if ('baseTick' in message) latest = decodeFrameUpdate(matched.baseline, message); else { if(message.type==='matched') { matched=message; await verifyMatchContent(base,cookies.get(ticket)!,ticket,message.contentHash); } messages.push(message); if(message.type === 'error') console.error(message); } };
   return { socket, messages, get frame() { return latest; }, send(message: object) { socket.send(JSON.stringify({...message,...((message as any).type==='ready'?{contentHash:matched.contentHash}:{})})); } };
 }
 async function until<T>(read: () => T, label: string): Promise<NonNullable<T>> {

@@ -2,7 +2,7 @@ use crate::{aircraft::Aircraft, definition::Vec3, geometry::*};
 use serde::{Deserialize, Serialize};
 pub const TAKEOFF_ROLL_SECONDS: f64 = 3.6;
 pub const TAKEOFF_CLIMB_SECONDS: f64 = 2.4;
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, ts_rs::TS)]
 pub struct FlightControls {
     pub gear: f64,
     pub hook: f64,

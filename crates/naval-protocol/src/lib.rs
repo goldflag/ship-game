@@ -535,6 +535,7 @@ impl FleetControl {
     }
 }
 
+pub mod frame;
 pub mod session;
 
 /// Browser references carry no derived physics or component catalog.

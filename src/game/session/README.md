@@ -8,37 +8,50 @@ Fleet UI selection and camera follow are independent of `controlledShipId`. `rel
 
 The local `CommandQueue` bounds pending intent at 128 commands and retains explicit queued/sent/accepted/rejected/superseded receipts. A new movement order supersedes pending movement for that ship; route appends and separate weapon priorities preserve their order. Local tactical pause stops tick dispatch while still accepting commands. On resume the worker validates every queued command in sequence through Rust. Remote sessions continue on server time.
 
-Ordered, lossless changes travel from the worker, and the receiver checks the
-preceding tick and copies changed paths, keeping earlier snapshots intact for
-interpolation. This transport relies on one owned worker with serialized
-requests; it is separate from reconnectable online deltas. Scalar changes travel
-directly and object patches use keyed fields to avoid per-value wrappers and
-key/value tuple allocations during structured cloning. Explicit `undefined`
-replacements remain wrapped, and prototype-named fields are written as own data
-properties. Unchanged subtrees retain their identity.
+The frame is declared once, in Rust: `naval_sim::snapshot::BattleFrame` is
+what the battle emits (hulls, wings, projectiles, events, records, and a team
+view's contacts and observations), and `naval_protocol::frame::SessionFrame`
+flattens it and adds what only the session knows (helm seats, standing orders,
+phase, connection state). ts-rs exports both to `src/multiplayer/generated/`
+(`bun run multiplayer:types`), and `Snapshot` here is that generated type. The
+eight collections whose element shapes are filtered views of simulation objects
+(a hull without its bot, a shell without its damage ledger) are the frame's type
+parameters; their elements are still the retired engine's types until they are
+declared in Rust.
 
-Rust produces those changes. `LocalRuntime.snapshot_delta` walks the live
-simulation once against a shadow of the frame it published last and writes only
-what moved, in the shape `applyLocalDelta` consumes, so the worker parses a few
-kilobytes rather than parsing a whole frame, stripping its nulls and diffing it
-structurally — two full walks it no longer makes. The shadow is normalized the
-way the old decoder normalized: a field whose value turns null is reported as
-removed, because the frame the renderer holds has no such key. It keeps fields in
-emission order behind a cursor rather than in a map, and holds numbers unboxed,
-so an unchanged field costs a comparison; patch text is written lazily, and keys
-and container headers reach the buffer only once something below them moves.
-Numbers are compared as the client would read them, integers apart from floats
-and floats bit for bit. Each frame carries the baseline tick the client must be
-holding; a runtime with no baseline — after init, deploy or restart — sends a
-complete frame. `detailShipIds` narrowing works unchanged: the fields it adds and
-removes travel as ordinary additions and removals.
-`localSnapshotDelta.test.ts` applies real Rust patches through a carrier battle
-whose detail list changes mid-stream and compares each rebuilt frame against the
-complete Rust snapshot, including combat events and renderer identity updates;
+One codec carries that frame over both transports: `crates/naval-sim/src/frame_delta.rs`
+encodes a `FrameUpdate` — the tick of the reference frame the receiver must be
+holding, the tick reached, and a patch of what moved — and `frameDelta.ts`
+decodes it by copying the changed paths onto the reference, keeping the frame
+being interpolated intact and unchanged subtrees' identities. The worker's
+reference is the frame it published last (ordered, lossless: one request, one
+reply). The server's reference is the immutable baseline every client receives
+with its match metadata, so a slow socket may skip any update; the server forks
+its baseline encoder for each publication. An update against a reference the
+session is not holding is a transport fault, never a silently wrong frame. The
+codec also owns the null invariant: a null object field has no key on the
+receiver, with one declared exception (`activeFlightLimit`, whose null is the
+"unlimited" policy, declared on `DeckStatus`); nothing on the client strips
+nulls, and the complete-frame path (`LocalRuntime.snapshot`) is the same
+normalized text.
+
+The encoder walks the live simulation once against a shadow of the reference
+frame and writes only what moved. The shadow keeps fields in emission order
+behind a cursor rather than in a map, and holds numbers unboxed, so an unchanged
+field costs a comparison; patch text is written lazily, and keys and container
+headers reach the buffer only once something below them moves. Numbers are
+compared as the client would read them, integers apart from floats and floats
+bit for bit. A runtime with no reference — after init, deploy or restart — sends
+the frame whole. `detailShipIds` narrowing works unchanged: the fields it adds
+and removes travel as ordinary additions and removals. `frameDelta.test.ts`
+applies real Rust updates through a carrier battle whose detail list changes
+mid-stream and compares each rebuilt frame against the complete Rust snapshot,
+including combat events and renderer identity updates, and reads one update
+through both the worker's reference and an immutable baseline;
 `crates/naval-sim/tests/frame_delta.rs` does the same natively for the
-full-knowledge and team projections.
+full-knowledge and team frames.
 
-`MatchConnection` handles admission, per-tab reconnect tokens, socket replacement, bounded decompression and match metadata. `RemoteBattleSession` publishes addressed commands and interpolates snapshots while the server owns time. The load-ready message is sent after model loading and initial scene rendering, not when the socket connects.
+`MatchConnection` handles admission, per-tab reconnect tokens, socket replacement, bounded decompression and match metadata. `RemoteBattleSession` publishes addressed commands and interpolates snapshots while the server owns time; every binary frame is a `FrameUpdate` against the metadata's baseline. The load-ready message is sent after model loading and initial scene rendering, not when the socket connects.
 
 `LocalWorkerOperation` owns one pending planner or initialization request and its
 deadline. Completed requests can reuse or transfer the worker; timeout, abort
@@ -67,11 +80,11 @@ displays, pause/restart, prompt orders, taking the helm, dispatch from the reply
 and debt carried across a round trip longer than the old clamp.
 
 Live PvE snapshots stream owned hull fields through the shared presentation
-serializer, remapping target IDs through the team boundary. Contacts, effects,
-aircraft and scores retain the existing team projection, and finished missions
-retain their debrief path. Native differential tests compare every field against
-the original tree projection for both teams, including unavailable targets and
-finished battles.
+filter, remapping target IDs through the team boundary. Contacts, effects,
+aircraft and scores are the typed team frame, and a finished mission carries the
+full-knowledge frame as its `debrief`. Native differential tests compare every
+hull field against the original tree filter for both teams, including
+unavailable targets and finished battles.
 
 Compartment-derived damage is half of a fleet-command frame, and most of it has
 one reader. The `advance` message names the hulls whose damage-control panel can

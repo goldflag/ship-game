@@ -122,7 +122,7 @@ fn full_knowledge_patches_rebuild_the_decoded_frame_through_a_large_battle() {
             _ => Vec::new(),
         };
         stream.frame(
-            &battle.detailed_presentation_snapshot(&detail),
+            &battle.full_frame(&detail),
             &format!("tick {tick}"),
         );
         battle.step(&BTreeMap::new());
@@ -171,7 +171,7 @@ fn team_patches_rebuild_the_decoded_frame_including_contacts_and_events() {
     let detail = ["own".to_string()];
     for tick in 0..600u64 {
         stream.frame(
-            &battle.detailed_team_presentation_snapshot(TeamId::A, &detail),
+            &battle.team_frame(TeamId::A, &detail).expect("team frame"),
             &format!("tick {tick}"),
         );
         battle.step(&BTreeMap::new());

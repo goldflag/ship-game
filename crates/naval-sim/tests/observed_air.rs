@@ -739,7 +739,7 @@ fn owned_flights_publish_activity_without_private_pilot_state() {
             .unwrap(),
         b.presentation_value(PresentationView::Team(TeamId::A))
             .unwrap(),
-        serde_json::to_value(b.presentation_snapshot()).unwrap(),
+        serde_json::to_value(b.full_frame(&[])).unwrap(),
     ] {
         let p = frame["wings"][0]["state"]["planes"]
             .as_array()

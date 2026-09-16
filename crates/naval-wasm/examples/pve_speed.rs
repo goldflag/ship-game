@@ -7,7 +7,8 @@
 //! Scenarios: `surface` and `carrier` (fleet command, team projection, default
 //! 12-tick batches like 4× at 20 Hz), `custom` (15-ship custom battle, full
 //! snapshot every tick like the 60 Hz local session), `server` (same battle,
-//! the match worker's tree projection plus baseline delta every 3 ticks).
+//! the match worker's session frame as an update against the immutable
+//! baseline every 3 ticks).
 //! `--dump` writes the complete final state for byte comparison across builds.
 //! The local scenarios publish Rust-emitted patches, as the worker does;
 //! `--full-snapshot` times the complete-frame path they replaced instead.
@@ -75,47 +76,26 @@ fn custom_setup() -> serde_json::Value {
         "spawnDistance": 12000.0, "windSpeed": null})
 }
 
-/// Mirror of naval-server's baseline delta, minus gzip: patches against the
-/// immutable match baseline, serialized contiguously.
-fn delta_bytes(baseline: &serde_json::Value, current: &serde_json::Value) -> usize {
-    fn diff(
-        base: &serde_json::Value,
-        value: &serde_json::Value,
-        path: &mut Vec<serde_json::Value>,
-        patches: &mut Vec<serde_json::Value>,
-    ) {
-        use serde_json::{Value, json};
-        if base == value {
-            return;
-        }
-        match (base, value) {
-            (Value::Object(a), Value::Object(b)) if a.keys().all(|key| b.contains_key(key)) => {
-                for (key, value) in b {
-                    path.push(json!(key));
-                    if let Some(base) = a.get(key) {
-                        diff(base, value, path, patches);
-                    } else {
-                        patches.push(json!([path, value]));
-                    }
-                    path.pop();
-                }
-            }
-            (Value::Array(a), Value::Array(b)) if a.len() == b.len() => {
-                for (index, (base, value)) in a.iter().zip(b).enumerate() {
-                    path.push(json!(index));
-                    diff(base, value, path, patches);
-                    path.pop();
-                }
-            }
-            _ => patches.push(json!([path, value])),
-        }
-    }
-    let mut patches = Vec::new();
-    diff(baseline, current, &mut Vec::new(), &mut patches);
-    serde_json::to_vec(&serde_json::json!({"type":"snapshot-delta","patches":patches}))
-        .map(|v| v.len())
-        .unwrap_or(0)
+/// What the match server publishes, minus gzip: the session frame as a
+/// `FrameUpdate` against the immutable match baseline (`encoding::publish_bytes`).
+fn server_update(
+    baseline: &naval_sim::frame_delta::FrameDelta,
+    runtime: &naval_wasm::LocalRuntime,
+) -> (usize, bool) {
+    let session = runtime.session();
+    let frame = session.server_frame(SERVER_CONNECTION);
+    let mut delta = baseline.fork();
+    let json = delta.update(session.battle.tick, &frame).unwrap();
+    (json.len(), session.battle.outcome.is_some())
 }
+const SERVER_CONNECTION: naval_protocol::frame::Connection<'static> =
+    naval_protocol::frame::Connection {
+        phase: naval_protocol::frame::Phase::Running,
+        reason: None,
+        connected: [true, true],
+        loaded: [true, true],
+        countdown: None,
+    };
 
 fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
@@ -180,7 +160,7 @@ fn main() {
         "custom" => vec!["player".into(), "enemy-0".into()],
         _ => Vec::new(),
     };
-    let baseline = server.then(|| runtime.full_knowledge_value().unwrap());
+    let baseline = server.then(|| runtime.session().server_baseline(SERVER_CONNECTION).unwrap().0);
     let mut tick = 0u64;
     let (mut step_ms, mut snap_ms, mut bytes) = (0.0, 0.0, 0usize);
     let mut finished = false;
@@ -200,9 +180,9 @@ fn main() {
             if snapshot {
                 let s = Instant::now();
                 if let Some(baseline) = &baseline {
-                    let value = runtime.full_knowledge_value().unwrap();
-                    bytes += delta_bytes(baseline, &value);
-                    finished |= value["outcome"].is_object();
+                    let (len, done) = server_update(baseline, &runtime);
+                    bytes += len;
+                    finished |= done;
                 } else if patches {
                     // The browser worker's path: one walk, only what moved.
                     let json = runtime.snapshot_delta(detail.clone()).unwrap();

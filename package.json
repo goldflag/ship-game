@@ -31,6 +31,7 @@
     "git:setup": "bun scripts/git/setup.ts",
     "test:workflow": "bun test scripts/git scripts/ships",
     "multiplayer:definitions": "bun scripts/multiplayer/generate-rust-definitions.ts",
+    "multiplayer:types": "cargo run --locked -p naval-protocol --bin export",
     "multiplayer:content": "bun scripts/multiplayer/content.ts",
     "multiplayer:wasm": "bun scripts/multiplayer/build-wasm.ts",
     "multiplayer:check": "bun scripts/multiplayer/check.ts",

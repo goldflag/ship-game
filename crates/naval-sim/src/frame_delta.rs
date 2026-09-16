@@ -1,20 +1,29 @@
-//! Emit a presentation frame as a patch against the previous one, in the shape
-//! `src/game/session/localSnapshotDelta.ts` applies. The browser worker then
-//! parses a few kilobytes instead of parsing a whole frame, stripping its nulls
-//! and diffing it structurally against the frame it sent last.
+//! The one frame codec. A presentation frame leaves Rust as a patch against a
+//! reference frame the receiver already holds, in the shape
+//! `src/game/session/frameDelta.ts` applies; the receiver copies the changed
+//! paths onto its reference and holds the result. Two transports use it:
+//!
+//! - the custom-battle worker, whose reference is the frame it published last
+//!   (ordered, lossless: one request, one reply), and
+//! - the match server, whose reference is the immutable match baseline every
+//!   client received on admission, so a slow socket can skip any frame
+//!   ([`FrameDelta::fork`] gives each publication a fresh encoder on that
+//!   baseline).
 //!
 //! The patch comes from a `Serializer` that walks the live simulation once,
-//! comparing each leaf against a shadow of the frame it emitted last and writing
-//! only what moved. The shadow keeps fields in the order the serializer produces
+//! comparing each leaf against a shadow of the reference frame and writing only
+//! what moved. The shadow keeps fields in the order the serializer produces
 //! them, so a field is found by advancing a cursor rather than by looking a key
 //! up in a map, and it is stored unparsed and unboxed so that an unchanged
 //! number costs a comparison and nothing else.
 //!
-//! The shadow is normalized exactly as the client's decoder normalizes: an
-//! object field whose value is null has no key at all, so the patch reports it
-//! as removed rather than as null.
+//! The codec owns the frame's null invariant: an object field whose value is
+//! null has no key on the receiver, so the first frame travels without it and a
+//! later null reports the key as removed. Neither transport nor the receiver
+//! strips nulls again. The one exception, [`KEEP_NULL`], is declared next to the
+//! field that needs it.
 use serde::{
-    Serialize, Serializer,
+    Deserialize, Serialize, Serializer,
     ser::{
         Error as _, SerializeMap, SerializeSeq, SerializeStruct, SerializeStructVariant,
         SerializeTuple, SerializeTupleStruct, SerializeTupleVariant,
@@ -22,12 +31,45 @@ use serde::{
 };
 use serde_json::Value;
 use std::fmt::Write as _;
+use ts_rs::TS;
 
 /// The one field where an explicit null is an operating policy ("unlimited")
-/// rather than a missing optional, so the client's decoder keeps it.
-const KEEP_NULL: &str = "activeFlightLimit";
+/// rather than a missing optional, so it travels and the receiver keeps it. The
+/// field declares it; see [`crate::deck_operations::DeckStatus`].
+pub const KEEP_NULL: &str = crate::deck_operations::ACTIVE_FLIGHT_LIMIT_FIELD;
 
 type Error = serde_json::Error;
+
+/// What both transports send: the tick of the reference frame the receiver
+/// must be holding (`null` when this update carries a whole frame and the
+/// receiver holds nothing), the tick the frame reaches, and the patch between
+/// them, absent when nothing moved. [`FrameDelta::update`] writes it; this
+/// declaration is what the client decodes and what the tests read it back as.
+#[derive(Debug, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct FrameUpdate {
+    #[ts(type = "number | null")]
+    pub base_tick: Option<u64>,
+    #[ts(type = "number")]
+    pub tick: u64,
+    #[serde(default)]
+    #[ts(optional, as = "Option<FramePatch>")]
+    pub delta: Option<Value>,
+}
+
+/// The patch grammar. A scalar is its own replacement; a replaced object or
+/// array is wrapped in `value`, because a bare object would read as a nested
+/// patch; `array` patches elements in place (a length change replaces the
+/// array whole); `object` patches fields and lists the keys that went away.
+#[derive(TS)]
+#[ts(export)]
+pub struct FramePatch(
+    #[ts(
+        type = "string | number | boolean | null | { value: unknown } | { array: Array<[number, FramePatch]> } | { object: { [key in string]: FramePatch }, removed?: Array<string> }"
+    )]
+    (),
+);
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 enum Outcome {
@@ -39,6 +81,7 @@ enum Outcome {
 
 /// A field name. Struct fields borrow a name that outlives the battle, and the
 /// same pointer arrives every frame, so most comparisons are a pointer test.
+#[derive(Clone)]
 enum Name {
     Static(&'static str),
     Owned(Box<str>),
@@ -58,7 +101,9 @@ impl Name {
 
 /// The previous frame, held the way the walk reads it. Numbers and booleans are
 /// unboxed; the shapes the walk does not descend into keep their rendered text.
+#[derive(Clone, Default)]
 enum Node {
+    #[default]
     Null,
     Bool(bool),
     Int(i128),
@@ -127,12 +172,6 @@ impl Node {
             Self::Object(entries) => entries.iter().find(|(name, _)| name.is(key)).map(|e| &e.1),
             _ => None,
         }
-    }
-}
-
-impl Default for Node {
-    fn default() -> Self {
-        Self::Null
     }
 }
 
@@ -207,6 +246,10 @@ impl FrameDelta {
     /// The patch stays in this buffer, reused frame after frame.
     pub fn encode<T: Serialize + ?Sized>(&mut self, frame: &T) -> Result<bool, Error> {
         self.ctx.out.clear();
+        self.walk(frame)
+    }
+    /// The walk itself, appending to whatever `out` already holds.
+    fn walk<T: Serialize + ?Sized>(&mut self, frame: &T) -> Result<bool, Error> {
         self.ctx.pending.clear();
         self.ctx.flushed = 0;
         let outcome = frame.serialize(Diff {
@@ -225,6 +268,50 @@ impl FrameDelta {
                 Err(error)
             }
         }
+    }
+    /// Encode `frame`, which reaches `tick`, as the [`FrameUpdate`] envelope:
+    /// `{"baseTick":n|null,"tick":n,"delta":<patch>}`, `delta` absent when
+    /// nothing moved. This is the text both transports send. The buffer is
+    /// reused frame after frame.
+    pub fn update<T: Serialize + ?Sized>(&mut self, tick: u64, frame: &T) -> Result<&str, Error> {
+        let out = &mut self.ctx.out;
+        out.clear();
+        out.push_str("{\"baseTick\":");
+        match self.baseline_tick() {
+            Some(base) => push_index(&mut self.ctx.out, base as usize),
+            None => self.ctx.out.push_str("null"),
+        }
+        self.ctx.out.push_str(",\"tick\":");
+        push_index(&mut self.ctx.out, tick as usize);
+        let envelope = self.ctx.out.len();
+        self.ctx.out.push_str(",\"delta\":");
+        if !self.walk(frame)? {
+            self.ctx.out.truncate(envelope);
+        }
+        self.ctx.out.push('}');
+        Ok(&self.ctx.out)
+    }
+    /// A fresh encoder holding this one's baseline: the match server forks its
+    /// immutable baseline for every publication, so each update is a patch
+    /// against the frame every client received on admission and any update
+    /// can be skipped. The reused buffers are not carried over.
+    pub fn fork(&self) -> FrameDelta {
+        FrameDelta {
+            shadow: self.shadow.clone(),
+            ctx: Ctx::default(),
+        }
+    }
+    /// `frame` as complete text, normalized exactly as a patched-together
+    /// frame is: the shape a receiver holding nothing would hold after the
+    /// first update. Baselines, migration checks and the complete-frame
+    /// diagnostics read this rather than serde_json's rendering of the frame,
+    /// so no consumer strips nulls a second time.
+    pub fn complete<T: Serialize + ?Sized>(frame: &T) -> Result<String, Error> {
+        let mut delta = FrameDelta::default();
+        delta.encode(frame)?;
+        let mut out = String::with_capacity(delta.ctx.out.len());
+        delta.shadow.write(&mut out);
+        Ok(out)
     }
 }
 
@@ -810,7 +897,7 @@ impl SerializeStructVariant for DiffVariant<'_> {
     }
 }
 
-/// The client's `applyLocalDelta`, for tests and native harnesses: copy the
+/// The client's `applyFramePatch`, for tests and native harnesses: copy the
 /// changed paths onto the previous frame.
 pub fn apply(previous: &mut Value, patch: &Value) {
     match patch {

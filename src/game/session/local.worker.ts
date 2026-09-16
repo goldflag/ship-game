@@ -3,7 +3,7 @@ import manifestUrl from '../../../.build/naval-content/index.json?url';
 import type { BattleSetup } from '../../multiplayer/generated/BattleSetup';
 import type { CommandEnvelope } from '../../multiplayer/generated/CommandEnvelope';
 import { assetUrl } from '../../assetUrl';
-import type { LocalDelta } from './localSnapshotDelta';
+import type { FrameUpdate } from './frameDelta';
 import type { PveRequest } from '../../multiplayer/generated/PveRequest';
 import type { Placement } from '../../multiplayer/generated/Placement';
 import type { Formation } from '../../multiplayer/generated/Formation';
@@ -111,17 +111,17 @@ self.onmessage = (event: MessageEvent<{ type: 'options' } | { type: 'validate'; 
         for (let left = message.ticks; left > 0; left -= 6) runtime.step(Math.min(6, left));
       }
       // Rust walks the frame once and writes only what moved, so the worker
-      // parses a patch instead of parsing, normalizing and diffing a frame.
+      // parses a FrameUpdate instead of parsing, normalizing and diffing a frame.
       const stepped = profile ? performance.now() : 0;
       const json = runtime!.snapshot_delta(detail);
       const serialized = profile ? performance.now() : 0;
-      const frame = JSON.parse(json) as { baseTick: number | null; tick: number; delta?: LocalDelta };
+      const update = JSON.parse(json) as FrameUpdate;
       const decoded = profile ? performance.now() : 0;
-      if (!Number.isSafeInteger(frame.tick) || frame.tick < 0) throw new Error('Invalid battle snapshot.');
-      const timing = profile ? { tick: frame.tick, ticks: message.type === 'advance' ? message.ticks : 0,
+      if (!Number.isSafeInteger(update.tick) || update.tick < 0) throw new Error('Invalid battle snapshot.');
+      const timing = profile ? { tick: update.tick, ticks: message.type === 'advance' ? message.ticks : 0,
         step: stepped - started, serialize: serialized - stepped, decode: decoded - serialized,
         delta: 0, bytes: json.length, wasmMemoryBytes: wasmMemory?.buffer.byteLength } : undefined;
-      self.postMessage({ type: 'snapshot', reset: message.type === 'restart' || message.type === 'trial-reset' || (message.type === 'trial-action' && frame.baseTick == null), trialAction: message.type === 'trial-action', baseTick: frame.baseTick ?? undefined, delta: frame.delta, timing });
+      self.postMessage({ type: 'snapshot', reset: message.type === 'restart' || message.type === 'trial-reset' || (message.type === 'trial-action' && update.baseTick == null), trialAction: message.type === 'trial-action', update, timing });
     } catch (error) { self.postMessage({ type: event.data.type === 'trial-action' ? 'trial-error' : 'error', message: String(error) }); }
   });
 };

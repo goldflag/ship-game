@@ -312,29 +312,28 @@ mod construction_trial_tests {
     }
 }
 
-/// What to do with the assembled frame. The three information-boundary branches
-/// build different frame types, so the destination is a parameter rather than a
-/// second copy of the branches.
+/// What to do with the assembled frame. The two information-boundary branches
+/// build different frame types, so the destination is a parameter rather than
+/// a second copy of the branches.
 trait FrameSink {
     type Out;
-    fn take<T: serde::Serialize>(self, frame: &T) -> Result<Self::Out, JsValue>;
+    fn take<T: serde::Serialize>(self, tick: u64, frame: &T) -> Result<Self::Out, JsValue>;
 }
+/// The complete frame, normalized by the codec: what a receiver holding
+/// nothing holds after the first update.
 struct AsText;
 impl FrameSink for AsText {
     type Out = String;
-    fn take<T: serde::Serialize>(self, frame: &T) -> Result<String, JsValue> {
-        serde_json::to_string(frame).map_err(error)
+    fn take<T: serde::Serialize>(self, _tick: u64, frame: &T) -> Result<String, JsValue> {
+        naval_sim::frame_delta::FrameDelta::complete(frame).map_err(error)
     }
 }
-struct AsDelta<'a>(&'a mut naval_sim::frame_delta::FrameDelta);
-impl FrameSink for AsDelta<'_> {
-    /// The tick the client is holding, and whether anything moved. The patch
-    /// itself stays in the runtime's reused buffer.
-    type Out = (Option<u64>, bool);
-    fn take<T: serde::Serialize>(self, frame: &T) -> Result<Self::Out, JsValue> {
-        let baseline = self.0.baseline_tick();
-        let changed = self.0.encode(frame).map_err(error)?;
-        Ok((baseline, changed))
+/// The `FrameUpdate` envelope against the frame this runtime published last.
+struct AsUpdate<'a>(&'a mut naval_sim::frame_delta::FrameDelta);
+impl FrameSink for AsUpdate<'_> {
+    type Out = String;
+    fn take<T: serde::Serialize>(self, tick: u64, frame: &T) -> Result<String, JsValue> {
+        self.0.update(tick, frame).map(str::to_owned).map_err(error)
     }
 }
 #[wasm_bindgen]
@@ -609,40 +608,26 @@ impl LocalRuntime {
     /// flood connections the client actually reads: the followed or helm ship
     /// and, in a custom battle, the inspected target. Half of a fleet-command
     /// frame is those three fields; an empty list keeps them for every ship.
+    /// The text is the complete frame as the codec normalizes it.
     pub fn detailed_snapshot(&self, detail: Vec<String>) -> Result<String, JsValue> {
         present(&self.session, &self.pve_plan, &detail, AsText)
     }
-    /// The same frame as [`Self::detailed_snapshot`], as an ordered patch against
-    /// the one this runtime published last, in the shape `localSnapshotDelta.ts`
-    /// applies: `{"baseTick":n|null,"tick":n,"delta":<patch>}`. `delta` is absent
-    /// when nothing moved, and `baseTick` is null for the first frame of a
-    /// battle, which travels whole. The worker parses the patch instead of
-    /// parsing, null-stripping and diffing a whole frame.
+    /// The same frame as [`Self::detailed_snapshot`], as the `FrameUpdate`
+    /// envelope against the one this runtime published last (see
+    /// `naval_sim::frame_delta`): `baseTick` is null and the frame travels whole
+    /// after init, deploy and restart, when the client holds nothing.
     pub fn snapshot_delta(&mut self, detail: Vec<String>) -> Result<String, JsValue> {
-        let (baseline, changed) = present(
+        present(
             &self.session,
             &self.pve_plan,
             &detail,
-            AsDelta(&mut self.delta),
-        )?;
-        let mut out = String::from("{\"baseTick\":");
-        match baseline {
-            Some(tick) => out.push_str(&tick.to_string()),
-            None => out.push_str("null"),
-        }
-        out.push_str(",\"tick\":");
-        out.push_str(&self.session.battle.tick.to_string());
-        if changed {
-            out.push_str(",\"delta\":");
-            out.push_str(self.delta.patch());
-        }
-        out.push('}');
-        Ok(out)
+            AsUpdate(&mut self.delta),
+        )
     }
 }
 
 /// Assemble the local frame behind the information boundary and hand it to
-/// `sink`. A live mission never reaches the full-knowledge serializer.
+/// `sink`. A live mission never reaches the full-knowledge frame.
 fn present<S: FrameSink>(
     session: &naval_protocol::session::Session,
     pve_plan: &Option<naval_sim::pve::PvePlan>,
@@ -652,68 +637,17 @@ fn present<S: FrameSink>(
     if detail.len() > 4 || detail.iter().any(|id| id.len() > 64) {
         return Err(error("Invalid snapshot detail"));
     }
-    #[derive(serde::Serialize)]
-    #[serde(rename_all = "camelCase")]
-    struct LocalFrame<'a, T: serde::Serialize> {
-        #[serde(flatten)]
-        frame: T,
-        selected_ship_ids: [Option<&'a str>; 2],
-        fleet_orders: std::collections::BTreeMap<String, naval_protocol::session::FleetOrderState>,
-        fleet_notices: &'a [naval_protocol::session::FleetNotice],
-        phase: &'static str,
-    }
-    let selected = &session.control.players;
-    let phase = if session.battle.outcome.is_some() {
-        "finished"
-    } else {
-        "running"
-    };
-    let fleet_orders = session.fleet_orders(0);
-    let fleet_notices = session.fleet_notices(0);
-    if session.battle.mission_rules.is_some() && session.battle.outcome.is_none() {
-        return sink.take(&LocalFrame {
-            frame: session
-                .battle
-                .detailed_team_presentation_snapshot(naval_sim::rules::TeamId::A, detail),
-            selected_ship_ids: [selected[0].selected_ship_id.as_deref(), None],
-            fleet_orders,
-            fleet_notices,
-            phase,
-        });
-    }
+    let tick = session.battle.tick;
     if session.battle.mission_rules.is_some() {
         // Team projection is the information boundary. Never replace it
-        // with the full-knowledge streaming serializer for a live mission.
-        let mut frame = session
-            .battle
-            .detailed_presentation_value(
-                naval_sim::snapshot::PresentationView::Team(naval_sim::rules::TeamId::A),
-                detail,
-            )
-            .map_err(error)?;
-        if session.battle.outcome.is_some()
-            && let Some(plan) = pve_plan
-        {
-            frame["debrief"]["mission"] = plan.debrief();
+        // with the full-knowledge frame for a mission, decided or not.
+        let mut frame = session.local_team_frame(detail).map_err(error)?;
+        if let (Some(debrief), Some(plan)) = (frame.battle.debrief.as_deref_mut(), pve_plan) {
+            debrief.mission = Some(plan.debrief());
         }
-        return sink.take(&LocalFrame {
-            frame,
-            selected_ship_ids: [selected[0].selected_ship_id.as_deref(), None],
-            fleet_orders,
-            fleet_notices,
-            phase,
-        });
+        return sink.take(tick, &frame);
     }
-    sink.take(&LocalFrame {
-        frame: session.battle.detailed_presentation_snapshot(detail),
-        selected_ship_ids: [
-            selected[0].selected_ship_id.as_deref(),
-            selected[1].selected_ship_id.as_deref(),
-        ],
-        fleet_orders,
-        fleet_notices,
-        phase,
-    })
+    sink.take(tick, &session.local_full_frame(detail))
 }
 impl LocalRuntime {
     /// Complete authority state for native diagnostics and the simulation
@@ -723,14 +657,10 @@ impl LocalRuntime {
     pub fn migration_snapshot_json(&self) -> Result<String, JsValue> {
         serde_json::to_string(&self.session.battle.snapshot()).map_err(error)
     }
-    /// The match worker's full-knowledge tree projection, for native benchmarks
-    /// of the server publication path.
+    /// The session, for native benchmarks of the server publication path.
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn full_knowledge_value(&self) -> Result<serde_json::Value, JsValue> {
-        self.session
-            .battle
-            .presentation_value(naval_sim::snapshot::PresentationView::FullKnowledge)
-            .map_err(error)
+    pub fn session(&self) -> &naval_protocol::session::Session {
+        &self.session
     }
     fn from_battle(
         battle: naval_sim::battle::Battle,
