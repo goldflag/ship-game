@@ -13,8 +13,6 @@
 .garage-account:hover:not(:disabled) { background:#e4f3f111; }
 .garage-account>svg { color:var(--port-accent); }
 .garage-account>strong { overflow:hidden; text-overflow:ellipsis; font:500 18px/1 'Barlow Condensed',sans-serif; letter-spacing:.045em; }
-.garage-settings { width:35px; height:35px; display:grid; place-items:center; border:1px solid var(--port-line); background:transparent; border-radius:2px; }
-.garage-settings:hover { background:#e4f3f111; }
 .garage-battle { position:relative; display:flex; flex-direction:column; align-items:center; gap:5px; }
 .garage-battle-split { display:flex; box-shadow:0 7px 24px #06131d33; }
 .garage-set-sail { min-width:176px; min-height:44px; display:flex; align-items:center; justify-content:space-between; gap:15px; padding:11px 16px; background:var(--port-accent); color:#152831; border:0; border-radius:2px 0 0 2px; text-shadow:none; white-space:nowrap; }
@@ -90,7 +88,7 @@
   .garage-fleet-carousel { left:26px; right:25px; }
 }
 @media(max-width:1240px) {
-  .garage-classic-header { display:grid; grid-template-columns:auto minmax(0,1fr) auto auto; gap:4px 20px; padding-top:8px; }
+  .garage-classic-header { display:grid; grid-template-columns:auto minmax(0,1fr); gap:4px 20px; padding-top:8px; }
 }
 @media(max-width:850px) {
   .garage-classic-header { gap:17px; }
@@ -106,10 +104,9 @@
   .garage-classic-details { top:95px; max-height:calc(100% - 286px); }
 }
 @media(max-width:600px) {
-  .garage-classic-header { grid-template-columns:auto minmax(0,1fr) auto; padding:8px 16px 0; gap:4px 10px; }
+  .garage-classic-header { grid-template-columns:auto minmax(0,1fr); padding:8px 16px 0; gap:4px 10px; }
   .garage-classic-header .garage-account { min-width:0; max-width:150px; }
   .garage-account { gap:8px; padding:0 9px 0 8px; }
-  .garage-settings { width:34px; height:34px; }
   .garage-classic-identity { top:124px; left:19px; }
   .garage-classic-identity h1 { font-size:36px; }
   .garage-classic-identity>div { font-size:10px; gap:7px; }
@@ -232,7 +229,6 @@
 
 
 /* Local shipbuilding replaces illustrative progression with saved designs. */
-.garage-classic-header > .garage-settings { margin-left:auto; }
 .garage-classic-left { width:246px; bottom:176px; display:flex; }
 .garage-classic-identity { max-width:calc(100% - 360px); }
 .garage-classic-identity h1 { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
