@@ -270,14 +270,6 @@ function PortLayout({ state }: { state: GarageState }) {
         <div className="garage-classic-deploy">
           <SetSail state={state} />
         </div>
-        <button
-          className="garage-settings"
-          aria-label="Port settings"
-          disabled={!state.ready}
-          onClick={state.settings}
-        >
-          <Icon name="compass" size={20} />
-        </button>
       </header>
       <section className="garage-classic-identity">
         <h1>{selectedShip.name.toUpperCase()}</h1>
