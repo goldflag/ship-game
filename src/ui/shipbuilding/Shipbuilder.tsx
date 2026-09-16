@@ -15,6 +15,7 @@ import { equipmentMassKg, format, hullBounds, ledgerRows, massGroups, pieceMassK
 import { SlotGlyph, ToolGlyph } from './builderGlyphs';
 import { DesignsMenu, downloadConstructionSource } from './DesignsMenu';
 import { HelpDialog } from './HelpDialog';
+import { ViewBar, type ViewBarVariant } from './ViewBar';
 import { pathProblem, pathSlackLimit, equipmentPathBounds } from '../../ships/constructionPaths';
 import { appendPathPoint, pathEquipment } from './pathDrawing';
 import { PathPointEditor } from './PathPointEditor';
@@ -61,6 +62,7 @@ export interface ShipbuilderProps {
 const DISPLAY: Record<BuilderLayer, BuilderDisplay> = { hull: 'paint', armor: 'armor', internals: 'internals', fittings: 'paint', paint: 'paint' };
 const BOUNDARY_NAMES: Record<ConstructionBoundary['axis'], string> = { y: 'Deck', z: 'Bulkhead', x: 'Split' };
 const VIEWS: BuilderView[] = ['orbit', 'top', 'side', 'bow'];
+const viewBarVariant = ((typeof location !== 'undefined' && new URLSearchParams(location.search).get('viewbar')) || 'text') as ViewBarVariant;
 const VIEW_NAMES: Record<BuilderView, string> = { orbit: 'Orbit', top: 'Plan', side: 'Profile', bow: 'Bow' };
 const ARC_RADIUS = 12;
 const LIMITS = CONSTRUCTION_LIMITS;
@@ -116,7 +118,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const [suggestionRevision, setSuggestionRevision] = useState('');
   const suggestionRequest = useRef<AbortController | undefined>(undefined);
   const [helpOpen, setHelpOpen] = useState(false);
-  const [tip, setTip] = useState<{ title: string; detail: string; x: number; y: number; key?: string; below?: boolean }>();
+  const [tip, setTip] = useState<{ title: string; detail: string; x: number; y: number; key?: string; below?: boolean; right?: number; beside?: boolean }>();
   const [slotImages] = useState(() => new SlotImages());
   useEffect(() => () => slotImages.dispose(), [slotImages]);
 
@@ -591,11 +593,12 @@ export function Shipbuilder(props: ShipbuilderProps) {
       default: return { title: '', detail: '' };
     }
   };
-  // Palette tips hang under the bar, which the readout above the cards leaves free; drawer tips stay above their card. Each names the card's key.
+  // Palette tips stand above the bar, clear of the readout over the cards (below the bar they would run off the screen); drawer tips stay above their card. Each names the card's key.
+  const tipTop = (rect: DOMRect) => { const readout = document.querySelector('.sb-cursor'); return readout ? Math.min(rect.top, readout.getBoundingClientRect().top) : rect.top; };
   const showTip = (item: SlotItem, target: HTMLElement) => {
     if (item.kind === 'empty') return;
-    const rect = target.getBoundingClientRect(), below = !target.closest('.sb-drawer'), index = palette.bar.findIndex(entry => entry.id === item.id);
-    setTip({ ...describe(item), x: rect.left + rect.width / 2, y: below ? rect.bottom : rect.top, below, key: index >= 0 ? String(index + 1) : undefined });
+    const rect = target.getBoundingClientRect(), inDrawer = !!target.closest('.sb-drawer'), index = palette.bar.findIndex(entry => entry.id === item.id);
+    setTip({ ...describe(item), x: rect.left + rect.width / 2, y: inDrawer ? rect.top : tipTop(rect), key: index >= 0 ? String(index + 1) : undefined });
   };
   const hideTip = () => setTip(undefined);
   const face = (item: SlotItem) => {
@@ -700,22 +703,16 @@ export function Shipbuilder(props: ShipbuilderProps) {
     </div>}
     <div className="sb-hotbar" role="toolbar" aria-label="Palette">
       {palette.bar.map(item => slot(item))}
-      {hasDrawer ? <button className="sb-slot more" aria-expanded={drawer} aria-label={`All ${drawerName}`} onPointerEnter={event => { const rect = event.currentTarget.getBoundingClientRect(); setTip({ title: `All ${drawerName}`, detail: drawer ? 'close the full selection' : 'open the full selection', x: rect.left + rect.width / 2, y: rect.bottom, below: true, key: '0' }); }} onPointerLeave={hideTip} onClick={() => { setDrawer(value => !value); setTip(undefined); }}>…</button> : null}
+      {hasDrawer ? <button className="sb-slot more" aria-expanded={drawer} aria-label={`All ${drawerName}`} onPointerEnter={event => { const rect = event.currentTarget.getBoundingClientRect(); setTip({ title: `All ${drawerName}`, detail: drawer ? 'close the full selection' : 'open the full selection', x: rect.left + rect.width / 2, y: tipTop(rect), key: '0' }); }} onPointerLeave={hideTip} onClick={() => { setDrawer(value => !value); setTip(undefined); }}>…</button> : null}
     </div>
     <div className="sb-keys" aria-label="Hotkeys">
       {acting.length > 0 && <div className="sb-keys-row acting">{acting.map(chip)}</div>}
       <div className="sb-keys-row">{standing.map(chip)}</div>
     </div>
-    {tip && <div className={`sb-tip ${tip.below ? 'below' : ''}`} role="tooltip" style={{ left: tip.x, top: tip.y }}><b>{tip.title}</b>{tip.detail}{tip.key && <kbd>{tip.key}</kbd>}</div>}
-    <div className="sb-viewbar">
-      <button onClick={cycleView} title="Cycle the view (Q)">View <b>{VIEW_NAMES[view]}</b><kbd>Q</kbd></button>
-      <button onClick={toggleProjection} title="Toggle orthographic and perspective cameras (P)">Camera <b>{perspective ? 'Perspective' : 'Orthographic'}</b><kbd>P</kbd></button>
-      <button onClick={toggleSlice} title="Cut the ship above a height (S)">Slice <b>{slice.on ? `${signed(slice.y)} m` : 'Off'}</b><kbd>S</kbd></button>
-      <button aria-pressed={showCenters} onClick={() => setShowCenters(value => !value)} title="Show center of gravity (mass) and center of buoyancy markers (C)">Centers <b>{showCenters ? 'On' : 'Off'}</b><kbd>C</kbd></button>
-      <span title="Placement snaps to the face under the pointer">Snap <b>{gridStep === 1 ? '1 m' : '¼ m'}</b></span>
-      <button aria-pressed={mirror} onClick={() => setMirror(value => !value)} title="Mirror placements across the centerline (M)">Mirror <b>{mirror ? 'On' : 'Off'}</b><kbd>M</kbd></button>
-      <button onClick={fit} title="Frame the ship (Home)">Fit<kbd>Home</kbd></button>
-    </div>
+    {tip && <div className={`sb-tip ${tip.below ? 'below' : ''} ${tip.beside ? 'beside' : tip.right !== undefined ? 'right' : ''}`} role="tooltip" style={tip.right !== undefined ? { right: tip.right, top: tip.y } : { left: tip.x, top: tip.y }}><b>{tip.title}</b>{tip.detail}{tip.key && <kbd>{tip.key}</kbd>}</div>}
+    <ViewBar variant={viewBarVariant} viewName={VIEW_NAMES[view]} view={view} perspective={perspective} sliceLabel={slice.on ? `${signed(slice.y)} m` : 'Off'} sliceOn={slice.on} showCenters={showCenters} snapLabel={gridStep === 1 ? '1 m' : '¼ m'} mirror={mirror}
+      onView={cycleView} onProjection={toggleProjection} onSlice={toggleSlice} onCenters={() => setShowCenters(value => !value)} onMirror={() => setMirror(value => !value)} onFit={fit}
+      onTip={entry => { if (!entry) { setTip(undefined); return; } const rect = entry.target.getBoundingClientRect(); const beside = viewBarVariant === 'column'; setTip({ title: entry.title, detail: entry.detail, key: entry.key, x: rect.left + rect.width / 2, y: beside ? rect.top + rect.height / 2 : rect.top, right: beside ? window.innerWidth - rect.left + 8 : Math.max(12, window.innerWidth - rect.right), beside }); }}/>
     {!data.primitives.length && <div className="sb-empty"><b>This design needs a starting block</b><button disabled={locked} onClick={() => run('Add starting block', draft => { draft.construction.primitives.push(startingHullBlock()); })}>Add a hull block</button> to keep building.</div>}
     {helpOpen && <HelpDialog onClose={() => setHelpOpen(false)}/>}
   </main>;
