@@ -5,6 +5,7 @@ import { aircraftState, armamentFraction, armamentLabel, conditionLevel, type Wi
 import { CombatSimulation } from '../simulation/combat';
 import { shipPreset } from '../ships/presets';
 import { defaultKeybindings } from '../game/keybindings';
+import { fleetDesk, type FleetAuthority } from './fleet/fleetDesk';
 
 const aircraft = (overrides: Partial<WingAircraft>): WingAircraft => ({ id: 'enterprise-cv6/vf-6/3', flightId: 'enterprise-cv6/vf-6/0', modelId: 'f4f-4-wildcat', role: 'fighter', phase: 'ready', status: 'ready',
   hp: 100, payload: false, ammo: 16, location: 'Hangar', followable: false, lossReason: undefined, enduranceSeconds: 1050, ...overrides });
@@ -12,7 +13,7 @@ const aircraft = (overrides: Partial<WingAircraft>): WingAircraft => ({ id: 'ent
 const hud = (airOperationsOpen: boolean, visible = true) => {
   const simulation = new CombatSimulation(shipPreset('enterprise-cv6'));
   const data = { ship: simulation.ship, order: 1, camera: 'Chase' as const, trail: [], fps: 60, backend: 'test', airOperationsOpen, combat: simulation.telemetry('main', [0, 0, -5000]) };
-  return renderToStaticMarkup(<FleetHud data={data} game={null} visible={visible} bindings={defaultKeybindings()}/>);
+  return renderToStaticMarkup(<FleetHud data={data} desk={null} visible={visible} bindings={defaultKeybindings()}/>);
 };
 
 test('the wing manifest lists every squadron and aircraft of the wing in M view only', () => {
@@ -47,8 +48,8 @@ test('fleet ship spectating includes aircraft nametags without opening carrier c
   const simulation = new CombatSimulation(shipPreset('fletcher'));
   const data = { ship: simulation.ship, order: 1, camera: 'Chase' as const, trail: [], fps: 60, backend: 'test', airOperationsOpen: false,
     fleetCommandMode: true, spectatedShipId: simulation.ship.id, combat: simulation.telemetry('main', [0, 0, -5000]) };
-  const game = { simulation, selectedShipIds: [], selectedFlightIds: [], controlGroups: new Map() } as unknown as import('../game/Game').Game;
-  const html = renderToStaticMarkup(<FleetHud data={data} game={game} visible={true} bindings={defaultKeybindings()}/>);
+  const desk = fleetDesk({ simulation, selectedShipIds: [], selectedFlightIds: [], controlGroups: new Map() } as unknown as FleetAuthority);
+  const html = renderToStaticMarkup(<FleetHud data={data} desk={desk} visible={true} bindings={defaultKeybindings()}/>);
   expect(html).toContain('Squadron names and status');
   expect(html).not.toContain('air-manifest');
 });
@@ -57,8 +58,8 @@ test('hiding the fleet HUD keeps the M-mode camera surface interactive and remov
   const simulation = new CombatSimulation(shipPreset('fletcher'));
   const data = { ship: simulation.ship, order: 1, camera: 'Chase' as const, trail: [], fps: 60, backend: 'test', airOperationsOpen: true,
     fleetCommandMode: true, combat: simulation.telemetry('main', [0, 0, -5000]) };
-  const game = { simulation, selectedShipIds: [], selectedFlightIds: [], controlGroups: new Map() } as unknown as import('../game/Game').Game;
-  const render = (visible: boolean) => renderToStaticMarkup(<FleetHud data={data} game={game} visible={visible} bindings={defaultKeybindings()}/>);
+  const desk = fleetDesk({ simulation, selectedShipIds: [], selectedFlightIds: [], controlGroups: new Map() } as unknown as FleetAuthority);
+  const render = (visible: boolean) => renderToStaticMarkup(<FleetHud data={data} desk={desk} visible={visible} bindings={defaultKeybindings()}/>);
   const hidden = render(false);
   expect(hidden).not.toContain('inert=""');
   expect(hidden).not.toContain('visibility:hidden');

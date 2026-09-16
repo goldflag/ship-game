@@ -1,10 +1,12 @@
 import { useState } from 'react';
-import type { Game } from '../../game/Game';
 import type { TrialAction } from '../../game/session/localConstruction';
+import type { BattleSession } from '../../game/session/BattleSession';
 import { Button } from '../components';
 import './TrialControls.css';
 
-export function TrialControls({ game, onReturn }: { game: Game; onReturn(): Promise<void> }) {
+/** The sea trial's hold on the game: the hulls under trial and the two trial verbs. */
+export interface TrialSession { readonly simulation: Pick<BattleSession, 'actors' | 'player'>; trialAction(action: TrialAction): Promise<void>; resetTrial(): Promise<void> }
+export function TrialControls({ game, onReturn }: { game: TrialSession; onReturn(): Promise<void> }) {
   const actor = game.simulation.actors.find(a => a.motion.id === 'player') ?? game.simulation.player;
   const definition = actor.definition;
   const [roomId, setRoomId] = useState(definition.compartments[0]?.id ?? '');
