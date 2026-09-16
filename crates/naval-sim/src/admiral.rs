@@ -1,4 +1,14 @@
-//! Initial task-group orders and an observation-limited opposing admiral.
+//! The PvE admiral: the adapter that turns a frozen mission plan and the
+//! opposing team's permitted reports into standing orders for its ships.
+//!
+//! It emits [`Directives`] — a movement and an optional focus target per hull
+//! — and the local runtime copies them into the same standing-order store the
+//! player's fleet commands fill, so `Battle::step` sees one stream of
+//! [`crate::battle::Orders`] whichever admiral wrote them. Each ship's captain
+//! ([`crate::captain`]) then executes the order it was given. The opening
+//! directives put every task group on its deployment station; the enemy's
+//! later directives re-issue on a difficulty-set cadence from a shared report
+//! priority, never from hidden hull condition.
 use crate::{
     battle::Battle,
     bots::AiLevel,
@@ -9,7 +19,9 @@ use crate::{
     vessel::Vessel,
 };
 use std::collections::BTreeMap;
-type Directives = BTreeMap<String, (Movement, Option<String>)>;
+/// Standing orders per ship id: the movement to execute and, when the admiral
+/// wants fire concentrated, the report to focus on.
+pub type Directives = BTreeMap<String, (Movement, Option<String>)>;
 
 fn members<'a>(
     battle: &'a Battle,
@@ -141,7 +153,7 @@ fn escort(
 }
 /// A shared report priority lets surface groups and carrier strikes concentrate
 /// on the same known threat without consulting hidden hull condition or orders.
-pub(crate) fn priority_contact(battle: &Battle) -> Option<crate::sensors::ContactTrack> {
+fn priority_contact(battle: &Battle) -> Option<crate::sensors::ContactTrack> {
     battle
         .sensors
         .contacts(TeamId::B)
