@@ -36,7 +36,7 @@ export class ConstructionClient {
     const id = ++this.nextId;
     return new Promise((resolve, reject) => {
       const abort = () => { if (this.pending?.id === id) this.cancel(); };
-      const timer = setTimeout(() => this.stop(new Error('Compilation took too long. Reduce the selected hull section and try again. Your source design is preserved.')), 45_000);
+      const timer = setTimeout(() => this.stop(new Error('Compilation took too long. Reduce the selected hull section and try again. Your source design is preserved.')), 180_000);
       this.pending = { id, sourceId: input.id, revision: input.revision, resolve, reject,
         cleanup: () => { clearTimeout(timer); signal?.removeEventListener('abort', abort); } };
       signal?.addEventListener('abort', abort, { once: true });

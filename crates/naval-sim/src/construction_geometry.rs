@@ -5,22 +5,21 @@ use crate::{
     geometry::*,
 };
 pub const EPS: f64 = 1e-8;
-pub const MAX_CELLS: usize = 65_536;
+pub const MAX_CELLS: usize = 131_072;
 pub const MAX_CELL_FACES: usize = 128;
-pub const MAX_FACE_VERTICES: usize = 2_097_152;
+pub const MAX_FACE_VERTICES: usize = 4_194_304;
 pub type Polygon = Vec<Vec3>;
 pub type Cell = ConvexVolume;
 pub fn check_budget(cells: &[Cell]) -> Result<(), String> {
-    if cells.len() > MAX_CELLS
-        || cells.iter().any(|c| c.faces.len() > MAX_CELL_FACES)
-        || cells
-            .iter()
-            .map(|c| c.faces.iter().map(|f| f.vertices.len()).sum::<usize>())
-            .sum::<usize>()
-            > MAX_FACE_VERTICES
-    {
+    let max_faces = cells.iter().map(|c| c.faces.len()).max().unwrap_or(0);
+    let vertices = cells
+        .iter()
+        .map(|c| c.faces.iter().map(|f| f.vertices.len()).sum::<usize>())
+        .sum::<usize>();
+    if cells.len() > MAX_CELLS || max_faces > MAX_CELL_FACES || vertices > MAX_FACE_VERTICES {
         return Err(format!(
-            "Geometry exceeds {MAX_CELLS} convex cells, {MAX_CELL_FACES} faces per cell, or {MAX_FACE_VERTICES} face vertices; simplify the design"
+            "Geometry budget exceeded: {} / {MAX_CELLS} convex cells, {max_faces} / {MAX_CELL_FACES} maximum faces per cell, {vertices} / {MAX_FACE_VERTICES} face vertices",
+            cells.len()
         ));
     }
     Ok(())
@@ -225,7 +224,8 @@ pub fn subtract_all<'a>(
             next.extend(subtract(a, b));
             if next.len() > MAX_CELLS {
                 return Err(format!(
-                    "Geometry exceeds {MAX_CELLS} convex cells; simplify overlapping pieces"
+                    "Subtraction budget exceeded: {} / {MAX_CELLS} convex cells",
+                    next.len()
                 ));
             }
         }
@@ -265,7 +265,8 @@ pub fn union_near(cells: &[Cell], neighbors: &[Vec<usize>]) -> Result<Vec<Cell>,
             vertices += a.faces.iter().map(|f| f.vertices.len()).sum::<usize>();
             if a.faces.len() > MAX_CELL_FACES {
                 return Err(format!(
-                    "Geometry exceeds {MAX_CELL_FACES} faces in one convex cell; simplify the design"
+                    "Union budget exceeded: {} / {MAX_CELL_FACES} faces in one convex cell",
+                    a.faces.len()
                 ));
             }
         }
@@ -273,7 +274,8 @@ pub fn union_near(cells: &[Cell], neighbors: &[Vec<usize>]) -> Result<Vec<Cell>,
         out.extend(additions);
         if out.len() > MAX_CELLS || vertices > MAX_FACE_VERTICES {
             return Err(format!(
-                "Geometry exceeds {MAX_CELLS} convex cells, {MAX_CELL_FACES} faces per cell, or {MAX_FACE_VERTICES} face vertices; simplify the design"
+                "Union budget exceeded: {} / {MAX_CELLS} convex cells, {vertices} / {MAX_FACE_VERTICES} face vertices",
+                out.len()
             ));
         }
     }
@@ -401,7 +403,9 @@ pub fn exposed(p: &[Vec3], b: &Cell, keep_coincident: bool) -> Vec<Polygon> {
     for f in &b.faces {
         let n = normal(&f.vertices);
         overlap = clip_polygon(&overlap, n, dot(n, f.vertices[0]));
-        if overlap.len() < 3 || area(&overlap) < EPS { return vec![p.to_vec()]; }
+        if overlap.len() < 3 || area(&overlap) < EPS {
+            return vec![p.to_vec()];
+        }
     }
     for f in &b.faces {
         let n = normal(&f.vertices);
@@ -598,6 +602,23 @@ pub fn connected(a: &Cell, b: &Cell) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn geometry_budget_reports_actual_cell_and_face_counts() {
+        // Budget validation is independent of geometric validity; empty cells
+        // keep this boundary test small while exercising the real collection cap.
+        let mut cells = vec![Cell { faces: vec![] }; MAX_CELLS];
+        assert!(check_budget(&cells).is_ok());
+        cells.push(Cell { faces: vec![] });
+        let error = check_budget(&cells).unwrap_err();
+        assert!(error.contains(&format!("{} / {MAX_CELLS} convex cells", MAX_CELLS + 1)));
+        let mut cell = box_cell([0.; 3], [1.; 3]);
+        cell.faces.resize(MAX_CELL_FACES + 1, cell.faces[0].clone());
+        assert!(
+            check_budget(&[cell])
+                .unwrap_err()
+                .contains("129 / 128 maximum faces per cell")
+        );
+    }
     fn near(a: f64, b: f64) {
         assert!((a - b).abs() < 1e-7, "{a} != {b}");
     }
@@ -644,7 +665,10 @@ mod tests {
         let a = transform(&wall, [0.; 3], [1.; 3], yaw);
         let b = transform(&wall, [1., 0., 0.], [1.; 3], yaw);
         assert!(!separated(&a, &b), "axis-aligned bounds overlap");
-        assert!(intersection(&a, &b).is_none(), "walls have no physical contact");
+        assert!(
+            intersection(&a, &b).is_none(),
+            "walls have no physical contact"
+        );
         let remainder = subtract(&a, &b);
         assert_eq!(remainder.len(), 1, "unrelated planes must not split a wall");
         near(total(&remainder).volume, 1.);

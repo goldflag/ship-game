@@ -15,6 +15,7 @@ fn fixture() -> (ConstructionSource, ConstructionCatalog) {
                 default_thickness_mm: 10.,
                 primitives: vec![ConstructionPrimitive {
                     vertices: None,
+            smooth_group: None,
                     id: "hull".into(),
                     kind: "box".into(),
                     position: [0.; 3],
@@ -355,6 +356,7 @@ fn separated_hull_rays_miss_water_and_hit_only_the_selected_skin() {
     .into_iter()
     .map(|(id, position, size)| ConstructionPrimitive {
         vertices: None,
+            smooth_group: None,
         id: id.into(),
         kind: "box".into(),
         position,
@@ -489,6 +491,18 @@ fn trainable_torpedoes_use_one_absolute_rotation_for_sockets_damage_and_launch()
             assert!(wrap_angle(solution.heading - heading).abs() < 1e-9);
             assert!(length(sub(solution.origin, origin)) < 1e-9);
         }
+        let mut restricted = source.clone();
+        let limits = if bearing < 0. { [-150., 0.] } else { [0., 150.] };
+        let arc = if bearing < 0. { [-130., -50.] } else { [50., 130.] };
+        restricted.construction.equipment[1].launcher = Some(ConstructionEquipmentLauncher {
+            traverse_limits_deg: limits, launch_arcs_deg: vec![arc],
+        });
+        let fitted = compile(&restricted, &catalog);
+        let launcher = &fitted.torpedo_launchers.as_ref().unwrap()[0];
+        assert_eq!(launcher.traverse_limits_deg, Some(limits));
+        assert_eq!(launcher.launch_arcs_deg, vec![arc]);
+        restricted.construction.equipment[1].launcher.as_mut().unwrap().launch_arcs_deg = vec![[-180., 180.]];
+        assert!(naval_sim::construction::compile(&restricted, &catalog).diagnostics.iter().any(|d| d.code == "weapon-installation"));
         // The actual battle launch consumes the same absolute heading.
         use naval_sim::{
             battle::{Battle, BattleSetup, Orders, ShipSetup},
@@ -768,6 +782,7 @@ fn original_oerlikon_reaches_full_elevation_but_stops_at_a_real_overhead_beam() 
     ] {
         source.construction.primitives.push(ConstructionPrimitive {
             vertices: None,
+            smooth_group: None,
             id: id.into(),
             kind: "box".into(),
             position,

@@ -12,7 +12,7 @@ pub const MAX_BOUNDARIES: usize = 24;
 /// Derived exposed skin patches, including installation supports.
 pub const MAX_SURFACES: usize = 131_072;
 /// Flooding portals between rooms; fragmented interiors reach this long before the cell budget.
-pub const MAX_CONNECTIONS: usize = 512;
+pub const MAX_CONNECTIONS: usize = 16_384;
 const STEEL_DENSITY: f64 = 7850.;
 const SEA_DENSITY: f64 = 1025.;
 
@@ -40,10 +40,10 @@ fn error(code: &str, message: impl Into<String>, id: Option<&str>) -> Constructi
         source_id: id.map(str::to_owned),
     }
 }
-fn portal_limit() -> ConstructionDiagnostic {
+fn portal_limit(connections: usize, openings: usize) -> ConstructionDiagnostic {
     error(
         "geometry-limit",
-        "Subdivision exceeds bounded flooding portal count",
+        format!("Subdivision has {connections} flooding portals (limit {MAX_CONNECTIONS}) and {openings} openings (limit 4096)"),
         None,
     )
 }
@@ -241,6 +241,8 @@ pub fn suggest(
                 position,
                 bearing_deg: 0.,
                 magazine_id: None,
+                gun: None,
+                launcher: None,
                 path: None,
                 power_source_id: if matches!(part.kind.as_str(), "funnel" | "propeller") {
                     result
@@ -576,11 +578,11 @@ fn build(
             }
         }
     }
-    if reached.iter().any(|r| !r) {
+    if let Some(detached) = reached.iter().position(|r| !r) {
         return Err(error(
             "attachment",
             "Detached hull pieces need a physical face attachment or connecting beam",
-            None,
+            Some(&primitives[detached].id),
         ));
     }
     let cells = cg::union_near(&flat, &cell_neighbors).map_err(fail)?;
@@ -917,6 +919,9 @@ fn build(
                 )
             })
         })
+        // Clipping can leave microscopic disconnected slivers. Apply the same
+        // usable-volume threshold used below before counting simulation rooms.
+        .filter(|(_, cells)| cg::total(cells).volume >= 1e-6)
         .collect();
     if groups.len() > 256 {
         return Err(error(
@@ -1111,7 +1116,7 @@ fn build(
                                 ..Default::default()
                             });
                             if def.connections.len() > MAX_CONNECTIONS {
-                                return Err(portal_limit());
+                                return Err(portal_limit(def.connections.len(), def.openings.as_ref().unwrap().len()));
                             }
                         }
                     }
@@ -1120,7 +1125,7 @@ fn build(
         }
     }
     if def.connections.len() > MAX_CONNECTIONS || def.openings.as_ref().unwrap().len() > 4096 {
-        return Err(portal_limit());
+        return Err(portal_limit(def.connections.len(), def.openings.as_ref().unwrap().len()));
     }
     let void_volume: f64 = def.compartments.iter().map(|r| r.capacity_m3).sum();
     def.local_damage = Some(ShipDefinitionLocalDamage {
@@ -1308,7 +1313,10 @@ fn build(
         let clearance = crate::mount_clearance::MountClearance::new(&def)
             .map_err(|e| error("clearance", e, None))?
             .unwrap();
-        let poses = vec![crate::mount_clearance::ClearancePose::default(); def.mounts.len()];
+        let poses: Vec<_> = def.mounts.iter().map(|m| crate::mount_clearance::ClearancePose {
+            elevation: m.initial_elevation_deg.unwrap_or(0.).to_radians(),
+            ..Default::default()
+        }).collect();
         for (i, m) in def.mounts.iter().enumerate() {
             if clearance.minimum_clearance(&def, i, &poses, 1.).0 <= 0. {
                 return Err(error(
@@ -1638,8 +1646,20 @@ fn equipment(
             )
         };
         let envelope = transform_cell(p.bounds_center, p.size);
+        let fitting_cells = if p.kind == "gun" {
+            let weapon = catalog.weapons.parts.iter().find(|w| Some(w.id.as_str()) == p.gun_part_id.as_deref())
+                .ok_or_else(|| error("weapon", "Missing canonical gun definition", Some(&e.id)))?;
+            crate::mount_clearance::installation_bounds(weapon, e.gun.as_ref().and_then(|g| g.initial_elevation_deg).unwrap_or(0.).to_radians())
+                .into_iter().map(|(center, size)| transform_cell(center, size)).collect::<Vec<_>>()
+        } else if let Some(boxes) = &p.fitting {
+            if p.kind != "deck-fitting" || boxes.is_empty() || boxes.len() > 64 || boxes.iter().any(|b| !finite(b.center) || !size(b.size)
+                || (0..3).any(|i| (b.center[i] - p.bounds_center[i]).abs() + b.size[i] / 2. > p.size[i] / 2. + 0.025)) {
+                return Err(error("equipment-data", "Invalid original fitting boxes", Some(&e.id)));
+            }
+            boxes.iter().map(|b| transform_cell(b.center, b.size)).collect()
+        } else { vec![envelope.clone()] };
         for (other, cell) in &all_envelopes {
-            if cg::intersection(&envelope, cell).is_some_and(|x| cg::moments(&x).volume > 1e-5) {
+            if fitting_cells.iter().any(|f| cg::intersection(f, cell).is_some_and(|x| cg::moments(&x).volume > 1e-5)) {
                 return Err(error(
                     "equipment-overlap",
                     format!("Equipment intersects {other}"),
@@ -1647,8 +1667,10 @@ fn equipment(
                 ));
             }
         }
-        fitting_index.insert(&envelope);
-        all_envelopes.push((e.id.clone(), envelope.clone()));
+        for fitted_cell in &fitting_cells {
+            fitting_index.insert(fitted_cell);
+            all_envelopes.push((e.id.clone(), fitted_cell.clone()));
+        }
         let mut occupied = vec![];
         if p.placement == "internal" {
             occupied.push(envelope.clone());
@@ -1750,27 +1772,21 @@ fn equipment(
                 Some(&e.id),
             ));
         }
-        if p.placement == "deck"
-            && hull.iter().any(|h| {
-                cg::intersection(&envelope, h).is_some_and(|x| {
+        let intrusion = if p.placement == "deck" {
+            hull.iter().find_map(|h| fitting_cells.iter().find_map(|f| {
+                cg::intersection(f, h).and_then(|x| {
                     let base_area = if p.kind == "deck-fitting" {
-                        (0..3)
-                            .map(|i| {
-                                attachment_direction[i].abs()
-                                    * p.size[(i + 1) % 3]
-                                    * p.size[(i + 2) % 3]
-                            })
-                            .sum()
-                    } else {
-                        p.size[0] * p.size[2]
-                    };
-                    cg::moments(&x).volume > base_area * 0.005
+                        (0..3).map(|i| attachment_direction[i].abs() * p.size[(i + 1) % 3] * p.size[(i + 2) % 3]).sum()
+                    } else { p.size[0] * p.size[2] };
+                    let volume = cg::moments(&x);
+                    (volume.volume > base_area * 0.005).then(|| volume.center())
                 })
-            })
-        {
+            }))
+        } else { None };
+        if let Some(point) = intrusion {
             return Err(error(
                 "equipment-fit",
-                "Exterior equipment body overlaps the hull; use its original support datum (5 mm fitted-base tolerance)",
+                format!("Exterior equipment body overlaps the hull near [{:.3}, {:.3}, {:.3}]; use its original support datum (5 mm fitted-base tolerance)", point[0], point[1], point[2]),
                 Some(&e.id),
             ));
         }
@@ -1912,20 +1928,39 @@ fn equipment(
                 ));
             }
             let magazine = resolve_magazine(c, catalog, e)?;
+            let installation = e.gun.clone().unwrap_or_default();
+            let train = installation.traverse_deg.unwrap_or(w.traverse_deg);
+            let low = installation.elevation_min_deg.unwrap_or(w.elevation_min_deg);
+            let high = installation.elevation_max_deg.unwrap_or(w.elevation_max_deg);
+            let initial = installation.initial_elevation_deg.unwrap_or(0.);
+            if ![train,low,high,initial].iter().all(|v| v.is_finite())
+                || train <= 0. || train > w.traverse_deg || low < w.elevation_min_deg
+                || low > 0. || high > w.elevation_max_deg || high < 0.
+                || initial < low || initial > high
+                || installation.battery.as_deref().is_some_and(|b| !matches!(b,"main"|"secondary"))
+                || installation.traverse_limits_deg.is_some_and(|[a,b]| !a.is_finite() || !b.is_finite() || a > 0. || b < 0. || a >= b || a < -train || b > train)
+            { return Err(error("weapon-installation", "Gun installation exceeds its canonical capability", Some(&e.id))); }
+            let mut installed = w.clone();
+            installed.traverse_deg = train;
+            if installation.elevation_min_deg.is_some() { installed.catalog_elevation_min_deg = Some(w.elevation_min_deg); }
+            if installation.elevation_max_deg.is_some() { installed.catalog_elevation_max_deg = Some(w.elevation_max_deg); }
+            installed.elevation_min_deg = low; installed.elevation_max_deg = high;
             def.mounts.push(MountDefinition {
                 id: e.id.clone(),
                 name: p.name.clone(),
                 part_id: w.id.clone(),
-                battery: if w.caliber_m >= 0.1 {
+                battery: installation.battery.unwrap_or_else(|| if w.caliber_m >= 0.1 {
                     "main"
                 } else {
                     "secondary"
                 }
-                .into(),
+                .into()),
                 position: e.position,
                 bearing_deg: e.bearing_deg,
                 magazine_id: Some(magazine.id.clone()),
-                weapon: w.clone(),
+                weapon: installed,
+                initial_elevation_deg: installation.initial_elevation_deg,
+                traverse_limits_deg: installation.traverse_limits_deg,
                 rangefinder: false,
                 ..Default::default()
             });
@@ -1965,6 +2000,14 @@ fn equipment(
                     )
                 })?;
             let magazine = resolve_magazine(c, catalog, e)?;
+            if let Some(installation) = &e.launcher {
+                let [lo, hi] = installation.traverse_limits_deg;
+                if !lo.is_finite() || !hi.is_finite() || lo < -180. || hi > 180.
+                    || lo >= hi || e.bearing_deg < lo || e.bearing_deg > hi
+                    || installation.launch_arcs_deg.is_empty() || installation.launch_arcs_deg.len() > 8
+                    || installation.launch_arcs_deg.iter().any(|[a,b]| !a.is_finite() || !b.is_finite() || a >= b || *a < lo || *b > hi)
+                { return Err(error("weapon-installation", "Launcher arcs must lie within traverse limits and include the installed resting bearing", Some(&e.id))); }
+            }
             def.torpedo_launchers
                 .get_or_insert_default()
                 .push(TorpedoLauncher {
@@ -1972,7 +2015,8 @@ fn equipment(
                     name: p.name.clone(),
                     position: e.position,
                     traverse_rate_deg: 10.,
-                    launch_arcs_deg: vec![[-180., 180.]],
+                    launch_arcs_deg: e.launcher.as_ref().map_or_else(|| vec![[-180., 180.]], |l| l.launch_arcs_deg.clone()),
+                    traverse_limits_deg: e.launcher.as_ref().map(|l| l.traverse_limits_deg),
                     ..Default::default()
                 });
             for (i, &offset) in offsets.iter().enumerate() {
@@ -2013,6 +2057,11 @@ fn equipment(
                     center: add(e.position, [0., p.bounds_center[1], 0.]),
                     size: [radius * 2., p.size[1], radius * 2.],
                 });
+            } else if p.fitting.is_some() {
+                for (i, cell) in fitting_cells.iter().enumerate() {
+                    let (center, size) = crate::structure::bounds(cell.faces.iter().flat_map(|f| f.vertices.iter().copied()));
+                    def.obstructions.push(Volume { id: format!("{}-fitting-{i}", e.id), center, size });
+                }
             } else {
                 def.obstructions.push(Volume {
                     id: e.id.clone(),
@@ -2217,6 +2266,7 @@ mod tests {
                     default_thickness_mm: 10.,
                     primitives: vec![ConstructionPrimitive {
                         vertices: None,
+                        smooth_group: None,
                         id: "box".into(),
                         kind: "box".into(),
                         position: [0.; 3],
@@ -2238,9 +2288,30 @@ mod tests {
         )
     }
     #[test]
+    fn microscopic_sealed_voids_do_not_consume_the_room_budget() {
+        let (mut source, catalog) = fixture();
+        source.construction.default_thickness_mm = 0.1;
+        source.construction.primitives[0].size = [30., 1., 2.];
+        source.construction.primitives[0].position = [0.; 3];
+        for i in 0..257 {
+            source.construction.primitives.push(ConstructionPrimitive {
+                id: format!("tiny-{i}"), kind: "box".into(), size: [0.01; 3],
+                position: [-14. + i as f64 * 0.1, 0.505, 0.],
+                ..Default::default()
+            });
+        }
+        source.construction.boundaries.push(ConstructionBoundary {
+            id: "tiny-void-floor".into(), axis: "y".into(), offset: 0.501,
+            thickness_mm: 0.1,
+        });
+        let result = compile(&source, &catalog);
+        assert!(result.definition.is_some(), "{:?}", result.diagnostics);
+        assert!(result.definition.unwrap().compartments.len() < 256);
+    }
+    #[test]
     fn ballast_adds_exact_fixed_payload_and_displaces_real_interior() {
         let (mut source,catalog) = fixture();
-        source.construction.primitives.push(ConstructionPrimitive { id:"weight".into(),kind:"box".into(),size:[3.,2.,3.],position:[2.,3.,0.],rotation_deg:0.,vertices:None });
+        source.construction.primitives.push(ConstructionPrimitive { id:"weight".into(),kind:"box".into(),size:[3.,2.,3.],position:[2.,3.,0.],rotation_deg:0.,vertices:None, smooth_group:None });
         let empty = compile(&source,&catalog).loading.unwrap();
         source.construction.primitives[1].kind = "ballast".into();
         let result = compile(&source,&catalog);
@@ -2398,6 +2469,7 @@ mod tests {
         s.construction.primitives = vec![
             ConstructionPrimitive {
                 vertices: None,
+                        smooth_group: None,
                 id: "port".into(),
                 kind: "box".into(),
                 position: [-4., 0., 0.],
@@ -2406,6 +2478,7 @@ mod tests {
             },
             ConstructionPrimitive {
                 vertices: None,
+                        smooth_group: None,
                 id: "starboard".into(),
                 kind: "box".into(),
                 position: [4., 0., 0.],
@@ -2414,6 +2487,7 @@ mod tests {
             },
             ConstructionPrimitive {
                 vertices: None,
+                        smooth_group: None,
                 id: "bridge".into(),
                 kind: "box".into(),
                 position: [0., 2.5, 0.],
@@ -2799,6 +2873,38 @@ mod tests {
             });
         }
         (s, c)
+    }
+    #[test]
+    fn separate_gun_geometry_allows_overlapping_empty_catalog_bounds() {
+        let (mut source, mut catalog) = equipped_fixture();
+        let part = catalog.equipment.iter_mut().find(|p| p.id == "gun-part").unwrap();
+        part.size = [10., 3., 10.];
+        part.occupancy = None;
+        part.bounds_center = [0., 1.5, 0.];
+        let mut second = source.construction.equipment.iter().find(|e| e.id == "gun").unwrap().clone();
+        second.id = "neighbor".into(); second.position[0] = 4.;
+        source.construction.equipment.push(second);
+        let result = compile(&source, &catalog);
+        assert!(result.definition.is_some(), "{:?}", result.diagnostics);
+        source.construction.equipment.last_mut().unwrap().position[0] = 0.;
+        assert!(compile(&source, &catalog).diagnostics.iter().any(|d| d.code == "equipment-overlap"));
+    }
+    #[test]
+    fn construction_retains_bounded_gun_installation_settings() {
+        let (mut source, catalog) = equipped_fixture();
+        let gun = source.construction.equipment.iter_mut().find(|e| e.id == "gun").unwrap();
+        gun.gun = Some(ConstructionEquipmentGun {
+            battery: Some("secondary".into()), initial_elevation_deg: Some(10.),
+            traverse_deg: Some(60.), traverse_limits_deg: Some([-45., 60.]),
+            ..Default::default()
+        });
+        let definition = compiled(&source, &catalog);
+        assert_eq!(definition.mounts[0].battery, "secondary");
+        assert_eq!(definition.mounts[0].initial_elevation_deg, Some(10.));
+        assert_eq!(definition.mounts[0].weapon.traverse_deg, 60.);
+        assert_eq!(definition.mounts[0].traverse_limits_deg, Some([-45.,60.]));
+        source.construction.equipment.iter_mut().find(|e| e.id == "gun").unwrap().gun.as_mut().unwrap().traverse_deg = Some(361.);
+        assert!(compile(&source,&catalog).diagnostics.iter().any(|d|d.code=="weapon-installation"));
     }
     #[test]
     fn equipped_loading_penetrations_and_real_machinery_damage() {
