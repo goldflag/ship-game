@@ -1,4 +1,4 @@
-import type { ConstructionEquipment, ConstructionEquipmentPart, ConstructionPrimitive, ConstructionSource, Vec3 } from '../../ships/blueprint';
+import type { ConstructionEquipment, ConstructionEquipmentPart, ConstructionPrimitive, ConstructionSource, ConstructionSurface, Vec3 } from '../../ships/blueprint';
 import { mirroredPrimitive } from '../../ships/constructionEditor';
 import { normalizedBearing, snapCoordinate } from './editorNumbers';
 import type { BuilderPlacement } from './primitiveGeometry';
@@ -12,6 +12,19 @@ const VERTEX_SHAPE: Vec3[][] = VERTEX_FACES.map(face => face.corners.map(i => CO
 /** Placement arithmetic for the cursor ghost: pieces sit on the face under the
  * pointer, snapped to the grid in the face plane. Rust still validates the result. */
 export interface PlacementHit { point: Vec3; normal: Vec3; snapOrigin?: Vec3 }
+
+/** Resolve a rendered pick against its compiler-authored support surface. */
+export function physicalPlacementHit(hit: PlacementHit, surface?: Pick<ConstructionSurface, 'normal' | 'vertices'>): PlacementHit {
+  if (!surface) return hit;
+  // GPU vertices are Float32; their ray hits can lie just outside the exact
+  // solid. Use the native plane and normal for physical placement, retaining
+  // the picked side when inspecting an interior face.
+  const n = surface.normal;
+  const squaredLength = n.reduce((sum, value) => sum + value * value, 0);
+  const distance = hit.point.reduce((sum, value, i) => sum + (value - surface.vertices[0][i]) * n[i], 0) / squaredLength;
+  const sign = hit.normal.reduce((sum, value, i) => sum + value * n[i], 0) < 0 ? -1 : 1;
+  return { ...hit, point: hit.point.map((value, i) => value - distance * n[i]) as Vec3, normal: n.map(value => value * sign) as Vec3 };
+}
 
 export const dominantAxis = (normal: Vec3): 0 | 1 | 2 => {
   const [x, y, z] = normal.map(Math.abs);
