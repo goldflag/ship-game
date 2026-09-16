@@ -26,6 +26,8 @@ export interface WaterTextures {
     sceneDepth: SceneDepthSampler;
 }
 export interface WaterFragmentParams {
+    /** Optional scene directional shadow, shared with opaque ship lighting. */
+    sunShadow?: Node | null;
     uniforms: SurfaceUniforms;
     vertex: WaterVertexResult;
     oceanSim: IWaveSimulation;

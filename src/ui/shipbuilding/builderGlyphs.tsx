@@ -9,6 +9,10 @@ const TOOL_PATHS: Record<string, string> = {
   Merge: 'M3 5h6v10H3zM11 5h6v10h-6zM9 10h2', Module: 'M3 6h14v8H3zM6 6V4h8v2M6 14v2h8v-2', Opening: 'M3 3h5M12 3h5M17 3v14H3V3', Rotate: 'M16 10a6 6 0 1 1-2-4.5M14 2v4h-4',
   Arc: 'M10 17V4a13 13 0 0 1 8 8z', Suggest: 'M10 2v5M10 13v5M2 10h5M13 10h5M5 5l3 3M12 12l3 3M15 5l-3 3M8 12l-3 3', Area: 'M3 3h14v14H3z', Eyedrop: 'M3 17l7-7M12 4l4 4-6 6-4-4z',
   Fitting: 'M6 11a4 4 0 1 0 8 0 4 4 0 1 0-8 0M10 7V2M6 17h8', Part: 'M3 8h14v6H3zM6 8V5h8v3',
+  View: 'M2 10s3-5 8-5 8 5 8 5-3 5-8 5-8-5-8-5zM7.5 10a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0-5 0',
+  Perspective: 'M3 3h14v14H3zM7 7h6v6H7zM3 3l4 4M17 3l-4 4M3 17l4-4M17 17l-4-4', Orthographic: 'M3 7h10v10H3zM7 3h10v10h-4M3 7l4-4M13 7l4-4',
+  Slice: 'M4 15V7l6 3v8zM10 10l6-3v8l-6 3M4 7l6-3 6 3M1 12h18', Centers: 'M10 3v3M10 14v3M3 10h3M14 10h3M7 10a3 3 0 1 0 6 0a3 3 0 1 0-6 0',
+  Snap: 'M3 7.5h14M3 12.5h14M7.5 3v14M12.5 3v14', Fit: 'M3 7V3h4M13 3h4v4M17 13v4h-4M7 17H3v-4M7 8h6v4H7z',
   Keys: 'M10 2.5a7.5 7.5 0 1 1 0 15 7.5 7.5 0 0 1 0-15zM7.7 8a2.3 2.3 0 1 1 3.3 2.1c-.7.4-1 .9-1 1.6v.4M10 14.6v.4',
 };
 const SHAPE_PATHS: Record<string, string> = {

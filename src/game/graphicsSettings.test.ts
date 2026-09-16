@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { DEFAULT_GRAPHICS, GRAPHICS_PRESETS, GRAPHICS_STORAGE_KEY, PRESET_ORDER, aircraftDetailScale, effectsDensity, frameIntervalMs, loadGraphicsSettings, matchingPreset, nearestPreset, sanitizeGraphicsSettings, sanitizeRenderScale, shadowMapSize, shipDetailBudgetPx } from './graphicsSettings';
+import { DEFAULT_GRAPHICS, GRAPHICS_PRESETS, GRAPHICS_STORAGE_KEY, PRESET_ORDER, aircraftDetailScale, effectsDensity, frameIntervalMs, launchMatches, loadGraphicsSettings, matchingPreset, nearestPreset, sanitizeGraphicsSettings, sanitizeRenderScale, shadowMapSize, shipDetailBudgetPx } from './graphicsSettings';
 
 test('invalid stored graphics recover to High and unknown rows fall back individually', () => {
   for (const value of [null, [], 'bad', 42, { ocean: 'extreme', shadows: 7, renderScale: 'big' }]) {
@@ -54,4 +54,21 @@ test('graphics settings load from the stored key and tolerate unavailable storag
   } finally {
     if (original) Object.defineProperty(globalThis, 'localStorage', original); else delete (globalThis as { localStorage?: unknown }).localStorage;
   }
+});
+
+
+test('water shadows migrate old presets and stay independently configurable without a reload', () => {
+  for (const name of PRESET_ORDER) {
+    const { waterShadows, ...oldSave } = GRAPHICS_PRESETS[name];
+    expect(sanitizeGraphicsSettings(oldSave)).toEqual(GRAPHICS_PRESETS[name]);
+  }
+  for (const waterShadows of ['off', 'low', 'medium', 'high'] as const) {
+    const settings = { ...DEFAULT_GRAPHICS, waterShadows };
+    expect(sanitizeGraphicsSettings(JSON.parse(JSON.stringify(settings)))).toEqual(settings);
+    expect(launchMatches(DEFAULT_GRAPHICS, settings)).toBe(true);
+    // Disabling global shadows preserves the chosen filter for re-enabling.
+    expect(sanitizeGraphicsSettings({ ...settings, shadows: 'off' }).waterShadows).toBe(waterShadows);
+  }
+  expect(matchingPreset({ ...DEFAULT_GRAPHICS, waterShadows: 'medium' })).toBeNull();
+  expect(sanitizeGraphicsSettings({ ...DEFAULT_GRAPHICS, waterShadows: 'invalid' }).waterShadows).toBe('high');
 });

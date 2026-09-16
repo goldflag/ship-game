@@ -67,8 +67,32 @@ High and Ultra retain screen-space ship reflections; Medium keeps them disabled.
 The water shader clips reflection rays to the viewport, refines geometry hits more
 precisely and uses full-float reflection depth to avoid distant speckling. Screen-space
 reflections still omit offscreen geometry and break up with wave slopes. This extends
-the reflected ship silhouette on water and the ship's own sun/moon shading; the custom
-water surface does not receive a separate directional shadow.
+the reflected ship silhouette on water and the ship's own sun/moon shading.
+
+The displaced water surface also receives ship shadows from that same directional
+shadow map. `WaterShadows` binds its depth texture after the scene renders
+and adds no shadow map or caster pass. Graphics → Water shadows applies live:
+Off removes water shadow sampling, Low uses one comparison, Medium uses four,
+and High uses the original nine-tap soft filter. Overall Low/Medium/High/Ultra
+presets choose Off/Low/High/High respectively; saved settings retain the choice.
+A shader branch skips those texture reads outside the shadow camera's bounds;
+each enabled quality only filters water inside those bounds.
+Shadows attenuate the lit water color, subsurface scattering, glints and foam while retaining ambient fill
+and sky reflections. They follow the active sun/moon and the existing local or
+zoomed hull anchor; ships outside that map's 760 m footprint do not cast water
+shadows. The Shadows setting controls map resolution for both hull and water shadows;
+its Off option overrides Water shadows without losing the selected water quality.
+Off stops shadow-map rendering and sets its intensity to zero; an already
+allocated map is retained so cached scene-capture programs can safely reuse it
+when shadows are enabled again.
+
+The dev fixture `/scripts/diagnostics/water-shadows.html?test` compares frozen
+frames with only water shadow reception disabled/enabled, checks restoration and
+all four live water quality levels and global Off/Low/High settings, and exposes `window.shadowResult.passed`. Add `&calm`
+for a flat sea or `&webgl` for the fallback backend. WebGL capture uses the
+direct scene draw because this review host returns an empty post-process
+framebuffer; that check covers water shading, not the final composition.
+Temporary captures belong in `.build/`.
 
 The development fixture `/scripts/diagnostics/water-reflections.html?test` compares
 the old range against zoomed coverage at 5 km and 20 km, then checks restoration.
