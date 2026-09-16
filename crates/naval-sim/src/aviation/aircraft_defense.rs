@@ -149,3 +149,39 @@ pub fn evade_bomber(
     );
     true
 }
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::aviation::test_support::planes;
+
+    #[test]
+    fn bomber_defense_reacts_to_threats_then_rejoins_and_protects_the_release_window() {
+        let (_, ps) = planes("torpedo-bomber");
+        let mut p = ps[0].clone();
+        assert!(!evade_bomber(&mut p, &[], 0, 5739, 1.0 / 60.0));
+        near_fire(&mut p, [100.0, 0.0, 0.0]);
+        assert!(evade_bomber(&mut p, &[], 0, 5739, 1.0 / 60.0));
+        assert!(p.pilot.defense.as_ref().unwrap().spread_seconds > 0.0);
+        let first_heading = p.heading;
+        for _ in 0..600 {
+            tick(&mut p, 1.0 / 60.0);
+            evade_bomber(&mut p, &[], 0, 5739, 1.0 / 60.0);
+        }
+        assert!((p.heading - first_heading).abs() > 0.1);
+        assert!(!evade_bomber(&mut p, &[], 0, 5739, 1.0 / 60.0));
+        assert!(p.payload && p.position[1] > 50.0);
+        p = ps[0].clone();
+        p.phase = "attack".into();
+        p.position[1] = 26.0;
+        p.pilot.attack_stage = Some("run".into());
+        near_fire(&mut p, [100.0, 0.0, 0.0]);
+        assert!(
+            !evade_bomber(&mut p, &[], 0, 5739, 1.0 / 60.0),
+            "healthy pilot must preserve a committed torpedo solution"
+        );
+        p.hp = 40.0;
+        assert!(evade_bomber(&mut p, &[], 0, 5739, 1.0 / 60.0));
+        assert_eq!(p.pilot.attack_stage.as_deref(), Some("egress"));
+        assert!(p.payload);
+    }
+}

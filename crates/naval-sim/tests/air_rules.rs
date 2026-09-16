@@ -284,23 +284,6 @@ fn pve_profile_keeps_simplified_launches_and_long_finite_endurance() {
             .iter()
             .all(|p| p.phase == "outbound")
     );
-    let wing = aviation.wing("carrier").unwrap();
-    assert!(
-        naval_sim::aviation::formation_leader(
-            &wing.flights[0],
-            &wing.planes,
-            &aviation.rules.endurance
-        )
-        .is_some()
-    );
-    assert!(
-        naval_sim::aviation::formation_leader(
-            &wing.flights[0],
-            &wing.planes,
-            &AirRules::legacy().endurance
-        )
-        .is_none()
-    );
     for p in aviation.wing_mut("carrier").unwrap().planes.iter_mut() {
         p.flight_time = 1921.0;
     }

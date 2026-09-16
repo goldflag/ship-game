@@ -183,3 +183,51 @@ pub fn fly_formation(
         },
     );
 }
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::aviation::{
+        air_rules::AirRules,
+        test_support::{catalog, planes},
+    };
+    use std::collections::BTreeSet;
+
+    #[test]
+    fn formation_layouts_vary_by_sortie_and_role_and_change_without_teleporting() {
+        let (f, mut ps) = planes("torpedo-bomber");
+        let layouts: BTreeSet<_> = (0..64)
+            .map(|seed| formation_kind(&f, &ps[1], seed))
+            .collect();
+        assert_eq!(layouts.len(), 3);
+        assert_eq!(
+            formation_offset(&f, &ps[1], 30.0, 5739),
+            formation_offset(&f, &ps[1], 30.0, 5739)
+        );
+        let leader = ps[0].clone();
+        fly_formation(&mut ps[1], &leader, &f, 1.0 / 60.0, 0.0, 5739);
+        let before = ps[1].pilot.formation.as_ref().unwrap().offset;
+        let position = ps[1].position;
+        ps[1].pilot.attack_stage = Some("run".into());
+        fly_formation(&mut ps[1], &leader, &f, 1.0 / 60.0, 1.0 / 60.0, 5739);
+        assert_eq!(ps[1].pilot.formation.as_ref().unwrap().kind, "line-abreast");
+        for axis in 0..3 {
+            assert!(
+                (ps[1].pilot.formation.as_ref().unwrap().offset[axis] - before[axis]).abs()
+                    <= 8.0 / 60.0 + 1e-9
+            );
+        }
+        assert!(crate::geometry::length(crate::geometry::sub(position, ps[1].position)) < 2.0);
+        let (f, ps) = planes("fighter");
+        assert_eq!(formation_kind(&f, &ps[0], 5739), "pairs");
+    }
+    #[test]
+    fn formation_leaders_need_endurance_left_under_the_selected_policy() {
+        let (f, mut ps) = planes("fighter");
+        for p in &mut ps {
+            p.flight_time = 1200.0;
+        }
+        let pve = &catalog().air_profiles["pve-air-v1"].endurance;
+        assert!(formation_leader(&f, &ps, pve).is_some());
+        assert!(formation_leader(&f, &ps, &AirRules::legacy().endurance).is_none());
+    }
+}

@@ -29,6 +29,8 @@ mod fighter_coordination;
 mod flight_deck;
 mod pve_air;
 mod step;
+#[cfg(test)]
+mod test_support;
 
 pub use air_gunnery::FireDiscipline;
 pub(crate) use air_gunnery::{aa_damage, aa_spread, gunnery_seed, panic_aim, step_discipline};
@@ -725,6 +727,64 @@ impl Aviation {
                 Some(id),
                 sea,
             ) > 0
+        }
+    }
+}
+#[cfg(test)]
+mod tests {
+    use super::{
+        aircraft_defense::DefenseState,
+        aircraft_recovery::RecoveryProgress,
+        test_support::{battle, launch},
+    };
+    use crate::{rules::TeamId, snapshot::PresentationView};
+
+    #[test]
+    fn owned_flights_publish_activity_without_private_pilot_state() {
+        let mut b = battle();
+        let flight = launch(&mut b, "own", "dive-bomber", [0.0, 850.0, -3500.0]);
+        let p = b
+            .aviation
+            .wing_mut("own")
+            .unwrap()
+            .planes
+            .iter_mut()
+            .find(|p| p.flight_id.as_ref() == Some(&flight))
+            .unwrap();
+        p.pilot.recovery = Some(RecoveryProgress {
+            notice: Some(
+                "Carrier turning too sharply · Steady the course to recover aircraft".into(),
+            ),
+            ..Default::default()
+        });
+        p.pilot.defense = Some(DefenseState {
+            notice: Some("Evading fighter".into()),
+            maneuver_seconds: 4.0,
+            ..Default::default()
+        });
+        let id = p.id.clone();
+        for frame in [
+            b.presentation_value(PresentationView::FullKnowledge)
+                .unwrap(),
+            b.presentation_value(PresentationView::Team(TeamId::A))
+                .unwrap(),
+            serde_json::to_value(b.presentation_snapshot()).unwrap(),
+        ] {
+            let p = frame["wings"][0]["state"]["planes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .find(|p| p["id"] == id)
+                .unwrap();
+            assert!(p.get("pilot").is_none());
+            assert_eq!(p["behavior"]["evasionNotice"], "Evading fighter");
+            assert!(
+                p["behavior"]["recoveryNotice"]
+                    .as_str()
+                    .unwrap()
+                    .contains("Steady the course")
+            );
+            assert_eq!(p["behavior"].as_object().unwrap().len(), 2);
         }
     }
 }

@@ -122,7 +122,10 @@ pub struct CarrierAirRules {
 impl AirRules {
     /// Explicit compatibility default for setups written before air profiles.
     pub fn legacy() -> Self {
-        serde_json::from_str(include_str!("../../../../assets/gameplay/legacy-air.v1.json")).unwrap()
+        serde_json::from_str(include_str!(
+            "../../../../assets/gameplay/legacy-air.v1.json"
+        ))
+        .unwrap()
     }
     pub fn validate(&self) -> Result<(), String> {
         if self.version != 1

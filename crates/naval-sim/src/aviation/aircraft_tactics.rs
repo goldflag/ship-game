@@ -342,3 +342,216 @@ pub fn strike_ingress(p: &mut Aircraft, target_heading: f64, target: Vec3) -> Ve
         target[2] + heading.cos() * stand,
     ]
 }
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::aviation::{
+        air_gunnery::FireDiscipline,
+        test_support::{fighters as fixture, planes},
+    };
+    use crate::rules::TeamId;
+
+    #[test]
+    fn a_six_plane_cap_splits_between_high_and_low_inbound_tracks() {
+        let all = fixture();
+        let refs: Vec<_> = all.iter().map(PlaneView::of).collect();
+        let assignments: Vec<_> = all[..6]
+            .iter()
+            .map(|p| {
+                let mut p = p.clone();
+                fighter_target(&mut p, &refs, [0.; 3], 1., None).unwrap()
+            })
+            .collect();
+        assert!(
+            assignments.iter().any(|i| *i < 12),
+            "low approach uncovered: {assignments:?}"
+        );
+        assert!(
+            assignments.iter().any(|i| *i >= 12),
+            "high approach uncovered: {assignments:?}"
+        );
+        assert_eq!(
+            assignments
+                .iter()
+                .collect::<std::collections::BTreeSet<_>>()
+                .len(),
+            6,
+            "fighters pile onto the same target: {assignments:?}"
+        );
+    }
+
+    #[test]
+    fn panic_does_not_spend_ammunition_on_a_distant_unsettled_solution() {
+        let mut p = fixture().remove(0);
+        p.pilot.fire_discipline = Some(FireDiscipline {
+            panic: true,
+            ..Default::default()
+        });
+        let gun = FighterAim {
+            time: 0.7,
+            alignment: 0.97,
+            direction: [0., 0., -1.],
+            distance: 500.,
+            point: [0., 850., -2000.],
+        };
+        for _ in 0..120 {
+            assert!(!fighter_fire_ready(&mut p, &gun, true, true, 1. / 60.));
+        }
+    }
+
+    fn assignments(all: &[Aircraft]) -> Vec<String> {
+        let refs: Vec<_> = all.iter().map(PlaneView::of).collect();
+        all.iter()
+            .filter(|p| p.team == TeamId::A)
+            .map(|p| {
+                let mut p = p.clone();
+                let i = fighter_target(&mut p, &refs, [0.; 3], 1., None).unwrap();
+                refs[i].id.to_owned()
+            })
+            .collect()
+    }
+    #[test]
+    fn allocation_is_order_independent_and_ignores_hidden_enemy_state() {
+        let all = fixture();
+        let expected = assignments(&all);
+        let mut changed = all.clone();
+        for p in &mut changed[6..] {
+            p.hp = 1.;
+            p.payload = !p.payload;
+            p.role = "torpedo-bomber".into();
+            p.flight_id = Some(p.id.clone());
+        }
+        assert_eq!(expected, assignments(&changed));
+        changed[6..].reverse();
+        assert_eq!(expected, assignments(&changed));
+    }
+    #[test]
+    fn six_fighters_allocate_without_duplicates_against_six_twelve_and_eighteen_tracks() {
+        for count in [6, 12, 18] {
+            let mut all = fixture();
+            if count == 6 {
+                all.truncate(12);
+            } else if count == 18 {
+                for i in 18..24 {
+                    let mut p = all[6 + i % 6].clone();
+                    p.id = format!("plane-{i:02}");
+                    p.position[0] += 200.;
+                    all.push(p);
+                }
+            }
+            assert_eq!(
+                assignments(&all)
+                    .into_iter()
+                    .collect::<std::collections::BTreeSet<_>>()
+                    .len(),
+                6
+            );
+        }
+    }
+    #[test]
+    fn defenders_release_departing_tracks_but_explicit_intercepts_continue() {
+        let mut all = fixture();
+        all.truncate(7);
+        all[6].velocity = [0., 0., -85.];
+        let mut p = all[0].clone();
+        p.pilot.hostile_id = Some(all[6].id.clone());
+        p.pilot.think = 1.;
+        let refs: Vec<_> = all.iter().map(PlaneView::of).collect();
+        assert!(fighter_target(&mut p, &refs, [0.; 3], 1. / 60., None).is_none());
+        assert!(fighter_target(&mut p, &refs, [0.; 3], 1. / 60., Some("enemy")).is_some());
+    }
+    #[test]
+    fn settled_close_fire_requires_reacquisition_and_a_clear_lane() {
+        let mut p = fixture().remove(0);
+        p.bank = 0.;
+        let gun = FighterAim {
+            time: 0.3,
+            alignment: 1.,
+            direction: [0., 0., -1.],
+            distance: 200.,
+            point: [0., 850., -1700.],
+        };
+        assert!(!fighter_fire_ready(&mut p, &gun, true, true, 0.15));
+        assert!(fighter_fire_ready(&mut p, &gun, true, true, 0.16));
+        assert!(!fighter_fire_ready(&mut p, &gun, true, false, 0.1));
+        assert!(!fighter_fire_ready(&mut p, &gun, true, true, 0.15));
+        p.cooldown = 0.8;
+        assert!(!fighter_fire_ready(&mut p, &gun, true, true, 1.));
+        p.cooldown = 0.;
+        assert!(!fighter_fire_ready(&mut p, &gun, true, true, 0.15));
+    }
+
+    #[test]
+    fn a_fighter_with_height_advantage_descends_instead_of_repeated_high_yoyos() {
+        let all = fixture();
+        let mut p = all[0].clone();
+        let mut hostile = all[6].clone();
+        p.position = [500., 850., 0.];
+        p.velocity = [-115., 0., 0.];
+        p.heading = -std::f64::consts::FRAC_PI_2;
+        hostile.position = [0., 90., 300.];
+        hostile.velocity = [-80., 0., 0.];
+        let view = PlaneView::of(&hostile);
+        steer_fighter(&mut p, &view, &[view], 1. / 60.);
+        assert_ne!(p.pilot.maneuver.as_ref().unwrap().kind, "high-yo-yo");
+        assert!(
+            p.navigation_target.unwrap()[1] < 850.,
+            "existing altitude advantage should be spent closing on the target"
+        );
+    }
+
+    #[test]
+    fn diving_pursuit_spends_height_before_overtaking_a_low_target() {
+        let all = fixture();
+        let mut p = all[0].clone();
+        let mut hostile = all[6].clone();
+        p.position = [500., 850., 0.];
+        p.velocity = [-115., 0., 0.];
+        p.heading = -std::f64::consts::FRAC_PI_2;
+        hostile.position = [0., 90., 0.];
+        hostile.velocity = [-80., 0., 0.];
+        for _ in 0..120 {
+            let view = PlaneView::of(&hostile);
+            steer_fighter(&mut p, &view, &[view], 1. / 60.);
+            hostile.position[0] -= 80. / 60.;
+        }
+        assert!(
+            p.pitch < -0.3,
+            "a high fighter stayed in shallow transit descent: {}",
+            p.pitch
+        );
+    }
+    #[test]
+    fn fighters_extend_before_overshooting_and_break_toward_wingman_support() {
+        let (_, ps) = planes("fighter");
+        let mut p = ps[0].clone();
+        let mut enemy = ps[1].clone();
+        enemy.team = TeamId::B;
+        enemy.position = [0.0, 850.0, -100.0];
+        let enemy_view = PlaneView::of(&enemy);
+        assert!(!steer_fighter(
+            &mut p,
+            &enemy_view,
+            &[enemy_view],
+            1.0 / 60.0
+        ));
+        assert_eq!(p.pilot.maneuver.as_ref().unwrap().kind, "extend");
+        p = ps[0].clone();
+        enemy.position = [0.0, 850.0, 200.0];
+        let mut ally = ps[2].clone();
+        ally.position = [800.0, 850.0, 0.0];
+        let enemy_view = PlaneView::of(&enemy);
+        let ally_view = PlaneView::of(&ally);
+        assert!(!steer_fighter(
+            &mut p,
+            &enemy_view,
+            &[enemy_view, ally_view],
+            1.0 / 60.0
+        ));
+        assert_eq!(p.pilot.maneuver.as_ref().unwrap().kind, "defensive-break");
+        assert!(
+            p.pilot.break_point.unwrap()[0] > 500.0,
+            "break should bring the pursuer toward wingman support"
+        );
+    }
+}
