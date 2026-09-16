@@ -125,6 +125,7 @@ test('battle loading holds input and starts one loop only after graphics finish 
       let finish!: () => void, enabled = true, scheduled = 0;
       const graphics = new Promise<void>(resolve => { finish = resolve; });
       const game = Object.assign(Object.create(Game.prototype), {
+        simulation: { player: { damage: { sunk: false } } }, water: {}, inPort: false,
         input: { setEnabled(value: boolean) { enabled = value; } },
         setInPort() {}, scheduleFrame() { scheduled++; },
         async warmupRendering() { await graphics; if (failure) throw new Error('Graphics failed'); },

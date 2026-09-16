@@ -1,13 +1,12 @@
 import { currentAccount } from '../../accounts/session';
 import { retainRecovery, savedReference } from '../../ships/constructionCloud';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import type { ConstructionResult, ConstructionSource, ConstructionSuggestion } from '../../ships/blueprint';
-import { createConstructionHistory, editConstruction, undoConstruction, redoConstruction, ConstructionRevisionGate } from '../../ships/constructionHistory';
-import { ConstructionAutosave, type ConstructionSaveState } from '../../ships/constructionAutosave';
+import { ConstructionRevisionGate } from '../../ships/constructionHistory';
+import { ConstructionRevisionOwner } from '../../ships/constructionRevisionOwner';
 import { startingHullBlock } from '../../ships/constructionStarter';
 import { openConstructionStore, type ConstructionStore } from '../../ships/constructionStore';
-import { decodeConstructionSource, loadSavedConstructionWithCatalog, newConstructionId } from '../../ships/constructionEditor';
-import { applyConstructionBatch, type ConstructionBatch } from '../../ships/constructionCommands';
+import { newConstructionId } from '../../ships/constructionEditor';
 
 export interface BuilderCompiler {
   compile(source: ConstructionSource, signal?: AbortSignal): Promise<ConstructionResult>;
@@ -27,74 +26,40 @@ export function useBuilderSource({ starterSource, initialSource, initialDesignId
   openStore?(): Promise<ConstructionStore>;
   repositoryId?: string;
 }) {
-  const [history, setHistory] = useState(() => createConstructionHistory(initialSource ?? freshConstruction(starterSource)));
-  const source = history.source;
   const account = useRef(currentAccount()).current;
+  const onSaveRef = useRef(onSave); onSaveRef.current = onSave;
+  const [owner] = useState(() => new ConstructionRevisionOwner(initialSource ?? freshConstruction(starterSource), {
+    retainRecovery: input => retainRecovery(input, account),
+    onSave: saved => onSaveRef.current?.(saved),
+    savedDesignId: id => savedReference(id)?.designId,
+  }));
+  const snapshot = useSyncExternalStore(owner.subscribe, owner.getSnapshot, owner.getSnapshot);
+  const { history, saveState, error, adoption } = snapshot;
+  const source = history.source;
   const [store, setStore] = useState<ConstructionStore>();
   const [ready, setReady] = useState(false);
-  const [error, setError] = useState('');
-  const [saveState, setSaveState] = useState<ConstructionSaveState>({ status: 'saving', token: 0 });
-  const [saverVersion, setSaverVersion] = useState(0);
-  const [writerEpoch, setWriterEpoch] = useState(0);
-  const saver = useRef<ConstructionAutosave | undefined>(undefined);
-  const head = useRef<string | null>(null);
-  const lastQueued = useRef('');
-  const onSaveRef = useRef(onSave); onSaveRef.current = onSave;
-  const sourceRef = useRef(source); sourceRef.current = source;
   const [result, setResult] = useState<ConstructionResult>();
   const [compiling, setCompiling] = useState(true);
   const [compileError, setCompileError] = useState('');
   const gate = useRef(new ConstructionRevisionGate());
   const [compileAgain, setCompileAgain] = useState(0);
+  const acceptedAdoption = useRef(-1);
+  const resultRef = useRef({ result, adoption: -1 }); resultRef.current = { result, adoption: acceptedAdoption.current };
 
   useEffect(() => {
     let active = true; let opened: ConstructionStore | undefined;
     void openStore().then(async storage => {
       opened = storage;
       if (!active) { storage.close(); return; }
-      if (initialDesignId) {
-        try {
-          const loaded = await loadSavedConstructionWithCatalog(storage, initialDesignId);
-          if (!active) return;
-          head.current = loaded.head.revisionId; lastQueued.current = loaded.source.revision;
-          setHistory(createConstructionHistory(loaded.source)); setSaveState({ status: 'saved', token: 0, revision: loaded.revision });
-        } catch (cause) { if (active) setError(cause instanceof Error ? cause.message : String(cause)); }
-      } else if (initialSource) {
-        try {
-          const loaded = await loadSavedConstructionWithCatalog(storage, initialSource.id);
-          if (!active) return;
-          if (JSON.stringify(loaded.source) === JSON.stringify(initialSource)) {
-            head.current = loaded.head.revisionId; lastQueued.current = initialSource.revision;
-            setSaveState({ status: 'saved', token: 0, revision: loaded.revision });
-          } else head.current = 'source-returned-from-trial'; // CAS rejects overwriting a newer edit in another tab.
-        } catch (cause) { if ((cause as { code?: string }).code !== 'not-found' && active) setError(cause instanceof Error ? cause.message : String(cause)); }
-      }
+      await owner.connect(storage, initialDesignId, !!initialSource);
       if (active) { setStore(storage); setReady(true); }
-    }).catch(cause => { if (active) { setError(cause instanceof Error ? cause.message : String(cause)); setReady(true); setSaveState({ status: 'error', token: 0, error: cause }); } });
-    return () => { active = false; opened?.close(); };
+    }).catch(cause => { if (active) { owner.unavailable(cause); setReady(true); } });
+    return () => { active = false; owner.disconnect(); opened?.close(); };
   }, []);
 
   useEffect(() => {
-    if (!store || !ready) return;
-    const save = new ConstructionAutosave(store, head.current, state => {
-      setSaveState(state);
-      if (state.error) setError(state.error.message);
-      if (state.revision) {
-        head.current = state.revision.id;
-        try { onSaveRef.current?.(decodeConstructionSource(JSON.parse(state.revision.sourceJson))); }
-        catch (cause) { setError(`Source saved, but the local fleet list could not refresh: ${cause instanceof Error ? cause.message : String(cause)}`); }
-      }
-    });
-    saver.current = save; setSaverVersion(version => version + 1);
-    return () => { save.dispose(); if (saver.current === save) saver.current = undefined; };
-  }, [store, ready, source.id, writerEpoch]);
-
-  useEffect(() => {
-    if (!saver.current || !ready || lastQueued.current === source.revision) return;
-    void retainRecovery({ designId:source.id,name:source.name,source,schemaVersion:source.schemaVersion,catalogRevision:source.construction.catalogRevision,expectedRevisionId:head.current },account).catch(cause=>setError(`Draft recovery unavailable: ${String(cause)}`));
-    lastQueued.current = source.revision;
-    saver.current.enqueue({ designId: source.id, name: source.name, source, schemaVersion: source.schemaVersion, catalogRevision: source.construction.catalogRevision });
-  }, [source, ready, saverVersion]);
+    setResult(undefined); setCompileError('');
+  }, [adoption]);
 
   useEffect(() => {
     if (!ready) return;
@@ -102,104 +67,40 @@ export function useBuilderSource({ starterSource, initialSource, initialDesignId
     setCompiling(true); setCompileError('');
     const timer = setTimeout(() => {
       void compiler.compile(source, abort.signal).then(compiled => {
-        if (abort.signal.aborted || !gate.current.accepts(token) || sourceRef.current.revision !== compiled.revision || compiled.sourceId !== source.id) return;
-        setResult(compiled); setCompiling(false);
+        if (abort.signal.aborted || !gate.current.accepts(token) || owner.getSnapshot().adoption !== adoption || owner.source.revision !== compiled.revision || compiled.sourceId !== owner.source.id) return;
+        acceptedAdoption.current = adoption; setResult(compiled); setCompiling(false);
       }).catch(cause => {
         if (abort.signal.aborted || !gate.current.accepts(token)) return;
         setCompileError(cause instanceof Error ? cause.message : String(cause)); setCompiling(false);
       });
     }, 180);
     return () => { clearTimeout(timer); abort.abort(); gate.current.invalidate(); };
-  }, [source, ready, compileAgain, compiler]);
+  }, [source, ready, adoption, compileAgain, compiler]);
 
   useEffect(() => {
     const beforeUnload = (event: BeforeUnloadEvent) => {
-      if (saver.current?.unsaved || saveState.status === 'error') { event.preventDefault(); event.returnValue = ''; }
+      if (owner.unsaved || saveState.status === 'error') { event.preventDefault(); event.returnValue = ''; }
     };
     window.addEventListener('beforeunload', beforeUnload);
     return () => window.removeEventListener('beforeunload', beforeUnload);
-  }, [saveState.status]);
+  }, [owner, saveState.status]);
   useEffect(() => () => { gate.current.invalidate(); compiler.dispose(); }, [compiler]);
-
-  const edit = (label: string, command: (draft: ConstructionSource) => void) => setHistory(current => editConstruction(current, label, draft => {
-    command(draft);
-    if (JSON.stringify(draft) !== JSON.stringify(current.source)) draft.revision = newConstructionId('revision');
-  }));
-  const undo = () => setHistory(current => { const next = undoConstruction(current); return next === current ? current : { ...next, source: { ...next.source, revision: newConstructionId('revision') } }; });
-  const redo = () => setHistory(current => { const next = redoConstruction(current); return next === current ? current : { ...next, source: { ...next.source, revision: newConstructionId('revision') } }; });
-  const flush = async () => {
-    if (!saver.current) throw new Error('Saving is unavailable. Download this source before closing.');
-    // Agent callers may apply and flush before React's autosave effect runs.
-    const latest = sourceRef.current;
-    if (ready && lastQueued.current !== latest.revision) {
-      lastQueued.current = latest.revision;
-      saver.current.enqueue({ designId: latest.id, name: latest.name, source: latest, schemaVersion: latest.schemaVersion, catalogRevision: latest.construction.catalogRevision });
-    }
-    await saver.current.flush();
-  };
-  const replace = async (next: ConstructionSource, revisionId: string | null, saved: boolean, retainDraft = false) => {
-    if (!retainDraft) await flush();
-    saver.current?.dispose(); head.current = revisionId; lastQueued.current = saved ? next.revision : '';
-    setResult(undefined); setError(''); setCompileError(''); setSaveState({ status: saved ? 'saved' : 'saving', token: 0 });
-    setHistory(createConstructionHistory(next));
-    // A recovered revision of the same design must also recreate its compare-and-swap writer.
-    setWriterEpoch(value => value + 1);
-  };
-
-  const removeDesign = async (designId: string, revisionId: string, replacement: ConstructionSource) => {
-    if (!store) throw new Error('Local storage is unavailable. Retry when browser storage is available.');
-    const current = designId === sourceRef.current.id || savedReference(sourceRef.current.id)?.designId === designId;
-    if (current) await flush();
-    await store.remove(designId, current ? head.current! : revisionId);
-    // The old writer is drained before deletion and never saves the deleted source again.
-    if (current) await replace(replacement, null, false, true);
-  };
-
-  const reloadRepository = async () => {
-    if (!store || !repositoryId) return;
-    if (saver.current?.unsaved) {
-      try { await saver.current.flush(); } catch { /* The rejected draft remains an undo step. */ }
-    }
-    const loaded = await loadSavedConstructionWithCatalog(store, repositoryId);
-    saver.current?.dispose(); head.current = loaded.head.revisionId; lastQueued.current = loaded.source.revision;
-    setHistory(current => editConstruction(current, 'Reload repository source', draft => Object.assign(draft, loaded.source)));
-    setResult(undefined); setError(''); setCompileError('');
-    setSaveState({ status: 'saved', token: 0, revision: loaded.revision });
-    setWriterEpoch(value => value + 1);
-  };
   useEffect(() => {
     if (!store || !repositoryId || !ready) return;
-    let active = true, checking = false;
-    const timer = setInterval(async () => {
-      if (checking) return;
-      checking = true;
-      const observedHead = head.current, observedRevision = sourceRef.current.revision;
-      try {
-        const loaded = await loadSavedConstructionWithCatalog(store, repositoryId);
-        if (!active || head.current !== observedHead || sourceRef.current.revision !== observedRevision || loaded.head.revisionId === head.current) return;
-        if (saver.current?.unsaved || sourceRef.current.revision !== lastQueued.current) {
-          setError('Repository source changed while this draft was being edited. Download a backup, then reload the repository source. Your draft remains editable.');
-          return;
-        }
-        saver.current?.dispose(); head.current = loaded.head.revisionId; lastQueued.current = loaded.source.revision;
-        setHistory(current => editConstruction(current, 'Updated repository source', draft => Object.assign(draft, loaded.source)));
-        setResult(undefined); setError(''); setSaveState({ status: 'saved', token: 0, revision: loaded.revision });
-        setWriterEpoch(value => value + 1);
-      } catch (cause) { if (active) setError(cause instanceof Error ? cause.message : String(cause)); }
-      finally { checking = false; }
-    }, 1200);
-    return () => { active = false; clearInterval(timer); };
-  }, [store, repositoryId, ready]);
-  const applyBatch = (batch: ConstructionBatch) => {
-    const next = applyConstructionBatch(sourceRef.current, batch);
-    setHistory(current => {
-      if (current.source.revision !== batch.expectedRevision) return current;
-      return editConstruction(current, batch.label, draft => Object.assign(draft, next));
-    });
-    sourceRef.current = next;
-    return structuredClone(next);
+    const timer = setInterval(() => { void owner.pollRepository(repositoryId); }, 1200);
+    return () => clearInterval(timer);
+  }, [store, repositoryId, ready, owner]);
+
+  const readSource = () => structuredClone(owner.source);
+  const readResult = () => {
+    const latest = owner.source, current = resultRef.current;
+    return current.adoption === owner.getSnapshot().adoption && current.result?.revision === latest.revision && current.result.sourceId === latest.id
+      ? structuredClone(current.result) : undefined;
   };
-  return { source, history, store, ready, result, compiling, compileError, error, setError, saveState, edit, applyBatch, reloadRepository, undo, redo, flush, replace, removeDesign,
-    retrySave: () => saver.current?.retry(), retryCompile: () => setCompileAgain(value => value + 1),
-    currentResult: result?.revision === source.revision && result.sourceId === source.id ? result : undefined };
+  return { source, history, store, ready, result, compiling, compileError, error, setError: owner.setError, saveState,
+    edit: owner.edit, applyBatch: owner.applyBatch, undo: owner.undo, redo: owner.redo, flush: owner.flush, replace: owner.replace,
+    removeDesign: (designId: string, revisionId: string, replacement: ConstructionSource) => owner.removeDesign(designId, revisionId, replacement),
+    reloadRepository: async () => { if (repositoryId) await owner.reloadRepository(repositoryId); },
+    retrySave: owner.retrySave, retryCompile: () => setCompileAgain(value => value + 1), readSource, readResult,
+    currentResult: acceptedAdoption.current === adoption && result?.revision === source.revision && result.sourceId === source.id ? result : undefined };
 }

@@ -116,7 +116,11 @@ export function BattleDialog({ initialMode, initialShipId, loading, onClose, ini
     if (!draft || pveBusy) return;
     setPveBusy(true); setMessage({ text: '', error: false });
     try { await draft.validate(placements); }
-    catch (error) { notice(error instanceof Error ? error.message : String(error)); setPveBusy(false); return; }
+    catch (error) {
+      notice(error instanceof Error ? error.message : String(error));
+      if (!draft.usable) { draft.dispose(); draftRef.current = undefined; setDraft(undefined); setStep('fleet'); }
+      setPveBusy(false); return;
+    }
     try { await onLaunchPve(draft, placements); }
     catch (error) {
       notice(error instanceof Error ? error.message : String(error));

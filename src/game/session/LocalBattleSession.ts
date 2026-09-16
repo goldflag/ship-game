@@ -1,3 +1,4 @@
+import { LocalWorkerOperation } from './LocalWorkerOperation';
 import { SnapshotSession, type Snapshot } from './SnapshotSession';
 import type { BattleSetup as RuntimeSetup } from '../../multiplayer/generated/BattleSetup';
 import type { Command } from '../../multiplayer/generated/Command';
@@ -66,40 +67,45 @@ export class LocalBattleSession extends SnapshotSession {
   }
   private async initialize(message: { type: 'init'; setup: RuntimeSetup; construction?: LocalConstructionInput } | { type: 'deploy'; placements: Placement[]; formations: Record<string, Formation> }): Promise<LocalBattleSession> {
     const session = this;
-    await new Promise<void>((resolve, reject) => {
-      const timer = setTimeout(() => { session.dispose(); reject(new Error('Battle worker took too long to load.')); }, 120_000);
-      session.worker.onerror = event => { clearTimeout(timer); session.fail(event.message); reject(new Error(event.message)); };
+    const operation = new LocalWorkerOperation(session.worker);
+    const receive = (data: any): true | undefined => {
+      if (data.type === 'error') throw new Error(data.message);
+      if (data.type === 'trial-error' && session.restartRequest) {
+        clearTimeout(session.restartRequest.timer); session.restartRequest.reject(new Error(data.message)); session.restartRequest = undefined; session.busy = false;
+      }
+      if (data.type === 'ack') {
+        session.commands.acknowledge(data.sequence, data.accepted ? 'accepted' : 'rejected', data.message);
+        session.commandAcknowledged(data.accepted, data.message, data.command, data.shipId);
+      }
+      if (data.type === 'snapshot') {
+        if (data.reset) { session.received = undefined; session.pending = undefined; if (!data.trialAction) session.resetIntents(); }
+        // The owned worker already parsed, validated and normalized this frame.
+        if (data.baseTick !== session.received?.tick) throw new Error('Battle worker snapshot sequence changed.');
+        const frame = applyLocalDelta(session.received, data.delta) as Snapshot;
+        session.received = frame;
+        if (!session.actors.length || data.reset || data.trialAction) { session.pending = undefined; session.apply(frame); } else session.pending = frame;
+        session.busy = false;
+        if ((data.reset || data.trialAction) && session.restartRequest) {
+          clearTimeout(session.restartRequest.timer); session.restartRequest.resolve(); session.restartRequest = undefined;
+        }
+        // Post the next batch here rather than on the next render frame: the
+        // worker keeps stepping while this frame draws, and a batch that
+        // overran its frame no longer costs the following one.
+        // Initialization cannot dispatch: lastInput is set by advance() after startup.
+        if (!frame.outcome) session.dispatch();
+        return true;
+      }
+    };
+    try {
+      await operation.request(message, receive, 120_000, 'Battle worker took too long to load.');
+      session.worker = operation.transfer();
+      session.worker.onerror = event => session.fail(event.message);
       session.worker.onmessage = event => {
-        const data = event.data;
-        if (data.type === 'error') { clearTimeout(timer); session.fail(data.message); reject(new Error(data.message)); }
-        if (data.type === 'trial-error' && session.restartRequest) {
-          clearTimeout(session.restartRequest.timer); session.restartRequest.reject(new Error(data.message)); session.restartRequest = undefined; session.busy = false;
-        }
-        if (data.type === 'ack') {
-          session.commands.acknowledge(data.sequence, data.accepted ? 'accepted' : 'rejected', data.message);
-          session.commandAcknowledged(data.accepted, data.message, data.command, data.shipId);
-        }
-        if (data.type === 'snapshot') {
-          try {
-            if (data.reset) { session.received = undefined; session.pending = undefined; if (!data.trialAction) session.resetIntents(); }
-            // The owned worker already parsed, validated and normalized this frame.
-            if (data.baseTick !== session.received?.tick) throw new Error('Battle worker snapshot sequence changed.');
-            const frame = applyLocalDelta(session.received, data.delta) as Snapshot;
-            session.received = frame;
-            if (!session.actors.length || data.reset || data.trialAction) { session.pending = undefined; session.apply(frame); clearTimeout(timer); resolve(); } else session.pending = frame;
-            session.busy = false;
-            if ((data.reset || data.trialAction) && session.restartRequest) {
-              clearTimeout(session.restartRequest.timer); session.restartRequest.resolve(); session.restartRequest = undefined;
-            }
-            // Post the next batch here rather than on the next render frame: the
-            // worker keeps stepping while this frame draws, and a batch that
-            // overran its frame no longer costs the following one.
-            if (!frame.outcome) session.dispatch();
-          } catch (error) { clearTimeout(timer); session.fail(String(error)); reject(error); }
-        }
+        try { receive(event.data); } catch (error) { session.fail(String(error)); }
       };
-      session.worker.postMessage(message);
-    });
+    } catch (error) {
+      operation.terminate(); session.fail(error instanceof Error ? error.message : String(error)); throw error;
+    }
     return session;
   }
   protected send(shipId: string, command: Command) {

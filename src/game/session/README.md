@@ -40,6 +40,14 @@ full-knowledge and team projections.
 
 `MatchConnection` handles admission, per-tab reconnect tokens, socket replacement, bounded decompression and match metadata. `RemoteBattleSession` publishes addressed commands and interpolates snapshots while the server owns time. The load-ready message is sent after model loading and initial scene rendering, not when the socket connects.
 
+`LocalWorkerOperation` owns one pending planner or initialization request and its
+deadline. Completed requests can reuse or transfer the worker; timeout, abort
+and worker failure retire it so a late reply cannot reach the next mission.
+Placement rejection keeps the draft editable. A failed validation with a retired
+worker returns the setup screen to fleet preparation so the same request can
+regenerate its mission. The live session keeps its existing streaming snapshot
+handler after initialization.
+
 `SnapshotSession.test.ts` executes real WASM and validates renderer identities, telemetry, selection, carrier commands and movement precedence. `scripts/multiplayer/headless-session.ts` uses that same WASM authority with synchronous scheduling for GPU-independent scene-binding tests.
 
 Local fleet command batches routine presentation at 20 Hz of wall time, including

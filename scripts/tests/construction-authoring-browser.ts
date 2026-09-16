@@ -23,6 +23,8 @@ export async function checkRepositoryAuthoring(onConflict?: () => Promise<void>)
   try {
     let editor = window.constructionEditor!;
     const next = editor.apply({ version: 1, expectedRevision: initial.revision, label: 'Agent batch', commands: [{ op: 'name', name: 'Browser batch' }] });
+    if (editor.source().revision !== next.revision || editor.result() !== undefined) throw new Error('The editor handle exposed stale source or compiled output after apply');
+    checks.push('The same editor handle reads the new source and rejects stale compilation immediately');
     await editor.flush();
     if (JSON.parse((await load()).revision.sourceJson).revision !== next.revision) throw new Error('Immediate apply/flush did not save the batch');
     checks.push('Immediate batch/flush writes the exact revision');
@@ -45,7 +47,7 @@ export async function checkRepositoryAuthoring(onConflict?: () => Promise<void>)
     try {
       const before = new Set((await local.list()).map(head => head.id));
       ([...document.querySelectorAll('.sb-repository-error button')].find(b => b.textContent === 'Save local copy') as HTMLButtonElement).click();
-      await until(() => document.body.textContent!.includes('A local copy is available'), 'Local-copy recovery did not finish');
+      await until(() => document.body.textContent!.includes('A saved copy is available'), 'Local-copy recovery did not finish');
       const copy = (await local.list()).find(head => !before.has(head.id));
       if (!copy || JSON.parse((await local.load(copy.id)).revision.sourceJson).name !== 'Unsaved browser draft') throw new Error('Recovery did not preserve draft in IndexedDB');
       if (window.constructionEditor!.source().id !== id || JSON.parse((await load()).revision.sourceJson).name !== winner.name) throw new Error('Recovery changed the repository identity or source');
