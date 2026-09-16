@@ -75,8 +75,13 @@ Install PostgreSQL 17, create the runtime/migration roles using
 `MIGRATION_DATABASE_URL`. `compose.yml` provisions these roles on a new database
 volume. Use separate randomly generated credentials (URL-safe hex is convenient).
 Set `API_DATABASE_URL`, `BATTLE_DATABASE_URL`, `BETTER_AUTH_SECRET`, `SERVICE_SECRET`,
-`ACCOUNTS_URL`, `AUTH_ORIGIN` and `NAVAL_ORIGIN`. Both origins must equal the Vite
-origin, including its worktree port. Start `bun run accounts:server`,
+`ACCOUNTS_URL` and `AUTH_ORIGIN`. Set `AUTH_ORIGIN=http://localhost:5173` for local
+development. A loopback auth origin also trusts HTTP(S) origins on `localhost`,
+`127.0.0.1` and `[::1]` at other ports, so the same API supports Vite worktrees.
+Leave `NAVAL_ORIGIN` unset locally: Rust checks that Origin matches Host through
+Vite's same-origin proxy. For deployment, set both origins to the exact public
+origin; public auth origins never grant this loopback exception.
+Start `bun run accounts:server`,
 `bun run compiler:server`, `bun run multiplayer:server`, and Vite.
 Build the worker with `cargo build --release -p naval-sim --example compile_construction`.
 
