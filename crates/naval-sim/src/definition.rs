@@ -1097,6 +1097,8 @@ pub struct ConstructionPrimitive {
     pub position: [f64; 3],
     #[serde(rename = "rotationDeg")]
     pub rotation_deg: f64,
+    #[serde(rename = "vertices")]
+    pub vertices: Option<Vec<[f64; 3]>>,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
@@ -1116,6 +1118,14 @@ pub struct ConstructionSurfaceAssignment {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionEquipmentPath {
+    #[serde(rename = "points")]
+    pub points: Vec<[f64; 3]>,
+    #[serde(rename = "slackM")]
+    pub slack_m: Option<f64>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct ConstructionEquipment {
     #[serde(rename = "id")]
     pub id: String,
@@ -1129,6 +1139,8 @@ pub struct ConstructionEquipment {
     pub magazine_id: Option<String>,
     #[serde(rename = "powerSourceId")]
     pub power_source_id: Option<String>,
+    #[serde(rename = "path")]
+    pub path: Option<ConstructionEquipmentPath>,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
@@ -1336,6 +1348,22 @@ pub struct ConstructionEquipmentPartSocketsItem {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionEquipmentPartPath {
+    #[serde(rename = "kind")]
+    pub kind: String,
+    #[serde(rename = "diameterM")]
+    pub diameter_m: f64,
+    #[serde(rename = "heightM")]
+    pub height_m: Option<f64>,
+    #[serde(rename = "postSpacingM")]
+    pub post_spacing_m: Option<f64>,
+    #[serde(rename = "massKgPerM")]
+    pub mass_kg_per_m: f64,
+    #[serde(rename = "postMassKg")]
+    pub post_mass_kg: Option<f64>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct ConstructionEquipmentPart {
     #[serde(rename = "id")]
     pub id: String,
@@ -1375,6 +1403,8 @@ pub struct ConstructionEquipmentPart {
     pub service_mass_kg: Option<f64>,
     #[serde(rename = "ammunitionCapacity")]
     pub ammunition_capacity: Option<f64>,
+    #[serde(rename = "path")]
+    pub path: Option<ConstructionEquipmentPartPath>,
     #[serde(rename = "modelUrl")]
     pub model_url: String,
     #[serde(rename = "contentHash")]

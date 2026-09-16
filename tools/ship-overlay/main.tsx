@@ -153,11 +153,12 @@ function App() {
           </select>
           {part.builder && part.previewStatus !== 'current' && <p className="subtle">Shared preview {part.previewStatus}. Build it with <code>bun run part:build {part.partId}</code>, then reload.</p>}
           <p className="subtle">Review: {part.review}. {part.limitations}</p>
-          <p className="subtle">Mounting radius {part.weapon.barbetteRadius.toFixed(2)} m · {part.weapon.barrelCount ?? 2} barrels. Surrounding platforms and ship clearance require installation review.</p>
+          {part.weapon ? <p className="subtle">Mounting radius {part.weapon.barbetteRadius.toFixed(2)} m · {part.weapon.barrelCount ?? 2} barrels. Surrounding platforms and ship clearance require installation review.</p>
+            : part.equipment && <p className="subtle">{part.equipment.size.map(n => n.toFixed(2)).join(' × ')} m · {part.equipment.massKg?.toLocaleString()} kg{part.equipment.path ? ' base hardware; route mass depends on length' : ''}. Mount at its attachment datum.</p>}
           {!standalone && <p className="subtle">Isolated from a published ship. Includes its attached fittings; this preview is not reusable authoring source.</p>}
-          {part.builder && <details><summary>Use in a ship recipe</summary><p className="subtle">Set blueprint <code>partId</code> to the ID above. Call <code>library.create_mount</code> with the compiled mount, helpers and materials. Declare dependencies from <code>bun run part:inputs {part.partId}</code>.</p></details>}
+          {part.builder && <details><summary>Use in a ship recipe</summary><p className="subtle">Set blueprint <code>partId</code> to the ID above. Call <code>{part.weapon ? 'library.create_mount' : 'construction.library.create_equipment'}</code> with the {part.weapon ? 'compiled mount' : 'catalog part'}, helpers and materials. Declare dependencies from <code>bun run part:inputs {part.partId}</code>.</p></details>}
         </section>}
-        {kind === 'component' && part && <section><h2>Articulation</h2><fieldset disabled={!modelReady}>{([
+        {kind === 'component' && part?.weapon && <section><h2>Articulation</h2><fieldset disabled={!modelReady}>{([
           ['yaw', 'Traverse', -part.weapon.traverseDeg, part.weapon.traverseDeg, 1],
           ['elevation', 'Elevation', part.weapon.elevationMinDeg, part.weapon.elevationMaxDeg, 1],
           ['recoil', 'Recoil', 0, 1, .01],

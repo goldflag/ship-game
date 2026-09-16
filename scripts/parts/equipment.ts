@@ -28,9 +28,18 @@ export async function readEquipment(root: string) {
   for (const p of equipment) {
     if (!safeId(p.id) || ids.has(p.id)) throw new Error(`Duplicate or invalid equipment ID: ${p.id}`);
     ids.add(p.id);
-    if (!['gun','torpedo-launcher','engine','magazine','funnel','propeller','rudder','mast','director'].includes(p.kind)) throw new Error(`Invalid equipment family: ${p.id}`);
+    if (!['gun','torpedo-launcher','engine','magazine','funnel','propeller','rudder','mast','director','deck-fitting'].includes(p.kind)) throw new Error(`Invalid equipment family: ${p.id}`);
     if (!p.name || !finiteVec(p.size) || p.size.some(x => x <= 0) || !finiteVec(p.boundsCenter) || !finiteVec(p.centerOfGravity)) throw new Error(`Invalid equipment dimensions: ${p.id}`);
     if (!['internal','deck','underwater'].includes(p.placement)) throw new Error(`Invalid equipment placement: ${p.id}`);
+    if (p.path) {
+      const profile = p.path;
+      if (p.kind !== 'deck-fitting' || p.placement !== 'deck' || !['railing','rope','chain'].includes(profile.kind)
+        || !Number.isFinite(profile.diameterM) || profile.diameterM <= 0 || profile.diameterM > .5
+        || !Number.isFinite(profile.massKgPerM) || profile.massKgPerM <= 0 || profile.massKgPerM > 1000
+        || (profile.kind === 'railing' && (!Number.isFinite(profile.heightM) || profile.heightM! <= 0 || profile.heightM! > 3
+          || !Number.isFinite(profile.postSpacingM) || profile.postSpacingM! < .25 || profile.postSpacingM! > 3
+          || !Number.isFinite(profile.postMassKg) || profile.postMassKg! <= 0))) throw new Error(`Invalid path profile: ${p.id}`);
+    }
     if (p.kind === 'gun') {
       if (p.massKg !== undefined || !catalog.parts.some(g => g.id === p.gunPartId) || !library.components.some(e => e.partId === p.gunPartId && e.builder)) throw new Error(`Gun must reference an original canonical variant: ${p.id}`);
     } else {
@@ -65,7 +74,7 @@ export async function equipmentHash(root: string, part: EquipmentSource) {
   }
   const entry = registry.components.find(e => e.partId === part.id)!;
   const b = registry.builders[entry.builder];
-  const paths = ['assets/parts/construction/library.py', b.path, ...b.inputs, 'scripts/parts/equipment_build.py', 'scripts/ships/export.py'];
+  const paths = ['assets/parts/construction/library.py', b.path, ...b.inputs, 'scripts/parts/equipment_build.py', 'scripts/ships/export.py', 'scripts/ships/blender_batching.py'];
   return digest(JSON.stringify([1, part, entry, b, ...await Promise.all(paths.map(p => readFile(join(root,p),'utf8')))]));
 }
 export async function buildEquipment(root: string, part: EquipmentSource) {

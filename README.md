@@ -11,6 +11,12 @@ bun run git:setup # Once per clone: safer catalog merges and remembered resoluti
 bun run dev
 ```
 
+The main checkout reserves `http://localhost:5173/`. Linked worktrees start at
+port 5200 and try the next available port; use the URL printed by Vite. A worktree
+cannot select 5173, even with `--port`. This follows the checkout location, not
+its current branch. Older worktrees must incorporate this configuration before
+starting their dev server to honor the reservation.
+
 ### 1v1 multiplayer
 
 Run `bun run multiplayer:server` alongside the development server, then choose **Battle** in port and the **1v1 online** tab. Drag ships into the eight berths (the first berth is your initial command ship) before finding an opponent or creating/joining an invite from the **Match** panel. Each side may bring **200,000 metric tonnes**, **8 vessels** and **2 carriers**. The server draws a map, weather and time of day; night has a 10% weight. Destroy the opposing fleet or have more original tonnage afloat at 30 minutes. Equal tonnage and mutual destruction draw.
@@ -202,6 +208,17 @@ Bismarck, Yamato, Baltimore and Enterprise have full hull-end and major-structur
 The shared simulation is ready to host outside the browser, but multiplayer transport and server command validation are not implemented. Battle weather drives deterministic CPU heave, roll, pitch, wind leeway and added resistance. GPU wave detail remains visual; combat hulls and their hitboxes use the same CPU pose.
 
 ## Model pipeline
+
+New ship construction uses the custom editor and Rust compiler. Blender remains
+the permanent tool for reusable components; existing Blender-backed ships stay
+supported. See [agent construction authoring](docs/construction-authoring.md) for
+file-backed editing, batch commands, fixed views, sea trials and publication.
+
+```sh
+bun run ship:new my-ship --template patrol
+bun run ship:edit my-ship
+bun run ship:build my-ship
+```
 
 Historical ships use one versioned blueprint, the original component catalog and original Blender recipes. These produce a simulation definition, articulated GLB and port thumbnail. The [preset registry](src/ships/presets.ts) owns the playable roster. Generated models use meters, bow -Z, up +Y and waterline Y=0.
 

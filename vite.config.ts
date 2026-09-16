@@ -4,6 +4,8 @@ import { readFileSync, readdirSync, rmSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { vendorTextures } from './scripts/build/vendor-textures';
 import { shipTransfers } from './scripts/build/ship-transfers';
+import { devPort } from './scripts/build/dev-port';
+import { constructionFiles } from './scripts/construction/server';
 
 // Sky Pro resolves cloud volumes dynamically beside the final JS bundle.
 // Vite cannot discover that dynamic URL, so preserve its data/ directory explicitly.
@@ -15,7 +17,7 @@ const apiPrefix = `${basePath.replace(/\/$/, '')}/api`;
 export default defineConfig({
   // Serve from a sub-path with e.g. BASE_PATH=/naval/ bun run build; runtime asset URLs go through src/assetUrl.ts.
   base: basePath,
-  plugins: [react(), vendorTextures(), shipTransfers(`${root}public/models`), {
+  plugins: [constructionFiles(root), devPort(root), react(), vendorTextures(), shipTransfers(`${root}public/models`), {
     name: 'exclude-retired-ship-reviews',
     // Old checkouts may still have ignored comparison pages in public/.
     closeBundle() { rmSync(`${root}dist/ship-reference`, { recursive: true, force: true }); },
@@ -28,7 +30,7 @@ export default defineConfig({
     },
   }],
   resolve: { dedupe: ['three'] },
-  server: { port: 5173, strictPort: true, proxy: { [apiPrefix]: { target: process.env.NAVAL_SERVER ?? 'http://127.0.0.1:8787', ws: true, rewrite: path => '/api' + path.slice(apiPrefix.length) } } },
+  server: { proxy: { [apiPrefix]: { target: process.env.NAVAL_SERVER ?? 'http://127.0.0.1:8787', ws: true, rewrite: path => '/api' + path.slice(apiPrefix.length) } } },
   worker: { format: 'es' },
   build: {
     target: 'es2022',

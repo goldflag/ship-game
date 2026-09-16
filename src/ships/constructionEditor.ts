@@ -1,4 +1,4 @@
-import type { ConstructionSource, ConstructionPrimitive, ConstructionSurface, ConstructionSurfaceAssignment, Vec3 } from './blueprint';
+import type { ConstructionEquipment, ConstructionSource, ConstructionPrimitive, ConstructionSurface, ConstructionSurfaceAssignment, Vec3 } from './blueprint';
 import { normalizedBearing } from '../ui/shipbuilding/editorNumbers';
 import { CONSTRUCTION_SHAPES, shapeMirror } from './constructionShapes';
 import { ConstructionStoreError, readConstructionSource, type ConstructionRevision, type ConstructionStore } from './constructionStore';
@@ -35,7 +35,11 @@ export function decodeConstructionSource(value: unknown): ConstructionSource {
   string(data.catalogRevision, 'Catalog'); number(data.defaultThicknessMm, 'Skin thickness');
   for (const p of rows(data.primitives, 'Primitives')) {
     string(p.id, 'Primitive ID'); vector(p.size, 'Primitive size'); vector(p.position, 'Primitive position'); number(p.rotationDeg, 'Primitive rotation');
-    if (typeof p.kind !== 'string' || !Object.hasOwn(CONSTRUCTION_SHAPES, p.kind)) throw new Error('Unsupported primitive kind');
+    if (typeof p.kind !== 'string' || (p.kind !== 'vertex' && !Object.hasOwn(CONSTRUCTION_SHAPES, p.kind))) throw new Error('Unsupported primitive kind');
+    if (p.vertices !== undefined) {
+      if (p.kind !== 'vertex' || !Array.isArray(p.vertices) || p.vertices.length !== 8) throw new Error('Vertex hulls require eight local corners');
+      p.vertices.forEach(v => vector(v, 'Hull corner'));
+    }
   }
   for (const surface of rows(data.surfaces, 'Surfaces')) {
     string(surface.primitiveId, 'Surface primitive'); string(surface.paint, 'Paint'); number(surface.thicknessMm, 'Armor thickness');
@@ -44,6 +48,12 @@ export function decodeConstructionSource(value: unknown): ConstructionSource {
   }
   for (const part of rows(data.equipment, 'Equipment')) {
     string(part.id, 'Equipment ID'); string(part.partId, 'Equipment variant'); vector(part.position, 'Equipment position'); number(part.bearingDeg, 'Equipment bearing');
+    if (part.path !== undefined) {
+      const path = object(part.path, 'Equipment path');
+      if (!Array.isArray(path.points) || path.points.length < 2 || path.points.length > 64) throw new Error('Equipment paths require 2–64 points');
+      path.points.forEach(point => vector(point, 'Path point'));
+      if (path.slackM !== undefined) number(path.slackM, 'Rope slack');
+    }
     for (const link of ['magazineId', 'powerSourceId']) if (part[link] !== undefined) string(part[link], link);
   }
   for (const wall of rows(data.boundaries, 'Boundaries')) {
@@ -98,6 +108,7 @@ export function rotateConstructionSelection(source: ConstructionSource, selected
 
 /** Source transform, not physical derivation. Corner profiles require an X/Z swap when reflected. */
 export function mirroredPrimitive(primitive: ConstructionPrimitive): ConstructionPrimitive {
+  if (primitive.kind === 'vertex' && primitive.vertices) return { ...structuredClone(primitive), position: [-primitive.position[0], primitive.position[1], primitive.position[2]], rotationDeg: normalizedBearing(-primitive.rotationDeg), vertices: [1,0,3,2,5,4,7,6].map(i => [-primitive.vertices![i][0], primitive.vertices![i][1], primitive.vertices![i][2]]) };
   const mirror = shapeMirror(primitive.kind);
   return { ...primitive, position: [-primitive.position[0], primitive.position[1], primitive.position[2]],
     size: mirror.swap ? [primitive.size[2], primitive.size[1], primitive.size[0]] : [...primitive.size],
@@ -112,6 +123,11 @@ export function mirroredFace(face: ConstructionFace, kind: ConstructionPrimitive
   return face === 'port' ? 'starboard' : face === 'starboard' ? 'port' : face;
 }
 
+export function mirroredEquipment(part: ConstructionEquipment): ConstructionEquipment {
+  return { ...structuredClone(part), position: [-part.position[0], part.position[1], part.position[2]], bearingDeg: normalizedBearing(-part.bearingDeg),
+    ...(part.path ? { path: { ...part.path, points: part.path.points.map(point => [-point[0], point[1], point[2]] as Vec3) } } : {}) };
+}
+
 export function copyConstructionSelection(source: ConstructionSource, selected: ReadonlySet<string>, options: { mirror?: boolean; offset?: Vec3 } = {}): string[] {
   const data = source.construction;
   const ids = new Map<string, string>();
@@ -121,7 +137,7 @@ export function copyConstructionSelection(source: ConstructionSource, selected: 
   const kinds = new Map(originals.map(p => [p.id, p.kind]));
   data.primitives.push(...originals.map(part => ({ ...(options.mirror ? mirroredPrimitive(part) : structuredClone(part)), id: ids.get(part.id)!, position: position(part.position) })));
   data.surfaces.push(...data.surfaces.filter(surface => kinds.has(surface.primitiveId)).map(surface => ({ ...surface, primitiveId: ids.get(surface.primitiveId)!, face: options.mirror ? mirroredFace(surface.face, kinds.get(surface.primitiveId)!) : surface.face })));
-  data.equipment.push(...data.equipment.filter(part => selected.has(part.id)).map(part => ({ ...part, id: ids.get(part.id)!, position: position(part.position), bearingDeg: options.mirror ? normalizedBearing(-part.bearingDeg) : part.bearingDeg,
+  data.equipment.push(...data.equipment.filter(part => selected.has(part.id)).map(part => ({ ...(options.mirror ? mirroredEquipment(part) : structuredClone(part)), id: ids.get(part.id)!, position: position(part.position),
     ...(part.magazineId ? { magazineId: ids.get(part.magazineId) ?? part.magazineId } : {}), ...(part.powerSourceId ? { powerSourceId: ids.get(part.powerSourceId) ?? part.powerSourceId } : {}) })));
   data.loads.push(...data.loads.filter(load => selected.has(load.id)).map(load => ({ ...structuredClone(load), id: ids.get(load.id)!, center: position(load.center) })));
   return [...ids.values()];

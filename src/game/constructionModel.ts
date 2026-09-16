@@ -1,5 +1,6 @@
 import * as THREE from 'three/webgpu';
 import { loadShipModel } from './loadShipModel';
+import { createConstructionPathModel } from './constructionPathModel';
 import type { ConstructionPrimitive, ConstructionResult, ConstructionSource, ConstructionSurface } from '../ships/blueprint';
 import { constructionVertexNormals, SMOOTH_HULL_SHAPES } from './constructionShading';
 import { constructionEquipmentModelUrl, loadConstructionCatalog, prefixComponentNodeId } from '../ships/constructionEquipment';
@@ -73,6 +74,12 @@ export async function createConstructionModel(source: ConstructionSource, result
         abort(signal);
         const part = catalog.equipment.find(p => p.id === instance.partId);
         if (!part) throw new Error(`Equipment unavailable: ${instance.partId}. The source design is preserved.`);
+        if (part.path) {
+          const model = createConstructionPathModel(part, instance.path);
+          model.position.fromArray(instance.position); model.rotation.y = -instance.bearingDeg * Math.PI / 180;
+          model.traverse(node => { node.userData.sourceId = instance.id; node.userData.assemblyId = instance.id; node.userData.constructionEquipmentKind = part.kind; });
+          group.add(model); continue;
+        }
         let template = templates.get(part.id);
         if (!template) {
           const asset = await loadShipModel(constructionEquipmentModelUrl(part), undefined, part.contentHash, signal);
@@ -105,7 +112,8 @@ export async function createConstructionModel(source: ConstructionSource, result
 export function disposeConstructionModel(group: THREE.Group): void {
   const geometries = new Set<THREE.BufferGeometry>(), materials = new Set<THREE.Material>(), textures = new Set<THREE.Texture>();
   group.traverse(node => {
-    if (!(node instanceof THREE.Mesh)) return;
+    if (!(node instanceof THREE.Mesh) && !(node instanceof THREE.Line)) return;
+    if (node instanceof THREE.InstancedMesh) node.dispose();
     geometries.add(node.geometry);
     for (const material of Array.isArray(node.material) ? node.material : [node.material]) {
       materials.add(material);

@@ -655,7 +655,7 @@ export class Game {
     this.setPaused(true);
     // replaceFleet requires a port scene, but must not reset the live authority.
     this.inPort = true;
-    const definition = this.definition.construction ? this.portDefinition : this.definition;
+    const definition = this.definition.id.startsWith('local-') ? this.portDefinition : this.definition;
     try { await this.replaceFleet(new CombatSimulation(definition), definition); this.setInPort(true); }
     catch (error) { this.inPort = false; throw error; }
   }
@@ -775,7 +775,7 @@ export class Game {
     const cached = this.hulls.get(key);
     // Reinserting keeps the map in least-recently-used order for trimHulls.
     if (cached) { this.hulls.delete(key); this.hulls.set(key, cached); return cached; }
-    if (definition.construction && (!revision || revision.definition.contentHash !== hash)) throw new Error('The frozen design revision is unavailable. Return to the builder and launch again.');
+    if (definition.id.startsWith('local-') && definition.construction && (!revision || revision.definition.contentHash !== hash)) throw new Error('The frozen design revision is unavailable. Return to the builder and launch again.');
     const model = revision ? await createConstructionModel(revision.source, revision.result) : (await loadShipModel(assetUrl(definition.modelUrl), undefined, hash)).scene;
     if (!hash || model.userData.definitionHash !== hash) {
       disposeObjects(model);

@@ -1,10 +1,13 @@
 import { rustTool } from './toolchain';
+const args = process.argv.slice(2);
+if (args.some(arg => arg !== '--dev')) throw new Error('Usage: build-wasm.ts [--dev]');
+const profile = args.includes('--dev') ? 'wasm-dev' : 'release';
 async function run(command: string[]) {
   const process = Bun.spawn(command, { stdout: 'inherit', stderr: 'inherit' });
   if (await process.exited) throw new Error(`Failed: ${command[0]}`);
 }
-await run([rustTool('cargo'), 'build', '-p', 'naval-wasm', '--target', 'wasm32-unknown-unknown', '--release', '--locked']);
-await run([rustTool('wasm-bindgen'), '--target', 'web', '--out-dir', 'src/generated/naval-wasm', 'target/wasm32-unknown-unknown/release/naval_wasm.wasm']);
+await run([rustTool('cargo'), 'build', '-p', 'naval-wasm', '--target', 'wasm32-unknown-unknown', '--profile', profile, '--locked']);
+await run([rustTool('wasm-bindgen'), '--target', 'web', '--out-dir', 'src/generated/naval-wasm', `target/wasm32-unknown-unknown/${profile}/naval_wasm.wasm`]);
 // Embed the exact local content/build identity; never adopt the server's version
 // as our own, which would silently accept a stale browser deployment.
 const { default: init, simulation_build, protocol_version, construction_shape_library } = await import('../../src/generated/naval-wasm/naval_wasm.js');

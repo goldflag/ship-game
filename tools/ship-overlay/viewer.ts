@@ -135,7 +135,7 @@ export class Viewer {
     });
   }
   clearModel() { this.modelVersion++; this.clear(this.ours); this.articulation = undefined; this.weapon = undefined; this.render(); }
-  async loadShip(url: string, component?: { assemblyId: string; weapon: GunPart; installed: boolean }, gridMetres = component ? 1 : 10) {
+  async loadShip(url: string, component?: { assemblyId: string; weapon?: GunPart; installed: boolean }, gridMetres = component ? 1 : 10) {
     const version = ++this.modelVersion;
     const gltf = await this.loader.loadAsync(url);
     if (!this.alive || version !== this.modelVersion) { this.disposeObject(gltf.scene); return false; }

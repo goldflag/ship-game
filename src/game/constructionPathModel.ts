@@ -1,0 +1,63 @@
+import * as THREE from 'three';
+import type { ConstructionEquipment, ConstructionEquipmentPart, Vec3 } from '../ships/blueprint';
+import { DEFAULT_PATH } from '../ships/constructionPaths';
+import { pathDistance, railingPosts, samplePath } from '../../assets/parts/construction/path_geometry';
+
+/** Original procedural fittings, with no simulation inference from the mesh. */
+export function createConstructionPathModel(part: ConstructionEquipmentPart, path: ConstructionEquipment['path'] = DEFAULT_PATH, ghost = false): THREE.Group {
+  const group = new THREE.Group(), profile = part.path;
+  if (!profile || !path || path.points.length < 2 || path.points.length > 64 || path.points.some(p => p.some(v => !Number.isFinite(v) || Math.abs(v) > 1000))) return group;
+  group.name = part.name;
+  const material = new THREE.MeshStandardMaterial({ color: ghost ? '#e0c58d' : profile.kind === 'rope' ? '#ad9973' : '#687373', roughness: profile.kind === 'rope' ? .96 : .7, metalness: profile.kind === 'rope' ? 0 : .18, transparent: ghost, opacity: ghost ? .6 : 1, depthWrite: !ghost });
+  const members: [Vec3, Vec3][] = [];
+  const points = path.points;
+  const lengths = points.slice(1).map((p, i) => pathDistance(points[i], p));
+  const routeLength = lengths.reduce((sum, length) => sum + length, 0);
+  const bounded = lengths.every(length => length >= .05) && Number.isFinite(path.slackM ?? 0) && routeLength <= 500 && profile.diameterM > 0 && (profile.postSpacingM ?? 1.5) >= .05;
+  if (!bounded) {
+    // An invalid point edit remains inspectable without allocating thousands of
+    // posts or links before the native diagnostic arrives.
+    group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(points.map(p => new THREE.Vector3(...p))), new THREE.LineBasicMaterial({ color: '#ffb5a6' })));
+    material.dispose(); return group;
+  }
+  const posts = profile.kind === 'railing' ? railingPosts(points, profile.postSpacingM ?? 1.5) : [];
+  if (profile.kind === 'railing') {
+    const height = profile.heightM ?? 1.1;
+    for (const foot of posts) members.push([foot, [foot[0], foot[1] + height, foot[2]]]);
+    for (let i = 1; i < points.length; i++) for (const level of [1 / 3, 2 / 3, 1]) members.push([points[i - 1].map((v, k) => v + (k === 1 ? height * level : 0)) as Vec3, points[i].map((v, k) => v + (k === 1 ? height * level : 0)) as Vec3]);
+  } else {
+    const sampled = samplePath(points, path.slackM ?? 0);
+    for (let i = 1; i < sampled.length; i++) members.push([sampled[i - 1], sampled[i]]);
+  }
+  const up = new THREE.Vector3(0, 1, 0), matrix = new THREE.Matrix4(), rotation = new THREE.Quaternion();
+  if (profile.kind === 'chain') {
+    const lengths = members.map(([a, b]) => pathDistance(a, b)), total = lengths.reduce((a, b) => a + b, 0);
+    const count = Math.min(6000, Math.max(2, Math.ceil(total / (profile.diameterM * 3.1))));
+    const mesh = new THREE.InstancedMesh(new THREE.TorusGeometry(profile.diameterM * 1.5, profile.diameterM / 2, 6, 12), material, count);
+    let segment = 0, previous = 0;
+    for (let i = 0; i < count; i++) {
+      const distance = total * i / (count - 1);
+      while (segment < members.length - 1 && previous + lengths[segment] < distance) previous += lengths[segment++];
+      const [a, b] = members[segment], start = new THREE.Vector3(...a), end = new THREE.Vector3(...b), t = Math.min(1, (distance - previous) / Math.max(1e-9, lengths[segment]));
+      rotation.setFromUnitVectors(up, end.clone().sub(start).normalize()).multiply(new THREE.Quaternion().setFromAxisAngle(up, i % 2 * Math.PI / 2));
+      matrix.compose(start.lerp(end, t), rotation, new THREE.Vector3(1, 1.5, 1)); mesh.setMatrixAt(i, matrix);
+    }
+    mesh.computeBoundingBox(); mesh.computeBoundingSphere(); group.add(mesh);
+  } else {
+    const mesh = new THREE.InstancedMesh(new THREE.CylinderGeometry(profile.diameterM / 2, profile.diameterM / 2, 1, 10), material, members.length);
+    members.forEach(([a, b], i) => {
+      const start = new THREE.Vector3(...a), end = new THREE.Vector3(...b), direction = end.clone().sub(start);
+      rotation.setFromUnitVectors(up, direction.clone().normalize());
+      const radiusScale = i < posts.length ? 1.25 : 1;
+      matrix.compose(start.add(end).multiplyScalar(.5), rotation, new THREE.Vector3(radiusScale, direction.length(), radiusScale)); mesh.setMatrixAt(i, matrix);
+    });
+    mesh.computeBoundingBox(); mesh.computeBoundingSphere(); group.add(mesh);
+  }
+  if (posts.length) {
+    const foot = new THREE.InstancedMesh(new THREE.BoxGeometry(profile.diameterM * 3, profile.diameterM * .75, profile.diameterM * 3), material, posts.length);
+    posts.forEach((p, i) => { matrix.makeTranslation(p[0], p[1] + profile.diameterM * .375, p[2]); foot.setMatrixAt(i, matrix); });
+    foot.computeBoundingBox(); foot.computeBoundingSphere(); group.add(foot);
+  }
+  group.traverse(node => { if (node instanceof THREE.Mesh) node.castShadow = node.receiveShadow = true; });
+  return group;
+}

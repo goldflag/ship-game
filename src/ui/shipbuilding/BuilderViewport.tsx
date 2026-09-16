@@ -1,7 +1,9 @@
+import { FreeformHandles, type BuilderFreeformOptions } from './FreeformHandles';
+import { cornerVertices, worldVertex } from '../../ships/constructionVertex';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import type { ConstructionCatalog, ConstructionResult, ConstructionSource, ConstructionSurface, Vec3 } from '../../ships/blueprint';
+import type { ConstructionCatalog, ConstructionEquipmentPart, ConstructionPrimitive, ConstructionResult, ConstructionSource, ConstructionSurface, Vec3 } from '../../ships/blueprint';
 import { armorThicknessColor } from '../../ships/inspection';
 import { surfaceKey } from '../../ships/constructionEditor';
 import { constructionPaintColor } from './paints';
@@ -9,6 +11,9 @@ import { snapCoordinate } from './editorNumbers';
 import { dominantAxis, fillLattice, pieceExtents, placementCenter, strokeSegment } from './placement';
 import { primitiveGeometry, placementGeometry, placementRotation, type BuilderPlacement } from './primitiveGeometry';
 import { createConstructionHull } from '../../game/constructionModel';
+import { createConstructionPathModel } from '../../game/constructionPathModel';
+import { equipmentPathBounds } from '../../ships/constructionPaths';
+import { appendPathPoint, pathAnchor } from './pathDrawing';
 import { EquipmentPreview } from './equipmentPreview';
 import { boxSelectedPieces } from './boxSelection';
 import { BuilderOrientation, updateBuilderOrientation } from './BuilderOrientation';
@@ -25,6 +30,9 @@ export interface BuilderProposal { position: Vec3; bearingDeg: number; size: Vec
 export type BuilderMoveTargets = 'none' | 'equipment' | 'all';
 export type ConstructionModelFactory = (source: ConstructionSource, result: ConstructionResult, signal: AbortSignal) => Promise<THREE.Group>;
 export interface ViewportProps {
+  freeform?: BuilderFreeformOptions; perspective?: boolean;
+  pathDraft?: { part: ConstructionEquipmentPart; points: Vec3[]; slackM: number; mirror: boolean };
+  onPathPoint?(point: Vec3): void; onPathFinish?(): void;
   source: ConstructionSource; result?: ConstructionResult; catalog: ConstructionCatalog;
   selected: ReadonlySet<string>; selectedSurfaces: ReadonlySet<string>;
   view: BuilderView; display: BuilderDisplay; slice?: number;
@@ -57,6 +65,7 @@ function release(object: THREE.Object3D) {
   const textures = new Set<THREE.Texture>();
   object.traverse(child => {
     if (child.userData.sharedPreviewResources) return;
+    if (child instanceof THREE.InstancedMesh) child.dispose();
     const mesh = child as THREE.Mesh;
     if (mesh.geometry) geometries.add(mesh.geometry);
     if (mesh.material) for (const material of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) {
@@ -94,8 +103,14 @@ const signedMetres = (value: number) => `${value < 0 ? '−' : value > 0 ? '+' :
 
 class Viewport {
   private renderer: THREE.WebGLRenderer;
+  private ortho = new THREE.OrthographicCamera(-50, 50, 35, -35, .1, 6000);
+  private perspectiveCamera = new THREE.PerspectiveCamera(40, 1, .1, 5000);
+  private camera: THREE.OrthographicCamera | THREE.PerspectiveCamera = this.ortho;
+  private freeformHandles: FreeformHandles;
+  private vertexPreview = new THREE.Group();
+  private pathPreview = new THREE.Group();
+  private pathPreviewKey = '';
   private scene = new THREE.Scene();
-  private camera = new THREE.OrthographicCamera(-50, 50, 35, -35, .1, 6000);
   private controls: OrbitControls;
   private hull = new THREE.Group();
   private details = new THREE.Group();
@@ -157,6 +172,8 @@ class Viewport {
     this.strokePreview.name = 'Pieces in current drag'; this.strokePreview.userData.strokePreview = true;
     this.movePreview.name = 'Selection being moved'; this.movePreview.userData.movePreview = true; this.movePreview.visible = false;
     this.scene.add(this.hull, this.details, this.selection, this.hoverGroup, this.composed, this.equipment.group, this.arcGroup, this.proposedGroup, this.ghost, this.ghostMirror, this.ghostArc, this.fillPreview, this.strokePreview, this.movePreview, this.measureGroup);
+    this.freeformHandles = new FreeformHandles(host, () => this.camera, replacements => this.previewVertices(replacements));
+    this.scene.add(this.vertexPreview, this.pathPreview);
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.enableDamping = true; this.controls.dampingFactor = .15;
     this.controls.minZoom = .08; this.controls.maxZoom = 100; this.controls.maxPolarAngle = Math.PI * .95;
@@ -164,7 +181,7 @@ class Viewport {
     this.resize = new ResizeObserver(() => this.measure()); this.resize.observe(host); this.measure();
     const canvas = this.renderer.domElement;
     canvas.addEventListener('pointerdown', this.down, true); canvas.addEventListener('pointermove', this.move); canvas.addEventListener('pointerup', this.up);
-    canvas.addEventListener('pointercancel', this.cancel); canvas.addEventListener('pointerleave', this.leave);
+    canvas.addEventListener('dblclick', this.finishPath); canvas.addEventListener('pointercancel', this.cancel); canvas.addEventListener('pointerleave', this.leave);
     canvas.addEventListener('lostpointercapture', this.cancel); window.addEventListener('keydown', this.key);
     window.addEventListener('blur', this.cancel);
     if (import.meta.env.DEV) (window as unknown as { shipbuilderViewport?: Viewport }).shipbuilderViewport = this;
@@ -174,16 +191,16 @@ class Viewport {
   private measure() {
     const width = Math.max(1, this.host.clientWidth), height = Math.max(1, this.host.clientHeight);
     this.span = this.fitExtent / Math.min(1, width / height);
-    this.renderer.setSize(width, height); this.camera.left = -this.span * width / height / 2; this.camera.right = -this.camera.left;
-    this.camera.top = this.span / 2; this.camera.bottom = -this.camera.top; this.camera.updateProjectionMatrix();
+    this.renderer.setSize(width, height); this.ortho.left = -this.span * width / height / 2; this.ortho.right = -this.ortho.left;
+    this.ortho.top = this.span / 2; this.ortho.bottom = -this.ortho.top; this.ortho.updateProjectionMatrix();
+    this.perspectiveCamera.aspect = width / height; this.perspectiveCamera.updateProjectionMatrix();
   }
 
   fit() {
     const bounds = new THREE.Box3();
     // Source bounds remain available before compilation and for invalid drafts.
     for (const primitive of this.props.source.construction.primitives) {
-      const rotation = new THREE.Euler(0, primitive.rotationDeg * Math.PI / 180, 0);
-      for (const x of [-.5, .5]) for (const y of [-.5, .5]) for (const z of [-.5, .5]) bounds.expandByPoint(new THREE.Vector3(x * primitive.size[0], y * primitive.size[1], z * primitive.size[2]).applyEuler(rotation).add(new THREE.Vector3(...primitive.position)));
+      for (const v of cornerVertices(primitive)) bounds.expandByPoint(new THREE.Vector3(...worldVertex(primitive, v)));
     }
     if (bounds.isEmpty()) bounds.set(new THREE.Vector3(-10, -5, -25), new THREE.Vector3(10, 5, 25));
     const size = bounds.getSize(new THREE.Vector3()), center = bounds.getCenter(new THREE.Vector3());
@@ -198,16 +215,28 @@ class Viewport {
 
   private setView(view: BuilderView) {
     const direction = view === 'top' ? [0, 1, .0001] : view === 'side' ? [1, 0, 0] : view === 'bow' ? [0, 0, -1] : [1, .7, -1.15];
-    this.camera.position.copy(this.controls.target).add(new THREE.Vector3(...direction).normalize().multiplyScalar(Math.max(200, this.span * 3)));
+    this.camera.position.copy(this.controls.target).add(new THREE.Vector3(...direction).normalize().multiplyScalar(this.camera instanceof THREE.PerspectiveCamera ? this.span / (2 * Math.tan(20 * Math.PI / 180)) : Math.max(200, this.span * 3)));
     this.camera.up.set(0, 1, 0); this.camera.lookAt(this.controls.target); this.controls.enableRotate = view === 'orbit'; this.controls.update(); this.currentView = view;
   }
 
   update(props: ViewportProps) {
     const old = this.props; this.props = props;
+    this.freeformHandles.update(props.source, props.freeform);
+    if (!!props.perspective !== (this.camera instanceof THREE.PerspectiveCamera)) {
+      const previous=this.camera, distance=previous.position.distanceTo(this.controls.target);
+      this.camera=props.perspective?this.perspectiveCamera:this.ortho;
+      const extent=previous instanceof THREE.PerspectiveCamera?2*distance*Math.tan(20*Math.PI/180)/previous.zoom:this.span/previous.zoom;
+      this.camera.position.copy(previous.position); this.camera.quaternion.copy(previous.quaternion);
+      if(this.camera instanceof THREE.PerspectiveCamera) {
+        this.camera.zoom=1;this.camera.position.sub(this.controls.target).setLength(extent/(2*Math.tan(20*Math.PI/180))).add(this.controls.target);
+      } else this.camera.zoom=this.span/extent;
+      this.controls.object=this.camera;this.camera.updateProjectionMatrix();this.controls.update();
+    }
     if (props.source.id !== old.source.id || props.gesture !== old.gesture || props.placementPiece !== old.placementPiece || props.moveTargets !== old.moveTargets) this.cancel();
     if (props.view !== this.currentView || props.fitRequest !== old.fitRequest || props.source.id !== old.source.id || (!old.result && props.result)) this.fit();
     // The primary button orbits (pans in construction views) and the secondary button pans. A primary press on the hull while placing lays pieces instead; `down` holds the controls for that drag.
-    this.controls.mouseButtons = { LEFT: props.view === 'orbit' ? THREE.MOUSE.ROTATE : THREE.MOUSE.PAN, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.PAN };
+    this.controls.mouseButtons = { LEFT: props.perspective || props.view === 'orbit' ? THREE.MOUSE.ROTATE : THREE.MOUSE.PAN, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.PAN };
+    this.controls.enableRotate = props.view === 'orbit' || !!props.perspective;
     const nativeSurfaces = props.result?.sourceId === props.source.id && props.result.revision === props.source.revision && props.result.surfaces.length ? props.result.surfaces : undefined;
     const key = `${props.source.id}:${nativeSurfaces ? props.result!.contentHash : props.source.revision + ':draft'}:${props.display}`;
     if (key !== this.contentKey) {
@@ -224,7 +253,7 @@ class Viewport {
         const mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .78, metalness: 0, side: THREE.DoubleSide, transparent: props.display === 'internals', opacity: props.display === 'internals' ? .15 : 1, depthWrite: props.display !== 'internals' }));
         mesh.userData.hull = true; this.hull.add(mesh); this.pickMeshes.push(mesh); this.hullMeshes.push(mesh);
       } else for (const primitive of props.source.construction.primitives) {
-        const mesh = new THREE.Mesh(primitiveGeometry(primitive.kind, primitive.size), new THREE.MeshStandardMaterial({ color: constructionPaintColor('naval-gray'), roughness: .78, side: THREE.DoubleSide, transparent: props.display === 'internals', opacity: props.display === 'internals' ? .15 : 1 }));
+        const mesh = new THREE.Mesh(primitiveGeometry(primitive.kind, primitive.size, primitive.vertices), new THREE.MeshStandardMaterial({ color: constructionPaintColor('naval-gray'), roughness: .78, side: THREE.DoubleSide, transparent: props.display === 'internals', opacity: props.display === 'internals' ? .15 : 1 }));
         mesh.position.set(...primitive.position); mesh.rotation.y = primitive.rotationDeg * Math.PI / 180;
         mesh.userData.sourceId = primitive.id; this.hull.add(mesh); this.pickMeshes.push(mesh); this.hullMeshes.push(mesh);
       }
@@ -247,7 +276,7 @@ class Viewport {
     this.equipment.group.visible = !(props.createModel && this.composed.visible && this.composed.children.length);
     // Native surfaces remain the pick target even when shared composition renders the exterior.
     this.hull.visible = !this.composed.visible || !this.composed.children.length;
-    release(this.details); release(this.selection);
+    release(this.details); release(this.selection); this.selection.visible=true;
     this.pickMeshes = this.pickMeshes.filter(mesh => mesh.parent === this.hull);
     this.equipment.group.traverse(node => { if (node instanceof THREE.Mesh) this.pickMeshes.push(node); });
     if (!nativeSurfaces) for (const object of this.hull.children) {
@@ -259,8 +288,9 @@ class Viewport {
     for (const part of props.source.construction.equipment) {
       const entry = props.catalog.equipment.find(entry => entry.id === part.partId);
       if (!entry) continue;
-      const box = new THREE.Mesh(new THREE.BoxGeometry(...entry.size), new THREE.MeshBasicMaterial({ color: props.selected.has(part.id) ? BRASS : entry.placement === 'internal' ? READY : '#bacbd0', wireframe: true, transparent: true, opacity: props.selected.has(part.id) ? 1 : .55 }));
-      const datum = new THREE.Group(); datum.position.set(...part.position); datum.rotation.y = -part.bearingDeg * Math.PI / 180; box.position.set(...entry.boundsCenter);
+      const pathBounds = equipmentPathBounds(entry, part);
+      const box = new THREE.Mesh(new THREE.BoxGeometry(...pathBounds.size), new THREE.MeshBasicMaterial({ color: props.selected.has(part.id) ? BRASS : entry.placement === 'internal' ? READY : '#bacbd0', wireframe: true, transparent: true, opacity: props.selected.has(part.id) ? 1 : .55 }));
+      const datum = new THREE.Group(); datum.position.set(...part.position); datum.rotation.y = -part.bearingDeg * Math.PI / 180; box.position.set(...pathBounds.center);
       box.userData.sourceId = part.id; datum.add(box); this.details.add(datum);
       if (!this.equipment.has(part.id)) this.pickMeshes.push(box);
       datum.visible = props.display === 'internals' || props.selected.has(part.id) || (!this.equipment.has(part.id) && !(props.createModel && this.composed.children.length));
@@ -313,7 +343,24 @@ class Viewport {
     }
     if (props.highlightFaces !== old.highlightFaces || props.slice !== old.slice || props.pickTargets !== old.pickTargets) { release(this.hoverGroup); this.hoverSurface = ''; }
     this.measureGroup.visible = !!props.measure;
-    this.updateGhost(); this.updateStrokePreview(); if (this.hover) this.highlight(this.hover); this.applyClip();
+    // A held corner is already dragging, but has no preview until it moves.
+    if(this.vertexPreview.visible && this.vertexPreview.children.length) {this.hull.visible=false;this.composed.visible=false;this.selection.visible=false;}
+    this.updatePathPreview(); this.updateGhost(); this.updateStrokePreview(); if (this.hover) this.highlight(this.hover); this.applyClip();
+  }
+
+  private previewVertices(replacements?: ConstructionPrimitive[]) {
+    release(this.vertexPreview);
+    this.vertexPreview.visible=!!replacements;
+    if (!replacements) { this.update(this.props); return; }
+    this.hull.visible=false; this.composed.visible=false; this.selection.visible=false;
+    const map=new Map(replacements.map(p=>[p.id,p]));
+    for(const original of this.props.source.construction.primitives) {
+      const p=map.get(original.id)??original;
+      const geometry=primitiveGeometry(p.kind,p.size,p.vertices);
+      const mesh=new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({color:constructionPaintColor('naval-gray'),roughness:.78,side:THREE.DoubleSide}));
+      mesh.position.set(...p.position);mesh.rotation.y=p.rotationDeg*Math.PI/180;this.vertexPreview.add(mesh);
+      if(map.has(p.id)) {const edges=new THREE.LineSegments(new THREE.EdgesGeometry(geometry),new THREE.LineBasicMaterial({color:BRASS_LIGHT}));edges.position.copy(mesh.position);edges.rotation.copy(mesh.rotation);this.vertexPreview.add(edges);}
+    }
   }
 
   private updateGhost() {
@@ -388,7 +435,7 @@ class Viewport {
       clippingPlanes: this.props.slice === undefined ? [] : [new THREE.Plane(new THREE.Vector3(0, -1, 0), this.props.slice)] });
     const primitive = this.props.source.construction.primitives.find(part => part.id === pick?.id);
     if (primitive && !this.props.highlightFaces) {
-      const geometry = primitiveGeometry(primitive.kind, primitive.size);
+      const geometry = primitiveGeometry(primitive.kind, primitive.size, primitive.vertices);
       const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geometry), material()); geometry.dispose();
       edges.position.set(...primitive.position); edges.rotation.y = primitive.rotationDeg * Math.PI / 180;
       edges.renderOrder = 25; this.hoverGroup.add(edges);
@@ -460,15 +507,35 @@ class Viewport {
   /** HTML tags follow their world anchors each frame; React owns their content. */
   private placeTags() {
     const width = this.host.clientWidth, height = this.host.clientHeight;
+    const narrow = width <= 1100, builder = this.props.tags.length ? this.host.closest('.shipbuilder') : null;
+    const header = narrow ? builder?.querySelector<HTMLElement>('.sb-top') : null, palette = narrow ? builder?.querySelector<HTMLElement>('.sb-hotbar') : null;
+    const ledger = builder?.querySelector<HTMLElement>('.sb-ledger'), hostRect = builder ? this.host.getBoundingClientRect() : null;
+    const ledgerRect = ledger?.offsetWidth && ledger.offsetHeight ? ledger.getBoundingClientRect() : null;
+    const hostTop = hostRect?.top ?? 0;
+    // Keep editable tags beside the tool rail and between the wrapped header and palette.
+    const left = narrow ? 80 : 8, top = header ? header.getBoundingClientRect().bottom - hostTop + 12 : 60;
+    const bottom = narrow && palette?.offsetHeight ? palette.getBoundingClientRect().top - hostTop - 12 : height - 90;
     let leaders = '';
     for (const tag of this.props.tags) {
       const element = this.overlay.querySelector<HTMLElement>(`[data-tag="${CSS.escape(tag.key)}"]`);
       if (!element) continue;
       const screen = this.project(new THREE.Vector3(...tag.anchor));
       if (!screen) { element.style.visibility = 'hidden'; continue; }
-      const x = clamp(screen.x + tag.dx, 8, Math.max(8, width - element.offsetWidth - 8)), y = clamp(screen.y + tag.dy, 60, Math.max(60, height - element.offsetHeight - 90));
+      element.style.maxHeight = narrow ? `${Math.max(80, bottom - top)}px` : '';
+      const tagWidth = element.offsetWidth, tagHeight = element.offsetHeight;
+      let x = clamp(screen.x + tag.dx, left, Math.max(left, width - tagWidth - 8)), y = clamp(screen.y + tag.dy, top, Math.max(top, bottom - tagHeight));
+      if (ledgerRect) {
+        const ledgerLeft = ledgerRect.left - (hostRect?.left ?? 0) - 12, ledgerTop = ledgerRect.top - hostTop - 12;
+        const ledgerRight = ledgerRect.right - (hostRect?.left ?? 0) + 12, ledgerBottom = ledgerRect.bottom - hostTop + 12;
+        if (x < ledgerRight && x + tagWidth > ledgerLeft && y < ledgerBottom && y + tagHeight > ledgerTop) {
+          const beside = ledgerLeft - tagWidth, below = ledgerBottom;
+          // Choose the smallest move that leaves the whole editor clear of the Ledger.
+          if (below + tagHeight <= bottom && (beside < left || below - y < x - beside)) y = below;
+          else if (beside >= left) x = beside;
+        }
+      }
       element.style.visibility = 'visible'; element.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
-      const endX = tag.dx >= 0 ? x : x + element.offsetWidth, endY = y + element.offsetHeight / 2;
+      const endX = screen.x < x + tagWidth / 2 ? x : x + tagWidth, endY = y + tagHeight / 2;
       leaders += `<line x1="${screen.x.toFixed(1)}" y1="${screen.y.toFixed(1)}" x2="${endX.toFixed(1)}" y2="${endY.toFixed(1)}" stroke="${LEADER[tag.tone]}"/><circle cx="${screen.x.toFixed(1)}" cy="${screen.y.toFixed(1)}" r="2.5" fill="${LEADER[tag.tone]}"/>`;
     }
     // The readout sits under the palette: the ghost's cell while placing, the offset while moving a selection.
@@ -532,7 +599,7 @@ class Viewport {
     for (const id of ids) {
       const primitive = primitives.find(part => part.id === id);
       if (primitive) {
-        const geometry = primitiveGeometry(primitive.kind, primitive.size);
+        const geometry = primitiveGeometry(primitive.kind, primitive.size, primitive.vertices);
         const fill = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ color: BRASS, transparent: true, opacity: .22, depthWrite: false }));
         const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geometry), new THREE.LineBasicMaterial({ color: BRASS_LIGHT, depthTest: false }));
         for (const object of [fill, edges]) { object.position.set(...primitive.position); object.rotation.y = primitive.rotationDeg * Math.PI / 180; object.renderOrder = 20; this.movePreview.add(object); }
@@ -541,7 +608,7 @@ class Viewport {
       const item = equipment.find(part => part.id === id);
       if (item) {
         const datum = new THREE.Group(); datum.position.set(...item.position); datum.rotation.y = -item.bearingDeg * Math.PI / 180;
-        const ghost = this.equipment.clone(item.partId, true), part = this.props.catalog.equipment.find(entry => entry.id === item.partId);
+        const ghost = this.equipment.clone(item.partId, true, item.path), part = this.props.catalog.equipment.find(entry => entry.id === item.partId);
         if (ghost) datum.add(ghost);
         else if (part) { const box = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(...part.size)), new THREE.LineBasicMaterial({ color: BRASS_LIGHT, depthTest: false })); box.position.set(...part.boundsCenter); datum.add(box); }
         this.movePreview.add(datum); continue;
@@ -585,7 +652,9 @@ class Viewport {
       this.camera.position.copy(position); this.camera.quaternion.copy(rotation); this.controls.target.copy(target); this.camera.updateMatrixWorld(true);
       this.controls.enabled = false; event.stopImmediatePropagation(); event.preventDefault();
     }
-    const move = !box && event.button === 0 ? this.movePick(event) : undefined;
+    const path = !box && event.button === 0 && this.props.pathDraft ? this.pathPick(event) : undefined;
+    if (path) { this.controls.enabled = false; event.stopImmediatePropagation(); event.preventDefault(); }
+    const move = !box && !this.props.pathDraft && event.button === 0 ? this.movePick(event) : undefined;
     const start = !box && !move && event.button === 0 && this.props.gesture !== 'none' && this.props.placementPiece ? this.pick(event, 'hull') : undefined;
     // A press on the hull lays or moves pieces, so OrbitControls (which listens after this capture handler) must not orbit with the same drag; `up` and `cancel` re-enable it.
     if (start || move) this.controls.enabled = false;
@@ -595,7 +664,7 @@ class Viewport {
     this.updateGhost(); this.updateStrokePreview();
   };
   private move = (event: PointerEvent) => {
-    this.hover = { clientX: event.clientX, clientY: event.clientY }; this.updateGhost(); this.highlight(event);
+    this.hover = { clientX: event.clientX, clientY: event.clientY }; this.updatePathPreview(); this.updateGhost(); this.highlight(event);
     if (!this.pointerStart || event.pointerId !== this.pointerStart.id) return;
     this.pointerStart.moved ||= Math.hypot(event.clientX - this.pointerStart.x, event.clientY - this.pointerStart.y) >= 5;
     if (this.pointerStart.box) { this.showBox(event); return; }
@@ -622,7 +691,10 @@ class Viewport {
     const piece = this.props.placementPiece;
     if (start.button === 2) {
       const hit = clicked ? this.pick(event, 'all') : undefined;
-      if (hit?.id) this.props.onErase(hit.id);
+      if (hit?.id && !this.props.freeform && !this.props.pathDraft) this.props.onErase(hit.id);
+    } else if (this.props.pathDraft && !rect) {
+      const point = clicked ? this.pathPick(event) : undefined;
+      if (point) this.props.onPathPoint?.(point);
     } else if (rect) {
       if (clicked) { const hit = this.pick(event, 'all'); this.props.onBoxSelect(hit?.id ? [hit.id] : [], true); }
       else this.props.onBoxSelect(boxSelectedPieces(this.props.source, this.props.catalog, this.camera, rect, this.host.clientWidth, this.host.clientHeight, this.props.slice, this.props.rooms), start.additive);
@@ -638,7 +710,28 @@ class Viewport {
       else this.props.onStroke(clicked ? [start.start.placement] : start.points);
     } else if (clicked) this.props.onPick(this.pick(event, this.props.placementPiece ? 'hull' : this.props.pickTargets));
   };
-  private leave = () => { this.hover = undefined; this.ghost.visible = false; this.ghostMirror.visible = false; this.ghostArc.visible = false; this.ghostPosition = undefined; release(this.hoverGroup); this.hoverSurface = ''; };
+  private pathPick(event: { clientX: number; clientY: number }): Vec3 | undefined {
+    const draft = this.props.pathDraft;
+    if (!draft) return undefined;
+    const hit = this.pick(event, draft.part.path?.kind === 'railing' ? 'hull' : 'all');
+    return hit && pathAnchor(draft.part, this.props.source, this.props.catalog, hit, this.props.gridStep);
+  }
+  private updatePathPreview() {
+    const draft = this.props.pathDraft, point = draft && this.hover && !this.navigating() ? this.pathPick(this.hover) : undefined;
+    const points = draft ? point ? appendPathPoint(draft.points, point) : draft.points : [];
+    const key = JSON.stringify([draft?.part.id, points, draft?.slackM, draft?.mirror]);
+    if (key === this.pathPreviewKey) return;
+    this.pathPreviewKey = key; release(this.pathPreview);
+    if (!draft || !points.length) return;
+    if (points.length > 1) {
+      this.pathPreview.add(createConstructionPathModel(draft.part, { points, slackM: draft.slackM }, true));
+      if (draft.mirror && points.some(p => Math.abs(p[0]) > 1e-6)) this.pathPreview.add(createConstructionPathModel(draft.part, { points: points.map(p => [-p[0], p[1], p[2]]), slackM: draft.slackM }, true));
+    }
+    const geometry = new THREE.SphereGeometry(.075, 8, 6), material = new THREE.MeshBasicMaterial({ color: BRASS_LIGHT, depthTest: false });
+    for (const p of points) { const marker = new THREE.Mesh(geometry, material); marker.position.set(...p); marker.renderOrder = 30; this.pathPreview.add(marker); }
+  }
+  private finishPath = (event: MouseEvent) => { if (this.props.pathDraft) { event.preventDefault(); this.props.onPathFinish?.(); } };
+  private leave = () => { this.hover = undefined; this.updatePathPreview(); this.ghost.visible = false; this.ghostMirror.visible = false; this.ghostArc.visible = false; this.ghostPosition = undefined; release(this.hoverGroup); this.hoverSurface = ''; };
   private cancel = () => {
     const pointer = this.pointerStart; this.pointerStart = undefined; this.controls.enabled = true;
     if (pointer && this.renderer.domElement.hasPointerCapture(pointer.id)) this.renderer.domElement.releasePointerCapture(pointer.id);
@@ -647,9 +740,9 @@ class Viewport {
   private key = (event: KeyboardEvent) => { if (event.key === 'Escape' && this.pointerStart) this.cancel(); };
   private animate = () => {
     if (this.dead) return;
-    this.controls.update();
+    if(!this.freeformHandles.dragging) this.controls.update();
     if (this.hover) { if (this.props.placementPiece) this.updateGhost(); this.highlight(this.hover); }
-    this.renderer.render(this.scene, this.camera); this.placeTags();
+    this.freeformHandles.frame(); this.renderer.render(this.scene, this.camera); this.placeTags();
     if (!this.orientationRotation.equals(this.camera.quaternion)) {
       updateBuilderOrientation(this.orientation, this.camera);
       this.orientationRotation.copy(this.camera.quaternion);
@@ -658,11 +751,12 @@ class Viewport {
   };
 
   dispose() {
+    this.freeformHandles.dispose();
     this.dead = true; cancelAnimationFrame(this.frame); this.modelAbort?.abort(); this.resize.disconnect(); this.controls.dispose();
     this.strokePreview.clear(); this.equipment.dispose();
     const canvas = this.renderer.domElement;
     canvas.removeEventListener('pointerdown', this.down, true); canvas.removeEventListener('pointermove', this.move); canvas.removeEventListener('pointerup', this.up);
-    canvas.removeEventListener('pointercancel', this.cancel); canvas.removeEventListener('pointerleave', this.leave);
+    canvas.removeEventListener('dblclick', this.finishPath); canvas.removeEventListener('pointercancel', this.cancel); canvas.removeEventListener('pointerleave', this.leave);
     canvas.removeEventListener('lostpointercapture', this.cancel); window.removeEventListener('keydown', this.key);
     window.removeEventListener('blur', this.cancel);
     release(this.scene); this.renderer.dispose(); this.renderer.forceContextLoss(); canvas.remove();

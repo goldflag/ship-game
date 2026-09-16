@@ -27,7 +27,8 @@ export class FleetShipDraws {
     const groups = new Map<string, { material: THREE.Material; sources: Source[] }>();
     for (const view of views) for (const assembly of this.assemblies.build(view)) {
       const { mesh, material } = assembly;
-      if (material.transparent || (mesh as THREE.SkinnedMesh).isSkinnedMesh || mesh.morphTargetInfluences?.length) continue;
+      // Keep procedural routes in their original draw, including every instance matrix.
+      if (material.transparent || (mesh as THREE.SkinnedMesh).isSkinnedMesh || (mesh as THREE.InstancedMesh).isInstancedMesh || mesh.morphTargetInfluences?.length) continue;
       const layout = Object.entries(mesh.geometry.attributes).map(([name, a]) => `${name}:${a.itemSize}:${a.normalized}:${a.array.constructor.name}`).sort().join('/');
       const key = `${material.uuid}:${!!mesh.geometry.index}:${layout}:${mesh.layers.mask}:${mesh.renderOrder}:${mesh.castShadow}:${mesh.receiveShadow}`;
       let group = groups.get(key);

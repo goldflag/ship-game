@@ -1,40 +1,101 @@
 """Common articulated ship exporter. Operates on a build copy, never the baseline."""
+import time
+_started = time.perf_counter()
+_timings = {}
+def mark(name):
+    global _started
+    now = time.perf_counter(); _timings[name] = now - _started; _started = now
+    print("SHIP_STAGE", name, _timings[name], flush=True)
+
 import bpy
 import os
 import math
 import json
 from pathlib import Path
 from mathutils import Matrix
+import sys
+sys.path.insert(0, str(Path(__file__).parent))
+from blender_batching import join_mesh_data, has_nonplanar_faces
 
 output_dir = Path(os.environ['SHIP_OUTPUT'])
 definition = json.loads(Path(os.environ['SHIP_DEFINITION']).read_text())
 bpy.ops.wm.open_mainfile(filepath=str(output_dir / 'source.blend'))
+mark('load')
 
+# Object.users_collection scans every collection and its object list. Invert
+# membership once, preserving bpy.data.collections order used by that property.
+collections_by_object = {}
+for collection in bpy.data.collections:
+    for obj in collection.objects:
+        collections_by_object.setdefault(obj, []).append(collection)
 for obj in list(bpy.data.objects):
-    if obj.get('exportRole') == 'simulation' or any('Studio' in c.name or 'Measurement' in c.name for c in obj.users_collection) or obj.type not in {'MESH', 'CURVE', 'EMPTY'}:
+    if obj.get('exportRole') == 'simulation' or any('Studio' in c.name or 'Measurement' in c.name for c in collections_by_object.get(obj, [])) or obj.type not in {'MESH', 'CURVE', 'EMPTY'}:
         bpy.data.objects.remove(obj, do_unlink=True)
 for collection in bpy.data.collections:
-    collection.hide_viewport=False;collection.hide_render=False
+    if collection.hide_viewport: collection.hide_viewport=False
+    if collection.hide_render: collection.hide_render=False
 for obj in list(bpy.context.scene.objects):
-    obj.hide_set(False);obj.hide_viewport=False;obj.hide_render=False
+    if obj.hide_get(): obj.hide_set(False)
+    if obj.hide_viewport: obj.hide_viewport=False
+    if obj.hide_render: obj.hide_render=False
+mark('visibility')
 bpy.ops.object.select_all(action='DESELECT')
-convertible=[o for o in bpy.context.scene.objects if o.type=='CURVE' or (o.type=='MESH' and not o.data.shape_keys)]
-for obj in convertible:obj.select_set(True)
-bpy.context.view_layer.objects.active=convertible[0]
-bpy.ops.object.convert(target='MESH')
+convertible=[o for o in bpy.context.scene.objects if o.type=='CURVE' or (o.type=='MESH' and o.modifiers and not o.data.shape_keys)]
+if convertible:
+    for obj in convertible: obj.select_set(True)
+    bpy.context.view_layer.objects.active=convertible[0]
+    bpy.ops.object.convert(target='MESH')
+
+mark('conversion')
 
 # Batch within a single parent + assembly, preserving logical and articulated boundaries.
 buckets={}
 for obj in bpy.context.scene.objects:
     if obj.type!='MESH' or obj.get('nodeId')=='hull.surface' or obj.data.shape_keys:continue
-    key=(obj.parent.name if obj.parent else '', obj.get('assemblyId',''), obj.users_collection[0].name)
+    key=(obj.parent.name if obj.parent else '', obj.get('assemblyId',''), collections_by_object[obj][0].name)
     buckets.setdefault(key,[]).append(obj)
-for key,objects in buckets.items():
-    bpy.ops.object.select_all(action='DESELECT')
-    for obj in objects:obj.select_set(True)
-    bpy.context.view_layer.objects.active=objects[0]
-    bpy.ops.object.join()
-    bpy.context.object.name=(key[0] or key[1] or key[2])+'.mesh'
+# Copy ordinary mesh buffers. Keep Blender's native transform/tessellation
+# path for non-planar polygons and special data. Batch-remove ordinary inputs
+# first so native joins do not repeatedly scan the entire original ship.
+bpy.context.view_layer.update()
+removed = []
+temporary_meshes = []
+native = []
+renames = []
+for key, objects in buckets.items():
+    name=(key[0] or key[1] or key[2])+'.mesh'
+    renames.append((objects[0], name))
+    if len(objects) < 2:
+        continue
+    special = [obj for obj in objects if obj.data.has_custom_normals or len(obj.data.color_attributes)
+               or any(slot.link == 'OBJECT' for slot in obj.material_slots)
+               or obj.matrix_world.determinant() < 0 or has_nonplanar_faces(obj.data)]
+    if not special:
+        temporary_meshes.extend(join_mesh_data(objects))
+        removed.extend(objects[1:])
+        continue
+    # Always retain the original active object's frame and stable metadata.
+    ordinary = [obj for obj in objects[1:] if obj not in special]
+    remaining = [objects[0]] + [obj for obj in special if obj is not objects[0]]
+    if ordinary:
+        if objects[0] not in special:
+            temporary_meshes.extend(join_mesh_data([objects[0], *ordinary]))
+            removed.extend(ordinary)
+        else:
+            temporary_meshes.extend(join_mesh_data(ordinary))
+            removed.extend(ordinary[1:])
+            remaining.append(ordinary[0])
+    native.append((name, remaining))
+bpy.data.batch_remove(removed + temporary_meshes)
+bpy.context.view_layer.update()
+for name, objects in native:
+    if len(objects) > 1:
+        bpy.ops.object.select_all(action='DESELECT')
+        for obj in objects: obj.select_set(True)
+        bpy.context.view_layer.objects.active=objects[0]
+        bpy.ops.object.join()
+for obj, name in renames: obj.name=name
+mark('batching')
 
 # glTF cannot represent Blender's procedural brick shader. Bake the original
 # teak into a repeating texture and project deck UVs at the same meter scale.
@@ -73,6 +134,8 @@ if teak is not None:
                 uv_layer.data[loop_index].uv = ((point.x + 10) / 20, (point.y + 1.28) / 2.56)
 
 
+mark('textures')
+
 # Change basis for every local frame AND mesh, so exported coordinates are already
 # +Y up, -Z bow. Runtime performs no additional model rotation.
 bpy.context.view_layer.update()
@@ -96,6 +159,7 @@ for obj,frame in local_frames.items():
     obj.matrix_local=rotation @ frame @ inverse
 bpy.context.view_layer.update()
 bpy.context.scene['definitionHash']=definition['contentHash']
+mark('coordinates')
 bpy.ops.export_scene.gltf(
     filepath=str(output_dir/'model.glb'),export_format='GLB',export_yup=True,
     export_cameras=False,export_lights=False,export_animations=False,
@@ -103,3 +167,6 @@ bpy.ops.export_scene.gltf(
     export_extras=True,export_apply=False,
 )
 print('EXPORTED',output_dir/'model.glb',flush=True)
+
+mark('export')
+(output_dir / 'export-timings.json').write_text(json.dumps(_timings, indent=2))

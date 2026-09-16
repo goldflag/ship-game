@@ -1,5 +1,9 @@
 # Local shipbuilding
 
+For repository-backed ship construction, agent commands and publication, see
+[construction authoring](construction-authoring.md). Blender remains the permanent
+authoring tool for reusable components.
+
 Choose **New design** in port for a design with one centered hull block, or **Edit design** to reopen a saved source. All drafts appear in the port’s Ship designs list; valid designs also appear in the fleet carousel and can be inspected in the harbor. Returning from the editor saves and shows a valid design without requiring a sea trial. The patrol starter includes a gun, ammunition
 magazine, diesel machinery, funnel, propeller, rudder and mast. The twin-hull
 starter preserves an exterior water channel and deliberately shows an asymmetric
@@ -14,8 +18,11 @@ rates and repair limits.
 Use Hull for pieces, Armor for plating and openings, Fittings for equipment,
 Internals for rooms and machinery, and Paint for finishes. The hull grid is 1 m;
 equipment placement uses 0.25 m. Orbit, Plan, Profile and Bow views and a deck
-slice share source selections. Copy, mirror, bulk surface changes and undo/redo
-operate on stable source identities.
+slice share source selections. The camera starts in perspective; **Camera** in
+the view bar or **P** toggles orthographic projection while retaining the framing.
+The choice is shared across layers and freeform editing for the current editor
+session. Copy, mirror, bulk surface changes and undo/redo operate on stable source
+identities.
 
 Place shows a snapped preview only on existing hull faces. Empty space has no placement target. Click to place, or drag to
 lay a run; Fill drags a rectangle. Every piece appears during the drag, including
@@ -52,6 +59,48 @@ Saved, valid designs also appear in **Custom battle**, where they can be the
 player, friendly bots or enemies, including repeated copies. Online and campaign
 modes continue to accept their historical content only.
 
+## Deck fittings and connected paths
+
+In **Fittings**, open the **…** drawer (or press **0**) and search the parts by
+name. The deck collection includes bitts, a roller fairlead, capstan, anchor
+windlass, stowed anchor, lifeboat with davits, cowl and mushroom vents, watertight
+door, deck hatch, vertical ladder, inclined stairs, compact optical rangefinder
+and **Searchlight (unlit)**. They are generic naval parts with estimated
+dimensions and masses. The rangefinder uses the existing director behavior.
+Other fixed deck fittings add mass without adding buoyancy or a combat bonus.
+Doors and hatches stay closed and do not cut hull openings; the boat and davits
+stay stowed. The searchlight is a static model with no beam, light source, power
+demand or detection effect.
+
+Railing, rope and chain use connected routes. Click each point on the ship, then
+choose **Finish**, press **Enter** or double-click. **Backspace** or **Ctrl/⌘Z**
+removes the last pending point; **Escape** or **Cancel** discards the route.
+The brass route is a preview until finished, when the entire route and any
+mirrored copy become one undoable edit. Finish or cancel before returning to
+port, opening Designs or starting a sea trial. Railings need deck support at
+every post. Rope and chain can attach to hull surfaces or the declared support
+and rigging sockets of fixed fittings; native diagnostics check attachment and
+clearance.
+
+Select a completed route to edit its position, bearing or individual points in
+the object tag. Point coordinates are relative to the route origin. **Insert
+point** divides a span at its midpoint; **Remove point** keeps at least two
+points. **Rope slack** sets the downward midpoint sag of each segment in metres,
+both while drawing and after placement. Slack is limited to half the shortest
+segment and 20 m. A route supports 2–64 points and at most 500 m, including its
+sag. Copying, moving, rotating and mirroring retain the connected route.
+
+On narrow screens, the drawing prompt scrolls in a compact card beside the tool
+rail, with Finish and Cancel above the palette. The view controls remain below
+the palette and the compass moves above the prompt.
+
+Saved designs keep their original parts catalog. **Designs → Update parts
+library** opts into the latest catalog as one undoable edit while preserving
+authored hull pieces, placements and routes. If fitted variants have changed,
+review the listed variants and choose **Apply parts update**. Missing fitted
+variants block the update. The design recompiles against the new catalog; Undo
+restores the previous catalog, and older saved revisions remain recoverable.
+
 ## Source and compilation
 
 The shared contract is [blueprint.ts](../src/ships/blueprint.ts).
@@ -87,6 +136,14 @@ Coordinates remain metres, +Y up, -Z bow and +X starboard. Compilation does not
 recenter a design or move the hull separately from its contents. Equipment yaw
 uses the existing clockwise bearing convention. Published parts retain their
 original datum and sockets; bounds centers are not replacement pivots.
+
+Connected fittings store `path.points` in equipment-local coordinates and an
+optional `path.slackM` in the same version-1 construction source. The catalog
+supplies the railing, rope or chain profile; the equipment position and bearing
+transform the whole route. Native compilation owns support, clearance, length,
+mass, center of gravity and inertia. Procedural route meshes in
+[constructionPathModel.ts](../src/game/constructionPathModel.ts) display those
+source points and catalog profiles without adding a second physics solver.
 
 [construction.rs](../crates/naval-sim/src/construction.rs) and
 [construction_geometry.rs](../crates/naval-sim/src/construction_geometry.rs)
@@ -248,3 +305,23 @@ and collision response retains the existing planar impulse model after testing
 actual cell intersection. Suggestions are bounded searches and can explain a
 fit failure without finding every feasible arrangement. Initial service and
 ammunition loading is fixed; expenditure does not recalculate dry mass.
+
+### Freeform hulls
+
+Select one cube or freeform hull in the Hull layer and choose **Freeform** (or **Freeform hull** on its selection tag). Palette slot 9 supplies a 4 m Freeform hull. Adjustable hull profiles are not part of this editor.
+
+Choose **Vertex**, **Edge** or **Face** to move one corner, an edge's two corners or a face's four corners. The eight corners, twelve edges and six named faces keep fixed topology. Click a handle, edge or face to select it; the selection menu also reaches obscured components. Edge and face movement preserves the selected component's shape. Numeric coordinates show a vertex's position or an edge/face center in metric local block coordinates; editing the center translates the selection, without flattening it.
+
+**Mirror X/Y/Z** reflects movement across the selected block's local planes. X starts on; no axes selected means symmetry off. Both sides remain selectable. Brass marks the selection and mint marks mirrored corners/components. An edge or face spanning a mirror plane cannot translate across it: the corresponding gizmo axis and coordinate field are disabled. For example, a top face can rise with X symmetry enabled but cannot slide sideways. Mirroring preserves existing asymmetry rather than forcing the shape to become symmetric. This is separate from whole-ship mirror placement, whose control is hidden during freeform editing. Whole-block mirror copies retain deformed geometry and face assignments.
+
+**Move step** cycles through 0.05 → 0.1 → 0.2 → 0.5 → 1 → 2 m, also with G. It starts at 0.2 m and quantizes displacement from the start of an edit. Drag an **X/Y/Z** gizmo handle to move along that explicit local axis; arrow keys nudge a focused axis handle. Drag the selected component or center handle in the local coordinate plane most directly facing the camera. Axes pointing directly toward the camera have no usable screen direction: change view or enter coordinates.
+
+**Move nearby corners** starts off. Enabling it also moves matching corners within 0.025 m on neighboring cube or freeform hulls, including matches at mirrored corners. Matches use the unchanged source at drag start; no persistent seam or block relationship is created. Equipment stays at its source placement. Native support/fit diagnostics identify equipment that loses support.
+
+Side, Top and Bow are orthographic camera presets. P and the projection button switch between orthographic and perspective cameras while retaining framing; O also works in freeform mode. One drag commits one undo step, including mirrored and nearby corners. Escape, right-click, lost pointer capture, window blur, changing editing options or projection, and returning to the drag origin cancel without writing source/history. **Reset edit** restores the selected block's shape at session entry; **Done** keeps edits and leaves freeform mode.
+
+**Split…** opens local axis and count controls. It cuts the block into 2–16 independent eight-corner children, preserves the trilinear corner-defined shape and outer face assignments, gives children new stable IDs, and starts new cut faces with structural skin. Escape closes the popover first. The split is one undo step and obeys the existing 512-piece split limit. On a warped block, these parameter cuts need not be world-aligned planes. Corners remain editable after undo, save and reopening.
+
+The same version-1 construction source supports `kind: "vertex"` with optional `vertices: Vec3[]` (exactly eight finite normalized local coordinates). The order is the four bow corners `(-X,-Y), (+X,-Y), (+X,+Y), (-X,+Y)`, followed by the equivalent stern corners. Missing coordinates denote the cube; `size` scales the local edit frame and `rotationDeg` applies its quarter-turn yaw. Historical primitives remain compatible. Corner edits turn a box into a vertex hull without changing its ID.
+
+Rust owns the physical solid and exterior. Planar convex shapes use one convex cell. Warped faces use an unbiased fan through each bilinear face's center; this is a faceted approximation of the curved surface whose signed volume is exact. Convex neighboring cells and coplanar patches are combined without filling concavities. Render, collision, armor and buoyancy use the same compiled geometry. Split children may refine surface faceting, but preserve the underlying corner-defined surface and enclosed volume. Self-overlapping, folded, collapsed, out-of-bounds or overly complex drafts remain editable and saveable; they cannot launch until corrected. This eight-corner version supports dents whose faces remain oriented outward from the block center. It does not add arbitrary topology, tunnels, edge subdivision or smooth subdivision surfaces.

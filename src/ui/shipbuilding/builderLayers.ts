@@ -33,7 +33,8 @@ export const BUILDER_RAIL: Record<BuilderLayer, RailEntry[]> = {
 export const DEFAULT_TOOL: Record<BuilderLayer, BuilderTool> = { hull: 'place', armor: 'apply', internals: 'module', fittings: 'place', paint: 'apply' };
 
 export interface HullShape { id: string; name: string; note: string; kind: ConstructionPrimitive['kind']; size: Vec3 }
-/** Width × height × length in metres, on the 1 m hull grid. Quarter plates are the thinnest useful skin. */
+/** Width × height × length in metres, on the 1 m hull grid. Quarter plates are the thinnest useful skin.
+ * The first nine fill the keyed bar; the vertex hull rides in slot 9 so its editable corners are one key away. */
 export const HULL_SHAPES: HullShape[] = [
   { id: 'cube', name: 'Cube', note: '1 m', kind: 'box', size: [1, 1, 1] },
   { id: 'slab', name: 'Slab', note: '4 × 1 × 4', kind: 'box', size: [4, 1, 4] },
@@ -43,6 +44,7 @@ export const HULL_SHAPES: HullShape[] = [
   { id: 'long-slope', name: 'Long slope', note: '1 : 4', kind: 'wedge', size: [4, 1, 4] },
   { id: 'corner-out', name: 'Corner out', note: '4 m', kind: 'corner', size: [4, 4, 4] },
   { id: 'corner-in', name: 'Corner in', note: '4 m', kind: 'inverse-corner', size: [4, 4, 4] },
+  { id: 'vertex', name: 'Freeform hull', note: 'vertices, edges and faces · 4 m', kind: 'vertex', size: [4, 4, 4] },
   { id: 'plate', name: 'Plate', note: '4 × ¼ × 4', kind: 'box', size: [4, .25, 4] },
   { id: 'block', name: 'Block', note: '4 m', kind: 'box', size: [4, 4, 4] },
   { id: 'wide-slab', name: 'Wide slab', note: '8 × 1 × 8', kind: 'box', size: [8, 1, 8] },
@@ -78,16 +80,16 @@ export type SlotItem =
   | { kind: 'empty'; id: string; name: string; note: string };
 
 export const HOTBAR_SIZE = 9;
-const FAMILY_ORDER: ConstructionEquipmentPart['kind'][] = ['gun', 'torpedo-launcher', 'funnel', 'director', 'mast', 'propeller', 'rudder', 'engine', 'magazine'];
+const FAMILY_ORDER: ConstructionEquipmentPart['kind'][] = ['gun', 'torpedo-launcher', 'funnel', 'director', 'mast', 'propeller', 'rudder', 'engine', 'magazine', 'deck-fitting'];
 export const FAMILY_NAMES: Record<ConstructionEquipmentPart['kind'], string> = {
-  gun: 'gun', 'torpedo-launcher': 'torpedoes', engine: 'machinery', magazine: 'magazine', funnel: 'funnel', propeller: 'screw', rudder: 'rudder', mast: 'mast', director: 'director',
+  'deck-fitting': 'deck fittings', gun: 'gun', 'torpedo-launcher': 'torpedoes', engine: 'machinery', magazine: 'magazine', funnel: 'funnel', propeller: 'screw', rudder: 'rudder', mast: 'mast', director: 'director',
 };
-export const formatTonnes = (kg: number, digits = 1) => `${(kg / 1000).toLocaleString(undefined, { maximumFractionDigits: digits })} t`;
+export const formatTonnes = (kg: number, digits = 1) => Math.abs(kg) < 1000 ? `${kg.toLocaleString(undefined, { maximumFractionDigits: 1 })} kg` : `${(kg / 1000).toLocaleString(undefined, { maximumFractionDigits: digits })} t`;
 
 export function partSlot(part: ConstructionEquipmentPart, catalog: ConstructionCatalog): SlotItem {
   const massKg = part.kind === 'gun' ? catalog.weapons.parts.find(gun => gun.id === part.gunPartId)?.massKg : part.massKg;
   const shortName = part.name.replace(/^Fletcher /, '').replace(/ package$/, '').replace(' machinery', '').replace(' mod.0', '').replace(' torpedo bank', '').replace('four-blade ', '').replace('starboard ', '').replace('-round magazine', ' rds');
-  return { kind: 'part', id: part.id, name: shortName, note: `${FAMILY_NAMES[part.kind]}${massKg ? ` · ${formatTonnes(massKg)}` : ''}`, part };
+  return { kind: 'part', id: part.id, name: shortName, note: part.path ? `${part.path.kind} path · ${formatTonnes(part.path.massKgPerM)}/m` : `${FAMILY_NAMES[part.kind]}${massKg ? ` · ${formatTonnes(massKg)}` : ''}`, part };
 }
 export function sortedParts(catalog: ConstructionCatalog, placement: (part: ConstructionEquipmentPart) => boolean): ConstructionEquipmentPart[] {
   return catalog.equipment.filter(placement).slice().sort((a, b) => FAMILY_ORDER.indexOf(a.kind) - FAMILY_ORDER.indexOf(b.kind) || a.name.localeCompare(b.name));

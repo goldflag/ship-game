@@ -6,11 +6,12 @@ import { BUILDER_LAYERS, BUILDER_RAIL } from './builderLayers';
 const MOUSE: [string, string][] = [
   ['Click', 'Select a piece, fitting, wall or face; Shift-click adds to the selection'],
   ['Drag a piece', 'Move it along the face under the pointer, snapped to the grid (1 m hull, ¼ m fittings)'],
-  ['Drag empty space', 'Orbit; pan in the Plan, Profile and Bow views'],
+  ['Drag empty space', 'Orbit; pan in orthographic Plan, Profile and Bow views'],
   ['Right-drag', 'Pan'],
   ['Wheel · middle-drag', 'Zoom · dolly'],
   ['Shift-drag', 'Box select; Ctrl or ⌘ adds to the selection'],
   ['Right-click', 'Remove the piece or fitting under the pointer'],
+  ['Railing · rope · chain', 'Click connected points; double-click or Enter finishes the path; Escape cancels; Backspace removes the last point'],
   ['While placing', 'Click places; a drag lays a run; Fill drags a rectangle'],
 ];
 const EDITING: [string[], string][] = [
@@ -25,13 +26,17 @@ const EDITING: [string[], string][] = [
 ];
 const VIEW: [string[], string][] = [
   [['Q'], 'Cycle Orbit, Plan, Profile and Bow'],
+  [['P'], 'Toggle perspective / orthographic camera (perspective by default)'],
   [['S'], 'Slice the ship above a height'],
   [['W'], 'Collapse or expand the warnings'],
   [['M'], 'Mirror placements across the centerline'],
+  [['C'], 'Show or hide the centers of gravity and buoyancy'],
   [['Home'], 'Frame the ship'],
   [['1', '…', '9'], 'Pick a palette card'],
   [['0'], 'Open or close every card of the layer'],
   [['?'], 'This list'],
+  [['G'], 'In Freeform hull: cycle the move increment'],
+  [['O'], 'In Freeform hull: toggle orthographic / perspective'],
 ];
 
 function Rows({ rows }: { rows: [ReactNode, string][] }) {
@@ -53,6 +58,7 @@ export function HelpDialog({ onClose }: { onClose(): void }) {
           <table><tbody>{BUILDER_LAYERS.map(layer => <tr key={layer.id}><th scope="row">{layer.name}</th><td>{BUILDER_RAIL[layer.id].map(entry => <span key={entry.id}><kbd>{entry.key}</kbd>{entry.name}</span>)}</td></tr>)}</tbody></table>
         </section>
       </div>
+      <p>Select one cube or freeform hull, then choose Freeform. Select a vertex, edge or face; drag it in the view plane or use an X/Y/Z handle. Arrow keys nudge a focused axis handle. Mirror axes are local to the block; select none to turn symmetry off. An edge or face spanning a mirror plane cannot move across it. Coordinates edit the vertex position or translate an edge/face center. Move nearby corners is opt-in; Split creates independent blocks. Reset edit restores the block’s session-entry shape.</p>
       <p>Keys never act inside text or number fields. Mirror also reaches the twin face when painting armor or paint.</p>
     </div>
   </div>;

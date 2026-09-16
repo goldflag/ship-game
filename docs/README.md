@@ -8,6 +8,7 @@ Start with [AGENTS.md](../AGENTS.md) for repository rules. Read the task's curre
 | --- | --- | --- |
 | Agree a new ship and its references | [Collaborative brief](ship-pipeline.md#start-a-new-ship-collaboratively) | User-approved vessel, fit, paint and reference policy in the ship README |
 | Create or modify a ship | [Ship pipeline](ship-pipeline.md) | Per-ship blueprint, original recipes and component catalog |
+| Author a repository ship with agents | [Construction authoring](construction-authoring.md) | File-backed source, shared commands, visual review, trials and publication without per-ship Blender |
 | Build a local player ship | [Shipbuilding](shipbuilding.md) | Versioned source, native construction compiler, retained equipment catalog and IndexedDB revisions |
 | Iterate on ship geometry with Blender MCP | [MCP authoring loop](ship-build-reference.md#blender-mcp-authoring-loop) | Live scene inspection, durable recipe edits and clean rebuild verification |
 | Compare ships, aircraft and reference models | [Model library and comparison app](../tools/ship-overlay/README.md) | Our runtime GLB plus ignored local reference geometry |
@@ -15,6 +16,7 @@ Start with [AGENTS.md](../AGENTS.md) for repository rules. Read the task's curre
 | Paint ships consistently | [Ship appearance](ship-appearance.md) | Shared finishes, named paints and approved ship-specific schemes |
 | Reuse equipment or browse standalone models | [Shared components](shared-components.md), [model viewer](../tools/ship-overlay/README.md) | Component catalog, original builders and published ship assemblies |
 | Change ship components or combat | [Runtime/component reference](ship-runtime-contract.md) | Validated definitions and renderer-free simulation |
+| Profile or optimize ship builds | [Pipeline performance](ship-pipeline-performance.md) | Measured stage timings and rebuild rules |
 | Build, export or compare ships | [Build/reference details](ship-build-reference.md) | Build scripts, input hashes and published model/thumbnail validation |
 | Merge or rebase | [Integration workflow](integration-workflow.md) | Resolved authoring inputs and runtime preset roster |
 | Author aircraft | [Aircraft pipeline](aircraft-pipeline.md) | Original aircraft assets, recipes and export checks |

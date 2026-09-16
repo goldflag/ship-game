@@ -82,3 +82,32 @@ export function equipmentCombatSource(catalog: ConstructionCatalog): Constructio
   );
   return source;
 }
+
+/** A supported deck and wall for original fittings plus their connected routes.
+ * This is separate from the weapon sweep fixture so new fittings cannot alter
+ * its ammunition, mount count or independent articulation cases. */
+export function deckFittingsFixture(catalog: ConstructionCatalog): ConstructionSource {
+  const source = createStarterSource(catalog, 'blank');
+  source.name = 'Deck fittings review';
+  source.construction.primitives = [
+    { id: 'review-deck', kind: 'box', size: [24, 2, 36], position: [0, 0, 0], rotationDeg: 0 },
+    { id: 'review-wall', kind: 'box', size: [22, 3, .5], position: [0, 2.5, 15], rotationDeg: 0 },
+  ];
+  source.construction.surfaces = []; source.construction.boundaries = []; source.construction.loads = [];
+  source.construction.equipment = [];
+  const deck = ['twin-bitts', 'fairlead', 'capstan', 'anchor-windlass', 'mushroom-vent', 'cowl-vent',
+    'deck-hatch', 'optical-rangefinder', 'static-searchlight', 'inclined-stairs', 'lifeboat-davits'];
+  deck.forEach((name, i) => source.construction.equipment.push({
+    id: `review-${name}`, partId: `generic-${name}`, position: [-8 + (i % 3) * 8, 1, -10 + Math.floor(i / 3) * 6], bearingDeg: 0,
+  }));
+  ['stowed-anchor', 'vertical-ladder', 'watertight-door'].forEach((name, i) => source.construction.equipment.push({
+    id: `review-${name}`, partId: `generic-${name}`, position: [-7 + i * 3, 1.05, 14.75], bearingDeg: 0,
+  }));
+  source.construction.equipment.push(
+    { id: 'review-railing', partId: 'generic-railing', position: [10, 1, -15], bearingDeg: 0, path: { points: [[0, 0, 0], [0, 0, 26], [-6, 0, 26]] } },
+    { id: 'review-chain', partId: 'generic-chain', position: [-10, 1.07, -5], bearingDeg: 0, path: { points: [[0, 0, 0], [0, 0, 8]], slackM: 0 } },
+    { id: 'review-second-bitts', partId: 'generic-twin-bitts', position: [-8, 1, -16], bearingDeg: 180 },
+    { id: 'review-rope', partId: 'generic-rope', position: [-7.54, 1.46, -10.155], bearingDeg: 0, path: { points: [[0, 0, 0], [0, 0, -5.69]], slackM: .2 } },
+  );
+  return source;
+}

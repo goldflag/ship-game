@@ -7,11 +7,16 @@ import { barrelIds } from '../../src/ships/blueprint';
 import type { ConstructionCatalog, ConstructionResult, ShipDefinition } from '../../src/ships/blueprint';
 import { createConstructionModel, disposeConstructionModel } from '../../src/game/constructionModel';
 import { ShipView } from '../../src/game/ShipView';
+import { ShipMaterialPalette } from '../../src/game/ShipMaterialPalette';
+import { batchShipModel } from '../../src/game/ShipBatching';
+import { prepareShipDetail } from '../../src/game/ShipDetail';
+import { ShipRenderAssemblies } from '../../src/game/ShipRenderAssemblies';
+import { FleetShipDraws } from '../../src/game/FleetShipDraws';
 import { createDamage, type Combatant } from '../../src/simulation/damage';
 import { createShipState } from '../../src/simulation/ship';
 import { createMountState } from '../../src/simulation/weapons';
 import { createTubeState } from '../../src/simulation/torpedoes';
-import { equipmentReviewSource } from './construction-model-fixtures';
+import { deckFittingsFixture, equipmentReviewSource } from './construction-model-fixtures';
 import { nativeConstructionMuzzles } from './construction-model-native';
 import { installedSupportContacts } from './construction-model-support';
 
@@ -32,16 +37,115 @@ async function published<T>(run: () => Promise<T>): Promise<T> {
   try { return await run(); } finally { globalThis.fetch = original; }
 }
 
-test('every published family installs with canonical ammunition and exact original tube identities', () => {
+test('every published part has a supported fixture while weapons retain canonical stocks and tube identities', () => {
   const source = equipmentReviewSource(catalog), result = compile(source);
   expect(result.diagnostics.filter(d => d.severity === 'error')).toEqual([]);
   expect(result.definition!.mounts).toHaveLength(8);
   expect(result.definition!.torpedoTubes).toHaveLength(10);
-  expect(new Set(source.construction.equipment.map(p => p.partId)).size).toBe(catalog.equipment.length);
+  const fittings = deckFittingsFixture(catalog), fitted = [...source.construction.equipment, ...fittings.construction.equipment];
+  expect(compile(fittings).diagnostics.filter(d => d.severity === 'error')).toEqual([]);
+  expect([...new Set(fitted.map(p => p.partId))].sort()).toEqual(catalog.equipment.map(p => p.id).sort());
   expect(result.definition!.torpedoTubes!.map(t => t.id)).toEqual(['torpedo-a', 'torpedo-b'].flatMap(id => Array.from({ length: 5 }, (_, i) => `${id}.tube-${i + 1}`)));
   const tooSmall = structuredClone(source);
   tooSmall.construction.equipment.find(p => p.id === 'aa-a-magazine')!.partId = 'generic-magazine-1000';
   expect(compile(tooSmall).diagnostics.some(d => d.code === 'magazine-capacity' && d.sourceId === 'aa-a-magazine')).toBe(true);
+});
+
+test('published deck fittings retain physical support, native loading and static searchlight behavior', async () => {
+  const source = deckFittingsFixture(catalog), result = compile(source), definition = result.definition!;
+  expect(result.diagnostics.filter(d => d.severity === 'error')).toEqual([]);
+  expect(definition.mounts).toEqual([]); expect(definition.torpedoTubes ?? []).toEqual([]);
+  expect(definition.modules.map(m => [m.id, m.kind])).toEqual([['review-optical-rangefinder', 'fire-control']]);
+  for (const instance of source.construction.equipment) {
+    const part = catalog.equipment.find(p => p.id === instance.partId)!;
+    const mass = definition.loading!.contributions.find(m => m.id === instance.id)!;
+    expect(mass.kind).toBe('equipment');
+    if (part.path) {
+      expect(mass.massKg).toBeGreaterThan(part.massKg!);
+      expect(definition.obstructions.some(o => o.id === instance.id)).toBe(false);
+    } else expect(mass.massKg).toBe(part.massKg!);
+  }
+  await published(async () => {
+    const model = await createConstructionModel(source, result, new AbortController().signal);
+    try {
+      const fixed = structuredClone(source);
+      fixed.construction.equipment = fixed.construction.equipment.filter(e => !catalog.equipment.find(p => p.id === e.partId)!.path);
+      for (const contact of installedSupportContacts(model, fixed, catalog)) {
+        expect(contact.candidates, contact.id).toBeGreaterThan(0);
+        expect(contact.contactVertices, contact.id).toBeGreaterThan(0);
+      }
+      for (const instance of source.construction.equipment.filter(e => e.path)) {
+        const installed = model.children.find(n => n.userData.sourceId === instance.id)!;
+        expect(installed, instance.id).toBeDefined();
+        const meshes: THREE.InstancedMesh[] = [];
+        installed.traverse(n => { if (n instanceof THREE.InstancedMesh) meshes.push(n); });
+        expect(meshes.length, instance.id).toBeGreaterThan(0);
+        expect(meshes.reduce((count, mesh) => count + mesh.count, 0), instance.id).toBeGreaterThan(1);
+      }
+      const searchlight = model.children.find(n => n.name === 'review-static-searchlight')!;
+      let lightCount = 0;
+      searchlight.traverse(node => {
+        if (node instanceof THREE.Light) lightCount++;
+        if (node instanceof THREE.Mesh) for (const material of Array.isArray(node.material) ? node.material : [node.material]) {
+          if ('emissive' in material) expect((material.emissive as THREE.Color).getHex()).toBe(0);
+        }
+      });
+      expect(lightCount).toBe(0);
+    } finally { disposeConstructionModel(model); }
+  });
+});
+
+test('fleet rendering preserves every connected path instance through ship preparation, motion and inspection', async () => {
+  const source = deckFittingsFixture(catalog), result = compile(source), definition = result.definition!;
+  await published(async () => {
+    const model = await createConstructionModel(source, result, new AbortController().signal);
+    const palette = new ShipMaterialPalette(), assemblies = new ShipRenderAssemblies();
+    // Match Game's template preparation before it clones a model for each actor.
+    palette.apply(model); batchShipModel(model); await prepareShipDetail(model);
+    const views = [0, 1].map(index => {
+      const actor = actorFor(definition); actor.motion.id = `path-review-${index}`;
+      return new ShipView(model.clone(true), definition, actor);
+    });
+    const instances = views.flatMap(view => view.renderMeshes.flatMap(({ mesh }) => mesh instanceof THREE.InstancedMesh ? [{ view, mesh, matrices: mesh.instanceMatrix.array.slice() }] : []));
+    let draws: FleetShipDraws | undefined;
+    try {
+      expect(instances).toHaveLength(8); // Rails, feet, rope and chain on each hull.
+      for (const view of views) {
+        const rendered = assemblies.build(view);
+        for (const { mesh } of instances.filter(instance => instance.view === view)) {
+          const assembly = rendered.find(draw => draw.members.some(member => member.mesh === mesh))!;
+          // Joining only an instanced surface's base geometry erases its route.
+          expect(assembly.mesh.uuid).toBe(mesh.uuid); expect(assembly.owner?.uuid).toBeUndefined(); expect(assembly.members).toHaveLength(1);
+        }
+      }
+      draws = new FleetShipDraws(views);
+      for (const inspecting of [false, true, false]) {
+        for (const [index, view] of views.entries()) {
+          Object.assign(view.actor.motion, { x: 37 + index * 100, y: -.6, z: -72, heading: .41 + index, roll: -.06, pitch: .035 });
+          view.snap(); view.updateRenderMatrices(); view.inspect(inspecting);
+        }
+        draws.update();
+        expect(draws.diagnostics().instances > 0).toBe(!inspecting);
+        for (const { view, mesh, matrices } of instances) {
+          expect(view.model.visible).toBe(true); expect(mesh.layers.mask).toBe(1);
+          expect(mesh.instanceMatrix.array).toEqual(matrices);
+          expect((mesh.material as THREE.MeshStandardMaterial).opacity).toBe(inspecting ? .16 : 1);
+          // The last route member must retain its authored position under the
+          // same hull pose used for all other ship surfaces.
+          const local = new THREE.Matrix4(), actual = new THREE.Matrix4();
+          mesh.getMatrixAt(mesh.count - 1, local); actual.multiplyMatrices(mesh.matrixWorld, local);
+          view.root.updateMatrixWorld(true);
+          const expected = new THREE.Matrix4().multiplyMatrices(mesh.matrixWorld, local);
+          expect(actual.elements.every((value, i) => Math.abs(value - expected.elements[i]) < 1e-6)).toBe(true);
+        }
+      }
+    } finally {
+      draws?.dispose(); assemblies.dispose();
+      for (const view of views) { view.impactMarks.dispose(); disposeConstructionModel(view.model); }
+      disposeConstructionModel(model);
+      for (const material of palette.sharedMaterials()) material.dispose();
+    }
+  });
 });
 
 test('full production GLBs preserve repeated gun and tube world muzzles against native Rust poses', async () => {

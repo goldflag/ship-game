@@ -1,11 +1,22 @@
 import * as THREE from 'three';
+import { cornerVertices, VERTEX_FACES } from '../../ships/constructionVertex';
 import type { ConstructionEquipmentPart, ConstructionPrimitive, Vec3 } from '../../ships/blueprint';
 import { CONSTRUCTION_SHAPES } from '../../ships/constructionShapes';
 import { constructionVertexNormals, SMOOTH_HULL_SHAPES } from '../../game/constructionShading';
 
 /** Display-only source envelopes for placement and invalid drafts. Rust remains
  * authoritative for unions, material, fit, loading and all battle geometry. */
-export function primitiveGeometry(kind: ConstructionPrimitive['kind'], size: Vec3): THREE.BufferGeometry {
+export function primitiveGeometry(kind: ConstructionPrimitive['kind'], size: Vec3, corners?: Vec3[]): THREE.BufferGeometry {
+  if (kind === 'vertex') {
+    const v = corners ?? cornerVertices({kind, size, position:[0,0,0],rotationDeg:0,id:''});
+    const positions:number[]=[];
+    for (const face of VERTEX_FACES) {
+      // Same unbiased bilinear face-center fan as the authoritative compiler.
+      const q=face.corners.map(i=>v[i]), center=q.reduce((a,v)=>a.map((n,k)=>n+v[k]/4) as Vec3,[0,0,0] as Vec3);
+      for(let i=0;i<4;i++) for(const point of [q[i],q[(i+1)%4],center]) positions.push(...point.map((n,k)=>n*size[k]));
+    }
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));g.computeVertexNormals();return g;
+  }
   const positions: number[] = [], normals: number[] = [];
   const faces = CONSTRUCTION_SHAPES[kind].map(face => {
     const vertices = face.map(point => point.map((v, axis) => v * size[axis]) as Vec3);

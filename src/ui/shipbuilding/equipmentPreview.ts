@@ -1,6 +1,7 @@
 import * as THREE from 'three';
-import type { ConstructionCatalog, ConstructionSource } from '../../ships/blueprint';
+import type { ConstructionCatalog, ConstructionEquipment, ConstructionSource } from '../../ships/blueprint';
 import { constructionEquipmentModelUrl } from '../../ships/constructionEquipment';
+import { createConstructionPathModel } from '../../game/constructionPathModel';
 import { loadShipModel } from '../../game/loadShipModel';
 import { disposeConstructionModel } from '../../game/constructionModel';
 
@@ -25,7 +26,7 @@ export class EquipmentPreview {
 
   ensure(partId: string) {
     const part = this.catalog?.equipment.find(part => part.id === partId), key = this.key(partId);
-    if (!part || !key || this.templates.has(key) || this.requests.has(key)) return;
+    if (!part || part.path || !key || this.templates.has(key) || this.requests.has(key)) return;
     const abort = new AbortController(); this.requests.set(key, abort);
     void loadShipModel(constructionEquipmentModelUrl(part), undefined, part.contentHash, abort.signal).then(asset => {
       if (this.dead || abort.signal.aborted) { disposeConstructionModel(asset.scene); return; }
@@ -53,7 +54,9 @@ export class EquipmentPreview {
     });
   }
 
-  clone(partId: string, ghost = false): THREE.Group | undefined {
+  clone(partId: string, ghost = false, path?: ConstructionEquipment['path']): THREE.Group | undefined {
+    const part = this.catalog?.equipment.find(part => part.id === partId);
+    if (part?.path) return createConstructionPathModel(part, path, ghost);
     this.ensure(partId);
     const key = this.key(partId), template = key && this.templates.get(key);
     if (!template) return undefined;
@@ -66,16 +69,17 @@ export class EquipmentPreview {
     if (this.catalog && this.catalog.revision !== catalog.revision) this.clear();
     this.catalog = catalog;
     const ids = new Set(source.construction.equipment.map(item => item.id));
-    for (const [id, instance] of this.instances) if (!ids.has(id)) { instance.removeFromParent(); this.instances.delete(id); }
+    for (const [id, instance] of this.instances) if (!ids.has(id)) { instance.removeFromParent(); if (instance.userData.path) disposeConstructionModel(instance); this.instances.delete(id); }
     for (const item of source.construction.equipment) {
       let instance = this.instances.get(item.id);
-      const key = this.key(item.partId);
-      if (instance && instance.userData.assetKey !== key) { instance.removeFromParent(); this.instances.delete(item.id); instance = undefined; }
+      const path = this.catalog.equipment.find(part => part.id === item.partId)?.path;
+      const key = `${this.key(item.partId)}${path ? ':' + JSON.stringify(item.path) : ''}`;
+      if (instance && instance.userData.assetKey !== key) { instance.removeFromParent(); if (instance.userData.path) disposeConstructionModel(instance); this.instances.delete(item.id); instance = undefined; }
       if (!instance) {
-        const model = this.clone(item.partId);
+        const model = this.clone(item.partId, false, item.path);
         if (!model) continue;
         instance = new THREE.Group(); instance.name = item.id;
-        instance.userData = { sourceId: item.id, assetKey: key };
+        instance.userData = { sourceId: item.id, assetKey: key, path: !!path };
         model.traverse(node => { node.userData.sourceId = item.id; });
         instance.add(model); this.instances.set(item.id, instance); this.group.add(instance);
       }
@@ -88,6 +92,7 @@ export class EquipmentPreview {
 
   private clear() {
     this.requests.forEach(abort => abort.abort()); this.requests.clear();
+    for (const instance of this.instances.values()) if (instance.userData.path) disposeConstructionModel(instance);
     this.group.clear(); this.instances.clear();
     for (const template of this.templates.values()) {
       disposeConstructionModel(template.model);

@@ -286,7 +286,7 @@ export interface ConstructionSource extends Pick<ShipBlueprint, 'schemaVersion' 
   construction: ConstructionData;
 }
 export interface ConstructionPrimitive {
-  id: string; kind: 'box' | 'wedge' | 'corner' | 'inverse-corner' | 'ballast' | 'pyramid'
+  id: string; kind: 'box' | 'wedge' | 'corner' | 'inverse-corner' | 'vertex' | 'ballast' | 'pyramid'
     | 'cylinder' | 'half-cylinder' | 'quarter-cylinder' | 'quarter-cylinder-wall'
     | 'sphere' | 'hemisphere' | 'sphere-octant' | 'hemisphere-shell'
     | 'half-hemisphere-shell' | 'quarter-hemisphere-shell' | 'parabolic-shell'
@@ -294,6 +294,10 @@ export interface ConstructionPrimitive {
     | 'rounded-bridge' | 'bridge-panel' | 'diagonal-bridge-panel' | 'rounded-bridge-panel' | 'breakwater';
   /** Envelope centered at position. Shapes occupy normalized [-.5,.5]^3, then scale and yaw. */
   size: Vec3; position: Vec3; rotationDeg: number;
+  /** Vertex hull v1: eight normalized local corners, ordered around bow then stern.
+   * Missing corners on a vertex hull mean the unit cube. Size scales this edit frame.
+   * Rust samples the trilinear solid; generated cells remain the physical authority. */
+  vertices?: Vec3[];
 }
 export interface ConstructionSurfaceAssignment {
   primitiveId: string; face: 'port' | 'starboard' | 'bottom' | 'top' | 'bow' | 'stern' | 'slope';
@@ -302,6 +306,9 @@ export interface ConstructionSurfaceAssignment {
 export interface ConstructionEquipment {
   id: string; partId: string; position: Vec3; bearingDeg: number;
   magazineId?: string; powerSourceId?: string;
+  /** Connected local-space points, transformed by position and bearing like fixed equipment.
+   * Rope/chain slack is the vertical midspan sag on each segment, sampled at 16 equal intervals. */
+  path?: { points: Vec3[]; slackM?: number };
 }
 export interface ConstructionBoundary {
   id: string; axis: 'x' | 'y' | 'z'; offset: number; thicknessMm: number;
@@ -345,7 +352,7 @@ export interface ConstructionResult {
 }
 export interface ConstructionEquipmentPart {
   id: string; name: string;
-  kind: 'gun' | 'torpedo-launcher' | 'engine' | 'magazine' | 'funnel' | 'propeller' | 'rudder' | 'mast' | 'director';
+  kind: 'gun' | 'torpedo-launcher' | 'engine' | 'magazine' | 'funnel' | 'propeller' | 'rudder' | 'mast' | 'director' | 'deck-fitting';
   size: Vec3; boundsCenter: Vec3; centerOfGravity: Vec3;
   /** Required for non-guns; guns use the mass of the referenced canonical GunPart. */
   massKg?: number;
@@ -355,6 +362,13 @@ export interface ConstructionEquipmentPart {
   gunPartId?: string; torpedoPartId?: string; tubeOffsets?: Vec3[];
   powerKw?: number; exhaustKw?: number; thrustEfficiency?: number; rudderAreaM2?: number;
   serviceMassKg?: number; ammunitionCapacity?: number;
+  /** Procedural path profile. massKg is the fixed end/base hardware allowance;
+   * massKgPerM follows the sampled line length, plus postMassKg for each railing post.
+   * Railings use three rails at thirds of height and deck-level source points. */
+  path?: {
+    kind: 'railing' | 'rope' | 'chain'; diameterM: number; heightM?: number;
+    postSpacingM?: number; massKgPerM: number; postMassKg?: number;
+  };
   modelUrl: string; contentHash: string;
 }
 export interface ConstructionCatalog {

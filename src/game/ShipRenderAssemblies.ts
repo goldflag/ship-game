@@ -24,7 +24,8 @@ export class ShipRenderAssemblies {
       while (owner !== view.root && !owner.matrixAutoUpdate) {
         transform.premultiply(owner.matrix); owner = owner.parent!;
       }
-      if (material.transparent || (mesh as THREE.SkinnedMesh).isSkinnedMesh || mesh.morphTargetInfluences?.length ||
+      // An instanced surface's geometry is only one member, not its whole route.
+      if (material.transparent || (mesh as THREE.SkinnedMesh).isSkinnedMesh || (mesh as THREE.InstancedMesh).isInstancedMesh || mesh.morphTargetInfluences?.length ||
         mesh.geometry.drawRange.start !== 0 || mesh.geometry.drawRange.count !== Infinity || transform.determinant() <= 0) {
         result.push({ mesh, material, members: [{ mesh, layers: mesh.layers.mask }] }); continue;
       }
