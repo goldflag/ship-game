@@ -17,6 +17,7 @@ import { FleetHud } from './FleetHud';
 import { BinocularOverlay } from './BinocularOverlay';
 import { Garage } from './Garage';
 import type { AccountSession } from './AccountGate';
+import { STARTUP_INITIAL, StartupScreen, type StartupReporter } from './StartupScreen';
 import { selectedShip as initialShip } from '../ships/presets';
 import { ShipContext } from './ShipContext';
 import { bindingLabel, KEYBINDING_STORAGE_KEY, loadKeybindings, type Keybindings } from '../game/keybindings';
@@ -48,7 +49,7 @@ import { createStarterSource } from '../ships/constructionStarter';
 
 const INITIAL_TELEMETRY: Telemetry = { ship: createShipState(), order: 1, camera: 'Chase', fps: 0, backend: 'webgpu', trail: [] };
 
-export function App({ account }: { account?: AccountSession }) {
+export function App({ account, startup }: { account?: AccountSession; startup?: StartupReporter }) {
   const [selectedShip, setSelectedShip] = useState(initialShip);
   const selectedRef = useRef(selectedShip);
   const [switching, setSwitching] = useState(false);
@@ -73,7 +74,10 @@ export function App({ account }: { account?: AccountSession }) {
   // size instead of shrinking an RTS interface to the ship instrument baseline.
   const hudScale = data.fleetCommandMode && hudSettings.mode === 'auto' ? Math.max(hudSettings.scale, preferredHudScale) : preferredHudScale;
   hudScaleRef.current = hudScale;
-  const [loading, setLoading] = useState({ label: 'Preparing the harbor', progress: 0 });
+  const [loading, setLoading] = useState(STARTUP_INITIAL);
+  // When a parent owns the startup loader, mirror progress to it directly from the game callbacks
+  // rather than through an effect, so the bar advances in the same frame the game reports.
+  const startupRef = useRef(startup); startupRef.current = startup;
   const [ready, setReady] = useState(false);
   const [paused, setPaused] = useState(false);
   const [error, setError] = useState('');
@@ -104,9 +108,11 @@ export function App({ account }: { account?: AccountSession }) {
     setPveBriefing(undefined); setBattleOpen(false); setSortieOpen(false); setBattleLoading(null); battlePending.current = false;
     setSwitching(false); setSwitchError(''); switchPending.current = false;
     setReady(false); setError(''); setPaused(false); setSettingsOpen(false); setData(INITIAL_TELEMETRY); setPhase('garage');
+    const report = (label: string, progress: number) => { setLoading({ label, progress }); startupRef.current?.progress(label, progress); };
+    report(STARTUP_INITIAL.label, STARTUP_INITIAL.progress);
     const session = new Game(host.current!, graphicsRef.current, {
-      progress: (label, progress) => active && setLoading({ label, progress }),
-      ready: () => active && setReady(true),
+      progress: (label, progress) => active && report(label, progress),
+      ready: () => { if (!active) return; setReady(true); startupRef.current?.done(); },
       telemetry: value => {
         if (!active) return;
         setData(value);
@@ -114,7 +120,7 @@ export function App({ account }: { account?: AccountSession }) {
       },
       pause: value => active && setPaused(value),
       hud: () => active && setHud(value => !value),
-      error: message => active && setError(message),
+      error: message => { if (!active) return; setError(message); startupRef.current?.done(); },
     }, selectedRef.current, new GameAudio(audioSettingsRef.current));
     session.input.setBindings(bindingsRef.current);
     game.current = session;
@@ -445,14 +451,7 @@ export function App({ account }: { account?: AccountSession }) {
     {phase === 'sailing' && ready && !error && game.current?.simulation.missionRules && game.current.simulation.outcome && game.current.simulation.debrief && game.current.simulation.result !== 'active' && <PveResults result={game.current.simulation.result} outcome={game.current.simulation.outcome} debrief={game.current.simulation.debrief} onRestart={restartPve} onNewBattle={newPveBattle} onPort={returnToPort}/>}
     {battleLoading && ready && !error && <BattleLoadingScreen briefing={pveBriefing} setup={battleSetup} state={battleLoading} multiplayer={!!game.current?.simulation.networked} onLeft={() => setBattleLoading(null)}/>}
 
-    {!ready && !error && <section className="startup-screen" aria-labelledby="startup-title">
-      <div className="startup-content">
-        <h1 id="startup-title">Opening the harbor</h1>
-        <p className="startup-status" role="status">{loading.label}…</p>
-        <div className="loading-progress" role="progressbar" aria-label="Preparing the harbor" aria-valuetext={loading.label} aria-valuenow={Math.round(loading.progress * 100)} aria-valuemin={0} aria-valuemax={100}><span style={{ transform: `scaleX(${loading.progress})` }}/></div>
-        <p className="startup-note">The first visit can take a little longer while ship models, ocean effects and lighting are prepared.</p>
-      </div>
-    </section>}
+    {!ready && !error && !startup && <StartupScreen {...loading}/>}
 
     {error && <section className="loading-screen" aria-live="polite">
       <div className="loading-brand"><Icon name="anchor" size={36}/><span>FLEET COMMAND</span></div>
