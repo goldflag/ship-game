@@ -4,5 +4,8 @@
 .startup-content h1 { margin: 0 0 24px; font-size: clamp(26px, 5vw, 36px); font-weight: 500; line-height: 1.15; }
 .startup-status { margin: 0 0 12px; color: #e0c58d; font-size: 16px; line-height: 1.5; }
 .startup-note { margin: 20px 0 0; color: #bfced2; font-size: 14px; line-height: 1.6; }
+/* Progress track base lives here so the static HTML loader can draw it before styles.css arrives. */
+.loading-progress { height: 2px; background: #d1e3e22b; }
+.loading-progress span { display: block; width: 100%; height: 100%; background: #e0c58d; transform-origin: left; transition: transform .6s ease; }
 .startup-content .loading-progress { height: 4px; }
 @media (prefers-reduced-motion: reduce) { .startup-content .loading-progress span { transition: none; } }
