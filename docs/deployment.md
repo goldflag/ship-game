@@ -43,24 +43,39 @@ OOM or abort from overload. The script checks these gates and produces
 historical-only capacity run does not qualify the custom-ship release. Inspect
 source complexity and compiled geometry/output limits before selecting the stress
 fixture. Keep the reviewed fixture and raw measurements in ignored `.build/`.
-Do not deploy a failed or incomplete qualification.
+A failed or incomplete qualification blocks deployment unless the release owner explicitly
+accepts the large-fleet limitation through the recorded override below.
 
-## Current release gate
+## Accepted large-fleet limitation
 
-The accounts/custom-ship release is **not qualified for public deployment**.
 On 2026-09-16, isolated Hermes testing with eight distinct custom ships per
 participant (512 primitives, 32 equipment instances, 712 hull cells plus 1,189
 compartment cells per ship) produced simulation-lag infrastructure aborts at
 ticks 31 and 181. This fixture fits the online limits and fails before weapon
-combat. The ten-minute/two-match requirement therefore remains unmet. No
-`approved.json` was issued and the public SQLite deployment was left unchanged.
+combat. The ten-minute/two-match requirement remains unmet; no `approved.json`
+was issued. An earlier admission-memory failure was addressed by retaining
+serialized artifacts, sharing compiled definitions and bounding content pins.
 
-An earlier admission-memory failure was addressed by retaining serialized
-artifacts, sharing compiled definitions and bounding content pins. The remaining
-release blocker is custom-volume simulation cost; optimize and requalify that
-path before running the PostgreSQL cutover. Do not increase lag tolerances or
-silently reduce advertised source limits to bypass the gate. Temporary fixtures,
-container logs and measurements remain under ignored `.build/`.
+The release owner explicitly authorized merging and deploying this release on
+2026-09-16 with large custom fleets unsupported while ship size is reduced.
+This accepts the measured performance limitation without changing the two-match
+cap, compiler isolation, source limits or lag abort behavior. Requalify after
+custom-volume cost is reduced. Temporary fixtures, logs and measurements remain
+under ignored `.build/`.
+
+For an explicitly authorized deployment, set both variables:
+
+```sh
+SHIP_ACCEPT_LARGE_FLEET_RISK=1 \
+SHIP_CAPACITY_WAIVER_REASON='Release owner accepts large-custom-fleet failures while reducing ship size (2026-09-16)' \
+bun run deploy:hermes
+```
+
+The override records `qualified: false`, the authorization reason, timestamp,
+runtime digest and protocol/content versions in `capacity-evidence.json` beside
+the deployed release. It does not produce qualification evidence or waive build,
+migration, backup or health checks. Without this explicit override, a successful
+host qualification remains mandatory.
 
 ## PostgreSQL cutover
 
