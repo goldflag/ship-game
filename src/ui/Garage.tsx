@@ -83,6 +83,7 @@ type GarageState = {
   lastMode: BattleMode;
   ready: boolean;
   settings: () => void;
+  accountName?: string;
   fps: number;
   performance?: PerformanceReadout;
 };
@@ -255,22 +256,20 @@ function PortLayout({ state }: { state: GarageState }) {
       className={`garage-layout garage-fleet-harbor ${state.inspection !== "exterior" ? "port-inspection-active" : "port-statistics-active"}`}
     >
       <header className="garage-classic-header">
-        <div className="garage-brand">
-          <Icon name="anchor" size={26} />
-          <strong>FLEET COMMAND</strong>
-        </div>
+        <button
+          className="garage-account"
+          title="Open the menu"
+          aria-haspopup="dialog"
+          disabled={!state.ready}
+          onClick={state.settings}
+        >
+          <Icon name="compass" size={18} />
+          <strong>{state.accountName ?? "Menu"}</strong>
+        </button>
         <PerformanceCounter className="garage-preview-meta" fps={state.fps} performance={state.performance} />
         <div className="garage-classic-deploy">
           <SetSail state={state} />
         </div>
-        <button
-          className="garage-settings"
-          aria-label="Port settings"
-          disabled={!state.ready}
-          onClick={state.settings}
-        >
-          <Icon name="compass" size={20} />
-        </button>
       </header>
       <section className="garage-classic-identity">
         <h1>{selectedShip.name.toUpperCase()}</h1>
@@ -321,6 +320,7 @@ interface Props {
   onChooseBattle: () => void;
   lastMode: BattleMode;
   onSettings: () => void;
+  accountName?: string;
 }
 
 export function Garage({
@@ -336,6 +336,7 @@ export function Garage({
   onChooseBattle,
   lastMode,
   onSettings,
+  accountName,
   switching,
   switchError,
   onSelectShip,
@@ -384,6 +385,7 @@ export function Garage({
     lastMode,
     ready: ready && !switching,
     settings: onSettings,
+    accountName,
     fps,
     performance,
   };

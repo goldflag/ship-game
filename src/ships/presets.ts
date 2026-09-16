@@ -4,6 +4,7 @@ export { loadShipPreset, loadShipPresets } from './presetLoading';
 
 /** Canonical roster; definitions are admitted on demand before simulation. */
 export const shipPresets = {
+  'resolute': preset('resolute'),
   'admiral-hipper-construction': preset('admiral-hipper-construction'),
   'admiral-hipper': preset('admiral-hipper'),
   'cleveland': preset('cleveland'),

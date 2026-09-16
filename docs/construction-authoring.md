@@ -27,8 +27,8 @@ port. The repository source is `assets/ships/<id>/blueprint.json`; there is no
 parallel ship document format. `build.py` and `source.blend` are unnecessary for
 construction-backed ships.
 
-The menu beside the design name provides Import source, Download backup, Reload
-repository and Save local copy. Repository changes autosave to the source file.
+The menu beside the design name provides Download backup, Reload repository and
+Save local copy. Repository changes autosave to the source file.
 External file changes update the preview while the browser has no pending edits.
 Competing edits produce a visible conflict and preserve the unsaved browser draft.
 Reload deliberately takes the file revision and retains the previous draft as an

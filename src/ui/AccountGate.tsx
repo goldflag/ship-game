@@ -1,15 +1,31 @@
 import { lazy, Suspense, useEffect, useState, type FormEvent } from 'react';
 import { authClient, setAccount } from '../accounts/session';
 import './accounts.css';
-import { AccountLibrary } from './AccountLibrary';
+import { STARTUP_INITIAL, StartupScreen, type StartupProgress } from './StartupScreen';
+export interface AccountSession { name: string; signOut(): Promise<void>; }
+async function signOut() { const result = await authClient.signOut(); if (result.error) throw new Error(result.error.message); setAccount(undefined); }
 const Game = lazy(() => import('./App').then(module=>({default:module.App})));
 export function AccountGate() {
   const {data:session,isPending,error,refetch} = authClient.useSession();
   const [active,setActive]=useState<string>();
+  // One loader stays mounted from the session check through the game bundle's own startup, so the
+  // progress bar never remounts. Reports are tagged by user so a stale "done" from a previous account
+  // cannot hide the loader for the next one.
+  const [startup,setStartup]=useState<StartupProgress&{user:string;done:boolean}>();
   useEffect(()=>{ const id=error?undefined:session?.user.id;setAccount(id);setActive(id);return()=>setAccount(undefined); },[session?.user.id,error]);
-  if (isPending) return <main className="account-screen"><p role="status">Checking your account…</p></main>;
-  if (session && active===session.user.id && !error) return <><Suspense fallback={<main className="account-screen"><p role="status">Preparing the harbor…</p></main>}><Game key={active}/></Suspense><AccountControl name={session.user.name}/></>;
-  return <SignIn unavailable={!!error} retry={()=>void refetch()}/>;
+  const signedIn = !!session && active===session.user.id && !error, user = signedIn ? session.user.id : undefined;
+  // A confirmed session whose id the effect above has not yet adopted is still loading, not signed out.
+  const syncing = !!session && !error && !signedIn;
+  if (!isPending && !syncing && !signedIn) return <SignIn unavailable={!!error} retry={()=>void refetch()}/>;
+  const report = startup?.user===user ? startup : undefined;
+  // Same tree shape while checking the session and while the game starts, so the loader element is reused.
+  return <>
+    <Suspense fallback={null}>{user && <Game key={user} account={{ name: session!.user.name, signOut }} startup={{
+      progress:(label,progress)=>setStartup({user,label,progress,done:false}),
+      done:()=>setStartup(current=>current?.user===user?{...current,done:true}:current),
+    }}/>}</Suspense>
+    {(isPending || syncing || !report?.done) && <StartupScreen {...(isPending || syncing ? { label: 'Checking your account', progress: 0.02 } : report ?? STARTUP_INITIAL)}/>}
+  </>;
 }
 function SignIn({unavailable,retry}:{unavailable:boolean;retry():void}) {
   const [signup,setSignup]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState('');
@@ -35,12 +51,4 @@ function SignIn({unavailable,retry}:{unavailable:boolean;retry():void}) {
     <button className="account-switch" disabled={busy} onClick={()=>{setSignup(!signup);setError('');}}>{signup?'Already have an account? Sign in':'New captain? Create an account'}</button>
     <p className="account-note">Your saved ship designs follow you across devices.</p>
   </section></main>;
-}
-function AccountControl({name}:{name:string}) {
-  const [open,setOpen]=useState(false),[error,setError]=useState(''),[busy,setBusy]=useState(false);
-  return <aside className="account-control"><button aria-expanded={open} onClick={()=>setOpen(!open)}>{name}</button>{open&&<div>
-    <AccountLibrary/>
-    <button disabled={busy} onClick={async()=>{setBusy(true);setError('');try {const result=await authClient.signOut();if(result.error)throw new Error(result.error.message);setAccount(undefined);}catch {setError('Could not sign out. Retry when connected.');}finally{setBusy(false);}}}>Sign out</button>
-    {error&&<p role="alert">{error}</p>}
-  </div>}</aside>;
 }

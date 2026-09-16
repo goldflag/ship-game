@@ -1,0 +1,28 @@
+{
+  "contentHash": "e6a10b97277c407f792baf7475f4ad98027dea572c0bda32d92e511323cb3ec8",
+  "imageHash": "eaeb018b0ed3ce62d29088fbe6b5e54fc6628a61456411e529e7d19b302716ca",
+  "camera": {
+    "name": "profile",
+    "position": [
+      450.73491953596834,
+      8.925738181173802,
+      -2
+    ],
+    "target": [
+      0,
+      8.925738181173802,
+      -2
+    ],
+    "up": [
+      0,
+      1,
+      0
+    ],
+    "projection": "orthographic",
+    "width": 600,
+    "height": 180,
+    "halfHeight": 36.300000000000004,
+    "sourceRevision": "revision-2cafdacf-754a-48c9-a8f6-6f0561cc7727",
+    "contentHash": "e6a10b97277c407f792baf7475f4ad98027dea572c0bda32d92e511323cb3ec8"
+  }
+}

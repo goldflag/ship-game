@@ -177,3 +177,21 @@ Oerlikon’s canonical 1,800-round load. Capacity and dry mass are provisional
 engineering estimates; ammunition mass still comes from the canonical weapon
 and native compiler. The fixed 1,000-round variant and previous publications
 remain available.
+
+## Generic capital-ship plant and funnel
+
+`generic-steam-plant-36000kw` is an original 10 × 6 × 22 m boiler/geared-turbine
+package with a deck sole at Y=0. Its four boiler casings, paired turbines,
+reduction gears, supported steam lines and service walks are illustrative original
+geometry in `capital_machinery.py`. The declared 36,000 kW rating, 1,800 t dry
+mass and separate 200 t fuel/service allowance are provisional game engineering
+values. Machinery mass includes boilers, condensers, gears and auxiliary services;
+the normal native auxiliary reservation and service caps still apply.
+
+`generic-capital-funnel` is its separate fixed oval uptake: 6 × 11.1 × 10.5 m
+conservative envelope, 75 t dry mass and 36,000 kW exhaust capacity. Its open hood,
+grille, reinforcing bands, steam pipes and access ladder are original geometry;
+the supporting deck is external. It retains a Y=0 attachment sole and an
+`exhaust-out` socket. It is neither a resized Fletcher asset nor a historical
+funnel reconstruction. These estimates do not certify thermodynamic performance,
+shaft routing or any named battleship's engineering.

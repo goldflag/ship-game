@@ -16,6 +16,8 @@ import { Icon } from './Icons';
 import { FleetHud } from './FleetHud';
 import { BinocularOverlay } from './BinocularOverlay';
 import { Garage } from './Garage';
+import type { AccountSession } from './AccountGate';
+import { STARTUP_INITIAL, StartupScreen, type StartupReporter } from './StartupScreen';
 import { selectedShip as initialShip, loadShipPresets } from '../ships/presets';
 import { ShipContext } from './ShipContext';
 import { bindingLabel, KEYBINDING_STORAGE_KEY, loadKeybindings, type Keybindings } from '../game/keybindings';
@@ -47,29 +49,31 @@ import { createStarterSource } from '../ships/constructionStarter';
 
 const INITIAL_TELEMETRY: Telemetry = { ship: createShipState(), order: 1, camera: 'Chase', fps: 0, backend: 'webgpu', trail: [] };
 
-export function App() {
+type AppProps = { account?: AccountSession; startup?: StartupReporter };
+export function App(props: AppProps) {
+  const admissionReporter = useRef(props.startup); admissionReporter.current = props.startup;
   const [attempt, setAttempt] = useState(0);
   const [admission, setAdmission] = useState<'loading' | 'ready' | 'failed'>('loading');
   useEffect(() => {
     let active = true;
     setAdmission('loading');
+    admissionReporter.current?.progress('Loading ship', STARTUP_INITIAL.progress);
     loadShipPresets([initialShip.id]).then(
       () => { if (active) setAdmission('ready'); },
-      () => { if (active) setAdmission('failed'); },
+      () => { if (active) { setAdmission('failed'); admissionReporter.current?.done(); } },
     );
     return () => { active = false; };
   }, [attempt]);
-  if (admission === 'ready') return <Harbor />;
+  if (admission === 'ready') return <Harbor {...props} />;
+  if (admission === 'loading') return props.startup ? null : <StartupScreen label="Loading ship" progress={STARTUP_INITIAL.progress} />;
   return <main className="account-screen"><section className="account-form">
     <h1>Fleet Command</h1>
-    {admission === 'failed' ? <>
-      <p role="alert">Unable to load the selected ship. Check your connection and retry.</p>
-      <button className="account-primary" onClick={() => setAttempt(value => value + 1)}>Retry loading ship</button>
-    </> : <p role="status">Preparing the harbor…</p>}
+    <p role="alert">Unable to load the selected ship. Check your connection and retry.</p>
+    <button className="account-primary" onClick={() => setAttempt(value => value + 1)}>Retry loading ship</button>
   </section></main>;
 }
 
-function Harbor() {
+function Harbor({ account, startup }: AppProps) {
   const [selectedShip, setSelectedShip] = useState(initialShip);
   const selectedRef = useRef(selectedShip);
   const [switching, setSwitching] = useState(false);
@@ -94,7 +98,10 @@ function Harbor() {
   // size instead of shrinking an RTS interface to the ship instrument baseline.
   const hudScale = data.fleetCommandMode && hudSettings.mode === 'auto' ? Math.max(hudSettings.scale, preferredHudScale) : preferredHudScale;
   hudScaleRef.current = hudScale;
-  const [loading, setLoading] = useState({ label: 'Preparing the harbor', progress: 0 });
+  const [loading, setLoading] = useState(STARTUP_INITIAL);
+  // When a parent owns the startup loader, mirror progress to it directly from the game callbacks
+  // rather than through an effect, so the bar advances in the same frame the game reports.
+  const startupRef = useRef(startup); startupRef.current = startup;
   const [ready, setReady] = useState(false);
   const [paused, setPaused] = useState(false);
   const [error, setError] = useState('');
@@ -125,9 +132,11 @@ function Harbor() {
     setPveBriefing(undefined); setBattleOpen(false); setSortieOpen(false); setBattleLoading(null); battlePending.current = false;
     setSwitching(false); setSwitchError(''); switchPending.current = false;
     setReady(false); setError(''); setPaused(false); setSettingsOpen(false); setData(INITIAL_TELEMETRY); setPhase('garage');
+    const report = (label: string, progress: number) => { setLoading({ label, progress }); startupRef.current?.progress(label, progress); };
+    report(STARTUP_INITIAL.label, STARTUP_INITIAL.progress);
     const session = new Game(host.current!, graphicsRef.current, {
-      progress: (label, progress) => active && setLoading({ label, progress }),
-      ready: () => active && setReady(true),
+      progress: (label, progress) => active && report(label, progress),
+      ready: () => { if (!active) return; setReady(true); startupRef.current?.done(); },
       telemetry: value => {
         if (!active) return;
         setData(value);
@@ -135,7 +144,7 @@ function Harbor() {
       },
       pause: value => active && setPaused(value),
       hud: () => active && setHud(value => !value),
-      error: message => active && setError(message),
+      error: message => { if (!active) return; setError(message); startupRef.current?.done(); },
     }, selectedRef.current, new GameAudio(audioSettingsRef.current));
     session.input.setBindings(bindingsRef.current);
     game.current = session;
@@ -427,6 +436,15 @@ function Harbor() {
   const closeGame = () => {
     window.close();
   };
+  const [signingOut, setSigningOut] = useState(false);
+  const [signOutError, setSignOutError] = useState('');
+  const signOut = async () => {
+    if (!account) return;
+    setSigningOut(true); setSignOutError('');
+    try { await account.signOut(); }
+    catch { setSignOutError('Could not sign out. Retry when connected.'); }
+    finally { setSigningOut(false); }
+  };
   const changeHud = (next: HudSettings): boolean => {
     setHudSettings(next);
     try { localStorage.setItem(HUD_STORAGE_KEY, JSON.stringify(next)); return true; }
@@ -443,7 +461,7 @@ function Harbor() {
       if (!(target instanceof HTMLElement && target.closest('input, textarea, [contenteditable]:not([contenteditable="false"])'))) event.preventDefault();
     }}>
     <div ref={host} className="ocean-viewport" inert={!ready || !!error} data-ship-labels={phase === 'sailing' && hud && ready && !error && !data.airOperationsOpen} />
-    {phase === 'garage' && ready && !error && !battleOpen && !builder && <Garage key={selectedShip.id} switching={switching || builderOpening} switchError={switchError} onSelectShip={switchShip} game={game.current} ready={ready} fps={data.fps} performance={data.performance} onBattle={pressBattle} onBuild={() => void openBuilder()} onEditDesign={id => void openBuilder(id)} onDeleteDesign={deletedDesign} libraryLoading={libraryLoading} onChooseBattle={openSortieBoard} lastMode={battleMode} onSettings={() => game.current?.setPaused(true)}/>}
+    {phase === 'garage' && ready && !error && !battleOpen && !builder && <Garage key={selectedShip.id} switching={switching || builderOpening} switchError={switchError} onSelectShip={switchShip} game={game.current} ready={ready} fps={data.fps} performance={data.performance} onBattle={pressBattle} onBuild={() => void openBuilder()} onEditDesign={id => void openBuilder(id)} onDeleteDesign={deletedDesign} libraryLoading={libraryLoading} onChooseBattle={openSortieBoard} lastMode={battleMode} accountName={account?.name} onSettings={() => game.current?.setPaused(true)}/>}
     {phase === 'garage' && sortieOpen && !battleOpen && <SortieBoard lastMode={battleMode} onChoose={openBattle} onClose={() => setSortieOpen(false)}/>}
     {battleOpen && <BattleDialog initialMode={battleMode} initialShipId={selectedShip.id} loading={!!battleLoading} onClose={() => setBattleOpen(false)}
       setup={battleSetup} onSetupChange={setBattleSetup} onLaunchCustom={() => void launch()} customError={battleError}
@@ -458,14 +476,7 @@ function Harbor() {
     {phase === 'sailing' && ready && !error && game.current?.simulation.missionRules && game.current.simulation.outcome && game.current.simulation.debrief && game.current.simulation.result !== 'active' && <PveResults result={game.current.simulation.result} outcome={game.current.simulation.outcome} debrief={game.current.simulation.debrief} onRestart={restartPve} onNewBattle={newPveBattle} onPort={returnToPort}/>}
     {battleLoading && ready && !error && <BattleLoadingScreen briefing={pveBriefing} setup={battleSetup} state={battleLoading} multiplayer={!!game.current?.simulation.networked} onLeft={() => setBattleLoading(null)}/>}
 
-    {!ready && !error && <section className="startup-screen" aria-labelledby="startup-title">
-      <div className="startup-content">
-        <h1 id="startup-title">Opening the harbor</h1>
-        <p className="startup-status" role="status">{loading.label}…</p>
-        <div className="loading-progress" role="progressbar" aria-label="Preparing the harbor" aria-valuetext={loading.label} aria-valuenow={Math.round(loading.progress * 100)} aria-valuemin={0} aria-valuemax={100}><span style={{ transform: `scaleX(${loading.progress})` }}/></div>
-        <p className="startup-note">The first visit can take a little longer while ship models, ocean effects and lighting are prepared.</p>
-      </div>
-    </section>}
+    {!ready && !error && !startup && <StartupScreen {...loading}/>}
 
     {error && <section className="loading-screen" aria-live="polite">
       <div className="loading-brand"><Icon name="anchor" size={36}/><span>FLEET COMMAND</span></div>
@@ -482,6 +493,8 @@ function Harbor() {
       {phase === 'sailing' && <Button variant="secondary" className="restart-button" onClick={() => void returnToPort()}>{trial ? 'Return to shipbuilder' : battleExitLabel(game.current?.simulation)} <Icon name="anchor" size={18}/></Button>}
       <Button variant="secondary" className="menu-action" onClick={() => setSettingsOpen(true)}>Settings <Icon name="settings" size={18}/></Button>
       <Button variant="secondary" className="menu-action close-game-button" onClick={closeGame}>Close game <Icon name="power" size={18}/></Button>
+      {phase === 'garage' && account && <Button variant="secondary" className="menu-action" disabled={signingOut} onClick={() => void signOut()}>{signingOut ? 'Signing out…' : 'Sign out'}</Button>}
+      {signOutError && <p className="menu-error" role="alert">{signOutError}</p>}
       {phase === 'sailing' && <div className="menu-controls">
         <span><kbd>{bindingLabel(bindings, 'camera')}</kbd> Change camera</span>
         <span><kbd>{bindingLabel(bindings, 'recenter')}</kbd> Recenter view</span>

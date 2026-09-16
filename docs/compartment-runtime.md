@@ -101,8 +101,10 @@ identical gameplay fields to the final published definition (verified separately
 | Guarded 6 m | 5.847 | 2.940 | 190 | 92.0 | 92.0 | 138.2 / 153.5 |
 | Guarded 3 m | 6.772 | 3.469 | 204 | 97.9 | 97.9 | 148.3 / 161.8 |
 
-Native catalog load includes the same full roster in every row, replacing only
-Hipper. Heap and peak RSS come from the two-ship matrix. Resident RSS is a
+Native catalog load uses the same roster snapshot in every row, replacing only
+Hipper. This snapshot predates the subsequent Resolute integration; rerunning
+with the latest roster includes its additional catalog memory. Heap and peak
+RSS come from the two-ship matrix. Resident RSS is a
 separate fresh-process 1,200-tick run, median of the final five 100 ms samples
 after the first second. These are different measurement scopes; do not subtract
 resident from peak to infer allocation lifetimes. The visual GLB stays 5.400 MB.
