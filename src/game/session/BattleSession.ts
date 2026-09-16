@@ -68,8 +68,6 @@ export interface BattleSession {
  /** Consume the elapsed wall time: apply the pending frame (after `beforeStep`
  * captured the previous poses) and forward the helm and sight as intent. */
  advance(dt: number, helm: HelmCommand, intent: CombatIntent, beforeStep?: () => void): void;
- /** One fixed tick of intent; a development rehearsal hook. */
- step(helm: HelmCommand, intent: CombatIntent): void;
  /** Return every hull to its initial state while keeping renderer identities. */
  reset(): void;
  selectTarget(id: string): boolean;

@@ -3,7 +3,9 @@
 import init, { LocalRuntime, PvePlanner } from '../../src/generated/naval-wasm/naval_wasm';
 import { SnapshotSession } from '../../src/game/session/SnapshotSession';
 import { decodeSnapshot } from '../../src/game/session/snapshotCodec';
-import { runtimeSetup } from '../../src/game/session/LocalBattleSession';
+import { portSetup, runtimeSetup } from '../../src/game/session/LocalBattleSession';
+import type { ShipDefinition } from '../../src/ships/blueprint';
+import type { LocalShipRevision } from '../../src/ships/localShips';
 import type { BattleSetup } from '../../src/simulation/battle';
 import type { Command } from '../../src/multiplayer/generated/Command';
 import type { CombatIntent } from '../../src/simulation/combat';
@@ -12,13 +14,23 @@ import type { AirRules } from '../../src/multiplayer/generated/AirRules';
 let initialized: Promise<unknown> | undefined;
 export class HeadlessSession extends SnapshotSession {
   readonly networked = false; private sequence = 0;
-  private constructor(setup: ReturnType<typeof runtimeSetup>, readonly runtime: LocalRuntime) { super(setup); this.apply(decodeSnapshot(runtime.snapshot())); }
+  private constructor(setup: ReturnType<typeof runtimeSetup>, readonly runtime: LocalRuntime, port = false, definitions: ReadonlyMap<string, ShipDefinition> = new Map()) { super(setup, 'a', 0, definitions, port); this.apply(decodeSnapshot(runtime.snapshot())); }
   static async create(setup: BattleSetup, fixture?: { manifest: Uint8Array; airRules: AirRules }) {
     await (initialized ??= Bun.file(new URL('../../src/generated/naval-wasm/naval_wasm_bg.wasm', import.meta.url)).arrayBuffer().then(module_or_path => init({ module_or_path })));
     const manifest = fixture?.manifest ?? new Uint8Array(await Bun.file(new URL('../../.build/naval-content/manifest.json', import.meta.url)).arrayBuffer());
     const runtime = runtimeSetup(setup, 12345);
     if (fixture) runtime.airRules = fixture.airRules;
     return new HeadlessSession(runtime, new LocalRuntime(manifest, JSON.stringify(runtime)));
+  }
+  /** The port's session (see `LocalBattleSession.port`), on the test thread. */
+  static async port(definition: ShipDefinition, revision?: LocalShipRevision): Promise<HeadlessSession> {
+    await (initialized ??= Bun.file(new URL('../../src/generated/naval-wasm/naval_wasm_bg.wasm', import.meta.url)).arrayBuffer().then(module_or_path => init({ module_or_path })));
+    const manifest = new Uint8Array(await Bun.file(new URL('../../.build/naval-content/manifest.json', import.meta.url)).arrayBuffer());
+    const setup = portSetup(definition, 12345);
+    if (!revision) return new HeadlessSession(setup, new LocalRuntime(manifest, JSON.stringify(setup)), true);
+    // A player-built hull compiles from its frozen source against the published catalog.
+    const catalog = await Bun.file(new URL('../../public/models/components/catalog.json', import.meta.url)).text();
+    return new HeadlessSession(setup, LocalRuntime.with_construction(manifest, JSON.stringify(setup), JSON.stringify([revision.source]), `[${catalog}]`, false), true, new Map([[revision.definition.id, revision.definition]]));
   }
   static async createPve(request: import('../../src/multiplayer/generated/PveRequest').PveRequest): Promise<HeadlessSession> {
     await (initialized ??= Bun.file(new URL('../../src/generated/naval-wasm/naval_wasm_bg.wasm', import.meta.url)).arrayBuffer().then(module_or_path => init({ module_or_path })));

@@ -3,8 +3,10 @@ import { LocalWorkerOperation } from './LocalWorkerOperation';
 import { SnapshotSession, type Snapshot } from './SnapshotSession';
 import type { BattleSetup as RuntimeSetup } from '../../multiplayer/generated/BattleSetup';
 import type { Command } from '../../multiplayer/generated/Command';
-import { botSelection, setupSpawns, type BattleSetup } from '../../simulation/battle';
+import { BATTLE_SPAWN_DISTANCE, botSelection, setupSpawns, type BattleSetup } from '../../simulation/battle';
 import { DEFAULT_MAP } from '../../maps/catalog';
+import type { ShipDefinition } from '../../ships/blueprint';
+import type { LocalShipRevision } from '../../ships/localShips';
 import type { CombatIntent } from '../../simulation/combat';
 import { decodeFrameUpdate, type FrameUpdate } from './frameDelta';
 import { CommandQueue } from './commandQueue';
@@ -23,6 +25,15 @@ export function runtimeSetup(setup: BattleSetup, seed: number): RuntimeSetup {
   return { ships, seed, mapId: setup.mapId ?? DEFAULT_MAP, weather: setup.weather ?? 'map', spawnDistance: setup.spawnDistance, windSpeed: setup.windSpeed ?? null, ...(setup.missionRules ? { missionRules: setup.missionRules,
     ...(setup.missionRules.airProfileId === pveAir.id ? { airRules: pveAir as AirRules } : {}),
   } : {}) };
+}
+/** The port's fleet: the hull on show, alone. The battle wants a hull per side,
+ * so an idle copy stands where the old fixture's target stood, never shown,
+ * never stepped. Still water: the port has no weather. */
+export function portSetup(definition: ShipDefinition, seed: number): RuntimeSetup {
+  return { ships: [
+    { id: 'player', presetId: definition.id, team: 'a', controller: 'player', aiLevel: 'normal', spawn: { x: 0, z: 0, heading: 0 } },
+    { id: 'target', presetId: definition.id, team: 'b', controller: 'idle', aiLevel: 'static', spawn: { x: 650, z: -550, heading: 0 } },
+  ], seed, mapId: DEFAULT_MAP, weather: 'clear', spawnDistance: BATTLE_SPAWN_DISTANCE, windSpeed: 0 };
 }
 /** Bounds on the scheduler: a batch never exceeds the worker's own limit, and
  * debt beyond a simulated second is unrecoverable rather than merely late. */
@@ -54,13 +65,22 @@ export class LocalBattleSession extends SnapshotSession {
   private fail(message: string) { this.pending = undefined; this.busy = false; this.connectionStatus = message; this.phase = 'cancelled'; this.dispose(); this.onFailure?.(message); }
   private restartRequest?: { resolve(): void; reject(error: Error): void; timer: ReturnType<typeof setTimeout> };
   private constructor(setup: RuntimeSetup, worker = new Worker(new URL('./local.worker.ts', import.meta.url), { type: 'module' }), options: LocalBattleOptions = {}) {
-    super(setup, 'a', 0, new Map(options.revisions?.map(r => [r.definition.id, r.definition]))); this.worker = worker; this.trial = options.trial === true;
+    super(setup, 'a', 0, new Map(options.revisions?.map(r => [r.definition.id, r.definition])), options.port === true); this.worker = worker; this.trial = options.trial === true;
     this.constructionShips = new Map(options.revisions?.map(r => [r.definition.id, r]));
   }
   static async create(setup: BattleSetup, options: LocalBattleOptions = {}): Promise<LocalBattleSession> {
     await loadShipPresets([setup.playerShipId, ...setup.friendlyBots.map(b => botSelection(b).shipId), ...setup.enemies.map(b => botSelection(b).shipId)]);
     const session = new LocalBattleSession(runtimeSetup(setup, crypto.getRandomValues(new Uint32Array(1))[0]), undefined, options);
     return session.initialize({ type: 'init', setup: session.setup, construction: localConstructionInput(options) });
+  }
+  /** The port as a real session: the same Rust authority compiles the hull, so
+   * inspection, mount articulation and hydrostatics read what a battle would.
+   * Nothing is ever dispatched to it; a sortie or a ship switch replaces it. */
+  static async port(definition: ShipDefinition, revision?: LocalShipRevision): Promise<LocalBattleSession> {
+    if (!revision) await loadShipPresets([definition.id]);
+    const revisions = revision ? [revision] : [];
+    const session = new LocalBattleSession(portSetup(definition, 0x6e617661), undefined, { revisions, port: true });
+    return session.initialize({ type: 'init', setup: session.setup, construction: localConstructionInput({ revisions }) });
   }
   static async deploy(worker: Worker, briefing: PveBriefing, placements: Placement[], formations: Record<string, Formation> = {}): Promise<LocalBattleSession> {
     const setup = { ...briefing.setup, ships: briefing.setup.ships.map(ship => ({ ...ship, spawn: placements.find(p => p.id === ship.id)?.spawn ?? ship.spawn })) };
@@ -136,7 +156,7 @@ export class LocalBattleSession extends SnapshotSession {
   /** One batch in flight at a time, posted from whichever of the render frame
    * and the worker reply first has both an idle worker and enough ticks. */
   private dispatch(): void {
-    if (this.busy || this.disposed || this.restartRequest || this.result !== 'active' || !this.lastInput) return;
+    if (!this.isBattle || this.busy || this.disposed || this.restartRequest || this.result !== 'active' || !this.lastInput) return;
     // Captains run every authoritative tick, but fleet presentation needs only
     // 20 wall-time updates/second. Helm input and queued orders retain the 60Hz
     // dispatch opportunity, including commands issued between ordinary batches.

@@ -40,7 +40,8 @@ function replaceObject<T extends object>(target: T, value: T): void {
 }
 export abstract class SnapshotSession implements BattleSession {
   abstract readonly networked: boolean;
-  readonly isBattle = true;
+  /** False for the port: one hull with nothing to fight, never stepped or scored. */
+  readonly isBattle: boolean;
   actors: FleetActor[] = [];
   player!: FleetActor; target?: FleetActor;
   observationTracks: ContactTrack[] = []; observedShips: ObservedShip[] = []; observedAircraft: ObservedAircraft[] = [];
@@ -90,7 +91,8 @@ export abstract class SnapshotSession implements BattleSession {
     return [...new Set([subject, this.target?.motion.id].filter((id): id is string => !!id))];
   }
   constructor(readonly setup: BattleSetup, readonly ownTeam: TeamId = 'a', readonly playerIndex = 0,
-    private readonly localDefinitions: ReadonlyMap<string, ShipDefinition> = new Map()) {
+    private readonly localDefinitions: ReadonlyMap<string, ShipDefinition> = new Map(), port = false) {
+    this.isBattle = !port;
     this.mapId = setup.mapId as OceanMapId; this.seed = setup.seed; this.spawnDistance = setup.spawnDistance;
     this.islands = setup.missionRules ? mapIslands(this.mapId, 16000, setup.missionRules.budget.maxShips).map(island => ({ ...island, z: island.z + 8000 }))
       : mapIslands(this.mapId, setup.spawnDistance, Math.max(...(['a', 'b'] as const).map(t => setup.ships.filter(s => s.team === t).length)));
@@ -109,8 +111,6 @@ export abstract class SnapshotSession implements BattleSession {
   }
   abstract advance(dt: number, helm: HelmCommand, intent: CombatIntent, beforeStep?: () => void): void;
   abstract dispose(): void;
-  // Fixed ticks belong to the worker/server. Development preview cannot run a JS fallback.
-  step(helm: HelmCommand, intent: CombatIntent): void { this.advance(1 / 60, helm, intent); }
   reset(): void { /* A new custom battle creates a fresh worker. Online results are immutable. */ }
   resetTarget(): void { /* Battle targets are authoritative. */ }
   protected consume(dt: number, beforeStep?: () => void): void {

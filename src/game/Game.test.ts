@@ -13,7 +13,6 @@ import { BattlefieldCamera } from './BattlefieldCamera';
 import { ShipView } from './ShipView';
 import { ObservedShipViews } from './ObservedShipViews';
 import { ShipMaterialPalette } from './ShipMaterialPalette';
-import { CombatSimulation } from '../simulation/combat';
 import { shipPreset, shipPresets } from '../ships/presets';
 import * as ShipDetail from './ShipDetail';
 import pveRules from '../../assets/gameplay/pve-mission.v1.json';
@@ -27,14 +26,15 @@ import { registerLocalShip, removeLocalShip } from '../ships/localShips';
 // Camera controls now also listen for pointer-lock and focus changes.
 const browserNames = ['window', 'document'] as const;
 let browserGlobals: (PropertyDescriptor | undefined)[];
-let localFactory: ReturnType<typeof spyOn>;
+let localFactory: ReturnType<typeof spyOn>, portFactory: ReturnType<typeof spyOn>;
 beforeEach(() => {
   localFactory = spyOn(LocalBattleSession, 'create').mockImplementation(async setup => await HeadlessSession.create(setup) as unknown as LocalBattleSession);
+  portFactory = spyOn(LocalBattleSession, 'port').mockImplementation(async (definition, revision) => await HeadlessSession.port(definition, revision) as unknown as LocalBattleSession);
   browserGlobals = browserNames.map(name => Object.getOwnPropertyDescriptor(globalThis, name));
   browserNames.forEach(name => Object.defineProperty(globalThis, name, { configurable: true, value: new EventTarget() }));
 });
 afterEach(() => {
-  localFactory.mockRestore();
+  localFactory.mockRestore(); portFactory.mockRestore();
   browserNames.forEach((name, i) => {
     if (browserGlobals[i]) Object.defineProperty(globalThis, name, browserGlobals[i]!);
     else Reflect.deleteProperty(globalThis, name);
@@ -46,11 +46,11 @@ const model = loadShipJoints;
 // Exercise the real scene swap with exported joint hierarchies; only GPU startup is omitted.
 async function port(storageMatrices = false) {
   const definition = shipPreset('bismarck');
-  const simulation = new CombatSimulation(definition);
+  const simulation = await HeadlessSession.port(definition);
   simulation.ship.x = 240;
   const loaded = (await model(definition.id)).scene;
   const playerView = new ShipView(loaded.clone(true), definition, simulation.player);
-  const targetView = new ShipView(loaded.clone(true), definition, simulation.target);
+  const targetView = new ShipView(loaded.clone(true), definition, simulation.target!);
   const scene = new Scene();
   const harbor = new Group();
   scene.add(playerView.root, targetView.root, harbor);
@@ -75,8 +75,8 @@ async function port(storageMatrices = false) {
   return { game, scene, harbor, camera, rig, playerView };
 }
 
-test('shell commands affect only the active gun battery and reject unavailable rounds or inactive play', () => {
-  const definition = shipPreset('bismarck'), simulation = new CombatSimulation(definition);
+test('shell commands affect only the active gun battery and reject unavailable rounds or inactive play', async () => {
+  const definition = shipPreset('bismarck'), simulation = await HeadlessSession.port(definition);
   const game = Object.assign(Object.create(Game.prototype), { definition, simulation, currentAim: [2000, 10, 0],
     battery: 'main', ammunition: { main: 'ap', secondary: 'ap', torpedo: 'ap', 'depth-charge': 'ap' },
     inPort: false, paused: false, airOperationsOpen: false }) as Game;
@@ -97,8 +97,9 @@ test('shell commands affect only the active gun battery and reject unavailable r
 test('switching ships retains the port until loading completes, then frames the new hull with the same orbit', async () => {
   const { game, scene, harbor, camera, rig, playerView } = await port();
   const next = await model('type-viic');
-  let finish!: (value: typeof next) => void;
-  const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(() => new Promise(resolve => { finish = resolve; }));
+  let finish!: (value: typeof next) => void, started!: () => void;
+  const loading = new Promise<void>(resolve => { started = resolve; });
+  const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(() => { started(); return new Promise(resolve => { finish = resolve; }); });
   const position = camera.position.toArray();
   const rotation = camera.quaternion.toArray();
   const bearing = rig.bearing;
@@ -109,6 +110,9 @@ test('switching ships retains the port until loading completes, then frames the 
     rig.update(game.simulation.ship, 0, 1 / 60);
     expect(camera.position.toArray()).toEqual(position);
     expect(camera.quaternion.toArray()).toEqual(rotation);
+    // The port session compiles in its worker before the hull is fetched.
+    await loading;
+    expect(game.definition.id).toBe('bismarck');
     finish(next);
     await switching;
     expect(game.definition.id).toBe('type-viic');
@@ -219,11 +223,13 @@ test('saved construction revisions load into port and replace the previously ins
 test('a second request cannot replace an in-flight switch; disposed games never attach the result', async () => {
   const { game, scene, playerView, rig } = await port();
   const next = await model('yamato');
-  let finish!: (value: typeof next) => void;
-  const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(() => new Promise(resolve => { finish = resolve; }));
+  let finish!: (value: typeof next) => void, started!: () => void;
+  const loading = new Promise<void>(resolve => { started = resolve; });
+  const loader = spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(() => { started(); return new Promise(resolve => { finish = resolve; }); });
   try {
     const switching = game.switchShip(shipPreset('yamato'));
     await expect(game.switchShip(shipPreset('baltimore'))).rejects.toThrow('idle, loaded port');
+    await loading;
     Object.assign(game, { disposed: true });
     finish(next);
     await expect(switching).rejects.toThrow('Game disposed');
@@ -369,9 +375,9 @@ test('failed aircraft loads leave the current port intact and allow another laun
   } finally { aircraftLoader.mockRestore(); loader.mockRestore(); rig.dispose(); }
 });
 
-test('spectating follows only surviving teammates, cycles duplicates, and resets after loss or port', () => {
+test('spectating follows only surviving teammates, cycles duplicates, and resets after loss or port', async () => {
   const definition = shipPreset('bismarck');
-  const simulation = new CombatSimulation(definition, { friendlyBots: [definition, shipPreset('type-viic'), definition], enemies: [definition] });
+  const simulation = await HeadlessSession.create({ playerShipId: 'bismarck', friendlyBots: ['bismarck', 'type-viic', 'bismarck'], enemies: ['bismarck'], spawnDistance: 5000 });
   const camera = new PerspectiveCamera(52, 1.6, .5, 60000);
   const rig = new CameraRig(camera, new EventTarget() as HTMLCanvasElement);
   const fleetViews = simulation.actors.map(actor => ({ actor, definition: actor.definition, motion: actor.motion }));
@@ -381,7 +387,8 @@ test('spectating follows only surviving teammates, cycles duplicates, and resets
   }) as Game;
   const update = () => (game as unknown as { updateSpectator(): void }).updateSpectator();
   try {
-    game.spectateTeammate('friendly-1'); expect(game.spectatedShipId).toBeUndefined();
+    // A live helm ship may watch a teammate: the session can hand the helm over.
+    game.spectateTeammate('friendly-1'); expect(game.spectatedShipId).toBe('friendly-1');
     simulation.player.damage.sunk = true;
     update(); expect(game.spectatedShipId).toBe('friendly-1');
     game.spectateTeammate('enemy-1'); expect(game.spectatedShipId).toBe('friendly-1');
@@ -410,7 +417,9 @@ test('spectating follows only surviving teammates, cycles duplicates, and resets
     simulation.actors[3].damage.sunk = true;
     update(); expect(game.spectatedShipId).toBeUndefined();
     game.cycleSpectator(1); expect(game.spectatedShipId).toBeUndefined();
-    simulation.reset(); update(); expect(game.spectatedShipId).toBeUndefined();
+    // A restored fleet (a fresh battle) offers no spectator while the helm ship floats.
+    for (const actor of simulation.actors) { actor.damage.sunk = false; actor.damage.stability.combatLost = false; }
+    update(); expect(game.spectatedShipId).toBeUndefined();
     expect(telemetry().ship.id).toBe('player');
     expect(telemetry().order).toBe(5);
     simulation.player.damage.sunk = true; update(); expect(game.spectatedShipId).toBe('friendly-1');
@@ -551,8 +560,8 @@ test('fleet selection and camera follow keep captains active; helm transfer resu
   } finally { simulation.dispose(); rig.dispose(); }
 });
 
-test('direct slots select a single type, never cycle, and retain selection when guns are lost', () => {
-  const definition = shipPreset('bismarck'), simulation = new CombatSimulation(definition);
+test('direct slots select a single type, never cycle, and retain selection when guns are lost', async () => {
+  const definition = shipPreset('bismarck'), simulation = await HeadlessSession.port(definition);
   const game = Object.assign(Object.create(Game.prototype), { definition, simulation, battery: 'main',
     ammunition: {}, inPort: false, paused: false, airOperationsOpen: false }) as Game;
   const groups = game.weaponGroups;
@@ -572,39 +581,38 @@ test('direct slots select a single type, never cycle, and retain selection when 
   game.selectWeaponSlot(2); expect(game.battery).toBe('depth-charge');
 });
 
-test('single shell presses queue, rapid pairs force that choice, and slow presses cancel it', () => {
-  const definition = shipPreset('bismarck'), simulation = new CombatSimulation(definition);
+test('single shell presses queue, rapid pairs force that choice, and slow presses cancel it', async () => {
+  const definition = shipPreset('bismarck'), simulation = await HeadlessSession.port(definition);
   const game = Object.assign(Object.create(Game.prototype), { definition, simulation, battery: 'main',
     ammunition: { main: 'ap', secondary: 'ap', torpedo: 'ap', 'depth-charge': 'ap' },
     inPort: false, paused: false, airOperationsOpen: false }) as Game;
   const main = game.weaponGroupId!;
+  // The authority loads the round; the session carries the selection.
   game.cycleAmmunition(1000);
-  expect(game.ammunition[main]).toBe('he'); expect(simulation.player.mounts[0].loaded).toBe('ap');
+  expect(game.ammunition[main]).toBe('he'); expect(simulation.ammunitionSelection[main]).toBe('he');
   game.cycleAmmunition(1200);
-  expect(game.ammunition[main]).toBe('he'); expect(simulation.player.mounts[0].loaded).toBe('he');
-  expect(simulation.player.mounts[0].reload).toBe(definition.mounts[0].weapon.reloadSeconds);
+  expect(game.ammunition[main]).toBe('he'); expect(simulation.ammunitionSelection[main]).toBe('he');
   game.cycleAmmunition(2000); game.cycleAmmunition(2400);
   expect(game.ammunition[main]).toBe('he');
   game.cycleAmmunition(3000); game.battery = 'secondary'; game.cycleAmmunition(3100);
+  expect(simulation.ammunitionSelection[main]).toBe('ap');
   expect(simulation.telemetry('main', [2000, 10, 0], main).ammunition).toBe('ap');
   expect(game.selectedAmmunition).toBe('he');
-  expect(simulation.player.mounts.filter((_, i) => definition.mounts[i].battery === 'secondary').every(m => m.loaded === 'ap')).toBe(true);
 });
 
-test('rapid shell presses in different secondary groups never force a neighboring group to reload', () => {
-  const definition = shipPreset('bismarck'), simulation = new CombatSimulation(definition);
+test('rapid shell presses in different secondary groups never force a neighboring group to reload', async () => {
+  const definition = shipPreset('bismarck'), simulation = await HeadlessSession.port(definition);
   const game = Object.assign(Object.create(Game.prototype), { definition, simulation, battery: 'main',
     ammunition: {}, inPort: false, paused: false, airOperationsOpen: false }) as Game;
   const groups = game.weaponGroups;
   game.selectWeaponSlot(1); game.cycleAmmunition(1000);
   game.selectWeaponSlot(2); game.cycleAmmunition(1100);
-  expect(simulation.player.mounts.every(m => m.loaded === 'ap')).toBe(true);
+  // Group 2 carries no HE, so its press orders nothing; a neighbour's press is never its own.
+  expect(simulation.ammunitionSelection[groups[1].id]).toBe('he'); expect(simulation.ammunitionSelection[groups[2].id]).toBeUndefined();
   game.selectWeaponSlot(1); game.cycleAmmunition(1200); game.cycleAmmunition(1300);
-  expect(simulation.player.mounts.every(m => m.loaded === 'ap')).toBe(true);
+  expect(simulation.ammunitionSelection[groups[1].id]).toBe('ap'); expect(simulation.ammunitionSelection[groups[2].id]).toBeUndefined();
   game.cycleAmmunition(2000); game.cycleAmmunition(2100);
-  definition.mounts.forEach((m, i) => {
-    expect(simulation.player.mounts[i].loaded).toBe(groups[1].mountIds.includes(m.id) ? 'he' : 'ap');
-  });
+  expect(simulation.ammunitionSelection[groups[1].id]).toBe('he'); expect(simulation.ammunitionSelection[groups[2].id]).toBeUndefined();
   expect(game.selectedAmmunition).toBe('he');
 });
 

@@ -198,7 +198,7 @@ Sound uses an [original ElevenLabs-generated naval set](assets/audio/naval/READM
 - `src/simulation/collisions.ts`: hull contact separation, mass-based linear/angular impulses and localized ramming damage for every fleet actor.
 - `crates/naval-sim/`: authoritative renderer-free movement, weapons, collisions, aircraft, damage and flooding at 60 Hz. `naval-protocol` validates addressed commands; `naval-server` owns online matches and results; `naval-wasm` hosts custom battles.
 - `src/game/session/`: stable presentation objects, custom worker scheduling, WebSocket/reconnect transport and player intent.
-- `src/simulation/`: TypeScript port state, geometry and read-only presentation helpers; active custom/online combat runs in Rust.
+- `src/simulation/`: the retired TypeScript engine's remaining geometry and read-only presentation helpers; the port, custom and online battles all run in Rust through `src/game/session/`.
 - `src/simulation/gunnery.ts`: one fixed-tick operation per gun mount. Automatic AA claims a mount first unless its group is selected; otherwise the mount follows the sight or its bot's track. Both firing paths spend salvos from the shared stock in `weapons.ts`.
 - `src/game/ShipView.ts`: binds simulation state to exported joints. `ShipInspection.ts` renders shared armor/module/compartment inspection geometry; `src/ships/inspection.ts` supplies both its geometry and the port list. `CombatEffects.ts` expands projectile instances as needed and uses bounded pools for cosmetic particles.
 - `src/game/Game.ts`: scene, licensed Water/Sky integration and lifecycle. Combat ship poses come from CPU simulation; GPU waves animate the sea and buoys.
