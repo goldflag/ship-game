@@ -18,8 +18,9 @@ immersion and exhaust loss affect those services. See
 rates and repair limits.
 
 Use Hull for pieces, Armor for plating and openings, Fittings for equipment,
-Internals for rooms and machinery, and Paint for finishes. The hull grid is 1 m;
-equipment placement uses 0.25 m. Orbit, Plan, Profile and Bow views and a deck
+Internals for rooms and machinery, and Paint for finishes. Snap cycles through 0.25, 0.5, 1, 2 and 5 m for placement and movement.
+Hull and fittings retain separate choices while the editor is open, starting at
+1 m and 0.25 m respectively. Orbit, Plan, Profile and Bow views and a deck
 slice share source selections. The camera starts in perspective; **Camera** in
 the view bar or **P** toggles orthographic projection while retaining the framing.
 The choice is shared across layers and freeform editing for the current editor
@@ -32,12 +33,15 @@ mirrored pieces and loaded equipment models. Release commits one undoable edit;
 Escape cancels. While placing, a drag from empty space orbits, right-drag pans and scrolling zooms. R
 rotates the next piece. Shift-drag selects enclosed blocks and visible fittings in any
 tool; Ctrl/⌘ adds to the selection. Right-click removes the targeted block or
-fitting, and its deletion can be undone. The last hull block is protected; deleting a whole selection leaves one block and its surface assignments. Hover outlines the block under the pointer.
+fitting, and its deletion can be undone. The last hull block is protected; deleting a whole selection leaves one block and its surface assignments. Hover outlines the block under the pointer when selecting, erasing or measuring. Placement shows the pending piece or path without outlining its support block.
 
 Flat mating faces snap exactly. Curved or pointed contacts seat into the support
 by at most 5 cm, creating a physical attachment instead of a single-point touch.
 
-The editor has no ground grid or simulated water plane. If placement cannot
+A floor grid sits below the hull, with a brass centerline and direction markers
+pointing toward the labeled bow (−Z). It resizes with the hull and uses multiples
+of the snap step for larger ships. It is a visual guide, with no placement target
+or simulated water plane. If placement cannot
 compile, hull pieces remain visible as source envelopes while the diagnostics
 explain what needs fixing. Loaded funnels, turrets and other equipment retain
 their real models through edits and failed validation.

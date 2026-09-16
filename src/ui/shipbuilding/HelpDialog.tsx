@@ -5,7 +5,8 @@ import { BUILDER_LAYERS, BUILDER_RAIL } from './builderLayers';
  * definitions so this list cannot drift from the buttons. */
 const MOUSE: [string, string][] = [
   ['Click', 'Select a piece, fitting, wall or face; Shift-click adds to the selection'],
-  ['Drag a piece', 'Move it along the face under the pointer, snapped to the grid (1 m hull, ¼ m fittings)'],
+  ['Snap control', 'Cycle 0.25, 0.5, 1, 2 and 5 m for placement and movement'],
+  ['Drag a piece', 'Move it along the face under the pointer, snapped to the chosen Snap step'],
   ['Drag empty space', 'Orbit; pan in orthographic Plan, Profile and Bow views'],
   ['Right-drag', 'Pan'],
   ['Wheel · middle-drag', 'Zoom · dolly'],
@@ -19,7 +20,7 @@ const EDITING: [string[], string][] = [
   [['⌘C', '⇧⌘C'], 'Copy 1 m to starboard, mirror-copy across the centerline'],
   [['⌘A'], 'Select every hull piece and fitting'],
   [['Del', '⌫', '⌘X'], 'Remove the selection; a wall merges its rooms'],
-  [['←', '→', '↑', '↓'], 'Nudge the selection (1 m hull, ¼ m fittings)'],
+  [['←', '→', '↑', '↓'], 'Nudge the selection by the chosen Snap step'],
   [['PgUp', 'PgDn'], 'Raise or lower the selection; with Shift, move the slice'],
   [['R'], 'Rotate the cursor piece or the selection (90° hull, 15° fittings)'],
   [['Esc'], 'Close a panel, cancel a gesture, then return to Select'],
