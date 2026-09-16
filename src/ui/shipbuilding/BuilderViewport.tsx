@@ -11,7 +11,7 @@ import { surfaceKey } from '../../ships/constructionEditor';
 import { constructionPaintColor } from '../../ships/constructionPaints';
 import { snapCoordinate } from './editorNumbers';
 import { dominantAxis, fillLattice, pieceExtents, placementCenter, strokeSegment } from './placement';
-import { primitiveGeometry, placementGeometry, placementRotation, type BuilderPlacement } from './primitiveGeometry';
+import { primitiveOutlineGeometry, primitiveGeometry, placementGeometry, placementRotation, type BuilderPlacement } from './primitiveGeometry';
 import { createConstructionHull } from '../../game/constructionModel';
 import { createConstructionPathModel } from '../../game/constructionPathModel';
 import { equipmentPathBounds } from '../../ships/constructionPaths';
@@ -262,7 +262,7 @@ class Viewport {
         const mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .78, metalness: 0, side: THREE.DoubleSide, transparent: props.display === 'internals', opacity: props.display === 'internals' ? .15 : 1, depthWrite: props.display !== 'internals' }));
         mesh.userData.hull = true; this.hull.add(mesh); this.pickMeshes.push(mesh); this.hullMeshes.push(mesh);
       } else for (const primitive of props.source.construction.primitives) {
-        const mesh = new THREE.Mesh(primitiveGeometry(primitive.kind, primitive.size, primitive.vertices), new THREE.MeshStandardMaterial({ color: constructionPaintColor('naval-gray'), roughness: .78, side: THREE.DoubleSide, transparent: props.display === 'internals', opacity: props.display === 'internals' ? .15 : 1 }));
+        const mesh = new THREE.Mesh(primitiveGeometry(primitive.kind, primitive.size, primitive.vertices, primitive.customHull), new THREE.MeshStandardMaterial({ color: constructionPaintColor('naval-gray'), roughness: .78, side: THREE.DoubleSide, transparent: props.display === 'internals', opacity: props.display === 'internals' ? .15 : 1 }));
         mesh.position.set(...primitive.position); mesh.rotation.y = primitive.rotationDeg * Math.PI / 180;
         mesh.userData.sourceId = primitive.id; this.hull.add(mesh); this.pickMeshes.push(mesh); this.hullMeshes.push(mesh);
       }
@@ -291,7 +291,8 @@ class Viewport {
     if (!nativeSurfaces) for (const object of this.hull.children) {
       const mesh = object as THREE.Mesh;
       if (!props.selected.has(mesh.userData.sourceId)) continue;
-      const edges = new THREE.LineSegments(new THREE.EdgesGeometry(mesh.geometry), new THREE.LineBasicMaterial({ color: BRASS_LIGHT, depthTest: false }));
+      const primitive = props.source.construction.primitives.find(p => p.id === mesh.userData.sourceId);
+      const edges = new THREE.LineSegments(primitive ? primitiveOutlineGeometry(primitive) : new THREE.EdgesGeometry(mesh.geometry), new THREE.LineBasicMaterial({ color: BRASS_LIGHT, depthTest: false }));
       edges.position.copy(mesh.position); edges.rotation.copy(mesh.rotation); this.selection.add(edges);
     }
     for (const part of props.source.construction.equipment) {
@@ -315,9 +316,17 @@ class Viewport {
       const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geometry), new THREE.LineBasicMaterial({ color: ROOM, transparent: true, opacity: .4 }));
       fill.position.set(...room.center); edges.position.set(...room.center); this.details.add(fill, edges);
     }
+    const outlinedHulls = new Set<string>();
+    if (nativeSurfaces) for (const primitive of props.source.construction.primitives) {
+      if (primitive.kind !== 'custom-hull' || !props.selected.has(primitive.id)) continue;
+      outlinedHulls.add(primitive.id);
+      const edges = new THREE.LineSegments(primitiveOutlineGeometry(primitive), new THREE.LineBasicMaterial({ color: BRASS_LIGHT, depthTest: false }));
+      edges.position.set(...primitive.position); edges.rotation.y = primitive.rotationDeg * Math.PI / 180;
+      this.selection.add(edges);
+    }
     for (const surface of nativeSurfaces ?? []) {
       const chosen = props.selectedSurfaces.has(surfaceKey(surface.primitiveId, surface.face));
-      if (!chosen && !props.selected.has(surface.primitiveId)) continue;
+      if (!chosen && (!props.selected.has(surface.primitiveId) || outlinedHulls.has(surface.primitiveId))) continue;
       const points = surface.vertices.map(vertex => new THREE.Vector3(...vertex).addScaledVector(new THREE.Vector3(...surface.normal), .025));
       points.push(points[0].clone());
       this.selection.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), new THREE.LineBasicMaterial({ color: BRASS_LIGHT, depthTest: false })));
@@ -365,7 +374,7 @@ class Viewport {
     const map=new Map(replacements.map(p=>[p.id,p]));
     for(const original of this.props.source.construction.primitives) {
       const p=map.get(original.id)??original;
-      const geometry=primitiveGeometry(p.kind,p.size,p.vertices);
+      const geometry=primitiveGeometry(p.kind,p.size,p.vertices,p.customHull);
       const mesh=new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({color:constructionPaintColor('naval-gray'),roughness:.78,side:THREE.DoubleSide}));
       mesh.position.set(...p.position);mesh.rotation.y=p.rotationDeg*Math.PI/180;this.vertexPreview.add(mesh);
       if(map.has(p.id)) {const edges=new THREE.LineSegments(new THREE.EdgesGeometry(geometry),new THREE.LineBasicMaterial({color:BRASS_LIGHT}));edges.position.copy(mesh.position);edges.rotation.copy(mesh.rotation);this.vertexPreview.add(edges);}
@@ -444,8 +453,7 @@ class Viewport {
       clippingPlanes: this.props.slice === undefined ? [] : [new THREE.Plane(new THREE.Vector3(0, -1, 0), this.props.slice)] });
     const primitive = this.props.source.construction.primitives.find(part => part.id === pick?.id);
     if (primitive && !this.props.highlightFaces) {
-      const geometry = primitiveGeometry(primitive.kind, primitive.size, primitive.vertices);
-      const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geometry), material()); geometry.dispose();
+      const edges = new THREE.LineSegments(primitiveOutlineGeometry(primitive), material());
       edges.position.set(...primitive.position); edges.rotation.y = primitive.rotationDeg * Math.PI / 180;
       edges.renderOrder = 25; this.hoverGroup.add(edges);
       return;
@@ -637,9 +645,9 @@ class Viewport {
     for (const id of ids) {
       const primitive = primitives.find(part => part.id === id);
       if (primitive) {
-        const geometry = primitiveGeometry(primitive.kind, primitive.size, primitive.vertices);
+        const geometry = primitiveGeometry(primitive.kind, primitive.size, primitive.vertices, primitive.customHull);
         const fill = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ color: BRASS, transparent: true, opacity: .22, depthWrite: false }));
-        const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geometry), new THREE.LineBasicMaterial({ color: BRASS_LIGHT, depthTest: false }));
+        const edges = new THREE.LineSegments(primitiveOutlineGeometry(primitive), new THREE.LineBasicMaterial({ color: BRASS_LIGHT, depthTest: false }));
         for (const object of [fill, edges]) { object.position.set(...primitive.position); object.rotation.y = primitive.rotationDeg * Math.PI / 180; object.renderOrder = 20; this.movePreview.add(object); }
         continue;
       }

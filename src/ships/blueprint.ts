@@ -289,7 +289,7 @@ export interface ConstructionSource extends Pick<ShipBlueprint, 'schemaVersion' 
   construction: ConstructionData;
 }
 export interface ConstructionPrimitive {
-  id: string; kind: 'box' | 'wedge' | 'corner' | 'inverse-corner' | 'vertex' | 'ballast' | 'pyramid'
+  id: string; kind: 'box' | 'wedge' | 'corner' | 'inverse-corner' | 'vertex' | 'custom-hull' | 'ballast' | 'pyramid'
     | 'cylinder' | 'half-cylinder' | 'quarter-cylinder' | 'quarter-cylinder-wall'
     | 'sphere' | 'hemisphere' | 'sphere-octant' | 'hemisphere-shell'
     | 'half-hemisphere-shell' | 'quarter-hemisphere-shell' | 'parabolic-shell'
@@ -303,6 +303,14 @@ export interface ConstructionPrimitive {
   vertices?: Vec3[];
   /** Optional shared lighting seam group; physical surfaces remain unchanged. */
   smoothGroup?: string;
+  /** Section-authored whole hull; size is [beam, depth, length]. Native compilation
+   * derives its closed cells and surfaces; source sections remain editable. */
+  customHull?: ConstructionCustomHull;
+}
+export interface ConstructionHullPoint { x: number; y: number; }
+export interface ConstructionHullStation { id: string; t: number; points: ConstructionHullPoint[]; }
+export interface ConstructionCustomHull {
+  version: 1; stations: ConstructionHullStation[]; rake: number; bulb: number;
 }
 export interface ConstructionSurfaceAssignment {
   primitiveId: string; face: 'port' | 'starboard' | 'bottom' | 'top' | 'bow' | 'stern' | 'slope';

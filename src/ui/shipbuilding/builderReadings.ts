@@ -15,7 +15,7 @@ export const MPS_TO_KNOTS = 1.943844;
 export function hullBounds(source: ConstructionSource): { min: [number, number, number]; max: [number, number, number] } | undefined {
   const min: [number, number, number] = [Infinity, Infinity, Infinity], max: [number, number, number] = [-Infinity, -Infinity, -Infinity];
   for (const primitive of source.construction.primitives) {
-    if (primitive.kind === 'vertex') {
+    if (primitive.kind === 'vertex' || primitive.kind === 'custom-hull') {
       for (const v of cornerVertices(primitive)) worldVertex(primitive,v).forEach((n,k)=>{ min[k]=Math.min(min[k],n);max[k]=Math.max(max[k],n); });
       continue;
     }

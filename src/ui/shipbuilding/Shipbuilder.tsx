@@ -1,4 +1,8 @@
 import { FreeformToolbar, type FreeformSettings } from './FreeformToolbar';
+import CustomHullEditor from './CustomHullEditor';
+import { createPortal } from 'react-dom';
+import { customHullPrimitive, editableCustomHull, makeHull } from '../../ships/customHullModel';
+import { NewDesignDialog } from './NewDesignDialog';
 import { canEditVertices, freeformEdit, replaceVertexPrimitives, selectionCenter, splitVertexPrimitive, VERTEX_UNITS } from '../../ships/constructionVertex';
 import { blockMoveConstraint } from './blockMovement';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
@@ -89,7 +93,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   }, [data.catalogRevision, activeCatalog.revision]);
 
   const [layer, setLayer] = useState<BuilderLayer>('hull');
-  const [tool, setTool] = useState<BuilderTool>('place');
+  const [tool, setTool] = useState<BuilderTool>(() => data.primitives.some(p => p.kind === 'custom-hull') ? 'select' : 'place');
   const [slots, setSlots] = useState<Record<BuilderLayer, string>>({ hull: 'cube', armor: 'armor', internals: 'deck', fittings: '', paint: 'naval-gray' });
   const [customMm, setCustomMm] = useState(50);
   const [sizeOverride, setSizeOverride] = useState<Vec3>();
@@ -100,11 +104,13 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const [showArcs, setShowArcs] = useState(false);
   const [showCenters, setShowCenters] = useState(true);
   const [freeformSession, setFreeformSession] = useState<{designId:string;baseline:ConstructionPrimitive}>();
+  const [customHullSession, setCustomHullSession] = useState<{ designId: string; primitive: ConstructionPrimitive }>();
+  const [newDesignOpen, setNewDesignOpen] = useState(false);
   const [freeformSettings, setFreeformSettings] = useState<FreeformSettings>({axes:[true,false,false],unit:.2,snap:false,splitAxis:2,count:4,selection:{mode:'vertex',index:1}});
   const [perspective,setPerspective] = useState(true);
   const [view, setView] = useState<BuilderView>('orbit');
   const [slice, setSlice] = useState<{ on: boolean; y: number; auto: boolean }>({ on: false, y: 0, auto: true });
-  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [selected, setSelected] = useState<Set<string>>(() => new Set(data.primitives.filter(p => p.kind === 'custom-hull').slice(0, 1).map(p => p.id)));
   const [surfaces, setSurfaces] = useState<Set<string>>(new Set());
   const [measure, setMeasure] = useState<{ from: Vec3; to?: Vec3 }>();
   const [drawer, setDrawer] = useState(false);
@@ -170,7 +176,12 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const suggestionChanged = suggestion && JSON.stringify([data.equipment, data.boundaries, data.loads]) !== JSON.stringify([suggestion.source.construction.equipment, suggestion.source.construction.boundaries, suggestion.source.construction.loads]);
 
   useEffect(() => { setPathPoints([]); }, [source.id, pathPart?.id, layer, tool]);
-  useEffect(() => { setSelected(new Set()); setSurfaces(new Set()); setSuggestion(undefined); setMeasure(undefined); }, [source.id]);
+  useEffect(() => {
+    const hull = data.primitives.find(p => p.kind === 'custom-hull');
+    setSelected(new Set(hull ? [hull.id] : []));
+    if (hull) setTool('select');
+    setCustomHullSession(undefined); setSurfaces(new Set()); setSuggestion(undefined); setMeasure(undefined);
+  }, [source.id]);
   useEffect(() => () => { suggestionRequest.current?.abort(); suggestionRequest.current = undefined; }, [source.revision]);
 
   // ---- the cursor piece
@@ -248,7 +259,8 @@ export function Shipbuilder(props: ShipbuilderProps) {
     if (piece.kind === 'hull' && active?.kind === 'shape') {
       const pieces: ConstructionPrimitive[] = [];
       for (const point of points) {
-        pieces.push({ id: newConstructionId('hull'), kind: piece.shape, size: [...piece.size], position: point, rotationDeg: piece.rotationDeg });
+        pieces.push({ id: newConstructionId('hull'), kind: piece.shape, size: [...piece.size], position: point, rotationDeg: piece.rotationDeg,
+          ...(piece.shape === 'custom-hull' ? { customHull: customHullPrimitive(makeHull(0)).customHull } : {}) });
         if (mirror && offCenterline(point)) pieces.push({ ...mirroredPrimitive(pieces.at(-1)!), id: newConstructionId('hull') });
       }
       if (data.primitives.length + pieces.length > LIMITS.primitives) { editor.setError(`A design supports up to ${LIMITS.primitives} hull pieces. Use larger pieces or remove a section before adding more.`); return; }
@@ -355,8 +367,8 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const erase = (id: string) => removePieces(new Set([id]), 'Remove piece');
   const newDesign = async (kind: ConstructionStarter) => {
     setDesignsOpen(false);
-    try { await editor.replace(freshConstruction(createStarterSource(props.catalog, kind), kind === 'blank'), null, false); switchLayer('hull'); setFitRequest(value => value + 1); }
-    catch (cause) { fail(cause); }
+    await editor.replace(freshConstruction(createStarterSource(props.catalog, kind), kind === 'blank'), null, false);
+    switchLayer('hull'); setTool('select'); setSelected(new Set(['hull'])); setFitRequest(value => value + 1); setNewDesignOpen(false);
   };
   const deleteDesign = async (designId: string, revisionId: string) => {
     const current = designId === source.id;
@@ -448,6 +460,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   // The latest render's closure handles keys, so a key right after a click sees the click's selection.
   const keyHandler = useRef<(event: KeyboardEvent) => void>(() => {});
   keyHandler.current = (event: KeyboardEvent) => {
+      if (customHullSession || newDesignOpen) return;
       if ((event.target as HTMLElement).closest('input,textarea,select,[role=combobox],[contenteditable=true]')) return;
       if (helpOpen) { if (event.key === 'Escape' || event.key === '?') { event.preventDefault(); setHelpOpen(false); } return; }
       if (event.key === '?') { event.preventDefault(); setHelpOpen(true); return; }
@@ -545,6 +558,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
     tags.push({ key: `piece-${primitive.id}`, anchor: primitive.position, dx: 70, dy: -78, tone: 'mint', content: <>
       <b>{SHAPE_NAMES[primitive.kind]} <NumberField value={primitive.size[0]} min={.25} max={500} onChange={value => size(0, value)}/> × <NumberField value={primitive.size[1]} min={.25} max={500} onChange={value => size(1, value)}/> × <NumberField value={primitive.size[2]} min={.25} max={500} onChange={value => size(2, value)}/> m</b>
       {canEditVertices(primitive) && <button className="sb-edit-freeform" onClick={enterFreeform}>Freeform hull</button>}
+      {primitive.kind === 'custom-hull' && <button className="sb-edit-freeform" onClick={() => setCustomHullSession({ designId: source.id, primitive: structuredClone(primitive) })}>Edit hull sections</button>}
       {mass !== undefined ? `plating ${formatTonnes(mass)} · ` : ''}<NumberField label="x" value={primitive.position[0]} min={-1000} max={1000} onChange={value => move(0, value)}/> <NumberField label="y" value={primitive.position[1]} min={-1000} max={1000} onChange={value => move(1, value)}/> <NumberField label="z" value={primitive.position[2]} min={-1000} max={1000} onChange={value => move(2, value)}/> · {primitive.rotationDeg}° <kbd>R</kbd> · <kbd>⌫</kbd> remove · <kbd>⌘C</kbd> copy
     </> });
   } else if (selectedEquipment.length === 1 && !selectedPrimitives.length) {
@@ -644,6 +658,14 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const chip = (hint: KeyHint) => <span key={hint.label} className="sb-key">{hint.keys.map((key, index) => <kbd key={index}>{key}</kbd>)}{hint.label}</span>;
 
   return <main className={`shipbuilder ${freeformMode ? 'sb-freeform-mode' : ''}`} aria-label="Shipbuilder" data-path-drawing={!!pathPart || undefined} data-layer={layer} data-drawer={drawer || undefined} aria-busy={!!busy}>
+    {newDesignOpen && <NewDesignDialog onClose={() => setNewDesignOpen(false)} onCreate={newDesign}/>}
+    {customHullSession?.designId === source.id && createPortal(<CustomHullEditor integration={{ hull: editableCustomHull(customHullSession.primitive), onClose: () => setCustomHullSession(undefined), onApply: hull => {
+      run('Shape custom hull', draft => {
+        const index = draft.construction.primitives.findIndex(p => p.id === customHullSession.primitive.id);
+        if (index >= 0) draft.construction.primitives[index] = customHullPrimitive(hull, draft.construction.primitives[index]);
+      });
+      setCustomHullSession(undefined); setFitRequest(value => value + 1);
+    } }}/>, document.body)}
     <BuilderViewport pathDraft={!locked && pathPart ? { part: pathPart, points: pathPoints, slackM: pathPart.path?.kind === 'rope' ? ropeSlack : 0, mirror } : undefined} onPathPoint={addPathPoint} onPathFinish={finishPath} perspective={perspective} freeform={freeformPrimitive && !locked ? {...freeformSettings,id:freeformPrimitive.id,onSelect:selection=>changeFreeformSettings({selection}),onCommit:commitFreeform} : undefined} source={source} result={result} catalog={catalog} selected={selected} selectedSurfaces={surfaces} view={view} display={DISPLAY[layer]} slice={slice.on ? slice.y : undefined}
       gridStep={gridStep} gesture={locked ? 'none' : gesture} pickTargets={layer === 'armor' || layer === 'paint' ? 'hull' : 'all'} moveTargets={locked || freeformMode ? 'none' : moveTargets} placementPiece={locked || freeformMode ? undefined : piece} placementMirror={mirrorPiece} highlightFaces={layer === 'armor' || layer === 'paint'} rooms={layer === 'internals'}
       showCenters={showCenters} arcs={arcs} proposed={proposed} measure={measure} tags={tags} coords={coords} status={status} fitRequest={fitRequest} onPick={pick} onStroke={placeAt} onBoxSelect={boxSelect} onErase={erase} onMove={movePieces} createModel={props.createModel}/>
@@ -656,7 +678,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
         <input disabled={locked} className="sb-name" aria-label="Design name" maxLength={160} value={source.name} onChange={event => run('Rename design', draft => { draft.name = event.target.value; })}/>
         <button className="sb-meta" disabled={!!pathPoints.length} aria-haspopup="menu" aria-expanded={designsOpen} onClick={() => setDesignsOpen(value => !value)}>{data.primitives.length} pieces · {data.equipment.length} fittings <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="m2 3.5 3 3 3-3"/></svg></button>
         <i className={`sb-save ${saveTone}`} role="status">{saveText}</i>
-        {designsOpen && !props.repositoryId && <DesignsMenu partsUpdate={partsUpdate} disabled={locked} store={editor.store} currentId={source.id} refresh={editor.saveState.revision?.id} onClose={() => setDesignsOpen(false)} onNew={kind => void newDesign(kind)} onSaveCopy={() => void saveCopy()} onDelete={deleteDesign}
+        {designsOpen && !props.repositoryId && <DesignsMenu partsUpdate={partsUpdate} disabled={locked} store={editor.store} currentId={source.id} refresh={editor.saveState.revision?.id} onClose={() => setDesignsOpen(false)} onNew={kind => { if (kind) void newDesign(kind).catch(fail); else { setDesignsOpen(false); setNewDesignOpen(true); } }} onSaveCopy={() => void saveCopy()} onDelete={deleteDesign}
           onDownload={() => { downloadConstructionSource(JSON.stringify(source, null, 2), source.name); setDesignsOpen(false); }}
           onOpen={async (next, revision) => { setDesignsOpen(false); await editor.replace(next, revision, true); switchLayer('hull'); }} onRecover={async next => { setDesignsOpen(false); await editor.replace(next, null, false); switchLayer('hull'); }}/>}
         {designsOpen && props.repositoryId && <div className="sb-menu" role="menu" aria-label="Repository source">

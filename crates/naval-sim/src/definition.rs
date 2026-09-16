@@ -1108,6 +1108,36 @@ pub struct ShipDefinitionAccuracy {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionHullPoint {
+    #[serde(rename = "x")]
+    pub x: f64,
+    #[serde(rename = "y")]
+    pub y: f64,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionHullStation {
+    #[serde(rename = "id")]
+    pub id: String,
+    #[serde(rename = "t")]
+    pub t: f64,
+    #[serde(rename = "points")]
+    pub points: Vec<ConstructionHullPoint>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionCustomHull {
+    #[serde(rename = "version")]
+    pub version: f64,
+    #[serde(rename = "stations")]
+    pub stations: Vec<ConstructionHullStation>,
+    #[serde(rename = "rake")]
+    pub rake: f64,
+    #[serde(rename = "bulb")]
+    pub bulb: f64,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct ConstructionPrimitive {
     #[serde(rename = "id")]
     pub id: String,
@@ -1123,6 +1153,8 @@ pub struct ConstructionPrimitive {
     pub vertices: Option<Vec<[f64; 3]>>,
     #[serde(rename = "smoothGroup")]
     pub smooth_group: Option<String>,
+    #[serde(rename = "customHull")]
+    pub custom_hull: Option<ConstructionCustomHull>,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]

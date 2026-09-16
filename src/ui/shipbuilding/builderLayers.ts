@@ -45,6 +45,7 @@ export const HULL_SHAPES: HullShape[] = [
   { id: 'corner-out', name: 'Corner out', note: '4 m', kind: 'corner', size: [4, 4, 4] },
   { id: 'corner-in', name: 'Corner in', note: '4 m', kind: 'inverse-corner', size: [4, 4, 4] },
   { id: 'vertex', name: 'Freeform hull', note: 'vertices, edges and faces · 4 m', kind: 'vertex', size: [4, 4, 4] },
+  { id: 'custom-hull', name: 'Custom hull', note: 'whole hull · editable cross-sections', kind: 'custom-hull', size: [6.5, 4, 36] },
   { id: 'plate', name: 'Plate', note: '4 × ¼ × 4', kind: 'box', size: [4, .25, 4] },
   { id: 'block', name: 'Block', note: '4 m', kind: 'box', size: [4, 4, 4] },
   { id: 'wide-slab', name: 'Wide slab', note: '8 × 1 × 8', kind: 'box', size: [8, 1, 8] },

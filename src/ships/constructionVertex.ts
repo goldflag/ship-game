@@ -1,5 +1,6 @@
 import type { ConstructionPrimitive, ConstructionSource, Vec3 } from './blueprint';
 import { newConstructionId } from './constructionEditor';
+import { customHullPoints } from './customHullModel';
 
 export const VERTEX_UNITS = [.05, .1, .2, .5, 1, 2] as const;
 export const VERTEX_SNAP_DISTANCE = .025;
@@ -47,7 +48,7 @@ function reflectedCorner(i: number, transform: Vec3): number {
 export function affectedCorners(selection: HullSelection, axes: MirrorAxes): number[] {
   return [...new Set(mirrorTransforms(axes).flatMap(t => selectionCorners(selection).map(i => reflectedCorner(i,t))))];
 }
-export const cornerVertices = (p: ConstructionPrimitive): Vec3[] => p.vertices?.map(v => [...v]) ?? CORNER_SIGNS.map(v => v.map(n => n / 2) as Vec3);
+export const cornerVertices = (p: ConstructionPrimitive): Vec3[] => p.kind === 'custom-hull' && p.customHull ? customHullPoints(p).map(v => v.map((n, k) => n / p.size[k]) as Vec3) : p.vertices?.map(v => [...v]) ?? CORNER_SIGNS.map(v => v.map(n => n / 2) as Vec3);
 export const canEditVertices = (p: ConstructionPrimitive) => p.kind === 'box' || p.kind === 'vertex';
 export function rotateVertex(v: Vec3, degrees: number): Vec3 {
   const a = degrees * Math.PI / 180, c = Math.cos(a), s = Math.sin(a);

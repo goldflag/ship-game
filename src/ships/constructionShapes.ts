@@ -6,6 +6,7 @@ type Kind = ConstructionPrimitive['kind'];
 export const CONSTRUCTION_SHAPES = displayLibrary.shapes as Record<Kind, Vec3[][]>;
 export const CONSTRUCTION_SHAPE_NAMES: Record<Kind, string> = {
   box: 'Box', wedge: 'Wedge', corner: 'Corner out', 'inverse-corner': 'Corner in', vertex: 'Freeform hull',
+  'custom-hull': 'Custom hull',
   ballast: '100 t ballast',
   pyramid: 'Pyramid · ⅓ hull', cylinder: 'Cylinder', 'half-cylinder': 'Half cylinder',
   'quarter-cylinder': 'Quarter cylinder', 'quarter-cylinder-wall': 'Quarter cylinder wall',
