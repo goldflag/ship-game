@@ -623,7 +623,7 @@ fn build(
     }
     let mut penetrations = vec![];
     for (i, p) in primitives.iter().enumerate() {
-        for (face, polygon) in &raw[i].faces {
+        for (face, polygon) in raw[i].faces.iter() {
             let face = face.clone();
             let a = c
                 .surfaces
@@ -643,7 +643,7 @@ fn build(
                     let mut remaining = vec![];
                     for patch in patches {
                         let mut covered = patch.clone();
-                        for plane in &well.faces {
+                        for plane in well.faces.iter() {
                             let n = cg::normal(&plane.vertices);
                             covered = cg::clip_polygon(&covered, n, dot(n, plane.vertices[0]));
                             if covered.len() < 3 {
@@ -865,7 +865,7 @@ fn build(
         // collar and trunk remain ordinary physical material.
         for (id, kind, polygon) in &mut penetrations {
             if *id == installation.id && kind == "gun" {
-                for f in &installation.bore.faces {
+                for f in installation.bore.faces.iter() {
                     let n = cg::normal(&f.vertices);
                     *polygon = cg::clip_polygon(polygon, n, dot(n, f.vertices[0]));
                     if polygon.len() < 3 {
@@ -1334,7 +1334,7 @@ fn build(
 }
 fn surface_mesh(cell: &cg::Cell) -> AuthoredSurface {
     let mut s = AuthoredSurface::default();
-    for f in &cell.faces {
+    for f in cell.faces.iter() {
         let base = s.vertices.len();
         s.vertices.extend(&f.vertices);
         s.triangles.extend(
@@ -1372,7 +1372,7 @@ fn room_plane_faces(room: &Compartment, normal: Vec3, offset: f64) -> Vec<Vec<Ve
     room.volumes
         .iter()
         .flatten()
-        .flat_map(|c| &c.faces)
+        .flat_map(|c| c.faces.iter())
         .filter(|f| {
             dot(cg::normal(&f.vertices), normal) > 1. - 1e-7
                 && f.vertices

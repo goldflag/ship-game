@@ -1,7 +1,8 @@
 import init, { LocalRuntime, PvePlanner } from '../../generated/naval-wasm/naval_wasm';
-import manifestUrl from '../../../.build/naval-content/manifest.json?url';
+import manifestUrl from '../../../.build/naval-content/index.json?url';
 import type { BattleSetup } from '../../multiplayer/generated/BattleSetup';
 import type { CommandEnvelope } from '../../multiplayer/generated/CommandEnvelope';
+import { assetUrl } from '../../assetUrl';
 import type { LocalDelta } from './localSnapshotDelta';
 import type { PveRequest } from '../../multiplayer/generated/PveRequest';
 import type { Placement } from '../../multiplayer/generated/Placement';
@@ -9,15 +10,17 @@ import type { Formation } from '../../multiplayer/generated/Formation';
 import type { LocalConstructionInput, TrialAction } from './localConstruction';
 import { loadConstructionCatalog } from '../../ships/constructionEquipment';
 let runtime: LocalRuntime | undefined;
+let wasmMemory: WebAssembly.Memory | undefined;
 let planner: PvePlanner | undefined;
 let profile = false;
 /** Hulls whose damage-control detail the session still reads. Empty keeps every
  * ship's, which is what the first frame after init, deploy or restart wants. */
 let detail: string[] = [];
-let content: Promise<Uint8Array> | undefined;
+type ContentIndex = { ships: { id: string; contentHash: string; sha256: string; encoding: string; url: string }[]; hydrostatics: { id: string }[]; [key: string]: unknown };
+let content: Promise<ContentIndex> | undefined;
 let trialInit: { setup: BattleSetup; construction: LocalConstructionInput } | undefined;
 async function createRuntime(setup: BattleSetup, construction?: LocalConstructionInput): Promise<LocalRuntime> {
-  const manifest = await loadContent();
+  const manifest = await loadContent(setup.ships.map(s => s.presetId));
   if (!construction) return new LocalRuntime(manifest, JSON.stringify(setup));
   const catalogs = await Promise.all([...new Set(construction.sources.map(s => s.construction.catalogRevision))].map(revision => loadConstructionCatalog(revision)));
   const next = LocalRuntime.with_construction(manifest, JSON.stringify(setup), JSON.stringify(construction.sources), JSON.stringify(catalogs), construction.trial);
@@ -27,12 +30,27 @@ async function createRuntime(setup: BattleSetup, construction?: LocalConstructio
     return next;
   } catch (error) { next.free(); throw error; }
 }
-function loadContent() {
-  return content ??= (async () => {
-    const [, response] = await Promise.all([init(), fetch(manifestUrl)]);
+async function loadContent(ids?: string[]): Promise<Uint8Array> {
+  const index = await (content ??= (async () => {
+    const [, response] = await Promise.all([init().then(wasm => { wasmMemory = wasm.memory; }), fetch(manifestUrl)]);
     if (!response.ok) throw new Error('Unable to load battle content.');
-    return new Uint8Array(await response.arrayBuffer());
-  })();
+    return response.json() as Promise<ContentIndex>;
+  })());
+  // Custom battles/trials fetch only admitted historical designs. The mission
+  // planner needs the eligible roster; that path explicitly requests all designs.
+  let selected = ids ? index.ships.filter(s => ids.includes(s.id)) : index.ships;
+  if (!selected.length) selected = index.ships.filter(s => s.id === 'bismarck'); // Bootstrap trusted environment for an all-local fleet.
+  const ships = [];
+  for (const { url, ...entry } of selected) {
+    const response = await fetch(assetUrl(url));
+    if (!response.ok) throw new Error('Unable to load battle ship: ' + entry.id);
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    let binary = ''; for (let i = 0; i < bytes.length; i += 16384) binary += String.fromCharCode(...bytes.subarray(i, i + 16384));
+    ships.push({ ...entry, json: btoa(binary) });
+  }
+  // No persistent full manifest/definition strings in the worker after admission.
+  return new TextEncoder().encode(JSON.stringify({ ...index, ships,
+    hydrostatics: index.hydrostatics.filter(t => selected.some(s => s.id === t.id)) }));
 }
 // Requests are serialized: initialization cannot race a queued tick batch.
 let chain = Promise.resolve();
@@ -100,7 +118,7 @@ self.onmessage = (event: MessageEvent<{ type: 'options' } | { type: 'validate'; 
       if (!Number.isSafeInteger(frame.tick) || frame.tick < 0) throw new Error('Invalid battle snapshot.');
       const timing = profile ? { tick: frame.tick, ticks: message.type === 'advance' ? message.ticks : 0,
         step: stepped - started, serialize: serialized - stepped, decode: decoded - serialized,
-        delta: 0, bytes: json.length } : undefined;
+        delta: 0, bytes: json.length, wasmMemoryBytes: wasmMemory?.buffer.byteLength } : undefined;
       self.postMessage({ type: 'snapshot', reset: message.type === 'restart' || message.type === 'trial-reset' || (message.type === 'trial-action' && frame.baseTick == null), trialAction: message.type === 'trial-action', baseTick: frame.baseTick ?? undefined, delta: frame.delta, timing });
     } catch (error) { self.postMessage({ type: event.data.type === 'trial-action' ? 'trial-error' : 'error', message: String(error) }); }
   });

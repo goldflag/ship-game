@@ -37,6 +37,8 @@ struct ManifestShip {
     content_hash: String,
     sha256: String,
     json: String,
+    #[serde(default)]
+    encoding: Option<String>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -234,22 +236,26 @@ impl Catalog {
             return Err(ContentError::Invalid("Invalid aircraft ground pose".into()));
         }
         for entry in manifest.ships {
-            if sha256(entry.json.as_bytes()) != entry.sha256 {
-                return Err(ContentError::Invalid(format!(
-                    "{} has a mismatched definition digest",
-                    entry.id
-                )));
+            let definition: ShipDefinition = match entry.encoding.as_deref() {
+                None => {
+                    if sha256(entry.json.as_bytes()) != entry.sha256 {
+                        return Err(ContentError::Invalid(format!("{} has a mismatched definition digest", entry.id)));
+                    }
+                    serde_json::from_str(&entry.json)?
+                }
+                Some("nsd1-base64") => {
+                    let bytes = crate::hydro_table::base64(entry.json.as_bytes())
+                        .ok_or_else(|| ContentError::Invalid("Invalid runtime base64".into()))?;
+                    if sha256(&bytes) != entry.sha256 {
+                        return Err(ContentError::Invalid(format!("{} has a mismatched runtime digest", entry.id)));
+                    }
+                    crate::runtime_encoding::decode(&bytes).map_err(ContentError::Invalid)?
+                }
+                Some(_) => return Err(ContentError::Invalid("Unsupported definition encoding".into())),
+            };
+            if definition.content_hash.as_deref() != Some(entry.content_hash.as_str()) {
+                return Err(ContentError::Invalid(format!("{} has a mismatched model identifier", entry.id)));
             }
-            let value: serde_json::Value = serde_json::from_str(&entry.json)?;
-            if value.get("contentHash").and_then(|v| v.as_str())
-                != Some(entry.content_hash.as_str())
-            {
-                return Err(ContentError::Invalid(format!(
-                    "{} has a mismatched model identifier",
-                    entry.id
-                )));
-            }
-            let definition: ShipDefinition = serde_json::from_value(value)?;
             // Published construction definitions are trusted by the same manifest
             // digest/identity checks as legacy presets. Local drafts still enter
             // only through source recompilation in with_constructions.

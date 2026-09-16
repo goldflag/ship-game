@@ -64,7 +64,7 @@ import type { GameAudio } from './GameAudio';
 import type { Ammunition, Battery, ShipDefinition, Vec3 } from '../ships/blueprint';
 import { gunTraverseAtFraction } from '../ships/armament';
 import type { InspectionMode } from '../ships/inspection';
-import { selectedShip, shipPreset } from '../ships/presets';
+import { selectedShip, shipPreset, loadShipPresets } from '../ships/presets';
 import { availableShipIds, freezeLocalFleet, isHistoricalShip, localShip, resolveShip, type LocalShipRevision, type IdentifiedShip } from '../ships/localShips';
 import { createConstructionModel } from './constructionModel';
 import type { TrialAction } from './session/localConstruction';
@@ -814,6 +814,7 @@ export class Game {
     recognition.asked.add(presetId);
     void (async () => {
       try {
+        await loadShipPresets([presetId]);
         const model = await this.hull(definition);
         if (this.disposed || recognition !== this.recognition) return;
         recognition.models.set(presetId, model);

@@ -1,3 +1,4 @@
+import { loadShipPresets } from '../../ships/presets';
 import { assetUrl } from '../../assetUrl';
 import { expandSnapshot } from '../../multiplayer/snapshotDelta';
 import version from '../../generated/naval-version.json';
@@ -96,6 +97,8 @@ export class MatchConnection {
         if (message.type === 'matched') { this.acceptMetadata(message); continue; }
         if (!this.metadata) throw new Error('Snapshot arrived before battle metadata.');
         const frame = readSnapshot(expandSnapshot(this.metadata.baseline, message));
+        if (!this.session) await loadShipPresets(this.metadata.setup.ships.map(s => s.presetId));
+        if (generation !== this.generation || this.stopped) break;
         if (!this.session) { this.session = new RemoteBattleSession(this.metadata, this, frame); this.resolve(this.session); }
         else this.session.receive(frame);
         if (frame.phase === 'finished' || frame.phase === 'cancelled') { sessionStorage.removeItem(storageKey); this.stopped = true; clearTimeout(this.timer); clearInterval(this.heartbeat); this.socket?.close(); }

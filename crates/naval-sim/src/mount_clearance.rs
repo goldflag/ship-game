@@ -204,11 +204,38 @@ impl Capsule {
         }
     }
 }
+/// Broad phase over immutable obstacles. Query results are restored to authored
+/// order so equal-distance obstruction IDs and conservative sweep arithmetic agree.
+#[derive(Clone, Debug)]
+struct BodyIndex { bounds: Box3, indices: Vec<usize>, children: Option<Box<[BodyIndex; 2]>> }
+impl BodyIndex {
+    fn new(bodies: &[Body], mut indices: Vec<usize>) -> Option<Self> {
+        if indices.is_empty() { return None; }
+        let bounds = Box3::points(indices.iter().flat_map(|&i| {
+            let b = bodies[i].bounds;
+            [std::array::from_fn(|a| b.center[a] - b.size[a] * 0.5), std::array::from_fn(|a| b.center[a] + b.size[a] * 0.5)]
+        }));
+        if indices.len() <= 12 { return Some(Self { bounds, indices, children: None }); }
+        let axis = (0..3).max_by(|&a, &b| bounds.size[a].total_cmp(&bounds.size[b])).unwrap();
+        indices.sort_by(|&a, &b| bodies[a].bounds.center[axis].total_cmp(&bodies[b].bounds.center[axis]).then(a.cmp(&b)));
+        let right = indices.split_off(indices.len()/2);
+        Some(Self { bounds, indices: vec![], children: Some(Box::new([Self::new(bodies, indices).unwrap(), Self::new(bodies, right).unwrap()])) })
+    }
+    fn query(&self, bounds: Box3, limit: f64, out: &mut Vec<usize>) {
+        // Outward numerical slack only admits extra candidates; it never relaxes
+        // the original per-body narrow phase or clearance margin.
+        if bounds.separation(self.bounds) > limit + 1e-8 { return; }
+        if let Some(children) = &self.children { for child in children.iter() { child.query(bounds, limit, out); } }
+        else { out.extend_from_slice(&self.indices); }
+    }
+}
 #[derive(Clone, Debug)]
 pub struct MountClearance {
     enabled: Vec<bool>,
     margin: f64,
     bodies: Vec<Body>,
+    static_index: Option<BodyIndex>,
+    moving: Vec<usize>,
     // Maximum distance from each yaw/elevation axis bounds every point's speed.
     radii: Vec<f64>,
 }
@@ -359,6 +386,8 @@ impl MountClearance {
         Ok(Some(Self {
             enabled,
             margin: profile.margin_m,
+            static_index: BodyIndex::new(&bodies, (0..bodies.len()).filter(|&i| bodies[i].mount.is_none()).collect()),
+            moving: (0..bodies.len()).filter(|&i| bodies[i].mount.is_some()).collect(),
             bodies,
             radii,
         }))
@@ -563,33 +592,26 @@ impl MountClearance {
                 bounds
             })
             .collect();
-        let body_bounds: Vec<_> = self
-            .bodies
-            .iter()
-            .map(|body| {
-                body.mount
-                    .map_or(body.bounds, |i| body.bounds.transformed(frames[i]))
-            })
-            .collect();
-        // Only moving bodies can change clearance against an unchanged gun.
-        // Preserve original body order (including equal-distance tie behavior),
-        // without scanning every static hull cell for every untouched mount.
-        let moving_bodies: Vec<_> = self.bodies.iter().enumerate()
-            .filter_map(|(i, body)| body.mount.is_some_and(|m| changed[m]).then_some(i))
-            .collect();
+        let moving_bodies: Vec<_> = self.moving.iter().copied()
+            .filter(|&i| self.bodies[i].mount.is_some_and(|m| changed[m])).collect();
         let (mut gap, mut id) = (limit, None);
         for (i, capsules) in barrels.iter().enumerate() {
-            let candidates = if changed[i] { self.bodies.len() } else { moving_bodies.len() };
-            for candidate in 0..candidates {
-                let index = if changed[i] { candidate } else { moving_bodies[candidate] };
-                let (body, bounds) = (&self.bodies[index], &body_bounds[index]);
+            let mut candidates = Vec::new();
+            if changed[i] {
+                if let Some(tree) = &self.static_index { tree.query(barrel_bounds[i], gap, &mut candidates); }
+                candidates.extend_from_slice(&self.moving);
+                candidates.sort_unstable();
+            } else { candidates.extend_from_slice(&moving_bodies); }
+            for index in candidates {
+                let body = &self.bodies[index];
+                let bounds = body.mount.map_or(body.bounds, |j| body.bounds.transformed(frames[j]));
                 if body.enclosure && body.mount == Some(i) {
                     continue;
                 }
                 if !changed[i] && !body.mount.is_some_and(|j| changed[j]) {
                     continue;
                 }
-                if barrel_bounds[i].separation(*bounds) >= gap {
+                if barrel_bounds[i].separation(bounds) >= gap {
                     continue;
                 }
                 for &capsule in capsules {
@@ -1025,5 +1047,38 @@ mod tests {
                 [0.5, 1.0, 0.0]
             ) < 1e-10
         );
+    }
+}
+
+#[cfg(test)]
+mod index_regression {
+    use super::*;
+    #[test]
+    fn hipper_index_matches_linear_clearance_including_obstacle_identity() {
+        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../public/models/admiral-hipper-construction.json");
+        let def: ShipDefinition = serde_json::from_slice(&std::fs::read(path).unwrap()).unwrap();
+        let indexed = MountClearance::new(&def).unwrap().unwrap();
+        let mut linear = indexed.clone();
+        let tree = linear.static_index.as_mut().unwrap();
+        tree.children = None;
+        tree.indices = (0..linear.bodies.len()).filter(|&i| linear.bodies[i].mount.is_none()).collect();
+        let mut poses = vec![ClearancePose::default(); def.mounts.len()];
+        for sample in 0..40 {
+            for (i, pose) in poses.iter_mut().enumerate() {
+                pose.train = radians(((sample * 37 + i * 23) % 300) as f64 - 150.);
+                pose.elevation = radians(((sample * 13 + i * 7) % 80) as f64);
+                pose.recoil = (sample % 3) as f64 * 0.5;
+            }
+            for mount in [0, 3, 15, 30] {
+                for limit in [0.01, 1., 30.] {
+                    assert_eq!(indexed.minimum_clearance(&def, mount, &poses, limit), linear.minimum_clearance(&def, mount, &poses, limit));
+                }
+                let request = ClearancePose { train: poses[mount].train + 0.2, elevation: poses[mount].elevation + 0.1, recoil: 1. };
+                // Test final swept pose as well as the narrow phase; every stop ID is retained.
+                let a = indexed.resolve(&def, mount, &poses, request);
+                let b = linear.resolve(&def, mount, &poses, request);
+                assert_eq!(serde_json::to_string(&a).unwrap(), serde_json::to_string(&b).unwrap());
+            }
+        }
     }
 }

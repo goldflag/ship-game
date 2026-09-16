@@ -42,7 +42,7 @@ fn nodes<'de, D: serde::Deserializer<'de>>(d: D) -> Result<Vec<f32>, D::Error> {
         .collect())
 }
 /// Standard base64 with padding; the published table is the only caller.
-fn base64(text: &[u8]) -> Option<Vec<u8>> {
+pub(crate) fn base64(text: &[u8]) -> Option<Vec<u8>> {
     let mut out = Vec::with_capacity(text.len() / 4 * 3);
     let (mut acc, mut bits) = (0u32, 0u32);
     for &c in text {

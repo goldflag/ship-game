@@ -97,3 +97,5 @@ pub const SIMULATION_BUILD: &str = env!("NAVAL_SIMULATION_BUILD");
 pub mod air_recovery;
 pub mod air_search;
 pub mod pve_air;
+
+pub mod runtime_encoding;

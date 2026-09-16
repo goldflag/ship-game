@@ -158,8 +158,9 @@ in `generated/review/`. Source, compiler/producer identity and actual output byt
 determine freshness. Unchanged valid builds reuse output. Failed verification
 does not publish the candidate; mismatched output pairs fail visibly.
 
-`ship:register` checks the built asset and adds one import and roster entry to
-`src/ships/presets.ts`. Registration enables the game/model viewer and fleet checks;
+`ship:register` checks the built asset and adds one `preset(id)` roster entry to
+`src/ships/presets.ts`. Run `multiplayer:content` (also included in `dev` and `build`)
+to derive its runtime asset and menu metadata. Registration enables the game/model viewer and fleet checks;
 it does not assert visual acceptance. Constructed presets use native volume
 hydrostatics and do not need the legacy station-hull lookup table. Unregistered
 drafts and browser player designs do not enter the trusted online manifest.

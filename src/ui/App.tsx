@@ -15,7 +15,7 @@ import { Icon } from './Icons';
 import { FleetHud } from './FleetHud';
 import { BinocularOverlay } from './BinocularOverlay';
 import { Garage } from './Garage';
-import { selectedShip as initialShip } from '../ships/presets';
+import { selectedShip as initialShip, loadShipPresets } from '../ships/presets';
 import { ShipContext } from './ShipContext';
 import { bindingLabel, KEYBINDING_STORAGE_KEY, loadKeybindings, type Keybindings } from '../game/keybindings';
 import { BattleDialog } from './battle/BattleDialog';
@@ -334,6 +334,7 @@ export function App() {
     if (!ready || phase !== 'garage' || !session || switchPending.current) return;
     switchPending.current = true; setSwitching(true); setSwitchError('');
     try {
+      await loadShipPresets([id]);
       const definition = resolveShip(id);
       await session.switchShip(definition);
       if (game.current !== session) return;

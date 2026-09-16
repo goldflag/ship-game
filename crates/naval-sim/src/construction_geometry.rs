@@ -73,7 +73,7 @@ pub fn clip(c: &Cell, n: Vec3, d: f64) -> Option<Cell> {
     let (mut faces, mut cap) = (vec![], vec![]);
     let mut outside = false;
     let mut inside = false;
-    for f in &c.faces {
+    for f in c.faces.iter() {
         for &p in &f.vertices {
             outside |= dot(n, p) - d > EPS;
             inside |= dot(n, p) - d < -EPS;
@@ -85,7 +85,7 @@ pub fn clip(c: &Cell, n: Vec3, d: f64) -> Option<Cell> {
     if !inside {
         return None;
     }
-    for f in &c.faces {
+    for f in c.faces.iter() {
         let p = clip_polygon(&f.vertices, n, d);
         if p.len() < 3 || area(&p) < EPS * EPS {
             continue;
@@ -118,7 +118,7 @@ pub fn clip(c: &Cell, n: Vec3, d: f64) -> Option<Cell> {
             faces.push(ConvexVolumeFacesItem { vertices: cap });
         }
     }
-    (faces.len() >= 4).then_some(Cell { faces })
+    (faces.len() >= 4).then_some(Cell { faces: faces.into() })
 }
 pub fn contains(c: &Cell, p: Vec3) -> bool {
     c.faces
@@ -136,7 +136,7 @@ pub fn closest_point(c: &Cell, p: Vec3) -> Vec3 {
             best = (q, d);
         }
     };
-    for f in &c.faces {
+    for f in c.faces.iter() {
         let n = normal(&f.vertices);
         let q = sub(p, scale(n, dot(n, sub(p, f.vertices[0]))));
         if (0..f.vertices.len()).all(|i| {
@@ -183,7 +183,7 @@ pub fn intersection(a: &Cell, b: &Cell) -> Option<Cell> {
         return None;
     }
     let mut c = a.clone();
-    for f in &b.faces {
+    for f in b.faces.iter() {
         let n = normal(&f.vertices);
         c = clip(&c, n, dot(n, f.vertices[0]))?;
     }
@@ -201,7 +201,7 @@ pub fn subtract(a: &Cell, b: &Cell) -> Vec<Cell> {
     }
     let mut inside = Some(a.clone());
     let mut out = vec![];
-    for f in &b.faces {
+    for f in b.faces.iter() {
         let Some(c) = inside else { break };
         let n = normal(&f.vertices);
         let d = dot(n, f.vertices[0]);
@@ -400,14 +400,14 @@ pub fn exposed(p: &[Vec3], b: &Cell, keep_coincident: bool) -> Vec<Polygon> {
     // Reject those before splitting: otherwise unrelated clipping planes create
     // hundreds of sliver patches on a single open shell or window frame.
     let mut overlap = p.to_vec();
-    for f in &b.faces {
+    for f in b.faces.iter() {
         let n = normal(&f.vertices);
         overlap = clip_polygon(&overlap, n, dot(n, f.vertices[0]));
         if overlap.len() < 3 || area(&overlap) < EPS {
             return vec![p.to_vec()];
         }
     }
-    for f in &b.faces {
+    for f in b.faces.iter() {
         let n = normal(&f.vertices);
         let d = dot(n, f.vertices[0]);
         if p.iter().all(|v| (dot(n, *v) - d).abs() < EPS)
@@ -419,7 +419,7 @@ pub fn exposed(p: &[Vec3], b: &Cell, keep_coincident: bool) -> Vec<Polygon> {
     }
     let mut inside = p.to_vec();
     let mut out = vec![];
-    for f in &b.faces {
+    for f in b.faces.iter() {
         if inside.len() < 3 {
             break;
         }
@@ -498,7 +498,7 @@ pub fn prism(p: &[Vec3], thickness: f64) -> Cell {
             vertices: vec![p[i], q[i], q[j], p[j]],
         });
     }
-    Cell { faces }
+    Cell { faces: faces.into() }
 }
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Moments {
@@ -534,7 +534,7 @@ pub fn moments(c: &Cell) -> Moments {
     // Reference near the body avoids catastrophic cancellation after translations.
     let origin = bounds(c).0;
     let mut m = Moments::default();
-    for f in &c.faces {
+    for f in c.faces.iter() {
         for i in 1..f.vertices.len() - 1 {
             let p = [
                 sub(f.vertices[0], origin),
@@ -587,7 +587,7 @@ pub fn connected(a: &Cell, b: &Cell) -> bool {
                 return false;
             }
             let mut p = fa.vertices.clone();
-            for f in &b.faces {
+            for f in b.faces.iter() {
                 let n = normal(&f.vertices);
                 p = clip_polygon(&p, n, dot(n, f.vertices[0]));
                 if p.len() < 3 {
@@ -606,13 +606,15 @@ mod tests {
     fn geometry_budget_reports_actual_cell_and_face_counts() {
         // Budget validation is independent of geometric validity; empty cells
         // keep this boundary test small while exercising the real collection cap.
-        let mut cells = vec![Cell { faces: vec![] }; MAX_CELLS];
+        let mut cells = vec![Cell { faces: vec![].into() }; MAX_CELLS];
         assert!(check_budget(&cells).is_ok());
-        cells.push(Cell { faces: vec![] });
+        cells.push(Cell { faces: vec![].into() });
         let error = check_budget(&cells).unwrap_err();
         assert!(error.contains(&format!("{} / {MAX_CELLS} convex cells", MAX_CELLS + 1)));
         let mut cell = box_cell([0.; 3], [1.; 3]);
-        cell.faces.resize(MAX_CELL_FACES + 1, cell.faces[0].clone());
+        let mut faces = cell.faces.to_vec();
+        faces.resize(MAX_CELL_FACES + 1, cell.faces[0].clone());
+        cell.faces = faces.into();
         assert!(
             check_budget(&[cell])
                 .unwrap_err()
@@ -672,7 +674,7 @@ mod tests {
         let remainder = subtract(&a, &b);
         assert_eq!(remainder.len(), 1, "unrelated planes must not split a wall");
         near(total(&remainder).volume, 1.);
-        for face in &a.faces {
+        for face in a.faces.iter() {
             let patches = exposed(&face.vertices, &b, false);
             assert_eq!(patches.len(), 1, "uncovered faces stay intact");
             near(area(&patches[0]), area(&face.vertices));
@@ -766,7 +768,7 @@ pub fn coalesce_cells(mut cells: Vec<Cell>) -> Vec<Cell> {
                 let mut faces = vec![];
                 let mut shared = false;
                 for (a, b) in [(&cells[i], &cells[j]), (&cells[j], &cells[i])] {
-                    for f in &a.faces {
+                    for f in a.faces.iter() {
                         let matches = b.faces.iter().any(|g| {
                             f.vertices.len() == g.vertices.len()
                                 && dot(normal(&f.vertices), normal(&g.vertices)) < -1. + EPS
@@ -791,11 +793,11 @@ pub fn coalesce_cells(mut cells: Vec<Cell>) -> Vec<Cell> {
                 }) {
                     continue;
                 }
-                let faces = merge_patches(faces.into_iter().map(|f| f.vertices).collect())
+                let faces: Vec<_> = merge_patches(faces.into_iter().map(|f| f.vertices).collect())
                     .into_iter()
                     .map(|vertices| ConvexVolumeFacesItem { vertices })
                     .collect();
-                joined = Some((i, j, Cell { faces }));
+                joined = Some((i, j, Cell { faces: faces.into() }));
                 break 'search;
             }
         }

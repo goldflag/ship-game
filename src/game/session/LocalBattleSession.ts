@@ -1,3 +1,4 @@
+import { loadShipPresets } from '../../ships/presets';
 import { SnapshotSession, type Snapshot } from './SnapshotSession';
 import type { BattleSetup as RuntimeSetup } from '../../multiplayer/generated/BattleSetup';
 import type { Command } from '../../multiplayer/generated/Command';
@@ -56,11 +57,13 @@ export class LocalBattleSession extends SnapshotSession {
     this.constructionShips = new Map(options.revisions?.map(r => [r.definition.id, r]));
   }
   static async create(setup: BattleSetup, options: LocalBattleOptions = {}): Promise<LocalBattleSession> {
+    await loadShipPresets([setup.playerShipId, ...setup.friendlyBots.map(b => botSelection(b).shipId), ...setup.enemies.map(b => botSelection(b).shipId)]);
     const session = new LocalBattleSession(runtimeSetup(setup, crypto.getRandomValues(new Uint32Array(1))[0]), undefined, options);
     return session.initialize({ type: 'init', setup: session.setup, construction: localConstructionInput(options) });
   }
   static async deploy(worker: Worker, briefing: PveBriefing, placements: Placement[], formations: Record<string, Formation> = {}): Promise<LocalBattleSession> {
     const setup = { ...briefing.setup, ships: briefing.setup.ships.map(ship => ({ ...ship, spawn: placements.find(p => p.id === ship.id)?.spawn ?? ship.spawn })) };
+    await loadShipPresets(setup.ships.map(s => s.presetId));
     const session = new LocalBattleSession(setup, worker);
     return session.initialize({ type: 'deploy', placements, formations });
   }

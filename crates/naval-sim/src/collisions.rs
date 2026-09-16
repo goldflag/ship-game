@@ -239,7 +239,7 @@ impl Body {
             p[1] += dz;
         }
         for c in &mut self.pieces {
-            for f in &mut c.faces {
+            for f in std::sync::Arc::make_mut(&mut c.faces) {
                 for p in &mut f.vertices {
                     p[0] += dx;
                     p[2] += dz;

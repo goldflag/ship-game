@@ -47,7 +47,9 @@ function rustType(original: ts.Type, hint: string): string {
     if (!location) throw new Error(`No declaration ${name}.${property.name}`);
     const field = snake(property.name);
     const optional = !!(property.flags & ts.SymbolFlags.Optional);
-    const fieldType = rustType(checker.getTypeOfSymbolAtLocation(property, location), name + pascal(property.name));
+    const generatedType = rustType(checker.getTypeOfSymbolAtLocation(property, location), name + pascal(property.name));
+    // Closed cells are immutable once compiled; hydrostatics/collision clones share their face storage.
+    const fieldType = name === 'ConvexVolume' && field === 'faces' ? 'std::sync::Arc<[ConvexVolumeFacesItem]>' : generatedType;
     const identifier = ['type','ref','match','mod','loop','move','where','in','self','use','fn'].includes(field) ? 'r#' + field : field;
     return `    #[serde(rename = "${property.name}")]\n    pub ${identifier}: ${optional ? `Option<${fieldType}>` : fieldType},`;
   });

@@ -584,7 +584,7 @@ pub struct ConvexVolumeFacesItem {
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct ConvexVolume {
     #[serde(rename = "faces")]
-    pub faces: Vec<ConvexVolumeFacesItem>,
+    pub faces: std::sync::Arc<[ConvexVolumeFacesItem]>,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]

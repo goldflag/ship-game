@@ -380,7 +380,7 @@ fn recipe(kind: &str) -> Vec<cg::Cell> {
             .flat_map(|c| c.faces.iter().flat_map(|f| f.vertices.iter().copied())),
     );
     for c in &mut out {
-        for f in &mut c.faces {
+        for f in std::sync::Arc::make_mut(&mut c.faces) {
             for p in &mut f.vertices {
                 *p = std::array::from_fn(|i| (p[i] - center[i]) / size[i]);
             }
@@ -399,7 +399,7 @@ pub fn cells(kind: &str) -> Option<&'static Vec<cg::Cell>> {
 pub fn exterior(cells: &[cg::Cell]) -> Vec<cg::Polygon> {
     let mut out = vec![];
     for (i, c) in cells.iter().enumerate() {
-        for f in &c.faces {
+        for f in c.faces.iter() {
             let mut patches = vec![f.vertices.clone()];
             for (j, other) in cells.iter().enumerate() {
                 if i != j && !cg::separated(c, other) {
@@ -445,7 +445,7 @@ mod tests {
             }
             for c in cells {
                 assert!(cg::total(&[c.clone()]).volume > 1e-10, "{kind} volume");
-                for f in &c.faces {
+                for f in c.faces.iter() {
                     let n = cg::normal(&f.vertices);
                     for p in &f.vertices {
                         assert!(
