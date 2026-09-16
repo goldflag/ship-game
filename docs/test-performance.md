@@ -15,6 +15,11 @@ processes. Native options still delegate to Bun's runner, including filtering,
 watch mode and coverage. `bun run test:serial` uses the same preparation and test
 roots. Every invocation executes the tests; there is no persistent result cache.
 
+Construction's browser helpers run separately with `bun run ship:browser:check`
+(or append `--headless` for CI). This command automates repository editing,
+IndexedDB, design deletion and shipbuilder editing in isolated browser contexts.
+It is not discovered by the test/spec filename glob above.
+
 ## Current measurements
 
 Measured September 9, 2026 on an Apple M5 Pro Mac with 18 logical CPUs, Bun 1.3.3,

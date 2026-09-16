@@ -253,7 +253,8 @@ views were inspected. The native articulation audit checked 150 samples with
 maximum muzzle error 4.18e-7 m. No simplified model was published.
 
 Passed: 29 targeted native tests (including 3,525 bit-identical water queries),
-47 runtime/session TS tests, construction authoring checks, Hipper `ship:build`,
+53 runtime/session TS tests after integration with master, construction authoring
+checks, Hipper `ship:build`,
 `ship:check all`, `ship:runtime:check`, and `bun run build`. The preceding full
 native run has three documented baseline failures in carrier loss, damage
 migration and a dry-water-level expectation; this follow-up does not claim a

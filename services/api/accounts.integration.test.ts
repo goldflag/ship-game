@@ -17,13 +17,18 @@ async function request(path:string,cookie='',method='GET',body?:unknown,headers:
 beforeAll(async()=>{
  if(!enabled)return;
  for(const name of ['a','b']) {
-  const response=await request('/api/auth/sign-up/email','','POST',{name,email:`${name}-${crypto.randomUUID()}@example.test`,password:'test-account-password-123'});
+  const response=await request('/api/auth/sign-up/email','','POST',{name,email:`${name}-${crypto.randomUUID()}@example.test`,password:'Test123!'},{origin:name==='a'?'http://localhost:5173':'http://127.0.0.1:5201'});
   expect(response.status).toBe(200);const value=await response.json();if(name==='a'){a=cookies(response);owner=value.user.id;}else {b=cookies(response);other=value.user.id;}
  }
 });
 afterAll(async()=>{await db.end();await admin.end();});
 const integration=enabled?test:test.skip;
 const input=(id='design-'+crypto.randomUUID())=>({designId:id,name:'Invalid draft is saveable',schemaVersion:1,catalogRevision:'a'.repeat(64),expectedRevisionId:null as string|null,source:{schemaVersion:1,id,revision:crypto.randomUUID(),construction:{catalogRevision:'a'.repeat(64),primitives:[],equipment:[]}}});
+integration('signup rejects passwords shorter than eight characters',async()=>{
+ const response=await request('/api/auth/sign-up/email','','POST',{name:'short-password',email:`short-${crypto.randomUUID()}@example.test`,password:'Test12!'});
+ expect(response.status).toBe(400);
+ expect((await response.json()).code).toBe('PASSWORD_TOO_SHORT');
+});
 integration('anonymous, forged account headers, internal secrets and cross-account references fail closed',async()=>{
  expect((await request('/api/ships')).status).toBe(401);
  expect((await request('/api/ships',b,'GET',undefined,{'x-account-id':owner})).status).toBe(401);
@@ -36,6 +41,23 @@ integration('anonymous, forged account headers, internal secrets and cross-accou
  expect((await request('/api/ships/'+revision.designId+'/revisions',b)).status).toBe(404);
  const prepare=await request('/internal/prepare',b,'POST',{fleet:[{kind:'custom',designId:revision.designId,revisionId:revision.id}]},{'x-service-secret':secret});expect(prepare.status).toBe(404);
  await storage.remove(owner,revision.designId,revision.id);
+});
+integration('local proxy origins can save drafts while foreign and production origins remain restricted',async()=>{
+ const value=input();
+ const saved=await request('/api/ships/'+value.designId,a,'PUT',value,{'idempotency-key':crypto.randomUUID(),origin:'http://[::1]:5202'});
+ expect(saved.status).toBe(200);const revision=await saved.json();
+ await storage.remove(owner,revision.designId,revision.id);
+ for(const blocked of ['https://evil.example','http://localhost.evil.example:5173','http://localhost:5173@evil.example','null']) {
+  expect((await request('/api/auth/sign-out',a,'POST',{}, {origin:blocked})).status).toBe(403);
+  expect((await request('/api/ships/'+value.designId,a,'PUT',value, {origin:blocked})).status).toBe(403);
+ }
+ const production='https://ships.tomato.gg';
+ const productionAuth=makeAuth(db,production,'test-auth-secret-at-least-32-characters');
+ const productionApp=createApp(productionAuth,storage,secret,production,'http://127.0.0.1:1');
+ for(const path of ['/api/auth/sign-out','/api/ships/test']) {
+  const response=await productionApp.request(production+path,{method:path.includes('/ships/')?'PUT':'POST',headers:{cookie:a,origin:'http://localhost:5173','content-type':'application/json'},body:'{}'});
+  expect(response.status).toBe(403);
+ }
 });
 integration('cross-device reads, immutable history, stale revisions, retry idempotency, deletion tombstones and quotas',async()=>{
  const value=input(),key=crypto.randomUUID();const first=await storage.save(owner,key,value);

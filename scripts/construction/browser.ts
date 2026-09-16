@@ -7,7 +7,7 @@ import { join } from 'node:path';
 import type { ReviewInput } from '../../tools/construction/review';
 import { constructionFiles } from './server';
 
-export async function authoringServer(root: string, port = 0, game = false, reviewInput?: ReviewInput): Promise<ViteDevServer> {
+export async function authoringServer(root: string, port = 0, game = false, reviewInput?: ReviewInput, repositoryRoot = root): Promise<ViteDevServer> {
   // Vite treats zero as its default port. Reserve an OS-selected port instead
   // of entering its port-increment retry path when another local app is open.
   if (!port) {
@@ -24,7 +24,7 @@ export async function authoringServer(root: string, port = 0, game = false, revi
   const inputJson = reviewInput ? JSON.stringify(reviewInput) : undefined;
   const server = await createServer({
     root, configFile: game ? join(root, 'vite.config.ts') : false,
-    logLevel: 'error', plugins: game ? [] : [react(), constructionFiles(root), {
+    logLevel: 'error', plugins: game ? [] : [react(), constructionFiles(repositoryRoot), {
       name: 'construction-review-input',
       configureServer(server) {
         server.middlewares.use((request, response, next) => {

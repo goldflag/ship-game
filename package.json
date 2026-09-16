@@ -62,6 +62,7 @@
     "ship:trial": "bun scripts/construction/cli.ts trial",
     "ship:register": "bun scripts/construction/cli.ts register",
     "ship:authoring:check": "tsc --project tsconfig.construction.json --noEmit && bun test scripts/construction src/ships/constructionCommands.test.ts",
+    "ship:browser:check": "bun run multiplayer:prepare:dev && bun scripts/construction/check-browser.ts",
     "accounts:server": "bun services/api/main.ts",
     "accounts:migrate": "bun services/db/migrate.ts",
     "accounts:check": "tsc -p services/tsconfig.json --noEmit && bun test services",

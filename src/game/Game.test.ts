@@ -427,7 +427,7 @@ test('a battle that opens on the fleet chart selects nothing; leaving a helm kee
     simulation, definition: simulation.definition, rig, camera, fleetViews: views, playerView: views[0], targetView: views.at(-1),
     inPort: false, selectedBattery: 'main', currentAim: [0, 0, -7500], ammunition: {}, shellFollow: new ShellFollow(), input,
     battlefieldCamera: new BattlefieldCamera(camera), selectedShipIds: [], controlGroups: new Map(), host: { clientWidth: 1280, clientHeight: 800 },
-    environment: { setChartFog() {} },
+    water: { getGeometryConfig: () => ({ infinityRingExtent: Infinity }) }, environment: { setChartFog() {} },
   }) as Game;
   try {
     game.enterFleetCommand(false);
@@ -449,7 +449,7 @@ test('the helm wheel swaps hulls in a custom battle: held on its key, offered on
     simulation, definition: simulation.definition, rig, camera, fleetViews: views, playerView: views[0], targetView: views.at(-1),
     inPort: false, selectedBattery: 'main', currentAim: [0, 0, -7500], ammunition: {}, shellFollow: new ShellFollow(), input,
     battlefieldCamera: new BattlefieldCamera(camera), selectedShipIds: [], controlGroups: new Map(), host: { clientWidth: 1280, clientHeight: 800 },
-    environment: { setChartFog() {} }, callbacks: { pause() {} },
+    water: { getGeometryConfig: () => ({ infinityRingExtent: Infinity }) }, environment: { setChartFog() {} }, callbacks: { pause() {} },
   }) as Game;
   const update = () => (game as unknown as { updateSpectator(): void }).updateSpectator();
   const advance = () => simulation.advance(.1, { throttle: 0, rudder: 0 }, { aim: [0, 0, -7500], battery: 'main', fire: false });
@@ -462,6 +462,7 @@ test('the helm wheel swaps hulls in a custom battle: held on its key, offered on
     game.openHelmWheel('held');
     expect(game.helmWheel).toEqual({ reason: 'held' });
     expect(held).toHaveBeenLastCalledWith(true);
+    expect(input.isEnabled).toBe(true); // The wheel holds the rig, not keyboard shortcuts.
     game.highlightHelmCandidate('enemy-1'); expect(game.helmWheel?.highlightId).toBeUndefined();
     game.highlightHelmCandidate('friendly-1'); expect(game.helmWheel?.highlightId).toBe('friendly-1');
     // Releasing the key without a pick just closes the wheel.
@@ -504,7 +505,7 @@ test('fleet selection and camera follow keep captains active; helm transfer resu
     simulation, definition: simulation.definition, rig, camera, fleetViews: views, playerView: views[0], targetView: views.at(-1),
     inPort: false, selectedBattery: 'main', currentAim: [0, 0, -7500], ammunition: {}, shellFollow: new ShellFollow(), input,
     battlefieldCamera, selectedShipIds: [], controlGroups: new Map(), host: { clientWidth: 1280, clientHeight: 800 },
-    environment: { setChartFog() {} },
+    water: { getGeometryConfig: () => ({ infinityRingExtent: Infinity }) }, environment: { setChartFog() {} },
   }) as Game;
   const update = () => (game as unknown as { updateSpectator(): void }).updateSpectator();
   const advance = () => simulation.advance(.1, { throttle: 0, rudder: 0 }, { aim: [0, 0, -7500], battery: 'main', fire: false });

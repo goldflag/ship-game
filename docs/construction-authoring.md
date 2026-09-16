@@ -173,6 +173,12 @@ before selecting them in construction sources.
 ## Validation and limits
 
 `bun run ship:authoring:check` covers the tools' TypeScript and transaction tests.
+`bun run ship:browser:check` runs the repository-authoring, IndexedDB, design
+deletion and shipbuilder-editing checks in headed Chromium. It starts its own
+loopback server, uses fresh browser storage, and keeps disposable repository
+sources under ignored `.build/construction-browser/`; authored ships and account
+libraries are untouched. Add `--headless` for CI. Failures exit nonzero and leave
+a screenshot there; temporary sources and browser contexts are cleaned up.
 `scripts/tests/construction-authoring-browser.ts` checks a disposable
 `authoring-check*` source through the real editor, including immediate batch/save,
 external refresh, conflicting saves and recovery through undo.

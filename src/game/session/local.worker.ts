@@ -53,6 +53,8 @@ async function loadContent(ids?: string[]): Promise<Uint8Array> {
     hydrostatics: index.hydrostatics.filter(t => selected.some(s => s.id === t.id)) }));
 }
 // Requests are serialized: initialization cannot race a queued tick batch.
+// LocalWorkerOperation correlates setup replies by this order and retires the
+// worker if a reply is abandoned; never publish unsolicited setup replies.
 let chain = Promise.resolve();
 self.onmessage = (event: MessageEvent<{ type: 'options' } | { type: 'validate'; placements: Placement[] } | { type: 'init'; setup: BattleSetup; profile?: boolean; construction?: LocalConstructionInput } | { type: 'plan'; request: PveRequest; profile?: boolean } | { type: 'deploy'; placements: Placement[]; formations?: Record<string, Formation> } | { type: 'restart' } | { type: 'trial-reset' } | { type: 'trial-action'; action: TrialAction } | { type: 'advance'; commands: CommandEnvelope[]; ticks: number; detailShipIds?: string[] }>) => {
   chain = chain.then(async () => {
