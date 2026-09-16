@@ -35,7 +35,9 @@ rsync -azR Cargo.toml Cargo.lock rust-toolchain.toml package.json bun.lock crate
   .build/naval-content/manifest.json compose.yml .dockerignore deploy services dist \
   src/generated/naval-version.json "$target:$remote/"
 rsync -az .build/deployment/capacity-evidence.json "$target:$remote/"
-ssh "$target" "bash -s -- '$release'" <<'REMOTE'
+# Compose defaults to reading stdin. Execute a complete file so it cannot consume
+# later deployment commands from the SSH script stream.
+ssh "$target" "umask 077; cat > '$remote/deploy.sh' && bash '$remote/deploy.sh' '$release' </dev/null" <<'REMOTE'
 set -euo pipefail
 release="$1"
 cd "/opt/ships/releases/$release"
@@ -51,7 +53,7 @@ COMPOSE_PARALLEL_LIMIT=1 docker compose build
 docker compose stop server
 docker compose down
 docker compose up -d --wait postgres
-docker compose run --rm migrate
+docker compose run --rm -T --interactive=false migrate
 mkdir -p /opt/ships/backups
 if [ ! -f /opt/ships/postgresql-cutover ]; then
   backup="/opt/ships/backups/sqlite-$release"
@@ -59,7 +61,7 @@ if [ ! -f /opt/ships/postgresql-cutover ]; then
   # Preserve database plus WAL from the stopped server, without modifying its volume.
   docker run --rm -v ships_matches:/source:ro -v "$backup:/backup" alpine:3.22 sh -c 'cp -a /source/. /backup/'
   test -f "$backup/matches.sqlite"
-  docker compose run --rm -v "$backup:/backup:ro" migrate bun services/db/import-sqlite.ts /backup/matches.sqlite
+  docker compose run --rm -T --interactive=false -v "$backup:/backup:ro" migrate bun services/db/import-sqlite.ts /backup/matches.sqlite
 fi
 # A PostgreSQL backup is mandatory for every later release as well.
 docker compose exec -T postgres pg_dump -U ships_admin -d ships -Fc > "/opt/ships/backups/postgres-$release.dump"
