@@ -3,6 +3,7 @@ import { bodyLimit } from 'hono/body-limit';
 import { timingSafeEqual } from 'node:crypto';
 import type { Auth } from './auth';
 import { ApiError, ShipStorage } from './storage';
+import { allowsOrigin } from './origins';
 export function createApp(auth: Auth, storage: ShipStorage, secret: string, origin: string, compilerURL: string) {
   const app = new Hono<{ Variables: { account: string } }>();
   app.use('*', async (c,next) => { c.header('Cache-Control','no-store'); await next(); });
@@ -29,7 +30,7 @@ export function createApp(auth: Auth, storage: ShipStorage, secret: string, orig
     c.set('account',session.user.id); await next();
   };
   app.use('/api/ships/*',async (c,next) => {
-    if (c.req.method !== 'GET' && c.req.header('origin') !== origin) return c.json({error:'Origin not allowed'},403);
+    if (c.req.method !== 'GET' && !allowsOrigin(origin,c.req.header('origin'))) return c.json({error:'Origin not allowed'},403);
     return account(c,next);
   });
   app.use('/internal/*',account);
