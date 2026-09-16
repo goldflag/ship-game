@@ -24,7 +24,6 @@ async function recovery<T>(account:string,mode:IDBTransactionMode,work:(s:IDBObj
     tx.oncomplete=()=>resolve(request.result); tx.onabort=()=>reject(tx.error); tx.onerror=()=>{};
   }); } finally { db.close(); }
 }
-export const recoveryDrafts = (account:string) => recovery(account,'readonly',s=>s.getAll()) as Promise<Recovery[]>;
 export const discardRecovery = (account:string,id:string) => recovery(account,'readwrite',s=>s.delete(id));
 export async function retainRecovery(input:SaveConstructionSource, account = currentAccount()) {
   if (!account) return;

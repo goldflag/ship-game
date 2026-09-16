@@ -9,9 +9,10 @@
 .garage svg { flex-shrink:0; }
 .garage-layout { position:absolute; inset:0; text-shadow:0 2px 5px #061522b3; }
 .garage-scene-shade { position:absolute; inset:0; background:linear-gradient(180deg,#06152382,transparent 26%,transparent 59%,#081723ee 100%),linear-gradient(90deg,#081824ae,transparent 29%,transparent 72%,#081824b0); }
-.garage-brand { display:flex; align-items:center; gap:13px; white-space:nowrap; }
-.garage-brand>svg { color:var(--port-accent); }
-.garage-brand>strong { font:500 18px/1 'Barlow Condensed',sans-serif; letter-spacing:.045em; }
+.garage-account { display:flex; align-items:center; gap:10px; max-width:260px; min-height:35px; padding:0 13px 0 10px; border:1px solid var(--port-line); background:transparent; color:inherit; border-radius:2px; white-space:nowrap; }
+.garage-account:hover:not(:disabled) { background:#e4f3f111; }
+.garage-account>svg { color:var(--port-accent); }
+.garage-account>strong { overflow:hidden; text-overflow:ellipsis; font:500 18px/1 'Barlow Condensed',sans-serif; letter-spacing:.045em; }
 .garage-settings { width:35px; height:35px; display:grid; place-items:center; border:1px solid var(--port-line); background:transparent; border-radius:2px; }
 .garage-settings:hover { background:#e4f3f111; }
 .garage-battle { position:relative; display:flex; flex-direction:column; align-items:center; gap:5px; }
@@ -93,7 +94,7 @@
 }
 @media(max-width:850px) {
   .garage-classic-header { gap:17px; }
-  .garage-brand>strong { font-size:17px; }
+  .garage-account>strong { font-size:17px; }
   .garage-classic-left { top:212px; width:186px; }
   .garage-classic-details { top:207px; max-height:calc(100% - 399px); width:205px; padding:15px; }
   .garage-ship-cards { gap:10px; }
@@ -106,9 +107,8 @@
 }
 @media(max-width:600px) {
   .garage-classic-header { grid-template-columns:auto minmax(0,1fr) auto; padding:8px 16px 0; gap:4px 10px; }
-  .garage-classic-header .garage-brand { min-width:0; }
-  .garage-brand { gap:8px; }
-  .garage-brand>svg { width:22px; }
+  .garage-classic-header .garage-account { min-width:0; max-width:150px; }
+  .garage-account { gap:8px; padding:0 9px 0 8px; }
   .garage-settings { width:34px; height:34px; }
   .garage-classic-identity { top:124px; left:19px; }
   .garage-classic-identity h1 { font-size:36px; }
@@ -130,7 +130,7 @@
   .garage-loading { min-width:0; width:calc(100% - 36px); }
 }
 @media(max-width:460px) {
-  .garage-brand>strong { display:none; }
+  .garage-account>strong { display:none; }
 }
 @media(max-height:640px) and (min-width:601px) {
   .garage-classic-left { display:none; }
