@@ -1,4 +1,6 @@
 import { FreeformHandles, type BuilderFreeformOptions } from './FreeformHandles';
+import { MoveHandles } from './MoveHandles';
+import { blockMoveConstraint } from './blockMovement';
 import { cornerVertices, worldVertex } from '../../ships/constructionVertex';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import * as THREE from 'three';
@@ -54,7 +56,7 @@ export interface ViewportProps {
   createModel?: ConstructionModelFactory;
 }
 /** A primary drag that began on a piece: the pieces it carries, the plane it slides in and the snapped offset so far. */
-interface MoveDrag { ids: string[]; plane: THREE.Plane; origin: THREE.Vector3; free: [boolean, boolean, boolean]; step: number; delta: Vec3; built: boolean }
+interface MoveDrag { ids: string[]; plane: THREE.Plane; origin: THREE.Vector3; free: [boolean, boolean, boolean]; step: number; delta: Vec3; built: boolean; constrain(delta: Vec3): Vec3 }
 
 const BRASS = '#e0c58d', BRASS_LIGHT = '#efd5a0', MINT = '#86e4c5', READY = '#94d9bf', SALMON = '#ffb5a6', IVORY = '#edf1ec', ROOM = '#9cc3ff';
 const LEADER: Record<BuilderTag['tone'], string> = { mint: MINT, brass: BRASS, bad: SALMON };
@@ -107,6 +109,11 @@ class Viewport {
   private perspectiveCamera = new THREE.PerspectiveCamera(40, 1, .1, 5000);
   private camera: THREE.OrthographicCamera | THREE.PerspectiveCamera = this.ortho;
   private freeformHandles: FreeformHandles;
+  private moveHandles: MoveHandles;
+  private moveConstraintKey = '';
+  private constrainMove: (delta: Vec3) => Vec3 = delta => delta;
+  private moveOffset?: Vec3;
+  private moveBlocked = false;
   private vertexPreview = new THREE.Group();
   private pathPreview = new THREE.Group();
   private pathPreviewKey = '';
@@ -173,6 +180,7 @@ class Viewport {
     this.movePreview.name = 'Selection being moved'; this.movePreview.userData.movePreview = true; this.movePreview.visible = false;
     this.scene.add(this.hull, this.details, this.selection, this.hoverGroup, this.composed, this.equipment.group, this.arcGroup, this.proposedGroup, this.ghost, this.ghostMirror, this.ghostArc, this.fillPreview, this.strokePreview, this.movePreview, this.measureGroup);
     this.freeformHandles = new FreeformHandles(host, () => this.camera, replacements => this.previewVertices(replacements));
+    this.moveHandles = new MoveHandles(host, () => this.camera);
     this.scene.add(this.vertexPreview, this.pathPreview);
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.enableDamping = true; this.controls.dampingFactor = .15;
@@ -222,6 +230,7 @@ class Viewport {
   update(props: ViewportProps) {
     const old = this.props; this.props = props;
     this.freeformHandles.update(props.source, props.freeform);
+    this.updateMoveHandles();
     if (!!props.perspective !== (this.camera instanceof THREE.PerspectiveCamera)) {
       const previous=this.camera, distance=previous.position.distanceTo(this.controls.target);
       this.camera=props.perspective?this.perspectiveCamera:this.ortho;
@@ -534,14 +543,23 @@ class Viewport {
           else if (beside >= left) x = beside;
         }
       }
+      // Compact layouts may push the position tag back over the selection.
+      // Keep its inputs clear of the actual projected movement handles.
+      const handles = this.moveHandles.screenBounds;
+      if (handles && (tag.key.startsWith('piece-') || tag.key === 'group')
+        && x < handles.right && x + tagWidth > handles.left && y < handles.bottom && y + tagHeight > handles.top) {
+        if (handles.bottom + 12 + tagHeight <= bottom) y = handles.bottom + 12;
+        else if (handles.top - 12 - tagHeight >= top) y = handles.top - 12 - tagHeight;
+      }
       element.style.visibility = 'visible'; element.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
       const endX = screen.x < x + tagWidth / 2 ? x : x + tagWidth, endY = y + tagHeight / 2;
       leaders += `<line x1="${screen.x.toFixed(1)}" y1="${screen.y.toFixed(1)}" x2="${endX.toFixed(1)}" y2="${endY.toFixed(1)}" stroke="${LEADER[tag.tone]}"/><circle cx="${screen.x.toFixed(1)}" cy="${screen.y.toFixed(1)}" r="2.5" fill="${LEADER[tag.tone]}"/>`;
     }
     // The readout sits under the palette: the ghost's cell while placing, the offset while moving a selection.
     const coords = this.overlay.querySelector<HTMLElement>('[data-coords]'), move = this.pointerStart?.move;
+    const offset = move?.built ? move.delta : this.moveOffset;
     if (coords) {
-      if (move?.built) { coords.textContent = `Δx ${signedMetres(move.delta[0])} · Δy ${signedMetres(move.delta[1])} · Δz ${signedMetres(move.delta[2])}`; coords.style.visibility = 'visible'; }
+      if (offset) { coords.textContent = `Δx ${signedMetres(offset[0])} · Δy ${signedMetres(offset[1])} · Δz ${signedMetres(offset[2])}${this.moveBlocked ? ' · Stopped at another block' : ''}`; coords.style.visibility = 'visible'; }
       else if (this.ghost.visible && this.ghostPosition) { coords.textContent = this.props.coords(this.ghostPosition); coords.style.visibility = 'visible'; }
       else coords.style.visibility = 'hidden';
     }
@@ -589,7 +607,27 @@ class Viewport {
       free[hit.axis] = false;
     }
     const step = wall || ids.some(isPrimitive) ? 1 : .25;
-    return { ids, plane: new THREE.Plane().setFromNormalAndCoplanarPoint(normal.normalize(), origin), origin, free, step, delta: [0, 0, 0], built: false };
+    return { ids, plane: new THREE.Plane().setFromNormalAndCoplanarPoint(normal.normalize(), origin), origin, free, step, delta: [0, 0, 0], built: false, constrain: blockMoveConstraint(this.props.source, new Set(ids)) };
+  }
+
+  private updateMoveHandles() {
+    const props = this.props;
+    const blocks = props.source.construction.primitives.filter(p => props.selected.has(p.id));
+    if (props.freeform || props.moveTargets !== 'all' || !blocks.length) { this.moveHandles.update(); return; }
+    const ids = [...props.selected], key = JSON.stringify([props.source.id, props.source.revision, ids, props.slice, props.view, props.perspective]);
+    if (key !== this.moveConstraintKey) {
+      this.moveConstraintKey = key; this.constrainMove = blockMoveConstraint(props.source, props.selected);
+    }
+    const anchor = blocks.reduce<Vec3>((sum, p) => sum.map((v, k) => v + p.position[k] / blocks.length) as Vec3, [0, 0, 0]);
+    this.moveHandles.update({ key, anchor, unit: 1, constrain: this.constrainMove,
+      preview: (delta, blocked) => {
+        if (!delta) { this.finishMove(); return; }
+        this.moveOffset = delta; this.moveBlocked = !!blocked;
+        if (!this.movePreview.children.length) this.buildMovePreview(ids);
+        this.movePreview.position.set(...delta); this.movePreview.visible = delta.some(v => v !== 0);
+      },
+      commit: delta => props.onMove(ids, delta),
+    });
   }
 
   /** Brass copies of the moved pieces; the originals stay until the source commits on release. */
@@ -632,12 +670,14 @@ class Viewport {
     const point = ray.ray.intersectPlane(move.plane, new THREE.Vector3());
     if (point) {
       const raw = point.sub(move.origin);
-      move.delta = [0, 1, 2].map(index => move.free[index] ? snapCoordinate(raw.getComponent(index), move.step) : 0) as Vec3;
+      const requested = [0, 1, 2].map(index => move.free[index] ? snapCoordinate(raw.getComponent(index), move.step) : 0) as Vec3;
+      move.delta = move.constrain(requested);
+      this.moveBlocked = move.delta.some((v, k) => Math.abs(v - requested[k]) > 1e-7);
     }
     this.movePreview.position.set(...move.delta); this.movePreview.visible = true;
   }
 
-  private finishMove() { release(this.movePreview); this.movePreview.visible = false; this.renderer.domElement.style.cursor = ''; }
+  private finishMove() { release(this.movePreview); this.movePreview.visible = false; this.moveOffset = undefined; this.moveBlocked = false; this.renderer.domElement.style.cursor = ''; }
 
   /** A press that is not laying pieces hides the ghost and hover outline: box selection, the secondary button, a move or a camera drag. */
   private navigating() { const press = this.pointerStart; return !!press && !press.start && (press.box || press.button === 2 || press.moved); }
@@ -740,9 +780,9 @@ class Viewport {
   private key = (event: KeyboardEvent) => { if (event.key === 'Escape' && this.pointerStart) this.cancel(); };
   private animate = () => {
     if (this.dead) return;
-    if(!this.freeformHandles.dragging) this.controls.update();
+    if(!this.freeformHandles.dragging && !this.moveHandles.dragging) this.controls.update();
     if (this.hover) { if (this.props.placementPiece) this.updateGhost(); this.highlight(this.hover); }
-    this.freeformHandles.frame(); this.renderer.render(this.scene, this.camera); this.placeTags();
+    this.freeformHandles.frame(); this.moveHandles.frame(); this.renderer.render(this.scene, this.camera); this.placeTags();
     if (!this.orientationRotation.equals(this.camera.quaternion)) {
       updateBuilderOrientation(this.orientation, this.camera);
       this.orientationRotation.copy(this.camera.quaternion);
@@ -752,6 +792,7 @@ class Viewport {
 
   dispose() {
     this.freeformHandles.dispose();
+    this.moveHandles.dispose();
     this.dead = true; cancelAnimationFrame(this.frame); this.modelAbort?.abort(); this.resize.disconnect(); this.controls.dispose();
     this.strokePreview.clear(); this.equipment.dispose();
     const canvas = this.renderer.domElement;

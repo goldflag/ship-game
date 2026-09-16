@@ -1,5 +1,6 @@
 import { FreeformToolbar, type FreeformSettings } from './FreeformToolbar';
 import { canEditVertices, freeformEdit, replaceVertexPrimitives, selectionCenter, splitVertexPrimitive, VERTEX_UNITS } from '../../ships/constructionVertex';
+import { blockMoveConstraint } from './blockMovement';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { ConstructionBoundary, ConstructionCatalog, ConstructionEquipment, ConstructionPrimitive, ConstructionResult, ConstructionSource, ConstructionSuggestion, ConstructionSurfaceAssignment, Vec3 } from '../../ships/blueprint';
 import { CONSTRUCTION_LIMITS, assignConstructionSurfaces, copyConstructionSelection, editableConstructionSurfaces, mirroredFace, mirroredPrimitive, mirroredEquipment, moveConstructionSelection, newConstructionId, removeConstructionSelection, rotateConstructionSelection, surfaceKey, type ConstructionFace } from '../../ships/constructionEditor';
@@ -222,12 +223,16 @@ export function Shipbuilder(props: ShipbuilderProps) {
     setSelected(new Set(copied)); setSurfaces(new Set());
     setNotice(mirrorCopy ? 'Mirrored a copy across the centerline.' : 'Copied the selection 1 m to starboard.');
   };
-  const nudge = (delta: Vec3) => { if (selected.size) command('Move selection', [{ op: 'move', ids: [...selected], delta }]); };
+  const nudge = (delta: Vec3) => { if (selected.size) movePieces([...selected], delta); };
   /** Select drags any piece, fitting or wall; placing fittings or modules still drags the ones already fitted. Face layers never move geometry. */
   const moveTargets: BuilderMoveTargets = pathPart ? 'none' : layer === 'armor' || layer === 'paint' ? 'none' : tool === 'select' ? 'all' : (layer === 'fittings' && tool === 'place') || tool === 'module' ? 'equipment' : 'none';
   const movePieces = (ids: string[], delta: Vec3) => {
     if (locked || !ids.length) return;
     const moving = new Set(ids);
+    const requested = delta;
+    delta = blockMoveConstraint(source, moving)(delta);
+    if (delta.some((v, k) => Math.abs(v - requested[k]) > 1e-7)) setNotice('Movement stopped at another block.');
+    if (delta.every(v => v === 0)) return;
     run('Move selection', draft => {
       moveConstructionSelection(draft, moving, delta);
       for (const wall of draft.construction.boundaries) if (moving.has(wall.id)) wall.offset = snapCoordinate(wall.offset + delta[{ x: 0, y: 1, z: 2 }[wall.axis]], 1);
