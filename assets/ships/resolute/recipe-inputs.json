@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "files": [
+    "assets/parts/construction-library.json",
+    "assets/parts/construction.json",
+    "assets/parts/construction/capital_machinery.py",
+    "assets/parts/construction/deck_fittings.py",
+    "assets/parts/construction/geometry.py",
+    "assets/parts/construction/library.py",
+    "assets/parts/construction/path_fittings.py",
+    "assets/parts/german-battleship-guns/sk_c34.py",
+    "assets/parts/library.json",
+    "assets/parts/library.py",
+    "assets/parts/us-mk30/geometry.py",
+    "assets/parts/us-oerlikon/geometry.py"
+  ]
+}

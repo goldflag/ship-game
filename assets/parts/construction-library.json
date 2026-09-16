@@ -173,6 +173,20 @@
       "inputs": [
         "assets/parts/construction/geometry.py"
       ]
+    },
+    "generic-steam-plant-36000kw": {
+      "path": "assets/parts/construction/capital_machinery.py",
+      "function": "create_steam_plant",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-capital-funnel": {
+      "path": "assets/parts/construction/capital_machinery.py",
+      "function": "create_capital_funnel",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
     }
   },
   "components": [
@@ -343,6 +357,18 @@
       "builder": "generic-inclined-stairs",
       "review": "unreviewed",
       "limitations": "Original generic naval fitting with fixed attachment datum. Dimensions and dry mass are provisional engineering estimates, not a historical reconstruction. Boat/davits and doors/hatches remain stowed/closed. Searchlight is non-functional. Installed support and clearance require native validation and visual review."
+    },
+    {
+      "partId": "generic-steam-plant-36000kw",
+      "builder": "generic-steam-plant-36000kw",
+      "review": "unreviewed",
+      "limitations": "Original generic capital-ship package. Geometry, plant power, mass and exhaust capacity are explicit gameplay estimates; no historical plant or thermodynamic certification. Review each installation."
+    },
+    {
+      "partId": "generic-capital-funnel",
+      "builder": "generic-capital-funnel",
+      "review": "unreviewed",
+      "limitations": "Original generic capital-ship package. Geometry, plant power, mass and exhaust capacity are explicit gameplay estimates; no historical plant or thermodynamic certification. Review each installation."
     }
   ]
 }
