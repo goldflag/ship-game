@@ -36,7 +36,7 @@ export function PortDesigns({ ships, selectedId, ready, preparing, onNew, onEdit
       <Button variant="primary" disabled={!ready} onClick={onNew}>New design <span aria-hidden="true">+</span></Button>
       <Button disabled={!ready || loading || !designs.length} onClick={() => selected ? onEdit(selected.source.id) : setChoosing(true)}>Edit design <span aria-hidden="true">↗</span></Button>
     </div>
-    <div className="port-design-heading"><span>{choosing ? 'Choose a design to edit' : 'Saved locally'}</span><small>{designs.length}</small></div>
+    <div className="port-design-heading"><span>{choosing ? 'Choose a design to edit' : 'Saved to your account'}</span><small>{designs.length}</small></div>
     {loading && <p role="status">Loading your designs…</p>}
     {error && <p role="alert">{error} <button onClick={() => setRefresh(value => value + 1)}>Retry</button></p>}
     {!loading && !error && !designs.length && <p>Create a design to start building your fleet.</p>}
