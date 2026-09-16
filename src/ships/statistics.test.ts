@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { shipPreset, shipPresets } from './presets';
+import { loadShipPreset, shipPreset, shipPresets } from './presets';
 import { maximumRangeM, shipScores, shipStatistics } from './statistics';
 import { maxHullIntegrity } from '../simulation/damage';
 
@@ -52,8 +52,8 @@ test('category scores stay within 0-100 and separate the presets by their simula
   expect(shipScores(shipPreset('bismarck')).map(s => s.id)).toEqual(['survivability', 'artillery', 'airDefense', 'maneuverability', 'concealment']);
 });
 
-test('air defense excludes small guns that cannot elevate to engage aircraft', () => {
-  const def = structuredClone(shipPreset('king-george-v'));
+test('air defense excludes small guns that cannot elevate to engage aircraft', async () => {
+  const def = structuredClone(await loadShipPreset('king-george-v'));
   def.mounts.forEach(mount => { mount.weapon.elevationMaxDeg = 45; });
   expect(shipScores(def).find(score => score.id === 'airDefense')!.score).toBe(0);
 });

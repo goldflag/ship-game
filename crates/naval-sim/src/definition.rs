@@ -584,7 +584,7 @@ pub struct ConvexVolumeFacesItem {
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct ConvexVolume {
     #[serde(rename = "faces")]
-    pub faces: Vec<ConvexVolumeFacesItem>,
+    pub faces: std::sync::Arc<[ConvexVolumeFacesItem]>,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
@@ -622,6 +622,24 @@ pub struct ConstructionGeometry {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct BuoyancyCell {
+    #[serde(rename = "center")]
+    pub center: [f64; 3],
+    #[serde(rename = "size")]
+    pub size: [f64; 3],
+    #[serde(rename = "volumeM3")]
+    pub volume_m3: f64,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct HullBuoyancy {
+    #[serde(rename = "version")]
+    pub version: f64,
+    #[serde(rename = "cells")]
+    pub cells: Vec<BuoyancyCell>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct Hull {
     #[serde(rename = "kind")]
     pub kind: String,
@@ -649,6 +667,8 @@ pub struct Hull {
     pub sections: Option<Vec<HullSectionsItem>>,
     #[serde(rename = "volume")]
     pub volume: Option<ConstructionGeometry>,
+    #[serde(rename = "buoyancy")]
+    pub buoyancy: Option<HullBuoyancy>,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
@@ -921,6 +941,8 @@ pub struct CompartmentCellsItem {
     pub center: [f64; 3],
     #[serde(rename = "size")]
     pub size: [f64; 3],
+    #[serde(rename = "volumeM3")]
+    pub volume_m3: Option<f64>,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]

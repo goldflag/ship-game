@@ -1,10 +1,11 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import { readFileSync, readdirSync } from 'node:fs';
+import { readFileSync, readdirSync, rmSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { vendorTextures } from './scripts/build/vendor-textures';
 import { shipTransfers } from './scripts/build/ship-transfers';
 import { devPort } from './scripts/build/dev-port';
+import { presetIds } from './scripts/ships/runtime-assets';
 import { constructionFiles } from './scripts/construction/server';
 
 // Sky Pro resolves cloud volumes dynamically beside the final JS bundle.
@@ -18,6 +19,13 @@ export default defineConfig({
   // Serve from a sub-path with e.g. BASE_PATH=/naval/ bun run build; runtime asset URLs go through src/assetUrl.ts.
   base: basePath,
   plugins: [constructionFiles(root), devPort(root), react(), vendorTextures(), shipTransfers(`${root}public/models`), {
+    name: 'trim-preset-debug-json',
+    // Full compiler/debug JSON stays in the workspace; production uses the
+    // hash-checked indexed runtime assets and lightweight menu metadata.
+    async closeBundle() {
+      for (const id of await presetIds(root)) rmSync(`${root}dist/models/${id}.json`, { force: true });
+    },
+  }, {
     name: 'sky-pro-cloud-data',
     generateBundle() {
       for (const name of readdirSync(skyData)) {
@@ -40,7 +48,7 @@ export default defineConfig({
       },
       output: { manualChunks: { 'three-engine': ['three/webgpu', 'three/tsl'], 'react': ['react', 'react-dom/client'] } },
     },
-    // Compiled ship definitions remain bundled for synchronous simulation access.
+    // Engine/rendering chunks dominate; preset simulation data is demand-loaded.
     chunkSizeWarningLimit: 7000,
   },
 });

@@ -288,6 +288,9 @@ test('initialization errors and deadlines retire their worker and allow a fresh 
         try {
           globalThis.setTimeout = ((callback: () => void) => { deadline = callback; return originalTimer(() => {}, 60000); }) as typeof setTimeout;
           deployment = draft.deploy(placements);
+          // Definition admission precedes worker initialization. Let its promise
+          // chain settle while the deadline interception remains installed.
+          await new Promise<void>(resolve => originalTimer(resolve, 0));
         } finally { globalThis.setTimeout = originalTimer; }
         if (failure === 'timeout') deadline();
         else worker.onerror?.({ message: 'Worker initialization crashed.' });

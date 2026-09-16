@@ -31,6 +31,8 @@ Start with [AGENTS.md](../AGENTS.md) for repository rules. Read the task's curre
 | Investigate test execution | [Test performance](test-performance.md) | Repository test runner and measured execution notes |
 | Measure fleet-command speed | [Fleet command speed](pve-speed-performance.md) | Actual 1×/2×/4× progress, fixed fleet scenarios and worker throughput |
 | Profile custom battles | [Custom battle performance](custom-battle-performance.md) | Actual application, Rust worker, frame intervals and graphics warmup |
+| Reduce ship runtime size and load cost | [Runtime performance](ship-runtime-performance.md) | Indexed definitions, lazy admission, deterministic benchmarks and measured limits |
+| Evaluate simplified combat mechanics | [Combat runtime experiments](compartment-runtime.md) | Opt-in weighted buoyancy/flooding, exact optimizations and measured gameplay tradeoffs |
 | Speed up the simulation | [Simulation performance plan](sim-performance-plan.md) | Native profiling harness, equality gate and the phased optimization plan across fleet command, custom battles and the server |
 
 ## Asset inputs and review

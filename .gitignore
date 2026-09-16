@@ -30,3 +30,6 @@ assets/aircraft/*/generated/comparison/
 /src/generated/naval-wasm/
 /.naval-data/
 /src/generated/naval-version.json
+
+# Derived compact runtime definitions are rebuilt by multiplayer:content.
+/public/models/runtime/

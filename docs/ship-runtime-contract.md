@@ -252,3 +252,18 @@ gameplay calibration, not certified historical measurements. Protection itself
 does not degrade with repeated hits in this version; structural saturation and
 accumulating floodwater still do. Selecting a defense row in Armor inspection shows its blue coverage volume,
 reduction percentages and the estimated basis. Hit messages identify protected hits.
+
+## Experimental combat runtime profiles
+
+The exact construction compiler remains the default. Offline candidates use the
+same definition schema, with an optional `Hull.buoyancy.version: 1` weighted-box
+profile and `Compartment.cells[].volumeM3` weights. Collision coverage is separate
+from displaced volume, so a conservative envelope cannot add reserve buoyancy.
+Native validation rejects invalid profile versions and nonpositive weights.
+Weighted profiles update flooded mass, CG and approximate column inertia; exact
+profiles retain existing dynamics. If a mixed experimental profile retains exact
+water volumes, their centers supply point-mass inertia without an intrinsic term.
+These extensions are native CPU features; the frozen TypeScript migration solver
+is not an alternative authority for them. They are not selectable or published
+by default. See [measurements and limitations](compartment-runtime.md) before
+considering a change to gameplay defaults.

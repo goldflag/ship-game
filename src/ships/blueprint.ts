@@ -133,6 +133,7 @@ export interface SubmarineDefinition {
   surfaceEngineIds: string[]; submergedEngineIds: string[];
   appendages: { bowPlanes: string[]; sternPlanes: string[]; rudders: string[]; propellers: string[] };
 }
+export interface BuoyancyCell { center: Vec3; size: Vec3; volumeM3: number; }
 export interface Hull {
   kind: 'authored-stations-v1' | 'constructed-volume-v1'; length: number; beam: number; draft: number; depth: number;
   massKg: number; waterplaneAreaM2: number; reserveBuoyancyM3: number;
@@ -141,6 +142,9 @@ export interface Hull {
   sections?: { station: number; points: [number, number][] }[];
   /** Authoritative disjoint partial volumes. Station tables are broad bounds only for this variant. */
   volume?: ConstructionGeometry;
+  /** Explicit experimental combat approximation; absent retains exact flotation.
+   * Collision still uses volume. Source geometry and loading remain independent. */
+  buoyancy?: { version: 1; cells: BuoyancyCell[] };
 }
 export interface AuthoredStructure {
   id: string; name: string; footprint: [number, number][];
@@ -167,7 +171,7 @@ export interface Compartment extends Volume {
   name: string; capacityM3: number; pumpM3PerSecond: number;
   fire?: FireProfile;
   /** Optional disjoint conservative cells, in ship coordinates, for compound voids. */
-  cells?: { center: Vec3; size: Vec3 }[];
+  cells?: { center: Vec3; size: Vec3; volumeM3?: number }[];
   /** Exact disjoint usable voids after inward plating and equipment occupancy. */
   volumes?: ConvexVolume[];
 }

@@ -20,6 +20,7 @@ pub struct WaterBody {
 #[derive(Clone, Debug)]
 struct Column {
     center: Vec3,
+    size: Vec3,
     low: f64,
     high: f64,
     volume: f64,
@@ -73,6 +74,12 @@ fn cell(room: &Compartment, i: usize) -> (Vec3, Vec3) {
         None => (room.center, room.size),
     }
 }
+fn cell_volume(room: &Compartment, i: usize, size: Vec3) -> f64 {
+    room.cells
+        .as_ref()
+        .and_then(|c| c[i].volume_m3)
+        .unwrap_or(size[0] * size[1] * size[2])
+}
 fn divisions(room: &Compartment, size: Vec3, normal: [f64; 3], other: [usize; 2]) -> [usize; 2] {
     std::array::from_fn(|k| {
         let i = other[k];
@@ -98,7 +105,7 @@ fn geometry(
     let mut gross = 0.0;
     for k in 0..count {
         let (_, s) = cell(room, k);
-        gross += s[0] * s[1] * s[2];
+        gross += cell_volume(room, k, s);
     }
     let porosity = room.capacity_m3 / gross;
     let columns = &mut dst.columns;
@@ -120,10 +127,14 @@ fn geometry(
                 let extent = size[axis];
                 let half = normal[axis].abs() * extent / 2.0;
                 let (low, high) = (y - half, y + half);
-                let volume = size[0] * size[1] * size[2] * porosity / (a * b) as f64;
+                let volume = cell_volume(room, k, size) * porosity / (a * b) as f64;
                 let area = volume / (high - low);
+                let mut column_size = size;
+                column_size[other[0]] /= a as f64;
+                column_size[other[1]] /= b as f64;
                 columns.push(Column {
                     center: c,
+                    size: column_size,
                     low,
                     high,
                     extent,
@@ -325,6 +336,42 @@ pub fn water_body_with(
 pub fn water_body(room: &Compartment, volume: f64, roll: f64, pitch: f64) -> WaterBody {
     water_body_with(room, volume, roll, pitch, &mut Scratch::default())
 }
+impl WaterBody {
+    /// Approximate water inertia consistent with the weighted-column water
+    /// centers. Used only by an explicitly weighted combat buoyancy profile.
+    pub fn inertia_m3(&self, origin: Vec3) -> Vec3 {
+        let Some(shape) = self.shape.get() else {
+            // Mixed experimental profiles may retain an exact water volume.
+            // Its center still contributes point-mass inertia; only intrinsic
+            // water inertia is unavailable without the column geometry.
+            let d: Vec3 = std::array::from_fn(|i| self.center[i] - origin[i]);
+            return [
+                d[1] * d[1] + d[2] * d[2],
+                d[0] * d[0] + d[2] * d[2],
+                d[0] * d[0] + d[1] * d[1],
+            ]
+            .map(|v| v * self.volume.max(0.));
+        };
+        let mut second = [0.; 3];
+        for c in &shape.columns {
+            let fraction = ((self.level - c.low) / (c.high - c.low)).clamp(0., 1.);
+            let mut center = c.center;
+            let mut size = c.size;
+            center[shape.axis] -= shape.sign * c.extent * (1. - fraction) * 0.5;
+            size[shape.axis] *= fraction;
+            for a in 0..3 {
+                second[a] += c.volume
+                    * fraction
+                    * ((center[a] - origin[a]).powi(2) + size[a] * size[a] / 12.);
+            }
+        }
+        [
+            second[1] + second[2],
+            second[0] + second[2],
+            second[0] + second[1],
+        ]
+    }
+}
 fn exact_water(room: &Compartment, volume: f64, roll: f64, pitch: f64) -> (f64, f64, Vec3) {
     let cells = room.volumes.as_ref().unwrap();
     let n = orientation(roll, pitch).0;
@@ -342,19 +389,53 @@ fn exact_water(room: &Compartment, volume: f64, roll: f64, pitch: f64) -> (f64, 
     if volume >= room.capacity_m3 {
         return (hi, 0., crate::construction_geometry::total(cells).center());
     }
+    // Every bisection level reuses the same oriented cells. A wholly submerged
+    // cell has the same moments on all 33 queries; compute those once. Partial
+    // cells still use the original clip/integrate path and original sum order.
+    let prepared: Vec<_> = cells
+        .iter()
+        .map(|cell| {
+            let (bottom, top) = cell.faces.iter().flat_map(|f| &f.vertices).fold(
+                (f64::INFINITY, f64::NEG_INFINITY),
+                |(lo, hi), p| {
+                    let y = dot(*p, n);
+                    (lo.min(y), hi.max(y))
+                },
+            );
+            (
+                cell,
+                bottom,
+                top,
+                crate::construction_geometry::moments(cell),
+            )
+        })
+        .collect();
+    let submerged = |level: f64| {
+        use crate::construction_geometry::{EPS, Moments, clip, moments};
+        let mut total = Moments::default();
+        for &(cell, bottom, top, full) in &prepared {
+            // Match clip's comparisons exactly, including epsilon-thin cells.
+            if top - level <= EPS {
+                total.add(full);
+            } else if bottom - level < -EPS {
+                if let Some(clipped) = clip(cell, n, level) {
+                    total.add(moments(&clipped));
+                }
+            }
+        }
+        total
+    };
     for _ in 0..30 {
         let mid = (lo + hi) * 0.5;
-        if crate::construction_geometry::submerged(cells, n, mid).volume < volume {
+        if submerged(mid).volume < volume {
             lo = mid;
         } else {
             hi = mid;
         }
     }
     let level = (lo + hi) * 0.5;
-    let m = crate::construction_geometry::submerged(cells, n, level);
+    let m = submerged(level);
     let e = 0.0001;
-    let area = (crate::construction_geometry::submerged(cells, n, level + e).volume
-        - crate::construction_geometry::submerged(cells, n, level - e).volume)
-        / (2. * e);
+    let area = (submerged(level + e).volume - submerged(level - e).volume) / (2. * e);
     (level, area.max(0.), m.center())
 }
