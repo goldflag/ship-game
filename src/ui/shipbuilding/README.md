@@ -97,11 +97,18 @@ The default compiler is `ConstructionClient`, using a dedicated module worker. N
 
 Only canonical faces belonging to source hull primitives can receive armor, paint or opening assignments. Native fixed equipment-support surfaces remain rendered and physically inspectable; hull coverage counts only editable exterior hull skin. Fixed supports never become editable hull keys. Face IDs containing colons are retained without splitting the primitive identity.
 
-Module map: `builderLayers.ts` (layers, rails, palettes), `placement.ts` (face-adjacent snapping, runs, fills, mirror twins), `pathDrawing.ts` (pending route points and support-socket anchoring), `PathPointEditor.tsx` (inline route coordinates, point insertion/removal and rope slack), `builderReadings.ts` (ledger rows, mass groups, warnings), `BuilderViewport.tsx` (three.js scene, picking, ghost, move drags, tags, arcs), `slotImages.ts` (offscreen card renders of hull shapes and catalog parts), `HelpDialog.tsx` (controls and hotkeys), `DesignsMenu.tsx`, `NumberField.tsx` (inline tag fields), `useBuilderSource.ts` (history, autosave, compile gate). In development the viewport exposes itself as `window.shipbuilderViewport` for browser checks.
+Module map: `builderLayers.ts` (layers, rails, palettes), `placement.ts` (face-adjacent snapping, runs, fills, mirror twins), `pathDrawing.ts` (pending route points and support-socket anchoring), `PathPointEditor.tsx` (inline route coordinates, point insertion/removal and rope slack), `builderReadings.ts` (ledger rows, mass groups, warnings), `BuilderViewport.tsx` (three.js scene, picking, ghost, move drags, tags, arcs), `slotImages.ts` (offscreen card renders of hull shapes and catalog parts), `HelpDialog.tsx` (controls and hotkeys), `DesignsMenu.tsx`, `NumberField.tsx` (inline tag fields), `useBuilderSource.ts` (React, storage opening and compile gate), `src/ships/constructionRevisionOwner.ts` (history, revision adoption, autosave ordering and conflict recovery). In development the viewport exposes itself as `window.shipbuilderViewport` for browser checks.
 
 ## Source storage and recovery
 
 `openConstructionStore()` in `src/ships/constructionStore.ts` opens IndexedDB database `fleet-command-construction`. It returns `list`, `load`, `revisions`, `save`, `remove` and `close`. `save` accepts a source, its schema/catalog versions and `expectedRevisionId`; one transaction writes the immutable revision and advances the design head. A stale head rejects the whole transaction. No compiled geometry, runtime damage or renderer objects are stored.
+
+`ConstructionRevisionOwner` owns editable history, the acknowledged save head and
+source adoption for replacement, repository reload and polling. Edits enqueue
+synchronously, so the agent editor handle can apply, read and flush a revision in
+one turn; compiled output is available only for the exact current revision and
+adoption. The React hook subscribes to that state and retains compiler debounce,
+cancellation and browser lifecycle handling.
 
 `ConstructionAutosave` serializes writes and coalesces pending edits. It advances the expected head only after commit and retains the newest unsaved draft after an error. Source undo/redo is separate from autosave and compile results, retaining up to 50 undo steps. Saved revisions remain available after reopening the app; the store does not prune them automatically. Delete in the editor menu or port list uses an inline confirmation and atomically removes the design and every retained revision. Concurrent edits reject a stale deletion, and stale autosaves cannot recreate a deleted head. Deleting the open design drains its writer and opens a new one-block design.
 
@@ -120,6 +127,13 @@ bun test src/ui/shipbuilding/primitiveGeometry.test.ts
 bunx tsc --noEmit
 bun run build
 ```
+
+`bun run ship:browser:check` automates the repository-authoring, storage,
+design-deletion and shipbuilder-editing helpers below in headed Chromium;
+append `--headless` for CI. It uses disposable files and fresh browser storage.
+Install Chromium with `bunx playwright install chromium`, or set
+`CONSTRUCTION_CHROME` to an existing executable. Failure screenshots are saved
+under ignored `.build/construction-browser/`.
 
 Browser helpers run against the real application toolchain and IndexedDB without test-only storage dependencies. `scripts/diagnostics/shipbuilder.html` mounts the editor alone on the Vite dev server for layout review; import the check modules from that page:
 

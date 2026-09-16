@@ -393,6 +393,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   };
   const close = async () => { setBusy('Saving'); try { await editor.flush(); await props.onClose(structuredClone(source), compiled); } catch (cause) { fail(cause); } finally { setBusy(''); } };
   const launch = async () => {
+    const source = editor.readSource(), compiled = editor.readResult();
     if (!compiled?.definition || compiled.diagnostics.some(item => item.severity === 'error')) return;
     setBusy('Launching');
     try { try { await editor.flush(); } catch { /* App receives the immutable source even if local storage is unavailable. */ } await props.onLaunch(structuredClone(source), structuredClone(compiled)); }
@@ -400,7 +401,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   };
   useEffect(() => {
     if (!editor.ready) return;
-    props.onEditorReady?.({ source: () => structuredClone(source), result: () => compiled && structuredClone(compiled), apply: editor.applyBatch, flush: editor.flush, launch, undo: editor.undo, redo: editor.redo });
+    props.onEditorReady?.({ source: editor.readSource, result: editor.readResult, apply: editor.applyBatch, flush: editor.flush, launch, undo: editor.undo, redo: editor.redo });
     return () => props.onEditorReady?.(undefined);
   }, [source, compiled, editor.ready, editor.saveState]);
   const suggest = async (selectedPart = false) => {

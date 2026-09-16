@@ -1,3 +1,4 @@
+import { controlEligibility } from './controlEligibility';
 import type { DeckPolicy } from '../multiplayer/generated/DeckPolicy';
 import { physicalLoss } from '../simulation/battleRules';
 import { ArticulationResolver } from './articulationPreview';
@@ -305,7 +306,7 @@ export class Game {
       camera: () => this.cycleCamera(), recenter: () => this.recenter(),
       hud: () => { if (!this.inPort) callbacks.hud(); }, fullscreen: () => this.fullscreen(),
       optics: () => this.toggleBinoculars(), weaponGroup: index => this.selectWeaponSlot(index),
-      cursor: released => { if (released) this.rig.releasePointer(); else if (!this.airOperationsOpen && !document.querySelector('dialog[open]')) this.rig.capturePointer(); },
+      cursor: released => { if (released) this.rig.releasePointer(); else if (this.controls().capturePointer && !document.querySelector('dialog[open]')) this.rig.capturePointer(); },
       chartSize: direction => this.resizeChart(direction),
       simulationSpeed: () => this.cycleSimulationSpeed(),
       shellFollow: () => this.toggleShellFollow(),
@@ -319,7 +320,7 @@ export class Game {
       emergencyBlow: () => this.setDepth(0, true),
       periscope: () => this.togglePeriscope(),
     });
-    this.input.setEnabled(false);
+    this.updateInputEligibility(true);
     this.observer = new ResizeObserver(() => { this.resizePending = true; });
     this.observer.observe(host);
     document.addEventListener('visibilitychange', () => {
@@ -489,7 +490,7 @@ export class Game {
     await this.warmupRendering();
     this.callbacks.progress('Ready to get underway', 1);
     this.callbacks.ready();
-    this.input.setEnabled(!this.paused && !this.inPort);
+    this.updateInputEligibility();
     this.lastTime = performance.now();
     this.scheduleFrame();
   }
@@ -534,11 +535,11 @@ export class Game {
     this.assertActive();
     this.setInPort(false);
     this.paused = true;
-    this.input.setEnabled(false);
+    this.updateInputEligibility(true);
     await this.warmupRendering(progress);
     this.assertActive();
     this.paused = false;
-    this.input.setEnabled(!this.fleetCommandMode);
+    this.updateInputEligibility(this.fleetCommandMode);
     this.lastTime = performance.now();
     this.scheduleFrame();
   }
@@ -594,7 +595,7 @@ export class Game {
     const session = this.simulation;
     if (!(session instanceof LocalBattleSession) || !session.missionRules || this.inPort || this.switchingShip || this.disposed) throw new Error('No PvE mission is available to restart.');
     this.switchingShip = true; this.paused = true;
-    this.input.clear(); this.input.setOrder(1); this.input.setRudder(0); this.input.setEnabled(false); this.rig.releasePointer();
+    this.input.clear(); this.input.setOrder(1); this.input.setRudder(0); this.updateInputEligibility(true); this.rig.releasePointer();
     cancelAnimationFrame(this.raf);
     try {
       await this.frameTask; cancelAnimationFrame(this.raf);
@@ -1124,16 +1125,16 @@ export class Game {
     this.lastShellPress = undefined;
     this.paused = paused;
     this.audio?.setScene(this.inPort, paused);
-    this.input.setEnabled(!paused && !this.tacticalPause && !this.inPort && !!this.water && (!this.fleetCommandMode || (!this.airOperationsOpen && !!this.simulation.controlledShipId)));
-    this.rig.setEnabled(!paused && !this.airOperationsOpen);
+    this.updateInputEligibility();
+    this.rig.setEnabled(this.controls().rigEnabled);
     this.callbacks.pause(paused);
   }
-  capturePointer(): void { if (!this.airOperationsOpen) this.rig.capturePointer(); }
+  capturePointer(): void { if (this.controls().capturePointer) this.rig.capturePointer(); }
   toggleTacticalPause(): void {
     if (this.inPort || this.simulation.networked || !this.fleetCommandMode || this.simulation.result !== 'active') return;
     this.tacticalPause = !this.tacticalPause;
     this.input.clear();
-    this.input.setEnabled(!this.paused && !this.tacticalPause && !this.airOperationsOpen && !!this.simulation.controlledShipId);
+    this.updateInputEligibility();
   }
   selectFleetShips(ids: string[]): void {
     this.selectedShipIds = [...new Set(ids)].filter(id => this.simulation.actors.some(a => a.motion.id === id && a.team === 'friendly' && !physicalLoss(a)));
@@ -1146,7 +1147,7 @@ export class Game {
     this.simulation.releaseHelm();
     if (preselect && !this.selectedShipIds.length) this.selectFleetShips([this.simulation.ship.id]);
     this.setAirOperationsOpen(true);
-    this.input.setEnabled(false);
+    this.updateInputEligibility(true);
     this.rig.releasePointer();
   }
   followFleetShip(id: string): void {
@@ -1158,7 +1159,7 @@ export class Game {
     // cancelled; only close it here when the ship is not a spectator candidate.
     this.spectateTeammate(id);
     if (this.airOperationsOpen) this.setAirOperationsOpen(false);
-    this.input.setEnabled(false);
+    this.updateInputEligibility(true);
   }
   takeFleetHelm(id: string): void {
     if (!this.fleetCommandMode || !this.simulation.actors.some(a => a.motion.id === id && a.team === 'friendly' && !physicalLoss(a))) return;
@@ -1352,7 +1353,7 @@ export class Game {
     this.input.clear();
     if (open) {
       if (this.inspecting) this.inspectTarget();
-      this.endFollow(); this.rig.setEnabled(false);
+      this.endFollow(); this.rig.setEnabled(this.controls().rigEnabled);
       this.battlefieldCamera.enter(this.reportedMapPoints(), this.host.clientWidth, this.host.clientHeight);
       if (!this.fleetCommandMode) this.selectedFlightId ??= squadronFlights(this.simulation.player)[0]?.id;
       // Water Pro sizes its horizon ring when geometry is built, before the map
@@ -1364,8 +1365,8 @@ export class Game {
       this.environment.setChartFog(false);
       this.rig.update(this.playerView?.motion ?? this.simulation.ship, this.simulation.ship.y, 0, true);
       // Closing the map from the pause menu keeps the rig idle until play resumes.
-      this.rig.setEnabled(!this.paused);
-      if (!this.paused) this.rig.capturePointer();
+      this.rig.setEnabled(this.controls().rigEnabled);
+      if (this.controls().captureAfterChart) this.rig.capturePointer();
     }
     this.battlefieldCamera.applyTransition(0);
   }
@@ -1376,17 +1377,22 @@ export class Game {
     if (this.airOperationsOpen) this.setAirOperationsOpen(false);
     this.followedAircraftId = id;
   }
-  /** The camera has left the gun sight: the sight freezes, gun circles hide and the
-   * displayed pose is not an aim. Inspection, the air map and its descent, and shell
-   * or aircraft follows all count; the sight returns as soon as they end. */
-  private get viewAway(): boolean {
-    return this.airOperationsOpen || (this.fleetCommandMode && !this.simulation.controlledShipId) || this.battlefieldCamera.transitioning || this.inspecting || !!this.shellFollow.view || !!this.followedAircraftId;
+  /** Snapshot at the point of use: camera transitions and frame ordering stay here. */
+  private controls(inputSuspended = false) {
+    return controlEligibility({
+      paused: !!this.paused, tacticalPause: !!this.tacticalPause, inPort: !!this.inPort,
+      waterReady: !!this.water, fleetCommand: !!this.fleetCommandMode,
+      hasHelm: !!this.simulation.controlledShipId, sunk: this.simulation.player.damage.sunk,
+      chartOpen: !!this.airOperationsOpen, chartTransitioning: !!this.battlefieldCamera?.transitioning,
+      inspecting: !!this.inspecting, shellFollow: !!this.shellFollow?.view, aircraftFollow: !!this.followedAircraftId,
+    }, inputSuspended);
   }
-  /** Fire commands reach the guns while the player is afloat and not overhead on
-   * the map or descending from it. Following a shell keeps the guns firing. */
-  private get gunsCommandable(): boolean {
-    return (!this.fleetCommandMode || !!this.simulation.controlledShipId) && !this.simulation.player.damage.sunk && !this.airOperationsOpen && !this.battlefieldCamera.transitioning;
+  /** Loading and a pending helm release can suspend input before session state catches up. */
+  private updateInputEligibility(suspended = false): void {
+    this.input.setEnabled(this.controls(suspended).inputEnabled);
   }
+  private get viewAway(): boolean { return this.controls().viewAway; }
+  private get gunsCommandable(): boolean { return this.controls().gunsCommandable; }
   /** The presentation-only target the rig follows this frame. A followed aircraft
    * that is lost or leaves the visible phases ends its follow here. */
   private followedView(alpha: number): ShellView | undefined {
@@ -1445,7 +1451,7 @@ export class Game {
     if (this.followedAircraftId) return;
     if (this.fleetCommandMode && this.simulation.controlledShipId && !this.airOperationsOpen) {
       this.spectatedShipId = undefined;
-      const enabled = !this.paused && !this.tacticalPause;
+      const enabled = this.controls().inputEnabled;
       if (this.input.isEnabled !== enabled) this.input.setEnabled(enabled);
       return;
     }
@@ -1486,7 +1492,7 @@ export class Game {
     // the mouse looks around at once and Ctrl frees the cursor for the orders panel.
     // A sunk player's spectator keeps the cursor for the teammate picker; a swap
     // landing on a new hull in a custom battle keeps aiming.
-    if ((this.fleetCommandMode || !this.simulation.player.damage.sunk) && !this.paused) this.rig.capturePointer();
+    if (this.controls().captureAfterSpectate) this.rig.capturePointer();
     else this.rig.releasePointer();
   }
   cycleSpectator(direction: number): void {

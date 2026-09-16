@@ -1,5 +1,6 @@
 import { beforeAll, expect, test } from 'bun:test';
 import init, { PvePlanner, type LocalRuntime } from '../../generated/naval-wasm/naval_wasm';
+import { PveDraft } from './PveDraft';
 import { LocalBattleSession } from './LocalBattleSession';
 import { decodeSnapshot } from './snapshotCodec';
 import { localDelta } from './localSnapshotDelta';
@@ -20,10 +21,28 @@ class TestWorker {
   /** Hold replies to model a round trip longer than one render frame. */
   manual = false; private held: (() => void)[] = [];
   get inFlight() { return this.held.length; }
-  constructor(readonly runtime: LocalRuntime) {}
-  postMessage(message: { type: string; commands?: CommandEnvelope[]; ticks?: number; detailShipIds?: string[] }) {
+  terminated = false;
+  private planner?: PvePlanner;
+  runtime!: LocalRuntime;
+  constructor(runtime?: LocalRuntime) { if (runtime) this.runtime = runtime; }
+  postMessage(message: { type: string; commands?: CommandEnvelope[]; ticks?: number; detailShipIds?: string[]; request?: unknown; placements?: unknown; formations?: unknown }) {
     if (message.type === 'advance') this.posts++;
     const reply = () => {
+      if (this.terminated) return;
+      try {
+      if (message.type === 'options') { this.onmessage?.({ data: { type: 'options', options: JSON.parse(PvePlanner.options(manifest)) } }); return; }
+      if (message.type === 'plan') {
+        this.planner?.free(); this.planner = new PvePlanner(manifest, JSON.stringify(message.request));
+        this.onmessage?.({ data: { type: 'briefing', briefing: JSON.parse(this.planner.briefing()) } }); return;
+      }
+      if (message.type === 'validate') {
+        this.planner!.validate_placement(JSON.stringify(message.placements));
+        this.onmessage?.({ data: { type: 'validated' } }); return;
+      }
+      if (message.type === 'deploy' && this.planner) {
+        this.runtime = this.planner.start(JSON.stringify(message.placements), JSON.stringify(message.formations ?? {}));
+        this.planner.free(); this.planner = undefined;
+      }
       if (message.type === 'restart') { this.runtime.restart_pve(); this.previous = undefined; this.detail = []; }
       if (message.type === 'advance') {
         this.batches++;
@@ -38,12 +57,13 @@ class TestWorker {
       const frame = decodeSnapshot(this.runtime.detailed_snapshot(this.detail));
       this.onmessage?.({ data: { type: 'snapshot', reset: message.type === 'restart', baseTick: this.previous?.tick, delta: localDelta(this.previous, frame) } });
       this.previous = frame;
+      } catch (error) { this.onmessage?.({ data: { type: 'error', message: String(error) } }); }
     };
     if (this.manual) this.held.push(reply); else queueMicrotask(reply);
   }
   /** Deliver one held reply, letting the session schedule from it. */
   async flush() { this.held.shift()?.(); await Promise.resolve(); }
-  terminate() { this.runtime.free(); }
+  terminate() { if (this.terminated) return; this.terminated = true; this.runtime?.free(); this.planner?.free(); }
 }
 async function fixture(withAircraft = false) {
   const planner = new PvePlanner(manifest, JSON.stringify({ version: 1, seed: 17001, mapId: 'pacific-islands', weather: 'clear', difficulty: 'normal', ships: [{ id: 'own', presetId: 'fletcher', groupId: 'g' }, ...(withAircraft ? [{ id: 'carrier', presetId: 'enterprise-cv6', groupId: 'g' }] : [])], groups: [{ id: 'g', name: 'Group 1', station: 'front' }] }));
@@ -199,4 +219,119 @@ test('damage-control detail travels only for the ship whose panel is on screen',
     expect(other.damage.compartments.length).toBeGreaterThan(0);
     expect(other.damage.control.mounts.length).toBeGreaterThan(0);
   } finally { session.dispose(); }
+});
+
+test('validation timeout retires the retained draft and a fresh preparation can deploy and restart', async () => {
+  const original = globalThis.Worker;
+  const workers: TestWorker[] = [];
+  globalThis.Worker = class extends TestWorker { constructor() { super(); workers.push(this); } } as unknown as typeof Worker;
+  const request: Parameters<typeof PveDraft.create>[0] = { version: 1, seed: 17001, mapId: 'pacific-islands', weather: 'clear', difficulty: 'normal',
+    ships: [{ id: 'own', presetId: 'fletcher', groupId: 'g' }], groups: [{ id: 'g', name: 'Group 1', station: 'front' }] };
+  let draft: PveDraft | undefined;
+  let session: LocalBattleSession | undefined;
+  try {
+    await PveDraft.options();
+    draft = await PveDraft.create(structuredClone(request));
+    expect(workers.length).toBe(1);
+    const briefing = draft.briefing;
+    const placements = briefing.setup.ships.map(s => ({ id: s.id, spawn: s.spawn! }));
+    await expect(draft.validate([])).rejects.toThrow();
+    expect(draft.usable).toBe(true);
+    await draft.validate(placements);
+    workers[0].manual = true;
+    const pending = draft.validate(placements);
+    await expect(draft.deploy(placements)).rejects.toThrow('unavailable');
+    expect(draft.usable).toBe(true);
+    await workers[0].flush(); await pending;
+    let deadline!: () => void;
+    const originalTimer = globalThis.setTimeout;
+    globalThis.setTimeout = ((callback: () => void) => { deadline = callback; return originalTimer(() => {}, 60000); }) as typeof setTimeout;
+    const validation = draft.validate(placements);
+    globalThis.setTimeout = originalTimer;
+    deadline(); await expect(validation).rejects.toThrow('Deployment validation took too long.');
+    expect(workers[0].terminated).toBe(true);
+    expect(draft.usable).toBe(false);
+    // The dialog drops an unusable draft; the same request can prepare again.
+    draft.dispose();
+    draft = await PveDraft.create(structuredClone(request));
+    expect(workers.length).toBe(2);
+    expect(draft.briefing).toEqual(briefing);
+    await workers[0].flush();
+    await draft.validate(placements);
+    session = await draft.deploy(placements);
+    await session.restartPve();
+    expect(session.tick).toBe(0);
+  } finally { session?.dispose(); draft?.dispose(); PveDraft.release(); globalThis.Worker = original; }
+});
+
+test('initialization errors and deadlines retire their worker and allow a fresh deployment', async () => {
+  const original = globalThis.Worker;
+  const workers: TestWorker[] = [];
+  globalThis.Worker = class extends TestWorker { constructor() { super(); workers.push(this); } } as unknown as typeof Worker;
+  const request: Parameters<typeof PveDraft.create>[0] = { version: 1, seed: 17001, mapId: 'pacific-islands', weather: 'clear', difficulty: 'normal',
+    ships: [{ id: 'own', presetId: 'fletcher', groupId: 'g' }], groups: [{ id: 'g', name: 'Group 1', station: 'front' }] };
+  let draft: PveDraft | undefined;
+  let session: LocalBattleSession | undefined;
+  try {
+    for (const failure of ['error-reply', 'timeout', 'worker-error'] as const) {
+      draft = await PveDraft.create(structuredClone(request));
+      const worker = workers.at(-1)!;
+      const placements = draft.briefing.setup.ships.map(s => ({ id: s.id, spawn: s.spawn! }));
+      if (failure === 'error-reply') {
+        // Real Rust rejects the incomplete deployment; initialization must own cleanup.
+        await expect(draft.deploy([])).rejects.toThrow();
+      } else {
+        worker.manual = true;
+        const originalTimer = globalThis.setTimeout;
+        let deadline!: () => void;
+        let deployment!: ReturnType<PveDraft['deploy']>;
+        try {
+          globalThis.setTimeout = ((callback: () => void) => { deadline = callback; return originalTimer(() => {}, 60000); }) as typeof setTimeout;
+          deployment = draft.deploy(placements);
+        } finally { globalThis.setTimeout = originalTimer; }
+        if (failure === 'timeout') deadline();
+        else worker.onerror?.({ message: 'Worker initialization crashed.' });
+        await expect(deployment).rejects.toThrow(failure === 'timeout' ? 'Battle worker took too long to load.' : 'Worker initialization crashed.');
+      }
+      expect(worker.terminated).toBe(true);
+      expect(draft.usable).toBe(false);
+      draft = await PveDraft.create(structuredClone(request));
+      expect(workers.at(-1)).not.toBe(worker);
+      await worker.flush();
+      session = await draft.deploy(placements);
+      expect(session.tick).toBe(0);
+      expect(workers.at(-1)!.terminated).toBe(false);
+      session.dispose(); session = undefined;
+    }
+  } finally { session?.dispose(); draft?.dispose(); PveDraft.release(); globalThis.Worker = original; }
+}, 15000);
+
+test('disposing during validation rejects the pending request and never reuses its worker', async () => {
+  const original = globalThis.Worker;
+  const workers: TestWorker[] = [];
+  globalThis.Worker = class extends TestWorker { constructor() { super(); workers.push(this); } } as unknown as typeof Worker;
+  const request: Parameters<typeof PveDraft.create>[0] = { version: 1, seed: 17001, mapId: 'pacific-islands', weather: 'clear', difficulty: 'normal',
+    ships: [{ id: 'own', presetId: 'fletcher', groupId: 'g' }], groups: [{ id: 'g', name: 'Group 1', station: 'front' }] };
+  let draft: PveDraft | undefined;
+  let session: LocalBattleSession | undefined;
+  try {
+    draft = await PveDraft.create(request);
+    const worker = workers[0], briefing = draft.briefing;
+    const placements = briefing.setup.ships.map(s => ({ id: s.id, spawn: s.spawn! }));
+    worker.manual = true;
+    const validation = draft.validate(placements);
+    expect(worker.inFlight).toBe(1);
+    draft.dispose();
+    await expect(validation).rejects.toThrow('Mission closed.');
+    expect(worker.terminated).toBe(true);
+    expect(draft.usable).toBe(false);
+    draft = await PveDraft.create(request);
+    expect(workers.length).toBe(2);
+    expect(draft.briefing).toEqual(briefing);
+    await worker.flush();
+    expect(worker.inFlight).toBe(0);
+    await draft.validate(placements);
+    session = await draft.deploy(placements);
+    expect(session.tick).toBe(0);
+  } finally { session?.dispose(); draft?.dispose(); PveDraft.release(); globalThis.Worker = original; }
 });
