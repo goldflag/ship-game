@@ -21,6 +21,7 @@ import { oceanMap, DEFAULT_MAP, landHeight } from '../maps/catalog';
 import { createBattleLandscape, disposeBattleLandscape } from './BattleLandscape';
 import { VisualEnvironment } from './VisualEnvironment';
 import { WaterViewFocus } from './WaterViewFocus';
+import { updateWaterShadows } from './WaterShadows';
 import type { ControlPriority } from '../simulation/damageControl';
 import * as THREE from 'three/webgpu';
 import { Fn, float, max, mix, pass, renderOutput, rtt, vec4 } from 'three/tsl';
@@ -960,6 +961,7 @@ export class Game {
         this.underwaterPassVisibility?.capture();
         if (this.disposed) return;
         this.renderFrame();
+        updateWaterShadows(this.scene, this.water!.lighting.sunLight, this.renderer.reversedDepthBuffer, this.settings.waterShadows);
         if (this.frameWaiters.length) { const waiters = this.frameWaiters; this.frameWaiters = []; waiters.forEach(resolve => resolve()); }
       } finally {
         this.scene.endFrame();
@@ -1051,8 +1053,13 @@ export class Game {
     const sunlight = this.water?.lighting.sunLight;
     if (!sunlight) return;
     const size = shadowMapSize(this.settings.shadows);
-    sunlight.castShadow = size > 0;
-    if (!size) return;
+    // Retain an allocated map when switching Off: Three's cached capture
+    // programs still reference it. Zero intensity removes shadows and stopping
+    // updates removes caster passes, without disposing live shader resources.
+    sunlight.castShadow = size > 0 || !!sunlight.shadow.map;
+    sunlight.shadow.intensity = size > 0 ? 1 : 0;
+    sunlight.shadow.autoUpdate = size > 0;
+    if (!size) { sunlight.shadow.needsUpdate = false; return; }
     sunlight.shadow.mapSize.set(size, size);
     // Keep the receiver offset proportional to a shadow texel in world meters.
     // A fixed 10 cm offset leaves diagonal self-shadow bands on broad hulls at
