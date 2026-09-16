@@ -19,6 +19,8 @@ use std::{
 use tokio::sync::{oneshot, watch};
 #[derive(Clone)]
 pub struct MatchHandle {
+    pub content: axum::body::Bytes,
+    pub content_hash: String,
     pub id: String,
     pub commands: SyncSender<Action>,
     pub frames: watch::Receiver<Arc<Frame>>,
@@ -117,6 +119,8 @@ pub fn spawn(
     });
     let (frames, receiver) = watch::channel(initial);
     let handle = MatchHandle {
+        content: axum::body::Bytes::from_static(b"{\"artifacts\":[]}"),
+        content_hash: naval_sim::catalog::sha256(b"{\"artifacts\":[]}"),
         id: id.clone(),
         commands: tx,
         frames: receiver,

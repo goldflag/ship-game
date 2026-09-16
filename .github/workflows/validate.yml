@@ -6,6 +6,36 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:17-bookworm
+        env:
+          POSTGRES_USER: ships_admin
+          POSTGRES_PASSWORD: ci-admin
+          POSTGRES_DB: ships
+        ports: [5432:5432]
+        options: >-
+          --health-cmd "pg_isready -U ships_admin -d ships"
+          --health-interval 5s --health-timeout 3s --health-retries 20
+    env:
+      PGHOST: 127.0.0.1
+      PGPASSWORD: ci-admin
+      POSTGRES_USER: ships_admin
+      POSTGRES_DB: ships
+      API_DB_PASSWORD: ci-api
+      BATTLE_DB_PASSWORD: ci-battle
+      MIGRATION_DB_PASSWORD: ci-migration
+      MIGRATION_DATABASE_URL: postgres://ships_migration:ci-migration@127.0.0.1:5432/ships
+      API_DATABASE_URL: postgres://ships_api:ci-api@127.0.0.1:5432/ships
+      BATTLE_DATABASE_URL: postgres://ships_battle:ci-battle@127.0.0.1:5432/ships
+      TEST_API_DATABASE_URL: postgres://ships_api:ci-api@127.0.0.1:5432/ships
+      TEST_ADMIN_DATABASE_URL: postgres://ships_admin:ci-admin@127.0.0.1:5432/ships
+      AUTH_ORIGIN: http://127.0.0.1:4173
+      NAVAL_ORIGIN: http://127.0.0.1:4173
+      NAVAL_TEST_URL: http://127.0.0.1:4173
+      ACCOUNTS_URL: http://127.0.0.1:8788
+      SERVICE_SECRET: ci-only-service-secret-at-least-32-characters
+      BETTER_AUTH_SECRET: ci-only-auth-secret-at-least-32-characters
     steps:
       - uses: actions/checkout@v4
         with:
@@ -18,17 +48,32 @@ jobs:
           rustup show
           cargo install wasm-bindgen-cli --version 0.2.128 --locked
       - run: bun install --frozen-lockfile
+      - name: Initialize isolated account database
+        run: |
+          sh services/db/init.sh
+          bun run accounts:migrate
+          bun run accounts:check
       - run: bun run multiplayer:check
       - run: bun run test
       - run: bun run build
       - name: Exercise the release server over HTTP and WebSockets
         run: |
           cargo build --release --locked -p naval-server --bin naval-server
-          NAVAL_DATABASE=/tmp/naval-ci.sqlite target/release/naval-server > /tmp/naval-server.log 2>&1 &
+          cargo build --release --locked -p naval-sim --example compile_construction
+          POSTGRES_TEST_URL="$BATTLE_DATABASE_URL" cargo test --release -p naval-server ordered_postgres_flush_terminal_immutability_and_restart_abort -- --ignored
+          bun services/api/main.ts > /tmp/naval-api.log 2>&1 &
+          naval_api_pid=$!
+          bun services/compiler/worker.ts > /tmp/naval-compiler.log 2>&1 &
+          naval_compiler_pid=$!
+          target/release/naval-server > /tmp/naval-server.log 2>&1 &
           naval_ci_pid=$!
-          trap 'kill -TERM "$naval_ci_pid" 2>/dev/null || true; wait "$naval_ci_pid" || true' EXIT
+          bunx vite --host 127.0.0.1 --port 4173 > /tmp/naval-vite.log 2>&1 &
+          naval_web_pid=$!
+          trap 'kill -TERM "$naval_ci_pid" "$naval_api_pid" "$naval_compiler_pid" "$naval_web_pid" 2>/dev/null || true; wait || true' EXIT
           for attempt in $(seq 1 60); do
-            if curl --fail --silent http://127.0.0.1:8787/api/health; then break; fi
+            if curl --fail --silent http://127.0.0.1:4173/api/health && curl --fail --silent http://127.0.0.1:8788/health; then break; fi
             sleep 1
           done
           bun run multiplayer:smoke
+          bun scripts/multiplayer/custom-smoke.ts
+          bun scripts/multiplayer/session-smoke.ts

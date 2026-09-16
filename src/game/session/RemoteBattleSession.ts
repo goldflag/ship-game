@@ -1,4 +1,9 @@
 import { loadShipPresets } from '../../ships/presets';
+import { bindSessionShips, releaseSessionShips } from '../../ships/sessionShips';
+import { currentAccount, onAccountChange } from '../../accounts/session';
+import { localShip, isHistoricalShip, type LocalShipRevision } from '../../ships/localShips';
+import { savedReference } from '../../ships/constructionCloud';
+import type { FleetReference } from '../../multiplayer/generated/FleetReference';
 import { assetUrl } from '../../assetUrl';
 import { expandSnapshot } from '../../multiplayer/snapshotDelta';
 import version from '../../generated/naval-version.json';
@@ -12,31 +17,41 @@ import type { TimeOfDayId, WeatherId } from '../../maps/conditions';
 export type JoinMode = 'queue' | 'create-invite' | 'join-invite';
 export interface MatchMetadata {
   baseline: unknown;
+  contentHash: string;
   type: 'matched'; matchId: string; player: number; team: TeamId; connectionEpoch: number;
   version: typeof version; setup: BattleSetup; environment: { timeOfDay: TimeOfDayId; weather: WeatherId };
 }
 export interface LobbyStatus { message: string; inviteCode?: string; error?: string; }
-const storageKey = 'naval-match-ticket-v1';
-export function pendingTicket(): boolean { return !!sessionStorage.getItem(storageKey); }
+const storageKey = () => 'naval-match-ticket-v1' + (currentAccount() ? ':' + currentAccount() : '');
+const connections = new Set<MatchConnection>();
+onAccountChange(() => { connections.forEach(c => c.close()); connections.clear(); });
+export function pendingTicket(): boolean { return !!sessionStorage.getItem(storageKey()); }
 const matchesVersion = (other: typeof version) => Object.entries(version).every(([key, value]) => other[key as keyof typeof version] === value);
 /** Owns one tab's reconnect token. A replaced connection never reconnects and
  * takes control back from a newer socket. No token enters a URL or a log. */
 export class MatchConnection {
   private socket?: WebSocket; private stopped = false; private timer?: ReturnType<typeof setTimeout>; private heartbeat?: ReturnType<typeof setInterval>;
   private disconnectedAt?: number; private generation = 0; private binary?: ArrayBuffer; private handshake?: ArrayBuffer; private decoding = false;
+  private constructions = new Map<string,LocalShipRevision>();
   private metadata?: MatchMetadata; private session?: RemoteBattleSession;
   private resolve!: (session: RemoteBattleSession) => void; private reject!: (error: Error) => void;
   readonly matched = new Promise<RemoteBattleSession>((resolve, reject) => { this.resolve = resolve; this.reject = reject; });
-  private constructor(private ticket: string, private status: (status: LobbyStatus) => void) { this.connect(); }
+  private constructor(private ticket: string, private status: (status: LobbyStatus) => void) { connections.add(this); this.connect(); }
   static async join(fleet: string[], mode: JoinMode, inviteCode: string, status: (status: LobbyStatus) => void) {
-    const response = await fetch(assetUrl('api/join'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fleet, mode, inviteCode: inviteCode || null, version }) });
+    const references: FleetReference[] = fleet.map(id => {
+      if (isHistoricalShip(id)) return {kind:'historical',presetId:id};
+      const ship=localShip(id), reference=ship && savedReference(ship.source.id);
+      if (!ship || !reference || reference.sourceRevision!==ship.source.revision) throw new Error('Save this ship to your account before joining.');
+      return {kind:'custom',designId:reference.designId,revisionId:reference.revisionId};
+    });
+    const response = await fetch(assetUrl('api/join'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fleet:references, mode, inviteCode: inviteCode || null, version }) });
     if (!response.ok) { const body = await response.text(); throw new Error(body || 'Unable to join battle.'); }
     const admission = await response.json() as { ticket: string; inviteCode?: string };
-    sessionStorage.setItem(storageKey, admission.ticket);
+    sessionStorage.setItem(storageKey(), admission.ticket);
     return new MatchConnection(admission.ticket, status);
   }
   static resume(status: (status: LobbyStatus) => void) {
-    const ticket = sessionStorage.getItem(storageKey); if (!ticket) throw new Error('No battle to reconnect to.');
+    const ticket = sessionStorage.getItem(storageKey()); if (!ticket) throw new Error('No battle to reconnect to.');
     return new MatchConnection(ticket, status);
   }
   private connect() {
@@ -58,7 +73,7 @@ export class MatchConnection {
         const message = JSON.parse(event.data);
         if (message.type === 'error') { this.fail(message.message ?? message.code ?? 'Connection rejected.'); return; }
         if (message.type === 'queued') { this.disconnectedAt = undefined; this.status({ message: 'Waiting for an opponent', inviteCode: message.inviteCode }); }
-        if (message.type === 'matched') this.acceptMetadata(message);
+        if (message.type === 'matched') void this.acceptMetadata(message).catch(error=>this.fail(String(error)));
         if (message.type === 'ack' && this.session) this.session.commandAcknowledged(message.accepted, message.error);
       } catch (error) { this.fail(String(error)); }
     };
@@ -74,7 +89,25 @@ export class MatchConnection {
     };
     socket.onerror = () => socket.close();
   }
-  private acceptMetadata(message: MatchMetadata) {
+  private async acceptMetadata(message: MatchMetadata) {
+          if (!this.metadata || this.metadata.contentHash!==message.contentHash) {
+            const response=await fetch(assetUrl('api/match-content'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ticket:this.ticket}),cache:'no-store'});
+            if(!response.ok) throw new Error('Unable to load the selected fleet content.');
+            const bytes=await response.arrayBuffer();
+            if(bytes.byteLength>128*1024*1024) throw new Error('Match content exceeds limit.');
+            const hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),n=>n.toString(16).padStart(2,'0')).join('');
+            if(hash!==message.contentHash) throw new Error('Match content hash mismatch.');
+            const payload=JSON.parse(new TextDecoder().decode(bytes));
+            const constructions=new Map<string,LocalShipRevision>();
+            for(const artifact of payload.artifacts) {
+              const {source,result}=artifact, definition=result.definition;
+              if(!definition?.id.startsWith('local-') || definition.contentHash!==result.contentHash || result.sourceId!==source.id || result.revision!==source.revision) throw new Error('Invalid construction artifact');
+              constructions.set(definition.id,{source,result,definition});
+            }
+            for(const ship of message.setup.ships) if(!isHistoricalShip(ship.presetId)&&!constructions.has(ship.presetId)) throw new Error('Missing match ship content');
+            if(this.stopped) return;
+            this.constructions=constructions;
+          }
           if (!matchesVersion(message.version)) { this.fail('Game content changed. Reload before joining.'); return; }
           if (this.metadata && (this.metadata.matchId !== message.matchId || this.metadata.team !== message.team)) { this.fail('Battle identity changed.'); return; }
           this.metadata = message; this.disconnectedAt = undefined;
@@ -94,14 +127,14 @@ export class MatchConnection {
         const json = await new Blob(chunks as BlobPart[]).text();
         if (generation !== this.generation || this.stopped) break;
         const message = JSON.parse(json);
-        if (message.type === 'matched') { this.acceptMetadata(message); continue; }
+        if (message.type === 'matched') { await this.acceptMetadata(message); continue; }
         if (!this.metadata) throw new Error('Snapshot arrived before battle metadata.');
         const frame = readSnapshot(expandSnapshot(this.metadata.baseline, message));
         if (!this.session) await loadShipPresets(this.metadata.setup.ships.map(s => s.presetId));
         if (generation !== this.generation || this.stopped) break;
-        if (!this.session) { this.session = new RemoteBattleSession(this.metadata, this, frame); this.resolve(this.session); }
+        if (!this.session) { this.session = new RemoteBattleSession(this.metadata, this, frame, this.constructions); this.resolve(this.session); }
         else this.session.receive(frame);
-        if (frame.phase === 'finished' || frame.phase === 'cancelled') { sessionStorage.removeItem(storageKey); this.stopped = true; clearTimeout(this.timer); clearInterval(this.heartbeat); this.socket?.close(); }
+        if (frame.phase === 'finished' || frame.phase === 'cancelled') { sessionStorage.removeItem(storageKey()); this.stopped = true; clearTimeout(this.timer); clearInterval(this.heartbeat); this.socket?.close(); }
       }
     } catch (error) { this.fail(String(error)); }
     finally { this.decoding = false; if ((this.handshake || this.binary) && !this.stopped) void this.decode(this.generation); }
@@ -115,17 +148,17 @@ export class MatchConnection {
     this.reject(new Error(message)); this.close(true);
   }
   cancel() { if (!this.metadata) void fetch(assetUrl('api/cancel'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ticket: this.ticket }), keepalive: true }).catch(() => {}); this.send({ type: this.metadata ? 'surrender' : 'cancel' }); this.close(true); this.reject(new Error('Battle cancelled.')); }
-  close(forget = false) { this.stopped = true; clearInterval(this.heartbeat); clearTimeout(this.timer); this.socket?.close(); if (forget) sessionStorage.removeItem(storageKey); }
+  close(forget = false) { connections.delete(this); this.stopped = true; clearInterval(this.heartbeat); clearTimeout(this.timer); this.socket?.close(); if (forget) sessionStorage.removeItem(storageKey()); }
 }
 export class RemoteBattleSession extends SnapshotSession {
   readonly networked = true;
   private sequence = 0; private sentAt = 0; private ready = false;
-  constructor(public metadata: MatchMetadata, private connection: MatchConnection, frame: Snapshot) {
-    super(metadata.setup, metadata.team, metadata.player); this.apply(frame);
+  constructor(public metadata: MatchMetadata, private connection: MatchConnection, frame: Snapshot, readonly constructionShips: ReadonlyMap<string,LocalShipRevision> = new Map()) {
+    super(metadata.setup, metadata.team, metadata.player, new Map([...constructionShips].map(([id,ship])=>[id,ship.definition]))); bindSessionShips(this,constructionShips); this.apply(frame);
   }
   connectionFailed(message: string) { this.pending = undefined; this.connectionStatus = message; this.phase = 'cancelled'; }
   receive(frame: Snapshot) { if (frame.loaded?.[this.playerIndex] && this.connectionStatus === 'Restoring battle state…') this.connectionStatus = ''; if (frame.tick >= this.tick) this.pending = frame; }
-  loadedAssets() { this.ready = true; this.connection.send({ type: 'ready', version }); }
+  loadedAssets() { this.ready = true; this.connection.send({ type: 'ready', version, contentHash:this.metadata.contentHash }); }
   reconnected(metadata: MatchMetadata) { this.pending = undefined; this.metadata = metadata; this.sequence = 0; this.loaded = [...(this.loaded ?? [false, false])]; this.loaded[this.playerIndex] = false; this.connectionStatus = 'Restoring battle state…'; if (this.ready) this.loadedAssets(); }
   protected send(shipId: string, command: Command) {
     if (this.phase !== 'running' || !this.loaded?.[this.playerIndex]) return;
@@ -138,5 +171,5 @@ export class RemoteBattleSession extends SnapshotSession {
     if (now - this.sentAt >= 50) { this.input(helm, intent, dt > 0); this.sentAt = now; }
   }
   surrender() { if (this.phase === 'running' || this.phase === 'loading' || this.phase === 'countdown') this.connection.send({ type: 'surrender' }); this.connection.close(true); }
-  dispose() { this.connection.close(); }
+  dispose() { this.connection.close(); releaseSessionShips(this); }
 }

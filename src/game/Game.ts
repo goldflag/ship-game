@@ -624,7 +624,7 @@ export class Game {
     if (this.disposed || !this.inPort || this.switchingShip) throw new Error('Return to port before joining.');
     this.switchingShip = true;
     try {
-      await this.replaceFleet(session, shipPreset(session.definition.id), progress);
+      await this.replaceFleet(session, session.definition as IdentifiedShip, progress);
       this.environment.setBattle({ timeOfDay: session.metadata.environment.timeOfDay, weather: session.metadata.environment.weather, conditions: {} });
     } finally { this.switchingShip = false; }
   }
@@ -699,7 +699,7 @@ export class Game {
       progress?.(simulation.missionRules ? 'Preparing the fleet' : `Loading ${definitions[0].name}`, 0.08);
       for (const def of definitions) {
         this.assertActive();
-        const model = await this.hull(def, simulation instanceof LocalBattleSession ? simulation.constructionShips.get(def.id) : localShip(def.id));
+        const model = await this.hull(def, (simulation instanceof LocalBattleSession || simulation instanceof RemoteBattleSession) ? simulation.constructionShips.get(def.id) : localShip(def.id));
         models.set(def.id, model);
         this.assertActive();
         // Report-only exteriors clone the original geometry; they never use

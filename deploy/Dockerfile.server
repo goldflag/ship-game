@@ -1,0 +1,28 @@
+FROM rust:1.98.1-bookworm AS build
+WORKDIR /source
+COPY Cargo.toml Cargo.lock rust-toolchain.toml ./
+COPY crates ./crates
+COPY assets/gameplay ./assets/gameplay
+COPY assets/parts/construction/hull_shapes.rs ./assets/parts/construction/hull_shapes.rs
+COPY .build/naval-content/manifest.json ./.build/naval-content/manifest.json
+# The toolchain file remains a simulation identity input. The image already
+# supplies its pinned compiler; avoid installing unused WASM targets here.
+ENV RUSTUP_TOOLCHAIN=1.98.1 CARGO_BUILD_JOBS=1
+# Catalog-backed tests each load ship geometry; serialize them on the production host.
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/source/target \
+    cargo test --release --locked -p naval-server -p naval-protocol -- --test-threads=1 && \
+    cargo build --release --locked -p naval-server --bin naval-server && \
+    cp target/release/naval-server /naval-server
+
+FROM debian:bookworm-slim
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd --gid 10001 naval && useradd --uid 10001 --gid naval --no-create-home naval \
+    && mkdir /data && chown naval:naval /data
+WORKDIR /app
+COPY --from=build /naval-server /app/naval-server
+COPY .build/naval-content/manifest.json /app/manifest.json
+USER naval
+EXPOSE 8787
+ENTRYPOINT ["/app/naval-server"]

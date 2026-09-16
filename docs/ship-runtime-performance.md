@@ -4,6 +4,12 @@ Measured on 2026-09-16 against `a3c51c0d`, with Admiral Hipper's construction
 conversion as the stress case. This is a lossless runtime optimization, not a
 new ship authoring format or a claim that large constructed fleets meet 60 Hz.
 
+PR integration also includes master `e02a93d9` (account-backed custom fleets).
+The measurements below retain their original `a3c51c0d` baseline; integration
+checks revalidate the merged loading paths and regenerated publication. Account
+construction artifacts still carry complete source/compiler results and are not
+covered by the published historical-preset size reduction.
+
 ## Contract and decisions
 
 `blueprint.json`, retained component catalogs and the native compiler remain the

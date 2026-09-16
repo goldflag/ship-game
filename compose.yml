@@ -1,0 +1,179 @@
+name: ships
+
+services:
+  postgres:
+    image: postgres:17-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ships
+      POSTGRES_USER: ships_admin
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?required}
+      API_DB_PASSWORD: ${API_DB_PASSWORD:?required}
+      BATTLE_DB_PASSWORD: ${BATTLE_DB_PASSWORD:?required}
+      MIGRATION_DB_PASSWORD: ${MIGRATION_DB_PASSWORD:?required}
+    volumes:
+      - postgres:/var/lib/postgresql/data
+      - ./services/db/init.sh:/docker-entrypoint-initdb.d/001-roles.sh:ro
+    networks: [simulation]
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U ships_admin -d ships"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    logging: {driver: json-file, options: {max-size: 10m, max-file: "3"}}
+
+  migrate:
+    image: ships-api:${SHIP_RELEASE:-local}
+    build: {context: ., dockerfile: deploy/Dockerfile.api}
+    command: [bun, services/db/migrate.ts]
+    environment:
+      MIGRATION_DATABASE_URL: postgres://ships_migration:${MIGRATION_DB_PASSWORD:?required}@postgres:5432/ships
+    depends_on:
+      postgres: {condition: service_healthy}
+    networks: [simulation]
+    restart: "no"
+
+  api:
+    image: ships-api:${SHIP_RELEASE:-local}
+    build: {context: ., dockerfile: deploy/Dockerfile.api}
+    restart: unless-stopped
+    environment:
+      BIND: 0.0.0.0
+      API_DATABASE_URL: postgres://ships_api:${API_DB_PASSWORD:?required}@postgres:5432/ships
+      AUTH_ORIGIN: https://${SHIP_DOMAIN:-ships.tomato.gg}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?required}
+      SERVICE_SECRET: ${SERVICE_SECRET:?required}
+      COMPILER_URL: http://compiler:8790
+      SHIP_MAX_DESIGNS: ${SHIP_MAX_DESIGNS:-100}
+      SHIP_MAX_BYTES: ${SHIP_MAX_BYTES:-104857600}
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      compiler: {condition: service_healthy}
+    networks: [simulation]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    healthcheck:
+      test: [CMD, bun, -e, "fetch('http://127.0.0.1:8788/health').then(r=>process.exit(r.ok?0:1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    logging: {driver: json-file, options: {max-size: 10m, max-file: "3"}}
+
+  compiler:
+    image: ships-compiler:${SHIP_RELEASE:-local}
+    build: {context: ., dockerfile: deploy/Dockerfile.compiler}
+    restart: unless-stopped
+    mem_limit: 512m
+    memswap_limit: 512m
+    cpus: 0.5
+    pids_limit: 64
+    environment:
+      BIND: 0.0.0.0
+      SERVICE_SECRET: ${SERVICE_SECRET:?required}
+      COMPILER_BINARY: /app/compile_construction
+      CATALOG_ROOT: /app/catalogs
+      NAVAL_VERSION: /app/naval-version.json
+    networks: [simulation]
+    read_only: true
+    tmpfs: ["/tmp:size=32m,mode=1777"]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    healthcheck:
+      test: [CMD, bun, -e, "fetch('http://127.0.0.1:8790/health').then(r=>process.exit(r.ok?0:1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    logging: {driver: json-file, options: {max-size: 10m, max-file: "3"}}
+
+  server:
+    image: ships-server:${SHIP_RELEASE:-local}
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.server
+    restart: unless-stopped
+    environment:
+      NAVAL_BIND: 0.0.0.0:8787
+      NAVAL_ORIGIN: https://${SHIP_DOMAIN:-ships.tomato.gg}
+      NAVAL_MANIFEST: /app/manifest.json
+      BATTLE_DATABASE_URL: postgres://ships_battle:${BATTLE_DB_PASSWORD:?required}@postgres:5432/ships?connect_timeout=3
+      ACCOUNTS_URL: http://api:8788
+      SERVICE_SECRET: ${SERVICE_SECRET:?required}
+      NAVAL_MAX_MATCHES: ${NAVAL_MAX_MATCHES:-2}
+      NAVAL_TRUSTED_PROXIES: 172.30.78.2
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      api:
+        condition: service_healthy
+    networks:
+      simulation:
+        ipv4_address: 172.30.78.3
+    stop_grace_period: 35m
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+    healthcheck:
+      test: [CMD, curl, --fail, --silent, --max-time, "3", http://127.0.0.1:8787/api/health]
+      interval: 15s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+
+  web:
+    image: ships-web:${SHIP_RELEASE:-local}
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.web
+    restart: unless-stopped
+    depends_on:
+      server:
+        condition: service_healthy
+    environment:
+      # The edge proxy's network and Cloudflare are traversed right-to-left.
+      EDGE_PROXY_CIDR: ${EDGE_PROXY_CIDR:-172.18.0.0/16}
+    networks:
+      simulation:
+        ipv4_address: 172.30.78.2
+      edge:
+        aliases: [ships-web]
+    read_only: true
+    tmpfs:
+      - /config:size=16m
+      - /data:size=16m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+    healthcheck:
+      test: [CMD, wget, -q, --spider, http://127.0.0.1:8080/healthz]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+
+networks:
+  simulation:
+    internal: true
+    ipam:
+      config:
+        - subnet: 172.30.78.0/24
+          ip_range: 172.30.78.128/25
+  edge:
+    external: true
+    name: ${EDGE_NETWORK:-matcha-watch_private}
+
+volumes:
+  postgres:
+  matches:

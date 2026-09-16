@@ -1,3 +1,4 @@
+mod accounts;
 mod encoding;
 mod hub;
 mod persistence;
@@ -30,6 +31,8 @@ enum ClientMessage {
     },
     Ready {
         version: Version,
+        #[serde(rename = "contentHash")]
+        content_hash: String,
     },
     Command {
         envelope: naval_protocol::CommandEnvelope,
@@ -65,17 +68,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .map(|s| s.parse::<usize>())
         .transpose()?
         .unwrap_or(2);
-    if !(1..=32).contains(&max_matches) {
-        return Err("NAVAL_MAX_MATCHES must be between 1 and 32".into());
+    if !(1..=2).contains(&max_matches) {
+        return Err("NAVAL_MAX_MATCHES must be between 1 and 2".into());
     }
-    let writer = persistence::Writer::open(
-        std::path::Path::new(
-            &std::env::var("NAVAL_DATABASE")
-                .unwrap_or_else(|_| ".naval-data/matches.sqlite".into()),
-        ),
-        max_matches * 4 + 32,
-    )?;
-    let state = Arc::new(Hub::new(
+    let database_url = std::env::var("BATTLE_DATABASE_URL")?;
+    let writer = tokio::task::spawn_blocking(move || {
+        persistence::Writer::open_postgres(&database_url, max_matches * 4 + 32)
+            .map_err(|e| e.to_string())
+    })
+    .await??;
+    let mut hub = Hub::new(
         catalog,
         Arc::new(compiled),
         writer,
@@ -87,13 +89,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .filter(|v| !v.trim().is_empty())
             .map(|v| v.trim().parse())
             .collect::<Result<Vec<_>, _>>()?,
-    ));
+    );
+    hub.accounts = Some(accounts::Accounts::from_env()?);
+    let state = Arc::new(hub);
     let app = Router::new()
         .route("/api/health", get(health))
         .route("/api/content", get(content))
         .route("/api/join", post(join))
         .route("/api/cancel", post(cancel))
         .route("/api/socket", get(socket))
+        .route("/api/match-content", post(match_content))
         .layer(DefaultBodyLimit::max(16384))
         .with_state(state.clone());
     let bind = std::env::var("NAVAL_BIND").unwrap_or_else(|_| "127.0.0.1:8787".into());
@@ -122,6 +127,13 @@ async fn cancel(
 ) -> StatusCode {
     if !origin(&headers, &s) || request.ticket.len() != 64 {
         return StatusCode::BAD_REQUEST;
+    }
+    let account = match s.accounts.as_ref().unwrap().session(&headers).await {
+        Ok(a) => a,
+        Err(code) => return code,
+    };
+    if !s.owns(&request.ticket, &account) {
+        return StatusCode::FORBIDDEN;
     }
     s.cancel(&request.ticket);
     StatusCode::NO_CONTENT
@@ -179,7 +191,89 @@ async fn join(
     if !origin(&headers, &s) {
         return (StatusCode::FORBIDDEN, "Origin is not allowed").into_response();
     }
-    match s.join(request, client_ip(&headers, addr.ip(), &s.trusted_proxies)) {
+    let account = match s.accounts.as_ref().unwrap().session(&headers).await {
+        Ok(a) => a,
+        Err(code) => return code.into_response(),
+    };
+    if request.fleet.is_empty() || request.fleet.len() > 8 || !request.version.matches(&s.catalog) {
+        return (StatusCode::BAD_REQUEST, "Invalid fleet or content version").into_response();
+    }
+    {
+        let mut registry = s.registry.lock().unwrap();
+        registry.clean(std::time::Instant::now());
+        let error =
+            if s.draining.load(Ordering::Acquire) || !s.writer.healthy.load(Ordering::Acquire) {
+                Some("Server is draining or result storage is unavailable")
+            } else if registry
+                .matches
+                .iter()
+                .filter(|m| !m.finished.load(Ordering::Acquire))
+                .count()
+                >= s.max_matches
+            {
+                Some("All match workers are occupied; try again shortly")
+            } else if registry.tickets.values().any(|t| {
+                t.account_id == account
+                    && t.seat
+                        .as_ref()
+                        .is_none_or(|seat| !seat.handle.finished.load(Ordering::Acquire))
+            }) {
+                Some("This account already has a queued or active match")
+            } else {
+                None
+            };
+        if let Some(error) = error {
+            return (StatusCode::BAD_REQUEST, Json(json!({"error":error}))).into_response();
+        }
+    }
+    {
+        let mut preparing = s.preparing.lock().unwrap();
+        if preparing.len() >= 2 {
+            return (
+                StatusCode::TOO_MANY_REQUESTS,
+                Json(json!({"error":"Fleet preparation is busy; retry shortly"})),
+            )
+                .into_response();
+        }
+        if !preparing.insert(account.clone()) {
+            return (
+                StatusCode::TOO_MANY_REQUESTS,
+                "A fleet is already being prepared",
+            )
+                .into_response();
+        }
+    }
+    // Dropping an HTTP request must release its account admission reservation.
+    let _reservation = Preparation {
+        hub: s.clone(),
+        account: account.clone(),
+    };
+    let prepared = match s
+        .accounts
+        .as_ref()
+        .unwrap()
+        .prepare(&headers, &request.fleet)
+        .await
+    {
+        Ok(p) => p,
+        Err(e) => return (StatusCode::BAD_REQUEST, Json(json!({"error":e}))).into_response(),
+    };
+    if s.accounts
+        .as_ref()
+        .unwrap()
+        .session(&headers)
+        .await
+        .as_ref()
+        != Ok(&account)
+    {
+        return StatusCode::UNAUTHORIZED.into_response();
+    }
+    let ip = client_ip(&headers, addr.ip(), &s.trusted_proxies);
+    let hub = s.clone();
+    match tokio::task::spawn_blocking(move || hub.join(request, ip, account, prepared))
+        .await
+        .unwrap_or_else(|_| Err("Preparation failed".into()))
+    {
         Ok(admission) => Json(admission).into_response(),
         Err(message) => (StatusCode::BAD_REQUEST, Json(json!({"error":message}))).into_response(),
     }
@@ -188,6 +282,10 @@ async fn socket(State(s): State<Arc<Hub>>, headers: HeaderMap, ws: WebSocketUpgr
     if !origin(&headers, &s) {
         return (StatusCode::FORBIDDEN, "Origin is not allowed").into_response();
     }
+    let account = match s.accounts.as_ref().unwrap().session(&headers).await {
+        Ok(a) => a,
+        Err(code) => return code.into_response(),
+    };
     let Ok(slot) = s.sockets.clone().try_acquire_owned() else {
         return (StatusCode::TOO_MANY_REQUESTS, "Too many connections").into_response();
     };
@@ -195,7 +293,7 @@ async fn socket(State(s): State<Arc<Hub>>, headers: HeaderMap, ws: WebSocketUpgr
         .max_frame_size(8192)
         .on_upgrade(move |socket| async move {
             let _slot = slot;
-            serve_socket(socket, s).await
+            serve_socket(socket, s, headers, account).await
         })
 }
 async fn send(socket: &mut WebSocket, value: serde_json::Value) -> bool {
@@ -227,7 +325,7 @@ async fn matched(
 ) -> bool {
     let metadata = json!({"type":"matched","matchId":handle.id,"player":player,
         "team":if player==0 {handle.environment.first_player_team} else {handle.environment.first_player_team.other()},
-        "connectionEpoch":epoch,"version":s.version(),"setup":handle.setup,"environment":handle.environment,"baseline":handle.baseline});
+        "connectionEpoch":epoch,"version":s.version(),"setup":handle.setup,"environment":handle.environment,"contentHash":handle.content_hash,"baseline":handle.baseline});
     let Ok(mut bytes) = encoding::snapshot_bytes(&metadata) else {
         return false;
     };
@@ -262,7 +360,7 @@ impl Rate {
         self.count <= 90
     }
 }
-async fn serve_socket(mut socket: WebSocket, s: Arc<Hub>) {
+async fn serve_socket(mut socket: WebSocket, s: Arc<Hub>, headers: HeaderMap, account: String) {
     let hello = tokio::time::timeout(Duration::from_secs(5), socket.recv()).await;
     let Ok(Some(Ok(Message::Text(text)))) = hello else {
         return;
@@ -278,13 +376,17 @@ async fn serve_socket(mut socket: WebSocket, s: Arc<Hub>) {
         .await;
         return;
     }
-    let ticket_socket = match s.attach(&ticket) {
+    let ticket_socket = match s.attach(&ticket, &account) {
         Ok(lease) => lease,
         Err(message) => {
             send(&mut socket, json!({"type":"error","message":message})).await;
             return;
         }
     };
+    let mut session_check = tokio::time::interval_at(
+        tokio::time::Instant::now() + Duration::from_secs(30),
+        Duration::from_secs(30),
+    );
     let mut timer = tokio::time::interval(Duration::from_millis(100));
     let mut queue_heartbeat = tokio::time::interval(Duration::from_secs(5));
     let mut waited = false;
@@ -321,6 +423,7 @@ async fn serve_socket(mut socket: WebSocket, s: Arc<Hub>) {
             waited = true;
         }
         tokio::select! {
+            _ = session_check.tick() => { if s.accounts.as_ref().unwrap().session(&headers).await.as_ref()!=Ok(&account) { return; } },
             _ = timer.tick() => (),
             _ = queue_heartbeat.tick() => { if !matches!(tokio::time::timeout(Duration::from_secs(2), socket.send(Message::Ping(vec![1].into()))).await, Ok(Ok(()))) { return; } },
             message = socket.recv() => {
@@ -369,6 +472,7 @@ async fn serve_socket(mut socket: WebSocket, s: Arc<Hub>) {
     let mut heartbeat = tokio::time::interval(Duration::from_secs(5));
     loop {
         tokio::select! {
+            _ = session_check.tick() => { if s.accounts.as_ref().unwrap().session(&headers).await.as_ref()!=Ok(&account) { break; } },
             _ = heartbeat.tick() => {
                 if !matches!(tokio::time::timeout(Duration::from_secs(2),socket.send(Message::Ping(vec![1].into()))).await, Ok(Ok(()))) { break; }
             }
@@ -396,7 +500,7 @@ async fn serve_socket(mut socket: WebSocket, s: Arc<Hub>) {
                 };
                 let Ok(message) = serde_json::from_str::<ClientMessage>(&text) else { break };
                 let action = match message {
-                    ClientMessage::Ready { version } if version.matches(&s.catalog) => worker::Action::Ready { player, epoch },
+                    ClientMessage::Ready { version, content_hash } if version.matches(&s.catalog) && content_hash==handle.content_hash => worker::Action::Ready { player, epoch },
                     ClientMessage::Command { envelope } => {
                         let sequence = envelope.sequence;
                         let (reply, receive) = tokio::sync::oneshot::channel();
@@ -494,6 +598,51 @@ fn client_ip(
         .find(|ip| !trusted.contains(ip))
         .unwrap_or(peer)
 }
+struct Preparation {
+    hub: Arc<Hub>,
+    account: String,
+}
+impl Drop for Preparation {
+    fn drop(&mut self) {
+        if let Ok(mut pending) = self.hub.preparing.lock() {
+            pending.remove(&self.account);
+        }
+    }
+}
+async fn match_content(
+    State(s): State<Arc<Hub>>,
+    headers: HeaderMap,
+    Json(request): Json<Cancel>,
+) -> Response {
+    if !origin(&headers, &s) {
+        return StatusCode::FORBIDDEN.into_response();
+    }
+    let account = match s.accounts.as_ref().unwrap().session(&headers).await {
+        Ok(a) => a,
+        Err(c) => return c.into_response(),
+    };
+    let content = s.registry.lock().ok().and_then(|r| {
+        r.tickets
+            .get(&request.ticket)
+            .filter(|t| {
+                t.account_id == account && t.created.elapsed() < Duration::from_secs(45 * 60)
+            })
+            .and_then(|t| t.seat.as_ref())
+            .map(|seat| seat.handle.content.clone())
+    });
+    match content {
+        Some(c) => (
+            [
+                ("Content-Type", "application/json"),
+                ("Cache-Control", "no-store"),
+            ],
+            c,
+        )
+            .into_response(),
+        None => StatusCode::NOT_FOUND.into_response(),
+    }
+}
+
 #[cfg(test)]
 mod proxy_tests {
     use super::*;
