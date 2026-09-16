@@ -2,16 +2,10 @@ import { useEffect, useRef, useState } from 'react';
 import type { ConstructionPrimitive } from '../../ships/blueprint';
 import { selectionCenter, selectionLabel, selectionLocks, type HullSelection, type HullSelectionMode, type MirrorAxes } from '../../ships/constructionVertex';
 import { NumberField } from './NumberField';
-import type { BuilderView } from './BuilderViewport';
+import type { BuilderView } from './builderScene';
 
-export interface FreeformSettings {
-  axes: MirrorAxes;
-  unit: number;
-  snap: boolean;
-  splitAxis: number;
-  count: number;
-  selection: HullSelection;
-}
+export type { FreeformSettings } from './builderTool';
+import type { FreeformSettings } from './builderTool';
 export function FreeformToolbar({ primitive, settings: s, onChange, cycleUnit, onCoordinate, onView, perspective, onProjection, onReset, onSplit, onExit }: {
   primitive: ConstructionPrimitive; settings: FreeformSettings; onChange(patch: Partial<FreeformSettings>): void; cycleUnit(): void;
   onCoordinate(axis: number, value: number): void; onView(view: BuilderView): void; perspective: boolean;
