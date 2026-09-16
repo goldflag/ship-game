@@ -1,7 +1,7 @@
 # Accounts, ship storage and multiplayer construction
 
 The browser requires a Better Auth session before mounting the game or builder.
-Signup asks for display name, email and a password of at least 12 characters and
+Signup asks for display name, email and a password of at least 8 characters and
 signs in immediately. This release does not send verification or password-reset
 mail. Passwords are managed by Better Auth, not by gameplay code.
 

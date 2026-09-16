@@ -17,13 +17,18 @@ async function request(path:string,cookie='',method='GET',body?:unknown,headers:
 beforeAll(async()=>{
  if(!enabled)return;
  for(const name of ['a','b']) {
-  const response=await request('/api/auth/sign-up/email','','POST',{name,email:`${name}-${crypto.randomUUID()}@example.test`,password:'test-account-password-123'});
+  const response=await request('/api/auth/sign-up/email','','POST',{name,email:`${name}-${crypto.randomUUID()}@example.test`,password:'Test123!'});
   expect(response.status).toBe(200);const value=await response.json();if(name==='a'){a=cookies(response);owner=value.user.id;}else {b=cookies(response);other=value.user.id;}
  }
 });
 afterAll(async()=>{await db.end();await admin.end();});
 const integration=enabled?test:test.skip;
 const input=(id='design-'+crypto.randomUUID())=>({designId:id,name:'Invalid draft is saveable',schemaVersion:1,catalogRevision:'a'.repeat(64),expectedRevisionId:null as string|null,source:{schemaVersion:1,id,revision:crypto.randomUUID(),construction:{catalogRevision:'a'.repeat(64),primitives:[],equipment:[]}}});
+integration('signup rejects passwords shorter than eight characters',async()=>{
+ const response=await request('/api/auth/sign-up/email','','POST',{name:'short-password',email:`short-${crypto.randomUUID()}@example.test`,password:'Test12!'});
+ expect(response.status).toBe(400);
+ expect((await response.json()).code).toBe('PASSWORD_TOO_SHORT');
+});
 integration('anonymous, forged account headers, internal secrets and cross-account references fail closed',async()=>{
  expect((await request('/api/ships')).status).toBe(401);
  expect((await request('/api/ships',b,'GET',undefined,{'x-account-id':owner})).status).toBe(401);
