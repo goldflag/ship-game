@@ -1,3 +1,4 @@
+import { savedReference } from '../../ships/constructionCloud';
 import { DeleteDesignButton } from '../DeleteDesignButton';
 import { useEffect, useRef, useState } from 'react';
 import type { ConstructionSource } from '../../ships/blueprint';
@@ -22,6 +23,7 @@ export function DesignsMenu({ store, currentId, refresh, onClose, onNew, onSaveC
   onDelete(designId: string, revisionId: string): Promise<void>;
   partsUpdate?: { changedParts: string[]; missingParts: string[]; onApply(): void };
 }) {
+  currentId = savedReference(currentId)?.designId ?? currentId;
   const [designs, setDesigns] = useState<ConstructionDesignHead[]>([]);
   const [revisions, setRevisions] = useState<ConstructionRevision[]>([]);
   const [chosen, setChosen] = useState('');
@@ -70,8 +72,8 @@ export function DesignsMenu({ store, currentId, refresh, onClose, onNew, onSaveC
         : <p>Add the latest fittings to this design’s palette.</p>}
     </div>}
     <div className="sb-menu-list">
-      <span className="sb-lead">Local designs</span>
-      {!store && <p>Local storage is unavailable. Download the current source to keep a backup.</p>}
+      <span className="sb-lead">Saved designs</span>
+      {!store && <p>Account storage is unavailable. Download the current source to keep a backup.</p>}
       {store && !designs.length && <p>No designs saved yet. Sources save here automatically.</p>}
       {designs.map(design => <div className="sb-menu-design" key={design.id}>
         <button role="menuitem" disabled={loading || disabled} aria-pressed={chosen === design.id} onClick={() => browse(design.id)}>
@@ -90,7 +92,7 @@ export function DesignsMenu({ store, currentId, refresh, onClose, onNew, onSaveC
         <button role="menuitem" disabled={loading || disabled} onClick={() => recover(revision)}>Recover copy</button>
         <button role="menuitem" onClick={() => downloadConstructionSource(revision.sourceJson, `source-${revision.id}`)}>Download</button></div>)}
     </div>}
-    {loading && <p role="status">Updating local designs…</p>}
+    {loading && <p role="status">Updating saved designs…</p>}
     {error && <p role="alert" className="bad">{error}</p>}
   </div>;
 }

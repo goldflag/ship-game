@@ -1,3 +1,5 @@
+import { currentAccount } from '../../accounts/session';
+import { retainRecovery, savedReference } from '../../ships/constructionCloud';
 import { useEffect, useRef, useState } from 'react';
 import type { ConstructionResult, ConstructionSource, ConstructionSuggestion } from '../../ships/blueprint';
 import { createConstructionHistory, editConstruction, undoConstruction, redoConstruction, ConstructionRevisionGate } from '../../ships/constructionHistory';
@@ -27,6 +29,7 @@ export function useBuilderSource({ starterSource, initialSource, initialDesignId
 }) {
   const [history, setHistory] = useState(() => createConstructionHistory(initialSource ?? freshConstruction(starterSource)));
   const source = history.source;
+  const account = useRef(currentAccount()).current;
   const [store, setStore] = useState<ConstructionStore>();
   const [ready, setReady] = useState(false);
   const [error, setError] = useState('');
@@ -88,6 +91,7 @@ export function useBuilderSource({ starterSource, initialSource, initialDesignId
 
   useEffect(() => {
     if (!saver.current || !ready || lastQueued.current === source.revision) return;
+    void retainRecovery({ designId:source.id,name:source.name,source,schemaVersion:source.schemaVersion,catalogRevision:source.construction.catalogRevision,expectedRevisionId:head.current },account).catch(cause=>setError(`Draft recovery unavailable: ${String(cause)}`));
     lastQueued.current = source.revision;
     saver.current.enqueue({ designId: source.id, name: source.name, source, schemaVersion: source.schemaVersion, catalogRevision: source.construction.catalogRevision });
   }, [source, ready, saverVersion]);
@@ -124,7 +128,7 @@ export function useBuilderSource({ starterSource, initialSource, initialDesignId
   const undo = () => setHistory(current => { const next = undoConstruction(current); return next === current ? current : { ...next, source: { ...next.source, revision: newConstructionId('revision') } }; });
   const redo = () => setHistory(current => { const next = redoConstruction(current); return next === current ? current : { ...next, source: { ...next.source, revision: newConstructionId('revision') } }; });
   const flush = async () => {
-    if (!saver.current) throw new Error('Local saving is unavailable. Download this source before closing.');
+    if (!saver.current) throw new Error('Saving is unavailable. Download this source before closing.');
     // Agent callers may apply and flush before React's autosave effect runs.
     const latest = sourceRef.current;
     if (ready && lastQueued.current !== latest.revision) {
@@ -144,7 +148,7 @@ export function useBuilderSource({ starterSource, initialSource, initialDesignId
 
   const removeDesign = async (designId: string, revisionId: string, replacement: ConstructionSource) => {
     if (!store) throw new Error('Local storage is unavailable. Retry when browser storage is available.');
-    const current = designId === sourceRef.current.id;
+    const current = designId === sourceRef.current.id || savedReference(sourceRef.current.id)?.designId === designId;
     if (current) await flush();
     await store.remove(designId, current ? head.current! : revisionId);
     // The old writer is drained before deletion and never saves the deleted source again.

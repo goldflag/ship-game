@@ -4,7 +4,7 @@ import '@fontsource/barlow/latin-500.css';
 import '@fontsource/barlow/latin-600.css';
 import '@fontsource/barlow-condensed/latin-500.css';
 import '@fontsource/barlow-condensed/latin-600.css';
-import { App } from './ui/App';
+import { AccountGate } from './ui/AccountGate';
 import './ui/styles.css';
 
-ReactDOM.createRoot(document.getElementById('root')!).render(<App />);
+ReactDOM.createRoot(document.getElementById('root')!).render(<AccountGate />);

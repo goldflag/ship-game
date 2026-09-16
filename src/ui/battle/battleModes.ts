@@ -1,3 +1,4 @@
+import { localShips } from '../../ships/localShips';
 import type { BattleSetup } from '../../simulation/battle';
 import type { FleetBudget } from '../../multiplayer/generated/FleetBudget';
 import type { PveRequest } from '../../multiplayer/generated/PveRequest';
@@ -62,10 +63,11 @@ export function carryToCustom(setup: BattleSetup, ids: readonly string[]): Battl
   return { ...setup, playerShipId: ids[0], friendlyBots: ids.slice(1).map(shipId => ({ shipId, aiLevel: 'normal' as const })), spawns: undefined };
 }
 export function carryToDuel(fleet: string[], initialShipId: string, ids: readonly string[]): string[] {
-  fleet = fleet.filter(id => definitions.has(id));
+  const onlineDefinitions = new Map([...definitions, ...localShips().map(s=>[s.definition.id,s.definition] as const)]);
+  fleet = fleet.filter(id => onlineDefinitions.has(id));
   if (!ids.length || fleet.length > 1 || (fleet.length === 1 && fleet[0] !== initialShipId)) return fleet;
   const next: string[] = [];
-  for (const id of ids) if (definitions.has(id) && !fleetBudget([...next, id], definitions).error) next.push(id);
+  for (const id of ids) if (onlineDefinitions.has(id) && !fleetBudget([...next, id], onlineDefinitions).error) next.push(id);
   return next.length ? next : fleet;
 }
 export function carryToPve(request: PveRequest, ids: readonly string[], eligiblePresets: readonly string[], budget: FleetBudget, nextId: () => string): PveRequest {

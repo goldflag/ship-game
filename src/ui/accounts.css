@@ -1,0 +1,23 @@
+.account-screen { min-height: 100dvh; overflow-y: auto; position: fixed; inset: 0; display: grid; place-items: center; padding: 32px 20px; background: var(--ink); }
+.account-form { width: min(100%, 380px); }
+.account-form h1 { font: 600 42px/1.1 'Barlow Condensed', sans-serif; margin: 0 0 12px; color: var(--accent); }
+.account-form p { line-height: 1.5; }
+.account-form form { display: grid; gap: 18px; margin-top: 28px; }
+.account-form label { display: grid; gap: 7px; }
+.account-form input { width: 100%; min-height: 44px; border: 1px solid var(--line); border-radius: 3px; background: #193641; color: #edf1ec; font: inherit; padding: 10px 12px; caret-color: var(--accent); }
+.account-form input:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.account-form input::selection { color: var(--ink); background: var(--accent); }
+.account-form button, .account-control button { min-height: 40px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 3px; background: #193641; }
+.account-form button:hover, .account-control button:hover { border-color: var(--accent); }
+.account-form .account-primary { background: var(--accent); color: var(--ink); font-weight: 600; }
+.account-form small, .account-note { color: var(--muted); line-height: 1.5; }
+.account-error { color: #ffb9a8; margin: 0; }
+.account-error:empty { display: none; }
+.account-switch { width: 100%; margin-top: 16px; }
+.account-note { margin-top: 28px; font-size: 14px; }
+.account-control { position: fixed; right: 16px; bottom: 16px; z-index: 200; font-size: 14px; }
+.account-control > div { position: absolute; right: 0; bottom: 48px; width: min(350px, calc(100vw - 32px)); max-height: 70dvh; overflow: auto; background: var(--ink); border: 1px solid var(--line); padding: 16px; scrollbar-color: var(--muted) var(--ink); }
+.account-control section { display: grid; gap: 12px; margin-bottom: 16px; }
+.account-control section div { display: grid; gap: 8px; }
+.account-control h2 { font: 600 22px 'Barlow Condensed', sans-serif; margin: 8px 0; }
+@media (max-height: 650px) { .account-screen { place-items: start center; } }

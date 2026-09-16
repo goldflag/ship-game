@@ -285,3 +285,13 @@ Water impacts retain the first PR #80 iteration's long, directional water streak
 The offline reference review uses bundled Barlow (body/controls) and Barlow Condensed (headings), with original SIL OFL notices. Its long-form evidence tables use 16 px body text, 14 px captions and 25–46 px headings, so they remain readable outside the compact game HUD. Navy surfaces and brass links extend the port styling; neutral paper behind comparison renders preserves visual evidence. On narrow screens the comparison pair stacks and tables scroll within their own region. These report sizes intentionally differ from the compact instrument labels.
 
 Enemy impact labels sit just above their recorded hit positions, following the displayed hull. Damage gold leads with actual hull HP lost; the part name and impact outcome sit below. Zero-HP armor rejection uses muted text. Combine shell layers and nearby hits on one part, prioritize equipment damage, avoid overlapping labels, and cap the group at twelve. Labels hold for 2.4 seconds and fade over 0.8 seconds of simulation time; pause freezes them.
+
+### Account access
+
+The account gate extends the harbor's navy surfaces, brass primary action, Barlow
+controls and Barlow Condensed title. A single 380 px form collects email/password,
+and display name on signup, before the game initializes. Its fields remain at
+least 44 px high. The account menu keeps sign out, explicit legacy-library import,
+and account-scoped recovery downloads together. Input fill `#193641` and error
+text `#ffb9a8` retain readable contrast on the ink background; account explanatory
+copy uses 14 px text. Saving feedback describes a server acknowledgement.

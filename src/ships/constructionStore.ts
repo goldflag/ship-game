@@ -1,3 +1,4 @@
+import { currentAccount } from '../accounts/session';
 /** Local authoring sources only. Compiled meshes/physics and battle damage never enter this store. */
 export const CONSTRUCTION_DATABASE = 'fleet-command-construction';
 const DATABASE_VERSION = 1;
@@ -13,6 +14,7 @@ export class ConstructionStoreError extends Error {
 
 export interface ConstructionDesignHead {
   id: string;
+  sourceId?: string;
   name: string;
   revisionId: string;
   updatedAt: number;
@@ -25,6 +27,8 @@ export interface ConstructionRevision {
   formatVersion: 1;
   id: string;
   designId: string;
+  /** Authoring identity; account designs have a separate server-issued storage identity. */
+  sourceId?: string;
   parentId: string | null;
   createdAt: number;
   schemaVersion: number;
@@ -113,6 +117,7 @@ export function readConstructionSource<T>(revision: ConstructionRevision, reader
 
 /** Factory injection permits real IndexedDB browser tests without a runtime dependency. */
 export async function openConstructionStore(options: { name?: string; indexedDB?: IDBFactory } = {}): Promise<ConstructionStore> {
+  if (!options.name && !options.indexedDB && currentAccount()) return (await import('./constructionCloud')).openCloudConstructionStore();
   const factory = options.indexedDB ?? globalThis.indexedDB;
   if (!factory) throw storageError(new Error('IndexedDB unavailable'));
   const database = await new Promise<IDBDatabase>((resolve, reject) => {

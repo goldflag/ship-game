@@ -2,7 +2,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use ts_rs::TS;
-pub const PROTOCOL_VERSION: u32 = 4;
+pub const PROTOCOL_VERSION: u32 = 5;
 pub use naval_sim::navigation::{FormationPolicy, Movement as MovementOrder, WeaponsPolicy};
 pub const MAX_COMMAND_BYTES: usize = 4096;
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, TS)]
@@ -538,3 +538,11 @@ impl FleetControl {
 }
 
 pub mod session;
+
+/// Browser references carry no derived physics or component catalog.
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, ts_rs::TS)]
+#[serde(tag = "kind", rename_all = "camelCase", deny_unknown_fields)]
+pub enum FleetReference {
+    Historical { #[serde(rename = "presetId")] preset_id: String },
+    Custom { #[serde(rename = "designId")] design_id: String, #[serde(rename = "revisionId")] revision_id: String },
+}

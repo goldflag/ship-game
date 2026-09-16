@@ -1,6 +1,6 @@
 import { mapIslands } from '../../maps/catalog';
 import { shipPreset, shipPresets } from '../../ships/presets';
-import { isHistoricalShip, localShip } from '../../ships/localShips';
+import { isHistoricalShip, localShip, localShips } from '../../ships/localShips';
 import { botSelection, MAX_TEAM_SHIPS, setupSpawns, validateSpawns, type BattleSetup, type BotSelection, type Team } from '../../simulation/battle';
 import { fleetBudget } from '../../simulation/battleRules';
 import type { FleetTransfer } from '../pveFleetEditing';
@@ -62,11 +62,11 @@ export const customPlacementError = (setup: BattleSetup): string => {
 const definitions = new Map(Object.keys(shipPresets).map(id => [id, shipPreset(id)]));
 export const duelUnitId = (index: number) => `fleet:${index}`;
 export const parseDuelUnit = (id: string) => { const match = id.match(/^fleet:(\d+)$/); return match ? Number(match[1]) : undefined; };
-export const duelBudget = (fleet: readonly string[]) => fleetBudget(fleet, definitions);
+export const duelBudget = (fleet: readonly string[]) => fleetBudget(fleet, new Map([...definitions, ...localShips().map(s=>[s.definition.id,s.definition] as const)]));
 /** The first berth is the initial command ship; dropping onto it moves that ship to the front. */
 export function transferDuelShip(fleet: string[], transfer: FleetTransfer, target: 'fleet' | 'command'): { fleet: string[]; error?: string } {
   if (transfer.kind === 'catalog') {
-    if (!definitions.has(transfer.id)) return { fleet, error: 'That ship is unavailable.' };
+    if (!definitions.has(transfer.id) && !localShip(transfer.id)) return { fleet, error: 'That ship is unavailable.' };
     const next = target === 'command' ? [transfer.id, ...fleet] : [...fleet, transfer.id];
     const error = duelBudget(next).error;
     return error ? { fleet, error } : { fleet: next };

@@ -1,5 +1,10 @@
 # Rust fleet multiplayer implementation
 
+Current hosting: the frontend and multiplayer backend are deployed together on
+Hermes at **https://ships.tomato.gg**. See [deployment and operations](deployment.md).
+The implementation and measurement record below describes the original local
+validation; its statements about unprovisioned infrastructure are historical.
+
 Implemented on `goldflag/rust-fleet-multiplayer`, integrated with remote master `8495e905`. The reviewed proposal and Fable critique remain preserved separately. Local functional validation is complete; public deployment and capacity qualification on the intended host remain separate launch work. See the [retained validation evidence](../assets/reviews/rust-multiplayer/README.md).
 
 ## Implemented
@@ -10,7 +15,7 @@ Rules come from `assets/gameplay/battle-rules.v1.json`: 1v1 fleets have at most 
 
 Axum/Tokio handles HTTP and WebSockets; a bounded admission layer starts dedicated match threads. Public queue and invite codes freeze selected fleets before matching. Pairing requires two live socket leases; unopened/disconnected lobby tickets expire after ten seconds and queued sockets answer server heartbeats. The client checks protocol, simulation build, content manifest and rules versions. Both clients finish loading before the countdown and simulation clock start. Loading expires after 120 seconds, reconnection has a 90-second grace, and held input expires after 500 ms. The initial state uses a compressed, non-droppable protocol-3 metadata frame with a 15-second write deadline; steady-state writes retain the two-second slow-consumer limit. Replacing a connection increments its epoch and invalidates older sockets and commands. A simulation that exceeds its lag budget aborts without awarding a winner.
 
-SQLite uses a bounded writer queue, WAL and synchronous FULL. The first final result is immutable, incomplete matches become infrastructure aborts after restart, and graceful shutdown waits for committed writes. SIGINT/SIGTERM disables admission and drains matches; a second signal requests explicit infrastructure termination. Storage failure prevents further admission.
+PostgreSQL uses a bounded writer queue and synchronous commits. The first final result is immutable, incomplete matches become infrastructure aborts after restart, and graceful shutdown waits for committed writes. SIGINT/SIGTERM disables admission and drains matches; a second signal requests explicit infrastructure termination. Storage failure prevents further admission.
 
 The browser consumes snapshots through a shared session interface. Ship/motion/damage objects retain their identities for renderer bindings. Worker failures appear in the HUD and game error callback. A worker owns custom simulation ticks; online ticks belong exclusively to the server. Fleet commands include taking the helm, move/hold/autonomous orders, target focus and owned carrier orders. Waypoints can be placed on the navigation chart or entered as coordinates. Engine or rudder changes restore manual steering while gun input alone preserves a waypoint. Online menus do not pause the battle; leaving for port explicitly forfeits an active online match. Per-tab session storage supports reconnecting after reload. The 90-second reconnect grace includes asset loading until Ready; repeatedly reconnecting without becoming ready does not extend it. After held input expires, selected-ship gunfire stops and standing fleet movement resumes, including autonomous steering; menus and blur do not stop server time.
 
@@ -50,7 +55,7 @@ In another terminal:
 bun run dev
 ```
 
-Vite proxies `/api` (including WebSockets) to `http://127.0.0.1:8787`; set `NAVAL_SERVER` to change the development target. Open **1V1 MULTIPLAYER** in port, choose a fleet, then find an opponent or create/join an invite. A second tab/browser can join the invite. Custom battles use the Rust worker without requiring a running server.
+Start the Bun API, compiler and PostgreSQL using [the account setup](accounts.md#local-development-and-checks). Vite proxies `/api/auth` and `/api/ships` to Bun on port 8788, and other `/api` routes (including WebSockets) to `http://127.0.0.1:8787`; set `NAVAL_SERVER` to change the development target. Open **1V1 MULTIPLAYER** in port, choose a fleet, then find an opponent or create/join an invite. A second account in another browser can join the invite. Custom battles use the Rust worker without requiring a running server.
 
 Server settings:
 
@@ -58,12 +63,14 @@ Server settings:
 | --- | --- | --- |
 | `NAVAL_BIND` | `127.0.0.1:8787` | HTTP/WebSocket listener |
 | `NAVAL_MANIFEST` | `.build/naval-content/manifest.json` | Trusted deployment content |
-| `NAVAL_DATABASE` | `.naval-data/matches.sqlite` | Durable results |
+| `BATTLE_DATABASE_URL` | required | PostgreSQL results role connection |
+| `ACCOUNTS_URL` | required | Private Bun API origin |
+| `SERVICE_SECRET` | required | Private service authentication |
 | `NAVAL_MAX_MATCHES` | `2` | Admission cap, 1–32; two simultaneous matches exercised locally, qualify on the deployment host before increasing |
 | `NAVAL_ORIGIN` | request host | Optional exact allowed browser origin |
 | `NAVAL_TRUSTED_PROXIES` | empty | Comma-separated proxy IP addresses allowed to supply X-Forwarded-For; all other headers are ignored |
 
-For deployment, build the browser and server from the same checkout/lockfile and deploy the matching manifest. Serve `dist/` and reverse-proxy its `api/` path on the same HTTPS origin, with WebSocket upgrade support. For `BASE_PATH=/naval/`, route `/naval/api/*` to the Rust server’s `/api/*`; the client preserves the deployment prefix. Configure `NAVAL_TRUSTED_PROXIES` with the reverse proxy’s actual socket address (for example `127.0.0.1,::1` for a local proxy; dual-stack listeners may report an IPv4-mapped address such as `::ffff:127.0.0.1`, which must be listed explicitly). Per-client join limits use the first untrusted address walking the forwarding chain from right to left, with a separate global admission budget. Keep the SQLite directory on persistent storage and allow a full battle's drain time during rolling shutdown. Infrastructure is not provisioned or deployed by this implementation.
+For deployment, build the browser and server from the same checkout/lockfile and deploy the matching manifest. Serve `dist/` and reverse-proxy its `api/` path on the same HTTPS origin, with WebSocket upgrade support. For `BASE_PATH=/naval/`, route `/naval/api/*` to the Rust server’s `/api/*`; the client preserves the deployment prefix. Configure `NAVAL_TRUSTED_PROXIES` with the reverse proxy’s actual socket address (for example `127.0.0.1,::1` for a local proxy; dual-stack listeners may report an IPv4-mapped address such as `::ffff:127.0.0.1`, which must be listed explicitly). Per-client join limits use the first untrusted address walking the forwarding chain from right to left, with a separate global admission budget. Keep the PostgreSQL volume on persistent storage and allow a full battle's drain time during rolling shutdown. Infrastructure is not provisioned or deployed by this implementation.
 
 ## Validation
 
@@ -80,7 +87,7 @@ bun run multiplayer:benchmark 1800
 
 Validation passed native tests and Clippy, complete native/WASM battle comparisons covering 28,800 simulated ticks, all registered weapon-group IDs, damage records and shell histories, 133 TypeScript test files, and the production build with all ship/aircraft checks. GitHub Actions runs the native/WASM checks, TypeScript suite, production build and release-server HTTP/WebSocket smoke. See the PR checks for remote execution status. The [implementation review disposition](reviews/rust-multiplayer-review-disposition.md) records Fable’s findings and their fixes.
 
-Real TCP checks cover load barrier, ownership, movement, reconnect epochs, old socket replacement, forfeit, frozen final-result retrieval, HTTP queue cancellation, four players in two simultaneous maximum-size legal fleets and refusal of a third match. SQLite tests verify committed writes after flush, immutable results and restart aborts. Both custom battle launch and two-client online play ran in the actual GPU browser, including ship switching, a 150 ms network-latency setting, a three-second game-socket outage, reconnection with a new epoch and the opponent's victory display. The isolated browser required `--use-angle=metal`; its default software graphics path stalled during harbor warmup.
+Real TCP checks cover load barrier, ownership, movement, reconnect epochs, old socket replacement, forfeit, frozen final-result retrieval, HTTP queue cancellation, four players in two simultaneous maximum-size legal fleets and refusal of a third match. PostgreSQL integration tests verify committed writes after flush, immutable results and restart aborts; SQLite tests remain for legacy import compatibility. Both custom battle launch and two-client online play ran in the actual GPU browser, including ship switching, a 150 ms network-latency setting, a three-second game-socket outage, reconnection with a new epoch and the opponent's victory display. The isolated browser required `--use-angle=metal`; its default software graphics path stalled during harbor warmup.
 
 Numerical corrections affect both the TypeScript migration reference and Rust: segment/box contacts tolerate 1e-9 endpoint roundoff after world/local rotations, without physically expanding a box or admitting a real 0.1 mm miss. Dedicated regression tests and deliberately refreshed fixtures cover this. Linux CI additionally exposed side/normal selection from sub-nanometre lateral roundoff at centered hull contacts. Contact damage now canonicalizes lateral coordinates within 1e-9 m of the centerline before choosing a region and breach normal; genuine 0.1 mm off-center hits remain distinct. The separating-axis solver also keeps its first axis for penetration depths tied within 1e-9 m, so symmetric rams do not reverse their impulse across math-library rounding. Dedicated Rust/TypeScript regressions and intentionally refreshed collision/grounding fixtures cover both corrections. Exact triangular structural seams retain dedicated duplicate-layer checks; these comparisons do not claim bitwise cross-platform lockstep.
 
