@@ -15,7 +15,7 @@ import { equipmentMassKg, format, hullBounds, ledgerRows, massGroups, pieceMassK
 import { SlotGlyph, ToolGlyph } from './builderGlyphs';
 import { DesignsMenu, downloadConstructionSource } from './DesignsMenu';
 import { HelpDialog } from './HelpDialog';
-import { ViewBar, type ViewBarVariant } from './ViewBar';
+import { ViewBar } from './ViewBar';
 import { pathProblem, pathSlackLimit, equipmentPathBounds } from '../../ships/constructionPaths';
 import { appendPathPoint, pathEquipment } from './pathDrawing';
 import { PathPointEditor } from './PathPointEditor';
@@ -62,7 +62,6 @@ export interface ShipbuilderProps {
 const DISPLAY: Record<BuilderLayer, BuilderDisplay> = { hull: 'paint', armor: 'armor', internals: 'internals', fittings: 'paint', paint: 'paint' };
 const BOUNDARY_NAMES: Record<ConstructionBoundary['axis'], string> = { y: 'Deck', z: 'Bulkhead', x: 'Split' };
 const VIEWS: BuilderView[] = ['orbit', 'top', 'side', 'bow'];
-const viewBarVariant = ((typeof location !== 'undefined' && new URLSearchParams(location.search).get('viewbar')) || 'text') as ViewBarVariant;
 const VIEW_NAMES: Record<BuilderView, string> = { orbit: 'Orbit', top: 'Plan', side: 'Profile', bow: 'Bow' };
 const ARC_RADIUS = 12;
 const LIMITS = CONSTRUCTION_LIMITS;
@@ -118,7 +117,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const [suggestionRevision, setSuggestionRevision] = useState('');
   const suggestionRequest = useRef<AbortController | undefined>(undefined);
   const [helpOpen, setHelpOpen] = useState(false);
-  const [tip, setTip] = useState<{ title: string; detail: string; x: number; y: number; key?: string; below?: boolean; right?: number; beside?: boolean }>();
+  const [tip, setTip] = useState<{ title: string; detail: string; x: number; y: number; key?: string; below?: boolean; right?: number }>();
   const [slotImages] = useState(() => new SlotImages());
   useEffect(() => () => slotImages.dispose(), [slotImages]);
 
@@ -709,10 +708,10 @@ export function Shipbuilder(props: ShipbuilderProps) {
       {acting.length > 0 && <div className="sb-keys-row acting">{acting.map(chip)}</div>}
       <div className="sb-keys-row">{standing.map(chip)}</div>
     </div>
-    {tip && <div className={`sb-tip ${tip.below ? 'below' : ''} ${tip.beside ? 'beside' : tip.right !== undefined ? 'right' : ''}`} role="tooltip" style={tip.right !== undefined ? { right: tip.right, top: tip.y } : { left: tip.x, top: tip.y }}><b>{tip.title}</b>{tip.detail}{tip.key && <kbd>{tip.key}</kbd>}</div>}
-    <ViewBar variant={viewBarVariant} viewName={VIEW_NAMES[view]} view={view} perspective={perspective} sliceLabel={slice.on ? `${signed(slice.y)} m` : 'Off'} sliceOn={slice.on} showCenters={showCenters} snapLabel={gridStep === 1 ? '1 m' : '¼ m'} mirror={mirror}
+    {tip && <div className={`sb-tip ${tip.below ? 'below' : ''} ${tip.right !== undefined ? 'right' : ''}`} role="tooltip" style={tip.right !== undefined ? { right: tip.right, top: tip.y } : { left: tip.x, top: tip.y }}><b>{tip.title}</b>{tip.detail}{tip.key && <kbd>{tip.key}</kbd>}</div>}
+    <ViewBar viewName={VIEW_NAMES[view]} perspective={perspective} sliceLabel={slice.on ? `${signed(slice.y)} m` : 'Off'} sliceOn={slice.on} showCenters={showCenters} snapLabel={gridStep === 1 ? '1 m' : '¼ m'} mirror={mirror}
       onView={cycleView} onProjection={toggleProjection} onSlice={toggleSlice} onCenters={() => setShowCenters(value => !value)} onMirror={() => setMirror(value => !value)} onFit={fit}
-      onTip={entry => { if (!entry) { setTip(undefined); return; } const rect = entry.target.getBoundingClientRect(); const beside = viewBarVariant === 'column'; setTip({ title: entry.title, detail: entry.detail, key: entry.key, x: rect.left + rect.width / 2, y: beside ? rect.top + rect.height / 2 : rect.top, right: beside ? window.innerWidth - rect.left + 8 : Math.max(12, window.innerWidth - rect.right), beside }); }}/>
+      onTip={entry => { if (!entry) { setTip(undefined); return; } const rect = entry.target.getBoundingClientRect(); setTip({ title: entry.title, detail: entry.detail, key: entry.key, x: rect.left + rect.width / 2, y: rect.top, right: Math.max(12, window.innerWidth - rect.right) }); }}/>
     {!data.primitives.length && <div className="sb-empty"><b>This design needs a starting block</b><button disabled={locked} onClick={() => run('Add starting block', draft => { draft.construction.primitives.push(startingHullBlock()); })}>Add a hull block</button> to keep building.</div>}
     {helpOpen && <HelpDialog onClose={() => setHelpOpen(false)}/>}
   </main>;

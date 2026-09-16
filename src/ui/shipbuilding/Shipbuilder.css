@@ -168,7 +168,6 @@
 .sb-tip b { display: block; font: 500 13px/1.3 'Barlow Condensed', sans-serif; color: var(--sb-text); letter-spacing: .02em; }
 .sb-tip.below { transform: translate(-50%, 8px); }
 .sb-tip.right { transform: translate(0, calc(-100% - 8px)); text-align: right; }
-.sb-tip.beside { transform: translate(0, -50%); text-align: right; }
 .sb-tip kbd { margin-left: 6px; vertical-align: 1px; }
 .sb-drawer { position: absolute; left: 50%; bottom: calc(var(--sb-bar-bottom) + var(--sb-bar-height) + 12px); transform: translateX(-50%); z-index: 4; width: max-content; max-width: min(760px, calc(100% - 28px)); padding: 10px 12px 12px; background: var(--sb-card); border: 1px solid var(--sb-line2); border-radius: 3px; box-shadow: 0 12px 28px #0a0c0e99; text-shadow: none; display: flex; flex-direction: column; gap: 10px; }
 .sb-drawer-head { display: flex; align-items: center; gap: 14px; }
@@ -227,11 +226,15 @@
 .sb-keys-row.acting .sb-key { color: var(--sb-text); }
 .sb-keys kbd { opacity: .8; }
 
-/* view bar: on the palette's bottom line at the right edge; it stacks into a column once a narrower window would run it into the cards */
-.sb-viewbar { position: absolute; right: 18px; bottom: 26px; display: flex; gap: 22px; font-size: 12px; color: var(--sb-muted); white-space: nowrap; }
-.sb-viewbar b { color: var(--sb-text); font-weight: 500; }
-.sb-viewbar button:hover b { color: var(--sb-brass2); }
-.sb-viewbar kbd { margin-left: 6px; vertical-align: 1px; }
+/* view bar: icon squares on the palette's bottom line at the right edge, grouped view · camera · slice | centers · snap · mirror | fit;
+   the pressed card carries a toggle's state and the tooltip its name, value and key */
+.sb-viewbar { position: absolute; right: 18px; bottom: 24px; display: flex; gap: 4px; align-items: flex-end; }
+.sb-viewbar .sb-vb { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: 1px solid var(--sb-line2); border-radius: 3px; background: var(--sb-card); color: var(--sb-muted); text-shadow: none; }
+.sb-vb.gap { margin-left: 10px; }
+.sb-vb svg { width: 20px; height: 20px; }
+.sb-viewbar button.sb-vb:hover { border-color: var(--sb-muted2); background: var(--sb-card-hover); color: var(--sb-text); }
+.sb-viewbar .sb-vb[aria-pressed=true] { border-color: var(--sb-brass); color: var(--sb-brass); background: var(--sb-card-selected); box-shadow: inset 0 0 0 1px var(--sb-brass); }
+.sb-vb.static { opacity: .7; }
 
 @media (max-width: 1100px) {
   .shipbuilder { --sb-slot: 56px; }
@@ -244,38 +247,17 @@
   .sb-tag { max-width: min(420px, calc(100% - 96px)); overflow-y: auto; scrollbar-width: thin; }
   .sb-ledger { width: 176px; }
 }
-@media (max-width: 1640px) {
-  .sb-viewbar.text { flex-direction: column; align-items: flex-end; gap: 5px; }
+/* a window narrower than the palette plus the row folds the view squares into two right-aligned rows */
+@media (max-width: 1240px) {
+  .sb-viewbar { flex-wrap: wrap-reverse; width: 140px; justify-content: flex-end; }
+  .sb-vb.gap { margin-left: 0; }
 }
-/* compact view bar studies: squares per control (icons / captions), key chips, or a column up the right edge */
-.sb-viewbar:is(.icons, .captions) { gap: 4px; align-items: flex-end; }
-.sb-viewbar .sb-vb { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; width: 32px; height: 32px; border: 1px solid var(--sb-line2); border-radius: 3px; background: var(--sb-card); color: var(--sb-muted); text-shadow: none; }
-.sb-vb.gap { margin-left: 10px; }
-.sb-vb svg { width: 20px; height: 20px; }
-.sb-vb small { font: 500 9.5px/1 'Barlow Condensed', sans-serif; letter-spacing: .04em; white-space: nowrap; color: var(--sb-muted); }
-.sb-viewbar button.sb-vb:hover { border-color: var(--sb-muted2); background: var(--sb-card-hover); color: var(--sb-text); }
-.sb-viewbar .sb-vb[aria-pressed=true] { border-color: var(--sb-brass); color: var(--sb-brass); background: var(--sb-card-selected); box-shadow: inset 0 0 0 1px var(--sb-brass); }
-.sb-viewbar .sb-vb[aria-pressed=true] small { color: var(--sb-brass2); }
-.sb-vb.static { opacity: .7; }
-.sb-viewbar.captions .sb-vb { width: 46px; height: 42px; gap: 2px; }
-.sb-viewbar.chips { gap: 14px; align-items: baseline; }
-.sb-vb-chip { display: inline-flex; align-items: baseline; gap: 5px; font: 500 11px/1.3 'Barlow Condensed', sans-serif; letter-spacing: .04em; color: var(--sb-muted); }
-.sb-vb-chip b { font-weight: 500; color: var(--sb-text); }
-.sb-vb-chip[aria-pressed=true] b { color: var(--sb-brass); }
-.sb-viewbar.chips button.sb-vb-chip:hover b { color: var(--sb-brass2); }
-.sb-vb-chip svg { width: 13px; height: 13px; align-self: center; opacity: .8; }
-.sb-viewbar.chips kbd { margin: 0; }
-.sb-viewbar.column { flex-direction: column; align-items: flex-end; gap: 4px; bottom: 24px; }
-.sb-viewbar.column .sb-vb { flex-direction: row; width: auto; height: 28px; padding: 0 6px 0 9px; gap: 8px; margin: 0; }
-.sb-viewbar.column .sb-vb.gap { margin-top: 8px; }
-.sb-viewbar.column .sb-vb small { font-size: 11px; min-width: 44px; text-align: right; }
-.sb-viewbar.column .sb-vb svg { width: 18px; height: 18px; }
 /* a short window leaves no room for the legend under the rail */
 @media (max-width: 860px), (max-height: 800px) {
   .sb-keys { display: none; }
 }
 @media (max-width: 860px) {
-  .sb-ledger, .sb-viewbar span { display: none; }
+  .sb-ledger { display: none; }
   .sb-ship { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 8px; row-gap: 1px; }
   .sb-name { grid-column: 1 / -1; width: 100%; min-width: 0; }
   .sb-top { padding-inline: 12px; }
@@ -293,12 +275,9 @@
   .sb-left .sb-rail { min-height: 0; overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; pointer-events: auto; }
   .sb-left .sb-rail button { flex-shrink: 0; }
   .sb-menu { position: fixed; left: 12px; top: 64px; width: calc(100vw - 24px); max-width: none; z-index: 6; }
-  .sb-viewbar { left: 12px; right: 12px; bottom: 8px; justify-content: center; flex-wrap: wrap; }
-  /* Two rows keep every view control below the full-width palette. */
-  .shipbuilder { --sb-bar-bottom: 92px; --sb-bar-height: calc((100vw - 52px) * 2 / 5 + 6px); }
-  .sb-viewbar { left: 14px; right: 14px; bottom: 12px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px 10px; align-items: center; }
-  .sb-viewbar button { min-width: 0; min-height: 28px; white-space: normal; line-height: 1.25; }
-  .sb-viewbar kbd { display: none; }
+  /* One centred row of view squares keeps below the full-width palette. */
+  .shipbuilder { --sb-bar-bottom: 60px; --sb-bar-height: calc((100vw - 52px) * 2 / 5 + 6px); }
+  .sb-viewbar { left: 14px; right: 14px; bottom: 12px; justify-content: center; }
   .sb-orientation { bottom: calc(var(--sb-bar-bottom) + var(--sb-bar-height) + 18px); }
   .shipbuilder:not(.sb-freeform-mode) .sb-top { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 12px; }
   .shipbuilder:not(.sb-freeform-mode) .sb-ship { grid-column: 2; }
@@ -310,7 +289,7 @@
   .shipbuilder:not(.sb-freeform-mode) .sb-rail button { height: 44px; }
   .sb-menu { position: fixed; left: 12px; right: 12px; top: 64px; width: auto; max-height: calc(100dvh - 88px); }
   .sb-hotbar { width: calc(100% - 28px); display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); }
-  .shipbuilder { --sb-bar-width: min(344px, calc(100vw - 28px)); --sb-bar-height: calc((var(--sb-bar-width) - 24px) * 2 / 5 + 6px); --sb-bar-bottom: 84px; }
+  .shipbuilder { --sb-bar-width: min(344px, calc(100vw - 28px)); --sb-bar-height: calc((var(--sb-bar-width) - 24px) * 2 / 5 + 6px); --sb-bar-bottom: 60px; }
   .sb-top { height: 118px; display: grid; grid-template-columns: 44px minmax(0, 1fr); grid-template-rows: 44px 30px 38px; gap: 0 12px; padding-top: 6px; }
   .sb-port { grid-column: 1; grid-row: 1; }
   .sb-ship { grid-column: 2; grid-row: 1; display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 8px; row-gap: 1px; }
@@ -331,8 +310,7 @@
   .sb-cursor { width: calc(100% - 28px); justify-content: center; gap: 5px; font-size: 11px; }
   .sb-cursor b { max-width: 140px; overflow: hidden; text-overflow: ellipsis; }
   .sb-cursor .sb-coords { position: absolute; bottom: 24px; right: 0; }
-  .sb-viewbar { left: 14px; right: 14px; bottom: 10px; justify-content: center; gap: 18px; font-size: 11px; }
-  .sb-viewbar button { min-height: 30px; }
+  .sb-viewbar { left: 14px; right: 14px; bottom: 10px; justify-content: center; }
   .sb-drawer { width: calc(100% - 28px); max-width: none; }
   .sb-drawer-grid { max-height: max(56px, calc(100dvh - 450px)); }
 }
