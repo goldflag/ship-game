@@ -203,7 +203,7 @@ impl DeckOperations {
                     .any(|p| p.id == job.plane_id && p.flight_id.as_deref() == Some(flight_id))
             })
     }
-    pub fn initialize(
+    pub(super) fn initialize(
         state: &mut AirWingState,
         actor: &Vessel,
         ground: &BTreeMap<String, GroundPose>,
@@ -300,7 +300,7 @@ impl DeckOperations {
         ops.publish(state, false);
         Ok(ops)
     }
-    pub fn enqueue(
+    pub(super) fn enqueue(
         &mut self,
         state: &AirWingState,
         flight_id: &str,
@@ -377,7 +377,7 @@ impl DeckOperations {
         self.notice = None;
         Ok(self.sequence)
     }
-    pub fn cancel(&mut self, id: u64) -> bool {
+    pub(super) fn cancel(&mut self, id: u64) -> bool {
         if self.queue.iter().any(|r| r.id == id && r.automatic) {
             return false;
         }
@@ -403,7 +403,7 @@ impl DeckOperations {
         }
         true
     }
-    pub fn cancel_launches(&mut self, flight_id: Option<&str>) {
+    pub(super) fn cancel_launches(&mut self, flight_id: Option<&str>) {
         let ids: Vec<_> = self
             .queue
             .iter()

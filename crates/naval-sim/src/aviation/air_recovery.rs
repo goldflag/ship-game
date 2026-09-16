@@ -10,7 +10,7 @@ pub enum CarrierRecovery {
     Delayed,
     Closed { reason: String },
 }
-pub fn status(actor: &Vessel, sea: Option<(&SeaState, f64)>) -> CarrierRecovery {
+pub(super) fn status(actor: &Vessel, sea: Option<(&SeaState, f64)>) -> CarrierRecovery {
     let reason = if actor.physical_loss().is_some() {
         Some("Carrier lost")
     } else if actor.definition().air_wing.as_ref().is_none_or(|wing| {

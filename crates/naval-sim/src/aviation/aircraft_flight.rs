@@ -2,7 +2,7 @@ use super::aircraft::Aircraft;
 use crate::{definition::Vec3, geometry::*};
 use serde::{Deserialize, Serialize};
 pub const TAKEOFF_ROLL_SECONDS: f64 = 3.6;
-pub const TAKEOFF_CLIMB_SECONDS: f64 = 2.4;
+pub(super) const TAKEOFF_CLIMB_SECONDS: f64 = 2.4;
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct FlightControls {
     pub gear: f64,
@@ -33,17 +33,23 @@ pub struct FlightAttitude {
     pub bank: f64,
 }
 #[derive(Clone, Copy, Debug, Default)]
-pub struct FlightOptions {
+pub(super) struct FlightOptions {
     pub dive: bool,
     pub landing: bool,
     pub bank_limit: Option<f64>,
     pub altitude_lookahead: Option<f64>,
     pub turn_rate: f64,
 }
-pub fn approach(value: f64, target: f64, rate: f64, dt: f64) -> f64 {
+pub(super) fn approach(value: f64, target: f64, rate: f64, dt: f64) -> f64 {
     value + clamp(target - value, -rate * dt, rate * dt)
 }
-pub fn fly(p: &mut Aircraft, point: Vec3, requested_speed: f64, dt: f64, options: FlightOptions) {
+pub(super) fn fly(
+    p: &mut Aircraft,
+    point: Vec3,
+    requested_speed: f64,
+    dt: f64,
+    options: FlightOptions,
+) {
     if dt <= 0.0 {
         return;
     }
@@ -132,7 +138,7 @@ pub fn fly(p: &mut Aircraft, point: Vec3, requested_speed: f64, dt: f64, options
     );
     p.controls.rudder = clamp(turn * 0.28, -0.16, 0.16);
 }
-pub fn step_mechanisms(p: &mut Aircraft, dt: f64, deck: bool) {
+pub(super) fn step_mechanisms(p: &mut Aircraft, dt: f64, deck: bool) {
     let c = &mut p.controls;
     let parked = matches!(p.phase.as_str(), "ready" | "queued" | "rearming");
     let gear = deck

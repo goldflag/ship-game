@@ -10,7 +10,7 @@ use std::{
     collections::{BTreeMap, BinaryHeap},
 };
 
-pub struct DeckTraffic<'a> {
+pub(super) struct DeckTraffic<'a> {
     pub ship: &'a ShipDefinition,
     pub surface: &'a crate::aviation::deck_contact::DeckSurface,
     /// Excludes the moving aircraft; includes occupied and reserved destinations.
@@ -43,7 +43,7 @@ fn polygons_overlap(a: &[[f64; 2]], b: &[[f64; 2]]) -> bool {
 }
 
 impl DeckTraffic<'_> {
-    pub fn clear(&self, model: &AircraftDeckGeometry, pose: DeckPose) -> bool {
+    pub(super) fn clear(&self, model: &AircraftDeckGeometry, pose: DeckPose) -> bool {
         let Some(layout) = self
             .ship
             .air_wing
@@ -98,7 +98,7 @@ impl DeckTraffic<'_> {
                 })
         })
     }
-    pub fn segment_clear(
+    pub(super) fn segment_clear(
         &self,
         model: &AircraftDeckGeometry,
         from: DeckPose,
@@ -153,7 +153,7 @@ impl DeckTraffic<'_> {
     }
     /// Start a search against an immutable deck revision. Increment the revision
     /// whenever an occupied/reserved pose, fold state or ship definition changes.
-    pub fn begin_route(
+    pub(super) fn begin_route(
         &self,
         model: &AircraftDeckGeometry,
         from: DeckPose,
@@ -175,7 +175,8 @@ impl DeckTraffic<'_> {
     }
     /// Blocking convenience for offline layout validation. Simulation callers
     /// must retain a search and advance it with a per-tick node budget instead.
-    pub fn route(
+    #[cfg(test)]
+    pub(super) fn route(
         &self,
         model: &AircraftDeckGeometry,
         from: DeckPose,
@@ -196,7 +197,7 @@ type Key = (i16, i16, u8);
 const SEARCH_LIMIT: usize = 6000;
 
 #[derive(Clone, Debug)]
-pub enum RouteProgress {
+pub(super) enum RouteProgress {
     Pending,
     Found(Vec<DeckPose>),
     Blocked,
@@ -207,7 +208,7 @@ pub enum RouteProgress {
 /// pivots. Every edge is checked against the same revision. A search owns its
 /// aircraft geometry, so switching aircraft cannot reuse another model's path.
 #[derive(Clone, Debug)]
-pub struct RouteSearch {
+pub(super) struct RouteSearch {
     model: AircraftDeckGeometry,
     ship_id: String,
     revision: u64,
@@ -230,13 +231,14 @@ impl RouteSearch {
             heading: f64::from(k.2) * std::f64::consts::FRAC_PI_4,
         }
     }
-    pub fn visited_nodes(&self) -> usize {
+    #[cfg(test)]
+    pub(super) fn visited_nodes(&self) -> usize {
         self.visited
     }
     /// Work is bounded by node expansions, not elapsed wall time, preserving
     /// replay determinism. A zero budget performs no geometry work. Direct
     /// connection and initial-turn validation consume the first work unit.
-    pub fn advance(
+    pub(super) fn advance(
         &mut self,
         traffic: &DeckTraffic<'_>,
         revision: u64,

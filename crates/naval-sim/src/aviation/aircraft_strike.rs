@@ -5,7 +5,7 @@ use crate::{definition::Vec3, geometry::*};
 /// and a nominal 700 m torpedo run. Omitting the aircraft leg makes the aim
 /// slide across a moving target throughout the approach, preventing wings-level
 /// release. The final release still checks the actual drop/intercept solution.
-pub fn torpedo_approach_point(
+pub(super) fn torpedo_approach_point(
     position: Vec3,
     aircraft_speed: f64,
     target: Vec3,

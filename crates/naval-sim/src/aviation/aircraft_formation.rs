@@ -22,7 +22,7 @@ fn layout_seed(f: &AirFlight, p: &Aircraft, seed: u32) -> u32 {
         .finish()
 }
 
-pub fn formation_kind(f: &AirFlight, p: &Aircraft, seed: u32) -> &'static str {
+pub(super) fn formation_kind(f: &AirFlight, p: &Aircraft, seed: u32) -> &'static str {
     if p.pilot.attack_stage.as_deref() == Some("run") {
         return if p.role == "torpedo-bomber" {
             "line-abreast"
@@ -41,7 +41,7 @@ pub fn formation_kind(f: &AirFlight, p: &Aircraft, seed: u32) -> &'static str {
     }
 }
 
-pub fn formation_offset(f: &AirFlight, p: &Aircraft, time: f64, seed: u32) -> Vec3 {
+pub(super) fn formation_offset(f: &AirFlight, p: &Aircraft, time: f64, seed: u32) -> Vec3 {
     let slot = f.plane_ids.iter().position(|id| id == &p.id).unwrap_or(0);
     if slot == 0 {
         return [0.0; 3];
@@ -101,7 +101,7 @@ pub fn formation_offset(f: &AirFlight, p: &Aircraft, time: f64, seed: u32) -> Ve
         z * spacing + (time * 0.17 + phase * 3.0).sin() * 4.0,
     ]
 }
-pub fn formation_leader(
+pub(super) fn formation_leader(
     f: &AirFlight,
     planes: &[Aircraft],
     endurance: &crate::aviation::air_rules::EndurancePolicy,
@@ -115,7 +115,7 @@ pub fn formation_leader(
                 && matches!(planes[i].phase.as_str(), "outbound" | "attack")
         })
 }
-pub fn formation_position(
+pub(super) fn formation_position(
     f: &AirFlight,
     p: &Aircraft,
     leader: &Aircraft,
@@ -143,7 +143,7 @@ pub fn formation_position(
         ],
     )
 }
-pub fn fly_formation(
+pub(super) fn fly_formation(
     p: &mut Aircraft,
     leader: &Aircraft,
     f: &AirFlight,

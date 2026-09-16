@@ -3,7 +3,7 @@
 use super::aircraft::{Aircraft, PlaneView};
 use crate::{definition::Vec3, geometry::*};
 
-pub fn target(
+pub(super) fn target(
     p: &Aircraft,
     planes: &[PlaneView<'_>],
     anchor: Vec3,

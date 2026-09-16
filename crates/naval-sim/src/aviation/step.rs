@@ -40,7 +40,7 @@ pub struct AirContext<'a> {
     pub sea: Option<(&'a SeaState, f64)>,
 }
 impl AirContext<'_> {
-    pub fn next_id(&mut self) -> i64 {
+    pub(super) fn next_id(&mut self) -> i64 {
         *self.sequence += 1;
         *self.sequence
     }
@@ -58,7 +58,7 @@ impl AirContext<'_> {
         });
     }
 }
-pub fn air_torpedo() -> TorpedoPart {
+pub(super) fn air_torpedo() -> TorpedoPart {
     TorpedoPart {
         id: "mark-13-game".into(),
         name: "Air-dropped torpedo".into(),
@@ -75,7 +75,7 @@ pub fn air_torpedo() -> TorpedoPart {
         breach_area_m2: 0.55,
     }
 }
-pub fn lose(p: &mut Aircraft, events: &mut Vec<DamageEvent>, reason: &str) {
+pub(super) fn lose(p: &mut Aircraft, events: &mut Vec<DamageEvent>, reason: &str) {
     if terminal(p) {
         return;
     }

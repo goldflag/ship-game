@@ -41,21 +41,13 @@ pub use air_rules::{
 pub use air_search::valid_area;
 pub(crate) use aircraft::on_flight_deck;
 pub use aircraft::{
-    AirFlight, AirOrder, AirRelease, AirWingState, Aircraft, PlaneView, SearchAltitude,
-    SearchPolicy, SearchProgress, active_flight, airborne, create_air_wing, terminal,
+    AirFlight, AirOrder, AirRelease, AirWingState, Aircraft, SearchAltitude, SearchPolicy,
+    SearchProgress, active_flight, airborne, create_air_wing, terminal,
 };
-pub use aircraft_accuracy::strike_aim_error;
 pub use aircraft_deck::{GroundPose, compose_attitude};
-pub use aircraft_defense::{DefenseState, evade_bomber, near_fire, tick};
-pub use aircraft_flight::{
-    FlightAttitude, FlightControls, FlightOptions, TAKEOFF_ROLL_SECONDS, fly, step_mechanisms,
-};
-pub use aircraft_formation::{fly_formation, formation_kind, formation_leader, formation_offset};
-pub use aircraft_performance::performance_for;
-pub use aircraft_recovery::RecoveryProgress;
-pub use aircraft_tactics::{FighterAim, fighter_fire_ready, fighter_target, steer_fighter};
+pub use aircraft_defense::near_fire;
+pub use aircraft_flight::{FlightAttitude, FlightControls, TAKEOFF_ROLL_SECONDS};
 pub use deck_contact::{ContactPose, DeckSurface};
-pub use deck_navigation::{DeckTraffic, RouteProgress};
 pub use deck_operations::{DeckAction, DeckOperations, DeckPolicy, place};
 pub(crate) use flight_deck::validate;
 pub use flight_deck::{DeckPose, Envelope};
@@ -92,7 +84,7 @@ pub fn service_available(actor: &Vessel, sea: Option<(&SeaState, f64)>) -> bool 
         && actor.motion.y > -3.0
         && service_equipment_available(actor, sea)
 }
-pub fn service_equipment_available(actor: &Vessel, sea: Option<(&SeaState, f64)>) -> bool {
+pub(super) fn service_equipment_available(actor: &Vessel, sea: Option<(&SeaState, f64)>) -> bool {
     let def = actor.definition();
     let module = def
         .air_wing

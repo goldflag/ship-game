@@ -28,7 +28,7 @@ pub enum EndurancePolicy {
     },
 }
 impl EndurancePolicy {
-    pub fn rejects_order(&self, elapsed: f64) -> bool {
+    pub(super) fn rejects_order(&self, elapsed: f64) -> bool {
         matches!(self, Self::Timed { order_limit_seconds, .. } if elapsed > *order_limit_seconds)
     }
     pub fn needs_recall(&self, elapsed: f64, fighter: bool) -> bool {
@@ -48,7 +48,7 @@ impl EndurancePolicy {
             }
         }
     }
-    pub fn exhausted(&self, elapsed: f64) -> bool {
+    pub(super) fn exhausted(&self, elapsed: f64) -> bool {
         matches!(self, Self::Timed { exhaustion_seconds, .. } if elapsed > *exhaustion_seconds)
     }
 }

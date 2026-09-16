@@ -1,7 +1,7 @@
 use super::*;
 use crate::geometry::world_to_local;
 impl DeckOperations {
-    pub(super) fn near_returners(state: &AirWingState, actor: &Vessel) -> Vec<usize> {
+    pub(in crate::aviation) fn near_returners(state: &AirWingState, actor: &Vessel) -> Vec<usize> {
         let mut candidates: Vec<_> = state
             .planes
             .iter()
@@ -36,7 +36,7 @@ impl DeckOperations {
             .filter(|j| j.arrival && matches!(j.stage, Stage::AwaitLanding))
             .map(|j| j.plane_id.as_str())
     }
-    pub(super) fn prepare_recovery(
+    pub(in crate::aviation) fn prepare_recovery(
         &mut self,
         state: &mut AirWingState,
         actor: &Vessel,
@@ -148,7 +148,11 @@ impl DeckOperations {
     /// Automatic handling preserves an outstanding Raise request. It can resume
     /// after departures; cancelling the player's request would hide why the
     /// group never came back up after making room for the runway.
-    pub(super) fn stow_ready_group(&mut self, state: &AirWingState, reason: &str) -> bool {
+    pub(in crate::aviation) fn stow_ready_group(
+        &mut self,
+        state: &AirWingState,
+        reason: &str,
+    ) -> bool {
         let mut parked: Vec<_> = state
             .planes
             .iter()

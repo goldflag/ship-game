@@ -19,7 +19,7 @@ pub struct RecoveryProgress {
 }
 
 /// Restart a missed or non-converging leg without erasing the recovery request.
-pub fn track_progress(p: &mut Aircraft, distance: f64, dt: f64) {
+pub(super) fn track_progress(p: &mut Aircraft, distance: f64, dt: f64) {
     let stage = p.pilot.recovery_stage.clone().unwrap_or_default();
     let r = p.pilot.recovery.get_or_insert_default();
     r.retry_seconds = (r.retry_seconds - dt).max(0.0);
@@ -49,13 +49,13 @@ pub fn track_progress(p: &mut Aircraft, distance: f64, dt: f64) {
 
 /// Beyond this turn rate a stable recovery circuit is unavailable. Hold clear
 /// and explain why; do not repeatedly attempt an unreachable final approach.
-pub const MAX_RECOVERY_YAW_RATE: f64 = 0.012;
+pub(super) const MAX_RECOVERY_YAW_RATE: f64 = 0.012;
 
-pub fn turn_delays_recovery(actor: &Vessel) -> bool {
+pub(super) fn turn_delays_recovery(actor: &Vessel) -> bool {
     actor.motion.yaw_rate.abs() > MAX_RECOVERY_YAW_RATE
 }
 
-pub fn fly_final(p: &mut Aircraft, actor: &Vessel, datum: Vec3, landing: bool, dt: f64) {
+pub(super) fn fly_final(p: &mut Aircraft, actor: &Vessel, datum: Vec3, landing: bool, dt: f64) {
     let pose = actor.motion.pose();
     let local = world_to_local(p.position, pose);
     let aft = local[2] - datum[2];

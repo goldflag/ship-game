@@ -342,3 +342,96 @@ impl Aviation {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{
+        aviation::{
+            aircraft::AirFlight,
+            test_support::{carrier, catalog},
+        },
+        rules::TeamId,
+    };
+    fn wing() -> (Vessel, Aviation, Vec<AirFlight>) {
+        let actor = carrier("carrier", "enterprise-cv6", TeamId::A);
+        let mut air = Aviation::new(std::slice::from_ref(&actor), catalog().aircraft.clone());
+        let flights = air.squadron_flights(&actor);
+        for f in &flights {
+            for p in air.wing_mut("carrier").unwrap().planes.iter_mut() {
+                if f.plane_ids.contains(&p.id) {
+                    p.flight_id = Some(f.id.clone());
+                }
+            }
+        }
+        (actor, air, flights)
+    }
+    fn flight_of(air: &Aviation, flights: &[AirFlight], role: &str) -> String {
+        let planes = &air.wing("carrier").unwrap().planes;
+        flights
+            .iter()
+            .find(|f| {
+                planes
+                    .iter()
+                    .any(|p| f.plane_ids.contains(&p.id) && p.role == role)
+            })
+            .unwrap()
+            .id
+            .clone()
+    }
+    #[test]
+    fn only_accepted_fighter_patrol_orders_open_stations_and_cancelling_closes_them() {
+        let (actor, mut air, flights) = wing();
+        let fighter = flight_of(&air, &flights, "fighter");
+        let bomber = flight_of(&air, &flights, "dive-bomber");
+        let patrol = AirOrder::Patrol {
+            point: [0.0, 850.0, -5000.0],
+        };
+        air.record_air_order(&actor, &bomber, &patrol);
+        assert!(
+            air.operations.stations.is_empty(),
+            "bombers do not fly patrol stations"
+        );
+        air.record_air_order(
+            &actor,
+            &fighter,
+            &AirOrder::Strike {
+                contact_id: "contact".into(),
+            },
+        );
+        assert!(
+            air.operations.stations.is_empty(),
+            "a strike is not a station"
+        );
+        assert!(
+            air.operations.packages.is_empty(),
+            "fighters never form a package"
+        );
+        air.record_air_order(&actor, &fighter, &patrol);
+        assert_eq!(air.operations.stations.len(), 1);
+        let station = &air.operations.stations[0];
+        assert_eq!(
+            (
+                station.groups.as_slice(),
+                station.current.as_str(),
+                station.relief.as_deref()
+            ),
+            ([fighter.clone()].as_slice(), fighter.as_str(), None)
+        );
+        // Re-issuing replaces the station rather than stacking a second one.
+        air.record_air_order(&actor, &fighter, &patrol);
+        assert_eq!(air.operations.stations.len(), 1);
+        // Commands the wing issues to itself while rotating never re-enter here.
+        air.operations.internal_command = true;
+        air.record_air_order(&actor, &bomber, &patrol);
+        air.cancel_air_operation("carrier", Some(&fighter));
+        air.operations.internal_command = false;
+        assert_eq!(
+            air.operations.stations.len(),
+            1,
+            "internal commands leave stations alone"
+        );
+        air.cancel_air_operation("carrier", Some(&fighter));
+        assert!(air.operations.stations.is_empty());
+    }
+}

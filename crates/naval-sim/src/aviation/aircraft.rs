@@ -51,7 +51,7 @@ pub enum SearchAltitude {
     High,
 }
 impl SearchAltitude {
-    pub fn metres(self) -> f64 {
+    pub(super) fn metres(self) -> f64 {
         match self {
             Self::Low => 200.0,
             Self::Medium => 850.0,
@@ -202,27 +202,27 @@ pub struct AirRelease {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub weapon: Option<crate::definition::TorpedoPart>,
 }
-pub const FIGHTER_AMMO_BURSTS: f64 = 16.0;
+pub(super) const FIGHTER_AMMO_BURSTS: f64 = 16.0;
 /// Assign a closed-set string in place. The stored bytes are identical to
 /// `*slot = value.into()`; only the allocation is reused.
 #[inline]
-pub fn set_str(slot: &mut String, value: &str) {
+pub(super) fn set_str(slot: &mut String, value: &str) {
     if slot != value {
         slot.clear();
         slot.push_str(value);
     }
 }
 #[inline]
-pub fn set_opt_str(slot: &mut Option<String>, value: &str) {
+pub(super) fn set_opt_str(slot: &mut Option<String>, value: &str) {
     match slot {
         Some(existing) => set_str(existing, value),
         None => *slot = Some(value.to_owned()),
     }
 }
-pub fn terminal_phase(phase: &str) -> bool {
+pub(super) fn terminal_phase(phase: &str) -> bool {
     matches!(phase, "lost" | "withdrawn")
 }
-pub fn airborne_phase(phase: &str) -> bool {
+pub(super) fn airborne_phase(phase: &str) -> bool {
     matches!(
         phase,
         "takeoff" | "outbound" | "attack" | "returning" | "landing"
@@ -234,7 +234,7 @@ pub fn terminal(p: &Aircraft) -> bool {
 pub fn airborne(p: &Aircraft) -> bool {
     airborne_phase(&p.phase)
 }
-pub fn in_flight(p: &Aircraft) -> bool {
+pub(super) fn in_flight(p: &Aircraft) -> bool {
     airborne(p) && p.hp > 0.0
 }
 /// What a pilot is permitted to observe about another aircraft, borrowed
@@ -242,7 +242,7 @@ pub fn in_flight(p: &Aircraft) -> bool {
 /// `Aircraft` copy carried, so pilot decisions are unchanged; the fields the
 /// pilot controllers never read are simply absent.
 #[derive(Clone, Copy, Debug)]
-pub struct PlaneView<'a> {
+pub(super) struct PlaneView<'a> {
     pub id: &'a str,
     pub flight_id: Option<&'a str>,
     pub hostile_id: Option<&'a str>,
@@ -255,7 +255,7 @@ pub struct PlaneView<'a> {
     pub ammo: f64,
 }
 impl<'a> PlaneView<'a> {
-    pub fn of(p: &'a Aircraft) -> Self {
+    pub(super) fn of(p: &'a Aircraft) -> Self {
         Self {
             id: &p.id,
             flight_id: p.flight_id.as_deref(),
@@ -269,11 +269,11 @@ impl<'a> PlaneView<'a> {
             ammo: p.ammo,
         }
     }
-    pub fn in_flight(&self) -> bool {
+    pub(super) fn in_flight(&self) -> bool {
         airborne_phase(self.phase) && self.hp > 0.0
     }
 }
-pub fn on_flight_deck(p: &Aircraft) -> bool {
+pub(crate) fn on_flight_deck(p: &Aircraft) -> bool {
     p.deck_slot.is_some()
         && matches!(
             p.phase.as_str(),
@@ -305,11 +305,11 @@ pub fn active_flight(f: &AirFlight, planes: &[Aircraft]) -> bool {
             )
     })
 }
-pub fn aircraft_service_seconds(base: f64, hp: f64) -> f64 {
+pub(super) fn aircraft_service_seconds(base: f64, hp: f64) -> f64 {
     base * (1.0 + (100.0 - hp.clamp(0.0, 100.0)) / 100.0)
 }
 impl Aircraft {
-    pub fn forward(&self) -> Vec3 {
+    pub(super) fn forward(&self) -> Vec3 {
         [
             self.heading.sin() * self.pitch.cos(),
             self.pitch.sin(),

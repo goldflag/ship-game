@@ -31,7 +31,7 @@ pub fn near_fire(p: &mut Aircraft, origin: Vec3) {
     state.fire_direction = direction;
 }
 
-pub fn tick(p: &mut Aircraft, dt: f64) {
+pub(super) fn tick(p: &mut Aircraft, dt: f64) {
     if let Some(s) = &mut p.pilot.defense {
         s.fire_seconds = (s.fire_seconds - dt).max(0.0);
         s.cooldown = (s.cooldown - dt).max(0.0);
@@ -43,7 +43,7 @@ pub fn tick(p: &mut Aircraft, dt: f64) {
     }
 }
 
-pub fn evade_bomber(
+pub(super) fn evade_bomber(
     p: &mut Aircraft,
     observations: &[PlaneView<'_>],
     slot: usize,

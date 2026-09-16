@@ -5,7 +5,7 @@ use std::{collections::BTreeMap, sync::OnceLock};
 
 #[derive(Clone, Copy, Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
-pub struct FlightPerformance {
+pub(super) struct FlightPerformance {
     pub max_speed: f64,
     pub speed_scale: f64,
     pub max_bank: f64,
@@ -39,7 +39,7 @@ fn profiles() -> &'static Profiles {
 
 /// Resolved own-aircraft capability; never infer an unseen opponent's profile.
 /// Stores and damage reduce performance without changing recovery minimum speed.
-pub fn performance_for(p: &Aircraft) -> FlightPerformance {
+pub(super) fn performance_for(p: &Aircraft) -> FlightPerformance {
     let data = &profiles().profiles;
     let mut v = *data
         .get(&p.model_id)

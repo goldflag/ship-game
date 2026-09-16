@@ -20,7 +20,7 @@ fn threatens(hostile: &PlaneView<'_>, ally: &PlaneView<'_>) -> bool {
 /// A pilot re-assesses this often, as the TypeScript twin always has. Between
 /// assessments the flight, the guns and the evasion reactions still run every
 /// tick; only the choice of track is held.
-pub const THINK_SECONDS: f64 = 0.65;
+pub(super) const THINK_SECONDS: f64 = 0.65;
 /// True while a held track is still one the allocator itself would accept.
 /// Mirrors `fighter_coordination::target`'s own eligibility so pausing the
 /// scan can never keep a target the scan would have rejected.
@@ -33,7 +33,7 @@ fn holdable(p: &Aircraft, o: &PlaneView<'_>, anchor: Vec3, explicit: Option<&str
         && length(sub(o.position, p.position)) < 6500.0
         && (explicit.is_some() || range < 3500.0 || dot(o.velocity, sub(anchor, o.position)) > 0.0)
 }
-pub fn fighter_target(
+pub(super) fn fighter_target(
     p: &mut Aircraft,
     planes: &[PlaneView<'_>],
     carrier: Vec3,
@@ -65,14 +65,14 @@ pub fn fighter_target(
     best
 }
 #[derive(Clone, Copy, Debug, serde::Serialize)]
-pub struct FighterAim {
+pub(super) struct FighterAim {
     pub time: f64,
     pub alignment: f64,
     pub direction: Vec3,
     pub distance: f64,
     pub point: Vec3,
 }
-pub fn fighter_gun_aim(p: &Aircraft, hostile: &PlaneView<'_>) -> FighterAim {
+pub(super) fn fighter_gun_aim(p: &Aircraft, hostile: &PlaneView<'_>) -> FighterAim {
     let relative = sub(hostile.position, p.position);
     let velocity = sub(hostile.velocity, p.velocity);
     let a = dot(velocity, velocity) - 720.0_f64.powi(2);
@@ -101,7 +101,7 @@ pub fn fighter_gun_aim(p: &Aircraft, hostile: &PlaneView<'_>) -> FighterAim {
     }
 }
 /// Accumulate a continuous firing solution, independently of navigation lead.
-pub fn fighter_fire_ready(
+pub(super) fn fighter_fire_ready(
     p: &mut Aircraft,
     gun: &FighterAim,
     pursuing: bool,
@@ -119,7 +119,7 @@ pub fn fighter_fire_ready(
     p.pilot.aim_time = if on_aim { p.pilot.aim_time + dt } else { 0.0 };
     on_aim && p.pilot.aim_time >= if panic { 0.45 } else { 0.18 } && p.cooldown <= 0.0
 }
-pub fn clear_fighter_lane(p: &Aircraft, aim: Vec3, planes: &[PlaneView<'_>]) -> bool {
+pub(super) fn clear_fighter_lane(p: &Aircraft, aim: Vec3, planes: &[PlaneView<'_>]) -> bool {
     let ray = sub(aim, p.position);
     let distance = length(ray);
     let direction = normalize(ray);
@@ -132,7 +132,7 @@ pub fn clear_fighter_lane(p: &Aircraft, aim: Vec3, planes: &[PlaneView<'_>]) -> 
         along > 0.0 && along < distance && length(sub(relative, scale(direction, along))) < 18.0
     })
 }
-pub fn steer_fighter(
+pub(super) fn steer_fighter(
     p: &mut Aircraft,
     hostile: &PlaneView<'_>,
     planes: &[PlaneView<'_>],
@@ -305,11 +305,11 @@ pub fn steer_fighter(
     );
     true
 }
-pub fn orbit_point(p: &Aircraft, anchor: Vec3, radius: f64, side: f64) -> Vec3 {
+pub(super) fn orbit_point(p: &Aircraft, anchor: Vec3, radius: f64, side: f64) -> Vec3 {
     let angle = (p.position[0] - anchor[0]).atan2(p.position[2] - anchor[2]) + side * 0.65;
     add(anchor, [angle.sin() * radius, 0.0, angle.cos() * radius])
 }
-pub fn strike_ingress(p: &mut Aircraft, target_heading: f64, target: Vec3) -> Vec3 {
+pub(super) fn strike_ingress(p: &mut Aircraft, target_heading: f64, target: Vec3) -> Vec3 {
     if p.pilot.attack_heading.is_none() {
         p.pilot.attack_heading = Some(if p.role == "torpedo-bomber" {
             let side = if (p.position[0] - target[0]) * target_heading.cos()

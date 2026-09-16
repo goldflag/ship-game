@@ -12,7 +12,7 @@ pub fn valid_area(center: [f64; 2], radius_m: f64) -> bool {
 }
 /// Chords leave turning room inside the selected area. Higher searches use
 /// wider spacing; actual acquisition still depends on weather and line of sight.
-pub fn sweep(
+pub(super) fn sweep(
     center: [f64; 2],
     radius_m: f64,
     altitude: SearchAltitude,

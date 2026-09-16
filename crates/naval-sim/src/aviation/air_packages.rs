@@ -325,3 +325,99 @@ impl Aviation {
         true
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{
+        aviation::{
+            aircraft::AirFlight,
+            test_support::{carrier, catalog},
+        },
+        rules::TeamId,
+    };
+    /// A carrier whose squadron flights already carry their ids, so orders can
+    /// be recorded without running a launch cycle.
+    fn wing() -> (Vessel, Aviation, Vec<AirFlight>) {
+        let actor = carrier("carrier", "enterprise-cv6", TeamId::A);
+        let mut air = Aviation::new(std::slice::from_ref(&actor), catalog().aircraft.clone());
+        let flights = air.squadron_flights(&actor);
+        for f in &flights {
+            for p in air.wing_mut("carrier").unwrap().planes.iter_mut() {
+                if f.plane_ids.contains(&p.id) {
+                    p.flight_id = Some(f.id.clone());
+                }
+            }
+        }
+        (actor, air, flights)
+    }
+    fn flight_of<'a>(
+        air: &Aviation,
+        flights: &'a [AirFlight],
+        role: &str,
+        index: usize,
+    ) -> &'a AirFlight {
+        let planes = &air.wing("carrier").unwrap().planes;
+        flights
+            .iter()
+            .filter(|f| {
+                planes
+                    .iter()
+                    .any(|p| f.plane_ids.contains(&p.id) && p.role == role)
+            })
+            .nth(index)
+            .unwrap()
+    }
+    #[test]
+    fn strike_orders_form_packages_of_up_to_three_bomber_flights_within_thirty_seconds() {
+        let (actor, mut air, flights) = wing();
+        let strike = AirOrder::Strike {
+            contact_id: "contact".into(),
+        };
+        let dive = flight_of(&air, &flights, "dive-bomber", 0).id.clone();
+        let torpedo = flight_of(&air, &flights, "torpedo-bomber", 0).id.clone();
+        let fighter = flight_of(&air, &flights, "fighter", 0).id.clone();
+        air.operations.now = 10.0;
+        air.record_package_order(&actor, &dive, &strike);
+        air.record_package_order(&actor, &torpedo, &strike);
+        air.record_package_order(&actor, &fighter, &strike);
+        let packages = &air.operations.packages;
+        assert_eq!(packages.len(), 1, "fighters never join a package");
+        let roles: Vec<_> = packages[0]
+            .members
+            .iter()
+            .map(|m| m.role.as_str())
+            .collect();
+        assert_eq!(roles, ["dive-bomber", "torpedo-bomber"]);
+        assert!(
+            packages[0]
+                .members
+                .iter()
+                .all(|m| !m.ready && m.heading.is_none())
+        );
+        // A different order, or the same order after the assembly window, opens
+        // a new package instead of growing this one.
+        let other = flight_of(&air, &flights, "dive-bomber", 1).id.clone();
+        air.record_package_order(
+            &actor,
+            &other,
+            &AirOrder::Attack {
+                target_id: "ship".into(),
+            },
+        );
+        assert_eq!(air.operations.packages.len(), 2);
+        let late = flight_of(&air, &flights, "torpedo-bomber", 1).id.clone();
+        air.operations.now = 41.0;
+        air.record_package_order(&actor, &late, &strike);
+        assert_eq!(air.operations.packages.len(), 3);
+        assert_eq!(air.operations.packages[0].members.len(), 2);
+        assert_eq!(
+            air.operations.packages[2].id, 3,
+            "package ids are sequential"
+        );
+        // Nothing withdraws before the package has a permitted target fix.
+        let mut p = air.wing("carrier").unwrap().planes[0].clone();
+        p.flight_id = Some(dive);
+        assert!(!air.package_withdrawal(&mut p, 0.1));
+    }
+}

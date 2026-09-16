@@ -7,7 +7,7 @@ use crate::{
 impl Aviation {
     /// True means the search consumed this tick. False permits the existing
     /// strike controller, after a compatible local acquisition, to execute.
-    pub(super) fn search_mission(
+    pub(in crate::aviation) fn search_mission(
         &self,
         p: &mut Aircraft,
         flight: &mut Option<AirFlight>,

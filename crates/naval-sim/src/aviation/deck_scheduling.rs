@@ -12,7 +12,7 @@ pub enum DeckPolicy {
 }
 
 #[derive(Clone, Debug, Default)]
-pub(super) struct BatchSchedule {
+pub(in crate::aviation) struct BatchSchedule {
     pub policy: DeckPolicy,
     launched: usize,
     recovered: usize,
@@ -35,11 +35,11 @@ impl BatchSchedule {
             || self.launched > 0 && self.launched < launches
             || self.launched == 0 && self.recovered == 0 && self.policy == DeckPolicy::LaunchFirst
     }
-    pub fn launched(&mut self) {
+    pub(in crate::aviation) fn launched(&mut self) {
         self.launched += 1;
         self.recovered = 0;
     }
-    pub fn recovered(&mut self) {
+    pub(in crate::aviation) fn recovered(&mut self) {
         self.recovered += 1;
         self.launched = 0;
     }
@@ -50,7 +50,7 @@ impl DeckOperations {
         self.batch.policy = policy;
     }
 
-    pub(super) fn launch_waiting(&self, state: &AirWingState) -> bool {
+    pub(in crate::aviation) fn launch_waiting(&self, state: &AirWingState) -> bool {
         self.queue
             .iter()
             .filter(|r| r.action == DeckAction::Launch)
@@ -69,7 +69,7 @@ impl DeckOperations {
 
     /// Bounded preference, never a runway lock. A missing/dead/cancelled launch
     /// task cannot hold returning aircraft outside the carrier forever.
-    pub(super) fn launch_batch_due(&self, state: &AirWingState) -> bool {
+    pub(in crate::aviation) fn launch_batch_due(&self, state: &AirWingState) -> bool {
         if !self.launch_waiting(state) {
             return false;
         }
@@ -79,7 +79,7 @@ impl DeckOperations {
     /// Prefer this group next, after committed moves and required safety work.
     /// Requests remain skippable when physical conditions change; a preference
     /// cannot pin the runway or prevent automatic clearing of a smaller deck.
-    pub fn prioritize(
+    pub(in crate::aviation) fn prioritize(
         &mut self,
         state: &AirWingState,
         actor: &Vessel,

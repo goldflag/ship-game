@@ -7,7 +7,7 @@ pub struct FireDiscipline {
     pub yaw: f64,
     pub pitch: f64,
 }
-pub fn gunnery_seed(id: &str, mut seed: u32) -> u32 {
+pub(crate) fn gunnery_seed(id: &str, mut seed: u32) -> u32 {
     for c in id.encode_utf16() {
         seed = (seed ^ u32::from(c)).wrapping_mul(16777619);
     }
@@ -18,19 +18,19 @@ pub fn gunnery_seed(id: &str, mut seed: u32) -> u32 {
 /// concatenation. `SeedKey` builds the same keys without formatting them into
 /// a temporary `String`.
 #[derive(Clone, Copy, Debug)]
-pub struct SeedKey(u32);
+pub(super) struct SeedKey(u32);
 impl SeedKey {
     #[inline]
-    pub fn new(seed: u32) -> Self {
+    pub(super) fn new(seed: u32) -> Self {
         Self(seed)
     }
     #[inline]
-    pub fn text(self, text: &str) -> Self {
+    pub(super) fn text(self, text: &str) -> Self {
         Self(gunnery_seed(text, self.0))
     }
     /// The same bytes `{}` would render for a `u32`.
     #[inline]
-    pub fn number(self, value: u32) -> Self {
+    pub(super) fn number(self, value: u32) -> Self {
         let mut digits = [0u8; 10];
         let mut at = digits.len();
         let mut rest = value;
@@ -49,7 +49,7 @@ impl SeedKey {
         Self(seed)
     }
     #[inline]
-    pub fn finish(self) -> u32 {
+    pub(super) fn finish(self) -> u32 {
         self.0
     }
 }
@@ -59,7 +59,13 @@ fn sample(seed: u32, sequence: u32, channel: u32) -> f64 {
     x = (x ^ (x >> 15)).wrapping_mul(0x735a2d97);
     f64::from(x ^ (x >> 15)) / 4294967296.0
 }
-pub fn step_discipline(s: &mut FireDiscipline, dt: f64, pressure: f64, seed: u32, engaged: bool) {
+pub(crate) fn step_discipline(
+    s: &mut FireDiscipline,
+    dt: f64,
+    pressure: f64,
+    seed: u32,
+    engaged: bool,
+) {
     s.remaining = (s.remaining - dt).max(0.0);
     if !engaged {
         s.panic = false;
@@ -83,7 +89,7 @@ pub fn step_discipline(s: &mut FireDiscipline, dt: f64, pressure: f64, seed: u32
     } * (0.18 + 0.42 * sample(seed, sequence, 3));
     s.pitch = -0.08 + 0.45 * sample(seed, sequence, 4);
 }
-pub fn panic_aim(origin: Vec3, target: Vec3, s: &FireDiscipline) -> Vec3 {
+pub(crate) fn panic_aim(origin: Vec3, target: Vec3, s: &FireDiscipline) -> Vec3 {
     let delta = sub(target, origin);
     let distance = length(delta);
     let yaw = delta[0].atan2(-delta[2]) + s.yaw;
@@ -104,10 +110,10 @@ pub fn panic_aim(origin: Vec3, target: Vec3, s: &FireDiscipline) -> Vec3 {
         ),
     )
 }
-pub fn aa_spread(distance: f64) -> f64 {
+pub(crate) fn aa_spread(distance: f64) -> f64 {
     0.06 + distance / 20000.0
 }
-pub fn aa_damage(caliber: f64) -> f64 {
+pub(crate) fn aa_damage(caliber: f64) -> f64 {
     // Overlapping batteries remain dangerous; their per-hit damage is modestly
     // below the original 8/16/40 tuning so positioned fighters matter more.
     if caliber > 0.08 {
@@ -118,10 +124,10 @@ pub fn aa_damage(caliber: f64) -> f64 {
         7.0
     }
 }
-pub fn fighter_spread(bank: f64) -> f64 {
+pub(super) fn fighter_spread(bank: f64) -> f64 {
     // A burst represents several rounds. Disciplined fire needs a reasonable
     // chance of landing two damaging bursts within the finite 16-burst load;
     // banking and panic still spoil the solution rather than granting hits.
     0.026 + bank.abs() * 0.018
 }
-pub const FIGHTER_DAMAGE: f64 = 80.0;
+pub(super) const FIGHTER_DAMAGE: f64 = 80.0;
