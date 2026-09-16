@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "german-cruiser-catapult",
+  "revision": "ba3f22e02a3c14a9f9833860241010944e9a69be016a90163c9b667d4338f26a",
+  "contentHash": "ab2c5b7b256fde0f62a3dedac799c9daa62658659669b88d0e393f1984de86c8",
+  "modelSha256": "32ccc110d047ae721495f6a2df02be2727dffe9021ee3aad8a686e4b6e44719e",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/german-cruiser-catapult/ba3f22e02a3c14a9f9833860241010944e9a69be016a90163c9b667d4338f26a/model.glb",
+  "boundsCenter": [
+    0,
+    0.6609999909996986,
+    -1.1050000190734863
+  ],
+  "size": [
+    2.359999895095825,
+    1.3219999819993973,
+    12.650181770324707
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 1808,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original approved Hipper source adaptation; fresh external verification incomplete.",
+  "basis": "assets/parts/construction/README.md"
+}

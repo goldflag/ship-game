@@ -571,9 +571,18 @@ impl MountClearance {
                     .map_or(body.bounds, |i| body.bounds.transformed(frames[i]))
             })
             .collect();
+        // Only moving bodies can change clearance against an unchanged gun.
+        // Preserve original body order (including equal-distance tie behavior),
+        // without scanning every static hull cell for every untouched mount.
+        let moving_bodies: Vec<_> = self.bodies.iter().enumerate()
+            .filter_map(|(i, body)| body.mount.is_some_and(|m| changed[m]).then_some(i))
+            .collect();
         let (mut gap, mut id) = (limit, None);
         for (i, capsules) in barrels.iter().enumerate() {
-            for (body, bounds) in self.bodies.iter().zip(&body_bounds) {
+            let candidates = if changed[i] { self.bodies.len() } else { moving_bodies.len() };
+            for candidate in 0..candidates {
+                let index = if changed[i] { candidate } else { moving_bodies[candidate] };
+                let (body, bounds) = (&self.bodies[index], &body_bounds[index]);
                 if body.enclosure && body.mount == Some(i) {
                     continue;
                 }
@@ -617,7 +626,21 @@ impl MountClearance {
     }
 }
 
+/// Conservative separate body/barrel bounds for initial construction fitting.
+/// A single whole-model box fills the empty space under superfiring barrels.
+pub(crate) fn installation_bounds(w: &GunPart, elevation: f64) -> Vec<(Vec3, Vec3)> {
+    let mut bounds = vec![crate::structure::bounds(gunhouse(w).into_iter().flatten())];
+    bounds.extend(barrel_capsules(w, elevation, true).into_iter().map(|c| {
+        let b = c.bounds();
+        (b.center, b.size.map(|v| v + 2. * c.radius))
+    }));
+    bounds
+}
+
 fn barrel_capsules(w: &GunPart, elevation: f64, constructed: bool) -> Vec<Capsule> {
+    if constructed && matches!(w.id.as_str(), "flak38-m43u-20-twin" | "flak38-20-single" | "flak28-40-single") {
+        return german_light_capsules(w, elevation);
+    }
     if constructed && w.mounting_style.as_deref() == Some("oerlikon") && w.barrel_count == Some(1.)
     {
         return oerlikon_mk4_capsules(w, elevation);
@@ -680,6 +703,42 @@ fn barrel_capsules(w: &GunPart, elevation: f64, constructed: bool) -> Vec<Capsul
                 radius,
             });
         }
+    }
+    result
+}
+
+/// Original create_light recipe: receiver, cradle, grips, magazine, sight and
+/// guard follow elevation. Their dimensions differ substantially from the
+/// generic 1.55 m breech / 0.30 m barrel proxy used by larger open mounts.
+fn german_light_capsules(w: &GunPart, elevation: f64) -> Vec<Capsule> {
+    let twin = w.id == "flak38-m43u-20-twin";
+    let bofors = w.id == "flak28-40-single";
+    let mut result = vec![];
+    for barrel in 0..w.barrel_count.unwrap_or(1.) as usize {
+        let x = barrel_offset(w, barrel);
+        let mut pieces = vec![
+            ([0.,0.,-0.72],[0.,0.,0.45],0.205),
+            ([0.,-0.24,-0.65],[0.,-0.24,0.62],0.06),
+            ([0.,0.,0.26],[0.,0.,w.muzzle_forward-w.trunnion_forward+0.005],if bofors {0.068} else {0.037}),
+            ([0.,0.,-0.68],[0.,-0.11,-0.79],0.025),
+        ];
+        if bofors { pieces.push(([0.,0.25,-0.33],[0.,0.49,-0.11],0.15)); }
+        else {
+            let side = if twin && x < 0. { -1. } else { 1. };
+            pieces.push(([side*0.25,0.22,-0.30],[side*0.25,0.22,-0.06],0.205));
+            for sign in [-1.,1.] {
+                pieces.push(([sign*0.085,0.1,-0.4],[sign*0.30,0.11,-0.78],0.032));
+                pieces.push(([sign*0.30,0.11,-0.78],[sign*0.30,-0.08,-0.85],0.031));
+            }
+        }
+        pieces.push(([0.20,0.47,if bofors {-0.32} else {-0.11}],[0.20,0.55,if bofors {-0.32} else {-0.11}],0.115));
+        if twin && barrel == 0 {
+            for (a,b) in [([0.,0.2,0.],[0.,0.2,0.6]),([0.,0.2,0.6],[0.,-0.27,0.85]),([0.,-0.27,0.85],[0.,-0.27,2.45])] {
+                pieces.push(([a[0]-x,a[1],a[2]],[b[0]-x,b[1],b[2]],0.019));
+            }
+        }
+        let point = |p: Vec3| [x+p[0], w.pivot_height+p[2]*elevation.sin()+p[1]*elevation.cos(), -(w.trunnion_forward+p[2]*elevation.cos()-p[1]*elevation.sin())];
+        for (mut a,b,radius) in pieces { a[2]-=w.recoil_m; result.push(Capsule{a:point(a),b:point(b),radius}); }
     }
     result
 }
@@ -899,6 +958,27 @@ fn segment_triangle_distance(p: Vec3, q: Vec3, triangle: [Vec3; 3]) -> f64 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn original_german_light_mechanisms_stay_inside_clearance_across_elevation() {
+        let catalog: crate::definition::PartCatalog = serde_json::from_str(include_str!("../../../assets/parts/guns.json")).unwrap();
+        for id in ["flak38-m43u-20-twin", "flak38-20-single", "flak28-40-single"] {
+            let w = catalog.parts.iter().find(|p| p.id == id).unwrap();
+            for degrees in [-5_f64, 0., 30., 80.] {
+                let angle = degrees.to_radians();
+                let capsules = german_light_capsules(w, angle);
+                for barrel in 0..w.barrel_count.unwrap_or(1.) as usize {
+                    let x = barrel_offset(w, barrel);
+                    for recoil in [0., w.recoil_m] {
+                        for p in [[0.,0.,w.muzzle_forward-w.trunnion_forward], [0.,0.,-0.715], [0.,-0.24,0.62], [0.,-0.11,-0.79], [0.2,0.61,if id == "flak28-40-single" {-0.32} else {-0.11}]] {
+                            let forward = p[2] - recoil;
+                            let point = [x+p[0], w.pivot_height+forward*angle.sin()+p[1]*angle.cos(), -(w.trunnion_forward+forward*angle.cos()-p[1]*angle.sin())];
+                            assert!(capsules.iter().any(|c| point_segment_distance(point,c.a,c.b) <= c.radius+1e-6), "{id} at {degrees}: {point:?}");
+                        }
+                    }
+                }
+            }
+        }
+    }
     #[test]
     fn spatial_tree_matches_exhaustive_triangle_distance() {
         let triangles: Vec<_> = (0..80)

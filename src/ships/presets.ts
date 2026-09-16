@@ -1,3 +1,4 @@
+import constructedAdmiralHipperConstructionJson from '../../public/models/admiral-hipper-construction.json?raw';
 import cleveland from '../../public/models/cleveland.json';
 import admiralHipper from '../../public/models/admiral-hipper.json';
 import kingGeorgeV from '../../public/models/king-george-v.json';
@@ -22,7 +23,9 @@ import hydrostatics from '../../assets/gameplay/hydrostatics.v1.json';
 import { registerHydrostaticTable, type HydrostaticTable } from '../simulation/hydrostatics';
 
 /** Historical presets share the same compiled definition and renderer contract. */
+const constructedAdmiralHipperConstruction = JSON.parse(constructedAdmiralHipperConstructionJson) as ShipDefinition;
 export const shipPresets = {
+  "admiral-hipper-construction": constructedAdmiralHipperConstruction,
   'admiral-hipper': admiralHipper,
   cleveland,
   bismarck,

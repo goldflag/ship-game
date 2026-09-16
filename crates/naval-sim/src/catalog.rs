@@ -352,7 +352,7 @@ pub fn validate_definition(d: &ShipDefinition) -> Result<(), ContentError> {
         if v.version != 1.
             || v.cells.is_empty()
             || v.cells.len() > crate::construction_geometry::MAX_CELLS
-            || v.surfaces.len() > 8192
+            || v.surfaces.len() > crate::construction::MAX_SURFACES
             || d.stability.as_ref().is_none_or(|s| s.buoyancy_scale != 1.)
         {
             return Err(fail());

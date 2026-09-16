@@ -80,10 +80,13 @@ try {
     } else if (action === 'register') {
       await constructionPipeline(root, 'check', id);
       const file = join(root, 'src/ships/presets.ts'), text = await readFile(file, 'utf8');
-      if (text.includes("from '../../public/models/" + id + ".json'")) throw new Error('Ship is already imported. Check the existing roster entry.');
+      if (text.includes("from '../../public/models/" + id + ".json")) throw new Error('Ship is already imported. Check the existing roster entry.');
       const variable = 'constructed' + id.split('-').map(s => s[0].toUpperCase() + s.slice(1)).join('');
       const line = '  ' + JSON.stringify(id) + ': ' + variable + ',\n';
-      const next = "import " + variable + " from '../../public/models/" + id + ".json';\n" + text.replace('export const shipPresets = {\n', 'export const shipPresets = {\n' + line);
+      // Native definitions can contain tens of MB of derived convex geometry.
+      // They are validated above; avoid inferring a TypeScript type per JSON leaf.
+      const declaration = 'const ' + variable + ' = JSON.parse(' + variable + 'Json) as ShipDefinition;\n';
+      const next = "import " + variable + "Json from '../../public/models/" + id + ".json?raw';\n" + text.replace('export const shipPresets = {\n', declaration + 'export const shipPresets = {\n' + line);
       if (next === text || !next.includes(line)) throw new Error('Roster declaration not found.');
       await writeFile(file, next);
       print({ id, registered: true, next: 'Run bun run build; registration does not certify visual acceptance.' });

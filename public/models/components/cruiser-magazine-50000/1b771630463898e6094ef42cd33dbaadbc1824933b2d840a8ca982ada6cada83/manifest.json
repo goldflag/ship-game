@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "cruiser-magazine-50000",
+  "revision": "1b771630463898e6094ef42cd33dbaadbc1824933b2d840a8ca982ada6cada83",
+  "contentHash": "023738b72921fa4bcdf0f37ca6a9790ab74fcbbc98a3a5166e73a2dc0da0f4a4",
+  "modelSha256": "02ed912beba20489bede42633437a79db3ab183747bde5dacf3a0b920152b444",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/cruiser-magazine-50000/1b771630463898e6094ef42cd33dbaadbc1824933b2d840a8ca982ada6cada83/model.glb",
+  "boundsCenter": [
+    0,
+    1.5000000279396772,
+    0
+  ],
+  "size": [
+    8.000001907348633,
+    3.0000000558793545,
+    16
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 180,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original Hipper source adaptation, or explicitly provisional machinery/magazine package. Fresh external reference verification incomplete. Per-installation attachment and articulation review required.",
+  "basis": "assets/parts/construction/README.md"
+}

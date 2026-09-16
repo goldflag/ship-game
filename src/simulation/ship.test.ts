@@ -56,7 +56,7 @@ describe('ship simulation', () => {
 
 test('fleet agility retains authored speed limits and gradual acceleration', () => {
   for (const definition of Object.values(shipPresets)) {
-    for (const h of [definition.handling, ...('submarine' in definition ? [definition.submarine.submergedHandling] : [])]) {
+    for (const h of [definition.handling, ...('submarine' in definition && definition.submarine ? [definition.submarine.submergedHandling] : [])]) {
       const ship = createShipState();
       for (let i = 0; i < 600; i++) stepShip(ship, { throttle: 1, rudder: 0 }, h);
       expect(ship.speed).toBeGreaterThan(Math.min(h.forwardSpeed, h.acceleration * 12.4));

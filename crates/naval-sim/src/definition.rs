@@ -1099,6 +1099,8 @@ pub struct ConstructionPrimitive {
     pub rotation_deg: f64,
     #[serde(rename = "vertices")]
     pub vertices: Option<Vec<[f64; 3]>>,
+    #[serde(rename = "smoothGroup")]
+    pub smooth_group: Option<String>,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
@@ -1115,6 +1117,30 @@ pub struct ConstructionSurfaceAssignment {
     pub paint: String,
     #[serde(rename = "open")]
     pub open: Option<bool>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionEquipmentGun {
+    #[serde(rename = "battery")]
+    pub battery: Option<String>,
+    #[serde(rename = "initialElevationDeg")]
+    pub initial_elevation_deg: Option<f64>,
+    #[serde(rename = "traverseDeg")]
+    pub traverse_deg: Option<f64>,
+    #[serde(rename = "traverseLimitsDeg")]
+    pub traverse_limits_deg: Option<[f64; 2]>,
+    #[serde(rename = "elevationMinDeg")]
+    pub elevation_min_deg: Option<f64>,
+    #[serde(rename = "elevationMaxDeg")]
+    pub elevation_max_deg: Option<f64>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionEquipmentLauncher {
+    #[serde(rename = "traverseLimitsDeg")]
+    pub traverse_limits_deg: [f64; 2],
+    #[serde(rename = "launchArcsDeg")]
+    pub launch_arcs_deg: Vec<[f64; 2]>,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
@@ -1139,6 +1165,10 @@ pub struct ConstructionEquipment {
     pub magazine_id: Option<String>,
     #[serde(rename = "powerSourceId")]
     pub power_source_id: Option<String>,
+    #[serde(rename = "gun")]
+    pub gun: Option<ConstructionEquipmentGun>,
+    #[serde(rename = "launcher")]
+    pub launcher: Option<ConstructionEquipmentLauncher>,
     #[serde(rename = "path")]
     pub path: Option<ConstructionEquipmentPath>,
 }
@@ -1336,6 +1366,14 @@ pub struct ConstructionEquipmentPartOccupancyItem {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionEquipmentPartFittingItem {
+    #[serde(rename = "center")]
+    pub center: [f64; 3],
+    #[serde(rename = "size")]
+    pub size: [f64; 3],
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct ConstructionEquipmentPartSocketsItem {
     #[serde(rename = "id")]
     pub id: String,
@@ -1383,6 +1421,8 @@ pub struct ConstructionEquipmentPart {
     pub placement: String,
     #[serde(rename = "occupancy")]
     pub occupancy: Option<Vec<ConstructionEquipmentPartOccupancyItem>>,
+    #[serde(rename = "fitting")]
+    pub fitting: Option<Vec<ConstructionEquipmentPartFittingItem>>,
     #[serde(rename = "sockets")]
     pub sockets: Option<Vec<ConstructionEquipmentPartSocketsItem>>,
     #[serde(rename = "gunPartId")]

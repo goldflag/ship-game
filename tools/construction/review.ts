@@ -13,7 +13,7 @@ import { createTubeState } from '../../src/simulation/torpedoes';
 import { gunTraverseAtFraction } from '../../src/ships/armament';
 import { LocalBattleSession } from '../../src/game/session/LocalBattleSession';
 import { registerLocalShip } from '../../src/ships/localShips';
-import init, { preview_articulation_json } from '../../src/generated/naval-wasm/naval_wasm';
+import init, { ArticulationPreview } from '../../src/generated/naval-wasm/naval_wasm';
 
 export type ReviewView = 'profile' | 'plan' | 'bow' | 'stern' | 'quarter';
 type Pose = { train: number; elevation: number; recoil: number };
@@ -49,7 +49,11 @@ export async function openReview(input: ReviewInput) {
       nodes.set(id, node);
     }
   });
-  const resetPose = () => { actor.mounts.forEach(m => Object.assign(m, { train: 0, elevation: 0, recoil: 0 })); view.snap(); view.updateRenderMatrices(); };
+  const resetPose = (neutral = false) => {
+    actor.mounts.forEach((m, i) => Object.assign(m, { train: 0, elevation: neutral ? 0 : (definition.mounts[i].initialElevationDeg ?? 0) * Math.PI / 180, recoil: 0 }));
+    actor.torpedoLaunchers?.forEach(l => { l.train = neutral ? 0 : (source.construction.equipment.find(e => e.id === l.id)?.bearingDeg ?? 0) * Math.PI / 180; });
+    view.snap(); view.updateRenderMatrices();
+  };
   const focus = (id?: string, isolate = false) => {
     model.traverse(node => { node.visible = true; });
     if (!id) return model;
@@ -73,7 +77,7 @@ export async function openReview(input: ReviewInput) {
     const directions = { profile: [1, 0, 0], plan: [0, 1, 0], bow: [0, 0, -1], stern: [0, 0, 1], quarter: [1, .6, -1] } as const;
     const radius = Math.max(5, bounds.getSize(new THREE.Vector3()).length());
     camera.position.copy(center).addScaledVector(new THREE.Vector3(...directions[name]).normalize(), radius * 2);
-    camera.up.set(0, name === 'plan' ? 0 : 1, name === 'plan' ? 1 : 0);
+    camera.up.set(name === 'plan' ? 1 : 0, name === 'plan' ? 0 : 1, 0);
     camera.lookAt(center); camera.updateMatrixWorld(true);
     const extents = new THREE.Box3();
     for (let c = 0; c < 8; c++) extents.expandByPoint(new THREE.Vector3(c & 1 ? bounds.max.x : bounds.min.x, c & 2 ? bounds.max.y : bounds.min.y, c & 4 ? bounds.max.z : bounds.min.z).applyMatrix4(camera.matrixWorldInverse));
@@ -85,13 +89,25 @@ export async function openReview(input: ReviewInput) {
     renderer.render(scene, camera);
     return { png: renderer.domElement.toDataURL('image/png'), camera: { name, position: camera.position.toArray(), target: center.toArray(), up: camera.up.toArray(), projection: 'orthographic', width, height, halfHeight, sourceRevision: source.revision, contentHash: definition.contentHash } };
   };
+  const articulation = new ArticulationPreview(JSON.stringify(definition));
   const pose = (requested: Pose[]) => {
     const current = actor.mounts.map(({ train, elevation, recoil }) => ({ train, elevation, recoil }));
-    const resolved: { pose: Pose; blocked: boolean; obstructionId?: string }[] = JSON.parse(preview_articulation_json(JSON.stringify(definition), JSON.stringify(current), JSON.stringify(requested)));
+    const resolved: { pose: Pose; blocked: boolean; obstructionId?: string }[] = JSON.parse(articulation.resolve(JSON.stringify(current), JSON.stringify(requested)));
     view.capturePreviousPose(); resolved.forEach((r, i) => Object.assign(actor.mounts[i], r.pose));
     let maxMuzzleErrorM = 0;
     for (const alpha of [0, .25, .5, .75, 1]) { view.update(alpha); view.updateRenderMatrices(); maxMuzzleErrorM = Math.max(maxMuzzleErrorM, ...view.muzzleErrors(), ...view.torpedoMuzzleErrors()); }
     return { resolved, maxMuzzleErrorM };
+  };
+  const poseTorpedoes = (trains: Record<string, number>) => {
+    for (const [id, degrees] of Object.entries(trains)) {
+      const launcher = definition.torpedoLaunchers?.find(l => l.id === id);
+      const state = actor.torpedoLaunchers?.find(l => l.id === id);
+      const [lo, hi] = launcher?.traverseLimitsDeg ?? [-180, 180];
+      if (!launcher || !state || !Number.isFinite(degrees) || degrees < lo || degrees > hi) throw new Error('Invalid torpedo review pose: ' + id);
+      state.train = degrees * Math.PI / 180;
+    }
+    view.snap(); view.updateRenderMatrices();
+    return { maxMuzzleErrorM: Math.max(0, ...view.torpedoMuzzleErrors()) };
   };
   const sweep = () => {
     resetPose();
@@ -111,11 +127,21 @@ export async function openReview(input: ReviewInput) {
       step.resolved.forEach((r, i) => { if (r.blocked) blocked.push({ sample: samples, id: definition.mounts[i].id, obstructionId: r.obstructionId }); });
     }
     }
+    let torpedoSamples = 0;
+    if (definition.torpedoLaunchers?.length) for (const fraction of [0, .25, .5, .75, 1]) {
+      const trains = Object.fromEntries(definition.torpedoLaunchers.map((l, i) => {
+        const [lo, hi] = l.traverseLimitsDeg ?? [-180, 180];
+        return [l.id, lo + (hi - lo) * (i % 2 ? 1 - fraction : fraction)];
+      }));
+      maxMuzzleErrorM = Math.max(maxMuzzleErrorM, poseTorpedoes(trains).maxMuzzleErrorM); torpedoSamples++;
+    }
     resetPose();
-    return { samples, maxMuzzleErrorM, blocked, scope: 'Sampled native clearance resolution and CPU/render muzzle agreement; blocked travel requires installation review, and this is not an exhaustive geometric proof.' };
+    return { samples, torpedoSamples, maxMuzzleErrorM, blocked, scope: 'Sampled native gun clearance resolution and CPU/render muzzle agreement; blocked gun travel and torpedo bank clearance require visual installation review, and this is not an exhaustive geometric proof.' };
   };
   const exportGlb = async () => {
-    resetPose(); focus();
+    // Retained joints export at their canonical neutral transforms; previews and
+    // simulation apply the separately declared installation resting elevation.
+    resetPose(true); focus();
     const exported = model.clone(true);
     exported.traverse(node => { delete node.userData.constructionSurfaces; });
     const exportScene = new THREE.Scene();
@@ -127,9 +153,11 @@ export async function openReview(input: ReviewInput) {
   };
   const trial = async (seconds = 10) => {
     if (!Number.isFinite(seconds) || seconds < 1 || seconds > 120) throw new Error('Trial duration must be 1–120 simulated seconds.');
+    const started = performance.now();
     const revision = registerLocalShip(source, result);
     const session = await LocalBattleSession.create({ playerShipId: revision.definition.id, friendlyBots: [], enemies: [{ shipId: 'liberty-cargo', aiLevel: 'static' }], mapId: 'north-atlantic', windSpeed: 0, spawnDistance: 2500 }, { revisions: [revision], trial: true });
     try {
+      const loaded = performance.now();
       const deadline = performance.now() + 120_000;
       const start = { tick: session.tick, ammo: session.player.mounts.map(m => m.ammo), integrity: session.player.damage.integrity };
       while (session.tick < seconds * 60 && session.result === 'active') {
@@ -140,8 +168,9 @@ export async function openReview(input: ReviewInput) {
         session.advance(0, { throttle: .7, rudder: .2 }, { aim: [target?.x ?? 0, 2, target?.z ?? -1250], fire: true, battery: 'main' });
       }
       const sailed = { tick: session.tick, result: session.result, motion: { ...session.ship }, ammo: session.player.mounts.map(m => m.ammo), integrity: session.player.damage.integrity };
+      const sailedAt = performance.now();
       await session.resetTrial();
-      return { sourceId: source.id, revision: source.revision, contentHash: result.contentHash, start, sailed, reset: { tick: session.tick, ammo: session.player.mounts.map(m => m.ammo), integrity: session.player.damage.integrity } };
+      return { sourceId: source.id, revision: source.revision, contentHash: result.contentHash, timingsMs: { load: loaded - started, sailing: sailedAt - loaded, reset: performance.now() - sailedAt }, start, sailed, reset: { tick: session.tick, ammo: session.player.mounts.map(m => m.ammo), integrity: session.player.damage.integrity } };
     } finally { session.dispose(); }
   };
   const inspect = () => ({
@@ -151,11 +180,12 @@ export async function openReview(input: ReviewInput) {
     nodes: [...nodes.keys()],
   });
   await render();
-  return { render, pose, sweep, exportGlb, trial, inspect, dispose() { renderer.dispose(); disposeConstructionModel(model); renderer.domElement.remove(); } };
+  return { render, pose, poseTorpedoes, sweep, exportGlb, trial, inspect, dispose() { articulation.free(); renderer.dispose(); disposeConstructionModel(model); renderer.domElement.remove(); } };
 }
 
 declare global {
   interface Window {
+    constructionReviewInput?: ReviewInput;
     constructionReviewModule?: { openReview: typeof openReview };
     constructionReview?: Awaited<ReturnType<typeof openReview>>;
   }
