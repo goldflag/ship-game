@@ -1,5 +1,5 @@
 import type { DeckPolicy } from '../../multiplayer/generated/DeckPolicy';
-import type { BattleSession, BattleDebrief, DeckServiceAction } from './BattleSession';
+import type { BattleSession, BattleDebrief, BattleResult, DeckServiceAction } from './BattleSession';
 import type { ObservedShip } from '../../multiplayer/generated/ObservedShip';
 import type { ObservedAircraft } from '../../multiplayer/generated/ObservedAircraft';
 import type { ContactTrack } from '../../multiplayer/generated/ContactTrack';
@@ -17,7 +17,6 @@ import type { Ammunition, Battery, ShipDefinition, Vec3 } from '../../ships/blue
 import { shipPreset, shipPresets } from '../../ships/presets';
 import { mapIslands, type OceanMapId } from '../../maps/catalog';
 import type { WeatherId } from '../../maps/conditions';
-import type { BattleResult } from '../../simulation/battle';
 import type { CombatIntent } from '../../simulation/combat';
 import { squadronFlights } from '../../simulation/aircraft';
 import { physicalLoss, type BattleOutcome } from '../../simulation/battleRules';
