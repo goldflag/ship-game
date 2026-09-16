@@ -1,5 +1,5 @@
-/* Landscape pause-menu settings dialog: 1120 × 640 on desktop, wider than tall. */
-.pause-menu.settings-dialog { width: min(1120px, calc(100% - 32px)); height: min(640px, calc(100dvh - 32px)); max-height: calc(100dvh - 32px); padding: 22px 26px 20px; }
+/* Landscape pause-menu settings dialog: 1120 × 700 on desktop, wider than tall. */
+.pause-menu.settings-dialog { width: min(1120px, calc(100% - 32px)); height: min(700px, calc(100dvh - 32px)); max-height: calc(100dvh - 32px); padding: 22px 26px 20px; }
 .settings-dialog[open] { display: flex; flex-direction: column; overflow: hidden; }
 .pause-menu.settings-dialog::backdrop { background: transparent; }
 
