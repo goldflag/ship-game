@@ -8,9 +8,10 @@ COPY .build/naval-content/manifest.json ./.build/naval-content/manifest.json
 # The toolchain file remains a simulation identity input. The image already
 # supplies its pinned compiler; avoid installing unused WASM targets here.
 ENV RUSTUP_TOOLCHAIN=1.98.1 CARGO_BUILD_JOBS=1
+# Catalog-backed tests each load ship geometry; serialize them on the production host.
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/source/target \
-    cargo test --release --locked -p naval-server -p naval-protocol && \
+    cargo test --release --locked -p naval-server -p naval-protocol -- --test-threads=1 && \
     cargo build --release --locked -p naval-server --bin naval-server && \
     cp target/release/naval-server /naval-server
 
