@@ -86,16 +86,20 @@ allocator. Each matrix case runs 600 ticks (10 simulated seconds), seed 12345,
 North Atlantic, overcast, hard bots initially 5 km apart. Each result is one run,
 not a confidence interval. OS file caches are uncontrolled. The reference is the
 published Hipper represented by the previous PR's 17.383 MB lossless NSD, with
-the additional exact water/collision optimizations in this change.
+the additional exact water/collision optimizations in this change. Guarded rows
+were rerun after review restored the 14,891 exact hull damage surfaces. The
+previous 5.016/5.941 MB candidates omitted those surfaces and were invalid for
+shell/torpedo hull contacts; their size/memory/timing claims are superseded below.
+The fixture source hash was `ade6a1c6…`, an intermediate pipeline rebuild with
+identical gameplay fields to the final published definition (verified separately).
 
 ### Size, loading and memory
 
 | Representation | Runtime NSD MB | gzip MB | Native catalog load ms | Live heap MB, two ships | Peak allocated MB | Resident / peak RSS MB |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | Exact | 17.383 | 9.597 | 325 | 134.6 | 173.1 | 243.0 / 257.5 |
-| Guarded 6 m | 5.016 | 2.556 | 179 | 61.7 | 80.8 | 106.4 / 119.4 |
-| Guarded 3 m | 5.941 | 3.086 | 185 | 67.6 | 87.3 | 116.9 / 128.5 |
-| Weighted 6 m, approximate armor/portals | 2.581 | 1.248 | 140 | 49.2 | 57.6 | 86.9 / 87.7 |
+| Guarded 6 m | 5.847 | 2.940 | 190 | 92.0 | 92.0 | 138.2 / 153.5 |
+| Guarded 3 m | 6.772 | 3.469 | 204 | 97.9 | 97.9 | 148.3 / 161.8 |
 
 Native catalog load includes the same full roster in every row, replacing only
 Hipper. Heap and peak RSS come from the two-ship matrix. Resident RSS is a
@@ -105,16 +109,18 @@ resident from peak to infer allocation lifetimes. The visual GLB stays 5.400 MB.
 
 Guarded 6 m contains 14 rooms with 630 weighted water cells, 466 buoyancy/collision
 cells, all 16,059 armor patches and 6,924 boundary connections, and 11,767 of the
-13,840 original clearance bodies. Its exclusive NSD bytes are 1.893 MB armor,
-1.534 MB clearance, 0.996 MB connections, 0.267 MB hull, 0.047 MB compartments,
-0.223 MB shared nodes, and 0.055 MB other data/overhead. Nodes shared across
+13,840 original clearance bodies. It also retains all 14,891 hull damage surfaces.
+Its exclusive NSD bytes are 1.343 MB armor, 1.534 MB clearance, 0.996 MB
+connections, 1.099 MB hull, 0.047 MB compartments, 0.773 MB shared nodes, and
+0.055 MB other data/overhead. Nodes shared across
 subsystems are counted once. This explains why it remains above the 2–5 MB
 threshold: exact damage boundaries and clearance now dominate, not flooding
 volume geometry. Guarded 3 m has 2,986 water cells and 2,630 hull cells.
 
 Additional instances share definitions and compiled geometry. From two to eight
 Hippers, live allocation rises by 0.802 MB per instance exact, 0.770 MB guarded
-6 m, and 0.062 MB weighted 6 m. Guarded still pays for individual boundary
+6 m. The rejected earlier weighted model used 0.062 MB per instance,
+but also removed individual boundary damage and hull contact geometry. Guarded still pays for individual boundary
 damage/connection state. A separate one-versus-four-design catalog test adds
 Bismarck, Fletcher and Enterprise: 2.783 MB additional loaded definitions and
 8.391 MB including compiled data, for both exact and guarded catalogs. This is
@@ -126,8 +132,8 @@ existing local worker/WASM for 120 ticks with two Hippers:
 | Representation | Main-page decode ms | Retained page heap MB | Worker initialization ms | WASM memory MB | Browser resident / sampled peak RSS MB |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | Exact | 181.8 | 77.3 | 2,727 | 142.9 | 762.5 / 838.1 |
-| Guarded 6 m | 63.3 | 18.7 | 1,260 | 61.5 | 562.1 / 568.3 |
-| Guarded 3 m | 76.5 | 23.4 | 1,374 | 67.1 | 577.2 / 602.2 |
+| Guarded 6 m | 82.4 | 20.7 | 1,526 | 89.2 | 594.2 / 600.7 |
+| Guarded 3 m | 86.7 | 25.3 | 1,657 | 93.3 | 611.1 / 611.1 |
 
 The page retains its decoded definition and a real worker; no GLB is rendered.
 Page heap is post-GC and excludes worker heap. RSS sums the browser process tree
@@ -142,22 +148,22 @@ reduces that representation; it does not claim zero-copy JS-to-WASM sharing.
 Each cell is **median / p95 / p99 milliseconds**. Four matches means the summed
 cost of stepping all four resident matches serially, not per-match latency.
 
-| Battle | Exact | Guarded 6 m | Guarded 3 m | Weighted 6 m, rejected armor |
-| --- | ---: | ---: | ---: | ---: |
-| 2 ships | 1.83 / 2.38 / 33.25 | 1.71 / 2.89 / 4.52 | 1.81 / 2.33 / 10.70 | 1.43 / 1.81 / 4.26 |
-| 8 ships | 7.25 / 9.66 / 132.44 | 7.17 / 8.85 / 17.56 | 7.11 / 9.28 / 42.79 | 5.71 / 8.17 / 15.94 |
-| 16 ships | 14.63 / 18.87 / 269.86 | 14.34 / 17.76 / 35.29 | 14.36 / 17.01 / 85.25 | 11.40 / 15.37 / 32.86 |
-| 4 × 8 ships | 29.33 / 40.75 / 553.38 | 28.61 / 36.85 / 71.36 | 28.76 / 35.52 / 174.07 | 23.45 / 30.12 / 69.29 |
-| 8 ships, 4 designs | 2.43 / 3.18 / 35.66 | 2.33 / 2.76 / 5.18 | 2.31 / 3.00 / 11.23 | 1.78 / 2.42 / 4.67 |
-| Wet 2 ships | 0.051 / 0.080 / 55.78 | 0.046 / 0.066 / 2.47 | 0.046 / 0.075 / 9.77 | 0.020 / 0.042 / 2.47 |
-| Wet 8 ships | 0.218 / 0.344 / 224.40 | 0.197 / 0.262 / 12.08 | 0.193 / 0.282 / 45.62 | 0.081 / 0.105 / 9.60 |
-| Wet 4 × 8 ships | 0.911 / 1.187 / 884.68 | 0.821 / 1.275 / 40.35 | 0.851 / 1.291 / 160.26 | 0.330 / 0.510 / 44.54 |
+| Battle | Exact | Guarded 6 m | Guarded 3 m |
+| --- | ---: | ---: | ---: |
+| 2 ships | 1.83 / 2.38 / 33.25 | 1.95 / 2.83 / 4.83 | 1.91 / 2.73 / 11.74 |
+| 8 ships | 7.25 / 9.66 / 132.44 | 7.78 / 11.28 / 19.76 | 7.81 / 10.60 / 46.60 |
+| 16 ships | 14.63 / 18.87 / 269.86 | 15.87 / 25.21 / 39.38 | 15.26 / 21.49 / 91.36 |
+| 4 × 8 ships | 29.33 / 40.75 / 553.38 | 30.59 / 40.66 / 76.51 | 31.87 / 40.31 / 197.22 |
+| 8 ships, 4 designs | 2.43 / 3.18 / 35.66 | 2.42 / 3.05 / 5.48 | 2.72 / 3.63 / 13.56 |
+| Wet 2 ships | 0.051 / 0.080 / 55.78 | 0.047 / 0.082 / 2.52 | 0.048 / 0.100 / 11.07 |
+| Wet 8 ships | 0.218 / 0.344 / 224.40 | 0.195 / 0.300 / 9.82 | 0.201 / 0.328 / 46.39 |
+| Wet 4 × 8 ships | 0.911 / 1.187 / 884.68 | 0.851 / 1.179 / 43.03 | 0.869 / 1.155 / 168.74 |
 
 Wet cases start with the three largest rooms 30% flooded; machinery is disabled,
 so their very low median is not representative of fighting ships. Periodic
 water/hydro solves dominate tails. Wet four-match maximum was 19,685 ms exact,
-53.9 ms guarded 6 m and 201.1 ms guarded 3 m. First-tick work is included.
-Dry four-match maxima were 571.3, 77.6 and 197.4 ms respectively. No candidate
+55.3 ms guarded 6 m and 196.5 ms guarded 3 m. First-tick work is included.
+Dry four-match maxima were 571.3, 89.5 and 208.7 ms respectively. No candidate
 demonstrates a 60 Hz budget for every tick at these fleet sizes.
 
 The exact optimizations themselves reduced the preceding PR run's two/eight/
@@ -180,11 +186,17 @@ baseline; it does not provide a sixfold whole-tick median improvement.
 | Unsafe accepted / extra blocked firing samples | 0 / 0 | 0 / 0 |
 
 The clearance check covers 2,652 valid train/elevation/neighbor combinations,
-including 506 reference-blocked poses. Existing native clearance regressions
+including 511 reference-blocked poses, using each profile's actual clearance
+margin (0.01 m for Hipper). The earlier zero-distance threshold undercounted
+blocked poses; corrected results still have zero unsafe accepted or extra blocked
+poses. Existing native clearance regressions
 exercise continuous sweep handling; this grid is not an exhaustive trajectory
 proof. All 503,894 sampled original collision vertices/edge midpoints are inside
 the candidate hulls. All 228 sampled armor first-hit positions and thicknesses
-match. Across 27 scripted AP contacts, penetration/outcome/contact positions
+match. A further 423 horizontal/deck/keel/oblique rays produce 798 identical
+shell hull-entry hits and 798 identical torpedo-surface hits. These exercise the
+restored damage surfaces independently of armor. Across 27 scripted AP contacts,
+penetration/outcome/contact positions
 match, but **three breach assignments change from a microvoid to its merged
 room**. Original local-damage region IDs remain intact.
 
@@ -212,20 +224,25 @@ only 0.0035 m at 3 m pitch. A heeled contact produces four versus two damage
 events at 6 m pitch; 3 m retains two. These are explicit extra contacts, not
 evidence of equivalent ramming behavior.
 
-The sub-megabyte unweighted enclosure (0.792 MB) fails: up to 38.53%
-displacement error, 32 unsafe-clear poses and 1,345 extra blocked poses. Weighted
-6 m at 2.581 MB fixes buoyancy and retains exact clearance but its broad armor
+The earlier unweighted enclosure (0.792 MB, also missing hull damage surfaces)
+fails: up to 38.53% displacement error, 32 unsafe-clear poses and 1,345 extra
+blocked poses. Weighted 6 m at 2.581 MB (also missing hull damage surfaces) fixes
+buoyancy and retains exact clearance but its broad armor
 misses four reference hits, adds four hits and changes 28 thickness results in
 228 rays (up to 6.344 m contact displacement). Neither is recommended.
+These rejected sizes are historical lower bounds,
+not valid combat representations; their clearance counts used the earlier
+zero-gap criterion. New probe output retains hull surfaces in every mode.
 
 ### Recommendation and remaining limits
 
 Keep the exact model as the default. Retain the validated exact optimizations
 and use **guarded 6 m as the next opt-in playtest candidate**, subject to approval
 of the measured collision, compartment assignment and righting tradeoffs before
-default adoption. It cuts runtime bytes by 71%, measured native resident memory
-by 56%, and eight-ship p99 by 87%, while retaining detailed appearance and exact
-sampled penetration/clearance. Guarded 3 m costs another 0.925 MB and has much
+default adoption. The corrected representation is **5.847 MB**. It cuts runtime
+bytes by 66%, measured native resident memory by 43%, and eight-ship p99 by 85%,
+while retaining detailed appearance and exact sampled penetration/clearance.
+Guarded 3 m costs another 0.925 MB (6.772 MB total) and has much
 higher tails; it improves hydro accuracy and some contact positions but does
 not remove the extra lateral contact or changed flooding assignments.
 
@@ -259,7 +276,18 @@ checks, Hipper `ship:build`,
 native run has three documented baseline failures in carrier loss, damage
 migration and a dry-water-level expectation; this follow-up does not claim a
 new clean full-suite run. Raw profiles, measurements and captures stay in
-`.build/combat-profile/` and `.build/compartment-runtime/`.
+`.build/combat-profile/` and `.build/compartment-runtime/`. Corrected fixtures use
+`guarded-6-reviewed` and `guarded-3-reviewed` prefixes. Browser admission recovery
+also passes for network failure and digest mismatch, including fail-closed
+unloaded geometry and fresh-request retry; reproduce with
+`bun scripts/diagnostics/ship-runtime-startup.ts`. Startup admission is owned by
+App rather than top-level browser module evaluation. Generated preset metadata
+retains all integrity checks and now uses one record per line to avoid unrelated
+ship rebuilds conflicting on a single catalog line.
+The startup test accepts `CONSTRUCTION_CHROME` to select an installed browser;
+visual recovery was checked using Chromium 1234 because the default Chromium
+1243 build has a WebGPU shader compiler failure on this machine. CPU-only
+browser memory measurements do not render a scene and are unaffected.
 
 ## Reproduce
 

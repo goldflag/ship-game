@@ -446,7 +446,9 @@ fn main() {
     d.hull.volume = Some(ConstructionGeometry {
         version: 1.,
         cells: coarse,
-        surfaces: vec![],
+        // Volume cells drive buoyancy/ramming; surfaces separately drive shell
+        // and torpedo hull contacts. Never remove that damage coverage.
+        surfaces: original.hull.volume.as_ref().unwrap().surfaces.clone(),
     });
     let report = serde_json::json!({"profile":if weighted_mode {"combat-weighted-v1"} else {"combat-envelopes-v1"},"pitchM":pitch,"sourceContentHash":original.content_hash,"rooms":d.compartments.len(),"roomCells":d.compartments.iter().map(|r|r.cells.as_ref().unwrap().len()).sum::<usize>(),"hullCells":d.hull.volume.as_ref().unwrap().cells.len(),"armor":d.armor.len(),"connections":d.connections.len(),"roomMapping":mapping,"capacityBefore":original.compartments.iter().map(|r|r.capacity_m3).sum::<f64>(),"capacityAfter":d.compartments.iter().map(|r|r.capacity_m3).sum::<f64>()});
     // Distinct derived identity. Fixtures cannot impersonate the published GLB.

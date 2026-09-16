@@ -39,7 +39,11 @@ export async function runtimeAssets(root = process.cwd(), check = false) {
     summaries[id] = { ...summary, hull, ...(construction ? { construction: { catalogRevision: construction.catalogRevision } } : {}), runtime: { url, sha256, hydro, sourceSha256: hash(source), bytes: bytes.length } };
     ships.push({ id, contentHash: definition.contentHash, sha256, encoding: 'nsd1-base64', json: Buffer.from(bytes).toString('base64') });
   }
-  const metadata = JSON.stringify(summaries) + '\n', path = join(root, 'src/ships/presetCatalog.json');
+  // Keep one generated record per ship so independent ship rebuilds merge on
+  // separate lines. Preserve hashes: they detect stale published inputs.
+  const metadata = '{\n' + Object.entries(summaries).map(([id, value]) =>
+    '  ' + JSON.stringify(id) + ': ' + JSON.stringify(value)).join(',\n') + '\n}\n';
+  const path = join(root, 'src/ships/presetCatalog.json');
   if (check) { if (await readFile(path, 'utf8') !== metadata) throw new Error('Stale preset metadata'); }
   else await Bun.write(path, metadata);
   return { ships, summaries };

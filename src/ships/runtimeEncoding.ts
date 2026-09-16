@@ -26,6 +26,7 @@ export function encodeRuntimeDefinition(value: unknown): Uint8Array {
     else if (typeof v === 'string') { tag = 4; key = v; }
     else if (Array.isArray(v)) { tag = 5; refs = v.map(c => visit(c, depth + 1)); key = refs.join(','); }
     else {
+      if (typeof v !== 'object') throw new Error('Runtime definition contains a non-JSON value');
       tag = 6; const keys = Object.keys(v).sort();
       schema = visit(keys, depth + 1); refs = keys.map(k => visit(v[k], depth + 1)); key = schema + ':' + refs.join(',');
     }

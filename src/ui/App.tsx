@@ -48,6 +48,28 @@ import { createStarterSource } from '../ships/constructionStarter';
 const INITIAL_TELEMETRY: Telemetry = { ship: createShipState(), order: 1, camera: 'Chase', fps: 0, backend: 'webgpu', trail: [] };
 
 export function App() {
+  const [attempt, setAttempt] = useState(0);
+  const [admission, setAdmission] = useState<'loading' | 'ready' | 'failed'>('loading');
+  useEffect(() => {
+    let active = true;
+    setAdmission('loading');
+    loadShipPresets([initialShip.id]).then(
+      () => { if (active) setAdmission('ready'); },
+      () => { if (active) setAdmission('failed'); },
+    );
+    return () => { active = false; };
+  }, [attempt]);
+  if (admission === 'ready') return <Harbor />;
+  return <main className="account-screen"><section className="account-form">
+    <h1>Fleet Command</h1>
+    {admission === 'failed' ? <>
+      <p role="alert">Unable to load the selected ship. Check your connection and retry.</p>
+      <button className="account-primary" onClick={() => setAttempt(value => value + 1)}>Retry loading ship</button>
+    </> : <p role="status">Preparing the harbor…</p>}
+  </section></main>;
+}
+
+function Harbor() {
   const [selectedShip, setSelectedShip] = useState(initialShip);
   const selectedRef = useRef(selectedShip);
   const [switching, setSwitching] = useState(false);

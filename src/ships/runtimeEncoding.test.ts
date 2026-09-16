@@ -20,6 +20,8 @@ describe('lossless runtime definition encoding', () => {
     expect(() => decode(future)).toThrow();
     expect(() => decode(new Uint8Array([78, 83, 68, 1, 1, 0, 5, 1, 0]))).toThrow();
     expect(() => encode(NaN)).toThrow();
+    expect(() => encode({ missing: undefined })).toThrow('non-JSON value');
+    expect(() => encode([undefined])).toThrow('non-JSON value');
   });
   test('published Hipper is exact and deterministic without quantization', () => {
     const original = JSON.parse(readFileSync('public/models/admiral-hipper-construction.json', 'utf8'));

@@ -17,6 +17,13 @@ fn main() {
         |p: &str| -> ShipDefinition { serde_json::from_slice(&std::fs::read(p).unwrap()).unwrap() };
     let a = read(&args[1]);
     let b = read(&args[2]);
+    // Hull surfaces are a separate damage path from armor and collision cells.
+    // Both shell entry contacts and torpedoes must retain their full coverage.
+    assert_eq!(
+        serde_json::to_value(&a.hull.volume.as_ref().unwrap().surfaces).unwrap(),
+        serde_json::to_value(&b.hull.volume.as_ref().unwrap().surfaces).unwrap(),
+        "runtime profile removed or changed hull damage surfaces"
+    );
     // Immutable equipment, dry mass and authoring identities must remain exact.
     for (x, y) in [
         (
@@ -96,17 +103,19 @@ fn main() {
                     ps[i].recoil = if k % 2 == 0 { 0. } else { 1. };
                     let x = ac.minimum_clearance(&a, i, &ps, 1.).0;
                     let y = bc.minimum_clearance(&b, i, &ps, 1.).0;
+                    let a_blocked = x <= a.mount_clearance.as_ref().unwrap().margin_m;
+                    let b_blocked = y <= b.mount_clearance.as_ref().unwrap().margin_m;
                     total += 1;
-                    if x <= 0. {
+                    if a_blocked {
                         blocked += 1;
                     }
-                    if x <= 0. && y > 0. {
+                    if a_blocked && !b_blocked {
                         unsafe_clear += 1;
                     }
-                    if x > 0. && y <= 0. {
+                    if !a_blocked && b_blocked {
                         extra += 1;
                     }
-                    if (x <= 0.) != (y <= 0.) {
+                    if a_blocked != b_blocked {
                         clear.push(serde_json::json!({"mount":m.id,"neighbors":neighbor,"train":ps[i].train,"elevation":ps[i].elevation,"referenceGap":x,"candidateGap":y}));
                     }
                 }
@@ -150,11 +159,13 @@ fn main() {
     let aa = Combatant::new("hit", &a);
     let ba = Combatant::new("hit", &b);
     let mut hits = vec![];
+    let mut contact_rays = vec![];
     for z in (-90..=90).step_by(10) {
         for y in [-6., -2., 2., 6., 10., 16.] {
             for sign in [-1., 1.] {
                 let from = [sign * 30., y, z as f64];
                 let to = [-sign * 30., y, z as f64];
+                contact_rays.push((from, to));
                 let first = |d: &ShipDefinition, c: &Combatant, g: &ContactGeometry| {
                     ship_contacts(&Shell::default(), from, to, c, d, g)
                         .into_iter()
@@ -166,8 +177,38 @@ fn main() {
             }
         }
     }
+    // Deck, keel and oblique paths supplement horizontal armor probes.
+    for z in (-90..=90).step_by(15) {
+        for x in [-8., -4., 0., 4., 8.] {
+            contact_rays.push(([x, 30., z as f64], [x, -20., z as f64]));
+            contact_rays.push(([x, -20., z as f64], [x, 30., z as f64]));
+            contact_rays.push(([-30., 20., z as f64], [30., -15., z as f64 + 10.]));
+        }
+    }
+    let ah = naval_sim::hull_contact::HullContacts::new(&a.hull);
+    let bh = naval_sim::hull_contact::HullContacts::new(&b.hull);
+    let at = naval_sim::torpedoes::torpedo_hull(&a).unwrap();
+    let bt = naval_sim::torpedoes::torpedo_hull(&b).unwrap();
+    let mut hull_hits = 0;
+    let mut torpedo_hits = 0;
+    for &(from, to) in &contact_rays {
+        let x = ah.query(from, to);
+        let y = bh.query(from, to);
+        hull_hits += x.len();
+        assert_eq!(serde_json::to_value(x).unwrap(), serde_json::to_value(y).unwrap());
+        let hits = |surfaces: &[_]| {
+            naval_sim::structure::structural_hits(from, to, surfaces).iter().map(|h| {
+                serde_json::json!({"surface":h.surface.id,"triangle":h.triangle,"t":h.hit.t,"point":h.hit.point})
+            }).collect::<Vec<_>>()
+        };
+        let x = hits(&at);
+        let y = hits(&bt);
+        torpedo_hits += x.len();
+        assert_eq!(x, y);
+    }
+    assert!(hull_hits > 0 && torpedo_hits > 0, "contact comparison needs actual hits");
     println!(
         "{}",
-        serde_json::json!({"hydro":hydro,"water":water,"waterQueryMs":water_ms,"clearance":{"samples":total,"referenceBlocked":blocked,"unsafeClear":unsafe_clear,"extraBlocked":extra,"changes":clear},"enclosure":{"samples":tested,"outside":missed},"damageRays":hits})
+        serde_json::json!({"hydro":hydro,"water":water,"waterQueryMs":water_ms,"clearance":{"samples":total,"referenceBlocked":blocked,"unsafeClear":unsafe_clear,"extraBlocked":extra,"changes":clear},"enclosure":{"samples":tested,"outside":missed},"damageRays":hits,"hullContacts":{"rays":contact_rays.len(),"shellHits":hull_hits,"torpedoHits":torpedo_hits,"exact":true}})
     );
 }

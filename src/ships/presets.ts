@@ -32,6 +32,7 @@ export function shipPreset(id: string | null): ShipDefinition & { contentHash: s
   if (id && Object.hasOwn(retiredPresetAliases, id)) id = retiredPresetAliases[id];
   return (id && Object.hasOwn(shipPresets, id) ? shipPresets[id as keyof typeof shipPresets] : shipPresets.bismarck) as ShipDefinition & { contentHash: string };
 }
-// Preserve synchronous fixtures/CLI access; browsers admit only the selected port ship.
-await loadShipPresets(typeof window === 'undefined' ? Object.keys(shipPresets) : [shipPreset(new URLSearchParams(window.location.search).get('ship')).id]);
+// Preserve synchronous fixtures/CLI access. Browser admission belongs to App's
+// retryable startup state, so a failed request cannot poison module evaluation.
+if (typeof window === 'undefined') await loadShipPresets(Object.keys(shipPresets));
 export const selectedShip = shipPreset(typeof window === 'undefined' ? null : new URLSearchParams(window.location.search).get('ship'));
