@@ -393,6 +393,17 @@ impl MountClearance {
         }))
     }
 
+    /// Offline runtime projection: retain every body within a mount's existing
+    /// conservative sweep-radius bound. Nested installations keep all bodies.
+    /// This removes unreachable geometry; it never substitutes enclosing shells.
+    pub fn reachable_body_ids(&self, def: &ShipDefinition) -> std::collections::BTreeSet<String> {
+        let nested = def.mounts.iter().any(|m| m.parent_mount_id.is_some());
+        self.bodies.iter().filter(|body| nested || body.mount.is_some() || def.mounts.iter().enumerate().any(|(i,m)| {
+            let distance = length(std::array::from_fn(|a| ((m.position[a]-body.bounds.center[a]).abs()-body.bounds.size[a]*0.5).max(0.)));
+            distance <= self.radii[i] + self.margin + 1.
+        })).map(|b|b.id.clone()).collect()
+    }
+
     pub fn enabled(&self, index: usize) -> bool {
         self.enabled.get(index).copied().unwrap_or(false)
     }

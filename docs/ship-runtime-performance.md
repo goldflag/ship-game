@@ -10,6 +10,10 @@ checks revalidate the merged loading paths and regenerated publication. Account
 construction artifacts still carry complete source/compiler results and are not
 covered by the published historical-preset size reduction.
 
+For the subsequent simplified-combat experiments and exact flood/collision optimizations,
+see [compartment runtime](compartment-runtime.md). The measurements below retain
+the original first-stage baseline.
+
 ## Contract and decisions
 
 `blueprint.json`, retained component catalogs and the native compiler remain the

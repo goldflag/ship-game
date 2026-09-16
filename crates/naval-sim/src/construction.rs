@@ -471,6 +471,13 @@ fn validate(
     }
     Ok(())
 }
+/// Original solid cells before union splitting. Experimental combat proxies may
+/// use their union for collision, provided buoyancy is supplied independently.
+pub fn primitive_cells(p: &ConstructionPrimitive) -> Result<Vec<cg::Cell>, String> {
+    if p.kind == "vertex" { return crate::construction_vertex::build(p).map(|s| s.cells); }
+    if !crate::construction_shapes::KINDS.contains(&p.kind.as_str()) { return Err("Unknown construction shape".into()); }
+    Ok(primitive(p))
+}
 fn primitive(p: &ConstructionPrimitive) -> Vec<cg::Cell> {
     crate::construction_shapes::cells(&p.kind).unwrap().iter()
         .map(|c| cg::transform(c, p.position, p.size, p.rotation_deg.to_radians())).collect()

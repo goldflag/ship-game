@@ -27,6 +27,8 @@ pub struct StabilityState {
     pub combat_lost: bool,
     #[serde(skip)]
     scratch: Scratch,
+    #[serde(skip)]
+    weighted_radii: Option<[f64; 2]>,
 }
 impl Default for StabilityState {
     fn default() -> Self {
@@ -48,6 +50,7 @@ impl Default for StabilityState {
             status: "operational".into(),
             combat_lost: false,
             scratch: Scratch::default(),
+            weighted_radii: None,
         }
     }
 }
@@ -129,6 +132,29 @@ pub fn update_stability(
                     .sum::<f64>())
                 / mass
         });
+        if def.hull.buoyancy.is_some() {
+            let dry = def
+                .loading
+                .as_ref()
+                .expect("weighted combat profile retains loading");
+            let delta = sub(profile.dry_center_of_gravity, center);
+            let mut inertia = dry.inertia_kg_m2;
+            let parallel = [
+                delta[1] * delta[1] + delta[2] * delta[2],
+                delta[0] * delta[0] + delta[2] * delta[2],
+                delta[0] * delta[0] + delta[1] * delta[1],
+            ];
+            for axis in 0..3 {
+                inertia[axis] += dry.mass_kg * parallel[axis];
+            }
+            for w in &s.water {
+                let water_i = w.inertia_m3(center);
+                for axis in 0..3 {
+                    inertia[axis] += 1025. * water_i[axis];
+                }
+            }
+            s.weighted_radii = Some([inertia[2] / mass, inertia[0] / mass]);
+        }
         let volume = mass / (1025.0 * profile.buoyancy_scale);
         let full = hydro.full_volume();
         s.displacement_m3 = volume;
@@ -204,24 +230,32 @@ pub fn update_stability(
         + 9.81
             * (s.roll_arm
                 + s.roll_slope.unwrap_or(0.0) * (p.roll - s.sample_roll.unwrap_or(p.roll)))
-            / def
-                .loading
-                .as_ref()
-                .map_or((def.hull.beam * 0.4).powi(2), |l| {
-                    l.inertia_kg_m2[2] / l.mass_kg
-                })
+            / s.weighted_radii.map_or_else(
+                || {
+                    def.loading
+                        .as_ref()
+                        .map_or((def.hull.beam * 0.4).powi(2), |l| {
+                            l.inertia_kg_m2[2] / l.mass_kg
+                        })
+                },
+                |r| r[0],
+            )
             * dt)
         * (-dt / 4.0).exp();
     s.pitch_rate = (s.pitch_rate
         + 9.81
             * (s.pitch_arm
                 + s.pitch_slope.unwrap_or(0.0) * (p.pitch - s.sample_pitch.unwrap_or(p.pitch)))
-            / def
-                .loading
-                .as_ref()
-                .map_or((def.hull.length * 0.28).powi(2), |l| {
-                    l.inertia_kg_m2[0] / l.mass_kg
-                })
+            / s.weighted_radii.map_or_else(
+                || {
+                    def.loading
+                        .as_ref()
+                        .map_or((def.hull.length * 0.28).powi(2), |l| {
+                            l.inertia_kg_m2[0] / l.mass_kg
+                        })
+                },
+                |r| r[1],
+            )
             * dt)
         * (-dt / 3.0).exp();
     p.roll = clamp(

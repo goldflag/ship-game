@@ -12,7 +12,7 @@ const cases = [
 ];
 const results = [];
 for (const c of cases) {
-  const child = Bun.spawn(['/usr/bin/time', '-l', binary, manifest, String(c.ships), String(c.matches), String(ticks), c.designs], { stdout: 'pipe', stderr: 'pipe' });
+  const child = Bun.spawn(['/usr/bin/time', '-l', binary, manifest, String(c.ships), String(c.matches), String(ticks), c.designs], { stdout: 'pipe', stderr: 'pipe', env: { ...process.env, NAVAL_BENCH_SNAPSHOT: `${directory}/${c.id}.snapshot.json` } });
   const [stdout, stderr, code] = await Promise.all([new Response(child.stdout).text(), new Response(child.stderr).text(), child.exited]);
   await Bun.write(`${directory}/${c.id}.stderr`, stderr);
   if (code) throw new Error(`${c.id}: ${stderr.slice(-2000)}`);

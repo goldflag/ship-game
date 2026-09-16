@@ -131,6 +131,7 @@ fn convex_profile(mut stations: Vec<Point>) -> Vec<Point> {
 }
 struct Body {
     pieces: Vec<crate::construction_geometry::Cell>,
+    definition: std::sync::Arc<ShipDefinition>,
     constructed: bool,
     motion: ShipState,
     points: Vec<Point>,
@@ -153,47 +154,9 @@ impl Body {
                 .map(|c| c.water_m3 * 1000.0)
                 .sum::<f64>();
         let tilt = p.roll.sin().abs() * h.beam / 2.0 + p.pitch.sin().abs() * h.length / 2.0;
-        Self {
-            pieces: if let Some(v) = &h.volume {
-                v.cells
-                    .iter()
-                    .map(|c| crate::definition::ConvexVolume {
-                        faces: c
-                            .faces
-                            .iter()
-                            .map(|f| crate::definition::ConvexVolumeFacesItem {
-                                vertices: f
-                                    .vertices
-                                    .iter()
-                                    .map(|q| crate::geometry::local_to_world(*q, p.pose()))
-                                    .collect(),
-                            })
-                            .collect(),
-                    })
-                    .collect()
-            } else {
-                let profile = &actor.compiled.collision_profile;
-                let top = h
-                    .deck_heights
-                    .iter()
-                    .map(|p| p[1])
-                    .fold(f64::NEG_INFINITY, f64::max);
-                let polygon: Vec<_> = profile.iter().map(|q| [q[0], top, q[1]]).rev().collect();
-                let cell = crate::construction_geometry::prism(&polygon, top + h.draft);
-                vec![crate::definition::ConvexVolume {
-                    faces: cell
-                        .faces
-                        .iter()
-                        .map(|f| crate::definition::ConvexVolumeFacesItem {
-                            vertices: f
-                                .vertices
-                                .iter()
-                                .map(|q| crate::geometry::local_to_world(*q, p.pose()))
-                                .collect(),
-                        })
-                        .collect(),
-                }]
-            },
+        let mut body = Self {
+            pieces: vec![],
+            definition: actor.compiled.definition.clone(),
             constructed: h.volume.is_some(),
             motion: p.clone(),
             points: actor
@@ -218,7 +181,60 @@ impl Body {
                 .map_or(12.0 / (mass * (h.length.powi(2) + h.beam.powi(2))), |l| {
                     1. / (l.inertia_kg_m2[1] * mass / l.mass_kg)
                 }),
+        };
+        // Legacy pairs can translate before encountering a constructed body.
+        // Keep their original eager transform to preserve floating-point order.
+        if !body.constructed {
+            body.prepare_pieces();
         }
+        body
+    }
+    fn prepare_pieces(&mut self) {
+        if !self.pieces.is_empty() {
+            return;
+        }
+        let h = &self.definition.hull;
+        let p = &self.motion;
+        self.pieces = if let Some(v) = &h.volume {
+            v.cells
+                .iter()
+                .map(|c| crate::definition::ConvexVolume {
+                    faces: c
+                        .faces
+                        .iter()
+                        .map(|f| crate::definition::ConvexVolumeFacesItem {
+                            vertices: f
+                                .vertices
+                                .iter()
+                                .map(|q| crate::geometry::local_to_world(*q, p.pose()))
+                                .collect(),
+                        })
+                        .collect(),
+                })
+                .collect()
+        } else {
+            let profile = profile(h);
+            let top = h
+                .deck_heights
+                .iter()
+                .map(|p| p[1])
+                .fold(f64::NEG_INFINITY, f64::max);
+            let polygon: Vec<_> = profile.iter().map(|q| [q[0], top, q[1]]).rev().collect();
+            let cell = crate::construction_geometry::prism(&polygon, top + h.draft);
+            vec![crate::definition::ConvexVolume {
+                faces: cell
+                    .faces
+                    .iter()
+                    .map(|f| crate::definition::ConvexVolumeFacesItem {
+                        vertices: f
+                            .vertices
+                            .iter()
+                            .map(|q| crate::geometry::local_to_world(*q, p.pose()))
+                            .collect(),
+                    })
+                    .collect(),
+            }]
+        };
     }
     fn impulse(&mut self, lever: Point, direction: Point, magnitude: f64) {
         let p = &mut self.motion;
@@ -255,12 +271,13 @@ fn project(points: impl Iterator<Item = Point>, axis: Point) -> (f64, f64) {
             (min.min(v), max.max(v))
         })
 }
+#[derive(Debug, PartialEq)]
 struct Contact {
     normal: Point,
     depth: f64,
     point: Point,
 }
-fn contact(a: &Body, b: &Body) -> Option<Contact> {
+fn contact(a: &mut Body, b: &mut Body) -> Option<Contact> {
     let (am, bm) = (&a.motion, &b.motion);
     if (am.x - bm.x).hypot(am.z - bm.z) > a.radius + b.radius
         || a.max_y < b.min_y
@@ -269,9 +286,14 @@ fn contact(a: &Body, b: &Body) -> Option<Contact> {
         return None;
     }
     if a.constructed || b.constructed {
+        a.prepare_pieces();
+        b.prepare_pieces();
+        let index = crate::construction_geometry::Broadphase::sized_for(&b.pieces);
         let mut contacts = vec![];
         for ac in &a.pieces {
-            for bc in &b.pieces {
+            // Sorted indices preserve the exhaustive loop's tie ordering.
+            for j in index.candidates(ac) {
+                let bc = &b.pieces[j];
                 if !crate::construction_geometry::intersection(ac, bc)
                     .is_some_and(|c| crate::construction_geometry::moments(&c).volume > 1e-8)
                 {
@@ -429,4 +451,96 @@ pub fn resolve_ship_collisions(actors: &mut [Vessel]) -> Vec<HullImpact> {
         actor.motion = body.motion;
     }
     events
+}
+
+#[cfg(test)]
+mod collision_index_tests {
+    use super::*;
+    use crate::{construction_geometry as cg, definition::*, rules::TeamId, vessel::CompiledShip};
+    use std::sync::Arc;
+    fn exhaustive_contact(a: &mut Body, b: &mut Body) -> Option<Contact> {
+        let (am, bm) = (&a.motion, &b.motion);
+        if (am.x - bm.x).hypot(am.z - bm.z) > a.radius + b.radius
+            || a.max_y < b.min_y
+            || b.max_y < a.min_y
+        {
+            return None;
+        }
+        if a.constructed || b.constructed {
+            a.prepare_pieces();
+            b.prepare_pieces();
+            let mut contacts = vec![];
+            for ac in &a.pieces {
+                for bc in &b.pieces {
+                    if !crate::construction_geometry::intersection(ac, bc)
+                        .is_some_and(|c| crate::construction_geometry::moments(&c).volume > 1e-8)
+                    {
+                        continue;
+                    }
+                    let ap = convex_profile(
+                        ac.faces
+                            .iter()
+                            .flat_map(|f| f.vertices.iter().map(|p| [p[0], p[2]]))
+                            .collect(),
+                    );
+                    let bp = convex_profile(
+                        bc.faces
+                            .iter()
+                            .flat_map(|f| f.vertices.iter().map(|p| [p[0], p[2]]))
+                            .collect(),
+                    );
+                    if let Some(c) = planar_contact(&ap, &bp) {
+                        contacts.push(c);
+                    }
+                }
+            }
+            return contacts
+                .into_iter()
+                .min_by(|a, b| a.depth.total_cmp(&b.depth));
+        }
+        planar_contact(&a.points, &b.points)
+    }
+    #[test]
+    fn spatial_candidates_preserve_exhaustive_contacts_and_lazy_transforms() {
+        let mut d = ShipDefinition::default();
+        d.hull = Hull {
+            kind: "constructed-volume-v1".into(),
+            length: 30.,
+            beam: 10.,
+            draft: 3.,
+            depth: 4.,
+            mass_kg: 100000.,
+            half_breadths: vec![[0., 5.], [30., 5.]],
+            keel_heights: vec![[0., -3.], [30., -3.]],
+            deck_heights: vec![[0., 4.], [30., 4.]],
+            volume: Some(ConstructionGeometry {
+                version: 1.,
+                cells: (0..6)
+                    .map(|i| cg::box_cell([0., 0., i as f64 * 4. - 10.], [8., 5., 4.]))
+                    .collect(),
+                surfaces: vec![],
+            }),
+            ..Default::default()
+        };
+        let compiled = Arc::new(CompiledShip::new(Arc::new(d), None).unwrap());
+        for x in [0., 7.9, 8., 8.00001, 20., 100.] {
+            for roll in [0., 0.4, 1.57, 3.14] {
+                let a = Vessel::new("a", TeamId::A, compiled.clone());
+                let mut b = Vessel::new("b", TeamId::B, compiled.clone());
+                b.motion.x = x;
+                b.motion.roll = roll;
+                b.motion.heading = 0.2;
+                let (mut ai, mut bi) = (Body::new(&a), Body::new(&b));
+                assert!(ai.pieces.is_empty() && bi.pieces.is_empty());
+                let actual = contact(&mut ai, &mut bi);
+                let (mut ae, mut be) = (Body::new(&a), Body::new(&b));
+                ae.prepare_pieces();
+                be.prepare_pieces();
+                assert_eq!(actual, exhaustive_contact(&mut ae, &mut be));
+                if x == 100. {
+                    assert!(ai.pieces.is_empty() && bi.pieces.is_empty());
+                }
+            }
+        }
+    }
 }

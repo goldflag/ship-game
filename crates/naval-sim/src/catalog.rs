@@ -329,6 +329,20 @@ pub fn validate_definition(d: &ShipDefinition) -> Result<(), ContentError> {
         return Err(fail());
     }
     let h = &d.hull;
+    if let Some(proxy) = &h.buoyancy {
+        if proxy.version != 1. || d.loading.is_none() || h.kind != "constructed-volume-v1" || proxy.cells.is_empty()
+            || proxy.cells.len() > 10000 || proxy.cells.iter().any(|c| {
+                !positive(&c.size) || !positive(&[c.volume_m3])
+                    || c.center.iter().any(|x| !x.is_finite() || x.abs() > 2000.)
+            }) { return Err(fail()); }
+    }
+    for room in &d.compartments {
+        if let Some(cells) = &room.cells {
+            if cells.iter().any(|c| c.volume_m3.is_some_and(|v| !v.is_finite() || v <= 0.)) {
+                return Err(fail());
+            }
+        }
+    }
     if !positive(&[h.mass_kg, h.length, h.beam, h.draft, h.depth])
         || if h.kind == "constructed-volume-v1" {
             [

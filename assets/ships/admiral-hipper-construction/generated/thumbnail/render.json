@@ -1,5 +1,5 @@
 {
-  "contentHash": "ade6a1c68f63a81e8482181d012e3f2024cd4c48e4e92840ebfa41d97bd4e024",
+  "contentHash": "6222158057074adf88e7e7565f8e502ad52af6d11051a6d7266a82ba585ae23f",
   "imageHash": "010490c691a475acbfef1ca5006374f39c552a754ba7eb42dc5e6b6230fee325",
   "camera": {
     "name": "profile",
@@ -23,6 +23,6 @@
     "height": 180,
     "halfHeight": 33.890998992919926,
     "sourceRevision": "da3dcb48-d1fc-4562-8218-d391dba6b4a3",
-    "contentHash": "ade6a1c68f63a81e8482181d012e3f2024cd4c48e4e92840ebfa41d97bd4e024"
+    "contentHash": "6222158057074adf88e7e7565f8e502ad52af6d11051a6d7266a82ba585ae23f"
   }
 }

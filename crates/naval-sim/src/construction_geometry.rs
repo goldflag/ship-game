@@ -166,6 +166,15 @@ pub fn room_distance(room: &crate::definition::Compartment, p: Vec3) -> f64 {
             .map(|c| length(sub(p, closest_point(c, p))))
             .fold(f64::INFINITY, f64::min);
     }
+    // Explicit weighted runtime proxies use their cell locations for damage
+    // assignment. Legacy and exact definitions retain their original path.
+    if let Some(cells) = &room.cells {
+        if cells.iter().any(|c| c.volume_m3.is_some()) {
+            return cells.iter().map(|c| length(std::array::from_fn(|i| {
+                ((p[i]-c.center[i]).abs()-c.size[i]*0.5).max(0.)
+            }))).fold(f64::INFINITY, f64::min);
+        }
+    }
     length(std::array::from_fn(|i| {
         ((p[i] - room.center[i]).abs() - room.size[i] * 0.5).max(0.)
     }))
