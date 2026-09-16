@@ -3,6 +3,7 @@ import { mirroredPrimitive } from '../../ships/constructionEditor';
 import { normalizedBearing, snapCoordinate } from './editorNumbers';
 import type { BuilderPlacement } from './primitiveGeometry';
 import { CONSTRUCTION_SHAPES } from '../../ships/constructionShapes';
+import { customHullFaces, customHullPrimitive, makeHull } from '../../ships/customHullModel';
 import { CORNER_SIGNS, VERTEX_FACES } from '../../ships/constructionVertex';
 
 /** An unwarped vertex hull is the unit box; its warped corners live on the source piece. */
@@ -28,7 +29,9 @@ function hullFaces(piece: Extract<BuilderPlacement, { kind: 'hull' }>): Vec3[][]
   const key = `${piece.shape}:${piece.size.join(',')}:${piece.rotationDeg}`;
   let faces = hullFacesCache.get(key);
   if (!faces) {
-    faces = (piece.shape === 'vertex' ? VERTEX_SHAPE : CONSTRUCTION_SHAPES[piece.shape]).map(face => face.map(vertex => rotateY(vertex.map((v, i) => v * piece.size[i]) as Vec3, piece.rotationDeg * Math.PI / 180)));
+    faces = piece.shape === 'custom-hull'
+      ? customHullFaces({ ...customHullPrimitive(makeHull(0)), size: piece.size }).map(face => face.vertices.map(v => rotateY(v, piece.rotationDeg * Math.PI / 180)))
+      : (piece.shape === 'vertex' ? VERTEX_SHAPE : CONSTRUCTION_SHAPES[piece.shape]).map(face => face.map(vertex => rotateY(vertex.map((v, i) => v * piece.size[i]) as Vec3, piece.rotationDeg * Math.PI / 180)));
     if (hullFacesCache.size >= 32) hullFacesCache.delete(hullFacesCache.keys().next().value!);
     hullFacesCache.set(key, faces);
   }
@@ -120,7 +123,7 @@ const sameVector = (a: Vec3, b: Vec3) => a.every((value, index) => near(value, b
 /** The existing piece that mirrors this one across the centerline: another piece, or itself when it straddles the centerline. */
 export function mirrorTwin(source: ConstructionSource, primitive: ConstructionPrimitive): ConstructionPrimitive | undefined {
   const expected = mirroredPrimitive(primitive);
-  const matches = (candidate: ConstructionPrimitive) => candidate.kind === expected.kind && JSON.stringify(candidate.vertices) === JSON.stringify(expected.vertices) && sameVector(candidate.size, expected.size)
+  const matches = (candidate: ConstructionPrimitive) => candidate.kind === expected.kind && JSON.stringify(candidate.vertices) === JSON.stringify(expected.vertices) && JSON.stringify(candidate.customHull) === JSON.stringify(expected.customHull) && sameVector(candidate.size, expected.size)
     && sameVector(candidate.position, expected.position) && near(normalizedBearing(candidate.rotationDeg), expected.rotationDeg);
   return source.construction.primitives.find(candidate => candidate.id !== primitive.id && matches(candidate)) ?? (matches(primitive) ? primitive : undefined);
 }

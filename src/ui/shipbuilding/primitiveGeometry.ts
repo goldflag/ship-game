@@ -3,10 +3,18 @@ import { cornerVertices, VERTEX_FACES } from '../../ships/constructionVertex';
 import type { ConstructionEquipmentPart, ConstructionPrimitive, Vec3 } from '../../ships/blueprint';
 import { CONSTRUCTION_SHAPES } from '../../ships/constructionShapes';
 import { constructionVertexNormals, SMOOTH_HULL_SHAPES } from '../../game/constructionShading';
+import { customHullFaces, customHullPoints, customHullPrimitive, makeHull } from '../../ships/customHullModel';
 
 /** Display-only source envelopes for placement and invalid drafts. Rust remains
  * authoritative for unions, material, fit, loading and all battle geometry. */
-export function primitiveGeometry(kind: ConstructionPrimitive['kind'], size: Vec3, corners?: Vec3[]): THREE.BufferGeometry {
+export function primitiveGeometry(kind: ConstructionPrimitive['kind'], size: Vec3, corners?: Vec3[], customHull?: ConstructionPrimitive['customHull']): THREE.BufferGeometry {
+  if (kind === 'custom-hull') {
+    const p = { ...customHullPrimitive(makeHull(0)), size, ...(customHull ? { customHull } : {}) };
+    const faces = customHullFaces(p).map(f => ({ ...f, normal: new THREE.Vector3(...f.vertices[1]).sub(new THREE.Vector3(...f.vertices[0])).cross(new THREE.Vector3(...f.vertices[2]).sub(new THREE.Vector3(...f.vertices[0]))).normalize().toArray() as Vec3 }));
+    const normalAt = constructionVertexNormals(faces, -1), positions: number[] = [], normals: number[] = [];
+    for (const face of faces) for (const point of face.vertices) { positions.push(...point); normals.push(...normalAt(point, face.normal, face.group)); }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3)); return g;
+  }
   if (kind === 'vertex') {
     const v = corners ?? cornerVertices({kind, size, position:[0,0,0],rotationDeg:0,id:''});
     const positions:number[]=[];
@@ -50,4 +58,20 @@ export function placementGeometry(piece: BuilderPlacement, span: Vec3 = [60, 60,
 
 export function placementRotation(piece: BuilderPlacement): number {
   return (piece.kind === 'hull' ? piece.rotationDeg : piece.kind === 'equipment' ? -piece.bearingDeg : 0) * Math.PI / 180;
+}
+
+/** Selection follows authored sections and chines, without tessellation diagonals. */
+export function primitiveOutlineGeometry(p: ConstructionPrimitive): THREE.BufferGeometry {
+  if (p.kind !== 'custom-hull' || !p.customHull) {
+    const solid = primitiveGeometry(p.kind, p.size, p.vertices, p.customHull);
+    const edges = new THREE.EdgesGeometry(solid); solid.dispose(); return edges;
+  }
+  const points = customHullPoints(p), lines: number[] = [];
+  for (let section = 0; section < p.customHull.stations.length; section++) {
+    for (let edge = 0; edge < 9; edge++) {
+      lines.push(...points[section * 9 + edge], ...points[section * 9 + (edge + 1) % 9]);
+      if (section > 0) lines.push(...points[(section - 1) * 9 + edge], ...points[section * 9 + edge]);
+    }
+  }
+  return new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(lines, 3));
 }
