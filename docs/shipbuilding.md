@@ -6,7 +6,15 @@ authoring tool for reusable components.
 
 An account is required. Source revisions save to PostgreSQL; IndexedDB retains account-scoped recovery drafts. Saved valid designs can join online fleets alongside historical presets, within the [online construction limits](accounts.md#online-construction). Campaign missions still use historical presets.
 
-Choose **New design** in port for a design with one centered hull block, or **Edit design** to reopen a saved source. All drafts appear in the port’s Ship designs list; valid designs also appear in the fleet carousel and can be inspected in the harbor. Returning from the editor saves and shows a valid design without requiring a sea trial. The patrol starter includes a gun, ammunition
+Choose **New design** in port to select a Patrol boat, Destroyer, Battleship or
+Barge hull, or **No hull preset** for the original centered 1 × 1 × 1 m block.
+Cancel leaves the library unchanged. Hull presets start with a level deck and no
+equipment; each remains one editable custom hull. The same chooser is available
+under **Designs → New design…**. Choose **Edit design** to reopen a saved source.
+All drafts appear in the port’s Ship designs list; valid designs also appear in
+the fleet carousel and can be inspected in the harbor. Returning from the editor
+saves and shows a valid design without requiring a sea trial. The separate
+**Armed patrol** starter includes a gun, ammunition
 magazine, diesel machinery, funnel, propeller, rudder and mast. The twin-hull
 starter preserves an exterior water channel and deliberately shows an asymmetric
 machinery layout. Both are generic sandbox designs, not historical vessels.
@@ -107,6 +115,28 @@ review the listed variants and choose **Apply parts update**. Missing fitted
 variants block the update. The design recompiles against the new catalog; Undo
 restores the previous catalog, and older saved revisions remain recoverable.
 
+## Custom hull sections
+
+Select a custom hull and choose **Edit hull sections**. Edit its cross-section,
+top outline or side profile, dimensions, bow rake and bulb. Left/right symmetry
+is fixed. **Section count** supports 4–24 sections; increasing retains existing
+sections and inserts interpolated profiles, while reducing simplifies the shape.
+**Blend edits into nearby sections** fades shape edits over 20% of hull length;
+dashed brass outlines and percentages identify affected neighbors. Keyboard
+nudges, numeric edits and drags share this behavior.
+
+**Apply hull** commits the complete shape as one undoable source edit; **Cancel**
+discards the editing session. Equipment positions and existing surface assignments
+remain fixed, and native diagnostics report any resulting fit errors. Armor and
+paint use the shipbuilder's existing face tools. The prototype's sample belt
+annotation is not presented as functional armor in this editor.
+
+Hull geometry consists of planar triangles. Lighting blends along panels while
+preserving deck, chine, keel and end-cap boundaries. The Hull drawer also offers
+a **Custom hull** block; copies retain independent editable section data.
+Converting a completed custom hull into independent freeform pieces remains future
+work.
+
 ## Source and compilation
 
 The shared contract is [blueprint.ts](../src/ships/blueprint.ts).
@@ -119,6 +149,13 @@ maintained by hand.
 
 The source stores primitive parameters and transforms, surface assignments,
 equipment instances, boundaries, loads and an exact equipment-catalog revision.
+Custom hulls use `kind: "custom-hull"` and `customHull.version: 1` in that same
+primitive list. Stable section IDs, normalized outline points, bow parameters and
+the primitive's beam/depth/length frame survive saving and reopening. Rust
+validates symmetry, section ordering, folds and overlap, then derives closed
+convex cells and attributed exterior panels for the existing compiler. Both
+port and starboard use mirrored triangulation. Preview envelopes are display-only;
+saved, trial and battle physics use the native compiled volume.
 The grid is a placement aid, not the physical discretization. Box, wedge, corner
 and inverse-corner pieces use continuous dimensions and quarter-turn hull yaw.
 Sizes produce slabs and long/shallow slopes without rounding away partial volume.
