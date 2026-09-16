@@ -235,8 +235,11 @@ Blender and the model-viewer server are authoring/review tools.
 
 The compiler bounds source JSON to 16 MB and an individual catalog to 4 MB. A design
 allows 10,000 primitives, 65,536 face assignments, 128 equipment instances, 128 loads
-and 24 boundaries, with 65,536 disjoint cells and 131,072 skin patches as derivation
-bounds. Piece dimensions
+and 24 boundaries, with 131,072 disjoint cells, 128 faces per cell, 4,194,304
+face vertices per checked geometry collection, 131,072 skin patches and 16,384
+flooding portals as derivation
+bounds. Intermediate clipping collections share these limits; their counts need
+not equal the final hull's runtime cell count. Piece dimensions
 are 0.01–500 m and finite positions lie within ±1,000 m. Complexity-limit failures
 preserve the source and require simplifying the offending geometry. These are
 technical bounds, not a promise that every maximal arrangement compiles quickly.

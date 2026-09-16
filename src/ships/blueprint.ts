@@ -298,6 +298,8 @@ export interface ConstructionPrimitive {
    * Missing corners on a vertex hull mean the unit cube. Size scales this edit frame.
    * Rust samples the trilinear solid; generated cells remain the physical authority. */
   vertices?: Vec3[];
+  /** Optional shared lighting seam group; physical surfaces remain unchanged. */
+  smoothGroup?: string;
 }
 export interface ConstructionSurfaceAssignment {
   primitiveId: string; face: 'port' | 'starboard' | 'bottom' | 'top' | 'bow' | 'stern' | 'slope';
@@ -306,6 +308,17 @@ export interface ConstructionSurfaceAssignment {
 export interface ConstructionEquipment {
   id: string; partId: string; position: Vec3; bearingDeg: number;
   magazineId?: string; powerSourceId?: string;
+  /** Installation settings retain canonical part dimensions/capability. */
+  gun?: {
+    battery?: 'main' | 'secondary';
+    initialElevationDeg?: number;
+    traverseDeg?: number;
+    traverseLimitsDeg?: [number, number];
+    elevationMinDeg?: number;
+    elevationMaxDeg?: number;
+  };
+  /** Absolute ship-relative arcs for an installed trainable torpedo bank. */
+  launcher?: { traverseLimitsDeg: [number, number]; launchArcsDeg: [number, number][] };
   /** Connected local-space points, transformed by position and bearing like fixed equipment.
    * Rope/chain slack is the vertical midspan sag on each segment, sampled at 16 equal intervals. */
   path?: { points: Vec3[]; slackM?: number };
@@ -358,6 +371,8 @@ export interface ConstructionEquipmentPart {
   massKg?: number;
   placement: 'internal' | 'deck' | 'underwater';
   occupancy?: { center: Vec3; size: Vec3 }[];
+  /** Conservative physical fitting boxes for sparse original equipment; absent uses the full visual bounds. */
+  fitting?: { center: Vec3; size: Vec3 }[];
   sockets?: { id: string; kind: string; position: Vec3; direction: Vec3 }[];
   gunPartId?: string; torpedoPartId?: string; tubeOffsets?: Vec3[];
   powerKw?: number; exhaustKw?: number; thrustEfficiency?: number; rudderAreaM2?: number;
@@ -931,7 +946,7 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
   });
   volumes(b.obstructions, 'obstructions');
   const connectionIds = new Set<string>();
-  list(b.connections, 'connections', 512).forEach((v, i) => {
+  list(b.connections, 'connections', 16384).forEach((v, i) => {
     const c = record(v, `connections[${i}]`);
     numeric(c.areaM2, `connections[${i}].areaM2`, 0, 100);
     if (c.id !== undefined) id(c.id, `connections[${i}].id`);
@@ -948,7 +963,7 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
     if (connectionIds.has(key)) fail('connections', 'duplicate compartment connection');
     connectionIds.add(key);
   });
-  const namedConnections = list(b.connections, 'connections', 512).map(c => record(c, 'connection')).filter(c => c.id !== undefined);
+  const namedConnections = list(b.connections, 'connections', 16384).map(c => record(c, 'connection')).filter(c => c.id !== undefined);
   unique(namedConnections, 'connections');
   const accuracy = record(b.accuracy, 'accuracy');
   const launcherWeapons = [...(Array.isArray(b.torpedoTubes) ? b.torpedoTubes : []), ...(Array.isArray(b.depthChargeLaunchers) ? b.depthChargeLaunchers : [])] as Record<string, unknown>[];

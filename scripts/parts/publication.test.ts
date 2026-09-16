@@ -86,12 +86,26 @@ describe('source-backed equipment publication',()=>{
       const s=p.sockets.find((s:any)=>s.id==='attachment');
       const axis=s.direction.findIndex((n:number)=>Math.abs(n)===1);
       expect(axis).toBeGreaterThanOrEqual(0);
+      if (s.kind === 'stock-bearing') {
+        // An inserted stock attaches at its hull-exit bearing, not its hidden top.
+        expect(p.kind).toBe('rudder');
+        expect(s.position.every((v:number,k:number)=>Math.abs(v-p.boundsCenter[k])<=p.size[k]/2)).toBe(true);
+        continue;
+      }
       const authoredPlane=p.boundsCenter[axis]+s.direction[axis]*p.size[axis]/2;
       expect(Math.abs(authoredPlane-s.position[axis])).toBeLessThan(.002);
       const model=inspectEquipmentModel(await readFile(join(root,'public',p.modelUrl)),p.contentHash);
       const actualPlane=model.boundsCenter[axis]+s.direction[axis]*model.size[axis]/2;
       expect(Math.abs(actualPlane-s.position[axis])).toBeLessThan(.002);
     }
+  });
+  test('sparse fitting boxes must enclose every triangle of their original visible model',async()=>{
+    const catalog=JSON.parse(await readFile(join(root,'public/models/components/catalog.json'),'utf8'));
+    const part=catalog.equipment.find((p:any)=>p.fitting);
+    const bytes=await readFile(join(root,'public',part.modelUrl));
+    expect(()=>inspectEquipmentModel(bytes,part.contentHash,part)).not.toThrow();
+    const missing=structuredClone(part);missing.fitting=[{center:[0,0,0],size:[.01,.01,.01]}];
+    expect(()=>inspectEquipmentModel(bytes,part.contentHash,missing)).toThrow('do not enclose every visible triangle');
   });
   test('curation has original registrations and distinct internal installation space',async()=>{
     const {equipment}=await readEquipment(root);

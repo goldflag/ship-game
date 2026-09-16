@@ -10,8 +10,8 @@ import { CONSTRUCTION_FINISH, constructionPaintColor } from '../ships/constructi
  * to source faces; triangulation and material batching never become source IDs. */
 export function createConstructionHull(surfaces: readonly ConstructionSurface[], primitives: readonly ConstructionPrimitive[] = []): THREE.Group {
   const group = new THREE.Group(); group.name = 'Constructed hull';
-  const smooth = new Set(primitives.filter(p => SMOOTH_HULL_SHAPES.has(p.kind)).map(p => p.id));
-  const normalAt = constructionVertexNormals(surfaces.filter(s => !s.open && smooth.has(s.primitiveId)).map(s => ({ ...s, group: s.primitiveId })));
+  const smooth = new Map(primitives.filter(p => p.smoothGroup || SMOOTH_HULL_SHAPES.has(p.kind)).map(p => [p.id, p.smoothGroup ? 'joined:' + p.smoothGroup : p.id]));
+  const normalAt = constructionVertexNormals(surfaces.filter(s => !s.open && smooth.has(s.primitiveId)).map(s => ({ ...s, group: smooth.get(s.primitiveId)! })));
   const textureSize = 128, pixels = new Uint8Array(textureSize * textureSize * 4);
   // Subtle repeatable coating grain. UVs remain in ship coordinates, so adjacent
   // primitives have neither a paint reset nor a visible block boundary.
@@ -23,6 +23,27 @@ export function createConstructionHull(surfaces: readonly ConstructionSurface[],
   const coating = new THREE.DataTexture(pixels, textureSize, textureSize);
   coating.name = 'Shared metric naval coating'; coating.wrapS = coating.wrapT = THREE.RepeatWrapping;
   coating.magFilter = THREE.LinearFilter; coating.minFilter = THREE.LinearMipmapLinearFilter; coating.generateMipmaps = true; coating.needsUpdate = true;
+  // Original metric timber finish: 16 cm planks, 3.4 m staggered butt joints.
+  // Source paint selects the substrate explicitly; steel roofs keep their coating.
+  let timber: THREE.DataTexture | undefined;
+  const timberTexture = () => {
+    if (timber) return timber;
+    const size = 512, data = new Uint8Array(size * size * 4);
+    for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+      const across = x / size * 8, along = y / size * 8;
+      const plank = Math.floor(across / .16);
+      const seam = across % .16 < .003 || (along + (plank % 4) * .85) % 3.4 < .003;
+      const value = seam ? 135 : Math.round(239 + 5 * Math.sin(plank * 13.7) + 3 * Math.sin(across * 390 + Math.sin(along * 5)));
+      const i = (y * size + x) * 4;
+      data[i] = data[i + 1] = data[i + 2] = value; data[i + 3] = 255;
+    }
+    timber = new THREE.DataTexture(data, size, size);
+    timber.name = 'Original metric timber planking';
+    timber.wrapS = timber.wrapT = THREE.RepeatWrapping;
+    timber.magFilter = THREE.LinearFilter; timber.minFilter = THREE.LinearMipmapLinearFilter;
+    timber.generateMipmaps = true; timber.needsUpdate = true;
+    return timber;
+  };
   const batches = new Map<string, { paint: string; deck: boolean; positions: number[]; normals: number[]; uv: number[]; faces: ConstructionSurface[] }>();
   for (const surface of surfaces) {
     if (surface.open || surface.vertices.length < 3) continue;
@@ -32,7 +53,7 @@ export function createConstructionHull(surfaces: readonly ConstructionSurface[],
     const dominant = surface.normal.map(Math.abs).indexOf(Math.max(...surface.normal.map(Math.abs)));
     for (let i = 1; i < surface.vertices.length - 1; i++) {
       for (const point of [surface.vertices[0], surface.vertices[i], surface.vertices[i + 1]]) {
-        batch.positions.push(...point); batch.normals.push(...(smooth.has(surface.primitiveId) ? normalAt(point, surface.normal, surface.primitiveId) : surface.normal));
+        batch.positions.push(...point); batch.normals.push(...(smooth.has(surface.primitiveId) ? normalAt(point, surface.normal, smooth.get(surface.primitiveId)!) : surface.normal));
         const a = dominant === 0 ? 2 : 0, b = dominant === 1 ? 2 : 1;
         batch.uv.push(point[a] / CONSTRUCTION_FINISH.tileMeters, point[b] / CONSTRUCTION_FINISH.tileMeters);
       }
@@ -45,7 +66,9 @@ export function createConstructionHull(surfaces: readonly ConstructionSurface[],
     geometry.setAttribute('normal', new THREE.Float32BufferAttribute(batch.normals, 3));
     geometry.setAttribute('uv', new THREE.Float32BufferAttribute(batch.uv, 2));
     geometry.computeBoundingBox(); geometry.computeBoundingSphere();
-    const material = new THREE.MeshStandardMaterial({ color: constructionPaintColor(batch.paint), map: coating, roughness: batch.deck ? CONSTRUCTION_FINISH.deckRoughness : CONSTRUCTION_FINISH.steelRoughness, metalness: CONSTRUCTION_FINISH.metalness, side: THREE.DoubleSide });
+    const wood = batch.paint === 'teak-natural';
+    const material = new THREE.MeshStandardMaterial({ color: constructionPaintColor(batch.paint), map: wood ? timberTexture() : coating, roughness: batch.deck ? CONSTRUCTION_FINISH.deckRoughness : CONSTRUCTION_FINISH.steelRoughness, metalness: CONSTRUCTION_FINISH.metalness, side: THREE.DoubleSide });
+    if (wood) material.userData = { deckSubstrate: 'timber', deckCoating: 'bare' };
     material.name = `construction.${key}`;
     const mesh = new THREE.Mesh(geometry, material); mesh.name = `hull.${key}`;
     mesh.userData = { assemblyId: 'hull', nodeId: mesh.name, constructionSurfaces: batch.faces };

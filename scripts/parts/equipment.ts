@@ -48,6 +48,7 @@ export async function readEquipment(root: string) {
       if (!entry || !registry.builders[entry.builder] || !['unreviewed','accepted'].includes(entry.review) || !entry.limitations) throw new Error(`No registered original equipment builder: ${p.id}`);
     }
     for (const volume of p.occupancy ?? []) if (!finiteVec(volume.center) || !finiteVec(volume.size) || volume.size.some(v => v <= 0)) throw new Error(`Invalid occupancy: ${p.id}`);
+    if (p.fitting && (p.kind !== 'deck-fitting' || p.path || !p.fitting.length || p.fitting.length > 64 || p.fitting.some(b => !finiteVec(b.center) || !finiteVec(b.size) || b.size.some(v => v <= 0)))) throw new Error(`Invalid fitting boxes: ${p.id}`);
     const sockets = new Set<string>();
     for (const s of p.sockets ?? []) {
       if (!safeId(s.id) || sockets.has(s.id) || !s.kind || !finiteVec(s.position) || !finiteVec(s.direction) || Math.abs(Math.hypot(...s.direction)-1) > 1e-6) throw new Error(`Invalid socket: ${p.id}`);
@@ -135,10 +136,26 @@ export function inspectEquipmentModel(bytes: Buffer, hash: string, part?: Equipm
     if (n.mesh !== undefined) for (const primitive of doc.meshes[n.mesh].primitives) {
       if ((primitive.mode ?? 4) !== 4) throw new Error('Non-triangle component primitive');
       triangles += (primitive.indices === undefined ? doc.accessors[primitive.attributes.POSITION].count : doc.accessors[primitive.indices].count)/3;
+      const positions: Vec3[] = [];
       readVec(primitive.attributes.POSITION,v => {
         v.applyMatrix4(world);
         v.toArray().forEach((x,k)=>{if(!Number.isFinite(x))throw new Error('Non-finite component geometry');min[k]=Math.min(min[k],x);max[k]=Math.max(max[k],x);});
+        if (part?.fitting) positions.push(v.toArray() as Vec3);
       });
+      if (part?.fitting) {
+        let indices = positions.map((_, i) => i);
+        if (primitive.indices !== undefined) {
+          const a = doc.accessors[primitive.indices], view = doc.bufferViews[a.bufferView];
+          const width = { 5121: 1, 5123: 2, 5125: 4 }[a.componentType as 5121 | 5123 | 5125];
+          if (!width || a.type !== 'SCALAR' || a.sparse || view.buffer !== 0) throw new Error('Unsupported component index encoding');
+          const offset = (view.byteOffset ?? 0) + (a.byteOffset ?? 0);
+          indices = Array.from({ length: a.count }, (_, i) => bin.readUIntLE(offset + i * (view.byteStride ?? width), width));
+        }
+        for (let i = 0; i < indices.length; i += 3) {
+          const triangle = indices.slice(i, i + 3).map(index => positions[index]);
+          if (triangle.length !== 3 || !part.fitting.some(box => triangle.every(point => point && point.every((v, k) => Math.abs(v - box.center[k]) <= box.size[k] / 2 + .001)))) throw new Error(`${part.id}: original fitting boxes do not enclose every visible triangle`);
+        }
+      }
     }
     for (const child of n.children ?? []) visit(child,world,id ?? parentId);
   };

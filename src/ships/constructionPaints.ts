@@ -9,6 +9,12 @@ export const CONSTRUCTION_PAINTS = [
   { id: 'sea-blue', name: 'Sea blue', color: '#405d70' },
   { id: 'red-oxide', name: 'Red oxide', color: '#80483c' },
   { id: 'boot-top-black', name: 'Boot topping', color: '#253035' },
+  { id: 'teak-natural', name: 'Natural teak', color: '#97856a' },
+  { id: 'hipper-source-gray', name: 'Cruiser source gray', color: '#7c8586' },
+  { id: 'hipper-source-hull', name: 'Cruiser source hull gray', color: '#6e7779' },
+  { id: 'hipper-source-horizontal', name: 'Cruiser source deck gray', color: '#5b6365' },
+  { id: 'hipper-source-underwater', name: 'Cruiser source red oxide', color: '#844234' },
+  { id: 'hipper-source-linoleum', name: 'Cruiser source linoleum', color: '#7e5548' },
 ] as const;
 export const constructionPaintColor = (id: string) => CONSTRUCTION_PAINTS.find(p => p.id === id)?.color ?? '#7c8c91';
 export const CONSTRUCTION_FINISH = {

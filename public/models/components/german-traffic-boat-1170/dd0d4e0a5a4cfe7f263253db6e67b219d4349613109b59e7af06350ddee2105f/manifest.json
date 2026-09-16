@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "german-traffic-boat-1170",
+  "revision": "dd0d4e0a5a4cfe7f263253db6e67b219d4349613109b59e7af06350ddee2105f",
+  "contentHash": "d48a1724b673c011ccdfe62eb1cd7028bf982314ef7f8cb2fba7eab9293ca36b",
+  "modelSha256": "2aeeedc9b9c39d50cc62c85cccded8b3aff5365d876b365d7ab7919c90c0a0a8",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/german-traffic-boat-1170/dd0d4e0a5a4cfe7f263253db6e67b219d4349613109b59e7af06350ddee2105f/model.glb",
+  "boundsCenter": [
+    3.5762786865234375e-7,
+    0.8599998950958252,
+    0.0003466606140136719
+  ],
+  "size": [
+    2.9150006771087646,
+    1.7200002670288086,
+    11.77921199798584
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 764,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original Hipper source boat, fixed stowed pose; no boat-launching simulation.",
+  "basis": "assets/parts/construction/README.md"
+}
