@@ -26,8 +26,8 @@ function SignIn({unavailable,retry}:{unavailable:boolean;retry():void}) {
     <form onSubmit={submit}>
       {signup&&<label>Display name<input name="name" autoComplete="nickname" required maxLength={80}/></label>}
       <label>Email<input name="email" type="email" autoComplete="email" required maxLength={254}/></label>
-      <label>Password<input name="password" type="password" autoComplete={signup?'new-password':'current-password'} required minLength={signup?12:1} maxLength={128}/></label>
-      {signup&&<small>Use at least 12 characters. Password recovery is not available yet.</small>}
+      <label>Password<input name="password" type="password" autoComplete={signup?'new-password':'current-password'} required minLength={signup?8:1} maxLength={128}/></label>
+      {signup&&<small>Use at least 8 characters. Password recovery is not available yet.</small>}
       <p className="account-error" role="alert">{error || (unavailable?'Account service is unavailable. Retry to reconnect.':'')}</p>
       <button className="account-primary" disabled={busy} type="submit">{busy?'Connecting…':signup?'Create account':'Sign in'}</button>
       {unavailable&&<button type="button" onClick={retry}>Retry connection</button>}
