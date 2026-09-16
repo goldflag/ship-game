@@ -102,7 +102,7 @@ impl DeckOperations {
             .iter()
             .filter(|p| {
                 p.flight_id.as_deref() == Some(request.flight_id.as_str())
-                    && !crate::aircraft::terminal(p)
+                    && !crate::aviation::aircraft::terminal(p)
             })
             .collect();
         if group.is_empty() {

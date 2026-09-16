@@ -1,6 +1,8 @@
 use naval_sim::{
-    aircraft::Aircraft, aircraft_tactics::fighter_target, aviation::Aviation, catalog::Catalog,
-    rules::TeamId, vessel::Vessel,
+    aviation::{Aircraft, Aviation, fighter_target},
+    catalog::Catalog,
+    rules::TeamId,
+    vessel::Vessel,
 };
 use std::sync::{Arc, OnceLock};
 fn fixture() -> Vec<Aircraft> {
@@ -42,7 +44,7 @@ fn fixture() -> Vec<Aircraft> {
 #[test]
 fn a_six_plane_cap_splits_between_high_and_low_inbound_tracks() {
     let all = fixture();
-    let refs: Vec<_> = all.iter().map(naval_sim::aircraft::PlaneView::of).collect();
+    let refs: Vec<_> = all.iter().map(naval_sim::aviation::PlaneView::of).collect();
     let assignments: Vec<_> = all[..6]
         .iter()
         .map(|p| {
@@ -70,10 +72,7 @@ fn a_six_plane_cap_splits_between_high_and_low_inbound_tracks() {
 
 #[test]
 fn panic_does_not_spend_ammunition_on_a_distant_unsettled_solution() {
-    use naval_sim::{
-        air_gunnery::FireDiscipline,
-        aircraft_tactics::{FighterAim, fighter_fire_ready},
-    };
+    use naval_sim::aviation::{FighterAim, FireDiscipline, fighter_fire_ready};
     let mut p = fixture().remove(0);
     p.pilot.fire_discipline = Some(FireDiscipline {
         panic: true,
@@ -92,7 +91,7 @@ fn panic_does_not_spend_ammunition_on_a_distant_unsettled_solution() {
 }
 
 fn assignments(all: &[Aircraft]) -> Vec<String> {
-    let refs: Vec<_> = all.iter().map(naval_sim::aircraft::PlaneView::of).collect();
+    let refs: Vec<_> = all.iter().map(naval_sim::aviation::PlaneView::of).collect();
     all.iter()
         .filter(|p| p.team == TeamId::A)
         .map(|p| {
@@ -148,13 +147,13 @@ fn defenders_release_departing_tracks_but_explicit_intercepts_continue() {
     let mut p = all[0].clone();
     p.pilot.hostile_id = Some(all[6].id.clone());
     p.pilot.think = 1.;
-    let refs: Vec<_> = all.iter().map(naval_sim::aircraft::PlaneView::of).collect();
+    let refs: Vec<_> = all.iter().map(naval_sim::aviation::PlaneView::of).collect();
     assert!(fighter_target(&mut p, &refs, [0.; 3], 1. / 60., None).is_none());
     assert!(fighter_target(&mut p, &refs, [0.; 3], 1. / 60., Some("enemy")).is_some());
 }
 #[test]
 fn settled_close_fire_requires_reacquisition_and_a_clear_lane() {
-    use naval_sim::aircraft_tactics::{FighterAim, fighter_fire_ready};
+    use naval_sim::aviation::{FighterAim, fighter_fire_ready};
     let mut p = fixture().remove(0);
     p.bank = 0.;
     let gun = FighterAim {
@@ -184,8 +183,8 @@ fn a_fighter_with_height_advantage_descends_instead_of_repeated_high_yoyos() {
     p.heading = -std::f64::consts::FRAC_PI_2;
     hostile.position = [0., 90., 300.];
     hostile.velocity = [-80., 0., 0.];
-    let view = naval_sim::aircraft::PlaneView::of(&hostile);
-    naval_sim::aircraft_tactics::steer_fighter(&mut p, &view, &[view], 1. / 60.);
+    let view = naval_sim::aviation::PlaneView::of(&hostile);
+    naval_sim::aviation::steer_fighter(&mut p, &view, &[view], 1. / 60.);
     assert_ne!(p.pilot.maneuver.as_ref().unwrap().kind, "high-yo-yo");
     assert!(
         p.navigation_target.unwrap()[1] < 850.,
@@ -204,8 +203,8 @@ fn diving_pursuit_spends_height_before_overtaking_a_low_target() {
     hostile.position = [0., 90., 0.];
     hostile.velocity = [-80., 0., 0.];
     for _ in 0..120 {
-        let view = naval_sim::aircraft::PlaneView::of(&hostile);
-        naval_sim::aircraft_tactics::steer_fighter(&mut p, &view, &[view], 1. / 60.);
+        let view = naval_sim::aviation::PlaneView::of(&hostile);
+        naval_sim::aviation::steer_fighter(&mut p, &view, &[view], 1. / 60.);
         hostile.position[0] -= 80. / 60.;
     }
     assert!(

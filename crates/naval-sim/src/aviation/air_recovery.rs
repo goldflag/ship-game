@@ -1,11 +1,7 @@
 //! A missing home is not an endurance timer. Sorties may finish an observed
 //! combat task; aircraft with no usable task or recovery become unavailable.
-use crate::{
-    aircraft::*,
-    aviation::{Aviation, service_available},
-    environment::SeaState,
-    vessel::Vessel,
-};
+use super::{Aviation, aircraft::*, service_available};
+use crate::{environment::SeaState, vessel::Vessel};
 use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, ts_rs::TS)]
 #[serde(tag = "kind", rename_all = "lowercase")]
@@ -33,14 +29,14 @@ pub fn status(actor: &Vessel, sea: Option<(&SeaState, f64)>) -> CarrierRecovery 
             reason: reason.into(),
         }
     } else if service_available(actor, sea)
-        && !crate::aircraft_recovery::turn_delays_recovery(actor)
+        && !crate::aviation::aircraft_recovery::turn_delays_recovery(actor)
     {
         CarrierRecovery::Open
     } else {
         CarrierRecovery::Delayed
     }
 }
-fn withdraw(p: &mut Aircraft, ctx: &mut crate::aviation_step::AirContext<'_>, reason: &str) {
+fn withdraw(p: &mut Aircraft, ctx: &mut crate::aviation::step::AirContext<'_>, reason: &str) {
     if terminal(p) {
         return;
     }
@@ -76,16 +72,16 @@ impl Aviation {
         &self,
         p: &mut Aircraft,
         actor: &Vessel,
-        ctx: &mut crate::aviation_step::AirContext<'_>,
+        ctx: &mut crate::aviation::step::AirContext<'_>,
     ) -> bool {
-        let Some(crate::air_recovery::CarrierRecovery::Closed { reason }) = self
+        let Some(crate::aviation::air_recovery::CarrierRecovery::Closed { reason }) = self
             .wing(&actor.motion.id)
             .and_then(|w| w.recovery.as_ref())
         else {
             return false;
         };
         if p.hp <= 0.0 {
-            crate::aviation_step::lose(
+            crate::aviation::step::lose(
                 p,
                 ctx.events,
                 if airborne(p) && !on_flight_deck(p) {
@@ -98,7 +94,7 @@ impl Aviation {
         }
         if !airborne(p) || on_flight_deck(p) {
             if actor.physical_loss().is_some() {
-                crate::aviation_step::lose(p, ctx.events, "Carrier lost");
+                crate::aviation::step::lose(p, ctx.events, "Carrier lost");
             } else {
                 withdraw(p, ctx, reason);
             }

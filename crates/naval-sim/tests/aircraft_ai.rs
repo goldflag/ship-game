@@ -1,7 +1,5 @@
 use naval_sim::{
-    aircraft::AirOrder,
-    aviation::{Aviation, service_available},
-    aviation_step::AirContext,
+    aviation::{AirContext, AirOrder, Aviation, service_available},
     catalog::Catalog,
     geometry::local_to_world,
     motion::{HelmCommand, step_ship},
@@ -210,8 +208,8 @@ fn a_sharp_turn_holds_with_a_reason_then_recovers_after_centering() {
 fn planes(
     role: &str,
 ) -> (
-    naval_sim::aircraft::AirFlight,
-    Vec<naval_sim::aircraft::Aircraft>,
+    naval_sim::aviation::AirFlight,
+    Vec<naval_sim::aviation::Aircraft>,
 ) {
     let actors = vec![carrier("carrier", "enterprise-cv6", TeamId::A)];
     let mut air = Aviation::new(&actors, catalog().aircraft.clone());
@@ -259,7 +257,7 @@ fn planes(
 
 #[test]
 fn bomber_defense_reacts_to_threats_then_rejoins_and_protects_the_release_window() {
-    use naval_sim::aircraft_defense::{evade_bomber, near_fire, tick};
+    use naval_sim::aviation::{evade_bomber, near_fire, tick};
     let (_, ps) = planes("torpedo-bomber");
     let mut p = ps[0].clone();
     assert!(!evade_bomber(&mut p, &[], 0, 5739, 1.0 / 60.0));
@@ -291,7 +289,7 @@ fn bomber_defense_reacts_to_threats_then_rejoins_and_protects_the_release_window
 
 #[test]
 fn formation_layouts_vary_by_sortie_and_role_and_change_without_teleporting() {
-    use naval_sim::aircraft_formation::{fly_formation, formation_kind, formation_offset};
+    use naval_sim::aviation::{fly_formation, formation_kind, formation_offset};
     let (f, mut ps) = planes("torpedo-bomber");
     let layouts: BTreeSet<_> = (0..64)
         .map(|seed| formation_kind(&f, &ps[1], seed))
@@ -321,13 +319,13 @@ fn formation_layouts_vary_by_sortie_and_role_and_change_without_teleporting() {
 
 #[test]
 fn fighters_extend_before_overshooting_and_break_toward_wingman_support() {
-    use naval_sim::aircraft_tactics::steer_fighter;
+    use naval_sim::aviation::steer_fighter;
     let (_, ps) = planes("fighter");
     let mut p = ps[0].clone();
     let mut enemy = ps[1].clone();
     enemy.team = TeamId::B;
     enemy.position = [0.0, 850.0, -100.0];
-    let enemy_view = naval_sim::aircraft::PlaneView::of(&enemy);
+    let enemy_view = naval_sim::aviation::PlaneView::of(&enemy);
     assert!(!steer_fighter(
         &mut p,
         &enemy_view,
@@ -339,8 +337,8 @@ fn fighters_extend_before_overshooting_and_break_toward_wingman_support() {
     enemy.position = [0.0, 850.0, 200.0];
     let mut ally = ps[2].clone();
     ally.position = [800.0, 850.0, 0.0];
-    let enemy_view = naval_sim::aircraft::PlaneView::of(&enemy);
-    let ally_view = naval_sim::aircraft::PlaneView::of(&ally);
+    let enemy_view = naval_sim::aviation::PlaneView::of(&enemy);
+    let ally_view = naval_sim::aviation::PlaneView::of(&ally);
     assert!(!steer_fighter(
         &mut p,
         &enemy_view,

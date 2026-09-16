@@ -1,12 +1,10 @@
 //! Guidance relative to a translating and rotating flight deck. A final approach
 //! follows a moving line, rather than chasing a point that keeps sliding sideways.
-use crate::{
+use super::{
     aircraft::Aircraft,
     aircraft_flight::{FlightOptions, fly},
-    definition::Vec3,
-    geometry::*,
-    vessel::Vessel,
 };
+use crate::{definition::Vec3, geometry::*, vessel::Vessel};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]

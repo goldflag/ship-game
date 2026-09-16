@@ -543,13 +543,13 @@ impl LocalRuntime {
                 for directive in plan.enemy_air_directives(&self.session.battle) {
                     self.enemy_air_sequence += 1;
                     let command = match directive.intent {
-                        naval_sim::pve_air::AirIntent::Order(order) => {
+                        naval_sim::aviation::AirIntent::Order(order) => {
                             naval_protocol::Command::Air {
                                 flight_id: directive.flight_id,
                                 order,
                             }
                         }
-                        naval_sim::pve_air::AirIntent::Deck(action) => {
+                        naval_sim::aviation::AirIntent::Deck(action) => {
                             naval_protocol::Command::Deck {
                                 flight_id: directive.flight_id,
                                 action,

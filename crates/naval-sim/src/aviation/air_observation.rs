@@ -62,7 +62,7 @@ impl Aviation {
         } else {
             orbit_point(p, anchor, radius, 1.0)
         };
-        crate::aircraft::set_str(&mut p.phase, "outbound");
+        crate::aviation::aircraft::set_str(&mut p.phase, "outbound");
         p.pilot.attack_stage = None;
         p.pilot.attack_heading = None;
         fly(
@@ -85,7 +85,7 @@ impl Aviation {
         dt: f64,
     ) -> Option<StrikeSolution> {
         if !p.payload {
-            crate::aircraft::set_str(&mut p.phase, "returning");
+            crate::aviation::aircraft::set_str(&mut p.phase, "returning");
             if let Some(f) = flight
                 && f.notice
                     .as_deref()
@@ -117,7 +117,7 @@ impl Aviation {
             if let Some(f) = flight {
                 f.notice = Some("Target unavailable · Returning armed".into());
             }
-            crate::aircraft::set_str(&mut p.phase, "returning");
+            crate::aviation::aircraft::set_str(&mut p.phase, "returning");
             return None;
         };
         // A wingmate's retarget changes the flight order; the flight stays on
@@ -182,7 +182,7 @@ impl Aviation {
                     if let Some(f) = flight {
                         f.notice = Some(format!("{prefix} · Returning armed"));
                     }
-                    crate::aircraft::set_str(&mut p.phase, "returning");
+                    crate::aviation::aircraft::set_str(&mut p.phase, "returning");
                     return None;
                 }
             }
@@ -288,7 +288,7 @@ impl Aviation {
         &mut self,
         p: &mut Aircraft,
         observed_id: &str,
-        burst: &crate::aircraft_accuracy::FighterBurst,
+        burst: &crate::aviation::aircraft_accuracy::FighterBurst,
         gun: &FighterAim,
         ctx: &mut AirContext<'_>,
     ) {
@@ -317,7 +317,7 @@ impl Aviation {
             add(target.position, scale(target.velocity, gun.time)),
         )) < 45.0
         {
-            crate::aircraft_defense::near_fire(target, p.position);
+            crate::aviation::aircraft_defense::near_fire(target, p.position);
         }
         if hit {
             target.hp -= air_gunnery::FIGHTER_DAMAGE

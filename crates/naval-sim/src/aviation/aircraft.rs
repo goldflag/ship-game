@@ -120,7 +120,7 @@ pub struct Aircraft {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub deck_datum: Option<Vec3>,
     #[serde(skip)]
-    pub deck_local_attitude: Option<crate::aircraft_flight::FlightAttitude>,
+    pub deck_local_attitude: Option<crate::aviation::aircraft_flight::FlightAttitude>,
     pub deck_position: Option<Vec3>,
     pub deck_heading: Option<f64>,
     pub timer: f64,
@@ -128,9 +128,9 @@ pub struct Aircraft {
     pub cooldown: f64,
     pub target_id: Option<String>,
     pub kills: u32,
-    pub controls: crate::aircraft_flight::FlightControls,
-    pub previous_controls: Option<crate::aircraft_flight::FlightControls>,
-    pub previous_attitude: Option<crate::aircraft_flight::FlightAttitude>,
+    pub controls: crate::aviation::aircraft_flight::FlightControls,
+    pub previous_controls: Option<crate::aviation::aircraft_flight::FlightControls>,
+    pub previous_attitude: Option<crate::aviation::aircraft_flight::FlightAttitude>,
     pub pilot: AirPilot,
     pub deck_slot: Option<usize>,
     pub flight_id: Option<String>,
@@ -153,14 +153,14 @@ pub struct AirWreck {
 #[serde(rename_all = "camelCase")]
 pub struct AirPilot {
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub maneuver: Option<crate::aircraft_tactics::FighterManeuver>,
+    pub maneuver: Option<crate::aviation::aircraft_tactics::FighterManeuver>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub formation: Option<crate::aircraft_formation::FormationState>,
+    pub formation: Option<crate::aviation::aircraft_formation::FormationState>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub defense: Option<crate::aircraft_defense::DefenseState>,
+    pub defense: Option<crate::aviation::aircraft_defense::DefenseState>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub recovery: Option<crate::aircraft_recovery::RecoveryProgress>,
-    pub fire_discipline: Option<crate::air_gunnery::FireDiscipline>,
+    pub recovery: Option<crate::aviation::aircraft_recovery::RecoveryProgress>,
+    pub fire_discipline: Option<crate::aviation::air_gunnery::FireDiscipline>,
     pub think: f64,
     pub hostile_id: Option<String>,
     pub aim_time: f64,
@@ -183,9 +183,9 @@ fn is_zero(v: &f64) -> bool {
 #[serde(rename_all = "camelCase")]
 pub struct AirWingState {
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub recovery: Option<crate::air_recovery::CarrierRecovery>,
+    pub recovery: Option<crate::aviation::air_recovery::CarrierRecovery>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub deck: Option<crate::deck_operations::DeckStatus>,
+    pub deck: Option<crate::aviation::deck_operations::DeckStatus>,
     pub planes: Vec<Aircraft>,
     pub launch_cooldown: f64,
     pub flights: Vec<AirFlight>,
@@ -287,7 +287,7 @@ pub fn on_flight_deck(p: &Aircraft) -> bool {
                 | "lowering"
                 | "launch-ready"
         )
-        || p.phase == "takeoff" && p.timer <= crate::aircraft_flight::TAKEOFF_ROLL_SECONDS
+        || p.phase == "takeoff" && p.timer <= crate::aviation::aircraft_flight::TAKEOFF_ROLL_SECONDS
 }
 pub fn active_flight(f: &AirFlight, planes: &[Aircraft]) -> bool {
     planes.iter().any(|p| {
@@ -321,7 +321,7 @@ pub fn create_air_wing(
     def: &crate::definition::ShipDefinition,
     owner_id: &str,
     team: TeamId,
-    ground: &std::collections::BTreeMap<String, crate::aircraft_deck::GroundPose>,
+    ground: &std::collections::BTreeMap<String, crate::aviation::aircraft_deck::GroundPose>,
 ) -> Option<AirWingState> {
     let wing = def.air_wing.as_ref()?;
     Some(AirWingState {

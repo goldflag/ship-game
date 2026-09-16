@@ -1,5 +1,5 @@
 //! Versioned gameplay airframe calibration, independent of visual asset recipes.
-use crate::aircraft::Aircraft;
+use crate::aviation::aircraft::Aircraft;
 use serde::Deserialize;
 use std::{collections::BTreeMap, sync::OnceLock};
 
@@ -28,7 +28,7 @@ fn profiles() -> &'static Profiles {
     static DATA: OnceLock<Profiles> = OnceLock::new();
     DATA.get_or_init(|| {
         let data: Profiles = serde_json::from_str(include_str!(
-            "../../../assets/gameplay/aircraft-performance.v1.json"
+            "../../../../assets/gameplay/aircraft-performance.v1.json"
         ))
         .expect("valid aircraft performance calibration");
         assert_eq!(data.version, 1);

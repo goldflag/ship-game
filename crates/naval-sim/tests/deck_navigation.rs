@@ -1,4 +1,7 @@
-use naval_sim::{catalog::Catalog, deck_navigation::DeckTraffic, flight_deck::DeckPose};
+use naval_sim::{
+    aviation::{DeckPose, DeckTraffic},
+    catalog::Catalog,
+};
 use std::sync::OnceLock;
 fn catalog() -> &'static Catalog {
     static CONTENT: OnceLock<Catalog> = OnceLock::new();
@@ -53,7 +56,7 @@ fn both_full_decks_have_an_order_of_clear_paths_to_the_launch_datum() {
                     .collect();
                 let traffic = DeckTraffic {
                     ship,
-                    surface: &naval_sim::deck_contact::DeckSurface::new(ship).unwrap(),
+                    surface: &naval_sim::aviation::DeckSurface::new(ship).unwrap(),
                     occupied: &occupied,
                 };
                 if let Some(route) = traffic.route(model, from, pose(layout.launch_start)) {
@@ -89,7 +92,7 @@ fn empty_deck_allows_recovery_to_elevator_and_rejects_unsupported_destinations()
         let layout = wing.deck_layout.as_ref().unwrap();
         let traffic = DeckTraffic {
             ship,
-            surface: &naval_sim::deck_contact::DeckSurface::new(ship).unwrap(),
+            surface: &naval_sim::aviation::DeckSurface::new(ship).unwrap(),
             occupied: &[],
         };
         for pool in &wing.squadrons {
@@ -120,7 +123,7 @@ fn empty_deck_allows_recovery_to_elevator_and_rejects_unsupported_destinations()
 
 #[test]
 fn routing_yields_within_budget_and_invalidates_paths_when_the_deck_changes() {
-    use naval_sim::deck_navigation::RouteProgress;
+    use naval_sim::aviation::RouteProgress;
     let ship = &catalog().definitions["enterprise-cv6"];
     let wing = ship.air_wing.as_ref().unwrap();
     let layout = wing.deck_layout.as_ref().unwrap();
@@ -137,7 +140,7 @@ fn routing_yields_within_budget_and_invalidates_paths_when_the_deck_changes() {
     let to = pose(layout.launch_start);
     let traffic = DeckTraffic {
         ship,
-        surface: &naval_sim::deck_contact::DeckSurface::new(ship).unwrap(),
+        surface: &naval_sim::aviation::DeckSurface::new(ship).unwrap(),
         occupied: &[],
     };
     let mut search = traffic.begin_route(model, from, to, 7);

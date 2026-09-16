@@ -1,8 +1,8 @@
 //! Bounded ground-route search. A route includes its turns: a clear parking spot
 //! and runway do not by themselves imply that an aircraft can move between them.
+use super::flight_deck::{AircraftDeckGeometry, DeckPose, Envelope, inside};
 use crate::{
     definition::ShipDefinition,
-    flight_deck::{AircraftDeckGeometry, DeckPose, Envelope, inside},
     geometry::{length, sub, wrap_angle},
 };
 use std::{
@@ -12,7 +12,7 @@ use std::{
 
 pub struct DeckTraffic<'a> {
     pub ship: &'a ShipDefinition,
-    pub surface: &'a crate::deck_contact::DeckSurface,
+    pub surface: &'a crate::aviation::deck_contact::DeckSurface,
     /// Excludes the moving aircraft; includes occupied and reserved destinations.
     pub occupied: &'a [(Envelope, DeckPose)],
 }

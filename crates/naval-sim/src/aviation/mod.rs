@@ -1,7 +1,66 @@
-use crate::{
-    aircraft::*, aircraft_deck::GroundPose, environment::SeaState, machinery::equipment_condition,
-    vessel::Vessel,
+//! The air wing: every carrier aircraft from hangar spot to loss, behind one
+//! seam. Callers hold an [`Aviation`] and drive it with [`AirContext`] through
+//! `Aviation::step`; orders arrive as [`AirOrder`] and deck handling as
+//! [`DeckAction`]/[`DeckPolicy`]; what leaves the wing each tick is
+//! [`AirRelease`]s, damage events and the serialised [`CarrierWing`]s.
+//!
+//! The submodules are private. Anything the rest of the simulation or another
+//! crate needs is re-exported here; a name that is not re-exported is an
+//! implementation detail of the wing and may change without notice.
+mod air_gunnery;
+mod air_operations;
+mod air_recovery;
+mod air_rules;
+mod air_search;
+mod aircraft;
+mod aircraft_accuracy;
+mod aircraft_deck;
+mod aircraft_defense;
+mod aircraft_flight;
+mod aircraft_formation;
+mod aircraft_performance;
+mod aircraft_recovery;
+mod aircraft_strike;
+mod aircraft_tactics;
+mod deck_contact;
+mod deck_navigation;
+mod deck_operations;
+mod fighter_coordination;
+mod flight_deck;
+mod pve_air;
+mod step;
+
+pub use air_gunnery::FireDiscipline;
+pub(crate) use air_gunnery::{aa_damage, aa_spread, gunnery_seed, panic_aim, step_discipline};
+pub use air_recovery::CarrierRecovery;
+pub use air_rules::{
+    ActiveFlights, AirRules, ConsolidationPolicy, DeckCycle, DeckTimings, EndurancePolicy,
 };
+pub use air_search::valid_area;
+pub(crate) use aircraft::on_flight_deck;
+pub use aircraft::{
+    AirFlight, AirOrder, AirRelease, AirWingState, Aircraft, PlaneView, SearchAltitude,
+    SearchPolicy, SearchProgress, active_flight, airborne, create_air_wing, terminal,
+};
+pub use aircraft_accuracy::strike_aim_error;
+pub use aircraft_deck::{GroundPose, compose_attitude};
+pub use aircraft_defense::{DefenseState, evade_bomber, near_fire, tick};
+pub use aircraft_flight::{
+    FlightAttitude, FlightControls, FlightOptions, TAKEOFF_ROLL_SECONDS, fly, step_mechanisms,
+};
+pub use aircraft_formation::{fly_formation, formation_kind, formation_leader, formation_offset};
+pub use aircraft_performance::performance_for;
+pub use aircraft_recovery::RecoveryProgress;
+pub use aircraft_tactics::{FighterAim, fighter_fire_ready, fighter_target, steer_fighter};
+pub use deck_contact::{ContactPose, DeckSurface};
+pub use deck_navigation::{DeckTraffic, RouteProgress};
+pub use deck_operations::{DeckAction, DeckOperations, DeckPolicy, place};
+pub(crate) use flight_deck::validate;
+pub use flight_deck::{DeckPose, Envelope};
+pub use pve_air::{AirDoctrine, AirIntent};
+pub use step::AirContext;
+
+use crate::{environment::SeaState, machinery::equipment_condition, vessel::Vessel};
 use std::collections::BTreeMap;
 #[derive(Clone, Debug, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -15,15 +74,15 @@ pub struct Aviation {
     #[serde(skip)]
     pub ground: BTreeMap<String, GroundPose>,
     #[serde(skip)]
-    pub rules: crate::air_rules::AirRules,
+    pub rules: crate::aviation::air_rules::AirRules,
     #[serde(skip)]
-    pub carrier_rules: BTreeMap<String, crate::air_rules::CarrierAirRules>,
+    pub carrier_rules: BTreeMap<String, crate::aviation::air_rules::CarrierAirRules>,
     #[serde(skip)]
-    pub deck_operations: BTreeMap<String, crate::deck_operations::DeckOperations>,
+    pub deck_operations: BTreeMap<String, crate::aviation::deck_operations::DeckOperations>,
     #[serde(skip)]
     pub airspace: Option<crate::mission::BattleArea>,
     #[serde(skip)]
-    pub operations: crate::air_operations::AirOperations,
+    pub operations: crate::aviation::air_operations::AirOperations,
 }
 pub fn service_available(actor: &Vessel, sea: Option<(&SeaState, f64)>) -> bool {
     actor.motion.roll.abs() < 0.22
@@ -44,13 +103,17 @@ pub fn service_equipment_available(actor: &Vessel, sea: Option<(&SeaState, f64)>
 }
 impl Aviation {
     pub fn new(actors: &[Vessel], ground: BTreeMap<String, GroundPose>) -> Self {
-        Self::with_rules(actors, ground, crate::air_rules::AirRules::legacy())
-            .expect("Validated carrier definitions support legacy air rules")
+        Self::with_rules(
+            actors,
+            ground,
+            crate::aviation::air_rules::AirRules::legacy(),
+        )
+        .expect("Validated carrier definitions support legacy air rules")
     }
     pub fn with_rules(
         actors: &[Vessel],
         ground: BTreeMap<String, GroundPose>,
-        rules: crate::air_rules::AirRules,
+        rules: crate::aviation::air_rules::AirRules,
     ) -> Result<Self, String> {
         rules.validate()?;
         let carrier_rules = actors
@@ -77,7 +140,7 @@ impl Aviation {
             airspace: None,
             operations: Default::default(),
         };
-        if let crate::air_rules::DeckCycle::Managed {
+        if let crate::aviation::air_rules::DeckCycle::Managed {
             startup_groups_per_role,
             ..
         } = aviation.rules.deck_cycle.clone()
@@ -102,7 +165,7 @@ impl Aviation {
                         p.flight_id = Some(flight.id.clone());
                     }
                 }
-                let ops = crate::deck_operations::DeckOperations::initialize(
+                let ops = crate::aviation::deck_operations::DeckOperations::initialize(
                     state,
                     actor,
                     &aviation.ground,
@@ -242,7 +305,7 @@ impl Aviation {
                 policy,
                 ..
             } => {
-                crate::air_search::valid_area(*center, *radius_m)
+                crate::aviation::air_search::valid_area(*center, *radius_m)
                     && self
                         .airspace
                         .as_ref()
@@ -339,7 +402,7 @@ impl Aviation {
                 && state
                     .planes
                     .iter()
-                    .any(|p| f.plane_ids.contains(&p.id) && !crate::aircraft::terminal(p))
+                    .any(|p| f.plane_ids.contains(&p.id) && !crate::aviation::aircraft::terminal(p))
                 && state
                     .planes
                     .iter()
@@ -372,7 +435,7 @@ impl Aviation {
             let result = ops.enqueue(
                 self.wing(&actor.motion.id).unwrap(),
                 &flight.id,
-                crate::deck_operations::DeckAction::Launch,
+                crate::aviation::deck_operations::DeckAction::Launch,
             );
             let suspended = self
                 .wing(&actor.motion.id)
@@ -398,7 +461,7 @@ impl Aviation {
             if !managed {
                 p.sortie = Some(p.sortie.unwrap_or(0) + 1);
             }
-            crate::aircraft::set_str(&mut p.phase, "queued");
+            crate::aviation::aircraft::set_str(&mut p.phase, "queued");
             p.flight_id = Some(flight.id.clone());
             p.target_id = match &order {
                 AirOrder::Attack { target_id } => Some(target_id.clone()),
@@ -422,9 +485,9 @@ impl Aviation {
         &mut self,
         actor_id: &str,
         flight_id: &str,
-        action: crate::deck_operations::DeckAction,
+        action: crate::aviation::deck_operations::DeckAction,
     ) -> Result<u64, String> {
-        if action == crate::deck_operations::DeckAction::Launch {
+        if action == crate::aviation::deck_operations::DeckAction::Launch {
             return Err("A launch requires a validated flight order".into());
         }
         let flight_id = self.resolved_flight_id(actor_id, flight_id);
@@ -462,7 +525,7 @@ impl Aviation {
         ops.publish(self.wing_mut(actor_id).unwrap(), suspended);
         self.deck_operations.insert(actor_id.into(), ops);
         if cancelled && let Some(request) = request {
-            if request.action == crate::deck_operations::DeckAction::Launch {
+            if request.action == crate::aviation::deck_operations::DeckAction::Launch {
                 // Cancellation is an order lifecycle event, not only removal of
                 // a handling job. Recall clears queued aircraft and persistent
                 // patrol/package intent; committed moves finish safely as usual.
@@ -483,7 +546,7 @@ impl Aviation {
     pub fn set_deck_policy(
         &mut self,
         actor_id: &str,
-        policy: crate::deck_operations::DeckPolicy,
+        policy: crate::aviation::deck_operations::DeckPolicy,
     ) -> Result<(), String> {
         let ops = self
             .deck_operations
@@ -538,7 +601,7 @@ impl Aviation {
                 continue;
             }
             if p.phase == "queued" {
-                crate::aircraft::set_str(&mut p.phase, "ready");
+                crate::aviation::aircraft::set_str(&mut p.phase, "ready");
                 if !managed {
                     p.deck_slot = None;
                     p.deck_datum = None;
@@ -548,9 +611,9 @@ impl Aviation {
                 // Handling finishes at a safe point. A committed takeoff run
                 // finishes airborne, then the flight's Return order applies.
             } else if p.phase == "taxi" || p.phase == "takeoff" && on_flight_deck(p) {
-                crate::aircraft::set_str(&mut p.phase, "parking");
+                crate::aviation::aircraft::set_str(&mut p.phase, "parking");
             } else if airborne(p) && p.phase != "landing" {
-                crate::aircraft::set_str(&mut p.phase, "returning");
+                crate::aviation::aircraft::set_str(&mut p.phase, "returning");
             }
         }
         if managed {
@@ -627,7 +690,7 @@ impl Aviation {
             p.search = None;
             p.recovery_requested_at = None;
             if matches!(p.phase.as_str(), "outbound" | "attack" | "returning") {
-                crate::aircraft::set_str(&mut p.phase, "outbound");
+                crate::aviation::aircraft::set_str(&mut p.phase, "outbound");
             }
         }
         self.record_air_order(actor, flight_id, &order);

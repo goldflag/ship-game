@@ -1,11 +1,10 @@
 //! Short, persistent reactions to locally observed attackers and close gunfire.
 //! This controller receives permitted pilot observations, never a hidden threat list.
-use crate::{
+use super::{
     aircraft::{Aircraft, PlaneView, set_opt_str},
     aircraft_flight::{FlightOptions, fly},
-    definition::Vec3,
-    geometry::*,
 };
+use crate::{definition::Vec3, geometry::*};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
@@ -93,7 +92,7 @@ pub fn evade_bomber(
         && (!committed || severe)
         && (threat.is_some() || under_fire)
     {
-        let key = crate::air_gunnery::SeedKey::new(seed)
+        let key = crate::aviation::air_gunnery::SeedKey::new(seed)
             .text(&p.id)
             .text("/")
             .number(p.sortie.unwrap_or(0))

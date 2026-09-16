@@ -1,6 +1,8 @@
-use crate::{
+use super::{
     air_gunnery::{fighter_spread, gunnery_seed},
     aircraft::Aircraft,
+};
+use crate::{
     ballistics::{dispersed_direction, dispersed_speed},
     definition::Vec3,
     geometry::*,

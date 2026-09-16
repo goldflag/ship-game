@@ -1,7 +1,5 @@
-use crate::{
-    aircraft::Aircraft, aircraft_flight::FlightAttitude, definition::Vec3, geometry::*,
-    vessel::Vessel,
-};
+use super::{aircraft::Aircraft, aircraft_flight::FlightAttitude};
+use crate::{definition::Vec3, geometry::*, vessel::Vessel};
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GroundPose {
@@ -10,7 +8,7 @@ pub struct GroundPose {
     pub clearance: f64,
     pub folding_wings: bool,
     /// Measured geometry baked into the installed catalog.
-    pub deck_geometry: crate::flight_deck::AircraftDeckGeometry,
+    pub deck_geometry: crate::aviation::flight_deck::AircraftDeckGeometry,
     pub torpedo: Option<crate::definition::TorpedoPart>,
     pub bomb: Option<AirBomb>,
 }

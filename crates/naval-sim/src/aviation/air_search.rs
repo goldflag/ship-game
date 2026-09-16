@@ -1,6 +1,6 @@
 //! Bounded, deterministic search geometry; no world or target access.
+use super::aircraft::{SearchAltitude, SearchProgress};
 use crate::{
-    aircraft::{SearchAltitude, SearchProgress},
     definition::Vec3,
     geometry::{length, sub},
 };

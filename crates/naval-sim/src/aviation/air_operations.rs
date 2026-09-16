@@ -1,12 +1,11 @@
 //! Persistent orders own existing groups, never aircraft or ammunition. Only
 //! accepted commands create stations/packages; parked default orders do not.
-use crate::{
+use super::{
+    Aviation,
     aircraft::{AirOrder, Aircraft, FIGHTER_AMMO_BURSTS, active_flight, terminal},
-    aviation::Aviation,
     deck_operations::DeckAction,
-    environment::SeaState,
-    vessel::Vessel,
 };
+use crate::{environment::SeaState, vessel::Vessel};
 #[path = "air_packages.rs"]
 mod packages;
 pub use packages::AttackPackage;

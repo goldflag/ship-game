@@ -1,9 +1,8 @@
-use crate::{
+use super::{
     aircraft::{Aircraft, PlaneView, set_opt_str, set_str},
     aircraft_flight::{FlightOptions, fly},
-    definition::Vec3,
-    geometry::*,
 };
+use crate::{definition::Vec3, geometry::*};
 #[derive(Clone, Debug, Default, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FighterManeuver {
@@ -55,7 +54,7 @@ pub fn fighter_target(
         return Some(held);
     }
     p.pilot.think = THINK_SECONDS;
-    let best = crate::fighter_coordination::target(p, planes, carrier, target_flight);
+    let best = crate::aviation::fighter_coordination::target(p, planes, carrier, target_flight);
     let id = best.map(|i| planes[i].id);
     // The stored identity is unchanged when it already matches, so the string
     // is only reallocated when the pilot actually switches tracks.
@@ -165,7 +164,7 @@ pub fn steer_fighter(
         0.0
     };
     if p.pilot.break_time <= 0.0 && p.pilot.break_cooldown <= 0.0 {
-        let key = crate::air_gunnery::SeedKey::new(0)
+        let key = crate::aviation::air_gunnery::SeedKey::new(0)
             .text(&p.id)
             .text("/")
             .number(p.sortie.unwrap_or(0))

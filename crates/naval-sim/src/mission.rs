@@ -1,6 +1,6 @@
 //! Frozen, content-validated mission policy. Legacy callers omit MissionRules.
 use crate::{
-    aircraft::AirWingState,
+    aviation::AirWingState,
     catalog::Catalog,
     geometry::{clamp, wrap_angle},
     machinery::launcher_available,
@@ -254,7 +254,7 @@ pub fn permanently_incapable(a: &Vessel, wing: Option<&AirWingState>) -> bool {
             .as_ref()
             .is_some_and(|w| module_intact(&w.service_module_id));
         if wing.planes.iter().any(|p| {
-            !crate::aircraft::terminal(p)
+            !crate::aviation::terminal(p)
                 && p.hp > 0.0
                 && p.role != "fighter"
                 && (service

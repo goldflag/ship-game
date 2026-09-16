@@ -1,8 +1,5 @@
 use naval_sim::{
-    aircraft::Aircraft,
-    aircraft_flight::{FlightOptions, fly},
-    aircraft_performance::performance_for,
-    aviation::Aviation,
+    aviation::{Aircraft, Aviation, FlightOptions, fly, performance_for},
     catalog::Catalog,
     geometry::length,
     rules::TeamId,
@@ -160,7 +157,7 @@ fn roll_response_and_submaximum_cruise_vary_but_recovery_speeds_remain_prescribe
 
 #[test]
 fn dive_brakes_remain_cpu_driven_and_strike_error_replays_by_seed_and_pass() {
-    use naval_sim::{aircraft_accuracy::strike_aim_error, aircraft_flight::step_mechanisms};
+    use naval_sim::aviation::{step_mechanisms, strike_aim_error};
     let mut p = plane("sbd-3-dauntless", "dive-bomber");
     p.phase = "attack".into();
     p.pitch = -0.6;

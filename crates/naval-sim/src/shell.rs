@@ -16,7 +16,7 @@ pub struct LodgedShell {
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Shell {
-    pub bomb: Option<crate::aircraft_flight::FlightAttitude>,
+    pub bomb: Option<crate::aviation::FlightAttitude>,
     #[serde(rename = "type")]
     pub shell_type: Option<String>,
     pub id: i64,

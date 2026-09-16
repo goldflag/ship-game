@@ -2,8 +2,8 @@
 //! caller's permitted strike solution; package membership discloses no target.
 use super::*;
 use crate::{
-    aircraft_flight::{FlightOptions, fly},
-    aircraft_tactics::orbit_point,
+    aviation::aircraft_flight::{FlightOptions, fly},
+    aviation::aircraft_tactics::orbit_point,
     definition::Vec3,
     geometry::wrap_angle,
 };
@@ -112,7 +112,7 @@ impl Aviation {
                 && w.state.planes.iter().any(|p| {
                     !p.payload
                         && !terminal(p)
-                        && crate::aircraft::airborne(p)
+                        && crate::aviation::aircraft::airborne(p)
                         && package
                             .members
                             .iter()

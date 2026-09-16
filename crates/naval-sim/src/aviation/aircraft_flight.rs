@@ -1,4 +1,5 @@
-use crate::{aircraft::Aircraft, definition::Vec3, geometry::*};
+use super::aircraft::Aircraft;
+use crate::{definition::Vec3, geometry::*};
 use serde::{Deserialize, Serialize};
 pub const TAKEOFF_ROLL_SECONDS: f64 = 3.6;
 pub const TAKEOFF_CLIMB_SECONDS: f64 = 2.4;
@@ -47,7 +48,7 @@ pub fn fly(p: &mut Aircraft, point: Vec3, requested_speed: f64, dt: f64, options
         return;
     }
     p.navigation_target = Some(point);
-    let performance = crate::aircraft_performance::performance_for(p);
+    let performance = crate::aviation::aircraft_performance::performance_for(p);
     let min_speed = performance.min_speed;
     let speed = length(p.velocity).max(min_speed);
     let (dx, dz) = (point[0] - p.position[0], point[2] - p.position[2]);

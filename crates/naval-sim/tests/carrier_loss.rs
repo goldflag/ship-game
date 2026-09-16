@@ -1,11 +1,9 @@
 use naval_sim::{
-    air_recovery::CarrierRecovery,
-    air_rules::{ActiveFlights, AirRules, DeckCycle, DeckTimings, EndurancePolicy},
-    aircraft::{AirOrder, active_flight, terminal},
-    aviation::Aviation,
-    aviation_step::AirContext,
+    aviation::{
+        ActiveFlights, AirContext, AirOrder, AirRules, Aviation, CarrierRecovery, DeckAction,
+        DeckCycle, DeckTimings, EndurancePolicy, active_flight, terminal,
+    },
     catalog::Catalog,
-    deck_operations::DeckAction,
     rules::TeamId,
     sensors::{self, Knowledge, Sensors},
     vessel::Vessel,

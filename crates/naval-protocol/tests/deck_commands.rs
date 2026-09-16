@@ -1,10 +1,11 @@
 use naval_protocol::{Command, CommandEnvelope, CommandError, decode_command, session::Session};
 use naval_sim::{
-    air_rules::{ActiveFlights, AirRules, DeckCycle, DeckTimings, EndurancePolicy},
+    aviation::{
+        ActiveFlights, AirRules, DeckAction, DeckCycle, DeckPolicy, DeckTimings, EndurancePolicy,
+    },
     battle::{Battle, BattleSetup, ShipSetup},
     bots::AiLevel,
     catalog::Catalog,
-    deck_operations::{DeckAction, DeckPolicy},
     rules::TeamId,
     vessel::Controller,
 };

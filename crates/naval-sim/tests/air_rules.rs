@@ -1,8 +1,5 @@
 use naval_sim::{
-    air_rules::{ActiveFlights, AirRules, EndurancePolicy},
-    aircraft::AirOrder,
-    aviation::Aviation,
-    aviation_step::AirContext,
+    aviation::{ActiveFlights, AirContext, AirOrder, AirRules, Aviation, EndurancePolicy},
     catalog::Catalog,
     rules::TeamId,
     vessel::{CompiledShip, Controller, Vessel},
@@ -60,7 +57,7 @@ fn content_profiles_are_required_and_selected_values_cannot_be_tampered_with() {
     let rules = AirRules::legacy();
     assert!(rules.validate_selection(catalog()).is_ok());
     let mut altered = rules.clone();
-    altered.consolidation = naval_sim::air_rules::ConsolidationPolicy::Disabled;
+    altered.consolidation = naval_sim::aviation::ConsolidationPolicy::Disabled;
     assert!(altered.validate_selection(catalog()).is_err());
     altered = rules.clone();
     altered.endurance = EndurancePolicy::Disabled;
@@ -233,7 +230,7 @@ fn pve_profile_keeps_simplified_launches_and_long_finite_endurance() {
     assert_eq!(resolved.group_size, 6);
     assert_eq!(resolved.deck_capacity, 12);
     assert_eq!(resolved.active_flights, None);
-    assert_eq!(rules.deck_cycle, naval_sim::air_rules::DeckCycle::Legacy);
+    assert_eq!(rules.deck_cycle, naval_sim::aviation::DeckCycle::Legacy);
     let mut aviation = Aviation::with_rules(&actors, catalog().aircraft.clone(), rules).unwrap();
     let flights = aviation.squadron_flights(actor);
     assert_eq!(flights.len(), 9);
@@ -289,7 +286,7 @@ fn pve_profile_keeps_simplified_launches_and_long_finite_endurance() {
     );
     let wing = aviation.wing("carrier").unwrap();
     assert!(
-        naval_sim::aircraft_formation::formation_leader(
+        naval_sim::aviation::formation_leader(
             &wing.flights[0],
             &wing.planes,
             &aviation.rules.endurance
@@ -297,7 +294,7 @@ fn pve_profile_keeps_simplified_launches_and_long_finite_endurance() {
         .is_some()
     );
     assert!(
-        naval_sim::aircraft_formation::formation_leader(
+        naval_sim::aviation::formation_leader(
             &wing.flights[0],
             &wing.planes,
             &AirRules::legacy().endurance

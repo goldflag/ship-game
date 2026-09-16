@@ -1,10 +1,9 @@
-use crate::{
+use super::{
     air_gunnery::SeedKey,
     aircraft::{AirFlight, Aircraft, set_str},
     aircraft_flight::{FlightOptions, fly},
-    definition::Vec3,
-    geometry::*,
 };
+use crate::{definition::Vec3, geometry::*};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -105,7 +104,7 @@ pub fn formation_offset(f: &AirFlight, p: &Aircraft, time: f64, seed: u32) -> Ve
 pub fn formation_leader(
     f: &AirFlight,
     planes: &[Aircraft],
-    endurance: &crate::air_rules::EndurancePolicy,
+    endurance: &crate::aviation::air_rules::EndurancePolicy,
 ) -> Option<usize> {
     f.plane_ids
         .iter()
