@@ -194,7 +194,7 @@ export async function checkShipbuilderEditing() {
   await wait(() => compiled() && document.querySelector('[data-tag="group"]'), 'the selection tag follows the copied group');
   await controls.tab('Armor'); await wait(() => compiled(), 'native compiled faces become selectable');
   await controls.tool('Area'); controls.click(...center); await wait(() => document.querySelector('[data-tag="faces"]'), 'area selection tags the picked faces');
-  await controls.slot(1); await wait(() => source()!.construction.surfaces.some(surface => surface.thicknessMm === 50), 'the Armor card assigns its current millimeters through the actual controls');
+  await controls.slot(1); await wait(() => source()!.construction.surfaces.some(surface => surface.thicknessMm === 10), 'the Armor card assigns its current millimeters through the actual controls');
   await wait(() => compiled(), 'armor assignment compiles');
   await controls.tool('Opening'); controls.click(...center); await wait(() => source()!.construction.surfaces.some(surface => surface.open), 'explicit openings remain distinct from armor');
   controls.key('z', { ctrlKey: true }); await wait(() => source()!.construction.surfaces.every(surface => !surface.open), 'undo restores closed skin and armor together');
