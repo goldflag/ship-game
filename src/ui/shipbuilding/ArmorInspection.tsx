@@ -1,5 +1,5 @@
 import type { ConstructionSurface } from '../../ships/blueprint';
-import { surfaceKey } from '../../ships/constructionEditor';
+import { surfaceSelectionKey } from '../../ships/constructionEditor';
 import { CONSTRUCTION_PAINTS } from '../../ships/constructionPaints';
 
 /** Display totals use the compiler's exposed patch areas, never primitive box estimates. */
@@ -10,7 +10,7 @@ export function armorInspectionGroups(surfaces: readonly ConstructionSurface[]) 
     let group = groups.get(key);
     if (!group) { group = { surface: { open: surface.open, thicknessMm: surface.thicknessMm, material: surface.material, paint: surface.paint }, areaM2: 0, faces: new Set() }; groups.set(key, group); }
     group.areaM2 += surface.areaM2;
-    group.faces.add(surfaceKey(surface.primitiveId, surface.face));
+    group.faces.add(surfaceSelectionKey(surface));
   }
   return [...groups.entries()].map(([id, group]) => ({ id, ...group }));
 }

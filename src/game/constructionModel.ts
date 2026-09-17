@@ -14,7 +14,8 @@ export function createConstructionHull(surfaces: readonly ConstructionSurface[],
   const smooth = new Map(primitives.filter(p => p.smoothGroup || SMOOTH_HULL_SHAPES.has(p.kind)).map(p => [p.id, p.smoothGroup ? 'joined:' + p.smoothGroup : p.id]));
   const normalAt = constructionVertexNormals(surfaces.filter(s => !s.open && smooth.has(s.primitiveId)).map(s => ({ ...s, group: smooth.get(s.primitiveId)! })));
   const custom = new Set(primitives.filter(p => p.kind === 'custom-hull').map(p => p.id));
-  const customNormalAt = constructionVertexNormals(surfaces.filter(s => !s.open && custom.has(s.primitiveId)).map(s => ({ ...s, group: s.id })), -1);
+  const customGroup = (surface: ConstructionSurface) => surface.panelId ? `${surface.primitiveId}:${surface.panelId.split('@')[0]}` : surface.id;
+  const customNormalAt = constructionVertexNormals(surfaces.filter(s => !s.open && custom.has(s.primitiveId)).map(s => ({ ...s, group: customGroup(s) })), -1);
   const textureSize = 128, pixels = new Uint8Array(textureSize * textureSize * 4);
   // Subtle repeatable coating grain. UVs remain in ship coordinates, so adjacent
   // primitives have neither a paint reset nor a visible block boundary.
@@ -56,7 +57,7 @@ export function createConstructionHull(surfaces: readonly ConstructionSurface[],
     const dominant = surface.normal.map(Math.abs).indexOf(Math.max(...surface.normal.map(Math.abs)));
     for (let i = 1; i < surface.vertices.length - 1; i++) {
       for (const point of [surface.vertices[0], surface.vertices[i], surface.vertices[i + 1]]) {
-        batch.positions.push(...point); batch.normals.push(...(custom.has(surface.primitiveId) ? customNormalAt(point, surface.normal, surface.id) : smooth.has(surface.primitiveId) ? normalAt(point, surface.normal, smooth.get(surface.primitiveId)!) : surface.normal));
+        batch.positions.push(...point); batch.normals.push(...(custom.has(surface.primitiveId) ? customNormalAt(point, surface.normal, customGroup(surface)) : smooth.has(surface.primitiveId) ? normalAt(point, surface.normal, smooth.get(surface.primitiveId)!) : surface.normal));
         const a = dominant === 0 ? 2 : 0, b = dominant === 1 ? 2 : 1;
         batch.uv.push(point[a] / CONSTRUCTION_FINISH.tileMeters, point[b] / CONSTRUCTION_FINISH.tileMeters);
       }

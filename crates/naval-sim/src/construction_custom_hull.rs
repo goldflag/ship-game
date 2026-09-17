@@ -43,7 +43,7 @@ pub fn build(p: &ConstructionPrimitive) -> Result<VertexSolid, String> {
         for edge in 0..9 {
             let k=(edge+1)%9;
             let name=match edge {0..=2=>"port",3..=4=>"bottom",5..=7=>"starboard",_=>"top"};
-            let tag=format!("{name}:{edge}");
+            let tag=format!("{name}:{edge}@{}",serde_json::to_string(&[&h.stations[span].id,&h.stations[span+1].id]).unwrap());
             if (4..8).contains(&edge) {
                 boundary.push((tag.clone(),vec![a[edge],a[k],b[k]],true));
                 boundary.push((tag,vec![a[edge],b[k],b[edge]],true));

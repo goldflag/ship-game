@@ -1,6 +1,7 @@
+import { mirroredPanelId } from '../../ships/constructionPanels';
 import { integrateConstructionMagazines, setBarbetteHeight } from '../../ships/constructionArmament';
 import type { ConstructionBoundary, ConstructionCatalog, ConstructionEquipment, ConstructionEquipmentPart, ConstructionPrimitive, ConstructionResult, ConstructionSource, ConstructionSuggestion, ConstructionSurface, ConstructionSurfaceAssignment, Vec3 } from '../../ships/blueprint';
-import { CONSTRUCTION_FACES, CONSTRUCTION_LIMITS, copyConstructionSelection, editableConstructionSurfaces, mirroredEquipment, mirroredFace, mirroredPrimitive, newConstructionId, surfaceKey, type ConstructionFace } from '../../ships/constructionEditor';
+import { assignConstructionSurfaces, CONSTRUCTION_LIMITS, copyConstructionSelection, editableConstructionSurfaces, mirroredEquipment, mirroredFace, mirroredPrimitive, newConstructionId, surfaceKey, surfaceSelectionKey, type ConstructionFace } from '../../ships/constructionEditor';
 import { constructionDiffCommands, type ConstructionCommand } from '../../ships/constructionCommands';
 import type { ConstructionRevisionOwner, ConstructionSubmission } from '../../ships/constructionRevisionOwner';
 import { canEditVertices, freeformEdit, selectionCenter, splitVertexPrimitive, VERTEX_UNITS, type HullSelection, type MirrorAxes } from '../../ships/constructionVertex';
@@ -169,7 +170,7 @@ export class BuilderTool {
     const source = this.source, compiled = this.compiled;
     if (!this.surfaceCache || this.surfaceCache.source !== source || this.surfaceCache.compiled !== compiled) {
       const surfaces = editableConstructionSurfaces(source, compiled?.surfaces ?? []);
-      this.surfaceCache = { source, compiled, surfaces, keys: new Set(surfaces.map(surface => surfaceKey(surface.primitiveId, surface.face))) };
+      this.surfaceCache = { source, compiled, surfaces, keys: new Set(surfaces.map(surface => surfaceSelectionKey(surface))) };
     }
     return this.surfaceCache;
   }
@@ -277,13 +278,9 @@ export class BuilderTool {
   redo = () => { if (!this.locked) this.door.redo(); };
   /** Face assignments as complete records, created from the skin default exactly as the editor helpers do. */
   private surfaceCommands(keys: ReadonlySet<string>, values: SurfaceValues): ConstructionCommand[] {
-    const commands: ConstructionCommand[] = [];
-    for (const primitive of this.data.primitives) for (const face of CONSTRUCTION_FACES) {
-      if (!keys.has(surfaceKey(primitive.id, face))) continue;
-      const existing = this.data.surfaces.find(surface => surface.primitiveId === primitive.id && surface.face === face);
-      commands.push({ op: 'surface', value: { ...(existing ?? { primitiveId: primitive.id, face, thicknessMm: this.data.defaultThicknessMm, material: 'steel', paint: 'naval-gray' }), ...values } });
-    }
-    return commands;
+    const draft = { ...this.source, construction: { ...this.data, surfaces: this.data.surfaces.map(surface => ({ ...surface })) } };
+    assignConstructionSurfaces(draft, keys, values);
+    return draft.construction.surfaces.filter(surface => keys.has(surfaceSelectionKey(surface))).map(value => ({ op: 'surface', value }));
   }
 
   // ---- layer, tool and cards
@@ -298,7 +295,7 @@ export class BuilderTool {
   switchLayer = (next: BuilderLayer) => {
     const slice = this.state.slice;
     this.update({ layer: next, tool: DEFAULT_TOOL[next], surfaces: new Set(), measure: undefined, bearing: 0,
-      ...(next === 'internals' ? { selected: new Set([...this.state.selected].filter(id => this.internalIds.has(id))) } : {}),
+      ...(next === 'armor' || next === 'paint' ? { selected: new Set<string>() } : next === 'internals' ? { selected: new Set([...this.state.selected].filter(id => this.internalIds.has(id))) } : {}),
       slice: slice.auto ? { on: next === 'internals', y: next === 'internals' ? this.defaultSlice() : slice.y, auto: true } : slice });
   };
   /** Choose a card: true when it acted, so the caller closes the drawer and its tooltip. */
@@ -465,9 +462,12 @@ export class BuilderTool {
     if (!this.state.mirror) return new Set(keys);
     const out = new Set(keys), editableKeys = this.editableKeys;
     for (const key of keys) {
-      const [primitiveId, face] = key.split(':') as [string, ConstructionFace];
+      const surface = this.editableSurfaces.find(surface => surfaceSelectionKey(surface) === key);
+      if (!surface) continue;
+      const { primitiveId, face, panelId } = surface;
       const primitive = this.data.primitives.find(part => part.id === primitiveId), twin = primitive && mirrorTwin(this.source, primitive);
-      if (twin && editableKeys.has(surfaceKey(twin.id, mirroredFace(face, primitive.kind)))) out.add(surfaceKey(twin.id, mirroredFace(face, primitive.kind)));
+      const reflected = primitive && twin ? surfaceKey(twin.id, mirroredFace(face as ConstructionFace, primitive.kind), mirroredPanelId(panelId)) : undefined;
+      if (reflected && editableKeys.has(reflected)) out.add(reflected);
     }
     return out;
   }
@@ -500,10 +500,10 @@ export class BuilderTool {
       if (!hit.surface) { if (!hit.additive) this.update({ surfaces: new Set() }); if (hit.id && tool === 'select') this.choose(hit.id, hit.additive); else if (!hit.additive) this.update({ selected: new Set() }); return undefined; }
       if (!this.compiled) { this.update({ notice: 'Face editing resumes when this source has a compiled preview.' }); return undefined; }
       if (!this.editableKeys.has(hit.surface)) { this.update({ notice: 'This fixed equipment support follows its fitting. Choose a hull face to edit.' }); return undefined; }
-      const surface = this.editableSurfaces.find(entry => surfaceKey(entry.primitiveId, entry.face) === hit.surface)!;
+      const surface = this.editableSurfaces.find(entry => surfaceSelectionKey(entry) === hit.surface)!;
       switch (tool) {
         case 'apply': return this.active ? this.applyItem(this.active, new Set([hit.surface])) : undefined;
-        case 'area': { const next = hit.additive ? new Set(this.state.surfaces) : new Set<string>(); for (const entry of this.editableSurfaces) if (entry.face === surface.face) next.add(surfaceKey(entry.primitiveId, entry.face)); this.update({ surfaces: next }); return undefined; }
+        case 'area': { const next = hit.additive ? new Set(this.state.surfaces) : new Set<string>(); for (const entry of this.editableSurfaces) if (entry.face === surface.face) next.add(surfaceSelectionKey(entry)); this.update({ surfaces: next }); return undefined; }
         case 'eyedrop':
           if (layer === 'armor') this.update({ customMm: surface.thicknessMm, slots: { ...this.state.slots, armor: 'armor' }, notice: `Armor thickness set to ${surface.thicknessMm} mm from the picked face.`, tool: 'apply' });
           else this.update({ slots: { ...this.state.slots, paint: surface.paint }, notice: 'Paint slot set from the picked face.', tool: 'apply' });

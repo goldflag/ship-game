@@ -48,6 +48,7 @@
 .sb-tag.brass { border-color: var(--sb-brass); }
 .sb-tag.bad { border-color: var(--sb-salmon); }
 .sb-tag.bad b { color: var(--sb-salmon); }
+.sb-face-armor { display:flex; align-items:baseline; gap:6px; margin:4px 0; }
 .sb-tag kbd { margin: 0 1px; }
 /* cursor readout above the palette: the active piece with its size fields, then the ghost's cell or the move offset; the open drawer covers its place */
 .sb-cursor { position: absolute; left: 50%; bottom: calc(var(--sb-bar-bottom) + var(--sb-bar-height) + 12px); transform: translateX(-50%); display: flex; align-items: baseline; gap: 14px; pointer-events: auto; font-size: 12px; color: var(--sb-muted); white-space: nowrap; }

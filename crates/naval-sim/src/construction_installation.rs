@@ -233,7 +233,7 @@ pub fn derive(
             if cg::area(&vertices) <= 1e-10 {
                 return;
             }
-            surfaces.push(ConstructionSurface {
+            surfaces.push(ConstructionSurface { panel_id: None,
                 id: format!("equipment:{}:{}:{}", e.id, face, surfaces.len()),
                 primitive_id: format!("equipment:{}", e.id),
                 face: face.into(),
