@@ -363,20 +363,23 @@ class Viewport {
         if (props.scene.display === 'armor') for (const group of armorGroups) geometry.addGroup(group.start, group.count, group.materialIndex);
         const mesh = new THREE.Mesh(geometry, props.scene.display === 'armor' ? [new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide }), new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide, transparent: true, opacity: .12, depthWrite: false })] : new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .78, metalness: 0, side: THREE.DoubleSide, transparent: props.scene.display === 'internals', opacity: props.scene.display === 'internals' ? .15 : 1, depthWrite: props.scene.display !== 'internals' }));
         mesh.userData.hull = true; this.hull.add(mesh); this.pickMeshes.push(mesh); this.hullMeshes.push(mesh);
-        // The Armor layer outlines every logical face of every piece, in one batch, so plates read as plates on the flat colour scale.
-        if (props.scene.display === 'armor') {
+        // Outline logical faces in one batch, retaining block seams without triangulation diagonals.
+        {
           const points: THREE.Vector3[] = [];
           for (const group of this.surfacesByKey.values()) for (const edge of surfaceOutline(group)) {
-            if (edge.surface.material !== 'armor-steel' || edge.surface.open) continue;
+            if (edge.surface.open || (props.scene.display === 'armor' && edge.surface.material !== 'armor-steel')) continue;
             const normal = new THREE.Vector3(...edge.surface.normal);
             points.push(new THREE.Vector3(...edge.a).addScaledVector(normal, .025), new THREE.Vector3(...edge.b).addScaledVector(normal, .025));
           }
-          if (points.length) this.hull.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(points), new THREE.LineBasicMaterial({ color: '#142a31', transparent: true, opacity: .4 })));
+          if (points.length) this.hull.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(points), new THREE.LineBasicMaterial({ color: '#142a31', transparent: true, opacity: props.scene.display === 'internals' ? .35 : .9, depthWrite: false })));
         }
       } else for (const primitive of props.scene.source.construction.primitives) {
         const mesh = new THREE.Mesh(primitiveGeometry(primitive.kind, primitive.size, primitive.vertices, primitive.customHull, primitive.shaping, primitive.balcony), new THREE.MeshStandardMaterial({ color: invalid.has(primitive.id) ? SALMON : constructionPaintColor('naval-gray'), roughness: .78, side: THREE.DoubleSide, transparent: props.scene.display !== 'paint', opacity: props.scene.display !== 'paint' ? .12 : 1, depthWrite: props.scene.display === 'paint' }));
         mesh.position.set(...primitive.position); mesh.rotation.y = primitive.rotationDeg * Math.PI / 180;
         mesh.userData.sourceId = primitive.id; this.hull.add(mesh); this.pickMeshes.push(mesh); this.hullMeshes.push(mesh);
+        mesh.material.polygonOffset = true; mesh.material.polygonOffsetFactor = 1; mesh.material.polygonOffsetUnits = 1;
+        const edges = new THREE.LineSegments(primitiveOutlineGeometry(primitive), new THREE.LineBasicMaterial({ color: '#142a31', transparent: true, opacity: props.scene.display === 'internals' ? .35 : .9, depthWrite: false }));
+        edges.position.copy(mesh.position); edges.rotation.copy(mesh.rotation); this.hull.add(edges);
       }
       this.hoverSurface = ''; release(this.hoverGroup);
     }
@@ -396,8 +399,10 @@ class Viewport {
     }
     this.composed.visible = props.scene.display === 'paint' && !!nativeSurfaces && !invalid.size;
     this.equipment.group.visible = !(props.createModel && this.composed.visible && this.composed.children.length);
-    // Native surfaces remain the pick target even when shared composition renders the exterior.
-    this.hull.visible = !this.composed.visible || !this.composed.children.length;
+    // Keep block outlines visible when shared composition renders the exterior.
+    // Native surface meshes remain the pick targets, but their duplicate fills are hidden.
+    this.hull.visible = true;
+    for (const mesh of this.hullMeshes) mesh.visible = !this.composed.visible || !this.composed.children.length;
     release(this.details); release(this.selection); this.selection.visible=true;
     this.pickMeshes = this.pickMeshes.filter(mesh => mesh.parent === this.hull);
     this.equipment.group.traverse(node => { if (node instanceof THREE.Mesh) this.pickMeshes.push(node); });
@@ -505,7 +510,8 @@ class Viewport {
       const geometry=primitiveGeometry(p.kind,p.size,p.vertices,p.customHull,p.shaping,p.balcony);
       const mesh=new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({color:constructionPaintColor('naval-gray'),roughness:.78,side:THREE.DoubleSide}));
       mesh.position.set(...p.position);mesh.rotation.y=p.rotationDeg*Math.PI/180;this.vertexPreview.add(mesh);
-      if(map.has(p.id)) {const edges=new THREE.LineSegments(new THREE.EdgesGeometry(geometry),new THREE.LineBasicMaterial({color:BRASS_LIGHT}));edges.position.copy(mesh.position);edges.rotation.copy(mesh.rotation);this.vertexPreview.add(edges);}
+      mesh.material.polygonOffset=true;mesh.material.polygonOffsetFactor=1;mesh.material.polygonOffsetUnits=1;
+      const edges=new THREE.LineSegments(primitiveOutlineGeometry(p),new THREE.LineBasicMaterial({color:map.has(p.id)?BRASS_LIGHT:'#142a31',depthWrite:false}));edges.position.copy(mesh.position);edges.rotation.copy(mesh.rotation);this.vertexPreview.add(edges);
     }
   }
 
