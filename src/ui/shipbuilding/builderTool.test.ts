@@ -35,13 +35,15 @@ function loaded(value: ConstructionSource) {
   return { source: value, revision: revision({ designId: value.id, name: value.name, source: value, expectedRevisionId: null, schemaVersion: 1, catalogRevision: value.construction.catalogRevision }, 'head1'), head: { id: value.id, name: value.name, revisionId: 'head1', updatedAt: 1, schemaVersion: 1, catalogRevision: value.construction.catalogRevision } };
 }
 /** A real revision owner over a fake store, the tool wired to it with deterministic IDs and an optional compile. */
-async function setup(options: { connect?: boolean; compile?: boolean; source?: ConstructionSource } = {}) {
+async function setup(options: { connect?: boolean; compile?: boolean; retained?: boolean; source?: ConstructionSource } = {}) {
   const initial = options.source ?? createStarterSource(catalog, 'blank');
   const writes: SaveConstructionSource[] = [];
   const store: ConstructionStore = { list: async () => [], load: async () => loaded(initial), revisions: async () => [], close() {}, remove: async () => {}, save: async input => { writes.push(input); return revision(input, `head${writes.length + 1}`); } };
   const owner = new ConstructionRevisionOwner(initial, { retainRecovery: async () => {}, load: async () => loaded(initial) });
   let counter = 0;
-  const tool = new BuilderTool(owner, { catalog: () => catalog, compiled: () => options.compile === false ? undefined : compiledFor(owner.source), newId: prefix => `${prefix}-${++counter}` });
+  // A retained compile is the opening source's, so later edits must read through it as a pending compile would.
+  const retained = options.retained ? compiledFor(initial) : undefined;
+  const tool = new BuilderTool(owner, { catalog: () => catalog, compiled: () => options.compile === false ? undefined : compiledFor(owner.source), retained: () => retained, newId: prefix => `${prefix}-${++counter}` });
   if (options.connect !== false) await owner.connect(store, initial.id);
   const data = () => owner.source.construction;
   const labels = () => owner.getSnapshot().history.past.map(step => step.label);
@@ -136,7 +138,7 @@ test('switching layers resets the tool, faces and bearing; Internals keeps the w
   expect(state().bearing).toBe(90);
   tool.switchLayer('armor');
   expect(state()).toMatchObject({ layer: 'armor', tool: 'apply', bearing: 0, slice: { on: false, auto: true } });
-  expect(tool.scene(undefined)).toMatchObject({ pickTargets: 'hull', highlightFaces: true, moveTargets: 'none', display: 'armor', gesture: 'none' });
+  expect(tool.scene(undefined)).toMatchObject({ pickTargets: 'hull', highlightFaces: true, moveTargets: 'none', display: 'armor', gesture: 'faces' });
   tool.switchLayer('internals');
   expect(state()).toMatchObject({ layer: 'internals', tool: 'module', slice: { on: false, y: 0, auto: true } });
   expect(tool.scene(undefined)).toMatchObject({ rooms: true, slice: undefined, display: 'internals', gridStep: .25 });
@@ -177,6 +179,45 @@ test('armor and paint: Paint assigns the active card to the clicked face and its
   expect(labels()).toEqual(['Lay hull pieces', 'Assign 80 mm armor', 'Assign 0 mm armor', 'Open faces to sea', 'Close skin', `Paint ${tool.palette.bar[1].name.toLowerCase()}`]);
 });
 
+test('a face sweep assigns every crossed face and its mirror as one edit; the ship\'s thicknesses become keyed cards on its own colour scale', async () => {
+  const { tool, data, state, labels } = await setup();
+  tool.pointer({ kind: 'lay', points: [[1, 0, 0]] });
+  tool.switchLayer('armor');
+  expect(state().customMm).toBe(10);
+  expect(tool.scene(undefined)).toMatchObject({ gesture: 'faces', armorScale: { fromMm: 16, toMm: 16 } });
+  expect(tool.palette.bar.map(item => item.id)).toEqual(['armor', 'mm-16', 'opening']);
+  expect(tool.pointer({ kind: 'faces', surfaces: ['hull:top', 'hull-1:top', 'equipment:gun:top'] })).toMatchObject({ accepted: true });
+  expect(labels().at(-1)).toBe('Assign 10 mm armor');
+  expect(data().surfaces.filter(surface => surface.thicknessMm === 10).map(surface => `${surface.primitiveId}:${surface.face}`).sort()).toEqual(['hull-1:top', 'hull-2:top', 'hull:top']);
+  expect(tool.thicknesses).toEqual([16, 10]);
+  expect(tool.armorScale).toEqual({ fromMm: 10, toMm: 16 });
+  expect(tool.palette.bar.map(item => item.id)).toEqual(['armor', 'mm-16', 'mm-10', 'opening']);
+  tool.key(key('2'), chrome());
+  expect(state().customMm).toBe(16);
+  expect(tool.active).toMatchObject({ kind: 'thickness', mm: 16 });
+  tool.pointer({ kind: 'faces', surfaces: ['hull:top'] });
+  expect(labels().at(-1)).toBe('Assign 16 mm armor');
+  expect(data().surfaces.find(surface => surface.primitiveId === 'hull' && surface.face === 'top')).toMatchObject({ thicknessMm: 16, material: 'armor-steel' });
+  tool.setTool('opening');
+  expect(tool.scene(undefined).gesture).toBe('faces');
+  tool.pointer({ kind: 'faces', surfaces: ['hull:bow', 'hull:stern'] });
+  expect(data().surfaces.filter(surface => surface.open).map(surface => `${surface.primitiveId}:${surface.face}`).sort()).toEqual(['hull:bow', 'hull:stern']);
+  expect(tool.pointer({ kind: 'faces', surfaces: ['equipment:gun:top'] })).toBeUndefined();
+  expect(state().notice).toContain('fixed equipment support');
+  tool.setTool('select');
+  expect(tool.scene(undefined).gesture).toBe('none');
+});
+
+test('face edits continue on the retained compile while the current one is pending, reading the source\'s assignments over it', async () => {
+  const { tool, data } = await setup({ compile: false, retained: true });
+  tool.switchLayer('armor');
+  expect(tool.pointer({ kind: 'pick', hit: hit({ id: 'hull', surface: 'hull:top' }) })).toMatchObject({ accepted: true });
+  expect(data().surfaces).toEqual([{ primitiveId: 'hull', face: 'top', thicknessMm: 10, material: 'armor-steel', paint: 'naval-gray', open: false }]);
+  expect(tool.editableSurfaces.find(surface => surface.face === 'top')).toMatchObject({ thicknessMm: 10, material: 'armor-steel' });
+  expect(tool.thicknesses).toEqual([16, 10]);
+  expect(tool.palette.bar.map(item => item.id)).toEqual(['armor', 'mm-16', 'mm-10', 'opening']);
+});
+
 test('face tools wait for a compiled preview and refuse fixed equipment supports', async () => {
   const { tool, state } = await setup({ compile: false });
   tool.switchLayer('armor');
@@ -209,8 +250,10 @@ test('fittings: cards pick parts, the ghost carries a gun arc, placement mirrors
 test('connected routes: points accumulate outside history, Enter commits the route and its mirror, Escape discards', async () => {
   const { tool, owner, data, state } = await setup();
   tool.switchLayer('fittings');
-  tool.selectSlot(tool.palette.drawer.find(item => item.id === 'railing')!);
+  tool.selectSlot(tool.palette.all!.find(item => item.id === 'railing')!);
   expect(tool.pathPart?.id).toBe('railing');
+  // The card came from another shelf: the bar opens that shelf.
+  expect(state().fittingFilter.category).toBe('deck-gear'); expect(tool.palette.drawer.map(item => item.id)).toContain('railing');
   expect(tool.scene(undefined)).toMatchObject({ gesture: 'none', moveTargets: 'none', placementPiece: undefined, pathDraft: { points: [], mirror: true, slackM: 0 } });
   tool.pointer({ kind: 'path-point', point: [1, .5, -2] });
   expect(tool.pointer({ kind: 'path-finish' })).toBeUndefined();
@@ -367,7 +410,7 @@ test('a design that opens as a custom hull starts in Select with the hull chosen
 test('propeller cards preserve blade clearance through the builder scene and mirrored placement', async () => {
   const { tool } = await setup();
   tool.switchLayer('fittings');
-  tool.selectSlot(tool.palette.drawer.find(item => item.id === 'propeller')!);
+  tool.selectSlot(tool.palette.all!.find(item => item.id === 'propeller')!);
   const scene = tool.scene(undefined);
   for (const piece of [scene.placementPiece, scene.placementMirror]) {
     expect(piece).toMatchObject({ kind: 'equipment', propellerDiameterM: 4 });

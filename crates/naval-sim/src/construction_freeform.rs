@@ -37,8 +37,8 @@ fn mapped(p: &ConstructionPrimitive, q: Vec3) -> Vec3 {
         .unwrap_or_else(|| SIGNS.iter().map(|v| scale(*v, 0.5)).collect());
     let uvw = std::array::from_fn(|k| q[k] / p.size[k] + 0.5);
     let mut out = sample(&v, uvw);
-    for k in 0..3 {
-        out[k] *= p.size[k];
+    for (coordinate, dimension) in out.iter_mut().zip(p.size) {
+        *coordinate *= dimension;
     }
     let (sin, cos) = p.rotation_deg.to_radians().sin_cos();
     add(

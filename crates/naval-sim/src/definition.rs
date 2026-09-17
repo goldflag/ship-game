@@ -1141,6 +1141,8 @@ pub struct ConstructionHullStation {
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct ConstructionCustomHull {
+    #[serde(rename = "redPaintY")]
+    pub red_paint_y: Option<f64>,
     #[serde(rename = "version")]
     pub version: f64,
     #[serde(rename = "stations")]
@@ -1195,6 +1197,8 @@ pub struct ConstructionSurfaceAssignment {
 pub struct ConstructionEquipmentGun {
     #[serde(rename = "barbetteHeightM")]
     pub barbette_height_m: Option<f64>,
+    #[serde(rename = "barbettePaint")]
+    pub barbette_paint: Option<String>,
     #[serde(rename = "battery")]
     pub battery: Option<String>,
     #[serde(rename = "initialElevationDeg")]

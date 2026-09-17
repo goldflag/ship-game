@@ -21,6 +21,19 @@ export function editableConstructionSurfaces(source: ConstructionSource, surface
   return surfaces.filter(surface => primitiveIds.has(surface.primitiveId) && CONSTRUCTION_FACES.includes(surface.face as ConstructionFace));
 }
 
+/** Compiled faces with the source's current assignments over them: between an edit and its compile, the last
+ * compile's geometry can stay up showing the new thickness, paint or opening. A custom hull panel inherits its
+ * whole face's assignment when it has none of its own, as the compiler does. */
+export function projectConstructionSurfaces(source: ConstructionSource, surfaces: readonly ConstructionSurface[]): ConstructionSurface[] {
+  const assignments = new Map(source.construction.surfaces.map(surface => [surfaceSelectionKey(surface), surface]));
+  return surfaces.map(surface => {
+    const assignment = assignments.get(surfaceSelectionKey(surface)) ?? (surface.panelId !== undefined ? assignments.get(surfaceKey(surface.primitiveId, surface.face)) : undefined);
+    if (!assignment) return surface;
+    const { thicknessMm, material, paint, open } = assignment;
+    return surface.thicknessMm === thicknessMm && surface.material === material && surface.paint === paint && surface.open === !!open ? surface : { ...surface, thicknessMm, material, paint, open: !!open };
+  });
+}
+
 /** Syntax check for safe editing only. Rust retains all geometry, fit, loading and launch validation. */
 export function decodeConstructionSource(value: unknown): ConstructionSource {
   const object = (value: unknown, path: string): Record<string, unknown> => {
@@ -44,6 +57,7 @@ export function decodeConstructionSource(value: unknown): ConstructionSource {
     if (p.kind === 'custom-hull') {
       const hull = object(p.customHull, 'Custom hull');
       if (hull.version !== 1) throw new Error('Unsupported custom hull version');
+      if (hull.redPaintY !== undefined) { number(hull.redPaintY, 'Red paint Y'); if (Math.abs(hull.redPaintY as number) > 500) throw new Error('Red paint Y must be between −500 and 500 m'); }
       number(hull.rake, 'Bow rake'); number(hull.bulb, 'Bow bulb');
       const stations = rows(hull.stations, 'Hull sections');
       if (stations.length < 4 || stations.length > 24) throw new Error('Custom hulls require 4–24 sections');

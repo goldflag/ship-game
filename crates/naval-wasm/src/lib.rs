@@ -114,11 +114,11 @@ impl ArticulationPreview {
                         state.train + (target.train - state.train).clamp(-step, step),
                         state.elevation + (target.elevation - state.elevation).clamp(-step, step),
                     );
-                    if !move_mount_with_clearance(&def, index, &mut state, next, &states) {
+                    if !move_mount_with_clearance(def, index, &mut state, next, &states) {
                         let train_only = (next.0, state.elevation);
-                        move_mount_with_clearance(&def, index, &mut state, train_only, &states);
+                        move_mount_with_clearance(def, index, &mut state, train_only, &states);
                         let elevation_only = (state.train, next.1);
-                        move_mount_with_clearance(&def, index, &mut state, elevation_only, &states);
+                        move_mount_with_clearance(def, index, &mut state, elevation_only, &states);
                     }
                     moved |=
                         (state.train - before.0).abs() + (state.elevation - before.1).abs() > 1e-9;
@@ -153,7 +153,7 @@ impl ArticulationPreview {
                     blocked: false,
                     obstruction_id: None,
                 },
-                |cache| cache.resolve(&def, index, &poses, target),
+                |cache| cache.resolve(def, index, &poses, target),
             );
             poses[index] = result.pose;
             results.push(result);

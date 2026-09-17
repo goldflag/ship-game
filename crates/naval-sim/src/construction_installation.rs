@@ -24,6 +24,22 @@ fn cylinder(radius: f64, low: f64, high: f64) -> cg::Cell {
         .collect();
     cg::prism(&top, high - low)
 }
+/// Guns occupy the same circular footprint as their fixed support. Other
+/// equipment keeps its catalog box; never carve a square hole around a round trunk.
+pub fn space_cell(
+    catalog: &ConstructionCatalog,
+    part: &ConstructionEquipmentPart,
+    space: &ConstructionEquipmentPartOccupancyItem,
+) -> cg::Cell {
+    if part.kind == "gun"
+        && let Some(weapon) = catalog.weapons.parts.iter()
+            .find(|w| Some(w.id.as_str()) == part.gun_part_id.as_deref()) {
+            return cylinder(weapon.barbette_radius,
+                space.center[1] - space.size[1] / 2.,
+                space.center[1] + space.size[1] / 2.);
+        }
+    cg::box_cell(space.center, space.size)
+}
 /// Extra exposed trunk above the original deck datum. The lower end stays fixed.
 pub fn raised(e: &ConstructionEquipment) -> f64 {
     e.gun
@@ -42,8 +58,8 @@ pub fn spaces(
     if p.kind != "gun" {
         return spaces;
     }
-    if c.version >= 2. && spaces.is_empty() {
-        if let Some(w) = catalog
+    if c.version >= 2. && spaces.is_empty()
+        && let Some(w) = catalog
             .weapons
             .parts
             .iter()
@@ -56,7 +72,6 @@ pub fn spaces(
                 size: [w.barbette_radius * 2., depth, w.barbette_radius * 2.],
             });
         }
-    }
     let raise = raised(e);
     for space in &mut spaces {
         space.center[1] -= raise / 2.;
@@ -208,7 +223,7 @@ pub fn magazine(
     let skin = c.default_thickness_mm / 1000.;
     let width = (w.barbette_radius - skin * 2.) * 1.4;
     let depth = well.size[1] - raised(e);
-    let height = (depth * 0.4).min(2.).max(0.2);
+    let height = (depth * 0.4).clamp(0.2, 2.);
     let center = [
         0.,
         well.center[1] - well.size[1] / 2. + skin + height / 2.,
@@ -275,26 +290,7 @@ pub fn derive(
             ));
         }
         let bore = cylinder(inner, low - thickness, top + thickness);
-        let collar = cg::box_cell(
-            [space.center[0], top - thickness * 0.5, space.center[2]],
-            [space.size[0], thickness, space.size[2]],
-        );
-        let mut collar = cg::subtract_all(vec![collar], std::slice::from_ref(&bore))?;
-        if raised(e) > 0. {
-            let deck_collar = cg::box_cell(
-                [
-                    space.center[0],
-                    top - raised(e) - thickness * 0.5,
-                    space.center[2],
-                ],
-                [space.size[0], thickness, space.size[2]],
-            );
-            collar.extend(cg::subtract_all(
-                vec![deck_collar],
-                &[cylinder(radius, low - thickness, top + thickness)],
-            )?);
-        }
-        let mut solids = collar.clone();
+        let mut solids = vec![];
         let mut surfaces = vec![];
         let mut surface = |face: &str, vertices: Vec<Vec3>| {
             if cg::area(&vertices) <= 1e-10 {
@@ -310,7 +306,7 @@ pub fn derive(
                 vertices,
                 thickness_mm: source.default_thickness_mm,
                 material: "steel".into(),
-                paint: "naval-gray".into(),
+                paint: e.gun.as_ref().and_then(|g| g.barbette_paint.as_deref()).unwrap_or("naval-gray").into(),
                 open: false,
             });
         };
@@ -321,37 +317,24 @@ pub fn derive(
             }
             solids.push(floor);
         }
-        let outer = cylinder(radius, low - thickness, top + thickness);
-        for cell in &collar {
-            for face in cell.faces.iter() {
-                let n = cg::normal(&face.vertices);
-                if n[1] > 0.99 {
-                    surface("installation-top", face.vertices.clone());
-                }
-                if n[1] < -0.99 {
-                    for polygon in cg::exposed(&face.vertices, &outer, false) {
-                        surface("installation-bottom", polygon);
-                    }
-                }
-            }
-        }
         for i in 0..SIDES {
             let a = i as f64 * std::f64::consts::TAU / SIDES as f64;
             let b = (i + 1) as f64 * std::f64::consts::TAU / SIDES as f64;
             let at = |r: f64, y: f64, t: f64| [r * t.cos(), y, r * t.sin()];
             let ring = vec![
-                at(radius, top - thickness, a),
-                at(inner, top - thickness, a),
-                at(inner, top - thickness, b),
-                at(radius, top - thickness, b),
+                at(radius, top, a),
+                at(inner, top, a),
+                at(inner, top, b),
+                at(radius, top, b),
             ];
-            solids.push(cg::prism(&ring, top - thickness - low));
+            surface("installation-top", ring.clone());
+            solids.push(cg::prism(&ring, top - low));
             surface(
                 "installation-outer",
                 vec![
                     at(radius, low, a),
-                    at(radius, top - thickness, a),
-                    at(radius, top - thickness, b),
+                    at(radius, top, a),
+                    at(radius, top, b),
                     at(radius, low, b),
                 ],
             );

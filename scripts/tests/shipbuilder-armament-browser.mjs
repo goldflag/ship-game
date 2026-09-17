@@ -24,6 +24,21 @@ const raised=await page.evaluate(()=>({source:window.check.armamentEditor().sour
 const mag=d=>d.definition.modules.find(m=>m.id==='gun-forward-magazine');
 if(Math.abs(mag(first.result).center[1]-mag(raised.result).center[1])>1e-8)throw Error('Magazine rose');
 if(raised.source.construction.equipment.find(e=>e.id==='gun-forward').gun.barbetteHeightM!==3)throw Error('Height control failed');
+const paint=page.getByRole('combobox',{name:'Barbette paint',exact:true});
+await paint.selectOption('red-oxide');await ready();
+const verifyPaint=async expected=>{
+ const state=await page.evaluate(()=>({source:window.check.armamentEditor().source(),result:window.check.armamentEditor().result()}));
+ const gun=state.source.construction.equipment.find(e=>e.id==='gun-forward');
+ if((gun.gun.barbettePaint??'naval-gray')!==expected||gun.gun.barbetteHeightM!==3)throw Error('Paint edit changed rise or did not persist');
+ const surfaces=state.result.surfaces.filter(s=>s.primitiveId==='equipment:gun-forward');
+ if(!surfaces.length||surfaces.some(s=>s.paint!==expected))throw Error('Paint did not cover whole barbette');
+ const otherPaints=result=>result.surfaces.filter(s=>s.primitiveId!=='equipment:gun-forward').map(s=>s.paint);
+ if(JSON.stringify(otherPaints(state.result))!==JSON.stringify(otherPaints(raised.result)))throw Error('Barbette paint changed the deck');
+};
+await verifyPaint('red-oxide');
+await page.evaluate(()=>window.check.armamentEditor().undo());await ready();await verifyPaint('naval-gray');
+await page.evaluate(()=>window.check.armamentEditor().redo());await ready();await verifyPaint('red-oxide');
+await paint.blur();
 await page.keyboard.press('PageUp');await ready();
 const stepped=await page.evaluate(()=>window.check.armamentEditor().source().construction.equipment.find(e=>e.id==='gun-forward'));if(stepped.gun.barbetteHeightM!==3.25)throw Error('PageUp did not extend barbette');
 await page.keyboard.press('PageDown');await ready();
@@ -34,7 +49,7 @@ await page.evaluate(()=>{const e=window.check.armamentEditor();e.apply({version:
 await ready();
 const invalid=await page.evaluate(()=>window.check.armamentEditor().result());if(invalid.definition)throw Error('Clipping turret launched');
 if(!invalid.surfaces.some(s=>s.primitiveId==='equipment:gun-forward'&&s.face==='installation-outer'))throw Error('Invalid draft lost its barbette');
-if(!invalid.surfaces.some(s=>s.primitiveId==='equipment:gun-forward'&&s.face==='installation-top'))throw Error('Invalid draft lost its deck collar');
+if(!invalid.surfaces.some(s=>s.primitiveId==='equipment:gun-forward'&&s.face==='installation-top'))throw Error('Invalid draft lost its round top rim');
 await page.getByRole('button',{name:/SEA TRIALS/}).isDisabled().then(disabled=>{if(!disabled)throw Error('Trial button enabled');});
 await page.evaluate(async()=>{await window.check.armamentEditor().flush();window.check.armamentEditor().undo();});await ready();
 if(!await page.evaluate(()=>!!window.check.armamentEditor().result().definition))throw Error('Undo failed');

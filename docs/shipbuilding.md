@@ -266,8 +266,18 @@ supports remain visible in inspection and follow their fitting rather than
 becoming editable hull-face assignments.
 
 Loading uses steel at 7,850 kg/m³, seawater at 1,025 kg/m³, real material positions,
-fixed equipment/service allowances and initial ammunition. No hidden ballast,
-CG adjustment or per-design buoyancy multiplier is added. Exact clipped volumes
+fixed equipment/service allowances and initial ammunition. An explicit **Internal
+allowance** adds 150 kg per cubic metre of the complete union envelope for
+unmodeled framing, decks and general outfitting. Overlapping hull pieces count
+once. This provisional game load is distributed uniformly within the envelope's
+lower half by height; its clipped volume supplies its CG and rotational inertia.
+It gives otherwise empty shells low internal weight without requiring every
+interior fitting to be placed. Fitted equipment and authored steel still add their
+full weights. The allowance does not create machinery, armor or occupied solids,
+and does not reduce floodable capacity; detailed internal packing is not modeled.
+It applies when either supported construction version is compiled, including
+reopened custom designs. Heavy or top-heavy designs can still sink or capsize;
+there is no forced stability target or per-design buoyancy multiplier. Exact clipped volumes
 supply buoyancy and usable room water capacity. Floodwater, machinery immersion
 and loss use native simulation state. Resistance, wave effects, package masses
 and handling remain documented engineering/game approximations rather than
@@ -430,3 +440,20 @@ Panel identity follows the bounding section IDs and outline edge, so moving or
 resizing sections preserves armor. Adding or removing sections creates new
 adjacencies whose panels use the side default; unchanged panels retain their
 settings. Source undo restores the preceding hull and assignments.
+
+### Custom hull red paint height
+
+In **Edit hull sections**, enable **Red lower hull** and set **Red paint Y** in
+meters relative to the hull center. Red oxide covers the hull below this height;
+the existing face paint remains above it. New hull presets start at −2% of their
+depth. The height moves with the hull and stays in meters when its depth changes.
+Disable the coating to use face paint everywhere. Apply saves the setting with
+the hull; Cancel discards it, and both the section editor and Shipbuilder support
+Undo. Older designs retain their original paints until the coating is enabled;
+on first enable, their whole-bottom red-oxide default becomes naval gray while
+per-panel assignments and armor remain intact.
+
+The optional versioned `customHull.redPaintY` is appearance only. Rendered faces
+are clipped at the paint boundary with interpolated lighting normals; native
+surfaces, panel selection, armor, mass and buoyancy remain unchanged. The same
+painted geometry is used in the builder, launched ships and portable GLB exports.

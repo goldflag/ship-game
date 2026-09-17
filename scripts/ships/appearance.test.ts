@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import { readFileSync } from 'node:fs';
+import { CONSTRUCTION_FINISH } from '../../src/ships/constructionPaints';
 import { shipPresets } from '../../src/ships/presets';
 
 const finishes = JSON.parse(readFileSync('assets/ships/appearance/finishes.json', 'utf8')).finishes;
@@ -7,13 +8,28 @@ const finishes = JSON.parse(readFileSync('assets/ships/appearance/finishes.json'
 describe('published fleet appearance', () => {
   for (const id of Object.keys(shipPresets)) {
     test(`${id}: shared finishes and their UVs survive the actual GLB export`, () => {
+      const bytes = readFileSync(`public/models/${id}.glb`);
+      const gltf = JSON.parse(bytes.subarray(20, 20 + bytes.readUInt32LE(12)).toString());
+      if (shipPresets[id].hull.kind === 'constructed-volume-v1') {
+        const hullMaterials = gltf.materials.filter((m: any) => m.name?.startsWith('construction.'));
+        expect(hullMaterials.length).toBeGreaterThan(0);
+        for (const material of hullMaterials) {
+          const pbr = material.pbrMetallicRoughness;
+          expect(pbr.metallicFactor ?? 1).toBe(CONSTRUCTION_FINISH.metalness);
+          expect(pbr.roughnessFactor ?? 1).toBeCloseTo(material.name.endsWith(':true') ? CONSTRUCTION_FINISH.deckRoughness : CONSTRUCTION_FINISH.steelRoughness, 5);
+          expect(pbr.baseColorTexture).toBeDefined();
+          for (const mesh of gltf.meshes) for (const primitive of mesh.primitives) {
+            if (gltf.materials[primitive.material] !== material) continue;
+            expect(gltf.accessors[primitive.attributes.TEXCOORD_0]?.count).toBe(gltf.accessors[primitive.attributes.POSITION].count);
+          }
+        }
+        return;
+      }
       const spec = JSON.parse(readFileSync(`assets/ships/${id}/appearance.json`, 'utf8'));
       const inputs = JSON.parse(readFileSync(`assets/ships/${id}/recipe-inputs.json`, 'utf8'));
       for (const file of ['assets/ships/appearance/surface.py', 'assets/ships/appearance/finishes.json', `assets/ships/${id}/appearance.json`]) {
         expect(inputs.files).toContain(file);
       }
-      const bytes = readFileSync(`public/models/${id}.glb`);
-      const gltf = JSON.parse(bytes.subarray(20, 20 + bytes.readUInt32LE(12)).toString());
       expect(gltf.scenes[gltf.scene ?? 0].extras.appearanceId).toBe(spec.id);
       let painted = 0;
       for (const material of gltf.materials) {

@@ -1,5 +1,6 @@
 import { envelopeVertices } from '../../ships/freeformShape';
-import { surfaceGroups, surfaceOutline } from './surfaceOutline';
+import { paintedHullFace } from '../../ships/constructionHullPaint';
+import { surfaceOutline } from './surfaceOutline';
 import { internalSelectionIds } from './internalSelection';
 import { createBuilderGrid } from './builderGrid';
 import { FreeformHandles } from './FreeformHandles';
@@ -11,7 +12,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import type { ConstructionPrimitive, ConstructionResult, ConstructionSource, ConstructionSurface, Vec3 } from '../../ships/blueprint';
 import { armorThicknessColor } from '../../ships/inspection';
-import { surfaceSelectionKey } from '../../ships/constructionEditor';
+import { projectConstructionSurfaces, surfaceSelectionKey } from '../../ships/constructionEditor';
 import { constructionPaintColor } from '../../ships/constructionPaints';
 import { snapCoordinate } from './editorNumbers';
 import { dominantAxis, fillLattice, pieceExtents, physicalPlacementHit, placementCenter, strokeSegment } from './placement';
@@ -140,7 +141,15 @@ class Viewport {
   private hoverSurface = '';
   private hoveredPart?: string;
   private modelAbort?: AbortController;
-  private pointerStart?: { id: number; button: number; x: number; y: number; moved: boolean; box: boolean; additive: boolean; start?: BuilderPick; move?: MoveDrag; points: Vec3[] };
+  private pointerStart?: { id: number; button: number; x: number; y: number; moved: boolean; box: boolean; additive: boolean; start?: BuilderPick; move?: MoveDrag; points: Vec3[]; faces?: Set<string> };
+  /** The faces a Paint or Opening drag has crossed so far, drawn as brass over the hull until release commits them. */
+  private facesPreview = new THREE.Group();
+  private facesKey = '';
+  /** The drawn faces by selection key: the hull's logical faces, for outlines and sweep previews. */
+  private surfacesByKey = new Map<string, ConstructionSurface[]>();
+  private geometry?: { sourceId: string; revision: string; key: string };
+  private compiledGeometry?: { result: ConstructionResult; key: string };
+  private carried?: { sourceId: string; revision: string; result: ConstructionResult; surfaces: ConstructionSurface[] };
   private hover?: { clientX: number; clientY: number };
   private ghostPosition?: Vec3;
   private currentView: BuilderView = 'orbit';
@@ -165,7 +174,8 @@ class Viewport {
     this.measureLine.renderOrder = 22; this.measureGroup.add(this.measureLine); this.measureGroup.visible = false;
     this.strokePreview.name = 'Pieces in current drag'; this.strokePreview.userData.strokePreview = true;
     this.movePreview.name = 'Selection being moved'; this.movePreview.userData.movePreview = true; this.movePreview.visible = false;
-    this.scene.add(this.floorGrid, this.hull, this.details, this.selection, this.hoverGroup, this.composed, this.equipment.group, this.arcGroup, this.proposedGroup, this.ghost, this.ghostMirror, this.ghostArc, this.fillPreview, this.strokePreview, this.movePreview, this.measureGroup);
+    this.facesPreview.name = 'Faces in current sweep';
+    this.scene.add(this.floorGrid, this.hull, this.details, this.selection, this.hoverGroup, this.composed, this.equipment.group, this.arcGroup, this.proposedGroup, this.ghost, this.ghostMirror, this.ghostArc, this.fillPreview, this.strokePreview, this.movePreview, this.facesPreview, this.measureGroup);
     this.freeformHandles = new FreeformHandles(host, () => this.camera, replacements => this.previewVertices(replacements));
     this.moveHandles = new MoveHandles(host, () => this.camera);
     this.scene.add(this.vertexPreview, this.pathPreview);
@@ -216,6 +226,21 @@ class Viewport {
     this.camera.up.set(0, 1, 0); this.camera.lookAt(this.controls.target); this.controls.enableRotate = view === 'orbit'; this.controls.update(); this.currentView = view;
   }
 
+  /** The source's hull geometry as one string, once per revision: whether a pending compile changes anything but face assignments. */
+  private geometryKey(source: ConstructionSource) {
+    if (!this.geometry || this.geometry.sourceId !== source.id || this.geometry.revision !== source.revision) this.geometry = { sourceId: source.id, revision: source.revision, key: JSON.stringify(source.construction.primitives) };
+    return this.geometry.key;
+  }
+  /** While a compile is pending after an armor, paint or opening edit, the last compile's faces stay up with the
+   * source's new assignments over them, so the ship never drops to a gray draft. A geometry edit still shows the draft. */
+  private carriedSurfaces(scene: BuilderScene): ConstructionSurface[] | undefined {
+    const { source, current, result } = scene;
+    if (current?.surfaces.length) { this.compiledGeometry = { result: current, key: this.geometryKey(source) }; return undefined; }
+    if (current || !result || this.compiledGeometry?.result !== result || this.compiledGeometry.key !== this.geometryKey(source)) return undefined;
+    if (!this.carried || this.carried.sourceId !== source.id || this.carried.revision !== source.revision || this.carried.result !== result) this.carried = { sourceId: source.id, revision: source.revision, result, surfaces: projectConstructionSurfaces(source, result.surfaces) };
+    return this.carried.surfaces;
+  }
+
   update(props: ViewportProps) {
     const old = this.props; this.props = props;
     this.freeformHandles.update(props.scene.source, props.scene.freeform);
@@ -247,21 +272,38 @@ class Viewport {
     if (props.scene.view !== this.currentView || props.scene.fitRequest !== old.scene.fitRequest || props.scene.source.id !== old.scene.source.id || (!old.scene.result && props.scene.result)) this.fit();
     // `current` is the compile of exactly this revision; `result` is the last accepted one, kept for rooms and centers.
     const invalid = new Set((props.scene.current?.diagnostics ?? []).filter(d => d.severity === 'error' && d.sourceId).map(d => d.sourceId!));
-    const nativeSurfaces = props.scene.current?.surfaces.length ? props.scene.current.surfaces : undefined;
-    const key = `${props.scene.source.id}:${nativeSurfaces ? props.scene.current!.contentHash : props.scene.source.revision + ':draft'}:${props.scene.display}:${[...invalid].sort().join(',')}`;
+    const carried = this.carriedSurfaces(props.scene), compiled = props.scene.current?.surfaces.length ? props.scene.current : carried ? props.scene.result : undefined;
+    const nativeSurfaces = props.scene.current?.surfaces.length ? props.scene.current.surfaces : carried;
+    const armorScale = props.scene.display === 'armor' ? `${props.scene.armorScale.fromMm}-${props.scene.armorScale.toMm}` : '';
+    const key = `${props.scene.source.id}:${props.scene.current?.surfaces.length ? props.scene.current.contentHash : `${props.scene.source.revision}:${carried ? 'carried' : 'draft'}`}:${props.scene.display}:${armorScale}:${[...invalid].sort().join(',')}`;
     if (key !== this.contentKey) {
-      this.contentKey = key; release(this.hull); this.surfaceTriangles = []; this.pickMeshes = []; this.hullMeshes = [];
+      this.contentKey = key; release(this.hull); this.surfaceTriangles = []; this.pickMeshes = []; this.hullMeshes = []; this.surfacesByKey = new Map();
       const vertices: number[] = [], colors: number[] = [];
       for (const surface of nativeSurfaces ?? []) {
         if (surface.open && props.scene.display === 'paint') continue;
-        const color = new THREE.Color(invalid.has(surface.primitiveId) ? SALMON : props.scene.display === 'armor' ? armorThicknessColor(surface.thicknessMm) : constructionPaintColor(surface.paint));
-        fan(surface, vertices, colors, color);
-        for (let i = 1; i < surface.vertices.length - 1; i++) this.surfaceTriangles.push(surface);
+        const color = new THREE.Color(invalid.has(surface.primitiveId) ? SALMON : props.scene.display === 'armor' ? armorThicknessColor(surface.thicknessMm, props.scene.armorScale) : constructionPaintColor(surface.paint));
+        const primitive = props.scene.source.construction.primitives.find(p => p.id === surface.primitiveId);
+        const painted = props.scene.display === 'armor' ? [{ vertices: surface.vertices, paint: surface.paint }] : paintedHullFace(surface, primitive);
+        for (const face of painted) {
+          fan({ ...surface, vertices: face.vertices }, vertices, colors, props.scene.display === 'armor' || invalid.has(surface.primitiveId) ? color : new THREE.Color(constructionPaintColor(face.paint)));
+          for (let i = 1; i < face.vertices.length - 1; i++) this.surfaceTriangles.push(surface);
+        }
+        const selectionKey = surfaceSelectionKey(surface), group = this.surfacesByKey.get(selectionKey);
+        if (group) group.push(surface); else this.surfacesByKey.set(selectionKey, [surface]);
       }
       if (nativeSurfaces) {
         const geometry = new THREE.BufferGeometry(); geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3)); geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3)); geometry.computeVertexNormals();
         const mesh = new THREE.Mesh(geometry, props.scene.display === 'armor' ? new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide }) : new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .78, metalness: 0, side: THREE.DoubleSide, transparent: props.scene.display === 'internals', opacity: props.scene.display === 'internals' ? .15 : 1, depthWrite: props.scene.display !== 'internals' }));
         mesh.userData.hull = true; this.hull.add(mesh); this.pickMeshes.push(mesh); this.hullMeshes.push(mesh);
+        // The Armor layer outlines every logical face of every piece, in one batch, so plates read as plates on the flat colour scale.
+        if (props.scene.display === 'armor') {
+          const points: THREE.Vector3[] = [];
+          for (const group of this.surfacesByKey.values()) for (const edge of surfaceOutline(group)) {
+            const normal = new THREE.Vector3(...edge.surface.normal);
+            points.push(new THREE.Vector3(...edge.a).addScaledVector(normal, .025), new THREE.Vector3(...edge.b).addScaledVector(normal, .025));
+          }
+          if (points.length) this.hull.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(points), new THREE.LineBasicMaterial({ color: '#142a31', transparent: true, opacity: .4 })));
+        }
       } else for (const primitive of props.scene.source.construction.primitives) {
         const mesh = new THREE.Mesh(primitiveGeometry(primitive.kind, primitive.size, primitive.vertices, primitive.customHull, primitive.shaping), new THREE.MeshStandardMaterial({ color: invalid.has(primitive.id) ? SALMON : constructionPaintColor('naval-gray'), roughness: .78, side: THREE.DoubleSide, transparent: props.scene.display === 'internals', opacity: props.scene.display === 'internals' ? .15 : 1 }));
         mesh.position.set(...primitive.position); mesh.rotation.y = primitive.rotationDeg * Math.PI / 180;
@@ -269,7 +311,7 @@ class Viewport {
       }
       this.hoverSurface = ''; release(this.hoverGroup);
     }
-    this.equipment.update(props.scene.source, props.scene.catalog, nativeSurfaces ? props.scene.current?.propellerSupports : undefined, invalid);
+    this.equipment.update(props.scene.source, props.scene.catalog, compiled?.propellerSupports, invalid);
     const modelKey = `${props.scene.source.id}:${props.scene.source.revision}:${props.scene.result?.contentHash}`;
     if (modelKey !== this.modelKey) {
       this.modelKey = modelKey; this.modelAbort?.abort(); release(this.composed);
@@ -341,10 +383,10 @@ class Viewport {
       edges.position.set(...primitive.position); edges.rotation.y = primitive.rotationDeg * Math.PI / 180;
       this.selection.add(edges);
     }
-    for (const group of surfaceGroups(nativeSurfaces ?? [])) {
+    for (const group of this.surfacesByKey.values()) {
       const surface = group[0], chosen = props.scene.selectedSurfaces.has(surfaceSelectionKey(surface));
       const selected = chosen || (props.scene.selected.has(surface.primitiveId) && !outlinedHulls.has(surface.primitiveId));
-      if (!selected && !(props.scene.display === 'armor' && surface.panelId)) continue;
+      if (!selected) continue;
       const outline: THREE.Vector3[] = [], thickness: THREE.Vector3[] = [];
       for (const edge of surfaceOutline(group)) {
         const normal = new THREE.Vector3(...edge.surface.normal), a = new THREE.Vector3(...edge.a), b = new THREE.Vector3(...edge.b);
@@ -354,7 +396,7 @@ class Viewport {
           thickness.push(a, innerA, innerA, innerB);
         }
       }
-      this.selection.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(outline), new THREE.LineBasicMaterial({ color: selected ? BRASS_LIGHT : '#142a31', depthTest: !selected, transparent: !selected, opacity: selected ? 1 : .4 })));
+      this.selection.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(outline), new THREE.LineBasicMaterial({ color: BRASS_LIGHT, depthTest: false })));
       if (thickness.length) this.selection.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(thickness), new THREE.LineBasicMaterial({ color: READY, depthTest: false })));
     }
     const loading = props.scene.result?.loading;
@@ -380,7 +422,7 @@ class Viewport {
     this.measureGroup.visible = !!props.scene.measure;
     // A held corner is already dragging, but has no preview until it moves.
     if(this.vertexPreview.visible && this.vertexPreview.children.length) {this.hull.visible=false;this.composed.visible=false;this.selection.visible=false;}
-    this.updatePathPreview(); this.updateGhost(); this.updateStrokePreview(); if (this.hover) this.highlight(this.hover); this.applyClip();
+    this.updatePathPreview(); this.updateGhost(); this.updateStrokePreview(); this.updateFacesPreview(); if (this.hover) this.highlight(this.hover); this.applyClip();
   }
 
   private previewVertices(replacements?: ConstructionPrimitive[]) {
@@ -435,7 +477,7 @@ class Viewport {
 
   private applyClip() {
     const planes = this.props.scene.slice === undefined ? [] : [new THREE.Plane(new THREE.Vector3(0, -1, 0), this.props.scene.slice)];
-    for (const group of [this.hull, this.details, this.composed, this.equipment.group, this.selection, this.hoverGroup, this.movePreview]) group.traverse(child => {
+    for (const group of [this.hull, this.details, this.composed, this.equipment.group, this.selection, this.hoverGroup, this.movePreview, this.facesPreview]) group.traverse(child => {
       const mesh = child as THREE.Mesh;
       for (const material of mesh.material ? Array.isArray(mesh.material) ? mesh.material : [mesh.material] : []) { material.clippingPlanes = planes; material.needsUpdate = true; }
     });
@@ -489,8 +531,8 @@ class Viewport {
       edges.renderOrder = 25; this.hoverGroup.add(edges);
       return;
     }
-    const surfaces = (this.props.scene.current?.surfaces ?? []).filter(surface => this.props.scene.highlightFaces ? surfaceSelectionKey(surface) === key : surface.primitiveId === key);
-    for (const group of surfaceGroups(surfaces)) {
+    const groups = this.props.scene.highlightFaces ? [this.surfacesByKey.get(key) ?? []] : [...this.surfacesByKey.values()].filter(group => group[0].primitiveId === key);
+    for (const group of groups) {
       const points = surfaceOutline(group).flatMap(edge => [edge.a, edge.b].map(point => new THREE.Vector3(...point).addScaledVector(new THREE.Vector3(...edge.surface.normal), .03)));
       const outline = new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(points), material());
       outline.renderOrder = 25; this.hoverGroup.add(outline);
@@ -529,6 +571,28 @@ class Viewport {
         this.strokePreview.add(twin);
       }
     }
+  }
+
+  /** Brass over the faces a sweep has crossed, as the cursor piece's ghost is for laid pieces. */
+  private updateFacesPreview() {
+    const faces = this.pointerStart?.faces, key = faces && this.pointerStart?.moved ? `${this.contentKey}|${[...faces].join('|')}` : '';
+    if (key === this.facesKey) return;
+    this.facesKey = key; release(this.facesPreview);
+    if (!key) return;
+    const fill: number[] = [], outline: THREE.Vector3[] = [];
+    for (const face of faces!) {
+      const group = this.surfacesByKey.get(face);
+      if (!group) continue;
+      for (const surface of group) for (let i = 1; i < surface.vertices.length - 1; i++) for (const vertex of [surface.vertices[0], surface.vertices[i], surface.vertices[i + 1]]) fill.push(...vertex.map((value, axis) => value + surface.normal[axis] * .02));
+      for (const edge of surfaceOutline(group)) {
+        const normal = new THREE.Vector3(...edge.surface.normal);
+        outline.push(new THREE.Vector3(...edge.a).addScaledVector(normal, .03), new THREE.Vector3(...edge.b).addScaledVector(normal, .03));
+      }
+    }
+    const geometry = new THREE.BufferGeometry(); geometry.setAttribute('position', new THREE.Float32BufferAttribute(fill, 3));
+    const mesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ color: BRASS, transparent: true, opacity: .35, depthWrite: false, side: THREE.DoubleSide }));
+    const edges = new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(outline), new THREE.LineBasicMaterial({ color: BRASS_LIGHT, depthTest: false }));
+    mesh.renderOrder = 20; edges.renderOrder = 21; this.facesPreview.add(mesh, edges); this.applyClip();
   }
 
   private boxRect(event: { clientX: number; clientY: number }) {
@@ -739,7 +803,7 @@ class Viewport {
   private finishMove() { release(this.movePreview); this.movePreview.visible = false; this.moveOffset = undefined; this.moveBlocked = false; this.renderer.domElement.style.cursor = ''; }
 
   /** A press that is not laying pieces hides the ghost and hover outline: box selection, the secondary button, a move or a camera drag. */
-  private navigating() { const press = this.pointerStart; return !!press && !press.start && (press.box || press.button === 2 || press.moved); }
+  private navigating() { const press = this.pointerStart; return !!press && !press.start && !press.faces && (press.box || press.button === 2 || press.moved); }
   private down = (event: PointerEvent) => {
     if ((event.button !== 0 && event.button !== 2) || this.pointerStart) return;
     const box = event.button === 0 && event.shiftKey;
@@ -755,9 +819,11 @@ class Viewport {
     if (path) { this.controls.enabled = false; event.stopImmediatePropagation(); event.preventDefault(); }
     const move = !box && !this.props.scene.pathDraft && event.button === 0 ? this.movePick(event) : undefined;
     const start = !box && !move && event.button === 0 && this.props.scene.gesture !== 'none' && this.props.scene.placementPiece ? this.pick(event, 'hull') : undefined;
+    // A press on a face with Paint or Opening begins a sweep: every face the drag crosses joins it, and release commits them as one edit.
+    const face = !box && !move && !path && event.button === 0 && this.props.scene.gesture === 'faces' ? this.pick(event, 'hull')?.surface : undefined;
     // A press on the hull lays or moves pieces, so OrbitControls (which listens after this capture handler) must not orbit with the same drag; `up` and `cancel` re-enable it.
-    if (start || move) this.controls.enabled = false;
-    this.pointerStart = { id: event.pointerId, button: event.button, x: event.clientX, y: event.clientY, moved: false, box, additive: event.ctrlKey || event.metaKey, start, move, points: start ? [start.placement] : [] };
+    if (start || move || face) this.controls.enabled = false;
+    this.pointerStart = { id: event.pointerId, button: event.button, x: event.clientX, y: event.clientY, moved: false, box, additive: event.ctrlKey || event.metaKey, start, move, points: start ? [start.placement] : [], faces: face ? new Set([face]) : undefined };
     this.hover = { clientX: event.clientX, clientY: event.clientY };
     this.renderer.domElement.setPointerCapture(event.pointerId);
     this.updateGhost(); this.updateStrokePreview();
@@ -768,6 +834,11 @@ class Viewport {
     this.pointerStart.moved ||= Math.hypot(event.clientX - this.pointerStart.x, event.clientY - this.pointerStart.y) >= 5;
     if (this.pointerStart.box) { this.showBox(event); return; }
     if (this.pointerStart.move) { if (this.pointerStart.moved) this.updateMove(event); return; }
+    if (this.pointerStart.faces) {
+      const face = this.pointerStart.moved ? this.pick(event, 'hull')?.surface : undefined;
+      if (face && this.pointerStart.faces.size < 4096) this.pointerStart.faces.add(face);
+      this.updateFacesPreview(); return;
+    }
     const { start, points } = this.pointerStart, piece = this.props.scene.placementPiece;
     if (!start || !piece) return;
     if (this.props.scene.gesture === 'fill') { this.updateFillPreview(); this.updateStrokePreview(); return; }
@@ -784,7 +855,7 @@ class Viewport {
     if (event.button !== this.pointerStart?.button || event.pointerId !== this.pointerStart.id) return;
     const start = this.pointerStart, rect = start.box ? this.boxRect(event) : undefined;
     this.pointerStart = undefined; this.controls.enabled = true; this.fillPreview.visible = false;
-    this.strokePreview.clear(); this.strokeKey = ''; this.showBox();
+    this.strokePreview.clear(); this.strokeKey = ''; this.updateFacesPreview(); this.showBox();
     if (this.renderer.domElement.hasPointerCapture(event.pointerId)) this.renderer.domElement.releasePointerCapture(event.pointerId);
     const clicked = !start.moved && Math.hypot(event.clientX - start.x, event.clientY - start.y) < 5;
     const piece = this.props.scene.placementPiece;
@@ -807,7 +878,8 @@ class Viewport {
       if (!hit) return;
       if (this.props.scene.gesture === 'fill') this.props.onPointer({ kind: 'lay', points: fillLattice(start.start.placement, clicked ? start.start.placement : hit.placement, pieceExtents(piece), start.start.axis) });
       else this.props.onPointer({ kind: 'lay', points: clicked ? [start.start.placement] : start.points });
-    } else if (clicked) this.props.onPointer({ kind: 'pick', hit: this.pick(event, this.props.scene.placementPiece ? 'hull' : this.props.scene.pickTargets) });
+    } else if (start.faces && !clicked) this.props.onPointer({ kind: 'faces', surfaces: [...start.faces] });
+    else if (clicked) this.props.onPointer({ kind: 'pick', hit: this.pick(event, this.props.scene.placementPiece ? 'hull' : this.props.scene.pickTargets) });
   };
   private pathPick(event: { clientX: number; clientY: number }): Vec3 | undefined {
     const draft = this.props.scene.pathDraft;
@@ -834,7 +906,7 @@ class Viewport {
   private cancel = () => {
     const pointer = this.pointerStart; this.pointerStart = undefined; this.controls.enabled = true;
     if (pointer && this.renderer.domElement.hasPointerCapture(pointer.id)) this.renderer.domElement.releasePointerCapture(pointer.id);
-    this.fillPreview.visible = false; this.strokePreview.clear(); this.strokeKey = ''; this.showBox(); this.finishMove(); this.leave();
+    this.fillPreview.visible = false; this.strokePreview.clear(); this.strokeKey = ''; this.updateFacesPreview(); this.showBox(); this.finishMove(); this.leave();
   };
   private key = (event: KeyboardEvent) => { if (event.key === 'Escape' && this.pointerStart) this.cancel(); };
   private animate = () => {

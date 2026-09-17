@@ -8,7 +8,7 @@ import type { ReviewView } from '../../tools/construction/review';
 
 export const REVIEW_VIEWS: ReviewView[] = ['profile', 'plan', 'bow', 'stern', 'quarter'];
 const json = (value: unknown) => JSON.stringify(value, null, 2) + '\n';
-const producerFiles = ['src/game/constructionModel.ts', 'src/game/constructionPropellerModel.ts', 'src/game/constructionShading.ts', 'src/ships/constructionEquipment.ts', 'src/ships/constructionPaints.ts', 'src/game/loadShipModel.ts', 'tools/construction/review.ts', 'scripts/construction/pipeline.ts', 'assets/ships/appearance/finishes.json', 'crates/naval-wasm/src/lib.rs', 'crates/naval-sim/src/catalog.rs', 'crates/naval-sim/src/mount_clearance.rs'];
+const producerFiles = ['src/game/constructionModel.ts', 'src/game/constructionPropellerModel.ts', 'src/game/constructionShading.ts', 'src/ships/constructionEquipment.ts', 'src/ships/constructionPaints.ts', 'src/ships/constructionHullPaint.ts', 'src/game/loadShipModel.ts', 'tools/construction/review.ts', 'scripts/construction/pipeline.ts', 'assets/ships/appearance/finishes.json', 'crates/naval-wasm/src/lib.rs', 'crates/naval-sim/src/catalog.rs', 'crates/naval-sim/src/mount_clearance.rs'];
 export async function constructionProducerHash(root: string) {
   const files = [...producerFiles, ...((await readdir(join(root, 'crates/naval-sim/src'))).filter(n => n.startsWith('construction') && n.endsWith('.rs')).map(n => 'crates/naval-sim/src/' + n))];
   const parts = await Promise.all(files.map(async file => file + ':' + digest(await readFile(join(root, file)))));

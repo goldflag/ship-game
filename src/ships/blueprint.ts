@@ -318,6 +318,8 @@ export interface ConstructionFreeformShape {
 export interface ConstructionHullPoint { x: number; y: number; }
 export interface ConstructionHullStation { id: string; t: number; points: ConstructionHullPoint[]; }
 export interface ConstructionCustomHull {
+  /** Red lower-hull coating below this hull-local Y in meters; omission uses face paint. */
+  redPaintY?: number;
   version: 1; stations: ConstructionHullStation[]; rake: number; bulb: number;
 }
 export interface ConstructionSurfaceAssignment {
@@ -333,6 +335,8 @@ export interface ConstructionEquipment {
   gun?: {
     /** Added height above the deck attachment; position remains the turret datum. */
     barbetteHeightM?: number;
+    /** Named paint applied to the entire fixed barbette. */
+    barbettePaint?: string;
     battery?: 'main' | 'secondary';
     initialElevationDeg?: number;
     traverseDeg?: number;

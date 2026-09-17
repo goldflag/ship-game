@@ -1,12 +1,13 @@
 import { mirroredPanelId } from '../../ships/constructionPanels';
 import { integrateConstructionMagazines, setBarbetteHeight } from '../../ships/constructionArmament';
 import type { ConstructionBoundary, ConstructionCatalog, ConstructionEquipment, ConstructionEquipmentPart, ConstructionPrimitive, ConstructionResult, ConstructionSource, ConstructionSuggestion, ConstructionSurface, ConstructionSurfaceAssignment, Vec3 } from '../../ships/blueprint';
-import { assignConstructionSurfaces, CONSTRUCTION_LIMITS, copyConstructionSelection, editableConstructionSurfaces, mirroredEquipment, mirroredFace, mirroredPrimitive, newConstructionId, surfaceKey, surfaceSelectionKey, type ConstructionFace } from '../../ships/constructionEditor';
+import { assignConstructionSurfaces, CONSTRUCTION_LIMITS, copyConstructionSelection, editableConstructionSurfaces, mirroredEquipment, mirroredFace, mirroredPrimitive, newConstructionId, projectConstructionSurfaces, surfaceKey, surfaceSelectionKey, type ConstructionFace } from '../../ships/constructionEditor';
 import { constructionDiffCommands, type ConstructionCommand } from '../../ships/constructionCommands';
 import type { ConstructionRevisionOwner, ConstructionSubmission } from '../../ships/constructionRevisionOwner';
 import { canEditVertices, splitVertexPrimitive, VERTEX_UNITS, type HullSelection, type MirrorAxes } from '../../ships/constructionVertex';
 import { pathProblem } from '../../ships/constructionPaths';
 import { BUILDER_RAIL, DEFAULT_TOOL, paletteFor, type BuilderLayer, type BuilderToolId, type RailEntry, type SlotItem } from './builderLayers';
+import { fittingCategory, fittingNation, shelfNations, type FittingFilter, type FittingNation } from './fittingCategories';
 import { appendPathPoint, pathEquipment } from './pathDrawing';
 import { mirrorTwin, offCenterline } from './placement';
 import { blockMoveConstraint } from './blockMovement';
@@ -14,6 +15,7 @@ import { internalSelectionIds } from './internalSelection';
 import { customHullPrimitive, makeHull } from '../../ships/customHullModel';
 import { normalizedBearing, snapCoordinate } from './editorNumbers';
 import type { BuilderArc, BuilderDisplay, BuilderGesture, BuilderMoveTargets, BuilderPick, BuilderPlacement, BuilderPointerEvent, BuilderProposal, BuilderScene, BuilderView } from './builderScene';
+import type { ArmorScale } from '../../ships/inspection';
 
 /** Freeform hull editing options: mirror planes, move step, snapping to nearby corners and the split controls. */
 export interface FreeformSettings { axes: MirrorAxes; unit: number; snap: boolean; splitAxis: number; count: number; selection: HullSelection }
@@ -22,6 +24,8 @@ export interface FreeformSettings { axes: MirrorAxes; unit: number; snap: boolea
 export interface BuilderToolState {
   layer: BuilderLayer; tool: BuilderToolId;
   slots: Record<BuilderLayer, string>;
+  /** The Fittings shelf on the bar and the nation it is narrowed to. */
+  fittingFilter: FittingFilter;
   customMm: number; sizeOverride?: Vec3; bearing: number;
   pathPoints: Vec3[]; ropeSlack: number;
   mirror: boolean; showArcs: boolean; showCenters: boolean;
@@ -43,6 +47,8 @@ export interface BuilderToolContext {
   catalog(): ConstructionCatalog;
   /** The compile of exactly the current revision, or undefined. */
   compiled(): ConstructionResult | undefined;
+  /** The last accepted compile, kept through recompiles so face edits continue while the current one is pending. */
+  retained?(): ConstructionResult | undefined;
   suggest?(source: ConstructionSource, partIds: string[], signal?: AbortSignal): Promise<ConstructionSuggestion>;
   /** Stable ID generator; tests inject a counter. */
   newId?(prefix: string): string;
@@ -80,8 +86,8 @@ export class BuilderTool {
   private lastRevision: string;
   private suggestionRequest?: AbortController;
   private readonly unsubscribe: () => void;
-  private paletteCache?: { layer: BuilderLayer; catalog: ConstructionCatalog; palette: ReturnType<typeof paletteFor> };
-  private surfaceCache?: { source: ConstructionSource; compiled?: ConstructionResult; surfaces: ConstructionSurface[]; keys: Set<string> };
+  private paletteCache?: { layer: BuilderLayer; catalog: ConstructionCatalog; thicknesses: string; filter: FittingFilter; palette: ReturnType<typeof paletteFor> };
+  private surfaceCache?: { source: ConstructionSource; compiled?: ConstructionResult; retained?: ConstructionResult; surfaces: ConstructionSurface[]; keys: Set<string>; thicknesses: number[]; armorScale: ArmorScale };
   private pieceCache?: { key: string; piece?: BuilderPlacement };
   private internalCache?: { source: ConstructionSource; catalog: ConstructionCatalog; ids: Set<string> };
   private mirrorCache?: { key: string; piece?: BuilderPlacement };
@@ -90,8 +96,8 @@ export class BuilderTool {
     // A design that starts as one custom hull opens with it selected, ready to shape or move.
     const customHull = door.source.construction.primitives.find(part => part.kind === 'custom-hull');
     this.state = {
-      layer: 'hull', tool: customHull ? 'select' : 'place', slots: { hull: 'cube', armor: 'armor', internals: 'deck', fittings: '', paint: 'naval-gray' },
-      customMm: 50, bearing: 0, pathPoints: [], ropeSlack: 0, mirror: true, showArcs: false, showCenters: true, snapSteps: { hull: 1, equipment: .25 },
+      layer: 'hull', tool: customHull ? 'select' : 'place', slots: { hull: 'cube', armor: 'armor', internals: 'deck', fittings: '', paint: 'naval-gray' }, fittingFilter: { category: 'main-battery', nation: 'all' },
+      customMm: 10, bearing: 0, pathPoints: [], ropeSlack: 0, mirror: true, showArcs: false, showCenters: true, snapSteps: { hull: 1, equipment: .25 },
       freeformSettings: { axes: [true, false, false], unit: .2, snap: false, splitAxis: 2, count: 4, selection: { mode: 'vertex', index: 1 } },
       view: 'orbit', perspective: true, slice: { on: false, y: 0, auto: true }, fitRequest: 0,
       selected: new Set(customHull ? [customHull.id] : []), surfaces: new Set(), notice: '', ...initial,
@@ -108,6 +114,7 @@ export class BuilderTool {
   private get data() { return this.door.source.construction; }
   get catalog() { return this.context.catalog(); }
   get compiled() { return this.context.compiled(); }
+  get retained() { return this.context.retained?.(); }
   get locked() { return this.door.locked; }
   private newId(prefix: string) { return this.context.newId ? this.context.newId(prefix) : newConstructionId(prefix); }
 
@@ -140,16 +147,26 @@ export class BuilderTool {
 
   // ---- derived
   get palette() {
-    const layer = this.state.layer, catalog = this.catalog;
-    if (!this.paletteCache || this.paletteCache.layer !== layer || this.paletteCache.catalog !== catalog) this.paletteCache = { layer, catalog, palette: paletteFor(layer, catalog) };
+    const layer = this.state.layer, catalog = this.catalog, thicknesses = layer === 'armor' ? this.surfaceState.thicknesses.join(',') : '';
+    const filter = this.state.fittingFilter;
+    if (!this.paletteCache || this.paletteCache.layer !== layer || this.paletteCache.catalog !== catalog || this.paletteCache.thicknesses !== thicknesses || this.paletteCache.filter !== filter) this.paletteCache = { layer, catalog, thicknesses, filter, palette: paletteFor(layer, catalog, this.surfaceState.thicknesses, filter) };
     return this.paletteCache.palette;
   }
+  /** The nations with parts on the open Fittings shelf; the nation filter offers these and "All". */
+  get shelfNations(): FittingNation[] {
+    const category = this.state.fittingFilter.category;
+    return shelfNations((this.palette.all ?? []).flatMap(item => item.kind === 'part' && fittingCategory(item.part, this.catalog) === category ? [item.part] : []));
+  }
+  /** The nation the shelf is actually narrowed to: the chosen one when this shelf has it, otherwise all. */
+  get shelfNation(): FittingNation | 'all' { const nation = this.state.fittingFilter.nation; return nation !== 'all' && this.shelfNations.includes(nation) ? nation : 'all'; }
+  /** Open a shelf or narrow it; the bar's first card is taken up when the held one is no longer on it. */
+  setFittingFilter = (patch: Partial<FittingFilter>) => { this.update({ fittingFilter: { ...this.state.fittingFilter, ...patch }, pathPoints: [], sizeOverride: undefined }); };
   get active(): SlotItem | undefined { return this.palette.drawer.find(item => item.id === this.state.slots[this.state.layer]) ?? this.palette.drawer[0]; }
   get drawerName() { return this.state.layer === 'fittings' ? 'fittings' : this.state.layer === 'hull' ? 'shapes' : 'items'; }
   get hasDrawer() { return this.palette.drawer.length > this.palette.bar.filter(item => item.kind !== 'empty').length || this.state.layer === 'fittings'; }
   private pathPartOf(state: BuilderToolState): ConstructionEquipmentPart | undefined {
     if (state.layer !== 'fittings' || state.tool !== 'place') return undefined;
-    const palette = state.layer === this.state.layer ? this.palette : paletteFor(state.layer, this.catalog);
+    const palette = state.layer === this.state.layer && state.fittingFilter === this.state.fittingFilter ? this.palette : paletteFor(state.layer, this.catalog, [], state.fittingFilter);
     const active = palette.drawer.find(item => item.id === state.slots[state.layer]) ?? palette.drawer[0];
     return active?.kind === 'part' && active.part.path ? active.part : undefined;
   }
@@ -166,17 +183,23 @@ export class BuilderTool {
   }
   get freeformMode() { return !!this.freeformPrimitive; }
   partOf = (instance: ConstructionEquipment) => this.catalog.equipment.find(part => part.id === instance.partId);
+  /** Faces from the current compile, or from the last one with this source's assignments over them while a compile is pending. */
   private get surfaceState() {
-    const source = this.source, compiled = this.compiled;
-    if (!this.surfaceCache || this.surfaceCache.source !== source || this.surfaceCache.compiled !== compiled) {
-      const surfaces = editableConstructionSurfaces(source, compiled?.surfaces ?? []);
-      this.surfaceCache = { source, compiled, surfaces, keys: new Set(surfaces.map(surface => surfaceSelectionKey(surface))) };
+    const source = this.source, compiled = this.compiled, retained = compiled ? undefined : this.retained;
+    if (!this.surfaceCache || this.surfaceCache.source !== source || this.surfaceCache.compiled !== compiled || this.surfaceCache.retained !== retained) {
+      const surfaces = editableConstructionSurfaces(source, compiled?.surfaces ?? (retained ? projectConstructionSurfaces(source, retained.surfaces) : []));
+      const thicknesses = [...new Set(surfaces.filter(surface => !surface.open).map(surface => surface.thicknessMm))].sort((a, b) => b - a);
+      this.surfaceCache = { source, compiled, retained, surfaces, keys: new Set(surfaces.map(surface => surfaceSelectionKey(surface))), thicknesses, armorScale: { fromMm: thicknesses.at(-1) ?? 0, toMm: thicknesses[0] ?? 0 } };
     }
     return this.surfaceCache;
   }
   /** Native hull faces that accept armor, paint and openings: fixed equipment supports are excluded. */
   get editableSurfaces() { return this.surfaceState.surfaces; }
   get editableKeys(): ReadonlySet<string> { return this.surfaceState.keys; }
+  /** Every thickness on the ship, thickest first; the Armor layer's value cards. */
+  get thicknesses(): readonly number[] { return this.surfaceState.thicknesses; }
+  /** The ship's thinnest and thickest plates: the ends of the Armor layer's relative colour scale. */
+  get armorScale(): ArmorScale { return this.surfaceState.armorScale; }
   /** Fittings and modules snap on the equipment step; everything else on the hull step. */
   get snapKind(): 'hull' | 'equipment' { const { layer, tool } = this.state; return layer === 'fittings' || (layer === 'internals' && tool === 'module') ? 'equipment' : 'hull'; }
   get gridStep() { return this.state.snapSteps[this.snapKind]; }
@@ -208,7 +231,7 @@ export class BuilderTool {
     if (!this.mirrorCache || this.mirrorCache.key !== key) this.mirrorCache = { key, piece: twin };
     return this.mirrorCache.piece;
   }
-  get gesture(): BuilderGesture { const { tool } = this.state; return this.pathPart ? 'none' : tool === 'fill' ? 'fill' : tool === 'place' || tool === 'module' ? 'stroke' : 'none'; }
+  get gesture(): BuilderGesture { const { tool } = this.state; return this.pathPart ? 'none' : tool === 'fill' ? 'fill' : tool === 'place' || tool === 'module' ? 'stroke' : this.faceLayer && (tool === 'apply' || tool === 'opening') ? 'faces' : 'none'; }
   /** Select drags any piece, fitting or wall; placing fittings or modules still drags the ones already fitted. Face layers never move geometry. */
   get moveTargets(): BuilderMoveTargets {
     const { layer, tool } = this.state;
@@ -245,7 +268,7 @@ export class BuilderTool {
     const s = this.state, locked = this.locked, freeformMode = this.freeformMode, pathPart = this.pathPart, freeformPrimitive = this.freeformPrimitive;
     return {
       source: this.source, result: retained, current: this.compiled, catalog: this.catalog,
-      selected: s.selected, selectedSurfaces: s.surfaces, view: s.view, perspective: s.perspective, display: this.display, slice: s.slice.on ? s.slice.y : undefined, fitRequest: s.fitRequest,
+      selected: s.selected, selectedSurfaces: s.surfaces, view: s.view, perspective: s.perspective, display: this.display, slice: s.slice.on ? s.slice.y : undefined, fitRequest: s.fitRequest, armorScale: this.armorScale,
       gridStep: this.gridStep, gesture: locked ? 'none' : this.gesture, pickTargets: this.pickTargets, moveTargets: locked || freeformMode ? 'none' : this.moveTargets,
       placementPiece: locked || freeformMode ? undefined : this.piece, placementMirror: this.mirrorPiece,
       highlightFaces: this.faceLayer, rooms: s.layer === 'internals', showCenters: s.showCenters, arcs: this.arcs, proposed: this.proposed, measure: s.measure,
@@ -300,10 +323,17 @@ export class BuilderTool {
   selectSlot = (item: SlotItem): boolean => {
     if (item.kind === 'empty' || this.locked) return false;
     const { layer, tool, surfaces } = this.state;
-    this.update({ pathPoints: [], slots: { ...this.state.slots, [layer]: item.id }, sizeOverride: undefined });
+    // A fitting found by search may sit on another shelf or under another nation: the bar follows it there.
+    let fittingFilter = this.state.fittingFilter;
+    if (layer === 'fittings' && item.kind === 'part' && !this.palette.drawer.includes(item)) {
+      const nation = fittingNation(item.part);
+      fittingFilter = { category: fittingCategory(item.part, this.catalog), nation: nation && fittingFilter.nation !== 'all' && nation !== fittingFilter.nation ? 'all' : fittingFilter.nation };
+    }
+    this.update({ pathPoints: [], slots: { ...this.state.slots, [layer]: item.id }, sizeOverride: undefined, fittingFilter });
     const faceTools: BuilderToolId[] = ['apply', 'area', 'eyedrop', 'opening', 'select'];
     switch (item.kind) {
       case 'shape': if (tool !== 'place' && tool !== 'fill') this.setTool('place'); break;
+      case 'thickness': this.update({ customMm: item.mm }); // falls through: a value card behaves as the Armor card holding that value
       case 'armor': case 'opening': case 'paint':
         if (surfaces.size) this.applyItem(item, surfaces); else if (!faceTools.includes(tool)) this.setTool('apply');
         break;
@@ -472,6 +502,7 @@ export class BuilderTool {
     const target = this.withMirrorFaces(keys);
     const assign = (label: string, values: SurfaceValues) => this.run(label, this.surfaceCommands(target, values));
     switch (item.kind) {
+      case 'thickness': thickness = item.mm; // falls through
       case 'armor': return assign(`Assign ${thickness} mm armor`, { thicknessMm: thickness, material: thickness > 0 ? 'armor-steel' : 'steel', open: false });
       case 'opening': return assign('Open faces to sea', { open: true });
       case 'paint': return assign(`Paint ${item.name.toLowerCase()}`, { paint: item.id });
@@ -494,17 +525,17 @@ export class BuilderTool {
     if (tool === 'measure') { const current = this.state.measure; this.update({ measure: !current || current.to ? { from: hit.point } : { ...current, to: hit.point } }); return undefined; }
     if (layer === 'armor' || layer === 'paint') {
       if (!hit.surface) { if (!hit.additive) this.update({ surfaces: new Set() }); if (hit.id && tool === 'select') this.choose(hit.id, hit.additive); else if (!hit.additive) this.update({ selected: new Set() }); return undefined; }
-      if (!this.compiled) { this.update({ notice: 'Face editing resumes when this source has a compiled preview.' }); return undefined; }
+      if (!this.compiled && !this.retained) { this.update({ notice: 'Face editing resumes when this source has a compiled preview.' }); return undefined; }
       if (!this.editableKeys.has(hit.surface)) { this.update({ notice: 'This fixed equipment support follows its fitting. Choose a hull face to edit.' }); return undefined; }
       const surface = this.editableSurfaces.find(entry => surfaceSelectionKey(entry) === hit.surface)!;
       switch (tool) {
-        case 'apply': return this.active ? this.applyItem(this.active, new Set([hit.surface])) : undefined;
+        case 'apply': return this.applyFaces([hit.surface]);
         case 'area': { const next = hit.additive ? new Set(this.state.surfaces) : new Set<string>(); for (const entry of this.editableSurfaces) if (entry.face === surface.face) next.add(surfaceSelectionKey(entry)); this.update({ surfaces: next }); return undefined; }
         case 'eyedrop':
           if (layer === 'armor') this.update({ customMm: surface.thicknessMm, slots: { ...this.state.slots, armor: 'armor' }, notice: `Armor thickness set to ${surface.thicknessMm} mm from the picked face.`, tool: 'apply' });
           else this.update({ slots: { ...this.state.slots, paint: surface.paint }, notice: 'Paint slot set from the picked face.', tool: 'apply' });
           return undefined;
-        case 'opening': return this.run(surface.open ? 'Close skin' : 'Open faces to sea', this.surfaceCommands(this.withMirrorFaces(new Set([hit.surface])), { open: !surface.open }));
+        case 'opening': return this.applyFaces([hit.surface]);
         default: { const next = hit.additive ? new Set(this.state.surfaces) : new Set<string>(); if (next.has(hit.surface)) next.delete(hit.surface); else next.add(hit.surface); this.update({ surfaces: next }); return undefined; }
       }
     }
@@ -517,6 +548,19 @@ export class BuilderTool {
     if (hit.id) this.choose(hit.id, hit.additive); else if (!hit.additive) this.clearSelection();
     return undefined;
   };
+  /** A face sweep: the Paint tool assigns the active card to every face the drag crossed and their mirrors; Opening sets them all to the first face's opposite state. */
+  applyFaces = (keys: readonly string[]): ConstructionSubmission | undefined => {
+    if (this.locked || !this.faceLayer) return undefined;
+    if (!this.compiled && !this.retained) { this.update({ notice: 'Face editing resumes when this source has a compiled preview.' }); return undefined; }
+    const editable = keys.filter(key => this.editableKeys.has(key));
+    if (!editable.length) { if (keys.length) this.update({ notice: 'This fixed equipment support follows its fitting. Choose a hull face to edit.' }); return undefined; }
+    const target = new Set(editable), tool = this.state.tool;
+    if (tool === 'opening') {
+      const first = this.editableSurfaces.find(entry => surfaceSelectionKey(entry) === editable[0])!;
+      return this.run(first.open ? 'Close skin' : 'Open faces to sea', this.surfaceCommands(this.withMirrorFaces(target), { open: !first.open }));
+    }
+    return tool === 'apply' && this.active ? this.applyItem(this.active, target) : undefined;
+  };
   boxSelect = (ids: string[], additive: boolean) => {
     if (this.locked) return;
     ids = ids.filter(this.selectable);
@@ -527,6 +571,7 @@ export class BuilderTool {
     switch (event.kind) {
       case 'pick': return this.pick(event.hit);
       case 'lay': return this.placeAt(event.points);
+      case 'faces': return this.applyFaces(event.surfaces);
       case 'box': this.boxSelect(event.ids, event.additive); return undefined;
       case 'erase': return this.erase(event.id);
       case 'move': return this.movePieces(event.ids, event.delta);

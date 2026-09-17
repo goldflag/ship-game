@@ -7,6 +7,7 @@ const MOUSE: [string, string][] = [
   ['Click', 'Select a piece, fitting, wall or face; Shift-click adds to the selection'],
   ['Snap card', 'Under the tool rail: cycle 0.25, 0.5, 1, 2 and 5 m for placement and movement'],
   ['Drag a piece', 'Move it along the face under the pointer, snapped to the chosen Snap step'],
+  ['Drag over faces', 'With Paint or Opening on the Armor and Paint layers: sweep the card over every face the drag crosses, as one edit'],
   ['Drag empty space', 'Orbit; pan in orthographic Plan, Profile and Bow views'],
   ['Right-drag', 'Pan'],
   ['Wheel · middle-drag', 'Zoom · dolly'],

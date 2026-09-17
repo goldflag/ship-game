@@ -1,7 +1,7 @@
 //! Authoritative construction compiler, shared by native tests and local WASM sessions.
 use crate::{catalog::sha256, construction_geometry as cg, definition::*, geometry::*};
 use std::collections::{BTreeMap, BTreeSet};
-pub const COMPILER: &str = "construction-polyhedra-4";
+pub const COMPILER: &str = "construction-polyhedra-5";
 pub const MAX_SOURCE_BYTES: usize = 16_000_000;
 pub const MAX_CATALOG_BYTES: usize = 4_000_000;
 /// Source bounds; the editor mirrors them in `src/ships/constructionEditor.ts`.
@@ -15,6 +15,11 @@ pub const MAX_SURFACES: usize = 131_072;
 pub const MAX_CONNECTIONS: usize = 16_384;
 const STEEL_DENSITY: f64 = 7850.;
 const SEA_DENSITY: f64 = 1025.;
+// Provisional game allowance for unmodeled framing, decks and general outfitting.
+// Total weight follows the union envelope; distribute it through its lower half
+// to represent low internal loading, with actual volume moments for CG/inertia.
+// Fitted equipment, service loads, ammunition and authored steel remain additive.
+const INTERNAL_ALLOWANCE_KG_PER_M3: f64 = 150.;
 
 fn valid_id(s: &str) -> bool {
     !s.is_empty()
@@ -406,6 +411,10 @@ fn validate(
         ));
     }
     for e in &c.equipment {
+        if e.gun.as_ref().and_then(|g| g.barbette_paint.as_ref())
+            .is_some_and(|paint| paint.is_empty() || paint.len() > 64) {
+            return Err(error("barbette-paint", "Invalid barbette paint", Some(&e.id)));
+        }
         let rise = crate::construction_installation::raised(e);
         if !rise.is_finite() || !(0. ..=30.).contains(&rise) || (c.version < 2. && rise != 0.) {
             return Err(error("barbette-height", "Barbette height must be between 0 and 30 m on a version-2 gun installation", Some(&e.id)));
@@ -642,7 +651,7 @@ fn build(
                     ));
                 }
                 let cell = cg::transform(
-                    &cg::box_cell(space.center, space.size),
+                    &crate::construction_installation::space_cell(catalog, p, &space),
                     e.position,
                     [1.; 3],
                     -e.bearing_deg.to_radians(),
@@ -760,6 +769,19 @@ fn build(
             .iter()
             .flat_map(|c| c.faces.iter().flat_map(|f| f.vertices.iter().copied())),
     );
+    let lower_hull: Vec<_> = cells
+        .iter()
+        .filter_map(|cell| cg::clip(cell, [0., 1., 0.], center[1]))
+        .collect();
+    let lower_volume = cg::total(&lower_hull).volume;
+    if lower_volume > cg::EPS {
+        contributions.push(mass(
+            "hull-internal-allowance".into(),
+            "internal-allowance",
+            &lower_hull,
+            envelope.volume * INTERNAL_ALLOWANCE_KG_PER_M3 / lower_volume,
+        ));
+    }
     let mut boundaries: Vec<_> = c.boundaries.iter().collect();
     boundaries.sort_by(|a, b| a.id.cmp(&b.id));
     for b in &boundaries {
@@ -814,7 +836,7 @@ fn build(
         }
         // Overlapping ballast cannot hide two fixed weights in one envelope.
         let other_ballast = c.primitives.iter().filter(|other|other.kind == "ballast" && other.id < p.id);
-        for other in other_ballast { if primitive(&other).iter().any(|a|envelope.iter().any(|b|cg::intersection(a,b).is_some_and(|c|cg::moments(&c).volume>cg::EPS))) {
+        for other in other_ballast { if primitive(other).iter().any(|a|envelope.iter().any(|b|cg::intersection(a,b).is_some_and(|c|cg::moments(&c).volume>cg::EPS))) {
             return Err(error("ballast-fit","Ballast blocks must not overlap",Some(&p.id)));
         } }
         let mut payload = mass(p.id.clone(), "load", &occupied, 100_000. / cg::total(&occupied).volume);
@@ -1240,7 +1262,7 @@ fn build(
         buoyancy_scale: 1.,
         shell_thickness_mm: c.default_thickness_mm,
         basis:
-            "Exact polyhedral envelope and distributed material/loading; no calibration or ballast"
+            "Exact polyhedral buoyancy; authored loading plus low distributed internal allowance; no buoyancy calibration"
                 .into(),
     });
     let hydro = crate::hydrostatics::HullHydrostatics::new(&def.hull, None);
@@ -1293,7 +1315,7 @@ fn build(
     } else {
         0.
     };
-    let loading=ConstructionLoading{mass_kg:total_mass,center_of_gravity:cg,inertia_kg_m2:inertia,contributions,envelope_volume_m3:envelope.volume,material_volume_m3:material_volume,usable_volume_m3:def.compartments.iter().map(|r|r.capacity_m3).sum(),waterline_y:if float.afloat {-float.y}else{high},buoyancy_center:float.center,roll_metacentric_height_m:gm,power_kw:power,estimated_speed_mps:speed,basis:"Steel 7850 kg/m³; seawater 1025 kg/m³; exact convex clipping; fixed catalog service load and initial projectile stock; no hidden ballast".into()};
+    let loading=ConstructionLoading{mass_kg:total_mass,center_of_gravity:cg,inertia_kg_m2:inertia,contributions,envelope_volume_m3:envelope.volume,material_volume_m3:material_volume,usable_volume_m3:def.compartments.iter().map(|r|r.capacity_m3).sum(),waterline_y:if float.afloat {-float.y}else{high},buoyancy_center:float.center,roll_metacentric_height_m:gm,power_kw:power,estimated_speed_mps:speed,basis:"Steel 7850 kg/m³; seawater 1025 kg/m³; internal allowance 150 kg/m³ of union envelope distributed through its lower half by height; exact convex clipping; fixed catalog service load and initial projectile stock".into()};
     if !float.afloat {
         warn(
             out,
@@ -1753,7 +1775,10 @@ fn equipment(
                         Some(&e.id),
                     ));
                 }
-                let volume = transform_cell(space.center, space.size);
+                let volume = cg::transform(
+                    &crate::construction_installation::space_cell(catalog, p, &space),
+                    e.position, [1.; 3], -e.bearing_deg.to_radians(),
+                );
                 if p.placement == "deck" {
                     occupied.extend(hull.iter().filter_map(|h| cg::intersection(&volume, h)));
                 } else {
@@ -2118,7 +2143,6 @@ fn equipment(
                     traverse_rate_deg: 10.,
                     launch_arcs_deg: e.launcher.as_ref().map_or_else(|| vec![[-180., 180.]], |l| l.launch_arcs_deg.clone()),
                     traverse_limits_deg: e.launcher.as_ref().map(|l| l.traverse_limits_deg),
-                    ..Default::default()
                 });
             for (i, &offset) in offsets.iter().enumerate() {
                 if !finite(offset) {
@@ -3076,7 +3100,8 @@ mod tests {
                     .filter(|m| m.kind == "installation")
                     .map(|m| m.mass_kg / STEEL_DENSITY)
                     .sum::<f64>()
-                - 0.0776)
+                - (1. + 32. * c.weapons.parts[0].barbette_radius.powi(2)
+                    * (std::f64::consts::TAU / 64.).sin()) * 0.01)
                 .abs()
                 < 1e-6
         );

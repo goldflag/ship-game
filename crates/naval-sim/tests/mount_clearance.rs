@@ -196,7 +196,7 @@ fn drive(
     index: usize,
     target: [f64; 3],
     ticks: usize,
-    states: &mut Vec<MountState>,
+    states: &mut [MountState],
 ) -> MountState {
     let mut state = states[index].clone();
     for _ in 0..ticks {

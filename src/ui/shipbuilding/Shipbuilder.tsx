@@ -1,3 +1,4 @@
+import { CONSTRUCTION_PAINTS } from '../../ships/constructionPaints';
 import { integrateConstructionMagazines } from '../../ships/constructionArmament';
 import { FreeformToolbar } from './FreeformToolbar';
 import CustomHullEditor from './CustomHullEditor';
@@ -13,11 +14,12 @@ import { ConstructionClient } from '../../ships/constructionClient';
 import { CONSTRUCTION_SHAPE_NAMES as SHAPE_NAMES } from '../../ships/constructionShapes';
 import { createStarterSource, startingHullBlock, type ConstructionStarter } from '../../ships/constructionStarter';
 import { constructionCatalogUpdate, updateConstructionCatalog } from '../../ships/constructionEquipment';
-import { constructionDiffCommands, type ConstructionBatch } from '../../ships/constructionCommands';
+import { constructionDiffCommands, type ConstructionCommand, type ConstructionBatch } from '../../ships/constructionCommands';
 import { armorThicknessColor } from '../../ships/inspection';
 import { BuilderViewport, type BuilderTag, type ConstructionModelFactory } from './BuilderViewport';
 import { BUILDER_LAYERS, FAMILY_NAMES, formatTonnes, type BuilderLayer, type SlotItem } from './builderLayers';
 import { BOUNDARY_NAMES } from './builderTool';
+import { FITTING_CATEGORIES, NATION_SHORT, fittingCategory } from './fittingCategories';
 import { equipmentMassKg, format, hullBounds, ledgerRows, massGroups, pieceMassKg, surfaceCentroid, warningEntries } from './builderReadings';
 import { SlotGlyph, ToolGlyph } from './builderGlyphs';
 import { DesignsMenu, downloadConstructionSource } from './DesignsMenu';
@@ -27,7 +29,7 @@ import { pathSlackLimit, equipmentPathBounds } from '../../ships/constructionPat
 import { PathPointEditor } from './PathPointEditor';
 import { NumberField } from './NumberField';
 import { SlotImages, useSlotImages } from './slotImages';
-import { armorInspectionGroups, describeArmorGroup } from './ArmorInspection';
+import { armorInspectionGroups, armorThicknessGroups, describeArmorGroup } from './ArmorInspection';
 import { attachmentOffset, rotateY, bearingRadians } from './placement';
 import type { BuilderView } from './builderScene';
 import { snapCoordinate, normalizedBearing } from './editorNumbers';
@@ -82,7 +84,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const suggestLayout = props.suggestLayout ?? (compiler.suggest ? (source: ConstructionSource, ids: string[], signal?: AbortSignal) => compiler.suggest!(source, ids, signal) : undefined);
   const editor = useBuilderSource({ ...props, starterSource, compiler, suggest: suggestLayout });
   const { owner, revision, compiled, compile, tool, toolState: s, source, catalog, activeCatalog, latestCatalog, setActiveCatalog } = editor, data = source.construction;
-  const { layer, tool: activeTool, selected, surfaces, measure, pathPoints, customMm, mirror, showArcs, showCenters, freeformSettings, perspective, view, slice, notice, suggestion } = s;
+  const { layer, tool: activeTool, selected, surfaces, measure, pathPoints, customMm, mirror, showArcs, showCenters, freeformSettings, perspective, view, slice, notice, suggestion, fittingFilter } = s;
   const compiledResult = compile.current;
   const convertedDesigns = useRef(new Set<string>());
   useEffect(() => {
@@ -101,10 +103,11 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const hotbarRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const row = hotbarRef.current; if (!row) return;
+    row.scrollLeft = 0;
     const update = () => { const end = row.scrollWidth - row.clientWidth - row.scrollLeft > 1, start = row.scrollLeft > 1; row.dataset.overflow = end && start ? 'both' : end ? 'end' : start ? 'start' : ''; };
     update(); const observer = new ResizeObserver(update); observer.observe(row); row.addEventListener('scroll', update, { passive: true });
     return () => { observer.disconnect(); row.removeEventListener('scroll', update); };
-  }, [layer]);
+  }, [layer, fittingFilter]);
   const [drawerSize, setDrawerSize] = useState<{ width: number; height: number }>();
   useLayoutEffect(() => {
     if (!drawer) { setDrawerSize(undefined); setQuery(''); return; }
@@ -124,9 +127,11 @@ export function Shipbuilder(props: ShipbuilderProps) {
   useEffect(() => () => slotImages.dispose(), [slotImages]);
 
   const palette = tool.palette;
-  const imageFor = useSlotImages(slotImages, palette.drawer, catalog);
+  const everyCard = palette.all ?? palette.drawer;
+  const imageFor = useSlotImages(slotImages, everyCard, catalog);
   const active = tool.active;
   const drawerName = tool.drawerName, hasDrawer = tool.hasDrawer;
+  const shelfNations = tool.shelfNations;
   const pathPart = tool.pathPart;
   const rail = tool.rail;
   const locked = owner.locked, busy = revision.busy;
@@ -134,7 +139,8 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const freeformPrimitive = tool.freeformPrimitive, freeformMode = !!freeformPrimitive;
   const selectedBoundary = tool.selectedBoundary;
   const partOf = tool.partOf;
-  const editableSurfaces = tool.editableSurfaces;
+  const editableSurfaces = tool.editableSurfaces, armorScale = tool.armorScale;
+  const openingKey = String(palette.bar.findIndex(item => item.kind === 'opening') + 1);
   const gridStep = tool.gridStep, piece = tool.piece;
   const fail = (cause: unknown) => owner.setError(cause instanceof Error ? cause.message : String(cause));
   const run = tool.run;
@@ -220,7 +226,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const launchTitle = busy ? busy : compile.compiling ? 'Compiling this revision…' : blocks.length ? `${blocks.length} block${blocks.length === 1 ? '' : 's'} to fix before a trial` : compiledResult?.definition ? 'Launch a sea trial with this design' : 'Waiting for a compiled design';
   const saveTone = revision.saveState.status === 'saved' ? 'ok' : revision.saveState.status === 'error' ? 'bad' : 'saving';
   const saveText = revision.saveState.status === 'saved' ? (props.repositoryId ? 'Saved to repository' : 'Saved to account') : revision.saveState.status === 'error' ? 'Not saved · keep a backup' : 'Saving…';
-  const drawerItems = query ? palette.drawer.filter(item => `${item.name} ${item.note} ${item.kind === 'part' ? `${item.part.name} ${FAMILY_NAMES[item.part.kind]} ${item.part.placement}` : ''}`.toLowerCase().includes(query.toLowerCase())) : palette.drawer;
+  const drawerItems = query ? everyCard.filter(item => `${item.name} ${item.note} ${item.kind === 'part' ? `${item.part.name} ${FAMILY_NAMES[item.part.kind]} ${item.part.placement}` : ''}`.toLowerCase().includes(query.toLowerCase())) : everyCard;
 
   const tags: BuilderTag[] = [];
   const equipmentAnchor = (item: ConstructionEquipment): Vec3 => { const part = partOf(item), center = part ? rotateY(equipmentPathBounds(part, item).center, bearingRadians(item.bearingDeg)) : [0, 0, 0]; return item.position.map((value, index) => value + center[index]) as Vec3; };
@@ -258,7 +264,10 @@ export function Shipbuilder(props: ShipbuilderProps) {
       <b>{part?.name ?? item.partId}</b>
       {mass !== undefined ? `${formatTonnes(mass)} · ` : ''}bearing <NumberField value={item.bearingDeg} min={0} max={360} step={15} unit="°" onChange={value => edit('Set bearing', target => { target.bearingDeg = normalizedBearing(value); })}/> · <NumberField label="x" value={item.position[0]} min={-1000} max={1000} step={gridStep} onChange={value => move(0, value)}/> <NumberField label="y" value={item.position[1]} min={-1000} max={1000} step={gridStep} onChange={value => move(1, value)}/> <NumberField label="z" value={item.position[2]} min={-1000} max={1000} step={gridStep} onChange={value => move(2, value)}/>
       {part?.path && item.path && <PathPointEditor key={item.id} item={item} part={part} onChange={path => edit('Edit fitting path', target => { target.path = path; })}/>}
-      {part?.kind === 'gun' && <> · <NumberField label="Turret rise" description="Extend the barbette above its deck attachment; the magazine stays at its lower end." value={item.gun?.barbetteHeightM ?? 0} min={0} max={30} step={.25} unit="m" onChange={value => tool.raiseTurrets([item.id], () => value)}/></>}{data.version === 2 && (part?.kind === 'gun' || part?.kind === 'torpedo-launcher') && <span> · built-in ammunition</span>}{(part?.kind === 'funnel' || part?.kind === 'propeller') && link('powerSourceId', 'engine', '· power')} · <kbd>R</kbd> rotate · <kbd>⌫</kbd> remove
+      {part?.kind === 'gun' && <> · <NumberField label="Turret rise" description="Extend the barbette above its deck attachment; the magazine stays at its lower end." value={item.gun?.barbetteHeightM ?? 0} min={0} max={30} step={.25} unit="m" onChange={value => tool.raiseTurrets([item.id], () => value)}/>
+        <label> · Barbette paint <select aria-label="Barbette paint" className="sb-link" value={item.gun?.barbettePaint ?? 'naval-gray'} onChange={event => edit('Paint barbette', target => { target.gun = { ...target.gun, barbettePaint: event.target.value }; })}>
+          {CONSTRUCTION_PAINTS.map(paint => <option key={paint.id} value={paint.id}>{paint.name}</option>)}
+        </select></label></>}{data.version === 2 && (part?.kind === 'gun' || part?.kind === 'torpedo-launcher') && <span> · built-in ammunition</span>}{(part?.kind === 'funnel' || part?.kind === 'propeller') && link('powerSourceId', 'engine', '· power')} · <kbd>R</kbd> rotate · <kbd>⌫</kbd> remove
     </> });
   } else if (selected.size > 1) {
     const anchors = [...selectedPrimitives.map(part => part.position), ...selectedEquipment.map(equipmentAnchor)];
@@ -279,7 +288,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
     if (first) tags.push({ key: 'faces', anchor: surfaceCentroid(first), dx: 80, dy: -96, tone: 'mint', content: <>
       <b>{surfaces.size} face{surfaces.size === 1 ? '' : 's'} · {groups.length === 1 ? (layer === 'paint' ? `${groups[0].surface.paint.replace('-', ' ')}` : describeArmorGroup(groups[0].surface)) : `${groups.length} different ${layer === 'paint' ? 'paints' : 'thicknesses'}`}</b>
       {layer === 'armor' && <div className="sb-face-armor"><NumberField label="Face armor" description="Armor thickness for the selected faces" value={groups.length === 1 ? first.thicknessMm : customMm} min={0} max={1000} unit="mm" onChange={tool.setThickness}/>{mirror && <span>· mirror on</span>}</div>}
-      {format(area, 0)} m² · {layer === 'paint' ? <><kbd>1</kbd>–<kbd>9</kbd> paint</> : <><kbd>1</kbd> assign {customMm} mm · <kbd>2</kbd> open</>} · <kbd>⇧</kbd>click adds · <kbd>Esc</kbd> clear
+      {format(area, 0)} m² · {layer === 'paint' ? <><kbd>1</kbd>–<kbd>9</kbd> paint</> : <><kbd>1</kbd> assign {customMm} mm · <kbd>{openingKey}</kbd> open</>} · <kbd>⇧</kbd>click adds · <kbd>Esc</kbd> clear
     </> });
   }
   const hoveredBlock = blocks.find(entry => entry.sourceId && entry.sourceId === hoveredPart);
@@ -299,7 +308,8 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const describe = (item: SlotItem): { title: string; detail: string } => {
     switch (item.kind) {
       case 'shape': return { title: item.name, detail: item.shape.note };
-      case 'armor': return { title: 'Armor', detail: `${customMm > 0 ? `${customMm} mm armor steel` : 'structural skin without armor'} · set the thickness above the bar` };
+      case 'armor': return { title: 'Armor', detail: `${customMm > 0 ? `${customMm} mm armor steel` : 'structural skin without armor'} · set the thickness above the bar · drag to sweep faces` };
+      case 'thickness': return { title: item.name, detail: `${item.note} · assigns ${item.mm > 0 ? `${item.mm} mm armor steel` : 'structural skin without armor'}` };
       case 'opening': return { title: 'Opening', detail: 'removes the skin so the face admits water' };
       case 'part': return { title: item.part.name, detail: item.part.path ? `${item.note} · draw connected points` : `${item.note} · ${item.part.placement} · ${item.part.size.map(metres).join(' × ')} m` };
       case 'tool': case 'scheme': return { title: item.name, detail: item.note };
@@ -321,11 +331,12 @@ export function Shipbuilder(props: ShipbuilderProps) {
     if (item.kind === 'shape') return <>{picture ?? <SlotGlyph item={item} customMm={customMm}/>}<i className="sb-dims">{dimensions(item.shape.size)}</i>{item.shape.kind === 'ballast' && <small className="sb-slot-weight">100 t</small>}</>;
     if (picture) return picture;
     switch (item.kind) {
-      case 'armor': return <i className="sb-swatch" style={{ background: armorThicknessColor(customMm) }}><span>{customMm} mm</span></i>;
+      case 'armor': return <i className="sb-swatch" style={{ background: armorThicknessColor(customMm, armorScale) }}><span>{customMm} mm</span></i>;
+      case 'thickness': return <i className="sb-swatch" style={{ background: armorThicknessColor(item.mm, armorScale) }}><span>{item.mm} mm</span></i>;
       case 'paint': return <i className="sb-swatch" style={{ background: item.color }}/>;
       case 'scheme': return <i className="sb-swatch" style={{ background: item.id === 'two-tone' ? 'linear-gradient(#64716f 50%, #7c8c91 50%)' : 'repeating-linear-gradient(90deg, #405d70 0 25%, #b5bfbc 25% 50%)' }}/>;
       case 'empty': return null;
-      default: return <SlotGlyph item={item} customMm={customMm}/>;
+      default: return <SlotGlyph item={item} customMm={customMm} scale={armorScale}/>;
     }
   };
   const slot = (item: SlotItem) => {
@@ -360,7 +371,16 @@ export function Shipbuilder(props: ShipbuilderProps) {
     {newDesignOpen && <NewDesignDialog onClose={() => setNewDesignOpen(false)} onCreate={newDesign}/>}
     {customHullSession?.designId === source.id && createPortal(<CustomHullEditor integration={{ hull: editableCustomHull(customHullSession.primitive), onClose: () => setCustomHullSession(undefined), onApply: hull => {
       const existing = data.primitives.find(part => part.id === customHullSession.primitive.id);
-      if (existing) run('Shape custom hull', [{ op: 'primitive', value: customHullPrimitive(hull, existing) }]);
+      if (existing) {
+        const commands: ConstructionCommand[] = [{ op: 'primitive', value: customHullPrimitive(hull, existing) }];
+        // Older starters painted the whole bottom red. Replace that side default
+        // when first enabling a height boundary; retain panel overrides and armor.
+        if (existing.customHull?.redPaintY === undefined && hull.redPaintY !== undefined) {
+          const bottom = data.surfaces.find(s => s.primitiveId === existing.id && s.face === 'bottom' && s.panelId === undefined && s.paint === 'red-oxide');
+          if (bottom) commands.push({ op: 'surface', value: { ...bottom, paint: 'naval-gray' } });
+        }
+        run('Edit custom hull', commands);
+      }
       setCustomHullSession(undefined); tool.fit();
     } }}/>, document.body)}
     <BuilderViewport scene={tool.scene(compile.retained)} tags={tags} coords={tool.coords} status={status} onPointer={tool.pointer} onHover={setHoveredPart} createModel={props.createModel}/>
@@ -419,13 +439,23 @@ export function Shipbuilder(props: ShipbuilderProps) {
       {rows.map(row => <div key={row.label} className={`row ${row.tone ?? ''}`}><span>{row.label}</span><b>{row.value}</b></div>)}
       {totalMass > 0 && <><div className="sb-massbar" aria-hidden="true">{masses.filter(group => group.massKg > 0).map(group => <i key={group.name} style={{ width: `${(100 * group.massKg / totalMass).toFixed(1)}%`, background: group.color }}/>)}</div>
         <div className="sb-masskey">{masses.filter(group => group.massKg > 0).map(group => <span key={group.name} style={{ display: 'contents' }}><i style={{ background: group.color }}/><span>{group.name}</span><b>{formatTonnes(group.massKg, group.massKg < 1e5 ? 1 : 0)}</b></span>)}</div></>}
-      {layer === 'armor' && <div className="sb-armor-groups" aria-label="Hull armor coverage">{armorInspectionGroups(editableSurfaces).sort((a, b) => b.areaM2 - a.areaM2).slice(0, 6).map(group => <p key={group.id}>{describeArmorGroup(group.surface)}<small>{format(group.areaM2, 0)} m² · {group.faces.size} face{group.faces.size === 1 ? '' : 's'}</small></p>)}</div>}
+      {/* Every thickness on the ship, thickest first on the ship's own colour scale; a row picks that value's card. */}
+      {layer === 'armor' && <div className="sb-armor-groups" aria-label="Armor thicknesses in use">{armorThicknessGroups(editableSurfaces).map(group => {
+        const card = group.open ? undefined : palette.drawer.find(item => item.kind === 'thickness' && item.mm === group.thicknessMm);
+        const text = <>{describeArmorGroup(group)}<small>{format(group.areaM2, 0)} m² · {group.faces.size} face{group.faces.size === 1 ? '' : 's'}</small></>;
+        return card ? <button key={group.id} disabled={locked} aria-pressed={active?.kind === 'thickness' && active.mm === group.thicknessMm} title={`Pick ${group.thicknessMm} mm for the Armor card`} onClick={() => selectSlot(card)}><i style={{ background: armorThicknessColor(group.thicknessMm, armorScale) }}/><span>{text}</span></button>
+          : <p key={group.id}><i/><span>{text}</span></p>;
+      })}</div>}
     </aside>
     {drawer && <div className="sb-drawer" ref={drawerRef} style={drawerSize} aria-label={`All ${drawerName}`}>
       <div className="sb-drawer-head"><span className="sb-lead">All {drawerName}</span>
         {(layer === 'fittings' || layer === 'hull') && <label className="sb-search">Find <input autoFocus type="search" aria-label={layer === 'hull' ? 'Find a shape' : 'Find a fitting'} placeholder={layer === 'hull' ? 'bridge, cylinder, shell…' : 'gun, screw, funnel…'} value={query} onChange={event => setQuery(event.target.value)} onKeyDown={event => { if (event.key === 'Escape' || (event.key === '0' && !event.currentTarget.value)) { event.preventDefault(); event.stopPropagation(); setDrawer(false); setTip(undefined); } }}/></label>}
         <button className="sb-drawer-close" aria-label="Close" onClick={() => { setDrawer(false); setTip(undefined); }}>×</button></div>
-      <div className="sb-drawer-grid" role="listbox">{drawerItems.map(item => slot(item))}{!drawerItems.length && <span className="sb-lead">No {layer === 'hull' ? 'shape' : 'fitting'} matches</span>}</div>
+      <div className="sb-drawer-grid" role="listbox">{layer === 'fittings' ? FITTING_CATEGORIES.map(shelf => {
+        // The drawer holds every shelf and nation at once; choosing a card there opens its shelf on the bar.
+        const cards = drawerItems.filter(item => item.kind === 'part' && fittingCategory(item.part, catalog) === shelf.id);
+        return cards.length ? <div key={shelf.id} className="sb-drawer-shelf" role="group" aria-label={shelf.name}><span className="sb-lead">{shelf.name}</span><div>{cards.map(item => slot(item))}</div></div> : null;
+      }) : drawerItems.map(item => slot(item))}{!drawerItems.length && <span className="sb-lead">No {layer === 'hull' ? 'shape' : 'fitting'} matches</span>}</div>
     </div>}
     <div className="sb-dock">
       <div className="sb-dock-tabs">
@@ -435,6 +465,12 @@ export function Shipbuilder(props: ShipbuilderProps) {
           <div className="sb-keys-row">{standing.map(chip)}</div>
         </div>
       </div>
+      {layer === 'fittings' && <div className="sb-shelves">
+        <div className="sb-chips" role="tablist" aria-label="Fitting shelves">{FITTING_CATEGORIES.map(shelf => <button key={shelf.id} role="tab" aria-selected={fittingFilter.category === shelf.id} title={shelf.note} onClick={() => { tool.setFittingFilter({ category: shelf.id }); setTip(undefined); }}>{shelf.name}</button>)}</div>
+        {shelfNations.length > 0 && <div className="sb-chips nations" role="radiogroup" aria-label="Nation">
+          {(['all', ...shelfNations] as const).map(nation => <button key={nation} role="radio" aria-checked={tool.shelfNation === nation} title={nation === 'all' ? 'Parts of every navy' : `${nation} parts, with the generic ones`} onClick={() => tool.setFittingFilter({ nation })}>{nation === 'all' ? 'All' : NATION_SHORT[nation]}</button>)}
+        </div>}
+      </div>}
       <div className="sb-dock-body">
         <div className="sb-hotbar" role="toolbar" aria-label="Palette">
           <div className="sb-hotbar-cards" ref={hotbarRef}>{palette.drawer.map(item => slot(item))}</div>

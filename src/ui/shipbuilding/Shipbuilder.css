@@ -7,7 +7,7 @@
   --sb-sweep: radial-gradient(ellipse 70% 62% at 50% 46%, #3d4145 0%, #2a2d30 48%, #191b1e 100%);
   --sb-card: #24282bf5; --sb-card-hover: #2f3438; --sb-card-selected: #383d41; --sb-card-toggle: #253a37;
   /* dock geometry: the readout, drawer and compass keep clear of the dock through these (tab row + card row) */
-  --sb-slot: 64px; --sb-bar-bottom: 0px; --sb-dock-tabs: 36px; --sb-bar-height: calc(var(--sb-dock-tabs) + var(--sb-slot) + 22px);
+  --sb-slot: 64px; --sb-bar-bottom: 0px; --sb-dock-tabs: 36px; --sb-shelves: 0px; --sb-bar-height: calc(var(--sb-dock-tabs) + var(--sb-shelves) + var(--sb-slot) + 22px);
   position: fixed; inset: 0; z-index: 80; overflow: hidden; background: var(--sb-ground); color: var(--sb-text);
   font: 400 13px/1.35 'Barlow', sans-serif; font-variant-numeric: tabular-nums; text-shadow: 0 2px 5px #0d0f11b3; color-scheme: dark; user-select: none;
 }
@@ -161,6 +161,17 @@
 .sb-dock { position: absolute; left: 0; right: 0; bottom: 0; height: var(--sb-bar-height); display: flex; flex-direction: column; text-shadow: none; z-index: 3; }
 .sb-dock-tabs { display: flex; align-items: flex-end; gap: 14px; padding: 0 14px; height: var(--sb-dock-tabs); flex-shrink: 0; }
 .sb-dock-body { flex: 1; min-height: 0; display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--sb-card); border-top: 1px solid var(--sb-line2); box-shadow: 0 -10px 30px #0a0c0e66; }
+/* Fittings shelves: a chip row inside the card, between the layer tabs and the cards; the nation filter sits at its right end */
+.shipbuilder[data-layer=fittings] { --sb-shelves: 32px; }
+.sb-shelves { flex-shrink: 0; height: var(--sb-shelves); display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; padding: 0 14px; background: var(--sb-card); border-top: 1px solid var(--sb-line2); box-shadow: 0 -10px 30px #0a0c0e66; pointer-events: auto; overflow-x: auto; scrollbar-width: none; }
+.sb-shelves + .sb-dock-body { border-top: 0; box-shadow: none; padding-top: 8px; }
+.sb-chips { display: flex; gap: 4px; flex-shrink: 0; }
+.shipbuilder .sb-chips button { height: 24px; padding: 0 10px; border: 1px solid var(--sb-line); border-radius: 12px; font: 500 12px/1 'Barlow', sans-serif; letter-spacing: .02em; color: var(--sb-muted); white-space: nowrap; }
+.shipbuilder .sb-chips button:hover { color: var(--sb-text); border-color: var(--sb-muted2); }
+.shipbuilder .sb-chips button:is([aria-selected=true], [aria-checked=true]) { color: var(--sb-brass); border-color: var(--sb-brass); background: var(--sb-card-selected); }
+.shipbuilder .sb-chips.nations button { border-radius: 2px; padding: 0 8px; }
+.sb-drawer-shelf { flex-basis: 100%; display: flex; flex-direction: column; gap: 5px; }
+.sb-drawer-shelf > div { display: flex; flex-wrap: wrap; gap: 6px; }
 .sb-hotbar { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; }
 .sb-hotbar-cards { display: flex; gap: 6px; flex: 1; min-width: 0; padding: 1px; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
 .sb-hotbar-cards[data-overflow=end] { mask-image: linear-gradient(90deg, #000 calc(100% - 72px), transparent); }
@@ -231,8 +242,13 @@
 .sb-masskey { display: grid; grid-template-columns: 8px 1fr auto; gap: 3px 8px; font-size: 11px; color: var(--sb-muted); align-items: center; }
 .sb-masskey i { width: 8px; height: 8px; }
 .sb-masskey b { font-weight: 500; color: var(--sb-text); }
+/* thicknesses in use: one row per value with its swatch on the ship's own scale; a row is the card for that value */
 .sb-armor-groups { margin-top: 10px; font-size: 11.5px; }
-.sb-armor-groups p { padding: 3px 0; border-bottom: 1px solid var(--sb-line); }
+.sb-armor-groups p, .sb-armor-groups button { display: flex; align-items: center; gap: 7px; width: 100%; margin: 0; padding: 3px 0; border-bottom: 1px solid var(--sb-line); }
+.sb-armor-groups button { pointer-events: auto; }
+.sb-armor-groups button:not(:disabled):hover, .sb-armor-groups button[aria-pressed=true] { color: var(--sb-brass); }
+.sb-armor-groups i { flex: none; width: 10px; height: 10px; border-radius: 2px; box-shadow: inset 0 0 0 1px #edf1ec33; }
+.sb-armor-groups span { min-width: 0; }
 .sb-armor-groups small { display: block; color: var(--sb-muted); }
 
 /* hotkey legend at the tab row's right end: the standing keys on the bottom row, the keys acting on the cursor piece,
