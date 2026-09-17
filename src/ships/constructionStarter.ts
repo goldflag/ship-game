@@ -60,7 +60,7 @@ export function suggestStarterEquipment(catalog: ConstructionCatalog, kind: Excl
   const supportY = (part: ConstructionEquipmentPart | undefined) => part?.sockets?.find(s => s.id === 'attachment')?.position[1] ?? 0;
   fit('gun-forward', gun, [0, 2.5 - supportY(gun), twin ? -8 : -14]);
   const funnel = find('funnel');
-  fit('funnel', funnel, [twin ? 6 : 0, 2.5 - supportY(funnel), 5], { powerSourceId: 'engine' });
+  fit('funnel', funnel, [twin ? 6 : 0, 2.5 - supportY(funnel), 5]);
   const propeller = find('propeller'), rudder = find('rudder');
   const shaftZ = propeller?.sockets?.find(s => s.id === 'attachment')?.position[2] ?? 0;
   fit('screw', propeller, [twin ? 6 : 0, -2.25, 24 - shaftZ], { powerSourceId: 'engine' });

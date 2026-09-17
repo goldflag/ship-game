@@ -192,6 +192,9 @@ export interface FloodConnection {
   /** A hit on this protection surface can breach this boundary, within bounds. */
   armorId?: string; bounds?: { center: Vec3; size: Vec3 }; thicknessMm?: number;
 }
+/** Installed catalog ratings for ship-wide exhaust allocation and damage. */
+export interface MachineryRating { id: string; kw: number }
+export interface SharedExhaust { engines: MachineryRating[]; funnels: MachineryRating[] }
 export interface PropulsionGroup {
   id: string; share: number; boilerIds: string[]; driveIds: string[]; shaftIds: string[];
 }
@@ -257,7 +260,7 @@ export interface ShipBlueprint {
   modules: Module[]; compartments: Compartment[];
   connections: FloodConnection[];
   /** Additive v1 mechanics. Older definitions retain their provisional averages. */
-  propulsion?: { groups: PropulsionGroup[]; basis: string };
+  propulsion?: { groups: PropulsionGroup[]; basis: string; sharedExhaust?: SharedExhaust };
   /** Explicit shell-to-space assignment; regions cover local shell surfaces. */
   floodRegions?: (Volume & { compartmentId: string; face?: 'port' | 'starboard' | 'bow' | 'stern' })[];
   obstructions: Volume[];
@@ -853,6 +856,17 @@ export function compileShip(input: unknown, catalogInput: unknown): ShipDefiniti
   if (b.propulsion !== undefined) {
     const propulsion = record(b.propulsion, 'propulsion');
     text(propulsion.basis, 'propulsion.basis');
+    if (propulsion.sharedExhaust !== undefined) {
+      const pool = record(propulsion.sharedExhaust, 'propulsion.sharedExhaust');
+      for (const [key, role] of [['engines', 'combined-drive'], ['funnels', 'boiler']]) {
+        const ratings = list(pool[key], `sharedExhaust.${key}`, 128).map(r => record(r, 'machinery rating'));
+        unique(ratings, `sharedExhaust.${key}`);
+        ratings.forEach(r => {
+          numeric(r.kw, `${r.id}.kw`, 0, 1e9);
+          if (!modules.some(m => m.id === r.id && m.role === role)) fail(String(r.id), 'unknown shared exhaust equipment');
+        });
+      }
+    }
     const groups = list(propulsion.groups, 'propulsion.groups', 16).map(g => record(g, 'propulsion group'));
     if (!groups.length) fail('propulsion.groups', 'at least one drive group required');
     unique(groups, 'propulsion.groups');

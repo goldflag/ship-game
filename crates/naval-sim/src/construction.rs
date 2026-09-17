@@ -1,7 +1,7 @@
 //! Authoritative construction compiler, shared by native tests and local WASM sessions.
 use crate::{catalog::sha256, construction_geometry as cg, definition::*, geometry::*};
 use std::collections::{BTreeMap, BTreeSet};
-pub const COMPILER: &str = "construction-polyhedra-5";
+pub const COMPILER: &str = "construction-polyhedra-6";
 pub const MAX_SOURCE_BYTES: usize = 16_000_000;
 pub const MAX_CATALOG_BYTES: usize = 4_000_000;
 /// Source bounds; the editor mirrors them in `src/ships/constructionEditor.ts`.
@@ -253,7 +253,7 @@ pub fn suggest(
                 gun: None,
                 launcher: None,
                 path: None,
-                power_source_id: if matches!(part.kind.as_str(), "funnel" | "propeller") {
+                power_source_id: if part.kind == "propeller" {
                     result
                         .construction
                         .equipment
@@ -1549,8 +1549,9 @@ fn equipment(
                 Some(&e.id),
             ));
         };
-        if e.power_source_id.as_ref().is_some_and(|id| {
-            !matches!(p.kind.as_str(), "propeller" | "funnel")
+        // Legacy funnel links are accepted but no longer constrain shared exhaust.
+        if p.kind != "funnel" && e.power_source_id.as_ref().is_some_and(|id| {
+            p.kind != "propeller"
                 || !c.equipment.iter().any(|e| {
                     &e.id == id
                         && catalog
@@ -2224,20 +2225,26 @@ fn equipment(
             }
         }
         warn(out, "unpowered", &format!(
-            "No propulsion: missing {}. Add the missing equipment; each engine needs a funnel and propeller linked through their power setting. Sea trial is still available, but the ship cannot propel itself.",
+            "No propulsion: missing {}. Add the missing equipment; funnels supply shared exhaust capacity and propellers connect to engines through their power setting. Sea trial is still available, but the ship cannot propel itself.",
             missing.join(", ")
         ));
     }
+    let funnels: Vec<_> = fitted.iter().filter(|(_, p)| p.kind == "funnel").collect();
+    let shared_exhaust = SharedExhaust {
+        engines: fitted.iter().filter(|(_, p)| p.kind == "engine" && p.power_kw.unwrap_or(0.) > 0.)
+            .map(|(e, p)| MachineryRating { id: e.id.clone(), kw: p.power_kw.unwrap_or(0.) }).collect(),
+        funnels: funnels.iter()
+            .map(|(e, p)| MachineryRating { id: e.id.clone(), kw: p.exhaust_kw.unwrap_or(0.) }).collect(),
+    };
+    let exhaust: f64 = shared_exhaust.funnels.iter().map(|f| f.kw).sum();
+    let demand: f64 = shared_exhaust.engines.iter().map(|e| e.kw).sum();
+    let supply = crate::construction_services::exhaust_fraction(exhaust, demand);
+    if exhaust > 0. && exhaust < demand {
+        warn(out, "exhaust-capacity", &format!(
+            "Insufficient exhaust capacity: {exhaust:.0} kW available for {demand:.0} kW of engines. Add another funnel or use a higher-capacity funnel. Propulsion is limited; sea trial is still available."
+        ));
+    }
     for (engine, part) in fitted.iter().filter(|(_, p)| p.kind == "engine") {
-        let funnels: Vec<_> = fitted
-            .iter()
-            .filter(|(e, p)| {
-                p.kind == "funnel"
-                    && (e.power_source_id.as_deref() == Some(engine.id.as_str())
-                        || (e.power_source_id.is_none()
-                            && engine_count == 1))
-            })
-            .collect();
         let props: Vec<_> = fitted
             .iter()
             .filter(|(e, p)| {
@@ -2247,29 +2254,26 @@ fn equipment(
                             && engine_count == 1))
             })
             .collect();
-        let exhaust: f64 = funnels
-            .iter()
-            .map(|(_, p)| p.exhaust_kw.unwrap_or(0.))
-            .sum();
         let rated = part.power_kw.unwrap_or(0.);
-        let mut reasons = vec![];
-        for (kind, missing) in [("funnel", funnels.is_empty()), ("propeller", props.is_empty())] {
-            if missing {
-                reasons.push(if fitted.iter().any(|(_, p)| p.kind == kind) {
-                    format!("No {kind} linked to this engine. Select a {kind} and set its power link to this engine, or add another {kind}")
-                } else {
-                    format!("Missing {kind}. Add a {kind} in Fittings and set its power link to this engine")
-                });
-            }
+        let mut reasons: Vec<String> = vec![];
+        if funnels.is_empty() {
+            reasons.push("Missing funnel. Add a funnel in Fittings to provide shared exhaust capacity".into());
+        }
+        if props.is_empty() {
+            reasons.push(if fitted.iter().any(|(_, p)| p.kind == "propeller") {
+                "No propeller linked to this engine. Select a propeller and set its power link to this engine, or add another propeller".into()
+            } else {
+                "Missing propeller. Add a propeller in Fittings and set its power link to this engine".into()
+            });
         }
         if rated == 0. {
             reasons.push("This engine has no rated power. Replace it with an engine that supplies power".into());
         }
         if !funnels.is_empty() {
             if exhaust == 0. {
-                reasons.push("Linked funnels have no exhaust capacity. Replace them with a funnel that provides exhaust capacity".into());
-            } else if rated > 0. && exhaust <= rated * crate::construction_services::AUXILIARY_POWER_SHARE {
-                reasons.push("Linked funnel exhaust capacity is too low to power propulsion after auxiliary services. Add or link a higher-capacity funnel".into());
+                reasons.push("Funnels have no exhaust capacity. Replace them with a funnel that provides exhaust capacity".into());
+            } else if rated > 0. && supply <= crate::construction_services::AUXILIARY_POWER_SHARE {
+                reasons.push("Shared exhaust capacity is too low to power propulsion after auxiliary services. Add another funnel or use a higher-capacity funnel".into());
             }
         }
         if !reasons.is_empty() {
@@ -2286,7 +2290,7 @@ fn equipment(
             .map(|(_, p)| p.thrust_efficiency.unwrap_or(0.6).clamp(0.01, 1.))
             .sum::<f64>()
             / props.len() as f64;
-        let kw = (rated.min(exhaust) - rated * crate::construction_services::AUXILIARY_POWER_SHARE)
+        let kw = (rated * (supply - crate::construction_services::AUXILIARY_POWER_SHARE))
             .max(0.)
             * efficiency;
         if kw == 0. {
@@ -2304,7 +2308,7 @@ fn equipment(
     for g in &mut groups {
         g.share /= power.max(1.);
     }
-    def.propulsion=Some(ShipDefinitionPropulsion{groups,basis:"Catalog power limited by linked exhaust, less 2% rated power reserved for included auxiliaries, then propeller efficiency; actual machinery availability and immersion apply at runtime".into()});
+    def.propulsion = Some(ShipDefinitionPropulsion { groups, shared_exhaust: Some(shared_exhaust), basis: "Catalog power limited by shared funnel capacity, allocated in proportion to engine power, less 2% rated power reserved for included auxiliaries, then propeller efficiency; damaged or submerged funnels reduce shared capacity at runtime".into() });
     let (_, dims) = crate::structure::bounds(
         hull.iter()
             .flat_map(|c| c.faces.iter().flat_map(|f| f.vertices.iter().copied())),
@@ -3086,7 +3090,7 @@ mod tests {
         let warnings: Vec<_> = result.diagnostics.iter().filter(|d| d.code == "unpowered").collect();
         assert_eq!(warnings.len(), 2);
         for warning in warnings {
-            assert!(warning.message.contains("funnel") && warning.message.contains("propeller"));
+            assert!(!warning.message.contains("funnel") && warning.message.contains("propeller"));
             assert!(warning.message.contains("power") && warning.message.contains("link"), "{}", warning.message);
             assert!(warning.message.contains(warning.source_id.as_deref().unwrap()));
         }
@@ -3116,6 +3120,101 @@ mod tests {
         }
         let (source, catalog) = equipped_fixture();
         assert!(!compile(&source, &catalog).diagnostics.iter().any(|d| d.code == "unpowered"));
+    }
+
+    fn shared_exhaust_fixture() -> (ConstructionSource, ConstructionCatalog) {
+        let (mut source, mut catalog) = equipped_fixture();
+        let mut engine_part = catalog.equipment.iter().find(|p| p.kind == "engine").unwrap().clone();
+        engine_part.id = "large-engine-part".into();
+        engine_part.power_kw = Some(3000.);
+        catalog.equipment.push(engine_part);
+        for (original, id, part, position) in [
+            ("engine", "second-engine", "large-engine-part", [-3., -1.99, 6.]),
+            ("screw", "second-screw", "screw-part", [2., -1.5, 10.25]),
+        ] {
+            let mut copy = source.construction.equipment.iter().find(|e| e.id == original).unwrap().clone();
+            copy.id = id.into();
+            copy.part_id = part.into();
+            copy.position = position;
+            if original == "screw" { copy.power_source_id = Some("second-engine".into()); }
+            source.construction.equipment.push(copy);
+        }
+        source.construction.equipment.iter_mut().find(|e| e.id == "screw").unwrap().power_source_id = Some("engine".into());
+        (source, catalog)
+    }
+
+    #[test]
+    fn shared_exhaust_limits_all_engines_and_accepts_obsolete_funnel_links() {
+        let (mut source, mut catalog) = shared_exhaust_fixture();
+        for (capacity, expected) in [(0., 0.), (40., 0.), (2000., 1152.), (4000., 2352.), (8000., 2352.)] {
+            catalog.equipment.iter_mut().find(|p| p.kind == "funnel").unwrap().exhaust_kw = Some(capacity);
+            let result = compile(&source, &catalog);
+            assert!(result.definition.is_some(), "{:?}", result.diagnostics);
+            assert!((result.loading.as_ref().unwrap().power_kw - expected).abs() < 1e-9);
+            assert_eq!(result.diagnostics.iter().any(|d| d.code == "exhaust-capacity"), capacity > 0. && capacity < 4000.);
+            if expected > 0. {
+                let groups = &result.definition.as_ref().unwrap().propulsion.as_ref().unwrap().groups;
+                assert_eq!(groups.len(), 2);
+                assert!((groups[0].share - 0.25).abs() < 1e-9);
+                assert!((groups[1].share - 0.75).abs() < 1e-9);
+            }
+        }
+        // An old link to an engine that has since been deleted is harmless.
+        source.construction.equipment.iter_mut().find(|e| e.id == "funnel").unwrap().power_source_id = Some("deleted-engine".into());
+        assert!((compiled(&source, &catalog).loading.unwrap().power_kw - 2352.).abs() < 1e-9);
+        source.construction.equipment.iter_mut().find(|e| e.id == "screw").unwrap().power_source_id = Some("deleted-engine".into());
+        assert!(compile(&source, &catalog).diagnostics.iter().any(|d| d.code == "power-link"));
+    }
+
+    #[test]
+    fn shared_exhaust_damage_uses_capacity_and_reallocates_after_engine_loss() {
+        use crate::{damage::Combatant, machinery::{electrical_power, system_health}};
+        let (mut source, mut catalog) = shared_exhaust_fixture();
+        let mut large = catalog.equipment.iter().find(|p| p.kind == "funnel").unwrap().clone();
+        large.id = "large-funnel-part".into();
+        large.exhaust_kw = Some(5000.);
+        catalog.equipment.push(large);
+        let mut funnel = source.construction.equipment.iter().find(|e| e.id == "funnel").unwrap().clone();
+        funnel.id = "large-funnel".into();
+        funnel.part_id = "large-funnel-part".into();
+        funnel.position[0] = 3.;
+        source.construction.equipment.push(funnel);
+        let definition = compiled(&source, &catalog);
+        // Ratings must survive the native/JSON definition boundary.
+        let def: ShipDefinition = serde_json::from_str(&serde_json::to_string(&definition).unwrap()).unwrap();
+        let mut actor = Combatant::new("pool", &def);
+        let health = |a: &Combatant| system_health(a, &def, "engine", None);
+        let set = |a: &mut Combatant, id: &str, fraction: f64| {
+            let max = def.modules.iter().find(|m| m.id == id).unwrap().hp;
+            a.damage.modules.iter_mut().find(|m| m.id == id).unwrap().hp = max * fraction;
+        };
+        assert_eq!(health(&actor), 1.);
+        let mut submerged = def.clone();
+        submerged.modules.iter_mut().find(|m| m.id == "large-funnel").unwrap().center[1] = -100.;
+        let immersed_actor = Combatant::new("immersed", &submerged);
+        assert!((system_health(&immersed_actor, &submerged, "engine", None) - (1000. - 80.) / 3920.).abs() < 1e-9);
+        assert!(crate::catalog::validate_definition(&def).is_ok());
+        let mut invalid = def.clone();
+        invalid.propulsion.as_mut().unwrap().shared_exhaust.as_mut().unwrap().funnels[0].kw = -1.;
+        assert!(crate::catalog::validate_definition(&invalid).is_err());
+        set(&mut actor, "funnel", 0.);
+        assert_eq!(health(&actor), 1.); // 5000 kW still covers 4000 kW.
+        set(&mut actor, "large-funnel", 0.5);
+        assert!((health(&actor) - (2500. - 80.) / 3920.).abs() < 1e-9);
+        assert_eq!(electrical_power(&actor, &def, None), 1.); // Auxiliary reserve first.
+        set(&mut actor, "second-engine", 0.);
+        assert!((health(&actor) - 0.25).abs() < 1e-9); // Remaining engine has full exhaust.
+        set(&mut actor, "large-funnel", 0.);
+        assert_eq!(health(&actor), 0.);
+        assert_eq!(electrical_power(&actor, &def, None), 0.);
+        set(&mut actor, "funnel", 0.01); // 10 kW for a 20 kW auxiliary reserve.
+        assert_eq!(health(&actor), 0.);
+        let mut no_exhaust_limit = actor.clone();
+        set(&mut no_exhaust_limit, "funnel", 1.);
+        assert!((electrical_power(&actor, &def, None) / electrical_power(&no_exhaust_limit, &def, None) - 0.5).abs() < 1e-9);
+        set(&mut no_exhaust_limit, "screw", 0.);
+        assert_eq!(health(&no_exhaust_limit), 0.);
+        assert!(electrical_power(&no_exhaust_limit, &def, None) > 0.);
     }
 
     #[test]

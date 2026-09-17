@@ -37,6 +37,7 @@ export function warningEntries(diagnostics: readonly ConstructionDiagnostic[] | 
 
 const TONE_BY_CODE: Record<string, { label: string; tone: Tone }[]> = {
   unstable: [{ label: 'GM', tone: 'warn' }], overloaded: [{ label: 'Displacement', tone: 'bad' }, { label: 'Draft', tone: 'bad' }],
+  'exhaust-capacity': [{ label: 'Power', tone: 'warn' }, { label: 'Speed', tone: 'warn' }],
   unpowered: [{ label: 'Power', tone: 'warn' }, { label: 'Speed', tone: 'warn' }], 'propulsor-exposure': [{ label: 'Speed', tone: 'warn' }],
 };
 
