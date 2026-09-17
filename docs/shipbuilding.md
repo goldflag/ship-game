@@ -25,12 +25,16 @@ immersion and exhaust loss affect those services. See
 [machinery services](construction-services.md) for the reserved power, pumping
 rates and repair limits.
 
-Propulsion warnings identify missing engines, funnels or propellers and explain
-how to connect them. A single engine uses unassigned funnels and propellers
-automatically; with multiple engines, select each fitting and set its **power**
-link. Click an engine's warning to select it. Incomplete propulsion remains a
-warning, so you can still launch a sea trial, but the affected engine provides no
-thrust.
+Funnels provide shared exhaust capacity for all engines; no funnel connections
+are needed. If total capacity is below total rated engine power, propulsion is
+limited and the warning shows available and required kW. Spare funnel capacity
+absorbs damage before power drops; destroyed or submerged funnels lose capacity.
+Existing saved funnel links are ignored.
+
+Propulsion warnings identify missing engines, funnels or propellers. A single
+engine uses unassigned propellers automatically; with multiple engines, select
+each propeller and set its **power** link. Click an engine's warning to select it.
+Incomplete propulsion remains a warning, so you can still launch a sea trial.
 
 Use Hull for pieces, Armor for plating and openings, Fittings for equipment,
 Internals for rooms and machinery, and Paint for finishes. Hover a face in Armor

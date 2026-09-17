@@ -287,6 +287,20 @@ pub fn system_health(
             return ids.iter().map(available).sum::<f64>() / ids.len() as f64;
         }
         if let Some(p) = &def.propulsion {
+            if let Some(pool) = &p.shared_exhaust {
+                use crate::construction_services::{AUXILIARY_POWER_SHARE, exhaust_fraction, live_exhaust_fraction};
+                let baseline = (exhaust_fraction(
+                    pool.funnels.iter().map(|f| f.kw).sum(),
+                    pool.engines.iter().map(|e| e.kw).sum(),
+                ) - AUXILIARY_POWER_SHARE).max(0.);
+                if baseline == 0. { return 0.; }
+                let supply = (live_exhaust_fraction(actor, def, pool, sea) - AUXILIARY_POWER_SHARE).max(0.);
+                return p.groups.iter().map(|g| {
+                    let drive = g.drive_ids.iter().map(available).fold(1., f64::min);
+                    let shaft = g.shaft_ids.iter().map(available).fold(1., f64::min);
+                    g.share * drive.min(shaft) * supply / baseline
+                }).sum::<f64>().clamp(0., 1.);
+            }
             if let Some(groups) = indexed.map(|ix| &ix.propulsion) {
                 return groups
                     .iter()

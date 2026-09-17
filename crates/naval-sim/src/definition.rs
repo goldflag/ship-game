@@ -1014,11 +1014,29 @@ pub struct PropulsionGroup {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct MachineryRating {
+    #[serde(rename = "id")]
+    pub id: String,
+    #[serde(rename = "kw")]
+    pub kw: f64,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct SharedExhaust {
+    #[serde(rename = "engines")]
+    pub engines: Vec<MachineryRating>,
+    #[serde(rename = "funnels")]
+    pub funnels: Vec<MachineryRating>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct ShipDefinitionPropulsion {
     #[serde(rename = "groups")]
     pub groups: Vec<PropulsionGroup>,
     #[serde(rename = "basis")]
     pub basis: String,
+    #[serde(rename = "sharedExhaust")]
+    pub shared_exhaust: Option<SharedExhaust>,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
