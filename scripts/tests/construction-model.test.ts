@@ -203,6 +203,37 @@ test('native movement stops one mount against an independently held neighboring 
   expect(resolved[0].pose.train).toBeLessThan(Math.PI / 2); expect(resolved[1].pose).toEqual(target[1]);
 });
 
+test('automatic propeller braces retain native endpoints while the original spin joint moves', async () => {
+  const source = equipmentReviewSource(catalog, 'patrol');
+  source.construction.equipment = source.construction.equipment.filter(e => e.id === 'screw');
+  const screw = source.construction.equipment[0];
+  screw.position = [1, -4, 20]; screw.bearingDeg = 90; delete screw.powerSourceId;
+  const result = compile(source);
+  expect(result.diagnostics.filter(d => d.severity === 'error')).toEqual([]);
+  const support = result.propellerSupports![0];
+  await published(async () => {
+    const model = await createConstructionModel(source, result, new AbortController().signal), actor = actorFor(result.definition!), view = new ShipView(model, result.definition!, actor);
+    try {
+      const installation = model.getObjectByName(screw.id)!;
+      let spin!: THREE.Object3D;
+      installation.traverse(node => { if (node.userData.nodeId === 'screw.spin') spin = node; });
+      const initialSpin = spin.quaternion.clone();
+      for (const distance of [0, .4, 1, 2, 3, 4]) {
+        actor.motion.distance = distance; actor.motion.speed = 2;
+        view.snap(); view.updateRenderMatrices();
+        support.members.forEach((member, index) => {
+          const mesh = installation.getObjectByName(`screw.support-${index}`) as THREE.Mesh<THREE.CylinderGeometry>;
+          expect(mesh).toBeDefined();
+          const half = mesh.geometry.parameters.height / 2;
+          expect(mesh.localToWorld(new THREE.Vector3(0, -half, 0)).distanceTo(new THREE.Vector3(...member.start))).toBeLessThan(1e-6);
+          expect(mesh.localToWorld(new THREE.Vector3(0, half, 0)).distanceTo(new THREE.Vector3(...member.end))).toBeLessThan(1e-6);
+        });
+      }
+      expect(spin.quaternion.angleTo(initialSpin)).toBeGreaterThan(.1);
+    } finally { view.impactMarks.dispose(); disposeConstructionModel(model); }
+  });
+});
+
 test('the original Oerlikon reaches its declared elevation and stops at a real overhead beam', () => {
   const definition = compile(equipmentReviewSource(catalog)).definition!;
   const aa = definition.mounts.findIndex(m => m.id === 'aa-a');

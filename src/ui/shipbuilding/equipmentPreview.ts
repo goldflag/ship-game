@@ -1,9 +1,10 @@
 import * as THREE from 'three';
-import type { ConstructionCatalog, ConstructionEquipment, ConstructionSource } from '../../ships/blueprint';
+import type { ConstructionCatalog, ConstructionEquipment, ConstructionSource, ConstructionPropellerSupport } from '../../ships/blueprint';
 import { constructionEquipmentModelUrl } from '../../ships/constructionEquipment';
 import { createConstructionPathModel } from '../../game/constructionPathModel';
 import { loadShipModel } from '../../game/loadShipModel';
 import { disposeConstructionModel } from '../../game/constructionModel';
+import { createConstructionPropellerSupports } from '../../game/constructionPropellerModel';
 
 type Template = { model: THREE.Group; ghost: THREE.Group; ghostMaterials: THREE.Material[] };
 
@@ -16,6 +17,8 @@ export class EquipmentPreview {
   private instances = new Map<string, THREE.Group>();
   private catalog?: ConstructionCatalog;
   private dead = false;
+  private supports = new THREE.Group();
+  private supportKey = '';
 
   constructor(private changed: () => void, private failed: (message: string) => void) {}
 
@@ -65,9 +68,16 @@ export class EquipmentPreview {
     return clone;
   }
 
-  update(source: ConstructionSource, catalog: ConstructionCatalog) {
+  update(source: ConstructionSource, catalog: ConstructionCatalog, supports?: ConstructionPropellerSupport[]) {
     if (this.catalog && this.catalog.revision !== catalog.revision) this.clear();
     this.catalog = catalog;
+    const supportKey = JSON.stringify(supports ?? []);
+    if (supportKey !== this.supportKey) {
+      disposeConstructionModel(this.supports);
+      this.supports = createConstructionPropellerSupports(supports);
+      if (this.supports.children.length) this.group.add(this.supports);
+      this.supportKey = supportKey;
+    }
     const ids = new Set(source.construction.equipment.map(item => item.id));
     for (const [id, instance] of this.instances) if (!ids.has(id)) { instance.removeFromParent(); if (instance.userData.path) disposeConstructionModel(instance); this.instances.delete(id); }
     for (const item of source.construction.equipment) {
@@ -91,6 +101,7 @@ export class EquipmentPreview {
   has(id: string) { return this.instances.has(id); }
 
   private clear() {
+    disposeConstructionModel(this.supports); this.supportKey = '';
     this.requests.forEach(abort => abort.abort()); this.requests.clear();
     for (const instance of this.instances.values()) if (instance.userData.path) disposeConstructionModel(instance);
     this.group.clear(); this.instances.clear();

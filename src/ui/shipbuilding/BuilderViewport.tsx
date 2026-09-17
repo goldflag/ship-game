@@ -264,7 +264,7 @@ class Viewport {
       }
       this.hoverSurface = ''; release(this.hoverGroup);
     }
-    this.equipment.update(props.scene.source, props.scene.catalog);
+    this.equipment.update(props.scene.source, props.scene.catalog, nativeSurfaces ? props.scene.current?.propellerSupports : undefined);
     const modelKey = `${props.scene.source.id}:${props.scene.source.revision}:${props.scene.result?.contentHash}`;
     if (modelKey !== this.modelKey) {
       this.modelKey = modelKey; this.modelAbort?.abort(); release(this.composed);

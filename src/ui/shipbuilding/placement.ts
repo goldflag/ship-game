@@ -92,6 +92,14 @@ export function placementCenter(piece: BuilderPlacement, hit: PlacementHit, step
     return center;
   }
   const attach = attachmentOffset(piece, piece.bearingDeg), inset = piece.inset ?? 0;
+  if (piece.propellerDiameterM && normal[1] < -0.5) {
+    const diameter = piece.propellerDiameterM;
+    // Hang the complete blade sweep below the hull; native compilation extends
+    // the forward shaft and braces to actual closed hull faces after placement.
+    return hit.point.map((value, index) => index === 1
+      ? value - diameter * .65
+      : snapCoordinate(value - attach[index], step)) as Vec3;
+  }
   // Vertical hits seat the attachment point on the face; wall hits push the whole envelope off the face.
   const center = rotateY(piece.boundsCenter, bearingRadians(piece.bearingDeg));
   return hit.point.map((value, index) => index === axis

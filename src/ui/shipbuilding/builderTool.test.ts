@@ -6,6 +6,7 @@ import { createStarterSource } from '../../ships/constructionStarter';
 import { CORNER_SIGNS, VERTEX_FACES } from '../../ships/constructionVertex';
 import { BuilderTool, type BuilderChrome, type BuilderKey } from './builderTool';
 import type { BuilderPick } from './builderScene';
+import { placementCenter } from './placement';
 
 const part = (over: Partial<ConstructionEquipmentPart> & Pick<ConstructionEquipmentPart, 'id' | 'kind' | 'placement'>): ConstructionEquipmentPart => ({
   name: over.id, size: [1, 1, 2], boundsCenter: [0, .5, 0], centerOfGravity: [0, .5, 0], massKg: 500, modelUrl: `/models/components/${over.id}/x/model.glb`, contentHash: 'x', ...over,
@@ -15,6 +16,7 @@ const catalog: ConstructionCatalog = {
   weapons: { schemaVersion: 1, parts: [{ id: 'gun-part', name: 'Gun', kind: 'gun', massKg: 4000, traverseDeg: 150 } as unknown as ConstructionCatalog['weapons']['parts'][number]] },
   equipment: [
     part({ id: 'gun', kind: 'gun', placement: 'deck', gunPartId: 'gun-part', massKg: undefined }),
+    part({ id: 'propeller', kind: 'propeller', placement: 'underwater', size: [4, 4, 2], boundsCenter: [0, 0, 0] }),
     part({ id: 'engine', kind: 'engine', placement: 'internal', size: [3, 3, 6] }),
     part({ id: 'railing', kind: 'deck-fitting', placement: 'deck', massKg: 2, path: { kind: 'railing', diameterM: .04, heightM: 1.1, postSpacingM: 1.5, massKgPerM: 3, postMassKg: 2 } }),
   ],
@@ -357,6 +359,18 @@ test('a design that opens as a custom hull starts in Select with the hull chosen
   expect(tool.pointer({ kind: 'lay', points: [[0, 0, 40]] })).toMatchObject({ accepted: true });
   expect(data().primitives[1]).toMatchObject({ kind: 'custom-hull', size: [6.5, 4, 36] });
   expect(data().primitives[1].customHull?.stations.length).toBeGreaterThanOrEqual(4);
+});
+
+test('propeller cards preserve blade clearance through the builder scene and mirrored placement', async () => {
+  const { tool } = await setup();
+  tool.switchLayer('fittings');
+  tool.selectSlot(tool.palette.drawer.find(item => item.id === 'propeller')!);
+  const scene = tool.scene(undefined);
+  for (const piece of [scene.placementPiece, scene.placementMirror]) {
+    expect(piece).toMatchObject({ kind: 'equipment', propellerDiameterM: 4 });
+    const position = placementCenter(piece!, { point: [2, -1, -5], normal: [0, -1, 0] }, .25);
+    expect(position[1] + 2).toBeLessThan(-1);
+  }
 });
 
 test('turret rise uses one undoable command batch and keeps the deck datum fixed across keyboard changes', async () => {

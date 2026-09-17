@@ -375,6 +375,12 @@ export interface ConstructionResult {
   sourceId: string; revision: string; contentHash: string;
   definition?: ShipDefinition; surfaces: ConstructionSurface[];
   diagnostics: ConstructionDiagnostic[]; loading?: ConstructionLoading;
+  /** Native fitted shaft/support members in ship coordinates; no added buoyancy. */
+  propellerSupports?: ConstructionPropellerSupport[];
+}
+export interface ConstructionPropellerSupport {
+  equipmentId: string;
+  members: { start: Vec3; end: Vec3; radiusM: number; kind: 'shaft' | 'strut' }[];
 }
 export interface ConstructionEquipmentPart {
   id: string; name: string;

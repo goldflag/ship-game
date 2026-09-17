@@ -1818,12 +1818,38 @@ fn equipment(
                             attachment,
                         )) <= 0.05
                 }));
-        if !attached {
+        let support = if attached { None } else {
+            crate::construction_propellers::derive(e, p, &out.surfaces)
+        };
+        if !attached && support.is_none() {
             return Err(error(
                 "equipment-attachment",
-                "Equipment attachment has no physical hull support within 5 cm",
+                if p.kind == "propeller" { "No hull connection for this propeller; move it closer to the stern or beneath the hull" } else { "Equipment attachment has no physical hull support within 5 cm" },
                 Some(&e.id),
             ));
+        }
+        if let Some(support) = support {
+            if hull.iter().any(|h| cg::intersection(&envelope,h).is_some_and(|x| cg::moments(&x).volume > 1e-5)) {
+                return Err(error("equipment-fit", "Propeller blades need clearance from the hull; move the propeller farther out", Some(&e.id)));
+            }
+            let cells: Vec<_> = support.members.iter().map(crate::construction_propellers::cell).collect();
+            for (i, cell) in cells.iter().enumerate() {
+                if all_envelopes.iter().any(|(id, other)| id != &e.id && cg::intersection(cell, other).is_some_and(|x| cg::moments(&x).volume > 1e-5)) {
+                    return Err(error("equipment-overlap", "Propeller shaft or support intersects another fitting", Some(&e.id)));
+                }
+                let r = support.members[i].radius_m;
+                let overlap: f64 = hull.iter().filter_map(|h| cg::intersection(cell,h)).map(|c| cg::moments(&c).volume).sum();
+                if overlap > std::f64::consts::PI * r * r * (2. * r + 0.05) {
+                    return Err(error("equipment-fit", "Propeller support crosses the hull; move the propeller to clear the plating", Some(&e.id)));
+                }
+                fitting_index.insert(cell);
+                all_envelopes.push((e.id.clone(), cell.clone()));
+                path_clearance.push(MountClearanceProfileBodiesItem { id:format!("{}-support-{i}",e.id), mount_id:None, surface:surface_mesh(cell) });
+            }
+            // Union the joined rods before integrating weight; never add them to hull cells.
+            let solids = cg::union(&cells).map_err(|x| error("equipment-fit",x,Some(&e.id)))?;
+            masses.push(mass(format!("{}-support",e.id), "equipment", &solids, STEEL_DENSITY));
+            out.propeller_supports.get_or_insert_with(Vec::new).push(support);
         }
         let intrusion = if p.placement == "deck" {
             hull.iter().find_map(|h| fitting_cells.iter().find_map(|f| {

@@ -8,6 +8,7 @@ import type { ConstructionResult, ConstructionSource, ShipDefinition } from '../
 import { ShipView } from '../../src/game/ShipView';
 import { createDamage, type Combatant } from '../../src/simulation/damage';
 import { createShipState } from '../../src/game/session/motion';
+import { createDepthChargeLauncherState } from '../../src/simulation/depthCharges';
 import { createMountState } from '../../src/simulation/weapons';
 import { createTubeState } from '../../src/game/torpedoAim';
 import { gunTraverseAtFraction } from '../../src/ships/armament';
@@ -30,6 +31,7 @@ export async function openReview(input: ReviewInput) {
   model.userData.definitionHash = definition.contentHash;
   const actor: Combatant = {
     motion: createShipState('construction-review'), mounts: definition.mounts.map(createMountState), damage: createDamage(definition),
+    depthChargeLaunchers: (definition.depthChargeLaunchers ?? []).map(createDepthChargeLauncherState),
     torpedoTubes: (definition.torpedoTubes ?? []).map(createTubeState),
     torpedoLaunchers: (definition.torpedoLaunchers ?? []).map(l => ({ id: l.id, train: source.construction.equipment.find(p => p.id === l.id)!.bearingDeg * Math.PI / 180 })),
   };
