@@ -1,7 +1,8 @@
 # Balcony playground
 
 Original sandbox patrol ship for testing balcony editing. The superstructure has
-an open port platform, starboard railings, and a forward platform with solid walls.
+a custom port outline with open edges and short railings, starboard railings,
+a forward platform with solid walls, and an additional open upper platform.
 These are generic game dimensions, with no historical reference or fidelity claim.
 
 Run `bun run ship:edit balcony-playground`, select a platform and choose **Edit
