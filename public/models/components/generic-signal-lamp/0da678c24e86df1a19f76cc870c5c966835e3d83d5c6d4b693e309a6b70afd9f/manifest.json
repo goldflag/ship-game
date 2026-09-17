@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "generic-signal-lamp",
+  "revision": "0da678c24e86df1a19f76cc870c5c966835e3d83d5c6d4b693e309a6b70afd9f",
+  "contentHash": "82d6d7cc65556f26e36f6c01637426e45d3cc3ea9391e23111d9231c2b8d1414",
+  "modelSha256": "7e419dcc3f6390104ea0604c8121be7739326ae9084786f53ebde358e6435729",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/generic-signal-lamp/0da678c24e86df1a19f76cc870c5c966835e3d83d5c6d4b693e309a6b70afd9f/model.glb",
+  "boundsCenter": [
+    0,
+    0.7539999866858125,
+    0.09483174979686737
+  ],
+  "size": [
+    0.6300000548362732,
+    1.507999973371625,
+    0.7546635568141937
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 2444,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original generic or ship-adapted deck fitting; dimensions and dry mass are declared game estimates, loading only, with no combat or handling effect.",
+  "basis": "assets/parts/construction/README.md"
+}

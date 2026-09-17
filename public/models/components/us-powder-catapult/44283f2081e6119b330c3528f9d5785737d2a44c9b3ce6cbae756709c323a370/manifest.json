@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "us-powder-catapult",
+  "revision": "44283f2081e6119b330c3528f9d5785737d2a44c9b3ce6cbae756709c323a370",
+  "contentHash": "37c30aed63da8224798beed1fa52a53f968eaa9ea686ddbf6d042bce2d702774",
+  "modelSha256": "1ed602a8abba0fd7c280150a1a65987108470ab47d4ac3afcb2ece6307e962ee",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/us-powder-catapult/44283f2081e6119b330c3528f9d5785737d2a44c9b3ce6cbae756709c323a370/model.glb",
+  "boundsCenter": [
+    0,
+    1.4930002689361572,
+    0
+  ],
+  "size": [
+    2.9000000953674316,
+    2.9860005378723145,
+    20.677942276000977
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 6296,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original generic or ship-adapted deck fitting; dimensions and dry mass are declared game estimates, loading only, with no combat or handling effect.",
+  "basis": "assets/parts/construction/README.md"
+}

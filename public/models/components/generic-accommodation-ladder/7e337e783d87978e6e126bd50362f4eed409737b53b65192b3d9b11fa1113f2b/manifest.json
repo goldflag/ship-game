@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "generic-accommodation-ladder",
+  "revision": "7e337e783d87978e6e126bd50362f4eed409737b53b65192b3d9b11fa1113f2b",
+  "contentHash": "848f62587fd132d8a59e8cd0b7382d4ecd0947bdc479cebfb5b4a51bfd3906b1",
+  "modelSha256": "cd5cbff27831f1411fcd4ea84284ec168bd762442bab91624a5e15ebbf552931",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/generic-accommodation-ladder/7e337e783d87978e6e126bd50362f4eed409737b53b65192b3d9b11fa1113f2b/model.glb",
+  "boundsCenter": [
+    0,
+    0.39249999821186066,
+    0.03250002861022949
+  ],
+  "size": [
+    1.1600003242492676,
+    0.7849999964237213,
+    8.035000324249268
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 3712,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original generic or ship-adapted deck fitting; dimensions and dry mass are declared game estimates, loading only, with no combat or handling effect.",
+  "basis": "assets/parts/construction/README.md"
+}

@@ -17,7 +17,7 @@ export const FITTING_CATEGORIES: { id: FittingCategory; name: string; note: stri
 export const MAIN_BATTERY_CALIBER_M = .1;
 
 // Deck fittings share one kind; the ones that are not deck gear are named by what their id says they are.
-const FIRE_CONTROL_FITTING = /director|rangefinder|searchlight/, BOAT_FITTING = /boat|cutter|launch|catapult|crane|aircraft/;
+const FIRE_CONTROL_FITTING = /director|rangefinder|searchlight/, BOAT_FITTING = /boat|cutter|launch|pinnace|float|raft|catapult|crane|aircraft/;
 
 export function fittingCategory(part: ConstructionEquipmentPart, catalog: ConstructionCatalog): FittingCategory {
   switch (part.kind) {

@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "generic-cable-reel",
+  "revision": "91b703a7e1189601560676cff2cbf297bf68c9fde54ce8eb4d9d628d1c1e3d4a",
+  "contentHash": "22402a51cefa7dab56b6dac001a052816f112ab0a388284d8227acf7209bc349",
+  "modelSha256": "2fe6bc26bf07b663e8e9d7fca7fe194a7e131b2fafbafa5e28d9f71703c1df77",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/generic-cable-reel/91b703a7e1189601560676cff2cbf297bf68c9fde54ce8eb4d9d628d1c1e3d4a/model.glb",
+  "boundsCenter": [
+    -0.0499999934882151,
+    0.5944999709297624,
+    -0.05795715946908436
+  ],
+  "size": [
+    1.499999953356157,
+    1.1890002500429595,
+    1.255914287590604
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 8444,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original generic or ship-adapted deck fitting; dimensions and dry mass are declared game estimates, loading only, with no combat or handling effect.",
+  "basis": "assets/parts/construction/README.md"
+}
