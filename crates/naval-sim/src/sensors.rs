@@ -74,6 +74,7 @@ pub struct ObservationSource {
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(optional_fields)]
 pub struct ContactTrack {
     pub id: String,
     pub kind: ContactKind,

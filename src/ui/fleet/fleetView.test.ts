@@ -2,7 +2,7 @@ import { expect, test } from 'bun:test';
 import { CommandQueue, type OrderReceipt } from '../../game/session/commandQueue';
 import { CombatSimulation } from '../../simulation/combat';
 import type { FleetActor } from '../../simulation/battle';
-import { KNOTS_PER_MPS } from '../../simulation/ship';
+import { KNOTS_PER_MPS } from '../../game/session/motion';
 import { shipPreset } from '../../ships/presets';
 import type { Vec3 } from '../../ships/blueprint';
 import type { ContactTrack } from '../../multiplayer/generated/ContactTrack';
@@ -20,8 +20,8 @@ const hull = (id: string, presetId: string, x: number, z: number, speedMps = 8):
 } as unknown as FleetActor);
 const contact = (id: string, name: string, shipId: string, x: number, z: number, team: Contact['team'] = 'friendly'): Contact =>
   ({ id, name, shipId, team, controller: 'bot', x, z, heading: 0, speed: 8, integrity: .9, sunk: false, status: 'operational', combatLost: false, physicalLost: false });
-const standing = (movement: FleetOrderState['movement'], navigation: FleetOrderState['navigation'] = null): FleetOrderState =>
-  ({ movement, weapons: { guns: true, aa: true, torpedoes: false }, formationPolicy: 'slow-for-stragglers', targetId: null, manual: false, navigation });
+const standing = (movement: FleetOrderState['movement'], navigation: FleetOrderState['navigation'] = undefined): FleetOrderState =>
+  ({ movement, weapons: { guns: true, aa: true, torpedoes: false }, formationPolicy: 'slow-for-stragglers', targetId: undefined, manual: false, navigation });
 const report: ContactTrack = { id: 'contact-b-1', kind: 'surface', affiliation: 'hostile', status: 'tracked', firstObservedTick: 0, lastObservedTick: 600, measuredPosition: [9000, 0, -9000], estimatedPosition: [9000, 0, -9000], velocity: [0, 0, 0], uncertaintyM: 40, identificationConfidence: 1, classification: 'Large warship', identifiedPresetId: 'yamato', sources: [{ observerId: 'unit-1', kind: 'surface', tick: 600, strength: 1 }] };
 
 function fixture() {

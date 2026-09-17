@@ -1,10 +1,10 @@
-import { torpedoSpeed, effectiveHandling } from '../simulation/mobility';
+import { torpedoSpeed, effectiveHandling } from './mobility';
 import type { GunPart, ShipDefinition } from './blueprint';
 import { ANTI_AIRCRAFT_MAX_CALIBER_M, antiAircraftRange, gunTraverseLimitsDeg, torpedoArcLabel } from './armament';
-import { maxHullIntegrity } from '../simulation/damage';
-import { KNOTS_PER_MPS } from '../simulation/ship';
-import { GRAVITY } from '../simulation/weapons';
-import { ballisticStep } from '../simulation/ballistics';
+import { KNOTS_PER_MPS } from '../game/session/motion';
+import { ballisticStep } from '../game/ballistics';
+import { maxHullIntegrity } from './durability';
+import { GRAVITY } from '../game/mountGeometry';
 
 /** One figure on the port statistics sheet. `text` values are names, not measurements. */
 export interface StatRow { label: string; value: string; unit?: string; help: string; text?: boolean }

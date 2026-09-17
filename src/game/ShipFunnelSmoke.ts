@@ -1,8 +1,8 @@
 import { Camera, Group, Vector3 } from 'three/webgpu';
 import type { ShipDefinition, Vec3 } from '../ships/blueprint';
-import { systemHealth } from '../simulation/machinery';
-import { localToWorld } from '../simulation/geometry';
-import { motionVelocity } from '../simulation/ship';
+import { systemHealth } from './machinery';
+import { localToWorld } from './geometry';
+import { motionVelocity } from './session/motion';
 import { EffectParticlePool, effectTexture } from './EffectParticles';
 import type { ShipView } from './ShipView';
 

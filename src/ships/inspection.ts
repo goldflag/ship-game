@@ -1,5 +1,5 @@
 import type { Armor, AuthoredSurface, ConvexVolume, ShipDefinition, Vec3 } from './blueprint';
-import { structuralSurfaces } from '../simulation/structure';
+import { structuralSurfaces } from '../game/hullStructure';
 
 export type InspectionMode = 'exterior' | 'armor' | 'internals' | 'compartments';
 export type InspectionKind = 'armor' | 'engine' | 'magazine' | 'steering' | 'generator' | 'fire-control' | 'weapon' | 'launcher' | 'compartment';

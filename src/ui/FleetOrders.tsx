@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { FleetDesk } from './fleet/fleetDesk';
-import type { CombatTelemetry } from '../simulation/combat';
 import './FleetOrders.css';
+import type { CombatTelemetry } from '../game/session/telemetry';
 export function FleetOrders({ desk, combat }: { desk: FleetDesk | null; combat: CombatTelemetry }) {
   const [recipient, setRecipient] = useState(''); const [x, setX] = useState('0'); const [z, setZ] = useState('0');
   const [notice, setNotice] = useState('');

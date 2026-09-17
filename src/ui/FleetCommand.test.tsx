@@ -120,7 +120,7 @@ test('enemy HP appears only for current sightings with sampled health', () => {
 test('an unselected blocked ship exposes its route and warnings, then clears them on recovery', () => {
   const { render, id, simulation } = fixture();
   const order = (simulation as unknown as FleetAuthority['simulation']).fleetOrders![id];
-  order.navigation = { order: order.movement, waypoint: 1, status: 'blocked', destination: [300, 400], formation: null };
+  order.navigation = { order: order.movement, waypoint: 1, status: 'blocked', destination: [300, 400], formation: undefined };
   const html = render();
   expect(html).toContain('fleet-command-course blocked');
   expect(html).toContain('fleet-command-route-alert');
@@ -129,7 +129,7 @@ test('an unselected blocked ship exposes its route and warnings, then clears the
   expect(html.match(/class="fleet-route-warning"/g)).toHaveLength(1);
   expect(html).not.toContain('Bismarck waypoint 2');
   expect(html).toContain('[300,0,400]');
-  order.navigation.status = 'following-route';
+  order.navigation!.status = 'following-route';
   const recovered = render();
   expect(recovered).not.toContain('fleet-command-course blocked');
   expect(recovered).not.toContain('fleet-command-route-alert');
@@ -140,7 +140,7 @@ const fleetFixture = (formation: Formation = 'column', notices: { tick: number; 
   const definition = shipPreset('bismarck');
   const simulation = new CombatSimulation(definition, resolveBattleFleet({ playerShipId: 'bismarck', friendlyBots: ['fletcher', 'baltimore'], enemies: ['yamato'], spawnDistance: 7500 }, shipPreset));
   const escorts: { id: string; leaderId: string; offset: [number, number]; radiusM: number; formation?: Formation; slot?: number }[] = [];
-  const standing = (movement: FleetOrderState['movement']): FleetOrderState => ({ movement, weapons: { guns: true, aa: true, torpedoes: false }, formationPolicy: 'slow-for-stragglers', targetId: null, manual: false, navigation: null });
+  const standing = (movement: FleetOrderState['movement']): FleetOrderState => ({ movement, weapons: { guns: true, aa: true, torpedoes: false }, formationPolicy: 'slow-for-stragglers', targetId: undefined, manual: false, navigation: undefined });
   Object.assign(simulation, { phase: 'running', fleetNotices: notices,
     fleetOrders: { player: standing({ type: 'hold' }),
       'friendly-1': standing({ type: 'escort', leaderId: 'player', offset: [0, 900], radiusM: 160, formation, slot: 1 }),

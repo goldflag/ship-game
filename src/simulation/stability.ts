@@ -1,11 +1,13 @@
 import type { ShipDefinition } from '../ships/blueprint';
-import { launcherAvailable, equipmentCondition, systemHealth } from './machinery';
+import { launcherAvailable, equipmentCondition, systemHealth } from '../game/machinery';
 import { availableAmmunition } from './weapons';
-import type { Combatant } from './damage';
-import { levelAtVolume, waterBody, type WaterBody } from './floodwater';
-import { localToWorld } from './geometry';
+import type { Combatant } from '../game/session/elements';
+import { waterLevel, type WaterBody } from '../game/floodwater';
+export { waterLevel } from '../game/floodwater';
+import { localToWorld } from '../game/geometry';
 
-export type VesselStatus = 'operational' | 'immobile' | 'disarmed' | 'disabled' | 'sinking' | 'capsized';
+export type { VesselStatus } from '../game/session/elements';
+import type { VesselStatus } from '../game/session/elements';
 export interface StabilityState {
   sampleRoll?: number; samplePitch?: number; rollSlope?: number; pitchSlope?: number;
   elapsed: number; targetY: number; rollRate: number; pitchRate: number; capsizeSeconds: number; water: WaterBody[];
@@ -14,14 +16,6 @@ export interface StabilityState {
   combatLost: boolean;
 }
 export const createStability = (): StabilityState => ({ elapsed: .5, targetY: 0, rollRate: 0, pitchRate: 0, capsizeSeconds: 0, water: [], rollArm: 0, pitchArm: 0, displacementM3: 0, reserveM3: 0, status: 'operational', combatLost: false });
-/** Read-only sea-relative waterplane shared by physics and inspection. Volume
- * queries use the full fill curve at the last 2 Hz hydrostatic orientation. */
-export function waterLevel(actor: Combatant, def: ShipDefinition, i: number, volume = actor.damage.compartments[i].waterM3): number {
-  const state = actor.damage.compartments[i], room = def.compartments[i];
-  if (!def.stability) return localToWorld([room.center[0], room.center[1] - room.size[1] / 2 + volume / room.capacityM3 * room.size[1], room.center[2]], actor.motion)[1];
-  const body = actor.damage.stability.water[i] ?? waterBody(room, state.waterM3, actor.motion.roll, actor.motion.pitch);
-  return actor.motion.y + levelAtVolume(room, body, volume);
-}
 export function updateCapability(actor: Combatant, def: ShipDefinition): void {
   const s = actor.damage.stability;
   if (actor.damage.sunk || actor.damage.integrity <= 0) {

@@ -1,9 +1,9 @@
 import type { BattleSession, DeckServiceAction } from '../../game/session/BattleSession';
 import type { OrderReceipt } from '../../game/session/commandQueue';
 import type { HelmWheelState } from '../../game/types';
-import type { AirOrder } from '../../simulation/aircraft';
-import type { FleetActor } from '../../simulation/battle';
-import type { ControlPriority } from '../../simulation/damageControl';
+import type { AirOrder } from '../../multiplayer/generated/AirOrder';
+import type { FleetActor } from '../../game/session/elements';
+import type { ControlPriority } from '../../multiplayer/generated/ControlPriority';
 import type { Ammunition, Vec3 } from '../../ships/blueprint';
 import type { ContactTrack } from '../../multiplayer/generated/ContactTrack';
 import type { ObservedShip } from '../../multiplayer/generated/ObservedShip';

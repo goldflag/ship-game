@@ -1,11 +1,11 @@
 import type { Island, OceanMapId } from '../maps/catalog';
 import type { CameraMode } from './CameraRig';
-import type { ShipState } from '../simulation/ship';
-import type { CombatTelemetry } from '../simulation/combat';
 import type { ShellFollow } from './ShellFollow';
 import type { HullDamageCue } from './HullDamageFeedback';
 
 import type { PerformanceReadoutMode } from './graphicsSettings';
+import type { ShipState } from '../game/session/elements';
+import type { CombatTelemetry } from './session/telemetry';
 
 /** Renderer telemetry for the FPS counter and the settings readout. */
 export interface PerformanceReadout {
@@ -47,7 +47,7 @@ export interface Telemetry {
   selectedFlightId?: string;
   selectedFlightIds?: string[];
   airMap?: import('../ui/airChart').ChartView;
-  squadronMarkers?: (import('../simulation/airTelemetry').FlightSummary & { team: import('../simulation/battle').Team; ownerId: string; screen: { x: number; y: number } | null })[];
+  squadronMarkers?: (import('./session/airTelemetry').FlightSummary & { team: import('./session/elements').Team; ownerId: string; screen: { x: number; y: number } | null })[];
   fps: number;
   backend: string;
   performance?: PerformanceReadout;

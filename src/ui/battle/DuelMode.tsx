@@ -1,6 +1,6 @@
 import type { DragEvent } from 'react';
 import type { JoinMode, LobbyStatus } from '../../game/session/RemoteBattleSession';
-import { BATTLE_RULES } from '../../simulation/battleRules';
+import { BATTLE_RULES } from '../../game/session/battleRules';
 import { Button, Input } from '../components';
 import { Icon } from '../Icons';
 import { MapTiles, RailBlock, RailLock } from './BattleRail';

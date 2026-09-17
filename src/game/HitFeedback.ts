@@ -1,8 +1,8 @@
 import type { BattleSession } from './session/BattleSession';
 
 import type { Vec3 } from '../ships/blueprint';
-import { worldToLocal } from '../simulation/geometry';
-import { FIXED_DT } from '../simulation/ship';
+import { worldToLocal } from './geometry';
+import { FIXED_DT } from './session/motion';
 
 export interface HitCue {
   id: number; shipId: string; projectileIds: number[]; position: Vec3;

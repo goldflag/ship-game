@@ -1,9 +1,9 @@
 import { Select, SelectOption } from './components';
 import { useState } from 'react';
 import type { FleetDesk } from './fleet/fleetDesk';
-import { hasFullTarget, type CombatTelemetry } from '../simulation/combat';
-import type { ControlPriority } from '../simulation/damageControl';
 import './FireControl.css';
+import type { ControlPriority } from '../multiplayer/generated/ControlPriority';
+import { hasFullTarget, type CombatTelemetry } from '../game/session/telemetry';
 
 /** Existing CPU crew orders, exposed without interrupting the battle. */
 export function FireControl({ combat, desk, observedName }: { combat: CombatTelemetry; desk: FleetDesk | null; observedName?: string }) {

@@ -1,9 +1,8 @@
 import type { DepthChargePart, ShipDefinition, Vec3 } from '../ships/blueprint';
 
 export type DepthChargeDefinition = NonNullable<ShipDefinition['depthChargeLaunchers']>[number];
-export interface DepthChargeLauncherState {
-  id: string; ammo: number; reload: number; status: 'ready' | 'reloading' | 'empty' | 'disabled';
-}
+export type { DepthChargeLauncherState } from '../game/session/elements';
+import type { DepthChargeLauncherState } from '../game/session/elements';
 export interface DepthCharge {
   id: number; ownerId: string; launcherId: string; position: Vec3; velocity: Vec3;
   age: number; submerged: boolean; weapon: DepthChargePart;

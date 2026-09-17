@@ -6,9 +6,8 @@ import type { ContactTrack } from '../multiplayer/generated/ContactTrack';
 import type { SearchAltitude } from '../multiplayer/generated/SearchAltitude';
 import type { SearchPolicy } from '../multiplayer/generated/SearchPolicy';
 import type { Vec3 } from '../ships/blueprint';
-import { airborne } from '../simulation/aircraft';
 import { AirGroupService } from './CarrierDeck';
-import { KNOTS_PER_MPS } from '../simulation/ship';
+import { KNOTS_PER_MPS } from '../game/session/motion';
 import { SquadronLabels, useMapProjection } from './AirOperations';
 import { AirMapNavigation } from './airMapNavigation';
 import { fleetAirCourse } from './fleetAirCourse';
@@ -36,6 +35,8 @@ import { PlaneHealth } from './PlaneHealth';
 import { advancePendingRoutes, boxSelect, circlePoints, fleetDragMode, fleetView, fleetWaterAction, FORMATION_HINT, LOITER_RADIUS_M, nextNotice, reportGesture, sendAirOrder, sendDeckService, sendEscort, sendFocus, sendHold, sendReturn, sendRoute, sendSearch, setGroupFormation, shipGesture, standingOrder, toggleWeapons, type ArmedOrder, type Contact, type FleetDesk, type PendingRoute, type ShipGesture } from './fleet/fleetView';
 
 export { applyGroupFormation, FORMATION_HINT, standingOrder, stationEscorts } from './fleet/fleetView';
+import type { CombatTelemetry } from '../game/session/telemetry';
+import { airborne } from '../game/airWing';
 
 const SPEEDS = [8, 12, 16, 20, 24, 28, 30];
 /** Orders aimed at water preview a line from the unit to the cursor while armed. */

@@ -13,38 +13,56 @@ pub struct LodgedShell {
     pub mount_id: Option<String>,
     pub module_id: Option<String>,
 }
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase", default)]
+#[ts(optional_fields)]
 pub struct Shell {
     pub bomb: Option<crate::aviation::FlightAttitude>,
     #[serde(rename = "type")]
+    #[ts(as = "Option<crate::frame_vocabulary::ShellType>")]
     pub shell_type: Option<String>,
+    #[ts(type = "number")]
     pub id: i64,
     pub owner_id: String,
     pub position: Vec3,
     pub velocity: Vec3,
     pub age: f64,
     pub weapon_label: Option<String>,
+    /// Absent on another team's projectile in a team frame (`team_view`).
+    #[ts(as = "Option<_>")]
     pub penetration_mm: f64,
+    #[ts(as = "Option<_>")]
     pub damage: f64,
     pub caliber_m: f64,
+    #[ts(skip)]
     pub visited: Vec<String>,
     pub drag_per_second: Option<f64>,
     pub water_drag_per_second: Option<f64>,
+    #[ts(type = "import('../../ships/blueprint').APProjectile", optional)]
     pub ap: Option<APProjectile>,
+    #[ts(type = "import('../../ships/blueprint').HEProjectile", optional)]
     pub he: Option<HEProjectile>,
     pub ammunition: Option<Ammunition>,
+    #[ts(skip)]
     pub remaining_module_damage: Option<f64>,
+    #[ts(skip)]
     pub hull_damage: BTreeMap<String, f64>,
+    #[ts(skip)]
     pub hull_damage_consumed: BTreeMap<String, f64>,
+    #[ts(skip)]
     pub hull_region_damage: BTreeMap<String, f64>,
+    #[ts(skip)]
     pub equipment_damage: BTreeMap<String, f64>,
+    #[ts(skip)]
     pub wreckage_ships: Vec<String>,
+    #[ts(skip)]
     pub detonate_at_age: Option<f64>,
+    #[ts(skip)]
     pub last_hit_ship_id: Option<String>,
+    #[ts(skip)]
     pub lodged: Option<LodgedShell>,
 }
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 pub struct LocalDamageEvidence {
     pub region_id: String,

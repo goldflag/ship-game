@@ -1,10 +1,10 @@
 import { localShips } from '../../ships/localShips';
-import type { BattleSetup } from '../../simulation/battle';
 import type { FleetBudget } from '../../multiplayer/generated/FleetBudget';
 import type { PveRequest } from '../../multiplayer/generated/PveRequest';
 import { shipPreset, shipPresets } from '../../ships/presets';
-import { fleetBudget } from '../../simulation/battleRules';
+import { fleetBudget } from '../../game/session/battleRules';
 import { budgetError } from '../pveSetup';
+import type { BattleSetup } from '../../game/session/battleSetup';
 
 export type BattleMode = 'custom' | 'pve' | 'duel';
 /** One line of the sortie board's ledger: the same four questions answered for every mode. */

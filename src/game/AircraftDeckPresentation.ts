@@ -1,7 +1,7 @@
 import { Euler, Quaternion } from 'three/webgpu';
-import type { Aircraft } from '../simulation/aircraft';
-import { aircraftGroundPose } from '../simulation/aircraftGroundPose';
-import type { Pose } from '../simulation/geometry';
+import { aircraftGroundPose } from './aircraftGroundPose';
+import type { Pose } from './geometry';
+import type { Aircraft } from '../game/session/elements';
 
 /** Keep the CPU-fitted attitude relative to the hull while its displayed pose interpolates. */
 export function aircraftDeckRotation(plane: Aircraft, hull: Pick<Pose, 'heading' | 'pitch' | 'roll'>, target: Quaternion): Quaternion {

@@ -1,13 +1,13 @@
 import { expect, test } from 'bun:test';
 import { Matrix4, PerspectiveCamera, Vector3, type InstancedMesh } from 'three/webgpu';
-import type { Shell } from '../simulation/damage';
 import { ShellTrails } from './ShellTrails';
+import type { Shell } from '../game/session/elements';
 
 const camera = new PerspectiveCamera(52, 16 / 9, .1, 30000);
 camera.updateMatrixWorld();
 function round(id = 1): Shell {
   return { id, ownerId: 'player', position: [0, 100, -1000], velocity: [800, 0, 0], age: 0,
-    caliberM: .38, visited: [], penetrationMm: 0, damage: 0 };
+    caliberM: .38, penetrationMm: 0, damage: 0 };
 }
 function endpoints(mesh: InstancedMesh, count: number) {
   return Array.from({ length: count }, (_, i) => {
@@ -55,16 +55,16 @@ test('launches cannot leave trails behind the muzzle; ricochets keep their obser
   } finally { trails.dispose(); }
 });
 
-test('impact tails fade, lodged and underwater rounds stop emitting, and reset or reused IDs leave no stale path', () => {
+test('impact tails fade, underwater rounds stop emitting, and reset or reused IDs leave no stale path', () => {
   const trails = new ShellTrails(), shell = round();
   try {
     for (let i = 0; i <= 20; i++) { shell.age = i / 60; shell.position[0] = shell.age * 800; trails.update([shell], 1 / 60, camera); }
-    shell.lodged = { shipId: 'target', position: [0, 0, 0] };
     shell.age += .5; trails.update([shell], .5, camera);
     expect(trails.diagnostics().segments).toBeGreaterThan(0);
-    trails.update([], 1, camera);
+    // A round that struck leaves the frame; its tail fades out over LIFE.
+    trails.update([], 1, camera); trails.update([], 1, camera);
     expect(trails.diagnostics()).toEqual({ histories: 0, segments: 0 });
-    shell.lodged = undefined; shell.waterDragPerSecond = 2;
+    shell.waterDragPerSecond = 2;
     trails.update([shell], .1, camera);
     expect(trails.diagnostics().histories).toBe(0);
     const replacement = round(); replacement.age = .01; replacement.position[0] = 8;

@@ -1,20 +1,20 @@
 import { expect, test } from 'bun:test';
-import type { CombatEvent } from '../simulation/combat';
 import { CombatAudioEvents, DEFAULT_AUDIO, SOUND_IDS, sanitizeAudio, spatialMix } from './audio';
 import recipe from '../../assets/audio/naval/recipe.json';
 import build from '../../assets/audio/naval/build.json';
+import type { CombatEvent } from '../game/session/elements';
 
 function event(sequence: number, kind: CombatEvent['kind'], extra: Partial<CombatEvent> = {}): CombatEvent {
-  return { sequence, tick: 10, kind, position: [0, 10, 0], shipId: 'player', message: '', shell: { id: sequence, caliberM: .38, velocity: [0, 0, -820] }, ...extra };
+  return { sequence, tick: 10, kind, position: [0, 10, 0], shipId: 'player', message: '', shell: { id: sequence, caliberM: .38, velocity: [0, 0, -820], type: 'AP' }, ...extra };
 }
 
 test('simultaneous barrels share a turret boom while separate mounts and calibers keep their sound', () => {
   const cursor = new CombatAudioEvents();
   const events = [event(1, 'shot'), event(2, 'shot', { position: [3, 10, 0] }), event(3, 'shot', { position: [0, 10, 30] }),
-    event(4, 'shot', { position: [0, 10, 60], shell: { id: 4, caliberM: .127, velocity: [0, 0, -800] } })];
+    event(4, 'shot', { position: [0, 10, 60], shell: { id: 4, caliberM: .127, velocity: [0, 0, -800], type: 'AP' } })];
   expect(cursor.consume(events, 11).map(c => c.id)).toEqual(['main-gun-a', 'main-gun-a', 'secondary-gun']);
   expect(cursor.consume(events, 12)).toEqual([]);
-  const heavy = event(5, 'shot', { shell: { id: 5, caliberM: .46, velocity: [0, 0, -780] } });
+  const heavy = event(5, 'shot', { shell: { id: 5, caliberM: .46, velocity: [0, 0, -780], type: 'AP' } });
   expect(cursor.consume([...events, heavy], 12)[0].id).toBe('main-gun-b');
 });
 

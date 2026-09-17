@@ -4,7 +4,7 @@ import type { ConsolidationPolicy } from "./ConsolidationPolicy";
 import type { DeckCycle } from "./DeckCycle";
 import type { EndurancePolicy } from "./EndurancePolicy";
 
-export type AirRules = { version: number, id: string,
+export type AirRules = { version: number, id: string, 
 /**
  * Null uses the existing authored operating value; inventory is never overridden.
  */

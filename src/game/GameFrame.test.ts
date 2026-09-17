@@ -2,12 +2,11 @@ import { DEFAULT_GRAPHICS } from './graphicsSettings';
 import { afterEach, beforeEach, expect, spyOn, test } from 'bun:test';
 import { Color, DirectionalLight, Group, PerspectiveCamera, Vector3, InstancedBufferGeometry, InstancedMesh, MeshBasicMaterial } from 'three/webgpu';
 import { loadShipJoints } from '../../scripts/diagnostics/load-ship-joints';
-import { CombatSimulation, type CombatIntent } from '../simulation/combat';
-import { ENGINE_ORDERS, FIXED_DT, motionVelocity, type HelmCommand } from '../simulation/ship';
-import { seaHeight } from '../simulation/sea';
-import { availableAmmunition, expendSalvo, muzzleWorld, shotDirection, updateMount } from '../simulation/weapons';
-import { localToWorld, wrapAngle } from '../simulation/geometry';
-import { aircraftDeckSpot } from '../simulation/aircraft';
+import { CombatSimulation } from '../simulation/combat';
+import { ENGINE_ORDERS, FIXED_DT, motionVelocity } from './session/motion';
+import { seaHeight } from './session/sea';
+import { expendSalvo, updateMount, type MountState } from '../simulation/weapons';
+import { localToWorld, wrapAngle } from './geometry';
 import { shipPreset } from '../ships/presets';
 import { CameraRig } from './CameraRig';
 import { BattlefieldCamera } from './BattlefieldCamera';
@@ -22,6 +21,10 @@ import { gunAimPoints, type GunAimPoint } from './gunAim';
 import { projectGunAim } from './GunAimIndicators';
 import { barrelIds, type Vec3 } from '../ships/blueprint';
 import { OCEAN_MAPS, DEFAULT_MAP, oceanMap } from '../maps/catalog';
+import type { HelmCommand } from '../game/session/elements';
+import type { CombatIntent } from './session/telemetry';
+import { availableAmmunition, muzzleWorld, shotDirection } from './mountGeometry';
+import { aircraftDeckSpot } from './airWing';
 
 const globals = ['window', 'document'] as const;
 let originals: (PropertyDescriptor | undefined)[];
@@ -77,7 +80,7 @@ function stageTicks(sim: CombatSimulation) {
       const aim = actor === sim.player ? intent.aim : undefined;
       const fire = actor === sim.player && (intent.fire || queued) && !actor.damage.sunk;
       actor.definition.mounts.forEach((mount, i) => {
-        const state = actor.mounts[i];
+        const state = actor.mounts[i] as MountState;
         const aligned = updateMount(mount, state, actor.definition, motion, aim, FIXED_DT, velocity);
         if (!fire || !aligned || state.status !== 'ready' || mount.battery !== intent.battery) return;
         if (availableAmmunition(state) < mount.weapon.barrelCount) return;
@@ -88,9 +91,9 @@ function stageTicks(sim: CombatSimulation) {
           const shellVelocity = direction.map((n, axis) => n * mount.weapon.muzzleSpeed + velocity[axis]) as Vec3;
           const id = ++sequence;
           sim.shells.push({ id, ownerId: motion.id, position, velocity: shellVelocity, age: 0, caliberM: mount.weapon.caliberM,
-            damage: mount.weapon.damage, penetrationMm: mount.weapon.penetrationMm, visited: [], ammunition: state.loaded });
+            damage: mount.weapon.damage, penetrationMm: mount.weapon.penetrationMm, ammunition: state.loaded });
           sim.events.push({ kind: 'shot', position: [...position], shipId: motion.id, message: `${mount.name} fired`, sequence: id,
-            tick: sim.tick, shell: { id, caliberM: mount.weapon.caliberM, velocity: [...shellVelocity] } });
+            tick: sim.tick, shell: { id, caliberM: mount.weapon.caliberM, velocity: [...shellVelocity], type: 'AP' } });
         }
       });
     }

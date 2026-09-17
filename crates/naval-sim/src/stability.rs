@@ -6,8 +6,9 @@ use crate::{
     geometry::*,
     hydrostatics::{HullHydrostatics, righting_arms},
 };
-#[derive(Clone, Debug, serde::Serialize)]
+#[derive(Clone, Debug, serde::Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(optional_fields)]
 pub struct StabilityState {
     pub sample_roll: Option<f64>,
     pub sample_pitch: Option<f64>,
@@ -18,11 +19,14 @@ pub struct StabilityState {
     pub roll_rate: f64,
     pub pitch_rate: f64,
     pub capsize_seconds: f64,
+    /// Always empty on the wire: the presentation filter drops the bodies and
+    /// the client rebuilds water surfaces from compartment volumes and hull pose.
     pub water: Vec<WaterBody>,
     pub roll_arm: f64,
     pub pitch_arm: f64,
     pub displacement_m3: f64,
     pub reserve_m3: f64,
+    #[ts(as = "crate::frame_vocabulary::VesselStatus")]
     pub status: String,
     pub combat_lost: bool,
     #[serde(skip)]

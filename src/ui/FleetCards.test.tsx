@@ -6,7 +6,7 @@ import type { ContactTrack } from '../multiplayer/generated/ContactTrack';
 import type { AirCluster, BattleComparison } from './fleetStats';
 import type { FleetFormation } from './fleetFormations';
 
-const track = (over: Partial<ContactTrack>): ContactTrack => ({ id: 'c', kind: 'surface', affiliation: 'hostile', status: 'tracked', firstObservedTick: 0, lastObservedTick: 100, measuredPosition: over.estimatedPosition ?? [0, 0, 0], estimatedPosition: [0, 0, 0], velocity: [0, 0, 0], uncertaintyM: 20, identificationConfidence: 1, classification: null, identifiedPresetId: null, sources: [], ...over });
+const track = (over: Partial<ContactTrack>): ContactTrack => ({ id: 'c', kind: 'surface', affiliation: 'hostile', status: 'tracked', firstObservedTick: 0, lastObservedTick: 100, measuredPosition: over.estimatedPosition ?? [0, 0, 0], estimatedPosition: [0, 0, 0], velocity: [0, 0, 0], uncertaintyM: 20, identificationConfidence: 1, classification: undefined, identifiedPresetId: undefined, sources: [], ...over });
 
 const ship = (over: Partial<OwnFleetShip>): OwnFleetShip => ({ id: 'bb', name: 'Bismarck', shipClass: 'battleship', hull: .97, kn: 20, order: 'Route · 20 kn · Waypoint 2/4', damageDealt: 12_400, frags: 1, lost: false, warn: false, massKg: 43_978_000, ...over });
 

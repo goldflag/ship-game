@@ -1,10 +1,10 @@
 import { expect, test } from 'bun:test';
 import { fleetAirCourse } from './fleetAirCourse';
-import { airWingTelemetry } from '../simulation/airTelemetry';
+import { airWingTelemetry } from '../game/session/airTelemetry';
 import { CombatSimulation } from '../simulation/combat';
-import { squadronFlights } from '../simulation/aircraft';
 import { shipPreset } from '../ships/presets';
 import type { ContactTrack } from '../multiplayer/generated/ContactTrack';
+import { squadronFlights } from '../game/airWing';
 
 test('strike lines end at the assigned report rather than a pilot approach waypoint', () => {
   const sim = new CombatSimulation(shipPreset('enterprise-cv6'));

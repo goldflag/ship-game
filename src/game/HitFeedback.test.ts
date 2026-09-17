@@ -1,8 +1,9 @@
 import { expect, test } from 'bun:test';
-import { CombatSimulation, type CombatEvent } from '../simulation/combat';
+import { CombatSimulation } from '../simulation/combat';
 import { HitFeedback } from './HitFeedback';
-import { localToWorld } from '../simulation/geometry';
+import { localToWorld } from './geometry';
 import { shipPreset } from '../ships/presets';
+import type { CombatEvent } from '../game/session/elements';
 
 test('matching component results combine across time and distance without merging different results or component IDs', () => {
   const sim = new CombatSimulation(shipPreset('bismarck')), feedback = new HitFeedback();

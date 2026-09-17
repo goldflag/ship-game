@@ -1,6 +1,6 @@
 import type { BattleSession } from './session/BattleSession';
 
-import { FIXED_DT } from '../simulation/ship';
+import { FIXED_DT } from './session/motion';
 
 export interface HitDirectionCue { id: number; angle: number; opacity: number; }
 type Impact = { id: number; bearing: number; time: number };

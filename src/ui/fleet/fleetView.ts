@@ -1,5 +1,5 @@
-import type { CombatTelemetry } from '../../simulation/combat';
-import type { FleetActor } from '../../simulation/battle';
+import type { CombatTelemetry } from '../../game/session/telemetry';
+import type { FleetActor, Aircraft } from '../../game/session/elements';
 import type { ShipDefinition, Vec3 } from '../../ships/blueprint';
 import type { ContactTrack } from '../../multiplayer/generated/ContactTrack';
 import type { FleetOrderState } from '../../multiplayer/generated/FleetOrderState';
@@ -8,9 +8,9 @@ import type { SearchAltitude } from '../../multiplayer/generated/SearchAltitude'
 import type { SearchPolicy } from '../../multiplayer/generated/SearchPolicy';
 import type { WeaponsPolicy } from '../../multiplayer/generated/WeaponsPolicy';
 import type { OrderReceipt } from '../../game/session/commandQueue';
-import { airWingTelemetry, type AirWingTelemetry, type FlightSummary } from '../../simulation/airTelemetry';
-import { airborne, type Aircraft } from '../../simulation/aircraft';
-import { KNOTS_PER_MPS } from '../../simulation/ship';
+import { airWingTelemetry, type AirWingTelemetry, type FlightSummary } from '../../game/session/airTelemetry';
+import { airborne } from '../../game/airWing';
+import { KNOTS_PER_MPS } from '../../game/session/motion';
 import { resolveShip } from '../../ships/localShips';
 import { fleetFormations, type FleetFormation } from '../fleetFormations';
 import { formationLabel, formationStations, STATION_RADIUS_M, type StationShip } from '../formationStations';

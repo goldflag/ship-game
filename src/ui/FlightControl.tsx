@@ -1,8 +1,8 @@
 import type { FleetDesk } from './fleet/fleetDesk';
-import type { CombatTelemetry } from '../simulation/combat';
-import { AIR_STATUS_LABELS } from '../simulation/airTelemetry';
+import { AIR_STATUS_LABELS } from '../game/session/airTelemetry';
 import { bindingLabel, type Keybindings } from '../game/keybindings';
 import './FlightControl.css';
+import type { CombatTelemetry } from '../game/session/telemetry';
 
 export function FlightControl({ combat, desk, bindings }: { combat: CombatTelemetry; desk: FleetDesk | null; bindings: Keybindings }) {
   const wing = combat.airWing;

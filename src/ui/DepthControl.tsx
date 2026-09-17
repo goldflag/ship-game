@@ -1,8 +1,8 @@
 import type { FleetDesk } from './fleet/fleetDesk';
-import type { CombatTelemetry } from '../simulation/combat';
 import { bindingLabel, type Keybindings } from '../game/keybindings';
-import { DEPTH_STEP_M } from '../simulation/submarine';
 import './DepthControl.css';
+import type { CombatTelemetry } from '../game/session/telemetry';
+import { DEPTH_STEP_M } from '../game/session/motion';
 
 export function DepthControl({ combat, desk, bindings }: { combat: CombatTelemetry; desk: FleetDesk | null; bindings: Keybindings }) {
   const dive = combat.submarine;

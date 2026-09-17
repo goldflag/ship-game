@@ -11,19 +11,22 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 pub const HULL_HP_SCALE: f64 = 35.0;
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(optional_fields)]
 pub struct Breach {
     pub position: Vec3,
     pub area_m2: f64,
     pub radius_m: f64,
+    #[ts(type = "number")]
     pub shell_id: i64,
     pub normal: Option<Vec3>,
     pub footprint_area_m2: Option<f64>,
     pub initial_area_m2: Option<f64>,
 }
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(optional_fields)]
 pub struct CompartmentState {
     pub id: String,
     pub water_m3: f64,
@@ -33,30 +36,32 @@ pub struct CompartmentState {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub water_level_y: Option<f64>,
 }
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 pub struct ConnectionState {
     pub id: String,
+    #[ts(as = "crate::frame_vocabulary::ConnectionStatus")]
     pub state: String,
     pub damage_area_m2: f64,
     pub from_index: usize,
     pub to_index: usize,
 }
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, ts_rs::TS)]
 pub struct RegionState {
     pub id: String,
     pub hp: f64,
     pub maximum: f64,
 }
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, ts_rs::TS)]
 pub struct ModuleState {
     pub id: String,
     pub hp: f64,
     pub detonated: bool,
     pub ignition: f64,
 }
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(optional_fields)]
 pub struct DamageState {
     pub regions: Vec<RegionState>,
     pub control: ControlState,
@@ -68,11 +73,13 @@ pub struct DamageState {
     pub compartments: Vec<CompartmentState>,
     pub connections: Vec<ConnectionState>,
     pub sunk: bool,
+    #[ts(as = "Option<crate::frame_vocabulary::DefeatCause>")]
     pub defeat_cause: Option<String>,
 }
 /// Core ship state shared by all weapon systems. Immutable content stays outside snapshots.
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(optional_fields)]
 pub struct Combatant {
     /// Content lookup tables for this ship's definition; never published.
     #[serde(skip)]

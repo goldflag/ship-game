@@ -4,7 +4,7 @@ import { BattleDialog } from './BattleDialog';
 import { ShipCatalogCard, ShipChip } from './ShipCard';
 import { DeployScreen } from './DeployScreen';
 import { customDeployment, type Deployment } from './deploymentModel';
-import type { BattleSetup } from '../../simulation/battle';
+import type { BattleSetup } from '../../game/session/battleSetup';
 
 const setup: BattleSetup = { playerShipId: 'bismarck', friendlyBots: [{ shipId: 'fletcher', aiLevel: 'hard' }], enemies: ['mogami'], spawnDistance: 5000, mapId: 'north-atlantic', timeHours: 14.5, cloudCover: 40, windSpeed: 8 };
 const render = (mode: 'custom' | 'pve' | 'duel') => renderToStaticMarkup(<BattleDialog initialMode={mode} initialShipId="bismarck" loading={false} onClose={() => {}} setup={setup} onSetupChange={() => {}} onLaunchCustom={() => {}} customError="" onLaunchPve={async () => {}} onOnlineBattle={async () => {}}/>);

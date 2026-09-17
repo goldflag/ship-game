@@ -18,7 +18,7 @@ import { WaterSurfaceGeometry, WaterSystem } from '../../vendor/threejs-water-pr
 import { battleEnvironment } from '../maps/conditions';
 import { oceanMap } from '../maps/catalog';
 import { squadronTargetOrder } from '../ui/airCommands';
-import { squadronFlights } from '../simulation/aircraft';
+import { squadronFlights } from './airWing';
 
 test('every carrier squadron card references a published PNG thumbnail', () => {
   for (const id of Object.keys(shipPresets)) {

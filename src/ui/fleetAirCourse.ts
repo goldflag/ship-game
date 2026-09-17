@@ -1,4 +1,4 @@
-import type { FlightSummary } from '../simulation/airTelemetry';
+import type { FlightSummary } from '../game/session/airTelemetry';
 import type { ContactTrack } from '../multiplayer/generated/ContactTrack';
 import type { Vec3 } from '../ships/blueprint';
 import { reportPosition } from './reconReports';

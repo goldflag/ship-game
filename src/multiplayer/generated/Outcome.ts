@@ -2,4 +2,4 @@
 import type { FinishReason } from "./FinishReason";
 import type { TeamId } from "./TeamId";
 
-export type Outcome = { winnerTeamId: TeamId | null, reason: FinishReason, finalTick: number, afloatKg: [number, number], };
+export type Outcome = { winnerTeamId?: TeamId, reason: FinishReason, finalTick: number, afloatKg: [number, number], };

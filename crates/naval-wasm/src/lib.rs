@@ -161,6 +161,44 @@ impl ArticulationPreview {
         serde_json::to_string(&results).map_err(error)
     }
 }
+/// The reference for the client's presentation copy of the ballistic step
+/// (`src/game/ballistics.ts`), which draws aim arcs and tracers without a
+/// round trip; its test compares the two across a grid of inputs.
+#[wasm_bindgen]
+pub fn ballistic_step_json(position: &str, velocity: &str, seconds: f64, drag: f64) -> Result<String, JsValue> {
+    let position: naval_sim::definition::Vec3 = serde_json::from_str(position).map_err(error)?;
+    let velocity: naval_sim::definition::Vec3 = serde_json::from_str(velocity).map_err(error)?;
+    let (p, v) = naval_sim::ballistics::ballistic_step(position, velocity, seconds, drag);
+    serde_json::to_string(&(p, v)).map_err(error)
+}
+/// The reference for the client's copy of the low drag arc (`solveDragArc`).
+#[wasm_bindgen]
+pub fn solve_drag_arc_json(from: &str, target: &str, speed: f64, drag: f64) -> Result<String, JsValue> {
+    let from: naval_sim::definition::Vec3 = serde_json::from_str(from).map_err(error)?;
+    let target: naval_sim::definition::Vec3 = serde_json::from_str(target).map_err(error)?;
+    let arc = naval_sim::ballistics::solve_drag_arc(from, target, speed, drag).map(|a| (a.direction, a.time));
+    serde_json::to_string(&arc).map_err(error)
+}
+/// The reference for the client's copy of the carried-mount frames
+/// (`src/game/mountFrames.ts`): the carrier pose of every mount at the given
+/// trains, `null` for a hull mount.
+#[wasm_bindgen]
+pub fn mount_carriers_json(definition: &str, trains: &str) -> Result<String, JsValue> {
+    let definition: naval_sim::definition::ShipDefinition = serde_json::from_str(definition).map_err(error)?;
+    let trains: Vec<f64> = serde_json::from_str(trains).map_err(error)?;
+    if trains.len() != definition.mounts.len() {
+        return Err(error("One train per mount"));
+    }
+    let mut states: Vec<naval_sim::weapons::MountState> = definition.mounts.iter().map(naval_sim::weapons::MountState::new).collect();
+    for (state, train) in states.iter_mut().zip(&trains) {
+        state.train = *train;
+    }
+    for index in 0..states.len() {
+        naval_sim::mount_frames::update_mount_carrier(&definition, index, &mut states);
+    }
+    let carriers: Vec<Option<(naval_sim::definition::Vec3, f64)>> = states.iter().map(|s| s.carrier.map(|c| (c.position, c.heading))).collect();
+    serde_json::to_string(&carriers).map_err(error)
+}
 #[wasm_bindgen]
 pub fn simulation_build() -> String {
     naval_sim::SIMULATION_BUILD.into()

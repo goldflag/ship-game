@@ -3,8 +3,8 @@ import { fleetFormations } from './fleetFormations';
 import type { FleetOrderState } from '../multiplayer/generated/FleetOrderState';
 import type { Formation } from '../multiplayer/generated/Formation';
 
-const escort = (leaderId: string, formation: Formation = 'column'): FleetOrderState => ({ movement: { type: 'escort', leaderId, offset: [0, 500], radiusM: 160, formation, slot: 0 }, weapons: { guns: true, aa: true, torpedoes: false }, formationPolicy: 'slow-for-stragglers', targetId: null, manual: false, navigation: null });
-const hold = (): FleetOrderState => ({ movement: { type: 'hold' }, weapons: { guns: true, aa: true, torpedoes: false }, formationPolicy: 'slow-for-stragglers', targetId: null, manual: false, navigation: null });
+const escort = (leaderId: string, formation: Formation = 'column'): FleetOrderState => ({ movement: { type: 'escort', leaderId, offset: [0, 500], radiusM: 160, formation, slot: 0 }, weapons: { guns: true, aa: true, torpedoes: false }, formationPolicy: 'slow-for-stragglers', targetId: undefined, manual: false, navigation: undefined });
+const hold = (): FleetOrderState => ({ movement: { type: 'hold' }, weapons: { guns: true, aa: true, torpedoes: false }, formationPolicy: 'slow-for-stragglers', targetId: undefined, manual: false, navigation: undefined });
 const ships = [{ id: 'bb', name: 'Bismarck' }, { id: 'dd1', name: 'Fletcher' }, { id: 'dd2', name: 'Yukikaze' }, { id: 'cv', name: 'USS Enterprise (CV-6)' }];
 
 test('escort orders form the groups, numbered and named from the setup groups', () => {

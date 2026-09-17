@@ -5,7 +5,7 @@ import { defaultKeybindings } from '../game/keybindings';
 import { shipPreset } from '../ships/presets';
 import { CombatSimulation } from '../simulation/combat';
 import type { Telemetry } from '../game/types';
-import type { CombatTelemetry } from '../simulation/combat';
+import type { CombatTelemetry } from '../game/session/telemetry';
 
 type Contact = CombatTelemetry['contacts'][number];
 const contact = (over: Partial<Contact>): Contact => ({ id: 'friendly-1', shipId: 'fletcher', name: 'Fletcher', team: 'friendly', controller: 'bot', x: 0, z: 0, heading: 0, speed: 15, integrity: 1, sunk: false, status: 'operational', combatLost: false, physicalLost: false, ...over });

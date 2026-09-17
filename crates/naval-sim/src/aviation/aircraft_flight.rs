@@ -26,7 +26,7 @@ impl Default for FlightControls {
         }
     }
 }
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, ts_rs::TS)]
 pub struct FlightAttitude {
     pub heading: f64,
     pub pitch: f64,

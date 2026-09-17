@@ -3,7 +3,7 @@ import type { FleetDesk } from './fleet/fleetDesk';
 import type { Telemetry } from '../game/types';
 import { bindingLabel, type Keybindings } from '../game/keybindings';
 import { resolveShip } from '../ships/localShips';
-import { KNOTS_PER_MPS } from '../simulation/ship';
+import { KNOTS_PER_MPS } from '../game/session/motion';
 import { SHIP_GLYPHS, shipClassOf } from './shipGlyphs';
 import './HelmWheel.css';
 

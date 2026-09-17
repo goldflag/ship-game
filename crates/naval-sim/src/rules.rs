@@ -168,6 +168,7 @@ pub enum FinishReason {
 }
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(optional_fields)]
 pub struct Outcome {
     pub winner_team_id: Option<TeamId>,
     pub reason: FinishReason,

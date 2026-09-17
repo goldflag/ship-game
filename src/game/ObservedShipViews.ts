@@ -1,7 +1,7 @@
 import * as THREE from 'three/webgpu';
 import { barrelIds, type ShipDefinition } from '../ships/blueprint';
 import { shipPreset } from '../ships/presets';
-import { radians } from '../simulation/geometry';
+import { radians } from './geometry';
 import { ObservedMotion } from './ObservedMotion';
 import type { WakeShip } from './FleetWakeFoam';
 import type { ObservedShip } from './session/BattleSession';

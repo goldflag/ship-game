@@ -1,8 +1,8 @@
 import type { AircraftRole } from '../ships/blueprint';
-import { FIGHTER_AMMO_BURSTS } from '../simulation/aircraft';
 import type { AirStrike, StrikeIntent } from './airIntent';
 import { duration } from './airFormat';
 import { aircraftTypeLabel } from './fleetStats';
+import { FIGHTER_AMMO_BURSTS } from '../game/airWing';
 
 /** Bursts per belt cell: sixteen bursts read as four cells. */
 export const BELT_CELL_BURSTS = FIGHTER_AMMO_BURSTS / 4;

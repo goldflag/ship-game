@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test';
-import type { BattleSetup } from '../../simulation/battle';
 import type { PveRequest } from '../../multiplayer/generated/PveRequest';
 import { carryToCustom, carryToDuel, carryToPve, fleetForCarry, isBattleMode } from './battleModes';
+import type { BattleSetup } from '../../game/session/battleSetup';
 
 const setup: BattleSetup = { playerShipId: 'bismarck', friendlyBots: ['fletcher', { shipId: 'cleveland', aiLevel: 'easy' }], enemies: ['yamato'], spawnDistance: 5000 };
 const request = (): PveRequest => ({ version: 1, seed: 1, mapId: 'pacific-islands', weather: 'clear', difficulty: 'normal', groups: [{ id: 'front', name: 'Group 1', station: 'front' }], ships: [] });
