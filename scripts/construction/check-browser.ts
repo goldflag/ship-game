@@ -63,6 +63,14 @@ try {
     const { checkShipbuilderEditing } = await import(modulePath);
     return checkShipbuilderEditing();
   }, '/scripts/tests/shipbuilder-browser.tsx'));
+  await run('internals-selection', page => page.evaluate(async modulePath => {
+    const { checkInternalsSelection } = await import(modulePath);
+    return checkInternalsSelection();
+  }, '/scripts/tests/shipbuilder-internals-browser.ts'));
+  await run('equipment-palette-images', page => page.evaluate(async modulePath => {
+    const { checkEquipmentPaletteImages } = await import(modulePath);
+    return checkEquipmentPaletteImages();
+  }, '/scripts/tests/shipbuilder-internals-browser.ts'));
   console.log('All construction browser checks passed.');
 } finally {
   await browser?.close();

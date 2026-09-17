@@ -7,6 +7,8 @@ bun run model:viewer
 
 Open **http://127.0.0.1:5180/**. This is a separate local app; it is not part of the game deployment.
 
+The launch script runs Vite under Bun because the server reads local ship definitions with Bun's file API.
+
 **Inspect** opens a ship with its original materials and no reference required. The bottom carousel switches between **Ships**, **Planes** and **Components** and selects the inspected model. Ships filter by class and nation with the same pill filters as the game port; planes filter by role, nation and name/year/ID; components filter by nation, exact caliber (mm) and a search over family, name and stable part ID. **Clear** restores the full collection; filters leave the inspected model in place until another card is selected. Cards show model thumbnails (aircraft and component previews render lazily as they enter the strip); use the arrows, horizontal scrolling, or arrow keys between focused cards. Camera views, comparison mode, fit, zoom and **Save image** sit on the 3D viewer itself; drag to orbit, right-drag to pan, scroll to zoom, arrows pan, +/− zoom and Home fits the view. The side panel names the model and, for components, distinguishes reusable original builders from installed previews awaiting source extraction, with review status, limitations, mounting radius and barrel count.
 
 Build standalone components with `bun run part:build all` (or a specific part ID), then reload the viewer. A component's **Preview source** selects its standalone recipe output or a named installation isolated from a published ship. Use traverse, elevation and recoil controls to inspect its moving parts. The component grid is 1 m, with the mount yaw datum at the origin; ship inspection uses a 10 m grid. Deep links use `?ship=<preset-id>`, `?aircraft=<aircraft-id>` or `?part=<part-id>`. See the [shared component workflow](../../docs/shared-components.md) for building and reusing original models.
@@ -32,4 +34,4 @@ Raw reference geometry and materials are used only by this viewer. Downloads are
 
 This tool compares model geometry, not historical truth. Different configurations, game simplifications, unverified loading datums and imperfect registration can explain differences. There is no automatic historical-accuracy score.
 
-Validation: `bun run model:viewer:check`. Optional frontend bundle check: `bunx vite build --config vite.overlay.config.ts` (output stays in ignored `.build/`; the local API requires the dev command above).
+Validation: `bun run model:viewer:check`. Optional frontend bundle check: `bun --bun vite build --config vite.overlay.config.ts` (output stays in ignored `.build/`; the local API requires the dev command above).
