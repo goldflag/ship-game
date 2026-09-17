@@ -1,15 +1,15 @@
-import type { Game } from '../game/Game';
+import type { FleetDesk } from './fleet/fleetDesk';
 import type { CombatTelemetry } from '../simulation/combat';
 import { bindingLabel, type Keybindings } from '../game/keybindings';
 import { DEPTH_STEP_M } from '../simulation/submarine';
 import './DepthControl.css';
 
-export function DepthControl({ combat, game, bindings }: { combat: CombatTelemetry; game: Game | null; bindings: Keybindings }) {
+export function DepthControl({ combat, desk, bindings }: { combat: CombatTelemetry; desk: FleetDesk | null; bindings: Keybindings }) {
   const dive = combat.submarine;
   if (!dive) return null;
   const moving = Math.abs(dive.verticalSpeed) > .08;
   const state = combat.playerSunk ? 'Sinking' : dive.emergencyBlow ? 'Emergency blow' : moving ? dive.verticalSpeed < 0 ? 'Diving' : 'Rising' : dive.depthM < .5 ? 'Surfaced' : 'Holding depth';
-  const order = (depth: number, emergency = false) => game?.setDepth(depth, emergency);
+  const order = (depth: number, emergency = false) => desk?.issue({ kind: 'depth', depthM: depth, emergency });
   return <section className="fleet-depth" aria-label="Depth and ballast">
     <div className="fleet-depth-reading"><h2>Depth</h2><strong>{dive.depthM.toFixed(1)} <small>m</small></strong></div>
     <p className="fleet-depth-order">Ordered {dive.targetDepthM} m <span>{state}</span></p>
@@ -25,7 +25,7 @@ export function DepthControl({ combat, game, bindings }: { combat: CombatTelemet
       ] as const).map(({ depth, label, action }) => <button key={action} title={`${label} · ${bindingLabel(bindings, action)}`} aria-pressed={!dive.emergencyBlow && dive.targetDepthM === depth} onClick={e => { order(depth); e.currentTarget.blur(); }}>{label} <kbd>{bindingLabel(bindings, action)}</kbd></button>)}</div>
       <div className="fleet-depth-adjust"><button disabled={dive.targetDepthM <= 0} title={`Rise ${DEPTH_STEP_M} m · ${bindingLabel(bindings, 'rise')}`} onClick={e => { order(dive.targetDepthM - DEPTH_STEP_M); e.currentTarget.blur(); }}>Rise {DEPTH_STEP_M} m <kbd>{bindingLabel(bindings, 'rise')}</kbd></button><button disabled={dive.targetDepthM >= dive.maxDepthM} title={`Dive ${DEPTH_STEP_M} m · ${bindingLabel(bindings, 'dive')}`} onClick={e => { order(dive.targetDepthM + DEPTH_STEP_M); e.currentTarget.blur(); }}>Dive {DEPTH_STEP_M} m <kbd>{bindingLabel(bindings, 'dive')}</kbd></button></div>
       <button className="fleet-depth-blow" aria-pressed={dive.emergencyBlow} onClick={e => { order(0, true); e.currentTarget.blur(); }}>Emergency blow <kbd>{bindingLabel(bindings, 'emergencyBlow')}</kbd></button>
-      <button className="fleet-depth-blow" title="Toggle raised periscope view at the current depth" onClick={e => { game?.togglePeriscope(); e.currentTarget.blur(); }}>Periscope view <kbd>{bindingLabel(bindings, 'periscope')}</kbd></button>
+      <button className="fleet-depth-blow" title="Toggle raised periscope view at the current depth" onClick={e => { desk?.issue({ kind: 'periscope' }); e.currentTarget.blur(); }}>Periscope view <kbd>{bindingLabel(bindings, 'periscope')}</kbd></button>
     </fieldset>
     {dive.depthM >= dive.maxDepthM - 5 && <p className="fleet-depth-warning" role="status">Depth limit {dive.maxDepthM} m · Rise to reduce pressure</p>}
     {(combat.battery !== 'torpedo' && dive.depthM > .5 || combat.battery === 'torpedo' && dive.depthM > dive.maxTorpedoDepthM) && <p className="fleet-depth-warning">{combat.battery === 'torpedo' ? `Torpedoes: rise to ${dive.maxTorpedoDepthM} m or less` : 'Guns secured · Surface to fire'}</p>}

@@ -1,12 +1,12 @@
 import { Select, SelectOption } from './components';
 import { useState } from 'react';
-import type { Game } from '../game/Game';
+import type { FleetDesk } from './fleet/fleetDesk';
 import { hasFullTarget, type CombatTelemetry } from '../simulation/combat';
 import type { ControlPriority } from '../simulation/damageControl';
 import './FireControl.css';
 
 /** Existing CPU crew orders, exposed without interrupting the battle. */
-export function FireControl({ combat, game, observedName }: { combat: CombatTelemetry; game: Game | null; observedName?: string }) {
+export function FireControl({ combat, desk, observedName }: { combat: CombatTelemetry; desk: FleetDesk | null; observedName?: string }) {
   const [open, setOpen] = useState(false);
   const [targetRequested, setTarget] = useState(false);
   const target = targetRequested && hasFullTarget(combat);
@@ -15,10 +15,10 @@ export function FireControl({ combat, game, observedName }: { combat: CombatTele
   const fires = target ? combat.targetFireDetails ?? [] : combat.playerFires;
   const control = combat.control;
   const canOrder = !observedName && !combat.playerSunk;
-  const priority = canOrder ? game?.controlPriority ?? control.priority : control.priority;
-  const focus = canOrder ? game?.controlFocus ?? control.focus : control.focus;
+  const priority = canOrder ? desk?.damageControl.priority ?? control.priority : control.priority;
+  const focus = canOrder ? desk?.damageControl.focus ?? control.focus : control.focus;
   const order = (value: ControlPriority, id = '') => {
-    if (game && canOrder) { game.controlPriority = value; game.controlFocus = id; }
+    if (desk && canOrder) desk.issue({ kind: 'damage-control', priority: value, focus: id });
   };
   return <section className="fleet-fire-control" aria-label="Damage control">
     <button className="fleet-fire-toggle" aria-expanded={open} aria-controls="fire-control-detail" data-burning={ownBurning > 0} onClick={() => setOpen(!open)}>
