@@ -3105,8 +3105,8 @@ mod tests {
                     .filter(|m| m.kind == "installation")
                     .map(|m| m.mass_kg / STEEL_DENSITY)
                     .sum::<f64>()
-                - (1. + 32. * c.weapons.parts[0].barbette_radius.powi(2)
-                    * (std::f64::consts::TAU / 64.).sin()) * 0.01)
+                - 32. * (0.5_f64.powi(2) + c.weapons.parts[0].barbette_radius.powi(2))
+                    * (std::f64::consts::TAU / 64.).sin() * 0.01)
                 .abs()
                 < 1e-6
         );
