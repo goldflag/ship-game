@@ -5,21 +5,21 @@ export type Point = ConstructionHullPoint;
 export type Station = ConstructionHullStation;
 export type Hull = {
   id: string; name: string; length: number; beam: number; depth: number; offset: number;
-  bulb: number; rake: number;
+  bulb: number; rake: number; redPaintY?: number;
   stations: Station[];
   region: { enabled: boolean; start: number; end: number; low: number; high: number; armor: number; color: string };
 };
 export const uid = () => crypto.randomUUID().slice(0, 8);
 export const clone = <T,>(v: T): T => structuredClone(v);
 export function lockSymmetry(h: Hull): Hull {
-  const { id, name, length, beam, depth, offset, bulb, rake, region } = h;
+  const { id, name, length, beam, depth, offset, bulb, rake, redPaintY, region } = h;
   const stations = h.stations.map(s => {
     const points = s.points.map(p => ({ x: p.x, y: p.y }));
     points[4].x = 0;
     for (let i = 0; i < 4; i++) points[i] = { x: -points[8 - i].x, y: points[8 - i].y };
     return { id: s.id, t: s.t, points };
   });
-  return { id, name, length, beam, depth, offset, bulb, rake, region, stations };
+  return { id, name, length, beam, depth, offset, bulb, rake, redPaintY, region, stations };
 }
 export const presets = HULL_PRESETS;
 export function makeHull(index = 1): Hull {
@@ -27,7 +27,7 @@ export function makeHull(index = 1): Hull {
   const times = [0, .08, .2, .36, .54, .72, .88, 1];
   return {
     id: uid(), name: p.name, length: p.length, beam: p.beam, depth: p.depth, offset: 0,
-    bulb: 0, rake: index === 3 ? 0 : .65,
+    bulb: 0, rake: index === 3 ? 0 : .65, redPaintY: -.02 * p.depth,
     region: { enabled: false, start: .25, end: .75, low: .32, high: .7, armor: 200, color: '#9aac9b' },
     stations: times.map((t, i) => {
       const w = p.widths[i], keel = index === 3 ? -.45 : -.52 + .28 * Math.pow(Math.abs(t - .5) * 2, 3);
@@ -106,6 +106,7 @@ function crosses(a: Point, b: Point, c: Point, d: Point) {
 }
 export function invalidReason(h: Hull): string | undefined {
   if (![h.length, h.beam, h.depth, h.offset, h.bulb, h.rake].every(Number.isFinite)) return 'Enter a finite dimension.';
+  if (h.redPaintY !== undefined && (!Number.isFinite(h.redPaintY) || Math.abs(h.redPaintY) > 500)) return 'Use a red paint Y from −500 to 500 m.';
   if (h.length < 5 || h.length > 500 || h.beam < 1 || h.beam > 100 || h.depth < 1 || h.depth > 60) return 'Use length 5–500 m, beam 1–100 m and depth 1–60 m.';
   for (let i = 1; i < h.stations.length; i++) if (h.stations[i].t - h.stations[i - 1].t < .005) return 'Sections cannot cross or sit less than 0.5% of the hull length apart.';
   for (const s of sampledStations(h)) {
@@ -134,13 +135,13 @@ export function influence(h: Hull, selected: string[], t: number, soft: boolean)
 export function customHullPrimitive(h: Hull, previous?: ConstructionPrimitive): ConstructionPrimitive {
   return { id: previous?.id ?? h.id, kind: 'custom-hull', size: [h.beam, h.depth, h.length],
     position: previous ? [...previous.position] : [h.offset, 0, 0], rotationDeg: previous?.rotationDeg ?? 0,
-    customHull: { version: 1, rake: h.rake, bulb: h.bulb, stations: clone(h.stations) } };
+    customHull: { version: 1, rake: h.rake, bulb: h.bulb, ...(h.redPaintY !== undefined ? { redPaintY: h.redPaintY } : {}), stations: clone(h.stations) } };
 }
 export function editableCustomHull(p: ConstructionPrimitive): Hull {
   if (!p.customHull) throw new Error('Custom hull sections are missing.');
   return { id: p.id, name: 'Custom hull', beam: p.size[0], depth: p.size[1], length: p.size[2],
     region: { enabled: false, start: .25, end: .75, low: .32, high: .7, armor: 200, color: '#9aac9b' },
-    offset: 0, rake: p.customHull.rake, bulb: p.customHull.bulb, stations: clone(p.customHull.stations) };
+    offset: 0, redPaintY: p.customHull.redPaintY, rake: p.customHull.rake, bulb: p.customHull.bulb, stations: clone(p.customHull.stations) };
 }
 /** Local display vertices, before the primitive's position and yaw. */
 export function customHullPoints(p: ConstructionPrimitive): Vec3[] {

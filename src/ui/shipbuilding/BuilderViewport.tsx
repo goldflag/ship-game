@@ -1,3 +1,4 @@
+import { paintedHullFace } from '../../ships/constructionHullPaint';
 import { surfaceOutline } from './surfaceOutline';
 import { internalSelectionIds } from './internalSelection';
 import { createBuilderGrid } from './builderGrid';
@@ -280,8 +281,12 @@ class Viewport {
       for (const surface of nativeSurfaces ?? []) {
         if (surface.open && props.scene.display === 'paint') continue;
         const color = new THREE.Color(invalid.has(surface.primitiveId) ? SALMON : props.scene.display === 'armor' ? armorThicknessColor(surface.thicknessMm, props.scene.armorScale) : constructionPaintColor(surface.paint));
-        fan(surface, vertices, colors, color);
-        for (let i = 1; i < surface.vertices.length - 1; i++) this.surfaceTriangles.push(surface);
+        const primitive = props.scene.source.construction.primitives.find(p => p.id === surface.primitiveId);
+        const painted = props.scene.display === 'armor' ? [{ vertices: surface.vertices, paint: surface.paint }] : paintedHullFace(surface, primitive);
+        for (const face of painted) {
+          fan({ ...surface, vertices: face.vertices }, vertices, colors, props.scene.display === 'armor' || invalid.has(surface.primitiveId) ? color : new THREE.Color(constructionPaintColor(face.paint)));
+          for (let i = 1; i < face.vertices.length - 1; i++) this.surfaceTriangles.push(surface);
+        }
         const selectionKey = surfaceSelectionKey(surface), group = this.surfacesByKey.get(selectionKey);
         if (group) group.push(surface); else this.surfacesByKey.set(selectionKey, [surface]);
       }
