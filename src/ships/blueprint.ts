@@ -321,6 +321,8 @@ export interface ConstructionEquipment {
   magazineId?: string; powerSourceId?: string;
   /** Installation settings retain canonical part dimensions/capability. */
   gun?: {
+    /** Added height above the deck attachment; position remains the turret datum. */
+    barbetteHeightM?: number;
     battery?: 'main' | 'secondary';
     initialElevationDeg?: number;
     traverseDeg?: number;
@@ -339,7 +341,7 @@ export interface ConstructionBoundary {
 }
 export interface ConstructionLoad extends Volume { name: string; massKg: number; }
 export interface ConstructionData {
-  version: 1; catalogRevision: string; defaultThicknessMm: number;
+  version: 1 | 2; catalogRevision: string; defaultThicknessMm: number;
   primitives: ConstructionPrimitive[]; surfaces: ConstructionSurfaceAssignment[];
   equipment: ConstructionEquipment[]; boundaries: ConstructionBoundary[]; loads: ConstructionLoad[];
 }

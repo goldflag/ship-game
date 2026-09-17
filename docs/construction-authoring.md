@@ -81,6 +81,7 @@ Commands are:
 | `move` | `ids`, `delta: [x,y,z]` | Translate pieces, equipment, loads and boundary offsets |
 | `rotate` | `ids`, `degrees` | Rotate hull/equipment around their own datums |
 | `surface` | `value` | Assign a canonical source face's armor, paint or opening |
+| `construction-version` | `version` | Set construction format 1 or 2 atomically with the equipment migration |
 | `catalog` | `revision` | Adopt another retained parts-catalog revision; fitted variants must exist in it |
 | `vertices` | `id`, `selection`, `delta`, optional `mirror`, `nearby` | Use the same freeform transformation as the UI |
 

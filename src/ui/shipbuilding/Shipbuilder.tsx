@@ -1,3 +1,4 @@
+import { integrateConstructionMagazines } from '../../ships/constructionArmament';
 import { FreeformToolbar } from './FreeformToolbar';
 import CustomHullEditor from './CustomHullEditor';
 import { createPortal } from 'react-dom';
@@ -81,6 +82,15 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const { owner, revision, compiled, compile, tool, toolState: s, source, catalog, activeCatalog, latestCatalog, setActiveCatalog } = editor, data = source.construction;
   const { layer, tool: activeTool, selected, surfaces, measure, pathPoints, customMm, mirror, showArcs, showCenters, freeformSettings, perspective, view, slice, notice, suggestion } = s;
   const compiledResult = compile.current;
+  const convertedDesigns = useRef(new Set<string>());
+  useEffect(() => {
+    if (!revision.ready || owner.locked || !catalog.equipment.length || data.version !== 1 || convertedDesigns.current.has(source.id)) return;
+    const next = structuredClone(source);
+    integrateConstructionMagazines(next, catalog);
+    const outcome = tool.run('Build ammunition into weapons', constructionDiffCommands(source, next));
+    if (outcome.accepted) convertedDesigns.current.add(source.id);
+  }, [revision.ready, owner.locked, source, catalog, tool]);
+
   const [drawer, setDrawer] = useState(false);
   const [query, setQuery] = useState('');
   // The open drawer keeps the size of its full, unfiltered card set while a search narrows it, so the panel does not jump about under the pointer; the search clears when the drawer closes.
@@ -230,14 +240,14 @@ export function Shipbuilder(props: ShipbuilderProps) {
   } else if (selectedEquipment.length === 1 && !selectedPrimitives.length) {
     const item = selectedEquipment[0], part = partOf(item), mass = equipmentMassKg(compiledResult, item.id);
     const edit = (label: string, change: (target: ConstructionEquipment) => void) => { const target = structuredClone(item); change(target); run(label, [{ op: 'equipment', value: target }]); };
-    const link = (field: 'magazineId' | 'powerSourceId', kind: 'magazine' | 'engine', label: string) => <label> {label} <select className="sb-link" value={item[field] ?? ''} onChange={event => edit('Connect equipment', target => { if (event.target.value) target[field] = event.target.value; else delete target[field]; })}>
+    const link = (field: 'powerSourceId', kind: 'engine', label: string) => <label> {label} <select className="sb-link" value={item[field] ?? ''} onChange={event => edit('Connect equipment', target => { if (event.target.value) target[field] = event.target.value; else delete target[field]; })}>
       <option value="">automatic</option>{data.equipment.filter(entry => partOf(entry)?.kind === kind).map(entry => <option key={entry.id} value={entry.id}>{partOf(entry)?.name} · {entry.id.slice(-4)}</option>)}</select></label>;
     const move = (axis: number, value: number) => { const delta: Vec3 = [0, 0, 0]; delta[axis] = snapCoordinate(value, gridStep) - item.position[axis]; tool.nudge(delta); };
     tags.push({ key: `part-${item.id}`, anchor: equipmentAnchor(item), dx: 82, dy: -92, tone: 'mint', content: <>
       <b>{part?.name ?? item.partId}</b>
       {mass !== undefined ? `${formatTonnes(mass)} · ` : ''}bearing <NumberField value={item.bearingDeg} min={0} max={360} step={15} unit="°" onChange={value => edit('Set bearing', target => { target.bearingDeg = normalizedBearing(value); })}/> · <NumberField label="x" value={item.position[0]} min={-1000} max={1000} step={gridStep} onChange={value => move(0, value)}/> <NumberField label="y" value={item.position[1]} min={-1000} max={1000} step={gridStep} onChange={value => move(1, value)}/> <NumberField label="z" value={item.position[2]} min={-1000} max={1000} step={gridStep} onChange={value => move(2, value)}/>
       {part?.path && item.path && <PathPointEditor key={item.id} item={item} part={part} onChange={path => edit('Edit fitting path', target => { target.path = path; })}/>}
-      {(part?.kind === 'gun' || part?.kind === 'torpedo-launcher') && link('magazineId', 'magazine', '· magazine')}{(part?.kind === 'funnel' || part?.kind === 'propeller') && link('powerSourceId', 'engine', '· power')} · <kbd>R</kbd> rotate · <kbd>⌫</kbd> remove
+      {part?.kind === 'gun' && <> · <NumberField label="Turret rise" description="Extend the barbette above its deck attachment; the magazine stays at its lower end." value={item.gun?.barbetteHeightM ?? 0} min={0} max={30} step={.25} unit="m" onChange={value => tool.raiseTurrets([item.id], () => value)}/></>}{data.version === 2 && (part?.kind === 'gun' || part?.kind === 'torpedo-launcher') && <span> · built-in ammunition</span>}{(part?.kind === 'funnel' || part?.kind === 'propeller') && link('powerSourceId', 'engine', '· power')} · <kbd>R</kbd> rotate · <kbd>⌫</kbd> remove
     </> });
   } else if (selected.size > 1) {
     const anchors = [...selectedPrimitives.map(part => part.position), ...selectedEquipment.map(equipmentAnchor)];

@@ -98,6 +98,9 @@ pub fn suggest(
         let Some(p) = catalog.equipment.iter().find(|p| p.id == *id) else {
             return fail("missing-part", format!("Unknown requested part {id}"), None);
         };
+        if source.construction.version >= 2. && p.kind == "magazine" {
+            return fail("integrated-magazine", "Ammunition is already built into each weapon".into(), None);
+        }
         if p.path.is_some() {
             return fail(
                 "equipment-path",
@@ -342,7 +345,7 @@ fn validate(
 ) -> Result<(), ConstructionDiagnostic> {
     let c = &source.construction;
     if source.schema_version != 1.
-        || c.version != 1.
+        || (c.version != 1. && c.version != 2.)
         || source.coordinates != "meters-y-up-bow-negative-z"
         || !valid_id(&source.id)
         || source.name.is_empty()
@@ -397,6 +400,15 @@ fn validate(
             "Instances require unique stable IDs",
             None,
         ));
+    }
+    for e in &c.equipment {
+        let rise = crate::construction_installation::raised(e);
+        if !rise.is_finite() || !(0. ..=30.).contains(&rise) || (c.version < 2. && rise != 0.) {
+            return Err(error("barbette-height", "Barbette height must be between 0 and 30 m on a version-2 gun installation", Some(&e.id)));
+        }
+        if c.version >= 2. && c.equipment.iter().any(|other| other.id == format!("{}-magazine", e.id)) {
+            return Err(error("identity", "Equipment ID conflicts with a built-in magazine", Some(&e.id)));
+        }
     }
     for p in &c.primitives {
         if (p.kind != "vertex" && p.vertices.is_some())
@@ -615,7 +627,7 @@ fn build(
                     Some(&e.id),
                 ));
             }
-            for space in p.occupancy.iter().flatten() {
+            for space in crate::construction_installation::spaces(c, catalog, p, e, &cells) {
                 if !finite(space.center) || !size(space.size) {
                     return Err(error(
                         "equipment-data",
@@ -841,15 +853,17 @@ fn build(
         out,
         &mut path_clearance,
     )?;
-    for installation in crate::construction_installation::derive(c, catalog)
+    for installation in crate::construction_installation::derive(c, catalog, &cells)
         .map_err(|e| error("installation-support", e, None))?
     {
-        if cg::total(&cg::subtract_all(installation.solids.clone(), &cells).map_err(fail)?).volume
+        let mut backing = cells.clone();
+        if let Some(above_deck) = &installation.raised_space { backing.push(above_deck.clone()); }
+        if cg::total(&cg::subtract_all(installation.solids.clone(), &backing).map_err(fail)?).volume
             > 1e-6
         {
             return Err(error(
                 "installation-support",
-                "Original fixed barbette extends outside the hull; provide a fully backed working well",
+                "Barbette or magazine extends through the hull sides or bottom; widen or deepen the hull, or move this turret",
                 Some(&installation.id),
             ));
         }
@@ -863,6 +877,14 @@ fn build(
                 "Barbette collar has no physical connection to hull plating or an internal deck",
                 Some(&installation.id),
             ));
+        }
+        // Fixed trunks participate in native articulation, including neighboring guns.
+        if installation.raised_space.is_some() {
+            for (i, cell) in installation.solids.iter().enumerate() {
+                path_clearance.push(MountClearanceProfileBodiesItem {
+                    id: format!("{}-barbette-{i}", installation.id), mount_id: None, surface: surface_mesh(cell),
+                });
+            }
         }
         let occupied = cg::subtract_all(installation.solids, &material).map_err(fail)?;
         material_volume += cg::total(&occupied).volume;
@@ -1513,6 +1535,13 @@ fn equipment(
                 Some(&e.id),
             ));
         }
+        let raise = crate::construction_installation::raised(e);
+        if !raise.is_finite() || !(0. ..=30.).contains(&raise) || (raise > 0. && (p.kind != "gun" || c.version < 2.)) {
+            return Err(error("barbette-height", "Barbette height must be between 0 and 30 m on a gun installation", Some(&e.id)));
+        }
+        if c.version >= 2. && (p.kind == "magazine" || e.magazine_id.is_some()) {
+            return Err(error("integrated-magazine", "Ammunition is built into each weapon; remove separate magazines and magazine links", Some(&e.id)));
+        }
         if !finite(e.position)
             || !e.bearing_deg.is_finite()
             || e.bearing_deg.abs() > 3600.
@@ -1659,7 +1688,7 @@ fn equipment(
             )
         };
         let envelope = transform_cell(p.bounds_center, p.size);
-        let fitting_cells = if p.kind == "gun" {
+        let mut fitting_cells = if p.kind == "gun" {
             let weapon = catalog.weapons.parts.iter().find(|w| Some(w.id.as_str()) == p.gun_part_id.as_deref())
                 .ok_or_else(|| error("weapon", "Missing canonical gun definition", Some(&e.id)))?;
             crate::mount_clearance::installation_bounds(weapon, e.gun.as_ref().and_then(|g| g.initial_elevation_deg).unwrap_or(0.).to_radians())
@@ -1671,6 +1700,15 @@ fn equipment(
             }
             boxes.iter().map(|b| transform_cell(b.center, b.size)).collect()
         } else { vec![envelope.clone()] };
+        if p.kind == "gun" && crate::construction_installation::raised(e) > 0. {
+            let top = crate::construction_installation::attachment(p);
+            for space in crate::construction_installation::spaces(c, catalog, p, e, hull) {
+                fitting_cells.push(transform_cell(
+                    [space.center[0], top - crate::construction_installation::raised(e) / 2., space.center[2]],
+                    [space.size[0], crate::construction_installation::raised(e), space.size[2]],
+                ));
+            }
+        }
         for (other, cell) in &all_envelopes {
             if fitting_cells.iter().any(|f| cg::intersection(f, cell).is_some_and(|x| cg::moments(&x).volume > 1e-5)) {
                 return Err(error(
@@ -1688,7 +1726,8 @@ fn equipment(
         if p.placement == "internal" {
             occupied.push(envelope.clone());
         }
-        if let Some(spaces) = &p.occupancy {
+        {
+            let spaces = crate::construction_installation::spaces(c, catalog, p, e, hull);
             if spaces.len() > 16 {
                 return Err(error(
                     "equipment-data",
@@ -1728,7 +1767,7 @@ fn equipment(
         }
         // Check the explicit original attachment socket (or the package's base datum).
         // Small 5 cm installation tolerance is independent of the 1 m hull grid.
-        let local_attachment = p
+        let mut local_attachment = p
             .sockets
             .as_ref()
             .and_then(|s| s.iter().find(|s| s.id == "attachment"))
@@ -1744,6 +1783,7 @@ fn equipment(
                 },
                 |s| s.position,
             );
+        local_attachment[1] -= crate::construction_installation::raised(e);
         let attachment = local_to_world(local_attachment, pose);
         let attachment_direction = p
             .sockets
@@ -1962,7 +2002,15 @@ fn equipment(
                     Some(&e.id),
                 ));
             }
-            let magazine = resolve_magazine(c, catalog, e)?;
+            let (magazine_id, ammo_center, ammo_size) = if c.version >= 2. {
+                let (center, size) = crate::construction_installation::magazine(c, catalog, p, e, hull)
+                    .ok_or_else(|| error("magazine-fit", "Gun needs a barbette and integral magazine", Some(&e.id)))?;
+                let id = integral_magazine(def, e, center, size, false);
+                (id, center, size)
+            } else {
+                let magazine = resolve_magazine(c, catalog, e)?;
+                (magazine.id.clone(), magazine_load_center(catalog, magazine), [0.; 3])
+            };
             let installation = e.gun.clone().unwrap_or_default();
             let train = installation.traverse_deg.unwrap_or(w.traverse_deg);
             let low = installation.elevation_min_deg.unwrap_or(w.elevation_min_deg);
@@ -1992,7 +2040,7 @@ fn equipment(
                 .into()),
                 position: e.position,
                 bearing_deg: e.bearing_deg,
-                magazine_id: Some(magazine.id.clone()),
+                magazine_id: Some(magazine_id),
                 weapon: installed,
                 initial_elevation_deg: installation.initial_elevation_deg,
                 traverse_limits_deg: installation.traverse_limits_deg,
@@ -2005,8 +2053,8 @@ fn equipment(
                 id: format!("{}-ammunition", e.id),
                 kind: "ammunition".into(),
                 mass_kg: kg,
-                center: magazine_load_center(catalog, magazine),
-                inertia_kg_m2: magazine_load_inertia(catalog, magazine, kg),
+                center: ammo_center,
+                inertia_kg_m2: if c.version >= 2. { box_inertia(ammo_size, kg) } else { magazine_load_inertia(catalog, resolve_magazine(c, catalog, e)?, kg) },
             });
         }
         if p.kind == "torpedo-launcher" {
@@ -2034,7 +2082,9 @@ fn equipment(
                         Some(&e.id),
                     )
                 })?;
-            let magazine = resolve_magazine(c, catalog, e)?;
+            let magazine_id = if c.version >= 2. {
+                integral_magazine(def, e, add(e.position, p.bounds_center), p.size, true)
+            } else { resolve_magazine(c, catalog, e)?.id.clone() };
             if let Some(installation) = &e.launcher {
                 let [lo, hi] = installation.traverse_limits_deg;
                 if !lo.is_finite() || !hi.is_finite() || lo < -180. || hi > 180.
@@ -2074,7 +2124,7 @@ fn equipment(
                         // projectile direction is still the physical absolute train.
                         arc_deg: 2.,
                         ammo: 1.,
-                        magazine_id: magazine.id.clone(),
+                        magazine_id: magazine_id.clone(),
                         launcher_id: Some(e.id.clone()),
                         launcher_module_id: Some(e.id.clone()),
                         weapon: w.clone(),
@@ -2210,6 +2260,20 @@ fn equipment(
         ..Default::default()
     });
     Ok(())
+}
+fn box_inertia(size: Vec3, kg: f64) -> Vec3 {
+    std::array::from_fn(|i| kg * (size[(i + 1) % 3].powi(2) + size[(i + 2) % 3].powi(2)) / 12.)
+}
+fn integral_magazine(def: &mut ShipDefinition, e: &ConstructionEquipment, center: Vec3, size: Vec3, launcher: bool) -> String {
+    let id = format!("{}-magazine", e.id);
+    def.modules.push(Module {
+        id: id.clone(), name: format!("{} ammunition", e.id), kind: "magazine".into(), center, size,
+        hp: 100., placement: launcher.then(|| "fixed".into()),
+        immersion_tolerance_m: (!launcher).then_some((size[1] * 0.2).max(0.1)),
+        torpedo_launcher_id: launcher.then(|| e.id.clone()),
+        ..Default::default()
+    });
+    id
 }
 fn magazine_load_center(catalog: &ConstructionCatalog, e: &ConstructionEquipment) -> Vec3 {
     let p = catalog
@@ -2908,6 +2972,39 @@ mod tests {
             });
         }
         (s, c)
+    }
+    #[test]
+    fn integral_magazine_stays_at_barbette_foot_when_turret_is_raised() {
+        let (mut s, c) = equipped_fixture();
+        s.construction.version = 2.;
+        s.construction.equipment.retain(|e| e.id != "magazine");
+        let normal = compiled(&s, &c);
+        let magazine = normal.modules.iter().find(|m| m.id == "gun-magazine").unwrap();
+        assert_eq!(normal.mounts[0].magazine_id.as_deref(), Some("gun-magazine"));
+        let gun = s.construction.equipment.iter_mut().find(|e| e.id == "gun").unwrap();
+        gun.position[1] += 3.;
+        gun.gun = Some(ConstructionEquipmentGun { barbette_height_m: Some(3.), ..Default::default() });
+        let raised = compiled(&s, &c);
+        assert!(length(sub(magazine.center, raised.modules.iter().find(|m| m.id == "gun-magazine").unwrap().center)) < 1e-9);
+        assert!((raised.mounts[0].position[1] - normal.mounts[0].position[1] - 3.).abs() < 1e-9);
+        assert!(raised.loading.as_ref().unwrap().mass_kg > normal.loading.as_ref().unwrap().mass_kg);
+        let ammo = |d: &ShipDefinition| d.loading.as_ref().unwrap().contributions.iter().find(|m| m.kind == "ammunition").unwrap().clone();
+        assert_eq!(ammo(&normal).center, ammo(&raised).center);
+        assert_eq!(ammo(&normal).mass_kg, ammo(&raised).mass_kg);
+    }
+    #[test]
+    fn integral_barbettes_block_thin_hulls_and_separate_magazines() {
+        let (mut s, c) = equipped_fixture(); s.construction.version = 2.;
+        assert!(compile(&s, &c).diagnostics.iter().any(|d| d.code == "integrated-magazine"));
+        s.construction.equipment.retain(|e| e.id == "gun");
+        compiled(&s, &c);
+        s.construction.primitives[0].size[0] = 2.;
+        let narrow = compile(&s, &c);
+        assert!(narrow.definition.is_none());
+        assert!(narrow.diagnostics.iter().any(|d| d.source_id.as_deref() == Some("gun")));
+        s.construction.primitives[0].size = [10., 0.5, 20.];
+        s.construction.equipment[0].position[1] = 0.25;
+        assert!(compile(&s, &c).definition.is_none());
     }
     #[test]
     fn separate_gun_geometry_allows_overlapping_empty_catalog_bounds() {

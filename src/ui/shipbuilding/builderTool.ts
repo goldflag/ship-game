@@ -1,3 +1,4 @@
+import { integrateConstructionMagazines, setBarbetteHeight } from '../../ships/constructionArmament';
 import type { ConstructionBoundary, ConstructionCatalog, ConstructionEquipment, ConstructionEquipmentPart, ConstructionPrimitive, ConstructionResult, ConstructionSource, ConstructionSuggestion, ConstructionSurface, ConstructionSurfaceAssignment, Vec3 } from '../../ships/blueprint';
 import { CONSTRUCTION_FACES, CONSTRUCTION_LIMITS, copyConstructionSelection, editableConstructionSurfaces, mirroredEquipment, mirroredFace, mirroredPrimitive, newConstructionId, surfaceKey, type ConstructionFace } from '../../ships/constructionEditor';
 import { constructionDiffCommands, type ConstructionCommand } from '../../ships/constructionCommands';
@@ -213,7 +214,7 @@ export class BuilderTool {
     return this.pathPart ? 'none' : layer === 'armor' || layer === 'paint' ? 'none' : tool === 'select' ? 'all' : (layer === 'fittings' && tool === 'place') || tool === 'module' ? 'equipment' : 'none';
   }
   get pickTargets(): BuilderScene['pickTargets'] { return this.state.layer === 'internals' ? 'internals' : this.faceLayer ? 'hull' : 'all'; }
-  /** Internal packages and room boundaries are the only editable objects in Internals. */
+  /** Internals edits packages, weapon-owned ammunition through its weapon, and room boundaries. */
   get internalIds(): ReadonlySet<string> {
     const source = this.source, catalog = this.catalog;
     if (!this.internalCache || this.internalCache.source !== source || this.internalCache.catalog !== catalog) this.internalCache = { source, catalog, ids: internalSelectionIds(source, catalog) };
@@ -258,6 +259,15 @@ export class BuilderTool {
     const outcome = this.door.submit(label, commands);
     if (outcome.accepted && this.state.notice) this.update({ notice: '' });
     return outcome;
+  };
+  /** Raising moves the gunhouse while preserving its deck connection and low magazine. */
+  raiseTurrets = (ids: string[], height: (current: number) => number): ConstructionSubmission => {
+    const next = structuredClone(this.source);
+    if (next.construction.version === 1) integrateConstructionMagazines(next, this.catalog);
+    for (const item of next.construction.equipment) {
+      if (ids.includes(item.id) && this.partOf(item)?.kind === 'gun') setBarbetteHeight(item, height(item.gun?.barbetteHeightM ?? 0));
+    }
+    return this.run('Raise turrets', constructionDiffCommands(this.source, next));
   };
   private command(label: string, commands: ConstructionCommand[]): ConstructionSubmission { return this.door.submit(label, commands); }
   private refused(): ConstructionSubmission | undefined { const refusal = this.door.refusal; return refusal && { accepted: false, ...refusal }; }
@@ -537,7 +547,7 @@ export class BuilderTool {
     const source = this.source, data = this.data, active = this.active;
     const fittedKinds = new Set(data.equipment.map(instance => this.partOf(instance)?.kind));
     const ids = selectedPart ? (active?.kind === 'part' ? [active.id] : []) : this.catalog.equipment.filter(part => {
-      if (part.placement !== 'internal' || fittedKinds.has(part.kind)) return false;
+      if (part.kind === 'magazine' || part.placement !== 'internal' || fittedKinds.has(part.kind)) return false;
       fittedKinds.add(part.kind); return true;
     }).map(part => part.id).slice(0, 16);
     if (!ids.length) { this.update({ notice: selectedPart ? 'Choose a fitting slot to place by suggestion.' : 'Every internal family is already fitted.' }); return; }
@@ -629,6 +639,7 @@ export class BuilderTool {
     if (event.key === 'PageUp' || event.key === 'PageDown') {
       event.preventDefault(); const direction = event.key === 'PageUp' ? 1 : -1;
       if (event.shiftKey || (s.slice.on && !s.selected.size)) this.update({ slice: { on: true, y: s.slice.y + direction * .5, auto: false } });
+      else if (s.selected.size && this.selectedEquipment.length === s.selected.size && this.selectedEquipment.every(item => this.partOf(item)?.kind === 'gun')) this.raiseTurrets([...s.selected], current => Math.max(0, Math.min(30, current + direction * this.gridStep)));
       else if (s.selected.size) this.nudge([0, direction * this.gridStep, 0]);
       return;
     }

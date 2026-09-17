@@ -5,6 +5,7 @@ import { freeformEdit, replaceVertexPrimitives, type HullSelection, type MirrorA
 /** Commands edit the existing source contract; they never accept derived physics. */
 export type ConstructionCommand =
   | { op: 'name'; name: string }
+  | { op: 'construction-version'; version: ConstructionSource['construction']['version'] }
   | { op: 'skin'; thicknessMm: number }
   | { op: 'primitive'; value: ConstructionPrimitive }
   | { op: 'equipment'; value: ConstructionEquipment }
@@ -41,6 +42,7 @@ export function applyConstructionBatch(source: ConstructionSource, batch: Constr
   for (const command of batch.commands) {
     switch (command.op) {
       case 'name': draft.name = command.name; break;
+      case 'construction-version': data.version = command.version; break;
       case 'skin': data.defaultThicknessMm = command.thicknessMm; break;
       case 'catalog': data.catalogRevision = command.revision; break;
       case 'primitive': upsert(data.primitives, command.value); break;
@@ -89,6 +91,7 @@ export function applyConstructionBatch(source: ConstructionSource, batch: Constr
 export function constructionDiffCommands(before: ConstructionSource, after: ConstructionSource): ConstructionCommand[] {
   const commands: ConstructionCommand[] = [], removed: string[] = [];
   const a = after.construction, b = before.construction;
+  if (a.version !== b.version) commands.push({ op: 'construction-version', version: a.version });
   if (after.name !== before.name) commands.push({ op: 'name', name: after.name });
   if (a.defaultThicknessMm !== b.defaultThicknessMm) commands.push({ op: 'skin', thicknessMm: a.defaultThicknessMm });
   if (a.catalogRevision !== b.catalogRevision) commands.push({ op: 'catalog', revision: a.catalogRevision });

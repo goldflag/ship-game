@@ -301,6 +301,22 @@ class Viewport {
       if (!this.equipment.has(part.id)) this.pickMeshes.push(box);
       datum.visible = props.scene.display === 'internals' || props.scene.selected.has(part.id) || (!this.equipment.has(part.id) && !(props.createModel && this.composed.children.length));
     }
+    if (props.scene.display === 'internals' && props.scene.source.construction.version === 2) {
+      for (const module of props.scene.result?.definition?.modules ?? []) {
+        if (module.kind !== 'magazine') continue;
+        const owner = props.scene.source.construction.equipment.find(e => module.id === `${e.id}-magazine`);
+        if (!owner) continue;
+        const box = new THREE.Mesh(new THREE.BoxGeometry(...module.size), new THREE.MeshBasicMaterial({ color: props.scene.selected.has(owner.id) ? BRASS : SALMON, transparent: true, opacity: .55, depthWrite: false }));
+        box.position.set(...module.center);
+        if (module.torpedoLauncherId) {
+          const local = box.position.clone().sub(new THREE.Vector3(...owner.position));
+          local.applyAxisAngle(new THREE.Vector3(0, 1, 0), -owner.bearingDeg * Math.PI / 180);
+          box.position.copy(local.add(new THREE.Vector3(...owner.position)));
+          box.rotation.y = -owner.bearingDeg * Math.PI / 180;
+        }
+        box.userData.sourceId = owner.id; this.details.add(box); this.pickMeshes.push(box);
+      }
+    }
     for (const wall of props.scene.source.construction.boundaries) {
       const size: Vec3 = [this.hullSize.x + 2, this.hullSize.y + 2, this.hullSize.z + 2]; const axis = { x: 0, y: 1, z: 2 }[wall.axis]; size[axis] = Math.max(.04, wall.thicknessMm / 1000);
       const box = new THREE.Mesh(new THREE.BoxGeometry(...size), new THREE.MeshBasicMaterial({ color: BRASS, transparent: true, opacity: props.scene.selected.has(wall.id) ? .3 : .09, depthWrite: false }));

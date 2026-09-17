@@ -372,3 +372,26 @@ test('propeller cards preserve blade clearance through the builder scene and mir
     expect(position[1] + 2).toBeLessThan(-1);
   }
 });
+
+test('turret rise uses one undoable command batch and keeps the deck datum fixed across keyboard changes', async () => {
+  const source = createStarterSource(catalog, 'blank');
+  source.construction.version = 1;
+  source.construction.equipment = [{ id: 'turret', partId: 'gun', position: [0, 1, 0], bearingDeg: 0, magazineId: 'legacy' }];
+  const { tool, owner, data } = await setup({ source });
+  tool.selectOnly(['turret']);
+  tool.key(key('PageUp'), chrome());
+  const raised = data().equipment[0];
+  expect(data().version).toBe(2);
+  expect(raised.magazineId).toBeUndefined();
+  expect(raised.gun?.barbetteHeightM).toBe(tool.gridStep);
+  expect(raised.position[1] - raised.gun!.barbetteHeightM!).toBe(1);
+  owner.undo();
+  expect(data()).toEqual(source.construction);
+  owner.redo();
+  tool.key(key('PageDown'), chrome());
+  expect(data().equipment[0].position[1]).toBe(1);
+  expect(data().equipment[0].gun?.barbetteHeightM).toBe(0);
+  tool.raiseTurrets(['turret'], () => 30);
+  tool.key(key('PageUp'), chrome());
+  expect(data().equipment[0].gun?.barbetteHeightM).toBe(30);
+});

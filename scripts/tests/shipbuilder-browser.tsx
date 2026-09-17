@@ -97,7 +97,7 @@ export async function checkShipbuilderSuggestions() {
   await wait(() => controls.rowButton('Apply')?.disabled, 'editing fences an obsolete proposal');
   await wait(() => compiled(), 'new source compilation leaves suggestions available');
   await controls.tool('Suggest'); await wait(() => controls.rowButton('Apply') && !controls.rowButton('Apply')!.disabled, 'current revision receives a fresh proposal');
-  controls.rowButton('Apply')!.click(); await wait(() => source()!.construction.equipment.length >= 2, 'one apply saves machinery and magazine');
+  controls.rowButton('Apply')!.click(); await wait(() => source()!.construction.equipment.length === 1, 'one apply saves machinery without a separate magazine');
   controls.key('z', { ctrlKey: true });
   await wait(() => JSON.stringify(source()!.construction) === before, 'one undo restores exact hull and module references');
   await wait(() => compiled(), 'restored hull is compiled before another suggestion');

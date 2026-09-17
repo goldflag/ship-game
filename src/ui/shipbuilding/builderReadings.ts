@@ -116,7 +116,7 @@ export function pieceMassKg(result: ConstructionResult | undefined, primitiveId:
   return found ? mass : undefined;
 }
 export function equipmentMassKg(result: ConstructionResult | undefined, equipmentId: string): number | undefined {
-  const items = result?.loading?.contributions.filter(item => item.id === equipmentId || item.id === `${equipmentId}-service` || item.id === `${equipmentId}-installation`);
+  const items = result?.loading?.contributions.filter(item => item.id === equipmentId || item.id === `${equipmentId}-service` || item.id === `${equipmentId}-installation` || (result?.definition?.construction?.version === 2 && item.id === `${equipmentId}-ammunition`));
   return items?.length ? items.reduce((sum, item) => sum + item.massKg, 0) : undefined;
 }
 

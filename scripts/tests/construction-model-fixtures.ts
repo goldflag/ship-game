@@ -5,6 +5,8 @@ import { createStarterSource } from '../../src/ships/constructionStarter';
 export function equipmentReviewSource(catalog: ConstructionCatalog, kind: 'collection' | 'neighbors' | 'patrol' | 'overhead' = 'collection'): ConstructionSource {
   if (kind === 'patrol') return createStarterSource(catalog, 'patrol');
   const source = createStarterSource(catalog, 'blank');
+  // These legacy fixtures exercise explicit magazine links and their original clearances.
+  source.construction.version = 1;
   source.id = `equipment-review-${kind}`; source.revision = `equipment-review-${kind}-1`;
   source.name = kind === 'neighbors' ? 'Independent neighboring mounts' : 'Installed original equipment collection';
   source.construction.defaultThicknessMm = 16;
@@ -116,6 +118,7 @@ export function deckFittingsFixture(catalog: ConstructionCatalog): ConstructionS
  * legacy fixture's deliberate neighbor and obstruction arrangements. */
 export function cruiserEquipmentFixture(catalog: ConstructionCatalog): ConstructionSource {
   const source = createStarterSource(catalog, 'blank');
+  source.construction.version = 1;
   source.id = 'cruiser-equipment-review'; source.revision = 'cruiser-equipment-review-1';
   source.construction.defaultThicknessMm = 16;
   source.construction.primitives = [{ id: 'platform', kind: 'box', position: [0, 0, 0], size: [80, 20, 400], rotationDeg: 0 }];
