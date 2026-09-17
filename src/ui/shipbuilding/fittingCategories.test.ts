@@ -35,3 +35,9 @@ test('a nation keeps its own parts and the generic ones; a nation absent from th
   expect(american).toContain('us-20mm-oerlikon-mk4-hsienyang'); expect(american.every(id => fittingNation(part(id)) === 'United States')).toBe(true);
   expect(shelf({ category: 'deck-gear', nation: 'Japan' })).toEqual(shelf({ category: 'deck-gear', nation: 'all' }));
 });
+
+test('gun shelves list the heaviest calibre first', () => {
+  const calibers = shelf({ category: 'main-battery', nation: 'all' }).map(id => catalog.weapons.parts.find(gun => gun.id === part(id).gunPartId)!.caliberM);
+  expect(calibers).toEqual(calibers.slice().sort((a, b) => b - a));
+  expect(calibers[0]).toBeGreaterThan(.4);
+});

@@ -1,0 +1,301 @@
+"""Original Royal Navy King George V class gun mounts; no external geometry inputs.
+
+Local metres: +X firing, +Y port, +Z up. Origin is the mount datum; the hull
+installation owns the fixed barbette below z=0. Dimensions are hard-coded from
+the King George V ship recipe (revision 4 gunhouse proportions).
+"""
+import math
+import bpy
+from aa_articulation import articulate_aa
+
+# Plan outlines run rear centre -> starboard -> face -> port (counter-clockwise from above).
+QUAD_BASE = [(-8.3,0),(-8.14,-1.5),(-7.67,-3),(-6.92,-4.4),(-6.05,-5.42),(-2.8,-5.7822),(.5,-6.15),(4.9,-5.48),
+             (4.9,5.48),(.5,6.15),(-2.8,5.7822),(-6.05,5.42),(-6.92,4.4),(-7.67,3),(-8.14,1.5)]
+QUAD_ROOF = [(-8.3,0,2.72),(-8.14,-1.29,2.7316),(-7.67,-2.58,2.7658),(-6.92,-3.784,2.8204),(-6.05,-4.6612,2.8836),
+             (-2.8,-4.9727,3.12),(.5,-5.289,3.0129),(4.9,-4.7128,2.87),(4.9,4.7128,2.87),(.5,5.289,3.0129),
+             (-2.8,4.9727,3.12),(-6.05,4.6612,2.8836),(-6.92,3.784,2.8204),(-7.67,2.58,2.7658),(-8.14,1.29,2.7316)]
+TWIN_BASE = [(-7,0),(-6.83,-1.15),(-6.32,-2.3),(-5.49,-3.4),(-4.5,-4.15),(-1,-4.72),(4.9,-4.32),
+             (4.9,4.32),(-1,4.72),(-4.5,4.15),(-5.49,3.4),(-6.32,2.3),(-6.83,1.15)]
+TWIN_ROOF = [(-7,0,3.1),(-6.83,-.989,3.1037),(-6.32,-1.978,3.1147),(-5.49,-2.924,3.1327),(-4.5,-3.569,3.1542),
+             (-1,-4.0592,3.23),(4.9,-3.7152,2.87),(4.9,3.7152,2.87),(-1,4.0592,3.23),(-4.5,3.569,3.1542),
+             (-5.49,2.924,3.1327),(-6.32,1.978,3.1147),(-6.83,.989,3.1037)]
+
+
+def interp(points, s):
+    points = sorted(points)
+    if s <= points[0][0]: return points[0][1]
+    for (a, va), (b, vb) in zip(points, points[1:]):
+        if s <= b: return va + (vb - va) * (s - a) / (b - a) if b > a else vb
+    return points[-1][1]
+
+
+def multi_mesh(name, vertices, faces, indices, mats, collection):
+    data = bpy.data.meshes.new(name); data.from_pydata(vertices, [], faces); data.update()
+    ob = bpy.data.objects.new(name, data); collection.objects.link(ob)
+    for m in mats: data.materials.append(m)
+    for poly, i in zip(data.polygons, indices): poly.material_index = i
+    return ob
+
+
+def prism(mesh, name, outline, z0, z1, material, collection):
+    """Closed prism; z0/z1 may be callables of x. Outline counter-clockwise from above."""
+    f0 = z0 if callable(z0) else (lambda x: z0)
+    f1 = z1 if callable(z1) else (lambda x: z1)
+    k = len(outline)
+    vv = [(x, y, f0(x)) for x, y in outline] + [(x, y, f1(x)) for x, y in outline]
+    ff = [tuple(reversed(range(k))), tuple(range(k, 2*k))] + [(i, (i+1) % k, (i+1) % k+k, i+k) for i in range(k)]
+    return mesh(name, vv, ff, material, collection)
+
+
+def ladder(rod, name, a, b, w, material, collection):
+    ax, ay, az = a; bx, by, bz = b
+    for s in [-w/2, w/2]:
+        rod(name+'.rail', (ax, ay+s, az), (bx, by+s, bz), .028, material, collection, vertices=6)
+    steps = max(2, int((bz-az)/.32))
+    for i in range(1, steps):
+        t = i/steps; x = ax+(bx-ax)*t; z = az+(bz-az)*t
+        rod(name+'.rung', (x, ay-w/2, z), (x, ay+w/2, z), .02, material, collection, vertices=6)
+
+
+def pleated_bag(mesh, name, rings, lateral, axis_z, material, collection, pleats=7, depth=.05, sides=28):
+    vv = []; ff = []
+    for x, r in rings:
+        for i in range(sides):
+            a = i*math.tau/sides; rr = r*(1+depth*math.cos(pleats*a))
+            vv.append((x, lateral+rr*math.cos(a), axis_z(x)+rr*math.sin(a)))
+    for j in range(len(rings)-1):
+        for i in range(sides):
+            a = j*sides+i; b = j*sides+(i+1) % sides; ff.append((a, b, b+sides, a+sides))
+    return mesh(name, vv, ff, material, collection, True)
+
+
+def create_kgv_main(mount, collection, helpers, materials):
+    mesh, cyl, rod, box = (helpers[k] for k in ['mesh', 'cyl', 'rod', 'box'])
+    spec = mount['weapon']; n = mount['id']
+    naval, dark, edge = (materials[k] for k in ['naval', 'dark', 'edge'])
+    roof = materials.get('roof', naval); canvas = materials.get('canvas', dark)
+    count = spec['barrelCount']; quad = count == 4
+    base = QUAD_BASE if quad else TWIN_BASE
+    top = QUAD_ROOF if quad else TWIN_ROOF
+    ridge = -2.8 if quad else -1.0
+    width = 12.3 if quad else 9.44
+    rf_x = -3.9 if quad else -4.3
+    rf_w = 12.5 if quad else 9.14
+    k = len(base); floor = .25; front = 4.9
+    roof_points = sorted({(x, z) for x, y, z in top})
+    roof_z = lambda x: interp(roof_points, x)
+    front_z = roof_z(front)
+    front_bottom = max(abs(y) for x, y in base if x == front)
+    front_top = max(abs(y) for x, y, z in top if x == front)
+    spacing = spec['barrelSpacing']
+    axes = [(i-(count-1)/2)*spacing for i in range(count)]  # starboard -> port for face building
+    before = set(bpy.context.scene.objects)
+
+    # Roller path mates with the hull's fixed barbette; D-shaped sill shields its exposed front.
+    ring = spec['barbetteRadius']
+    cyl(n+'.roller', (0, 0, .125), ring, .25, edge, collection, 64)
+    sill_r = ring+.15; ang = math.acos(min(.999, (front-.25)/sill_r))
+    sill = [(sill_r*math.cos(a), sill_r*math.sin(a)) for a in [-ang+2*ang*i/24 for i in range(25)]]
+    prism(mesh, n+'.barbette.sill', sill, .0, .36, naval, collection)
+
+    # Slab-sided shell: floor, walls, shallow two-plane crowned roof, upright face with
+    # round-bottomed elevation ports that cut back into the forward roof plate.
+    vv = [(x, y, floor) for x, y in base]+list(top); ff = []; mi = []
+    ff.append(list(reversed(range(k)))); mi.append(0)
+    front_i = next(i for i in range(k) if base[i][0] == front and base[(i+1) % k][0] == front)
+    for i in range(k):
+        if i != front_i: ff.append([i, (i+1) % k, (i+1) % k+k, i+k]); mi.append(0)
+    rear = [i+k for i in range(k) if top[i][0] <= ridge]
+    rear = [i for i in rear if top[i-k][1] <= 0]+[i for i in rear if top[i-k][1] > 0]
+    ff.append(rear); mi.append(1)
+    radius = .74; zc = spec['pivotHeight']-.27; recess = .92
+    notched = []
+    fwd = [p for p in top if p[0] >= ridge]
+    for a, b in zip(fwd, fwd[1:]+fwd[:1]):
+        notched.append(a)
+        if a[0] == front and b[0] == front:
+            for gy in axes:
+                for j in range(17):
+                    t = math.pi-j*math.pi/16; x = front-recess*math.sin(t)
+                    notched.append((x, gy+radius*math.cos(t), roof_z(x)))
+    idx = len(vv); vv.extend(notched); ff.append(list(range(idx, len(vv)))); mi.append(1)
+
+    def patch(ys, zs, inset=0, material=0):
+        idx = len(vv); vv.extend([(front-inset, y, z) for y, z in zip(ys, zs)])
+        ff.append(list(range(idx, idx+len(ys)))); mi.append(material)
+    for i, gy in enumerate(axes):
+        last = axes[i-1]+radius if i else -front_bottom
+        patch([last, gy-radius, gy-radius, axes[i-1]+radius if i else -front_top], [floor, floor, front_z, front_z])
+        arc = [(gy+radius*math.cos(a), zc+radius*math.sin(a)) for a in [math.pi+j*math.pi/12 for j in range(13)]]
+        for (ya, za), (yb, zb) in zip(arc, arc[1:]): patch([ya, yb, yb, ya], [floor, floor, zb, za])
+        aperture = arc+[(gy+radius, front_z), (gy-radius, front_z)]
+        idx = len(vv); m = len(aperture)
+        vv.extend([(front-inset, y, z if inset == 0 or z < front_z else roof_z(front-inset)) for inset in [0, recess] for y, z in aperture])
+        for j in range(m):
+            if j == m-2: continue
+            ff.append([idx+j, idx+(j+1) % m, idx+m+(j+1) % m, idx+m+j]); mi.append(0)
+        ff.append([idx+m+j for j in range(m)]); mi.append(2)
+    patch([axes[-1]+radius, front_bottom, front_top, axes[-1]+radius], [floor, floor, front_z, front_z])
+    multi_mesh(n+'.gunhouse', vv, ff, mi, [naval, roof, dark], collection)
+
+    # Roof plate joints with bolt rows.
+    half_at = lambda x: interp({(a, abs(b)) for a, b, c in top if b <= 0}, x)
+    for x in ([-6.2, ridge, 3.8] if quad else [-5.6, ridge, 3.8]):
+        half = half_at(x)-.04
+        rod(n+'.roof.joint', (x, -half, roof_z(x)+.018), (x, half, roof_z(x)+.018), .02, naval, collection, vertices=6)
+        for yy in [-half+.18, half-.18]:
+            for dx in [-.12, .12]: cyl(n+'.roof.bolt', (x+dx, yy, roof_z(x+dx)+.03), .043, .06, edge, collection, 8)
+    # Fore-and-aft plate joints.
+    for yy in ([-2.44, 0, 2.44] if quad else [0]):
+        rod(n+'.roof.joint.long', (-5.6 if quad else -5.2, yy, roof_z(-5.6 if quad else -5.2)+.018), (ridge, yy, roof_z(ridge)+.018), .018, naval, collection, vertices=6)
+
+    # Flared rangefinder end covers growing out of the rear roof (41 ft / 30 ft baselines).
+    root_y = width*.35; tip_y = rf_w/2+(.65 if quad else .50)
+    for side in [-1, 1]:
+        outline = [(rf_x-.86, side*root_y), (rf_x+.86, side*root_y), (rf_x+1.07, side*(tip_y-.14)),
+                   (rf_x+.99, side*tip_y), (rf_x-1.00, side*tip_y), (rf_x-1.08, side*(tip_y-.14))]
+        if side < 0: outline.reverse()
+        prism(mesh, n+'.rangefinder.cover', outline, lambda x: roof_z(x)-.92, lambda x: roof_z(x)+.035, naval, collection)
+        z = roof_z(rf_x)-.44
+        rod(n+'.rangefinder.cap', (rf_x, side*(tip_y-.01), z), (rf_x, side*(tip_y+.05), z), .28, naval, collection, vertices=24)
+        for dx in [-.66, .66]: box(n+'.rangefinder.hinge', (rf_x+dx, side*(tip_y+.04), z), (.12, .08, .30), edge, collection)
+        box(n+'.rangefinder.window', (rf_x+1.035, side*(tip_y-.30), z), (.04, .30, .25), dark, collection)
+        # Rear access ladder leaning with the curved back wall.
+        ly = 2.3 if quad else 1.65
+        lx0 = interp({(abs(y), x) for x, y in base if x < ridge and y <= 0}, ly)-.06
+        lx1 = interp({(abs(y), x) for x, y, zz in top if x < ridge and y <= 0}, ly)-.06
+        ladder(rod, n+'.rear.ladder', (lx0, side*ly, floor+.03), (lx1, side*ly, roof_z(lx1)+.10), .46, edge, collection)
+        # Escape covers and mushroom vents on the rear roof.
+        hx = -6.4 if quad else -5.4; hy = side*(3.4 if quad else 1.05)
+        cyl(n+'.roof.escape', (hx, hy, roof_z(hx)+.045), .35, .09, naval, collection, 28)
+        rod(n+'.roof.escape.handle', (hx-.14, hy, roof_z(hx)+.12), (hx+.14, hy, roof_z(hx)+.12), .028, edge, collection, vertices=6)
+        for vx, vy in ([(-5.3, 1.5), (-1.2, 4.1)] if quad else [(-3.2, 1.2), (.6, 3.0)]):
+            cyl(n+'.roof.vent.stem', (vx, side*vy, roof_z(vx)+.12), .13, .24, naval, collection, 14)
+            cyl(n+'.roof.vent.cap', (vx, side*vy, roof_z(vx)+.28), .24, .09, naval, collection, 16, r2=.14)
+        # Sloped-front sighting hood at each forward roof corner.
+        sx = 2.2; sy = side*(half_at(sx)-.62); zr = roof_z(sx)-.01
+        hood = [(sx-.55, -.34, 0), (sx+.40, -.34, 0), (sx+.40, .34, 0), (sx-.55, .34, 0),
+                (sx-.50, -.30, .40), (sx+.22, -.30, .40), (sx+.22, .30, .40), (sx-.50, .30, .40)]
+        mesh(n+'.sight.hood', [(a, sy+b, zr+c) for a, b, c in hood],
+             [(3, 2, 1, 0), (4, 5, 6, 7), (0, 1, 5, 4), (1, 2, 6, 5), (2, 3, 7, 6), (3, 0, 4, 7)], naval, collection)
+        mesh(n+'.sight.slit', [(sx+.335, sy-.2, zr+.17), (sx+.335, sy+.2, zr+.17), (sx+.275, sy+.2, zr+.30), (sx+.275, sy-.2, zr+.30)], [(0, 1, 2, 3)], dark, collection)
+    # Centre officer-of-turret hood.
+    cx = 1.6 if quad else 1.2; zr = roof_z(cx)
+    box(n+'.sight.centre', (cx, 0, zr+.17), (.8, .56, .36), naval, collection)
+    box(n+'.sight.centre.slit', (cx+.40, 0, zr+.22), (.02, .36, .10), dark, collection)
+    # Gunlayers' face sights between the guns.
+    for gy in [(a+b)/2 for a, b in zip(axes, axes[1:])]:
+        box(n+'.face.sight', (front+.012, gy, front_z-.63), (.03, .20, .37), dark, collection)
+        box(n+'.face.sight.hood', (front+.08, gy, front_z-.39), (.20, .29, .09), naval, collection)
+    # Rear door in the flat of the back wall.
+    rear_x = base[0][0]
+    box(n+'.rear.door', (rear_x-.02, 0, 1.25), (.08, .8, 1.7), roof, collection)
+    for z in [.7, 1.8]: rod(n+'.rear.door.dog', (rear_x-.07, -.3, z), (rear_x-.07, -.12, z), .028, edge, collection, vertices=6)
+    frame = list(set(bpy.context.scene.objects)-before)
+
+    groups = []
+    pivot = spec['trunnionForward']; height = spec['pivotHeight']; muzzle = spec['muzzleForward']
+    slope = math.tan(math.radians(1)); length = muzzle-pivot
+    for lateral in reversed(axes):  # port -> starboard
+        start = set(bpy.context.scene.objects)
+        az = lambda x: height+(x-pivot)*slope
+        pt = lambda x: (x, lateral, az(x))
+        # Mk VII: long parallel rear sleeve, step, light tapering chase.
+        profile = [(-.62, .60), (.43, .54), (3.80, .46), (3.85, .40), (length-1.0, .263), (length, .256)]
+        for (a, ra), (b, rb) in zip(profile, profile[1:]):
+            rod(n+'.barrel', pt(pivot+a), pt(pivot+b), ra, edge, collection, r2=rb, vertices=32)
+        rod(n+'.muzzle.face', pt(muzzle-.002), pt(muzzle), .256, edge, collection, r2=spec['caliberM']/2, vertices=32)
+        rod(n+'.bore', pt(muzzle+.003), pt(muzzle+.008), spec['caliberM']/2, dark, collection, vertices=28)
+        # Canvas blast bag seated inside the round-bottomed port and laced to the chase.
+        rings = [(front-.80, .66), (front-.05, .71), (front+.22, .80), (front+.75, .80), (front+1.25, .68), (front+1.6, .535), (front+1.72, .50)]
+        pleated_bag(mesh, n+'.blastbag', rings, lateral, az, canvas, collection)
+        rod(n+'.blastbag.clamp', pt(front+1.62), pt(front+1.78), .53, edge, collection, vertices=28)
+        groups.append(list(set(bpy.context.scene.objects)-start))
+    return articulate_aa(mount, collection, frame, groups)
+
+
+# 5.25-inch Mk I: three plan rings (floor, shoulder, roof); rear centre -> starboard -> face -> port.
+SEC_PLAN = [(-2.8,0),(-2.67,-.92),(-2.13,-1.77),(-1.24,-2.25),(.62,-2.25),(1.58,-1.94),(2.72,-1.38),
+            (2.72,1.38),(1.58,1.94),(.62,2.25),(-1.24,2.25),(-2.13,1.77),(-2.67,.92)]
+SEC_SHOULDER_Z = [2.45,2.45,2.45,2.45,2.45,1.67,1.67,1.67,1.67,2.45,2.45,2.45,2.45]
+SEC_ROOF = [(-2.59,0,3.02),(-2.46,-.782,3.02),(-1.92,-1.5045,3.02),(-1.03,-1.9125,3.02),(.4,-1.9125,3.02),
+            (1.36,-1.649,2.4897),(2.5,-1.173,1.86),(2.5,1.173,1.86),(1.36,1.649,2.4897),(.4,1.9125,3.02),
+            (-1.03,1.9125,3.02),(-1.92,1.5045,3.02),(-2.46,.782,3.02)]
+
+
+def create_kgv_secondary(mount, collection, helpers, materials):
+    mesh, cyl, rod, box = (helpers[k] for k in ['mesh', 'cyl', 'rod', 'box'])
+    spec = mount['weapon']; n = mount['id']
+    naval, dark, edge = (materials[k] for k in ['naval', 'dark', 'edge'])
+    roof = materials.get('roof', naval); canvas = materials.get('canvas', dark)
+    before = set(bpy.context.scene.objects)
+    cyl(n+'.roller', (0, 0, .125), spec['barbetteRadius'], .25, edge, collection, 48)
+    k = len(SEC_PLAN); floor = .25
+    vv = [(x, y, floor) for x, y in SEC_PLAN]+[(x, y, z) for (x, y), z in zip(SEC_PLAN, SEC_SHOULDER_Z)]+list(SEC_ROOF)
+    ff = [list(reversed(range(k)))]; mi = [0]
+    for level in [0, 1]:
+        for i in range(k):
+            ff.append([level*k+i, level*k+(i+1) % k, (level+1)*k+(i+1) % k, (level+1)*k+i]); mi.append(0)
+    flat = [2*k+i for i in [0, 1, 2, 3, 4, 9, 10, 11, 12]]
+    ff.append(flat); mi.append(1)
+    ff.append([2*k+i for i in [4, 5, 6, 7, 8, 9]]); mi.append(1)
+    multi_mesh(n+'.gunhouse', vv, ff, mi, [naval, roof], collection)
+
+    # Elevation slots follow the face, the steep brow and the long glacis (guns reach 70 degrees).
+    spacing = spec['barrelSpacing']; hw = .30
+    path = [(2.72, 1.0), (2.72, 1.67), (2.5, 1.86), (1.05, 2.661)]
+    for lateral in [spacing/2, -spacing/2]:
+        sv = []; sf = []
+        for (xa, za), (xb, zb) in zip(path, path[1:]):
+            dx, dz = xb-xa, zb-za; l = math.hypot(dx, dz); nx, nz = dz/l*.012, -dx/l*.012
+            i = len(sv)
+            sv += [(xa+nx, lateral-hw, za+nz), (xa+nx, lateral+hw, za+nz), (xb+nx, lateral+hw, zb+nz), (xb+nx, lateral-hw, zb+nz)]
+            sf.append((i, i+1, i+2, i+3))
+        mesh(n+'.elevation.slot', sv, sf, dark, collection)
+        # Raised coaming either side of each slot.
+        for s in [-1, 1]:
+            for (xa, za), (xb, zb) in zip(path[1:], path[2:]):
+                rod(n+'.slot.coaming', (xa+.02, lateral+s*(hw+.03), za+.03), (xb+.02, lateral+s*(hw+.03), zb+.03), .035, naval, collection, vertices=6)
+    for side in [-1, 1]:
+        # Armoured cheeks beside the cradles, with the layer's/trainer's sight ports.
+        outline = [(1.0, side*1.48), (2.35, side*1.48), (2.35, side*1.72), (1.0, side*2.0)]
+        if side < 0: outline.reverse()
+        prism(mesh, n+'.cheek', outline, 1.55, 2.30, naval, collection)
+        box(n+'.cheek.sight', (2.355, side*1.60, 2.08), (.02, .18, .16), dark, collection)
+        box(n+'.vent.cheek', (-1.0, side*2.24, 1.95), (.9, .10, .55), naval, collection)
+        for z in [1.80, 1.95, 2.10]:
+            box(n+'.vent.louvre', (-1.0, side*2.295, z), (.78, .02, .05), dark, collection)
+        # Rear access doors on the angled back facets.
+        mx, my = (-2.67-2.13)/2, (.92+1.77)/2; a = math.atan2(1.77-.92, -2.13+2.67)
+        d = box(n+'.rear.door', (mx-.03*math.sin(a), side*(my+.03*math.cos(a)), 1.22), (.72, .05, 1.35), roof, collection)
+        d.rotation_euler.z = side*a
+    # Single rear ladder: vertical leg up the back wall, then a leg lying on the shoulder bevel.
+    ladder(rod, n+'.rear.ladder', (-2.87, 0, .28), (-2.87, 0, 2.45), .42, edge, collection)
+    ladder(rod, n+'.rear.ladder.upper', (-2.87, 0, 2.45), (-2.655, 0, 3.04), .42, edge, collection)
+    cyl(n+'.roof.hatch', (-1.20, 0, 3.06), .37, .08, naval, collection, 24)
+    rod(n+'.roof.hatch.handle', (-1.34, 0, 3.12), (-1.06, 0, 3.12), .025, edge, collection, vertices=6)
+    for yy in [-1.1, 1.1]:
+        cyl(n+'.roof.vent.stem', (-1.9, yy, 3.10), .09, .16, naval, collection, 12)
+        cyl(n+'.roof.vent.cap', (-1.9, yy, 3.21), .17, .07, naval, collection, 14, r2=.10)
+    # Roof sighting hood for the officer of the turret.
+    box(n+'.roof.sight', (-.1, 0, 3.13), (.5, .44, .22), naval, collection)
+    box(n+'.roof.sight.slit', (.155, 0, 3.15), (.02, .30, .08), dark, collection)
+    frame = list(set(bpy.context.scene.objects)-before)
+
+    groups = []
+    pivot = spec['trunnionForward']; height = spec['pivotHeight']; muzzle = spec['muzzleForward']
+    slope = math.tan(math.radians(1)); length = muzzle-pivot
+    for lateral in [spacing/2, -spacing/2]:
+        start = set(bpy.context.scene.objects)
+        az = lambda x: height+(x-pivot)*slope
+        pt = lambda x: (x, lateral, az(x))
+        profile = [(-.55, .235), (1.35, .225), (1.40, .185), (2.30, .155), (2.34, .135), (length-.35, .098), (length-.30, .112), (length, .108)]
+        for (a, ra), (b, rb) in zip(profile, profile[1:]):
+            rod(n+'.barrel', pt(pivot+a), pt(pivot+b), ra, edge, collection, r2=rb, vertices=24)
+        rod(n+'.muzzle.face', pt(muzzle-.002), pt(muzzle), .108, edge, collection, r2=spec['caliberM']/2, vertices=24)
+        rod(n+'.bore', pt(muzzle+.003), pt(muzzle+.007), spec['caliberM']/2, dark, collection, vertices=20)
+        # Exposed metal gun slide with a short canvas boot at the port.
+        rod(n+'.slide', pt(pivot-.6), pt(2.78), .275, edge, collection, r2=.262, vertices=24)
+        pleated_bag(mesh, n+'.boot', [(2.70, .285), (2.86, .30), (3.02, .27), (3.12, .232)], lateral, az, canvas, collection, pleats=6, depth=.04, sides=24)
+        groups.append(list(set(bpy.context.scene.objects)-start))
+    return articulate_aa(mount, collection, frame, groups)

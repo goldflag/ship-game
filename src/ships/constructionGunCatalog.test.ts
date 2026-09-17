@@ -13,7 +13,8 @@ test('every catalog gun fits on a deck by its attachment socket and compiles int
     // One block broad and deep enough for the largest turret's barbette and integral magazine; the gun stands alone on it.
     const hull = source.construction.primitives.find(piece => piece.id === 'hull')!; hull.size = [24, 16, 60];
     source.construction.primitives = [hull]; source.construction.surfaces = source.construction.surfaces.filter(surface => surface.primitiveId === hull.id);
-    source.construction.equipment = [gun];
+    // No bulkheads either: a battleship barbette is wider than the starter's compartments.
+    source.construction.equipment = [gun]; source.construction.boundaries = [];
     const socket = part.sockets!.find(entry => entry.id === 'attachment')!;
     gun.partId = part.id; gun.position = [0, hull.size[1] / 2 - socket.position[1], 0];
     const result = compile(source);
