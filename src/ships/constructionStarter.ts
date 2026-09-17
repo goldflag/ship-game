@@ -20,7 +20,6 @@ export function createStarterSource(catalog: ConstructionCatalog, kind: Construc
     source.construction.primitives.push(hull);
     source.construction.surfaces.push(
       { primitiveId: hull.id, face: 'top', thicknessMm: 0, material: 'steel', paint: 'deck-gray' },
-      { primitiveId: hull.id, face: 'bottom', thicknessMm: 0, material: 'steel', paint: 'red-oxide' },
     );
     return source;
   }
