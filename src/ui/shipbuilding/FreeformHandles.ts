@@ -2,11 +2,8 @@ import * as THREE from 'three';
 import type { ConstructionPrimitive, ConstructionSource, Vec3 } from '../../ships/blueprint';
 import { affectedCorners, cornerVertices, freeformEdit, rotateVertex, selectionCenter, selectionCorners, selectionLabel, selectionLocks, VERTEX_EDGES, VERTEX_FACES, worldVertex, type HullSelection, type MirrorAxes } from '../../ships/constructionVertex';
 
-export interface BuilderFreeformOptions {
-  id: string; selection: HullSelection; axes: MirrorAxes; unit: number; snap: boolean;
-  onSelect(selection: HullSelection): void;
-  onCommit(replacements: ConstructionPrimitive[]): void;
-}
+export type { BuilderFreeformOptions } from './builderScene';
+import type { BuilderFreeformOptions } from './builderScene';
 interface Drag {
   pointer: number; target: Element; source: ConstructionSource; options: BuilderFreeformOptions;
   primitive: ConstructionPrimitive; x: number; y: number; anchor: THREE.Vector3;

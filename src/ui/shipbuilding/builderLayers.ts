@@ -9,15 +9,15 @@ export const BUILDER_LAYERS: { id: BuilderLayer; name: string }[] = [
   { id: 'hull', name: 'Hull' }, { id: 'armor', name: 'Armor' }, { id: 'internals', name: 'Internals' }, { id: 'fittings', name: 'Fittings' }, { id: 'paint', name: 'Paint' },
 ];
 
-export type BuilderTool = 'select' | 'place' | 'fill' | 'erase' | 'measure' | 'apply' | 'area' | 'eyedrop' | 'opening' | 'deck' | 'bulkhead' | 'longitudinal' | 'merge' | 'module';
+export type BuilderToolId = 'select' | 'place' | 'fill' | 'erase' | 'measure' | 'apply' | 'area' | 'eyedrop' | 'opening' | 'deck' | 'bulkhead' | 'longitudinal' | 'merge' | 'module';
 export type BuilderToggle = 'mirror' | 'arc';
 export type BuilderAction = 'rotate' | 'suggest';
 export type RailEntry =
-  | { kind: 'tool'; id: BuilderTool; name: string; key: string; glyph: string }
+  | { kind: 'tool'; id: BuilderToolId; name: string; key: string; glyph: string }
   | { kind: 'toggle'; id: BuilderToggle; name: string; key: string; glyph: string }
   | { kind: 'action'; id: BuilderAction; name: string; key: string; glyph: string };
 
-const tool = (id: BuilderTool, name: string, key: string, glyph = name): RailEntry => ({ kind: 'tool', id, name, key, glyph });
+const tool = (id: BuilderToolId, name: string, key: string, glyph = name): RailEntry => ({ kind: 'tool', id, name, key, glyph });
 const toggle = (id: BuilderToggle, name: string, key: string, glyph = name): RailEntry => ({ kind: 'toggle', id, name, key, glyph });
 const action = (id: BuilderAction, name: string, key: string, glyph = name): RailEntry => ({ kind: 'action', id, name, key, glyph });
 const select = tool('select', 'Select', 'V'), mirror = toggle('mirror', 'Mirror', 'M');
@@ -30,7 +30,7 @@ export const BUILDER_RAIL: Record<BuilderLayer, RailEntry[]> = {
   paint: [select, tool('apply', 'Paint', 'B', 'Paint'), tool('area', 'Area', 'A'), tool('eyedrop', 'Eyedrop', 'I'), mirror],
 };
 /** The tool a layer starts with; Select is always one key away. */
-export const DEFAULT_TOOL: Record<BuilderLayer, BuilderTool> = { hull: 'place', armor: 'apply', internals: 'module', fittings: 'place', paint: 'apply' };
+export const DEFAULT_TOOL: Record<BuilderLayer, BuilderToolId> = { hull: 'place', armor: 'apply', internals: 'module', fittings: 'place', paint: 'apply' };
 
 export interface HullShape { id: string; name: string; note: string; kind: ConstructionPrimitive['kind']; size: Vec3 }
 /** Width × height × length in metres, on the 1 m hull grid. Quarter plates are the thinnest useful skin.
@@ -74,7 +74,7 @@ export type SlotItem =
   | { kind: 'shape'; id: string; name: string; note: string; shape: HullShape }
   | { kind: 'armor'; id: 'armor'; name: string; note: string }
   | { kind: 'opening'; id: 'opening'; name: string; note: string }
-  | { kind: 'tool'; id: string; name: string; note: string; tool: BuilderTool }
+  | { kind: 'tool'; id: string; name: string; note: string; tool: BuilderToolId }
   | { kind: 'part'; id: string; name: string; note: string; part: ConstructionEquipmentPart }
   | { kind: 'paint'; id: string; name: string; note: string; color: string }
   | { kind: 'scheme'; id: 'two-tone' | 'disruptive'; name: string; note: string }
