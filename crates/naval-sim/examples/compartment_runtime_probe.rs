@@ -349,7 +349,7 @@ fn main() {
     let input = args
         .get(1)
         .map(String::as_str)
-        .unwrap_or("public/models/admiral-hipper-construction.json");
+        .unwrap_or("public/models/resolute.json");
     let output = args
         .get(2)
         .expect("Provide a .build output definition path");

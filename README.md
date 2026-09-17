@@ -222,7 +222,7 @@ supported. See [agent construction authoring](docs/construction-authoring.md) fo
 file-backed editing, batch commands, fixed views, sea trials and publication.
 
 ```sh
-bun run ship:new my-ship --template patrol
+bun run ship:new my-ship --template destroyer-hull
 bun run ship:edit my-ship
 bun run ship:build my-ship
 ```

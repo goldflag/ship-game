@@ -1065,8 +1065,8 @@ mod tests {
 mod index_regression {
     use super::*;
     #[test]
-    fn hipper_index_matches_linear_clearance_including_obstacle_identity() {
-        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../public/models/admiral-hipper-construction.json");
+    fn constructed_ship_index_matches_linear_clearance_including_obstacle_identity() {
+        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../public/models/resolute.json");
         let def: ShipDefinition = serde_json::from_slice(&std::fs::read(path).unwrap()).unwrap();
         let indexed = MountClearance::new(&def).unwrap().unwrap();
         let mut linear = indexed.clone();
@@ -1080,7 +1080,7 @@ mod index_regression {
                 pose.elevation = radians(((sample * 13 + i * 7) % 80) as f64);
                 pose.recoil = (sample % 3) as f64 * 0.5;
             }
-            for mount in [0, 3, 15, 30] {
+            for mount in [0, 3, 9, 17] {
                 for limit in [0.01, 1., 30.] {
                     assert_eq!(indexed.minimum_clearance(&def, mount, &poses, limit), linear.minimum_clearance(&def, mount, &poses, limit));
                 }

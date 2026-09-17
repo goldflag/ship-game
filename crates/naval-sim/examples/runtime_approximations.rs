@@ -6,7 +6,7 @@ fn summary(d:&ShipDefinition)->serde_json::Value{
  serde_json::json!({"hullVolumeM3":h.volume,"hullCenter":h.center(),"roomVolumeM3":rooms.iter().map(|r|r.volume).sum::<f64>(),"degenerateFaces":hull.cells.iter().chain(d.compartments.iter().flat_map(|c|c.volumes.as_ref().unwrap())).flat_map(|c|c.faces.iter()).filter(|f|cg::area(&f.vertices)<cg::EPS*cg::EPS).count()})
 }
 fn main(){
- let path=std::env::args().nth(1).unwrap_or("public/models/admiral-hipper-construction.json".into());
+ let path=std::env::args().nth(1).unwrap_or("public/models/resolute.json".into());
  let original:ShipDefinition=serde_json::from_slice(&std::fs::read(path).unwrap()).unwrap();
  let mut rounded=original.clone();
  for c in rounded.hull.volume.as_mut().unwrap().cells.iter_mut().chain(rounded.compartments.iter_mut().flat_map(|c|c.volumes.as_mut().unwrap())) {for f in std::sync::Arc::make_mut(&mut c.faces){for p in &mut f.vertices{for x in p {*x=(*x*1e6).round()/1e6;}}}}
