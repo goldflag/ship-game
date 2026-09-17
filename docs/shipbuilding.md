@@ -54,9 +54,27 @@ steel members add weight and clearance geometry, without adding buoyancy or
 power. These generic supports are an engineering approximation, not an internal
 shaft-line or bearing simulation.
 
-Snap cycles through 0.25, 0.5, 1, 2 and 5 m for placement and movement.
-Hull and fittings retain separate choices while the editor is open, starting at
-1 m and 0.25 m respectively. Orbit, Plan, Profile and Bow views and a deck
+**Snap** starts on. **N** toggles it; holding **Alt/Option** temporarily inverts it,
+including during a drag. Releasing the key or leaving the window restores the saved state.
+The adjacent arrow opens independent Grid, Ship centerline and Nearby edges/corners/centers
+choices. Grid spacing uses a button row: 0.25, 0.5, 1, 2 or 5 m. The rail shows the
+current size; click it or press **S** to cycle. Hull and fittings remember separate
+session choices, starting at 1 m and 0.25 m. Freeform uses its local Move step.
+Off removes grid rounding and magnetic alignment. Typed positions always remain exact;
+keyboard nudges still use the chosen step. Physical seating and collision checks remain active.
+
+Nearby source edges, corners and fitting attachment centers acquire within eight screen pixels
+and release at fourteen; they override grid rounding on the same movement axis. Dashed
+alignment guides become solid when engaged, with a small target marker and edge highlight;
+there are no floating snap labels. Guide visibility is independent of snapping. The centerline
+appears only while dragging near it, over the ship at the working height (vertically in
+Bow view), and disappears when the drag ends or moves away. It is independent of
+Mirror and center-of-gravity markers. **Center** in the selection actions centers the selected
+part or group using mounting centers while retaining relative positions, subject to collision
+constraints. In freeform, snapping respects local axes and symmetry; Move nearby corners
+remains a separate option for carrying neighboring vertices with an edit.
+
+Orbit, Plan, Profile and Bow views and a deck
 slice share source selections. The camera starts in perspective; **Camera** in
 the view bar or **P** toggles orthographic projection while retaining the framing.
 The choice is shared across layers and freeform editing for the current editor
@@ -74,7 +92,7 @@ fitting, and its deletion can be undone. The last hull block is protected; delet
 Flat mating faces snap exactly. Curved or pointed contacts seat into the support
 by at most 5 cm, creating a physical attachment instead of a single-point touch.
 
-A floor grid sits below the hull, with a brass centerline and direction markers
+A floor grid sits below the hull, with brass direction markers
 pointing toward the labeled bow (−Z). It resizes with the hull and uses multiples
 of the snap step for larger ships. It is a visual guide, with no placement target
 or simulated water plane. If placement cannot

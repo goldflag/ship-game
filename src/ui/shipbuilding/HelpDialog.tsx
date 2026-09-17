@@ -5,8 +5,9 @@ import { BUILDER_LAYERS, BUILDER_RAIL } from './builderLayers';
  * definitions so this list cannot drift from the buttons. */
 const MOUSE: [string, string][] = [
   ['Click', 'Select a piece, fitting, wall or face; Shift-click adds to the selection'],
-  ['Snap card', 'Under the tool rail: cycle 0.25, 0.5, 1, 2 and 5 m for placement and movement'],
-  ['Drag a selected piece', 'Click to select first, then drag to move it along the face under the pointer, snapped to the chosen Snap step'],
+  ['Center action', 'Center the selected part or group on the ship using mounting centers'],
+  ['Snap card', 'Toggle snapping; the adjacent arrow opens target, spacing and guide settings'],
+  ['Drag a selected piece', 'Click to select first, then drag to move it along the face under the pointer, using the enabled snap targets'],
   ['Drag over faces', 'With Paint or Opening on the Armor and Paint layers: sweep the card over every face the drag crosses, as one edit'],
   ['Drag unselected piece or empty space', 'Orbit; pan in orthographic Plan, Profile and Bow views'],
   ['Right-drag', 'Rotate a fitting or its placement preview; Shift for 0.1° fine control. Elsewhere, pan'],
@@ -24,6 +25,9 @@ const EDITING: [string[], string][] = [
   [['←', '→', '↑', '↓'], 'Nudge the selection by the chosen Snap step'],
   [['PgUp', 'PgDn'], 'Raise or lower the selection'],
   [['R', '⇧R'], 'Rotate the cursor piece or selection: 90° hull, 15° fittings; Shift-R turns fittings 1°'],
+  [['N'], 'Toggle snapping; remembers enabled targets and grid spacing'],
+  [['S'], 'Cycle grid spacing (local move step in freeform)'],
+  [['Alt / Option'], 'Hold to temporarily invert snapping; release to restore'],
   [['Esc'], 'Close a panel, cancel a gesture, then return to Select'],
 ];
 const VIEW: [string[], string][] = [
@@ -61,7 +65,7 @@ export function HelpDialog({ onClose }: { onClose(): void }) {
         </section>
       </div>
       <p>Select one cube or freeform hull, then choose Freeform. Select a vertex, edge or face; drag it in the view plane or use an X/Y/Z handle. Arrow keys nudge a focused axis handle. Mirror axes are local to the block; select none to turn symmetry off. An edge or face spanning a mirror plane cannot move across it. Move nearby corners is opt-in; Split creates independent blocks. Reset edit restores the block’s session-entry shape.</p>
-      <p>In Select, selected blocks show X/Y/Z handles and a center handle for movement in the view plane. Movement stops at another block’s bounds; touching faces can slide along each other. Escape cancels a drag. Keys never act inside text or number fields. Mirror also reaches the twin face when painting armor or paint.</p>
+      <p>In Select, selected blocks show X/Y/Z handles and a center handle for movement in the view plane. Typed positions stay exact regardless of snapping. Alignment guides can stay visible with snapping off. The centerline appears only while dragging near it. Movement stops at another block’s bounds; touching faces can slide along each other. Escape cancels a drag. Keys never act inside text or number fields. Mirror also reaches the twin face when painting armor or paint.</p>
     </div>
   </div>;
 }
