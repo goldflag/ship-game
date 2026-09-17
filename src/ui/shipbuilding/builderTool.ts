@@ -328,8 +328,6 @@ export class BuilderTool {
   activateRail = (entry: RailEntry) => {
     if (this.locked) return;
     if (entry.kind === 'tool') { this.setTool(entry.id); if (entry.id === 'measure') { this.update({ measure: undefined }); this.clearSelection(); } else if (entry.id !== 'select') this.update({ surfaces: new Set() }); }
-    else if (entry.id === 'mirror') this.toggleMirror();
-    else if (entry.id === 'arc') this.toggleArcs();
     else if (entry.id === 'rotate') this.rotate();
     else if (entry.id === 'suggest') void this.suggest(this.state.layer === 'fittings');
   };
@@ -643,6 +641,7 @@ export class BuilderTool {
     if (event.key === '0') { if (this.hasDrawer) { event.preventDefault(); chrome.toggleDrawer(); } return; }
     if (lower === 'q') this.cycleView(); else if (lower === 's') this.toggleSlice(); else if (lower === 'w') chrome.toggleWarnings();
     else if (lower === 'r') this.rotate(); else if (lower === 'm') this.toggleMirror(); else if (lower === 'c') this.toggleCenters();
+    else if (lower === 'a' && s.layer === 'fittings') this.toggleArcs();
     else { const entry = this.rail.find(entry => entry.key.toLowerCase() === lower); if (entry) this.activateRail(entry); }
   }
 }
