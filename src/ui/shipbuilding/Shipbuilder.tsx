@@ -198,7 +198,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
     if (((layer === 'fittings' && tool === 'place') || (layer === 'internals' && tool === 'module')) && active?.kind === 'part') {
       if (active.part.path) return undefined;
       const gun = active.part.gunPartId ? catalog.weapons.parts.find(gun => gun.id === active.part.gunPartId) : undefined;
-      return { kind: 'equipment', partId: active.part.id, size: active.part.size, boundsCenter: active.part.boundsCenter, bearingDeg: normalizedBearing(bearing), sockets: active.part.sockets, arc: gun ? { traverseDeg: gun.traverseDeg, radius: ARC_RADIUS } : undefined, inset: active.part.placement === 'internal' ? data.defaultThicknessMm / 1000 : undefined };
+      return { kind: 'equipment', partId: active.part.id, propellerDiameterM: active.part.kind === 'propeller' ? Math.max(active.part.size[0], active.part.size[1]) : undefined, size: active.part.size, boundsCenter: active.part.boundsCenter, bearingDeg: normalizedBearing(bearing), sockets: active.part.sockets, arc: gun ? { traverseDeg: gun.traverseDeg, radius: ARC_RADIUS } : undefined, inset: active.part.placement === 'internal' ? data.defaultThicknessMm / 1000 : undefined };
     }
     if (layer === 'internals' && (tool === 'deck' || tool === 'bulkhead' || tool === 'longitudinal')) return { kind: 'boundary', axis: tool === 'deck' ? 'y' : tool === 'bulkhead' ? 'z' : 'x', thicknessMm: 10 };
     return undefined;

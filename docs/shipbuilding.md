@@ -26,7 +26,21 @@ immersion and exhaust loss affect those services. See
 rates and repair limits.
 
 Use Hull for pieces, Armor for plating and openings, Fittings for equipment,
-Internals for rooms and machinery, and Paint for finishes. Snap cycles through 0.25, 0.5, 1, 2 and 5 m for placement and movement.
+Internals for rooms and machinery, and Paint for finishes.
+
+Propellers automatically grow an external shaft and support arms to nearby
+closed hull surfaces. Place a screw on the underside near the stern to leave
+room for its blades, or move an existing screw outward; the connection follows
+each edit, copy and rotation. No small hull blocks are needed. A shaft can reach
+forward up to four propeller diameters (2–20 m); braces can reach upward within
+that range, capped at 10 m. Directly attached screws keep their original support.
+The compiler rejects unreachable connections, openings, blade/hull overlaps in
+these suspended installations and supports crossing other fittings. Generated
+steel members add weight and clearance geometry, without adding buoyancy or
+power. These generic supports are an engineering approximation, not an internal
+shaft-line or bearing simulation.
+
+Snap cycles through 0.25, 0.5, 1, 2 and 5 m for placement and movement.
 Hull and fittings retain separate choices while the editor is open, starting at
 1 m and 0.25 m respectively. Orbit, Plan, Profile and Bow views and a deck
 slice share source selections. The camera starts in perspective; **Camera** in

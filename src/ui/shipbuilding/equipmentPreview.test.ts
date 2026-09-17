@@ -57,3 +57,21 @@ test('a model finishing after viewport disposal releases its resources and never
     expect(preview.group.children).toHaveLength(0); expect(changed).toBe(0); expect(disposed).toBe(1);
   } finally { preview.dispose(); loader.mockRestore(); }
 });
+
+test('compiled propeller supports update independently and release obsolete geometry', () => {
+  const { source } = fixture(); source.construction.equipment = [];
+  const preview = new EquipmentPreview(() => {}, () => {});
+  const support = { equipmentId: 'screw', members: [{ start: [0, -3, 5] as [number, number, number], end: [0, -3, 1] as [number, number, number], radiusM: .1, kind: 'shaft' as const }] };
+  try {
+    preview.update(source, catalog, [support]);
+    const mesh = preview.group.getObjectByName('screw.support-0') as THREE.Mesh;
+    expect(mesh.userData.sourceId).toBe('screw');
+    expect(mesh.position.toArray()).toEqual([0, -3, 3]);
+    let disposed = 0; mesh.geometry.addEventListener('dispose', () => disposed++);
+    preview.update(source, catalog, [support]);
+    expect(preview.group.getObjectByName(mesh.name)).toBe(mesh);
+    preview.update(source, catalog);
+    expect(disposed).toBe(1);
+    expect(preview.group.getObjectByName(mesh.name)).toBeUndefined();
+  } finally { preview.dispose(); }
+});
