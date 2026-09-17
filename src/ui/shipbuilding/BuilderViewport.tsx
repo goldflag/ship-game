@@ -1,3 +1,4 @@
+import { envelopeVertices } from '../../ships/freeformShape';
 import { surfaceGroups, surfaceOutline } from './surfaceOutline';
 import { internalSelectionIds } from './internalSelection';
 import { createBuilderGrid } from './builderGrid';
@@ -194,7 +195,7 @@ class Viewport {
     const bounds = new THREE.Box3();
     // Source bounds remain available before compilation and for invalid drafts.
     for (const primitive of this.props.scene.source.construction.primitives) {
-      for (const v of cornerVertices(primitive)) bounds.expandByPoint(new THREE.Vector3(...worldVertex(primitive, v)));
+      for (const v of envelopeVertices(primitive)) bounds.expandByPoint(new THREE.Vector3(...worldVertex(primitive, v)));
     }
     if (bounds.isEmpty()) bounds.set(new THREE.Vector3(-10, -5, -25), new THREE.Vector3(10, 5, 25));
     this.hullSize.copy(bounds.getSize(new THREE.Vector3()));
@@ -238,7 +239,7 @@ class Viewport {
       this.gridKey = gridKey; release(this.floorGrid);
       const bounds = new THREE.Box3();
       for (const primitive of props.scene.source.construction.primitives) {
-        for (const corner of cornerVertices(primitive)) bounds.expandByPoint(new THREE.Vector3(...worldVertex(primitive, corner)));
+        for (const corner of envelopeVertices(primitive)) bounds.expandByPoint(new THREE.Vector3(...worldVertex(primitive, corner)));
       }
       if (bounds.isEmpty()) bounds.set(new THREE.Vector3(-1, -1, -1), new THREE.Vector3(1, 1, 1));
       this.floorGrid.add(createBuilderGrid(bounds, props.scene.gridStep));
@@ -262,7 +263,7 @@ class Viewport {
         const mesh = new THREE.Mesh(geometry, props.scene.display === 'armor' ? new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide }) : new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .78, metalness: 0, side: THREE.DoubleSide, transparent: props.scene.display === 'internals', opacity: props.scene.display === 'internals' ? .15 : 1, depthWrite: props.scene.display !== 'internals' }));
         mesh.userData.hull = true; this.hull.add(mesh); this.pickMeshes.push(mesh); this.hullMeshes.push(mesh);
       } else for (const primitive of props.scene.source.construction.primitives) {
-        const mesh = new THREE.Mesh(primitiveGeometry(primitive.kind, primitive.size, primitive.vertices, primitive.customHull), new THREE.MeshStandardMaterial({ color: invalid.has(primitive.id) ? SALMON : constructionPaintColor('naval-gray'), roughness: .78, side: THREE.DoubleSide, transparent: props.scene.display === 'internals', opacity: props.scene.display === 'internals' ? .15 : 1 }));
+        const mesh = new THREE.Mesh(primitiveGeometry(primitive.kind, primitive.size, primitive.vertices, primitive.customHull, primitive.shaping), new THREE.MeshStandardMaterial({ color: invalid.has(primitive.id) ? SALMON : constructionPaintColor('naval-gray'), roughness: .78, side: THREE.DoubleSide, transparent: props.scene.display === 'internals', opacity: props.scene.display === 'internals' ? .15 : 1 }));
         mesh.position.set(...primitive.position); mesh.rotation.y = primitive.rotationDeg * Math.PI / 180;
         mesh.userData.sourceId = primitive.id; this.hull.add(mesh); this.pickMeshes.push(mesh); this.hullMeshes.push(mesh);
       }
@@ -390,7 +391,7 @@ class Viewport {
     const map=new Map(replacements.map(p=>[p.id,p]));
     for(const original of this.props.scene.source.construction.primitives) {
       const p=map.get(original.id)??original;
-      const geometry=primitiveGeometry(p.kind,p.size,p.vertices,p.customHull);
+      const geometry=primitiveGeometry(p.kind,p.size,p.vertices,p.customHull,p.shaping);
       const mesh=new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({color:constructionPaintColor('naval-gray'),roughness:.78,side:THREE.DoubleSide}));
       mesh.position.set(...p.position);mesh.rotation.y=p.rotationDeg*Math.PI/180;this.vertexPreview.add(mesh);
       if(map.has(p.id)) {const edges=new THREE.LineSegments(new THREE.EdgesGeometry(geometry),new THREE.LineBasicMaterial({color:BRASS_LIGHT}));edges.position.copy(mesh.position);edges.rotation.copy(mesh.rotation);this.vertexPreview.add(edges);}
@@ -695,7 +696,7 @@ class Viewport {
     for (const id of ids) {
       const primitive = primitives.find(part => part.id === id);
       if (primitive) {
-        const geometry = primitiveGeometry(primitive.kind, primitive.size, primitive.vertices, primitive.customHull);
+        const geometry = primitiveGeometry(primitive.kind, primitive.size, primitive.vertices, primitive.customHull, primitive.shaping);
         const fill = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ color: BRASS, transparent: true, opacity: .22, depthWrite: false }));
         const edges = new THREE.LineSegments(primitiveOutlineGeometry(primitive), new THREE.LineBasicMaterial({ color: BRASS_LIGHT, depthTest: false }));
         for (const object of [fill, edges]) { object.position.set(...primitive.position); object.rotation.y = primitive.rotationDeg * Math.PI / 180; object.renderOrder = 20; this.movePreview.add(object); }

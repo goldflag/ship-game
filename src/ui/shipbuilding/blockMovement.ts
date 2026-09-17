@@ -1,3 +1,4 @@
+import { envelopeVertices } from '../../ships/freeformShape';
 import type { ConstructionPrimitive, ConstructionSource, Vec3 } from '../../ships/blueprint';
 import { cornerVertices, rotateVertex, worldVertex } from '../../ships/constructionVertex';
 
@@ -8,7 +9,7 @@ interface Bounds { center: Vec3; half: Vec3; axes: Vec3[] }
 /** Editing clearance uses oriented block envelopes, including deformed corners.
  * This is a conservative placement aid, not the native physical union/fit solver. */
 function bounds(p: ConstructionPrimitive): Bounds {
-  const corners = cornerVertices(p);
+  const corners = envelopeVertices(p);
   const min = [0, 1, 2].map(k => Math.min(...corners.map(v => v[k]))) as Vec3;
   const max = [0, 1, 2].map(k => Math.max(...corners.map(v => v[k]))) as Vec3;
   return {

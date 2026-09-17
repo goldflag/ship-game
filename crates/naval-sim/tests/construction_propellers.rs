@@ -11,7 +11,7 @@ fn fixture(position: Vec3) -> (ConstructionSource, ConstructionCatalog) {
             version: 1.,
             catalog_revision: "test".into(),
             default_thickness_mm: 10.,
-            primitives: vec![ConstructionPrimitive {
+            primitives: vec![ConstructionPrimitive { shaping: None,
                 id: "hull".into(),
                 kind: "box".into(),
                 size: [10., 4., 20.],

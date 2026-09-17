@@ -17,7 +17,7 @@ export async function mountShipbuilderReview(source?: ConstructionSource, retain
   const root = createRoot(host);
   const review: NonNullable<Window['shipbuilderReview']> = { close: () => { root.unmount(); host.remove(); } };
   window.shipbuilderReview = review;
-  root.render(<Shipbuilder catalog={catalog} starterSource={source ?? createStarterSource(catalog)} onClose={review.close}
+  root.render(<Shipbuilder onEditorReady={editor => { window.constructionEditor = editor; }} catalog={catalog} starterSource={source ?? createStarterSource(catalog)} onClose={review.close}
     onSave={source => { review.source = source; }} onLaunch={(_source, result) => { review.launched = result; }}/>);
   return { equipmentCount: catalog.equipment.length, catalogRevision: catalog.revision };
 }

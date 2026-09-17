@@ -1,3 +1,4 @@
+import { envelopeVertices } from '../../ships/freeformShape';
 import { cornerVertices, worldVertex } from '../../ships/constructionVertex';
 import type { ConstructionDiagnostic, ConstructionResult, ConstructionSource, ConstructionSurface } from '../../ships/blueprint';
 import { CONSTRUCTION_LIMITS, editableConstructionSurfaces } from '../../ships/constructionEditor';
@@ -16,7 +17,7 @@ export function hullBounds(source: ConstructionSource): { min: [number, number, 
   const min: [number, number, number] = [Infinity, Infinity, Infinity], max: [number, number, number] = [-Infinity, -Infinity, -Infinity];
   for (const primitive of source.construction.primitives) {
     if (primitive.kind === 'vertex' || primitive.kind === 'custom-hull') {
-      for (const v of cornerVertices(primitive)) worldVertex(primitive,v).forEach((n,k)=>{ min[k]=Math.min(min[k],n);max[k]=Math.max(max[k],n); });
+      for (const v of envelopeVertices(primitive)) worldVertex(primitive,v).forEach((n,k)=>{ min[k]=Math.min(min[k],n);max[k]=Math.max(max[k],n); });
       continue;
     }
     const radians = primitive.rotationDeg * Math.PI / 180, cos = Math.abs(Math.cos(radians)), sin = Math.abs(Math.sin(radians));

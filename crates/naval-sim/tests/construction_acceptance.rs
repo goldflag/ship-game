@@ -13,7 +13,7 @@ fn fixture() -> (ConstructionSource, ConstructionCatalog) {
                 version: 1.,
                 catalog_revision: "test".into(),
                 default_thickness_mm: 10.,
-                primitives: vec![ConstructionPrimitive { custom_hull: None,
+                primitives: vec![ConstructionPrimitive { shaping: None, custom_hull: None,
                     vertices: None,
             smooth_group: None,
                     id: "hull".into(),
@@ -354,7 +354,7 @@ fn separated_hull_rays_miss_water_and_hit_only_the_selected_skin() {
         ("bridge", [0., 2.5, 0.], [11., 1., 4.]),
     ]
     .into_iter()
-    .map(|(id, position, size)| ConstructionPrimitive { custom_hull: None,
+    .map(|(id, position, size)| ConstructionPrimitive { shaping: None, custom_hull: None,
         vertices: None,
             smooth_group: None,
         id: id.into(),
@@ -780,7 +780,7 @@ fn original_oerlikon_reaches_full_elevation_but_stops_at_a_real_overhead_beam() 
         ("pillar", [3., 11.5, 0.], [0.4, 3., 1.]),
         ("beam", [0., 13., 0.], [8., 0.5, 1.]),
     ] {
-        source.construction.primitives.push(ConstructionPrimitive { custom_hull: None,
+        source.construction.primitives.push(ConstructionPrimitive { shaping: None, custom_hull: None,
             vertices: None,
             smooth_group: None,
             id: id.into(),

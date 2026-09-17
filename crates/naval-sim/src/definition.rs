@@ -1110,6 +1110,18 @@ pub struct ShipDefinitionAccuracy {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionFreeformShape {
+    #[serde(rename = "version")]
+    pub version: f64,
+    #[serde(rename = "edges")]
+    pub edges: Vec<f64>,
+    #[serde(rename = "radius")]
+    pub radius: f64,
+    #[serde(rename = "style")]
+    pub style: String,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct ConstructionHullPoint {
     #[serde(rename = "x")]
     pub x: f64,
@@ -1153,6 +1165,8 @@ pub struct ConstructionPrimitive {
     pub rotation_deg: f64,
     #[serde(rename = "vertices")]
     pub vertices: Option<Vec<[f64; 3]>>,
+    #[serde(rename = "shaping")]
+    pub shaping: Option<ConstructionFreeformShape>,
     #[serde(rename = "smoothGroup")]
     pub smooth_group: Option<String>,
     #[serde(rename = "customHull")]
