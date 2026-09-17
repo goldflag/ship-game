@@ -85,7 +85,7 @@ try {
     controls.key('a', { ctrlKey: true });
   });
   await axis('X').waitFor({ state: 'visible' });
-  assert((await page.evaluate(() => [...window.shipbuilderViewport.props.scene.selected])).every(id => ['engine', 'magazine', 'forward-bulkhead', 'aft-bulkhead'].includes(id)), 'Group gizmo remains restricted to internals');
+  assert((await page.evaluate(() => [...window.shipbuilderViewport.props.scene.selected])).every(id => ['engine', 'gun-forward', 'forward-bulkhead', 'aft-bulkhead'].includes(id)), 'Group gizmo remains restricted to internals');
   await page.screenshot({ path: '.build/internal-gizmo/group.png' });
   assert(!errors.length, `No browser errors: ${errors.join('; ')}`);
   console.log(JSON.stringify({ passed: checks.length, checks }, null, 2));

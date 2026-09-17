@@ -214,7 +214,7 @@ export class BuilderTool {
     return this.pathPart ? 'none' : layer === 'armor' || layer === 'paint' ? 'none' : tool === 'select' ? 'all' : (layer === 'fittings' && tool === 'place') || tool === 'module' ? 'equipment' : 'none';
   }
   get pickTargets(): BuilderScene['pickTargets'] { return this.state.layer === 'internals' ? 'internals' : this.faceLayer ? 'hull' : 'all'; }
-  /** Internal packages and room boundaries are the only editable objects in Internals. */
+  /** Internals edits packages, weapon-owned ammunition through its weapon, and room boundaries. */
   get internalIds(): ReadonlySet<string> {
     const source = this.source, catalog = this.catalog;
     if (!this.internalCache || this.internalCache.source !== source || this.internalCache.catalog !== catalog) this.internalCache = { source, catalog, ids: internalSelectionIds(source, catalog) };
