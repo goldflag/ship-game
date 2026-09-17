@@ -257,13 +257,15 @@ game estimates. Gun tubs, the breakwater, the cranes and the catapults declare
 deck behind a breakwater stays usable and small gear fits under a crane jib.
 
 
-## Wall windows
+## Flush doors and windows
 
-`windows.py` authors the round porthole, rectangular window and rounded-rectangle
-window independently, with a closed back, raised frame, gasket, opaque glazing
-and seated mounting screws. The wall attachment is local runtime Z=0, facing
-+Z into the wall; geometry projects toward −Z. The original watertight door keeps
-its bottom attachment datum and existing recipe. `wallMount` identifies these
-parts for the editor; installation width/height scales their in-plane geometry
-and provisional mass while keeping depth fixed. These generic fittings do not
-cut hull openings and have no historical-vessel claim.
+`windows.py` authors the plain door, round porthole, rectangular window and
+rounded-rectangle window as single flat silhouettes, without frames, fasteners,
+hinges or solid thickness. The attachment is local runtime Z=0, facing +Z into
+the wall. The door keeps its original bottom datum and stable part ID; its older
+watertight-door recipe and published revisions remain retained for legacy uses.
+`wallMount` identifies these parts. Installation dimensions scale the original
+silhouette and provisional mass. The renderer clips its original front triangles
+onto native hull panels, using only a 0.5 mm rendering bias to avoid flicker.
+Catalog bounds use a 1 mm picking/mass envelope; this is not visible extrusion.
+These generic surface details do not cut holes or claim historical fidelity.

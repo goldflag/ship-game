@@ -1579,7 +1579,7 @@ fn equipment(
         if !finite(e.position)
             || !e.bearing_deg.is_finite()
             || e.bearing_deg.abs() > 3600.
-            || !size(p.size)
+            || !(size(p.size) || p.wall_mount.is_some() && finite(p.size) && p.size[0] >= 0.01 && p.size[1] >= 0.01 && p.size[0] <= 500. && p.size[1] <= 500. && (0.001..=0.01).contains(&p.size[2]))
             || !finite(p.bounds_center)
             || !finite(p.center_of_gravity)
             || !p.model_url.starts_with("/models/components/")
@@ -1864,7 +1864,7 @@ fn equipment(
         let support = if attached { None } else {
             crate::construction_propellers::derive(e, p, &out.surfaces)
         };
-        if !attached && support.is_none() {
+        if !attached && support.is_none() && e.wall.is_none() {
             return Err(error(
                 "equipment-attachment",
                 if p.kind == "propeller" { "No hull connection for this propeller; move it closer to the stern or beneath the hull" } else { "Equipment attachment has no physical hull support within 5 cm" },
@@ -1894,7 +1894,7 @@ fn equipment(
             masses.push(mass(format!("{}-support",e.id), "equipment", &solids, STEEL_DENSITY));
             out.propeller_supports.get_or_insert_with(Vec::new).push(support);
         }
-        let intrusion = if p.placement == "deck" {
+        let intrusion = if p.placement == "deck" && e.wall.is_none() {
             hull.iter().find_map(|h| fitting_cells.iter().find_map(|f| {
                 cg::intersection(f, h).and_then(|x| {
                     let base_area = if p.kind == "deck-fitting" {

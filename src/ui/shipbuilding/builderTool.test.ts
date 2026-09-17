@@ -100,7 +100,7 @@ test('select, move and erase: a drag translates the pressed piece and preserves 
   expect(tool.pointer({ kind: 'pick', hit: hit({ placement: [0, 1.5, 0] }) })).toMatchObject({ accepted: true });
   expect(data().boundaries).toEqual([{ id: 'boundary-2', axis: 'y', offset: 1.5, thicknessMm: 10 }]);
   expect(tool.pointer({ kind: 'pick', hit: hit({ placement: [0, 1.5, 0] }) })).toBeUndefined();
-  expect(state().notice).toContain('already sits at +1.5 m');
+  expect(state().notice).toContain('already sits here');
   tool.switchLayer('hull'); tool.setTool('select');
   expect(tool.scene(undefined).moveTargets).toBe('all');
   tool.pointer({ kind: 'pick', hit: hit({ id: 'hull-1' }) });
@@ -249,7 +249,6 @@ test('fittings: cards pick parts, the ghost carries a gun arc, placement mirrors
   tool.key(key('a'), chrome());
   expect(state().showArcs).toBe(true);
   expect(tool.scene(undefined).arcs).toEqual([{ position: [0, 1, 0], bearingDeg: 0, traverseDeg: 120, radius: 12, color: '#86e4c5' }]);
-  expect(tool.coords([1, 2, -3])).toBe('x +1 · y +2 · z −3 · 30°');
 });
 
 test('connected routes: points accumulate outside history, Enter commits the route and its mirror, Escape discards', async () => {

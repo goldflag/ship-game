@@ -1,7 +1,8 @@
+import { createConstructionWallModel } from '../../game/constructionWallModel';
 import { wallScale } from '../../ships/constructionWallFittings';
 import { paintConstructionFitting } from '../../game/constructionFittingPaint';
 import * as THREE from 'three';
-import type { ConstructionCatalog, ConstructionEquipment, ConstructionSource, ConstructionPropellerSupport } from '../../ships/blueprint';
+import type { ConstructionCatalog, ConstructionEquipment, ConstructionSource, ConstructionPropellerSupport, ConstructionSurface } from '../../ships/blueprint';
 import { constructionEquipmentModelUrl } from '../../ships/constructionEquipment';
 import { createConstructionPathModel } from '../../game/constructionPathModel';
 import { loadShipModel } from '../../game/loadShipModel';
@@ -46,6 +47,9 @@ export class EquipmentPreview {
   }
 
   constructor(private changed: () => void, private failed: (message: string) => void) {}
+
+  private wallSurfaces?: readonly ConstructionSurface[];
+  private surfaceRevision = 0;
 
   private key(partId: string) {
     const part = this.catalog?.equipment.find(part => part.id === partId);
@@ -137,7 +141,7 @@ export class EquipmentPreview {
     });
   }
 
-  update(source: ConstructionSource, catalog: ConstructionCatalog, supports?: ConstructionPropellerSupport[], invalid: ReadonlySet<string> = new Set()) {
+  update(source: ConstructionSource, catalog: ConstructionCatalog, supports?: ConstructionPropellerSupport[], invalid: ReadonlySet<string> = new Set(), surfaces: readonly ConstructionSurface[] = []) {
     this.restoreMaterials();
     if (this.catalog && this.catalog.revision !== catalog.revision) this.clear();
     this.catalog = catalog;
@@ -148,23 +152,26 @@ export class EquipmentPreview {
       if (this.supports.children.length) this.group.add(this.supports);
       this.supportKey = supportKey;
     }
+    if (this.wallSurfaces !== surfaces) { this.wallSurfaces=surfaces; this.surfaceRevision++; }
     const ids = new Set(source.construction.equipment.map(item => item.id));
     for (const [id, instance] of this.instances) if (!ids.has(id)) { instance.removeFromParent(); if (instance.userData.path) disposeConstructionModel(instance); this.instances.delete(id); }
     for (const item of source.construction.equipment) {
       let instance = this.instances.get(item.id);
       const path = this.catalog.equipment.find(part => part.id === item.partId)?.path;
-      const key = `${this.key(item.partId)}${path ? ':' + JSON.stringify(item.path) : ''}:${invalid.has(item.id)}:${item.paint ?? ''}`;
+      const key = `${item.wall ? JSON.stringify([item, this.surfaceRevision]) : ''}:${this.key(item.partId)}${path ? ':' + JSON.stringify(item.path) : ''}:${invalid.has(item.id)}:${item.paint ?? ''}`;
       if (instance && instance.userData.assetKey !== key) { instance.removeFromParent(); if (instance.userData.path) disposeConstructionModel(instance); this.instances.delete(item.id); instance = undefined; }
       if (!instance) {
-        const model = this.clone(item.partId, false, item.path, invalid.has(item.id), item.paint);
+        let model = this.clone(item.partId, false, item.path, invalid.has(item.id), item.paint);
+        const part = catalog.equipment.find(p => p.id === item.partId);
+        if (model && item.wall && part) model = createConstructionWallModel(model, part, item, surfaces, source.construction.primitives);
         if (!model) continue;
         instance = new THREE.Group(); instance.name = item.id;
-        instance.userData = { sourceId: item.id, assetKey: key, path: !!path };
+        instance.userData = { sourceId: item.id, assetKey: key, path: !!path || !!item.wall };
         model.traverse(node => { node.userData.sourceId = item.id; });
         instance.add(model); this.instances.set(item.id, instance); this.group.add(instance);
       }
       const part = catalog.equipment.find(p => p.id === item.partId);
-      if (part) instance.scale.fromArray(wallScale(part, item));
+      if (part && !item.wall) instance.scale.fromArray(wallScale(part, item));
       instance.position.set(...item.position); instance.rotation.y = -item.bearingDeg * Math.PI / 180;
     }
     this.group.updateMatrixWorld(true);

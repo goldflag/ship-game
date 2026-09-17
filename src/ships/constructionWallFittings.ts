@@ -24,21 +24,48 @@ const dot = (a: Vec3, b: Vec3) => a.reduce((s, v, i) => s + v * b[i], 0);
 const sub = (a: Vec3, b: Vec3) => a.map((v, i) => v - b[i]) as Vec3;
 const cross = (a: Vec3, b: Vec3): Vec3 => [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]];
 
-/** Exact planar polygon coverage, including adjacent coplanar panels. */
-export function wallPointSupported(point: Vec3, normal: Vec3, surfaces: readonly ConstructionSurface[]): boolean {
-  return surfaces.some(s => !s.open && dot(s.normal, normal) > 1 - 1e-5
-    && Math.abs(dot(sub(point, s.vertices[0]), s.normal)) <= .005
-    && s.vertices.every((a, i) => dot(cross(sub(s.vertices[(i+1)%s.vertices.length], a), sub(point, a)), s.normal) >= -1e-6));
+/** Side-facing supports include sloped and faceted hulls, but never decks. */
+export const wallSurface = (surface: ConstructionSurface, normal: Vec3) => !surface.open && Math.abs(surface.normal[1]) < .9 && dot(surface.normal, normal) > .35;
+export const wallProjectionDepth = (width: number, height: number) => Math.max(.15, Math.max(width, height) * .75);
+
+/** Project along the fitting's outward direction to the nearest closed hull panel. */
+export function projectWallPoint(point: Vec3, normal: Vec3, surfaces: readonly ConstructionSurface[], depth: number): Vec3 | undefined {
+  let best: Vec3 | undefined, nearest = depth + 1e-6;
+  for (const s of surfaces) {
+    if (!wallSurface(s, normal)) continue;
+    const distance = dot(sub(s.vertices[0], point), s.normal) / dot(normal, s.normal);
+    if (Math.abs(distance) > nearest) continue;
+    const projected = point.map((v,k) => v + normal[k] * distance) as Vec3;
+    if (!s.vertices.every((a,i) => dot(cross(sub(s.vertices[(i+1)%s.vertices.length],a),sub(projected,a)),s.normal) >= -1e-6)) continue;
+    best = projected; nearest = Math.abs(distance);
+  }
+  return best;
+}
+export const wallPointSupported = (point: Vec3, normal: Vec3, surfaces: readonly ConstructionSurface[]) => !!projectWallPoint(point, normal, surfaces, .005);
+
+/** Slide a fitting back onto its hull after a tangent drag or a row step. */
+export function seatWallFitting(item: ConstructionEquipment, part: ConstructionEquipmentPart, surfaces: readonly ConstructionSurface[]): ConstructionEquipment {
+  const p=installedWallPart(part,item), r=-item.bearingDeg*Math.PI/180, socket=p.sockets?.find(s=>s.id==='attachment')?.position ?? [0,0,0];
+  const offset:Vec3=[socket[0]*Math.cos(r)+socket[2]*Math.sin(r),socket[1],-socket[0]*Math.sin(r)+socket[2]*Math.cos(r)];
+  const hit=projectWallPoint(item.position.map((v,k)=>v+offset[k]) as Vec3,wallNormal(item.bearingDeg),surfaces,wallProjectionDepth(p.size[0],p.size[1]));
+  return hit ? {...item,position:hit.map((v,k)=>v-offset[k]) as Vec3} : item;
 }
 
-/** Sample the full mounting footprint, not just its center, before offering a mirrored placement. */
+/** The datum must touch the hull; the footprint may follow adjacent sloping panels. */
 export function wallFittingSupported(item: ConstructionEquipment, part: ConstructionEquipmentPart, surfaces: readonly ConstructionSurface[]): boolean {
   const p = installedWallPart(part, item), n = wallNormal(item.bearingDeg), r = -item.bearingDeg * Math.PI / 180;
   const socket = p.sockets?.find(s => s.id === 'attachment')?.position ?? [0,0,0];
+  const attachment = [item.position[0]+socket[0]*Math.cos(r)+socket[2]*Math.sin(r),item.position[1]+socket[1],item.position[2]-socket[0]*Math.sin(r)+socket[2]*Math.cos(r)] as Vec3;
+  if (!wallPointSupported(attachment,n,surfaces)) return false;
   for (const u of [-.5, 0, .5]) for (const v of [-.5, 0, .5]) {
     const x = p.boundsCenter[0] + p.size[0] * u, y = p.boundsCenter[1] + p.size[1] * v, z = socket[2];
     const point: Vec3 = [item.position[0] + x*Math.cos(r)+z*Math.sin(r), item.position[1]+y, item.position[2]-x*Math.sin(r)+z*Math.cos(r)];
-    if (!wallPointSupported(point, n, surfaces)) return false;
+    const projected = projectWallPoint(point, n, surfaces, wallProjectionDepth(p.size[0],p.size[1]));
+    if (!projected) return false;
+    if (item.wall?.mirrorId) {
+      const reflected: Vec3 = [-projected[0],projected[1],projected[2]];
+      if (!wallPointSupported(reflected,[-n[0],n[1],n[2]],surfaces)) return false;
+    }
   }
   return true;
 }
