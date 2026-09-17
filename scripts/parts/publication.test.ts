@@ -41,7 +41,7 @@ describe('source-backed equipment publication',()=>{
   test('changing the curated selection preserves other assets and exact older catalogs',async()=>{
     const temp=await mkdtemp(join(tmpdir(),'equipment-catalog-'));
     try {
-      for(const dir of ['assets/parts','scripts/parts','scripts/ships']) {
+      for(const dir of ['assets/parts','assets/ships/appearance','scripts/parts','scripts/ships']) {
         await mkdir(resolve(temp,dir,'..'),{recursive:true});
         await cp(join(root,dir),join(temp,dir),{recursive:true});
       }

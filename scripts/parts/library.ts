@@ -1,3 +1,4 @@
+import { COMPONENT_MATERIAL_INPUTS } from '../../src/ships/componentMaterials';
 import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { join } from 'node:path';
@@ -50,7 +51,7 @@ export function recipeInputs(library: Library, entry: LibraryEntry) {
 }
 export async function componentHash(root: string, library: Library, entry: LibraryEntry, part: GunPart) {
   const builder = library.builders[entry.builder!];
-  const inputs = ['assets/parts/library.py', builder.path, ...builder.inputs, 'scripts/parts/build.py', 'scripts/ships/export.py', 'scripts/ships/blender_batching.py'];
+  const inputs = [...COMPONENT_MATERIAL_INPUTS, 'assets/parts/library.py', builder.path, ...builder.inputs, 'scripts/parts/build.py', 'scripts/ships/export.py', 'scripts/ships/blender_batching.py'];
   const source = await Promise.all(inputs.map(p => readFile(join(root, p), 'utf8')));
   return createHash('sha256').update(JSON.stringify([1, entry, builder, part, ...source])).digest('hex');
 }

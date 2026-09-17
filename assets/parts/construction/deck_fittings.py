@@ -15,23 +15,7 @@ from geometry import Model
 
 class Fitting(Model):
     def __init__(self, col, helpers, materials):
-        palette = dict(materials)
-        for key, color, roughness, metal in [
-            ('wood', (.21, .145, .08, 1), .82, 0),
-            ('rope', (.27, .24, .18, 1), .92, 0),
-            ('glass', (.055, .10, .12, 1), .20, .10),
-            ('bright', (.36, .40, .42, 1), .32, .65),
-        ]:
-            name = 'deck-fittings.' + key
-            material = bpy.data.materials.get(name) or bpy.data.materials.new(name)
-            material.use_nodes = True
-            node = material.node_tree.nodes['Principled BSDF']
-            node.inputs['Base Color'].default_value = color
-            node.inputs['Roughness'].default_value = roughness
-            node.inputs['Metallic'].default_value = metal
-            material.diffuse_color = color
-            palette[key] = material
-        super().__init__(col, helpers, palette)
+        super().__init__(col, helpers, materials)
 
     def cyl(self, name, loc, r, depth, **kw):
         obj = super().cyl(name, loc, r, depth, **kw)

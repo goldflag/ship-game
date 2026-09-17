@@ -9,7 +9,7 @@ const root = resolve(import.meta.dir, '../..');
 const indexPath = join(root, 'src/generated/construction-thumbnails.json');
 const hash = (bytes: string | Uint8Array) => createHash('sha256').update(bytes).digest('hex');
 // All rendering inputs that can change a component card, including the Three version.
-const recipeFiles = ['src/ui/shipbuilding/slotImages.ts', 'src/game/loadShipModel.ts',
+const recipeFiles = ['src/ships/componentMaterials.ts', 'assets/parts/materials.json', 'assets/ships/appearance/finishes.json', 'src/ui/shipbuilding/slotImages.ts', 'src/game/loadShipModel.ts',
   'src/game/constructionPathModel.ts', 'src/ships/constructionPaths.ts', 'assets/parts/construction/path_geometry.ts'];
 const threeVersion = JSON.parse(await readFile(join(root, 'node_modules/three/package.json'), 'utf8')).version;
 const recipeHash = hash(JSON.stringify([threeVersion, await Promise.all(recipeFiles.map(async path => [path, hash(await readFile(join(root, path)))]))]));

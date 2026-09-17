@@ -15,10 +15,10 @@ def create_railing(part, col, helpers, materials):
     count = math.ceil(4 / profile['postSpacingM'])
     for i in range(count + 1):
         x = 4 * i / count
-        model.box('post-foot', (x, 0, .015), (.12, .12, .03), mat='edge')
+        model.box('post-foot', (x, 0, .015), (.12, .12, .03), mat='painted-edge')
         model.rod('stanchion', (x, 0, .03), (x, 0, height), radius * 1.25, vertices=12)
         for sign in [-1, 1]:
-            model.cyl('foot-bolt', (x, sign * .043, .037), .008, .014, mat='edge', vertices=6)
+            model.cyl('foot-bolt', (x, sign * .043, .037), .008, .014, mat='painted-edge', vertices=6)
     for z in [height / 3, height * 2 / 3, height]:
         model.rod('horizontal-rail', (0, 0, z), (4, 0, z), radius, vertices=12)
     return model.root
@@ -27,14 +27,6 @@ def create_railing(part, col, helpers, materials):
 def create_rope(part, col, helpers, materials):
     model = Model(col, helpers, materials)
     radius = part['path']['diameterM'] / 2
-    # A subdued original rope colour, with no emissive or external texture data.
-    rope = materials['naval'].copy()
-    rope.name = 'natural-rope'
-    rope.diffuse_color = (.31, .23, .13, 1)
-    bsdf = rope.node_tree.nodes.get('Principled BSDF')
-    bsdf.inputs['Base Color'].default_value = rope.diffuse_color
-    bsdf.inputs['Roughness'].default_value = .95
-    model.m = dict(materials, rope=rope)
     model.rod('rope', (0, 0, 0), (4, 0, 0), radius, mat='rope', vertices=12)
     return model.root
 

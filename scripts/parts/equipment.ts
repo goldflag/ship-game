@@ -1,3 +1,4 @@
+import { COMPONENT_MATERIAL_INPUTS } from '../../src/ships/componentMaterials';
 import { readFile, mkdir, writeFile, rename, rm } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
@@ -65,7 +66,7 @@ export async function equipmentInputs(root: string, id: string) {
   const entry = registry.components.find(e => e.partId === id);
   if (!entry) throw new Error(`Unknown non-gun equipment: ${id}`);
   const b = registry.builders[entry.builder];
-  return ['assets/parts/construction.json','assets/parts/construction-library.json','assets/parts/construction/library.py', b.path, ...b.inputs];
+  return [...COMPONENT_MATERIAL_INPUTS, 'assets/parts/construction.json','assets/parts/construction-library.json','assets/parts/construction/library.py', b.path, ...b.inputs];
 }
 export async function equipmentHash(root: string, part: EquipmentSource) {
   const { registry, library, catalog } = await readEquipment(root);
@@ -75,7 +76,7 @@ export async function equipmentHash(root: string, part: EquipmentSource) {
   }
   const entry = registry.components.find(e => e.partId === part.id)!;
   const b = registry.builders[entry.builder];
-  const paths = ['assets/parts/construction/library.py', b.path, ...b.inputs, 'scripts/parts/equipment_build.py', 'scripts/ships/export.py', 'scripts/ships/blender_batching.py'];
+  const paths = [...COMPONENT_MATERIAL_INPUTS, 'assets/parts/construction/library.py', b.path, ...b.inputs, 'scripts/parts/equipment_build.py', 'scripts/ships/export.py', 'scripts/ships/blender_batching.py'];
   return digest(JSON.stringify([1, part, entry, b, ...await Promise.all(paths.map(p => readFile(join(root,p),'utf8')))]));
 }
 export async function buildEquipment(root: string, part: EquipmentSource) {
