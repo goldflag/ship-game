@@ -1,5 +1,5 @@
 {
-  "contentHash": "2f9a02f4bf4b0dd728367c560503b9e723c1195a301c7849d6a6425da9e2d8ed",
+  "contentHash": "f6cd5c98908990c2020b715a780ce7bb9140829e4d0b307d36a21abcc74602a7",
   "views": [
     {
       "name": "profile",
@@ -23,7 +23,7 @@
       "height": 520,
       "halfHeight": 36.715248908996585,
       "sourceRevision": "da3dcb48-d1fc-4562-8218-d391dba6b4a3",
-      "contentHash": "2f9a02f4bf4b0dd728367c560503b9e723c1195a301c7849d6a6425da9e2d8ed"
+      "contentHash": "f6cd5c98908990c2020b715a780ce7bb9140829e4d0b307d36a21abcc74602a7"
     },
     {
       "name": "plan",
@@ -47,7 +47,7 @@
       "height": 520,
       "halfHeight": 36.715248908996585,
       "sourceRevision": "da3dcb48-d1fc-4562-8218-d391dba6b4a3",
-      "contentHash": "2f9a02f4bf4b0dd728367c560503b9e723c1195a301c7849d6a6425da9e2d8ed"
+      "contentHash": "f6cd5c98908990c2020b715a780ce7bb9140829e4d0b307d36a21abcc74602a7"
     },
     {
       "name": "bow",
@@ -71,7 +71,7 @@
       "height": 800,
       "halfHeight": 30.43724870681763,
       "sourceRevision": "da3dcb48-d1fc-4562-8218-d391dba6b4a3",
-      "contentHash": "2f9a02f4bf4b0dd728367c560503b9e723c1195a301c7849d6a6425da9e2d8ed"
+      "contentHash": "f6cd5c98908990c2020b715a780ce7bb9140829e4d0b307d36a21abcc74602a7"
     },
     {
       "name": "stern",
@@ -95,7 +95,7 @@
       "height": 800,
       "halfHeight": 30.43724870681763,
       "sourceRevision": "da3dcb48-d1fc-4562-8218-d391dba6b4a3",
-      "contentHash": "2f9a02f4bf4b0dd728367c560503b9e723c1195a301c7849d6a6425da9e2d8ed"
+      "contentHash": "f6cd5c98908990c2020b715a780ce7bb9140829e4d0b307d36a21abcc74602a7"
     },
     {
       "name": "quarter",
@@ -119,7 +119,7 @@
       "height": 900,
       "halfHeight": 62.682153642901554,
       "sourceRevision": "da3dcb48-d1fc-4562-8218-d391dba6b4a3",
-      "contentHash": "2f9a02f4bf4b0dd728367c560503b9e723c1195a301c7849d6a6425da9e2d8ed"
+      "contentHash": "f6cd5c98908990c2020b715a780ce7bb9140829e4d0b307d36a21abcc74602a7"
     }
   ]
 }
