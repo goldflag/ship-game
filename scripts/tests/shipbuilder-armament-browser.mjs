@@ -33,6 +33,8 @@ await page.setViewportSize({width:1500,height:950});
 await page.evaluate(()=>{const e=window.check.armamentEditor();e.apply({version:1,expectedRevision:e.source().revision,label:'Check narrow hull',commands:[{op:'move',ids:['gun-forward'],delta:[3.8,0,0]}]});});
 await ready();
 const invalid=await page.evaluate(()=>window.check.armamentEditor().result());if(invalid.definition)throw Error('Clipping turret launched');
+if(!invalid.surfaces.some(s=>s.primitiveId==='equipment:gun-forward'&&s.face==='installation-outer'))throw Error('Invalid draft lost its barbette');
+if(!invalid.surfaces.some(s=>s.primitiveId==='equipment:gun-forward'&&s.face==='installation-top'))throw Error('Invalid draft lost its deck collar');
 await page.getByRole('button',{name:/SEA TRIALS/}).isDisabled().then(disabled=>{if(!disabled)throw Error('Trial button enabled');});
 await page.evaluate(async()=>{await window.check.armamentEditor().flush();window.check.armamentEditor().undo();});await ready();
 if(!await page.evaluate(()=>!!window.check.armamentEditor().result().definition))throw Error('Undo failed');
