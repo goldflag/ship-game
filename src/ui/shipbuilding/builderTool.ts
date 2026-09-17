@@ -264,7 +264,7 @@ export class BuilderTool {
   /** The ghost's readout: its cell, plus a fitting's bearing or a boundary's offset. */
   coords = (position: Vec3): string => {
     const piece = this.piece, text = `x ${signed(position[0])} · y ${signed(position[1])} · z ${signed(position[2])}`;
-    return piece?.kind === 'equipment' ? `${text} · ${piece.bearingDeg}°` : piece?.kind === 'boundary' ? `${BOUNDARY_NAMES[piece.axis]} at ${signed(position[AXIS[piece.axis]])} m` : text;
+    return piece?.kind === 'equipment' ? `${text} · ${metres(piece.bearingDeg)}°` : piece?.kind === 'boundary' ? `${BOUNDARY_NAMES[piece.axis]} at ${signed(position[AXIS[piece.axis]])} m` : text;
   };
   /** What the viewport draws. `retained` is the last accepted compile, kept through recompiles. */
   scene(retained: ConstructionResult | undefined): BuilderScene {
@@ -427,11 +427,22 @@ export class BuilderTool {
     this.update({ selected: moving, surfaces: new Set() });
     return outcome;
   };
-  rotate = (): ConstructionSubmission | undefined => {
+  rotate = (fine = false): ConstructionSubmission | undefined => {
     const piece = this.piece;
-    if (piece && piece.kind !== 'boundary') { this.update({ bearing: normalizedBearing(this.state.bearing + (piece.kind === 'hull' ? 90 : 15)) }); return undefined; }
-    if (this.state.selected.size) return this.command('Rotate selection', [{ op: 'rotate', ids: [...this.state.selected], degrees: this.selectedPrimitives.length ? 90 : 15 }]);
+    if (piece && piece.kind !== 'boundary') { this.update({ bearing: normalizedBearing(this.state.bearing + (piece.kind === 'hull' ? 90 : fine ? 1 : 15)) }); return undefined; }
+    if (this.state.selected.size) return this.command('Rotate selection', [{ op: 'rotate', ids: [...this.state.selected], degrees: this.selectedPrimitives.length ? 90 : fine ? 1 : 15 }]);
     return undefined;
+  };
+  /** Empty ids rotate the cursor; fitted parts rotate in place as one source edit. */
+  rotateFittings = (ids: string[], degrees: number): ConstructionSubmission | undefined => {
+    if (!Number.isFinite(degrees) || Math.abs(degrees % 360) < 1e-6 || this.locked) return undefined;
+    if (!ids.length) {
+      if (this.piece?.kind === 'equipment') this.update({ bearing: normalizedBearing(this.state.bearing + degrees) });
+      return undefined;
+    }
+    ids = ids.filter(id => this.selectable(id) && this.data.equipment.some(item => item.id === id));
+    if (!ids.length) return undefined;
+    return this.command('Rotate fittings', [{ op: 'rotate', ids, degrees }]);
   };
   /** A click or a finished stroke: one piece per point plus mirrored twins, as one undoable edit. */
   placeAt = (points: Vec3[]): ConstructionSubmission | undefined => {
@@ -609,6 +620,7 @@ export class BuilderTool {
       case 'box': this.boxSelect(event.ids, event.additive); return undefined;
       case 'erase': return this.erase(event.id);
       case 'move': return this.movePieces(event.ids, event.delta);
+      case 'rotate': return this.rotateFittings(event.ids, event.degrees);
       case 'path-point': this.addPathPoint(event.point); return undefined;
       case 'path-finish': return this.finishPath();
     }
@@ -721,7 +733,7 @@ export class BuilderTool {
     if (/^[1-9]$/.test(event.key)) { const item = this.palette.bar[Number(event.key) - 1]; if (item && this.selectSlot(item)) chrome.slotChosen(); return; }
     if (event.key === '0') { if (this.hasDrawer) { event.preventDefault(); chrome.toggleDrawer(); } return; }
     if (lower === 'q') this.cycleView(); else if (lower === 's') this.toggleSlice(); else if (lower === 'w') chrome.toggleWarnings();
-    else if (lower === 'r') this.rotate(); else if (lower === 'm') this.toggleMirror(); else if (lower === 'c') this.toggleCenters();
+    else if (lower === 'r') this.rotate(event.shiftKey); else if (lower === 'm') this.toggleMirror(); else if (lower === 'c') this.toggleCenters();
     else if (lower === 'a' && s.layer === 'fittings') this.toggleArcs();
     else { const entry = this.rail.find(entry => entry.key.toLowerCase() === lower); if (entry) this.activateRail(entry); }
   }

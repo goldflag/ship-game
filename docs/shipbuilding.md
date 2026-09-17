@@ -26,7 +26,10 @@ immersion and exhaust loss affect those services. See
 rates and repair limits.
 
 Use Hull for pieces, Armor for plating and openings, Fittings for equipment,
-Internals for rooms and machinery, and Paint for finishes.
+Internals for rooms and machinery, and Paint for finishes. Hover a face in Armor
+to see its nominal plate thickness in millimetres and material. This includes
+the minimum structural skin; openings show no protective plate. Pending armor
+edits use the same thickness rules and color scale as the compiled preview.
 
 Propellers automatically grow an external shaft and support arms to nearby
 closed hull surfaces. Place a screw on the underside near the stern to leave
@@ -128,6 +131,20 @@ authored hull pieces, placements and routes. If fitted variants have changed,
 review the listed variants and choose **Apply parts update**. Missing fitted
 variants block the update. The design recompiles against the new catalog; Undo
 restores the previous catalog, and older saved revisions remain recoverable.
+
+## Fine fitting rotation
+
+Right-drag horizontally on a fitting to rotate it in place. If it is selected,
+the selected fittings rotate together around their own mounting points. While
+placing a fitting, right-drag over the hull to turn the placement preview;
+mirrored previews turn in the opposite direction. Hold Shift for 0.1° per pixel
+instead of 0.5°. The live angle appears above the palette. Release commits an installed fitting
+change as one undoable edit; Escape, lost pointer capture or window blur cancels it.
+Right-drag elsewhere still pans, and a plain right-click still removes a piece.
+
+R rotates fittings 15°; Shift-R rotates them 1°. The bearing field accepts 0.1°
+increments. Rotation reuses the visible meshes and keeps a stationary placement
+preview visible; native compilation runs after an installed fitting edit commits.
 
 ## Custom hull sections
 
