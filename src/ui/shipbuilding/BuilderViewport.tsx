@@ -1,3 +1,4 @@
+import { visualMemory, type VisualMemory } from './modelMemory';
 import { boundaryGeometry } from './boundaryGeometry';
 import { envelopeVertices } from '../../ships/freeformShape';
 import { paintedHullFace } from '../../ships/constructionHullPaint';
@@ -40,6 +41,7 @@ export interface ViewportProps {
   onPointer(event: BuilderPointerEvent): void;
   onHover?(id: string | undefined): void;
   createModel?: ConstructionModelFactory;
+  onMemory?(memory: VisualMemory): void;
 }
 /** A secondary drag rotates installed fittings, or the cursor at its held placement. */
 interface RotationDrag { ids: string[]; degrees: number; travelDegrees: number; lastX: number; position?: Vec3 }
@@ -1023,6 +1025,12 @@ class Viewport {
     this.frame = requestAnimationFrame(this.animate);
   };
 
+  measureMemory() {
+    const roots = this.composed.children.length ? [this.composed] : [];
+    if (!this.props.createModel || !this.composed.children.length) roots.push(this.equipment.group);
+    return visualMemory(roots, this.props.scene.source, !!this.composed.children.length && !!this.props.scene.current);
+  }
+
   dispose() {
     this.freeformHandles.dispose();
     this.moveHandles.dispose();
@@ -1048,6 +1056,18 @@ export function BuilderViewport(props: ViewportProps) {
     return () => { viewport.current?.dispose(); viewport.current = undefined; };
   }, []);
   useEffect(() => { viewport.current?.update(props); }, [props]);
+  useEffect(() => {
+    if (!props.onMemory) return;
+    let previous = '';
+    const sample = () => {
+      if (!viewport.current) return;
+      const memory = viewport.current.measureMemory(), signature = JSON.stringify(memory);
+      if (signature !== previous) { previous = signature; props.onMemory?.(memory); }
+    };
+    sample();
+    const timer = window.setInterval(sample, 1500);
+    return () => window.clearInterval(timer);
+  }, [props.onMemory]);
   return <div className="sb-viewport" aria-label="Ship construction viewport">
     <div ref={host} className="sb-canvas"/>
     <div ref={overlay} className="sb-overlay">

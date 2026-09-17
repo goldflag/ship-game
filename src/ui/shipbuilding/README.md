@@ -18,6 +18,28 @@ The ship fills a dry construction viewport with a fine ground grid below the hul
 
 At widths up to 1100 px selection tags scroll within their available height. At 740 px and below, the ordinary editor stacks the design and the history/trial actions; the layer tabs spread across the dock's tab row as glyphs and the view strip folds into rows of three. A connected-path prompt gets a bounded, scrolling card beside the tool rail and above the palette, with Finish and Cancel side by side. The compass moves above that prompt, and the cursor-coordinate reading is hidden while drawing.
 
+## Model memory debug panel
+
+Press **F8** to toggle a nonmodal memory panel for the currently open ship; F8 or
+Escape closes it. The Keys dialog lists the shortcut. Switch designs normally to
+inspect another ship. Search by part name or source ID, sort by visual/simulation
+size, and expand the simulation section breakdown.
+
+All sizes use decimal MB. Simulation reports the current compiled definition's
+runtime projection as UTF-8 JSON and indexed NSD encoding, not live Rust/WASM heap
+allocations. Per-part simulation rows attribute explicitly identified records;
+anonymous collision cells and ship-wide data remain in the shared row. Visual
+measurements sum retained geometry backing buffers once plus an RGBA8/mipmap
+texture allocation estimate. Shared buffers/textures are apportioned among users;
+batched hull resources follow source triangle counts. These are not GLB transfer
+sizes or total CPU/GPU process memory. Materials, driver allocations, editor
+helpers and unused equipment cache entries are excluded. Source JSON is separate.
+
+Simulation data updates on compilation; loaded visual resources are sampled every
+1.5 seconds only while open. Invalid/currently compiling revisions and unloaded
+fittings are labeled incomplete, and old revision totals are not presented as
+current. `modelMemory.test.ts` covers byte attribution and shared-resource accounting.
+
 ## Layers
 
 At widths up to 740 px the header uses two compact rows and the card row

@@ -24,6 +24,8 @@ import { equipmentMassKg, format, hullBounds, ledgerRows, massGroups, pieceMassK
 import { SlotGlyph, ToolGlyph } from './builderGlyphs';
 import { DesignsMenu, downloadConstructionSource } from './DesignsMenu';
 import { HelpDialog } from './HelpDialog';
+import { ModelMemoryPanel } from './ModelMemoryPanel';
+import type { VisualMemory } from './modelMemory';
 import { ViewBar } from './ViewBar';
 import { pathSlackLimit, equipmentPathBounds } from '../../ships/constructionPaths';
 import { PathPointEditor } from './PathPointEditor';
@@ -119,6 +121,8 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const [warningsOpen, setWarningsOpen] = useState(true);
   const [designsOpen, setDesignsOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [memoryOpen, setMemoryOpen] = useState(false);
+  const [visualMemory, setVisualMemory] = useState<VisualMemory>();
   const [customHullSession, setCustomHullSession] = useState<{ designId: string; primitive: ConstructionPrimitive }>();
   const [newDesignOpen, setNewDesignOpen] = useState(false);
   const [tip, setTip] = useState<{ title: string; detail: string; x: number; y: number; key?: string; below?: boolean; right?: number; beside?: boolean }>();
@@ -217,6 +221,8 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const keyHandler = useRef<(event: KeyboardEvent) => void>(() => {});
   keyHandler.current = (event: KeyboardEvent) => {
       if (customHullSession || newDesignOpen) return;
+      if (event.key === 'F8' && !event.ctrlKey && !event.metaKey && !event.altKey) { event.preventDefault(); if (!event.repeat) { setHelpOpen(false); setMemoryOpen(value => !value); } return; }
+      if (event.key === 'Escape' && memoryOpen && !helpOpen) { event.preventDefault(); setMemoryOpen(false); return; }
       if ((event.target as HTMLElement).closest('input,textarea,select,[role=combobox],[contenteditable=true]')) return;
       if (helpOpen) { if (event.key === 'Escape' || event.key === '?') { event.preventDefault(); setHelpOpen(false); } return; }
       if (event.key === '?') { event.preventDefault(); setHelpOpen(true); return; }
@@ -402,7 +408,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
       }
       setCustomHullSession(undefined); tool.fit();
     } }}/>, document.body)}
-    <BuilderViewport scene={tool.scene(compile.retained)} tags={tags} coords={tool.coords} status={status} onPointer={tool.pointer} onHover={setHoveredPart} createModel={props.createModel}/>
+    <BuilderViewport scene={tool.scene(compile.retained)} tags={tags} coords={tool.coords} status={status} onPointer={tool.pointer} onHover={setHoveredPart} createModel={props.createModel} onMemory={memoryOpen ? setVisualMemory : undefined}/>
     {freeformPrimitive && <FreeformToolbar primitive={freeformPrimitive} onCommit={tool.commitFreeform} settings={freeformSettings} onChange={tool.changeFreeformSettings} cycleUnit={tool.cycleUnit}
       onReset={tool.resetFreeform} onSplit={tool.splitFreeform} onExit={tool.exitFreeform}/>}
     <header className="sb-top">
@@ -499,6 +505,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
     </div>
     {tip && <div ref={tooltipRef} className={`sb-tip ${tip.below ? 'below' : ''} ${tip.right !== undefined ? 'right' : ''} ${tip.beside ? 'beside' : ''}`} role="tooltip" style={tip.right !== undefined ? { right: tip.right, top: tip.y } : { left: tip.x, top: tip.y }}><b>{tip.title}</b>{tip.detail}{tip.key && <kbd>{tip.key}</kbd>}</div>}
     {!data.primitives.length && <div className="sb-empty"><b>This design needs a starting block</b><button disabled={locked} onClick={() => run('Add starting block', [{ op: 'primitive', value: startingHullBlock() }])}>Add a hull block</button> to keep building.</div>}
+    {memoryOpen && <ModelMemoryPanel source={source} catalog={catalog} result={compiledResult} visual={visualMemory} onClose={() => setMemoryOpen(false)}/>}
     {helpOpen && <HelpDialog onClose={() => setHelpOpen(false)}/>}
   </main>;
 }
