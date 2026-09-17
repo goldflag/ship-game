@@ -3542,6 +3542,123 @@
           ]
         }
       ]
+    },
+    {
+      "id": "ijn-triple-610",
+      "name": "Japanese 610 mm triple shielded bank",
+      "kind": "torpedo-launcher",
+      "size": [
+        4.881,
+        2.44,
+        8.34
+      ],
+      "boundsCenter": [
+        0,
+        1.219,
+        -0.431
+      ],
+      "centerOfGravity": [
+        0,
+        1.0,
+        -0.3
+      ],
+      "massKg": 11000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ],
+      "torpedoPartId": "ijn-610-type8-game",
+      "tubeOffsets": [
+        [
+          -0.76,
+          0.84,
+          -4.6
+        ],
+        [
+          0,
+          0.84,
+          -4.6
+        ],
+        [
+          0.76,
+          0.84,
+          -4.6
+        ]
+      ]
+    },
+    {
+      "id": "ijn-quadruple-610",
+      "name": "Japanese 610 mm quadruple shielded bank",
+      "kind": "torpedo-launcher",
+      "size": [
+        4.452,
+        2.49,
+        9.04
+      ],
+      "boundsCenter": [
+        0,
+        1.244,
+        -0.861
+      ],
+      "centerOfGravity": [
+        0,
+        1.0,
+        -0.4
+      ],
+      "massKg": 18000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ],
+      "torpedoPartId": "ijn-610-type93-game",
+      "tubeOffsets": [
+        [
+          -1.145,
+          0.8235,
+          -5.38
+        ],
+        [
+          -0.382,
+          0.8235,
+          -5.38
+        ],
+        [
+          0.382,
+          0.8235,
+          -5.38
+        ],
+        [
+          1.145,
+          0.8235,
+          -5.38
+        ]
+      ]
     }
   ]
 }

@@ -311,6 +311,13 @@
       "inputs": [
         "assets/parts/construction/geometry.py"
       ]
+    },
+    "ijn-shielded-bank": {
+      "path": "assets/parts/ijn-destroyer-equipment/geometry.py",
+      "function": "create_shielded_bank",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
     }
   },
   "components": [
@@ -595,6 +602,18 @@
       "builder": "generic-capital-funnel",
       "review": "unreviewed",
       "limitations": "Original generic capital-ship package. Geometry, plant power, mass and exhaust capacity are explicit gameplay estimates; no historical plant or thermodynamic certification. Review each installation."
+    },
+    {
+      "partId": "ijn-triple-610",
+      "builder": "ijn-shielded-bank",
+      "review": "unreviewed",
+      "limitations": "Adapted original Fubuki torpedo bank recipe; package mass is a gameplay estimate and the torpedo is the ship's provisional game variant. Per-design attachment and moving-neighbor clearance require installation review."
+    },
+    {
+      "partId": "ijn-quadruple-610",
+      "builder": "ijn-shielded-bank",
+      "review": "unreviewed",
+      "limitations": "Adapted original Yukikaze torpedo bank recipe; package mass is a gameplay estimate and the torpedo is the ship's provisional game variant. Per-design attachment and moving-neighbor clearance require installation review."
     }
   ]
 }

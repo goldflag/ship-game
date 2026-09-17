@@ -22,3 +22,17 @@ test('every catalog gun fits on a deck by its attachment socket and compiles int
     expect(result.diagnostics.filter(entry => entry.sourceId === gun.id && entry.severity === 'error'), part.id).toEqual([]);
   }
 });
+
+test('every catalog torpedo launcher compiles into a launcher with one tube per authored offset', () => {
+  for (const part of catalog.equipment.filter(entry => entry.kind === 'torpedo-launcher')) {
+    const source = createStarterSource(catalog, 'patrol'), bank = source.construction.equipment.find(entry => entry.id === 'gun-forward')!;
+    const hull = source.construction.primitives.find(piece => piece.id === 'hull')!; hull.size = [24, 16, 60];
+    source.construction.primitives = [hull]; source.construction.surfaces = source.construction.surfaces.filter(surface => surface.primitiveId === hull.id);
+    source.construction.equipment = [bank];
+    bank.partId = part.id; bank.position = [0, hull.size[1] / 2 - part.sockets!.find(entry => entry.id === 'attachment')!.position[1], 0];
+    const result = compile(source);
+    expect(result.definition, `${part.id}: ${JSON.stringify(result.diagnostics)}`).toBeDefined();
+    expect(result.definition!.torpedoTubes!.map(tube => tube.partId), part.id).toEqual(part.tubeOffsets!.map(() => part.torpedoPartId!));
+    expect(result.diagnostics.filter(entry => entry.sourceId === bank.id && entry.severity === 'error'), part.id).toEqual([]);
+  }
+});

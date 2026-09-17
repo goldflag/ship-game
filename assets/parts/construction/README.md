@@ -195,3 +195,12 @@ the supporting deck is external. It retains a Y=0 attachment sole and an
 `exhaust-out` socket. It is neither a resized Fletcher asset nor a historical
 funnel reconstruction. These estimates do not certify thermodynamic performance,
 shaft routing or any named battleship's engineering.
+
+## Japanese destroyer torpedo banks
+
+`../ijn-destroyer-equipment/geometry.py` adapts the original Fubuki triple and
+Yukikaze quadruple shielded 610 mm banks into one standalone recipe. The shield
+stations follow the owning ship recipe for that tube count and the tubes sit on
+the catalog's `tubeOffsets`, which are the ships' own tube datums relative to
+the launcher pivot. The 11 t and 18 t package masses are gameplay estimates, and
+the torpedoes are the ships' provisional game variants (Type 8 and Type 93).

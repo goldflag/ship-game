@@ -365,6 +365,16 @@
       "url": "/models/components/thumbnails/282aee9d74367ae0be588024c33c7d627ccf0a95d46ab92f7133b1caaec38624.png",
       "modelHash": "6c0c5ba7a2432f5d5d065cc91005d67402eacc595dfb8650e340d98e49896fc6",
       "imageHash": "3d33ab5a86f5e8dbcd46dd0f59b9fe22237719682f17ba159b64f79b023ecbec"
+    },
+    "/models/components/ijn-triple-610/faa2008ea216453c0f7d7e84418f9a1bfddd0d918606113f7a8e8627ce6bfdc5/model.glb": {
+      "url": "/models/components/thumbnails/26a0ee5f9e5644b8116e7d07fb763c414df7757623831bea9c57fb7780843ade.png",
+      "modelHash": "6d20835ab19ce6780479c9d6c624157a0ade4669e3bca8b267edf9e14bad38ec",
+      "imageHash": "0392d4998fa6a93a4b5d650bdad59458f1b342a5f0f3c97c65416913d0337a90"
+    },
+    "/models/components/ijn-quadruple-610/cb9d0616c487b71120fdd29da8bf5065600ac05f34b17b635feffcbcc0e47be0/model.glb": {
+      "url": "/models/components/thumbnails/2e912d22b8d40effa2c690b863d291f6069f030301aae35d5dd272ad47ef45df.png",
+      "modelHash": "9251032be9f3afd6f70972a7defb715af0ca62ed9139235b2dd0a9948b8f3f28",
+      "imageHash": "727a1eeec60bc41ddc3e855a4db9bfff4a518925365e3f248b27f06c63910643"
     }
   }
 }
