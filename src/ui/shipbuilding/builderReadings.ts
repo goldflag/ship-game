@@ -40,6 +40,28 @@ const TONE_BY_CODE: Record<string, { label: string; tone: Tone }[]> = {
   unpowered: [{ label: 'Power', tone: 'warn' }, { label: 'Speed', tone: 'warn' }], 'propulsor-exposure': [{ label: 'Speed', tone: 'warn' }],
 };
 
+const SEA_DENSITY = 1025, LEVEL_DEG = .05;
+/** Static list and trim the loading settles at, from the offset between the centers of gravity and buoyancy.
+ *  List uses the native roll GM. Trim estimates the longitudinal GM from the waterplane area and hull length
+ *  (second moment ≈ 0.075·A·L², between a ship-shaped and a rectangular waterplane), so its value reads as approximate. */
+export function attitudeRows(result: ConstructionResult | undefined, lengthM: number | undefined): LedgerRow[] {
+  const loading = result?.loading, area = result?.definition?.hull.waterplaneAreaM2;
+  const reading = (label: string, lever: number, gm: number | undefined, positive: string, negative: string, prefix = ''): LedgerRow => {
+    if (gm === undefined || !Number.isFinite(gm) || !loading?.buoyancyCenter) return { label, value: '—' };
+    if (gm <= 0) return { label, value: lever ? `Goes over ${lever > 0 ? positive : negative}` : 'Unstable', tone: 'bad' };
+    const degrees = Math.atan(lever / gm) * 180 / Math.PI, size = Math.abs(degrees);
+    if (size < LEVEL_DEG) return { label, value: 'Level' };
+    return { label, value: `${prefix}${format(size, size < 1 ? 2 : 1)}° ${degrees > 0 ? positive : negative}`, tone: size >= 10 ? 'bad' : size >= 2 ? 'warn' : undefined };
+  };
+  const g = loading?.centerOfGravity ?? [0, 0, 0], b = loading?.buoyancyCenter ?? [0, 0, 0];
+  const volume = loading ? loading.massKg / SEA_DENSITY : 0;
+  const pitchGm = loading && area && lengthM && volume > 0 ? .075 * area * lengthM * lengthM / volume + b[1] - g[1] : undefined;
+  return [
+    reading('List', g[0] - b[0], loading?.rollMetacentricHeightM, 'to starboard', 'to port'),
+    reading('Trim', b[2] - g[2], pitchGm, 'by the bow', 'by the stern', '≈ '),
+  ];
+}
+
 /** Hull dimensions from the source, the native readings, and a layer-specific last row. */
 export function ledgerRows(source: ConstructionSource, result: ConstructionResult | undefined, layer: BuilderLayer): LedgerRow[] {
   const loading = result?.loading, bounds = hullBounds(source), data = source.construction;
@@ -54,6 +76,7 @@ export function ledgerRows(source: ConstructionSource, result: ConstructionResul
     row('Displacement', loading ? `${format(loading.massKg / 1000, loading.massKg < 1e6 ? 1 : 0)} t` : '—'),
     row('Draft', loading && bounds ? `${format(loading.waterlineY - bounds.min[1], 2)} m` : '—'),
     row('GM', loading ? `${format(loading.rollMetacentricHeightM, 2)} m` : '—'),
+    ...attitudeRows(result, bounds ? bounds.max[2] - bounds.min[2] : undefined).map(entry => row(entry.label, entry.value, entry.tone)),
     row('Power', loading ? `${format(loading.powerKw, 0)} kW` : '—'),
     row('Speed', loading ? `${format(loading.estimatedSpeedMps * MPS_TO_KNOTS)} kn` : '—'),
     row('Usable space', loading ? `${format(loading.usableVolumeM3, 0)} m³` : '—'),

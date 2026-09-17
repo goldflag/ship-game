@@ -73,7 +73,6 @@ interface KeyHint { keys: string[]; label: string }
 const metres = (value: number) => Number(value.toFixed(2)).toLocaleString(undefined, { maximumFractionDigits: 2 });
 /** The card's corner label: whole metres stay bare, quarter and half plates read as fractions. */
 const dimensions = (size: Vec3) => size.map(value => value === .25 ? '¼' : value === .5 ? '½' : value === .75 ? '¾' : metres(value)).join('×');
-const signed = (value: number) => `${value < 0 ? '−' : value > 0 ? '+' : ''}${metres(Math.abs(value))}`;
 
 /** The shipbuilder's markup. Layer, tool, selection and gestures live in `BuilderTool`; history,
  * autosave and the edit door in `ConstructionRevisionOwner`; the compile in `CompiledRevision`.
@@ -84,7 +83,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const suggestLayout = props.suggestLayout ?? (compiler.suggest ? (source: ConstructionSource, ids: string[], signal?: AbortSignal) => compiler.suggest!(source, ids, signal) : undefined);
   const editor = useBuilderSource({ ...props, starterSource, compiler, suggest: suggestLayout });
   const { owner, revision, compiled, compile, tool, toolState: s, source, catalog, activeCatalog, latestCatalog, setActiveCatalog } = editor, data = source.construction;
-  const { layer, tool: activeTool, selected, surfaces, measure, pathPoints, customMm, mirror, showArcs, showCenters, freeformSettings, perspective, view, slice, notice, suggestion, fittingFilter } = s;
+  const { layer, tool: activeTool, selected, surfaces, measure, pathPoints, customMm, mirror, showArcs, showCenters, freeformSettings, perspective, view, notice, suggestion, fittingFilter } = s;
   const compiledResult = compile.current;
   const convertedDesigns = useRef(new Set<string>());
   useEffect(() => {
@@ -349,13 +348,12 @@ export function Shipbuilder(props: ShipbuilderProps) {
   };
 
   // ---- hotkey legend above the compass: the standing keys on the bottom row; the keys acting on the cursor piece, the selection or the picked faces on a row above.
-  // Keys already printed elsewhere (rail tools and modifiers, the view strip's Q P S C A Home, W on the warnings lead, ⌘Z on undo, ? on Keys) stay off it.
+  // Keys already printed elsewhere (rail tools and modifiers, the view strip's Q P C A Home, W on the warnings lead, ⌘Z on undo, ? on Keys) stay off it.
   const faceLayer = layer === 'armor' || layer === 'paint';
   const movable = selectedPrimitives.length + selectedEquipment.length > 0;
   const standing: KeyHint[] = [
     { keys: palette.bar.length < 4 ? palette.bar.map((_, index) => String(index + 1)) : ['1', '…', '9'], label: surfaces.size && faceLayer ? (layer === 'paint' ? 'Paint faces' : 'Assign armor') : 'Card' },
     ...(hasDrawer ? [{ keys: ['0'], label: `All ${drawerName}` }] : []),
-    ...(slice.on ? [{ keys: selected.size ? ['⇧PgUp', '⇧PgDn'] : ['PgUp', 'PgDn'], label: 'Slice height' }] : []),
   ];
   const acting: KeyHint[] = [];
   if (!locked && piece && piece.kind !== 'boundary') acting.push({ keys: ['R'], label: piece.kind === 'hull' ? 'Rotate 90°' : 'Rotate 15°' });
@@ -367,8 +365,8 @@ export function Shipbuilder(props: ShipbuilderProps) {
   if (escape) acting.push({ keys: ['Esc'], label: escape });
   const chip = (hint: KeyHint) => <span key={hint.label} className="sb-key">{hint.keys.map((key, index) => <kbd key={index}>{key}</kbd>)}{hint.label}</span>;
 
-  const viewBar = <ViewBar viewName={VIEW_NAMES[view]} perspective={perspective} sliceLabel={slice.on ? `${signed(slice.y)} m` : 'Off'} sliceOn={slice.on} showCenters={showCenters} showArcs={layer === 'fittings' ? showArcs : undefined}
-      onView={tool.cycleView} onProjection={tool.toggleProjection} onSlice={tool.toggleSlice} onCenters={tool.toggleCenters} onArcs={tool.toggleArcs} onFit={tool.fit}
+  const viewBar = <ViewBar viewName={VIEW_NAMES[view]} perspective={perspective} showCenters={showCenters} showArcs={layer === 'fittings' ? showArcs : undefined}
+      onView={tool.cycleView} onProjection={tool.toggleProjection} onCenters={tool.toggleCenters} onArcs={tool.toggleArcs} onFit={tool.fit}
       onTip={entry => { if (!entry) { setTip(undefined); return; } const rect = entry.target.getBoundingClientRect(), strip = (entry.target.closest('.sb-viewbar') ?? entry.target).getBoundingClientRect(); setTip({ title: entry.title, detail: entry.detail, key: entry.key, x: strip.right + 10, y: rect.top + rect.height / 2, beside: true }); }}/>;
   return <main className={`shipbuilder ${freeformMode ? 'sb-freeform-mode' : ''}`} aria-label="Shipbuilder" data-path-drawing={!!pathPart || undefined} data-layer={layer} data-drawer={drawer || undefined} aria-busy={!!busy}>
     {newDesignOpen && <NewDesignDialog onClose={() => setNewDesignOpen(false)} onCreate={newDesign}/>}

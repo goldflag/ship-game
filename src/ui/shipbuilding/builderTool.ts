@@ -36,7 +36,7 @@ export interface BuilderToolState {
   snapSteps: { hull: number; equipment: number };
   freeform?: { designId: string; baseline: ConstructionPrimitive };
   freeformSettings: FreeformSettings;
-  view: BuilderView; perspective: boolean; slice: { on: boolean; y: number; auto: boolean }; fitRequest: number;
+  view: BuilderView; perspective: boolean; fitRequest: number;
   selected: ReadonlySet<string>; surfaces: ReadonlySet<string>;
   measure?: { from: Vec3; to?: Vec3 };
   notice: string;
@@ -100,9 +100,9 @@ export class BuilderTool {
     const customHull = door.source.construction.primitives.find(part => part.kind === 'custom-hull');
     this.state = {
       layer: 'hull', tool: customHull ? 'select' : 'place', slots: { hull: 'cube', armor: 'armor', internals: 'deck', fittings: '', paint: 'naval-gray' }, fittingFilter: { category: 'main-battery', nation: 'all' },
-      customMm: 10, bearing: 0, pathPoints: [], ropeSlack: 0, mirror: true, showArcs: false, showCenters: true, snapSteps: { hull: 1, equipment: .25 },
+      customMm: 10, bearing: 0, pathPoints: [], ropeSlack: 0, mirror: true, showArcs: false, showCenters: false, snapSteps: { hull: 1, equipment: .25 },
       freeformSettings: { axes: [true, false, false], unit: .2, snap: false, splitAxis: 2, count: 4, selection: { mode: 'vertex', index: 1 } },
-      view: 'orbit', perspective: true, slice: { on: false, y: 0, auto: true }, fitRequest: 0,
+      view: 'orbit', perspective: true, fitRequest: 0,
       selected: new Set(customHull ? [customHull.id] : []), surfaces: new Set(), notice: '', ...initial,
     };
     this.lastSourceId = door.source.id; this.lastRevision = door.source.revision;
@@ -271,7 +271,7 @@ export class BuilderTool {
     const s = this.state, locked = this.locked, freeformMode = this.freeformMode, pathPart = this.pathPart, freeformPrimitive = this.freeformPrimitive;
     return {
       source: this.source, result: retained, current: this.compiled, catalog: this.catalog,
-      selected: s.selected, selectedSurfaces: s.surfaces, view: s.view, perspective: s.perspective, display: this.display, slice: s.slice.on ? s.slice.y : undefined, fitRequest: s.fitRequest, armorScale: this.armorScale,
+      selected: s.selected, selectedSurfaces: s.surfaces, view: s.view, perspective: s.perspective, display: this.display, fitRequest: s.fitRequest, armorScale: this.armorScale,
       gridStep: this.gridStep, gesture: locked ? 'none' : this.gesture, pickTargets: this.pickTargets, moveTargets: locked || freeformMode ? 'none' : this.moveTargets,
       placementPiece: locked || freeformMode ? undefined : this.piece, placementMirror: this.mirrorPiece,
       highlightFaces: this.faceLayer, rooms: s.layer === 'internals', showCenters: s.showCenters, arcs: this.arcs, proposed: this.proposed, measure: s.measure,
@@ -311,13 +311,6 @@ export class BuilderTool {
 
   // ---- layer, tool and cards
   setTool = (tool: BuilderToolId) => this.update({ tool });
-  /** Cut just under the main deck: the highest deck boundary, else the top of the largest hull piece. */
-  defaultSlice() {
-    const decks = this.data.boundaries.filter(wall => wall.axis === 'y').map(wall => wall.offset);
-    if (decks.length) return Math.max(...decks) - .25;
-    const main = this.data.primitives.slice().sort((a, b) => b.size[0] * b.size[1] * b.size[2] - a.size[0] * a.size[1] * a.size[2])[0];
-    return main ? main.position[1] + main.size[1] / 2 - .25 : 0;
-  }
   switchLayer = (next: BuilderLayer) => {
     this.update({ layer: next, tool: DEFAULT_TOOL[next], surfaces: new Set(), measure: undefined, bearing: 0,
       ...(next === 'armor' || next === 'paint' ? { selected: new Set<string>() } : next === 'internals' ? { selected: new Set([...this.state.selected].filter(id => this.internalIds.has(id))) } : {}) });
@@ -360,7 +353,6 @@ export class BuilderTool {
   toggleCenters = () => this.update({ showCenters: !this.state.showCenters });
   cycleView = () => this.update({ view: BUILDER_VIEWS[(BUILDER_VIEWS.indexOf(this.state.view) + 1) % BUILDER_VIEWS.length] });
   toggleProjection = () => this.update({ perspective: !this.state.perspective });
-  toggleSlice = () => { const slice = this.state.slice; this.update({ slice: { on: !slice.on, y: slice.on ? slice.y : this.defaultSlice(), auto: false } }); };
   fit = () => this.update({ fitRequest: this.state.fitRequest + 1 });
   activateRail = (entry: RailEntry) => {
     if (this.locked) return;
@@ -667,7 +659,7 @@ export class BuilderTool {
   enterFreeform = (): boolean => {
     const part = this.selectedPrimitives[0];
     if (!part || this.state.selected.size !== 1 || !canEditVertices(part)) return false;
-    this.update({ tool: 'select', layer: 'hull', slice: { ...this.state.slice, on: false }, surfaces: new Set(), freeform: { designId: this.source.id, baseline: structuredClone(part) } });
+    this.update({ tool: 'select', layer: 'hull', surfaces: new Set(), freeform: { designId: this.source.id, baseline: structuredClone(part) } });
     return true;
   };
   exitFreeform = () => this.update({ freeform: undefined });
@@ -720,8 +712,7 @@ export class BuilderTool {
     if (event.key === 'Home') { event.preventDefault(); this.fit(); return; }
     if (event.key === 'PageUp' || event.key === 'PageDown') {
       event.preventDefault(); const direction = event.key === 'PageUp' ? 1 : -1;
-      if (event.shiftKey || (s.slice.on && !s.selected.size)) this.update({ slice: { on: true, y: s.slice.y + direction * .5, auto: false } });
-      else if (s.selected.size && this.selectedEquipment.length === s.selected.size && this.selectedEquipment.every(item => this.partOf(item)?.kind === 'gun')) this.raiseTurrets([...s.selected], current => Math.max(0, Math.min(30, current + direction * this.gridStep)));
+      if (s.selected.size && this.selectedEquipment.length === s.selected.size && this.selectedEquipment.every(item => this.partOf(item)?.kind === 'gun')) this.raiseTurrets([...s.selected], current => Math.max(0, Math.min(30, current + direction * this.gridStep)));
       else if (s.selected.size) this.nudge([0, direction * this.gridStep, 0]);
       return;
     }
@@ -732,7 +723,7 @@ export class BuilderTool {
     }
     if (/^[1-9]$/.test(event.key)) { const item = this.palette.bar[Number(event.key) - 1]; if (item && this.selectSlot(item)) chrome.slotChosen(); return; }
     if (event.key === '0') { if (this.hasDrawer) { event.preventDefault(); chrome.toggleDrawer(); } return; }
-    if (lower === 'q') this.cycleView(); else if (lower === 's') this.toggleSlice(); else if (lower === 'w') chrome.toggleWarnings();
+    if (lower === 'q') this.cycleView(); else if (lower === 'w') chrome.toggleWarnings();
     else if (lower === 'r') this.rotate(event.shiftKey); else if (lower === 'm') this.toggleMirror(); else if (lower === 'c') this.toggleCenters();
     else if (lower === 'a' && s.layer === 'fittings') this.toggleArcs();
     else { const entry = this.rail.find(entry => entry.key.toLowerCase() === lower); if (entry) this.activateRail(entry); }

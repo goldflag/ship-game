@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test';
 import type { ConstructionResult, ConstructionSource, ConstructionSurface } from '../../ships/blueprint';
-import { hullBounds, ledgerRows, massGroups, pieceMassKg, warningEntries } from './builderReadings';
+import { attitudeRows, hullBounds, ledgerRows, massGroups, pieceMassKg, warningEntries } from './builderReadings';
 
 const surface = (id: string, primitiveId: string, material: string, areaM2: number, thicknessMm: number): ConstructionSurface =>
   ({ id, primitiveId, face: 'port', vertices: [], normal: [-1, 0, 0], areaM2, thicknessMm, material, paint: 'naval-gray', open: false });
@@ -11,7 +11,7 @@ const result = {
   diagnostics: [{ severity: 'warning', code: 'unstable', message: 'GM low' }, { severity: 'error', code: 'equipment-fit', message: 'Gun overlaps', sourceId: 'gun' }, { severity: 'warning', code: 'auxiliary-services', message: 'Services note' }],
   loading: { massKg: 2_310_000, waterlineY: -1.2, rollMetacentricHeightM: 1.12, powerKw: 3000, estimatedSpeedMps: 10, usableVolumeM3: 900, centerOfGravity: [0, 0.4, 1.2],
     contributions: [{ id: 'skin-hull:port-0', kind: 'skin', massKg: 40000 }, { id: 'skin-deck:port-1', kind: 'skin', massKg: 5000 }, { id: 'w', kind: 'bulkhead', massKg: 1000 }, { id: 'engine', kind: 'equipment', massKg: 35000 }, { id: 'engine-service', kind: 'service', massKg: 500 }] },
-  definition: { compartments: [{}, {}], mounts: [{}], torpedoTubes: [] },
+  definition: { hull: { waterplaneAreaM2: 400 }, compartments: [{}, {}], mounts: [{}], torpedoTubes: [] },
 } as unknown as ConstructionResult;
 
 test('hull bounds include rotated pieces', () => {
@@ -28,6 +28,17 @@ test('ledger rows read draft from the keel, tone warned readings and add a layer
   expect(ledgerRows(source, result, 'internals').at(-1)?.value).toBe('2 · 1 walls');
   expect(ledgerRows(source, undefined, 'hull').at(-1)).toEqual({ label: 'Hull pieces', value: '2 / 10,000', tone: undefined });
   expect(ledgerRows(source, undefined, 'hull').slice(0, 3).map(row => row.value)).toEqual(['48 m', '10 m', '6 m']);
+});
+
+test('list and trim name the low side from the offset between gravity and buoyancy', () => {
+  const afloat = (centerOfGravity: number[], rollMetacentricHeightM = 1) => ({ loading: { massKg: 1_025_000, centerOfGravity, buoyancyCenter: [0, -1, 0], rollMetacentricHeightM },
+    definition: { hull: { waterplaneAreaM2: 400 } } }) as unknown as ConstructionResult;
+  expect(attitudeRows(afloat([0, 0, 0]), 50)).toEqual([{ label: 'List', value: 'Level' }, { label: 'Trim', value: 'Level' }]);
+  // Pitch GM ≈ 0.075 · 400 · 50² / 1000 − 1 = 74 m.
+  expect(attitudeRows(afloat([.1, 0, -2]), 50)).toEqual([{ label: 'List', value: '5.7° to starboard', tone: 'warn' }, { label: 'Trim', value: '≈ 1.5° by the bow', tone: undefined }]);
+  expect(attitudeRows(afloat([-.01, 0, 1]), 50).map(row => row.value)).toEqual(['0.57° to port', '≈ 0.77° by the stern']);
+  expect(attitudeRows(afloat([.1, 0, 0], -.5), 50)[0]).toEqual({ label: 'List', value: 'Goes over to starboard', tone: 'bad' });
+  expect(attitudeRows(undefined, 50).map(row => row.value)).toEqual(['—', '—']);
 });
 
 test('mass groups split armor skin from structural skin and warnings keep blocks apart from notes', () => {
