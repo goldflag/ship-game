@@ -5,7 +5,7 @@ import { BUILDER_LAYERS, BUILDER_RAIL } from './builderLayers';
  * definitions so this list cannot drift from the buttons. */
 const MOUSE: [string, string][] = [
   ['Click', 'Select a piece, fitting, wall or face; Shift-click adds to the selection'],
-  ['Snap control', 'Cycle 0.25, 0.5, 1, 2 and 5 m for placement and movement'],
+  ['Snap card', 'Under the tool rail: cycle 0.25, 0.5, 1, 2 and 5 m for placement and movement'],
   ['Drag a piece', 'Move it along the face under the pointer, snapped to the chosen Snap step'],
   ['Drag empty space', 'Orbit; pan in orthographic Plan, Profile and Bow views'],
   ['Right-drag', 'Pan'],
@@ -32,6 +32,7 @@ const VIEW: [string[], string][] = [
   [['W'], 'Collapse or expand the warnings'],
   [['M'], 'Mirror placements across the centerline'],
   [['C'], 'Show or hide the centers of gravity and buoyancy'],
+  [['A'], 'In Fittings: show or hide gun arcs'],
   [['Home'], 'Frame the ship'],
   [['1', '…', '9'], 'Pick a palette card'],
   [['0'], 'Open or close every card of the layer'],

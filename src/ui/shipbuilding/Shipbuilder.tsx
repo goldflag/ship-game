@@ -306,7 +306,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   };
 
   // ---- hotkey legend above the compass: the standing keys on the bottom row; the keys acting on the cursor piece, the selection or the picked faces on a row above.
-  // Keys already printed elsewhere (rail tools, the view bar's Q P S C M Home, W on the warnings lead, ⌘Z on undo, ? on Keys) stay off it.
+  // Keys already printed elsewhere (rail tools and modifiers, the view strip's Q P S C A Home, W on the warnings lead, ⌘Z on undo, ? on Keys) stay off it.
   const faceLayer = layer === 'armor' || layer === 'paint';
   const movable = selectedPrimitives.length + selectedEquipment.length > 0;
   const standing: KeyHint[] = [
@@ -373,8 +373,13 @@ export function Shipbuilder(props: ShipbuilderProps) {
           {suggestionChanged && !suggestion.proposal.diagnostics.some(item => item.severity === 'error') && <button disabled={source.revision !== suggestion.revision} onClick={tool.applySuggestion}>Apply <kbd>⏎</kbd></button>}<button onClick={tool.dismissSuggestion}>Dismiss</button></div>}
         {notice && <div className="row note" role="status"><i className="sb-dot note"/><span>{notice}</span></div>}
       </div>
-      <div className="sb-rail" role="toolbar" aria-label="Tools">{rail.filter(entry => !freeformMode || entry.id !== 'mirror').map(entry => <button key={entry.id} className={entry.kind} disabled={locked} aria-pressed={entry.kind === 'tool' ? activeTool === entry.id : entry.kind === 'toggle' ? (entry.id === 'mirror' ? mirror : showArcs) : undefined} title={`${entry.name} (${entry.key})`} onClick={() => tool.activateRail(entry)}><ToolGlyph name={entry.glyph}/><span>{entry.name}</span><kbd>{entry.key}</kbd></button>)}
+      <div className="sb-rail" role="toolbar" aria-label="Tools"><span className="sb-rail-cap">Tools</span>
+        {rail.map(entry => <button key={entry.id} className={entry.kind} disabled={locked} aria-pressed={entry.kind === 'tool' ? activeTool === entry.id : undefined} title={`${entry.name} (${entry.key})`} onClick={() => tool.activateRail(entry)}><ToolGlyph name={entry.glyph}/><span>{entry.name}</span><kbd>{entry.key}</kbd></button>)}
         {layer==='hull' && <button aria-pressed={freeformMode} disabled={locked || selected.size!==1 || !selectedPrimitives[0] || !canEditVertices(selectedPrimitives[0])} onClick={freeformMode?tool.exitFreeform:enterFreeform} title="Select one cube or freeform hull to edit vertices, edges and faces"><ToolGlyph name="Select"/><span>Freeform</span></button>}
+        {/* Modifiers change where a click lands rather than what it does; freeform mode carries its own local mirror axes and unit. */}
+        {!freeformMode && <><span className="sb-rail-cap foot">Modifiers</span>
+          <button className="toggle" disabled={locked} aria-pressed={mirror} title="Mirror (M) · place, move and paint the twin across the centerline" onClick={tool.toggleMirror}><ToolGlyph name="Mirror"/><span>Mirror</span><kbd>M</kbd></button>
+          <button className="value" disabled={locked} title={`Snap · ${gridStep} m · click to cycle 0.25, 0.5, 1, 2 and 5 m for placement and movement`} onClick={tool.cycleSnap}><b>{gridStep} m</b><span>Snap</span></button></>}
         <button className="help" aria-haspopup="dialog" aria-expanded={helpOpen} title="Controls and hotkeys (?)" onClick={() => setHelpOpen(value => !value)}><ToolGlyph name="Keys"/><span>Keys</span><kbd>?</kbd></button></div>
     </div>
     <aside className="sb-ledger" aria-label="Ledger">
@@ -399,8 +404,8 @@ export function Shipbuilder(props: ShipbuilderProps) {
       <div className="sb-keys-row">{standing.map(chip)}</div>
     </div>
     {tip && <div className={`sb-tip ${tip.below ? 'below' : ''} ${tip.right !== undefined ? 'right' : ''}`} role="tooltip" style={tip.right !== undefined ? { right: tip.right, top: tip.y } : { left: tip.x, top: tip.y }}><b>{tip.title}</b>{tip.detail}{tip.key && <kbd>{tip.key}</kbd>}</div>}
-    <ViewBar viewName={VIEW_NAMES[view]} perspective={perspective} sliceLabel={slice.on ? `${signed(slice.y)} m` : 'Off'} sliceOn={slice.on} showCenters={showCenters} snapLabel={`${gridStep} m`} mirror={mirror}
-      onSnap={() => { tool.cycleSnap(); setTip(undefined); }} onView={tool.cycleView} onProjection={tool.toggleProjection} onSlice={tool.toggleSlice} onCenters={tool.toggleCenters} onMirror={tool.toggleMirror} onFit={tool.fit}
+    <ViewBar viewName={VIEW_NAMES[view]} perspective={perspective} sliceLabel={slice.on ? `${signed(slice.y)} m` : 'Off'} sliceOn={slice.on} showCenters={showCenters} showArcs={layer === 'fittings' ? showArcs : undefined}
+      onView={tool.cycleView} onProjection={tool.toggleProjection} onSlice={tool.toggleSlice} onCenters={tool.toggleCenters} onArcs={tool.toggleArcs} onFit={tool.fit}
       onTip={entry => { if (!entry) { setTip(undefined); return; } const rect = entry.target.getBoundingClientRect(); setTip({ title: entry.title, detail: entry.detail, key: entry.key, x: rect.left + rect.width / 2, y: rect.top, right: Math.max(12, window.innerWidth - rect.right) }); }}/>
     {!data.primitives.length && <div className="sb-empty"><b>This design needs a starting block</b><button disabled={locked} onClick={() => run('Add starting block', [{ op: 'primitive', value: startingHullBlock() }])}>Add a hull block</button> to keep building.</div>}
     {helpOpen && <HelpDialog onClose={() => setHelpOpen(false)}/>}
