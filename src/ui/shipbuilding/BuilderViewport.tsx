@@ -730,20 +730,20 @@ class Viewport {
     if (svg) { svg.setAttribute('viewBox', `0 0 ${width} ${height}`); svg.innerHTML = leaders; }
   }
 
-  /** A primary press on a piece, fitting or wall begins a move instead of a camera drag. The pressed
-   * piece carries the whole selection when it belongs to it, otherwise it moves alone. */
+  /** Only an already-selected piece, fitting or wall can capture a primary drag.
+   * A drag over anything else stays with the camera; a separate click selects it. */
   private movePick(event: PointerEvent): MoveDrag | undefined {
     const targets = this.props.scene.moveTargets;
     if (targets === 'none') return undefined;
     const hit = this.pick(event, 'all');
-    if (!hit?.id) return undefined;
+    if (!hit?.id || !this.props.scene.selected.has(hit.id)) return undefined;
     const { primitives, equipment, boundaries } = this.props.scene.source.construction;
     const isPrimitive = (id: string) => primitives.some(part => part.id === id), isEquipment = (id: string) => equipment.some(part => part.id === id);
     const wall = boundaries.find(entry => entry.id === hit.id);
     if (!isPrimitive(hit.id) && !isEquipment(hit.id) && !wall) return undefined;
     if (targets === 'equipment' && !isEquipment(hit.id)) return undefined;
     const allowed = this.props.scene.pickTargets === 'internals' ? internalSelectionIds(this.props.scene.source, this.props.scene.catalog) : undefined;
-    const ids = (this.props.scene.selected.has(hit.id) ? [...this.props.scene.selected] : [hit.id]).filter(id => (!allowed || allowed.has(id)) && (isPrimitive(id) || isEquipment(id) || boundaries.some(entry => entry.id === id)));
+    const ids = [...this.props.scene.selected].filter(id => (!allowed || allowed.has(id)) && (isPrimitive(id) || isEquipment(id) || boundaries.some(entry => entry.id === id)));
     const origin = new THREE.Vector3(...hit.point), normal = new THREE.Vector3(), free: MoveDrag['free'] = [true, true, true];
     if (wall && ids.length === 1) {
       // A wall slides along its own axis only: drag in the plane that contains the axis and faces the camera.

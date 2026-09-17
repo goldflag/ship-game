@@ -96,14 +96,12 @@ export class BuilderTool {
   private mirrorCache?: { key: string; piece?: BuilderPlacement };
 
   constructor(private readonly door: BuilderRevisionDoor, private readonly context: BuilderToolContext, initial: Partial<BuilderToolState> = {}) {
-    // A design that starts as one custom hull opens with it selected, ready to shape or move.
-    const customHull = door.source.construction.primitives.find(part => part.kind === 'custom-hull');
     this.state = {
-      layer: 'hull', tool: customHull ? 'select' : 'place', slots: { hull: 'cube', armor: 'armor', internals: 'deck', fittings: '', paint: 'naval-gray' }, fittingFilter: { category: 'main-battery', nation: 'all' },
+      layer: 'hull', tool: 'select', slots: { hull: 'cube', armor: 'armor', internals: 'deck', fittings: '', paint: 'naval-gray' }, fittingFilter: { category: 'main-battery', nation: 'all' },
       customMm: 10, bearing: 0, pathPoints: [], ropeSlack: 0, mirror: true, showArcs: false, showCenters: false, snapSteps: { hull: 1, equipment: .25 },
       freeformSettings: { axes: [true, false, false], unit: .2, snap: false, splitAxis: 2, count: 4, selection: { mode: 'vertex', index: 1 } },
       view: 'orbit', perspective: true, fitRequest: 0,
-      selected: new Set(customHull ? [customHull.id] : []), surfaces: new Set(), notice: '', ...initial,
+      selected: new Set<string>(), surfaces: new Set(), notice: '', ...initial,
     };
     this.lastSourceId = door.source.id; this.lastRevision = door.source.revision;
     this.unsubscribe = door.subscribe(this.observe);
@@ -139,8 +137,7 @@ export class BuilderTool {
     const source = this.door.source;
     let patch: Partial<BuilderToolState> | undefined;
     if (source.id !== this.lastSourceId) {
-      const hull = source.construction.primitives.find(part => part.kind === 'custom-hull');
-      patch = { selected: new Set(hull && this.state.layer !== 'internals' ? [hull.id] : []), surfaces: new Set(), suggestion: undefined, measure: undefined, pathPoints: [], ...(hull ? { tool: 'select' as const } : {}) };
+      patch = { selected: new Set(), surfaces: new Set(), suggestion: undefined, measure: undefined, pathPoints: [], tool: 'select' };
     }
     if (source.revision !== this.lastRevision) { this.suggestionRequest?.abort(); this.suggestionRequest = undefined; }
     this.lastSourceId = source.id; this.lastRevision = source.revision;

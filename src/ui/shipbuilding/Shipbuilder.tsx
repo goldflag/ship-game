@@ -122,6 +122,24 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const [customHullSession, setCustomHullSession] = useState<{ designId: string; primitive: ConstructionPrimitive }>();
   const [newDesignOpen, setNewDesignOpen] = useState(false);
   const [tip, setTip] = useState<{ title: string; detail: string; x: number; y: number; key?: string; below?: boolean; right?: number; beside?: boolean }>();
+  const tooltipRef = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const element = tooltipRef.current;
+    if (!tip || !element) return;
+    const contain = () => {
+      element.style.translate = 'none';
+      const rect = element.getBoundingClientRect();
+      const host = element.closest('.shipbuilder')!.getBoundingClientRect();
+      const left = Math.max(0, host.left) + 8, right = Math.min(window.innerWidth, host.right) - 8;
+      const top = Math.max(0, host.top) + 8, bottom = Math.min(window.innerHeight, host.bottom) - 8;
+      const x = Math.max(left, Math.min(rect.left, right - rect.width)) - rect.left;
+      const y = Math.max(top, Math.min(rect.top, bottom - rect.height)) - rect.top;
+      element.style.translate = `${x}px ${y}px`;
+    };
+    contain();
+    window.addEventListener('resize', contain);
+    return () => window.removeEventListener('resize', contain);
+  }, [tip]);
   const [slotImages] = useState(() => new SlotImages());
   useEffect(() => () => slotImages.dispose(), [slotImages]);
 
@@ -151,7 +169,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const newDesign = async (kind: ConstructionStarter) => {
     setDesignsOpen(false);
     await owner.replace(freshConstruction(createStarterSource(props.catalog, kind), kind === 'blank'), null, false);
-    switchLayer('hull'); tool.setTool('select'); tool.selectOnly(['hull']); tool.fit(); setNewDesignOpen(false);
+    switchLayer('hull'); tool.setTool('select'); tool.clearSelection(); tool.fit(); setNewDesignOpen(false);
   };
   const deleteDesign = async (designId: string, revisionId: string) => {
     const current = designId === source.id;
@@ -395,7 +413,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
         <i className={`sb-save ${saveTone}`} role="status">{saveText}</i>
         {designsOpen && !props.repositoryId && <DesignsMenu partsUpdate={partsUpdate} disabled={locked} store={editor.store} currentId={source.id} refresh={revision.saveState.revision?.id} onClose={() => setDesignsOpen(false)} onNew={kind => { if (kind) void newDesign(kind).catch(fail); else { setDesignsOpen(false); setNewDesignOpen(true); } }} onSaveCopy={() => void saveCopy()} onDelete={deleteDesign}
           onDownload={() => { downloadConstructionSource(JSON.stringify(source, null, 2), source.name); setDesignsOpen(false); }}
-          onOpen={async (next, revision) => { setDesignsOpen(false); await owner.replace(next, revision, true); switchLayer('hull'); }} onRecover={async next => { setDesignsOpen(false); await owner.replace(next, null, false); switchLayer('hull'); }}/>}
+          onOpen={async (next, revision) => { setDesignsOpen(false); await owner.replace(next, revision, true); switchLayer('hull'); tool.clearSelection(); }} onRecover={async next => { setDesignsOpen(false); await owner.replace(next, null, false); switchLayer('hull'); tool.clearSelection(); }}/>}
         {designsOpen && props.repositoryId && <div className="sb-menu" role="menu" aria-label="Repository source">
           <div className="sb-menu-row"><span className="sb-lead">Source</span><span>{props.repositoryId}/blueprint.json</span></div>
           <div className="sb-menu-row"><button role="menuitem" onClick={() => downloadConstructionSource(JSON.stringify(source, null, 2), source.name)}>Download backup</button></div>
@@ -479,7 +497,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
         </div>
       </div>
     </div>
-    {tip && <div className={`sb-tip ${tip.below ? 'below' : ''} ${tip.right !== undefined ? 'right' : ''} ${tip.beside ? 'beside' : ''}`} role="tooltip" style={tip.right !== undefined ? { right: tip.right, top: tip.y } : { left: tip.x, top: tip.y }}><b>{tip.title}</b>{tip.detail}{tip.key && <kbd>{tip.key}</kbd>}</div>}
+    {tip && <div ref={tooltipRef} className={`sb-tip ${tip.below ? 'below' : ''} ${tip.right !== undefined ? 'right' : ''} ${tip.beside ? 'beside' : ''}`} role="tooltip" style={tip.right !== undefined ? { right: tip.right, top: tip.y } : { left: tip.x, top: tip.y }}><b>{tip.title}</b>{tip.detail}{tip.key && <kbd>{tip.key}</kbd>}</div>}
     {!data.primitives.length && <div className="sb-empty"><b>This design needs a starting block</b><button disabled={locked} onClick={() => run('Add starting block', [{ op: 'primitive', value: startingHullBlock() }])}>Add a hull block</button> to keep building.</div>}
     {helpOpen && <HelpDialog onClose={() => setHelpOpen(false)}/>}
   </main>;

@@ -495,3 +495,8 @@ for the whole design (0.1–1,000 mm). Effective face thickness is the greater o
 the face assignment and Skin. A design with 16 mm skin therefore cannot produce
 an 8 mm face until Skin is lowered to 8 mm or less. Lowering Skin also changes
 unassigned hull plating, mass and displacement; it is an undoable source edit.
+
+The editor opens in Select with no hull or placement card selected. Click a block,
+fitting or wall to select it, then start a separate drag to move it. A drag starting
+on an unselected item controls the camera. Palette tooltips stay within the
+visible editor bounds.
