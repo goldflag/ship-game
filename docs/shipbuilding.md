@@ -41,14 +41,20 @@ Automatic assignment covers powered engines first, accounting for manual links,
 then distributes additional propellers in proportion to rated engine power.
 Within that allocation it prefers the same side, an engine ahead of the
 propeller, and shorter connections. Ties are deterministic, independent of source
-array order. One engine can drive several propellers; several engines cannot
-share one propeller in this model. Engines without propellers still provide
+array order. When there are more engines than automatic propellers, extra engines
+share those propellers, favoring the same layout preferences and lower assigned
+power. One engine can drive several propellers, and several engines can drive
+one propeller. The editor lists every engine on a shared propeller. Manual
+overrides remain exclusive to the chosen engine; switch a propeller to Automatic
+to let it accept extra engines. Engines without a connection still provide
 auxiliary services, with a warning that they supply no thrust.
 
 Assignments update after adding, removing or moving equipment in the editor.
 The compiler freezes them into the launched definition: damage never reconnects
-a propeller to a different engine. The routing is a gameplay abstraction; it
-does not trace physical shafts through the interior.
+a propeller to a different engine. Losing one engine on a shared propeller removes
+only its contribution; losing the propeller stops thrust from every connected
+engine. The routing is a gameplay abstraction; it does not trace physical shafts
+through the interior.
 
 Propulsion warnings identify missing engines, funnels or propellers. Click an
 engine's warning to select it. Incomplete propulsion remains a warning, so you

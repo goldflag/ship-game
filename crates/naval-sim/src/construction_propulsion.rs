@@ -93,22 +93,18 @@ pub(crate) fn assignments(fitted: &[Fitting<'_>]) -> Vec<ConstructionPropellerAs
                 0
             }
         };
+        let route_cost = |prop: &ConstructionEquipment, i: usize| {
+            let (engine, part) = engines[i];
+            let across = side(prop.position[0]) * side(engine.position[0]) == -1;
+            let behind = engine.position[2] > prop.position[2] + 0.05; // -Z is forward.
+            4. * f64::from(across)
+                + 2. * f64::from(behind)
+                + distance(prop, engine) / span
+                + 0.001 * (1. - part.power_kw.unwrap() / max_power)
+        };
         let costs: Vec<Vec<_>> = props
             .iter()
-            .map(|(prop, _)| {
-                slots
-                    .iter()
-                    .map(|&i| {
-                        let (engine, part) = engines[i];
-                        let across = side(prop.position[0]) * side(engine.position[0]) == -1;
-                        let behind = engine.position[2] > prop.position[2] + 0.05; // -Z is forward.
-                        4. * f64::from(across)
-                            + 2. * f64::from(behind)
-                            + distance(prop, engine) / span
-                            + 0.001 * (1. - part.power_kw.unwrap() / max_power)
-                    })
-                    .collect()
-            })
+            .map(|(prop, _)| slots.iter().map(|&i| route_cost(prop, i)).collect())
             .collect();
         for (i, slot) in minimum_assignment(&costs).into_iter().enumerate() {
             result.push(ConstructionPropellerAssignment {
@@ -116,8 +112,56 @@ pub(crate) fn assignments(fitted: &[Fitting<'_>]) -> Vec<ConstructionPropellerAs
                 engine_id: engines[slots[slot]].0.id.clone(),
             });
         }
+        // Remaining engines can share automatic propellers. Manual overrides
+        // stay exclusive. Route larger engines first; favor less loaded shafts
+        // within the same side/forward preferences used for the initial match.
+        let mut spare: Vec<_> = (0..engines.len())
+            .filter(|&i| !result.iter().any(|a| a.engine_id == engines[i].0.id))
+            .collect();
+        spare.sort_by(|&a, &b| {
+            engines[b]
+                .1
+                .power_kw
+                .unwrap()
+                .total_cmp(&engines[a].1.power_kw.unwrap())
+                .then_with(|| engines[a].0.id.cmp(&engines[b].0.id))
+        });
+        let mut loads: Vec<f64> = props
+            .iter()
+            .map(|(prop, _)| {
+                result
+                    .iter()
+                    .filter(|a| a.propeller_id == prop.id)
+                    .map(|a| {
+                        let (_, engine) =
+                            engines.iter().find(|(e, _)| e.id == a.engine_id).unwrap();
+                        engine.power_kw.unwrap()
+                            / result.iter().filter(|b| b.engine_id == a.engine_id).count() as f64
+                    })
+                    .sum()
+            })
+            .collect();
+        for i in spare {
+            let best = (0..props.len())
+                .min_by(|&a, &b| {
+                    let cost = |j: usize| route_cost(props[j].0, i) + loads[j] / total_power;
+                    cost(a)
+                        .total_cmp(&cost(b))
+                        .then_with(|| props[a].0.id.cmp(&props[b].0.id))
+                })
+                .unwrap();
+            loads[best] += engines[i].1.power_kw.unwrap();
+            result.push(ConstructionPropellerAssignment {
+                propeller_id: props[best].0.id.clone(),
+                engine_id: engines[i].0.id.clone(),
+            });
+        }
     }
-    result.sort_by(|a, b| a.propeller_id.cmp(&b.propeller_id));
+    result.sort_by(|a, b| {
+        a.propeller_id
+            .cmp(&b.propeller_id)
+            .then_with(|| a.engine_id.cmp(&b.engine_id))
+    });
     result
 }
 
@@ -190,7 +234,7 @@ mod tests {
     type Engine<'a> = (&'a str, f64, f64, f64);
     type Prop<'a> = (&'a str, f64, f64, Option<&'a str>);
 
-    fn assign(engines: &[Engine<'_>], props: &[Prop<'_>]) -> BTreeMap<String, String> {
+    fn links(engines: &[Engine<'_>], props: &[Prop<'_>]) -> Vec<ConstructionPropellerAssignment> {
         let owned: Vec<_> = engines
             .iter()
             .map(|&(id, x, z, kw)| {
@@ -223,6 +267,11 @@ mod tests {
             }))
             .collect();
         assignments(&owned.iter().map(|(e, p)| (e, p)).collect::<Vec<_>>())
+    }
+
+    // Convenience for fixtures with one engine per propeller.
+    fn assign(engines: &[Engine<'_>], props: &[Prop<'_>]) -> BTreeMap<String, String> {
+        links(engines, props)
             .into_iter()
             .map(|a| (a.propeller_id, a.engine_id))
             .collect()
@@ -245,7 +294,7 @@ mod tests {
     }
 
     #[test]
-    fn whole_layout_matching_preserves_the_outboard_engine_and_prefers_forward_runs() {
+    fn whole_layout_matching_preserves_the_outboard_engine() {
         // A centerline propeller must not steal the starboard engine merely
         // because it was considered first.
         let result = assign(
@@ -254,11 +303,6 @@ mod tests {
         );
         assert_eq!(result["a-center"], "b-port");
         assert_eq!(result["b-starboard"], "a-starboard");
-        let result = assign(
-            &[("ahead", 0., -8., 1000.), ("behind", 0., 11., 1000.)],
-            &[("prop", 0., 10., None)],
-        );
-        assert_eq!(result["prop"], "ahead");
     }
 
     #[test]
@@ -277,10 +321,7 @@ mod tests {
         );
         assert_eq!(result["a"], "large");
         assert_eq!(result["b"], "small"); // Cover the unused engine.
-        assert_eq!(
-            assign(&engines, &[("only", 0., 10., None)])["only"],
-            "large"
-        );
+        assert_eq!(links(&engines, &[("only", 0., 10., None)]).len(), 2);
     }
 
     #[test]
@@ -297,9 +338,57 @@ mod tests {
             "dead"
         );
         assert_eq!(
-            assign(&[("z", 0., 0., 1.), ("a", 0., 0., 1.)], &[props[0]])["a"],
+            assign(&[("z", 0., 0., 1.), ("a", 0., 0., 1.)], &props)["a"],
             "a"
         );
+    }
+
+    #[test]
+    fn extra_engines_share_automatic_props_and_preserve_manual_exclusivity() {
+        let engines = [
+            ("p1", -3., 0., 1000.),
+            ("p2", -3., 1., 1000.),
+            ("s1", 3., 0., 1000.),
+            ("s2", 3., 1., 1000.),
+        ];
+        let props = [("port", -3., 10., None), ("starboard", 3., 10., None)];
+        let pairs = |engines: &[Engine<'_>], props: &[Prop<'_>]| {
+            links(engines, props)
+                .into_iter()
+                .map(|a| (a.propeller_id, a.engine_id))
+                .collect::<Vec<_>>()
+        };
+        let expected = vec![
+            ("port".into(), "p1".into()),
+            ("port".into(), "p2".into()),
+            ("starboard".into(), "s1".into()),
+            ("starboard".into(), "s2".into()),
+        ];
+        assert_eq!(pairs(&engines, &props), expected);
+        assert_eq!(
+            pairs(
+                &[engines[3], engines[1], engines[0], engines[2]],
+                &[props[1], props[0]]
+            ),
+            expected
+        );
+        let one = pairs(&engines, &[props[0]]);
+        assert_eq!(one.len(), 4);
+        assert!(one.iter().all(|(p, _)| p == "port"));
+        let manual = pairs(&engines, &[("port", -3., 10., Some("p1")), props[1]]);
+        assert_eq!(manual.iter().filter(|(p, _)| p == "port").count(), 1);
+        assert_eq!(manual.iter().filter(|(p, _)| p == "starboard").count(), 3);
+        assert_eq!(pairs(&engines, &[("port", -3., 10., Some("p1"))]).len(), 1);
+        let centered = [
+            ("a", 0., 0., 1000.),
+            ("b", 0., 0., 1000.),
+            ("c", 0., 0., 1000.),
+            ("d", 0., 0., 1000.),
+            ("e", 0., 0., 1000.),
+        ];
+        let balanced = pairs(&centered, &[("p", 0., 10., None), ("s", 0., 10., None)]);
+        assert_eq!(balanced.iter().filter(|(p, _)| p == "p").count(), 3);
+        assert_eq!(balanced.iter().filter(|(p, _)| p == "s").count(), 2);
     }
 
     #[test]

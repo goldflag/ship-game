@@ -66,6 +66,7 @@
 .sb-tag b .sb-num input { font: inherit; color: var(--sb-text); }
 .sb-link { font: inherit; font-size: 11px; color: var(--sb-text); background: var(--sb-field); border: 1px solid var(--sb-line2); border-radius: 2px; padding: 1px 3px; max-width: 160px; text-shadow: none; }
 .sb-engine-link { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px; align-items: center; margin: 5px 0; }
+.sb-engine-sources { grid-column: 1 / -1; overflow-wrap: anywhere; }
 .sb-engine-link .sb-link { width: 100%; max-width: none; min-width: 0; }
 
 .sb-view-error { position: absolute; left: 90px; right: 260px; bottom: 120px; color: var(--sb-salmon); }
