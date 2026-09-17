@@ -36,3 +36,17 @@ test('every catalog torpedo launcher compiles into a launcher with one tube per 
     expect(result.diagnostics.filter(entry => entry.sourceId === bank.id && entry.severity === 'error'), part.id).toEqual([]);
   }
 });
+
+test('every catalog funnel, mast and director stands on a deck without an error of its own', () => {
+  for (const part of catalog.equipment.filter(entry => ['funnel', 'mast', 'director'].includes(entry.kind))) {
+    const source = createStarterSource(catalog, 'patrol'), fitting = source.construction.equipment.find(entry => entry.id === 'mast')!;
+    const hull = source.construction.primitives.find(piece => piece.id === 'hull')!; hull.size = [24, 16, 60];
+    source.construction.primitives = [hull]; source.construction.surfaces = source.construction.surfaces.filter(surface => surface.primitiveId === hull.id);
+    // The starter's bulkheads go too: where a long uptake meets a wall is the design's business, not the part's.
+    source.construction.equipment = [fitting]; source.construction.boundaries = [];
+    fitting.partId = part.id; fitting.position = [0, hull.size[1] / 2 - part.sockets!.find(entry => entry.id === 'attachment')!.position[1], 0];
+    const result = compile(source);
+    expect(result.definition, `${part.id}: ${JSON.stringify(result.diagnostics)}`).toBeDefined();
+    expect(result.diagnostics.filter(entry => entry.sourceId === fitting.id && entry.severity === 'error'), part.id).toEqual([]);
+  }
+});

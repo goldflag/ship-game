@@ -375,6 +375,91 @@
       "url": "/models/components/thumbnails/2e912d22b8d40effa2c690b863d291f6069f030301aae35d5dd272ad47ef45df.png",
       "modelHash": "9251032be9f3afd6f70972a7defb715af0ca62ed9139235b2dd0a9948b8f3f28",
       "imageHash": "727a1eeec60bc41ddc3e855a4db9bfff4a518925365e3f248b27f06c63910643"
+    },
+    "/models/components/us-battleship-funnel/0d5798a3b94cca760d6d8487023d7c6065e02a119009856496d5c970fb92dab4/model.glb": {
+      "url": "/models/components/thumbnails/b66c667093e1c333f8e2e2e244b89d6c5ed152603dc34a4ba233246171fd525d.png",
+      "modelHash": "215bfe4b74149891ab1ad9b76e96286ffaa6f75992d5e11b14791bd90230a602",
+      "imageHash": "b8344e79701ea62c9b3184ebb39cf7c493e15bd685a1cb652bb7c3ca23ed1f7a"
+    },
+    "/models/components/us-cruiser-funnel/4420b6e50649293f1c0d6186e17b5393f33ad1ca0de8c26ef225a734bc16969e/model.glb": {
+      "url": "/models/components/thumbnails/ba918e285681d63d573579c362506c97a98b876d64cdc581a2397aeec098f182.png",
+      "modelHash": "602225f951c7e8d6893f89b38fc05f5d29d4fbeb2eb221c5e8626a3e6220d5e4",
+      "imageHash": "71e66c2668a24753bbc8b292786d9dca5472b79e388d9740c861079da732a642"
+    },
+    "/models/components/us-mk38-director/6b8ab01043cdd12c93ae8a3c74774611e13182a8458e9aefff1070ae99c2ef78/model.glb": {
+      "url": "/models/components/thumbnails/595258219f5c175d4321009b266e92021c4d1e210a66a8d2a75481daecd8e07b.png",
+      "modelHash": "2cf31aea1673f85f689ed20ba2e95d1dd486eaba0a68294f1b16e9ed6e28a126",
+      "imageHash": "96056660a849bc6ee49d91d850cd7597ba5a364ae8cfdd338ecd9c641ad28dc3"
+    },
+    "/models/components/us-cruiser-pole-mast/01b433073b11e663d365d48c61b64c376749c2a23052c349e960c6f1c14138a8/model.glb": {
+      "url": "/models/components/thumbnails/182c40d3b5b8944b9b85ec9a856e00d10884153ce7442d31a16cdb1ec3e39bf7.png",
+      "modelHash": "43bdfdecd23dbafe5aa5ddcb012d12b627ed5cda21d56bfefe3112bde166163a",
+      "imageHash": "f2fd1e2f4b6fd5e3499a3f3965eb1faacdb1e8a2f7169f684592165be785f8d5"
+    },
+    "/models/components/german-battleship-funnel/a7174951070c846a313bcee51cd7de4c82110303a3284260b07c23ed7547def9/model.glb": {
+      "url": "/models/components/thumbnails/ba3a6ae86e0c03a8d3817b4eb50a9d849da4f2bd7d8caeca82ea8879694b4f88.png",
+      "modelHash": "6669b0ecd646b26309fcc0174aba63b2e941b295599e24b407ec225b16670674",
+      "imageHash": "b0c9b56ad8e45c1a25c598d25a8addfa6b99aebd9a8995fd3177f93a60367cee"
+    },
+    "/models/components/german-rangefinder-cupola/ba15dabf90c1035d53e289f583126f89e2475ef990ee13cef580170ddbff429a/model.glb": {
+      "url": "/models/components/thumbnails/52155d8ff6a283e071d6ac297a82c115ec408ef71771de79a8da4789494b2632.png",
+      "modelHash": "b580533f46d73d7df169bc1bfe7c2aa42bf1af075b14335fc0fb0cded93b3325",
+      "imageHash": "bb16ab5614e08e00adb117c933b96713d852ff94d9672bcd403a0ca382a99a22"
+    },
+    "/models/components/german-battleship-mainmast/2c014e114038879741ae344898c3b5ed7a76e3bddc0dfe4ae63d4fcc8bb611bc/model.glb": {
+      "url": "/models/components/thumbnails/1e6526ebb20755fe947cf896a9713fcb82905c06dc0e39a9ca0c7851c9230b08.png",
+      "modelHash": "efeb15a2d1a129c7d92301adf5fd66d6ad28864bc40417b9ab9e0e87aa0216e7",
+      "imageHash": "879d0f8676f674e9dc9b84bc52906cc0a48456de07c6c125bfd54dca09560ad9"
+    },
+    "/models/components/ijn-battleship-funnel/16754cd6535db09ae78ec9cdc2b68a5a2ab3925ae769682a5466c8475b631c3e/model.glb": {
+      "url": "/models/components/thumbnails/bd14cbc384a11b1b73ee74c56a70780a117dab8f2333de6ee543421ae3488bf5.png",
+      "modelHash": "173ca392cc34354fc8c4500ffd9997b11bf9ad811c27b58a7c54e4c0d9e86bfc",
+      "imageHash": "bb9a11a8ca4ee38fff65a866701940cd8e50677592f2bb2849da87b186910690"
+    },
+    "/models/components/ijn-cruiser-trunked-funnel/5c4264e3c0ac11ededfed8fa1fafab76666ce6748063864d8869e5202fbb6132/model.glb": {
+      "url": "/models/components/thumbnails/e7af6494c4a2fbb576e8f50ede71a7dd26b0ae8f2514c7571fa6c8fc22eff6bd.png",
+      "modelHash": "1b04b0e1a296018256756e8fbeac3da4a458083268bfc23229da4e765edca396",
+      "imageHash": "039b42dea79d453cb8d45e7ca2ea9852739fb1777abe863c6b326228be3b282e"
+    },
+    "/models/components/ijn-destroyer-funnel/4073ee9932db24155f50f21227938070a8657b5be25c8b0e7c5dcd3e4d92777c/model.glb": {
+      "url": "/models/components/thumbnails/5ad40b603d8a3d067ce585be406eec6a5147389672d9d9cd06fbd09fc54d6218.png",
+      "modelHash": "ed7711b9190c832be837b4c051ea71e1def83201d83e9ba0a62542ecd245e267",
+      "imageHash": "de9929b5c1e915f79b0f71d44a0fa0bb362bb8f4975bb3d139ff327b9d6f9676"
+    },
+    "/models/components/ijn-destroyer-tripod-foremast/37c2c92853fafd647ee83af207dc37791774bf07eb762b84997cdf273d7c7fe6/model.glb": {
+      "url": "/models/components/thumbnails/3e3327e4bd6c3c37b6d2acdc0ca211c06336dc7cd15c670cc5a8a52b36f5331e.png",
+      "modelHash": "aba989597ea1de41c33c2d1db2c6a652e701ee94799d3694276a4fa1e8c45116",
+      "imageHash": "43b2efc4c4200636d80f37fd07bfe1104f52dabf8a911a318e6d13517a2cbcfe"
+    },
+    "/models/components/ijn-type95-director/04f33b5dbc2a6fb2f60f06fafc7d8fb05c00eda039cb33764277ae147ebf21e2/model.glb": {
+      "url": "/models/components/thumbnails/4128fd1eb078b99fcd00a6eb543bc2a9fa0b891b4dab34f219ece39e15503b9b.png",
+      "modelHash": "fbc17a9c290d161a5d88caee8b25fa7af91fbcfb928a7fe55d60350022d37eed",
+      "imageHash": "470c73deda7b5b50fcdc35d110cba284cb25b5a16537b348a7c09f37e3f61c0c"
+    },
+    "/models/components/ijn-type98-main-director/25896f21bff8e0561690a245401a1e5c89569e65601844977eab9e87c0cf774f/model.glb": {
+      "url": "/models/components/thumbnails/b4e2f5485bbf34609b97b874388a1c83fee48b1983fffda2d8af8623c2e452a0.png",
+      "modelHash": "6d26179901067d73e0bc6eb82fcdf8063f936b4ecd742d9d15b734c8f625827c",
+      "imageHash": "7de6b3aceb778636259771705d784b881b257a6edcbb70234fdfd8a93cf4699d"
+    },
+    "/models/components/rn-battleship-funnel/be5e62c60ca06fd053e831c2c751a9b0a5d53892d157cef566da0fcdbdcfa0a7/model.glb": {
+      "url": "/models/components/thumbnails/30413ae265d0009374cbfa491118b6612ff055b191fdc0f06de4508e91e434d9.png",
+      "modelHash": "e85b16ba6d9874ec198218bfb5e0333ea826bd4f1ef6bd924e40da41df2e2387",
+      "imageHash": "07584a85a035a78c503106972c2ef97d07e8225fa10f77886aec6157b97de200"
+    },
+    "/models/components/rn-tripod-foremast/ca67fd7d2aea8748ec7d6df63ba306bf3ee6c0bc9d2bdbccf54c9959396c7cff/model.glb": {
+      "url": "/models/components/thumbnails/efd7f70ceefe8b71264a85cd4a46463615b73e6e5134be552c8ebf972ec3c97a.png",
+      "modelHash": "55f37f50b51178565c942101351e74d61d69a9819607d99d60e9a0cb2e06ecb5",
+      "imageHash": "417bcd66fcc879dff1c027aee4a0ae991d5c072414d1b2433c95781405ed5b62"
+    },
+    "/models/components/rn-hacs-director/97a60ea0fe03d0d7e3208f01a22808e3b70fbd60ba29745269ca8c9b4b7928e0/model.glb": {
+      "url": "/models/components/thumbnails/67322f57d39e656bc80f9b6dfb6d6183512093df8e6364d3cc987f63d85c76bc.png",
+      "modelHash": "275ff39f83a0a91d04f44d93cc725b3ef23ccd0be91074b5c6d2f661aac76dbb",
+      "imageHash": "4b49767315b4dd23b85518b44814764b815c229d36fdff11f71bc7551a6dc2d2"
+    },
+    "/models/components/rn-corvette-funnel/20952d6d2f044b1d48840485f8fb91042b75772d4321f88daae7733785e9c7ec/model.glb": {
+      "url": "/models/components/thumbnails/f53c7710cfa5bd4854045d6735ae49483308316b0a96cb3a604ebddf578d16b4.png",
+      "modelHash": "a6935d06f588ddac99d6c7d3b3a11849c608ec7be2b63c68cd2668bc256b2a00",
+      "imageHash": "f0ccdfe6f574d6835d8dd94dceb8716e22230e537d7e1d58b1db341d02d113b5"
     }
   }
 }

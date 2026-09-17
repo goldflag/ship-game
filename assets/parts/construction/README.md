@@ -204,3 +204,21 @@ stations follow the owning ship recipe for that tube count and the tubes sit on
 the catalog's `tubeOffsets`, which are the ships' own tube datums relative to
 the launcher pivot. The 11 t and 18 t package masses are gameplay estimates, and
 the torpedoes are the ships' provisional game variants (Type 8 and Type 93).
+
+## National funnels, masts and directors
+
+Four recipe files adapt superstructure from the original ship recipes into
+standalone deck fittings: `../us-superstructure/` (Iowa funnel and Mk 38
+director, Baltimore funnel and pole mast), `../german-capital-superstructure/`
+(Bismarck funnel, 10.5 m rangefinder cupola and mainmast), `../ijn-superstructure/`
+(Yamato funnel and Type 98 director, Mogami trunked funnel and Type 95 director
+tower, Fubuki funnel, Yukikaze tripod foremast) and `../rn-superstructure/`
+(King George V funnel, tripod foremast and HACS director, Flower-class funnel).
+Each stands on the deck at its origin; parts that sat on superstructure aboard
+ship are extended to the deck, so some read taller than they do on the ship.
+Jacket outlines and heights come from the ship recipes and blueprints; small
+fittings (ladders, walkways, whistles, lookouts, radar aerials the source ship
+did not carry, including the FuMO mattress on the German cupola) are plausible
+additions. Masses and exhaust ratings are gameplay estimates. Directors train on
+a `yaw` joint; mast radar arrays are fixed.
+

@@ -46,6 +46,9 @@ if (check) {
       ...(process.env.CONSTRUCTION_CHROME ? { executablePath: process.env.CONSTRUCTION_CHROME } : {}) });
     const page = await browser.newPage();
     await page.goto(serverUrl(server) + '/scripts/diagnostics/construction-check.html');
+    // Vite reloads the page once when it first discovers the renderer's dependencies; take that reload before baking.
+    await page.evaluate(async () => { const paths = ['/src/ui/shipbuilding/slotImages.ts', '/src/ui/shipbuilding/builderLayers.ts']; for (const path of paths) await import(path); }).catch(() => undefined);
+    await page.waitForTimeout(4000); await page.reload(); await page.waitForLoadState('networkidle');
     // A single renderer and model-at-a-time queue keep GPU use bounded.
     for (const { part, catalog, url, modelHash } of missing) {
       const png = await page.evaluate(async ({ part, catalog }) => {
