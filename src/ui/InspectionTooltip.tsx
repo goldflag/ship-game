@@ -1,10 +1,11 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import type { Game } from '../game/Game';
 import { INSPECTION_TOOLTIP_ID, type InspectionHoverInfo } from '../game/InspectionHover';
 import { INSPECTION_EFFECTS, INSPECTION_KIND_LABELS, inspectionColor } from '../ships/inspection';
 
+/** What the tooltip needs of the port scene: the hover feed under the pointer. */
+export interface InspectionHoverSource { subscribeInspectionHover(listener: (hover: InspectionHoverInfo | null) => void): () => void }
 /** Follows the pointer over the port model: plate details in the armor view, module and compartment details in internals. */
-export function InspectionTooltip({ game }: { game: Game | null }) {
+export function InspectionTooltip({ game }: { game: InspectionHoverSource | null }) {
   const [hover, setHover] = useState<InspectionHoverInfo | null>(null);
   const tooltip = useRef<HTMLDivElement>(null);
   useEffect(() => {

@@ -1,13 +1,13 @@
 import { expect, test } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { applyGroupFormation, FleetCommand, FORMATION_HINT } from './FleetCommand';
+import { FleetCommand, FORMATION_HINT } from './FleetCommand';
+import { applyGroupFormation } from './fleet/fleetView';
+import { fleetDesk, type ControlGroup, type FleetAuthority } from './fleet/fleetDesk';
 import { CombatSimulation } from '../simulation/combat';
 import { shipPreset } from '../ships/presets';
-import { Game } from '../game/Game';
 import { defaultKeybindings } from '../game/keybindings';
 import type { Telemetry } from '../game/types';
 import type { FleetOrderState } from '../multiplayer/generated/FleetOrderState';
-import type { ControlGroup } from '../game/Game';
 import type { Formation } from '../multiplayer/generated/Formation';
 import { resolveBattleFleet } from '../simulation/battle';
 import { shipClassOf } from './shipGlyphs';
@@ -24,9 +24,9 @@ function fixture() {
     ],
     shipScores: { [id]: { damageDealt: 12400, frags: 1 } },
   });
-  const game = { simulation, selectedShipIds: [], selectedFlightIds: [], controlGroups: new Map([[1, { name: 'Group 1', shipIds: [id] }]]) } as unknown as Game;
+  const desk = fleetDesk({ simulation, selectedShipIds: [], selectedFlightIds: [], controlGroups: new Map([[1, { name: 'Group 1', shipIds: [id] }]]) } as unknown as FleetAuthority);
   const data: Telemetry = { ship: simulation.ship, order: 1, camera: 'Chase', fps: 60, backend: 'test', trail: [], combat: simulation.telemetry('main', [0, 0, -5000]), fleetCommandMode: true, airOperationsOpen: true, selectedShipIds: [] };
-  const render = (state = data) => renderToStaticMarkup(<FleetCommand data={state} game={game} bindings={defaultKeybindings()}/>);
+  const render = (state = data) => renderToStaticMarkup(<FleetCommand data={state} desk={desk} bindings={defaultKeybindings()}/>);
   return { render, data, id, simulation };
 }
 
@@ -119,7 +119,7 @@ test('enemy HP appears only for current sightings with sampled health', () => {
 
 test('an unselected blocked ship exposes its route and warnings, then clears them on recovery', () => {
   const { render, id, simulation } = fixture();
-  const order = (simulation as unknown as Game['simulation']).fleetOrders![id];
+  const order = (simulation as unknown as FleetAuthority['simulation']).fleetOrders![id];
   order.navigation = { order: order.movement, waypoint: 1, status: 'blocked', destination: [300, 400], formation: undefined };
   const html = render();
   expect(html).toContain('fleet-command-course blocked');
@@ -148,10 +148,10 @@ const fleetFixture = (formation: Formation = 'column', notices: { tick: number; 
     escortShip: (id: string, leaderId: string, offset: [number, number], radiusM: number, kind?: Formation, slot?: number) => { escorts.push({ id, leaderId, offset, radiusM, formation: kind, slot }); } });
   const owned = simulation.telemetry('main', [0, 0, -7500]).contacts.filter(c => c.team === 'friendly');
   const controlGroups = new Map<number, ControlGroup>([[1, { name: 'Group 1', shipIds: owned.map(c => c.id), formation }]]);
-  const game = { simulation, selectedShipIds: [], selectedFlightIds: [], controlGroups } as unknown as Game;
+  const desk = fleetDesk({ simulation, selectedShipIds: [], selectedFlightIds: [], controlGroups } as unknown as FleetAuthority);
   const data: Telemetry = { ship: simulation.ship, order: 1, camera: 'Chase', fps: 60, backend: 'test', trail: [], combat: simulation.telemetry('main', [0, 0, -7500]), fleetCommandMode: true, airOperationsOpen: true, selectedShipIds: [] };
-  const render = (selectedShipIds: string[]) => renderToStaticMarkup(<FleetCommand data={{ ...data, selectedShipIds }} game={game} bindings={defaultKeybindings()}/>);
-  return { render, game, controlGroups, escorts, owned, classes: owned.map(c => shipClassOf(simulation.actors.find(a => a.motion.id === c.id)!.definition)) };
+  const render = (selectedShipIds: string[]) => renderToStaticMarkup(<FleetCommand data={{ ...data, selectedShipIds }} desk={desk} bindings={defaultKeybindings()}/>);
+  return { render, desk, controlGroups, escorts, owned, classes: owned.map(c => shipClassOf(simulation.actors.find(a => a.motion.id === c.id)!.definition)) };
 };
 
 test('the formation picker acts on the selected group and explains itself when the selection is not one', () => {
@@ -172,12 +172,12 @@ test('the formation picker acts on the selected group and explains itself when t
 });
 
 test('choosing a formation records it on the control group and re-stations every escort by role', () => {
-  const { game, controlGroups, escorts, owned, classes } = fleetFixture();
+  const { desk, controlGroups, escorts, owned, classes } = fleetFixture();
   const group = { index: 1, name: 'Bismarck formation', leaderId: owned[0].id, shipIds: owned.map(c => c.id), formation: 'column' as Formation };
   expect(controlGroups.get(1)!.formation).toBe('column');
   const members = owned.map((c, i) => ({ id: c.id, shipClass: classes[i] }));
   expect(classes).toEqual(['battleship', 'destroyer', 'cruiser']);
-  expect(applyGroupFormation(game, group, 'screen', members)).toBe('2 escort orders queued · Screen');
+  expect(applyGroupFormation(desk, group, 'screen', members)).toBe('2 escort orders queued · Screen');
   // The group keeps how it sails, so the card, the chart and a later Move all agree.
   expect(controlGroups.get(1)).toEqual({ name: 'Group 1', shipIds: owned.map(c => c.id), formation: 'screen' });
   // Cruiser inside, destroyer outside: role order decides the slots, and every order carries both.
@@ -191,19 +191,19 @@ test('choosing a formation records it on the control group and re-stations every
   expect(escorts[1].offset).toEqual([0, -SCREEN_OUTER_RADIUS_M]);
   // A column puts the same ships astern at the battleship's interval, heavies nearest.
   escorts.length = 0;
-  expect(applyGroupFormation(game, { ...group, formation: 'screen' }, 'column', members)).toBe('2 escort orders queued · Column');
+  expect(applyGroupFormation(desk, { ...group, formation: 'screen' }, 'column', members)).toBe('2 escort orders queued · Column');
   expect(escorts.map(e => [e.id, e.offset, e.slot])).toEqual([[owned[2].id, [0, 450], 0], [owned[1].id, [0, 900], 1]]);
   expect(controlGroups.get(1)!.formation).toBe('column');
   // A double column re-stations the same pair abeam and astern of the guide's own column.
   escorts.length = 0;
-  expect(applyGroupFormation(game, { ...group, formation: 'column' }, 'double-column', members)).toBe('2 escort orders queued · Double column');
+  expect(applyGroupFormation(desk, { ...group, formation: 'column' }, 'double-column', members)).toBe('2 escort orders queued · Double column');
   expect(escorts.map(e => [e.id, e.formation, e.offset, e.slot])).toEqual([
     [owned[2].id, 'double-column', [450, 0], 0],
     [owned[1].id, 'double-column', [0, 450], 1],
   ]);
   expect(controlGroups.get(1)!.formation).toBe('double-column');
   // A group with nobody to station still records the formation it was set to.
-  expect(applyGroupFormation(game, { ...group, shipIds: [owned[0].id] }, 'line-abreast', [members[0]])).toBe('Bismarck formation · Line abreast · no escorts to station');
+  expect(applyGroupFormation(desk, { ...group, shipIds: [owned[0].id] }, 'line-abreast', [members[0]])).toBe('Bismarck formation · Line abreast · no escorts to station');
 });
 
 test('a guide-assumed notice reaches the feedback line so the fleet knows who has the group', () => {

@@ -55,7 +55,7 @@ test('ships stacked on one bearing are nudged apart so both names stay readable'
 });
 
 test('the wheel renders the fleet with hull, speed and range, highlights the pick and explains the hold gesture', () => {
-  const render = (data: Telemetry) => renderToStaticMarkup(<HelmWheel data={data} game={{} as never} bindings={defaultKeybindings()}/>);
+  const render = (data: Telemetry) => renderToStaticMarkup(<HelmWheel data={data} desk={{} as never} bindings={defaultKeybindings()}/>);
   const held = render(telemetry({ helmWheel: { reason: 'held', highlightId: 'friendly-2' } }));
   expect(held).toContain('Choose a ship to command');
   expect(held).toContain('<b>Bismarck</b>');
