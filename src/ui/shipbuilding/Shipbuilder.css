@@ -1,4 +1,4 @@
-/* Shipbuilder · "Slipway rails": tools on the left edge, palette along the bottom,
+/* Shipbuilder · "Slipway rails": tools on the left edge, the palette dock across the whole bottom edge,
    ledger on the right edge. Compact cards group tools, palette slots and object values. */
 .shipbuilder {
   --sb-text: #edf1ec; --sb-muted: #bcc3c7; --sb-muted2: #929a9f; --sb-line: #cfd4d835; --sb-line2: #cfd4d86e;
@@ -6,8 +6,8 @@
   /* Studio sweep: a neutral grey ground lit at the centre and falling to dark at the edges, so hull paint reads true and only brass and mint carry colour. */
   --sb-sweep: radial-gradient(ellipse 70% 62% at 50% 46%, #3d4145 0%, #2a2d30 48%, #191b1e 100%);
   --sb-card: #24282bf5; --sb-card-hover: #2f3438; --sb-card-selected: #383d41; --sb-card-toggle: #253a37;
-  /* palette geometry: the readout, drawer and hotkey legend keep clear of the cards through these */
-  --sb-slot: 64px; --sb-bar-bottom: 24px; --sb-bar-height: var(--sb-slot); --sb-bar-width: calc(10 * var(--sb-slot) + 54px);
+  /* dock geometry: the readout, drawer and compass keep clear of the dock through these (tab row + card row) */
+  --sb-slot: 64px; --sb-bar-bottom: 0px; --sb-dock-tabs: 36px; --sb-bar-height: calc(var(--sb-dock-tabs) + var(--sb-slot) + 22px);
   position: fixed; inset: 0; z-index: 80; overflow: hidden; background: var(--sb-ground); color: var(--sb-text);
   font: 400 13px/1.35 'Barlow', sans-serif; font-variant-numeric: tabular-nums; text-shadow: 0 2px 5px #0d0f11b3; color-scheme: dark; user-select: none;
 }
@@ -30,7 +30,7 @@
 .sb-overlay { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .sb-leaders { position: absolute; inset: 0; width: 100%; height: 100%; }
 .sb-leaders line { stroke-width: 1; }
-.sb-orientation { position: absolute; left: 12px; bottom: 16px; width: 172px; pointer-events: none; visibility: hidden; color: var(--sb-muted); text-align: center; }
+.sb-orientation { position: absolute; left: 12px; bottom: calc(var(--sb-bar-height) + 14px); width: 172px; pointer-events: none; visibility: hidden; color: var(--sb-muted); text-align: center; }
 .sb-orientation svg { display: block; width: 100%; overflow: visible; }
 .sb-orientation text { fill: currentColor; stroke: var(--sb-ground); stroke-width: 3px; paint-order: stroke; font: 500 11px 'Barlow Condensed', sans-serif; }
 .sb-orientation line { stroke: currentColor; stroke-width: 1; }
@@ -70,8 +70,8 @@
 .sb-empty button { color: var(--sb-brass); border-bottom: 1px solid currentColor; }
 
 /* chrome containers let the pointer through to the scene; only controls catch it */
-.sb-top, .sb-left, .sb-ledger, .sb-hotbar, .sb-keys, .sb-empty { pointer-events: none; }
-.sb-top > *, .sb-warn > *, .sb-rail button, .sb-hotbar > *, .sb-drawer, .sb-viewbar, .sb-empty button, .sb-menu { pointer-events: auto; }
+.sb-top, .sb-left, .sb-ledger, .sb-dock-tabs, .sb-keys, .sb-empty { pointer-events: none; }
+.sb-top > *, .sb-warn > *, .sb-rail button, .sb-tabs, .sb-dock-body, .sb-drawer, .sb-empty button, .sb-menu { pointer-events: auto; }
 
 /* top bar */
 .sb-top { position: absolute; left: 0; right: 0; top: 0; height: 52px; display: flex; align-items: center; gap: 22px; padding: 0 18px; }
@@ -85,11 +85,13 @@
 .sb-save { font-style: normal; font-size: 11px; color: var(--sb-mint); white-space: nowrap; }
 .sb-save.saving { color: var(--sb-muted); }
 .sb-save.bad { color: var(--sb-salmon); }
-.sb-tabs { display: flex; gap: 26px; margin: 0 auto; height: 52px; }
-.sb-tabs button { height: 52px; font: 500 13px 'Barlow', sans-serif; letter-spacing: .02em; color: var(--sb-muted); border-bottom: 2px solid transparent; display: flex; align-items: center; gap: 7px; white-space: nowrap; }
+/* layer tabs: folder tabs on the dock's top edge; the open tab joins the card row beneath it */
+.sb-tabs { display: flex; gap: 2px; align-items: flex-end; height: var(--sb-dock-tabs); }
+.sb-tabs button { height: 34px; padding: 0 18px; font: 500 13px 'Barlow', sans-serif; letter-spacing: .02em; color: var(--sb-muted); display: flex; align-items: center; gap: 7px; white-space: nowrap; border: 1px solid transparent; border-bottom: 0; border-radius: 3px 3px 0 0; position: relative; top: 1px; }
 .sb-tabs button:hover { color: var(--sb-text); }
-.sb-tabs button[aria-selected=true] { color: var(--sb-text); border-bottom-color: var(--sb-brass); }
-.sb-tabs i { width: 6px; height: 6px; border-radius: 50%; background: var(--sb-salmon); }
+.sb-tabs button[aria-selected=true] { color: var(--sb-brass); background: var(--sb-card); border-color: var(--sb-line2); }
+.sb-tabs button[aria-selected=true]::after { content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--sb-card); }
+.sb-tabs button svg { display: none; width: 20px; height: 20px; }
 .sb-actions { display: flex; align-items: center; gap: 10px; margin-left: auto; }
 .sb-undo { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--sb-muted); }
 .sb-undo:hover:not(:disabled) { color: var(--sb-text); }
@@ -153,8 +155,16 @@
 .sb-rail button kbd { position: absolute; right: 3px; top: 3px; border: 0; opacity: .8; font-size: 9px; }
 .sb-rail button.help { margin-top: 8px; }
 
-/* hotbar + drawer: square cards showing the piece itself; names and readings are tooltips */
-.sb-hotbar { position: absolute; left: 50%; bottom: var(--sb-bar-bottom); transform: translateX(-50%); display: flex; gap: 6px; }
+/* palette dock: the whole bottom edge. A transparent tab row (layer tabs left, hotkey legend right) sits on a solid card row
+   listing the layer's entire selection; the row scrolls sideways, fades at the edge hiding cards, and keeps `…` pinned for the grid. */
+.sb-dock { position: absolute; left: 0; right: 0; bottom: 0; height: var(--sb-bar-height); display: flex; flex-direction: column; text-shadow: none; z-index: 3; }
+.sb-dock-tabs { display: flex; align-items: flex-end; gap: 14px; padding: 0 14px; height: var(--sb-dock-tabs); flex-shrink: 0; }
+.sb-dock-body { flex: 1; min-height: 0; display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--sb-card); border-top: 1px solid var(--sb-line2); box-shadow: 0 -10px 30px #0a0c0e66; }
+.sb-hotbar { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; }
+.sb-hotbar-cards { display: flex; gap: 6px; flex: 1; min-width: 0; padding: 1px; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+.sb-hotbar-cards[data-overflow=end] { mask-image: linear-gradient(90deg, #000 calc(100% - 72px), transparent); }
+.sb-hotbar-cards[data-overflow=start] { mask-image: linear-gradient(90deg, transparent, #000 72px); }
+.sb-hotbar-cards[data-overflow=both] { mask-image: linear-gradient(90deg, transparent, #000 72px, #000 calc(100% - 72px), transparent); }
 /* Keep card styles more specific than the button reset. */
 /* `clip`, not `hidden`: a hidden overflow makes each card a scroll container, and with the shell's `overscroll-behavior: contain` Chrome stops the wheel there instead of scrolling the drawer grid. */
 .shipbuilder .sb-slot { flex-shrink: 0; width: var(--sb-slot); height: var(--sb-slot); padding: 0; border: 1px solid var(--sb-line2); border-radius: 3px; background: var(--sb-card); display: flex; align-items: center; justify-content: center; position: relative; overflow: clip; color: var(--sb-text); text-shadow: none; }
@@ -224,9 +234,9 @@
 .sb-armor-groups p { padding: 3px 0; border-bottom: 1px solid var(--sb-line); }
 .sb-armor-groups small { display: block; color: var(--sb-muted); }
 
-/* hotkey legend above the orientation compass: the standing keys on the bottom row, the keys acting on the cursor piece,
-   the selection or the picked faces on a row above. Rows wrap upward and stop short of the palette. */
-.sb-keys { position: absolute; left: 14px; bottom: 150px; max-width: max(150px, calc(50% - var(--sb-bar-width) / 2 - 34px)); display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+/* hotkey legend at the tab row's right end: the standing keys on the bottom row, the keys acting on the cursor piece,
+   the selection or the picked faces on a row above. Rows wrap upward. */
+.sb-keys { margin-left: auto; min-width: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; padding-bottom: 9px; }
 .sb-keys-row { display: flex; flex-wrap: wrap-reverse; gap: 4px 12px; }
 .sb-key { display: inline-flex; align-items: baseline; gap: 4px; font: 500 11px/1.3 'Barlow Condensed', sans-serif; letter-spacing: .04em; color: var(--sb-muted); white-space: nowrap; }
 .sb-keys-row.acting .sb-key { color: var(--sb-text); }
@@ -235,7 +245,7 @@
 /* view bar: icon squares on the palette's bottom line at the right edge, grouped view · camera · slice | centers · snap · mirror | fit;
    the pressed card carries a toggle's state and the tooltip its name, value and key */
 /* view strip: how the ship is shown. One captioned ground with bare glyph squares, so it never reads as a second tool rail. */
-.sb-viewbar { position: absolute; right: 18px; bottom: 24px; display: flex; gap: 2px; align-items: center; padding: 3px 3px 3px 8px; background: var(--sb-card); border: 1px solid var(--sb-line2); border-radius: 4px; }
+.sb-viewbar { display: flex; gap: 2px; align-items: center; flex-shrink: 0; padding: 0 0 0 10px; border-left: 1px solid var(--sb-line2); }
 .sb-vb-cap { margin-right: 6px; text-shadow: none; }
 .sb-viewbar .sb-vb { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border: 0; border-radius: 3px; background: transparent; color: var(--sb-muted); text-shadow: none; position: relative; }
 .sb-vb.gap { margin-left: 11px; }
@@ -249,22 +259,32 @@
   .sb-top { height: auto; flex-wrap: wrap; gap: 4px 12px; padding-top: 8px; }
   .sb-ship { flex: 1; flex-wrap: wrap; gap: 3px 10px; }
   .sb-name { width: 140px; }
-  .sb-tabs { order: 4; flex-basis: 100%; height: 32px; justify-content: center; gap: 14px; }
-  .sb-tabs button { height: 32px; }
   .sb-left { top: 94px; }
   .sb-tag { max-width: min(420px, calc(100% - 96px)); overflow-y: auto; scrollbar-width: thin; }
   .sb-ledger { width: 176px; }
 }
-/* a window narrower than the palette plus the strip drops the caption and folds the squares into rows of three */
+/* a narrower window drops the strip's caption and folds its squares into rows of three, shows the layer tabs as glyphs, and moves the compass clear of the rail */
+@media (max-width: 1240px), (max-height: 800px) {
+  .sb-orientation { left: 70px; }
+}
 @media (max-width: 1240px) {
-  .sb-viewbar { flex-wrap: wrap-reverse; width: 104px; justify-content: flex-end; padding: 3px; }
+  .sb-viewbar { flex-wrap: wrap-reverse; width: 104px; justify-content: flex-end; padding-left: 6px; }
+  .sb-tabs button { padding: 0 12px; }
+  .sb-tabs button svg { display: block; }
+  .sb-tabs button span { display: none; }
   .sb-vb-cap { display: none; }
   .sb-vb.gap { margin-left: 0; }
   .sb-vb.gap::before { display: none; }
 }
-/* a short window leaves no room for the legend under the rail */
+/* a short window leaves no room for the legend in the tab row, and the rail shortens its cards and scrolls above the dock */
 @media (max-width: 860px), (max-height: 800px) {
   .sb-keys { display: none; }
+}
+@media (max-height: 800px) {
+  .sb-left { bottom: calc(var(--sb-bar-height) + 8px); }
+  .sb-left .sb-warn { flex-shrink: 0; }
+  .sb-left .sb-rail { min-height: 0; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; pointer-events: auto; }
+  .sb-left .sb-rail button { flex-shrink: 0; height: 44px; }
 }
 @media (max-width: 860px) {
   .sb-ledger { display: none; }
@@ -277,50 +297,37 @@
   .sb-ship { display: grid; grid-template-columns: 1fr auto; gap: 4px 8px; }
   .sb-name { grid-column: 1 / -1; width: 100%; }
   .sb-save { white-space: normal; text-align: right; }
-  .sb-tabs { grid-column: 1 / -1; grid-row: 3; height: 34px; width: 100%; justify-content: space-between; gap: 8px; }
-  .sb-tabs button { height: 34px; }
   .sb-actions { grid-column: 1 / -1; justify-self: end; }
-  .sb-left { top: 152px; bottom: calc(var(--sb-bar-bottom) + var(--sb-bar-height) + 48px); }
+  .sb-left { top: 118px; bottom: calc(var(--sb-bar-bottom) + var(--sb-bar-height) + 48px); }
   .sb-left .sb-warn { flex-shrink: 0; }
   .sb-left .sb-rail { min-height: 0; overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; pointer-events: auto; }
   .sb-left .sb-rail button { flex-shrink: 0; }
   .sb-menu { position: fixed; left: 12px; top: 64px; width: calc(100vw - 24px); max-width: none; z-index: 6; }
-  /* One centred row of view squares keeps below the full-width palette. */
-  .shipbuilder { --sb-bar-bottom: 60px; --sb-bar-height: calc((100vw - 52px) * 2 / 5 + 6px); }
-  .sb-viewbar { left: 14px; right: 14px; bottom: 12px; width: auto; justify-content: center; }
-  .sb-orientation { bottom: calc(var(--sb-bar-bottom) + var(--sb-bar-height) + 18px); }
   .shipbuilder:not(.sb-freeform-mode) .sb-top { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 12px; }
   .shipbuilder:not(.sb-freeform-mode) .sb-ship { grid-column: 2; }
   .shipbuilder:not(.sb-freeform-mode) .sb-name { flex-basis: 100%; width: 100%; }
   .shipbuilder:not(.sb-freeform-mode) .sb-actions { grid-column: 1 / -1; width: 100%; margin: 0; }
   .shipbuilder:not(.sb-freeform-mode) .sb-cmd { margin-left: auto; }
-  .shipbuilder:not(.sb-freeform-mode) .sb-tabs { grid-column: 1 / -1; width: 100%; margin: 0; justify-content: space-between; }
   .shipbuilder:not(.sb-freeform-mode) .sb-left { top: 144px; }
   .shipbuilder:not(.sb-freeform-mode) .sb-rail button { height: 44px; }
   .sb-menu { position: fixed; left: 12px; right: 12px; top: 64px; width: auto; max-height: calc(100dvh - 88px); }
-  .sb-hotbar { width: calc(100% - 28px); display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); }
-  .shipbuilder { --sb-bar-width: min(344px, calc(100vw - 28px)); --sb-bar-height: calc((var(--sb-bar-width) - 24px) * 2 / 5 + 6px); --sb-bar-bottom: 60px; }
-  .sb-top { height: 118px; display: grid; grid-template-columns: 44px minmax(0, 1fr); grid-template-rows: 44px 30px 38px; gap: 0 12px; padding-top: 6px; }
+  .sb-tabs { flex: 1; justify-content: space-between; gap: 0; }
+  .sb-top { height: 80px; display: grid; grid-template-columns: 44px minmax(0, 1fr); grid-template-rows: 44px 30px; gap: 0 12px; padding-top: 6px; }
   .sb-port { grid-column: 1; grid-row: 1; }
   .sb-ship { grid-column: 2; grid-row: 1; display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 8px; row-gap: 1px; }
   .sb-name { grid-column: 1 / -1; width: 100%; min-width: 0; }
   .sb-meta { min-width: 0; font-size: 10px; }
   .sb-save { font-size: 10px; }
   .sb-actions { grid-column: 1 / -1; grid-row: 2; justify-content: flex-end; margin: 0; }
-  .sb-tabs { grid-column: 1 / -1; grid-row: 3; justify-content: space-between; height: 38px; margin: 0; gap: 8px; }
-  .sb-tabs button { height: 38px; }
   .sb-menu { position: fixed; top: 52px; left: 12px; width: calc(100vw - 24px); }
-  .sb-left { top: 128px; right: 14px; max-width: none; gap: 10px; }
+  .sb-left { top: 96px; right: 14px; max-width: none; gap: 10px; }
   .sb-warn, .sb-warn .rows { width: 100%; min-width: 0; }
   .sb-warn .row, .sb-warn .row span { min-width: 0; }
   .sb-warn .rows { max-height: 54px; }
-  .sb-orientation { bottom: 244px; width: 120px; }
-  .sb-hotbar { width: var(--sb-bar-width); display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); }
-  .shipbuilder .sb-hotbar .sb-slot { width: auto; height: auto; aspect-ratio: 1; min-width: 0; }
+  .sb-orientation { width: 120px; }
   .sb-cursor { width: calc(100% - 28px); justify-content: center; gap: 5px; font-size: 11px; }
   .sb-cursor b { max-width: 140px; overflow: hidden; text-overflow: ellipsis; }
   .sb-cursor .sb-coords { position: absolute; bottom: 24px; right: 0; }
-  .sb-viewbar { left: 14px; right: 14px; bottom: 10px; width: auto; justify-content: center; }
   .sb-drawer { width: calc(100% - 28px); max-width: none; }
   .sb-drawer-grid { max-height: max(56px, calc(100dvh - 450px)); }
 }
@@ -385,7 +392,7 @@
 .sb-freeform-footer {display:flex;align-items:center;flex-wrap:wrap;gap:8px 16px;padding:0 12px 10px;}
 .sb-freeform-footer p {flex:1;max-width:380px;margin:0;font-size:12px;line-height:1.4;color:var(--sb-muted);}
 .shipbuilder .sb-edit-freeform {display:block;padding:5px 8px;margin:5px 0;background:var(--sb-brass);color:var(--sb-ink);border-radius:3px;}
-.sb-freeform-mode .sb-hotbar,.sb-freeform-mode .sb-viewbar,.sb-freeform-mode .sb-cursor,.sb-freeform-mode .sb-keys {display:none;}
+.sb-freeform-mode .sb-dock,.sb-freeform-mode .sb-cursor {display:none;}
 @media(max-width:1100px) {
   .sb-freeform-tools {max-width:calc(100% - 32px);bottom:14px;}
   .sb-freeform-controls {gap:10px;}
@@ -393,8 +400,6 @@
   .sb-freeform-mode .sb-top {height:auto;flex-wrap:wrap;gap:4px 12px;padding-top:8px;}
   .sb-freeform-mode .sb-ship {flex:1;flex-wrap:wrap;gap:3px 10px;}
   .sb-freeform-mode .sb-name {width:140px;}
-  .sb-freeform-mode .sb-tabs {order:4;flex-basis:100%;height:32px;justify-content:center;}
-  .sb-freeform-mode .sb-tabs button {height:32px;}
   .sb-freeform-mode .sb-left {top:94px;}
 }
 @media(max-width:720px) {
