@@ -1,11 +1,13 @@
 //! Physical deck handling. Requests reference the wing's aircraft; this module
 //! never owns a second inventory or creates replacement aircraft.
-use crate::{
+use super::{
     air_rules::DeckTimings,
     aircraft::{AirWingState, Aircraft, FIGHTER_AMMO_BURSTS, aircraft_service_seconds},
     aircraft_deck::{GroundPose, compose_attitude},
     deck_navigation::{DeckTraffic, RouteProgress, RouteSearch},
     flight_deck::{DeckPose, Envelope},
+};
+use crate::{
     geometry::{add, length, local_to_world, scale, sub, wrap_angle},
     vessel::Vessel,
 };
@@ -59,7 +61,7 @@ pub struct DeckStatus {
     pub capacity: usize,
     pub group_size: usize,
     pub active_flight_limit: Option<usize>,
-    pub endurance: crate::air_rules::EndurancePolicy,
+    pub endurance: crate::aviation::air_rules::EndurancePolicy,
     pub repair_ceiling_hp: f64,
 }
 #[derive(Clone, Debug)]
@@ -103,7 +105,7 @@ pub struct DeckOperations {
     capacity: usize,
     group_size: usize,
     active_flight_limit: Option<usize>,
-    endurance: crate::air_rules::EndurancePolicy,
+    endurance: crate::aviation::air_rules::EndurancePolicy,
     repair_ceiling: f64,
     queue: VecDeque<DeckRequest>,
     sequence: u64,
@@ -129,15 +131,17 @@ pub fn place(p: &mut Aircraft, actor: &Vessel, at: DeckPose, ground: &GroundPose
     let cached = (p.deck_datum == Some(at.position) && p.deck_heading == Some(at.heading))
         .then(|| p.deck_local_attitude.zip(p.deck_position))
         .flatten()
-        .map(|(attitude, root)| crate::deck_contact::ContactPose {
-            root,
-            attitude: crate::geometry::Pose {
-                heading: attitude.heading,
-                pitch: attitude.pitch,
-                roll: attitude.bank,
-                ..Default::default()
+        .map(
+            |(attitude, root)| crate::aviation::deck_contact::ContactPose {
+                root,
+                attitude: crate::geometry::Pose {
+                    heading: attitude.heading,
+                    pitch: attitude.pitch,
+                    roll: attitude.bank,
+                    ..Default::default()
+                },
             },
-        });
+        );
     let Some(fitted) = cached.or_else(|| {
         actor
             .compiled
@@ -152,7 +156,7 @@ pub fn place(p: &mut Aircraft, actor: &Vessel, at: DeckPose, ground: &GroundPose
     if let Some(previous) = &mut p.previous_controls {
         previous.hook = previous.hook.min(geometry.hook_deck_fraction);
     }
-    p.deck_local_attitude = Some(crate::aircraft_flight::FlightAttitude {
+    p.deck_local_attitude = Some(crate::aviation::aircraft_flight::FlightAttitude {
         heading: fitted.attitude.heading,
         pitch: fitted.attitude.pitch,
         bank: fitted.attitude.roll,
@@ -171,7 +175,7 @@ pub fn place(p: &mut Aircraft, actor: &Vessel, at: DeckPose, ground: &GroundPose
 fn needs_hangar_service(p: &Aircraft, repair_ceiling: f64) -> bool {
     p.hp < repair_ceiling
         || if p.role == "fighter" {
-            p.ammo < crate::aircraft::FIGHTER_AMMO_BURSTS
+            p.ammo < crate::aviation::aircraft::FIGHTER_AMMO_BURSTS
         } else {
             !p.payload
         }
@@ -199,15 +203,16 @@ impl DeckOperations {
                     .any(|p| p.id == job.plane_id && p.flight_id.as_deref() == Some(flight_id))
             })
     }
-    pub fn initialize(
+    pub(super) fn initialize(
         state: &mut AirWingState,
         actor: &Vessel,
         ground: &BTreeMap<String, GroundPose>,
-        rules: &crate::air_rules::AirRules,
-        resolved: &crate::air_rules::CarrierAirRules,
+        rules: &crate::aviation::air_rules::AirRules,
+        resolved: &crate::aviation::air_rules::CarrierAirRules,
         startup_per_role: usize,
     ) -> Result<Self, String> {
-        let crate::air_rules::DeckCycle::Managed { timings, .. } = &rules.deck_cycle else {
+        let crate::aviation::air_rules::DeckCycle::Managed { timings, .. } = &rules.deck_cycle
+        else {
             return Err("Managed deck policy required".into());
         };
         let capacity = resolved.deck_capacity;
@@ -295,7 +300,7 @@ impl DeckOperations {
         ops.publish(state, false);
         Ok(ops)
     }
-    pub fn enqueue(
+    pub(super) fn enqueue(
         &mut self,
         state: &AirWingState,
         flight_id: &str,
@@ -312,7 +317,7 @@ impl DeckOperations {
         let survivors: Vec<_> = state
             .planes
             .iter()
-            .filter(|p| flight.plane_ids.contains(&p.id) && !crate::aircraft::terminal(p))
+            .filter(|p| flight.plane_ids.contains(&p.id) && !crate::aviation::aircraft::terminal(p))
             .collect();
         if survivors.is_empty() {
             return Err("No surviving aircraft in this group".into());
@@ -372,7 +377,7 @@ impl DeckOperations {
         self.notice = None;
         Ok(self.sequence)
     }
-    pub fn cancel(&mut self, id: u64) -> bool {
+    pub(super) fn cancel(&mut self, id: u64) -> bool {
         if self.queue.iter().any(|r| r.id == id && r.automatic) {
             return false;
         }
@@ -398,7 +403,7 @@ impl DeckOperations {
         }
         true
     }
-    pub fn cancel_launches(&mut self, flight_id: Option<&str>) {
+    pub(super) fn cancel_launches(&mut self, flight_id: Option<&str>) {
         let ids: Vec<_> = self
             .queue
             .iter()
@@ -421,7 +426,9 @@ impl DeckOperations {
             .planes
             .iter()
             .filter(|p| {
-                p.id != except && !crate::aircraft::terminal(p) && p.deck_position.is_some()
+                p.id != except
+                    && !crate::aviation::aircraft::terminal(p)
+                    && p.deck_position.is_some()
             })
             .map(|p| {
                 let g = &ground[&p.model_id];
@@ -455,7 +462,7 @@ impl DeckOperations {
             .planes
             .iter()
             .filter(|p| {
-                !crate::aircraft::terminal(p)
+                !crate::aviation::aircraft::terminal(p)
                     && (p.deck_position.is_some() || p.deck_slot.is_some())
             })
             .map(|p| {
@@ -520,7 +527,9 @@ impl DeckOperations {
                 .planes
                 .iter()
                 .enumerate()
-                .filter(|(_, p)| flight.plane_ids.contains(&p.id) && !crate::aircraft::terminal(p))
+                .filter(|(_, p)| {
+                    flight.plane_ids.contains(&p.id) && !crate::aviation::aircraft::terminal(p)
+                })
                 .map(|(i, _)| i)
                 .collect();
             if matches!(
@@ -544,7 +553,7 @@ impl DeckOperations {
             let mut needed = matches!(request.action, DeckAction::Stow | DeckAction::Repair)
                 && indices
                     .iter()
-                    .any(|&i| crate::aircraft::airborne(&state.planes[i]));
+                    .any(|&i| crate::aviation::aircraft::airborne(&state.planes[i]));
             for index in indices {
                 let p = &mut state.planes[index];
                 let action = request.action;
@@ -738,7 +747,7 @@ impl DeckOperations {
             .as_ref()
             .unwrap();
         for p in &mut state.planes {
-            if crate::aircraft::terminal(p) || p.hp <= 0.0 {
+            if crate::aviation::aircraft::terminal(p) || p.hp <= 0.0 {
                 continue;
             }
             if p.deck_position.is_some() && p.phase != "takeoff" {
@@ -792,11 +801,9 @@ impl DeckOperations {
             self.publish(state, false);
             return;
         };
-        let Some(index) = state
-            .planes
-            .iter()
-            .position(|p| p.id == job.plane_id && !crate::aircraft::terminal(p) && p.hp > 0.0)
-        else {
+        let Some(index) = state.planes.iter().position(|p| {
+            p.id == job.plane_id && !crate::aviation::aircraft::terminal(p) && p.hp > 0.0
+        }) else {
             self.publish(state, false);
             return;
         };

@@ -1,11 +1,10 @@
 //! Short, persistent reactions to locally observed attackers and close gunfire.
 //! This controller receives permitted pilot observations, never a hidden threat list.
-use crate::{
+use super::{
     aircraft::{Aircraft, PlaneView, set_opt_str},
     aircraft_flight::{FlightOptions, fly},
-    definition::Vec3,
-    geometry::*,
 };
+use crate::{definition::Vec3, geometry::*};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
@@ -32,7 +31,7 @@ pub fn near_fire(p: &mut Aircraft, origin: Vec3) {
     state.fire_direction = direction;
 }
 
-pub fn tick(p: &mut Aircraft, dt: f64) {
+pub(super) fn tick(p: &mut Aircraft, dt: f64) {
     if let Some(s) = &mut p.pilot.defense {
         s.fire_seconds = (s.fire_seconds - dt).max(0.0);
         s.cooldown = (s.cooldown - dt).max(0.0);
@@ -44,7 +43,7 @@ pub fn tick(p: &mut Aircraft, dt: f64) {
     }
 }
 
-pub fn evade_bomber(
+pub(super) fn evade_bomber(
     p: &mut Aircraft,
     observations: &[PlaneView<'_>],
     slot: usize,
@@ -93,7 +92,7 @@ pub fn evade_bomber(
         && (!committed || severe)
         && (threat.is_some() || under_fire)
     {
-        let key = crate::air_gunnery::SeedKey::new(seed)
+        let key = crate::aviation::air_gunnery::SeedKey::new(seed)
             .text(&p.id)
             .text("/")
             .number(p.sortie.unwrap_or(0))
@@ -149,4 +148,40 @@ pub fn evade_bomber(
         FlightOptions::default(),
     );
     true
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::aviation::test_support::planes;
+
+    #[test]
+    fn bomber_defense_reacts_to_threats_then_rejoins_and_protects_the_release_window() {
+        let (_, ps) = planes("torpedo-bomber");
+        let mut p = ps[0].clone();
+        assert!(!evade_bomber(&mut p, &[], 0, 5739, 1.0 / 60.0));
+        near_fire(&mut p, [100.0, 0.0, 0.0]);
+        assert!(evade_bomber(&mut p, &[], 0, 5739, 1.0 / 60.0));
+        assert!(p.pilot.defense.as_ref().unwrap().spread_seconds > 0.0);
+        let first_heading = p.heading;
+        for _ in 0..600 {
+            tick(&mut p, 1.0 / 60.0);
+            evade_bomber(&mut p, &[], 0, 5739, 1.0 / 60.0);
+        }
+        assert!((p.heading - first_heading).abs() > 0.1);
+        assert!(!evade_bomber(&mut p, &[], 0, 5739, 1.0 / 60.0));
+        assert!(p.payload && p.position[1] > 50.0);
+        p = ps[0].clone();
+        p.phase = "attack".into();
+        p.position[1] = 26.0;
+        p.pilot.attack_stage = Some("run".into());
+        near_fire(&mut p, [100.0, 0.0, 0.0]);
+        assert!(
+            !evade_bomber(&mut p, &[], 0, 5739, 1.0 / 60.0),
+            "healthy pilot must preserve a committed torpedo solution"
+        );
+        p.hp = 40.0;
+        assert!(evade_bomber(&mut p, &[], 0, 5739, 1.0 / 60.0));
+        assert_eq!(p.pilot.attack_stage.as_deref(), Some("egress"));
+        assert!(p.payload);
+    }
 }

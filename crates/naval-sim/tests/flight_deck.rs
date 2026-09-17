@@ -1,7 +1,4 @@
-use naval_sim::{
-    catalog::Catalog,
-    flight_deck::{DeckPose, Envelope},
-};
+use naval_sim::{aviation::{DeckPose, Envelope}, catalog::Catalog};
 use std::sync::OnceLock;
 
 fn catalog() -> &'static Catalog {

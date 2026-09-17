@@ -1,9 +1,8 @@
 //! Three-contact resting poses from the authored flight-deck and flush platforms.
 //! Geometry is compiled once; the simulation never queries renderer meshes.
+use super::{aircraft_deck::GroundPose, flight_deck::DeckPose};
 use crate::{
-    aircraft_deck::GroundPose,
     definition::{AuthoredStructure, ShipDefinition, Vec3},
-    flight_deck::DeckPose,
     geometry::{Pose, add, cross, dot, rotate, scale, sub},
 };
 use std::collections::BTreeMap;

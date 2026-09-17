@@ -1,11 +1,13 @@
-use crate::{
+use super::{
     air_gunnery::{fighter_spread, gunnery_seed},
     aircraft::Aircraft,
+};
+use crate::{
     ballistics::{dispersed_direction, dispersed_speed},
     definition::Vec3,
     geometry::*,
 };
-pub fn strike_aim_error(p: &Aircraft, heading: f64, seed: u32, sortie: u32) -> Vec3 {
+pub(super) fn strike_aim_error(p: &Aircraft, heading: f64, seed: u32, sortie: u32) -> Vec3 {
     let key = gunnery_seed(&p.id, seed);
     let pass = sortie.wrapping_mul(17).wrapping_add(p.pilot.attempts);
     let across = (dispersed_speed(1.0, 1.0, key, pass) - 1.0)
@@ -19,11 +21,11 @@ pub fn strike_aim_error(p: &Aircraft, heading: f64, seed: u32, sortie: u32) -> V
     ]
 }
 #[derive(Clone, Copy, Debug, serde::Serialize)]
-pub struct FighterBurst {
+pub(super) struct FighterBurst {
     pub end: Vec3,
     pub hit: bool,
 }
-pub fn fighter_burst(p: &Aircraft, aim: Vec3, seed: u32, sortie: u32) -> FighterBurst {
+pub(super) fn fighter_burst(p: &Aircraft, aim: Vec3, seed: u32, sortie: u32) -> FighterBurst {
     let delta = sub(aim, p.position);
     let distance = length(delta);
     let panic = p.pilot.fire_discipline.as_ref().is_some_and(|d| d.panic);

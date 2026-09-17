@@ -1,10 +1,7 @@
 //! A strike whose report dies shifts to a ship the pilot can see, or returns
 //! armed. It never orbits a sunk contact until endurance runs out.
 use naval_sim::{
-    air_rules::{ActiveFlights, AirRules, EndurancePolicy},
-    aircraft::AirOrder,
-    aviation::Aviation,
-    aviation_step::AirContext,
+    aviation::{ActiveFlights, AirContext, AirOrder, AirRules, Aviation, EndurancePolicy},
     catalog::Catalog,
     rules::TeamId,
     sensors::{self, Knowledge, Sensors},

@@ -1,7 +1,5 @@
-use crate::{
-    aircraft::Aircraft, aircraft_flight::FlightAttitude, definition::Vec3, geometry::*,
-    vessel::Vessel,
-};
+use super::{aircraft::Aircraft, aircraft_flight::FlightAttitude};
+use crate::{definition::Vec3, geometry::*, vessel::Vessel};
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GroundPose {
@@ -10,7 +8,7 @@ pub struct GroundPose {
     pub clearance: f64,
     pub folding_wings: bool,
     /// Measured geometry baked into the installed catalog.
-    pub deck_geometry: crate::flight_deck::AircraftDeckGeometry,
+    pub deck_geometry: crate::aviation::flight_deck::AircraftDeckGeometry,
     pub torpedo: Option<crate::definition::TorpedoPart>,
     pub bomb: Option<AirBomb>,
 }
@@ -21,7 +19,7 @@ pub struct AirBomb {
     pub caliber_m: f64,
     pub he: crate::definition::HEProjectile,
 }
-pub fn deck_attitude(carrier: Pose, ground: &GroundPose, heading: f64) -> FlightAttitude {
+pub(super) fn deck_attitude(carrier: Pose, ground: &GroundPose, heading: f64) -> FlightAttitude {
     let local = Pose {
         heading,
         pitch: ground.pitch,
@@ -39,7 +37,7 @@ pub fn compose_attitude(carrier: Pose, local: Pose) -> FlightAttitude {
         bank: right[1].atan2(up[1]),
     }
 }
-pub fn deck_pose(p: &mut Aircraft, actor: &Vessel, local: Vec3, ground: &GroundPose) {
+pub(super) fn deck_pose(p: &mut Aircraft, actor: &Vessel, local: Vec3, ground: &GroundPose) {
     p.deck_position = Some(local);
     p.position = local_to_world(local, actor.motion.pose());
     p.deck_heading = Some(0.0);
@@ -49,7 +47,7 @@ pub fn deck_pose(p: &mut Aircraft, actor: &Vessel, local: Vec3, ground: &GroundP
     p.bank = attitude.bank;
     p.velocity = actor.motion.velocity();
 }
-pub fn taxi(
+pub(super) fn taxi(
     p: &mut Aircraft,
     actor: &Vessel,
     destination: Vec3,

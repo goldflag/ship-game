@@ -28,7 +28,7 @@ pub enum EndurancePolicy {
     },
 }
 impl EndurancePolicy {
-    pub fn rejects_order(&self, elapsed: f64) -> bool {
+    pub(super) fn rejects_order(&self, elapsed: f64) -> bool {
         matches!(self, Self::Timed { order_limit_seconds, .. } if elapsed > *order_limit_seconds)
     }
     pub fn needs_recall(&self, elapsed: f64, fighter: bool) -> bool {
@@ -48,7 +48,7 @@ impl EndurancePolicy {
             }
         }
     }
-    pub fn exhausted(&self, elapsed: f64) -> bool {
+    pub(super) fn exhausted(&self, elapsed: f64) -> bool {
         matches!(self, Self::Timed { exhaustion_seconds, .. } if elapsed > *exhaustion_seconds)
     }
 }
@@ -122,7 +122,10 @@ pub struct CarrierAirRules {
 impl AirRules {
     /// Explicit compatibility default for setups written before air profiles.
     pub fn legacy() -> Self {
-        serde_json::from_str(include_str!("../../../assets/gameplay/legacy-air.v1.json")).unwrap()
+        serde_json::from_str(include_str!(
+            "../../../../assets/gameplay/legacy-air.v1.json"
+        ))
+        .unwrap()
     }
     pub fn validate(&self) -> Result<(), String> {
         if self.version != 1
@@ -194,7 +197,7 @@ impl AirRules {
                     .deck_layout
                     .as_ref()
                     .ok_or("Physical deck layout required")?;
-                crate::flight_deck::validate(definition, layout)?;
+                crate::aviation::flight_deck::validate(definition, layout)?;
                 layout.spots.len()
             }
         };

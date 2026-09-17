@@ -65,7 +65,7 @@ pub struct MountState {
     /// Derived before operation; never accepted from or sent to a client.
     #[serde(skip)]
     pub carrier: Option<CarrierFrame>,
-    pub aa_discipline: Option<crate::air_gunnery::FireDiscipline>,
+    pub aa_discipline: Option<crate::aviation::FireDiscipline>,
     pub lead_cache: Option<LeadCache>,
     pub id: String,
     pub train: f64,

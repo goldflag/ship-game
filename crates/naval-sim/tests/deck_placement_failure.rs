@@ -1,12 +1,11 @@
 //! Fault-inject missing contact patches after content admission to exercise
 //! managed handling's failure/retry paths independently of route clearance.
 use naval_sim::{
-    air_rules::{ActiveFlights, AirRules, DeckCycle, DeckTimings, EndurancePolicy},
-    aviation::Aviation,
-    aviation_step::AirContext,
+    aviation::{
+        ActiveFlights, AirContext, AirRules, Aviation, DeckAction, DeckCycle, DeckPose, DeckTimings,
+        EndurancePolicy, place,
+    },
     catalog::Catalog,
-    deck_operations::{DeckAction, place},
-    flight_deck::DeckPose,
     geometry::{length, local_to_world, sub},
     impact::DamageEvent,
     rules::TeamId,

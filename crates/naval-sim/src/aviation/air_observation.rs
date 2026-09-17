@@ -3,12 +3,12 @@
 use super::*;
 use crate::sensors::{Affiliation, ContactKind, ContactTrack, Knowledge, TrackStatus};
 
-pub(super) struct StrikeSolution {
+pub(in crate::aviation) struct StrikeSolution {
     pub point: Vec3,
     pub velocity: Vec3,
     pub heading: f64,
 }
-pub(super) fn report_point(c: &ContactTrack, tick: u64) -> Vec3 {
+pub(in crate::aviation) fn report_point(c: &ContactTrack, tick: u64) -> Vec3 {
     let age = (tick.saturating_sub(c.last_observed_tick) as f64 / crate::rules::TICK_RATE as f64)
         .min(if c.kind == ContactKind::Aircraft {
             10.0
@@ -22,7 +22,7 @@ pub(super) fn report_point(c: &ContactTrack, tick: u64) -> Vec3 {
 const SEARCH_DEADLINE_SECONDS: f64 = 90.0;
 /// A strike may shift to another ship it can see within this range.
 const RETARGET_RANGE_M: f64 = 8000.0;
-pub(super) fn dead_report(c: &ContactTrack) -> bool {
+pub(in crate::aviation) fn dead_report(c: &ContactTrack) -> bool {
     c.visible_condition.as_ref().is_some_and(|v| v.sinking)
 }
 fn reset_attack(p: &mut Aircraft) {
@@ -31,14 +31,20 @@ fn reset_attack(p: &mut Aircraft) {
     p.pilot.attempts = 0;
     p.pilot.search_seconds = 0.0;
 }
-pub(super) fn locally_observed(c: &ContactTrack, p: &Aircraft, tick: u64) -> bool {
+pub(in crate::aviation) fn locally_observed(c: &ContactTrack, p: &Aircraft, tick: u64) -> bool {
     c.affiliation == Affiliation::Hostile
         && c.sources.iter().any(|s| {
             s.observer_id == p.id && tick.saturating_sub(s.tick) <= 2 * crate::rules::TICK_RATE
         })
 }
 impl Aviation {
-    pub(super) fn search_report(&self, p: &mut Aircraft, c: &ContactTrack, tick: u64, dt: f64) {
+    pub(in crate::aviation) fn search_report(
+        &self,
+        p: &mut Aircraft,
+        c: &ContactTrack,
+        tick: u64,
+        dt: f64,
+    ) {
         let mut anchor = report_point(c, tick);
         let radius = c.uncertainty_m.clamp(650.0, 2500.0);
         if let Some(area) = &self.airspace {
@@ -62,7 +68,7 @@ impl Aviation {
         } else {
             orbit_point(p, anchor, radius, 1.0)
         };
-        crate::aircraft::set_str(&mut p.phase, "outbound");
+        crate::aviation::aircraft::set_str(&mut p.phase, "outbound");
         p.pilot.attack_stage = None;
         p.pilot.attack_heading = None;
         fly(
@@ -77,7 +83,7 @@ impl Aviation {
         );
     }
 
-    pub(super) fn strike_solution(
+    pub(in crate::aviation) fn strike_solution(
         &self,
         p: &mut Aircraft,
         flight: &mut Option<AirFlight>,
@@ -85,7 +91,7 @@ impl Aviation {
         dt: f64,
     ) -> Option<StrikeSolution> {
         if !p.payload {
-            crate::aircraft::set_str(&mut p.phase, "returning");
+            crate::aviation::aircraft::set_str(&mut p.phase, "returning");
             if let Some(f) = flight
                 && f.notice
                     .as_deref()
@@ -117,7 +123,7 @@ impl Aviation {
             if let Some(f) = flight {
                 f.notice = Some("Target unavailable · Returning armed".into());
             }
-            crate::aircraft::set_str(&mut p.phase, "returning");
+            crate::aviation::aircraft::set_str(&mut p.phase, "returning");
             return None;
         };
         // A wingmate's retarget changes the flight order; the flight stays on
@@ -182,7 +188,7 @@ impl Aviation {
                     if let Some(f) = flight {
                         f.notice = Some(format!("{prefix} · Returning armed"));
                     }
-                    crate::aircraft::set_str(&mut p.phase, "returning");
+                    crate::aviation::aircraft::set_str(&mut p.phase, "returning");
                     return None;
                 }
             }
@@ -228,7 +234,7 @@ impl Aviation {
     /// Preserve own physical aircraft for formation/clear-fire checks. Hostile
     /// representations contain measurements and unknown capability, never HP,
     /// payload, current private maneuvers, squadron IDs or carrier inventories.
-    pub(super) fn pilot_aircraft<'a>(
+    pub(in crate::aviation) fn pilot_aircraft<'a>(
         &'a self,
         p: &Aircraft,
         knowledge: Option<Knowledge<'a>>,
@@ -284,11 +290,11 @@ impl Aviation {
         planes
     }
 
-    pub(super) fn apply_fighter_hit(
+    pub(in crate::aviation) fn apply_fighter_hit(
         &mut self,
         p: &mut Aircraft,
         observed_id: &str,
-        burst: &crate::aircraft_accuracy::FighterBurst,
+        burst: &crate::aviation::aircraft_accuracy::FighterBurst,
         gun: &FighterAim,
         ctx: &mut AirContext<'_>,
     ) {
@@ -317,7 +323,7 @@ impl Aviation {
             add(target.position, scale(target.velocity, gun.time)),
         )) < 45.0
         {
-            crate::aircraft_defense::near_fire(target, p.position);
+            crate::aviation::aircraft_defense::near_fire(target, p.position);
         }
         if hit {
             target.hp -= air_gunnery::FIGHTER_DAMAGE
@@ -328,5 +334,81 @@ impl Aviation {
             p.kills += 1;
             lose(target, ctx.events, "Shot down");
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{rules::TICK_RATE, sensors::ObservationSource};
+    fn track(kind: ContactKind, last_observed_tick: u64) -> ContactTrack {
+        ContactTrack {
+            id: "contact".into(),
+            kind,
+            affiliation: Affiliation::Hostile,
+            status: TrackStatus::Stale,
+            first_observed_tick: 0,
+            last_observed_tick,
+            measured_position: [1000.0, 0.0, -2000.0],
+            estimated_position: [1000.0, 0.0, -2000.0],
+            velocity: [10.0, 0.0, 0.0],
+            uncertainty_m: 800.0,
+            identification_confidence: 0.5,
+            classification: None,
+            identified_preset_id: None,
+            sources: vec![],
+            visible_condition: None,
+        }
+    }
+    #[test]
+    fn a_report_is_dead_reckoned_for_a_bounded_time_only() {
+        let seen = 100 * TICK_RATE;
+        let surface = track(ContactKind::Surface, seen);
+        assert_eq!(report_point(&surface, seen)[0], 1000.0);
+        assert_eq!(report_point(&surface, seen + 10 * TICK_RATE)[0], 1100.0);
+        // A minute-old ship report is carried 30 s ahead, never a full minute.
+        assert_eq!(report_point(&surface, seen + 60 * TICK_RATE)[0], 1300.0);
+        assert_eq!(report_point(&surface, seen + 600 * TICK_RATE)[0], 1300.0);
+        // Aircraft reports go stale three times faster.
+        let air = track(ContactKind::Aircraft, seen);
+        assert_eq!(report_point(&air, seen + 60 * TICK_RATE)[0], 1100.0);
+        // A report from the future is not moved backwards.
+        assert_eq!(report_point(&surface, seen - TICK_RATE)[0], 1000.0);
+    }
+    #[test]
+    fn only_this_pilots_fresh_own_sighting_counts_as_local_observation() {
+        let (_, ps) = crate::aviation::test_support::planes("dive-bomber");
+        let p = &ps[0];
+        let now = 300 * TICK_RATE;
+        let mut c = track(ContactKind::Surface, now);
+        let source = |observer_id: &str, tick| ObservationSource {
+            observer_id: observer_id.into(),
+            kind: ContactKind::Aircraft,
+            tick,
+            strength: 1.0,
+        };
+        assert!(!locally_observed(&c, p, now), "no sources");
+        c.sources = vec![source(&p.id, now - 2 * TICK_RATE)];
+        assert!(locally_observed(&c, p, now), "own sighting two seconds old");
+        c.sources = vec![source(&p.id, now - 2 * TICK_RATE - 1)];
+        assert!(!locally_observed(&c, p, now), "own sighting just too old");
+        c.sources = vec![source(&ps[1].id, now)];
+        assert!(
+            !locally_observed(&c, p, now),
+            "a wingmate's sighting is a report"
+        );
+        c.sources = vec![source(&p.id, now)];
+        c.affiliation = Affiliation::Unknown;
+        assert!(
+            !locally_observed(&c, p, now),
+            "unidentified contacts are never targets"
+        );
+        c.affiliation = Affiliation::Hostile;
+        assert!(!dead_report(&c));
+        c.visible_condition = Some(crate::recon::ObservedCondition {
+            sinking: true,
+            ..Default::default()
+        });
+        assert!(dead_report(&c));
     }
 }

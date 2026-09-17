@@ -1,10 +1,7 @@
 //! Order-level regression tests: real inventory/admission/deck cycle, with
 //! controlled airborne starting positions to isolate relief and coordination.
 use naval_sim::{
-    air_rules::{ActiveFlights, EndurancePolicy},
-    aircraft::{AirOrder, Aircraft},
-    aviation::Aviation,
-    aviation_step::AirContext,
+    aviation::{ActiveFlights, AirContext, AirOrder, Aircraft, Aviation, EndurancePolicy},
     catalog::Catalog,
     rules::TeamId,
     vessel::{Controller, Vessel},
@@ -567,7 +564,7 @@ fn a_serviced_original_group_rotates_back_without_a_relief_chain() {
 }
 #[test]
 fn managed_relief_requests_physical_handling_without_raising_or_refilling_aircraft() {
-    use naval_sim::air_rules::{DeckCycle, DeckTimings};
+    use naval_sim::aviation::{DeckCycle, DeckTimings};
     let actors = actors();
     let mut rules = catalog().air_profiles["pve-air-v1"].clone();
     rules.group_size = Some(4);
@@ -606,9 +603,11 @@ fn managed_relief_requests_physical_handling_without_raising_or_refilling_aircra
         .unwrap()
         .clone();
     let requests = &air.wing("carrier").unwrap().deck.as_ref().unwrap().queue;
-    assert!(requests.iter().any(
-        |r| r.flight_id == relief && r.action == naval_sim::deck_operations::DeckAction::Raise
-    ));
+    assert!(
+        requests
+            .iter()
+            .any(|r| r.flight_id == relief && r.action == naval_sim::aviation::DeckAction::Raise)
+    );
     assert_eq!(
         before,
         air.iter_planes()
@@ -745,7 +744,7 @@ fn benchmark_attack_package_flights() {
 }
 
 fn managed_setup(groups: usize) -> (Vec<Vessel>, Aviation) {
-    use naval_sim::air_rules::{DeckCycle, DeckTimings};
+    use naval_sim::aviation::{DeckCycle, DeckTimings};
     let actors = actors();
     let mut rules = catalog().air_profiles["pve-air-v1"].clone();
     rules.group_size = Some(4);
@@ -785,9 +784,7 @@ fn cancelling_a_managed_relief_launch_clears_queued_planes_and_persistent_statio
         .unwrap()
         .queue
         .iter()
-        .find(|r| {
-            r.flight_id == relief && r.action == naval_sim::deck_operations::DeckAction::Launch
-        })
+        .find(|r| r.flight_id == relief && r.action == naval_sim::aviation::DeckAction::Launch)
         .unwrap()
         .id;
     assert!(!air.cancel_deck_command("other", request));
@@ -822,7 +819,7 @@ fn cancelling_a_managed_relief_launch_clears_queued_planes_and_persistent_statio
             .unwrap()
             .queue
             .iter()
-            .all(|r| r.action != naval_sim::deck_operations::DeckAction::Launch)
+            .all(|r| r.action != naval_sim::aviation::DeckAction::Launch)
     );
 }
 #[test]
@@ -869,7 +866,7 @@ fn cancelling_managed_strike_launch_and_patrol_preparation_retires_operation_int
         .unwrap()
         .queue
         .iter()
-        .find(|r| r.action == naval_sim::deck_operations::DeckAction::Raise)
+        .find(|r| r.action == naval_sim::aviation::DeckAction::Raise)
         .unwrap()
         .id;
     assert!(air.cancel_deck_command("carrier", request));
@@ -885,7 +882,7 @@ fn cancelling_managed_strike_launch_and_patrol_preparation_retires_operation_int
             .unwrap()
             .queue
             .iter()
-            .all(|r| r.action != naval_sim::deck_operations::DeckAction::Raise)
+            .all(|r| r.action != naval_sim::aviation::DeckAction::Raise)
     );
 }
 

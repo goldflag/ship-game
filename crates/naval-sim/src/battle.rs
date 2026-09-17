@@ -3,9 +3,7 @@ use crate::mobility::torpedo_speed;
 pub use crate::navigation::Movement;
 use crate::navigation::{self, NavigationState, WeaponsPolicy};
 use crate::{
-    aircraft::{AirOrder, AirRelease},
-    aviation::Aviation,
-    aviation_step::AirContext,
+    aviation::{AirContext, AirOrder, AirRelease, Aviation},
     bots::{self, AiLevel, BotState},
     capability,
     catalog::Catalog,
@@ -56,7 +54,7 @@ pub struct BattleSetup {
     /// Omitted legacy setups explicitly resolve legacy-air-v1 from installed content.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[ts(optional)]
-    pub air_rules: Option<crate::air_rules::AirRules>,
+    pub air_rules: Option<crate::aviation::AirRules>,
 }
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
