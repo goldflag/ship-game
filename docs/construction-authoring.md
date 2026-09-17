@@ -35,15 +35,16 @@ undo step. Save local copy puts an independent design in the normal IndexedDB
 library. Repository deletion remains a Git operation.
 
 Select a gun in Fittings to change **Turret rise** or **Barbette paint**. Rise
-extends its circular support above the deck while the integrated magazine stays
-at the lower end. Barbette paint applies to the whole fixed support; the deck
-retains its own finish around the circular opening. Both edits support undo.
+extends its circular support above the deck. A turret well's integrated magazine
+stays at its lower end; a deck mount's ready ammunition follows the raised gun.
+Barbette paint applies to the whole generated support. The surrounding deck retains
+its own finish. Both edits support undo.
 
 Full funnel casings use oval below-deck uptake openings. The native compiler uses the same outline for deck cutting, clearance and sealed
 flooding openings, including separate uptakes on trunked funnels, preserving the
-surrounding deck. Guns and full funnels are the only current fittings that cut
-the deck; the separate funnel cap, closed hatches, vents and torpedo launchers
-do not.
+surrounding deck. Guns with working wells and full funnels cut the deck;
+deck-mounted light guns, the separate funnel cap, closed hatches, vents and
+torpedo launchers do not.
 
 Sea Trials transfers the exact draft to the game and uses the real native local
 battle path. Returning reopens that source; combat damage never enters the file.

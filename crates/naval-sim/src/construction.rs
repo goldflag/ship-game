@@ -639,7 +639,8 @@ fn build(
                     Some(&e.id),
                 ));
             }
-            for space in crate::construction_installation::spaces(c, catalog, p, e, &cells) {
+            if crate::construction_installation::deck_mounted(c, catalog, p) { continue; }
+            for space in crate::construction_installation::spaces(c, catalog, p, e) {
                 if !finite(space.center) || !size(space.size) {
                     return Err(error(
                         "equipment-data",
@@ -725,7 +726,7 @@ fn build(
     // Prepare the complete installation preview before load, boundary or equipment
     // validation can exit. Keep it separate from hull skin until installation
     // mass/protection is added, so it cannot count as plating or an attachment.
-    let mut installations = crate::construction_installation::derive(c, catalog, &cells)
+    let mut installations = crate::construction_installation::derive(c, catalog)
         .map_err(|e| error("installation-support", e, None))?;
     if out.surfaces.len() + installations.iter().map(|i| i.surfaces.len()).sum::<usize>() > MAX_SURFACES {
         return Err(error("complexity", format!("Installation surfaces exceed the {MAX_SURFACES} surface limit"), None));
@@ -1736,7 +1737,7 @@ fn equipment(
         } else { vec![envelope.clone()] };
         if p.kind == "gun" && crate::construction_installation::raised(e) > 0. {
             let top = crate::construction_installation::attachment(p);
-            for space in crate::construction_installation::spaces(c, catalog, p, e, hull) {
+            for space in crate::construction_installation::spaces(c, catalog, p, e) {
                 fitting_cells.push(transform_cell(
                     [space.center[0], top - crate::construction_installation::raised(e) / 2., space.center[2]],
                     [space.size[0], crate::construction_installation::raised(e), space.size[2]],
@@ -1761,7 +1762,7 @@ fn equipment(
             occupied.push(envelope.clone());
         }
         {
-            let spaces = crate::construction_installation::spaces(c, catalog, p, e, hull);
+            let spaces = crate::construction_installation::spaces(c, catalog, p, e);
             if spaces.len() > 16 {
                 return Err(error(
                     "equipment-data",
@@ -1844,7 +1845,7 @@ fn equipment(
                 || length(sub(cg::closest_point(h, attachment), attachment)) <= 0.05
         });
         let attached = attached
-            && (p.kind != "deck-fitting"
+            && ((p.kind != "deck-fitting" && !crate::construction_installation::deck_mounted(c, catalog, p))
                 || crate::construction_paths::supported_surface(
                     &out.surfaces,
                     attachment,
@@ -2046,9 +2047,9 @@ fn equipment(
                 ));
             }
             let (magazine_id, ammo_center, ammo_size) = if c.version >= 2. {
-                let (center, size) = crate::construction_installation::magazine(c, catalog, p, e, hull)
-                    .ok_or_else(|| error("magazine-fit", "Gun needs a barbette and integral magazine", Some(&e.id)))?;
-                let id = integral_magazine(def, e, center, size, false);
+                let (center, size) = crate::construction_installation::magazine(c, catalog, p, e)
+                    .ok_or_else(|| error("magazine-fit", "Gun needs an integral ammunition package", Some(&e.id)))?;
+                let id = integral_magazine(def, e, center, size, false, crate::construction_installation::deck_mounted(c, catalog, p));
                 (id, center, size)
             } else {
                 let magazine = resolve_magazine(c, catalog, e)?;
@@ -2126,7 +2127,7 @@ fn equipment(
                     )
                 })?;
             let magazine_id = if c.version >= 2. {
-                integral_magazine(def, e, add(e.position, p.bounds_center), p.size, true)
+                integral_magazine(def, e, add(e.position, p.bounds_center), p.size, true, true)
             } else { resolve_magazine(c, catalog, e)?.id.clone() };
             if let Some(installation) = &e.launcher {
                 let [lo, hi] = installation.traverse_limits_deg;
@@ -2348,12 +2349,12 @@ fn equipment(
 fn box_inertia(size: Vec3, kg: f64) -> Vec3 {
     std::array::from_fn(|i| kg * (size[(i + 1) % 3].powi(2) + size[(i + 2) % 3].powi(2)) / 12.)
 }
-fn integral_magazine(def: &mut ShipDefinition, e: &ConstructionEquipment, center: Vec3, size: Vec3, launcher: bool) -> String {
+fn integral_magazine(def: &mut ShipDefinition, e: &ConstructionEquipment, center: Vec3, size: Vec3, launcher: bool, exposed: bool) -> String {
     let id = format!("{}-magazine", e.id);
     def.modules.push(Module {
         id: id.clone(), name: format!("{} ammunition", e.id), kind: "magazine".into(), center, size,
-        hp: 100., placement: launcher.then(|| "fixed".into()),
-        immersion_tolerance_m: (!launcher).then_some((size[1] * 0.2).max(0.1)),
+        hp: 100., placement: exposed.then(|| "fixed".into()),
+        immersion_tolerance_m: (!exposed).then_some((size[1] * 0.2).max(0.1)),
         torpedo_launcher_id: launcher.then(|| e.id.clone()),
         ..Default::default()
     });
