@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "rn-motor-pinnace",
+  "revision": "062090fc2fd190670fbd152c31489128e24d8f91475fe54b207b8aa65ee17a80",
+  "contentHash": "0d45c2b57687ddbcd89ea188d5bf2d7d4fc4f2341d771c6da289aad1531b08cc",
+  "modelSha256": "43cf4c2e17f83d6d32ad2a7db762f3cf4324f64394bd647e8c01b3cdcc487bc5",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/rn-motor-pinnace/062090fc2fd190670fbd152c31489128e24d8f91475fe54b207b8aa65ee17a80/model.glb",
+  "boundsCenter": [
+    -2.980232238769531e-7,
+    1.7975000143051147,
+    0.06282687187194824
+  ],
+  "size": [
+    3.320264220237732,
+    3.5950000286102295,
+    11.143656253814697
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 6088,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original generic or ship-adapted deck fitting; dimensions and dry mass are declared game estimates, loading only, with no combat or handling effect.",
+  "basis": "assets/parts/construction/README.md"
+}

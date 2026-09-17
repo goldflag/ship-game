@@ -51,3 +51,40 @@ test('every catalog funnel, mast and director stands on a deck without an error 
     expect(result.diagnostics.filter(entry => entry.sourceId === fitting.id && entry.severity === 'error'), part.id).toEqual([]);
   }
 });
+
+const bareDeck = () => {
+  const source = createStarterSource(catalog, 'patrol'), hull = source.construction.primitives.find(piece => piece.id === 'hull')!; hull.size = [24, 16, 60];
+  source.construction.primitives = [hull]; source.construction.surfaces = source.construction.surfaces.filter(surface => surface.primitiveId === hull.id);
+  source.construction.boundaries = []; source.construction.equipment = [];
+  return { source, deck: hull.size[1] / 2 };
+};
+const standing = (partId: string, id: string, deck: number, at: [number, number] = [0, 0]) => {
+  const part = catalog.equipment.find(entry => entry.id === partId)!, datum = part.sockets!.find(entry => entry.id === 'attachment')!.position;
+  return { id, partId, position: [at[0] - datum[0], deck - datum[1], at[1] - datum[2]] as [number, number, number], bearingDeg: 0 };
+};
+
+test('every fixed deck fitting stands on a deck without an error of its own', () => {
+  for (const part of catalog.equipment.filter(entry => entry.kind === 'deck-fitting' && !entry.path && entry.sockets!.find(s => s.id === 'attachment')!.direction[1] === -1)) {
+    const { source, deck } = bareDeck();
+    source.construction.equipment = [standing(part.id, 'fitting', deck)];
+    const result = compile(source);
+    expect(result.definition, `${part.id}: ${JSON.stringify(result.diagnostics)}`).toBeDefined();
+    expect(result.diagnostics.filter(entry => entry.sourceId === 'fitting' && entry.severity === 'error'), part.id).toEqual([]);
+  }
+});
+
+test('a gun tub collides by its wall and stands on its wall foot, so a light gun fits inside it and small gear fits under a crane jib', () => {
+  for (const [tub, gun] of [['generic-gun-tub-large', 'type96-25-triple'], ['generic-gun-tub', 'type93-13-twin']] as const) {
+    const { source, deck } = bareDeck(), wall = catalog.equipment.find(entry => entry.id === tub)!.sockets!.find(s => s.id === 'attachment')!.position[2];
+    // The tub attaches at its forward wall foot: a gun's barbette well removes the deck under the tub's middle.
+    source.construction.equipment = [standing(tub, 'tub', deck, [0, -10 + wall]), standing(gun, 'gun', deck, [0, -10]),
+      standing('generic-boat-crane', 'crane', deck, [0, 20]), standing('generic-ready-ammo-locker', 'locker', deck, [0, 11.5])];
+    const result = compile(source);
+    expect(result.diagnostics.filter(entry => entry.severity === 'error'), `${tub}: ${JSON.stringify(result.diagnostics)}`).toEqual([]);
+    expect(result.definition!.mounts.map(mount => mount.weapon.id)).toEqual([gun]);
+    // As a solid bounding box the same tub would reject the gun: the wall boxes are what leave its middle free.
+    const solidCatalog = structuredClone(catalog); delete solidCatalog.equipment.find(entry => entry.id === tub)!.fitting;
+    const solid = JSON.parse(compile_construction(JSON.stringify(source), JSON.stringify(solidCatalog))) as ConstructionResult;
+    expect(solid.diagnostics.some(entry => entry.severity === 'error' && (entry.sourceId === 'tub' || entry.sourceId === 'gun')), tub).toBe(true);
+  }
+});

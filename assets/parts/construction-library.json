@@ -437,6 +437,153 @@
       "inputs": [
         "assets/parts/construction/geometry.py"
       ]
+    },
+    "generic-paravane": {
+      "path": "assets/parts/deck-gear/forecastle.py",
+      "function": "create_paravane",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-breakwater": {
+      "path": "assets/parts/deck-gear/forecastle.py",
+      "function": "create_breakwater",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-hawse-pipe": {
+      "path": "assets/parts/deck-gear/forecastle.py",
+      "function": "create_hawse_pipe",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-cable-reel": {
+      "path": "assets/parts/deck-gear/forecastle.py",
+      "function": "create_cable_reel",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-deck-winch": {
+      "path": "assets/parts/deck-gear/forecastle.py",
+      "function": "create_deck_winch",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-accommodation-ladder": {
+      "path": "assets/parts/deck-gear/forecastle.py",
+      "function": "create_accommodation_ladder",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-ready-ammo-locker": {
+      "path": "assets/parts/deck-gear/topside.py",
+      "function": "create_ammo_locker",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-signal-lamp": {
+      "path": "assets/parts/deck-gear/topside.py",
+      "function": "create_signal_lamp",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-ensign-staff": {
+      "path": "assets/parts/deck-gear/topside.py",
+      "function": "create_ensign_staff",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-gun-tub": {
+      "path": "assets/parts/deck-gear/topside.py",
+      "function": "create_gun_tub",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-gun-tub-large": {
+      "path": "assets/parts/deck-gear/topside.py",
+      "function": "create_gun_tub",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-splinter-shield": {
+      "path": "assets/parts/deck-gear/topside.py",
+      "function": "create_splinter_shield",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-carley-float": {
+      "path": "assets/parts/deck-gear/topside.py",
+      "function": "create_carley_float",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "us-motor-whaleboat": {
+      "path": "assets/parts/ship-boats/geometry.py",
+      "function": "create_motor_whaleboat",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "ijn-motor-launch": {
+      "path": "assets/parts/ship-boats/geometry.py",
+      "function": "create_ijn_launch",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "rn-motor-pinnace": {
+      "path": "assets/parts/ship-boats/geometry.py",
+      "function": "create_rn_pinnace",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-boat-crane": {
+      "path": "assets/parts/ship-boats/geometry.py",
+      "function": "create_boat_crane",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "us-aircraft-crane": {
+      "path": "assets/parts/ship-aviation/geometry.py",
+      "function": "create_us_crane",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "us-powder-catapult": {
+      "path": "assets/parts/ship-aviation/geometry.py",
+      "function": "create_us_catapult",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "ijn-aircraft-catapult": {
+      "path": "assets/parts/ship-aviation/geometry.py",
+      "function": "create_ijn_catapult",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "ijn-aircraft-crane": {
+      "path": "assets/parts/ship-aviation/geometry.py",
+      "function": "create_ijn_crane",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
     }
   },
   "components": [
@@ -835,6 +982,132 @@
       "builder": "rn-corvette-funnel",
       "review": "unreviewed",
       "limitations": "Adapted original Flower corvette recipe as a standalone fitting; mass and ratings are gameplay estimates. Per-design attachment and clearance require installation review."
+    },
+    {
+      "partId": "generic-paravane",
+      "builder": "generic-paravane",
+      "review": "unreviewed",
+      "limitations": "Original generic or ship-adapted deck fitting; dimensions and dry mass are declared game estimates, loading only, with no combat or handling effect."
+    },
+    {
+      "partId": "generic-breakwater",
+      "builder": "generic-breakwater",
+      "review": "unreviewed",
+      "limitations": "Original generic or ship-adapted deck fitting; dimensions and dry mass are declared game estimates, loading only, with no combat or handling effect."
+    },
+    {
+      "partId": "generic-hawse-pipe",
+      "builder": "generic-hawse-pipe",
+      "review": "unreviewed",
+      "limitations": "Original generic or ship-adapted deck fitting; dimensions and dry mass are declared game estimates, loading only, with no combat or handling effect."
+    },
+    {
+      "partId": "generic-cable-reel",
+      "builder": "generic-cable-reel",
+      "review": "unreviewed",
+      "limitations": "Original generic or ship-adapted deck fitting; dimensions and dry mass are declared game estimates, loading only, with no combat or handling effect."
+    },
+    {
+      "partId": "generic-deck-winch",
+      "builder": "generic-deck-winch",
+      "review": "unreviewed",
+      "limitations": "Original generic or ship-adapted deck fitting; dimensions and dry mass are declared game estimates, loading only, with no combat or handling effect."
+    },
+    {
+      "partId": "generic-accommodation-ladder",
+      "builder": "generic-accommodation-ladder",
+      "review": "unreviewed",
+      "limitations": "Original generic or ship-adapted deck fitting; dimensions and dry mass are declared game estimates, loading only, with no combat or handling effect."
+    },
+    {
+      "partId": "generic-ready-ammo-locker",
+      "builder": "generic-ready-ammo-locker",
+      "review": "unreviewed",
+      "limitations": "Original generic or ship-adapted deck fitting; dimensions and dry mass are declared game estimates, loading only, with no combat or handling effect."
+    },
+    {
+      "partId": "generic-signal-lamp",
+      "builder": "generic-signal-lamp",
+      "review": "unreviewed",
+      "limitations": "Original generic or ship-adapted deck fitting; dimensions and dry mass are declared game estimates, loading only, with no combat or handling effect."
+    },
+    {
+      "partId": "generic-ensign-staff",
+      "builder": "generic-ensign-staff",
+      "review": "unreviewed",
+      "limitations": "Original generic or ship-adapted deck fitting; dimensions and dry mass are declared game estimates, loading only, with no combat or handling effect."
+    },
+    {
+      "partId": "generic-gun-tub",
+      "builder": "generic-gun-tub",
+      "review": "unreviewed",
+      "limitations": "Original generic or ship-adapted deck fitting; dimensions and dry mass are declared game estimates, loading only, with no combat or handling effect."
+    },
+    {
+      "partId": "generic-gun-tub-large",
+      "builder": "generic-gun-tub-large",
+      "review": "unreviewed",
+      "limitations": "Original generic or ship-adapted deck fitting; dimensions and dry mass are declared game estimates, loading only, with no combat or handling effect."
+    },
+    {
+      "partId": "generic-splinter-shield",
+      "builder": "generic-splinter-shield",
+      "review": "unreviewed",
+      "limitations": "Original generic or ship-adapted deck fitting; dimensions and dry mass are declared game estimates, loading only, with no combat or handling effect."
+    },
+    {
+      "partId": "generic-carley-float",
+      "builder": "generic-carley-float",
+      "review": "unreviewed",
+      "limitations": "Original generic or ship-adapted deck fitting; dimensions and dry mass are declared game estimates, loading only, with no combat or handling effect."
+    },
+    {
+      "partId": "us-motor-whaleboat",
+      "builder": "us-motor-whaleboat",
+      "review": "unreviewed",
+      "limitations": "Original generic or ship-adapted deck fitting; dimensions and dry mass are declared game estimates, loading only, with no combat or handling effect."
+    },
+    {
+      "partId": "ijn-motor-launch",
+      "builder": "ijn-motor-launch",
+      "review": "unreviewed",
+      "limitations": "Original generic or ship-adapted deck fitting; dimensions and dry mass are declared game estimates, loading only, with no combat or handling effect."
+    },
+    {
+      "partId": "rn-motor-pinnace",
+      "builder": "rn-motor-pinnace",
+      "review": "unreviewed",
+      "limitations": "Original generic or ship-adapted deck fitting; dimensions and dry mass are declared game estimates, loading only, with no combat or handling effect."
+    },
+    {
+      "partId": "generic-boat-crane",
+      "builder": "generic-boat-crane",
+      "review": "unreviewed",
+      "limitations": "Original generic or ship-adapted deck fitting; dimensions and dry mass are declared game estimates, loading only, with no combat or handling effect."
+    },
+    {
+      "partId": "us-aircraft-crane",
+      "builder": "us-aircraft-crane",
+      "review": "unreviewed",
+      "limitations": "Original generic or ship-adapted deck fitting; dimensions and dry mass are declared game estimates, loading only, with no combat or handling effect."
+    },
+    {
+      "partId": "us-powder-catapult",
+      "builder": "us-powder-catapult",
+      "review": "unreviewed",
+      "limitations": "Original generic or ship-adapted deck fitting; dimensions and dry mass are declared game estimates, loading only, with no combat or handling effect."
+    },
+    {
+      "partId": "ijn-aircraft-catapult",
+      "builder": "ijn-aircraft-catapult",
+      "review": "unreviewed",
+      "limitations": "Original generic or ship-adapted deck fitting; dimensions and dry mass are declared game estimates, loading only, with no combat or handling effect."
+    },
+    {
+      "partId": "ijn-aircraft-crane",
+      "builder": "ijn-aircraft-crane",
+      "review": "unreviewed",
+      "limitations": "Original generic or ship-adapted deck fitting; dimensions and dry mass are declared game estimates, loading only, with no combat or handling effect."
     }
   ]
 }

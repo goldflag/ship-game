@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "generic-boat-crane",
+  "revision": "61da5581b44e0f85292dafd0236a91f235ac3c7a0c096331c0fbad07d52d92c2",
+  "contentHash": "5606e65c016281eeca512ad8b8e6a7b823c8ea0e39ae41fffab3b2645f40748b",
+  "modelSha256": "3bad4150b2028ab865dfa150457f65874347e70f42601e2d208bfb6d719ee0e2",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/generic-boat-crane/61da5581b44e0f85292dafd0236a91f235ac3c7a0c096331c0fbad07d52d92c2/model.glb",
+  "boundsCenter": [
+    0,
+    5.270137958228588,
+    -4.48086953163147
+  ],
+  "size": [
+    2.500000238418579,
+    10.540275916457176,
+    13.661738872528076
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 6516,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original generic or ship-adapted deck fitting; dimensions and dry mass are declared game estimates, loading only, with no combat or handling effect.",
+  "basis": "assets/parts/construction/README.md"
+}

@@ -240,3 +240,19 @@ turret carries a 2.15 m rotating stalk below the gunhouse, because its mount
 datum sits that far under the floor aboard Yamato. The ships themselves are
 unchanged: they do not read the mount registry and keep their inline turrets.
 
+## Deck gear, boats and aviation fittings
+
+`../deck-gear/forecastle.py` (paravane, breakwater, hawse pipe with stopper,
+cable reel, deck winch, stowed accommodation ladder) and `../deck-gear/topside.py`
+(ready-use locker, signal lamp, ensign staff, 3 m and 5 m gun tubs, splinter
+shield section, Carley float) are original nation-neutral recipes in the style
+of the first deck fittings. `../ship-boats/geometry.py` adds a US 26 ft motor
+whaleboat, a Japanese 11 m motor launch, a British motor pinnace and a generic
+boat crane; `../ship-aviation/geometry.py` adds US and Japanese aircraft cranes
+and catapults, adapted from the Cleveland, Baltimore, Iowa, Mogami and Yamato
+recipes. All are static, stowed and loading-only: jibs are fixed, catapults do
+not train or launch, and boats do not lower. Their dimensions and masses are
+game estimates. Gun tubs, the breakwater, the cranes and the catapults declare
+`fitting` boxes that follow their real solid, so a mount fits inside a tub, the
+deck behind a breakwater stays usable and small gear fits under a crane jib.
+

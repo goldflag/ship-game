@@ -24,6 +24,8 @@ test('guns split at 100 mm; deck fittings that aim or float leave the deck-gear 
   expect(fittingCategory(part('generic-lifeboat-davits'), catalog)).toBe('boats-aviation');
   expect(fittingCategory(part('german-cruiser-catapult'), catalog)).toBe('boats-aviation');
   expect(fittingCategory(part('generic-anchor-windlass'), catalog)).toBe('deck-gear');
+  for (const id of ['generic-carley-float', 'rn-motor-pinnace', 'us-aircraft-crane', 'ijn-aircraft-catapult']) expect(fittingCategory(part(id), catalog)).toBe('boats-aviation');
+  for (const id of ['generic-gun-tub', 'generic-breakwater', 'generic-signal-lamp']) expect(fittingCategory(part(id), catalog)).toBe('deck-gear');
 });
 
 test('a nation keeps its own parts and the generic ones; a nation absent from the shelf filters nothing', () => {

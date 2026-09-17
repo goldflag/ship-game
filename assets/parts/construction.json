@@ -3559,7 +3559,7 @@
       ],
       "centerOfGravity": [
         0,
-        1.0,
+        1,
         -0.3
       ],
       "massKg": 11000,
@@ -3615,7 +3615,7 @@
       ],
       "centerOfGravity": [
         0,
-        1.0,
+        1,
         -0.4
       ],
       "massKg": 18000,
@@ -3743,7 +3743,7 @@
       ],
       "centerOfGravity": [
         0,
-        7.0,
+        7,
         0.5
       ],
       "massKg": 40000,
@@ -3787,7 +3787,7 @@
             0
           ],
           "size": [
-            5.0,
+            5,
             1,
             6.8
           ]
@@ -3941,12 +3941,12 @@
           "center": [
             0,
             -0.5,
-            -1.0
+            -1
           ],
           "size": [
             4.6,
             1,
-            7.0
+            7
           ]
         }
       ]
@@ -4058,7 +4058,7 @@
       "centerOfGravity": [
         0,
         6.5,
-        2.0
+        2
       ],
       "massKg": 70000,
       "placement": "deck",
@@ -4103,7 +4103,7 @@
           "size": [
             5.4,
             1,
-            8.0
+            8
           ]
         }
       ]
@@ -4150,7 +4150,7 @@
           "position": [
             0,
             10.8,
-            8.0
+            8
           ],
           "direction": [
             0,
@@ -4180,7 +4180,7 @@
             9.9
           ],
           "size": [
-            4.0,
+            4,
             1,
             3.6
           ]
@@ -4412,7 +4412,7 @@
       ],
       "centerOfGravity": [
         0,
-        6.0,
+        6,
         0
       ],
       "massKg": 40000,
@@ -4458,7 +4458,7 @@
           "size": [
             4.6,
             1,
-            6.0
+            6
           ]
         }
       ]
@@ -5034,6 +5034,1900 @@
             0,
             -1,
             0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "generic-paravane",
+      "name": "Stowed paravane",
+      "kind": "deck-fitting",
+      "size": [
+        2.086,
+        1.144,
+        3.742
+      ],
+      "boundsCenter": [
+        0,
+        0.5713,
+        -0.0525
+      ],
+      "centerOfGravity": [
+        0,
+        0.58,
+        -0.1
+      ],
+      "massKg": 350,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "generic-breakwater",
+      "name": "Forecastle breakwater",
+      "kind": "deck-fitting",
+      "size": [
+        8.24,
+        1.153,
+        2.665
+      ],
+      "boundsCenter": [
+        0,
+        0.576,
+        0.0333
+      ],
+      "centerOfGravity": [
+        0,
+        0.5,
+        0.05
+      ],
+      "massKg": 800,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ],
+      "fitting": [
+        {
+          "center": [
+            -0.378,
+            0.576,
+            -0.5743
+          ],
+          "size": [
+            0.8581,
+            1.154,
+            1.4506
+          ]
+        },
+        {
+          "center": [
+            -0.9967,
+            0.576,
+            -0.365
+          ],
+          "size": [
+            0.7991,
+            1.154,
+            1.185
+          ]
+        },
+        {
+          "center": [
+            -1.693,
+            0.576,
+            -0.022
+          ],
+          "size": [
+            0.737,
+            1.154,
+            1.185
+          ]
+        },
+        {
+          "center": [
+            -2.4204,
+            0.576,
+            0.322
+          ],
+          "size": [
+            0.8662,
+            1.154,
+            1.185
+          ]
+        },
+        {
+          "center": [
+            -3.0256,
+            0.576,
+            0.665
+          ],
+          "size": [
+            0.8179,
+            1.154,
+            1.185
+          ]
+        },
+        {
+          "center": [
+            -3.6528,
+            0.576,
+            0.891
+          ],
+          "size": [
+            0.9355,
+            1.154,
+            0.95
+          ]
+        },
+        {
+          "center": [
+            0.3597,
+            0.576,
+            -0.5743
+          ],
+          "size": [
+            0.8947,
+            1.154,
+            1.4506
+          ]
+        },
+        {
+          "center": [
+            0.9967,
+            0.576,
+            -0.365
+          ],
+          "size": [
+            0.7991,
+            1.154,
+            1.185
+          ]
+        },
+        {
+          "center": [
+            1.693,
+            0.576,
+            -0.022
+          ],
+          "size": [
+            0.737,
+            1.154,
+            1.185
+          ]
+        },
+        {
+          "center": [
+            2.4204,
+            0.576,
+            0.322
+          ],
+          "size": [
+            0.8662,
+            1.154,
+            1.185
+          ]
+        },
+        {
+          "center": [
+            3.0256,
+            0.576,
+            0.665
+          ],
+          "size": [
+            0.8179,
+            1.154,
+            1.185
+          ]
+        },
+        {
+          "center": [
+            3.6528,
+            0.576,
+            0.891
+          ],
+          "size": [
+            0.9355,
+            1.154,
+            0.95
+          ]
+        }
+      ]
+    },
+    {
+      "id": "generic-hawse-pipe",
+      "name": "Hawse pipe and bolster",
+      "kind": "deck-fitting",
+      "size": [
+        1.047,
+        0.465,
+        2.001
+      ],
+      "boundsCenter": [
+        -0.0032,
+        0.232,
+        0
+      ],
+      "centerOfGravity": [
+        0,
+        0.1,
+        0
+      ],
+      "massKg": 1500,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "generic-cable-reel",
+      "name": "Hawser cable reel",
+      "kind": "deck-fitting",
+      "size": [
+        1.501,
+        1.19,
+        1.257
+      ],
+      "boundsCenter": [
+        -0.05,
+        0.5945,
+        -0.058
+      ],
+      "centerOfGravity": [
+        0,
+        0.6,
+        0
+      ],
+      "massKg": 500,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "generic-deck-winch",
+      "name": "Deck winch",
+      "kind": "deck-fitting",
+      "size": [
+        2.641,
+        1.389,
+        2.215
+      ],
+      "boundsCenter": [
+        0,
+        0.6938,
+        0.0832
+      ],
+      "centerOfGravity": [
+        0,
+        0.5,
+        0.2
+      ],
+      "massKg": 4500,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "generic-accommodation-ladder",
+      "name": "Stowed accommodation ladder",
+      "kind": "deck-fitting",
+      "size": [
+        1.161,
+        0.786,
+        8.036
+      ],
+      "boundsCenter": [
+        0,
+        0.3925,
+        0.0325
+      ],
+      "centerOfGravity": [
+        0,
+        0.45,
+        0
+      ],
+      "massKg": 900,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "generic-ready-ammo-locker",
+      "name": "Ready-use ammunition locker",
+      "kind": "deck-fitting",
+      "size": [
+        0.782,
+        1.067,
+        1.787
+      ],
+      "boundsCenter": [
+        0.0183,
+        0.533,
+        0
+      ],
+      "centerOfGravity": [
+        0,
+        0.5,
+        0
+      ],
+      "massKg": 450,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "generic-signal-lamp",
+      "name": "Signal lamp",
+      "kind": "deck-fitting",
+      "size": [
+        0.631,
+        1.509,
+        0.756
+      ],
+      "boundsCenter": [
+        0,
+        0.754,
+        0.0948
+      ],
+      "centerOfGravity": [
+        0,
+        0.95,
+        -0.02
+      ],
+      "massKg": 90,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "generic-ensign-staff",
+      "name": "Ensign staff",
+      "kind": "deck-fitting",
+      "size": [
+        0.981,
+        4.555,
+        1.699
+      ],
+      "boundsCenter": [
+        0,
+        2.277,
+        -0.201
+      ],
+      "centerOfGravity": [
+        0,
+        1.7,
+        0.05
+      ],
+      "massKg": 60,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "generic-gun-tub",
+      "name": "Gun tub \u00b7 3 m",
+      "kind": "deck-fitting",
+      "size": [
+        3.201,
+        1.158,
+        3.157
+      ],
+      "boundsCenter": [
+        0,
+        0.5785,
+        -0.0221
+      ],
+      "centerOfGravity": [
+        0,
+        0.58,
+        -0.05
+      ],
+      "massKg": 1500,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            -1.551
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ],
+      "fitting": [
+        {
+          "center": [
+            0.5622,
+            0.5785,
+            1.4091
+          ],
+          "size": [
+            0.5417,
+            1.159,
+            0.2954
+          ]
+        },
+        {
+          "center": [
+            0.9048,
+            0.5785,
+            1.1703
+          ],
+          "size": [
+            0.4553,
+            1.159,
+            0.4324
+          ]
+        },
+        {
+          "center": [
+            1.1815,
+            0.5785,
+            0.9271
+          ],
+          "size": [
+            0.4395,
+            1.159,
+            0.4795
+          ]
+        },
+        {
+          "center": [
+            1.3537,
+            0.5785,
+            0.5865
+          ],
+          "size": [
+            0.3847,
+            1.159,
+            0.4487
+          ]
+        },
+        {
+          "center": [
+            1.4578,
+            0.5785,
+            0.2233
+          ],
+          "size": [
+            0.286,
+            1.159,
+            0.4932
+          ]
+        },
+        {
+          "center": [
+            1.5207,
+            0.5785,
+            -0.207
+          ],
+          "size": [
+            0.1596,
+            1.159,
+            0.416
+          ]
+        },
+        {
+          "center": [
+            1.3634,
+            0.5785,
+            -0.4975
+          ],
+          "size": [
+            0.397,
+            1.159,
+            0.6326
+          ]
+        },
+        {
+          "center": [
+            1.1592,
+            0.5785,
+            -0.9069
+          ],
+          "size": [
+            0.4546,
+            1.159,
+            0.4512
+          ]
+        },
+        {
+          "center": [
+            0.9062,
+            0.5785,
+            -1.1678
+          ],
+          "size": [
+            0.5516,
+            1.159,
+            0.4451
+          ]
+        },
+        {
+          "center": [
+            0.5383,
+            0.5785,
+            -1.3708
+          ],
+          "size": [
+            0.5254,
+            1.159,
+            0.3505
+          ]
+        },
+        {
+          "center": [
+            0.1988,
+            0.5785,
+            -1.5
+          ],
+          "size": [
+            0.6196,
+            1.159,
+            0.202
+          ]
+        },
+        {
+          "center": [
+            -0.2538,
+            0.5785,
+            -1.5035
+          ],
+          "size": [
+            0.5096,
+            1.159,
+            0.1951
+          ]
+        },
+        {
+          "center": [
+            -0.5383,
+            0.5785,
+            -1.3708
+          ],
+          "size": [
+            0.5254,
+            1.159,
+            0.3505
+          ]
+        },
+        {
+          "center": [
+            -0.9062,
+            0.5785,
+            -1.1929
+          ],
+          "size": [
+            0.5516,
+            1.159,
+            0.3949
+          ]
+        },
+        {
+          "center": [
+            -1.1592,
+            0.5785,
+            -0.9069
+          ],
+          "size": [
+            0.4546,
+            1.159,
+            0.4512
+          ]
+        },
+        {
+          "center": [
+            -1.3634,
+            0.5785,
+            -0.5688
+          ],
+          "size": [
+            0.397,
+            1.159,
+            0.4901
+          ]
+        },
+        {
+          "center": [
+            -1.4565,
+            0.5785,
+            -0.2094
+          ],
+          "size": [
+            0.2879,
+            1.159,
+            0.4207
+          ]
+        },
+        {
+          "center": [
+            -1.5065,
+            0.5785,
+            0.2233
+          ],
+          "size": [
+            0.1887,
+            1.159,
+            0.4932
+          ]
+        },
+        {
+          "center": [
+            -1.3537,
+            0.5785,
+            0.496
+          ],
+          "size": [
+            0.3847,
+            1.159,
+            0.6296
+          ]
+        },
+        {
+          "center": [
+            -1.1815,
+            0.5785,
+            0.9271
+          ],
+          "size": [
+            0.4395,
+            1.159,
+            0.4795
+          ]
+        },
+        {
+          "center": [
+            -0.9048,
+            0.5785,
+            1.1703
+          ],
+          "size": [
+            0.4553,
+            1.159,
+            0.4324
+          ]
+        },
+        {
+          "center": [
+            -0.5622,
+            0.5785,
+            1.4091
+          ],
+          "size": [
+            0.5417,
+            1.159,
+            0.2954
+          ]
+        }
+      ]
+    },
+    {
+      "id": "generic-gun-tub-large",
+      "name": "Gun tub \u00b7 5 m",
+      "kind": "deck-fitting",
+      "size": [
+        5.201,
+        1.158,
+        5.175
+      ],
+      "boundsCenter": [
+        0,
+        0.5785,
+        -0.0128
+      ],
+      "centerOfGravity": [
+        0,
+        0.58,
+        -0.04
+      ],
+      "massKg": 2500,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            -2.55
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ],
+      "fitting": [
+        {
+          "center": [
+            0.8332,
+            0.5785,
+            2.3387
+          ],
+          "size": [
+            1.0857,
+            1.159,
+            0.4733
+          ]
+        },
+        {
+          "center": [
+            1.5283,
+            0.5785,
+            1.974
+          ],
+          "size": [
+            0.7023,
+            1.159,
+            0.558
+          ]
+        },
+        {
+          "center": [
+            1.9371,
+            0.5785,
+            1.5274
+          ],
+          "size": [
+            0.6576,
+            1.159,
+            0.6231
+          ]
+        },
+        {
+          "center": [
+            2.2623,
+            0.5785,
+            0.9697
+          ],
+          "size": [
+            0.4995,
+            1.159,
+            0.6852
+          ]
+        },
+        {
+          "center": [
+            2.4278,
+            0.5785,
+            0.3977
+          ],
+          "size": [
+            0.3454,
+            1.159,
+            0.7983
+          ]
+        },
+        {
+          "center": [
+            2.4536,
+            0.5785,
+            -0.3192
+          ],
+          "size": [
+            0.2943,
+            1.159,
+            0.7086
+          ]
+        },
+        {
+          "center": [
+            2.309,
+            0.5785,
+            -0.9095
+          ],
+          "size": [
+            0.4387,
+            1.159,
+            0.7839
+          ]
+        },
+        {
+          "center": [
+            1.9801,
+            0.5785,
+            -1.4816
+          ],
+          "size": [
+            0.6371,
+            1.159,
+            0.8425
+          ]
+        },
+        {
+          "center": [
+            1.4935,
+            0.5785,
+            -1.9817
+          ],
+          "size": [
+            0.691,
+            1.159,
+            0.6015
+          ]
+        },
+        {
+          "center": [
+            0.8925,
+            0.5785,
+            -2.2767
+          ],
+          "size": [
+            0.818,
+            1.159,
+            0.4869
+          ]
+        },
+        {
+          "center": [
+            0.3035,
+            0.5785,
+            -2.4972
+          ],
+          "size": [
+            0.829,
+            1.159,
+            0.2065
+          ]
+        },
+        {
+          "center": [
+            -0.3583,
+            0.5785,
+            -2.4972
+          ],
+          "size": [
+            0.7195,
+            1.159,
+            0.2065
+          ]
+        },
+        {
+          "center": [
+            -0.8925,
+            0.5785,
+            -2.3186
+          ],
+          "size": [
+            0.818,
+            1.159,
+            0.4031
+          ]
+        },
+        {
+          "center": [
+            -1.4374,
+            0.5785,
+            -1.9817
+          ],
+          "size": [
+            0.8033,
+            1.159,
+            0.6015
+          ]
+        },
+        {
+          "center": [
+            -1.9801,
+            0.5785,
+            -1.4817
+          ],
+          "size": [
+            0.6371,
+            1.159,
+            0.8425
+          ]
+        },
+        {
+          "center": [
+            -2.309,
+            0.5785,
+            -0.9095
+          ],
+          "size": [
+            0.4387,
+            1.159,
+            0.7839
+          ]
+        },
+        {
+          "center": [
+            -2.4536,
+            0.5785,
+            -0.3192
+          ],
+          "size": [
+            0.2943,
+            1.159,
+            0.7086
+          ]
+        },
+        {
+          "center": [
+            -2.4532,
+            0.5785,
+            0.3747
+          ],
+          "size": [
+            0.2946,
+            1.159,
+            0.7524
+          ]
+        },
+        {
+          "center": [
+            -2.31,
+            0.5785,
+            0.9162
+          ],
+          "size": [
+            0.4041,
+            1.159,
+            0.7923
+          ]
+        },
+        {
+          "center": [
+            -2.0036,
+            0.5785,
+            1.445
+          ],
+          "size": [
+            0.5246,
+            1.159,
+            0.7881
+          ]
+        },
+        {
+          "center": [
+            -1.5312,
+            0.5785,
+            1.9032
+          ],
+          "size": [
+            0.708,
+            1.159,
+            0.6996
+          ]
+        },
+        {
+          "center": [
+            -0.8332,
+            0.5785,
+            2.3387
+          ],
+          "size": [
+            1.0857,
+            1.159,
+            0.4733
+          ]
+        }
+      ]
+    },
+    {
+      "id": "generic-splinter-shield",
+      "name": "Splinter shield section",
+      "kind": "deck-fitting",
+      "size": [
+        0.539,
+        1.201,
+        3.001
+      ],
+      "boundsCenter": [
+        -0.239,
+        0.6,
+        0
+      ],
+      "centerOfGravity": [
+        -0.05,
+        0.55,
+        0
+      ],
+      "massKg": 420,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "generic-carley-float",
+      "name": "Carley float",
+      "kind": "deck-fitting",
+      "size": [
+        1.616,
+        0.508,
+        3.078
+      ],
+      "boundsCenter": [
+        0,
+        0.2537,
+        0
+      ],
+      "centerOfGravity": [
+        0,
+        0.28,
+        0
+      ],
+      "massKg": 190,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "us-motor-whaleboat",
+      "name": "US 26 ft motor whaleboat",
+      "kind": "deck-fitting",
+      "size": [
+        2.461,
+        1.676,
+        8.558
+      ],
+      "boundsCenter": [
+        0,
+        0.8376,
+        0.0315
+      ],
+      "centerOfGravity": [
+        0,
+        0.8,
+        0.1
+      ],
+      "massKg": 3500,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ijn-motor-launch",
+      "name": "Japanese 11 m motor launch",
+      "kind": "deck-fitting",
+      "size": [
+        3.321,
+        3.058,
+        11.719
+      ],
+      "boundsCenter": [
+        0,
+        1.5284,
+        0.201
+      ],
+      "centerOfGravity": [
+        0,
+        1.2,
+        -0.5
+      ],
+      "massKg": 6500,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rn-motor-pinnace",
+      "name": "British motor pinnace",
+      "kind": "deck-fitting",
+      "size": [
+        3.321,
+        3.596,
+        11.145
+      ],
+      "boundsCenter": [
+        0,
+        1.7975,
+        0.0628
+      ],
+      "centerOfGravity": [
+        0,
+        1.05,
+        0.5
+      ],
+      "massKg": 5500,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "generic-boat-crane",
+      "name": "Boat crane",
+      "kind": "deck-fitting",
+      "size": [
+        2.501,
+        10.541,
+        13.663
+      ],
+      "boundsCenter": [
+        0,
+        5.2701,
+        -4.4809
+      ],
+      "centerOfGravity": [
+        0,
+        3.54,
+        -0.46
+      ],
+      "massKg": 13000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ],
+      "fitting": [
+        {
+          "center": [
+            0,
+            1.4,
+            0
+          ],
+          "size": [
+            2.162,
+            2.802,
+            2.162
+          ]
+        },
+        {
+          "center": [
+            0,
+            3.8463,
+            0.5253
+          ],
+          "size": [
+            2.502,
+            2.2195,
+            3.6526
+          ]
+        },
+        {
+          "center": [
+            0,
+            6.4286,
+            0.7725
+          ],
+          "size": [
+            2.002,
+            3.0448,
+            2.557
+          ]
+        },
+        {
+          "center": [
+            0,
+            4.17,
+            -2.06
+          ],
+          "size": [
+            1.242,
+            1.952,
+            2.402
+          ]
+        },
+        {
+          "center": [
+            0,
+            5.3278,
+            -3.8304
+          ],
+          "size": [
+            1.102,
+            2.5691,
+            3.0555
+          ]
+        },
+        {
+          "center": [
+            0,
+            6.7,
+            -5.83
+          ],
+          "size": [
+            0.952,
+            2.232,
+            2.602
+          ]
+        },
+        {
+          "center": [
+            0,
+            8.1195,
+            -7.8745
+          ],
+          "size": [
+            0.812,
+            2.3411,
+            2.8924
+          ]
+        },
+        {
+          "center": [
+            0,
+            9.0934,
+            -4.7879
+          ],
+          "size": [
+            0.662,
+            2.7204,
+            12.2862
+          ]
+        },
+        {
+          "center": [
+            0,
+            9.2644,
+            -10.9059
+          ],
+          "size": [
+            0.602,
+            2.5533,
+            0.8137
+          ]
+        }
+      ]
+    },
+    {
+      "id": "us-aircraft-crane",
+      "name": "US aircraft crane",
+      "kind": "deck-fitting",
+      "size": [
+        2.511,
+        10.707,
+        14.073
+      ],
+      "boundsCenter": [
+        0.005,
+        5.3528,
+        -4.536
+      ],
+      "centerOfGravity": [
+        0,
+        3.4,
+        -1.6
+      ],
+      "massKg": 16000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ],
+      "fitting": [
+        {
+          "center": [
+            0.005,
+            1.725,
+            0.5
+          ],
+          "size": [
+            2.512,
+            3.452,
+            4.002
+          ]
+        },
+        {
+          "center": [
+            0,
+            5.8154,
+            0.7725
+          ],
+          "size": [
+            2.397,
+            8.6511,
+            3.347
+          ]
+        },
+        {
+          "center": [
+            0,
+            3.1,
+            -2.3433
+          ],
+          "size": [
+            1.152,
+            3.002,
+            2.3155
+          ]
+        },
+        {
+          "center": [
+            0,
+            4.75,
+            -4.5
+          ],
+          "size": [
+            1.002,
+            2.902,
+            2.002
+          ]
+        },
+        {
+          "center": [
+            0,
+            6.45,
+            -6.5
+          ],
+          "size": [
+            0.902,
+            2.702,
+            2.002
+          ]
+        },
+        {
+          "center": [
+            0,
+            8.125,
+            -8.5
+          ],
+          "size": [
+            0.802,
+            2.552,
+            2.002
+          ]
+        },
+        {
+          "center": [
+            0,
+            9.6278,
+            -6.0845
+          ],
+          "size": [
+            0.702,
+            2.1575,
+            10.973
+          ]
+        },
+        {
+          "center": [
+            0,
+            6.4794,
+            -6.7808
+          ],
+          "size": [
+            1.1419,
+            7.8556,
+            9.5845
+          ]
+        }
+      ]
+    },
+    {
+      "id": "us-powder-catapult",
+      "name": "US powder catapult",
+      "kind": "deck-fitting",
+      "size": [
+        2.901,
+        2.987,
+        20.679
+      ],
+      "boundsCenter": [
+        0,
+        1.493,
+        0
+      ],
+      "centerOfGravity": [
+        0,
+        1.5,
+        0
+      ],
+      "massKg": 25000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ],
+      "fitting": [
+        {
+          "center": [
+            0,
+            0.66,
+            0
+          ],
+          "size": [
+            2.902,
+            1.322,
+            2.902
+          ]
+        },
+        {
+          "center": [
+            0,
+            2.143,
+            0
+          ],
+          "size": [
+            2.902,
+            1.688,
+            20.6799
+          ]
+        },
+        {
+          "center": [
+            0,
+            0.7178,
+            8.6
+          ],
+          "size": [
+            1.992,
+            1.4375,
+            0.402
+          ]
+        },
+        {
+          "center": [
+            0,
+            0.7178,
+            -8.6
+          ],
+          "size": [
+            1.992,
+            1.4375,
+            0.402
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ijn-aircraft-catapult",
+      "name": "Japanese aircraft catapult",
+      "kind": "deck-fitting",
+      "size": [
+        3.473,
+        3.601,
+        19.505
+      ],
+      "boundsCenter": [
+        0,
+        1.8,
+        0
+      ],
+      "centerOfGravity": [
+        0,
+        1.9,
+        0
+      ],
+      "massKg": 20000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ],
+      "fitting": [
+        {
+          "center": [
+            0,
+            0.78,
+            0
+          ],
+          "size": [
+            3.4736,
+            1.562,
+            3.642
+          ]
+        },
+        {
+          "center": [
+            0,
+            2.55,
+            0
+          ],
+          "size": [
+            3.102,
+            2.102,
+            19.5059
+          ]
+        },
+        {
+          "center": [
+            0,
+            1.0057,
+            8.4
+          ],
+          "size": [
+            3.4676,
+            2.0135,
+            0.602
+          ]
+        },
+        {
+          "center": [
+            0,
+            1.0057,
+            -8.4
+          ],
+          "size": [
+            3.4676,
+            2.0135,
+            0.602
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ijn-aircraft-crane",
+      "name": "Japanese aircraft crane",
+      "kind": "deck-fitting",
+      "size": [
+        3.441,
+        11.748,
+        16.08
+      ],
+      "boundsCenter": [
+        0,
+        5.8734,
+        -5.0397
+      ],
+      "centerOfGravity": [
+        0,
+        3,
+        -1.2
+      ],
+      "massKg": 18000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ],
+      "fitting": [
+        {
+          "center": [
+            0,
+            1.05,
+            0
+          ],
+          "size": [
+            3.442,
+            2.102,
+            3.442
+          ]
+        },
+        {
+          "center": [
+            0,
+            2.3241,
+            1
+          ],
+          "size": [
+            2.102,
+            2.8538,
+            4.002
+          ]
+        },
+        {
+          "center": [
+            0,
+            6.1649,
+            1.25
+          ],
+          "size": [
+            1.802,
+            6.9722,
+            3.102
+          ]
+        },
+        {
+          "center": [
+            0,
+            4.65,
+            -2.2
+          ],
+          "size": [
+            1.402,
+            3.502,
+            2.402
+          ]
+        },
+        {
+          "center": [
+            0,
+            6.2,
+            -4.6
+          ],
+          "size": [
+            1.202,
+            3.202,
+            2.402
+          ]
+        },
+        {
+          "center": [
+            0,
+            7.715,
+            -7
+          ],
+          "size": [
+            1.002,
+            2.872,
+            2.402
+          ]
+        },
+        {
+          "center": [
+            0,
+            9.25,
+            -9.4
+          ],
+          "size": [
+            0.802,
+            2.602,
+            2.402
+          ]
+        },
+        {
+          "center": [
+            0,
+            10.6734,
+            -11.8398
+          ],
+          "size": [
+            0.702,
+            2.1489,
+            2.4817
+          ]
+        },
+        {
+          "center": [
+            0,
+            7.1272,
+            -6.1579
+          ],
+          "size": [
+            1.5219,
+            8.9367,
+            13.8455
           ]
         }
       ]
