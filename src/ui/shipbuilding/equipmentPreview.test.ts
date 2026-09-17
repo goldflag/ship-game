@@ -96,3 +96,24 @@ test('invalid tint is isolated per installation and restores when the part becom
     preview.dispose(); expect(disposed).toBe(1);
   } finally { preview.dispose(); loader.mockRestore(); }
 });
+
+test('painted installations keep colors independent, refresh after undo and dispose only their own materials', async () => {
+  const { source, model, geometry } = fixture();
+  source.construction.equipment.push({ ...source.construction.equipment[0], id: 'copy' });
+  source.construction.equipment[0].paint = 'sea-blue';
+  const loader = spyOn(models, 'loadShipModel').mockResolvedValue({ scene: model } as GLTF);
+  const preview = new EquipmentPreview(() => preview.update(source, catalog), () => {});
+  const material = (id: string) => (preview.group.getObjectByName(id)!.children[0].children[0] as THREE.Mesh).material as THREE.MeshStandardMaterial;
+  try {
+    preview.update(source, catalog); await settled();
+    const blue = material('funnel'), original = material('copy');
+    expect(blue.color.getHexString()).toBe('405d70'); expect(original.color.getHexString()).toBe('ffffff');
+    let disposed = 0, geometryDisposed = 0;
+    blue.addEventListener('dispose', () => disposed++); geometry.addEventListener('dispose', () => geometryDisposed++);
+    delete source.construction.equipment[0].paint; preview.update(source, catalog);
+    expect(material('funnel')).toBe(original); expect(geometryDisposed).toBe(0);
+    source.construction.equipment[0].paint = 'sea-blue'; preview.update(source, catalog);
+    expect(material('funnel')).toBe(blue); expect(loader).toHaveBeenCalledTimes(1);
+    preview.dispose(); expect(disposed).toBe(1); expect(geometryDisposed).toBe(1);
+  } finally { preview.dispose(); loader.mockRestore(); }
+});

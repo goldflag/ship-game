@@ -819,7 +819,7 @@ class Viewport {
     const move = !box && !this.props.scene.pathDraft && event.button === 0 ? this.movePick(event) : undefined;
     const start = !box && !move && event.button === 0 && this.props.scene.gesture !== 'none' && this.props.scene.placementPiece ? this.pick(event, 'hull') : undefined;
     // A press on a face with Paint or Opening begins a sweep: every face the drag crosses joins it, and release commits them as one edit.
-    const face = !box && !move && !path && event.button === 0 && this.props.scene.gesture === 'faces' ? this.pick(event, 'hull')?.surface : undefined;
+    const face = !box && !move && !path && event.button === 0 && this.props.scene.gesture === 'faces' ? this.pick(event, this.props.scene.pickTargets)?.surface : undefined;
     // A press on the hull lays or moves pieces, so OrbitControls (which listens after this capture handler) must not orbit with the same drag; `up` and `cancel` re-enable it.
     if (start || move || face) this.controls.enabled = false;
     this.pointerStart = { id: event.pointerId, button: event.button, x: event.clientX, y: event.clientY, moved: false, box, additive: event.ctrlKey || event.metaKey, start, move, points: start ? [start.placement] : [], faces: face ? new Set([face]) : undefined };
@@ -834,7 +834,7 @@ class Viewport {
     if (this.pointerStart.box) { this.showBox(event); return; }
     if (this.pointerStart.move) { if (this.pointerStart.moved) this.updateMove(event); return; }
     if (this.pointerStart.faces) {
-      const face = this.pointerStart.moved ? this.pick(event, 'hull')?.surface : undefined;
+      const face = this.pointerStart.moved ? this.pick(event, this.props.scene.pickTargets)?.surface : undefined;
       if (face && this.pointerStart.faces.size < 4096) this.pointerStart.faces.add(face);
       this.updateFacesPreview(); return;
     }

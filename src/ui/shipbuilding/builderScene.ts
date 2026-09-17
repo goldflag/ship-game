@@ -40,7 +40,7 @@ export interface BuilderScene {
   /** The ship's thinnest and thickest plates: the green and red ends of the Armor layer's colour scale. */
   armorScale: ArmorScale;
   gridStep: number; gesture: BuilderGesture;
-  /** What a click may select: hull faces only (armor, paint), internal packages and walls only (internals), or everything. */
+  /** What a click may select: hull faces only (armor), internal packages and walls only (internals), or everything. */
   pickTargets: 'hull' | 'internals' | 'all';
   moveTargets: BuilderMoveTargets;
   placementPiece?: BuilderPlacement; placementMirror?: BuilderPlacement;

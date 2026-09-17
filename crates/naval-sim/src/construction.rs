@@ -249,6 +249,7 @@ pub fn suggest(
                 position,
                 bearing_deg: 0.,
                 magazine_id: None,
+                paint: None,
                 gun: None,
                 launcher: None,
                 path: None,
@@ -411,6 +412,9 @@ fn validate(
         ));
     }
     for e in &c.equipment {
+        if e.paint.as_ref().is_some_and(|paint| paint.is_empty() || paint.len() > 64) {
+            return Err(error("equipment-paint", "Fitting paint must be a nonempty name of at most 64 bytes", Some(&e.id)));
+        }
         let rise = crate::construction_installation::raised(e);
         if !rise.is_finite() || !(0. ..=30.).contains(&rise) || (c.version < 2. && rise != 0.) {
             return Err(error("barbette-height", "Barbette height must be between 0 and 30 m on a version-2 gun installation", Some(&e.id)));

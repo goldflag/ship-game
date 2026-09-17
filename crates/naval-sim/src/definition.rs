@@ -1215,6 +1215,8 @@ pub struct ConstructionEquipmentPath {
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct ConstructionEquipment {
+    #[serde(rename = "paint")]
+    pub paint: Option<String>,
     #[serde(rename = "id")]
     pub id: String,
     #[serde(rename = "partId")]
