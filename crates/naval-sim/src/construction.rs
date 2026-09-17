@@ -1,7 +1,7 @@
 //! Authoritative construction compiler, shared by native tests and local WASM sessions.
 use crate::{catalog::sha256, construction_geometry as cg, definition::*, geometry::*};
 use std::collections::{BTreeMap, BTreeSet};
-pub const COMPILER: &str = "construction-polyhedra-4";
+pub const COMPILER: &str = "construction-polyhedra-5";
 pub const MAX_SOURCE_BYTES: usize = 16_000_000;
 pub const MAX_CATALOG_BYTES: usize = 4_000_000;
 /// Source bounds; the editor mirrors them in `src/ships/constructionEditor.ts`.
@@ -15,6 +15,11 @@ pub const MAX_SURFACES: usize = 131_072;
 pub const MAX_CONNECTIONS: usize = 16_384;
 const STEEL_DENSITY: f64 = 7850.;
 const SEA_DENSITY: f64 = 1025.;
+// Provisional game allowance for unmodeled framing, decks and general outfitting.
+// Total weight follows the union envelope; distribute it through its lower half
+// to represent low internal loading, with actual volume moments for CG/inertia.
+// Fitted equipment, service loads, ammunition and authored steel remain additive.
+const INTERNAL_ALLOWANCE_KG_PER_M3: f64 = 150.;
 
 fn valid_id(s: &str) -> bool {
     !s.is_empty()
@@ -764,6 +769,19 @@ fn build(
             .iter()
             .flat_map(|c| c.faces.iter().flat_map(|f| f.vertices.iter().copied())),
     );
+    let lower_hull: Vec<_> = cells
+        .iter()
+        .filter_map(|cell| cg::clip(cell, [0., 1., 0.], center[1]))
+        .collect();
+    let lower_volume = cg::total(&lower_hull).volume;
+    if lower_volume > cg::EPS {
+        contributions.push(mass(
+            "hull-internal-allowance".into(),
+            "internal-allowance",
+            &lower_hull,
+            envelope.volume * INTERNAL_ALLOWANCE_KG_PER_M3 / lower_volume,
+        ));
+    }
     let mut boundaries: Vec<_> = c.boundaries.iter().collect();
     boundaries.sort_by(|a, b| a.id.cmp(&b.id));
     for b in &boundaries {
@@ -1244,7 +1262,7 @@ fn build(
         buoyancy_scale: 1.,
         shell_thickness_mm: c.default_thickness_mm,
         basis:
-            "Exact polyhedral envelope and distributed material/loading; no calibration or ballast"
+            "Exact polyhedral buoyancy; authored loading plus low distributed internal allowance; no buoyancy calibration"
                 .into(),
     });
     let hydro = crate::hydrostatics::HullHydrostatics::new(&def.hull, None);
@@ -1297,7 +1315,7 @@ fn build(
     } else {
         0.
     };
-    let loading=ConstructionLoading{mass_kg:total_mass,center_of_gravity:cg,inertia_kg_m2:inertia,contributions,envelope_volume_m3:envelope.volume,material_volume_m3:material_volume,usable_volume_m3:def.compartments.iter().map(|r|r.capacity_m3).sum(),waterline_y:if float.afloat {-float.y}else{high},buoyancy_center:float.center,roll_metacentric_height_m:gm,power_kw:power,estimated_speed_mps:speed,basis:"Steel 7850 kg/m³; seawater 1025 kg/m³; exact convex clipping; fixed catalog service load and initial projectile stock; no hidden ballast".into()};
+    let loading=ConstructionLoading{mass_kg:total_mass,center_of_gravity:cg,inertia_kg_m2:inertia,contributions,envelope_volume_m3:envelope.volume,material_volume_m3:material_volume,usable_volume_m3:def.compartments.iter().map(|r|r.capacity_m3).sum(),waterline_y:if float.afloat {-float.y}else{high},buoyancy_center:float.center,roll_metacentric_height_m:gm,power_kw:power,estimated_speed_mps:speed,basis:"Steel 7850 kg/m³; seawater 1025 kg/m³; internal allowance 150 kg/m³ of union envelope distributed through its lower half by height; exact convex clipping; fixed catalog service load and initial projectile stock".into()};
     if !float.afloat {
         warn(
             out,

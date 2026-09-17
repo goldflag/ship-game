@@ -19,6 +19,7 @@ import { armorThicknessColor } from '../../ships/inspection';
 import { BuilderViewport, type BuilderTag, type ConstructionModelFactory } from './BuilderViewport';
 import { BUILDER_LAYERS, FAMILY_NAMES, formatTonnes, type BuilderLayer, type SlotItem } from './builderLayers';
 import { BOUNDARY_NAMES } from './builderTool';
+import { FITTING_CATEGORIES, NATION_SHORT, fittingCategory } from './fittingCategories';
 import { equipmentMassKg, format, hullBounds, ledgerRows, massGroups, pieceMassKg, surfaceCentroid, warningEntries } from './builderReadings';
 import { SlotGlyph, ToolGlyph } from './builderGlyphs';
 import { DesignsMenu, downloadConstructionSource } from './DesignsMenu';
@@ -83,7 +84,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const suggestLayout = props.suggestLayout ?? (compiler.suggest ? (source: ConstructionSource, ids: string[], signal?: AbortSignal) => compiler.suggest!(source, ids, signal) : undefined);
   const editor = useBuilderSource({ ...props, starterSource, compiler, suggest: suggestLayout });
   const { owner, revision, compiled, compile, tool, toolState: s, source, catalog, activeCatalog, latestCatalog, setActiveCatalog } = editor, data = source.construction;
-  const { layer, tool: activeTool, selected, surfaces, measure, pathPoints, customMm, mirror, showArcs, showCenters, freeformSettings, perspective, view, slice, notice, suggestion } = s;
+  const { layer, tool: activeTool, selected, surfaces, measure, pathPoints, customMm, mirror, showArcs, showCenters, freeformSettings, perspective, view, slice, notice, suggestion, fittingFilter } = s;
   const compiledResult = compile.current;
   const convertedDesigns = useRef(new Set<string>());
   useEffect(() => {
@@ -102,10 +103,11 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const hotbarRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const row = hotbarRef.current; if (!row) return;
+    row.scrollLeft = 0;
     const update = () => { const end = row.scrollWidth - row.clientWidth - row.scrollLeft > 1, start = row.scrollLeft > 1; row.dataset.overflow = end && start ? 'both' : end ? 'end' : start ? 'start' : ''; };
     update(); const observer = new ResizeObserver(update); observer.observe(row); row.addEventListener('scroll', update, { passive: true });
     return () => { observer.disconnect(); row.removeEventListener('scroll', update); };
-  }, [layer]);
+  }, [layer, fittingFilter]);
   const [drawerSize, setDrawerSize] = useState<{ width: number; height: number }>();
   useLayoutEffect(() => {
     if (!drawer) { setDrawerSize(undefined); setQuery(''); return; }
@@ -125,9 +127,11 @@ export function Shipbuilder(props: ShipbuilderProps) {
   useEffect(() => () => slotImages.dispose(), [slotImages]);
 
   const palette = tool.palette;
-  const imageFor = useSlotImages(slotImages, palette.drawer, catalog);
+  const everyCard = palette.all ?? palette.drawer;
+  const imageFor = useSlotImages(slotImages, everyCard, catalog);
   const active = tool.active;
   const drawerName = tool.drawerName, hasDrawer = tool.hasDrawer;
+  const shelfNations = tool.shelfNations;
   const pathPart = tool.pathPart;
   const rail = tool.rail;
   const locked = owner.locked, busy = revision.busy;
@@ -222,7 +226,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const launchTitle = busy ? busy : compile.compiling ? 'Compiling this revision…' : blocks.length ? `${blocks.length} block${blocks.length === 1 ? '' : 's'} to fix before a trial` : compiledResult?.definition ? 'Launch a sea trial with this design' : 'Waiting for a compiled design';
   const saveTone = revision.saveState.status === 'saved' ? 'ok' : revision.saveState.status === 'error' ? 'bad' : 'saving';
   const saveText = revision.saveState.status === 'saved' ? (props.repositoryId ? 'Saved to repository' : 'Saved to account') : revision.saveState.status === 'error' ? 'Not saved · keep a backup' : 'Saving…';
-  const drawerItems = query ? palette.drawer.filter(item => `${item.name} ${item.note} ${item.kind === 'part' ? `${item.part.name} ${FAMILY_NAMES[item.part.kind]} ${item.part.placement}` : ''}`.toLowerCase().includes(query.toLowerCase())) : palette.drawer;
+  const drawerItems = query ? everyCard.filter(item => `${item.name} ${item.note} ${item.kind === 'part' ? `${item.part.name} ${FAMILY_NAMES[item.part.kind]} ${item.part.placement}` : ''}`.toLowerCase().includes(query.toLowerCase())) : everyCard;
 
   const tags: BuilderTag[] = [];
   const equipmentAnchor = (item: ConstructionEquipment): Vec3 => { const part = partOf(item), center = part ? rotateY(equipmentPathBounds(part, item).center, bearingRadians(item.bearingDeg)) : [0, 0, 0]; return item.position.map((value, index) => value + center[index]) as Vec3; };
@@ -447,7 +451,11 @@ export function Shipbuilder(props: ShipbuilderProps) {
       <div className="sb-drawer-head"><span className="sb-lead">All {drawerName}</span>
         {(layer === 'fittings' || layer === 'hull') && <label className="sb-search">Find <input autoFocus type="search" aria-label={layer === 'hull' ? 'Find a shape' : 'Find a fitting'} placeholder={layer === 'hull' ? 'bridge, cylinder, shell…' : 'gun, screw, funnel…'} value={query} onChange={event => setQuery(event.target.value)} onKeyDown={event => { if (event.key === 'Escape' || (event.key === '0' && !event.currentTarget.value)) { event.preventDefault(); event.stopPropagation(); setDrawer(false); setTip(undefined); } }}/></label>}
         <button className="sb-drawer-close" aria-label="Close" onClick={() => { setDrawer(false); setTip(undefined); }}>×</button></div>
-      <div className="sb-drawer-grid" role="listbox">{drawerItems.map(item => slot(item))}{!drawerItems.length && <span className="sb-lead">No {layer === 'hull' ? 'shape' : 'fitting'} matches</span>}</div>
+      <div className="sb-drawer-grid" role="listbox">{layer === 'fittings' ? FITTING_CATEGORIES.map(shelf => {
+        // The drawer holds every shelf and nation at once; choosing a card there opens its shelf on the bar.
+        const cards = drawerItems.filter(item => item.kind === 'part' && fittingCategory(item.part, catalog) === shelf.id);
+        return cards.length ? <div key={shelf.id} className="sb-drawer-shelf" role="group" aria-label={shelf.name}><span className="sb-lead">{shelf.name}</span><div>{cards.map(item => slot(item))}</div></div> : null;
+      }) : drawerItems.map(item => slot(item))}{!drawerItems.length && <span className="sb-lead">No {layer === 'hull' ? 'shape' : 'fitting'} matches</span>}</div>
     </div>}
     <div className="sb-dock">
       <div className="sb-dock-tabs">
@@ -457,6 +465,12 @@ export function Shipbuilder(props: ShipbuilderProps) {
           <div className="sb-keys-row">{standing.map(chip)}</div>
         </div>
       </div>
+      {layer === 'fittings' && <div className="sb-shelves">
+        <div className="sb-chips" role="tablist" aria-label="Fitting shelves">{FITTING_CATEGORIES.map(shelf => <button key={shelf.id} role="tab" aria-selected={fittingFilter.category === shelf.id} title={shelf.note} onClick={() => { tool.setFittingFilter({ category: shelf.id }); setTip(undefined); }}>{shelf.name}</button>)}</div>
+        {shelfNations.length > 0 && <div className="sb-chips nations" role="radiogroup" aria-label="Nation">
+          {(['all', ...shelfNations] as const).map(nation => <button key={nation} role="radio" aria-checked={tool.shelfNation === nation} title={nation === 'all' ? 'Parts of every navy' : `${nation} parts, with the generic ones`} onClick={() => tool.setFittingFilter({ nation })}>{nation === 'all' ? 'All' : NATION_SHORT[nation]}</button>)}
+        </div>}
+      </div>}
       <div className="sb-dock-body">
         <div className="sb-hotbar" role="toolbar" aria-label="Palette">
           <div className="sb-hotbar-cards" ref={hotbarRef}>{palette.drawer.map(item => slot(item))}</div>

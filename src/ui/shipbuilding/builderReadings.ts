@@ -85,18 +85,20 @@ export function ledgerRows(source: ConstructionSource, result: ConstructionResul
   return rows;
 }
 
-/** One bar: hull skin, armor plating, walls, machinery and fittings, stores. */
+/** Authored mass groups plus the compiler's approximate internal loading. */
 export function massGroups(result: ConstructionResult | undefined): MassGroup[] {
   const groups: MassGroup[] = [
     { name: 'Hull steel', massKg: 0, color: '#9aa8b0' }, { name: 'Armor', massKg: 0, color: '#e8c56c' }, { name: 'Walls', massKg: 0, color: '#c6cfd3' },
     { name: 'Machinery & fittings', massKg: 0, color: '#86e4c5' }, { name: 'Stores & ammunition', massKg: 0, color: '#ffb5a6' },
+    { name: 'Internal allowance', massKg: 0, color: '#a8b8cf' },
   ];
   const surfaces = result?.surfaces ?? [];
   for (const item of result?.loading?.contributions ?? []) {
     if (item.kind === 'skin') {
       const index = Number(item.id.slice(item.id.lastIndexOf('-') + 1)), surface: ConstructionSurface | undefined = surfaces[index];
       groups[surface && surface.material === 'armor-steel' ? 1 : 0].massKg += item.massKg;
-    } else if (item.kind === 'bulkhead' || item.kind === 'plating') groups[2].massKg += item.massKg;
+    } else if (item.kind === 'internal-allowance') groups[5].massKg += item.massKg;
+    else if (item.kind === 'bulkhead' || item.kind === 'plating') groups[2].massKg += item.massKg;
     else if (item.kind === 'equipment' || item.kind === 'installation' || item.kind === 'support') groups[3].massKg += item.massKg;
     else groups[4].massKg += item.massKg;
   }
