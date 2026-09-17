@@ -290,6 +290,176 @@
       "url": "/models/components/thumbnails/54cb888aa036c751a3dd285ad578f9e16a221c47d6337c4371f86d97be6e43a1.png",
       "modelHash": "d9aae548c9914d9334e517c33c3f106c72dbf7355255a2c8383502ce64ead103",
       "imageHash": "57bcdd0f0963dc1e42e11a6dc0eb5ffd40d57517689700b43727f030a4a4574e"
+    },
+    "/models/components/us-5in38-mk21-single/3813659e9889a450aca6d503c53601792d5f2bd5339cd8997f9801dbfe4b8032/model.glb": {
+      "url": "/models/components/thumbnails/aa78bad1eaec6e53b1f7d57d5f9b97b7b5f0b2d4c5c6e19abd946767828cd604.png",
+      "modelHash": "6833c103dd498d8e2ebf8901335fe84f7aa6f1f196a55821a74f23bcf7faf2c9",
+      "imageHash": "6aa106796f0e3b2c67071163dbac42c7d102a0a8406609d9249423a6c5208b5c"
+    },
+    "/models/components/us-11in75-quad/8a3b43720cc3044c0da2132d1051546f8602414807c3545259b421d913111532/model.glb": {
+      "url": "/models/components/thumbnails/115322fba8dd6b284d14435d70b19744059bbf3c785566023f4afaa6f98d7455.png",
+      "modelHash": "ecc575e3321c8c851dd86e5a57637983aa639c9dbaa9c13beccbfb4bb70af6d0",
+      "imageHash": "f7569bdaf208b9a97a9eca8ecb4c80a50e05c11a67ccad5f4bb03760daaef540"
+    },
+    "/models/components/us-3in50-single/a9f5ce72bf435bfe2058f1513153c74812ac23918ce9a853bc35c8c903307f52/model.glb": {
+      "url": "/models/components/thumbnails/b07f42d1cff9be37249f266ee6ea9c6b62f709b7920839a92dc495c0ab3e0e5f.png",
+      "modelHash": "9b5e4cf8e8cea25313a550cda6c54f02af5c904cf6fa97a418feb3dfc1e55ee7",
+      "imageHash": "28ce2547809f69474c00852b2b71597017694c5c49ab942830994be51b47f77f"
+    },
+    "/models/components/qf-2pdr-mkvi-octuple/5af62bd30bf488f4ffe699f404324cce9ab87c06e230b83813a1251f37a6d2b0/model.glb": {
+      "url": "/models/components/thumbnails/aa7ebb4fa1b6d21c0d2f631a503b6808a91e366a50b72b7d0d51eded0cab9c89.png",
+      "modelHash": "0d1b15ca68ce19ed9a9c53edbafb08b1b1b65e8cf221e0c5f84da057bd233773",
+      "imageHash": "a18d4c5d9bf76e7f116dc414cdc504012c7da47d30b265a61ea086e0aa5fa63a"
+    },
+    "/models/components/type89-127-a1-twin/d963e342bd922d8542ae5832581bf265366101a6802684e788ab6905cfe68e7c/model.glb": {
+      "url": "/models/components/thumbnails/42db57acc915d6af302a3a32accc5b7a9aa2a63de3aa4f1ab877ef7daeddced9.png",
+      "modelHash": "7f3d87635a5caf60eb950428c3286da93ef4a6047e6cc016ecb34daba47b5fe3",
+      "imageHash": "ce2f64dfce2673f40bf92dfdee64cb8c3c05084cc031ed006210459853f73ab7"
+    },
+    "/models/components/type89-127-a1-mod2-twin/4acd1a8e69d26130958804bc5ba368d3b5efb5720cae87b7000cad1663253b46/model.glb": {
+      "url": "/models/components/thumbnails/ac9ce5d5e91b2e3a6db588157f66cd4d1352e07e1e2f7fc2e28710da500c5611.png",
+      "modelHash": "517157ee07adb7619d223cf09812c4b689622c14cf15d0da971136d52612f4c0",
+      "imageHash": "339a1bb7c7da4449602b69b7ae757b685071c806e53fe583545de9b92d4a9697"
+    },
+    "/models/components/type96-25-triple/ccc4ea72afe142eb5991d8465c84eaa64f5366af6d862cf13d6562257f9a82b7/model.glb": {
+      "url": "/models/components/thumbnails/78c019c1a603aa5db926a6068d002b84d633f2b302b812d0b5ad04df6dc96ba1.png",
+      "modelHash": "3938fb702eba95c952bc580b0727861c3c421f59d51ba8253eb5c29efd8f5627",
+      "imageHash": "939b91ad722b754b35ce0df779281da2f6755c2dab4708c3afb601f30abe6239"
+    },
+    "/models/components/type96-25-triple-shielded/2273b31aae68a344bab07797ce96df5041baa4e7290ab1f360a044e8740fc1d4/model.glb": {
+      "url": "/models/components/thumbnails/c71f7da1d13eed6a666c3b9378b1aec48ed47e44cbca08a6d078e6788dc83580.png",
+      "modelHash": "45f52677f01a4339dcafdfaf082aff45f887251575998db2772a2930714c42b9",
+      "imageHash": "60251757bfb4b7f999a0d28dc7c31f071f4fb42222902cf3c2d958a6a12de8d5"
+    },
+    "/models/components/type3-127-typec-twin/583be5e0824148169632f7feaea2afad1cff5edbfe61335069e732006855a20c/model.glb": {
+      "url": "/models/components/thumbnails/cc1a0a44c4e6cd78f9dce628adc2909571e2906ea02ccce8770e99fd715354b7.png",
+      "modelHash": "d7f8232c8df5bcb4a9e67523811efa09bb273ab8a856e864454d2912c94f1cc6",
+      "imageHash": "40a459ed0dd1bee188c5473c714de95ac9b034ef13ea2f2866df804748cf46e2"
+    },
+    "/models/components/type96-25-mogami-2/fd456ba4c5e1ba06da443b3f2d32d7386e0c21ae27830c35a6a6d7c752a26942/model.glb": {
+      "url": "/models/components/thumbnails/7ac7f52182ccbaafd2094b3c7ba01ede5a4566b91ae0f4125c724aa0f3486d3c.png",
+      "modelHash": "784f1d8561304cd1a9c2fc7a560589eacb7621700332c766fcdd7bd30b4a72b4",
+      "imageHash": "2bacb5a84ffc83c568e92b0bffa67acab02ff4d1e463cd946c624e5e85b6b2ba"
+    },
+    "/models/components/us-40mm-bofors-mk1-iowa/773b82d11043219a64546bd80b3c1c4ad7d2e1ee1180a8126d174be63a84a957/model.glb": {
+      "url": "/models/components/thumbnails/1b85da765aeb670228473b5640c229cb4a522d8be1cd8b8c7248199f56bd5c54.png",
+      "modelHash": "bc3defed54147f598843dcdef638f2fa01ce7f7ccc514571af1608dfcb563852",
+      "imageHash": "33dbc307879e6a85c2ca60df72c9a39f8e204d9d7926113e862cfdcc2d739e6f"
+    },
+    "/models/components/us-20mm-oerlikon-mk24-hsienyang/3f32dc27b71964fa53837fa8237b449c1441285507294675e954c96cffd11858/model.glb": {
+      "url": "/models/components/thumbnails/629084ff47978f160941ab7824042d0d72526a377dc43d25a6f6e7390a32e728.png",
+      "modelHash": "1025a610fd645d6be95260b0d66a2cb556ef76dca380578d88bbbcb2b4343881",
+      "imageHash": "4a48425f9a5fed51546f1d83e9e2c309f3326c85880d7e83d4a219297bc9394d"
+    },
+    "/models/components/us-5in38-mk32-mod12/3bd95892dc99f0c1d29744e312f6188ef502c8c6e7b4e1b8215da463193e01b9/model.glb": {
+      "url": "/models/components/thumbnails/2b744f6673319a2fb94514e36abf1c97fc224c7be721cfba2000c765688f8c88.png",
+      "modelHash": "51f4cb9f604a2b49e6455131d52f12d23576b9d59c5dd55c971e00a48ec86581",
+      "imageHash": "a588677d96da863bc3e4afb7aa012bf92b2b4e556e1e5a3f540bdd273ee1ed52"
+    },
+    "/models/components/type93-13-twin/9e8348ca314e96861b53d42815872a53e595241b0b4068167fc5231aee4a1b09/model.glb": {
+      "url": "/models/components/thumbnails/48a82c0a5d224126185dfeff2c113338840c7ab4a1ffe58b45969598a203186d.png",
+      "modelHash": "043335d93cca1a9017b95b4797d26fff6863e75a4ff132a655100cafd4c594f6",
+      "imageHash": "bccfdde842f07dfc728b59a1dfec9f8d7c8ec76f0b209719ec12dbb0ad6f0ab7"
+    },
+    "/models/components/type93-13-single/097c1b37d4d4ef601331de8644c51b956224804426145d3e35f53ad0e3907666/model.glb": {
+      "url": "/models/components/thumbnails/282aee9d74367ae0be588024c33c7d627ccf0a95d46ab92f7133b1caaec38624.png",
+      "modelHash": "6c0c5ba7a2432f5d5d065cc91005d67402eacc595dfb8650e340d98e49896fc6",
+      "imageHash": "3d33ab5a86f5e8dbcd46dd0f59b9fe22237719682f17ba159b64f79b023ecbec"
+    },
+    "/models/components/ijn-triple-610/faa2008ea216453c0f7d7e84418f9a1bfddd0d918606113f7a8e8627ce6bfdc5/model.glb": {
+      "url": "/models/components/thumbnails/26a0ee5f9e5644b8116e7d07fb763c414df7757623831bea9c57fb7780843ade.png",
+      "modelHash": "6d20835ab19ce6780479c9d6c624157a0ade4669e3bca8b267edf9e14bad38ec",
+      "imageHash": "0392d4998fa6a93a4b5d650bdad59458f1b342a5f0f3c97c65416913d0337a90"
+    },
+    "/models/components/ijn-quadruple-610/cb9d0616c487b71120fdd29da8bf5065600ac05f34b17b635feffcbcc0e47be0/model.glb": {
+      "url": "/models/components/thumbnails/2e912d22b8d40effa2c690b863d291f6069f030301aae35d5dd272ad47ef45df.png",
+      "modelHash": "9251032be9f3afd6f70972a7defb715af0ca62ed9139235b2dd0a9948b8f3f28",
+      "imageHash": "727a1eeec60bc41ddc3e855a4db9bfff4a518925365e3f248b27f06c63910643"
+    },
+    "/models/components/us-battleship-funnel/0d5798a3b94cca760d6d8487023d7c6065e02a119009856496d5c970fb92dab4/model.glb": {
+      "url": "/models/components/thumbnails/b66c667093e1c333f8e2e2e244b89d6c5ed152603dc34a4ba233246171fd525d.png",
+      "modelHash": "215bfe4b74149891ab1ad9b76e96286ffaa6f75992d5e11b14791bd90230a602",
+      "imageHash": "b8344e79701ea62c9b3184ebb39cf7c493e15bd685a1cb652bb7c3ca23ed1f7a"
+    },
+    "/models/components/us-cruiser-funnel/4420b6e50649293f1c0d6186e17b5393f33ad1ca0de8c26ef225a734bc16969e/model.glb": {
+      "url": "/models/components/thumbnails/ba918e285681d63d573579c362506c97a98b876d64cdc581a2397aeec098f182.png",
+      "modelHash": "602225f951c7e8d6893f89b38fc05f5d29d4fbeb2eb221c5e8626a3e6220d5e4",
+      "imageHash": "71e66c2668a24753bbc8b292786d9dca5472b79e388d9740c861079da732a642"
+    },
+    "/models/components/us-mk38-director/6b8ab01043cdd12c93ae8a3c74774611e13182a8458e9aefff1070ae99c2ef78/model.glb": {
+      "url": "/models/components/thumbnails/595258219f5c175d4321009b266e92021c4d1e210a66a8d2a75481daecd8e07b.png",
+      "modelHash": "2cf31aea1673f85f689ed20ba2e95d1dd486eaba0a68294f1b16e9ed6e28a126",
+      "imageHash": "96056660a849bc6ee49d91d850cd7597ba5a364ae8cfdd338ecd9c641ad28dc3"
+    },
+    "/models/components/us-cruiser-pole-mast/01b433073b11e663d365d48c61b64c376749c2a23052c349e960c6f1c14138a8/model.glb": {
+      "url": "/models/components/thumbnails/182c40d3b5b8944b9b85ec9a856e00d10884153ce7442d31a16cdb1ec3e39bf7.png",
+      "modelHash": "43bdfdecd23dbafe5aa5ddcb012d12b627ed5cda21d56bfefe3112bde166163a",
+      "imageHash": "f2fd1e2f4b6fd5e3499a3f3965eb1faacdb1e8a2f7169f684592165be785f8d5"
+    },
+    "/models/components/german-battleship-funnel/a7174951070c846a313bcee51cd7de4c82110303a3284260b07c23ed7547def9/model.glb": {
+      "url": "/models/components/thumbnails/ba3a6ae86e0c03a8d3817b4eb50a9d849da4f2bd7d8caeca82ea8879694b4f88.png",
+      "modelHash": "6669b0ecd646b26309fcc0174aba63b2e941b295599e24b407ec225b16670674",
+      "imageHash": "b0c9b56ad8e45c1a25c598d25a8addfa6b99aebd9a8995fd3177f93a60367cee"
+    },
+    "/models/components/german-rangefinder-cupola/ba15dabf90c1035d53e289f583126f89e2475ef990ee13cef580170ddbff429a/model.glb": {
+      "url": "/models/components/thumbnails/52155d8ff6a283e071d6ac297a82c115ec408ef71771de79a8da4789494b2632.png",
+      "modelHash": "b580533f46d73d7df169bc1bfe7c2aa42bf1af075b14335fc0fb0cded93b3325",
+      "imageHash": "bb16ab5614e08e00adb117c933b96713d852ff94d9672bcd403a0ca382a99a22"
+    },
+    "/models/components/german-battleship-mainmast/2c014e114038879741ae344898c3b5ed7a76e3bddc0dfe4ae63d4fcc8bb611bc/model.glb": {
+      "url": "/models/components/thumbnails/1e6526ebb20755fe947cf896a9713fcb82905c06dc0e39a9ca0c7851c9230b08.png",
+      "modelHash": "efeb15a2d1a129c7d92301adf5fd66d6ad28864bc40417b9ab9e0e87aa0216e7",
+      "imageHash": "879d0f8676f674e9dc9b84bc52906cc0a48456de07c6c125bfd54dca09560ad9"
+    },
+    "/models/components/ijn-battleship-funnel/16754cd6535db09ae78ec9cdc2b68a5a2ab3925ae769682a5466c8475b631c3e/model.glb": {
+      "url": "/models/components/thumbnails/bd14cbc384a11b1b73ee74c56a70780a117dab8f2333de6ee543421ae3488bf5.png",
+      "modelHash": "173ca392cc34354fc8c4500ffd9997b11bf9ad811c27b58a7c54e4c0d9e86bfc",
+      "imageHash": "bb9a11a8ca4ee38fff65a866701940cd8e50677592f2bb2849da87b186910690"
+    },
+    "/models/components/ijn-cruiser-trunked-funnel/5c4264e3c0ac11ededfed8fa1fafab76666ce6748063864d8869e5202fbb6132/model.glb": {
+      "url": "/models/components/thumbnails/e7af6494c4a2fbb576e8f50ede71a7dd26b0ae8f2514c7571fa6c8fc22eff6bd.png",
+      "modelHash": "1b04b0e1a296018256756e8fbeac3da4a458083268bfc23229da4e765edca396",
+      "imageHash": "039b42dea79d453cb8d45e7ca2ea9852739fb1777abe863c6b326228be3b282e"
+    },
+    "/models/components/ijn-destroyer-funnel/4073ee9932db24155f50f21227938070a8657b5be25c8b0e7c5dcd3e4d92777c/model.glb": {
+      "url": "/models/components/thumbnails/5ad40b603d8a3d067ce585be406eec6a5147389672d9d9cd06fbd09fc54d6218.png",
+      "modelHash": "ed7711b9190c832be837b4c051ea71e1def83201d83e9ba0a62542ecd245e267",
+      "imageHash": "de9929b5c1e915f79b0f71d44a0fa0bb362bb8f4975bb3d139ff327b9d6f9676"
+    },
+    "/models/components/ijn-destroyer-tripod-foremast/37c2c92853fafd647ee83af207dc37791774bf07eb762b84997cdf273d7c7fe6/model.glb": {
+      "url": "/models/components/thumbnails/3e3327e4bd6c3c37b6d2acdc0ca211c06336dc7cd15c670cc5a8a52b36f5331e.png",
+      "modelHash": "aba989597ea1de41c33c2d1db2c6a652e701ee94799d3694276a4fa1e8c45116",
+      "imageHash": "43b2efc4c4200636d80f37fd07bfe1104f52dabf8a911a318e6d13517a2cbcfe"
+    },
+    "/models/components/ijn-type95-director/04f33b5dbc2a6fb2f60f06fafc7d8fb05c00eda039cb33764277ae147ebf21e2/model.glb": {
+      "url": "/models/components/thumbnails/4128fd1eb078b99fcd00a6eb543bc2a9fa0b891b4dab34f219ece39e15503b9b.png",
+      "modelHash": "fbc17a9c290d161a5d88caee8b25fa7af91fbcfb928a7fe55d60350022d37eed",
+      "imageHash": "470c73deda7b5b50fcdc35d110cba284cb25b5a16537b348a7c09f37e3f61c0c"
+    },
+    "/models/components/ijn-type98-main-director/25896f21bff8e0561690a245401a1e5c89569e65601844977eab9e87c0cf774f/model.glb": {
+      "url": "/models/components/thumbnails/b4e2f5485bbf34609b97b874388a1c83fee48b1983fffda2d8af8623c2e452a0.png",
+      "modelHash": "6d26179901067d73e0bc6eb82fcdf8063f936b4ecd742d9d15b734c8f625827c",
+      "imageHash": "7de6b3aceb778636259771705d784b881b257a6edcbb70234fdfd8a93cf4699d"
+    },
+    "/models/components/rn-battleship-funnel/be5e62c60ca06fd053e831c2c751a9b0a5d53892d157cef566da0fcdbdcfa0a7/model.glb": {
+      "url": "/models/components/thumbnails/30413ae265d0009374cbfa491118b6612ff055b191fdc0f06de4508e91e434d9.png",
+      "modelHash": "e85b16ba6d9874ec198218bfb5e0333ea826bd4f1ef6bd924e40da41df2e2387",
+      "imageHash": "07584a85a035a78c503106972c2ef97d07e8225fa10f77886aec6157b97de200"
+    },
+    "/models/components/rn-tripod-foremast/ca67fd7d2aea8748ec7d6df63ba306bf3ee6c0bc9d2bdbccf54c9959396c7cff/model.glb": {
+      "url": "/models/components/thumbnails/efd7f70ceefe8b71264a85cd4a46463615b73e6e5134be552c8ebf972ec3c97a.png",
+      "modelHash": "55f37f50b51178565c942101351e74d61d69a9819607d99d60e9a0cb2e06ecb5",
+      "imageHash": "417bcd66fcc879dff1c027aee4a0ae991d5c072414d1b2433c95781405ed5b62"
+    },
+    "/models/components/rn-hacs-director/97a60ea0fe03d0d7e3208f01a22808e3b70fbd60ba29745269ca8c9b4b7928e0/model.glb": {
+      "url": "/models/components/thumbnails/67322f57d39e656bc80f9b6dfb6d6183512093df8e6364d3cc987f63d85c76bc.png",
+      "modelHash": "275ff39f83a0a91d04f44d93cc725b3ef23ccd0be91074b5c6d2f661aac76dbb",
+      "imageHash": "4b49767315b4dd23b85518b44814764b815c229d36fdff11f71bc7551a6dc2d2"
+    },
+    "/models/components/rn-corvette-funnel/20952d6d2f044b1d48840485f8fb91042b75772d4321f88daae7733785e9c7ec/model.glb": {
+      "url": "/models/components/thumbnails/f53c7710cfa5bd4854045d6735ae49483308316b0a96cb3a604ebddf578d16b4.png",
+      "modelHash": "a6935d06f588ddac99d6c7d3b3a11849c608ec7be2b63c68cd2668bc256b2a00",
+      "imageHash": "f0ccdfe6f574d6835d8dd94dceb8716e22230e537d7e1d58b1db341d02d113b5"
     }
   }
 }
