@@ -1,6 +1,7 @@
 //! Renderer-free naval simulation shared by the native server and browser WASM.
 pub mod catalog;
 pub mod construction_geometry;
+pub mod construction_overlap;
 pub mod compartment_geometry;
 #[path = "../../../assets/parts/construction/hull_shapes.rs"]
 pub mod construction_shapes;
