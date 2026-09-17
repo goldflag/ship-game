@@ -243,17 +243,15 @@
 .sb-keys-row.acting .sb-key { color: var(--sb-text); }
 .sb-keys kbd { opacity: .8; }
 
-/* view bar: icon squares on the palette's bottom line at the right edge, grouped view · camera · slice | centers · snap · mirror | fit;
-   the pressed card carries a toggle's state and the tooltip its name, value and key */
-/* view strip: how the ship is shown. One captioned ground with bare glyph squares, so it never reads as a second tool rail. */
-.sb-viewbar { display: flex; gap: 2px; align-items: center; flex-shrink: 0; padding: 0 0 0 10px; border-left: 1px solid var(--sb-line2); }
-.sb-vb-cap { margin-right: 6px; text-shadow: none; }
-.sb-viewbar .sb-vb { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border: 0; border-radius: 3px; background: transparent; color: var(--sb-muted); text-shadow: none; position: relative; }
-.sb-vb.gap { margin-left: 11px; }
-.sb-vb.gap::before { content: ''; position: absolute; left: -7px; top: 4px; bottom: 4px; width: 1px; background: var(--sb-line2); }
-.sb-vb svg { width: 20px; height: 20px; }
-.sb-viewbar button.sb-vb:hover { background: var(--sb-card-hover); color: var(--sb-text); }
-.sb-viewbar .sb-vb[aria-pressed=true] { color: var(--sb-brass); background: var(--sb-card-selected); box-shadow: inset 0 0 0 1px var(--sb-brass); }
+/* view strip: how the ship is shown, at the rail's foot under Modifiers. A captioned two-column grid of bare glyph squares, so it never reads as a second run of tool cards. */
+.sb-rail .sb-viewbar { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; width: 54px; margin-top: 8px; }
+.sb-vb-cap { grid-column: 1 / -1; padding: 0 0 3px 2px; text-shadow: none; }
+.sb-rail .sb-viewbar .sb-vb { width: 26px; height: 26px; margin: 0; display: inline-flex; flex-direction: row; align-items: center; justify-content: center; gap: 0; border: 0; border-radius: 3px; background: transparent; color: var(--sb-muted); text-shadow: none; position: relative; }
+.sb-rail .sb-viewbar .sb-vb svg { width: 18px; height: 18px; }
+.sb-rail .sb-viewbar .sb-vb:hover { background: var(--sb-card-hover); color: var(--sb-text); border: 0; }
+.sb-rail .sb-viewbar .sb-vb[aria-pressed=true] { color: var(--sb-brass); background: var(--sb-card-selected); box-shadow: inset 0 0 0 1px var(--sb-brass); border: 0; }
+.sb-rail .sb-viewbar .sb-vb.gap::before { content: none; }
+.sb-tip.beside { transform: translate(0, -50%); text-align: left; }
 
 @media (max-width: 1100px) {
   .shipbuilder { --sb-slot: 56px; }
@@ -264,18 +262,14 @@
   .sb-tag { max-width: min(420px, calc(100% - 96px)); overflow-y: auto; scrollbar-width: thin; }
   .sb-ledger { width: 176px; }
 }
-/* a narrower window drops the strip's caption and folds its squares into rows of three, shows the layer tabs as glyphs, and moves the compass clear of the rail */
+/* a narrower window shows the layer tabs as glyphs and moves the compass clear of the rail */
 @media (max-width: 1240px), (max-height: 800px) {
   .sb-orientation { left: 70px; }
 }
 @media (max-width: 1240px) {
-  .sb-viewbar { flex-wrap: wrap-reverse; width: 104px; justify-content: flex-end; padding-left: 6px; }
   .sb-tabs button { padding: 0 12px; }
   .sb-tabs button svg { display: block; }
   .sb-tabs button span { display: none; }
-  .sb-vb-cap { display: none; }
-  .sb-vb.gap { margin-left: 0; }
-  .sb-vb.gap::before { display: none; }
 }
 /* a short window leaves no room for the legend in the tab row, and the rail shortens its cards and scrolls above the dock */
 @media (max-width: 860px), (max-height: 800px) {
@@ -286,6 +280,8 @@
   .sb-left .sb-warn { flex-shrink: 0; }
   .sb-left .sb-rail { min-height: 0; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; pointer-events: auto; }
   .sb-left .sb-rail button { flex-shrink: 0; height: 44px; }
+  .sb-rail .sb-viewbar { margin-top: 4px; }
+  .sb-vb-cap { display: none; }
 }
 @media (max-width: 860px) {
   .sb-ledger { display: none; }

@@ -11,9 +11,9 @@ export interface ViewBarProps {
 
 interface Entry { id: string; glyph: string; label: string; value?: string; pressed?: boolean; key?: string; detail: string; group: number; onClick(): void }
 
-/** View strip in the bottom-right corner: how the ship is shown, never what a click does. One captioned ground holds bare glyph squares
- *  in two groups (view · camera · slice · fit | centers · arcs). Toggles show their state as the pressed square; the name, value,
- *  description and key appear in the tooltip. Mirror and Snap, which change where a click lands, live under the tool rail instead. */
+/** View strip at the foot of the tool rail: how the ship is shown, never what a click does. One captioned two-column grid of bare
+ *  glyph squares (view · camera · slice · fit, then centers · arcs) below the Modifiers, so the whole left edge carries every key.
+ *  Toggles show their state as the pressed square; the name, value, description and key appear in the tooltip beside the glyph. */
 export function ViewBar(props: ViewBarProps) {
   const { onTip } = props;
   const entries: Entry[] = [
