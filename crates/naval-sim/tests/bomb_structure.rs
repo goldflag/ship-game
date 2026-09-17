@@ -1,7 +1,7 @@
 //! Isolated blast paths: retain a real compiled hull, replace its damage targets
 //! with one structural volume and an optional plate so protection is measurable.
 use naval_sim::{
-    aircraft_flight::FlightAttitude,
+    aviation::FlightAttitude,
     burst::burst_shell,
     catalog::Catalog,
     definition::{Armor, ArmorPlate, DamageRegion, HEProjectile, ShipDefinitionLocalDamage},

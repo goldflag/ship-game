@@ -1,12 +1,9 @@
 use naval_sim::{
-    air_rules::{
-        ActiveFlights, AirRules, ConsolidationPolicy, DeckCycle, DeckTimings, EndurancePolicy,
+    aviation::{
+        ActiveFlights, AirContext, AirOrder, AirRules, Aviation, ConsolidationPolicy, DeckAction,
+        DeckCycle, DeckTimings, EndurancePolicy, terminal,
     },
-    aircraft::{AirOrder, terminal},
-    aviation::Aviation,
-    aviation_step::AirContext,
     catalog::Catalog,
-    deck_operations::DeckAction,
     rules::TeamId,
     vessel::{Controller, Vessel},
 };

@@ -9,9 +9,7 @@
 //! stream through the same filter, everything else is what the team's sensors
 //! report. Simulation objects never come back from clients.
 use crate::{
-    aircraft::AirRelease,
-    aircraft_flight::FlightControls,
-    aviation::CarrierWing,
+    aviation::{AirRelease, CarrierWing, FlightControls},
     battle::{Battle, Event},
     depth_charges::DepthCharge,
     mission::MissionRules,

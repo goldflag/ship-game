@@ -33,6 +33,9 @@ export interface SharedMaterialUniforms {
     foamFieldSampler: IFoamFieldSampler | null;
 }
 export declare class WaterSurfaceMaterial extends THREE.MeshBasicNodeMaterial {
+    private _sunShadowNode;
+    /** Bind the scene light's shared shadow node; null disables surface shadows. */
+    setSunShadowNode(node: THREE.Node | null): void;
     private oceanSim;
     private sky;
     private features;

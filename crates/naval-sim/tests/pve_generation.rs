@@ -310,7 +310,10 @@ fn enemy_search_orders_do_not_change_when_unobserved_friendly_ships_move() {
 
 #[test]
 fn enemy_air_commander_scouts_before_striking_uses_reports_and_keeps_fighter_support() {
-    use naval_sim::{aircraft::AirOrder, pve_air::AirIntent, sensors};
+    use naval_sim::{
+        aviation::{AirIntent, AirOrder},
+        sensors,
+    };
     let mut content = catalog().clone();
     content.definitions.retain(|id, _| id == "enterprise-cv6");
     let plan =
@@ -692,7 +695,7 @@ fn commit_orders(
     rounds: u64,
     cadence: u64,
 ) {
-    use naval_sim::pve_air::AirIntent;
+    use naval_sim::aviation::AirIntent;
     for _ in 0..rounds {
         battle.tick += cadence;
         observe(battle);
@@ -704,7 +707,7 @@ fn commit_orders(
     }
 }
 fn strikes_by_contact(battle: &naval_sim::battle::Battle) -> BTreeMap<String, (usize, usize)> {
-    use naval_sim::aircraft::AirOrder;
+    use naval_sim::aviation::AirOrder;
     let mut out: BTreeMap<String, (usize, usize)> = BTreeMap::new();
     for a in battle.actors.iter().filter(|a| a.team == TeamId::B) {
         let Some(wing) = battle.aviation.wing(&a.motion.id) else {
@@ -730,7 +733,7 @@ fn strikes_by_contact(battle: &naval_sim::battle::Battle) -> BTreeMap<String, (u
     }
     out
 }
-fn orders_of(battle: &naval_sim::battle::Battle) -> Vec<naval_sim::aircraft::AirOrder> {
+fn orders_of(battle: &naval_sim::battle::Battle) -> Vec<naval_sim::aviation::AirOrder> {
     battle
         .actors
         .iter()
@@ -742,7 +745,7 @@ fn orders_of(battle: &naval_sim::battle::Battle) -> Vec<naval_sim::aircraft::Air
 
 #[test]
 fn strike_budgets_favor_the_identified_carrier_and_stop_at_the_wave_limit() {
-    use naval_sim::aircraft::AirOrder;
+    use naval_sim::aviation::AirOrder;
     let (plan, mut battle) = observed_fixture(AiLevel::Hard, &["enterprise-cv6", "fletcher"]);
     commit_orders(&plan, &mut battle, 40, 180);
     let contacts = battle.sensors.contacts(TeamId::B);
@@ -815,7 +818,7 @@ fn two_small_contacts_each_draw_one_flight_instead_of_a_pile_on() {
 
 #[test]
 fn reported_hostile_aircraft_double_the_patrol_before_any_scout_leaves() {
-    use naval_sim::aircraft::AirOrder;
+    use naval_sim::aviation::AirOrder;
     let (plan, mut battle) = observed_fixture(AiLevel::Normal, &["enterprise-cv6"]);
     // The player's carrier puts fighters up 5 km from the enemy carrier.
     let own = battle
@@ -839,7 +842,7 @@ fn reported_hostile_aircraft_double_the_patrol_before_any_scout_leaves() {
     let mut defends = 0;
     for _ in 0..2 {
         for d in plan.enemy_air_directives(&battle) {
-            if let naval_sim::pve_air::AirIntent::Order(order) = d.intent {
+            if let naval_sim::aviation::AirIntent::Order(order) = d.intent {
                 if matches!(order, AirOrder::Defend { .. }) {
                     defends += 1;
                 }

@@ -13,13 +13,13 @@ import type { TeamView } from "./TeamView";
  * The battle half of a frame. Every field a receiver may read is declared
  * here; the generated `BattleFrame.ts` is the client's type for it.
  *
- * The eight element parameters are the projections whose element shapes are
- * filtered views of simulation objects rather than declared types (a hull
+ * The eight collection parameters are the projections whose element shapes
+ * are filtered views of simulation objects rather than declared types (a hull
  * without its bot, a shell without its damage ledger): Rust instantiates them
- * with streaming adapters, TypeScript with the element types it renders.
- * Declaring those element shapes in Rust is the next candidate; this frame
- * is where they will land. `X` is the debrief's own instantiation, hidden
- * from the TypeScript signature where it is simply the frame again.
+ * with streaming adapters, TypeScript with arrays of the element types it
+ * renders. Declaring those element shapes in Rust is the next candidate; this
+ * frame is where they will land. `X` is the debrief's own instantiation,
+ * hidden from the TypeScript signature where it is simply the frame again.
  *
  * Optional fields are absent, never null, on the wire and on the receiver:
  * the frame codec (`frame_delta`) owns that invariant for every nested

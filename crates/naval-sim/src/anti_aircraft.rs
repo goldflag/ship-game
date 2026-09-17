@@ -1,7 +1,8 @@
 use crate::{
-    air_gunnery::*,
-    aircraft::{airborne, on_flight_deck},
-    aviation::Aviation,
+    aviation::{
+        Aviation, aa_damage, aa_spread, airborne, gunnery_seed, on_flight_deck, panic_aim,
+        step_discipline,
+    },
     ballistics::*,
     definition::{MountDefinition, ShipDefinition, Vec3},
     geometry::*,
@@ -362,7 +363,7 @@ pub fn update_observed_at(
                 )
                 .is_some()
             {
-                crate::aircraft_defense::near_fire(actual, position);
+                crate::aviation::near_fire(actual, position);
             }
             if clear
                 && nearer_distance(sub(endpoint, hit_position), if heavy { 14.0 } else { 6.0 })

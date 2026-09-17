@@ -9,13 +9,12 @@
 //! `DOCTRINE_WEATHER` and `DOCTRINE_MINUTES` select the run.
 use naval_protocol::{Command, CommandEnvelope, session::Session};
 use naval_sim::{
-    aircraft::{AirOrder, airborne},
+    aviation::{AirDoctrine, AirIntent, AirOrder, airborne},
     battle::{Battle, Spawn},
     bots::AiLevel,
     catalog::Catalog,
     navigation::Movement,
     pve::{FleetShip, GroupStation, Placement, PvePlan, PveRequest, TaskGroup},
-    pve_air::{AirDoctrine, AirIntent},
     rules::TeamId,
 };
 use std::{

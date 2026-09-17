@@ -2,13 +2,11 @@
 //! reference casts a vertical line into triangle planes without using the
 //! fitter's spatial index, barycentric height query, or Newton solver.
 use naval_sim::{
-    aircraft::create_air_wing,
-    aircraft_deck::{GroundPose, compose_attitude},
+    aviation::{
+        ContactPose, DeckPose, DeckSurface, GroundPose, compose_attitude, create_air_wing, place,
+    },
     catalog::Catalog,
-    deck_contact::{ContactPose, DeckSurface},
-    deck_operations::place,
     definition::{ShipDefinition, Vec3},
-    flight_deck::DeckPose,
     geometry::{Pose, add, cross, dot, length, local_to_world, rotate, sub, world_to_local},
     rules::TeamId,
     vessel::Vessel,
@@ -669,7 +667,7 @@ fn parked_contact_cache_follows_carrier_motion_without_drift_and_rebuilds_after_
         position: [8.8, 16.431877, 32.0],
         heading: 0.4,
     };
-    assert!(naval_sim::deck_operations::place(plane, &actor, at, ground));
+    assert!(naval_sim::aviation::place(plane, &actor, at, ground));
     let root = plane.deck_position.unwrap();
     let local = plane.deck_local_attitude.unwrap();
     for i in 0..120 {
@@ -677,7 +675,7 @@ fn parked_contact_cache_follows_carrier_motion_without_drift_and_rebuilds_after_
         actor.motion.heading = i as f64 * 0.02;
         actor.motion.pitch = (i as f64 * 0.1).sin() * 0.07;
         actor.motion.roll = (i as f64 * 0.1).cos() * 0.12;
-        assert!(naval_sim::deck_operations::place(plane, &actor, at, ground));
+        assert!(naval_sim::aviation::place(plane, &actor, at, ground));
         assert_eq!(plane.deck_datum, Some(at.position));
         assert_eq!(plane.deck_position, Some(root));
         assert!(
@@ -699,10 +697,10 @@ fn parked_contact_cache_follows_carrier_motion_without_drift_and_rebuilds_after_
         assert!((plane.pitch - expected.pitch).abs() < 1e-9);
         assert!((plane.bank - expected.bank).abs() < 1e-9);
     }
-    let mut restored: naval_sim::aircraft::Aircraft =
+    let mut restored: naval_sim::aviation::Aircraft =
         serde_json::from_value(serde_json::to_value(&*plane).unwrap()).unwrap();
     assert!(restored.deck_local_attitude.is_none());
-    assert!(naval_sim::deck_operations::place(
+    assert!(naval_sim::aviation::place(
         &mut restored,
         &actor,
         at,

@@ -58,12 +58,12 @@ export async function checkShipbuilderPlacement() {
     };
     await wait(() => equipmentMeshes('gun-forward').length && equipmentMeshes('funnel').length, 'full equipment models loaded');
     const gunMesh = equipmentMeshes('gun-forward')[0], funnelMesh = equipmentMeshes('funnel')[0];
-    const waterPlanes: THREE.Object3D[] = [];
-    scene!.traverse(object => { if (object instanceof THREE.Mesh && object.geometry.type === 'PlaneGeometry' && visible(object)) waterPlanes.push(object); });
-    check(!waterPlanes.length, 'the editor has no artificial water plane');
+    const viewport = window.shipbuilderViewport as unknown as { floorGrid: THREE.Group; pickMeshes: THREE.Object3D[] };
+    check(!!viewport.floorGrid.getObjectByName('Ship centerline'), 'the floor grid has a ship centerline');
+    const floorObjects = new Set<THREE.Object3D>(); viewport.floorGrid.traverse(object => floorObjects.add(object));
+    check(viewport.pickMeshes.every(object => !floorObjects.has(object)), 'the floor grid is visual only, never a placement target');
     const startCount = source().construction.primitives.length, initialIds = new Set(source().construction.primitives.map(part => part.id));
     const placed = () => source().construction.primitives.find(part => !initialIds.has(part.id))!;
-    check(!scene!.children.some(object => object instanceof THREE.GridHelper), 'the construction grid is removed entirely');
     controls.key('m'); await frame();
     let [x, y] = screen([12, 0, 0]);
     pointer('pointermove', x, y); await frame();
@@ -75,7 +75,7 @@ export async function checkShipbuilderPlacement() {
     const preview = ghost();
     check(!!preview, 'an existing block shows an attached placement preview');
     const hoverGroup = (window.shipbuilderViewport as unknown as { hoverGroup: THREE.Group }).hoverGroup;
-    check(hoverGroup.children.length > 0, 'hover outlines the whole hull block in Place');
+    check(!hoverGroup.children.length, 'Place keeps the support block clear while showing the placement preview');
     if (preview) {
       const bounds = new THREE.Box3().setFromObject(preview);
       check(Math.abs(bounds.min.y - 2.5) < .001, 'the preview rests on the existing hull face');
@@ -146,7 +146,8 @@ export async function checkShipbuilderPlacement() {
     await wait(() => compiled() && !document.querySelector('.sb-cmd')?.hasAttribute('disabled'), 'removal compiles original hull');
     check(Math.abs((hitHeight(3, 0) ?? Infinity) - 2.5) < .01, 'the native rendered hull returns');
 
-    await controls.key('q'); await frame(); await frame();
+    controls.key('q'); await frame(); await frame();
+    controls.key('p'); await frame(); await frame(); // The editor starts in perspective; explicitly request orthographic.
     // In Select a drag on the hull moves it, so navigation starts from empty water.
     const beforeTopPan = orbit!.target.clone(), hullBefore = JSON.stringify(source().construction.primitives);
     [x, y] = screen([40, 0, 0]);
@@ -200,8 +201,10 @@ export async function checkShipbuilderPlacement() {
     await frame(); check(equipmentMeshes(gun.id).length > 0, 'undo restores the full fitting model from the cached asset');
 
     await controls.tab('Fittings');
-    const funnelSlot = [...document.querySelectorAll<HTMLButtonElement>('.sb-hotbar .sb-slot')].find(button => /funnel/i.test(button.getAttribute('aria-label') ?? ''))!;
-    funnelSlot.click(); await controls.settled(() => funnelSlot.getAttribute('aria-pressed') === 'true', 'funnel slot');
+    document.querySelector<HTMLButtonElement>('.sb-hotbar .more')!.click();
+    await controls.settled(() => !!document.querySelector('.sb-drawer'), 'fittings drawer');
+    const funnelSlot = [...document.querySelectorAll<HTMLButtonElement>('.sb-drawer .sb-slot')].find(button => /funnel/i.test(button.getAttribute('aria-label') ?? ''))!;
+    funnelSlot.click(); await controls.settled(() => !document.querySelector('.sb-drawer'), 'funnel slot');
     [x, y] = screen([3, 2.5, 2]); pointer('pointermove', x, y); await frame();
     const previewPosition = ghost()!.position.toArray();
     const beforeFitting = new Set(source().construction.equipment.map(item => item.id));

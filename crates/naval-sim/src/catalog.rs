@@ -19,11 +19,11 @@ pub enum ContentError {
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct Manifest {
-    aircraft: Vec<crate::aircraft_deck::GroundPose>,
+    aircraft: Vec<crate::aviation::GroundPose>,
     version: u32,
     rules_version: u32,
     missions: Vec<crate::mission::MissionRules>,
-    air_profiles: Vec<crate::air_rules::AirRules>,
+    air_profiles: Vec<crate::aviation::AirRules>,
     ships: Vec<ManifestShip>,
     hydrostatics: Vec<crate::hydro_table::HydrostaticTable>,
     terrain: Vec<crate::environment::TerrainField>,
@@ -49,7 +49,7 @@ pub struct ContentIdentity {
 }
 #[derive(Clone)]
 pub struct Catalog {
-    pub aircraft: BTreeMap<String, crate::aircraft_deck::GroundPose>,
+    pub aircraft: BTreeMap<String, crate::aviation::GroundPose>,
     pub definitions: BTreeMap<String, Arc<ShipDefinition>>,
     /// Solved once at content time from the same hulls, so both simulations
     /// float a ship on identical numbers.
@@ -61,7 +61,7 @@ pub struct Catalog {
     pub maps: serde_json::Value,
     pub conditions: serde_json::Value,
     pub missions: BTreeMap<String, crate::mission::MissionRules>,
-    pub air_profiles: BTreeMap<String, crate::air_rules::AirRules>,
+    pub air_profiles: BTreeMap<String, crate::aviation::AirRules>,
 }
 
 pub fn sha256(bytes: &[u8]) -> String {
@@ -180,7 +180,7 @@ impl Catalog {
                 ));
             }
         }
-        if air_profiles.get("legacy-air-v1") != Some(&crate::air_rules::AirRules::legacy()) {
+        if air_profiles.get("legacy-air-v1") != Some(&crate::aviation::AirRules::legacy()) {
             return Err(ContentError::Invalid(
                 "Missing or altered legacy air profile".into(),
             ));
@@ -239,7 +239,10 @@ impl Catalog {
             let definition: ShipDefinition = match entry.encoding.as_deref() {
                 None => {
                     if sha256(entry.json.as_bytes()) != entry.sha256 {
-                        return Err(ContentError::Invalid(format!("{} has a mismatched definition digest", entry.id)));
+                        return Err(ContentError::Invalid(format!(
+                            "{} has a mismatched definition digest",
+                            entry.id
+                        )));
                     }
                     serde_json::from_str(&entry.json)?
                 }
@@ -247,14 +250,24 @@ impl Catalog {
                     let bytes = crate::hydro_table::base64(entry.json.as_bytes())
                         .ok_or_else(|| ContentError::Invalid("Invalid runtime base64".into()))?;
                     if sha256(&bytes) != entry.sha256 {
-                        return Err(ContentError::Invalid(format!("{} has a mismatched runtime digest", entry.id)));
+                        return Err(ContentError::Invalid(format!(
+                            "{} has a mismatched runtime digest",
+                            entry.id
+                        )));
                     }
                     crate::runtime_encoding::decode(&bytes).map_err(ContentError::Invalid)?
                 }
-                Some(_) => return Err(ContentError::Invalid("Unsupported definition encoding".into())),
+                Some(_) => {
+                    return Err(ContentError::Invalid(
+                        "Unsupported definition encoding".into(),
+                    ));
+                }
             };
             if definition.content_hash.as_deref() != Some(entry.content_hash.as_str()) {
-                return Err(ContentError::Invalid(format!("{} has a mismatched model identifier", entry.id)));
+                return Err(ContentError::Invalid(format!(
+                    "{} has a mismatched model identifier",
+                    entry.id
+                )));
             }
             // Published construction definitions are trusted by the same manifest
             // digest/identity checks as legacy presets. Local drafts still enter
@@ -319,7 +332,7 @@ fn ids_unique<'a>(ids: impl Iterator<Item = &'a str>) -> bool {
 pub fn validate_definition(d: &ShipDefinition) -> Result<(), ContentError> {
     let fail = || ContentError::Invalid(format!("invalid compiled definition {}", d.id));
     if let Some(layout) = d.air_wing.as_ref().and_then(|w| w.deck_layout.as_ref()) {
-        crate::flight_deck::validate(d, layout).map_err(ContentError::Invalid)?;
+        crate::aviation::validate(d, layout).map_err(ContentError::Invalid)?;
     }
     if d.schema_version != 1.0
         || d.compiler_version != 1.0
@@ -330,15 +343,26 @@ pub fn validate_definition(d: &ShipDefinition) -> Result<(), ContentError> {
     }
     let h = &d.hull;
     if let Some(proxy) = &h.buoyancy {
-        if proxy.version != 1. || d.loading.is_none() || h.kind != "constructed-volume-v1" || proxy.cells.is_empty()
-            || proxy.cells.len() > 10000 || proxy.cells.iter().any(|c| {
-                !positive(&c.size) || !positive(&[c.volume_m3])
+        if proxy.version != 1.
+            || d.loading.is_none()
+            || h.kind != "constructed-volume-v1"
+            || proxy.cells.is_empty()
+            || proxy.cells.len() > 10000
+            || proxy.cells.iter().any(|c| {
+                !positive(&c.size)
+                    || !positive(&[c.volume_m3])
                     || c.center.iter().any(|x| !x.is_finite() || x.abs() > 2000.)
-            }) { return Err(fail()); }
+            })
+        {
+            return Err(fail());
+        }
     }
     for room in &d.compartments {
         if let Some(cells) = &room.cells {
-            if cells.iter().any(|c| c.volume_m3.is_some_and(|v| !v.is_finite() || v <= 0.)) {
+            if cells
+                .iter()
+                .any(|c| c.volume_m3.is_some_and(|v| !v.is_finite() || v <= 0.))
+            {
                 return Err(fail());
             }
         }

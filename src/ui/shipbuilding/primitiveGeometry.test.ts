@@ -4,7 +4,7 @@ import init, { compile_construction } from '../../generated/naval-wasm/naval_was
 import catalogJson from '../../../public/models/components/catalog.json';
 import type { ConstructionCatalog, ConstructionPrimitive, ConstructionResult } from '../../ships/blueprint';
 import { createStarterSource } from '../../ships/constructionStarter';
-import { primitiveGeometry } from './primitiveGeometry';
+import { primitiveGeometry, primitiveOutlineGeometry } from './primitiveGeometry';
 import { CONSTRUCTION_SHAPES } from '../../ships/constructionShapes';
 import { mirroredPrimitive, decodeConstructionSource, copyConstructionSelection } from '../../ships/constructionEditor';
 import { HULL_SHAPES } from './builderLayers';
@@ -81,9 +81,10 @@ test('asymmetric curves and panels mirror their full geometry and survive source
 test.each(HULL_SHAPES)('$name has physical deck contact when placed at its default size', shape => {
   const catalog = catalogJson as ConstructionCatalog;
   const source = createStarterSource(catalog, 'blank');
-  source.construction.primitives = [{ id: 'deck', kind: 'box', size: [30, 2, 30], position: [0, 0, 0], rotationDeg: 0 }];
+  source.construction.primitives = [{ id: 'deck', kind: 'box', size: shape.kind === 'custom-hull' ? [80, 2, 80] : [30, 2, 30], position: [0, 0, 0], rotationDeg: 0 }];
   const position = placementCenter({ kind: 'hull', shape: shape.kind, size: shape.size, rotationDeg: 0 }, { point: [3, 1, 3], normal: [0, 1, 0] }, 1);
-  source.construction.primitives.push({ id: 'added', kind: shape.kind, size: shape.size, position, rotationDeg: 0 });
+  source.construction.primitives.push({ id: 'added', kind: shape.kind, size: shape.size, position, rotationDeg: 0,
+    ...(shape.kind === 'custom-hull' ? { customHull: createStarterSource(catalog, 'patrol-hull').construction.primitives[0].customHull } : {}) });
   const result = JSON.parse(compile_construction(JSON.stringify(source), JSON.stringify(catalog))) as ConstructionResult;
   expect(result.definition, JSON.stringify(result.diagnostics)).toBeDefined();
 });
@@ -121,4 +122,28 @@ test('warped vertex drafts match native triangular boundaries, split solids comp
   const split=JSON.parse(compile_construction(JSON.stringify(source),JSON.stringify(catalog))) as ConstructionResult;
   expect(split.diagnostics.filter(d=>d.severity==='error')).toEqual([]);expect(split.definition).toBeDefined();
   expect(split.loading!.envelopeVolumeM3).toBeCloseTo(native.loading!.envelopeVolumeM3,5);
+});
+
+
+test.each(['patrol-hull', 'destroyer-hull', 'battleship-hull', 'barge-hull'] as const)('%s display and section outlines match the native hull after placement', preset => {
+  const catalog = catalogJson as ConstructionCatalog, source = createStarterSource(catalog, preset);
+  const piece = source.construction.primitives[0]; piece.position = [7, -3, 11]; piece.rotationDeg = 90;
+  const result = JSON.parse(compile_construction(JSON.stringify(source), JSON.stringify(catalog))) as ConstructionResult;
+  expect(result.definition, JSON.stringify(result.diagnostics)).toBeDefined();
+  const geometry = primitiveGeometry(piece.kind, piece.size, piece.vertices, piece.customHull);
+  const outline = primitiveOutlineGeometry(piece);
+  try {
+    for (const display of [geometry, outline]) {
+      display.rotateY(Math.PI / 2).translate(...piece.position);
+      const positions = display.getAttribute('position'), stride = display === geometry ? 3 : 2;
+      // Sampling inside each rendered triangle/line also catches incorrect
+      // diagonal choices on non-planar panels, not merely matching endpoints.
+      for (let i = 0; i < positions.count; i += stride) {
+        const middle = new THREE.Vector3();
+        for (let j = 0; j < stride; j++) middle.add(new THREE.Vector3().fromBufferAttribute(positions, i + j));
+        middle.divideScalar(stride);
+        expect(result.surfaces.some(surface => onPolygon(middle, surface.vertices)), `${preset}: ${middle.toArray()}`).toBe(true);
+      }
+    }
+  } finally { geometry.dispose(); outline.dispose(); }
 });

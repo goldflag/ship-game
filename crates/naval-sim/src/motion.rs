@@ -5,7 +5,7 @@ use crate::{
     rules::DT,
 };
 use serde::{Deserialize, Serialize};
-#[derive(Clone, Copy, Debug, Default, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct HelmCommand {
     pub throttle: f64,
