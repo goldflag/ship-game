@@ -4,7 +4,7 @@ import blueprint from '../../assets/ships/bismarck/blueprint.json';
 import catalog from '../../assets/parts/guns.json';
 import { CombatSimulation } from '../simulation/combat';
 import { updateMount, type MountState } from '../simulation/weapons';
-import { FIXED_DT } from '../simulation/ship';
+import { FIXED_DT } from './session/motion';
 import { compileShip } from '../ships/blueprint';
 import { ShipView } from './ShipView';
 import { shipPreset } from '../ships/presets';

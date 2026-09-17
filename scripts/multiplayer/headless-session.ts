@@ -6,10 +6,10 @@ import { decodeSnapshot } from '../../src/game/session/snapshotCodec';
 import { portSetup, runtimeSetup } from '../../src/game/session/LocalBattleSession';
 import type { ShipDefinition } from '../../src/ships/blueprint';
 import type { LocalShipRevision } from '../../src/ships/localShips';
-import type { BattleSetup } from '../../src/simulation/battle';
+import type { BattleSetup } from '../../src/game/session/battleSetup';
 import type { Command } from '../../src/multiplayer/generated/Command';
-import type { CombatIntent } from '../../src/simulation/combat';
-import type { HelmCommand } from '../../src/simulation/ship';
+import type { CombatIntent } from '../../src/game/session/telemetry';
+import type { HelmCommand } from '../../src/game/session/motion';
 import type { AirRules } from '../../src/multiplayer/generated/AirRules';
 let initialized: Promise<unknown> | undefined;
 export class HeadlessSession extends SnapshotSession {

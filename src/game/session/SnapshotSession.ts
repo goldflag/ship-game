@@ -17,14 +17,14 @@ import type { Ammunition, Battery, ShipDefinition, Vec3 } from '../../ships/blue
 import { shipPreset, shipPresets } from '../../ships/presets';
 import { mapIslands, type OceanMapId } from '../../maps/catalog';
 import type { WeatherId } from '../../maps/conditions';
-import type { CombatIntent } from '../../simulation/combat';
-import { squadronFlights } from '../../simulation/aircraft';
-import { physicalLoss, type BattleOutcome } from '../../simulation/battleRules';
-import { presentationAim, presentationTelemetry } from '../../simulation/presentation';
-import { createSeaState } from '../../simulation/sea';
-import { updateMountCarriers } from '../../simulation/mountFrames';
+import { physicalLoss, type BattleOutcome } from './battleRules';
+import { presentationAim, presentationTelemetry } from './telemetry';
+import { createSeaState } from './sea';
+import { updateMountCarriers } from '../mountFrames';
 import type { Aircraft, Vessel, CarrierWing, Records, FleetActor, CombatEvent, ShellHistory, DamageLogEntry, Shell, Torpedo, DepthCharge, AirRelease, HelmCommand } from './elements';
 import type { AirOrder } from '../../multiplayer/generated/AirOrder';
+import type { CombatIntent } from './telemetry';
+import { squadronFlights } from '../airWing';
 
 /** The frame the renderer consumes is declared once, in Rust
  * (`naval_sim::snapshot::BattleFrame` flattened into

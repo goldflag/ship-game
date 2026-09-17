@@ -1,6 +1,6 @@
 import type { AuthoredSurface, ShipDefinition, Vec3 } from '../ships/blueprint';
 import { contains, segmentBox, sub } from './geometry';
-import { segmentPlate } from './protection';
+import { segmentPlate } from './armorPlates';
 
 // Reconstructed exterior belt envelopes can sit about 1.1 m inside the faired
 // hull. Treat that skin and its belt as one exterior layer in combat and review.

@@ -4,20 +4,20 @@ import { ExpandableInstances } from './ExpandableInstances';
 import { assetUrl } from '../assetUrl';
 import * as THREE from 'three/webgpu';
 
-import { aircraftDeckSpot, onFlightDeck } from '../simulation/aircraft';
-import { aircraftAttitude, aircraftControls } from '../simulation/aircraftFlight';
+import { aircraftAttitude, aircraftControls } from './aircraftPose';
 import { aircraftDeckRotation } from './AircraftDeckPresentation';
 import { disposeObjects } from './disposeObjects';
 import { loadShipModel } from './loadShipModel';
 import { AircraftContacts } from './AircraftContacts';
 import { AircraftGunfire } from './AircraftGunfire';
 import { aircraftOrdnanceGeometry } from '../../assets/effects/naval/aircraft-ordnance';
-import { FIXED_DT } from '../simulation/ship';
+import { FIXED_DT } from './session/motion';
 import { ShipMaterialPalette } from './ShipMaterialPalette';
 import { batchShipModel } from './ShipBatching';
 import { GAMEPLAY_AIRCRAFT } from '../ships/blueprint';
 import { AircraftPartsBatch, aircraftPartGroups } from './AircraftPartsBatch';
 import type { Aircraft } from '../game/session/elements';
+import { aircraftDeckSpot, onFlightDeck } from './airWing';
 
 // Authored deck capacity is bounded at 24; hangar aircraft have no scene instance.
 // Three may bind the full matrix array as uniforms even when few instances draw.

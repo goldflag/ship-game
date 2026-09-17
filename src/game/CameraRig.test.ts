@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, expect, mock, spyOn, test } from 'bun:test';
 import { PerspectiveCamera, Vector3 } from 'three/webgpu';
-import { createShipState } from '../simulation/ship';
+import { createShipState } from './session/motion';
 import { CameraRig } from './CameraRig';
 import viic from '../../assets/ships/type-viic/blueprint.json';
 import { Game } from './Game';

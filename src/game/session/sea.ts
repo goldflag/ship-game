@@ -1,5 +1,5 @@
-import { oceanMap, type OceanMapId } from '../maps/catalog';
-import { battleEnvironment, type WeatherId } from '../maps/conditions';
+import { oceanMap, type OceanMapId } from '../../maps/catalog';
+import { battleEnvironment, type WeatherId } from '../../maps/conditions';
 
 export interface SeaState { amplitudeM: number; wavelengthM: number; direction: number; windMps: number; phase: number; }
 /** Deterministic long-wave envelope. GPU detail never supplies combat samples.

@@ -2,7 +2,7 @@ import { expect, test } from 'bun:test';
 import { shipPreset } from '../ships/presets';
 import type { ShipDefinition, Vec3 } from '../ships/blueprint';
 import { CombatSimulation } from '../simulation/combat';
-import { FIXED_DT } from '../simulation/ship';
+import { FIXED_DT } from './session/motion';
 import { HitDirectionFeedback } from './HitDirectionFeedback';
 import type { CombatEvent } from '../game/session/elements';
 

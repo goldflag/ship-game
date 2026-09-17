@@ -1,8 +1,8 @@
 import type { Game } from '../game/Game';
-import type { CombatTelemetry } from '../simulation/combat';
 import { bindingLabel, type Keybindings } from '../game/keybindings';
-import { DEPTH_STEP_M } from '../simulation/submarine';
 import './DepthControl.css';
+import type { CombatTelemetry } from '../game/session/telemetry';
+import { DEPTH_STEP_M } from '../game/session/motion';
 
 export function DepthControl({ combat, game, bindings }: { combat: CombatTelemetry; game: Game | null; bindings: Keybindings }) {
   const dive = combat.submarine;

@@ -1,8 +1,8 @@
 import type { Game } from '../game/Game';
-import type { CombatTelemetry } from '../simulation/combat';
-import { AIR_STATUS_LABELS } from '../simulation/airTelemetry';
+import { AIR_STATUS_LABELS } from '../game/session/airTelemetry';
 import { bindingLabel, type Keybindings } from '../game/keybindings';
 import './FlightControl.css';
+import type { CombatTelemetry } from '../game/session/telemetry';
 
 export function FlightControl({ combat, game, bindings }: { combat: CombatTelemetry; game: Game | null; bindings: Keybindings }) {
   const wing = combat.airWing;

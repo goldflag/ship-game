@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test';
 import * as THREE from 'three/webgpu';
 import { ShipRigView } from './ShipRigView';
-import { createShipState } from '../simulation/ship';
+import { createShipState } from './session/motion';
 import { compileShip, type ShipDefinition } from '../ships/blueprint';
 import blueprint from '../../assets/ships/bismarck/blueprint.json';
 import catalog from '../../assets/parts/guns.json';

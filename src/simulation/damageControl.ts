@@ -1,8 +1,8 @@
-import { equipmentCondition } from './machinery';
+import { equipmentCondition } from '../game/machinery';
 import type { FireProfile, ShipDefinition } from '../ships/blueprint';
 import { addBreach, type Combatant, type DamageEvent } from './damage';
-import { clamp, localToWorld } from './geometry';
-import { hullContains } from './hull';
+import { clamp, localToWorld } from '../game/geometry';
+import { hullContains } from '../ships/hull';
 
 export type { ControlPriority } from '../multiplayer/generated/ControlPriority';
 import type { ControlPriority } from '../multiplayer/generated/ControlPriority';

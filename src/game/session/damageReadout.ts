@@ -1,7 +1,6 @@
-import type { ShipDefinition, Vec3 } from '../ships/blueprint';
-import type { Combatant } from '../game/session/elements';
-import type { FireState } from '../game/session/elements';
-import { regionCondition } from './localDamage';
+import type { ShipDefinition, Vec3 } from '../../ships/blueprint';
+import type { Combatant } from './elements';
+import type { FireState } from './elements';
 
 export interface FireReadout { id: string; name: string; intensity: number; fuelFraction: number; status: string; threat?: string; crew: string; location: string; setupSeconds: number; }
 export function fireReadout(actor: Combatant, def: ShipDefinition): FireReadout[] {
@@ -34,4 +33,10 @@ export function fireReadout(actor: Combatant, def: ShipDefinition): FireReadout[
 export function regionReadout(actor: Combatant, def: ShipDefinition) {
   return def.localDamage.regions.map(r => ({ id: r.id, name: r.name, condition: regionCondition(actor, r.id) }))
     .filter(r => r.condition < .999).sort((a, b) => a.condition - b.condition || a.id.localeCompare(b.id));
+}
+
+/** A hull region's remaining fraction, 1 for an unauthored region. */
+export function regionCondition(actor: Combatant, id: string): number {
+  const region = actor.damage.regions.find(r => r.id === id);
+  return region ? region.hp / region.maximum : 1;
 }

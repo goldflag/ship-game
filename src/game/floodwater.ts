@@ -1,5 +1,7 @@
 import type { Compartment, Vec3 } from '../ships/blueprint';
-import { clamp } from './geometry';
+import { clamp, localToWorld } from './geometry';
+import type { Compartment as _Compartment, ShipDefinition } from '../ships/blueprint';
+import type { Combatant } from './session/elements';
 
 export interface WaterBody {
   volume: number; level: number; area: number; center: Vec3;
@@ -208,4 +210,13 @@ export function waterBody(room: Compartment, volume: number, roll: number, pitch
   // Only the immutable curve survives this query; columns are reusable scratch.
   geometries.set(body, { surface: shape.surface });
   return body;
+}
+
+/** Read-only sea-relative waterplane shared by physics and inspection. Volume
+ * queries use the full fill curve at the last 2 Hz hydrostatic orientation. */
+export function waterLevel(actor: Combatant, def: ShipDefinition, i: number, volume = actor.damage.compartments[i].waterM3): number {
+  const state = actor.damage.compartments[i], room = def.compartments[i];
+  if (!def.stability) return localToWorld([room.center[0], room.center[1] - room.size[1] / 2 + volume / room.capacityM3 * room.size[1], room.center[2]], actor.motion)[1];
+  const body = actor.damage.stability.water[i] ?? waterBody(room, state.waterM3, actor.motion.roll, actor.motion.pitch);
+  return actor.motion.y + levelAtVolume(room, body, volume);
 }

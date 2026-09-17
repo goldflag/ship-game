@@ -1,10 +1,10 @@
 import { equipmentCenter } from './equipmentPose';
-import { seaHeight } from './sea';
-import { hullDepth } from './ship';
-import { waterLevel } from './stability';
+import { seaHeight } from './session/sea';
+import { hullDepth } from './session/motion';
 import { localToWorld } from './geometry';
 import type { Module, ShipDefinition } from '../ships/blueprint';
-import type { Combatant } from '../game/session/elements';
+import type { Combatant } from './session/elements';
+import { waterLevel } from './floodwater';
 
 export interface EquipmentCondition { availability: number; reason: 'operational' | 'damaged' | 'destroyed' | 'flooded'; }
 type MachineryLayout = { modules: Map<string, { module: Module; index: number }>; rooms: Map<string, number>; generators: Module[]; directors: Module[]; coverage?: Map<string, Module[]> };
@@ -92,4 +92,10 @@ export function launcherAvailable(actor: Combatant, def: ShipDefinition, id?: st
   if (!module) return false;
   const state = equipmentCondition(actor, def, module);
   return recoverable ? state.reason !== 'destroyed' : state.availability > 0;
+}
+
+/** Fraction of the hull's equipment hit points still standing. */
+export function equipmentIntegrity(actor: Combatant, def: ShipDefinition): number {
+  const maximum = def.modules.reduce((n, m) => n + m.hp, 0) + def.mounts.length * 100;
+  return maximum ? (actor.damage.modules.reduce((n, m) => n + m.hp, 0) + actor.mounts.reduce((n, m) => n + m.hp, 0)) / maximum : 1;
 }

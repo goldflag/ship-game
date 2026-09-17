@@ -1,4 +1,4 @@
-import type { Handling } from '../ships/blueprint';
+import type { Handling } from './blueprint';
 
 // Gameplay response multipliers; mirrored in crates/naval-sim/src/mobility.rs.
 // Keep authored speed limits and the relative handling of different hulls.

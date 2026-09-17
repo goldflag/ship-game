@@ -1,9 +1,10 @@
-import legacyAir from '../../assets/gameplay/legacy-air.v1.json';
-import type { EndurancePolicy } from '../multiplayer/generated/EndurancePolicy';
-import type { AircraftRole, Vec3 } from '../ships/blueprint';
-import type { FleetActor, Aircraft } from '../game/session/elements';
-import { FIGHTER_AMMO_BURSTS, terminalAircraft, squadronFlights, activeFlight, airServiceAvailable, airborne, deckCapacity, flightSize, onFlightDeck, recoveryQueue, type AirOrder } from './aircraft';
-import { length, sub } from './geometry';
+import legacyAir from '../../../assets/gameplay/legacy-air.v1.json';
+import type { EndurancePolicy } from '../../multiplayer/generated/EndurancePolicy';
+import type { AircraftRole, Vec3 } from '../../ships/blueprint';
+import type { FleetActor, Aircraft } from './elements';
+import type { AirOrder } from '../../multiplayer/generated/AirOrder';
+import { length, sub } from '../geometry';
+import { FIGHTER_AMMO_BURSTS, terminalAircraft, squadronFlights, activeFlight, airServiceAvailable, airborne, deckCapacity, flightSize, onFlightDeck, recoveryQueue } from '../airWing';
 
 export type AirStatus = 'withdrawn' | 'ready' | 'launching' | 'on-mission' | 'returning' | 'servicing' | 'lost' | 'hangar' | 'handling';
 export const airStatus = (p: Aircraft): AirStatus => p.phase === 'withdrawn' ? 'withdrawn' : p.phase === 'lost' ? 'lost' : p.phase === 'ready' ? 'ready' : p.phase === 'hangar' ? 'hangar'

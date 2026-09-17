@@ -2,9 +2,10 @@ import { expect, test } from 'bun:test';
 import { segmentBox } from './geometry';
 import { BarrelObstructionTree, gunMountObstructions, segmentIntersectsBox } from './obstruction';
 import { shipPreset, shipPresets } from '../ships/presets';
-import { muzzleLocal, createMountState } from './weapons';
+import { createMountState } from '../simulation/weapons';
 import { add, normalize, scale, sub } from './geometry';
 import type { Vec3 } from '../ships/blueprint';
+import { muzzleLocal } from './mountGeometry';
 
 test('boolean gun obstruction query agrees with swept hits, including tangency and starts inside', () => {
   let seed = 19;

@@ -3,8 +3,8 @@ import { BufferGeometry, Float32BufferAttribute, Group, LineBasicNodeMaterial, L
 import { float, int, mix, positionLocal, vec3 } from 'three/tsl';
 import type { WaterSystem } from '../../vendor/threejs-water-pro/build/index.js';
 import type { Vec3 } from '../ships/blueprint';
-import { localToWorld, radians, wrapAngle } from '../simulation/geometry';
-import { tubeLocalPosition, tubeSolution } from '../simulation/torpedoes';
+import { localToWorld, radians, wrapAngle } from './geometry';
+import { tubeLocalPosition, tubeSolution } from './torpedoAim';
 import type { FleetActor, ShipState } from '../game/session/elements';
 
 export function torpedoPreviewSectors(actor: FleetActor, aim: Vec3, pose: ShipState = actor.motion, weaponGroupId?: string) {

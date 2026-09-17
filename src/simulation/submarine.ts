@@ -1,10 +1,10 @@
 import type { Handling, ShipDefinition } from '../ships/blueprint';
 import type { Combatant } from './damage';
-import { systemHealth } from './machinery';
-import { hullDepth } from './ship';
-import { clamp } from './geometry';
+import { systemHealth } from '../game/machinery';
+import { hullDepth } from '../game/session/motion';
+import { clamp } from '../game/geometry';
 
-export const DEPTH_STEP_M = 2;
+export { DEPTH_STEP_M } from '../game/session/motion';
 
 export type { SubmarineState } from '../game/session/elements';
 import type { SubmarineState } from '../game/session/elements';

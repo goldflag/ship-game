@@ -2,7 +2,7 @@ import { expect, test } from 'bun:test';
 import { Camera, InstancedMesh, Matrix4, Vector3 } from 'three/webgpu';
 import { CombatSimulation } from '../simulation/combat';
 import { shipPreset } from '../ships/presets';
-import { localToWorld } from '../simulation/geometry';
+import { localToWorld } from './geometry';
 import { LocalizedFireEffects } from './LocalizedFireEffects';
 const def = shipPreset('bismarck');
 const position = (mesh: InstancedMesh, index = 0) => { const matrix = new Matrix4(); mesh.getMatrixAt(index, matrix); return new Vector3().setFromMatrixPosition(matrix); };

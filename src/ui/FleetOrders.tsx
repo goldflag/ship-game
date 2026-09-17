@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { Game } from '../game/Game';
-import type { CombatTelemetry } from '../simulation/combat';
 import './FleetOrders.css';
+import type { CombatTelemetry } from '../game/session/telemetry';
 export function FleetOrders({ game, combat }: { game: Game | null; combat: CombatTelemetry }) {
   const [recipient, setRecipient] = useState(''); const [x, setX] = useState('0'); const [z, setZ] = useState('0');
   const [notice, setNotice] = useState('');

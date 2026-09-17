@@ -2,7 +2,7 @@ import { expect, test } from 'bun:test';
 import { shipPreset, shipPresets } from '../ships/presets';
 import { CombatSimulation } from './combat';
 import { BATTLE_SPAWN_DISTANCE, MIN_BATTLE_SPAWN_DISTANCE, MAX_BATTLE_SPAWN_DISTANCE, MAX_TEAM_SHIPS, validateBattleSetup } from './battle';
-import { localToWorld } from './geometry';
+import { localToWorld } from '../game/geometry';
 import { antiAircraftRange } from './antiAircraft';
 
 const stop = { throttle: 0, rudder: 0 };

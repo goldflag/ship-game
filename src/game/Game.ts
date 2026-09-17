@@ -1,19 +1,18 @@
 import { controlEligibility } from './controlEligibility';
 import type { DeckPolicy } from '../multiplayer/generated/DeckPolicy';
-import { physicalLoss } from '../simulation/battleRules';
+import { physicalLoss } from './session/battleRules';
 import { ArticulationResolver } from './articulationPreview';
 import { PveDraft } from './session/PveDraft';
 import type { Formation } from '../multiplayer/generated/Formation';
 import type { Placement } from '../multiplayer/generated/Placement';
 import { weaponGroups, selectedWeapon } from '../ships/weaponGroups';
-import { hullDepth } from '../simulation/ship';
+import { hullDepth } from './session/motion';
 import { assetUrl } from '../assetUrl';
 import { BattlefieldCamera } from './BattlefieldCamera';
-import { airWingTelemetry } from '../simulation/airTelemetry';
+import { airWingTelemetry } from './session/airTelemetry';
 import { projectShipLabel } from './ShipLabels';
 import { projectAirMapPath } from './AirMapProjection';
 import { projectAirMapPolygon } from './AirMapPolygon';
-import { squadronFlights, airborne, onFlightDeck } from '../simulation/aircraft';
 import { reportName, reportPosition } from '../ui/reconReports';
 import { aircraftFollowView } from './AircraftFollow';
 import { AircraftView } from './AircraftView';
@@ -43,7 +42,6 @@ import { SkySystem, PRESETS as SKY_PRESETS } from '../../vendor/threejs-sky-pro/
 import { RemoteBattleSession } from './session/RemoteBattleSession';
 import { LocalBattleSession } from './session/LocalBattleSession';
 import type { BattleSession, DeckServiceAction } from './session/BattleSession';
-import { availableAmmunition } from '../simulation/weapons';
 import { ShipView } from './ShipView';
 import { ObservedShipViews } from './ObservedShipViews';
 import { FleetVisibility } from './FleetVisibility';
@@ -53,8 +51,7 @@ import { ShipLabels, type ObservedLabelReport } from './ShipLabels';
 import { HitLabels } from './HitLabels';
 import { TorpedoPreview } from './TorpedoPreview';
 import { HullDamageFeedback } from './HullDamageFeedback';
-import { ENGINE_ORDERS, FIXED_DT } from '../simulation/ship';
-import { DEPTH_STEP_M } from '../simulation/submarine';
+import { ENGINE_ORDERS, FIXED_DT } from './session/motion';
 import { GunAimIndicators } from './GunAimIndicators';
 import { HitDirectionIndicators } from './HitDirectionIndicators';
 import { disposeObjects, disposeObjectsExcept } from './disposeObjects';
@@ -68,7 +65,6 @@ import { selectedShip, shipPreset, loadShipPresets } from '../ships/presets';
 import { availableShipIds, freezeLocalFleet, isHistoricalShip, localShip, resolveShip, type LocalShipRevision, type IdentifiedShip } from '../ships/localShips';
 import { createConstructionModel } from './constructionModel';
 import type { TrialAction } from './session/localConstruction';
-import { resolveBattleFleet, validateBattleSetup, type BattleSetup } from '../simulation/battle';
 import { InputController } from './InputController';
 import { CameraRig } from './CameraRig';
 import { ShellFollow, type ShellView } from './ShellFollow';
@@ -81,6 +77,10 @@ import type { GameCallbacks, HelmWheelState, PerformanceReadout } from './types'
 import type { AirOrder } from '../multiplayer/generated/AirOrder';
 import type { ControlPriority } from '../multiplayer/generated/ControlPriority';
 import type { FleetActor } from '../game/session/elements';
+import { validateBattleSetup, type BattleSetup } from './session/battleSetup';
+import { squadronFlights, airborne, onFlightDeck } from './airWing';
+import { availableAmmunition } from './mountGeometry';
+import { DEPTH_STEP_M } from './session/motion';
 
 export const BUOYS = [
   { x: -160, z: -800, color: '#b84734' }, { x: 160, z: -800, color: '#42a789' },

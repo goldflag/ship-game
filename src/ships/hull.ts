@@ -1,4 +1,4 @@
-import type { Hull, Vec3 } from '../ships/blueprint';
+import type { Hull, Vec3 } from './blueprint';
 
 export function interpolate(table: [number, number][], at: number): number {
   if (at <= table[0][0]) return table[0][1];

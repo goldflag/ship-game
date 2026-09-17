@@ -1,6 +1,6 @@
 import { DataTexture, LinearFilter, RedFormat, Vector2, type Node } from 'three/webgpu';
 import { Fn, If, float, mx_noise_float, smoothstep, texture, uniform, vec2, vec3 } from 'three/tsl';
-import { BISMARCK } from '../simulation/ship';
+import { BISMARCK } from './session/motion';
 import type { ShipState } from '../game/session/elements';
 
 type Motion = Pick<ShipState, 'x' | 'z' | 'heading' | 'speed'>;

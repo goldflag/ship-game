@@ -6,7 +6,7 @@ import { Matrix4, Quaternion, Vector3 } from 'three';
 import { barrelOffset, barrelHeightOffset, barrelIds, compileShip, type ShipDefinition } from '../../src/ships/blueprint';
 import { gunTraverseAtFraction } from '../../src/ships/armament';
 import { fingerprints, geometryDefinition, fileHash, validFile } from './fingerprints';
-import { mountFrame } from '../../src/simulation/mountFrames';
+import { mountFrame } from '../../src/game/mountFrames';
 
 const root = resolve(import.meta.dir, '../..');
 const started = performance.now();

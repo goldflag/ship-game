@@ -1,5 +1,5 @@
 import { MathUtils, PerspectiveCamera, Vector3 } from 'three/webgpu';
-import { localToWorld } from '../simulation/geometry';
+import { localToWorld } from './geometry';
 import type { SubmarineDefinition, Vec3 } from '../ships/blueprint';
 import { terrainHeight } from './HarborTerrain';
 import type { ShellView } from './ShellFollow';

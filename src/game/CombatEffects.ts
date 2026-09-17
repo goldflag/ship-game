@@ -1,10 +1,10 @@
 import type { BattleSession } from './session/BattleSession';
 import { LocalizedFireEffects, type FireDisplayPose } from './LocalizedFireEffects';
 import { ExpandableInstances } from './ExpandableInstances';
-import { localToWorld } from '../simulation/geometry';
+import { localToWorld } from './geometry';
 import * as THREE from 'three/webgpu';
 import { nodeObject, uniform } from 'three/tsl';
-import { FIXED_DT } from '../simulation/ship';
+import { FIXED_DT } from './session/motion';
 import { EffectParticlePool, effectTexture } from './EffectParticles';
 import { EffectDepthTextureNode, effectVolumeMaterial, effectVolumeTexture } from './EffectVolume';
 import { WaterPlumes } from './WaterPlumes';

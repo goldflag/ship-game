@@ -1,7 +1,7 @@
 import * as THREE from 'three/webgpu';
 import type { ShipDefinition } from '../ships/blueprint';
 import type { EnsignDesign } from '../ships/rig';
-import { motionVelocity } from '../simulation/ship';
+import { motionVelocity } from './session/motion';
 import { ensignAspects, rasterEnsign } from '../../assets/parts/ensigns';
 import { FlagCloth } from './FlagCloth';
 import type { Combatant } from '../game/session/elements';

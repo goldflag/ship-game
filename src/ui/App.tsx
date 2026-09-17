@@ -9,7 +9,7 @@ import { RemoteBattleSession } from '../game/session/RemoteBattleSession';
 import { Button } from './components';
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Game } from '../game/Game';
-import { createShipState } from '../simulation/ship';
+import { createShipState } from '../game/session/motion';
 import type { Telemetry } from '../game/types';
 import { GRAPHICS_STORAGE_KEY, launchMatches, loadGraphicsSettings, type GraphicsSettings } from '../game/graphicsSettings';
 import { Icon } from './Icons';
@@ -25,7 +25,6 @@ import { BattleDialog } from './battle/BattleDialog';
 import { loadBattleMode, loadSkipSortieBoard, type BattleMode } from './battle/battleModes';
 import { SortieBoard } from './battle/SortieBoard';
 import { BattleLoadingScreen, type BattleLoadingState } from './BattleLoadingScreen';
-import { BATTLE_SPAWN_DISTANCE, type BattleSetup } from '../simulation/battle';
 import { SettingsDialog } from './SettingsDialog';
 import { GameAudio } from '../game/GameAudio';
 import { AUDIO_STORAGE_KEY, loadAudioSettings, type AudioSettings } from '../game/audio';
@@ -46,6 +45,7 @@ import { ConstructionClient } from '../ships/constructionClient';
 import { openConstructionStore } from '../ships/constructionStore';
 import { decodeConstructionSource, loadSavedConstructionWithCatalog } from '../ships/constructionEditor';
 import { createStarterSource } from '../ships/constructionStarter';
+import { BATTLE_SPAWN_DISTANCE, type BattleSetup } from '../game/session/battleSetup';
 
 const INITIAL_TELEMETRY: Telemetry = { ship: createShipState(), order: 1, camera: 'Chase', fps: 0, backend: 'webgpu', trail: [] };
 

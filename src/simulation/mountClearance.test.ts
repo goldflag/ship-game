@@ -8,7 +8,7 @@ import catalog from '../../assets/parts/guns.json';
 import { compileShip, type ShipBlueprint } from '../ships/blueprint';
 import { mountPoseClear, moveMountWithClearance } from './mountClearance';
 import { createMountState, updateMount } from './weapons';
-import { clamp, radians } from './geometry';
+import { clamp, radians } from '../game/geometry';
 const fixture=()=>{
   const definition=compileShip(structuredClone(blueprint) as unknown as ShipBlueprint,catalog);
   return {definition,states:definition.mounts.map(createMountState)};

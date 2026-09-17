@@ -18,7 +18,7 @@ import type { EndurancePolicy } from '../../multiplayer/generated/EndurancePolic
 import type { Event } from '../../multiplayer/generated/Event';
 import type { MountState as WireMountState } from '../../multiplayer/generated/MountState';
 import type { Vec3 } from '../../ships/blueprint';
-import type { SeaState } from '../../simulation/sea';
+import type { SeaState } from './sea';
 
 export type { Vessel } from '../../multiplayer/generated/Vessel';
 export type { ShipState } from '../../multiplayer/generated/ShipState';

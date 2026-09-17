@@ -1,8 +1,8 @@
 import { expect, test } from 'bun:test';
-import { shipPreset } from '../ships/presets';
-import { CombatSimulation } from './combat';
-import { squadronFlights } from './aircraft';
+import { shipPreset } from '../../ships/presets';
+import { CombatSimulation } from '../../simulation/combat';
 import { airWingTelemetry } from './airTelemetry';
+import { squadronFlights } from '../airWing';
 
 test('native recovery and evasion reasons reach the selected flight without losing return status', () => {
   const sim = new CombatSimulation(shipPreset('enterprise-cv6'));
@@ -10,7 +10,7 @@ test('native recovery and evasion reasons reach the selected flight without losi
   const p = sim.player.airWing!.planes.find(p => flight.planeIds.includes(p.id))!;
   p.phase = 'returning'; p.flightId = flight.id;
   // Real presentation frames strip pilot state entirely.
-  delete (p as Partial<import('./aircraft').Aircraft>).pilot;
+  delete (p as Partial<import('../../simulation/aircraft').Aircraft>).pilot;
   p.behavior = { recoveryNotice: 'Carrier turning too sharply · Steady the course to recover aircraft' };
   const summary = () => airWingTelemetry(sim.player, sim.actors)!.groups.find(f => f.id === flight.id)!;
   expect(summary().status).toBe('returning');

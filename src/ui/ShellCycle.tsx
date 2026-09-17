@@ -1,7 +1,7 @@
 import { useId, useState } from 'react';
 import type { Game } from '../game/Game';
 import { bindingLabel, type Keybindings } from '../game/keybindings';
-import type { CombatTelemetry } from '../simulation/combat';
+import type { CombatTelemetry } from '../game/session/telemetry';
 
 export function ShellCycle({ combat, game, bindings }: { combat: CombatTelemetry; game: Game | null; bindings: Keybindings }) {
   const descriptionId = useId();

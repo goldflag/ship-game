@@ -1,4 +1,4 @@
-import type { HEProjectile, TorpedoPart } from '../ships/blueprint';
+import type { HEProjectile, TorpedoPart } from './blueprint';
 
 export const DEFAULT_AIR_TORPEDO: TorpedoPart = {
   id: 'mark-13-game', name: 'Air-dropped torpedo', kind: 'torpedo', diameterM: .57, lengthM: 4.1,

@@ -1,74 +1,28 @@
-import { presentationAim, presentationTelemetry } from './presentation';
-import { afloatKg, matchDisplacementKg, physicalLoss, type BattleOutcome } from './battleRules';
-import { weaponGroups, selectedWeapon, type WeaponGroup } from '../ships/weaponGroups';
+import { presentationAim, presentationTelemetry, type CombatIntent, type CombatTelemetry } from '../game/session/telemetry';
+/** Declared with the seam now (`src/game/session/telemetry.ts`). */
+export type { CombatIntent, CombatTelemetry, FullCombatTelemetry } from '../game/session/telemetry';
+export { hasFullTarget } from '../game/session/telemetry';
+import type { CombatEvent, ShellHistory } from '../game/session/elements';
+export type { CombatEvent, ShellHistory } from '../game/session/elements';
+import { afloatKg, matchDisplacementKg, physicalLoss, type BattleOutcome } from '../game/session/battleRules';
+import { selectedWeapon } from '../ships/weaponGroups';
 import { commandSquadron, createAirWing, launchSquadron, orderFlight, recallAircraft, type AirRelease, type AirOrder } from './aircraft';
-import { type AirWingTelemetry } from './airTelemetry';
-import { DEFAULT_AI_LEVEL, type ShipAiLevel } from './aiLevels';
+import { DEFAULT_AI_LEVEL, type ShipAiLevel } from '../game/session/aiLevels';
 import { DEFAULT_MAP, mapIslands, type Island, type OceanMapId } from '../maps/catalog';
-import { type VesselStatus } from './stability';
-import { type ControlPriority } from './damageControl';
-import type { ControlState, FleetActor as SessionActor, Shell as SessionShell, Torpedo as SessionTorpedo, DepthCharge as SessionDepthCharge, AirRelease as SessionAirRelease } from '../game/session/elements';
+import type { FleetActor as SessionActor, Shell as SessionShell, Torpedo as SessionTorpedo, DepthCharge as SessionDepthCharge, AirRelease as SessionAirRelease } from '../game/session/elements';
 import type { Ammunition, Battery, ShipDefinition, Vec3 } from '../ships/blueprint';
-import { type EquipmentCondition } from './machinery';
-import { type FireReadout } from './damageReadout';
-import { DamageLog, type DamageLogEntry } from './damageLog';
-import { createShipState, FIXED_DT, type HelmCommand } from './ship';
+import type { BattleResult } from '../game/session/BattleSession';
+import { DamageLog } from './damageLog';
+import { createShipState, FIXED_DT, type HelmCommand } from '../game/session/motion';
 import { availableAmmunition, createMountState, queueAmmunition, selectAmmunition, type MountState } from './weapons';
-import { BATTLE_SPAWN_DISTANCE, deployment, validateSpawns, type SpawnPositions, MAX_TEAM_SHIPS, validateSpawnDistance, type BattleFleet, type BattleResult, type FleetActor, type Team } from './battle';
+import { BATTLE_SPAWN_DISTANCE, deployment, validateSpawns, type SpawnPositions, MAX_TEAM_SHIPS, validateSpawnDistance, type BattleFleet, type FleetActor, type Team } from './battle';
 import { createDepthChargeLauncherState, type DepthCharge } from './depthCharges';
 import { createBotState } from './bots';
-import { createTubeState, type Torpedo } from './torpedoes';
+import { createTubeState, type Torpedo } from '../game/torpedoAim';
 import { createSubmarineState } from './submarine';
-import { createSeaState, type SeaState } from './sea';
-import { createDamage, type Shell, type DefeatCause } from './damage';
+import { createSeaState, type SeaState } from '../game/session/sea';
+import { createDamage, type Shell } from './damage';
 
-export interface CombatIntent { aim: Vec3; fire: boolean; battery: Battery; weaponGroupId?: string; ammunition?: Ammunition; controlPriority?: ControlPriority; controlFocus?: string; }
-/** Declared with the frame, in Rust (`naval_sim::battle::Event`, `records`). */
-export type { CombatEvent, ShellHistory } from '../game/session/elements';
-import type { CombatEvent, ShellHistory } from '../game/session/elements';
-export interface FullCombatTelemetry {
-  targetKnowledge?: 'full';
-  playerSupport: { power: number; fireControl: number }; targetSupport: { power: number; fireControl: number };
-  playerFires: FireReadout[]; targetFireDetails: FireReadout[];
-  targetRegions: { id: string; name: string; condition: number }[];
-  airWing?: AirWingTelemetry;
-  airContacts?: { id: string; team: Team; x: number; z: number; heading: number; role: string; ownerId: string; flightId?: string; phase: string }[];
-  weaponGroupId?: string;
-  weaponGroups: (WeaponGroup & { ammunition: Ammunition; ammo: number; ready: number; total: number; reload: number })[];
-  battery: Battery; range: number; ready: number; total: number; targetIntegrity: number; targetWater: number;
-  /** Mean flight time to the sight for the selected battery's reachable guns, excluding reload/training. */
-  flightTimeSeconds?: number;
-  ammunition: Ammunition; ammunitionStock: { ap: number; he: number }; heSupported: boolean;
-  targetStatus: VesselStatus; playerStatus: VesselStatus; targetList: number; targetTrim: number; targetDraftChange: number;
-  playerList: number; playerTrim: number; playerDraftChange: number;
-  control: ControlState; targetFires: number; controlTargets: { id: string; name: string }[];
-  targetMounts: { id: string; name: string; condition: number }[];
-  targetId: string; targetName: string; targetRange: number;
-  targetDepthM?: number;
-  contacts: { id: string; name: string; shipId: string; team: Team; controller: FleetActor['controller']; targetId?: string; x: number; z: number; heading: number; speed: number; integrity: number; sunk: boolean; status: VesselStatus; combatLost: boolean; physicalLost: boolean }[];
-  battle: boolean; result: BattleResult; playerSunk: boolean;
-  remainingSeconds: number | null; afloatKg: [number | null, number | null]; outcome?: BattleOutcome;
-  targetPower: number; targetSteering: number; targetSunk: boolean; targetUnderway: boolean;
-  mounts: { id: string; name: string; status: string; reload: number; ammo: number; loaded?: Ammunition; queued?: Ammunition }[];
-  modules: ({ id: string; name: string; condition: number } & EquipmentCondition)[]; message: string;
-  targetEquipmentIntegrity: number;
-  playerIntegrity: number;
-  playerMaxIntegrity: number;
-  playerWater: number;
-  submarine?: { depthM: number; targetDepthM: number; verticalSpeed: number; ballastM3: number; ballastFraction: number; emergencyBlow: boolean; propulsion: 'Diesel' | 'Electric'; maxDepthM: number; periscopeDepthM: number; maxTorpedoDepthM: number };
-  targetDefeatCause?: DefeatCause;
-  shellHistory: ShellHistory[];
-  playerDamageDealt: number;
-  playerFrags: number;
-  damageLog: DamageLogEntry[];
-  targetPosition: { x: number; z: number; heading: number };
-  batteries: { battery: Battery; ammunition: Ammunition; ammo: number; ready: number; total: number; reload: number }[];
-}
-type TargetTelemetryKeys = Extract<keyof FullCombatTelemetry, `target${string}`> | 'modules' | 'shellHistory';
-export type CombatTelemetry = FullCombatTelemetry | (Omit<FullCombatTelemetry, TargetTelemetryKeys> & Partial<Pick<FullCombatTelemetry, Exclude<TargetTelemetryKeys, 'targetKnowledge'>>> & { targetKnowledge: 'none' | 'contact' });
-export function hasFullTarget(combat: CombatTelemetry): combat is FullCombatTelemetry {
-  return combat.targetKnowledge !== 'none' && combat.targetKnowledge !== 'contact';
-}
 export class CombatSimulation {
   // The fixture publishes the frame's element shapes; its own hulls are supersets.
   readonly player: SessionActor;

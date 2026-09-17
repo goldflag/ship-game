@@ -4,7 +4,7 @@
  * not the duration of a moving fleet battle or historical survivability. */
 import { CombatSimulation } from '../../src/simulation/combat';
 import { shipPreset } from '../../src/ships/presets';
-import { equipmentCondition, systemHealth } from '../../src/simulation/machinery';
+import { equipmentCondition, systemHealth } from '../../src/game/machinery';
 import { equipmentIntegrity } from '../../src/simulation/durability';
 
 const seeds = process.argv.length > 2 ? process.argv.slice(2).map(Number) : [12345];

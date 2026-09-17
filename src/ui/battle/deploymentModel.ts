@@ -3,11 +3,11 @@ import type { Formation } from '../../multiplayer/generated/Formation';
 import type { PveBriefing } from '../../multiplayer/generated/PveBriefing';
 import type { Placement } from '../../multiplayer/generated/Placement';
 import { resolveShip } from '../../ships/localShips';
-import { botSelection, setupSpawns, validateSpawns, type BattleSetup, type SpawnPose } from '../../simulation/battle';
 import { formationStations, stationPosition } from '../formationStations';
 import { deploymentIslands, moveFormation, placementError, unitName } from '../pveSetup';
 import { shipClassOf } from '../shipGlyphs';
 import type { Team } from '../../game/session/elements';
+import { botSelection, setupSpawns, validateSpawns, type BattleSetup, type SpawnPose } from '../../game/session/battleSetup';
 
 /** One ship on the deployment chart. `spawn` matches the worker's Placement shape so formation helpers apply directly. */
 export interface ChartUnit { id: string; presetId: string; name: string; side: Team; groupId: string; spawn: SpawnPose; }

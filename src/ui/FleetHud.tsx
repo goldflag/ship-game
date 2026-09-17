@@ -8,8 +8,7 @@ import type { Ammunition } from '../ships/blueprint';
 import { ammunitionName, torpedoArcLabel } from '../ships/armament';
 import type { Game } from '../game/Game';
 import type { Telemetry } from '../game/types';
-import { maxHullIntegrity } from '../simulation/damage';
-import { ENGINE_LABELS, KNOTS_PER_MPS } from '../simulation/ship';
+import { ENGINE_LABELS, KNOTS_PER_MPS } from '../game/session/motion';
 import { Icon } from './Icons';
 import { NavigationChart } from './NavigationChart';
 import { ShellCycle } from './ShellCycle';
@@ -20,6 +19,7 @@ import { HelmWheel } from './HelmWheel';
 import { ShipContext, useShip } from './ShipContext';
 import './FleetHud.css';
 import { bindingLabel, WEAPON_GROUP_ACTIONS, type Keybindings } from '../game/keybindings';
+import { maxHullIntegrity } from '../ships/durability';
 
 interface FleetHudProps { data: Telemetry; game: Game | null; visible: boolean; bindings: Keybindings; }
 

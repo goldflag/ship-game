@@ -1,12 +1,12 @@
 import { surfaceGunAllowed } from '../ships/armament';
 import { selectedWeapon } from '../ships/weaponGroups';
 import type { Battery, ShipDefinition, Vec3 } from '../ships/blueprint';
-import { add, scale } from '../simulation/geometry';
-import { motionVelocity } from '../simulation/ship';
-import { muzzleCenterWorld, shotDirection } from '../simulation/weapons';
-import { supportPerformance } from '../simulation/machinery';
-import { ballisticStep } from '../simulation/ballistics';
+import { add, scale } from './geometry';
+import { motionVelocity } from './session/motion';
+import { supportPerformance } from './machinery';
+import { ballisticStep } from './ballistics';
 import type { Combatant, MountState } from '../game/session/elements';
+import { muzzleCenterWorld, shotDirection } from './mountGeometry';
 
 export interface GunAimPoint {
   id: string; number: number; name: string; point: Vec3;

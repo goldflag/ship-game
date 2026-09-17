@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test';
-import { shipPreset } from '../ships/presets';
-import { CombatSimulation } from './combat';
+import { shipPreset } from '../../ships/presets';
+import { CombatSimulation } from '../../simulation/combat';
 import { afloatKg, evaluateOutcome, fleetBudget, matchDisplacementKg, physicalLoss, selectEnvironment, type Survivor } from './battleRules';
 const helm = { throttle: 1, rudder: 0 };
 const intent = { aim: [0, 0, -5000] as [number, number, number], fire: false, battery: 'main' as const };

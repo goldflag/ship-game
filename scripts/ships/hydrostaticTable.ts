@@ -3,8 +3,46 @@
  * about a million vertex clips per ship per half second; the table replaces that
  * with a bicubic interpolation of pre-solved displacements. The mesh solver in
  * hydrostatics.ts stays the reference the table is measured against. */
-import type { Hull, Vec3 } from '../ships/blueprint';
-import { hullSection, NODE_STRIDE, type HydrostaticTable } from './hydrostatics';
+import type { Hull, Vec3 } from '../../src/ships/blueprint';
+import { interpolate } from '../../src/ships/hull';
+import { rotate } from '../../src/game/geometry';
+
+type Point = [number, number];
+interface Slice { z: number; dz: number; polygon: Point[]; projections?: Float64Array; }
+const cache = new WeakMap<Hull, Slice[]>();
+// A previous immersion is only a search hint. Every volume query remains live,
+// and the enclosing grid search still resolves the identical final interval.
+
+export function hullSection(hull: Hull, station: number): Point[] {
+  if (!hull.sections) {
+    const w = interpolate(hull.halfBreadths, station), bottom = interpolate(hull.keelHeights, station), top = interpolate(hull.deckHeights, station);
+    return [[-w, bottom], [w, bottom], [w, top], [-w, top]];
+  }
+  const ss = hull.sections, i = Math.max(1, ss.findIndex(s => s.station >= station));
+  const a = ss[i - 1], b = ss[i], t = (station - a.station) / (b.station - a.station);
+  const right: Point[] = a.points.map(([x, y], j) => [x + (b.points[j][0] - x) * t, y + (b.points[j][1] - y) * t]);
+  return [...right.map(([x, y]): Point => [-x, y]).reverse(), ...right];
+}
+/** Immersion, displacement and buoyancy centroid solved once per hull over a
+ * heel x trim x displacement grid, so a battle interpolates instead of clipping
+ * every hull section at every trial immersion. Published as content by
+ * scripts/ships/hydrostatics.ts and read by both simulations, which therefore
+ * cannot drift apart. */
+export interface HydrostaticTable {
+  version: 1;
+  /** Heel from upright in radians, 0 to pi; sections are mirrored, so negative heel reflects. */
+  heel: number[];
+  /** Trim in radians, -pi/2 to pi/2. */
+  trim: number[];
+  /** Displacement intervals per orientation; each run holds steps + 1 nodes. */
+  steps: number;
+  fullVolume: number; fullCenter: Vec3;
+  /** base64 little-endian f32 (immersion, displacement, centroid x, y, z) per
+   * node, ordered heel-major, then trim, then displacement. */
+  nodes: string;
+}
+/** Nodes hold (immersion, displacement, centroid) as little-endian f32. */
+export const NODE_STRIDE = 5;
 
 const degrees = (n: number) => n * Math.PI / 180;
 /** Angles thicken towards upright, where the buoyancy locus curves hardest. */

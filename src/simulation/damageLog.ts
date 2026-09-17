@@ -1,4 +1,4 @@
-import { FIXED_DT } from './ship';
+import { FIXED_DT } from '../game/session/motion';
 
 /** Declared with the frame, in Rust (`naval_sim::records`). */
 export type { DamageLogEntry } from '../game/session/elements';

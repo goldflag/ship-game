@@ -1,10 +1,10 @@
 import type { ShipDefinition, Vec3 } from '../ships/blueprint';
 import type { FleetActor } from './battle';
-import { motionVelocity } from './ship';
-import { clamp, length, wrapAngle, type Pose } from './geometry';
-import { crewSkill, DEFAULT_AI_LEVEL, isShipAiLevel, type ShipAiLevel } from './aiLevels';
+import { motionVelocity } from '../game/session/motion';
+import { clamp, length, wrapAngle, type Pose } from '../game/geometry';
+import { crewSkill, DEFAULT_AI_LEVEL, isShipAiLevel, type ShipAiLevel } from '../game/session/aiLevels';
 
-export const shipVelocity = (actor: Pick<FleetActor, 'motion'>): Vec3 => motionVelocity(actor.motion);
+export { shipVelocity } from '../game/session/motion';
 interface GunOrder { fireAt: number; alongHull: number; height: number; acrossError: number; rangeError: number; }
 interface TargetTrack {
   id: string; fireAt: number; observedAt: number; observeAt: number;

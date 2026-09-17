@@ -1,4 +1,7 @@
-import { physicalLoss } from './battleRules';
+import { physicalLoss } from '../game/session/battleRules';
+import { HULL_HP_SCALE } from '../ships/durability';
+export { HULL_HP_SCALE } from '../ships/durability';
+export { equipmentIntegrity } from '../game/machinery';
 import type { Shell } from './damage';
 import type { Combatant } from '../game/session/elements';
 import type { ShipDefinition, Vec3 } from '../ships/blueprint';
@@ -6,7 +9,6 @@ import { consumeStructure, type LocalDamageEvidence } from './localDamage';
 
 /** Converts authored equipment-scale damage to gameplay hull HP. Shared by
  * historical presets and custom blueprints; preserves relative endurance. */
-export const HULL_HP_SCALE = 35;
 
 /** Accepts authored damage units; returns whole gameplay HP lost. Fractional
  * consumption carries forward so splitting a hit never erases small damage. */
@@ -51,7 +53,3 @@ export function damageShellHull(shell: Shell, actor: Combatant, total: number, l
   return dealt;
 }
 
-export function equipmentIntegrity(actor: Combatant, def: ShipDefinition): number {
-  const maximum = def.modules.reduce((n, m) => n + m.hp, 0) + def.mounts.length * 100;
-  return maximum ? (actor.damage.modules.reduce((n, m) => n + m.hp, 0) + actor.mounts.reduce((n, m) => n + m.hp, 0)) / maximum : 1;
-}

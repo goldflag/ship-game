@@ -15,9 +15,9 @@ import type { ObservedShip } from '../../multiplayer/generated/ObservedShip';
 import type { ObservedAircraft } from '../../multiplayer/generated/ObservedAircraft';
 import type { MissionRules } from '../../multiplayer/generated/MissionRules';
 import type { ReconCoverage } from '../../multiplayer/generated/ReconCoverage';
-import type { BattleOutcome } from '../../simulation/battleRules';
+import type { BattleOutcome } from './battleRules';
 import type { FleetActor, Aircraft, Shell, Torpedo, DepthCharge, AirRelease, CombatEvent, ShellHistory, ShipState, HelmCommand } from './elements';
-import type { CombatIntent, CombatTelemetry } from '../../simulation/combat';
+import type { CombatIntent, CombatTelemetry } from './telemetry';
 /** Observed contacts are declared with the frame, in Rust (`naval_sim::snapshot`). */
 export type { ObservedShip } from '../../multiplayer/generated/ObservedShip';
 export type { ObservedAircraft } from '../../multiplayer/generated/ObservedAircraft';

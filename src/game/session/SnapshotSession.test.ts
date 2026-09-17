@@ -1,16 +1,16 @@
 import { expect, test, spyOn } from 'bun:test';
 import { HeadlessSession } from '../../../scripts/multiplayer/headless-session';
 import { weaponGroups } from '../../ships/weaponGroups';
-import { mountFrame } from '../../simulation/mountFrames';
-import { muzzleWorld } from '../../simulation/weapons';
-import { localToWorld, sub, length } from '../../simulation/geometry';
+import { mountFrame } from '../mountFrames';
+import { localToWorld, sub, length } from '../geometry';
 import { decodeSnapshot } from './snapshotCodec';
-import { squadronFlights } from '../../simulation/aircraft';
 import pveRules from '../../../assets/gameplay/pve-mission.v1.json';
 import type { MissionRules } from '../../multiplayer/generated/MissionRules';
 import { managedDeckFixture } from '../../../scripts/multiplayer/managed-deck-fixture';
-import { airWingTelemetry } from '../../simulation/airTelemetry';
+import { airWingTelemetry } from './airTelemetry';
 import type { AirOrder } from '../../multiplayer/generated/AirOrder';
+import { muzzleWorld } from '../mountGeometry';
+import { squadronFlights } from '../airWing';
 const setup = { playerShipId: 'enterprise-cv6', friendlyBots: ['fletcher', 'type-viic'], enemies: ['baltimore'], spawnDistance: 5000 };
 test('managed deck commands and queues retain carrier ownership and policies through real WASM snapshots', async () => {
   const content = new Uint8Array(await Bun.file(new URL('../../../.build/naval-content/manifest.json', import.meta.url)).arrayBuffer());

@@ -3,8 +3,8 @@ import { Button, Select, SelectOption } from './components';
 import { useState, type ReactNode } from 'react';
 import { Icon } from './Icons';
 import type { Game } from '../game/Game';
-import type { CombatTelemetry } from '../simulation/combat';
 import { bindingLabel, type Keybindings } from '../game/keybindings';
+import type { CombatTelemetry } from '../game/session/telemetry';
 
 type Contact = CombatTelemetry['contacts'][number];
 export const contactLabel = (contact: Contact) => contact.controller === 'player' && contact.team === 'friendly' ? `${contact.name} (You)` : `${contact.name} #${contact.id.split('-').at(-1)}`;

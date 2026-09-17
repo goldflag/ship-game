@@ -1,16 +1,16 @@
-import { equipmentCenter, equipmentPose } from '../simulation/equipmentPose';
+import { equipmentCenter, equipmentPose } from './equipmentPose';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { positionWorld, float } from 'three/tsl';
-import { waterLevel as compartmentWaterLevel } from '../simulation/stability';
 import * as THREE from 'three/webgpu';
-import { mountFrame } from '../simulation/mountFrames';
+import { mountFrame } from './mountFrames';
 import { materialColor, mix, normalFlat, uniform, vec3 } from 'three/tsl';
 import type { ShipDefinition } from '../ships/blueprint';
 import { entryInMode, inspectionColor, inspectionEntries, type InspectionMode, type InspectionEntry } from '../ships/inspection';
-import { equipmentCondition } from '../simulation/machinery';
-import { EXTERIOR_PLATING_REPLACEMENT_M } from '../simulation/structure';
-import { regionCondition } from '../simulation/localDamage';
+import { equipmentCondition } from './machinery';
+import { EXTERIOR_PLATING_REPLACEMENT_M } from './hullStructure';
 import type { Combatant } from '../game/session/elements';
+import { waterLevel as compartmentWaterLevel } from './floodwater';
+import { regionCondition } from './session/damageReadout';
 
 /** Shared port and combat X-ray geometry. No simulation state is changed by inspection. */
 export class ShipInspection {

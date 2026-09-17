@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { CombatSimulation } from '../simulation/combat';
-import { airWingTelemetry } from '../simulation/airTelemetry';
+import { airWingTelemetry } from '../game/session/airTelemetry';
 import { shipPreset } from '../ships/presets';
 import { AirGroupService, CarrierDeck } from './CarrierDeck';
 import { decodeSnapshot } from '../game/session/snapshotCodec';

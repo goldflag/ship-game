@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test';
-import type { BattleSetup } from '../../simulation/battle';
 import { customTeamFull, customUnitId, parseCustomUnit, removeCustomBot, transferCustomShip, transferDuelShip } from './fleetTransfer';
+import type { BattleSetup } from '../../game/session/battleSetup';
 
 const setup = (): BattleSetup => ({ playerShipId: 'bismarck', friendlyBots: [{ shipId: 'fletcher', aiLevel: 'hard' }], enemies: ['yamato'], spawnDistance: 5000, mapId: 'north-atlantic' });
 

@@ -1,8 +1,7 @@
 import type { DragEvent } from 'react';
 import { OCEAN_MAPS, oceanMap, DEFAULT_MAP } from '../../maps/catalog';
 import { battleEnvironment, formatBattleTime } from '../../maps/conditions';
-import { SHIP_AI_LEVELS, type ShipAiLevel } from '../../simulation/aiLevels';
-import { botSelection, MAX_BATTLE_SPAWN_DISTANCE, MAX_TEAM_SHIPS, MIN_BATTLE_SPAWN_DISTANCE, type BattleSetup, type SpawnFormation } from '../../simulation/battle';
+import { SHIP_AI_LEVELS, type ShipAiLevel } from '../../game/session/aiLevels';
 import { Select, SelectOption } from '../components';
 import { Icon } from '../Icons';
 import { MapTiles, RailBlock, RailSlider } from './BattleRail';
@@ -10,6 +9,7 @@ import { FleetLane } from './FleetLane';
 import { customTeamFull, customUnitId, removeCustomBot, transferCustomShip, type FleetTransfer } from './fleetTransfer';
 import { ShipChip } from './ShipCard';
 import type { Team } from '../../game/session/elements';
+import { botSelection, MAX_BATTLE_SPAWN_DISTANCE, MAX_TEAM_SHIPS, MIN_BATTLE_SPAWN_DISTANCE, type BattleSetup, type SpawnFormation } from '../../game/session/battleSetup';
 
 const teamKey = (team: Team) => team === 'friendly' ? 'friendlyBots' : 'enemies';
 const teamLabel = (team: Team) => team === 'enemy' ? 'Enemy' : 'Friendly';

@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test';
 import { AIR_GUNNERY, gunnerySeed, initialFireDiscipline, stepFireDiscipline } from './airGunnery';
-import { dispersedDirection } from './ballistics';
-import { length, scale, sub } from './geometry';
+import { dispersedDirection } from '../game/ballistics';
+import { length, scale, sub } from '../game/geometry';
 import { shipPreset } from '../ships/presets';
 import { CombatSimulation as Fixture } from './combat';
 import type { FleetActor } from './battle';

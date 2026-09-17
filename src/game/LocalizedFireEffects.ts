@@ -1,8 +1,8 @@
 import type { BattleSession } from './session/BattleSession';
 import * as THREE from 'three/webgpu';
-import { mountFrame } from '../simulation/mountFrames';
+import { mountFrame } from './mountFrames';
 import type { Vec3 } from '../ships/blueprint';
-import { localToWorld } from '../simulation/geometry';
+import { localToWorld } from './geometry';
 import { EffectParticlePool, effectTexture } from './EffectParticles';
 import type { Combatant, ShipState } from '../game/session/elements';
 

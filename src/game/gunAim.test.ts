@@ -3,7 +3,7 @@ import { expect, test } from 'bun:test';
 import { PerspectiveCamera, Vector3 } from 'three/webgpu';
 import { CombatSimulation } from '../simulation/combat';
 import { shipPreset } from '../ships/presets';
-import { FIXED_DT, motionVelocity } from '../simulation/ship';
+import { FIXED_DT, motionVelocity } from './session/motion';
 import { updateMount, type MountState } from '../simulation/weapons';
 import type { Vec3 } from '../ships/blueprint';
 import { gunAimPoints, type GunAimPoint } from './gunAim';

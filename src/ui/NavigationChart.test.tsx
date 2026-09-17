@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { NavigationChart } from './NavigationChart';
-import { createShipState } from '../simulation/ship';
+import { createShipState } from '../game/session/motion';
 import { defaultKeybindings } from '../game/keybindings';
 import type { ContactTrack } from '../multiplayer/generated/ContactTrack';
 import type { Telemetry } from '../game/types';

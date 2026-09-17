@@ -1,5 +1,5 @@
 import type { Armor, ShipDefinition, Vec3, Volume } from '../ships/blueprint';
-import { segmentIntersectsBox } from '../simulation/obstruction';
+import { segmentIntersectsBox } from './obstruction';
 
 type Bounds = Pick<Volume, 'center' | 'size'>;
 type Entry = { armor: Armor; index: number; bounds: Bounds };
