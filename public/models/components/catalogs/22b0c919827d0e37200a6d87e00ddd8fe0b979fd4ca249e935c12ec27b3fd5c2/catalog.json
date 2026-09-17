@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": "13c8125cd3a203fadfd914a588c048c48fbf7807b921bff27b1821a5bc943baf",
+  "revision": "22b0c919827d0e37200a6d87e00ddd8fe0b979fd4ca249e935c12ec27b3fd5c2",
   "weapons": {
     "schemaVersion": 1,
     "parts": [
@@ -22176,127 +22176,6 @@
       ],
       "modelUrl": "/models/components/type93-13-single/097c1b37d4d4ef601331de8644c51b956224804426145d3e35f53ad0e3907666/model.glb",
       "contentHash": "895889065da9f4819953cb137851ebc3bf52ffcd50371a8d672ff4f08e65895f"
-    },
-    {
-      "id": "ijn-triple-610",
-      "name": "Japanese 610 mm triple shielded bank",
-      "kind": "torpedo-launcher",
-      "size": [
-        4.881,
-        2.44,
-        8.34
-      ],
-      "boundsCenter": [
-        0,
-        1.219,
-        -0.431
-      ],
-      "centerOfGravity": [
-        0,
-        1,
-        -0.3
-      ],
-      "massKg": 11000,
-      "placement": "deck",
-      "sockets": [
-        {
-          "id": "attachment",
-          "kind": "support",
-          "position": [
-            0,
-            0,
-            0
-          ],
-          "direction": [
-            0,
-            -1,
-            0
-          ]
-        }
-      ],
-      "torpedoPartId": "ijn-610-type8-game",
-      "tubeOffsets": [
-        [
-          -0.76,
-          0.84,
-          -4.6
-        ],
-        [
-          0,
-          0.84,
-          -4.6
-        ],
-        [
-          0.76,
-          0.84,
-          -4.6
-        ]
-      ],
-      "modelUrl": "/models/components/ijn-triple-610/faa2008ea216453c0f7d7e84418f9a1bfddd0d918606113f7a8e8627ce6bfdc5/model.glb",
-      "contentHash": "abf1eccdab78c4ed53b27617ba717c650daa11da21e02275667bff27864d996b"
-    },
-    {
-      "id": "ijn-quadruple-610",
-      "name": "Japanese 610 mm quadruple shielded bank",
-      "kind": "torpedo-launcher",
-      "size": [
-        4.452,
-        2.49,
-        9.04
-      ],
-      "boundsCenter": [
-        0,
-        1.244,
-        -0.861
-      ],
-      "centerOfGravity": [
-        0,
-        1,
-        -0.4
-      ],
-      "massKg": 18000,
-      "placement": "deck",
-      "sockets": [
-        {
-          "id": "attachment",
-          "kind": "support",
-          "position": [
-            0,
-            0,
-            0
-          ],
-          "direction": [
-            0,
-            -1,
-            0
-          ]
-        }
-      ],
-      "torpedoPartId": "ijn-610-type93-game",
-      "tubeOffsets": [
-        [
-          -1.145,
-          0.8235,
-          -5.38
-        ],
-        [
-          -0.382,
-          0.8235,
-          -5.38
-        ],
-        [
-          0.382,
-          0.8235,
-          -5.38
-        ],
-        [
-          1.145,
-          0.8235,
-          -5.38
-        ]
-      ],
-      "modelUrl": "/models/components/ijn-quadruple-610/cb9d0616c487b71120fdd29da8bf5065600ac05f34b17b635feffcbcc0e47be0/model.glb",
-      "contentHash": "b962eef9f694a9c2b5f417cd80d8ed31fd6a2a2183b2710dcabb40149d283da5"
     }
   ]
 }

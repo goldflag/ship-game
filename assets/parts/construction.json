@@ -2972,6 +2972,693 @@
           ]
         }
       ]
+    },
+    {
+      "id": "us-5in38-mk21-single",
+      "name": "5-inch/38 Mk 21 open mount",
+      "kind": "gun",
+      "size": [
+        2.722,
+        2.027,
+        5.914
+      ],
+      "boundsCenter": [
+        0,
+        1.013,
+        -1.529
+      ],
+      "centerOfGravity": [
+        0,
+        1.053,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "us-5in38-mk21-single",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "us-11in75-quad",
+      "name": "1.1-inch/75 quadruple mount",
+      "kind": "gun",
+      "size": [
+        2.602,
+        1.677,
+        3.276
+      ],
+      "boundsCenter": [
+        0,
+        0.838,
+        -0.337
+      ],
+      "centerOfGravity": [
+        0,
+        0.826,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "us-11in75-quad",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "us-3in50-single",
+      "name": "3-inch/50 defensive gun",
+      "kind": "gun",
+      "size": [
+        1.872,
+        1.707,
+        4.833
+      ],
+      "boundsCenter": [
+        0,
+        0.852,
+        -0.939
+      ],
+      "centerOfGravity": [
+        0,
+        0.845,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "us-3in50-single",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "qf-2pdr-mkvi-octuple",
+      "name": "Octuple QF 2-pounder Mk VI pom-pom",
+      "kind": "gun",
+      "size": [
+        3.382,
+        1.903,
+        3.19
+      ],
+      "boundsCenter": [
+        0,
+        0.95,
+        -0.524
+      ],
+      "centerOfGravity": [
+        0,
+        0.891,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "qf-2pdr-mkvi-octuple",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "type89-127-a1-twin",
+      "name": "12.7 cm/40 Type 89 A1 twin",
+      "kind": "gun",
+      "size": [
+        4.602,
+        2.98,
+        7.434
+      ],
+      "boundsCenter": [
+        0,
+        1.489,
+        -1.416
+      ],
+      "centerOfGravity": [
+        0,
+        1.619,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "type89-127-a1-twin",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "type89-127-a1-mod2-twin",
+      "name": "12.7 cm/40 Type 89 A1 Mod 2 twin",
+      "kind": "gun",
+      "size": [
+        4.602,
+        3.376,
+        7.478
+      ],
+      "boundsCenter": [
+        0,
+        1.687,
+        -1.394
+      ],
+      "centerOfGravity": [
+        0,
+        1.619,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "type89-127-a1-mod2-twin",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "type96-25-triple",
+      "name": "25 mm Type 96 triple",
+      "kind": "gun",
+      "size": [
+        2.462,
+        1.907,
+        2.686
+      ],
+      "boundsCenter": [
+        0,
+        0.952,
+        -0.24
+      ],
+      "centerOfGravity": [
+        0,
+        0.878,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "type96-25-triple",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "type96-25-triple-shielded",
+      "name": "25 mm Type 96 triple smoke shield",
+      "kind": "gun",
+      "size": [
+        2.595,
+        1.907,
+        2.824
+      ],
+      "boundsCenter": [
+        0,
+        0.952,
+        -0.171
+      ],
+      "centerOfGravity": [
+        0,
+        0.878,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "type96-25-triple-shielded",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "type3-127-typec-twin",
+      "name": "127 mm/50 Type C twin",
+      "kind": "gun",
+      "size": [
+        4.813,
+        2.581,
+        8.781
+      ],
+      "boundsCenter": [
+        0,
+        1.29,
+        -0.755
+      ],
+      "centerOfGravity": [
+        0,
+        1.086,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "type3-127-typec-twin",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "type96-25-mogami-2",
+      "name": "25 mm Type 96 twin",
+      "kind": "gun",
+      "size": [
+        2.102,
+        1.687,
+        2.167
+      ],
+      "boundsCenter": [
+        0,
+        0.842,
+        -0.22
+      ],
+      "centerOfGravity": [
+        0,
+        0.734,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "type96-25-mogami-2",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "us-40mm-bofors-mk1-iowa",
+      "name": "40 mm/56 Bofors Mk.1 twin",
+      "kind": "gun",
+      "size": [
+        2.422,
+        2.547,
+        3.846
+      ],
+      "boundsCenter": [
+        0,
+        1.272,
+        -0.372
+      ],
+      "centerOfGravity": [
+        0,
+        1.242,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "us-40mm-bofors-mk1-iowa",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "us-20mm-oerlikon-mk24-hsienyang",
+      "name": "20 mm Oerlikon Mk24 twin (source label)",
+      "kind": "gun",
+      "size": [
+        1.582,
+        1.695,
+        2.461
+      ],
+      "boundsCenter": [
+        0,
+        0.847,
+        -0.157
+      ],
+      "centerOfGravity": [
+        0,
+        0.763,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "us-20mm-oerlikon-mk24-hsienyang",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "us-5in38-mk32-mod12",
+      "name": "127 mm/38 Mk.12 on Mk.32 Mod.12",
+      "kind": "gun",
+      "size": [
+        5.107,
+        3.94,
+        7.845
+      ],
+      "boundsCenter": [
+        0,
+        1.759,
+        -0.851
+      ],
+      "centerOfGravity": [
+        0,
+        1.308,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "us-5in38-mk32-mod12",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            -0.21,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "type93-13-twin",
+      "name": "13.2 mm Type 93 twin",
+      "kind": "gun",
+      "size": [
+        0.852,
+        1.29,
+        1.666
+      ],
+      "boundsCenter": [
+        0,
+        0.644,
+        -0.171
+      ],
+      "centerOfGravity": [
+        0,
+        0.566,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "type93-13-twin",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "type93-13-single",
+      "name": "13.2 mm Type 93 single",
+      "kind": "gun",
+      "size": [
+        0.408,
+        1.64,
+        1.818
+      ],
+      "boundsCenter": [
+        0,
+        0.819,
+        -0.095
+      ],
+      "centerOfGravity": [
+        0,
+        0.793,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "type93-13-single",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ijn-triple-610",
+      "name": "Japanese 610 mm triple shielded bank",
+      "kind": "torpedo-launcher",
+      "size": [
+        4.881,
+        2.44,
+        8.34
+      ],
+      "boundsCenter": [
+        0,
+        1.219,
+        -0.431
+      ],
+      "centerOfGravity": [
+        0,
+        1.0,
+        -0.3
+      ],
+      "massKg": 11000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ],
+      "torpedoPartId": "ijn-610-type8-game",
+      "tubeOffsets": [
+        [
+          -0.76,
+          0.84,
+          -4.6
+        ],
+        [
+          0,
+          0.84,
+          -4.6
+        ],
+        [
+          0.76,
+          0.84,
+          -4.6
+        ]
+      ]
+    },
+    {
+      "id": "ijn-quadruple-610",
+      "name": "Japanese 610 mm quadruple shielded bank",
+      "kind": "torpedo-launcher",
+      "size": [
+        4.452,
+        2.49,
+        9.04
+      ],
+      "boundsCenter": [
+        0,
+        1.244,
+        -0.861
+      ],
+      "centerOfGravity": [
+        0,
+        1.0,
+        -0.4
+      ],
+      "massKg": 18000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ],
+      "torpedoPartId": "ijn-610-type93-game",
+      "tubeOffsets": [
+        [
+          -1.145,
+          0.8235,
+          -5.38
+        ],
+        [
+          -0.382,
+          0.8235,
+          -5.38
+        ],
+        [
+          0.382,
+          0.8235,
+          -5.38
+        ],
+        [
+          1.145,
+          0.8235,
+          -5.38
+        ]
+      ]
     }
   ]
 }
