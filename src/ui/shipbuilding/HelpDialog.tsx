@@ -31,6 +31,7 @@ const EDITING: [string[], string][] = [
   [['Esc'], 'Close a panel, cancel a gesture, then return to Select'],
 ];
 const VIEW: [string[], string][] = [
+  [['F8'], 'Toggle model memory: simulation sizes and visual breakdown by part'],
   [['Q'], 'Cycle Orbit, Plan, Profile and Bow'],
   [['P'], 'Toggle perspective / orthographic camera (perspective by default)'],
   [['W'], 'Collapse or expand the warnings'],
