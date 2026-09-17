@@ -68,7 +68,7 @@ pub struct MountState {
     #[serde(skip)]
     pub carrier: Option<CarrierFrame>,
     #[ts(skip)]
-    pub aa_discipline: Option<crate::air_gunnery::FireDiscipline>,
+    pub aa_discipline: Option<crate::aviation::FireDiscipline>,
     #[ts(skip)]
     pub lead_cache: Option<LeadCache>,
     pub id: String,

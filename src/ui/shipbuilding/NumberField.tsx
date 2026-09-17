@@ -14,7 +14,12 @@ export function NumberField({ label, description, disabled, value, min = -500, m
   const commit = (candidate: string) => {
     const number = finiteFieldValue(candidate, min, max);
     setError(number === undefined);
-    if (number !== undefined && number !== value) onChange(number);
+    if (number !== undefined) {
+      if (number !== value) onChange(number);
+      // A constrained/rejected edit may leave the prop unchanged. Restore the
+      // accepted reading; a changed prop updates it after the parent commits.
+      setText(shown);
+    }
   };
   return <label className="sb-num" htmlFor={id} title={error ? `Enter ${min} to ${max}${unit ? ` ${unit}` : ''}` : description ?? label}>
     {label && <span>{label}</span>}

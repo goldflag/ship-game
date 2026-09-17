@@ -17,7 +17,7 @@ pub struct LodgedShell {
 #[serde(rename_all = "camelCase", default)]
 #[ts(optional_fields)]
 pub struct Shell {
-    pub bomb: Option<crate::aircraft_flight::FlightAttitude>,
+    pub bomb: Option<crate::aviation::FlightAttitude>,
     #[serde(rename = "type")]
     #[ts(as = "Option<crate::frame_vocabulary::ShellType>")]
     pub shell_type: Option<String>,

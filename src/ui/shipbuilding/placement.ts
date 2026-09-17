@@ -1,8 +1,9 @@
-import type { ConstructionEquipment, ConstructionEquipmentPart, ConstructionPrimitive, ConstructionSource, Vec3 } from '../../ships/blueprint';
+import type { ConstructionEquipment, ConstructionEquipmentPart, ConstructionPrimitive, ConstructionSource, ConstructionSurface, Vec3 } from '../../ships/blueprint';
 import { mirroredPrimitive } from '../../ships/constructionEditor';
 import { normalizedBearing, snapCoordinate } from './editorNumbers';
 import type { BuilderPlacement } from './primitiveGeometry';
 import { CONSTRUCTION_SHAPES } from '../../ships/constructionShapes';
+import { customHullFaces, customHullPrimitive, makeHull } from '../../ships/customHullModel';
 import { CORNER_SIGNS, VERTEX_FACES } from '../../ships/constructionVertex';
 
 /** An unwarped vertex hull is the unit box; its warped corners live on the source piece. */
@@ -11,6 +12,19 @@ const VERTEX_SHAPE: Vec3[][] = VERTEX_FACES.map(face => face.corners.map(i => CO
 /** Placement arithmetic for the cursor ghost: pieces sit on the face under the
  * pointer, snapped to the grid in the face plane. Rust still validates the result. */
 export interface PlacementHit { point: Vec3; normal: Vec3; snapOrigin?: Vec3 }
+
+/** Resolve a rendered pick against its compiler-authored support surface. */
+export function physicalPlacementHit(hit: PlacementHit, surface?: Pick<ConstructionSurface, 'normal' | 'vertices'>): PlacementHit {
+  if (!surface) return hit;
+  // GPU vertices are Float32; their ray hits can lie just outside the exact
+  // solid. Use the native plane and normal for physical placement, retaining
+  // the picked side when inspecting an interior face.
+  const n = surface.normal;
+  const squaredLength = n.reduce((sum, value) => sum + value * value, 0);
+  const distance = hit.point.reduce((sum, value, i) => sum + (value - surface.vertices[0][i]) * n[i], 0) / squaredLength;
+  const sign = hit.normal.reduce((sum, value, i) => sum + value * n[i], 0) < 0 ? -1 : 1;
+  return { ...hit, point: hit.point.map((value, i) => value - distance * n[i]) as Vec3, normal: n.map(value => value * sign) as Vec3 };
+}
 
 export const dominantAxis = (normal: Vec3): 0 | 1 | 2 => {
   const [x, y, z] = normal.map(Math.abs);
@@ -28,7 +42,9 @@ function hullFaces(piece: Extract<BuilderPlacement, { kind: 'hull' }>): Vec3[][]
   const key = `${piece.shape}:${piece.size.join(',')}:${piece.rotationDeg}`;
   let faces = hullFacesCache.get(key);
   if (!faces) {
-    faces = (piece.shape === 'vertex' ? VERTEX_SHAPE : CONSTRUCTION_SHAPES[piece.shape]).map(face => face.map(vertex => rotateY(vertex.map((v, i) => v * piece.size[i]) as Vec3, piece.rotationDeg * Math.PI / 180)));
+    faces = piece.shape === 'custom-hull'
+      ? customHullFaces({ ...customHullPrimitive(makeHull(0)), size: piece.size }).map(face => face.vertices.map(v => rotateY(v, piece.rotationDeg * Math.PI / 180)))
+      : (piece.shape === 'vertex' ? VERTEX_SHAPE : CONSTRUCTION_SHAPES[piece.shape]).map(face => face.map(vertex => rotateY(vertex.map((v, i) => v * piece.size[i]) as Vec3, piece.rotationDeg * Math.PI / 180)));
     if (hullFacesCache.size >= 32) hullFacesCache.delete(hullFacesCache.keys().next().value!);
     hullFacesCache.set(key, faces);
   }
@@ -55,7 +71,7 @@ export function placementCenter(piece: BuilderPlacement, hit: PlacementHit, step
   const normal = hit.normal;
   const axis = dominantAxis(normal), sign = Math.sign(normal[axis]) || 1;
   if (piece.kind === 'boundary') {
-    const offset = snapCoordinate(hit.point[{ x: 0, y: 1, z: 2 }[piece.axis]], 1);
+    const offset = snapCoordinate(hit.point[{ x: 0, y: 1, z: 2 }[piece.axis]], step);
     return hit.point.map((value, index) => index === { x: 0, y: 1, z: 2 }[piece.axis] ? offset : value) as Vec3;
   }
   const extents = pieceExtents(piece);
@@ -120,7 +136,7 @@ const sameVector = (a: Vec3, b: Vec3) => a.every((value, index) => near(value, b
 /** The existing piece that mirrors this one across the centerline: another piece, or itself when it straddles the centerline. */
 export function mirrorTwin(source: ConstructionSource, primitive: ConstructionPrimitive): ConstructionPrimitive | undefined {
   const expected = mirroredPrimitive(primitive);
-  const matches = (candidate: ConstructionPrimitive) => candidate.kind === expected.kind && JSON.stringify(candidate.vertices) === JSON.stringify(expected.vertices) && sameVector(candidate.size, expected.size)
+  const matches = (candidate: ConstructionPrimitive) => candidate.kind === expected.kind && JSON.stringify(candidate.vertices) === JSON.stringify(expected.vertices) && JSON.stringify(candidate.customHull) === JSON.stringify(expected.customHull) && sameVector(candidate.size, expected.size)
     && sameVector(candidate.position, expected.position) && near(normalizedBearing(candidate.rotationDeg), expected.rotationDeg);
   return source.construction.primitives.find(candidate => candidate.id !== primitive.id && matches(candidate)) ?? (matches(primitive) ? primitive : undefined);
 }

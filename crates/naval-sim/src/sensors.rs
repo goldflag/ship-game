@@ -166,7 +166,7 @@ pub struct VisualMotion {
 #[serde(rename_all = "camelCase")]
 pub struct AircraftExterior {
     pub model_id: String,
-    pub controls: crate::aircraft_flight::FlightControls,
+    pub controls: crate::aviation::FlightControls,
     pub wing_fold: f64,
     /// A slung torpedo or bomb is visible from outside; guns and rounds are not.
     pub payload: bool,

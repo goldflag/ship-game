@@ -1,8 +1,8 @@
 use ts_rs::TS;
 fn main() {
     naval_protocol::FleetReference::export_all(&ts_rs::Config::from_env()).unwrap();
-    naval_sim::air_recovery::CarrierRecovery::export_all(&ts_rs::Config::from_env()).unwrap();
-    naval_sim::aircraft::SearchProgress::export_all(&ts_rs::Config::from_env()).unwrap();
+    naval_sim::aviation::CarrierRecovery::export_all(&ts_rs::Config::from_env()).unwrap();
+    naval_sim::aviation::SearchProgress::export_all(&ts_rs::Config::from_env()).unwrap();
     naval_sim::battle::BattleSetup::export_all(&ts_rs::Config::from_env()).unwrap();
     naval_sim::sensors::ContactTrack::export_all(&ts_rs::Config::from_env()).unwrap();
     naval_sim::recon::ReconCoverage::export_all(&ts_rs::Config::from_env()).unwrap();
@@ -26,7 +26,7 @@ fn main() {
     naval_sim::shell::Shell::export_all(&ts_rs::Config::from_env()).unwrap();
     naval_sim::torpedoes::Torpedo::export_all(&ts_rs::Config::from_env()).unwrap();
     naval_sim::depth_charges::DepthCharge::export_all(&ts_rs::Config::from_env()).unwrap();
-    naval_sim::aircraft::AirRelease::export_all(&ts_rs::Config::from_env()).unwrap();
+    naval_sim::aviation::AirRelease::export_all(&ts_rs::Config::from_env()).unwrap();
     naval_sim::battle::Event::export_all(&ts_rs::Config::from_env()).unwrap();
     naval_sim::records::Records::export_all(&ts_rs::Config::from_env()).unwrap();
 }

@@ -1,3 +1,5 @@
+import thumbnailIndex from '../../generated/construction-thumbnails.json';
+import { assetUrl } from '../../assetUrl';
 import { useEffect, useState } from 'react';
 import * as THREE from 'three';
 import type { ConstructionCatalog, ConstructionEquipmentPart, ConstructionPrimitive, Vec3 } from '../../ships/blueprint';
@@ -138,17 +140,24 @@ export class SlotImages {
   }
 }
 
-/** Requests an image for every item that can have one and re-renders as each arrives. */
+function publishedImage(item: SlotItem): string | undefined {
+  if (item.kind !== 'part') return undefined;
+  const entry = (thumbnailIndex.images as Record<string, { url: string }>)[item.part.modelUrl];
+  return entry ? assetUrl(entry.url) : undefined;
+}
+
+/** Uses pre-baked component images; renders shapes and unpublished legacy parts on demand.
+ * Requests an image for every item that can have one and re-renders as each arrives. */
 export function useSlotImages(images: SlotImages, items: SlotItem[], catalog: ConstructionCatalog): (item: SlotItem) => string | undefined {
   const [, arrived] = useState(0);
   useEffect(() => {
     let active = true;
     for (const item of items) {
       const key = slotImageKey(item, catalog);
-      if (!key || baked.has(key)) continue;
+      if (!key || publishedImage(item) || baked.has(key)) continue;
       images.get(item, catalog)?.then(() => { if (active) arrived(count => count + 1); }).catch(() => {});
     }
     return () => { active = false; };
   }, [items, catalog, images]);
-  return item => { const key = slotImageKey(item, catalog); return key ? baked.get(key) : undefined; };
+  return item => { const key = slotImageKey(item, catalog); return publishedImage(item) ?? (key ? baked.get(key) : undefined); };
 }

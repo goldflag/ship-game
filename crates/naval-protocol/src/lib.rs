@@ -44,21 +44,21 @@ pub struct HeldInput {
 pub enum Command {
     Air {
         flight_id: String,
-        order: naval_sim::aircraft::AirOrder,
+        order: naval_sim::aviation::AirOrder,
     },
     Recall {
         flight_id: Option<String>,
     },
     Deck {
         flight_id: String,
-        action: naval_sim::deck_operations::DeckAction,
+        action: naval_sim::aviation::DeckAction,
     },
     CancelDeck {
         #[ts(type = "number")]
         request_id: u64,
     },
     DeckPolicy {
-        policy: naval_sim::deck_operations::DeckPolicy,
+        policy: naval_sim::aviation::DeckPolicy,
     },
     NextDeck {
         #[ts(type = "number")]
@@ -191,7 +191,7 @@ fn validate_command(c: &CommandEnvelope) -> Result<(), CommandError> {
             if !identity(flight_id) {
                 return Err(CommandError::Bounds);
             }
-            use naval_sim::aircraft::AirOrder;
+            use naval_sim::aviation::AirOrder;
             let valid = match order {
                 AirOrder::Attack { target_id } => identity(target_id),
                 AirOrder::Strike { contact_id } | AirOrder::InterceptContact { contact_id } => {
@@ -199,7 +199,7 @@ fn validate_command(c: &CommandEnvelope) -> Result<(), CommandError> {
                 }
                 AirOrder::SearchArea {
                     center, radius_m, ..
-                } => naval_sim::air_search::valid_area(*center, *radius_m),
+                } => naval_sim::aviation::valid_area(*center, *radius_m),
                 AirOrder::Patrol { point } => point.iter().all(coordinate),
                 AirOrder::Defend { target_id } => target_id.as_ref().is_none_or(|id| identity(id)),
                 AirOrder::Intercept { flight_id } | AirOrder::Escort { flight_id } => {
@@ -217,7 +217,7 @@ fn validate_command(c: &CommandEnvelope) -> Result<(), CommandError> {
             }
         }
         Command::Deck { flight_id, action } => {
-            if !identity(flight_id) || *action == naval_sim::deck_operations::DeckAction::Launch {
+            if !identity(flight_id) || *action == naval_sim::aviation::DeckAction::Launch {
                 return Err(CommandError::Bounds);
             }
         }
@@ -542,6 +542,14 @@ pub mod session;
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, ts_rs::TS)]
 #[serde(tag = "kind", rename_all = "camelCase", deny_unknown_fields)]
 pub enum FleetReference {
-    Historical { #[serde(rename = "presetId")] preset_id: String },
-    Custom { #[serde(rename = "designId")] design_id: String, #[serde(rename = "revisionId")] revision_id: String },
+    Historical {
+        #[serde(rename = "presetId")]
+        preset_id: String,
+    },
+    Custom {
+        #[serde(rename = "designId")]
+        design_id: String,
+        #[serde(rename = "revisionId")]
+        revision_id: String,
+    },
 }

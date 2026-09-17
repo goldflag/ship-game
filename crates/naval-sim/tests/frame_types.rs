@@ -4,9 +4,9 @@
 //! string a declared word set names parses, so a field the filter drops or a
 //! word the emitter adds fails here rather than at a renderer branch.
 use naval_sim::{
-    aircraft, aircraft_flight, aviation,
+    aviation,
     battle::{Battle, BattleSetup, Event},
-    bots, catalog::Catalog, damage, damage_control, deck_operations, depth_charges,
+    bots, catalog::Catalog, damage, damage_control, depth_charges,
     frame_vocabulary, impact, motion, navigation, records, rules, shell, stability, submarine,
     torpedoes, vessel, weapons,
 };
@@ -180,23 +180,23 @@ fn declarations() -> Declarations {
     d.add::<depth_charges::DepthChargeLauncherState>();
     d.add::<depth_charges::DepthCharge>();
     d.add::<aviation::CarrierWing>();
-    d.add::<aircraft::AirWingState>();
-    d.add::<aircraft::AirFlight>();
-    d.add::<aircraft::AirOrder>();
-    d.add::<aircraft::Aircraft>();
-    d.add::<aircraft::AircraftBehavior>();
-    d.add::<aircraft::AirWreck>();
-    d.add::<aircraft::AirRelease>();
-    d.add::<aircraft::SearchProgress>();
-    d.add::<aircraft::SearchSample>();
-    d.add::<aircraft_flight::FlightControls>();
-    d.add::<aircraft_flight::FlightAttitude>();
-    d.add::<naval_sim::air_recovery::CarrierRecovery>();
-    d.add::<naval_sim::air_rules::EndurancePolicy>();
-    d.add::<deck_operations::DeckStatus>();
-    d.add::<deck_operations::DeckRequest>();
-    d.add::<deck_operations::DeckAction>();
-    d.add::<deck_operations::DeckPolicy>();
+    d.add::<aviation::AirWingState>();
+    d.add::<aviation::AirFlight>();
+    d.add::<aviation::AirOrder>();
+    d.add::<aviation::Aircraft>();
+    d.add::<aviation::AircraftBehavior>();
+    d.add::<aviation::AirWreck>();
+    d.add::<aviation::AirRelease>();
+    d.add::<aviation::SearchProgress>();
+    d.add::<aviation::SearchSample>();
+    d.add::<aviation::FlightControls>();
+    d.add::<aviation::FlightAttitude>();
+    d.add::<naval_sim::aviation::CarrierRecovery>();
+    d.add::<naval_sim::aviation::EndurancePolicy>();
+    d.add::<aviation::DeckStatus>();
+    d.add::<aviation::DeckRequest>();
+    d.add::<aviation::DeckAction>();
+    d.add::<aviation::DeckPolicy>();
     d.add::<shell::Shell>();
     d.add::<shell::LocalDamageEvidence>();
     d.add::<Event>();

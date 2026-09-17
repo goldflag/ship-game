@@ -36,7 +36,20 @@ export function decodeConstructionSource(value: unknown): ConstructionSource {
   for (const p of rows(data.primitives, 'Primitives')) {
     string(p.id, 'Primitive ID'); vector(p.size, 'Primitive size'); vector(p.position, 'Primitive position'); number(p.rotationDeg, 'Primitive rotation');
     if (p.smoothGroup !== undefined) string(p.smoothGroup, 'Smooth group');
-    if (typeof p.kind !== 'string' || (p.kind !== 'vertex' && !Object.hasOwn(CONSTRUCTION_SHAPES, p.kind))) throw new Error('Unsupported primitive kind');
+    if (typeof p.kind !== 'string' || (p.kind !== 'vertex' && p.kind !== 'custom-hull' && !Object.hasOwn(CONSTRUCTION_SHAPES, p.kind))) throw new Error('Unsupported primitive kind');
+    if (p.kind === 'custom-hull') {
+      const hull = object(p.customHull, 'Custom hull');
+      if (hull.version !== 1) throw new Error('Unsupported custom hull version');
+      number(hull.rake, 'Bow rake'); number(hull.bulb, 'Bow bulb');
+      const stations = rows(hull.stations, 'Hull sections');
+      if (stations.length < 4 || stations.length > 24) throw new Error('Custom hulls require 4–24 sections');
+      for (const station of stations) {
+        string(station.id, 'Section ID'); number(station.t, 'Section position');
+        const points = rows(station.points, 'Section points');
+        if (points.length !== 9) throw new Error('Each hull section requires nine outline points');
+        for (const point of points) { number(point.x, 'Point X'); number(point.y, 'Point Y'); }
+      }
+    } else if (p.customHull !== undefined) throw new Error('Section data belongs to a custom hull');
     if (p.vertices !== undefined) {
       if (p.kind !== 'vertex' || !Array.isArray(p.vertices) || p.vertices.length !== 8) throw new Error('Vertex hulls require eight local corners');
       p.vertices.forEach(v => vector(v, 'Hull corner'));
@@ -130,7 +143,7 @@ export function rotateConstructionSelection(source: ConstructionSource, selected
 export function mirroredPrimitive(primitive: ConstructionPrimitive): ConstructionPrimitive {
   if (primitive.kind === 'vertex' && primitive.vertices) return { ...structuredClone(primitive), position: [-primitive.position[0], primitive.position[1], primitive.position[2]], rotationDeg: normalizedBearing(-primitive.rotationDeg), vertices: [1,0,3,2,5,4,7,6].map(i => [-primitive.vertices![i][0], primitive.vertices![i][1], primitive.vertices![i][2]]) };
   const mirror = shapeMirror(primitive.kind);
-  return { ...primitive, position: [-primitive.position[0], primitive.position[1], primitive.position[2]],
+  return { ...structuredClone(primitive), position: [-primitive.position[0], primitive.position[1], primitive.position[2]],
     size: mirror.swap ? [primitive.size[2], primitive.size[1], primitive.size[0]] : [...primitive.size],
     rotationDeg: normalizedBearing(-primitive.rotationDeg + mirror.yaw) };
 }

@@ -8,5 +8,5 @@ export default defineConfig({
   publicDir: `${root}public`,
   plugins: [react(), overlayApi(root)],
   server: { host: '127.0.0.1', port: 5180, strictPort: true, fs: { allow: [root] } },
-  build: { outDir: `${root}.build/ship-overlay-app`, emptyOutDir: true, copyPublicDir: false },
+  build: { target: 'es2022', outDir: `${root}.build/ship-overlay-app`, emptyOutDir: true, copyPublicDir: false },
 });
