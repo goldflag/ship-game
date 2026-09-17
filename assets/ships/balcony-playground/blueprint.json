@@ -1,0 +1,363 @@
+{
+  "schemaVersion": 1,
+  "id": "balcony-playground",
+  "name": "Balcony playground",
+  "revision": "revision-184c9312-df4b-469f-8ed8-fe8139f7e67f",
+  "coordinates": "meters-y-up-bow-negative-z",
+  "construction": {
+    "version": 2,
+    "catalogRevision": "158ca5b06784176e505791da469a81a77397729384adb75f16397b0292c3436b",
+    "defaultThicknessMm": 16,
+    "primitives": [
+      {
+        "id": "superstructure",
+        "kind": "box",
+        "size": [
+          4,
+          4,
+          8
+        ],
+        "position": [
+          0,
+          4.5,
+          -2
+        ],
+        "rotationDeg": 0
+      },
+      {
+        "id": "open-balcony",
+        "kind": "balcony",
+        "size": [
+          3,
+          0.08,
+          6
+        ],
+        "position": [
+          -3.5,
+          4.7,
+          -2
+        ],
+        "rotationDeg": 0,
+        "balcony": {
+          "version": 1,
+          "heightM": 0.3,
+          "wallThicknessM": 0.06,
+          "points": [
+            {
+              "id": "a",
+              "x": -0.5,
+              "z": -0.35,
+              "edge": "railing"
+            },
+            {
+              "id": "b",
+              "x": -0.21313961042714763,
+              "z": -0.4876070171225368,
+              "edge": "open"
+            },
+            {
+              "id": "c",
+              "x": 0.5,
+              "z": -0.5,
+              "edge": "open"
+            },
+            {
+              "id": "d",
+              "x": 0.5012796721572831,
+              "z": 0.5006399882032442,
+              "edge": "open"
+            },
+            {
+              "id": "e",
+              "x": -0.2054265279750045,
+              "z": 0.48368235449940966,
+              "edge": "open"
+            },
+            {
+              "id": "point-d672a026-33e3-4c10-9239-b6ef217529b5",
+              "x": -0.47952281148982917,
+              "z": 0.17120048014581243,
+              "edge": "railing"
+            }
+          ]
+        }
+      },
+      {
+        "id": "railing-balcony",
+        "kind": "balcony",
+        "size": [
+          3,
+          0.08,
+          6
+        ],
+        "position": [
+          3.5,
+          5.5,
+          -2
+        ],
+        "rotationDeg": 0,
+        "balcony": {
+          "version": 1,
+          "heightM": 1.1,
+          "wallThicknessM": 0.06,
+          "points": [
+            {
+              "id": "a",
+              "x": -0.5,
+              "z": -0.5,
+              "edge": "railing"
+            },
+            {
+              "id": "b",
+              "x": 0.5,
+              "z": -0.5,
+              "edge": "railing"
+            },
+            {
+              "id": "c",
+              "x": 0.5,
+              "z": 0.5,
+              "edge": "railing"
+            },
+            {
+              "id": "d",
+              "x": -0.5,
+              "z": 0.5,
+              "edge": "open"
+            }
+          ]
+        }
+      },
+      {
+        "id": "wall-balcony",
+        "kind": "balcony",
+        "size": [
+          4,
+          0.08,
+          3
+        ],
+        "position": [
+          0,
+          6.46,
+          -7.5
+        ],
+        "rotationDeg": 0,
+        "balcony": {
+          "version": 1,
+          "heightM": 1.1,
+          "wallThicknessM": 0.06,
+          "points": [
+            {
+              "id": "a",
+              "x": -0.5,
+              "z": -0.5,
+              "edge": "wall"
+            },
+            {
+              "id": "b",
+              "x": 0.5,
+              "z": -0.5,
+              "edge": "wall"
+            },
+            {
+              "id": "c",
+              "x": 0.5,
+              "z": 0.5,
+              "edge": "open"
+            },
+            {
+              "id": "d",
+              "x": -0.5,
+              "z": 0.5,
+              "edge": "wall"
+            }
+          ]
+        }
+      },
+      {
+        "id": "hull",
+        "kind": "box",
+        "size": [
+          8,
+          5,
+          48
+        ],
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotationDeg": 0
+      },
+      {
+        "id": "bow",
+        "kind": "wedge",
+        "size": [
+          8,
+          5,
+          8
+        ],
+        "position": [
+          0,
+          0,
+          -28
+        ],
+        "rotationDeg": 180
+      },
+      {
+        "id": "hull-5e691c43-3660-468f-8c7d-ad00b63a4b4a",
+        "kind": "balcony",
+        "size": [
+          4,
+          0.08,
+          4
+        ],
+        "position": [
+          0.029999999999999805,
+          6.54,
+          1.5
+        ],
+        "rotationDeg": 0,
+        "balcony": {
+          "version": 1,
+          "heightM": 1.1,
+          "wallThicknessM": 0.06,
+          "points": [
+            {
+              "id": "corner-1",
+              "x": -0.5,
+              "z": -0.5,
+              "edge": "open"
+            },
+            {
+              "id": "corner-2",
+              "x": 0.5,
+              "z": -0.5,
+              "edge": "open"
+            },
+            {
+              "id": "corner-3",
+              "x": 0.5,
+              "z": 0.5,
+              "edge": "open"
+            },
+            {
+              "id": "corner-4",
+              "x": -0.5,
+              "z": 0.5,
+              "edge": "open"
+            }
+          ]
+        }
+      }
+    ],
+    "surfaces": [
+      {
+        "primitiveId": "hull",
+        "face": "top",
+        "thicknessMm": 0,
+        "material": "steel",
+        "paint": "deck-gray"
+      },
+      {
+        "primitiveId": "hull",
+        "face": "bottom",
+        "thicknessMm": 0,
+        "material": "steel",
+        "paint": "red-oxide"
+      },
+      {
+        "primitiveId": "bow",
+        "face": "top",
+        "thicknessMm": 0,
+        "material": "steel",
+        "paint": "deck-gray"
+      },
+      {
+        "primitiveId": "bow",
+        "face": "bottom",
+        "thicknessMm": 0,
+        "material": "steel",
+        "paint": "red-oxide"
+      }
+    ],
+    "equipment": [
+      {
+        "id": "engine",
+        "partId": "generic-diesel-3000kw",
+        "position": [
+          0,
+          -2.484,
+          5
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "gun-forward",
+        "partId": "us-5in38-mk30-mod0-single",
+        "position": [
+          0,
+          3,
+          -14
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "funnel",
+        "partId": "rn-corvette-funnel",
+        "position": [
+          0,
+          2.5,
+          5
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "screw",
+        "partId": "generic-propeller-1200",
+        "position": [
+          0,
+          -2.25,
+          24.42
+        ],
+        "bearingDeg": 0,
+        "powerSourceId": "engine"
+      },
+      {
+        "id": "rudder",
+        "partId": "generic-rudder-1000",
+        "position": [
+          0,
+          -3,
+          21
+        ],
+        "bearingDeg": 0
+      },
+      {
+        "id": "mast",
+        "partId": "fletcher-aft-mast",
+        "position": [
+          0,
+          2.5,
+          12
+        ],
+        "bearingDeg": 0
+      }
+    ],
+    "boundaries": [
+      {
+        "id": "forward-bulkhead",
+        "axis": "z",
+        "offset": -6,
+        "thicknessMm": 8
+      },
+      {
+        "id": "aft-bulkhead",
+        "axis": "z",
+        "offset": 12,
+        "thicknessMm": 8
+      }
+    ],
+    "loads": []
+  }
+}

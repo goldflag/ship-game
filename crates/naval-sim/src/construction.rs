@@ -431,12 +431,13 @@ fn validate(
     for p in &c.primitives {
         if (p.kind != "vertex" && (p.vertices.is_some() || p.shaping.is_some()))
             || (p.kind != "custom-hull" && p.custom_hull.is_some())
+            || (p.kind != "balcony" && p.balcony.is_some())
             || !size(p.size)
             || !finite(p.position)
             || !p.rotation_deg.is_finite()
             || (p.rotation_deg / 90. - (p.rotation_deg / 90.).round()).abs() > 1e-8
             || p.rotation_deg.abs() > 3600.
-            || (p.kind != "vertex" && p.kind != "custom-hull" && !crate::construction_shapes::KINDS.contains(&p.kind.as_str()))
+            || (p.kind != "vertex" && p.kind != "custom-hull" && p.kind != "balcony" && !crate::construction_shapes::KINDS.contains(&p.kind.as_str()))
         {
             return Err(error(
                 "primitive",
@@ -506,6 +507,7 @@ fn validate(
 /// Original solid cells before union splitting. Experimental combat proxies may
 /// use their union for collision, provided buoyancy is supplied independently.
 pub fn primitive_cells(p: &ConstructionPrimitive) -> Result<Vec<cg::Cell>, String> {
+    if p.kind == "balcony" { return crate::construction_balcony::build(p).map(|s| s.cells); }
     if p.kind == "custom-hull" { return crate::construction_custom_hull::build(p).map(|s| s.cells); }
     if p.kind == "vertex" { return crate::construction_vertex::build(p).map(|s| s.cells); }
     if !crate::construction_shapes::KINDS.contains(&p.kind.as_str()) { return Err("Unknown construction shape".into()); }
@@ -561,7 +563,10 @@ fn build(
     let raw: Vec<_> = primitives
         .iter()
         .map(|p| {
-            if p.kind == "custom-hull" {
+            if p.kind == "balcony" {
+                crate::construction_balcony::build(p)
+                    .map_err(|message| error("balcony", message, Some(&p.id)))
+            } else if p.kind == "custom-hull" {
                 crate::construction_custom_hull::build(p)
                     .map_err(|message| error("custom-hull", message, Some(&p.id)))
             } else if p.kind == "vertex" {
@@ -745,6 +750,14 @@ fn build(
     let mut material: Vec<cg::Cell> = vec![];
     let mut material_index = cg::Broadphase::new(hull_index.pitch());
     let mut contributions = vec![];
+    // Platforms and their exposed edge members are solid steel, with no invented
+    // enclosed room between rails or inside a thick deck. Count overlaps once.
+    for (i, p) in primitives.iter().enumerate().filter(|(_, p)| p.kind == "balcony") {
+        let occupied = cg::subtract_all(cg::union(&raw[i].cells).map_err(fail)?, material.iter()).map_err(fail)?;
+        contributions.push(mass(format!("skin-{}-platform", p.id), "skin", &occupied, STEEL_DENSITY));
+        for cell in &occupied { material_index.insert(cell); }
+        material.extend(occupied);
+    }
     for (i, s) in out.surfaces.iter().enumerate().filter(|(_, s)| !s.open) {
         let solid = cg::prism(&s.vertices, s.thickness_mm / 1000.);
         let clipped: Vec<_> = hull_index
@@ -2444,7 +2457,7 @@ mod tests {
                     version: 1.,
                     catalog_revision: "test".into(),
                     default_thickness_mm: 10.,
-                    primitives: vec![ConstructionPrimitive { shaping: None, custom_hull: None,
+                    primitives: vec![ConstructionPrimitive { balcony: None, shaping: None, custom_hull: None,
                         vertices: None,
                         smooth_group: None,
                         id: "box".into(),
@@ -2474,7 +2487,7 @@ mod tests {
         source.construction.primitives[0].size = [30., 1., 2.];
         source.construction.primitives[0].position = [0.; 3];
         for i in 0..257 {
-            source.construction.primitives.push(ConstructionPrimitive { shaping: None, custom_hull: None,
+            source.construction.primitives.push(ConstructionPrimitive { balcony: None, shaping: None, custom_hull: None,
                 id: format!("tiny-{i}"), kind: "box".into(), size: [0.01; 3],
                 position: [-14. + i as f64 * 0.1, 0.505, 0.],
                 ..Default::default()
@@ -2491,7 +2504,7 @@ mod tests {
     #[test]
     fn ballast_adds_exact_fixed_payload_and_displaces_real_interior() {
         let (mut source,catalog) = fixture();
-        source.construction.primitives.push(ConstructionPrimitive { shaping: None, custom_hull: None, id:"weight".into(),kind:"box".into(),size:[3.,2.,3.],position:[2.,3.,0.],rotation_deg:0.,vertices:None, smooth_group:None });
+        source.construction.primitives.push(ConstructionPrimitive { balcony: None, shaping: None, custom_hull: None, id:"weight".into(),kind:"box".into(),size:[3.,2.,3.],position:[2.,3.,0.],rotation_deg:0.,vertices:None, smooth_group:None });
         let empty = compile(&source,&catalog).loading.unwrap();
         source.construction.primitives[1].kind = "ballast".into();
         let result = compile(&source,&catalog);
@@ -2647,7 +2660,7 @@ mod tests {
         let (mut s, c) = fixture();
         s.id = "catamaran".into();
         s.construction.primitives = vec![
-            ConstructionPrimitive { shaping: None, custom_hull: None,
+            ConstructionPrimitive { balcony: None, shaping: None, custom_hull: None,
                 vertices: None,
                         smooth_group: None,
                 id: "port".into(),
@@ -2656,7 +2669,7 @@ mod tests {
                 size: [3., 4., 20.],
                 rotation_deg: 0.,
             },
-            ConstructionPrimitive { shaping: None, custom_hull: None,
+            ConstructionPrimitive { balcony: None, shaping: None, custom_hull: None,
                 vertices: None,
                         smooth_group: None,
                 id: "starboard".into(),
@@ -2665,7 +2678,7 @@ mod tests {
                 size: [3., 4., 20.],
                 rotation_deg: 0.,
             },
-            ConstructionPrimitive { shaping: None, custom_hull: None,
+            ConstructionPrimitive { balcony: None, shaping: None, custom_hull: None,
                 vertices: None,
                         smooth_group: None,
                 id: "bridge".into(),

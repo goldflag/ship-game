@@ -3,6 +3,23 @@ import { DEFAULT_SNAPPING, SHIP_AXES, primitiveSnapFeatures, resolveSnap, type S
 import { attachmentOffset, placementCenter } from './placement';
 import { rotateVertex } from '../../ships/constructionVertex';
 import type { Vec3 } from '../../ships/blueprint';
+import { defaultBalcony } from '../../ships/constructionBalcony';
+
+test('dragging detailed balconies does not reproject every corner-edge pair', () => {
+  const balcony = defaultBalcony(); balcony.points.forEach(point => { point.edge = 'railing'; });
+  const piece = { id: 'moving', kind: 'balcony' as const, size: [3, .08, 6] as Vec3, position: [0, 1, 0] as Vec3, rotationDeg: 0, balcony };
+  // Match Viewport.snapMove: selection center plus every source corner, against
+  // all nearby features (including each rail and post), for two free axes.
+  const features = primitiveSnapFeatures(piece);
+  const moving = features.filter(feature => feature.kind !== 'edge');
+  const targets = primitiveSnapFeatures({ ...piece, id: 'target', position: [3.1, 1, 0] });
+  let projections = 0;
+  const result = resolveSnap({ raw: [.04, 0, .02], grid: [0, 0, 0], directions: [SHIP_AXES[0], SHIP_AXES[2]], moving, targets,
+    settings: DEFAULT_SNAPPING, project: point => { projections++; return [point[0] * 35 + point[2] * 8, point[2] * 25 - point[1] * 30]; } });
+  expect(result.guides.some(guide => guide.active)).toBe(true);
+  // Deterministic work budget, not a flaky wall-clock deadline.
+  expect(projections).toBeLessThan(15000);
+});
 
 const center = (id: string, point: Vec3): SnapFeature => ({ id, owner: id, point, kind: 'center' });
 const moving = [center('moving', [0, 0, 0])];
@@ -79,4 +96,27 @@ test('grid on a rotated second axis cannot undo an acquired centerline', () => {
   const result = resolveSnap({ raw: [.02, 0, .23], grid: [.5, 0, .5], directions, moving, targets: [], settings: DEFAULT_SNAPPING, project });
   expect(result.delta[0]).toBeCloseTo(0, 10);
   expect(result.guides[0].active).toBe(true);
+});
+
+test('projection caches expire with each pointer sample and preserve target tie order', () => {
+  const targets = [center('first', [1, 0, 0]), center('second', [1, 0, 0])];
+  const input = { raw: [.96, 0, 0] as Vec3, grid: [0, 0, 0] as Vec3, directions: [SHIP_AXES[0]], moving, targets,
+    settings: { ...DEFAULT_SNAPPING, centerline: false, grid: false } };
+  const acquired = resolveSnap({ ...input, project });
+  expect(acquired.guides[0].id).toContain('|first|');
+  const held = resolveSnap({ ...input, project, previous: [acquired.guides[0].id.replace('|first|', '|second|')] });
+  expect(held.guides[0].id).toContain('|second|');
+  const zoomed = resolveSnap({ ...input, project: p => [p[0] * 1000, p[2] * 1000] });
+  expect(zoomed.delta).toEqual(input.raw);
+  targets[0].point[0] = .97;
+  expect(resolveSnap({ ...input, project }).delta[0]).toBe(.97);
+});
+
+test('almost-axis-aligned edges keep their exact closest-point coordinate', () => {
+  const edge: [Vec3, Vec3] = [[1, 0, -1], [1.0000005, 0, 1]];
+  const result = resolveSnap({ raw: [.96, 0, .2], grid: [0, 0, 0], directions: [SHIP_AXES[0]], moving,
+    targets: [{ id: 'edge', owner: 'target', kind: 'edge', point: [1.00000025, 0, 0], edge }],
+    settings: { ...DEFAULT_SNAPPING, centerline: false, grid: false }, project });
+  expect(result.delta[0]).toBeCloseTo(1.0000003, 12);
+  expect(result.guides[0].to[0]).toBe(result.delta[0]);
 });

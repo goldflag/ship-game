@@ -1,5 +1,6 @@
 import type { ConstructionEquipment, ConstructionEquipmentPart, ConstructionPrimitive, ConstructionSource, ConstructionSurface, Vec3 } from '../../ships/blueprint';
 import { mirroredPrimitive } from '../../ships/constructionEditor';
+import { balconyFaces } from '../../ships/constructionBalcony';
 import { normalizedBearing, gridCoordinate } from './editorNumbers';
 import type { BuilderPlacement } from './builderScene';
 import { CONSTRUCTION_SHAPES } from '../../ships/constructionShapes';
@@ -42,7 +43,7 @@ function hullFaces(piece: Extract<BuilderPlacement, { kind: 'hull' }>): Vec3[][]
   const key = `${piece.shape}:${piece.size.join(',')}:${piece.rotationDeg}`;
   let faces = hullFacesCache.get(key);
   if (!faces) {
-    faces = piece.shape === 'custom-hull'
+    faces = piece.shape === 'balcony' ? balconyFaces(piece.size).map(face => face.map(v => rotateY(v, piece.rotationDeg * Math.PI / 180))) : piece.shape === 'custom-hull'
       ? customHullFaces({ ...customHullPrimitive(makeHull(0)), size: piece.size }).map(face => face.vertices.map(v => rotateY(v, piece.rotationDeg * Math.PI / 180)))
       : (piece.shape === 'vertex' ? VERTEX_SHAPE : CONSTRUCTION_SHAPES[piece.shape]).map(face => face.map(vertex => rotateY(vertex.map((v, i) => v * piece.size[i]) as Vec3, piece.rotationDeg * Math.PI / 180)));
     if (hullFacesCache.size >= 32) hullFacesCache.delete(hullFacesCache.keys().next().value!);

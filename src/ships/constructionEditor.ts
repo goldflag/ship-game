@@ -1,4 +1,5 @@
 import { mirroredIndices } from './freeformShape';
+import { mirroredBalcony } from './constructionBalcony';
 import { cornerVertices } from './constructionVertex';
 import { customHullPanels, mirroredPanelId } from './constructionPanels';
 import type { ConstructionEquipment, ConstructionSource, ConstructionPrimitive, ConstructionSurface, ConstructionSurfaceAssignment, Vec3 } from './blueprint';
@@ -56,7 +57,20 @@ export function decodeConstructionSource(value: unknown): ConstructionSource {
   for (const p of rows(data.primitives, 'Primitives')) {
     string(p.id, 'Primitive ID'); vector(p.size, 'Primitive size'); vector(p.position, 'Primitive position'); number(p.rotationDeg, 'Primitive rotation');
     if (p.smoothGroup !== undefined) string(p.smoothGroup, 'Smooth group');
-    if (typeof p.kind !== 'string' || (p.kind !== 'vertex' && p.kind !== 'custom-hull' && !Object.hasOwn(CONSTRUCTION_SHAPES, p.kind))) throw new Error('Unsupported primitive kind');
+    if (typeof p.kind !== 'string' || (p.kind !== 'vertex' && p.kind !== 'custom-hull' && p.kind !== 'balcony' && !Object.hasOwn(CONSTRUCTION_SHAPES, p.kind))) throw new Error('Unsupported primitive kind');
+    if (p.kind === 'balcony') {
+      const balcony = object(p.balcony, 'Balcony');
+      if (balcony.version !== 1) throw new Error('Unsupported balcony version');
+      number(balcony.heightM, 'Edge height'); number(balcony.wallThicknessM, 'Wall thickness');
+      const points = rows(balcony.points, 'Balcony points');
+      if (points.length < 3 || points.length > 32) throw new Error('Balconies require 3–32 outline points');
+      const ids = new Set<string>();
+      for (const point of points) {
+        string(point.id, 'Point ID'); number(point.x, 'Point X'); number(point.z, 'Point Z');
+        if (ids.has(point.id as string) || !['open', 'wall', 'railing'].includes(String(point.edge))) throw new Error('Invalid balcony point identity or edge');
+        ids.add(point.id as string);
+      }
+    } else if (p.balcony !== undefined) throw new Error('Balcony data belongs to a balcony block');
     if (p.kind === 'custom-hull') {
       const hull = object(p.customHull, 'Custom hull');
       if (hull.version !== 1) throw new Error('Unsupported custom hull version');
@@ -169,6 +183,7 @@ export function rotateConstructionSelection(source: ConstructionSource, selected
 
 /** Source transform, not physical derivation. Corner profiles require an X/Z swap when reflected. */
 export function mirroredPrimitive(primitive: ConstructionPrimitive): ConstructionPrimitive {
+  if (primitive.kind === 'balcony') return { ...structuredClone(primitive), position: [-primitive.position[0], primitive.position[1], primitive.position[2]], rotationDeg: normalizedBearing(-primitive.rotationDeg), balcony: mirroredBalcony(primitive) };
   if (primitive.kind === 'vertex') {
     const out: ConstructionPrimitive = { ...structuredClone(primitive), position: [-primitive.position[0], primitive.position[1], primitive.position[2]], rotationDeg: normalizedBearing(-primitive.rotationDeg), vertices: [1,0,3,2,5,4,7,6].map(i => {const v=cornerVertices(primitive)[i];return [-v[0],v[1],v[2]];}) };
     if(out.shaping) {const s=out.shaping; s.edges=s.edges.map(i=>mirroredIndices('edge',[i],[true,false,false]).find(j=>j!==i)??i); }

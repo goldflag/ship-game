@@ -15,6 +15,7 @@ import { mirrorTwin, mirrorTwinEquipment, offCenterline } from './placement';
 import { blockMoveConstraint } from './blockMovement';
 import { internalSelectionIds } from './internalSelection';
 import { customHullPrimitive, makeHull } from '../../ships/customHullModel';
+import { defaultBalcony } from '../../ships/constructionBalcony';
 import { normalizedBearing } from './editorNumbers';
 import type { BuilderArc, BuilderDisplay, BuilderGesture, BuilderMoveTargets, BuilderPick, BuilderPlacement, BuilderPointerEvent, BuilderProposal, BuilderScene, BuilderView } from './builderScene';
 import type { ArmorScale } from '../../ships/inspection';
@@ -466,6 +467,7 @@ export class BuilderTool {
       const pieces: ConstructionPrimitive[] = [];
       for (const point of points) {
         pieces.push({ id: this.newId('hull'), kind: piece.shape, size: [...piece.size], position: point, rotationDeg: piece.rotationDeg,
+          ...(piece.shape === 'balcony' ? { balcony: defaultBalcony() } : {}),
           ...(piece.shape === 'custom-hull' ? { customHull: customHullPrimitive(makeHull(0)).customHull } : {}) });
         if (mirror && offCenterline(point)) pieces.push({ ...mirroredPrimitive(pieces.at(-1)!), id: this.newId('hull') });
       }

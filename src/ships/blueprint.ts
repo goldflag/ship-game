@@ -292,7 +292,7 @@ export interface ConstructionSource extends Pick<ShipBlueprint, 'schemaVersion' 
   construction: ConstructionData;
 }
 export interface ConstructionPrimitive {
-  id: string; kind: 'box' | 'wedge' | 'corner' | 'inverse-corner' | 'vertex' | 'custom-hull' | 'ballast' | 'pyramid'
+  id: string; kind: 'box' | 'wedge' | 'corner' | 'inverse-corner' | 'vertex' | 'custom-hull' | 'balcony' | 'ballast' | 'pyramid'
     | 'cylinder' | 'half-cylinder' | 'quarter-cylinder' | 'quarter-cylinder-wall'
     | 'sphere' | 'hemisphere' | 'sphere-octant' | 'hemisphere-shell'
     | 'half-hemisphere-shell' | 'quarter-hemisphere-shell' | 'parabolic-shell'
@@ -311,6 +311,19 @@ export interface ConstructionPrimitive {
   /** Section-authored whole hull; size is [beam, depth, length]. Native compilation
    * derives its closed cells and surfaces; source sections remain editable. */
   customHull?: ConstructionCustomHull;
+  /** Open platform: size Y is deck thickness; outline X/Z scale with size X/Z. */
+  balcony?: ConstructionBalcony;
+}
+export interface ConstructionBalconyPoint {
+  id: string; x: number; z: number;
+  /** Treatment of the edge from this point to the next, wrapping at the end. */
+  edge: 'open' | 'railing' | 'wall';
+}
+export interface ConstructionBalcony {
+  version: 1;
+  points: ConstructionBalconyPoint[];
+  heightM: number;
+  wallThicknessM: number;
 }
 export interface ConstructionFreeformShape {
   version: 1;

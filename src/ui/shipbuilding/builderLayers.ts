@@ -33,8 +33,10 @@ export const DEFAULT_TOOL: Record<BuilderLayer, BuilderToolId> = { hull: 'select
 
 export interface HullShape { id: string; name: string; note: string; kind: ConstructionPrimitive['kind']; size: Vec3 }
 /** Width × height × length in metres, on the 1 m hull grid. Quarter plates are the thinnest useful skin.
- * The first nine fill the keyed bar; the vertex hull rides in slot 9 so its editable corners are one key away. */
+ * The first nine fill the keyed bar; freeform hull and balcony lead the palette. */
 export const HULL_SHAPES: HullShape[] = [
+  { id: 'vertex', name: 'Freeform hull', note: 'vertices, edges and faces · 4 m', kind: 'vertex', size: [4, 4, 4] },
+  { id: 'balcony', name: 'Balcony', note: '2 × 1 m platform · editable outline and walls', kind: 'balcony', size: [2, .08, 1] },
   { id: 'cube', name: 'Cube', note: '1 m', kind: 'box', size: [1, 1, 1] },
   { id: 'slab', name: 'Slab', note: '4 × 1 × 4', kind: 'box', size: [4, 1, 4] },
   { id: 'bar', name: 'Bar', note: '1 × 1 × 4', kind: 'box', size: [1, 1, 4] },
@@ -43,7 +45,6 @@ export const HULL_SHAPES: HullShape[] = [
   { id: 'long-slope', name: 'Long slope', note: '1 : 4', kind: 'wedge', size: [4, 1, 4] },
   { id: 'corner-out', name: 'Corner out', note: '4 m', kind: 'corner', size: [4, 4, 4] },
   { id: 'corner-in', name: 'Corner in', note: '4 m', kind: 'inverse-corner', size: [4, 4, 4] },
-  { id: 'vertex', name: 'Freeform hull', note: 'vertices, edges and faces · 4 m', kind: 'vertex', size: [4, 4, 4] },
   { id: 'custom-hull', name: 'Custom hull', note: 'whole hull · editable cross-sections', kind: 'custom-hull', size: [6.5, 4, 36] },
   { id: 'plate', name: 'Plate', note: '4 × ¼ × 4', kind: 'box', size: [4, .25, 4] },
   { id: 'block', name: 'Block', note: '4 m', kind: 'box', size: [4, 4, 4] },

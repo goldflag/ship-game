@@ -1172,6 +1172,30 @@ pub struct ConstructionCustomHull {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionBalconyPoint {
+    #[serde(rename = "id")]
+    pub id: String,
+    #[serde(rename = "x")]
+    pub x: f64,
+    #[serde(rename = "z")]
+    pub z: f64,
+    #[serde(rename = "edge")]
+    pub edge: String,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionBalcony {
+    #[serde(rename = "version")]
+    pub version: f64,
+    #[serde(rename = "points")]
+    pub points: Vec<ConstructionBalconyPoint>,
+    #[serde(rename = "heightM")]
+    pub height_m: f64,
+    #[serde(rename = "wallThicknessM")]
+    pub wall_thickness_m: f64,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct ConstructionPrimitive {
     #[serde(rename = "id")]
     pub id: String,
@@ -1191,6 +1215,8 @@ pub struct ConstructionPrimitive {
     pub smooth_group: Option<String>,
     #[serde(rename = "customHull")]
     pub custom_hull: Option<ConstructionCustomHull>,
+    #[serde(rename = "balcony")]
+    pub balcony: Option<ConstructionBalcony>,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]

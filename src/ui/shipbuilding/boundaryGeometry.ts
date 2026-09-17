@@ -16,7 +16,7 @@ export function boundaryGeometry(primitives: ConstructionPrimitive[], axis: 'x' 
   for (const primitive of Number.isFinite(offset) ? primitives : []) {
     let envelope = envelopes.get(primitive);
     if (!envelope) {
-      const solid = primitiveGeometry(primitive.kind, primitive.size, primitive.vertices, primitive.customHull, primitive.shaping);
+      const solid = primitiveGeometry(primitive.kind, primitive.size, primitive.vertices, primitive.customHull, primitive.shaping, primitive.balcony);
       solid.rotateY(primitive.rotationDeg * Math.PI / 180).translate(...primitive.position);
       solid.computeBoundingBox();
       envelope = { vertices: solid.getAttribute('position'), bounds: solid.boundingBox! };
