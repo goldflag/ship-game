@@ -7,6 +7,7 @@ import type { ConstructionRevisionOwner, ConstructionSubmission } from '../../sh
 import { canEditVertices, splitVertexPrimitive, VERTEX_UNITS, type HullSelection, type MirrorAxes } from '../../ships/constructionVertex';
 import { pathProblem } from '../../ships/constructionPaths';
 import { BUILDER_RAIL, DEFAULT_TOOL, paletteFor, type BuilderLayer, type BuilderToolId, type RailEntry, type SlotItem } from './builderLayers';
+import { fittingCategory, fittingNation, shelfNations, type FittingFilter, type FittingNation } from './fittingCategories';
 import { appendPathPoint, pathEquipment } from './pathDrawing';
 import { mirrorTwin, offCenterline } from './placement';
 import { blockMoveConstraint } from './blockMovement';
@@ -23,6 +24,8 @@ export interface FreeformSettings { axes: MirrorAxes; unit: number; snap: boolea
 export interface BuilderToolState {
   layer: BuilderLayer; tool: BuilderToolId;
   slots: Record<BuilderLayer, string>;
+  /** The Fittings shelf on the bar and the nation it is narrowed to. */
+  fittingFilter: FittingFilter;
   customMm: number; sizeOverride?: Vec3; bearing: number;
   pathPoints: Vec3[]; ropeSlack: number;
   mirror: boolean; showArcs: boolean; showCenters: boolean;
@@ -83,7 +86,7 @@ export class BuilderTool {
   private lastRevision: string;
   private suggestionRequest?: AbortController;
   private readonly unsubscribe: () => void;
-  private paletteCache?: { layer: BuilderLayer; catalog: ConstructionCatalog; thicknesses: string; palette: ReturnType<typeof paletteFor> };
+  private paletteCache?: { layer: BuilderLayer; catalog: ConstructionCatalog; thicknesses: string; filter: FittingFilter; palette: ReturnType<typeof paletteFor> };
   private surfaceCache?: { source: ConstructionSource; compiled?: ConstructionResult; retained?: ConstructionResult; surfaces: ConstructionSurface[]; keys: Set<string>; thicknesses: number[]; armorScale: ArmorScale };
   private pieceCache?: { key: string; piece?: BuilderPlacement };
   private internalCache?: { source: ConstructionSource; catalog: ConstructionCatalog; ids: Set<string> };
@@ -93,7 +96,7 @@ export class BuilderTool {
     // A design that starts as one custom hull opens with it selected, ready to shape or move.
     const customHull = door.source.construction.primitives.find(part => part.kind === 'custom-hull');
     this.state = {
-      layer: 'hull', tool: customHull ? 'select' : 'place', slots: { hull: 'cube', armor: 'armor', internals: 'deck', fittings: '', paint: 'naval-gray' },
+      layer: 'hull', tool: customHull ? 'select' : 'place', slots: { hull: 'cube', armor: 'armor', internals: 'deck', fittings: '', paint: 'naval-gray' }, fittingFilter: { category: 'main-battery', nation: 'all' },
       customMm: 10, bearing: 0, pathPoints: [], ropeSlack: 0, mirror: true, showArcs: false, showCenters: true, snapSteps: { hull: 1, equipment: .25 },
       freeformSettings: { axes: [true, false, false], unit: .2, snap: false, splitAxis: 2, count: 4, selection: { mode: 'vertex', index: 1 } },
       view: 'orbit', perspective: true, slice: { on: false, y: 0, auto: true }, fitRequest: 0,
@@ -145,15 +148,25 @@ export class BuilderTool {
   // ---- derived
   get palette() {
     const layer = this.state.layer, catalog = this.catalog, thicknesses = layer === 'armor' ? this.surfaceState.thicknesses.join(',') : '';
-    if (!this.paletteCache || this.paletteCache.layer !== layer || this.paletteCache.catalog !== catalog || this.paletteCache.thicknesses !== thicknesses) this.paletteCache = { layer, catalog, thicknesses, palette: paletteFor(layer, catalog, this.surfaceState.thicknesses) };
+    const filter = this.state.fittingFilter;
+    if (!this.paletteCache || this.paletteCache.layer !== layer || this.paletteCache.catalog !== catalog || this.paletteCache.thicknesses !== thicknesses || this.paletteCache.filter !== filter) this.paletteCache = { layer, catalog, thicknesses, filter, palette: paletteFor(layer, catalog, this.surfaceState.thicknesses, filter) };
     return this.paletteCache.palette;
   }
+  /** The nations with parts on the open Fittings shelf; the nation filter offers these and "All". */
+  get shelfNations(): FittingNation[] {
+    const category = this.state.fittingFilter.category;
+    return shelfNations((this.palette.all ?? []).flatMap(item => item.kind === 'part' && fittingCategory(item.part, this.catalog) === category ? [item.part] : []));
+  }
+  /** The nation the shelf is actually narrowed to: the chosen one when this shelf has it, otherwise all. */
+  get shelfNation(): FittingNation | 'all' { const nation = this.state.fittingFilter.nation; return nation !== 'all' && this.shelfNations.includes(nation) ? nation : 'all'; }
+  /** Open a shelf or narrow it; the bar's first card is taken up when the held one is no longer on it. */
+  setFittingFilter = (patch: Partial<FittingFilter>) => { this.update({ fittingFilter: { ...this.state.fittingFilter, ...patch }, pathPoints: [], sizeOverride: undefined }); };
   get active(): SlotItem | undefined { return this.palette.drawer.find(item => item.id === this.state.slots[this.state.layer]) ?? this.palette.drawer[0]; }
   get drawerName() { return this.state.layer === 'fittings' ? 'fittings' : this.state.layer === 'hull' ? 'shapes' : 'items'; }
   get hasDrawer() { return this.palette.drawer.length > this.palette.bar.filter(item => item.kind !== 'empty').length || this.state.layer === 'fittings'; }
   private pathPartOf(state: BuilderToolState): ConstructionEquipmentPart | undefined {
     if (state.layer !== 'fittings' || state.tool !== 'place') return undefined;
-    const palette = state.layer === this.state.layer ? this.palette : paletteFor(state.layer, this.catalog);
+    const palette = state.layer === this.state.layer && state.fittingFilter === this.state.fittingFilter ? this.palette : paletteFor(state.layer, this.catalog, [], state.fittingFilter);
     const active = palette.drawer.find(item => item.id === state.slots[state.layer]) ?? palette.drawer[0];
     return active?.kind === 'part' && active.part.path ? active.part : undefined;
   }
@@ -310,7 +323,13 @@ export class BuilderTool {
   selectSlot = (item: SlotItem): boolean => {
     if (item.kind === 'empty' || this.locked) return false;
     const { layer, tool, surfaces } = this.state;
-    this.update({ pathPoints: [], slots: { ...this.state.slots, [layer]: item.id }, sizeOverride: undefined });
+    // A fitting found by search may sit on another shelf or under another nation: the bar follows it there.
+    let fittingFilter = this.state.fittingFilter;
+    if (layer === 'fittings' && item.kind === 'part' && !this.palette.drawer.includes(item)) {
+      const nation = fittingNation(item.part);
+      fittingFilter = { category: fittingCategory(item.part, this.catalog), nation: nation && fittingFilter.nation !== 'all' && nation !== fittingFilter.nation ? 'all' : fittingFilter.nation };
+    }
+    this.update({ pathPoints: [], slots: { ...this.state.slots, [layer]: item.id }, sizeOverride: undefined, fittingFilter });
     const faceTools: BuilderToolId[] = ['apply', 'area', 'eyedrop', 'opening', 'select'];
     switch (item.kind) {
       case 'shape': if (tool !== 'place' && tool !== 'fill') this.setTool('place'); break;

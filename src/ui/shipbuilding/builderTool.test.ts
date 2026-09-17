@@ -250,8 +250,10 @@ test('fittings: cards pick parts, the ghost carries a gun arc, placement mirrors
 test('connected routes: points accumulate outside history, Enter commits the route and its mirror, Escape discards', async () => {
   const { tool, owner, data, state } = await setup();
   tool.switchLayer('fittings');
-  tool.selectSlot(tool.palette.drawer.find(item => item.id === 'railing')!);
+  tool.selectSlot(tool.palette.all!.find(item => item.id === 'railing')!);
   expect(tool.pathPart?.id).toBe('railing');
+  // The card came from another shelf: the bar opens that shelf.
+  expect(state().fittingFilter.category).toBe('deck-gear'); expect(tool.palette.drawer.map(item => item.id)).toContain('railing');
   expect(tool.scene(undefined)).toMatchObject({ gesture: 'none', moveTargets: 'none', placementPiece: undefined, pathDraft: { points: [], mirror: true, slackM: 0 } });
   tool.pointer({ kind: 'path-point', point: [1, .5, -2] });
   expect(tool.pointer({ kind: 'path-finish' })).toBeUndefined();
@@ -408,7 +410,7 @@ test('a design that opens as a custom hull starts in Select with the hull chosen
 test('propeller cards preserve blade clearance through the builder scene and mirrored placement', async () => {
   const { tool } = await setup();
   tool.switchLayer('fittings');
-  tool.selectSlot(tool.palette.drawer.find(item => item.id === 'propeller')!);
+  tool.selectSlot(tool.palette.all!.find(item => item.id === 'propeller')!);
   const scene = tool.scene(undefined);
   for (const piece of [scene.placementPiece, scene.placementMirror]) {
     expect(piece).toMatchObject({ kind: 'equipment', propellerDiameterM: 4 });
