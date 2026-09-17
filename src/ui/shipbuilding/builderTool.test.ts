@@ -26,7 +26,7 @@ function compiledFor(source: ConstructionSource): ConstructionResult {
   const surfaces: ConstructionSurface[] = source.construction.primitives.flatMap(primitive => VERTEX_FACES.map(face => {
     const assigned = source.construction.surfaces.find(entry => entry.primitiveId === primitive.id && entry.face === face.name);
     return { id: `${primitive.id}:${face.name}`, primitiveId: primitive.id, face: face.name, vertices: face.corners.map(i => CORNER_SIGNS[i].map((n, k) => primitive.position[k] + n * primitive.size[k] / 2) as Vec3),
-      normal: [0, 1, 0] as Vec3, areaM2: 1, thicknessMm: assigned?.thicknessMm ?? source.construction.defaultThicknessMm, material: assigned?.material ?? 'steel', paint: assigned?.paint ?? 'naval-gray', open: !!assigned?.open };
+      normal: [0, 1, 0] as Vec3, areaM2: 1, thicknessMm: Math.max(assigned?.thicknessMm ?? source.construction.defaultThicknessMm, source.construction.defaultThicknessMm), material: assigned?.material ?? 'steel', paint: assigned?.paint ?? 'naval-gray', open: !!assigned?.open };
   }));
   return { sourceId: source.id, revision: source.revision, contentHash: 'fixture', surfaces, diagnostics: [], definition: { mounts: [{ position: [0, 1, 0], bearingDeg: 0, traverseDeg: 120, weapon: { traverseDeg: 150 } }] } as unknown as ConstructionResult['definition'] };
 }
@@ -167,7 +167,7 @@ test('armor and paint: Paint assigns the active card to the clicked face and its
   expect(data().surfaces.find(surface => surface.primitiveId === 'hull')).toMatchObject({ thicknessMm: 0, material: 'steel' });
   tool.setTool('eyedrop');
   tool.pointer({ kind: 'pick', hit: hit({ id: 'hull-1', surface: 'hull-1:top' }) });
-  expect(state()).toMatchObject({ customMm: 0, tool: 'apply' });
+  expect(state()).toMatchObject({ customMm: 16, tool: 'apply' });
   tool.setTool('opening');
   tool.pointer({ kind: 'pick', hit: hit({ id: 'hull', surface: 'hull:bow' }) });
   expect(data().surfaces.filter(surface => surface.open).map(surface => `${surface.primitiveId}:${surface.face}`)).toEqual(['hull:bow']);
@@ -189,9 +189,9 @@ test('a face sweep assigns every crossed face and its mirror as one edit; the sh
   expect(tool.pointer({ kind: 'faces', surfaces: ['hull:top', 'hull-1:top', 'equipment:gun:top'] })).toMatchObject({ accepted: true });
   expect(labels().at(-1)).toBe('Assign 10 mm armor');
   expect(data().surfaces.filter(surface => surface.thicknessMm === 10).map(surface => `${surface.primitiveId}:${surface.face}`).sort()).toEqual(['hull-1:top', 'hull-2:top', 'hull:top']);
-  expect(tool.thicknesses).toEqual([16, 10]);
-  expect(tool.armorScale).toEqual({ fromMm: 10, toMm: 16 });
-  expect(tool.palette.bar.map(item => item.id)).toEqual(['armor', 'mm-16', 'mm-10', 'opening']);
+  expect(tool.thicknesses).toEqual([16]);
+  expect(tool.armorScale).toEqual({ fromMm: 16, toMm: 16 });
+  expect(tool.palette.bar.map(item => item.id)).toEqual(['armor', 'mm-16', 'opening']);
   tool.key(key('2'), chrome());
   expect(state().customMm).toBe(16);
   expect(tool.active).toMatchObject({ kind: 'thickness', mm: 16 });
@@ -213,9 +213,9 @@ test('face edits continue on the retained compile while the current one is pendi
   tool.switchLayer('armor');
   expect(tool.pointer({ kind: 'pick', hit: hit({ id: 'hull', surface: 'hull:top' }) })).toMatchObject({ accepted: true });
   expect(data().surfaces).toEqual([{ primitiveId: 'hull', face: 'top', thicknessMm: 10, material: 'armor-steel', paint: 'naval-gray', open: false }]);
-  expect(tool.editableSurfaces.find(surface => surface.face === 'top')).toMatchObject({ thicknessMm: 10, material: 'armor-steel' });
-  expect(tool.thicknesses).toEqual([16, 10]);
-  expect(tool.palette.bar.map(item => item.id)).toEqual(['armor', 'mm-16', 'mm-10', 'opening']);
+  expect(tool.editableSurfaces.find(surface => surface.face === 'top')).toMatchObject({ thicknessMm: 16, material: 'armor-steel' });
+  expect(tool.thicknesses).toEqual([16]);
+  expect(tool.palette.bar.map(item => item.id)).toEqual(['armor', 'mm-16', 'opening']);
 });
 
 test('face tools wait for a compiled preview and refuse fixed equipment supports', async () => {

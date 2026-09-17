@@ -24,10 +24,13 @@ export function editableConstructionSurfaces(source: ConstructionSource, surface
  * whole face's assignment when it has none of its own, as the compiler does. */
 export function projectConstructionSurfaces(source: ConstructionSource, surfaces: readonly ConstructionSurface[]): ConstructionSurface[] {
   const assignments = new Map(source.construction.surfaces.map(surface => [surfaceSelectionKey(surface), surface]));
+  const primitiveIds = new Set(source.construction.primitives.map(primitive => primitive.id));
   return surfaces.map(surface => {
+    if (!primitiveIds.has(surface.primitiveId)) return surface;
     const assignment = assignments.get(surfaceSelectionKey(surface)) ?? (surface.panelId !== undefined ? assignments.get(surfaceKey(surface.primitiveId, surface.face)) : undefined);
-    if (!assignment) return surface;
-    const { thicknessMm, material, paint, open } = assignment;
+    // Match the native skin minimum and defaults, including when undo removes an assignment.
+    const thicknessMm = Math.max(assignment?.thicknessMm ?? source.construction.defaultThicknessMm, source.construction.defaultThicknessMm);
+    const material = assignment?.material ?? 'steel', paint = assignment?.paint ?? 'naval-gray', open = !!assignment?.open;
     return surface.thicknessMm === thicknessMm && surface.material === material && surface.paint === paint && surface.open === !!open ? surface : { ...surface, thicknessMm, material, paint, open: !!open };
   });
 }
