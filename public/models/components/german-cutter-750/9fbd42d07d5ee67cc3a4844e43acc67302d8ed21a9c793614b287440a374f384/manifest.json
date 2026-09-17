@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "german-cutter-750",
+  "revision": "9fbd42d07d5ee67cc3a4844e43acc67302d8ed21a9c793614b287440a374f384",
+  "contentHash": "9345cfb24d0037e238329c57a6da2b8fd37f799bfb0bd418733004b50adb7ee9",
+  "modelSha256": "9378b805bd8df9294ec9a7926d2a0e98a91a7988b8258affe7cfdbe1b7201f07",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/german-cutter-750/9fbd42d07d5ee67cc3a4844e43acc67302d8ed21a9c793614b287440a374f384/model.glb",
+  "boundsCenter": [
+    -2.384185791015625e-7,
+    0.794643223285675,
+    0.0003324747085571289
+  ],
+  "size": [
+    2.002000570297241,
+    1.58928644657135,
+    7.581789255142212
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 692,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original Hipper source boat, fixed stowed pose; no boat-launching simulation.",
+  "basis": "assets/parts/construction/README.md"
+}

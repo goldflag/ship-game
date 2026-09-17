@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "us-motor-whaleboat",
+  "revision": "375da7f23172191965d5fbb1a397a5e061df22bd205d3184e9ddd1cfc429cf26",
+  "contentHash": "7b3c2a1f3c88d7537daa0fd6877751e9cb59bbc53e460aee2517c7446cc286cf",
+  "modelSha256": "9b41c3ee6fc12501bbbb8b29ec96e2ae5d609e3df4a79a926c671965dfa9e388",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/us-motor-whaleboat/375da7f23172191965d5fbb1a397a5e061df22bd205d3184e9ddd1cfc429cf26/model.glb",
+  "boundsCenter": [
+    -2.384185791015625e-7,
+    0.837557852268219,
+    0.031531333923339844
+  ],
+  "size": [
+    2.460404396057129,
+    1.675115704536438,
+    8.556937217712402
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 5712,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original generic or ship-adapted deck fitting; dimensions and dry mass are declared game estimates, loading only, with no combat or handling effect.",
+  "basis": "assets/parts/construction/README.md"
+}

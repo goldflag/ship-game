@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "generic-gun-tub",
+  "revision": "1092e560eb52f68a0215b6afa27db6d9b17bf5ca6417105f6cdc00a4354c6411",
+  "contentHash": "c27c3343b4e1b255d4f25364592e4b01b51a8305364ac490d2034abc3e566ffc",
+  "modelSha256": "4015be706f54ad745e7d957e3a664abd69452f17ce3e9079eacfe893193a938f",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/generic-gun-tub/1092e560eb52f68a0215b6afa27db6d9b17bf5ca6417105f6cdc00a4354c6411/model.glb",
+  "boundsCenter": [
+    0,
+    0.578499972820282,
+    -0.02208256721496582
+  ],
+  "size": [
+    3.199687957763672,
+    1.156999945640564,
+    3.155834913253784
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        -1.5509999990463257,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        -1.5509999990463257,
+        1
+      ]
+    }
+  ],
+  "triangles": 5728,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original generic or ship-adapted deck fitting; dimensions and dry mass are declared game estimates, loading only, with no combat or handling effect.",
+  "basis": "assets/parts/construction/README.md"
+}

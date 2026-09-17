@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "german-sl8-director",
+  "revision": "4f52aacbb5da6d8c9df1430bd02056888d8987a8858c5fc8345b1fe4f0fb54ee",
+  "contentHash": "c6427706357296d5876174f5beced35a3235a778b34e15242bf30a6a366c0b79",
+  "modelSha256": "23b73020f6956b3b23398082134b0d1374de73dd2fc58f4d0eedafc6a75fb0d2",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/german-sl8-director/4f52aacbb5da6d8c9df1430bd02056888d8987a8858c5fc8345b1fe4f0fb54ee/model.glb",
+  "boundsCenter": [
+    0,
+    1.654999926686287,
+    0
+  ],
+  "size": [
+    4.400000095367432,
+    3.309999853372574,
+    3.893599033355713
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 1120,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original approved Hipper source adaptation; fresh external verification incomplete.",
+  "basis": "assets/parts/construction/README.md"
+}

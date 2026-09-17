@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "german-guarded-director-optic",
+  "revision": "e5998f92e28589bce2bf3e046399efb2dd499dfd04d12d47cb46ecfc644e33e7",
+  "contentHash": "cdae771a4def9619f576f45c83c3033b2e89a0a0cc5e40d332927381c3bb54e8",
+  "modelSha256": "51626783d5a75f71b0c2850574b0bc9cd0c6426be8db2a6877b9c1a6b408cca9",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/german-guarded-director-optic/e5998f92e28589bce2bf3e046399efb2dd499dfd04d12d47cb46ecfc644e33e7/model.glb",
+  "boundsCenter": [
+    -1.4901157779911856e-8,
+    -0.019999995827675143,
+    -0.6970000022649818
+  ],
+  "size": [
+    0.7980002528428931,
+    0.7580004346370496,
+    1.394000073671354
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 708,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original source outer optical tube and protective guard, mounted on a separate ship-authored director housing.",
+  "basis": "assets/parts/construction/README.md"
+}

@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "german-cruiser-deck-hatch",
+  "revision": "4890fd796df554cf6f56e53c5cafe452871be25f6e453ef4b4480dadb58664ea",
+  "contentHash": "8a403a562df105472b5aa79affbb1b2c248e7fb70d75c4585a51ad2fa3e4a68d",
+  "modelSha256": "f91da128c682af12350dac0a95d528d25f3ab13f4ae65264431e20c24b62729a",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/german-cruiser-deck-hatch/4890fd796df554cf6f56e53c5cafe452871be25f6e453ef4b4480dadb58664ea/model.glb",
+  "boundsCenter": [
+    0,
+    0.1524999998509884,
+    0
+  ],
+  "size": [
+    1.2000001668930054,
+    0.3049999997019768,
+    1.5100001096725464
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 24,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original approved local Hipper component; fresh external reference verification incomplete. Static fitting; per-installation review required.",
+  "basis": "assets/parts/construction/README.md"
+}

@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "rn-tripod-foremast",
+  "revision": "650fb9cc79f607c6210454044a7589871b4ac133de90bdb728638361e51d2a96",
+  "contentHash": "5171df6be5715016db921241e27594f96a49f90ceeec0d9e529bab36213cd067",
+  "modelSha256": "3b1f2554b6485abf4b281880b262077e3469ddfeee44a1da84f5942824c51904",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/rn-tripod-foremast/650fb9cc79f607c6210454044a7589871b4ac133de90bdb728638361e51d2a96/model.glb",
+  "boundsCenter": [
+    0,
+    14.025000382214785,
+    2.107875943183899
+  ],
+  "size": [
+    12,
+    28.05000076442957,
+    5.764249563217163
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 6668,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Adapted original King George V recipe as a standalone fitting; mass and ratings are gameplay estimates. Per-design attachment and clearance require installation review.",
+  "basis": "assets/parts/construction/README.md"
+}

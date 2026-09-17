@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "generic-breakwater",
+  "revision": "d86addcbb599a0b761d75b493bb9a25eea43f7e627473e7fdb01d038e3e78929",
+  "contentHash": "cbdfd0572691c47a3251f4b4520939af5f5bac8a6f78ec1485239e0d33d058d1",
+  "modelSha256": "a1d2b0ba86f551130a9640f7af33f73589232bbd3a0c42005965789f48d8e16c",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/generic-breakwater/d86addcbb599a0b761d75b493bb9a25eea43f7e627473e7fdb01d038e3e78929/model.glb",
+  "boundsCenter": [
+    0,
+    0.5760000348091125,
+    0.03332561254501343
+  ],
+  "size": [
+    8.239269256591797,
+    1.152000069618225,
+    2.6638318300247192
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 2004,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original generic or ship-adapted deck fitting; dimensions and dry mass are declared game estimates, loading only, with no combat or handling effect.",
+  "basis": "assets/parts/construction/README.md"
+}

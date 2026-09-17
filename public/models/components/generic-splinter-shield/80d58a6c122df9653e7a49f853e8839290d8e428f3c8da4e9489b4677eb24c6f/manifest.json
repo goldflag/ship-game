@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "generic-splinter-shield",
+  "revision": "80d58a6c122df9653e7a49f853e8839290d8e428f3c8da4e9489b4677eb24c6f",
+  "contentHash": "1bad4718debed409fdc28a84baaa16c4dfcc9eedb2d1fc20bde1cd4efac2c6ab",
+  "modelSha256": "9650d6e34457a29094fe08225908926b0accea37217cf254a5884148d67fa6c9",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/generic-splinter-shield/80d58a6c122df9653e7a49f853e8839290d8e428f3c8da4e9489b4677eb24c6f/model.glb",
+  "boundsCenter": [
+    -0.23900004383176565,
+    0.6000000238418579,
+    0
+  ],
+  "size": [
+    0.5380001831799746,
+    1.2000000476837158,
+    3
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 724,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original generic or ship-adapted deck fitting; dimensions and dry mass are declared game estimates, loading only, with no combat or handling effect.",
+  "basis": "assets/parts/construction/README.md"
+}

@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "us-cruiser-pole-mast",
+  "revision": "7359a406f77ffe0f09edd8e1a4e63d15a4c2193f70de3cfc5ff3b59856d02685",
+  "contentHash": "adc6f46f2651deb2004abc8ccc7dbb1ab2d90b19705090a6031111d13201346e",
+  "modelSha256": "7a934b1be4a69eec3c6dd4736179378f052cfe26c5923c5a27b83d8a6d77bbd3",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/us-cruiser-pole-mast/7359a406f77ffe0f09edd8e1a4e63d15a4c2193f70de3cfc5ff3b59856d02685/model.glb",
+  "boundsCenter": [
+    2.384185791015625e-7,
+    13.954999849200249,
+    -0.8255281448364258
+  ],
+  "size": [
+    11.02227258682251,
+    27.909999698400497,
+    6.948944091796875
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 7360,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Adapted original Baltimore recipe as a standalone fitting; mass and ratings are gameplay estimates. Per-design attachment and clearance require installation review.",
+  "basis": "assets/parts/construction/README.md"
+}

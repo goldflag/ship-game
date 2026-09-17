@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "generic-ready-ammo-locker",
+  "revision": "60c095784622377463073ef6441f9dcf8d2d56ebaab0a25e9f89b7e1078b0166",
+  "contentHash": "b0e44ebd1566bcbd3ab90f34e884864ffa3ef42698c3d5e6d59b2d67e196a1fc",
+  "modelSha256": "a1618c80e7ba123a8ab142e5190b663450132d8170f96c3e5d00b34e88ca3aed",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/generic-ready-ammo-locker/60c095784622377463073ef6441f9dcf8d2d56ebaab0a25e9f89b7e1078b0166/model.glb",
+  "boundsCenter": [
+    0.018330156803131104,
+    0.5330000165849924,
+    0
+  ],
+  "size": [
+    0.7806603312492371,
+    1.0660000331699848,
+    1.7860000133514404
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 1316,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original generic or ship-adapted deck fitting; dimensions and dry mass are declared game estimates, loading only, with no combat or handling effect.",
+  "basis": "assets/parts/construction/README.md"
+}

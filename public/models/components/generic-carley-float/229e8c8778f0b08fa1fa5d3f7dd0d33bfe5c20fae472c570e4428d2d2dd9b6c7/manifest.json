@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "generic-carley-float",
+  "revision": "229e8c8778f0b08fa1fa5d3f7dd0d33bfe5c20fae472c570e4428d2d2dd9b6c7",
+  "contentHash": "fa26be1becd3efe5f6fae6087faf0c40f758cc8a8a0910571c1ae3b904433489",
+  "modelSha256": "a69a51e7fe9d2754a711b4e291097fe6ac6be04e9acfd430631ef80209992238",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/generic-carley-float/229e8c8778f0b08fa1fa5d3f7dd0d33bfe5c20fae472c570e4428d2d2dd9b6c7/model.glb",
+  "boundsCenter": [
+    -0.0001798868179321289,
+    0.25374999083578587,
+    -0.0002943277359008789
+  ],
+  "size": [
+    1.614893913269043,
+    0.5074999816715717,
+    3.076634645462036
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 6092,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original generic or ship-adapted deck fitting; dimensions and dry mass are declared game estimates, loading only, with no combat or handling effect.",
+  "basis": "assets/parts/construction/README.md"
+}

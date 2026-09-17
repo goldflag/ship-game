@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "german-cruiser-funnel-cap",
+  "revision": "ad18183c81b8f8d4666710a5b7dc66c5749ebbd2d83a2a0c775154b9c26b8a17",
+  "contentHash": "fef8de625fcb05a5aa7da060bfb3af6e3791cb15434416e10e7ffaed9d866eb2",
+  "modelSha256": "cde1dbd48a60c8f6d6e2485abb438cec32d6b56daf3f0691ad464e64f06bf836",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/german-cruiser-funnel-cap/ad18183c81b8f8d4666710a5b7dc66c5749ebbd2d83a2a0c775154b9c26b8a17/model.glb",
+  "boundsCenter": [
+    0,
+    2.359999895095825,
+    0
+  ],
+  "size": [
+    4.519999980926514,
+    4.71999979019165,
+    10.600000381469727
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 692,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original Hipper source adaptation, or explicitly provisional machinery/magazine package. Fresh external reference verification incomplete. Per-installation attachment and articulation review required.",
+  "basis": "assets/parts/construction/README.md"
+}
