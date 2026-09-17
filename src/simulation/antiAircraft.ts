@@ -1,16 +1,16 @@
-import { mountSupport, directorDispersion } from './machinery';
-import { meanHullY } from './ship';
-import { mountOriginRadius } from './mountFrames';
+import { mountSupport, directorDispersion } from '../game/machinery';
+import { meanHullY } from '../game/session/motion';
+import { mountOriginRadius } from '../game/mountFrames';
 import { AIR_GUNNERY, gunnerySeed, initialFireDiscipline, panicAim, stepFireDiscipline } from './airGunnery';
 import type { AirContext, Aircraft } from './aircraft';
 import { antiAircraftRange } from '../ships/armament';
 import { airborne, onFlightDeck } from './aircraft';
 import type { FleetActor } from './battle';
 import type { ShipDefinition } from '../ships/blueprint';
-import { isPassiveAi } from './aiLevels';
-import { ballisticStep, dispersedDirection } from './ballistics';
-import { add, dot, length, normalize, scale, segmentBox, sub, worldToLocal } from './geometry';
-import { motionVelocity } from './ship';
+import { isPassiveAi } from '../game/session/aiLevels';
+import { ballisticStep, dispersedDirection } from '../game/ballistics';
+import { add, dot, length, normalize, scale, segmentBox, sub, worldToLocal } from '../game/geometry';
+import { motionVelocity } from '../game/session/motion';
 import { availableAmmunition, expendSalvo, muzzleWorld, selectAmmunition, shotDirection, updateMount, type MountDefinition, type MountState } from './weapons';
 
 export { antiAircraftRange } from '../ships/armament';

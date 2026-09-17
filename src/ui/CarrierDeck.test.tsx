@@ -1,11 +1,12 @@
 import { expect, test } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { CombatSimulation } from '../simulation/combat';
-import { airWingTelemetry } from '../simulation/airTelemetry';
+import { airWingTelemetry } from '../game/session/airTelemetry';
 import { shipPreset } from '../ships/presets';
 import { AirGroupService, CarrierDeck } from './CarrierDeck';
 import { decodeSnapshot } from '../game/session/snapshotCodec';
 import { AirWingManifest } from './AirWingManifest';
+import type { AirWingState } from '../game/session/elements';
 
 function fixture() {
   const sim = new CombatSimulation(shipPreset('enterprise-cv6'));
@@ -32,7 +33,7 @@ test('closed recovery preserves unavailable identities without counting them as 
     p.lossReason = i === 0 ? 'Shot down' : 'Unavailable · Recovery equipment destroyed';
   });
   const frame = decodeSnapshot(JSON.stringify({ tick: 30, actors: [{}], wings: [{ ownerId: actor.motion.id, state }] }));
-  actor.airWing = frame.wings[0].state;
+  actor.airWing = frame.wings[0].state as unknown as AirWingState;
   const wing = telemetry();
   expect(wing.recovery).toEqual(state.recovery);
   expect(wing.counts).toMatchObject({ withdrawn: 47, lost: 1, hangar: 0, ready: 0 });
@@ -93,7 +94,7 @@ test('managed telemetry retains four-plane groups and reports unlimited flights 
 test('snapshot normalization preserves an explicit unlimited policy and authoritative group identities', () => {
   const { actor, state } = fixture();
   const frame = decodeSnapshot(JSON.stringify({ tick: 0, actors: [{}], wings: [{ ownerId: actor.motion.id, state }] }));
-  actor.airWing = frame.wings[0].state;
+  actor.airWing = frame.wings[0].state as unknown as AirWingState;
   expect(actor.airWing.deck!.activeFlightLimit).toBeNull();
   expect(airWingTelemetry(actor, [actor])!.groups.map(g => g.id)).toEqual(state.flights.map(f => f.id));
   expect(actor.airWing).toEqual(state);

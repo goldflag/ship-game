@@ -1,5 +1,5 @@
-import { aircraftBomb, aircraftTorpedo } from '../../src/simulation/aircraftWeapons';
-import { aircraftGroundPose } from '../../src/simulation/aircraftGroundPose';
+import { aircraftBomb, aircraftTorpedo } from '../../src/ships/aircraftWeapons';
+import { aircraftGroundPose } from '../../src/game/aircraftGroundPose';
 import { terrainField } from '../../src/maps/terrain';
 import maps from '../../assets/maps/environments.v1.json';
 import { createHash } from 'node:crypto';

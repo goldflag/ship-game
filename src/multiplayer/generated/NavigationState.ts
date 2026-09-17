@@ -3,4 +3,4 @@ import type { FormationReport } from "./FormationReport";
 import type { MovementOrder } from "./MovementOrder";
 import type { NavigationStatus } from "./NavigationStatus";
 
-export type NavigationState = { order: MovementOrder, waypoint: number, status: NavigationStatus, destination: [number, number] | null, formation: FormationReport | null, };
+export type NavigationState = { order: MovementOrder, waypoint: number, status: NavigationStatus, destination?: [number, number], formation?: FormationReport, };

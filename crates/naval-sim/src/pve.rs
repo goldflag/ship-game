@@ -546,7 +546,7 @@ fn valid_position(
         })
 }
 /// The order a task group forms up in, guide first: a flight deck leads, then
-/// the heaviest hull, and ties break on ship id. `pve_command::members` sorts
+/// the heaviest hull, and ties break on ship id. `admiral::members` sorts
 /// the living group the same way, so the ship laid out at the group centre is
 /// the ship the group's directives make the guide.
 pub(crate) fn member_order(

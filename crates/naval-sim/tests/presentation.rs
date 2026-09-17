@@ -128,7 +128,7 @@ fn streamed_large_battle_preserves_every_presentation_field_and_authority_state(
         )
         .unwrap();
         let actual: Value =
-            serde_json::from_str(&serde_json::to_string(&battle.presentation_snapshot()).unwrap())
+            serde_json::from_str(&serde_json::to_string(&battle.full_frame(&[])).unwrap())
                 .unwrap();
         same(&actual, &expected, &format!("tick {tick}"));
         // The narrowed projections must also agree, field for field, and must
@@ -147,7 +147,7 @@ fn streamed_large_battle_preserves_every_presentation_field_and_authority_state(
         )
         .unwrap();
         let actual: Value = serde_json::from_str(
-            &serde_json::to_string(&battle.detailed_presentation_snapshot(&detail)).unwrap(),
+            &serde_json::to_string(&battle.full_frame(&detail)).unwrap(),
         )
         .unwrap();
         same(&actual, &expected, &format!("narrowed tick {tick}"));
@@ -220,7 +220,7 @@ fn streamed_team_hulls_preserve_visibility_targets_damage_and_debrief() {
             )
             .unwrap();
             let actual: Value = serde_json::from_str(
-                &serde_json::to_string(&battle.team_presentation_snapshot(team)).unwrap(),
+                &serde_json::to_string(&battle.team_frame(team, &[]).unwrap()).unwrap(),
             )
             .unwrap();
             same(&actual, &expected, &format!("team {team:?}, tick {tick}"));
@@ -235,8 +235,7 @@ fn streamed_team_hulls_preserve_visibility_targets_damage_and_debrief() {
             )
             .unwrap();
             let actual: Value = serde_json::from_str(
-                &serde_json::to_string(&battle.detailed_team_presentation_snapshot(team, &detail))
-                    .unwrap(),
+                &serde_json::to_string(&battle.team_frame(team, &detail).unwrap()).unwrap(),
             )
             .unwrap();
             same(

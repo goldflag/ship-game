@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { applyConstructionBatch, type ConstructionBatch } from './constructionCommands';
+import { applyConstructionBatch, constructionDiffCommands, type ConstructionBatch } from './constructionCommands';
 import type { ConstructionSource } from './blueprint';
 const source = (): ConstructionSource => ({ schemaVersion: 1, id: 'test', name: 'Test', revision: 'one', coordinates: 'meters-y-up-bow-negative-z', construction: { version: 1, catalogRevision: 'test', defaultThicknessMm: 10, primitives: [{ id: 'hull', kind: 'box', size: [10, 4, 20], position: [0, 0, 0], rotationDeg: 0 }], surfaces: [], equipment: [], boundaries: [], loads: [] } });
 test('agent batch is atomic and rejects stale revisions and syntax failures', () => {
@@ -22,4 +22,21 @@ test('batch preserves stable IDs, face assignments and equipment links through o
   expect(next.construction.equipment[0].magazineId).toBe('mag');
   expect(next.construction.surfaces[0].primitiveId).toBe('hull');
   expect(s.construction.equipment).toHaveLength(0);
+});
+
+test('a diff between a source and its edited copy replays as one batch, upserting before removing so the last hull block is never protected by mistake', () => {
+  const s = source();
+  s.construction.surfaces = [{ primitiveId: 'hull', face: 'top', thicknessMm: 20, material: 'armor-steel', paint: 'deck-gray' }];
+  const next = structuredClone(s);
+  next.name = 'Split'; next.construction.catalogRevision = 'newer';
+  next.construction.primitives = [{ id: 'a', kind: 'box', size: [10, 4, 10], position: [0, 0, -5], rotationDeg: 0 }, { id: 'b', kind: 'box', size: [10, 4, 10], position: [0, 0, 5], rotationDeg: 0 }];
+  next.construction.surfaces = [{ primitiveId: 'a', face: 'top', thicknessMm: 20, material: 'armor-steel', paint: 'deck-gray' }];
+  next.construction.boundaries = [{ id: 'deck', axis: 'y', offset: 1, thicknessMm: 10 }];
+  const commands = constructionDiffCommands(s, next);
+  expect(commands.map(command => command.op)).toEqual(['name', 'catalog', 'primitive', 'primitive', 'boundary', 'remove', 'surface']);
+  const applied = applyConstructionBatch(s, { version: 1, expectedRevision: s.revision, label: 'Diff', commands }, 'two');
+  expect({ ...applied, revision: s.revision }).toEqual({ ...next, revision: s.revision });
+  expect(constructionDiffCommands(s, s)).toEqual([]);
+  const cleared = structuredClone(s); cleared.construction.surfaces = [];
+  expect(() => constructionDiffCommands(s, cleared)).toThrow('cannot be removed');
 });

@@ -1,10 +1,10 @@
 import { useState, type CSSProperties } from 'react';
 import type { AircraftRole } from '../ships/blueprint';
-import { FIGHTER_AMMO_BURSTS } from '../simulation/aircraft';
-import type { AirWingTelemetry, FlightSummary } from '../simulation/airTelemetry';
+import type { AirWingTelemetry, FlightSummary } from '../game/session/airTelemetry';
 import { duration, mission, roleIcon, roleLabel } from './airFormat';
 import { Icon } from './Icons';
 import './AirWingManifest.css';
+import { FIGHTER_AMMO_BURSTS } from '../game/airWing';
 
 export type WingAircraft = AirWingTelemetry['flights'][number];
 const ROLES: AircraftRole[] = ['fighter', 'dive-bomber', 'torpedo-bomber'];

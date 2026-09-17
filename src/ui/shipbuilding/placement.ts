@@ -1,7 +1,7 @@
 import type { ConstructionEquipment, ConstructionEquipmentPart, ConstructionPrimitive, ConstructionSource, ConstructionSurface, Vec3 } from '../../ships/blueprint';
 import { mirroredPrimitive } from '../../ships/constructionEditor';
 import { normalizedBearing, snapCoordinate } from './editorNumbers';
-import type { BuilderPlacement } from './primitiveGeometry';
+import type { BuilderPlacement } from './builderScene';
 import { CONSTRUCTION_SHAPES } from '../../ships/constructionShapes';
 import { customHullFaces, customHullPrimitive, makeHull } from '../../ships/customHullModel';
 import { CORNER_SIGNS, VERTEX_FACES } from '../../ships/constructionVertex';

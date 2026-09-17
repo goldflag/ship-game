@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test';
 import { mission } from './airFormat';
-import { airWingTelemetry } from '../simulation/airTelemetry';
+import { airWingTelemetry } from '../game/session/airTelemetry';
 import { CombatSimulation } from '../simulation/combat';
 import { shipPreset } from '../ships/presets';
 

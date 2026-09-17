@@ -2,8 +2,8 @@ import { expect, test } from 'bun:test';
 import { PerspectiveCamera, Vector3 } from 'three/webgpu';
 import { CameraRig } from './CameraRig';
 import { sightAim, torpedoCourseAim } from './aiming';
-import { createShipState } from '../simulation/ship';
-import { localToWorld, normalize, sub } from '../simulation/geometry';
+import { createShipState } from './session/motion';
+import { localToWorld, normalize, sub } from './geometry';
 import type { Vec3 } from '../ships/blueprint';
 import { shipPreset } from '../ships/presets';
 

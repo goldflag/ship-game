@@ -7,7 +7,6 @@ import type { PveRequest } from '../../multiplayer/generated/PveRequest';
 import { shipPresets } from '../../ships/presets';
 import { availableShipIds, isHistoricalShip, localShips, resolveShip, subscribeLocalShips } from '../../ships/localShips';
 import { useSyncExternalStore } from 'react';
-import type { BattleSetup } from '../../simulation/battle';
 import { Button } from '../components';
 import { Icon } from '../Icons';
 import { aircraftCount, unitName } from '../pveSetup';
@@ -20,6 +19,7 @@ import { duelBudget, type FleetTransfer } from './fleetTransfer';
 import { missionSeed, PveLanes, PveRail, pveBrief, pveInvalid } from './PveMode';
 import { ShipCatalog } from './ShipCatalog';
 import './BattleDialog.css';
+import type { BattleSetup } from '../../game/session/battleSetup';
 
 interface Props {
   initialMode: BattleMode; initialShipId: string; loading: boolean; onClose(): void;

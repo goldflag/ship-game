@@ -195,7 +195,7 @@ impl BotState {
         self.revise(&mut gun);
         self.guns.insert(mount.id.clone(), gun);
     }
-    pub fn update(
+    pub(crate) fn update(
         &mut self,
         actor: &Combatant,
         def: &ShipDefinition,
@@ -277,7 +277,7 @@ impl BotState {
     }
     /// PvE crews read only transmitted observations. No enemy Combatant or
     /// damage model is available in this path.
-    pub fn update_contact(
+    pub(crate) fn update_contact(
         &mut self,
         actor: &Combatant,
         def: &ShipDefinition,
@@ -362,7 +362,7 @@ impl BotState {
     }
 }
 /// Select the strongest operational surface mount in this battery.
-pub fn battery_mount(actor: &Vessel, secondary: bool) -> Option<&MountDefinition> {
+pub(crate) fn battery_mount(actor: &Vessel, secondary: bool) -> Option<&MountDefinition> {
     actor
         .definition()
         .mounts
@@ -378,7 +378,7 @@ pub fn battery_mount(actor: &Vessel, secondary: bool) -> Option<&MountDefinition
         .map(|(m, _)| m)
 }
 
-pub fn gun_range(m: &MountDefinition) -> f64 {
+pub(crate) fn gun_range(m: &MountDefinition) -> f64 {
     let caliber = m.weapon.caliber_m;
     if caliber >= 0.2 {
         18000.0
@@ -390,7 +390,7 @@ pub fn gun_range(m: &MountDefinition) -> f64 {
         1800.0
     }
 }
-pub fn ammunition(def: &ShipDefinition, mount: &MountDefinition, state: &MountState) -> Ammunition {
+pub(crate) fn ammunition(def: &ShipDefinition, mount: &MountDefinition, state: &MountState) -> Ammunition {
     let protection = def
         .armor
         .iter()
@@ -417,7 +417,7 @@ pub fn ammunition(def: &ShipDefinition, mount: &MountDefinition, state: &MountSt
         Ammunition::Ap
     }
 }
-pub fn damage_aware_aim_points(
+fn damage_aware_aim_points(
     actor: &Combatant,
     target: &Combatant,
     def: &ShipDefinition,
@@ -466,7 +466,7 @@ pub fn damage_aware_aim_points(
     options.sort_by(|a, b| b.1.total_cmp(&a.1).then_with(|| a.0[2].total_cmp(&b.0[2])));
     Some(options.into_iter().take(3).map(|o| o.0).collect())
 }
-pub fn torpedo_aim(bot: &BotState, motion: &ShipState, tube: &TubeDefinition) -> Option<Vec3> {
+pub(crate) fn torpedo_aim(bot: &BotState, motion: &ShipState, tube: &TubeDefinition) -> Option<Vec3> {
     let track = bot.track.as_ref()?;
     let point = add(
         [track.pose.x, 0.0, track.pose.z],
@@ -482,8 +482,10 @@ pub fn torpedo_aim(bot: &BotState, motion: &ShipState, tube: &TubeDefinition) ->
 fn distance(a: &Vessel, b: &Vessel) -> f64 {
     (a.motion.x - b.motion.x).hypot(a.motion.z - b.motion.z)
 }
-pub fn target(actor: &Vessel, actors: &[Vessel]) -> Option<usize> {
-    if actor.bot.as_ref().is_some_and(|b| b.ai_level.passive()) {
+/// Nearest opponent with 25% hysteresis on the previous target. `passive`
+/// is the crew's own level: a static or moving target ship engages nothing.
+pub(crate) fn target(actor: &Vessel, passive: bool, actors: &[Vessel]) -> Option<usize> {
+    if passive {
         return None;
     }
     let enemies: Vec<_> = actors
@@ -534,7 +536,7 @@ fn avoid_known_ships(actor: &Vessel, heading: f64, actors: &[Vessel], own_only: 
     }
     x.atan2(-z)
 }
-pub fn helm(
+pub(crate) fn helm(
     bot: &mut BotState,
     actor: &Vessel,
     target: Option<&Vessel>,
@@ -639,7 +641,7 @@ pub fn helm(
         ..Default::default()
     }
 }
-pub fn helm_contact(
+pub(crate) fn helm_contact(
     bot: &BotState,
     actor: &Vessel,
     contact: Option<&crate::sensors::ContactTrack>,
@@ -686,7 +688,7 @@ pub fn helm_contact(
         ..Default::default()
     }
 }
-pub fn aim(
+pub(crate) fn aim(
     bot: Option<&BotState>,
     motion: &ShipState,
     target: &Combatant,
@@ -705,7 +707,7 @@ pub fn aim(
         0.0,
     )
 }
-pub fn aim_contact(
+pub(crate) fn aim_contact(
     bot: Option<&BotState>,
     motion: &ShipState,
     target: &crate::sensors::ContactTrack,
@@ -805,14 +807,14 @@ fn aim_solution(
     state.lead_cache = Some(crate::weapons::LeadCache { time, point });
     add(point, scale(velocity, time))
 }
-pub fn clear_firing_lane(actor: &Vessel, target: &Vessel, actors: Fleet<'_>) -> bool {
+pub(crate) fn clear_firing_lane(actor: &Vessel, target: &Vessel, actors: Fleet<'_>) -> bool {
     clear_lane_to(
         actor,
         [target.motion.x, target.motion.y, target.motion.z],
         actors,
     )
 }
-pub fn clear_lane_to(actor: &Vessel, point: Vec3, actors: Fleet<'_>) -> bool {
+pub(crate) fn clear_lane_to(actor: &Vessel, point: Vec3, actors: Fleet<'_>) -> bool {
     let (dx, dz) = (point[0] - actor.motion.x, point[2] - actor.motion.z);
     let squared = dx * dx + dz * dz;
     if squared < 1.0 {
@@ -835,6 +837,6 @@ pub fn clear_lane_to(actor: &Vessel, point: Vec3, actors: Fleet<'_>) -> bool {
     })
 }
 
-pub fn reaction_scale(level: AiLevel) -> f64 {
+pub(crate) fn reaction_scale(level: AiLevel) -> f64 {
     skill(level).reaction
 }

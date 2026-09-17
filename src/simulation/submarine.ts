@@ -1,22 +1,14 @@
 import type { Handling, ShipDefinition } from '../ships/blueprint';
 import type { Combatant } from './damage';
-import { systemHealth } from './machinery';
-import { hullDepth } from './ship';
-import { clamp } from './geometry';
+import { systemHealth } from '../game/machinery';
+import { hullDepth } from '../game/session/motion';
+import { clamp } from '../game/geometry';
 
-export const DEPTH_STEP_M = 2;
+export { DEPTH_STEP_M } from '../game/session/motion';
 
-export interface SubmarineState {
-  targetDepthM: number;
-  ballastM3: number;
-  emergencyBlow: boolean;
-  /** Positive plane order dives; pitch is positive bow-up. */
-  planes: number;
-  trimPitch: number;
-  waveHeave?: number;
-  waveSpeed?: number;
-}
-export const createSubmarineState = (): SubmarineState => ({ targetDepthM: 0, ballastM3: 0, emergencyBlow: false, planes: 0, trimPitch: 0 });
+export type { SubmarineState } from '../game/session/elements';
+import type { SubmarineState } from '../game/session/elements';
+export const createSubmarineState = (): SubmarineState => ({ targetDepthM: 0, ballastM3: 0, emergencyBlow: false, planes: 0, trimPitch: 0, waveHeave: 0, waveSpeed: 0 });
 
 /** Commands are persistent, finite and bounded; a new depth order cancels a blow. */
 export function orderDepth(actor: Combatant, definition: ShipDefinition, depthM: number, emergency = false): void {

@@ -4,7 +4,7 @@ import type { FleetShip } from "./FleetShip";
 import type { FleetTotals } from "./FleetTotals";
 import type { TaskGroup } from "./TaskGroup";
 
-export type PveBriefing = { generationVersion: number,
+export type PveBriefing = { generationVersion: number, 
 /**
  * Owned ships only. This is presentation metadata, not a startable BattleSetup.
  */

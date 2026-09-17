@@ -3,7 +3,7 @@
  * after any hull geometry change; multiplayer:content refuses a stale table. */
 import { writeFile } from 'node:fs/promises';
 import { shipPresets } from '../../src/ships/presets';
-import { buildHydrostaticTable } from '../../src/simulation/hydrostaticTable';
+import { buildHydrostaticTable } from './hydrostaticTable';
 import type { ShipDefinition } from '../../src/ships/blueprint';
 const ships = Object.fromEntries(Object.entries(shipPresets).filter(([, definition]) => definition.hull.kind !== 'constructed-volume-v1').map(([id, definition]) => {
   const started = performance.now();

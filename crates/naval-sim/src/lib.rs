@@ -24,10 +24,6 @@ pub mod rules;
 
 pub mod ballistics;
 
-pub mod deck_contact;
-pub mod deck_navigation;
-pub mod deck_operations;
-pub mod flight_deck;
 pub mod floodwater;
 pub mod hull;
 pub mod hydro_table;
@@ -35,22 +31,7 @@ pub mod hydrostatics;
 
 pub mod environment;
 
-pub mod air_gunnery;
-pub mod air_operations;
-pub mod air_rules;
-pub mod aircraft;
-pub mod aircraft_accuracy;
-pub mod aircraft_deck;
-pub mod aircraft_flight;
-pub mod aircraft_performance;
-pub mod aircraft_formation;
-pub mod aircraft_defense;
-pub mod aircraft_recovery;
-pub mod aircraft_tactics;
-pub mod aircraft_strike;
-pub mod fighter_coordination;
 pub mod aviation;
-pub mod aviation_step;
 pub mod bots;
 pub mod breaches;
 pub mod burst;
@@ -79,23 +60,21 @@ pub mod capability;
 
 pub mod gunnery;
 
+pub mod admiral;
 pub mod battle;
+pub mod captain;
 pub mod mission;
 pub mod pve;
-mod pve_command;
 pub mod recon;
 pub mod sensors;
 
 pub mod records;
 
 pub mod frame_delta;
+pub mod frame_vocabulary;
 mod presentation;
 pub mod snapshot;
 mod team_view;
 pub const SIMULATION_BUILD: &str = env!("NAVAL_SIMULATION_BUILD");
-
-pub mod air_recovery;
-pub mod air_search;
-pub mod pve_air;
 
 pub mod runtime_encoding;

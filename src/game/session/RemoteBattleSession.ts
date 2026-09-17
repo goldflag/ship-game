@@ -5,19 +5,21 @@ import { localShip, isHistoricalShip, type LocalShipRevision } from '../../ships
 import { savedReference } from '../../ships/constructionCloud';
 import type { FleetReference } from '../../multiplayer/generated/FleetReference';
 import { assetUrl } from '../../assetUrl';
-import { expandSnapshot } from '../../multiplayer/snapshotDelta';
+import { decodeFrameUpdate } from './frameDelta';
 import version from '../../generated/naval-version.json';
 import { SnapshotSession, type Snapshot } from './SnapshotSession';
 import { readSnapshot } from './snapshotCodec';
 import type { BattleSetup } from '../../multiplayer/generated/BattleSetup';
 import type { TeamId } from '../../multiplayer/generated/TeamId';
 import type { Command } from '../../multiplayer/generated/Command';
-import type { CombatIntent } from '../../simulation/combat';
-import type { HelmCommand } from '../../simulation/ship';
 import type { TimeOfDayId, WeatherId } from '../../maps/conditions';
+import type { HelmCommand } from '../../game/session/elements';
+import type { CombatIntent } from './telemetry';
 export type JoinMode = 'queue' | 'create-invite' | 'join-invite';
 export interface MatchMetadata {
-  baseline: unknown;
+  /** The immutable match baseline: every update is a patch against it, so a
+   * slow connection may skip any of them. Normalized by the Rust codec. */
+  baseline: Snapshot;
   contentHash: string;
   type: 'matched'; matchId: string; player: number; team: TeamId; connectionEpoch: number;
   version: typeof version; setup: BattleSetup; environment: { timeOfDay: TimeOfDayId; weather: WeatherId };
@@ -110,6 +112,7 @@ export class MatchConnection {
             this.constructions=constructions;
           }
           if (!matchesVersion(message.version)) { this.fail('Game content changed. Reload before joining.'); return; }
+          readSnapshot(message.baseline);
           if (this.metadata && (this.metadata.matchId !== message.matchId || this.metadata.team !== message.team)) { this.fail('Battle identity changed.'); return; }
           this.metadata = message; this.disconnectedAt = undefined;
           if (this.session) this.session.reconnected(message);
@@ -130,7 +133,7 @@ export class MatchConnection {
         const message = JSON.parse(json);
         if (message.type === 'matched') { await this.acceptMetadata(message); continue; }
         if (!this.metadata) throw new Error('Snapshot arrived before battle metadata.');
-        const frame = readSnapshot(expandSnapshot(this.metadata.baseline, message));
+        const frame = decodeFrameUpdate(this.metadata.baseline, message);
         if (!this.session) await loadShipPresets(this.metadata.setup.ships.map(s => s.presetId));
         if (generation !== this.generation || this.stopped) break;
         if (!this.session) { this.session = new RemoteBattleSession(this.metadata, this, frame, this.constructions); this.resolve(this.session); }

@@ -3,7 +3,8 @@ import { controls, mountShipbuilderReview } from './shipbuilder-browser';
 
 type ReviewViewport = { props: ViewportProps };
 const viewport = () => window.shipbuilderViewport as unknown as ReviewViewport;
-const selected = () => [...viewport().props.selected];
+/** The viewport reads its scene description from the builder tool; the check reads the same. */
+const selected = () => [...viewport().props.scene.selected];
 const assert = (condition: unknown, label: string) => { if (!condition) throw new Error(label); };
 
 /** Real editor selections must not activate or mutate the hull/fittings in Internals. */
@@ -19,40 +20,40 @@ export async function checkInternalsSelection() {
   await controls.tool('Select');
   const ids = new Set(['engine', 'gun-forward', 'forward-bulkhead', 'aft-bulkhead']);
   assert(selected().every(id => ids.has(id)), 'Layer switch retained external selections');
-  const original = structuredClone(viewport().props.source.construction);
+  const original = structuredClone(viewport().props.scene.source.construction);
   const checks = ['entering Internals discards hull and external fitting selections'];
   controls.key('a', { ctrlKey: true });
   await controls.settled(() => selected().length === ids.size, 'internal select-all');
   assert(selected().every(id => ids.has(id)), 'Select-all activated external components');
   checks.push('select-all includes internal packages, weapon-owned ammunition and room boundaries');
   controls.key('ArrowRight');
-  await controls.settled(() => viewport().props.source.construction.equipment.find(p => p.id === 'engine')!.position[0] !== original.equipment.find(p => p.id === 'engine')!.position[0], 'internal nudge');
-  const current = viewport().props.source.construction;
+  await controls.settled(() => viewport().props.scene.source.construction.equipment.find(p => p.id === 'engine')!.position[0] !== original.equipment.find(p => p.id === 'engine')!.position[0], 'internal nudge');
+  const current = viewport().props.scene.source.construction;
   assert(JSON.stringify(current.primitives) === JSON.stringify(original.primitives), 'Nudge moved the hull');
   assert(JSON.stringify(current.equipment.filter(p => !ids.has(p.id))) === JSON.stringify(original.equipment.filter(p => !ids.has(p.id))), 'Nudge moved fittings');
   checks.push('moving the internal selection preserves every hull block and external fitting');
   controls.key('z', { ctrlKey: true });
-  await controls.settled(() => JSON.stringify(viewport().props.source.construction) === JSON.stringify(original), 'undo internal move');
+  await controls.settled(() => JSON.stringify(viewport().props.scene.source.construction) === JSON.stringify(original), 'undo internal move');
   controls.key('Escape');
   await controls.settled(() => !selected().length, 'clear selection');
   // Disable the cut so even fully visible external components must remain unselectable.
   controls.key('s');
-  await controls.settled(() => viewport().props.slice === undefined, 'slice off');
+  await controls.settled(() => viewport().props.scene.slice === undefined, 'slice off');
   for (const point of [[3.5, 2.5, -22], [0, 5, 5]] as [number, number, number][]) {
     controls.click(...await controls.screen(point));
     await controls.settled(() => true, 'pick visible exterior');
     assert(selected().every(id => ids.has(id)), 'Exterior click activated a hull block or fitting');
     controls.click(...await controls.screen(point), { button: 2 });
     await controls.settled(() => true, 'right-click visible exterior');
-    assert(JSON.stringify(viewport().props.source.construction.primitives) === JSON.stringify(original.primitives), 'Right-click erased hull');
-    assert(JSON.stringify(viewport().props.source.construction.equipment.filter(p => !ids.has(p.id))) === JSON.stringify(original.equipment.filter(p => !ids.has(p.id))), 'Right-click erased external fittings');
+    assert(JSON.stringify(viewport().props.scene.source.construction.primitives) === JSON.stringify(original.primitives), 'Right-click erased hull');
+    assert(JSON.stringify(viewport().props.scene.source.construction.equipment.filter(p => !ids.has(p.id))) === JSON.stringify(original.equipment.filter(p => !ids.has(p.id))), 'Right-click erased external fittings');
   }
   checks.push('visible hull and fittings cannot be activated or erased with slice off');
   controls.key('Escape'); controls.key('q');
-  await controls.settled(() => viewport().props.view === 'top', 'top view');
+  await controls.settled(() => viewport().props.scene.view === 'top', 'top view');
   // In top view the ray goes through the external funnel and hull to the engine.
-  const engine = viewport().props.source.construction.equipment.find(item => item.id === 'engine')!;
-  const part = viewport().props.catalog.equipment.find(part => part.id === engine.partId)!;
+  const engine = viewport().props.scene.source.construction.equipment.find(item => item.id === 'engine')!;
+  const part = viewport().props.scene.catalog.equipment.find(part => part.id === engine.partId)!;
   const center = engine.position.map((n, k) => n + part.boundsCenter[k]) as [number, number, number];
   const from = await controls.screen(center), to = await controls.screen([center[0] + 1, center[1], center[2]]);
   controls.click(...from);
@@ -62,9 +63,9 @@ export async function checkInternalsSelection() {
   canvas.dispatchEvent(new PointerEvent('pointerdown', { ...pointer, clientX: from[0], clientY: from[1] }));
   canvas.dispatchEvent(new PointerEvent('pointermove', { ...pointer, clientX: to[0], clientY: to[1] }));
   canvas.dispatchEvent(new PointerEvent('pointerup', { ...pointer, buttons: 0, clientX: to[0], clientY: to[1] }));
-  await controls.settled(() => viewport().props.source.construction.equipment.find(item => item.id === 'engine')!.position[0] !== engine.position[0], 'drag engine through hull');
-  assert(JSON.stringify(viewport().props.source.construction.primitives) === JSON.stringify(original.primitives), 'Internal drag moved hull');
-  assert(JSON.stringify(viewport().props.source.construction.equipment.filter(p => !ids.has(p.id))) === JSON.stringify(original.equipment.filter(p => !ids.has(p.id))), 'Internal drag moved fittings');
+  await controls.settled(() => viewport().props.scene.source.construction.equipment.find(item => item.id === 'engine')!.position[0] !== engine.position[0], 'drag engine through hull');
+  assert(JSON.stringify(viewport().props.scene.source.construction.primitives) === JSON.stringify(original.primitives), 'Internal drag moved hull');
+  assert(JSON.stringify(viewport().props.scene.source.construction.equipment.filter(p => !ids.has(p.id))) === JSON.stringify(original.equipment.filter(p => !ids.has(p.id))), 'Internal drag moved fittings');
   checks.push('click and drag reach the engine through the hull and external funnel');
 
   return { passed: checks.length, checks };

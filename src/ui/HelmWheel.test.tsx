@@ -5,7 +5,7 @@ import { defaultKeybindings } from '../game/keybindings';
 import { shipPreset } from '../ships/presets';
 import { CombatSimulation } from '../simulation/combat';
 import type { Telemetry } from '../game/types';
-import type { CombatTelemetry } from '../simulation/combat';
+import type { CombatTelemetry } from '../game/session/telemetry';
 
 type Contact = CombatTelemetry['contacts'][number];
 const contact = (over: Partial<Contact>): Contact => ({ id: 'friendly-1', shipId: 'fletcher', name: 'Fletcher', team: 'friendly', controller: 'bot', x: 0, z: 0, heading: 0, speed: 15, integrity: 1, sunk: false, status: 'operational', combatLost: false, physicalLost: false, ...over });
@@ -55,7 +55,7 @@ test('ships stacked on one bearing are nudged apart so both names stay readable'
 });
 
 test('the wheel renders the fleet with hull, speed and range, highlights the pick and explains the hold gesture', () => {
-  const render = (data: Telemetry) => renderToStaticMarkup(<HelmWheel data={data} game={{} as never} bindings={defaultKeybindings()}/>);
+  const render = (data: Telemetry) => renderToStaticMarkup(<HelmWheel data={data} desk={{} as never} bindings={defaultKeybindings()}/>);
   const held = render(telemetry({ helmWheel: { reason: 'held', highlightId: 'friendly-2' } }));
   expect(held).toContain('Choose a ship to command');
   expect(held).toContain('<b>Bismarck</b>');

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { FlightLine, type FlightLineCarrier, type FlightLineFlight } from '../../src/ui/FlightLine';
 import type { Aircraft } from '../../src/simulation/aircraft';
-import type { AirWingTelemetry, FlightSummary } from '../../src/simulation/airTelemetry';
+import type { AirWingTelemetry, FlightSummary } from '../../src/game/session/airTelemetry';
 import '../../src/ui/styles.css';
 import '@fontsource/barlow/latin-400.css';
 import '@fontsource/barlow-condensed/latin-500.css';

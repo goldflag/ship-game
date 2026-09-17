@@ -187,7 +187,7 @@ impl ShipIndex {
 /// Built once when trusted content loads, then shared by every vessel and match.
 #[derive(Clone, Debug)]
 pub struct CompiledShip {
-    pub deck_surface: Option<crate::deck_contact::DeckSurface>,
+    pub deck_surface: Option<crate::aviation::DeckSurface>,
     pub collision_profile: Vec<[f64; 2]>,
     pub torpedo_hull: Vec<crate::structure::StructuralSurface>,
     pub definition: Arc<ShipDefinition>,
@@ -208,7 +208,7 @@ impl CompiledShip {
         hydrostatics: Option<&HydrostaticTable>,
     ) -> Result<Self, String> {
         let d = &definition;
-        let deck_surface = crate::deck_contact::DeckSurface::new(d);
+        let deck_surface = crate::aviation::DeckSurface::new(d);
         if d.air_wing
             .as_ref()
             .is_some_and(|wing| wing.deck_layout.is_some())
@@ -264,8 +264,9 @@ impl CompiledShip {
         })
     }
 }
-#[derive(Clone, Debug, serde::Serialize)]
+#[derive(Clone, Debug, serde::Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(optional_fields)]
 pub struct Vessel {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub navigation: Option<crate::navigation::NavigationState>,
@@ -273,6 +274,9 @@ pub struct Vessel {
     pub tube_launch_cooldown: f64,
     pub depth_charge_cooldown: f64,
     pub controller: Controller,
+    /// Published as the hull's AI level alone; tracking, targeting caches and
+    /// RNG stay private (see `presentation::Mode::field`).
+    #[ts(rename = "aiLevel", as = "Option<crate::bots::AiLevel>")]
     pub bot: Option<crate::bots::BotState>,
     #[serde(skip)]
     pub firing_visibility_seconds: f64,

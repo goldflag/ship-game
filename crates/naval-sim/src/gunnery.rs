@@ -255,9 +255,7 @@ pub fn operate_observed(
             let in_range = (c.estimated_position[0] - actor.motion.x)
                 .hypot(c.estimated_position[2] - actor.motion.z)
                 <= bots::gun_range(m);
-            if in_range
-                && state.hp > 0.0
-                && state.available(state.loaded) >= m.weapon.barrel_count
+            if in_range && state.hp > 0.0 && state.available(state.loaded) >= m.weapon.barrel_count
             {
                 aim = Some(bots::aim_contact(bot, &actor.motion, c, m, &mut state));
             }
@@ -268,9 +266,7 @@ pub fn operate_observed(
             state.select_ammunition(m, bots::ammunition(t.definition(), m, &state));
             let in_range = (t.motion.x - actor.motion.x).hypot(t.motion.z - actor.motion.z)
                 <= bots::gun_range(m);
-            if in_range
-                && state.hp > 0.0
-                && state.available(state.loaded) >= m.weapon.barrel_count
+            if in_range && state.hp > 0.0 && state.available(state.loaded) >= m.weapon.barrel_count
             {
                 aim = Some(bots::aim(
                     bot,

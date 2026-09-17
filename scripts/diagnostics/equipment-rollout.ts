@@ -6,7 +6,7 @@ import { shipPresets } from '../../src/ships/presets';
 import { CombatSimulation } from '../../src/simulation/combat';
 import { updateAntiAircraft } from '../../src/simulation/antiAircraft';
 import type { AirContext } from '../../src/simulation/aircraft';
-import { equipmentCondition } from '../../src/simulation/machinery';
+import { equipmentCondition } from '../../src/game/machinery';
 const baseline=process.argv[2];
 if(!baseline || !/^[a-f0-9]{7,40}$/.test(baseline)) throw new Error('Supply the baseline commit hash.');
 const catalog=JSON.parse(await readFile('assets/parts/guns.json','utf8'));

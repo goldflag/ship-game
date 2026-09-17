@@ -1,19 +1,18 @@
 import { controlEligibility } from './controlEligibility';
 import type { DeckPolicy } from '../multiplayer/generated/DeckPolicy';
-import { physicalLoss } from '../simulation/battleRules';
+import { physicalLoss } from './session/battleRules';
 import { ArticulationResolver } from './articulationPreview';
 import { PveDraft } from './session/PveDraft';
 import type { Formation } from '../multiplayer/generated/Formation';
 import type { Placement } from '../multiplayer/generated/Placement';
 import { weaponGroups, selectedWeapon } from '../ships/weaponGroups';
-import { hullDepth } from '../simulation/ship';
+import { hullDepth } from './session/motion';
 import { assetUrl } from '../assetUrl';
 import { BattlefieldCamera } from './BattlefieldCamera';
-import { airWingTelemetry } from '../simulation/airTelemetry';
+import { airWingTelemetry } from './session/airTelemetry';
 import { projectShipLabel } from './ShipLabels';
 import { projectAirMapPath } from './AirMapProjection';
 import { projectAirMapPolygon } from './AirMapPolygon';
-import { squadronFlights, airborne, onFlightDeck, type AirOrder } from '../simulation/aircraft';
 import { reportName, reportPosition } from '../ui/reconReports';
 import { aircraftFollowView } from './AircraftFollow';
 import { AircraftView } from './AircraftView';
@@ -22,7 +21,6 @@ import { createBattleLandscape, disposeBattleLandscape } from './BattleLandscape
 import { VisualEnvironment } from './VisualEnvironment';
 import { WaterViewFocus } from './WaterViewFocus';
 import { updateWaterShadows } from './WaterShadows';
-import type { ControlPriority } from '../simulation/damageControl';
 import * as THREE from 'three/webgpu';
 import { Fn, float, max, mix, pass, renderOutput, rtt, vec4 } from 'three/tsl';
 import { fxaa } from 'three/addons/tsl/display/FXAANode.js';
@@ -44,8 +42,6 @@ import { SkySystem, PRESETS as SKY_PRESETS } from '../../vendor/threejs-sky-pro/
 import { RemoteBattleSession } from './session/RemoteBattleSession';
 import { LocalBattleSession } from './session/LocalBattleSession';
 import type { BattleSession, DeckServiceAction } from './session/BattleSession';
-import { CombatSimulation } from '../simulation/combat';
-import { availableAmmunition } from '../simulation/weapons';
 import { ShipView } from './ShipView';
 import { ObservedShipViews } from './ObservedShipViews';
 import { FleetVisibility } from './FleetVisibility';
@@ -55,8 +51,7 @@ import { ShipLabels, type ObservedLabelReport } from './ShipLabels';
 import { HitLabels } from './HitLabels';
 import { TorpedoPreview } from './TorpedoPreview';
 import { HullDamageFeedback } from './HullDamageFeedback';
-import { ENGINE_ORDERS, FIXED_DT } from '../simulation/ship';
-import { DEPTH_STEP_M, orderDepth } from '../simulation/submarine';
+import { ENGINE_ORDERS, FIXED_DT } from './session/motion';
 import { GunAimIndicators } from './GunAimIndicators';
 import { HitDirectionIndicators } from './HitDirectionIndicators';
 import { disposeObjects, disposeObjectsExcept } from './disposeObjects';
@@ -70,7 +65,6 @@ import { selectedShip, shipPreset, loadShipPresets } from '../ships/presets';
 import { availableShipIds, freezeLocalFleet, isHistoricalShip, localShip, resolveShip, type LocalShipRevision, type IdentifiedShip } from '../ships/localShips';
 import { createConstructionModel } from './constructionModel';
 import type { TrialAction } from './session/localConstruction';
-import { resolveBattleFleet, validateBattleSetup, type BattleSetup, type FleetActor } from '../simulation/battle';
 import { InputController } from './InputController';
 import { CameraRig } from './CameraRig';
 import { ShellFollow, type ShellView } from './ShellFollow';
@@ -80,6 +74,13 @@ import { ShipWake } from './ShipWake';
 import type { WakeShip } from './FleetWakeFoam';
 import { ShipFunnelSmoke } from './ShipFunnelSmoke';
 import type { GameCallbacks, HelmWheelState, PerformanceReadout } from './types';
+import type { AirOrder } from '../multiplayer/generated/AirOrder';
+import type { ControlPriority } from '../multiplayer/generated/ControlPriority';
+import type { FleetActor } from '../game/session/elements';
+import { validateBattleSetup, type BattleSetup } from './session/battleSetup';
+import { squadronFlights, airborne, onFlightDeck } from './airWing';
+import { availableAmmunition } from './mountGeometry';
+import { DEPTH_STEP_M } from './session/motion';
 
 export const BUOYS = [
   { x: -160, z: -800, color: '#b84734' }, { x: 160, z: -800, color: '#42a789' },
@@ -113,7 +114,8 @@ const HARBOR_BACKDROP = false;
 export class Game {
   definition: typeof selectedShip;
   private portDefinition = selectedShip;
-  simulation: BattleSession;
+  /** The port's session until the first sortie; set by `initialize`. */
+  simulation!: BattleSession;
   fleetWaypointShipId?: string;
   readonly input: InputController;
   private renderer: THREE.WebGPURenderer;
@@ -150,7 +152,7 @@ export class Game {
   private shipLabels: ShipLabels;
   private hitLabels: HitLabels;
   private torpedoPreview = new TorpedoPreview();
-  private playerDamageFeedback: HullDamageFeedback;
+  private playerDamageFeedback!: HullDamageFeedback;
   private damageFeedbackShipId?: string;
   private gunAim: GunAimIndicators;
   private hitDirections: HitDirectionIndicators;
@@ -261,10 +263,10 @@ export class Game {
   private initialization?: Promise<void>;
   private frameTask?: Promise<void>;
   private frameWaiters: (() => void)[] = [];
-  private articulationOriginal?: CombatSimulation['player']['mounts'];
+  private articulationOriginal?: FleetActor['mounts'];
   private articulationRequest = 0;
   private articulationResolver?: ArticulationResolver;
-  private articulationLaunchers?: CombatSimulation['player']['torpedoLaunchers'];
+  private articulationLaunchers?: FleetActor['torpedoLaunchers'];
 
   private settings: GraphicsSettings;
   /** Ocean tier and terrain density this scene was built with; every other row applies live. */
@@ -280,8 +282,6 @@ export class Game {
     this.applyDetailSettings();
     this.definition = definition;
     this.battery = definition.torpedoTubes?.length ? 'torpedo' : 'main';
-    this.simulation = new CombatSimulation(definition);
-    this.playerDamageFeedback = new HullDamageFeedback(this.simulation.player.damage.integrity);
     this.aimModule = definition.modules.find(m => m.kind === 'engine')?.id ?? '';
     // Centimeter-scale fittings must remain distinct at 20 km, even with the
     // close near plane needed by bridge and shell-follow views. The scene pass
@@ -355,14 +355,17 @@ export class Game {
     }
     configureRenderOrder(this.renderer);
     this.assertActive();
-    this.rig.update(this.simulation.ship, 0, 0, true);
     this.callbacks.progress(`Loading ${this.definition.name}`, 0.2);
+    // The port session compiles the hull in its worker while the model loads.
     // Through the same cache the fleets use, so the first sortie does not fetch and rebuild
     // the hull the player has been looking at in port.
-    const model = await this.hull(this.definition);
-    await prepareShipDetail(model);
+    const [simulation, model] = await Promise.all([this.portSession(this.definition), this.hull(this.definition).then(async model => { await prepareShipDetail(model); return model; })]);
+    if (this.disposed) { simulation.dispose(); this.assertActive(); }
+    this.simulation = simulation;
+    this.playerDamageFeedback = new HullDamageFeedback(simulation.player.damage.integrity);
+    if (this.deferredPort !== undefined) { const inPort = this.deferredPort; this.deferredPort = undefined; this.setInPort(inPort); }
+    this.rig.update(this.simulation.ship, 0, 0, true);
     this.loadedModel = model;
-    this.assertActive();
     this.playerView = new ShipView(model.clone(true), this.definition, this.simulation.player, this.renderer.reversedDepthBuffer);
     this.targetView = this.simulation.target ? new ShipView(model.clone(true), this.definition, this.simulation.target, this.renderer.reversedDepthBuffer) : undefined;
     this.fleetViews = [this.playerView, ...(this.targetView ? [this.targetView] : [])];
@@ -551,7 +554,7 @@ export class Game {
     if (definition.id === this.definition.id && definition.contentHash === this.definition.contentHash) return;
     this.switchingShip = true;
     try {
-      const simulation = new CombatSimulation(definition);
+      const simulation = await this.portSession(definition);
       Object.assign(simulation.ship, this.simulation.ship);
       await this.replaceFleet(simulation, definition);
       this.portDefinition = definition;
@@ -658,8 +661,13 @@ export class Game {
     // replaceFleet requires a port scene, but must not reset the live authority.
     this.inPort = true;
     const definition = this.definition.id.startsWith('local-') ? this.portDefinition : this.definition;
-    try { await this.replaceFleet(new CombatSimulation(definition), definition); this.setInPort(true); }
+    try { await this.replaceFleet(await this.portSession(definition), definition); this.setInPort(true); }
     catch (error) { this.inPort = false; throw error; }
+  }
+
+  /** The port's session for `definition`: the Rust authority holding one hull, never stepped. */
+  private portSession(definition: typeof selectedShip): Promise<LocalBattleSession> {
+    return LocalBattleSession.port(definition, localShip(definition.id));
   }
 
   private syncControlledShip(): void {
@@ -1390,7 +1398,8 @@ export class Game {
     return controlEligibility({
       paused: !!this.paused, tacticalPause: !!this.tacticalPause, inPort: !!this.inPort,
       waterReady: !!this.water, fleetCommand: !!this.fleetCommandMode,
-      hasHelm: !!this.simulation.controlledShipId, sunk: this.simulation.player.damage.sunk,
+      // Before the port session arrives there is no helm and nothing has sunk.
+      hasHelm: !!this.simulation?.controlledShipId, sunk: !!this.simulation?.player.damage.sunk,
       chartOpen: !!this.airOperationsOpen, chartTransitioning: !!this.battlefieldCamera?.transitioning,
       inspecting: !!this.inspecting, shellFollow: !!this.shellFollow?.view, aircraftFollow: !!this.followedAircraftId,
     }, inputSuspended);
@@ -1533,8 +1542,7 @@ export class Game {
   recallAircraft(flightId?: string): void { if (!this.inPort && !this.paused) this.simulation.recallAircraft(flightId); }
   setDepth(depthM: number, emergency = false): void {
     if (this.inPort || this.paused || this.simulation.player.damage.sunk) return;
-    if (this.simulation.setDepth) this.simulation.setDepth(depthM, emergency);
-    else orderDepth(this.simulation.player, this.definition, depthM, emergency);
+    this.simulation.setDepth?.(depthM, emergency);
   }
   /** 1× → 2× → 4× → 1×. The session refuses the change outside an active PvE battle. */
   cycleSimulationSpeed(): void {
@@ -1575,7 +1583,10 @@ export class Game {
     const tube = this.definition.torpedoTubes?.find(t => selectedWeapon('torpedo', t.weapon, this.battery, this.weaponGroupId));
     return this.battery === 'torpedo' && tube && this.camera.position.y < 0 ? torpedoCourseAim(aim, this.simulation.ship, tube.weapon.rangeM) : aim;
   }
+  /** A port request made before the port session arrived; applied by `initialize`. */
+  private deferredPort?: boolean;
   setInPort(inPort: boolean): void {
+    if (!this.simulation) { this.deferredPort = inPort; return; }
     this.inspectionHover?.clear();
     // Cancel pending previews even when their first result has not arrived yet.
     this.restoreArticulation();
@@ -1761,16 +1772,8 @@ export class Game {
       renderedAircraft: this.aircraftView.diagnostics(),
       aircraft: this.simulation.aircraft.map(p => ({ ...p, position: [...p.position] })),
       airReleases: this.simulation.airReleases.map(p => ({ ...p })),
-      torpedoes: this.simulation.torpedoes.map(t => ({ id: t.id, ownerId: t.ownerId, tubeId: t.tubeId, position: [...t.position], distance: t.distance, armed: t.distance >= t.weapon.armingDistanceM })),
+      torpedoes: this.simulation.torpedoes.map(t => ({ id: t.id, ownerId: t.ownerId, tubeId: t.tubeId, position: [...t.position], distance: t.distance, armed: t.distance >= (t.weapon.armingDistanceM ?? 0) })),
       events: this.simulation.events.slice(-20) };
-  }
-  /** Bounded fixed-tick rehearsal for development review on slow render hosts. */
-  previewAdvance(seconds: number): void {
-    if (!import.meta.env.DEV || this.inPort || this.paused || this.tacticalPause || !Number.isFinite(seconds) || seconds <= 0 || seconds > 120) return;
-    for (let i = 0; i < Math.floor(seconds / FIXED_DT); i++) {
-      this.simulation.step(this.input.sample(), { aim: this.currentAim, fire: false, battery: this.battery, weaponGroupId: this.weaponGroupId, ammunition: this.selectedAmmunition });
-    }
-    this.fleetViews.forEach(view => view.snap());
   }
   private projectAim(aim: Vec3): { x: number; y: number; visible: boolean } {
     const point = new THREE.Vector3(...aim).project(this.camera);

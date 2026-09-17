@@ -1,7 +1,7 @@
 import type { Vec3 } from '../ships/blueprint';
 import type { Aircraft } from './aircraft';
 import type { FleetActor } from './battle';
-import { add, clamp, dot, length, normalize, scale, sub } from './geometry';
+import { add, clamp, dot, length, normalize, scale, sub } from '../game/geometry';
 import { flyAircraft } from './aircraftFlight';
 
 export interface AirPilot {

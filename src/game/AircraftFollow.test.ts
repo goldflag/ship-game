@@ -2,12 +2,12 @@ import { expect, test } from 'bun:test';
 import { aircraftFollowView } from './AircraftFollow';
 import { CombatSimulation } from '../simulation/combat';
 import { shipPreset } from '../ships/presets';
-import { aircraftDeckSpot } from '../simulation/aircraft';
-import { localToWorld, rotate } from '../simulation/geometry';
+import { localToWorld, rotate } from './geometry';
 import { Euler, Quaternion } from 'three/webgpu';
-import { aircraftGroundPose } from '../simulation/aircraftGroundPose';
+import { aircraftGroundPose } from './aircraftGroundPose';
 import { Game } from './Game';
 import { ShellFollow } from './ShellFollow';
+import { aircraftDeckSpot } from './airWing';
 
 test('aircraft camera samples airborne interpolation and follows deck poses without changing simulation', () => {
   const sim = new CombatSimulation(shipPreset('enterprise-cv6'));

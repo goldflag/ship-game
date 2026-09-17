@@ -1,6 +1,5 @@
 use naval_sim::{
-    aircraft::{AirOrder, Aircraft},
-    aviation_step::AirContext,
+    aviation::{AirContext, AirOrder, Aircraft},
     battle::{Battle, BattleSetup},
     catalog::Catalog,
     rules::TeamId,
@@ -433,17 +432,17 @@ fn firing_at_a_recent_aircraft_report_does_not_damage_its_empty_marker_or_overwr
     );
 }
 
-fn search_order(policy: naval_sim::aircraft::SearchPolicy) -> AirOrder {
+fn search_order(policy: naval_sim::aviation::SearchPolicy) -> AirOrder {
     AirOrder::SearchArea {
         center: [0.0, -5000.0],
         radius_m: 2000.0,
-        altitude: naval_sim::aircraft::SearchAltitude::Medium,
+        altitude: naval_sim::aviation::SearchAltitude::Medium,
         policy,
     }
 }
 #[test]
 fn finite_search_flies_the_sweep_and_returns_with_payload_instead_of_orbiting_forever() {
-    use naval_sim::aircraft::SearchPolicy;
+    use naval_sim::aviation::SearchPolicy;
     let mut b = battle();
     let flight = launch(&mut b, "own", "dive-bomber", [0.0, 850.0, -3500.0]);
     assert!(b.command_air("own", &flight, search_order(SearchPolicy::Report)));
@@ -495,7 +494,7 @@ fn finite_search_flies_the_sweep_and_returns_with_payload_instead_of_orbiting_fo
 }
 #[test]
 fn search_policy_preserves_scout_weapons_and_requires_local_sighting_for_opportunistic_strikes() {
-    use naval_sim::aircraft::SearchPolicy;
+    use naval_sim::aviation::SearchPolicy;
     for policy in [
         SearchPolicy::Report,
         SearchPolicy::Shadow,
@@ -539,7 +538,7 @@ fn search_policy_preserves_scout_weapons_and_requires_local_sighting_for_opportu
 }
 #[test]
 fn search_bounds_and_role_validation_are_atomic_and_scouts_withdraw_from_local_air_threats() {
-    use naval_sim::aircraft::{SearchAltitude, SearchPolicy};
+    use naval_sim::aviation::{SearchAltitude, SearchPolicy};
     let mut b = battle();
     let fighter = launch(&mut b, "own", "fighter", [0.0, 850.0, -3500.0]);
     assert!(!b.command_air("own", &fighter, search_order(SearchPolicy::Strike)));
@@ -693,7 +692,7 @@ fn bomber_evasion_requires_local_observation_or_actual_nearby_fire() {
         .unwrap()
         .id
         .clone();
-    naval_sim::aircraft_defense::near_fire(
+    naval_sim::aviation::near_fire(
         hidden.aviation.plane_mut(&id).unwrap(),
         [0.0, 850.0, -2800.0],
     );
@@ -710,51 +709,4 @@ fn bomber_evasion_requires_local_observation_or_actual_nearby_fire() {
             .maneuver_seconds
             > 0.0
     );
-}
-
-#[test]
-fn owned_flights_publish_activity_without_private_pilot_state() {
-    let mut b = battle();
-    let flight = launch(&mut b, "own", "dive-bomber", [0.0, 850.0, -3500.0]);
-    let p = b
-        .aviation
-        .wing_mut("own")
-        .unwrap()
-        .planes
-        .iter_mut()
-        .find(|p| p.flight_id.as_ref() == Some(&flight))
-        .unwrap();
-    p.pilot.recovery = Some(naval_sim::aircraft_recovery::RecoveryProgress {
-        notice: Some("Carrier turning too sharply · Steady the course to recover aircraft".into()),
-        ..Default::default()
-    });
-    p.pilot.defense = Some(naval_sim::aircraft_defense::DefenseState {
-        notice: Some("Evading fighter".into()),
-        maneuver_seconds: 4.0,
-        ..Default::default()
-    });
-    let id = p.id.clone();
-    for frame in [
-        b.presentation_value(PresentationView::FullKnowledge)
-            .unwrap(),
-        b.presentation_value(PresentationView::Team(TeamId::A))
-            .unwrap(),
-        serde_json::to_value(b.presentation_snapshot()).unwrap(),
-    ] {
-        let p = frame["wings"][0]["state"]["planes"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .find(|p| p["id"] == id)
-            .unwrap();
-        assert!(p.get("pilot").is_none());
-        assert_eq!(p["behavior"]["evasionNotice"], "Evading fighter");
-        assert!(
-            p["behavior"]["recoveryNotice"]
-                .as_str()
-                .unwrap()
-                .contains("Steady the course")
-        );
-        assert_eq!(p["behavior"].as_object().unwrap().len(), 2);
-    }
 }

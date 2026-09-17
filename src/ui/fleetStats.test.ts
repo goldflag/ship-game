@@ -2,7 +2,7 @@ import { expect, test } from 'bun:test';
 import { airClusters, battleComparison, markerOpacity, observedAircraftType } from './fleetStats';
 import type { ContactTrack } from '../multiplayer/generated/ContactTrack';
 
-const track = (over: Partial<ContactTrack>): ContactTrack => ({ id: 'c', kind: 'surface', affiliation: 'hostile', status: 'tracked', firstObservedTick: 0, lastObservedTick: 100, measuredPosition: over.estimatedPosition ?? [0, 0, 0], estimatedPosition: [0, 0, 0], velocity: [0, 0, 0], uncertaintyM: 20, identificationConfidence: 1, classification: null, identifiedPresetId: null, sources: [], ...over });
+const track = (over: Partial<ContactTrack>): ContactTrack => ({ id: 'c', kind: 'surface', affiliation: 'hostile', status: 'tracked', firstObservedTick: 0, lastObservedTick: 100, measuredPosition: over.estimatedPosition ?? [0, 0, 0], estimatedPosition: [0, 0, 0], velocity: [0, 0, 0], uncertaintyM: 20, identificationConfidence: 1, classification: undefined, identifiedPresetId: undefined, sources: [], ...over });
 
 test('reported aircraft flying together become one typed group and keep their markers', () => {
   const tracks = [
@@ -54,7 +54,7 @@ test('ship markers fade out as the hull grows on screen', () => {
 
 test('an unclassified aircraft report takes its type and model from a recognised exterior', async () => {
   const { reportedAircraftType } = await import('./fleetStats');
-  const report = track({ id: 'a9', kind: 'aircraft', classification: null });
+  const report = track({ id: 'a9', kind: 'aircraft', classification: undefined });
   expect(reportedAircraftType(report, [{ id: 'a9', modelId: 'b5n2-kate' }])).toEqual({ type: 'torpedo-bomber', model: 'B5N2 Kate' });
   expect(reportedAircraftType(track({ id: 'a9', kind: 'aircraft', classification: 'Fighter' }), [{ id: 'a9', modelId: 'b5n2-kate' }])).toEqual({ type: 'fighter', model: 'B5N2 Kate' });
   expect(reportedAircraftType(report)).toEqual({ type: 'unknown', model: undefined });
