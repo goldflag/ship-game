@@ -1,6 +1,6 @@
 import type { ConstructionEquipment, ConstructionEquipmentPart, ConstructionPrimitive, ConstructionSource, ConstructionSurface, Vec3 } from '../../ships/blueprint';
 import { mirroredPrimitive } from '../../ships/constructionEditor';
-import { normalizedBearing, snapCoordinate } from './editorNumbers';
+import { normalizedBearing, gridCoordinate } from './editorNumbers';
 import type { BuilderPlacement } from './builderScene';
 import { CONSTRUCTION_SHAPES } from '../../ships/constructionShapes';
 import { customHullFaces, customHullPrimitive, makeHull } from '../../ships/customHullModel';
@@ -67,18 +67,18 @@ export function attachmentOffset(part: Pick<ConstructionEquipmentPart, 'sockets'
 }
 
 /** Where the piece's datum goes so that it rests on the hit face. */
-export function placementCenter(piece: BuilderPlacement, hit: PlacementHit, step: number): Vec3 {
+export function placementCenter(piece: BuilderPlacement, hit: PlacementHit, step: number | null): Vec3 {
   const normal = hit.normal;
   const axis = dominantAxis(normal), sign = Math.sign(normal[axis]) || 1;
   if (piece.kind === 'boundary') {
-    const offset = snapCoordinate(hit.point[{ x: 0, y: 1, z: 2 }[piece.axis]], step);
+    const offset = gridCoordinate(hit.point[{ x: 0, y: 1, z: 2 }[piece.axis]], step);
     return hit.point.map((value, index) => index === { x: 0, y: 1, z: 2 }[piece.axis] ? offset : value) as Vec3;
   }
   const extents = pieceExtents(piece);
   if (piece.kind === 'hull') {
     const center = hit.point.map((value, index) => index === axis
       ? value + sign * extents[index] / 2
-      : snapCoordinate(value - extents[index] / 2 - (hit.snapOrigin?.[index] ?? 0), step) + extents[index] / 2 + (hit.snapOrigin?.[index] ?? 0)) as Vec3;
+      : step === null ? value : gridCoordinate(value - extents[index] / 2 - (hit.snapOrigin?.[index] ?? 0), step) + extents[index] / 2 + (hit.snapOrigin?.[index] ?? 0)) as Vec3;
     const faces = hullFaces(piece);
     const dot = (v: Vec3) => v[0] * normal[0] + v[1] * normal[1] + v[2] * normal[2];
     let support = Infinity;
@@ -98,13 +98,13 @@ export function placementCenter(piece: BuilderPlacement, hit: PlacementHit, step
     // the forward shaft and braces to actual closed hull faces after placement.
     return hit.point.map((value, index) => index === 1
       ? value - diameter * .65
-      : snapCoordinate(value - attach[index], step)) as Vec3;
+      : gridCoordinate(value - attach[index], step)) as Vec3;
   }
   // Vertical hits seat the attachment point on the face; wall hits push the whole envelope off the face.
   const center = rotateY(piece.boundsCenter, bearingRadians(piece.bearingDeg));
   return hit.point.map((value, index) => index === axis
     ? (axis === 1 ? value + sign * inset - attach[index] : value + sign * (extents[index] / 2 + inset) - center[index])
-    : snapCoordinate(value - attach[index], step)) as Vec3;
+    : gridCoordinate(value - attach[index], step)) as Vec3;
 }
 
 /** A rectangle of pieces between two placements, stepping by the piece's own extents in the face plane. */

@@ -29,13 +29,16 @@ export class FreeformHandles {
   private axisButtons: HTMLButtonElement[];
   private planeButton: HTMLButtonElement;
   private drag?: Drag;
+  private lastEvent?: PointerEvent;
+  refresh() { if (this.lastEvent && this.drag) this.move(this.lastEvent); }
   private source?: ConstructionSource;
   private options?: BuilderFreeformOptions;
   private hovered?: HullSelection;
   private faceOrder = '';
 
   constructor(private host: HTMLElement, private camera: () => THREE.Camera,
-    private preview: (replacements?: ConstructionPrimitive[]) => void) {
+    private preview: (replacements?: ConstructionPrimitive[]) => void,
+    private snapping?: { resolve(raw: Vec3, free: boolean[], primitive: ConstructionPrimitive, options: BuilderFreeformOptions): Vec3; clear(): void }) {
     this.element.className = 'sb-freeform-handles';
     this.drawing.classList.add('sb-freeform-overlay'); this.drawing.setAttribute('aria-hidden', 'true');
     this.element.append(this.drawing);
@@ -81,6 +84,7 @@ export class FreeformHandles {
     target.addEventListener('pointerleave', () => { this.hovered = undefined; });
   }
   get dragging() { return !!this.drag; }
+  get moving() { return !!this.drag && !!this.lastEvent && Math.hypot(this.lastEvent.clientX - this.drag.x, this.lastEvent.clientY - this.drag.y) >= 5; }
   update(source: ConstructionSource, options?: BuilderFreeformOptions) {
     const d = this.drag;
     if (d && (source.revision !== d.source.revision || source.id !== d.source.id || options?.id !== d.options.id
@@ -185,22 +189,25 @@ export class FreeformHandles {
   }
   private move = (e: PointerEvent) => {
     const d = this.drag; if (!d || e.pointerId !== d.pointer) return;
+    this.lastEvent = e;
     if (Math.hypot(e.clientX-d.x,e.clientY-d.y) < 5) {
       if (d.replacements.length) { d.replacements = []; this.preview([]); this.frame(); }
       return;
     }
     const hit = this.ray(e.clientX,e.clientY).intersectPlane(d.plane,new THREE.Vector3()); if (!hit) return;
     const local = rotateVertex(hit.sub(d.origin).toArray() as Vec3,-d.primitive.rotationDeg);
-    const delta = local.map((v,k) => d.free[k] ? Math.round(v/d.options.unit)*d.options.unit : 0) as Vec3;
+    const raw = local.map((v,k) => d.free[k] ? v : 0) as Vec3;
+    const delta = this.snapping ? this.snapping.resolve(raw, d.free, d.primitive, d.options) : raw.map(v => Math.round(v/d.options.unit)*d.options.unit) as Vec3;
     d.replacements = freeformEdit(d.source,d.options.id,d.options.selection,delta,d.options.axes,d.options.snap);
     this.preview(d.replacements); this.frame();
   };
   private up = (e: PointerEvent) => {
     const d = this.drag; if (!d || e.pointerId !== d.pointer || e.button !== 0) return;
-    this.cancel(); if (d.replacements.length) d.options.onCommit(d.replacements);
+    this.move(e); this.cancel(); if (d.replacements.length) d.options.onCommit(d.replacements);
   };
   cancel = () => {
-    const d = this.drag; this.drag = undefined;
+    const d = this.drag; this.drag = undefined; this.lastEvent = undefined;
+    if (d) this.snapping?.clear();
     if (d?.target.hasPointerCapture(d.pointer)) d.target.releasePointerCapture(d.pointer);
     if (d) this.preview(); this.frame();
   };

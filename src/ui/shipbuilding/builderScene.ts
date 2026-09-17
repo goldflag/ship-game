@@ -1,3 +1,4 @@
+import type { SnapSettings } from './snapping';
 import type { ConstructionCatalog, ConstructionEquipmentPart, ConstructionPrimitive, ConstructionResult, ConstructionSource, Vec3 } from '../../ships/blueprint';
 import type { HullSelection, MirrorAxes } from '../../ships/constructionVertex';
 import type { ArmorScale } from '../../ships/inspection';
@@ -39,6 +40,7 @@ export interface BuilderScene {
   view: BuilderView; perspective: boolean; display: BuilderDisplay; fitRequest: number;
   /** The ship's thinnest and thickest plates: the green and red ends of the Armor layer's colour scale. */
   armorScale: ArmorScale;
+  snapping?: SnapSettings;
   gridStep: number; gesture: BuilderGesture;
   /** What a click may select: hull faces only (armor), internal packages and walls only (internals), or everything. */
   pickTargets: 'hull' | 'internals' | 'all';

@@ -4,6 +4,7 @@ import type { Vec3 } from '../../ships/blueprint';
 export interface MoveHandleOptions {
   key: string; anchor: Vec3; unit: number;
   axes?: [boolean, boolean, boolean];
+  snap?(raw: Vec3, free: boolean[]): Vec3;
   constrain(delta: Vec3): Vec3;
   preview(delta?: Vec3, blocked?: boolean): void;
   commit(delta: Vec3): void;
@@ -24,6 +25,8 @@ export class MoveHandles {
   private plane: HTMLButtonElement;
   private options?: MoveHandleOptions;
   private drag?: Drag;
+  private lastEvent?: PointerEvent;
+  refresh() { if (this.lastEvent && this.drag) this.move(this.lastEvent); }
 
   constructor(private host: HTMLElement, private camera: () => THREE.Camera) {
     this.element.className = 'sb-freeform-handles sb-move-handles';
@@ -63,6 +66,7 @@ export class MoveHandles {
     b.addEventListener('contextmenu', e => e.preventDefault()); this.element.append(b); return b;
   }
   get dragging() { return !!this.drag; }
+  get moving() { return !!this.drag && !!this.lastEvent && Math.hypot(this.lastEvent.clientX - this.drag.x, this.lastEvent.clientY - this.drag.y) >= 5; }
   update(options?: MoveHandleOptions) {
     if (this.drag && options?.key !== this.drag.options.key) this.cancel();
     this.options = options; this.frame();
@@ -121,8 +125,9 @@ export class MoveHandles {
   private move = (e: PointerEvent) => {
     const d = this.drag; if (!d || d.pointer !== e.pointerId) return;
     const hit = this.ray(e.clientX, e.clientY).intersectPlane(d.plane, new THREE.Vector3()); if (!hit) return;
-    const raw = hit.sub(d.origin).toArray();
-    const delta = raw.map((v, k) => d.free[k] && Math.hypot(e.clientX - d.x, e.clientY - d.y) >= 5 ? Math.round(v / d.options.unit) * d.options.unit : 0) as Vec3;
+    this.lastEvent = e;
+    const raw = hit.sub(d.origin).toArray().map((v, k) => d.free[k] && Math.hypot(e.clientX - d.x, e.clientY - d.y) >= 5 ? v : 0) as Vec3;
+    const delta = Math.hypot(e.clientX - d.x, e.clientY - d.y) < 5 ? [0, 0, 0] as Vec3 : d.options.snap ? d.options.snap(raw, d.free) : raw.map(v => Math.round(v / d.options.unit) * d.options.unit) as Vec3;
     d.delta = d.options.constrain(delta);
     d.options.preview(d.delta, d.delta.some((v, k) => Math.abs(v - delta[k]) > 1e-7)); this.frame();
   };
@@ -131,7 +136,7 @@ export class MoveHandles {
     this.move(e); this.cancel(); if (d.delta.some(v => v !== 0)) d.options.commit(d.delta);
   };
   cancel = () => {
-    const d = this.drag; this.drag = undefined;
+    const d = this.drag; this.drag = undefined; this.lastEvent = undefined;
     if (d?.target.hasPointerCapture(d.pointer)) d.target.releasePointerCapture(d.pointer);
     if (d) d.options.preview(); this.frame();
   };

@@ -1,3 +1,4 @@
+import { DEFAULT_SNAPPING, constructionSnapFeatures, type SnapSettings } from './snapping';
 import { CONSTRUCTION_PAINTS } from '../../ships/constructionPaints';
 import { mirroredPanelId } from '../../ships/constructionPanels';
 import { integrateConstructionMagazines, setBarbetteHeight } from '../../ships/constructionArmament';
@@ -14,7 +15,7 @@ import { mirrorTwin, mirrorTwinEquipment, offCenterline } from './placement';
 import { blockMoveConstraint } from './blockMovement';
 import { internalSelectionIds } from './internalSelection';
 import { customHullPrimitive, makeHull } from '../../ships/customHullModel';
-import { normalizedBearing, snapCoordinate } from './editorNumbers';
+import { normalizedBearing } from './editorNumbers';
 import type { BuilderArc, BuilderDisplay, BuilderGesture, BuilderMoveTargets, BuilderPick, BuilderPlacement, BuilderPointerEvent, BuilderProposal, BuilderScene, BuilderView } from './builderScene';
 import type { ArmorScale } from '../../ships/inspection';
 
@@ -34,6 +35,7 @@ export interface BuilderToolState {
   mirror: boolean; showArcs: boolean; showCenters: boolean;
   /** Placement and movement steps in metres, remembered separately for hull pieces and fittings. */
   snapSteps: { hull: number; equipment: number };
+  snapping: SnapSettings; snapOverride: boolean;
   freeform?: { designId: string; baseline: ConstructionPrimitive };
   freeformSettings: FreeformSettings;
   view: BuilderView; perspective: boolean; fitRequest: number;
@@ -99,6 +101,7 @@ export class BuilderTool {
     this.state = {
       layer: 'hull', tool: 'select', slots: { hull: 'cube', armor: 'armor', internals: 'deck', fittings: '', paint: 'naval-gray' }, fittingFilter: { category: 'main-battery', nation: 'all' },
       customMm: 10, bearing: 0, pathPoints: [], ropeSlack: 0, mirror: true, showArcs: false, showCenters: false, snapSteps: { hull: 1, equipment: .25 },
+      snapping: { ...DEFAULT_SNAPPING }, snapOverride: false,
       freeformSettings: { axes: [true, false, false], unit: .2, snap: false, splitAxis: 2, count: 4, selection: { mode: 'vertex', index: 1 } },
       view: 'orbit', perspective: true, fitRequest: 0,
       selected: new Set<string>(), surfaces: new Set(), notice: '', ...initial,
@@ -202,6 +205,11 @@ export class BuilderTool {
   get armorScale(): ArmorScale { return this.surfaceState.armorScale; }
   /** Fittings and modules snap on the equipment step; everything else on the hull step. */
   get snapKind(): 'hull' | 'equipment' { const { layer, tool } = this.state; return layer === 'fittings' || (layer === 'internals' && tool === 'module') ? 'equipment' : 'hull'; }
+  get effectiveSnapping(): SnapSettings { return { ...this.state.snapping, enabled: this.state.snapping.enabled !== this.state.snapOverride }; }
+  toggleSnapping = () => this.changeSnapping({ enabled: !this.state.snapping.enabled });
+  changeSnapping = (patch: Partial<SnapSettings>) => this.update({ snapping: { ...this.state.snapping, ...patch } });
+  setSnapOverride = (held: boolean) => { if (held !== this.state.snapOverride) this.update({ snapOverride: held }); };
+  setSnapStep = (step: number) => { if (SNAP_STEPS.includes(step)) this.update({ snapSteps: { ...this.state.snapSteps, [this.snapKind]: step } }); };
   get gridStep() { return this.state.snapSteps[this.snapKind]; }
   /** The view bar's Snap control: 0.25 → 0.5 → 1 → 2 → 5 m for the current kind. */
   cycleSnap = () => { const kind = this.snapKind, steps = this.state.snapSteps; this.update({ snapSteps: { ...steps, [kind]: SNAP_STEPS[(SNAP_STEPS.indexOf(steps[kind]) + 1) % SNAP_STEPS.length] } }); };
@@ -269,7 +277,7 @@ export class BuilderTool {
     return {
       source: this.source, result: retained, current: this.compiled, catalog: this.catalog,
       selected: s.selected, selectedSurfaces: s.surfaces, view: s.view, perspective: s.perspective, display: this.display, fitRequest: s.fitRequest, armorScale: this.armorScale,
-      gridStep: this.gridStep, gesture: locked ? 'none' : this.gesture, pickTargets: this.pickTargets, moveTargets: locked || freeformMode ? 'none' : this.moveTargets,
+      snapping: this.effectiveSnapping, gridStep: this.gridStep, gesture: locked ? 'none' : this.gesture, pickTargets: this.pickTargets, moveTargets: locked || freeformMode ? 'none' : this.moveTargets,
       placementPiece: locked || freeformMode ? undefined : this.piece, placementMirror: this.mirrorPiece,
       highlightFaces: this.faceLayer, rooms: s.layer === 'internals', showCenters: s.showCenters, arcs: this.arcs, proposed: this.proposed, measure: s.measure,
       pathDraft: !locked && pathPart ? { part: pathPart, points: s.pathPoints, slackM: pathPart.path?.kind === 'rope' ? s.ropeSlack : 0, mirror: s.mirror } : undefined,
@@ -409,8 +417,14 @@ export class BuilderTool {
     this.update({ selected: new Set(copied), surfaces: new Set(), notice: mirrorCopy ? 'Mirrored a copy across the centerline.' : 'Copied the selection 1 m to starboard.' });
     return outcome;
   };
+  centerSelection = (): ConstructionSubmission | undefined => {
+    const centers = constructionSnapFeatures(this.source, this.catalog).filter(f => this.state.selected.has(f.owner) && f.kind === 'center');
+    if (!centers.length) return undefined;
+    const x = (Math.min(...centers.map(f => f.point[0])) + Math.max(...centers.map(f => f.point[0]))) / 2;
+    return this.nudge([-x, 0, 0]);
+  };
   nudge = (delta: Vec3): ConstructionSubmission | undefined => this.state.selected.size ? this.movePieces([...this.state.selected], delta) : undefined;
-  /** A finished move drag or nudge: blocks stop at other blocks' bounds, fittings translate, walls slide to the snap step. */
+  /** A finished move drag or nudge: blocks stop at other blocks' bounds; resolved fitting and wall coordinates stay exact. */
   movePieces = (ids: string[], requested: Vec3): ConstructionSubmission | undefined => {
     ids = ids.filter(this.selectable);
     if (!ids.length) return undefined;
@@ -420,7 +434,7 @@ export class BuilderTool {
     if (delta.some((value, axis) => Math.abs(value - requested[axis]) > 1e-7)) this.update({ notice: 'Movement stopped at another block.' });
     if (delta.every(value => value === 0)) return undefined;
     const commands: ConstructionCommand[] = [{ op: 'move', ids, delta }];
-    for (const wall of this.data.boundaries) if (moving.has(wall.id)) commands.push({ op: 'boundary', value: { ...wall, offset: snapCoordinate(wall.offset + delta[AXIS[wall.axis]], this.gridStep) } });
+    for (const wall of this.data.boundaries) if (moving.has(wall.id)) commands.push({ op: 'boundary', value: { ...wall, offset: wall.offset + delta[AXIS[wall.axis]] } });
     const outcome = this.run('Move selection', commands);
     if (!outcome.accepted) return outcome;
     this.update({ selected: moving, surfaces: new Set() });
@@ -662,6 +676,7 @@ export class BuilderTool {
   // ---- freeform hulls
   changeFreeformSettings = (patch: Partial<FreeformSettings>) => this.update({ freeformSettings: { ...this.state.freeformSettings, ...patch } });
   cycleUnit = () => this.changeFreeformSettings({ unit: VERTEX_UNITS[(VERTEX_UNITS.findIndex(unit => unit === this.state.freeformSettings.unit) + 1) % VERTEX_UNITS.length] });
+  cycleGrid = () => this.freeformMode ? this.cycleUnit() : this.cycleSnap();
   /** True when a single editable block entered freeform editing, so the caller closes the drawer. */
   enterFreeform = (): boolean => {
     const part = this.selectedPrimitives[0];
@@ -694,6 +709,8 @@ export class BuilderTool {
     }
     if (modifier && lower === 'z') { event.preventDefault(); if (event.shiftKey) this.door.redo(); else this.door.undo(); return; }
     if (modifier && lower === 'y') { event.preventDefault(); this.door.redo(); return; }
+    if (!modifier && !event.altKey && lower === 'n') { event.preventDefault(); if (!event.repeat) this.toggleSnapping(); return; }
+    if (!modifier && !event.altKey && lower === 's') { event.preventDefault(); if (!event.repeat) this.cycleGrid(); return; }
     if (!modifier && !event.altKey && lower === 'p') { event.preventDefault(); if (!event.repeat) this.toggleProjection(); return; }
     if (this.freeformMode && !modifier) {
       if (event.key === 'Escape') { this.exitFreeform(); event.preventDefault(); return; }

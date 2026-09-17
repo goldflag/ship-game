@@ -1,3 +1,4 @@
+import { SnapControls } from './SnapControls';
 import { CONSTRUCTION_PAINTS } from '../../ships/constructionPaints';
 import { integrateConstructionMagazines } from '../../ships/constructionArmament';
 import { FreeformToolbar } from './FreeformToolbar';
@@ -34,7 +35,7 @@ import { SlotImages, useSlotImages } from './slotImages';
 import { armorInspectionGroups, armorThicknessGroups, describeArmorGroup } from './ArmorInspection';
 import { attachmentOffset, rotateY, bearingRadians } from './placement';
 import type { BuilderView } from './builderScene';
-import { snapCoordinate, normalizedBearing } from './editorNumbers';
+import { normalizedBearing } from './editorNumbers';
 import { freshConstruction, useBuilderSource, type BuilderCompiler } from './useBuilderSource';
 import type { ConstructionStore } from '../../ships/constructionStore';
 import { openConstructionStore } from '../../ships/constructionStore';
@@ -227,6 +228,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
       if (helpOpen) { if (event.key === 'Escape' || event.key === '?') { event.preventDefault(); setHelpOpen(false); } return; }
       if (event.key === '?') { event.preventDefault(); setHelpOpen(true); return; }
       if (locked) return;
+      if (event.key === 'Alt') { event.preventDefault(); tool.setSnapOverride(true); return; }
       tool.key(event, {
         dismiss: () => { if (drawer) setDrawer(false); else if (designsOpen) setDesignsOpen(false); else return false; return true; },
         toggleDrawer: () => { setDrawer(value => !value); setTip(undefined); },
@@ -236,7 +238,10 @@ export function Shipbuilder(props: ShipbuilderProps) {
   };
   useEffect(() => {
     const key = (event: KeyboardEvent) => keyHandler.current(event);
-    window.addEventListener('keydown', key); return () => window.removeEventListener('keydown', key);
+    const up = (event: KeyboardEvent) => { if (event.key === 'Alt') tool.setSnapOverride(false); };
+    const reset = () => tool.setSnapOverride(false);
+    window.addEventListener('keydown', key); window.addEventListener('keyup', up); window.addEventListener('blur', reset);
+    return () => { window.removeEventListener('keydown', key); window.removeEventListener('keyup', up); window.removeEventListener('blur', reset); };
   }, []);
 
   // ---- derived display
@@ -270,22 +275,22 @@ export function Shipbuilder(props: ShipbuilderProps) {
   if (!freeformMode && selectedPrimitives.length === 1 && !selectedEquipment.length) {
     const primitive = selectedPrimitives[0], mass = pieceMassKg(compiledResult, primitive.id);
     const size = (axis: number, value: number) => { const next = structuredClone(primitive); next.size[axis] = value; run('Resize hull piece', [{ op: 'primitive', value: next }]); };
-    const move = (axis: number, value: number) => { const delta: Vec3 = [0, 0, 0]; delta[axis] = snapCoordinate(value, gridStep) - primitive.position[axis]; tool.nudge(delta); };
+    const move = (axis: number, value: number) => { const delta: Vec3 = [0, 0, 0]; delta[axis] = value - primitive.position[axis]; tool.nudge(delta); };
     tags.push({ key: `piece-${primitive.id}`, anchor: primitive.position, dx: 70, dy: -78, tone: 'mint', content: <>
       <b>{SHAPE_NAMES[primitive.kind]} <NumberField value={primitive.size[0]} min={.25} max={500} onChange={value => size(0, value)}/> × <NumberField value={primitive.size[1]} min={.25} max={500} onChange={value => size(1, value)}/> × <NumberField value={primitive.size[2]} min={.25} max={500} onChange={value => size(2, value)}/> m</b>
       {canEditVertices(primitive) && <button className="sb-edit-freeform" onClick={enterFreeform}>Freeform hull</button>}
       {primitive.kind === 'custom-hull' && <button className="sb-edit-freeform" onClick={() => setCustomHullSession({ designId: source.id, primitive: structuredClone(primitive) })}>Edit hull sections</button>}
-      {mass !== undefined ? `plating ${formatTonnes(mass)} · ` : ''}<NumberField label="x" value={primitive.position[0]} min={-1000} max={1000} step={gridStep} onChange={value => move(0, value)}/> <NumberField label="y" value={primitive.position[1]} min={-1000} max={1000} step={gridStep} onChange={value => move(1, value)}/> <NumberField label="z" value={primitive.position[2]} min={-1000} max={1000} step={gridStep} onChange={value => move(2, value)}/> · {primitive.rotationDeg}° <kbd>R</kbd> · <kbd>⌫</kbd> remove · <kbd>⌘C</kbd> copy
+      {mass !== undefined ? `plating ${formatTonnes(mass)} · ` : ''}<NumberField label="x" digits={6} value={primitive.position[0]} min={-1000} max={1000} step={gridStep} onChange={value => move(0, value)}/> <NumberField label="y" digits={6} value={primitive.position[1]} min={-1000} max={1000} step={gridStep} onChange={value => move(1, value)}/> <NumberField label="z" digits={6} value={primitive.position[2]} min={-1000} max={1000} step={gridStep} onChange={value => move(2, value)}/> · {primitive.rotationDeg}° <kbd>R</kbd> · <kbd>⌫</kbd> remove · <kbd>⌘C</kbd> copy
     </> });
   } else if (selectedEquipment.length === 1 && !selectedPrimitives.length) {
     const item = selectedEquipment[0], part = partOf(item), mass = equipmentMassKg(compiledResult, item.id);
     const edit = (label: string, change: (target: ConstructionEquipment) => void) => { const target = structuredClone(item); change(target); run(label, [{ op: 'equipment', value: target }]); };
     const link = (field: 'powerSourceId', kind: 'engine', label: string) => <label> {label} <select className="sb-link" value={item[field] ?? ''} onChange={event => edit('Connect equipment', target => { if (event.target.value) target[field] = event.target.value; else delete target[field]; })}>
       <option value="">automatic</option>{data.equipment.filter(entry => partOf(entry)?.kind === kind).map(entry => <option key={entry.id} value={entry.id}>{partOf(entry)?.name} · {entry.id.slice(-4)}</option>)}</select></label>;
-    const move = (axis: number, value: number) => { const delta: Vec3 = [0, 0, 0]; delta[axis] = snapCoordinate(value, gridStep) - item.position[axis]; tool.nudge(delta); };
+    const move = (axis: number, value: number) => { const delta: Vec3 = [0, 0, 0]; delta[axis] = value - item.position[axis]; tool.nudge(delta); };
     tags.push({ key: `part-${item.id}`, anchor: equipmentAnchor(item), dx: 82, dy: -92, tone: 'mint', content: <>
       <b>{part?.name ?? item.partId}</b>
-      {mass !== undefined ? `${formatTonnes(mass)} · ` : ''}bearing <NumberField value={item.bearingDeg} min={0} max={360} step={.1} unit="°" onChange={value => edit('Set bearing', target => { target.bearingDeg = normalizedBearing(value); })}/> · <NumberField label="x" value={item.position[0]} min={-1000} max={1000} step={gridStep} onChange={value => move(0, value)}/> <NumberField label="y" value={item.position[1]} min={-1000} max={1000} step={gridStep} onChange={value => move(1, value)}/> <NumberField label="z" value={item.position[2]} min={-1000} max={1000} step={gridStep} onChange={value => move(2, value)}/>
+      {mass !== undefined ? `${formatTonnes(mass)} · ` : ''}bearing <NumberField value={item.bearingDeg} min={0} max={360} step={.1} unit="°" onChange={value => edit('Set bearing', target => { target.bearingDeg = normalizedBearing(value); })}/> · <NumberField label="x" digits={6} value={item.position[0]} min={-1000} max={1000} step={gridStep} onChange={value => move(0, value)}/> <NumberField label="y" digits={6} value={item.position[1]} min={-1000} max={1000} step={gridStep} onChange={value => move(1, value)}/> <NumberField label="z" digits={6} value={item.position[2]} min={-1000} max={1000} step={gridStep} onChange={value => move(2, value)}/>
       {part?.placement !== 'internal' && <label> · Paint <select className="sb-link" aria-label="Fitting paint" value={item.paint ?? ''} disabled={locked} onChange={event => tool.paintFittings([item.id], event.target.value || undefined)}>
         <option value="">Original finish</option>{CONSTRUCTION_PAINTS.map(paint => <option key={paint.id} value={paint.id}>{paint.name}</option>)}
       </select></label>}
@@ -304,7 +309,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
     const wall = selectedBoundary, axis = { x: 0, y: 1, z: 2 }[wall.axis], bounds = hullBounds(source);
     const anchor = (bounds ? bounds.min.map((value, index) => (value + bounds.max[index]) / 2) : [0, 0, 0]) as Vec3; anchor[axis] = wall.offset;
     tags.push({ key: `wall-${wall.id}`, anchor, dx: 70, dy: -70, tone: 'mint', content: <>
-      <b>{BOUNDARY_NAMES[wall.axis]} at <NumberField value={wall.offset} min={-1000} max={1000} step={gridStep} unit="m" onChange={value => run('Move boundary', [{ op: 'boundary', value: { ...wall, offset: snapCoordinate(value, gridStep) } }])}/></b>
+      <b>{BOUNDARY_NAMES[wall.axis]} at <NumberField digits={6} value={wall.offset} min={-1000} max={1000} step={gridStep} unit="m" onChange={value => run('Move boundary', [{ op: 'boundary', value: { ...wall, offset: value } }])}/></b>
       plating <NumberField value={wall.thicknessMm} min={.1} max={1000} unit="mm" onChange={value => run('Armor boundary', [{ op: 'boundary', value: { ...wall, thicknessMm: value } }])}/> · <kbd>⌫</kbd> remove and merge rooms
     </> });
   }
@@ -454,9 +459,12 @@ export function Shipbuilder(props: ShipbuilderProps) {
         {/* Modifiers change where a click lands rather than what it does; freeform mode carries its own local mirror axes and unit. */}
         {!freeformMode && <><span className="sb-rail-cap foot">Modifiers</span>
           <button className="toggle" disabled={locked} aria-pressed={mirror} title="Mirror (M) · place, move and paint the twin across the centerline" onClick={tool.toggleMirror}><ToolGlyph name="Mirror"/><span>Mirror</span><kbd>M</kbd></button>
-          <button className="value" disabled={locked} title={`Snap · ${gridStep} m · click to cycle 0.25, 0.5, 1, 2 and 5 m for placement and movement`} onClick={tool.cycleSnap}><b>{gridStep} m</b><span>Snap</span></button>
+
           {/* The view strip sits at the rail's foot: how the ship is shown, in small bare glyphs so it never reads as more tools. */}
+          <SnapControls tool={tool} locked={locked}/>
           {viewBar}</>}
+        {freeformMode && <SnapControls tool={tool} locked={locked}/>}
+        {!freeformMode && (tool.selectedPrimitives.length > 0 || tool.selectedEquipment.length > 0) && <button disabled={locked} onClick={tool.centerSelection} title="Center selection on ship using its mounting centers"><ToolGlyph name="Centerline"/><span>Center</span></button>}
         <button className="help" aria-haspopup="dialog" aria-expanded={helpOpen} title="Controls and hotkeys (?)" onClick={() => setHelpOpen(value => !value)}><ToolGlyph name="Keys"/><span>Keys</span><kbd>?</kbd></button></div>
     </div>
     <aside className="sb-ledger" aria-label="Ledger">
