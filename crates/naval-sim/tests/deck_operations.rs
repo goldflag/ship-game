@@ -1,10 +1,9 @@
 use naval_sim::{
-    air_rules::{ActiveFlights, AirRules, DeckCycle, DeckTimings, EndurancePolicy},
-    aircraft::AirOrder,
-    aviation::Aviation,
-    aviation_step::AirContext,
+    aviation::{
+        ActiveFlights, AirContext, AirOrder, AirRules, Aviation, DeckAction, DeckCycle, DeckPolicy,
+        DeckTimings, EndurancePolicy,
+    },
     catalog::Catalog,
-    deck_operations::{DeckAction, DeckPolicy},
     rules::TeamId,
     vessel::{Controller, Vessel},
 };
@@ -403,7 +402,7 @@ fn sortie(carrier: &str, role: &str) {
             .filter(|p| flight.plane_ids.contains(&p.id))
             .all(|p| p.phase == "outbound")
         {
-            assert!(time - started >= 4.0 * naval_sim::aircraft_flight::TAKEOFF_ROLL_SECONDS);
+            assert!(time - started >= 4.0 * naval_sim::aviation::TAKEOFF_ROLL_SECONDS);
             a.recall("carrier", Some(&flight.id));
             for _ in 0..108000 {
                 step(&mut a, &actors, &mut time, 1.0 / 60.0);
@@ -443,7 +442,7 @@ fn sortie(carrier: &str, role: &str) {
 
 #[test]
 fn balanced_recovery_clears_a_full_deck_without_waiting_for_airborne_group_mates() {
-    use naval_sim::{deck_operations::place, flight_deck::DeckPose, geometry::local_to_world};
+    use naval_sim::{aviation::{DeckPose, place}, geometry::local_to_world};
     for carrier in ["enterprise-cv6", "shokaku"] {
         let (actors, mut a) = setup(carrier, 2);
         let actor = &actors[0];
@@ -605,7 +604,7 @@ fn recall_keeps_a_committed_takeoff_on_the_runway_until_it_can_return() {
 
 #[test]
 fn balanced_handling_recovers_an_entire_surviving_wing_onto_a_smaller_deck() {
-    use naval_sim::{deck_operations::place, flight_deck::DeckPose, geometry::local_to_world};
+    use naval_sim::{aviation::{DeckPose, place}, geometry::local_to_world};
     for carrier in ["enterprise-cv6", "shokaku"] {
         let (actors, mut a) = setup(carrier, 0);
         let actor = &actors[0];
@@ -756,7 +755,7 @@ fn a_queued_lift_does_not_refill_the_lane_a_launch_batch_is_still_using() {
 
 #[test]
 fn a_lift_can_move_during_the_final_roll_only_after_the_runway_clears_it() {
-    use naval_sim::{flight_deck::DeckPose, geometry::sub};
+    use naval_sim::{aviation::DeckPose, geometry::sub};
     for carrier in ["enterprise-cv6", "shokaku"] {
         for role in ["fighter", "dive-bomber", "torpedo-bomber"] {
             let (actors, mut a) = setup(carrier, 1);
@@ -907,7 +906,7 @@ fn a_lift_can_move_during_the_final_roll_only_after_the_runway_clears_it() {
 
 #[test]
 fn returning_groups_cannot_permanently_block_a_queued_launch_behind_them() {
-    use naval_sim::{deck_operations::place, flight_deck::DeckPose, geometry::local_to_world};
+    use naval_sim::{aviation::{DeckPose, place}, geometry::local_to_world};
     let (actors, mut a) = setup("enterprise-cv6", 0);
     let groups: Vec<_> = a.wings[0]
         .state
@@ -1036,7 +1035,7 @@ fn returning_groups_cannot_permanently_block_a_queued_launch_behind_them() {
 
 #[test]
 fn all_deck_preferences_drain_mixed_physical_traffic_without_losing_aircraft() {
-    use naval_sim::{deck_operations::place, flight_deck::DeckPose, geometry::local_to_world};
+    use naval_sim::{aviation::{DeckPose, place}, geometry::local_to_world};
     for policy in [
         DeckPolicy::Balanced,
         DeckPolicy::LaunchFirst,
@@ -1045,7 +1044,7 @@ fn all_deck_preferences_drain_mixed_physical_traffic_without_losing_aircraft() {
         let (actors, mut a) = setup("enterprise-cv6", 0);
         a.set_deck_policy("carrier", policy).unwrap();
         let flights = a.wings[0].state.flights.clone();
-        let role = |flight: &&naval_sim::aircraft::AirFlight, role: &str| {
+        let role = |flight: &&naval_sim::aviation::AirFlight, role: &str| {
             a.wings[0]
                 .state
                 .planes

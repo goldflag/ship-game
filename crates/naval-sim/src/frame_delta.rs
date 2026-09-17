@@ -35,8 +35,8 @@ use ts_rs::TS;
 
 /// The one field where an explicit null is an operating policy ("unlimited")
 /// rather than a missing optional, so it travels and the receiver keeps it. The
-/// field declares it; see [`crate::deck_operations::DeckStatus`].
-pub const KEEP_NULL: &str = crate::deck_operations::ACTIVE_FLIGHT_LIMIT_FIELD;
+/// field declares it; see `DeckStatus` in the aviation deck operations.
+pub const KEEP_NULL: &str = crate::aviation::ACTIVE_FLIGHT_LIMIT_FIELD;
 
 type Error = serde_json::Error;
 

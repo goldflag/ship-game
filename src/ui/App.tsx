@@ -47,6 +47,8 @@ import { ConstructionClient } from '../ships/constructionClient';
 import { openConstructionStore } from '../ships/constructionStore';
 import { decodeConstructionSource, loadSavedConstructionWithCatalog } from '../ships/constructionEditor';
 import { createStarterSource } from '../ships/constructionStarter';
+import { NewDesignDialog } from './shipbuilding/NewDesignDialog';
+import type { HullPresetChoice } from '../ships/constructionHullPresets';
 
 const INITIAL_TELEMETRY: Telemetry = { ship: createShipState(), order: 1, camera: 'Chase', fps: 0, backend: 'webgpu', trail: [] };
 
@@ -127,6 +129,8 @@ function Harbor({ account, startup }: AppProps) {
   const [builderError, setBuilderError] = useState('');
   const [builderOpening, setBuilderOpening] = useState(false);
   const builderRequest = useRef<string | undefined>(undefined);
+  const builderStarter = useRef<HullPresetChoice>('blank');
+  const [newDesignOpen, setNewDesignOpen] = useState(false);
   const [libraryLoading, setLibraryLoading] = useState(false);
   const [trial, setTrial] = useState(false);
 
@@ -266,8 +270,9 @@ function Harbor({ account, startup }: AppProps) {
     catch (error) { setError(error instanceof Error ? error.message : String(error)); }
   };
 
-  const openBuilder = async (designId?: string) => {
-    if (!ready || builderOpening || switchPending.current || phase !== 'garage') return;
+  const openBuilder = async (designId?: string, starter: HullPresetChoice = 'blank') => {
+    if (!ready || builderOpening || switchPending.current || phase !== 'garage') return 'The port is still preparing. Try again in a moment.';
+    builderStarter.current = starter;
     builderRequest.current = designId; repositoryId.current = undefined;
     setBuilderOpening(true); setBuilderError('');
     try {
@@ -276,11 +281,11 @@ function Harbor({ account, startup }: AppProps) {
         try { const loaded = await loadSavedConstructionWithCatalog(store, designId); builderSource.current = loaded.source; setBuilder({ source: loaded.source, catalog: loaded.catalog }); }
         finally { store.close(); }
       } else {
-        const catalog = await loadConstructionCatalog(), source = createStarterSource(catalog, 'blank');
+        const catalog = await loadConstructionCatalog(), source = createStarterSource(catalog, starter);
         builderSource.current = source; setBuilder({ source, catalog });
       }
     }
-    catch (error) { setBuilderError(error instanceof Error ? error.message : String(error)); }
+    catch (error) { const message = error instanceof Error ? error.message : String(error); setBuilderError(message); return message; }
     finally { setBuilderOpening(false); }
   };
   useEffect(() => {
@@ -464,13 +469,14 @@ function Harbor({ account, startup }: AppProps) {
       if (!(target instanceof HTMLElement && target.closest('input, textarea, [contenteditable]:not([contenteditable="false"])'))) event.preventDefault();
     }}>
     <div ref={host} className="ocean-viewport" inert={!ready || !!error} data-ship-labels={phase === 'sailing' && hud && ready && !error && !data.airOperationsOpen} />
-    {phase === 'garage' && ready && !error && !battleOpen && !builder && <Garage key={selectedShip.id} switching={switching || builderOpening} switchError={switchError} onSelectShip={switchShip} game={game.current} ready={ready} fps={data.fps} performance={data.performance} onBattle={pressBattle} onBuild={() => void openBuilder()} onEditDesign={id => void openBuilder(id)} onDeleteDesign={deletedDesign} libraryLoading={libraryLoading} onChooseBattle={openSortieBoard} lastMode={battleMode} accountName={account?.name} onSettings={() => game.current?.setPaused(true)}/>}
+    {phase === 'garage' && ready && !error && !battleOpen && !builder && <Garage key={selectedShip.id} switching={switching || builderOpening} switchError={switchError} onSelectShip={switchShip} game={game.current} ready={ready} fps={data.fps} performance={data.performance} onBattle={pressBattle} onBuild={() => setNewDesignOpen(true)} onEditDesign={id => void openBuilder(id)} onDeleteDesign={deletedDesign} libraryLoading={libraryLoading} onChooseBattle={openSortieBoard} lastMode={battleMode} accountName={account?.name} onSettings={() => game.current?.setPaused(true)}/>}
     {phase === 'garage' && sortieOpen && !battleOpen && <SortieBoard lastMode={battleMode} onChoose={openBattle} onClose={() => setSortieOpen(false)}/>}
     {battleOpen && <BattleDialog initialMode={battleMode} initialShipId={selectedShip.id} loading={!!battleLoading} onClose={() => setBattleOpen(false)}
       setup={battleSetup} onSetupChange={setBattleSetup} onLaunchCustom={() => void launch()} customError={battleError}
       pveRequest={pveRequest} onLaunchPve={launchPve} onOnlineBattle={onlineBattle}/>}
+    {newDesignOpen && phase === 'garage' && <NewDesignDialog onClose={() => setNewDesignOpen(false)} onCreate={async choice => { const failure = await openBuilder(undefined, choice); if (failure) throw new Error(failure); setNewDesignOpen(false); }}/>}
     {builder && phase === 'garage' && <Shipbuilder key={builder.repositoryId ?? builder.source?.id} repositoryId={builder.repositoryId} initialDesignId={builder.source ? undefined : builder.repositoryId} openStore={builder.repositoryId ? openConstructionRepository : undefined} onEditorReady={import.meta.env.DEV ? handle => { window.constructionEditor = handle; } : undefined} suggestLayout={suggestLayout} catalog={builder.catalog} initialSource={builder.source} onDelete={deletedDesign} onSave={source => { builderSource.current = source; }} onLaunch={launchTrial} onClose={closeBuilder}/>}
-    {phase === 'garage' && (builderOpening || builderError) && <div className="shipbuilder-entry-status" role={builderError ? 'alert' : 'status'}>{builderError || 'Opening shipbuilder…'}{builderError && <Button onClick={() => void openBuilder(builderRequest.current)}>Retry</Button>}</div>}
+    {phase === 'garage' && (builderOpening || builderError) && <div className="shipbuilder-entry-status" role={builderError ? 'alert' : 'status'}>{builderError || 'Opening shipbuilder…'}{builderError && <Button onClick={() => void openBuilder(builderRequest.current, builderStarter.current)}>Retry</Button>}</div>}
     {trial && phase === 'sailing' && ready && !error && !battleLoading && game.current && <TrialControls game={game.current} onReturn={returnToPort}/>}
     {phase === 'sailing' && ready && !error && <><BinocularOverlay data={data}/><div className="hud-viewport">
       <FleetHud key={game.current?.battleRevision} data={data} desk={desk.current} visible={hud} bindings={bindings}/>

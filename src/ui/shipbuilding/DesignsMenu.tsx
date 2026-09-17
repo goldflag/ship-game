@@ -16,7 +16,7 @@ export function downloadConstructionSource(json: string, name = 'ship-source') {
 /** The transient list under the ship's name: new designs, backups and local revisions. */
 export function DesignsMenu({ store, currentId, refresh, onClose, onNew, onSaveCopy, onDownload, onOpen, onRecover, onDelete, disabled, partsUpdate }: {
   store?: ConstructionStore; disabled?: boolean; currentId: string; refresh?: string; onClose(): void;
-  onNew(kind: ConstructionStarter): void; onSaveCopy(): void; onDownload(): void;
+  onNew(kind?: ConstructionStarter): void; onSaveCopy(): void; onDownload(): void;
   onOpen(source: ConstructionSource, revisionId: string): Promise<void>;
   onRecover(source: ConstructionSource): Promise<void>;
   onDelete(designId: string, revisionId: string): Promise<void>;
@@ -59,7 +59,7 @@ export function DesignsMenu({ store, currentId, refresh, onClose, onNew, onSaveC
   });
   const when = (time: number) => new Date(time).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
   return <div ref={menu} className="sb-menu" role="menu" aria-label="Designs">
-    <div className="sb-menu-row"><span className="sb-lead">New</span><button role="menuitem" disabled={loading || disabled} onClick={() => onNew('patrol')}>Patrol hull</button><button role="menuitem" disabled={loading || disabled} onClick={() => onNew('catamaran')}>Twin hull</button><button role="menuitem" disabled={loading || disabled} onClick={() => onNew('blank')}>New design</button></div>
+    <div className="sb-menu-row"><span className="sb-lead">New</span><button role="menuitem" disabled={loading || disabled} onClick={() => onNew()}>New design…</button><button role="menuitem" disabled={loading || disabled} onClick={() => onNew('patrol')}>Armed patrol</button><button role="menuitem" disabled={loading || disabled} onClick={() => onNew('catamaran')}>Twin hull</button></div>
     <div className="sb-menu-row"><span className="sb-lead">This design</span><button role="menuitem" disabled={loading || disabled} onClick={onSaveCopy}>Save as copy</button><button role="menuitem" disabled={loading || disabled} onClick={onDownload}>Download backup</button></div>
     {partsUpdate && <div className="sb-menu-list">
       <button role="menuitem" disabled={loading || disabled || !!partsUpdate.missingParts.length} onClick={() => {

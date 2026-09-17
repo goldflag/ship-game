@@ -2,10 +2,8 @@
 //! solutions, fitted AA mounts, ammunition and damage. Start already airborne
 //! so launch/recovery queues do not hide whether the interception works.
 use naval_sim::{
-    aircraft::AirOrder,
     anti_aircraft,
-    aviation::Aviation,
-    aviation_step::AirContext,
+    aviation::{AirContext, AirOrder, Aviation},
     catalog::Catalog,
     rules::TeamId,
     sensors::{self, Knowledge, Sensors, VisualConditions, VisualRules},

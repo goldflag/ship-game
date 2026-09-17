@@ -1,6 +1,8 @@
 import type { ConstructionCatalog, ConstructionEquipment, ConstructionEquipmentPart, ConstructionPrimitive, ConstructionSource, Vec3 } from './blueprint';
+import { HULL_PRESETS, type HullPresetChoice } from './constructionHullPresets';
+import { makeHull, customHullPrimitive } from './customHullModel';
 
-export type ConstructionStarter = 'patrol' | 'catamaran' | 'blank';
+export type ConstructionStarter = 'patrol' | 'catamaran' | HullPresetChoice;
 export const startingHullBlock = (): ConstructionPrimitive => ({ id: 'hull', kind: 'box', size: [1, 1, 1], position: [0, 0, 0], rotationDeg: 0 });
 /** Generic editable source, not a precompiled ship or historical reconstruction.
  * Every placement remains visible and is checked by the same native compiler. */
@@ -11,6 +13,17 @@ export function createStarterSource(catalog: ConstructionCatalog, kind: Construc
     construction: { version: 1, catalogRevision: catalog.revision, defaultThicknessMm: 16, primitives: [], surfaces: [], equipment: [], boundaries: [], loads: [] },
   };
   if (kind === 'blank') { source.construction.primitives.push(startingHullBlock()); return source; }
+  const preset = HULL_PRESETS.findIndex(p => p.id === kind);
+  if (preset >= 0) {
+    source.name = `${HULL_PRESETS[preset].name} design`;
+    const hull = customHullPrimitive(makeHull(preset)); hull.id = 'hull';
+    source.construction.primitives.push(hull);
+    source.construction.surfaces.push(
+      { primitiveId: hull.id, face: 'top', thicknessMm: 0, material: 'steel', paint: 'deck-gray' },
+      { primitiveId: hull.id, face: 'bottom', thicknessMm: 0, material: 'steel', paint: 'red-oxide' },
+    );
+    return source;
+  }
   const primitives = source.construction.primitives;
   const box = (id: string, size: Vec3, position: Vec3, shape: ConstructionPrimitive['kind'] = 'box', rotationDeg = 0) => primitives.push({ id, kind: shape, size, position, rotationDeg });
   if (kind === 'catamaran') {
