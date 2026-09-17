@@ -13,7 +13,7 @@ import { BUILDER_RAIL, DEFAULT_TOOL, paletteFor, type BuilderLayer, type Builder
 import { fittingCategory, fittingNation, shelfNations, type FittingFilter, type FittingNation } from './fittingCategories';
 import { appendPathPoint, pathEquipment } from './pathDrawing';
 import { mirrorTwin, mirrorTwinEquipment, offCenterline } from './placement';
-import { blockMoveConstraint } from './blockMovement';
+import { blockMoveConstraint, blockPlacementAllowed, placementBlocks, OVERLAP_NOTICE } from './blockMovement';
 import { internalSelectionIds } from './internalSelection';
 import { customHullPrimitive, makeHull } from '../../ships/customHullModel';
 import { normalizedBearing } from './editorNumbers';
@@ -470,6 +470,7 @@ export class BuilderTool {
     }
     const copied = copyConstructionSelection(next, selected, { mirror: mirrorCopy });
     if (!copied.length) return undefined;
+    if (!blockPlacementAllowed(this.source, next.construction.primitives.filter(p => copied.includes(p.id)))) { this.update({ notice: OVERLAP_NOTICE }); return undefined; }
     const outcome = this.run(mirrorCopy ? 'Mirror selection' : 'Copy selection', constructionDiffCommands(this.source, next));
     if (!outcome.accepted) return outcome;
     this.update({ selected: new Set(copied), surfaces: new Set(), notice: mirrorCopy ? 'Mirrored a copy across the centerline.' : 'Copied the selection 1 m to starboard.' });
@@ -482,16 +483,16 @@ export class BuilderTool {
     return this.nudge([-x, 0, 0]);
   };
   nudge = (delta: Vec3): ConstructionSubmission | undefined => this.state.selected.size ? this.movePieces([...this.state.selected], delta) : undefined;
-  /** A finished move drag or nudge: blocks stop at other blocks' bounds; resolved fitting and wall coordinates stay exact. */
+  /** A finished move drag or nudge: hull blocks retain at least 10% exposed volume; resolved fitting and wall coordinates stay exact. */
   movePieces = (ids: string[], requested: Vec3): ConstructionSubmission | undefined => {
     ids = ids.filter(this.selectable);
     if (!ids.length) return undefined;
     const refused = this.refused(); if (refused) return refused;
     const moving = new Set(ids);
     let delta = blockMoveConstraint(this.source, moving)(requested);
+    if (delta.some((value, axis) => Math.abs(value - requested[axis]) > 1e-7)) this.update({ notice: OVERLAP_NOTICE });
     const wall = this.data.equipment.find(e => moving.has(e.id) && e.wall);
     if (wall) { const normal = wallNormal(wall.bearingDeg), d = delta.reduce((sum, v, k) => sum + v * normal[k], 0); delta = delta.map((v, k) => v - d * normal[k]) as Vec3; }
-    if (delta.some((value, axis) => Math.abs(value - requested[axis]) > 1e-7)) this.update({ notice: 'Movement stopped at another block.' });
     if (delta.every(value => value === 0)) return undefined;
     const commands: ConstructionCommand[] = [{ op: 'move', ids, delta }];
     for (const wall of this.data.boundaries) if (moving.has(wall.id)) commands.push({ op: 'boundary', value: { ...wall, offset: wall.offset + delta[AXIS[wall.axis]] } });
@@ -524,12 +525,8 @@ export class BuilderTool {
     if (!piece) return undefined;
     const refused = this.refused(); if (refused) return refused;
     if (piece.kind === 'hull' && active?.kind === 'shape') {
-      const pieces: ConstructionPrimitive[] = [];
-      for (const point of points) {
-        pieces.push({ id: this.newId('hull'), kind: piece.shape, size: [...piece.size], position: point, rotationDeg: piece.rotationDeg,
-          ...(piece.shape === 'custom-hull' ? { customHull: customHullPrimitive(makeHull(0)).customHull } : {}) });
-        if (mirror && offCenterline(point)) pieces.push({ ...mirroredPrimitive(pieces.at(-1)!), id: this.newId('hull') });
-      }
+      const pieces = placementBlocks(piece, points, mirror, () => this.newId('hull'));
+      if (!blockPlacementAllowed(this.source, pieces)) { this.update({ notice: OVERLAP_NOTICE }); return undefined; }
       if (this.data.primitives.length + pieces.length > LIMITS.primitives) { this.door.setError(`A design supports up to ${LIMITS.primitives} hull pieces. Use larger pieces or remove a section before adding more.`); return undefined; }
       return this.run(pieces.length > 1 ? 'Lay hull pieces' : 'Place hull piece', pieces.map(value => ({ op: 'primitive', value })));
     }

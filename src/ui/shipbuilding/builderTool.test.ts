@@ -1,4 +1,7 @@
-import { expect, test } from 'bun:test';
+import { beforeAll, expect, test } from 'bun:test';
+import init from '../../generated/naval-wasm/naval_wasm';
+import { OVERLAP_NOTICE } from './blockMovement';
+beforeAll(async () => { await init({ module_or_path: await Bun.file(new URL('../../generated/naval-wasm/naval_wasm_bg.wasm', import.meta.url)).arrayBuffer() }); });
 import type { ConstructionCatalog, ConstructionEquipmentPart, ConstructionResult, ConstructionSource, ConstructionSurface, Vec3 } from '../../ships/blueprint';
 import { ConstructionRevisionOwner } from '../../ships/constructionRevisionOwner';
 import type { ConstructionRevision, ConstructionStore, SaveConstructionSource } from '../../ships/constructionStore';
@@ -362,16 +365,17 @@ test('movement stops at another block: a blocked nudge adds no history and says 
   tool.setTool('select'); tool.pointer({ kind: 'pick', hit: hit({ id: 'hull-1' }) });
   const steps = owner.getSnapshot().history.past.length;
   expect(tool.pointer({ kind: 'move', ids: ['hull-1'], delta: [0, 0, 5] })).toMatchObject({ accepted: true });
-  expect(data().primitives[1].position).toEqual([0, 0, -1]);
+  expect(data().primitives[1].position[2]).toBeCloseTo(-.1, 5);
   // The accepted part of the move clears the notice again, as the component did; a fully blocked move leaves it.
   expect(state().notice).toBe('');
   expect(owner.getSnapshot().history.past).toHaveLength(steps + 1);
   expect(tool.pointer({ kind: 'move', ids: ['hull-1'], delta: [0, 0, 1] })).toBeUndefined();
-  expect(state().notice).toBe('Movement stopped at another block.');
-  expect(data().primitives[1].position).toEqual([0, 0, -1]);
+  expect(state().notice).toBe(OVERLAP_NOTICE);
+  expect(data().primitives[1].position[2]).toBeCloseTo(-.1, 5);
   expect(owner.getSnapshot().history.past).toHaveLength(steps + 1);
   expect(tool.pointer({ kind: 'move', ids: ['hull-1'], delta: [1, 0, 0] })).toMatchObject({ accepted: true });
-  expect(data().primitives[1].position).toEqual([1, 0, -1]);
+  expect(data().primitives[1].position[0]).toBe(1);
+  expect(data().primitives[1].position[2]).toBeCloseTo(-.1, 5);
 });
 
 test('Internals edits only internal packages and walls: entering drops external selections, picks and box selections skip the hull, select-all takes the internals', async () => {
@@ -407,7 +411,7 @@ test('a design that opens as a custom hull starts in Select with nothing chosen;
   expect([...state().selected]).toEqual([]);
   tool.setTool('place'); tool.selectSlot(tool.palette.drawer.find(item => item.id === 'custom-hull')!);
   tool.toggleMirror();
-  expect(tool.pointer({ kind: 'lay', points: [[0, 0, 40]] })).toMatchObject({ accepted: true });
+  expect(tool.pointer({ kind: 'lay', points: [[0, 0, 60]] })).toMatchObject({ accepted: true });
   expect(data().primitives[1]).toMatchObject({ kind: 'custom-hull', size: [6.5, 4, 36] });
   expect(data().primitives[1].customHull?.stations.length).toBeGreaterThanOrEqual(4);
 });
@@ -614,4 +618,21 @@ test('Center on ship preserves a group arrangement and commits one undoable move
   expect(labels()).toEqual(['Move selection']);
   owner.undo(); expect(data().equipment.map(p => p.position)).toEqual([[2, 3, 4], [4, 3, 8]]);
   tool.dispose();
+});
+
+
+test('invalid hull placements and mirrored overlaps add no history; partial overlap is undoable', async () => {
+  const { tool, owner, data, state } = await setup();
+  tool.setTool('place');
+  const before = owner.getSnapshot().history.past.length;
+  expect(tool.placeAt([[0,0,0]])).toBeUndefined();
+  expect(data().primitives).toHaveLength(1);
+  expect(state().notice).toBe(OVERLAP_NOTICE);
+  expect(tool.placeAt([[.02,1,0]])).toBeUndefined();
+  expect(owner.getSnapshot().history.past).toHaveLength(before);
+  tool.toggleMirror();
+  expect(tool.placeAt([[.2,0,0]])).toMatchObject({accepted:true});
+  expect(data().primitives).toHaveLength(2);
+  owner.undo(); expect(data().primitives).toHaveLength(1);
+  owner.redo(); expect(data().primitives).toHaveLength(2);
 });

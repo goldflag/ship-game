@@ -1,3 +1,4 @@
+import { initBlockGeometry } from './blockMovement';
 import { currentAccount } from '../../accounts/session';
 import { retainRecovery, savedReference } from '../../ships/constructionCloud';
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
@@ -77,6 +78,8 @@ export function useBuilderSource({ starterSource, initialSource, initialDesignId
     let active = true; let opened: ConstructionStore | undefined;
     void openStore().then(async storage => {
       opened = storage;
+      if (!active) { storage.close(); return; }
+      await initBlockGeometry();
       if (!active) { storage.close(); return; }
       await owner.connect(storage, initialDesignId, !!initialSource);
       if (active) setStore(storage);

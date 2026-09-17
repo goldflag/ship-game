@@ -162,3 +162,23 @@ fn slender_rounded_hull_returns_from_small_heel_in_native_sea_trial() {
         actor.motion.roll
     );
 }
+
+
+#[test]
+fn intersecting_hull_blocks_match_one_equivalent_shell_in_all_loading() {
+    let (mut source, catalog) = fixture();
+    source.construction.primitives[0].size[2] = 30.;
+    let single = compile(&source, &catalog);
+    source.construction.primitives[0].size[2] = 20.;
+    source.construction.primitives[0].position[2] = -5.;
+    let mut other = source.construction.primitives[0].clone();
+    other.id = "overlap".into(); other.position[2] = 5.;
+    source.construction.primitives.push(other);
+    let joined = compile(&source, &catalog);
+    let (a,b) = (single.loading.unwrap(), joined.loading.unwrap());
+    near(a.mass_kg, b.mass_kg);
+    near(a.envelope_volume_m3, b.envelope_volume_m3);
+    near(a.material_volume_m3, b.material_volume_m3);
+    near(a.usable_volume_m3, b.usable_volume_m3);
+    for k in 0..3 { near(a.center_of_gravity[k],b.center_of_gravity[k]); near(a.inertia_kg_m2[k],b.inertia_kg_m2[k]); }
+}
