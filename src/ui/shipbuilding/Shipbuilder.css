@@ -70,8 +70,8 @@
 .sb-empty button { color: var(--sb-brass); border-bottom: 1px solid currentColor; }
 
 /* chrome containers let the pointer through to the scene; only controls catch it */
-.sb-top, .sb-left, .sb-ledger, .sb-hotbar, .sb-keys, .sb-viewbar, .sb-empty { pointer-events: none; }
-.sb-top > *, .sb-warn > *, .sb-rail button, .sb-hotbar > *, .sb-drawer, .sb-viewbar > *, .sb-empty button, .sb-menu { pointer-events: auto; }
+.sb-top, .sb-left, .sb-ledger, .sb-hotbar, .sb-keys, .sb-empty { pointer-events: none; }
+.sb-top > *, .sb-warn > *, .sb-rail button, .sb-hotbar > *, .sb-drawer, .sb-viewbar, .sb-empty button, .sb-menu { pointer-events: auto; }
 
 /* top bar */
 .sb-top { position: absolute; left: 0; right: 0; top: 0; height: 52px; display: flex; align-items: center; gap: 22px; padding: 0 18px; }
@@ -139,7 +139,12 @@
 .sb-dot.block { background: var(--sb-salmon); }
 .sb-dot.warn { background: var(--sb-gold); }
 .sb-dot.note, .sb-dot.ok { background: var(--sb-mint); }
+/* tool rail: what a click does. A caption names the rail; a second caption under the tools opens the modifiers (Mirror, Snap) that change where a click lands. */
 .sb-rail { display: flex; flex-direction: column; gap: 5px; width: 54px; }
+.sb-rail-cap, .sb-vb-cap { font: 500 10px/1 'Barlow', sans-serif; letter-spacing: .1em; text-transform: uppercase; color: var(--sb-muted2); white-space: nowrap; }
+.sb-rail-cap { padding: 0 0 1px 2px; }
+.sb-rail-cap.foot { margin-top: 8px; }
+.sb-rail button.value b { font: 500 12px/1 'Barlow', sans-serif; letter-spacing: 0; text-transform: none; color: var(--sb-text); font-variant-numeric: tabular-nums; }
 .sb-rail button { width: 54px; height: 50px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: var(--sb-muted); border: 1px solid var(--sb-line2); border-radius: 3px; background: var(--sb-card); text-shadow: none; font: 500 9.5px 'Barlow Condensed', sans-serif; letter-spacing: .07em; text-transform: uppercase; position: relative; }
 .sb-rail button:hover:not(:disabled, [aria-pressed=true]) { color: var(--sb-text); border-color: var(--sb-muted2); background: var(--sb-card-hover); }
 .sb-rail button svg { width: 20px; height: 20px; }
@@ -151,7 +156,8 @@
 /* hotbar + drawer: square cards showing the piece itself; names and readings are tooltips */
 .sb-hotbar { position: absolute; left: 50%; bottom: var(--sb-bar-bottom); transform: translateX(-50%); display: flex; gap: 6px; }
 /* Keep card styles more specific than the button reset. */
-.shipbuilder .sb-slot { flex-shrink: 0; width: var(--sb-slot); height: var(--sb-slot); padding: 0; border: 1px solid var(--sb-line2); border-radius: 3px; background: var(--sb-card); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; color: var(--sb-text); text-shadow: none; }
+/* `clip`, not `hidden`: a hidden overflow makes each card a scroll container, and with the shell's `overscroll-behavior: contain` Chrome stops the wheel there instead of scrolling the drawer grid. */
+.shipbuilder .sb-slot { flex-shrink: 0; width: var(--sb-slot); height: var(--sb-slot); padding: 0; border: 1px solid var(--sb-line2); border-radius: 3px; background: var(--sb-card); display: flex; align-items: center; justify-content: center; position: relative; overflow: clip; color: var(--sb-text); text-shadow: none; }
 .sb-slot:hover:not(:disabled) { border-color: var(--sb-muted2); background: var(--sb-card-hover); }
 .sb-slot img { display: block; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
 .sb-slot-weight { position: absolute; bottom: 3px; right: 4px; font-size: 11px; color: var(--sb-text); background: var(--sb-card); padding: 1px 3px; }
@@ -228,13 +234,15 @@
 
 /* view bar: icon squares on the palette's bottom line at the right edge, grouped view · camera · slice | centers · snap · mirror | fit;
    the pressed card carries a toggle's state and the tooltip its name, value and key */
-.sb-viewbar { position: absolute; right: 18px; bottom: 24px; display: flex; gap: 4px; align-items: flex-end; }
-.sb-viewbar .sb-vb { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: 1px solid var(--sb-line2); border-radius: 3px; background: var(--sb-card); color: var(--sb-muted); text-shadow: none; }
-.sb-vb.gap { margin-left: 10px; }
+/* view strip: how the ship is shown. One captioned ground with bare glyph squares, so it never reads as a second tool rail. */
+.sb-viewbar { position: absolute; right: 18px; bottom: 24px; display: flex; gap: 2px; align-items: center; padding: 3px 3px 3px 8px; background: var(--sb-card); border: 1px solid var(--sb-line2); border-radius: 4px; }
+.sb-vb-cap { margin-right: 6px; text-shadow: none; }
+.sb-viewbar .sb-vb { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border: 0; border-radius: 3px; background: transparent; color: var(--sb-muted); text-shadow: none; position: relative; }
+.sb-vb.gap { margin-left: 11px; }
+.sb-vb.gap::before { content: ''; position: absolute; left: -7px; top: 4px; bottom: 4px; width: 1px; background: var(--sb-line2); }
 .sb-vb svg { width: 20px; height: 20px; }
-.sb-viewbar button.sb-vb:hover { border-color: var(--sb-muted2); background: var(--sb-card-hover); color: var(--sb-text); }
-.sb-viewbar .sb-vb[aria-pressed=true] { border-color: var(--sb-brass); color: var(--sb-brass); background: var(--sb-card-selected); box-shadow: inset 0 0 0 1px var(--sb-brass); }
-.sb-snap-value { font-size: 11px; font-variant-numeric: tabular-nums; color: var(--sb-text); white-space: nowrap; }
+.sb-viewbar button.sb-vb:hover { background: var(--sb-card-hover); color: var(--sb-text); }
+.sb-viewbar .sb-vb[aria-pressed=true] { color: var(--sb-brass); background: var(--sb-card-selected); box-shadow: inset 0 0 0 1px var(--sb-brass); }
 
 @media (max-width: 1100px) {
   .shipbuilder { --sb-slot: 56px; }
@@ -247,10 +255,12 @@
   .sb-tag { max-width: min(420px, calc(100% - 96px)); overflow-y: auto; scrollbar-width: thin; }
   .sb-ledger { width: 176px; }
 }
-/* a window narrower than the palette plus the row folds the view squares into two right-aligned rows */
+/* a window narrower than the palette plus the strip drops the caption and folds the squares into rows of three */
 @media (max-width: 1240px) {
-  .sb-viewbar { flex-wrap: wrap-reverse; width: 140px; justify-content: flex-end; }
+  .sb-viewbar { flex-wrap: wrap-reverse; width: 104px; justify-content: flex-end; padding: 3px; }
+  .sb-vb-cap { display: none; }
   .sb-vb.gap { margin-left: 0; }
+  .sb-vb.gap::before { display: none; }
 }
 /* a short window leaves no room for the legend under the rail */
 @media (max-width: 860px), (max-height: 800px) {
@@ -277,7 +287,7 @@
   .sb-menu { position: fixed; left: 12px; top: 64px; width: calc(100vw - 24px); max-width: none; z-index: 6; }
   /* One centred row of view squares keeps below the full-width palette. */
   .shipbuilder { --sb-bar-bottom: 60px; --sb-bar-height: calc((100vw - 52px) * 2 / 5 + 6px); }
-  .sb-viewbar { left: 14px; right: 14px; bottom: 12px; justify-content: center; }
+  .sb-viewbar { left: 14px; right: 14px; bottom: 12px; width: auto; justify-content: center; }
   .sb-orientation { bottom: calc(var(--sb-bar-bottom) + var(--sb-bar-height) + 18px); }
   .shipbuilder:not(.sb-freeform-mode) .sb-top { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 12px; }
   .shipbuilder:not(.sb-freeform-mode) .sb-ship { grid-column: 2; }
@@ -310,7 +320,7 @@
   .sb-cursor { width: calc(100% - 28px); justify-content: center; gap: 5px; font-size: 11px; }
   .sb-cursor b { max-width: 140px; overflow: hidden; text-overflow: ellipsis; }
   .sb-cursor .sb-coords { position: absolute; bottom: 24px; right: 0; }
-  .sb-viewbar { left: 14px; right: 14px; bottom: 10px; justify-content: center; }
+  .sb-viewbar { left: 14px; right: 14px; bottom: 10px; width: auto; justify-content: center; }
   .sb-drawer { width: calc(100% - 28px); max-width: none; }
   .sb-drawer-grid { max-height: max(56px, calc(100dvh - 450px)); }
 }

@@ -2,7 +2,7 @@
 import type { Ammo } from "./Ammo";
 import type { Battery } from "./Battery";
 
-export type HeldInput = {
+export type HeldInput = { 
 /**
  * False preserves a standing movement order while the player aims and fires.
  */

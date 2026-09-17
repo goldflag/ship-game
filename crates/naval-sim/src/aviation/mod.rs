@@ -41,14 +41,16 @@ pub use air_rules::{
 pub use air_search::valid_area;
 pub(crate) use aircraft::on_flight_deck;
 pub use aircraft::{
-    AirFlight, AirOrder, AirRelease, AirWingState, Aircraft, SearchAltitude, SearchPolicy,
-    SearchProgress, active_flight, airborne, create_air_wing, terminal,
+    AirFlight, AirOrder, AirRelease, AirWingState, AirWreck, Aircraft, AircraftBehavior,
+    SearchAltitude, SearchPolicy, SearchProgress, SearchSample, active_flight, airborne,
+    create_air_wing, terminal,
 };
 pub use aircraft_deck::{GroundPose, compose_attitude};
 pub use aircraft_defense::near_fire;
 pub use aircraft_flight::{FlightAttitude, FlightControls, TAKEOFF_ROLL_SECONDS};
 pub use deck_contact::{ContactPose, DeckSurface};
-pub use deck_operations::{DeckAction, DeckOperations, DeckPolicy, place};
+pub use deck_operations::{DeckAction, DeckOperations, DeckPolicy, DeckRequest, DeckStatus, place};
+pub(crate) use deck_operations::ACTIVE_FLIGHT_LIMIT_FIELD;
 pub(crate) use flight_deck::validate;
 pub use flight_deck::{DeckPose, Envelope};
 pub use pve_air::{AirDoctrine, AirIntent};
@@ -56,7 +58,7 @@ pub use step::AirContext;
 
 use crate::{environment::SeaState, machinery::equipment_condition, vessel::Vessel};
 use std::collections::BTreeMap;
-#[derive(Clone, Debug, serde::Serialize)]
+#[derive(Clone, Debug, serde::Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 pub struct CarrierWing {
     pub owner_id: String,
@@ -760,7 +762,7 @@ mod tests {
                 .unwrap(),
             b.presentation_value(PresentationView::Team(TeamId::A))
                 .unwrap(),
-            serde_json::to_value(b.presentation_snapshot()).unwrap(),
+            serde_json::to_value(b.full_frame(&[])).unwrap(),
         ] {
             let p = frame["wings"][0]["state"]["planes"]
                 .as_array()

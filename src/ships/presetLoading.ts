@@ -2,7 +2,8 @@ import type { ShipDefinition } from './blueprint';
 import catalog from './presetCatalog.json';
 import { decodeRuntimeDefinition } from './runtimeEncoding';
 import { assetUrl } from '../assetUrl';
-import { registerHydrostaticTable, type HydrostaticTable } from '../simulation/hydrostatics';
+/** The published hydrostatic lookup travels with the runtime content; only the Rust authority reads it. */
+type HydrostaticTable = { version: 1; nodes: string };
 type Definition = ShipDefinition & { contentHash: string };
 const entries = catalog as unknown as Record<string, Record<string, unknown> & { runtime: { url: string; sha256: string; hydro?: { url: string; sha256: string } } }>;
 const loaded = new Map<string, Definition>(), pending = new Map<string, Promise<Definition>>();
@@ -58,7 +59,7 @@ export function loadShipPreset(id: string): Promise<Definition> {
     } else if (entry.runtime.hydro) {
       table = JSON.parse(new TextDecoder().decode(await verifiedBytes(entry.runtime.hydro.url, entry.runtime.hydro.sha256)));
     }
-    if (table?.contentHash === definition.contentHash) registerHydrostaticTable(definition.hull, table);
+    if (table && table.contentHash !== definition.contentHash) throw new Error('Hydrostatic table identity mismatch: ' + id);
     loaded.set(id, definition); return definition;
   })();
   pending.set(id, promise);

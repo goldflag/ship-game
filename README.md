@@ -194,12 +194,11 @@ Sound uses an [original ElevenLabs-generated naval set](assets/audio/naval/READM
 - `src/ships/blueprint.ts`: validated, versioned JSON blueprints and compiled ship definitions.
 - `assets/`: original Blender sources, reusable gun recipes, references, source registers and generated review images.
 - `scripts/ships/`: portable build, export, independent GLB validation, starter and review commands.
-- `src/simulation/battle.ts` and `bots.ts`: bounded fleet setup, deployment, team-aware controllers and ballistic target leading.
-- `src/simulation/collisions.ts`: hull contact separation, mass-based linear/angular impulses and localized ramming damage for every fleet actor.
+- `src/game/session/battleSetup.ts`: bounded custom-battle setup, deployment and spawn validation, checked again by the Rust battle on admission.
 - `crates/naval-sim/`: authoritative renderer-free movement, weapons, collisions, aircraft, damage and flooding at 60 Hz. `naval-protocol` validates addressed commands; `naval-server` owns online matches and results; `naval-wasm` hosts custom battles.
 - `src/game/session/`: stable presentation objects, custom worker scheduling, WebSocket/reconnect transport and player intent.
-- `src/simulation/`: TypeScript port state, geometry and read-only presentation helpers; active custom/online combat runs in Rust.
-- `src/simulation/gunnery.ts`: one fixed-tick operation per gun mount. Automatic AA claims a mount first unless its group is selected; otherwise the mount follows the sight or its bot's track. Both firing paths spend salvos from the shared stock in `weapons.ts`.
+- `src/game/session/elements.ts`, `telemetry.ts`, `airTelemetry.ts`: the frame's element shapes as generated from Rust, and the read-only instrument readouts over them. `src/game/mountGeometry.ts`, `mountFrames.ts`, `ballistics.ts`, `machinery.ts`, `floodwater.ts`, `airWing.ts`: presentation helpers that read the frame (muzzles, carried-mount frames, aim arcs, readiness, water surfaces, deck spots); the two arithmetic copies (`ballistics`, `mountFrames`) are gated against the Rust originals by `src/game/wasmReference.test.ts`.
+- `src/simulation/`: the retired TypeScript engine, kept only as the fixture its remaining renderer tests build on; nothing in the game imports it.
 - `src/game/ShipView.ts`: binds simulation state to exported joints. `ShipInspection.ts` renders shared armor/module/compartment inspection geometry; `src/ships/inspection.ts` supplies both its geometry and the port list. `CombatEffects.ts` expands projectile instances as needed and uses bounded pools for cosmetic particles.
 - `src/game/Game.ts`: scene, licensed Water/Sky integration and lifecycle. Combat ship poses come from CPU simulation; GPU waves animate the sea and buoys.
 - `src/game/VisualEnvironment.ts`: applies the resolved map, time-of-day and weather conditions to the water and sky, and owns their live overrides: sheltered port defaults, the air map's far fog, underwater attenuation and the celestial light shared with scene lights and smoke.

@@ -32,15 +32,14 @@ export async function checkFreeformVisibility() {
     let commits = 0;
     function Fixture() {
       const [source, setSource] = useState(initial), [selection, setSelection] = useState<HullSelection>({mode,index:0});
-      return <main className="shipbuilder"><BuilderViewport source={source} result={result} catalog={catalog}
-        selected={new Set(['hull'])} selectedSurfaces={new Set()} view="orbit" display="paint" gridStep={1}
-        gesture="none" pickTargets="hull" moveTargets="none" highlightFaces={false} rooms={false} showCenters={false}
-        arcs={[]} proposed={[]} tags={[]} coords={() => ''} fitRequest={0} onPick={() => {}} onStroke={() => {}}
-        onBoxSelect={() => {}} onErase={() => {}} onMove={() => {}}
-        freeform={{ id: 'hull', selection, axes: [false, false, false], unit: .2, snap: false,
+      return <main className="shipbuilder"><BuilderViewport scene={{ source, result, current: result, catalog,
+        selected: new Set(['hull']), selectedSurfaces: new Set(), view: 'orbit', perspective: false, display: 'paint', gridStep: 1,
+        gesture: 'none', pickTargets: 'hull', moveTargets: 'none', highlightFaces: false, rooms: false, showCenters: false,
+        arcs: [], proposed: [], fitRequest: 0,
+        freeform: { id: 'hull', selection, axes: [false, false, false], unit: .2, snap: false,
           onSelect: setSelection, onCommit: replacements => { commits++; setSource(current => {
             const next = structuredClone(current); replaceVertexPrimitives(next, replacements); next.revision = crypto.randomUUID(); return next;
-          }); } }}/></main>;
+          }); } } }} tags={[]} coords={() => ''} onPointer={() => {}}/></main>;
     }
     delete (window as unknown as { shipbuilderViewport?: LiveViewport }).shipbuilderViewport;
     const host = document.createElement('div'); document.body.replaceChildren(host); const root = createRoot(host); root.render(<Fixture/>);

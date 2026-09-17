@@ -12,20 +12,25 @@ pub struct WeaponSource {
     pub label: String,
     pub ammunition: Ammunition,
 }
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 pub struct ShellHistory {
+    #[ts(type = "number")]
     pub shell_id: i64,
     pub owner_id: String,
+    #[ts(type = "number")]
     pub tick: u64,
     pub ammunition: Ammunition,
     pub impacts: Vec<ImpactRecord>,
+    #[ts(as = "crate::frame_vocabulary::ShellOutcome")]
     pub outcome: String,
 }
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 pub struct DamageLogEntry {
+    #[ts(type = "number")]
     pub id: u64,
+    #[ts(type = "number")]
     pub tick: u64,
     pub source_id: String,
     pub target_id: String,
@@ -37,7 +42,7 @@ pub struct DamageLogEntry {
     #[serde(skip)]
     projectiles: BTreeSet<i64>,
 }
-#[derive(Clone, Debug, Default, Serialize)]
+#[derive(Clone, Debug, Default, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 pub struct VesselScore {
     pub damage_dealt: f64,
@@ -46,7 +51,7 @@ pub struct VesselScore {
     #[serde(skip)]
     sequence: u64,
 }
-#[derive(Default, Serialize)]
+#[derive(Default, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 pub struct Records {
     pub scores: BTreeMap<String, VesselScore>,
@@ -67,7 +72,26 @@ pub struct Records {
     #[serde(skip)]
     counts: Vec<(String, i32)>,
 }
+impl VesselScore {
+    /// A score sheet for a frame, addressed through public IDs by the caller.
+    pub fn addressed(damage_dealt: f64, frags: u32, damage_log: Vec<DamageLogEntry>) -> Self {
+        Self {
+            damage_dealt,
+            frags,
+            damage_log,
+            sequence: 0,
+        }
+    }
+}
 impl Records {
+    /// Records for a frame: the sheets a viewer may see and no shell history.
+    /// Private bookkeeping stays empty; nothing steps these.
+    pub fn addressed(scores: BTreeMap<String, VesselScore>) -> Self {
+        Self {
+            scores,
+            ..Default::default()
+        }
+    }
     pub fn begin_tick(&mut self, actors: &[Vessel]) {
         self.eligible.clear();
         self.eligible

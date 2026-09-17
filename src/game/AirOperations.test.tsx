@@ -1,3 +1,4 @@
+import { fleetDesk } from '../ui/fleet/fleetDesk';
 import { expect, mock, test } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -17,14 +18,14 @@ import { WaterSurfaceGeometry, WaterSystem } from '../../vendor/threejs-water-pr
 import { battleEnvironment } from '../maps/conditions';
 import { oceanMap } from '../maps/catalog';
 import { squadronTargetOrder } from '../ui/airCommands';
-import { squadronFlights } from '../simulation/aircraft';
+import { squadronFlights } from './airWing';
 
 test('every carrier squadron card references a published PNG thumbnail', () => {
   for (const id of Object.keys(shipPresets)) {
     const def = shipPreset(id);
     if (!def.airWing) continue;
     const sim = new CombatSimulation(def);
-    const html = renderToStaticMarkup(<AirOperations data={{ ship: sim.ship, order: 1, camera: 'Chase', trail: [], fps: 60, backend: 'test', airOperationsOpen: true, combat: sim.telemetry('main', [0, 0, -5000]) }} game={null} bindings={defaultKeybindings()}/>);
+    const html = renderToStaticMarkup(<AirOperations data={{ ship: sim.ship, order: 1, camera: 'Chase', trail: [], fps: 60, backend: 'test', airOperationsOpen: true, combat: sim.telemetry('main', [0, 0, -5000]) }} desk={null} bindings={defaultKeybindings()}/>);
     const images = [...html.matchAll(/<img class="air-box-aircraft" src="([^"]+)"/g)];
     expect(images.length).toBeGreaterThan(0);
     for (const [, src] of images) {
@@ -39,7 +40,7 @@ test('every carrier squadron card references a published PNG thumbnail', () => {
 test('hiding carrier instruments leaves the map navigation surface interactive', () => {
   const simulation = new CombatSimulation(shipPreset('enterprise-cv6'));
   const data = { ship: simulation.ship, order: 1, camera: 'Chase' as const, trail: [], fps: 60, backend: 'test', airOperationsOpen: true, combat: simulation.telemetry('main', [0, 0, -5000]) };
-  const html = renderToStaticMarkup(<FleetHud data={data} game={null} visible={false} bindings={defaultKeybindings()}/>);
+  const html = renderToStaticMarkup(<FleetHud data={data} desk={null} visible={false} bindings={defaultKeybindings()}/>);
   expect(html.match(/<div class="fleet-hud [^>]*>/)![0]).not.toContain('inert');
   expect(html).toContain('air-battlefield-map');
   expect(html).not.toContain('air-squadron-box');
@@ -70,7 +71,7 @@ test('merged air groups retain selection through snapshots and deduplicate subse
   third.mergedInto = second.id;
   expect(game.selectedFlightIds).toEqual([first.id]);
   first.notice = 'Combined with Fighter 2 in hangar · 4 aircraft';
-  const html = renderToStaticMarkup(<FleetCommand data={{ ship: simulation.ship, order: 1, camera: 'Chase', trail: [], fps: 60, backend: 'test', airOperationsOpen: true, combat: simulation.telemetry('main', [0, 0, -5000]) }} game={game} bindings={defaultKeybindings()}/>);
+  const html = renderToStaticMarkup(<FleetCommand data={{ ship: simulation.ship, order: 1, camera: 'Chase', trail: [], fps: 60, backend: 'test', airOperationsOpen: true, combat: simulation.telemetry('main', [0, 0, -5000]) }} desk={fleetDesk(game)} bindings={defaultKeybindings()}/>);
   expect(html).toContain('role="status">Fighter 1 · Combined with Fighter 2 in hangar · 4 aircraft');
   game.selectFlight(first.id);
   expect(game.selectedFlightIds).toEqual([]);
@@ -88,7 +89,7 @@ test('selected route points toward a distant target through the zoom level where
   const game = Object.assign(Object.create(Game.prototype), { camera, hudScale: 1, host: { clientWidth: 1600, clientHeight: 900 } }) as Game;
   for (const radius of [8000, 4000, 2000, 1000, 600, 300]) {
     battlefield.view.radius = radius; battlefield.update();
-    const html = renderToStaticMarkup(<AirOperations data={{ ship: simulation.ship, order: 1, camera: 'Chase', trail: [], fps: 60, backend: 'test', airOperationsOpen: true, selectedFlightId: flight.id, combat }} game={game} bindings={defaultKeybindings()}/>);
+    const html = renderToStaticMarkup(<AirOperations data={{ ship: simulation.ship, order: 1, camera: 'Chase', trail: [], fps: 60, backend: 'test', airOperationsOpen: true, selectedFlightId: flight.id, combat }} desk={fleetDesk(game)} bindings={defaultKeybindings()}/>);
     const path = html.match(/class="air-route"[^>]* d="([^"]*)"/)![1];
     // At the closer limit this elevated route is entirely outside the view;
     // keep it clipped rather than reflecting it back onto the map.
@@ -145,7 +146,7 @@ test('the operations roster exposes the full inventory and retains a flight targ
   const def = shipPreset('enterprise-cv6');
   const sim = new CombatSimulation(def, { friendlyBots: [], enemies: [shipPreset('bismarck'), shipPreset('yamato')] });
   sim.launchAircraft('vb-6'); sim.selectTarget(sim.actors[2].motion.id);
-  const html = renderToStaticMarkup(<AirOperations data={{ ship: sim.ship, order: 1, camera: 'Chase', trail: [], fps: 60, backend: 'test', airOperationsOpen: true, selectedFlightId: sim.player.airWing!.flights[0].id, combat: sim.telemetry('main', [0, 0, -5000]) }} game={null} bindings={defaultKeybindings()}/>);
+  const html = renderToStaticMarkup(<AirOperations data={{ ship: sim.ship, order: 1, camera: 'Chase', trail: [], fps: 60, backend: 'test', airOperationsOpen: true, selectedFlightId: sim.player.airWing!.flights[0].id, combat: sim.telemetry('main', [0, 0, -5000]) }} desk={null} bindings={defaultKeybindings()}/>);
   expect(html).not.toContain('48/48 aircraft'); expect(html).toContain('Strike Bismarck');
   expect(html).not.toContain('Fit battlefield'); expect(html).not.toContain('Battlefield tilt'); expect(html).not.toContain('Reset angle'); expect(html).toContain('Return squadron');
   expect(html).not.toContain('Right-click water to loiter'); expect(html).toContain('map hotkey 8');
@@ -261,7 +262,7 @@ test('multiple selected squadrons highlight cards and manifest rows and expose b
   const combat = sim.telemetry('main', [0, 0, -5000]);
   const fighter = combat.airWing!.groups.find(f => f.role === 'fighter')!;
   const bomber = combat.airWing!.groups.find(f => f.role === 'dive-bomber')!;
-  const html = renderToStaticMarkup(<AirOperations data={{ ship: sim.ship, order: 1, camera: 'Chase', trail: [], fps: 60, backend: 'test', airOperationsOpen: true, selectedFlightIds: [fighter.id, bomber.id], combat }} game={null} bindings={defaultKeybindings()}/>);
+  const html = renderToStaticMarkup(<AirOperations data={{ ship: sim.ship, order: 1, camera: 'Chase', trail: [], fps: 60, backend: 'test', airOperationsOpen: true, selectedFlightIds: [fighter.id, bomber.id], combat }} desk={null} bindings={defaultKeybindings()}/>);
   expect(html.match(/aria-pressed="true"/g)).toHaveLength(4);
   expect(html).toContain('2 selected');
   expect(html).toContain('>Strike<');

@@ -2,4 +2,4 @@
 import type { SearchAltitude } from "./SearchAltitude";
 import type { SearchPolicy } from "./SearchPolicy";
 
-export type AirOrder = { "kind": "search-area", center: [number, number], radiusM: number, altitude: SearchAltitude, policy: SearchPolicy, } | { "kind": "strike", contactId: string, } | { "kind": "intercept-contact", contactId: string, } | { "kind": "attack", targetId: string, } | { "kind": "patrol", point: [number, number, number], } | { "kind": "defend", targetId: string | null, } | { "kind": "intercept", flightId: string, } | { "kind": "escort", flightId: string, } | { "kind": "return" };
+export type AirOrder = { "kind": "search-area", center: [number, number], radiusM: number, altitude: SearchAltitude, policy: SearchPolicy, } | { "kind": "strike", contactId: string, } | { "kind": "intercept-contact", contactId: string, } | { "kind": "attack", targetId: string, } | { "kind": "patrol", point: [number, number, number], } | { "kind": "defend", targetId?: string | null, } | { "kind": "intercept", flightId: string, } | { "kind": "escort", flightId: string, } | { "kind": "return" };

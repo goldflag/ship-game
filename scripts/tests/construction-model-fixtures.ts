@@ -125,6 +125,9 @@ export function cruiserEquipmentFixture(catalog: ConstructionCatalog): Construct
   const add = (id: string, partId: string, position: Vec3, links: Partial<ConstructionEquipment> = {}) => source.construction.equipment.push({ id, partId, position, bearingDeg: 0, ...links });
   const engine = parts.find(p => p.kind === 'engine')!;
   add('cruiser-engine', engine.id, [0, -9.984, 130]);
+  parts.filter(p => p.kind === 'engine' && p.id !== engine.id).forEach((part, index) => {
+    add('review-' + part.id, part.id, [0, -9.984, 80 - index * 40]);
+  });
   let gun = 0, deck = 0, screw = 0;
   for (const part of parts) {
     if (part.kind === 'engine' || part.kind === 'magazine') continue;

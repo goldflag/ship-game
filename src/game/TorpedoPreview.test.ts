@@ -2,8 +2,8 @@ import { expect, test } from 'bun:test';
 import { CombatSimulation } from '../simulation/combat';
 import { shipPreset } from '../ships/presets';
 import { torpedoPreviewSectors } from './TorpedoPreview';
-import { tubeSolution, tubeLocalPosition } from '../simulation/torpedoes';
-import { localToWorld } from '../simulation/geometry';
+import { tubeSolution, tubeLocalPosition } from './torpedoAim';
+import { localToWorld } from './geometry';
 
 for (const id of ['type-viic', 'fletcher']) test(`${id} preview uses launch sectors, actual course, arming and range without changing tube state`, () => {
   const sim = new CombatSimulation(shipPreset(id));

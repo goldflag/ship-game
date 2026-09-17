@@ -1,14 +1,15 @@
-import { hullDepth } from './ship';
+import { hullDepth } from '../game/session/motion';
 import { gunTraverseLimitsDeg } from '../ships/armament';
 import type { Ammunition, ShipDefinition, Vec3 } from '../ships/blueprint';
 import { barrelOffset, barrelHeightOffset } from '../ships/blueprint';
-import { add, clamp, length, localToWorld, normalize, radians, rotate, sub, wrapAngle, worldToLocal, type Pose } from './geometry';
-import { GRAVITY, solveDragArc, travelFactor } from './ballistics';
-import { BarrelObstructionTree, gunMountObstructions, segmentIntersectsBox } from './obstruction';
-import { mountBearing, mountPosition, mountFrame, type CarrierFrame } from './mountFrames';
+import { add, clamp, length, localToWorld, normalize, radians, rotate, sub, wrapAngle, worldToLocal, type Pose } from '../game/geometry';
+import { GRAVITY, solveDragArc, travelFactor } from '../game/ballistics';
+import { BarrelObstructionTree, gunMountObstructions, segmentIntersectsBox } from '../game/obstruction';
+import { mountBearing, mountPosition, mountFrame, type CarrierFrame } from '../game/mountFrames';
 import { moveMountWithClearance } from './mountClearance';
-export { GRAVITY } from './ballistics';
-export type MountDefinition = ShipDefinition['mounts'][number];
+import type { MountState as SessionMount } from '../game/session/elements';
+import { availableAmmunition, gunWorkRate, muzzleHeight, muzzleLocal, muzzleWorld, muzzleCenterLocal, muzzleCenterWorld, shotDirection, solveBallistic, type MountDefinition } from '../game/mountGeometry';
+export { GRAVITY, availableAmmunition, gunWorkRate, muzzleLocal, muzzleWorld, muzzleCenterLocal, muzzleCenterWorld, shotDirection, solveBallistic, type MountDefinition } from '../game/mountGeometry';
 // Compiled definitions are immutable during a battle, like the hull/armor caches.
 // Every barrel used to rebuild every other gunhouse box on every fixed tick.
 const barrelObstructions = new WeakMap<MountState, { definition: ShipDefinition; mount: MountDefinition; train: number; elevation: number; blocked: boolean; carriers: number[] }>();
@@ -30,23 +31,16 @@ function obstructionTree(definition: ShipDefinition) {
   }
   return tree;
 }
-export interface MountState {
-  /** Derived CPU carrier pose, refreshed before operation; absent on hull mounts. */
-  carrier?: CarrierFrame;
+/** The engine's mount keeps what the frame drops: the derived carrier pose,
+ * AA discipline and lead/aim caches. The published shape is the generated one. */
+export interface MountState extends Omit<import('../game/session/elements').MountState, 'aimCache'> {
   aaDiscipline?: import('./airGunnery').FireDiscipline;
-  id: string; train: number; elevation: number; reload: number; ammo: number; hp: number; recoil: number;
-  /** Total rounds include the HE subset; rounds are consumed when fired. */
-  heAmmo: number; loaded: Ammunition; queued?: Ammunition;
-  status: 'ready' | 'reloading' | 'turning' | 'out-of-range' | 'blocked' | 'out-of-arc' | 'empty' | 'disabled' | 'submerged';
   aimCache?: { time: number; train: number; elevation: number; point: Vec3 };
   leadCache?: { time: number; point: Vec3 };
 }
 export const createMountState = (m: MountDefinition): MountState => ({ id: m.id, train: 0, elevation: radians(m.initialElevationDeg ?? 1), reload: 0,
   ammo: m.weapon.ammoPerBarrel * m.weapon.barrelCount, heAmmo: Math.floor(m.weapon.ammoPerBarrel * (m.weapon.he?.stockFraction ?? 0)) * m.weapon.barrelCount,
   loaded: 'ap', hp: 100, recoil: 0, status: 'turning' });
-export const availableAmmunition = (state: MountState, type = state.loaded): number => type === 'he' ? Math.max(0, Math.min(state.ammo, state.heAmmo)) : Math.max(0, state.ammo - state.heAmmo);
-/** Reload, traverse and elevation all slow together as electrical power fails. The HUD divides displayed reload by the same rate. */
-export const gunWorkRate = (power: number): number => .25 + .75 * clamp(power, 0, 1);
 /** Spend one complete salvo of the loaded type and begin the reload and recoil.
  * Readiness is the caller's decision; the shared stock model (total rounds with an
  * HE subset) and the post-salvo state live here for every firing path. */
@@ -75,55 +69,6 @@ export function queueAmmunition(m: MountDefinition, state: MountState, requested
   // An empty gun has no current salvo to preserve.
   if (state.reload === 0 && availableAmmunition(state) < m.weapon.barrelCount) selectAmmunition(m, state, type);
 }
-export function muzzleLocal(m: MountDefinition, state: Pick<MountState, 'train' | 'elevation' | 'carrier'>, barrel: number): Vec3 {
-  const bearing = mountBearing(m, state), w = m.weapon;
-  const forward = w.trunnionForward + (w.muzzleForward - w.trunnionForward) * Math.cos(state.elevation) - barrelHeightOffset(w, barrel) * Math.sin(state.elevation);
-  const lateral = barrelOffset(w, barrel);
-  return add(mountPosition(m, state), [Math.cos(bearing) * lateral + Math.sin(bearing) * forward, w.pivotHeight + barrelHeightOffset(w, barrel) * Math.cos(state.elevation) + (w.muzzleForward - w.trunnionForward) * Math.sin(state.elevation), Math.sin(bearing) * lateral - Math.cos(bearing) * forward]);
-}
-export const muzzleWorld = (m: MountDefinition, state: MountState, barrel: number, pose: Pose) => localToWorld(muzzleLocal(m, state, barrel), pose);
-/** Upright immersion needs only muzzle height; heading cannot affect it. */
-function muzzleHeight(m: MountDefinition, state: MountState, pose: Pose): number {
-  if (pose.roll !== 0 || pose.pitch !== 0) return muzzleWorld(m, state, 0, pose)[1];
-  const w = m.weapon;
-  return mountPosition(m, state)[1] + (w.pivotHeight + barrelHeightOffset(w, 0) * Math.cos(state.elevation)
-    + (w.muzzleForward - w.trunnionForward) * Math.sin(state.elevation)) + pose.y;
-}
-/** The aiming reference is the battery mount's barrel center, including odd/single layouts. */
-export function muzzleCenterLocal(m: MountDefinition, state: Pick<MountState, 'train' | 'elevation' | 'carrier'>): Vec3 {
-  const w = m.weapon, count = w.barrelCount, bearing = mountBearing(m, state), position = mountPosition(m, state);
-  const forward = w.trunnionForward + (w.muzzleForward - w.trunnionForward) * Math.cos(state.elevation);
-  const cosine = Math.cos(bearing), sine = Math.sin(bearing);
-  const vertical = w.pivotHeight + (w.muzzleForward - w.trunnionForward) * Math.sin(state.elevation);
-  let x = 0, y = 0, z = 0;
-  // Preserve the barrel-by-barrel division/addition order exactly; share only
-  // invariant trigonometry and avoid intermediate vectors.
-  for (let barrel = 0; barrel < count; barrel++) {
-    const lateral = barrelOffset(w, barrel), row = barrelHeightOffset(w, barrel);
-    const boreForward = forward - row * Math.sin(state.elevation);
-    x += (position[0] + (cosine * lateral + sine * boreForward)) / count;
-    y += (position[1] + vertical + row * Math.cos(state.elevation)) / count;
-    z += (position[2] + (sine * lateral - cosine * boreForward)) / count;
-  }
-  return [x, y, z];
-}
-export const muzzleCenterWorld = (m: MountDefinition, state: MountState, pose: Pose) => localToWorld(muzzleCenterLocal(m, state), pose);
-export function shotDirection(m: MountDefinition, state: MountState, pose: Pose): Vec3 {
-  const bearing = mountBearing(m, state);
-  return rotate([Math.sin(bearing) * Math.cos(state.elevation), Math.sin(state.elevation), -Math.cos(bearing) * Math.cos(state.elevation)], pose);
-}
-/** Low ballistic arc. Same gravity and speed as projectile integration. */
-export function solveBallistic(from: Vec3, target: Vec3, speed: number, dragPerSecond = 0): { direction: Vec3; time: number } | null {
-  const delta = sub(target, from), range = Math.hypot(delta[0], delta[2]);
-  if (range < 1 || range > 30000 || !target.every(Number.isFinite)) return null;
-  if (dragPerSecond > 1e-8) return solveDragArc(from, target, speed, dragPerSecond);
-  const v2 = speed * speed;
-  const discriminant = v2 * v2 - GRAVITY * (GRAVITY * range * range + 2 * delta[1] * v2);
-  if (discriminant < 0) return null;
-  const angle = Math.atan((v2 - Math.sqrt(discriminant)) / (GRAVITY * range));
-  return { direction: [delta[0] / range * Math.cos(angle), Math.sin(angle), delta[2] / range * Math.cos(angle)], time: range / (speed * Math.cos(angle)) };
-}
-/** Return true when the barrel has reached a valid firing solution (used by bots). */
 export function updateMount(m: MountDefinition, state: MountState, definition: ShipDefinition, pose: Pose & { waveHeave?: number }, aim: Vec3 | undefined, dt: number, inheritedVelocity: Vec3 = [0, 0, 0], power = 1, mountedStates?: readonly MountState[]): boolean {
   const workRate = gunWorkRate(power);
   const wasReloading = state.reload > 0;

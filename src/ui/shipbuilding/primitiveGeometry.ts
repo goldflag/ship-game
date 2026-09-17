@@ -43,10 +43,8 @@ export function primitiveGeometry(kind: ConstructionPrimitive['kind'], size: Vec
   return geometry;
 }
 
-export type BuilderPlacement =
-  | { kind: 'hull'; shape: ConstructionPrimitive['kind']; size: Vec3; rotationDeg: number }
-  | { kind: 'equipment'; partId?: string; propellerDiameterM?: number; size: Vec3; boundsCenter: Vec3; bearingDeg: number; sockets?: ConstructionEquipmentPart['sockets']; arc?: { traverseDeg: number; radius: number }; /** Clearance from the hit face, e.g. the inward skin thickness for internal packages. */ inset?: number }
-  | { kind: 'boundary'; axis: 'x' | 'y' | 'z'; thicknessMm: number };
+export type { BuilderPlacement } from './builderScene';
+import type { BuilderPlacement } from './builderScene';
 
 /** Boundaries preview as a plane spanning the ship's bounds. */
 export function placementGeometry(piece: BuilderPlacement, span: Vec3 = [60, 60, 60]): THREE.BufferGeometry {

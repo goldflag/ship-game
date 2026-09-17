@@ -68,10 +68,12 @@ pub struct Orders {
     pub weapons: WeaponsPolicy,
     pub formation_policy: navigation::FormationPolicy,
 }
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 pub struct Event {
+    #[ts(type = "number")]
     pub sequence: u64,
+    #[ts(type = "number")]
     pub tick: u64,
     #[serde(flatten)]
     pub data: DamageEvent,

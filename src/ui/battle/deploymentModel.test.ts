@@ -1,10 +1,10 @@
 import { expect, test } from 'bun:test';
-import type { BattleSetup } from '../../simulation/battle';
 import type { PveBriefing } from '../../multiplayer/generated/PveBriefing';
 import mission from '../../../assets/gameplay/pve-mission.v1.json';
 import { applyCustomDeployment, applyPveDeployment, arrangeFormation, customDeployment, fitRadius, formatHeading, initialPvePlacements, pveDeployment } from './deploymentModel';
 import { roleInterval, SCREEN_OUTER_RADIUS_M } from '../formationStations';
 import { moveFormation } from '../pveSetup';
+import type { BattleSetup } from '../../game/session/battleSetup';
 
 const setup: BattleSetup = { playerShipId: 'bismarck', friendlyBots: ['fletcher'], enemies: ['yamato', { shipId: 'fubuki', aiLevel: 'easy' }], spawnDistance: 6000, mapId: 'north-atlantic' };
 

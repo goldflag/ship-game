@@ -8,11 +8,12 @@ use crate::{
     structure::{StructuralSurface, structural_hits, structural_surfaces},
     vessel::{Fleet, Vessel},
 };
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, ts_rs::TS)]
 pub struct TubeState {
     pub id: String,
     pub ammo: f64,
     pub reload: f64,
+    #[ts(as = "crate::frame_vocabulary::TubeStatus")]
     pub status: String,
 }
 impl TubeState {
@@ -25,16 +26,23 @@ impl TubeState {
         }
     }
 }
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(optional_fields)]
 pub struct Torpedo {
+    #[ts(type = "number")]
     pub id: i64,
     pub owner_id: String,
+    /// Absent on another team's projectile in a team frame (`team_view`).
+    #[ts(as = "Option<_>")]
     pub tube_id: String,
     pub position: Vec3,
     pub velocity: Vec3,
     pub distance: f64,
     pub age: f64,
+    /// Another team's weapon is cut to its visible dimensions and speed in a team
+    /// frame (`team_view`); the owner's travels whole.
+    #[ts(type = "Pick<import('../../ships/blueprint').TorpedoPart, 'diameterM' | 'lengthM' | 'speed'> & Partial<import('../../ships/blueprint').TorpedoPart>")]
     pub weapon: TorpedoPart,
 }
 pub fn tube_local_position(actor: &Combatant, def: &ShipDefinition, tube: &TubeDefinition) -> Vec3 {

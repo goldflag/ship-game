@@ -2,7 +2,7 @@ import { expect, test } from 'bun:test';
 import { Camera, InstancedMesh, Matrix4, Vector3 } from 'three/webgpu';
 import { shipPreset, shipPresets } from '../ships/presets';
 import { CombatSimulation } from '../simulation/combat';
-import { localToWorld } from '../simulation/geometry';
+import { localToWorld } from './geometry';
 import { funnelOutlets, ShipFunnelSmoke } from './ShipFunnelSmoke';
 
 const fixture = (id = 'bismarck') => {

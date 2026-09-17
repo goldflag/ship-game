@@ -1,19 +1,20 @@
 import { internalSelectionIds } from './internalSelection';
 import { createBuilderGrid } from './builderGrid';
-import { FreeformHandles, type BuilderFreeformOptions } from './FreeformHandles';
+import { FreeformHandles } from './FreeformHandles';
 import { MoveHandles } from './MoveHandles';
 import { blockMoveConstraint } from './blockMovement';
 import { cornerVertices, worldVertex } from '../../ships/constructionVertex';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import type { ConstructionCatalog, ConstructionEquipmentPart, ConstructionPrimitive, ConstructionResult, ConstructionSource, ConstructionSurface, Vec3 } from '../../ships/blueprint';
+import type { ConstructionPrimitive, ConstructionResult, ConstructionSource, ConstructionSurface, Vec3 } from '../../ships/blueprint';
 import { armorThicknessColor } from '../../ships/inspection';
 import { surfaceKey } from '../../ships/constructionEditor';
 import { constructionPaintColor } from '../../ships/constructionPaints';
 import { snapCoordinate } from './editorNumbers';
 import { dominantAxis, fillLattice, pieceExtents, physicalPlacementHit, placementCenter, strokeSegment } from './placement';
-import { primitiveOutlineGeometry, primitiveGeometry, placementGeometry, placementRotation, type BuilderPlacement } from './primitiveGeometry';
+import { primitiveOutlineGeometry, primitiveGeometry, placementGeometry, placementRotation } from './primitiveGeometry';
+import type { BuilderPick, BuilderPlacement, BuilderPointerEvent, BuilderScene, BuilderView } from './builderScene';
 import { createConstructionHull } from '../../game/constructionModel';
 import { createConstructionPathModel } from '../../game/constructionPathModel';
 import { equipmentPathBounds } from '../../ships/constructionPaths';
@@ -22,39 +23,17 @@ import { EquipmentPreview } from './equipmentPreview';
 import { boxSelectedPieces } from './boxSelection';
 import { BuilderOrientation, updateBuilderOrientation } from './BuilderOrientation';
 
-export type BuilderView = 'orbit' | 'top' | 'side' | 'bow';
-export type BuilderDisplay = 'paint' | 'armor' | 'internals';
-/** How the primary button behaves: a click picks, a stroke lays a run of pieces, fill covers a rectangle. */
-export type BuilderGesture = 'none' | 'stroke' | 'fill';
-export interface BuilderPick { id?: string; surface?: string; point: Vec3; normal?: Vec3; axis: 0 | 1 | 2; placement: Vec3; additive: boolean }
-export interface BuilderArc { position: Vec3; bearingDeg: number; traverseDeg: number; radius: number; color: string }
+export type { BuilderArc, BuilderDisplay, BuilderGesture, BuilderMoveTargets, BuilderPick, BuilderPointerEvent, BuilderProposal, BuilderScene, BuilderView } from './builderScene';
 export interface BuilderTag { key: string; anchor: Vec3; dx: number; dy: number; tone: 'mint' | 'brass' | 'bad'; content: ReactNode }
-export interface BuilderProposal { position: Vec3; bearingDeg: number; size: Vec3; boundsCenter: Vec3 }
-/** What a primary drag may move: nothing, fittings only (while placing fittings), or pieces, fittings and walls. */
-export type BuilderMoveTargets = 'none' | 'equipment' | 'all';
 export type ConstructionModelFactory = (source: ConstructionSource, result: ConstructionResult, signal: AbortSignal) => Promise<THREE.Group>;
+/** The three.js adapter's interface: the scene to draw, HTML overlays React owns, and one door for finished gestures. */
 export interface ViewportProps {
-  freeform?: BuilderFreeformOptions; perspective?: boolean;
-  pathDraft?: { part: ConstructionEquipmentPart; points: Vec3[]; slackM: number; mirror: boolean };
-  onPathPoint?(point: Vec3): void; onPathFinish?(): void;
-  source: ConstructionSource; result?: ConstructionResult; catalog: ConstructionCatalog;
-  selected: ReadonlySet<string>; selectedSurfaces: ReadonlySet<string>;
-  view: BuilderView; display: BuilderDisplay; slice?: number;
-  gridStep: number; gesture: BuilderGesture;
-  /** What a click may select: hull faces only (armor, paint) or fittings and walls too. */
-  pickTargets: 'hull' | 'internals' | 'all';
-  moveTargets: BuilderMoveTargets;
-  placementPiece?: BuilderPlacement; placementMirror?: BuilderPlacement;
-  highlightFaces: boolean; rooms: boolean; showCenters: boolean;
-  arcs: BuilderArc[]; proposed: BuilderProposal[];
-  measure?: { from: Vec3; to?: Vec3 };
+  scene: BuilderScene;
   tags: BuilderTag[]; coords(position: Vec3): string;
   /** The cursor piece readout under the palette; the coordinates readout follows it. */
   status?: ReactNode;
-  fitRequest: number;
-  onPick(pick?: BuilderPick): void; onStroke(points: Vec3[]): void;
-  onBoxSelect(ids: string[], additive: boolean): void; onErase(id: string): void;
-  onMove(ids: string[], delta: Vec3): void;
+  /** Every pointer gesture, with its targets already raycast, snapped and filtered by the scene's targets. */
+  onPointer(event: BuilderPointerEvent): void;
   createModel?: ConstructionModelFactory;
 }
 /** A primary drag that began on a piece: the pieces it carries, the plane it slides in and the snapped offset so far. */
@@ -211,15 +190,15 @@ class Viewport {
   fit() {
     const bounds = new THREE.Box3();
     // Source bounds remain available before compilation and for invalid drafts.
-    for (const primitive of this.props.source.construction.primitives) {
+    for (const primitive of this.props.scene.source.construction.primitives) {
       for (const v of cornerVertices(primitive)) bounds.expandByPoint(new THREE.Vector3(...worldVertex(primitive, v)));
     }
     if (bounds.isEmpty()) bounds.set(new THREE.Vector3(-10, -5, -25), new THREE.Vector3(10, 5, 25));
     this.hullSize.copy(bounds.getSize(new THREE.Vector3()));
     // Keep the bow datum in frame in the views where the floor is readable.
-    if (this.props.view === 'orbit' || this.props.view === 'top') bounds.union(new THREE.Box3().setFromObject(this.floorGrid));
+    if (this.props.scene.view === 'orbit' || this.props.scene.view === 'top') bounds.union(new THREE.Box3().setFromObject(this.floorGrid));
     const size = bounds.getSize(new THREE.Vector3()), center = bounds.getCenter(new THREE.Vector3());
-    const view = this.props.view, aspect = Math.max(1, this.host.clientWidth / Math.max(1, this.host.clientHeight));
+    const view = this.props.scene.view, aspect = Math.max(1, this.host.clientWidth / Math.max(1, this.host.clientHeight));
     // Frame the ship for the chosen view: plan and profile need the length upright, the bow view only the section.
     const framed = view === 'top' ? Math.max(size.z, size.x * aspect) : view === 'side' ? Math.max(size.z, size.y * aspect) : view === 'bow' ? Math.max(size.x, size.y * aspect) : size.length() * .95;
     this.fitExtent = Math.max(15, framed * 1.12);
@@ -235,11 +214,11 @@ class Viewport {
 
   update(props: ViewportProps) {
     const old = this.props; this.props = props;
-    this.freeformHandles.update(props.source, props.freeform);
+    this.freeformHandles.update(props.scene.source, props.scene.freeform);
     this.updateMoveHandles();
-    if (!!props.perspective !== (this.camera instanceof THREE.PerspectiveCamera)) {
+    if (!!props.scene.perspective !== (this.camera instanceof THREE.PerspectiveCamera)) {
       const previous=this.camera, distance=previous.position.distanceTo(this.controls.target);
-      this.camera=props.perspective?this.perspectiveCamera:this.ortho;
+      this.camera=props.scene.perspective?this.perspectiveCamera:this.ortho;
       const extent=previous instanceof THREE.PerspectiveCamera?2*distance*Math.tan(20*Math.PI/180)/previous.zoom:this.span/previous.zoom;
       this.camera.position.copy(previous.position); this.camera.quaternion.copy(previous.quaternion);
       if(this.camera instanceof THREE.PerspectiveCamera) {
@@ -247,57 +226,58 @@ class Viewport {
       } else this.camera.zoom=this.span/extent;
       this.controls.object=this.camera;this.camera.updateProjectionMatrix();this.controls.update();
     }
-    if (props.source.id !== old.source.id || props.gesture !== old.gesture || props.placementPiece !== old.placementPiece || props.moveTargets !== old.moveTargets) this.cancel();
+    if (props.scene.source.id !== old.scene.source.id || props.scene.gesture !== old.scene.gesture || props.scene.placementPiece !== old.scene.placementPiece || props.scene.moveTargets !== old.scene.moveTargets) this.cancel();
     // The primary button orbits (pans in construction views) and the secondary button pans. A primary press on the hull while placing lays pieces instead; `down` holds the controls for that drag.
-    this.controls.mouseButtons = { LEFT: props.perspective || props.view === 'orbit' ? THREE.MOUSE.ROTATE : THREE.MOUSE.PAN, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.PAN };
-    this.controls.enableRotate = props.view === 'orbit' || !!props.perspective;
-    const gridKey = `${props.source.id}:${props.source.revision}:${props.gridStep}`;
+    this.controls.mouseButtons = { LEFT: props.scene.perspective || props.scene.view === 'orbit' ? THREE.MOUSE.ROTATE : THREE.MOUSE.PAN, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.PAN };
+    this.controls.enableRotate = props.scene.view === 'orbit' || !!props.scene.perspective;
+    const gridKey = `${props.scene.source.id}:${props.scene.source.revision}:${props.scene.gridStep}`;
     if (gridKey !== this.gridKey) {
       this.gridKey = gridKey; release(this.floorGrid);
       const bounds = new THREE.Box3();
-      for (const primitive of props.source.construction.primitives) {
+      for (const primitive of props.scene.source.construction.primitives) {
         for (const corner of cornerVertices(primitive)) bounds.expandByPoint(new THREE.Vector3(...worldVertex(primitive, corner)));
       }
       if (bounds.isEmpty()) bounds.set(new THREE.Vector3(-1, -1, -1), new THREE.Vector3(1, 1, 1));
-      this.floorGrid.add(createBuilderGrid(bounds, props.gridStep));
+      this.floorGrid.add(createBuilderGrid(bounds, props.scene.gridStep));
     }
-    if (props.view !== this.currentView || props.fitRequest !== old.fitRequest || props.source.id !== old.source.id || (!old.result && props.result)) this.fit();
-    const nativeSurfaces = props.result?.sourceId === props.source.id && props.result.revision === props.source.revision && props.result.surfaces.length ? props.result.surfaces : undefined;
-    const key = `${props.source.id}:${nativeSurfaces ? props.result!.contentHash : props.source.revision + ':draft'}:${props.display}`;
+    if (props.scene.view !== this.currentView || props.scene.fitRequest !== old.scene.fitRequest || props.scene.source.id !== old.scene.source.id || (!old.scene.result && props.scene.result)) this.fit();
+    // `current` is the compile of exactly this revision; `result` is the last accepted one, kept for rooms and centers.
+    const nativeSurfaces = props.scene.current?.surfaces.length ? props.scene.current.surfaces : undefined;
+    const key = `${props.scene.source.id}:${nativeSurfaces ? props.scene.current!.contentHash : props.scene.source.revision + ':draft'}:${props.scene.display}`;
     if (key !== this.contentKey) {
       this.contentKey = key; release(this.hull); this.surfaceTriangles = []; this.pickMeshes = []; this.hullMeshes = [];
       const vertices: number[] = [], colors: number[] = [];
       for (const surface of nativeSurfaces ?? []) {
-        if (surface.open && props.display === 'paint') continue;
-        const color = new THREE.Color(props.display === 'armor' ? armorThicknessColor(surface.thicknessMm) : constructionPaintColor(surface.paint));
+        if (surface.open && props.scene.display === 'paint') continue;
+        const color = new THREE.Color(props.scene.display === 'armor' ? armorThicknessColor(surface.thicknessMm) : constructionPaintColor(surface.paint));
         fan(surface, vertices, colors, color);
         for (let i = 1; i < surface.vertices.length - 1; i++) this.surfaceTriangles.push(surface);
       }
       if (nativeSurfaces) {
         const geometry = new THREE.BufferGeometry(); geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3)); geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3)); geometry.computeVertexNormals();
-        const mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .78, metalness: 0, side: THREE.DoubleSide, transparent: props.display === 'internals', opacity: props.display === 'internals' ? .15 : 1, depthWrite: props.display !== 'internals' }));
+        const mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .78, metalness: 0, side: THREE.DoubleSide, transparent: props.scene.display === 'internals', opacity: props.scene.display === 'internals' ? .15 : 1, depthWrite: props.scene.display !== 'internals' }));
         mesh.userData.hull = true; this.hull.add(mesh); this.pickMeshes.push(mesh); this.hullMeshes.push(mesh);
-      } else for (const primitive of props.source.construction.primitives) {
-        const mesh = new THREE.Mesh(primitiveGeometry(primitive.kind, primitive.size, primitive.vertices, primitive.customHull), new THREE.MeshStandardMaterial({ color: constructionPaintColor('naval-gray'), roughness: .78, side: THREE.DoubleSide, transparent: props.display === 'internals', opacity: props.display === 'internals' ? .15 : 1 }));
+      } else for (const primitive of props.scene.source.construction.primitives) {
+        const mesh = new THREE.Mesh(primitiveGeometry(primitive.kind, primitive.size, primitive.vertices, primitive.customHull), new THREE.MeshStandardMaterial({ color: constructionPaintColor('naval-gray'), roughness: .78, side: THREE.DoubleSide, transparent: props.scene.display === 'internals', opacity: props.scene.display === 'internals' ? .15 : 1 }));
         mesh.position.set(...primitive.position); mesh.rotation.y = primitive.rotationDeg * Math.PI / 180;
         mesh.userData.sourceId = primitive.id; this.hull.add(mesh); this.pickMeshes.push(mesh); this.hullMeshes.push(mesh);
       }
       this.hoverSurface = ''; release(this.hoverGroup);
     }
-    this.equipment.update(props.source, props.catalog, nativeSurfaces ? props.result?.propellerSupports : undefined);
-    const modelKey = `${props.source.id}:${props.source.revision}:${props.result?.contentHash}`;
+    this.equipment.update(props.scene.source, props.scene.catalog, nativeSurfaces ? props.scene.current?.propellerSupports : undefined);
+    const modelKey = `${props.scene.source.id}:${props.scene.source.revision}:${props.scene.result?.contentHash}`;
     if (modelKey !== this.modelKey) {
       this.modelKey = modelKey; this.modelAbort?.abort(); release(this.composed);
-      if (props.result && nativeSurfaces) {
+      if (props.scene.current && nativeSurfaces) {
         const abort = new AbortController(); this.modelAbort = abort;
-        const model = props.createModel ? props.createModel(props.source, props.result, abort.signal) : Promise.resolve(createConstructionHull(nativeSurfaces, props.source.construction.primitives));
+        const model = props.createModel ? props.createModel(props.scene.source, props.scene.current, abort.signal) : Promise.resolve(createConstructionHull(nativeSurfaces, props.scene.source.construction.primitives));
         model.then(group => {
           if (this.dead || abort.signal.aborted || modelKey !== this.modelKey) { release(group); return; }
           this.composed.add(group); this.update(this.props); this.modelError('');
         }).catch(error => { if (!abort.signal.aborted && !this.dead) this.modelError(`Equipment preview: ${error instanceof Error ? error.message : String(error)}`); });
       }
     }
-    this.composed.visible = props.display === 'paint' && !!nativeSurfaces;
+    this.composed.visible = props.scene.display === 'paint' && !!nativeSurfaces;
     this.equipment.group.visible = !(props.createModel && this.composed.visible && this.composed.children.length);
     // Native surfaces remain the pick target even when shared composition renders the exterior.
     this.hull.visible = !this.composed.visible || !this.composed.children.length;
@@ -306,47 +286,47 @@ class Viewport {
     this.equipment.group.traverse(node => { if (node instanceof THREE.Mesh) this.pickMeshes.push(node); });
     if (!nativeSurfaces) for (const object of this.hull.children) {
       const mesh = object as THREE.Mesh;
-      if (!props.selected.has(mesh.userData.sourceId)) continue;
-      const primitive = props.source.construction.primitives.find(p => p.id === mesh.userData.sourceId);
+      if (!props.scene.selected.has(mesh.userData.sourceId)) continue;
+      const primitive = props.scene.source.construction.primitives.find(p => p.id === mesh.userData.sourceId);
       const edges = new THREE.LineSegments(primitive ? primitiveOutlineGeometry(primitive) : new THREE.EdgesGeometry(mesh.geometry), new THREE.LineBasicMaterial({ color: BRASS_LIGHT, depthTest: false }));
       edges.position.copy(mesh.position); edges.rotation.copy(mesh.rotation); this.selection.add(edges);
     }
-    for (const part of props.source.construction.equipment) {
-      const entry = props.catalog.equipment.find(entry => entry.id === part.partId);
+    for (const part of props.scene.source.construction.equipment) {
+      const entry = props.scene.catalog.equipment.find(entry => entry.id === part.partId);
       if (!entry) continue;
       const pathBounds = equipmentPathBounds(entry, part);
-      const box = new THREE.Mesh(new THREE.BoxGeometry(...pathBounds.size), new THREE.MeshBasicMaterial({ color: props.selected.has(part.id) ? BRASS : entry.placement === 'internal' ? READY : '#bacbd0', wireframe: true, transparent: true, opacity: props.selected.has(part.id) ? 1 : .55 }));
+      const box = new THREE.Mesh(new THREE.BoxGeometry(...pathBounds.size), new THREE.MeshBasicMaterial({ color: props.scene.selected.has(part.id) ? BRASS : entry.placement === 'internal' ? READY : '#bacbd0', wireframe: true, transparent: true, opacity: props.scene.selected.has(part.id) ? 1 : .55 }));
       const datum = new THREE.Group(); datum.position.set(...part.position); datum.rotation.y = -part.bearingDeg * Math.PI / 180; box.position.set(...pathBounds.center);
       box.userData.sourceId = part.id; datum.add(box); this.details.add(datum);
       if (!this.equipment.has(part.id)) this.pickMeshes.push(box);
-      datum.visible = props.display === 'internals' || props.selected.has(part.id) || (!this.equipment.has(part.id) && !(props.createModel && this.composed.children.length));
+      datum.visible = props.scene.display === 'internals' || props.scene.selected.has(part.id) || (!this.equipment.has(part.id) && !(props.createModel && this.composed.children.length));
     }
-    for (const wall of props.source.construction.boundaries) {
+    for (const wall of props.scene.source.construction.boundaries) {
       const size: Vec3 = [this.hullSize.x + 2, this.hullSize.y + 2, this.hullSize.z + 2]; const axis = { x: 0, y: 1, z: 2 }[wall.axis]; size[axis] = Math.max(.04, wall.thicknessMm / 1000);
-      const box = new THREE.Mesh(new THREE.BoxGeometry(...size), new THREE.MeshBasicMaterial({ color: BRASS, transparent: true, opacity: props.selected.has(wall.id) ? .3 : .09, depthWrite: false }));
-      box.position.copy(this.controls.target); box.position.setComponent(axis, wall.offset); box.userData.sourceId = wall.id; box.visible = props.display === 'internals' || props.selected.has(wall.id); this.details.add(box); if (box.visible) this.pickMeshes.push(box);
+      const box = new THREE.Mesh(new THREE.BoxGeometry(...size), new THREE.MeshBasicMaterial({ color: BRASS, transparent: true, opacity: props.scene.selected.has(wall.id) ? .3 : .09, depthWrite: false }));
+      box.position.copy(this.controls.target); box.position.setComponent(axis, wall.offset); box.userData.sourceId = wall.id; box.visible = props.scene.display === 'internals' || props.scene.selected.has(wall.id); this.details.add(box); if (box.visible) this.pickMeshes.push(box);
     }
-    if (props.rooms) for (const room of props.result?.definition?.compartments ?? []) {
+    if (props.scene.rooms) for (const room of props.scene.result?.definition?.compartments ?? []) {
       const geometry = new THREE.BoxGeometry(...room.size);
       const fill = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ color: ROOM, transparent: true, opacity: .09, depthWrite: false }));
       const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geometry), new THREE.LineBasicMaterial({ color: ROOM, transparent: true, opacity: .4 }));
       fill.position.set(...room.center); edges.position.set(...room.center); this.details.add(fill, edges);
     }
     const outlinedHulls = new Set<string>();
-    if (nativeSurfaces) for (const primitive of props.source.construction.primitives) {
-      if (primitive.kind !== 'custom-hull' || !props.selected.has(primitive.id)) continue;
+    if (nativeSurfaces) for (const primitive of props.scene.source.construction.primitives) {
+      if (primitive.kind !== 'custom-hull' || !props.scene.selected.has(primitive.id)) continue;
       outlinedHulls.add(primitive.id);
       const edges = new THREE.LineSegments(primitiveOutlineGeometry(primitive), new THREE.LineBasicMaterial({ color: BRASS_LIGHT, depthTest: false }));
       edges.position.set(...primitive.position); edges.rotation.y = primitive.rotationDeg * Math.PI / 180;
       this.selection.add(edges);
     }
     for (const surface of nativeSurfaces ?? []) {
-      const chosen = props.selectedSurfaces.has(surfaceKey(surface.primitiveId, surface.face));
-      if (!chosen && (!props.selected.has(surface.primitiveId) || outlinedHulls.has(surface.primitiveId))) continue;
+      const chosen = props.scene.selectedSurfaces.has(surfaceKey(surface.primitiveId, surface.face));
+      if (!chosen && (!props.scene.selected.has(surface.primitiveId) || outlinedHulls.has(surface.primitiveId))) continue;
       const points = surface.vertices.map(vertex => new THREE.Vector3(...vertex).addScaledVector(new THREE.Vector3(...surface.normal), .025));
       points.push(points[0].clone());
       this.selection.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), new THREE.LineBasicMaterial({ color: BRASS_LIGHT, depthTest: false })));
-      if (chosen && props.display === 'armor' && !surface.open) {
+      if (chosen && props.scene.display === 'armor' && !surface.open) {
         const lines: THREE.Vector3[] = [];
         for (let i = 0; i < surface.vertices.length; i++) {
           const outer = new THREE.Vector3(...surface.vertices[i]); const inner = outer.clone().addScaledVector(new THREE.Vector3(...surface.normal), -surface.thicknessMm / 1000);
@@ -356,27 +336,27 @@ class Viewport {
         this.selection.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(lines), new THREE.LineBasicMaterial({ color: READY, depthTest: false })));
       }
     }
-    const loading = props.result?.loading;
-    if (props.showCenters && loading) for (const [point, color] of [[loading.centerOfGravity, BRASS], [loading.buoyancyCenter, READY]] as const) {
+    const loading = props.scene.result?.loading;
+    if (props.scene.showCenters && loading) for (const [point, color] of [[loading.centerOfGravity, BRASS], [loading.buoyancyCenter, READY]] as const) {
       const marker = new THREE.Mesh(new THREE.SphereGeometry(Math.max(.25, this.span / 140), 12, 8), new THREE.MeshBasicMaterial({ color, depthTest: false }));
       marker.position.set(...point); marker.renderOrder = 10; this.details.add(marker);
     }
-    const arcKey = JSON.stringify(props.arcs);
+    const arcKey = JSON.stringify(props.scene.arcs);
     if (arcKey !== this.arcKey) {
       this.arcKey = arcKey; release(this.arcGroup);
-      for (const arc of props.arcs) { const mesh = arcMesh(arc); mesh.position.set(arc.position[0], arc.position[1] + .08, arc.position[2]); this.arcGroup.add(mesh); }
+      for (const arc of props.scene.arcs) { const mesh = arcMesh(arc); mesh.position.set(arc.position[0], arc.position[1] + .08, arc.position[2]); this.arcGroup.add(mesh); }
     }
-    const proposedKey = JSON.stringify(props.proposed);
+    const proposedKey = JSON.stringify(props.scene.proposed);
     if (proposedKey !== this.proposedKey) {
       this.proposedKey = proposedKey; release(this.proposedGroup);
-      for (const item of props.proposed) {
+      for (const item of props.scene.proposed) {
         const box = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(...item.size)), new THREE.LineDashedMaterial({ color: MINT, dashSize: .6, gapSize: .3, depthTest: false }));
         box.computeLineDistances(); box.position.set(...item.boundsCenter);
         const datum = new THREE.Group(); datum.position.set(...item.position); datum.rotation.y = -item.bearingDeg * Math.PI / 180; datum.add(box); this.proposedGroup.add(datum);
       }
     }
-    if (props.highlightFaces !== old.highlightFaces || props.slice !== old.slice || props.pickTargets !== old.pickTargets) { release(this.hoverGroup); this.hoverSurface = ''; }
-    this.measureGroup.visible = !!props.measure;
+    if (props.scene.highlightFaces !== old.scene.highlightFaces || props.scene.slice !== old.scene.slice || props.scene.pickTargets !== old.scene.pickTargets) { release(this.hoverGroup); this.hoverSurface = ''; }
+    this.measureGroup.visible = !!props.scene.measure;
     // A held corner is already dragging, but has no preview until it moves.
     if(this.vertexPreview.visible && this.vertexPreview.children.length) {this.hull.visible=false;this.composed.visible=false;this.selection.visible=false;}
     this.updatePathPreview(); this.updateGhost(); this.updateStrokePreview(); if (this.hover) this.highlight(this.hover); this.applyClip();
@@ -388,7 +368,7 @@ class Viewport {
     if (!replacements) { this.update(this.props); return; }
     this.hull.visible=false; this.composed.visible=false; this.selection.visible=false;
     const map=new Map(replacements.map(p=>[p.id,p]));
-    for(const original of this.props.source.construction.primitives) {
+    for(const original of this.props.scene.source.construction.primitives) {
       const p=map.get(original.id)??original;
       const geometry=primitiveGeometry(p.kind,p.size,p.vertices,p.customHull);
       const mesh=new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({color:constructionPaintColor('naval-gray'),roughness:.78,side:THREE.DoubleSide}));
@@ -398,7 +378,7 @@ class Viewport {
   }
 
   private updateGhost() {
-    const piece = this.props.placementPiece, key = JSON.stringify([piece, this.props.placementMirror, this.hullSize.toArray().map(Math.round)]);
+    const piece = this.props.scene.placementPiece, key = JSON.stringify([piece, this.props.scene.placementMirror, this.hullSize.toArray().map(Math.round)]);
     if (key !== this.ghostKey) {
       this.strokeKey = ''; this.strokePreview.clear();
       this.ghostKey = key; release(this.ghost); release(this.ghostMirror); release(this.ghostArc);
@@ -412,7 +392,7 @@ class Viewport {
           fill.renderOrder = 20; edges.renderOrder = 21; group.add(fill, edges); group.rotation.y = placementRotation(item);
         };
         build(piece, this.ghost, piece.kind === 'boundary' ? .12 : .25);
-        if (this.props.placementMirror) build(this.props.placementMirror, this.ghostMirror, .12);
+        if (this.props.scene.placementMirror) build(this.props.scene.placementMirror, this.ghostMirror, .12);
         if (piece.kind === 'equipment' && piece.arc) this.ghostArc.add(arcMesh({ bearingDeg: piece.bearingDeg, traverseDeg: piece.arc.traverseDeg, radius: piece.arc.radius, color: BRASS }));
       }
     }
@@ -426,14 +406,14 @@ class Viewport {
       for (let index = 0; index < 3; index++) if (index !== axis) position[index] = this.controls.target.getComponent(index);
     }
     this.ghostPosition = pick!.placement; this.ghost.position.set(...position);
-    this.ghostMirror.visible = !!this.props.placementMirror && Math.abs(position[0]) > 1e-6;
+    this.ghostMirror.visible = !!this.props.scene.placementMirror && Math.abs(position[0]) > 1e-6;
     if (this.ghostMirror.visible) this.ghostMirror.position.set(-position[0], position[1], position[2]);
     this.ghostArc.visible = this.ghostArc.children.length > 0;
     if (this.ghostArc.visible) this.ghostArc.position.set(position[0], position[1] + .08, position[2]);
   }
 
   private applyClip() {
-    const planes = this.props.slice === undefined ? [] : [new THREE.Plane(new THREE.Vector3(0, -1, 0), this.props.slice)];
+    const planes = this.props.scene.slice === undefined ? [] : [new THREE.Plane(new THREE.Vector3(0, -1, 0), this.props.scene.slice)];
     for (const group of [this.hull, this.details, this.composed, this.equipment.group, this.selection, this.hoverGroup, this.movePreview]) group.traverse(child => {
       const mesh = child as THREE.Mesh;
       for (const material of mesh.material ? Array.isArray(mesh.material) ? mesh.material : [mesh.material] : []) { material.clippingPlanes = planes; material.needsUpdate = true; }
@@ -441,14 +421,14 @@ class Viewport {
   }
 
   /** Empty space is never a placement or selection surface. */
-  private pick(event: { clientX: number; clientY: number; shiftKey?: boolean; ctrlKey?: boolean; metaKey?: boolean }, targets: ViewportProps['pickTargets']): BuilderPick | undefined {
+  private pick(event: { clientX: number; clientY: number; shiftKey?: boolean; ctrlKey?: boolean; metaKey?: boolean }, targets: BuilderScene['pickTargets']): BuilderPick | undefined {
     const bounds = this.renderer.domElement.getBoundingClientRect();
     const ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2((event.clientX - bounds.left) / bounds.width * 2 - 1, -(event.clientY - bounds.top) / bounds.height * 2 + 1), this.camera);
     // Hull raycasts still support placement, but every object interaction in Internals
     // passes through the skin and external fittings to the internal packages/walls.
-    const allowed = targets !== 'hull' && this.props.pickTargets === 'internals' ? internalSelectionIds(this.props.source, this.props.catalog) : undefined;
+    const allowed = targets !== 'hull' && this.props.scene.pickTargets === 'internals' ? internalSelectionIds(this.props.scene.source, this.props.scene.catalog) : undefined;
     const hit = ray.intersectObjects(targets === 'hull' ? this.hullMeshes : this.pickMeshes, false).find(hit =>
-      (!allowed || allowed.has(hit.object.userData.sourceId)) && (this.props.slice === undefined || hit.point.y <= this.props.slice + 1e-6));
+      (!allowed || allowed.has(hit.object.userData.sourceId)) && (this.props.scene.slice === undefined || hit.point.y <= this.props.scene.slice + 1e-6));
     if (!hit) return undefined;
     const surface = hit.object.userData.hull ? this.surfaceTriangles[hit.faceIndex ?? -1] : undefined;
     const facing = hit.face ? hit.face.normal.clone().transformDirection(hit.object.matrixWorld) : ray.ray.direction.clone().negate();
@@ -456,33 +436,33 @@ class Viewport {
     const { point: raw, normal } = physicalPlacementHit({ point: hit.point.toArray() as Vec3, normal: facing.toArray() as Vec3 }, surface);
     const axis = dominantAxis(normal);
     const supportId = surface?.primitiveId.startsWith('equipment:') ? surface.primitiveId.slice('equipment:'.length) : undefined;
-    const id = supportId && this.props.source.construction.equipment.some(item => item.id === supportId) ? supportId : surface?.primitiveId ?? hit.object.userData.sourceId;
-    const primitive = this.props.source.construction.primitives.find(part => part.id === id), piece = this.props.placementPiece;
+    const id = supportId && this.props.scene.source.construction.equipment.some(item => item.id === supportId) ? supportId : surface?.primitiveId ?? hit.object.userData.sourceId;
+    const primitive = this.props.scene.source.construction.primitives.find(part => part.id === id), piece = this.props.scene.placementPiece;
     const extents = primitive && pieceExtents({ kind: 'hull', shape: primitive.kind, size: primitive.size, rotationDeg: primitive.rotationDeg });
     const snapOrigin = primitive && extents ? primitive.position.map((value, index) => value - extents[index] / 2) as Vec3 : undefined;
-    const placement = piece ? placementCenter(piece, { point: raw, normal, snapOrigin }, this.props.gridStep) : raw.map(value => snapCoordinate(value, this.props.gridStep)) as Vec3;
+    const placement = piece ? placementCenter(piece, { point: raw, normal, snapOrigin }, this.props.scene.gridStep) : raw.map(value => snapCoordinate(value, this.props.scene.gridStep)) as Vec3;
     return { id, surface: surface && surfaceKey(surface.primitiveId, surface.face), point: raw, normal, axis, placement, additive: !!(event.shiftKey || event.ctrlKey || event.metaKey) };
   }
 
   private highlight(event: { clientX: number; clientY: number }) {
     // During placement, the ghost/path already identifies the action. Keep its support block clear.
-    const placing = !!this.props.placementPiece || !!this.props.pathDraft;
-    const pick = this.navigating() || placing ? undefined : this.pick(event, this.props.pickTargets);
-    const key = this.props.highlightFaces ? pick?.surface ?? '' : pick?.id ?? '';
+    const placing = !!this.props.scene.placementPiece || !!this.props.scene.pathDraft;
+    const pick = this.navigating() || placing ? undefined : this.pick(event, this.props.scene.pickTargets);
+    const key = this.props.scene.highlightFaces ? pick?.surface ?? '' : pick?.id ?? '';
     if (key === this.hoverSurface) return;
     this.hoverSurface = key; release(this.hoverGroup);
     if (!key) return;
     const material = () => new THREE.LineBasicMaterial({ color: IVORY, depthTest: false, transparent: true, opacity: .95,
-      clippingPlanes: this.props.slice === undefined ? [] : [new THREE.Plane(new THREE.Vector3(0, -1, 0), this.props.slice)] });
-    const primitive = this.props.source.construction.primitives.find(part => part.id === pick?.id);
-    if (primitive && !this.props.highlightFaces) {
+      clippingPlanes: this.props.scene.slice === undefined ? [] : [new THREE.Plane(new THREE.Vector3(0, -1, 0), this.props.scene.slice)] });
+    const primitive = this.props.scene.source.construction.primitives.find(part => part.id === pick?.id);
+    if (primitive && !this.props.scene.highlightFaces) {
       const edges = new THREE.LineSegments(primitiveOutlineGeometry(primitive), material());
       edges.position.set(...primitive.position); edges.rotation.y = primitive.rotationDeg * Math.PI / 180;
       edges.renderOrder = 25; this.hoverGroup.add(edges);
       return;
     }
-    for (const surface of this.props.result?.surfaces ?? []) {
-      if (this.props.highlightFaces ? surfaceKey(surface.primitiveId, surface.face) !== key : surface.primitiveId !== key) continue;
+    for (const surface of this.props.scene.result?.surfaces ?? []) {
+      if (this.props.scene.highlightFaces ? surfaceKey(surface.primitiveId, surface.face) !== key : surface.primitiveId !== key) continue;
       const points = surface.vertices.map(vertex => new THREE.Vector3(...vertex).addScaledVector(new THREE.Vector3(...surface.normal), .03));
       const outline = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(points), material());
       outline.renderOrder = 25; this.hoverGroup.add(outline);
@@ -490,8 +470,8 @@ class Viewport {
   }
 
   private updateFillPreview() {
-    const start = this.pointerStart?.start, piece = this.props.placementPiece;
-    if (!start || !piece || this.props.gesture !== 'fill' || !this.hover) { this.fillPreview.visible = false; return; }
+    const start = this.pointerStart?.start, piece = this.props.scene.placementPiece;
+    if (!start || !piece || this.props.scene.gesture !== 'fill' || !this.hover) { this.fillPreview.visible = false; return; }
     const hit = this.pick(this.hover, 'hull');
     if (!hit) { this.fillPreview.visible = false; return; }
     const end = hit.placement, extents = pieceExtents(piece);
@@ -503,10 +483,10 @@ class Viewport {
 
   /** Draw the pending gesture each frame; source/history commits once on release. */
   private updateStrokePreview() {
-    const drag = this.pointerStart, piece = this.props.placementPiece;
+    const drag = this.pointerStart, piece = this.props.scene.placementPiece;
     const hit = this.hover ? this.pick(this.hover, 'hull') : undefined;
     const points = drag?.start && piece && hit
-      ? this.props.gesture === 'fill' ? fillLattice(drag.start.placement, hit.placement, pieceExtents(piece), drag.start.axis) : drag.points
+      ? this.props.scene.gesture === 'fill' ? fillLattice(drag.start.placement, hit.placement, pieceExtents(piece), drag.start.axis) : drag.points
       : [];
     const key = JSON.stringify([this.ghostKey, points]);
     if (key === this.strokeKey) return;
@@ -516,7 +496,7 @@ class Viewport {
     for (const point of points) {
       const instance = this.ghost.clone(true); instance.position.set(...point); instance.visible = true; instance.userData.placementPreview = false;
       this.strokePreview.add(instance);
-      if (this.props.placementMirror && Math.abs(point[0]) > 1e-6) {
+      if (this.props.scene.placementMirror && Math.abs(point[0]) > 1e-6) {
         const twin = this.ghostMirror.clone(true); twin.position.set(-point[0], point[1], point[2]); twin.visible = true;
         this.strokePreview.add(twin);
       }
@@ -596,14 +576,14 @@ class Viewport {
     }
     const measure = this.overlay.querySelector<HTMLElement>('[data-measure]');
     if (measure) {
-      const from = this.props.measure?.from, to = this.props.measure?.to ?? (from && this.hover ? this.pick(this.hover, 'hull')?.point : undefined);
+      const from = this.props.scene.measure?.from, to = this.props.scene.measure?.to ?? (from && this.hover ? this.pick(this.hover, 'hull')?.point : undefined);
       if (from && to) {
         const a = new THREE.Vector3(...from), b = new THREE.Vector3(...to);
         this.measureLine.geometry.setFromPoints([a, b]);
         const middle = this.project(a.clone().add(b).multiplyScalar(.5));
         const delta = to.map((value, index) => value - from[index]);
         if (middle) {
-          measure.innerHTML = `<b>${a.distanceTo(b).toFixed(2)} m</b>Δx ${delta[0].toFixed(2)} · Δy ${delta[1].toFixed(2)} · Δz ${delta[2].toFixed(2)}${this.props.measure?.to ? '' : ' · click to end'}`;
+          measure.innerHTML = `<b>${a.distanceTo(b).toFixed(2)} m</b>Δx ${delta[0].toFixed(2)} · Δy ${delta[1].toFixed(2)} · Δz ${delta[2].toFixed(2)}${this.props.scene.measure?.to ? '' : ' · click to end'}`;
           measure.style.visibility = 'visible'; measure.style.transform = `translate(${(middle.x + 14).toFixed(1)}px, ${(middle.y - 30).toFixed(1)}px)`;
         }
       } else measure.style.visibility = 'hidden';
@@ -615,17 +595,17 @@ class Viewport {
   /** A primary press on a piece, fitting or wall begins a move instead of a camera drag. The pressed
    * piece carries the whole selection when it belongs to it, otherwise it moves alone. */
   private movePick(event: PointerEvent): MoveDrag | undefined {
-    const targets = this.props.moveTargets;
+    const targets = this.props.scene.moveTargets;
     if (targets === 'none') return undefined;
     const hit = this.pick(event, 'all');
     if (!hit?.id) return undefined;
-    const { primitives, equipment, boundaries } = this.props.source.construction;
+    const { primitives, equipment, boundaries } = this.props.scene.source.construction;
     const isPrimitive = (id: string) => primitives.some(part => part.id === id), isEquipment = (id: string) => equipment.some(part => part.id === id);
     const wall = boundaries.find(entry => entry.id === hit.id);
     if (!isPrimitive(hit.id) && !isEquipment(hit.id) && !wall) return undefined;
     if (targets === 'equipment' && !isEquipment(hit.id)) return undefined;
-    const allowed = this.props.pickTargets === 'internals' ? internalSelectionIds(this.props.source, this.props.catalog) : undefined;
-    const ids = (this.props.selected.has(hit.id) ? [...this.props.selected] : [hit.id]).filter(id => (!allowed || allowed.has(id)) && (isPrimitive(id) || isEquipment(id) || boundaries.some(entry => entry.id === id)));
+    const allowed = this.props.scene.pickTargets === 'internals' ? internalSelectionIds(this.props.scene.source, this.props.scene.catalog) : undefined;
+    const ids = (this.props.scene.selected.has(hit.id) ? [...this.props.scene.selected] : [hit.id]).filter(id => (!allowed || allowed.has(id)) && (isPrimitive(id) || isEquipment(id) || boundaries.some(entry => entry.id === id)));
     const origin = new THREE.Vector3(...hit.point), normal = new THREE.Vector3(), free: MoveDrag['free'] = [true, true, true];
     if (wall && ids.length === 1) {
       // A wall slides along its own axis only: drag in the plane that contains the axis and faces the camera.
@@ -638,23 +618,23 @@ class Viewport {
       normal.setComponent(hit.axis, Math.sign(hit.normal?.[hit.axis] ?? 1) || 1);
       free[hit.axis] = false;
     }
-    const step = this.props.gridStep;
-    return { ids, plane: new THREE.Plane().setFromNormalAndCoplanarPoint(normal.normalize(), origin), origin, free, step, delta: [0, 0, 0], built: false, constrain: blockMoveConstraint(this.props.source, new Set(ids)) };
+    const step = this.props.scene.gridStep;
+    return { ids, plane: new THREE.Plane().setFromNormalAndCoplanarPoint(normal.normalize(), origin), origin, free, step, delta: [0, 0, 0], built: false, constrain: blockMoveConstraint(this.props.scene.source, new Set(ids)) };
   }
 
   private updateMoveHandles() {
     const props = this.props;
-    const { primitives, equipment, boundaries } = props.source.construction;
-    const internals = props.pickTargets === 'internals';
-    const allowed = internals ? internalSelectionIds(props.source, props.catalog) : undefined;
-    const ids = [...props.selected].filter(id => (!allowed || allowed.has(id)) && (props.moveTargets !== 'equipment' || equipment.some(item => item.id === id)));
+    const { primitives, equipment, boundaries } = props.scene.source.construction;
+    const internals = props.scene.pickTargets === 'internals';
+    const allowed = internals ? internalSelectionIds(props.scene.source, props.scene.catalog) : undefined;
+    const ids = [...props.scene.selected].filter(id => (!allowed || allowed.has(id)) && (props.scene.moveTargets !== 'equipment' || equipment.some(item => item.id === id)));
     const selected = new Set(ids), blocks = primitives.filter(p => selected.has(p.id));
-    if (props.freeform || props.moveTargets === 'none' || (!internals && (props.moveTargets !== 'all' || !blocks.length)) || !ids.length) { this.moveHandles.update(); return; }
+    if (props.scene.freeform || props.scene.moveTargets === 'none' || (!internals && (props.scene.moveTargets !== 'all' || !blocks.length)) || !ids.length) { this.moveHandles.update(); return; }
     const anchors: Vec3[] = blocks.map(p => p.position);
     const modules = internals ? equipment.filter(p => selected.has(p.id)) : [];
     const walls = internals ? boundaries.filter(p => selected.has(p.id)) : [];
     for (const item of modules) {
-      const part = props.catalog.equipment.find(p => p.id === item.partId);
+      const part = props.scene.catalog.equipment.find(p => p.id === item.partId);
       const center = new THREE.Vector3(...(part ? equipmentPathBounds(part, item).center : [0, 0, 0] as Vec3));
       center.applyAxisAngle(new THREE.Vector3(0, 1, 0), -item.bearingDeg * Math.PI / 180).add(new THREE.Vector3(...item.position));
       anchors.push(center.toArray() as Vec3);
@@ -665,26 +645,26 @@ class Viewport {
     }
     if (!anchors.length) { this.moveHandles.update(); return; }
     const axes = [0, 1, 2].map(k => !!blocks.length || !!modules.length || walls.some(wall => 'xyz'.indexOf(wall.axis) === k)) as [boolean, boolean, boolean];
-    const key = JSON.stringify([props.source.id, props.source.revision, ids, props.slice, props.view, props.perspective, props.gridStep, props.moveTargets, props.pickTargets]);
+    const key = JSON.stringify([props.scene.source.id, props.scene.source.revision, ids, props.scene.slice, props.scene.view, props.scene.perspective, props.scene.gridStep, props.scene.moveTargets, props.scene.pickTargets]);
     if (key !== this.moveConstraintKey) {
-      this.moveConstraintKey = key; this.constrainMove = blockMoveConstraint(props.source, selected);
+      this.moveConstraintKey = key; this.constrainMove = blockMoveConstraint(props.scene.source, selected);
     }
     const anchor = anchors.reduce<Vec3>((sum, p) => sum.map((v, k) => v + p[k] / anchors.length) as Vec3, [0, 0, 0]);
-    this.moveHandles.update({ key, anchor, axes, unit: props.gridStep, constrain: this.constrainMove,
+    this.moveHandles.update({ key, anchor, axes, unit: props.scene.gridStep, constrain: this.constrainMove,
       preview: (delta, blocked) => {
         if (!delta) { this.finishMove(); return; }
         this.moveOffset = delta; this.moveBlocked = !!blocked;
         if (!this.movePreview.children.length) this.buildMovePreview(ids);
         this.movePreview.position.set(...delta); this.movePreview.visible = delta.some(v => v !== 0);
       },
-      commit: delta => props.onMove(ids, delta),
+      commit: delta => props.onPointer({ kind: 'move', ids, delta }),
     });
   }
 
   /** Brass copies of the moved pieces; the originals stay until the source commits on release. */
   private buildMovePreview(ids: string[]) {
     release(this.movePreview);
-    const { primitives, equipment, boundaries } = this.props.source.construction;
+    const { primitives, equipment, boundaries } = this.props.scene.source.construction;
     for (const id of ids) {
       const primitive = primitives.find(part => part.id === id);
       if (primitive) {
@@ -697,7 +677,7 @@ class Viewport {
       const item = equipment.find(part => part.id === id);
       if (item) {
         const datum = new THREE.Group(); datum.position.set(...item.position); datum.rotation.y = -item.bearingDeg * Math.PI / 180;
-        const ghost = this.equipment.clone(item.partId, true, item.path), part = this.props.catalog.equipment.find(entry => entry.id === item.partId);
+        const ghost = this.equipment.clone(item.partId, true, item.path), part = this.props.scene.catalog.equipment.find(entry => entry.id === item.partId);
         if (ghost) datum.add(ghost);
         else if (part) { const box = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(...part.size)), new THREE.LineBasicMaterial({ color: BRASS_LIGHT, depthTest: false })); box.position.set(...part.boundsCenter); datum.add(box); }
         this.movePreview.add(datum); continue;
@@ -743,10 +723,10 @@ class Viewport {
       this.camera.position.copy(position); this.camera.quaternion.copy(rotation); this.controls.target.copy(target); this.camera.updateMatrixWorld(true);
       this.controls.enabled = false; event.stopImmediatePropagation(); event.preventDefault();
     }
-    const path = !box && event.button === 0 && this.props.pathDraft ? this.pathPick(event) : undefined;
+    const path = !box && event.button === 0 && this.props.scene.pathDraft ? this.pathPick(event) : undefined;
     if (path) { this.controls.enabled = false; event.stopImmediatePropagation(); event.preventDefault(); }
-    const move = !box && !this.props.pathDraft && event.button === 0 ? this.movePick(event) : undefined;
-    const start = !box && !move && event.button === 0 && this.props.gesture !== 'none' && this.props.placementPiece ? this.pick(event, 'hull') : undefined;
+    const move = !box && !this.props.scene.pathDraft && event.button === 0 ? this.movePick(event) : undefined;
+    const start = !box && !move && event.button === 0 && this.props.scene.gesture !== 'none' && this.props.scene.placementPiece ? this.pick(event, 'hull') : undefined;
     // A press on the hull lays or moves pieces, so OrbitControls (which listens after this capture handler) must not orbit with the same drag; `up` and `cancel` re-enable it.
     if (start || move) this.controls.enabled = false;
     this.pointerStart = { id: event.pointerId, button: event.button, x: event.clientX, y: event.clientY, moved: false, box, additive: event.ctrlKey || event.metaKey, start, move, points: start ? [start.placement] : [] };
@@ -760,9 +740,9 @@ class Viewport {
     this.pointerStart.moved ||= Math.hypot(event.clientX - this.pointerStart.x, event.clientY - this.pointerStart.y) >= 5;
     if (this.pointerStart.box) { this.showBox(event); return; }
     if (this.pointerStart.move) { if (this.pointerStart.moved) this.updateMove(event); return; }
-    const { start, points } = this.pointerStart, piece = this.props.placementPiece;
+    const { start, points } = this.pointerStart, piece = this.props.scene.placementPiece;
     if (!start || !piece) return;
-    if (this.props.gesture === 'fill') { this.updateFillPreview(); this.updateStrokePreview(); return; }
+    if (this.props.scene.gesture === 'fill') { this.updateFillPreview(); this.updateStrokePreview(); return; }
     const hit = this.pick(event, 'hull');
     if (!hit) { this.updateStrokePreview(); return; }
     const current = hit.placement, previous = points.at(-1) ?? current;
@@ -779,36 +759,36 @@ class Viewport {
     this.strokePreview.clear(); this.strokeKey = ''; this.showBox();
     if (this.renderer.domElement.hasPointerCapture(event.pointerId)) this.renderer.domElement.releasePointerCapture(event.pointerId);
     const clicked = !start.moved && Math.hypot(event.clientX - start.x, event.clientY - start.y) < 5;
-    const piece = this.props.placementPiece;
+    const piece = this.props.scene.placementPiece;
     if (start.button === 2) {
       const hit = clicked ? this.pick(event, 'all') : undefined;
-      if (hit?.id && !this.props.freeform && !this.props.pathDraft) this.props.onErase(hit.id);
-    } else if (this.props.pathDraft && !rect) {
+      if (hit?.id && !this.props.scene.freeform && !this.props.scene.pathDraft) this.props.onPointer({ kind: 'erase', id: hit.id });
+    } else if (this.props.scene.pathDraft && !rect) {
       const point = clicked ? this.pathPick(event) : undefined;
-      if (point) this.props.onPathPoint?.(point);
+      if (point) this.props.onPointer({ kind: 'path-point', point });
     } else if (rect) {
-      if (clicked) { const hit = this.pick(event, 'all'); this.props.onBoxSelect(hit?.id ? [hit.id] : [], true); }
-      else this.props.onBoxSelect(boxSelectedPieces(this.props.source, this.props.catalog, this.camera, rect, this.host.clientWidth, this.host.clientHeight, this.props.slice, this.props.rooms), start.additive);
+      if (clicked) { const hit = this.pick(event, 'all'); this.props.onPointer({ kind: 'box', ids: hit?.id ? [hit.id] : [], additive: true }); }
+      else this.props.onPointer({ kind: 'box', ids: boxSelectedPieces(this.props.scene.source, this.props.scene.catalog, this.camera, rect, this.host.clientWidth, this.host.clientHeight, this.props.scene.slice, this.props.scene.rooms), additive: start.additive });
     } else if (start.move) {
       const moved = start.moved && start.move.delta.some(value => Math.abs(value) > 1e-6);
       this.finishMove();
-      if (moved) this.props.onMove(start.move.ids, start.move.delta);
-      else if (clicked) this.props.onPick(this.pick(event, 'all'));
+      if (moved) this.props.onPointer({ kind: 'move', ids: start.move.ids, delta: start.move.delta });
+      else if (clicked) this.props.onPointer({ kind: 'pick', hit: this.pick(event, 'all') });
     } else if (start.start && piece) {
       const hit = this.pick(event, 'hull');
       if (!hit) return;
-      if (this.props.gesture === 'fill') this.props.onStroke(fillLattice(start.start.placement, clicked ? start.start.placement : hit.placement, pieceExtents(piece), start.start.axis));
-      else this.props.onStroke(clicked ? [start.start.placement] : start.points);
-    } else if (clicked) this.props.onPick(this.pick(event, this.props.placementPiece ? 'hull' : this.props.pickTargets));
+      if (this.props.scene.gesture === 'fill') this.props.onPointer({ kind: 'lay', points: fillLattice(start.start.placement, clicked ? start.start.placement : hit.placement, pieceExtents(piece), start.start.axis) });
+      else this.props.onPointer({ kind: 'lay', points: clicked ? [start.start.placement] : start.points });
+    } else if (clicked) this.props.onPointer({ kind: 'pick', hit: this.pick(event, this.props.scene.placementPiece ? 'hull' : this.props.scene.pickTargets) });
   };
   private pathPick(event: { clientX: number; clientY: number }): Vec3 | undefined {
-    const draft = this.props.pathDraft;
+    const draft = this.props.scene.pathDraft;
     if (!draft) return undefined;
     const hit = this.pick(event, draft.part.path?.kind === 'railing' ? 'hull' : 'all');
-    return hit && pathAnchor(draft.part, this.props.source, this.props.catalog, hit, this.props.gridStep);
+    return hit && pathAnchor(draft.part, this.props.scene.source, this.props.scene.catalog, hit, this.props.scene.gridStep);
   }
   private updatePathPreview() {
-    const draft = this.props.pathDraft, point = draft && this.hover && !this.navigating() ? this.pathPick(this.hover) : undefined;
+    const draft = this.props.scene.pathDraft, point = draft && this.hover && !this.navigating() ? this.pathPick(this.hover) : undefined;
     const points = draft ? point ? appendPathPoint(draft.points, point) : draft.points : [];
     const key = JSON.stringify([draft?.part.id, points, draft?.slackM, draft?.mirror]);
     if (key === this.pathPreviewKey) return;
@@ -821,7 +801,7 @@ class Viewport {
     const geometry = new THREE.SphereGeometry(.075, 8, 6), material = new THREE.MeshBasicMaterial({ color: BRASS_LIGHT, depthTest: false });
     for (const p of points) { const marker = new THREE.Mesh(geometry, material); marker.position.set(...p); marker.renderOrder = 30; this.pathPreview.add(marker); }
   }
-  private finishPath = (event: MouseEvent) => { if (this.props.pathDraft) { event.preventDefault(); this.props.onPathFinish?.(); } };
+  private finishPath = (event: MouseEvent) => { if (this.props.scene.pathDraft) { event.preventDefault(); this.props.onPointer({ kind: 'path-finish' }); } };
   private leave = () => { this.hover = undefined; this.updatePathPreview(); this.ghost.visible = false; this.ghostMirror.visible = false; this.ghostArc.visible = false; this.ghostPosition = undefined; release(this.hoverGroup); this.hoverSurface = ''; };
   private cancel = () => {
     const pointer = this.pointerStart; this.pointerStart = undefined; this.controls.enabled = true;
@@ -832,7 +812,7 @@ class Viewport {
   private animate = () => {
     if (this.dead) return;
     if(!this.freeformHandles.dragging && !this.moveHandles.dragging) this.controls.update();
-    if (this.hover) { if (this.props.placementPiece) this.updateGhost(); this.highlight(this.hover); }
+    if (this.hover) { if (this.props.scene.placementPiece) this.updateGhost(); this.highlight(this.hover); }
     this.freeformHandles.frame(); this.moveHandles.frame(); this.renderer.render(this.scene, this.camera); this.placeTags();
     if (!this.orientationRotation.equals(this.camera.quaternion)) {
       updateBuilderOrientation(this.orientation, this.camera);

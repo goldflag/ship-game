@@ -4,10 +4,10 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { AircraftView } from './AircraftView';
 import { CombatSimulation } from '../simulation/combat';
 import { shipPreset } from '../ships/presets';
-import { aircraftDeckSpot } from '../simulation/aircraft';
-import { aircraftGroundPose } from '../simulation/aircraftGroundPose';
+import { aircraftGroundPose } from './aircraftGroundPose';
 import { aircraftContactAppearance } from './AircraftContacts';
-import { localToWorld, rotate } from '../simulation/geometry';
+import { localToWorld, rotate } from './geometry';
+import { aircraftDeckSpot } from './airWing';
 
 const drawCount = (mesh: InstancedMesh) => (mesh.geometry as InstancedBufferGeometry).instanceCount;
 

@@ -1,9 +1,9 @@
 import { MathUtils, PerspectiveCamera, Vector3 } from 'three/webgpu';
-import type { ShipState } from '../simulation/ship';
-import { localToWorld } from '../simulation/geometry';
+import { localToWorld } from './geometry';
 import type { SubmarineDefinition, Vec3 } from '../ships/blueprint';
 import { terrainHeight } from './HarborTerrain';
 import type { ShellView } from './ShellFollow';
+import type { ShipState } from '../game/session/elements';
 
 export type CameraMode = 'Chase' | 'Bridge' | 'Tactical';
 const NORMAL_FOV = 52;

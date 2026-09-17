@@ -1,5 +1,5 @@
 import type { DeckServiceAction } from '../game/session/BattleSession';
-import type { AirWingTelemetry, FlightSummary } from '../simulation/airTelemetry';
+import type { AirWingTelemetry, FlightSummary } from '../game/session/airTelemetry';
 import { duration } from './airFormat';
 import type { DeckPolicy } from '../multiplayer/generated/DeckPolicy';
 import { Select, SelectOption } from './components';

@@ -1,10 +1,11 @@
 import type { AircraftRole, Vec3 } from '../ships/blueprint';
 import type { Aircraft } from './aircraft';
-import { add, clamp, length, scale, wrapAngle } from './geometry';
+import { add, clamp, length, scale, wrapAngle } from '../game/geometry';
 
 export interface FlightControls { gear: number; hook: number; brakes: number; aileron: number; elevator: number; rudder: number; propeller: number; }
 export interface FlightAttitude { heading: number; pitch: number; bank: number; }
-export const TAKEOFF_ROLL_SECONDS = 3.6;
+export { TAKEOFF_ROLL_SECONDS, aircraftAttitude, aircraftControls } from '../game/aircraftPose';
+import { TAKEOFF_ROLL_SECONDS, aircraftAttitude, aircraftControls } from '../game/aircraftPose';
 export const initialFlightControls = (): FlightControls => ({ gear: 1, hook: 0, brakes: 0, aileron: 0, elevator: 0, rudder: 0, propeller: 0 });
 export const approachValue = (value: number, target: number, rate: number, dt: number) => value + clamp(target - value, -rate * dt, rate * dt);
 
@@ -48,17 +49,3 @@ export function flyAircraft(p: Aircraft, point: Vec3, requestedSpeed: number, dt
   p.controls.rudder = clamp(turnRate * .28, -.16, .16);
 }
 
-export function aircraftAttitude(p: Pick<Aircraft, 'heading' | 'pitch' | 'bank' | 'previousAttitude'>, alpha: number): FlightAttitude {
-  const previous = p.previousAttitude ?? p;
-  return { heading: wrapAngle(previous.heading + wrapAngle(p.heading - previous.heading) * alpha), pitch: previous.pitch + (p.pitch - previous.pitch) * alpha, bank: previous.bank + (p.bank - previous.bank) * alpha };
-}
-
-export function aircraftControls(p: Pick<Aircraft, 'controls' | 'previousControls'>, alpha: number): FlightControls {
-  const previous = p.previousControls ?? p.controls;
-  const controls = { ...p.controls };
-  for (const key of Object.keys(controls) as (keyof FlightControls)[]) {
-    const delta = p.controls[key] - previous[key];
-    controls[key] = previous[key] + (key === 'propeller' ? wrapAngle(delta) : delta) * alpha;
-  }
-  return controls;
-}

@@ -1,6 +1,6 @@
 import type { ConstructionSource } from './blueprint';
 import { ConstructionAutosave, type ConstructionSaveState } from './constructionAutosave';
-import { applyConstructionBatch, type ConstructionBatch } from './constructionCommands';
+import { applyConstructionBatch, type ConstructionBatch, type ConstructionCommand } from './constructionCommands';
 import { decodeConstructionSource, loadSavedConstructionWithCatalog, newConstructionId } from './constructionEditor';
 import { createConstructionHistory, editConstruction, redoConstruction, undoConstruction, type ConstructionHistory } from './constructionHistory';
 import { ConstructionStoreError, type ConstructionRevision, type ConstructionStore, type SaveConstructionSource } from './constructionStore';
@@ -14,7 +14,17 @@ export interface ConstructionRevisionSnapshot {
   error: string;
   /** Changes when an external source is adopted, including same-design recovery. */
   adoption: number;
+  /** True once the store has connected or failed; edits submitted earlier are refused, not dropped. */
+  ready: boolean;
+  /** A long operation (saving, deleting, launching, finding a layout) that refuses edits while it runs. */
+  busy: string;
 }
+/** Why the door is shut: the module is not ready yet or an operation holds it. */
+export interface ConstructionRefusal { reason: 'not-ready' | 'busy'; message: string }
+/** The outcome of one submitted edit. Rejections are returned, never thrown or silently dropped. */
+export type ConstructionSubmission =
+  | { accepted: true; source: ConstructionSource; changed: boolean }
+  | { accepted: false; reason: ConstructionRefusal['reason'] | 'stale' | 'invalid'; message: string };
 interface RevisionOwnerOptions {
   retainRecovery(input: SaveConstructionSource): Promise<unknown>;
   onSave?(source: ConstructionSource): void;
@@ -22,7 +32,12 @@ interface RevisionOwnerOptions {
   savedDesignId?(sourceId: string): string | undefined;
 }
 
-/** Owns editable revisions and their CAS writer independently of React render timing. */
+/** Owns editable revisions and their CAS writer independently of React render timing.
+ *
+ * Interface: `submit` is the one edit door. It refuses while `refusal` is set (store not yet
+ * connected, or `setBusy` holding the design) and reports every rejection; accepted batches enter
+ * history, autosave and recovery in that order. `applyBatch` is the same door for agents and the
+ * development handle: it throws the rejection so a caller's compare-and-swap loop sees it. */
 export class ConstructionRevisionOwner {
   private snapshot: ConstructionRevisionSnapshot;
   private listeners = new Set<() => void>();
@@ -35,20 +50,29 @@ export class ConstructionRevisionOwner {
   private readonly load: NonNullable<RevisionOwnerOptions['load']>;
 
   constructor(source: ConstructionSource, private readonly options: RevisionOwnerOptions) {
-    this.snapshot = { history: createConstructionHistory(source), head: { kind: 'new' }, saveState: { status: 'saving', token: 0 }, error: '', adoption: 0 };
+    this.snapshot = { history: createConstructionHistory(source), head: { kind: 'new' }, saveState: { status: 'saving', token: 0 }, error: '', adoption: 0, ready: false, busy: '' };
     this.load = options.load ?? loadSavedConstructionWithCatalog;
   }
   getSnapshot = () => this.snapshot;
   subscribe = (listener: () => void) => { this.listeners.add(listener); return () => { this.listeners.delete(listener); }; };
   get source() { return this.snapshot.history.source; }
   get unsaved() { return !!this.saver?.unsaved || this.lastQueued !== this.source.revision; }
+  /** The single statement of the readiness rule every edit obeys. */
+  get refusal(): ConstructionRefusal | undefined {
+    if (!this.snapshot.ready) return { reason: 'not-ready', message: 'The design is still opening. Retry once it is ready.' };
+    if (this.snapshot.busy) return { reason: 'busy', message: `${this.snapshot.busy} is in progress. Retry when it finishes.` };
+    return undefined;
+  }
+  get locked() { return !!this.refusal; }
   setError = (error: string) => this.update({ error });
+  setBusy = (busy: string) => { if (busy !== this.snapshot.busy) this.update({ busy }); };
   private update(patch: Partial<ConstructionRevisionSnapshot>) {
     this.snapshot = { ...this.snapshot, ...patch };
     for (const listener of this.listeners) listener();
   }
 
-  /** Store opening/closing belongs to the adapter; saved sources resolve their exact catalog here. */
+  /** Store opening/closing belongs to the adapter; saved sources resolve their exact catalog here.
+   * The door opens (`ready`) once this settles, whether the source loaded, was rejected or failed. */
   async connect(store: ConstructionStore, initialDesignId?: string, returnedSource = false): Promise<void> {
     const generation = ++this.generation;
     this.store = store;
@@ -58,6 +82,7 @@ export class ConstructionRevisionOwner {
         if (generation !== this.generation) return;
         if (initialDesignId || JSON.stringify(loaded.source) === JSON.stringify(this.source)) {
           this.adopt(loaded.source, { kind: 'saved', revisionId: loaded.head.revisionId }, true, undefined, loaded.revision);
+          this.update({ ready: true });
           return;
         }
         this.update({ head: { kind: 'rejected', revisionId: loaded.head.revisionId } });
@@ -69,6 +94,7 @@ export class ConstructionRevisionOwner {
     if (generation !== this.generation) return;
     this.createWriter();
     this.enqueue();
+    this.update({ ready: true });
   }
 
   disconnect() {
@@ -76,7 +102,7 @@ export class ConstructionRevisionOwner {
     if (this.saver?.unsaved) this.lastQueued = '';
     this.saver?.dispose(); this.saver = undefined; this.store = undefined;
   }
-  unavailable(cause: unknown) { this.update({ error: message(cause), saveState: { status: 'error', token: 0, error: new Error(message(cause)) } }); }
+  unavailable(cause: unknown) { this.update({ error: message(cause), saveState: { status: 'error', token: 0, error: new Error(message(cause)) }, ready: true }); }
 
   private createWriter() {
     this.saver?.dispose();
@@ -116,18 +142,29 @@ export class ConstructionRevisionOwner {
     this.update({ history });
     this.enqueue();
   }
-  edit = (label: string, command: (draft: ConstructionSource) => void) => {
-    const current = this.source;
-    this.change(editConstruction(this.snapshot.history, label, draft => {
-      command(draft);
-      if (JSON.stringify(draft) !== JSON.stringify(current)) draft.revision = newConstructionId('revision');
-    }));
+  /** The edit door. Commands apply atomically against the current revision unless `expectedRevision` names another. */
+  submit = (label: string, commands: ConstructionCommand[], expectedRevision = this.source.revision): ConstructionSubmission => {
+    const outcome = this.apply({ version: 1, expectedRevision, label, commands });
+    if (outcome.accepted) { if (this.snapshot.error) this.update({ error: '' }); }
+    else if (outcome.reason === 'invalid') this.setError(outcome.message);
+    return outcome;
   };
-  applyBatch = (batch: ConstructionBatch) => {
-    const next = applyConstructionBatch(this.source, batch);
+  /** The same door for agents: a rejection throws so a compare-and-swap loop can read again. */
+  applyBatch = (batch: ConstructionBatch): ConstructionSource => {
+    const outcome = this.apply(batch);
+    if (!outcome.accepted) throw new Error(outcome.message);
+    return outcome.source;
+  };
+  private apply(batch: ConstructionBatch): ConstructionSubmission {
+    const refusal = this.refusal;
+    if (refusal) return { accepted: false, ...refusal };
+    let next: ConstructionSource;
+    try { next = applyConstructionBatch(this.source, batch); }
+    catch (cause) { return { accepted: false, reason: batch.expectedRevision !== this.source.revision ? 'stale' : 'invalid', message: message(cause) }; }
+    const changed = next.revision !== this.source.revision;
     this.change(editConstruction(this.snapshot.history, batch.label, draft => Object.assign(draft, next)));
-    return structuredClone(next);
-  };
+    return { accepted: true, source: structuredClone(next), changed };
+  }
   undo = () => this.travel(undoConstruction(this.snapshot.history));
   redo = () => this.travel(redoConstruction(this.snapshot.history));
   private travel(next: ConstructionHistory<ConstructionSource>) {

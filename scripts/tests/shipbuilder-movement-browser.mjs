@@ -24,9 +24,9 @@ await page.evaluate(async()=>{
 });
 await page.waitForSelector('.sb-move-handles:not([hidden])');
 await page.waitForFunction(()=>!document.querySelector('.sb-ledger h4 span'));
-const pos=()=>page.evaluate(()=>window.shipbuilderViewport.props.source.construction.primitives.find(p=>p.id==='a').position);
-const revision=()=>page.evaluate(()=>window.shipbuilderViewport.props.source.revision);
-const waitPos=async(x,y=0,z=0)=>page.waitForFunction(([x,y,z])=>{const p=window.shipbuilderViewport.props.source.construction.primitives.find(p=>p.id==='a').position;return [x,y,z].every((v,k)=>Math.abs(v-p[k])<1e-6);},[x,y,z]);
+const pos=()=>page.evaluate(()=>window.shipbuilderViewport.props.scene.source.construction.primitives.find(p=>p.id==='a').position);
+const revision=()=>page.evaluate(()=>window.shipbuilderViewport.props.scene.source.revision);
+const waitPos=async(x,y=0,z=0)=>page.waitForFunction(([x,y,z])=>{const p=window.shipbuilderViewport.props.scene.source.construction.primitives.find(p=>p.id==='a').position;return [x,y,z].every((v,k)=>Math.abs(v-p[k])<1e-6);},[x,y,z]);
 const x=page.getByRole('button',{name:'Move selection X',exact:true});
 assert(await x.isVisible(),'Selected blocks show the X gizmo');
 assert(await page.getByRole('button',{name:'Move selection Y',exact:true}).isVisible(),'Selected blocks show the Y gizmo');
@@ -35,7 +35,7 @@ const drag=async(delta,finish='commit',axis='X')=>{
  const b=await page.getByRole('button',{name:`Move selection ${axis}`,exact:true}).boundingBox();
  const screen=await page.evaluate(async delta=>{
   const {controls}=await import('/scripts/tests/shipbuilder-browser.tsx');
-  const p=window.shipbuilderViewport.props.source.construction.primitives.find(p=>p.id==='a').position;
+  const p=window.shipbuilderViewport.props.scene.source.construction.primitives.find(p=>p.id==='a').position;
   return [await controls.screen(p),await controls.screen(p.map((v,k)=>v+delta[k]))];
  },delta);
  const [from,to]=screen, px=b.x+b.width/2,py=b.y+b.height/2;

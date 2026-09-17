@@ -3,7 +3,7 @@ import type { AirRules } from "./AirRules";
 import type { MissionRules } from "./MissionRules";
 import type { ShipSetup } from "./ShipSetup";
 
-export type BattleSetup = { ships: Array<ShipSetup>, seed: number, mapId: string, weather: string, spawnDistance: number, windSpeed: number | null, missionRules?: MissionRules,
+export type BattleSetup = { ships: Array<ShipSetup>, seed: number, mapId: string, weather: string, spawnDistance: number, windSpeed: number | null, missionRules?: MissionRules, 
 /**
  * Omitted legacy setups explicitly resolve legacy-air-v1 from installed content.
  */

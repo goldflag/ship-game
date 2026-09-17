@@ -1,9 +1,14 @@
 import { expect, test } from 'bun:test';
 import { AIR_GUNNERY, gunnerySeed, initialFireDiscipline, stepFireDiscipline } from './airGunnery';
-import { dispersedDirection } from './ballistics';
-import { length, scale, sub } from './geometry';
+import { dispersedDirection } from '../game/ballistics';
+import { length, scale, sub } from '../game/geometry';
 import { shipPreset } from '../ships/presets';
-import { CombatSimulation } from './combat';
+import { CombatSimulation as Fixture } from './combat';
+import type { FleetActor } from './battle';
+import type { Aircraft } from './aircraft';
+/** The fixture's hulls are the engine's own; these tests drive the engine with them. */
+type EngineFixture = Fixture & { player: FleetActor; target: FleetActor; actors: FleetActor[]; aircraft: Aircraft[] };
+const CombatSimulation = Fixture as unknown as new (...args: ConstructorParameters<typeof Fixture>) => EngineFixture;
 import { updateAntiAircraft } from './antiAircraft';
 import type { AirContext } from './aircraft';
 

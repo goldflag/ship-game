@@ -3,7 +3,7 @@ use crate::{
     geometry::dot,
 };
 use std::sync::OnceLock;
-#[derive(Clone, Debug, serde::Serialize)]
+#[derive(Clone, Debug, serde::Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 pub struct WaterBody {
     pub volume: f64,

@@ -1,10 +1,9 @@
 import * as THREE from 'three/webgpu';
 import { DecalGeometry } from 'three/addons/geometries/DecalGeometry.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import type { CombatEvent } from '../simulation/combat';
-import type { ShellType, SurfaceImpact } from '../simulation/damage';
 import { impactTexture } from './ImpactTexture';
 import { raycastSurface, surfaceChunks } from './SurfaceChunks';
+import type { CombatEvent, ShellType, SurfaceImpact } from '../game/session/elements';
 
 export const MAX_SHIP_IMPACT_MARKS = 96;
 export interface ImpactMarkBudget { remainingMs: number; }

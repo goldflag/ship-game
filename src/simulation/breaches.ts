@@ -1,6 +1,6 @@
 import type { Vec3 } from '../ships/blueprint';
 import type { CompartmentState } from './damage';
-import { dot, normalize, sub } from './geometry';
+import { dot, normalize, sub } from '../game/geometry';
 
 const cross = (a: Vec3, b: Vec3): Vec3 => [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]];
 function axes(normal: Vec3) {

@@ -1,5 +1,5 @@
 import type { Vec3 } from '../ships/blueprint';
-import type { CombatEvent } from '../simulation/combat';
+import type { CombatEvent } from '../game/session/elements';
 
 export const SOUND_IDS = ['ui-click', 'ui-confirm', 'ui-back', 'telegraph', 'ship-horn', 'main-gun-a', 'main-gun-b', 'secondary-gun', 'armor-hit', 'ricochet', 'splash', 'magazine-explosion', 'reload'] as const;
 export type SoundId = typeof SOUND_IDS[number];

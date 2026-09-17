@@ -3,7 +3,7 @@ import { InstancedMesh, Matrix4, PerspectiveCamera, Vector3 } from 'three/webgpu
 import { CombatSimulation } from '../simulation/combat';
 import { shipPreset } from '../ships/presets';
 import { AircraftGunfire } from './AircraftGunfire';
-import { ballisticStep } from '../simulation/ballistics';
+import { ballisticStep } from './ballistics';
 
 test('offscreen tracers remain live and return at their current ballistic position', () => {
   const sim = new CombatSimulation(shipPreset('bismarck')), gunfire = new AircraftGunfire(true);

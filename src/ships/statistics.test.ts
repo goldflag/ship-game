@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test';
 import { loadShipPreset, shipPreset, shipPresets } from './presets';
 import { maximumRangeM, shipScores, shipStatistics } from './statistics';
-import { maxHullIntegrity } from '../simulation/damage';
+import { maxHullIntegrity } from './durability';
 
 test('every preset prints a complete sheet whose figures come from the compiled definition', () => {
   for (const id of Object.keys(shipPresets)) {
