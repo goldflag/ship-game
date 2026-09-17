@@ -242,7 +242,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   </> : !piece ? null : piece.kind === 'hull' && active?.kind === 'shape' ? <>
     <b>{active.name}</b><NumberField value={piece.size[0]} min={.25} max={500} step={1} onChange={value => tool.setSizeOverride([value, piece.size[1], piece.size[2]])}/> × <NumberField value={piece.size[1]} min={.25} max={500} step={1} onChange={value => tool.setSizeOverride([piece.size[0], value, piece.size[2]])}/> × <NumberField value={piece.size[2]} min={.25} max={500} step={1} onChange={value => tool.setSizeOverride([piece.size[0], piece.size[1], value])}/> m<span>{piece.rotationDeg}°</span>
   </> : piece.kind === 'equipment' && active?.kind === 'part' ? <>
-    <b>{active.part.name}</b><span>{active.part.placement} · bearing {piece.bearingDeg}°</span>
+    <b>{active.part.name}</b><span>{active.part.placement} · bearing {Number(piece.bearingDeg.toFixed(2))}°</span>
   </> : piece.kind === 'boundary' ? <><b>{BOUNDARY_NAMES[piece.axis]}</b><span>on the {gridStep} m grid</span></> : null;
   if (!freeformMode && selectedPrimitives.length === 1 && !selectedEquipment.length) {
     const primitive = selectedPrimitives[0], mass = pieceMassKg(compiledResult, primitive.id);
@@ -262,12 +262,15 @@ export function Shipbuilder(props: ShipbuilderProps) {
     const move = (axis: number, value: number) => { const delta: Vec3 = [0, 0, 0]; delta[axis] = snapCoordinate(value, gridStep) - item.position[axis]; tool.nudge(delta); };
     tags.push({ key: `part-${item.id}`, anchor: equipmentAnchor(item), dx: 82, dy: -92, tone: 'mint', content: <>
       <b>{part?.name ?? item.partId}</b>
-      {mass !== undefined ? `${formatTonnes(mass)} · ` : ''}bearing <NumberField value={item.bearingDeg} min={0} max={360} step={15} unit="°" onChange={value => edit('Set bearing', target => { target.bearingDeg = normalizedBearing(value); })}/> · <NumberField label="x" value={item.position[0]} min={-1000} max={1000} step={gridStep} onChange={value => move(0, value)}/> <NumberField label="y" value={item.position[1]} min={-1000} max={1000} step={gridStep} onChange={value => move(1, value)}/> <NumberField label="z" value={item.position[2]} min={-1000} max={1000} step={gridStep} onChange={value => move(2, value)}/>
+      {mass !== undefined ? `${formatTonnes(mass)} · ` : ''}bearing <NumberField value={item.bearingDeg} min={0} max={360} step={.1} unit="°" onChange={value => edit('Set bearing', target => { target.bearingDeg = normalizedBearing(value); })}/> · <NumberField label="x" value={item.position[0]} min={-1000} max={1000} step={gridStep} onChange={value => move(0, value)}/> <NumberField label="y" value={item.position[1]} min={-1000} max={1000} step={gridStep} onChange={value => move(1, value)}/> <NumberField label="z" value={item.position[2]} min={-1000} max={1000} step={gridStep} onChange={value => move(2, value)}/>
+      {part?.placement !== 'internal' && <label> · Paint <select className="sb-link" aria-label="Fitting paint" value={item.paint ?? ''} disabled={locked} onChange={event => tool.paintFittings([item.id], event.target.value || undefined)}>
+        <option value="">Original finish</option>{CONSTRUCTION_PAINTS.map(paint => <option key={paint.id} value={paint.id}>{paint.name}</option>)}
+      </select></label>}
       {part?.path && item.path && <PathPointEditor key={item.id} item={item} part={part} onChange={path => edit('Edit fitting path', target => { target.path = path; })}/>}
       {part?.kind === 'gun' && <> · <NumberField label="Turret rise" description="Extend the barbette above its deck attachment; the magazine stays at its lower end." value={item.gun?.barbetteHeightM ?? 0} min={0} max={30} step={.25} unit="m" onChange={value => tool.raiseTurrets([item.id], () => value)}/>
         <label> · Barbette paint <select aria-label="Barbette paint" className="sb-link" value={item.gun?.barbettePaint ?? 'naval-gray'} onChange={event => edit('Paint barbette', target => { target.gun = { ...target.gun, barbettePaint: event.target.value }; })}>
           {CONSTRUCTION_PAINTS.map(paint => <option key={paint.id} value={paint.id}>{paint.name}</option>)}
-        </select></label></>}{data.version === 2 && (part?.kind === 'gun' || part?.kind === 'torpedo-launcher') && <span> · built-in ammunition</span>}{(part?.kind === 'funnel' || part?.kind === 'propeller') && link('powerSourceId', 'engine', '· power')} · <kbd>R</kbd> rotate · <kbd>⌫</kbd> remove
+        </select></label></>}{data.version === 2 && (part?.kind === 'gun' || part?.kind === 'torpedo-launcher') && <span> · built-in ammunition</span>}{(part?.kind === 'funnel' || part?.kind === 'propeller') && link('powerSourceId', 'engine', '· power')} · <kbd>R</kbd> rotate · right-drag rotate · <kbd>⇧</kbd> fine · <kbd>⌫</kbd> remove
     </> });
   } else if (selected.size > 1) {
     const anchors = [...selectedPrimitives.map(part => part.position), ...selectedEquipment.map(equipmentAnchor)];

@@ -329,6 +329,8 @@ export interface ConstructionSurfaceAssignment {
   thicknessMm: number; material: 'steel' | 'armor-steel'; paint: string; open?: boolean;
 }
 export interface ConstructionEquipment {
+  /** Named coating for this installation; omission retains the original component finish. */
+  paint?: string;
   id: string; partId: string; position: Vec3; bearingDeg: number;
   magazineId?: string; powerSourceId?: string;
   /** Installation settings retain canonical part dimensions/capability. */

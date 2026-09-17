@@ -455,3 +455,4 @@
 .sb-edge-choices button {min-width:30px;}
 .sb-shape-panel .sb-num {gap:5px;}
 .sb-shape-tools button:disabled {opacity:.45;cursor:default;}
+.sb-armor-tooltip { visibility: visible; pointer-events: none; }
