@@ -301,11 +301,19 @@ export interface ConstructionPrimitive {
    * Missing corners on a vertex hull mean the unit cube. Size scales this edit frame.
    * Rust samples the trilinear solid; generated cells remain the physical authority. */
   vertices?: Vec3[];
+  /** Reversible round/chamfer on the same eight-corner block; Rust derives the solid. */
+  shaping?: ConstructionFreeformShape;
   /** Optional shared lighting seam group; physical surfaces remain unchanged. */
   smoothGroup?: string;
   /** Section-authored whole hull; size is [beam, depth, length]. Native compilation
    * derives its closed cells and surfaces; source sections remain editable. */
   customHull?: ConstructionCustomHull;
+}
+export interface ConstructionFreeformShape {
+  version: 1;
+  edges: number[];
+  radius: number;
+  style: 'round' | 'chamfer';
 }
 export interface ConstructionHullPoint { x: number; y: number; }
 export interface ConstructionHullStation { id: string; t: number; points: ConstructionHullPoint[]; }
@@ -321,6 +329,8 @@ export interface ConstructionSurfaceAssignment {
   thicknessMm: number; material: 'steel' | 'armor-steel'; paint: string; open?: boolean;
 }
 export interface ConstructionEquipment {
+  /** Named coating for this installation; omission retains the original component finish. */
+  paint?: string;
   id: string; partId: string; position: Vec3; bearingDeg: number;
   magazineId?: string; powerSourceId?: string;
   /** Installation settings retain canonical part dimensions/capability. */

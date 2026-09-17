@@ -55,8 +55,8 @@ export function airWingTelemetry(actor: FleetActor, actors: FleetActor[]) {
     const recoveryNotice = status === 'returning' ? flying.find(p => p.behavior?.recoveryNotice?.includes('Holding') || p.behavior?.recoveryNotice?.includes('Steady the course'))?.behavior?.recoveryNotice
       ?? flying.find(p => p.behavior?.recoveryNotice)?.behavior?.recoveryNotice : undefined;
     const evading = status === 'on-mission' || status === 'returning' ? flying.find(p => !!p.behavior?.evasionNotice) : undefined;
-    // Sortie notices describe the current flight, not landed/service history.
-    const sortieNotice = flying.length > 0 || status === 'launching' ? f.notice : undefined;
+    // Merge confirmation belongs to the hangar action; old sortie history stays hidden.
+    const sortieNotice = flying.length > 0 || status === 'launching' || f.notice?.startsWith('Combined with ') ? f.notice : undefined;
     const maneuverNotice = status === 'on-mission' && lead.role === 'fighter' ? ({
       'defensive-break': 'Defensive break', extend: 'Extending for another pass',
       'high-yo-yo': 'Climbing to reduce closure', reposition: 'Repositioning for a firing pass',

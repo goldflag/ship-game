@@ -1,3 +1,4 @@
+import { envelopeVertices } from '../../ships/freeformShape';
 import { equipmentPathBounds } from '../../ships/constructionPaths';
 import { cornerVertices } from '../../ships/constructionVertex';
 import * as THREE from 'three';
@@ -27,7 +28,7 @@ export function boxSelectedPieces(source: ConstructionSource, catalog: Construct
   };
   for (const part of internals ? [] : source.construction.primitives) {
     if(part.kind==='vertex') {
-      const corners=cornerVertices(part).map(v=>v.map((n,k)=>n*part.size[k]));
+      const corners=envelopeVertices(part).map(v=>v.map((n,k)=>n*part.size[k]));
       const min=[0,1,2].map(k=>Math.min(...corners.map(v=>v[k]))),max=[0,1,2].map(k=>Math.max(...corners.map(v=>v[k])));
       if(overlaps(part.position,max.map((n,k)=>n-min[k]) as Vec3,part.rotationDeg*Math.PI/180,min.map((n,k)=>(n+max[k])/2) as Vec3))result.push(part.id);
     }else if (overlaps(part.position, part.size, part.rotationDeg * Math.PI / 180)) result.push(part.id);

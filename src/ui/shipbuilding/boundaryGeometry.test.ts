@@ -1,6 +1,7 @@
 import { expect, test } from 'bun:test';
 import * as THREE from 'three';
 import type { ConstructionPrimitive } from '../../ships/blueprint';
+import { emptyShaping } from '../../ships/freeformShape';
 import { boundaryGeometry } from './boundaryGeometry';
 
 const hull: ConstructionPrimitive = { id: 'hull', kind: 'wedge', size: [10, 4, 20], position: [14, 3, 25], rotationDeg: 0 };
@@ -49,4 +50,14 @@ test('rotated hull sections stay attached to their source position', () => {
   mesh.updateMatrixWorld();
   expect(new THREE.Raycaster(new THREE.Vector3(14, 10, 25), new THREE.Vector3(0, -1, 0)).intersectObject(mesh).length).toBeGreaterThan(0);
   expect(new THREE.Raycaster(new THREE.Vector3(24, 10, 15), new THREE.Vector3(0, -1, 0)).intersectObject(mesh)).toHaveLength(0);
+});
+
+for (const style of ['round', 'chamfer'] as const) test(`${style} edge treatments constrain the internal section`, () => {
+  const geometry = boundaryGeometry([{ ...hull, kind: 'vertex', size: [4, 4, 4], position: [0, 0, 0],
+    shaping: { ...emptyShaping(), style, radius: 1, edges: Array.from({ length: 12 }, (_, i) => i) } }], 'y', 0);
+  const mesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ side: THREE.DoubleSide }));
+  mesh.updateMatrixWorld();
+  const ray = (x: number, z: number) => new THREE.Raycaster(new THREE.Vector3(x, 10, z), new THREE.Vector3(0, -1, 0)).intersectObject(mesh);
+  expect(ray(0, 0).length).toBeGreaterThan(0);
+  expect(ray(1.9, 1.9)).toHaveLength(0);
 });

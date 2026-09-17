@@ -1,3 +1,5 @@
+import { mirroredIndices } from './freeformShape';
+import { cornerVertices } from './constructionVertex';
 import { customHullPanels, mirroredPanelId } from './constructionPanels';
 import type { ConstructionEquipment, ConstructionSource, ConstructionPrimitive, ConstructionSurface, ConstructionSurfaceAssignment, Vec3 } from './blueprint';
 import { normalizedBearing } from '../ui/shipbuilding/editorNumbers';
@@ -24,10 +26,13 @@ export function editableConstructionSurfaces(source: ConstructionSource, surface
  * whole face's assignment when it has none of its own, as the compiler does. */
 export function projectConstructionSurfaces(source: ConstructionSource, surfaces: readonly ConstructionSurface[]): ConstructionSurface[] {
   const assignments = new Map(source.construction.surfaces.map(surface => [surfaceSelectionKey(surface), surface]));
+  const primitiveIds = new Set(source.construction.primitives.map(primitive => primitive.id));
   return surfaces.map(surface => {
+    if (!primitiveIds.has(surface.primitiveId)) return surface;
     const assignment = assignments.get(surfaceSelectionKey(surface)) ?? (surface.panelId !== undefined ? assignments.get(surfaceKey(surface.primitiveId, surface.face)) : undefined);
-    if (!assignment) return surface;
-    const { thicknessMm, material, paint, open } = assignment;
+    // Match the native skin minimum and defaults, including when undo removes an assignment.
+    const thicknessMm = Math.max(assignment?.thicknessMm ?? source.construction.defaultThicknessMm, source.construction.defaultThicknessMm);
+    const material = assignment?.material ?? 'steel', paint = assignment?.paint ?? 'naval-gray', open = !!assignment?.open;
     return surface.thicknessMm === thicknessMm && surface.material === material && surface.paint === paint && surface.open === !!open ? surface : { ...surface, thicknessMm, material, paint, open: !!open };
   });
 }
@@ -66,6 +71,12 @@ export function decodeConstructionSource(value: unknown): ConstructionSource {
         for (const point of points) { number(point.x, 'Point X'); number(point.y, 'Point Y'); }
       }
     } else if (p.customHull !== undefined) throw new Error('Section data belongs to a custom hull');
+    if (p.shaping !== undefined) {
+      const shape=object(p.shaping,'Freeform shaping');
+      if(p.kind!=='vertex'||shape.version!==1||!['round','chamfer'].includes(String(shape.style)))throw new Error('Unsupported freeform shaping');
+      number(shape.radius,'Radius');
+      if(!Array.isArray(shape.edges)||shape.edges.length>12||shape.edges.some(e=>!Number.isInteger(e)||e<0||e>11)||new Set(shape.edges).size!==shape.edges.length)throw new Error('Invalid edge treatment selection');
+    }
     if (p.vertices !== undefined) {
       if (p.kind !== 'vertex' || !Array.isArray(p.vertices) || p.vertices.length !== 8) throw new Error('Vertex hulls require eight local corners');
       p.vertices.forEach(v => vector(v, 'Hull corner'));
@@ -158,7 +169,11 @@ export function rotateConstructionSelection(source: ConstructionSource, selected
 
 /** Source transform, not physical derivation. Corner profiles require an X/Z swap when reflected. */
 export function mirroredPrimitive(primitive: ConstructionPrimitive): ConstructionPrimitive {
-  if (primitive.kind === 'vertex' && primitive.vertices) return { ...structuredClone(primitive), position: [-primitive.position[0], primitive.position[1], primitive.position[2]], rotationDeg: normalizedBearing(-primitive.rotationDeg), vertices: [1,0,3,2,5,4,7,6].map(i => [-primitive.vertices![i][0], primitive.vertices![i][1], primitive.vertices![i][2]]) };
+  if (primitive.kind === 'vertex') {
+    const out: ConstructionPrimitive = { ...structuredClone(primitive), position: [-primitive.position[0], primitive.position[1], primitive.position[2]], rotationDeg: normalizedBearing(-primitive.rotationDeg), vertices: [1,0,3,2,5,4,7,6].map(i => {const v=cornerVertices(primitive)[i];return [-v[0],v[1],v[2]];}) };
+    if(out.shaping) {const s=out.shaping; s.edges=s.edges.map(i=>mirroredIndices('edge',[i],[true,false,false]).find(j=>j!==i)??i); }
+    return out;
+  }
   const mirror = shapeMirror(primitive.kind);
   return { ...structuredClone(primitive), position: [-primitive.position[0], primitive.position[1], primitive.position[2]],
     size: mirror.swap ? [primitive.size[2], primitive.size[1], primitive.size[0]] : [...primitive.size],

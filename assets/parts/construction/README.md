@@ -195,3 +195,48 @@ the supporting deck is external. It retains a Y=0 attachment sole and an
 `exhaust-out` socket. It is neither a resized Fletcher asset nor a historical
 funnel reconstruction. These estimates do not certify thermodynamic performance,
 shaft routing or any named battleship's engineering.
+
+## Japanese destroyer torpedo banks
+
+`../ijn-destroyer-equipment/geometry.py` adapts the original Fubuki triple and
+Yukikaze quadruple shielded 610 mm banks into one standalone recipe. The shield
+stations follow the owning ship recipe for that tube count and the tubes sit on
+the catalog's `tubeOffsets`, which are the ships' own tube datums relative to
+the launcher pivot. The 11 t and 18 t package masses are gameplay estimates, and
+the torpedoes are the ships' provisional game variants (Type 8 and Type 93).
+
+## National funnels, masts and directors
+
+Four recipe files adapt superstructure from the original ship recipes into
+standalone deck fittings: `../us-superstructure/` (Iowa funnel and Mk 38
+director, Baltimore funnel and pole mast), `../german-capital-superstructure/`
+(Bismarck funnel, 10.5 m rangefinder cupola and mainmast), `../ijn-superstructure/`
+(Yamato funnel and Type 98 director, Mogami trunked funnel and Type 95 director
+tower, Fubuki funnel, Yukikaze tripod foremast) and `../rn-superstructure/`
+(King George V funnel, tripod foremast and HACS director, Flower-class funnel).
+Each stands on the deck at its origin; parts that sat on superstructure aboard
+ship are extended to the deck, so some read taller than they do on the ship.
+Jacket outlines and heights come from the ship recipes and blueprints; small
+fittings (ladders, walkways, whistles, lookouts, radar aerials the source ship
+did not carry, including the FuMO mattress on the German cupola) are plausible
+additions. Masses and exhaust ratings are gameplay estimates. Directors train on
+a `yaw` joint; mast radar arrays are fixed.
+
+## Capital and cruiser turrets
+
+Eleven turrets that the ships draw inline (or through the generic ship mount)
+now have standalone articulated builders: `../ijn-main-guns/` (46 cm Type 94
+triple, 15.5 cm Type 3 triple, 20.3 cm Type 3 twins with and without the
+rangefinder), `../us-main-guns/` (16-inch/50 Mk 7 and 8-inch/55 Mk 12 triples),
+`../rn-main-guns/` (14-inch Mk VII quadruple and twin, 5.25-inch QF Mk I twin)
+and `../german-battleship-guns/sk_c28.py`, `flak_105.py` (15 cm SK C/28 twin,
+10.5 cm twin heavy AA). Each follows the Cleveland builder: a yawing gunhouse
+and one elevation, recoil and muzzle joint per barrel from `aa_articulation`,
+with trunnion, muzzle, spacing, bore and base ring taken from `guns.json`.
+Gunhouse outlines are the ships' own envelopes. Gun ports are opened where the
+ship pushes barrels through closed plate, and blast bags are rigid and ride
+with their barrel, so a bag lifts off its port at high elevation. The 46 cm
+turret carries a 2.15 m rotating stalk below the gunhouse, because its mount
+datum sits that far under the floor aboard Yamato. The ships themselves are
+unchanged: they do not read the mount registry and keep their inline turrets.
+

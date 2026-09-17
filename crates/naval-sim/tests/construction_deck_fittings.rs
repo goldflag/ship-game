@@ -13,7 +13,7 @@ fn fixture() -> (ConstructionSource, ConstructionCatalog) {
                 version: 1.,
                 catalog_revision: "test".into(),
                 default_thickness_mm: 10.,
-                primitives: vec![ConstructionPrimitive { custom_hull: None,
+                primitives: vec![ConstructionPrimitive { shaping: None, custom_hull: None,
                     id: "hull".into(),
                     kind: "box".into(),
                     size: [10., 4., 20.],
@@ -230,7 +230,7 @@ fn a_rail_cannot_bridge_an_unsupported_run_of_posts() {
     s.construction.primitives[0].size[1] = 2.;
     s.construction.primitives[0].position[1] = -1.;
     for (id, x) in [("port-deck", -4.), ("starboard-deck", 4.)] {
-        s.construction.primitives.push(ConstructionPrimitive { custom_hull: None,
+        s.construction.primitives.push(ConstructionPrimitive { shaping: None, custom_hull: None,
             id: id.into(),
             kind: "box".into(),
             position: [x, 1., 0.],
@@ -416,7 +416,7 @@ fn review_bitts_rope_can_leave_its_socket_downward_without_hitting_empty_catalog
     // Exact deck/anchor/rope poses from deckFittingsFixture. The bitts' bedplate
     // widens their AABB, but the rope at this height clears the original posts.
     s.construction.primitives[0].size = [24., 2., 36.];
-    s.construction.primitives.push(ConstructionPrimitive { custom_hull: None,
+    s.construction.primitives.push(ConstructionPrimitive { shaping: None, custom_hull: None,
         id: "review-wall".into(),
         kind: "box".into(),
         size: [22., 3., 0.5],
@@ -520,6 +520,25 @@ fn every_registered_fixed_deck_fitting_uses_its_original_attachment_and_rangefin
             assert!(d.modules.is_empty());
         }
     }
+}
+
+#[test]
+fn fitting_paint_roundtrips_and_changes_visual_identity_without_changing_loading() {
+    let (mut source, mut catalog) = fixture();
+    catalog.equipment.push(part("painted"));
+    source.construction.equipment.push(fixed("painted", [0., 2., 0.]));
+    let original = construction::compile(&source, &catalog);
+    source.construction.equipment[0].paint = Some("sea-blue".into());
+    let saved = serde_json::to_string(&source).unwrap();
+    let restored: ConstructionSource = serde_json::from_str(&saved).unwrap();
+    let painted = construction::compile(&restored, &catalog);
+    assert_ne!(original.content_hash, painted.content_hash);
+    let before = original.definition.unwrap();
+    let after = painted.definition.unwrap();
+    assert_eq!(before.hull.mass_kg, after.hull.mass_kg);
+    assert_eq!(after.construction.unwrap().equipment[0].paint.as_deref(), Some("sea-blue"));
+    source.construction.equipment[0].paint = Some(String::new());
+    rejected(&source, &catalog, "equipment-paint");
 }
 
 #[test]

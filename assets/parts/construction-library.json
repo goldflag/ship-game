@@ -311,6 +311,132 @@
       "inputs": [
         "assets/parts/construction/geometry.py"
       ]
+    },
+    "ijn-shielded-bank": {
+      "path": "assets/parts/ijn-destroyer-equipment/geometry.py",
+      "function": "create_shielded_bank",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "us-battleship-funnel": {
+      "path": "assets/parts/us-superstructure/geometry.py",
+      "function": "create_battleship_funnel",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "us-cruiser-funnel": {
+      "path": "assets/parts/us-superstructure/geometry.py",
+      "function": "create_cruiser_funnel",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "us-mk38-director": {
+      "path": "assets/parts/us-superstructure/geometry.py",
+      "function": "create_main_director",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "us-cruiser-pole-mast": {
+      "path": "assets/parts/us-superstructure/geometry.py",
+      "function": "create_pole_mast",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "german-battleship-funnel": {
+      "path": "assets/parts/german-capital-superstructure/geometry.py",
+      "function": "create_battleship_funnel",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "german-rangefinder-cupola": {
+      "path": "assets/parts/german-capital-superstructure/geometry.py",
+      "function": "create_rangefinder_cupola",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "german-battleship-mainmast": {
+      "path": "assets/parts/german-capital-superstructure/geometry.py",
+      "function": "create_mainmast",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "ijn-battleship-funnel": {
+      "path": "assets/parts/ijn-superstructure/geometry.py",
+      "function": "create_battleship_funnel",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "ijn-cruiser-trunked-funnel": {
+      "path": "assets/parts/ijn-superstructure/geometry.py",
+      "function": "create_trunked_funnel",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "ijn-destroyer-funnel": {
+      "path": "assets/parts/ijn-superstructure/geometry.py",
+      "function": "create_destroyer_funnel",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "ijn-destroyer-tripod-foremast": {
+      "path": "assets/parts/ijn-superstructure/geometry.py",
+      "function": "create_tripod_foremast",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "ijn-type95-director": {
+      "path": "assets/parts/ijn-superstructure/geometry.py",
+      "function": "create_director_tower",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "ijn-type98-main-director": {
+      "path": "assets/parts/ijn-superstructure/geometry.py",
+      "function": "create_main_director",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "rn-battleship-funnel": {
+      "path": "assets/parts/rn-superstructure/geometry.py",
+      "function": "create_battleship_funnel",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "rn-tripod-foremast": {
+      "path": "assets/parts/rn-superstructure/geometry.py",
+      "function": "create_tripod_foremast",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "rn-hacs-director": {
+      "path": "assets/parts/rn-superstructure/geometry.py",
+      "function": "create_hacs_director",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "rn-corvette-funnel": {
+      "path": "assets/parts/rn-superstructure/geometry.py",
+      "function": "create_corvette_funnel",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
     }
   },
   "components": [
@@ -595,6 +721,120 @@
       "builder": "generic-capital-funnel",
       "review": "unreviewed",
       "limitations": "Original generic capital-ship package. Geometry, plant power, mass and exhaust capacity are explicit gameplay estimates; no historical plant or thermodynamic certification. Review each installation."
+    },
+    {
+      "partId": "ijn-triple-610",
+      "builder": "ijn-shielded-bank",
+      "review": "unreviewed",
+      "limitations": "Adapted original Fubuki torpedo bank recipe; package mass is a gameplay estimate and the torpedo is the ship's provisional game variant. Per-design attachment and moving-neighbor clearance require installation review."
+    },
+    {
+      "partId": "ijn-quadruple-610",
+      "builder": "ijn-shielded-bank",
+      "review": "unreviewed",
+      "limitations": "Adapted original Yukikaze torpedo bank recipe; package mass is a gameplay estimate and the torpedo is the ship's provisional game variant. Per-design attachment and moving-neighbor clearance require installation review."
+    },
+    {
+      "partId": "us-battleship-funnel",
+      "builder": "us-battleship-funnel",
+      "review": "unreviewed",
+      "limitations": "Adapted original Iowa recipe as a standalone fitting; mass and ratings are gameplay estimates. Per-design attachment and clearance require installation review."
+    },
+    {
+      "partId": "us-cruiser-funnel",
+      "builder": "us-cruiser-funnel",
+      "review": "unreviewed",
+      "limitations": "Adapted original Baltimore recipe as a standalone fitting; mass and ratings are gameplay estimates. Per-design attachment and clearance require installation review."
+    },
+    {
+      "partId": "us-mk38-director",
+      "builder": "us-mk38-director",
+      "review": "unreviewed",
+      "limitations": "Adapted original Iowa recipe as a standalone fitting; mass and ratings are gameplay estimates. Per-design attachment and clearance require installation review."
+    },
+    {
+      "partId": "us-cruiser-pole-mast",
+      "builder": "us-cruiser-pole-mast",
+      "review": "unreviewed",
+      "limitations": "Adapted original Baltimore recipe as a standalone fitting; mass and ratings are gameplay estimates. Per-design attachment and clearance require installation review."
+    },
+    {
+      "partId": "german-battleship-funnel",
+      "builder": "german-battleship-funnel",
+      "review": "unreviewed",
+      "limitations": "Adapted original Bismarck recipe as a standalone fitting; mass and ratings are gameplay estimates. Per-design attachment and clearance require installation review."
+    },
+    {
+      "partId": "german-rangefinder-cupola",
+      "builder": "german-rangefinder-cupola",
+      "review": "unreviewed",
+      "limitations": "Adapted original Bismarck recipe as a standalone fitting; mass and ratings are gameplay estimates. Per-design attachment and clearance require installation review."
+    },
+    {
+      "partId": "german-battleship-mainmast",
+      "builder": "german-battleship-mainmast",
+      "review": "unreviewed",
+      "limitations": "Adapted original Bismarck recipe as a standalone fitting; mass and ratings are gameplay estimates. Per-design attachment and clearance require installation review."
+    },
+    {
+      "partId": "ijn-battleship-funnel",
+      "builder": "ijn-battleship-funnel",
+      "review": "unreviewed",
+      "limitations": "Adapted original Yamato recipe as a standalone fitting; mass and ratings are gameplay estimates. Per-design attachment and clearance require installation review."
+    },
+    {
+      "partId": "ijn-cruiser-trunked-funnel",
+      "builder": "ijn-cruiser-trunked-funnel",
+      "review": "unreviewed",
+      "limitations": "Adapted original Mogami recipe as a standalone fitting; mass and ratings are gameplay estimates. Per-design attachment and clearance require installation review."
+    },
+    {
+      "partId": "ijn-destroyer-funnel",
+      "builder": "ijn-destroyer-funnel",
+      "review": "unreviewed",
+      "limitations": "Adapted original Fubuki recipe as a standalone fitting; mass and ratings are gameplay estimates. Per-design attachment and clearance require installation review."
+    },
+    {
+      "partId": "ijn-destroyer-tripod-foremast",
+      "builder": "ijn-destroyer-tripod-foremast",
+      "review": "unreviewed",
+      "limitations": "Adapted original Yukikaze recipe as a standalone fitting; mass and ratings are gameplay estimates. Per-design attachment and clearance require installation review."
+    },
+    {
+      "partId": "ijn-type95-director",
+      "builder": "ijn-type95-director",
+      "review": "unreviewed",
+      "limitations": "Adapted original Mogami recipe as a standalone fitting; mass and ratings are gameplay estimates. Per-design attachment and clearance require installation review."
+    },
+    {
+      "partId": "ijn-type98-main-director",
+      "builder": "ijn-type98-main-director",
+      "review": "unreviewed",
+      "limitations": "Adapted original Yamato recipe as a standalone fitting; mass and ratings are gameplay estimates. Per-design attachment and clearance require installation review."
+    },
+    {
+      "partId": "rn-battleship-funnel",
+      "builder": "rn-battleship-funnel",
+      "review": "unreviewed",
+      "limitations": "Adapted original King George V recipe as a standalone fitting; mass and ratings are gameplay estimates. Per-design attachment and clearance require installation review."
+    },
+    {
+      "partId": "rn-tripod-foremast",
+      "builder": "rn-tripod-foremast",
+      "review": "unreviewed",
+      "limitations": "Adapted original King George V recipe as a standalone fitting; mass and ratings are gameplay estimates. Per-design attachment and clearance require installation review."
+    },
+    {
+      "partId": "rn-hacs-director",
+      "builder": "rn-hacs-director",
+      "review": "unreviewed",
+      "limitations": "Adapted original King George V recipe as a standalone fitting; mass and ratings are gameplay estimates. Per-design attachment and clearance require installation review."
+    },
+    {
+      "partId": "rn-corvette-funnel",
+      "builder": "rn-corvette-funnel",
+      "review": "unreviewed",
+      "limitations": "Adapted original Flower corvette recipe as a standalone fitting; mass and ratings are gameplay estimates. Per-design attachment and clearance require installation review."
     }
   ]
 }

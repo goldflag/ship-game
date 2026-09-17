@@ -444,7 +444,7 @@ mod tests {
                 assert!((size[axis] - 1.).abs() < 1e-8, "{kind} size");
             }
             for c in cells {
-                assert!(cg::total(&[c.clone()]).volume > 1e-10, "{kind} volume");
+                assert!(cg::total(std::slice::from_ref(c)).volume > 1e-10, "{kind} volume");
                 for f in c.faces.iter() {
                     let n = cg::normal(&f.vertices);
                     for p in &f.vertices {

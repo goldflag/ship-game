@@ -39,7 +39,10 @@ export async function authoringServer(root: string, port = 0, game = false, revi
       },
     }],
     resolve: { dedupe: ['three'] }, worker: { format: 'es' },
-    server: { host: '127.0.0.1', port, strictPort: true },
+    // A fixed-input asset review must survive unrelated editor/test saves.
+    // Only scan live entries, rather than retired diagnostic HTML imports.
+    optimizeDeps: { entries: game ? ['index.html'] : ['tools/construction/review.html', 'tools/construction/editor.html'] },
+    server: { host: '127.0.0.1', port, strictPort: true, ...(game ? {} : { hmr: false }) },
   });
   await server.listen(); return server;
 }
