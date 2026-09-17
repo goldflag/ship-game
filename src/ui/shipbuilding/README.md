@@ -171,6 +171,10 @@ The edit-session baseline is separate from undo history and changes only when a 
 
 Validation includes `src/ships/constructionVertex.test.ts`, vertex cases in `primitiveGeometry.test.ts`, native construction tests, and `checkFreeformEditor()` / `checkFreeformDrags()` from `scripts/tests/freeform-editor-browser.ts`. Browser helpers exercise the production controls, native compilation, XYZ combinations, rigid edges/faces, the visible view strip, step cycling, nearby-corner undo/redo, projections, split, cancellation and exact IndexedDB reopen. Use real mouse drags separately to verify browser capture and one-command commits. `mountFreeformReview()` mounts a two-block fixture for that review.
 
+## Fine fitting rotation
+
+Fine fitting rotation uses right-drag (0.5° per pixel, or 0.1° with Shift), with one undo step on release for installed fittings. Shift-R turns fittings 1°; R retains its 15° turn. See [fine fitting rotation](../../../docs/shipbuilding.md#fine-fitting-rotation). The viewport retains ghost meshes across bearing changes and retains the pointer position when the cursor changes. `checkShipbuilderRotation()` in `scripts/tests/shipbuilder-rotation-browser.ts` covers stationary hotkeys, fractional cursor and installed rotation, undo/redo, cancellation and camera panning.
+
 ## Component palette images
 
 Run `bun run part:thumbnails` after publishing equipment or changing `slotImages.ts` lighting/framing. It renders the current and retained catalogs into content-addressed PNGs under `public/models/components/thumbnails/`, without altering immutable model publications, and writes `src/generated/construction-thumbnails.json`. The index includes model, renderer-recipe and image hashes; `bun run build` checks freshness with `bun run part:thumbnails --check`. Commit the images and index together. Published cards use ordinary image requests; parts from an unknown catalog retain on-demand rendering as a compatibility fallback.

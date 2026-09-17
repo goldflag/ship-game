@@ -9,7 +9,7 @@ const MOUSE: [string, string][] = [
   ['Drag a piece', 'Move it along the face under the pointer, snapped to the chosen Snap step'],
   ['Drag over faces', 'With Paint or Opening on the Armor and Paint layers: sweep the card over every face the drag crosses, as one edit'],
   ['Drag empty space', 'Orbit; pan in orthographic Plan, Profile and Bow views'],
-  ['Right-drag', 'Pan'],
+  ['Right-drag', 'Rotate a fitting or its placement preview; Shift for 0.1° fine control. Elsewhere, pan'],
   ['Wheel · middle-drag', 'Zoom · dolly'],
   ['Shift-drag', 'Box select; Ctrl or ⌘ adds to the selection'],
   ['Right-click', 'Remove the piece or fitting under the pointer'],
@@ -23,7 +23,7 @@ const EDITING: [string[], string][] = [
   [['Del', '⌫', '⌘X'], 'Remove the selection; a wall merges its rooms'],
   [['←', '→', '↑', '↓'], 'Nudge the selection by the chosen Snap step'],
   [['PgUp', 'PgDn'], 'Raise or lower the selection; with Shift, move the slice'],
-  [['R'], 'Rotate the cursor piece or the selection (90° hull, 15° fittings)'],
+  [['R', '⇧R'], 'Rotate the cursor piece or selection: 90° hull, 15° fittings; Shift-R turns fittings 1°'],
   [['Esc'], 'Close a panel, cancel a gesture, then return to Select'],
 ];
 const VIEW: [string[], string][] = [

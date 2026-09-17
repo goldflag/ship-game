@@ -450,3 +450,28 @@ test('entering Armor or Paint replaces whole-hull selection with face selection'
   tool.selectOnly(['hull']); tool.switchLayer('paint'); expect(state().selected.size).toBe(0);
   expect(labels()).toEqual([]);
 });
+
+test('fine fitting rotation preserves fractional bearings, filters hull IDs and commits one undoable batch', async () => {
+  const { tool, data, owner, labels } = await setup();
+  tool.switchLayer('fittings');
+  tool.pointer({ kind: 'rotate', ids: [], degrees: 359.4 });
+  tool.key(key('R', { shiftKey: true }), chrome());
+  expect(tool.getSnapshot().bearing).toBeCloseTo(.4);
+  expect(labels()).toEqual([]);
+  tool.pointer({ kind: 'lay', points: [[2, 1, 0]] });
+  const fittings = data().equipment.map(item => ({ id: item.id, bearing: item.bearingDeg, position: [...item.position] as Vec3 }));
+  expect(fittings).toHaveLength(2);
+  const before = labels().length;
+  tool.pointer({ kind: 'rotate', ids: ['hull', ...fittings.map(item => item.id)], degrees: -2.7 });
+  expect(labels()).toHaveLength(before + 1);
+  expect(data().primitives[0].rotationDeg).toBe(0);
+  fittings.forEach((item, i) => {
+    expect(data().equipment[i].bearingDeg).toBeCloseTo((item.bearing - 2.7 + 360) % 360);
+    expect(data().equipment[i].position).toEqual(item.position);
+  });
+  owner.undo();
+  fittings.forEach((item, i) => expect(data().equipment[i].bearingDeg).toBeCloseTo(item.bearing));
+  tool.pointer({ kind: 'rotate', ids: fittings.map(item => item.id), degrees: 360 });
+  tool.pointer({ kind: 'rotate', ids: fittings.map(item => item.id), degrees: NaN });
+  expect(labels()).toHaveLength(before);
+});
