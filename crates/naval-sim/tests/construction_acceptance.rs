@@ -833,3 +833,27 @@ fn published_construction_uses_trusted_manifest_admission_without_admitting_loca
     last["sha256"] = serde_json::json!("corrupt");
     assert!(Catalog::load(&serde_json::to_vec(&manifest).unwrap()).is_err());
 }
+
+#[test]
+fn internal_powerplants_need_interior_space_but_not_surface_contact() {
+    let (mut source, mut catalog) = fixture();
+    catalog.equipment.push(ConstructionEquipmentPart {
+        id: "engine-part".into(), name: "Powerplant".into(), kind: "engine".into(),
+        placement: "internal".into(), size: [2., 1., 4.], bounds_center: [0., 0.5, 0.],
+        center_of_gravity: [0., 0.5, 0.], mass_kg: Some(1000.), power_kw: Some(3000.),
+        model_url: "/models/components/test/model.glb".into(), content_hash: "test".into(),
+        ..Default::default()
+    });
+    source.construction.equipment.push(ConstructionEquipment {
+        id: "engine".into(), part_id: "engine-part".into(), position: [0., -0.5, 0.],
+        ..Default::default()
+    });
+    compile(&source, &catalog);
+    // The whole package, not just its origin, must remain inside the hull.
+    for position in [[0., 1.5, 0.], [5., -0.5, 0.], [0., -0.5, 12.]] {
+        source.construction.equipment[0].position = position;
+        let result = construction::compile(&source, &catalog);
+        assert!(result.definition.is_none());
+        assert!(result.diagnostics.iter().any(|d| d.code == "equipment-fit"));
+    }
+}

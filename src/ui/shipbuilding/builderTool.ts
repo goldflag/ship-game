@@ -293,10 +293,8 @@ export class BuilderTool {
     return main ? main.position[1] + main.size[1] / 2 - .25 : 0;
   }
   switchLayer = (next: BuilderLayer) => {
-    const slice = this.state.slice;
     this.update({ layer: next, tool: DEFAULT_TOOL[next], surfaces: new Set(), measure: undefined, bearing: 0,
-      ...(next === 'armor' || next === 'paint' ? { selected: new Set<string>() } : next === 'internals' ? { selected: new Set([...this.state.selected].filter(id => this.internalIds.has(id))) } : {}),
-      slice: slice.auto ? { on: next === 'internals', y: next === 'internals' ? this.defaultSlice() : slice.y, auto: true } : slice });
+      ...(next === 'armor' || next === 'paint' ? { selected: new Set<string>() } : next === 'internals' ? { selected: new Set([...this.state.selected].filter(id => this.internalIds.has(id))) } : {}) });
   };
   /** Choose a card: true when it acted, so the caller closes the drawer and its tooltip. */
   selectSlot = (item: SlotItem): boolean => {

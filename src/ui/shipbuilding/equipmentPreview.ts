@@ -6,7 +6,7 @@ import { loadShipModel } from '../../game/loadShipModel';
 import { disposeConstructionModel } from '../../game/constructionModel';
 import { createConstructionPropellerSupports } from '../../game/constructionPropellerModel';
 
-type Template = { model: THREE.Group; ghost: THREE.Group; ghostMaterials: THREE.Material[] };
+type Template = { model: THREE.Group; ghost: THREE.Group; ghostMaterials: THREE.Material[]; invalid: THREE.Group; invalidMaterials: THREE.Material[] };
 
 /** Assets belong to this viewport, not to a compiled hull revision. Instances and
  * drag previews borrow their buffers; only disposing the cache releases them. */
@@ -50,25 +50,49 @@ export class EquipmentPreview {
         };
         node.material = Array.isArray(node.material) ? node.material.map(tint) : tint(node.material);
       });
-      this.templates.set(key, { model: asset.scene, ghost, ghostMaterials: [...materials.values()] });
+      const invalid = asset.scene.clone(true), invalidMaterials = new Map<THREE.Material, THREE.Material>();
+      invalid.traverse(node => {
+        if (!(node instanceof THREE.Mesh)) return;
+        const tint = (original: THREE.Material) => {
+          let material = invalidMaterials.get(original);
+          if (!material) {
+            material = original.clone();
+            if ('color' in material) (material.color as THREE.Color).set('#ffb5a6');
+            if ('emissive' in material) (material.emissive as THREE.Color).set('#8a2018');
+            invalidMaterials.set(original, material);
+          }
+          return material;
+        };
+        node.material = Array.isArray(node.material) ? node.material.map(tint) : tint(node.material);
+      });
+      this.templates.set(key, { model: asset.scene, ghost, ghostMaterials: [...materials.values()], invalid, invalidMaterials: [...invalidMaterials.values()] });
       this.failed(''); this.changed();
     }).catch(error => {
       if (!this.dead && !abort.signal.aborted) this.failed(`Equipment preview: ${error instanceof Error ? error.message : String(error)}`);
     });
   }
 
-  clone(partId: string, ghost = false, path?: ConstructionEquipment['path']): THREE.Group | undefined {
+  clone(partId: string, ghost = false, path?: ConstructionEquipment['path'], invalid = false): THREE.Group | undefined {
     const part = this.catalog?.equipment.find(part => part.id === partId);
-    if (part?.path) return createConstructionPathModel(part, path, ghost);
+    if (part?.path) {
+      const model = createConstructionPathModel(part, path, ghost);
+      if (invalid) model.traverse(node => {
+        if (!(node instanceof THREE.Mesh)) return;
+        for (const material of Array.isArray(node.material) ? node.material : [node.material]) {
+          if ('color' in material) (material.color as THREE.Color).set('#ffb5a6');
+        }
+      });
+      return model;
+    }
     this.ensure(partId);
     const key = this.key(partId), template = key && this.templates.get(key);
     if (!template) return undefined;
-    const clone = (ghost ? template.ghost : template.model).clone(true);
+    const clone = (ghost ? template.ghost : invalid ? template.invalid : template.model).clone(true);
     clone.traverse(node => { node.userData.sharedPreviewResources = true; });
     return clone;
   }
 
-  update(source: ConstructionSource, catalog: ConstructionCatalog, supports?: ConstructionPropellerSupport[]) {
+  update(source: ConstructionSource, catalog: ConstructionCatalog, supports?: ConstructionPropellerSupport[], invalid: ReadonlySet<string> = new Set()) {
     if (this.catalog && this.catalog.revision !== catalog.revision) this.clear();
     this.catalog = catalog;
     const supportKey = JSON.stringify(supports ?? []);
@@ -83,10 +107,10 @@ export class EquipmentPreview {
     for (const item of source.construction.equipment) {
       let instance = this.instances.get(item.id);
       const path = this.catalog.equipment.find(part => part.id === item.partId)?.path;
-      const key = `${this.key(item.partId)}${path ? ':' + JSON.stringify(item.path) : ''}`;
+      const key = `${this.key(item.partId)}${path ? ':' + JSON.stringify(item.path) : ''}:${invalid.has(item.id)}`;
       if (instance && instance.userData.assetKey !== key) { instance.removeFromParent(); if (instance.userData.path) disposeConstructionModel(instance); this.instances.delete(item.id); instance = undefined; }
       if (!instance) {
-        const model = this.clone(item.partId, false, item.path);
+        const model = this.clone(item.partId, false, item.path, invalid.has(item.id));
         if (!model) continue;
         instance = new THREE.Group(); instance.name = item.id;
         instance.userData = { sourceId: item.id, assetKey: key, path: !!path };
@@ -108,6 +132,7 @@ export class EquipmentPreview {
     for (const template of this.templates.values()) {
       disposeConstructionModel(template.model);
       template.ghostMaterials.forEach(material => material.dispose());
+      template.invalidMaterials.forEach(material => material.dispose());
     }
     this.templates.clear();
   }

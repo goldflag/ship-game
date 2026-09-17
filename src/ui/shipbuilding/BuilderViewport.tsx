@@ -25,7 +25,7 @@ import { boxSelectedPieces } from './boxSelection';
 import { BuilderOrientation, updateBuilderOrientation } from './BuilderOrientation';
 
 export type { BuilderArc, BuilderDisplay, BuilderGesture, BuilderMoveTargets, BuilderPick, BuilderPointerEvent, BuilderProposal, BuilderScene, BuilderView } from './builderScene';
-export interface BuilderTag { key: string; anchor: Vec3; dx: number; dy: number; tone: 'mint' | 'brass' | 'bad'; content: ReactNode }
+export interface BuilderTag { key: string; anchor: Vec3; dx: number; dy: number; tone: 'mint' | 'brass' | 'bad'; passive?: boolean; content: ReactNode }
 export type ConstructionModelFactory = (source: ConstructionSource, result: ConstructionResult, signal: AbortSignal) => Promise<THREE.Group>;
 /** The three.js adapter's interface: the scene to draw, HTML overlays React owns, and one door for finished gestures. */
 export interface ViewportProps {
@@ -35,6 +35,7 @@ export interface ViewportProps {
   status?: ReactNode;
   /** Every pointer gesture, with its targets already raycast, snapped and filtered by the scene's targets. */
   onPointer(event: BuilderPointerEvent): void;
+  onHover?(id: string | undefined): void;
   createModel?: ConstructionModelFactory;
 }
 /** A primary drag that began on a piece: the pieces it carries, the plane it slides in and the snapped offset so far. */
@@ -136,6 +137,7 @@ class Viewport {
   private arcKey = '';
   private proposedKey = '';
   private hoverSurface = '';
+  private hoveredPart?: string;
   private modelAbort?: AbortController;
   private pointerStart?: { id: number; button: number; x: number; y: number; moved: boolean; box: boolean; additive: boolean; start?: BuilderPick; move?: MoveDrag; points: Vec3[] };
   private hover?: { clientX: number; clientY: number };
@@ -243,14 +245,15 @@ class Viewport {
     }
     if (props.scene.view !== this.currentView || props.scene.fitRequest !== old.scene.fitRequest || props.scene.source.id !== old.scene.source.id || (!old.scene.result && props.scene.result)) this.fit();
     // `current` is the compile of exactly this revision; `result` is the last accepted one, kept for rooms and centers.
+    const invalid = new Set((props.scene.current?.diagnostics ?? []).filter(d => d.severity === 'error' && d.sourceId).map(d => d.sourceId!));
     const nativeSurfaces = props.scene.current?.surfaces.length ? props.scene.current.surfaces : undefined;
-    const key = `${props.scene.source.id}:${nativeSurfaces ? props.scene.current!.contentHash : props.scene.source.revision + ':draft'}:${props.scene.display}`;
+    const key = `${props.scene.source.id}:${nativeSurfaces ? props.scene.current!.contentHash : props.scene.source.revision + ':draft'}:${props.scene.display}:${[...invalid].sort().join(',')}`;
     if (key !== this.contentKey) {
       this.contentKey = key; release(this.hull); this.surfaceTriangles = []; this.pickMeshes = []; this.hullMeshes = [];
       const vertices: number[] = [], colors: number[] = [];
       for (const surface of nativeSurfaces ?? []) {
         if (surface.open && props.scene.display === 'paint') continue;
-        const color = new THREE.Color(props.scene.display === 'armor' ? armorThicknessColor(surface.thicknessMm) : constructionPaintColor(surface.paint));
+        const color = new THREE.Color(invalid.has(surface.primitiveId) ? SALMON : props.scene.display === 'armor' ? armorThicknessColor(surface.thicknessMm) : constructionPaintColor(surface.paint));
         fan(surface, vertices, colors, color);
         for (let i = 1; i < surface.vertices.length - 1; i++) this.surfaceTriangles.push(surface);
       }
@@ -259,13 +262,13 @@ class Viewport {
         const mesh = new THREE.Mesh(geometry, props.scene.display === 'armor' ? new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide }) : new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .78, metalness: 0, side: THREE.DoubleSide, transparent: props.scene.display === 'internals', opacity: props.scene.display === 'internals' ? .15 : 1, depthWrite: props.scene.display !== 'internals' }));
         mesh.userData.hull = true; this.hull.add(mesh); this.pickMeshes.push(mesh); this.hullMeshes.push(mesh);
       } else for (const primitive of props.scene.source.construction.primitives) {
-        const mesh = new THREE.Mesh(primitiveGeometry(primitive.kind, primitive.size, primitive.vertices, primitive.customHull), new THREE.MeshStandardMaterial({ color: constructionPaintColor('naval-gray'), roughness: .78, side: THREE.DoubleSide, transparent: props.scene.display === 'internals', opacity: props.scene.display === 'internals' ? .15 : 1 }));
+        const mesh = new THREE.Mesh(primitiveGeometry(primitive.kind, primitive.size, primitive.vertices, primitive.customHull), new THREE.MeshStandardMaterial({ color: invalid.has(primitive.id) ? SALMON : constructionPaintColor('naval-gray'), roughness: .78, side: THREE.DoubleSide, transparent: props.scene.display === 'internals', opacity: props.scene.display === 'internals' ? .15 : 1 }));
         mesh.position.set(...primitive.position); mesh.rotation.y = primitive.rotationDeg * Math.PI / 180;
         mesh.userData.sourceId = primitive.id; this.hull.add(mesh); this.pickMeshes.push(mesh); this.hullMeshes.push(mesh);
       }
       this.hoverSurface = ''; release(this.hoverGroup);
     }
-    this.equipment.update(props.scene.source, props.scene.catalog, nativeSurfaces ? props.scene.current?.propellerSupports : undefined);
+    this.equipment.update(props.scene.source, props.scene.catalog, nativeSurfaces ? props.scene.current?.propellerSupports : undefined, invalid);
     const modelKey = `${props.scene.source.id}:${props.scene.source.revision}:${props.scene.result?.contentHash}`;
     if (modelKey !== this.modelKey) {
       this.modelKey = modelKey; this.modelAbort?.abort(); release(this.composed);
@@ -278,7 +281,7 @@ class Viewport {
         }).catch(error => { if (!abort.signal.aborted && !this.dead) this.modelError(`Equipment preview: ${error instanceof Error ? error.message : String(error)}`); });
       }
     }
-    this.composed.visible = props.scene.display === 'paint' && !!nativeSurfaces;
+    this.composed.visible = props.scene.display === 'paint' && !!nativeSurfaces && !invalid.size;
     this.equipment.group.visible = !(props.createModel && this.composed.visible && this.composed.children.length);
     // Native surfaces remain the pick target even when shared composition renders the exterior.
     this.hull.visible = !this.composed.visible || !this.composed.children.length;
@@ -296,11 +299,11 @@ class Viewport {
       const entry = props.scene.catalog.equipment.find(entry => entry.id === part.partId);
       if (!entry) continue;
       const pathBounds = equipmentPathBounds(entry, part);
-      const box = new THREE.Mesh(new THREE.BoxGeometry(...pathBounds.size), new THREE.MeshBasicMaterial({ color: props.scene.selected.has(part.id) ? BRASS : entry.placement === 'internal' ? READY : '#bacbd0', wireframe: true, transparent: true, opacity: props.scene.selected.has(part.id) ? 1 : .55 }));
+      const box = new THREE.Mesh(new THREE.BoxGeometry(...pathBounds.size), new THREE.MeshBasicMaterial({ color: invalid.has(part.id) ? SALMON : props.scene.selected.has(part.id) ? BRASS : entry.placement === 'internal' ? READY : '#bacbd0', wireframe: true, transparent: true, opacity: props.scene.selected.has(part.id) ? 1 : .55 }));
       const datum = new THREE.Group(); datum.position.set(...part.position); datum.rotation.y = -part.bearingDeg * Math.PI / 180; box.position.set(...pathBounds.center);
       box.userData.sourceId = part.id; datum.add(box); this.details.add(datum);
       if (!this.equipment.has(part.id)) this.pickMeshes.push(box);
-      datum.visible = props.scene.display === 'internals' || props.scene.selected.has(part.id) || (!this.equipment.has(part.id) && !(props.createModel && this.composed.children.length));
+      datum.visible = invalid.has(part.id) || props.scene.display === 'internals' || props.scene.selected.has(part.id) || (!this.equipment.has(part.id) && !(props.createModel && this.composed.children.length));
     }
     if (props.scene.display === 'internals' && props.scene.source.construction.version === 2) {
       for (const module of props.scene.result?.definition?.modules ?? []) {
@@ -320,8 +323,8 @@ class Viewport {
     }
     for (const wall of props.scene.source.construction.boundaries) {
       const size: Vec3 = [this.hullSize.x + 2, this.hullSize.y + 2, this.hullSize.z + 2]; const axis = { x: 0, y: 1, z: 2 }[wall.axis]; size[axis] = Math.max(.04, wall.thicknessMm / 1000);
-      const box = new THREE.Mesh(new THREE.BoxGeometry(...size), new THREE.MeshBasicMaterial({ color: BRASS, transparent: true, opacity: props.scene.selected.has(wall.id) ? .3 : .09, depthWrite: false }));
-      box.position.copy(this.controls.target); box.position.setComponent(axis, wall.offset); box.userData.sourceId = wall.id; box.visible = props.scene.display === 'internals' || props.scene.selected.has(wall.id); this.details.add(box); if (box.visible) this.pickMeshes.push(box);
+      const box = new THREE.Mesh(new THREE.BoxGeometry(...size), new THREE.MeshBasicMaterial({ color: invalid.has(wall.id) ? SALMON : BRASS, transparent: true, opacity: invalid.has(wall.id) ? .5 : props.scene.selected.has(wall.id) ? .3 : .09, depthWrite: false }));
+      box.position.copy(this.controls.target); box.position.setComponent(axis, wall.offset); box.userData.sourceId = wall.id; box.visible = invalid.has(wall.id) || props.scene.display === 'internals' || props.scene.selected.has(wall.id); this.details.add(box); if (box.visible) this.pickMeshes.push(box);
     }
     if (props.scene.rooms) for (const room of props.scene.result?.definition?.compartments ?? []) {
       const geometry = new THREE.BoxGeometry(...room.size);
@@ -461,10 +464,17 @@ class Viewport {
     return { id, surface: surface && surfaceSelectionKey(surface), point: raw, normal, axis, placement, additive: !!(event.shiftKey || event.ctrlKey || event.metaKey) };
   }
 
+  private reportHover(id?: string) {
+    if (id === this.hoveredPart) return;
+    this.hoveredPart = id; this.props.onHover?.(id);
+  }
+
   private highlight(event: { clientX: number; clientY: number }) {
     // During placement, the ghost/path already identifies the action. Keep its support block clear.
     const placing = !!this.props.scene.placementPiece || !!this.props.scene.pathDraft;
-    const pick = this.navigating() || placing ? undefined : this.pick(event, this.props.scene.pickTargets);
+    const hit = this.navigating() ? undefined : this.pick(event, this.props.scene.pickTargets);
+    this.reportHover(hit?.id);
+    const pick = placing ? undefined : hit;
     const key = this.props.scene.highlightFaces ? pick?.surface ?? '' : pick?.id ?? '';
     if (key === this.hoverSurface) return;
     this.hoverSurface = key; release(this.hoverGroup);
@@ -819,7 +829,7 @@ class Viewport {
     for (const p of points) { const marker = new THREE.Mesh(geometry, material); marker.position.set(...p); marker.renderOrder = 30; this.pathPreview.add(marker); }
   }
   private finishPath = (event: MouseEvent) => { if (this.props.scene.pathDraft) { event.preventDefault(); this.props.onPointer({ kind: 'path-finish' }); } };
-  private leave = () => { this.hover = undefined; this.updatePathPreview(); this.ghost.visible = false; this.ghostMirror.visible = false; this.ghostArc.visible = false; this.ghostPosition = undefined; release(this.hoverGroup); this.hoverSurface = ''; };
+  private leave = () => { this.reportHover(); this.hover = undefined; this.updatePathPreview(); this.ghost.visible = false; this.ghostMirror.visible = false; this.ghostArc.visible = false; this.ghostPosition = undefined; release(this.hoverGroup); this.hoverSurface = ''; };
   private cancel = () => {
     const pointer = this.pointerStart; this.pointerStart = undefined; this.controls.enabled = true;
     if (pointer && this.renderer.domElement.hasPointerCapture(pointer.id)) this.renderer.domElement.releasePointerCapture(pointer.id);
@@ -866,7 +876,7 @@ export function BuilderViewport(props: ViewportProps) {
     <div ref={host} className="sb-canvas"/>
     <div ref={overlay} className="sb-overlay">
       <svg className="sb-leaders" aria-hidden="true"/>
-      {props.tags.map(tag => <div key={tag.key} data-tag={tag.key} className={`sb-tag ${tag.tone}`}>{tag.content}</div>)}
+      {props.tags.map(tag => <div key={tag.key} data-tag={tag.key} className={`sb-tag ${tag.tone}`} style={tag.passive ? { pointerEvents: 'none' } : undefined}>{tag.content}</div>)}
       <div className="sb-cursor">{props.status}<span data-coords className="sb-coords"/></div>
       <div data-measure className="sb-tag mint"/>
       <div data-selection-box className="sb-selection-box" hidden aria-hidden="true"/>

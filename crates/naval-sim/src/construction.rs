@@ -1799,7 +1799,9 @@ fn equipment(
         } else {
             hull
         };
-        let attached = supports.iter().any(|h| {
+        // Internal powerplants are supported by their installation. The occupied-volume
+        // check above already requires the entire package to fit in free hull interior.
+        let attached = (p.kind == "engine" && p.placement == "internal") || supports.iter().any(|h| {
             cg::contains(h, attachment)
                 || length(sub(cg::closest_point(h, attachment), attachment)) <= 0.05
         });

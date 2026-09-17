@@ -75,3 +75,24 @@ test('compiled propeller supports update independently and release obsolete geom
     expect(preview.group.getObjectByName(mesh.name)).toBeUndefined();
   } finally { preview.dispose(); }
 });
+
+test('invalid tint is isolated per installation and restores when the part becomes valid', async () => {
+  const { source, model } = fixture();
+  source.construction.equipment.push({ ...source.construction.equipment[0], id: 'copy' });
+  const invalid = new Set(['funnel']);
+  const loader = spyOn(models, 'loadShipModel').mockResolvedValue({ scene: model } as GLTF);
+  const preview = new EquipmentPreview(() => preview.update(source, catalog, undefined, invalid), () => {});
+  const material = (id: string) => (preview.group.getObjectByName(id)!.children[0].children[0] as THREE.Mesh).material as THREE.MeshStandardMaterial;
+  try {
+    preview.update(source, catalog, undefined, invalid); await settled();
+    const normal = material('copy'), red = material('funnel');
+    expect(red.color.getHexString()).toBe('ffb5a6');
+    expect(normal.color.getHexString()).toBe('ffffff');
+    expect(red).not.toBe(normal);
+    let disposed = 0; red.addEventListener('dispose', () => disposed++);
+    invalid.clear(); preview.update(source, catalog, undefined, invalid);
+    expect(material('funnel')).toBe(normal);
+    expect(loader).toHaveBeenCalledTimes(1);
+    preview.dispose(); expect(disposed).toBe(1);
+  } finally { preview.dispose(); loader.mockRestore(); }
+});

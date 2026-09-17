@@ -67,6 +67,10 @@ try {
     const { checkInternalsSelection } = await import(modulePath);
     return checkInternalsSelection();
   }, '/scripts/tests/shipbuilder-internals-browser.ts'));
+  await run('invalid-part-feedback', page => page.evaluate(async modulePath => {
+    const { checkInvalidPartFeedback } = await import(modulePath);
+    return checkInvalidPartFeedback();
+  }, '/scripts/tests/shipbuilder-internals-browser.ts'));
   await run('equipment-palette-images', page => page.evaluate(async modulePath => {
     const { checkEquipmentPaletteImages } = await import(modulePath);
     return checkEquipmentPaletteImages();
