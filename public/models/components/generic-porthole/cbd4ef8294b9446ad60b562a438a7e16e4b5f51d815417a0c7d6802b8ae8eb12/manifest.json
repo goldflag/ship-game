@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "generic-porthole",
+  "revision": "cbd4ef8294b9446ad60b562a438a7e16e4b5f51d815417a0c7d6802b8ae8eb12",
+  "contentHash": "94ca48e89e3e84a4e482f5dbabe58dec1658a475c9ece170e1491a64c517abd5",
+  "modelSha256": "591f2c6d6913cadb8778bfb6cfe2bcebf1c6dc186149baf32a6c8f0f4d1854d2",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/generic-porthole/cbd4ef8294b9446ad60b562a438a7e16e4b5f51d815417a0c7d6802b8ae8eb12/model.glb",
+  "boundsCenter": [
+    0,
+    0,
+    0
+  ],
+  "size": [
+    0.5,
+    0.5,
+    3.774895063202166e-8
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 22,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original generic closed surface fitting with opaque optics. No hull opening or interior. Dimensions and mass are engineering estimates; installed wall support requires native validation.",
+  "basis": "assets/parts/construction/README.md"
+}
