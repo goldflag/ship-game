@@ -13,7 +13,7 @@ import type { ConstructionPrimitive, ConstructionResult, ConstructionSource, Con
 import { armorThicknessColor } from '../../ships/inspection';
 import { projectConstructionSurfaces, surfaceSelectionKey } from '../../ships/constructionEditor';
 import { constructionPaintColor } from '../../ships/constructionPaints';
-import { snapCoordinate } from './editorNumbers';
+import { normalizedBearing, snapCoordinate } from './editorNumbers';
 import { dominantAxis, fillLattice, pieceExtents, physicalPlacementHit, placementCenter, strokeSegment } from './placement';
 import { primitiveOutlineGeometry, primitiveGeometry, placementGeometry, placementRotation } from './primitiveGeometry';
 import type { BuilderPick, BuilderPlacement, BuilderPointerEvent, BuilderScene, BuilderView } from './builderScene';
@@ -39,6 +39,8 @@ export interface ViewportProps {
   onHover?(id: string | undefined): void;
   createModel?: ConstructionModelFactory;
 }
+/** A secondary drag rotates installed fittings, or the cursor at its held placement. */
+interface RotationDrag { ids: string[]; degrees: number; travelDegrees: number; lastX: number; position?: Vec3 }
 /** A primary drag that began on a piece: the pieces it carries, the plane it slides in and the snapped offset so far. */
 interface MoveDrag { ids: string[]; plane: THREE.Plane; origin: THREE.Vector3; free: [boolean, boolean, boolean]; step: number; delta: Vec3; built: boolean; constrain(delta: Vec3): Vec3 }
 
@@ -140,7 +142,7 @@ class Viewport {
   private hoverSurface = '';
   private hoveredPart?: string;
   private modelAbort?: AbortController;
-  private pointerStart?: { id: number; button: number; x: number; y: number; moved: boolean; box: boolean; additive: boolean; start?: BuilderPick; move?: MoveDrag; points: Vec3[]; faces?: Set<string> };
+  private pointerStart?: { id: number; button: number; x: number; y: number; moved: boolean; box: boolean; additive: boolean; start?: BuilderPick; rotate?: RotationDrag; move?: MoveDrag; points: Vec3[]; faces?: Set<string> };
   /** The faces a Paint or Opening drag has crossed so far, drawn as brass over the hull until release commits them. */
   private facesPreview = new THREE.Group();
   private facesKey = '';
@@ -185,6 +187,7 @@ class Viewport {
     this.resize = new ResizeObserver(() => this.measure()); this.resize.observe(host); this.measure();
     const canvas = this.renderer.domElement;
     canvas.addEventListener('pointerdown', this.down, true); canvas.addEventListener('pointermove', this.move); canvas.addEventListener('pointerup', this.up);
+    canvas.addEventListener('contextmenu', this.contextMenu);
     canvas.addEventListener('dblclick', this.finishPath); canvas.addEventListener('pointercancel', this.cancel); canvas.addEventListener('pointerleave', this.leave);
     canvas.addEventListener('lostpointercapture', this.cancel); window.addEventListener('keydown', this.key);
     window.addEventListener('blur', this.cancel);
@@ -254,7 +257,12 @@ class Viewport {
       } else this.camera.zoom=this.span/extent;
       this.controls.object=this.camera;this.camera.updateProjectionMatrix();this.controls.update();
     }
-    if (props.scene.source.id !== old.scene.source.id || props.scene.gesture !== old.scene.gesture || props.scene.placementPiece !== old.scene.placementPiece || props.scene.moveTargets !== old.scene.moveTargets) this.cancel();
+    if (props.scene.source.id !== old.scene.source.id || props.scene.source.revision !== old.scene.source.revision || props.scene.gesture !== old.scene.gesture || props.scene.placementPiece !== old.scene.placementPiece || props.scene.moveTargets !== old.scene.moveTargets || props.scene.view !== old.scene.view || props.scene.perspective !== old.scene.perspective || props.scene.slice !== old.scene.slice || props.scene.selected !== old.scene.selected) {
+      // A changed cursor bearing must not forget a stationary pointer and hide the ghost.
+      const hover = this.hover;
+      this.cancel();
+      if (props.scene.source.id === old.scene.source.id) this.hover = hover;
+    }
     // The primary button orbits (pans in construction views) and the secondary button pans. A primary press on the hull while placing lays pieces instead; `down` holds the controls for that drag.
     this.controls.mouseButtons = { LEFT: props.scene.perspective || props.scene.view === 'orbit' ? THREE.MOUSE.ROTATE : THREE.MOUSE.PAN, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.PAN };
     this.controls.enableRotate = props.scene.view === 'orbit' || !!props.scene.perspective;
@@ -421,6 +429,7 @@ class Viewport {
     this.measureGroup.visible = !!props.scene.measure;
     // A held corner is already dragging, but has no preview until it moves.
     if(this.vertexPreview.visible && this.vertexPreview.children.length) {this.hull.visible=false;this.composed.visible=false;this.selection.visible=false;}
+    if (this.pointerStart?.rotate) this.previewRotation(this.pointerStart.rotate, this.pointerStart.rotate.degrees);
     this.updatePathPreview(); this.updateGhost(); this.updateStrokePreview(); this.updateFacesPreview(); if (this.hover) this.highlight(this.hover); this.applyClip();
   }
 
@@ -440,7 +449,14 @@ class Viewport {
   }
 
   private updateGhost() {
-    const piece = this.props.scene.placementPiece, key = JSON.stringify([piece, this.props.scene.placementMirror, this.hullSize.toArray().map(Math.round)]);
+    const rotation = this.pointerStart?.rotate;
+    const original = this.props.scene.placementPiece;
+    const piece = rotation?.position && original?.kind === 'equipment' ? { ...original, bearingDeg: normalizedBearing(original.bearingDeg + rotation.degrees) } : original;
+    const originalMirror = this.props.scene.placementMirror;
+    const mirror = rotation?.position && originalMirror?.kind === 'equipment' ? { ...originalMirror, bearingDeg: normalizedBearing(originalMirror.bearingDeg - rotation.degrees) } : originalMirror;
+    // Bearing changes transform the cached preview; they do not rebuild its meshes.
+    const shape = (item?: BuilderPlacement) => item?.kind === 'equipment' ? { ...item, bearingDeg: 0 } : item;
+    const key = JSON.stringify([shape(piece), shape(mirror), this.hullSize.toArray().map(Math.round)]);
     if (key !== this.ghostKey) {
       this.strokeKey = ''; this.strokePreview.clear();
       this.ghostKey = key; release(this.ghost); release(this.ghostMirror); release(this.ghostArc);
@@ -454,12 +470,15 @@ class Viewport {
           fill.renderOrder = 20; edges.renderOrder = 21; group.add(fill, edges); group.rotation.y = placementRotation(item);
         };
         build(piece, this.ghost, piece.kind === 'boundary' ? .12 : .25);
-        if (this.props.scene.placementMirror) build(this.props.scene.placementMirror, this.ghostMirror, .12);
-        if (piece.kind === 'equipment' && piece.arc) this.ghostArc.add(arcMesh({ bearingDeg: piece.bearingDeg, traverseDeg: piece.arc.traverseDeg, radius: piece.arc.radius, color: BRASS }));
+        if (mirror) build(mirror, this.ghostMirror, .12);
+        if (piece.kind === 'equipment' && piece.arc) this.ghostArc.add(arcMesh({ bearingDeg: 0, traverseDeg: piece.arc.traverseDeg, radius: piece.arc.radius, color: BRASS }));
       }
     }
-    const pick = this.hover ? this.pick(this.hover, 'hull') : undefined;
-    const visible = !!piece && !!pick && !this.navigating();
+    if (piece) this.ghost.rotation.y = placementRotation(piece);
+    if (mirror) this.ghostMirror.rotation.y = placementRotation(mirror);
+    this.ghostArc.rotation.y = piece?.kind === 'equipment' ? -piece.bearingDeg * Math.PI / 180 : 0;
+    const pick = rotation?.position ? { placement: rotation.position } : this.hover ? this.pick(this.hover, 'hull') : undefined;
+    const visible = !!piece && !!pick && (!!rotation?.position || !this.navigating());
     this.ghost.visible = visible;
     if (!visible) { this.ghostMirror.visible = false; this.ghostArc.visible = false; this.ghostPosition = undefined; return; }
     const position = [...pick!.placement] as Vec3;
@@ -557,7 +576,7 @@ class Viewport {
     const points = drag?.start && piece && hit
       ? this.props.scene.gesture === 'fill' ? fillLattice(drag.start.placement, hit.placement, pieceExtents(piece), drag.start.axis) : drag.points
       : [];
-    const key = JSON.stringify([this.ghostKey, points]);
+    const key = JSON.stringify([this.ghostKey, this.ghost.rotation.y, this.ghostMirror.rotation.y, points]);
     if (key === this.strokeKey) return;
     this.strokeKey = key;
     // These clones borrow the cursor template's resources.
@@ -661,7 +680,8 @@ class Viewport {
     const coords = this.overlay.querySelector<HTMLElement>('[data-coords]'), move = this.pointerStart?.move;
     const offset = move?.built ? move.delta : this.moveOffset;
     if (coords) {
-      if (offset) { coords.textContent = `Δx ${signedMetres(offset[0])} · Δy ${signedMetres(offset[1])} · Δz ${signedMetres(offset[2])}${this.moveBlocked ? ' · Stopped at another block' : ''}`; coords.style.visibility = 'visible'; }
+      if (this.pointerStart?.rotate) { coords.textContent = `Rotate ${signedMetres(this.pointerStart.rotate.degrees)}° · Shift for fine control · Esc cancel`; coords.style.visibility = 'visible'; }
+      else if (offset) { coords.textContent = `Δx ${signedMetres(offset[0])} · Δy ${signedMetres(offset[1])} · Δz ${signedMetres(offset[2])}${this.moveBlocked ? ' · Stopped at another block' : ''}`; coords.style.visibility = 'visible'; }
       else if (this.ghost.visible && this.ghostPosition) { coords.textContent = this.props.coords(this.ghostPosition); coords.style.visibility = 'visible'; }
       else coords.style.visibility = 'hidden';
     }
@@ -803,8 +823,32 @@ class Viewport {
 
   /** A press that is not laying pieces hides the ghost and hover outline: box selection, the secondary button, a move or a camera drag. */
   private navigating() { const press = this.pointerStart; return !!press && !press.start && !press.faces && (press.box || press.button === 2 || press.moved); }
+  private rotationPick(event: PointerEvent): RotationDrag | undefined {
+    const scene = this.props.scene;
+    if (scene.freeform || scene.pathDraft || scene.moveTargets === 'none') return undefined;
+    const hit = this.pick(event, scene.pickTargets);
+    if (hit?.id && scene.source.construction.equipment.some(item => item.id === hit.id)) {
+      const allowed = scene.pickTargets === 'internals' ? internalSelectionIds(scene.source, scene.catalog) : undefined;
+      const ids = scene.source.construction.equipment.filter(item => (!allowed || allowed.has(item.id)) && (scene.selected.has(hit.id!) ? scene.selected.has(item.id) : item.id === hit.id)).map(item => item.id);
+      return { ids, degrees: 0, travelDegrees: 0, lastX: event.clientX };
+    }
+    if (scene.placementPiece?.kind === 'equipment' && this.ghost.visible && this.ghostPosition) return { ids: [], degrees: 0, travelDegrees: 0, lastX: event.clientX, position: [...this.ghostPosition] };
+    return undefined;
+  }
+
+  private previewRotation(rotation: RotationDrag, degrees: number) {
+    for (const item of this.props.scene.source.construction.equipment) {
+      if (!rotation.ids.includes(item.id)) continue;
+      const object = this.equipment.group.getObjectByName(item.id);
+      if (object) { object.rotation.y = -(item.bearingDeg + degrees) * Math.PI / 180; object.updateMatrixWorld(true); }
+      for (const datum of this.details.children) if (datum.children.some(child => child.userData.sourceId === item.id)) datum.rotation.y = -(item.bearingDeg + degrees) * Math.PI / 180;
+    }
+  }
   private down = (event: PointerEvent) => {
     if ((event.button !== 0 && event.button !== 2) || this.pointerStart) return;
+    this.hover = { clientX: event.clientX, clientY: event.clientY }; this.updateGhost();
+    const rotate = event.button === 2 ? this.rotationPick(event) : undefined;
+    if (rotate) { this.controls.enabled = false; event.stopImmediatePropagation(); event.preventDefault(); }
     const box = event.button === 0 && event.shiftKey;
     if (box) {
       // Finish OrbitControls' damped deltas without moving the visible camera.
@@ -822,7 +866,7 @@ class Viewport {
     const face = !box && !move && !path && event.button === 0 && this.props.scene.gesture === 'faces' ? this.pick(event, 'hull')?.surface : undefined;
     // A press on the hull lays or moves pieces, so OrbitControls (which listens after this capture handler) must not orbit with the same drag; `up` and `cancel` re-enable it.
     if (start || move || face) this.controls.enabled = false;
-    this.pointerStart = { id: event.pointerId, button: event.button, x: event.clientX, y: event.clientY, moved: false, box, additive: event.ctrlKey || event.metaKey, start, move, points: start ? [start.placement] : [], faces: face ? new Set([face]) : undefined };
+    this.pointerStart = { id: event.pointerId, button: event.button, x: event.clientX, y: event.clientY, moved: false, box, additive: event.ctrlKey || event.metaKey, start, rotate, move, points: start ? [start.placement] : [], faces: face ? new Set([face]) : undefined };
     this.hover = { clientX: event.clientX, clientY: event.clientY };
     this.renderer.domElement.setPointerCapture(event.pointerId);
     this.updateGhost(); this.updateStrokePreview();
@@ -831,6 +875,16 @@ class Viewport {
     this.hover = { clientX: event.clientX, clientY: event.clientY }; this.updatePathPreview(); this.updateGhost(); this.highlight(event);
     if (!this.pointerStart || event.pointerId !== this.pointerStart.id) return;
     this.pointerStart.moved ||= Math.hypot(event.clientX - this.pointerStart.x, event.clientY - this.pointerStart.y) >= 5;
+    if (this.pointerStart.rotate) {
+      const rotation = this.pointerStart.rotate;
+      if (this.pointerStart.moved) {
+        rotation.travelDegrees += (event.clientX - rotation.lastX) * (event.shiftKey ? .1 : .5);
+        rotation.degrees = Number(rotation.travelDegrees.toFixed(1));
+        rotation.lastX = event.clientX;
+        this.previewRotation(rotation, rotation.degrees); this.updateGhost();
+      }
+      return;
+    }
     if (this.pointerStart.box) { this.showBox(event); return; }
     if (this.pointerStart.move) { if (this.pointerStart.moved) this.updateMove(event); return; }
     if (this.pointerStart.faces) {
@@ -858,7 +912,11 @@ class Viewport {
     if (this.renderer.domElement.hasPointerCapture(event.pointerId)) this.renderer.domElement.releasePointerCapture(event.pointerId);
     const clicked = !start.moved && Math.hypot(event.clientX - start.x, event.clientY - start.y) < 5;
     const piece = this.props.scene.placementPiece;
-    if (start.button === 2) {
+    if (start.rotate && !clicked) {
+      this.previewRotation(start.rotate, 0);
+      if (Math.abs(start.rotate.degrees % 360) > 1e-6) this.props.onPointer({ kind: 'rotate', ids: start.rotate.ids, degrees: start.rotate.degrees });
+      this.updateGhost();
+    } else if (start.button === 2) {
       const hit = clicked ? this.pick(event, 'all') : undefined;
       if (hit?.id && !this.props.scene.freeform && !this.props.scene.pathDraft) this.props.onPointer({ kind: 'erase', id: hit.id });
     } else if (this.props.scene.pathDraft && !rect) {
@@ -900,17 +958,19 @@ class Viewport {
     const geometry = new THREE.SphereGeometry(.075, 8, 6), material = new THREE.MeshBasicMaterial({ color: BRASS_LIGHT, depthTest: false });
     for (const p of points) { const marker = new THREE.Mesh(geometry, material); marker.position.set(...p); marker.renderOrder = 30; this.pathPreview.add(marker); }
   }
+  private contextMenu = (event: MouseEvent) => event.preventDefault();
   private finishPath = (event: MouseEvent) => { if (this.props.scene.pathDraft) { event.preventDefault(); this.props.onPointer({ kind: 'path-finish' }); } };
   private leave = () => { this.reportHover(); this.hover = undefined; this.updatePathPreview(); this.ghost.visible = false; this.ghostMirror.visible = false; this.ghostArc.visible = false; this.ghostPosition = undefined; release(this.hoverGroup); this.hoverSurface = ''; };
   private cancel = () => {
     const pointer = this.pointerStart; this.pointerStart = undefined; this.controls.enabled = true;
+    if (pointer?.rotate) this.previewRotation(pointer.rotate, 0);
     if (pointer && this.renderer.domElement.hasPointerCapture(pointer.id)) this.renderer.domElement.releasePointerCapture(pointer.id);
     this.fillPreview.visible = false; this.strokePreview.clear(); this.strokeKey = ''; this.updateFacesPreview(); this.showBox(); this.finishMove(); this.leave();
   };
   private key = (event: KeyboardEvent) => { if (event.key === 'Escape' && this.pointerStart) this.cancel(); };
   private animate = () => {
     if (this.dead) return;
-    if(!this.freeformHandles.dragging && !this.moveHandles.dragging) this.controls.update();
+    if(!this.freeformHandles.dragging && !this.moveHandles.dragging && !this.pointerStart?.rotate) this.controls.update();
     if (this.hover) { if (this.props.scene.placementPiece) this.updateGhost(); this.highlight(this.hover); }
     this.freeformHandles.frame(); this.moveHandles.frame(); this.renderer.render(this.scene, this.camera); this.placeTags();
     if (!this.orientationRotation.equals(this.camera.quaternion)) {
@@ -927,6 +987,7 @@ class Viewport {
     this.strokePreview.clear(); this.equipment.dispose();
     const canvas = this.renderer.domElement;
     canvas.removeEventListener('pointerdown', this.down, true); canvas.removeEventListener('pointermove', this.move); canvas.removeEventListener('pointerup', this.up);
+    canvas.removeEventListener('contextmenu', this.contextMenu);
     canvas.removeEventListener('dblclick', this.finishPath); canvas.removeEventListener('pointercancel', this.cancel); canvas.removeEventListener('pointerleave', this.leave);
     canvas.removeEventListener('lostpointercapture', this.cancel); window.removeEventListener('keydown', this.key);
     window.removeEventListener('blur', this.cancel);

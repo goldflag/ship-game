@@ -129,6 +129,20 @@ review the listed variants and choose **Apply parts update**. Missing fitted
 variants block the update. The design recompiles against the new catalog; Undo
 restores the previous catalog, and older saved revisions remain recoverable.
 
+## Fine fitting rotation
+
+Right-drag horizontally on a fitting to rotate it in place. If it is selected,
+the selected fittings rotate together around their own mounting points. While
+placing a fitting, right-drag over the hull to turn the placement preview;
+mirrored previews turn in the opposite direction. Hold Shift for 0.1° per pixel
+instead of 0.5°. The live angle appears above the palette. Release commits an installed fitting
+change as one undoable edit; Escape, lost pointer capture or window blur cancels it.
+Right-drag elsewhere still pans, and a plain right-click still removes a piece.
+
+R rotates fittings 15°; Shift-R rotates them 1°. The bearing field accepts 0.1°
+increments. Rotation reuses the visible meshes and keeps a stationary placement
+preview visible; native compilation runs after an installed fitting edit commits.
+
 ## Custom hull sections
 
 Select a custom hull and choose **Edit hull sections**. Edit its cross-section,
