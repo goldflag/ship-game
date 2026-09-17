@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { createConstructionHistory, editConstruction, undoConstruction, redoConstruction, ConstructionRevisionGate } from './constructionHistory';
+import { createConstructionHistory, editConstruction, undoConstruction, redoConstruction, ConstructionRevisionGate, rebaseConstruction } from './constructionHistory';
 
 test('one bulk edit restores shape and its surface/module references together', () => {
   const initial = { primitives: [{ id: 'hull' }], surfaces: [{ primitiveId: 'hull', thicknessMm: 50 }], modules: [{ id: 'gun', support: 'hull' }] };
@@ -28,4 +28,15 @@ test('late compile results and previous-design results cannot become current', a
   expect(gate.accepts(slow)).toBe(false);
   gate.invalidate();
   expect(gate.accepts(current)).toBe(false);
+});
+
+test('a rebase edits every state without adding an entry', () => {
+  let history = createConstructionHistory({ name: 'a', library: 'old' });
+  history = editConstruction(history, 'Rename', draft => { draft.name = 'b'; });
+  history = editConstruction(history, 'Rename', draft => { draft.name = 'c'; });
+  history = undoConstruction(history);
+  const rebased = rebaseConstruction(history, draft => { draft.library = 'new'; });
+  expect([...rebased.past, { source: rebased.source }, ...rebased.future].map(entry => entry.source)).toEqual([{ name: 'a', library: 'new' }, { name: 'b', library: 'new' }, { name: 'c', library: 'new' }]);
+  expect(rebased.past.length + rebased.future.length).toBe(history.past.length + history.future.length);
+  expect(history.source.library).toBe('old');
 });

@@ -264,3 +264,17 @@ test('invalid and stale batches are reported with their reason; only invalid one
   owner.submit('Rename', [{ op: 'name', name: 'Fine' }]);
   expect(owner.getSnapshot().error).toBe('');
 });
+
+test('adopting the latest parts catalog saves once, reaches every undo state and is not itself undoable', async () => {
+  const { owner, store, writes } = setup();
+  expect(owner.adoptCatalog('latest-catalog')).toBe(false); // still opening: the door is shut
+  await owner.connect(store, 'design');
+  owner.submit('Rename', [{ op: 'name', name: 'First' }]);
+  expect(owner.adoptCatalog('latest-catalog')).toBe(true);
+  expect(owner.adoptCatalog('latest-catalog')).toBe(false);
+  await owner.flush();
+  expect(writes.at(-1)?.catalogRevision).toBe('latest-catalog');
+  owner.undo(); await owner.flush();
+  expect(owner.source.name).toBe('Draft'); expect(owner.source.construction.catalogRevision).toBe('latest-catalog');
+  owner.redo(); expect(owner.source.construction.catalogRevision).toBe('latest-catalog');
+});

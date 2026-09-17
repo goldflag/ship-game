@@ -2,7 +2,7 @@ import type { ConstructionSource } from './blueprint';
 import { ConstructionAutosave, type ConstructionSaveState } from './constructionAutosave';
 import { applyConstructionBatch, type ConstructionBatch, type ConstructionCommand } from './constructionCommands';
 import { decodeConstructionSource, loadSavedConstructionWithCatalog, newConstructionId } from './constructionEditor';
-import { createConstructionHistory, editConstruction, redoConstruction, undoConstruction, type ConstructionHistory } from './constructionHistory';
+import { createConstructionHistory, editConstruction, redoConstruction, undoConstruction, type ConstructionHistory, rebaseConstruction } from './constructionHistory';
 import { ConstructionStoreError, type ConstructionRevision, type ConstructionStore, type SaveConstructionSource } from './constructionStore';
 
 export type ConstructionHead = { kind: 'new' } | { kind: 'saved'; revisionId: string } | { kind: 'rejected'; revisionId: string };
@@ -165,6 +165,13 @@ export class ConstructionRevisionOwner {
     this.change(editConstruction(this.snapshot.history, batch.label, draft => Object.assign(draft, next)));
     return { accepted: true, source: structuredClone(next), changed };
   }
+  /** Move the design, and every state in its history, onto another parts catalog. Not an undoable edit; the new revision saves. */
+  adoptCatalog = (catalogRevision: string): boolean => {
+    if (this.refusal || this.source.construction.catalogRevision === catalogRevision) return false;
+    const history = rebaseConstruction(this.snapshot.history, draft => { draft.construction.catalogRevision = catalogRevision; });
+    this.change({ ...history, source: { ...history.source, revision: newConstructionId('revision') } });
+    return true;
+  };
   undo = () => this.travel(undoConstruction(this.snapshot.history));
   redo = () => this.travel(redoConstruction(this.snapshot.history));
   private travel(next: ConstructionHistory<ConstructionSource>) {
