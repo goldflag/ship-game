@@ -29,7 +29,7 @@ fn hull() -> Hull {
 #[test]
 fn weights_preserve_full_displacement_and_center_at_extreme_heel() {
     let h = HullHydrostatics::new(&hull(), None);
-    for roll in [0., 0.4, 1.57, 3.14] {
+    for roll in [0., 0.4, std::f64::consts::FRAC_PI_2, std::f64::consts::PI] {
         let s = h.sample(-100., roll, 0.2);
         assert!((s.volume - 8.).abs() < 1e-10);
         assert!((s.center[0] - 0.5).abs() < 1e-10);

@@ -387,7 +387,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
       setCustomHullSession(undefined); tool.fit();
     } }}/>, document.body)}
     <BuilderViewport scene={tool.scene(compile.retained)} tags={tags} coords={tool.coords} status={status} onPointer={tool.pointer} onHover={setHoveredPart} createModel={props.createModel}/>
-    {freeformPrimitive && <FreeformToolbar settings={freeformSettings} onChange={tool.changeFreeformSettings} cycleUnit={tool.cycleUnit}
+    {freeformPrimitive && <FreeformToolbar primitive={freeformPrimitive} onCommit={tool.commitFreeform} settings={freeformSettings} onChange={tool.changeFreeformSettings} cycleUnit={tool.cycleUnit}
       onReset={tool.resetFreeform} onSplit={tool.splitFreeform} onExit={tool.exitFreeform}/>}
     <header className="sb-top">
       <button className="sb-port" disabled={!!busy || !!pathPoints.length} onClick={() => void close()} title="Save and return to port"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M8 1.5 3.5 6 8 10.5"/></svg>Port</button>

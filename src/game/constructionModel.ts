@@ -13,7 +13,7 @@ import { CONSTRUCTION_FINISH, constructionPaintColor } from '../ships/constructi
  * to source faces; triangulation and material batching never become source IDs. */
 export function createConstructionHull(surfaces: readonly ConstructionSurface[], primitives: readonly ConstructionPrimitive[] = []): THREE.Group {
   const group = new THREE.Group(); group.name = 'Constructed hull';
-  const smooth = new Map(primitives.filter(p => p.smoothGroup || SMOOTH_HULL_SHAPES.has(p.kind)).map(p => [p.id, p.smoothGroup ? 'joined:' + p.smoothGroup : p.id]));
+  const smooth = new Map(primitives.filter(p => p.smoothGroup || (p.shaping?.style === 'round' && p.shaping.radius > 0 && p.shaping.edges.length > 0) || SMOOTH_HULL_SHAPES.has(p.kind)).map(p => [p.id, p.smoothGroup ? 'joined:' + p.smoothGroup : p.id]));
   const normalAt = constructionVertexNormals(surfaces.filter(s => !s.open && smooth.has(s.primitiveId)).map(s => ({ ...s, group: smooth.get(s.primitiveId)! })));
   const custom = new Set(primitives.filter(p => p.kind === 'custom-hull').map(p => p.id));
   const customGroup = (surface: ConstructionSurface) => surface.panelId ? `${surface.primitiveId}:${surface.panelId.split('@')[0]}` : surface.id;

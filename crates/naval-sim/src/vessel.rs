@@ -13,6 +13,8 @@ use std::{
     ops::{Deref, DerefMut},
     sync::Arc,
 };
+pub type SubmarineEngineModules = (Vec<Option<usize>>, Vec<Option<usize>>);
+
 /// Content-derived lookup tables. Every entry reproduces the first-match
 /// semantics of the `find`/`position` scans it replaces, so results are
 /// unchanged; only the repeated string comparisons disappear.
@@ -39,7 +41,7 @@ pub struct ShipIndex {
     pub directors: Vec<usize>,
     mount_directors: Vec<Vec<usize>>,
     /// `(submerged, surface)` engine modules for submarines.
-    pub submarine_engines: Option<(Vec<Option<usize>>, Vec<Option<usize>>)>,
+    pub submarine_engines: Option<SubmarineEngineModules>,
     pub propulsion: Vec<PropulsionIndex>,
 }
 #[derive(Clone, Debug, Default)]

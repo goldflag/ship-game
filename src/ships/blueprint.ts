@@ -301,11 +301,19 @@ export interface ConstructionPrimitive {
    * Missing corners on a vertex hull mean the unit cube. Size scales this edit frame.
    * Rust samples the trilinear solid; generated cells remain the physical authority. */
   vertices?: Vec3[];
+  /** Reversible round/chamfer on the same eight-corner block; Rust derives the solid. */
+  shaping?: ConstructionFreeformShape;
   /** Optional shared lighting seam group; physical surfaces remain unchanged. */
   smoothGroup?: string;
   /** Section-authored whole hull; size is [beam, depth, length]. Native compilation
    * derives its closed cells and surfaces; source sections remain editable. */
   customHull?: ConstructionCustomHull;
+}
+export interface ConstructionFreeformShape {
+  version: 1;
+  edges: number[];
+  radius: number;
+  style: 'round' | 'chamfer';
 }
 export interface ConstructionHullPoint { x: number; y: number; }
 export interface ConstructionHullStation { id: string; t: number; points: ConstructionHullPoint[]; }

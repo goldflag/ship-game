@@ -8,6 +8,9 @@ use std::{
     },
     time::Duration,
 };
+#[cfg(test)]
+type MemoryLog = Arc<std::sync::Mutex<Vec<(String, Value, bool)>>>;
+
 enum Request {
     Record(String, Value, bool),
     Flush(SyncSender<()>),
@@ -22,8 +25,8 @@ impl Writer {
     /// Collects submitted records in memory so server tests can exercise the
     /// finalization path without a database.
     #[cfg(test)]
-    pub fn memory(capacity: usize) -> (Self, Arc<std::sync::Mutex<Vec<(String, Value, bool)>>>) {
-        let log: Arc<std::sync::Mutex<Vec<(String, Value, bool)>>> = Default::default();
+    pub fn memory(capacity: usize) -> (Self, MemoryLog) {
+        let log: MemoryLog = Default::default();
         let sink = log.clone();
         let (tx, rx) = mpsc::sync_channel::<Request>(capacity);
         std::thread::Builder::new()

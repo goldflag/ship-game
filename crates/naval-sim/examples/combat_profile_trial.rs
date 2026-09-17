@@ -43,7 +43,7 @@ fn main() {
             None
         };
         let d = raised.as_ref().unwrap_or(&d);
-        let mut a = Combatant::new("trial", &d);
+        let mut a = Combatant::new("trial", d);
         let initial = serde_json::to_value(&a).unwrap();
         if mode == "partial" || mode == "heel" {
             let i = d
@@ -117,8 +117,8 @@ fn main() {
         let start = Instant::now();
         let mut milestones = vec![];
         for tick in 0..if mode == "capsize-fixture" { 1200 } else { 600 } {
-            let power = system_health(&a, &d, "engine", None);
-            let steering = system_health(&a, &d, "steering", None);
+            let power = system_health(&a, d, "engine", None);
+            let steering = system_health(&a, d, "steering", None);
             step_ship(
                 &mut a.motion,
                 HelmCommand {
@@ -131,12 +131,12 @@ fn main() {
                 steering,
                 None,
             );
-            update_flooding(&mut a, &d, &h, 1. / 60., 0.5, None, None);
+            update_flooding(&mut a, d, &h, 1. / 60., 0.5, None, None);
             if tick % 60 == 59 {
-                milestones.push(serde_json::json!({"second":(tick+1)/60,"waterM3":a.damage.compartments.iter().map(|c|c.water_m3).sum::<f64>(),"wetRooms":a.damage.compartments.iter().filter(|c|c.water_m3>0.001).count(),"position":[a.motion.x,a.motion.y,a.motion.z],"roll":a.motion.roll,"pitch":a.motion.pitch,"heading":a.motion.heading,"speed":a.motion.speed,"sunk":a.damage.sunk,"status":a.damage.stability.status,"cause":a.damage.defeat_cause,"engine":system_health(&a,&d,"engine",None),"steering":system_health(&a,&d,"steering",None)}));
+                milestones.push(serde_json::json!({"second":(tick+1)/60,"waterM3":a.damage.compartments.iter().map(|c|c.water_m3).sum::<f64>(),"wetRooms":a.damage.compartments.iter().filter(|c|c.water_m3>0.001).count(),"position":[a.motion.x,a.motion.y,a.motion.z],"roll":a.motion.roll,"pitch":a.motion.pitch,"heading":a.motion.heading,"speed":a.motion.speed,"sunk":a.damage.sunk,"status":a.damage.stability.status,"cause":a.damage.defeat_cause,"engine":system_health(&a,d,"engine",None),"steering":system_health(&a,d,"steering",None)}));
             }
         }
-        let reset = Combatant::new("trial", &d);
+        let reset = Combatant::new("trial", d);
         assert_eq!(initial, serde_json::to_value(&reset).unwrap());
         scenarios.push(serde_json::json!({"mode":mode,"runtimeMs":start.elapsed().as_secs_f64()*1000.,"resetExact":true,"milestones":milestones}));
         eprintln!("{mode} complete");

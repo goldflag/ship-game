@@ -21,7 +21,12 @@ export function installedSupportContacts(model: THREE.Group, source: Constructio
         const point = node.getVertexPosition(i, new THREE.Vector3()).applyMatrix4(node.matrixWorld);
         if (Math.abs(point.clone().sub(seat).dot(direction)) > .002) continue;
         candidates++;
-        ray.set(point.clone().addScaledVector(direction, -.03), direction); ray.far = .08;
+        // Float32 GLB coordinates can put a boundary vertex a few micrometres
+        // outside its coplanar support. Probe 10 micrometres toward the seat;
+        // the existing vertical gap limit still rejects a lifted installation.
+        const inward = seat.clone().sub(point);
+        inward.addScaledVector(direction, -inward.dot(direction)).normalize();
+        ray.set(point.clone().addScaledVector(inward, .00001).addScaledVector(direction, -.03), direction); ray.far = .08;
         const hit = ray.intersectObjects(hulls, false)[0];
         if (!hit) continue;
         const gap = Math.abs(hit.distance - .03); minimumGapM = Math.min(minimumGapM, gap);

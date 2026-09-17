@@ -417,11 +417,10 @@ fn exact_water(room: &Compartment, volume: f64, roll: f64, pitch: f64) -> (f64, 
             // Match clip's comparisons exactly, including epsilon-thin cells.
             if top - level <= EPS {
                 total.add(full);
-            } else if bottom - level < -EPS {
-                if let Some(clipped) = clip(cell, n, level) {
+            } else if bottom - level < -EPS
+                && let Some(clipped) = clip(cell, n, level) {
                     total.add(moments(&clipped));
                 }
-            }
         }
         total
     };

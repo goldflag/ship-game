@@ -1,3 +1,4 @@
+import { shapedFaces } from '../../ships/freeformShape';
 import * as THREE from 'three';
 import { cornerVertices, VERTEX_FACES } from '../../ships/constructionVertex';
 import type { ConstructionEquipmentPart, ConstructionPrimitive, Vec3 } from '../../ships/blueprint';
@@ -7,7 +8,11 @@ import { customHullFaces, customHullPoints, customHullPrimitive, makeHull } from
 
 /** Display-only source envelopes for placement and invalid drafts. Rust remains
  * authoritative for unions, material, fit, loading and all battle geometry. */
-export function primitiveGeometry(kind: ConstructionPrimitive['kind'], size: Vec3, corners?: Vec3[], customHull?: ConstructionPrimitive['customHull']): THREE.BufferGeometry {
+export function primitiveGeometry(kind: ConstructionPrimitive['kind'], size: Vec3, corners?: Vec3[], customHull?: ConstructionPrimitive['customHull'], shaping?: ConstructionPrimitive['shaping']): THREE.BufferGeometry {
+  if (kind === 'vertex' && shaping) {
+    const faces=shapedFaces({id:'',kind,size,position:[0,0,0],rotationDeg:0,vertices:corners,shaping});
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(faces.flatMap(f=>f.points.flat()),3));g.computeVertexNormals();return g;
+  }
   if (kind === 'custom-hull') {
     const p = { ...customHullPrimitive(makeHull(0)), size, ...(customHull ? { customHull } : {}) };
     const faces = customHullFaces(p).map(f => ({ ...f, normal: new THREE.Vector3(...f.vertices[1]).sub(new THREE.Vector3(...f.vertices[0])).cross(new THREE.Vector3(...f.vertices[2]).sub(new THREE.Vector3(...f.vertices[0]))).normalize().toArray() as Vec3 }));
@@ -61,8 +66,8 @@ export function placementRotation(piece: BuilderPlacement): number {
 /** Selection follows authored sections and chines, without tessellation diagonals. */
 export function primitiveOutlineGeometry(p: ConstructionPrimitive): THREE.BufferGeometry {
   if (p.kind !== 'custom-hull' || !p.customHull) {
-    const solid = primitiveGeometry(p.kind, p.size, p.vertices, p.customHull);
-    const edges = new THREE.EdgesGeometry(solid); solid.dispose(); return edges;
+    const solid = primitiveGeometry(p.kind, p.size, p.vertices, p.customHull, p.shaping);
+    const edges = new THREE.EdgesGeometry(solid, p.shaping ? 25 : 1); solid.dispose(); return edges;
   }
   const points = customHullPoints(p), lines: number[] = [];
   for (let section = 0; section < p.customHull.stations.length; section++) {
