@@ -39,6 +39,12 @@ extends its circular support above the deck while the integrated magazine stays
 at the lower end. Barbette paint applies to the whole fixed support; the deck
 retains its own finish around the circular opening. Both edits support undo.
 
+Full funnel casings use oval below-deck uptake openings. The native compiler uses the same outline for deck cutting, clearance and sealed
+flooding openings, including separate uptakes on trunked funnels, preserving the
+surrounding deck. Guns and full funnels are the only current fittings that cut
+the deck; the separate funnel cap, closed hatches, vents and torpedo launchers
+do not.
+
 Sea Trials transfers the exact draft to the game and uses the real native local
 battle path. Returning reopens that source; combat damage never enters the file.
 The normal local-design menu also imports downloaded JSON as a new local copy.

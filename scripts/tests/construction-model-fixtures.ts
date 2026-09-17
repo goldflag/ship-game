@@ -121,35 +121,39 @@ export function cruiserEquipmentFixture(catalog: ConstructionCatalog): Construct
   source.construction.version = 1;
   source.id = 'cruiser-equipment-review'; source.revision = 'cruiser-equipment-review-1';
   source.construction.defaultThicknessMm = 16;
-  source.construction.primitives = [{ id: 'platform', kind: 'box', position: [0, 0, 0], size: [80, 20, 400], rotationDeg: 0 }];
+  source.construction.primitives = [{ id: 'platform', kind: 'box', position: [0, 0, 0], size: [400, 20, 400], rotationDeg: 0 }];
   source.construction.equipment = [];
   const core = new Set([...equipmentReviewSource(catalog).construction.equipment, ...deckFittingsFixture(catalog).construction.equipment].map(e => e.partId));
   const parts = catalog.equipment.filter(p => !core.has(p.id));
+  // Separate rows keep national variants supported without overlapping installations.
+  const length = 400, firstStation = -160;
   const add = (id: string, partId: string, position: Vec3, links: Partial<ConstructionEquipment> = {}) => source.construction.equipment.push({ id, partId, position, bearingDeg: 0, ...links });
   const engine = parts.find(p => p.kind === 'engine')!;
   add('cruiser-engine', engine.id, [0, -9.984, 130]);
   parts.filter(p => p.kind === 'engine' && p.id !== engine.id).forEach((part, index) => {
     add('review-' + part.id, part.id, [0, -9.984, 80 - index * 40]);
   });
-  let gun = 0, deck = 0, screw = 0;
+  let gun = 0, deck = 0, screw = 0, bank = 0;
   for (const part of parts) {
     if (part.kind === 'engine' || part.kind === 'magazine') continue;
     const id = 'review-' + part.id, seat = part.sockets!.find(s => s.id === 'attachment')!;
     if (part.kind === 'gun') {
-      const z = -160 + gun++ * 40, magazineId = id + '-mag';
-      add(magazineId, 'cruiser-magazine-50000', [-20, -9.984, z]);
-      add(id, part.id, [-20, 10 - seat.position[1], z], { magazineId, gun: { initialElevationDeg: part.id === 'flak38-m43u-20-twin' ? 30 : 0 } });
+      const x = -160 + Math.floor(gun / 10) * 40, z = firstStation + gun++ % 10 * 32, magazineId = id + '-mag';
+      add(magazineId, 'cruiser-magazine-50000', [x, -9.984, z]);
+      add(id, part.id, [x, 10 - seat.position[1], z], { magazineId, gun: { initialElevationDeg: part.id === 'flak38-m43u-20-twin' ? 30 : 0 } });
     } else if (part.kind === 'torpedo-launcher') {
-      add('cruiser-bank-mag', 'cruiser-magazine-50000', [0, -9.984, -160]);
-      add(id, part.id, [0, 10 - seat.position[1], -160], { magazineId: 'cruiser-bank-mag' });
+      const z = firstStation + bank++ * 40, magazineId = id + '-mag';
+      add(magazineId, 'cruiser-magazine-50000', [0, -9.984, z]);
+      add(id, part.id, [0, 10 - seat.position[1], z], { magazineId });
     } else if (part.kind === 'propeller') {
-      add(id, part.id, [-12 + screw++ * 24, -9, 200 - seat.position[2]], { powerSourceId: 'cruiser-engine' });
+      add(id, part.id, [-12 + screw++ * 24, -9, length / 2 - seat.position[2]], { powerSourceId: 'cruiser-engine' });
     } else if (part.kind === 'rudder') {
-      add(id, part.id, [0, -10 - seat.position[1], 195]);
+      add(id, part.id, [0, -10 - seat.position[1], length / 2 - 5]);
     } else if (seat.direction[2] === 1) {
-      add(id, part.id, [20, 0, -200 - seat.position[2]]);
+      add(id, part.id, [20, 0, -length / 2 - seat.position[2]]);
     } else {
-      add(id, part.id, [20, 10 - seat.position[1], -165 + deck++ * 25], part.kind === 'funnel' ? { powerSourceId: 'cruiser-engine' } : {});
+      const x = 40 + Math.floor(deck / 8) * 40, z = firstStation + deck++ % 8 * 40;
+      add(id, part.id, [x, 10 - seat.position[1], z], part.kind === 'funnel' ? { powerSourceId: 'cruiser-engine' } : {});
     }
   }
   return source;

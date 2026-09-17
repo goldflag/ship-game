@@ -31,8 +31,8 @@ fn a_dry_body_reports_the_same_levels_as_a_flooded_one() {
                 let floor = eager.level_at_volume(room, 0.0);
                 let ceiling = eager.level_at_volume(room, room.capacity_m3);
                 assert_eq!(dry.level.to_bits(), floor.to_bits(), "{id} {}", room.id);
-                // Exact polyhedral rooms have no free surface when empty;
-                // the lazy column solver stores a mean area for its dry path.
+                // Exact polyhedral rooms have no wetted surface when dry;
+                // only the column fast path retains an average area.
                 let dry_area = if room.volumes.is_some() {
                     0.0
                 } else {
