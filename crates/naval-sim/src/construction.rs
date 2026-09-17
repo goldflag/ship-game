@@ -406,6 +406,10 @@ fn validate(
         ));
     }
     for e in &c.equipment {
+        if e.gun.as_ref().and_then(|g| g.barbette_paint.as_ref())
+            .is_some_and(|paint| paint.is_empty() || paint.len() > 64) {
+            return Err(error("barbette-paint", "Invalid barbette paint", Some(&e.id)));
+        }
         let rise = crate::construction_installation::raised(e);
         if !rise.is_finite() || !(0. ..=30.).contains(&rise) || (c.version < 2. && rise != 0.) {
             return Err(error("barbette-height", "Barbette height must be between 0 and 30 m on a version-2 gun installation", Some(&e.id)));
@@ -642,7 +646,7 @@ fn build(
                     ));
                 }
                 let cell = cg::transform(
-                    &cg::box_cell(space.center, space.size),
+                    &crate::construction_installation::space_cell(catalog, p, &space),
                     e.position,
                     [1.; 3],
                     -e.bearing_deg.to_radians(),
@@ -1753,7 +1757,10 @@ fn equipment(
                         Some(&e.id),
                     ));
                 }
-                let volume = transform_cell(space.center, space.size);
+                let volume = cg::transform(
+                    &crate::construction_installation::space_cell(catalog, p, &space),
+                    e.position, [1.; 3], -e.bearing_deg.to_radians(),
+                );
                 if p.placement == "deck" {
                     occupied.extend(hull.iter().filter_map(|h| cg::intersection(&volume, h)));
                 } else {
@@ -3076,7 +3083,8 @@ mod tests {
                     .filter(|m| m.kind == "installation")
                     .map(|m| m.mass_kg / STEEL_DENSITY)
                     .sum::<f64>()
-                - 0.0776)
+                - (1. + 32. * c.weapons.parts[0].barbette_radius.powi(2)
+                    * (std::f64::consts::TAU / 64.).sin()) * 0.01)
                 .abs()
                 < 1e-6
         );

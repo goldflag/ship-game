@@ -325,6 +325,8 @@ export interface ConstructionEquipment {
   gun?: {
     /** Added height above the deck attachment; position remains the turret datum. */
     barbetteHeightM?: number;
+    /** Named paint applied to the entire fixed barbette. */
+    barbettePaint?: string;
     battery?: 'main' | 'secondary';
     initialElevationDeg?: number;
     traverseDeg?: number;
