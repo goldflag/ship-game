@@ -1,3 +1,4 @@
+import { paintedHullFace } from '../ships/constructionHullPaint';
 import * as THREE from 'three/webgpu';
 import { loadShipModel } from './loadShipModel';
 import { createConstructionPathModel } from './constructionPathModel';
@@ -49,19 +50,24 @@ export function createConstructionHull(surfaces: readonly ConstructionSurface[],
     return timber;
   };
   const batches = new Map<string, { paint: string; deck: boolean; positions: number[]; normals: number[]; uv: number[]; faces: ConstructionSurface[] }>();
+  const primitiveById = new Map(primitives.map(p => [p.id, p]));
   for (const surface of surfaces) {
     if (surface.open || surface.vertices.length < 3) continue;
-    const deck = surface.normal[1] > 0.7, key = `${surface.paint}:${deck}`;
-    let batch = batches.get(key);
-    if (!batch) batches.set(key, batch = { paint: surface.paint, deck, positions: [], normals: [], uv: [], faces: [] });
-    const dominant = surface.normal.map(Math.abs).indexOf(Math.max(...surface.normal.map(Math.abs)));
-    for (let i = 1; i < surface.vertices.length - 1; i++) {
-      for (const point of [surface.vertices[0], surface.vertices[i], surface.vertices[i + 1]]) {
-        batch.positions.push(...point); batch.normals.push(...(custom.has(surface.primitiveId) ? customNormalAt(point, surface.normal, customGroup(surface)) : smooth.has(surface.primitiveId) ? normalAt(point, surface.normal, smooth.get(surface.primitiveId)!) : surface.normal));
-        const a = dominant === 0 ? 2 : 0, b = dominant === 1 ? 2 : 1;
-        batch.uv.push(point[a] / CONSTRUCTION_FINISH.tileMeters, point[b] / CONSTRUCTION_FINISH.tileMeters);
+    const normals = surface.vertices.map(point => custom.has(surface.primitiveId) ? customNormalAt(point, surface.normal, customGroup(surface)) : smooth.has(surface.primitiveId) ? normalAt(point, surface.normal, smooth.get(surface.primitiveId)!) : surface.normal);
+    for (const painted of paintedHullFace(surface, primitiveById.get(surface.primitiveId), normals)) {
+      const deck = surface.normal[1] > 0.7, key = `${painted.paint}:${deck}`;
+      let batch = batches.get(key);
+      if (!batch) batches.set(key, batch = { paint: painted.paint, deck, positions: [], normals: [], uv: [], faces: [] });
+      const dominant = surface.normal.map(Math.abs).indexOf(Math.max(...surface.normal.map(Math.abs)));
+      for (let i = 1; i < painted.vertices.length - 1; i++) {
+        for (const index of [0, i, i + 1]) {
+          const point = painted.vertices[index];
+          batch.positions.push(...point); batch.normals.push(...painted.normals[index]);
+          const a = dominant === 0 ? 2 : 0, b = dominant === 1 ? 2 : 1;
+          batch.uv.push(point[a] / CONSTRUCTION_FINISH.tileMeters, point[b] / CONSTRUCTION_FINISH.tileMeters);
+        }
+        batch.faces.push(surface);
       }
-      batch.faces.push(surface);
     }
   }
   for (const [key, batch] of batches) {

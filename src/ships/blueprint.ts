@@ -310,6 +310,8 @@ export interface ConstructionPrimitive {
 export interface ConstructionHullPoint { x: number; y: number; }
 export interface ConstructionHullStation { id: string; t: number; points: ConstructionHullPoint[]; }
 export interface ConstructionCustomHull {
+  /** Red lower-hull coating below this hull-local Y in meters; omission uses face paint. */
+  redPaintY?: number;
   version: 1; stations: ConstructionHullStation[]; rake: number; bulb: number;
 }
 export interface ConstructionSurfaceAssignment {

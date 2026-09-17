@@ -18,6 +18,7 @@ pub fn build(p: &ConstructionPrimitive) -> Result<VertexSolid, String> {
     if h.version != 1. || !(4..=24).contains(&h.stations.len()) || !h.rake.is_finite() || !(0.0..=1.5).contains(&h.rake) || !h.bulb.is_finite() || !(0.0..=1.0).contains(&h.bulb) {
         return Err("Custom hulls need version 1, 4–24 sections and valid bow settings".into());
     }
+    if h.red_paint_y.is_some_and(|y| !y.is_finite() || y.abs() > 500.) { return Err("Red paint Y must be between -500 and 500 m".into()); }
     let mut ids = std::collections::BTreeSet::new();
     for (i, s) in h.stations.iter().enumerate() {
         if s.id.is_empty() || s.id.len() > 128 || !ids.insert(&s.id) || !s.t.is_finite() || !(0.0..=1.0).contains(&s.t) || s.points.len()!=9 || s.points.iter().any(|p| !p.x.is_finite() || !p.y.is_finite()) {

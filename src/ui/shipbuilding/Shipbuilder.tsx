@@ -13,7 +13,7 @@ import { ConstructionClient } from '../../ships/constructionClient';
 import { CONSTRUCTION_SHAPE_NAMES as SHAPE_NAMES } from '../../ships/constructionShapes';
 import { createStarterSource, startingHullBlock, type ConstructionStarter } from '../../ships/constructionStarter';
 import { constructionCatalogUpdate, updateConstructionCatalog } from '../../ships/constructionEquipment';
-import { constructionDiffCommands, type ConstructionBatch } from '../../ships/constructionCommands';
+import { constructionDiffCommands, type ConstructionCommand, type ConstructionBatch } from '../../ships/constructionCommands';
 import { armorThicknessColor } from '../../ships/inspection';
 import { BuilderViewport, type BuilderTag, type ConstructionModelFactory } from './BuilderViewport';
 import { BUILDER_LAYERS, FAMILY_NAMES, formatTonnes, type BuilderLayer, type SlotItem } from './builderLayers';
@@ -360,7 +360,16 @@ export function Shipbuilder(props: ShipbuilderProps) {
     {newDesignOpen && <NewDesignDialog onClose={() => setNewDesignOpen(false)} onCreate={newDesign}/>}
     {customHullSession?.designId === source.id && createPortal(<CustomHullEditor integration={{ hull: editableCustomHull(customHullSession.primitive), onClose: () => setCustomHullSession(undefined), onApply: hull => {
       const existing = data.primitives.find(part => part.id === customHullSession.primitive.id);
-      if (existing) run('Shape custom hull', [{ op: 'primitive', value: customHullPrimitive(hull, existing) }]);
+      if (existing) {
+        const commands: ConstructionCommand[] = [{ op: 'primitive', value: customHullPrimitive(hull, existing) }];
+        // Older starters painted the whole bottom red. Replace that side default
+        // when first enabling a height boundary; retain panel overrides and armor.
+        if (existing.customHull?.redPaintY === undefined && hull.redPaintY !== undefined) {
+          const bottom = data.surfaces.find(s => s.primitiveId === existing.id && s.face === 'bottom' && s.panelId === undefined && s.paint === 'red-oxide');
+          if (bottom) commands.push({ op: 'surface', value: { ...bottom, paint: 'naval-gray' } });
+        }
+        run('Edit custom hull', commands);
+      }
       setCustomHullSession(undefined); tool.fit();
     } }}/>, document.body)}
     <BuilderViewport scene={tool.scene(compile.retained)} tags={tags} coords={tool.coords} status={status} onPointer={tool.pointer} onHover={setHoveredPart} createModel={props.createModel}/>

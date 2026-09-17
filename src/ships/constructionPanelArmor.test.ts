@@ -35,3 +35,13 @@ test('panel IDs survive resizing and mirrored copies retain the matching opposit
   const [copy] = copyConstructionSelection(source, new Set([hull.id]), { mirror: true });
   expect(source.construction.surfaces.find(s => s.primitiveId === copy && s.panelId === mirroredPanelId(panel.panelId))).toMatchObject({ face: 'starboard', thicknessMm: 90 });
 });
+
+test('red paint elevation leaves native surfaces, loading and armor unchanged', () => {
+  const source = createStarterSource(catalog, 'destroyer-hull');
+  const before = compile(source);
+  source.construction.primitives[0].customHull!.redPaintY = 2;
+  const after = compile(source);
+  expect(after.definition, JSON.stringify(after.diagnostics)).toBeDefined();
+  expect(after.surfaces).toEqual(before.surfaces);
+  expect(after.loading).toEqual(before.loading);
+});
