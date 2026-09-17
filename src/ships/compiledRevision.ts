@@ -38,7 +38,7 @@ export class CompiledRevision {
   private abort?: AbortController;
   private readonly unsubscribe: () => void;
 
-  constructor(private readonly owner: CompiledRevisionSource, private readonly compiler: BuilderCompiler, private readonly delayMs = 180) {
+  constructor(private readonly owner: CompiledRevisionSource, private readonly compiler: BuilderCompiler, private readonly delayMs = 40) {
     this.unsubscribe = owner.subscribe(this.observe);
     this.observe();
   }
