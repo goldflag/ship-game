@@ -15,15 +15,25 @@ function button(label: string) {
   if(!b) throw new Error(`Missing button ${label}`); return b;
 }
 async function click(label: string) { button(label).click(); await sleep(); }
-function input(axis: string) { return document.querySelector<HTMLInputElement>(`.sb-freeform-coordinates input[aria-label="${axis}"]`)!; }
+/** The axis gizmo button stands in for the removed coordinate fields: disabled when locked, arrow keys nudge by the move step. */
+function input(axis: string) { return document.querySelector<HTMLButtonElement>(`.sb-freeform-axis[data-axis="${axis}"]`)!; }
 async function coordinate(axis: string,value: number) {
-  const field=input(axis); if(field.disabled) throw new Error(`${axis} is locked`); field.focus();
-  Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value')!.set!.call(field,String(value)); field.dispatchEvent(new Event('input',{bubbles:true}));
-  await sleep(); field.dispatchEvent(new FocusEvent('focusout',{bubbles:true})); await sleep();
+  const field=input(axis); if(field.disabled) throw new Error(`${axis} is locked`);
+  const primitive=state().construction.primitives[0],k='XYZ'.indexOf(axis),unit=Number(document.querySelector('.sb-unit b')!.textContent!.replace(' m',''));
+  const selected=document.querySelector<HTMLButtonElement>('.sb-freeform-handle[aria-pressed="true"]')!;
+  const selection:HullSelection={mode:selected.dataset.mode as HullSelection['mode'],index:Number(selected.dataset.index)};
+  const steps=Math.round((value-selectionCenter(primitive,selection)[k])/unit);
+  for(let i=0;i<Math.abs(steps);i++) { field.dispatchEvent(new KeyboardEvent('keydown',{key:steps>0?'ArrowUp':'ArrowDown',bubbles:true})); await saved(); }
 }
 async function select(index: number) {
-  const field=document.querySelector<HTMLSelectElement>('select[aria-label="Hull selection"]')!;
-  field.value=String(index);field.dispatchEvent(new Event('change',{bubbles:true}));await sleep();
+  const handle=document.querySelector<HTMLButtonElement>(`.sb-freeform-handle[data-index="${index}"]`)!;
+  handle.click();await sleep();
+}
+/** Cycles the view strip to the named view with an orthographic camera. */
+async function view(name: string) {
+  const bar=(label: string)=>[...document.querySelectorAll<HTMLButtonElement>('.sb-viewbar button')].find(b=>b.getAttribute('aria-label')?.startsWith(label))!;
+  for(let i=0;i<4&&bar('View').getAttribute('aria-label')!==`View · ${name}`;i++) { bar('View').click(); await sleep(); }
+  if(bar('Camera').getAttribute('aria-label')==='Camera · Perspective') { bar('Camera').click(); await sleep(); }
 }
 async function saved() {
   await sleep(80);
@@ -87,10 +97,10 @@ export async function checkFreeformEditor() {
   await click('Move nearby corners');await click('Mirror X');assert(!input('Y').disabled&&!input('Z').disabled,'no mirror axes means unrestricted movement');
   await coordinate('Y',.2);await saved();
   assert(Math.abs(selectionCenter(state().construction.primitives[0],{mode:'face',index:3})[1]-.2)<1e-8,'face center entry translates the face');
-  await click('Top');
+  await view('Plan');
   const viewport=window.shipbuilderViewport as unknown as {camera:{isOrthographicCamera?:boolean;isPerspectiveCamera?:boolean}};
-  assert(viewport.camera.isOrthographicCamera,'Top uses an orthographic camera');
-  document.querySelector<HTMLButtonElement>('.sb-freeform-tools button[title="Toggle orthographic and perspective cameras (P)"]')!.click();await sleep();assert(viewport.camera.isPerspectiveCamera,'projection control uses a real perspective camera');
+  assert(viewport.camera.isOrthographicCamera,'view strip stays usable while shaping');
+  [...document.querySelectorAll<HTMLButtonElement>('.sb-viewbar button')].find(b=>b.getAttribute('aria-label')?.startsWith('Camera'))!.click();await sleep();assert(viewport.camera.isPerspectiveCamera,'projection control uses a real perspective camera');
   controls.key('o');await sleep();assert(viewport.camera.isOrthographicCamera,'O restores orthographic projection');
   await click('Split…');assert(!!document.querySelector('.sb-freeform-popover'),'Split opens local axis and count controls');
   controls.key('Escape');await sleep();assert(!document.querySelector('.sb-freeform-popover')&&!!document.querySelector('.sb-freeform-tools'),'Escape closes Split and keeps the edit session');
@@ -105,7 +115,7 @@ export async function checkFreeformEditor() {
 /** Synthetic capture lifetime is stubbed. Real mouse drags separately verify browser capture. */
 export async function checkFreeformDrags() {
   const checks:string[]=[];const assert=(ok:unknown,label:string)=>{if(!ok)throw new Error(label);checks.push(label);};
-  await mountFreeformReview();await click('Mirror X');await click('Top');await click('Face');await select(3);
+  await mountFreeformReview();await click('Mirror X');await view('Plan');await click('Face');await select(3);
   const axis=()=>document.querySelector<HTMLButtonElement>('.sb-freeform-axis[data-axis="X"]')!;
   async function drag(target:HTMLButtonElement,finish:'commit'|'escape'|'return'|'lost'|'blur'|'secondary',dx=55,dy=25) {
     const r=target.getBoundingClientRect(),x=r.x+r.width/2,y=r.y+r.height/2;
