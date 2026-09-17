@@ -1,6 +1,6 @@
 import { join } from 'node:path';
 import { mkdir, writeFile, rm } from 'node:fs/promises';
-import type { ConstructionResult, ConstructionSource } from '../../src/ships/blueprint';
+import type { ConstructionResult, ConstructionSource, ConstructionSuggestion } from '../../src/ships/blueprint';
 import { spawn } from 'node:child_process';
 import { homedir } from 'node:os';
 import { existsSync } from 'node:fs';
@@ -8,14 +8,21 @@ import { readCatalog } from './files';
 
 /** The same Rust entry point used to verify browser/WASM compilation. */
 export async function compileConstruction(root: string, source: ConstructionSource): Promise<ConstructionResult> {
+  return runCompiler(root, source) as Promise<ConstructionResult>;
+}
+export async function suggestConstruction(root: string, source: ConstructionSource, partIds: string[]): Promise<ConstructionSuggestion> {
+  return runCompiler(root, source, partIds) as Promise<ConstructionSuggestion>;
+}
+async function runCompiler(root: string, source: ConstructionSource, partIds?: string[]): Promise<ConstructionResult | ConstructionSuggestion> {
   const catalog = await readCatalog(root, source.construction.catalogRevision);
   const directory = join(root, '.build/construction/compile', crypto.randomUUID());
   await mkdir(directory, { recursive: true });
   try {
     await writeFile(join(directory, 'source.json'), JSON.stringify(source));
     await writeFile(join(directory, 'catalog.json'), JSON.stringify(catalog));
+    if (partIds) await writeFile(join(directory, 'parts.json'), JSON.stringify(partIds));
     const localCargo = join(homedir(), '.cargo/bin', process.platform === 'win32' ? 'cargo.exe' : 'cargo');
-    const child = spawn(existsSync(localCargo) ? localCargo : 'cargo', ['run', '--quiet', '--locked', '--profile', 'wasm-dev', '-p', 'naval-sim', '--example', 'compile_construction', '--', join(directory, 'source.json'), join(directory, 'catalog.json')], { cwd: root, stdio: ['ignore', 'pipe', 'pipe'] });
+    const child = spawn(existsSync(localCargo) ? localCargo : 'cargo', ['run', '--quiet', '--locked', '--profile', 'wasm-dev', '-p', 'naval-sim', '--example', 'compile_construction', '--', join(directory, 'source.json'), join(directory, 'catalog.json'), ...(partIds ? ['--suggest', join(directory, 'parts.json')] : [])], { cwd: root, stdio: ['ignore', 'pipe', 'pipe'] });
     let timedOut = false;
     const timer = setTimeout(() => { timedOut = true; child.kill(); }, 600_000);
     try {

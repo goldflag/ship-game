@@ -22,7 +22,7 @@ const EDITING: [string[], string][] = [
   [['⌘C', '⇧⌘C'], 'Copy 1 m to starboard, mirror-copy across the centerline'],
   [['⌘A'], 'Select every hull piece and fitting'],
   [['Del', '⌫', '⌘X'], 'Remove the selection; a wall merges its rooms'],
-  [['←', '→', '↑', '↓'], 'Nudge the selection by the chosen Snap step'],
+  [['←', '→', '↑', '↓'], 'Resize a door/window (Shift for fine steps); otherwise nudge by the Snap step'],
   [['PgUp', 'PgDn'], 'Raise or lower the selection'],
   [['R', '⇧R'], 'Rotate the cursor piece or selection: 90° hull, 15° fittings; Shift-R turns fittings 1°'],
   [['N'], 'Toggle snapping; remembers enabled targets and grid spacing'],
@@ -66,7 +66,7 @@ export function HelpDialog({ onClose }: { onClose(): void }) {
         </section>
       </div>
       <p>Select one cube or freeform hull, then choose Freeform. Select a vertex, edge or face; drag it in the view plane or use an X/Y/Z handle. Arrow keys nudge a focused axis handle. Mirror axes are local to the block; select none to turn symmetry off. An edge or face spanning a mirror plane cannot move across it. Move nearby corners is opt-in; Split creates independent blocks. Reset edit restores the block’s session-entry shape.</p>
-      <p>In Select, selected blocks show X/Y/Z handles and a center handle for movement in the view plane. Typed positions stay exact regardless of snapping. Alignment guides can stay visible with snapping off. The centerline appears only while dragging near it. Movement stops at another block’s bounds; touching faces can slide along each other. Escape cancels a drag. Keys never act inside text or number fields. Mirror also reaches the twin face when painting armor or paint.</p>
+      <p>In Select, selected blocks show X/Y/Z handles and a center handle for movement in the view plane. Drag pieces and handles to position them. Alignment guides can stay visible with snapping off. The centerline appears only while dragging near it. Movement stops at another block’s bounds; touching faces can slide along each other. Escape cancels a drag. Keys never act inside text or number fields. Mirror also reaches the twin face when painting armor or paint.</p>
     </div>
   </div>;
 }

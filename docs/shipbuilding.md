@@ -84,7 +84,7 @@ The adjacent arrow opens independent Grid, Ship centerline and Nearby edges/corn
 choices. Grid spacing uses a button row: 0.25, 0.5, 1, 2 or 5 m. The rail shows the
 current size; click it or press **S** to cycle. Hull and fittings remember separate
 session choices, starting at 1 m and 0.25 m. Freeform uses its local Move step.
-Off removes grid rounding and magnetic alignment. Typed positions always remain exact;
+Off removes grid rounding and magnetic alignment;
 keyboard nudges still use the chosen step. Physical seating and hull overlap checks remain active.
 
 Hull placement and movement permit intersection, provided every affected block keeps
@@ -93,7 +93,7 @@ uses native curved, hollow and edited solids, including protection for smaller
 stationary blocks. Drags stop at the limit even across a fast pointer jump; existing
 excessive overlaps can be reduced. Mirrored placement, runs, Fill and copies are
 checked as a complete batch. Rejected placement shows a salmon preview and the
-10% rule in the coordinate readout, without adding undo history. Ballast-to-ballast
+10% rule in the placement feedback, without adding undo history. Ballast-to-ballast
 overlap and equipment fit restrictions remain. This is an editor placement/movement
 policy; imported and freeform drafts remain recoverable through the existing compiler.
 Mass, plating and buoyancy still derive from the physical union, so shared hull
@@ -157,30 +157,37 @@ modes continue to accept their historical content only.
 
 ## Doors, portholes and windows
 
-In **Fittings → Doors & windows**, choose the existing watertight door, a round
-porthole, a rectangular window or a rounded-rectangle window. These are closed
-surface fittings with opaque glazing; they do not cut holes or change flooding.
-Click a flat vertical hull or superstructure face. The fitting automatically faces
-outward and seats its back against the wall; decks and sloping walls are not
-placement targets. Width/height (or porthole diameter) range from 0.15–5 m.
+In **Fittings → Doors & windows**, choose a plain door, round porthole,
+rectangular window or rounded-rectangle window. These are flush silhouettes
+with no raised frames, rims, hinges or extrusion. Glazing stays opaque; fittings
+do not cut holes or change flooding. Click a hull side or superstructure wall,
+including sloped and faceted hull panels. The original component silhouette
+follows the supporting panels. Decks and open faces are not placement targets.
+
+Width/height (or porthole diameter) range from 0.15–5 m. **Left/Right** decreases
+or increases width; **Down/Up** decreases or increases height in 0.1 m steps.
+Hold **Shift** for 0.01 m steps. These keys resize the placement preview or the
+selected fittings. Portholes stay circular. Linked pairs resize once together;
+each step is undoable. Keys inside a text/number field retain their normal input
+behavior. Position objects with the mouse and movement handles; XYZ fields and
+readouts are omitted throughout the editor, including the ledger and shaping tools.
 
 **Single** places individual windows. With nearby snapping enabled, guides align
-window centers and frame edges, including tops and sills of different sizes.
-**Row** adds a center-to-center **Spacing** control. Drag horizontally along a
-wall to preview an evenly spaced row at one height; release commits the whole
-row as one undo step. Spacing always leaves at least 5 cm between frames.
-Escape cancels an unfinished row. Changing spacing affects the next row.
+centers and silhouette edges, including tops and sills of different sizes.
+**Row** adds a center-to-center **Spacing** control. Drag along a hull side to
+preview an evenly spaced row; release commits the row as one undo step. Spacing
+leaves at least 5 cm between silhouettes. Escape cancels an unfinished row.
+Changing spacing affects the next row.
 
 With **Mirror** enabled, each fitting gets a persistent linked partner across
-the ship centerline. Both sides must have matching flat wall support behind the
-frame; a missing, sloping, open or offset opposite wall refuses the placement.
-Turn Mirror off to place on just one side. **Mirror copy** on an unpaired wall
-fitting creates the same linked relationship. Moving, resizing, painting and
-deleting either partner updates both, even with Mirror placement switched off.
-Copies of linked fittings form their own pairs. Saving, reopening, undo and redo
-retain the links. Fittings slide in their wall plane and cannot be rotated away
-from it. Changing the supporting hull can invalidate a fitting; native diagnostics
-identify unsupported frames and block trials until corrected.
+the ship centerline. Both sides must provide matching closed hull support across
+the fitting's footprint. Turn Mirror off to place on just one side. **Mirror
+copy** on an unpaired fitting creates the same relationship. Moving, resizing,
+painting and deleting either partner updates both, even with Mirror placement
+switched off. Copies form independent pairs. Saving, reopening, undo and redo
+retain links. Fittings slide along their hull side and face it automatically.
+Changing supporting geometry can invalidate a fitting; native diagnostics block
+trials until corrected.
 
 The existing versioned equipment record carries optional `wall` installation
 settings (`version: 1`, `widthM`, `heightM`, `mirrorId`). Retained catalogs and
@@ -212,7 +219,7 @@ and rigging sockets of fixed fittings; native diagnostics check attachment and
 clearance.
 
 Select a completed route to edit its position, bearing or individual points in
-the object tag. Point coordinates are relative to the route origin. **Insert
+the object tag. **Insert
 point** divides a span at its midpoint; **Remove point** keeps at least two
 points. **Rope slack** sets the downward midpoint sag of each segment in metres,
 both while drawing and after placement. Slack is limited to half the shortest
@@ -353,19 +360,27 @@ seals the opening until its damage owner fails. Other impossible material or
 functional overlaps remain errors.
 
 New and edited custom designs use construction version 2. Magazines are no longer
-placeable or manually linked: each gun has an integral magazine at the bottom of
-its barbette, and each torpedo bank carries its own ready torpedoes. The Internals
-layer shows the derived ammunition volumes; selecting one selects its weapon.
+placeable or manually linked: turret wells have an integral magazine at their
+lower end, deck-mounted guns carry local ready ammunition, and each torpedo bank
+carries its own ready torpedoes. The Internals layer shows the derived ammunition
+volumes; selecting one selects its weapon.
 Opening an older design converts its separate magazines and links in one undoable
 edit. Original saved revisions and version-1 repository presets remain readable.
 
-**Turret rise** in a selected gun's tag (or Page Up / Page Down with only guns selected) raises its gunhouse by 0–30 m and extends
-the fixed barbette; its deck attachment and lower magazine remain fixed. The
-trunk reaches the inner hull bottom beneath that attachment, without shortening
-the component's minimum working depth. Guns without a catalog well receive an
-original gameplay support sized from their canonical barbette radius. Magazine
-sizes, structural skin and the rise limit are gameplay approximations. Moving the
-whole fitting still moves the installation; changing its rise only lifts the top.
+**Turret rise** in a selected gun's tag (or Page Up / Page Down with only guns selected)
+raises the mount by 0–30 m while keeping its deck attachment fixed. Turret wells
+retain their catalog working depth; omitted wells on larger guns use the existing
+radius-based depth estimate. Neither extends automatically to the hull bottom.
+Raising a turret extends its support above deck while its lower magazine stays fixed.
+
+Deck mounts use the component's original pedestal and local ready ammunition,
+without a below-deck shaft or deck opening. An explicit empty catalog occupancy
+selects a deck mount; for older catalog entries with no occupancy, guns below
+100 mm default to this treatment. An explicit working well takes precedence at
+any caliber. Raising a deck mount adds a support entirely above deck, and its
+ready ammunition moves with the mount. These fallback classifications, ammunition
+sizes, structural skin and rise limits are gameplay approximations. Moving the
+whole fitting moves the entire installation.
 
 The complete internal support must fit the hull. Side or bottom protrusions,
 intersections with other equipment, loads or internal walls, and missing support
@@ -518,7 +533,7 @@ ammunition loading is fixed; expenditure does not recalculate dry mass.
 ### Balconies
 
 Choose **Hull → Balcony** (palette slot 2) for a 2 × 1 m platform with solid walls.
-Place it against a hull or superstructure, then use the normal XYZ fields, move
+Place it against a hull or superstructure, then use the normal move
 handles or Page Up / Page Down to position it at any height. A detached platform
 can be saved, but needs physical contact before Sea Trials.
 
@@ -540,13 +555,13 @@ edge steel without creating an enclosed room between the rails.
 
 ### Freeform hulls
 
-Select one cube or freeform hull in the Hull layer and choose **Freeform** (or **Freeform hull** on its selection tag). Palette slot 1 supplies a 4 m Freeform hull. Adjustable hull profiles are not part of this editor.
+Select one cube or freeform hull in the Hull layer and choose **Freeform** (or **Freeform hull** on its selection tag). Palette slot 1 supplies a 4 m Freeform hull. This mode edits individual eight-corner pieces. For a whole main hull, prefer the separate [custom hull section editor](#custom-hull-sections).
 
-Choose **Vertex**, **Edge** or **Face** to move one corner, an edge's two corners or a face's four corners. The eight corners, twelve edges and six named faces keep fixed topology. Click a handle, edge or face to select it; the selection menu also reaches obscured components. Edge and face movement preserves the selected component's shape. Numeric coordinates show a vertex's position or an edge/face center in metric local block coordinates; editing the center translates the selection, without flattening it.
+Choose **Vertex**, **Edge** or **Face** to move one corner, an edge's two corners or a face's four corners. The eight corners, twelve edges and six named faces keep fixed topology. Click a handle, edge or face to select it; the selection menu also reaches obscured components. Edge and face movement preserves the selected component's shape. Use the canvas handles to position the selection.
 
-**Mirror X/Y/Z** reflects movement across the selected block's local planes. X starts on; no axes selected means symmetry off. Both sides remain selectable. Brass marks the selection and mint marks mirrored corners/components. An edge or face spanning a mirror plane cannot translate across it: the corresponding gizmo axis and coordinate field are disabled. For example, a top face can rise with X symmetry enabled but cannot slide sideways. Mirroring preserves existing asymmetry rather than forcing the shape to become symmetric. This is separate from whole-ship mirror placement, whose control is hidden during freeform editing. Whole-block mirror copies retain deformed geometry and face assignments.
+**Mirror X/Y/Z** reflects movement across the selected block's local planes. X starts on; no axes selected means symmetry off. Both sides remain selectable. Brass marks the selection and mint marks mirrored corners/components. An edge or face spanning a mirror plane cannot translate across it: the corresponding gizmo axis is disabled. For example, a top face can rise with X symmetry enabled but cannot slide sideways. Mirroring preserves existing asymmetry rather than forcing the shape to become symmetric. This is separate from whole-ship mirror placement, whose control is hidden during freeform editing. Whole-block mirror copies retain deformed geometry and face assignments.
 
-**Move step** cycles through 0.05 → 0.1 → 0.2 → 0.5 → 1 → 2 m, also with G. It starts at 0.2 m and quantizes displacement from the start of an edit. Drag an **X/Y/Z** gizmo handle to move along that explicit local axis; arrow keys nudge a focused axis handle. Drag the selected component or center handle in the local coordinate plane most directly facing the camera. Axes pointing directly toward the camera have no usable screen direction: change view or enter coordinates.
+**Move step** cycles through 0.05 → 0.1 → 0.2 → 0.5 → 1 → 2 m, also with G. It starts at 0.2 m and quantizes displacement from the start of an edit. Drag an **X/Y/Z** gizmo handle to move along that explicit local axis; arrow keys nudge a focused axis handle. Drag the selected component or center handle in the local coordinate plane most directly facing the camera. Axes pointing directly toward the camera have no usable screen direction: change view to reach that axis.
 
 **Move nearby corners** starts off. Enabling it also moves matching corners within 0.025 m on neighboring cube or freeform hulls, including matches at mirrored corners. Matches use the unchanged source at drag start; no persistent seam or block relationship is created. Equipment stays at its source placement. Native support/fit diagnostics identify equipment that loses support.
 

@@ -92,7 +92,7 @@ fn reference(room: &Compartment, volume: f64, roll: f64, pitch: f64) -> (f64, f6
 fn prepared_flood_cells_match_original_clipping_bit_for_bit() {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let definition: ShipDefinition = serde_json::from_slice(
-        &std::fs::read(root.join("public/models/admiral-hipper-construction.json")).unwrap(),
+        &std::fs::read(root.join("public/models/resolute.json")).unwrap(),
     )
     .unwrap();
     for room in &definition.compartments {

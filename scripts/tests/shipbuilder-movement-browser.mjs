@@ -56,14 +56,10 @@ assert(await revision()===before,'Blocked focused-axis nudge creates no undo ent
 await page.keyboard.press('ArrowLeft');await waitPos(4.6);checks.push('Focused-axis arrow moves exactly one metre');
 await drag([0,3,0],'escape','Y');await waitPos(4.6);checks.push('Escape cancels a real Y drag without moving the block');
 await drag([0,3,0],'return','Y');await waitPos(4.6);checks.push('Returning the pointer to its origin leaves no move');
-// Coordinate fields are guarded and display accepted positions, including no-op rejection.
-const field=page.locator('[data-tag="piece-a"] input[aria-label="x"]');
-await field.fill('15');await field.press('Enter');await waitPos(5.6);
-assert(Math.abs(Number(await field.inputValue())-5.6)<1e-5,'Position entry stops at the overlap limit and displays the accepted coordinate');
-await field.fill('8');await field.press('Enter');await page.waitForTimeout(80);
-assert(Math.abs(Number(await field.inputValue())-5.6)<1e-5,'Rejected position entry restores the unchanged coordinate');
+assert(await page.locator('[data-tag="piece-a"] input[aria-label="x"], [data-tag="piece-a"] input[aria-label="y"], [data-tag="piece-a"] input[aria-label="z"]').count()===0,'Selection omits coordinate inputs');
 // Body keyboard shortcuts use the same guard.
-await field.blur();await page.keyboard.press('ArrowRight');await waitPos(5.6);
+await page.evaluate(()=>document.activeElement?.blur());await page.keyboard.press('ArrowRight');await waitPos(5.6);
+await page.keyboard.press('ArrowRight');await waitPos(5.6);
 checks.push('General keyboard nudges cannot exceed 90% overlap');
 await page.keyboard.press('PageUp');await waitPos(5.6,1);checks.push('An intersecting block can slide vertically');
 await page.keyboard.press('Meta+z');await waitPos(5.6);

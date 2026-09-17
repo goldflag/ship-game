@@ -6,6 +6,8 @@ import { repositoryStore, readSource } from './files';
 import type { ConstructionSource } from '../../src/ships/blueprint';
 import { constructionFiles } from './server';
 import { createServer } from 'vite';
+import { createServer as createTcpServer } from 'node:net';
+import type { Server } from 'node:http';
 const roots: string[] = [];
 afterEach(async () => { await Promise.all(roots.splice(0).map(root => rm(root, { recursive: true, force: true }))); });
 async function fixture() {
@@ -51,7 +53,13 @@ test('invalid source, historical files and paths outside ship sources are preser
 });
 test('local API requires same-origin token and preserves CAS conflicts', async () => {
   const { root, source, input, saved } = await fixture();
-  const server = await createServer({ root, configFile: false, logLevel: 'silent', plugins: [constructionFiles(root)], server: { host: '127.0.0.1', port: 0 } });
+  // Vite maps port 0 to 5173. Reserve an ephemeral port so other worktrees' dev
+  // servers cannot trap this API check in its occupied-port retry path.
+  const probe = createTcpServer();
+  await new Promise<void>((resolve, reject) => { probe.once('error', reject); probe.listen(0, '127.0.0.1', resolve); });
+  const port = (probe.address() as { port: number }).port;
+  await new Promise<void>((resolve, reject) => probe.close(error => error ? reject(error) : resolve()));
+  const server = await createServer({ root, configFile: false, logLevel: 'silent', plugins: [constructionFiles(root)], server: { host: '127.0.0.1', port, strictPort: true } });
   await server.listen();
   try {
     const address = server.httpServer!.address() as { port: number }, base = 'http://127.0.0.1:' + address.port;
@@ -62,5 +70,5 @@ test('local API requires same-origin token and preserves CAS conflicts', async (
     const options = { method: 'PUT', headers: { 'content-type': 'application/json', 'x-construction-token': token }, body };
     expect((await fetch(base + '/__construction/example', options)).status).toBe(200);
     expect((await fetch(base + '/__construction/example', options)).status).toBe(409);
-  } finally { await server.close(); }
+  } finally { (server.httpServer as Server | null)?.closeAllConnections(); await server.close(); }
 });

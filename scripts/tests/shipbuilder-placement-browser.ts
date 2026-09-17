@@ -85,7 +85,7 @@ export async function checkShipbuilderPlacement() {
     check(equipmentMeshes('gun-forward').includes(gunMesh) && equipmentMeshes('funnel').includes(funnelMesh), 'placing a block retains the same full turret and funnel meshes during compilation');
     await wait(() => source().construction.primitives.length === startCount + 1 && compiled(), 'attached piece saved and compiled');
     check(!document.querySelector('.sb-warn')?.textContent?.includes('Detached hull'), 'face placement keeps the hull connected');
-    check(!document.querySelector('[data-tag="ghost"]') && document.querySelector<HTMLElement>('[data-coords]')?.style.visibility === 'visible', 'the ghost carries no tooltip; its cell reads out under the palette');
+    check(!document.querySelector('[data-tag="ghost"]') && !document.querySelector('[data-coords]'), 'the ghost and palette carry no coordinate readouts');
 
     const beforePan = orbit!.target.clone(), heading = () => camera!.position.clone().sub(orbit!.target);
     [x, y] = screen([0, 0, 0]);

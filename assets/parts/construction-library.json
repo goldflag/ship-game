@@ -128,8 +128,8 @@
       ]
     },
     "generic-watertight-door": {
-      "path": "assets/parts/construction/deck_fittings.py",
-      "function": "create_watertight_door",
+      "path": "assets/parts/construction/windows.py",
+      "function": "create_window",
       "inputs": [
         "assets/parts/construction/geometry.py"
       ]

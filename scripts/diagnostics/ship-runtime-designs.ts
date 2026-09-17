@@ -4,7 +4,7 @@ const manifest = await Bun.file(manifestPath).json();
 const directory = `.build/runtime-size/${label}`;
 await mkdir(directory, { recursive: true });
 const results = [];
-for (const designs of [['admiral-hipper-construction'], ['admiral-hipper-construction', 'bismarck', 'fletcher', 'enterprise-cv6']]) {
+for (const designs of [['resolute'], ['resolute', 'bismarck', 'fletcher', 'enterprise-cv6']]) {
   const path = `${directory}/catalog-${designs.length}.manifest.json`;
   await Bun.write(path, JSON.stringify({ ...manifest,
     ships: manifest.ships.filter((ship: { id: string }) => designs.includes(ship.id)),

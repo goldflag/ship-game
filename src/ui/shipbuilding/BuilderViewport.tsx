@@ -1,5 +1,6 @@
+import { createConstructionWallModel } from '../../game/constructionWallModel';
 import { wallFrameSnapFeatures } from './snapping';
-import { installedWallPart, wallNormal, wallBearing, wallRow, wallScale, wallFittingSupported } from '../../ships/constructionWallFittings';
+import { installedWallPart, wallNormal, wallBearing, wallRow, wallScale, wallFittingSupported, seatWallFitting } from '../../ships/constructionWallFittings';
 import { visualMemory, type VisualMemory } from './modelMemory';
 import { SnapOverlay } from './SnapOverlay';
 import { constructionSnapFeatures, primitiveSnapFeatures, resolveSnap, DEFAULT_SNAPPING, SHIP_AXES, type SnapFeature, type SnapGuide } from './snapping';
@@ -18,7 +19,7 @@ import { cornerVertices, worldVertex, selectionCenter, selectionCorners, rotateV
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import type { ConstructionPrimitive, ConstructionResult, ConstructionSource, ConstructionSurface, Vec3 } from '../../ships/blueprint';
+import type { ConstructionEquipment, ConstructionPrimitive, ConstructionResult, ConstructionSource, ConstructionSurface, Vec3 } from '../../ships/blueprint';
 import { armorThicknessColor } from '../../ships/inspection';
 import { surfaceSelectionKey } from '../../ships/constructionEditor';
 import { pendingHullSurfaces } from './pendingHull';
@@ -41,8 +42,8 @@ export type ConstructionModelFactory = (source: ConstructionSource, result: Cons
 /** The three.js adapter's interface: the scene to draw, HTML overlays React owns, and one door for finished gestures. */
 export interface ViewportProps {
   scene: BuilderScene;
-  tags: BuilderTag[]; coords(position: Vec3): string;
-  /** The cursor piece readout under the palette; the coordinates readout follows it. */
+  tags: BuilderTag[];
+  /** The placement controls under the palette. */
   status?: ReactNode;
   /** Every pointer gesture, with its targets already raycast, snapped and filtered by the scene's targets. */
   onPointer(event: BuilderPointerEvent): void;
@@ -362,24 +363,27 @@ class Viewport {
         if (props.scene.display === 'armor') for (const group of armorGroups) geometry.addGroup(group.start, group.count, group.materialIndex);
         const mesh = new THREE.Mesh(geometry, props.scene.display === 'armor' ? [new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide }), new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide, transparent: true, opacity: .12, depthWrite: false })] : new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .78, metalness: 0, side: THREE.DoubleSide, transparent: props.scene.display === 'internals', opacity: props.scene.display === 'internals' ? .15 : 1, depthWrite: props.scene.display !== 'internals' }));
         mesh.userData.hull = true; this.hull.add(mesh); this.pickMeshes.push(mesh); this.hullMeshes.push(mesh);
-        // The Armor layer outlines every logical face of every piece, in one batch, so plates read as plates on the flat colour scale.
-        if (props.scene.display === 'armor') {
+        // Outline logical faces in one batch, retaining block seams without triangulation diagonals.
+        {
           const points: THREE.Vector3[] = [];
           for (const group of this.surfacesByKey.values()) for (const edge of surfaceOutline(group)) {
-            if (edge.surface.material !== 'armor-steel' || edge.surface.open) continue;
+            if (edge.surface.open || (props.scene.display === 'armor' && edge.surface.material !== 'armor-steel')) continue;
             const normal = new THREE.Vector3(...edge.surface.normal);
             points.push(new THREE.Vector3(...edge.a).addScaledVector(normal, .025), new THREE.Vector3(...edge.b).addScaledVector(normal, .025));
           }
-          if (points.length) this.hull.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(points), new THREE.LineBasicMaterial({ color: '#142a31', transparent: true, opacity: .4 })));
+          if (points.length) this.hull.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(points), new THREE.LineBasicMaterial({ color: '#142a31', transparent: true, opacity: props.scene.display === 'internals' ? .35 : .9, depthWrite: false })));
         }
       } else for (const primitive of props.scene.source.construction.primitives) {
         const mesh = new THREE.Mesh(primitiveGeometry(primitive.kind, primitive.size, primitive.vertices, primitive.customHull, primitive.shaping, primitive.balcony), new THREE.MeshStandardMaterial({ color: invalid.has(primitive.id) ? SALMON : constructionPaintColor('naval-gray'), roughness: .78, side: THREE.DoubleSide, transparent: props.scene.display !== 'paint', opacity: props.scene.display !== 'paint' ? .12 : 1, depthWrite: props.scene.display === 'paint' }));
         mesh.position.set(...primitive.position); mesh.rotation.y = primitive.rotationDeg * Math.PI / 180;
         mesh.userData.sourceId = primitive.id; this.hull.add(mesh); this.pickMeshes.push(mesh); this.hullMeshes.push(mesh);
+        mesh.material.polygonOffset = true; mesh.material.polygonOffsetFactor = 1; mesh.material.polygonOffsetUnits = 1;
+        const edges = new THREE.LineSegments(primitiveOutlineGeometry(primitive), new THREE.LineBasicMaterial({ color: '#142a31', transparent: true, opacity: props.scene.display === 'internals' ? .35 : .9, depthWrite: false }));
+        edges.position.copy(mesh.position); edges.rotation.copy(mesh.rotation); this.hull.add(edges);
       }
       this.hoverSurface = ''; release(this.hoverGroup);
     }
-    this.equipment.update(props.scene.source, props.scene.catalog, compiled?.propellerSupports, invalid);
+    this.equipment.update(props.scene.source, props.scene.catalog, compiled?.propellerSupports, invalid, compiled?.surfaces);
     this.equipment.setDisplay(props.scene.display, props.scene.source, props.scene.catalog);
     const modelKey = `${props.scene.source.id}:${props.scene.source.revision}:${props.scene.result?.contentHash}`;
     if (modelKey !== this.modelKey) {
@@ -395,8 +399,10 @@ class Viewport {
     }
     this.composed.visible = props.scene.display === 'paint' && !!nativeSurfaces && !invalid.size;
     this.equipment.group.visible = !(props.createModel && this.composed.visible && this.composed.children.length);
-    // Native surfaces remain the pick target even when shared composition renders the exterior.
-    this.hull.visible = !this.composed.visible || !this.composed.children.length;
+    // Keep block outlines visible when shared composition renders the exterior.
+    // Native surface meshes remain the pick targets, but their duplicate fills are hidden.
+    this.hull.visible = true;
+    for (const mesh of this.hullMeshes) mesh.visible = !this.composed.visible || !this.composed.children.length;
     release(this.details); release(this.selection); this.selection.visible=true;
     this.pickMeshes = this.pickMeshes.filter(mesh => mesh.parent === this.hull);
     this.equipment.group.traverse(node => { if (node instanceof THREE.Mesh) this.pickMeshes.push(node); });
@@ -504,7 +510,8 @@ class Viewport {
       const geometry=primitiveGeometry(p.kind,p.size,p.vertices,p.customHull,p.shaping,p.balcony);
       const mesh=new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({color:constructionPaintColor('naval-gray'),roughness:.78,side:THREE.DoubleSide}));
       mesh.position.set(...p.position);mesh.rotation.y=p.rotationDeg*Math.PI/180;this.vertexPreview.add(mesh);
-      if(map.has(p.id)) {const edges=new THREE.LineSegments(new THREE.EdgesGeometry(geometry),new THREE.LineBasicMaterial({color:BRASS_LIGHT}));edges.position.copy(mesh.position);edges.rotation.copy(mesh.rotation);this.vertexPreview.add(edges);}
+      mesh.material.polygonOffset=true;mesh.material.polygonOffsetFactor=1;mesh.material.polygonOffsetUnits=1;
+      const edges=new THREE.LineSegments(primitiveOutlineGeometry(p),new THREE.LineBasicMaterial({color:map.has(p.id)?BRASS_LIGHT:'#142a31',depthWrite:false}));edges.position.copy(mesh.position);edges.rotation.copy(mesh.rotation);this.vertexPreview.add(edges);
     }
   }
 
@@ -517,22 +524,27 @@ class Viewport {
     // Bearing changes transform the cached preview; they do not rebuild its meshes.
     const shape = (item?: BuilderPlacement) => item?.kind === 'equipment' ? { ...item, bearingDeg: 0 } : item;
     let pick = rotation?.position ? { placement: rotation.position, bearingDeg: undefined as number | undefined } : this.hover ? this.pick(this.hover, 'hull') : undefined;
-    if (piece?.kind === 'equipment' && piece.wall && this.pointerStart?.start?.bearingDeg !== undefined && pick?.bearingDeg !== this.pointerStart.start.bearingDeg) pick = undefined;
+    if (piece?.kind === 'equipment' && piece.wall && this.pointerStart?.start?.bearingDeg !== undefined && pick?.bearingDeg !== undefined && Math.cos((pick.bearingDeg-this.pointerStart.start.bearingDeg)*Math.PI/180)<.7) pick = undefined;
     if (piece?.kind === 'equipment' && piece.wall && pick?.bearingDeg !== undefined) {
       piece = { ...piece, bearingDeg: pick.bearingDeg };
       if (mirror?.kind === 'equipment') mirror = { ...mirror, bearingDeg: normalizedBearing(-pick.bearingDeg) };
     }
     const offset = piece?.kind === 'boundary' && pick ? pick.placement[{ x: 0, y: 1, z: 2 }[piece.axis]] : undefined;
-    const key = JSON.stringify([shape(piece), shape(mirror), piece?.kind === 'boundary' ? [this.props.scene.source.revision, offset] : undefined]);
+    const key = JSON.stringify([shape(piece), shape(mirror), piece?.kind === 'boundary' ? [this.props.scene.source.revision, offset] : piece?.kind === 'equipment' && piece.wall ? [this.props.scene.source.revision, pick?.placement, piece.bearingDeg] : undefined]);
     if (key !== this.ghostKey) {
-      this.strokeKey = ''; this.strokePreview.clear();
+      this.strokeKey = ''; release(this.strokePreview);
       this.ghostKey = key; release(this.ghost); release(this.ghostMirror); release(this.ghostArc);
       if (piece) {
-        const build = (item: BuilderPlacement, group: THREE.Group, opacity: number) => {
-          const equipment = item.kind === 'equipment' && item.partId ? this.equipment.clone(item.partId, true) : undefined;
+        const build = (item: BuilderPlacement, group: THREE.Group, opacity: number, mirrored = false) => {
+          let equipment = item.kind === 'equipment' && item.partId ? this.equipment.clone(item.partId, true) : undefined;
           if (equipment) {
             const part = this.props.scene.catalog.equipment.find(p => p.id === (item.kind === 'equipment' ? item.partId : undefined));
-            if (part && item.kind === 'equipment') equipment.scale.fromArray(wallScale(part, { wall: item.wall }));
+            if (part && item.kind === 'equipment') {
+              if (item.wall && pick) {
+                const position = [...pick.placement] as Vec3; if (mirrored) position[0] *= -1;
+                equipment = createConstructionWallModel(equipment, part, {id:'preview',partId:part.id,position,bearingDeg:item.bearingDeg,wall:item.wall}, this.props.scene.current?.surfaces ?? [], this.props.scene.source.construction.primitives);
+              } else equipment.scale.fromArray(wallScale(part, { wall: item.wall }));
+            }
             group.add(equipment); group.rotation.y = placementRotation(item); return; }
           const geometry = item.kind === 'boundary' ? boundaryGeometry(this.props.scene.source.construction.primitives, item.axis, offset ?? NaN) : placementGeometry(item);
           const fill = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ color: BRASS, transparent: true, opacity, depthWrite: false, depthTest: item.kind === 'boundary', side: THREE.DoubleSide }));
@@ -540,7 +552,7 @@ class Viewport {
           fill.renderOrder = 20; edges.renderOrder = 21; group.add(fill, edges); group.rotation.y = placementRotation(item);
         };
         build(piece, this.ghost, piece.kind === 'boundary' ? .12 : .25);
-        if (mirror) build(mirror, this.ghostMirror, .12);
+        if (mirror) build(mirror, this.ghostMirror, .12, true);
         if (piece.kind === 'equipment' && piece.arc) this.ghostArc.add(arcMesh({ bearingDeg: 0, traverseDeg: piece.arc.traverseDeg, radius: piece.arc.radius, color: BRASS }));
       }
     }
@@ -652,7 +664,7 @@ class Viewport {
     const primitive = this.props.scene.source.construction.primitives.find(part => part.id === id);
     let piece = this.props.scene.placementPiece;
     if (targets === 'hull' && piece?.kind === 'equipment' && piece.wall) {
-      if (!surface || surface.open || Math.abs(normal[1]) > 1e-5 || !primitive) return undefined;
+      if (!surface || surface.open || Math.abs(normal[1]) >= .9 || !primitive) return undefined;
       piece = { ...piece, bearingDeg: wallBearing(normal) };
     }
     const extents = primitive && pieceExtents({ kind: 'hull', shape: primitive.kind, size: primitive.size, rotationDeg: primitive.rotationDeg });
@@ -758,12 +770,23 @@ class Viewport {
     if (key === this.strokeKey) return;
     this.strokeKey = key;
     // These clones borrow the cursor template's resources.
-    this.strokePreview.clear();
+    release(this.strokePreview);
     for (const point of points) {
-      const instance = this.ghost.clone(true); instance.position.set(...point); instance.visible = true; instance.userData.placementPreview = false;
+      if (piece?.kind === 'equipment' && piece.wall) {
+        const part=this.props.scene.catalog.equipment.find(p=>p.id===piece.partId), surfaces=this.props.scene.current?.surfaces??[];
+        if (!part) continue;
+        const item=seatWallFitting({id:'row-preview',partId:part.id,position:point,bearingDeg:drag?.start?.bearingDeg??piece.bearingDeg,wall:piece.wall},part,surfaces);
+        for(const fitting of this.props.scene.placementMirror ? [item,{...item,position:[-item.position[0],item.position[1],item.position[2]] as Vec3,bearingDeg:-item.bearingDeg}] : [item]) {
+          const template=this.equipment.clone(part.id,true);if(!template)continue;
+          const model=createConstructionWallModel(template,part,fitting,surfaces,this.props.scene.source.construction.primitives);
+          model.position.fromArray(fitting.position);model.rotation.y=-fitting.bearingDeg*Math.PI/180;this.strokePreview.add(model);
+        }
+        continue;
+      }
+      const instance = this.ghost.clone(true); instance.traverse(n=>{n.userData.sharedPreviewResources=true;}); instance.position.set(...point); instance.visible = true; instance.userData.placementPreview = false;
       this.strokePreview.add(instance);
       if (this.ghostMirror.visible && this.props.scene.placementMirror && Math.abs(point[0]) > 1e-6) {
-        const twin = this.ghostMirror.clone(true); twin.position.set(-point[0], point[1], point[2]); twin.visible = true;
+        const twin = this.ghostMirror.clone(true); twin.traverse(n=>{n.userData.sharedPreviewResources=true;}); twin.position.set(-point[0], point[1], point[2]); twin.visible = true;
         this.strokePreview.add(twin);
       }
     }
@@ -855,13 +878,11 @@ class Viewport {
       leaders += `<line x1="${screen.x.toFixed(1)}" y1="${screen.y.toFixed(1)}" x2="${endX.toFixed(1)}" y2="${endY.toFixed(1)}" stroke="${LEADER[tag.tone]}"/><circle cx="${screen.x.toFixed(1)}" cy="${screen.y.toFixed(1)}" r="2.5" fill="${LEADER[tag.tone]}"/>`;
     }
     // The readout sits under the palette: the ghost's cell while placing, the offset while moving a selection.
-    const coords = this.overlay.querySelector<HTMLElement>('[data-coords]'), move = this.pointerStart?.move;
-    const offset = move?.built ? move.delta : this.moveOffset;
-    if (coords) {
-      if (this.pointerStart?.rotate) { coords.textContent = `Rotate ${signedMetres(this.pointerStart.rotate.degrees)}° · Shift for fine control · Esc cancel`; coords.style.visibility = 'visible'; }
-      else if (offset) { coords.textContent = `Δx ${signedMetres(offset[0])} · Δy ${signedMetres(offset[1])} · Δz ${signedMetres(offset[2])}${this.moveBlocked ? ' · Hull overlap limit' : ''}`; coords.style.visibility = 'visible'; }
-      else if (this.ghost.visible && this.ghostPosition) { coords.textContent = this.placementBlocked ? OVERLAP_PREVIEW_NOTICE : this.props.coords(this.ghostPosition); coords.style.visibility = 'visible'; }
-      else coords.style.visibility = 'hidden';
+    const feedback = this.overlay.querySelector<HTMLElement>('[data-gesture-feedback]');
+    if (feedback) {
+      const angle = this.pointerStart?.rotate?.degrees;
+      feedback.textContent = angle !== undefined ? `Rotate ${signedMetres(angle)}° · Shift fine · Esc cancel` : this.moveBlocked || this.placementBlocked ? OVERLAP_PREVIEW_NOTICE : '';
+      feedback.hidden = !feedback.textContent;
     }
     const measure = this.overlay.querySelector<HTMLElement>('[data-measure]');
     if (measure) {
@@ -870,9 +891,8 @@ class Viewport {
         const a = new THREE.Vector3(...from), b = new THREE.Vector3(...to);
         this.measureLine.geometry.setFromPoints([a, b]);
         const middle = this.project(a.clone().add(b).multiplyScalar(.5));
-        const delta = to.map((value, index) => value - from[index]);
         if (middle) {
-          measure.innerHTML = `<b>${a.distanceTo(b).toFixed(2)} m</b>Δx ${delta[0].toFixed(2)} · Δy ${delta[1].toFixed(2)} · Δz ${delta[2].toFixed(2)}${this.props.scene.measure?.to ? '' : ' · click to end'}`;
+          measure.innerHTML = `<b>${a.distanceTo(b).toFixed(2)} m</b>${this.props.scene.measure?.to ? '' : ' · click to end'}`;
           measure.style.visibility = 'visible'; measure.style.transform = `translate(${(middle.x + 14).toFixed(1)}px, ${(middle.y - 30).toFixed(1)}px)`;
         }
       } else measure.style.visibility = 'hidden';
@@ -969,7 +989,7 @@ class Viewport {
       }
       const item = equipment.find(part => part.id === id);
       if (item) {
-        const datum = new THREE.Group(); datum.position.set(...item.position); datum.rotation.y = -item.bearingDeg * Math.PI / 180;
+        const datum = new THREE.Group(); if(item.wall) datum.userData.wallItem=item; datum.position.set(...item.position); datum.rotation.y = -item.bearingDeg * Math.PI / 180;
         const ghost = this.equipment.clone(item.partId, true, item.path), part = this.props.scene.catalog.equipment.find(entry => entry.id === item.partId);
         if (ghost) datum.add(ghost);
         if (part) datum.scale.fromArray(wallScale(part, item));
@@ -989,6 +1009,21 @@ class Viewport {
   private positionMovePreview(delta: Vec3) {
     this.movePreview.position.set(...delta);
     for (const child of this.movePreview.children) {
+      const wallItem=child.userData.wallItem as ConstructionEquipment|undefined;
+      if(wallItem) {
+        const part=this.props.scene.catalog.equipment.find(p=>p.id===wallItem.partId),surfaces=this.props.scene.current?.surfaces??[];
+        if(part) {
+          const mirrored=!!child.userData.mirrorOrigin,position=wallItem.position.map((v,k)=>v+delta[k]*(mirrored&&k===0?-1:1)) as Vec3;
+          const item=seatWallFitting({...wallItem,position},part,surfaces),key=JSON.stringify(item.position);
+          if(child.userData.projectedKey!==key) {
+            release(child);const template=this.equipment.clone(part.id,true);
+            if(template)child.add(createConstructionWallModel(template,part,item,surfaces,this.props.scene.source.construction.primitives));
+            child.scale.set(1,1,1);child.userData.projectedKey=key;
+          }
+          child.position.fromArray(item.position.map((v,k)=>v-delta[k]) as Vec3);
+        }
+        continue;
+      }
       const mirrored = child.userData.mirrorOrigin as Vec3 | undefined;
       if (mirrored) child.position.set(mirrored[0] - 2 * delta[0], mirrored[1], mirrored[2]);
       const wall = child.userData.boundary;
@@ -1103,7 +1138,7 @@ class Viewport {
     const hit = this.pick(event, 'hull');
     if (!hit) { this.updateStrokePreview(); return; }
     if (piece.kind === 'equipment' && piece.wall) {
-      if (start.bearingDeg === undefined || hit.bearingDeg === undefined || Math.abs(start.bearingDeg - hit.bearingDeg) > 1e-5) return;
+      if (start.bearingDeg === undefined || hit.bearingDeg === undefined || Math.cos((start.bearingDeg - hit.bearingDeg)*Math.PI/180)<.7) return;
       this.pointerStart.points = piece.rowSpacing ? wallRow(start.placement, hit.placement, start.bearingDeg, piece.rowSpacing) : [hit.placement];
       this.updateStrokePreview(); return;
     }
@@ -1118,7 +1153,7 @@ class Viewport {
     if (event.button !== this.pointerStart?.button || event.pointerId !== this.pointerStart.id) return;
     const start = this.pointerStart, rect = start.box ? this.boxRect(event) : undefined;
     this.pointerStart = undefined; this.controls.enabled = true; this.fillPreview.visible = false;
-    this.strokePreview.clear(); this.strokeKey = ''; this.updateFacesPreview(); this.showBox();
+    release(this.strokePreview); this.strokeKey = ''; this.updateFacesPreview(); this.showBox();
     if (this.renderer.domElement.hasPointerCapture(event.pointerId)) this.renderer.domElement.releasePointerCapture(event.pointerId);
     const clicked = !start.moved && Math.hypot(event.clientX - start.x, event.clientY - start.y) < 5;
     const piece = this.props.scene.placementPiece;
@@ -1142,7 +1177,7 @@ class Viewport {
       else if (clicked) this.props.onPointer({ kind: 'pick', hit: this.pick(event, 'all') });
     } else if (start.start && piece) {
       const hit = this.pick(event, 'hull');
-      if (!hit || piece.kind === 'equipment' && piece.wall && start.start.bearingDeg !== hit.bearingDeg) return;
+      if (!hit || piece.kind === 'equipment' && piece.wall && Math.cos(((start.start.bearingDeg??0)-(hit.bearingDeg??0))*Math.PI/180)<.7) return;
       if (this.props.scene.gesture === 'fill') this.props.onPointer({ kind: 'lay', points: fillLattice(start.start.placement, clicked ? start.start.placement : hit.placement, pieceExtents(piece), start.start.axis) });
       else this.props.onPointer({ kind: 'lay', points: clicked ? [start.start.placement] : start.points, bearingDeg: start.start.bearingDeg });
     } else if (start.faces && !clicked) this.props.onPointer({ kind: 'faces', surfaces: [...start.faces] });
@@ -1182,7 +1217,7 @@ class Viewport {
     const pointer = this.pointerStart; this.pointerStart = undefined; this.controls.enabled = true;
     if (pointer?.rotate) this.previewRotation(pointer.rotate, 0);
     if (pointer && this.renderer.domElement.hasPointerCapture(pointer.id)) this.renderer.domElement.releasePointerCapture(pointer.id);
-    this.fillPreview.visible = false; this.strokePreview.clear(); this.strokeKey = ''; this.updateFacesPreview(); this.showBox(); this.finishMove(); this.leave();
+    this.fillPreview.visible = false; release(this.strokePreview); this.strokeKey = ''; this.updateFacesPreview(); this.showBox(); this.finishMove(); this.leave();
   };
   private key = (event: KeyboardEvent) => { if (event.key === 'Escape' && this.pointerStart) this.cancel(); };
   private animate = () => {
@@ -1210,7 +1245,7 @@ class Viewport {
     this.freeformHandles.dispose();
     this.moveHandles.dispose();
     this.dead = true; cancelAnimationFrame(this.frame); this.modelAbort?.abort(); this.resize.disconnect(); this.controls.dispose();
-    this.strokePreview.clear(); this.equipment.dispose();
+    release(this.strokePreview); this.equipment.dispose();
     const canvas = this.renderer.domElement;
     canvas.removeEventListener('pointerdown', this.down, true); canvas.removeEventListener('pointermove', this.move); canvas.removeEventListener('pointerup', this.up);
     canvas.removeEventListener('contextmenu', this.contextMenu);
@@ -1248,7 +1283,7 @@ export function BuilderViewport(props: ViewportProps) {
     <div ref={overlay} className="sb-overlay">
       <svg className="sb-leaders" aria-hidden="true"/>
       {props.tags.map(tag => <div key={tag.key} data-tag={tag.key} className={`sb-tag ${tag.tone}`} style={tag.passive ? { pointerEvents: 'none' } : undefined}>{tag.content}</div>)}
-      <div className="sb-cursor">{props.status}<span data-coords className="sb-coords"/></div>
+      <div className="sb-cursor">{props.status}<span data-gesture-feedback className="sb-gesture-feedback" hidden/></div>
       <div data-armor-tooltip role="tooltip" className="sb-tag brass sb-armor-tooltip" hidden><b/><span/></div>
       <div data-measure className="sb-tag mint"/>
       <div data-selection-box className="sb-selection-box" hidden aria-hidden="true"/>

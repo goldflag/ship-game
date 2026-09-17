@@ -18,6 +18,7 @@ Read the relevant [README](README.md) sections for product behavior and architec
 ## Invariants
 
 - Before modeling ship equipment, search `bun run part:list` and inspect matching variants in `bun run model:viewer`. Reuse registered original builders through `assets/parts/library.py`; isolate published assemblies only for viewing. Preserve exact variants and declare dependencies with `part:inputs`. See [shared components](docs/shared-components.md).
+- Prefer one adjustable `custom-hull` for the main hull of each new ship (one per hull for multihulls). Start with `ship:new --template destroyer-hull` or another adjustable preset and edit its sections. Use freeform pieces for superstructure, appendages, and shapes the adjustable hull cannot represent; document any main-hull exception.
 - Author new ship construction through versioned blueprints and the custom editor/Rust compiler; use Blender indefinitely for original reusable component recipes under `assets/`. Existing Blender-backed ship recipes remain supported. Preserve `assets/ships/bismarck/baseline/`.
 - Do not create or commit ship `reports/` or `references/` directories. Downloads, exploratory captures, logs and diagnostic output belong in ignored `.build/`. Keep only concise configuration, source links and known limitations in the ship README; do not replace the deleted archive with another tracked folder.
 - Generated Blender/GLB files are build outputs. Record durable changes in a recipe or versioned original component asset.

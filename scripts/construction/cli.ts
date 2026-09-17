@@ -3,10 +3,12 @@ import { existsSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 import { createStarterSource, type ConstructionStarter } from '../../src/ships/constructionStarter';
 import { decodeConstructionSource } from '../../src/ships/constructionEditor';
-import { applyConstructionBatch, type ConstructionBatch } from '../../src/ships/constructionCommands';
+import { applyConstructionBatch, constructionDiffCommands, type ConstructionBatch } from '../../src/ships/constructionCommands';
+import { HULL_PRESETS } from '../../src/ships/constructionHullPresets';
+import { customHullPanels } from '../../src/ships/constructionPanels';
 import { parseConstructionCatalog } from '../../src/ships/constructionEquipment';
-import { readSource, repositoryStore, constructionId, sourcePath } from './files';
-import { compileConstruction } from './compiler';
+import { readSource, readCatalog, repositoryStore, constructionId, sourcePath } from './files';
+import { compileConstruction, suggestConstruction } from './compiler';
 import { authoringServer, serverUrl, withConstructionBrowser } from './browser';
 import { constructionPipeline, REVIEW_VIEWS } from './pipeline';
 
@@ -17,13 +19,16 @@ const print = (value: unknown) => console.log(JSON.stringify(value, null, 2));
 const help = {
   usage: 'bun scripts/construction/cli.ts <command> <ship-id> [options]',
   commands: {
-    new: '[--template blank|patrol|catamaran] [--name name]',
+    templates: '— list adjustable hull presets and sandbox starters; no ship ID required',
+    new: '[--template patrol-hull|destroyer-hull|battleship-hull|barge-hull|blank|patrol|catamaran] [--name name]; default destroyer-hull',
     edit: '[--port 5173] — serve the repository source in the game editor',
-    inspect: '[--source] — source/file revisions, native diagnostics and loading',
-    apply: '<batch.json> — version, expectedRevision, expectedFileHash, label, commands',
+    inspect: '[--source] [--source-only] [--panels] — revisions, native diagnostics/loading, optional source and stable panel IDs; source-only skips compilation',
+    catalog: '[--query text] — exact retained equipment variants, dimensions and attachment sockets',
+    suggest: '--parts id,id [--out batch.json] — propose native placements as a revision-guarded batch; never saves the ship',
+    apply: '<batch.json> [--dry-run] — revision-guarded transaction; dry-run compiles the candidate without saving',
     import: '<source.json> [--expect file-hash] — create or explicitly replace a construction source',
     export: '<output.json> — exact source backup',
-    render: '[--view profile|plan|bow|stern|quarter] [--part id] [--isolate] [--out directory] [--published] [--pose poses.json]',
+    render: '[--view profile|plan|bow|stern|quarter] [--part id] [--isolate] [--out directory] [--published] [--pose poses.json] [--quick]; quick skips the articulation sweep',
     trial: '[--seconds 10] — real local native/WASM combat and reset',
     register: '— add an already built ship to src/ships/presets.ts',
     compile: 'native definition; also available through ship:compile',
@@ -35,12 +40,13 @@ const help = {
 };
 if (!action || args.includes('--help')) { print(help); process.exit(0); }
 try {
+  if (action === 'templates') { print({ default: 'destroyer-hull', adjustableHulls: HULL_PRESETS, sandbox: ['blank', 'patrol', 'catamaran'] }); process.exit(0); }
   constructionId(id);
   const store = repositoryStore(root);
   if (action === 'new') {
     if (existsSync(join(root, 'assets/ships', id))) throw new Error('Ship directory already exists. Choose a new ID.');
-    const template = option('--template') ?? 'blank';
-    if (!['blank', 'patrol', 'catamaran'].includes(template)) throw new Error('Unknown construction template.');
+    const template = option('--template') ?? 'destroyer-hull';
+    if (![...HULL_PRESETS.map(p => p.id), 'blank', 'patrol', 'catamaran'].includes(template)) throw new Error('Unknown construction template. Run ship:templates.');
     const catalog = parseConstructionCatalog(JSON.parse(await readFile(join(root, 'public/models/components/catalog.json'), 'utf8')));
     const source = createStarterSource(catalog, template as ConstructionStarter);
     source.id = id; source.name = option('--name') ?? id; source.revision = crypto.randomUUID();
@@ -67,7 +73,23 @@ try {
     print({ id, fileRevision: revision.id, revision: source.revision });
   } else {
     const current = await readSource(root, id), { source } = current;
-    if (action === 'export') {
+    if (action === 'catalog') {
+      const catalog = await readCatalog(root, source.construction.catalogRevision);
+      const query = (option('--query') ?? '').toLowerCase();
+      print({ id, catalogRevision: catalog.revision, equipment: catalog.equipment.filter(part => [part.id, part.name, part.kind].some(value => value.toLowerCase().includes(query))) });
+    } else if (action === 'suggest') {
+      const partIds = option('--parts')?.split(',').map(id => id.trim()).filter(Boolean);
+      if (!partIds?.length || partIds.length > 16) throw new Error('Provide --parts with 1–16 exact retained catalog IDs.');
+      const proposal = await suggestConstruction(root, source, partIds);
+      const batch = { version: 1, expectedRevision: source.revision, expectedFileHash: current.hash, label: 'Apply native layout suggestion', commands: constructionDiffCommands(source, proposal.source) };
+      const failed = proposal.diagnostics.some(d => d.severity === 'error');
+      if (option('--out') && !failed) await writeFile(resolve(option('--out')!), JSON.stringify(batch, null, 2) + '\n', { flag: 'wx' });
+      print({ id, diagnostics: proposal.diagnostics, batch: failed ? null : batch });
+      if (failed) process.exitCode = 1;
+    } else if (action === 'inspect' && args.includes('--source-only')) {
+      print({ id, revision: source.revision, fileRevision: current.hash, sourcePath: sourcePath(root, id), catalogRevision: source.construction.catalogRevision, compiled: false, source,
+        ...(args.includes('--panels') ? { panels: source.construction.primitives.map(p => ({ id: p.id, panels: customHullPanels(p) })) } : {}) });
+    } else if (action === 'export') {
       if (!args[2] || args[2].startsWith('--')) throw new Error('Provide an output JSON filename.');
       const path = resolve(args[2]); await writeFile(path, current.json, { flag: 'wx' }); print({ path, fileRevision: current.hash });
     } else if (action === 'apply') {
@@ -75,8 +97,14 @@ try {
       const batch = JSON.parse(await readFile(resolve(args[2]), 'utf8')) as ConstructionBatch & { expectedFileHash: string };
       if (batch.expectedFileHash !== current.hash) throw new Error('File revision changed. Inspect the source and update the batch before retrying.');
       const next = applyConstructionBatch(source, batch);
-      const revision = await store.save({ designId: id, source: next, name: next.name, schemaVersion: 1, catalogRevision: next.construction.catalogRevision, expectedRevisionId: current.hash });
-      print({ id, revision: next.revision, fileRevision: revision.id });
+      if (args.includes('--dry-run')) {
+        const result = await compileConstruction(root, next);
+        print({ id, dryRun: true, expectedRevision: source.revision, expectedFileHash: current.hash, launchable: !!result.definition, diagnostics: result.diagnostics, loading: result.loading });
+        if (!result.definition) process.exitCode = 1;
+      } else {
+        const revision = await store.save({ designId: id, source: next, name: next.name, schemaVersion: 1, catalogRevision: next.construction.catalogRevision, expectedRevisionId: current.hash });
+        print({ id, revision: next.revision, fileRevision: revision.id });
+      }
     } else if (action === 'register') {
       await constructionPipeline(root, 'check', id);
       const file = join(root, 'src/ships/presets.ts'), text = await readFile(file, 'utf8');
@@ -90,7 +118,8 @@ try {
       const result = await compileConstruction(root, source);
       if (action === 'inspect') {
         print({ id, revision: source.revision, fileRevision: current.hash, sourcePath: sourcePath(root, id), catalogRevision: source.construction.catalogRevision, launchable: !!result.definition,
-          primitives: source.construction.primitives.length, equipment: source.construction.equipment, loading: result.loading, diagnostics: result.diagnostics, ...(args.includes('--source') ? { source } : {}) });
+          compiled: true, primitives: source.construction.primitives.length, equipment: source.construction.equipment, loading: result.loading, diagnostics: result.diagnostics, ...(args.includes('--source') ? { source } : {}),
+          ...(args.includes('--panels') ? { panels: source.construction.primitives.map(p => ({ id: p.id, panels: customHullPanels(p) })) } : {}) });
       } else if (action === 'render' || action === 'trial') {
         const published = args.includes('--published');
         if (published) await constructionPipeline(root, 'check', id);
@@ -121,7 +150,7 @@ try {
             await writeFile(join(directory, name + '.png'), Buffer.from(frame.png.split(',')[1], 'base64'));
             cameras.push(frame.camera);
           }
-          return { posed, inspection: await page.evaluate(() => window.constructionReview!.inspect()), cameras, articulation: await page.evaluate(() => window.constructionReview!.sweep()) };
+          return { posed, inspection: await page.evaluate(() => window.constructionReview!.inspect()), cameras, articulation: args.includes('--quick') ? { skipped: true, reason: 'Quick preview; run ship:review for acceptance.' } : await page.evaluate(() => window.constructionReview!.sweep()) };
         });
         await writeFile(join(directory, action + '.json'), JSON.stringify(output, null, 2) + '\n');
         print({ id, directory, output });

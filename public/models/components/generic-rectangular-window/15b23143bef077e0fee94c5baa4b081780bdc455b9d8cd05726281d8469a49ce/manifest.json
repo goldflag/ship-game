@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "generic-rectangular-window",
+  "revision": "15b23143bef077e0fee94c5baa4b081780bdc455b9d8cd05726281d8469a49ce",
+  "contentHash": "46ac36d6ee73b63fdce49e634155dd4ddbdc87dc5f9deef1d11a0a3f055db0d8",
+  "modelSha256": "7308b63e6e26e4ba6e8a5bbe68d74274109d92333b9b928282b4c45a67ff9b84",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/generic-rectangular-window/15b23143bef077e0fee94c5baa4b081780bdc455b9d8cd05726281d8469a49ce/model.glb",
+  "boundsCenter": [
+    0,
+    0,
+    0
+  ],
+  "size": [
+    0.8999999761581421,
+    0.6499999761581421,
+    6.794810758492531e-8
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 2,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original generic closed surface fitting with opaque optics. No hull opening or interior. Dimensions and mass are engineering estimates; installed wall support requires native validation.",
+  "basis": "assets/parts/construction/README.md"
+}

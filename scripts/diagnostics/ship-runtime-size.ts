@@ -3,7 +3,7 @@ import { runtimeProjection } from '../../src/ships/runtimeProjection';
 import { gzipSync } from 'node:zlib';
 import { mkdir } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
-const id = process.argv[2] ?? 'admiral-hipper-construction';
+const id = process.argv[2] ?? 'resolute';
 const out = process.argv[3] ?? '.build/runtime-size'; await mkdir(out, { recursive: true });
 const start = performance.now(), source = await Bun.file(`public/models/${id}.json`).text(), readMs = performance.now() - start;
 let t = performance.now(); const def = JSON.parse(source), parseMs = performance.now() - t;

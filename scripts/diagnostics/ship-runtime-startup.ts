@@ -22,11 +22,11 @@ try {
     const errors: string[] = [];
     page.on('pageerror', error => errors.push(error.message));
     let requests = 0;
-    page.on('request', request => { if (request.url().endsWith('/admiral-hipper-construction.nsd')) requests++; });
-    const route = '**/models/runtime/admiral-hipper-construction.nsd';
+    page.on('request', request => { if (request.url().endsWith('/resolute.nsd')) requests++; });
+    const route = '**/models/runtime/resolute.nsd';
     await context.route(route, request => failure === 'network' ? request.abort() : request.fulfill({ contentType: 'application/octet-stream', body: Buffer.from('invalid digest') }));
     try {
-      await page.goto(serverUrl(server) + '/?ship=admiral-hipper-construction');
+      await page.goto(serverUrl(server) + '/?ship=resolute');
       await page.getByRole('alert').filter({ hasText: 'Unable to load the selected ship' }).waitFor({ timeout: 60000 });
       const rejectedEarlyGeometry = await page.evaluate(async () => {
         const { selectedShip } = await import('/src/ships/presets.ts' as string);

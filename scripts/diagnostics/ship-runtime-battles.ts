@@ -4,11 +4,11 @@ const [binary = 'target/release/examples/runtime_bench', manifest = '.build/nava
 const ticks = Number(seconds) * 60; if (!Number.isInteger(ticks) || ticks < 1) throw new Error('Positive simulated seconds required');
 const directory = `.build/runtime-size/${label}`; await mkdir(directory, { recursive: true });
 const cases = [
-  { id: 'hipper-2', ships: 2, matches: 1, designs: 'admiral-hipper-construction' },
-  { id: 'hipper-8', ships: 8, matches: 1, designs: 'admiral-hipper-construction' },
-  { id: 'hipper-16', ships: 16, matches: 1, designs: 'admiral-hipper-construction' },
-  { id: 'matches-4x8', ships: 8, matches: 4, designs: 'admiral-hipper-construction' },
-  { id: 'mixed-8', ships: 8, matches: 1, designs: 'admiral-hipper-construction,bismarck,fletcher,enterprise-cv6' },
+  { id: 'resolute-2', ships: 2, matches: 1, designs: 'resolute' },
+  { id: 'resolute-8', ships: 8, matches: 1, designs: 'resolute' },
+  { id: 'resolute-16', ships: 16, matches: 1, designs: 'resolute' },
+  { id: 'matches-4x8', ships: 8, matches: 4, designs: 'resolute' },
+  { id: 'mixed-8', ships: 8, matches: 1, designs: 'resolute,bismarck,fletcher,enterprise-cv6' },
 ];
 const results = [];
 for (const c of cases) {

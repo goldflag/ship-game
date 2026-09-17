@@ -1,7 +1,7 @@
 /** Native steady RSS sampled separately from latency benchmarks. */
 const prefixes=process.argv.slice(2);if(!prefixes.length)throw Error('Pass .build fixture prefixes');const results=[];
 for(const prefix of prefixes){if(!prefix.startsWith('.build/'))throw Error('Fixtures must be in .build');const start=performance.now();const samples:{ms:number;bytes:number}[]=[];
- const child=Bun.spawn(['target/release/examples/runtime_bench',prefix+'.manifest.json','2','1','1200','admiral-hipper-construction'],{stdout:'pipe',stderr:'pipe'});let done=false;void child.exited.then(()=>done=true);const output=new Response(child.stdout).text(),errors=new Response(child.stderr).text();
+ const child=Bun.spawn(['target/release/examples/runtime_bench',prefix+'.manifest.json','2','1','1200','resolute'],{stdout:'pipe',stderr:'pipe'});let done=false;void child.exited.then(()=>done=true);const output=new Response(child.stdout).text(),errors=new Response(child.stderr).text();
  while(!done){const p=Bun.spawn(['ps','-o','rss=','-p',String(child.pid)],{stdout:'pipe',stderr:'ignore'});const kb=Number((await new Response(p.stdout).text()).trim());await p.exited;if(kb)samples.push({ms:performance.now()-start,bytes:kb*1024});await new Promise(r=>setTimeout(r,100));}
  if(await child.exited)throw Error(await errors);const tail=samples.filter(s=>s.ms>1000).slice(-5).map(s=>s.bytes).sort((a,b)=>a-b);const row={prefix,steadyRssBytes:tail[Math.floor(tail.length/2)],tailSamples:tail.length,peakSampledRssBytes:Math.max(...samples.map(s=>s.bytes)),samples,native:JSON.parse(await output)};results.push(row);console.log(prefix,row.steadyRssBytes,row.peakSampledRssBytes);
 }await Bun.write('.build/combat-profile/resident.json',JSON.stringify(results,null,2));

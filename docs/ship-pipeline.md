@@ -2,6 +2,11 @@
 
 **Source of truth:** versioned `blueprint.json` + original component catalog. New ships use the [custom construction editor and Rust compiler](construction-authoring.md); Blender remains the permanent tool for reusable components. Existing legacy ships retain their original geometry recipes. These produce a compiled simulation definition and an articulated visual model. Historical presets and future player-built ships use this same contract.
 
+Prefer an adjustable `custom-hull` for the main hull, using the shared section editor
+or agent commands. Use one per hull for multihulls. Reserve freeform pieces for
+additional structures and shapes that sections cannot represent; explain any
+main-hull exception in the ship README. See [agent hull authoring](construction-authoring.md#adjustable-hull-first).
+
 The workflow below documents legacy Blender-backed ship recipes and the shared
 acceptance requirements. `ship:new` creates a construction source.
 
