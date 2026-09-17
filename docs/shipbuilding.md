@@ -409,3 +409,20 @@ Side, Top and Bow are orthographic camera presets. P and the projection button s
 The same versioned construction source supports `kind: "vertex"` with optional `vertices: Vec3[]` (exactly eight finite normalized local coordinates). The order is the four bow corners `(-X,-Y), (+X,-Y), (+X,+Y), (-X,+Y)`, followed by the equivalent stern corners. Missing coordinates denote the cube; `size` scales the local edit frame and `rotationDeg` applies its quarter-turn yaw. Historical primitives remain compatible. Corner edits turn a box into a vertex hull without changing its ID.
 
 Rust owns the physical solid and exterior. Planar convex shapes use one convex cell. Warped faces use an unbiased fan through each bilinear face's center; this is a faceted approximation of the curved surface whose signed volume is exact. Convex neighboring cells and coplanar patches are combined without filling concavities. Render, collision, armor and buoyancy use the same compiled geometry. Split children may refine surface faceting, but preserve the underlying corner-defined surface and enclosed volume. Self-overlapping, folded, collapsed, out-of-bounds or overly complex drafts remain editable and saveable; they cannot launch until corrected. This eight-corner version supports dents whose faces remain oriented outward from the block center. It does not add arbitrary topology, tunnels, edge subdivision or smooth subdivision surfaces.
+
+### Armor on custom hull panels
+
+Armor view shows the boundaries of each panel between neighboring hull sections,
+without triangulation diagonals. Click a panel in **Select**, then enter its
+**Face armor** thickness, or use the Armor tool to apply the palette value.
+Bow and stern caps are individual faces. Mirror mode also changes the matching
+opposite panel; turn it off to armor the two sides independently. Shift-click
+selects multiple panels and Area selects a whole named side.
+
+Panel assignments are saved in the existing surface records using an optional
+`panelId`. Whole-side records remain defaults; panel records override them and
+inherit the current paint, material and opening state when first created.
+Panel identity follows the bounding section IDs and outline edge, so moving or
+resizing sections preserves armor. Adding or removing sections creates new
+adjacencies whose panels use the side default; unchanged panels retain their
+settings. Source undo restores the preceding hull and assignments.

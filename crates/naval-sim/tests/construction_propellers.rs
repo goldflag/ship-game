@@ -124,7 +124,7 @@ fn distant_and_open_hull_connections_are_rejected() {
     source
         .construction
         .surfaces
-        .push(ConstructionSurfaceAssignment {
+        .push(ConstructionSurfaceAssignment { panel_id: None,
             primitive_id: "hull".into(),
             face: "bottom".into(),
             thickness_mm: 10.,

@@ -1,3 +1,4 @@
+import { customHullPanels } from './constructionPanels';
 import type { ConstructionBoundary, ConstructionEquipment, ConstructionLoad, ConstructionPrimitive, ConstructionSource, ConstructionSurfaceAssignment, Vec3 } from './blueprint';
 import { CONSTRUCTION_FACES, assignConstructionSurfaces, decodeConstructionSource, moveConstructionSelection, newConstructionId, removeConstructionSelection, rotateConstructionSelection, surfaceKey } from './constructionEditor';
 import { freeformEdit, replaceVertexPrimitives, type HullSelection, type MirrorAxes } from './constructionVertex';
@@ -62,11 +63,12 @@ export function applyConstructionBatch(source: ConstructionSource, batch: Constr
         rotateConstructionSelection(draft, ids, command.degrees); break;
       }
       case 'surface': {
-        const { primitiveId, face, ...values } = command.value;
+        const { primitiveId, face, panelId, ...values } = command.value;
         if (!CONSTRUCTION_FACES.includes(face)) throw new Error('Unknown source face.');
         requireIds([primitiveId]);
         if (!data.primitives.some(p => p.id === primitiveId)) throw new Error('Surface assignments require a hull primitive.');
-        assignConstructionSurfaces(draft, new Set([surfaceKey(primitiveId, face)]), values); break;
+        if (panelId !== undefined && !customHullPanels(data.primitives.find(p => p.id === primitiveId)!).some(panel => panel.face === face && panel.panelId === panelId)) throw new Error('Unknown custom hull panel.');
+        assignConstructionSurfaces(draft, new Set([surfaceKey(primitiveId, face, panelId)]), values); break;
       }
       case 'vertices':
         if (!['vertex', 'edge', 'face'].includes(command.selection.mode) || !Number.isInteger(command.selection.index) || command.selection.index < 0 || command.selection.index >= ({ vertex: 8, edge: 12, face: 6 }[command.selection.mode])) throw new Error('Unknown vertex, edge or face.');
@@ -105,7 +107,7 @@ export function constructionDiffCommands(before: ConstructionSource, after: Cons
   table(value => ({ op: 'boundary', value }), b.boundaries, a.boundaries);
   table(value => ({ op: 'load', value }), b.loads, a.loads);
   if (removed.length) commands.push({ op: 'remove', ids: removed });
-  const key = (surface: ConstructionSurfaceAssignment) => surfaceKey(surface.primitiveId, surface.face);
+  const key = (surface: ConstructionSurfaceAssignment) => surfaceKey(surface.primitiveId, surface.face, surface.panelId);
   const previous = new Map(b.surfaces.map(surface => [key(surface), JSON.stringify(surface)])), kept = new Set(a.surfaces.map(key));
   for (const surface of b.surfaces) if (!kept.has(key(surface)) && a.primitives.some(part => part.id === surface.primitiveId)) throw new Error('A face assignment cannot be removed by command; assign its default values instead.');
   for (const surface of a.surfaces) if (previous.get(key(surface)) !== JSON.stringify(surface)) commands.push({ op: 'surface', value: structuredClone(surface) });

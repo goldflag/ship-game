@@ -313,6 +313,8 @@ export interface ConstructionCustomHull {
   version: 1; stations: ConstructionHullStation[]; rake: number; bulb: number;
 }
 export interface ConstructionSurfaceAssignment {
+  /** Optional custom-hull panel override; omission assigns the whole named side. */
+  panelId?: string;
   primitiveId: string; face: 'port' | 'starboard' | 'bottom' | 'top' | 'bow' | 'stern' | 'slope';
   thicknessMm: number; material: 'steel' | 'armor-steel'; paint: string; open?: boolean;
 }
@@ -348,6 +350,7 @@ export interface ConstructionData {
 /** Convex closed outward-facing polygons; generated, never accepted as local source input. */
 export interface ConvexVolume { faces: { vertices: Vec3[] }[]; }
 export interface ConstructionSurface {
+  panelId?: string;
   id: string; primitiveId: string; face: string; vertices: Vec3[];
   normal: Vec3; areaM2: number; thicknessMm: number; material: string; paint: string; open: boolean;
 }

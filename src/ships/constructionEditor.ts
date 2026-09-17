@@ -1,3 +1,4 @@
+import { customHullPanels, mirroredPanelId } from './constructionPanels';
 import type { ConstructionEquipment, ConstructionSource, ConstructionPrimitive, ConstructionSurface, ConstructionSurfaceAssignment, Vec3 } from './blueprint';
 import { normalizedBearing } from '../ui/shipbuilding/editorNumbers';
 import { CONSTRUCTION_SHAPES, shapeMirror } from './constructionShapes';
@@ -7,7 +8,8 @@ import { loadConstructionCatalog } from './constructionEquipment';
 export const CONSTRUCTION_FACES = ['port', 'starboard', 'bottom', 'top', 'bow', 'stern', 'slope'] as const;
 export type ConstructionFace = ConstructionSurfaceAssignment['face'];
 export const newConstructionId = (prefix: string) => `${prefix}-${crypto.randomUUID()}`;
-export const surfaceKey = (primitiveId: string, face: string) => `${primitiveId}:${face}`;
+export const surfaceKey = (primitiveId: string, face: string, panelId?: string) => panelId === undefined ? `${primitiveId}:${face}` : `${primitiveId}:${encodeURIComponent(panelId)}:${face}`;
+export const surfaceSelectionKey = (surface: Pick<ConstructionSurface, 'primitiveId' | 'face' | 'panelId'>) => surfaceKey(surface.primitiveId, surface.face, surface.panelId);
 /** Source bounds, mirrored from the native compiler (crates/naval-sim/src/construction.rs). */
 export const CONSTRUCTION_LIMITS = { primitives: 10_000, surfaces: 65_536, equipment: 128, boundaries: 24 } as const;
 
@@ -58,6 +60,7 @@ export function decodeConstructionSource(value: unknown): ConstructionSource {
   for (const surface of rows(data.surfaces, 'Surfaces')) {
     string(surface.primitiveId, 'Surface primitive'); string(surface.paint, 'Paint'); number(surface.thicknessMm, 'Armor thickness');
     if (!CONSTRUCTION_FACES.includes(surface.face as ConstructionFace) || !['steel', 'armor-steel'].includes(surface.material as string)) throw new Error('Unsupported surface face or material');
+    if (surface.panelId !== undefined && (typeof surface.panelId !== 'string' || !surface.panelId.length || surface.panelId.length > 512 || !data.primitives || !(data.primitives as ConstructionPrimitive[]).some(p => p.id === surface.primitiveId && p.kind === 'custom-hull'))) throw new Error('Panel assignments require a custom hull and a bounded panel ID');
     if (surface.open !== undefined && typeof surface.open !== 'boolean') throw new Error('Opening must be true or false');
   }
   for (const part of rows(data.equipment, 'Equipment')) {
@@ -169,7 +172,7 @@ export function copyConstructionSelection(source: ConstructionSource, selected: 
   const originals = data.primitives.filter(p => selected.has(p.id));
   const kinds = new Map(originals.map(p => [p.id, p.kind]));
   data.primitives.push(...originals.map(part => ({ ...(options.mirror ? mirroredPrimitive(part) : structuredClone(part)), id: ids.get(part.id)!, position: position(part.position) })));
-  data.surfaces.push(...data.surfaces.filter(surface => kinds.has(surface.primitiveId)).map(surface => ({ ...surface, primitiveId: ids.get(surface.primitiveId)!, face: options.mirror ? mirroredFace(surface.face, kinds.get(surface.primitiveId)!) : surface.face })));
+  data.surfaces.push(...data.surfaces.filter(surface => kinds.has(surface.primitiveId)).map(surface => ({ ...surface, primitiveId: ids.get(surface.primitiveId)!, face: options.mirror ? mirroredFace(surface.face, kinds.get(surface.primitiveId)!) : surface.face, ...(surface.panelId ? { panelId: options.mirror ? mirroredPanelId(surface.panelId) : surface.panelId } : {}) })));
   data.equipment.push(...data.equipment.filter(part => selected.has(part.id)).map(part => ({ ...(options.mirror ? mirroredEquipment(part) : structuredClone(part)), id: ids.get(part.id)!, position: position(part.position),
     ...(part.magazineId ? { magazineId: ids.get(part.magazineId) ?? part.magazineId } : {}), ...(part.powerSourceId ? { powerSourceId: ids.get(part.powerSourceId) ?? part.powerSourceId } : {}) })));
   data.loads.push(...data.loads.filter(load => selected.has(load.id)).map(load => ({ ...structuredClone(load), id: ids.get(load.id)!, center: position(load.center) })));
@@ -177,11 +180,12 @@ export function copyConstructionSelection(source: ConstructionSource, selected: 
 }
 
 export function assignConstructionSurfaces(source: ConstructionSource, keys: ReadonlySet<string>, values: Partial<Pick<ConstructionSurfaceAssignment, 'thicknessMm' | 'material' | 'paint' | 'open'>>): void {
-  for (const primitive of source.construction.primitives) for (const face of CONSTRUCTION_FACES) {
-    if (!keys.has(surfaceKey(primitive.id, face))) continue;
-    let assignment = source.construction.surfaces.find(surface => surface.primitiveId === primitive.id && surface.face === face);
+  for (const primitive of source.construction.primitives) for (const { face, panelId } of [...CONSTRUCTION_FACES.map(face => ({ face, panelId: undefined })), ...customHullPanels(primitive)]) {
+    if (!keys.has(surfaceKey(primitive.id, face, panelId))) continue;
+    let assignment = source.construction.surfaces.find(surface => surface.primitiveId === primitive.id && surface.face === face && surface.panelId === panelId);
     if (!assignment) {
-      assignment = { primitiveId: primitive.id, face, thicknessMm: source.construction.defaultThicknessMm, material: 'steel', paint: 'naval-gray' };
+      const inherited = source.construction.surfaces.find(surface => surface.primitiveId === primitive.id && surface.face === face && surface.panelId === undefined);
+      assignment = { primitiveId: primitive.id, face, thicknessMm: source.construction.defaultThicknessMm, material: 'steel', paint: 'naval-gray', ...inherited, ...(panelId ? { panelId } : {}) };
       source.construction.surfaces.push(assignment);
     }
     Object.assign(assignment, values);

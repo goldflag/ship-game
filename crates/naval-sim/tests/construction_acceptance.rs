@@ -367,7 +367,7 @@ fn separated_hull_rays_miss_water_and_hit_only_the_selected_skin() {
     source
         .construction
         .surfaces
-        .push(ConstructionSurfaceAssignment {
+        .push(ConstructionSurfaceAssignment { panel_id: None,
             primitive_id: "port".into(),
             face: "port".into(),
             thickness_mm: 50.,

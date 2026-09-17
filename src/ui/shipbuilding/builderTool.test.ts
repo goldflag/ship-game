@@ -398,3 +398,12 @@ test('turret rise uses one undoable command batch and keeps the deck datum fixed
   tool.key(key('PageUp'), chrome());
   expect(data().equipment[0].gun?.barbetteHeightM).toBe(30);
 });
+
+
+test('entering Armor or Paint replaces whole-hull selection with face selection', async () => {
+  const { tool, state, labels } = await setup({ source: createStarterSource(catalog, 'destroyer-hull') });
+  expect([...state().selected]).toEqual(['hull']);
+  tool.switchLayer('armor'); expect(state().selected.size).toBe(0);
+  tool.selectOnly(['hull']); tool.switchLayer('paint'); expect(state().selected.size).toBe(0);
+  expect(labels()).toEqual([]);
+});
