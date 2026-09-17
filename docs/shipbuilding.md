@@ -79,7 +79,19 @@ choices. Grid spacing uses a button row: 0.25, 0.5, 1, 2 or 5 m. The rail shows 
 current size; click it or press **S** to cycle. Hull and fittings remember separate
 session choices, starting at 1 m and 0.25 m. Freeform uses its local Move step.
 Off removes grid rounding and magnetic alignment. Typed positions always remain exact;
-keyboard nudges still use the chosen step. Physical seating and collision checks remain active.
+keyboard nudges still use the chosen step. Physical seating and hull overlap checks remain active.
+
+Hull placement and movement permit intersection, provided every affected block keeps
+at least **10% of its actual volume outside the union of the other blocks**. This
+uses native curved, hollow and edited solids, including protection for smaller
+stationary blocks. Drags stop at the limit even across a fast pointer jump; existing
+excessive overlaps can be reduced. Mirrored placement, runs, Fill and copies are
+checked as a complete batch. Rejected placement shows a salmon preview and the
+10% rule in the coordinate readout, without adding undo history. Ballast-to-ballast
+overlap and equipment fit restrictions remain. This is an editor placement/movement
+policy; imported and freeform drafts remain recoverable through the existing compiler.
+Mass, plating and buoyancy still derive from the physical union, so shared hull
+volume is counted once.
 
 Nearby source edges, corners and fitting attachment centers acquire within eight screen pixels
 and release at fourteen; they override grid rounding on the same movement axis. Dashed

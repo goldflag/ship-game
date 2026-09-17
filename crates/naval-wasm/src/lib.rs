@@ -849,3 +849,24 @@ impl PvePlanner {
 pub fn protocol_version() -> u32 {
     naval_protocol::PROTOCOL_VERSION
 }
+
+/// Lightweight native solids retained for synchronous editor gestures.
+#[wasm_bindgen]
+pub struct ConstructionOverlap(naval_sim::construction_overlap::OverlapScene);
+#[wasm_bindgen]
+impl ConstructionOverlap {
+    #[wasm_bindgen(constructor)]
+    pub fn new(primitives: &str) -> Result<ConstructionOverlap, JsValue> {
+        let pieces: Vec<naval_sim::definition::ConstructionPrimitive> = serde_json::from_str(primitives).map_err(error)?;
+        naval_sim::construction_overlap::OverlapScene::new(&pieces).map(Self).map_err(error)
+    }
+    pub fn movement(&self, ids: &str, delta: &str) -> Result<String, JsValue> {
+        let ids: Vec<String> = serde_json::from_str(ids).map_err(error)?;
+        let delta = serde_json::from_str(delta).map_err(error)?;
+        serde_json::to_string(&self.0.movement(&ids, delta).map_err(error)?).map_err(error)
+    }
+    pub fn placement(&self, primitives: &str) -> Result<bool, JsValue> {
+        let pieces: Vec<naval_sim::definition::ConstructionPrimitive> = serde_json::from_str(primitives).map_err(error)?;
+        self.0.placement(&pieces).map_err(error)
+    }
+}

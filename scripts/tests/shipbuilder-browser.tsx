@@ -1,3 +1,4 @@
+import type { ConstructionStore } from '../../src/ships/constructionStore';
 import { createRoot } from 'react-dom/client';
 import '@fontsource/barlow/400.css';
 import '@fontsource/barlow/500.css';
@@ -11,13 +12,13 @@ import type { ConstructionCatalog, ConstructionResult, ConstructionSource, Vec3 
 declare global { interface Window { shipbuilderReview?: { source?: ConstructionSource; launched?: ConstructionResult; close(): void }; shipbuilderViewport?: { camera: { projectionMatrix: unknown }; project?(point: Vec3): unknown }; } }
 
 /** Independent mounted surface for editor/browser review; runtime trial integration is checked through App. */
-export async function mountShipbuilderReview(source?: ConstructionSource, retainedCatalog?: ConstructionCatalog) {
+export async function mountShipbuilderReview(source?: ConstructionSource, retainedCatalog?: ConstructionCatalog, openStore?: () => Promise<ConstructionStore>) {
   const catalog = retainedCatalog ?? await loadConstructionCatalog();
   const host = document.createElement('div'); document.body.replaceChildren(host); document.body.style.margin = '0';
   const root = createRoot(host);
   const review: NonNullable<Window['shipbuilderReview']> = { close: () => { root.unmount(); host.remove(); } };
   window.shipbuilderReview = review;
-  root.render(<Shipbuilder onEditorReady={editor => { window.constructionEditor = editor; }} catalog={catalog} starterSource={source ?? createStarterSource(catalog)} onClose={review.close}
+  root.render(<Shipbuilder openStore={openStore} onEditorReady={editor => { window.constructionEditor = editor; }} catalog={catalog} starterSource={source ?? createStarterSource(catalog)} onClose={review.close}
     onSave={source => { review.source = source; }} onLaunch={(_source, result) => { review.launched = result; }}/>);
   return { equipmentCount: catalog.equipment.length, catalogRevision: catalog.revision };
 }
