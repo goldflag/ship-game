@@ -4,9 +4,9 @@ import { assetUrl } from '../assetUrl';
 import { oceanMap, DEFAULT_MAP } from '../maps/catalog';
 import { TIME_OF_DAY_PRESETS, WEATHER_PRESETS, formatBattleTime } from '../maps/conditions';
 import { resolveShip } from '../ships/localShips';
-import { botSelection, type BattleSetup } from '../simulation/battle';
 import './BattleLoadingScreen.css';
 import { ShipThumbnail } from './battle/ShipCard';
+import { botSelection, type BattleSetup } from '../game/session/battleSetup';
 
 export interface BattleLoadingState { label: string; progress: number; leaving: boolean; }
 interface Props { briefing?: PveBriefing; multiplayer?: boolean; setup: BattleSetup; state: BattleLoadingState; onLeft(): void; }

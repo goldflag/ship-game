@@ -1,8 +1,8 @@
-import { structuralHits, structuralSurfaces } from '../simulation/structure';
-import { plateHit, segmentPlate } from '../simulation/protection';
-import { segmentIntersectsBox } from '../simulation/obstruction';
+import { structuralHits, structuralSurfaces } from './hullStructure';
+import { plateHit, segmentPlate } from './armorPlates';
+import { segmentIntersectsBox } from './obstruction';
 import type { ShipDefinition, Vec3, Volume } from '../ships/blueprint';
-import { add, localToWorld, normalize, scale, segmentBox, worldToLocal, type Pose } from '../simulation/geometry';
+import { add, localToWorld, normalize, scale, segmentBox, worldToLocal, type Pose } from './geometry';
 import { aimArmorCandidates } from './AimArmorTree';
 
 const MAX_AIM_DISTANCE = 30000;

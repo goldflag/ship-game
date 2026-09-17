@@ -1,7 +1,7 @@
 /** Ordinary seeded combat: no injected damage, heat or changed crew/fuel profiles. */
 import { CombatSimulation } from '../../src/simulation/combat';
 import { shipPreset } from '../../src/ships/presets';
-import { localToWorld } from '../../src/simulation/geometry';
+import { localToWorld } from '../../src/game/geometry';
 import { writeFileSync, mkdirSync } from 'node:fs';
 const results = [];
 for (const ammunition of ['ap', 'he'] as const) {

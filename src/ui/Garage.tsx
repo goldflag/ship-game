@@ -1,12 +1,11 @@
 import { assetUrl } from '../assetUrl';
 // Fleet harbor: historical ships and saved local designs.
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
-import { InspectionTooltip } from "./InspectionTooltip";
+import { InspectionTooltip, type InspectionHoverSource } from "./InspectionTooltip";
 import { Icon } from "./Icons";
 import { PerformanceCounter } from "./PerformanceCounter";
 import type { PerformanceReadout } from "../game/types";
 import "./Garage.css";
-import type { Game } from "../game/Game";
 import { shipModel, shipIdentity, shipClass, SHIP_CLASSES, type ShipClass } from "../game/shipModel";
 import { useShip } from "./ShipContext";
 import { shipPresets } from "../ships/presets";
@@ -305,7 +304,8 @@ function PortLayout({ state }: { state: GarageState }) {
 }
 
 interface Props {
-  game: Game | null;
+  /** The port scene: inspection views and the hover feed the tooltip follows. */
+  game: (InspectionHoverSource & { setPortInspection(mode: InspectionMode, selectedId?: string): void }) | null;
   ready: boolean;
   switching: boolean;
   switchError: string;

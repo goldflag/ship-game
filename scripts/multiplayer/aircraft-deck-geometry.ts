@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { Box3, Matrix4, Quaternion, Vector3 } from 'three';
-import { aircraftGroundPose } from '../../src/simulation/aircraftGroundPose';
+import { aircraftGroundPose } from '../../src/game/aircraftGroundPose';
 
 interface Node {
   mesh?: number; matrix?: number[]; translation?: number[]; rotation?: number[];

@@ -1,8 +1,12 @@
 import type { DeckPolicy } from '../../multiplayer/generated/DeckPolicy';
-import type { BattleSession, ObservedShip, ObservedAircraft, BattleDebrief, DeckServiceAction } from './BattleSession';
+import type { BattleSession, BattleDebrief, BattleResult, DeckServiceAction } from './BattleSession';
+import type { ObservedShip } from '../../multiplayer/generated/ObservedShip';
+import type { ObservedAircraft } from '../../multiplayer/generated/ObservedAircraft';
 import type { ContactTrack } from '../../multiplayer/generated/ContactTrack';
 import type { ReconCoverage } from '../../multiplayer/generated/ReconCoverage';
 import type { BattleSetup } from '../../multiplayer/generated/BattleSetup';
+import type { SessionFrame } from '../../multiplayer/generated/SessionFrame';
+import type { BattleFrame } from '../../multiplayer/generated/BattleFrame';
 import type { Command } from '../../multiplayer/generated/Command';
 import type { WeaponsPolicy } from '../../multiplayer/generated/WeaponsPolicy';
 import type { Formation } from '../../multiplayer/generated/Formation';
@@ -13,42 +17,31 @@ import type { Ammunition, Battery, ShipDefinition, Vec3 } from '../../ships/blue
 import { shipPreset, shipPresets } from '../../ships/presets';
 import { mapIslands, type OceanMapId } from '../../maps/catalog';
 import type { WeatherId } from '../../maps/conditions';
-import type { FleetActor, BattleResult } from '../../simulation/battle';
-import type { CombatIntent, CombatEvent, ShellHistory } from '../../simulation/combat';
-import type { DamageLogEntry } from '../../simulation/damageLog';
-import type { Shell } from '../../simulation/damage';
-import type { Torpedo } from '../../simulation/torpedoes';
-import type { DepthCharge } from '../../simulation/depthCharges';
-import { squadronFlights, type AirOrder, type AirWingState, type AirRelease } from '../../simulation/aircraft';
-import { physicalLoss, type BattleOutcome } from '../../simulation/battleRules';
-import { presentationAim, presentationTelemetry } from '../../simulation/presentation';
-import { createSeaState } from '../../simulation/sea';
-import { updateMountCarriers } from '../../simulation/mountFrames';
-import type { HelmCommand } from '../../simulation/ship';
+import { physicalLoss, type BattleOutcome } from './battleRules';
+import { presentationAim, presentationTelemetry } from './telemetry';
+import { createSeaState } from './sea';
+import { updateMountCarriers } from '../mountFrames';
+import type { Aircraft, Vessel, CarrierWing, Records, FleetActor, CombatEvent, ShellHistory, DamageLogEntry, Shell, Torpedo, DepthCharge, AirRelease, HelmCommand } from './elements';
+import type { AirOrder } from '../../multiplayer/generated/AirOrder';
+import type { CombatIntent } from './telemetry';
+import { squadronFlights } from '../airWing';
 
-type WireActor = Omit<FleetActor, 'definition' | 'team' | 'bot' | 'airWing'> & {
-  presetId: string; team: TeamId; aiLevel?: NonNullable<FleetActor['bot']>['aiLevel']; launcherTrains: Record<string, number>;
-};
-export interface Snapshot {
-  tick: number; actors: WireActor[]; wings: { ownerId: string; state: AirWingState }[];
-  shells: Shell[]; torpedoes: Torpedo[]; depthCharges: DepthCharge[]; releases: AirRelease[]; events: CombatEvent[];
-  outcome?: BattleOutcome; afloatKg: [number | null, number | null];
-  view?: 'team'; contacts?: ContactTrack[]; observedShips?: ObservedShip[]; observedAircraft?: ObservedAircraft[]; remainingSeconds?: number | null;
-  reconCoverage?: ReconCoverage;
-  debrief?: Snapshot;
-  shipOutcomes?: Record<string, 'operational' | 'sunk' | 'incapacitated'>;
-  records: { scores: Record<string, { damageDealt: number; frags: number; damageLog: DamageLogEntry[] }>; shellHistory: ShellHistory[] };
-  selectedShipIds?: (string | undefined)[]; phase?: string; reason?: string; connected?: boolean[]; loaded?: boolean[]; countdown?: number;
-  fleetOrders?: Record<string, FleetOrderState>;
-  fleetNotices?: FleetNotice[];
-}
+/** The frame the renderer consumes is declared once, in Rust
+ * (`naval_sim::snapshot::BattleFrame` flattened into
+ * `naval_protocol::frame::SessionFrame`) and generated here, with its element
+ * shapes: the eight collections are the generated projections of the
+ * simulation objects (`Vessel`, `CarrierWing`, `Shell`, …), declared on those
+ * objects with the presentation filter's drops and gated by
+ * `crates/naval-sim/tests/frame_types.rs`. Nothing below is typed by hand. */
+export type Snapshot = SessionFrame<BattleFrame<Vessel[], CarrierWing[], Shell[], Torpedo[], DepthCharge[], AirRelease[], CombatEvent[], Records>>;
 function replaceObject<T extends object>(target: T, value: T): void {
   for (const key of Object.keys(target) as (keyof T)[]) if (!(key in value)) delete target[key];
   Object.assign(target, value);
 }
 export abstract class SnapshotSession implements BattleSession {
   abstract readonly networked: boolean;
-  readonly isBattle = true;
+  /** False for the port: one hull with nothing to fight, never stepped or scored. */
+  readonly isBattle: boolean;
   actors: FleetActor[] = [];
   player!: FleetActor; target?: FleetActor;
   observationTracks: ContactTrack[] = []; observedShips: ObservedShip[] = []; observedAircraft: ObservedAircraft[] = [];
@@ -98,7 +91,8 @@ export abstract class SnapshotSession implements BattleSession {
     return [...new Set([subject, this.target?.motion.id].filter((id): id is string => !!id))];
   }
   constructor(readonly setup: BattleSetup, readonly ownTeam: TeamId = 'a', readonly playerIndex = 0,
-    private readonly localDefinitions: ReadonlyMap<string, ShipDefinition> = new Map()) {
+    private readonly localDefinitions: ReadonlyMap<string, ShipDefinition> = new Map(), port = false) {
+    this.isBattle = !port;
     this.mapId = setup.mapId as OceanMapId; this.seed = setup.seed; this.spawnDistance = setup.spawnDistance;
     this.islands = setup.missionRules ? mapIslands(this.mapId, 16000, setup.missionRules.budget.maxShips).map(island => ({ ...island, z: island.z + 8000 }))
       : mapIslands(this.mapId, setup.spawnDistance, Math.max(...(['a', 'b'] as const).map(t => setup.ships.filter(s => s.team === t).length)));
@@ -117,8 +111,6 @@ export abstract class SnapshotSession implements BattleSession {
   }
   abstract advance(dt: number, helm: HelmCommand, intent: CombatIntent, beforeStep?: () => void): void;
   abstract dispose(): void;
-  // Fixed ticks belong to the worker/server. Development preview cannot run a JS fallback.
-  step(helm: HelmCommand, intent: CombatIntent): void { this.advance(1 / 60, helm, intent); }
   reset(): void { /* A new custom battle creates a fresh worker. Online results are immutable. */ }
   resetTarget(): void { /* Battle targets are authoritative. */ }
   protected consume(dt: number, beforeStep?: () => void): void {
@@ -137,12 +129,12 @@ export abstract class SnapshotSession implements BattleSession {
       if (!definition) throw new Error(`Snapshot references unavailable content: ${wire.presetId}.`);
       const expected = this.setup.ships.find(s => s.id === wire.motion.id);
       if (!expected || expected.presetId !== wire.presetId || expected.team !== wire.team) throw new Error('Snapshot fleet changed.');
-      const { presetId, team, aiLevel, launcherTrains, ...state } = wire;
+      const { team, aiLevel, launcherTrains, ...state } = wire;
       const existing = this.actors.find(a => a.motion.id === state.motion.id);
       // These stable renderer identities must not alias the retained wire frame:
       // local deltas reuse its unchanged paths in subsequent snapshots.
-      const actor = existing ?? { ...state, motion: { ...state.motion }, damage: { ...state.damage },
-        definition, team: team === this.ownTeam ? 'friendly' : 'enemy' } as FleetActor;
+      const actor: FleetActor = existing ?? { ...state, motion: { ...state.motion }, damage: { ...state.damage }, torpedoLaunchers: [],
+        definition, team: team === this.ownTeam ? 'friendly' : 'enemy' };
       if (existing) {
         const { motion, damage, ...rest } = state;
         replaceObject(actor.motion, motion); replaceObject(actor.damage, damage); Object.assign(actor, rest);
@@ -153,14 +145,14 @@ export abstract class SnapshotSession implements BattleSession {
         updateMountCarriers(actor.definition, actor.mounts);
       }
       // AI diagnostics are public; tracking, targeting caches and RNG remain private.
-      actor.bot = aiLevel ? { aiLevel } as FleetActor['bot'] : undefined;
+      actor.bot = aiLevel ? { aiLevel } : undefined;
       actor.torpedoLaunchers = Object.entries(launcherTrains).map(([id, train]) => ({ id, train }));
       actor.sea = { state: this.sea, time: this.tick / 60 };
       const wing = frame.wings.find(w => w.ownerId === actor.motion.id)?.state;
       if (wing) {
         const previous = new Map(actor.airWing?.planes.map(p => [p.id, p]) ?? []);
         const planes = wing.planes.map(wirePlane => {
-          const p = { ...wirePlane, team: actor.team };
+          const p: Aircraft = { ...wirePlane, team: actor.team };
           const old = previous.get(p.id);
           if (old) {
             p.previousPosition = old.position;

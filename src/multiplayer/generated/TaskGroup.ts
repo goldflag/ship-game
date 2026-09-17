@@ -2,7 +2,7 @@
 import type { Formation } from "./Formation";
 import type { GroupStation } from "./GroupStation";
 
-export type TaskGroup = { id: string, name: string, station: GroupStation,
+export type TaskGroup = { id: string, name: string, station: GroupStation, 
 /**
  * Cruising formation the group sails at the start; column when omitted.
  */

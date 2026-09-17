@@ -1,6 +1,6 @@
-import type { CombatTelemetry } from '../simulation/combat';
-import { FIXED_DT } from '../simulation/ship';
+import { FIXED_DT } from '../game/session/motion';
 import { contactLabel } from './BattleStatus';
+import type { CombatTelemetry } from '../game/session/telemetry';
 
 function battleTime(tick: number): string {
   const seconds = Math.floor(tick * FIXED_DT);

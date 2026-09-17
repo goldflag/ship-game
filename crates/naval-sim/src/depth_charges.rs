@@ -8,11 +8,12 @@ use crate::{
     torpedoes::damage_underwater_blast,
     vessel::{Fleet, Vessel},
 };
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, ts_rs::TS)]
 pub struct DepthChargeLauncherState {
     pub id: String,
     pub ammo: f64,
     pub reload: f64,
+    #[ts(as = "crate::frame_vocabulary::LauncherStatus")]
     pub status: String,
 }
 impl DepthChargeLauncherState {
@@ -25,16 +26,23 @@ impl DepthChargeLauncherState {
         }
     }
 }
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(optional_fields)]
 pub struct DepthCharge {
+    #[ts(type = "number")]
     pub id: i64,
     pub owner_id: String,
+    /// Absent on another team's projectile in a team frame (`team_view`).
+    #[ts(as = "Option<_>")]
     pub launcher_id: String,
     pub position: Vec3,
     pub velocity: Vec3,
     pub age: f64,
     pub submerged: bool,
+    /// Another team's weapon is cut to its visible dimensions and speed in a team
+    /// frame (`team_view`); the owner's travels whole.
+    #[ts(type = "Pick<import('../../ships/blueprint').DepthChargePart, 'diameterM' | 'lengthM'> & Partial<import('../../ships/blueprint').DepthChargePart>")]
     pub weapon: DepthChargePart,
 }
 pub fn update_launcher(

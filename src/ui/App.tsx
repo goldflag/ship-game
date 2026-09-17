@@ -9,11 +9,12 @@ import { RemoteBattleSession } from '../game/session/RemoteBattleSession';
 import { Button } from './components';
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Game } from '../game/Game';
-import { createShipState } from '../simulation/ship';
+import { createShipState } from '../game/session/motion';
 import type { Telemetry } from '../game/types';
 import { GRAPHICS_STORAGE_KEY, launchMatches, loadGraphicsSettings, type GraphicsSettings } from '../game/graphicsSettings';
 import { Icon } from './Icons';
 import { FleetHud } from './FleetHud';
+import { fleetDesk, type FleetDesk } from './fleet/fleetDesk';
 import { BinocularOverlay } from './BinocularOverlay';
 import { Garage } from './Garage';
 import type { AccountSession } from './AccountGate';
@@ -25,7 +26,6 @@ import { BattleDialog } from './battle/BattleDialog';
 import { loadBattleMode, loadSkipSortieBoard, type BattleMode } from './battle/battleModes';
 import { SortieBoard } from './battle/SortieBoard';
 import { BattleLoadingScreen, type BattleLoadingState } from './BattleLoadingScreen';
-import { BATTLE_SPAWN_DISTANCE, type BattleSetup } from '../simulation/battle';
 import { SettingsDialog } from './SettingsDialog';
 import { GameAudio } from '../game/GameAudio';
 import { AUDIO_STORAGE_KEY, loadAudioSettings, type AudioSettings } from '../game/audio';
@@ -46,6 +46,7 @@ import { ConstructionClient } from '../ships/constructionClient';
 import { openConstructionStore } from '../ships/constructionStore';
 import { decodeConstructionSource, loadSavedConstructionWithCatalog } from '../ships/constructionEditor';
 import { createStarterSource } from '../ships/constructionStarter';
+import { BATTLE_SPAWN_DISTANCE, type BattleSetup } from '../game/session/battleSetup';
 import { NewDesignDialog } from './shipbuilding/NewDesignDialog';
 import type { HullPresetChoice } from '../ships/constructionHullPresets';
 
@@ -83,6 +84,8 @@ function Harbor({ account, startup }: AppProps) {
   const switchPending = useRef(false);
   const host = useRef<HTMLDivElement>(null);
   const game = useRef<Game | null>(null);
+  // The HUD never holds the Game: it reads the frame and issues orders through the desk built over it once.
+  const desk = useRef<FleetDesk | null>(null);
   const dialog = useRef<HTMLDialogElement>(null);
   const [graphics, setGraphics] = useState(loadGraphicsSettings);
   const graphicsRef = useRef(graphics);
@@ -151,23 +154,21 @@ function Harbor({ account, startup }: AppProps) {
       error: message => { if (!active) return; setError(message); startupRef.current?.done(); },
     }, selectedRef.current, new GameAudio(audioSettingsRef.current));
     session.input.setBindings(bindingsRef.current);
-    game.current = session;
+    game.current = session; desk.current = fleetDesk(session);
     session.setHudScale(hudScaleRef.current);
     session.setInPort(true);
     const reviewWindow = window as unknown as {
       shipTrialDiagnostics?: () => unknown;
       shipTrialArticulation?: (pose: Parameters<Game['previewArticulation']>[0]) => unknown;
-      shipTrialAdvance?: (seconds: number) => void;
     };
     if (import.meta.env.DEV) {
       reviewWindow.shipTrialDiagnostics = () => session.diagnostics();
       reviewWindow.shipTrialArticulation = pose => session.previewArticulation(pose);
-      reviewWindow.shipTrialAdvance = seconds => session.previewAdvance(seconds);
     }
     session.start();
     return () => {
-      active = false; game.current = null;
-      if (import.meta.env.DEV) { delete reviewWindow.shipTrialDiagnostics; delete reviewWindow.shipTrialArticulation; delete reviewWindow.shipTrialAdvance; }
+      active = false; game.current = null; desk.current = null;
+      if (import.meta.env.DEV) { delete reviewWindow.shipTrialDiagnostics; delete reviewWindow.shipTrialArticulation; }
       void session.dispose();
     };
   }, [generation]);
@@ -476,7 +477,7 @@ function Harbor({ account, startup }: AppProps) {
     {phase === 'garage' && (builderOpening || builderError) && <div className="shipbuilder-entry-status" role={builderError ? 'alert' : 'status'}>{builderError || 'Opening shipbuilder…'}{builderError && <Button onClick={() => void openBuilder(builderRequest.current, builderStarter.current)}>Retry</Button>}</div>}
     {trial && phase === 'sailing' && ready && !error && !battleLoading && game.current && <TrialControls game={game.current} onReturn={returnToPort}/>}
     {phase === 'sailing' && ready && !error && <><BinocularOverlay data={data}/><div className="hud-viewport">
-      <FleetHud key={game.current?.battleRevision} data={data} game={game.current} visible={hud} bindings={bindings}/>
+      <FleetHud key={game.current?.battleRevision} data={data} desk={desk.current} visible={hud} bindings={bindings}/>
       {!hud && <button className="restore-hud" onClick={() => setHud(true)}>Show instruments <kbd>{bindingLabel(bindings, 'hud')}</kbd></button>}
     </div></>}
     {phase === 'sailing' && ready && !error && game.current?.simulation.missionRules && game.current.simulation.outcome && game.current.simulation.debrief && game.current.simulation.result !== 'active' && <PveResults result={game.current.simulation.result} outcome={game.current.simulation.outcome} debrief={game.current.simulation.debrief} onRestart={restartPve} onNewBattle={newPveBattle} onPort={returnToPort}/>}

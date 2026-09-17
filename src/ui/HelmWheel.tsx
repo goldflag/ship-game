@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { Game } from '../game/Game';
+import type { FleetDesk } from './fleet/fleetDesk';
 import type { Telemetry } from '../game/types';
 import { bindingLabel, type Keybindings } from '../game/keybindings';
 import { resolveShip } from '../ships/localShips';
-import { KNOTS_PER_MPS } from '../simulation/ship';
+import { KNOTS_PER_MPS } from '../game/session/motion';
 import { SHIP_GLYPHS, shipClassOf } from './shipGlyphs';
 import './HelmWheel.css';
 
@@ -72,13 +72,13 @@ export function nearestNode(nodes: readonly WheelNode[], px: number, py: number)
   return best;
 }
 
-export function HelmWheel({ data, game, bindings }: { data: Telemetry; game: Game | null; bindings: Keybindings }) {
+export function HelmWheel({ data, desk, bindings }: { data: Telemetry; desk: FleetDesk | null; bindings: Keybindings }) {
   const wheel = data.helmWheel;
   const nodes = useMemo(() => wheelNodes(data), [data]);
   const maxKm = Math.max(WHEEL_RINGS_KM.at(-1)!, ...nodes.map(n => n.km));
   const [pointer, setPointer] = useState<{ x: number; y: number } | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
-  const current = useRef({ nodes, wheel, game }); current.current = { nodes, wheel, game };
+  const current = useRef({ nodes, wheel, desk }); current.current = { nodes, wheel, desk };
   const highlight = wheel?.highlightId;
   useEffect(() => {
     if (!wheel) return;
@@ -96,7 +96,7 @@ export function HelmWheel({ data, game, bindings }: { data: Telemetry; game: Gam
     const down = (event: PointerEvent) => {
       if (event.button !== 0 || !document.pointerLockElement) return;
       const id = current.current.wheel?.highlightId;
-      if (id) { event.preventDefault(); event.stopImmediatePropagation(); current.current.game?.takeHelm(id); }
+      if (id) { event.preventDefault(); event.stopImmediatePropagation(); current.current.desk?.issue({ kind: 'take-helm', id }); }
     };
     const key = (event: KeyboardEvent) => {
       if (document.querySelector('dialog[open]') || event.altKey || event.metaKey || event.ctrlKey) return;
@@ -106,13 +106,13 @@ export function HelmWheel({ data, game, bindings }: { data: Telemetry; game: Gam
       if (!handled) return;
       event.preventDefault(); event.stopImmediatePropagation();
       if (event.repeat) return;
-      const { nodes, wheel, game } = current.current;
-      if (event.code === 'Escape') { game?.closeHelmWheel(); return; }
-      if (digit) { const node = nodes.find(n => n.key === digit); if (node) game?.takeHelm(node.id); return; }
-      if (event.code === 'Enter') { if (wheel?.highlightId) game?.takeHelm(wheel.highlightId); return; }
+      const { nodes, wheel, desk } = current.current;
+      if (event.code === 'Escape') { desk?.issue({ kind: 'close-helm-wheel' }); return; }
+      if (digit) { const node = nodes.find(n => n.key === digit); if (node) desk?.issue({ kind: 'take-helm', id: node.id }); return; }
+      if (event.code === 'Enter') { if (wheel?.highlightId) desk?.issue({ kind: 'take-helm', id: wheel.highlightId }); return; }
       const index = nodes.findIndex(n => n.id === wheel?.highlightId);
       const next = nodes[(index + arrow + nodes.length) % nodes.length];
-      if (next) { setPointer({ x: next.x, y: next.y }); game?.highlightHelmCandidate(next.id); }
+      if (next) { setPointer({ x: next.x, y: next.y }); desk?.issue({ kind: 'highlight-helm', id: next.id }); }
     };
     window.addEventListener('pointermove', move, true);
     window.addEventListener('pointerdown', down, true);
@@ -121,9 +121,9 @@ export function HelmWheel({ data, game, bindings }: { data: Telemetry; game: Gam
   }, [wheel?.reason]);
   useEffect(() => {
     if (!wheel || !pointer) return;
-    game?.highlightHelmCandidate(nearestNode(nodes, pointer.x, pointer.y)?.id);
+    desk?.issue({ kind: 'highlight-helm', id: nearestNode(nodes, pointer.x, pointer.y)?.id });
   }, [pointer, nodes, wheel?.reason]);
-  if (!wheel || !game) return null;
+  if (!wheel || !desk) return null;
   const sunk = wheel.reason === 'sunk';
   const centreName = data.shipDefinition?.name ?? data.ship.id;
   const holdKey = bindingLabel(bindings, 'helmWheel');
@@ -148,7 +148,7 @@ export function HelmWheel({ data, game, bindings }: { data: Telemetry; game: Gam
       const on = node.id === highlight;
       return <button key={node.id} type="button" className={`helm-wheel-node ${on ? 'on' : ''} ${node.integrity < .45 ? 'critical' : node.integrity < .75 ? 'worn' : ''}`} style={{ left: `${node.x / WHEEL_SIZE * 100}%`, top: `${node.y / WHEEL_SIZE * 100}%` }}
         aria-label={`Take the helm of ${node.name} · ${hp} percent hull · ${node.km.toFixed(1)} km bearing ${String(Math.round(node.bearing)).padStart(3, '0')} · key ${node.key}`} aria-pressed={on}
-        onPointerEnter={() => game.highlightHelmCandidate(node.id)} onClick={event => { event.preventDefault(); game.takeHelm(node.id); }}>
+        onPointerEnter={() => desk.issue({ kind: 'highlight-helm', id: node.id })} onClick={event => { event.preventDefault(); desk.issue({ kind: 'take-helm', id: node.id }); }}>
         <svg viewBox="-13 -13 26 26" aria-hidden="true"><path d={glyph.hull} className="hull"/><path d={glyph.mark} className="mark"/></svg>
         <b>{node.name}<kbd>{node.key}</kbd></b>
         <i><span style={{ width: `${hp}%` }}/></i>

@@ -14,7 +14,7 @@ const seconds: Record<string, number> = {
   'src/game/ShipPoseMatrices.test.ts': 3,
   'src/game/ShipRenderAssemblies.test.ts': 3,
   'src/game/Game.test.ts': 5,
-  'src/game/session/localSnapshotDelta.test.ts': 5,
+  'src/game/session/frameDelta.test.ts': 5,
   'src/game/session/SnapshotSession.test.ts': 3,
   'src/game/ShipView.test.ts': 3,
 };

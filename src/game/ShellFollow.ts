@@ -1,6 +1,5 @@
 import type { Vec3 } from '../ships/blueprint';
-import type { CombatEvent } from '../simulation/combat';
-import type { Shell } from '../simulation/damage';
+import type { CombatEvent, Shell } from '../game/session/elements';
 
 export interface ShellView { position: Vec3; velocity: Vec3; }
 

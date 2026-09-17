@@ -2,7 +2,7 @@ import { Camera, Mesh, Vector3, type Node, type Object3D, type Scene, type WebGP
 import { max } from 'three/tsl';
 import { WaterSurfaceMaterial, type WaterSystem } from '../../vendor/threejs-water-pro/build/index.js';
 import { FleetWakeFoam, WAKE_ATLAS_CAPACITY, type WakeShip } from './FleetWakeFoam';
-import type { CombatEvent } from '../simulation/combat';
+import type { CombatEvent } from '../game/session/elements';
 
 /** Render-side wake configuration; driven by ship motion, independent of the helm. */
 export class ShipWake {

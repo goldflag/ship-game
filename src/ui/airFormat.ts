@@ -1,5 +1,5 @@
 import type { AircraftRole } from '../ships/blueprint';
-import type { FlightSummary } from '../simulation/airTelemetry';
+import type { FlightSummary } from '../game/session/airTelemetry';
 
 /** m:ss for endurance, rearm and ETA readings. */
 export const duration = (seconds: number) => `${Math.floor(Math.max(0, Math.ceil(seconds)) / 60)}:${String(Math.max(0, Math.ceil(seconds)) % 60).padStart(2, '0')}`;

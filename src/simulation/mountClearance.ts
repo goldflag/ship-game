@@ -1,5 +1,5 @@
 import { barrelOffset, barrelHeightOffset, type ShipDefinition, type Vec3 } from '../ships/blueprint';
-import { add, sub, scale, dot, clamp, radians, segmentBox, localToWorld, worldToLocal } from './geometry';
+import { add, sub, scale, dot, clamp, radians, segmentBox, localToWorld, worldToLocal } from '../game/geometry';
 import type { MountDefinition, MountState } from './weapons';
 
 type Pose = Pick<MountState, 'train' | 'elevation'>;

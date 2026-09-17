@@ -3,8 +3,8 @@ import { Color, DirectionalLight, Group, Vector3 } from 'three/webgpu';
 import { Atmosphere, Clouds, Sun, SunDriver, TimeOfDay } from '../../vendor/threejs-sky-pro/build/index.js';
 import { OCEAN_MAPS, oceanMap } from '../maps/catalog';
 import { battleEnvironment, TIME_OF_DAY_PRESETS, WEATHER_PRESETS } from '../maps/conditions';
-import { validateBattleSetup } from '../simulation/battle';
 import { VisualEnvironment } from './VisualEnvironment';
+import { validateBattleSetup } from './session/battleSetup';
 
 /** The Water Pro surface the environment writes to, reduced to its live uniforms. */
 function fakeWater(lighting?: { sun: { direction: { value: Vector3 }; intensity: { value: number }; color: Color }; sunLight: DirectionalLight }) {

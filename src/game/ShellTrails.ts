@@ -1,7 +1,7 @@
 import * as THREE from 'three/webgpu';
 import { attribute, mix, positionLocal, uv, vec3 } from 'three/tsl';
-import type { Shell } from '../simulation/damage';
 import { ExpandableInstances } from './ExpandableInstances';
+import type { Shell } from '../game/session/elements';
 
 const LIFE = 1.25, SAMPLE_INTERVAL = .05, CAPACITY = 1024;
 type Sample = { position: THREE.Vector3; age: number };
@@ -50,7 +50,7 @@ export class ShellTrails {
   update(shells: readonly Shell[], dt: number, camera: THREE.Camera, hidden = false): void {
     for (const trail of this.trails.values()) trail.age += dt;
     for (const shell of shells) {
-      if (shell.bomb || shell.lodged || shell.waterDragPerSecond !== undefined) continue;
+      if (shell.bomb || shell.waterDragPerSecond !== undefined) continue;
       let trail = this.trails.get(shell.id);
       if (!trail || trail.shell !== shell || shell.age < trail.samples.at(-1)!.age) {
         // Only backfill the launch tick; never invent a long straight path when

@@ -6,7 +6,8 @@ export interface LocalConstructionInput {
   expected: Record<string, string>;
   trial: boolean;
 }
-export interface LocalBattleOptions { revisions?: readonly LocalShipRevision[]; trial?: boolean; }
+/** `port`: the session is the port's, never stepped (see `LocalBattleSession.port`). */
+export interface LocalBattleOptions { revisions?: readonly LocalShipRevision[]; trial?: boolean; port?: boolean; }
 export type TrialAction = { kind: 'flood'; actorId: string; compartmentId: string; amount: number }
   | { kind: 'damage'; actorId: string; amount: number }
   | { kind: 'module-damage'; actorId: string; moduleId: string; amount: number };

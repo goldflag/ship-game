@@ -1,9 +1,8 @@
 import { expect, test } from 'bun:test';
 import { ShellFollow } from './ShellFollow';
-import type { Shell } from '../simulation/damage';
-import { type CombatEvent } from '../simulation/combat';
+import type { Shell, CombatEvent } from '../game/session/elements';
 
-const shell = (id: number, ownerId = 'player'): Shell => ({ id, ownerId, position: [0, 100, -500], velocity: [0, -20, -800], age: 1, caliberM: .38, damage: 70, penetrationMm: 400, visited: [] });
+const shell = (id: number, ownerId = 'player'): Shell => ({ id, ownerId, position: [0, 100, -500], velocity: [0, -20, -800], age: 1, caliberM: .38, damage: 70, penetrationMm: 400 });
 
 test('shell follow is opt-in, picks only the latest player shell and keeps that shell through the salvo', () => {
   const follow = new ShellFollow();
@@ -28,7 +27,7 @@ test('impact holds at the authoritative hit, freezes on pause, then waits for a 
   const shot = shell(1), other = shell(2, 'enemy');
   follow.setEnabled(true);
   follow.update([shot, other], [], 'player', .016);
-  const impact: CombatEvent = { kind: 'splash', position: [0, 0, -2000], shell: { id: 1, caliberM: .38, velocity: [0, -80, -800] }, sequence: 4, tick: 120, message: 'Shell splash', shipId: '' };
+  const impact: CombatEvent = { kind: 'splash', position: [0, 0, -2000], shell: { id: 1, caliberM: .38, velocity: [0, -80, -800], type: 'AP' }, sequence: 4, tick: 120, message: 'Shell splash', shipId: '' };
   follow.update([other, shell(3)], [impact], 'player', .016);
   expect(follow.phase).toBe('impact');
   expect(follow.view!.position).toEqual(impact.position);
@@ -61,7 +60,7 @@ test('entry, exit and splash between frames keep the first strike and never resu
   const follow = new ShellFollow(), round = shell(1);
   follow.setEnabled(true);
   follow.update([round], [], 'player', .016);
-  const entry: CombatEvent = { kind: 'penetration', position: [0, 15, -2000], shell: { id: 1, caliberM: .38, velocity: [0, -20, -800] },
+  const entry: CombatEvent = { kind: 'penetration', position: [0, 15, -2000], shell: { id: 1, caliberM: .38, velocity: [0, -20, -800], type: 'AP' },
     sequence: 1, tick: 120, message: 'Penetrated bridge', shipId: 'target' };
   const exit = { ...entry, sequence: 2, position: [0, 14, -2010] as [number, number, number] };
   const splash: CombatEvent = { ...entry, sequence: 3, kind: 'splash', position: [0, 0, -2500], shipId: '' };

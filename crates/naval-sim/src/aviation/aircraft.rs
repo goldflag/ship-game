@@ -30,6 +30,7 @@ pub enum AirOrder {
     },
     Defend {
         #[serde(rename = "targetId")]
+        #[ts(optional = nullable)]
         target_id: Option<String>,
     },
     Intercept {
@@ -85,8 +86,9 @@ pub struct SearchSample {
     #[ts(type = "number")]
     pub tick: u64,
 }
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(optional_fields)]
 pub struct AirFlight {
     pub id: String,
     pub name: String,
@@ -96,15 +98,18 @@ pub struct AirFlight {
     pub notice: Option<String>,
     pub merged_into: Option<String>,
 }
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(optional_fields)]
 pub struct Aircraft {
     pub id: String,
     pub owner_id: String,
     pub team: TeamId,
     pub squadron_id: String,
     pub model_id: String,
+    #[ts(type = "import('../../ships/blueprint').AircraftRole")]
     pub role: String,
+    #[ts(as = "crate::frame_vocabulary::FlightPhase")]
     pub phase: String,
     pub position: Vec3,
     pub previous_position: Vec3,
@@ -127,10 +132,15 @@ pub struct Aircraft {
     pub flight_time: f64,
     pub cooldown: f64,
     pub target_id: Option<String>,
+    /// Absent in a team frame: kills are scored from team reports there.
+    #[ts(as = "Option<_>")]
     pub kills: u32,
     pub controls: crate::aviation::aircraft_flight::FlightControls,
     pub previous_controls: Option<crate::aviation::aircraft_flight::FlightControls>,
     pub previous_attitude: Option<crate::aviation::aircraft_flight::FlightAttitude>,
+    /// Published as the pilot's visible activity alone (see
+    /// [`AircraftBehavior`]); controller state stays private.
+    #[ts(rename = "behavior", as = "Option<AircraftBehavior>")]
     pub pilot: AirPilot,
     pub deck_slot: Option<usize>,
     pub flight_id: Option<String>,
@@ -142,7 +152,7 @@ pub struct Aircraft {
     pub sortie: Option<u32>,
     pub wreck: Option<AirWreck>,
 }
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 pub struct AirWreck {
     pub age: f64,
@@ -176,11 +186,23 @@ pub struct AirPilot {
     #[serde(default, skip_serializing_if = "is_zero")]
     pub search_seconds: f64,
 }
+/// What the frame publishes of a pilot: the notices and manoeuvre a flight
+/// line can show. The presentation filter writes it in the pilot's place
+/// (`presentation::aircraft_behavior`); every other pilot field stays private.
+#[derive(Clone, Debug, Default, Serialize, Deserialize, ts_rs::TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(optional_fields)]
+pub struct AircraftBehavior {
+    pub recovery_notice: Option<String>,
+    pub evasion_notice: Option<String>,
+    pub maneuver: Option<String>,
+}
 fn is_zero(v: &f64) -> bool {
     *v == 0.0
 }
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(optional_fields)]
 pub struct AirWingState {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub recovery: Option<crate::aviation::air_recovery::CarrierRecovery>,
@@ -192,14 +214,19 @@ pub struct AirWingState {
     pub flight_sequence: u32,
     pub transfer_cooldown: f64,
 }
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(optional_fields)]
 pub struct AirRelease {
+    #[ts(type = "number")]
     pub id: i64,
     pub owner_id: String,
     pub position: Vec3,
     pub velocity: Vec3,
     #[serde(skip_serializing_if = "Option::is_none")]
+    /// Another team's weapon is cut to its visible dimensions and speed in a team
+    /// frame (`team_view`); the owner's travels whole.
+    #[ts(type = "Pick<import('../../ships/blueprint').TorpedoPart, 'diameterM' | 'lengthM' | 'speed'> & Partial<import('../../ships/blueprint').TorpedoPart>", optional)]
     pub weapon: Option<crate::definition::TorpedoPart>,
 }
 pub(super) const FIGHTER_AMMO_BURSTS: f64 = 16.0;

@@ -1,5 +1,5 @@
 import type { Vec3 } from '../ships/blueprint';
-import { add, clamp, length, scale, sub } from './geometry';
+import { add, clamp, length, scale, sub } from '../game/geometry';
 
 /** Gameplay calibration: these are burst outcomes, not historical per-bullet rates. */
 export const AIR_GUNNERY = {

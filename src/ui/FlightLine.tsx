@@ -1,11 +1,9 @@
 import { Fragment, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
-import type { Aircraft } from '../simulation/aircraft';
-import { FIGHTER_AMMO_BURSTS } from '../simulation/aircraft';
 import type { DeckServiceAction } from '../game/session/BattleSession';
 import type { DeckPolicy } from '../multiplayer/generated/DeckPolicy';
 import type { SearchAltitude } from '../multiplayer/generated/SearchAltitude';
 import type { SearchPolicy } from '../multiplayer/generated/SearchPolicy';
-import { AIR_STATUS_LABELS, airStatus, type AirWingTelemetry, type FlightSummary } from '../simulation/airTelemetry';
+import { AIR_STATUS_LABELS, airStatus, type AirWingTelemetry, type FlightSummary } from '../game/session/airTelemetry';
 import { assetUrl } from '../assetUrl';
 import { AirGroupService, CarrierDeck } from './CarrierDeck';
 import { actionAvailable, SQUADRON_ACTIONS } from './airCommands';
@@ -15,6 +13,8 @@ import { Icon } from './Icons';
 import { PLANE_GLYPHS } from './planeGlyphs';
 import './AirWingManifest.css';
 import './FlightLine.css';
+import type { Aircraft } from '../game/session/elements';
+import { FIGHTER_AMMO_BURSTS } from '../game/airWing';
 
 export type AirVerb = 'patrol' | 'attack' | 'defend' | 'intercept' | 'escort' | 'return' | 'search';
 export interface FlightLineCarrier { id: string; name: string; hull: number; kn: number; order: string; wing: AirWingTelemetry }

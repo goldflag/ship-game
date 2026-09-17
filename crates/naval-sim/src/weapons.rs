@@ -7,7 +7,7 @@ use crate::{
     mount_frames::{CarrierFrame, mount_bearing, mount_frame, mount_position},
 };
 use serde::{Deserialize, Serialize};
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "lowercase")]
 pub enum Ammunition {
     #[default]
@@ -17,7 +17,7 @@ pub enum Ammunition {
 /// The published mount status. A closed set written only by this module,
 /// `gunnery`, `anti_aircraft` and `capability`; the JSON is byte-identical to
 /// the strings it replaces.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "kebab-case")]
 pub enum MountStatus {
     Ready,
@@ -51,21 +51,25 @@ impl std::fmt::Display for MountStatus {
         f.write_str(self.as_str())
     }
 }
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 pub struct AimCache {
     pub time: f64,
     pub train: f64,
     pub elevation: f64,
+    #[ts(skip)]
     pub point: Vec3,
 }
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(optional_fields)]
 pub struct MountState {
     /// Derived before operation; never accepted from or sent to a client.
     #[serde(skip)]
     pub carrier: Option<CarrierFrame>,
+    #[ts(skip)]
     pub aa_discipline: Option<crate::aviation::FireDiscipline>,
+    #[ts(skip)]
     pub lead_cache: Option<LeadCache>,
     pub id: String,
     pub train: f64,

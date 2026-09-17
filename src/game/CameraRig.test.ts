@@ -1,14 +1,14 @@
 import { afterEach, beforeEach, expect, mock, spyOn, test } from 'bun:test';
 import { PerspectiveCamera, Vector3 } from 'three/webgpu';
-import { createShipState } from '../simulation/ship';
+import { createShipState } from './session/motion';
 import { CameraRig } from './CameraRig';
 import viic from '../../assets/ships/type-viic/blueprint.json';
 import { Game } from './Game';
 import { ShellFollow } from './ShellFollow';
 import { ShellTrails } from './ShellTrails';
-import type { Shell } from '../simulation/damage';
 import { CombatSimulation } from '../simulation/combat';
 import { shipPreset } from '../ships/presets';
+import type { Shell } from '../game/session/elements';
 
 const globals = ['window', 'document'] as const;
 let originals: (PropertyDescriptor | undefined)[];
@@ -327,7 +327,7 @@ test('port zoom stays proportional when switching very small and large hulls', (
 test('the default T shot-follow camera hides shell tracers through orbit and zoom, and ending the follow restores them', () => {
   const { camera, canvas, rig, drag } = interactiveCamera(), follow = new ShellFollow(), trails = new ShellTrails();
   const shot: Shell = { id: 1, ownerId: 'player', position: [0, 300, -1000], velocity: [800, 0, 0], age: 0,
-    caliberM: .38, damage: 70, penetrationMm: 400, visited: [] };
+    caliberM: .38, damage: 70, penetrationMm: 400 };
   try {
     follow.setEnabled(true);
     for (let frame = 0; frame <= 60; frame++) {

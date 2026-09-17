@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { BattleDebrief } from '../game/session/BattleSession';
-import type { BattleOutcome } from '../simulation/battleRules';
+import type { BattleOutcome } from '../game/session/battleRules';
 import { shipPreset } from '../ships/presets';
 import { Button } from './components';
 import './PveResults.css';

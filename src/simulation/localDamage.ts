@@ -1,7 +1,9 @@
 import type { DamageRegion, ShipDefinition, Vec3 } from '../ships/blueprint';
-import type { Combatant } from './damage';
+import type { Combatant } from '../game/session/elements';
 import { HULL_HP_SCALE } from './durability';
-import { contains } from './geometry';
+import { contains } from '../game/geometry';
+import { regionCondition } from '../game/session/damageReadout';
+export { regionCondition } from '../game/session/damageReadout';
 
 export interface RegionState { id: string; hp: number; maximum: number; }
 export interface LocalDamageEvidence { regionId: string; regionName: string; condition: number; multiplier: number; }
@@ -22,10 +24,6 @@ export function damageRegion(def: ShipDefinition, point: Vec3, mountId?: string,
     if (size < volume) { best = r; volume = size; }
   }
   return best;
-}
-export function regionCondition(actor: Combatant, id: string): number {
-  const region = actor.damage.regions.find(r => r.id === id);
-  return region ? region.hp / region.maximum : 1;
 }
 export function localDamageEvidence(actor: Combatant, def: ShipDefinition, point: Vec3, mountId?: string, moduleId?: string): LocalDamageEvidence | undefined {
   const r = damageRegion(def, point, mountId, moduleId);

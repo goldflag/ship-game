@@ -7,8 +7,8 @@ import { Group, Mesh, Raycaster, Vector3 } from 'three/webgpu';
 import { compileShip, type Vec3 } from './blueprint';
 import blueprint from '../../assets/ships/bismarck/blueprint.json';
 import catalog from '../../assets/parts/guns.json';
-import { insideHull } from '../simulation/structure';
-import { plateHit } from '../simulation/protection';
+import { insideHull } from '../game/hullStructure';
+import { plateHit } from '../game/armorPlates';
 
 test('Bismarck transverse armor, including rendered thickness, fits inside the local hull section', () => {
   const def = compileShip(blueprint, catalog), view = new ShipInspection(def);
