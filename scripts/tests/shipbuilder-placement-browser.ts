@@ -154,7 +154,7 @@ export async function checkShipbuilderPlacement() {
     pointer('pointerdown', x, y, 0, 1); pointer('pointermove', x + 40, y + 20, -1, 1); pointer('pointerup', x + 40, y + 20); await frame();
     check(orbit!.target.distanceTo(beforeTopPan) > .1, 'left-drag from empty space pans in an orthographic construction view with Select');
     check(source().construction.primitives.length === startCount && JSON.stringify(source().construction.primitives) === hullBefore, 'orthographic navigation does not place or move a block');
-    await controls.tool('Fill'); await controls.slot(1);
+    await controls.tool('Fill'); await controls.slot(3);
     const beforeFill = source().construction.primitives.length;
     [x, y] = screen([1, 2.5, -4]); const end = screen([3, 2.5, -2]);
     pointer('pointermove', x, y); await frame();

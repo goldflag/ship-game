@@ -176,7 +176,7 @@ The left rail contains Ship designs, New design, Edit design and a scrolling sav
 
 ### Custom battle conditions
 
-The setup dialog's Conditions group contains separate Time of day, Cloud cover and Wind speed sliders. Each uses a muted label, a brass value readout, a full-width native range control with brass accent and a visible focus outline, endpoint labels and one short explanation. Time reads as HH:MM, cloud cover as a percentage and wind in m/s. Reuse the deployment slider's naval styling and the settings column's existing responsive flow. The briefing and loading screen repeat the selected values; keep cloud cover and wind independently adjustable.
+The setup dialog's Conditions group contains separate Time of day, Cloud cover and Wind speed sliders. Each uses a muted label, a brass value readout, a full-width native range control with brass accent, endpoint labels and one short explanation. Time reads as HH:MM, cloud cover as a percentage and wind in m/s. Reuse the deployment slider's naval styling and the settings column's existing responsive flow. The briefing and loading screen repeat the selected values; keep cloud cover and wind independently adjustable.
 
 ### Battle landscapes
 
@@ -186,7 +186,9 @@ Treat these as authored game environments, with no claim of geographic accuracy 
 
 ### Commands and navigation
 
-Set sail is a solid brass command. Secondary actions use transparent or maritime fills and fine borders. Selected model views use a brass underline; selected Fleet action battery controls use mint borders and keycaps. Buttons expose visible focus rings; Fleet action uses a mint 2 px outline with 3 px offset. Engine orders, camera, chart range, pause, fullscreen and HUD visibility remain functional. The native pause dialog contains focus; hidden instruments are inert. Reduced-motion preference removes interface transitions and the port entrance animation.
+Set sail is a solid brass command. Secondary actions use transparent or maritime fills and fine borders. Selected model views use a brass underline; selected Fleet action battery controls use mint borders and keycaps. Engine orders, camera, chart range, pause, fullscreen and HUD visibility remain functional. The native pause dialog contains focus; hidden instruments are inert. Reduced-motion preference removes interface transitions and the port entrance animation.
+
+**The App Focus Rule.** At the owner's request, the shared app stylesheet suppresses CSS focus outlines across the game and standalone Shipbuilder while retaining focus and keyboard activation. Keyboard-focused buttons, links and summary controls use an underline with a 3 px offset. This replaces the earlier game focus-ring guidance; tools that do not load the shared app stylesheet retain their own styling.
 
 ### Sailing aim and binoculars
 

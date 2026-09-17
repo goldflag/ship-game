@@ -378,7 +378,7 @@ class Viewport {
           if (points.length) this.hull.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(points), new THREE.LineBasicMaterial({ color: '#142a31', transparent: true, opacity: .4 })));
         }
       } else for (const primitive of props.scene.source.construction.primitives) {
-        const mesh = new THREE.Mesh(primitiveGeometry(primitive.kind, primitive.size, primitive.vertices, primitive.customHull, primitive.shaping), new THREE.MeshStandardMaterial({ color: invalid.has(primitive.id) ? SALMON : constructionPaintColor('naval-gray'), roughness: .78, side: THREE.DoubleSide, transparent: props.scene.display !== 'paint', opacity: props.scene.display !== 'paint' ? .12 : 1, depthWrite: props.scene.display === 'paint' }));
+        const mesh = new THREE.Mesh(primitiveGeometry(primitive.kind, primitive.size, primitive.vertices, primitive.customHull, primitive.shaping, primitive.balcony), new THREE.MeshStandardMaterial({ color: invalid.has(primitive.id) ? SALMON : constructionPaintColor('naval-gray'), roughness: .78, side: THREE.DoubleSide, transparent: props.scene.display !== 'paint', opacity: props.scene.display !== 'paint' ? .12 : 1, depthWrite: props.scene.display === 'paint' }));
         mesh.position.set(...primitive.position); mesh.rotation.y = primitive.rotationDeg * Math.PI / 180;
         mesh.userData.sourceId = primitive.id; this.hull.add(mesh); this.pickMeshes.push(mesh); this.hullMeshes.push(mesh);
       }
@@ -506,7 +506,7 @@ class Viewport {
     const map=new Map(replacements.map(p=>[p.id,p]));
     for(const original of this.props.scene.source.construction.primitives) {
       const p=map.get(original.id)??original;
-      const geometry=primitiveGeometry(p.kind,p.size,p.vertices,p.customHull,p.shaping);
+      const geometry=primitiveGeometry(p.kind,p.size,p.vertices,p.customHull,p.shaping,p.balcony);
       const mesh=new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({color:constructionPaintColor('naval-gray'),roughness:.78,side:THREE.DoubleSide}));
       mesh.position.set(...p.position);mesh.rotation.y=p.rotationDeg*Math.PI/180;this.vertexPreview.add(mesh);
       if(map.has(p.id)) {const edges=new THREE.LineSegments(new THREE.EdgesGeometry(geometry),new THREE.LineBasicMaterial({color:BRASS_LIGHT}));edges.position.copy(mesh.position);edges.rotation.copy(mesh.rotation);this.vertexPreview.add(edges);}
@@ -590,18 +590,21 @@ class Viewport {
   }
 
   private clearSnap() { this.snapGuides = []; this.snapLatched = []; this.snapContext = ''; this.workingPoint = undefined; this.nearCenterline = false; }
-  private projectSnap = (point: Vec3): [number, number] | undefined => {
+  private projectSnap = (point: Vec3, width = this.host.clientWidth, height = this.host.clientHeight): [number, number] | undefined => {
     const p = new THREE.Vector3(...point).project(this.camera);
-    return p.z >= -1 && p.z <= 1 ? [(p.x + 1) * this.host.clientWidth / 2, (1 - p.y) * this.host.clientHeight / 2] : undefined;
+    return p.z >= -1 && p.z <= 1 ? [(p.x + 1) * width / 2, (1 - p.y) * height / 2] : undefined;
   };
   private resolveSnapping(context: string, raw: Vec3, grid: Vec3, directions: Vec3[], moving: SnapFeature[], excluded: Set<string>): Vec3 {
     if (context !== this.snapContext) { this.snapContext = context; this.snapLatched = []; }
+    // Read layout once per pointer sample, not once per geometry projection.
+    const width = this.host.clientWidth, height = this.host.clientHeight;
+    const project = (point: Vec3) => this.projectSnap(point, width, height);
     const result = resolveSnap({ raw, grid, directions, moving, targets: this.snapFeatures.filter(f => !excluded.has(f.owner)),
-      settings: this.props.scene.snapping ?? DEFAULT_SNAPPING, project: this.projectSnap, previous: this.snapLatched });
+      settings: this.props.scene.snapping ?? DEFAULT_SNAPPING, project, previous: this.snapLatched });
     this.snapGuides = result.guides; this.snapLatched = result.latched;
     this.nearCenterline = moving.some(feature => {
       if (feature.kind !== 'center') return false;
-      const point = add(feature.point, raw), a = this.projectSnap(point), b = this.projectSnap([0, point[1], point[2]]);
+      const point = add(feature.point, raw), a = project(point), b = project([0, point[1], point[2]]);
       return !!a && !!b && Math.hypot(a[0] - b[0], a[1] - b[1]) <= 14;
     });
     this.workingPoint = add(moving[0]?.point ?? [0, 0, 0], result.delta);
@@ -963,7 +966,7 @@ class Viewport {
     for (const id of [...ids, ...partners]) {
       const primitive = primitives.find(part => part.id === id);
       if (primitive) {
-        const geometry = primitiveGeometry(primitive.kind, primitive.size, primitive.vertices, primitive.customHull, primitive.shaping);
+        const geometry = primitiveGeometry(primitive.kind, primitive.size, primitive.vertices, primitive.customHull, primitive.shaping, primitive.balcony);
         const fill = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ color: BRASS, transparent: true, opacity: .22, depthWrite: false }));
         const edges = new THREE.LineSegments(primitiveOutlineGeometry(primitive), new THREE.LineBasicMaterial({ color: BRASS_LIGHT, depthTest: false }));
         for (const object of [fill, edges]) { object.position.set(...primitive.position); object.rotation.y = primitive.rotationDeg * Math.PI / 180; object.renderOrder = 20; this.movePreview.add(object); }

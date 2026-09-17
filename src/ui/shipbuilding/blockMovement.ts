@@ -3,6 +3,7 @@ import type { ConstructionPrimitive, ConstructionSource, Vec3 } from '../../ship
 import type { BuilderPlacement } from './builderScene';
 import { customHullPrimitive, makeHull } from '../../ships/customHullModel';
 import { mirroredPrimitive } from '../../ships/constructionEditor';
+import { defaultBalcony } from '../../ships/constructionBalcony';
 
 export const OVERLAP_PREVIEW_NOTICE = 'Leave 10% outside; keep ballast separate.';
 export const OVERLAP_NOTICE = 'Keep at least 10% of each hull block outside the others. Ballast blocks cannot overlap.';
@@ -38,6 +39,7 @@ export function placementBlocks(piece: Extract<BuilderPlacement, { kind: 'hull' 
   const blocks: ConstructionPrimitive[] = [];
   for (const position of points) {
     const p: ConstructionPrimitive = { id: newId(), kind: piece.shape, size: [...piece.size], position: [...position], rotationDeg: piece.rotationDeg,
+      ...(piece.shape === 'balcony' ? { balcony: defaultBalcony() } : {}),
       ...(piece.shape === 'custom-hull' ? { customHull: customHullPrimitive(makeHull(0)).customHull } : {}) };
     blocks.push(p);
     if (mirror && Math.abs(position[0]) > 1e-6) blocks.push({ ...mirroredPrimitive(p), id: newId() });

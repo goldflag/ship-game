@@ -49,7 +49,7 @@ rim edges without drawing every curve facet.
 
 | Layer | Rail | Hotbar |
 | --- | --- | --- |
-| Hull | Select V · Place B · Fill F · Erase E · Measure T | Cube, Slab, Bar, Wedge, Slope, Long slope, Corner out, Corner in, Freeform hull; searchable drawer with Plate, curves, open shells, bridge blocks/panels, breakwater and 100 t ballast |
+| Hull | Select V · Place B · Fill F · Erase E · Measure T | Freeform hull, Balcony, Cube, Slab, Bar, Wedge, Slope, Long slope, Corner out; searchable drawer with Corner in, Plate, curves, open shells, bridge blocks/panels, breakwater and 100 t ballast |
 | Armor | Select V · Paint B · Area A · Eyedrop I · Opening O | Armor (the millimetre field above the bar), Opening |
 | Internals | Select V · Deck D · Bulkhead B · Split L · Merge J · Module U · Suggest G | Deck, Bulkhead, Split, Merge, then the internal packages of the catalog |
 | Fittings | Select V · Place B · Rotate R · Suggest G | Deck and underwater parts of the catalog on eight shelves with a nation filter, drawer with search |
@@ -187,6 +187,17 @@ The helpers are Vite modules for browser evaluation. The review surface is indep
 
 ## Freeform hull editing
 
+`BalconyEditor.tsx` provides the separate plan-outline editor for `kind: "balcony"`.
+Its optional version-1 `balcony` record contains stable point IDs, normalized X/Z
+coordinates, outgoing edge treatments, edge height and wall thickness. Size Y is
+deck thickness. `constructionBalcony.ts` supplies preview geometry and outline
+validation; `construction_balcony.rs` derives the authoritative solid cells,
+surfaces and steel mass. The existing source commands own save, history and copy.
+The panel commits one command per completed point drag and discards interrupted
+drags. New balconies start at 2 × 1 m with solid walls. The outline grid defaults
+to 0.25 m, with no grid, 0.125, 0.25, 0.5 and 1 m buttons using the shared grid-spacing group; point editing uses the
+drawing rather than coordinate fields. See [balcony controls](../../../docs/shipbuilding.md#balconies).
+
 Hull selection tags and the Freeform rail button enter the eight-corner editor for a single box or freeform hull. `FreeformToolbar.tsx` owns Vertex/Edge/Face selection, local mirror axes, selection position/center entry, Move step (also G), nearby-corner matching and the Split popover. `FreeformShapeTools.tsx` adds reversible round/chamfer edge sets on one block. `freeformShape.ts` supplies preview geometry and mirrored edge selection; `construction_freeform.rs` owns native solid generation and validation. The ordinary palette, placement mirror and hotkey readout yield space during the session.
 
 `FreeformHandles.ts` owns source face/edge picking, screen-sized focusable handles, affected-component highlights and a local-axis movement gizmo. The center/component handle drags in the camera-facing local plane. Axis handles constrain explicitly; arrow keys nudge the focused axis. It uses the active orthographic or perspective camera and previews detached primitive replacements. Pointer release commits one source command. Cancellation never writes history, storage or neighboring hulls.
@@ -217,10 +228,15 @@ bounds; coplanar triangle seams are excluded. Placement, paths, face drags and m
 handles share the resolver. Geometry beats grid per axis, respects constrained movement, and
 retains acquired targets until the larger release radius. Collision rejection clears snap feedback.
 Exact coordinates pass through the tool without a second rounding operation.
+Projection caches live for one resolver call, including repeated alignment coordinates
+on rail and post faces; the viewport reads its dimensions once per pointer sample.
+Candidates retain their original order and IDs, and nearest-edge projection is deferred
+until a candidate can win. Detailed geometry remains available for precise snapping.
 
 See [snapping controls](../../../docs/shipbuilding.md) for keyboard, visibility and centering behavior.
 
 `snapping.test.ts` covers target precedence, screen-space thresholds, hysteresis, constrained
-axes, support seating and guide independence. `checkSnapping()` from
+axes, support seating, guide independence and a deterministic projection-work budget
+for dragging detailed balconies. `checkSnapping()` from
 `scripts/tests/shipbuilder-snapping-browser.ts`, run on the diagnostic page, checks the
 production controls, precision, undo, live Alt overrides and freeform cancellation.

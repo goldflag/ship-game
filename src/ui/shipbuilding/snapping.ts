@@ -3,6 +3,7 @@ import type { ConstructionCatalog, ConstructionEquipmentPart, ConstructionPrimit
 import { cornerVertices, VERTEX_FACES, worldVertex } from '../../ships/constructionVertex';
 import { customHullFaces, customHullPrimitive, makeHull } from '../../ships/customHullModel';
 import { CONSTRUCTION_SHAPES } from '../../ships/constructionShapes';
+import { balconyFaces } from '../../ships/constructionBalcony';
 import { attachmentOffset, rotateY } from './placement';
 import { add, sub, mul, dot, cross, shapedFaces } from '../../ships/freeformShape';
 
@@ -29,7 +30,7 @@ export function wallFrameSnapFeatures(id: string, position: Vec3, bearing: numbe
 /** Authoring edges only: no gun mesh triangles, barrel bounds or render dependencies. */
 export function primitiveSnapFeatures(p: ConstructionPrimitive): SnapFeature[] {
   const actual = p.kind === 'custom-hull' && !p.customHull ? { ...customHullPrimitive(makeHull(0)), ...p } : p;
-  const faces: Vec3[][] = actual.kind === 'custom-hull' ? customHullFaces(actual).map(f => f.vertices.map(v => add(p.position, rotateY(v, p.rotationDeg * Math.PI / 180))))
+  const faces: Vec3[][] = p.kind === 'balcony' ? balconyFaces(p.size, p.balcony).map(f => f.map(v => add(p.position, rotateY(v, p.rotationDeg * Math.PI / 180)))) : actual.kind === 'custom-hull' ? customHullFaces(actual).map(f => f.vertices.map(v => add(p.position, rotateY(v, p.rotationDeg * Math.PI / 180))))
     : p.shaping ? shapedFaces(p).map(f => f.points.map(v => add(p.position, rotateY(v, p.rotationDeg * Math.PI / 180))))
     : p.kind === 'vertex' ? VERTEX_FACES.map(f => f.corners.map(i => worldVertex(p, cornerVertices(p)[i])))
     : CONSTRUCTION_SHAPES[p.kind].map(f => f.map(v => worldVertex(p, v)));
@@ -83,7 +84,14 @@ export function resolveSnap(input: {
   raw: Vec3; grid: Vec3; directions: Vec3[]; moving: SnapFeature[]; targets: SnapFeature[];
   settings: SnapSettings; project: ProjectSnap; previous?: readonly string[];
 }): { delta: Vec3; guides: SnapGuide[]; latched: string[] } {
-  const { raw, grid, directions, moving, targets, settings: s, project } = input;
+  const { raw, grid, directions, moving, targets, settings: s } = input;
+  // Scoped to one pointer sample: neither camera changes nor source edits can
+  // leave stale projections. Fixed corners/endpoints are shared by many pairs.
+  const projected = new Map<Vec3, ReturnType<ProjectSnap>>();
+  const project: ProjectSnap = point => {
+    if (!projected.has(point)) projected.set(point, input.project(point));
+    return projected.get(point);
+  };
   const screen = moving.map(f => project(add(f.point, raw))).filter((p): p is [number, number] => !!p);
   const low = [Math.min(...screen.map(p => p[0])) - 112, Math.min(...screen.map(p => p[1])) - 112];
   const high = [Math.max(...screen.map(p => p[0])) + 112, Math.max(...screen.map(p => p[1])) + 112];
@@ -96,35 +104,56 @@ export function resolveSnap(input: {
   for (let d = 0; d < directions.length; d++) {
     const direction = directions[d];
     let best: { guide: SnapGuide; correction: number; score: number } | undefined;
-    const consider = (feature: SnapFeature, target: Vec3, id: string, axis: number, edge?: [Vec3, Vec3], centerline = false) => {
-      if (Math.abs(direction[axis]) < 1e-5) return;
-      // Already resolved axes must stay aligned even for rotated local movement.
-      if (guides.some(g => g.active && Math.abs(direction[g.axis]) > 1e-5)) return;
-      const point = add(feature.point, delta), correction = (target[axis] - point[axis]) / direction[axis];
-      const aligned = add(point, mul(direction, correction)), a = project(point), b = project(aligned), t = project(target);
-      if (!a || !b || !t) return;
-      const unit = project(add(point, direction));
-      if (!unit || distance(a, unit) < .01) return; // Axis points into the camera.
-      if (!centerline && distance(b, t) > 96) return;
-      const pixels = distance(a, b), key = `${d}|${feature.id}|${id}|${axis}`, held = input.previous?.includes(key);
-      if (pixels > (held ? 14 : 12)) return;
-      const active = s.enabled && pixels <= (held ? 14 : 8);
-      const score = pixels - (held && active ? 8 : 0) - (centerline ? 1 : 0);
-      if (best && (Number(best.guide.active) > Number(active) || best.guide.active === active && best.score <= score)) return;
-      best = { correction, score, guide: { id: key, axis, movingId: feature.id, from: active ? aligned : point, to: target, edge, centerline, active } };
-    };
+    // Already resolved axes must stay aligned even for rotated local movement.
+    const blocked = guides.some(g => g.active && Math.abs(direction[g.axis]) > 1e-5);
+    const axes = [0, 1, 2].filter(axis => Math.abs(direction[axis]) >= 1e-5);
+    const candidates = nearby.map(target => {
+      const targetAxes = axes.filter(axis => !target.edge || Math.abs(target.edge[0][axis] - target.edge[1][axis]) <= 1e-6);
+      return { target, axes: targetAxes, lazyEdge: !!target.edge && targetAxes.every(axis => target.edge![0][axis] === target.edge![1][axis]) };
+    }).filter(candidate => candidate.axes.length);
     for (const feature of moving) {
+      if (blocked) break;
       const point = add(feature.point, delta);
-      if (s.centerline && feature.kind === 'center') consider(feature, [0, point[1], point[2]], 'centerline', 0, undefined, true);
+      const a = project(point), unit = project(add(point, direction));
+      if (!a || !unit || distance(a, unit) < .01) continue;
+      // Rail/post faces share axis coordinates. Reuse their exact alignment
+      // projection, but retain every feature ID and its original tie order.
+      const alignments = axes.map(() => new Map<number, { correction: number; aligned: Vec3; screen: ReturnType<ProjectSnap>; pixels: number }>());
+      // Decode the few held IDs once, not a long corner/edge string per pair.
+      const prefix = `${d}|${feature.id}|`;
+      const heldTargets = axes.map(axis => new Set((input.previous ?? []).filter(id => id.startsWith(prefix) && id.endsWith(`|${axis}`)).map(id => id.slice(prefix.length, -2))));
+      const consider = (target: Vec3, id: string, axis: number, edge?: [Vec3, Vec3], centerline = false, lazyEdge = false) => {
+        const axisIndex = axes.indexOf(axis); if (axisIndex < 0) return;
+        const cache = alignments[axisIndex], coordinate = target[axis];
+        let alignment = cache.get(coordinate);
+        if (!alignment) {
+          const correction = (coordinate - point[axis]) / direction[axis], aligned = add(point, mul(direction, correction));
+          const screen = input.project(aligned);
+          alignment = { correction, aligned, screen, pixels: screen ? distance(a, screen) : Infinity }; cache.set(coordinate, alignment);
+        }
+        const { correction, aligned, screen: b, pixels } = alignment;
+        if (!b || pixels > 14) return;
+        const held = heldTargets[axisIndex].has(id);
+        if (pixels > (held ? 14 : 12)) return;
+        const active = s.enabled && pixels <= (held ? 14 : 8);
+        const score = pixels - (held && active ? 8 : 0) - (centerline ? 1 : 0);
+        if (best && (Number(best.guide.active) > Number(active) || best.guide.active === active && best.score <= score)) return;
+        // An axis-aligned edge has a constant coordinate on the snap axis.
+        // Find its nearest point only when the alignment could actually win.
+        const destination = lazyEdge && edge ? closest(point, edge) : target;
+        const t = project(destination);
+        if (!t || !centerline && distance(b, t) > 96) return;
+        best = { correction, score, guide: { id: `${prefix}${id}|${axis}`, axis, movingId: feature.id, from: active ? aligned : point, to: destination, edge, centerline, active } };
+      };
+      if (s.centerline && feature.kind === 'center') consider([0, point[1], point[2]], 'centerline', 0, undefined, true);
       if (!s.geometry) continue;
-      for (const target of nearby) {
+      for (const { target, axes: targetAxes, lazyEdge } of candidates) {
         if (feature.wallFrame && target.wallFrame && (feature.kind === 'center') !== (target.kind === 'center')) continue;
-        const position = target.edge ? closest(point, target.edge) : target.point;
         // Mounting centers also reach physical edges; hull corners never align to abstract centers.
         if (target.kind === 'center' && feature.kind !== 'center') continue;
-        for (let axis = 0; axis < 3; axis++) {
-          if (target.edge && Math.abs(target.edge[0][axis] - target.edge[1][axis]) > 1e-6) continue;
-          consider(feature, position, target.id, axis, target.edge);
+        const position = target.edge ? lazyEdge ? target.edge[0] : closest(point, target.edge) : target.point;
+        for (const axis of targetAxes) {
+          consider(position, target.id, axis, target.edge, false, lazyEdge);
         }
       }
     }

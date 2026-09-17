@@ -24,13 +24,12 @@ html, body { overscroll-behavior: none; }
   user-select: text;
   -webkit-touch-callout: default;
 }
-/* Game-wide policy also overrides component-specific focus rings. Keep native
+/* App-wide policy also covers standalone editors and component-specific rings. Keep native
    focus and keyboard activation, without outlining instruments or map regions. */
-.game-shell :focus, .game-shell :has(> :focus-visible) { outline: none !important; }
-.game-shell :is(button, a, summary):focus-visible { text-decoration: underline; text-underline-offset: 3px; }
+:focus, :has(> :focus-visible) { outline: none !important; }
+:is(button, a, summary):focus-visible { text-decoration: underline; text-underline-offset: 3px; }
 button, select { font: inherit; }
 button { cursor: pointer; color: inherit; }
-button:focus-visible, select:focus-visible, canvas:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 button { -webkit-tap-highlight-color: transparent; }
 button svg { flex-shrink: 0; }
 button:disabled { opacity: .4; cursor: default; }

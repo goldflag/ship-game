@@ -1,4 +1,5 @@
 import type { ConstructionFreeformShape, ConstructionPrimitive, Vec3 } from './blueprint';
+import { balconyFaces } from './constructionBalcony';
 import { CORNER_SIGNS, VERTEX_EDGES, VERTEX_FACES, cornerVertices, sampleVertex, type MirrorAxes } from './constructionVertex';
 
 export const emptyShaping = (): ConstructionFreeformShape => ({ version: 1, edges: [], radius: 0, style: 'round' });
@@ -79,5 +80,11 @@ export function mirroredIndices(mode:'edge'|'face',indices:number[],axes:MirrorA
 }
 /** Source bounds follow the treated, deformed surface. */
 export function envelopeVertices(p:ConstructionPrimitive):Vec3[] {
+  if (p.kind === 'balcony') {
+    const faces = balconyFaces(p.size, p.balcony);
+    if (faces.length) return faces.flatMap(f => f.map(v => v.map((n, k) => n / p.size[k]) as Vec3));
+    // Crossed drafts still need finite bounds and selectable outline handles.
+    return (p.balcony?.points ?? []).flatMap(v => [[v.x, -.5, v.z], [v.x, .5, v.z]] as Vec3[]);
+  }
   return p.shaping ? shapedFaces(p).flatMap(f=>f.points.map(v=>v.map((n,k)=>n/p.size[k]) as Vec3)) : cornerVertices(p);
 }

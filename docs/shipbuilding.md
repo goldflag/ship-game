@@ -509,9 +509,32 @@ actual cell intersection. Suggestions are bounded searches and can explain a
 fit failure without finding every feasible arrangement. Initial service and
 ammunition loading is fixed; expenditure does not recalculate dry mass.
 
+### Balconies
+
+Choose **Hull → Balcony** (palette slot 2) for a 2 × 1 m platform with solid walls.
+Place it against a hull or superstructure, then use the normal XYZ fields, move
+handles or Page Up / Page Down to position it at any height. A detached platform
+can be saved, but needs physical contact before Sea Trials.
+
+Select the block and choose **Edit balcony outline**. Drag numbered points in the
+plan drawing or use arrow keys on a focused point. The outline grid defaults to
+**0.25 m**, with **No grid**, **0.125 m**, **0.25 m**, **0.5 m** and **1 m** choices.
+Dragging and arrow keys use the chosen step; without a grid, dragging is free
+and arrow keys move 0.1 m. **Add point** splits the selected outgoing edge; **Remove point**
+joins its neighbors. Outlines allow 3–32 points, including concave shapes.
+Crossed outlines remain editable drafts and block launch until corrected.
+
+Click an edge and choose **Open**, **Railing** or **Solid wall**. All edges start
+as solid walls; edge height and wall thickness are shared within the block. The middle
+block dimension is **Deck thickness**. Railings have posts and two rails.
+Every completed edit supports Undo/Redo; Escape, right-click or losing pointer
+capture cancels an active point drag. Copy/mirror and source save/reopen preserve
+the points and edge choices. Native compilation accounts for solid platform and
+edge steel without creating an enclosed room between the rails.
+
 ### Freeform hulls
 
-Select one cube or freeform hull in the Hull layer and choose **Freeform** (or **Freeform hull** on its selection tag). Palette slot 9 supplies a 4 m Freeform hull. Adjustable hull profiles are not part of this editor.
+Select one cube or freeform hull in the Hull layer and choose **Freeform** (or **Freeform hull** on its selection tag). Palette slot 1 supplies a 4 m Freeform hull. Adjustable hull profiles are not part of this editor.
 
 Choose **Vertex**, **Edge** or **Face** to move one corner, an edge's two corners or a face's four corners. The eight corners, twelve edges and six named faces keep fixed topology. Click a handle, edge or face to select it; the selection menu also reaches obscured components. Edge and face movement preserves the selected component's shape. Numeric coordinates show a vertex's position or an edge/face center in metric local block coordinates; editing the center translates the selection, without flattening it.
 

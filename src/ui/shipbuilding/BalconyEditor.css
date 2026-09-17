@@ -1,0 +1,32 @@
+.shipbuilder[data-balcony-editing] .sb-move-handles { display: none; }
+.sb-balcony { position: absolute; z-index: 6; left: 100px; top: 78px; width: 334px; max-height: calc(100% - var(--sb-bar-height) - 94px); overflow: auto; padding: 16px; background: var(--sb-ground); border: 1px solid var(--sb-line2); border-radius: 3px; scrollbar-color: var(--sb-line2) var(--sb-ground); }
+.sb-balcony header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.sb-balcony h2 { margin: 0; font: 500 22px/1.2 'Barlow Condensed', sans-serif; }
+.sb-balcony p { color: var(--sb-muted); font-size: 12px; }
+.sb-balcony > svg { display: block; width: 100%; aspect-ratio: 1; margin: 10px 0; touch-action: none; }
+.sb-balcony svg text { fill: var(--sb-muted); font: 500 11px 'Barlow', sans-serif; pointer-events: none; }
+.sb-balcony-axis { fill: none; stroke: var(--sb-line); stroke-width: 1; }
+.sb-balcony-grid { fill: none; stroke: var(--sb-line); stroke-width: .5; pointer-events: none; }
+.sb-balcony-grid-control { display: flex; flex-direction: column; gap: 5px; margin-top: 12px; color: var(--sb-muted); }
+.sb-balcony-deck { fill: var(--sb-card-toggle); stroke: none; }
+.sb-balcony-edge { stroke: var(--sb-muted); stroke-width: 2; }
+.sb-balcony-edge.open { stroke-dasharray: 4 4; }
+.sb-balcony-edge.railing { stroke-width: 3; }
+.sb-balcony-edge.wall { stroke-width: 6; }
+.sb-balcony-edge.selected { stroke: var(--sb-brass); }
+.sb-balcony-hit { stroke: transparent; stroke-width: 18; cursor: pointer; }
+.sb-balcony-point { fill: var(--sb-ground); stroke: var(--sb-mint); stroke-width: 2; cursor: grab; }
+.sb-balcony-point.selected { fill: var(--sb-brass); stroke: var(--sb-brass); }
+.sb-balcony-point:hover { fill: var(--sb-mint); }
+.sb-balcony-fields { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 12px 0; }
+.sb-balcony-actions, .sb-balcony-edges { display: flex; gap: 8px; }
+.shipbuilder .sb-balcony-actions button, .shipbuilder .sb-balcony-edges button { padding: 8px; border: 1px solid var(--sb-line2); border-radius: 3px; }
+.sb-balcony button:hover:not(:disabled) { background: var(--sb-card-hover); }
+.shipbuilder .sb-balcony-edges button[aria-pressed=true] { color: var(--sb-mint); background: var(--sb-card-toggle); border-color: var(--sb-mint); }
+.sb-balcony fieldset { padding: 0; margin: 18px 0 12px; border: 0; }
+.sb-balcony legend { margin-bottom: 8px; color: var(--sb-text); }
+.sb-balcony .sb-balcony-error { color: var(--sb-salmon); }
+@media (max-width: 740px) {
+  .sb-balcony { left: 72px; top: 108px; width: min(300px, calc(100% - 84px)); max-height: calc(100% - var(--sb-bar-height) - 122px); padding: 12px; }
+  .sb-balcony-actions { flex-wrap: wrap; }
+}

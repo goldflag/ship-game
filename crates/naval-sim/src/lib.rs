@@ -8,6 +8,7 @@ pub mod construction_shapes;
 pub mod construction;
 mod construction_vertex;
 mod construction_custom_hull;
+mod construction_balcony;
 mod construction_installation;
 mod construction_services;
 mod construction_paths;

@@ -16,7 +16,7 @@ export const MPS_TO_KNOTS = 1.943844;
 export function hullBounds(source: ConstructionSource): { min: [number, number, number]; max: [number, number, number] } | undefined {
   const min: [number, number, number] = [Infinity, Infinity, Infinity], max: [number, number, number] = [-Infinity, -Infinity, -Infinity];
   for (const primitive of source.construction.primitives) {
-    if (primitive.kind === 'vertex' || primitive.kind === 'custom-hull') {
+    if (primitive.kind === 'vertex' || primitive.kind === 'custom-hull' || primitive.kind === 'balcony') {
       for (const v of envelopeVertices(primitive)) worldVertex(primitive,v).forEach((n,k)=>{ min[k]=Math.min(min[k],n);max[k]=Math.max(max[k],n); });
       continue;
     }
@@ -137,6 +137,7 @@ export function pieceMassKg(result: ConstructionResult | undefined, primitiveId:
   let mass = 0, found = false;
   for (const item of result.loading.contributions) {
     if (item.kind !== 'skin') continue;
+    if (item.id === `skin-${primitiveId}-platform`) { mass += item.massKg; found = true; continue; }
     const surface = surfaces[Number(item.id.slice(item.id.lastIndexOf('-') + 1))];
     if (surface?.primitiveId === primitiveId) { mass += item.massKg; found = true; }
   }

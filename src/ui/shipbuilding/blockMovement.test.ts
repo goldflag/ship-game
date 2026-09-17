@@ -1,12 +1,21 @@
 import { beforeAll, expect, test } from 'bun:test';
 import init from '../../generated/naval-wasm/naval_wasm';
 import type { ConstructionPrimitive, ConstructionSource, Vec3 } from '../../ships/blueprint';
-import { blockMoveConstraint, blockPlacementAllowed } from './blockMovement';
+import { blockMoveConstraint, blockPlacementAllowed, placementBlocks } from './blockMovement';
 beforeAll(async () => { await init({ module_or_path: await Bun.file(new URL('../../generated/naval-wasm/naval_wasm_bg.wasm', import.meta.url)).arrayBuffer() }); });
 const block = (id: string, position: Vec3, size: Vec3 = [2, 2, 2], rotationDeg = 0): ConstructionPrimitive => ({ id, kind: 'box', position, size, rotationDeg });
 const source = (primitives: ConstructionPrimitive[]) => ({ construction: { primitives } } as ConstructionSource);
 const move = (primitives: ConstructionPrimitive[], delta: Vec3, ids = ['a']) => blockMoveConstraint(source(primitives), new Set(ids))(delta);
 const near = (actual: Vec3, expected: Vec3) => actual.forEach((v,k) => expect(v).toBeCloseTo(expected[k], 5));
+
+test('balcony placement previews and mirrored commits carry valid outline data', () => {
+  let id = 0;
+  const pieces = placementBlocks({ kind: 'hull', shape: 'balcony', size: [2, .08, 1], rotationDeg: 0 }, [[2, 1.04, 0]], true, () => `balcony-${id++}`);
+  expect(pieces).toHaveLength(2);
+  expect(pieces.every(p => p.balcony?.points.length === 4 && p.balcony.points.every(point => point.edge === 'wall'))).toBe(true);
+  expect(pieces[1].position).toEqual([-2, 1.04, 0]);
+  expect(blockPlacementAllowed(source([block('hull', [0, 0, 0], [10, 2, 10])]), pieces)).toBe(true);
+});
 
 test('90% overlap is allowed, and fast movement stops before complete burial', () => {
   const parts = [block('a',[0,0,0]),block('b',[5,0,0])];

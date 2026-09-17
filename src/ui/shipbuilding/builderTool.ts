@@ -15,7 +15,6 @@ import { appendPathPoint, pathEquipment } from './pathDrawing';
 import { mirrorTwin, mirrorTwinEquipment, offCenterline } from './placement';
 import { blockMoveConstraint, blockPlacementAllowed, placementBlocks, OVERLAP_NOTICE } from './blockMovement';
 import { internalSelectionIds } from './internalSelection';
-import { customHullPrimitive, makeHull } from '../../ships/customHullModel';
 import { normalizedBearing } from './editorNumbers';
 import type { BuilderArc, BuilderDisplay, BuilderGesture, BuilderMoveTargets, BuilderPick, BuilderPlacement, BuilderPointerEvent, BuilderProposal, BuilderScene, BuilderView } from './builderScene';
 import type { ArmorScale } from '../../ships/inspection';

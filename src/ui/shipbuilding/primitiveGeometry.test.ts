@@ -8,6 +8,7 @@ import { primitiveGeometry, primitiveOutlineGeometry } from './primitiveGeometry
 import { CONSTRUCTION_SHAPES } from '../../ships/constructionShapes';
 import { mirroredPrimitive, decodeConstructionSource, copyConstructionSelection } from '../../ships/constructionEditor';
 import { HULL_SHAPES } from './builderLayers';
+import { defaultBalcony } from '../../ships/constructionBalcony';
 import { placementCenter } from './placement';
 
 beforeAll(async () => { await init({ module_or_path: await Bun.file(new URL('../../generated/naval-wasm/naval_wasm_bg.wasm', import.meta.url)).arrayBuffer() }); });
@@ -84,6 +85,7 @@ test.each(HULL_SHAPES)('$name has physical deck contact when placed at its defau
   source.construction.primitives = [{ id: 'deck', kind: 'box', size: shape.kind === 'custom-hull' ? [80, 2, 80] : [30, 2, 30], position: [0, 0, 0], rotationDeg: 0 }];
   const position = placementCenter({ kind: 'hull', shape: shape.kind, size: shape.size, rotationDeg: 0 }, { point: [3, 1, 3], normal: [0, 1, 0] }, 1);
   source.construction.primitives.push({ id: 'added', kind: shape.kind, size: shape.size, position, rotationDeg: 0,
+    ...(shape.kind === 'balcony' ? { balcony: defaultBalcony() } : {}),
     ...(shape.kind === 'custom-hull' ? { customHull: createStarterSource(catalog, 'patrol-hull').construction.primitives[0].customHull } : {}) });
   const result = JSON.parse(compile_construction(JSON.stringify(source), JSON.stringify(catalog))) as ConstructionResult;
   expect(result.definition, JSON.stringify(result.diagnostics)).toBeDefined();

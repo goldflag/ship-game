@@ -1,6 +1,7 @@
 import { wallMount } from '../../ships/constructionWallFittings';
 import { automaticPropellerLabel, propellerEngineName } from './propellerAssignment';
 import { SnapControls } from './SnapControls';
+import { BalconyEditor } from './BalconyEditor';
 import { CONSTRUCTION_PAINTS } from '../../ships/constructionPaints';
 import { integrateConstructionMagazines } from '../../ships/constructionArmament';
 import { FreeformToolbar } from './FreeformToolbar';
@@ -127,6 +128,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const [memoryOpen, setMemoryOpen] = useState(false);
   const [visualMemory, setVisualMemory] = useState<VisualMemory>();
   const [customHullSession, setCustomHullSession] = useState<{ designId: string; primitive: ConstructionPrimitive }>();
+  const [balconySession, setBalconySession] = useState<string>();
   const [newDesignOpen, setNewDesignOpen] = useState(false);
   const [tip, setTip] = useState<{ title: string; detail: string; x: number; y: number; key?: string; below?: boolean; right?: number; beside?: boolean }>();
   const tooltipRef = useRef<HTMLDivElement>(null);
@@ -285,9 +287,10 @@ export function Shipbuilder(props: ShipbuilderProps) {
     const size = (axis: number, value: number) => { const next = structuredClone(primitive); next.size[axis] = value; run('Resize hull piece', [{ op: 'primitive', value: next }]); };
     const move = (axis: number, value: number) => { const delta: Vec3 = [0, 0, 0]; delta[axis] = value - primitive.position[axis]; tool.nudge(delta); };
     tags.push({ key: `piece-${primitive.id}`, anchor: primitive.position, dx: 70, dy: -78, tone: 'mint', content: <>
-      <b>{SHAPE_NAMES[primitive.kind]} <NumberField value={primitive.size[0]} min={.25} max={500} onChange={value => size(0, value)}/> × <NumberField value={primitive.size[1]} min={.25} max={500} onChange={value => size(1, value)}/> × <NumberField value={primitive.size[2]} min={.25} max={500} onChange={value => size(2, value)}/> m</b>
+      <b>{SHAPE_NAMES[primitive.kind]} <NumberField value={primitive.size[0]} min={.25} max={500} onChange={value => size(0, value)}/> × <NumberField label={primitive.kind === 'balcony' ? 'Deck thickness' : undefined} value={primitive.size[1]} min={primitive.kind === 'balcony' ? .01 : .25} max={500} step={primitive.kind === 'balcony' ? .01 : 1} onChange={value => size(1, value)}/> × <NumberField value={primitive.size[2]} min={.25} max={500} onChange={value => size(2, value)}/> m</b>
       {canEditVertices(primitive) && <button className="sb-edit-freeform" onClick={enterFreeform}>Freeform hull</button>}
       {primitive.kind === 'custom-hull' && <button className="sb-edit-freeform" onClick={() => setCustomHullSession({ designId: source.id, primitive: structuredClone(primitive) })}>Edit hull sections</button>}
+      {primitive.kind === 'balcony' && <button className="sb-edit-freeform" onClick={() => setBalconySession(primitive.id)}>Edit balcony outline</button>}
       {mass !== undefined ? `plating ${formatTonnes(mass)} · ` : ''}<NumberField label="x" digits={6} value={primitive.position[0]} min={-1000} max={1000} step={gridStep} onChange={value => move(0, value)}/> <NumberField label="y" digits={6} value={primitive.position[1]} min={-1000} max={1000} step={gridStep} onChange={value => move(1, value)}/> <NumberField label="z" digits={6} value={primitive.position[2]} min={-1000} max={1000} step={gridStep} onChange={value => move(2, value)}/> · {primitive.rotationDeg}° <kbd>R</kbd> · <kbd>⌫</kbd> remove · <kbd>⌘C</kbd> copy
     </> });
   } else if (selectedEquipment.length === 1 && !selectedPrimitives.length) {
@@ -418,7 +421,9 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const viewBar = <ViewBar viewName={VIEW_NAMES[view]} perspective={perspective} showCenters={showCenters} showArcs={layer === 'fittings' ? showArcs : undefined}
       onView={tool.cycleView} onProjection={tool.toggleProjection} onCenters={tool.toggleCenters} onArcs={tool.toggleArcs} onFit={tool.fit}
       onTip={entry => { if (!entry) { setTip(undefined); return; } const rect = entry.target.getBoundingClientRect(), strip = (entry.target.closest('.sb-viewbar') ?? entry.target).getBoundingClientRect(); setTip({ title: entry.title, detail: entry.detail, key: entry.key, x: strip.right + 10, y: rect.top + rect.height / 2, beside: true }); }}/>;
-  return <main className={`shipbuilder ${freeformMode ? 'sb-freeform-mode' : ''}`} aria-label="Shipbuilder" data-wall-placement={piece?.kind === 'equipment' && !!piece.wall || undefined} data-path-drawing={!!pathPart || undefined} data-layer={layer} data-drawer={drawer || undefined} aria-busy={!!busy}>
+  const balconyEditing = layer === 'hull' && selectedPrimitives.length === 1 && selectedPrimitives[0].kind === 'balcony' && selectedPrimitives[0].id === balconySession;
+  return <main className={`shipbuilder ${freeformMode ? 'sb-freeform-mode' : ''}`} aria-label="Shipbuilder" data-balcony-editing={balconyEditing || undefined} data-wall-placement={piece?.kind === 'equipment' && !!piece.wall || undefined} data-path-drawing={!!pathPart || undefined} data-layer={layer} data-drawer={drawer || undefined} aria-busy={!!busy}>
+    {balconyEditing && <BalconyEditor key={`${source.id}:${balconySession}`} primitive={selectedPrimitives[0]} onChange={value => run('Edit balcony', [{ op: 'primitive', value }])} onClose={() => setBalconySession(undefined)} />}
     {newDesignOpen && <NewDesignDialog onClose={() => setNewDesignOpen(false)} onCreate={newDesign}/>}
     {customHullSession?.designId === source.id && createPortal(<CustomHullEditor integration={{ hull: editableCustomHull(customHullSession.primitive), onClose: () => setCustomHullSession(undefined), onApply: hull => {
       const existing = data.primitives.find(part => part.id === customHullSession.primitive.id);
