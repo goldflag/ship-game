@@ -540,3 +540,43 @@ fn fitting_paint_roundtrips_and_changes_visual_identity_without_changing_loading
     source.construction.equipment[0].paint = Some(String::new());
     rejected(&source, &catalog, "equipment-paint");
 }
+
+#[test]
+fn internal_planes_do_not_collide_with_exterior_fittings() {
+    for (axis, offset) in [("x", 0.), ("y", 0.), ("z", 5.)] {
+        let (mut source, mut catalog) = fixture();
+        let mut fitting = part("outside");
+        let position = if axis == "y" {
+            // Side fitting straddles the deck plane outside the starboard skin.
+            fitting.bounds_center = [0.5, 0., 0.];
+            fitting.center_of_gravity = fitting.bounds_center;
+            fitting.sockets.as_mut().unwrap()[0].direction = [-1., 0., 0.];
+            [5., 0., 0.]
+        } else {
+            // Top fitting straddles the split/bulkhead plane above the deck.
+            [0., 2., 5.]
+        };
+        catalog.equipment.push(fitting);
+        source.construction.equipment.push(fixed("outside", position));
+        source.construction.boundaries.push(ConstructionBoundary {
+            id: "inside".into(), axis: axis.into(), offset, thickness_mm: 10.,
+        });
+        compiled(&source, &catalog);
+    }
+}
+
+#[test]
+fn internal_planes_still_reject_real_machinery_intersections() {
+    let (mut source, mut catalog) = fixture();
+    let mut engine = part("engine");
+    engine.kind = "engine".into();
+    engine.placement = "internal".into();
+    engine.power_kw = Some(1000.);
+    catalog.equipment.push(engine);
+    source.construction.equipment.push(fixed("engine", [0., -1., 0.]));
+    compiled(&source, &catalog);
+    source.construction.boundaries.push(ConstructionBoundary {
+        id: "through-engine".into(), axis: "x".into(), offset: 0., thickness_mm: 10.,
+    });
+    rejected(&source, &catalog, "equipment-fit");
+}

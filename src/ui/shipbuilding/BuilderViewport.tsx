@@ -1,3 +1,4 @@
+import { boundaryGeometry } from './boundaryGeometry';
 import { envelopeVertices } from '../../ships/freeformShape';
 import { paintedHullFace } from '../../ships/constructionHullPaint';
 import { surfaceOutline } from './surfaceOutline';
@@ -45,7 +46,7 @@ interface RotationDrag { ids: string[]; degrees: number; travelDegrees: number; 
 /** A primary drag that began on a piece: the pieces it carries, the plane it slides in and the snapped offset so far. */
 interface MoveDrag { ids: string[]; plane: THREE.Plane; origin: THREE.Vector3; free: [boolean, boolean, boolean]; step: number; delta: Vec3; built: boolean; constrain(delta: Vec3): Vec3 }
 
-const BRASS = '#e0c58d', BRASS_LIGHT = '#efd5a0', MINT = '#86e4c5', READY = '#94d9bf', SALMON = '#ffb5a6', IVORY = '#edf1ec', ROOM = '#9cc3ff';
+const BRASS = '#e0c58d', BRASS_LIGHT = '#efd5a0', MINT = '#86e4c5', READY = '#94d9bf', SALMON = '#ffb5a6', IVORY = '#edf1ec';
 const LEADER: Record<BuilderTag['tone'], string> = { mint: MINT, brass: BRASS, bad: SALMON };
 
 function release(object: THREE.Object3D) {
@@ -373,15 +374,9 @@ class Viewport {
       }
     }
     for (const wall of props.scene.source.construction.boundaries) {
-      const size: Vec3 = [this.hullSize.x + 2, this.hullSize.y + 2, this.hullSize.z + 2]; const axis = { x: 0, y: 1, z: 2 }[wall.axis]; size[axis] = Math.max(.04, wall.thicknessMm / 1000);
-      const box = new THREE.Mesh(new THREE.BoxGeometry(...size), new THREE.MeshBasicMaterial({ color: invalid.has(wall.id) ? SALMON : BRASS, transparent: true, opacity: invalid.has(wall.id) ? .5 : props.scene.selected.has(wall.id) ? .3 : .09, depthWrite: false }));
-      box.position.copy(this.controls.target); box.position.setComponent(axis, wall.offset); box.userData.sourceId = wall.id; box.visible = invalid.has(wall.id) || props.scene.display === 'internals' || props.scene.selected.has(wall.id); this.details.add(box); if (box.visible) this.pickMeshes.push(box);
-    }
-    if (props.scene.rooms) for (const room of props.scene.result?.definition?.compartments ?? []) {
-      const geometry = new THREE.BoxGeometry(...room.size);
-      const fill = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ color: ROOM, transparent: true, opacity: .09, depthWrite: false }));
-      const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geometry), new THREE.LineBasicMaterial({ color: ROOM, transparent: true, opacity: .4 }));
-      fill.position.set(...room.center); edges.position.set(...room.center); this.details.add(fill, edges);
+      const geometry = boundaryGeometry(props.scene.source.construction.primitives, wall.axis, wall.offset);
+      const plane = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ color: invalid.has(wall.id) ? SALMON : BRASS, transparent: true, opacity: invalid.has(wall.id) ? .5 : props.scene.selected.has(wall.id) ? .3 : .09, depthWrite: false, side: THREE.DoubleSide }));
+      plane.userData.sourceId = wall.id; plane.visible = invalid.has(wall.id) || props.scene.display === 'internals' || props.scene.selected.has(wall.id); this.details.add(plane); if (plane.visible) this.pickMeshes.push(plane);
     }
     const outlinedHulls = new Set<string>();
     if (nativeSurfaces) for (const primitive of props.scene.source.construction.primitives) {
@@ -457,7 +452,9 @@ class Viewport {
     const mirror = rotation?.position && originalMirror?.kind === 'equipment' ? { ...originalMirror, bearingDeg: normalizedBearing(originalMirror.bearingDeg - rotation.degrees) } : originalMirror;
     // Bearing changes transform the cached preview; they do not rebuild its meshes.
     const shape = (item?: BuilderPlacement) => item?.kind === 'equipment' ? { ...item, bearingDeg: 0 } : item;
-    const key = JSON.stringify([shape(piece), shape(mirror), this.hullSize.toArray().map(Math.round)]);
+    const pick = rotation?.position ? { placement: rotation.position } : this.hover ? this.pick(this.hover, 'hull') : undefined;
+    const offset = piece?.kind === 'boundary' && pick ? pick.placement[{ x: 0, y: 1, z: 2 }[piece.axis]] : undefined;
+    const key = JSON.stringify([shape(piece), shape(mirror), piece?.kind === 'boundary' ? [this.props.scene.source.revision, offset] : undefined]);
     if (key !== this.ghostKey) {
       this.strokeKey = ''; this.strokePreview.clear();
       this.ghostKey = key; release(this.ghost); release(this.ghostMirror); release(this.ghostArc);
@@ -465,8 +462,8 @@ class Viewport {
         const build = (item: BuilderPlacement, group: THREE.Group, opacity: number) => {
           const equipment = item.kind === 'equipment' && item.partId ? this.equipment.clone(item.partId, true) : undefined;
           if (equipment) { group.add(equipment); group.rotation.y = placementRotation(item); return; }
-          const geometry = placementGeometry(item, item.kind === 'boundary' ? [this.hullSize.x + 2, this.hullSize.y + 2, this.hullSize.z + 2] : undefined);
-          const fill = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ color: BRASS, transparent: true, opacity, depthWrite: false, depthTest: item.kind === 'boundary' }));
+          const geometry = item.kind === 'boundary' ? boundaryGeometry(this.props.scene.source.construction.primitives, item.axis, offset ?? NaN) : placementGeometry(item);
+          const fill = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ color: BRASS, transparent: true, opacity, depthWrite: false, depthTest: item.kind === 'boundary', side: THREE.DoubleSide }));
           const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geometry), new THREE.LineBasicMaterial({ color: BRASS_LIGHT, depthTest: false, transparent: true, opacity: opacity * 3.6 }));
           fill.renderOrder = 20; edges.renderOrder = 21; group.add(fill, edges); group.rotation.y = placementRotation(item);
         };
@@ -478,16 +475,13 @@ class Viewport {
     if (piece) this.ghost.rotation.y = placementRotation(piece);
     if (mirror) this.ghostMirror.rotation.y = placementRotation(mirror);
     this.ghostArc.rotation.y = piece?.kind === 'equipment' ? -piece.bearingDeg * Math.PI / 180 : 0;
-    const pick = rotation?.position ? { placement: rotation.position } : this.hover ? this.pick(this.hover, 'hull') : undefined;
     const visible = !!piece && !!pick && (!!rotation?.position || !this.navigating());
     this.ghost.visible = visible;
     if (!visible) { this.ghostMirror.visible = false; this.ghostArc.visible = false; this.ghostPosition = undefined; return; }
     const position = [...pick!.placement] as Vec3;
-    if (piece!.kind === 'boundary') {
-      const axis = { x: 0, y: 1, z: 2 }[piece!.axis];
-      for (let index = 0; index < 3; index++) if (index !== axis) position[index] = this.controls.target.getComponent(index);
-    }
-    this.ghostPosition = pick!.placement; this.ghost.position.set(...position);
+    this.ghostPosition = pick!.placement;
+    // Boundary geometry is already in ship coordinates, independent of orbit target.
+    this.ghost.position.set(...(piece!.kind === 'boundary' ? [0, 0, 0] as Vec3 : position));
     this.ghostMirror.visible = !!this.props.scene.placementMirror && Math.abs(position[0]) > 1e-6;
     if (this.ghostMirror.visible) this.ghostMirror.position.set(-position[0], position[1], position[2]);
     this.ghostArc.visible = this.ghostArc.children.length > 0;
@@ -782,7 +776,7 @@ class Viewport {
         if (!delta) { this.finishMove(); return; }
         this.moveOffset = delta; this.moveBlocked = !!blocked;
         if (!this.movePreview.children.length) this.buildMovePreview(ids);
-        this.movePreview.position.set(...delta); this.movePreview.visible = delta.some(v => v !== 0);
+        this.positionMovePreview(delta); this.movePreview.visible = delta.some(v => v !== 0);
       },
       commit: delta => props.onPointer({ kind: 'move', ids, delta }),
     });
@@ -811,12 +805,27 @@ class Viewport {
       }
       const wall = boundaries.find(entry => entry.id === id);
       if (wall) {
-        const size: Vec3 = [this.hullSize.x + 2, this.hullSize.y + 2, this.hullSize.z + 2]; const axis = { x: 0, y: 1, z: 2 }[wall.axis]; size[axis] = Math.max(.04, wall.thicknessMm / 1000);
-        const box = new THREE.Mesh(new THREE.BoxGeometry(...size), new THREE.MeshBasicMaterial({ color: BRASS, transparent: true, opacity: .25, depthWrite: false }));
-        box.position.copy(this.controls.target); box.position.setComponent(axis, wall.offset); this.movePreview.add(box);
+        const plane = new THREE.Mesh(boundaryGeometry(primitives, wall.axis, wall.offset), new THREE.MeshBasicMaterial({ color: BRASS, transparent: true, opacity: .25, depthWrite: false, side: THREE.DoubleSide }));
+        plane.userData.boundary = wall; plane.userData.offset = wall.offset; this.movePreview.add(plane);
       }
     }
     this.movePreview.position.set(0, 0, 0); this.applyClip();
+  }
+
+  private positionMovePreview(delta: Vec3) {
+    this.movePreview.position.set(...delta);
+    for (const child of this.movePreview.children) {
+      const wall = child.userData.boundary;
+      if (!wall || !(child instanceof THREE.Mesh)) continue;
+      const offset = wall.offset + delta[{ x: 0, y: 1, z: 2 }[wall.axis as 'x' | 'y' | 'z']];
+      if (offset !== child.userData.offset) {
+        child.geometry.dispose();
+        child.geometry = boundaryGeometry(this.props.scene.source.construction.primitives, wall.axis, offset);
+        child.userData.offset = offset;
+      }
+      // Only the normal offset moves a boundary, including in mixed selections.
+      child.position.set(-delta[0], -delta[1], -delta[2]);
+    }
   }
 
   private updateMove(event: { clientX: number; clientY: number }) {
@@ -832,7 +841,7 @@ class Viewport {
       move.delta = move.constrain(requested);
       this.moveBlocked = move.delta.some((v, k) => Math.abs(v - requested[k]) > 1e-7);
     }
-    this.movePreview.position.set(...move.delta); this.movePreview.visible = true;
+    this.positionMovePreview(move.delta); this.movePreview.visible = true;
   }
 
   private finishMove() { release(this.movePreview); this.movePreview.visible = false; this.moveOffset = undefined; this.moveBlocked = false; this.renderer.domElement.style.cursor = ''; }

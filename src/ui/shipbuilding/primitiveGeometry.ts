@@ -51,12 +51,10 @@ export function primitiveGeometry(kind: ConstructionPrimitive['kind'], size: Vec
 export type { BuilderPlacement } from './builderScene';
 import type { BuilderPlacement } from './builderScene';
 
-/** Boundaries preview as a plane spanning the ship's bounds. */
-export function placementGeometry(piece: BuilderPlacement, span: Vec3 = [60, 60, 60]): THREE.BufferGeometry {
+/** Hull and equipment ghosts; internal planes use hull-clipped boundaryGeometry. */
+export function placementGeometry(piece: Exclude<BuilderPlacement, { kind: 'boundary' }>): THREE.BufferGeometry {
   if (piece.kind === 'hull') return primitiveGeometry(piece.shape, piece.size);
-  if (piece.kind === 'equipment') return new THREE.BoxGeometry(...piece.size).translate(...piece.boundsCenter);
-  const size: Vec3 = [...span]; size[{ x: 0, y: 1, z: 2 }[piece.axis]] = Math.max(.04, piece.thicknessMm / 1000);
-  return new THREE.BoxGeometry(...size);
+  return new THREE.BoxGeometry(...piece.size).translate(...piece.boundsCenter);
 }
 
 export function placementRotation(piece: BuilderPlacement): number {
