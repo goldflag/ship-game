@@ -65,7 +65,11 @@ fn every_retained_gun_has_a_magazine_and_can_be_raised_without_lifting_ammunitio
                 .unwrap()
                 .clone()
         };
-        assert!((0..3).all(|i| (mag(&normal).center[i] - mag(&raised).center[i]).abs() < 1e-9), "{}", part.id);
+        assert!(
+            (0..3).all(|i| (mag(&normal).center[i] - mag(&raised).center[i]).abs() < 1e-9),
+            "{}",
+            part.id
+        );
         assert!(mag(&raised).center[1] + mag(&raised).size[1] / 2. < 8.);
         assert_eq!(
             raised.mounts[0].magazine_id.as_ref(),
@@ -142,6 +146,211 @@ fn torpedo_banks_carry_their_own_ready_ammunition_and_retain_rotation() {
                 .contributions
                 .iter()
                 .any(|m| m.id == format!("{id}-ammunition"))
+        );
+    }
+}
+
+#[test]
+fn invalid_drafts_keep_barbettes_and_close_square_deck_cutout_corners() {
+    let (source, catalog) = fixture();
+    let part = catalog
+        .equipment
+        .iter()
+        .find(|p| p.id == "us-5in38-mk30-mod0-single")
+        .unwrap();
+    let attachment = part
+        .sockets
+        .iter()
+        .flatten()
+        .find(|s| s.id == "attachment")
+        .map_or(0., |s| s.position[1]);
+    let weapon = catalog
+        .weapons
+        .parts
+        .iter()
+        .find(|w| Some(&w.id) == part.gun_part_id.as_ref())
+        .unwrap();
+    for rise in [0., 3.] {
+        let mut source = source.clone();
+        source.construction.equipment.push(ConstructionEquipment {
+            id: "turret".into(),
+            part_id: part.id.clone(),
+            position: [0., 8. - attachment + rise, 0.],
+            gun: Some(ConstructionEquipmentGun {
+                barbette_height_m: Some(rise),
+                ..Default::default()
+            }),
+            ..Default::default()
+        });
+        let valid = construction::compile(&source, &catalog);
+        assert!(valid.definition.is_some(), "{:?}", valid.diagnostics);
+        let support = |result: &ConstructionResult| {
+            result
+                .surfaces
+                .iter()
+                .filter(|s| s.primitive_id == "equipment:turret")
+                .cloned()
+                .collect::<Vec<_>>()
+        };
+        let expected = support(&valid);
+        assert!(!expected.is_empty());
+        for fault in ["load-fit", "boundary", "equipment-fit"] {
+            let mut draft = source.clone();
+            match fault {
+                "load-fit" => draft.construction.loads.push(ConstructionLoad {
+                    id: "bad-load".into(),
+                    name: "Outside hull".into(),
+                    center: [100., 0., 0.],
+                    size: [1.; 3],
+                    mass_kg: 100.,
+                }),
+                "boundary" => draft.construction.boundaries.push(ConstructionBoundary {
+                    id: "bad-wall".into(),
+                    axis: "z".into(),
+                    offset: 100.,
+                    thickness_mm: 10.,
+                }),
+                _ => draft.construction.equipment[0].position[0] = 11.9,
+            }
+            let preview = construction::compile(&draft, &catalog);
+            assert!(
+                preview.definition.is_none(),
+                "Invalid draft must still block trials"
+            );
+            assert!(
+                preview.diagnostics.iter().any(|d| d.code == fault),
+                "{:?}",
+                preview.diagnostics
+            );
+            let mut actual = support(&preview);
+            assert!(
+                !actual.is_empty(),
+                "{fault}: missing turret support at rise {rise}"
+            );
+            if fault == "equipment-fit" {
+                for surface in &mut actual {
+                    for vertex in &mut surface.vertices {
+                        vertex[0] -= 11.9;
+                    }
+                }
+                assert!(actual.iter().any(|s| s.face == "installation-outer"
+                    && s.vertices.iter().any(|v| v[1] > 8. + rise - 0.1)));
+            } else {
+                assert_eq!(
+                    serde_json::to_value(&actual).unwrap(),
+                    serde_json::to_value(&expected).unwrap(),
+                    "An unrelated error must not change turret geometry"
+                );
+            }
+            // A square cut's diagonal corners lie outside the round barbette.
+            // Every corner must still have a deck-height collar polygon beneath it.
+            for x in [-1., 1.] {
+                for z in [-1., 1.] {
+                    let point = [
+                        x * weapon.barbette_radius * 0.95,
+                        z * weapon.barbette_radius * 0.95,
+                    ];
+                    assert!(
+                        actual.iter().any(|s| s.face == "installation-top"
+                            && s.vertices.iter().all(|v| (v[1] - 8.).abs() < 1e-6)
+                            && {
+                                let crosses: Vec<_> = s
+                                    .vertices
+                                    .iter()
+                                    .zip(s.vertices.iter().cycle().skip(1))
+                                    .map(|(a, b)| {
+                                        (b[0] - a[0]) * (point[1] - a[2])
+                                            - (b[2] - a[2]) * (point[0] - a[0])
+                                    })
+                                    .collect();
+                                crosses.iter().all(|c| *c >= -1e-8)
+                                    || crosses.iter().all(|c| *c <= 1e-8)
+                            }),
+                        "{fault}: open square corner at {point:?}, rise {rise}"
+                    );
+                }
+            }
+        }
+    }
+}
+
+#[test]
+fn gun_magazines_fit_above_curved_bottom_plating_across_their_whole_footprint() {
+    let (mut source, catalog) = fixture();
+    let hull = &mut source.construction.primitives[0];
+    hull.kind = "custom-hull".into();
+    hull.size = [40., 24., 100.];
+    hull.custom_hull = Some(ConstructionCustomHull {
+        version: 1.,
+        rake: 0.,
+        bulb: 0.,
+        stations: (0..4)
+            .map(|i| {
+                let t = i as f64 / 3.;
+                let keel = -0.52 + 0.1 * (t - 0.5).powi(2);
+                ConstructionHullStation {
+                    id: format!("section-{i}"),
+                    t,
+                    points: vec![
+                        [-1., 0.45],
+                        [-0.96, 0.1],
+                        [-0.7, keel + 0.15],
+                        [-0.36, keel + 0.02],
+                        [0., keel],
+                        [0.36, keel + 0.02],
+                        [0.7, keel + 0.15],
+                        [0.96, 0.1],
+                        [1., 0.45],
+                    ]
+                    .into_iter()
+                    .map(|[x, y]| ConstructionHullPoint { x, y })
+                    .collect(),
+                }
+            })
+            .collect(),
+    });
+    for part in catalog.equipment.iter().filter(|p| p.kind == "gun") {
+        let mut draft = source.clone();
+        let attachment = part
+            .sockets
+            .iter()
+            .flatten()
+            .find(|s| s.id == "attachment")
+            .map_or(0., |s| s.position[1]);
+        draft.construction.equipment = vec![ConstructionEquipment {
+            id: "gun".into(),
+            part_id: part.id.clone(),
+            position: [0., 24. * 0.45 - attachment, 0.],
+            bearing_deg: 37.,
+            ..Default::default()
+        }];
+        let normal = construction::compile(&draft, &catalog);
+        let normal = normal
+            .definition
+            .unwrap_or_else(|| panic!("{} on curved hull: {:?}", part.id, normal.diagnostics));
+        let magazine = normal
+            .modules
+            .iter()
+            .find(|m| m.kind == "magazine")
+            .unwrap();
+        draft.construction.equipment[0].position[1] += 3.;
+        draft.construction.equipment[0].gun = Some(ConstructionEquipmentGun {
+            barbette_height_m: Some(3.),
+            ..Default::default()
+        });
+        let raised = construction::compile(&draft, &catalog);
+        let raised = raised
+            .definition
+            .unwrap_or_else(|| panic!("raised {}: {:?}", part.id, raised.diagnostics));
+        let raised_magazine = raised
+            .modules
+            .iter()
+            .find(|m| m.kind == "magazine")
+            .unwrap();
+        assert!(
+            (magazine.center[1] - raised_magazine.center[1]).abs() < 1e-8,
+            "{} magazine moved",
+            part.id
         );
     }
 }

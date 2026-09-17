@@ -64,11 +64,14 @@ pub fn spaces(
     }
     if c.version >= 2. {
         let deck = e.position[1] + attachment(p) - raise;
-        if let Some(floor) = floor_below(hull, e.position[0], e.position[2], deck) {
-            for space in &mut spaces {
+        for space in &mut spaces {
+            if let Some(floor) =
+                floor_under_space(hull, e, space, deck, c.default_thickness_mm / 1000.)
+            {
                 let old_low = space.center[1] - space.size[1] / 2.;
-                // Extend down to the inner bottom, but never shorten the part's minimum well.
-                let low = old_low.min(floor + c.default_thickness_mm / 1000. - e.position[1]);
+                // Keep the entire magazine/well above the inner bottom, including
+                // the rising bilges beneath its corners. Preserve minimum depth.
+                let low = old_low.min(floor - e.position[1]);
                 space.center[1] -= (old_low - low) / 2.;
                 space.size[1] += old_low - low;
             }
@@ -76,11 +79,65 @@ pub fn spaces(
     }
     spaces
 }
+/// The lowest horizontal floor that clears the bottom under the whole footprint.
+/// A polyhedral bottom can change slope inside the well, so inspect the clipped
+/// facet vertices as well as the corners rather than just the center column.
+fn floor_under_space(
+    hull: &[cg::Cell],
+    e: &ConstructionEquipment,
+    space: &ConstructionEquipmentPartOccupancyItem,
+    deck: f64,
+    skin: f64,
+) -> Option<f64> {
+    let footprint = cg::transform(
+        &cg::box_cell(
+            [space.center[0], 0., space.center[2]],
+            [space.size[0], 1., space.size[2]],
+        ),
+        [e.position[0], 0., e.position[2]],
+        [1.; 3],
+        -e.bearing_deg.to_radians(),
+    );
+    let sides: Vec<_> = footprint
+        .faces
+        .iter()
+        .filter_map(|f| {
+            let n = cg::normal(&f.vertices);
+            (n[1].abs() < 1e-8).then(|| (n, dot(n, f.vertices[0])))
+        })
+        .collect();
+    let mut points: Vec<_> = footprint
+        .faces
+        .iter()
+        .flat_map(|f| f.vertices.iter().map(|v| [v[0], v[2]]))
+        .collect();
+    points.push([e.position[0], e.position[2]]);
+    for face in hull.iter().flat_map(|c| c.faces.iter()) {
+        if cg::normal(&face.vertices)[1] >= -1e-8 {
+            continue;
+        }
+        let mut patch = face.vertices.clone();
+        for &(normal, distance) in &sides {
+            patch = cg::clip_polygon(&patch, normal, distance);
+            if patch.len() < 3 {
+                break;
+            }
+        }
+        points.extend(patch.iter().map(|v| [v[0], v[2]]));
+    }
+    points.sort_by(|a, b| a[0].total_cmp(&b[0]).then(a[1].total_cmp(&b[1])));
+    points.dedup_by(|a, b| (a[0] - b[0]).abs() < 1e-8 && (a[1] - b[1]).abs() < 1e-8);
+    points
+        .into_iter()
+        .filter_map(|[x, z]| floor_below(hull, x, z, deck, skin))
+        .max_by(f64::total_cmp)
+}
 /// Follow the connected vertical hull column down from the supporting deck.
-fn floor_below(hull: &[cg::Cell], x: f64, z: f64, deck: f64) -> Option<f64> {
+fn floor_below(hull: &[cg::Cell], x: f64, z: f64, deck: f64, skin: f64) -> Option<f64> {
     let mut intervals = vec![];
     for cell in hull {
         let (mut low, mut high) = (f64::NEG_INFINITY, f64::INFINITY);
+        let mut inner_low = f64::NEG_INFINITY;
         let mut inside = true;
         for face in cell.faces.iter() {
             let n = cg::normal(&face.vertices);
@@ -94,17 +151,18 @@ fn floor_below(hull: &[cg::Cell], x: f64, z: f64, deck: f64) -> Option<f64> {
                 high = high.min(d / n[1]);
             } else {
                 low = low.max(d / n[1]);
+                inner_low = inner_low.max((d - skin) / n[1]);
             }
         }
         if inside && low <= high {
-            intervals.push((low, high));
+            intervals.push((low, high, inner_low));
         }
     }
     let mut floor = deck;
     let mut found = false;
     loop {
         let before = floor;
-        for &(low, high) in &intervals {
+        for &(low, high, _) in &intervals {
             if low <= floor + 1e-6 && high >= floor - 0.05 {
                 floor = floor.min(low);
                 found = true;
@@ -114,7 +172,16 @@ fn floor_below(hull: &[cg::Cell], x: f64, z: f64, deck: f64) -> Option<f64> {
             break;
         }
     }
-    found.then_some(floor)
+    if !found {
+        return None;
+    }
+    // Offset only the terminal bottom planes. Insetting all convex cells before
+    // following the column would introduce false gaps at decomposition seams.
+    intervals
+        .iter()
+        .filter(|(low, high, _)| *low <= floor + 1e-7 && *high >= floor - 1e-7)
+        .map(|(_, _, inner_low)| *inner_low)
+        .min_by(f64::total_cmp)
 }
 pub fn attachment(p: &ConstructionEquipmentPart) -> f64 {
     p.sockets
@@ -233,7 +300,8 @@ pub fn derive(
             if cg::area(&vertices) <= 1e-10 {
                 return;
             }
-            surfaces.push(ConstructionSurface { panel_id: None,
+            surfaces.push(ConstructionSurface {
+                panel_id: None,
                 id: format!("equipment:{}:{}:{}", e.id, face, surfaces.len()),
                 primitive_id: format!("equipment:{}", e.id),
                 face: face.into(),

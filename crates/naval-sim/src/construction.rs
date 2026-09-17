@@ -333,10 +333,14 @@ pub fn compile(source: &ConstructionSource, catalog: &ConstructionCatalog) -> Co
         content_hash,
         ..Default::default()
     };
-    if let Err(e) = build(source, catalog, &mut out) {
+    let mut installation_surfaces = vec![];
+    if let Err(e) = build(source, catalog, &mut out, &mut installation_surfaces) {
         out.definition = None;
         out.diagnostics.push(e);
     }
+    // Invalid drafts still show their fixed supports and deck collars. A fit
+    // diagnostic blocks admission, not the geometry needed to repair the draft.
+    out.surfaces.append(&mut installation_surfaces);
     out
 }
 fn validate(
@@ -533,6 +537,7 @@ fn build(
     source: &ConstructionSource,
     catalog: &ConstructionCatalog,
     out: &mut ConstructionResult,
+    installation_surfaces: &mut Vec<ConstructionSurface>,
 ) -> Result<(), ConstructionDiagnostic> {
     validate(source, catalog)?;
     let c = &source.construction;
@@ -711,6 +716,17 @@ fn build(
             }
         }
     }
+    // Prepare the complete installation preview before load, boundary or equipment
+    // validation can exit. Keep it separate from hull skin until installation
+    // mass/protection is added, so it cannot count as plating or an attachment.
+    let mut installations = crate::construction_installation::derive(c, catalog, &cells)
+        .map_err(|e| error("installation-support", e, None))?;
+    if out.surfaces.len() + installations.iter().map(|i| i.surfaces.len()).sum::<usize>() > MAX_SURFACES {
+        return Err(error("complexity", format!("Installation surfaces exceed the {MAX_SURFACES} surface limit"), None));
+    }
+    for installation in &mut installations {
+        installation_surfaces.append(&mut installation.surfaces);
+    }
     let hull_index = cg::Broadphase::sized_for(&cells);
     let mut material: Vec<cg::Cell> = vec![];
     let mut material_index = cg::Broadphase::new(hull_index.pitch());
@@ -856,9 +872,7 @@ fn build(
         out,
         &mut path_clearance,
     )?;
-    for installation in crate::construction_installation::derive(c, catalog, &cells)
-        .map_err(|e| error("installation-support", e, None))?
-    {
+    for installation in installations {
         let mut backing = cells.clone();
         if let Some(above_deck) = &installation.raised_space { backing.push(above_deck.clone()); }
         if cg::total(&cg::subtract_all(installation.solids.clone(), &backing).map_err(fail)?).volume
@@ -912,15 +926,8 @@ fn build(
                 }
             }
         }
-        out.surfaces.extend(installation.surfaces);
-        if out.surfaces.len() > MAX_SURFACES {
-            return Err(error(
-                "complexity",
-                format!("Installation surfaces exceed the {MAX_SURFACES} surface limit"),
-                Some(&installation.id),
-            ));
-        }
     }
+    out.surfaces.append(installation_surfaces);
     // Boundaries have already removed physical material. Split by source plane to keep
     // stable room names even when partial pieces/triangulation change.
     let mut groups = BTreeMap::<String, Vec<cg::Cell>>::new();
@@ -1761,7 +1768,11 @@ fn equipment(
             if cg::total(&outside).volume > 1e-5 {
                 return Err(error(
                     "equipment-fit",
-                    "Package intersects inward plating, internal wall, another load or exterior water",
+                    if p.kind == "gun" {
+                        "Barbette or magazine intersects hull plating, an internal wall or another load; move the turret or provide more hull space"
+                    } else {
+                        "Package intersects inward plating, internal wall, another load or exterior water"
+                    },
                     Some(&e.id),
                 ));
             }
