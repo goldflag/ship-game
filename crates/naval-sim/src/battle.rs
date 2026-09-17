@@ -1,22 +1,22 @@
 //! Complete renderer-free fixed-tick battle authority, shared by native and WASM.
+pub mod tick;
 use crate::mobility::torpedo_speed;
 pub use crate::navigation::Movement;
 use crate::navigation::{self, WeaponsPolicy};
 use crate::{
-    aviation::{AirContext, AirOrder, AirRelease, Aviation},
+    aviation::{AirOrder, AirRelease, Aviation},
     bots::{self, AiLevel, BotState},
     capability,
-    captain::{BotCaptain, Captain, Crew, Decision, Reports, Target, Watch},
+    captain::{BotCaptain, Captain},
     catalog::Catalog,
     collisions::HullImpact,
     depth_charges::{self, DepthCharge},
-    environment::{Island, SeaState, avoid_land},
+    environment::{Island, SeaState},
     geometry::*,
-    gunnery::{self, GunneryContext, PlayerGunOrders},
+    gunnery::PlayerGunOrders,
     impact::{DamageEvent, DepthChargeEffect, TorpedoEffect},
-    machinery::system_health,
-    motion::{HelmCommand, step_ship},
-    rules::{self, DT, Outcome, Rules, Survivor, TeamId},
+    motion::HelmCommand,
+    rules::{DT, Outcome, Rules, Survivor, TeamId},
     shell::Shell,
     torpedoes::{self, Torpedo},
     vessel::{CompiledShip, Controller, Vessel},
@@ -115,8 +115,9 @@ pub struct Battle {
     /// Every actor's recorded track and formation axis, kept outside navigation
     /// state so manual helm, bots and standing orders all leave a wake to follow.
     pub trails: navigation::Trails,
-    /// Reused per-tick scratch: the projectile ids still in flight, sorted.
-    active_projectiles: Vec<i64>,
+    /// One tick's scratch, reused every tick: the event sink, this tick's
+    /// helm by hull id, the shells that ended, the projectile ledger.
+    scratch: tick::Tick,
     /// The adapter at the captain seam. The seeded crew by default; a
     /// scripted captain in tests, a replay or a log later.
     captain: Box<dyn Captain + Send + Sync>,
@@ -289,7 +290,7 @@ impl Battle {
             visual_conditions,
             visual_rules: Default::default(),
             cadence,
-            active_projectiles: vec![],
+            scratch: Default::default(),
             captain: Box::new(BotCaptain),
         })
     }
@@ -436,405 +437,24 @@ impl Battle {
             })
         }
     }
+    /// Advance the battle one tick. The tick is the sequence of phases in
+    /// [`tick::Phase`], each a method on `Battle` that says what it reads and
+    /// writes; the per-tick scratch crosses between them in a reused
+    /// [`tick::Tick`], and the order is asserted at every phase entry.
     pub fn step(&mut self, orders: &BTreeMap<String, Orders>) {
         if self.outcome.is_some() {
             return;
         }
-        self.records.begin_tick(&self.actors);
-        // Record every actor's track before any captain reads it, so a follower
-        // steers for water its guide has actually crossed.
-        for a in &self.actors {
-            let trail = self.trails.entry(a.motion.id.clone()).or_default();
-            trail.record([a.motion.x, a.motion.z], a.motion.heading, a.motion.speed);
-            trail.steady_axis(a.motion.heading, DT);
-        }
-        if self.mission_rules.is_some() && self.tick.is_multiple_of(self.visual_rules.cadence_ticks)
-        {
-            self.sensors.update(
-                self.tick,
-                &crate::sensors::entities(&self.actors, &self.aviation),
-                &self.islands,
-                &self.catalog.terrain,
-                self.visual_conditions,
-                &self.visual_rules,
-            );
-        }
-        let time = self.tick as f64 * DT;
-        // Sensors change on their fixed cadence; all captains share these
-        // measured snapshots instead of cloning every report on every tick.
-        if self.mission_rules.is_some() && self.tick.is_multiple_of(self.visual_rules.cadence_ticks)
-        {
-            self.navigation_reports = [
-                self.sensors.contacts(rules::TeamId::A),
-                self.sensors.contacts(rules::TeamId::B),
-            ];
-        }
-        let capability_sweep = self.tick.is_multiple_of(self.cadence.capability_ticks);
-        let mut commands = Vec::with_capacity(self.actors.len());
-        // The actor stays in place: every callee here already skips the ship it
-        // is steering (by identity or by team), so an index-based split shows
-        // the same fleet in the same order without memmoving the whole vector
-        // out and back twice a tick.
-        for i in 0..self.actors.len() {
-            let def = self.actors[i].compiled.definition.clone();
-            self.actors[i].sea = Some((self.sea.clone(), time));
-            let actor_id = self.actors[i].motion.id.clone();
-            let team = self.actors[i].team;
-            let wing = self.aviation.wing(&actor_id);
-            // The post-damage call at the end of the previous tick already left
-            // this state current; nothing between the two touches its inputs.
-            // On the mission cadence the sweep is a refresh, not a dependency:
-            // gunnery re-derives the disabled set from `combat_lost` and
-            // magazine availability, and mission scoring reads raw state.
-            if capability_sweep {
-                capability::update(&mut self.actors[i], &def, wing);
-            }
-            // The captain seam: the vessel's standing orders (player relay or
-            // PvE admiral) and what it may see go in, one decision comes out,
-            // and it is applied here and nowhere else.
-            let decision = if self.actors[i].physical_loss().is_some() {
-                Decision {
-                    helm: HelmCommand::default(),
-                    target: Target::Engage(None),
-                }
-            } else {
-                let mut crew = Crew::lift(&mut self.actors[i]);
-                let watch = Watch {
-                    fleet: &self.actors,
-                    index: i,
-                    orders,
-                    reports: self.mission_rules.as_ref().map(|_| Reports {
-                        sensors: &self.sensors,
-                        contacts: &self.navigation_reports[team.index()],
-                        visibility_m: self.visual_conditions.visibility_m,
-                    }),
-                    islands: &self.islands,
-                    terrain: &self.catalog.terrain,
-                    trails: &self.trails,
-                    torpedoes: &self.torpedoes,
-                    tick: self.tick,
-                    time,
-                };
-                let decision = self.captain.conn(&watch, &mut crew, orders.get(&actor_id));
-                crew.restore(&mut self.actors[i]);
-                decision
-            };
-            if let Target::Engage(target_id) = decision.target {
-                self.actors[i].target_id = target_id;
-            }
-            let mut command = decision.helm;
-            // The arena's rule, not the captain's: every helm, whoever gave
-            // it, is kept inside the mission area and off the land.
-            if let Some(mission) = &self.mission_rules {
-                command = avoid_land(
-                    &self.actors[i].motion,
-                    mission.area.constrain(&self.actors[i], command),
-                    &self.islands,
-                );
-            }
-            commands.push(command);
-        }
-        for (i, a) in self.actors.iter_mut().enumerate() {
-            let def = a.compiled.definition.clone();
-            let h = def
-                .submarine
-                .as_ref()
-                .filter(|_| a.motion.depth() > 0.5)
-                .map_or(&def.handling, |s| &s.submerged_handling);
-            let power = system_health(a, &def, "engine", None);
-            let steering = system_health(a, &def, "steering", None);
-            let sea = (self.sea.wind_mps != 0.0).then(|| {
-                self.sea
-                    .handling(&def.hull, &a.motion, a.submarine.is_some())
-            });
-            a.helm = commands[i];
-            step_ship(&mut a.motion, commands[i], h, power, steering, sea)
-        }
-        let hits = crate::collisions::resolve_ship_collisions(&mut self.actors);
-        self.contacts(hits);
-        for i in 0..self.actors.len() {
-            let hits = crate::land::resolve_land_contact(
-                &mut self.actors[i],
-                &self.islands,
-                &self.catalog.terrain,
-            );
-            self.contacts(hits)
-        }
-        for actor in &mut self.actors {
-            actor.firing_visibility_seconds = (actor.firing_visibility_seconds - DT).max(0.0);
-        }
-        let mut events = vec![];
-        for i in 0..self.actors.len() {
-            // The ship used to be lifted out of the vector and put back so the
-            // gunnery and underwater callees could hold the rest as `&[Vessel]`.
-            // Splitting the vector around it gives the same view — every other
-            // actor, in fleet order — without the two memmoves.
-            let target_index = self.actors[i].target_id.as_ref().and_then(|id| {
-                (0..self.actors.len()).find(|&j| j != i && self.actors[j].motion.id == *id)
-            });
-            let contact = self
-                .mission_rules
-                .as_ref()
-                .and(self.actors[i].target_id.as_deref())
-                .and_then(|id| self.sensors.contact(self.actors[i].team, id))
-                .filter(|c| c.targetable());
-            let (a, fleet) = crate::vessel::Fleet::split(&mut self.actors, i);
-            let target = target_index.and_then(|j| fleet.get(j));
-            if self.mission_rules.is_some() && a.controller == Controller::Bot {
-                let mut battery = a.secondary_bot.take();
-                self.captain.secondary_battery(
-                    a,
-                    &self.sensors,
-                    orders
-                        .get(&a.motion.id)
-                        .and_then(|o| o.target_id.as_deref()),
-                    self.seed,
-                    time,
-                    &mut battery,
-                );
-                a.secondary_bot = battery;
-            }
-            let player = orders.get(&a.motion.id).and_then(|o| o.guns.as_ref());
-            let weapons = orders
-                .get(&a.motion.id)
-                .map_or_else(WeaponsPolicy::default, |o| o.weapons);
-            gunnery::operate_observed(
-                a,
-                &mut GunneryContext {
-                    actors: fleet,
-                    aviation: &mut self.aviation,
-                    shells: &mut self.shells,
-                    sequence: &mut self.sequence,
-                    dispersion: &mut self.dispersion,
-                    events: &mut events,
-                    seed: self.seed,
-                    dt: DT,
-                },
-                target,
-                contact,
-                player,
-                weapons,
-                self.mission_rules
-                    .as_ref()
-                    .map(|_| crate::sensors::Knowledge {
-                        sensors: &self.sensors,
-                        tick: self.tick,
-                        islands: &self.islands,
-                        terrain: &self.catalog.terrain,
-                    }),
-            );
-            operate_underwater(
-                a,
-                fleet,
-                target,
-                contact.is_some(),
-                player,
-                &mut self.torpedoes,
-                &mut self.depth_charges,
-                &mut self.sequence,
-                &mut events,
-                weapons,
-            );
-        }
-        self.aviation.step(
-            &mut AirContext {
-                knowledge: self
-                    .mission_rules
-                    .as_ref()
-                    .map(|_| crate::sensors::Knowledge {
-                        sensors: &self.sensors,
-                        tick: self.tick,
-                        islands: &self.islands,
-                        terrain: &self.catalog.terrain,
-                    }),
-                actors: &self.actors,
-                shells: &mut self.shells,
-                torpedoes: &mut self.torpedoes,
-                releases: &mut self.air_releases,
-                sequence: &mut self.sequence,
-                events: &mut events,
-                seed: self.seed,
-                sea: Some((&self.sea, time)),
-            },
-            DT,
-            time,
-        );
-        for shell in &self.shells {
-            self.records
-                .sources
-                .entry(shell.id)
-                .or_insert_with(|| crate::records::WeaponSource {
-                    owner_id: shell.owner_id.clone(),
-                    label: shell.weapon_label.clone().unwrap_or_else(|| "Shell".into()),
-                    ammunition: shell.ammunition.unwrap_or_default(),
-                });
-        }
-        for t in &self.torpedoes {
-            self.records
-                .sources
-                .entry(t.id)
-                .or_insert_with(|| crate::records::WeaponSource {
-                    owner_id: t.owner_id.clone(),
-                    label: format!(
-                        "{} · {}",
-                        t.weapon.name,
-                        if t.tube_id == "aircraft.payload" {
-                            "Air torpedo"
-                        } else {
-                            "Torpedo"
-                        }
-                    ),
-                    ammunition: Default::default(),
-                });
-        }
-        for c in &self.depth_charges {
-            self.records
-                .sources
-                .entry(c.id)
-                .or_insert_with(|| crate::records::WeaponSource {
-                    owner_id: c.owner_id.clone(),
-                    label: format!("{} · Depth charge", c.weapon.name),
-                    ammunition: Default::default(),
-                });
-        }
-        let mut completed = vec![];
-        for i in (0..self.shells.len()).rev() {
-            let (end, mut emitted) = crate::projectile::advance_projectile(
-                &mut self.shells[i],
-                &mut self.actors,
-                DT,
-                &self.islands,
-                &self.catalog.terrain,
-                &|x, z| self.sea.height(x, z, time),
-            );
-            events.append(&mut emitted);
-            if let Some(end) = end {
-                completed.push((self.shells[i].id, end.as_str()));
-                self.shells.remove(i);
-            }
-        }
-        step_torpedoes(
-            self.seed,
-            &mut self.torpedoes,
-            &mut self.actors,
-            &mut self.aviation,
-            &self.islands,
-            &self.catalog.terrain,
-            &mut events,
-        );
-        step_charges(
-            &mut self.depth_charges,
-            &mut self.actors,
-            &self.aviation,
-            &mut events,
-        );
-        // Fires and damage-control work integrate over a whole window on the
-        // mission cadence: the same equations, one explicit Euler step of
-        // `damage_control_ticks * DT` instead of that many tick-sized ones.
-        // Hits still raise heat every tick through `damage_control::heat_*`.
-        let control_ticks = self.cadence.damage_control_ticks;
-        let control_step = self
-            .tick
-            .is_multiple_of(control_ticks)
-            .then(|| control_ticks as f64 * DT);
-        for (i, a) in self.actors.iter_mut().enumerate() {
-            let compiled = a.compiled.clone();
-            let def = &compiled.definition;
-            if let Some((priority, focus)) =
-                orders.get(&a.motion.id).and_then(|o| o.control.as_ref())
-            {
-                a.damage.control.priority = priority.clone();
-                a.damage.control.focus = focus.clone()
-            }
-            let ignitions = match control_step {
-                Some(dt) => crate::damage_control::update_damage_control(a, def, dt, None),
-                // Between windows the standing pump assignments in
-                // `damage.control.pumping` keep running, unchanged.
-                None => Vec::new(),
-            };
-            for e in ignitions {
-                let m = def.modules.iter().find(|m| m.id == e.module_id).unwrap();
-                events.push(DamageEvent {
-                    kind: "module".into(),
-                    ship_id: e.ship_id,
-                    position: e.position,
-                    message: format!("{} ignition · ammunition lost, hull opened", m.name),
-                    detonation: Some(true),
-                    ..Default::default()
-                });
-            }
-            let sunk = a.damage.sunk;
-            let response = (self.sea.amplitude_m != 0.0
-                || (a.motion.yaw_rate * a.motion.speed).abs() > 1e-6)
-                .then(|| {
-                    self.sea
-                        .response(&def.hull, &a.motion, a.submarine.is_some(), time)
-                });
-            crate::flooding::update_flooding(
-                a,
-                def,
-                &compiled.hydro,
-                DT,
-                self.cadence.stability_interval_seconds,
-                response,
-                (self.sea.amplitude_m != 0.0).then_some((&self.sea, time)),
-            );
-            crate::submarine::step_submarine(
-                a,
-                def,
-                commands[i],
-                DT,
-                response.map_or(0.0, |r| r.heave),
-            );
-            let id = a.motion.id.clone();
-            capability::update(a, def, self.aviation.wing(&id));
-            if !sunk && a.damage.sunk {
-                events.push(DamageEvent {
-                    kind: "sunk".into(),
-                    position: [a.motion.x, a.motion.y, a.motion.z],
-                    ship_id: id,
-                    defeat_cause: a.damage.defeat_cause.clone(),
-                    message: format!(
-                        "{} sinking · {}",
-                        def.name,
-                        a.damage.defeat_cause.as_deref().unwrap_or("flooding")
-                    ),
-                    ..Default::default()
-                });
-            }
-        }
-        for e in events {
-            self.emit(e)
-        }
-        for (id, end) in completed {
-            self.records.complete_shell(id, end)
-        }
-        // One reused sorted buffer instead of a fresh BTreeSet of node
-        // allocations for every projectile in flight, every tick.
-        let mut active = std::mem::take(&mut self.active_projectiles);
-        active.clear();
-        active.extend(
-            self.shells
-                .iter()
-                .map(|s| s.id)
-                .chain(self.torpedoes.iter().map(|t| t.id))
-                .chain(self.depth_charges.iter().map(|c| c.id)),
-        );
-        active.sort_unstable();
-        self.records.finish_tick(&self.actors, &active);
-        self.active_projectiles = active;
-        self.tick += 1;
-        self.outcome = if let Some(mission) = &self.mission_rules {
-            crate::mission::evaluate(
-                self.tick,
-                &self.actors,
-                &self.aviation,
-                mission,
-                rules::afloat_kg(&self.survivors()),
-            )
-        } else {
-            rules::evaluate_outcome(self.tick, &self.survivors(), &self.rules)
-        };
+        let mut tick = std::mem::take(&mut self.scratch);
+        tick.begin(self);
+        self.observe(&mut tick);
+        self.decide(&mut tick, orders);
+        self.manoeuvre(&mut tick);
+        self.fight(&mut tick, orders);
+        self.strike(&mut tick);
+        self.suffer(&mut tick, orders);
+        self.settle(&mut tick);
+        self.scratch = tick;
     }
     pub fn remaining_seconds(&self) -> Option<f64> {
         self.mission_rules.as_ref().map_or_else(
