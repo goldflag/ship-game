@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "id": "balcony-playground",
   "name": "Balcony playground",
-  "revision": "revision-184c9312-df4b-469f-8ed8-fe8139f7e67f",
+  "revision": "revision-cf58e25d-5eab-4dd4-80c8-f64307ff527d",
   "coordinates": "meters-y-up-bow-negative-z",
   "construction": {
     "version": 2,
-    "catalogRevision": "158ca5b06784176e505791da469a81a77397729384adb75f16397b0292c3436b",
+    "catalogRevision": "b9aa668d7bdc53e4a5f3699c73433ee7646b003e220a96309a2e0d3e0b4221b3",
     "defaultThicknessMm": 16,
     "primitives": [
       {

@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "id": "resolute",
   "name": "Resolute",
-  "revision": "revision-2cafdacf-754a-48c9-a8f6-6f0561cc7727",
+  "revision": "revision-4dd48689-1085-49fe-b7f2-38e92bf930fc",
   "coordinates": "meters-y-up-bow-negative-z",
   "construction": {
     "version": 1,
-    "catalogRevision": "b4c0049f9f1db8f499ba53d187afe842478ad967ab1af03e09c100c637c42397",
+    "catalogRevision": "b9aa668d7bdc53e4a5f3699c73433ee7646b003e220a96309a2e0d3e0b4221b3",
     "defaultThicknessMm": 20,
     "primitives": [
       {
@@ -3510,7 +3510,7 @@
       },
       {
         "id": "plant-forward",
-        "partId": "generic-steam-plant-36000kw",
+        "partId": "generic-turbine-40000kw",
         "position": [
           0,
           -3.9725,
@@ -3531,7 +3531,7 @@
       },
       {
         "id": "plant-aft",
-        "partId": "generic-steam-plant-36000kw",
+        "partId": "generic-turbine-40000kw",
         "position": [
           0,
           -3.9725,

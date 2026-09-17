@@ -178,23 +178,45 @@ engineering estimates; ammunition mass still comes from the canonical weapon
 and native compiler. The fixed 1,000-round variant and previous publications
 remain available.
 
-## Generic capital-ship plant and funnel
+## Modular machinery and capital funnel
 
-`generic-steam-plant-36000kw` is an original 10 × 6 × 22 m boiler/geared-turbine
-package with a deck sole at Y=0. Its four boiler casings, paired turbines,
-reduction gears, supported steam lines and service walks are illustrative original
-geometry in `capital_machinery.py`. The declared 36,000 kW rating, 1,800 t dry
-mass and separate 200 t fuel/service allowance are provisional game engineering
-values. Machinery mass includes boilers, condensers, gears and auxiliary services;
-the normal native auxiliary reservation and service caps still apply.
+The current catalog has three machinery families. Each placed engine is a
+complete fixed package including auxiliaries, foundation and service space.
+Multiple packages add power through the existing native shaft assignments and
+shared exhaust capacity. Package ratings are before the 2% auxiliary reserve
+and propeller efficiency. No fuel economy, purchase cost or steam-cycle behavior
+is invented for these families.
 
-`generic-capital-funnel` is its separate fixed oval uptake: 6 × 11.1 × 10.5 m
-conservative envelope, 75 t dry mass and 36,000 kW exhaust capacity. Its open hood,
-grille, reinforcing bands, steam pipes and access ladder are original geometry;
-the supporting deck is external. It retains a Y=0 attachment sole and an
-`exhaust-out` socket. It is neither a resized Fletcher asset nor a historical
-funnel reconstruction. These estimates do not certify thermodynamic performance,
-shaft routing or any named battleship's engineering.
+| Package | Rated kW | Envelope W × H × L (m) | Dry mass (t) | Service allowance (t) |
+| --- | ---: | --- | ---: | ---: |
+| Small diesel | 500 | 1.4 × 1.6 × 3 | 4 | 1 |
+| Medium diesel | 3,000 | 3 × 3 × 6 | 35 | 5 |
+| Large diesel | 10,000 | 5.5 × 4 × 10 | 130 | 20 |
+| Small triple-expansion steam | 2,000 | 5 × 5 × 12 | 180 | 30 |
+| Large triple-expansion steam | 6,000 | 7 × 7 × 18 | 480 | 80 |
+| Small geared steam turbine | 5,000 | 5 × 4 × 10 | 150 | 25 |
+| Medium geared steam turbine | 22,000 | 8 × 5 × 16 | 600 | 100 |
+| Large geared steam turbine | 40,000 | 10 × 6 × 22 | 1,200 | 200 |
+
+All values are provisional game engineering estimates, not certified historical
+machinery ratings or dimensions. The large diesel represents paired engines in
+one package. The steam packages include boilers and either three expansion
+cylinders or one geared HP/LP turbine set. Their machinery is illustrative,
+original geometry; no external model or historical vessel is reconstructed.
+`machinery.py` uses the shared `Model` primitives; the medium diesel reuses
+`geometry.py:create_engine`. The installation owns the floor, external shaft
+route and funnel. All packages have a Y=0 sole and explicit attachment, drive
+and exhaust sockets. Engines remain static; propellers retain their spin joints.
+
+The former 36 MW and 82 MW options are removed from the current catalog. Retained
+immutable catalog snapshots remain build artifacts for exact published content.
+
+`generic-capital-funnel` is a separate fixed oval uptake: 6 × 11.1 × 10.5 m
+conservative envelope, 75 t dry mass and 40,000 kW exhaust capacity. Its original
+open hood, grille, reinforcing bands, steam pipes and access ladder are authored
+in `capital_machinery.py`; the supporting deck is external. It retains a Y=0
+attachment sole and an `exhaust-out` socket. This is a provisional capacity,
+not a thermodynamic or historical claim.
 
 ## Japanese destroyer torpedo banks
 

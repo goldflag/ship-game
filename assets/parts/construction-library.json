@@ -31,11 +31,6 @@
       "function": "create_director",
       "inputs": []
     },
-    "generic-diesel-3000kw": {
-      "path": "assets/parts/construction/geometry.py",
-      "function": "create_engine",
-      "inputs": []
-    },
     "generic-magazine-1000": {
       "path": "assets/parts/construction/geometry.py",
       "function": "create_magazine",
@@ -202,13 +197,6 @@
         "assets/parts/construction/geometry.py"
       ]
     },
-    "steam-machinery-82000kw": {
-      "path": "assets/parts/german-cruiser-equipment/geometry.py",
-      "function": "create_steam_package",
-      "inputs": [
-        "assets/parts/construction/geometry.py"
-      ]
-    },
     "cruiser-magazine-50000": {
       "path": "assets/parts/construction/geometry.py",
       "function": "create_magazine",
@@ -296,13 +284,6 @@
       "inputs": [
         "assets/parts/construction/geometry.py",
         "assets/parts/construction/deck_fittings.py"
-      ]
-    },
-    "generic-steam-plant-36000kw": {
-      "path": "assets/parts/construction/capital_machinery.py",
-      "function": "create_steam_plant",
-      "inputs": [
-        "assets/parts/construction/geometry.py"
       ]
     },
     "generic-capital-funnel": {
@@ -605,6 +586,60 @@
       "inputs": [
         "assets/parts/construction/geometry.py"
       ]
+    },
+    "generic-diesel-500kw": {
+      "path": "assets/parts/construction/machinery.py",
+      "function": "create_diesel",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-diesel-3000kw": {
+      "path": "assets/parts/construction/geometry.py",
+      "function": "create_engine",
+      "inputs": []
+    },
+    "generic-diesel-10000kw": {
+      "path": "assets/parts/construction/machinery.py",
+      "function": "create_diesel",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-reciprocating-2000kw": {
+      "path": "assets/parts/construction/machinery.py",
+      "function": "create_reciprocating",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-reciprocating-6000kw": {
+      "path": "assets/parts/construction/machinery.py",
+      "function": "create_reciprocating",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-turbine-5000kw": {
+      "path": "assets/parts/construction/machinery.py",
+      "function": "create_turbine",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-turbine-22000kw": {
+      "path": "assets/parts/construction/machinery.py",
+      "function": "create_turbine",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-turbine-40000kw": {
+      "path": "assets/parts/construction/machinery.py",
+      "function": "create_turbine",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
     }
   },
   "components": [
@@ -643,12 +678,6 @@
       "builder": "fletcher-mk37-director",
       "review": "unreviewed",
       "limitations": "Adapted original Fletcher source; fixed package mass and capabilities are estimates. Per-design attachment and moving-neighbor clearance require installation review."
-    },
-    {
-      "partId": "generic-diesel-3000kw",
-      "builder": "generic-diesel-3000kw",
-      "review": "unreviewed",
-      "limitations": "Original generic engineering package; dimensions, mass and capabilities are declared gameplay estimates, not a historical reconstruction."
     },
     {
       "partId": "generic-magazine-1000",
@@ -801,12 +830,6 @@
       "limitations": "Original Hipper source adaptation, or explicitly provisional machinery/magazine package. Fresh external reference verification incomplete. Per-installation attachment and articulation review required."
     },
     {
-      "partId": "steam-machinery-82000kw",
-      "builder": "steam-machinery-82000kw",
-      "review": "unreviewed",
-      "limitations": "Original Hipper source adaptation, or explicitly provisional machinery/magazine package. Fresh external reference verification incomplete. Per-installation attachment and articulation review required."
-    },
-    {
       "partId": "cruiser-magazine-50000",
       "builder": "cruiser-magazine-50000",
       "review": "unreviewed",
@@ -877,12 +900,6 @@
       "builder": "german-cruiser-searchlight",
       "review": "unreviewed",
       "limitations": "Original approved local Hipper component; fresh external reference verification incomplete. Static fitting; per-installation review required."
-    },
-    {
-      "partId": "generic-steam-plant-36000kw",
-      "builder": "generic-steam-plant-36000kw",
-      "review": "unreviewed",
-      "limitations": "Original generic capital-ship package. Geometry, plant power, mass and exhaust capacity are explicit gameplay estimates; no historical plant or thermodynamic certification. Review each installation."
     },
     {
       "partId": "generic-capital-funnel",
@@ -1147,6 +1164,54 @@
       "builder": "generic-rounded-window",
       "review": "unreviewed",
       "limitations": "Original generic closed surface fitting with opaque optics. No hull opening or interior. Dimensions and mass are engineering estimates; installed wall support requires native validation."
+    },
+    {
+      "partId": "generic-diesel-500kw",
+      "builder": "generic-diesel-500kw",
+      "review": "unreviewed",
+      "limitations": "Original illustrative machinery package with modeled foundation. Power, dry mass, service allowance and occupied envelope are provisional game estimates, not historical engineering ratings. Includes auxiliary services; external floor, exhaust uptake and shaft routing are installation-owned."
+    },
+    {
+      "partId": "generic-diesel-3000kw",
+      "builder": "generic-diesel-3000kw",
+      "review": "unreviewed",
+      "limitations": "Original illustrative machinery package with modeled foundation. Power, dry mass, service allowance and occupied envelope are provisional game estimates, not historical engineering ratings. Includes auxiliary services; external floor, exhaust uptake and shaft routing are installation-owned."
+    },
+    {
+      "partId": "generic-diesel-10000kw",
+      "builder": "generic-diesel-10000kw",
+      "review": "unreviewed",
+      "limitations": "Original illustrative machinery package with modeled foundation. Power, dry mass, service allowance and occupied envelope are provisional game estimates, not historical engineering ratings. Includes auxiliary services; external floor, exhaust uptake and shaft routing are installation-owned."
+    },
+    {
+      "partId": "generic-reciprocating-2000kw",
+      "builder": "generic-reciprocating-2000kw",
+      "review": "unreviewed",
+      "limitations": "Original illustrative machinery package with modeled foundation. Power, dry mass, service allowance and occupied envelope are provisional game estimates, not historical engineering ratings. Includes auxiliary services; external floor, exhaust uptake and shaft routing are installation-owned."
+    },
+    {
+      "partId": "generic-reciprocating-6000kw",
+      "builder": "generic-reciprocating-6000kw",
+      "review": "unreviewed",
+      "limitations": "Original illustrative machinery package with modeled foundation. Power, dry mass, service allowance and occupied envelope are provisional game estimates, not historical engineering ratings. Includes auxiliary services; external floor, exhaust uptake and shaft routing are installation-owned."
+    },
+    {
+      "partId": "generic-turbine-5000kw",
+      "builder": "generic-turbine-5000kw",
+      "review": "unreviewed",
+      "limitations": "Original illustrative machinery package with modeled foundation. Power, dry mass, service allowance and occupied envelope are provisional game estimates, not historical engineering ratings. Includes auxiliary services; external floor, exhaust uptake and shaft routing are installation-owned."
+    },
+    {
+      "partId": "generic-turbine-22000kw",
+      "builder": "generic-turbine-22000kw",
+      "review": "unreviewed",
+      "limitations": "Original illustrative machinery package with modeled foundation. Power, dry mass, service allowance and occupied envelope are provisional game estimates, not historical engineering ratings. Includes auxiliary services; external floor, exhaust uptake and shaft routing are installation-owned."
+    },
+    {
+      "partId": "generic-turbine-40000kw",
+      "builder": "generic-turbine-40000kw",
+      "review": "unreviewed",
+      "limitations": "Original illustrative machinery package with modeled foundation. Power, dry mass, service allowance and occupied envelope are provisional game estimates, not historical engineering ratings. Includes auxiliary services; external floor, exhaust uptake and shaft routing are installation-owned."
     }
   ]
 }
