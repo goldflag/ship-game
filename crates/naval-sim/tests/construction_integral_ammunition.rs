@@ -15,7 +15,7 @@ fn fixture() -> (ConstructionSource, ConstructionCatalog) {
             version: 2.,
             catalog_revision: catalog.revision.clone(),
             default_thickness_mm: 16.,
-            primitives: vec![ConstructionPrimitive {
+            primitives: vec![ConstructionPrimitive { shaping: None,
                 id: "hull".into(),
                 kind: "box".into(),
                 position: [0.; 3],
@@ -103,19 +103,17 @@ fn torpedo_banks_carry_their_own_ready_ammunition_and_retain_rotation() {
             .flatten()
             .find(|s| s.id == "attachment")
             .map_or(0., |s| s.position[1]);
-        source.construction.equipment.push(ConstructionEquipment {
+        source.construction.equipment = vec![ConstructionEquipment {
             id: format!("bank-{i}"),
             part_id: part.id.clone(),
-            position: [0., 8. - attachment, -15. + i as f64 * 30.],
+            position: [0., 8. - attachment, 0.],
             bearing_deg: 45.,
             ..Default::default()
-        });
-    }
-    let result = construction::compile(&source, &catalog);
-    let def = result
-        .definition
-        .unwrap_or_else(|| panic!("{:?}", result.diagnostics));
-    for (i, part) in parts.iter().enumerate() {
+        }];
+        let result = construction::compile(&source, &catalog);
+        let def = result
+            .definition
+            .unwrap_or_else(|| panic!("{:?}", result.diagnostics));
         let id = format!("bank-{i}");
         let magazine = def
             .modules
@@ -373,9 +371,9 @@ fn oval_funnels_keep_deck_corners_and_matching_sealed_openings() {
     for part in catalog.equipment.iter().filter(|p| p.kind == "funnel") {
         let attachment = part.sockets.iter().flatten().find(|s| s.id == "attachment").unwrap().position[1];
         // Area of the oval uptake's 64-sided outline, inside the visible casing.
-        let area = part.occupancy.as_ref().and_then(|spaces| spaces.first()).map_or(0., |space|
+        let area: f64 = part.occupancy.iter().flatten().map(|space|
             32. * (space.size[0] / 2.) * (space.size[2] / 2.)
-                * (std::f64::consts::TAU / 64.).sin());
+                * (std::f64::consts::TAU / 64.).sin()).sum();
         for version in [1., 2.] {
             for bearing in [0., 37.] {
                 let mut source = source.clone();

@@ -168,13 +168,12 @@ pub fn room_distance(room: &crate::definition::Compartment, p: Vec3) -> f64 {
     }
     // Explicit weighted runtime proxies use their cell locations for damage
     // assignment. Legacy and exact definitions retain their original path.
-    if let Some(cells) = &room.cells {
-        if cells.iter().any(|c| c.volume_m3.is_some()) {
+    if let Some(cells) = &room.cells
+        && cells.iter().any(|c| c.volume_m3.is_some()) {
             return cells.iter().map(|c| length(std::array::from_fn(|i| {
                 ((p[i]-c.center[i]).abs()-c.size[i]*0.5).max(0.)
             }))).fold(f64::INFINITY, f64::min);
         }
-    }
     length(std::array::from_fn(|i| {
         ((p[i] - room.center[i]).abs() - room.size[i] * 0.5).max(0.)
     }))
@@ -608,95 +607,6 @@ pub fn connected(a: &Cell, b: &Cell) -> bool {
     })
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn geometry_budget_reports_actual_cell_and_face_counts() {
-        // Budget validation is independent of geometric validity; empty cells
-        // keep this boundary test small while exercising the real collection cap.
-        let mut cells = vec![Cell { faces: vec![].into() }; MAX_CELLS];
-        assert!(check_budget(&cells).is_ok());
-        cells.push(Cell { faces: vec![].into() });
-        let error = check_budget(&cells).unwrap_err();
-        assert!(error.contains(&format!("{} / {MAX_CELLS} convex cells", MAX_CELLS + 1)));
-        let mut cell = box_cell([0.; 3], [1.; 3]);
-        let mut faces = cell.faces.to_vec();
-        faces.resize(MAX_CELL_FACES + 1, cell.faces[0].clone());
-        cell.faces = faces.into();
-        assert!(
-            check_budget(&[cell])
-                .unwrap_err()
-                .contains("129 / 128 maximum faces per cell")
-        );
-    }
-    fn near(a: f64, b: f64) {
-        assert!((a - b).abs() < 1e-7, "{a} != {b}");
-    }
-    #[test]
-    fn analytic_box_and_wedge() {
-        let b = box_cell([2., 3., 4.], [4., 6., 8.]);
-        let m = moments(&b);
-        near(m.volume, 192.);
-        assert_eq!(m.center(), [2., 3., 4.]);
-        let w = clip(
-            &box_cell([0.; 3], [2., 2., 2.]),
-            normalize([0., 1., 1.]),
-            0.,
-        )
-        .unwrap();
-        let m = moments(&w);
-        near(m.volume, 4.);
-        near(m.center()[1], -1. / 3.);
-        near(m.center()[2], -1. / 3.);
-        let i = moments(&b).inertia(1., [2., 3., 4.]);
-        near(i[0], 192. * (36. + 64.) / 12.);
-    }
-    #[test]
-    fn overlap_union_and_inward_corner_occupancy() {
-        let a = box_cell([0.; 3], [2.; 3]);
-        let b = box_cell([1., 0., 0.], [2.; 3]);
-        let c = union(&[a.clone(), a.clone(), b]).unwrap();
-        near(total(&c).volume, 12.);
-        let slabs: Vec<_> = a.faces.iter().map(|f| prism(&f.vertices, 0.1)).collect();
-        let material = union(&slabs).unwrap();
-        near(total(&material).volume, 8. - 1.8_f64.powi(3));
-    }
-    #[test]
-    fn face_attachment_excludes_edge_and_point() {
-        let a = box_cell([0.; 3], [2.; 3]);
-        assert!(connected(&a, &box_cell([2., 0., 0.], [2.; 3])));
-        assert!(!connected(&a, &box_cell([2., 2., 0.], [2.; 3])));
-    }
-
-    #[test]
-    fn nearby_diagonal_walls_do_not_fragment_disjoint_geometry() {
-        let wall = box_cell([0.; 3], [4., 1., 0.25]);
-        let yaw = std::f64::consts::FRAC_PI_4;
-        let a = transform(&wall, [0.; 3], [1.; 3], yaw);
-        let b = transform(&wall, [1., 0., 0.], [1.; 3], yaw);
-        assert!(!separated(&a, &b), "axis-aligned bounds overlap");
-        assert!(
-            intersection(&a, &b).is_none(),
-            "walls have no physical contact"
-        );
-        let remainder = subtract(&a, &b);
-        assert_eq!(remainder.len(), 1, "unrelated planes must not split a wall");
-        near(total(&remainder).volume, 1.);
-        for face in a.faces.iter() {
-            let patches = exposed(&face.vertices, &b, false);
-            assert_eq!(patches.len(), 1, "uncovered faces stay intact");
-            near(area(&patches[0]), area(&face.vertices));
-        }
-
-        // A genuinely overlapping cutter still removes the physical overlap.
-        let overlap = transform(&wall, [yaw.cos(), 0., -yaw.sin()], [1.; 3], yaw);
-        let remainder = subtract(&a, &overlap);
-        near(total(&remainder).volume, 0.25);
-        near(total(&union(&[a, overlap]).unwrap()).volume, 1.25);
-    }
-}
-
 /// Join coplanar patches only when their convex hull has exactly their combined
 /// area. This removes tessellation seams without filling a dent or an opening.
 pub fn merge_patches(mut patches: Vec<Polygon>) -> Vec<Polygon> {
@@ -817,4 +727,93 @@ pub fn coalesce_cells(mut cells: Vec<Cell>) -> Vec<Cell> {
         cells[j] = cell;
     }
     cells
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn geometry_budget_reports_actual_cell_and_face_counts() {
+        // Budget validation is independent of geometric validity; empty cells
+        // keep this boundary test small while exercising the real collection cap.
+        let mut cells = vec![Cell { faces: vec![].into() }; MAX_CELLS];
+        assert!(check_budget(&cells).is_ok());
+        cells.push(Cell { faces: vec![].into() });
+        let error = check_budget(&cells).unwrap_err();
+        assert!(error.contains(&format!("{} / {MAX_CELLS} convex cells", MAX_CELLS + 1)));
+        let mut cell = box_cell([0.; 3], [1.; 3]);
+        let mut faces = cell.faces.to_vec();
+        faces.resize(MAX_CELL_FACES + 1, cell.faces[0].clone());
+        cell.faces = faces.into();
+        assert!(
+            check_budget(&[cell])
+                .unwrap_err()
+                .contains("129 / 128 maximum faces per cell")
+        );
+    }
+    fn near(a: f64, b: f64) {
+        assert!((a - b).abs() < 1e-7, "{a} != {b}");
+    }
+    #[test]
+    fn analytic_box_and_wedge() {
+        let b = box_cell([2., 3., 4.], [4., 6., 8.]);
+        let m = moments(&b);
+        near(m.volume, 192.);
+        assert_eq!(m.center(), [2., 3., 4.]);
+        let w = clip(
+            &box_cell([0.; 3], [2., 2., 2.]),
+            normalize([0., 1., 1.]),
+            0.,
+        )
+        .unwrap();
+        let m = moments(&w);
+        near(m.volume, 4.);
+        near(m.center()[1], -1. / 3.);
+        near(m.center()[2], -1. / 3.);
+        let i = moments(&b).inertia(1., [2., 3., 4.]);
+        near(i[0], 192. * (36. + 64.) / 12.);
+    }
+    #[test]
+    fn overlap_union_and_inward_corner_occupancy() {
+        let a = box_cell([0.; 3], [2.; 3]);
+        let b = box_cell([1., 0., 0.], [2.; 3]);
+        let c = union(&[a.clone(), a.clone(), b]).unwrap();
+        near(total(&c).volume, 12.);
+        let slabs: Vec<_> = a.faces.iter().map(|f| prism(&f.vertices, 0.1)).collect();
+        let material = union(&slabs).unwrap();
+        near(total(&material).volume, 8. - 1.8_f64.powi(3));
+    }
+    #[test]
+    fn face_attachment_excludes_edge_and_point() {
+        let a = box_cell([0.; 3], [2.; 3]);
+        assert!(connected(&a, &box_cell([2., 0., 0.], [2.; 3])));
+        assert!(!connected(&a, &box_cell([2., 2., 0.], [2.; 3])));
+    }
+
+    #[test]
+    fn nearby_diagonal_walls_do_not_fragment_disjoint_geometry() {
+        let wall = box_cell([0.; 3], [4., 1., 0.25]);
+        let yaw = std::f64::consts::FRAC_PI_4;
+        let a = transform(&wall, [0.; 3], [1.; 3], yaw);
+        let b = transform(&wall, [1., 0., 0.], [1.; 3], yaw);
+        assert!(!separated(&a, &b), "axis-aligned bounds overlap");
+        assert!(
+            intersection(&a, &b).is_none(),
+            "walls have no physical contact"
+        );
+        let remainder = subtract(&a, &b);
+        assert_eq!(remainder.len(), 1, "unrelated planes must not split a wall");
+        near(total(&remainder).volume, 1.);
+        for face in a.faces.iter() {
+            let patches = exposed(&face.vertices, &b, false);
+            assert_eq!(patches.len(), 1, "uncovered faces stay intact");
+            near(area(&patches[0]), area(&face.vertices));
+        }
+
+        // A genuinely overlapping cutter still removes the physical overlap.
+        let overlap = transform(&wall, [yaw.cos(), 0., -yaw.sin()], [1.; 3], yaw);
+        let remainder = subtract(&a, &overlap);
+        near(total(&remainder).volume, 0.25);
+        near(total(&union(&[a, overlap]).unwrap()).volume, 1.25);
+    }
 }

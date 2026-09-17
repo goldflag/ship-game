@@ -50,11 +50,10 @@ fn envelope(cells: &[ConvexVolume], pitch: Vec3) -> Vec<ConvexVolume> {
                             part = part.and_then(|p| cg::clip(&p, n, d));
                         }
                     }
-                    if let Some(part) = part {
-                        if cg::moments(&part).volume > 1e-9 {
+                    if let Some(part) = part
+                        && cg::moments(&part).volume > 1e-9 {
                             bins.entry(key).or_default().extend(points(&part));
                         }
-                    }
                 }
             }
         }
@@ -105,8 +104,8 @@ fn weighted(cells: &[ConvexVolume], pitch: Vec3) -> Vec<BuoyancyCell> {
                             part = part.and_then(|p| cg::clip(&p, n, d));
                         }
                     }
-                    if let Some(part) = part {
-                        if cg::moments(&part).volume > 1e-9 {
+                    if let Some(part) = part
+                        && cg::moments(&part).volume > 1e-9 {
                             let m = cg::moments(&part);
                             let entry = bins.entry(key).or_insert((
                                 cg::Moments::default(),
@@ -120,7 +119,6 @@ fn weighted(cells: &[ConvexVolume], pitch: Vec3) -> Vec<BuoyancyCell> {
                                 entry.2[a] = entry.2[a].max(hi[a]);
                             }
                         }
-                    }
                 }
             }
         }
@@ -416,8 +414,8 @@ fn main() {
             })
             .collect();
     }
-    if !weighted_mode {
-        if let Some(clearance) = &mut d.mount_clearance {
+    if !weighted_mode
+        && let Some(clearance) = &mut d.mount_clearance {
             let mut bodies: Vec<_> = clearance
                 .bodies
                 .take()
@@ -437,7 +435,6 @@ fn main() {
                 "Experimental conservative support envelopes; detailed moving weapons retained"
                     .into();
         }
-    }
     if guarded && !hybrid {
         let clearance = naval_sim::mount_clearance::MountClearance::new(&d).unwrap().unwrap();
         let keep = clearance.reachable_body_ids(&d);

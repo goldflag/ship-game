@@ -79,3 +79,5 @@ mod team_view;
 pub const SIMULATION_BUILD: &str = env!("NAVAL_SIMULATION_BUILD");
 
 pub mod runtime_encoding;
+
+mod construction_freeform;

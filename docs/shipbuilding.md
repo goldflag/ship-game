@@ -26,7 +26,10 @@ immersion and exhaust loss affect those services. See
 rates and repair limits.
 
 Use Hull for pieces, Armor for plating and openings, Fittings for equipment,
-Internals for rooms and machinery, and Paint for finishes.
+Internals for rooms and machinery, and Paint for finishes. Hover a face in Armor
+to see its nominal plate thickness in millimetres and material. This includes
+the minimum structural skin; openings show no protective plate. Pending armor
+edits use the same thickness rules and color scale as the compiled preview.
 
 Propellers automatically grow an external shaft and support arms to nearby
 closed hull surfaces. Place a screw on the underside near the stern to leave
@@ -128,6 +131,20 @@ authored hull pieces, placements and routes. If fitted variants have changed,
 review the listed variants and choose **Apply parts update**. Missing fitted
 variants block the update. The design recompiles against the new catalog; Undo
 restores the previous catalog, and older saved revisions remain recoverable.
+
+## Fine fitting rotation
+
+Right-drag horizontally on a fitting to rotate it in place. If it is selected,
+the selected fittings rotate together around their own mounting points. While
+placing a fitting, right-drag over the hull to turn the placement preview;
+mirrored previews turn in the opposite direction. Hold Shift for 0.1° per pixel
+instead of 0.5°. The live angle appears above the palette. Release commits an installed fitting
+change as one undoable edit; Escape, lost pointer capture or window blur cancels it.
+Right-drag elsewhere still pans, and a plain right-click still removes a piece.
+
+R rotates fittings 15°; Shift-R rotates them 1°. The bearing field accepts 0.1°
+increments. Rotation reuses the visible meshes and keeps a stationary placement
+preview visible; native compilation runs after an installed fitting edit commits.
 
 ## Custom hull sections
 
@@ -414,11 +431,15 @@ Choose **Vertex**, **Edge** or **Face** to move one corner, an edge's two corner
 
 Side, Top and Bow are orthographic camera presets. P and the projection button switch between orthographic and perspective cameras while retaining framing; O also works in freeform mode. One drag commits one undo step, including mirrored and nearby corners. Escape, right-click, lost pointer capture, window blur, changing editing options or projection, and returning to the drag origin cancel without writing source/history. **Reset edit** restores the selected block's shape at session entry; **Done** keeps edits and leaves freeform mode.
 
+**Round / chamfer** treats any combination of the twelve cage edges while retaining one source block and ID. Select edges by number (hover to identify the edge in the viewport), use **Toggle selected edge**, or choose **All edges**. Local mirror axes select the reflected edges too. **Round** creates a curved transition; **Chamfer** cuts a flat strip. One metric radius/cut width applies to the treated edges. Zero restores sharp edges. The limit is 45% of the smallest local frame dimension. Fillets intersect at shared seams; three treated edges meet in a faceted spherical corner patch. Radius is measured in the undeformed block frame, then follows its corner deformation.
+
+Round/chamfer uses the same undo/redo and saved-source path. **Remove edge treatment** restores sharp edges while keeping the edited corner cage; **Reset edit** restores the complete session-entry block. Remove the edge treatment before using the independent-piece Split command. Invalid or overlapping solids remain recoverable drafts but cannot launch. Rust compiles the faceted geometry used for collision, armor, support and buoyancy; the browser preview is checked against it. The optional version-1 `shaping` record contains edge indexes, radius and style. Older eight-corner sources remain compatible.
+
 **Split…** opens local axis and count controls. It cuts the block into 2–16 independent eight-corner children, preserves the trilinear corner-defined shape and outer face assignments, gives children new stable IDs, and starts new cut faces with structural skin. Escape closes the popover first. The split is one undo step and obeys the existing 512-piece split limit. On a warped block, these parameter cuts need not be world-aligned planes. Corners remain editable after undo, save and reopening.
 
 The same versioned construction source supports `kind: "vertex"` with optional `vertices: Vec3[]` (exactly eight finite normalized local coordinates). The order is the four bow corners `(-X,-Y), (+X,-Y), (+X,+Y), (-X,+Y)`, followed by the equivalent stern corners. Missing coordinates denote the cube; `size` scales the local edit frame and `rotationDeg` applies its quarter-turn yaw. Historical primitives remain compatible. Corner edits turn a box into a vertex hull without changing its ID.
 
-Rust owns the physical solid and exterior. Planar convex shapes use one convex cell. Warped faces use an unbiased fan through each bilinear face's center; this is a faceted approximation of the curved surface whose signed volume is exact. Convex neighboring cells and coplanar patches are combined without filling concavities. Render, collision, armor and buoyancy use the same compiled geometry. Split children may refine surface faceting, but preserve the underlying corner-defined surface and enclosed volume. Self-overlapping, folded, collapsed, out-of-bounds or overly complex drafts remain editable and saveable; they cannot launch until corrected. This eight-corner version supports dents whose faces remain oriented outward from the block center. It does not add arbitrary topology, tunnels, edge subdivision or smooth subdivision surfaces.
+Rust owns the physical solid and exterior. Planar convex shapes use one convex cell. Warped faces use an unbiased fan through each bilinear face's center; this is a faceted approximation of the curved surface whose signed volume is exact. Convex neighboring cells and coplanar patches are combined without filling concavities. Render, collision, armor and buoyancy use the same compiled geometry. Split children may refine surface faceting, but preserve the underlying corner-defined surface and enclosed volume. Self-overlapping, folded, collapsed, out-of-bounds or overly complex drafts remain editable and saveable; they cannot launch until corrected. This eight-corner version supports dents whose faces remain oriented outward from the block center. It does not add arbitrary mesh topology, tunnels or smooth subdivision surfaces; round/chamfer generates bounded surface detail.
 
 ### Armor on custom hull panels
 

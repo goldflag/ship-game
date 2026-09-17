@@ -249,6 +249,7 @@ pub fn suggest(
                 position,
                 bearing_deg: 0.,
                 magazine_id: None,
+                paint: None,
                 gun: None,
                 launcher: None,
                 path: None,
@@ -411,9 +412,13 @@ fn validate(
         ));
     }
     for e in &c.equipment {
+        if e.paint.as_ref().is_some_and(|paint| paint.is_empty() || paint.len() > 64) {
+            return Err(error("equipment-paint", "Fitting paint must be a nonempty name of at most 64 bytes", Some(&e.id)));
+        }
         if e.gun.as_ref().and_then(|g| g.barbette_paint.as_ref())
             .is_some_and(|paint| paint.is_empty() || paint.len() > 64) {
             return Err(error("barbette-paint", "Invalid barbette paint", Some(&e.id)));
+
         }
         let rise = crate::construction_installation::raised(e);
         if !rise.is_finite() || !(0. ..=30.).contains(&rise) || (c.version < 2. && rise != 0.) {
@@ -424,7 +429,7 @@ fn validate(
         }
     }
     for p in &c.primitives {
-        if (p.kind != "vertex" && p.vertices.is_some())
+        if (p.kind != "vertex" && (p.vertices.is_some() || p.shaping.is_some()))
             || (p.kind != "custom-hull" && p.custom_hull.is_some())
             || !size(p.size)
             || !finite(p.position)
@@ -836,7 +841,7 @@ fn build(
         }
         // Overlapping ballast cannot hide two fixed weights in one envelope.
         let other_ballast = c.primitives.iter().filter(|other|other.kind == "ballast" && other.id < p.id);
-        for other in other_ballast { if primitive(&other).iter().any(|a|envelope.iter().any(|b|cg::intersection(a,b).is_some_and(|c|cg::moments(&c).volume>cg::EPS))) {
+        for other in other_ballast { if primitive(other).iter().any(|a|envelope.iter().any(|b|cg::intersection(a,b).is_some_and(|c|cg::moments(&c).volume>cg::EPS))) {
             return Err(error("ballast-fit","Ballast blocks must not overlap",Some(&p.id)));
         } }
         let mut payload = mass(p.id.clone(), "load", &occupied, 100_000. / cg::total(&occupied).volume);
@@ -2143,7 +2148,6 @@ fn equipment(
                     traverse_rate_deg: 10.,
                     launch_arcs_deg: e.launcher.as_ref().map_or_else(|| vec![[-180., 180.]], |l| l.launch_arcs_deg.clone()),
                     traverse_limits_deg: e.launcher.as_ref().map(|l| l.traverse_limits_deg),
-                    ..Default::default()
                 });
             for (i, &offset) in offsets.iter().enumerate() {
                 if !finite(offset) {
@@ -2404,7 +2408,7 @@ mod tests {
                     version: 1.,
                     catalog_revision: "test".into(),
                     default_thickness_mm: 10.,
-                    primitives: vec![ConstructionPrimitive { custom_hull: None,
+                    primitives: vec![ConstructionPrimitive { shaping: None, custom_hull: None,
                         vertices: None,
                         smooth_group: None,
                         id: "box".into(),
@@ -2434,7 +2438,7 @@ mod tests {
         source.construction.primitives[0].size = [30., 1., 2.];
         source.construction.primitives[0].position = [0.; 3];
         for i in 0..257 {
-            source.construction.primitives.push(ConstructionPrimitive { custom_hull: None,
+            source.construction.primitives.push(ConstructionPrimitive { shaping: None, custom_hull: None,
                 id: format!("tiny-{i}"), kind: "box".into(), size: [0.01; 3],
                 position: [-14. + i as f64 * 0.1, 0.505, 0.],
                 ..Default::default()
@@ -2451,7 +2455,7 @@ mod tests {
     #[test]
     fn ballast_adds_exact_fixed_payload_and_displaces_real_interior() {
         let (mut source,catalog) = fixture();
-        source.construction.primitives.push(ConstructionPrimitive { custom_hull: None, id:"weight".into(),kind:"box".into(),size:[3.,2.,3.],position:[2.,3.,0.],rotation_deg:0.,vertices:None, smooth_group:None });
+        source.construction.primitives.push(ConstructionPrimitive { shaping: None, custom_hull: None, id:"weight".into(),kind:"box".into(),size:[3.,2.,3.],position:[2.,3.,0.],rotation_deg:0.,vertices:None, smooth_group:None });
         let empty = compile(&source,&catalog).loading.unwrap();
         source.construction.primitives[1].kind = "ballast".into();
         let result = compile(&source,&catalog);
@@ -2607,7 +2611,7 @@ mod tests {
         let (mut s, c) = fixture();
         s.id = "catamaran".into();
         s.construction.primitives = vec![
-            ConstructionPrimitive { custom_hull: None,
+            ConstructionPrimitive { shaping: None, custom_hull: None,
                 vertices: None,
                         smooth_group: None,
                 id: "port".into(),
@@ -2616,7 +2620,7 @@ mod tests {
                 size: [3., 4., 20.],
                 rotation_deg: 0.,
             },
-            ConstructionPrimitive { custom_hull: None,
+            ConstructionPrimitive { shaping: None, custom_hull: None,
                 vertices: None,
                         smooth_group: None,
                 id: "starboard".into(),
@@ -2625,7 +2629,7 @@ mod tests {
                 size: [3., 4., 20.],
                 rotation_deg: 0.,
             },
-            ConstructionPrimitive { custom_hull: None,
+            ConstructionPrimitive { shaping: None, custom_hull: None,
                 vertices: None,
                         smooth_group: None,
                 id: "bridge".into(),

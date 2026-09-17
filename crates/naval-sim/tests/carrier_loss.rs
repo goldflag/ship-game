@@ -51,6 +51,15 @@ fn step(
     reports: &Sensors,
     tick: u64,
 ) -> Vec<naval_sim::impact::DamageEvent> {
+    step_with_dt(actors, air, reports, tick, 0.25)
+}
+fn step_with_dt(
+    actors: &[Vessel],
+    air: &mut Aviation,
+    reports: &Sensors,
+    tick: u64,
+    dt: f64,
+) -> Vec<naval_sim::impact::DamageEvent> {
     let mut events = vec![];
     air.step(
         &mut AirContext {
@@ -69,7 +78,7 @@ fn step(
             seed: 123,
             sea: None,
         },
-        0.25,
+        dt,
         tick as f64 / 60.0,
     );
     events
@@ -437,7 +446,8 @@ fn a_homeless_strike_releases_its_bombs_then_withdraws_without_fabricated_kills(
     actors[0].damage.sunk = true;
     let mut releases = 0;
     let mut withdrawals = 0;
-    for tick in (375..375 + 180 * 60).step_by(15) {
+    // Use production ticks so the narrow ballistic release window is sampled.
+    for tick in 375..375 + 180 * 60 {
         if tick % 60 == 0 {
             reports.update(
                 tick,
@@ -448,7 +458,7 @@ fn a_homeless_strike_releases_its_bombs_then_withdraws_without_fabricated_kills(
                 &sensors::VisualRules::default(),
             );
         }
-        for event in step(&actors, &mut air, &reports, tick) {
+        for event in step_with_dt(&actors, &mut air, &reports, tick, 1.0 / 60.0) {
             if event.kind == "bomb-release" {
                 releases += 1;
             }

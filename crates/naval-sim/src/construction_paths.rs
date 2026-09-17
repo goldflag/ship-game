@@ -99,6 +99,8 @@ pub(crate) struct FittedPath {
     pub mass: ConstructionMass,
 }
 
+// Keep the hull and fitting queries explicit at this compiler boundary.
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn compile(
     e: &ConstructionEquipment,
     p: &ConstructionEquipmentPart,

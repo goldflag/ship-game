@@ -32,13 +32,13 @@ pub fn space_cell(
     part: &ConstructionEquipmentPart,
     space: &ConstructionEquipmentPartOccupancyItem,
 ) -> cg::Cell {
-    if part.kind == "gun" {
-        if let Some(weapon) = catalog.weapons.parts.iter()
-            .find(|w| Some(w.id.as_str()) == part.gun_part_id.as_deref()) {
-            return cylinder(weapon.barbette_radius,
-                space.center[1] - space.size[1] / 2.,
-                space.center[1] + space.size[1] / 2.);
-        }
+    if part.kind == "gun"
+        && let Some(weapon) = catalog.weapons.parts.iter()
+            .find(|w| Some(w.id.as_str()) == part.gun_part_id.as_deref())
+    {
+        return cylinder(weapon.barbette_radius,
+            space.center[1] - space.size[1] / 2.,
+            space.center[1] + space.size[1] / 2.);
     }
     if part.kind == "funnel" {
         return cg::transform(
@@ -68,8 +68,8 @@ pub fn spaces(
     if p.kind != "gun" {
         return spaces;
     }
-    if c.version >= 2. && spaces.is_empty() {
-        if let Some(w) = catalog
+    if c.version >= 2. && spaces.is_empty()
+        && let Some(w) = catalog
             .weapons
             .parts
             .iter()
@@ -82,7 +82,6 @@ pub fn spaces(
                 size: [w.barbette_radius * 2., depth, w.barbette_radius * 2.],
             });
         }
-    }
     let raise = raised(e);
     for space in &mut spaces {
         space.center[1] -= raise / 2.;
@@ -234,7 +233,7 @@ pub fn magazine(
     let skin = c.default_thickness_mm / 1000.;
     let width = (w.barbette_radius - skin * 2.) * 1.4;
     let depth = well.size[1] - raised(e);
-    let height = (depth * 0.4).min(2.).max(0.2);
+    let height = (depth * 0.4).clamp(0.2, 2.);
     let center = [
         0.,
         well.center[1] - well.size[1] / 2. + skin + height / 2.,

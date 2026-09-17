@@ -2972,6 +2972,2071 @@
           ]
         }
       ]
+    },
+    {
+      "id": "us-5in38-mk21-single",
+      "name": "5-inch/38 Mk 21 open mount",
+      "kind": "gun",
+      "size": [
+        2.722,
+        2.027,
+        5.914
+      ],
+      "boundsCenter": [
+        0,
+        1.013,
+        -1.529
+      ],
+      "centerOfGravity": [
+        0,
+        1.053,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "us-5in38-mk21-single",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "us-11in75-quad",
+      "name": "1.1-inch/75 quadruple mount",
+      "kind": "gun",
+      "size": [
+        2.602,
+        1.677,
+        3.276
+      ],
+      "boundsCenter": [
+        0,
+        0.838,
+        -0.337
+      ],
+      "centerOfGravity": [
+        0,
+        0.826,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "us-11in75-quad",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "us-3in50-single",
+      "name": "3-inch/50 defensive gun",
+      "kind": "gun",
+      "size": [
+        1.872,
+        1.707,
+        4.833
+      ],
+      "boundsCenter": [
+        0,
+        0.852,
+        -0.939
+      ],
+      "centerOfGravity": [
+        0,
+        0.845,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "us-3in50-single",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "qf-2pdr-mkvi-octuple",
+      "name": "Octuple QF 2-pounder Mk VI pom-pom",
+      "kind": "gun",
+      "size": [
+        3.382,
+        1.903,
+        3.19
+      ],
+      "boundsCenter": [
+        0,
+        0.95,
+        -0.524
+      ],
+      "centerOfGravity": [
+        0,
+        0.891,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "qf-2pdr-mkvi-octuple",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "type89-127-a1-twin",
+      "name": "12.7 cm/40 Type 89 A1 twin",
+      "kind": "gun",
+      "size": [
+        4.602,
+        2.98,
+        7.434
+      ],
+      "boundsCenter": [
+        0,
+        1.489,
+        -1.416
+      ],
+      "centerOfGravity": [
+        0,
+        1.619,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "type89-127-a1-twin",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "type89-127-a1-mod2-twin",
+      "name": "12.7 cm/40 Type 89 A1 Mod 2 twin",
+      "kind": "gun",
+      "size": [
+        4.602,
+        3.376,
+        7.478
+      ],
+      "boundsCenter": [
+        0,
+        1.687,
+        -1.394
+      ],
+      "centerOfGravity": [
+        0,
+        1.619,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "type89-127-a1-mod2-twin",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "type96-25-triple",
+      "name": "25 mm Type 96 triple",
+      "kind": "gun",
+      "size": [
+        2.462,
+        1.907,
+        2.686
+      ],
+      "boundsCenter": [
+        0,
+        0.952,
+        -0.24
+      ],
+      "centerOfGravity": [
+        0,
+        0.878,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "type96-25-triple",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "type96-25-triple-shielded",
+      "name": "25 mm Type 96 triple smoke shield",
+      "kind": "gun",
+      "size": [
+        2.595,
+        1.907,
+        2.824
+      ],
+      "boundsCenter": [
+        0,
+        0.952,
+        -0.171
+      ],
+      "centerOfGravity": [
+        0,
+        0.878,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "type96-25-triple-shielded",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "type3-127-typec-twin",
+      "name": "127 mm/50 Type C twin",
+      "kind": "gun",
+      "size": [
+        4.813,
+        2.581,
+        8.781
+      ],
+      "boundsCenter": [
+        0,
+        1.29,
+        -0.755
+      ],
+      "centerOfGravity": [
+        0,
+        1.086,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "type3-127-typec-twin",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "type96-25-mogami-2",
+      "name": "25 mm Type 96 twin",
+      "kind": "gun",
+      "size": [
+        2.102,
+        1.687,
+        2.167
+      ],
+      "boundsCenter": [
+        0,
+        0.842,
+        -0.22
+      ],
+      "centerOfGravity": [
+        0,
+        0.734,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "type96-25-mogami-2",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "us-40mm-bofors-mk1-iowa",
+      "name": "40 mm/56 Bofors Mk.1 twin",
+      "kind": "gun",
+      "size": [
+        2.422,
+        2.547,
+        3.846
+      ],
+      "boundsCenter": [
+        0,
+        1.272,
+        -0.372
+      ],
+      "centerOfGravity": [
+        0,
+        1.242,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "us-40mm-bofors-mk1-iowa",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "us-20mm-oerlikon-mk24-hsienyang",
+      "name": "20 mm Oerlikon Mk24 twin (source label)",
+      "kind": "gun",
+      "size": [
+        1.582,
+        1.695,
+        2.461
+      ],
+      "boundsCenter": [
+        0,
+        0.847,
+        -0.157
+      ],
+      "centerOfGravity": [
+        0,
+        0.763,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "us-20mm-oerlikon-mk24-hsienyang",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "us-5in38-mk32-mod12",
+      "name": "127 mm/38 Mk.12 on Mk.32 Mod.12",
+      "kind": "gun",
+      "size": [
+        5.107,
+        3.94,
+        7.845
+      ],
+      "boundsCenter": [
+        0,
+        1.759,
+        -0.851
+      ],
+      "centerOfGravity": [
+        0,
+        1.308,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "us-5in38-mk32-mod12",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            -0.21,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "type93-13-twin",
+      "name": "13.2 mm Type 93 twin",
+      "kind": "gun",
+      "size": [
+        0.852,
+        1.29,
+        1.666
+      ],
+      "boundsCenter": [
+        0,
+        0.644,
+        -0.171
+      ],
+      "centerOfGravity": [
+        0,
+        0.566,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "type93-13-twin",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "type93-13-single",
+      "name": "13.2 mm Type 93 single",
+      "kind": "gun",
+      "size": [
+        0.408,
+        1.64,
+        1.818
+      ],
+      "boundsCenter": [
+        0,
+        0.819,
+        -0.095
+      ],
+      "centerOfGravity": [
+        0,
+        0.793,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "type93-13-single",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ijn-triple-610",
+      "name": "Japanese 610 mm triple shielded bank",
+      "kind": "torpedo-launcher",
+      "size": [
+        4.881,
+        2.44,
+        8.34
+      ],
+      "boundsCenter": [
+        0,
+        1.219,
+        -0.431
+      ],
+      "centerOfGravity": [
+        0,
+        1.0,
+        -0.3
+      ],
+      "massKg": 11000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ],
+      "torpedoPartId": "ijn-610-type8-game",
+      "tubeOffsets": [
+        [
+          -0.76,
+          0.84,
+          -4.6
+        ],
+        [
+          0,
+          0.84,
+          -4.6
+        ],
+        [
+          0.76,
+          0.84,
+          -4.6
+        ]
+      ]
+    },
+    {
+      "id": "ijn-quadruple-610",
+      "name": "Japanese 610 mm quadruple shielded bank",
+      "kind": "torpedo-launcher",
+      "size": [
+        4.452,
+        2.49,
+        9.04
+      ],
+      "boundsCenter": [
+        0,
+        1.244,
+        -0.861
+      ],
+      "centerOfGravity": [
+        0,
+        1.0,
+        -0.4
+      ],
+      "massKg": 18000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ],
+      "torpedoPartId": "ijn-610-type93-game",
+      "tubeOffsets": [
+        [
+          -1.145,
+          0.8235,
+          -5.38
+        ],
+        [
+          -0.382,
+          0.8235,
+          -5.38
+        ],
+        [
+          0.382,
+          0.8235,
+          -5.38
+        ],
+        [
+          1.145,
+          0.8235,
+          -5.38
+        ]
+      ]
+    },
+    {
+      "id": "us-battleship-funnel",
+      "name": "US battleship capped funnel",
+      "kind": "funnel",
+      "size": [
+        5.397,
+        17.989,
+        9.98
+      ],
+      "boundsCenter": [
+        0,
+        8.9939,
+        0.0705
+      ],
+      "centerOfGravity": [
+        0,
+        8.2,
+        0.1
+      ],
+      "massKg": 60000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "exhaust-out",
+          "kind": "exhaust",
+          "position": [
+            0,
+            16.7,
+            0.1
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        }
+      ],
+      "exhaustKw": 80000,
+      "occupancy": [
+        {
+          "center": [
+            0,
+            -0.5,
+            0
+          ],
+          "size": [
+            4.2,
+            1,
+            7.4
+          ]
+        }
+      ]
+    },
+    {
+      "id": "us-cruiser-funnel",
+      "name": "US heavy cruiser funnel",
+      "kind": "funnel",
+      "size": [
+        6.441,
+        16.069,
+        9.213
+      ],
+      "boundsCenter": [
+        0,
+        8.0342,
+        0.3859
+      ],
+      "centerOfGravity": [
+        0,
+        7.0,
+        0.5
+      ],
+      "massKg": 40000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "exhaust-out",
+          "kind": "exhaust",
+          "position": [
+            0,
+            15.5,
+            1.25
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        }
+      ],
+      "exhaustKw": 45000,
+      "occupancy": [
+        {
+          "center": [
+            0,
+            -0.5,
+            0
+          ],
+          "size": [
+            5.0,
+            1,
+            6.8
+          ]
+        }
+      ]
+    },
+    {
+      "id": "us-mk38-director",
+      "name": "US Mk 38 main battery director",
+      "kind": "director",
+      "size": [
+        9.429,
+        4.319,
+        3.925
+      ],
+      "boundsCenter": [
+        0,
+        2.159,
+        0.0422
+      ],
+      "centerOfGravity": [
+        0,
+        1.7,
+        0
+      ],
+      "massKg": 22000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "fire-control",
+          "kind": "fire-control",
+          "position": [
+            0,
+            1.73,
+            0
+          ],
+          "direction": [
+            0,
+            0,
+            -1
+          ]
+        }
+      ]
+    },
+    {
+      "id": "us-cruiser-pole-mast",
+      "name": "US cruiser pole mast",
+      "kind": "mast",
+      "size": [
+        11.023,
+        27.911,
+        6.95
+      ],
+      "boundsCenter": [
+        0,
+        13.955,
+        -0.8255
+      ],
+      "centerOfGravity": [
+        0,
+        9.5,
+        -0.3
+      ],
+      "massKg": 9000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "german-battleship-funnel",
+      "name": "German battleship capped funnel",
+      "kind": "funnel",
+      "size": [
+        9.545,
+        13.508,
+        19.764
+      ],
+      "boundsCenter": [
+        0,
+        6.7398,
+        -3.7098
+      ],
+      "centerOfGravity": [
+        0,
+        5.2,
+        -1.2
+      ],
+      "massKg": 70000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            -0.0135,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "exhaust-out",
+          "kind": "exhaust",
+          "position": [
+            0,
+            12.6,
+            0
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        }
+      ],
+      "exhaustKw": 110000,
+      "occupancy": [
+        {
+          "center": [
+            0,
+            -0.5,
+            -1.0
+          ],
+          "size": [
+            4.6,
+            1,
+            7.0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "german-rangefinder-cupola",
+      "name": "German 10.5 m rangefinder cupola",
+      "kind": "director",
+      "size": [
+        10.691,
+        3.931,
+        3.813
+      ],
+      "boundsCenter": [
+        0,
+        1.965,
+        -0.186
+      ],
+      "centerOfGravity": [
+        0,
+        1.3,
+        0
+      ],
+      "massKg": 27000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "fire-control",
+          "kind": "fire-control",
+          "position": [
+            0,
+            1.3,
+            0
+          ],
+          "direction": [
+            0,
+            0,
+            -1
+          ]
+        }
+      ]
+    },
+    {
+      "id": "german-battleship-mainmast",
+      "name": "German battleship mainmast",
+      "kind": "mast",
+      "size": [
+        14.401,
+        37.908,
+        5.463
+      ],
+      "boundsCenter": [
+        0,
+        18.9263,
+        1.2844
+      ],
+      "centerOfGravity": [
+        0,
+        13.5,
+        0.1
+      ],
+      "massKg": 15000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            -0.0274,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ijn-battleship-funnel",
+      "name": "Japanese battleship raked funnel",
+      "kind": "funnel",
+      "size": [
+        6.683,
+        15.208,
+        15.42
+      ],
+      "boundsCenter": [
+        0,
+        7.6035,
+        1.1702
+      ],
+      "centerOfGravity": [
+        0,
+        6.5,
+        2.0
+      ],
+      "massKg": 70000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "exhaust-out",
+          "kind": "exhaust",
+          "position": [
+            0,
+            14.2,
+            4.4
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        }
+      ],
+      "exhaustKw": 110000,
+      "occupancy": [
+        {
+          "center": [
+            0,
+            -0.5,
+            0
+          ],
+          "size": [
+            5.4,
+            1,
+            8.0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ijn-cruiser-trunked-funnel",
+      "name": "Japanese cruiser trunked funnel",
+      "kind": "funnel",
+      "size": [
+        5.247,
+        12.178,
+        23.596
+      ],
+      "boundsCenter": [
+        0,
+        6.0887,
+        0.3017
+      ],
+      "centerOfGravity": [
+        0,
+        5.2,
+        1.5
+      ],
+      "massKg": 45000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "exhaust-out",
+          "kind": "exhaust",
+          "position": [
+            0,
+            10.8,
+            8.0
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        }
+      ],
+      "exhaustKw": 110000,
+      "occupancy": [
+        {
+          "center": [
+            0,
+            -0.5,
+            -6.4
+          ],
+          "size": [
+            4.2,
+            1,
+            8.8
+          ]
+        },
+        {
+          "center": [
+            0,
+            -0.5,
+            9.9
+          ],
+          "size": [
+            4.0,
+            1,
+            3.6
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ijn-destroyer-funnel",
+      "name": "Japanese destroyer raked funnel",
+      "kind": "funnel",
+      "size": [
+        3.076,
+        9.075,
+        5.555
+      ],
+      "boundsCenter": [
+        -0.001,
+        4.5368,
+        0.5134
+      ],
+      "centerOfGravity": [
+        0,
+        3.9,
+        0.5
+      ],
+      "massKg": 8000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "exhaust-out",
+          "kind": "exhaust",
+          "position": [
+            0,
+            7.95,
+            1.1
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        }
+      ],
+      "exhaustKw": 20000,
+      "occupancy": [
+        {
+          "center": [
+            0,
+            -0.5,
+            0
+          ],
+          "size": [
+            2.2,
+            1,
+            3.4
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ijn-destroyer-tripod-foremast",
+      "name": "Japanese destroyer tripod foremast",
+      "kind": "mast",
+      "size": [
+        4.601,
+        18.361,
+        4.697
+      ],
+      "boundsCenter": [
+        0,
+        9.18,
+        0.0324
+      ],
+      "centerOfGravity": [
+        0,
+        7.5,
+        0.5
+      ],
+      "massKg": 3500,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ijn-type95-director",
+      "name": "Japanese Type 95 director tower",
+      "kind": "director",
+      "size": [
+        6.621,
+        7.521,
+        3.795
+      ],
+      "boundsCenter": [
+        0,
+        3.76,
+        -0.1224
+      ],
+      "centerOfGravity": [
+        0,
+        3.4,
+        0
+      ],
+      "massKg": 12000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "fire-control",
+          "kind": "fire-control",
+          "position": [
+            0,
+            6.4,
+            0
+          ],
+          "direction": [
+            0,
+            0,
+            -1
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ijn-type98-main-director",
+      "name": "Japanese Type 98 main director with 15 m rangefinder",
+      "kind": "director",
+      "size": [
+        16.725,
+        6.871,
+        5.755
+      ],
+      "boundsCenter": [
+        0,
+        3.435,
+        -0.1994
+      ],
+      "centerOfGravity": [
+        0,
+        3.2,
+        0.6
+      ],
+      "massKg": 60000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "fire-control",
+          "kind": "fire-control",
+          "position": [
+            0,
+            5.35,
+            0
+          ],
+          "direction": [
+            0,
+            0,
+            -1
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rn-battleship-funnel",
+      "name": "British battleship flat-sided funnel",
+      "kind": "funnel",
+      "size": [
+        7.201,
+        13.043,
+        8.661
+      ],
+      "boundsCenter": [
+        0,
+        6.5209,
+        0
+      ],
+      "centerOfGravity": [
+        0,
+        6.0,
+        0
+      ],
+      "massKg": 40000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "exhaust-out",
+          "kind": "exhaust",
+          "position": [
+            0,
+            12.2,
+            0
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        }
+      ],
+      "exhaustKw": 60000,
+      "occupancy": [
+        {
+          "center": [
+            0,
+            -0.5,
+            0
+          ],
+          "size": [
+            4.6,
+            1,
+            6.0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rn-tripod-foremast",
+      "name": "British tripod foremast",
+      "kind": "mast",
+      "size": [
+        12.001,
+        28.051,
+        5.765
+      ],
+      "boundsCenter": [
+        0,
+        14.025,
+        2.1079
+      ],
+      "centerOfGravity": [
+        0,
+        10.5,
+        1.6
+      ],
+      "massKg": 12000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rn-hacs-director",
+      "name": "British HACS director",
+      "kind": "director",
+      "size": [
+        4.551,
+        5.751,
+        2.976
+      ],
+      "boundsCenter": [
+        0,
+        2.875,
+        -0.0625
+      ],
+      "centerOfGravity": [
+        0,
+        2.6,
+        0
+      ],
+      "massKg": 11000,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "fire-control",
+          "kind": "fire-control",
+          "position": [
+            0,
+            3.9,
+            0
+          ],
+          "direction": [
+            0,
+            0,
+            -1
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rn-corvette-funnel",
+      "name": "British corvette funnel",
+      "kind": "funnel",
+      "size": [
+        2.863,
+        7.616,
+        3.012
+      ],
+      "boundsCenter": [
+        0,
+        3.8075,
+        -0.0793
+      ],
+      "centerOfGravity": [
+        0,
+        3.4,
+        0
+      ],
+      "massKg": 2500,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "exhaust-out",
+          "kind": "exhaust",
+          "position": [
+            0,
+            7.1,
+            0
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        }
+      ],
+      "exhaustKw": 2500,
+      "occupancy": [
+        {
+          "center": [
+            0,
+            -0.5,
+            0
+          ],
+          "size": [
+            1.8,
+            1,
+            1.8
+          ]
+        }
+      ]
+    },
+    {
+      "id": "type94-460-triple",
+      "name": "46 cm Type 94 triple",
+      "kind": "gun",
+      "size": [
+        15.851,
+        7.111,
+        28.974
+      ],
+      "boundsCenter": [
+        0,
+        3.555,
+        -6.6705
+      ],
+      "centerOfGravity": [
+        0,
+        2.86,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "type94-460-triple",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "type3-155-triple",
+      "name": "15.5 cm Type 3 triple",
+      "kind": "gun",
+      "size": [
+        8.431,
+        3.436,
+        12.883
+      ],
+      "boundsCenter": [
+        0,
+        1.7175,
+        -3.1622
+      ],
+      "centerOfGravity": [
+        0,
+        1.203,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "type3-155-triple",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "type3-203-mogami-e3-twin",
+      "name": "20.3 cm/50 Type 3 twin",
+      "kind": "gun",
+      "size": [
+        5.68,
+        2.466,
+        14.541
+      ],
+      "boundsCenter": [
+        0,
+        1.2325,
+        -1.8139
+      ],
+      "centerOfGravity": [
+        0,
+        0.826,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "type3-203-mogami-e3-twin",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "type3-203-mogami-e-twin",
+      "name": "20.3 cm/50 Type 3 twin \u00b7 rangefinder",
+      "kind": "gun",
+      "size": [
+        8.751,
+        2.466,
+        14.541
+      ],
+      "boundsCenter": [
+        0,
+        1.2325,
+        -1.8139
+      ],
+      "centerOfGravity": [
+        0,
+        0.826,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "type3-203-mogami-e-twin",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "us-16in50-mk7-iowa",
+      "name": "16-inch/50 Mk 7 triple",
+      "kind": "gun",
+      "size": [
+        15.601,
+        3.626,
+        28.863
+      ],
+      "boundsCenter": [
+        0,
+        1.8125,
+        -4.4604
+      ],
+      "centerOfGravity": [
+        0,
+        0.97,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "us-16in50-mk7-iowa",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "us-8in55-mk12-triple",
+      "name": "8-inch/55 Mk 12 triple",
+      "kind": "gun",
+      "size": [
+        8.461,
+        3.445,
+        16.646
+      ],
+      "boundsCenter": [
+        0,
+        1.7218,
+        -2.1302
+      ],
+      "centerOfGravity": [
+        0,
+        0.982,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "us-8in55-mk12-triple",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bl-14-mkvii-quad",
+      "name": "14-inch Mk VII quadruple",
+      "kind": "gun",
+      "size": [
+        13.961,
+        3.394,
+        24.206
+      ],
+      "boundsCenter": [
+        0,
+        1.6965,
+        -3.7084
+      ],
+      "centerOfGravity": [
+        0,
+        1.008,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "bl-14-mkvii-quad",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bl-14-mkvii-twin",
+      "name": "14-inch Mk VII twin",
+      "kind": "gun",
+      "size": [
+        10.301,
+        3.508,
+        22.906
+      ],
+      "boundsCenter": [
+        0,
+        1.7537,
+        -4.3584
+      ],
+      "centerOfGravity": [
+        0,
+        1.008,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "bl-14-mkvii-twin",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "qf-525-mki-twin",
+      "name": "5.25-inch QF Mk I twin",
+      "kind": "gun",
+      "size": [
+        5.001,
+        3.246,
+        9.505
+      ],
+      "boundsCenter": [
+        0,
+        1.6225,
+        -1.8559
+      ],
+      "centerOfGravity": [
+        0,
+        0.878,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "qf-525-mki-twin",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sk-c28-150-twin",
+      "name": "15 cm SK C/28 twin",
+      "kind": "gun",
+      "size": [
+        6.501,
+        3.016,
+        12.253
+      ],
+      "boundsCenter": [
+        0,
+        1.5075,
+        -2.1332
+      ],
+      "centerOfGravity": [
+        0,
+        0.747,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "sk-c28-150-twin",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "flak-105-bismarck-1941",
+      "name": "10.5 cm SK C/33 twin AA \u00b7 battleship mount",
+      "kind": "gun",
+      "size": [
+        3.072,
+        2.441,
+        6.378
+      ],
+      "boundsCenter": [
+        0,
+        1.22,
+        -1.6386
+      ],
+      "centerOfGravity": [
+        0,
+        1.059,
+        0
+      ],
+      "placement": "deck",
+      "gunPartId": "flak-105-bismarck-1941",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ]
     }
   ]
 }

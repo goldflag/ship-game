@@ -31,6 +31,13 @@ test('a nation keeps its own parts and the generic ones; a nation absent from th
   for (const entry of catalog.equipment.filter(entry => entry.placement !== 'internal')) expect(!!fittingNation(entry) || entry.id.startsWith('generic-')).toBe(true);
   const german = shelf({ category: 'superstructure', nation: 'Germany' });
   expect(german).toContain('german-cruiser-funnel-cap'); expect(german).toContain('generic-capital-funnel'); expect(german).not.toContain('fletcher-funnel');
-  expect(shelf({ category: 'light-aa', nation: 'United States' })).toEqual(['us-20mm-oerlikon-mk4-hsienyang']);
+  const american = shelf({ category: 'light-aa', nation: 'United States' });
+  expect(american).toContain('us-20mm-oerlikon-mk4-hsienyang'); expect(american.every(id => fittingNation(part(id)) === 'United States')).toBe(true);
   expect(shelf({ category: 'deck-gear', nation: 'Japan' })).toEqual(shelf({ category: 'deck-gear', nation: 'all' }));
+});
+
+test('gun shelves list the heaviest calibre first', () => {
+  const calibers = shelf({ category: 'main-battery', nation: 'all' }).map(id => catalog.weapons.parts.find(gun => gun.id === part(id).gunPartId)!.caliberM);
+  expect(calibers).toEqual(calibers.slice().sort((a, b) => b - a));
+  expect(calibers[0]).toBeGreaterThan(.4);
 });
