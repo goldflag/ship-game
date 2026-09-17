@@ -55,6 +55,7 @@ const chrome = (): BuilderChrome & { log: string[] } => { const log: string[] = 
 
 test('a click and a stroke on the hull lay cube pieces with their mirrored twins as one labelled batch each', async () => {
   const { tool, data, labels } = await setup();
+  tool.setTool('place');
   expect(tool.scene(undefined)).toMatchObject({ gesture: 'stroke', moveTargets: 'none', pickTargets: 'all', placementPiece: { kind: 'hull', shape: 'box', size: [1, 1, 1], rotationDeg: 0 }, gridStep: 1 });
   expect(tool.pointer({ kind: 'lay', points: [[0, 1, 0]] })).toMatchObject({ accepted: true, changed: true });
   expect(data().primitives.map(part => [part.id, part.position])).toEqual([['hull', [0, 0, 0]], ['hull-1', [0, 1, 0]]]);
@@ -71,6 +72,7 @@ test('a click and a stroke on the hull lay cube pieces with their mirrored twins
 
 test('a shut door refuses every edit with its reason and leaves the source untouched', async () => {
   const { tool, owner, store, data } = await setup({ connect: false });
+  tool.setTool('place');
   const before = JSON.stringify(owner.source);
   expect(tool.pointer({ kind: 'lay', points: [[0, 1, 0]] })).toEqual({ accepted: false, reason: 'not-ready', message: expect.stringContaining('still opening') });
   expect(tool.pointer({ kind: 'erase', id: 'hull' })).toMatchObject({ accepted: false, reason: 'not-ready' });
@@ -89,6 +91,7 @@ test('a shut door refuses every edit with its reason and leaves the source untou
 
 test('select, move and erase: a drag translates the pressed piece and snaps walls, right-click removes, the last block stays', async () => {
   const { tool, data, labels, state } = await setup();
+  tool.setTool('place');
   tool.pointer({ kind: 'lay', points: [[0, 1, 0]] });
   tool.switchLayer('internals'); tool.setTool('deck');
   expect(tool.pointer({ kind: 'pick', hit: hit({ placement: [0, 1.5, 0] }) })).toMatchObject({ accepted: true });
@@ -114,6 +117,7 @@ test('select, move and erase: a drag translates the pressed piece and snaps wall
 
 test('box selection switches to Select and adds with the modifier; arrows nudge, Delete removes, ⌘Z undoes', async () => {
   const { tool, owner, data, state } = await setup();
+  tool.setTool('place');
   tool.pointer({ kind: 'lay', points: [[0, 1, 0], [0, 2, 0]] });
   tool.pointer({ kind: 'box', ids: ['hull-1'], additive: false });
   expect(state().tool).toBe('select'); expect([...state().selected]).toEqual(['hull-1']);
@@ -134,6 +138,7 @@ test('box selection switches to Select and adds with the modifier; arrows nudge,
 
 test('switching layers resets the tool, faces and bearing; Internals keeps the whole ship visible; a face layer picks hull faces only', async () => {
   const { tool, state } = await setup();
+  tool.setTool('place');
   tool.key(key('r'), chrome());
   expect(state().bearing).toBe(90);
   tool.switchLayer('armor');
@@ -148,6 +153,7 @@ test('switching layers resets the tool, faces and bearing; Internals keeps the w
 
 test('armor and paint: Paint assigns the active card to the clicked face and its mirror, Area gathers faces, Eyedrop copies, Opening toggles', async () => {
   const { tool, data, state, labels } = await setup();
+  tool.setTool('place');
   tool.pointer({ kind: 'lay', points: [[1, 0, 0]] });
   tool.switchLayer('armor'); tool.setThickness(80);
   expect(tool.pointer({ kind: 'pick', hit: hit({ id: 'hull-1', surface: 'hull-1:top' }) })).toMatchObject({ accepted: true });
@@ -176,6 +182,7 @@ test('armor and paint: Paint assigns the active card to the clicked face and its
 
 test('a face sweep assigns every crossed face and its mirror as one edit; the ship\'s thicknesses become keyed cards on its own colour scale', async () => {
   const { tool, data, state, labels } = await setup();
+  tool.setTool('place');
   tool.pointer({ kind: 'lay', points: [[1, 0, 0]] });
   tool.switchLayer('armor');
   expect(state().customMm).toBe(10);
@@ -274,6 +281,7 @@ test('connected routes: points accumulate outside history, Enter commits the rou
 
 test('copy and mirror copy replay the editor helper through the door and select the copies', async () => {
   const { tool, data, state, labels } = await setup();
+  tool.setTool('place');
   tool.pointer({ kind: 'lay', points: [[1, 0, 0]] });
   tool.setTool('select'); tool.pointer({ kind: 'pick', hit: hit({ id: 'hull-1' }) });
   tool.key(key('c', { metaKey: true }), chrome());
@@ -327,13 +335,14 @@ test('a new design clears selections, proposals and pending routes; a removed bl
 
 test('Snap cycles 0.25 → 0.5 → 1 → 2 → 5 m separately for hull pieces and fittings, and nudges, walls and boundary placement follow it', async () => {
   const { tool, data, state } = await setup();
+  tool.setTool('place');
   expect(tool.gridStep).toBe(1); expect(tool.scene(undefined).gridStep).toBe(1);
   tool.cycleSnap(); expect(tool.gridStep).toBe(2);
   tool.cycleSnap(); expect(tool.gridStep).toBe(5);
   tool.cycleSnap(); expect(tool.gridStep).toBe(.25);
   tool.switchLayer('fittings'); expect(tool.gridStep).toBe(.25);
   tool.cycleSnap(); expect(tool.gridStep).toBe(.5);
-  tool.switchLayer('hull'); expect(state().snapSteps).toEqual({ hull: .25, equipment: .5 });
+  tool.switchLayer('hull'); tool.setTool('place'); expect(state().snapSteps).toEqual({ hull: .25, equipment: .5 });
   tool.pointer({ kind: 'lay', points: [[0, 1, 0]] });
   tool.setTool('select'); tool.pointer({ kind: 'pick', hit: hit({ id: 'hull-1' }) });
   tool.key(key('ArrowRight'), chrome());
@@ -348,6 +357,7 @@ test('Snap cycles 0.25 → 0.5 → 1 → 2 → 5 m separately for hull pieces an
 
 test('movement stops at another block: a blocked nudge adds no history and says so, a partial move keeps the reachable part', async () => {
   const { tool, owner, data, state } = await setup();
+  tool.setTool('place');
   tool.pointer({ kind: 'lay', points: [[0, 0, -3]] });
   tool.setTool('select'); tool.pointer({ kind: 'pick', hit: hit({ id: 'hull-1' }) });
   const steps = owner.getSnapshot().history.past.length;
@@ -390,11 +400,11 @@ test('Internals edits only internal packages and walls: entering drops external 
   expect(data().equipment[0].position).toEqual([0, 0, 1]);
 });
 
-test('a design that opens as a custom hull starts in Select with the hull chosen; the cursor piece carries a starter hull', async () => {
+test('a design that opens as a custom hull starts in Select with nothing chosen; the cursor piece carries a starter hull', async () => {
   const { tool, state, data } = await setup({ source: createStarterSource(catalog, 'destroyer-hull') });
   expect(data().primitives[0].kind).toBe('custom-hull');
   expect(state()).toMatchObject({ tool: 'select' });
-  expect([...state().selected]).toEqual(['hull']);
+  expect([...state().selected]).toEqual([]);
   tool.setTool('place'); tool.selectSlot(tool.palette.drawer.find(item => item.id === 'custom-hull')!);
   tool.toggleMirror();
   expect(tool.pointer({ kind: 'lay', points: [[0, 0, 40]] })).toMatchObject({ accepted: true });
@@ -440,7 +450,7 @@ test('turret rise uses one undoable command batch and keeps the deck datum fixed
 
 test('entering Armor or Paint replaces whole-hull selection with face selection', async () => {
   const { tool, state, labels } = await setup({ source: createStarterSource(catalog, 'destroyer-hull') });
-  expect([...state().selected]).toEqual(['hull']);
+  tool.selectOnly(['hull']);
   tool.switchLayer('armor'); expect(state().selected.size).toBe(0);
   tool.selectOnly(['hull']); tool.switchLayer('paint'); expect(state().selected.size).toBe(0);
   expect(labels()).toEqual([]);
@@ -540,4 +550,12 @@ test('armor and paint cards resume their brush after being toggled off', async (
     tool.toggleSlot(card);
     expect(tool.getSnapshot().tool).toBe('apply');
   }
+});
+
+
+test('opening a blank design starts in Select without a placement card or selected piece', async () => {
+  const { tool, state } = await setup();
+  expect(state().tool).toBe('select');
+  expect(state().selected.size).toBe(0);
+  expect(tool.piece).toBeUndefined();
 });

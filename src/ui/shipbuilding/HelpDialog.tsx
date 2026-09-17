@@ -6,9 +6,9 @@ import { BUILDER_LAYERS, BUILDER_RAIL } from './builderLayers';
 const MOUSE: [string, string][] = [
   ['Click', 'Select a piece, fitting, wall or face; Shift-click adds to the selection'],
   ['Snap card', 'Under the tool rail: cycle 0.25, 0.5, 1, 2 and 5 m for placement and movement'],
-  ['Drag a piece', 'Move it along the face under the pointer, snapped to the chosen Snap step'],
+  ['Drag a selected piece', 'Click to select first, then drag to move it along the face under the pointer, snapped to the chosen Snap step'],
   ['Drag over faces', 'With Paint or Opening on the Armor and Paint layers: sweep the card over every face the drag crosses, as one edit'],
-  ['Drag empty space', 'Orbit; pan in orthographic Plan, Profile and Bow views'],
+  ['Drag unselected piece or empty space', 'Orbit; pan in orthographic Plan, Profile and Bow views'],
   ['Right-drag', 'Rotate a fitting or its placement preview; Shift for 0.1° fine control. Elsewhere, pan'],
   ['Wheel · middle-drag', 'Zoom · dolly'],
   ['Shift-drag', 'Box select; Ctrl or ⌘ adds to the selection'],

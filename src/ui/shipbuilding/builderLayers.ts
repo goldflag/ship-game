@@ -29,7 +29,7 @@ export const BUILDER_RAIL: Record<BuilderLayer, RailEntry[]> = {
   paint: [select, tool('apply', 'Paint', 'B', 'Paint'), tool('area', 'Area', 'A'), tool('eyedrop', 'Eyedrop', 'I')],
 };
 /** The tool a layer starts with; Select is always one key away. */
-export const DEFAULT_TOOL: Record<BuilderLayer, BuilderToolId> = { hull: 'place', armor: 'apply', internals: 'module', fittings: 'place', paint: 'apply' };
+export const DEFAULT_TOOL: Record<BuilderLayer, BuilderToolId> = { hull: 'select', armor: 'apply', internals: 'module', fittings: 'place', paint: 'apply' };
 
 export interface HullShape { id: string; name: string; note: string; kind: ConstructionPrimitive['kind']; size: Vec3 }
 /** Width × height × length in metres, on the 1 m hull grid. Quarter plates are the thinnest useful skin.

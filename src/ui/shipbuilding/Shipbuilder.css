@@ -194,7 +194,7 @@
 .shipbuilder .sb-slot:is([aria-pressed=true], [aria-expanded=true]) { border-color: var(--sb-brass); color: var(--sb-brass); background: var(--sb-card-selected); box-shadow: inset 0 0 0 1px var(--sb-brass); }
 .sb-slot.empty { border-style: dashed; opacity: .45; }
 .sb-slot.more { color: var(--sb-muted); font-size: 24px; line-height: 1; }
-.sb-tip { position: absolute; z-index: 6; transform: translate(-50%, calc(-100% - 8px)); width: max-content; max-width: 280px; padding: 7px 10px; background: var(--sb-card); border: 1px solid var(--sb-line2); border-radius: 3px; font: 400 11.5px/1.45 'Barlow', sans-serif; color: var(--sb-muted); text-shadow: none; text-align: center; pointer-events: none; }
+.sb-tip { position: absolute; z-index: 6; transform: translate(-50%, calc(-100% - 8px)); width: max-content; max-width: min(280px, calc(100vw - 16px)); overflow-wrap: anywhere; padding: 7px 10px; background: var(--sb-card); border: 1px solid var(--sb-line2); border-radius: 3px; font: 400 11.5px/1.45 'Barlow', sans-serif; color: var(--sb-muted); text-shadow: none; text-align: center; pointer-events: none; }
 .sb-tip b { display: block; font: 500 13px/1.3 'Barlow Condensed', sans-serif; color: var(--sb-text); letter-spacing: .02em; }
 .sb-tip.below { transform: translate(-50%, 8px); }
 .sb-tip.right { transform: translate(0, calc(-100% - 8px)); text-align: right; }
