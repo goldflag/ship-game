@@ -21,6 +21,28 @@ export class EquipmentPreview {
   private dead = false;
   private supports = new THREE.Group();
   private supportKey = '';
+  private faded = new Map<THREE.Material, THREE.Material>();
+  private originals = new WeakMap<THREE.Material, THREE.Material>();
+
+  setDisplay(display: 'paint' | 'armor' | 'internals', source: ConstructionSource, catalog: ConstructionCatalog) {
+    const internal = new Set(source.construction.equipment.filter(item => catalog.equipment.find(part => part.id === item.partId)?.placement === 'internal').map(item => item.id));
+    this.group.traverse(node => {
+      if (!(node instanceof THREE.Mesh)) return;
+      const fade = display === 'armor' || display === 'internals' && !internal.has(node.userData.sourceId);
+      const material = (current: THREE.Material) => {
+        const original = this.originals.get(current) ?? current;
+        if (!fade) return original;
+        let faded = this.faded.get(original);
+        if (!faded) {
+          faded = original.clone(); faded.transparent = true; faded.opacity = original.opacity * .12; faded.depthWrite = false;
+          this.faded.set(original, faded); this.originals.set(faded, original);
+          original.addEventListener('dispose', () => { this.faded.get(original)?.dispose(); this.faded.delete(original); });
+        }
+        return faded;
+      };
+      node.material = Array.isArray(node.material) ? node.material.map(material) : material(node.material);
+    });
+  }
 
   constructor(private changed: () => void, private failed: (message: string) => void) {}
 
@@ -106,7 +128,16 @@ export class EquipmentPreview {
     return clone;
   }
 
+  private restoreMaterials() {
+    this.group.traverse(node => {
+      if (!(node instanceof THREE.Mesh)) return;
+      const restore = (material: THREE.Material) => this.originals.get(material) ?? material;
+      node.material = Array.isArray(node.material) ? node.material.map(restore) : restore(node.material);
+    });
+  }
+
   update(source: ConstructionSource, catalog: ConstructionCatalog, supports?: ConstructionPropellerSupport[], invalid: ReadonlySet<string> = new Set()) {
+    this.restoreMaterials();
     if (this.catalog && this.catalog.revision !== catalog.revision) this.clear();
     this.catalog = catalog;
     const supportKey = JSON.stringify(supports ?? []);
@@ -139,6 +170,8 @@ export class EquipmentPreview {
   has(id: string) { return this.instances.has(id); }
 
   private clear() {
+    this.restoreMaterials();
+    this.faded.forEach(material => material.dispose()); this.faded.clear();
     disposeConstructionModel(this.supports); this.supportKey = '';
     this.requests.forEach(abort => abort.abort()); this.requests.clear();
     for (const instance of this.instances.values()) if (instance.userData.path) disposeConstructionModel(instance);

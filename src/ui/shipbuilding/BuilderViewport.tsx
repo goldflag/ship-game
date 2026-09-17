@@ -300,6 +300,7 @@ class Viewport {
     if (key !== this.contentKey) {
       this.contentKey = key; release(this.hull); this.surfaceTriangles = []; this.pickMeshes = []; this.hullMeshes = []; this.surfacesByKey = new Map();
       const vertices: number[] = [], colors: number[] = [];
+      const armorGroups: { start: number; count: number; materialIndex: number }[] = [];
       for (const surface of nativeSurfaces ?? []) {
         if (surface.open && props.scene.display === 'paint') continue;
         const color = new THREE.Color(invalid.has(surface.primitiveId) ? SALMON : props.scene.display === 'armor' ? armorThicknessColor(surface.thicknessMm, props.scene.armorScale) : constructionPaintColor(surface.paint));
@@ -309,30 +310,40 @@ class Viewport {
           fan({ ...surface, vertices: face.vertices }, vertices, colors, props.scene.display === 'armor' || invalid.has(surface.primitiveId) ? color : new THREE.Color(constructionPaintColor(face.paint)));
           for (let i = 1; i < face.vertices.length - 1; i++) this.surfaceTriangles.push(surface);
         }
+        if (props.scene.display === 'armor') {
+          const count = Math.max(0, surface.vertices.length - 2) * 3;
+          const materialIndex = surface.material === 'armor-steel' && !surface.open ? 0 : 1;
+          const previous = armorGroups.at(-1);
+          if (previous?.materialIndex === materialIndex) previous.count += count;
+          else armorGroups.push({ start: vertices.length / 3 - count, count, materialIndex });
+        }
         const selectionKey = surfaceSelectionKey(surface), group = this.surfacesByKey.get(selectionKey);
         if (group) group.push(surface); else this.surfacesByKey.set(selectionKey, [surface]);
       }
       if (nativeSurfaces) {
         const geometry = new THREE.BufferGeometry(); geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3)); geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3)); geometry.computeVertexNormals();
-        const mesh = new THREE.Mesh(geometry, props.scene.display === 'armor' ? new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide }) : new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .78, metalness: 0, side: THREE.DoubleSide, transparent: props.scene.display === 'internals', opacity: props.scene.display === 'internals' ? .15 : 1, depthWrite: props.scene.display !== 'internals' }));
+        if (props.scene.display === 'armor') for (const group of armorGroups) geometry.addGroup(group.start, group.count, group.materialIndex);
+        const mesh = new THREE.Mesh(geometry, props.scene.display === 'armor' ? [new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide }), new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide, transparent: true, opacity: .12, depthWrite: false })] : new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .78, metalness: 0, side: THREE.DoubleSide, transparent: props.scene.display === 'internals', opacity: props.scene.display === 'internals' ? .15 : 1, depthWrite: props.scene.display !== 'internals' }));
         mesh.userData.hull = true; this.hull.add(mesh); this.pickMeshes.push(mesh); this.hullMeshes.push(mesh);
         // The Armor layer outlines every logical face of every piece, in one batch, so plates read as plates on the flat colour scale.
         if (props.scene.display === 'armor') {
           const points: THREE.Vector3[] = [];
           for (const group of this.surfacesByKey.values()) for (const edge of surfaceOutline(group)) {
+            if (edge.surface.material !== 'armor-steel' || edge.surface.open) continue;
             const normal = new THREE.Vector3(...edge.surface.normal);
             points.push(new THREE.Vector3(...edge.a).addScaledVector(normal, .025), new THREE.Vector3(...edge.b).addScaledVector(normal, .025));
           }
           if (points.length) this.hull.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(points), new THREE.LineBasicMaterial({ color: '#142a31', transparent: true, opacity: .4 })));
         }
       } else for (const primitive of props.scene.source.construction.primitives) {
-        const mesh = new THREE.Mesh(primitiveGeometry(primitive.kind, primitive.size, primitive.vertices, primitive.customHull, primitive.shaping), new THREE.MeshStandardMaterial({ color: invalid.has(primitive.id) ? SALMON : constructionPaintColor('naval-gray'), roughness: .78, side: THREE.DoubleSide, transparent: props.scene.display === 'internals', opacity: props.scene.display === 'internals' ? .15 : 1 }));
+        const mesh = new THREE.Mesh(primitiveGeometry(primitive.kind, primitive.size, primitive.vertices, primitive.customHull, primitive.shaping), new THREE.MeshStandardMaterial({ color: invalid.has(primitive.id) ? SALMON : constructionPaintColor('naval-gray'), roughness: .78, side: THREE.DoubleSide, transparent: props.scene.display !== 'paint', opacity: props.scene.display !== 'paint' ? .12 : 1, depthWrite: props.scene.display === 'paint' }));
         mesh.position.set(...primitive.position); mesh.rotation.y = primitive.rotationDeg * Math.PI / 180;
         mesh.userData.sourceId = primitive.id; this.hull.add(mesh); this.pickMeshes.push(mesh); this.hullMeshes.push(mesh);
       }
       this.hoverSurface = ''; release(this.hoverGroup);
     }
     this.equipment.update(props.scene.source, props.scene.catalog, compiled?.propellerSupports, invalid);
+    this.equipment.setDisplay(props.scene.display, props.scene.source, props.scene.catalog);
     const modelKey = `${props.scene.source.id}:${props.scene.source.revision}:${props.scene.result?.contentHash}`;
     if (modelKey !== this.modelKey) {
       this.modelKey = modelKey; this.modelAbort?.abort(); release(this.composed);
@@ -361,13 +372,12 @@ class Viewport {
     }
     for (const part of props.scene.source.construction.equipment) {
       const entry = props.scene.catalog.equipment.find(entry => entry.id === part.partId);
-      if (!entry) continue;
+      if (!entry || this.equipment.has(part.id)) continue;
       const pathBounds = equipmentPathBounds(entry, part);
-      const box = new THREE.Mesh(new THREE.BoxGeometry(...pathBounds.size), new THREE.MeshBasicMaterial({ color: invalid.has(part.id) ? SALMON : props.scene.selected.has(part.id) ? BRASS : entry.placement === 'internal' ? READY : '#bacbd0', wireframe: true, transparent: true, opacity: props.scene.selected.has(part.id) ? 1 : .55 }));
+      const box = new THREE.Mesh(new THREE.BoxGeometry(...pathBounds.size), new THREE.MeshBasicMaterial({ visible: false }));
       const datum = new THREE.Group(); datum.position.set(...part.position); datum.rotation.y = -part.bearingDeg * Math.PI / 180; box.position.set(...pathBounds.center);
       box.userData.sourceId = part.id; datum.add(box); this.details.add(datum);
-      if (!this.equipment.has(part.id)) this.pickMeshes.push(box);
-      datum.visible = invalid.has(part.id) || props.scene.display === 'internals' || props.scene.selected.has(part.id) || (!this.equipment.has(part.id) && !(props.createModel && this.composed.children.length));
+      this.pickMeshes.push(box); // Invisible pick proxy while the model loads.
     }
     if (props.scene.display === 'internals' && props.scene.source.construction.version === 2) {
       for (const module of props.scene.result?.definition?.modules ?? []) {
@@ -1004,6 +1014,7 @@ class Viewport {
     if (this.dead) return;
     if(!this.freeformHandles.dragging && !this.moveHandles.dragging && !this.pointerStart?.rotate) this.controls.update();
     if (this.hover) { if (this.props.scene.placementPiece) this.updateGhost(); this.highlight(this.hover); }
+    this.floorGrid.visible = this.camera.position.y > (this.floorGrid.children[0]?.position.y ?? 0);
     this.freeformHandles.frame(); this.moveHandles.frame(); this.renderer.render(this.scene, this.camera); this.placeTags();
     if (!this.orientationRotation.equals(this.camera.quaternion)) {
       updateBuilderOrientation(this.orientation, this.camera);

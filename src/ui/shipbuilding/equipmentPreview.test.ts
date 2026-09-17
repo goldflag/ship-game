@@ -117,3 +117,26 @@ test('painted installations keep colors independent, refresh after undo and disp
     preview.dispose(); expect(disposed).toBe(1); expect(geometryDisposed).toBe(1);
   } finally { preview.dispose(); loader.mockRestore(); }
 });
+
+test('inspection fades exterior fittings without changing shared assets or placement ghosts', async () => {
+  const { source, model } = fixture();
+  const loader = spyOn(models, 'loadShipModel').mockResolvedValue({ scene: model } as GLTF);
+  const preview = new EquipmentPreview(() => preview.update(source, catalog), () => {});
+  const material = () => (preview.group.getObjectByName('funnel')!.children[0].children[0] as THREE.Mesh).material as THREE.Material;
+  try {
+    preview.update(source, catalog); await settled();
+    const original = material();
+    for (const display of ['internals', 'armor'] as const) {
+      preview.setDisplay(display, source, catalog);
+      expect(material().opacity).toBe(.12); expect(material().depthWrite).toBe(false);
+      expect(original.opacity).toBe(1);
+      preview.setDisplay('paint', source, catalog);
+      expect(material()).toBe(original);
+    }
+    const internalCatalog = { ...catalog, equipment: catalog.equipment.map(part => ({ ...part, placement: 'internal' as const })) };
+    preview.setDisplay('internals', source, internalCatalog);
+    expect(material()).toBe(original);
+    preview.setDisplay('armor', source, internalCatalog);
+    expect(material().opacity).toBe(.12);
+  } finally { preview.dispose(); loader.mockRestore(); }
+});
