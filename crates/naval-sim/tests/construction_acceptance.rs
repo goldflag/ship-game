@@ -671,8 +671,7 @@ fn original_turret_rim_has_fixed_support_mass_and_single_internal_protection() {
     let thickness = 0.01;
     let inner = radius - thickness / (std::f64::consts::PI / 64.).cos();
     let area = |r: f64| 32. * r * r * (std::f64::consts::TAU / 64.).sin();
-    let support_volume = (area(radius) - area(inner)) * (4. - thickness)
-        + (4. * radius * radius - area(inner)) * thickness;
+    let support_volume = (area(radius) - area(inner)) * 4.;
     let loading = def.loading.as_ref().unwrap();
     let support = loading
         .contributions
@@ -682,7 +681,7 @@ fn original_turret_rim_has_fixed_support_mass_and_single_internal_protection() {
     assert!((support.mass_kg - support_volume * 7850.).abs() < 1e-5);
     assert!(
         (loading.material_volume_m3 - bare.loading.as_ref().unwrap().material_volume_m3
-            + 4. * radius * radius * thickness
+            + area(radius) * thickness
             - support_volume)
             .abs()
             < 1e-7

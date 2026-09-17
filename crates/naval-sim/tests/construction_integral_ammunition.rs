@@ -151,8 +151,13 @@ fn torpedo_banks_carry_their_own_ready_ammunition_and_retain_rotation() {
 }
 
 #[test]
-fn invalid_drafts_keep_barbettes_and_close_square_deck_cutout_corners() {
-    let (source, catalog) = fixture();
+fn invalid_drafts_keep_round_barbettes_and_uncut_deck_corners() {
+    let (mut source, catalog) = fixture();
+    source.construction.surfaces.push(ConstructionSurfaceAssignment {
+        primitive_id: "hull".into(), face: "top".into(),
+        thickness_mm: 16., material: "steel".into(), paint: "teak-natural".into(),
+        ..Default::default()
+    });
     let part = catalog
         .equipment
         .iter()
@@ -178,6 +183,7 @@ fn invalid_drafts_keep_barbettes_and_close_square_deck_cutout_corners() {
             position: [0., 8. - attachment + rise, 0.],
             gun: Some(ConstructionEquipmentGun {
                 barbette_height_m: Some(rise),
+                barbette_paint: Some("red-oxide".into()),
                 ..Default::default()
             }),
             ..Default::default()
@@ -194,6 +200,10 @@ fn invalid_drafts_keep_barbettes_and_close_square_deck_cutout_corners() {
         };
         let expected = support(&valid);
         assert!(!expected.is_empty());
+        assert!(expected.iter().all(|s| s.paint == "red-oxide"));
+        assert!(expected.iter().flat_map(|s| &s.vertices).all(|v|
+            v[0].hypot(v[2]) <= weapon.barbette_radius + 1e-6),
+            "Barbette has square plates protruding beyond its circular wall");
         for fault in ["load-fit", "boundary", "equipment-fit"] {
             let mut draft = source.clone();
             match fault {
@@ -242,8 +252,9 @@ fn invalid_drafts_keep_barbettes_and_close_square_deck_cutout_corners() {
                     "An unrelated error must not change turret geometry"
                 );
             }
-            // A square cut's diagonal corners lie outside the round barbette.
-            // Every corner must still have a deck-height collar polygon beneath it.
+            // The deck must remain continuous outside the circular wall, with its
+            // original identity/paint, even if an unrelated draft error blocks trials.
+            if fault == "equipment-fit" { continue; }
             for x in [-1., 1.] {
                 for z in [-1., 1.] {
                     let point = [
@@ -251,7 +262,7 @@ fn invalid_drafts_keep_barbettes_and_close_square_deck_cutout_corners() {
                         z * weapon.barbette_radius * 0.95,
                     ];
                     assert!(
-                        actual.iter().any(|s| s.face == "installation-top"
+                        preview.surfaces.iter().any(|s| s.primitive_id == "hull" && s.face == "top" && s.paint == "teak-natural"
                             && s.vertices.iter().all(|v| (v[1] - 8.).abs() < 1e-6)
                             && {
                                 let crosses: Vec<_> = s
