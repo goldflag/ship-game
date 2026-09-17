@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "german-battleship-mainmast",
+  "revision": "2c014e114038879741ae344898c3b5ed7a76e3bddc0dfe4ae63d4fcc8bb611bc",
+  "contentHash": "5562d41bf1798981db8e4bc0c8044943e7037361eac1cc02321562c9a24be309",
+  "modelSha256": "efeb15a2d1a129c7d92301adf5fd66d6ad28864bc40417b9ab9e0e87aa0216e7",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/german-battleship-mainmast/2c014e114038879741ae344898c3b5ed7a76e3bddc0dfe4ae63d4fcc8bb611bc/model.glb",
+  "boundsCenter": [
+    0,
+    18.9262770190835,
+    1.2844067215919495
+  ],
+  "size": [
+    14.399999618530273,
+    37.907451152801514,
+    5.461621165275574
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        -0.027400000020861626,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        -0.027400000020861626,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 5876,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Adapted original Bismarck recipe as a standalone fitting; mass and ratings are gameplay estimates. Per-design attachment and clearance require installation review.",
+  "basis": "assets/parts/construction/README.md"
+}

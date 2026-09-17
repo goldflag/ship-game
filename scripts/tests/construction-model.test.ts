@@ -171,6 +171,11 @@ test('full production GLBs preserve repeated gun and tube world muzzles against 
         // touching only the old square well's corners is not a supported installation.
         if (part.kind === 'gun' && part.occupancy?.length) expect(contact.contactVertices / contact.candidates).toBeGreaterThan(.9);
       }
+      const lifted = model.children.find(n => n.name === 'dd-a')!;
+      const restingY = lifted.position.y;
+      lifted.position.y += .01; lifted.updateMatrix();
+      expect(installedSupportContacts(model, source, catalog).find(c => c.id === 'dd-a')!.contactVertices).toBe(0);
+      lifted.position.y = restingY; lifted.updateMatrix();
       for (const c of expected) {
         c.poses.forEach((pose: object, i: number) => Object.assign(actor.mounts[i], pose)); Object.assign(actor.motion, c.motion);
         actor.torpedoLaunchers!.forEach(l => { l.train = c.launcherTrains[l.id]; });

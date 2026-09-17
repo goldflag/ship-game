@@ -104,6 +104,7 @@ export function replaceVertexPrimitives(source: ConstructionSource, replacements
 export function splitVertexPrimitive(source: ConstructionSource, id: string, axis: number, count: number): string[] {
   const p = source.construction.primitives.find(p => p.id === id);
   if (!p || !canEditVertices(p)) throw new Error('Select one cube or freeform hull to split.');
+  if (p.shaping) throw new Error('Remove edge treatment before splitting this block.');
   if (![0,1,2].includes(axis) || !Number.isInteger(count) || count < 2 || count > 16) throw new Error('Split count must be 2–16.');
   if (source.construction.primitives.length+count-1 > 512) throw new Error('Splitting would exceed the 512 hull piece limit.');
   const vertices = cornerVertices(p), negative = ['port','bottom','bow'][axis], positive = ['starboard','top','stern'][axis];

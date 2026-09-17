@@ -75,8 +75,8 @@ pub(crate) fn derive(
             });
         }
     }
-    if braces.is_empty() {
-        if let Some(top) = hull_hit(surfaces, bearing, [0., 1., 0.], reach.min(10.)) {
+    if braces.is_empty()
+        && let Some(top) = hull_hit(surfaces, bearing, [0., 1., 0.], reach.min(10.)) {
             braces.push(Member {
                 start: bearing,
                 end: top,
@@ -84,7 +84,6 @@ pub(crate) fn derive(
                 kind: "strut".into(),
             });
         }
-    }
     if end.is_none() && braces.is_empty() {
         return None;
     }

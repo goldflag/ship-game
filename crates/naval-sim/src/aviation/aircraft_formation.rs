@@ -81,7 +81,7 @@ pub(super) fn formation_offset(f: &AirFlight, p: &Aircraft, time: f64, seed: u32
             )
         }
         "echelon" => (
-            slot as f64 * 35.0 * if layout_seed % 2 == 0 { 1.0 } else { -1.0 },
+            slot as f64 * 35.0 * if layout_seed.is_multiple_of(2) { 1.0 } else { -1.0 },
             slot as f64 * 38.0,
         ),
         _ => (side * row * 40.0, row * 36.0),
@@ -210,9 +210,9 @@ mod tests {
         ps[1].pilot.attack_stage = Some("run".into());
         fly_formation(&mut ps[1], &leader, &f, 1.0 / 60.0, 1.0 / 60.0, 5739);
         assert_eq!(ps[1].pilot.formation.as_ref().unwrap().kind, "line-abreast");
-        for axis in 0..3 {
+        for (axis, previous) in before.iter().enumerate() {
             assert!(
-                (ps[1].pilot.formation.as_ref().unwrap().offset[axis] - before[axis]).abs()
+                (ps[1].pilot.formation.as_ref().unwrap().offset[axis] - previous).abs()
                     <= 8.0 / 60.0 + 1e-9
             );
         }

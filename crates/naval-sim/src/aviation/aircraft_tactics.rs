@@ -170,7 +170,7 @@ pub(super) fn steer_fighter(
             .number(p.sortie.unwrap_or(0))
             .text("/maneuver")
             .finish();
-        let side = if key % 2 == 0 { 1.0 } else { -1.0 };
+        let side = if key.is_multiple_of(2) { 1.0 } else { -1.0 };
         let choice = if threatened {
             // Draw a pursuer across a nearby wingman's nose when one is available.
             let support = planes
@@ -192,7 +192,7 @@ pub(super) fn steer_fighter(
                     p.position,
                     [
                         heading.sin() * 1100.0,
-                        if p.position[1] > 300.0 && key % 3 == 0 {
+                        if p.position[1] > 300.0 && key.is_multiple_of(3) {
                             -80.0
                         } else {
                             90.0

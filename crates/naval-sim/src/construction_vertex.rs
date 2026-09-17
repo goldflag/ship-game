@@ -4,7 +4,7 @@ pub struct VertexSolid {
     pub cells: Vec<cg::Cell>,
     pub faces: Vec<(String, Vec<Vec3>)>,
 }
-const SIGNS: [Vec3; 8] = [
+pub(crate) const SIGNS: [Vec3; 8] = [
     [-1., -1., -1.],
     [1., -1., -1.],
     [1., 1., -1.],
@@ -14,7 +14,7 @@ const SIGNS: [Vec3; 8] = [
     [1., 1., 1.],
     [-1., 1., 1.],
 ];
-const FACES: [(&str, [usize; 4]); 6] = [
+pub(crate) const FACES: [(&str, [usize; 4]); 6] = [
     ("bow", [0, 3, 2, 1]),
     ("stern", [4, 5, 6, 7]),
     ("port", [0, 4, 7, 3]),
@@ -28,6 +28,7 @@ fn transform(p: &ConstructionPrimitive, v: Vec3) -> Vec3 {
     add(p.position, [c * x + s * z, y, -s * x + c * z])
 }
 pub fn build(p: &ConstructionPrimitive) -> Result<VertexSolid, String> {
+    if p.shaping.is_some() { return crate::construction_freeform::build(p); }
     let default: Vec<_> = SIGNS.iter().map(|v| scale(*v, 0.5)).collect();
     let v = p.vertices.as_ref().unwrap_or(&default);
     if v.len() != 8

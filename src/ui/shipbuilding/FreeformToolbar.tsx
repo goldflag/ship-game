@@ -1,10 +1,13 @@
+import { FreeformShapeTools } from './FreeformShapeTools';
+import type { ConstructionPrimitive } from '../../ships/blueprint';
 import { useEffect, useRef, useState } from 'react';
 import type { HullSelectionMode, MirrorAxes } from '../../ships/constructionVertex';
 import { NumberField } from './NumberField';
 
 export type { FreeformSettings } from './builderTool';
 import type { FreeformSettings } from './builderTool';
-export function FreeformToolbar({ settings: s, onChange, cycleUnit, onReset, onSplit, onExit }: {
+export function FreeformToolbar({ primitive, onCommit, settings: s, onChange, cycleUnit, onReset, onSplit, onExit }: {
+  primitive: ConstructionPrimitive; onCommit(replacements: ConstructionPrimitive[]): unknown;
   settings: FreeformSettings; onChange(patch: Partial<FreeformSettings>): void; cycleUnit(): void; onReset(): void; onSplit(): void; onExit(): void;
 }) {
   const [splitOpen, setSplitOpen] = useState(false);
@@ -47,9 +50,10 @@ export function FreeformToolbar({ settings: s, onChange, cycleUnit, onReset, onS
         {splitOpen && <div className="sb-freeform-popover" role="group" aria-label="Split block">
           <span>Split along local axis</span><div className="sb-freeform-row">{['X','Y','Z'].map((a,k) => <button key={a} aria-label={`Split ${a}`} aria-pressed={s.splitAxis === k} onClick={() => onChange({ splitAxis: k })}>{a}</button>)}</div>
           <NumberField label="Count" value={s.count} min={2} max={16} onChange={count => onChange({ count: Math.round(count) })}/>
-          <span>Creates independent blocks.</span><button onClick={onSplit}>Split block</button>
+          <span>Creates independent blocks.</span><button disabled={!!primitive.shaping} title={primitive.shaping ? "Remove edge treatment before splitting" : undefined} onClick={onSplit}>Split block</button>
         </div>}
       </div>
     </div>
+    <FreeformShapeTools primitive={primitive} selection={s.selection} axes={s.axes} onCommit={onCommit} onSelect={selection=>onChange({selection})}/>
   </section>;
 }

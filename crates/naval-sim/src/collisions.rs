@@ -502,8 +502,7 @@ mod collision_index_tests {
     }
     #[test]
     fn spatial_candidates_preserve_exhaustive_contacts_and_lazy_transforms() {
-        let mut d = ShipDefinition::default();
-        d.hull = Hull {
+        let d = ShipDefinition { hull: Hull {
             kind: "constructed-volume-v1".into(),
             length: 30.,
             beam: 10.,
@@ -521,10 +520,10 @@ mod collision_index_tests {
                 surfaces: vec![],
             }),
             ..Default::default()
-        };
+        }, ..Default::default() };
         let compiled = Arc::new(CompiledShip::new(Arc::new(d), None).unwrap());
         for x in [0., 7.9, 8., 8.00001, 20., 100.] {
-            for roll in [0., 0.4, 1.57, 3.14] {
+            for roll in [0., 0.4, std::f64::consts::FRAC_PI_2, std::f64::consts::PI] {
                 let a = Vessel::new("a", TeamId::A, compiled.clone());
                 let mut b = Vessel::new("b", TeamId::B, compiled.clone());
                 b.motion.x = x;

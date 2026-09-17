@@ -1,3 +1,4 @@
+import { paintConstructionFitting } from './constructionFittingPaint';
 import { paintedHullFace } from '../ships/constructionHullPaint';
 import * as THREE from 'three/webgpu';
 import { loadShipModel } from './loadShipModel';
@@ -12,7 +13,7 @@ import { CONSTRUCTION_FINISH, constructionPaintColor } from '../ships/constructi
  * to source faces; triangulation and material batching never become source IDs. */
 export function createConstructionHull(surfaces: readonly ConstructionSurface[], primitives: readonly ConstructionPrimitive[] = []): THREE.Group {
   const group = new THREE.Group(); group.name = 'Constructed hull';
-  const smooth = new Map(primitives.filter(p => p.smoothGroup || SMOOTH_HULL_SHAPES.has(p.kind)).map(p => [p.id, p.smoothGroup ? 'joined:' + p.smoothGroup : p.id]));
+  const smooth = new Map(primitives.filter(p => p.smoothGroup || (p.shaping?.style === 'round' && p.shaping.radius > 0 && p.shaping.edges.length > 0) || SMOOTH_HULL_SHAPES.has(p.kind)).map(p => [p.id, p.smoothGroup ? 'joined:' + p.smoothGroup : p.id]));
   const normalAt = constructionVertexNormals(surfaces.filter(s => !s.open && smooth.has(s.primitiveId)).map(s => ({ ...s, group: smooth.get(s.primitiveId)! })));
   const custom = new Set(primitives.filter(p => p.kind === 'custom-hull').map(p => p.id));
   const customGroup = (surface: ConstructionSurface) => surface.panelId ? `${surface.primitiveId}:${surface.panelId.split('@')[0]}` : surface.id;
@@ -109,6 +110,7 @@ export async function createConstructionModel(source: ConstructionSource, result
         if (!part) throw new Error(`Equipment unavailable: ${instance.partId}. The source design is preserved.`);
         if (part.path) {
           const model = createConstructionPathModel(part, instance.path);
+          paintConstructionFitting(model, instance.paint, false);
           model.position.fromArray(instance.position); model.rotation.y = -instance.bearingDeg * Math.PI / 180;
           model.traverse(node => { node.userData.sourceId = instance.id; node.userData.assemblyId = instance.id; node.userData.constructionEquipmentKind = part.kind; });
           group.add(model); continue;
@@ -120,6 +122,7 @@ export async function createConstructionModel(source: ConstructionSource, result
           if (template.userData.definitionHash !== part.contentHash) throw new Error(`Equipment identity mismatch: ${part.name}.`);
         }
         const model = template.clone(true);
+        paintConstructionFitting(model, instance.paint);
         const installation = new THREE.Group(); installation.name = instance.id;
         installation.position.fromArray(instance.position); installation.rotation.y = -instance.bearingDeg * Math.PI / 180;
         installation.userData = { sourceId: instance.id, assemblyId: instance.id, equipmentKind: part.kind };
@@ -142,6 +145,13 @@ export async function createConstructionModel(source: ConstructionSource, result
       if (installation) installation.attach(assembly);
       else group.add(assembly);
     }
+    // A wholly painted component may leave its template's original materials unused.
+    // Release those materials only; their textures and geometry are still borrowed.
+    const used = new Set<THREE.Material>();
+    group.traverse(node => { if (node instanceof THREE.Mesh) for (const material of Array.isArray(node.material) ? node.material : [node.material]) used.add(material); });
+    const unused = new Set<THREE.Material>();
+    for (const template of templates.values()) template.traverse(node => { if (node instanceof THREE.Mesh) for (const material of Array.isArray(node.material) ? node.material : [node.material]) if (!used.has(material)) unused.add(material); });
+    unused.forEach(material => material.dispose());
     group.updateMatrixWorld(true); return group;
   } catch (error) {
     // Include templates that failed before their first instance was installed.

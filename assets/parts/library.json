@@ -114,6 +114,69 @@
       "inputs": [
         "scripts/ships/blender_barrels.py"
       ]
+    },
+    "ijn-yamato-main": {
+      "path": "assets/parts/ijn-main-guns/geometry.py",
+      "function": "create_yamato_main",
+      "inputs": [
+        "assets/parts/aa_articulation.py"
+      ]
+    },
+    "ijn-yamato-secondary": {
+      "path": "assets/parts/ijn-main-guns/geometry.py",
+      "function": "create_yamato_secondary",
+      "inputs": [
+        "assets/parts/aa_articulation.py"
+      ]
+    },
+    "ijn-mogami-main": {
+      "path": "assets/parts/ijn-main-guns/geometry.py",
+      "function": "create_mogami_main",
+      "inputs": [
+        "assets/parts/aa_articulation.py"
+      ]
+    },
+    "us-iowa-main": {
+      "path": "assets/parts/us-main-guns/geometry.py",
+      "function": "create_iowa_main",
+      "inputs": [
+        "assets/parts/aa_articulation.py"
+      ]
+    },
+    "us-baltimore-main": {
+      "path": "assets/parts/us-main-guns/geometry.py",
+      "function": "create_baltimore_main",
+      "inputs": [
+        "assets/parts/aa_articulation.py"
+      ]
+    },
+    "rn-kgv-main": {
+      "path": "assets/parts/rn-main-guns/geometry.py",
+      "function": "create_kgv_main",
+      "inputs": [
+        "assets/parts/aa_articulation.py"
+      ]
+    },
+    "rn-kgv-secondary": {
+      "path": "assets/parts/rn-main-guns/geometry.py",
+      "function": "create_kgv_secondary",
+      "inputs": [
+        "assets/parts/aa_articulation.py"
+      ]
+    },
+    "german-sk-c28": {
+      "path": "assets/parts/german-battleship-guns/sk_c28.py",
+      "function": "create_mount",
+      "inputs": [
+        "assets/parts/aa_articulation.py"
+      ]
+    },
+    "german-flak-105": {
+      "path": "assets/parts/german-battleship-guns/flak_105.py",
+      "function": "create_mount",
+      "inputs": [
+        "assets/parts/aa_articulation.py"
+      ]
     }
   },
   "components": [
@@ -130,21 +193,24 @@
       "nation": "Germany",
       "family": "15 cm twin mount",
       "review": "unreviewed",
-      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified."
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified.",
+      "builder": "german-sk-c28"
     },
     {
       "partId": "type94-460-triple",
       "nation": "Japan",
       "family": "46 cm Type 94 triple mount",
       "review": "unreviewed",
-      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified."
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified.",
+      "builder": "ijn-yamato-main"
     },
     {
       "partId": "type3-155-triple",
       "nation": "Japan",
       "family": "15.5 cm Type 3 triple mount",
       "review": "unreviewed",
-      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified."
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified.",
+      "builder": "ijn-yamato-secondary"
     },
     {
       "partId": "us-5in38-mk21-single",
@@ -175,7 +241,8 @@
       "nation": "United States",
       "family": "8-inch/55 Mk 12 three-gun turret",
       "review": "unreviewed",
-      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified."
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified.",
+      "builder": "us-baltimore-main"
     },
     {
       "partId": "us-5in38-mk32-twin",
@@ -248,7 +315,8 @@
       "nation": "Germany",
       "family": "10.5 cm twin AA",
       "review": "unreviewed",
-      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified."
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified.",
+      "builder": "german-flak-105"
     },
     {
       "partId": "flak-37-bismarck-1941",
@@ -270,21 +338,24 @@
       "nation": "United Kingdom",
       "family": "14-inch Mk VII quadruple",
       "review": "unreviewed",
-      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified."
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified.",
+      "builder": "rn-kgv-main"
     },
     {
       "partId": "bl-14-mkvii-twin",
       "nation": "United Kingdom",
       "family": "14-inch Mk VII twin",
       "review": "unreviewed",
-      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified."
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified.",
+      "builder": "rn-kgv-main"
     },
     {
       "partId": "qf-525-mki-twin",
       "nation": "United Kingdom",
       "family": "5.25-inch QF Mk I twin",
       "review": "unreviewed",
-      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified."
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified.",
+      "builder": "rn-kgv-secondary"
     },
     {
       "partId": "type89-127-yamato-twin",
@@ -367,14 +438,16 @@
       "nation": "Japan",
       "family": "20.3 cm/50 Type 3 No.2 E3 twin",
       "review": "unreviewed",
-      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified."
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified.",
+      "builder": "ijn-mogami-main"
     },
     {
       "partId": "type3-203-mogami-e-twin",
       "nation": "Japan",
       "family": "20.3 cm/50 Type 3 No.2 E twin with rangefinder",
       "review": "unreviewed",
-      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified."
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified.",
+      "builder": "ijn-mogami-main"
     },
     {
       "partId": "type89-127-mogami-a1-mod1-twin",
@@ -403,7 +476,8 @@
       "nation": "United States",
       "family": "406 mm/50 Mk.7 triple",
       "review": "unreviewed",
-      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified."
+      "limitations": "Existing original reconstruction; standalone fidelity and articulation acceptance have not been certified.",
+      "builder": "us-iowa-main"
     },
     {
       "partId": "us-40mm-bofors-mk1-iowa",
