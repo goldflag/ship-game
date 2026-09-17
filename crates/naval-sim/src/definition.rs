@@ -1446,6 +1446,14 @@ pub struct ConstructionPropellerSupport {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionPropellerAssignment {
+    #[serde(rename = "propellerId")]
+    pub propeller_id: String,
+    #[serde(rename = "engineId")]
+    pub engine_id: String,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct ConstructionResult {
     #[serde(rename = "sourceId")]
     pub source_id: String,
@@ -1463,6 +1471,8 @@ pub struct ConstructionResult {
     pub loading: Option<ConstructionLoading>,
     #[serde(rename = "propellerSupports")]
     pub propeller_supports: Option<Vec<ConstructionPropellerSupport>>,
+    #[serde(rename = "propellerAssignments")]
+    pub propeller_assignments: Option<Vec<ConstructionPropellerAssignment>>,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]

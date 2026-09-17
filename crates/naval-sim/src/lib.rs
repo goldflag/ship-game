@@ -11,6 +11,7 @@ mod construction_installation;
 mod construction_services;
 mod construction_paths;
 mod construction_propellers;
+mod construction_propulsion;
 pub mod definition;
 pub mod fleet_evasion;
 pub mod formations;
