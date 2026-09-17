@@ -1,0 +1,295 @@
+{
+  "recipeHash": "8d5361ad3635b4537639157c9bd9df0bb9036d11c7e3355a1046c8872d769553",
+  "images": {
+    "/models/components/us-5in38-mk30-mod0-single/1fc8f2780e06e3acdf781986368b280dddf818b4771aa6b3248dd09552b0db60/model.glb": {
+      "url": "/models/components/thumbnails/93eb9129ea4484e832e10e8974c130eedb08fefd5be3577c95d6167ae1c6db67.png",
+      "modelHash": "347a82ba45600e23a637544438304f293620600d612c2267243dd4d818fad9a7",
+      "imageHash": "7f882a6c1b0ad6355ffb95c8036761a85f49f6356554de8aede9dad6e7475c1e"
+    },
+    "/models/components/us-6in47-mk16-cleveland/0915fbbac851e699f7a33db1c3a324c3318f21cdd4c1cb60353a19d6b17de62e/model.glb": {
+      "url": "/models/components/thumbnails/51672d566d0e51aafe179339572ad4c038bb0307be861f4bec6f16c0421682b7.png",
+      "modelHash": "4216a7c2c8d41c32c0df5f6499eb8a6997c436a40cfc7118ec6229b4c9e783a5",
+      "imageHash": "838f9a0b21aa4f25b894f6adbf6e51a78651c3e9b6b7897173811867af82bd7a"
+    },
+    "/models/components/sk-c34-380-twin/1fc719cfd80505123cae70b9c252dd7730015be46d6f4e73254e508429dc19da/model.glb": {
+      "url": "/models/components/thumbnails/670abf549593ac42557eec504c085eceac7379ec478d96f35c6ce83c0088f2cd.png",
+      "modelHash": "0481aa39073eeb9a36ea4758166e2801948860defb3c6f77416bad9a0d0b55cb",
+      "imageHash": "59470599d7d8a7723beb00a66c8f6bb284053948ffecf6aae407fa4c1415343d"
+    },
+    "/models/components/us-20mm-oerlikon-mk4-hsienyang/dd2d4db97b9fda11c5a921f25142636f8e32eb0649458df6d2877ca475eb8222/model.glb": {
+      "url": "/models/components/thumbnails/99b833a03a508f8c5ef7e693dee6927d48cda91461d3e06a901f52812021df8b.png",
+      "modelHash": "b104d7955f5e16a1e3f5d662b70b4f7d743a2579995da7b82b341e9e394bdd6e",
+      "imageHash": "eaeb5c5db02975723b2d202fd67629c8201e59768dde8ebcf02d227537515db6"
+    },
+    "/models/components/fletcher-quintuple-533/e2caf14b1b3e3fb425222bbc6971a345dd7f5dea4f21b4cf49266b1a6d949a2b/model.glb": {
+      "url": "/models/components/thumbnails/7faa936ea4717ebb4fbc529059675de7f5c84d99b2630c84232479463b94e2d4.png",
+      "modelHash": "b7f7579254980df6d4e9f2d11684589436f70997df4dcf4f158642b80d08faf8",
+      "imageHash": "6bbde5c68099756270d5b42959e6b8de37e00e740b63180766fcbaa05622485e"
+    },
+    "/models/components/generic-diesel-3000kw/e521baebc0f4b411950fec11205b4c75e80647847da7454dbf8d1ea322d61f2d/model.glb": {
+      "url": "/models/components/thumbnails/b483f058f0e567d43844ecb28444c9f33b81216b76d11bea44e94927a965c8af.png",
+      "modelHash": "760c63723066c49c80c9d5d8a47dcb8e9e3bb84171c967b47bcfff76a7ad037a",
+      "imageHash": "7f21ddcd1dcd34abe3fcfde82cb33d1e19497d8557bed0faafbfcd1c451d4d06"
+    },
+    "/models/components/generic-magazine-1000/f9218f138fb5a6ac16d30a5b981c7eec6fd14bea0310c60ad5106fd468ffa3ab/model.glb": {
+      "url": "/models/components/thumbnails/9acd391ea9035af419794a8bf6148ecbe773ac5a546ecff3f6383c2d7742e912.png",
+      "modelHash": "e67433c12cd5e8d526cf508c77995ce9edabdf66a6eba34f6f8a6a74387976a9",
+      "imageHash": "7ced11bedf62e219d4966187fe8089f241bd0454c27111bf07d383dc591e16ba"
+    },
+    "/models/components/fletcher-funnel/56c1d41e9a8779d8ac59ffc13f4ba83552b8b6a27a3a5df8c1e410c116be45d5/model.glb": {
+      "url": "/models/components/thumbnails/0d5b20754ff98dacefa9e407afc3b45c4b7850b8c75a807caf983c37d4eec40d.png",
+      "modelHash": "29a7e24ea36339181648d1c1298e07e4cfb0e69d7b60904c7704b3d269768b61",
+      "imageHash": "9f15c0debda3b4c935f618206ecf7e2dcc09954201559c037c3403e453bf59d5"
+    },
+    "/models/components/fletcher-propeller-starboard/e35ffe71defc41a7260851c35e4f9add3f249a4815c4c8c89475efc1083e3475/model.glb": {
+      "url": "/models/components/thumbnails/5261e7fe8e743cd8ca6c64801bbcbcc5c8988501bd1ed8378f0ba62cc3655367.png",
+      "modelHash": "0d8e6a86aa5bad05134af92e8259a98c5e4c10f11ac58cac92050e85bd3ce386",
+      "imageHash": "db9f0e8f1dde280b000f501e1f13216802906435fc300a5cfcc6c999eb6a5b76"
+    },
+    "/models/components/fletcher-rudder/78fa1e59212f91062671612e1b3e42b2e45cdc9dd352abbb660195c496dd2464/model.glb": {
+      "url": "/models/components/thumbnails/c1e785d869979165464a5c57c829bd47aec3225562b7ca7dfd7f49ebe66b5bac.png",
+      "modelHash": "3bfb151b840b13e2228cd00a861535b1a713f86d4d958b1a7ee275eacb59f5aa",
+      "imageHash": "9166983a5e09076ddacbc71c0f77a3c2d0f49d8adea52017905aeaceb865d52b"
+    },
+    "/models/components/fletcher-aft-mast/e52872f66d187a94012988cbb3b9a40a547b0a719b01fc1a3973da03fd6b00ec/model.glb": {
+      "url": "/models/components/thumbnails/3b85dea37fd0cae9b3cbf7f62313fc0c60139c80286a6f4c925dc394e4dfb025.png",
+      "modelHash": "bb9dd0525baba787f4e77fa8e48951341c8dcdcb0f9b47d7178c54092207b757",
+      "imageHash": "4122fc93ccfe0d56650d1647159a81263299b1e280ac43eb921535583d3078a8"
+    },
+    "/models/components/fletcher-mk37-director/12c180f2d648e265cdabd3e0f5b6f48fb45560307f6aba2ff7228b658ad3067a/model.glb": {
+      "url": "/models/components/thumbnails/9455ddc6d58c665bce4fb85803ae6ca7d4bf3d3185774b9e1f2bf4a09aa0fa98.png",
+      "modelHash": "b352f7ea5054b8244ff1a2addc876589098b04c77171bbcc60ab72a7362c5485",
+      "imageHash": "5885cdb82eac1177a6236d85b01d5b2f9a14fb4022e040f1297caf138b128cf8"
+    },
+    "/models/components/generic-propeller-1200/d7f8738ac73ed6b97bb02f9f31e49e3f6e2449de020419dee0f41ec14b33094b/model.glb": {
+      "url": "/models/components/thumbnails/e7e5cb0e75b9dfefe7ceb83c530af3a3006afcfded2d0b715e6463a23672c0bc.png",
+      "modelHash": "9e5fdc749ce675c7fc34188e0d2bebf2ed54b630a72ab4b527ca9e063bb3ca71",
+      "imageHash": "a419c5438c5d2d1c5dbb6ddd227c10130ecbc7f9173bab34d7326e2794200274"
+    },
+    "/models/components/generic-rudder-1000/47231b88cd222812f08a8c39f3a0cae44caf0424f2a30ec3f6e72027251ca311/model.glb": {
+      "url": "/models/components/thumbnails/5500120ccabe12e33fb6563ad3132945358a7dd84d3369b1d0c5b67fc68d91b6.png",
+      "modelHash": "0da5cea35bd9c4461311aa3dd74171ae10933bc83d5252f73e7136b56690e30b",
+      "imageHash": "6853dd1ff45a872fafd52b6142426e9ef6715b52cc8f01359355d695cd082105"
+    },
+    "/models/components/generic-magazine-2000/6249575ee77b783f6e62b80df712df9fe3efb9c1d50937bb5f2419851e3dfcc7/model.glb": {
+      "url": "/models/components/thumbnails/95fd1d540e0606d201ec05c614f85d7731621cc47175771bcc6b2edfad0d7b6d.png",
+      "modelHash": "982dce2eac21a931dd967e8c338838a7dadb6c5833afdab20616be0171dca70f",
+      "imageHash": "c0ce1c1aa8c7ad2237d462b086a7609e484652d1c4e436ca5f054e18d69bec1e"
+    },
+    "/models/components/generic-railing/fcecf0e79188d49feae7d9790f76d00cd9da39604f0ad3e5c3c6a7a91dba2e95/model.glb": {
+      "url": "/models/components/thumbnails/d625ab438a881d52b664af6b9141f7fe8abacbb1c5075ccfffc917df7a8dce24.png",
+      "modelHash": "f69ed75731d05353d781e808c267e2bc172f4b73ade4127a3164e7b549e8cfc6",
+      "imageHash": "a3f770da43327ca257ccc9ebbb940e6ae65e2b7d3310b45c89b5e866e9f538b9"
+    },
+    "/models/components/generic-rope/7e4a4b6a5fff39c88e2fc04f144c6b2b9fb721986e7f8acf33d9b0dc7eee09f7/model.glb": {
+      "url": "/models/components/thumbnails/879703b76bde66a2ca3d823bb97e6b0999ecb8b1d5f2758880cd08ec20d0ad2d.png",
+      "modelHash": "0cd23de4c314e98f399586711778f57baecc3f650586bd5642a95007c10fdbc2",
+      "imageHash": "ce385e2be6553d7dc2aebbbd25c5d7e4afaa924137b31aae202b8fc5f37da6f5"
+    },
+    "/models/components/generic-chain/7625fccfffdf4f72cc63242ea55e550fa700aa4ee32c0ecb3c99ec80cf0e18a5/model.glb": {
+      "url": "/models/components/thumbnails/c4f561c88ca1ed89d180feee72a9baba8f40e0c8f5603b4e050578ffbacc4ec9.png",
+      "modelHash": "d1a65eb3101e1c9ff19557a86c11dbfbfc8ce7305c1f63d793339cd93eaf9f29",
+      "imageHash": "6953b3d1eff31338f93cadffec27e92440ced5e869d9359e4a223590a9e17241"
+    },
+    "/models/components/generic-twin-bitts/afa3ce210792f57c34830b6e1c1227f5232a78e0ce7fe9784fe348348fce2910/model.glb": {
+      "url": "/models/components/thumbnails/4e3a3f20f2eff2931351ba1c94dbbe9cc90a69a4991062979e23353d96a545af.png",
+      "modelHash": "edcd264f267e7ab6938ad288de0287c96bd619ddc4f67d7aa0d5f88ab5ed840c",
+      "imageHash": "376c3aa79c4b44bdb2fee11eed658b31bae2fa50e60b84f26bd0c7011cd6f3f1"
+    },
+    "/models/components/generic-fairlead/9d17ff17d4b37b5067ab65a924aa0ebf9cd7b69c2df5b3d10119af6ed39d79bb/model.glb": {
+      "url": "/models/components/thumbnails/1ea5b40097b77c57de08eb026bf47b59407eaeb7715b1bf3708cb51feee5eb40.png",
+      "modelHash": "c8cb00eb04fbfd946b0bfd5e10795a82a080587bad8ed2020e37e42b8c3b0eb7",
+      "imageHash": "247d402d96ea78c391f9a5a068c6a0c47cb23c7fc912e2b92d5207a7e0c7ac8a"
+    },
+    "/models/components/generic-capstan/ba770ff61bcfa94af06f2900798234ffb8aefccc6ed4de4358ab2f22932fa037/model.glb": {
+      "url": "/models/components/thumbnails/b1ba82739499176ac28845ad487faf90f5e5d1f0d5e5c6fd9bd0523811c11257.png",
+      "modelHash": "3d6c71f651e2b8d4d73478105ef6a866729910edbc1bf9821ae188e8c9ec14d7",
+      "imageHash": "730560d9889147c86cabfccef05931fb4fdf6f3f94ed9d9a19821c89acaea207"
+    },
+    "/models/components/generic-anchor-windlass/9cade0b6e75f957e1af6774065fc8954d17689cc0a707ed8be2d989c19418492/model.glb": {
+      "url": "/models/components/thumbnails/1b84cced408585cc629657d5bb19e5fe54c019fbff8435af4127cb91de897bf1.png",
+      "modelHash": "3f22ae5d4761bc6dfc188621a3a483dcac18fe44f2f9f8c7cf3b8f8042624b7a",
+      "imageHash": "0727e114bbb65dfdd6f34892209a3de2a2e5e59a1e80b27cc6c46c81096e0678"
+    },
+    "/models/components/generic-stowed-anchor/452263c41e6f6951ab3a3bcf85af3c5a87b436ba8f92b5c5cd7459318b3a23f8/model.glb": {
+      "url": "/models/components/thumbnails/c2aba30e4ecb680a75badaaa2ad69b9d9e1bd5a1264861896ea9118c646a73e9.png",
+      "modelHash": "123b1f663892bfc9e61adedf9fcc25daef25efb6f133d3b6697b95b8d04c560e",
+      "imageHash": "f0e0eaaaee651a6c3c89e93e0754801da5f1b92f37064c11db6f066c674f59b6"
+    },
+    "/models/components/generic-lifeboat-davits/4dd207fa78e75de4ada728fdef69b7d2e3e95e521076cfcd447a2f66281aaabf/model.glb": {
+      "url": "/models/components/thumbnails/8af9fe8501a86ae0d781bbfe76848fbcac35d2022f4b0c1082b87f80719b29cc.png",
+      "modelHash": "56c6b54f654d18564766e8dea0a775334130e75556da56a5004f243925ea0a6f",
+      "imageHash": "54bf98ae025943d088538d73b29a3c67e0204d03a19c692205796fe90be9d18e"
+    },
+    "/models/components/generic-mushroom-vent/f2723d927c0e9047d893d653b8b2140fa7ca03d8d74e03b67945f0f519d2e34c/model.glb": {
+      "url": "/models/components/thumbnails/c749ce96dd996e3247ef8bf4ec065b1d7f5a92b25925084a356064fddb26ea38.png",
+      "modelHash": "250b3e4905485f34f2372451365dc8b273f65925bfa441ac92b61d399be1ab3f",
+      "imageHash": "626ef72ee3b8c289453bc53a4f28bd0d5722f189467a5884741c1e725b105e29"
+    },
+    "/models/components/generic-cowl-vent/ae6bef5b4fc32ac01e8bcd2f51537d5a15aac0b0f142a4adfe2dda0f2776b050/model.glb": {
+      "url": "/models/components/thumbnails/548863bd5acaa82a551fe5d7528b8906f4c56d0728f544c00f0adca3211f3c8f.png",
+      "modelHash": "d9e29996ade6b2c4b8f8207896b105afb998a1ad564e59354808e38b3210f907",
+      "imageHash": "b979b186b6d56101cf87ad7150962af8008e3ef0b36e138ef789496fb95d0362"
+    },
+    "/models/components/generic-watertight-door/15139164408d64b4203a47242b7ddfe0bb7aec8718d09895fac193b06b31f9fb/model.glb": {
+      "url": "/models/components/thumbnails/892f369a817fc11dc16ceeef4f5d36f17e91328bd2510fbd1445a9ddfd41ac87.png",
+      "modelHash": "d92aa145897639adaaae9e7328f7efd22d5453f7b00a820b0fd32a84b7f09eee",
+      "imageHash": "76068191c7d936a83714e902254f9014ca78ae7cb037f82fc6c3bcecffa20015"
+    },
+    "/models/components/generic-deck-hatch/40db4f58f31efc19faf3860a70fb7d6738d51df0f84f11f024709a953c14dcf8/model.glb": {
+      "url": "/models/components/thumbnails/ca11c889707ec5e617e256912c3d466e38540e185f16dda1f263a70e3d34f69f.png",
+      "modelHash": "1cc25811a3f7f4d012b15e34c76a96fd1a0897eff9e6384b2a535d63eec68570",
+      "imageHash": "2c3de27fe19920f204d64254ea948ac981a2f63b47acc9044b83c245f756050f"
+    },
+    "/models/components/generic-optical-rangefinder/c251fb750fae4751e0e6382488d9ba7ebb3bb341a16ed96c68358dcf366c61a1/model.glb": {
+      "url": "/models/components/thumbnails/7d35eb4e38efe7ca3e30487bab206ced257942d34d29ee5a362515a0b8281208.png",
+      "modelHash": "a5189f009de788ed90212e0f8026add2c021416d7f16fc37a399e8d7911369bc",
+      "imageHash": "b29d41d37eac94b3dfe1cb2362f1783f4f749ac6b11ef683c4d8a09c4f6d80fd"
+    },
+    "/models/components/generic-static-searchlight/cfdb7ae18b8c2c5b7aff5f3b9516636be81954d00747f89c1cbf799add8deed2/model.glb": {
+      "url": "/models/components/thumbnails/f5ff8a5adc102488897b7632767c5b6c5fd947bf2b0d03f600795911a6137f5f.png",
+      "modelHash": "de8e93735103046d4ee9e64d9a64d50a8d16c51405b7a821a5e9ef780f4153cd",
+      "imageHash": "51265c418655cb47da183eafa6aab54f9e233d4a3ed0ee601c7f1d3df7d5e054"
+    },
+    "/models/components/generic-vertical-ladder/0aded0e99d96d99110278baeaec953b0daabef6c9d5ed283194887dd2130a428/model.glb": {
+      "url": "/models/components/thumbnails/5fa1a33f73461a36d2b0a4f11eb5e7c885d65f8fb58de4b928f2089346857643.png",
+      "modelHash": "dfcc598437a0823612789b3fbe5ab2c4b48492f7f2cfac707ecb8663b6e03bbc",
+      "imageHash": "39291d2f65f6679a5af8a2ab293a2c7652ed9d31214cc4f99ead5160823b7fd4"
+    },
+    "/models/components/generic-inclined-stairs/41069481bcf1d4e4064e421c6f09daa392c6e117f06a910b553c76efcccba5ff/model.glb": {
+      "url": "/models/components/thumbnails/5505d506f67cef31b72ec50823dc6b9d0d63b9d9339ff5eb21a0f6d975e3918c.png",
+      "modelHash": "5e6e3c189d08b3a633b468e86807df3af48f18c4c2ef61bce59f635c93a6ce2a",
+      "imageHash": "7056caca638cd7c60659527de460ac945b8c75be0ca1f26520c72710ff496314"
+    },
+    "/models/components/skc34-203-twin/148a9d4e2788a89c0a7d391f3ec98377507a01e78430b2d27b82fb193b32186a/model.glb": {
+      "url": "/models/components/thumbnails/3a1803404f592167b254219d9c829a326fd36f70567a4ea0c6a9279895841481.png",
+      "modelHash": "29cf187b738edb2a4acc08e89d57b316798294d1ad224e1c165b5a54879486c8",
+      "imageHash": "c5c1ac4761cc310428e051ea0f4f6fd244ebd847298eeb83283c470f192edbd9"
+    },
+    "/models/components/skc34-203-twin-rf/84bfd9e7df6d50531a06758bc644d95751163eaab430077708fb9c0dd90ff6a1/model.glb": {
+      "url": "/models/components/thumbnails/74232fd1bb420ff8f1b06652053bdbb6792bff0f0cf040e404ad54530eaf04a0.png",
+      "modelHash": "ded91d17bc19ef9434f70e43918b60ff5acbb3768b093a55a794532e799adb6c",
+      "imageHash": "eef6ccef38ffa503e0a4a5450dd955f24d49361b0ef0aaad9ac9117ae9051ec2"
+    },
+    "/models/components/skc33-105-c31-twin/a8641c76d065ead7810457e940838a646f43d412768c780c0b76150203d23a77/model.glb": {
+      "url": "/models/components/thumbnails/78393e355b13e4d0f01484be0d617908e658e3fa46eeb944955fe8417e6d2118.png",
+      "modelHash": "7232b265e710bbddc9022c468a3a673ccc4ce2affaa35ee73e8c5747d1d9d82a",
+      "imageHash": "11aad35fe9484bcc3ec9457fbd46087ffd549a21ed2d8575d8f5b76920a4afe3"
+    },
+    "/models/components/flak-37-bismarck-1941/ab7769e766e37b0e14c5776e563a9ecd92197d3a779fad1c9a67afb9d9798516/model.glb": {
+      "url": "/models/components/thumbnails/bbd8d4d3b02dc54a8bad102a881b99b1727cd0e25c2766e1fe0ff0b0c3d4db2a.png",
+      "modelHash": "24760e9ee1a7cc64510d433bf1b67a831b7e4b30351598c4aa74b92ddd23af7e",
+      "imageHash": "e78999e9491e2ba570b13c31af09de48abca0b08db71dde082ad48124790b465"
+    },
+    "/models/components/flak38-m43u-20-twin/4ac89f950338ef46e6f097cdf86e358829c2257cccfc30fbe8699cf232c42f78/model.glb": {
+      "url": "/models/components/thumbnails/1defeb4b658a9bf72346a0207921539421df3abc5b86902485813dbcc52d7fd6.png",
+      "modelHash": "b4e38f5680a73b2891cf0da582ebce690790711f2214dfcec9e0f0c86c4a7a30",
+      "imageHash": "4a83b2e64633a37e0de983983ffdd466f12a81d26288d00dbc760eda701476e5"
+    },
+    "/models/components/flak38-20-single/d6c7a8ec471ef5bcbecc35d8951f50dac94a35b317fac83fe1875699383a26b0/model.glb": {
+      "url": "/models/components/thumbnails/bd9206b3158ff1b8fd9b18b8bb4c30f8767461c83b738eb6514468d980747bc9.png",
+      "modelHash": "6a713a680660c383db93bc260af4dcb3b1041e8fe30d3bc3a268e507c012e266",
+      "imageHash": "3e6fb88934946e637d577b7bf7a178de70ce535d500d702a58347fa753bf133b"
+    },
+    "/models/components/flak28-40-single/1688b44a8764c831a7c3a81da254b701b791bfd510afa777de5c12c0fa026439/model.glb": {
+      "url": "/models/components/thumbnails/57f1e520cf6e80cf9c1567df7768f7fe4387048e3ab0c96790529e65103db728.png",
+      "modelHash": "9e471de3cdf542a20522cff2b89e96c844820ea86eca84c420be06a1476fb7b9",
+      "imageHash": "0ed24a8eae3e7462d3ec31d265dd17c0293741363c51e915b6ab97a0751c16cf"
+    },
+    "/models/components/german-cruiser-funnel-cap/e103ba4b4c279feab84d777b7b632e8ba338a608e68e01b03713d6fe109caaf0/model.glb": {
+      "url": "/models/components/thumbnails/41154390baba5cf9fe978360a512c343eea92eac0d740ec1d3c1b29d3b5636b9.png",
+      "modelHash": "772eef1140b1fca2bda131e2f14da751f6194bb12121ddc88ecc46a894d0d94a",
+      "imageHash": "ee2e9e3821854be222e6be8894f409fb08e9fa678e832a5e0bc3ba293f7da3ee"
+    },
+    "/models/components/german-cruiser-screw-port/8218b0b70b4384ecf74a1c2e1648c6ce2e73bb27001b3f56a5983e93c81b894e/model.glb": {
+      "url": "/models/components/thumbnails/59d88c2147cd728ab472397b0daa01d105ae70e2043a5f18337ace2e1b1ad403.png",
+      "modelHash": "1f514ef53f340071d1c0535b76d821701e434c008c2fc012fba2f4094645c5d7",
+      "imageHash": "5f7c9b27ed1ee227e5281f839fba2e14e25e463b60e95380cc4e809e5d993390"
+    },
+    "/models/components/german-cruiser-screw-starboard/5368f3f3bb51ab0d54437c1b9c8c0dc68fb5116d0c45aebd382af6b84fce7a40/model.glb": {
+      "url": "/models/components/thumbnails/8409ca862f77e05e2b9ae3a07829ee68927286260e6ef9811419744b22752e3c.png",
+      "modelHash": "cf7dcde9b4f8823a4426d598eb121f7a18b44331fd9608fd4ccaa0ddb768f9be",
+      "imageHash": "9bbec1fd77bcd364994e22ecd1405fa8acbd556fa7f35a812312864a417426c2"
+    },
+    "/models/components/german-cruiser-rudder/910909f87c9ed0a13cffcf5d6543fb4801ba2e409187fb9fee9d5f0803d7a3f3/model.glb": {
+      "url": "/models/components/thumbnails/ac68ffb367cd74d0eb5676a32693305e988400c8b7da1a0e7ffa3125288f2069.png",
+      "modelHash": "a85c6c8213cfc38c8082fd40975862cf93c941be3e2d16047e664ef54183d483",
+      "imageHash": "f751ac1b94fede53d64f181d9bba41472c5c90ccabb9cca222585cd958724162"
+    },
+    "/models/components/steam-machinery-82000kw/750b813d9d14e2f4bb66f0850f38d94cffd36f115ac4e8f759854060442e533c/model.glb": {
+      "url": "/models/components/thumbnails/9f373379f71ec304af42dbd4d48f60becafd99cdf70415646a9887d4c944c57a.png",
+      "modelHash": "29eebf4b8f74c02a39932f1f2cbdc9eef20e77b208f1d292997a85905acd2c24",
+      "imageHash": "b655073305720ded62855f61c6930436a3fc472e2b27f56e312e10e567fbd589"
+    },
+    "/models/components/cruiser-magazine-50000/1b771630463898e6094ef42cd33dbaadbc1824933b2d840a8ca982ada6cada83/model.glb": {
+      "url": "/models/components/thumbnails/a4d5c6127e4631d8b6eb700882eafa956a5fc55c222d91f8f73908e56515f643.png",
+      "modelHash": "02ed912beba20489bede42633437a79db3ab183747bde5dacf3a0b920152b444",
+      "imageHash": "4901682be48691d25e71326a83feaeee56aa6265dfc5f913bad11299ea5fbc00"
+    },
+    "/models/components/german-triple-533/b1fdfd1b3127bd3092ceb5725001791fc32a74f835a9bd5e0fd836d04eed369b/model.glb": {
+      "url": "/models/components/thumbnails/eff54f7423ce8d4bc9330f7e1499556c4ddc0d945cfc0b1453ea71c020439e59.png",
+      "modelHash": "f8b36d413aecc57a769f0b3b3643d01eccd7fda5217a9a8d7fa89ff851a31553",
+      "imageHash": "49ffc610a75f4df6c9e484e4d08af173924ace76d74421475f8ceeb38021c9f6"
+    },
+    "/models/components/german-sl8-director/8d015545248ade12d15055bbfac7a82f13535aba4c1aabb2cbd30255be1bce37/model.glb": {
+      "url": "/models/components/thumbnails/f7f5c2e4da96933db6f2ca65b299d249c14bfd4641a919da48d32e97afe0fb91.png",
+      "modelHash": "5f1436243fb1bc24bd8b5df4d466d780153916506d028533c3316adfe410f51a",
+      "imageHash": "d60e19dc35a79d3c4f29141cebcdb45aab7613dd1a12b14c9c4a012feeeca058"
+    },
+    "/models/components/german-cruiser-catapult/ba3f22e02a3c14a9f9833860241010944e9a69be016a90163c9b667d4338f26a/model.glb": {
+      "url": "/models/components/thumbnails/a8da1c7740864053dac29b4b97f0b1e7cd055ab278c8f4c0fd3ee57d3e9eec52.png",
+      "modelHash": "32ccc110d047ae721495f6a2df02be2727dffe9021ee3aad8a686e4b6e44719e",
+      "imageHash": "0e07b4251f2a2dc36560307ab61cb5626969f6efb57ec2f7c233a525b295cad0"
+    },
+    "/models/components/german-cutter-750/876582f68b583a41d26f5ac490e80449272f32aeba9cdf4ca9aa6b13f075d04a/model.glb": {
+      "url": "/models/components/thumbnails/fe8691fce47a60f114160b1d0c403e8bf17e98208e0ea49991d8c9d61a58b8be.png",
+      "modelHash": "6e093b7891bf2e0552e8052800c99532da332617fb2e3bb23ecd4e5e24b55c5e",
+      "imageHash": "8ecb345ef5408f5636a70a497a35e918a80038307c287d24936af27e5fd07cd7"
+    },
+    "/models/components/german-traffic-boat-1170/dd0d4e0a5a4cfe7f263253db6e67b219d4349613109b59e7af06350ddee2105f/model.glb": {
+      "url": "/models/components/thumbnails/edfa80ce53a79e9200f35a0234e9d48c839105ea65d703e965d0fc67a783594b.png",
+      "modelHash": "2aeeedc9b9c39d50cc62c85cccded8b3aff5365d876b365d7ab7919c90c0a0a8",
+      "imageHash": "c459c5b609046cb415e87d1821f5c061edb080a6450d5b69fa98dd4777ea3055"
+    },
+    "/models/components/german-motor-launch-900/4bb7008b02945f3e781b44f1624bf0683d63c0470cad4012582cdbe93481be31/model.glb": {
+      "url": "/models/components/thumbnails/281b0c2e2fc8484ac69c6021e926470c7772e2f9849c270d979776d1ca37f6d2.png",
+      "modelHash": "749d3b1916720b79d7a1e24d95eb45fad5bdd38fd96cd124207c30256c354c9e",
+      "imageHash": "525cc904856f562181d9daa23122154fd144b5a8ef2423f87a60675bfe2505e8"
+    },
+    "/models/components/german-open-launch-1000/da96f9db4179ab20dbe7ce0ada6e6e11f1c81cafb7a2d34cbcaa5b5ecaa46668/model.glb": {
+      "url": "/models/components/thumbnails/7649410d4cef9a3930ffbb2d282910a67151d64825ba63e6c077e7052b2d0941.png",
+      "modelHash": "cbbe8c0f4e21ac3228964b85c81df79fb868de8f036f7b24e91899906bdd021b",
+      "imageHash": "9cb42ba52ab6ccace26b28c96fe31042c62b4cf22dda3adcb2c667c78953fd4d"
+    },
+    "/models/components/german-guarded-director-optic/c619cfe58fa76a443b036491af794af0a93bba55cff3ae7ee982d9faa70d5d94/model.glb": {
+      "url": "/models/components/thumbnails/1ba95c824ffe829addd4c4d04ce8f3a05a416f2ea6bb3f40aa2975a19b2e8da3.png",
+      "modelHash": "8837115d69f18c35314c9d594c39d8cf20654f71ae4d29cd35b1d969e3840761",
+      "imageHash": "2801b847a0c7a2a54fc08b25391bfd7e98a9d59a876fafa11701ee6fd621d2b8"
+    },
+    "/models/components/german-cruiser-capstan/64a530627415a1615d189419d48373fd073cd9a6b32a2f5b02c3cc5e83fd8bad/model.glb": {
+      "url": "/models/components/thumbnails/62e07ae77d8e859efa448c5c814f3013b61befe97811db9efb8fdb0038593b35.png",
+      "modelHash": "1f28929d61e6774b8e5bd78b0f07e01284e7c7578a76ce678dea7fbfa6b74280",
+      "imageHash": "736cf0d622763b9f7904ed204583498d3698f749c62279ec1876608918e66a6a"
+    },
+    "/models/components/german-cruiser-deck-hatch/6d7ebda89018820acc4a97573031e35b8783e5807861df248923138b0bc715ee/model.glb": {
+      "url": "/models/components/thumbnails/57ecae3d452b7bf1c5e6079cae47176920b645628008610e03c618e0d6e5432a.png",
+      "modelHash": "b23ca8ee269729b9c975c83a9f701f288cdeb121a0312acb3fdd1720731d26cc",
+      "imageHash": "b1ef51d29d1e90fe7ff1420a3e792ec33d273d4205a43eb19aae93e167c0a6c0"
+    },
+    "/models/components/german-cruiser-searchlight/88c7422fef11e00f368330a98aed1c113ea5995cc7e258aae6ee9211ddca3b45/model.glb": {
+      "url": "/models/components/thumbnails/114f37c5844491c3a0fe98b884433702383b9f70c0933f188ecab092ae955a28.png",
+      "modelHash": "61dcd76ec9be31535bf354d2daa47a65ede4a6d72e5811c733f5a717997f0731",
+      "imageHash": "1840026c4d3c5848b7083ca8e19d07682bfbba8d0b8002a7359062dac50040d6"
+    },
+    "/models/components/generic-steam-plant-36000kw/cce123f3c6549194454743ac3014903ca2341ae55a35622eb4c7ac53d563de6d/model.glb": {
+      "url": "/models/components/thumbnails/49cd8a25c536940b60e2d76efbd2530401a02c22c7a55833b5caa0a2002301b4.png",
+      "modelHash": "d0fdb40d98073d951755fa9f38be0557d0c21da5751e1e8c2c5ca94da970e375",
+      "imageHash": "171eb823b78a523442574ce4b43916c33dacf834472fb640125d0b6b8814ced7"
+    },
+    "/models/components/generic-capital-funnel/ab3d80ae3aff831c91b099955d1422ac06f9175994eb0b81b1af46eb181aff39/model.glb": {
+      "url": "/models/components/thumbnails/54cb888aa036c751a3dd285ad578f9e16a221c47d6337c4371f86d97be6e43a1.png",
+      "modelHash": "d9aae548c9914d9334e517c33c3f106c72dbf7355255a2c8383502ce64ead103",
+      "imageHash": "57bcdd0f0963dc1e42e11a6dc0eb5ffd40d57517689700b43727f030a4a4574e"
+    }
+  }
+}

@@ -1,3 +1,4 @@
+import { internalSelectionIds } from './internalSelection';
 import { createBuilderGrid } from './builderGrid';
 import { FreeformHandles, type BuilderFreeformOptions } from './FreeformHandles';
 import { MoveHandles } from './MoveHandles';
@@ -41,7 +42,7 @@ export interface ViewportProps {
   view: BuilderView; display: BuilderDisplay; slice?: number;
   gridStep: number; gesture: BuilderGesture;
   /** What a click may select: hull faces only (armor, paint) or fittings and walls too. */
-  pickTargets: 'hull' | 'all';
+  pickTargets: 'hull' | 'internals' | 'all';
   moveTargets: BuilderMoveTargets;
   placementPiece?: BuilderPlacement; placementMirror?: BuilderPlacement;
   highlightFaces: boolean; rooms: boolean; showCenters: boolean;
@@ -440,10 +441,14 @@ class Viewport {
   }
 
   /** Empty space is never a placement or selection surface. */
-  private pick(event: { clientX: number; clientY: number; shiftKey?: boolean; ctrlKey?: boolean; metaKey?: boolean }, targets: 'hull' | 'all'): BuilderPick | undefined {
+  private pick(event: { clientX: number; clientY: number; shiftKey?: boolean; ctrlKey?: boolean; metaKey?: boolean }, targets: ViewportProps['pickTargets']): BuilderPick | undefined {
     const bounds = this.renderer.domElement.getBoundingClientRect();
     const ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2((event.clientX - bounds.left) / bounds.width * 2 - 1, -(event.clientY - bounds.top) / bounds.height * 2 + 1), this.camera);
-    const hit = ray.intersectObjects(targets === 'hull' ? this.hullMeshes : this.pickMeshes, false).find(hit => this.props.slice === undefined || hit.point.y <= this.props.slice + 1e-6);
+    // Hull raycasts still support placement, but every object interaction in Internals
+    // passes through the skin and external fittings to the internal packages/walls.
+    const allowed = targets !== 'hull' && this.props.pickTargets === 'internals' ? internalSelectionIds(this.props.source, this.props.catalog) : undefined;
+    const hit = ray.intersectObjects(targets === 'hull' ? this.hullMeshes : this.pickMeshes, false).find(hit =>
+      (!allowed || allowed.has(hit.object.userData.sourceId)) && (this.props.slice === undefined || hit.point.y <= this.props.slice + 1e-6));
     if (!hit) return undefined;
     const surface = hit.object.userData.hull ? this.surfaceTriangles[hit.faceIndex ?? -1] : undefined;
     const facing = hit.face ? hit.face.normal.clone().transformDirection(hit.object.matrixWorld) : ray.ray.direction.clone().negate();
@@ -619,7 +624,8 @@ class Viewport {
     const wall = boundaries.find(entry => entry.id === hit.id);
     if (!isPrimitive(hit.id) && !isEquipment(hit.id) && !wall) return undefined;
     if (targets === 'equipment' && !isEquipment(hit.id)) return undefined;
-    const ids = (this.props.selected.has(hit.id) ? [...this.props.selected] : [hit.id]).filter(id => isPrimitive(id) || isEquipment(id) || boundaries.some(entry => entry.id === id));
+    const allowed = this.props.pickTargets === 'internals' ? internalSelectionIds(this.props.source, this.props.catalog) : undefined;
+    const ids = (this.props.selected.has(hit.id) ? [...this.props.selected] : [hit.id]).filter(id => (!allowed || allowed.has(id)) && (isPrimitive(id) || isEquipment(id) || boundaries.some(entry => entry.id === id)));
     const origin = new THREE.Vector3(...hit.point), normal = new THREE.Vector3(), free: MoveDrag['free'] = [true, true, true];
     if (wall && ids.length === 1) {
       // A wall slides along its own axis only: drag in the plane that contains the axis and faces the camera.

@@ -1,3 +1,4 @@
+import { internalSelectionIds } from './internalSelection';
 import { FreeformToolbar, type FreeformSettings } from './FreeformToolbar';
 import CustomHullEditor from './CustomHullEditor';
 import { createPortal } from 'react-dom';
@@ -185,7 +186,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   useEffect(() => { setPathPoints([]); }, [source.id, pathPart?.id, layer, tool]);
   useEffect(() => {
     const hull = data.primitives.find(p => p.kind === 'custom-hull');
-    setSelected(new Set(hull ? [hull.id] : []));
+    setSelected(new Set(hull && layer !== 'internals' ? [hull.id] : []));
     if (hull) setTool('select');
     setCustomHullSession(undefined); setSurfaces(new Set()); setSuggestion(undefined); setMeasure(undefined);
   }, [source.id]);
@@ -211,7 +212,10 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const gesture: BuilderGesture = pathPart ? 'none' : tool === 'fill' ? 'fill' : tool === 'place' || tool === 'module' ? 'stroke' : 'none';
 
   // ---- selection and editing
+  const internalIds = useMemo(() => internalSelectionIds(source, catalog), [source, catalog]);
+  const selectable = (id: string) => layer !== 'internals' || internalIds.has(id);
   const choose = (id: string, additive = false) => {
+    if (!selectable(id)) return;
     if(freeformSession && !additive && id!==freeformSession.baseline.id) {
       const p=data.primitives.find(p=>p.id===id && canEditVertices(p));
       setFreeformSession(p?{designId:source.id,baseline:structuredClone(p)}:undefined);
@@ -223,6 +227,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   };
   const clearSelection = () => { setSelected(new Set()); setSurfaces(new Set()); };
   const removePieces = (ids: ReadonlySet<string>, label = 'Remove selection') => {
+    ids = new Set([...ids].filter(selectable));
     if (locked || !ids.size) return;
     const keep = data.primitives.every(part => ids.has(part.id)) ? data.primitives[0]?.id : undefined;
     command(label, [{ op: 'remove', ids: [...ids] }]);
@@ -245,6 +250,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   /** Select drags any piece, fitting or wall; placing fittings or modules still drags the ones already fitted. Face layers never move geometry. */
   const moveTargets: BuilderMoveTargets = pathPart ? 'none' : layer === 'armor' || layer === 'paint' ? 'none' : tool === 'select' ? 'all' : (layer === 'fittings' && tool === 'place') || tool === 'module' ? 'equipment' : 'none';
   const movePieces = (ids: string[], delta: Vec3) => {
+    ids = ids.filter(selectable);
     if (locked || !ids.length) return;
     const moving = new Set(ids);
     const requested = delta;
@@ -368,6 +374,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   };
   const boxSelect = (ids: string[], additive: boolean) => {
     if (locked) return;
+    ids = ids.filter(selectable);
     setTool('select'); setSurfaces(new Set());
     setSelected(current => new Set(additive ? [...current, ...ids] : ids));
   };
@@ -448,6 +455,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
     return main ? main.position[1] + main.size[1] / 2 - .25 : 0;
   };
   const switchLayer = (next: BuilderLayer) => {
+    if (next === 'internals') setSelected(current => new Set([...current].filter(id => internalIds.has(id))));
     setLayer(next); setTool(DEFAULT_TOOL[next]); setSurfaces(new Set()); setDrawer(false); setQuery(''); setMeasure(undefined); setBearing(0); setTip(undefined);
     setSlice(current => current.auto ? { on: next === 'internals', y: next === 'internals' ? defaultSlice() : current.y, auto: true } : current);
   };
@@ -491,7 +499,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
       // Without a selection, ⌘C and ⌘X stay with the browser so selected text still copies.
       if (modifier && lower === 'c') { if (!selected.size) return; event.preventDefault(); copy(event.shiftKey); return; }
       if (modifier && lower === 'x') { if (!selected.size) return; event.preventDefault(); remove(); return; }
-      if (modifier && lower === 'a') { event.preventDefault(); setSelected(new Set([...data.primitives, ...data.equipment].map(part => part.id))); return; }
+      if (modifier && lower === 'a') { event.preventDefault(); setSelected(new Set(layer === 'internals' ? internalIds : [...data.primitives, ...data.equipment].map(part => part.id))); return; }
       if (modifier) return;
       if (event.key === 'Escape') {
         if (drawer) setDrawer(false); else if (designsOpen) setDesignsOpen(false); else if (suggestion) setSuggestion(undefined);
@@ -674,7 +682,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
       setCustomHullSession(undefined); setFitRequest(value => value + 1);
     } }}/>, document.body)}
     <BuilderViewport pathDraft={!locked && pathPart ? { part: pathPart, points: pathPoints, slackM: pathPart.path?.kind === 'rope' ? ropeSlack : 0, mirror } : undefined} onPathPoint={addPathPoint} onPathFinish={finishPath} perspective={perspective} freeform={freeformPrimitive && !locked ? {...freeformSettings,id:freeformPrimitive.id,onSelect:selection=>changeFreeformSettings({selection}),onCommit:commitFreeform} : undefined} source={source} result={result} catalog={catalog} selected={selected} selectedSurfaces={surfaces} view={view} display={DISPLAY[layer]} slice={slice.on ? slice.y : undefined}
-      gridStep={gridStep} gesture={locked ? 'none' : gesture} pickTargets={layer === 'armor' || layer === 'paint' ? 'hull' : 'all'} moveTargets={locked || freeformMode ? 'none' : moveTargets} placementPiece={locked || freeformMode ? undefined : piece} placementMirror={mirrorPiece} highlightFaces={layer === 'armor' || layer === 'paint'} rooms={layer === 'internals'}
+      gridStep={gridStep} gesture={locked ? 'none' : gesture} pickTargets={layer === 'internals' ? 'internals' : layer === 'armor' || layer === 'paint' ? 'hull' : 'all'} moveTargets={locked || freeformMode ? 'none' : moveTargets} placementPiece={locked || freeformMode ? undefined : piece} placementMirror={mirrorPiece} highlightFaces={layer === 'armor' || layer === 'paint'} rooms={layer === 'internals'}
       showCenters={showCenters} arcs={arcs} proposed={proposed} measure={measure} tags={tags} coords={coords} status={status} fitRequest={fitRequest} onPick={pick} onStroke={placeAt} onBoxSelect={boxSelect} onErase={erase} onMove={movePieces} createModel={props.createModel}/>
     {freeformPrimitive && <FreeformToolbar primitive={freeformPrimitive} settings={freeformSettings} onChange={changeFreeformSettings} cycleUnit={cycleUnit} onCoordinate={setSelectionCoordinate}
       onView={v=>{setPerspective(false);setView(v);setFitRequest(n=>n+1);}} perspective={perspective} onProjection={toggleProjection}

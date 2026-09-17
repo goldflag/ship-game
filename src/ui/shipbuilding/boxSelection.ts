@@ -25,7 +25,7 @@ export function boxSelectedPieces(source: ConstructionSource, catalog: Construct
     }
     return bounds.near <= 1 && bounds.far >= -1 && bounds.left >= rect.left && bounds.right <= rect.right && bounds.top >= rect.top && bounds.bottom <= rect.bottom;
   };
-  for (const part of source.construction.primitives) {
+  for (const part of internals ? [] : source.construction.primitives) {
     if(part.kind==='vertex') {
       const corners=cornerVertices(part).map(v=>v.map((n,k)=>n*part.size[k]));
       const min=[0,1,2].map(k=>Math.min(...corners.map(v=>v[k]))),max=[0,1,2].map(k=>Math.max(...corners.map(v=>v[k])));
@@ -34,7 +34,7 @@ export function boxSelectedPieces(source: ConstructionSource, catalog: Construct
   }
   for (const item of source.construction.equipment) {
     const part = catalog.equipment.find(part => part.id === item.partId);
-    if (part && (internals || part.placement !== 'internal')) {
+    if (part && (internals ? part.placement === 'internal' : part.placement !== 'internal')) {
       const bounds = equipmentPathBounds(part, item);
       if (overlaps(item.position, bounds.size, -item.bearingDeg * Math.PI / 180, bounds.center)) result.push(item.id);
     }
