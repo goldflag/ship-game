@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "id": "admiral-hipper-construction",
   "name": "Admiral Hipper · 1943 source fit",
-  "revision": "da3dcb48-d1fc-4562-8218-d391dba6b4a3",
+  "revision": "revision-e4251bf3-3302-4ce8-863a-25fc52836f8c",
   "coordinates": "meters-y-up-bow-negative-z",
   "construction": {
     "version": 1,
-    "catalogRevision": "b4c0049f9f1db8f499ba53d187afe842478ad967ab1af03e09c100c637c42397",
+    "catalogRevision": "b9aa668d7bdc53e4a5f3699c73433ee7646b003e220a96309a2e0d3e0b4221b3",
     "defaultThicknessMm": 18,
     "primitives": [
       {
@@ -154734,11 +154734,11 @@
     "equipment": [
       {
         "id": "machinery",
-        "partId": "steam-machinery-82000kw",
+        "partId": "generic-turbine-40000kw",
         "position": [
           0,
           -6.39,
-          0
+          -27.5
         ],
         "bearingDeg": 0
       },
@@ -154793,7 +154793,7 @@
           77.9
         ],
         "bearingDeg": 0,
-        "powerSourceId": "machinery"
+        "powerSourceId": "machinery-aft"
       },
       {
         "id": "screw-starboard",
@@ -154804,7 +154804,7 @@
           77.9
         ],
         "bearingDeg": 0,
-        "powerSourceId": "machinery"
+        "powerSourceId": "machinery-aft"
       },
       {
         "id": "rudder",
@@ -156263,6 +156263,16 @@
           -73.7
         ],
         "bearingDeg": 0
+      },
+      {
+        "id": "machinery-aft",
+        "partId": "generic-turbine-40000kw",
+        "position": [
+          0,
+          -6.39,
+          27.5
+        ],
+        "bearingDeg": 0
       }
     ],
     "boundaries": [
@@ -156316,29 +156326,14 @@
         "center": [
           0,
           -3,
-          -27
+          0
         ],
         "size": [
-          10,
+          12,
           5,
           20
         ],
-        "massKg": 5800000
-      },
-      {
-        "id": "aft-fixed-stores",
-        "name": "Provisional distributed structure, armor, stores and service reserve",
-        "center": [
-          0,
-          -3,
-          27
-        ],
-        "size": [
-          10,
-          5,
-          20
-        ],
-        "massKg": 5800000
+        "massKg": 11600000
       }
     ]
   }

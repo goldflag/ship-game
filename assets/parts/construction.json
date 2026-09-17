@@ -319,8 +319,90 @@
       "massKg": 18000
     },
     {
+      "id": "generic-diesel-500kw",
+      "name": "Small diesel \u00b7 500 kW",
+      "kind": "engine",
+      "size": [
+        1.4,
+        1.6,
+        3
+      ],
+      "boundsCenter": [
+        0,
+        0.8,
+        0
+      ],
+      "centerOfGravity": [
+        0,
+        0.592,
+        0
+      ],
+      "placement": "internal",
+      "massKg": 4000,
+      "powerKw": 500,
+      "serviceMassKg": 1000,
+      "occupancy": [
+        {
+          "center": [
+            0,
+            0.8,
+            0
+          ],
+          "size": [
+            1.4,
+            1.6,
+            3
+          ]
+        }
+      ],
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "drive",
+          "kind": "shaft",
+          "position": [
+            0,
+            0.512,
+            1.5
+          ],
+          "direction": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "exhaust",
+          "kind": "exhaust",
+          "position": [
+            0,
+            1.6,
+            0
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        }
+      ]
+    },
+    {
       "id": "generic-diesel-3000kw",
-      "name": "3,000 kW diesel machinery package",
+      "name": "Medium diesel \u00b7 3 MW",
       "kind": "engine",
       "size": [
         3,
@@ -334,10 +416,11 @@
       ],
       "centerOfGravity": [
         0,
-        1.1,
+        1.11,
         0
       ],
       "placement": "internal",
+      "massKg": 35000,
       "powerKw": 3000,
       "serviceMassKg": 5000,
       "occupancy": [
@@ -375,7 +458,7 @@
           "position": [
             0,
             1.11,
-            3
+            3.0
           ],
           "direction": [
             0,
@@ -397,8 +480,499 @@
             0
           ]
         }
+      ]
+    },
+    {
+      "id": "generic-diesel-10000kw",
+      "name": "Large diesel \u00b7 10 MW",
+      "kind": "engine",
+      "size": [
+        5.5,
+        4,
+        10
       ],
-      "massKg": 35000
+      "boundsCenter": [
+        0,
+        2.0,
+        0
+      ],
+      "centerOfGravity": [
+        0,
+        1.48,
+        0
+      ],
+      "placement": "internal",
+      "massKg": 130000,
+      "powerKw": 10000,
+      "serviceMassKg": 20000,
+      "occupancy": [
+        {
+          "center": [
+            0,
+            2.0,
+            0
+          ],
+          "size": [
+            5.5,
+            4,
+            10
+          ]
+        }
+      ],
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "drive",
+          "kind": "shaft",
+          "position": [
+            0,
+            1.28,
+            5.0
+          ],
+          "direction": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "exhaust",
+          "kind": "exhaust",
+          "position": [
+            0,
+            4,
+            0
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "generic-reciprocating-2000kw",
+      "name": "Small triple-expansion steam \u00b7 2 MW",
+      "kind": "engine",
+      "size": [
+        5,
+        5,
+        12
+      ],
+      "boundsCenter": [
+        0,
+        2.5,
+        0
+      ],
+      "centerOfGravity": [
+        0,
+        1.85,
+        0
+      ],
+      "placement": "internal",
+      "massKg": 180000,
+      "powerKw": 2000,
+      "serviceMassKg": 30000,
+      "occupancy": [
+        {
+          "center": [
+            0,
+            2.5,
+            0
+          ],
+          "size": [
+            5,
+            5,
+            12
+          ]
+        }
+      ],
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "drive",
+          "kind": "shaft",
+          "position": [
+            0,
+            1.35,
+            6.0
+          ],
+          "direction": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "exhaust",
+          "kind": "exhaust",
+          "position": [
+            0,
+            5,
+            0
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "generic-reciprocating-6000kw",
+      "name": "Large triple-expansion steam \u00b7 6 MW",
+      "kind": "engine",
+      "size": [
+        7,
+        7,
+        18
+      ],
+      "boundsCenter": [
+        0,
+        3.5,
+        0
+      ],
+      "centerOfGravity": [
+        0,
+        2.59,
+        0
+      ],
+      "placement": "internal",
+      "massKg": 480000,
+      "powerKw": 6000,
+      "serviceMassKg": 80000,
+      "occupancy": [
+        {
+          "center": [
+            0,
+            3.5,
+            0
+          ],
+          "size": [
+            7,
+            7,
+            18
+          ]
+        }
+      ],
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "drive",
+          "kind": "shaft",
+          "position": [
+            0,
+            1.89,
+            9.0
+          ],
+          "direction": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "exhaust",
+          "kind": "exhaust",
+          "position": [
+            0,
+            7,
+            0
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "generic-turbine-5000kw",
+      "name": "Small geared steam turbine \u00b7 5 MW",
+      "kind": "engine",
+      "size": [
+        5,
+        4,
+        10
+      ],
+      "boundsCenter": [
+        0,
+        2.0,
+        0
+      ],
+      "centerOfGravity": [
+        0,
+        1.48,
+        0
+      ],
+      "placement": "internal",
+      "massKg": 150000,
+      "powerKw": 5000,
+      "serviceMassKg": 25000,
+      "occupancy": [
+        {
+          "center": [
+            0,
+            2.0,
+            0
+          ],
+          "size": [
+            5,
+            4,
+            10
+          ]
+        }
+      ],
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "drive",
+          "kind": "shaft",
+          "position": [
+            0,
+            1.28,
+            5.0
+          ],
+          "direction": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "exhaust",
+          "kind": "exhaust",
+          "position": [
+            0,
+            4,
+            0
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "generic-turbine-22000kw",
+      "name": "Medium geared steam turbine \u00b7 22 MW",
+      "kind": "engine",
+      "size": [
+        8,
+        5,
+        16
+      ],
+      "boundsCenter": [
+        0,
+        2.5,
+        0
+      ],
+      "centerOfGravity": [
+        0,
+        1.85,
+        0
+      ],
+      "placement": "internal",
+      "massKg": 600000,
+      "powerKw": 22000,
+      "serviceMassKg": 100000,
+      "occupancy": [
+        {
+          "center": [
+            0,
+            2.5,
+            0
+          ],
+          "size": [
+            8,
+            5,
+            16
+          ]
+        }
+      ],
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "drive",
+          "kind": "shaft",
+          "position": [
+            0,
+            1.6,
+            8.0
+          ],
+          "direction": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "exhaust",
+          "kind": "exhaust",
+          "position": [
+            0,
+            5,
+            0
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "generic-turbine-40000kw",
+      "name": "Large geared steam turbine \u00b7 40 MW",
+      "kind": "engine",
+      "size": [
+        10,
+        6,
+        22
+      ],
+      "boundsCenter": [
+        0,
+        3.0,
+        0
+      ],
+      "centerOfGravity": [
+        0,
+        2.22,
+        0
+      ],
+      "placement": "internal",
+      "massKg": 1200000,
+      "powerKw": 40000,
+      "serviceMassKg": 200000,
+      "occupancy": [
+        {
+          "center": [
+            0,
+            3.0,
+            0
+          ],
+          "size": [
+            10,
+            6,
+            22
+          ]
+        }
+      ],
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "drive",
+          "kind": "shaft",
+          "position": [
+            0,
+            1.92,
+            11.0
+          ],
+          "direction": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "id": "exhaust",
+          "kind": "exhaust",
+          "position": [
+            0,
+            6,
+            0
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        }
+      ]
     },
     {
       "id": "generic-magazine-1000",
@@ -2145,46 +2719,6 @@
       "rudderAreaM2": 18
     },
     {
-      "id": "steam-machinery-82000kw",
-      "name": "82,000 kW steam machinery package",
-      "kind": "engine",
-      "size": [
-        12.000001907348633,
-        3.82000008225441,
-        20
-      ],
-      "boundsCenter": [
-        0,
-        1.910000041127205,
-        0
-      ],
-      "centerOfGravity": [
-        0,
-        2,
-        0
-      ],
-      "massKg": 2400000,
-      "placement": "internal",
-      "sockets": [
-        {
-          "id": "attachment",
-          "kind": "support",
-          "position": [
-            0,
-            0,
-            0
-          ],
-          "direction": [
-            0,
-            -1,
-            0
-          ]
-        }
-      ],
-      "powerKw": 82000,
-      "serviceMassKg": 600000
-    },
-    {
       "id": "cruiser-magazine-50000",
       "name": "Cruiser magazine \u00b7 50,000 round capacity",
       "kind": "magazine",
@@ -2854,60 +3388,6 @@
       ]
     },
     {
-      "id": "generic-steam-plant-36000kw",
-      "name": "36 MW boiler and geared-turbine plant",
-      "kind": "engine",
-      "size": [
-        10,
-        6,
-        22
-      ],
-      "boundsCenter": [
-        0,
-        3,
-        0
-      ],
-      "centerOfGravity": [
-        0,
-        2.2,
-        0
-      ],
-      "massKg": 1800000,
-      "placement": "internal",
-      "sockets": [
-        {
-          "id": "attachment",
-          "kind": "support",
-          "position": [
-            0,
-            0,
-            0
-          ],
-          "direction": [
-            0,
-            -1,
-            0
-          ]
-        }
-      ],
-      "powerKw": 36000,
-      "serviceMassKg": 200000,
-      "occupancy": [
-        {
-          "center": [
-            0,
-            3,
-            0
-          ],
-          "size": [
-            10,
-            6,
-            22
-          ]
-        }
-      ]
-    },
-    {
       "id": "generic-capital-funnel",
       "name": "Capital-ship oval funnel",
       "kind": "funnel",
@@ -2958,7 +3438,7 @@
           ]
         }
       ],
-      "exhaustKw": 36000,
+      "exhaustKw": 40000,
       "occupancy": [
         {
           "center": [

@@ -34,11 +34,13 @@ rudder have reusable original component recipes and immutable catalog identities
 Internal arrangement and gameplay values remain provisional. The source declares
 18 mm default structural skin, a 20 mm machinery floor and six 20 mm transverse
 bulkheads; this is not a historical armor or compartment plan. Two magazines and
-an 82 MW nominal steam package are physically fitted. Two explicitly authored
-5,800 t distributed load packages represent unmodeled machinery, protection,
-stores and outfit. They are not hidden ballast. Propulsive efficiency and
-auxiliaries leave 52.234 MW effective power; speed is the compiler's estimate,
-not a calibrated historical speed trial.
+two 40 MW geared-steam packages are physically fitted in separate forward and
+aft machinery spaces. The forward plant drives the center shaft; the aft plant
+drives the outboard pair. One explicitly authored 11,600 t central load package
+represents unmodeled protection, stores and outfit, relocated from the two spaces
+now occupied by machinery. It is not hidden ballast. Auxiliary reservation and
+propulsive efficiency leave 50.96 MW effective power; speed is the compiler's
+estimate, not a calibrated historical speed trial.
 
 Main gun barbettes are closed exterior supports; their hoist interiors are not
 reconstructed. The accepted opposite-hand propeller approximation is retained.
@@ -90,11 +92,3 @@ above. Gun close-ups and independent torpedo-bank poses were inspected against
 their physical supports. The sampled native sweep includes 150 gun poses and
 five torpedo arrangements; conservative sweep-budget stops remain unresolved
 requests rather than certified clearance.
-
-Validation: `ship:build`, `ship:check`, `ship:review`, relevant native and
-TypeScript tests, and `bun run build` passed. The final 15-second native sea trial
-traveled 36.2 m with steering response, fired eight main-gun rounds, and reset
-tick, ammunition and integrity. On the authoring machine it took about 87 seconds
-to load, 24 seconds to simulate and 0.24 seconds to reset. The editor-to-game
-handoff and the afloat model were also inspected; these timings are not a
-performance guarantee for other machines.

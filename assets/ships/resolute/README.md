@@ -22,7 +22,7 @@ catalog revision and component hashes govern construction publication.
 - Eight `us-5in38-mk30-mod0-single` secondary mounts; six detailed
   `us-20mm-oerlikon-mk4-hsienyang` single AA mounts. Every weapon has its own
   magazine package; AA uses the 2,000-round rack variant.
-- Two original generic 36 MW boiler/geared-turbine packages, independently linked
+- Two original generic 40 MW boiler/geared-turbine packages, independently linked
   to two capital-ship funnels and four exact Fletcher starboard screw variants.
   Two Fletcher rudders have separate modeled skegs; four shafts have physical
   supports. Machinery, magazines, protective deck and transverse bulkheads are
@@ -34,10 +34,10 @@ catalog revision and component hashes govern construction publication.
   waterline band, and black boot topping. Retained equipment keeps its published
   neutral finish. No national markings or historical camouflage are implied.
 
-Native loading is approximately 28,309 t, 6.08 m upright draft and 8.19 m initial
-roll metacentric height. Rated machinery totals 72 MW; auxiliary reservation and
-catalog propeller efficiency yield 45.864 MW effective power and an estimated
-18.7 knots. These are compiler/game results, not certified naval architecture.
+Native loading is approximately 38,813 t with 5.93 m initial roll metacentric
+height. Rated machinery totals 80 MW; auxiliary reservation and catalog propeller
+efficiency yield 50.96 MW effective power and an estimated 19.4 knots. These are
+compiler/game results, not certified naval architecture.
 
 ## Lasting assumptions and limits
 
