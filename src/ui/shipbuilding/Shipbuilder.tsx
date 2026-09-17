@@ -1,5 +1,5 @@
 import { wallMount } from '../../ships/constructionWallFittings';
-import { automaticPropellerLabel, propellerEngineName } from './propellerAssignment';
+import { automaticPropellerLabel, propellerEngineName, propellerEngines } from './propellerAssignment';
 import { SnapControls } from './SnapControls';
 import { BalconyEditor } from './BalconyEditor';
 import { CONSTRUCTION_PAINTS } from '../../ships/constructionPaints';
@@ -297,6 +297,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
     const item = selectedEquipment[0], part = partOf(item), mass = equipmentMassKg(compiledResult, item.id);
     const edit = (label: string, change: (target: ConstructionEquipment) => void) => { const target = structuredClone(item); change(target); run(label, [{ op: 'equipment', value: target }]); };
     const engines = data.equipment.filter(entry => partOf(entry)?.kind === 'engine');
+    const assignedEngines = propellerEngines(source, compiledResult, item);
     const engineConnection = <label className="sb-engine-link">Engine <select className="sb-link" aria-label="Propeller engine" disabled={locked}
       title="Automatic connections update with the layout and stay fixed during battle. Choose an engine to override."
       value={item.powerSourceId ?? ''} onChange={event => edit('Assign propeller engine', target => {
@@ -305,7 +306,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
       <option value="">{automaticPropellerLabel(source, compiledResult, item)}</option>
       {item.powerSourceId && !engines.some(e => e.id === item.powerSourceId) && <option value={item.powerSourceId}>Missing engine · {item.powerSourceId}</option>}
       {engines.map(engine => <option key={engine.id} value={engine.id}>Manual · {propellerEngineName(engine)}</option>)}
-    </select></label>;
+    </select>{!item.powerSourceId && assignedEngines.length > 1 && <span className="sb-engine-sources">{assignedEngines.map(propellerEngineName).join('; ')}</span>}</label>;
     const move = (axis: number, value: number) => { const delta: Vec3 = [0, 0, 0]; delta[axis] = value - item.position[axis]; tool.nudge(delta); };
     tags.push({ key: `part-${item.id}`, anchor: equipmentAnchor(item), dx: 82, dy: -92, tone: 'mint', content: <>
       <b>{part?.name ?? item.partId}</b>

@@ -412,7 +412,7 @@ export interface ConstructionResult {
   diagnostics: ConstructionDiagnostic[]; loading?: ConstructionLoading;
   /** Native fitted shaft/support members in ship coordinates; no added buoyancy. */
   propellerSupports?: ConstructionPropellerSupport[];
-  /** Native resolved connections for this revision, including manual overrides. */
+  /** Native resolved engine/propeller pairs; automatic propellers may have multiple engines. */
   propellerAssignments?: ConstructionPropellerAssignment[];
 }
 export interface ConstructionPropellerAssignment {
