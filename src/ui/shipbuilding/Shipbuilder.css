@@ -138,6 +138,8 @@
 .sb-warn .sb-repository-error > span { white-space: normal; overflow-wrap: anywhere; flex: 1 1 calc(100% - 24px); }
 .sb-warn .rows { display: grid; gap: 3px; max-height: 26vh; overflow: auto; scrollbar-width: thin; justify-items: start; }
 .sb-warn .rows > * { max-width: 100%; }
+.sb-warn .rows .row { display: flex; align-items: baseline; gap: 8px; text-align: left; }
+.sb-warn .rows .row span { min-width: 0; white-space: normal; overflow-wrap: anywhere; }
 .sb-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
 .sb-dot.block { background: var(--sb-salmon); }
 .sb-dot.warn { background: var(--sb-gold); }
