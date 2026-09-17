@@ -366,3 +366,37 @@ fn gun_magazines_fit_above_curved_bottom_plating_across_their_whole_footprint() 
         );
     }
 }
+
+#[test]
+fn oval_funnels_keep_deck_corners_and_matching_sealed_openings() {
+    let (source, catalog) = fixture();
+    for part in catalog.equipment.iter().filter(|p| p.kind == "funnel") {
+        let attachment = part.sockets.iter().flatten().find(|s| s.id == "attachment").unwrap().position[1];
+        // Area of the oval uptake's 64-sided outline, inside the visible casing.
+        let area = part.occupancy.as_ref().and_then(|spaces| spaces.first()).map_or(0., |space|
+            32. * (space.size[0] / 2.) * (space.size[2] / 2.)
+                * (std::f64::consts::TAU / 64.).sin());
+        for version in [1., 2.] {
+            for bearing in [0., 37.] {
+                let mut source = source.clone();
+                source.construction.version = version;
+                source.construction.equipment.push(ConstructionEquipment {
+                    id: "funnel".into(), part_id: part.id.clone(),
+                    position: [2., 8. - attachment, 3.], bearing_deg: bearing,
+                    ..Default::default()
+                });
+                let result = construction::compile(&source, &catalog);
+                let definition = result.definition.as_ref().unwrap_or_else(|| panic!("{}: {:?}", part.id, result.diagnostics));
+                let deck_area: f64 = result.surfaces.iter()
+                    .filter(|s| s.primitive_id == "hull" && s.face == "top")
+                    .map(|s| s.area_m2).sum();
+                assert!((24. * 80. - deck_area - area).abs() < 1e-6,
+                    "{} at {bearing} degrees cuts rectangular corners out of the deck", part.id);
+                let openings: Vec<_> = definition.openings.iter().flatten()
+                    .filter(|o| o.sealed_by_module_id.as_deref() == Some("funnel")).collect();
+                assert_eq!(openings.is_empty(), area == 0., "Only a declared uptake cuts the deck");
+                assert!((openings.iter().map(|o| o.area_m2).sum::<f64>() - area).abs() < 1e-6);
+            }
+        }
+    }
+}

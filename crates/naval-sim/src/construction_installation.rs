@@ -24,8 +24,9 @@ fn cylinder(radius: f64, low: f64, high: f64) -> cg::Cell {
         .collect();
     cg::prism(&top, high - low)
 }
-/// Guns occupy the same circular footprint as their fixed support. Other
-/// equipment keeps its catalog box; never carve a square hole around a round trunk.
+/// Guns use their fixed circular support; the retained funnel casings enclose
+/// oval uptakes. Deck cuts and reserved space must share that outline, otherwise
+/// square corners protrude from the casing or the retained deck fails fit checks.
 pub fn space_cell(
     catalog: &ConstructionCatalog,
     part: &ConstructionEquipmentPart,
@@ -38,6 +39,14 @@ pub fn space_cell(
                 space.center[1] - space.size[1] / 2.,
                 space.center[1] + space.size[1] / 2.);
         }
+    }
+    if part.kind == "funnel" {
+        return cg::transform(
+            &cylinder(1., -space.size[1] / 2., space.size[1] / 2.),
+            space.center,
+            [space.size[0] / 2., 1., space.size[2] / 2.],
+            0.,
+        );
     }
     cg::box_cell(space.center, space.size)
 }
