@@ -119,7 +119,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const [helpOpen, setHelpOpen] = useState(false);
   const [customHullSession, setCustomHullSession] = useState<{ designId: string; primitive: ConstructionPrimitive }>();
   const [newDesignOpen, setNewDesignOpen] = useState(false);
-  const [tip, setTip] = useState<{ title: string; detail: string; x: number; y: number; key?: string; below?: boolean; right?: number }>();
+  const [tip, setTip] = useState<{ title: string; detail: string; x: number; y: number; key?: string; below?: boolean; right?: number; beside?: boolean }>();
   const [slotImages] = useState(() => new SlotImages());
   useEffect(() => () => slotImages.dispose(), [slotImages]);
 
@@ -355,7 +355,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
 
   const viewBar = <ViewBar viewName={VIEW_NAMES[view]} perspective={perspective} sliceLabel={slice.on ? `${signed(slice.y)} m` : 'Off'} sliceOn={slice.on} showCenters={showCenters} showArcs={layer === 'fittings' ? showArcs : undefined}
       onView={tool.cycleView} onProjection={tool.toggleProjection} onSlice={tool.toggleSlice} onCenters={tool.toggleCenters} onArcs={tool.toggleArcs} onFit={tool.fit}
-      onTip={entry => { if (!entry) { setTip(undefined); return; } const rect = entry.target.getBoundingClientRect(); setTip({ title: entry.title, detail: entry.detail, key: entry.key, x: rect.left + rect.width / 2, y: rect.top, right: Math.max(12, window.innerWidth - rect.right) }); }}/>;
+      onTip={entry => { if (!entry) { setTip(undefined); return; } const rect = entry.target.getBoundingClientRect(), strip = (entry.target.closest('.sb-viewbar') ?? entry.target).getBoundingClientRect(); setTip({ title: entry.title, detail: entry.detail, key: entry.key, x: strip.right + 10, y: rect.top + rect.height / 2, beside: true }); }}/>;
   return <main className={`shipbuilder ${freeformMode ? 'sb-freeform-mode' : ''}`} aria-label="Shipbuilder" data-path-drawing={!!pathPart || undefined} data-layer={layer} data-drawer={drawer || undefined} aria-busy={!!busy}>
     {newDesignOpen && <NewDesignDialog onClose={() => setNewDesignOpen(false)} onCreate={newDesign}/>}
     {customHullSession?.designId === source.id && createPortal(<CustomHullEditor integration={{ hull: editableCustomHull(customHullSession.primitive), onClose: () => setCustomHullSession(undefined), onApply: hull => {
@@ -410,7 +410,9 @@ export function Shipbuilder(props: ShipbuilderProps) {
         {/* Modifiers change where a click lands rather than what it does; freeform mode carries its own local mirror axes and unit. */}
         {!freeformMode && <><span className="sb-rail-cap foot">Modifiers</span>
           <button className="toggle" disabled={locked} aria-pressed={mirror} title="Mirror (M) · place, move and paint the twin across the centerline" onClick={tool.toggleMirror}><ToolGlyph name="Mirror"/><span>Mirror</span><kbd>M</kbd></button>
-          <button className="value" disabled={locked} title={`Snap · ${gridStep} m · click to cycle 0.25, 0.5, 1, 2 and 5 m for placement and movement`} onClick={tool.cycleSnap}><b>{gridStep} m</b><span>Snap</span></button></>}
+          <button className="value" disabled={locked} title={`Snap · ${gridStep} m · click to cycle 0.25, 0.5, 1, 2 and 5 m for placement and movement`} onClick={tool.cycleSnap}><b>{gridStep} m</b><span>Snap</span></button>
+          {/* The view strip sits at the rail's foot: how the ship is shown, in small bare glyphs so it never reads as more tools. */}
+          {viewBar}</>}
         <button className="help" aria-haspopup="dialog" aria-expanded={helpOpen} title="Controls and hotkeys (?)" onClick={() => setHelpOpen(value => !value)}><ToolGlyph name="Keys"/><span>Keys</span><kbd>?</kbd></button></div>
     </div>
     <aside className="sb-ledger" aria-label="Ledger">
@@ -439,10 +441,9 @@ export function Shipbuilder(props: ShipbuilderProps) {
           <div className="sb-hotbar-cards" ref={hotbarRef}>{palette.drawer.map(item => slot(item))}</div>
           {hasDrawer ? <button className="sb-slot more" aria-expanded={drawer} aria-label={`All ${drawerName}`} onPointerEnter={event => { const rect = event.currentTarget.getBoundingClientRect(); setTip({ title: `All ${drawerName}`, detail: drawer ? 'close the full selection' : 'open the full selection', x: rect.left + rect.width / 2, y: tipTop(rect), key: '0' }); }} onPointerLeave={hideTip} onClick={() => { setDrawer(value => !value); setTip(undefined); }}>…</button> : null}
         </div>
-        {viewBar}
       </div>
     </div>
-    {tip && <div className={`sb-tip ${tip.below ? 'below' : ''} ${tip.right !== undefined ? 'right' : ''}`} role="tooltip" style={tip.right !== undefined ? { right: tip.right, top: tip.y } : { left: tip.x, top: tip.y }}><b>{tip.title}</b>{tip.detail}{tip.key && <kbd>{tip.key}</kbd>}</div>}
+    {tip && <div className={`sb-tip ${tip.below ? 'below' : ''} ${tip.right !== undefined ? 'right' : ''} ${tip.beside ? 'beside' : ''}`} role="tooltip" style={tip.right !== undefined ? { right: tip.right, top: tip.y } : { left: tip.x, top: tip.y }}><b>{tip.title}</b>{tip.detail}{tip.key && <kbd>{tip.key}</kbd>}</div>}
     {!data.primitives.length && <div className="sb-empty"><b>This design needs a starting block</b><button disabled={locked} onClick={() => run('Add starting block', [{ op: 'primitive', value: startingHullBlock() }])}>Add a hull block</button> to keep building.</div>}
     {helpOpen && <HelpDialog onClose={() => setHelpOpen(false)}/>}
   </main>;
