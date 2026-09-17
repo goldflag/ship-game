@@ -157,7 +157,7 @@ pub struct Survivor {
     pub displacement_kg: u64,
     pub physical_loss: Option<PhysicalLoss>,
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "kebab-case")]
 pub enum FinishReason {
     Destruction,
@@ -166,12 +166,14 @@ pub enum FinishReason {
     Abandoned,
     Infrastructure,
 }
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
 pub struct Outcome {
     pub winner_team_id: Option<TeamId>,
     pub reason: FinishReason,
+    #[ts(type = "number")]
     pub final_tick: u64,
+    #[ts(type = "[number, number]")]
     pub afloat_kg: [u64; 2],
 }
 

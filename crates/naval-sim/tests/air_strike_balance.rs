@@ -1,6 +1,5 @@
 use naval_sim::{
-    aircraft::AirOrder,
-    aircraft_flight::FlightAttitude,
+    aviation::{AirOrder, FlightAttitude},
     battle::{Battle, BattleSetup, Orders, ShipSetup, Spawn},
     bots::AiLevel,
     catalog::Catalog,

@@ -26,7 +26,7 @@ test('real WASM planner exposes owned deployment only and remains usable after a
       const frame = JSON.parse(runtime.snapshot());
       expect(frame.actors.map((a: { motion: { id: string } }) => a.motion.id)).toEqual(['own-destroyer']);
       expect(frame.view).toBe('team'); expect(frame.debrief).toBeUndefined();
-      expect(frame.afloatKg[1]).toBeNull(); expect(frame.remainingSeconds).toBeNull();
+      expect(frame.afloatKg[1]).toBeNull(); expect(frame.remainingSeconds).toBeUndefined();
       expect(frame.contacts).toEqual([]); expect(frame.selectedShipIds[0]).toBeNull();
     } finally { runtime.free(); }
   } finally { planner.free(); }

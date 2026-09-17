@@ -67,7 +67,26 @@ pub struct Records {
     #[serde(skip)]
     counts: Vec<(String, i32)>,
 }
+impl VesselScore {
+    /// A score sheet for a frame, addressed through public IDs by the caller.
+    pub fn addressed(damage_dealt: f64, frags: u32, damage_log: Vec<DamageLogEntry>) -> Self {
+        Self {
+            damage_dealt,
+            frags,
+            damage_log,
+            sequence: 0,
+        }
+    }
+}
 impl Records {
+    /// Records for a frame: the sheets a viewer may see and no shell history.
+    /// Private bookkeeping stays empty; nothing steps these.
+    pub fn addressed(scores: BTreeMap<String, VesselScore>) -> Self {
+        Self {
+            scores,
+            ..Default::default()
+        }
+    }
     pub fn begin_tick(&mut self, actors: &[Vessel]) {
         self.eligible.clear();
         self.eligible

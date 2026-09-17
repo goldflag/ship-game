@@ -33,6 +33,25 @@ hold 1×, and more than half of that is the JSON round trip. For custom battles
 the transport phase matters more than the step phase; for PvE it is the
 reverse; for the server only the step and its own projection matter.
 
+### The tick
+
+`Battle::step` is the sequence of phases in `crates/naval-sim/src/battle/tick.rs`,
+each a method on `Battle` whose doc comment says what it reads and writes:
+**observe** (records open, trails, sensors on the report cadence) → **decide**
+(the captain seam; helm by hull id into the tick) → **manoeuvre** (hulls steam,
+collide, ground) → **fight** (batteries, tubes, launchers, air wings; new
+projectiles known to the records) → **strike** (projectiles in flight advance
+and hit) → **suffer** (damage control on its cadence, flooding, submarine
+depth, capability, sinkings) → **settle** (events published in order, shell
+histories and records closed, counter advanced, outcome judged). The per-tick
+scratch — the event sink, the helm map, the shells that ended, the projectile
+ledger, the cadence flags — is one reused `Tick`, so a steady battle allocates
+nothing for it. The phase order is asserted at every phase entry in debug
+builds; `Tick::skip_to` lets a test or diagnostic run one phase on its own
+against a fixture (`crates/naval-sim/tests/tick.rs`) instead of stepping the
+battle to see one effect. The split is bit-identical to the single function it
+replaced, which the equality gate checks.
+
 ## Which findings apply where
 
 | Finding | PvE | Custom | Server | Changes results |

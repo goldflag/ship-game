@@ -1,5 +1,9 @@
 use crate::persistence::Writer;
-use naval_protocol::{CommandEnvelope, session::Session};
+use naval_protocol::{
+    CommandEnvelope,
+    frame::{Connection, Phase},
+    session::Session,
+};
 use naval_sim::{
     battle::{Battle, BattleSetup},
     catalog::Catalog,
@@ -25,6 +29,8 @@ pub struct MatchHandle {
     pub commands: SyncSender<Action>,
     pub frames: watch::Receiver<Arc<Frame>>,
     pub setup: Arc<BattleSetup>,
+    /// The immutable match baseline as every client receives it with its
+    /// metadata; each publication is a `FrameUpdate` against it.
     pub baseline: Arc<serde_json::Value>,
     pub environment: EnvironmentSelection,
     pub finished: Arc<AtomicBool>,
@@ -102,12 +108,17 @@ pub fn spawn(
         ],
     )
     .map_err(|e| e.to_string())?;
-    let baseline = Arc::new(
-        session
-            .battle
-            .presentation_value(naval_sim::snapshot::PresentationView::FullKnowledge)
-            .map_err(|e| e.to_string())?,
-    );
+    let (baseline_delta, baseline_json) = session
+        .server_baseline(Connection {
+            phase: Phase::Loading,
+            reason: None,
+            connected: [false, false],
+            loaded: [false, false],
+            countdown: None,
+        })
+        .map_err(|e| e.to_string())?;
+    let baseline: Arc<serde_json::Value> =
+        Arc::new(serde_json::from_str(&baseline_json).map_err(|e| e.to_string())?);
     let metadata = json!({"id":id,"status":"loading","setup":setup,"environment":environment,"simulationBuild":naval_sim::SIMULATION_BUILD,"manifestHash":catalog.manifest_hash,"rules":Rules::default()});
     writer.submit(id.clone(), metadata.clone(), false)?;
     let (tx, rx) = mpsc::sync_channel(256);
@@ -319,7 +330,7 @@ pub fn spawn(
                     {
                         publish(
                             &session,
-                            &baseline,
+                            &baseline_delta,
                             phase,
                             reason.as_deref(),
                             loaded,
@@ -341,7 +352,7 @@ pub fn spawn(
                 reason = Some("Match worker failed".into());
                 let _ = publish(
                     &session,
-                    &baseline,
+                    &baseline_delta,
                     phase,
                     reason.as_deref(),
                     loaded,
@@ -385,7 +396,7 @@ impl Drop for CompletionGuard {
 #[allow(clippy::too_many_arguments)]
 fn publish(
     session: &Session,
-    baseline: &serde_json::Value,
+    baseline: &naval_sim::frame_delta::FrameDelta,
     phase: &'static str,
     reason: Option<&str>,
     loaded: [bool; 2],
@@ -393,27 +404,15 @@ fn publish(
     countdown: Option<f64>,
     tx: &watch::Sender<Arc<Frame>>,
 ) -> Result<(), String> {
-    let mut data = session
-        .battle
-        .presentation_value(naval_sim::snapshot::PresentationView::FullKnowledge)
-        .map_err(|e| e.to_string())?;
     let epochs = std::array::from_fn(|i| session.control.players[i].epoch);
-    let selected: Vec<_> = session
-        .control
-        .players
-        .iter()
-        .map(|p| &p.selected_ship_id)
-        .collect();
-    let root = data.as_object_mut().unwrap();
-    root.insert("type".into(), json!("snapshot"));
-    root.insert("phase".into(), json!(phase));
-    root.insert("reason".into(), json!(reason));
-    root.insert("loaded".into(), json!(loaded));
-    root.insert("connected".into(), json!(online));
-    root.insert("countdown".into(), json!(countdown));
-    root.insert("selectedShipIds".into(), json!(selected));
-    root.insert("connectionEpochs".into(), json!(epochs));
-    let bytes = crate::encoding::delta_bytes(baseline, &data)?;
+    let frame = session.server_frame(Connection {
+        phase: Phase::parse(phase).ok_or_else(|| format!("unknown phase {phase}"))?,
+        reason,
+        connected: online,
+        loaded,
+        countdown,
+    });
+    let bytes = crate::encoding::publish_bytes(baseline, session.battle.tick, &frame)?;
     tx.send_replace(Arc::new(Frame {
         bytes,
         epochs,
@@ -425,25 +424,22 @@ fn publish(
 mod tests {
     use super::*;
     use naval_sim::{battle::ShipSetup, bots::AiLevel, rules::TeamId, vessel::Controller};
+    /// What a client holds after one update: the baseline it received with
+    /// its metadata, patched.
     async fn frame(handle: &mut MatchHandle, phase: &str) -> serde_json::Value {
         tokio::time::timeout(Duration::from_secs(8), async {
             loop {
                 let f = handle.frames.borrow().clone();
                 if f.phase == phase && !f.bytes.is_empty() {
                     let mut decoder = flate2::read::GzDecoder::new(f.bytes.as_slice());
-                    let delta: serde_json::Value = serde_json::from_reader(&mut decoder).unwrap();
+                    let update: naval_sim::frame_delta::FrameUpdate =
+                        serde_json::from_reader(&mut decoder).unwrap();
                     let mut value = (*handle.baseline).clone();
-                    for patch in delta["patches"].as_array().unwrap() {
-                        let mut target = &mut value;
-                        for key in patch[0].as_array().unwrap() {
-                            target = if let Some(index) = key.as_u64() {
-                                &mut target[index as usize]
-                            } else {
-                                &mut target[key.as_str().unwrap()]
-                            };
-                        }
-                        *target = patch[1].clone();
+                    assert_eq!(update.base_tick, value["tick"].as_u64());
+                    if let Some(delta) = &update.delta {
+                        naval_sim::frame_delta::apply(&mut value, delta);
                     }
+                    assert_eq!(value["tick"], update.tick);
                     return value;
                 }
                 handle.frames.changed().await.unwrap();

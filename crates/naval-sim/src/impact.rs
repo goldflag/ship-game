@@ -745,7 +745,7 @@ pub struct AircraftEffect {
     pub target: Option<Vec3>,
     pub direction: Option<Vec3>,
     pub velocity: Option<Vec3>,
-    pub attitude: Option<crate::aircraft_flight::FlightAttitude>,
+    pub attitude: Option<crate::aviation::FlightAttitude>,
     pub panic: Option<bool>,
     pub tracer_speed: Option<f64>,
     pub drag_per_second: Option<f64>,

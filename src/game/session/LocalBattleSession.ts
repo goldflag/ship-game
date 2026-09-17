@@ -7,7 +7,7 @@ import { botSelection, setupSpawns, type BattleSetup } from '../../simulation/ba
 import { DEFAULT_MAP } from '../../maps/catalog';
 import type { CombatIntent } from '../../simulation/combat';
 import type { HelmCommand } from '../../simulation/ship';
-import { applyLocalDelta } from './localSnapshotDelta';
+import { decodeFrameUpdate, type FrameUpdate } from './frameDelta';
 import { CommandQueue } from './commandQueue';
 import type { PveBriefing } from '../../multiplayer/generated/PveBriefing';
 import type { Placement } from '../../multiplayer/generated/Placement';
@@ -85,9 +85,8 @@ export class LocalBattleSession extends SnapshotSession {
       }
       if (data.type === 'snapshot') {
         if (data.reset) { session.received = undefined; session.pending = undefined; if (!data.trialAction) session.resetIntents(); }
-        // The owned worker already parsed, validated and normalized this frame.
-        if (data.baseTick !== session.received?.tick) throw new Error('Battle worker snapshot sequence changed.');
-        const frame = applyLocalDelta(session.received, data.delta) as Snapshot;
+        // The worker parsed the update; its reference is the frame received last.
+        const frame = decodeFrameUpdate(session.received, data.update as FrameUpdate);
         session.received = frame;
         if (!session.actors.length || data.reset || data.trialAction) { session.pending = undefined; session.apply(frame); } else session.pending = frame;
         session.busy = false;

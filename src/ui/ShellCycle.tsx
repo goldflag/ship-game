@@ -1,9 +1,9 @@
 import { useId, useState } from 'react';
-import type { Game } from '../game/Game';
+import type { FleetDesk } from './fleet/fleetDesk';
 import { bindingLabel, type Keybindings } from '../game/keybindings';
 import type { CombatTelemetry } from '../simulation/combat';
 
-export function ShellCycle({ combat, game, bindings }: { combat: CombatTelemetry; game: Game | null; bindings: Keybindings }) {
+export function ShellCycle({ combat, desk, bindings }: { combat: CombatTelemetry; desk: FleetDesk | null; bindings: Keybindings }) {
   const descriptionId = useId();
   const [dismissed, setDismissed] = useState(false);
   const current = combat.ammunition, next = current === 'ap' ? 'he' : 'ap';
@@ -24,12 +24,12 @@ export function ShellCycle({ combat, game, bindings }: { combat: CombatTelemetry
         // macOS sends Ctrl + primary click as contextmenu instead of click.
         if (event.ctrlKey && event.button === 0) {
           event.preventDefault();
-          if (!unavailable) game?.selectAmmunition(next);
+          if (!unavailable) desk?.issue({ kind: 'ammunition', type: next });
           event.currentTarget.blur();
         }
       }}
       onClick={event => {
-        if (!unavailable) game?.selectAmmunition(next);
+        if (!unavailable) desk?.issue({ kind: 'ammunition', type: next });
         // Mouse users resume ship shortcuts; keyboard users can continue cycling with Enter/Space.
         if (event.detail > 0) event.currentTarget.blur();
       }}>

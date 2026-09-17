@@ -8,7 +8,7 @@
 import { parseArgs } from 'node:util';
 import init, { PvePlanner } from '../../src/generated/naval-wasm/naval_wasm';
 import { decodeSnapshot } from '../../src/game/session/snapshotCodec';
-import { applyLocalDelta, localDelta, type LocalDelta } from '../../src/game/session/localSnapshotDelta';
+import { applyFramePatch, type FramePatch, type FrameUpdate } from '../../src/game/session/frameDelta';
 import { airborne } from '../../src/simulation/aircraft';
 import type { Snapshot } from '../../src/game/session/SnapshotSession';
 import type { PveBriefing } from '../../src/multiplayer/generated/PveBriefing';
@@ -38,18 +38,19 @@ try {
       let t = performance.now();
       for (let left = batch; left > 0; left -= 6) runtime.step(Math.min(left, 6));
       ms.step += performance.now() - t;
-      let wire: LocalDelta | undefined;
+      let wire: FramePatch | undefined;
       if (transport === 'delta') {
         t = performance.now(); const json = runtime.snapshot_delta([]); ms.serialize += performance.now() - t; bytes += json.length;
-        t = performance.now(); const patch = JSON.parse(json) as { delta?: LocalDelta }; ms.decode += performance.now() - t;
-        t = performance.now(); wire = structuredClone(patch.delta); ms.transferPreparation += performance.now() - t;
+        t = performance.now(); const update = JSON.parse(json) as FrameUpdate; ms.decode += performance.now() - t;
+        t = performance.now(); wire = structuredClone(update.delta); ms.transferPreparation += performance.now() - t;
       } else {
+        // The complete-frame path the update replaced: a whole frame per batch.
         t = performance.now(); const json = runtime.snapshot(); ms.serialize += performance.now() - t; bytes += json.length;
         t = performance.now(); previous = decodeSnapshot(json); ms.decode += performance.now() - t;
-        t = performance.now(); wire = structuredClone(localDelta(received, previous)); ms.transferPreparation += performance.now() - t;
+        t = performance.now(); wire = { value: structuredClone(previous) }; ms.transferPreparation += performance.now() - t;
       }
       // What the render thread does with the reply, for the whole-trip picture.
-      t = performance.now(); received = applyLocalDelta(received, wire) as Snapshot; ms.apply += performance.now() - t;
+      t = performance.now(); received = applyFramePatch(received, wire) as Snapshot; ms.apply += performance.now() - t;
       if (transport === 'delta') previous = received;
       peakOwnedAirborne = Math.max(peakOwnedAirborne, received.wings.reduce((n, wing) => n + wing.state.planes.filter(airborne).length, 0));
       peakVisibleShells = Math.max(peakVisibleShells, received.shells.length);

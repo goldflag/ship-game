@@ -2,9 +2,7 @@ import { beforeAll, expect, test } from 'bun:test';
 import init, { PvePlanner, type LocalRuntime } from '../../generated/naval-wasm/naval_wasm';
 import { PveDraft } from './PveDraft';
 import { LocalBattleSession } from './LocalBattleSession';
-import { decodeSnapshot } from './snapshotCodec';
-import { localDelta } from './localSnapshotDelta';
-import type { Snapshot } from './SnapshotSession';
+import type { FrameUpdate } from './frameDelta';
 import type { PveBriefing } from '../../multiplayer/generated/PveBriefing';
 import type { CommandEnvelope } from '../../multiplayer/generated/CommandEnvelope';
 let manifest: Uint8Array;
@@ -17,7 +15,7 @@ const helm = { throttle: 0, rudder: 0 }, intent = { aim: [0, 0, 0] as [number, n
 class TestWorker {
   onmessage?: (event: { data: unknown }) => void;
   onerror?: (event: { message: string }) => void;
-  previous?: Snapshot; maxBatch = 0; batches = 0; posts = 0; detail: string[] = [];
+  maxBatch = 0; batches = 0; posts = 0; detail: string[] = [];
   /** Hold replies to model a round trip longer than one render frame. */
   manual = false; private held: (() => void)[] = [];
   get inFlight() { return this.held.length; }
@@ -43,7 +41,7 @@ class TestWorker {
         this.runtime = this.planner.start(JSON.stringify(message.placements), JSON.stringify(message.formations ?? {}));
         this.planner.free(); this.planner = undefined;
       }
-      if (message.type === 'restart') { this.runtime.restart_pve(); this.previous = undefined; this.detail = []; }
+      if (message.type === 'restart') { this.runtime.restart_pve(); this.detail = []; }
       if (message.type === 'advance') {
         this.batches++;
         this.maxBatch = Math.max(this.maxBatch, message.ticks!);
@@ -54,9 +52,10 @@ class TestWorker {
         }
         for (let n = message.ticks!; n > 0; n -= 6) this.runtime.step(Math.min(6, n));
       }
-      const frame = decodeSnapshot(this.runtime.detailed_snapshot(this.detail));
-      this.onmessage?.({ data: { type: 'snapshot', reset: message.type === 'restart', baseTick: this.previous?.tick, delta: localDelta(this.previous, frame) } });
-      this.previous = frame;
+      // The Rust codec encodes against the frame this runtime published last,
+      // exactly as local.worker.ts relays it.
+      const update = JSON.parse(this.runtime.snapshot_delta(this.detail)) as FrameUpdate;
+      this.onmessage?.({ data: { type: 'snapshot', reset: message.type === 'restart', update } });
       } catch (error) { this.onmessage?.({ data: { type: 'error', message: String(error) } }); }
     };
     if (this.manual) this.held.push(reply); else queueMicrotask(reply);

@@ -1,5 +1,6 @@
 //! Release-mode capacity evidence: complete battles and actual snapshot encoding.
 #[path = "../encoding.rs"]
+#[allow(dead_code)]
 mod encoding;
 use naval_sim::{
     battle::{Battle, BattleSetup, ShipSetup},
@@ -76,10 +77,20 @@ fn main() {
         mission_rules: None,
         air_rules: None,
     };
-    let mut battle = Battle::new(catalog.clone(), &compiled, setup.clone()).unwrap();
-    let mut baseline = battle
-        .presentation_value(naval_sim::snapshot::PresentationView::FullKnowledge)
-        .unwrap();
+    // The server's own publication path: a session frame as a `FrameUpdate`
+    // against the immutable match baseline every client received on admission.
+    let connection = naval_protocol::frame::Connection {
+        phase: naval_protocol::frame::Phase::Running,
+        reason: None,
+        connected: [true, true],
+        loaded: [true, true],
+        countdown: None,
+    };
+    let session_of = |battle: Battle| {
+        naval_protocol::session::Session::new(battle, [naval_sim::rules::TeamId::A, naval_sim::rules::TeamId::B]).unwrap()
+    };
+    let mut session = session_of(Battle::new(catalog.clone(), &compiled, setup.clone()).unwrap());
+    let mut baseline = session.server_baseline(connection).unwrap().0;
     let mut ticks = Vec::new();
     let mut encoding = Vec::new();
     let mut bytes = Vec::new();
@@ -88,18 +99,17 @@ fn main() {
     let started = Instant::now();
     let orders = BTreeMap::new();
     for tick in 0..seconds * 60 {
-        if battle.outcome.is_some() {
+        if session.battle.outcome.is_some() {
             completed += 1;
-            battle = Battle::new(catalog.clone(), &compiled, setup.clone()).unwrap();
-            baseline = battle
-                .presentation_value(naval_sim::snapshot::PresentationView::FullKnowledge)
-                .unwrap();
+            session = session_of(Battle::new(catalog.clone(), &compiled, setup.clone()).unwrap());
+            baseline = session.server_baseline(connection).unwrap().0;
         }
         let step = Instant::now();
-        battle.step(&orders);
+        session.battle.step(&orders);
         ticks.push(step.elapsed().as_secs_f64() * 1000.0);
         peak_airborne = peak_airborne.max(
-            battle
+            session
+                .battle
                 .aviation
                 .wings
                 .iter()
@@ -114,10 +124,12 @@ fn main() {
         );
         if tick % 3 == 0 {
             let start = Instant::now();
-            let data = battle
-                .presentation_value(naval_sim::snapshot::PresentationView::FullKnowledge)
-                .unwrap();
-            let frame = encoding::delta_bytes(&baseline, &data).unwrap();
+            let frame = encoding::publish_bytes(
+                &baseline,
+                session.battle.tick,
+                &session.server_frame(connection),
+            )
+            .unwrap();
             bytes.push(frame.len() as f64);
             encoding.push(start.elapsed().as_secs_f64() * 1000.0);
         }
@@ -131,21 +143,15 @@ fn main() {
     }
     std::fs::write(
         ".build/naval-content/profile-snapshot.json",
-        serde_json::to_vec(
-            &battle
-                .presentation_value(naval_sim::snapshot::PresentationView::FullKnowledge)
-                .unwrap(),
-        )
-        .unwrap(),
+        naval_sim::frame_delta::FrameDelta::complete(&session.server_frame(connection)).unwrap(),
     )
     .unwrap();
     std::fs::write(
         ".build/naval-content/profile-delta.gz",
-        encoding::delta_bytes(
+        encoding::publish_bytes(
             &baseline,
-            &battle
-                .presentation_value(naval_sim::snapshot::PresentationView::FullKnowledge)
-                .unwrap(),
+            session.battle.tick,
+            &session.server_frame(connection),
         )
         .unwrap(),
     )
