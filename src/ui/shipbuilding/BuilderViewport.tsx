@@ -20,7 +20,8 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import type { ConstructionPrimitive, ConstructionResult, ConstructionSource, ConstructionSurface, Vec3 } from '../../ships/blueprint';
 import { armorThicknessColor } from '../../ships/inspection';
-import { projectConstructionSurfaces, surfaceSelectionKey } from '../../ships/constructionEditor';
+import { surfaceSelectionKey } from '../../ships/constructionEditor';
+import { pendingHullSurfaces } from './pendingHull';
 import { constructionPaintColor } from '../../ships/constructionPaints';
 import { normalizedBearing, snapCoordinate, gridCoordinate } from './editorNumbers';
 import { attachmentOffset, dominantAxis, fillLattice, pieceExtents, physicalPlacementHit, placementCenter, strokeSegment } from './placement';
@@ -181,8 +182,7 @@ class Viewport {
   private facesKey = '';
   /** The drawn faces by selection key: the hull's logical faces, for outlines and sweep previews. */
   private surfacesByKey = new Map<string, ConstructionSurface[]>();
-  private geometry?: { sourceId: string; revision: string; key: string };
-  private compiledGeometry?: { result: ConstructionResult; key: string };
+  private compiledGeometry?: { result: ConstructionResult; source: ConstructionSource };
   private carried?: { sourceId: string; revision: string; result: ConstructionResult; surfaces: ConstructionSurface[] };
   private hover?: { clientX: number; clientY: number };
   private ghostPosition?: Vec3;
@@ -275,18 +275,13 @@ class Viewport {
     this.camera.up.set(0, 1, 0); this.camera.lookAt(this.controls.target); this.controls.enableRotate = view === 'orbit'; this.controls.update(); this.currentView = view;
   }
 
-  /** The source's hull geometry as one string, once per revision: whether a pending compile changes anything but face assignments. */
-  private geometryKey(source: ConstructionSource) {
-    if (!this.geometry || this.geometry.sourceId !== source.id || this.geometry.revision !== source.revision) this.geometry = { sourceId: source.id, revision: source.revision, key: JSON.stringify(source.construction.primitives) };
-    return this.geometry.key;
-  }
-  /** While a compile is pending after an armor, paint or opening edit, the last compile's faces stay up with the
-   * source's new assignments over them, so the ship never drops to a gray draft. A geometry edit still shows the draft. */
+  /** Keep finished faces for unchanged pieces and immediately display edited source
+   * envelopes. These visual faces never enter the compiled result or enable launch. */
   private carriedSurfaces(scene: BuilderScene): ConstructionSurface[] | undefined {
     const { source, current, result } = scene;
-    if (current?.surfaces.length) { this.compiledGeometry = { result: current, key: this.geometryKey(source) }; return undefined; }
-    if (current || !result || this.compiledGeometry?.result !== result || this.compiledGeometry.key !== this.geometryKey(source)) return undefined;
-    if (!this.carried || this.carried.sourceId !== source.id || this.carried.revision !== source.revision || this.carried.result !== result) this.carried = { sourceId: source.id, revision: source.revision, result, surfaces: projectConstructionSurfaces(source, result.surfaces) };
+    if (current?.surfaces.length) { this.compiledGeometry = { result: current, source }; return undefined; }
+    if (current || !result || this.compiledGeometry?.result !== result || this.compiledGeometry.source.id !== source.id) return undefined;
+    if (!this.carried || this.carried.sourceId !== source.id || this.carried.revision !== source.revision || this.carried.result !== result) this.carried = { sourceId: source.id, revision: source.revision, result, surfaces: pendingHullSurfaces(source, this.compiledGeometry.source, result.surfaces) };
     return this.carried.surfaces;
   }
 
@@ -389,9 +384,9 @@ class Viewport {
     const modelKey = `${props.scene.source.id}:${props.scene.source.revision}:${props.scene.result?.contentHash}`;
     if (modelKey !== this.modelKey) {
       this.modelKey = modelKey; this.modelAbort?.abort(); release(this.composed);
-      if (props.scene.current && nativeSurfaces) {
+      if (nativeSurfaces && (!props.createModel || props.scene.current)) {
         const abort = new AbortController(); this.modelAbort = abort;
-        const model = props.createModel ? props.createModel(props.scene.source, props.scene.current, abort.signal) : Promise.resolve(createConstructionHull(nativeSurfaces, props.scene.source.construction.primitives));
+        const model = props.createModel ? props.createModel(props.scene.source, props.scene.current!, abort.signal) : Promise.resolve(createConstructionHull(nativeSurfaces, props.scene.source.construction.primitives));
         model.then(group => {
           if (this.dead || abort.signal.aborted || modelKey !== this.modelKey) { release(group); return; }
           this.composed.add(group); this.update(this.props); this.modelError('');
