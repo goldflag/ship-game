@@ -1,3 +1,4 @@
+import { CONSTRUCTION_PAINTS } from '../../ships/constructionPaints';
 import { mirroredPanelId } from '../../ships/constructionPanels';
 import { integrateConstructionMagazines, setBarbetteHeight } from '../../ships/constructionArmament';
 import type { ConstructionBoundary, ConstructionCatalog, ConstructionEquipment, ConstructionEquipmentPart, ConstructionPrimitive, ConstructionResult, ConstructionSource, ConstructionSuggestion, ConstructionSurface, ConstructionSurfaceAssignment, Vec3 } from '../../ships/blueprint';
@@ -9,7 +10,7 @@ import { pathProblem } from '../../ships/constructionPaths';
 import { BUILDER_RAIL, DEFAULT_TOOL, paletteFor, type BuilderLayer, type BuilderToolId, type RailEntry, type SlotItem } from './builderLayers';
 import { fittingCategory, fittingNation, shelfNations, type FittingFilter, type FittingNation } from './fittingCategories';
 import { appendPathPoint, pathEquipment } from './pathDrawing';
-import { mirrorTwin, offCenterline } from './placement';
+import { mirrorTwin, mirrorTwinEquipment, offCenterline } from './placement';
 import { blockMoveConstraint } from './blockMovement';
 import { internalSelectionIds } from './internalSelection';
 import { customHullPrimitive, makeHull } from '../../ships/customHullModel';
@@ -28,6 +29,8 @@ export interface BuilderToolState {
   fittingFilter: FittingFilter;
   customMm: number; sizeOverride?: Vec3; bearing: number;
   pathPoints: Vec3[]; ropeSlack: number;
+  /** Last successfully applied fitting paint, retained while the editor stays open. */
+  fittingPaint?: string;
   mirror: boolean; showArcs: boolean; showCenters: boolean;
   /** Placement and movement steps in metres, remembered separately for hull pieces and fittings. */
   snapSteps: { hull: number; equipment: number };
@@ -237,7 +240,7 @@ export class BuilderTool {
     const { layer, tool } = this.state;
     return this.pathPart ? 'none' : layer === 'armor' || layer === 'paint' ? 'none' : tool === 'select' ? 'all' : (layer === 'fittings' && tool === 'place') || tool === 'module' ? 'equipment' : 'none';
   }
-  get pickTargets(): BuilderScene['pickTargets'] { return this.state.layer === 'internals' ? 'internals' : this.faceLayer ? 'hull' : 'all'; }
+  get pickTargets(): BuilderScene['pickTargets'] { return this.state.layer === 'internals' ? 'internals' : this.state.layer === 'armor' ? 'hull' : 'all'; }
   /** Internals edits packages, weapon-owned ammunition through its weapon, and room boundaries. */
   get internalIds(): ReadonlySet<string> {
     const source = this.source, catalog = this.catalog;
@@ -335,6 +338,7 @@ export class BuilderTool {
       case 'shape': if (tool !== 'place' && tool !== 'fill') this.setTool('place'); break;
       case 'thickness': this.update({ customMm: item.mm }); // falls through: a value card behaves as the Armor card holding that value
       case 'armor': case 'opening': case 'paint':
+        if (item.kind === 'paint' && this.selectedEquipment.length) { this.paintFittings([...this.state.selected], item.id); break; }
         if (surfaces.size) this.applyItem(item, surfaces); else if (!faceTools.includes(tool)) this.setTool('apply');
         break;
       case 'scheme': this.applyScheme(item.id); break;
@@ -459,7 +463,7 @@ export class BuilderTool {
       const parts: ConstructionEquipment[] = [];
       for (const point of points) {
         // The viewport already snaps the face plane; retain the exact socket height.
-        parts.push({ id: this.newId('equipment'), partId: active.id, position: [...point], bearingDeg: piece.bearingDeg });
+        parts.push({ id: this.newId('equipment'), partId: active.id, position: [...point], bearingDeg: piece.bearingDeg, ...(this.state.layer === 'fittings' && this.state.fittingPaint ? { paint: this.state.fittingPaint } : {}) });
         if (mirror && offCenterline(point)) parts.push({ ...parts.at(-1)!, id: this.newId('equipment'), position: [-point[0], point[1], point[2]], bearingDeg: normalizedBearing(-piece.bearingDeg) });
       }
       if (this.data.equipment.length + parts.length > LIMITS.equipment) { this.door.setError(`A design supports up to ${LIMITS.equipment} fittings. Remove a fitting before adding more.`); return undefined; }
@@ -482,6 +486,7 @@ export class BuilderTool {
     const slackM = pathPart.path?.kind === 'rope' ? ropeSlack : 0, problem = pathProblem(pathPoints, slackM);
     if (problem) { this.update({ notice: problem }); return undefined; }
     const item = pathEquipment(this.newId('path'), pathPart.id, pathPoints, slackM);
+    if (this.state.fittingPaint) item.paint = this.state.fittingPaint;
     const parts = [item];
     if (mirror && pathPoints.some(point => Math.abs(point[0]) > 1e-6)) parts.push({ ...mirroredEquipment(item), id: this.newId('path') });
     if (this.data.equipment.length + parts.length > LIMITS.equipment) { this.update({ notice: 'The fittings limit is reached. Remove a fitting before adding this path.' }); return undefined; }
@@ -520,6 +525,23 @@ export class BuilderTool {
       default: return undefined;
     }
   };
+  /** Paint whole installations without changing the shared component or other instances. */
+  paintFittings = (ids: readonly string[], paint?: string): ConstructionSubmission | undefined => {
+    if (paint && !CONSTRUCTION_PAINTS.some(entry => entry.id === paint)) return undefined;
+    const targets = new Set(ids);
+    const fittings = this.data.equipment.filter(item => this.partOf(item)?.placement !== 'internal');
+    if (this.state.mirror) for (const item of fittings) if (targets.has(item.id)) {
+      const twin = mirrorTwinEquipment(this.source, item); if (twin) targets.add(twin.id);
+    }
+    const commands = fittings.filter(item => targets.has(item.id)).map((item): ConstructionCommand => {
+      const value = { ...item }; if (paint) value.paint = paint; else delete value.paint;
+      return { op: 'equipment', value };
+    });
+    if (!commands.length) return undefined;
+    const outcome = this.run(paint ? 'Paint fittings' : 'Restore original fitting finish', commands);
+    if (outcome.accepted) this.update({ fittingPaint: paint });
+    return outcome;
+  };
   applyScheme = (id: 'two-tone' | 'disruptive'): ConstructionSubmission => {
     const keys = [...this.editableKeys];
     if (id === 'two-tone') return this.run('Apply two-tone paint', [
@@ -534,7 +556,19 @@ export class BuilderTool {
     const { layer, tool } = this.state;
     if (!hit) { this.clearSelection(); return undefined; }
     if (tool === 'measure') { const current = this.state.measure; this.update({ measure: !current || current.to ? { from: hit.point } : { ...current, to: hit.point } }); return undefined; }
+    if (layer === 'paint' && hit.id) {
+      const fitting = this.data.equipment.find(item => item.id === hit.id);
+      if (fitting) {
+        if (tool === 'apply' && this.active?.kind === 'paint') return this.paintFittings([fitting.id], this.active.id);
+        if (tool === 'eyedrop') {
+          if (fitting.paint) this.update({ slots: { ...this.state.slots, paint: fitting.paint }, tool: 'apply', notice: 'Paint picked from fitting.' });
+          else this.update({ notice: 'This fitting uses its original component finish. Choose a paint to recolor it.' });
+        } else { this.update({ surfaces: new Set() }); this.choose(fitting.id, hit.additive); }
+        return undefined;
+      }
+    }
     if (layer === 'armor' || layer === 'paint') {
+      if (!hit.additive) this.update({ selected: new Set() });
       if (!hit.surface) { if (!hit.additive) this.update({ surfaces: new Set() }); if (hit.id && tool === 'select') this.choose(hit.id, hit.additive); else if (!hit.additive) this.update({ selected: new Set() }); return undefined; }
       if (!this.compiled && !this.retained) { this.update({ notice: 'Face editing resumes when this source has a compiled preview.' }); return undefined; }
       if (!this.editableKeys.has(hit.surface)) { this.update({ notice: 'This fixed equipment support follows its fitting. Choose a hull face to edit.' }); return undefined; }
@@ -620,6 +654,7 @@ export class BuilderTool {
     if (!suggestion || this.source.revision !== suggestion.revision) return undefined;
     const next = structuredClone(this.source), proposal = suggestion.proposal.source.construction;
     next.construction.equipment = structuredClone(proposal.equipment); next.construction.boundaries = structuredClone(proposal.boundaries); next.construction.loads = structuredClone(proposal.loads);
+    for (const item of next.construction.equipment) if (this.state.fittingPaint && !this.data.equipment.some(existing => existing.id === item.id) && this.partOf(item)?.placement !== 'internal') item.paint = this.state.fittingPaint;
     const outcome = this.run('Apply suggested layout', constructionDiffCommands(this.source, next));
     this.update({ suggestion: undefined });
     return outcome;

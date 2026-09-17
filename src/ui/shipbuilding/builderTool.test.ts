@@ -451,6 +451,50 @@ test('entering Armor or Paint replaces whole-hull selection with face selection'
   expect(labels()).toEqual([]);
 });
 
+test('fitting paint is undoable, saved, mirrored and inherited by subsequent fittings and paths', async () => {
+  const { tool, owner, data, writes } = await setup();
+  tool.switchLayer('fittings');
+  const choose = (id: string) => tool.selectSlot(tool.palette.all!.find(item => item.id === id)!);
+  choose('gun'); tool.placeAt([[2, 1, 0]]);
+  const id = data().equipment[0].id;
+  expect(data().equipment.every(item => item.paint === undefined)).toBe(true);
+  expect(tool.paintFittings([id], 'sea-blue')).toMatchObject({ accepted: true });
+  expect(data().equipment.map(item => item.paint)).toEqual(['sea-blue', 'sea-blue']);
+  owner.undo(); expect(data().equipment.every(item => !item.paint)).toBe(true);
+  owner.redo(); expect(data().equipment.every(item => item.paint === 'sea-blue')).toBe(true);
+  tool.switchLayer('paint'); tool.selectSlot(tool.palette.bar.find(item => item.id === 'red-oxide')!);
+  tool.pick(hit({ surface: 'hull:top', id: 'hull' }));
+  expect(tool.getSnapshot().fittingPaint).toBe('sea-blue');
+  tool.switchLayer('fittings'); choose('propeller'); tool.placeAt([[4, -1, 0]]);
+  expect(data().equipment.slice(-2).every(item => item.paint === 'sea-blue')).toBe(true);
+  choose('railing'); tool.addPathPoint([3, 1, 0]); tool.addPathPoint([3, 1, 3]); tool.finishPath();
+  expect(data().equipment.slice(-2).every(item => item.paint === 'sea-blue' && item.path)).toBe(true);
+  await owner.flush();
+  expect(writes.at(-1)?.source).toMatchObject({ construction: { equipment: data().equipment } });
+  owner.setBusy('Saving');
+  expect(tool.paintFittings([id], 'red-oxide')).toMatchObject({ accepted: false });
+  expect(tool.getSnapshot().fittingPaint).toBe('sea-blue');
+  owner.setBusy(''); tool.paintFittings([id]);
+  expect(data().equipment.slice(0, 2).every(item => !item.paint)).toBe(true);
+  expect(tool.getSnapshot().fittingPaint).toBeUndefined();
+  tool.dispose();
+});
+
+test('Paint layer picks fittings, eyedrops and paints selected fittings from its palette', async () => {
+  const { tool, data } = await setup();
+  tool.switchLayer('fittings'); tool.selectSlot(tool.palette.all!.find(item => item.id === 'gun')!); tool.placeAt([[0, 1, 0]]);
+  const id = data().equipment[0].id;
+  tool.switchLayer('paint'); expect(tool.scene(undefined).pickTargets).toBe('all');
+  tool.selectSlot(tool.palette.bar.find(item => item.id === 'sea-blue')!);
+  tool.pick(hit({ id })); expect(data().equipment[0].paint).toBe('sea-blue');
+  tool.setTool('select'); tool.pick(hit({ id }));
+  tool.selectSlot(tool.palette.bar.find(item => item.id === 'red-oxide')!);
+  expect(data().equipment[0].paint).toBe('red-oxide');
+  tool.setTool('eyedrop'); tool.pick(hit({ id })); expect(tool.getSnapshot().slots.paint).toBe('red-oxide');
+  expect(tool.getSnapshot().tool).toBe('apply');
+  tool.dispose();
+});
+
 test('fine fitting rotation preserves fractional bearings, filters hull IDs and commits one undoable batch', async () => {
   const { tool, data, owner, labels } = await setup();
   tool.switchLayer('fittings');

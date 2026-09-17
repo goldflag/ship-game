@@ -1,3 +1,4 @@
+import { paintConstructionFitting } from '../../game/constructionFittingPaint';
 import * as THREE from 'three';
 import type { ConstructionCatalog, ConstructionEquipment, ConstructionSource, ConstructionPropellerSupport } from '../../ships/blueprint';
 import { constructionEquipmentModelUrl } from '../../ships/constructionEquipment';
@@ -12,6 +13,7 @@ type Template = { model: THREE.Group; ghost: THREE.Group; ghostMaterials: THREE.
  * drag previews borrow their buffers; only disposing the cache releases them. */
 export class EquipmentPreview {
   readonly group = new THREE.Group();
+  private painted = new Map<string, { model: THREE.Group; materials: THREE.Material[] }>();
   private templates = new Map<string, Template>();
   private requests = new Map<string, AbortController>();
   private instances = new Map<string, THREE.Group>();
@@ -72,10 +74,11 @@ export class EquipmentPreview {
     });
   }
 
-  clone(partId: string, ghost = false, path?: ConstructionEquipment['path'], invalid = false): THREE.Group | undefined {
+  clone(partId: string, ghost = false, path?: ConstructionEquipment['path'], invalid = false, paint?: string): THREE.Group | undefined {
     const part = this.catalog?.equipment.find(part => part.id === partId);
     if (part?.path) {
       const model = createConstructionPathModel(part, path, ghost);
+      if (!ghost && !invalid) paintConstructionFitting(model, paint, false);
       if (invalid) model.traverse(node => {
         if (!(node instanceof THREE.Mesh)) return;
         for (const material of Array.isArray(node.material) ? node.material : [node.material]) {
@@ -87,7 +90,18 @@ export class EquipmentPreview {
     this.ensure(partId);
     const key = this.key(partId), template = key && this.templates.get(key);
     if (!template) return undefined;
-    const clone = (ghost ? template.ghost : invalid ? template.invalid : template.model).clone(true);
+    let base = ghost ? template.ghost : invalid ? template.invalid : template.model;
+    if (paint && !ghost && !invalid) {
+      const paintKey = `${key}:${paint}`;
+      let painted = this.painted.get(paintKey);
+      if (!painted) {
+        const model = template.model.clone(true);
+        painted = { model, materials: paintConstructionFitting(model, paint) };
+        this.painted.set(paintKey, painted);
+      }
+      base = painted.model;
+    }
+    const clone = base.clone(true);
     clone.traverse(node => { node.userData.sharedPreviewResources = true; });
     return clone;
   }
@@ -107,10 +121,10 @@ export class EquipmentPreview {
     for (const item of source.construction.equipment) {
       let instance = this.instances.get(item.id);
       const path = this.catalog.equipment.find(part => part.id === item.partId)?.path;
-      const key = `${this.key(item.partId)}${path ? ':' + JSON.stringify(item.path) : ''}:${invalid.has(item.id)}`;
+      const key = `${this.key(item.partId)}${path ? ':' + JSON.stringify(item.path) : ''}:${invalid.has(item.id)}:${item.paint ?? ''}`;
       if (instance && instance.userData.assetKey !== key) { instance.removeFromParent(); if (instance.userData.path) disposeConstructionModel(instance); this.instances.delete(item.id); instance = undefined; }
       if (!instance) {
-        const model = this.clone(item.partId, false, item.path, invalid.has(item.id));
+        const model = this.clone(item.partId, false, item.path, invalid.has(item.id), item.paint);
         if (!model) continue;
         instance = new THREE.Group(); instance.name = item.id;
         instance.userData = { sourceId: item.id, assetKey: key, path: !!path };
@@ -135,6 +149,8 @@ export class EquipmentPreview {
       template.invalidMaterials.forEach(material => material.dispose());
     }
     this.templates.clear();
+    for (const painted of this.painted.values()) painted.materials.forEach(material => material.dispose());
+    this.painted.clear();
   }
 
   dispose() { this.dead = true; this.clear(); }
