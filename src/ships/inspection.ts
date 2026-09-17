@@ -9,12 +9,16 @@ export const INSPECTION_COLORS: Record<Exclude<InspectionKind, 'armor'>, string>
 export const INSPECTION_KIND_LABELS: Record<Exclude<InspectionKind, 'armor'>, string> = {
   launcher: 'Launcher', weapon: 'Gun mount', engine: 'Machinery', magazine: 'Magazine', steering: 'Steering gear', generator: 'Electrical supply', 'fire-control': 'Fire control', compartment: 'Compartment',
 };
-/** A fixed scale keeps equal thicknesses the same color across every ship. */
+/** The port's fixed scale keeps equal thicknesses the same color across every ship; the editor passes the ship's own thickest plate as the scale instead. */
 export const ARMOR_COLOR_STOPS = [
   { thicknessMm: 0, color: '#64d487' },
   { thicknessMm: 200, color: '#efd05b' },
   { thicknessMm: 400, color: '#ee615a' },
 ] as const;
+export const ARMOR_SCALE_MM: number = ARMOR_COLOR_STOPS[ARMOR_COLOR_STOPS.length - 1].thicknessMm;
+/** The thicknesses at the green and red ends of the armor colour ramp. */
+export interface ArmorScale { fromMm: number; toMm: number }
+export const FIXED_ARMOR_SCALE: ArmorScale = { fromMm: 0, toMm: ARMOR_SCALE_MM };
 export interface InspectionEntry {
   id: string; name: string; kind: InspectionKind; center: Vec3; size: Vec3;
   underwaterProtection?: { damageReduction: number; breachReduction: number };
@@ -30,8 +34,10 @@ export interface InspectionEntry {
   consumers?: string[];
   mountIndex?: number; moduleIndex?: number; compartmentIndex?: number; bearingDeg?: number;
 }
-export function armorThicknessColor(thicknessMm: number): string {
-  const thickness = Math.max(0, thicknessMm);
+/** Green at the scale's start through yellow to red at its end: the port's fixed 0–400 mm, or a ship's thinnest to thickest plate so a destroyer's 20 mm reads apart from its skin. A uniform ship is all green. */
+export function armorThicknessColor(thicknessMm: number, scale: ArmorScale = FIXED_ARMOR_SCALE): string {
+  const span = scale.toMm - scale.fromMm;
+  const thickness = span > 0 ? Math.min(1, Math.max(0, (thicknessMm - scale.fromMm) / span)) * ARMOR_SCALE_MM : 0;
   for (let i = 1; i < ARMOR_COLOR_STOPS.length; i++) {
     const low = ARMOR_COLOR_STOPS[i - 1], high = ARMOR_COLOR_STOPS[i];
     if (thickness > high.thicknessMm) continue;

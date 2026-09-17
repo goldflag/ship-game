@@ -19,6 +19,19 @@ export function editableConstructionSurfaces(source: ConstructionSource, surface
   return surfaces.filter(surface => primitiveIds.has(surface.primitiveId) && CONSTRUCTION_FACES.includes(surface.face as ConstructionFace));
 }
 
+/** Compiled faces with the source's current assignments over them: between an edit and its compile, the last
+ * compile's geometry can stay up showing the new thickness, paint or opening. A custom hull panel inherits its
+ * whole face's assignment when it has none of its own, as the compiler does. */
+export function projectConstructionSurfaces(source: ConstructionSource, surfaces: readonly ConstructionSurface[]): ConstructionSurface[] {
+  const assignments = new Map(source.construction.surfaces.map(surface => [surfaceSelectionKey(surface), surface]));
+  return surfaces.map(surface => {
+    const assignment = assignments.get(surfaceSelectionKey(surface)) ?? (surface.panelId !== undefined ? assignments.get(surfaceKey(surface.primitiveId, surface.face)) : undefined);
+    if (!assignment) return surface;
+    const { thicknessMm, material, paint, open } = assignment;
+    return surface.thicknessMm === thicknessMm && surface.material === material && surface.paint === paint && surface.open === !!open ? surface : { ...surface, thicknessMm, material, paint, open: !!open };
+  });
+}
+
 /** Syntax check for safe editing only. Rust retains all geometry, fit, loading and launch validation. */
 export function decodeConstructionSource(value: unknown): ConstructionSource {
   const object = (value: unknown, path: string): Record<string, unknown> => {

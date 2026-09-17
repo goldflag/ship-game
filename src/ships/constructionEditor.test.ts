@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test';
 import type { ConstructionCatalog, ConstructionSource, ConstructionSurface } from './blueprint';
 import type { ConstructionStore } from './constructionStore';
-import { assignConstructionSurfaces, copyConstructionSelection, decodeConstructionSource, decodeSavedConstruction, editableConstructionSurfaces, loadSavedConstructionWithCatalog, mirroredFace, mirroredPrimitive, removeConstructionSelection, surfaceKey } from './constructionEditor';
+import { assignConstructionSurfaces, copyConstructionSelection, decodeConstructionSource, decodeSavedConstruction, editableConstructionSurfaces, loadSavedConstructionWithCatalog, mirroredFace, mirroredPrimitive, projectConstructionSurfaces, removeConstructionSelection, surfaceKey } from './constructionEditor';
 
 const source = (): ConstructionSource => ({ schemaVersion: 1, id: 'draft', revision: 'r1', name: 'Draft', coordinates: 'meters-y-up-bow-negative-z', construction: {
   version: 1, catalogRevision: 'c1', defaultThicknessMm: 12,
@@ -98,4 +98,13 @@ test('delete-all keeps one block and its surfaces while removing other selected 
   expect(draft.construction.primitives).toEqual([first]);
   expect(draft.construction.surfaces).toEqual(skin);
   expect(draft.construction.equipment).toEqual([]);
+});
+
+test('projecting the source over compiled faces applies its assignments, panels inheriting their whole face, and keeps untouched faces by identity', () => {
+  const face = (id: string, over: Partial<ConstructionSurface>): ConstructionSurface => ({ id, primitiveId: 'hull', face: 'top', vertices: [], normal: [0, 1, 0], areaM2: 1, thicknessMm: 12, material: 'steel', paint: 'naval-gray', open: false, ...over });
+  const compiled = [face('a', { face: 'port' }), face('b', { face: 'port', panelId: 'p1' }), face('c', {})];
+  const projected = projectConstructionSurfaces(source(), compiled);
+  expect(projected[0]).toMatchObject({ face: 'port', thicknessMm: 200, material: 'armor-steel', open: true });
+  expect(projected[1]).toMatchObject({ face: 'port', panelId: 'p1', thicknessMm: 200, material: 'armor-steel', open: true });
+  expect(projected[2]).toBe(compiled[2]);
 });

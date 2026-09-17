@@ -27,7 +27,7 @@ import { pathSlackLimit, equipmentPathBounds } from '../../ships/constructionPat
 import { PathPointEditor } from './PathPointEditor';
 import { NumberField } from './NumberField';
 import { SlotImages, useSlotImages } from './slotImages';
-import { armorInspectionGroups, describeArmorGroup } from './ArmorInspection';
+import { armorInspectionGroups, armorThicknessGroups, describeArmorGroup } from './ArmorInspection';
 import { attachmentOffset, rotateY, bearingRadians } from './placement';
 import type { BuilderView } from './builderScene';
 import { snapCoordinate, normalizedBearing } from './editorNumbers';
@@ -134,7 +134,8 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const freeformPrimitive = tool.freeformPrimitive, freeformMode = !!freeformPrimitive;
   const selectedBoundary = tool.selectedBoundary;
   const partOf = tool.partOf;
-  const editableSurfaces = tool.editableSurfaces;
+  const editableSurfaces = tool.editableSurfaces, armorScale = tool.armorScale;
+  const openingKey = String(palette.bar.findIndex(item => item.kind === 'opening') + 1);
   const gridStep = tool.gridStep, piece = tool.piece;
   const fail = (cause: unknown) => owner.setError(cause instanceof Error ? cause.message : String(cause));
   const run = tool.run;
@@ -279,7 +280,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
     if (first) tags.push({ key: 'faces', anchor: surfaceCentroid(first), dx: 80, dy: -96, tone: 'mint', content: <>
       <b>{surfaces.size} face{surfaces.size === 1 ? '' : 's'} · {groups.length === 1 ? (layer === 'paint' ? `${groups[0].surface.paint.replace('-', ' ')}` : describeArmorGroup(groups[0].surface)) : `${groups.length} different ${layer === 'paint' ? 'paints' : 'thicknesses'}`}</b>
       {layer === 'armor' && <div className="sb-face-armor"><NumberField label="Face armor" description="Armor thickness for the selected faces" value={groups.length === 1 ? first.thicknessMm : customMm} min={0} max={1000} unit="mm" onChange={tool.setThickness}/>{mirror && <span>· mirror on</span>}</div>}
-      {format(area, 0)} m² · {layer === 'paint' ? <><kbd>1</kbd>–<kbd>9</kbd> paint</> : <><kbd>1</kbd> assign {customMm} mm · <kbd>2</kbd> open</>} · <kbd>⇧</kbd>click adds · <kbd>Esc</kbd> clear
+      {format(area, 0)} m² · {layer === 'paint' ? <><kbd>1</kbd>–<kbd>9</kbd> paint</> : <><kbd>1</kbd> assign {customMm} mm · <kbd>{openingKey}</kbd> open</>} · <kbd>⇧</kbd>click adds · <kbd>Esc</kbd> clear
     </> });
   }
   const hoveredBlock = blocks.find(entry => entry.sourceId && entry.sourceId === hoveredPart);
@@ -299,7 +300,8 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const describe = (item: SlotItem): { title: string; detail: string } => {
     switch (item.kind) {
       case 'shape': return { title: item.name, detail: item.shape.note };
-      case 'armor': return { title: 'Armor', detail: `${customMm > 0 ? `${customMm} mm armor steel` : 'structural skin without armor'} · set the thickness above the bar` };
+      case 'armor': return { title: 'Armor', detail: `${customMm > 0 ? `${customMm} mm armor steel` : 'structural skin without armor'} · set the thickness above the bar · drag to sweep faces` };
+      case 'thickness': return { title: item.name, detail: `${item.note} · assigns ${item.mm > 0 ? `${item.mm} mm armor steel` : 'structural skin without armor'}` };
       case 'opening': return { title: 'Opening', detail: 'removes the skin so the face admits water' };
       case 'part': return { title: item.part.name, detail: item.part.path ? `${item.note} · draw connected points` : `${item.note} · ${item.part.placement} · ${item.part.size.map(metres).join(' × ')} m` };
       case 'tool': case 'scheme': return { title: item.name, detail: item.note };
@@ -321,11 +323,12 @@ export function Shipbuilder(props: ShipbuilderProps) {
     if (item.kind === 'shape') return <>{picture ?? <SlotGlyph item={item} customMm={customMm}/>}<i className="sb-dims">{dimensions(item.shape.size)}</i>{item.shape.kind === 'ballast' && <small className="sb-slot-weight">100 t</small>}</>;
     if (picture) return picture;
     switch (item.kind) {
-      case 'armor': return <i className="sb-swatch" style={{ background: armorThicknessColor(customMm) }}><span>{customMm} mm</span></i>;
+      case 'armor': return <i className="sb-swatch" style={{ background: armorThicknessColor(customMm, armorScale) }}><span>{customMm} mm</span></i>;
+      case 'thickness': return <i className="sb-swatch" style={{ background: armorThicknessColor(item.mm, armorScale) }}><span>{item.mm} mm</span></i>;
       case 'paint': return <i className="sb-swatch" style={{ background: item.color }}/>;
       case 'scheme': return <i className="sb-swatch" style={{ background: item.id === 'two-tone' ? 'linear-gradient(#64716f 50%, #7c8c91 50%)' : 'repeating-linear-gradient(90deg, #405d70 0 25%, #b5bfbc 25% 50%)' }}/>;
       case 'empty': return null;
-      default: return <SlotGlyph item={item} customMm={customMm}/>;
+      default: return <SlotGlyph item={item} customMm={customMm} scale={armorScale}/>;
     }
   };
   const slot = (item: SlotItem) => {
@@ -420,7 +423,13 @@ export function Shipbuilder(props: ShipbuilderProps) {
       {rows.map(row => <div key={row.label} className={`row ${row.tone ?? ''}`}><span>{row.label}</span><b>{row.value}</b></div>)}
       {totalMass > 0 && <><div className="sb-massbar" aria-hidden="true">{masses.filter(group => group.massKg > 0).map(group => <i key={group.name} style={{ width: `${(100 * group.massKg / totalMass).toFixed(1)}%`, background: group.color }}/>)}</div>
         <div className="sb-masskey">{masses.filter(group => group.massKg > 0).map(group => <span key={group.name} style={{ display: 'contents' }}><i style={{ background: group.color }}/><span>{group.name}</span><b>{formatTonnes(group.massKg, group.massKg < 1e5 ? 1 : 0)}</b></span>)}</div></>}
-      {layer === 'armor' && <div className="sb-armor-groups" aria-label="Hull armor coverage">{armorInspectionGroups(editableSurfaces).sort((a, b) => b.areaM2 - a.areaM2).slice(0, 6).map(group => <p key={group.id}>{describeArmorGroup(group.surface)}<small>{format(group.areaM2, 0)} m² · {group.faces.size} face{group.faces.size === 1 ? '' : 's'}</small></p>)}</div>}
+      {/* Every thickness on the ship, thickest first on the ship's own colour scale; a row picks that value's card. */}
+      {layer === 'armor' && <div className="sb-armor-groups" aria-label="Armor thicknesses in use">{armorThicknessGroups(editableSurfaces).map(group => {
+        const card = group.open ? undefined : palette.drawer.find(item => item.kind === 'thickness' && item.mm === group.thicknessMm);
+        const text = <>{describeArmorGroup(group)}<small>{format(group.areaM2, 0)} m² · {group.faces.size} face{group.faces.size === 1 ? '' : 's'}</small></>;
+        return card ? <button key={group.id} disabled={locked} aria-pressed={active?.kind === 'thickness' && active.mm === group.thicknessMm} title={`Pick ${group.thicknessMm} mm for the Armor card`} onClick={() => selectSlot(card)}><i style={{ background: armorThicknessColor(group.thicknessMm, armorScale) }}/><span>{text}</span></button>
+          : <p key={group.id}><i/><span>{text}</span></p>;
+      })}</div>}
     </aside>
     {drawer && <div className="sb-drawer" ref={drawerRef} style={drawerSize} aria-label={`All ${drawerName}`}>
       <div className="sb-drawer-head"><span className="sb-lead">All {drawerName}</span>
