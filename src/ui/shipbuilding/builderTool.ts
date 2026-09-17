@@ -1,10 +1,11 @@
+import { wallMount, installedWallPart, wallNormal, wallFittingSupported } from '../../ships/constructionWallFittings';
 import { DEFAULT_SNAPPING, constructionSnapFeatures, type SnapSettings } from './snapping';
 import { CONSTRUCTION_PAINTS } from '../../ships/constructionPaints';
 import { mirroredPanelId } from '../../ships/constructionPanels';
 import { integrateConstructionMagazines, setBarbetteHeight } from '../../ships/constructionArmament';
 import type { ConstructionBoundary, ConstructionCatalog, ConstructionEquipment, ConstructionEquipmentPart, ConstructionPrimitive, ConstructionResult, ConstructionSource, ConstructionSuggestion, ConstructionSurface, ConstructionSurfaceAssignment, Vec3 } from '../../ships/blueprint';
 import { assignConstructionSurfaces, CONSTRUCTION_LIMITS, copyConstructionSelection, editableConstructionSurfaces, mirroredEquipment, mirroredFace, mirroredPrimitive, newConstructionId, projectConstructionSurfaces, surfaceKey, surfaceSelectionKey, type ConstructionFace } from '../../ships/constructionEditor';
-import { constructionDiffCommands, type ConstructionCommand } from '../../ships/constructionCommands';
+import { applyConstructionBatch, constructionDiffCommands, type ConstructionCommand } from '../../ships/constructionCommands';
 import type { ConstructionRevisionOwner, ConstructionSubmission } from '../../ships/constructionRevisionOwner';
 import { canEditVertices, splitVertexPrimitive, VERTEX_UNITS, type HullSelection, type MirrorAxes } from '../../ships/constructionVertex';
 import { pathProblem } from '../../ships/constructionPaths';
@@ -27,6 +28,7 @@ export interface BuilderToolState {
   slots: Record<BuilderLayer, string>;
   /** The Fittings shelf on the bar and the nation it is narrowed to. */
   fittingFilter: FittingFilter;
+  windowRow: boolean; windowSpacing: number;
   customMm: number; sizeOverride?: Vec3; bearing: number;
   pathPoints: Vec3[]; ropeSlack: number;
   /** Last successfully applied fitting paint, retained while the editor stays open. */
@@ -99,7 +101,7 @@ export class BuilderTool {
   constructor(private readonly door: BuilderRevisionDoor, private readonly context: BuilderToolContext, initial: Partial<BuilderToolState> = {}) {
     this.state = {
       layer: 'hull', tool: 'select', slots: { hull: 'cube', armor: 'armor', internals: 'deck', fittings: '', paint: 'naval-gray' }, fittingFilter: { category: 'main-battery', nation: 'all' },
-      customMm: 10, bearing: 0, pathPoints: [], ropeSlack: 0, mirror: true, showArcs: false, showCenters: false, snapSteps: { hull: 1, equipment: .25 },
+      windowRow: false, windowSpacing: 1.5, customMm: 10, bearing: 0, pathPoints: [], ropeSlack: 0, mirror: true, showArcs: false, showCenters: false, snapSteps: { hull: 1, equipment: .25 },
       snapping: { ...DEFAULT_SNAPPING }, snapOverride: false,
       freeformSettings: { axes: [true, false, false], unit: .2, snap: false, splitAxis: 2, count: 4, selection: { mode: 'vertex', index: 1 } },
       view: 'orbit', perspective: true, fitRequest: 0,
@@ -184,7 +186,7 @@ export class BuilderTool {
     return this.data.primitives.find(part => part.id === freeform.baseline.id && canEditVertices(part));
   }
   get freeformMode() { return !!this.freeformPrimitive; }
-  partOf = (instance: ConstructionEquipment) => this.catalog.equipment.find(part => part.id === instance.partId);
+  partOf = (instance: ConstructionEquipment) => { const part = this.catalog.equipment.find(part => part.id === instance.partId); return part && installedWallPart(part, instance); };
   /** Faces from the current compile, or from the last one with this source's assignments over them while a compile is pending. */
   private get surfaceState() {
     const source = this.source, compiled = this.compiled, retained = compiled ? undefined : this.retained;
@@ -221,7 +223,9 @@ export class BuilderTool {
     if (layer === 'hull' && (tool === 'place' || tool === 'fill') && active?.kind === 'shape') piece = { kind: 'hull', shape: active.shape.kind, size: sizeOverride ?? active.shape.size, rotationDeg: normalizedBearing(Math.round(bearing / 90) * 90) };
     else if (((layer === 'fittings' && tool === 'place') || (layer === 'internals' && tool === 'module')) && active?.kind === 'part' && !active.part.path) {
       const gun = active.part.gunPartId ? catalog.weapons.parts.find(gun => gun.id === active.part.gunPartId) : undefined;
-      piece = { kind: 'equipment', partId: active.part.id, propellerDiameterM: active.part.kind === 'propeller' ? Math.max(active.part.size[0], active.part.size[1]) : undefined, size: active.part.size, boundsCenter: active.part.boundsCenter, bearingDeg: normalizedBearing(bearing), sockets: active.part.sockets, arc: gun ? { traverseDeg: gun.traverseDeg, radius: ARC_RADIUS } : undefined, inset: active.part.placement === 'internal' ? this.data.defaultThicknessMm / 1000 : undefined };
+      const mount = wallMount(active.part), wall = mount ? { version: 1 as const, widthM: sizeOverride?.[0] ?? active.part.size[0], heightM: sizeOverride?.[1] ?? active.part.size[1] } : undefined;
+      const fitted = installedWallPart(active.part, { wall });
+      piece = { kind: 'equipment', wall, rowSpacing: wall && mount !== 'door' && this.state.windowRow ? Math.max(wall.widthM + .05, this.state.windowSpacing) : undefined, partId: active.part.id, propellerDiameterM: active.part.kind === 'propeller' ? Math.max(active.part.size[0], active.part.size[1]) : undefined, size: fitted.size, boundsCenter: fitted.boundsCenter, bearingDeg: normalizedBearing(bearing), sockets: fitted.sockets, arc: gun ? { traverseDeg: gun.traverseDeg, radius: ARC_RADIUS } : undefined, inset: active.part.placement === 'internal' ? this.data.defaultThicknessMm / 1000 : undefined };
     } else if (layer === 'internals' && (tool === 'deck' || tool === 'bulkhead' || tool === 'longitudinal')) piece = { kind: 'boundary', axis: tool === 'deck' ? 'y' : tool === 'bulkhead' ? 'z' : 'x', thicknessMm: 10 };
     const key = JSON.stringify(piece ?? null);
     if (!this.pieceCache || this.pieceCache.key !== key) this.pieceCache = { key, piece };
@@ -268,7 +272,7 @@ export class BuilderTool {
   /** The ghost's readout: its cell, plus a fitting's bearing or a boundary's offset. */
   coords = (position: Vec3): string => {
     const piece = this.piece, text = `x ${signed(position[0])} · y ${signed(position[1])} · z ${signed(position[2])}`;
-    return piece?.kind === 'equipment' ? `${text} · ${metres(piece.bearingDeg)}°` : piece?.kind === 'boundary' ? `${BOUNDARY_NAMES[piece.axis]} at ${signed(position[AXIS[piece.axis]])} m` : text;
+    return piece?.kind === 'equipment' ? (piece.wall ? text : `${text} · ${metres(piece.bearingDeg)}°`) : piece?.kind === 'boundary' ? `${BOUNDARY_NAMES[piece.axis]} at ${signed(position[AXIS[piece.axis]])} m` : text;
   };
   /** What the viewport draws. `retained` is the last accepted compile, kept through recompiles. */
   scene(retained: ConstructionResult | undefined): BuilderScene {
@@ -287,6 +291,20 @@ export class BuilderTool {
   // ---- the edit door
   /** Submit one labelled batch; a fresh edit also clears the last notice. */
   run = (label: string, commands: ConstructionCommand[]): ConstructionSubmission => {
+    // Refuse detached edits immediately; native compilation still validates saved/imported sources.
+    if (commands.some(c => c.op === 'equipment' && c.value.wall) || this.data.equipment.some(e => e.wall) && commands.some(c => c.op === 'equipment' || c.op === 'move')) {
+      try {
+        const next = applyConstructionBatch(this.source, { version: 1, expectedRevision: this.source.revision, label, commands });
+        for (const item of next.construction.equipment) {
+          if (!item.wall || JSON.stringify(item) === JSON.stringify(this.data.equipment.find(e => e.id === item.id))) continue;
+          const part = this.catalog.equipment.find(p => p.id === item.partId);
+          if (!this.compiled || !part || !wallFittingSupported(item, part, this.compiled.surfaces)) {
+            this.door.setError(this.compiled ? 'The full fitting needs a matching vertical wall on each fitted side. Move away from edges, or turn Mirror off for a single fitting.' : 'Wait for the hull to finish compiling before placing wall fittings.');
+            return { accepted: false, reason: 'invalid', message: 'Wall fitting has no matching support.' };
+          }
+        }
+      } catch (error) { this.fail(error); return { accepted: false, reason: 'invalid', message: String(error) }; }
+    }
     const outcome = this.door.submit(label, commands);
     if (outcome.accepted && this.state.notice) this.update({ notice: '' });
     return outcome;
@@ -300,7 +318,7 @@ export class BuilderTool {
     }
     return this.run('Raise turrets', constructionDiffCommands(this.source, next));
   };
-  private command(label: string, commands: ConstructionCommand[]): ConstructionSubmission { return this.door.submit(label, commands); }
+  private command(label: string, commands: ConstructionCommand[]): ConstructionSubmission { return this.run(label, commands); }
   private refused(): ConstructionSubmission | undefined { const refusal = this.door.refusal; return refusal && { accepted: false, ...refusal }; }
   private fail = (cause: unknown) => this.door.setError(cause instanceof Error ? cause.message : String(cause));
   notify = (notice: string) => this.update({ notice });
@@ -355,6 +373,14 @@ export class BuilderTool {
     return true;
   };
   setSizeOverride = (size: Vec3) => this.update({ sizeOverride: size });
+  setWindowRow = (windowRow: boolean) => this.update({ windowRow });
+  setWindowSpacing = (windowSpacing: number) => this.update({ windowSpacing });
+  setWallSize = (axis: 0 | 1, value: number) => {
+    if (this.active?.kind !== 'part' || !wallMount(this.active.part)) return;
+    const size: Vec3 = [...(this.state.sizeOverride ?? this.active.part.size)]; size[axis] = value;
+    if (wallMount(this.active.part) === 'porthole') size[1-axis] = value;
+    this.update({ sizeOverride: size });
+  };
   setRopeSlack = (ropeSlack: number) => this.update({ ropeSlack });
   /** The Armor card's millimetre field; a new value also assigns the selected faces. */
   setThickness = (value: number) => {
@@ -409,6 +435,38 @@ export class BuilderTool {
     if (!selected.size) return undefined;
     if (this.data.primitives.length + this.selectedPrimitives.length > LIMITS.primitives || this.data.equipment.length + this.selectedEquipment.length > LIMITS.equipment) { this.door.setError('This copy would exceed the design limit. Select fewer pieces or remove a section first.'); return undefined; }
     const next = structuredClone(this.source);
+    if (this.selectedEquipment.length && this.selectedEquipment.every(e => e.wall) && !this.selectedPrimitives.length) {
+      const commands: ConstructionCommand[] = [], copied: string[] = [], handled = new Set<string>();
+      for (const original of this.selectedEquipment) {
+        if (handled.has(original.id)) continue;
+        handled.add(original.id);
+        if (original.wall!.mirrorId) handled.add(original.wall!.mirrorId);
+        if (mirrorCopy && original.wall!.mirrorId) { this.notify('This fitting already has a linked mirror.'); continue; }
+        if (mirrorCopy && !offCenterline(original.position)) { this.notify('A centerline fitting cannot have a separate mirrored partner.'); continue; }
+        const a = structuredClone(original), b = mirroredEquipment(original);
+        b.id = this.newId('equipment');
+        if (mirrorCopy) {
+          copied.push(b.id);
+          a.wall!.mirrorId = b.id; b.wall!.mirrorId = a.id;
+          commands.push({ op: 'equipment', value: a }, { op: 'equipment', value: b });
+        } else {
+          a.id = this.newId('equipment'); copied.push(a.id);
+          const r = a.bearingDeg * Math.PI / 180, spacing = this.partOf(a)!.size[0] + .25;
+          a.position[0] += Math.cos(r)*spacing; a.position[2] += Math.sin(r)*spacing;
+          if (original.wall!.mirrorId) {
+            copied.push(b.id);
+            a.wall!.mirrorId = b.id;
+            Object.assign(b, mirroredEquipment(a), { id: b.id, wall: { ...a.wall!, mirrorId: a.id } });
+            commands.push({ op: 'equipment', value: a }, { op: 'equipment', value: b });
+          } else { delete a.wall!.mirrorId; commands.push({ op: 'equipment', value: a }); }
+        }
+      }
+      if (!commands.length) return undefined;
+      if (this.data.equipment.length + copied.length > LIMITS.equipment) { this.door.setError('This copy would exceed the fittings limit. Remove a fitting first.'); return undefined; }
+      const outcome = this.run(mirrorCopy ? 'Link mirrored fittings' : 'Copy wall fittings', commands);
+      if (outcome.accepted) this.update({ selected: new Set(copied), surfaces: new Set() });
+      return outcome;
+    }
     const copied = copyConstructionSelection(next, selected, { mirror: mirrorCopy });
     if (!copied.length) return undefined;
     if (!blockPlacementAllowed(this.source, next.construction.primitives.filter(p => copied.includes(p.id)))) { this.update({ notice: OVERLAP_NOTICE }); return undefined; }
@@ -430,8 +488,10 @@ export class BuilderTool {
     if (!ids.length) return undefined;
     const refused = this.refused(); if (refused) return refused;
     const moving = new Set(ids);
-    const delta = blockMoveConstraint(this.source, moving)(requested);
+    let delta = blockMoveConstraint(this.source, moving)(requested);
     if (delta.some((value, axis) => Math.abs(value - requested[axis]) > 1e-7)) this.update({ notice: OVERLAP_NOTICE });
+    const wall = this.data.equipment.find(e => moving.has(e.id) && e.wall);
+    if (wall) { const normal = wallNormal(wall.bearingDeg), d = delta.reduce((sum, v, k) => sum + v * normal[k], 0); delta = delta.map((v, k) => v - d * normal[k]) as Vec3; }
     if (delta.every(value => value === 0)) return undefined;
     const commands: ConstructionCommand[] = [{ op: 'move', ids, delta }];
     for (const wall of this.data.boundaries) if (moving.has(wall.id)) commands.push({ op: 'boundary', value: { ...wall, offset: wall.offset + delta[AXIS[wall.axis]] } });
@@ -442,6 +502,7 @@ export class BuilderTool {
   };
   rotate = (fine = false): ConstructionSubmission | undefined => {
     const piece = this.piece;
+    if (piece?.kind === 'equipment' && piece.wall) { this.notify('Wall fittings turn automatically to match their wall.'); return undefined; }
     if (piece && piece.kind !== 'boundary') { this.update({ bearing: normalizedBearing(this.state.bearing + (piece.kind === 'hull' ? 90 : fine ? 1 : 15)) }); return undefined; }
     if (this.state.selected.size) return this.command('Rotate selection', [{ op: 'rotate', ids: [...this.state.selected], degrees: this.selectedPrimitives.length ? 90 : fine ? 1 : 15 }]);
     return undefined;
@@ -453,12 +514,12 @@ export class BuilderTool {
       if (this.piece?.kind === 'equipment') this.update({ bearing: normalizedBearing(this.state.bearing + degrees) });
       return undefined;
     }
-    ids = ids.filter(id => this.selectable(id) && this.data.equipment.some(item => item.id === id));
+    ids = ids.filter(id => this.selectable(id) && this.data.equipment.some(item => item.id === id && !item.wall));
     if (!ids.length) return undefined;
     return this.command('Rotate fittings', [{ op: 'rotate', ids, degrees }]);
   };
   /** A click or a finished stroke: one piece per point plus mirrored twins, as one undoable edit. */
-  placeAt = (points: Vec3[]): ConstructionSubmission | undefined => {
+  placeAt = (points: Vec3[], bearingDeg?: number): ConstructionSubmission | undefined => {
     const piece = this.piece, active = this.active, { mirror } = this.state;
     if (!piece) return undefined;
     const refused = this.refused(); if (refused) return refused;
@@ -472,8 +533,12 @@ export class BuilderTool {
       const parts: ConstructionEquipment[] = [];
       for (const point of points) {
         // The viewport already snaps the face plane; retain the exact socket height.
-        parts.push({ id: this.newId('equipment'), partId: active.id, position: [...point], bearingDeg: piece.bearingDeg, ...(this.state.layer === 'fittings' && this.state.fittingPaint ? { paint: this.state.fittingPaint } : {}) });
-        if (mirror && offCenterline(point)) parts.push({ ...parts.at(-1)!, id: this.newId('equipment'), position: [-point[0], point[1], point[2]], bearingDeg: normalizedBearing(-piece.bearingDeg) });
+        parts.push({ id: this.newId('equipment'), partId: active.id, position: [...point], bearingDeg: bearingDeg ?? piece.bearingDeg, ...(piece.wall ? { wall: { ...piece.wall } } : {}), ...(this.state.layer === 'fittings' && this.state.fittingPaint ? { paint: this.state.fittingPaint } : {}) });
+        if (mirror && offCenterline(point)) {
+          const original = parts.at(-1)!, twin = { ...mirroredEquipment(original), id: this.newId('equipment') };
+          if (original.wall) { original.wall.mirrorId = twin.id; twin.wall = { ...original.wall, mirrorId: original.id }; }
+          parts.push(twin);
+        }
       }
       if (this.data.equipment.length + parts.length > LIMITS.equipment) { this.door.setError(`A design supports up to ${LIMITS.equipment} fittings. Remove a fitting before adding more.`); return undefined; }
       return this.run(parts.length > 1 ? 'Place fittings' : `Place ${active.name}`, parts.map(value => ({ op: 'equipment', value })));
@@ -624,7 +689,7 @@ export class BuilderTool {
   pointer = (event: BuilderPointerEvent): ConstructionSubmission | undefined => {
     switch (event.kind) {
       case 'pick': return this.pick(event.hit);
-      case 'lay': return this.placeAt(event.points);
+      case 'lay': return this.placeAt(event.points, event.bearingDeg);
       case 'faces': return this.applyFaces(event.surfaces);
       case 'box': this.boxSelect(event.ids, event.additive); return undefined;
       case 'erase': return this.erase(event.id);

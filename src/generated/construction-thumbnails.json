@@ -131,11 +131,6 @@
       "modelHash": "5926defc6b2f5bf4f510052f14357a8cec4f1886da975563d07b40338acbbee5",
       "imageHash": "b979b186b6d56101cf87ad7150962af8008e3ef0b36e138ef789496fb95d0362"
     },
-    "/models/components/generic-watertight-door/82a309e51fd02db69e1094240983be17c373fbe58c9308dc123ee01e8cde32ff/model.glb": {
-      "url": "/models/components/thumbnails/de166e0ae53954616f87b31a9a97bd9991f7922e6b3948ee57bcc296c23e45a2.png",
-      "modelHash": "8797be1a3d6aa3672eed747bfb92551e02b5507b90d2780c88f322d625f59388",
-      "imageHash": "948bd235721b2fcf4d67c4c438abc850db4cd91e178777859ecc87ffb9d0040d"
-    },
     "/models/components/generic-deck-hatch/0370a27e4278eced3f415554444905ffb9acac113b6f49fd880a4bd5a5d62a2c/model.glb": {
       "url": "/models/components/thumbnails/19b6542ffd8ad930a61cde4c7622b144d9d07d736634179509f09a2596abba5b.png",
       "modelHash": "ca48b0b5f50fe49cf036271387da6bd84f7b542b143258682988cf74a3a72424",
@@ -620,6 +615,21 @@
       "url": "/models/components/thumbnails/58a4727def69870dc116c16ffcc9fdec1aad82f53ce8cb02732b05912f785a92.png",
       "modelHash": "29c7728af0b52a1d26040a07cc7e00e50c96d30403099e6b4f49fe395f0ac820",
       "imageHash": "4bd4abfbf6a83e283e17ca9c419d01bea47d2b08dde8a4cf04b3f2c23118c7c0"
+    },
+    "/models/components/generic-porthole/1c212d97776f9f83882f0ca838127551642ac30b3c71a14aef278b72c0e5da8b/model.glb": {
+      "url": "/models/components/thumbnails/9bb88e310d66074c783a79e17ad2a71c3bdb28885c3ca31f34abce712c858993.png",
+      "modelHash": "19164078d60df524a37541e438e7ed2f8bc6e1dca6c4ed8d3d6e9231a4e51be5",
+      "imageHash": "4203e8e0cb5d2665a0e59c45f84d4caa95a4d52616dc76084d40720cc6340ee6"
+    },
+    "/models/components/generic-rectangular-window/b81312b5145a5d524a987838c8cdf3d60429deeff37bfe375657b0916828cadd/model.glb": {
+      "url": "/models/components/thumbnails/240ee118aafd3976f29521b2d024648015d63a83d5ef2b8968762d8597d940b9.png",
+      "modelHash": "6366852d2746a1cdf769406ea5a3ac30d00d2774a2ec0c3c23d6fe4e5091a77f",
+      "imageHash": "3e63c61263affc46949bc91b8a77007c2668b148329c3782cf10f44719e9c08e"
+    },
+    "/models/components/generic-rounded-window/7a6b9413a73b570d46140d639d7df727c4f9248c072e179052226188eeefb012/model.glb": {
+      "url": "/models/components/thumbnails/bdb6af7e0f4bf098e805d9f152c9a6e1869ed8369a34e82d059e62169a75b524.png",
+      "modelHash": "c93529a3da4318c1589f56deba379ce1be061b4f8f3fa7ce52f4be2b52f9e77f",
+      "imageHash": "6e0383de0c1f7ed9d320fc74bb257290da81bf764015be59985a354dd39e622d"
     },
     "/models/components/us-5in38-mk30-mod0-single/1fc8f2780e06e3acdf781986368b280dddf818b4771aa6b3248dd09552b0db60/model.glb": {
       "url": "/models/components/thumbnails/3a1100ca3de73d3a2d9099ed4eef5c8f948d9b430d0fd66479a0a56fa20f7549.png",
@@ -1240,6 +1250,16 @@
       "url": "/models/components/thumbnails/80aac431f2e94c4204234b5c60093349f3125c4bbe19e0a668938eb4ea51c304.png",
       "modelHash": "5a205d3347fa0d7835274072b1bca53d291811715dfec733baad8b29566000f0",
       "imageHash": "a289d1d4c4102c6dd7d942c8fe6700a202ba894fcb7aa860bd167e2678a5c500"
+    },
+    "/models/components/generic-watertight-door/82a309e51fd02db69e1094240983be17c373fbe58c9308dc123ee01e8cde32ff/model.glb": {
+      "url": "/models/components/thumbnails/de166e0ae53954616f87b31a9a97bd9991f7922e6b3948ee57bcc296c23e45a2.png",
+      "modelHash": "8797be1a3d6aa3672eed747bfb92551e02b5507b90d2780c88f322d625f59388",
+      "imageHash": "948bd235721b2fcf4d67c4c438abc850db4cd91e178777859ecc87ffb9d0040d"
+    },
+    "/models/components/generic-watertight-door/3763126cc81dfbec74ab2b7a26075d75ac47d4162b44f3819f096500a670a624/model.glb": {
+      "url": "/models/components/thumbnails/87d6c2ecd63a1650ea29e26b17705d6823a0ce99b743560a3c0c821daac21ae7.png",
+      "modelHash": "3fbc4992b17bf93250bfdac5efc2983d8b521b8d13c0735878b56f1792f83ff8",
+      "imageHash": "948bd235721b2fcf4d67c4c438abc850db4cd91e178777859ecc87ffb9d0040d"
     }
   }
 }

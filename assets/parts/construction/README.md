@@ -256,3 +256,14 @@ game estimates. Gun tubs, the breakwater, the cranes and the catapults declare
 `fitting` boxes that follow their real solid, so a mount fits inside a tub, the
 deck behind a breakwater stays usable and small gear fits under a crane jib.
 
+
+## Wall windows
+
+`windows.py` authors the round porthole, rectangular window and rounded-rectangle
+window independently, with a closed back, raised frame, gasket, opaque glazing
+and seated mounting screws. The wall attachment is local runtime Z=0, facing
++Z into the wall; geometry projects toward −Z. The original watertight door keeps
+its bottom attachment datum and existing recipe. `wallMount` identifies these
+parts for the editor; installation width/height scales their in-plane geometry
+and provisional mass while keeping depth fixed. These generic fittings do not
+cut hull openings and have no historical-vessel claim.

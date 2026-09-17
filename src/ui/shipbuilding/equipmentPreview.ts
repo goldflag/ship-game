@@ -1,3 +1,4 @@
+import { wallScale } from '../../ships/constructionWallFittings';
 import { paintConstructionFitting } from '../../game/constructionFittingPaint';
 import * as THREE from 'three';
 import type { ConstructionCatalog, ConstructionEquipment, ConstructionSource, ConstructionPropellerSupport } from '../../ships/blueprint';
@@ -162,6 +163,8 @@ export class EquipmentPreview {
         model.traverse(node => { node.userData.sourceId = item.id; });
         instance.add(model); this.instances.set(item.id, instance); this.group.add(instance);
       }
+      const part = catalog.equipment.find(p => p.id === item.partId);
+      if (part) instance.scale.fromArray(wallScale(part, item));
       instance.position.set(...item.position); instance.rotation.y = -item.bearingDeg * Math.PI / 180;
     }
     this.group.updateMatrixWorld(true);

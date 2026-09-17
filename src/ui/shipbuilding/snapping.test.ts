@@ -120,3 +120,16 @@ test('almost-axis-aligned edges keep their exact closest-point coordinate', () =
   expect(result.delta[0]).toBeCloseTo(1.0000003, 12);
   expect(result.guides[0].to[0]).toBe(result.delta[0]);
 });
+
+test('optimized snapping preserves wall-frame center versus edge alignment rules', () => {
+  const raw: Vec3 = [.031, 0, .2];
+  const frameCenter = { ...center('window-center', [0, 0, 0]), wallFrame: true };
+  const frameCorner: SnapFeature = { ...center('neighbor-corner', [.05, 0, .2]), kind: 'corner', wallFrame: true };
+  const input = { raw, grid: raw, directions: [SHIP_AXES[0]], moving: [frameCenter], targets: [frameCorner], project,
+    settings: { ...DEFAULT_SNAPPING, centerline: false, grid: false } };
+  expect(resolveSnap(input).delta).toEqual(raw);
+  expect(resolveSnap({ ...input, targets: [{ ...frameCorner, kind: 'center' }] }).delta[0]).toBe(.05);
+  expect(resolveSnap({ ...input, moving: [{ ...frameCenter, kind: 'corner' }] }).delta[0]).toBe(.05);
+  // Non-wall mounting centers can still reach ordinary physical corners.
+  expect(resolveSnap({ ...input, moving: [{ ...frameCenter, wallFrame: undefined }] }).delta[0]).toBe(.05);
+});

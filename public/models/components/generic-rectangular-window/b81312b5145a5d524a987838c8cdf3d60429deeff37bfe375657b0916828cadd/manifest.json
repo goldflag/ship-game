@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "generic-rectangular-window",
+  "revision": "b81312b5145a5d524a987838c8cdf3d60429deeff37bfe375657b0916828cadd",
+  "contentHash": "465355e41ae94ade5b6d1f9fe3c847cc302789e582a9ec9ecbcbed1405487c92",
+  "modelSha256": "6366852d2746a1cdf769406ea5a3ac30d00d2774a2ec0c3c23d6fe4e5091a77f",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/generic-rectangular-window/b81312b5145a5d524a987838c8cdf3d60429deeff37bfe375657b0916828cadd/model.glb",
+  "boundsCenter": [
+    0,
+    0,
+    -0.03800000041752938
+  ],
+  "size": [
+    0.8999999761581421,
+    0.6499999761581421,
+    0.07600006878316634
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 672,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original generic closed surface fitting with opaque optics. No hull opening or interior. Dimensions and mass are engineering estimates; installed wall support requires native validation.",
+  "basis": "assets/parts/construction/README.md"
+}

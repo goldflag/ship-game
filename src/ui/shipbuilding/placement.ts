@@ -93,6 +93,11 @@ export function placementCenter(piece: BuilderPlacement, hit: PlacementHit, step
     return center;
   }
   const attach = attachmentOffset(piece, piece.bearingDeg), inset = piece.inset ?? 0;
+  if (piece.wall) {
+    const position = hit.point.map((v, k) => k === axis ? v - attach[k] : gridCoordinate(v - attach[k], step)) as Vec3;
+    position[axis] -= position.reduce((sum, v, k) => sum + (v + attach[k] - hit.point[k]) * normal[k], 0) / normal[axis];
+    return position;
+  }
   if (piece.propellerDiameterM && normal[1] < -0.5) {
     const diameter = piece.propellerDiameterM;
     // Hang the complete blade sweep below the hull; native compilation extends
