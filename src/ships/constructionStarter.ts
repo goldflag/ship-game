@@ -10,7 +10,7 @@ export function createStarterSource(catalog: ConstructionCatalog, kind: Construc
   const source: ConstructionSource = {
     schemaVersion: 1, id: `design-${crypto.randomUUID()}`, name: kind === 'catamaran' ? 'Twin-hull experiment' : kind === 'blank' ? 'Untitled design' : 'Patrol experiment',
     revision: crypto.randomUUID(), coordinates: 'meters-y-up-bow-negative-z',
-    construction: { version: 1, catalogRevision: catalog.revision, defaultThicknessMm: 16, primitives: [], surfaces: [], equipment: [], boundaries: [], loads: [] },
+    construction: { version: 2, catalogRevision: catalog.revision, defaultThicknessMm: 16, primitives: [], surfaces: [], equipment: [], boundaries: [], loads: [] },
   };
   if (kind === 'blank') { source.construction.primitives.push(startingHullBlock()); return source; }
   const preset = HULL_PRESETS.findIndex(p => p.id === kind);
@@ -57,10 +57,9 @@ export function suggestStarterEquipment(catalog: ConstructionCatalog, kind: Excl
   };
   const twin = kind === 'catamaran', floor = -2.484;
   fit('engine', find('engine'), [twin ? 6 : 0, floor, 5]);
-  fit('magazine', find('magazine'), [twin ? -6 : 0, floor, -10]);
   const gun = parts.find(p => p.id === 'us-5in38-mk30-mod0-single') ?? find('gun');
   const supportY = (part: ConstructionEquipmentPart | undefined) => part?.sockets?.find(s => s.id === 'attachment')?.position[1] ?? 0;
-  fit('gun-forward', gun, [0, 2.5 - supportY(gun), twin ? -8 : -14], { magazineId: 'magazine' });
+  fit('gun-forward', gun, [0, 2.5 - supportY(gun), twin ? -8 : -14]);
   const funnel = find('funnel');
   fit('funnel', funnel, [twin ? 6 : 0, 2.5 - supportY(funnel), 5], { powerSourceId: 'engine' });
   const propeller = find('propeller'), rudder = find('rudder');
