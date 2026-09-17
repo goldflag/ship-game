@@ -1,3 +1,4 @@
+import { automaticPropellerLabel, propellerEngineName } from './propellerAssignment';
 import { SnapControls } from './SnapControls';
 import { BalconyEditor } from './BalconyEditor';
 import { CONSTRUCTION_PAINTS } from '../../ships/constructionPaints';
@@ -288,8 +289,16 @@ export function Shipbuilder(props: ShipbuilderProps) {
   } else if (selectedEquipment.length === 1 && !selectedPrimitives.length) {
     const item = selectedEquipment[0], part = partOf(item), mass = equipmentMassKg(compiledResult, item.id);
     const edit = (label: string, change: (target: ConstructionEquipment) => void) => { const target = structuredClone(item); change(target); run(label, [{ op: 'equipment', value: target }]); };
-    const link = (field: 'powerSourceId', kind: 'engine', label: string) => <label> {label} <select className="sb-link" value={item[field] ?? ''} onChange={event => edit('Connect equipment', target => { if (event.target.value) target[field] = event.target.value; else delete target[field]; })}>
-      <option value="">automatic</option>{data.equipment.filter(entry => partOf(entry)?.kind === kind).map(entry => <option key={entry.id} value={entry.id}>{partOf(entry)?.name} · {entry.id.slice(-4)}</option>)}</select></label>;
+    const engines = data.equipment.filter(entry => partOf(entry)?.kind === 'engine');
+    const engineConnection = <label className="sb-engine-link">Engine <select className="sb-link" aria-label="Propeller engine" disabled={locked}
+      title="Automatic connections update with the layout and stay fixed during battle. Choose an engine to override."
+      value={item.powerSourceId ?? ''} onChange={event => edit('Assign propeller engine', target => {
+        if (event.target.value) target.powerSourceId = event.target.value; else delete target.powerSourceId;
+      })}>
+      <option value="">{automaticPropellerLabel(source, compiledResult, item)}</option>
+      {item.powerSourceId && !engines.some(e => e.id === item.powerSourceId) && <option value={item.powerSourceId}>Missing engine · {item.powerSourceId}</option>}
+      {engines.map(engine => <option key={engine.id} value={engine.id}>Manual · {propellerEngineName(engine)}</option>)}
+    </select></label>;
     const move = (axis: number, value: number) => { const delta: Vec3 = [0, 0, 0]; delta[axis] = value - item.position[axis]; tool.nudge(delta); };
     tags.push({ key: `part-${item.id}`, anchor: equipmentAnchor(item), dx: 82, dy: -92, tone: 'mint', content: <>
       <b>{part?.name ?? item.partId}</b>
@@ -301,7 +310,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
       {part?.kind === 'gun' && <> · <NumberField label="Turret rise" description="Extend the barbette above its deck attachment; the magazine stays at its lower end." value={item.gun?.barbetteHeightM ?? 0} min={0} max={30} step={.25} unit="m" onChange={value => tool.raiseTurrets([item.id], () => value)}/>
         <label> · Barbette paint <select aria-label="Barbette paint" className="sb-link" value={item.gun?.barbettePaint ?? 'naval-gray'} onChange={event => edit('Paint barbette', target => { target.gun = { ...target.gun, barbettePaint: event.target.value }; })}>
           {CONSTRUCTION_PAINTS.map(paint => <option key={paint.id} value={paint.id}>{paint.name}</option>)}
-        </select></label></>}{data.version === 2 && (part?.kind === 'gun' || part?.kind === 'torpedo-launcher') && <span> · built-in ammunition</span>}{part?.kind === 'funnel' && <span> · {(part.exhaustKw ?? 0).toLocaleString()} kW shared exhaust</span>}{part?.kind === 'propeller' && link('powerSourceId', 'engine', '· power')} · <kbd>R</kbd> rotate · right-drag rotate · <kbd>⇧</kbd> fine · <kbd>⌫</kbd> remove
+        </select></label></>}{data.version === 2 && (part?.kind === 'gun' || part?.kind === 'torpedo-launcher') && <span> · built-in ammunition</span>}{part?.kind === 'funnel' && <span> · {(part.exhaustKw ?? 0).toLocaleString()} kW shared exhaust</span>}{part?.kind === 'propeller' && engineConnection} · <kbd>R</kbd> rotate · right-drag rotate · <kbd>⇧</kbd> fine · <kbd>⌫</kbd> remove
     </> });
   } else if (selected.size > 1) {
     const anchors = [...selectedPrimitives.map(part => part.position), ...selectedEquipment.map(equipmentAnchor)];

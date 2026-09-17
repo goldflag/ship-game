@@ -1,7 +1,7 @@
 //! Authoritative construction compiler, shared by native tests and local WASM sessions.
 use crate::{catalog::sha256, construction_geometry as cg, definition::*, geometry::*};
 use std::collections::{BTreeMap, BTreeSet};
-pub const COMPILER: &str = "construction-polyhedra-6";
+pub const COMPILER: &str = "construction-polyhedra-7";
 pub const MAX_SOURCE_BYTES: usize = 16_000_000;
 pub const MAX_CATALOG_BYTES: usize = 4_000_000;
 /// Source bounds; the editor mirrors them in `src/ships/constructionEditor.ts`.
@@ -253,21 +253,7 @@ pub fn suggest(
                 gun: None,
                 launcher: None,
                 path: None,
-                power_source_id: if part.kind == "propeller" {
-                    result
-                        .construction
-                        .equipment
-                        .iter()
-                        .find(|e| {
-                            catalog
-                                .equipment
-                                .iter()
-                                .any(|p| p.id == e.part_id && p.kind == "engine")
-                        })
-                        .map(|e| e.id.clone())
-                } else {
-                    None
-                },
+                power_source_id: None,
             };
             let mut candidate = result.clone();
             candidate.construction.equipment.push(e);
@@ -2227,6 +2213,8 @@ fn equipment(
             }
         }
     }
+    let assignments = crate::construction_propulsion::assignments(&fitted);
+    out.propeller_assignments = Some(assignments.clone());
     let mut power = 0.;
     let mut groups = vec![];
     let engine_count = fitted.iter().filter(|(_, p)| p.kind == "engine").count();
@@ -2238,7 +2226,7 @@ fn equipment(
             }
         }
         warn(out, "unpowered", &format!(
-            "No propulsion: missing {}. Add the missing equipment; funnels supply shared exhaust capacity and propellers connect to engines through their power setting. Sea trial is still available, but the ship cannot propel itself.",
+            "No propulsion: missing {}. Add the missing equipment; funnels supply shared exhaust capacity and propellers connect to powered engines automatically. Sea trial is still available, but the ship cannot propel itself.",
             missing.join(", ")
         ));
     }
@@ -2262,9 +2250,7 @@ fn equipment(
             .iter()
             .filter(|(e, p)| {
                 p.kind == "propeller"
-                    && (e.power_source_id.as_deref() == Some(engine.id.as_str())
-                        || (e.power_source_id.is_none()
-                            && engine_count == 1))
+                    && assignments.iter().any(|a| a.propeller_id == e.id && a.engine_id == engine.id)
             })
             .collect();
         let rated = part.power_kw.unwrap_or(0.);
@@ -2274,9 +2260,9 @@ fn equipment(
         }
         if props.is_empty() {
             reasons.push(if fitted.iter().any(|(_, p)| p.kind == "propeller") {
-                "No propeller linked to this engine. Select a propeller and set its power link to this engine, or add another propeller".into()
+                "No propeller assigned to this engine. Add another propeller, or select a propeller and choose this engine in its Engine setting".into()
             } else {
-                "Missing propeller. Add a propeller in Fittings and set its power link to this engine".into()
+                "Missing propeller. Add a propeller in Fittings; its engine is assigned automatically".into()
             });
         }
         if rated == 0. {
@@ -3092,31 +3078,52 @@ mod tests {
     }
 
     #[test]
-    fn propulsion_warnings_explain_ambiguous_links_and_clear_when_connected() {
-        let (mut source, catalog) = equipped_fixture();
-        let mut second = source.construction.equipment.iter().find(|e| e.id == "engine").unwrap().clone();
-        second.id = "second-engine".into();
-        second.position[2] = 6.;
-        source.construction.equipment.push(second);
+    fn automatic_propellers_recompile_layout_and_freeze_connections_for_damage() {
+        use crate::{damage::Combatant, machinery::system_health};
+        let (mut source, mut catalog) = equipped_fixture();
+        catalog.equipment.iter_mut().find(|p| p.kind == "funnel").unwrap().exhaust_kw = Some(2000.);
+        source.construction.equipment.iter_mut().find(|e| e.id == "screw").unwrap().position[0] = -3.;
+        for (original, id) in [("engine", "starboard-engine"), ("screw", "starboard-screw")] {
+            let mut copy = source.construction.equipment.iter().find(|e| e.id == original).unwrap().clone();
+            copy.id = id.into();
+            copy.position[0] = 3.;
+            source.construction.equipment.push(copy);
+        }
         let result = compile(&source, &catalog);
         assert!(result.definition.is_some(), "{:?}", result.diagnostics);
-        let warnings: Vec<_> = result.diagnostics.iter().filter(|d| d.code == "unpowered").collect();
-        assert_eq!(warnings.len(), 2);
-        for warning in warnings {
-            assert!(!warning.message.contains("funnel") && warning.message.contains("propeller"));
-            assert!(warning.message.contains("power") && warning.message.contains("link"), "{}", warning.message);
-            assert!(warning.message.contains(warning.source_id.as_deref().unwrap()));
+        assert!(!result.diagnostics.iter().any(|d| d.code == "unpowered"));
+        let assignment = |r: &ConstructionResult, prop: &str| r.propeller_assignments.as_ref().unwrap().iter()
+            .find(|a| a.propeller_id == prop).map(|a| a.engine_id.clone());
+        assert_eq!(assignment(&result, "screw").as_deref(), Some("engine"));
+        assert_eq!(assignment(&result, "starboard-screw").as_deref(), Some("starboard-engine"));
+        let def = result.definition.as_ref().unwrap();
+        let mut actor = Combatant::new("frozen", def);
+        for id in ["engine", "starboard-screw"] {
+            actor.damage.modules.iter_mut().find(|m| m.id == id).unwrap().hp = 0.;
         }
-        for fitting in source.construction.equipment.iter_mut().filter(|e| e.id == "funnel" || e.id == "screw") {
-            fitting.power_source_id = Some("engine".into());
+        assert_eq!(system_health(&actor, def, "engine", None), 0.); // No damage-time reassignment.
+        assert_eq!(assignment(&result, "screw").as_deref(), Some("engine"));
+        for e in source.construction.equipment.iter_mut().filter(|e| e.id == "engine" || e.id == "starboard-engine") {
+            e.position[0] *= -1.;
         }
-        let result = compile(&source, &catalog);
-        assert!(result.loading.as_ref().unwrap().power_kw > 0.);
-        let warnings: Vec<_> = result.diagnostics.iter().filter(|d| d.code == "unpowered").collect();
-        assert_eq!(warnings.len(), 1);
-        assert_eq!(warnings[0].source_id.as_deref(), Some("second-engine"));
-        source.construction.equipment.retain(|e| e.id != "second-engine");
-        assert!(!compile(&source, &catalog).diagnostics.iter().any(|d| d.code == "unpowered"));
+        let moved = compile(&source, &catalog);
+        assert!(moved.definition.is_some(), "{:?}", moved.diagnostics);
+        assert_eq!(assignment(&moved, "screw").as_deref(), Some("starboard-engine"));
+        assert_eq!(assignment(&moved, "starboard-screw").as_deref(), Some("engine"));
+        source.construction.equipment.iter_mut().find(|e| e.id == "screw").unwrap().power_source_id = Some("engine".into());
+        let manual = compile(&source, &catalog);
+        assert_eq!(assignment(&manual, "screw").as_deref(), Some("engine"));
+        assert_eq!(assignment(&manual, "starboard-screw").as_deref(), Some("starboard-engine"));
+        source.construction.equipment.retain(|e| e.id != "starboard-screw");
+        let short = compile(&source, &catalog);
+        let warning = short.diagnostics.iter().find(|d| d.code == "unpowered").unwrap();
+        assert_eq!(warning.source_id.as_deref(), Some("starboard-engine"));
+        assert!(warning.message.contains("Add another propeller"));
+        // Routing still appears while a missing funnel prevents thrust.
+        source.construction.equipment.retain(|e| e.id != "funnel");
+        let missing = compile(&source, &catalog);
+        assert_eq!(assignment(&missing, "screw").as_deref(), Some("engine"));
+        assert_eq!(missing.loading.unwrap().power_kw, 0.);
     }
 
     #[test]

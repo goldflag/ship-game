@@ -65,6 +65,9 @@
 .sb-num em { font-style: normal; color: var(--sb-muted2); }
 .sb-tag b .sb-num input { font: inherit; color: var(--sb-text); }
 .sb-link { font: inherit; font-size: 11px; color: var(--sb-text); background: var(--sb-field); border: 1px solid var(--sb-line2); border-radius: 2px; padding: 1px 3px; max-width: 160px; text-shadow: none; }
+.sb-engine-link { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px; align-items: center; margin: 5px 0; }
+.sb-engine-link .sb-link { width: 100%; max-width: none; min-width: 0; }
+
 .sb-view-error { position: absolute; left: 90px; right: 260px; bottom: 120px; color: var(--sb-salmon); }
 .sb-empty { position: absolute; left: 50%; top: 42%; transform: translateX(-50%); text-align: center; color: var(--sb-muted); font-size: 14px; white-space: nowrap; }
 .sb-empty b { display: block; font: 500 22px/1.2 'Barlow Condensed', sans-serif; color: var(--sb-text); letter-spacing: .03em; margin-bottom: 4px; }

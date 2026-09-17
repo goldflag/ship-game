@@ -31,10 +31,28 @@ limited and the warning shows available and required kW. Spare funnel capacity
 absorbs damage before power drops; destroyed or submerged funnels lose capacity.
 Existing saved funnel links are ignored.
 
-Propulsion warnings identify missing engines, funnels or propellers. A single
-engine uses unassigned propellers automatically; with multiple engines, select
-each propeller and set its **power** link. Click an engine's warning to select it.
-Incomplete propulsion remains a warning, so you can still launch a sea trial.
+Propellers connect to engines automatically. Select a propeller to see its
+resolved **Engine** assignment; choosing an engine manually overrides it, and
+choosing **Automatic** restores layout-based assignment. Existing saved engine
+links remain manual overrides. New fittings, starters and suggested placements
+use Automatic.
+
+Automatic assignment covers powered engines first, accounting for manual links,
+then distributes additional propellers in proportion to rated engine power.
+Within that allocation it prefers the same side, an engine ahead of the
+propeller, and shorter connections. Ties are deterministic, independent of source
+array order. One engine can drive several propellers; several engines cannot
+share one propeller in this model. Engines without propellers still provide
+auxiliary services, with a warning that they supply no thrust.
+
+Assignments update after adding, removing or moving equipment in the editor.
+The compiler freezes them into the launched definition: damage never reconnects
+a propeller to a different engine. The routing is a gameplay abstraction; it
+does not trace physical shafts through the interior.
+
+Propulsion warnings identify missing engines, funnels or propellers. Click an
+engine's warning to select it. Incomplete propulsion remains a warning, so you
+can still launch a sea trial.
 
 Use Hull for pieces, Armor for plating and openings, Fittings for equipment,
 Internals for rooms and machinery, and Paint for finishes. Hover a face in Armor
@@ -61,7 +79,19 @@ choices. Grid spacing uses a button row: 0.25, 0.5, 1, 2 or 5 m. The rail shows 
 current size; click it or press **S** to cycle. Hull and fittings remember separate
 session choices, starting at 1 m and 0.25 m. Freeform uses its local Move step.
 Off removes grid rounding and magnetic alignment. Typed positions always remain exact;
-keyboard nudges still use the chosen step. Physical seating and collision checks remain active.
+keyboard nudges still use the chosen step. Physical seating and hull overlap checks remain active.
+
+Hull placement and movement permit intersection, provided every affected block keeps
+at least **10% of its actual volume outside the union of the other blocks**. This
+uses native curved, hollow and edited solids, including protection for smaller
+stationary blocks. Drags stop at the limit even across a fast pointer jump; existing
+excessive overlaps can be reduced. Mirrored placement, runs, Fill and copies are
+checked as a complete batch. Rejected placement shows a salmon preview and the
+10% rule in the coordinate readout, without adding undo history. Ballast-to-ballast
+overlap and equipment fit restrictions remain. This is an editor placement/movement
+policy; imported and freeform drafts remain recoverable through the existing compiler.
+Mass, plating and buoyancy still derive from the physical union, so shared hull
+volume is counted once.
 
 Nearby source edges, corners and fitting attachment centers acquire within eight screen pixels
 and release at fourteen; they override grid rounding on the same movement axis. Dashed

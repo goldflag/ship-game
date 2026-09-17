@@ -11,7 +11,7 @@ import { internalSelectionIds } from './internalSelection';
 import { createBuilderGrid } from './builderGrid';
 import { FreeformHandles } from './FreeformHandles';
 import { MoveHandles } from './MoveHandles';
-import { blockMoveConstraint } from './blockMovement';
+import { blockMoveConstraint, blockPlacementAllowed, placementBlocks, OVERLAP_PREVIEW_NOTICE } from './blockMovement';
 import { cornerVertices, worldVertex, selectionCenter, selectionCorners, rotateVertex } from '../../ships/constructionVertex';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import * as THREE from 'three';
@@ -184,6 +184,9 @@ class Viewport {
   private carried?: { sourceId: string; revision: string; result: ConstructionResult; surfaces: ConstructionSurface[] };
   private hover?: { clientX: number; clientY: number };
   private ghostPosition?: Vec3;
+  private placementBlocked = false;
+  private strokeBlocked = false;
+  private placementCheckKey = "";
   private currentView: BuilderView = 'orbit';
   private modelError: (message: string) => void;
   private orientationRotation = new THREE.Quaternion(0, 0, 0, 0);
@@ -544,12 +547,32 @@ class Viewport {
     if (!visible) { this.ghostMirror.visible = false; this.ghostArc.visible = false; this.ghostPosition = undefined; if (piece && !this.pointerStart?.move && !this.moveHandles.dragging) this.clearSnap(); return; }
     const position = [...pick!.placement] as Vec3;
     this.ghostPosition = pick!.placement;
+    if (piece?.kind === 'hull') {
+      const key = JSON.stringify([this.props.scene.source.revision, piece, position, !!this.props.scene.placementMirror]);
+      if (key !== this.placementCheckKey) {
+        this.placementCheckKey = key;
+        let id = 0;
+        this.placementBlocked = !blockPlacementAllowed(this.props.scene.source, placementBlocks(piece, [position], !!this.props.scene.placementMirror, () => `preview-${id++}`));
+      }
+      this.tintPlacement(this.placementBlocked);
+    } else this.placementBlocked = false;
+
     // Boundary geometry is already in ship coordinates, independent of orbit target.
     this.ghost.position.set(...(piece!.kind === 'boundary' ? [0, 0, 0] as Vec3 : position));
     this.ghostMirror.visible = !!this.props.scene.placementMirror && Math.abs(position[0]) > 1e-6;
     if (this.ghostMirror.visible) this.ghostMirror.position.set(-position[0], position[1], position[2]);
     this.ghostArc.visible = this.ghostArc.children.length > 0;
     if (this.ghostArc.visible) this.ghostArc.position.set(position[0], position[1] + .08, position[2]);
+  }
+
+  private tintPlacement(blocked: boolean) {
+    this.placementBlocked = blocked;
+    for (const group of [this.ghost, this.ghostMirror]) group.traverse(object => {
+      if (object instanceof THREE.Mesh || object instanceof THREE.LineSegments) {
+        const material = object.material as THREE.MeshBasicMaterial;
+        material.color.set(blocked ? '#ffb5a6' : object instanceof THREE.LineSegments ? BRASS_LIGHT : BRASS);
+      }
+    });
   }
 
   private clearSnap() { this.snapGuides = []; this.snapLatched = []; this.snapContext = ''; this.workingPoint = undefined; this.nearCenterline = false; }
@@ -709,7 +732,14 @@ class Viewport {
     const points = drag?.start && piece && hit
       ? this.props.scene.gesture === 'fill' ? fillLattice(drag.start.placement, hit.placement, pieceExtents(piece), drag.start.axis) : drag.points
       : [];
-    const key = JSON.stringify([this.ghostKey, this.ghost.rotation.y, this.ghostMirror.rotation.y, points]);
+    const key = JSON.stringify([this.props.scene.source.revision, this.ghostKey, this.ghost.rotation.y, this.ghostMirror.rotation.y, points]);
+    if (piece?.kind === 'hull' && points.length) {
+      if (key !== this.strokeKey) {
+        let id = 0;
+        this.strokeBlocked = !blockPlacementAllowed(this.props.scene.source, placementBlocks(piece, points, !!this.props.scene.placementMirror, () => `preview-${id++}`));
+      }
+      this.tintPlacement(this.strokeBlocked);
+    }
     if (key === this.strokeKey) return;
     this.strokeKey = key;
     // These clones borrow the cursor template's resources.
@@ -814,8 +844,8 @@ class Viewport {
     const offset = move?.built ? move.delta : this.moveOffset;
     if (coords) {
       if (this.pointerStart?.rotate) { coords.textContent = `Rotate ${signedMetres(this.pointerStart.rotate.degrees)}° · Shift for fine control · Esc cancel`; coords.style.visibility = 'visible'; }
-      else if (offset) { coords.textContent = `Δx ${signedMetres(offset[0])} · Δy ${signedMetres(offset[1])} · Δz ${signedMetres(offset[2])}${this.moveBlocked ? ' · Stopped at another block' : ''}`; coords.style.visibility = 'visible'; }
-      else if (this.ghost.visible && this.ghostPosition) { coords.textContent = this.props.coords(this.ghostPosition); coords.style.visibility = 'visible'; }
+      else if (offset) { coords.textContent = `Δx ${signedMetres(offset[0])} · Δy ${signedMetres(offset[1])} · Δz ${signedMetres(offset[2])}${this.moveBlocked ? ' · Hull overlap limit' : ''}`; coords.style.visibility = 'visible'; }
+      else if (this.ghost.visible && this.ghostPosition) { coords.textContent = this.placementBlocked ? OVERLAP_PREVIEW_NOTICE : this.props.coords(this.ghostPosition); coords.style.visibility = 'visible'; }
       else coords.style.visibility = 'hidden';
     }
     const measure = this.overlay.querySelector<HTMLElement>('[data-measure]');

@@ -1,0 +1,329 @@
+//! Compile-time propeller routing. Battle machinery only consumes the frozen groups.
+use crate::definition::{
+    ConstructionEquipment, ConstructionEquipmentPart, ConstructionPropellerAssignment,
+};
+
+type Fitting<'a> = (&'a ConstructionEquipment, &'a ConstructionEquipmentPart);
+
+pub(crate) fn assignments(fitted: &[Fitting<'_>]) -> Vec<ConstructionPropellerAssignment> {
+    let mut engines: Vec<_> = fitted
+        .iter()
+        .copied()
+        .filter(|(_, p)| p.kind == "engine" && p.power_kw.unwrap_or(0.) > 0.)
+        .collect();
+    let mut props: Vec<_> = fitted
+        .iter()
+        .copied()
+        .filter(|(_, p)| p.kind == "propeller")
+        .collect();
+    // Source-array order must never change a saved ship's machinery connections.
+    engines.sort_by(|a, b| a.0.id.cmp(&b.0.id));
+    props.sort_by(|a, b| a.0.id.cmp(&b.0.id));
+    let mut result = Vec::new();
+    let mut counts = vec![0; engines.len()];
+    for (prop, _) in &props {
+        if let Some(id) = &prop.power_source_id {
+            result.push(ConstructionPropellerAssignment {
+                propeller_id: prop.id.clone(),
+                engine_id: id.clone(),
+            });
+            if let Some(i) = engines.iter().position(|(e, _)| e.id == *id) {
+                counts[i] += 1;
+            }
+        }
+    }
+    props.retain(|(e, _)| e.power_source_id.is_none());
+    if !props.is_empty() && !engines.is_empty() {
+        // Cover unused engines first. Additional outlets follow rated power,
+        // accounting for manual connections without ever moving those links.
+        let mut slots: Vec<_> = counts
+            .iter()
+            .enumerate()
+            .filter_map(|(i, n)| (*n == 0).then_some(i))
+            .collect();
+        for &i in &slots {
+            counts[i] += 1;
+        }
+        let total_outlets = props.len()
+            + result
+                .iter()
+                .filter(|a| engines.iter().any(|(e, _)| e.id == a.engine_id))
+                .count();
+        let total_power: f64 = engines.iter().map(|(_, p)| p.power_kw.unwrap()).sum();
+        while slots.len() < props.len() {
+            let mut best = 0;
+            for i in 1..engines.len() {
+                let capacity = |j: usize| {
+                    total_outlets as f64 * engines[j].1.power_kw.unwrap() / total_power
+                        - counts[j] as f64
+                };
+                let load = |j: usize| counts[j] as f64 / engines[j].1.power_kw.unwrap();
+                if capacity(i) > capacity(best)
+                    || (capacity(i) == capacity(best) && load(i) < load(best))
+                {
+                    best = i;
+                }
+            }
+            slots.push(best);
+            counts[best] += 1;
+        }
+        // Normalizing distance keeps preferences consistent at every ship scale.
+        let distance = |a: &ConstructionEquipment, b: &ConstructionEquipment| {
+            a.position
+                .iter()
+                .zip(b.position)
+                .map(|(a, b)| (a - b).powi(2))
+                .sum::<f64>()
+                .sqrt()
+        };
+        let span = props
+            .iter()
+            .flat_map(|(p, _)| engines.iter().map(move |(e, _)| distance(p, e)))
+            .fold(1., f64::max);
+        let max_power = engines
+            .iter()
+            .map(|(_, p)| p.power_kw.unwrap())
+            .fold(0., f64::max);
+        let side = |x: f64| {
+            if x < -0.05 {
+                -1
+            } else if x > 0.05 {
+                1
+            } else {
+                0
+            }
+        };
+        let costs: Vec<Vec<_>> = props
+            .iter()
+            .map(|(prop, _)| {
+                slots
+                    .iter()
+                    .map(|&i| {
+                        let (engine, part) = engines[i];
+                        let across = side(prop.position[0]) * side(engine.position[0]) == -1;
+                        let behind = engine.position[2] > prop.position[2] + 0.05; // -Z is forward.
+                        4. * f64::from(across)
+                            + 2. * f64::from(behind)
+                            + distance(prop, engine) / span
+                            + 0.001 * (1. - part.power_kw.unwrap() / max_power)
+                    })
+                    .collect()
+            })
+            .collect();
+        for (i, slot) in minimum_assignment(&costs).into_iter().enumerate() {
+            result.push(ConstructionPropellerAssignment {
+                propeller_id: props[i].0.id.clone(),
+                engine_id: engines[slots[slot]].0.id.clone(),
+            });
+        }
+    }
+    result.sort_by(|a, b| a.propeller_id.cmp(&b.propeller_id));
+    result
+}
+
+/// Rectangular Hungarian assignment (rows <= columns), bounded by MAX_EQUIPMENT.
+/// Resolves the whole layout together, avoiding a greedy centerline propeller
+/// taking the only sensible engine for a later outboard propeller.
+fn minimum_assignment(cost: &[Vec<f64>]) -> Vec<usize> {
+    let n = cost.len();
+    let m = cost[0].len();
+    let (mut u, mut v) = (vec![0.; n + 1], vec![0.; m + 1]);
+    let (mut owner, mut previous) = (vec![0; m + 1], vec![0; m + 1]);
+    for row in 1..=n {
+        owner[0] = row;
+        let mut column = 0;
+        let mut slack = vec![f64::INFINITY; m + 1];
+        let mut used = vec![false; m + 1];
+        loop {
+            used[column] = true;
+            let current = owner[column];
+            let mut delta = f64::INFINITY;
+            let mut next = 0;
+            for j in 1..=m {
+                if !used[j] {
+                    let candidate = cost[current - 1][j - 1] - u[current] - v[j];
+                    if candidate < slack[j] {
+                        slack[j] = candidate;
+                        previous[j] = column;
+                    }
+                    if slack[j] < delta {
+                        delta = slack[j];
+                        next = j;
+                    }
+                }
+            }
+            for j in 0..=m {
+                if used[j] {
+                    u[owner[j]] += delta;
+                    v[j] -= delta;
+                } else {
+                    slack[j] -= delta;
+                }
+            }
+            column = next;
+            if owner[column] == 0 {
+                break;
+            }
+        }
+        loop {
+            let next = previous[column];
+            owner[column] = owner[next];
+            column = next;
+            if column == 0 {
+                break;
+            }
+        }
+    }
+    let mut selected = vec![0; n];
+    for j in 1..=m {
+        if owner[j] > 0 {
+            selected[owner[j] - 1] = j - 1;
+        }
+    }
+    selected
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::collections::BTreeMap;
+    type Engine<'a> = (&'a str, f64, f64, f64);
+    type Prop<'a> = (&'a str, f64, f64, Option<&'a str>);
+
+    fn assign(engines: &[Engine<'_>], props: &[Prop<'_>]) -> BTreeMap<String, String> {
+        let owned: Vec<_> = engines
+            .iter()
+            .map(|&(id, x, z, kw)| {
+                (
+                    ConstructionEquipment {
+                        id: id.into(),
+                        position: [x, 0., z],
+                        ..Default::default()
+                    },
+                    ConstructionEquipmentPart {
+                        kind: "engine".into(),
+                        power_kw: Some(kw),
+                        ..Default::default()
+                    },
+                )
+            })
+            .chain(props.iter().map(|&(id, x, z, manual)| {
+                (
+                    ConstructionEquipment {
+                        id: id.into(),
+                        position: [x, 0., z],
+                        power_source_id: manual.map(str::to_owned),
+                        ..Default::default()
+                    },
+                    ConstructionEquipmentPart {
+                        kind: "propeller".into(),
+                        ..Default::default()
+                    },
+                )
+            }))
+            .collect();
+        assignments(&owned.iter().map(|(e, p)| (e, p)).collect::<Vec<_>>())
+            .into_iter()
+            .map(|a| (a.propeller_id, a.engine_id))
+            .collect()
+    }
+
+    #[test]
+    fn paired_shafts_choose_their_side_regardless_of_source_order() {
+        let engines = [("port", -3., 0., 1000.), ("starboard", 3., 0., 1000.)];
+        let props = [
+            ("port-prop", -3., 10., None),
+            ("starboard-prop", 3., 10., None),
+        ];
+        let result = assign(&engines, &props);
+        assert_eq!(result["port-prop"], "port");
+        assert_eq!(result["starboard-prop"], "starboard");
+        assert_eq!(
+            result,
+            assign(&[engines[1], engines[0]], &[props[1], props[0]])
+        );
+    }
+
+    #[test]
+    fn whole_layout_matching_preserves_the_outboard_engine_and_prefers_forward_runs() {
+        // A centerline propeller must not steal the starboard engine merely
+        // because it was considered first.
+        let result = assign(
+            &[("a-starboard", 2., 0., 1000.), ("b-port", -2., 0., 1000.)],
+            &[("a-center", 0., 10., None), ("b-starboard", 2., 10., None)],
+        );
+        assert_eq!(result["a-center"], "b-port");
+        assert_eq!(result["b-starboard"], "a-starboard");
+        let result = assign(
+            &[("ahead", 0., -8., 1000.), ("behind", 0., 11., 1000.)],
+            &[("prop", 0., 10., None)],
+        );
+        assert_eq!(result["prop"], "ahead");
+    }
+
+    #[test]
+    fn spare_propellers_follow_power_and_manual_links_count_toward_allocation() {
+        let engines = [("small", 0., 0., 1000.), ("large", 0., 0., 3000.)];
+        let props: Vec<_> = ["a", "b", "c", "d", "e", "f"]
+            .iter()
+            .map(|&id| (id, 0., 10., None))
+            .collect();
+        let result = assign(&engines, &props);
+        assert_eq!(result.values().filter(|e| *e == "small").count(), 2);
+        assert_eq!(result.values().filter(|e| *e == "large").count(), 4);
+        let result = assign(
+            &engines,
+            &[("a", -3., 10., Some("large")), ("b", 3., 10., None)],
+        );
+        assert_eq!(result["a"], "large");
+        assert_eq!(result["b"], "small"); // Cover the unused engine.
+        assert_eq!(
+            assign(&engines, &[("only", 0., 10., None)])["only"],
+            "large"
+        );
+    }
+
+    #[test]
+    fn one_engine_shares_all_props_zero_power_is_excluded_and_ties_are_stable() {
+        let props = [("a", -2., 10., None), ("b", 2., 10., None)];
+        assert!(assign(&[], &props).is_empty());
+        assert!(assign(&[("dead", 0., 0., 0.)], &props).is_empty());
+        let result = assign(&[("working", 0., 0., 1000.), ("dead", 0., 0., 0.)], &props);
+        assert_eq!(result.len(), 2);
+        assert!(result.values().all(|e| e == "working"));
+        // Explicit overrides remain explicit even when the chosen engine has no power.
+        assert_eq!(
+            assign(&[("dead", 0., 0., 0.)], &[("a", 0., 0., Some("dead"))])["a"],
+            "dead"
+        );
+        assert_eq!(
+            assign(&[("z", 0., 0., 1.), ("a", 0., 0., 1.)], &[props[0]])["a"],
+            "a"
+        );
+    }
+
+    #[test]
+    fn matching_agrees_with_brute_force_for_small_rectangular_layouts() {
+        fn brute(cost: &[Vec<f64>], row: usize, used: u32) -> f64 {
+            if row == cost.len() {
+                return 0.;
+            }
+            (0..cost[0].len())
+                .filter(|&j| used & (1 << j) == 0)
+                .map(|j| cost[row][j] + brute(cost, row + 1, used | (1 << j)))
+                .fold(f64::INFINITY, f64::min)
+        }
+        for seed in 0..20 {
+            let costs: Vec<Vec<_>> = (0..4)
+                .map(|i| {
+                    (0..6)
+                        .map(|j| ((seed * 7 + i * 13 + j * 17 + i * j * 3) % 29) as f64 / 29.)
+                        .collect()
+                })
+                .collect();
+            let selected = minimum_assignment(&costs);
+            let actual: f64 = selected.iter().enumerate().map(|(i, &j)| costs[i][j]).sum();
+            assert!((actual - brute(&costs, 0, 0)).abs() < 1e-9);
+        }
+    }
+}
