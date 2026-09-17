@@ -106,6 +106,7 @@ fn slender_rounded_hull_returns_from_small_heel_in_native_sea_trial() {
     p.kind = "custom-hull".into();
     p.size = [10., 9., 120.];
     p.custom_hull = Some(ConstructionCustomHull {
+        red_paint_y: None,
         version: 1.,
         rake: 0.65,
         bulb: 0.,

@@ -15,7 +15,20 @@ export function armorInspectionGroups(surfaces: readonly ConstructionSurface[]) 
   return [...groups.entries()].map(([id, group]) => ({ id, ...group }));
 }
 
-export function describeArmorGroup(surface: Pick<ConstructionSurface, 'open' | 'thicknessMm' | 'material' | 'paint'>) {
+/** Every thickness on the ship, one line each: thickest first, structural skin after armor of the same thickness, openings last. Paint is not a distinction here. */
+export function armorThicknessGroups(surfaces: readonly ConstructionSurface[]) {
+  const groups = new Map<string, { id: string; open: boolean; thicknessMm: number; material: string; areaM2: number; faces: Set<string> }>();
+  for (const surface of surfaces) {
+    const id = surface.open ? 'open' : `${surface.thicknessMm}:${surface.material}`;
+    let group = groups.get(id);
+    if (!group) { group = { id, open: surface.open, thicknessMm: surface.open ? 0 : surface.thicknessMm, material: surface.material, areaM2: 0, faces: new Set() }; groups.set(id, group); }
+    group.areaM2 += surface.areaM2;
+    group.faces.add(surfaceSelectionKey(surface));
+  }
+  return [...groups.values()].sort((a, b) => Number(a.open) - Number(b.open) || b.thicknessMm - a.thicknessMm || (a.material === 'armor-steel' ? -1 : 1) - (b.material === 'armor-steel' ? -1 : 1));
+}
+
+export function describeArmorGroup(surface: Pick<ConstructionSurface, 'open' | 'thicknessMm' | 'material'>) {
   return surface.open ? 'Open to sea' : `${surface.thicknessMm.toLocaleString()} mm · ${surface.material === 'armor-steel' ? 'Armor steel' : 'Structural steel'}`;
 }
 export const paintName = (id: string) => CONSTRUCTION_PAINTS.find(paint => paint.id === id)?.name ?? id;

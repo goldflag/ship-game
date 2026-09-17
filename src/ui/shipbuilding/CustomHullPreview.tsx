@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { constructionPaintColor } from '../../ships/constructionPaints';
 import { influence, outline, sampledStations, worldPoint, type Hull } from '../../ships/customHullModel';
 
 export function hullGeometry(h: Hull) {
@@ -65,10 +66,11 @@ function hullMaterial(h: Hull, invalid: boolean) {
     shader.uniforms.hullRegion = { value: new THREE.Vector4(h.region.start, h.region.end, h.region.low - .5, h.region.high - .5) };
     shader.uniforms.hullRegionColor = { value: new THREE.Color(h.region.color) };
     shader.uniforms.hullRegionEnabled = { value: h.region.enabled };
-    shader.uniforms.hullUnderwaterColor = { value: new THREE.Color('#645356') };
+    shader.uniforms.hullUnderwaterColor = { value: new THREE.Color(constructionPaintColor('red-oxide')) };
+    shader.uniforms.hullRedPaintY = { value: h.redPaintY === undefined ? -10000 : h.redPaintY / h.depth };
     shader.vertexShader = shader.vertexShader.replace('#include <common>', '#include <common>\nattribute vec2 hullSurface; varying vec2 vHullSurface;').replace('#include <begin_vertex>', '#include <begin_vertex>\nvHullSurface = hullSurface;');
-    shader.fragmentShader = shader.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec2 vHullSurface; uniform vec4 hullRegion; uniform vec3 hullRegionColor; uniform vec3 hullUnderwaterColor; uniform bool hullRegionEnabled;').replace('#include <color_fragment>', `#include <color_fragment>
-      if (vHullSurface.y < -0.02) diffuseColor.rgb = hullUnderwaterColor;
+    shader.fragmentShader = shader.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec2 vHullSurface; uniform vec4 hullRegion; uniform vec3 hullRegionColor; uniform vec3 hullUnderwaterColor; uniform bool hullRegionEnabled; uniform float hullRedPaintY;').replace('#include <color_fragment>', `#include <color_fragment>
+      if (vHullSurface.y < hullRedPaintY) diffuseColor.rgb = hullUnderwaterColor;
       if (hullRegionEnabled && vHullSurface.x >= hullRegion.x && vHullSurface.x <= hullRegion.y && vHullSurface.y >= hullRegion.z && vHullSurface.y <= hullRegion.w) diffuseColor.rgb = hullRegionColor;
     `);
   };

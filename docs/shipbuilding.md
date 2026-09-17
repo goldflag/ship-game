@@ -436,3 +436,20 @@ Panel identity follows the bounding section IDs and outline edge, so moving or
 resizing sections preserves armor. Adding or removing sections creates new
 adjacencies whose panels use the side default; unchanged panels retain their
 settings. Source undo restores the preceding hull and assignments.
+
+### Custom hull red paint height
+
+In **Edit hull sections**, enable **Red lower hull** and set **Red paint Y** in
+meters relative to the hull center. Red oxide covers the hull below this height;
+the existing face paint remains above it. New hull presets start at −2% of their
+depth. The height moves with the hull and stays in meters when its depth changes.
+Disable the coating to use face paint everywhere. Apply saves the setting with
+the hull; Cancel discards it, and both the section editor and Shipbuilder support
+Undo. Older designs retain their original paints until the coating is enabled;
+on first enable, their whole-bottom red-oxide default becomes naval gray while
+per-panel assignments and armor remain intact.
+
+The optional versioned `customHull.redPaintY` is appearance only. Rendered faces
+are clipped at the paint boundary with interpolated lighting normals; native
+surfaces, panel selection, armor, mass and buoyancy remain unchanged. The same
+painted geometry is used in the builder, launched ships and portable GLB exports.
