@@ -57,156 +57,47 @@ pub fn raised(e: &ConstructionEquipment) -> f64 {
         .and_then(|g| g.barbette_height_m)
         .unwrap_or(0.)
 }
+/// Explicit catalog wells take precedence. An explicitly empty occupancy declares
+/// a deck mount; older catalogs without occupancy use a provisional light-gun
+/// default below 100 mm. Version-1 installations retain their authored behavior.
+pub fn deck_mounted(c: &ConstructionData, catalog: &ConstructionCatalog, p: &ConstructionEquipmentPart) -> bool {
+    c.version >= 2. && p.kind == "gun" && match &p.occupancy {
+        Some(spaces) => spaces.is_empty(),
+        None => catalog.weapons.parts.iter().any(|w|
+            Some(w.id.as_str()) == p.gun_part_id.as_deref() && w.caliber_m < 0.1),
+    }
+}
 pub fn spaces(
     c: &ConstructionData,
     catalog: &ConstructionCatalog,
     p: &ConstructionEquipmentPart,
     e: &ConstructionEquipment,
-    hull: &[cg::Cell],
 ) -> Vec<ConstructionEquipmentPartOccupancyItem> {
     let mut spaces = p.occupancy.clone().unwrap_or_default();
     if p.kind != "gun" {
         return spaces;
     }
-    if c.version >= 2. && spaces.is_empty()
-        && let Some(w) = catalog
-            .weapons
-            .parts
-            .iter()
-            .find(|w| Some(w.id.as_str()) == p.gun_part_id.as_deref())
-        {
-            let top = attachment(p);
-            let depth = (w.barbette_radius * 1.2).max(0.75);
-            spaces.push(ConstructionEquipmentPartOccupancyItem {
-                center: [0., top - depth / 2., 0.],
-                size: [w.barbette_radius * 2., depth, w.barbette_radius * 2.],
-            });
-        }
     let raise = raised(e);
+    if c.version >= 2. && spaces.is_empty()
+        && let Some(w) = catalog.weapons.parts.iter()
+            .find(|w| Some(w.id.as_str()) == p.gun_part_id.as_deref())
+    {
+        let top = attachment(p);
+        // A deck mount already includes its pedestal. Only an explicit rise
+        // adds a support, entirely above the deck. Other omitted wells keep
+        // the existing size-based working-depth estimate, independent of hull.
+        let depth = if deck_mounted(c, catalog, p) { 0. } else { (w.barbette_radius * 1.2).max(0.75) };
+        if depth + raise == 0. { return spaces; }
+        spaces.push(ConstructionEquipmentPartOccupancyItem {
+            center: [0., top - depth / 2., 0.],
+            size: [w.barbette_radius * 2., depth, w.barbette_radius * 2.],
+        });
+    }
     for space in &mut spaces {
         space.center[1] -= raise / 2.;
         space.size[1] += raise;
     }
-    if c.version >= 2. {
-        let deck = e.position[1] + attachment(p) - raise;
-        for space in &mut spaces {
-            if let Some(floor) =
-                floor_under_space(hull, e, space, deck, c.default_thickness_mm / 1000.)
-            {
-                let old_low = space.center[1] - space.size[1] / 2.;
-                // Keep the entire magazine/well above the inner bottom, including
-                // the rising bilges beneath its corners. Preserve minimum depth.
-                let low = old_low.min(floor - e.position[1]);
-                space.center[1] -= (old_low - low) / 2.;
-                space.size[1] += old_low - low;
-            }
-        }
-    }
     spaces
-}
-/// The lowest horizontal floor that clears the bottom under the whole footprint.
-/// A polyhedral bottom can change slope inside the well, so inspect the clipped
-/// facet vertices as well as the corners rather than just the center column.
-fn floor_under_space(
-    hull: &[cg::Cell],
-    e: &ConstructionEquipment,
-    space: &ConstructionEquipmentPartOccupancyItem,
-    deck: f64,
-    skin: f64,
-) -> Option<f64> {
-    let footprint = cg::transform(
-        &cg::box_cell(
-            [space.center[0], 0., space.center[2]],
-            [space.size[0], 1., space.size[2]],
-        ),
-        [e.position[0], 0., e.position[2]],
-        [1.; 3],
-        -e.bearing_deg.to_radians(),
-    );
-    let sides: Vec<_> = footprint
-        .faces
-        .iter()
-        .filter_map(|f| {
-            let n = cg::normal(&f.vertices);
-            (n[1].abs() < 1e-8).then(|| (n, dot(n, f.vertices[0])))
-        })
-        .collect();
-    let mut points: Vec<_> = footprint
-        .faces
-        .iter()
-        .flat_map(|f| f.vertices.iter().map(|v| [v[0], v[2]]))
-        .collect();
-    points.push([e.position[0], e.position[2]]);
-    for face in hull.iter().flat_map(|c| c.faces.iter()) {
-        if cg::normal(&face.vertices)[1] >= -1e-8 {
-            continue;
-        }
-        let mut patch = face.vertices.clone();
-        for &(normal, distance) in &sides {
-            patch = cg::clip_polygon(&patch, normal, distance);
-            if patch.len() < 3 {
-                break;
-            }
-        }
-        points.extend(patch.iter().map(|v| [v[0], v[2]]));
-    }
-    points.sort_by(|a, b| a[0].total_cmp(&b[0]).then(a[1].total_cmp(&b[1])));
-    points.dedup_by(|a, b| (a[0] - b[0]).abs() < 1e-8 && (a[1] - b[1]).abs() < 1e-8);
-    points
-        .into_iter()
-        .filter_map(|[x, z]| floor_below(hull, x, z, deck, skin))
-        .max_by(f64::total_cmp)
-}
-/// Follow the connected vertical hull column down from the supporting deck.
-fn floor_below(hull: &[cg::Cell], x: f64, z: f64, deck: f64, skin: f64) -> Option<f64> {
-    let mut intervals = vec![];
-    for cell in hull {
-        let (mut low, mut high) = (f64::NEG_INFINITY, f64::INFINITY);
-        let mut inner_low = f64::NEG_INFINITY;
-        let mut inside = true;
-        for face in cell.faces.iter() {
-            let n = cg::normal(&face.vertices);
-            let d = dot(n, face.vertices[0]) - n[0] * x - n[2] * z;
-            if n[1].abs() < 1e-8 {
-                if d < -1e-7 {
-                    inside = false;
-                    break;
-                }
-            } else if n[1] > 0. {
-                high = high.min(d / n[1]);
-            } else {
-                low = low.max(d / n[1]);
-                inner_low = inner_low.max((d - skin) / n[1]);
-            }
-        }
-        if inside && low <= high {
-            intervals.push((low, high, inner_low));
-        }
-    }
-    let mut floor = deck;
-    let mut found = false;
-    loop {
-        let before = floor;
-        for &(low, high, _) in &intervals {
-            if low <= floor + 1e-6 && high >= floor - 0.05 {
-                floor = floor.min(low);
-                found = true;
-            }
-        }
-        if (floor - before).abs() < 1e-7 {
-            break;
-        }
-    }
-    if !found {
-        return None;
-    }
-    // Offset only the terminal bottom planes. Insetting all convex cells before
-    // following the column would introduce false gaps at decomposition seams.
-    intervals
-        .iter()
-        .filter(|(low, high, _)| *low <= floor + 1e-7 && *high >= floor - 1e-7)
-        .map(|(_, _, inner_low)| *inner_low)
-        .min_by(f64::total_cmp)
 }
 pub fn attachment(p: &ConstructionEquipmentPart) -> f64 {
     p.sockets
@@ -215,16 +106,23 @@ pub fn attachment(p: &ConstructionEquipmentPart) -> f64 {
         .find(|s| s.id == "attachment")
         .map_or(0., |s| s.position[1])
 }
-/// A compact ammunition room at the foot of the trunk, inside its structural skin.
+/// A compact magazine inside a working well, or ready ammunition at a deck mount.
 /// Sizes are gameplay package estimates, not reconstructed historical magazines.
 pub fn magazine(
     c: &ConstructionData,
     catalog: &ConstructionCatalog,
     p: &ConstructionEquipmentPart,
     e: &ConstructionEquipment,
-    hull: &[cg::Cell],
 ) -> Option<(Vec3, Vec3)> {
-    let well = spaces(c, catalog, p, e, hull).first()?.clone();
+    if deck_mounted(c, catalog, p) {
+        let w = catalog.weapons.parts.iter().find(|w| Some(w.id.as_str()) == p.gun_part_id.as_deref())?;
+        // Ready ammunition is a compact fixed package at the mount base. It
+        // follows the fitting (including rise), with no invented hull opening.
+        let width = (w.barbette_radius * 1.4).min(p.size[0]).min(p.size[2]);
+        let height = 0.3_f64.min(p.size[1]);
+        return Some((add(e.position, [0., attachment(p) + height / 2., 0.]), [width, height, width]));
+    }
+    let well = spaces(c, catalog, p, e).first()?.clone();
     let w = catalog
         .weapons
         .parts
@@ -251,7 +149,6 @@ pub fn magazine(
 pub fn derive(
     source: &ConstructionData,
     catalog: &ConstructionCatalog,
-    hull: &[cg::Cell],
 ) -> Result<Vec<Installation>, String> {
     let mut result = vec![];
     for e in &source.equipment {
@@ -262,7 +159,7 @@ pub fn derive(
         else {
             continue;
         };
-        let spaces = spaces(source, catalog, part, e, hull);
+        let spaces = spaces(source, catalog, part, e);
         if spaces.is_empty() {
             continue;
         }
@@ -290,7 +187,7 @@ pub fn derive(
             .map_or(0., |s| s.position[1]);
         let low = space.center[1] - space.size[1] * 0.5;
         if inner <= 0.
-            || top - low <= thickness
+            || top - low <= if deck_mounted(source, catalog, part) { 0. } else { thickness }
             || space.center[0].abs() + radius > space.size[0] * 0.5 + 1e-7
             || space.center[2].abs() + radius > space.size[2] * 0.5 + 1e-7
         {
@@ -321,7 +218,7 @@ pub fn derive(
             });
         };
         if source.version >= 2. {
-            let floor = cylinder(inner, low, low + thickness);
+            let floor = cylinder(inner, low, (low + thickness).min(top));
             for face in floor.faces.iter() {
                 surface("installation-floor", face.vertices.clone());
             }

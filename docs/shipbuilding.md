@@ -360,19 +360,27 @@ seals the opening until its damage owner fails. Other impossible material or
 functional overlaps remain errors.
 
 New and edited custom designs use construction version 2. Magazines are no longer
-placeable or manually linked: each gun has an integral magazine at the bottom of
-its barbette, and each torpedo bank carries its own ready torpedoes. The Internals
-layer shows the derived ammunition volumes; selecting one selects its weapon.
+placeable or manually linked: turret wells have an integral magazine at their
+lower end, deck-mounted guns carry local ready ammunition, and each torpedo bank
+carries its own ready torpedoes. The Internals layer shows the derived ammunition
+volumes; selecting one selects its weapon.
 Opening an older design converts its separate magazines and links in one undoable
 edit. Original saved revisions and version-1 repository presets remain readable.
 
-**Turret rise** in a selected gun's tag (or Page Up / Page Down with only guns selected) raises its gunhouse by 0–30 m and extends
-the fixed barbette; its deck attachment and lower magazine remain fixed. The
-trunk reaches the inner hull bottom beneath that attachment, without shortening
-the component's minimum working depth. Guns without a catalog well receive an
-original gameplay support sized from their canonical barbette radius. Magazine
-sizes, structural skin and the rise limit are gameplay approximations. Moving the
-whole fitting still moves the installation; changing its rise only lifts the top.
+**Turret rise** in a selected gun's tag (or Page Up / Page Down with only guns selected)
+raises the mount by 0–30 m while keeping its deck attachment fixed. Turret wells
+retain their catalog working depth; omitted wells on larger guns use the existing
+radius-based depth estimate. Neither extends automatically to the hull bottom.
+Raising a turret extends its support above deck while its lower magazine stays fixed.
+
+Deck mounts use the component's original pedestal and local ready ammunition,
+without a below-deck shaft or deck opening. An explicit empty catalog occupancy
+selects a deck mount; for older catalog entries with no occupancy, guns below
+100 mm default to this treatment. An explicit working well takes precedence at
+any caliber. Raising a deck mount adds a support entirely above deck, and its
+ready ammunition moves with the mount. These fallback classifications, ammunition
+sizes, structural skin and rise limits are gameplay approximations. Moving the
+whole fitting moves the entire installation.
 
 The complete internal support must fit the hull. Side or bottom protrusions,
 intersections with other equipment, loads or internal walls, and missing support

@@ -76,7 +76,7 @@ test('every fixed deck fitting stands on a deck without an error of its own', ()
 test('a gun tub collides by its wall and stands on its wall foot, so a light gun fits inside it and small gear fits under a crane jib', () => {
   for (const [tub, gun] of [['generic-gun-tub-large', 'type96-25-triple'], ['generic-gun-tub', 'type93-13-twin']] as const) {
     const { source, deck } = bareDeck(), wall = catalog.equipment.find(entry => entry.id === tub)!.sockets!.find(s => s.id === 'attachment')!.position[2];
-    // The tub attaches at its forward wall foot: a gun's barbette well removes the deck under the tub's middle.
+    // The tub attaches at its forward wall foot; light guns keep the deck beneath the tub intact.
     source.construction.equipment = [standing(tub, 'tub', deck, [0, -10 + wall]), standing(gun, 'gun', deck, [0, -10]),
       standing('generic-boat-crane', 'crane', deck, [0, 20]), standing('generic-ready-ammo-locker', 'locker', deck, [0, 11.5])];
     const result = compile(source);

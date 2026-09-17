@@ -28,7 +28,7 @@ fn fixture() -> (ConstructionSource, ConstructionCatalog) {
     (source, catalog)
 }
 #[test]
-fn every_retained_gun_has_a_magazine_and_can_be_raised_without_lifting_ammunition() {
+fn every_retained_gun_keeps_ammunition_in_its_installation_when_raised() {
     let (source, catalog) = fixture();
     for part in catalog.equipment.iter().filter(|p| p.kind == "gun") {
         let mut source = source.clone();
@@ -65,12 +65,19 @@ fn every_retained_gun_has_a_magazine_and_can_be_raised_without_lifting_ammunitio
                 .unwrap()
                 .clone()
         };
-        assert!(
-            (0..3).all(|i| (mag(&normal).center[i] - mag(&raised).center[i]).abs() < 1e-9),
-            "{}",
-            part.id
-        );
-        assert!(mag(&raised).center[1] + mag(&raised).size[1] / 2. < 8.);
+        let deck_mount = mag(&normal).placement.as_deref() == Some("fixed");
+        let lift = if deck_mount { 2. } else { 0. };
+        assert!((mag(&raised).center[1] - mag(&normal).center[1] - lift).abs() < 1e-9, "{}", part.id);
+        assert!((0..3).all(|i| (mag(&normal).size[i] - mag(&raised).size[i]).abs() < 1e-9));
+        if deck_mount {
+            assert!(mag(&raised).center[1] - mag(&raised).size[1] / 2. >= 10. - 1e-6);
+            let result = construction::compile(&source, &catalog);
+            assert!(result.surfaces.iter().filter(|s| s.primitive_id == "equipment:gun")
+                .flat_map(|s| &s.vertices).all(|v| v[1] >= 8. - 1e-6));
+            assert!(!raised.openings.iter().flatten().any(|o| o.sealed_by_mount_id.as_deref() == Some("gun")));
+        } else {
+            assert!(mag(&raised).center[1] + mag(&raised).size[1] / 2. < 8.);
+        }
         assert_eq!(
             raised.mounts[0].magazine_id.as_ref(),
             Some(&mag(&raised).id)
@@ -358,7 +365,8 @@ fn gun_magazines_fit_above_curved_bottom_plating_across_their_whole_footprint() 
             .find(|m| m.kind == "magazine")
             .unwrap();
         assert!(
-            (magazine.center[1] - raised_magazine.center[1]).abs() < 1e-8,
+            (raised_magazine.center[1] - magazine.center[1]
+                - if magazine.placement.as_deref() == Some("fixed") { 3. } else { 0. }).abs() < 1e-8,
             "{} magazine moved",
             part.id
         );
@@ -397,4 +405,107 @@ fn oval_funnels_keep_deck_corners_and_matching_sealed_openings() {
             }
         }
     }
+}
+
+
+#[test]
+fn light_aa_stands_on_a_thin_deck_without_a_well_or_deck_opening() {
+    let (mut source, catalog) = fixture();
+    source.construction.primitives[0].size[1] = 0.2;
+    source.construction.primitives[0].position[1] = 7.9;
+    for part in catalog.equipment.iter().filter(|p| p.kind == "gun") {
+        let weapon = catalog.weapons.parts.iter().find(|w| Some(&w.id) == part.gun_part_id.as_ref()).unwrap();
+        if weapon.caliber_m >= 0.1 { continue; }
+        let attachment = part.sockets.iter().flatten().find(|s| s.id == "attachment").unwrap().position[1];
+        source.construction.equipment = vec![ConstructionEquipment {
+            id: "aa".into(), part_id: part.id.clone(), position: [0., 8. - attachment, 0.],
+            ..Default::default()
+        }];
+        let result = construction::compile(&source, &catalog);
+        let def = result.definition.as_ref().unwrap_or_else(|| panic!("{}: {:?}", part.id, result.diagnostics));
+        assert!(!result.surfaces.iter().any(|s| s.primitive_id == "equipment:aa"), "{} has a fabricated barbette", part.id);
+        let deck_area: f64 = result.surfaces.iter().filter(|s| s.primitive_id == "hull" && s.face == "top").map(|s| s.area_m2).sum();
+        assert!((deck_area - 24. * 80.).abs() < 1e-6, "{} cuts the deck", part.id);
+        assert!(!def.openings.iter().flatten().any(|o| o.sealed_by_mount_id.as_deref() == Some("aa")));
+        let mag = def.modules.iter().find(|m| m.kind == "magazine").unwrap();
+        assert!(mag.center[1] - mag.size[1] / 2. >= 8. - 1e-6, "{} ammunition below deck", part.id);
+        assert_eq!(mag.placement.as_deref(), Some("fixed"));
+        assert_eq!(def.mounts[0].magazine_id.as_deref(), Some(mag.id.as_str()));
+        let mut actor = naval_sim::damage::Combatant::new("aa-review", def);
+        assert_eq!(naval_sim::machinery::equipment_condition(&actor, def, mag, None).availability, 1.);
+        actor.damage.modules.iter_mut().find(|m| m.id == mag.id).unwrap().hp = 0.;
+        assert_eq!(naval_sim::machinery::equipment_condition(&actor, def, mag, None).availability, 0.);
+        assert!(def.loading.as_ref().unwrap().contributions.iter().any(|m| m.id == "aa-ammunition" && m.mass_kg > 0.));
+    }
+}
+
+#[test]
+fn turret_working_depth_does_not_follow_the_hull_bottom() {
+    let (mut source, catalog) = fixture();
+    for part_id in ["us-5in38-mk30-mod0-single", "sk-c34-380-twin", "us-16in50-mk7-iowa"] {
+        let part = catalog.equipment.iter().find(|p| p.id == part_id).unwrap();
+        let attachment = part.sockets.iter().flatten().find(|s| s.id == "attachment").unwrap().position[1];
+        source.construction.equipment = vec![ConstructionEquipment {
+            id: "turret".into(), part_id: part.id.clone(), position: [0., 8. - attachment, 0.],
+            ..Default::default()
+        }];
+        let mut signatures = vec![];
+        for depth in [16., 32.] {
+            source.construction.primitives[0].size[1] = depth;
+            source.construction.primitives[0].position[1] = 8. - depth / 2.;
+            let result = construction::compile(&source, &catalog);
+            let def = result.definition.as_ref().unwrap_or_else(|| panic!("{part_id}: {:?}", result.diagnostics));
+            let bottom = result.surfaces.iter().filter(|s| s.primitive_id == "equipment:turret").flat_map(|s| s.vertices.iter()).map(|v| v[1]).fold(f64::INFINITY, f64::min);
+            let mag = def.modules.iter().find(|m| m.kind == "magazine").unwrap();
+            signatures.push((bottom, mag.center, mag.size));
+        }
+        assert_eq!(signatures[0], signatures[1], "{part_id} follows the hull bottom");
+    }
+}
+
+
+#[test]
+fn explicit_catalog_installations_override_light_gun_defaults() {
+    let (mut source, mut catalog) = fixture();
+    let id = "us-20mm-oerlikon-mk4-hsienyang";
+    source.construction.equipment = vec![ConstructionEquipment {
+        id: "gun".into(), part_id: id.into(), position: [0., 8., 0.], ..Default::default()
+    }];
+    catalog.equipment.iter_mut().find(|p| p.id == id).unwrap().occupancy = Some(vec![ConstructionEquipmentPartOccupancyItem {
+        center: [0., -0.5, 0.], size: [1., 1., 1.],
+    }]);
+    let result = construction::compile(&source, &catalog);
+    let def = result.definition.as_ref().unwrap_or_else(|| panic!("{:?}", result.diagnostics));
+    assert!(result.surfaces.iter().any(|s| s.primitive_id == "equipment:gun"));
+    assert!(def.modules.iter().find(|m| m.kind == "magazine").unwrap().center[1] < 8.);
+    // An explicitly empty occupancy is a deck mount even for a larger weapon.
+    catalog.equipment.iter_mut().find(|p| p.id == id).unwrap().occupancy = Some(vec![]);
+    catalog.weapons.parts.iter_mut().find(|w| w.id == id).unwrap().caliber_m = 0.127;
+    let result = construction::compile(&source, &catalog);
+    assert!(result.definition.is_some(), "{:?}", result.diagnostics);
+    assert!(!result.surfaces.iter().any(|s| s.primitive_id == "equipment:gun"));
+}
+
+#[test]
+fn deck_mounts_leave_room_for_internal_decks_and_loads_below() {
+    let (mut source, catalog) = fixture();
+    source.construction.boundaries.push(ConstructionBoundary {
+        id: "internal-deck".into(), axis: "y".into(), offset: 4., thickness_mm: 16.,
+    });
+    source.construction.loads.push(ConstructionLoad {
+        id: "stores".into(), name: "Stores".into(), center: [0., 2., 0.], size: [2., 2., 2.], mass_kg: 1000.,
+    });
+    source.construction.equipment.push(ConstructionEquipment {
+        id: "aa".into(), part_id: "us-20mm-oerlikon-mk4-hsienyang".into(), position: [0., 8., 0.], ..Default::default()
+    });
+    let result = construction::compile(&source, &catalog);
+    assert!(result.definition.is_some(), "{:?}", result.diagnostics);
+    source.construction.equipment[0].position[1] += 0.25;
+    assert!(construction::compile(&source, &catalog).definition.is_none(), "A floating deck mount must still fail");
+    source.construction.equipment[0].position[1] = 8.;
+    source.construction.surfaces.push(ConstructionSurfaceAssignment {
+        primitive_id: "hull".into(), face: "top".into(), open: Some(true),
+        thickness_mm: 16., material: "steel".into(), paint: "naval-gray".into(), ..Default::default()
+    });
+    assert!(construction::compile(&source, &catalog).definition.is_none(), "An open deck cannot support a pedestal");
 }
