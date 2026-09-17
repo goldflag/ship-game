@@ -7,7 +7,7 @@
   "scripts": {
     "hull:prototype": "vite --config vite.hull-prototype.config.ts",
     "dev": "bun run multiplayer:prepare:dev && vite --host 0.0.0.0",
-    "build": "bun run multiplayer:prepare && bun run part:published:check && bun run ship:check all && bun run ship:runtime:check && bun run aircraft:check all && tsc --noEmit && vite build",
+    "build": "bun run multiplayer:prepare && bun run part:published:check && bun run part:thumbnails --check && bun run ship:check all && bun run ship:runtime:check && bun run aircraft:check all && tsc --noEmit && vite build",
     "preview": "vite preview --host 0.0.0.0",
     "deploy:naval": "bash scripts/deploy-naval.sh",
     "deploy:hermes": "bash scripts/deploy-hermes.sh",
@@ -64,7 +64,8 @@
     "accounts:check": "tsc -p services/tsconfig.json --noEmit && bun test services",
     "compiler:server": "bun services/compiler/worker.ts",
     "ship:runtime:check": "bun scripts/ships/runtime-assets.ts --check",
-    "ship:runtime:bench": "bun scripts/diagnostics/ship-runtime-size.ts"
+    "ship:runtime:bench": "bun scripts/diagnostics/ship-runtime-size.ts",
+    "part:thumbnails": "bun scripts/parts/thumbnails.ts"
   },
   "dependencies": {
     "@fontsource/barlow": "^5.2.8",

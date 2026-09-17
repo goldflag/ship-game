@@ -26,8 +26,9 @@ test('box selection respects slice height and hidden internal equipment', () => 
   const rect = { left: -100, right: 200, top: -100, bottom: 200 };
   const selected = boxSelectedPieces(source, catalog, camera, rect, 100, 100);
   expect(selected).toContain('hull'); expect(selected).toContain('funnel'); expect(selected).not.toContain('engine');
-  expect(boxSelectedPieces(source, catalog, camera, rect, 100, 100, undefined, true)).toContain('engine');
+  const internal = boxSelectedPieces(source, catalog, camera, rect, 100, 100, undefined, true);
+  expect(internal).toContain('engine'); expect(internal).not.toContain('hull'); expect(internal).not.toContain('funnel');
   const sliced = boxSelectedPieces(source, catalog, camera, rect, 100, 100, 0, true);
-  expect(sliced).not.toContain('funnel'); expect(sliced).toContain('hull'); expect(sliced).toContain('engine');
+  expect(sliced).not.toContain('funnel'); expect(sliced).not.toContain('hull'); expect(sliced).toContain('engine');
   expect(boxSelectedPieces(source, catalog, camera, rect, 100, 100, -20, true)).toEqual([]);
 });
