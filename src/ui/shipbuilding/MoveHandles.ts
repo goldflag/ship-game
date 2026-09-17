@@ -3,6 +3,7 @@ import type { Vec3 } from '../../ships/blueprint';
 
 export interface MoveHandleOptions {
   key: string; anchor: Vec3; unit: number;
+  axes?: [boolean, boolean, boolean];
   constrain(delta: Vec3): Vec3;
   preview(delta?: Vec3, blocked?: boolean): void;
   commit(delta: Vec3): void;
@@ -26,7 +27,7 @@ export class MoveHandles {
 
   constructor(private host: HTMLElement, private camera: () => THREE.Camera) {
     this.element.className = 'sb-freeform-handles sb-move-handles';
-    this.element.setAttribute('role', 'group'); this.element.setAttribute('aria-label', 'Move selected blocks');
+    this.element.setAttribute('role', 'group'); this.element.setAttribute('aria-label', 'Move selection');
     this.drawing.classList.add('sb-freeform-overlay'); this.drawing.setAttribute('aria-hidden', 'true');
     this.element.append(this.drawing);
     this.lines = [0, 1, 2].map(k => {
@@ -39,7 +40,7 @@ export class MoveHandles {
       button.textContent = 'XYZ'[k]; button.dataset.axis = 'XYZ'[k];
       button.setAttribute('aria-label', `Move selection ${'XYZ'[k]}`);
       button.addEventListener('keydown', e => {
-        if (!this.options || this.drag || !['ArrowUp', 'ArrowRight', 'ArrowDown', 'ArrowLeft'].includes(e.key)) return;
+        if (!this.options || this.options.axes?.[k] === false || this.drag || !['ArrowUp', 'ArrowRight', 'ArrowDown', 'ArrowLeft'].includes(e.key)) return;
         e.preventDefault(); e.stopPropagation();
         const delta: Vec3 = [0, 0, 0]; delta[k] = this.options.unit * (['ArrowUp', 'ArrowRight'].includes(e.key) ? 1 : -1);
         this.options.commit(this.options.constrain(delta));
@@ -83,14 +84,14 @@ export class MoveHandles {
     const points = [origin];
     this.buttons.forEach((b, k) => {
       const v = vectors[k].multiplyScalar(scale), end = origin.clone().add(v);
-      b.hidden = !visible || v.length() < 18;
+      b.hidden = !visible || o.axes?.[k] === false || v.length() < 18;
       if (!b.hidden) points.push(end);
       b.style.transform = `translate(${end.x}px,${end.y}px)`;
       b.title = `Drag ${'XYZ'[k]}; arrow keys nudge by ${o.unit} m`;
       this.lines[k].style.display = b.hidden ? 'none' : '';
       this.lines[k].setAttribute('d', `M${origin.x},${origin.y} L${end.x},${end.y}`);
     });
-    this.plane.hidden = !visible; this.plane.style.transform = `translate(${origin.x}px,${origin.y}px)`;
+    this.plane.hidden = !visible || (o.axes?.filter(Boolean).length ?? 3) < 2; this.plane.style.transform = `translate(${origin.x}px,${origin.y}px)`;
     if (visible) this.screenBounds = {
       left: Math.min(...points.map(p => p.x)) - 20, right: Math.max(...points.map(p => p.x)) + 20,
       top: Math.min(...points.map(p => p.y)) - 20, bottom: Math.max(...points.map(p => p.y)) + 20,
@@ -102,11 +103,12 @@ export class MoveHandles {
     return ray.ray;
   }
   private down(e: PointerEvent, axis?: number) {
-    if (e.button !== 0 || !this.options || this.drag) return;
+    if (e.button !== 0 || !this.options || this.drag || (axis !== undefined && this.options.axes?.[axis] === false)) return;
     e.preventDefault(); e.stopPropagation(); this.camera().updateMatrixWorld();
     const anchor = new THREE.Vector3(...this.options.anchor), direction = this.camera().getWorldDirection(new THREE.Vector3());
     const components = direction.toArray().map(Math.abs), blocked = components.indexOf(Math.max(...components));
-    const free = [0, 1, 2].map(k => axis === undefined ? k !== blocked : k === axis);
+    const free = [0, 1, 2].map(k => this.options!.axes?.[k] !== false && (axis === undefined ? k !== blocked : k === axis));
+    if (!free.some(Boolean)) return;
     const normal = axis === undefined ? new THREE.Vector3().setComponent(blocked, 1) : direction.clone().setComponent(axis, 0);
     if (normal.lengthSq() < 1e-8) return;
     const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(normal.normalize(), anchor);
