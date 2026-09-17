@@ -32,8 +32,17 @@ test('ledger rows read draft from the keel, tone warned readings and add a layer
 
 test('mass groups split armor skin from structural skin and warnings keep blocks apart from notes', () => {
   const groups = massGroups(result);
-  expect(groups.map(group => group.massKg)).toEqual([5000, 40000, 1000, 35000, 500]);
+  expect(groups.map(group => group.massKg)).toEqual([5000, 40000, 1000, 35000, 500, 0]);
   expect(pieceMassKg(result, 'hull')).toBe(40000);
   expect(pieceMassKg(result, 'missing')).toBeUndefined();
   expect(warningEntries(result.diagnostics).map(entry => entry.tone)).toEqual(['block', 'warn', 'note']);
+});
+
+test('approximate internal weight is visible separately from fitted machinery and stores', () => {
+  const loaded = structuredClone(result);
+  loaded.loading!.contributions.push({ id: 'hull-internal-allowance', kind: 'internal-allowance', massKg: 120_000, center: [0, -1, 0], inertiaKgM2: [1, 1, 1] });
+  const groups = massGroups(loaded);
+  expect(groups.find(group => group.name === 'Internal allowance')?.massKg).toBe(120_000);
+  expect(groups.find(group => group.name === 'Machinery & fittings')?.massKg).toBe(35_000);
+  expect(groups.reduce((sum, group) => sum + group.massKg, 0)).toBe(201_500);
 });

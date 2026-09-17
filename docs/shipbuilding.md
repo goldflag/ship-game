@@ -266,8 +266,18 @@ supports remain visible in inspection and follow their fitting rather than
 becoming editable hull-face assignments.
 
 Loading uses steel at 7,850 kg/m³, seawater at 1,025 kg/m³, real material positions,
-fixed equipment/service allowances and initial ammunition. No hidden ballast,
-CG adjustment or per-design buoyancy multiplier is added. Exact clipped volumes
+fixed equipment/service allowances and initial ammunition. An explicit **Internal
+allowance** adds 150 kg per cubic metre of the complete union envelope for
+unmodeled framing, decks and general outfitting. Overlapping hull pieces count
+once. This provisional game load is distributed uniformly within the envelope's
+lower half by height; its clipped volume supplies its CG and rotational inertia.
+It gives otherwise empty shells low internal weight without requiring every
+interior fitting to be placed. Fitted equipment and authored steel still add their
+full weights. The allowance does not create machinery, armor or occupied solids,
+and does not reduce floodable capacity; detailed internal packing is not modeled.
+It applies when either supported construction version is compiled, including
+reopened custom designs. Heavy or top-heavy designs can still sink or capsize;
+there is no forced stability target or per-design buoyancy multiplier. Exact clipped volumes
 supply buoyancy and usable room water capacity. Floodwater, machinery immersion
 and loss use native simulation state. Resistance, wave effects, package masses
 and handling remain documented engineering/game approximations rather than
