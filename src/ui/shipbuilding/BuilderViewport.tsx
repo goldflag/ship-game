@@ -199,7 +199,7 @@ class Viewport {
     if (bounds.isEmpty()) bounds.set(new THREE.Vector3(-10, -5, -25), new THREE.Vector3(10, 5, 25));
     this.hullSize.copy(bounds.getSize(new THREE.Vector3()));
     // Keep the bow datum in frame in the views where the floor is readable.
-    if (this.props.scene.view === 'orbit' || this.props.scene.view === 'top') bounds.union(new THREE.Box3().setFromObject(this.floorGrid));
+    if (this.props.scene.view === 'orbit' || this.props.scene.view === 'top') bounds.union(this.floorGrid.children[0]?.userData.frame ?? new THREE.Box3());
     const size = bounds.getSize(new THREE.Vector3()), center = bounds.getCenter(new THREE.Vector3());
     const view = this.props.scene.view, aspect = Math.max(1, this.host.clientWidth / Math.max(1, this.host.clientHeight));
     // Frame the ship for the chosen view: plan and profile need the length upright, the bow view only the section.
