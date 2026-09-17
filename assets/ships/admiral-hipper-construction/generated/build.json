@@ -1,10 +1,24 @@
 {
-  "format": "construction-v1",
-  "sourceHash": "d435bfe05d3478eb38879842975862793dcccbb569d02c681670280c006ac033",
-  "producerHash": "6d6ff9f80b80c8b22ac587b04157144242bf645d7e2df0953564cc2096fe7ac4",
-  "contentHash": "f8c094cee0de0b235c3b1c4a1f82b535d1ffa72dd4b5a471a90c035c0aacafe1",
+  "format": "construction-v2",
+  "inputs": {
+    "definition": "37994fe12387d340ff5b32ecbd4df53a7c7b19dc84962903af45e432a1939eb3",
+    "model": "84c8b1da850bb006c1362b7ea55b4138fad15fd3a70a72d9f31f23ac6160763f"
+  },
+  "contentHash": "6a650b78bbd94561769368c779c960c7ca34d089ff587abdff48a33b3bba3d1e",
   "sourceRevision": "da3dcb48-d1fc-4562-8218-d391dba6b4a3",
-  "modelHash": "8da9602fd69f5548c06bb8ef7d0d76f56810c38217891c17c38d3d81716b70ff",
-  "definitionHash": "660eb981552fdf39d67c15430317c07f7e7fb8a586d21930bf5cf34a38ace05c",
-  "thumbnailHash": "010490c691a475acbfef1ca5006374f39c552a754ba7eb42dc5e6b6230fee325"
+  "payloadHash": "f926fa94c598ffe290d546febd83ab3bd0338194d44d7b3408cb55ef23fd288d",
+  "imageInput": "e40e143fa3804762a032cc3e5a2eea2fad3bf174539e4dd491904d24d844b815",
+  "reviewInput": "e40e143fa3804762a032cc3e5a2eea2fad3bf174539e4dd491904d24d844b815",
+  "modelHash": "0f7b8b08645a0192c734b5dfb66d094f0a128032407c30b5458b80b1af207236",
+  "definitionHash": "fcd24e65924aa2a86627b92e9bc4fcb9ff8b017a4041530ac02f8542021e80a0",
+  "thumbnailHash": "010490c691a475acbfef1ca5006374f39c552a754ba7eb42dc5e6b6230fee325",
+  "thumbnailMetadataHash": "633d9bbb6fd11bd3d69e5a37eaa4e3f2f830b0b499ff58ea5971c8ffd8cec121",
+  "reviewMetadataHash": "bbe342478a744f68d47480f896645130e675ba8e54dbf454a613a9f89435643f",
+  "reviewHashes": {
+    "profile": "73652b2ef53c813b3870a74e210fcde0e147af8fb208379e6843802976cc20e2",
+    "plan": "4ed3756726ff60d1baa23635ba585cf304e28fcfa49d83c65f5c853c8cd25e7c",
+    "bow": "7e2f270fb1bd8fca2639f06878fde595a0f33b884c6932698482c4d3886b7bad",
+    "stern": "012ee0e7b7685e250e0e76af5820ac3b0c338061a586e58f8dbaa1e4baf9a466",
+    "quarter": "d11825bd2e6ab1fbf99a2b20a209a5ad8f1a537fb8162a9cca3b9c312d23738b"
+  }
 }

@@ -10,9 +10,6 @@
 *.jpeg binary
 *.webp binary
 
-# Install the repository-local driver with bun run git:setup after cloning.
-# Real same-field conflicts remain unmerged; binary outputs keep normal Git behavior.
-assets/parts/guns.json merge=ship-catalog
 # Archival references, validation reports and review captures live in Git LFS. They are pipeline
 # inputs/evidence, never runtime assets; pipeline hashing accepts LFS pointers, so deployment hosts
 # can clone with GIT_LFS_SKIP_SMUDGE=1. Text records stay in plain Git for diffs.
@@ -30,3 +27,7 @@ assets/**/*.csv !filter !diff !merge text
 assets/**/*.py !filter !diff !merge text
 assets/**/*.ts !filter !diff !merge text
 assets/**/*.svg !filter !diff !merge text
+
+# Install the repository-local driver with bun run git:setup after cloning.
+# Real same-field conflicts remain unmerged; binary outputs keep normal Git behavior.
+assets/parts/guns.json merge=ship-catalog

@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { mergeCatalog } from './catalog-merge';
@@ -34,7 +34,9 @@ test('Git invokes the driver, combines branches, and retains a real conflict in 
     return { code: result.exitCode, out: result.stdout.toString(), err: result.stderr.toString() };
   };
   const ok = (...args: string[]) => { const r = git(...args); expect(r.code, r.err).toBe(0); return r.out.trim(); };
-  const file = join(root, 'guns.json');
+  const catalogPath = 'assets/parts/guns.json';
+  const file = join(root, catalogPath);
+  mkdirSync(join(root, 'assets/parts'), { recursive: true });
   const save = (value: any, message: string) => {
     writeFileSync(file, JSON.stringify(value, null, 2) + '\n');
     ok('add', '.'); ok('commit', '-m', message);
@@ -45,7 +47,8 @@ test('Git invokes the driver, combines branches, and retains a real conflict in 
     ok('config', 'commit.gpgsign', 'false');
     ok('config', 'core.hooksPath', join(root, 'no-hooks'));
     ok('config', 'merge.ship-catalog.driver', `${quote(process.execPath)} ${quote(`${import.meta.dir}/catalog-merge.ts`)} %O %A %B`);
-    writeFileSync(join(root, '.gitattributes'), 'guns.json merge=ship-catalog\n');
+    writeFileSync(join(root, '.gitattributes'), readFileSync(join(import.meta.dir, '../../.gitattributes')));
+    expect(ok('check-attr', 'merge', '--', catalogPath)).toBe(catalogPath + ': merge: ship-catalog');
     save(catalog([{ id: 'base', reload: 10 }]), 'base');
     const base = ok('rev-parse', 'HEAD');
     ok('switch', '-c', 'ship-a'); save(catalog([{ id: 'base', reload: 10 }, { id: 'a' }]), 'add a');
@@ -55,7 +58,7 @@ test('Git invokes the driver, combines branches, and retains a real conflict in 
     ok('switch', '-c', 'edit-a', base); save(catalog([{ id: 'base', reload: 11 }]), 'reload a');
     ok('switch', '-c', 'edit-b', base); save(catalog([{ id: 'base', reload: 12 }]), 'reload b');
     expect(git('merge', '--no-edit', 'edit-a').code).toBe(1);
-    expect(ok('diff', '--name-only', '--diff-filter=U')).toBe('guns.json');
+    expect(ok('diff', '--name-only', '--diff-filter=U')).toBe(catalogPath);
     expect(JSON.parse(readFileSync(file, 'utf8')).parts[0].reload).toBe(12);
   } finally { rmSync(root, { recursive: true, force: true }); }
 });

@@ -1,6 +1,7 @@
 import * as THREE from 'three/webgpu';
-import { WebGLRenderer } from 'three';
-import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
+import { createReviewPresentation } from './presentation';
+import { exportReviewGlb } from './export';
+import { resetReviewPose } from './pose';
 import { createConstructionModel, disposeConstructionModel } from '../../src/game/constructionModel';
 import { loadShipModel } from '../../src/game/loadShipModel';
 import { loadConstructionCatalog } from '../../src/ships/constructionEquipment';
@@ -36,13 +37,6 @@ export async function openReview(input: ReviewInput) {
     torpedoLaunchers: (definition.torpedoLaunchers ?? []).map(l => ({ id: l.id, train: source.construction.equipment.find(p => p.id === l.id)!.bearingDeg * Math.PI / 180 })),
   };
   const view = new ShipView(model, definition, actor);
-  const scene = new THREE.Scene(); scene.add(view.root);
-  scene.add(new THREE.HemisphereLight('#eef3f5', '#66625b', 2.4));
-  const sun = new THREE.DirectionalLight('#fff3db', 3); sun.position.set(70, 100, -50); scene.add(sun);
-  const renderer = new WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
-  renderer.setPixelRatio(1); renderer.outputColorSpace = THREE.SRGBColorSpace;
-  document.body.append(renderer.domElement);
-  const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, .01, 10000);
   const nodes = new Map<string, THREE.Object3D>();
   model.traverse(node => {
     const id = node.userData.nodeId;
@@ -51,11 +45,7 @@ export async function openReview(input: ReviewInput) {
       nodes.set(id, node);
     }
   });
-  const resetPose = (neutral = false) => {
-    actor.mounts.forEach((m, i) => Object.assign(m, { train: 0, elevation: neutral ? 0 : (definition.mounts[i].initialElevationDeg ?? 0) * Math.PI / 180, recoil: 0 }));
-    actor.torpedoLaunchers?.forEach(l => { l.train = neutral ? 0 : (source.construction.equipment.find(e => e.id === l.id)?.bearingDeg ?? 0) * Math.PI / 180; });
-    view.snap(); view.updateRenderMatrices();
-  };
+  const resetPose = (neutral = false) => resetReviewPose(actor, definition, source, view, neutral);
   const focus = (id?: string, isolate = false) => {
     model.traverse(node => { node.visible = true; });
     if (!id) return model;
@@ -69,28 +59,8 @@ export async function openReview(input: ReviewInput) {
     }
     return target;
   };
-  const render = async (name: ReviewView = 'quarter', options: { id?: string; isolate?: boolean; width?: number; height?: number; transparent?: boolean; keepPose?: boolean } = {}) => {
-    if (!options.keepPose) resetPose();
-    const target = focus(options.id, options.isolate);
-    view.updateRenderMatrices(); model.updateWorldMatrix(true, true);
-    const bounds = new THREE.Box3().setFromObject(target), center = bounds.getCenter(new THREE.Vector3());
-    if (bounds.isEmpty()) throw new Error('Selected assembly has no renderable geometry.');
-    const [width, height] = [options.width ?? (['profile', 'plan'].includes(name) ? 1600 : name === 'quarter' ? 1400 : 800), options.height ?? (['profile', 'plan'].includes(name) ? 520 : name === 'quarter' ? 900 : 800)];
-    const directions = { profile: [1, 0, 0], plan: [0, 1, 0], bow: [0, 0, -1], stern: [0, 0, 1], quarter: [1, .6, -1] } as const;
-    const radius = Math.max(5, bounds.getSize(new THREE.Vector3()).length());
-    camera.position.copy(center).addScaledVector(new THREE.Vector3(...directions[name]).normalize(), radius * 2);
-    camera.up.set(name === 'plan' ? 1 : 0, name === 'plan' ? 0 : 1, 0);
-    camera.lookAt(center); camera.updateMatrixWorld(true);
-    const extents = new THREE.Box3();
-    for (let c = 0; c < 8; c++) extents.expandByPoint(new THREE.Vector3(c & 1 ? bounds.max.x : bounds.min.x, c & 2 ? bounds.max.y : bounds.min.y, c & 4 ? bounds.max.z : bounds.min.z).applyMatrix4(camera.matrixWorldInverse));
-    const size = extents.getSize(new THREE.Vector3()), aspect = width / height;
-    const halfHeight = Math.max(size.y, size.x / aspect, .2) * .55;
-    camera.left = -halfHeight * aspect; camera.right = halfHeight * aspect; camera.top = halfHeight; camera.bottom = -halfHeight;
-    camera.far = radius * 6; camera.updateProjectionMatrix();
-    renderer.setSize(width, height); renderer.setClearColor('#353b3f', options.transparent ? 0 : 1);
-    renderer.render(scene, camera);
-    return { png: renderer.domElement.toDataURL('image/png'), camera: { name, position: camera.position.toArray(), target: center.toArray(), up: camera.up.toArray(), projection: 'orthographic', width, height, halfHeight, sourceRevision: source.revision, contentHash: definition.contentHash } };
-  };
+  const presentation = createReviewPresentation(view, model, source, definition, resetPose, focus);
+  const { render } = presentation;
   const articulation = new ArticulationPreview(JSON.stringify(definition));
   const pose = (requested: Pose[]) => {
     const current = actor.mounts.map(({ train, elevation, recoil }) => ({ train, elevation, recoil }));
@@ -140,19 +110,7 @@ export async function openReview(input: ReviewInput) {
     resetPose();
     return { samples, torpedoSamples, maxMuzzleErrorM, blocked, scope: 'Sampled native gun clearance resolution and CPU/render muzzle agreement; blocked gun travel and torpedo bank clearance require visual installation review, and this is not an exhaustive geometric proof.' };
   };
-  const exportGlb = async () => {
-    // Retained joints export at their canonical neutral transforms; previews and
-    // simulation apply the separately declared installation resting elevation.
-    resetPose(true); focus();
-    const exported = model.clone(true);
-    exported.traverse(node => { delete node.userData.constructionSurfaces; });
-    const exportScene = new THREE.Scene();
-    exportScene.userData = { definitionHash: definition.contentHash, constructionRevision: source.revision };
-    exportScene.add(exported);
-    const bytes = await new GLTFExporter().parseAsync(exportScene, { binary: true, onlyVisible: false, trs: true }) as ArrayBuffer;
-    const blob = new Blob([bytes], { type: 'model/gltf-binary' });
-    return await new Promise<string>((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(reader.result as string); reader.onerror = reject; reader.readAsDataURL(blob); });
-  };
+  const exportGlb = () => exportReviewGlb(model, view, actor, definition, source);
   const trial = async (seconds = 10) => {
     if (!Number.isFinite(seconds) || seconds < 1 || seconds > 120) throw new Error('Trial duration must be 1–120 simulated seconds.');
     const started = performance.now();
@@ -182,7 +140,7 @@ export async function openReview(input: ReviewInput) {
     nodes: [...nodes.keys()],
   });
   await render();
-  return { render, pose, poseTorpedoes, sweep, exportGlb, trial, inspect, dispose() { articulation.free(); renderer.dispose(); disposeConstructionModel(model); renderer.domElement.remove(); } };
+  return { render, pose, poseTorpedoes, sweep, exportGlb, trial, inspect, dispose() { articulation.free(); presentation.dispose(); disposeConstructionModel(model); } };
 }
 
 declare global {
