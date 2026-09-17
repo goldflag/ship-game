@@ -51,11 +51,19 @@ export function useBuilderSource({ starterSource, initialSource, initialDesignId
   const source = revision.history.source;
   const [store, setStore] = useState<ConstructionStore>();
 
-  // The design keeps its exact parts catalog; a saved design may need its retained revision fetched.
+  // A design opens on the newest parts catalog. It keeps its saved revision only while that newest one is unknown
+  // or no longer has a part the design has fitted; the retained revision is fetched meanwhile.
   const [activeCatalog, setActiveCatalog] = useState(initialCatalog);
   const [latestCatalog, setLatestCatalog] = useState(initialCatalog);
-  useEffect(() => { let active = true; void loadConstructionCatalog().then(next => { if (active) setLatestCatalog(next); }).catch(() => {}); return () => { active = false; }; }, []);
+  const [latestLoaded, setLatestLoaded] = useState(false);
+  useEffect(() => { let active = true; void loadConstructionCatalog().then(next => { if (active) { setLatestCatalog(next); setLatestLoaded(true); } }).catch(() => {}); return () => { active = false; }; }, []);
   const catalogRevision = source.construction.catalogRevision;
+  useEffect(() => {
+    if (!latestLoaded || !revision.ready || revision.busy || catalogRevision === latestCatalog.revision) return;
+    const available = new Set(latestCatalog.equipment.map(part => part.id));
+    if (source.construction.equipment.some(fitted => !available.has(fitted.partId))) return;
+    if (owner.adoptCatalog(latestCatalog.revision)) setActiveCatalog(latestCatalog);
+  }, [latestLoaded, latestCatalog, catalogRevision, revision.ready, revision.busy, revision.adoption, owner]);
   useEffect(() => {
     if (activeCatalog.revision === catalogRevision) return;
     let active = true;

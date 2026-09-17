@@ -55,7 +55,7 @@ Railing, rope and chain cards draw connected paths: click each point on the ship
 
 Select a path to edit its bearing, position, individual point coordinates and rope slack in its object tag. The point selector reaches every route point; **Insert point** adds a midpoint between the selected point and its neighbor, and **Remove point** keeps at least two points. Point coordinates are relative to the route origin; translation, rotation, copy and mirror preserve the route. Railing previews use three rails and regularly spaced posts with visible feet. Rope and chain use the same 16 intervals per segment as native loading; chain links and line members use shared instanced geometry. Light fittings read in kilograms.
 
-Saved designs retain their equipment catalog. When a newer catalog is available, **Designs → Update parts library** updates the design in one undoable edit. Changed fitted variants are listed before applying; missing variants prevent the update. Old source revisions and catalogs remain available for undo and recovery.
+The editor opens every design on the newest equipment catalog. Once that catalog loads, a design saved against an older revision moves onto it: every state in its undo history is rebased, so Undo never restores the old library, and the new revision saves. Fitted parts whose variant changed recompile with the new variant. A design keeps its saved revision only when the newest catalog no longer has a part it has fitted; **Designs** then names the missing parts. Old source revisions and catalogs remain available for undo and recovery.
 
 | Shortcut | Action |
 | --- | --- |

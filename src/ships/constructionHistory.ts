@@ -18,6 +18,13 @@ export function editConstruction<T>(history: ConstructionHistory<T>, label: stri
   return { past: [...history.past.slice(-49), { label, source: history.source }], source, future: [], revision: history.revision + 1, lastAction: label };
 }
 
+/** Apply one edit to every state, past and future included, without adding an entry: Undo cannot restore what it replaced. */
+export function rebaseConstruction<T>(history: ConstructionHistory<T>, edit: (draft: T) => void): ConstructionHistory<T> {
+  const rebased = (source: T) => { const draft = structuredClone(source); edit(draft); return draft; };
+  return { past: history.past.map(entry => ({ label: entry.label, source: rebased(entry.source) })), source: rebased(history.source),
+    future: history.future.map(entry => ({ label: entry.label, source: rebased(entry.source) })), revision: history.revision + 1, lastAction: history.lastAction };
+}
+
 export function undoConstruction<T>(history: ConstructionHistory<T>): ConstructionHistory<T> {
   const previous = history.past.at(-1);
   if (!previous) return history;
