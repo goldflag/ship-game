@@ -1,7 +1,7 @@
 //! Authoritative construction compiler, shared by native tests and local WASM sessions.
 use crate::{catalog::sha256, construction_geometry as cg, definition::*, geometry::*};
 use std::collections::{BTreeMap, BTreeSet};
-pub const COMPILER: &str = "construction-polyhedra-7";
+pub const COMPILER: &str = "construction-polyhedra-8";
 pub const MAX_SOURCE_BYTES: usize = 16_000_000;
 pub const MAX_CATALOG_BYTES: usize = 4_000_000;
 /// Source bounds; the editor mirrors them in `src/ships/constructionEditor.ts`.
@@ -2264,7 +2264,7 @@ fn equipment(
         }
         if props.is_empty() {
             reasons.push(if fitted.iter().any(|(_, p)| p.kind == "propeller") {
-                "No propeller assigned to this engine. Add another propeller, or select a propeller and choose this engine in its Engine setting".into()
+                "No propeller assigned to this engine. Set a propeller to Automatic to share it, choose this engine in its Engine setting, or add another propeller".into()
             } else {
                 "Missing propeller. Add a propeller in Fittings; its engine is assigned automatically".into()
             });
@@ -3082,6 +3082,39 @@ mod tests {
     }
 
     #[test]
+    fn shared_propeller_combines_power_but_keeps_engine_damage_independent() {
+        use crate::{damage::Combatant, machinery::system_health};
+        let (mut source, mut catalog) = equipped_fixture();
+        catalog.equipment.iter_mut().find(|p| p.kind == "funnel").unwrap().exhaust_kw = Some(2000.);
+        let baseline = compile(&source, &catalog).loading.unwrap().power_kw;
+        let mut second = source.construction.equipment.iter().find(|e| e.id == "engine").unwrap().clone();
+        second.id = "second-engine".into();
+        second.position[0] = 3.;
+        source.construction.equipment.push(second);
+        let result = compile(&source, &catalog);
+        assert!(result.definition.is_some(), "{:?}", result.diagnostics);
+        assert!(!result.diagnostics.iter().any(|d| d.code == "unpowered"));
+        assert_eq!(result.propeller_assignments.as_ref().unwrap().len(), 2);
+        assert!((result.loading.as_ref().unwrap().power_kw - 2. * baseline).abs() < 1e-9);
+        let def = result.definition.as_ref().unwrap();
+        let groups = &def.propulsion.as_ref().unwrap().groups;
+        assert_eq!(groups.len(), 2);
+        assert!(groups.iter().all(|g| g.shaft_ids == ["screw"] && g.drive_ids.len() == 1));
+        let fresh = Combatant::new("shared", def);
+        assert!((system_health(&fresh, def, "engine", None) - 1.).abs() < 1e-9);
+        let mut actor = fresh.clone();
+        actor.damage.modules.iter_mut().find(|m| m.id == "engine").unwrap().hp = 0.;
+        assert!((system_health(&actor, def, "engine", None) - 0.5).abs() < 1e-9);
+        actor = fresh.clone();
+        let shaft = actor.damage.modules.iter_mut().find(|m| m.id == "screw").unwrap();
+        shaft.hp *= 0.5;
+        assert!((system_health(&actor, def, "engine", None) - 0.5).abs() < 1e-9);
+        actor.damage.modules.iter_mut().find(|m| m.id == "screw").unwrap().hp = 0.;
+        assert_eq!(system_health(&actor, def, "engine", None), 0.);
+        assert!((system_health(&fresh, def, "engine", None) - 1.).abs() < 1e-9);
+    }
+
+    #[test]
     fn automatic_propellers_recompile_layout_and_freeze_connections_for_damage() {
         use crate::{damage::Combatant, machinery::system_health};
         let (mut source, mut catalog) = equipped_fixture();
@@ -3122,7 +3155,7 @@ mod tests {
         let short = compile(&source, &catalog);
         let warning = short.diagnostics.iter().find(|d| d.code == "unpowered").unwrap();
         assert_eq!(warning.source_id.as_deref(), Some("starboard-engine"));
-        assert!(warning.message.contains("Add another propeller"));
+        assert!(warning.message.contains("Set a propeller to Automatic"));
         // Routing still appears while a missing funnel prevents thrust.
         source.construction.equipment.retain(|e| e.id != "funnel");
         let missing = compile(&source, &catalog);
