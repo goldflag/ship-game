@@ -1175,6 +1175,8 @@ pub struct ConstructionSurfaceAssignment {
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct ConstructionEquipmentGun {
+    #[serde(rename = "barbetteHeightM")]
+    pub barbette_height_m: Option<f64>,
     #[serde(rename = "battery")]
     pub battery: Option<String>,
     #[serde(rename = "initialElevationDeg")]
@@ -1382,6 +1384,26 @@ pub struct ConstructionDiagnostic {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionPropellerSupportMembersItem {
+    #[serde(rename = "start")]
+    pub start: [f64; 3],
+    #[serde(rename = "end")]
+    pub end: [f64; 3],
+    #[serde(rename = "radiusM")]
+    pub radius_m: f64,
+    #[serde(rename = "kind")]
+    pub kind: String,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionPropellerSupport {
+    #[serde(rename = "equipmentId")]
+    pub equipment_id: String,
+    #[serde(rename = "members")]
+    pub members: Vec<ConstructionPropellerSupportMembersItem>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct ConstructionResult {
     #[serde(rename = "sourceId")]
     pub source_id: String,
@@ -1397,6 +1419,8 @@ pub struct ConstructionResult {
     pub diagnostics: Vec<ConstructionDiagnostic>,
     #[serde(rename = "loading")]
     pub loading: Option<ConstructionLoading>,
+    #[serde(rename = "propellerSupports")]
+    pub propeller_supports: Option<Vec<ConstructionPropellerSupport>>,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]

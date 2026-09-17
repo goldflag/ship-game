@@ -24,6 +24,9 @@ export async function authoringServer(root: string, port = 0, game = false, revi
   const inputJson = reviewInput ? JSON.stringify(reviewInput) : undefined;
   const server = await createServer({
     root, configFile: game ? join(root, 'vite.config.ts') : false,
+    // Review servers may coexist with the editor or another asset build. Their
+    // different entry graphs must not invalidate each other's optimized modules.
+    cacheDir: join(root, '.build/construction/vite-cache', String(port)),
     logLevel: 'error', plugins: game ? [] : [react(), constructionFiles(repositoryRoot), {
       name: 'construction-review-input',
       configureServer(server) {

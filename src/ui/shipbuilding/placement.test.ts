@@ -2,6 +2,14 @@ import { expect, test } from 'bun:test';
 import type { ConstructionSource } from '../../ships/blueprint';
 import { attachmentOffset, fillLattice, mirrorTwin, pieceExtents, placementCenter, strokeSegment } from './placement';
 
+test('underside propeller placement leaves the entire blade sweep below the hull', () => {
+  const position = placementCenter({ kind: 'equipment', size: [4.3, 4.3, 2.32], boundsCenter: [0, 0, -.16], bearingDeg: 0, propellerDiameterM: 4.3,
+    sockets: [{ id: 'attachment', kind: 'shaft', position: [0, 0, -1.32], direction: [0, 0, -1] }] }, { point: [2, -3, 20], normal: [0, -1, 0] }, .25);
+  expect(position[1] + 4.3 / 2).toBeLessThan(-3);
+  expect(position[0]).toBe(2);
+  expect(position[2]).toBe(21.25);
+});
+
 test('a hull piece rests on the hit face and snaps its corner to the grid in the face plane', () => {
   const cube = { kind: 'hull' as const, shape: 'box' as const, size: [1, 1, 1] as [number, number, number], rotationDeg: 0 };
   expect(placementCenter(cube, { point: [2.3, 2.5, -7.6], normal: [0, 1, 0] }, 1)).toEqual([2.5, 3, -7.5]);

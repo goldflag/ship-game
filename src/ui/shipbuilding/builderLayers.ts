@@ -91,7 +91,7 @@ export function partSlot(part: ConstructionEquipmentPart, catalog: ConstructionC
   return { kind: 'part', id: part.id, name: shortName, note: part.path ? `${part.path.kind} path · ${formatTonnes(part.path.massKgPerM)}/m` : `${FAMILY_NAMES[part.kind]}${massKg ? ` · ${formatTonnes(massKg)}` : ''}`, part };
 }
 export function sortedParts(catalog: ConstructionCatalog, placement: (part: ConstructionEquipmentPart) => boolean): ConstructionEquipmentPart[] {
-  return catalog.equipment.filter(placement).slice().sort((a, b) => FAMILY_ORDER.indexOf(a.kind) - FAMILY_ORDER.indexOf(b.kind) || a.name.localeCompare(b.name));
+  return catalog.equipment.filter(part => part.kind !== 'magazine' && placement(part)).slice().sort((a, b) => FAMILY_ORDER.indexOf(a.kind) - FAMILY_ORDER.indexOf(b.kind) || a.name.localeCompare(b.name));
 }
 
 /** Nine keyed slots plus the drawer, which lists everything the layer can place. */

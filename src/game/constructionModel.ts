@@ -1,6 +1,7 @@
 import * as THREE from 'three/webgpu';
 import { loadShipModel } from './loadShipModel';
 import { createConstructionPathModel } from './constructionPathModel';
+import { createConstructionPropellerSupports } from './constructionPropellerModel';
 import type { ConstructionPrimitive, ConstructionResult, ConstructionSource, ConstructionSurface } from '../ships/blueprint';
 import { constructionVertexNormals, SMOOTH_HULL_SHAPES } from './constructionShading';
 import { constructionEquipmentModelUrl, loadConstructionCatalog, prefixComponentNodeId } from '../ships/constructionEquipment';
@@ -125,6 +126,14 @@ export async function createConstructionModel(source: ConstructionSource, result
         });
         installation.add(model); group.add(installation);
       }
+    }
+    group.updateMatrixWorld(true);
+    const supports = createConstructionPropellerSupports(result.propellerSupports);
+    for (const assembly of [...supports.children]) {
+      const id = assembly.userData.assemblyId;
+      const installation = group.getObjectByName(id);
+      if (installation) installation.attach(assembly);
+      else group.add(assembly);
     }
     group.updateMatrixWorld(true); return group;
   } catch (error) {

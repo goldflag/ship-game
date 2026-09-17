@@ -17,7 +17,7 @@ export interface BuilderArc { position: Vec3; bearingDeg: number; traverseDeg: n
 export interface BuilderProposal { position: Vec3; bearingDeg: number; size: Vec3; boundsCenter: Vec3 }
 export type BuilderPlacement =
   | { kind: 'hull'; shape: ConstructionPrimitive['kind']; size: Vec3; rotationDeg: number }
-  | { kind: 'equipment'; partId?: string; size: Vec3; boundsCenter: Vec3; bearingDeg: number; sockets?: ConstructionEquipmentPart['sockets']; arc?: { traverseDeg: number; radius: number }; /** Clearance from the hit face, e.g. the inward skin thickness for internal packages. */ inset?: number }
+  | { kind: 'equipment'; partId?: string; propellerDiameterM?: number; size: Vec3; boundsCenter: Vec3; bearingDeg: number; sockets?: ConstructionEquipmentPart['sockets']; arc?: { traverseDeg: number; radius: number }; /** Clearance from the hit face, e.g. the inward skin thickness for internal packages. */ inset?: number }
   | { kind: 'boundary'; axis: 'x' | 'y' | 'z'; thicknessMm: number };
 export interface BuilderFreeformOptions {
   id: string; selection: HullSelection; axes: MirrorAxes; unit: number; snap: boolean;
