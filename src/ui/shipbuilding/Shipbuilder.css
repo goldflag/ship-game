@@ -151,7 +151,8 @@
 /* hotbar + drawer: square cards showing the piece itself; names and readings are tooltips */
 .sb-hotbar { position: absolute; left: 50%; bottom: var(--sb-bar-bottom); transform: translateX(-50%); display: flex; gap: 6px; }
 /* Keep card styles more specific than the button reset. */
-.shipbuilder .sb-slot { flex-shrink: 0; width: var(--sb-slot); height: var(--sb-slot); padding: 0; border: 1px solid var(--sb-line2); border-radius: 3px; background: var(--sb-card); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; color: var(--sb-text); text-shadow: none; }
+/* `clip`, not `hidden`: a hidden overflow makes each card a scroll container, and with the shell's `overscroll-behavior: contain` Chrome stops the wheel there instead of scrolling the drawer grid. */
+.shipbuilder .sb-slot { flex-shrink: 0; width: var(--sb-slot); height: var(--sb-slot); padding: 0; border: 1px solid var(--sb-line2); border-radius: 3px; background: var(--sb-card); display: flex; align-items: center; justify-content: center; position: relative; overflow: clip; color: var(--sb-text); text-shadow: none; }
 .sb-slot:hover:not(:disabled) { border-color: var(--sb-muted2); background: var(--sb-card-hover); }
 .sb-slot img { display: block; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
 .sb-slot-weight { position: absolute; bottom: 3px; right: 4px; font-size: 11px; color: var(--sb-text); background: var(--sb-card); padding: 1px 3px; }
