@@ -644,14 +644,33 @@ class Viewport {
 
   private updateMoveHandles() {
     const props = this.props;
-    const blocks = props.source.construction.primitives.filter(p => props.selected.has(p.id));
-    if (props.freeform || props.moveTargets !== 'all' || !blocks.length) { this.moveHandles.update(); return; }
-    const ids = [...props.selected], key = JSON.stringify([props.source.id, props.source.revision, ids, props.slice, props.view, props.perspective, props.gridStep]);
-    if (key !== this.moveConstraintKey) {
-      this.moveConstraintKey = key; this.constrainMove = blockMoveConstraint(props.source, props.selected);
+    const { primitives, equipment, boundaries } = props.source.construction;
+    const internals = props.pickTargets === 'internals';
+    const allowed = internals ? internalSelectionIds(props.source, props.catalog) : undefined;
+    const ids = [...props.selected].filter(id => (!allowed || allowed.has(id)) && (props.moveTargets !== 'equipment' || equipment.some(item => item.id === id)));
+    const selected = new Set(ids), blocks = primitives.filter(p => selected.has(p.id));
+    if (props.freeform || props.moveTargets === 'none' || (!internals && (props.moveTargets !== 'all' || !blocks.length)) || !ids.length) { this.moveHandles.update(); return; }
+    const anchors: Vec3[] = blocks.map(p => p.position);
+    const modules = internals ? equipment.filter(p => selected.has(p.id)) : [];
+    const walls = internals ? boundaries.filter(p => selected.has(p.id)) : [];
+    for (const item of modules) {
+      const part = props.catalog.equipment.find(p => p.id === item.partId);
+      const center = new THREE.Vector3(...(part ? equipmentPathBounds(part, item).center : [0, 0, 0] as Vec3));
+      center.applyAxisAngle(new THREE.Vector3(0, 1, 0), -item.bearingDeg * Math.PI / 180).add(new THREE.Vector3(...item.position));
+      anchors.push(center.toArray() as Vec3);
     }
-    const anchor = blocks.reduce<Vec3>((sum, p) => sum.map((v, k) => v + p.position[k] / blocks.length) as Vec3, [0, 0, 0]);
-    this.moveHandles.update({ key, anchor, unit: props.gridStep, constrain: this.constrainMove,
+    for (const wall of walls) {
+      const center = this.controls.target.clone(); center.setComponent({ x: 0, y: 1, z: 2 }[wall.axis], wall.offset);
+      anchors.push(center.toArray() as Vec3);
+    }
+    if (!anchors.length) { this.moveHandles.update(); return; }
+    const axes = [0, 1, 2].map(k => !!blocks.length || !!modules.length || walls.some(wall => 'xyz'.indexOf(wall.axis) === k)) as [boolean, boolean, boolean];
+    const key = JSON.stringify([props.source.id, props.source.revision, ids, props.slice, props.view, props.perspective, props.gridStep, props.moveTargets, props.pickTargets]);
+    if (key !== this.moveConstraintKey) {
+      this.moveConstraintKey = key; this.constrainMove = blockMoveConstraint(props.source, selected);
+    }
+    const anchor = anchors.reduce<Vec3>((sum, p) => sum.map((v, k) => v + p[k] / anchors.length) as Vec3, [0, 0, 0]);
+    this.moveHandles.update({ key, anchor, axes, unit: props.gridStep, constrain: this.constrainMove,
       preview: (delta, blocked) => {
         if (!delta) { this.finishMove(); return; }
         this.moveOffset = delta; this.moveBlocked = !!blocked;
