@@ -42,6 +42,7 @@ export function useBuilderSource({ starterSource, initialSource, initialDesignId
   const [tool] = useState(() => new BuilderTool(owner, {
     catalog: () => catalogRef.current,
     compiled: () => compiled.getSnapshot().current,
+    retained: () => compiled.getSnapshot().retained,
     suggest: suggest ? (source, ids, signal) => suggestRef.current!(source, ids, signal) : undefined,
   }));
   const revision = useSyncExternalStore(owner.subscribe, owner.getSnapshot, owner.getSnapshot);

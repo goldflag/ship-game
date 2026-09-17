@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test';
 import { shipPreset, shipPresets } from './presets';
-import { entriesForMode, inspectionEntries } from './inspection';
+import { armorThicknessColor, entriesForMode, inspectionEntries } from './inspection';
 import { ShipInspection } from '../game/ShipInspection';
 import { CombatSimulation } from '../simulation/combat';
 import { Group, Mesh, Raycaster, Vector3 } from 'three/webgpu';
@@ -188,4 +188,13 @@ test('equipment guns follow combat damage and train, and flooding remains indepe
   view.setMode('compartments', roomId); view.update(sim.player);
   expect(view.root.children.filter(c => c.visible && c.userData.inspectionId).map(c => c.userData.inspectionId)).toEqual([roomId]);
   expect(JSON.stringify(sim.player)).toBe(before);
+});
+
+test('the armor colour scale runs from green at its start to red at its end, so a destroyer\'s 20 mm reads apart from its skin and a uniform ship is all green', () => {
+  expect(armorThicknessColor(20, { fromMm: 0, toMm: 20 })).toBe(armorThicknessColor(400));
+  expect(armorThicknessColor(10, { fromMm: 0, toMm: 20 })).toBe(armorThicknessColor(200));
+  expect(armorThicknessColor(0, { fromMm: 0, toMm: 20 })).toBe(armorThicknessColor(0));
+  expect(armorThicknessColor(30, { fromMm: 0, toMm: 20 })).toBe(armorThicknessColor(400));
+  expect(armorThicknessColor(38, { fromMm: 16, toMm: 60 })).toBe(armorThicknessColor(200));
+  expect(armorThicknessColor(16, { fromMm: 16, toMm: 16 })).toBe(armorThicknessColor(0));
 });
