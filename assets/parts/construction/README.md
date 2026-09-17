@@ -222,3 +222,21 @@ did not carry, including the FuMO mattress on the German cupola) are plausible
 additions. Masses and exhaust ratings are gameplay estimates. Directors train on
 a `yaw` joint; mast radar arrays are fixed.
 
+## Capital and cruiser turrets
+
+Eleven turrets that the ships draw inline (or through the generic ship mount)
+now have standalone articulated builders: `../ijn-main-guns/` (46 cm Type 94
+triple, 15.5 cm Type 3 triple, 20.3 cm Type 3 twins with and without the
+rangefinder), `../us-main-guns/` (16-inch/50 Mk 7 and 8-inch/55 Mk 12 triples),
+`../rn-main-guns/` (14-inch Mk VII quadruple and twin, 5.25-inch QF Mk I twin)
+and `../german-battleship-guns/sk_c28.py`, `flak_105.py` (15 cm SK C/28 twin,
+10.5 cm twin heavy AA). Each follows the Cleveland builder: a yawing gunhouse
+and one elevation, recoil and muzzle joint per barrel from `aa_articulation`,
+with trunnion, muzzle, spacing, bore and base ring taken from `guns.json`.
+Gunhouse outlines are the ships' own envelopes. Gun ports are opened where the
+ship pushes barrels through closed plate, and blast bags are rigid and ride
+with their barrel, so a bag lifts off its port at high elevation. The 46 cm
+turret carries a 2.15 m rotating stalk below the gunhouse, because its mount
+datum sits that far under the floor aboard Yamato. The ships themselves are
+unchanged: they do not read the mount registry and keep their inline turrets.
+
