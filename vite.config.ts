@@ -15,6 +15,10 @@ const root = fileURLToPath(new URL('./', import.meta.url));
 
 const basePath = process.env.BASE_PATH ?? '/';
 const apiPrefix = `${basePath.replace(/\/$/, '')}/api`;
+// Accounts default to production so local dev needs no database; set ACCOUNTS_URL=http://127.0.0.1:8788 for a local API.
+const accountsUrl = process.env.ACCOUNTS_URL ?? 'https://ships.tomato.gg';
+// Production trusts only its exact origin, so present requests as coming from it.
+const accountsProxy = { target: accountsUrl, changeOrigin: true, secure: true, headers: { origin: new URL(accountsUrl).origin } };
 export default defineConfig({
   // Serve from a sub-path with e.g. BASE_PATH=/naval/ bun run build; runtime asset URLs go through src/assetUrl.ts.
   base: basePath,
@@ -34,7 +38,7 @@ export default defineConfig({
     },
   }],
   resolve: { dedupe: ['three'] },
-  server: { proxy: { [apiPrefix + '/auth']: { target: process.env.ACCOUNTS_URL ?? 'http://127.0.0.1:8788' }, [apiPrefix + '/ships']: { target: process.env.ACCOUNTS_URL ?? 'http://127.0.0.1:8788' }, [apiPrefix]: { target: process.env.NAVAL_SERVER ?? 'http://127.0.0.1:8787', ws: true, rewrite: path => '/api' + path.slice(apiPrefix.length) } } },
+  server: { proxy: { [apiPrefix + '/auth']: accountsProxy, [apiPrefix + '/ships']: accountsProxy, [apiPrefix]: { target: process.env.NAVAL_SERVER ?? 'http://127.0.0.1:8787', ws: true, rewrite: path => '/api' + path.slice(apiPrefix.length) } } },
   worker: { format: 'es' },
   build: {
     target: 'es2022',
