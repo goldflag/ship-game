@@ -103,6 +103,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
     window.addEventListener('resize', measure);
     return () => window.removeEventListener('resize', measure);
   }, [drawer, layer]);
+  const [hoveredPart, setHoveredPart] = useState<string>();
   const [warningsOpen, setWarningsOpen] = useState(true);
   const [designsOpen, setDesignsOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
@@ -270,10 +271,17 @@ export function Shipbuilder(props: ShipbuilderProps) {
       {format(area, 0)} m² · {layer === 'paint' ? <><kbd>1</kbd>–<kbd>9</kbd> paint</> : <><kbd>1</kbd> assign {customMm} mm · <kbd>2</kbd> open</>} · <kbd>⇧</kbd>click adds · <kbd>Esc</kbd> clear
     </> });
   }
-  const firstBlock = blocks.find(entry => entry.sourceId);
-  if (firstBlock) {
-    const target = data.primitives.find(part => part.id === firstBlock.sourceId) ?? data.equipment.find(part => part.id === firstBlock.sourceId);
-    if (target) tags.push({ key: `block-${firstBlock.sourceId}`, anchor: 'partId' in target ? equipmentAnchor(target) : target.position, dx: -262, dy: -80, tone: 'bad', content: <><b>Blocks launch</b><span>{firstBlock.message}</span></> });
+  const hoveredBlock = blocks.find(entry => entry.sourceId && entry.sourceId === hoveredPart);
+  if (hoveredBlock) {
+    const target = data.primitives.find(part => part.id === hoveredBlock.sourceId) ?? data.equipment.find(part => part.id === hoveredBlock.sourceId);
+    const boundary = data.boundaries.find(wall => wall.id === hoveredBlock.sourceId);
+    let anchor = target ? ('partId' in target ? equipmentAnchor(target) : target.position) : undefined;
+    if (boundary) {
+      const bounds = hullBounds(source);
+      anchor = (bounds ? bounds.min.map((value, index) => (value + bounds.max[index]) / 2) : [0, 0, 0]) as Vec3;
+      anchor[{ x: 0, y: 1, z: 2 }[boundary.axis]] = boundary.offset;
+    }
+    if (anchor) tags.push({ key: `block-${hoveredBlock.sourceId}`, anchor, dx: -262, dy: -80, tone: 'bad', passive: true, content: <><b>Blocks launch</b><span>{hoveredBlock.message}</span></> });
   }
 
   // Cards carry the piece, and hull cards its metre dimensions in the corner; the name and reading appear as a tooltip.
@@ -341,7 +349,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
       if (existing) run('Shape custom hull', [{ op: 'primitive', value: customHullPrimitive(hull, existing) }]);
       setCustomHullSession(undefined); tool.fit();
     } }}/>, document.body)}
-    <BuilderViewport scene={tool.scene(compile.retained)} tags={tags} coords={tool.coords} status={status} onPointer={tool.pointer} createModel={props.createModel}/>
+    <BuilderViewport scene={tool.scene(compile.retained)} tags={tags} coords={tool.coords} status={status} onPointer={tool.pointer} onHover={setHoveredPart} createModel={props.createModel}/>
     {freeformPrimitive && <FreeformToolbar primitive={freeformPrimitive} settings={freeformSettings} onChange={tool.changeFreeformSettings} cycleUnit={tool.cycleUnit} onCoordinate={tool.setSelectionCoordinate}
       onView={tool.setView} perspective={perspective} onProjection={tool.toggleProjection}
       onReset={tool.resetFreeform} onSplit={tool.splitFreeform} onExit={tool.exitFreeform}/>}

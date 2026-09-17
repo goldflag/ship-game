@@ -130,7 +130,7 @@ test('box selection switches to Select and adds with the modifier; arrows nudge,
   expect(owner.getSnapshot().history.lastAction).toBe('Redid remove selection');
 });
 
-test('switching layers resets the tool, faces and bearing; Internals slices under the main deck; a face layer picks hull faces only', async () => {
+test('switching layers resets the tool, faces and bearing; Internals keeps the whole ship visible; a face layer picks hull faces only', async () => {
   const { tool, state } = await setup();
   tool.key(key('r'), chrome());
   expect(state().bearing).toBe(90);
@@ -138,10 +138,13 @@ test('switching layers resets the tool, faces and bearing; Internals slices unde
   expect(state()).toMatchObject({ layer: 'armor', tool: 'apply', bearing: 0, slice: { on: false, auto: true } });
   expect(tool.scene(undefined)).toMatchObject({ pickTargets: 'hull', highlightFaces: true, moveTargets: 'none', display: 'armor', gesture: 'none' });
   tool.switchLayer('internals');
-  expect(state()).toMatchObject({ layer: 'internals', tool: 'module', slice: { on: true, y: .25, auto: true } });
-  expect(tool.scene(undefined)).toMatchObject({ rooms: true, slice: .25, display: 'internals', gridStep: .25 });
+  expect(state()).toMatchObject({ layer: 'internals', tool: 'module', slice: { on: false, y: 0, auto: true } });
+  expect(tool.scene(undefined)).toMatchObject({ rooms: true, slice: undefined, display: 'internals', gridStep: .25 });
   tool.toggleSlice();
+  expect(tool.scene(undefined).slice).toBe(.25);
   tool.switchLayer('fittings');
+  expect(tool.scene(undefined).slice).toBe(.25);
+  tool.toggleSlice();
   expect(state().slice).toEqual({ on: false, y: .25, auto: false });
   expect(tool.scene(undefined)).toMatchObject({ slice: undefined, gridStep: .25, moveTargets: 'equipment' });
 });

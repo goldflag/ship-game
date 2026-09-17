@@ -21,7 +21,8 @@ export async function checkInternalsSelection() {
   const ids = new Set(['engine', 'gun-forward', 'forward-bulkhead', 'aft-bulkhead']);
   assert(selected().every(id => ids.has(id)), 'Layer switch retained external selections');
   const original = structuredClone(viewport().props.scene.source.construction);
-  const checks = ['entering Internals discards hull and external fitting selections'];
+  assert(viewport().props.scene.slice === undefined, 'Entering Internals automatically cut off the ship');
+  const checks = ['entering Internals discards hull and external fitting selections and keeps the whole ship visible'];
   controls.key('a', { ctrlKey: true });
   await controls.settled(() => selected().length === ids.size, 'internal select-all');
   assert(selected().every(id => ids.has(id)), 'Select-all activated external components');
@@ -36,7 +37,9 @@ export async function checkInternalsSelection() {
   await controls.settled(() => JSON.stringify(viewport().props.scene.source.construction) === JSON.stringify(original), 'undo internal move');
   controls.key('Escape');
   await controls.settled(() => !selected().length, 'clear selection');
-  // Disable the cut so even fully visible external components must remain unselectable.
+  // Manual slicing is still available; turning it off restores the complete ship.
+  controls.key('s');
+  await controls.settled(() => viewport().props.scene.slice !== undefined, 'manual slice on');
   controls.key('s');
   await controls.settled(() => viewport().props.scene.slice === undefined, 'slice off');
   for (const point of [[3.5, 2.5, -22], [0, 5, 5]] as [number, number, number][]) {
@@ -97,4 +100,41 @@ export async function checkEquipmentPaletteImages() {
     checks.push(`${layer}: ${cards().length} decoded model images with visible pixels`);
   }
   return { passed: checks.length, checks };
+}
+
+/** Invalid installed parts are marked in the scene; their explanation follows hover only. */
+export async function checkInvalidPartFeedback() {
+  const { loadConstructionCatalog } = await import('../../src/ships/constructionEquipment');
+  const { createStarterSource } = await import('../../src/ships/constructionStarter');
+  const catalog = await loadConstructionCatalog(), source = createStarterSource(catalog);
+  const engine = source.construction.equipment.find(item => item.id === 'engine')!;
+  source.construction.equipment.push({ ...structuredClone(engine), id: 'valid-engine' });
+  engine.position[0] = 15;
+  window.shipbuilderReview?.close();
+  await mountShipbuilderReview(source, catalog);
+  await controls.settled(() => viewport().props.scene.current?.diagnostics.some(d => d.sourceId === 'engine' && d.severity === 'error'), 'invalid engine compiled');
+  const tag = () => document.querySelector('[data-tag="block-engine"]');
+  assert(!tag(), 'An error tooltip appeared without hovering the part');
+  await controls.tab('Internals');
+  const live = window.shipbuilderViewport as unknown as { equipment: { group: import('three').Group }; props: ViewportProps };
+  const meshes = (id: string) => {
+    const result: import('three').Mesh[] = [];
+    live.equipment.group.traverse(node => { if (node.type === 'Mesh' && node.userData.sourceId === id) result.push(node as import('three').Mesh); });
+    return result;
+  };
+  await controls.settled(() => meshes('engine').length && meshes('valid-engine').length, 'both machinery models loaded');
+  const colors = (id: string) => meshes(id).flatMap(mesh => (Array.isArray(mesh.material) ? mesh.material : [mesh.material]).map(material => (material as import('three').MeshStandardMaterial).color?.getHexString()));
+  assert(colors('engine').every(color => color === 'ffb5a6'), 'Invalid machinery did not turn red');
+  assert(colors('valid-engine').some(color => color !== 'ffb5a6'), 'Invalid tint leaked into another instance of the same part');
+  const part = catalog.equipment.find(part => part.id === engine.partId)!;
+  const point = engine.position.map((n, k) => n + part.boundsCenter[k]) as [number, number, number];
+  const [clientX, clientY] = await controls.screen(point);
+  const canvas = document.querySelector<HTMLCanvasElement>('.sb-canvas canvas')!;
+  canvas.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, clientX, clientY }));
+  await controls.settled(() => !!tag(), 'hovered error tooltip');
+  assert(tag()!.textContent?.includes('Blocks launch'), 'Hovered error has no explanation');
+  assert(getComputedStyle(tag()!).pointerEvents === 'none', 'Error card obstructs the viewport pointer');
+  canvas.dispatchEvent(new PointerEvent('pointerleave'));
+  await controls.settled(() => !tag(), 'error tooltip disappears on pointer leave');
+  return { checks: ['invalid part is red', 'same-part valid instance keeps its materials', 'error card appears only on hover and clears on leave', 'error card does not intercept clicks'] };
 }
