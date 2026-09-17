@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "ijn-aircraft-crane",
+  "revision": "5aebd81acd2a3983b8ce4e19efa9671932695d9993e901fc70da2b23811f8d2b",
+  "contentHash": "d4b4bcf2a6b7e8015301332a2584952d88a1f68fee41a54a32cb57567acd3f6c",
+  "modelSha256": "29c7728af0b52a1d26040a07cc7e00e50c96d30403099e6b4f49fe395f0ac820",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/ijn-aircraft-crane/5aebd81acd2a3983b8ce4e19efa9671932695d9993e901fc70da2b23811f8d2b/model.glb",
+  "boundsCenter": [
+    0,
+    5.873428046703339,
+    -5.039718151092529
+  ],
+  "size": [
+    3.440000057220459,
+    11.746856093406677,
+    16.07943630218506
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 5112,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original generic or ship-adapted deck fitting; dimensions and dry mass are declared game estimates, loading only, with no combat or handling effect.",
+  "basis": "assets/parts/construction/README.md"
+}

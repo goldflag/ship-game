@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "german-cruiser-searchlight",
+  "revision": "fc2014b2bc09b0f6023cabbba647e81b807ed99d616b5af2666eb1315a28b145",
+  "contentHash": "54724f0e16bc427663a2f47b15dd92de21e2bd4b2f3a4d5fcf85cad0919598f7",
+  "modelSha256": "d5955e97fd954cfaeba97dd815a4f5a7d5303cddadb5d4b26eacf888129d98d5",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/german-cruiser-searchlight/fc2014b2bc09b0f6023cabbba647e81b807ed99d616b5af2666eb1315a28b145/model.glb",
+  "boundsCenter": [
+    0,
+    1.0749999657273293,
+    -0.2568882405757904
+  ],
+  "size": [
+    1.6200000047683716,
+    2.1499999314546585,
+    1.413776457309723
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 1736,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original approved local Hipper component; fresh external reference verification incomplete. Static fitting; per-installation review required.",
+  "basis": "assets/parts/construction/README.md"
+}

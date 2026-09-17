@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "generic-railing",
+  "revision": "11dfc65410ac876e465746f215ceb0fe1bf8fdd5cc4b562741b53ce0ff81c0b8",
+  "contentHash": "a5ab9c883776fb5d2a4269bfa4437e5637dd662f625d9c55e7fe193da4b8199a",
+  "modelSha256": "a7a4b41b74c6f909dd7bd7a57095012fd602a1c5ee067486816ddaf19c802cbd",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/generic-railing/11dfc65410ac876e465746f215ceb0fe1bf8fdd5cc4b562741b53ce0ff81c0b8/model.glb",
+  "boundsCenter": [
+    1.5087425708770752e-7,
+    0.5600000689737499,
+    -1.9999999701976776
+  ],
+  "size": [
+    0.12000030651688576,
+    1.1200001379474998,
+    4.119999945163727
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 516,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original generic four-metre path sample. Player route geometry follows its declared profile; mass and member dimensions are provisional engineering estimates. Native construction validates each installed path.",
+  "basis": "assets/parts/construction/README.md"
+}

@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "generic-hawse-pipe",
+  "revision": "aaad219d88a462318416e6574cbfbc5609496a56afcdac53ff781f4e7e1ebea1",
+  "contentHash": "8c48b505cac1c691f06dce4a1d05aa229a2f4c7894764de50c25bb5066fcab3d",
+  "modelSha256": "36acdefacecba74b0d01ee0ea7c41d243cdea806fe8a508955adebb1209c3e2d",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/generic-hawse-pipe/aaad219d88a462318416e6574cbfbc5609496a56afcdac53ff781f4e7e1ebea1/model.glb",
+  "boundsCenter": [
+    -0.0032298266887664795,
+    0.23200000822544098,
+    0
+  ],
+  "size": [
+    1.0464597344398499,
+    0.46400001645088196,
+    2
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 3868,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original generic or ship-adapted deck fitting; dimensions and dry mass are declared game estimates, loading only, with no combat or handling effect.",
+  "basis": "assets/parts/construction/README.md"
+}

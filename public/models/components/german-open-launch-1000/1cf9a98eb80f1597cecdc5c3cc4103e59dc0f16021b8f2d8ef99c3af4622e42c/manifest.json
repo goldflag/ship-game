@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "german-open-launch-1000",
+  "revision": "1cf9a98eb80f1597cecdc5c3cc4103e59dc0f16021b8f2d8ef99c3af4622e42c",
+  "contentHash": "1b176d24a96917b11e8d37328a1f543522f6c8b58c3c52a1b4a95f1e83a587e8",
+  "modelSha256": "ee0e19c2ca35877e3898e66dfdf953f79bdeb254b7947f41d850eafd3a520028",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/german-open-launch-1000/1cf9a98eb80f1597cecdc5c3cc4103e59dc0f16021b8f2d8ef99c3af4622e42c/model.glb",
+  "boundsCenter": [
+    3.5762786865234375e-7,
+    0.7957602143287659,
+    0.0003342628479003906
+  ],
+  "size": [
+    2.6400012969970703,
+    1.5915206670761108,
+    10.08138370513916
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 692,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original Hipper source boat, fixed stowed pose; no boat-launching simulation.",
+  "basis": "assets/parts/construction/README.md"
+}

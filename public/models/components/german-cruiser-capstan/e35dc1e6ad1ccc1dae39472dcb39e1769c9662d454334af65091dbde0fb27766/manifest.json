@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "german-cruiser-capstan",
+  "revision": "e35dc1e6ad1ccc1dae39472dcb39e1769c9662d454334af65091dbde0fb27766",
+  "contentHash": "66a4399b56323a100b112032ab80d3b9439c3e7e0bebf7763075048c575d9c78",
+  "modelSha256": "f8a341b77625db65d6e411ad366adbeacc99692e4b5a8ffba9c335d5e6d627cf",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/german-cruiser-capstan/e35dc1e6ad1ccc1dae39472dcb39e1769c9662d454334af65091dbde0fb27766/model.glb",
+  "boundsCenter": [
+    0,
+    0.4424999840557575,
+    0
+  ],
+  "size": [
+    1.3600000143051147,
+    0.884999968111515,
+    1.3600000143051147
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 372,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original approved local Hipper component; fresh external reference verification incomplete. Static fitting; per-installation review required.",
+  "basis": "assets/parts/construction/README.md"
+}

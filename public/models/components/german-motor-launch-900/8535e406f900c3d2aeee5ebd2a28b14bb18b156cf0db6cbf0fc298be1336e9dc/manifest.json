@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "german-motor-launch-900",
+  "revision": "8535e406f900c3d2aeee5ebd2a28b14bb18b156cf0db6cbf0fc298be1336e9dc",
+  "contentHash": "17cebeb25ac3f499619f056405e45fe270d6902ee339d25a93ce625964ea90c0",
+  "modelSha256": "07763aab3333ed1f81f0b4b5065dbbf9c9088795aa63bba381e7fd4cf284e86c",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/german-motor-launch-900/8535e406f900c3d2aeee5ebd2a28b14bb18b156cf0db6cbf0fc298be1336e9dc/model.glb",
+  "boundsCenter": [
+    2.384185791015625e-7,
+    0.8599998354911804,
+    0.0003154277801513672
+  ],
+  "size": [
+    2.585000991821289,
+    1.71999990940094,
+    9.084400653839111
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 764,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original Hipper source boat, fixed stowed pose; no boat-launching simulation.",
+  "basis": "assets/parts/construction/README.md"
+}

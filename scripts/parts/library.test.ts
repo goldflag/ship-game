@@ -1,3 +1,4 @@
+import { COMPONENT_MATERIAL_INPUTS } from '../../src/ships/componentMaterials';
 import { describe, test, expect } from 'bun:test';
 import { resolve, join, dirname } from 'node:path';
 import { mkdtemp, mkdir, readFile, writeFile, rm } from 'node:fs/promises';
@@ -54,11 +55,17 @@ test('component export helpers invalidate previews and missing dependencies fail
   const builder = library.builders[entry.builder!];
   const helper = 'scripts/ships/blender_batching.py';
   try {
-    for (const path of ['assets/parts/library.py', builder.path, ...builder.inputs, 'scripts/parts/build.py', 'scripts/ships/export.py', helper]) {
+    for (const path of [...COMPONENT_MATERIAL_INPUTS, 'assets/parts/library.py', builder.path, ...builder.inputs, 'scripts/parts/build.py', 'scripts/ships/export.py', helper]) {
       await mkdir(dirname(join(directory, path)), { recursive: true });
       await writeFile(join(directory, path), await readFile(join(root, path)));
     }
     const before = await componentHash(directory, library, entry, part);
+    for (const input of COMPONENT_MATERIAL_INPUTS) {
+      const original = await readFile(join(directory, input), 'utf8');
+      await writeFile(join(directory, input), original + '\n');
+      expect(await componentHash(directory, library, entry, part)).not.toBe(before);
+      await writeFile(join(directory, input), original);
+    }
     await writeFile(join(directory, helper), 'changed batching dependency');
     expect(await componentHash(directory, library, entry, part)).not.toBe(before);
     await rm(join(directory, helper));

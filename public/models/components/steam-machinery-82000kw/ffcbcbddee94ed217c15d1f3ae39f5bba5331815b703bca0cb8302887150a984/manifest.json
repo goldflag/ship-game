@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "steam-machinery-82000kw",
+  "revision": "ffcbcbddee94ed217c15d1f3ae39f5bba5331815b703bca0cb8302887150a984",
+  "contentHash": "c001c4f3be37c1eb3a698872a979b5d96da7a022925540c76289977156a39682",
+  "modelSha256": "ef52a9c09ce08dd89b62bf2a1163c2daef0e4114460e4366b0ed60faa7abb528",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/steam-machinery-82000kw/ffcbcbddee94ed217c15d1f3ae39f5bba5331815b703bca0cb8302887150a984/model.glb",
+  "boundsCenter": [
+    0,
+    1.910000041127205,
+    0
+  ],
+  "size": [
+    12.000001907348633,
+    3.82000008225441,
+    20
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 1264,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original Hipper source adaptation, or explicitly provisional machinery/magazine package. Fresh external reference verification incomplete. Per-installation attachment and articulation review required.",
+  "basis": "assets/parts/construction/README.md"
+}

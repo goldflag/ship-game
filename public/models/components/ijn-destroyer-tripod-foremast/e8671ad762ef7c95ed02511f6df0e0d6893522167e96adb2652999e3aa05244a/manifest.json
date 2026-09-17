@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "ijn-destroyer-tripod-foremast",
+  "revision": "e8671ad762ef7c95ed02511f6df0e0d6893522167e96adb2652999e3aa05244a",
+  "contentHash": "3664916ec9833da37777852462bbd7eac10f1c53de3a4ccc9131afcf652ef1f5",
+  "modelSha256": "0f05ed73bdae86efb00a0e17d7ba6a02784b2bbe5a209b2ee4f4924a95a37db2",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/ijn-destroyer-tripod-foremast/e8671ad762ef7c95ed02511f6df0e0d6893522167e96adb2652999e3aa05244a/model.glb",
+  "boundsCenter": [
+    0,
+    9.180000687018037,
+    0.032440900802612305
+  ],
+  "size": [
+    4.599999904632568,
+    18.360001374036074,
+    4.696058750152588
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 4540,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Adapted original Yukikaze recipe as a standalone fitting; mass and ratings are gameplay estimates. Per-design attachment and clearance require installation review.",
+  "basis": "assets/parts/construction/README.md"
+}

@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "ijn-aircraft-catapult",
+  "revision": "659839794fca992dd0dcee0b27d88e239a4de5a89fb29de6abc3f8ca241bfb4c",
+  "contentHash": "7109bfe5177281ef84bd72d628a179ab0cfa19e68e052a26d24e767151b39708",
+  "modelSha256": "70026109744c655df8c5b1568f01cfb201b99e8a657a6eac597f9f2e74e9f698",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/ijn-aircraft-catapult/659839794fca992dd0dcee0b27d88e239a4de5a89fb29de6abc3f8ca241bfb4c/model.glb",
+  "boundsCenter": [
+    0,
+    1.8000001013278961,
+    0
+  ],
+  "size": [
+    3.4716343879699707,
+    3.600000321865082,
+    19.503923416137695
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 7960,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original generic or ship-adapted deck fitting; dimensions and dry mass are declared game estimates, loading only, with no combat or handling effect.",
+  "basis": "assets/parts/construction/README.md"
+}

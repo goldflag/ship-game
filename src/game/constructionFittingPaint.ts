@@ -1,7 +1,8 @@
 import * as THREE from 'three';
-import { constructionPaintColor, CONSTRUCTION_FINISH } from '../ships/constructionPaints';
+import { constructionPaintColor } from '../ships/constructionPaints';
+import { followsComponentPaint } from '../ships/componentMaterials';
 
-/** Coat opaque fitting surfaces, preserving glass, texture detail and articulation.
+/** Recolor declared coatings, preserving fixed materials, finishes and articulation.
  * Cloned materials belong to the caller; geometry and textures remain shared. */
 export function paintConstructionFitting(model: THREE.Group, paint?: string, clone = true): THREE.Material[] {
   if (!paint) return [];
@@ -10,12 +11,11 @@ export function paintConstructionFitting(model: THREE.Group, paint?: string, clo
     if (!(node instanceof THREE.Mesh)) return;
     const coat = (original: THREE.Material): THREE.Material => {
       if (!(original instanceof THREE.MeshStandardMaterial) || original.transparent || original.opacity < 1) return original;
+      if (!followsComponentPaint(original.name, original.userData)) return original;
       let material = materials.get(original);
       if (!material) {
         const coated = clone ? original.clone() : original;
         coated.color.set(constructionPaintColor(paint));
-        coated.roughness = CONSTRUCTION_FINISH.steelRoughness;
-        coated.metalness = CONSTRUCTION_FINISH.metalness;
         materials.set(original, material = coated);
       }
       return material;

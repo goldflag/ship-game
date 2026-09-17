@@ -18,13 +18,9 @@ bpy.context.preferences.filepaths.save_version=0
 scene=bpy.context.scene
 scene.unit_settings.system='METRIC';scene.unit_settings.scale_length=1
 col=bpy.data.collections.new('Original equipment');scene.collection.children.link(col)
-materials={}
-for key,color in {'naval':(.38,.43,.45,1),'roof':(.22,.26,.28,1),'edge':(.18,.20,.22,1),'dark':(.03,.035,.04,1),'underwater':(.20,.06,.04,1),'bronze':(.34,.23,.09,1)}.items():
-    mat=bpy.data.materials.new(key);mat.diffuse_color=color;mat.use_nodes=True
-    node=mat.node_tree.nodes.get('Principled BSDF');node.inputs['Base Color'].default_value=color
-    node.inputs['Roughness'].default_value=.78
-    node.inputs['Metallic'].default_value=.55 if key=='bronze' else 0
-    materials[key]=mat
+sys.path.insert(0, str(ROOT / 'assets/parts'))
+from materials import create_materials
+materials = create_materials()
 
 def mesh(name,vertices,faces,material,col,smooth=False):
     data=bpy.data.meshes.new(name);data.from_pydata(vertices,[],faces);data.update()

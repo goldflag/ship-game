@@ -1,3 +1,4 @@
+import { validateComponentMaterials } from '../../src/ships/componentMaterials';
 import { mkdir, readFile, writeFile, rename, rm, readdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
@@ -57,6 +58,7 @@ export async function publishEquipment(taskRoot=root, rebuild=false) {
         await buildEquipment(taskRoot,p);
         bytes=await readFile(model);
       }
+      validateComponentMaterials(JSON.parse(bytes.subarray(20,20+bytes.readUInt32LE(12)).toString()).materials ?? []);
       const inspection=inspectEquipmentModel(bytes,hash,p,before.catalog.parts.find(g=>g.id===p.gunPartId));
       for (let k=0;k<3;k++) if (Math.abs(inspection.boundsCenter[k]-p.boundsCenter[k])+inspection.size[k]/2 > p.size[k]/2+.025) throw new Error(`${p.id}: visible model exceeds authored size/boundsCenter on axis ${k}; review dimensions before publishing`);
       const modelSha256=digest(bytes), revision=digest(JSON.stringify([1,p,hash,modelSha256]));
@@ -90,6 +92,7 @@ export async function checkPublishedEquipment(taskRoot=root) {
     const directory=join(taskRoot,'public',modelUrl.replace(/^\//,''),'..');
     const bytes=await readFile(join(directory,'model.glb'));
     const manifest=JSON.parse(await readFile(join(directory,'manifest.json'),'utf8')) as PublishedEquipmentManifest;
+    validateComponentMaterials(JSON.parse(bytes.subarray(20,20+bytes.readUInt32LE(12)).toString()).materials ?? []);
     const inspection=inspectEquipmentModel(bytes,contentHash,source,beforeWeapon(catalog,source));
     const revision=digest(JSON.stringify([1,source,contentHash,digest(bytes)]));
     const review=source.kind==='gun' ? expected.library.components.find(e=>e.partId===source.gunPartId) : expected.registry.components.find(e=>e.partId===source.id);

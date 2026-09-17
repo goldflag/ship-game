@@ -1,3 +1,4 @@
+import { componentMaterial } from '../ships/componentMaterials';
 import * as THREE from 'three';
 import type { ConstructionEquipment, ConstructionEquipmentPart, Vec3 } from '../ships/blueprint';
 import { DEFAULT_PATH } from '../ships/constructionPaths';
@@ -8,7 +9,10 @@ export function createConstructionPathModel(part: ConstructionEquipmentPart, pat
   const group = new THREE.Group(), profile = part.path;
   if (!profile || !path || path.points.length < 2 || path.points.length > 64 || path.points.some(p => p.some(v => !Number.isFinite(v) || Math.abs(v) > 1000))) return group;
   group.name = part.name;
-  const material = new THREE.MeshStandardMaterial({ color: ghost ? '#e0c58d' : profile.kind === 'rope' ? '#ad9973' : '#687373', roughness: profile.kind === 'rope' ? .96 : .7, metalness: profile.kind === 'rope' ? 0 : .18, transparent: ghost, opacity: ghost ? .6 : 1, depthWrite: !ghost });
+  const surface = componentMaterial(profile.kind === 'rope' ? 'rope' : profile.kind === 'chain' ? 'edge' : 'naval');
+  const color = ghost ? new THREE.Color('#e0c58d') : new THREE.Color().setRGB(...surface.color as [number, number, number]);
+  const material = new THREE.MeshStandardMaterial({ color, roughness: surface.roughness, metalness: surface.metallic, transparent: ghost, opacity: ghost ? .6 : 1, depthWrite: !ghost });
+  material.userData = surface.userData;
   const members: [Vec3, Vec3][] = [];
   const points = path.points;
   const lengths = points.slice(1).map((p, i) => pathDistance(points[i], p));

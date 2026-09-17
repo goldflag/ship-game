@@ -16,12 +16,10 @@ bpy.context.preferences.filepaths.save_version = 0
 scene = bpy.context.scene
 scene.unit_settings.system = 'METRIC'; scene.unit_settings.scale_length = 1
 collection = bpy.data.collections.new('Shared component'); scene.collection.children.link(collection)
-materials = {}
-for key, color in {'naval':(.38,.43,.45,1), 'roof':(.22,.26,.28,1), 'edge':(.18,.2,.22,1), 'hullgray':(.28,.33,.35,1), 'canvas':(.48,.48,.42,1), 'dark':(.03,.035,.04,1)}.items():
-    material = bpy.data.materials.new(key); material.diffuse_color = color; material.use_nodes = True
-    material.node_tree.nodes['Principled BSDF'].inputs['Base Color'].default_value = color
-    material.node_tree.nodes['Principled BSDF'].inputs['Roughness'].default_value = .78
-    materials[key] = material
+sys.path.insert(0, str(ROOT / 'assets/parts'))
+from materials import create_materials
+materials = create_materials()
+
 def mesh(name,vertices,faces,material,col,smooth=False):
     data=bpy.data.meshes.new(name);data.from_pydata(vertices,[],faces);data.update()
     obj=bpy.data.objects.new(name,data);col.objects.link(obj)

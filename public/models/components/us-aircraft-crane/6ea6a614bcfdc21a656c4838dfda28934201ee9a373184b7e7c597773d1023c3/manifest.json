@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "us-aircraft-crane",
+  "revision": "6ea6a614bcfdc21a656c4838dfda28934201ee9a373184b7e7c597773d1023c3",
+  "contentHash": "40b5af1b36752ed5a257177ad44cd22d67e8c4b60b409ee0233c1b63d5147a48",
+  "modelSha256": "ff02fa136b532529844f838a76f3fdc7688fa548de54828cfa8b0f8b3d8f56c5",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/us-aircraft-crane/6ea6a614bcfdc21a656c4838dfda28934201ee9a373184b7e7c597773d1023c3/model.glb",
+  "boundsCenter": [
+    0.004999935626983643,
+    5.352771461009979,
+    -4.536022186279297
+  ],
+  "size": [
+    2.5100003480911255,
+    10.705542922019958,
+    14.072044372558594
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 6712,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original generic or ship-adapted deck fitting; dimensions and dry mass are declared game estimates, loading only, with no combat or handling effect.",
+  "basis": "assets/parts/construction/README.md"
+}

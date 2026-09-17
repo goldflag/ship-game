@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "finishes": {
+    "detail": { "roughness": 0.78, "metallic": 0 },
+    "canvas": { "roughness": 0.92, "metallic": 0 },
+    "rope": { "roughness": 0.95, "metallic": 0 },
+    "glass": { "roughness": 0.20, "metallic": 0.10 },
+    "bright-metal": { "roughness": 0.32, "metallic": 0.65 },
+    "bronze": { "roughness": 0.78, "metallic": 0.55 }
+  },
+  "roles": {
+    "naval": { "color": [0.38, 0.43, 0.45], "finish": "painted-steel", "paint": "component" },
+    "roof": { "color": [0.22, 0.26, 0.28], "finish": "painted-deck", "paint": "component" },
+    "hullgray": { "color": [0.28, 0.33, 0.35], "finish": "painted-steel", "paint": "component" },
+    "painted-edge": { "color": [0.18, 0.20, 0.22], "finish": "painted-steel", "paint": "component" },
+    "edge": { "color": [0.18, 0.20, 0.22], "finish": "detail", "paint": "fixed" },
+    "dark": { "color": [0.03, 0.035, 0.04], "finish": "detail", "paint": "fixed" },
+    "canvas": { "color": [0.48, 0.48, 0.42], "finish": "canvas", "paint": "fixed" },
+    "underwater": { "color": [0.20, 0.06, 0.04], "finish": "underwater-coating", "paint": "fixed" },
+    "bronze": { "color": [0.34, 0.23, 0.09], "finish": "bronze", "paint": "fixed" },
+    "wood": { "color": [0.21, 0.145, 0.08], "finish": "wood", "paint": "fixed" },
+    "rope": { "color": [0.27, 0.24, 0.18], "finish": "rope", "paint": "fixed" },
+    "glass": { "color": [0.055, 0.10, 0.12], "finish": "glass", "paint": "fixed" },
+    "bright": { "color": [0.36, 0.40, 0.42], "finish": "bright-metal", "paint": "fixed" }
+  },
+  "legacyRoles": {
+    "naval": "naval", "roof": "roof", "hullgray": "hullgray",
+    "edge": "edge", "dark": "dark", "canvas": "canvas", "bronze": "bronze", "underwater": "underwater",
+    "deck-fittings.wood": "wood", "deck-fittings.rope": "rope", "deck-fittings.glass": "glass", "deck-fittings.bright": "bright",
+    "natural-rope": "rope"
+  }
+}

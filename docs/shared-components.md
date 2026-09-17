@@ -67,6 +67,39 @@ Authoring axes remain +X bow, +Y port, +Z up in Blender. Blueprint/runtime axes 
 
 ## Extend or migrate a component
 
+### Shared materials and component paint
+
+`assets/parts/materials.json` is the versioned palette for standalone guns,
+non-gun equipment and procedural construction paths. `materials.py` supplies
+the same Blender materials to both build entry points. Coatings reuse the
+shared ship finishes; RGB swatches are linear, not sRGB. The palette also
+defines protected canvas, wood, rope, bronze, optics and bright metal.
+
+Recipes assign material roles deliberately. `naval`, `roof`, `hullgray` and
+`painted-edge` follow the instance's selected paint. `edge` is the retained
+dark-detail role, not a claim that every fitting using it is bare metal; it and
+the other fixed roles keep their original appearance. Use `painted-edge` for
+dark structural fittings that should follow paint. Split a material assignment
+when coated structure and protected mechanisms currently share it. Do not infer
+paintability from mesh names, brightness or nationality. Opaque optics are fixed
+too; transparency is not the paint contract.
+
+The exporter retains `componentMaterialVersion`, `componentMaterialRole` and
+`componentPaint` in each material's glTF extras. New publications reject missing
+or inconsistent roles. The editor, game and portable construction exports use
+the same paint function, changing only coating color and preserving authored
+roughness, metalness, textures and articulation. Old immutable component
+revisions use the explicit `legacyRoles` mapping; unknown materials remain
+unchanged. Retained catalogs and saved designs are not rewritten.
+
+Both component hash paths track the shared palette, factory and ship finishes.
+After a material change run `part:publish`, `part:thumbnails`, `ship:check all`
+and the relevant tests/build checks. Review published components before and
+after recoloring, including mixed materials and articulated poses. Historical
+ship recipes continue to supply their approved ship-specific palettes.
+
+### Original component recipes
+
 - Model a genuinely missing variant in an original reusable recipe under `assets/parts/`. Extract existing **source code or versioned original assets**, never a published ship GLB, generated `source.blend`, baseline or downloaded reference model.
 - Keep gun mechanisms, mount enclosures and ship installation code separable where the real variants justify it. Use explicit builder registrations, not ship-name branches or a caliber-based fallback.
 - Add or preserve the catalog part ID, add its discovery metadata, and register its builder function and transitive original Python inputs. The callable accepts `(mount, collection, helpers, materials)`. Build the standalone preview through that same callable; do not maintain a different preview model.

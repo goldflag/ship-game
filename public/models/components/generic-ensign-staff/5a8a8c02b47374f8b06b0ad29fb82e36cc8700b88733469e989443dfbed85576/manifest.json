@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "generic-ensign-staff",
+  "revision": "5a8a8c02b47374f8b06b0ad29fb82e36cc8700b88733469e989443dfbed85576",
+  "contentHash": "2947d82b198756e4df8029157dff7df25ac43316410627eebf017251e424e882",
+  "modelSha256": "db5d74e92fa6b7f242fb2e332b6bd4bdcd33660f7b6c9b403209f88a7773bd0c",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/generic-ensign-staff/5a8a8c02b47374f8b06b0ad29fb82e36cc8700b88733469e989443dfbed85576/model.glb",
+  "boundsCenter": [
+    7.450580596923828e-8,
+    2.2770000169984996,
+    -0.20096606016159058
+  ],
+  "size": [
+    0.9799999892711639,
+    4.554000033996999,
+    1.6980677843093872
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 1464,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original generic or ship-adapted deck fitting; dimensions and dry mass are declared game estimates, loading only, with no combat or handling effect.",
+  "basis": "assets/parts/construction/README.md"
+}
