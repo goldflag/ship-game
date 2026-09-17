@@ -21,7 +21,6 @@ export async function checkInternalsSelection() {
   const ids = new Set(['engine', 'gun-forward', 'forward-bulkhead', 'aft-bulkhead']);
   assert(selected().every(id => ids.has(id)), 'Layer switch retained external selections');
   const original = structuredClone(viewport().props.scene.source.construction);
-  assert(viewport().props.scene.slice === undefined, 'Entering Internals automatically cut off the ship');
   const checks = ['entering Internals discards hull and external fitting selections and keeps the whole ship visible'];
   controls.key('a', { ctrlKey: true });
   await controls.settled(() => selected().length === ids.size, 'internal select-all');
@@ -37,11 +36,6 @@ export async function checkInternalsSelection() {
   await controls.settled(() => JSON.stringify(viewport().props.scene.source.construction) === JSON.stringify(original), 'undo internal move');
   controls.key('Escape');
   await controls.settled(() => !selected().length, 'clear selection');
-  // Manual slicing is still available; turning it off restores the complete ship.
-  controls.key('s');
-  await controls.settled(() => viewport().props.scene.slice !== undefined, 'manual slice on');
-  controls.key('s');
-  await controls.settled(() => viewport().props.scene.slice === undefined, 'slice off');
   for (const point of [[3.5, 2.5, -22], [0, 5, 5]] as [number, number, number][]) {
     controls.click(...await controls.screen(point));
     await controls.settled(() => true, 'pick visible exterior');
@@ -51,7 +45,7 @@ export async function checkInternalsSelection() {
     assert(JSON.stringify(viewport().props.scene.source.construction.primitives) === JSON.stringify(original.primitives), 'Right-click erased hull');
     assert(JSON.stringify(viewport().props.scene.source.construction.equipment.filter(p => !ids.has(p.id))) === JSON.stringify(original.equipment.filter(p => !ids.has(p.id))), 'Right-click erased external fittings');
   }
-  checks.push('visible hull and fittings cannot be activated or erased with slice off');
+  checks.push('visible hull and fittings cannot be activated or erased');
   controls.key('Escape'); controls.key('q');
   await controls.settled(() => viewport().props.scene.view === 'top', 'top view');
   // In top view the ray goes through the external funnel and hull to the engine.

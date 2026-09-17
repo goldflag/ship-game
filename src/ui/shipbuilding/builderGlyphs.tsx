@@ -11,7 +11,7 @@ const TOOL_PATHS: Record<string, string> = {
   Fitting: 'M6 11a4 4 0 1 0 8 0 4 4 0 1 0-8 0M10 7V2M6 17h8', Part: 'M3 8h14v6H3zM6 8V5h8v3',
   View: 'M2 10s3-5 8-5 8 5 8 5-3 5-8 5-8-5-8-5zM7.5 10a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0-5 0',
   Perspective: 'M3 3h14v14H3zM7 7h6v6H7zM3 3l4 4M17 3l-4 4M3 17l4-4M17 17l-4-4', Orthographic: 'M3 7h10v10H3zM7 3h10v10h-4M3 7l4-4M13 7l4-4',
-  Slice: 'M4 15V7l6 3v8zM10 10l6-3v8l-6 3M4 7l6-3 6 3M1 12h18', Centers: 'M10 3v3M10 14v3M3 10h3M14 10h3M7 10a3 3 0 1 0 6 0a3 3 0 1 0-6 0',
+  Centers: 'M10 3v3M10 14v3M3 10h3M14 10h3M7 10a3 3 0 1 0 6 0a3 3 0 1 0-6 0',
   Snap: 'M3 7.5h14M3 12.5h14M7.5 3v14M12.5 3v14', Fit: 'M3 7V3h4M13 3h4v4M17 13v4h-4M7 17H3v-4M7 8h6v4H7z',
   Hull: 'M2 8h16l-3 6H5zM10 8V4M7 8V6', Armor: 'M10 2l7 3v5c0 4-3 7-7 8-4-1-7-4-7-8V5z',
   Keys: 'M10 2.5a7.5 7.5 0 1 1 0 15 7.5 7.5 0 0 1 0-15zM7.7 8a2.3 2.3 0 1 1 3.3 2.1c-.7.4-1 .9-1 1.6v.4M10 14.6v.4',

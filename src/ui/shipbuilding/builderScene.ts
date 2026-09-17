@@ -36,7 +36,7 @@ export interface BuilderScene {
   current?: ConstructionResult;
   catalog: ConstructionCatalog;
   selected: ReadonlySet<string>; selectedSurfaces: ReadonlySet<string>;
-  view: BuilderView; perspective: boolean; display: BuilderDisplay; slice?: number; fitRequest: number;
+  view: BuilderView; perspective: boolean; display: BuilderDisplay; fitRequest: number;
   /** The ship's thinnest and thickest plates: the green and red ends of the Armor layer's colour scale. */
   armorScale: ArmorScale;
   gridStep: number; gesture: BuilderGesture;

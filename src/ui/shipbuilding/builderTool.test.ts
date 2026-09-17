@@ -137,18 +137,13 @@ test('switching layers resets the tool, faces and bearing; Internals keeps the w
   tool.key(key('r'), chrome());
   expect(state().bearing).toBe(90);
   tool.switchLayer('armor');
-  expect(state()).toMatchObject({ layer: 'armor', tool: 'apply', bearing: 0, slice: { on: false, auto: true } });
+  expect(state()).toMatchObject({ layer: 'armor', tool: 'apply', bearing: 0 });
   expect(tool.scene(undefined)).toMatchObject({ pickTargets: 'hull', highlightFaces: true, moveTargets: 'none', display: 'armor', gesture: 'faces' });
   tool.switchLayer('internals');
-  expect(state()).toMatchObject({ layer: 'internals', tool: 'module', slice: { on: false, y: 0, auto: true } });
-  expect(tool.scene(undefined)).toMatchObject({ rooms: true, slice: undefined, display: 'internals', gridStep: .25 });
-  tool.toggleSlice();
-  expect(tool.scene(undefined).slice).toBe(.25);
+  expect(state()).toMatchObject({ layer: 'internals', tool: 'module' });
+  expect(tool.scene(undefined)).toMatchObject({ rooms: true, display: 'internals', gridStep: .25 });
   tool.switchLayer('fittings');
-  expect(tool.scene(undefined).slice).toBe(.25);
-  tool.toggleSlice();
-  expect(state().slice).toEqual({ on: false, y: .25, auto: false });
-  expect(tool.scene(undefined)).toMatchObject({ slice: undefined, gridStep: .25, moveTargets: 'equipment' });
+  expect(tool.scene(undefined)).toMatchObject({ gridStep: .25, moveTargets: 'equipment' });
 });
 
 test('armor and paint: Paint assigns the active card to the clicked face and its mirror, Area gathers faces, Eyedrop copies, Opening toggles', async () => {

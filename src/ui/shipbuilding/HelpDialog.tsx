@@ -22,14 +22,13 @@ const EDITING: [string[], string][] = [
   [['⌘A'], 'Select every hull piece and fitting'],
   [['Del', '⌫', '⌘X'], 'Remove the selection; a wall merges its rooms'],
   [['←', '→', '↑', '↓'], 'Nudge the selection by the chosen Snap step'],
-  [['PgUp', 'PgDn'], 'Raise or lower the selection; with Shift, move the slice'],
+  [['PgUp', 'PgDn'], 'Raise or lower the selection'],
   [['R', '⇧R'], 'Rotate the cursor piece or selection: 90° hull, 15° fittings; Shift-R turns fittings 1°'],
   [['Esc'], 'Close a panel, cancel a gesture, then return to Select'],
 ];
 const VIEW: [string[], string][] = [
   [['Q'], 'Cycle Orbit, Plan, Profile and Bow'],
   [['P'], 'Toggle perspective / orthographic camera (perspective by default)'],
-  [['S'], 'Slice the ship above a height'],
   [['W'], 'Collapse or expand the warnings'],
   [['M'], 'Mirror placements across the centerline'],
   [['C'], 'Show or hide the centers of gravity and buoyancy'],

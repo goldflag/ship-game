@@ -7,13 +7,12 @@ import type { ConstructionCatalog, ConstructionSource, Vec3 } from '../../ships/
 export interface SelectionRect { left: number; top: number; right: number; bottom: number }
 
 /** Screen-space selection includes pieces enclosed by the rectangle, through the
- * hull. Hidden internal packages and pieces above the slice are excluded. */
-export function boxSelectedPieces(source: ConstructionSource, catalog: ConstructionCatalog, camera: THREE.Camera, rect: SelectionRect, width: number, height: number, slice?: number, internals = false): string[] {
+ * hull. Hidden internal packages are excluded. */
+export function boxSelectedPieces(source: ConstructionSource, catalog: ConstructionCatalog, camera: THREE.Camera, rect: SelectionRect, width: number, height: number, internals = false): string[] {
   const result: string[] = [];
   camera.updateMatrixWorld(true);
   const overlaps = (position: Vec3, size: Vec3, rotation: number, center: Vec3 = [0, 0, 0]) => {
-    const lowY = position[1] + center[1] - size[1] / 2, highY = Math.min(position[1] + center[1] + size[1] / 2, slice ?? Infinity);
-    if (lowY > highY) return false;
+    const lowY = position[1] + center[1] - size[1] / 2, highY = position[1] + center[1] + size[1] / 2;
     const bounds = { left: Infinity, right: -Infinity, top: Infinity, bottom: -Infinity, near: Infinity, far: -Infinity };
     const matrix = new THREE.Matrix4().makeRotationY(rotation);
     for (const x of [-.5, .5]) for (const y of [lowY, highY]) for (const z of [-.5, .5]) {

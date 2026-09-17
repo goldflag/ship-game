@@ -2,24 +2,23 @@ import { ToolGlyph } from './builderGlyphs';
 
 export interface ViewBarTip { title: string; detail: string; key?: string; target: HTMLElement }
 export interface ViewBarProps {
-  viewName: string; perspective: boolean; sliceLabel: string; sliceOn: boolean; showCenters: boolean;
+  viewName: string; perspective: boolean; showCenters: boolean;
   /** Undefined outside the Fittings layer, where arcs never draw; the Arcs square then stays off the strip. */
   showArcs?: boolean;
-  onView(): void; onProjection(): void; onSlice(): void; onCenters(): void; onArcs(): void; onFit(): void;
+  onView(): void; onProjection(): void; onCenters(): void; onArcs(): void; onFit(): void;
   onTip(tip: ViewBarTip | undefined): void;
 }
 
 interface Entry { id: string; glyph: string; label: string; value?: string; pressed?: boolean; key?: string; detail: string; group: number; onClick(): void }
 
 /** View strip at the foot of the tool rail: how the ship is shown, never what a click does. One captioned two-column grid of bare
- *  glyph squares (view · camera · slice · fit, then centers · arcs) below the Modifiers, so the whole left edge carries every key.
+ *  glyph squares (view · camera · fit, then centers · arcs) below the Modifiers, so the whole left edge carries every key.
  *  Toggles show their state as the pressed square; the name, value, description and key appear in the tooltip beside the glyph. */
 export function ViewBar(props: ViewBarProps) {
   const { onTip } = props;
   const entries: Entry[] = [
     { id: 'view', glyph: 'View', label: 'View', value: props.viewName, key: 'Q', detail: 'Cycle the view', group: 0, onClick: props.onView },
     { id: 'camera', glyph: props.perspective ? 'Perspective' : 'Orthographic', label: 'Camera', value: props.perspective ? 'Perspective' : 'Orthographic', key: 'P', detail: 'Toggle orthographic and perspective cameras', group: 0, onClick: props.onProjection },
-    { id: 'slice', glyph: 'Slice', label: 'Slice', value: props.sliceLabel, pressed: props.sliceOn, key: 'S', detail: 'Cut the ship above a height', group: 0, onClick: props.onSlice },
     { id: 'fit', glyph: 'Fit', label: 'Fit', key: 'Home', detail: 'Frame the ship', group: 0, onClick: props.onFit },
     { id: 'centers', glyph: 'Centers', label: 'Centers', value: props.showCenters ? 'On' : 'Off', pressed: props.showCenters, key: 'C', detail: 'Show center of gravity (mass) and center of buoyancy markers', group: 1, onClick: props.onCenters },
     ...(props.showArcs === undefined ? [] : [{ id: 'arcs', glyph: 'Arc', label: 'Arcs', value: props.showArcs ? 'On' : 'Off', pressed: props.showArcs, key: 'A', detail: 'Show the traverse arc of every gun mount', group: 1, onClick: props.onArcs }]),
