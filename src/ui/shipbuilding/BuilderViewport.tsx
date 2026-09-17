@@ -2,6 +2,7 @@ import { boundaryGeometry } from './boundaryGeometry';
 import { envelopeVertices } from '../../ships/freeformShape';
 import { paintedHullFace } from '../../ships/constructionHullPaint';
 import { surfaceOutline } from './surfaceOutline';
+import { itemOutlineGeometry } from './itemOutline';
 import { internalSelectionIds } from './internalSelection';
 import { createBuilderGrid } from './builderGrid';
 import { FreeformHandles } from './FreeformHandles';
@@ -447,7 +448,8 @@ class Viewport {
         const datum = new THREE.Group(); datum.position.set(...item.position); datum.rotation.y = -item.bearingDeg * Math.PI / 180; datum.add(box); this.proposedGroup.add(datum);
       }
     }
-    if (props.scene.highlightFaces !== old.scene.highlightFaces || props.scene.pickTargets !== old.scene.pickTargets) { release(this.hoverGroup); this.hoverSurface = ''; }
+    // Models can finish loading, move or repaint beneath a stationary pointer.
+    release(this.hoverGroup); this.hoverSurface = '';
     this.measureGroup.visible = !!props.scene.measure;
     // A held corner is already dragging, but has no preview until it moves.
     if(this.vertexPreview.visible && this.vertexPreview.children.length) {this.hull.visible=false;this.composed.visible=false;this.selection.visible=false;}
@@ -563,14 +565,21 @@ class Viewport {
     const hit = this.navigating() ? undefined : this.pick(event, this.props.scene.pickTargets);
     this.reportHover(hit?.id);
     this.showArmorTooltip(event, hit);
-    const pick = placing ? undefined : hit;
-    const key = this.props.scene.highlightFaces ? pick?.surface ?? '' : pick?.id ?? '';
+    const supportBlock = this.props.scene.source.construction.primitives.some(part => part.id === hit?.id);
+    const pick = placing && supportBlock ? undefined : hit;
+    const primitive = this.props.scene.source.construction.primitives.find(part => part.id === pick?.id);
+    const face = this.props.scene.highlightFaces && !!primitive;
+    const key = face ? pick?.surface ?? '' : pick?.id ?? '';
     if (key === this.hoverSurface) return;
     this.hoverSurface = key; release(this.hoverGroup);
     if (!key) return;
     const material = () => new THREE.LineBasicMaterial({ color: IVORY, depthTest: false, transparent: true, opacity: .95 });
-    const primitive = this.props.scene.source.construction.primitives.find(part => part.id === pick?.id);
-    if (primitive && !this.props.scene.highlightFaces) {
+    if (!primitive) {
+      const edges = new THREE.LineSegments(itemOutlineGeometry(this.pickMeshes, key), material());
+      edges.renderOrder = 25; this.hoverGroup.add(edges);
+      return;
+    }
+    if (!face) {
       const edges = new THREE.LineSegments(primitiveOutlineGeometry(primitive), material());
       edges.position.set(...primitive.position); edges.rotation.y = primitive.rotationDeg * Math.PI / 180;
       edges.renderOrder = 25; this.hoverGroup.add(edges);
