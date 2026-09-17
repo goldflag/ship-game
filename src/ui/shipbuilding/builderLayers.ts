@@ -1,6 +1,7 @@
 import type { ConstructionCatalog, ConstructionEquipmentPart, ConstructionPrimitive, Vec3 } from '../../ships/blueprint';
 import { CONSTRUCTION_PAINTS } from '../../ships/constructionPaints';
 import { CONSTRUCTION_SHAPE_NAMES } from '../../ships/constructionShapes';
+import { filterFittings, type FittingFilter } from './fittingCategories';
 
 /** Layer tabs, tool rails and hotbar palettes of the "Slipway rails" editor.
  * Pure data: the component maps these onto source commands. */
@@ -98,8 +99,9 @@ export function sortedParts(catalog: ConstructionCatalog, placement: (part: Cons
 
 export const thicknessSlotId = (mm: number) => `mm-${mm}`;
 /** Nine keyed slots plus the drawer, which lists everything the layer can place. The Armor layer's cards are the
- * editable millimetre value, every thickness the ship already uses (thickest first) and the opening. */
-export function paletteFor(layer: BuilderLayer, catalog: ConstructionCatalog, thicknesses: readonly number[] = []): { bar: SlotItem[]; drawer: SlotItem[] } {
+ * editable millimetre value, every thickness the ship already uses (thickest first) and the opening. A fitting
+ * filter narrows Fittings to one shelf and nation; `all` stays the whole layer, for the drawer's search. */
+export function paletteFor(layer: BuilderLayer, catalog: ConstructionCatalog, thicknesses: readonly number[] = [], fittings?: FittingFilter): { bar: SlotItem[]; drawer: SlotItem[]; all?: SlotItem[] } {
   const pad = (items: SlotItem[]): SlotItem[] => [...items.slice(0, HOTBAR_SIZE), ...Array.from({ length: Math.max(0, HOTBAR_SIZE - items.length) }, (_, index): SlotItem => ({ kind: 'empty', id: `empty-${index}`, name: '', note: '' }))];
   switch (layer) {
     case 'hull': {
@@ -119,8 +121,10 @@ export function paletteFor(layer: BuilderLayer, catalog: ConstructionCatalog, th
       return { bar: pad([...tools, ...parts]), drawer: [...tools, ...parts] };
     }
     case 'fittings': {
-      const parts = sortedParts(catalog, part => part.placement !== 'internal').map(part => partSlot(part, catalog));
-      return { bar: pad(parts), drawer: parts };
+      const every = sortedParts(catalog, part => part.placement !== 'internal'), all = every.map(part => partSlot(part, catalog));
+      if (!fittings) return { bar: pad(all), drawer: all, all };
+      const shelf = new Set(filterFittings(every, catalog, fittings)), parts = all.filter(item => item.kind === 'part' && shelf.has(item.part));
+      return { bar: pad(parts), drawer: parts, all };
     }
     case 'paint': {
       const items: SlotItem[] = [...CONSTRUCTION_PAINTS.map((paint): SlotItem => ({ kind: 'paint', id: paint.id, name: paint.name, note: 'paint', color: paint.color })),
