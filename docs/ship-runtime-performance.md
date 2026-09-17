@@ -1,5 +1,9 @@
 # Ship runtime representation and loading
 
+The Hipper construction conversion used for the historical measurements below has
+been removed. Current commands and regression fixtures use Resolute; their results
+are not the recorded Hipper measurements. Reproducing those requires the historical revision.
+
 Measured on 2026-09-16 against `a3c51c0d`, with Admiral Hipper's construction
 conversion as the stress case. This is a lossless runtime optimization, not a
 new ship authoring format or a claim that large constructed fleets meet 60 Hz.
@@ -81,7 +85,7 @@ slack only admits extra candidates. It does not change a collision margin.
 bun install --frozen-lockfile
 bun run multiplayer:prepare:dev
 bun run ship:runtime:check
-bun run ship:runtime:bench admiral-hipper-construction
+bun run ship:runtime:bench resolute
 cargo build --release --locked -p naval-sim --example runtime_bench
 bun scripts/diagnostics/ship-runtime-battles.ts \
   target/release/examples/runtime_bench .build/naval-content/manifest.json current 10
@@ -98,13 +102,13 @@ bun test src/ships/runtimeEncoding.test.ts src/game/session
 bun run ship:authoring:check
 cargo test --release --locked -p naval-sim --no-fail-fast
 bun run ship:check all
-bun run ship:review admiral-hipper-construction
-bun run ship:trial admiral-hipper-construction --seconds 15
+bun run ship:review resolute
+bun run ship:trial resolute --seconds 15
 bun run build
 ```
 
 The native harness accepts `manifest ships-per-match matches ticks comma-separated-designs [wet]`.
-For example, append `admiral-hipper-construction wet` after `2 1 120` to flood the
+For example, append `resolute wet` after `2 1 120` to flood the
 three largest rooms of each ship to 30% capacity before the first tick.
 `NAVAL_BENCH_SNAPSHOT=<path>` retains the final full-knowledge snapshot for a diff.
 The matrix measures increasing instance counts, distinct designs and multiple

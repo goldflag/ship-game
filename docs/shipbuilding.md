@@ -555,7 +555,7 @@ edge steel without creating an enclosed room between the rails.
 
 ### Freeform hulls
 
-Select one cube or freeform hull in the Hull layer and choose **Freeform** (or **Freeform hull** on its selection tag). Palette slot 1 supplies a 4 m Freeform hull. Adjustable hull profiles are not part of this editor.
+Select one cube or freeform hull in the Hull layer and choose **Freeform** (or **Freeform hull** on its selection tag). Palette slot 1 supplies a 4 m Freeform hull. This mode edits individual eight-corner pieces. For a whole main hull, prefer the separate [custom hull section editor](#custom-hull-sections).
 
 Choose **Vertex**, **Edge** or **Face** to move one corner, an edge's two corners or a face's four corners. The eight corners, twelve edges and six named faces keep fixed topology. Click a handle, edge or face to select it; the selection menu also reaches obscured components. Edge and face movement preserves the selected component's shape. Use the canvas handles to position the selection.
 

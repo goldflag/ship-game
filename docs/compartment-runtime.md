@@ -1,5 +1,9 @@
 # Experimental combat runtime profiles
 
+The Hipper construction conversion used for the historical measurements below has
+been removed. Current commands and regression fixtures use Resolute; their results
+are not the recorded Hipper measurements. Reproducing those requires the historical revision.
+
 The editable construction blueprint and shared component catalog remain the only
 ship source. The published definition and detailed GLB remain exact by default.
 This experiment derives ordinary versioned `ShipDefinition` fixtures from that
@@ -301,9 +305,9 @@ cargo build -p naval-sim --release --example combat_profile_probe \
   --example combat_profile_fidelity --example combat_profile_trial --example runtime_bench
 bun run multiplayer:prepare
 mkdir -p .build/combat-profile
-cp public/models/admiral-hipper-construction.json .build/combat-profile/reference.json
+cp public/models/resolute.json .build/combat-profile/reference.json
 cp .build/naval-content/manifest.json .build/combat-profile/reference.manifest.json
-cp public/models/runtime/admiral-hipper-construction.nsd .build/combat-profile/reference.nsd
+cp public/models/runtime/resolute.nsd .build/combat-profile/reference.nsd
 # No default publication: output is an isolated derived definition.
 target/release/examples/combat_profile_probe .build/combat-profile/reference.json \
   .build/combat-profile/guarded-6.json 6 guarded > .build/combat-profile/guarded-6.report.json

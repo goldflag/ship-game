@@ -1,5 +1,8 @@
-import { customHullPanels } from './constructionPanels';
-import type { ConstructionBoundary, ConstructionEquipment, ConstructionLoad, ConstructionPrimitive, ConstructionSource, ConstructionSurfaceAssignment, Vec3 } from './blueprint';
+import { customHullPanels, mirroredPanelId } from './constructionPanels';
+import { editableCustomHull, customHullPrimitive, setSectionCount } from './customHullModel';
+import { patchPrimitive, patchEquipment, type PrimitivePatch, type EquipmentPatch } from './constructionPatches';
+import { copyConstructionSelection, mirroredFace } from './constructionEditor';
+import type { ConstructionBoundary, ConstructionEquipment, ConstructionHullStation, ConstructionLoad, ConstructionPrimitive, ConstructionSource, ConstructionSurfaceAssignment, Vec3 } from './blueprint';
 import { CONSTRUCTION_FACES, assignConstructionSurfaces, decodeConstructionSource, moveConstructionSelection, newConstructionId, removeConstructionSelection, rotateConstructionSelection, surfaceKey, mirroredEquipment } from './constructionEditor';
 import { freeformEdit, replaceVertexPrimitives, type HullSelection, type MirrorAxes } from './constructionVertex';
 
@@ -9,13 +12,19 @@ export type ConstructionCommand =
   | { op: 'construction-version'; version: ConstructionSource['construction']['version'] }
   | { op: 'skin'; thicknessMm: number }
   | { op: 'primitive'; value: ConstructionPrimitive }
+  | { op: 'primitive-patch'; id: string; changes: PrimitivePatch }
+  | { op: 'hull-sections'; id: string; count: number }
+  | { op: 'hull-station'; id: string; stationId: string; changes: Partial<Pick<ConstructionHullStation, 't' | 'points'>> }
   | { op: 'equipment'; value: ConstructionEquipment }
+  | { op: 'equipment-patch'; id: string; changes: EquipmentPatch }
+  | { op: 'copy'; copies: { from: string; to: string }[]; mirror?: boolean; offset?: Vec3 }
   | { op: 'boundary'; value: ConstructionBoundary }
   | { op: 'load'; value: ConstructionLoad }
   | { op: 'remove'; ids: string[] }
   | { op: 'move'; ids: string[]; delta: Vec3 }
   | { op: 'rotate'; ids: string[]; degrees: number }
   | { op: 'surface'; value: ConstructionSurfaceAssignment }
+  | { op: 'surface-patch'; targets: Pick<ConstructionSurfaceAssignment, 'primitiveId' | 'face' | 'panelId'>[]; changes: Partial<Pick<ConstructionSurfaceAssignment, 'thicknessMm' | 'material' | 'paint' | 'open'>>; mirror?: boolean }
   | { op: 'catalog'; revision: string }
   | { op: 'vertices'; id: string; selection: HullSelection; delta: Vec3; mirror?: MirrorAxes; nearby?: boolean };
 export interface ConstructionBatch {
@@ -40,6 +49,11 @@ export function applyConstructionBatch(source: ConstructionSource, batch: Constr
     if (!Array.isArray(ids) || ids.some(id => !known.has(id))) throw new Error('Command references an unknown source ID.');
     return new Set(ids);
   };
+  const equipment = (value: ConstructionEquipment) => {
+    upsert(data.equipment, value);
+    const twin = data.equipment.find(p => p.id === value.wall?.mirrorId);
+    if (twin && twin.wall?.mirrorId === value.id) upsert(data.equipment, { ...mirroredEquipment(value), id: twin.id, wall: { ...value.wall!, mirrorId: value.id } });
+  };
   for (const command of batch.commands) {
     switch (command.op) {
       case 'name': draft.name = command.name; break;
@@ -47,10 +61,41 @@ export function applyConstructionBatch(source: ConstructionSource, batch: Constr
       case 'skin': data.defaultThicknessMm = command.thicknessMm; break;
       case 'catalog': data.catalogRevision = command.revision; break;
       case 'primitive': upsert(data.primitives, command.value); break;
-      case 'equipment': {
-        upsert(data.equipment, command.value);
-        const twin = data.equipment.find(p => p.id === command.value.wall?.mirrorId);
-        if (twin && twin.wall?.mirrorId === command.value.id) upsert(data.equipment, { ...mirroredEquipment(command.value), id: twin.id, wall: { ...command.value.wall!, mirrorId: command.value.id } });
+      case 'primitive-patch': {
+        const part = data.primitives.find(p => p.id === command.id);
+        if (!part) throw new Error('Unknown hull primitive ID.');
+        upsert(data.primitives, patchPrimitive(part, command.changes)); break;
+      }
+      case 'hull-sections': {
+        const part = data.primitives.find(p => p.id === command.id && p.kind === 'custom-hull');
+        if (!part) throw new Error('Section count requires a custom hull ID.');
+        const hull = editableCustomHull(part); setSectionCount(hull, command.count);
+        upsert(data.primitives, { ...part, ...customHullPrimitive(hull, part) }); break;
+      }
+      case 'hull-station': {
+        const part = data.primitives.find(p => p.id === command.id && p.kind === 'custom-hull');
+        const station = part?.customHull?.stations.find(s => s.id === command.stationId);
+        if (!station) throw new Error('Unknown custom hull section ID.');
+        if (!command.changes || typeof command.changes !== 'object' || Array.isArray(command.changes) || Object.keys(command.changes).some(key => !['t', 'points'].includes(key))) throw new Error('Section changes accept t and points only.');
+        Object.assign(station, structuredClone(command.changes)); break;
+      }
+      case 'equipment': equipment(command.value); break;
+      case 'equipment-patch': {
+        const part = data.equipment.find(p => p.id === command.id);
+        if (!part) throw new Error('Unknown equipment ID.');
+        equipment(patchEquipment(part, command.changes)); break;
+      }
+      case 'copy': {
+        if (!Array.isArray(command.copies) || !command.copies.length) throw new Error('Copy requires source/destination ID pairs.');
+        if (command.mirror !== undefined && typeof command.mirror !== 'boolean') throw new Error('Copy mirror must be a boolean.');
+        if (command.offset !== undefined && (!Array.isArray(command.offset) || command.offset.length !== 3 || !command.offset.every(Number.isFinite))) throw new Error('Copy offset must contain three finite coordinates.');
+        const ids = requireIds(command.copies.map(p => p.from));
+        const destinations = new Map(command.copies.map(p => [p.from, p.to]));
+        const known = new Set([...data.primitives, ...data.equipment, ...data.boundaries, ...data.loads].map(p => p.id));
+        if (ids.size !== command.copies.length || new Set(destinations.values()).size !== ids.size || [...destinations.values()].some(id => typeof id !== 'string' || !id.length || known.has(id))) throw new Error('Copy destination IDs must be new and unique; source IDs must not repeat.');
+        if (data.boundaries.some(p => ids.has(p.id))) throw new Error('Copy accepts hull pieces, equipment and loads, not boundaries.');
+        if (command.mirror && command.offset) throw new Error('Choose mirror or offset, then move the copies separately.');
+        copyConstructionSelection(draft, ids, { ids: destinations, mirror: command.mirror, offset: command.offset });
         break;
       }
       case 'boundary': upsert(data.boundaries, command.value); break;
@@ -74,6 +119,19 @@ export function applyConstructionBatch(source: ConstructionSource, batch: Constr
         if (!data.primitives.some(p => p.id === primitiveId)) throw new Error('Surface assignments require a hull primitive.');
         if (panelId !== undefined && !customHullPanels(data.primitives.find(p => p.id === primitiveId)!).some(panel => panel.face === face && panel.panelId === panelId)) throw new Error('Unknown custom hull panel.');
         assignConstructionSurfaces(draft, new Set([surfaceKey(primitiveId, face, panelId)]), values); break;
+      }
+      case 'surface-patch': {
+        if (!Array.isArray(command.targets) || !command.changes || typeof command.changes !== 'object' || Array.isArray(command.changes) || Object.keys(command.changes).some(key => !['thicknessMm', 'material', 'paint', 'open'].includes(key))) throw new Error('Expected surface targets and armor, material, paint or opening changes.');
+        if (command.mirror !== undefined && typeof command.mirror !== 'boolean') throw new Error('Surface mirror must be a boolean.');
+        const keys = new Set<string>();
+        for (const target of command.targets) {
+          const part = data.primitives.find(p => p.id === target.primitiveId);
+          if (!part || !CONSTRUCTION_FACES.includes(target.face)) throw new Error('Unknown hull primitive or face.');
+          if (target.panelId !== undefined && !customHullPanels(part).some(p => p.face === target.face && p.panelId === target.panelId)) throw new Error('Unknown custom hull panel.');
+          keys.add(surfaceKey(part.id, target.face, target.panelId));
+          if (command.mirror) keys.add(surfaceKey(part.id, mirroredFace(target.face, part.kind), mirroredPanelId(target.panelId)));
+        }
+        assignConstructionSurfaces(draft, keys, command.changes); break;
       }
       case 'vertices':
         if (!['vertex', 'edge', 'face'].includes(command.selection.mode) || !Number.isInteger(command.selection.index) || command.selection.index < 0 || command.selection.index >= ({ vertex: 8, edge: 12, face: 6 }[command.selection.mode])) throw new Error('Unknown vertex, edge or face.');

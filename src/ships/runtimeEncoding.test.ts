@@ -23,15 +23,15 @@ describe('lossless runtime definition encoding', () => {
     expect(() => encode({ missing: undefined })).toThrow('non-JSON value');
     expect(() => encode([undefined])).toThrow('non-JSON value');
   });
-  test('published Hipper is exact and deterministic without quantization', () => {
-    const original = JSON.parse(readFileSync('public/models/admiral-hipper-construction.json', 'utf8'));
+  test('published constructed ship is exact and deterministic without quantization', () => {
+    const original = JSON.parse(readFileSync('public/models/resolute.json', 'utf8'));
     const bytes = encode(original);
     expect(decode(bytes)).toEqual(original);
     expect(encode(original)).toEqual(bytes);
     expect(bytes.length).toBeLessThan(25_000_000);
   }, 30_000);
   test('runtime projection retains auxiliary power ratings and leaves editable source intact', () => {
-    const source = JSON.parse(readFileSync('public/models/admiral-hipper-construction.json', 'utf8')) as ShipDefinition;
+    const source = JSON.parse(readFileSync('public/models/resolute.json', 'utf8')) as ShipDefinition;
     const original = JSON.stringify(source);
     const runtime = runtimeProjection(source);
     const equipment = source.loading!.contributions.filter(c => c.kind === 'equipment');

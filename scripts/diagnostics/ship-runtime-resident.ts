@@ -8,7 +8,7 @@ for(const [label,binary,manifest] of [
  ['after','target/release/examples/runtime_bench','.build/naval-content/manifest.json'],
 ]) {
  const start=performance.now(), samples:{ms:number;bytes:number}[]=[];
- const child=Bun.spawn([binary,manifest,'2','1','600','admiral-hipper-construction'],{stdout:'pipe',stderr:'pipe'});
+ const child=Bun.spawn([binary,manifest,'2','1','600','resolute'],{stdout:'pipe',stderr:'pipe'});
  let exited=false;void child.exited.then(()=>{exited=true;});
  const output=new Response(child.stdout).text(), errors=new Response(child.stderr).text();
  while(!exited){const ps=Bun.spawn(['ps','-o','rss=','-p',String(child.pid)],{stdout:'pipe',stderr:'ignore'});const rss=Number((await new Response(ps.stdout).text()).trim());await ps.exited;if(rss)samples.push({ms:performance.now()-start,bytes:rss*1024});await new Promise(r=>setTimeout(r,100));}

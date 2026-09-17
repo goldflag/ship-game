@@ -15,7 +15,7 @@ fn stats(mut v:Vec<f64>)->serde_json::Value{v.sort_by(f64::total_cmp);serde_json
 fn main(){
  let args:Vec<_>=std::env::args().collect();let path=args.get(1).map(String::as_str).unwrap_or(".build/naval-content/manifest.json");
  let count:usize=args.get(2).map(|s|s.parse().unwrap()).unwrap_or(2);let matches:usize=args.get(3).map(|s|s.parse().unwrap()).unwrap_or(1);let ticks:usize=args.get(4).map(|s|s.parse().unwrap()).unwrap_or(120);
- let ids:Vec<_>=args.get(5).map(String::as_str).unwrap_or("admiral-hipper-construction").split(',').collect();assert!(count>0&&matches>0&&ticks>0);
+ let ids:Vec<_>=args.get(5).map(String::as_str).unwrap_or("resolute").split(',').collect();assert!(count>0&&matches>0&&ticks>0);
  let start=Instant::now();let bytes=std::fs::read(path).unwrap();let read_ms=start.elapsed().as_secs_f64()*1000.;let start=Instant::now();let catalog=Arc::new(Catalog::load(&bytes).unwrap());let load_ms=start.elapsed().as_secs_f64()*1000.;drop(bytes);let loaded=memory();
  let start=Instant::now();let mut compiled=BTreeMap::new();for id in &ids{compiled.insert(id.to_string(),Arc::new(catalog.compile(id).unwrap()));}let compile_ms=start.elapsed().as_secs_f64()*1000.;let compiled_memory=memory();
  let setup=BattleSetup{ships:(0..count).map(|i|ShipSetup{id:format!("ship-{i}"),preset_id:ids[i%ids.len()].into(),team:if i%2==0{TeamId::A}else{TeamId::B},controller:Controller::Bot,ai_level:AiLevel::Hard,spawn:None}).collect(),seed:12345,map_id:"north-atlantic".into(),weather:"overcast".into(),spawn_distance:5000.,wind_speed:None,mission_rules:None,air_rules:None};

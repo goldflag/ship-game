@@ -40,7 +40,7 @@ try {
         return { totalMs: performance.now() - start, selected: presets.selectedShip.id, count: Object.keys(presets.shipPresets).length };
       }
       const codec = mode === 'runtime' ? await import('/src/ships/runtimeEncoding.ts' as string) : undefined;
-      const response = await fetch(mode === 'json' ? '/models/admiral-hipper-construction.json' : '/models/runtime/admiral-hipper-construction.nsd');
+      const response = await fetch(mode === 'json' ? '/models/resolute.json' : '/models/runtime/resolute.nsd');
       const body = await response.arrayBuffer(); bytes = body.byteLength;
       const parse = performance.now();
       (window as any).__retained = codec ? codec.decodeRuntimeDefinition(new Uint8Array(body)) : JSON.parse(new TextDecoder().decode(body));
@@ -50,7 +50,7 @@ try {
     const high = await cdp.send('Runtime.getHeapUsage'); await cdp.send('HeapProfiler.collectGarbage'); const retained = await cdp.send('Runtime.getHeapUsage');
     clearInterval(sampler); sampler = undefined;
     const retainedRssBytes = residentBytes(browserPid); rssSamples.push(retainedRssBytes);
-    if (mode === 'startup' && requests.some(r => r.endsWith('/admiral-hipper-construction.nsd'))) throw new Error('Startup eagerly loaded Hipper');
+    if (mode === 'startup' && requests.some(r => r.endsWith('/resolute.nsd'))) throw new Error('Startup eagerly loaded Resolute');
     const result = { mode, browser: browser.version(), timing, before, high, retained, beforeRssBytes, retainedRssBytes, peakSampledRssBytes: Math.max(...rssSamples), requests }; results.push(result); console.log(mode, timing, retained);
     await context.close();
     } finally { if (sampler) clearInterval(sampler); await browser.close(); }

@@ -5,16 +5,16 @@ const [manifest, label, binary = 'target/release/examples/runtime_bench', tickAr
 const ticks = Number(tickArg);
 if (!manifest || !label || !/^[\w-]+$/.test(label) || !Number.isInteger(ticks) || ticks < 100) throw Error('Usage: ... manifest label [binary] [ticks>=100]');
 const directory = `.build/combat-profile/${label}`; await mkdir(directory, { recursive: true });
-const hipper = 'admiral-hipper-construction';
+const resolute = 'resolute';
 const cases = [
-  { id:'two', ships:2, matches:1, designs:hipper, wet:false },
-  { id:'eight', ships:8, matches:1, designs:hipper, wet:false },
-  { id:'sixteen', ships:16, matches:1, designs:hipper, wet:false },
-  { id:'matches-4x8', ships:8, matches:4, designs:hipper, wet:false },
-  { id:'mixed-eight', ships:8, matches:1, designs:`${hipper},bismarck,fletcher,enterprise-cv6`, wet:false },
-  { id:'wet-two', ships:2, matches:1, designs:hipper, wet:true },
-  { id:'wet-eight', ships:8, matches:1, designs:hipper, wet:true },
-  { id:'wet-matches-4x8', ships:8, matches:4, designs:hipper, wet:true },
+  { id:'two', ships:2, matches:1, designs:resolute, wet:false },
+  { id:'eight', ships:8, matches:1, designs:resolute, wet:false },
+  { id:'sixteen', ships:16, matches:1, designs:resolute, wet:false },
+  { id:'matches-4x8', ships:8, matches:4, designs:resolute, wet:false },
+  { id:'mixed-eight', ships:8, matches:1, designs:`${resolute},bismarck,fletcher,enterprise-cv6`, wet:false },
+  { id:'wet-two', ships:2, matches:1, designs:resolute, wet:true },
+  { id:'wet-eight', ships:8, matches:1, designs:resolute, wet:true },
+  { id:'wet-matches-4x8', ships:8, matches:4, designs:resolute, wet:true },
 ];
 const results=[];
 for(const c of cases){

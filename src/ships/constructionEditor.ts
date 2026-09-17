@@ -223,10 +223,10 @@ export function mirroredEquipment(part: ConstructionEquipment): ConstructionEqui
     ...(part.path ? { path: { ...part.path, points: part.path.points.map(point => [-point[0], point[1], point[2]] as Vec3) } } : {}) };
 }
 
-export function copyConstructionSelection(source: ConstructionSource, selected: ReadonlySet<string>, options: { mirror?: boolean; offset?: Vec3 } = {}): string[] {
+export function copyConstructionSelection(source: ConstructionSource, selected: ReadonlySet<string>, options: { mirror?: boolean; offset?: Vec3; ids?: ReadonlyMap<string, string> } = {}): string[] {
   const data = source.construction;
   const ids = new Map<string, string>();
-  for (const item of [...data.primitives, ...data.equipment, ...data.loads]) if (selected.has(item.id)) ids.set(item.id, newConstructionId('part'));
+  for (const item of [...data.primitives, ...data.equipment, ...data.loads]) if (selected.has(item.id)) ids.set(item.id, options.ids?.get(item.id) ?? newConstructionId('part'));
   const position = (v: Vec3): Vec3 => options.mirror ? [-v[0], v[1], v[2]] : v.map((n, i) => n + (options.offset ?? [1, 0, 0])[i]) as Vec3;
   const originals = data.primitives.filter(p => selected.has(p.id));
   const kinds = new Map(originals.map(p => [p.id, p.kind]));
