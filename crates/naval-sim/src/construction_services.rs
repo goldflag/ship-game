@@ -5,7 +5,7 @@
 use crate::{
     damage::Combatant,
     definition::{
-        ConstructionCatalog, ConstructionDiagnostic, DamageControlProfile, Module, ShipDefinition,
+        ConstructionCatalog, ConstructionDiagnostic, DamageControlProfile, Module, SharedExhaust, ShipDefinition,
     },
     environment::SeaState,
     machinery::equipment_condition,
@@ -72,7 +72,7 @@ pub(crate) fn install(
         severity: "warning".into(),
         code: "auxiliary-services".into(),
         message: format!(
-            "Auxiliaries reserve 2% rated power and provide {capacity:.4} m³/s fixed pumping with {teams} automatic work parties; engine and linked exhaust health control service"
+            "Auxiliaries reserve 2% rated power and provide {capacity:.4} m³/s fixed pumping with {teams} automatic work parties; engine health and shared exhaust capacity control service"
         ),
         source_id: None,
     })
@@ -85,6 +85,31 @@ fn engine_rating(def: &ShipDefinition, engine: &Module) -> f64 {
             .find(|c| c.id == engine.id && c.kind == "equipment")
             .map_or(0., |c| rating(c.mass_kg))
     })
+}
+
+/// Every running engine gets the same fraction of its available rated power.
+pub(crate) fn exhaust_fraction(capacity: f64, demand: f64) -> f64 {
+    if demand > 0. { (capacity / demand).clamp(0., 1.) } else { 0. }
+}
+
+pub(crate) fn module_availability(
+    actor: &Combatant, def: &ShipDefinition, id: &str, sea: Option<(&SeaState, f64)>,
+) -> f64 {
+    let module = match actor.index.of(def) {
+        Some(ix) => ix.module(id).map(|i| &def.modules[i]),
+        None => def.modules.iter().find(|m| m.id == id),
+    };
+    module.map_or(0., |m| equipment_condition(actor, def, m, sea).availability)
+}
+
+pub(crate) fn live_exhaust_fraction(
+    actor: &Combatant, def: &ShipDefinition, pool: &SharedExhaust, sea: Option<(&SeaState, f64)>,
+) -> f64 {
+    let capacity = pool.funnels.iter()
+        .map(|f| f.kw * module_availability(actor, def, &f.id, sea)).sum();
+    let demand = pool.engines.iter()
+        .map(|e| e.kw * module_availability(actor, def, &e.id, sea)).sum();
+    exhaust_fraction(capacity, demand)
 }
 
 /// Shared electrical bus, or the actual fixed pumps in one machinery room.
@@ -101,11 +126,15 @@ pub(crate) fn availability(
     let Some(source) = &def.construction else {
         return 0.;
     };
+    let pool = def.propulsion.as_ref().and_then(|p| p.shared_exhaust.as_ref());
     let engines: Vec<_> = def
         .modules
         .iter()
         .filter(|m| m.role.as_deref() == Some("combined-drive"))
+        .filter(|m| pool.is_none_or(|p| p.engines.iter().any(|e| e.id == m.id && e.kw > 0.)))
         .collect();
+    let shared_service = pool
+        .map(|pool| (live_exhaust_fraction(actor, def, pool, sea) / AUXILIARY_POWER_SHARE).min(1.));
     let mut total = 0.;
     let mut available = 0.;
     for engine in &engines {
@@ -114,6 +143,11 @@ pub(crate) fn availability(
         }
         let weight = engine_rating(def, engine);
         total += weight;
+        if let Some(service) = shared_service {
+            available += weight * equipment_condition(actor, def, engine, sea).availability * service;
+            continue;
+        }
+        // Compatibility with definitions compiled before shared exhaust ratings.
         let mut exhaust = 0.;
         let mut exhaust_count = 0;
         for funnel in def

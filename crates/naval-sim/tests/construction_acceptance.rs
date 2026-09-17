@@ -154,6 +154,10 @@ fn included_auxiliaries_follow_the_actual_engine_room_and_preserve_loading() {
     actor.damage.compartments[room].water_m3 = def.compartments[room].capacity_m3 * 0.4;
     assert_eq!(electrical_power(&actor, &def, None), 0.5);
     actor.damage.modules[other_funnel].hp = 0.;
+    // The surviving funnel serves the other room's engine through shared capacity.
+    assert_eq!(electrical_power(&actor, &def, None), 0.5);
+    let last_funnel = def.modules.iter().position(|m| m.id == "port-funnel").unwrap();
+    actor.damage.modules[last_funnel].hp = 0.;
     assert_eq!(electrical_power(&actor, &def, None), 0.);
     update_damage_control(&mut actor, &def, 10., None);
     assert!(actor.damage.control.pumping.iter().all(|p| *p == 0.));

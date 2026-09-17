@@ -341,6 +341,17 @@ pub fn validate_definition(d: &ShipDefinition) -> Result<(), ContentError> {
     {
         return Err(fail());
     }
+    if let Some(pool) = d.propulsion.as_ref().and_then(|p| p.shared_exhaust.as_ref()) {
+        for (ratings, role) in [(&pool.engines, "combined-drive"), (&pool.funnels, "boiler")] {
+            if ratings.len() > crate::construction::MAX_EQUIPMENT
+                || !ids_unique(ratings.iter().map(|r| r.id.as_str()))
+                || ratings.iter().any(|r| !r.kw.is_finite() || r.kw < 0. || r.kw > 1e9
+                    || !d.modules.iter().any(|m| m.id == r.id && m.role.as_deref() == Some(role)))
+            {
+                return Err(fail());
+            }
+        }
+    }
     let h = &d.hull;
     if let Some(proxy) = &h.buoyancy
         && (proxy.version != 1.
