@@ -34,6 +34,11 @@ Reload deliberately takes the file revision and retains the previous draft as an
 undo step. Save local copy puts an independent design in the normal IndexedDB
 library. Repository deletion remains a Git operation.
 
+Select a gun in Fittings to change **Turret rise** or **Barbette paint**. Rise
+extends its circular support above the deck while the integrated magazine stays
+at the lower end. Barbette paint applies to the whole fixed support; the deck
+retains its own finish around the circular opening. Both edits support undo.
+
 Sea Trials transfers the exact draft to the game and uses the real native local
 battle path. Returning reopens that source; combat damage never enters the file.
 The normal local-design menu also imports downloaded JSON as a new local copy.
