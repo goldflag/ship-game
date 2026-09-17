@@ -31,7 +31,7 @@ export function decodeConstructionSource(value: unknown): ConstructionSource {
   if (source.schemaVersion !== 1 || source.coordinates !== 'meters-y-up-bow-negative-z') throw new Error('Unsupported source version or coordinates');
   for (const key of ['id', 'name', 'revision']) string(source[key], key);
   const data = object(source.construction, 'Construction');
-  if (data.version !== 1) throw new Error('Unsupported construction source version');
+  if (data.version !== 1 && data.version !== 2) throw new Error('Unsupported construction source version');
   string(data.catalogRevision, 'Catalog'); number(data.defaultThicknessMm, 'Skin thickness');
   for (const p of rows(data.primitives, 'Primitives')) {
     string(p.id, 'Primitive ID'); vector(p.size, 'Primitive size'); vector(p.position, 'Primitive position'); number(p.rotationDeg, 'Primitive rotation');
@@ -65,7 +65,7 @@ export function decodeConstructionSource(value: unknown): ConstructionSource {
     if (part.gun !== undefined) {
       const gun = object(part.gun, 'Gun installation');
       if (gun.battery !== undefined && !['main', 'secondary'].includes(gun.battery as string)) throw new Error('Unsupported gun battery');
-      for (const key of ['initialElevationDeg', 'traverseDeg', 'elevationMinDeg', 'elevationMaxDeg']) if (gun[key] !== undefined) number(gun[key], key);
+      for (const key of ['barbetteHeightM', 'initialElevationDeg', 'traverseDeg', 'elevationMinDeg', 'elevationMaxDeg']) if (gun[key] !== undefined) number(gun[key], key);
       if (gun.traverseLimitsDeg !== undefined) {
         if (!Array.isArray(gun.traverseLimitsDeg) || gun.traverseLimitsDeg.length !== 2) throw new Error('Gun traverse limits require two angles');
         gun.traverseLimitsDeg.forEach(value => number(value, 'Gun traverse limit'));

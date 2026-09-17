@@ -1175,6 +1175,8 @@ pub struct ConstructionSurfaceAssignment {
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct ConstructionEquipmentGun {
+    #[serde(rename = "barbetteHeightM")]
+    pub barbette_height_m: Option<f64>,
     #[serde(rename = "battery")]
     pub battery: Option<String>,
     #[serde(rename = "initialElevationDeg")]

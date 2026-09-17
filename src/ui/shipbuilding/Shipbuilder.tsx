@@ -1,3 +1,4 @@
+import { integrateConstructionMagazines, setBarbetteHeight } from '../../ships/constructionArmament';
 import { internalSelectionIds } from './internalSelection';
 import { FreeformToolbar, type FreeformSettings } from './FreeformToolbar';
 import CustomHullEditor from './CustomHullEditor';
@@ -93,6 +94,13 @@ export function Shipbuilder(props: ShipbuilderProps) {
     void loadConstructionCatalog(data.catalogRevision).then(catalog => { if (active) setActiveCatalog(catalog); }).catch(cause => { if (active) editor.setError(`The saved equipment revision is unavailable. ${cause instanceof Error ? cause.message : String(cause)}`); });
     return () => { active = false; };
   }, [data.catalogRevision, activeCatalog.revision]);
+
+  const convertedDesigns = useRef(new Set<string>());
+  useEffect(() => {
+    if (!editor.ready || !catalog.equipment.length || data.version !== 1 || convertedDesigns.current.has(source.id)) return;
+    convertedDesigns.current.add(source.id);
+    editor.edit('Build ammunition into weapons', draft => integrateConstructionMagazines(draft, catalog));
+  }, [editor.ready, source.id, data.version, catalog]);
 
   const [layer, setLayer] = useState<BuilderLayer>('hull');
   const [tool, setTool] = useState<BuilderTool>(() => data.primitives.some(p => p.kind === 'custom-hull') ? 'select' : 'place');
@@ -428,7 +436,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
     if (!requestSuggestion || locked) return;
     const fittedKinds = new Set(data.equipment.map(instance => partOf(instance)?.kind));
     const ids = selectedPart ? (active?.kind === 'part' ? [active.id] : []) : catalog.equipment.filter(part => {
-      if (part.placement !== 'internal' || fittedKinds.has(part.kind)) return false;
+      if (part.kind === 'magazine' || part.placement !== 'internal' || fittedKinds.has(part.kind)) return false;
       fittedKinds.add(part.kind); return true;
     }).map(part => part.id).slice(0, 16);
     if (!ids.length) { setNotice(selectedPart ? 'Choose a fitting slot to place by suggestion.' : 'Every internal family is already fitted.'); return; }
@@ -511,7 +519,14 @@ export function Shipbuilder(props: ShipbuilderProps) {
       if (event.key === 'PageUp' || event.key === 'PageDown') {
         event.preventDefault(); const direction = event.key === 'PageUp' ? 1 : -1;
         if (event.shiftKey || (slice.on && !selected.size)) setSlice(current => ({ on: true, y: current.y + direction * .5, auto: false }));
-        else if (selected.size) nudge([0, direction * gridStep, 0]);
+        else if (selected.size && selectedEquipment.length === selected.size && selectedEquipment.every(item => partOf(item)?.kind === 'gun')) {
+          run('Raise turrets', draft => {
+            if (draft.construction.version === 1) integrateConstructionMagazines(draft, catalog);
+            for (const item of draft.construction.equipment.filter(item => selected.has(item.id))) {
+              setBarbetteHeight(item, Math.max(0, Math.min(30, (item.gun?.barbetteHeightM ?? 0) + direction * gridStep)));
+            }
+          });
+        } else if (selected.size) nudge([0, direction * gridStep, 0]);
         return;
       }
       if (event.key.startsWith('Arrow') && selected.size) {
@@ -578,14 +593,17 @@ export function Shipbuilder(props: ShipbuilderProps) {
     </> });
   } else if (selectedEquipment.length === 1 && !selectedPrimitives.length) {
     const item = selectedEquipment[0], part = partOf(item), mass = equipmentMassKg(compiled, item.id);
-    const link = (field: 'magazineId' | 'powerSourceId', kind: 'magazine' | 'engine', label: string) => <label> {label} <select className="sb-link" value={item[field] ?? ''} onChange={event => run('Connect equipment', draft => { const target = draft.construction.equipment.find(entry => entry.id === item.id)!; if (event.target.value) target[field] = event.target.value; else delete target[field]; })}>
+    const link = (field: 'powerSourceId', kind: 'engine', label: string) => <label> {label} <select className="sb-link" value={item[field] ?? ''} onChange={event => run('Connect equipment', draft => { const target = draft.construction.equipment.find(entry => entry.id === item.id)!; if (event.target.value) target[field] = event.target.value; else delete target[field]; })}>
       <option value="">automatic</option>{data.equipment.filter(entry => partOf(entry)?.kind === kind).map(entry => <option key={entry.id} value={entry.id}>{partOf(entry)?.name} · {entry.id.slice(-4)}</option>)}</select></label>;
     const move = (axis: number, value: number) => { const delta: Vec3 = [0, 0, 0]; delta[axis] = snapCoordinate(value, gridStep) - item.position[axis]; nudge(delta); };
     tags.push({ key: `part-${item.id}`, anchor: equipmentAnchor(item), dx: 82, dy: -92, tone: 'mint', content: <>
       <b>{part?.name ?? item.partId}</b>
       {mass !== undefined ? `${formatTonnes(mass)} · ` : ''}bearing <NumberField value={item.bearingDeg} min={0} max={360} step={15} unit="°" onChange={value => run('Set bearing', draft => { draft.construction.equipment.find(entry => entry.id === item.id)!.bearingDeg = normalizedBearing(value); })}/> · <NumberField label="x" value={item.position[0]} min={-1000} max={1000} step={gridStep} onChange={value => move(0, value)}/> <NumberField label="y" value={item.position[1]} min={-1000} max={1000} step={gridStep} onChange={value => move(1, value)}/> <NumberField label="z" value={item.position[2]} min={-1000} max={1000} step={gridStep} onChange={value => move(2, value)}/>
       {part?.path && item.path && <PathPointEditor key={item.id} item={item} part={part} onChange={path => run('Edit fitting path', draft => { draft.construction.equipment.find(entry => entry.id === item.id)!.path = path; })}/>}
-      {(part?.kind === 'gun' || part?.kind === 'torpedo-launcher') && link('magazineId', 'magazine', '· magazine')}{(part?.kind === 'funnel' || part?.kind === 'propeller') && link('powerSourceId', 'engine', '· power')} · <kbd>R</kbd> rotate · <kbd>⌫</kbd> remove
+      {part?.kind === 'gun' && <> · <NumberField label="Turret rise" description="Extend the barbette above its deck attachment; the magazine stays at its lower end." value={item.gun?.barbetteHeightM ?? 0} min={0} max={30} step={.25} unit="m" onChange={value => run('Raise turret', draft => {
+        if (draft.construction.version === 1) integrateConstructionMagazines(draft, catalog);
+        setBarbetteHeight(draft.construction.equipment.find(entry => entry.id === item.id)!, value);
+      })}/></>}{data.version === 2 && (part?.kind === 'gun' || part?.kind === 'torpedo-launcher') && <span> · built-in ammunition</span>}{(part?.kind === 'funnel' || part?.kind === 'propeller') && link('powerSourceId', 'engine', '· power')} · <kbd>R</kbd> rotate · <kbd>⌫</kbd> remove
     </> });
   } else if (selected.size > 1) {
     const anchors = [...selectedPrimitives.map(part => part.position), ...selectedEquipment.map(equipmentAnchor)];

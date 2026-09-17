@@ -17,14 +17,14 @@ export async function checkInternalsSelection() {
   await controls.settled(() => selected().includes('hull'), 'whole ship selected in Hull');
   await controls.tab('Internals');
   await controls.tool('Select');
-  const ids = new Set(['engine', 'magazine', 'forward-bulkhead', 'aft-bulkhead']);
+  const ids = new Set(['engine', 'gun-forward', 'forward-bulkhead', 'aft-bulkhead']);
   assert(selected().every(id => ids.has(id)), 'Layer switch retained external selections');
   const original = structuredClone(viewport().props.source.construction);
   const checks = ['entering Internals discards hull and external fitting selections'];
   controls.key('a', { ctrlKey: true });
   await controls.settled(() => selected().length === ids.size, 'internal select-all');
   assert(selected().every(id => ids.has(id)), 'Select-all activated external components');
-  checks.push('select-all includes internal packages and room boundaries only');
+  checks.push('select-all includes internal packages, weapon-owned ammunition and room boundaries');
   controls.key('ArrowRight');
   await controls.settled(() => viewport().props.source.construction.equipment.find(p => p.id === 'engine')!.position[0] !== original.equipment.find(p => p.id === 'engine')!.position[0], 'internal nudge');
   const current = viewport().props.source.construction;

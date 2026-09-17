@@ -15,7 +15,7 @@ All drafts appear in the port’s Ship designs list; valid designs also appear i
 the fleet carousel and can be inspected in the harbor. Returning from the editor
 saves and shows a valid design without requiring a sea trial. The separate
 **Armed patrol** starter includes a gun, ammunition
-magazine, diesel machinery, funnel, propeller, rudder and mast. The twin-hull
+integral gun ammunition, diesel machinery, funnel, propeller, rudder and mast. The twin-hull
 starter preserves an exterior water channel and deliberately shows an asymmetric
 machinery layout. Both are generic sandbox designs, not historical vessels.
 
@@ -181,7 +181,7 @@ uses the existing clockwise bearing convention. Published parts retain their
 original datum and sockets; bounds centers are not replacement pivots.
 
 Connected fittings store `path.points` in equipment-local coordinates and an
-optional `path.slackM` in the same version-1 construction source. The catalog
+optional `path.slackM` in the same versioned construction source. The catalog
 supplies the railing, rope or chain profile; the equipment position and bearing
 transform the whole route. Native compilation owns support, clearance, length,
 mass, center of gravity and inertia. Procedural route meshes in
@@ -222,6 +222,27 @@ The compiler reserves their interior intersection and removes crossed support
 skin without changing displacement or cutting side armor. The fitted enclosure
 seals the opening until its damage owner fails. Other impossible material or
 functional overlaps remain errors.
+
+New and edited custom designs use construction version 2. Magazines are no longer
+placeable or manually linked: each gun has an integral magazine at the bottom of
+its barbette, and each torpedo bank carries its own ready torpedoes. The Internals
+layer shows the derived ammunition volumes; selecting one selects its weapon.
+Opening an older design converts its separate magazines and links in one undoable
+edit. Original saved revisions and version-1 repository presets remain readable.
+
+**Turret rise** in a selected gun's tag (or Page Up / Page Down with only guns selected) raises its gunhouse by 0–30 m and extends
+the fixed barbette; its deck attachment and lower magazine remain fixed. The
+trunk reaches the inner hull bottom beneath that attachment, without shortening
+the component's minimum working depth. Guns without a catalog well receive an
+original gameplay support sized from their canonical barbette radius. Magazine
+sizes, structural skin and the rise limit are gameplay approximations. Moving the
+whole fitting still moves the installation; changing its rise only lifts the top.
+
+The complete internal support must fit the hull. Side or bottom protrusions,
+intersections with other equipment, loads or internal walls, and missing support
+block Sea Trials while leaving the draft editable and saveable. Raised supports
+contribute structural weight, CG, protection and native articulation clearance;
+they add no buoyancy. Torpedo package masses already include their ready rounds.
 
 Turret working wells contain a fixed steel trunk and deck collar supporting the
 original roller rim. Their material mass, CG and protection are included once;
@@ -371,6 +392,6 @@ Side, Top and Bow are orthographic camera presets. P and the projection button s
 
 **Split…** opens local axis and count controls. It cuts the block into 2–16 independent eight-corner children, preserves the trilinear corner-defined shape and outer face assignments, gives children new stable IDs, and starts new cut faces with structural skin. Escape closes the popover first. The split is one undo step and obeys the existing 512-piece split limit. On a warped block, these parameter cuts need not be world-aligned planes. Corners remain editable after undo, save and reopening.
 
-The same version-1 construction source supports `kind: "vertex"` with optional `vertices: Vec3[]` (exactly eight finite normalized local coordinates). The order is the four bow corners `(-X,-Y), (+X,-Y), (+X,+Y), (-X,+Y)`, followed by the equivalent stern corners. Missing coordinates denote the cube; `size` scales the local edit frame and `rotationDeg` applies its quarter-turn yaw. Historical primitives remain compatible. Corner edits turn a box into a vertex hull without changing its ID.
+The same versioned construction source supports `kind: "vertex"` with optional `vertices: Vec3[]` (exactly eight finite normalized local coordinates). The order is the four bow corners `(-X,-Y), (+X,-Y), (+X,+Y), (-X,+Y)`, followed by the equivalent stern corners. Missing coordinates denote the cube; `size` scales the local edit frame and `rotationDeg` applies its quarter-turn yaw. Historical primitives remain compatible. Corner edits turn a box into a vertex hull without changing its ID.
 
 Rust owns the physical solid and exterior. Planar convex shapes use one convex cell. Warped faces use an unbiased fan through each bilinear face's center; this is a faceted approximation of the curved surface whose signed volume is exact. Convex neighboring cells and coplanar patches are combined without filling concavities. Render, collision, armor and buoyancy use the same compiled geometry. Split children may refine surface faceting, but preserve the underlying corner-defined surface and enclosed volume. Self-overlapping, folded, collapsed, out-of-bounds or overly complex drafts remain editable and saveable; they cannot launch until corrected. This eight-corner version supports dents whose faces remain oriented outward from the block center. It does not add arbitrary topology, tunnels, edge subdivision or smooth subdivision surfaces.
