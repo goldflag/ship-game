@@ -166,9 +166,29 @@ before publishing. No Blender process runs for ship construction.
 
 Outputs are `public/models/<id>.glb`, its compiled JSON and thumbnail, plus
 `generated/build.json`, `generated/thumbnail/render.json` and the five fixed views
-in `generated/review/`. Source, compiler/producer identity and actual output bytes
-determine freshness. Unchanged valid builds reuse output. Failed verification
-does not publish the candidate; mismatched output pairs fail visibly.
+in `generated/review/`. The `construction-v2` build manifest separates compiled
+definition, model recipe/input and presentation fingerprints. Every check runs
+the native compiler; compiler source changes only invalidate an asset when its
+consumed output changes. Model and presentation recipes follow transitive value
+imports, ignoring comments and erased TypeScript types. Missing imports fail closed.
+
+Published preset identity hashes the canonical compiled definition and actual
+exported GLB payload, excluding only the scene/root identity tags to avoid a
+circular hash. The native draft/build identity remains unchanged for player-design
+admission. A fresh export is sealed with its published identity, then reloaded and
+articulation-checked before publication. No retained stale GLB is patched to pass.
+Exact numbers, array order, component identities and binary payload are preserved.
+
+Lighting/camera changes refresh images without exporting geometry. Model recipe
+changes trigger export, but identical output keeps its identity and bytes; image
+stages reuse intact outputs when their visual inputs match. Unchanged valid builds
+write nothing. Output hashes still detect corruption, and unknown/old manifests
+require a real rebuild. `ship:compile` produces a provisional definition in staging;
+only `ship:build` assigns the final model/definition identity.
+
+Failed verification does not publish the candidate; mismatched output pairs fail
+visibly. Changing the manifest format requires a one-time construction preset
+rebuild, followed by `multiplayer:content`.
 
 `ship:register` checks the built asset and adds one `preset(id)` roster entry to
 `src/ships/presets.ts`. Run `multiplayer:content` (also included in `dev` and `build`)

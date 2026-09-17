@@ -53,6 +53,7 @@ by the checker:
 
 - Stale compiled definition/model: `bun run ship:build <id>`.
 - Stale thumbnail only: `bun run ship:thumbnail <id>`.
+- Stale construction fixed views only: `bun run ship:review <id>`.
 
 Build after source integration, and have one integration owner produce the final
 outputs. Avoid rebuilding unchanged ships in multiple branches just to refresh
@@ -74,5 +75,19 @@ Do not resolve generated metadata independently of those inputs.
 Do not add another ship list to `package.json`
 or a hard-coded preset count to the README. New per-ship documentation belongs
 under `assets/ships/<id>/`; shared documentation should describe the workflow.
+
+Construction presets separate build freshness from published content identity.
+An unrelated native/compiler edit or a comment/type-only recipe edit should leave
+published assets unchanged after checking. Actual recipe changes still require
+validation/export; byte-identical results retain their content identity. Image
+presentation changes do not invalidate the model. See the [construction build
+contract](construction-authoring.md#build-and-publish).
+
+Keep source edits and generated publication in separate commits when practical.
+Workers still build and inspect their changes locally. The integrator combines
+source changes first, runs the fleet checker and applies its narrow repairs, then
+regenerates runtime metadata once. Do not replay obsolete generated-output commits
+on top of a newly validated combined build. Git does not enforce the single-owner
+rule; coordinate ownership before integration.
 
 Shared compiler and recipe edits still require rebuilding affected assets.
