@@ -4,7 +4,7 @@ import type { ConstructionBoundary, ConstructionCatalog, ConstructionEquipment, 
 import { assignConstructionSurfaces, CONSTRUCTION_LIMITS, copyConstructionSelection, editableConstructionSurfaces, mirroredEquipment, mirroredFace, mirroredPrimitive, newConstructionId, surfaceKey, surfaceSelectionKey, type ConstructionFace } from '../../ships/constructionEditor';
 import { constructionDiffCommands, type ConstructionCommand } from '../../ships/constructionCommands';
 import type { ConstructionRevisionOwner, ConstructionSubmission } from '../../ships/constructionRevisionOwner';
-import { canEditVertices, freeformEdit, selectionCenter, splitVertexPrimitive, VERTEX_UNITS, type HullSelection, type MirrorAxes } from '../../ships/constructionVertex';
+import { canEditVertices, splitVertexPrimitive, VERTEX_UNITS, type HullSelection, type MirrorAxes } from '../../ships/constructionVertex';
 import { pathProblem } from '../../ships/constructionPaths';
 import { BUILDER_RAIL, DEFAULT_TOOL, paletteFor, type BuilderLayer, type BuilderToolId, type RailEntry, type SlotItem } from './builderLayers';
 import { appendPathPoint, pathEquipment } from './pathDrawing';
@@ -325,8 +325,6 @@ export class BuilderTool {
   toggleArcs = () => this.update({ showArcs: !this.state.showArcs });
   toggleCenters = () => this.update({ showCenters: !this.state.showCenters });
   cycleView = () => this.update({ view: BUILDER_VIEWS[(BUILDER_VIEWS.indexOf(this.state.view) + 1) % BUILDER_VIEWS.length] });
-  /** The freeform toolbar's orthographic presets: the view plus a fresh fit. */
-  setView = (view: BuilderView) => this.update({ perspective: false, view, fitRequest: this.state.fitRequest + 1 });
   toggleProjection = () => this.update({ perspective: !this.state.perspective });
   toggleSlice = () => { const slice = this.state.slice; this.update({ slice: { on: !slice.on, y: slice.on ? slice.y : this.defaultSlice(), auto: false } }); };
   fit = () => this.update({ fitRequest: this.state.fitRequest + 1 });
@@ -584,13 +582,6 @@ export class BuilderTool {
   commitFreeform = (replacements: ConstructionPrimitive[]): ConstructionSubmission | undefined =>
     replacements.length ? this.run('Shape freeform hull', replacements.filter(part => this.data.primitives.some(existing => existing.id === part.id)).map(value => ({ op: 'primitive', value }))) : undefined;
   resetFreeform = () => { const freeform = this.state.freeform; return freeform ? this.run('Reset hull edit', [{ op: 'primitive', value: freeform.baseline }]) : undefined; };
-  setSelectionCoordinate = (axis: number, value: number) => {
-    const primitive = this.freeformPrimitive, settings = this.state.freeformSettings;
-    if (!primitive) return;
-    const delta: Vec3 = [0, 0, 0], original = selectionCenter(primitive, settings.selection)[axis];
-    delta[axis] = Math.round((value - original) / settings.unit) * settings.unit;
-    this.commitFreeform(freeformEdit(this.source, primitive.id, settings.selection, delta, settings.axes, settings.snap));
-  };
   splitFreeform = () => {
     const primitive = this.freeformPrimitive, settings = this.state.freeformSettings;
     if (!primitive) return;
@@ -617,7 +608,8 @@ export class BuilderTool {
       if (event.key === 'Escape') { this.exitFreeform(); event.preventDefault(); return; }
       if (lower === 'g') { this.cycleUnit(); event.preventDefault(); return; }
       if (lower === 'o') { this.toggleProjection(); event.preventDefault(); return; }
-      if (lower !== 'w' && event.key !== 'Home') return;
+      // The view strip stays visible while shaping, so its keys keep working.
+      if (!['w', 'q', 's', 'c'].includes(lower) && event.key !== 'Home') return;
     }
     // Without a selection, ⌘C and ⌘X stay with the browser so selected text still copies.
     if (modifier && lower === 'c') { if (!s.selected.size) return; event.preventDefault(); this.copy(event.shiftKey); return; }

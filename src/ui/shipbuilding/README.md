@@ -167,7 +167,7 @@ Hull selection tags and the Freeform rail button enter the eight-corner editor f
 
 The edit-session baseline is separate from undo history and changes only when a new session begins. Reset restores that block's session-entry shape, including its original kind. Changing layer, tool or design ends the session. Selecting another editable block starts a fresh baseline; selecting other objects ends freeform mode. Native compile gating, autosave, fixed equipment placement and fit warnings remain shared with ordinary primitive edits.
 
-Validation includes `src/ships/constructionVertex.test.ts`, vertex cases in `primitiveGeometry.test.ts`, native construction tests, and `checkFreeformEditor()` / `checkFreeformDrags()` from `scripts/tests/freeform-editor-browser.ts`. Browser helpers exercise the production controls, native compilation, XYZ combinations, rigid edges/faces, step cycling, nearby-corner undo/redo, projections, split, cancellation and exact IndexedDB reopen. Use real mouse drags separately to verify browser capture and one-command commits. `mountFreeformReview()` mounts a two-block fixture for that review.
+Validation includes `src/ships/constructionVertex.test.ts`, vertex cases in `primitiveGeometry.test.ts`, native construction tests, and `checkFreeformEditor()` / `checkFreeformDrags()` from `scripts/tests/freeform-editor-browser.ts`. Browser helpers exercise the production controls, native compilation, XYZ combinations, rigid edges/faces, the visible view strip, step cycling, nearby-corner undo/redo, projections, split, cancellation and exact IndexedDB reopen. Use real mouse drags separately to verify browser capture and one-command commits. `mountFreeformReview()` mounts a two-block fixture for that review.
 
 ## Component palette images
 
