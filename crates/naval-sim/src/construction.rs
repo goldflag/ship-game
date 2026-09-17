@@ -440,7 +440,8 @@ fn validate(
                 "slope",
             ]
             .contains(&s.face.as_str())
-            || !assignments.insert((&s.primitive_id, &s.face))
+            || !assignments.insert((&s.primitive_id, &s.face, &s.panel_id))
+            || s.panel_id.as_ref().is_some_and(|panel| panel.is_empty() || panel.len() > 512 || !c.primitives.iter().any(|p| p.id == s.primitive_id && p.kind == "custom-hull"))
             || !s.thickness_mm.is_finite()
             || !(0.0..=1000.).contains(&s.thickness_mm)
             || !["steel", "armor-steel"].contains(&s.material.as_str())
@@ -650,10 +651,12 @@ fn build(
         for (face, polygon) in raw[i].faces.iter() {
             let panel = face.clone();
             let face = face.split(':').next().unwrap().to_string();
+            let panel_id = (p.kind == "custom-hull").then(|| panel.split_once(':').map_or(panel.as_str(), |(_, id)| id).to_string());
             let a = c
                 .surfaces
                 .iter()
-                .find(|a| a.primitive_id == p.id && a.face == face);
+                .find(|a| a.primitive_id == p.id && a.face == face && a.panel_id == panel_id)
+                .or_else(|| c.surfaces.iter().find(|a| a.primitive_id == p.id && a.face == face && a.panel_id.is_none()));
             let mut patches = vec![polygon.clone()];
             for &j in &neighbors[i] {
                 for cell in &raw[j].cells {
@@ -688,7 +691,7 @@ fn build(
                     continue;
                 }
                 let id = format!("{}:{}", p.id, panel);
-                out.surfaces.push(ConstructionSurface {
+                out.surfaces.push(ConstructionSurface { panel_id: panel_id.clone(),
                     id,
                     primitive_id: p.id.clone(),
                     face: face.clone(),
@@ -2463,7 +2466,7 @@ mod tests {
             [0.5, 0.5, 0.5],
             [-0.5, 0.5, 0.5],
         ]);
-        s.construction.surfaces.push(ConstructionSurfaceAssignment {
+        s.construction.surfaces.push(ConstructionSurfaceAssignment { panel_id: None,
             primitive_id: "box".into(),
             face: "starboard".into(),
             thickness_mm: 25.,
@@ -2703,7 +2706,7 @@ mod tests {
     fn armor_uses_submillimeter_space_and_changes_draft() {
         let (mut s, c) = fixture();
         let thin = compiled(&s, &c);
-        s.construction.surfaces.push(ConstructionSurfaceAssignment {
+        s.construction.surfaces.push(ConstructionSurfaceAssignment { panel_id: None,
             primitive_id: "box".into(),
             face: "starboard".into(),
             thickness_mm: 200.,
@@ -2730,7 +2733,7 @@ mod tests {
     #[test]
     fn submerged_opening_floods_without_subtracting_buoyancy_twice() {
         let (mut s, c) = fixture();
-        s.construction.surfaces.push(ConstructionSurfaceAssignment {
+        s.construction.surfaces.push(ConstructionSurfaceAssignment { panel_id: None,
             primitive_id: "box".into(),
             face: "top".into(),
             thickness_mm: 0.,
@@ -2800,7 +2803,7 @@ mod tests {
                 .iter()
                 .all(|c| c.water_level_y.is_some())
         );
-        s.construction.surfaces.push(ConstructionSurfaceAssignment {
+        s.construction.surfaces.push(ConstructionSurfaceAssignment { panel_id: None,
             primitive_id: "box".into(),
             face: "top".into(),
             open: Some(true),

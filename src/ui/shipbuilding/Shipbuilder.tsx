@@ -7,7 +7,7 @@ import { NewDesignDialog } from './NewDesignDialog';
 import { canEditVertices } from '../../ships/constructionVertex';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { ConstructionCatalog, ConstructionEquipment, ConstructionPrimitive, ConstructionResult, ConstructionSource, ConstructionSuggestion, Vec3 } from '../../ships/blueprint';
-import { newConstructionId, surfaceKey } from '../../ships/constructionEditor';
+import { newConstructionId, surfaceSelectionKey } from '../../ships/constructionEditor';
 import { removeLocalShip } from '../../ships/localShips';
 import { ConstructionClient } from '../../ships/constructionClient';
 import { CONSTRUCTION_SHAPE_NAMES as SHAPE_NAMES } from '../../ships/constructionShapes';
@@ -263,10 +263,11 @@ export function Shipbuilder(props: ShipbuilderProps) {
     </> });
   }
   if (surfaces.size && (layer === 'armor' || layer === 'paint')) {
-    const chosen = editableSurfaces.filter(surface => surfaces.has(surfaceKey(surface.primitiveId, surface.face)));
+    const chosen = editableSurfaces.filter(surface => surfaces.has(surfaceSelectionKey(surface)));
     const first = chosen[0], groups = armorInspectionGroups(chosen), area = chosen.reduce((sum, surface) => sum + surface.areaM2, 0);
     if (first) tags.push({ key: 'faces', anchor: surfaceCentroid(first), dx: 80, dy: -96, tone: 'mint', content: <>
       <b>{surfaces.size} face{surfaces.size === 1 ? '' : 's'} · {groups.length === 1 ? (layer === 'paint' ? `${groups[0].surface.paint.replace('-', ' ')}` : describeArmorGroup(groups[0].surface)) : `${groups.length} different ${layer === 'paint' ? 'paints' : 'thicknesses'}`}</b>
+      {layer === 'armor' && <div className="sb-face-armor"><NumberField label="Face armor" description="Armor thickness for the selected faces" value={groups.length === 1 ? first.thicknessMm : customMm} min={0} max={1000} unit="mm" onChange={tool.setThickness}/>{mirror && <span>· mirror on</span>}</div>}
       {format(area, 0)} m² · {layer === 'paint' ? <><kbd>1</kbd>–<kbd>9</kbd> paint</> : <><kbd>1</kbd> assign {customMm} mm · <kbd>2</kbd> open</>} · <kbd>⇧</kbd>click adds · <kbd>Esc</kbd> clear
     </> });
   }

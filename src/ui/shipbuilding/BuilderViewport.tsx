@@ -1,3 +1,4 @@
+import { surfaceGroups, surfaceOutline } from './surfaceOutline';
 import { internalSelectionIds } from './internalSelection';
 import { createBuilderGrid } from './builderGrid';
 import { FreeformHandles } from './FreeformHandles';
@@ -9,7 +10,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import type { ConstructionPrimitive, ConstructionResult, ConstructionSource, ConstructionSurface, Vec3 } from '../../ships/blueprint';
 import { armorThicknessColor } from '../../ships/inspection';
-import { surfaceKey } from '../../ships/constructionEditor';
+import { surfaceSelectionKey } from '../../ships/constructionEditor';
 import { constructionPaintColor } from '../../ships/constructionPaints';
 import { snapCoordinate } from './editorNumbers';
 import { dominantAxis, fillLattice, pieceExtents, physicalPlacementHit, placementCenter, strokeSegment } from './placement';
@@ -255,7 +256,7 @@ class Viewport {
       }
       if (nativeSurfaces) {
         const geometry = new THREE.BufferGeometry(); geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3)); geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3)); geometry.computeVertexNormals();
-        const mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .78, metalness: 0, side: THREE.DoubleSide, transparent: props.scene.display === 'internals', opacity: props.scene.display === 'internals' ? .15 : 1, depthWrite: props.scene.display !== 'internals' }));
+        const mesh = new THREE.Mesh(geometry, props.scene.display === 'armor' ? new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide }) : new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .78, metalness: 0, side: THREE.DoubleSide, transparent: props.scene.display === 'internals', opacity: props.scene.display === 'internals' ? .15 : 1, depthWrite: props.scene.display !== 'internals' }));
         mesh.userData.hull = true; this.hull.add(mesh); this.pickMeshes.push(mesh); this.hullMeshes.push(mesh);
       } else for (const primitive of props.scene.source.construction.primitives) {
         const mesh = new THREE.Mesh(primitiveGeometry(primitive.kind, primitive.size, primitive.vertices, primitive.customHull), new THREE.MeshStandardMaterial({ color: constructionPaintColor('naval-gray'), roughness: .78, side: THREE.DoubleSide, transparent: props.scene.display === 'internals', opacity: props.scene.display === 'internals' ? .15 : 1 }));
@@ -336,21 +337,21 @@ class Viewport {
       edges.position.set(...primitive.position); edges.rotation.y = primitive.rotationDeg * Math.PI / 180;
       this.selection.add(edges);
     }
-    for (const surface of nativeSurfaces ?? []) {
-      const chosen = props.scene.selectedSurfaces.has(surfaceKey(surface.primitiveId, surface.face));
-      if (!chosen && (!props.scene.selected.has(surface.primitiveId) || outlinedHulls.has(surface.primitiveId))) continue;
-      const points = surface.vertices.map(vertex => new THREE.Vector3(...vertex).addScaledVector(new THREE.Vector3(...surface.normal), .025));
-      points.push(points[0].clone());
-      this.selection.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), new THREE.LineBasicMaterial({ color: BRASS_LIGHT, depthTest: false })));
-      if (chosen && props.scene.display === 'armor' && !surface.open) {
-        const lines: THREE.Vector3[] = [];
-        for (let i = 0; i < surface.vertices.length; i++) {
-          const outer = new THREE.Vector3(...surface.vertices[i]); const inner = outer.clone().addScaledVector(new THREE.Vector3(...surface.normal), -surface.thicknessMm / 1000);
-          const next = new THREE.Vector3(...surface.vertices[(i + 1) % surface.vertices.length]).addScaledVector(new THREE.Vector3(...surface.normal), -surface.thicknessMm / 1000);
-          lines.push(outer, inner, inner, next);
+    for (const group of surfaceGroups(nativeSurfaces ?? [])) {
+      const surface = group[0], chosen = props.scene.selectedSurfaces.has(surfaceSelectionKey(surface));
+      const selected = chosen || (props.scene.selected.has(surface.primitiveId) && !outlinedHulls.has(surface.primitiveId));
+      if (!selected && !(props.scene.display === 'armor' && surface.panelId)) continue;
+      const outline: THREE.Vector3[] = [], thickness: THREE.Vector3[] = [];
+      for (const edge of surfaceOutline(group)) {
+        const normal = new THREE.Vector3(...edge.surface.normal), a = new THREE.Vector3(...edge.a), b = new THREE.Vector3(...edge.b);
+        outline.push(a.clone().addScaledVector(normal, .025), b.clone().addScaledVector(normal, .025));
+        if (chosen && props.scene.display === 'armor' && !edge.surface.open) {
+          const innerA = a.clone().addScaledVector(normal, -edge.surface.thicknessMm / 1000), innerB = b.clone().addScaledVector(normal, -edge.surface.thicknessMm / 1000);
+          thickness.push(a, innerA, innerA, innerB);
         }
-        this.selection.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(lines), new THREE.LineBasicMaterial({ color: READY, depthTest: false })));
       }
+      this.selection.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(outline), new THREE.LineBasicMaterial({ color: selected ? BRASS_LIGHT : '#142a31', depthTest: !selected, transparent: !selected, opacity: selected ? 1 : .4 })));
+      if (thickness.length) this.selection.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(thickness), new THREE.LineBasicMaterial({ color: READY, depthTest: false })));
     }
     const loading = props.scene.result?.loading;
     if (props.scene.showCenters && loading) for (const [point, color] of [[loading.centerOfGravity, BRASS], [loading.buoyancyCenter, READY]] as const) {
@@ -457,7 +458,7 @@ class Viewport {
     const extents = primitive && pieceExtents({ kind: 'hull', shape: primitive.kind, size: primitive.size, rotationDeg: primitive.rotationDeg });
     const snapOrigin = primitive && extents ? primitive.position.map((value, index) => value - extents[index] / 2) as Vec3 : undefined;
     const placement = piece ? placementCenter(piece, { point: raw, normal, snapOrigin }, this.props.scene.gridStep) : raw.map(value => snapCoordinate(value, this.props.scene.gridStep)) as Vec3;
-    return { id, surface: surface && surfaceKey(surface.primitiveId, surface.face), point: raw, normal, axis, placement, additive: !!(event.shiftKey || event.ctrlKey || event.metaKey) };
+    return { id, surface: surface && surfaceSelectionKey(surface), point: raw, normal, axis, placement, additive: !!(event.shiftKey || event.ctrlKey || event.metaKey) };
   }
 
   private highlight(event: { clientX: number; clientY: number }) {
@@ -477,10 +478,10 @@ class Viewport {
       edges.renderOrder = 25; this.hoverGroup.add(edges);
       return;
     }
-    for (const surface of this.props.scene.result?.surfaces ?? []) {
-      if (this.props.scene.highlightFaces ? surfaceKey(surface.primitiveId, surface.face) !== key : surface.primitiveId !== key) continue;
-      const points = surface.vertices.map(vertex => new THREE.Vector3(...vertex).addScaledVector(new THREE.Vector3(...surface.normal), .03));
-      const outline = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(points), material());
+    const surfaces = (this.props.scene.current?.surfaces ?? []).filter(surface => this.props.scene.highlightFaces ? surfaceSelectionKey(surface) === key : surface.primitiveId === key);
+    for (const group of surfaceGroups(surfaces)) {
+      const points = surfaceOutline(group).flatMap(edge => [edge.a, edge.b].map(point => new THREE.Vector3(...point).addScaledVector(new THREE.Vector3(...edge.surface.normal), .03)));
+      const outline = new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(points), material());
       outline.renderOrder = 25; this.hoverGroup.add(outline);
     }
   }

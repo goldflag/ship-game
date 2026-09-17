@@ -589,6 +589,8 @@ pub struct ConvexVolume {
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct ConstructionSurface {
+    #[serde(rename = "panelId")]
+    pub panel_id: Option<String>,
     #[serde(rename = "id")]
     pub id: String,
     #[serde(rename = "primitiveId")]
@@ -1159,6 +1161,8 @@ pub struct ConstructionPrimitive {
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct ConstructionSurfaceAssignment {
+    #[serde(rename = "panelId")]
+    pub panel_id: Option<String>,
     #[serde(rename = "primitiveId")]
     pub primitive_id: String,
     #[serde(rename = "face")]
