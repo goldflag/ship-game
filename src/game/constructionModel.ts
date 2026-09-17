@@ -1,3 +1,4 @@
+import { createConstructionWallModel } from './constructionWallModel';
 import { wallScale } from '../ships/constructionWallFittings';
 import { paintConstructionFitting } from './constructionFittingPaint';
 import { paintedHullFace } from '../ships/constructionHullPaint';
@@ -122,10 +123,10 @@ export async function createConstructionModel(source: ConstructionSource, result
           template = asset.scene; templates.set(part.id, template); abort(signal);
           if (template.userData.definitionHash !== part.contentHash) throw new Error(`Equipment identity mismatch: ${part.name}.`);
         }
-        const model = template.clone(true);
+        const model = instance.wall ? createConstructionWallModel(template, part, instance, result.surfaces, source.construction.primitives) : template.clone(true);
         paintConstructionFitting(model, instance.paint);
         const installation = new THREE.Group(); installation.name = instance.id;
-        installation.scale.fromArray(wallScale(part, instance));
+        if (!instance.wall) installation.scale.fromArray(wallScale(part, instance));
         installation.position.fromArray(instance.position); installation.rotation.y = -instance.bearingDeg * Math.PI / 180;
         installation.userData = { sourceId: instance.id, assemblyId: instance.id, equipmentKind: part.kind };
         model.traverse(node => {

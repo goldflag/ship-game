@@ -81,7 +81,6 @@ export function ledgerRows(source: ConstructionSource, result: ConstructionResul
     row('Power', loading ? `${format(loading.powerKw, 0)} kW` : '—'),
     row('Speed', loading ? `${format(loading.estimatedSpeedMps * MPS_TO_KNOTS)} kn` : '—'),
     row('Usable space', loading ? `${format(loading.usableVolumeM3, 0)} m³` : '—'),
-    row('CG x · y · z', loading ? loading.centerOfGravity.map(value => format(value, 1)).join(' · ') : '—'),
   ];
   const surfaces = editableConstructionSurfaces(source, result?.surfaces ?? []);
   switch (layer) {

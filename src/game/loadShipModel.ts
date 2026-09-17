@@ -1,4 +1,18 @@
+import type { GLTF } from 'three/addons/loaders/GLTFLoader.js';
+import type { Mesh } from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+/** GLTF extras retain flush marks; depth bias is a renderer setting, not solid geometry. */
+function surfaceDetails(asset: GLTF): GLTF {
+  asset.scene.traverse(node => {
+    if (!node.userData.wallSurfaceDetail || !(node as Mesh).isMesh) return;
+    const mesh=node as Mesh;
+    for(const material of Array.isArray(mesh.material)?mesh.material:[mesh.material]) {
+      material.polygonOffset=true;material.polygonOffsetFactor=-2;material.polygonOffsetUnits=-2;
+    }
+  });
+  return asset;
+}
 
 /** Production builds publish lossless gzip copies beside the original GLBs.
  * Decode explicitly so this works on static hosts without gzip header rules.
@@ -11,7 +25,7 @@ export async function loadShipModel(url: string, compressed = import.meta.env.PR
   const loader = new GLTFLoader();
   const query = version ? `?v=${encodeURIComponent(version)}` : '';
   const transfer = compressed && typeof DecompressionStream !== 'undefined';
-  if (!transfer && !signal) return loader.loadAsync(url + query);
+  if (!transfer && !signal) return surfaceDetails(await loader.loadAsync(url + query));
   const request = `${url}${transfer ? '.gz' : ''}${query}`;
   const response = await (signal ? fetch(request, { signal }) : fetch(request));
   if (!response.ok) throw new Error(`Unable to load ship model (${response.status}): ${url}`);
@@ -21,5 +35,5 @@ export async function loadShipModel(url: string, compressed = import.meta.env.PR
   if (header[0] === 0x1f && header[1] === 0x8b) {
     bytes = await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
   }
-  return loader.parseAsync(bytes, url.slice(0, url.lastIndexOf('/') + 1));
+  return surfaceDetails(await loader.parseAsync(bytes, url.slice(0, url.lastIndexOf('/') + 1)));
 }

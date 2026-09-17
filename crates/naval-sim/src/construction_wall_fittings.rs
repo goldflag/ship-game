@@ -31,15 +31,22 @@ pub(crate) fn installed(e: &ConstructionEquipment, part: &ConstructionEquipmentP
     let socket = p.sockets.as_ref().unwrap().iter().find(|s| s.id == "attachment").unwrap();
     let r = -e.bearing_deg.to_radians();
     let normal = [e.bearing_deg.to_radians().sin(), 0., -e.bearing_deg.to_radians().cos()];
+    let project = |point: Vec3, normal: Vec3, depth: f64| surfaces.iter().filter(|s| !s.open && s.normal[1].abs() < 0.9 && dot(s.normal, normal) > 0.35).filter_map(|s| {
+        let distance = dot(sub(s.vertices[0], point), s.normal) / dot(normal, s.normal);
+        let projected = add(point, normal.map(|v| v * distance));
+        (distance.abs() <= depth + 1e-6 && length(sub(cg::closest_point(&cg::prism(&s.vertices, 0.001), projected), projected)) <= 1e-5).then_some((distance.abs(),projected))
+    }).min_by(|a,b| a.0.total_cmp(&b.0)).map(|x| x.1);
+    let attachment = add(e.position, [socket.position[0]*r.cos()+socket.position[2]*r.sin(),socket.position[1],-socket.position[0]*r.sin()+socket.position[2]*r.cos()]);
+    if project(attachment, normal, 0.005).is_none() { return Err(error("Door or window must touch a closed hull side or wall")); }
     for u in [-0.5, 0., 0.5] { for v in [-0.5, 0., 0.5] {
         let x = p.bounds_center[0]+p.size[0]*u;
         let y = p.bounds_center[1]+p.size[1]*v;
         let z = socket.position[2];
         let point = add(e.position, [x*r.cos()+z*r.sin(), y, -x*r.sin()+z*r.cos()]);
-        if !surfaces.iter().any(|s| !s.open && dot(s.normal, normal) > 1.-1e-5
-            && length(sub(cg::closest_point(&cg::prism(&s.vertices, 0.001), point), point)) <= 0.005) {
-            return Err(error("Door or window needs a flat vertical wall behind its entire frame; move it away from edges or restore its supporting wall"));
-        }
+        let Some(projected) = project(point, normal, (p.size[0].max(p.size[1])*0.75).max(0.15)) else {
+            return Err(error("Door or window extends beyond its supporting hull side; move it away from the edge or reduce its size"));
+        };
+        if w.mirror_id.is_some() && project([-projected[0],projected[1],projected[2]],[-normal[0],normal[1],normal[2]],0.005).is_none() { return Err(error("Mirrored fittings need matching hull geometry on both sides")); }
     } }
     Ok(p)
 }

@@ -86,7 +86,7 @@ test('window resizing scales original bounds and native mass without altering wa
   expect(after.definition, JSON.stringify(after.diagnostics)).toBeDefined();
   const mass = (r: ConstructionResult) => r.loading!.contributions.filter(m => m.id === 'a' && m.kind === 'equipment').reduce((sum,m) => sum+m.massKg,0);
   expect(mass(after)).toBeCloseTo(mass(before)*4);
-  expect(installedWallPart(p, a).size).toEqual([1.8,1.3,.08]);
+  expect(installedWallPart(p, a).size).toEqual([1.8,1.3,p.size[2]]);
 });
 
 test('wall placement seats the original attachment at arbitrary wall yaw; rows preserve height and exact spacing', () => {
@@ -142,5 +142,41 @@ test('editor lays a linked row as one transaction; refuses unmatched mirror; sup
   expect(selected).toHaveLength(2);
   expect(selected.every(e=>e && selected.some(t=>t?.id===e.wall?.mirrorId))).toBe(true);
   expect(compile(source).definition, JSON.stringify(compile(source).diagnostics)).toBeDefined();
+  tool.dispose();
+});
+
+test('a porthole seats on the actual sloped Patrol hull and compiles with its linked mirror', () => {
+  const s = createStarterSource(catalog, 'patrol-hull'), before = compile(s);
+  const face = before.surfaces.filter(f => f.normal[0] > .9 && Math.abs(f.normal[1]) < .7).sort((a,b) => Math.abs(a.vertices[0][2])-Math.abs(b.vertices[0][2]))[0];
+  const point = face.vertices.reduce((a,v) => a.map((n,k)=>n+v[k]/face.vertices.length) as Vec3, [0,0,0]);
+  const a = fitting('a', 'generic-porthole', point, wallBearing(face.normal)); a.wall!.widthM = a.wall!.heightM = .3;
+  const b = {...mirroredEquipment(a), id:'b'}; a.wall!.mirrorId='b';b.wall!.mirrorId='a';
+  expect(wallFittingSupported(a, catalog.equipment.find(p=>p.id===a.partId)!, before.surfaces)).toBe(true);
+  s.construction.equipment.push(a,b);
+  const result = compile(s);
+  expect(result.definition, JSON.stringify(result.diagnostics)).toBeDefined();
+  expect(result.surfaces).toEqual(before.surfaces);
+});
+
+test('arrow keys resize the cursor and linked selections once, with fine steps and undo', () => {
+  let source=paired(), past:ConstructionSource[]=[];
+  const door:BuilderRevisionDoor={get source(){return source;},locked:false,refusal:undefined,
+    submit(_label,commands){past.push(source);source=apply(source,commands);return {accepted:true,changed:true,source};},
+    undo(){source=past.pop()!;},redo(){},setError(){},setBusy(){},subscribe(){return ()=>{};}};
+  const tool=new BuilderTool(door,{catalog:()=>catalog,compiled:()=>compile(source)});
+  const press=(key:string,shiftKey=false)=>tool.key({key,shiftKey,ctrlKey:false,metaKey:false,altKey:false,repeat:false,preventDefault(){}},{dismiss:()=>false,toggleDrawer(){},toggleWarnings(){},slotChosen(){}});
+  tool.switchLayer('fittings'); tool.selectOnly(['a','b']);
+  const before=structuredClone(source);
+  press('ArrowRight');expect(source.construction.equipment.map(e=>e.wall!.widthM)).toEqual([.6,.6]);expect(source.construction.equipment.map(e=>e.wall!.heightM)).toEqual([.6,.6]);
+  expect(source.construction.equipment.map(e=>e.position)).toEqual(before.construction.equipment.map(e=>e.position));
+  press('ArrowDown',true);expect(source.construction.equipment.map(e=>e.wall!.heightM)).toEqual([.59,.59]);
+  tool.undo();expect(source.construction.equipment[0].wall!.widthM).toBe(.6);
+  tool.selectSlot(tool.palette.all!.find(p=>p.id==='generic-rectangular-window')!);
+  press('ArrowRight');press('ArrowUp',true);
+  expect(tool.piece).toMatchObject({wall:{widthM:1,heightM:.66}});
+  tool.selectSlot(tool.palette.all!.find(p=>p.id==='generic-watertight-door')!);
+  press('ArrowLeft');press('ArrowDown');
+  const part=catalog.equipment.find(p=>p.id==='generic-watertight-door')!;
+  expect(tool.piece).toMatchObject({wall:{widthM:part.size[0]-.1,heightM:part.size[1]-.1}});
   tool.dispose();
 });

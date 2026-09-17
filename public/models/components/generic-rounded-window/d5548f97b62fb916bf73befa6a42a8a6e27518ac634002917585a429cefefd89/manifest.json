@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "generic-rounded-window",
+  "revision": "d5548f97b62fb916bf73befa6a42a8a6e27518ac634002917585a429cefefd89",
+  "contentHash": "0fb08f972eb0d1717b7294b7dabf3d03f0d54287af5f19fa6b932d05d364ecf8",
+  "modelSha256": "7740d4440cd29ed2586b348b0db930026659c915fface3aedf03f4d996dc04fa",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/generic-rounded-window/d5548f97b62fb916bf73befa6a42a8a6e27518ac634002917585a429cefefd89/model.glb",
+  "boundsCenter": [
+    0,
+    0,
+    0
+  ],
+  "size": [
+    0.8999999761581421,
+    0.6499999761581421,
+    6.794810758492531e-8
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 26,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original generic closed surface fitting with opaque optics. No hull opening or interior. Dimensions and mass are engineering estimates; installed wall support requires native validation.",
+  "basis": "assets/parts/construction/README.md"
+}

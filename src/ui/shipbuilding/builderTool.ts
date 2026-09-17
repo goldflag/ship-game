@@ -1,4 +1,4 @@
-import { wallMount, installedWallPart, wallNormal, wallFittingSupported } from '../../ships/constructionWallFittings';
+import { wallMount, installedWallPart, wallNormal, wallFittingSupported, seatWallFitting } from '../../ships/constructionWallFittings';
 import { DEFAULT_SNAPPING, constructionSnapFeatures, type SnapSettings } from './snapping';
 import { CONSTRUCTION_PAINTS } from '../../ships/constructionPaints';
 import { mirroredPanelId } from '../../ships/constructionPanels';
@@ -77,8 +77,6 @@ export const SNAP_STEPS = [.25, .5, 1, 2, 5];
 const ARC_RADIUS = 12;
 const LIMITS = CONSTRUCTION_LIMITS;
 const AXIS = { x: 0, y: 1, z: 2 } as const;
-const metres = (value: number) => Number(value.toFixed(2)).toLocaleString(undefined, { maximumFractionDigits: 2 });
-const signed = (value: number) => `${value < 0 ? '−' : value > 0 ? '+' : ''}${metres(Math.abs(value))}`;
 type SurfaceValues = Partial<Pick<ConstructionSurfaceAssignment, 'thicknessMm' | 'material' | 'paint' | 'open'>>;
 
 /** The shipbuilder's tool: layer, tool, selection, cursor piece, gestures and readiness in one
@@ -269,11 +267,6 @@ export class BuilderTool {
     const compiled = this.compiled;
     return this.state.showArcs && this.state.layer === 'fittings' && compiled?.definition ? compiled.definition.mounts.map(mount => ({ position: mount.position, bearingDeg: mount.bearingDeg, traverseDeg: mount.traverseDeg ?? mount.weapon.traverseDeg, radius: ARC_RADIUS, color: '#86e4c5' })) : [];
   }
-  /** The ghost's readout: its cell, plus a fitting's bearing or a boundary's offset. */
-  coords = (position: Vec3): string => {
-    const piece = this.piece, text = `x ${signed(position[0])} · y ${signed(position[1])} · z ${signed(position[2])}`;
-    return piece?.kind === 'equipment' ? (piece.wall ? text : `${text} · ${metres(piece.bearingDeg)}°`) : piece?.kind === 'boundary' ? `${BOUNDARY_NAMES[piece.axis]} at ${signed(position[AXIS[piece.axis]])} m` : text;
-  };
   /** What the viewport draws. `retained` is the last accepted compile, kept through recompiles. */
   scene(retained: ConstructionResult | undefined): BuilderScene {
     const s = this.state, locked = this.locked, freeformMode = this.freeformMode, pathPart = this.pathPart, freeformPrimitive = this.freeformPrimitive;
@@ -299,7 +292,7 @@ export class BuilderTool {
           if (!item.wall || JSON.stringify(item) === JSON.stringify(this.data.equipment.find(e => e.id === item.id))) continue;
           const part = this.catalog.equipment.find(p => p.id === item.partId);
           if (!this.compiled || !part || !wallFittingSupported(item, part, this.compiled.surfaces)) {
-            this.door.setError(this.compiled ? 'The full fitting needs a matching vertical wall on each fitted side. Move away from edges, or turn Mirror off for a single fitting.' : 'Wait for the hull to finish compiling before placing wall fittings.');
+            this.door.setError(this.compiled ? 'The full fitting needs a closed hull side or wall on each fitted side. Move away from edges, or turn Mirror off for a single fitting.' : 'Wait for the hull to finish compiling before placing wall fittings.');
             return { accepted: false, reason: 'invalid', message: 'Wall fitting has no matching support.' };
           }
         }
@@ -495,6 +488,13 @@ export class BuilderTool {
     if (delta.every(value => value === 0)) return undefined;
     const commands: ConstructionCommand[] = [{ op: 'move', ids, delta }];
     for (const wall of this.data.boundaries) if (moving.has(wall.id)) commands.push({ op: 'boundary', value: { ...wall, offset: wall.offset + delta[AXIS[wall.axis]] } });
+    if (this.data.equipment.some(e=>moving.has(e.id)&&e.wall) && this.compiled) {
+      const next=applyConstructionBatch(this.source,{version:1,expectedRevision:this.source.revision,label:'Move fittings',commands});
+      for (const item of next.construction.equipment) {
+        if (!item.wall || JSON.stringify(item.position)===JSON.stringify(this.data.equipment.find(e=>e.id===item.id)?.position)) continue;
+        const part=this.partOf(item); if (part) commands.push({op:'equipment',value:seatWallFitting(item,part,this.compiled.surfaces)});
+      }
+    }
     const outcome = this.run('Move selection', commands);
     if (!outcome.accepted) return outcome;
     this.update({ selected: moving, surfaces: new Set() });
@@ -534,6 +534,7 @@ export class BuilderTool {
       for (const point of points) {
         // The viewport already snaps the face plane; retain the exact socket height.
         parts.push({ id: this.newId('equipment'), partId: active.id, position: [...point], bearingDeg: bearingDeg ?? piece.bearingDeg, ...(piece.wall ? { wall: { ...piece.wall } } : {}), ...(this.state.layer === 'fittings' && this.state.fittingPaint ? { paint: this.state.fittingPaint } : {}) });
+        if (piece.wall && points.length > 1 && this.compiled) parts[parts.length-1]=seatWallFitting(parts.at(-1)!,active.part,this.compiled.surfaces);
         if (mirror && offCenterline(point)) {
           const original = parts.at(-1)!, twin = { ...mirroredEquipment(original), id: this.newId('equipment') };
           if (original.wall) { original.wall.mirrorId = twin.id; twin.wall = { ...original.wall, mirrorId: original.id }; }
@@ -570,7 +571,7 @@ export class BuilderTool {
   };
   addBoundary = (axis: ConstructionBoundary['axis'], offset: number): ConstructionSubmission | undefined => {
     if (this.data.boundaries.length >= LIMITS.boundaries) { this.door.setError(`A design supports up to ${LIMITS.boundaries} decks and bulkheads. Merge rooms before adding more.`); return undefined; }
-    if (this.data.boundaries.some(wall => wall.axis === axis && Math.abs(wall.offset - offset) < 1e-6)) { this.update({ notice: `A ${BOUNDARY_NAMES[axis].toLowerCase()} already sits at ${signed(offset)} m.` }); return undefined; }
+    if (this.data.boundaries.some(wall => wall.axis === axis && Math.abs(wall.offset - offset) < 1e-6)) { this.update({ notice: `A ${BOUNDARY_NAMES[axis].toLowerCase()} already sits here.` }); return undefined; }
     return this.run(`Add ${BOUNDARY_NAMES[axis].toLowerCase()}`, [{ op: 'boundary', value: { id: this.newId('boundary'), axis, offset, thicknessMm: 10 } }]);
   };
   /** Mirror placement reaches the twin face across the centerline, including the far side of a straddling piece. */
@@ -799,6 +800,27 @@ export class BuilderTool {
       event.preventDefault(); const direction = event.key === 'PageUp' ? 1 : -1;
       if (s.selected.size && this.selectedEquipment.length === s.selected.size && this.selectedEquipment.every(item => this.partOf(item)?.kind === 'gun')) this.raiseTurrets([...s.selected], current => Math.max(0, Math.min(30, current + direction * this.gridStep)));
       else if (s.selected.size) this.nudge([0, direction * this.gridStep, 0]);
+      return;
+    }
+    if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key) && (this.piece?.kind === 'equipment' && this.piece.wall || this.selectedEquipment.length && this.selectedEquipment.length === s.selected.size && this.selectedEquipment.every(e=>e.wall))) {
+      event.preventDefault();
+      const axis = event.key === 'ArrowLeft' || event.key === 'ArrowRight' ? 0 : 1;
+      const amount = (event.key === 'ArrowLeft' || event.key === 'ArrowDown' ? -1 : 1) * (event.shiftKey ? .01 : .1);
+      const resize = (value: number) => Math.max(.15, Math.min(5, Math.round((value+amount)*100)/100));
+      const piece = this.piece;
+      if (piece?.kind === 'equipment' && piece.wall) this.setWallSize(axis, resize(axis ? piece.wall.heightM : piece.wall.widthM));
+      else {
+        const handled = new Set<string>(), commands: ConstructionCommand[] = [];
+        for (const item of this.selectedEquipment) {
+          if (handled.has(item.id)) continue;
+          handled.add(item.id); if (item.wall!.mirrorId) handled.add(item.wall!.mirrorId);
+          const value = structuredClone(item), w=value.wall!, size=resize(axis ? w.heightM : w.widthM);
+          if (axis === 0 || wallMount(this.partOf(item)!) === 'porthole') w.widthM=size;
+          if (axis === 1 || wallMount(this.partOf(item)!) === 'porthole') w.heightM=size;
+          commands.push({op:'equipment', value});
+        }
+        this.run('Resize wall fittings',commands);
+      }
       return;
     }
     if (event.key.startsWith('Arrow') && s.selected.size) {
