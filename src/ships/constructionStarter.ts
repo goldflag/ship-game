@@ -63,7 +63,7 @@ export function suggestStarterEquipment(catalog: ConstructionCatalog, kind: Excl
   fit('funnel', funnel, [twin ? 6 : 0, 2.5 - supportY(funnel), 5]);
   const propeller = find('propeller'), rudder = find('rudder');
   const shaftZ = propeller?.sockets?.find(s => s.id === 'attachment')?.position[2] ?? 0;
-  fit('screw', propeller, [twin ? 6 : 0, -2.25, 24 - shaftZ], { powerSourceId: 'engine' });
+  fit('screw', propeller, [twin ? 6 : 0, -2.25, 24 - shaftZ]);
   fit('rudder', rudder, [twin ? 6 : 0, -2.5 - supportY(rudder), 21]);
   const mast = find('mast'); fit('mast', mast, [0, 2.5 - supportY(mast), twin ? 10 : 12]);
   return result;

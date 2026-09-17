@@ -31,10 +31,28 @@ limited and the warning shows available and required kW. Spare funnel capacity
 absorbs damage before power drops; destroyed or submerged funnels lose capacity.
 Existing saved funnel links are ignored.
 
-Propulsion warnings identify missing engines, funnels or propellers. A single
-engine uses unassigned propellers automatically; with multiple engines, select
-each propeller and set its **power** link. Click an engine's warning to select it.
-Incomplete propulsion remains a warning, so you can still launch a sea trial.
+Propellers connect to engines automatically. Select a propeller to see its
+resolved **Engine** assignment; choosing an engine manually overrides it, and
+choosing **Automatic** restores layout-based assignment. Existing saved engine
+links remain manual overrides. New fittings, starters and suggested placements
+use Automatic.
+
+Automatic assignment covers powered engines first, accounting for manual links,
+then distributes additional propellers in proportion to rated engine power.
+Within that allocation it prefers the same side, an engine ahead of the
+propeller, and shorter connections. Ties are deterministic, independent of source
+array order. One engine can drive several propellers; several engines cannot
+share one propeller in this model. Engines without propellers still provide
+auxiliary services, with a warning that they supply no thrust.
+
+Assignments update after adding, removing or moving equipment in the editor.
+The compiler freezes them into the launched definition: damage never reconnects
+a propeller to a different engine. The routing is a gameplay abstraction; it
+does not trace physical shafts through the interior.
+
+Propulsion warnings identify missing engines, funnels or propellers. Click an
+engine's warning to select it. Incomplete propulsion remains a warning, so you
+can still launch a sea trial.
 
 Use Hull for pieces, Armor for plating and openings, Fittings for equipment,
 Internals for rooms and machinery, and Paint for finishes. Hover a face in Armor
