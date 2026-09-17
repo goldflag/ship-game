@@ -441,3 +441,5 @@
   .shipbuilder[data-path-drawing] .sb-cursor .sb-coords { display: none; }
   .shipbuilder[data-path-drawing] .sb-orientation { left: auto; right: 14px; width: 124px; bottom: calc(var(--sb-bar-bottom) + var(--sb-bar-height) + 200px); }
 }
+
+.sb-armor-tooltip { visibility: visible; pointer-events: none; }

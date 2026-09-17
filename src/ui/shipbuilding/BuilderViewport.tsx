@@ -506,6 +506,20 @@ class Viewport {
     return { id, surface: surface && surfaceSelectionKey(surface), point: raw, normal, axis, placement, additive: !!(event.shiftKey || event.ctrlKey || event.metaKey) };
   }
 
+  private showArmorTooltip(event?: { clientX: number; clientY: number }, pick?: BuilderPick) {
+    const tooltip = this.overlay.querySelector<HTMLElement>('[data-armor-tooltip]')!;
+    const surface = this.props.scene.display === 'armor' && pick?.surface ? this.surfacesByKey.get(pick.surface)?.[0] : undefined;
+    tooltip.hidden = !surface || !event;
+    if (!surface || !event) return;
+    tooltip.querySelector('b')!.textContent = surface.open ? 'Open to sea' : `Nominal armor: ${surface.thicknessMm.toLocaleString()} mm`;
+    tooltip.querySelector('span')!.textContent = surface.open ? 'No protective plate' : surface.material === 'armor-steel' ? 'Armor steel' : 'Structural steel';
+    const bounds = this.overlay.getBoundingClientRect();
+    let x = event.clientX - bounds.left + 16, y = event.clientY - bounds.top + 18;
+    if (x + tooltip.offsetWidth > bounds.width - 8) x = event.clientX - bounds.left - tooltip.offsetWidth - 16;
+    if (y + tooltip.offsetHeight > bounds.height - 8) y = event.clientY - bounds.top - tooltip.offsetHeight - 18;
+    tooltip.style.left = `${Math.max(8, x)}px`; tooltip.style.top = `${Math.max(8, y)}px`;
+  }
+
   private reportHover(id?: string) {
     if (id === this.hoveredPart) return;
     this.hoveredPart = id; this.props.onHover?.(id);
@@ -516,6 +530,7 @@ class Viewport {
     const placing = !!this.props.scene.placementPiece || !!this.props.scene.pathDraft;
     const hit = this.navigating() ? undefined : this.pick(event, this.props.scene.pickTargets);
     this.reportHover(hit?.id);
+    this.showArmorTooltip(event, hit);
     const pick = placing ? undefined : hit;
     const key = this.props.scene.highlightFaces ? pick?.surface ?? '' : pick?.id ?? '';
     if (key === this.hoverSurface) return;
@@ -901,7 +916,7 @@ class Viewport {
     for (const p of points) { const marker = new THREE.Mesh(geometry, material); marker.position.set(...p); marker.renderOrder = 30; this.pathPreview.add(marker); }
   }
   private finishPath = (event: MouseEvent) => { if (this.props.scene.pathDraft) { event.preventDefault(); this.props.onPointer({ kind: 'path-finish' }); } };
-  private leave = () => { this.reportHover(); this.hover = undefined; this.updatePathPreview(); this.ghost.visible = false; this.ghostMirror.visible = false; this.ghostArc.visible = false; this.ghostPosition = undefined; release(this.hoverGroup); this.hoverSurface = ''; };
+  private leave = () => { this.showArmorTooltip(); this.reportHover(); this.hover = undefined; this.updatePathPreview(); this.ghost.visible = false; this.ghostMirror.visible = false; this.ghostArc.visible = false; this.ghostPosition = undefined; release(this.hoverGroup); this.hoverSurface = ''; };
   private cancel = () => {
     const pointer = this.pointerStart; this.pointerStart = undefined; this.controls.enabled = true;
     if (pointer && this.renderer.domElement.hasPointerCapture(pointer.id)) this.renderer.domElement.releasePointerCapture(pointer.id);
@@ -950,6 +965,7 @@ export function BuilderViewport(props: ViewportProps) {
       <svg className="sb-leaders" aria-hidden="true"/>
       {props.tags.map(tag => <div key={tag.key} data-tag={tag.key} className={`sb-tag ${tag.tone}`} style={tag.passive ? { pointerEvents: 'none' } : undefined}>{tag.content}</div>)}
       <div className="sb-cursor">{props.status}<span data-coords className="sb-coords"/></div>
+      <div data-armor-tooltip role="tooltip" className="sb-tag brass sb-armor-tooltip" hidden><b/><span/></div>
       <div data-measure className="sb-tag mint"/>
       <div data-selection-box className="sb-selection-box" hidden aria-hidden="true"/>
     </div>

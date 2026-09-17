@@ -26,7 +26,10 @@ immersion and exhaust loss affect those services. See
 rates and repair limits.
 
 Use Hull for pieces, Armor for plating and openings, Fittings for equipment,
-Internals for rooms and machinery, and Paint for finishes.
+Internals for rooms and machinery, and Paint for finishes. Hover a face in Armor
+to see its nominal plate thickness in millimetres and material. This includes
+the minimum structural skin; openings show no protective plate. Pending armor
+edits use the same thickness rules and color scale as the compiled preview.
 
 Propellers automatically grow an external shaft and support arms to nearby
 closed hull surfaces. Place a screw on the underside near the stern to leave
