@@ -10,24 +10,22 @@ export const BUILDER_LAYERS: { id: BuilderLayer; name: string }[] = [
 ];
 
 export type BuilderToolId = 'select' | 'place' | 'fill' | 'erase' | 'measure' | 'apply' | 'area' | 'eyedrop' | 'opening' | 'deck' | 'bulkhead' | 'longitudinal' | 'merge' | 'module';
-export type BuilderToggle = 'mirror' | 'arc';
 export type BuilderAction = 'rotate' | 'suggest';
 export type RailEntry =
   | { kind: 'tool'; id: BuilderToolId; name: string; key: string; glyph: string }
-  | { kind: 'toggle'; id: BuilderToggle; name: string; key: string; glyph: string }
   | { kind: 'action'; id: BuilderAction; name: string; key: string; glyph: string };
 
 const tool = (id: BuilderToolId, name: string, key: string, glyph = name): RailEntry => ({ kind: 'tool', id, name, key, glyph });
-const toggle = (id: BuilderToggle, name: string, key: string, glyph = name): RailEntry => ({ kind: 'toggle', id, name, key, glyph });
 const action = (id: BuilderAction, name: string, key: string, glyph = name): RailEntry => ({ kind: 'action', id, name, key, glyph });
-const select = tool('select', 'Select', 'V'), mirror = toggle('mirror', 'Mirror', 'M');
+const select = tool('select', 'Select', 'V');
 
+/** The rail holds what a click does: modes and one-shot actions. Mirror and Snap, which change where a click lands, sit under the rail as modifiers; Arcs and Centers, which draw overlays, sit in the view strip. */
 export const BUILDER_RAIL: Record<BuilderLayer, RailEntry[]> = {
-  hull: [select, tool('place', 'Place', 'B'), tool('fill', 'Fill', 'F'), tool('erase', 'Erase', 'E'), mirror, tool('measure', 'Measure', 'T')],
-  armor: [select, tool('apply', 'Paint', 'B', 'Paint'), tool('area', 'Area', 'A'), tool('eyedrop', 'Eyedrop', 'I'), mirror, tool('opening', 'Opening', 'O')],
+  hull: [select, tool('place', 'Place', 'B'), tool('fill', 'Fill', 'F'), tool('erase', 'Erase', 'E'), tool('measure', 'Measure', 'T')],
+  armor: [select, tool('apply', 'Paint', 'B', 'Paint'), tool('area', 'Area', 'A'), tool('eyedrop', 'Eyedrop', 'I'), tool('opening', 'Opening', 'O')],
   internals: [select, tool('deck', 'Deck', 'D'), tool('bulkhead', 'Bulkhead', 'B'), tool('longitudinal', 'Split', 'L', 'Split'), tool('merge', 'Merge', 'J'), tool('module', 'Module', 'U'), action('suggest', 'Suggest', 'G')],
-  fittings: [select, tool('place', 'Place', 'B'), action('rotate', 'Rotate', 'R'), toggle('arc', 'Arc', 'A'), mirror, action('suggest', 'Suggest', 'G')],
-  paint: [select, tool('apply', 'Paint', 'B', 'Paint'), tool('area', 'Area', 'A'), tool('eyedrop', 'Eyedrop', 'I'), mirror],
+  fittings: [select, tool('place', 'Place', 'B'), action('rotate', 'Rotate', 'R'), action('suggest', 'Suggest', 'G')],
+  paint: [select, tool('apply', 'Paint', 'B', 'Paint'), tool('area', 'Area', 'A'), tool('eyedrop', 'Eyedrop', 'I')],
 };
 /** The tool a layer starts with; Select is always one key away. */
 export const DEFAULT_TOOL: Record<BuilderLayer, BuilderToolId> = { hull: 'place', armor: 'apply', internals: 'module', fittings: 'place', paint: 'apply' };
