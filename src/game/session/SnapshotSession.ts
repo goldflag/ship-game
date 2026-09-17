@@ -1,8 +1,12 @@
 import type { DeckPolicy } from '../../multiplayer/generated/DeckPolicy';
-import type { BattleSession, ObservedShip, ObservedAircraft, BattleDebrief, DeckServiceAction } from './BattleSession';
+import type { BattleSession, BattleDebrief, DeckServiceAction } from './BattleSession';
+import type { ObservedShip } from '../../multiplayer/generated/ObservedShip';
+import type { ObservedAircraft } from '../../multiplayer/generated/ObservedAircraft';
 import type { ContactTrack } from '../../multiplayer/generated/ContactTrack';
 import type { ReconCoverage } from '../../multiplayer/generated/ReconCoverage';
 import type { BattleSetup } from '../../multiplayer/generated/BattleSetup';
+import type { SessionFrame } from '../../multiplayer/generated/SessionFrame';
+import type { BattleFrame } from '../../multiplayer/generated/BattleFrame';
 import type { Command } from '../../multiplayer/generated/Command';
 import type { WeaponsPolicy } from '../../multiplayer/generated/WeaponsPolicy';
 import type { Formation } from '../../multiplayer/generated/Formation';
@@ -26,22 +30,20 @@ import { createSeaState } from '../../simulation/sea';
 import { updateMountCarriers } from '../../simulation/mountFrames';
 import type { HelmCommand } from '../../simulation/ship';
 
+/** The frame the renderer consumes is declared once, in Rust
+ * (`naval_sim::snapshot::BattleFrame` flattened into
+ * `naval_protocol::frame::SessionFrame`) and generated here. The eight
+ * collections below are the projections whose element shapes Rust does not
+ * declare yet: a hull without its bot, a shell without its damage ledger. Their
+ * elements remain the retired engine's types, passed as the frame's type
+ * parameters, until they are declared in Rust, which is the next candidate;
+ * the frame itself no longer is. */
 type WireActor = Omit<FleetActor, 'definition' | 'team' | 'bot' | 'airWing'> & {
   presetId: string; team: TeamId; aiLevel?: NonNullable<FleetActor['bot']>['aiLevel']; launcherTrains: Record<string, number>;
 };
-export interface Snapshot {
-  tick: number; actors: WireActor[]; wings: { ownerId: string; state: AirWingState }[];
-  shells: Shell[]; torpedoes: Torpedo[]; depthCharges: DepthCharge[]; releases: AirRelease[]; events: CombatEvent[];
-  outcome?: BattleOutcome; afloatKg: [number | null, number | null];
-  view?: 'team'; contacts?: ContactTrack[]; observedShips?: ObservedShip[]; observedAircraft?: ObservedAircraft[]; remainingSeconds?: number | null;
-  reconCoverage?: ReconCoverage;
-  debrief?: Snapshot;
-  shipOutcomes?: Record<string, 'operational' | 'sunk' | 'incapacitated'>;
-  records: { scores: Record<string, { damageDealt: number; frags: number; damageLog: DamageLogEntry[] }>; shellHistory: ShellHistory[] };
-  selectedShipIds?: (string | undefined)[]; phase?: string; reason?: string; connected?: boolean[]; loaded?: boolean[]; countdown?: number;
-  fleetOrders?: Record<string, FleetOrderState>;
-  fleetNotices?: FleetNotice[];
-}
+type WireWing = { ownerId: string; state: AirWingState };
+type WireRecords = { scores: Record<string, { damageDealt: number; frags: number; damageLog: DamageLogEntry[] }>; shellHistory: ShellHistory[] };
+export type Snapshot = SessionFrame<BattleFrame<WireActor[], WireWing[], Shell[], Torpedo[], DepthCharge[], AirRelease[], CombatEvent[], WireRecords>>;
 function replaceObject<T extends object>(target: T, value: T): void {
   for (const key of Object.keys(target) as (keyof T)[]) if (!(key in value)) delete target[key];
   Object.assign(target, value);

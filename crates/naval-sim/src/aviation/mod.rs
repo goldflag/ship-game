@@ -49,6 +49,7 @@ pub use aircraft_defense::near_fire;
 pub use aircraft_flight::{FlightAttitude, FlightControls, TAKEOFF_ROLL_SECONDS};
 pub use deck_contact::{ContactPose, DeckSurface};
 pub use deck_operations::{DeckAction, DeckOperations, DeckPolicy, place};
+pub(crate) use deck_operations::ACTIVE_FLIGHT_LIMIT_FIELD;
 pub(crate) use flight_deck::validate;
 pub use flight_deck::{DeckPose, Envelope};
 pub use pve_air::{AirDoctrine, AirIntent};
@@ -760,7 +761,7 @@ mod tests {
                 .unwrap(),
             b.presentation_value(PresentationView::Team(TeamId::A))
                 .unwrap(),
-            serde_json::to_value(b.presentation_snapshot()).unwrap(),
+            serde_json::to_value(b.full_frame(&[])).unwrap(),
         ] {
             let p = frame["wings"][0]["state"]["planes"]
                 .as_array()

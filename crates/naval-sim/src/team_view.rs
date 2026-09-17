@@ -3,12 +3,15 @@
 use crate::{
     battle::Battle,
     impact::DamageEvent,
+    presentation::{Filtered, Mode, TeamActors},
+    records::{Records, VesselScore},
     rules::{TeamId, mix32},
     sensors::ContactKind,
-    snapshot::PresentationView,
+    snapshot::{BattleFrame, ObservedAircraft, ObservedShip, ShipOutcome, TeamFrame, TeamView},
 };
+use serde::Serialize;
 use serde_json::{Value, json};
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 impl Battle {
     pub(crate) fn point_observable(&self, point: [f64; 3], team: TeamId) -> bool {
@@ -117,35 +120,28 @@ impl Battle {
         // identity and enemy exact damage are not ordinary combat feedback.
         Some(e)
     }
-    pub(crate) fn team_presentation(
-        &self,
-        mut full: Value,
+    /// One team's frame, narrowed to `detail` (see [`crate::snapshot::detailed`]).
+    /// Owned hulls stream through the presentation filter; everything else is
+    /// what the team's sensors report, addressed through public IDs.
+    pub fn team_frame<'a>(
+        &'a self,
         team: TeamId,
-    ) -> Result<Value, serde_json::Error> {
+        detail: &'a [String],
+    ) -> Result<TeamFrame<'a>, serde_json::Error> {
         let own: BTreeSet<_> = self
             .actors
             .iter()
             .filter(|a| a.team == team)
             .map(|a| a.motion.id.as_str())
             .collect();
-        let mut actors = vec![];
-        for mut actor in full["actors"].as_array_mut().unwrap().drain(..) {
-            if !own.contains(actor["motion"]["id"].as_str().unwrap_or_default()) {
-                continue;
-            }
-            // A captain's target is an opaque observation ID in PvE.
-            if let Some(id) = actor["targetId"].as_str() {
-                actor["targetId"] = self
-                    .public_entity_id(id, team)
-                    .map_or(Value::Null, Value::String);
-            }
-            actors.push(actor);
-        }
         let mut wings = vec![];
-        for mut wing in full["wings"].as_array_mut().unwrap().drain(..) {
-            if !own.contains(wing["ownerId"].as_str().unwrap_or_default()) {
-                continue;
-            }
+        for wing in self
+            .aviation
+            .wings
+            .iter()
+            .filter(|w| own.contains(w.owner_id.as_str()))
+        {
+            let mut wing = serde_json::to_value(Filtered(wing, Mode::Wing))?;
             for plane in wing["state"]["planes"].as_array_mut().unwrap() {
                 let plane = plane.as_object_mut().unwrap();
                 // Owned pilot navigation now derives only from own positions
@@ -159,10 +155,8 @@ impl Battle {
             wings.push(wing);
         }
         let observers = crate::sensors::entities(&self.actors, &self.aviation);
-        let projectiles = |key: &str| -> Vec<Value> {
-            full[key]
-                .as_array()
-                .unwrap()
+        let projectiles = |items: &[Value]| -> Vec<Value> {
+            items
                 .iter()
                 .filter_map(|p| {
                     let point: [f64; 3] = serde_json::from_value(p["position"].clone()).ok()?;
@@ -208,6 +202,16 @@ impl Battle {
                 })
                 .collect()
         };
+        fn values<T: Serialize>(items: &T) -> Result<Vec<Value>, serde_json::Error> {
+            match serde_json::to_value(items)? {
+                Value::Array(items) => Ok(items),
+                _ => Err(serde::ser::Error::custom("projectiles are an array")),
+            }
+        }
+        let shells = projectiles(&values(&Filtered(&self.shells, Mode::Shell))?);
+        let torpedoes = projectiles(&values(&self.torpedoes)?);
+        let depth_charges = projectiles(&values(&self.depth_charges)?);
+        let releases = projectiles(&values(&self.air_releases)?);
         let contacts = self.sensors.contacts(team);
         let observed_ships: Vec<_> = self
             .sensors
@@ -219,26 +223,39 @@ impl Battle {
                         .as_ref()
                         .is_some_and(|condition| condition.sinking)
             })
-            .map(|(c, e)| {
-                json!({"id":c.id,"presetId":e.preset_id,"position":e.position,
-                "heading":e.motion.heading,"pitch":e.motion.pitch,"roll":e.motion.roll,
-                "velocity":e.motion.velocity,"observedTick":c.last_observed_tick,"health":e.health,
-                "mounts":e.mounts,"launchers":e.launchers,
-                "observers":c.sources.iter().map(|s| &s.observer_id).collect::<Vec<_>>()})
+            .map(|(c, e)| ObservedShip {
+                id: c.id.clone(),
+                preset_id: e.preset_id.clone().unwrap_or_default(),
+                position: e.position,
+                heading: e.motion.heading,
+                pitch: e.motion.pitch,
+                roll: e.motion.roll,
+                velocity: e.motion.velocity,
+                observed_tick: c.last_observed_tick,
+                health: e.health,
+                mounts: e.mounts.clone(),
+                launchers: e.launchers.clone(),
+                observers: c.sources.iter().map(|s| s.observer_id.clone()).collect(),
             })
             .collect();
         let observed_aircraft: Vec<_> = self
             .sensors
             .observed(team)
             .filter_map(|(c, e)| {
-                e.aircraft.as_ref().map(|aircraft| {
-                    json!({
-                        "id":c.id,"modelId":aircraft.model_id,"position":e.position,
-                        "heading":e.motion.heading,"pitch":e.motion.pitch,"roll":e.motion.roll,
-                        "velocity":e.motion.velocity,"observedTick":c.last_observed_tick,"health":e.health,
-                        "controls":aircraft.controls,"wingFold":aircraft.wing_fold,"payload":aircraft.payload,
-                        "observers":c.sources.iter().map(|s| &s.observer_id).collect::<Vec<_>>()
-                    })
+                e.aircraft.as_ref().map(|aircraft| ObservedAircraft {
+                    id: c.id.clone(),
+                    model_id: aircraft.model_id.clone(),
+                    position: e.position,
+                    heading: e.motion.heading,
+                    pitch: e.motion.pitch,
+                    roll: e.motion.roll,
+                    velocity: e.motion.velocity,
+                    observed_tick: c.last_observed_tick,
+                    health: e.health,
+                    controls: aircraft.controls,
+                    wing_fold: aircraft.wing_fold,
+                    payload: aircraft.payload,
+                    observers: c.sources.iter().map(|s| s.observer_id.clone()).collect(),
                 })
             })
             .collect();
@@ -247,59 +264,74 @@ impl Battle {
         // Own vessels keep their live score sheet: damage dealt, ships sunk and a
         // hit log addressed through public contact IDs. Other teams' records and
         // the shell history stay private until the debrief.
-        let scores: serde_json::Map<String, Value> = self
+        let scores: BTreeMap<String, VesselScore> = self
             .records
             .scores
             .iter()
             .filter(|(id, _)| own.contains(id.as_str()))
             .map(|(id, score)| {
-                let log: Vec<Value> = score
+                let log = score
                     .damage_log
                     .iter()
                     .filter_map(|entry| {
-                        let source = self.public_entity_id(&entry.source_id, team)?;
-                        let target = self.public_entity_id(&entry.target_id, team)?;
-                        Some(json!({"id":entry.id,"tick":entry.tick,"sourceId":source,"targetId":target,
-                            "weapon":entry.weapon,"damage":entry.damage,"hits":entry.hits}))
+                        let mut entry = entry.clone();
+                        entry.source_id = self.public_entity_id(&entry.source_id, team)?;
+                        entry.target_id = self.public_entity_id(&entry.target_id, team)?;
+                        Some(entry)
                     })
                     .collect();
                 (
                     id.clone(),
-                    json!({"damageDealt":score.damage_dealt,"frags":score.frags,"damageLog":log}),
+                    VesselScore::addressed(score.damage_dealt, score.frags, log),
                 )
             })
             .collect();
-        let mut frame = json!({
-            "view":"team", "team":team, "tick":self.tick, "actors":actors, "wings":wings,
-            "contacts":contacts, "observedShips":observed_ships, "observedAircraft":observed_aircraft, "reconCoverage": self.sensors.coverage(team),
-            "shells":projectiles("shells"), "torpedoes":projectiles("torpedoes"),
-            "depthCharges":projectiles("depthCharges"), "releases":projectiles("releases"),
-            "events":self.team_events[team.index()], "records":{"scores":scores,"shellHistory":[]},
-            "outcome":self.outcome, "afloatKg":tonnage, "remainingSeconds":self.remaining_seconds(),
-            "missionRules":self.mission_rules,
-        });
-        if self.outcome.is_some() {
-            // Full information belongs in the debrief, never in the active world.
-            frame["debrief"] = self.presentation_value(PresentationView::FullKnowledge)?;
-            frame["debrief"]["shipOutcomes"] = json!(
+        // Full information belongs in the debrief, never in the active world.
+        let debrief = self.outcome.is_some().then(|| {
+            let mut debrief = self.full_frame(&[]);
+            debrief.ship_outcomes = Some(
                 self.actors
                     .iter()
                     .map(|actor| {
                         let status = if actor.physical_loss().is_some() {
-                            "sunk"
+                            ShipOutcome::Sunk
                         } else if crate::mission::permanently_incapable(
                             actor,
                             self.aviation.wing(&actor.motion.id),
                         ) {
-                            "incapacitated"
+                            ShipOutcome::Incapacitated
                         } else {
-                            "operational"
+                            ShipOutcome::Operational
                         };
-                        (&actor.motion.id, status)
+                        (actor.motion.id.clone(), status)
                     })
-                    .collect::<std::collections::BTreeMap<_, _>>()
+                    .collect(),
             );
-        }
-        Ok(frame)
+            Box::new(debrief)
+        });
+        Ok(BattleFrame {
+            tick: self.tick,
+            actors: TeamActors(self, team, detail),
+            wings,
+            shells,
+            torpedoes,
+            depth_charges,
+            releases,
+            events: &self.team_events[team.index()],
+            outcome: self.outcome.as_ref(),
+            records: Records::addressed(scores),
+            afloat_kg: tonnage,
+            remaining_seconds: self.remaining_seconds(),
+            view: Some(TeamView::Team),
+            team: Some(team),
+            mission_rules: self.mission_rules.as_ref(),
+            contacts: Some(contacts),
+            observed_ships: Some(observed_ships),
+            observed_aircraft: Some(observed_aircraft),
+            recon_coverage: Some(self.sensors.coverage(team)),
+            ship_outcomes: None,
+            debrief,
+            mission: None,
+        })
     }
 }

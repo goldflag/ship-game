@@ -3,6 +3,7 @@ import { gzipSync } from 'node:zlib';
 import { MatchConnection } from './RemoteBattleSession';
 import { HeadlessSession } from '../../../scripts/multiplayer/headless-session';
 import { battleExitLabel } from './BattleSession';
+import { decodeFrameUpdate, type FrameUpdate } from './frameDelta';
 import version from '../../generated/naval-version.json';
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 async function until(read: () => boolean) { for(let i=0;i<300;i++) { if(read()) return; await sleep(10); } throw new Error('Timed out'); }
@@ -26,20 +27,35 @@ test('compressed handshake survives following deltas and reconnect resets comman
   const overrides={fetch:async()=>new Response(content),DecompressionStream:DelayedDecompression,WebSocket:Socket, sessionStorage:{getItem:(k:string)=>stored.get(k),removeItem:(k:string)=>stored.delete(k)},location:{href:'http://localhost/',protocol:'http:'}};
   for(const name of names) Object.defineProperty(globalThis,name,{value:overrides[name],configurable:true,writable:true});
   const local=await HeadlessSession.create({playerShipId:'fletcher',friendlyBots:['fletcher'],enemies:['fletcher'],spawnDistance:5000});
-  const baseline=JSON.parse(local.runtime.snapshot());
+  // The server's transport: the Rust codec encodes every update against the
+  // immutable baseline the client received with its metadata. The runtime's
+  // first update is that baseline whole; later ones patch it.
+  const first=JSON.parse(local.runtime.snapshot_delta([])) as FrameUpdate;
+  const baseline={...decodeFrameUpdate(undefined,first),loaded:[true,true] as [boolean,boolean],connected:[true,true] as [boolean,boolean]};
   const metadata={contentHash,type:'matched',matchId:'test',player:0,team:'a',connectionEpoch:2,version,setup:local.setup,environment:{timeOfDay:'morning',weather:'clear'},baseline};
-  const frame={...baseline,tick:3,phase:'running',loaded:[true,true],connected:[true,true]};
+  const update=(ticks:number)=>{ local.runtime.step(ticks); return JSON.parse(local.runtime.snapshot_delta([])) as FrameUpdate; };
+  const running=update(3);
+  expect(running.baseTick).toBe(0); expect(running.tick).toBe(3);
+  // The server forks its baseline encoder per publication; a runtime encodes
+  // against what it published last. A twin of the same seeded battle, stepped
+  // straight to tick 6, is a Rust-encoded update against tick 0.
+  const twin=await HeadlessSession.create({playerShipId:'fletcher',friendlyBots:['fletcher'],enemies:['fletcher'],spawnDistance:5000});
+  expect(JSON.parse(twin.runtime.snapshot_delta([]))).toEqual(first);
+  twin.runtime.step(6);
+  const later=JSON.parse(twin.runtime.snapshot_delta([])) as FrameUpdate;
+  expect(later.baseTick).toBe(0); expect(later.tick).toBe(6);
   const connection=MatchConnection.resume(()=>{});
   try {
     const first=Socket.instances.at(-1)!;
-    first.binary(metadata,true); first.binary({type:'snapshot-delta',patches:[[[],frame]]});
+    first.binary(metadata,true); first.binary(running);
     const session=await connection.matched; expect(session.tick).toBe(3); session.loadedAssets();
     // Reconnect while an old-generation frame is still decompressing. The new
     // handshake must survive subsequent latest-state frames in the bounded queue.
-    first.binary({type:'snapshot-delta',patches:[]});
+    first.binary({baseTick:0,tick:0});
     first.close(); await until(()=>Socket.instances.at(-1)!==first);
     const second=Socket.instances.at(-1)!;
-    second.binary({...metadata,connectionEpoch:3},true); second.binary({type:'snapshot-delta',patches:[[[],{...frame,tick:6}]]});
+    // Frames may be skipped: this update is against the baseline, not tick 3.
+    second.binary({...metadata,connectionEpoch:3},true); second.binary(later);
     await until(()=>session.metadata.connectionEpoch===3);
     await until(()=>{session.advance(0,{throttle:0,rudder:0},{aim:[0,0,0],battery:'main',fire:false});return session.tick===6;});
     expect(second.sent.some(m=>m.type==='ready')).toBe(true);
@@ -49,7 +65,7 @@ test('compressed handshake survives following deltas and reconnect resets comman
     session.connectionFailed('Connection lost');
     expect(battleExitLabel(session)).toBe('Return to port');
   } finally {
-    connection.close(true); local.dispose();
+    connection.close(true); local.dispose(); twin.dispose();
     names.forEach((name,i)=>{ if(descriptors[i]) Object.defineProperty(globalThis,name,descriptors[i]!); else Reflect.deleteProperty(globalThis,name); });
   }
 });

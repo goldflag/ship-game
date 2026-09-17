@@ -1,12 +1,10 @@
-//! Stream the presentation projection without first allocating a JSON tree for
-//! the entire authority state. Unmodified subtrees use their normal serializer.
-use crate::{
-    battle::Battle,
-    bots::AiLevel,
-    rules::TeamId,
-    snapshot::{Snapshot, detailed},
-    vessel::Vessel,
-};
+//! The presentation filter: stream a hull, wing or shell through the frame
+//! without first allocating a JSON tree for it, dropping what the authority
+//! keeps private (bot tracking, lead caches, private shell ledgers) and
+//! narrowing what only the on-screen panel reads. Unmodified subtrees use
+//! their normal serializer. These adapters are the element projections
+//! [`crate::snapshot::BattleFrame`] is instantiated with.
+use crate::{battle::Battle, bots::AiLevel, rules::TeamId, snapshot::detailed, vessel::Vessel};
 use serde::{
     Serialize, Serializer,
     ser::{Error, SerializeMap, SerializeSeq, SerializeStruct},
@@ -30,27 +28,8 @@ pub(crate) fn aircraft_behavior(
     behavior
 }
 
-pub(crate) struct Presentation<'a>(pub Snapshot<'a>, pub &'a [String]);
-impl Serialize for Presentation<'_> {
-    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        let f = &self.0;
-        let mut s = serializer.serialize_struct("Snapshot", 12)?;
-        s.serialize_field("tick", &f.tick)?;
-        s.serialize_field("actors", &Actors(f.actors, self.1))?;
-        s.serialize_field("wings", &Filtered(f.wings, Mode::Wing))?;
-        s.serialize_field("shells", &Filtered(f.shells, Mode::Shell))?;
-        s.serialize_field("torpedoes", f.torpedoes)?;
-        s.serialize_field("depthCharges", f.depth_charges)?;
-        s.serialize_field("releases", f.releases)?;
-        s.serialize_field("events", f.events)?;
-        s.serialize_field("outcome", f.outcome)?;
-        s.serialize_field("records", f.records)?;
-        s.serialize_field("afloatKg", &f.afloat_kg)?;
-        s.serialize_field("remainingSeconds", &f.remaining_seconds)?;
-        s.end()
-    }
-}
-struct Actors<'a>(&'a [Vessel], &'a [String]);
+/// Every hull, filtered; the second field is the detail list (see [`detailed`]).
+pub struct Actors<'a>(pub(crate) &'a [Vessel], pub(crate) &'a [String]);
 impl Serialize for Actors<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let mut s = serializer.serialize_seq(Some(self.0.len()))?;
@@ -67,27 +46,9 @@ impl Serialize for Actors<'_> {
     }
 }
 
-pub(crate) struct TeamPresentation<'a>(pub &'a Battle, pub TeamId, pub &'a [String]);
-impl Serialize for TeamPresentation<'_> {
-    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        let fields = self
-            .0
-            .team_presentation_fields(self.1)
-            .map_err(S::Error::custom)?;
-        let mut s = serializer.serialize_map(None)?;
-        for (key, value) in fields
-            .as_object()
-            .ok_or_else(|| S::Error::custom("Invalid team projection"))?
-        {
-            if key != "actors" {
-                s.serialize_entry(key, value)?;
-            }
-        }
-        s.serialize_entry("actors", &TeamActors(self.0, self.1, self.2))?;
-        s.end()
-    }
-}
-struct TeamActors<'a>(&'a Battle, TeamId, &'a [String]);
+/// One team's own hulls, filtered, each captain's target addressed as the
+/// team knows it. This is the information boundary for live hulls.
+pub struct TeamActors<'a>(pub(crate) &'a Battle, pub(crate) TeamId, pub(crate) &'a [String]);
 impl Serialize for TeamActors<'_> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
@@ -118,7 +79,7 @@ impl Serialize for TeamActors<'_> {
 }
 
 #[derive(Clone, Copy)]
-enum Mode {
+pub(crate) enum Mode {
     /// The flag is whether this hull keeps its damage-control detail.
     Actor(Option<AiLevel>, bool),
     TeamActor(Option<AiLevel>, bool),
@@ -187,7 +148,8 @@ impl Mode {
         }
     }
 }
-struct Filtered<'a, T: ?Sized>(&'a T, Mode);
+/// `T` streamed through the filter in `Mode`.
+pub struct Filtered<'a, T: ?Sized>(pub(crate) &'a T, pub(crate) Mode);
 impl<T: Serialize + ?Sized> Serialize for Filtered<'_, T> {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         self.0.serialize(FilterSerializer {

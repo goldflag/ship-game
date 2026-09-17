@@ -50,7 +50,7 @@ try {
  assert.equal(ca.metadata.setup.ships.find((s:any)=>s.team===ca.metadata.team).presetId.startsWith('local-'),true);
  assert.deepEqual(ca.content,cb.content);
  for(const c of [ca,cb])c.socket.send(JSON.stringify({type:'ready',version,contentHash:c.metadata.contentHash}));
- await until(()=>ca.frames.some((f:any)=>f.type==='snapshot-delta'));
+ await until(()=>ca.frames.some((f:any)=>'baseTick' in f));
  await Bun.sleep(3500);
  ca.socket.send(JSON.stringify({type:'surrender'}));await Bun.sleep(1000);
  assert.equal(ca.errors.length+cb.errors.length,0);
