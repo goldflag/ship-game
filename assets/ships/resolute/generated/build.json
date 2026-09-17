@@ -1,10 +1,10 @@
 {
   "format": "construction-v1",
   "sourceHash": "c9abceafdb72803d8858d6f51507a7d95e7434757621c52212c9e40674da8219",
-  "producerHash": "3f392ab416255d8677f02adf52c2064a0a28e77cfc4ecf2ee360ca60eb67e20c",
-  "contentHash": "d1cc695880d99dae16fbc4497e52a306d6161537fbb67d9061cfbb335d878fd1",
+  "producerHash": "4eaf1aa6b8352865febc7307c2ad70269cddc1afc01549002e6e4a2b9b70be6a",
+  "contentHash": "e5f74a4292b6976ae1066321baa43ca8f1f3f8fa452385ad02f014483407d861",
   "sourceRevision": "revision-2cafdacf-754a-48c9-a8f6-6f0561cc7727",
-  "modelHash": "56083ccca844eee427a2ff40942593c67461e53bf5a7ca708bc6175cc81f301e",
-  "definitionHash": "ebb1add71ca5c556974a160634f23df13ca970f9b1283f306e83144e78ba60ea",
+  "modelHash": "68c74d948e24e7785b81ee36a0ff4913359115f39ea5a3125dec1d7cb0a452f7",
+  "definitionHash": "50bb92a5d5ddce1b452613f16a17a425e39c3f0075a90fc124bd9905d4850275",
   "thumbnailHash": "eaeb018b0ed3ce62d29088fbe6b5e54fc6628a61456411e529e7d19b302716ca"
 }

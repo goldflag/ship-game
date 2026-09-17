@@ -25,6 +25,13 @@ immersion and exhaust loss affect those services. See
 [machinery services](construction-services.md) for the reserved power, pumping
 rates and repair limits.
 
+Propulsion warnings identify missing engines, funnels or propellers and explain
+how to connect them. A single engine uses unassigned funnels and propellers
+automatically; with multiple engines, select each fitting and set its **power**
+link. Click an engine's warning to select it. Incomplete propulsion remains a
+warning, so you can still launch a sea trial, but the affected engine provides no
+thrust.
+
 Use Hull for pieces, Armor for plating and openings, Fittings for equipment,
 Internals for rooms and machinery, and Paint for finishes.
 

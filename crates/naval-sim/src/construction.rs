@@ -1337,13 +1337,6 @@ fn build(
             "Off-center loading will cause list at equilibrium",
         );
     }
-    if power == 0. {
-        warn(
-            out,
-            "unpowered",
-            "No functioning propulsion chain; the ship can still enter a trial",
-        );
-    }
     def.loading = Some(loading.clone());
     out.loading = Some(loading);
     def.accuracy = ShipDefinitionAccuracy {
@@ -2218,6 +2211,19 @@ fn equipment(
     }
     let mut power = 0.;
     let mut groups = vec![];
+    let engine_count = fitted.iter().filter(|(_, p)| p.kind == "engine").count();
+    if engine_count == 0 {
+        let mut missing = vec!["engine"];
+        for kind in ["funnel", "propeller"] {
+            if !fitted.iter().any(|(_, p)| p.kind == kind) {
+                missing.push(kind);
+            }
+        }
+        warn(out, "unpowered", &format!(
+            "No propulsion: missing {}. Add the missing equipment; each engine needs a funnel and propeller linked through their power setting. Sea trial is still available, but the ship cannot propel itself.",
+            missing.join(", ")
+        ));
+    }
     for (engine, part) in fitted.iter().filter(|(_, p)| p.kind == "engine") {
         let funnels: Vec<_> = fitted
             .iter()
@@ -2225,7 +2231,7 @@ fn equipment(
                 p.kind == "funnel"
                     && (e.power_source_id.as_deref() == Some(engine.id.as_str())
                         || (e.power_source_id.is_none()
-                            && fitted.iter().filter(|(_, p)| p.kind == "engine").count() == 1))
+                            && engine_count == 1))
             })
             .collect();
         let props: Vec<_> = fitted
@@ -2234,14 +2240,41 @@ fn equipment(
                 p.kind == "propeller"
                     && (e.power_source_id.as_deref() == Some(engine.id.as_str())
                         || (e.power_source_id.is_none()
-                            && fitted.iter().filter(|(_, p)| p.kind == "engine").count() == 1))
+                            && engine_count == 1))
             })
             .collect();
         let exhaust: f64 = funnels
             .iter()
             .map(|(_, p)| p.exhaust_kw.unwrap_or(0.))
             .sum();
-        if props.is_empty() || exhaust == 0. {
+        let rated = part.power_kw.unwrap_or(0.);
+        let mut reasons = vec![];
+        for (kind, missing) in [("funnel", funnels.is_empty()), ("propeller", props.is_empty())] {
+            if missing {
+                reasons.push(if fitted.iter().any(|(_, p)| p.kind == kind) {
+                    format!("No {kind} linked to this engine. Select a {kind} and set its power link to this engine, or add another {kind}")
+                } else {
+                    format!("Missing {kind}. Add a {kind} in Fittings and set its power link to this engine")
+                });
+            }
+        }
+        if rated == 0. {
+            reasons.push("This engine has no rated power. Replace it with an engine that supplies power".into());
+        }
+        if !funnels.is_empty() {
+            if exhaust == 0. {
+                reasons.push("Linked funnels have no exhaust capacity. Replace them with a funnel that provides exhaust capacity".into());
+            } else if rated > 0. && exhaust <= rated * crate::construction_services::AUXILIARY_POWER_SHARE {
+                reasons.push("Linked funnel exhaust capacity is too low to power propulsion after auxiliary services. Add or link a higher-capacity funnel".into());
+            }
+        }
+        if !reasons.is_empty() {
+            out.diagnostics.push(ConstructionDiagnostic {
+                severity: "warning".into(),
+                code: "unpowered".into(),
+                message: format!("Engine {} has no propulsion: {}. Sea trial is still available, but this engine provides no thrust.", engine.id, reasons.join(". ")),
+                source_id: Some(engine.id.clone()),
+            });
             continue;
         }
         let efficiency = props
@@ -2249,7 +2282,6 @@ fn equipment(
             .map(|(_, p)| p.thrust_efficiency.unwrap_or(0.6).clamp(0.01, 1.))
             .sum::<f64>()
             / props.len() as f64;
-        let rated = part.power_kw.unwrap_or(0.);
         let kw = (rated.min(exhaust) - rated * crate::construction_services::AUXILIARY_POWER_SHARE)
             .max(0.)
             * efficiency;
@@ -3014,6 +3046,74 @@ mod tests {
         }
         (s, c)
     }
+    #[test]
+    fn propulsion_warnings_identify_missing_parts_and_keep_trials_available() {
+        for (removed, needed) in [("funnel", "funnel"), ("screw", "propeller"), ("engine", "engine")] {
+            let (mut source, catalog) = equipped_fixture();
+            source.construction.equipment.retain(|e| e.id != removed);
+            let result = compile(&source, &catalog);
+            assert!(result.definition.is_some(), "{:?}", result.diagnostics);
+            assert_eq!(result.loading.as_ref().unwrap().power_kw, 0.);
+            let warning = result.diagnostics.iter().find(|d| d.code == "unpowered").unwrap();
+            assert_eq!(warning.severity, "warning");
+            assert!(warning.message.contains(needed), "{}", warning.message);
+            assert!(warning.message.contains("Add"), "{}", warning.message);
+            assert!(warning.message.contains("trial"), "{}", warning.message);
+            if removed != "engine" {
+                assert_eq!(warning.source_id.as_deref(), Some("engine"));
+            }
+        }
+        let (mut source, catalog) = equipped_fixture();
+        source.construction.equipment.retain(|e| e.id != "funnel" && e.id != "screw");
+        let result = compile(&source, &catalog);
+        let warning = result.diagnostics.iter().find(|d| d.code == "unpowered").unwrap();
+        assert!(warning.message.contains("funnel") && warning.message.contains("propeller"));
+    }
+
+    #[test]
+    fn propulsion_warnings_explain_ambiguous_links_and_clear_when_connected() {
+        let (mut source, catalog) = equipped_fixture();
+        let mut second = source.construction.equipment.iter().find(|e| e.id == "engine").unwrap().clone();
+        second.id = "second-engine".into();
+        second.position[2] = 6.;
+        source.construction.equipment.push(second);
+        let result = compile(&source, &catalog);
+        assert!(result.definition.is_some(), "{:?}", result.diagnostics);
+        let warnings: Vec<_> = result.diagnostics.iter().filter(|d| d.code == "unpowered").collect();
+        assert_eq!(warnings.len(), 2);
+        for warning in warnings {
+            assert!(warning.message.contains("funnel") && warning.message.contains("propeller"));
+            assert!(warning.message.contains("power") && warning.message.contains("link"), "{}", warning.message);
+            assert!(warning.message.contains(warning.source_id.as_deref().unwrap()));
+        }
+        for fitting in source.construction.equipment.iter_mut().filter(|e| e.id == "funnel" || e.id == "screw") {
+            fitting.power_source_id = Some("engine".into());
+        }
+        let result = compile(&source, &catalog);
+        assert!(result.loading.as_ref().unwrap().power_kw > 0.);
+        let warnings: Vec<_> = result.diagnostics.iter().filter(|d| d.code == "unpowered").collect();
+        assert_eq!(warnings.len(), 1);
+        assert_eq!(warnings[0].source_id.as_deref(), Some("second-engine"));
+        source.construction.equipment.retain(|e| e.id != "second-engine");
+        assert!(!compile(&source, &catalog).diagnostics.iter().any(|d| d.code == "unpowered"));
+    }
+
+    #[test]
+    fn propulsion_warnings_explain_zero_power_and_exhaust_capacity() {
+        for (rated, exhaust, expected) in [(0., 1000., "rated power"), (1000., 0., "exhaust capacity"), (1000., 10., "auxiliary")] {
+            let (source, mut catalog) = equipped_fixture();
+            catalog.equipment.iter_mut().find(|p| p.kind == "engine").unwrap().power_kw = Some(rated);
+            catalog.equipment.iter_mut().find(|p| p.kind == "funnel").unwrap().exhaust_kw = Some(exhaust);
+            let result = compile(&source, &catalog);
+            assert!(result.definition.is_some(), "{:?}", result.diagnostics);
+            assert_eq!(result.loading.as_ref().unwrap().power_kw, 0.);
+            let warning = result.diagnostics.iter().find(|d| d.code == "unpowered").unwrap();
+            assert!(warning.message.contains(expected), "{}", warning.message);
+        }
+        let (source, catalog) = equipped_fixture();
+        assert!(!compile(&source, &catalog).diagnostics.iter().any(|d| d.code == "unpowered"));
+    }
+
     #[test]
     fn integral_magazine_stays_at_barbette_foot_when_turret_is_raised() {
         let (mut s, c) = equipped_fixture();
