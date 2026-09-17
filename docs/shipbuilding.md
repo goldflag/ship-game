@@ -481,3 +481,17 @@ The optional versioned `customHull.redPaintY` is appearance only. Rendered faces
 are clipped at the paint boundary with interpolated lighting normals; native
 surfaces, panel selection, armor, mass and buoyancy remain unchanged. The same
 painted geometry is used in the builder, launched ships and portable GLB exports.
+
+### Inspection and placement controls
+
+Click the active bottom-toolbar card again to return to Select and stop placing;
+click a card to resume. The floor grid hides when the camera moves below it.
+Internals fades the hull and exterior fittings while keeping internal machinery
+visible. Armor fades structural steel and fittings to emphasize armor-steel faces.
+Equipment bounding boxes are hidden; internal magazine volumes remain visible.
+
+The Armor toolbar exposes **Skin**, the minimum structural plating thickness
+for the whole design (0.1–1,000 mm). Effective face thickness is the greater of
+the face assignment and Skin. A design with 16 mm skin therefore cannot produce
+an 8 mm face until Skin is lowered to 8 mm or less. Lowering Skin also changes
+unassigned hull plating, mass and displacement; it is an undoable source edit.

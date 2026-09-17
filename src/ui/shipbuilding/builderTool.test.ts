@@ -514,3 +514,30 @@ test('fine fitting rotation preserves fractional bearings, filters hull IDs and 
   tool.pointer({ kind: 'rotate', ids: fittings.map(item => item.id), degrees: NaN });
   expect(labels()).toHaveLength(before);
 });
+
+test('clicking an active placement card stops placement and clicking again resumes', async () => {
+  const { tool } = await setup();
+  for (const layer of ['hull', 'fittings', 'internals'] as const) {
+    tool.switchLayer(layer);
+    const card = tool.palette.drawer.find(item => layer === 'hull' ? item.kind === 'shape' : item.kind === 'part')!;
+    tool.selectSlot(card);
+    expect(tool.piece).toBeDefined();
+    tool.toggleSlot(card);
+    expect(tool.getSnapshot().tool).toBe('select');
+    expect(tool.piece).toBeUndefined();
+    tool.toggleSlot(card);
+    expect(tool.piece).toBeDefined();
+  }
+});
+
+test('armor and paint cards resume their brush after being toggled off', async () => {
+  const { tool } = await setup();
+  for (const layer of ['armor', 'paint'] as const) {
+    tool.switchLayer(layer);
+    const card = tool.active!;
+    tool.toggleSlot(card);
+    expect(tool.getSnapshot().tool).toBe('select');
+    tool.toggleSlot(card);
+    expect(tool.getSnapshot().tool).toBe('apply');
+  }
+});

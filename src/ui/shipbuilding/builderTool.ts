@@ -316,6 +316,16 @@ export class BuilderTool {
       ...(next === 'armor' || next === 'paint' ? { selected: new Set<string>() } : next === 'internals' ? { selected: new Set([...this.state.selected].filter(id => this.internalIds.has(id))) } : {}) });
   };
   /** Choose a card: true when it acted, so the caller closes the drawer and its tooltip. */
+  toggleSlot = (item: SlotItem): boolean => {
+    if (this.locked || item.kind === 'empty') return false;
+    if (this.state.tool !== 'select' && this.active?.id === item.id && item.kind !== 'scheme') {
+      this.update({ tool: 'select', pathPoints: [] });
+      return true;
+    }
+    const acted = this.selectSlot(item);
+    if (acted && this.state.tool === 'select' && !this.state.surfaces.size && ['armor', 'thickness', 'opening', 'paint'].includes(item.kind)) this.setTool('apply');
+    return acted;
+  };
   selectSlot = (item: SlotItem): boolean => {
     if (item.kind === 'empty' || this.locked) return false;
     const { layer, tool, surfaces } = this.state;

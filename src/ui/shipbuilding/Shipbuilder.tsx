@@ -144,7 +144,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const fail = (cause: unknown) => owner.setError(cause instanceof Error ? cause.message : String(cause));
   const run = tool.run;
   const switchLayer = (next: BuilderLayer) => { tool.switchLayer(next); setDrawer(false); setQuery(''); setTip(undefined); };
-  const selectSlot = (item: SlotItem) => { if (tool.selectSlot(item)) { setDrawer(false); setTip(undefined); } };
+  const selectSlot = (item: SlotItem) => { if (tool.toggleSlot(item)) { setDrawer(false); setTip(undefined); } };
   const enterFreeform = () => { if (tool.enterFreeform()) setDrawer(false); };
   const suggestionChanged = tool.suggestionChanged;
 
@@ -237,7 +237,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
     <button disabled={pathPoints.length < 2} onClick={tool.finishPath}>Finish <kbd>Enter</kbd></button><button onClick={() => tool.cancelPath(false)}>Cancel <kbd>Esc</kbd></button>
     <span className="sb-path-hint">{pathPart.path?.kind === 'railing' ? 'Deck supports every post' : 'Hull or fitting support sockets'} · double-click finishes</span>
   </> : layer === 'armor' ? <>
-    <b>Armor</b><NumberField value={customMm} min={0} max={1000} step={5} unit="mm" onChange={tool.setThickness}/><span>{customMm > 0 ? 'armor steel' : 'structural skin, no armor'} · <kbd>1</kbd> assigns the selected faces</span>
+    <b>Armor</b><NumberField label="Armor thickness" value={customMm} min={0} max={1000} step={1} unit="mm" onChange={tool.setThickness}/><span>{customMm > 0 ? 'armor steel' : 'structural skin, no armor'} · minimum {source.construction.defaultThicknessMm} mm skin</span><NumberField label="Skin" description="Minimum plating thickness across the ship; lowering it also changes unassigned hull faces" value={source.construction.defaultThicknessMm} min={.1} max={1000} step={.1} unit="mm" onChange={thicknessMm => run('Change structural skin', [{ op: 'skin', thicknessMm }])}/>
   </> : !piece ? null : piece.kind === 'hull' && active?.kind === 'shape' ? <>
     <b>{active.name}</b><NumberField value={piece.size[0]} min={.25} max={500} step={1} onChange={value => tool.setSizeOverride([value, piece.size[1], piece.size[2]])}/> × <NumberField value={piece.size[1]} min={.25} max={500} step={1} onChange={value => tool.setSizeOverride([piece.size[0], value, piece.size[2]])}/> × <NumberField value={piece.size[2]} min={.25} max={500} step={1} onChange={value => tool.setSizeOverride([piece.size[0], piece.size[1], value])}/> m<span>{piece.rotationDeg}°</span>
   </> : piece.kind === 'equipment' && active?.kind === 'part' ? <>
@@ -342,7 +342,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
     }
   };
   const slot = (item: SlotItem) => {
-    const pressed = item.kind !== 'empty' && active?.id === item.id;
+    const pressed = activeTool !== 'select' && item.kind !== 'empty' && active?.id === item.id;
     return <button key={item.id} className={`sb-slot ${item.kind === 'empty' ? 'empty' : ''}`} aria-pressed={pressed} aria-label={item.kind === 'part' ? item.part.name : item.name || undefined} disabled={item.kind === 'empty' || locked}
       onPointerEnter={event => showTip(item, event.currentTarget)} onPointerLeave={hideTip} onFocus={event => showTip(item, event.currentTarget)} onBlur={hideTip} onClick={() => selectSlot(item)}>{face(item)}</button>;
   };
