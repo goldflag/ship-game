@@ -96,6 +96,8 @@ fn torpedo_banks_carry_their_own_ready_ammunition_and_retain_rotation() {
         .iter()
         .filter(|p| p.kind == "torpedo-launcher")
         .collect();
+    // Keep every catalog variant on deck as new launcher families are added.
+    source.construction.primitives[0].size[2] = (parts.len() as f64 * 30.).max(80.);
     for (i, part) in parts.iter().enumerate() {
         let attachment = part
             .sockets
@@ -106,7 +108,7 @@ fn torpedo_banks_carry_their_own_ready_ammunition_and_retain_rotation() {
         source.construction.equipment.push(ConstructionEquipment {
             id: format!("bank-{i}"),
             part_id: part.id.clone(),
-            position: [0., 8. - attachment, -15. + i as f64 * 30.],
+            position: [0., 8. - attachment, (i as f64 - (parts.len() - 1) as f64 / 2.) * 30.],
             bearing_deg: 45.,
             ..Default::default()
         });
