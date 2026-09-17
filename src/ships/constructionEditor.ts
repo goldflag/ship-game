@@ -90,6 +90,12 @@ export function decodeConstructionSource(value: unknown): ConstructionSource {
   }
   for (const part of rows(data.equipment, 'Equipment')) {
     string(part.id, 'Equipment ID'); string(part.partId, 'Equipment variant'); vector(part.position, 'Equipment position'); number(part.bearingDeg, 'Equipment bearing');
+    if (part.wall !== undefined) {
+      const wall = object(part.wall, 'Wall fitting');
+      if (wall.version !== 1) throw new Error('Unsupported wall fitting version');
+      for (const key of ['widthM', 'heightM']) { number(wall[key], key); if ((wall[key] as number) < .15 || (wall[key] as number) > 5) throw new Error('Wall fitting dimensions must be 0.15–5 m'); }
+      if (wall.mirrorId !== undefined && (typeof wall.mirrorId !== 'string' || wall.mirrorId === part.id)) throw new Error('Invalid wall mirror partner');
+    }
     if (part.gun !== undefined) {
       const gun = object(part.gun, 'Gun installation');
       if (gun.battery !== undefined && !['main', 'secondary'].includes(gun.battery as string)) throw new Error('Unsupported gun battery');
@@ -151,20 +157,29 @@ export function removeConstructionSelection(source: ConstructionSource, selected
   const keep = source.construction.primitives.every(part => selected.has(part.id)) ? source.construction.primitives[0]?.id : undefined;
   source.construction.primitives = source.construction.primitives.filter(part => !selected.has(part.id) || part.id === keep);
   source.construction.surfaces = source.construction.surfaces.filter(surface => !selected.has(surface.primitiveId) || surface.primitiveId === keep);
-  source.construction.equipment = source.construction.equipment.filter(part => !selected.has(part.id));
+  const removed = new Set(selected);
+  for (const part of source.construction.equipment) if (selected.has(part.id) && part.wall?.mirrorId) removed.add(part.wall.mirrorId);
+  source.construction.equipment = source.construction.equipment.filter(part => !removed.has(part.id));
   source.construction.boundaries = source.construction.boundaries.filter(wall => !selected.has(wall.id));
   source.construction.loads = source.construction.loads.filter(load => !selected.has(load.id));
   // Keep references in other equipment as editable fit errors rather than silently reconnecting systems.
 }
 
 export function moveConstructionSelection(source: ConstructionSource, selected: ReadonlySet<string>, delta: Vec3): void {
-  for (const item of [...source.construction.primitives, ...source.construction.equipment]) if (selected.has(item.id)) item.position = item.position.map((v, axis) => v + delta[axis]) as Vec3;
+  for (const item of source.construction.primitives) if (selected.has(item.id)) item.position = item.position.map((v, axis) => v + delta[axis]) as Vec3;
+  const moved = new Set<string>();
+  for (const item of source.construction.equipment) if (selected.has(item.id) && !moved.has(item.id)) {
+    item.position = item.position.map((v, axis) => v + delta[axis]) as Vec3;
+    moved.add(item.id);
+    const twin = source.construction.equipment.find(p => p.id === item.wall?.mirrorId);
+    if (twin) { twin.position = [-item.position[0], item.position[1], item.position[2]]; moved.add(twin.id); }
+  }
   for (const load of source.construction.loads) if (selected.has(load.id)) load.center = load.center.map((v, axis) => v + delta[axis]) as Vec3;
 }
 
 export function rotateConstructionSelection(source: ConstructionSource, selected: ReadonlySet<string>, angle = 90): void {
   for (const part of source.construction.primitives) if (selected.has(part.id)) part.rotationDeg = normalizedBearing(part.rotationDeg + angle);
-  for (const part of source.construction.equipment) if (selected.has(part.id)) part.bearingDeg = normalizedBearing(part.bearingDeg + angle);
+  for (const part of source.construction.equipment) if (selected.has(part.id) && !part.wall) part.bearingDeg = normalizedBearing(part.bearingDeg + angle);
 }
 
 /** Source transform, not physical derivation. Corner profiles require an X/Z swap when reflected. */
@@ -203,6 +218,7 @@ export function copyConstructionSelection(source: ConstructionSource, selected: 
   data.primitives.push(...originals.map(part => ({ ...(options.mirror ? mirroredPrimitive(part) : structuredClone(part)), id: ids.get(part.id)!, position: position(part.position) })));
   data.surfaces.push(...data.surfaces.filter(surface => kinds.has(surface.primitiveId)).map(surface => ({ ...surface, primitiveId: ids.get(surface.primitiveId)!, face: options.mirror ? mirroredFace(surface.face, kinds.get(surface.primitiveId)!) : surface.face, ...(surface.panelId ? { panelId: options.mirror ? mirroredPanelId(surface.panelId) : surface.panelId } : {}) })));
   data.equipment.push(...data.equipment.filter(part => selected.has(part.id)).map(part => ({ ...(options.mirror ? mirroredEquipment(part) : structuredClone(part)), id: ids.get(part.id)!, position: position(part.position),
+    ...(part.wall ? { wall: { ...part.wall, mirrorId: undefined } } : {}),
     ...(part.magazineId ? { magazineId: ids.get(part.magazineId) ?? part.magazineId } : {}), ...(part.powerSourceId ? { powerSourceId: ids.get(part.powerSourceId) ?? part.powerSourceId } : {}) })));
   data.loads.push(...data.loads.filter(load => selected.has(load.id)).map(load => ({ ...structuredClone(load), id: ids.get(load.id)!, center: position(load.center) })));
   return [...ids.values()];

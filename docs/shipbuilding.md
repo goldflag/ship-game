@@ -137,6 +137,39 @@ Saved, valid designs also appear in **Custom battle**, where they can be the
 player, friendly bots or enemies, including repeated copies. Online and campaign
 modes continue to accept their historical content only.
 
+## Doors, portholes and windows
+
+In **Fittings → Doors & windows**, choose the existing watertight door, a round
+porthole, a rectangular window or a rounded-rectangle window. These are closed
+surface fittings with opaque glazing; they do not cut holes or change flooding.
+Click a flat vertical hull or superstructure face. The fitting automatically faces
+outward and seats its back against the wall; decks and sloping walls are not
+placement targets. Width/height (or porthole diameter) range from 0.15–5 m.
+
+**Single** places individual windows. With nearby snapping enabled, guides align
+window centers and frame edges, including tops and sills of different sizes.
+**Row** adds a center-to-center **Spacing** control. Drag horizontally along a
+wall to preview an evenly spaced row at one height; release commits the whole
+row as one undo step. Spacing always leaves at least 5 cm between frames.
+Escape cancels an unfinished row. Changing spacing affects the next row.
+
+With **Mirror** enabled, each fitting gets a persistent linked partner across
+the ship centerline. Both sides must have matching flat wall support behind the
+frame; a missing, sloping, open or offset opposite wall refuses the placement.
+Turn Mirror off to place on just one side. **Mirror copy** on an unpaired wall
+fitting creates the same linked relationship. Moving, resizing, painting and
+deleting either partner updates both, even with Mirror placement switched off.
+Copies of linked fittings form their own pairs. Saving, reopening, undo and redo
+retain the links. Fittings slide in their wall plane and cannot be rotated away
+from it. Changing the supporting hull can invalidate a fitting; native diagnostics
+identify unsupported frames and block trials until corrected.
+
+The existing versioned equipment record carries optional `wall` installation
+settings (`version: 1`, `widthM`, `heightM`, `mirrorId`). Retained catalogs and
+older designs remain loadable. The Rust compiler validates support, linked-pair
+symmetry, clearance and scaled mass; the editor, trial models and portable GLBs
+scale the same original component geometry.
+
 ## Deck fittings and connected paths
 
 In **Fittings**, open the **…** drawer (or press **0**) and search the parts by

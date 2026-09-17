@@ -244,6 +244,7 @@ pub fn suggest(
                 serial += 1;
             }
             let e = ConstructionEquipment {
+                wall: None,
                 id,
                 part_id: part.id.clone(),
                 position,
@@ -1507,6 +1508,9 @@ fn equipment(
             None,
         ));
     }
+    let installed_parts: Vec<_> = c.equipment.iter().filter_map(|e| catalog.equipment.iter().find(|p| p.id == e.part_id).map(|p| (e, p)))
+        .map(|(e, p)| crate::construction_wall_fittings::installed(e, p, c, &out.surfaces).map(|p| (e.id.clone(), p)))
+        .collect::<Result<_, _>>()?;
     let mut fitted = vec![];
     let mut all_envelopes: Vec<(String, cg::Cell)> = vec![];
     let mut fitting_index = cg::Broadphase::new(8.);
@@ -1528,7 +1532,7 @@ fn equipment(
         .filter(|e| !is_path(e))
         .chain(c.equipment.iter().filter(is_path))
     {
-        let Some(p) = catalog.equipment.iter().find(|p| p.id == e.part_id) else {
+        let Some((_, p)) = installed_parts.iter().find(|(id, _)| id == &e.id) else {
             return Err(error(
                 "missing-part",
                 "Exact equipment part is unavailable in this catalog revision",

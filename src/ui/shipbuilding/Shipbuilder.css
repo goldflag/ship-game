@@ -484,3 +484,7 @@
 .sb-snap-overlay { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 4; overflow: hidden; }
 .sb-snap-overlay path { fill: none; stroke-width: 1.25; vector-effect: non-scaling-stroke; }
 .sb-snap-overlay circle { fill: var(--sb-card, #24282b); stroke-width: 1.5; }
+
+.sb-cursor button[aria-pressed=true] { color: var(--sb-mint); border-color: var(--sb-mint); background: var(--sb-card-toggle); }
+
+.shipbuilder[data-wall-placement] .sb-cursor { max-width: calc(100% - 180px); flex-wrap: wrap; justify-content: center; gap: 6px 12px; white-space: normal; }

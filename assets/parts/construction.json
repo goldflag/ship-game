@@ -1515,7 +1515,8 @@
           ]
         }
       ],
-      "massKg": 85
+      "massKg": 85,
+      "wallMount": "door"
     },
     {
       "id": "generic-deck-hatch",
@@ -6931,6 +6932,123 @@
           ]
         }
       ]
+    },
+    {
+      "id": "generic-porthole",
+      "name": "Round porthole",
+      "kind": "deck-fitting",
+      "size": [
+        0.5,
+        0.5,
+        0.08
+      ],
+      "boundsCenter": [
+        0,
+        0,
+        -0.04
+      ],
+      "centerOfGravity": [
+        0,
+        0,
+        -0.04
+      ],
+      "placement": "deck",
+      "wallMount": "porthole",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "massKg": 12
+    },
+    {
+      "id": "generic-rectangular-window",
+      "name": "Rectangular window",
+      "kind": "deck-fitting",
+      "size": [
+        0.9,
+        0.65,
+        0.08
+      ],
+      "boundsCenter": [
+        0,
+        0,
+        -0.04
+      ],
+      "centerOfGravity": [
+        0,
+        0,
+        -0.04
+      ],
+      "placement": "deck",
+      "wallMount": "window",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "massKg": 20
+    },
+    {
+      "id": "generic-rounded-window",
+      "name": "Rounded-rectangle window",
+      "kind": "deck-fitting",
+      "size": [
+        0.9,
+        0.65,
+        0.08
+      ],
+      "boundsCenter": [
+        0,
+        0,
+        -0.04
+      ],
+      "centerOfGravity": [
+        0,
+        0,
+        -0.04
+      ],
+      "placement": "deck",
+      "wallMount": "window",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "massKg": 20
     }
   ]
 }

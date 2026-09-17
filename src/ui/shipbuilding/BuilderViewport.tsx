@@ -1,3 +1,5 @@
+import { wallFrameSnapFeatures } from './snapping';
+import { installedWallPart, wallNormal, wallBearing, wallRow, wallScale, wallFittingSupported } from '../../ships/constructionWallFittings';
 import { visualMemory, type VisualMemory } from './modelMemory';
 import { SnapOverlay } from './SnapOverlay';
 import { constructionSnapFeatures, primitiveSnapFeatures, resolveSnap, DEFAULT_SNAPPING, SHIP_AXES, type SnapFeature, type SnapGuide } from './snapping';
@@ -410,7 +412,7 @@ class Viewport {
     for (const part of props.scene.source.construction.equipment) {
       const entry = props.scene.catalog.equipment.find(entry => entry.id === part.partId);
       if (!entry || this.equipment.has(part.id)) continue;
-      const pathBounds = equipmentPathBounds(entry, part);
+      const pathBounds = equipmentPathBounds(installedWallPart(entry, part), part);
       const box = new THREE.Mesh(new THREE.BoxGeometry(...pathBounds.size), new THREE.MeshBasicMaterial({ visible: false }));
       const datum = new THREE.Group(); datum.position.set(...part.position); datum.rotation.y = -part.bearingDeg * Math.PI / 180; box.position.set(...pathBounds.center);
       box.userData.sourceId = part.id; datum.add(box); this.details.add(datum);
@@ -511,12 +513,17 @@ class Viewport {
   private updateGhost() {
     const rotation = this.pointerStart?.rotate;
     const original = this.props.scene.placementPiece;
-    const piece = rotation?.position && original?.kind === 'equipment' ? { ...original, bearingDeg: normalizedBearing(original.bearingDeg + rotation.degrees) } : original;
+    let piece = rotation?.position && original?.kind === 'equipment' ? { ...original, bearingDeg: normalizedBearing(original.bearingDeg + rotation.degrees) } : original;
     const originalMirror = this.props.scene.placementMirror;
-    const mirror = rotation?.position && originalMirror?.kind === 'equipment' ? { ...originalMirror, bearingDeg: normalizedBearing(originalMirror.bearingDeg - rotation.degrees) } : originalMirror;
+    let mirror = rotation?.position && originalMirror?.kind === 'equipment' ? { ...originalMirror, bearingDeg: normalizedBearing(originalMirror.bearingDeg - rotation.degrees) } : originalMirror;
     // Bearing changes transform the cached preview; they do not rebuild its meshes.
     const shape = (item?: BuilderPlacement) => item?.kind === 'equipment' ? { ...item, bearingDeg: 0 } : item;
-    const pick = rotation?.position ? { placement: rotation.position } : this.hover ? this.pick(this.hover, 'hull') : undefined;
+    let pick = rotation?.position ? { placement: rotation.position, bearingDeg: undefined as number | undefined } : this.hover ? this.pick(this.hover, 'hull') : undefined;
+    if (piece?.kind === 'equipment' && piece.wall && this.pointerStart?.start?.bearingDeg !== undefined && pick?.bearingDeg !== this.pointerStart.start.bearingDeg) pick = undefined;
+    if (piece?.kind === 'equipment' && piece.wall && pick?.bearingDeg !== undefined) {
+      piece = { ...piece, bearingDeg: pick.bearingDeg };
+      if (mirror?.kind === 'equipment') mirror = { ...mirror, bearingDeg: normalizedBearing(-pick.bearingDeg) };
+    }
     const offset = piece?.kind === 'boundary' && pick ? pick.placement[{ x: 0, y: 1, z: 2 }[piece.axis]] : undefined;
     const key = JSON.stringify([shape(piece), shape(mirror), piece?.kind === 'boundary' ? [this.props.scene.source.revision, offset] : undefined]);
     if (key !== this.ghostKey) {
@@ -525,7 +532,10 @@ class Viewport {
       if (piece) {
         const build = (item: BuilderPlacement, group: THREE.Group, opacity: number) => {
           const equipment = item.kind === 'equipment' && item.partId ? this.equipment.clone(item.partId, true) : undefined;
-          if (equipment) { group.add(equipment); group.rotation.y = placementRotation(item); return; }
+          if (equipment) {
+            const part = this.props.scene.catalog.equipment.find(p => p.id === (item.kind === 'equipment' ? item.partId : undefined));
+            if (part && item.kind === 'equipment') equipment.scale.fromArray(wallScale(part, { wall: item.wall }));
+            group.add(equipment); group.rotation.y = placementRotation(item); return; }
           const geometry = item.kind === 'boundary' ? boundaryGeometry(this.props.scene.source.construction.primitives, item.axis, offset ?? NaN) : placementGeometry(item);
           const fill = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ color: BRASS, transparent: true, opacity, depthWrite: false, depthTest: item.kind === 'boundary', side: THREE.DoubleSide }));
           const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geometry), new THREE.LineBasicMaterial({ color: BRASS_LIGHT, depthTest: false, transparent: true, opacity: opacity * 3.6 }));
@@ -547,6 +557,10 @@ class Viewport {
     // Boundary geometry is already in ship coordinates, independent of orbit target.
     this.ghost.position.set(...(piece!.kind === 'boundary' ? [0, 0, 0] as Vec3 : position));
     this.ghostMirror.visible = !!this.props.scene.placementMirror && Math.abs(position[0]) > 1e-6;
+    if (piece?.kind === 'equipment' && piece.wall && this.ghostMirror.visible) {
+      const part = this.props.scene.catalog.equipment.find(p => p.id === piece.partId);
+      this.ghostMirror.visible = !!part && wallFittingSupported({ id: 'preview', partId: part.id, position: [-position[0], position[1], position[2]], bearingDeg: -piece.bearingDeg, wall: piece.wall }, part, this.props.scene.current?.surfaces ?? []);
+    }
     if (this.ghostMirror.visible) this.ghostMirror.position.set(-position[0], position[1], position[2]);
     this.ghostArc.visible = this.ghostArc.children.length > 0;
     if (this.ghostArc.visible) this.ghostArc.position.set(position[0], position[1] + .08, position[2]);
@@ -614,7 +628,12 @@ class Viewport {
     const axis = dominantAxis(normal);
     const supportId = surface?.primitiveId.startsWith('equipment:') ? surface.primitiveId.slice('equipment:'.length) : undefined;
     const id = supportId && this.props.scene.source.construction.equipment.some(item => item.id === supportId) ? supportId : surface?.primitiveId ?? hit.object.userData.sourceId;
-    const primitive = this.props.scene.source.construction.primitives.find(part => part.id === id), piece = this.props.scene.placementPiece;
+    const primitive = this.props.scene.source.construction.primitives.find(part => part.id === id);
+    let piece = this.props.scene.placementPiece;
+    if (targets === 'hull' && piece?.kind === 'equipment' && piece.wall) {
+      if (!surface || surface.open || Math.abs(normal[1]) > 1e-5 || !primitive) return undefined;
+      piece = { ...piece, bearingDeg: wallBearing(normal) };
+    }
     const extents = primitive && pieceExtents({ kind: 'hull', shape: primitive.kind, size: primitive.size, rotationDeg: primitive.rotationDeg });
     const snapOrigin = primitive && extents ? primitive.position.map((value, index) => value - extents[index] / 2) as Vec3 : undefined;
     const settings = this.props.scene.snapping ?? DEFAULT_SNAPPING;
@@ -623,6 +642,7 @@ class Viewport {
     if (piece && !this.pointerStart?.move && !this.moveHandles.dragging) {
       const unsnapped = placementCenter(piece, { point: raw, normal, snapOrigin }, null);
       const moving = piece.kind === 'hull' ? primitiveSnapFeatures({ id: 'cursor', kind: piece.shape, position: [0, 0, 0], rotationDeg: piece.rotationDeg, size: piece.size })
+        : piece.kind === 'equipment' && piece.wall ? wallFrameSnapFeatures('cursor', [0,0,0], piece.bearingDeg, piece).filter(f => f.kind !== 'edge')
         : [{ id: 'cursor:center', owner: 'cursor', point: piece.kind === 'equipment' ? attachmentOffset(piece, piece.bearingDeg) : [0, 0, 0] as Vec3, kind: 'center' as const }];
       const free = SHIP_AXES.filter((_, k) => piece.kind === 'boundary' ? k === 'xyz'.indexOf(piece.axis) : k !== axis);
       this.workingAxis = axis;
@@ -631,7 +651,7 @@ class Viewport {
       if (piece.kind !== 'boundary') placement[axis] -= placement.reduce((sum, v, k) => sum + (v - unsnapped[k]) * normal[k], 0) / normal[axis];
       this.workingPoint = piece.kind === 'equipment' ? add(placement, attachmentOffset(piece, piece.bearingDeg)) : [...raw];
     }
-    return { id, surface: surface && surfaceSelectionKey(surface), point: raw, normal, axis, placement, additive: !!(event.shiftKey || event.ctrlKey || event.metaKey) };
+    return { id, surface: surface && surfaceSelectionKey(surface), point: raw, normal, axis, placement, bearingDeg: piece?.kind === 'equipment' ? piece.bearingDeg : undefined, additive: !!(event.shiftKey || event.ctrlKey || event.metaKey) };
   }
 
   private showArmorTooltip(event?: { clientX: number; clientY: number }, pick?: BuilderPick) {
@@ -714,7 +734,7 @@ class Viewport {
     for (const point of points) {
       const instance = this.ghost.clone(true); instance.position.set(...point); instance.visible = true; instance.userData.placementPreview = false;
       this.strokePreview.add(instance);
-      if (this.props.scene.placementMirror && Math.abs(point[0]) > 1e-6) {
+      if (this.ghostMirror.visible && this.props.scene.placementMirror && Math.abs(point[0]) > 1e-6) {
         const twin = this.ghostMirror.clone(true); twin.position.set(-point[0], point[1], point[2]); twin.visible = true;
         this.strokePreview.add(twin);
       }
@@ -854,6 +874,9 @@ class Viewport {
       normal.copy(this.camera.getWorldDirection(new THREE.Vector3())).setComponent(axis, 0);
       if (normal.lengthSq() < 1e-6) normal.set(axis === 0 ? 0 : 1, 0, axis === 0 ? 1 : 0);
       free.fill(false); free[axis] = true;
+    } else if (equipment.find(e => e.id === hit.id)?.wall) {
+      normal.fromArray(wallNormal(equipment.find(e => e.id === hit.id)!.bearingDeg));
+      for (let k = 0; k < 3; k++) free[k] = Math.abs(normal.getComponent(k)) < .99999;
     } else {
       // Pieces slide in the plane of the pressed face; press a side face to move vertically.
       normal.setComponent(hit.axis, Math.sign(hit.normal?.[hit.axis] ?? 1) || 1);
@@ -875,7 +898,7 @@ class Viewport {
     const walls = internals ? boundaries.filter(p => selected.has(p.id)) : [];
     for (const item of modules) {
       const part = props.scene.catalog.equipment.find(p => p.id === item.partId);
-      const center = new THREE.Vector3(...(part ? equipmentPathBounds(part, item).center : [0, 0, 0] as Vec3));
+      const center = new THREE.Vector3(...(part ? equipmentPathBounds(installedWallPart(part, item), item).center : [0, 0, 0] as Vec3));
       center.applyAxisAngle(new THREE.Vector3(0, 1, 0), -item.bearingDeg * Math.PI / 180).add(new THREE.Vector3(...item.position));
       anchors.push(center.toArray() as Vec3);
     }
@@ -905,7 +928,9 @@ class Viewport {
   private buildMovePreview(ids: string[]) {
     release(this.movePreview);
     const { primitives, equipment, boundaries } = this.props.scene.source.construction;
-    for (const id of ids) {
+    const partners = new Set<string>();
+    for (const item of equipment) if (ids.includes(item.id) && item.wall?.mirrorId && !ids.includes(item.wall.mirrorId)) partners.add(item.wall.mirrorId);
+    for (const id of [...ids, ...partners]) {
       const primitive = primitives.find(part => part.id === id);
       if (primitive) {
         const geometry = primitiveGeometry(primitive.kind, primitive.size, primitive.vertices, primitive.customHull, primitive.shaping);
@@ -919,6 +944,8 @@ class Viewport {
         const datum = new THREE.Group(); datum.position.set(...item.position); datum.rotation.y = -item.bearingDeg * Math.PI / 180;
         const ghost = this.equipment.clone(item.partId, true, item.path), part = this.props.scene.catalog.equipment.find(entry => entry.id === item.partId);
         if (ghost) datum.add(ghost);
+        if (part) datum.scale.fromArray(wallScale(part, item));
+        if (partners.has(id)) datum.userData.mirrorOrigin = [...item.position];
         else if (part) { const box = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(...part.size)), new THREE.LineBasicMaterial({ color: BRASS_LIGHT, depthTest: false })); box.position.set(...part.boundsCenter); datum.add(box); }
         this.movePreview.add(datum); continue;
       }
@@ -934,6 +961,8 @@ class Viewport {
   private positionMovePreview(delta: Vec3) {
     this.movePreview.position.set(...delta);
     for (const child of this.movePreview.children) {
+      const mirrored = child.userData.mirrorOrigin as Vec3 | undefined;
+      if (mirrored) child.position.set(mirrored[0] - 2 * delta[0], mirrored[1], mirrored[2]);
       const wall = child.userData.boundary;
       if (!wall || !(child instanceof THREE.Mesh)) continue;
       const offset = wall.offset + delta[{ x: 0, y: 1, z: 2 }[wall.axis as 'x' | 'y' | 'z']];
@@ -957,6 +986,8 @@ class Viewport {
     if (point) {
       const raw = point.sub(move.origin);
       const requested = this.snapMove(move.ids, raw.toArray().map((v, k) => move.free[k] ? v : 0) as Vec3, move.free);
+      const fitting = this.props.scene.source.construction.equipment.find(e => move.ids.includes(e.id) && e.wall);
+      if (fitting) { const n = wallNormal(fitting.bearingDeg), d = requested.reduce((sum,v,k)=>sum+v*n[k],0); for (let k=0;k<3;k++) requested[k]-=d*n[k]; }
       move.delta = move.constrain(requested);
       this.moveBlocked = move.delta.some((v, k) => Math.abs(v - requested[k]) > 1e-7);
       if (this.moveBlocked) this.clearSnap();
@@ -970,8 +1001,9 @@ class Viewport {
   private navigating() { const press = this.pointerStart; return !!press && !press.start && !press.faces && (press.box || press.button === 2 || press.moved); }
   private rotationPick(event: PointerEvent): RotationDrag | undefined {
     const scene = this.props.scene;
-    if (scene.freeform || scene.pathDraft || scene.moveTargets === 'none') return undefined;
+    if (scene.freeform || scene.pathDraft || scene.moveTargets === 'none' || scene.placementPiece?.kind === 'equipment' && scene.placementPiece.wall) return undefined;
     const hit = this.pick(event, scene.pickTargets);
+    if (hit?.id && scene.source.construction.equipment.some(item => item.id === hit.id && item.wall)) return undefined;
     if (hit?.id && scene.source.construction.equipment.some(item => item.id === hit.id)) {
       const allowed = scene.pickTargets === 'internals' ? internalSelectionIds(scene.source, scene.catalog) : undefined;
       const ids = scene.source.construction.equipment.filter(item => (!allowed || allowed.has(item.id)) && (scene.selected.has(hit.id!) ? scene.selected.has(item.id) : item.id === hit.id)).map(item => item.id);
@@ -1042,6 +1074,11 @@ class Viewport {
     if (this.props.scene.gesture === 'fill') { this.updateFillPreview(); this.updateStrokePreview(); return; }
     const hit = this.pick(event, 'hull');
     if (!hit) { this.updateStrokePreview(); return; }
+    if (piece.kind === 'equipment' && piece.wall) {
+      if (start.bearingDeg === undefined || hit.bearingDeg === undefined || Math.abs(start.bearingDeg - hit.bearingDeg) > 1e-5) return;
+      this.pointerStart.points = piece.rowSpacing ? wallRow(start.placement, hit.placement, start.bearingDeg, piece.rowSpacing) : [hit.placement];
+      this.updateStrokePreview(); return;
+    }
     const current = hit.placement, previous = points.at(-1) ?? current;
     for (const point of strokeSegment(previous, current, pieceExtents(piece), start.axis)) {
       if (points.length >= 128) break;
@@ -1077,9 +1114,9 @@ class Viewport {
       else if (clicked) this.props.onPointer({ kind: 'pick', hit: this.pick(event, 'all') });
     } else if (start.start && piece) {
       const hit = this.pick(event, 'hull');
-      if (!hit) return;
+      if (!hit || piece.kind === 'equipment' && piece.wall && start.start.bearingDeg !== hit.bearingDeg) return;
       if (this.props.scene.gesture === 'fill') this.props.onPointer({ kind: 'lay', points: fillLattice(start.start.placement, clicked ? start.start.placement : hit.placement, pieceExtents(piece), start.start.axis) });
-      else this.props.onPointer({ kind: 'lay', points: clicked ? [start.start.placement] : start.points });
+      else this.props.onPointer({ kind: 'lay', points: clicked ? [start.start.placement] : start.points, bearingDeg: start.start.bearingDeg });
     } else if (start.faces && !clicked) this.props.onPointer({ kind: 'faces', surfaces: [...start.faces] });
     else if (clicked) this.props.onPointer({ kind: 'pick', hit: this.pick(event, this.props.scene.placementPiece ? 'hull' : this.props.scene.pickTargets) });
   };

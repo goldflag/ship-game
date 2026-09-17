@@ -584,6 +584,27 @@
       "inputs": [
         "assets/parts/construction/geometry.py"
       ]
+    },
+    "generic-porthole": {
+      "path": "assets/parts/construction/windows.py",
+      "function": "create_window",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-rectangular-window": {
+      "path": "assets/parts/construction/windows.py",
+      "function": "create_window",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-rounded-window": {
+      "path": "assets/parts/construction/windows.py",
+      "function": "create_window",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
     }
   },
   "components": [
@@ -1108,6 +1129,24 @@
       "builder": "ijn-aircraft-crane",
       "review": "unreviewed",
       "limitations": "Original generic or ship-adapted deck fitting; dimensions and dry mass are declared game estimates, loading only, with no combat or handling effect."
+    },
+    {
+      "partId": "generic-porthole",
+      "builder": "generic-porthole",
+      "review": "unreviewed",
+      "limitations": "Original generic closed surface fitting with opaque optics. No hull opening or interior. Dimensions and mass are engineering estimates; installed wall support requires native validation."
+    },
+    {
+      "partId": "generic-rectangular-window",
+      "builder": "generic-rectangular-window",
+      "review": "unreviewed",
+      "limitations": "Original generic closed surface fitting with opaque optics. No hull opening or interior. Dimensions and mass are engineering estimates; installed wall support requires native validation."
+    },
+    {
+      "partId": "generic-rounded-window",
+      "builder": "generic-rounded-window",
+      "review": "unreviewed",
+      "limitations": "Original generic closed surface fitting with opaque optics. No hull opening or interior. Dimensions and mass are engineering estimates; installed wall support requires native validation."
     }
   ]
 }

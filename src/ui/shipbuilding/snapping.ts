@@ -1,4 +1,5 @@
-import type { ConstructionCatalog, ConstructionPrimitive, ConstructionSource, Vec3 } from '../../ships/blueprint';
+import { installedWallPart } from '../../ships/constructionWallFittings';
+import type { ConstructionCatalog, ConstructionEquipmentPart, ConstructionPrimitive, ConstructionSource, Vec3 } from '../../ships/blueprint';
 import { cornerVertices, VERTEX_FACES, worldVertex } from '../../ships/constructionVertex';
 import { customHullFaces, customHullPrimitive, makeHull } from '../../ships/customHullModel';
 import { CONSTRUCTION_SHAPES } from '../../ships/constructionShapes';
@@ -7,11 +8,23 @@ import { add, sub, mul, dot, cross, shapedFaces } from '../../ships/freeformShap
 
 export interface SnapSettings { enabled: boolean; grid: boolean; centerline: boolean; geometry: boolean; guides: boolean; showCenterline: boolean }
 export const DEFAULT_SNAPPING: SnapSettings = { enabled: true, grid: true, centerline: true, geometry: true, guides: true, showCenterline: true };
-export interface SnapFeature { id: string; owner: string; point: Vec3; kind: 'center' | 'corner' | 'edge'; edge?: [Vec3, Vec3] }
+export interface SnapFeature { wallFrame?: boolean; id: string; owner: string; point: Vec3; kind: 'center' | 'corner' | 'edge'; edge?: [Vec3, Vec3] }
 export interface SnapGuide { id: string; axis: number; movingId: string; from: Vec3; to: Vec3; edge?: [Vec3, Vec3]; centerline: boolean; active: boolean }
 export const SHIP_AXES: Vec3[] = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
 export type ProjectSnap = (point: Vec3) => [number, number] | undefined;
 const midpoint = (a: Vec3, b: Vec3) => mul(add(a, b), .5);
+
+/** Center and frame edges let differently sized windows align by their tops, sills or sides. */
+export function wallFrameSnapFeatures(id: string, position: Vec3, bearing: number, part: Pick<ConstructionEquipmentPart, 'size' | 'boundsCenter' | 'sockets'>): SnapFeature[] {
+  const z = part.sockets?.find(s => s.id === 'attachment')?.position[2] ?? 0;
+  const point = (x: number, y: number) => add(position, rotateY([part.boundsCenter[0]+x*part.size[0], part.boundsCenter[1]+y*part.size[1], z], -bearing*Math.PI/180));
+  const corners = [[-.5,-.5],[.5,-.5],[.5,.5],[-.5,.5]].map(([x,y])=>point(x,y));
+  return [
+    { id: `${id}:mount`, owner: id, wallFrame: true, point: point(0,0), kind: 'center' },
+    ...corners.map((point,i): SnapFeature => ({ id: `${id}:corner:${i}`, owner:id, wallFrame: true, point, kind:'corner' })),
+    ...corners.map((point,i): SnapFeature => ({ id: `${id}:edge:${i}`, owner:id, wallFrame: true, point:midpoint(point,corners[(i+1)%4]), kind:'edge', edge:[point,corners[(i+1)%4]] })),
+  ];
+}
 
 /** Authoring edges only: no gun mesh triangles, barrel bounds or render dependencies. */
 export function primitiveSnapFeatures(p: ConstructionPrimitive): SnapFeature[] {
@@ -48,7 +61,8 @@ export function constructionSnapFeatures(source: ConstructionSource, catalog: Co
   const features = source.construction.primitives.flatMap(primitiveSnapFeatures);
   for (const item of source.construction.equipment) {
     const part = parts.get(item.partId); if (!part || part.path) continue;
-    features.push({ id: `${item.id}:mount`, owner: item.id, point: add(item.position, attachmentOffset(part, item.bearingDeg)), kind: 'center' });
+    if (item.wall) { features.push(...wallFrameSnapFeatures(item.id, item.position, item.bearingDeg, installedWallPart(part, item))); continue; }
+    features.push({ id: `${item.id}:mount`, owner: item.id, point: add(item.position, attachmentOffset(installedWallPart(part, item), item.bearingDeg)), kind: 'center' });
   }
   for (const wall of source.construction.boundaries) {
     const point: Vec3 = [0, 0, 0]; point['xyz'.indexOf(wall.axis)] = wall.offset;
@@ -104,6 +118,7 @@ export function resolveSnap(input: {
       if (s.centerline && feature.kind === 'center') consider(feature, [0, point[1], point[2]], 'centerline', 0, undefined, true);
       if (!s.geometry) continue;
       for (const target of nearby) {
+        if (feature.wallFrame && target.wallFrame && (feature.kind === 'center') !== (target.kind === 'center')) continue;
         const position = target.edge ? closest(point, target.edge) : target.point;
         // Mounting centers also reach physical edges; hull corners never align to abstract centers.
         if (target.kind === 'center' && feature.kind !== 'center') continue;

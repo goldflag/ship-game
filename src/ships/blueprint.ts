@@ -332,6 +332,8 @@ export interface ConstructionSurfaceAssignment {
   thicknessMm: number; material: 'steel' | 'armor-steel'; paint: string; open?: boolean;
 }
 export interface ConstructionEquipment {
+  /** Wall fitting installation, in metres; linked partners reflect across ship X=0. */
+  wall?: { version: 1; widthM: number; heightM: number; mirrorId?: string };
   /** Named coating for this installation; omission retains the original component finish. */
   paint?: string;
   id: string; partId: string; position: Vec3; bearingDeg: number;
@@ -414,6 +416,8 @@ export interface ConstructionEquipmentPart {
   /** Required for non-guns; guns use the mass of the referenced canonical GunPart. */
   massKg?: number;
   placement: 'internal' | 'deck' | 'underwater';
+  /** Closed surface detail; attachment socket faces into a vertical wall. */
+  wallMount?: 'door' | 'porthole' | 'window';
   occupancy?: { center: Vec3; size: Vec3 }[];
   /** Conservative physical fitting boxes for sparse original equipment; absent uses the full visual bounds. */
   fitting?: { center: Vec3; size: Vec3 }[];
