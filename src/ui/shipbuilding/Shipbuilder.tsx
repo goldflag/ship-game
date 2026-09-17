@@ -6,7 +6,7 @@ import { customHullPrimitive, editableCustomHull, makeHull } from '../../ships/c
 import { NewDesignDialog } from './NewDesignDialog';
 import { canEditVertices, freeformEdit, replaceVertexPrimitives, selectionCenter, splitVertexPrimitive, VERTEX_UNITS } from '../../ships/constructionVertex';
 import { blockMoveConstraint } from './blockMovement';
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { ConstructionBoundary, ConstructionCatalog, ConstructionEquipment, ConstructionPrimitive, ConstructionResult, ConstructionSource, ConstructionSuggestion, ConstructionSurfaceAssignment, Vec3 } from '../../ships/blueprint';
 import { CONSTRUCTION_LIMITS, assignConstructionSurfaces, copyConstructionSelection, editableConstructionSurfaces, mirroredFace, mirroredPrimitive, mirroredEquipment, moveConstructionSelection, newConstructionId, removeConstructionSelection, rotateConstructionSelection, surfaceKey, type ConstructionFace } from '../../ships/constructionEditor';
 import { removeLocalShip } from '../../ships/localShips';
@@ -117,6 +117,16 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const [measure, setMeasure] = useState<{ from: Vec3; to?: Vec3 }>();
   const [drawer, setDrawer] = useState(false);
   const [query, setQuery] = useState('');
+  // The open drawer keeps the size of its full, unfiltered card set while a search narrows it, so the panel does not jump about under the pointer; the search clears when the drawer closes.
+  const drawerRef = useRef<HTMLDivElement>(null);
+  const [drawerSize, setDrawerSize] = useState<{ width: number; height: number }>();
+  useLayoutEffect(() => {
+    if (!drawer) { setDrawerSize(undefined); setQuery(''); return; }
+    const measure = () => { setDrawerSize(undefined); requestAnimationFrame(() => { const box = drawerRef.current; if (box) setDrawerSize({ width: box.offsetWidth, height: box.offsetHeight }); }); };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [drawer, layer]);
   const [warningsOpen, setWarningsOpen] = useState(true);
   const [designsOpen, setDesignsOpen] = useState(false);
   const [fitRequest, setFitRequest] = useState(0);
@@ -736,7 +746,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
         <div className="sb-masskey">{masses.filter(group => group.massKg > 0).map(group => <span key={group.name} style={{ display: 'contents' }}><i style={{ background: group.color }}/><span>{group.name}</span><b>{formatTonnes(group.massKg, group.massKg < 1e5 ? 1 : 0)}</b></span>)}</div></>}
       {layer === 'armor' && <div className="sb-armor-groups" aria-label="Hull armor coverage">{armorInspectionGroups(editableSurfaces).sort((a, b) => b.areaM2 - a.areaM2).slice(0, 6).map(group => <p key={group.id}>{describeArmorGroup(group.surface)}<small>{format(group.areaM2, 0)} m² · {group.faces.size} face{group.faces.size === 1 ? '' : 's'}</small></p>)}</div>}
     </aside>
-    {drawer && <div className="sb-drawer" aria-label={`All ${drawerName}`}>
+    {drawer && <div className="sb-drawer" ref={drawerRef} style={drawerSize} aria-label={`All ${drawerName}`}>
       <div className="sb-drawer-head"><span className="sb-lead">All {drawerName}</span>
         {(layer === 'fittings' || layer === 'hull') && <label className="sb-search">Find <input autoFocus type="search" aria-label={layer === 'hull' ? 'Find a shape' : 'Find a fitting'} placeholder={layer === 'hull' ? 'bridge, cylinder, shell…' : 'gun, screw, funnel…'} value={query} onChange={event => setQuery(event.target.value)} onKeyDown={event => { if (event.key === 'Escape') { event.stopPropagation(); setDrawer(false); setTip(undefined); } }}/></label>}
         <button className="sb-drawer-close" aria-label="Close" onClick={() => { setDrawer(false); setTip(undefined); }}>×</button></div>
