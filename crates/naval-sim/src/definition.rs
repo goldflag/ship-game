@@ -1248,7 +1248,20 @@ pub struct ConstructionEquipmentPath {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionEquipmentWall {
+    pub version: u32,
+    #[serde(rename = "widthM")]
+    pub width_m: f64,
+    #[serde(rename = "heightM")]
+    pub height_m: f64,
+    #[serde(rename = "mirrorId", default, skip_serializing_if = "Option::is_none")]
+    pub mirror_id: Option<String>,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct ConstructionEquipment {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub wall: Option<ConstructionEquipmentWall>,
     #[serde(rename = "paint")]
     pub paint: Option<String>,
     #[serde(rename = "id")]
@@ -1533,6 +1546,8 @@ pub struct ConstructionEquipmentPartPath {
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct ConstructionEquipmentPart {
+    #[serde(rename = "wallMount", default, skip_serializing_if = "Option::is_none")]
+    pub wall_mount: Option<String>,
     #[serde(rename = "id")]
     pub id: String,
     #[serde(rename = "name")]

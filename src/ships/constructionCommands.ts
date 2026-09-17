@@ -1,6 +1,6 @@
 import { customHullPanels } from './constructionPanels';
 import type { ConstructionBoundary, ConstructionEquipment, ConstructionLoad, ConstructionPrimitive, ConstructionSource, ConstructionSurfaceAssignment, Vec3 } from './blueprint';
-import { CONSTRUCTION_FACES, assignConstructionSurfaces, decodeConstructionSource, moveConstructionSelection, newConstructionId, removeConstructionSelection, rotateConstructionSelection, surfaceKey } from './constructionEditor';
+import { CONSTRUCTION_FACES, assignConstructionSurfaces, decodeConstructionSource, moveConstructionSelection, newConstructionId, removeConstructionSelection, rotateConstructionSelection, surfaceKey, mirroredEquipment } from './constructionEditor';
 import { freeformEdit, replaceVertexPrimitives, type HullSelection, type MirrorAxes } from './constructionVertex';
 
 /** Commands edit the existing source contract; they never accept derived physics. */
@@ -47,7 +47,12 @@ export function applyConstructionBatch(source: ConstructionSource, batch: Constr
       case 'skin': data.defaultThicknessMm = command.thicknessMm; break;
       case 'catalog': data.catalogRevision = command.revision; break;
       case 'primitive': upsert(data.primitives, command.value); break;
-      case 'equipment': upsert(data.equipment, command.value); break;
+      case 'equipment': {
+        upsert(data.equipment, command.value);
+        const twin = data.equipment.find(p => p.id === command.value.wall?.mirrorId);
+        if (twin && twin.wall?.mirrorId === command.value.id) upsert(data.equipment, { ...mirroredEquipment(command.value), id: twin.id, wall: { ...command.value.wall!, mirrorId: command.value.id } });
+        break;
+      }
       case 'boundary': upsert(data.boundaries, command.value); break;
       case 'load': upsert(data.loads, command.value); break;
       case 'remove': removeConstructionSelection(draft, requireIds(command.ids)); break;

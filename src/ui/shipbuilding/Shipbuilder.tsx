@@ -1,3 +1,4 @@
+import { wallMount } from '../../ships/constructionWallFittings';
 import { automaticPropellerLabel, propellerEngineName } from './propellerAssignment';
 import { SnapControls } from './SnapControls';
 import { CONSTRUCTION_PAINTS } from '../../ships/constructionPaints';
@@ -271,7 +272,13 @@ export function Shipbuilder(props: ShipbuilderProps) {
   </> : !piece ? null : piece.kind === 'hull' && active?.kind === 'shape' ? <>
     <b>{active.name}</b><NumberField value={piece.size[0]} min={.25} max={500} step={1} onChange={value => tool.setSizeOverride([value, piece.size[1], piece.size[2]])}/> × <NumberField value={piece.size[1]} min={.25} max={500} step={1} onChange={value => tool.setSizeOverride([piece.size[0], value, piece.size[2]])}/> × <NumberField value={piece.size[2]} min={.25} max={500} step={1} onChange={value => tool.setSizeOverride([piece.size[0], piece.size[1], value])}/> m<span>{piece.rotationDeg}°</span>
   </> : piece.kind === 'equipment' && active?.kind === 'part' ? <>
-    <b>{active.part.name}</b><span>{active.part.placement} · bearing {Number(piece.bearingDeg.toFixed(2))}°</span>
+    <b>{active.part.name}</b>{piece.wall ? <>
+      <NumberField label={wallMount(active.part) === 'porthole' ? 'Diameter' : 'Width'} value={piece.wall.widthM} min={.15} max={5} step={.05} unit="m" onChange={value => tool.setWallSize(0, value)}/>
+      {wallMount(active.part) !== 'porthole' && <NumberField label="Height" value={piece.wall.heightM} min={.15} max={5} step={.05} unit="m" onChange={value => tool.setWallSize(1, value)}/>}
+      {wallMount(active.part) !== 'door' && <><button aria-pressed={!s.windowRow} onClick={() => tool.setWindowRow(false)}>Single</button><button aria-pressed={s.windowRow} onClick={() => tool.setWindowRow(true)}>Row</button>
+      {s.windowRow && <NumberField label="Spacing" description="Distance between window centers. Drag horizontally along a wall to lay a row." value={piece.rowSpacing ?? s.windowSpacing} min={piece.wall.widthM + .05} max={20} step={.1} unit="m" onChange={tool.setWindowSpacing}/>}</>}
+      <span>{s.windowRow && wallMount(active.part) !== 'door' ? 'Drag along a wall' : 'Click a vertical wall'}{mirror ? ' · linked mirror' : ''}</span>
+    </> : <span>{active.part.placement} · bearing {Number(piece.bearingDeg.toFixed(2))}°</span>}
   </> : piece.kind === 'boundary' ? <><b>{BOUNDARY_NAMES[piece.axis]}</b><span>on the {gridStep} m grid</span></> : null;
   if (!freeformMode && selectedPrimitives.length === 1 && !selectedEquipment.length) {
     const primitive = selectedPrimitives[0], mass = pieceMassKg(compiledResult, primitive.id);
@@ -299,7 +306,12 @@ export function Shipbuilder(props: ShipbuilderProps) {
     const move = (axis: number, value: number) => { const delta: Vec3 = [0, 0, 0]; delta[axis] = value - item.position[axis]; tool.nudge(delta); };
     tags.push({ key: `part-${item.id}`, anchor: equipmentAnchor(item), dx: 82, dy: -92, tone: 'mint', content: <>
       <b>{part?.name ?? item.partId}</b>
-      {mass !== undefined ? `${formatTonnes(mass)} · ` : ''}bearing <NumberField value={item.bearingDeg} min={0} max={360} step={.1} unit="°" onChange={value => edit('Set bearing', target => { target.bearingDeg = normalizedBearing(value); })}/> · <NumberField label="x" digits={6} value={item.position[0]} min={-1000} max={1000} step={gridStep} onChange={value => move(0, value)}/> <NumberField label="y" digits={6} value={item.position[1]} min={-1000} max={1000} step={gridStep} onChange={value => move(1, value)}/> <NumberField label="z" digits={6} value={item.position[2]} min={-1000} max={1000} step={gridStep} onChange={value => move(2, value)}/>
+      {mass !== undefined ? `${formatTonnes(mass)} · ` : ''}{item.wall ? 'Wall aligned' : <>bearing <NumberField value={item.bearingDeg} min={0} max={360} step={.1} unit="°" onChange={value => edit('Set bearing', target => { target.bearingDeg = normalizedBearing(value); })}/></>} · <NumberField label="x" digits={6} value={item.position[0]} min={-1000} max={1000} step={gridStep} onChange={value => move(0, value)}/> <NumberField label="y" digits={6} value={item.position[1]} min={-1000} max={1000} step={gridStep} onChange={value => move(1, value)}/> <NumberField label="z" digits={6} value={item.position[2]} min={-1000} max={1000} step={gridStep} onChange={value => move(2, value)}/>
+      {item.wall && part && <>
+        <NumberField label={wallMount(part) === 'porthole' ? 'Diameter' : 'Width'} value={item.wall.widthM} min={.15} max={5} step={.05} unit="m" onChange={value => edit('Resize wall fitting', target => { target.wall!.widthM = value; if (wallMount(part) === 'porthole') target.wall!.heightM = value; })}/>
+        {wallMount(part) !== 'porthole' && <NumberField label="Height" value={item.wall.heightM} min={.15} max={5} step={.05} unit="m" onChange={value => edit('Resize wall fitting', target => { target.wall!.heightM = value; })}/>}
+        {item.wall.mirrorId && <span> · Linked mirror · edits update both sides</span>}
+      </>}
       {part?.placement !== 'internal' && <label> · Paint <select className="sb-link" aria-label="Fitting paint" value={item.paint ?? ''} disabled={locked} onChange={event => tool.paintFittings([item.id], event.target.value || undefined)}>
         <option value="">Original finish</option>{CONSTRUCTION_PAINTS.map(paint => <option key={paint.id} value={paint.id}>{paint.name}</option>)}
       </select></label>}
@@ -307,7 +319,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
       {part?.kind === 'gun' && <> · <NumberField label="Turret rise" description="Extend the barbette above its deck attachment; the magazine stays at its lower end." value={item.gun?.barbetteHeightM ?? 0} min={0} max={30} step={.25} unit="m" onChange={value => tool.raiseTurrets([item.id], () => value)}/>
         <label> · Barbette paint <select aria-label="Barbette paint" className="sb-link" value={item.gun?.barbettePaint ?? 'naval-gray'} onChange={event => edit('Paint barbette', target => { target.gun = { ...target.gun, barbettePaint: event.target.value }; })}>
           {CONSTRUCTION_PAINTS.map(paint => <option key={paint.id} value={paint.id}>{paint.name}</option>)}
-        </select></label></>}{data.version === 2 && (part?.kind === 'gun' || part?.kind === 'torpedo-launcher') && <span> · built-in ammunition</span>}{part?.kind === 'funnel' && <span> · {(part.exhaustKw ?? 0).toLocaleString()} kW shared exhaust</span>}{part?.kind === 'propeller' && engineConnection} · <kbd>R</kbd> rotate · right-drag rotate · <kbd>⇧</kbd> fine · <kbd>⌫</kbd> remove
+        </select></label></>}{data.version === 2 && (part?.kind === 'gun' || part?.kind === 'torpedo-launcher') && <span> · built-in ammunition</span>}{part?.kind === 'funnel' && <span> · {(part.exhaustKw ?? 0).toLocaleString()} kW shared exhaust</span>}{part?.kind === 'propeller' && engineConnection}{!item.wall && <> · <kbd>R</kbd> rotate · right-drag rotate · <kbd>⇧</kbd> fine</>} · <kbd>⌫</kbd> remove
     </> });
   } else if (selected.size > 1) {
     const anchors = [...selectedPrimitives.map(part => part.position), ...selectedEquipment.map(equipmentAnchor)];
@@ -394,8 +406,8 @@ export function Shipbuilder(props: ShipbuilderProps) {
     ...(hasDrawer ? [{ keys: ['0'], label: `All ${drawerName}` }] : []),
   ];
   const acting: KeyHint[] = [];
-  if (!locked && piece && piece.kind !== 'boundary') acting.push({ keys: ['R'], label: piece.kind === 'hull' ? 'Rotate 90°' : 'Rotate 15°' });
-  else if (movable && !freeformMode) acting.push({ keys: ['R'], label: selectedPrimitives.length ? 'Rotate 90°' : 'Rotate 15°' });
+  if (!locked && piece && piece.kind !== 'boundary' && !(piece.kind === 'equipment' && piece.wall)) acting.push({ keys: ['R'], label: piece.kind === 'hull' ? 'Rotate 90°' : 'Rotate 15°' });
+  else if (movable && !freeformMode && !selectedEquipment.some(e => e.wall)) acting.push({ keys: ['R'], label: selectedPrimitives.length ? 'Rotate 90°' : 'Rotate 15°' });
   if (movable && !freeformMode) acting.push({ keys: ['←→', '↑↓'], label: 'Nudge' }, { keys: ['PgUp', 'PgDn'], label: 'Raise · lower' }, { keys: ['⌘C'], label: 'Copy' }, { keys: ['⇧⌘C'], label: 'Mirror copy' });
   if (selected.size) acting.push({ keys: ['⌫', '⌘X'], label: movable ? 'Remove' : 'Remove · merge rooms' });
   if (surfaces.size && faceLayer) acting.push({ keys: ['⇧'], label: 'Click adds a face' });
@@ -406,7 +418,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const viewBar = <ViewBar viewName={VIEW_NAMES[view]} perspective={perspective} showCenters={showCenters} showArcs={layer === 'fittings' ? showArcs : undefined}
       onView={tool.cycleView} onProjection={tool.toggleProjection} onCenters={tool.toggleCenters} onArcs={tool.toggleArcs} onFit={tool.fit}
       onTip={entry => { if (!entry) { setTip(undefined); return; } const rect = entry.target.getBoundingClientRect(), strip = (entry.target.closest('.sb-viewbar') ?? entry.target).getBoundingClientRect(); setTip({ title: entry.title, detail: entry.detail, key: entry.key, x: strip.right + 10, y: rect.top + rect.height / 2, beside: true }); }}/>;
-  return <main className={`shipbuilder ${freeformMode ? 'sb-freeform-mode' : ''}`} aria-label="Shipbuilder" data-path-drawing={!!pathPart || undefined} data-layer={layer} data-drawer={drawer || undefined} aria-busy={!!busy}>
+  return <main className={`shipbuilder ${freeformMode ? 'sb-freeform-mode' : ''}`} aria-label="Shipbuilder" data-wall-placement={piece?.kind === 'equipment' && !!piece.wall || undefined} data-path-drawing={!!pathPart || undefined} data-layer={layer} data-drawer={drawer || undefined} aria-busy={!!busy}>
     {newDesignOpen && <NewDesignDialog onClose={() => setNewDesignOpen(false)} onCreate={newDesign}/>}
     {customHullSession?.designId === source.id && createPortal(<CustomHullEditor integration={{ hull: editableCustomHull(customHullSession.primitive), onClose: () => setCustomHullSession(undefined), onApply: hull => {
       const existing = data.primitives.find(part => part.id === customHullSession.primitive.id);
@@ -463,7 +475,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
         {notice && <div className="row note" role="status"><i className="sb-dot note"/><span>{notice}</span></div>}
       </div>
       <div className="sb-rail" role="toolbar" aria-label="Tools"><span className="sb-rail-cap">Tools</span>
-        {rail.map(entry => <button key={entry.id} className={entry.kind} disabled={locked} aria-pressed={entry.kind === 'tool' ? activeTool === entry.id : undefined} title={`${entry.name} (${entry.key})`} onClick={() => tool.activateRail(entry)}><ToolGlyph name={entry.glyph}/><span>{entry.name}</span><kbd>{entry.key}</kbd></button>)}
+        {rail.filter(entry => entry.id !== 'rotate' || !(piece?.kind === 'equipment' && piece.wall) && !selectedEquipment.some(e => e.wall)).map(entry => <button key={entry.id} className={entry.kind} disabled={locked} aria-pressed={entry.kind === 'tool' ? activeTool === entry.id : undefined} title={`${entry.name} (${entry.key})`} onClick={() => tool.activateRail(entry)}><ToolGlyph name={entry.glyph}/><span>{entry.name}</span><kbd>{entry.key}</kbd></button>)}
         {layer==='hull' && <button aria-pressed={freeformMode} disabled={locked || selected.size!==1 || !selectedPrimitives[0] || !canEditVertices(selectedPrimitives[0])} onClick={freeformMode?tool.exitFreeform:enterFreeform} title="Select one cube or freeform hull to edit vertices, edges and faces"><ToolGlyph name="Select"/><span>Freeform</span></button>}
         {/* Modifiers change where a click lands rather than what it does; freeform mode carries its own local mirror axes and unit. */}
         {!freeformMode && <><span className="sb-rail-cap foot">Modifiers</span>

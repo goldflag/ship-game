@@ -1,3 +1,4 @@
+import { wallScale } from '../ships/constructionWallFittings';
 import { paintConstructionFitting } from './constructionFittingPaint';
 import { paintedHullFace } from '../ships/constructionHullPaint';
 import * as THREE from 'three/webgpu';
@@ -124,6 +125,7 @@ export async function createConstructionModel(source: ConstructionSource, result
         const model = template.clone(true);
         paintConstructionFitting(model, instance.paint);
         const installation = new THREE.Group(); installation.name = instance.id;
+        installation.scale.fromArray(wallScale(part, instance));
         installation.position.fromArray(instance.position); installation.rotation.y = -instance.bearingDeg * Math.PI / 180;
         installation.userData = { sourceId: instance.id, assemblyId: instance.id, equipmentKind: part.kind };
         model.traverse(node => {

@@ -40,6 +40,7 @@ export function parseConstructionCatalog(value:unknown):ConstructionCatalog {
     if(p.kind==='gun') {
       if(p.massKg!==undefined || !c.weapons.parts.some(g=>g.id===p.gunPartId)) throw new Error(`Missing canonical weapon: ${p.id}`);
     } else if(!['torpedo-launcher','engine','magazine','funnel','propeller','rudder','mast','director','deck-fitting'].includes(p.kind) || !Number.isFinite(p.massKg) || p.massKg!<=0) throw new Error(`Invalid equipment family/mass: ${p.id}`);
+    if(p.wallMount && (p.kind !== 'deck-fitting' || !['door','porthole','window'].includes(p.wallMount))) throw new Error(`Invalid wall fitting: ${p.id}`);
     if(p.path && (p.kind!=='deck-fitting' || !['railing','rope','chain'].includes(p.path.kind)
       || !Number.isFinite(p.path.diameterM) || p.path.diameterM<=0
       || !Number.isFinite(p.path.massKgPerM) || p.path.massKgPerM<=0)) throw new Error(`Invalid path profile: ${p.id}`);
