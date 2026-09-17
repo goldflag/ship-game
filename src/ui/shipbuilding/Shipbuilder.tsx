@@ -64,6 +64,8 @@ export interface ShipbuilderProps {
   suggestLayout?(source: ConstructionSource, partIds: string[], signal?: AbortSignal): Promise<ConstructionSuggestion>;
 }
 
+/** Glyphs the layer tabs show once the dock is too narrow for their names. */
+const LAYER_GLYPHS: Record<BuilderLayer, string> = { hull: 'Hull', armor: 'Armor', internals: 'Split', fittings: 'Fitting', paint: 'Paint' };
 const VIEW_NAMES: Record<BuilderView, string> = { orbit: 'Orbit', top: 'Plan', side: 'Profile', bow: 'Bow' };
 interface KeyHint { keys: string[]; label: string }
 const metres = (value: number) => Number(value.toFixed(2)).toLocaleString(undefined, { maximumFractionDigits: 2 });
@@ -95,6 +97,14 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const [query, setQuery] = useState('');
   // The open drawer keeps the size of its full, unfiltered card set while a search narrows it, so the panel does not jump about under the pointer; the search clears when the drawer closes.
   const drawerRef = useRef<HTMLDivElement>(null);
+  // The card row fades at whichever edge hides more cards.
+  const hotbarRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const row = hotbarRef.current; if (!row) return;
+    const update = () => { const end = row.scrollWidth - row.clientWidth - row.scrollLeft > 1, start = row.scrollLeft > 1; row.dataset.overflow = end && start ? 'both' : end ? 'end' : start ? 'start' : ''; };
+    update(); const observer = new ResizeObserver(update); observer.observe(row); row.addEventListener('scroll', update, { passive: true });
+    return () => { observer.disconnect(); row.removeEventListener('scroll', update); };
+  }, [layer]);
   const [drawerSize, setDrawerSize] = useState<{ width: number; height: number }>();
   useLayoutEffect(() => {
     if (!drawer) { setDrawerSize(undefined); setQuery(''); return; }
@@ -334,6 +344,9 @@ export function Shipbuilder(props: ShipbuilderProps) {
   if (escape) acting.push({ keys: ['Esc'], label: escape });
   const chip = (hint: KeyHint) => <span key={hint.label} className="sb-key">{hint.keys.map((key, index) => <kbd key={index}>{key}</kbd>)}{hint.label}</span>;
 
+  const viewBar = <ViewBar viewName={VIEW_NAMES[view]} perspective={perspective} sliceLabel={slice.on ? `${signed(slice.y)} m` : 'Off'} sliceOn={slice.on} showCenters={showCenters} showArcs={layer === 'fittings' ? showArcs : undefined}
+      onView={tool.cycleView} onProjection={tool.toggleProjection} onSlice={tool.toggleSlice} onCenters={tool.toggleCenters} onArcs={tool.toggleArcs} onFit={tool.fit}
+      onTip={entry => { if (!entry) { setTip(undefined); return; } const rect = entry.target.getBoundingClientRect(); setTip({ title: entry.title, detail: entry.detail, key: entry.key, x: rect.left + rect.width / 2, y: rect.top, right: Math.max(12, window.innerWidth - rect.right) }); }}/>;
   return <main className={`shipbuilder ${freeformMode ? 'sb-freeform-mode' : ''}`} aria-label="Shipbuilder" data-path-drawing={!!pathPart || undefined} data-layer={layer} data-drawer={drawer || undefined} aria-busy={!!busy}>
     {newDesignOpen && <NewDesignDialog onClose={() => setNewDesignOpen(false)} onCreate={newDesign}/>}
     {customHullSession?.designId === source.id && createPortal(<CustomHullEditor integration={{ hull: editableCustomHull(customHullSession.primitive), onClose: () => setCustomHullSession(undefined), onApply: hull => {
@@ -360,7 +373,6 @@ export function Shipbuilder(props: ShipbuilderProps) {
           <div className="sb-menu-row"><button role="menuitem" disabled={locked} onClick={() => void editor.reloadRepository().then(() => setDesignsOpen(false)).catch(fail)}>Reload repository</button><button role="menuitem" disabled={locked} onClick={() => void saveLocalCopy()}>Save local copy</button><button role="menuitem" onClick={() => setDesignsOpen(false)}>Close</button></div>
         </div>}
       </div>
-      <nav className="sb-tabs" role="tablist" aria-label="Layers">{BUILDER_LAYERS.map(entry => <button key={entry.id} role="tab" aria-selected={layer === entry.id} onClick={() => switchLayer(entry.id)}>{entry.name}</button>)}</nav>
       <div className="sb-actions">
         <button className="sb-undo" disabled={locked || !!pathPoints.length || !revision.history.past.length} onClick={owner.undo} title={revision.history.past.length ? `Undo ${revision.history.lastAction}` : 'Nothing to undo'}><kbd>⌘Z</kbd>{revision.history.past.length}</button>
         <button className="sb-undo" disabled={locked || !!pathPoints.length || !revision.history.future.length} onClick={owner.redo} title="Redo (⇧⌘Z)"><kbd>⇧⌘Z</kbd>{revision.history.future.length}</button>
@@ -401,22 +413,27 @@ export function Shipbuilder(props: ShipbuilderProps) {
     </aside>
     {drawer && <div className="sb-drawer" ref={drawerRef} style={drawerSize} aria-label={`All ${drawerName}`}>
       <div className="sb-drawer-head"><span className="sb-lead">All {drawerName}</span>
-        {(layer === 'fittings' || layer === 'hull') && <label className="sb-search">Find <input autoFocus type="search" aria-label={layer === 'hull' ? 'Find a shape' : 'Find a fitting'} placeholder={layer === 'hull' ? 'bridge, cylinder, shell…' : 'gun, screw, funnel…'} value={query} onChange={event => setQuery(event.target.value)} onKeyDown={event => { if (event.key === 'Escape') { event.stopPropagation(); setDrawer(false); setTip(undefined); } }}/></label>}
+        {(layer === 'fittings' || layer === 'hull') && <label className="sb-search">Find <input autoFocus type="search" aria-label={layer === 'hull' ? 'Find a shape' : 'Find a fitting'} placeholder={layer === 'hull' ? 'bridge, cylinder, shell…' : 'gun, screw, funnel…'} value={query} onChange={event => setQuery(event.target.value)} onKeyDown={event => { if (event.key === 'Escape' || (event.key === '0' && !event.currentTarget.value)) { event.preventDefault(); event.stopPropagation(); setDrawer(false); setTip(undefined); } }}/></label>}
         <button className="sb-drawer-close" aria-label="Close" onClick={() => { setDrawer(false); setTip(undefined); }}>×</button></div>
       <div className="sb-drawer-grid" role="listbox">{drawerItems.map(item => slot(item))}{!drawerItems.length && <span className="sb-lead">No {layer === 'hull' ? 'shape' : 'fitting'} matches</span>}</div>
     </div>}
-    <div className="sb-hotbar" role="toolbar" aria-label="Palette">
-      {palette.bar.map(item => slot(item))}
-      {hasDrawer ? <button className="sb-slot more" aria-expanded={drawer} aria-label={`All ${drawerName}`} onPointerEnter={event => { const rect = event.currentTarget.getBoundingClientRect(); setTip({ title: `All ${drawerName}`, detail: drawer ? 'close the full selection' : 'open the full selection', x: rect.left + rect.width / 2, y: tipTop(rect), key: '0' }); }} onPointerLeave={hideTip} onClick={() => { setDrawer(value => !value); setTip(undefined); }}>…</button> : null}
-    </div>
-    <div className="sb-keys" aria-label="Hotkeys">
-      {acting.length > 0 && <div className="sb-keys-row acting">{acting.map(chip)}</div>}
-      <div className="sb-keys-row">{standing.map(chip)}</div>
+    <div className="sb-dock">
+      <div className="sb-dock-tabs">
+        <nav className="sb-tabs" role="tablist" aria-label="Layers">{BUILDER_LAYERS.map(entry => <button key={entry.id} role="tab" aria-selected={layer === entry.id} title={entry.name} onClick={() => switchLayer(entry.id)}><ToolGlyph name={LAYER_GLYPHS[entry.id]}/><span>{entry.name}</span></button>)}</nav>
+        <div className="sb-keys" aria-label="Hotkeys">
+          {acting.length > 0 && <div className="sb-keys-row acting">{acting.map(chip)}</div>}
+          <div className="sb-keys-row">{standing.map(chip)}</div>
+        </div>
+      </div>
+      <div className="sb-dock-body">
+        <div className="sb-hotbar" role="toolbar" aria-label="Palette">
+          <div className="sb-hotbar-cards" ref={hotbarRef}>{palette.drawer.map(item => slot(item))}</div>
+          {hasDrawer ? <button className="sb-slot more" aria-expanded={drawer} aria-label={`All ${drawerName}`} onPointerEnter={event => { const rect = event.currentTarget.getBoundingClientRect(); setTip({ title: `All ${drawerName}`, detail: drawer ? 'close the full selection' : 'open the full selection', x: rect.left + rect.width / 2, y: tipTop(rect), key: '0' }); }} onPointerLeave={hideTip} onClick={() => { setDrawer(value => !value); setTip(undefined); }}>…</button> : null}
+        </div>
+        {viewBar}
+      </div>
     </div>
     {tip && <div className={`sb-tip ${tip.below ? 'below' : ''} ${tip.right !== undefined ? 'right' : ''}`} role="tooltip" style={tip.right !== undefined ? { right: tip.right, top: tip.y } : { left: tip.x, top: tip.y }}><b>{tip.title}</b>{tip.detail}{tip.key && <kbd>{tip.key}</kbd>}</div>}
-    <ViewBar viewName={VIEW_NAMES[view]} perspective={perspective} sliceLabel={slice.on ? `${signed(slice.y)} m` : 'Off'} sliceOn={slice.on} showCenters={showCenters} showArcs={layer === 'fittings' ? showArcs : undefined}
-      onView={tool.cycleView} onProjection={tool.toggleProjection} onSlice={tool.toggleSlice} onCenters={tool.toggleCenters} onArcs={tool.toggleArcs} onFit={tool.fit}
-      onTip={entry => { if (!entry) { setTip(undefined); return; } const rect = entry.target.getBoundingClientRect(); setTip({ title: entry.title, detail: entry.detail, key: entry.key, x: rect.left + rect.width / 2, y: rect.top, right: Math.max(12, window.innerWidth - rect.right) }); }}/>
     {!data.primitives.length && <div className="sb-empty"><b>This design needs a starting block</b><button disabled={locked} onClick={() => run('Add starting block', [{ op: 'primitive', value: startingHullBlock() }])}>Add a hull block</button> to keep building.</div>}
     {helpOpen && <HelpDialog onClose={() => setHelpOpen(false)}/>}
   </main>;
