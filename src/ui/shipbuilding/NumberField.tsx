@@ -12,6 +12,8 @@ export function NumberField({ label, description, disabled, value, min = -500, m
   const [error, setError] = useState(false);
   useEffect(() => { setText(shown); setError(false); }, [shown]);
   const commit = (candidate: string) => {
+    // Focusing and leaving a rounded display must never rewrite the exact source value.
+    if (candidate === shown) return;
     const number = finiteFieldValue(candidate, min, max);
     setError(number === undefined);
     if (number !== undefined) {

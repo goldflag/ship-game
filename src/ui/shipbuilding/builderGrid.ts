@@ -3,7 +3,7 @@ import * as THREE from 'three';
 const FLOOR_VERTEX = `
 varying vec2 vFloor;
 void main() { vec4 world = modelMatrix * vec4(position, 1.); vFloor = world.xz; gl_Position = projectionMatrix * viewMatrix * world; }`;
-// Screen-space anti-aliased lines: every fifth is major, the x = 0 line is left to the brass centerline.
+// Screen-space anti-aliased lines: every fifth is major.
 const FLOOR_FRAGMENT = `
 uniform float uStep, uFadeIn, uFadeOut;
 uniform vec2 uCenter, uHalf;
@@ -18,7 +18,7 @@ void main() {
   float minorDensity, majorDensity;
   float minor = lines(vFloor / uStep, minorDensity), major = lines(vFloor / (uStep * 5.), majorDensity);
   // A level fades out as its lines crowd together rather than shimmering into a grey sheet.
-  minor *= (1. - smoothstep(.08, .25, minorDensity)) * step(1.5, abs(vFloor.x) / max(fwidth(vFloor.x), 1e-6));
+  minor *= 1. - smoothstep(.08, .25, minorDensity);
   major *= 1. - smoothstep(.12, .35, majorDensity);
   vec2 q = abs(vFloor - uCenter) - uHalf;
   float outside = length(max(q, 0.)) + min(max(q.x, q.y), 0.);
@@ -59,10 +59,6 @@ export function createBuilderGrid(bounds: THREE.Box3, snapStep: number): THREE.G
   floor.scale.set(half.x * 2 + fadeOut * 2, half.z * 2 + fadeOut * 2, 1); floor.position.set(center.x, 0, center.z);
   group.add(floor);
   const brass = new THREE.MeshBasicMaterial({ color: '#e0c58d', side: THREE.DoubleSide });
-  const width = Math.max(.045, extent * .0015);
-  const centerline = new THREE.Mesh(new THREE.PlaneGeometry(width, z1 - z0), brass);
-  centerline.name = 'Ship centerline'; centerline.rotation.x = -Math.PI / 2;
-  centerline.position.set(0, .015, (z0 + z1) / 2); group.add(centerline);
   // Filled chevrons keep the forward direction readable at oblique angles. Bow is −Z.
   const arrowSize = Math.max(.5, extent * .025), arrows: number[] = [];
   const spacing = Math.max(3, extent / 6);

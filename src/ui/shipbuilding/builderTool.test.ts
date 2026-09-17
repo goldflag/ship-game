@@ -89,7 +89,7 @@ test('a shut door refuses every edit with its reason and leaves the source untou
   expect(data().primitives).toHaveLength(2);
 });
 
-test('select, move and erase: a drag translates the pressed piece and snaps walls, right-click removes, the last block stays', async () => {
+test('select, move and erase: a drag translates the pressed piece and preserves wall offsets, right-click removes, the last block stays', async () => {
   const { tool, data, labels, state } = await setup();
   tool.setTool('place');
   tool.pointer({ kind: 'lay', points: [[0, 1, 0]] });
@@ -104,7 +104,7 @@ test('select, move and erase: a drag translates the pressed piece and snaps wall
   expect([...state().selected]).toEqual(['hull-1']);
   expect(tool.pointer({ kind: 'move', ids: ['hull-1', 'boundary-2'], delta: [2, 0, 0.3] })).toMatchObject({ accepted: true });
   expect(data().primitives[1].position).toEqual([2, 1, 0.3]);
-  expect(data().boundaries[0].offset).toBe(2); // a moved wall snaps to the metre
+  expect(data().boundaries[0].offset).toBe(1.5); // tangential motion never rounds an untouched wall
   expect([...state().selected]).toEqual(['hull-1', 'boundary-2']);
   expect(tool.pointer({ kind: 'erase', id: 'hull-1' })).toMatchObject({ accepted: true });
   expect(data().primitives.map(part => part.id)).toEqual(['hull']);
@@ -333,7 +333,7 @@ test('a new design clears selections, proposals and pending routes; a removed bl
   expect(tool.pointer({ kind: 'lay', points: [[0, 1, 0]] })).toMatchObject({ accepted: true });
 });
 
-test('Snap cycles 0.25 → 0.5 → 1 → 2 → 5 m separately for hull pieces and fittings, and nudges, walls and boundary placement follow it', async () => {
+test('Grid steps are remembered per layer; nudges use the step and resolved pointer moves stay exact', async () => {
   const { tool, data, state } = await setup();
   tool.setTool('place');
   expect(tool.gridStep).toBe(1); expect(tool.scene(undefined).gridStep).toBe(1);
@@ -352,7 +352,7 @@ test('Snap cycles 0.25 → 0.5 → 1 → 2 → 5 m separately for hull pieces an
   expect(data().boundaries[0].offset).toBe(1.25);
   tool.setTool('select');
   tool.pointer({ kind: 'move', ids: ['boundary-2'], delta: [0, .3, 0] });
-  expect(data().boundaries[0].offset).toBe(1.5);
+  expect(data().boundaries[0].offset).toBe(1.55);
 });
 
 test('movement stops at another block: a blocked nudge adds no history and says so, a partial move keeps the reachable part', async () => {
@@ -558,4 +558,60 @@ test('opening a blank design starts in Select without a placement card or select
   expect(state().tool).toBe('select');
   expect(state().selected.size).toBe(0);
   expect(tool.piece).toBeUndefined();
+});
+
+test('N and a held override preserve target choices, including freeform mode', async () => {
+  const { tool, state } = await setup();
+  tool.changeSnapping({ grid: false, geometry: true });
+  tool.key(key('n'), chrome());
+  expect(tool.scene(undefined).snapping).toMatchObject({ enabled: false, grid: false, geometry: true });
+  tool.key(key('n', { repeat: true }), chrome());
+  expect(state().snapping.enabled).toBe(false);
+  tool.setSnapOverride(true); expect(tool.effectiveSnapping.enabled).toBe(true);
+  tool.setSnapOverride(false); expect(tool.effectiveSnapping.enabled).toBe(false);
+  tool.choose('hull'); tool.enterFreeform(); tool.key(key('n'), chrome());
+  expect(tool.effectiveSnapping.enabled).toBe(true);
+  expect(state().snapping.grid).toBe(false);
+  tool.dispose();
+});
+
+test('exact moves retain fractional positions and wall offsets through undo', async () => {
+  const { tool, data, owner } = await setup();
+  tool.switchLayer('internals'); tool.setTool('deck');
+  tool.pointer({ kind: 'pick', hit: hit({ placement: [0, .15, 0] }) });
+  const wall = data().boundaries[0];
+  tool.movePieces([wall.id], [0, .0123, 0]);
+  expect(data().boundaries[0].offset).toBeCloseTo(.1623, 10);
+  owner.undo(); expect(data().boundaries[0].offset).toBe(.15);
+  tool.dispose();
+});
+
+test('S cycles the active grid, preserves layer choices and ignores repeat and modifiers', async () => {
+  const { tool, state } = await setup();
+  tool.key(key('s'), chrome()); expect(tool.gridStep).toBe(2);
+  for (const options of [{ repeat: true }, { metaKey: true }, { ctrlKey: true }, { altKey: true }]) tool.key(key('s', options), chrome());
+  expect(tool.gridStep).toBe(2);
+  tool.switchLayer('fittings'); tool.key(key('s'), chrome()); expect(tool.gridStep).toBe(.5);
+  tool.switchLayer('hull'); expect(tool.gridStep).toBe(2);
+  tool.choose('hull'); tool.enterFreeform();
+  tool.changeFreeformSettings({ unit: 2 }); tool.key(key('s'), chrome());
+  expect(state().freeformSettings.unit).toBe(.05);
+  tool.exitFreeform(); expect(tool.gridStep).toBe(2);
+  tool.key(key('s'), chrome()); tool.key(key('s'), chrome()); expect(tool.gridStep).toBe(.25);
+  tool.dispose();
+});
+
+test('Center on ship preserves a group arrangement and commits one undoable move', async () => {
+  const source = createStarterSource(catalog, 'blank');
+  source.construction.equipment = [
+    { id: 'one', partId: 'gun', position: [2, 3, 4], bearingDeg: 0 },
+    { id: 'two', partId: 'gun', position: [4, 3, 8], bearingDeg: 0 },
+  ];
+  const { tool, data, owner, labels } = await setup({ source });
+  tool.choose('one'); tool.choose('two', true);
+  tool.centerSelection();
+  expect(data().equipment.map(p => p.position)).toEqual([[-1, 3, 4], [1, 3, 8]]);
+  expect(labels()).toEqual(['Move selection']);
+  owner.undo(); expect(data().equipment.map(p => p.position)).toEqual([[2, 3, 4], [4, 3, 8]]);
+  tool.dispose();
 });

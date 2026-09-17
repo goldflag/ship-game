@@ -13,3 +13,9 @@ export function normalizedBearing(degrees: number): number {
   if (!Number.isFinite(degrees)) throw new Error('Rotation must be finite.');
   return ((degrees % 360) + 360) % 360;
 }
+
+/** Null explicitly disables grid rounding while retaining finite-value validation. */
+export function gridCoordinate(value: number, step: number | null): number {
+  if (!Number.isFinite(value)) throw new Error("Coordinates must be finite.");
+  return step === null ? value : snapCoordinate(value, step);
+}
