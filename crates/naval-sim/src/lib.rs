@@ -60,10 +60,11 @@ pub mod capability;
 
 pub mod gunnery;
 
+pub mod admiral;
 pub mod battle;
+pub mod captain;
 pub mod mission;
 pub mod pve;
-mod pve_command;
 pub mod recon;
 pub mod sensors;
 
