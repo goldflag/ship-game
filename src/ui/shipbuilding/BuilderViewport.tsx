@@ -554,7 +554,7 @@ class Viewport {
   private placeTags() {
     const width = this.host.clientWidth, height = this.host.clientHeight;
     const narrow = width <= 1100, builder = this.props.tags.length ? this.host.closest('.shipbuilder') : null;
-    const header = narrow ? builder?.querySelector<HTMLElement>('.sb-top') : null, palette = narrow ? builder?.querySelector<HTMLElement>('.sb-hotbar') : null;
+    const header = narrow ? builder?.querySelector<HTMLElement>('.sb-top') : null, palette = narrow ? builder?.querySelector<HTMLElement>('.sb-dock') : null;
     const ledger = builder?.querySelector<HTMLElement>('.sb-ledger'), hostRect = builder ? this.host.getBoundingClientRect() : null;
     const ledgerRect = ledger?.offsetWidth && ledger.offsetHeight ? ledger.getBoundingClientRect() : null;
     const hostTop = hostRect?.top ?? 0;
