@@ -111,7 +111,7 @@ export async function createConstructionModel(source: ConstructionSource, result
         const part = catalog.equipment.find(p => p.id === instance.partId);
         if (!part) throw new Error(`Equipment unavailable: ${instance.partId}. The source design is preserved.`);
         if (part.path) {
-          const model = createConstructionPathModel(part, instance.path);
+          const model = createConstructionPathModel(part, instance.path, false, {item:instance,surfaces:result.surfaces});
           paintConstructionFitting(model, instance.paint, false);
           model.position.fromArray(instance.position); model.rotation.y = -instance.bearingDeg * Math.PI / 180;
           model.traverse(node => { node.userData.sourceId = instance.id; node.userData.assemblyId = instance.id; node.userData.constructionEquipmentKind = part.kind; });

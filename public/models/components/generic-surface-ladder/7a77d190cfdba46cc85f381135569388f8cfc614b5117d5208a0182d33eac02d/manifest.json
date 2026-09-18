@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "generic-surface-ladder",
+  "revision": "7a77d190cfdba46cc85f381135569388f8cfc614b5117d5208a0182d33eac02d",
+  "contentHash": "4f8caedbc1b273969169d79063270fb5674810d2c78c37192504cce75eded013",
+  "modelSha256": "8218d4ee3e305f1d367eb1f8017256b708069d7c2f5a5782403cc0cffc4f3df4",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/generic-surface-ladder/7a77d190cfdba46cc85f381135569388f8cfc614b5117d5208a0182d33eac02d/model.glb",
+  "boundsCenter": [
+    -2.991966779469779e-7,
+    1.5000000113621212,
+    -0.08665729458241098
+  ],
+  "size": [
+    0.47663019048747557,
+    3.0280003320425464,
+    0.17331495294752503
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 1188,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original generic surface fitting. Closed hull remains intact. Dimensions and steel mass are provisional; native construction validates installed support.",
+  "basis": "assets/parts/construction/README.md"
+}

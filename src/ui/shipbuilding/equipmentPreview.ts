@@ -101,10 +101,10 @@ export class EquipmentPreview {
     });
   }
 
-  clone(partId: string, ghost = false, path?: ConstructionEquipment['path'], invalid = false, paint?: string): THREE.Group | undefined {
+  clone(partId: string, ghost = false, path?: ConstructionEquipment['path'], invalid = false, paint?: string, mount?: {item: ConstructionEquipment; surfaces: readonly ConstructionSurface[]}): THREE.Group | undefined {
     const part = this.catalog?.equipment.find(part => part.id === partId);
     if (part?.path) {
-      const model = createConstructionPathModel(part, path, ghost);
+      const model = createConstructionPathModel(part, path, ghost, mount);
       if (!ghost && !invalid) paintConstructionFitting(model, paint, false);
       if (invalid) model.traverse(node => {
         if (!(node instanceof THREE.Mesh)) return;
@@ -158,10 +158,10 @@ export class EquipmentPreview {
     for (const item of source.construction.equipment) {
       let instance = this.instances.get(item.id);
       const path = this.catalog.equipment.find(part => part.id === item.partId)?.path;
-      const key = `${item.wall ? JSON.stringify([item, this.surfaceRevision]) : ''}:${this.key(item.partId)}${path ? ':' + JSON.stringify(item.path) : ''}:${invalid.has(item.id)}:${item.paint ?? ''}`;
+      const key = `${item.wall || path?.kind === 'ladder' ? JSON.stringify([item, this.surfaceRevision]) : ''}:${this.key(item.partId)}${path ? ':' + JSON.stringify(item.path) : ''}:${invalid.has(item.id)}:${item.paint ?? ''}`;
       if (instance && instance.userData.assetKey !== key) { instance.removeFromParent(); if (instance.userData.path) disposeConstructionModel(instance); this.instances.delete(item.id); instance = undefined; }
       if (!instance) {
-        let model = this.clone(item.partId, false, item.path, invalid.has(item.id), item.paint);
+        let model = this.clone(item.partId, false, item.path, invalid.has(item.id), item.paint, {item,surfaces});
         const part = catalog.equipment.find(p => p.id === item.partId);
         if (model && item.wall && part) model = createConstructionWallModel(model, part, item, surfaces, source.construction.primitives);
         if (!model) continue;

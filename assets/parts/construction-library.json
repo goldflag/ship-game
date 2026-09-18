@@ -128,10 +128,11 @@
       ]
     },
     "generic-watertight-door": {
-      "path": "assets/parts/construction/windows.py",
-      "function": "create_window",
+      "path": "assets/parts/construction/surface_fittings.py",
+      "function": "create_surface_fitting",
       "inputs": [
-        "assets/parts/construction/geometry.py"
+        "assets/parts/construction/geometry.py",
+        "assets/parts/construction/windows.py"
       ]
     },
     "generic-deck-hatch": {
@@ -640,6 +641,46 @@
       "inputs": [
         "assets/parts/construction/geometry.py"
       ]
+    },
+    "generic-utility-door": {
+      "path": "assets/parts/construction/surface_fittings.py",
+      "function": "create_surface_fitting",
+      "inputs": [
+        "assets/parts/construction/geometry.py",
+        "assets/parts/construction/windows.py"
+      ]
+    },
+    "generic-windowed-door": {
+      "path": "assets/parts/construction/surface_fittings.py",
+      "function": "create_surface_fitting",
+      "inputs": [
+        "assets/parts/construction/geometry.py",
+        "assets/parts/construction/windows.py"
+      ]
+    },
+    "generic-louvered-vent": {
+      "path": "assets/parts/construction/surface_fittings.py",
+      "function": "create_surface_fitting",
+      "inputs": [
+        "assets/parts/construction/geometry.py",
+        "assets/parts/construction/windows.py"
+      ]
+    },
+    "generic-round-wall-vent": {
+      "path": "assets/parts/construction/surface_fittings.py",
+      "function": "create_surface_fitting",
+      "inputs": [
+        "assets/parts/construction/geometry.py",
+        "assets/parts/construction/windows.py"
+      ]
+    },
+    "generic-surface-ladder": {
+      "path": "assets/parts/construction/surface_fittings.py",
+      "function": "create_ladder",
+      "inputs": [
+        "assets/parts/construction/geometry.py",
+        "assets/parts/construction/windows.py"
+      ]
     }
   },
   "components": [
@@ -773,7 +814,7 @@
       "partId": "generic-watertight-door",
       "builder": "generic-watertight-door",
       "review": "unreviewed",
-      "limitations": "Original generic naval fitting with fixed attachment datum. Dimensions and dry mass are provisional engineering estimates, not a historical reconstruction. Boat/davits and doors/hatches remain stowed/closed. Searchlight is non-functional. Installed support and clearance require native validation and visual review."
+      "limitations": "Original generic surface fitting. Closed hull remains intact. Dimensions and steel mass are provisional; native construction validates installed support."
     },
     {
       "partId": "generic-deck-hatch",
@@ -1212,6 +1253,36 @@
       "builder": "generic-turbine-40000kw",
       "review": "unreviewed",
       "limitations": "Original illustrative machinery package with modeled foundation. Power, dry mass, service allowance and occupied envelope are provisional game estimates, not historical engineering ratings. Includes auxiliary services; external floor, exhaust uptake and shaft routing are installation-owned."
+    },
+    {
+      "partId": "generic-utility-door",
+      "builder": "generic-utility-door",
+      "review": "unreviewed",
+      "limitations": "Original generic surface fitting. Closed hull remains intact. Dimensions and steel mass are provisional; native construction validates installed support."
+    },
+    {
+      "partId": "generic-windowed-door",
+      "builder": "generic-windowed-door",
+      "review": "unreviewed",
+      "limitations": "Original generic surface fitting. Closed hull remains intact. Dimensions and steel mass are provisional; native construction validates installed support."
+    },
+    {
+      "partId": "generic-louvered-vent",
+      "builder": "generic-louvered-vent",
+      "review": "unreviewed",
+      "limitations": "Original generic surface fitting. Closed hull remains intact. Dimensions and steel mass are provisional; native construction validates installed support."
+    },
+    {
+      "partId": "generic-round-wall-vent",
+      "builder": "generic-round-wall-vent",
+      "review": "unreviewed",
+      "limitations": "Original generic surface fitting. Closed hull remains intact. Dimensions and steel mass are provisional; native construction validates installed support."
+    },
+    {
+      "partId": "generic-surface-ladder",
+      "builder": "generic-surface-ladder",
+      "review": "unreviewed",
+      "limitations": "Original generic surface fitting. Closed hull remains intact. Dimensions and steel mass are provisional; native construction validates installed support."
     }
   ]
 }

@@ -629,3 +629,21 @@ The editor opens in Select with no hull or placement card selected. Click a bloc
 fitting or wall to select it, then start a separate drag to move it. A drag starting
 on an unselected item controls the camera. Palette tooltips stay within the
 visible editor bounds.
+
+### Doors, vents and surface ladders
+
+**Doors & windows** includes utility, watertight and windowed doors. The door
+panel follows the wall, with shallow raised hinges and handles; the watertight
+variant adds dog latches and a wheel. **Deck gear** includes louvered and round
+wall vents plus **Surface rung ladder**. Doors and vents use the existing wall
+snapping, size controls, arrow-key resizing and linked mirror workflow.
+
+To draw a ladder, press on a closed hull side, drag to its other end and release.
+The preview shows the complete ladder and optional opposite-side copy. Every
+U-shaped rung has two wall attachments, without continuous side rails. Rungs
+are evenly spaced at no more than the catalog's spacing. Escape or a cancelled
+drag discards the preview; placement is one undo step. Flat and sloping sides
+are supported, while endpoints near missing support or open panels are rejected.
+The old fixed bulkhead ladder is removed from the current shelf. Existing saved
+designs retain their original catalogs; update the parts library to use the new
+fittings. These fittings leave the closed hull and room volumes unchanged.

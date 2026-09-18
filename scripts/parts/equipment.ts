@@ -34,7 +34,7 @@ export async function readEquipment(root: string) {
     if (!['internal','deck','underwater'].includes(p.placement)) throw new Error(`Invalid equipment placement: ${p.id}`);
     if (p.path) {
       const profile = p.path;
-      if (p.kind !== 'deck-fitting' || p.placement !== 'deck' || !['railing','rope','chain'].includes(profile.kind)
+      if (p.kind !== 'deck-fitting' || p.placement !== 'deck' || !['railing','rope','chain','ladder'].includes(profile.kind)
         || !Number.isFinite(profile.diameterM) || profile.diameterM <= 0 || profile.diameterM > .5
         || !Number.isFinite(profile.massKgPerM) || profile.massKgPerM <= 0 || profile.massKgPerM > 1000
         || (profile.kind === 'railing' && (!Number.isFinite(profile.heightM) || profile.heightM! <= 0 || profile.heightM! > 3
