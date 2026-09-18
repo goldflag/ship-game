@@ -14,6 +14,23 @@ pub fn internal(s: &ConstructionSurface) -> bool {
 pub fn protective(s: &ConstructionSurface) -> bool {
     matches!(s.face.as_str(), "installation-outer" | "installation-top")
 }
+/// Space directly above a deck penetration can contain the exposed collar.
+/// Its vertical footprint stops at the deck edge, preserving side/bottom checks.
+pub fn deck_backing(polygon: &[Vec3], top: f64) -> cg::Cell {
+    let top = polygon.iter().map(|v| v[1]).fold(top, f64::max) + cg::EPS * 4.;
+    let cap: Vec<_> = polygon.iter().map(|v| [v[0], top, v[2]]).collect();
+    let mut faces = vec![
+        ConvexVolumeFacesItem { vertices: cap.clone() },
+        ConvexVolumeFacesItem { vertices: polygon.iter().copied().rev().collect() },
+    ];
+    for i in 0..polygon.len() {
+        let j = (i + 1) % polygon.len();
+        faces.push(ConvexVolumeFacesItem {
+            vertices: vec![cap[i], polygon[i], polygon[j], cap[j]],
+        });
+    }
+    cg::Cell { faces: faces.into() }
+}
 fn cylinder(radius: f64, low: f64, high: f64) -> cg::Cell {
     let top: Vec<_> = (0..SIDES)
         .rev()

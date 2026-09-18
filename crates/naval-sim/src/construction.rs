@@ -779,6 +779,14 @@ fn build(
             .into_iter()
             .filter_map(|k| cg::intersection(&solid, &cells[k]))
             .collect();
+        // Inward extrusion of a sloping deck shifts its cut edge sideways.
+        // Keep the full plating thickness out of the vertical working well,
+        // using the same cutters as the exposed deck; side armor stays intact.
+        let clipped = if s.normal[1] > 0.95 {
+            cache.subtract_all(clipped, wells.iter().map(|(_, _, well)| well)).map_err(fail)?
+        } else {
+            clipped
+        };
         let cutters = material_index.candidates(&solid);
         let occupied =
             cache.subtract_all(clipped, cutters.iter().map(|&k| &material[k])).map_err(fail)?;
@@ -930,9 +938,18 @@ fn build(
     for installation in installations {
         let mut backing = cells.clone();
         if let Some(above_deck) = &installation.raised_space { backing.push(above_deck.clone()); }
-        if cg::total(&cache.subtract_all(installation.solids.clone(), &backing).map_err(fail)?).volume
-            > 1e-6
+        let (bore_center, bore_size) = cg::bounds(&installation.bore);
+        let mut sloped_deck = false;
+        for (_, _, polygon) in penetrations.iter().filter(|(id, _, polygon)|
+            *id == installation.id && cg::normal(polygon)[1] < 1. - cg::EPS)
         {
+            backing.push(crate::construction_installation::deck_backing(
+                polygon, bore_center[1] + bore_size[1] / 2.,
+            ));
+            sloped_deck = true;
+        }
+        let unsupported = cache.subtract_all(installation.solids.clone(), &backing).map_err(fail)?;
+        if cg::total(&unsupported).volume > 1e-6 {
             return Err(error(
                 "installation-support",
                 "Barbette or magazine extends through the hull sides or bottom; widen or deepen the hull, or move this turret",
@@ -951,7 +968,7 @@ fn build(
             ));
         }
         // Fixed trunks participate in native articulation, including neighboring guns.
-        if installation.raised_space.is_some() {
+        if installation.raised_space.is_some() || sloped_deck {
             for (i, cell) in installation.solids.iter().enumerate() {
                 path_clearance.push(MountClearanceProfileBodiesItem {
                     id: format!("{}-barbette-{i}", installation.id), mount_id: None, surface: surface_mesh(cell),
@@ -1779,6 +1796,7 @@ fn equipment(
             }
             boxes.iter().map(|b| transform_cell(b.center, b.size)).collect()
         } else { vec![envelope.clone()] };
+        let body_cell_count = fitting_cells.len();
         if p.kind == "gun" && crate::construction_installation::raised(e) > 0. {
             let top = crate::construction_installation::attachment(p);
             for space in crate::construction_installation::spaces(c, catalog, p, e) {
@@ -1940,7 +1958,9 @@ fn equipment(
             out.propeller_supports.get_or_insert_with(Vec::new).push(support);
         }
         let intrusion = if p.placement == "deck" && e.wall.is_none() {
-            hull.iter().find_map(|h| fitting_cells.iter().find_map(|f| {
+            // The fixed support crosses the deck by design. Its well and hull
+            // backing are validated separately; only the gun body must clear it.
+            hull.iter().find_map(|h| fitting_cells[..body_cell_count].iter().find_map(|f| {
                 cg::intersection(f, h).and_then(|x| {
                     let base_area = if p.kind == "deck-fitting" {
                         (0..3).map(|i| attachment_direction[i].abs() * p.size[(i + 1) % 3] * p.size[(i + 2) % 3]).sum()

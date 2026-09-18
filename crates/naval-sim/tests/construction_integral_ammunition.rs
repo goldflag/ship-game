@@ -28,6 +28,106 @@ fn fixture() -> (ConstructionSource, ConstructionCatalog) {
     (source, catalog)
 }
 #[test]
+fn turret_wells_fit_gently_sloped_decks() {
+    let (source, catalog) = fixture();
+    let part = catalog.equipment.iter()
+        .find(|p| p.id == "us-5in38-mk30-mod0-single").unwrap();
+    let attachment = part.sockets.iter().flatten()
+        .find(|s| s.id == "attachment").unwrap().position[1];
+    let mut failures = vec![];
+    for (pitch, roll, thickness) in [(0_f64, 0_f64, 16.), (1., 0., 16.), (-1., 0., 16.),
+        (5., 0., 16.), (-5., 0., 80.), (0., 5., 16.), (0., -5., 80.)] {
+        for rise in [0., 2.] {
+            let mut draft = source.clone();
+            draft.construction.primitives[0].tilt = Some(ConstructionPrimitiveTilt {
+                version: 1., pitch_deg: pitch, roll_deg: roll,
+            });
+            draft.construction.default_thickness_mm = thickness;
+            draft.construction.equipment.push(ConstructionEquipment {
+                id: "gun".into(), part_id: part.id.clone(),
+                position: [0., 8. / (pitch.to_radians().cos() * roll.to_radians().cos()) - attachment + rise, 0.],
+                bearing_deg: 37.,
+                gun: Some(ConstructionEquipmentGun {
+                    barbette_height_m: Some(rise), ..Default::default()
+                }),
+                ..Default::default()
+            });
+            let result = construction::compile(&draft, &catalog);
+            if result.definition.is_none() {
+                failures.push(format!("pitch {pitch}, roll {roll}, thickness {thickness}, rise {rise}: {:?}", result.diagnostics));
+            } else {
+                let def = result.definition.unwrap();
+                assert!(def.openings.iter().flatten().any(|o|
+                    o.sealed_by_mount_id.as_deref() == Some("gun") && o.area_m2 > 0.));
+                if pitch != 0. || roll != 0. {
+                    assert!(def.mount_clearance.as_ref().unwrap().bodies.iter().flatten()
+                        .any(|b| b.id == "gun-barbette-0"));
+                }
+            }
+        }
+    }
+    assert!(failures.is_empty(), "{}", failures.join("\n"));
+}
+
+#[test]
+fn sloped_custom_hull_turrets_still_reject_real_obstructions() {
+    let (mut source, catalog) = fixture();
+    let hull = &mut source.construction.primitives[0];
+    hull.kind = "custom-hull".into();
+    hull.custom_hull = Some(ConstructionCustomHull {
+        version: 1., rake: 0., bulb: 0., red_paint_y: None,
+        stations: (0..4).map(|i| {
+            let t = i as f64 / 3.;
+            let deck = 0.5 + (0.5 - t) * 80. * 5_f64.to_radians().tan() / 16.;
+            ConstructionHullStation {
+                id: format!("section-{i}"), t,
+                points: [[-1., deck], [-1., -0.5], [0., -0.5], [1., -0.5], [1., deck]]
+                    .into_iter().map(|[x, y]| ConstructionHullPoint { x, y, contour: None }).collect(),
+            }
+        }).collect(),
+    });
+    source.construction.equipment.push(ConstructionEquipment {
+        id: "gun".into(), part_id: "us-5in38-mk30-mod0-single".into(),
+        position: [0., 10.5, 0.], bearing_deg: 37.,
+        gun: Some(ConstructionEquipmentGun { barbette_height_m: Some(2.), ..Default::default() }),
+        ..Default::default()
+    });
+    let result = construction::compile(&source, &catalog);
+    assert!(result.definition.is_some(), "{:?}", result.diagnostics);
+    for fault in ["wall", "load", "side", "bottom", "floating", "body"] {
+        let mut draft = source.clone();
+        match fault {
+            "wall" => draft.construction.boundaries.push(ConstructionBoundary {
+                id: "wall".into(), axis: "x".into(), offset: 0., thickness_mm: 16.,
+            }),
+            "load" => draft.construction.loads.push(ConstructionLoad {
+                id: "load".into(), name: "Occupied space".into(),
+                center: [0., 7.2, 0.], size: [0.4; 3], mass_kg: 100.,
+            }),
+            "side" => draft.construction.primitives[0].size[0] = 2.5,
+            "bottom" => {
+                draft.construction.primitives[0].size[1] = 1.;
+                draft.construction.equipment[0].position[1] = 3.;
+            },
+            "floating" => draft.construction.equipment[0].position[1] += 0.2,
+            "body" => draft.construction.primitives.push(ConstructionPrimitive {
+                id: "pillar".into(), kind: "box".into(), position: [2., 9., 0.], size: [1., 4., 2.],
+                ..Default::default()
+            }),
+            _ => unreachable!(),
+        }
+        let result = construction::compile(&draft, &catalog);
+        assert!(result.definition.is_none(), "{fault} must block launch");
+        let code = if fault == "floating" { "equipment-attachment" } else { "equipment-fit" };
+        assert!(result.diagnostics.iter().any(|d| d.code == code && d.source_id.as_deref() == Some("gun")),
+            "{fault}: {:?}", result.diagnostics);
+        if fault == "body" {
+            assert!(result.diagnostics.iter().any(|d| d.message.starts_with("Exterior equipment body overlaps")));
+        }
+    }
+}
+
+#[test]
 fn every_retained_gun_keeps_ammunition_in_its_installation_when_raised() {
     let (source, catalog) = fixture();
     for part in catalog.equipment.iter().filter(|p| p.kind == "gun") {
