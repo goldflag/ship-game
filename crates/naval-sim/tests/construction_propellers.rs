@@ -68,7 +68,8 @@ fn automatic_shaft_reaches_stern_and_rotates_with_installation() {
         source.construction.equipment[0].bearing_deg = bearing;
         let result = valid(&source, &catalog);
         let members = &result.propeller_supports.as_ref().unwrap()[0].members;
-        assert_eq!(members.len(), 1);
+        assert_eq!(members.len(), 2);
+        assert_eq!(members[1].kind, "fairing");
         assert_eq!(members[0].kind, "shaft");
         assert!((members[0].end[2] - sign * 9.98).abs() < 1e-6);
         assert!(
@@ -88,11 +89,13 @@ fn suspended_screw_has_shaft_and_two_hull_braces_without_buoyancy() {
     let (source, catalog) = fixture([0., -3.5, 9.]);
     let result = valid(&source, &catalog);
     let members = &result.propeller_supports.as_ref().unwrap()[0].members;
-    assert_eq!(members.len(), 3);
-    for member in &members[1..] {
+    assert_eq!(members.len(), 4);
+    assert_eq!(members[1].kind, "bearing");
+    for member in &members[2..] {
         assert_eq!(member.kind, "strut");
         assert!(member.end[1] > -2. && member.end[1] < -1.97);
-        assert_eq!(member.start, members[0].end);
+        assert!(member.rings.as_ref().unwrap().len() > 2);
+        assert!(member.start[2] > members[0].end[2]);
     }
     let mut bare = source.clone();
     bare.construction.equipment.clear();
@@ -183,7 +186,7 @@ fn every_published_propeller_variant_can_hang_below_a_hull() {
         let result = valid(&source, &catalog);
         assert_eq!(
             result.propeller_supports.unwrap()[0].members.len(),
-            3,
+            4,
             "{}",
             part.id
         );

@@ -1967,21 +1967,20 @@ fn equipment(
             if hull.iter().any(|h| cg::intersection(&envelope,h).is_some_and(|x| cg::moments(&x).volume > 1e-5)) {
                 return Err(error("equipment-fit", "Propeller blades need clearance from the hull; move the propeller farther out", Some(&e.id)));
             }
-            let cells: Vec<_> = support.members.iter().map(crate::construction_propellers::cell).collect();
-            for (i, cell) in cells.iter().enumerate() {
+            let members: Vec<_> = support.members.iter().flat_map(|m| crate::construction_propellers::cells(m).into_iter().map(move |cell| (m, cell))).collect();
+            for (i, (member, cell)) in members.iter().enumerate() {
                 if all_envelopes.iter().any(|(id, other)| id != &e.id && cg::intersection(cell, other).is_some_and(|x| cg::moments(&x).volume > 1e-5)) {
                     return Err(error("equipment-overlap", "Propeller shaft or support intersects another fitting", Some(&e.id)));
                 }
-                let r = support.members[i].radius_m;
-                let overlap: f64 = hull.iter().filter_map(|h| cg::intersection(cell,h)).map(|c| cg::moments(&c).volume).sum();
-                if overlap > std::f64::consts::PI * r * r * (2. * r + 0.05) {
-                    return Err(error("equipment-fit", "Propeller support crosses the hull; move the propeller to clear the plating", Some(&e.id)));
+                if crate::construction_propellers::crosses_hull(member, cell, hull) {
+                    return Err(error("equipment-fit", &format!("Propeller {} crosses the hull; move the propeller to clear the plating", member.kind), Some(&e.id)));
                 }
                 fitting_index.insert(cell);
                 all_envelopes.push((e.id.clone(), cell.clone()));
                 path_clearance.push(MountClearanceProfileBodiesItem { id:format!("{}-support-{i}",e.id), mount_id:None, surface:surface_mesh(cell) });
             }
-            // Union the joined rods before integrating weight; never add them to hull cells.
+            // Union joined lofts before integrating weight; never add them to hull cells.
+            let cells: Vec<_> = members.into_iter().map(|(_, cell)| cell).collect();
             let solids = cg::union(&cells).map_err(|x| error("equipment-fit",x,Some(&e.id)))?;
             masses.push(mass(format!("{}-support",e.id), "equipment", &solids, STEEL_DENSITY));
             out.propeller_supports.get_or_insert_with(Vec::new).push(support);

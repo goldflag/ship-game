@@ -93,6 +93,22 @@ steel members add weight and clearance geometry, without adding buoyancy or
 power. These generic supports are an engineering approximation, not an internal
 shaft-line or bearing simulation.
 
+Generated connections use exposed metal shafts, tapered bearing housings, broad
+streamlined fins with flared feet, and a tapered hull-exit fairing where the shaft
+reaches the hull. An exposed shaft needs a closed hull face along the screw's
+forward axis. If that line misses the hull, fins can still support the screw but
+the shaft ends inside the bearing housing. Move the screw upward or inward to
+meet the hull ahead, then aft to leave a visible shaft run within its reach.
+Rust emits the same loft sections for preview/export, clearance
+and provisional solid-steel loading. Fins and fairings seat against the closed
+hull surface; they stay fixed while the original propeller joint spins. Shapes
+refit automatically on placement changes. Directly attached catalog parts retain
+their original support. The normal editor, sea trials and custom ships in battle
+use the same generated mounts. Reopening an existing saved design regenerates
+them automatically; no source migration or mount setting is required.
+Inspect three disposable installations with
+`bun run propeller:playground` (see the [playground notes](../src/ui/shipbuilding/propeller-playground/NOTES.md)).
+
 **Snap** starts on. **N** toggles it; holding **Alt/Option** temporarily inverts it,
 including during a drag. Releasing the key or leaving the window restores the saved state.
 The adjacent arrow opens independent Grid, Ship centerline and Nearby edges/corners/centers
