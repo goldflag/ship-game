@@ -279,15 +279,34 @@ game estimates. Gun tubs, the breakwater, the cranes and the catapults declare
 deck behind a breakwater stays usable and small gear fits under a crane jib.
 
 
-## Flush doors and windows
+## Flush windows
 
-`windows.py` authors the plain door, round porthole, rectangular window and
-rounded-rectangle window as single flat silhouettes, without frames, fasteners,
-hinges or solid thickness. The attachment is local runtime Z=0, facing +Z into
-the wall. The door keeps its original bottom datum and stable part ID; its older
-watertight-door recipe and published revisions remain retained for legacy uses.
-`wallMount` identifies these parts. Installation dimensions scale the original
-silhouette and provisional mass. The renderer clips its original front triangles
-onto native hull panels, using only a 0.5 mm rendering bias to avoid flicker.
-Catalog bounds use a 1 mm picking/mass envelope; this is not visible extrusion.
+`windows.py` authors round portholes, rectangular windows and rounded-rectangle
+windows as single flat silhouettes, without frames, fasteners or solid thickness.
+Its plain door builder remains available for retained recipes. The attachment is
+local runtime Z=0, facing +Z into the wall. `wallMount` identifies these parts;
+installation dimensions scale the original silhouette and provisional mass.
+The renderer clips original front triangles onto native hull panels, using a
+0.5 mm rendering bias and depth-buffer offset to avoid flicker. Window
+catalog bounds use a 1 mm picking/mass envelope, without visible extrusion.
 These generic surface details do not cut holes or claim historical fidelity.
+
+## Surface hardware and rung ladders
+
+`surface_fittings.py` authors three generic door variants: utility, watertight
+with a wheel and dog latches, and windowed utility. Their panel stays flush;
+meshes marked `wallRelief` retain shallow modeled hinges, handles, seals and other
+hardware when projected onto the hull. Louvered and round grille vents use a
+closed dark backing and raised louvers/grille bars. These are visible fittings;
+they do not cut openings or add ventilation simulation.
+
+`generic-surface-ladder` replaces `generic-vertical-ladder` in the editor
+palette. The old catalog entry, original builder and immutable publications remain for
+existing designs and historical recipes. Drag from the first rung to the last
+on a closed hull side. The versioned `ladder` path profile declares width,
+standoff, rod diameter and maximum rung spacing. The original
+`ladder_geometry.ts` recipe makes independent U-shaped rungs with no side rails;
+each end projects to a closed hull panel. Rust mirrors that member layout for
+support, interference, mass and inertia checks. The standalone Blender sample
+is three metres tall. Ladder mass per metre describes rod length, not route
+length; the current values are provisional engineering estimates.

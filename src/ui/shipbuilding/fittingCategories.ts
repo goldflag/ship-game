@@ -22,6 +22,7 @@ export const MAIN_BATTERY_CALIBER_M = .1;
 const FIRE_CONTROL_FITTING = /director|rangefinder|searchlight/, BOAT_FITTING = /boat|cutter|launch|pinnace|float|raft|catapult|crane|aircraft/;
 
 export function fittingCategory(part: ConstructionEquipmentPart, catalog: ConstructionCatalog): FittingCategory {
+  if (wallMount(part) === 'vent' || part.path?.kind === 'ladder') return 'deck-gear';
   if (wallMount(part)) return 'doors-windows';
   switch (part.kind) {
     // A gun whose calibre cannot be read is still a gun: it stays on the first shelf.
