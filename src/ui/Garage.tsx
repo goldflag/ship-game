@@ -1,4 +1,5 @@
 import { assetUrl } from '../assetUrl';
+import { useConstructionThumbnail } from './useConstructionThumbnail';
 // Fleet harbor: historical ships and saved local designs.
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { InspectionTooltip, type InspectionHoverSource } from "./InspectionTooltip";
@@ -52,12 +53,15 @@ function ShipProfile({ className = "" }: { className?: string }) {
 }
 function ShipThumbnail({ shipId }: { shipId: string }) {
   const [failed, setFailed] = useState(false);
-  return localShip(shipId) ? <ShipClassIcon shipClass="Other" className="garage-local-thumbnail" width={96} /> : failed ? (
+  const local = localShip(shipId), thumbnail = useConstructionThumbnail(local);
+  const src = thumbnail ?? assetUrl(`models/${shipId}-thumbnail.png`);
+  useEffect(() => setFailed(false), [src]);
+  return local && !thumbnail ? <ShipClassIcon shipClass="Other" className="garage-local-thumbnail" width={96} /> : failed ? (
     <ShipProfile />
   ) : (
     <img
       className="garage-ship-thumbnail"
-      src={assetUrl(`models/${shipId}-thumbnail.png`)}
+      src={src}
       width={600}
       height={180}
       alt=""
