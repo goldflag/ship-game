@@ -1123,98 +1123,6 @@
       "massKg": 8500
     },
     {
-      "id": "fletcher-propeller-starboard",
-      "name": "Fletcher 4.2 m starboard screw",
-      "kind": "propeller",
-      "size": [
-        4.3,
-        4.3,
-        2.32
-      ],
-      "boundsCenter": [
-        0,
-        0,
-        -0.16
-      ],
-      "centerOfGravity": [
-        0,
-        0,
-        0
-      ],
-      "placement": "underwater",
-      "thrustEfficiency": 0.65,
-      "sockets": [
-        {
-          "id": "attachment",
-          "kind": "shaft",
-          "position": [
-            0,
-            0,
-            -1.32
-          ],
-          "direction": [
-            0,
-            0,
-            -1
-          ]
-        }
-      ],
-      "massKg": 2500
-    },
-    {
-      "id": "fletcher-rudder",
-      "name": "Fletcher balanced rudder",
-      "kind": "rudder",
-      "size": [
-        0.5,
-        2.8,
-        3.05
-      ],
-      "boundsCenter": [
-        0,
-        -0.65,
-        0.025
-      ],
-      "centerOfGravity": [
-        0,
-        -0.75,
-        0
-      ],
-      "placement": "underwater",
-      "rudderAreaM2": 7,
-      "sockets": [
-        {
-          "id": "attachment",
-          "kind": "support",
-          "position": [
-            0,
-            0.75,
-            0
-          ],
-          "direction": [
-            0,
-            1,
-            0
-          ]
-        },
-        {
-          "id": "steering",
-          "kind": "steering",
-          "position": [
-            0,
-            0.75,
-            0
-          ],
-          "direction": [
-            0,
-            1,
-            0
-          ]
-        }
-      ],
-      "massKg": 2600
-    },
-    {
       "id": "fletcher-aft-mast",
       "name": "Fletcher aftermast",
       "kind": "mast",
@@ -1387,6 +1295,282 @@
             0,
             0.5,
             0
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "generic-propeller-2400",
+      "name": "2.4 m four-blade screw",
+      "kind": "propeller",
+      "size": [
+        2.44,
+        2.44,
+        1.44
+      ],
+      "boundsCenter": [
+        0.0,
+        0.0,
+        -0.12
+      ],
+      "centerOfGravity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "massKg": 880,
+      "placement": "underwater",
+      "thrustEfficiency": 0.6,
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "shaft",
+          "position": [
+            0.0,
+            0.0,
+            -0.84
+          ],
+          "direction": [
+            0,
+            0,
+            -1
+          ]
+        }
+      ]
+    },
+    {
+      "id": "generic-propeller-4200",
+      "name": "4.2 m four-blade screw",
+      "kind": "propeller",
+      "size": [
+        4.27,
+        4.27,
+        2.52
+      ],
+      "boundsCenter": [
+        0.0,
+        0.0,
+        -0.21
+      ],
+      "centerOfGravity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "massKg": 4720,
+      "placement": "underwater",
+      "thrustEfficiency": 0.6,
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "shaft",
+          "position": [
+            0.0,
+            0.0,
+            -1.47
+          ],
+          "direction": [
+            0,
+            0,
+            -1
+          ]
+        }
+      ]
+    },
+    {
+      "id": "generic-propeller-6000",
+      "name": "6 m four-blade screw",
+      "kind": "propeller",
+      "size": [
+        6.1,
+        6.1,
+        3.6
+      ],
+      "boundsCenter": [
+        0.0,
+        0.0,
+        -0.3
+      ],
+      "centerOfGravity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "massKg": 13750,
+      "placement": "underwater",
+      "thrustEfficiency": 0.6,
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "shaft",
+          "position": [
+            0.0,
+            0.0,
+            -2.1
+          ],
+          "direction": [
+            0,
+            0,
+            -1
+          ]
+        }
+      ]
+    },
+    {
+      "id": "generic-rudder-2000",
+      "name": "2 m balanced rudder",
+      "kind": "rudder",
+      "size": [
+        0.4,
+        2.26,
+        1.6
+      ],
+      "boundsCenter": [
+        0.0,
+        -0.13,
+        0.56
+      ],
+      "centerOfGravity": [
+        0.0,
+        -0.2,
+        0.44
+      ],
+      "massKg": 680,
+      "placement": "underwater",
+      "rudderAreaM2": 2.88,
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        },
+        {
+          "id": "steering",
+          "kind": "steering",
+          "position": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "generic-rudder-4000",
+      "name": "4 m balanced rudder",
+      "kind": "rudder",
+      "size": [
+        0.8,
+        4.52,
+        3.2
+      ],
+      "boundsCenter": [
+        0.0,
+        -0.26,
+        1.12
+      ],
+      "centerOfGravity": [
+        0.0,
+        -0.4,
+        0.88
+      ],
+      "massKg": 5440,
+      "placement": "underwater",
+      "rudderAreaM2": 11.52,
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0.0,
+            2.0,
+            0.0
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        },
+        {
+          "id": "steering",
+          "kind": "steering",
+          "position": [
+            0.0,
+            2.0,
+            0.0
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "generic-rudder-6000",
+      "name": "6 m balanced rudder",
+      "kind": "rudder",
+      "size": [
+        1.2,
+        6.78,
+        4.8
+      ],
+      "boundsCenter": [
+        0.0,
+        -0.39,
+        1.68
+      ],
+      "centerOfGravity": [
+        0.0,
+        -0.6,
+        1.32
+      ],
+      "massKg": 18360,
+      "placement": "underwater",
+      "rudderAreaM2": 25.92,
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0.0,
+            3.0,
+            0.0
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        },
+        {
+          "id": "steering",
+          "kind": "steering",
+          "position": [
+            0.0,
+            3.0,
+            0.0
           ],
           "direction": [
             0,
@@ -2648,123 +2832,6 @@
         }
       ],
       "exhaustKw": 82000
-    },
-    {
-      "id": "german-cruiser-screw-port",
-      "name": "German cruiser 3.4 m screw \u00b7 port",
-      "kind": "propeller",
-      "size": [
-        3.178108428259184,
-        2.8037486672380307,
-        2.4500001156330145
-      ],
-      "boundsCenter": [
-        0.012749023493866973,
-        -0.2805581139990284,
-        -0.37499998629093156
-      ],
-      "centerOfGravity": [
-        0,
-        0,
-        -0.35
-      ],
-      "massKg": 2900,
-      "placement": "underwater",
-      "sockets": [
-        {
-          "id": "attachment",
-          "kind": "support",
-          "position": [
-            0,
-            0,
-            -1.6
-          ],
-          "direction": [
-            0,
-            0,
-            -1
-          ]
-        }
-      ],
-      "thrustEfficiency": 0.65
-    },
-    {
-      "id": "german-cruiser-screw-starboard",
-      "name": "German cruiser 3.4 m screw \u00b7 starboard",
-      "kind": "propeller",
-      "size": [
-        3.1781084527809575,
-        2.803748548033022,
-        2.4500001156330145
-      ],
-      "boundsCenter": [
-        0.012749152009627895,
-        0.2805581045678661,
-        -0.37499998629093156
-      ],
-      "centerOfGravity": [
-        0,
-        0,
-        -0.35
-      ],
-      "massKg": 2900,
-      "placement": "underwater",
-      "sockets": [
-        {
-          "id": "attachment",
-          "kind": "support",
-          "position": [
-            0,
-            0,
-            -1.6
-          ],
-          "direction": [
-            0,
-            0,
-            -1
-          ]
-        }
-      ],
-      "thrustEfficiency": 0.65
-    },
-    {
-      "id": "german-cruiser-rudder",
-      "name": "German cruiser balanced rudder",
-      "kind": "rudder",
-      "size": [
-        0.4400004386108237,
-        5.000000179607701,
-        5.700000047683716
-      ],
-      "boundsCenter": [
-        1.2536026598730654e-07,
-        -2.500000062624605,
-        1.649999976158142
-      ],
-      "centerOfGravity": [
-        0,
-        -2.5,
-        1.65
-      ],
-      "massKg": 5500,
-      "placement": "underwater",
-      "sockets": [
-        {
-          "id": "attachment",
-          "kind": "stock-bearing",
-          "position": [
-            0,
-            -1.7,
-            0
-          ],
-          "direction": [
-            0,
-            -1,
-            0
-          ]
-        }
-      ],
-      "rudderAreaM2": 18
     },
     {
       "id": "cruiser-magazine-50000",

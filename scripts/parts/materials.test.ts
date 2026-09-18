@@ -10,7 +10,7 @@ test('published mixed-material fittings retain fixed surfaces after GLTF loading
   const root = resolve(import.meta.dir, '../..');
   const catalog = JSON.parse(await readFile(join(root, 'public/models/components/catalog.json'), 'utf8'));
   const loader = new GLTFLoader();
-  for (const id of ['us-5in38-mk30-mod0-single', 'us-20mm-oerlikon-mk24-hsienyang', 'generic-lifeboat-davits', 'fletcher-propeller-starboard']) {
+  for (const id of ['us-5in38-mk30-mod0-single', 'us-20mm-oerlikon-mk24-hsienyang', 'generic-lifeboat-davits', 'generic-propeller-4200']) {
     const part = catalog.equipment.find((p: { id: string }) => p.id === id);
     const bytes = await readFile(join(root, 'public', part.modelUrl));
     const json = JSON.parse(bytes.subarray(20, 20 + bytes.readUInt32LE(12)).toString());
