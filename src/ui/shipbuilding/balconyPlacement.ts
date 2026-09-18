@@ -1,6 +1,6 @@
 import type { ConstructionPrimitive, ConstructionSource, ConstructionSurface, Vec3 } from '../../ships/blueprint';
 import { balconyPlan, defaultBalcony } from '../../ships/constructionBalcony';
-import { rotateVertex } from '../../ships/constructionVertex';
+import { orientVector } from '../../ships/constructionOrientation';
 import { add, sub, dot, cross } from '../../ships/freeformShape';
 import { pendingHullSurfaces } from './pendingHull';
 import type { BuilderPlacement } from './builderScene';
@@ -8,9 +8,9 @@ import type { BuilderPlacement } from './builderScene';
 const SEAT_M = .01;
 
 /** The deck edge facing the actual support, independent of the ship centerline. */
-export function balconyInnerEdge(primitive: Pick<ConstructionPrimitive, 'size' | 'rotationDeg' | 'balcony'>, normal: Vec3) {
+export function balconyInnerEdge(primitive: Pick<ConstructionPrimitive, 'size' | 'rotationDeg' | 'tilt' | 'balcony'>, normal: Vec3) {
   const deck = balconyPlan(primitive.size, primitive.balcony ?? defaultBalcony()).deck
-    .map(p => rotateVertex([p.x, 0, p.z], primitive.rotationDeg));
+    .map(p => orientVector(primitive,[p.x, 0, p.z]));
   const sign = deck.reduce((sum, p, i) => sum + p[0] * deck[(i + 1) % deck.length][2] - deck[(i + 1) % deck.length][0] * p[2], 0) > 0 ? 1 : -1;
   const facing = (i: number) => {
     const a = deck[i], b = deck[(i + 1) % deck.length], length = Math.hypot(b[0] - a[0], b[2] - a[2]);
@@ -23,7 +23,7 @@ export function balconyInnerEdge(primitive: Pick<ConstructionPrimitive, 'size' |
 
 /** Side-wall ends sit on the authored outline, inside the deck overhang. Their
  * upper corners must reach a leaning support too, not stop short above the deck. */
-export function balconyAttachmentPoints(primitive: Pick<ConstructionPrimitive, 'size' | 'rotationDeg' | 'balcony'>, normal: Vec3): Vec3[] {
+export function balconyAttachmentPoints(primitive: Pick<ConstructionPrimitive, 'size' | 'rotationDeg' | 'tilt' | 'balcony'>, normal: Vec3): Vec3[] {
   const balcony = primitive.balcony ?? defaultBalcony(), { edge, corners } = balconyInnerEdge(primitive, normal);
   const plan = balconyPlan(primitive.size, balcony), count = balcony.points.length;
   const points = [...corners], top = primitive.size[1] / 2;
@@ -31,14 +31,14 @@ export function balconyAttachmentPoints(primitive: Pick<ConstructionPrimitive, '
     if (balcony.points[neighbor].edge === 'open') continue;
     for (const end of ends) for (const y of [top, top + balcony.heightM]) {
       const p = plan.walls[neighbor][end];
-      points.push(rotateVertex([p.x, y, p.z], primitive.rotationDeg));
+      points.push(orientVector(primitive,[p.x, y, p.z]));
     }
   }
   return points;
 }
 
 /** Keep every corner of the mounting edge just inside the support plane. */
-export function seatBalconyCenter(primitive: Pick<ConstructionPrimitive, 'size' | 'rotationDeg' | 'balcony'>, position: Vec3, point: Vec3, normal: Vec3): Vec3 {
+export function seatBalconyCenter(primitive: Pick<ConstructionPrimitive, 'size' | 'rotationDeg' | 'tilt' | 'balcony'>, position: Vec3, point: Vec3, normal: Vec3): Vec3 {
   const axis = Math.abs(normal[0]) >= Math.abs(normal[2]) ? 0 : 2;
   if (Math.abs(normal[axis]) < .1) return position;
   const corners = balconyAttachmentPoints(primitive, normal);
@@ -64,7 +64,7 @@ function insideFace(point: Vec3, surface: ConstructionSurface) {
 
 /** Seat across adjacent hull panels too, so curvature does not leave the ends
  * of a wide balcony hanging away from the surface selected at its midpoint. */
-export function seatBalconyOnHull(primitive: Pick<ConstructionPrimitive, 'size' | 'rotationDeg' | 'balcony'>, position: Vec3, support: ConstructionSurface, surfaces: readonly ConstructionSurface[]): Vec3 {
+export function seatBalconyOnHull(primitive: Pick<ConstructionPrimitive, 'size' | 'rotationDeg' | 'tilt' | 'balcony'>, position: Vec3, support: ConstructionSurface, surfaces: readonly ConstructionSurface[]): Vec3 {
   const normal = support.normal, axis = Math.abs(normal[0]) >= Math.abs(normal[2]) ? 0 : 2, sign = Math.sign(normal[axis]);
   const panels = surfaces.filter(s => s.primitiveId === support.primitiveId && !s.open && s.normal[axis] * sign > .1);
   const { corners } = balconyInnerEdge(primitive, normal);

@@ -1,3 +1,4 @@
+import { RotationToolbar } from './RotationToolbar';
 import { wallMount } from '../../ships/constructionWallFittings';
 import { automaticPropellerLabel, propellerEngineName, propellerEngines } from './propellerAssignment';
 import { SnapControls } from './SnapControls';
@@ -104,6 +105,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
 
   const [drawer, setDrawer] = useState(false);
   const [query, setQuery] = useState('');
+  const [rotationPreview, setRotationPreview] = useState<ConstructionPrimitive>();
   const [freeformPreview, setFreeformPreview] = useState<ConstructionPrimitive>();
   // The open drawer keeps the size of its full, unfiltered card set while a search narrows it, so the panel does not jump about under the pointer; the search clears when the drawer closes.
   const drawerRef = useRef<HTMLDivElement>(null);
@@ -294,7 +296,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
       <span>{s.windowRow && ['window','porthole'].includes(wallMount(active.part) ?? '') ? 'Drag along the hull' : 'Click a hull side or wall'} · ←→ width · ↑↓ height · Shift fine{mirror ? ' · linked mirror' : ''}</span>
     </> : <span>{active.part.placement} · bearing {Number(piece.bearingDeg.toFixed(2))}°</span>}
   </> : piece.kind === 'boundary' ? <><b>{BOUNDARY_NAMES[piece.axis]}</b><span>on the {gridStep} m grid</span></> : null;
-  if (!freeformMode && selectedPrimitives.length === 1 && !selectedEquipment.length) {
+  if (!freeformMode && s.tool !== 'rotate' && selectedPrimitives.length === 1 && !selectedEquipment.length) {
     const primitive = selectedPrimitives[0], mass = pieceMassKg(compiledResult, primitive.id);
     const measured = blockDimensions(primitive);
     const size = (axis: number, value: number) => tool.editPrimitive('Resize hull piece', resizeBlock(primitive, axis, value));
@@ -425,6 +427,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   ];
   const acting: KeyHint[] = [];
   if (!locked && piece && piece.kind !== 'boundary' && !(piece.kind === 'equipment' && piece.wall)) acting.push({ keys: ['R'], label: piece.kind === 'hull' ? 'Rotate 90°' : 'Rotate 15°' });
+  else if (s.tool === 'rotate') acting.push({ keys: ['X', 'Y', 'Z'], label: 'Axis' }, { keys: ['R', '⇧R'], label: '±90°' });
   else if (movable && !freeformMode && !selectedEquipment.some(e => e.wall)) acting.push({ keys: ['R'], label: selectedPrimitives.length ? 'Rotate 90°' : 'Rotate 15°' });
   if (movable && !freeformMode) acting.push({ keys: ['←→', '↑↓'], label: selectedEquipment.every(e => e.wall) && selectedEquipment.length ? 'Resize · Shift fine' : 'Nudge' }, { keys: ['PgUp', 'PgDn'], label: 'Raise · lower' }, { keys: ['⌘C'], label: 'Copy' }, { keys: ['⇧⌘C'], label: 'Mirror copy' });
   if (selected.size) acting.push({ keys: ['⌫', '⌘X'], label: movable ? 'Remove' : 'Remove · merge rooms' });
@@ -476,7 +479,8 @@ export function Shipbuilder(props: ShipbuilderProps) {
     } }}/>, document.body)}
     {!revision.ready || (!compile.retained && compile.compiling)
       ? <div className="sb-empty" role="status">Loading ship…</div>
-      : <BuilderViewport scene={tool.scene(compile.retained)} tags={tags} status={status} onPointer={tool.pointer} onHover={setHoveredPart} onFreeformPreview={setFreeformPreview} createModel={props.createModel} onMemory={memoryOpen ? setVisualMemory : undefined}/>}
+      : <BuilderViewport scene={tool.scene(compile.retained)} tags={tags} status={status} onPointer={tool.pointer} onHover={setHoveredPart} onFreeformPreview={setFreeformPreview} onRotationPreview={setRotationPreview} createModel={props.createModel} onMemory={memoryOpen ? setVisualMemory : undefined}/>}
+    {layer === 'hull' && s.tool === 'rotate' && <RotationToolbar tool={tool} preview={rotationPreview}/>}
     {freeformPrimitive && <FreeformToolbar primitive={freeformPrimitive} preview={freeformPreview} onCommit={tool.commitFreeform} settings={freeformSettings} onChange={tool.changeFreeformSettings} cycleUnit={tool.cycleUnit}
       onReset={tool.resetFreeform} onSplit={tool.splitFreeform} onExit={tool.exitFreeform}/>}
     <header className="sb-top">

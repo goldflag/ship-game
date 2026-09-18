@@ -1,3 +1,4 @@
+import { mirroredOrientation } from './constructionOrientation';
 import { mirroredIndices } from './freeformShape';
 import { mirroredBalcony } from './constructionBalcony';
 import { cornerVertices } from './constructionVertex';
@@ -72,6 +73,11 @@ export function decodeConstructionSource(value: unknown): ConstructionSource {
         ids.add(point.id as string);
       }
     } else if (p.balcony !== undefined) throw new Error('Balcony data belongs to a balcony block');
+    if (p.tilt !== undefined) {
+      const tilt = object(p.tilt, 'Block tilt');
+      if (tilt.version !== 1) throw new Error('Unsupported block tilt version');
+      for (const key of ['pitchDeg', 'rollDeg']) { number(tilt[key], key); if (Math.abs(tilt[key] as number) > 3600) throw new Error('Block tilt must be within ±3600°'); }
+    }
     if (p.kind === 'custom-hull') {
       const hull = object(p.customHull, 'Custom hull');
       if (hull.version !== 1) throw new Error('Unsupported custom hull version');
@@ -213,10 +219,10 @@ export function rotateConstructionSelection(source: ConstructionSource, selected
 
 /** Source transform, not physical derivation. Corner profiles require an X/Z swap when reflected. */
 export function mirroredPrimitive(primitive: ConstructionPrimitive): ConstructionPrimitive {
-  if (primitive.kind === 'balcony') return { ...structuredClone(primitive), position: [-primitive.position[0], primitive.position[1], primitive.position[2]], rotationDeg: normalizedBearing(-primitive.rotationDeg), balcony: mirroredBalcony(primitive) };
+  if (primitive.kind === 'balcony') return { ...structuredClone(primitive), position: [-primitive.position[0], primitive.position[1], primitive.position[2]], ...mirroredOrientation(primitive), balcony: mirroredBalcony(primitive) };
   if(primitive.mesh){
     const out=structuredClone(primitive),m=out.mesh!;
-    out.position[0]*=-1;out.rotationDeg=normalizedBearing(-out.rotationDeg);
+    out.position[0]*=-1;Object.assign(out,mirroredOrientation(primitive));
     m.vertices.forEach(v=>v[0]*=-1);m.reference.forEach(v=>v[0]*=-1);
     m.faces.forEach(f=>{f.corners.reverse();if(f.name==='port')f.name='starboard';else if(f.name==='starboard')f.name='port';});
     // Keep corresponding prism outlines in the same winding after reflection.
@@ -224,14 +230,14 @@ export function mirroredPrimitive(primitive: ConstructionPrimitive): Constructio
     return out;
   }
   if (primitive.kind === 'vertex') {
-    const out: ConstructionPrimitive = { ...structuredClone(primitive), position: [-primitive.position[0], primitive.position[1], primitive.position[2]], rotationDeg: normalizedBearing(-primitive.rotationDeg), vertices: [1,0,3,2,5,4,7,6].map(i => {const v=cornerVertices(primitive)[i];return [-v[0],v[1],v[2]];}) };
+    const out: ConstructionPrimitive = { ...structuredClone(primitive), position: [-primitive.position[0], primitive.position[1], primitive.position[2]], ...mirroredOrientation(primitive), vertices: [1,0,3,2,5,4,7,6].map(i => {const v=cornerVertices(primitive)[i];return [-v[0],v[1],v[2]];}) };
     if(out.shaping) {const s=out.shaping; s.edges=s.edges.map(i=>mirroredIndices('edge',[i],[true,false,false]).find(j=>j!==i)??i); }
     return out;
   }
   const mirror = shapeMirror(primitive.kind);
   return { ...structuredClone(primitive), position: [-primitive.position[0], primitive.position[1], primitive.position[2]],
     size: mirror.swap ? [primitive.size[2], primitive.size[1], primitive.size[0]] : [...primitive.size],
-    rotationDeg: normalizedBearing(-primitive.rotationDeg + mirror.yaw) };
+    ...mirroredOrientation(primitive, mirror.yaw) };
 }
 
 export function mirroredFace(face: ConstructionFace, kind: ConstructionPrimitive['kind']): ConstructionFace {

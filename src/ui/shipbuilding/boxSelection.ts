@@ -1,6 +1,6 @@
 import { envelopeVertices } from '../../ships/freeformShape';
 import { equipmentPathBounds } from '../../ships/constructionPaths';
-import { cornerVertices } from '../../ships/constructionVertex';
+import { worldVertex } from '../../ships/constructionVertex';
 import * as THREE from 'three';
 import type { ConstructionCatalog, ConstructionSource, Vec3 } from '../../ships/blueprint';
 
@@ -11,13 +11,10 @@ export interface SelectionRect { left: number; top: number; right: number; botto
 export function boxSelectedPieces(source: ConstructionSource, catalog: ConstructionCatalog, camera: THREE.Camera, rect: SelectionRect, width: number, height: number, internals = false): string[] {
   const result: string[] = [];
   camera.updateMatrixWorld(true);
-  const overlaps = (position: Vec3, size: Vec3, rotation: number, center: Vec3 = [0, 0, 0]) => {
-    const lowY = position[1] + center[1] - size[1] / 2, highY = position[1] + center[1] + size[1] / 2;
+  const contains = (points: THREE.Vector3[]) => {
     const bounds = { left: Infinity, right: -Infinity, top: Infinity, bottom: -Infinity, near: Infinity, far: -Infinity };
-    const matrix = new THREE.Matrix4().makeRotationY(rotation);
-    for (const x of [-.5, .5]) for (const y of [lowY, highY]) for (const z of [-.5, .5]) {
-      const point = new THREE.Vector3(center[0] + x * size[0], 0, center[2] + z * size[2]).applyMatrix4(matrix);
-      point.set(point.x + position[0], y, point.z + position[2]).project(camera);
+    for (const point of points) {
+      point.project(camera);
       const px = (point.x + 1) * width / 2, py = (1 - point.y) * height / 2;
       bounds.left = Math.min(bounds.left, px); bounds.right = Math.max(bounds.right, px);
       bounds.top = Math.min(bounds.top, py); bounds.bottom = Math.max(bounds.bottom, py);
@@ -25,12 +22,15 @@ export function boxSelectedPieces(source: ConstructionSource, catalog: Construct
     }
     return bounds.near <= 1 && bounds.far >= -1 && bounds.left >= rect.left && bounds.right <= rect.right && bounds.top >= rect.top && bounds.bottom <= rect.bottom;
   };
+  const overlaps = (position: Vec3, size: Vec3, rotation: number, center: Vec3 = [0, 0, 0]) => {
+    const matrix = new THREE.Matrix4().makeRotationY(rotation), points: THREE.Vector3[] = [];
+    for (const x of [-.5, .5]) for (const y of [-.5, .5]) for (const z of [-.5, .5]) {
+      points.push(new THREE.Vector3(center[0] + x * size[0], center[1] + y * size[1], center[2] + z * size[2]).applyMatrix4(matrix).add(new THREE.Vector3(...position)));
+    }
+    return contains(points);
+  };
   for (const part of internals ? [] : source.construction.primitives) {
-    if(part.kind==='vertex') {
-      const corners=envelopeVertices(part).map(v=>v.map((n,k)=>n*part.size[k]));
-      const min=[0,1,2].map(k=>Math.min(...corners.map(v=>v[k]))),max=[0,1,2].map(k=>Math.max(...corners.map(v=>v[k])));
-      if(overlaps(part.position,max.map((n,k)=>n-min[k]) as Vec3,part.rotationDeg*Math.PI/180,min.map((n,k)=>(n+max[k])/2) as Vec3))result.push(part.id);
-    }else if (overlaps(part.position, part.size, part.rotationDeg * Math.PI / 180)) result.push(part.id);
+    if (contains(envelopeVertices(part).map(v => new THREE.Vector3(...worldVertex(part, v))))) result.push(part.id);
   }
   for (const item of source.construction.equipment) {
     const part = catalog.equipment.find(part => part.id === item.partId);

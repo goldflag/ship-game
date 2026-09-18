@@ -12,7 +12,7 @@ export const BUILDER_LAYERS: { id: BuilderLayer; name: string }[] = [
   { id: 'hull', name: 'Hull' }, { id: 'armor', name: 'Armor' }, { id: 'internals', name: 'Internals' }, { id: 'fittings', name: 'Fittings' }, { id: 'paint', name: 'Paint' },
 ];
 
-export type BuilderToolId = 'select' | 'place' | 'fill' | 'erase' | 'measure' | 'apply' | 'area' | 'eyedrop' | 'opening' | 'deck' | 'bulkhead' | 'longitudinal' | 'merge' | 'module';
+export type BuilderToolId = 'rotate' | 'select' | 'place' | 'fill' | 'erase' | 'measure' | 'apply' | 'area' | 'eyedrop' | 'opening' | 'deck' | 'bulkhead' | 'longitudinal' | 'merge' | 'module';
 export type BuilderAction = 'rotate' | 'suggest';
 export type RailEntry =
   | { kind: 'tool'; id: BuilderToolId; name: string; key: string; glyph: string }
@@ -24,7 +24,7 @@ const select = tool('select', 'Select', 'V');
 
 /** The rail holds what a click does: modes and one-shot actions. Mirror and Snap, which change where a click lands, sit under the rail as modifiers; Arcs and Centers, which draw overlays, sit in the view strip. */
 export const BUILDER_RAIL: Record<BuilderLayer, RailEntry[]> = {
-  hull: [select, tool('place', 'Place', 'B'), tool('fill', 'Fill', 'F'), tool('erase', 'Erase', 'E'), tool('measure', 'Measure', 'T')],
+  hull: [select, tool('rotate', 'Rotate', 'O'), tool('place', 'Place', 'B'), tool('fill', 'Fill', 'F'), tool('erase', 'Erase', 'E'), tool('measure', 'Measure', 'T')],
   armor: [select, tool('apply', 'Paint', 'B', 'Paint'), tool('area', 'Area', 'A'), tool('eyedrop', 'Eyedrop', 'I'), tool('opening', 'Opening', 'O')],
   internals: [select, tool('deck', 'Deck', 'D'), tool('bulkhead', 'Bulkhead', 'B'), tool('longitudinal', 'Split', 'L', 'Split'), tool('merge', 'Merge', 'J'), tool('module', 'Module', 'U'), action('suggest', 'Suggest', 'G')],
   fittings: [select, tool('place', 'Place', 'B'), action('rotate', 'Rotate', 'R'), action('suggest', 'Suggest', 'G')],

@@ -1158,6 +1158,16 @@ pub struct ShipDefinitionAccuracy {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionPrimitiveTilt {
+    #[serde(rename = "version")]
+    pub version: f64,
+    #[serde(rename = "pitchDeg")]
+    pub pitch_deg: f64,
+    #[serde(rename = "rollDeg")]
+    pub roll_deg: f64,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct ConstructionFreeformFace {
     #[serde(rename = "id")]
     pub id: String,
@@ -1267,6 +1277,8 @@ pub struct ConstructionPrimitive {
     pub position: [f64; 3],
     #[serde(rename = "rotationDeg")]
     pub rotation_deg: f64,
+    #[serde(rename = "tilt", default, skip_serializing_if = "Option::is_none")]
+    pub tilt: Option<ConstructionPrimitiveTilt>,
     #[serde(rename = "vertices")]
     pub vertices: Option<Vec<[f64; 3]>>,
     #[serde(rename = "mesh")]
@@ -1459,10 +1471,14 @@ pub struct ShipDefinition {
     pub local_damage: ShipDefinitionLocalDamage,
     #[serde(rename = "stability")]
     pub stability: Option<ShipDefinitionStability>,
+    #[serde(
+        rename = "maneuvering",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub maneuvering: Option<ManeuveringProfile>,
     #[serde(rename = "hull")]
     pub hull: Hull,
-    #[serde(rename = "maneuvering", default, skip_serializing_if = "Option::is_none")]
-    pub maneuvering: Option<ManeuveringProfile>,
     #[serde(rename = "handling")]
     pub handling: Handling,
     #[serde(rename = "armor")]

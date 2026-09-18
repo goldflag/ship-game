@@ -34,13 +34,12 @@ pub fn build(p: &ConstructionPrimitive) -> Result<VertexSolid, String> {
     {
         return Err(fail());
     }
-    let (sin, cos) = p.rotation_deg.to_radians().sin_cos();
     let world: Vec<Vec3> = m
         .vertices
         .iter()
         .map(|v| {
             let [x, y, z] = std::array::from_fn(|k| v[k] * p.size[k]);
-            add(p.position, [cos * x + sin * z, y, -sin * x + cos * z])
+            crate::construction_orientation::point(p, [x, y, z])
         })
         .collect();
     if world

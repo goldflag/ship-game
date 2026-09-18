@@ -699,3 +699,23 @@ test('editing a detached balcony reseats it in the same undoable source transact
   owner.undo();
   expect(data().primitives[1]).toEqual(balcony);
 });
+
+test('rotation mode selects ship axes, commits precise angles and restores each edit with undo', async () => {
+  const { tool, data, labels } = await setup();
+  tool.choose('hull', false); tool.key(key('o'), chrome());
+  expect(tool.scene(undefined)).toMatchObject({ moveTargets: 'none', rotation: { id: 'hull', axis: 1, snap: true } });
+  tool.key(key('x'), chrome()); tool.key(key('r'), chrome());
+  expect(data().primitives[0].tilt?.pitchDeg).toBe(90);
+  expect(labels()).toEqual(['Rotate block']);
+  tool.key(key('r', { shiftKey: true }), chrome());
+  expect(data().primitives[0].tilt).toBeUndefined();
+  tool.undo(); expect(data().primitives[0].tilt?.pitchDeg).toBe(90);
+  tool.setBlockAngle(0, 24.5); tool.setBlockAngle(1, 37); tool.setBlockAngle(2, -15);
+  expect(data().primitives[0]).toMatchObject({ rotationDeg: 37, tilt: { version: 1, pitchDeg: 24.5, rollDeg: -15 } });
+  const saved = structuredClone(data().primitives[0]); tool.resetBlockRotation();
+  expect(data().primitives[0].tilt).toBeUndefined(); expect(data().primitives[0].rotationDeg).toBe(0);
+  tool.undo(); expect(data().primitives[0]).toEqual(saved);
+  tool.key(key('Escape'), chrome());
+  expect(tool.getSnapshot().selected.has('hull')).toBe(true); expect(tool.scene(undefined).rotation).toBeUndefined();
+  tool.key(key('r'), chrome()); expect(data().primitives[0].rotationDeg).toBe(127);
+});

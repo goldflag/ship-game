@@ -10,8 +10,7 @@ fn transform(p: &ConstructionPrimitive, t: f64, point: &ConstructionHullPoint, p
     let rake = h.rake * p.size[1] * 0.6 * (0.6 - point.y).max(0.) * (-t * 30.).exp();
     let bulb = h.bulb * p.size[1] * 0.7 * (-((point.y + 0.24) / 0.17).powi(2)).exp() * (-t * 35.).exp();
     let [x, y, z] = [x * p.size[0] / 2., point.y * p.size[1], (t - 0.5) * p.size[2] + rake - bulb];
-    let (s, c) = p.rotation_deg.to_radians().sin_cos();
-    add(p.position, [c*x + s*z, y, -s*x + c*z])
+    crate::construction_orientation::point(p, [x, y, z])
 }
 fn mean(points: &[Vec3]) -> Vec3 { scale(points.iter().fold([0.;3], |a, b| add(a, *b)), 1. / points.len() as f64) }
 

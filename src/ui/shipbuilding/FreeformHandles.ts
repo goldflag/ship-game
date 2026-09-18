@@ -1,6 +1,7 @@
+import { orientVector, unorientVector } from '../../ships/constructionOrientation';
 import * as THREE from 'three';
 import type { ConstructionPrimitive, ConstructionSource, Vec3 } from '../../ships/blueprint';
-import { affectedCorners, cornerVertices, freeformEdit, rotateVertex, selectionCenter, selectionCorners, selectionLabel, selectionLocks, topology, VERTEX_EDGES, VERTEX_FACES, worldVertex, type HullSelection, type MirrorAxes } from '../../ships/constructionVertex';
+import { affectedCorners, cornerVertices, freeformEdit, selectionCenter, selectionCorners, selectionLabel, selectionLocks, topology, VERTEX_EDGES, VERTEX_FACES, worldVertex, type HullSelection, type MirrorAxes } from '../../ships/constructionVertex';
 
 export type { BuilderFreeformOptions } from './builderScene';
 import type { BuilderFreeformOptions } from './builderScene';
@@ -111,11 +112,11 @@ export class FreeformHandles {
     return new THREE.Vector2((p.x + 1) * this.host.clientWidth / 2, (1 - p.y) * this.host.clientHeight / 2);
   }
   private anchor(p: ConstructionPrimitive, selection: HullSelection) {
-    const local = rotateVertex(selectionCenter(p,selection),p.rotationDeg);
+    const local = orientVector(p,selectionCenter(p,selection));
     return new THREE.Vector3(...local.map((n,k) => n + p.position[k]) as Vec3);
   }
   private axes(p: ConstructionPrimitive) {
-    return [0,1,2].map(k => new THREE.Vector3(...rotateVertex([k===0?1:0,k===1?1:0,k===2?1:0],p.rotationDeg)));
+    return [0,1,2].map(k => new THREE.Vector3(...orientVector(p,[k===0?1:0,k===1?1:0,k===2?1:0])));
   }
   private cameraKey() { return [...this.camera().matrixWorld.elements,...this.camera().projectionMatrix.elements].join(','); }
   frame() {
@@ -209,7 +210,7 @@ export class FreeformHandles {
       return;
     }
     const hit = this.ray(e.clientX,e.clientY).intersectPlane(d.plane,new THREE.Vector3()); if (!hit) return;
-    const local = rotateVertex(hit.sub(d.origin).toArray() as Vec3,-d.primitive.rotationDeg);
+    const local = unorientVector(d.primitive,hit.sub(d.origin).toArray() as Vec3);
     const raw = local.map((v,k) => d.free[k] ? v : 0) as Vec3;
     const delta = this.snapping ? this.snapping.resolve(raw, d.free, d.primitive, d.options) : raw.map(v => Math.round(v/d.options.unit)*d.options.unit) as Vec3;
     d.replacements = freeformEdit(d.source,d.options.id,d.options.selection,delta,d.options.axes,d.options.snap);

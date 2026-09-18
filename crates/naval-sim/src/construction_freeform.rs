@@ -40,15 +40,7 @@ fn mapped(p: &ConstructionPrimitive, q: Vec3) -> Vec3 {
     for (coordinate, dimension) in out.iter_mut().zip(p.size) {
         *coordinate *= dimension;
     }
-    let (sin, cos) = p.rotation_deg.to_radians().sin_cos();
-    add(
-        p.position,
-        [
-            cos * out[0] + sin * out[2],
-            out[1],
-            -sin * out[0] + cos * out[2],
-        ],
-    )
+    crate::construction_orientation::point(p, out)
 }
 fn validate(p: &ConstructionPrimitive, s: &ConstructionFreeformShape) -> Result<(), String> {
     let r = p.size.iter().copied().fold(f64::INFINITY, f64::min) * 0.45;

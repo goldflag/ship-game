@@ -64,7 +64,7 @@ to assembling a whole ship hull from many vertex pieces.
 
 The UI's **Edit hull sections** and the agent source share exactly the same
 `customHull.version: 1` data. `size` is `[beam, depth, length]` in metres;
-`position` and `rotationDeg` place the whole hull. Section `t` runs from bow (0)
+`position` and `rotationDeg` place the whole hull. Optional `tilt: {version: 1, pitchDeg, rollDeg}` adds pitch and roll; local axes rotate in YXZ order. Section `t` runs from bow (0)
 to stern (1). Each section has a stable ID and nine ordered cross-section points:
 port deck down to keel (index 4), then up to starboard deck. Point X scales by
 half the beam and point Y by depth. Retain left/right symmetry, point ordering
