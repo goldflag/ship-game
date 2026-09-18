@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "generic-deck-open-bin",
+  "revision": "52c362528a7b9d8df9744158def4fae94e113ec782fb9d9ca9042728b91e054b",
+  "contentHash": "93b0d5c3318800d42fff7c8988cda45ac72ef204002ab1aef22d484edd9ca523",
+  "modelSha256": "4e32ec6af16afc5672b340fa9467c84e16fed4afb6e5701143a4cc3123107b8c",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/generic-deck-open-bin/52c362528a7b9d8df9744158def4fae94e113ec782fb9d9ca9042728b91e054b/model.glb",
+  "boundsCenter": [
+    0,
+    0.46000000834465027,
+    0
+  ],
+  "size": [
+    0.5500000715255737,
+    0.9200000166893005,
+    0.5200000405311584
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 84,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original simple prop inspired by user-supplied ship model screenshots; no exact historical variant claimed. Dimensions and mass are game estimates. Static geometry adds only loading mass. Installation support and clearance remain design-specific.",
+  "basis": "assets/parts/construction/README.md"
+}

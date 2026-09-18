@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "generic-deck-locker-wide",
+  "revision": "b8d02e568db54b006bef0a39cb17124afa358c903d17ff2997a6ca9a0079602c",
+  "contentHash": "7dd92eb14ccc6976ca79fed1792899a2ede7731b528eebfaf07cd7e1cb52d651",
+  "modelSha256": "2a58612def0955dfeb2987bd9fbd6e32bf1a528f7755ee8b74dbb4af52281d12",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/generic-deck-locker-wide/b8d02e568db54b006bef0a39cb17124afa358c903d17ff2997a6ca9a0079602c/model.glb",
+  "boundsCenter": [
+    0,
+    0.5249999761581421,
+    0
+  ],
+  "size": [
+    1.25,
+    1.0499999523162842,
+    0.580000102519989
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 132,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original simple prop inspired by user-supplied ship model screenshots; no exact historical variant claimed. Dimensions and mass are game estimates. Static geometry adds only loading mass. Installation support and clearance remain design-specific.",
+  "basis": "assets/parts/construction/README.md"
+}

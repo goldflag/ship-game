@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "generic-deck-locker-sloped",
+  "revision": "2691d54a7883cbf6212b9f0ea1aa2bcee8f63478960738604cc49f518ef5e325",
+  "contentHash": "b043af976b85319bcfed5a2e13f5573212ae3874830c148e02914028d3dfe7f1",
+  "modelSha256": "41da706c6adb64a3fcff11f3507ac52565295118b69edf81aba7f86439c95775",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/generic-deck-locker-sloped/2691d54a7883cbf6212b9f0ea1aa2bcee8f63478960738604cc49f518ef5e325/model.glb",
+  "boundsCenter": [
+    0,
+    0.38999998569488525,
+    0
+  ],
+  "size": [
+    0.7800000309944153,
+    0.7799999713897705,
+    0.8800000548362732
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 60,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original simple prop inspired by user-supplied ship model screenshots; no exact historical variant claimed. Dimensions and mass are game estimates. Static geometry adds only loading mass. Installation support and clearance remain design-specific.",
+  "basis": "assets/parts/construction/README.md"
+}

@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "generic-cylinder-rack",
+  "revision": "e04f35967ae97896f436fb6338905986f0a7fbb7db59300a5f713539719d6179",
+  "contentHash": "6a98f792ebc1024e0bbf245f16efb5e242376652eef32bec5717b0fb7d4d33f1",
+  "modelSha256": "3a11aabff5d15eeaa1ab95965ed7f323ef59a5e3a1b2c98095fc4ed2603df4c3",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/generic-cylinder-rack/e04f35967ae97896f436fb6338905986f0a7fbb7db59300a5f713539719d6179/model.glb",
+  "boundsCenter": [
+    0,
+    0,
+    -0.18000000261300997
+  ],
+  "size": [
+    1.0299999713897705,
+    1.2799999713897705,
+    0.36000008298885433
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 296,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original simple prop inspired by user-supplied ship model screenshots; no exact historical variant claimed. Dimensions and mass are game estimates. Static geometry adds only loading mass. Installation support and clearance remain design-specific.",
+  "basis": "assets/parts/construction/README.md"
+}
