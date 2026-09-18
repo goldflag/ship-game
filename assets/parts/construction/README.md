@@ -293,6 +293,37 @@ The renderer clips original front triangles onto native hull panels, using a
 catalog bounds use a 1 mm picking/mass envelope, without visible extrusion.
 These generic surface details do not cut holes or claim historical fidelity.
 
+## Simple superstructure boxes and racks
+
+`superstructure_fittings.py` supplies inexpensive original props based on the
+user's ship model screenshots. The current collection has single/paired wall
+cabinets, a four-cylinder rack, a hose rack, wide double-door and tall narrow deck
+lockers, a small storage box, a long low chest, a sloped-lid box and an open-front
+bin. Existing detailed ammunition lockers remain separate exact variants.
+
+The silhouettes use plain solids, block hinges/handles and low-sided curves;
+there are no bevel loops, individual bolts or dense hose coils. Each original
+batches its static geometry by shared material role. Painted metal follows the
+instance coating; hose canvas and nozzle metal keep their protected materials.
+
+These parts appear under **Fittings → Deck gear**. Wall cabinets/racks use
+`wallMount: "hardware"` and the existing versioned wall placement, resize and
+mirror contract. Their datum is the rear mounting plane (original Blender X=0;
+runtime Z=0, outward toward −Z). Root `wallRelief` preserves their depth through
+installation and portable export. Resizing retains the existing area-based mass
+estimate. The cabinet backs and rack supports physically reach the wall.
+
+Deck boxes have a flat plinth at original Blender Z=0 / runtime Y=0 and a
+standard downward-facing support socket. They use normal deck placement at their
+declared metre dimensions. Put them on a supported deck beside the superstructure;
+they do not need a wall-placement record. Lids, doors and stored equipment are
+static, and all props add only estimated loading mass, with no storage, repair
+or damage-control capability. Cylinder contents are unspecified.
+
+Dimensions and masses are game estimates; these props do not claim researched
+historical fidelity. Ship-specific support and neighboring gun clearance still
+need review. Registrations retain `unreviewed` fidelity status.
+
 ## Surface hardware and rung ladders
 
 `surface_fittings.py` authors three generic door variants: utility, watertight
