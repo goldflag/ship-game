@@ -1,6 +1,23 @@
 import { expect, test } from 'bun:test';
 import { HullDamageFeedback } from './HullDamageFeedback';
 
+test('mixed salvos retain only the local player share and clear it on new salvos, healing and reset', () => {
+  const feedback = new HullDamageFeedback(1000);
+  expect(feedback.update(900, 1, 40).amount).toBe(100);
+  expect(feedback.playerAmount).toBe(40);
+  expect(feedback.update(850, 1.2, 30).amount).toBe(150);
+  expect(feedback.playerAmount).toBe(70);
+  feedback.update(850, 1.2, 30);
+  expect(feedback.playerAmount).toBe(70);
+  feedback.update(800, 2, 100);
+  expect(feedback.playerAmount).toBe(50);
+  feedback.update(850, 3);
+  expect(feedback.playerAmount).toBe(0);
+  feedback.update(800, 4, 50);
+  feedback.update(1000, 0);
+  expect(feedback.playerAmount).toBe(0);
+});
+
 test('salvo losses combine, hold their original gold span, then fade in simulation time', () => {
   const feedback = new HullDamageFeedback(1000);
   expect(feedback.update(1000, 0).amount).toBe(0);

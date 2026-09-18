@@ -12,6 +12,24 @@ import type { AirOrder } from '../../multiplayer/generated/AirOrder';
 import { muzzleWorld } from '../mountGeometry';
 import { squadronFlights } from '../airWing';
 const setup = { playerShipId: 'enterprise-cv6', friendlyBots: ['fletcher', 'type-viic'], enemies: ['baltimore'], spawnDistance: 5000 };
+
+test('armor score and event ownership reach telemetry through snapshots and clear on battle reset', async () => {
+  const session = await HeadlessSession.create({ playerShipId: 'fletcher', friendlyBots: [], enemies: ['fletcher'], spawnDistance: 5000 });
+  try {
+    const initial = session.runtime.snapshot();
+    const frame = JSON.parse(initial);
+    frame.records.scores.player = { damageDealt: 120, armorBlocked: 4321, frags: 0, damageLog: [] };
+    frame.events = [{ sequence: 1, tick: 1, sourceId: 'player', shipId: 'enemy-1', kind: 'contact', hullDamage: 120, position: [0, 0, 0], message: 'Hit' }];
+    session.applyRaw(JSON.stringify(frame));
+    expect(session.playerArmorBlocked).toBe(4321);
+    expect(session.telemetry('main', session.aimAt()).playerArmorBlocked).toBe(4321);
+    expect(session.events[0].sourceId).toBe('player');
+    session.applyRaw(JSON.stringify(frame));
+    expect(session.playerArmorBlocked).toBe(4321);
+    session.applyRaw(initial);
+    expect(session.telemetry('main', session.aimAt()).playerArmorBlocked).toBe(0);
+  } finally { session.dispose(); }
+});
 test('managed deck commands and queues retain carrier ownership and policies through real WASM snapshots', async () => {
   const content = new Uint8Array(await Bun.file(new URL('../../../.build/naval-content/manifest.json', import.meta.url)).arrayBuffer());
   const session = await HeadlessSession.create({ playerShipId: 'fletcher', friendlyBots: ['enterprise-cv6', 'shokaku'], enemies: ['fletcher'], spawnDistance: 16000 }, managedDeckFixture(content));

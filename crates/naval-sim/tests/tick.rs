@@ -118,6 +118,7 @@ fn the_settle_phase_publishes_the_sink_in_order_and_closes_the_tick() {
     assert_eq!(battle.events.len(), 1);
     let published = &battle.events[0];
     assert_eq!(published.data.kind, "depth-charge-launch");
+    assert_eq!(published.data.source_id.as_deref(), Some("own"));
     assert_eq!(published.sequence, 1);
     assert_eq!(published.tick, 0, "raised on the tick that just closed");
     assert_eq!(battle.tick, 1, "the counter advanced");

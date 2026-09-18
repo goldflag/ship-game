@@ -77,6 +77,23 @@ test('overhead condition percentages, meters and loss spans use each ship maximu
       expect(Number.parseFloat(host.find('ship-label-loss')!.style.left)).toBeCloseTo(60, 12);
       expect(Number.parseFloat(host.find('ship-label-loss')!.style.width)).toBeCloseTo(40, 12);
       expect(host.find('ship-label-meter')!.children).not.toContain(host.find('ship-label-health')!);
+      actor.damage.integrity = maxHp * .5;
+      const events = [{ sequence: 1, tick: 66, sourceId: sim.ship.id, kind: 'contact' as const, shipId: actor.motion.id,
+        position: [0, 0, 0] as [number, number, number], message: 'Hit', hullDamage: maxHp * .04 }];
+      labels.update(camera, 1.1, events, sim.ship.id);
+      const numbers = host.find('ship-label-damage')!.children;
+      expect(numbers[0].dataset.source).toBe('player');
+      expect(numbers[0].textContent).toBe(`−${Math.round(maxHp * .04).toLocaleString()}`);
+      expect(numbers[1].dataset.source).toBe('other');
+      expect(numbers[1].textContent).toBe(`−${Math.round(maxHp * .46).toLocaleString()}`);
+      expect(Number.parseFloat(host.find('ship-label-player-loss')!.style.width)).toBeCloseTo(8);
+      labels.update(camera, 1.1, events, sim.ship.id);
+      expect(numbers[0].textContent).toBe(`−${Math.round(maxHp * .04).toLocaleString()}`);
+      // A new salvo can have the same total but a different owner.
+      actor.damage.integrity = 0;
+      labels.update(camera, 2, events, sim.ship.id);
+      expect(numbers[0].hidden).toBe(true);
+      expect(numbers[1].textContent).toBe(`−${Math.round(maxHp * .5).toLocaleString()}`);
       actor.damage.sunk = true;
       labels.update(camera, 2);
       expect(host.find('ship-label-meter')!.hidden).toBe(true);

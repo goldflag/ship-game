@@ -61,6 +61,7 @@ export interface FullCombatTelemetry {
   targetDefeatCause?: DefeatCause;
   shellHistory: ShellHistory[];
   playerDamageDealt: number;
+  playerArmorBlocked: number;
   playerFrags: number;
   damageLog: DamageLogEntry[];
   targetPosition: { x: number; z: number; heading: number };
@@ -77,7 +78,7 @@ export type AimView = Pick<BattleSession, 'player' | 'definition' | 'ship'> & { 
 export type TelemetryView = Pick<BattleSession, 'player' | 'definition' | 'ship' | 'actors' | 'events' | 'aircraft' | 'shellHistory' | 'result' | 'isBattle' | 'tick' | 'outcome' | 'targetUnderway'> & {
  target?: FleetActor; targetContact?: ContactTrack; remainingSeconds?: number | null;
  ammunitionSelection: Readonly<Record<string, Ammunition>>;
- playerDamageDealt: number; playerFrags: number; damageLog: DamageLogEntry[]; afloatKg: [number | null, number | null];
+ playerDamageDealt: number; playerArmorBlocked: number; playerFrags: number; damageLog: DamageLogEntry[]; afloatKg: [number | null, number | null];
 };
 
 export function presentationAim(view: AimView, moduleId?: string, battery: Battery = 'main', weaponGroupId?: string): Vec3 {
@@ -172,6 +173,7 @@ export function presentationTelemetry(view: TelemetryView, battery: Battery, aim
       mounts: selectedMounts,
       playerIntegrity: subject.damage.integrity / subject.damage.maxIntegrity,
       playerMaxIntegrity: subject.damage.maxIntegrity, playerDamageDealt: view.playerDamageDealt, playerFrags: view.playerFrags,
+      playerArmorBlocked: view.playerArmorBlocked,
       damageLog: view.damageLog,
       playerWater: subject.damage.compartments.reduce((n, c) => n + c.waterM3, 0),
       ...(subject.submarine && definition.submarine ? { submarine: {

@@ -458,6 +458,7 @@ impl Battle {
                     owner_id: shell.owner_id.clone(),
                     label: shell.weapon_label.clone().unwrap_or_else(|| "Shell".into()),
                     ammunition: shell.ammunition.unwrap_or_default(),
+                    damage: shell.damage,
                 });
         }
         for t in &self.torpedoes {
@@ -476,6 +477,7 @@ impl Battle {
                         }
                     ),
                     ammunition: Default::default(),
+                    damage: 0.0,
                 });
         }
         for c in &self.depth_charges {
@@ -486,6 +488,7 @@ impl Battle {
                     owner_id: c.owner_id.clone(),
                     label: format!("{} · Depth charge", c.weapon.name),
                     ammunition: Default::default(),
+                    damage: 0.0,
                 });
         }
     }

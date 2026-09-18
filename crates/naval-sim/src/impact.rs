@@ -100,6 +100,8 @@ impl ShellEffect {
 #[serde(rename_all = "camelCase")]
 #[ts(optional_fields)]
 pub struct DamageEvent {
+    // Projectile owner, retained after the projectile leaves the active frame.
+    pub source_id: Option<String>,
     pub hull_damage: Option<f64>,
     #[ts(as = "Option<crate::frame_vocabulary::DefeatCause>")]
     pub defeat_cause: Option<String>,

@@ -369,7 +369,14 @@ impl Battle {
             Some((&self.sea, self.tick as f64 * DT)),
         )
     }
-    fn emit(&mut self, event: DamageEvent) {
+    fn emit(&mut self, mut event: DamageEvent) {
+        if event.source_id.is_none() {
+            let id = event.shell.as_ref().map(|s| s.id)
+                .or_else(|| event.torpedo.as_ref().map(|t| t.id))
+                .or_else(|| event.depth_charge.as_ref().map(|c| c.id));
+            event.source_id = id.and_then(|id| self.records.sources.get(&id))
+                .map(|source| source.owner_id.clone());
+        }
         if self.mission_rules.is_some() {
             for team in [TeamId::A, TeamId::B] {
                 if let Some(data) = self.observed_event(&event, team) {
@@ -434,6 +441,7 @@ impl Battle {
                 ship_id: hit.actor_id,
                 position: hit.position,
                 hull_damage: Some(hit.damage),
+                source_id: hit.other_id,
                 message: format!("{weapon} · {} hull damage", hit.damage),
                 ..Default::default()
             })
