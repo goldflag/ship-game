@@ -666,3 +666,29 @@ Curved lighting stays smooth while caps and cut edges remain sharp. Limits are
 must remain visible from their internal center; folds beyond it remain saveable
 invalid drafts. Arbitrary topology, tunnels and subdivision surfaces are not
 provided. Round/chamfer and independent-piece Split remain eight-corner tools.
+
+
+New balconies leave their hull-facing edge open. The steel deck extends to the
+full edge footprint even when an edge is open; changing a wall to open retains
+that attachment. Adjacent solid walls meet at mitred corners.
+New rope routes start with 0.15 m of midpoint sag, limited for short segments;
+Rope slack still accepts zero for a taut line. Selected external fittings use the
+same XYZ movement handles as hull pieces, including while placing fittings.
+
+### Doors, vents and surface ladders
+
+**Doors & windows** includes utility, watertight and windowed doors. The door
+panel follows the wall, with shallow raised hinges and handles; the watertight
+variant adds dog latches and a wheel. **Deck gear** includes louvered and round
+wall vents plus **Surface rung ladder**. Doors and vents use the existing wall
+snapping, size controls, arrow-key resizing and linked mirror workflow.
+
+To draw a ladder, press on a closed hull side, drag to its other end and release.
+The preview shows the complete ladder and optional opposite-side copy. Every
+U-shaped rung has two wall attachments, without continuous side rails. Rungs
+are evenly spaced at no more than the catalog's spacing. Escape or a cancelled
+drag discards the preview; placement is one undo step. Flat and sloping sides
+are supported, while endpoints near missing support or open panels are rejected.
+The old fixed bulkhead ladder is removed from the current shelf. Existing saved
+designs retain their original catalogs; update the parts library to use the new
+fittings. These fittings leave the closed hull and room volumes unchanged.

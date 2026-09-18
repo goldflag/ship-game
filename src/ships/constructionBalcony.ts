@@ -2,8 +2,18 @@ import type { ConstructionBalcony, ConstructionBalconyPoint, ConstructionPrimiti
 
 export const defaultBalcony = (): ConstructionBalcony => ({
   version: 1, heightM: 1.1, wallThicknessM: .06,
-  points: [[-.5, -.5], [.5, -.5], [.5, .5], [-.5, .5]].map(([x, z], i) => ({ id: `corner-${i + 1}`, x, z, edge: 'wall' })),
+  points: [[-.5, -.5], [.5, -.5], [.5, .5], [-.5, .5]].map(([x, z], i) => ({ id: `corner-${i + 1}`, x, z, edge: i === 3 ? 'open' : 'wall' })),
 });
+/** The initial open side faces the ship centerline, including rotated placements. */
+export function placementBalcony(position: Vec3, rotationDeg: number): ConstructionBalcony {
+  const balcony = defaultBalcony(), angle = rotationDeg * Math.PI / 180;
+  const side = Math.sign(position[0]) || 1;
+  const inward = [-side * Math.cos(angle), -side * Math.sin(angle)];
+  const directions = [[0, -1], [1, 0], [0, 1], [-1, 0]];
+  const edge = directions.reduce((best, direction, i) => direction[0] * inward[0] + direction[1] * inward[1] > directions[best][0] * inward[0] + directions[best][1] * inward[1] ? i : best, 0);
+  balcony.points.forEach((point, i) => { point.edge = i === edge ? 'open' : 'wall'; });
+  return balcony;
+}
 type Point = Pick<ConstructionBalconyPoint, 'x' | 'z'>;
 const cross = (a: Point, b: Point, c: Point) => (b.x - a.x) * (c.z - a.z) - (b.z - a.z) * (c.x - a.x);
 const onSegment = (a: Point, b: Point, c: Point) => Math.abs(cross(a, b, c)) < 1e-9 && c.x >= Math.min(a.x, b.x) - 1e-9 && c.x <= Math.max(a.x, b.x) + 1e-9 && c.z >= Math.min(a.z, b.z) - 1e-9 && c.z <= Math.max(a.z, b.z) + 1e-9;
@@ -42,12 +52,39 @@ export function balconyProblem(balcony: ConstructionBalcony): string | undefined
   if (balcony.wallThicknessM < .01 || balcony.wallThicknessM > .5) return 'Wall thickness must be 0.01–0.5 m.';
 }
 
+/** Shared corner offsets keep the deck under every edge and mitre adjoining walls.
+ * Bound sharp corners to avoid long spikes on narrow or nearly reversing edges. */
+export function balconyPlan(size: Vec3, balcony: ConstructionBalcony) {
+  const points = balcony.points.map(p => ({ x: p.x * size[0], z: p.z * size[2] }));
+  const n = points.length;
+  const sign = points.reduce((sum, p, i) => sum + p.x * points[(i + 1) % n].z - points[(i + 1) % n].x * p.z, 0) > 0 ? 1 : -1;
+  const lengths = points.map((p, i) => Math.hypot(points[(i + 1) % n].x - p.x, points[(i + 1) % n].z - p.z));
+  const normals = points.map((p, i) => ({ x: sign * (points[(i + 1) % n].z - p.z) / lengths[i], z: -sign * (points[(i + 1) % n].x - p.x) / lengths[i] }));
+  const half = balcony.wallThicknessM / 2;
+  const offsets = normals.map((b, i) => {
+    const previous = (i + n - 1) % n, a = normals[previous], denominator = 1 + a.x * b.x + a.z * b.z;
+    if (denominator < 1e-8) return { x: b.x * half, z: b.z * half };
+    const x = (a.x + b.x) * half / denominator, z = (a.z + b.z) * half / denominator;
+    const scale = Math.min(1, Math.min(half * 4, Math.min(lengths[previous], lengths[i]) * .45) / Math.hypot(x, z));
+    return { x: x * scale, z: z * scale };
+  });
+  const deck = points.map((p, i) => ({ x: p.x + offsets[i].x, z: p.z + offsets[i].z }));
+  const walls = points.map((p, i) => {
+    const j = (i + 1) % n, q = points[j];
+    const end = (index: number, neighbor: number) => balcony.points[neighbor].edge === 'wall' ? offsets[index] : { x: normals[i].x * half, z: normals[i].z * half };
+    const a = end(i, (i + n - 1) % n), b = end(j, j);
+    return [{ x: p.x + a.x, z: p.z + a.z }, { x: q.x + b.x, z: q.z + b.z }, { x: q.x - b.x, z: q.z - b.z }, { x: p.x - a.x, z: p.z - a.z }];
+  });
+  return { deck, walls };
+}
+
 /** Display-only faces. Rust derives the union, weight, armor and collision geometry. */
 export function balconyFaces(size: Vec3, balcony = defaultBalcony()): Vec3[][] {
   const points = balcony.points, faces: Vec3[][] = [], top = size[1] / 2;
   let triangles: number[][];
   try { triangles = balconyTriangles(points); } catch { return []; }
-  const at = (i: number, y: number): Vec3 => [points[i].x * size[0], y, points[i].z * size[2]];
+  const plan = balconyPlan(size, balcony);
+  const at = (i: number, y: number): Vec3 => [plan.deck[i].x, y, plan.deck[i].z];
   for (const [a, b, c] of triangles) { faces.push([at(c, top), at(b, top), at(a, top)], [at(a, -top), at(b, -top), at(c, -top)]); }
   const positive = points.reduce((sum, a, i) => { const b = points[(i + 1) % points.length]; return sum + a.x * b.z - b.x * a.z; }, 0) > 0;
   const box = (center: Vec3, dimensions: Vec3, yaw = 0) => {
@@ -57,11 +94,17 @@ export function balconyFaces(size: Vec3, balcony = defaultBalcony()): Vec3[][] {
     for (const f of [[3,2,1,0],[4,5,6,7],[0,4,7,3],[1,2,6,5],[0,1,5,4],[3,7,6,2]]) faces.push(f.map(i => v[i]));
   };
   points.forEach((p, i) => {
-    const j = (i + 1) % points.length, a = at(i, top), b = at(j, top);
+    const j = (i + 1) % points.length;
+    const a: Vec3 = [p.x * size[0], top, p.z * size[2]], b: Vec3 = [points[j].x * size[0], top, points[j].z * size[2]];
     const side = [at(i, -top), at(i, top), at(j, top), at(j, -top)]; faces.push(positive ? side : side.reverse());
     const dx = b[0] - a[0], dz = b[2] - a[2], length = Math.hypot(dx, dz), yaw = Math.atan2(dx, dz), height = balcony.heightM;
     const center: Vec3 = [(a[0] + b[0]) / 2, top + height / 2, (a[2] + b[2]) / 2];
-    if (p.edge === 'wall') box(center, [balcony.wallThicknessM, height, length], yaw);
+    if (p.edge === 'wall') {
+      const outline = positive ? [...plan.walls[i]].reverse() : plan.walls[i];
+      const bottom = outline.map(p => [p.x, top, p.z] as Vec3), upper = outline.map(p => [p.x, top + height, p.z] as Vec3);
+      faces.push(upper, [...bottom].reverse());
+      for (let k = 0; k < 4; k++) { const next = (k + 1) % 4; faces.push([bottom[k], bottom[next], upper[next], upper[k]]); }
+    }
     if (p.edge === 'railing') {
       const count = Math.min(64, Math.max(1, Math.ceil(length / 2)));
       for (let k = 0; k <= count; k++) box([a[0] + dx * k / count, center[1], a[2] + dz * k / count], [.04, height, .04], yaw);

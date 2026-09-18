@@ -114,11 +114,61 @@ pub fn build(p: &ConstructionPrimitive) -> Result<VertexSolid, String> {
         );
     }
     let top = p.size[1] / 2.;
-    let at = |i: usize| [b.points[i].x * p.size[0], top, b.points[i].z * p.size[2]];
+    let triangles = triangles(&b.points)?;
+    let n = b.points.len();
+    let points: Vec<_> = b
+        .points
+        .iter()
+        .map(|q| [q.x * p.size[0], q.z * p.size[2]])
+        .collect();
+    let positive = (0..n)
+        .map(|i| points[i][0] * points[(i + 1) % n][1] - points[(i + 1) % n][0] * points[i][1])
+        .sum::<f64>()
+        > 0.;
+    let sign = if positive { 1. } else { -1. };
+    let lengths: Vec<_> = (0..n)
+        .map(|i| {
+            (points[(i + 1) % n][0] - points[i][0]).hypot(points[(i + 1) % n][1] - points[i][1])
+        })
+        .collect();
+    let normals: Vec<_> = (0..n)
+        .map(|i| {
+            [
+                sign * (points[(i + 1) % n][1] - points[i][1]) / lengths[i],
+                -sign * (points[(i + 1) % n][0] - points[i][0]) / lengths[i],
+            ]
+        })
+        .collect();
+    let half = b.wall_thickness_m / 2.;
+    // Same bounded mitres as the source preview in constructionBalcony.ts.
+    let offsets: Vec<_> = (0..n)
+        .map(|i| {
+            let previous = (i + n - 1) % n;
+            let a = normals[previous];
+            let z = normals[i];
+            let denominator = 1. + a[0] * z[0] + a[1] * z[1];
+            if denominator < 1e-8 {
+                return [z[0] * half, z[1] * half];
+            }
+            let x = (a[0] + z[0]) * half / denominator;
+            let y = (a[1] + z[1]) * half / denominator;
+            let scale = (half * 4.).min(lengths[previous].min(lengths[i]) * 0.45) / x.hypot(y);
+            [x * scale.min(1.), y * scale.min(1.)]
+        })
+        .collect();
+    let at = |i: usize| [points[i][0], top, points[i][1]];
+    let deck = |i: usize| {
+        [
+            points[i][0] + offsets[i][0],
+            top,
+            points[i][1] + offsets[i][1],
+        ]
+    };
     let mut cells = vec![];
-    for [a, c, d] in triangles(&b.points)? {
-        cells.push(cg::prism(&[at(d), at(c), at(a)], p.size[1]));
+    for [a, c, d] in triangles {
+        cells.push(cg::prism(&[deck(d), deck(c), deck(a)], p.size[1]));
     }
+
     for (i, point) in b.points.iter().enumerate() {
         let a = at(i);
         let z = at((i + 1) % b.points.len());
@@ -133,7 +183,27 @@ pub fn build(p: &ConstructionPrimitive) -> Result<VertexSolid, String> {
         ];
         let beam = |center, size| cg::transform(&cg::box_cell([0.; 3], size), center, [1.; 3], yaw);
         if point.edge == "wall" {
-            cells.push(beam(center, [b.wall_thickness_m, b.height_m, length]));
+            let j = (i + 1) % n;
+            let end = |index: usize, neighbor: usize| {
+                if b.points[neighbor].edge == "wall" {
+                    offsets[index]
+                } else {
+                    [normals[i][0] * half, normals[i][1] * half]
+                }
+            };
+            let u = end(i, (i + n - 1) % n);
+            let v = end(j, j);
+            let y = top + b.height_m;
+            let mut outline = vec![
+                [a[0] + u[0], y, a[2] + u[1]],
+                [z[0] + v[0], y, z[2] + v[1]],
+                [z[0] - v[0], y, z[2] - v[1]],
+                [a[0] - u[0], y, a[2] - u[1]],
+            ];
+            if positive {
+                outline.reverse();
+            }
+            cells.push(cg::prism(&outline, b.height_m));
         }
         if point.edge == "railing" {
             let count = (length / 2.).ceil().clamp(1., 64.) as usize;

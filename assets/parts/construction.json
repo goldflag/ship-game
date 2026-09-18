@@ -2055,22 +2055,22 @@
     },
     {
       "id": "generic-watertight-door",
-      "name": "Door",
+      "name": "Watertight door",
       "kind": "deck-fitting",
       "size": [
         0.94,
         2.12,
-        0.001
+        0.09
       ],
       "boundsCenter": [
         0,
         1.06,
-        0
+        -0.045
       ],
       "centerOfGravity": [
         0,
-        1.04,
-        0
+        1.06,
+        -0.045
       ],
       "placement": "deck",
       "sockets": [
@@ -7529,6 +7529,208 @@
         }
       ],
       "massKg": 20
+    },
+    {
+      "id": "generic-utility-door",
+      "name": "Utility door",
+      "kind": "deck-fitting",
+      "size": [
+        0.9,
+        2,
+        0.065
+      ],
+      "boundsCenter": [
+        0,
+        1.0,
+        -0.0325
+      ],
+      "centerOfGravity": [
+        0,
+        1.0,
+        -0.0325
+      ],
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "massKg": 45,
+      "wallMount": "door"
+    },
+    {
+      "id": "generic-windowed-door",
+      "name": "Windowed door",
+      "kind": "deck-fitting",
+      "size": [
+        0.9,
+        2,
+        0.065
+      ],
+      "boundsCenter": [
+        0,
+        1.0,
+        -0.0325
+      ],
+      "centerOfGravity": [
+        0,
+        1.0,
+        -0.0325
+      ],
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "massKg": 48,
+      "wallMount": "door"
+    },
+    {
+      "id": "generic-louvered-vent",
+      "name": "Louvered wall vent",
+      "kind": "deck-fitting",
+      "size": [
+        0.8,
+        0.55,
+        0.065
+      ],
+      "boundsCenter": [
+        0,
+        0,
+        -0.0325
+      ],
+      "centerOfGravity": [
+        0,
+        0,
+        -0.0325
+      ],
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "massKg": 12,
+      "wallMount": "vent"
+    },
+    {
+      "id": "generic-round-wall-vent",
+      "name": "Round wall vent",
+      "kind": "deck-fitting",
+      "size": [
+        0.55,
+        0.55,
+        0.055
+      ],
+      "boundsCenter": [
+        0,
+        0,
+        -0.0275
+      ],
+      "centerOfGravity": [
+        0,
+        0,
+        -0.0275
+      ],
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "massKg": 9,
+      "wallMount": "vent"
+    },
+    {
+      "id": "generic-surface-ladder",
+      "name": "Surface rung ladder",
+      "kind": "deck-fitting",
+      "size": [
+        0.48,
+        3.03,
+        0.19
+      ],
+      "boundsCenter": [
+        0,
+        1.5,
+        -0.08
+      ],
+      "centerOfGravity": [
+        0,
+        1.5,
+        -0.08
+      ],
+      "massKg": 1,
+      "placement": "deck",
+      "path": {
+        "kind": "ladder",
+        "widthM": 0.45,
+        "standOffM": 0.16,
+        "diameterM": 0.028,
+        "postSpacingM": 0.3,
+        "massKgPerM": 4.834
+      },
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            0,
+            1
+          ]
+        }
+      ]
     }
   ]
 }

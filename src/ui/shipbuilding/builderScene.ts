@@ -63,4 +63,5 @@ export type BuilderPointerEvent =
   | { kind: 'move'; ids: string[]; delta: Vec3 }
   | { kind: 'rotate'; ids: string[]; degrees: number }
   | { kind: 'path-point'; point: Vec3 }
-  | { kind: 'path-finish' };
+  | { kind: 'path-finish' }
+  | { kind: 'ladder-draw'; points: Vec3[]; bearingDeg: number };

@@ -1593,6 +1593,10 @@ pub struct ConstructionEquipmentPartPath {
     pub diameter_m: f64,
     #[serde(rename = "heightM")]
     pub height_m: Option<f64>,
+    #[serde(rename = "widthM")]
+    pub width_m: Option<f64>,
+    #[serde(rename = "standOffM")]
+    pub stand_off_m: Option<f64>,
     #[serde(rename = "postSpacingM")]
     pub post_spacing_m: Option<f64>,
     #[serde(rename = "massKgPerM")]

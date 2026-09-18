@@ -122,7 +122,7 @@ pub(crate) fn compile(
     let base_mass = p.mass_kg.unwrap_or(0.);
     if p.kind != "deck-fitting"
         || p.placement != "deck"
-        || !["railing", "rope", "chain"].contains(&profile.kind.as_str())
+        || !["railing", "rope", "chain", "ladder"].contains(&profile.kind.as_str())
         || !profile.diameter_m.is_finite()
         || !(0.005..=0.2).contains(&profile.diameter_m)
         || !profile.mass_kg_per_m.is_finite()
@@ -176,9 +176,10 @@ pub(crate) fn compile(
         ));
     }
     let railing = profile.kind == "railing";
+    let ladder = profile.kind == "ladder";
     let slack = source.slack_m.unwrap_or(0.);
     let slack_limit = lengths.iter().copied().fold(40., f64::min) * 0.5;
-    if !slack.is_finite() || !(0.0..=slack_limit).contains(&slack) || (railing && slack != 0.) {
+    if !slack.is_finite() || !(0.0..=slack_limit).contains(&slack) || ((railing || ladder) && slack != 0.) {
         return Err(error(
             "Slack must be 0–20 m and at most half the shortest segment; railings cannot sag",
             &e.id,
@@ -189,7 +190,41 @@ pub(crate) fn compile(
     // Chain diameter describes the wire; the outer alternating-link envelope is
     // Four wire diameters wide. Fit/inertia use that conservative circular envelope.
     let radius = profile.diameter_m * if profile.kind == "chain" { 2. } else { 0.5 };
-    if railing {
+    if ladder {
+        let width=profile.width_m.unwrap_or(0.);
+        let stand=profile.stand_off_m.unwrap_or(0.);
+        let spacing=profile.post_spacing_m.unwrap_or(0.);
+        if !(0.2..=1.5).contains(&width) || !(0.08..=0.4).contains(&stand) || !(0.15..=0.5).contains(&spacing) {
+            return Err(error("Invalid ladder width, standoff or rung spacing", &e.id));
+        }
+        let normal=local_to_world([0.,0.,-1.], Pose {x:0.,y:0.,z:0.,..pose});
+        let mut centers:Vec<Vec3>=vec![];
+        for span in source.points.windows(2) {
+            let delta=sub(span[1],span[0]);let len=delta[0].hypot(delta[1]);
+            if len<0.05 {return Err(error("Draw the ladder along the wall, not into it", &e.id));}
+            let right=[delta[1]/len,-delta[0]/len,0.];
+            let count=(len/spacing).ceil() as usize;
+            for i in 0..=count {
+                let center=add(span[0],scale(delta,i as f64/count as f64));
+                if centers.iter().any(|&p|length(sub(p,center))<1e-6){continue;}
+                centers.push(center);
+                let mut feet=vec![];
+                for sign in [-1.,1.] {
+                    let point=local_to_world(add(center,scale(right,sign*width/2.)),pose);
+                    let Some(foot)=crate::construction_wall_fittings::project(surfaces,point,normal,(width*0.75).max(0.15)) else {
+                        return Err(error("Every ladder rung needs a closed hull side behind both ends", &e.id));
+                    };
+                    anchors.push(foot);feet.push(foot);
+                }
+                let outer=dot(feet[0],normal).max(dot(feet[1],normal))+stand;
+                let left=add(feet[0],scale(normal,outer-dot(feet[0],normal)));
+                let right=add(feet[1],scale(normal,outer-dot(feet[1],normal)));
+                for (a,b) in [(feet[0],left),(left,right),(right,feet[1])] {
+                    members.push(Member {a,b,radius,mass_kg:length(sub(b,a))*profile.mass_kg_per_m});
+                }
+            }
+        }
+    } else if railing {
         let height = profile.height_m.unwrap_or(1.1);
         let spacing = profile.post_spacing_m.unwrap_or(1.5);
         let post_mass = profile.post_mass_kg.unwrap_or(0.);
@@ -262,7 +297,7 @@ pub(crate) fn compile(
             }
         }
     }
-    let actual_length: f64 = if railing {
+    let actual_length: f64 = if railing || ladder {
         lengths.iter().sum()
     } else {
         members.iter().map(|m| length(sub(m.b, m.a))).sum()
@@ -280,7 +315,7 @@ pub(crate) fn compile(
         if supported_surface(surfaces, anchor, None, railing, tolerance) {
             continue;
         }
-        let support = (!railing)
+        let support = (!railing && !ladder)
             .then(|| {
                 sockets
                     .iter()

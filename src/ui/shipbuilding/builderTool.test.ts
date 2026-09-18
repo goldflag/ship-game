@@ -21,6 +21,7 @@ const catalog: ConstructionCatalog = {
     part({ id: 'gun', kind: 'gun', placement: 'deck', gunPartId: 'gun-part', massKg: undefined }),
     part({ id: 'propeller', kind: 'propeller', placement: 'underwater', size: [4, 4, 2], boundsCenter: [0, 0, 0] }),
     part({ id: 'engine', kind: 'engine', placement: 'internal', size: [3, 3, 6] }),
+    part({ id: 'rope', kind: 'deck-fitting', placement: 'deck', massKg: 2, path: { kind: 'rope', diameterM: .04, massKgPerM: 1 } }),
     part({ id: 'railing', kind: 'deck-fitting', placement: 'deck', massKg: 2, path: { kind: 'railing', diameterM: .04, heightM: 1.1, postSpacingM: 1.5, massKgPerM: 3, postMassKg: 2 } }),
   ],
 };
@@ -647,4 +648,20 @@ test('D converts one selected curved shape, ignores repeat/modifiers, and toggle
   owner.undo();expect(data().primitives[0].kind).toBe('cylinder');
   tool.switchLayer('internals');tool.key(key('d'),ui);expect(tool.getSnapshot().tool).toBe('deck');
   tool.dispose();
+});
+
+test('new ropes sag in preview and source, bounded for short spans; zero stays available', async () => {
+  const { tool, data } = await setup();
+  tool.switchLayer('fittings');
+  tool.selectSlot(tool.palette.all!.find(slot => slot.id === 'rope')!);
+  tool.addPathPoint([0, 2, 0]); tool.addPathPoint([0, 2, 4]);
+  expect(tool.scene(undefined).pathDraft?.slackM).toBe(.15);
+  tool.finishPath();
+  expect(data().equipment.at(-1)?.path?.slackM).toBe(.15);
+  tool.selectSlot(tool.palette.all!.find(slot => slot.id === 'rope')!);
+  tool.addPathPoint([0, 2, 0]); tool.addPathPoint([0, 2, .1]);
+  expect(tool.scene(undefined).pathDraft?.slackM).toBe(.05);
+  tool.setRopeSlack(0);
+  tool.finishPath();
+  expect(data().equipment.at(-1)?.path?.slackM).toBe(0);
 });

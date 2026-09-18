@@ -1,0 +1,125 @@
+{
+  "contentHash": "10396efe694d866692a6d057eb4f86137f3380bfbcb402a33a5097aa59cc92c3",
+  "views": [
+    {
+      "name": "profile",
+      "position": [
+        516.5878490880795,
+        14.080943343043328,
+        0.5760002136230469
+      ],
+      "target": [
+        0,
+        14.080943343043328,
+        0.5760002136230469
+      ],
+      "up": [
+        0,
+        1,
+        0
+      ],
+      "projection": "orthographic",
+      "width": 1600,
+      "height": 520,
+      "halfHeight": 44.86052992315032,
+      "sourceRevision": "revision-2a58dcbe-2bb3-470a-8309-0f76a60bbb8f",
+      "contentHash": "10396efe694d866692a6d057eb4f86137f3380bfbcb402a33a5097aa59cc92c3"
+    },
+    {
+      "name": "plan",
+      "position": [
+        0,
+        530.6687924311228,
+        0.5760002136230469
+      ],
+      "target": [
+        0,
+        14.080943343043328,
+        0.5760002136230469
+      ],
+      "up": [
+        1,
+        0,
+        0
+      ],
+      "projection": "orthographic",
+      "width": 1600,
+      "height": 520,
+      "halfHeight": 44.86052992315032,
+      "sourceRevision": "revision-2a58dcbe-2bb3-470a-8309-0f76a60bbb8f",
+      "contentHash": "10396efe694d866692a6d057eb4f86137f3380bfbcb402a33a5097aa59cc92c3"
+    },
+    {
+      "name": "bow",
+      "position": [
+        0,
+        14.080943343043328,
+        -516.0118488744564
+      ],
+      "target": [
+        0,
+        14.080943343043328,
+        0.5760002136230469
+      ],
+      "up": [
+        0,
+        1,
+        0
+      ],
+      "projection": "orthographic",
+      "width": 800,
+      "height": 800,
+      "halfHeight": 27.53196199089289,
+      "sourceRevision": "revision-2a58dcbe-2bb3-470a-8309-0f76a60bbb8f",
+      "contentHash": "10396efe694d866692a6d057eb4f86137f3380bfbcb402a33a5097aa59cc92c3"
+    },
+    {
+      "name": "stern",
+      "position": [
+        0,
+        14.080943343043328,
+        517.1638493017025
+      ],
+      "target": [
+        0,
+        14.080943343043328,
+        0.5760002136230469
+      ],
+      "up": [
+        0,
+        1,
+        0
+      ],
+      "projection": "orthographic",
+      "width": 800,
+      "height": 800,
+      "halfHeight": 27.53196199089289,
+      "sourceRevision": "revision-2a58dcbe-2bb3-470a-8309-0f76a60bbb8f",
+      "contentHash": "10396efe694d866692a6d057eb4f86137f3380bfbcb402a33a5097aa59cc92c3"
+    },
+    {
+      "name": "quarter",
+      "position": [
+        336.27004749351624,
+        215.84297183915305,
+        -335.6940472798932
+      ],
+      "target": [
+        0,
+        14.080943343043328,
+        0.5760002136230469
+      ],
+      "up": [
+        0,
+        1,
+        0
+      ],
+      "projection": "orthographic",
+      "width": 1400,
+      "height": 900,
+      "halfHeight": 71.49564735048784,
+      "sourceRevision": "revision-2a58dcbe-2bb3-470a-8309-0f76a60bbb8f",
+      "contentHash": "10396efe694d866692a6d057eb4f86137f3380bfbcb402a33a5097aa59cc92c3"
+    }
+  ]
+}

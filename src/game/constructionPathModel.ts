@@ -1,12 +1,14 @@
+import { fittedLadder } from '../ships/constructionLadders';
 import { componentMaterial } from '../ships/componentMaterials';
 import * as THREE from 'three';
-import type { ConstructionEquipment, ConstructionEquipmentPart, Vec3 } from '../ships/blueprint';
+import type { ConstructionEquipment, ConstructionEquipmentPart, ConstructionSurface, Vec3 } from '../ships/blueprint';
 import { DEFAULT_PATH } from '../ships/constructionPaths';
 import { pathDistance, railingPosts, samplePath } from '../../assets/parts/construction/path_geometry';
 
 /** Original procedural fittings, with no simulation inference from the mesh. */
-export function createConstructionPathModel(part: ConstructionEquipmentPart, path: ConstructionEquipment['path'] = DEFAULT_PATH, ghost = false): THREE.Group {
+export function createConstructionPathModel(part: ConstructionEquipmentPart, path: ConstructionEquipment['path'] = DEFAULT_PATH, ghost = false, mount?: { item: ConstructionEquipment; surfaces: readonly ConstructionSurface[] }): THREE.Group {
   const group = new THREE.Group(), profile = part.path;
+  if(profile?.kind === 'ladder' && path === DEFAULT_PATH) path={points:[[0,0,0],[0,3,0]]};
   if (!profile || !path || path.points.length < 2 || path.points.length > 64 || path.points.some(p => p.some(v => !Number.isFinite(v) || Math.abs(v) > 1000))) return group;
   group.name = part.name;
   const surface = componentMaterial(profile.kind === 'rope' ? 'rope' : profile.kind === 'chain' ? 'edge' : 'naval');
@@ -29,6 +31,10 @@ export function createConstructionPathModel(part: ConstructionEquipmentPart, pat
     const height = profile.heightM ?? 1.1;
     for (const foot of posts) members.push([foot, [foot[0], foot[1] + height, foot[2]]]);
     for (let i = 1; i < points.length; i++) for (const level of [1 / 3, 2 / 3, 1]) members.push([points[i - 1].map((v, k) => v + (k === 1 ? height * level : 0)) as Vec3, points[i].map((v, k) => v + (k === 1 ? height * level : 0)) as Vec3]);
+  } else if (profile.kind === 'ladder') {
+    const ladder=fittedLadder(part,mount?.item ?? {id:'preview',partId:part.id,position:[0,0,0],bearingDeg:0,path},mount?.surfaces);
+    if(ladder) members.push(...ladder.members);
+    else { material.dispose(); return group; }
   } else {
     const sampled = samplePath(points, path.slackM ?? 0);
     for (let i = 1; i < sampled.length; i++) members.push([sampled[i - 1], sampled[i]]);

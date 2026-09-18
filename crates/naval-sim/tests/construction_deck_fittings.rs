@@ -64,6 +64,7 @@ fn route_part(kind: &str) -> ConstructionEquipmentPart {
         height_m: (kind == "railing").then_some(1.1),
         post_spacing_m: (kind == "railing").then_some(1.5),
         post_mass_kg: (kind == "railing").then_some(6.),
+        ..Default::default()
     });
     p
 }
