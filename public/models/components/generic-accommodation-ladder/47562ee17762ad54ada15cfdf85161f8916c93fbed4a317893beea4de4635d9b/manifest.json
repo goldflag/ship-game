@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "generic-accommodation-ladder",
+  "revision": "47562ee17762ad54ada15cfdf85161f8916c93fbed4a317893beea4de4635d9b",
+  "contentHash": "3e92e76d3d3b8e39bac3dcf1ae768ff1a8082d6ec903077d4fab1d146f2db772",
+  "modelSha256": "aad03b6c887898b15f19f48701b4692eafa9e79f77d9de29402da95da450548b",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/generic-accommodation-ladder/47562ee17762ad54ada15cfdf85161f8916c93fbed4a317893beea4de4635d9b/model.glb",
+  "boundsCenter": [
+    1.7881393432617188e-7,
+    0.3099999874830246,
+    0.010000228881835938
+  ],
+  "size": [
+    1.1600003242492676,
+    0.6199999749660492,
+    7.639999866485596
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 396,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original generic or ship-adapted deck fitting; dimensions and dry mass are declared game estimates, loading only, with no combat or handling effect.",
+  "basis": "assets/parts/construction/README.md"
+}

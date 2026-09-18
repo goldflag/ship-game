@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "generic-ensign-staff",
+  "revision": "41fd687777a180abcaf47a5c35c4d6c3bfd95dad5e3dce54ae415822bf62be69",
+  "contentHash": "97f271bbdbe28e6cfa02f45a3c413e207feaef73011791bd7583b9ae798cf3b8",
+  "modelSha256": "1b2671c5bf0a60323d91341b3d62050d72f51296c03127f00bcb71870324153a",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/generic-ensign-staff/41fd687777a180abcaf47a5c35c4d6c3bfd95dad5e3dce54ae415822bf62be69/model.glb",
+  "boundsCenter": [
+    0,
+    2.2499999525025487,
+    0
+  ],
+  "size": [
+    0.3400000035762787,
+    4.499999905005097,
+    0.3400000035762787
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 128,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original generic or ship-adapted deck fitting; dimensions and dry mass are declared game estimates, loading only, with no combat or handling effect.",
+  "basis": "assets/parts/construction/README.md"
+}

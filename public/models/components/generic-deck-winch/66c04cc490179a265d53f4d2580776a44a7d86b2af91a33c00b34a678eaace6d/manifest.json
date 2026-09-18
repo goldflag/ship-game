@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "generic-deck-winch",
+  "revision": "66c04cc490179a265d53f4d2580776a44a7d86b2af91a33c00b34a678eaace6d",
+  "contentHash": "2102050558f3e593242d9a19ea957dc146b25fa989e663f6d6a5468579caf01d",
+  "modelSha256": "4b6554d8a47f25cb2dfb669567934546bac148ed143d78f8021c1a03d2b21d50",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/generic-deck-winch/66c04cc490179a265d53f4d2580776a44a7d86b2af91a33c00b34a678eaace6d/model.glb",
+  "boundsCenter": [
+    0,
+    0.6300000194460154,
+    0.17000000178813934
+  ],
+  "size": [
+    2.559999942779541,
+    1.2600000388920307,
+    2.0400002002716064
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 472,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original generic or ship-adapted deck fitting; dimensions and dry mass are declared game estimates, loading only, with no combat or handling effect.",
+  "basis": "assets/parts/construction/README.md"
+}

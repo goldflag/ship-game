@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "generic-cowl-vent",
+  "revision": "cdf90d5c342a738b52fb58796cccf253d631401882aa4e6641a3c115858677d6",
+  "contentHash": "7b574f81779c283c0fb07487e97e6c4b8c004e8f941077fc1c199f731dc318e7",
+  "modelSha256": "bea34f7d8196762d9049ec331af2da5a04332ba21704d20291d90d3e1c63c1b9",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/generic-cowl-vent/cdf90d5c342a738b52fb58796cccf253d631401882aa4e6641a3c115858677d6/model.glb",
+  "boundsCenter": [
+    2.9802322387695312e-8,
+    0.8475000383332372,
+    -0.0007402598857879639
+  ],
+  "size": [
+    0.6700000166893005,
+    1.6950000766664743,
+    0.5814805030822754
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 222,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original generic naval fitting with fixed attachment datum. Dimensions and dry mass are provisional engineering estimates, not a historical reconstruction. Boat/davits and doors/hatches remain stowed/closed. Searchlight is non-functional. Installed support and clearance require native validation and visual review.",
+  "basis": "assets/parts/construction/README.md"
+}

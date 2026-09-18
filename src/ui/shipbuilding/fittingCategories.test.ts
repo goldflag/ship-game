@@ -25,7 +25,7 @@ test('guns split at 100 mm; deck fittings that aim or float leave the deck-gear 
   expect(fittingCategory(part('german-cruiser-catapult'), catalog)).toBe('boats-aviation');
   expect(fittingCategory(part('generic-anchor-windlass'), catalog)).toBe('deck-gear');
   for (const id of ['generic-carley-float', 'rn-motor-pinnace', 'us-aircraft-crane', 'ijn-aircraft-catapult']) expect(fittingCategory(part(id), catalog)).toBe('boats-aviation');
-  for (const id of ['generic-gun-tub', 'generic-breakwater', 'generic-signal-lamp']) expect(fittingCategory(part(id), catalog)).toBe('deck-gear');
+  for (const id of ['generic-capstan', 'generic-cowl-vent', 'generic-deck-storage-box']) expect(fittingCategory(part(id), catalog)).toBe('deck-gear');
 });
 
 test('a nation keeps its own parts and the generic ones; a nation absent from the shelf filters nothing', () => {
@@ -42,4 +42,25 @@ test('gun shelves list the heaviest calibre first', () => {
   const calibers = shelf({ category: 'main-battery', nation: 'all' }).map(id => catalog.weapons.parts.find(gun => gun.id === part(id).gunPartId)!.caliberM);
   expect(calibers).toEqual(calibers.slice().sort((a, b) => b - a));
   expect(calibers[0]).toBeGreaterThan(.4);
+});
+
+test('deck gear puts every drawable path ahead of fixed hardware', () => {
+  const deck = shelf({ category: 'deck-gear', nation: 'all' });
+  const paths = deck.filter(id => part(id).path);
+  expect(paths).toContain('generic-rope');
+  expect(paths).toContain('generic-chain');
+  expect(paths).toContain('generic-surface-ladder');
+  expect(paths).toContain('generic-railing');
+  expect(paths).toContain('generic-railing-two-rail');
+  expect(deck.slice(0, paths.length)).toEqual(paths);
+});
+
+test('current deck gear contains only general ship hardware', () => {
+  const deck = shelf({ category: 'deck-gear', nation: 'all' });
+  expect(deck.every(id => fittingNation(part(id)) === undefined)).toBe(true);
+  for (const id of ['generic-paravane', 'generic-signal-lamp', 'generic-gun-tub', 'generic-gun-tub-large',
+    'generic-ready-ammo-locker', 'generic-splinter-shield', 'generic-breakwater',
+    'german-cruiser-capstan', 'german-cruiser-deck-hatch']) {
+    expect(catalog.equipment.some(entry => entry.id === id)).toBe(false);
+  }
 });

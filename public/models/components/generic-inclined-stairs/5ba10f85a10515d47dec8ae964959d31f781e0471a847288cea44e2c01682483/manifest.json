@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "generic-inclined-stairs",
+  "revision": "5ba10f85a10515d47dec8ae964959d31f781e0471a847288cea44e2c01682483",
+  "contentHash": "51782cdf7b060d52eb6b4bafdfff409fb9f6f7affe02284ebfd4320fe0bc370b",
+  "modelSha256": "bc5eb1ddd59373a199dd57892d513d199372bde383365fce879ac44fd982ee4a",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/generic-inclined-stairs/5ba10f85a10515d47dec8ae964959d31f781e0471a847288cea44e2c01682483/model.glb",
+  "boundsCenter": [
+    -7.450580596923828e-9,
+    1.4371270658448339,
+    0.007233947515487671
+  ],
+  "size": [
+    0.8900002688169479,
+    2.8742541316896677,
+    2.2944676280021667
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 416,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original generic naval fitting with fixed attachment datum. Dimensions and dry mass are provisional engineering estimates, not a historical reconstruction. Boat/davits and doors/hatches remain stowed/closed. Searchlight is non-functional. Installed support and clearance require native validation and visual review.",
+  "basis": "assets/parts/construction/README.md"
+}
