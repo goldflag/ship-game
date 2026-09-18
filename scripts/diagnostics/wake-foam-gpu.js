@@ -1,4 +1,5 @@
 import * as THREE from 'three/webgpu';
+import { positionLocal, uniform, uv, vec4 } from 'three/tsl';
 import { WakeFoam } from '/src/game/WakeFoam.ts';
 import { WakeFoamGpu, WakeStampCollector } from '/src/game/WakeFoamGpu.ts';
 import { FleetWakeFoam } from '/src/game/FleetWakeFoam.ts';
@@ -23,7 +24,7 @@ try {
     const pixels=await renderer.readRenderTargetPixelsAsync(raster.target,0,0,resolution*tiles,resolution*tiles);
     let max=0,changed=0,overOne=0;
     for(let i=0;i<4;i++)for(let y=0;y<resolution;y++)for(let x=0;x<resolution;x++) {
-      const actual=pixels[(resolution*tiles-1-(Math.floor(i/tiles)*resolution+y))*resolution*tiles+(i%tiles)*resolution+x];
+      const actual=pixels[(Math.floor(i/tiles)*resolution+y)*resolution*tiles+(i%tiles)*resolution+x];
       const expected=cpu[i].texture.image.data[y*resolution+x],difference=Math.abs(actual-expected);
       max=Math.max(max,difference);changed+=difference>0;overOne+=difference>1;
     }
@@ -36,6 +37,19 @@ finally{raster.dispose();cpu.forEach(f=>f.dispose());retained.forEach(f=>f.dispo
 
 async function checkFleet(renderer) {
   const cpu=new FleetWakeFoam(256),gpu=new FleetWakeFoam(256,renderer),camera=new THREE.PerspectiveCamera(52,1,.5,60000);
+  // Read through the same world-space sampler used by the water material. Raw
+  // atlas readback alone can hide a vertically inverted render target.
+  const center=uniform(new THREE.Vector2());
+  const sampleTarget=new THREE.RenderTarget(128,128,{format:THREE.RedFormat,depthBuffer:false});
+  const sampleCamera=new THREE.OrthographicCamera(-1,1,1,-1,0,1);
+  const sampleScenes=[cpu,gpu].map(foam=>{
+    const world=uv().sub(.5).mul(400).add(center);
+    const material=new THREE.MeshBasicNodeMaterial({depthTest:false,depthWrite:false});
+    material.toneMapped=false;
+    material.vertexNode=vec4(positionLocal.xy,0,1);
+    material.fragmentNode=vec4(foam.sample(world.x,world.y),0,0,1);
+    const scene=new THREE.Scene();scene.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2),material));return scene;
+  });
   const ships=Array.from({length:30},(_,i)=>({root:new THREE.Group(),motion:{x:i*2000,y:0,z:0,heading:0,speed:i===0?0:12},
     definition:{hull:{length:250,beam:36},handling:{forwardSpeed:18,reverseSpeed:6}}}));
   const checks=[];camera.position.set(0,1000,6000);
@@ -45,10 +59,23 @@ async function checkFleet(renderer) {
     let max=0,overOne=0,ink=0;
     for(let slot=0;slot<active.length;slot++)for(let y=0;y<res;y++)for(let x=0;x<res;x++){
       const row=Math.floor(slot/8)*res+y,col=slot%8*res+x;
-      const actual=pixels[(size-1-row)*size+col],expected=cpu.texture.image.data[row*size+col];
+      const actual=pixels[row*size+col],expected=cpu.texture.image.data[row*size+col];
       const delta=Math.abs(actual-expected);max=Math.max(max,delta);overOne+=delta>1;ink+=actual>0;
     }
     checks.push({label,max,overOne,ink});
+    for(const ship of [active[1],active.at(-1)].filter(Boolean)) {
+      center.value.set(ship.motion.x,ship.motion.z);
+      const images=[];
+      for(const scene of sampleScenes) {
+        renderer.setRenderTarget(sampleTarget);renderer.render(scene,sampleCamera);renderer.setRenderTarget(null);
+        images.push(await renderer.readRenderTargetPixelsAsync(sampleTarget,0,0,128,128));
+      }
+      let max=0,overOne=0,ink=0;
+      for(let i=0;i<images[0].length;i++) {
+        const delta=Math.abs(images[0][i]-images[1][i]);max=Math.max(max,delta);overOne+=delta>1;ink+=images[0][i]>0;
+      }
+      checks.push({label:`${label} world sampler`,max,overOne,ink});
+    }
   };
   const step=(dt,active=ships,events=[])=>{cpu.update(active,dt,events,camera);gpu.update(active,dt,events,camera);};
   try {
@@ -63,5 +90,8 @@ async function checkFleet(renderer) {
     const reordered=[ships[3],ships[0]];step(.1,reordered);await inspect('removed and reordered',reordered);
     cpu.reset();gpu.reset();step(.1,ships);await inspect('reset');
     return checks;
-  }finally {cpu.dispose();gpu.dispose();}
+  }finally {
+    sampleTarget.dispose();sampleScenes.forEach(scene=>scene.traverse(mesh=>{mesh.geometry?.dispose();mesh.material?.dispose();}));
+    cpu.dispose();gpu.dispose();
+  }
 }

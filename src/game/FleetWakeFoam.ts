@@ -3,6 +3,7 @@ import { Fn, If, Loop, float, max, mx_noise_float, smoothstep, texture, uniform,
 import { WakeFoam, WAKE_EXTENT, wakeStampBudget } from './WakeFoam';
 import type { ShipDefinition } from '../ships/blueprint';
 import { WakeFoamGpu, WakeStampCollector } from './WakeFoamGpu';
+import { wakeHull } from './wakeHull';
 import type { ShipState, CombatEvent } from '../game/session/elements';
 
 /** Any drawn hull with a pose and a definition leaves a wake: a simulated actor's
@@ -73,10 +74,10 @@ export class FleetWakeFoam {
     ships.forEach((ship, slot) => {
       let entry = this.entries.get(ship.root);
       if (!entry) {
-        const { length, beam } = ship.definition.hull;
+        const hull = wakeHull(ship.definition.hull);
         const collector = this.gpu ? new WakeStampCollector() : undefined;
         collector?.reserve(wakeStampBudget(Math.max(ship.definition.handling.forwardSpeed, ship.definition.handling.reverseSpeed)));
-        entry = { foam: new WakeFoam(this.resolution, { length, beam, forwardSpeed: ship.definition.handling.forwardSpeed }, collector), collector, slot: -1, version: -1 };
+        entry = { foam: new WakeFoam(this.resolution, { ...hull, forwardSpeed: ship.definition.handling.forwardSpeed }, collector), collector, slot: -1, version: -1 };
         this.entries.set(ship.root, entry);
       }
       for (const event of events) {

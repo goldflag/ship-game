@@ -6,6 +6,7 @@ import type { ShipState } from '../game/session/elements';
 type Motion = Pick<ShipState, 'x' | 'z' | 'heading' | 'speed'>;
 type WakeSample = Motion & { born: number; strength: number };
 type ImpactSample = { x: number; z: number; born: number; scale: number };
+type WakeHull = { length: number; beam: number; forwardSpeed: number; centerX?: number; centerZ?: number };
 export interface WakeStampTarget {
   begin(centerX: number, centerZ: number): void;
   stamp(x: number, z: number, rightX: number, rightZ: number, width: number, length: number, strength: number, ring: boolean): void;
@@ -41,7 +42,7 @@ export class WakeFoam {
   private elapsed = 0;
   private dirty = false;
 
-  constructor(private readonly resolution: number, private readonly hull: { length: number; beam: number; forwardSpeed: number } = { length: 250, beam: 36, forwardSpeed: BISMARCK.forwardSpeed }, private readonly stampTarget?: WakeStampTarget) {
+  constructor(private readonly resolution: number, private readonly hull: WakeHull = { length: 250, beam: 36, forwardSpeed: BISMARCK.forwardSpeed }, private readonly stampTarget?: WakeStampTarget) {
     this.pixels = new Uint8Array(resolution * resolution);
     this.texture = new DataTexture(this.pixels, resolution, resolution, RedFormat);
     this.texture.minFilter = this.texture.magFilter = LinearFilter;
@@ -79,12 +80,17 @@ export class WakeFoam {
     this.time.value += dt;
     this.elapsed += dt;
     const previous = this.previous;
-    const distance = previous ? Math.hypot(state.x - previous.x, state.z - previous.z) : 0;
-    if (distance > 100) this.reset();
+    const translation = previous ? Math.hypot(state.x - previous.x, state.z - previous.z) : 0;
+    const headingDelta = previous ? Math.atan2(Math.sin(state.heading - previous.heading), Math.cos(state.heading - previous.heading)) : 0;
+    // Bound travel at both hull ends: a stern can sweep far through the water
+    // while the ship's centre barely moves. Sampling centre travel alone leaves
+    // gaps through tight turns. Only translation identifies a teleport.
+    const endRadius = Math.hypot(this.hull.centerX ?? 0, Math.abs(this.hull.centerZ ?? 0) + this.hull.length * .468);
+    const distance = translation + Math.abs(headingDelta) * endRadius;
+    if (translation > 100) this.reset();
     else if (previous && distance > 0.0001 && Math.abs(state.speed) > 0.15) {
-      // Distance-based sampling plus interpolated birth times makes the trail
-      // equally dense at low and high frame rates, including during turns.
-      const headingDelta = Math.atan2(Math.sin(state.heading - previous.heading), Math.cos(state.heading - previous.heading));
+      // Interpolate the pose and birth time along the swept path so foam stays
+      // continuous at the emission points, independently of the frame rate.
       for (let along = SAMPLE_DISTANCE - this.sampleDistance; along <= distance; along += SAMPLE_DISTANCE) {
         const fraction = along / distance;
         const speed = previous.speed + (state.speed - previous.speed) * fraction;
@@ -146,8 +152,10 @@ export class WakeFoam {
       const age = this.time.value - sample.born;
       const forwardX = Math.sin(sample.heading), forwardZ = -Math.cos(sample.heading);
       const rightX = -forwardZ, rightZ = forwardX;
+      const centerX = sample.x + rightX * (this.hull.centerX ?? 0) - forwardX * (this.hull.centerZ ?? 0);
+      const centerZ = sample.z + rightZ * (this.hull.centerX ?? 0) - forwardZ * (this.hull.centerZ ?? 0);
       const aft = (sample.speed >= 0 ? 1 : -1) * this.hull.length * .468;
-      const sternX = sample.x - forwardX * aft, sternZ = sample.z - forwardZ * aft;
+      const sternX = centerX - forwardX * aft, sternZ = centerZ - forwardZ * aft;
       const fade = Math.exp(-age / 23) * (1 - smooth((age - 38) / 17));
       const eddy = Math.sin(sample.born * 1.7 + age * 0.23) * Math.min(age * 0.22, 3.5);
       const spread = this.hull.beam * .194 + Math.sqrt(age) * 2.5 + age * 0.24;
@@ -164,7 +172,7 @@ export class WakeFoam {
       // Bow shoulders spread away from the historical course; only their
       // youngest crests carry white water. The native solver carries the swell.
       const shoulder = this.hull.beam * .194 + age * Math.abs(sample.speed) * 0.32;
-      const bowX = sample.x + forwardX * aft, bowZ = sample.z + forwardZ * aft;
+      const bowX = centerX + forwardX * aft, bowZ = centerZ + forwardZ * aft;
       const crest = sample.strength * Math.exp(-age / 9) * 0.8;
       for (const side of [-1, 1]) {
         this.stamp(bowX + rightX * shoulder * side, bowZ + rightZ * shoulder * side,

@@ -3,6 +3,7 @@ import { max } from 'three/tsl';
 import { WaterSurfaceMaterial, type WaterSystem } from '../../vendor/threejs-water-pro/build/index.js';
 import { FleetWakeFoam, WAKE_ATLAS_CAPACITY, type WakeShip } from './FleetWakeFoam';
 import type { CombatEvent } from '../game/session/elements';
+import { wakeHull } from './wakeHull';
 
 /** Render-side wake configuration; driven by ship motion, independent of the helm. */
 export class ShipWake {
@@ -71,10 +72,10 @@ export class ShipWake {
     for (const ship of nearby) {
       let ids = this.generators.get(ship.root);
       if (!ids) {
-        const { length, beam } = ship.definition.hull;
+        const { length, beam, centerX, centerZ } = wakeHull(ship.definition.hull);
         ids = {
-          bow: this.wake.addGenerator(ship.root, { active: false, depth: .32, radius: beam * .28, offset: new Vector3(0, 0, -length * .448), teleportThreshold: 100 }),
-          stern: this.wake.addGenerator(ship.root, { active: false, depth: .18, radius: beam * .39, offset: new Vector3(0, 0, length * .448), teleportThreshold: 100 }),
+          bow: this.wake.addGenerator(ship.root, { active: false, depth: .32, radius: beam * .28, offset: new Vector3(centerX, 0, centerZ - length * .448), teleportThreshold: 100 }),
+          stern: this.wake.addGenerator(ship.root, { active: false, depth: .18, radius: beam * .39, offset: new Vector3(centerX, 0, centerZ + length * .448), teleportThreshold: 100 }),
         };
         this.generators.set(ship.root, ids);
       }
