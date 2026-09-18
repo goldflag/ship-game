@@ -42,72 +42,77 @@ fn step(a: &mut Vessel, throttle: f64, rudder: f64) {
 }
 
 #[test]
-fn fleet_gets_underway_and_can_crash_stop_within_seconds() {
-    for (id, cruise_seconds, stop_seconds) in [
-        ("fletcher", 10., 12.),
-        ("bismarck", 45., 40.),
-        ("valiant", 30., 27.),
-        ("resolute", 35., 32.),
-        ("type-viic", 10., 10.),
+fn fleet_acceleration_and_crash_stops_retain_inertia() {
+    for (id, cruise_range, stop_range) in [
+        ("fletcher", (9., 14.), (11., 17.)),
+        ("bismarck", (55., 75.), (50., 70.)),
+        ("valiant", (35., 50.), (32., 45.)),
+        ("resolute", (40., 55.), (38., 53.)),
+        ("type-viic", (9., 14.), (9., 14.)),
     ] {
         let mut a = ship(id);
         let speed = a.compiled.maneuvering.estimated_speed;
-        for _ in 0..(cruise_seconds / DT) as usize {
-            step(&mut a, 1., 0.);
+        for (throttle, range) in [(1., cruise_range), (-1., stop_range)] {
+            a.motion.speed = if throttle > 0. { 0. } else { speed };
+            let mut elapsed = 0.;
+            while elapsed < range.1 {
+                step(&mut a, throttle, 0.);
+                elapsed += DT;
+                if (throttle > 0. && a.motion.speed >= speed * 0.9)
+                    || (throttle < 0. && a.motion.speed <= 0.)
+                {
+                    break;
+                }
+            }
+            assert!(
+                elapsed >= range.0 && elapsed < range.1,
+                "{id}: throttle {throttle} took {elapsed}s, expected {}–{}s",
+                range.0,
+                range.1
+            );
         }
-        assert!(
-            a.motion.speed >= speed * 0.9,
-            "{id}: only {} of {speed} m/s after {cruise_seconds}s",
-            a.motion.speed
-        );
-
-        // Start at full speed so this also bounds braking after a long straight run.
-        a.motion.speed = speed;
-        for _ in 0..(stop_seconds / DT) as usize {
-            step(&mut a, -1., 0.);
-        }
-        assert!(
-            a.motion.speed < 0.,
-            "{id}: still moving ahead at {} m/s after {stop_seconds}s astern",
-            a.motion.speed
-        );
     }
 }
 
 #[test]
 fn fleet_can_change_course_and_countersteer_during_a_fight() {
-    for (id, turn_seconds) in [
-        ("fletcher", 18.),
-        ("bismarck", 50.),
-        ("valiant", 100.),
-        ("resolute", 55.),
-        ("type-viic", 24.),
+    for (id, min_seconds, turn_seconds) in [
+        ("fletcher", 15., 22.),
+        ("bismarck", 50., 65.),
+        ("valiant", 120., 160.),
+        ("resolute", 65., 90.),
+        ("type-viic", 22., 30.),
     ] {
         for direction in [-1., 1.] {
             let mut a = ship(id);
             let speed = a.compiled.maneuvering.estimated_speed;
             a.motion.speed = speed;
             let mut angle = 0.;
+            let mut elapsed = 0.;
             for _ in 0..(turn_seconds / DT) as usize {
                 let old = a.motion.heading;
                 step(&mut a, 1., direction);
                 angle += wrap_angle(a.motion.heading - old) * direction;
+                elapsed += DT;
+                if angle >= std::f64::consts::FRAC_PI_2 {
+                    break;
+                }
             }
             assert!(
-                angle >= std::f64::consts::FRAC_PI_2,
-                "{id}: turned only {} degrees in {turn_seconds}s",
+                angle >= std::f64::consts::FRAC_PI_2 && elapsed >= min_seconds,
+                "{id}: turned {} degrees in {elapsed}s; expected {min_seconds}–{turn_seconds}s",
                 angle.to_degrees()
             );
             assert!(
                 a.motion.speed > speed * 0.4,
                 "{id}: hard turn stalled the ship"
             );
-            for _ in 0..(10. / DT) as usize {
+            for _ in 0..(16. / DT) as usize {
                 step(&mut a, 1., -direction);
             }
             assert!(
                 a.motion.yaw_rate * direction < 0.,
-                "{id}: failed to countersteer within 10s"
+                "{id}: failed to countersteer within 16s"
             );
         }
     }

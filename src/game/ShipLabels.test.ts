@@ -30,7 +30,7 @@ test.each([
   expect(projectShipLabel(new Vector3(0, 0, -5000), camera, 1600, 900)).toBeNull();
 });
 
-test('overhead condition percentages, meters and loss spans use each ship maximum', () => {
+test('overhead condition meters preserve own damage colors for either online ship identity', () => {
   // Minimal DOM surface; exercise the actual label updates and Three.js projection.
   class Element {
     children: Element[] = [];
@@ -51,6 +51,7 @@ test('overhead condition percentages, meters and loss spans use each ship maximu
   try {
     for (const id of ['yamato', 'baltimore']) {
       const sim = new CombatSimulation(shipPreset(id)), actor = sim.target;
+      sim.ship.id = id === 'yamato' ? 'a-0' : 'b-0';
       const root = new Group(); root.add(new Group()); root.position.z = -5000;
       const view = { root, motion: actor.motion } as unknown as ShipView;
       const host = new Element(), labels = new ShipLabels(host as unknown as HTMLElement);
