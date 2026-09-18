@@ -152,7 +152,7 @@ test('a shut door refuses every edit with its reason and leaves the source untou
   expect(data().primitives).toHaveLength(2);
 });
 
-test('select, move and erase: a drag translates the pressed piece and preserves wall offsets, right-click removes, the last block stays', async () => {
+test('select, move and erase: a drag translates the pressed piece and preserves wall offsets, erase removes, the last block stays', async () => {
   const { tool, data, labels, state } = await setup();
   tool.setTool('place');
   tool.pointer({ kind: 'lay', points: [[0, 1, 0]] });

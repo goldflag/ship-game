@@ -52,11 +52,11 @@ export function equipmentReviewSource(catalog: ConstructionCatalog, kind: 'colle
     put(`${id}-magazine`, 'generic-magazine-1000', [x, -9.984, 76]);
     deck(id, 'fletcher-quintuple-533', x, 76, bearing, { magazineId: `${id}-magazine` });
   }
-  for (const [id, p, x] of [['large-screw', 'fletcher-propeller-starboard', -12], ['small-screw', 'generic-propeller-1200', 12]] as const) {
+  for (const [id, p, x] of [['large-screw', 'generic-propeller-4200', -12], ['small-screw', 'generic-propeller-1200', 12]] as const) {
     const seat = part(p).sockets!.find(s => s.id === 'attachment')!.position;
     put(id, p, [x, -9, 100 - seat[2]], 0, { powerSourceId: 'engine' });
   }
-  for (const [id, p, x] of [['large-rudder', 'fletcher-rudder', -12], ['small-rudder', 'generic-rudder-1000', 12]] as const) {
+  for (const [id, p, x] of [['large-rudder', 'generic-rudder-4000', -12], ['small-rudder', 'generic-rudder-1000', 12]] as const) {
     const seat = part(p).sockets!.find(s => s.id === 'attachment')!.position;
     put(id, p, [x, -10 - seat[1], 95]);
   }
@@ -133,7 +133,7 @@ export function cruiserEquipmentFixture(catalog: ConstructionCatalog): Construct
   parts.filter(p => p.kind === 'engine' && p.id !== engine.id).forEach((part, index) => {
     add('review-' + part.id, part.id, [0, -9.984, 80 - index * 40]);
   });
-  let gun = 0, deck = 0, screw = 0, bank = 0;
+  let gun = 0, deck = 0, screw = 0, rudder = 0, bank = 0;
   for (const part of parts) {
     if (part.kind === 'engine' || part.kind === 'magazine') continue;
     const id = 'review-' + part.id, seat = part.sockets!.find(s => s.id === 'attachment')!;
@@ -148,7 +148,7 @@ export function cruiserEquipmentFixture(catalog: ConstructionCatalog): Construct
     } else if (part.kind === 'propeller') {
       add(id, part.id, [-12 + screw++ * 24, -9, length / 2 - seat.position[2]], { powerSourceId: 'cruiser-engine' });
     } else if (part.kind === 'rudder') {
-      add(id, part.id, [0, -10 - seat.position[1], length / 2 - 5]);
+      add(id, part.id, [-12 + rudder++ * 24, -10 - seat.position[1], length / 2 - 5]);
     } else if (seat.direction[2] === 1) {
       add(id, part.id, [20, 0, -length / 2 - seat.position[2]]);
     } else {

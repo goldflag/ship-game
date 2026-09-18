@@ -36,6 +36,10 @@ limited and the warning shows available and required kW. Spare funnel capacity
 absorbs damage before power drops; destroyed or submerged funnels lose capacity.
 Existing saved funnel links are ignored.
 
+Running gear uses generic four-blade screws (1.2, 2.4, 4.2 and 6 m diameter)
+and balanced rudders (1, 2, 4 and 6 m blade depth). Each is a fixed-size part
+with its own mass and attachment datum.
+
 Propellers connect to engines automatically. Select a propeller to see its
 resolved **Engine** assignment; choosing an engine manually overrides it, and
 choosing **Automatic** restores layout-based assignment. Existing saved engine
