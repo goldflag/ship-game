@@ -38,6 +38,10 @@ fn unique<'a>(ids: impl Iterator<Item = &'a str>) -> bool {
     let mut seen = BTreeSet::new();
     ids.into_iter().all(|s| valid_id(s) && seen.insert(s))
 }
+/// Paint for faces, keels and barbettes without a more specific coating.
+pub(crate) fn ship_paint(c: &ConstructionData) -> &str {
+    c.paint.as_deref().unwrap_or("naval-gray")
+}
 fn error(code: &str, message: impl Into<String>, id: Option<&str>) -> ConstructionDiagnostic {
     ConstructionDiagnostic {
         severity: "error".into(),
@@ -361,7 +365,7 @@ fn compile_cached(source: &ConstructionSource, catalog: &ConstructionCatalog, ca
     if out.definition.is_some() {
         let mut faces = vec![];
         for primitive in &source.construction.primitives {
-            faces.extend(crate::construction_bilge_keels::surfaces(primitive));
+            faces.extend(crate::construction_bilge_keels::surfaces(primitive, ship_paint(&source.construction)));
             if out.surfaces.len() + faces.len() > MAX_SURFACES {
                 out.definition = None;
                 out.diagnostics.push(error("complexity", "Bilge keels exceed the exposed surface limit", Some(&primitive.id)));
@@ -437,14 +441,12 @@ fn validate(
     if c.finish.as_deref().is_some_and(|f| !["matte", "satin", "semi-gloss", "gloss"].contains(&f)) {
         return Err(error("surface-finish", "Unsupported ship surface finish", None));
     }
+    if c.paint.as_ref().is_some_and(|paint| paint.is_empty() || paint.len() > 64) {
+        return Err(error("ship-paint", "Ship paint must be a nonempty name of at most 64 bytes", None));
+    }
     for e in &c.equipment {
         if e.paint.as_ref().is_some_and(|paint| paint.is_empty() || paint.len() > 64) {
             return Err(error("equipment-paint", "Fitting paint must be a nonempty name of at most 64 bytes", Some(&e.id)));
-        }
-        if e.gun.as_ref().and_then(|g| g.barbette_paint.as_ref())
-            .is_some_and(|paint| paint.is_empty() || paint.len() > 64) {
-            return Err(error("barbette-paint", "Invalid barbette paint", Some(&e.id)));
-
         }
         let rise = crate::construction_installation::raised(e);
         if !rise.is_finite() || !(0. ..=30.).contains(&rise) || (c.version < 2. && rise != 0.) {
@@ -752,7 +754,7 @@ fn build(
                         a.thickness_mm.max(c.default_thickness_mm)
                     }),
                     material: a.map_or("steel", |a| a.material.as_str()).into(),
-                    paint: a.map_or("naval-gray", |a| a.paint.as_str()).into(),
+                    paint: a.map_or(ship_paint(c), |a| a.paint.as_str()).into(),
                     open: a.is_some_and(|a| a.open == Some(true)),
                 });
                 if out.surfaces.len() > MAX_SURFACES {
@@ -2547,6 +2549,28 @@ mod tests {
         assert!(compile(&source, &catalog).diagnostics.iter().any(|d| d.code == "surface-finish"));
         source.construction.finish = None;
         assert_eq!(compile(&source, &catalog).content_hash, original.content_hash);
+    }
+    #[test]
+    fn ship_paint_coats_unassigned_faces_without_changing_physics() {
+        let (mut source, catalog) = fixture();
+        let original = compile(&source, &catalog);
+        assert!(!to_json(&source).unwrap().contains("\"paint\":\"sea-blue\""));
+        source.construction.paint = Some("sea-blue".into());
+        let saved: ConstructionSource = serde_json::from_str(&to_json(&source).unwrap()).unwrap();
+        assert_eq!(saved.construction.paint.as_deref(), Some("sea-blue"));
+        let result = compile(&saved, &catalog);
+        assert!(result.definition.is_some(), "{:?}", result.diagnostics);
+        assert_eq!(to_json(&result.loading).unwrap(), to_json(&original.loading).unwrap());
+        let assigned = |s: &ConstructionSurface| source.construction.surfaces.iter()
+            .any(|a| a.primitive_id == s.primitive_id && a.face == s.face);
+        let mut repainted = 0;
+        for (before, after) in original.surfaces.iter().zip(&result.surfaces) {
+            if assigned(before) { assert_eq!(before.paint, after.paint); }
+            else { assert_eq!(after.paint, "sea-blue"); repainted += 1; }
+        }
+        assert!(repainted > 0);
+        source.construction.paint = Some(String::new());
+        assert!(compile(&source, &catalog).diagnostics.iter().any(|d| d.code == "ship-paint"));
     }
     #[test]
     fn incremental_revisions_match_fresh_compilation_including_invalid_edits() {

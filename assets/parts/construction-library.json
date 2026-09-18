@@ -72,35 +72,35 @@
       ]
     },
     "generic-twin-bitts": {
-      "path": "assets/parts/construction/deck_fittings.py",
+      "path": "assets/parts/construction/utility_fittings.py",
       "function": "create_twin_bitts",
       "inputs": [
         "assets/parts/construction/geometry.py"
       ]
     },
     "generic-fairlead": {
-      "path": "assets/parts/construction/deck_fittings.py",
+      "path": "assets/parts/construction/utility_fittings.py",
       "function": "create_fairlead",
       "inputs": [
         "assets/parts/construction/geometry.py"
       ]
     },
     "generic-capstan": {
-      "path": "assets/parts/construction/deck_fittings.py",
+      "path": "assets/parts/construction/utility_fittings.py",
       "function": "create_capstan",
       "inputs": [
         "assets/parts/construction/geometry.py"
       ]
     },
     "generic-anchor-windlass": {
-      "path": "assets/parts/construction/deck_fittings.py",
+      "path": "assets/parts/construction/utility_fittings.py",
       "function": "create_anchor_windlass",
       "inputs": [
         "assets/parts/construction/geometry.py"
       ]
     },
     "generic-stowed-anchor": {
-      "path": "assets/parts/construction/deck_fittings.py",
+      "path": "assets/parts/construction/utility_fittings.py",
       "function": "create_stowed_anchor",
       "inputs": [
         "assets/parts/construction/geometry.py"
@@ -114,14 +114,14 @@
       ]
     },
     "generic-mushroom-vent": {
-      "path": "assets/parts/construction/deck_fittings.py",
+      "path": "assets/parts/construction/utility_fittings.py",
       "function": "create_mushroom_vent",
       "inputs": [
         "assets/parts/construction/geometry.py"
       ]
     },
     "generic-cowl-vent": {
-      "path": "assets/parts/construction/deck_fittings.py",
+      "path": "assets/parts/construction/utility_fittings.py",
       "function": "create_cowl_vent",
       "inputs": [
         "assets/parts/construction/geometry.py"
@@ -136,7 +136,7 @@
       ]
     },
     "generic-deck-hatch": {
-      "path": "assets/parts/construction/deck_fittings.py",
+      "path": "assets/parts/construction/utility_fittings.py",
       "function": "create_deck_hatch",
       "inputs": [
         "assets/parts/construction/geometry.py"
@@ -164,7 +164,7 @@
       ]
     },
     "generic-inclined-stairs": {
-      "path": "assets/parts/construction/deck_fittings.py",
+      "path": "assets/parts/construction/utility_fittings.py",
       "function": "create_inclined_stairs",
       "inputs": [
         "assets/parts/construction/geometry.py"
@@ -435,28 +435,28 @@
       ]
     },
     "generic-hawse-pipe": {
-      "path": "assets/parts/deck-gear/forecastle.py",
+      "path": "assets/parts/construction/utility_fittings.py",
       "function": "create_hawse_pipe",
       "inputs": [
         "assets/parts/construction/geometry.py"
       ]
     },
     "generic-cable-reel": {
-      "path": "assets/parts/deck-gear/forecastle.py",
+      "path": "assets/parts/construction/utility_fittings.py",
       "function": "create_cable_reel",
       "inputs": [
         "assets/parts/construction/geometry.py"
       ]
     },
     "generic-deck-winch": {
-      "path": "assets/parts/deck-gear/forecastle.py",
+      "path": "assets/parts/construction/utility_fittings.py",
       "function": "create_deck_winch",
       "inputs": [
         "assets/parts/construction/geometry.py"
       ]
     },
     "generic-accommodation-ladder": {
-      "path": "assets/parts/deck-gear/forecastle.py",
+      "path": "assets/parts/construction/utility_fittings.py",
       "function": "create_accommodation_ladder",
       "inputs": [
         "assets/parts/construction/geometry.py"
@@ -477,7 +477,7 @@
       ]
     },
     "generic-ensign-staff": {
-      "path": "assets/parts/deck-gear/topside.py",
+      "path": "assets/parts/construction/utility_fittings.py",
       "function": "create_ensign_staff",
       "inputs": [
         "assets/parts/construction/geometry.py"
@@ -667,11 +667,10 @@
       ]
     },
     "generic-round-wall-vent": {
-      "path": "assets/parts/construction/surface_fittings.py",
-      "function": "create_surface_fitting",
+      "path": "assets/parts/construction/utility_fittings.py",
+      "function": "create_round_wall_vent",
       "inputs": [
-        "assets/parts/construction/geometry.py",
-        "assets/parts/construction/windows.py"
+        "assets/parts/construction/geometry.py"
       ]
     },
     "generic-surface-ladder": {

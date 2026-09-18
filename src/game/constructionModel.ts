@@ -9,7 +9,7 @@ import { createConstructionPropellerSupports } from './constructionPropellerMode
 import type { ConstructionPrimitive, ConstructionResult, ConstructionSource, ConstructionSurface, ConstructionSurfaceFinish } from '../ships/blueprint';
 import { constructionVertexNormals, SMOOTH_HULL_SHAPES } from './constructionShading';
 import { constructionEquipmentModelUrl, loadConstructionCatalog, prefixComponentNodeId } from '../ships/constructionEquipment';
-import { CONSTRUCTION_FINISH, constructionPaintColor, constructionFinishRoughness } from '../ships/constructionPaints';
+import { CONSTRUCTION_FINISH, constructionFittingPaint, constructionPaintColor, constructionFinishRoughness } from '../ships/constructionPaints';
 
 /** Render the native exterior exactly. Triangle attribution remains a reference
  * to source faces; triangulation and material batching never become source IDs. */
@@ -112,7 +112,7 @@ export async function createConstructionModel(source: ConstructionSource, result
         if (!part) throw new Error(`Equipment unavailable: ${instance.partId}. The source design is preserved.`);
         if (part.path) {
           const model = createConstructionPathModel(part, instance.path, false, {item:instance,surfaces:result.surfaces});
-          paintConstructionFitting(model, instance.paint, false, source.construction.finish);
+          paintConstructionFitting(model, constructionFittingPaint(source, instance, part), false, source.construction.finish);
           model.position.fromArray(instance.position); model.rotation.y = -instance.bearingDeg * Math.PI / 180;
           model.traverse(node => { node.userData.sourceId = instance.id; node.userData.assemblyId = instance.id; node.userData.constructionEquipmentKind = part.kind; });
           group.add(model); continue;
@@ -124,7 +124,7 @@ export async function createConstructionModel(source: ConstructionSource, result
           if (template.userData.definitionHash !== part.contentHash) throw new Error(`Equipment identity mismatch: ${part.name}.`);
         }
         const model = instance.wall ? createConstructionWallModel(template, part, instance, result.surfaces, source.construction.primitives) : template.clone(true);
-        paintConstructionFitting(model, instance.paint, true, source.construction.finish);
+        paintConstructionFitting(model, constructionFittingPaint(source, instance, part), true, source.construction.finish);
         const installation = new THREE.Group(); installation.name = instance.id;
         if (!instance.wall) installation.scale.fromArray(wallScale(part, instance));
         installation.position.fromArray(instance.position); installation.rotation.y = -instance.bearingDeg * Math.PI / 180;

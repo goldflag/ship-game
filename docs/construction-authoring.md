@@ -51,11 +51,11 @@ Reload deliberately takes the file revision and retains the previous draft as an
 undo step. Save local copy puts an independent design in the normal IndexedDB
 library. Repository deletion remains a Git operation.
 
-Select a gun in Fittings to change **Turret rise** or **Barbette paint**. Rise
-extends its circular support above the deck. A turret well's integrated magazine
-stays at its lower end; a deck mount's ready ammunition follows the raised gun.
-Barbette paint applies to the whole generated support. The surrounding deck retains
-its own finish. Both edits support undo.
+Select a gun in Fittings to change **Turret rise**. Rise extends its circular
+support above the deck. A turret well's integrated magazine stays at its lower
+end; a deck mount's ready ammunition follows the raised gun. The whole generated
+support wears the turret's `paint`, or the ship paint (`construction.paint`) under
+an unpainted turret. The surrounding deck retains its own finish.
 
 Full funnel casings use oval below-deck uptake openings. The native compiler uses the same outline for deck cutting, clearance and sealed
 flooding openings, including separate uptakes on trunked funnels, preserving the
@@ -144,6 +144,7 @@ Commands are:
 | --- | --- | --- |
 | `name` | `name` | Rename the design |
 | `skin` | `thicknessMm` | Set default structural skin |
+| `ship-paint` | optional `paint` | Set the ship paint worn by faces without an assignment and by fittings (with their barbettes) without a `paint`; omission restores naval gray faces and original fitting finishes |
 | `primitive`, `equipment`, `boundary`, `load` | `value` | Add or replace the complete source record by stable ID |
 | `primitive-patch`, `equipment-patch` | `id`, `changes` | Merge only supplied fields into an existing record; nested objects merge, arrays replace, `null` removes optional fields |
 | `hull-sections` | `id`, `count` | Resize an adjustable hull's section list with the same 4–24-section interpolation/simplification as the UI |
@@ -170,7 +171,7 @@ Recent editor features are source-authorable through these patches:
   plus `heightM` and `wallThicknessM`.
 - Freeform edge treatments: `shaping` with `version: 1`, `edges`, `radius` and
   `style: "round" | "chamfer"` on a `vertex` primitive; `null` restores sharp edges.
-- Guns: nested `gun` settings for turret rise, barbette paint, battery and arcs.
+- Guns: nested `gun` settings for turret rise, battery and arcs.
   Exact catalog variants retain their integrated ammunition and working spaces;
   current light deck mounts do not need an invented below-deck magazine.
 - Fittings: fractional `bearingDeg`, instance `paint`, wall dimensions and linked
@@ -187,7 +188,7 @@ For example, these commands can be placed in the revision-guarded batch above:
     "size": [14, 10, 130], "customHull": { "rake": 0.4, "redPaintY": -1.2 }
   } },
   { "op": "equipment-patch", "id": "gun-forward", "changes": {
-    "gun": { "barbetteHeightM": 0.6, "barbettePaint": "naval-gray" }
+    "gun": { "barbetteHeightM": 0.6 }
   } }
 ]
 ```

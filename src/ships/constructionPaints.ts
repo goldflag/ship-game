@@ -1,5 +1,6 @@
 import finishes from '../../assets/ships/appearance/finishes.json';
 import type { ConstructionSurfaceFinish } from './blueprint';
+type Painted = { construction: { paint?: string } };
 
 /** Player-selected coatings remain nonmetallic; historical defaults stay unchanged. */
 export const CONSTRUCTION_SURFACE_FINISHES = [
@@ -28,6 +29,11 @@ export const CONSTRUCTION_PAINTS = [
   { id: 'hipper-source-linoleum', name: 'Cruiser source linoleum', color: '#7e5548' },
 ] as const;
 export const constructionPaintColor = (id: string) => CONSTRUCTION_PAINTS.find(p => p.id === id)?.color ?? '#7c8c91';
+/** Paint on faces without an assignment of their own; matches the compiler. */
+export const constructionShipPaint = (source: Painted): string => source.construction.paint ?? 'naval-gray';
+/** An installation's own paint, else the ship paint; internal machinery keeps its original finish. */
+export const constructionFittingPaint = (source: Painted, item: { paint?: string }, part?: { placement: string }): string | undefined =>
+  item.paint ?? (part?.placement === 'internal' ? undefined : source.construction.paint);
 export const CONSTRUCTION_FINISH = {
   steelRoughness: finishes.finishes['painted-steel'].roughness,
   deckRoughness: finishes.finishes['painted-deck'].roughness,

@@ -2,6 +2,19 @@
 
 ## Deck fittings and connected paths
 
+The current Deck gear selection is general ship hardware. Drawable rope, chain,
+railings and surface ladders lead the shelf. Paravanes, signal lamps, gun tubs,
+ammunition lockers, splinter shields, fixed-shape breakwaters and the German
+cruiser capstan/hatch are omitted from new catalogs. Retained immutable catalogs
+and their original registrations preserve older saved designs and ship sources.
+
+`utility_fittings.py` supplies plain replacements for the older generic mooring,
+anchor, ventilation, access and flagstaff fittings. They retain stable IDs,
+attachment/rigging datums and conservative package envelopes. Small fasteners,
+cable windings, ornamental profiles and service-specific mechanisms are omitted;
+12-sided castings and six-sided thin rods follow the lightweight boxes and racks.
+These are static visual fittings; no new operating mechanisms are implied.
+
 The first deck fittings collection adds bitts, fairleads, a capstan and anchor
 windlass, a stowed anchor, a lifeboat with cradles and paired davits, two vent
 styles, a watertight door, deck hatch, vertical ladder, inclined stairs, compact

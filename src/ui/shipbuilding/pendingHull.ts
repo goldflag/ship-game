@@ -1,6 +1,7 @@
 import { meshFaces } from '../../ships/constructionMesh';
 import type { ConstructionPrimitive, ConstructionSource, ConstructionSurface, Vec3 } from '../../ships/blueprint';
 import { projectConstructionSurfaces } from '../../ships/constructionEditor';
+import { constructionShipPaint } from '../../ships/constructionPaints';
 import { CONSTRUCTION_SHAPES } from '../../ships/constructionShapes';
 import { customHullFaces } from '../../ships/customHullModel';
 import { customHullPanels } from '../../ships/constructionPanels';
@@ -73,7 +74,7 @@ export function pendingHullSurfaces(source: ConstructionSource, previous: Constr
       for (let i = 1; i < vertices.length - 1; i++) areaM2 += Math.hypot(...cross(sub(vertices[i], vertices[0]), sub(vertices[i + 1], vertices[0]))) / 2;
       next.push({ id: `preview:${primitive.id}:${index}`, primitiveId: primitive.id, face, panelId: polygon.panelId,
         vertices: vertices.map(v => primitivePoint(primitive,v)), normal: orientVector(primitive,localNormal),
-        areaM2, thicknessMm: source.construction.defaultThicknessMm, material: 'steel', paint: 'naval-gray', open: false });
+        areaM2, thicknessMm: source.construction.defaultThicknessMm, material: 'steel', paint: constructionShipPaint(source), open: false });
     }
   }
   return projectConstructionSurfaces(source, next);

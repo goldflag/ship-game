@@ -65,6 +65,23 @@ test('whole-ship finish changes one revision, supports undo and restores origina
   tool.redo(); expect(data().finish).toBe('semi-gloss');
   tool.setFinish(); expect(data()).toEqual(original);
 });
+test('ship paint carries faces and fittings that wore the previous ship paint and keeps accents', async () => {
+  const source = createStarterSource(catalog, 'patrol');
+  const [first, second] = source.construction.equipment; first.paint = 'naval-gray'; second.paint = 'red-oxide';
+  const accents = source.construction.surfaces.filter(surface => surface.paint !== 'naval-gray').length;
+  source.construction.surfaces.push({ primitiveId: source.construction.primitives[0].id, face: 'port', thicknessMm: 50, material: 'armor-steel', paint: 'naval-gray' });
+  const { tool, data, labels } = await setup({ source });
+  const original = structuredClone(data());
+  expect(tool.setShipPaint('chrome')).toBeUndefined();
+  expect(tool.setShipPaint('sea-blue')).toMatchObject({ accepted: true, changed: true });
+  expect(data().paint).toBe('sea-blue');
+  expect(data().equipment[0].paint).toBeUndefined();
+  expect(data().equipment[1].paint).toBe('red-oxide');
+  expect(data().surfaces.at(-1)).toMatchObject({ paint: 'sea-blue', thicknessMm: 50 });
+  expect(data().surfaces.filter(surface => surface.paint !== 'sea-blue')).toHaveLength(accents);
+  expect(labels()).toEqual(['Set ship paint']);
+  tool.undo(); expect(data()).toEqual(original);
+});
 const key = (key: string, over: Partial<BuilderKey> = {}): BuilderKey => ({ key, ctrlKey: false, metaKey: false, shiftKey: false, altKey: false, repeat: false, preventDefault() {}, ...over });
 const chrome = (): BuilderChrome & { log: string[] } => { const log: string[] = []; return { log, dismiss: () => { log.push('dismiss'); return false; }, toggleDrawer: () => log.push('drawer'), toggleWarnings: () => log.push('warnings'), slotChosen: () => log.push('slot') }; };
 
