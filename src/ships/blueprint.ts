@@ -467,7 +467,13 @@ export interface ConstructionPropellerAssignment {
 }
 export interface ConstructionPropellerSupport {
   equipmentId: string;
-  members: { start: Vec3; end: Vec3; radiusM: number; kind: 'shaft' | 'strut' }[];
+  members: {
+    start: Vec3; end: Vec3; radiusM: number; kind: 'shaft' | 'strut' | 'bearing' | 'fairing';
+    /** Native loft sections in ship coordinates; identical visual and clearance geometry. */
+    rings?: Vec3[][];
+    /** Closed hull seat; only the final 4 cm may enter this supporting skin. */
+    hullContact?: { point: Vec3; normal: Vec3 };
+  }[];
 }
 export interface ConstructionEquipmentPart {
   id: string; name: string;
