@@ -57,6 +57,24 @@ const hit = (over: Partial<BuilderPick> = {}): BuilderPick => ({ point: [0, .5, 
 const key = (key: string, over: Partial<BuilderKey> = {}): BuilderKey => ({ key, ctrlKey: false, metaKey: false, shiftKey: false, altKey: false, repeat: false, preventDefault() {}, ...over });
 const chrome = (): BuilderChrome & { log: string[] } => { const log: string[] = []; return { log, dismiss: () => { log.push('dismiss'); return false; }, toggleDrawer: () => log.push('drawer'), toggleWarnings: () => log.push('warnings'), slotChosen: () => log.push('slot') }; };
 
+test('block type filters keep palette keys and placement in sync across layers', async () => {
+  const { tool } = await setup();
+  tool.setHullCategory('bridges');
+  expect(tool.palette.drawer).toHaveLength(6);
+  expect(tool.palette.drawer.every(item => item.kind === 'shape' && item.shape.kind.includes('bridge'))).toBe(true);
+  tool.key(key('2'), chrome());
+  expect(tool.piece).toMatchObject({ kind: 'hull', shape: 'diagonal-bridge' });
+  tool.switchLayer('armor');
+  tool.switchLayer('hull');
+  expect(tool.getSnapshot().hullCategory).toBe('bridges');
+  tool.setHullCategory('ballast');
+  tool.key(key('1'), chrome());
+  expect(tool.piece).toMatchObject({ kind: 'hull', shape: 'ballast' });
+  expect(tool.hasDrawer).toBe(true);
+  tool.setHullCategory('all');
+  expect(tool.palette.drawer.filter(item => item.kind === 'shape' && item.shape.kind === 'box' && item.shape.size.every(n => n === 4))).toHaveLength(1);
+});
+
 test('a click and a stroke on the hull lay cube pieces with their mirrored twins as one labelled batch each', async () => {
   const { tool, data, labels } = await setup();
   tool.setTool('place');

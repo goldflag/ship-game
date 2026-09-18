@@ -169,7 +169,7 @@ export class FreeformHandles {
     });
     const anchor = this.anchor(p,o.selection), origin = this.project(anchor), axes = this.axes(p), locks = selectionLocks(o.selection,o.axes,p);
     const vectors = axes.map(a => this.project(anchor.clone().add(a)).sub(origin));
-    const length = Math.max(...vectors.map(v => v.length()),1e-6), scale = 76 / length;
+    const length = Math.max(...vectors.map(v => v.length()),1e-6), scale = 58 / length;
     const visible = anchor.clone().project(this.camera()).z >= -1 && anchor.clone().project(this.camera()).z <= 1;
     this.axisButtons.forEach((b,k) => {
       const v = vectors[k].clone().multiplyScalar(scale), pos = origin.clone().add(v), headOn = v.length() < 18;

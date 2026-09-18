@@ -84,7 +84,7 @@ export class MoveHandles {
     const origin = this.project(anchor), depth = anchor.clone().project(this.camera()).z;
     const visible = depth >= -1 && depth <= 1;
     const vectors = [0, 1, 2].map(k => this.project(anchor.clone().setComponent(k, anchor.getComponent(k) + 1)).sub(origin));
-    const scale = 76 / Math.max(...vectors.map(v => v.length()), 1e-6);
+    const scale = 58 / Math.max(...vectors.map(v => v.length()), 1e-6);
     const points = [origin];
     this.buttons.forEach((b, k) => {
       const v = vectors[k].multiplyScalar(scale), end = origin.clone().add(v);

@@ -3,6 +3,7 @@ import type { ConstructionCatalog, ConstructionEquipmentPart, ConstructionPrimit
 import { CONSTRUCTION_PAINTS } from '../../ships/constructionPaints';
 import { CONSTRUCTION_SHAPE_NAMES } from '../../ships/constructionShapes';
 import { filterFittings, type FittingFilter } from './fittingCategories';
+import { HULL_CATEGORY, type HullCategory } from './hullCategories';
 
 /** Layer tabs, tool rails and hotbar palettes of the "Slipway rails" editor.
  * Pure data: the component maps these onto source commands. */
@@ -34,26 +35,25 @@ export const DEFAULT_TOOL: Record<BuilderLayer, BuilderToolId> = { hull: 'select
 
 export interface HullShape { id: string; name: string; note: string; kind: ConstructionPrimitive['kind']; size: Vec3 }
 /** Width × height × length in metres, on the 1 m hull grid. Quarter plates are the thinnest useful skin.
- * The first nine fill the keyed bar; freeform hull and balcony lead the palette. */
+ * The first nine fill the keyed bar; block and balcony lead the palette. */
 export const HULL_SHAPES: HullShape[] = [
-  { id: 'vertex', name: 'Freeform hull', note: 'vertices, edges and faces · 4 m', kind: 'vertex', size: [4, 4, 4] },
-  { id: 'balcony', name: 'Balcony', note: '1 m deep × 2 m wide · open mounting edge', kind: 'balcony', size: [1, .08, 2] },
-  { id: 'cube', name: 'Cube', note: '1 m', kind: 'box', size: [1, 1, 1] },
-  { id: 'slab', name: 'Slab', note: '4 × 1 × 4', kind: 'box', size: [4, 1, 4] },
-  { id: 'bar', name: 'Bar', note: '1 × 1 × 4', kind: 'box', size: [1, 1, 4] },
-  { id: 'wedge', name: 'Wedge', note: '1 : 1', kind: 'wedge', size: [4, 4, 4] },
-  { id: 'slope', name: 'Slope', note: '1 : 2', kind: 'wedge', size: [4, 2, 4] },
-  { id: 'long-slope', name: 'Long slope', note: '1 : 4', kind: 'wedge', size: [4, 1, 4] },
-  { id: 'corner-out', name: 'Corner out', note: '4 m', kind: 'corner', size: [4, 4, 4] },
-  { id: 'corner-in', name: 'Corner in', note: '4 m', kind: 'inverse-corner', size: [4, 4, 4] },
+  { id: 'block', name: 'Block', note: 'freeform (D)', kind: 'box', size: [4, 4, 4] },
+  { id: 'balcony', name: 'Balcony', note: 'open mounting edge', kind: 'balcony', size: [1, .08, 2] },
+  { id: 'cube', name: 'Cube', note: 'freeform (D)', kind: 'box', size: [1, 1, 1] },
+  { id: 'slab', name: 'Slab', note: 'freeform (D)', kind: 'box', size: [4, 1, 4] },
+  { id: 'bar', name: 'Bar', note: 'freeform (D)', kind: 'box', size: [1, 1, 4] },
+  { id: 'wedge', name: 'Wedge', note: 'freeform (D)', kind: 'wedge', size: [4, 4, 4] },
+  { id: 'slope', name: 'Slope', note: 'freeform (D)', kind: 'wedge', size: [4, 2, 4] },
+  { id: 'long-slope', name: 'Long slope', note: 'freeform (D)', kind: 'wedge', size: [4, 1, 4] },
+  { id: 'corner-out', name: 'Corner out', note: 'freeform (D)', kind: 'corner', size: [4, 4, 4] },
+  { id: 'corner-in', name: 'Corner in', note: 'freeform (D)', kind: 'inverse-corner', size: [4, 4, 4] },
   { id: 'custom-hull', name: 'Custom hull', note: 'whole hull · editable cross-sections', kind: 'custom-hull', size: [6.5, 4, 36] },
-  { id: 'plate', name: 'Plate', note: '4 × ¼ × 4', kind: 'box', size: [4, .25, 4] },
-  { id: 'block', name: 'Block', note: '4 m', kind: 'box', size: [4, 4, 4] },
-  { id: 'wide-slab', name: 'Wide slab', note: '8 × 1 × 8', kind: 'box', size: [8, 1, 8] },
-  { id: 'long-bar', name: 'Long bar', note: '1 × 1 × 8', kind: 'box', size: [1, 1, 8] },
-  { id: 'hull-section', name: 'Hull section', note: '8 × 5 × 8', kind: 'box', size: [8, 5, 8] },
-  { id: 'bow-wedge', name: 'Bow wedge', note: '8 × 5 × 8', kind: 'wedge', size: [8, 5, 8] },
-  { id: 'tall-wedge', name: 'Tall wedge', note: '4 × 8 × 4', kind: 'wedge', size: [4, 8, 4] },
+  { id: 'plate', name: 'Plate', note: 'freeform (D)', kind: 'box', size: [4, .25, 4] },
+  { id: 'wide-slab', name: 'Wide slab', note: 'freeform (D)', kind: 'box', size: [8, 1, 8] },
+  { id: 'long-bar', name: 'Long bar', note: 'freeform (D)', kind: 'box', size: [1, 1, 8] },
+  { id: 'hull-section', name: 'Hull section', note: 'freeform (D)', kind: 'box', size: [8, 5, 8] },
+  { id: 'bow-wedge', name: 'Bow wedge', note: 'freeform (D)', kind: 'wedge', size: [8, 5, 8] },
+  { id: 'tall-wedge', name: 'Tall wedge', note: 'freeform (D)', kind: 'wedge', size: [4, 8, 4] },
   ...([
     ['ballast', [3, 1.5, 3]],
     ['prism', [4, 4, 4]], ['half-hemisphere', [2, 2, 4]], ['quarter-hemisphere', [2, 2, 2]],
@@ -68,7 +68,7 @@ export const HULL_SHAPES: HullShape[] = [
     ['rounded-bridge-panel', [4, 3, 4]], ['breakwater', [8, 1.5, 2]],
   ] satisfies [ConstructionPrimitive['kind'], Vec3][]).map(([kind, size]): HullShape => ({
     id: kind, kind, name: CONSTRUCTION_SHAPE_NAMES[kind], size,
-    note: `${size.join(' × ')} m${EDITABLE_SHAPES.has(kind) ? ' · freeform (D)' : ''}${kind === 'hemisphere' ? ' · dome' : ''}${kind === 'ballast' ? ' · 100 t fixed load + casing' : kind.includes('shell') ? ' · open underneath' : kind.includes('bridge') ? ' · open windows' : ''}`,
+    note: [EDITABLE_SHAPES.has(kind) ? 'freeform (D)' : '', kind === 'hemisphere' ? 'dome' : '', kind === 'ballast' ? '100 t fixed load + casing' : kind.includes('shell') ? 'open underneath' : kind.includes('bridge') ? 'open windows' : ''].filter(Boolean).join(' · '),
   })),
 ];
 
@@ -106,12 +106,13 @@ export const thicknessSlotId = (mm: number) => `mm-${mm}`;
 /** Nine keyed slots plus the drawer, which lists everything the layer can place. The Armor layer's cards are the
  * editable millimetre value, every thickness the ship already uses (thickest first) and the opening. A fitting
  * filter narrows Fittings to one shelf and nation; `all` stays the whole layer, for the drawer's search. */
-export function paletteFor(layer: BuilderLayer, catalog: ConstructionCatalog, thicknesses: readonly number[] = [], fittings?: FittingFilter): { bar: SlotItem[]; drawer: SlotItem[]; all?: SlotItem[] } {
+export function paletteFor(layer: BuilderLayer, catalog: ConstructionCatalog, thicknesses: readonly number[] = [], fittings?: FittingFilter, hullCategory: HullCategory = 'all'): { bar: SlotItem[]; drawer: SlotItem[]; all?: SlotItem[] } {
   const pad = (items: SlotItem[]): SlotItem[] => [...items.slice(0, HOTBAR_SIZE), ...Array.from({ length: Math.max(0, HOTBAR_SIZE - items.length) }, (_, index): SlotItem => ({ kind: 'empty', id: `empty-${index}`, name: '', note: '' }))];
   switch (layer) {
     case 'hull': {
       const shapes = HULL_SHAPES.map((shape): SlotItem => ({ kind: 'shape', id: shape.id, name: shape.name, note: shape.note, shape }));
-      return { bar: shapes.slice(0, HOTBAR_SIZE), drawer: shapes };
+      const filtered = hullCategory === 'all' ? shapes : shapes.filter(item => item.kind === 'shape' && HULL_CATEGORY[item.shape.kind] === hullCategory);
+      return { bar: filtered.slice(0, HOTBAR_SIZE), drawer: filtered, all: shapes };
     }
     case 'armor': {
       // The first card is the editor's millimetre field, not a preset; it shows the current value. The values in use follow it, the opening closes the bar.

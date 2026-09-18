@@ -50,6 +50,8 @@ export interface ViewportProps {
   /** Every pointer gesture, with its targets already raycast, snapped and filtered by the scene's targets. */
   onPointer(event: BuilderPointerEvent): void;
   onHover?(id: string | undefined): void;
+  /** Transient freeform bounds; previews never enter source history or compilation. */
+  onFreeformPreview?(primitive: ConstructionPrimitive | undefined): void;
   createModel?: ConstructionModelFactory;
   onMemory?(memory: VisualMemory): void;
 }
@@ -512,6 +514,7 @@ class Viewport {
   }
 
   private previewVertices(replacements?: ConstructionPrimitive[]) {
+    this.props.onFreeformPreview?.(replacements?.find(p => p.id === this.props.scene.freeform?.id));
     release(this.vertexPreview);
     this.vertexPreview.visible=!!replacements;
     if (!replacements) { this.update(this.props); return; }
