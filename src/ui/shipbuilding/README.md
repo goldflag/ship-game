@@ -223,8 +223,9 @@ coordinates, outgoing edge treatments, edge height and wall thickness. Size Y is
 deck thickness. `constructionBalcony.ts` supplies preview geometry and outline
 validation; `construction_balcony.rs` derives the authoritative solid cells,
 surfaces and steel mass. The existing source commands own save, history and copy.
-The panel commits one command per completed point drag and discards interrupted
-drags. New balconies start at 2 × 1 m with solid walls. The outline grid defaults
+The panel commits one command per completed point or edge drag and discards interrupted
+drags; right-clicking an edge inserts a point there. The session ends when its balcony
+stops being the single Hull-layer selection. New balconies start at 2 × 1 m with solid walls. The outline grid defaults
 to 0.25 m, with no grid, 0.125, 0.25, 0.5 and 1 m buttons using the shared grid-spacing group; point editing uses the
 drawing rather than coordinate fields. See [balcony controls](../../../docs/shipbuilding.md#balconies).
 

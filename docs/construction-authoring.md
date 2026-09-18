@@ -166,7 +166,7 @@ Rust remains authoritative for geometry, fit, loading and launch validity.
 Recent editor features are source-authorable through these patches:
 
 - Adjustable hulls: `size`, `customHull.rake`, `bulb`, `redPaintY` and `stations`.
-- Balconies: `balcony.points` with stable IDs and per-edge `open`/`railing`/`wall`,
+- Balconies: `balcony.points` with stable IDs and per-edge `open`/`railing`/`triple-railing`/`wall`,
   plus `heightM` and `wallThicknessM`.
 - Freeform edge treatments: `shaping` with `version: 1`, `edges`, `radius` and
   `style: "round" | "chamfer"` on a `vertex` primitive; `null` restores sharp edges.

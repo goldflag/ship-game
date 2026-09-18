@@ -35,9 +35,9 @@ fn triangles(points: &[ConstructionBalconyPoint]) -> Result<Vec<[usize; 3]>, Str
             || !a.z.is_finite()
             || a.x.abs() > 2.
             || a.z.abs() > 2.
-            || !["open", "wall", "railing"].contains(&a.edge.as_str())
+            || !["open", "wall", "railing", "triple-railing"].contains(&a.edge.as_str())
         {
-            return Err("Balcony points need unique IDs, bounded coordinates and open, wall or railing edges".into());
+            return Err("Balcony points need unique IDs, bounded coordinates and open, wall, railing or triple-railing edges".into());
         }
         if (a.x - b.x).hypot(a.z - b.z) < 1e-6 {
             return Err("Move overlapping balcony points apart".into());
@@ -205,7 +205,7 @@ pub fn build(p: &ConstructionPrimitive) -> Result<VertexSolid, String> {
             }
             cells.push(cg::prism(&outline, b.height_m));
         }
-        if point.edge == "railing" {
+        if point.edge == "railing" || point.edge == "triple-railing" {
             let count = (length / 2.).ceil().clamp(1., 64.) as usize;
             for k in 0..=count {
                 let t = k as f64 / count as f64;
@@ -214,7 +214,12 @@ pub fn build(p: &ConstructionPrimitive) -> Result<VertexSolid, String> {
                     [0.04, b.height_m, 0.04],
                 ));
             }
-            for fraction in [0.5, 1.] {
+            let rails: &[f64] = if point.edge == "railing" {
+                &[0.5, 1.]
+            } else {
+                &[1. / 3., 2. / 3., 1.]
+            };
+            for &fraction in rails {
                 cells.push(beam(
                     [center[0], top + b.height_m * fraction - 0.02, center[2]],
                     [0.04, 0.04, length],
