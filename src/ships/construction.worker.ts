@@ -1,11 +1,12 @@
-import init, { compile_construction, suggest_construction } from '../generated/naval-wasm/naval_wasm';
+import init, { ConstructionCompiler, suggest_construction } from '../generated/naval-wasm/naval_wasm';
 import type { ConstructionSource } from './blueprint';
 import { loadConstructionCatalog } from './constructionEquipment';
 
 const ready = init();
 let catalog: ReturnType<typeof loadConstructionCatalog> | undefined;
 let catalogRevision: string | undefined;
-// Dedicated editor worker: replacing a source terminates synchronous native work.
+let compiler: ConstructionCompiler | undefined;
+// The client sends one request at a time and coalesces superseded revisions.
 self.onmessage = async (event: MessageEvent<{ type: 'compile' | 'suggest'; id: number; source: ConstructionSource; partIds?: string[] }>) => {
   const { id, source } = event.data;
   try {
@@ -17,7 +18,8 @@ self.onmessage = async (event: MessageEvent<{ type: 'compile' | 'suggest'; id: n
       const suggestion = JSON.parse(suggest_construction(JSON.stringify(source), JSON.stringify(parts), JSON.stringify(event.data.partIds ?? [])));
       self.postMessage({ id, sourceId: source.id, revision: source.revision, suggestion });
     } else {
-      const result = JSON.parse(compile_construction(JSON.stringify(source), JSON.stringify(parts)));
+      compiler ??= new ConstructionCompiler();
+      const result = JSON.parse(compiler.compile(JSON.stringify(source), JSON.stringify(parts)));
       self.postMessage({ id, result });
     }
   } catch (error) { self.postMessage({ id, error: error instanceof Error ? error.message : String(error) }); }

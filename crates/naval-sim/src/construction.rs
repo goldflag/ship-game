@@ -1,6 +1,7 @@
 //! Authoritative construction compiler, shared by native tests and local WASM sessions.
 use crate::{catalog::sha256, construction_geometry as cg, definition::*, geometry::*};
 use std::collections::{BTreeMap, BTreeSet};
+use crate::construction_cache::GeometryCache;
 pub const COMPILER: &str = "construction-polyhedra-8";
 pub const MAX_SOURCE_BYTES: usize = 16_000_000;
 pub const MAX_CATALOG_BYTES: usize = 4_000_000;
@@ -62,12 +63,32 @@ fn warn(out: &mut ConstructionResult, code: &str, message: &str) {
 }
 
 pub fn compile_json(source: &str, catalog: &str) -> Result<String, String> {
-    if source.len() > MAX_SOURCE_BYTES || catalog.len() > MAX_CATALOG_BYTES {
-        return Err("Construction input exceeds bounded JSON size".into());
+    ConstructionCompiler::default().compile_json(source, catalog)
+}
+
+/// One editor's bounded geometry cache. Results remain identical to a fresh compiler;
+/// every edit still validates fit, loading and launchability for its exact revision.
+#[derive(Default)]
+pub struct ConstructionCompiler {
+    geometry: GeometryCache,
+    scope: Option<(String, String)>,
+}
+impl ConstructionCompiler {
+    pub fn compile_json(&mut self, source: &str, catalog: &str) -> Result<String, String> {
+        if source.len() > MAX_SOURCE_BYTES || catalog.len() > MAX_CATALOG_BYTES {
+            return Err("Construction input exceeds bounded JSON size".into());
+        }
+        let source: ConstructionSource = serde_json::from_str(source).map_err(|e| e.to_string())?;
+        let catalog: ConstructionCatalog = serde_json::from_str(catalog).map_err(|e| e.to_string())?;
+        to_json(&self.compile(&source, &catalog))
     }
-    let source: ConstructionSource = serde_json::from_str(source).map_err(|e| e.to_string())?;
-    let catalog: ConstructionCatalog = serde_json::from_str(catalog).map_err(|e| e.to_string())?;
-    to_json(&compile(&source, &catalog))
+    pub fn compile(&mut self, source: &ConstructionSource, catalog: &ConstructionCatalog) -> ConstructionResult {
+        let scope = (source.id.clone(), catalog.revision.clone());
+        if self.scope.as_ref() != Some(&scope) { self.geometry = GeometryCache::default(); self.scope = Some(scope); }
+        self.geometry.begin();
+        compile_cached(source, catalog, &mut self.geometry)
+    }
+    pub fn reused_geometry_operations(&self) -> usize { self.geometry.hits }
 }
 pub fn suggest_json(source: &str, catalog: &str, part_ids: &str) -> Result<String, String> {
     if source.len() > MAX_SOURCE_BYTES || catalog.len() > MAX_CATALOG_BYTES || part_ids.len() > 4096
@@ -316,6 +337,9 @@ pub fn to_json(value: &impl serde::Serialize) -> Result<String, String> {
     serde_json::to_string(&value).map_err(|e| e.to_string())
 }
 pub fn compile(source: &ConstructionSource, catalog: &ConstructionCatalog) -> ConstructionResult {
+    ConstructionCompiler::default().compile(source, catalog)
+}
+fn compile_cached(source: &ConstructionSource, catalog: &ConstructionCatalog, cache: &mut GeometryCache) -> ConstructionResult {
     let content_hash = sha256(
         &serde_json::to_vec(&(COMPILER, crate::SIMULATION_BUILD, source, catalog))
             .unwrap_or_default(),
@@ -327,7 +351,7 @@ pub fn compile(source: &ConstructionSource, catalog: &ConstructionCatalog) -> Co
         ..Default::default()
     };
     let mut installation_surfaces = vec![];
-    if let Err(e) = build(source, catalog, &mut out, &mut installation_surfaces) {
+    if let Err(e) = build(source, catalog, &mut out, &mut installation_surfaces, cache) {
         out.definition = None;
         out.diagnostics.push(e);
     }
@@ -541,6 +565,7 @@ fn build(
     catalog: &ConstructionCatalog,
     out: &mut ConstructionResult,
     installation_surfaces: &mut Vec<ConstructionSurface>,
+    cache: &mut GeometryCache,
 ) -> Result<(), ConstructionDiagnostic> {
     validate(source, catalog)?;
     let c = &source.construction;
@@ -621,7 +646,7 @@ fn build(
             Some(&primitives[detached].id),
         ));
     }
-    let cells = cg::union_near(&flat, &cell_neighbors).map_err(fail)?;
+    let cells = cache.union_near(&flat, &cell_neighbors).map_err(fail)?;
     let envelope = cg::total(&cells);
     // Catalog-declared installation wells cross only the supporting exterior deck.
     // Their enclosures seal the penetration; they do not carve nearby side armor.
@@ -741,7 +766,7 @@ fn build(
     // Platforms and their exposed edge members are solid steel, with no invented
     // enclosed room between rails or inside a thick deck. Count overlaps once.
     for (i, p) in primitives.iter().enumerate().filter(|(_, p)| p.kind == "balcony") {
-        let occupied = cg::subtract_all(cg::union(&raw[i].cells).map_err(fail)?, material.iter()).map_err(fail)?;
+        let occupied = cache.subtract_all(cg::union(&raw[i].cells).map_err(fail)?, material.iter()).map_err(fail)?;
         contributions.push(mass(format!("skin-{}-platform", p.id), "skin", &occupied, STEEL_DENSITY));
         for cell in &occupied { material_index.insert(cell); }
         material.extend(occupied);
@@ -755,7 +780,7 @@ fn build(
             .collect();
         let cutters = material_index.candidates(&solid);
         let occupied =
-            cg::subtract_all(clipped, cutters.iter().map(|&k| &material[k])).map_err(fail)?;
+            cache.subtract_all(clipped, cutters.iter().map(|&k| &material[k])).map_err(fail)?;
         if !occupied.is_empty() {
             contributions.push(mass(
                 format!("skin-{}-{i}", s.id),
@@ -801,7 +826,7 @@ fn build(
         for piece in cells.iter().filter_map(|c| cg::intersection(&slab, c)) {
             let cutters = material_index.candidates(&piece);
             occupied.extend(
-                cg::subtract_all(vec![piece], cutters.iter().map(|&k| &material[k]))
+                cache.subtract_all(vec![piece], cutters.iter().map(|&k| &material[k]))
                     .map_err(fail)?,
             );
         }
@@ -826,7 +851,7 @@ fn build(
     for cell in &cells {
         let cutters = material_index.candidates(cell);
         interior.extend(
-            cg::subtract_all(vec![cell.clone()], cutters.iter().map(|&k| &material[k]))
+            cache.subtract_all(vec![cell.clone()], cutters.iter().map(|&k| &material[k]))
                 .map_err(fail)?,
         );
     }
@@ -848,12 +873,12 @@ fn build(
         let mut payload = mass(p.id.clone(), "load", &occupied, 100_000. / cg::total(&occupied).volume);
         payload.mass_kg = 100_000.;
         contributions.push(payload);
-        interior = cg::subtract_all(interior, &envelope).map_err(fail)?;
+        interior = cache.subtract_all(interior, &envelope).map_err(fail)?;
     }
     // Source loads are visible occupied packages, never invisible ballast.
     for l in &c.loads {
         let load = cg::box_cell(l.center, l.size);
-        let remaining = cg::subtract_all(vec![load.clone()], &interior).map_err(fail)?;
+        let remaining = cache.subtract_all(vec![load.clone()], &interior).map_err(fail)?;
         if cg::total(&remaining).volume > 1e-6 {
             return Err(error(
                 "load-fit",
@@ -869,7 +894,7 @@ fn build(
         );
         point.mass_kg = l.mass_kg;
         contributions.push(point);
-        interior = cg::subtract_all(interior, &[load]).map_err(fail)?;
+        interior = cache.subtract_all(interior, &[load]).map_err(fail)?;
     }
     let mut def = ShipDefinition {
         schema_version: 1.,
@@ -899,11 +924,12 @@ fn build(
         &mut def,
         out,
         &mut path_clearance,
+        cache,
     )?;
     for installation in installations {
         let mut backing = cells.clone();
         if let Some(above_deck) = &installation.raised_space { backing.push(above_deck.clone()); }
-        if cg::total(&cg::subtract_all(installation.solids.clone(), &backing).map_err(fail)?).volume
+        if cg::total(&cache.subtract_all(installation.solids.clone(), &backing).map_err(fail)?).volume
             > 1e-6
         {
             return Err(error(
@@ -931,7 +957,7 @@ fn build(
                 });
             }
         }
-        let occupied = cg::subtract_all(installation.solids, &material).map_err(fail)?;
+        let occupied = cache.subtract_all(installation.solids, &material).map_err(fail)?;
         material_volume += cg::total(&occupied).volume;
         contributions.push(mass(
             format!("{}-installation", installation.id),
@@ -1024,7 +1050,8 @@ fn build(
             ..Default::default()
         });
     }
-    assign_rooms(&mut def)?;
+    let room_lookup = RoomLookup::new(&def.compartments);
+    assign_rooms(&mut def, &room_lookup)?;
     if let Some(diagnostic) = crate::construction_services::install(&mut def, catalog) {
         out.diagnostics.push(diagnostic);
     }
@@ -1056,7 +1083,7 @@ fn build(
             polygon.iter().copied().fold([0.; 3], add),
             1. / polygon.len() as f64,
         );
-        if let Some(room) = nearest_room(&def, sub(position, [0., 0.05, 0.])) {
+        if let Some(room) = room_lookup.nearest(&def.compartments, sub(position, [0., 0.05, 0.])) {
             let opening = ConstructionOpening {
                 id: format!("well-{id}"),
                 compartment_id: room.id.clone(),
@@ -1469,18 +1496,42 @@ fn connected_spaces(mut cells: Vec<cg::Cell>) -> Vec<Vec<cg::Cell>> {
     }
     groups
 }
-fn nearest_room(def: &ShipDefinition, p: Vec3) -> Option<&Compartment> {
-    def.compartments
-        .iter()
-        .min_by(|a, b| cg::room_distance(a, p).total_cmp(&cg::room_distance(b, p)))
+struct RoomLookup(Vec<Vec<(Vec3, Vec3)>>);
+impl RoomLookup {
+    fn new(rooms: &[Compartment]) -> Self {
+        Self(rooms.iter().map(|room| room.volumes.iter().flatten().map(cg::bounds).collect()).collect())
+    }
+    fn nearest<'a>(&self, rooms: &'a [Compartment], p: Vec3) -> Option<&'a Compartment> {
+        // AABB distance is a lower bound on distance to the exact cell. Keep
+        // source order and exact closest-point distances for all possible winners.
+        let lower = |(center, size): (Vec3, Vec3)| length(std::array::from_fn(|i|
+            ((p[i] - center[i]).abs() - size[i] * 0.5 - 1e-7).max(0.)));
+        let mut best = None;
+        let mut distance = f64::INFINITY;
+        for (room, bounds) in rooms.iter().zip(&self.0) {
+            if lower((room.center, room.size)) > distance { continue; }
+            if let Some(cells) = &room.volumes {
+                for (cell, &bounds) in cells.iter().zip(bounds) {
+                    if lower(bounds) > distance { continue; }
+                    let d = length(sub(p, cg::closest_point(cell, p)));
+                    if best.is_none() || d < distance { distance = d; best = Some(room); }
+                    if distance == 0. { return best; }
+                }
+            } else {
+                let d = cg::room_distance(room, p);
+                if best.is_none() || d < distance { distance = d; best = Some(room); }
+            }
+        }
+        best
+    }
 }
-fn assign_rooms(def: &mut ShipDefinition) -> Result<(), ConstructionDiagnostic> {
+fn assign_rooms(def: &mut ShipDefinition, lookup: &RoomLookup) -> Result<(), ConstructionDiagnostic> {
     for i in 0..def.modules.len() {
         if def.modules[i].placement.as_deref() == Some("fixed") {
             continue;
         }
         let p = def.modules[i].center;
-        let Some(room) = nearest_room(def, p) else {
+        let Some(room) = lookup.nearest(&def.compartments, p) else {
             return Err(error(
                 "module-room",
                 "No floodable interior for equipment",
@@ -1502,6 +1553,7 @@ fn equipment(
     def: &mut ShipDefinition,
     out: &mut ConstructionResult,
     path_clearance: &mut Vec<MountClearanceProfileBodiesItem>,
+    cache: &mut GeometryCache,
 ) -> Result<(), ConstructionDiagnostic> {
     if catalog.equipment.len() > 256
         || !unique(catalog.equipment.iter().map(|p| p.id.as_str()))
@@ -1782,7 +1834,7 @@ fn equipment(
         }
         let occupied = cg::union(&occupied).map_err(|x| error("equipment-fit", x, Some(&e.id)))?;
         if !occupied.is_empty() {
-            let outside = cg::subtract_all(occupied.clone(), interior.iter())
+            let outside = cache.subtract_all(occupied.clone(), interior.iter())
                 .map_err(|x| error("equipment-fit", x, Some(&e.id)))?;
             if cg::total(&outside).volume > 1e-5 {
                 return Err(error(
@@ -1795,7 +1847,7 @@ fn equipment(
                     Some(&e.id),
                 ));
             }
-            *interior = cg::subtract_all(interior.clone(), &occupied)
+            *interior = cache.subtract_all(interior.clone(), &occupied)
                 .map_err(|x| error("equipment-fit", x, Some(&e.id)))?;
         }
         // Check the explicit original attachment socket (or the package's base datum).
@@ -2402,6 +2454,45 @@ fn resolve_magazine<'a>(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn incremental_revisions_match_fresh_compilation_including_invalid_edits() {
+        let (base, mut catalog) = fixture();
+        let mut compiler = ConstructionCompiler::default();
+        let mut source = base.clone();
+        compiler.compile(&source, &catalog);
+        for edit in 0..9 {
+            source.revision = format!("edit-{edit}");
+            match edit {
+                0 => { let mut block = source.construction.primitives[0].clone(); block.id = "deck-block".into(); block.size = [2.; 3]; block.position = [0., 3., 0.]; source.construction.primitives.push(block); }
+                1 => source.construction.primitives[1].size[0] = 3.,
+                2 => source.construction.primitives[1].position[0] = 100., // Detached invalid draft.
+                3 => { source.construction.primitives.pop(); }
+                4 => source.construction.default_thickness_mm = 40.,
+                5 => source.construction.surfaces.push(serde_json::from_value(serde_json::json!({"primitiveId":"box","face":"top","open":true,"paint":"sea-blue","material":"steel","thicknessMm":40})).unwrap()),
+                6 => source.construction.boundaries.push(ConstructionBoundary { id: "deck".into(), axis: "y".into(), offset: 0., thickness_mm: 20. }),
+                7 => { catalog.revision = "changed".into(); source.construction.catalog_revision = catalog.revision.clone(); }
+                _ => { source = base.clone(); source.id = "other-design".into(); }
+            }
+            let actual = compiler.compile(&source, &catalog);
+            let fresh = compile(&source, &catalog);
+            assert_eq!(to_json(&actual).unwrap(), to_json(&fresh).unwrap(), "edit {edit}");
+            if edit == 1 { assert!(compiler.reused_geometry_operations() > 0); }
+        }
+    }
+    #[test]
+    fn room_lookup_matches_full_exact_distance_with_ties_and_concavities() {
+        let rooms: Vec<_> = (0..4).map(|i| {
+            let cells = vec![cg::box_cell([i as f64 * 6., 0., -2.], [2., 4., 8.]), cg::box_cell([i as f64 * 6. + 1., 0., 3.], [4., 4., 2.])];
+            let (center, size) = crate::structure::bounds(cells.iter().flat_map(|c| c.faces.iter().flat_map(|f| f.vertices.iter().copied())));
+            Compartment { id: format!("room-{i}"), center, size, volumes: Some(cells), ..Default::default() }
+        }).collect();
+        let lookup = RoomLookup::new(&rooms);
+        for x in -4..26 { for z in -8..9 {
+            let p = [x as f64, 0., z as f64];
+            let expected = rooms.iter().min_by(|a,b| cg::room_distance(a,p).total_cmp(&cg::room_distance(b,p))).unwrap();
+            assert_eq!(lookup.nearest(&rooms, p).unwrap().id, expected.id, "{p:?}");
+        } }
+    }
     pub fn fixture() -> (ConstructionSource, ConstructionCatalog) {
         (
             ConstructionSource {

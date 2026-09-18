@@ -41,6 +41,7 @@ test('the current result exists only for the exact revision; an edit hides it wh
   design.edit('r2');
   expect(revision.getSnapshot().current).toBeUndefined();
   expect(revision.getSnapshot().retained?.revision).toBe('r1');
+  expect(revision.getSnapshot().retainedSource?.revision).toBe('r1');
   expect(revision.getSnapshot().compiling).toBe(true);
   await tick();
   expect(revision.getSnapshot().current?.revision).toBe('r2');
@@ -124,6 +125,71 @@ test('rapid edits within the debounce compile once, for the last revision', asyn
   design.edit('r2'); design.edit('r3');
   await new Promise(resolve => setTimeout(resolve, 60));
   expect(compiled).toEqual(['r3']);
+  expect(revision.getSnapshot().current?.revision).toBe('r3');
+  revision.dispose();
+});
+
+test('normal consecutive placements wait for a full pause and compile only the final revision', async () => {
+  const design = owner(), { client, compiled } = compiler();
+  const revision = new CompiledRevision(design, client);
+  try {
+    await new Promise(resolve => setTimeout(resolve, 60));
+    expect(compiled).toEqual(['r1']);
+    expect(revision.getSnapshot().waiting).toBe(false);
+    for (let i = 2; i <= 7; i++) {
+      design.edit(`r${i}`);
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    expect(compiled).toEqual(['r1']);
+    expect(revision.getSnapshot().current).toBeUndefined();
+    expect(revision.getSnapshot().waiting).toBe(true);
+    expect(revision.getSnapshot().retained?.revision).toBe('r1');
+    await new Promise(resolve => setTimeout(resolve, 800));
+    expect(compiled).toEqual(['r1']);
+    await new Promise(resolve => setTimeout(resolve, 200));
+    expect(compiled).toEqual(['r1', 'r7']);
+    expect(revision.getSnapshot().current?.revision).toBe('r7');
+    expect(revision.getSnapshot().waiting).toBe(false);
+  } finally { revision.dispose(); }
+});
+
+test('opening another design and explicit retry bypass the edit pause; disposal cancels a pending edit', async () => {
+  const design = owner(), { client, compiled } = compiler();
+  const revision = new CompiledRevision(design, client, 100);
+  await tick();
+  expect(compiled).toEqual(['r1']);
+  design.edit('r2');
+  expect(revision.getSnapshot().waiting).toBe(true);
+  revision.retry(); await tick();
+  expect(compiled).toEqual(['r1', 'r2']);
+  design.edit('r3');
+  design.adopt(source('other', 'x1'));
+  expect(revision.getSnapshot().retainedSource).toBeUndefined();
+  expect(revision.getSnapshot().waiting).toBe(false);
+  await tick();
+  expect(revision.getSnapshot().current?.sourceId).toBe('other');
+  design.edit('x2'); revision.dispose();
+  await new Promise(resolve => setTimeout(resolve, 150));
+  expect(compiled).toEqual(['r1', 'r2', 'x1']);
+});
+
+test('editing during a running compile aborts its caller and waits again before submitting the latest source', async () => {
+  const design = owner(), pending = deferred<ConstructionResult>();
+  const calls: { revision: string; signal?: AbortSignal }[] = [];
+  const revision = new CompiledRevision(design, {
+    compile: (s, signal) => { calls.push({ revision: s.revision, signal }); return s.revision === 'r1' ? pending.promise : Promise.resolve(result(s.id, s.revision)); },
+    dispose() {},
+  }, 100);
+  await tick();
+  design.edit('r2');
+  expect(calls[0].signal?.aborted).toBe(true);
+  pending.resolve(result('design', 'r1')); await tick();
+  expect(revision.getSnapshot().current).toBeUndefined();
+  expect(revision.getSnapshot().waiting).toBe(true);
+  design.edit('r3'); await tick();
+  expect(calls.map(call => call.revision)).toEqual(['r1']);
+  await new Promise(resolve => setTimeout(resolve, 150));
+  expect(calls.map(call => call.revision)).toEqual(['r1', 'r3']);
   expect(revision.getSnapshot().current?.revision).toBe('r3');
   revision.dispose();
 });

@@ -39,7 +39,7 @@ export function useBuilderSource({ starterSource, initialSource, initialDesignId
     onSave: saved => onSaveRef.current?.(saved),
     savedDesignId: id => savedReference(id)?.designId,
   }));
-  const [compiled] = useState(() => new CompiledRevision(owner, compiler, 40, compiledLocalShip));
+  const [compiled] = useState(() => new CompiledRevision(owner, compiler, undefined, compiledLocalShip));
   const catalogRef = useRef(initialCatalog);
   const [tool] = useState(() => new BuilderTool(owner, {
     catalog: () => catalogRef.current,
