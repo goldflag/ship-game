@@ -11,6 +11,7 @@ import { disposeConstructionModel } from '../../game/constructionModel';
 import { EquipmentPreview } from './equipmentPreview';
 import { appendPathPoint, pathAnchor, pathEquipment } from './pathDrawing';
 import { formatTonnes, paletteFor } from './builderLayers';
+import publishedCatalog from '../../../public/models/components/catalog.json';
 
 const fitting = (kind: 'railing' | 'rope' | 'chain'): ConstructionEquipmentPart => ({ id: kind, name: `${kind} fitting`, kind: 'deck-fitting', placement: 'deck', size: [.2, 1.1, 4], boundsCenter: [0, .55, -2], centerOfGravity: [0, .55, -2], massKg: 2, modelUrl: '/models/components/test.glb', contentHash: 'test', path: { kind, diameterM: kind === 'chain' ? .035 : .04, heightM: 1.1, postSpacingM: 1.5, massKgPerM: 3, postMassKg: 2 } });
 const catalog: ConstructionCatalog = { schemaVersion: 1, revision: 'path-test', weapons: { schemaVersion: 1, parts: [] }, equipment: ['railing', 'rope', 'chain'].map(kind => fitting(kind as 'rope')) };
@@ -77,18 +78,17 @@ test('hull anchors keep support plane and explicit fitting sockets use their tra
   expect(pathAnchor(fitting('railing'), source, catalog, { ...hull, id: item.id }, .25)).toBeUndefined();
 });
 
-test('path rendering uses bounded instancing and actual bounds, with three rails and foot plates', () => {
+test('path rendering uses bounded instancing and actual bounds, with square bars and no foot plates', () => {
   const rail = createConstructionPathModel(fitting('railing'), { points: [[0, 0, 0], [0, 0, -4], [4, 0, -4]] });
   try {
-    expect(rail.children).toHaveLength(3);
-    expect((rail.children[0] as THREE.InstancedMesh).count).toBe(7);
-    expect((rail.children[2] as THREE.InstancedMesh).count).toBe(7);
+    expect(rail.children).toHaveLength(1);
+    expect((rail.children[0] as THREE.InstancedMesh).count).toBe(13);
+    expect((rail.children[0] as THREE.Mesh).geometry).toBeInstanceOf(THREE.BoxGeometry);
     const bounds = new THREE.Box3().setFromObject(rail);
-    expect(bounds.min.y).toBeCloseTo(0); expect(bounds.max.y).toBeGreaterThan(1.1);
+    expect(bounds.min.y).toBeCloseTo(0); expect(bounds.max.y).toBeCloseTo(1.1);
     const sourceBounds = equipmentPathBounds(fitting('railing'), { path: { points: [[0, 0, 0], [0, 0, -4], [4, 0, -4]] } });
     const selection = new THREE.Box3().setFromCenterAndSize(new THREE.Vector3(...sourceBounds.center), new THREE.Vector3(...sourceBounds.size)).expandByScalar(1e-6);
-    // Inspect actual instanced vertices, including the wide foot plates and
-    // thicker posts, rather than only the nominal route centerline.
+    // The selection encloses every square bar, including corner posts.
     for (const child of rail.children as THREE.InstancedMesh[]) {
       const positions = child.geometry.getAttribute('position'), matrix = new THREE.Matrix4();
       for (let i = 0; i < (child instanceof THREE.InstancedMesh ? child.count : 1); i++) {
@@ -96,8 +96,8 @@ test('path rendering uses bounded instancing and actual bounds, with three rails
         for (let v = 0; v < positions.count; v++) expect(selection.containsPoint(new THREE.Vector3().fromBufferAttribute(positions, v).applyMatrix4(matrix))).toBe(true);
       }
     }
-    expect(sourceBounds.size[0]).toBeCloseTo(4.12);
-    expect(sourceBounds.size[2]).toBeCloseTo(4.12);
+    expect(sourceBounds.size[0]).toBeCloseTo(4 + .04 * Math.SQRT2);
+    expect(sourceBounds.size[2]).toBeCloseTo(4 + .04 * Math.SQRT2);
   } finally { disposeConstructionModel(rail); }
   const chain = createConstructionPathModel(fitting('chain'), { points: [[0, 1, 0], [0, 1, -500]] });
   try { expect(chain.children).toHaveLength(1); expect((chain.children[0] as THREE.InstancedMesh).count).toBeLessThan(5000); } finally { disposeConstructionModel(chain); }
@@ -133,13 +133,33 @@ test('two-rail height is reflected in mesh, picking bounds and saved copies', ()
   const part = fitting('railing'), path = { points: [[0, 0, 0], [0, 0, -4]] as Vec3[], heightM: 1.8, railCount: 2 as const };
   const model = createConstructionPathModel(part, path);
   const bounds = new THREE.Box3().setFromObject(model);
-  expect(bounds.max.y).toBeCloseTo(1.82, 2);
-  expect(equipmentPathBounds(part, { path }).size[1]).toBeCloseTo(1.84);
-  expect((model.children[1] as THREE.Mesh).geometry.index!.count / 3).toBe(40);
+  expect(bounds.max.y).toBeCloseTo(1.8, 6);
+  expect(equipmentPathBounds(part, { path }).size[1]).toBeCloseTo(1.8 + .04 * Math.SQRT2);
+  expect((model.children[0] as THREE.InstancedMesh).count).toBe(6);
   const source = createStarterSource(catalog, 'blank');
   const item = { ...pathEquipment('railing', part.id, path.points), path };
   source.construction.equipment.push(item);
   expect(decodeConstructionSource(JSON.parse(JSON.stringify(source))).construction.equipment[0].path).toEqual(path);
   expect(mirroredEquipment(item).path).toMatchObject({ heightM: 1.8, railCount: 2 });
   disposeConstructionModel(model);
+});
+
+test('separate published railing fittings render their own count without path overrides', () => {
+  const catalog = publishedCatalog as ConstructionCatalog;
+  const shelf = paletteFor('fittings', catalog).drawer;
+  for (const [id, rails] of [['generic-railing-two-rail', 2], ['generic-railing', 3]] as const) {
+    const part = catalog.equipment.find(part => part.id === id)!;
+    expect(shelf.some(slot => slot.id === id)).toBe(true);
+    const model = createConstructionPathModel(part);
+    try {
+      // The four-metre sample matches the balcony's 40 mm bars and 2 m post spacing.
+      const bars = model.children[0] as THREE.InstancedMesh;
+      expect(model.children).toHaveLength(1);
+      expect(bars.count).toBe(3 + rails);
+      expect(bars.geometry).toBeInstanceOf(THREE.BoxGeometry);
+      const bounds = new THREE.Box3().setFromObject(model);
+      expect(bounds.max.y).toBeCloseTo(1.1);
+      expect(bounds.max.x - bounds.min.x).toBeCloseTo(.04);
+    } finally { disposeConstructionModel(model); }
+  }
 });

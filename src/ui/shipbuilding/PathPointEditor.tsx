@@ -15,7 +15,7 @@ export function PathPointEditor({ item, part, onChange }: { item: ConstructionEq
     onChange({ ...path, points }); setChosen(after + 1);
   };
   return <div className="sb-path-editor">
-    {part.path.kind === 'railing' && <RailingFields {...railingSettings(part, path)} onHeight={heightM => onChange({ ...path, heightM })} onRails={railCount => onChange({ ...path, railCount })}/>}
+    {part.path.kind === 'railing' && <RailingFields {...railingSettings(part, path)} onHeight={heightM => onChange({ ...path, heightM })}/>}
     <label>Point <select aria-label="Path point" className="sb-link" value={index} onChange={event => setChosen(Number(event.target.value))}>{path.points.map((_, i) => <option key={i} value={i}>{i + 1} of {path.points.length}</option>)}</select></label>
     <span><button disabled={path.points.length >= 64} onClick={insert}>Insert point</button><button disabled={path.points.length <= 2} onClick={() => onChange({ ...path, points: path.points.filter((_, i) => i !== index) })}>Remove point</button></span>
     {part.path.kind === 'rope' && <NumberField label="Rope slack" value={path.slackM ?? 0} min={0} max={pathSlackLimit(path.points)} step={.05} unit="m" onChange={slackM => onChange({ ...path, slackM })}/>}

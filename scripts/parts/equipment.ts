@@ -37,6 +37,7 @@ export async function readEquipment(root: string) {
       if (p.kind !== 'deck-fitting' || p.placement !== 'deck' || !['railing','rope','chain','ladder'].includes(profile.kind)
         || !Number.isFinite(profile.diameterM) || profile.diameterM <= 0 || profile.diameterM > .5
         || !Number.isFinite(profile.massKgPerM) || profile.massKgPerM <= 0 || profile.massKgPerM > 1000
+        || profile.railCount !== undefined && (profile.kind !== 'railing' || ![2, 3].includes(profile.railCount))
         || (profile.kind === 'railing' && (!Number.isFinite(profile.heightM) || profile.heightM! <= 0 || profile.heightM! > 3
           || !Number.isFinite(profile.postSpacingM) || profile.postSpacingM! < .25 || profile.postSpacingM! > 3
           || !Number.isFinite(profile.postMassKg) || profile.postMassKg! <= 0))) throw new Error(`Invalid path profile: ${p.id}`);

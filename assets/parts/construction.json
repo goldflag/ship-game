@@ -1468,13 +1468,13 @@
       "name": "Three-rail railing",
       "kind": "deck-fitting",
       "size": [
-        0.12,
-        1.12,
-        4.12
+        0.04,
+        1.1,
+        4.04
       ],
       "boundsCenter": [
         0,
-        0.56,
+        0.55,
         -2
       ],
       "centerOfGravity": [
@@ -1504,9 +1504,57 @@
         "kind": "railing",
         "diameterM": 0.04,
         "heightM": 1.1,
-        "postSpacingM": 1.5,
+        "postSpacingM": 2,
         "massKgPerM": 8.4,
-        "postMassKg": 7
+        "postMassKg": 7,
+        "railCount": 3
+      }
+    },
+    {
+      "id": "generic-railing-two-rail",
+      "name": "Two-rail railing",
+      "kind": "deck-fitting",
+      "size": [
+        0.04,
+        1.1,
+        4.04
+      ],
+      "boundsCenter": [
+        0,
+        0.55,
+        -2
+      ],
+      "centerOfGravity": [
+        0,
+        0.65,
+        -2
+      ],
+      "massKg": 1,
+      "placement": "deck",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ],
+      "path": {
+        "kind": "railing",
+        "diameterM": 0.04,
+        "heightM": 1.1,
+        "postSpacingM": 2,
+        "massKgPerM": 5.6,
+        "postMassKg": 7,
+        "railCount": 2
       }
     },
     {

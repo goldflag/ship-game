@@ -230,12 +230,14 @@ pub(crate) fn compile(
     } else if railing {
         let original_height = profile.height_m.unwrap_or(1.1);
         let height = source.height_m.unwrap_or(original_height);
-        let rail_count = source.rail_count.unwrap_or(3.);
+        let original_rails = profile.rail_count.unwrap_or(3.);
+        let rail_count = source.rail_count.unwrap_or(original_rails);
         let spacing = profile.post_spacing_m.unwrap_or(1.5);
         let post_mass = profile.post_mass_kg.unwrap_or(0.);
         if !height.is_finite()
             || !original_height.is_finite() || !(0.3..=3.).contains(&original_height)
             || ![2., 3.].contains(&rail_count)
+            || ![2., 3.].contains(&original_rails)
             || !(0.3..=3.).contains(&height)
             || !spacing.is_finite()
             || !(0.25..=3.).contains(&spacing)
@@ -249,12 +251,12 @@ pub(crate) fn compile(
         }
         for (span, &len) in points.windows(2).zip(&lengths) {
             for level in 1..=rail_count as usize {
-                let y = height * level as f64 / rail_count;
+                let y = height * level as f64 / rail_count - radius;
                 members.push(Member {
                     a: add(span[0], [0., y, 0.]),
                     b: add(span[1], [0., y, 0.]),
                     radius,
-                    mass_kg: len * profile.mass_kg_per_m / 3.,
+                    mass_kg: len * profile.mass_kg_per_m / original_rails,
                 });
             }
             let intervals = (len / spacing).ceil() as usize;
@@ -270,13 +272,14 @@ pub(crate) fn compile(
                 members.push(Member {
                     a: foot,
                     b: add(foot, [0., height, 0.]),
-                    radius: radius * 1.25,
+                    radius,
                     mass_kg: post_mass * height / original_height,
                 });
             }
         }
     } else {
         if profile.height_m.is_some()
+            || profile.rail_count.is_some()
             || profile.post_spacing_m.is_some()
             || profile.post_mass_kg.is_some()
         {

@@ -219,7 +219,7 @@ fn railing_counts_real_posts_and_keeps_empty_route_space_free() {
     let m = contribution(&d, "railing-route");
     // Each eight-metre leg has six spans/seven posts; the corner post is shared.
     assert!((m.mass_kg - (2. + 16. * 8.4 + 13. * 6.)).abs() < 1e-7);
-    let expected_y = 2. + (16. * 8.4 * (1.1 * 2. / 3.) + 13. * 6. * 0.55) / m.mass_kg;
+    let expected_y = 2. + (16. * 8.4 * (1.1 * 2. / 3. - 0.02) + 13. * 6. * 0.55) / m.mass_kg;
     assert!((m.center[1] - expected_y).abs() < 1e-7);
     assert!(m.inertia_kg_m2.iter().all(|i| *i > 0.));
     assert!(!d.obstructions.iter().any(|v| v.id == "railing-route"));
@@ -606,6 +606,25 @@ fn railing_options_change_loading_and_allow_small_contacts() {
     compiled(&s, &c); // Independent of source order.
     c.equipment.last_mut().unwrap().size = [4., 2., 2.];
     c.equipment.last_mut().unwrap().bounds_center[1] = 1.;
+    rejected(&s, &c, "equipment-path");
+}
+
+#[test]
+fn catalog_rail_count_sets_loading_without_an_instance_override() {
+    let (mut s, mut c) = fixture();
+    let mut part = route_part("railing");
+    let profile = part.path.as_mut().unwrap();
+    profile.rail_count = Some(2.);
+    profile.mass_kg_per_m = 5.6;
+    c.equipment.push(part);
+    s.construction.equipment.push(route("railing", vec![[-4., 2., 0.], [4., 2., 0.]], 0.));
+    let two = compiled(&s, &c);
+    assert!((contribution(&two, "railing-route").mass_kg - (2. + 8. * 5.6 + 7. * 6.)).abs() < 1e-7);
+    // Older saved paths keep their explicit count when loaded with a catalog.
+    s.construction.equipment[0].path.as_mut().unwrap().rail_count = Some(3.);
+    let three = compiled(&s, &c);
+    assert!((contribution(&three, "railing-route").mass_kg - (2. + 8. * 8.4 + 7. * 6.)).abs() < 1e-7);
+    c.equipment.last_mut().unwrap().path.as_mut().unwrap().rail_count = Some(4.);
     rejected(&s, &c, "equipment-path");
 }
 

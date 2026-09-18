@@ -17,7 +17,7 @@ contribute their catalog mass without adding buoyancy or a combat bonus. The
 sole or rear mounting brackets define each attachment datum. Explicit rigging
 sockets identify real rope/chain attachment locations on supported fittings.
 
-Railing, rope and chain catalog entries describe connected paths. Their original
+Two-rail and three-rail railings, rope and chain catalog entries describe connected paths. Their original
 four-metre standalone samples are in `path_fittings.py`; the editor and runtime
 render routes procedurally from the versioned local points and catalog profile.
 Bearing and translation act on the complete route. Rope/chain slack is the
@@ -27,8 +27,10 @@ than the declared spacing, with shared corner posts counted once. Native
 construction owns support, hull clearance, length, mass, CG and inertia.
 
 The 45 mm rope is estimated at 1.2 kg/m; the 35 mm chain wire profile at 22 kg/m.
-The 1.1 m three-rail profile uses 40 mm rails, at most 1.5 m post spacing,
-8.4 kg/m of rail and 7 kg per post. Fixed end hardware allowances remain separate
+Both 1.1 m railing profiles use the balcony’s plain 40 mm square bars, at most
+2 m post spacing, and no footplates or bolts. The three-rail profile declares
+8.4 kg/m of route rails; the separate two-rail profile declares 5.6 kg/m. Both
+use 7 kg per post. Saved per-route rail-count overrides remain supported. Fixed end hardware allowances remain separate
 catalog values. These are loading approximations, not rated working loads or
 certified scantlings. Paths are limited to 64 points and 500 m overall; slack is
 bounded by half the shortest span and 20 m. Preview samples are not independent
@@ -302,7 +304,7 @@ they do not cut openings or add ventilation simulation.
 
 `generic-surface-ladder` replaces `generic-vertical-ladder` in the editor
 palette. The old catalog entry, original builder and immutable publications remain for
-existing designs and historical recipes. Drag from the first rung to the last
+existing designs and historical recipes. Click the first and last rung
 on a closed hull side. The versioned `ladder` path profile declares width,
 standoff, rod diameter and maximum rung spacing. The original
 `ladder_geometry.ts` recipe makes independent U-shaped rungs with no side rails;
