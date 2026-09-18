@@ -40,6 +40,8 @@ The browser shares immutable decoded records; Rust deserializes directly from th
 DAG into the generated definition types without an intermediate JSON value tree.
 Readers reject unknown versions, nonfinite numbers, forward references, invalid
 schemas, excessive nesting, truncation and trailing data.
+Typed `u32` fields, including construction wall-fitting versions, accept only
+exact in-range integers from the numeric nodes; fractional values never truncate.
 
 The runtime projection removes construction primitives, face assignments,
 boundaries, loads and non-equipment mass-contribution diagnostics. Gameplay

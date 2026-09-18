@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "files": [
+    "assets/parts/aa_articulation.py",
+    "assets/parts/construction-library.json",
+    "assets/parts/construction.json",
+    "assets/parts/construction/deck_fittings.py",
+    "assets/parts/construction/geometry.py",
+    "assets/parts/construction/library.py",
+    "assets/parts/construction/machinery.py",
+    "assets/parts/construction/path_fittings.py",
+    "assets/parts/construction/windows.py",
+    "assets/parts/deck-gear/forecastle.py",
+    "assets/parts/deck-gear/topside.py",
+    "assets/parts/library.json",
+    "assets/parts/library.py",
+    "assets/parts/materials.json",
+    "assets/parts/materials.py",
+    "assets/parts/ship-boats/geometry.py",
+    "assets/parts/us-5in38-mk32-mod12/geometry.py",
+    "assets/parts/us-iowa-mounts/geometry.py",
+    "assets/parts/us-main-guns/geometry.py",
+    "assets/parts/us-superstructure/geometry.py",
+    "assets/ships/appearance/finishes.json"
+  ]
+}

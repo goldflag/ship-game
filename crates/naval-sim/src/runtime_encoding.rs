@@ -39,6 +39,15 @@ impl<'de,'g> de::Deserializer<'de> for Node<'g,'de>{type Error=Error;
  fn deserialize_option<V:Visitor<'de>>(self,v:V)->Result<V::Value,Error>{if self.graph.bytes[self.graph.offsets[self.id]]==0{v.visit_none()}else{v.visit_some(self)}}
  fn deserialize_enum<V:Visitor<'de>>(self,_:&'static str,_:&'static[&'static str],v:V)->Result<V::Value,Error>{v.visit_enum(self.graph.string(self.id)?.into_deserializer())}
  fn deserialize_newtype_struct<V:Visitor<'de>>(self,_:&'static str,v:V)->Result<V::Value,Error>{v.visit_newtype_struct(self)}
- serde::forward_to_deserialize_any!{bool i8 i16 i32 i64 u8 u16 u32 u64 f32 f64 char str string bytes byte_buf unit unit_struct seq tuple tuple_struct map struct identifier ignored_any}
+ fn deserialize_u32<V:Visitor<'de>>(self,v:V)->Result<V::Value,Error>{
+  let at=self.graph.offsets[self.id];
+  if self.graph.bytes[at]!=3{return self.deserialize_any(v)}
+  let n=f64::from_le_bytes(self.graph.bytes[at+1..at+9].try_into().unwrap());
+  // NSD numbers are doubles, including typed construction wall versions.
+  // Convert only exact in-range integers; preserve f64 fields unchanged.
+  if n.fract()!=0. || n<0. || n>u32::MAX as f64{return Err(invalid("Runtime number is not an exact u32"))}
+  v.visit_u32(n as u32)
+ }
+ serde::forward_to_deserialize_any!{bool i8 i16 i32 i64 u8 u16 u64 f32 f64 char str string bytes byte_buf unit unit_struct seq tuple tuple_struct map struct identifier ignored_any}
 }
 pub fn decode<T:for<'a>Deserialize<'a>>(bytes:&[u8])->Result<T,String>{let (graph,id)=Graph::read(bytes).map_err(|e|e.to_string())?;T::deserialize(Node{graph:&graph,id}).map_err(|e|e.to_string())}
