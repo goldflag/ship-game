@@ -151,12 +151,33 @@ export function invalidReason(h: Hull): string | undefined {
   }
   if (h.region.start >= h.region.end || h.region.low >= h.region.high) return 'A surface region needs its start before its end, and its lower edge below its upper edge.';
 }
-export function influence(h: Hull, selected: string[], t: number, soft: boolean): number {
+/** Blend reach as a fraction of hull length. At 0.2 an eight-section starter's
+ * neighbours followed only 1–4 % of an edit, so blending starts wider. */
+export const BLEND_REACH = { initial: .35, min: .08, max: .6 };
+export function influence(h: Hull, selected: string[], t: number, soft: boolean, reach = BLEND_REACH.initial): number {
   const chosen = h.stations.filter(s => selected.includes(s.id));
   if (chosen.some(s => Math.abs(s.t - t) < .00001)) return 1;
   if (!soft || !chosen.length) return 0;
   const distance = Math.min(...chosen.map(s => Math.abs(s.t - t)));
-  return Math.max(0, 1 - distance / .2) ** 2;
+  return Math.max(0, 1 - distance / reach) ** 2;
+}
+/** Section outline in hull metres: x out to starboard, y up from the hull origin. */
+export const sectionMetres = (h: Hull, s: Station): Point[] => displayPoints(h, s).map(p => ({ ...p, x: p.x * h.beam / 2, y: p.y * h.depth }));
+/** Lowest keel and highest deck in hull metres; heights in the editor count from this base. */
+export function hullExtent(h: Hull): { base: number; deck: number } {
+  const ys = h.stations.flatMap(s => s.points.map(p => p.y * h.depth));
+  return { base: Math.min(...ys), deck: Math.max(...ys) };
+}
+/** Starboard half-breadth where a horizontal level crosses a section, or undefined when it misses. */
+export function breadthAt(points: Point[], level: number): number | undefined {
+  let best: number | undefined;
+  for (let i = 0; i < points.length; i++) {
+    const p = points[i], q = points[(i + 1) % points.length];
+    if ((p.y - level) * (q.y - level) > 0 || p.y === q.y) continue;
+    const x = p.x + (q.x - p.x) * (level - p.y) / (q.y - p.y);
+    if (best === undefined || x > best) best = x;
+  }
+  return best;
 }
 
 /** Convert the editor draft to the shared versioned construction source. */

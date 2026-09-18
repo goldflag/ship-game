@@ -253,24 +253,77 @@ preview visible; native compilation runs after an installed fitting edit commits
 
 ## Custom hull sections
 
-Select a custom hull and choose **Edit hull sections**. Edit its cross-section,
-top outline or side profile, dimensions, bow rake and bulb. Left/right symmetry
-is fixed. **Section count** supports 4–24 sections; increasing retains existing
-sections and inserts interpolated profiles, while reducing simplifies the shape.
-Select an outline point, then **Add pair** to split the edge toward the keel on
-both sides, or **Remove pair** to delete that point and its mirror. Delete or
-Backspace also removes the focused pair. Each action adds or removes two points
-in every section, preserving matching hull panels. Sections support 5–33 points;
-the deck edges and center keel cannot be removed. Each action is one undo step.
-**Blend edits into nearby sections** fades shape edits over 20% of hull length;
-dashed brass outlines and percentages identify affected neighbors. Keyboard
-nudges, numeric edits and drags share this behavior.
+Select a custom hull and choose **Edit hull sections**. The editor covers the
+builder with the hull in a full-screen 3D view: the **Hull**, **Bow** and
+**Paint** ledger sits on the right, the selected section's tag floats beside its
+ring and the station ruler runs along the bottom. Left/right symmetry is fixed;
+every point edit also moves its mirror.
 
-**Apply hull** commits the complete shape as one undoable source edit; **Cancel**
-discards the editing session. Equipment positions and existing surface assignments
-remain fixed, and native diagnostics report any resulting fit errors. Armor and
-paint use the shipbuilder's existing face tools. The prototype's sample belt
-annotation is not presented as functional armor in this editor.
+**Views.** **1** Orbit shows the hull in 3D with its section rings. **2**
+Section looks forward from astern at the selected section, with the hull cut
+away behind it and the sections ahead drawn as outlines inside it. **3** Plan
+and **4** Profile are flat top and side views. The bow is on the left in every
+view. **F** moves in on the selected section in Orbit and **Home** fits the
+hull. Drag empty space to orbit (Orbit) or pan (the flat views); scrolling
+zooms toward the pointer.
+
+**Sections.** Click a ring or a ruler tab to select a section; Shift adds to the
+selection, ⌘A selects every section and **[** / **]** step through them. Drag a
+ruler tab to slide a section between its neighbors; the bow and stern sections
+stay at the ends. The ruler's **+** between two tabs inserts an interpolated
+section there. The ledger's **Sections** stepper supports 4–24 sections;
+increasing retains existing sections and inserts interpolated profiles, while
+reducing simplifies the shape. The tag's bin removes the selected sections,
+keeping the bow, the stern and at least four sections. The tag also accepts typed
+**Width**, **Deck** height, **Flare** and **Bilge** values for the selection.
+
+**Points and gizmo.** Click a point on the selected section. Its gizmo's **X**
+arm moves the point out from the centerline, **Y** changes its height and **Z**
+slides the whole section along the hull; an arm pointing at the camera, such as
+Z in Section view, is hidden. Drag the square plane handle to move the point
+freely in the section's plane. The keel point stays on the centerline. Arrow keys
+nudge a focused point by the snap step (0.1 m with snapping off). In Plan, drag
+a deck edge to widen or narrow its section. In Profile, drag deck and keel
+points for the sheer and keel line; the brass diamonds rake the stem and grow a
+bow bulb, and the square grip moves the red paint line. Escape, a right-click or
+leaving the window cancels a drag.
+
+Select a point, then **+ Pair** to split the edge toward the keel on both sides,
+or **− Pair** to delete that point and its mirror. Delete or Backspace also
+removes the focused pair. Each action adds or removes two points in every
+section, preserving matching hull panels. Sections support 5–33 points; the deck
+edges and center keel cannot be removed. Each action is one undo step.
+
+**Blend nearby sections** fades shape edits into the neighboring sections, 35%
+of the hull length either side by default. Drag the grips on the ruler's blend
+band to set the reach (8–60%). Dashed brass rings on the hull and percentages on
+the ruler identify affected neighbors. Drags, keyboard nudges and typed values
+share this behavior.
+
+**Snapping** is on by default. **N** or the **Snap** button toggles it, **S**
+cycles its step (0.05, 0.1, 0.25, 0.5 or 1 m) and holding Alt/Option inverts it
+for the current drag. Points, widths, heights and section positions round to the
+step, with heights counted from the hull's base. Geometry within 10 px of the
+pointer wins over the grid: the same point on the neighboring sections, the
+adjacent points of the edited section, the waterline, the deck height and the
+base. Widths also align with the neighbors' deck edges and the full beam, and a
+sliding section also snaps halfway between its neighbors. A dashed mint guide
+leads to the acquired target and the hint line names it. The Snap menu turns the
+grid, section and point targets, level targets and alignment guides on or off
+separately. Stem rake and bulb snap to 5%.
+
+In a design, the ledger floats the draft hull with the design's current loading
+and shows its **Draft** and **Displacement**. The native compiler measures it
+in a separate worker a moment after each edit, without interrupting the
+builder's own compilation. The waterline is drawn on the hull in Orbit and
+across the Section and Profile views.
+
+⌘Z and ⇧⌘Z undo and redo inside the editor. **Starter** replaces the shape with
+a preset hull; Undo restores the previous shape. **Apply hull** commits the
+complete shape as one undoable source edit; **Cancel** discards the editing
+session. Equipment positions and existing surface assignments remain fixed, and
+native diagnostics report any resulting fit errors. Armor and paint use the
+shipbuilder's existing face tools.
 
 Hull geometry consists of planar triangles. Lighting blends along panels while
 preserving deck, chine, keel and end-cap boundaries. The Hull drawer also offers
@@ -610,10 +663,12 @@ settings. Source undo restores the preceding hull and assignments.
 
 ### Custom hull red paint height
 
-In **Edit hull sections**, enable **Red lower hull** and set **Red paint Y** in
-meters relative to the hull center. Red oxide covers the hull below this height;
-the existing face paint remains above it. New hull presets start at −2% of their
-depth. The height moves with the hull and stays in meters when its depth changes.
+In **Edit hull sections**, enable **Red lower hull** and set its height in meters
+above the hull's base, drag its grip in Profile, or choose **Paint to the
+waterline** once the draft is measured. Red oxide covers the hull below this
+height; the existing face paint remains above it. New hull presets start 2% of
+their depth below the hull center. The height moves with the hull and stays in
+meters when its depth changes.
 Disable the coating to use face paint everywhere. Apply saves the setting with
 the hull; Cancel discards it, and both the section editor and Shipbuilder support
 Undo. Older designs retain their original paints until the coating is enabled;

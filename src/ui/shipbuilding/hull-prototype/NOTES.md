@@ -1,8 +1,10 @@
 # Custom hull interaction prototype
 
 Run `bun run hull:prototype`, or open `/?hullPrototype=1` on the development server.
-The route is development-only. Switch layouts with the bottom arrows or
-`&variant=A`, `B`, `C`; hull edits survive layout changes, but not page reloads.
+The development-only route now renders the production section editor on its own,
+without a design: edits stay in memory, and Apply, Cancel and the measured draft
+are absent. The A/B/C layout studies below are retired; these notes remain the
+requirements record.
 
 ## Question and review target
 
@@ -108,9 +110,17 @@ the prototype route/switcher when the production feature replaces it.
 
 ## Game integration
 
-The accepted section editor now lives in `../CustomHullEditor.tsx`, with shared
-source-editing helpers in `src/ships/customHullModel.ts`. The standalone route
-still offers layout studies and the visual-only sample armor belt. Production
-uses the section workshop and explicit Apply/Cancel, then the existing native
-compiler, save owner, Armor/Paint tools and trial flow. New design offers four
-bare hull presets and the original unit block. See `docs/shipbuilding.md`.
+The accepted section editor lives in `../CustomHullEditor.tsx`, with shared
+source-editing helpers in `src/ships/customHullModel.ts`, pure edit operations in
+`../customHullEditing.ts` and snap targets in `../customHullSnap.ts`. The
+2026-09-17 redesign replaced the section workshop with the "On the model" layout:
+a full-screen viewport (`../CustomHullViewport.tsx`) with Orbit, Section, Plan and
+Profile views, an X/Y/Z gizmo and plane handle on the selected point, a bottom
+station ruler (`../HullSectionRuler.tsx`) and snapping the player can turn off.
+Blending now reaches 35% of the hull length by default, adjustable from 8% to 60%
+on the ruler. Production keeps explicit Apply/Cancel, then the existing native
+compiler, save owner, Armor/Paint tools and trial flow. A separate
+`ConstructionClient` floats the draft hull for the ledger's draft and
+displacement. New design offers four bare hull presets and the original unit
+block. `scripts/tests/custom-hull-points-browser.mjs` drives this route and then
+the production flow. See `docs/shipbuilding.md`.
