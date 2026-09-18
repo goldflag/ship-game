@@ -209,3 +209,27 @@ fn the_phase_sequence_is_the_step() {
         serde_json::to_value(&phased.depth_charges).unwrap()
     );
 }
+
+#[test]
+fn aftermath_keeps_moving_without_changing_the_result() {
+    let mut battle = battle();
+    battle.actors[1].damage.sunk = true;
+    battle.step(&BTreeMap::new());
+    assert!(battle.outcome.is_some());
+    let outcome = serde_json::to_value(&battle.outcome).unwrap();
+    let tick = battle.tick;
+    battle.actors[0].motion.speed = 5.0;
+    let z = battle.actors[0].motion.z;
+    battle.step_aftermath();
+    assert_eq!(battle.tick, tick + 1);
+    assert_ne!(battle.actors[0].motion.z, z);
+    assert_eq!(serde_json::to_value(&battle.outcome).unwrap(), outcome);
+    // Even mutual destruction during the aftermath cannot turn victory into a draw.
+    battle.actors[0].damage.sunk = true;
+    let y = battle.actors[1].motion.y;
+    for _ in 0..60 {
+        battle.step_aftermath();
+    }
+    assert_ne!(battle.actors[1].motion.y, y);
+    assert_eq!(serde_json::to_value(&battle.outcome).unwrap(), outcome);
+}

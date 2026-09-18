@@ -1,0 +1,5 @@
+.battle-end-notice { position:fixed; z-index:30; top:24px; left:50%; transform:translateX(-50%); max-width:calc(100vw - 32px); padding:12px 24px; box-sizing:border-box; text-align:center; pointer-events:none; color:#f0f5f3; background:#132d38ed; border:1px solid #cfdfdf35; border-radius:2px; }
+.battle-end-notice h2 { margin:0; font:500 28px/1.15 'Barlow Condensed',sans-serif; }
+.battle-end-notice p { margin:6px 0 0; font:400 14px/1.4 'Barlow',sans-serif; color:#c1d0d4; }
+.battle-end-notice strong { color:#e0c58d; font-variant-numeric:tabular-nums; }
+@media (max-width:600px) { .battle-end-notice { top:12px; width:max-content; padding:10px 16px; } .battle-end-notice h2 { font-size:24px; } }

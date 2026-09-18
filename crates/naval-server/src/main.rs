@@ -486,7 +486,7 @@ async fn serve_socket(mut socket: WebSocket, s: Arc<Hub>, headers: HeaderMap, ac
                     break;
                 }
                 if !binary(&mut socket, &frame).await { break; }
-                if matches!(frame.phase, "finished" | "cancelled") { break; }
+                if frame.phase == "cancelled" { break; }
             }
             message = socket.recv() => {
                 if !rate.take() { break; }

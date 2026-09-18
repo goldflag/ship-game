@@ -117,7 +117,7 @@ export class LocalBattleSession extends SnapshotSession {
         // worker keeps stepping while this frame draws, and a batch that
         // overran its frame no longer costs the following one.
         // Initialization cannot dispatch: lastInput is set by advance() after startup.
-        if (!frame.outcome) session.dispatch();
+        session.dispatch();
         return true;
       }
     };
@@ -140,10 +140,10 @@ export class LocalBattleSession extends SnapshotSession {
   advance(dt: number, helm: HelmCommand, intent: CombatIntent, beforeStep?: () => void) {
     // Only fixed authoritative ticks accelerate. Camera/input keep wall time;
     // interpolation consumes the same simulated interval as the snapshots.
-    const simulationDt = dt * this.speed;
+    const simulationDt = dt * (this.result === 'active' ? this.speed : 1);
     this.consume(simulationDt, beforeStep);
     this.lastInput = { helm, intent };
-    if (this.disposed || this.restartRequest || this.result !== 'active' || dt <= 0) return;
+    if (this.disposed || this.restartRequest || dt <= 0) return;
     // Carry the overrun as debt instead of discarding it at a 0.4 s clamp: a
     // round trip longer than one frame is repaid by the following batches.
     this.accumulator = Math.min(DEBT_SECONDS, this.accumulator + simulationDt);
@@ -156,7 +156,7 @@ export class LocalBattleSession extends SnapshotSession {
   /** One batch in flight at a time, posted from whichever of the render frame
    * and the worker reply first has both an idle worker and enough ticks. */
   private dispatch(): void {
-    if (!this.isBattle || this.busy || this.disposed || this.restartRequest || this.result !== 'active' || !this.lastInput) return;
+    if (!this.isBattle || this.busy || this.disposed || this.restartRequest || !this.lastInput) return;
     // Captains run every authoritative tick, but fleet presentation needs only
     // 20 wall-time updates/second. Helm input and queued orders retain the 60Hz
     // dispatch opportunity, including commands issued between ordinary batches.
@@ -164,8 +164,9 @@ export class LocalBattleSession extends SnapshotSession {
     // Summing six 120Hz frames can land just below three ticks. Round only the
     // floating-point noise, so a full batch is not delayed by another frame.
     const availableTicks = Math.floor(this.accumulator * 60 + 1e-9);
-    if (availableTicks < this.speed * (60 / updatesPerSecond)) return;
-    const ticks = Math.min(6 * this.speed, MAX_BATCH_TICKS, availableTicks);
+    const speed = this.result === 'active' ? this.speed : 1;
+    if (availableTicks < speed * (60 / updatesPerSecond)) return;
+    const ticks = Math.min(6 * speed, MAX_BATCH_TICKS, availableTicks);
     this.accumulator = Math.max(0, this.accumulator - ticks / 60); this.window.ticks += ticks;
     this.input(this.lastInput.helm, this.lastInput.intent, true); this.busy = true;
     this.worker.postMessage({ type: 'advance', commands: this.commands.drain(), ticks, detailShipIds: this.detailShipIds });

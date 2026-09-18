@@ -370,6 +370,42 @@ pub fn spawn(
             while writer.submit(id.clone(), record.clone(), true).is_err() {
                 std::thread::sleep(Duration::from_secs(1));
             }
+            drop(rx);
+            // Results have been persisted at the deciding tick. Keep publishing
+            // the aftermath while clients show their return-to-port countdown.
+            if session.battle.outcome.as_ref().is_some_and(|o| {
+                matches!(
+                    o.reason,
+                    FinishReason::Destruction | FinishReason::TimeLimit
+                )
+            }) {
+                let aftermath_start = Instant::now();
+                let final_tick = session.battle.tick;
+                while aftermath_start.elapsed() < Duration::from_secs(16) {
+                    let due = (aftermath_start.elapsed().as_secs_f64() * 60.0) as u64;
+                    for _ in 0..due.saturating_sub(session.battle.tick - final_tick).min(6) {
+                        session.battle.step_aftermath();
+                    }
+                    if last_publish.elapsed() >= Duration::from_millis(50) {
+                        if publish(
+                            &session,
+                            &baseline_delta,
+                            phase,
+                            reason.as_deref(),
+                            loaded,
+                            online,
+                            None,
+                            &frames,
+                        )
+                        .is_err()
+                        {
+                            break;
+                        }
+                        last_publish = Instant::now();
+                    }
+                    std::thread::sleep(Duration::from_millis(2));
+                }
+            }
             completion.committed = true;
         })
         .map_err(|e| e.to_string())?;
@@ -458,6 +494,12 @@ mod tests {
             .unwrap()
     }
     fn fixture(config: WorkerConfig) -> MatchHandle {
+        fixture_with_rules(config, None)
+    }
+    fn fixture_with_rules(
+        config: WorkerConfig,
+        mission_rules: Option<naval_sim::mission::MissionRules>,
+    ) -> MatchHandle {
         let catalog = Arc::new(
             Catalog::load(&std::fs::read("../../.build/naval-content/manifest.json").unwrap())
                 .unwrap(),
@@ -484,7 +526,7 @@ mod tests {
             weather: "clear".into(),
             spawn_distance: 5000.0,
             wind_speed: None,
-            mission_rules: None,
+            mission_rules,
             air_rules: None,
         };
         let id = uuid::Uuid::new_v4().to_string();
@@ -505,6 +547,32 @@ mod tests {
             config,
         )
         .unwrap()
+    }
+    #[tokio::test]
+    async fn finished_match_streams_aftermath_with_the_outcome_locked() {
+        let mut rules: naval_sim::mission::MissionRules =
+            serde_json::from_str(include_str!("../../../assets/gameplay/pve-mission.v1.json"))
+                .unwrap();
+        rules.duration_seconds = Some(1);
+        let mut h = fixture_with_rules(
+            WorkerConfig {
+                load_timeout: Duration::from_secs(5),
+                reconnect_grace: Duration::from_secs(5),
+                countdown: Duration::from_millis(10),
+                lag_budget: Duration::from_secs(3),
+                heartbeat_timeout: Duration::from_secs(15),
+            },
+            Some(rules),
+        );
+        for player in 0..2 {
+            let epoch = connect(&h, player).await;
+            h.commands.send(Action::Ready { player, epoch }).unwrap();
+        }
+        let finished = frame(&mut h, "finished").await;
+        tokio::time::sleep(Duration::from_millis(200)).await;
+        let aftermath = frame(&mut h, "finished").await;
+        assert!(aftermath["tick"].as_u64().unwrap() > finished["tick"].as_u64().unwrap());
+        assert_eq!(aftermath["outcome"], finished["outcome"]);
     }
     #[tokio::test]
     async fn load_barrier_reconnect_epochs_and_forfeit() {

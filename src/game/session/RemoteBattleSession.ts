@@ -84,6 +84,7 @@ export class MatchConnection {
       if (generation !== this.generation) return;
       clearInterval(this.heartbeat);
       if (this.stopped) return;
+      if (this.session && this.session.result !== 'active') { this.close(true); return; }
       // The final binary frame may still be decompressing. Its arrival stops retries.
       this.disconnectedAt ??= Date.now();
       if (Date.now() - this.disconnectedAt >= 90_000) { this.fail('Could not reconnect within 90 seconds.'); return; }
@@ -138,7 +139,8 @@ export class MatchConnection {
         if (generation !== this.generation || this.stopped) break;
         if (!this.session) { this.session = new RemoteBattleSession(this.metadata, this, frame, this.constructions); this.resolve(this.session); }
         else this.session.receive(frame);
-        if (frame.phase === 'finished' || frame.phase === 'cancelled') { sessionStorage.removeItem(storageKey()); this.stopped = true; clearTimeout(this.timer); clearInterval(this.heartbeat); this.socket?.close(); }
+        if (frame.phase === 'finished') { sessionStorage.removeItem(storageKey()); clearTimeout(this.timer); clearInterval(this.heartbeat); }
+        if (frame.phase === 'cancelled') this.close(true);
       }
     } catch (error) { this.fail(String(error)); }
     finally { this.decoding = false; if ((this.handshake || this.binary) && !this.stopped) void this.decode(this.generation); }
