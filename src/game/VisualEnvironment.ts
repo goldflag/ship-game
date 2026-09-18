@@ -95,7 +95,7 @@ export class VisualEnvironment {
     const { map, environment: { waves, waterLightScale } } = this.resolved();
     // Metric wave heights are calibrated separately from the FFT gain. Port stays sheltered.
     water.waves.amplitude.value = this.inPort ? .12 : waves.amplitude;
-    water.waves.windSpeed.value = this.inPort ? 4 : waves.windSpeed;
+    water.waves.windSpeed.value = this.inPort ? 9 : waves.windSpeed;
     water.waves.peakWavelength.value = this.inPort ? 14 : waves.peakWavelength;
     water.waves.choppiness.value = this.inPort ? .65 : waves.choppiness;
     water.waves.jonswapGamma.value = this.inPort ? 2.2 : 2.6;
