@@ -92,14 +92,14 @@ test('weather drives live waves across maps, overrides obsolete settings, and re
   environment.setScene(mapId, true);
   expect(water.color.waterColor).toEqual(new Color(oceanMap('north-atlantic').water.waterColor));
   expect(water.waves.amplitude.value).toBe(.12);
-  expect(water.waves.windSpeed.value).toBe(4);
+  expect(water.waves.windSpeed.value).toBe(9);
   expect(water.waves.peakWavelength.value).toBe(14);
   expect(water.waves.choppiness.value).toBe(.65);
   expect(water.waves.jonswapGamma.value).toBe(2.2);
   expect(water.foam.waves.persistence.crestStrength).toBe(.99);
   expect(water.foam.waves.persistence.windwardStrength).toBe(1.1);
   expect(water.foam.waves.persistence.decayTime).toBe(1.48);
-  expect(effects.wind).toEqual([4, 35 * Math.PI / 180]);
+  expect(effects.wind).toEqual([9, 35 * Math.PI / 180]);
   expect(funnelSmoke.wind).toEqual(effects.wind);
 });
 

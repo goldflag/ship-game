@@ -47,7 +47,7 @@ Map height multipliers remain 1.0 Atlantic, 0.65 Pacific, 0.6 Arctic and 1.05 In
 each has its own measured FFT gain to account for its wavelength scale. Numeric
 wind bypasses the map wind multiplier; legacy presets first resolve that wind
 multiplier, then enter the same calibration curve. Cloud cover remains independent
-of wave energy. Port restores amplitude 0.12, wind 4 m/s, peak wavelength 14 m,
+of wave energy. Port restores amplitude 0.12, wind 9 m/s, peak wavelength 14 m,
 choppiness 0.65, gamma 2.2 and the original sheltered foam settings.
 
 CPU combat receives the same significant height through `src/game/session/sea.ts`
@@ -114,7 +114,7 @@ records the previous small-wave iteration.
 
 Nearby ships receive bow and stern wake generators scaled to their hull; their configuration is described under **Ship wake** below. Buoyancy samples a 190 × 28 m footprint with 1.8 s smoothing and 0.45 rotation influence. These values were chosen for visually stable battleship motion, not hydrodynamic accuracy.
 
-Funnel exhaust, gun and impact smoke, burning-turret smoke and falling-aircraft trails use the ocean's wind direction and weather-adjusted speed. Direction is in radians from +X toward +Z; visual drift uses 35% of ocean wind speed with each particle's existing response factor. Returning to port restores the sheltered wind (speed 4, direction 35°). The renderer-free sea model also uses this weather wind to drive gradual ship leeway. CPU waves add hull motion and heading-dependent resistance; shell flight still omits aerodynamic wind drift. See [the runtime contract](ship-runtime-contract.md#blueprint-and-simulation-contract).
+Funnel exhaust, gun and impact smoke, burning-turret smoke and falling-aircraft trails use the ocean's wind direction and weather-adjusted speed. Direction is in radians from +X toward +Z; visual drift uses 35% of ocean wind speed with each particle's existing response factor. Returning to port restores the sheltered wind (speed 9 m/s, direction 35°). The renderer-free sea model also uses this weather wind to drive gradual ship leeway. CPU waves add hull motion and heading-dependent resistance; shell flight still omits aerodynamic wind drift. See [the runtime contract](ship-runtime-contract.md#blueprint-and-simulation-contract).
 
 The demo's image-based sky is replaced by Sky Pro's animated clouds and atmosphere. That changes what the water reflects even if its material settings stay the same. Cloud reflections are baked at width 384 with 16 cloud march steps and 8 skipped frames. The game uses ACES tone mapping and neutral exposure; it does not add the demo's optional bloom or film grain.
 
