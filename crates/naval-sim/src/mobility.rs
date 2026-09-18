@@ -7,8 +7,8 @@ pub const MAX_YAW_RATE: f64 = 1.1;
 pub const FORCE_RESPONSE: f64 = 4.;
 // Ramp fitted rudder authority with deflection, up to this factor at hard over.
 // Area, position, water flow and damage still determine the resulting force.
-pub const RUDDER_AUTHORITY: f64 = 16.;
-pub const RUDDER_RATE: f64 = 2.4;
+pub const RUDDER_AUTHORITY: f64 = 8.;
+pub const RUDDER_RATE: f64 = 1.8;
 pub fn torpedo_speed(authored_speed: f64) -> f64 {
     authored_speed * 1.1
 }

@@ -77,8 +77,8 @@ Construction emits these values; older presets infer missing fitting properties
 from module envelopes and authored handling. See [maneuvering physics](maneuvering.md)
 for force conventions, legacy calibration, caching, approximations and validation.
 
-Shared runtime tuning gives planar forces/torques ×4 response, hard-over rudders ×16 force
-authority and authored rudder shift ×2.4. It preserves straight-line equilibrium
+Shared runtime tuning gives planar forces/torques ×4 response, hard-over rudders ×8 force
+authority and authored rudder shift ×1.8. It preserves straight-line equilibrium
 speed, actual displacement and the effects of damage/floodwater. Navigation uses
 the same braking response. Previous acceleration/turn-rate multipliers remain
 legacy calibration inputs. Torpedo run speed remains ×1.1; range and arming remain
