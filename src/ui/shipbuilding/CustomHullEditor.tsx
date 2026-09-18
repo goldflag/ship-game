@@ -1,70 +1,123 @@
-import {
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-  type PointerEvent as ReactPointerEvent,
-  type ReactNode,
-} from "react";
-import { Preview } from "./CustomHullPreview";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   addHullPointPair,
+  BLEND_REACH,
   canRemoveHullPointPair,
-  removeHullPointPair,
   clone,
-  displayPoints,
-  influence,
+  hullExtent,
   invalidReason,
   lockSymmetry,
   makeHull,
-  outline,
   presets,
-  resizeSection,
+  removeHullPointPair,
   sectionAt,
+  sectionMetres,
   setSectionCount,
   uid,
+  worldPoint,
   type Hull,
-  type Station,
 } from "../../ships/customHullModel";
+import { MAX_HULL_POINTS } from "../../ships/customHullTopology";
+import type { Vec3 } from "../../ships/blueprint";
 import {
-  contourAt,
-  contourWeight,
-  MAX_HULL_POINTS,
-  MIN_HULL_POINTS,
-} from "../../ships/customHullTopology";
+  applyReading,
+  moveDeckKeel,
+  movePoint,
+  moveStation,
+  pointName,
+  rakeArm,
+  resizeWidth,
+  sectionReadings,
+  type Blend,
+  type ReadingKey,
+} from "./customHullEditing";
+import {
+  DEFAULT_HULL_SNAP,
+  heightTargets,
+  HULL_SNAP_STEPS,
+  pointTargets,
+  SNAP_PIXELS,
+  snapAxis,
+  stationTargets,
+  widthTargets,
+  type AxisSnap,
+  type HullSnapSettings,
+} from "./customHullSnap";
+import {
+  CustomHullViewport,
+  type HullDrag,
+  type HullDragMove,
+  type HullGuide,
+  type HullView,
+  type SafeArea,
+} from "./CustomHullViewport";
+import { HullSectionRuler } from "./HullSectionRuler";
+import { NumberField } from "./NumberField";
 import "./CustomHullEditor.css";
 
-const nearestContour = (s: Station, t: number) =>
-  s.points.reduce(
-    (best, _, i) =>
-      i > 0 &&
-      i < (s.points.length - 1) / 2 &&
-      Math.abs(contourAt(s.points, i) - t) <
-        Math.abs(contourAt(s.points, best) - t)
-        ? i
-        : best,
-    1,
-  );
+/** Native loading for the draft hull inside its design: the builder's compiler, not an estimate. */
+export interface HullMeasurement {
+  /** Waterline height in hull metres. */
+  waterline: number;
+  draft: number;
+  displacementTonnes: number;
+}
+export type MeasureHull = (
+  hull: Hull,
+  signal: AbortSignal,
+) => Promise<HullMeasurement>;
 
-// Shared section editor. Integration applies a draft to one source primitive;
-// the development study additionally exposes alternate layouts and annotations.
-type Change = (h: Hull) => void;
-type Drag = (
-  event: ReactPointerEvent<SVGElement>,
-  change: (h: Hull, dx: number, dy: number) => void,
-) => void;
-const variants = ["A", "B", "C"];
-const variantNames = ["Section workshop", "Drawing board", "Model first"];
-const path = (points: { x: number; y: number }[]) =>
-  points
-    .map((p, i) => `${i ? "L" : "M"}${p.x.toFixed(2)},${p.y.toFixed(2)}`)
-    .join(" ") + "Z";
-function Icon({ name }: { name: "left" | "right" | "undo" | "redo" | "hull" }) {
+const SAFE: SafeArea = { left: 28, top: 70, right: 286, bottom: 206 };
+/** The Section view frames its slice beside the docked tag rather than under it. */
+const SECTION_SAFE: SafeArea = { ...SAFE, left: 400 };
+const DOCK: [number, number] = [28, 70];
+const VIEWS: { id: HullView; label: string; key: string; detail: string }[] = [
+  {
+    id: "orbit",
+    label: "Orbit",
+    key: "1",
+    detail: "Edit on the model; drag space to orbit",
+  },
+  {
+    id: "section",
+    label: "Section",
+    key: "2",
+    detail: "Slice at the selected section and look forward",
+  },
+  {
+    id: "plan",
+    label: "Plan",
+    key: "3",
+    detail: "From above: drag deck edges to set widths",
+  },
+  {
+    id: "profile",
+    label: "Profile",
+    key: "4",
+    detail: "From port: deck, keel, stem rake and bulb",
+  },
+];
+const pad = (i: number) => String(i + 1).padStart(2, "0");
+const metres = (v: number) => Number(v.toFixed(2)).toString();
+
+function Glyph({
+  name,
+}: {
+  name:
+    | "hull"
+    | "undo"
+    | "redo"
+    | "down"
+    | "left"
+    | "right"
+    | "remove"
+    | "snap";
+}) {
   return (
     <svg
       viewBox="0 0 24 24"
-      width="18"
-      height="18"
+      width="16"
+      height="16"
       fill="none"
       stroke="currentColor"
       strokeWidth="1.6"
@@ -77,521 +130,41 @@ function Icon({ name }: { name: "left" | "right" | "undo" | "redo" | "hull" }) {
           <path d="M3 7h18l-4 11H7Z" />
           <path d="M7 7l3 11M17 7l-3 11M3 12h18" />
         </>
+      ) : name === "undo" ? (
+        <path d="M8 5 3 10l5 5M3 10h11a6 6 0 0 1 0 12h-3" />
+      ) : name === "redo" ? (
+        <path d="m16 5 5 5-5 5M21 10H10a6 6 0 0 0 0 12h3" />
+      ) : name === "down" ? (
+        <path d="m7 10 5 5 5-5" />
       ) : name === "left" ? (
-        <path d="m14 5-7 7 7 7" />
+        <path d="m14 6-6 6 6 6" />
       ) : name === "right" ? (
-        <path d="m10 5 7 7-7 7" />
+        <path d="m10 6 6 6-6 6" />
+      ) : name === "remove" ? (
+        <path d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12" />
       ) : (
-        <g transform={name === "redo" ? "translate(24 0) scale(-1 1)" : ""}>
-          <path d="M8 5 3 10l5 5M3 10h11a6 6 0 0 1 0 12" />
-        </g>
+        <path d="M4 4h16v16H4zM4 12h16M12 4v16" />
       )}
     </svg>
-  );
-}
-function NumberField({
-  label,
-  value,
-  onChange,
-  unit = "m",
-  min,
-  max,
-  step = 0.1,
-}: {
-  label: string;
-  value: number;
-  onChange: (v: number) => void;
-  unit?: string;
-  min?: number;
-  max?: number;
-  step?: number;
-}) {
-  const [text, setText] = useState(String(Number(value.toFixed(2))));
-  useEffect(() => setText(String(Number(value.toFixed(2)))), [value]);
-  const apply = () => {
-    const v = Number(text);
-    if (text.trim() && Number.isFinite(v) && v !== value) onChange(v);
-    setText(String(Number(value.toFixed(2))));
-  };
-  return (
-    <label className="hp-number">
-      <span>{label}</span>
-      <span>
-        <input
-          aria-label={label}
-          type="number"
-          value={text}
-          min={min}
-          max={max}
-          step={step}
-          onChange={(e) => setText(e.target.value)}
-          onBlur={apply}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") e.currentTarget.blur();
-          }}
-        />
-        <small>{unit}</small>
-      </span>
-    </label>
-  );
-}
-function Toggle({
-  children,
-  checked,
-  onChange,
-}: {
-  children: ReactNode;
-  checked: boolean;
-  onChange: () => void;
-}) {
-  return (
-    <label className="hp-toggle">
-      <input type="checkbox" checked={checked} onChange={onChange} />
-      <span>{children}</span>
-    </label>
-  );
-}
-
-function Drawings({
-  h,
-  selected,
-  select,
-  drag,
-  soft,
-  kind,
-}: {
-  h: Hull;
-  selected: string[];
-  select: (id: string, multi?: boolean) => void;
-  drag: Drag;
-  soft: boolean;
-  kind: "plan" | "profile";
-}) {
-  const W = 640,
-    X = 40,
-    Y = 106,
-    S = 65;
-  const at = h.stations,
-    last = at[0].points.length - 1,
-    keel = last / 2;
-  const edges = at.map((s) => {
-    const p = displayPoints(h, s);
-    return kind === "plan"
-      ? [
-          { x: X + s.t * W, y: Y + p[0].x * S },
-          { x: X + s.t * W, y: Y + p[last].x * S },
-        ]
-      : [
-          { x: X + s.t * W, y: Y - p[0].y * S },
-          { x: X + s.t * W, y: Y - p[keel].y * S },
-        ];
-  });
-  const shape = [
-    ...edges.map((p) => p[0]),
-    ...edges
-      .slice()
-      .reverse()
-      .map((p) => p[1]),
-  ];
-  return (
-    <section className={`hp-drawing hp-${kind}`}>
-      <div className="hp-panel-title">
-        <h2>{kind === "plan" ? "Top outline" : "Side profile"}</h2>
-        <span>
-          {kind === "plan"
-            ? "Drag widths · Shift-click to group"
-            : "Drag deck / keel · drag station lines to move"}
-        </span>
-      </div>
-      <svg
-        viewBox="0 0 720 214"
-        role="group"
-        aria-label={
-          kind === "plan" ? "Editable top outline" : "Editable side profile"
-        }
-      >
-        {[40, 168, 296, 424, 552, 680].map((x, i) => (
-          <g key={x}>
-            <line className="hp-grid" x1={x} x2={x} y1={24} y2={184} />
-            <text x={x} y={202} textAnchor="middle">
-              {Math.round((i * h.length) / 5)} m
-            </text>
-          </g>
-        ))}
-        <line className="hp-datum" x1="24" x2="696" y1={Y} y2={Y} />
-        <path className="hp-outline" d={path(shape)} />
-        {h.stations.map((s, i) => {
-          const p = displayPoints(h, s),
-            x = X + s.t * W,
-            chosen = selected.includes(s.id);
-          const ys =
-            kind === "plan"
-              ? [Y + p[0].x * S, Y + p[last].x * S]
-              : [Y - p[0].y * S, Y - p[keel].y * S];
-          const ids = chosen ? selected : [s.id];
-          return (
-            <g
-              key={s.id}
-              className={
-                chosen
-                  ? "hp-chosen"
-                  : influence(h, selected, s.t, soft) > 0
-                    ? "hp-influenced"
-                    : ""
-              }
-            >
-              <line
-                className="hp-station-line"
-                x1={x}
-                x2={x}
-                y1={26}
-                y2={182}
-              />
-              <line
-                className="hp-hit-line"
-                x1={x}
-                x2={x}
-                y1={30}
-                y2={180}
-                tabIndex={0}
-                role="button"
-                aria-label={`Select section ${i + 1} in ${kind}`}
-                onClick={(e) => select(s.id, e.shiftKey)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    select(s.id, e.shiftKey);
-                  }
-                }}
-                onPointerDown={(e) => {
-                  if (e.shiftKey) return;
-                  select(s.id);
-                  drag(e, (draft, dx) => {
-                    const target = draft.stations.find((v) => v.id === s.id)!;
-                    if (i > 0 && i < h.stations.length - 1)
-                      target.t = s.t + dx / W;
-                  });
-                }}
-              />
-              {ys.map((y, side) => (
-                <circle
-                  key={side}
-                  className="hp-handle"
-                  cx={x}
-                  cy={y}
-                  r="5"
-                  tabIndex={0}
-                  role="button"
-                  aria-label={`${kind === "plan" ? (side ? "Starboard width" : "Port width") : side ? "Keel" : "Deck"} section ${i + 1}`}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") select(s.id, e.shiftKey);
-                  }}
-                  onPointerDown={(e) => {
-                    if (e.shiftKey) {
-                      e.stopPropagation();
-                      select(s.id, true);
-                      return;
-                    }
-                    if (!chosen) select(s.id);
-                    drag(e, (draft, _dx, dy) => {
-                      for (const q of draft.stations) {
-                        const weight = influence(h, ids, q.t, soft);
-                        if (!weight) continue;
-                        if (kind === "plan") {
-                          const source = h.stations.find((v) => v.id === q.id)!;
-                          const index = side ? last : 0,
-                            delta = (dy / S) * weight;
-                          const signedWidth = source.points[index].x + delta;
-                          resizeSection(q, (side ? 1 : -1) * signedWidth);
-                        } else {
-                          const delta = (-dy / S) * weight;
-                          q.points.forEach((v, k) => {
-                            const f = contourWeight(
-                              q.points,
-                              k,
-                              side
-                                ? [0, 0, 0.6, 1, 1, 1, 0.6, 0, 0]
-                                : [1, 0.4, 0, 0, 0, 0, 0, 0.4, 1],
-                            );
-                            v.y += delta * f;
-                          });
-                        }
-                      }
-                    });
-                  }}
-                />
-              ))}
-              <text
-                className="hp-station-label"
-                x={x}
-                y="18"
-                textAnchor="middle"
-              >
-                {String(i + 1).padStart(2, "0")}
-              </text>
-            </g>
-          );
-        })}
-        <text x="24" y="202" textAnchor="end">
-          BOW
-        </text>
-        <text x="696" y="202">
-          AFT
-        </text>
-      </svg>
-    </section>
-  );
-}
-
-function CrossSection({
-  h,
-  selected,
-  point,
-  setPoint,
-  drag,
-  soft,
-  edit,
-}: {
-  h: Hull;
-  selected: string[];
-  point: number;
-  setPoint: (p: number) => void;
-  drag: Drag;
-  soft: boolean;
-  edit: (change: Change) => boolean;
-}) {
-  const s = h.stations.find((v) => selected.includes(v.id)) ?? h.stations[3];
-  const scale = Math.min(140 / (h.beam / 2), 132 / h.depth),
-    sx = (h.beam / 2) * scale,
-    sy = h.depth * scale;
-  const project = (p: { x: number; y: number }) => ({
-    x: 190 + p.x * sx,
-    y: 172 - p.y * sy,
-  });
-  const points = displayPoints(h, s);
-  const last = points.length - 1,
-    keel = last / 2;
-  const removeReason =
-    points.length <= MIN_HULL_POINTS
-      ? "Keep at least five outline points."
-      : point === keel
-        ? "The center keel must stay in place."
-        : point === 0 || point === last
-          ? "The deck edges must stay in place."
-          : undefined;
-  const changePair = (remove: boolean, selectedPoint = point) => {
-    if (remove && !canRemoveHullPointPair(s.points, selectedPoint)) return;
-    let next = selectedPoint;
-    if (
-      edit((d) => {
-        next = remove
-          ? removeHullPointPair(d, selectedPoint)
-          : addHullPointPair(d, selectedPoint);
-      })
-    )
-      setPoint(next);
-  };
-  return (
-    <section className="hp-section-editor">
-      <div className="hp-panel-title">
-        <h2>
-          Cross-section {String(h.stations.indexOf(s) + 1).padStart(2, "0")}
-        </h2>
-        <span>{(s.t * h.length).toFixed(1)} m from bow</span>
-      </div>
-      <svg
-        className="hp-cross"
-        viewBox="0 0 380 340"
-        role="group"
-        aria-label="Editable cross-section"
-      >
-        {[58, 96, 134, 172, 210, 248, 286].map((y) => (
-          <line key={y} className="hp-grid" x1="20" x2="360" y1={y} y2={y} />
-        ))}
-        {[38, 76, 114, 152, 190, 228, 266, 304, 342].map((x) => (
-          <line key={x} className="hp-grid" x1={x} x2={x} y1="40" y2="304" />
-        ))}
-        <line className="hp-datum" x1="190" x2="190" y1="28" y2="309" />
-        <text x="20" y="25">
-          PORT
-        </text>
-        <text x="360" y="25" textAnchor="end">
-          STARBOARD
-        </text>
-        {h.stations
-          .filter((v) => !selected.includes(v.id))
-          .map((v) => (
-            <path
-              key={v.id}
-              className="hp-ghost-section"
-              d={path(outline(h, v).map(project))}
-            />
-          ))}
-        <path className="hp-outline" d={path(outline(h, s).map(project))} />
-        <path className="hp-control-polygon" d={path(points.map(project))} />
-        {points.map((p, k) => {
-          const pos = project(p);
-          return (
-            <g
-              key={k}
-              className={point === k || last - point === k ? "hp-chosen" : ""}
-            >
-              <circle
-                className="hp-handle"
-                cx={pos.x}
-                cy={pos.y}
-                r={point === k ? 7 : 5}
-                tabIndex={0}
-                role="button"
-                aria-label={`Outline point ${k + 1}`}
-                onClick={() => setPoint(k)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    setPoint(k);
-                  }
-                  if (e.key === "Delete" || e.key === "Backspace") {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    changePair(true, k);
-                  }
-                  if (
-                    [
-                      "ArrowLeft",
-                      "ArrowRight",
-                      "ArrowUp",
-                      "ArrowDown",
-                    ].includes(e.key)
-                  ) {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    setPoint(k);
-                    edit((d) => {
-                      for (const q of d.stations) {
-                        const w = influence(h, selected, q.t, soft);
-                        if (!w) continue;
-                        const v = q.points[k];
-                        v.x +=
-                          k === keel
-                            ? 0
-                            : (((e.key === "ArrowRight"
-                                ? 1
-                                : e.key === "ArrowLeft"
-                                  ? -1
-                                  : 0) *
-                                0.1) /
-                                (h.beam / 2)) *
-                              w;
-                        v.y +=
-                          (((e.key === "ArrowUp"
-                            ? 1
-                            : e.key === "ArrowDown"
-                              ? -1
-                              : 0) *
-                            0.1) /
-                            h.depth) *
-                          w;
-                        if (k !== keel)
-                          q.points[last - k] = {
-                            ...q.points[last - k],
-                            x: -v.x,
-                            y: v.y,
-                          };
-                      }
-                    });
-                  }
-                }}
-                onPointerDown={(e) => {
-                  setPoint(k);
-                  drag(e, (d, dx, dy) => {
-                    for (const q of d.stations) {
-                      const w = influence(h, selected, q.t, soft);
-                      if (!w) continue;
-                      const v = q.points[k];
-                      v.x += k === keel ? 0 : (dx / sx) * w;
-                      v.y -= (dy / sy) * w;
-                      if (k !== keel)
-                        q.points[last - k] = {
-                          ...q.points[last - k],
-                          x: -v.x,
-                          y: v.y,
-                        };
-                    }
-                  });
-                }}
-              />
-              <text
-                className="hp-point-label"
-                x={pos.x + (p.x < 0 ? -12 : 12)}
-                y={pos.y - 10}
-              >
-                {k + 1}
-              </text>
-            </g>
-          );
-        })}
-        <text x="190" y="330" textAnchor="middle">
-          Drag an outline point · arrow keys nudge 0.1 m
-        </text>
-      </svg>
-      <div className="hp-point-controls">
-        <label>
-          Point
-          <select
-            aria-label="Outline point"
-            value={point}
-            onChange={(e) => setPoint(+e.target.value)}
-          >
-            {s.points.map((_, i) => (
-              <option key={i} value={i}>
-                {i + 1}
-                {i === keel
-                  ? " · keel"
-                  : i === 0 || i === last
-                    ? " · deck edge"
-                    : ""}
-              </option>
-            ))}
-          </select>
-        </label>
-        <span>{points.length} points</span>
-      </div>
-      <div className="hp-point-actions">
-        <button
-          onClick={() => changePair(false)}
-          disabled={points.length >= MAX_HULL_POINTS}
-          title={
-            points.length >= MAX_HULL_POINTS
-              ? "At most 33 outline points per section."
-              : "Split the next edge toward the keel on both sides."
-          }
-        >
-          Add pair
-        </button>
-        <button
-          onClick={() => changePair(true)}
-          disabled={!!removeReason}
-          title={removeReason ?? "Remove the selected point and its mirror."}
-        >
-          Remove pair
-        </button>
-      </div>
-      <p className="hp-point-help">
-        Adds or removes matching pairs in every section. Deck edges and the
-        center keel stay in place.
-      </p>
-    </section>
   );
 }
 
 export default function CustomHullEditor({
   integration,
 }: {
-  integration?: { hull: Hull; onApply(hull: Hull): void; onClose(): void };
+  integration?: {
+    hull: Hull;
+    designName?: string;
+    measure?: MeasureHull;
+    onApply(hull: Hull): void;
+    onClose(): void;
+  };
 }) {
-  const sessionDialog = useRef<HTMLDialogElement>(null);
+  const sessionDialog = useRef<HTMLDialogElement>(null),
+    root = useRef<HTMLElement>(null),
+    tag = useRef<HTMLDivElement>(null);
   const integrated = !!integration;
-  // Open before the preview measures its viewport and fits the camera.
+  // Open before the viewport measures its host and frames the hull.
   useLayoutEffect(() => {
     if (!integrated) return;
     const opener =
@@ -600,6 +173,8 @@ export default function CustomHullEditor({
         : undefined;
     const dialog = sessionDialog.current!;
     dialog.showModal();
+    // Start with the editor itself focused rather than its first button.
+    root.current?.focus({ preventScroll: true });
     return () => {
       dialog.close();
       opener?.focus({ preventScroll: true });
@@ -607,836 +182,1066 @@ export default function CustomHullEditor({
   }, [integrated]);
   useEffect(() => {
     const previous = document.title;
-    document.title = "Custom hull · Shipbuilder";
+    document.title = "Hull sections · Shipbuilder";
     return () => {
       document.title = previous;
     };
   }, []);
-  const [hulls, setHulls] = useState<Hull[]>(() => [
-    integration ? clone(integration.hull) : makeHull(),
-  ]);
-  const [active, setActive] = useState(hulls[0].id),
-    [selected, setSelected] = useState([hulls[0].stations[3].id]);
-  const [pending, setPending] = useState<Hull[]>(),
-    [error, setError] = useState("");
-  const [past, setPast] = useState<Hull[][]>([]),
-    [future, setFuture] = useState<Hull[][]>([]);
-  // Preserve an open study on hot reload while applying the newly fixed symmetry rule.
-  useEffect(() => {
-    setHulls((value) => value.map(lockSymmetry));
-    setPast((value) => value.map((hulls) => hulls.map(lockSymmetry)));
-    setFuture((value) => value.map((hulls) => hulls.map(lockSymmetry)));
-    setPending(undefined);
-  }, []);
-  const [variant, setVariant] = useState(() => {
-    const v = integration
-      ? "A"
-      : (new URLSearchParams(location.search).get("variant") ?? "A");
-    return variants.includes(v) ? v : "A";
-  });
-  const [selectedPoint, setPoint] = useState(7),
-    [soft, setSoft] = useState(false),
-    [lines, setLines] = useState(true);
-  const [view, setView] = useState("Orbit"),
-    [fit, setFit] = useState(0),
-    [gallery, setGallery] = useState(false),
-    [tool, setTool] = useState("Shape");
-  const dragCleanup = useRef<(() => void) | undefined>(undefined);
-  const current = useRef(hulls);
-  current.current = hulls;
-  const displayed = pending ?? hulls,
-    h = displayed.find((v) => v.id === active) ?? displayed[0];
-  const selectedValid = selected.filter((id) =>
-    h.stations.some((v) => v.id === id),
+
+  const [hull, setHull] = useState(() =>
+    lockSymmetry(integration ? clone(integration.hull) : makeHull()),
   );
-  const selection = selectedValid.length
-    ? selectedValid
-    : [h.stations[3]?.id ?? h.stations[0].id];
-  const station = h.stations.find((v) => selection.includes(v.id))!;
-  const last = station.points.length - 1,
-    point = Math.min(selectedPoint, last);
-  const flare = nearestContour(station, 1),
-    bilge = nearestContour(station, 2);
-  const commit = (next: Hull[]) => {
-    const reason = next.map(invalidReason).find(Boolean);
+  const [pending, setPending] = useState<Hull>();
+  const [past, setPast] = useState<Hull[]>([]),
+    [future, setFuture] = useState<Hull[]>([]);
+  const [selected, setSelected] = useState<string[]>(() => [
+    hull.stations[Math.min(3, hull.stations.length - 1)].id,
+  ]);
+  const [point, setPoint] = useState(2);
+  const [blend, setBlend] = useState<Blend>({
+    soft: false,
+    reach: BLEND_REACH.initial,
+  });
+  const [snap, setSnap] = useState<HullSnapSettings>(DEFAULT_HULL_SNAP),
+    [altHeld, setAltHeld] = useState(false),
+    [snapMenu, setSnapMenu] = useState(false);
+  const [view, setView] = useState<HullView>("orbit"),
+    [fit, setFit] = useState(0),
+    [focus, setFocus] = useState(0);
+  const [starter, setStarter] = useState(false);
+  const [error, setError] = useState(""),
+    [notice, setNotice] = useState("");
+  const [feedback, setFeedback] = useState<{
+    text: string;
+    guides: HullGuide[];
+  }>();
+  const [measured, setMeasured] = useState<{
+    hull: Hull;
+    value?: HullMeasurement;
+    failure?: string;
+  }>();
+  const drag = useRef<{ spec: HullDrag; base: Hull; draft?: Hull }>(undefined);
+  const latest = useRef(hull);
+  latest.current = hull;
+
+  const shown = pending ?? hull;
+  const valid = selected.filter((id) =>
+    shown.stations.some((s) => s.id === id),
+  );
+  const selection = valid.length
+    ? valid
+    : [shown.stations[Math.min(3, shown.stations.length - 1)].id];
+  const primary = shown.stations.find((s) => selection.includes(s.id))!;
+  const primaryIndex = shown.stations.indexOf(primary);
+  const k0 = Math.min(point, primary.points.length - 1);
+  const multi = selection.length > 1;
+  const waterline = measured?.value?.waterline;
+  const snapping = snap.enabled !== altHeld;
+
+  useEffect(() => {
+    if (!notice) return;
+    const timer = setTimeout(() => setNotice(""), 3200);
+    return () => clearTimeout(timer);
+  }, [notice]);
+  // Measure the committed hull a moment after it settles; drags keep the last waterline.
+  // The builder hands over its measuring compiler once that has started.
+  const measure = useRef(integration?.measure);
+  measure.current = integration?.measure;
+  const measurable = !!integration?.measure;
+  useEffect(() => {
+    if (!measurable) return;
+    const abort = new AbortController();
+    const timer = setTimeout(() => {
+      measure.current?.(hull, abort.signal).then(
+        (value) => {
+          if (!abort.signal.aborted) setMeasured({ hull, value });
+        },
+        (cause) => {
+          if (!abort.signal.aborted)
+            setMeasured((previous) => ({
+              hull,
+              value: previous?.value,
+              failure: cause instanceof Error ? cause.message : String(cause),
+            }));
+        },
+      );
+    }, 250);
+    return () => {
+      clearTimeout(timer);
+      abort.abort();
+    };
+  }, [hull, measurable]);
+  if (import.meta.env.DEV)
+    (window as unknown as { hullSectionsEditor?: object }).hullSectionsEditor =
+      {
+        hull: () => clone(latest.current),
+      };
+
+  const commit = (
+    next: Hull,
+    extra?: { select?: string[]; point?: number },
+  ) => {
+    const reason = invalidReason(next);
     if (reason) {
-      setError(reason);
+      setNotice(`Not applied · ${reason}`);
       return false;
     }
-    setPast((v) => [...v.slice(-49), clone(current.current)]);
+    setPast((value) => [...value.slice(-49), latest.current]);
     setFuture([]);
-    setHulls(next);
+    setHull(next);
     setError("");
+    if (extra?.select) setSelected(extra.select);
+    if (extra?.point !== undefined) setPoint(extra.point);
     return true;
   };
-  const edit = (change: Change) => {
-    const next = clone(hulls);
-    change(next.find((v) => v.id === h.id)!);
-    return commit(next);
-  };
-  const select = (id: string, multi = false) =>
-    setSelected((previous) =>
-      multi
-        ? previous.includes(id)
-          ? previous.length > 1
-            ? previous.filter((v) => v !== id)
-            : previous
-          : [...previous, id]
-        : [id],
-    );
-  const changeVariant = (next: string) => {
-    setVariant(next);
-    const url = new URL(location.href);
-    url.searchParams.set("variant", next);
-    history.replaceState(null, "", url);
+  const edit = (
+    change: (draft: Hull) => void,
+    extra?: { select?: string[]; point?: number },
+  ) => {
+    const next = clone(hull);
+    change(next);
+    return commit(next, extra);
   };
   const undo = () => {
     if (!past.length || pending) return;
-    setFuture((v) => [clone(hulls), ...v]);
-    setHulls(past.at(-1)!);
-    setPast((v) => v.slice(0, -1));
+    setFuture((value) => [hull, ...value]);
+    setHull(past[past.length - 1]);
+    setPast((value) => value.slice(0, -1));
     setError("");
   };
   const redo = () => {
     if (!future.length || pending) return;
-    setPast((v) => [...v, clone(hulls)]);
-    setHulls(future[0]);
-    setFuture((v) => v.slice(1));
+    setPast((value) => [...value, hull]);
+    setHull(future[0]);
+    setFuture((value) => value.slice(1));
     setError("");
   };
-  useEffect(() => {
-    const key = (e: KeyboardEvent) => {
-      if (
-        (e.target as HTMLElement).closest(
-          "input,textarea,select,[contenteditable],svg",
-        )
-      )
-        return;
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "z") {
-        e.preventDefault();
-        e.shiftKey ? redo() : undo();
-      }
-      if (!integration && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
-        e.preventDefault();
-        changeVariant(
-          variants[
-            (variants.indexOf(variant) + (e.key === "ArrowLeft" ? 2 : 1)) % 3
-          ],
-        );
-      }
-    };
-    window.addEventListener("keydown", key);
-    return () => window.removeEventListener("keydown", key);
-  });
-  useEffect(() => () => dragCleanup.current?.(), []);
-  const drag: Drag = (event, change) => {
-    event.preventDefault();
-    event.stopPropagation();
-    dragCleanup.current?.();
-    const svg = event.currentTarget.ownerSVGElement!;
-    const inverse = svg.getScreenCTM()!.inverse();
-    const start = new DOMPoint(event.clientX, event.clientY).matrixTransform(
-      inverse,
-    );
-    const baseline = clone(hulls);
-    let candidate = baseline,
-      reason: string | undefined,
-      moved = false;
-    const move = (e: PointerEvent) => {
-      const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(inverse);
-      moved ||= Math.hypot(p.x - start.x, p.y - start.y) > 1;
-      if (!moved) return;
-      candidate = clone(baseline);
-      change(
-        candidate.find((v) => v.id === h.id)!,
-        p.x - start.x,
-        p.y - start.y,
+  const select = (id: string, additive = false) =>
+    setSelected((previous) => {
+      const current = previous.filter((v) =>
+        hull.stations.some((s) => s.id === v),
       );
-      reason = invalidReason(candidate.find((v) => v.id === h.id)!);
-      setPending(candidate);
-      setError(reason ?? "");
-    };
-    const cleanup = () => {
-      window.removeEventListener("pointermove", move);
-      window.removeEventListener("pointerup", end);
-      window.removeEventListener("pointercancel", cancel);
-      window.removeEventListener("keydown", key);
-      dragCleanup.current = undefined;
-    };
-    const cancel = () => {
-      cleanup();
-      setPending(undefined);
-      setError("");
-    };
-    const end = () => {
-      cleanup();
-      setPending(undefined);
-      if (moved && !reason) commit(candidate);
-    };
-    const key = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        cancel();
-      }
-    };
-    window.addEventListener("pointermove", move);
-    window.addEventListener("pointerup", end);
-    window.addEventListener("pointercancel", cancel);
-    window.addEventListener("keydown", key);
-    dragCleanup.current = cancel;
-  };
-  const chosenChange = (change: (s: Station, weight: number) => void) =>
-    edit((d) =>
-      d.stations.forEach((s) => {
-        const w = influence(h, selection, s.t, soft);
-        if (w) change(s, w);
-      }),
-    );
-  const addSection = () =>
-    edit((d) => {
-      const i = d.stations.findIndex((s) => s.id === station.id),
-        next = d.stations[i + 1] ?? d.stations[i - 1];
-      const s = sectionAt(d, (station.t + next.t) / 2);
-      s.id = uid();
-      d.stations.push(s);
-      d.stations.sort((a, b) => a.t - b.t);
-      setSelected([s.id]);
+      if (!additive) return [id];
+      if (!current.includes(id)) return [...current, id];
+      return current.length > 1 ? current.filter((v) => v !== id) : current;
     });
-  const changeSectionCount = (count: number) => {
-    if (!Number.isInteger(count) || count < 4 || count > 24) {
-      setError("Use a whole section count from 4 to 24.");
+  const step = (direction: 1 | -1) =>
+    setSelected([
+      hull.stations[
+        Math.max(
+          0,
+          Math.min(hull.stations.length - 1, primaryIndex + direction),
+        )
+      ].id,
+    ]);
+
+  // Drags: the viewport and ruler report metres moved; snapping settles the target, then the draft follows.
+  const dragResult = (spec: HullDrag, base: Hull, move: HullDragMove) => {
+    const enabled = snap.enabled !== move.alt,
+      extent = hullExtent(base),
+      guides: HullGuide[] = [],
+      held: string[] = [];
+    const options = (axis: 0 | 1 | 2, origin?: number) => ({
+      settings: snap,
+      enabled,
+      threshold: SNAP_PIXELS / Math.max(move.pixels[axis], 1e-6),
+      origin,
+    });
+    const note = (result: AxisSnap, from: () => Vec3) => {
+      if (!result.target) return;
+      held.push(result.target.label);
+      if (snap.guides)
+        guides.push(
+          result.target.at
+            ? { from: from(), to: result.target.at }
+            : { from: from(), level: result.target.value },
+        );
+    };
+    const s = base.stations.find((v) => v.id === spec.stationId),
+      i = s ? base.stations.indexOf(s) : -1;
+    let next = base,
+      text = "";
+    if (spec.kind === "point" && s) {
+      const k = spec.point!,
+        m = sectionMetres(base, s)[k],
+        keel = (s.points.length - 1) / 2;
+      // A free drag leaves an axis alone until the pointer really moves along it.
+      const moves = (axis: 0 | 1) =>
+        Math.abs(move.delta[axis]) * move.pixels[axis] >= 4;
+      const out =
+          k !== keel && moves(0)
+            ? snapAxis(
+                m.x + move.delta[0],
+                pointTargets(base, s.id, k, "x", snap, waterline),
+                options(0),
+              )
+            : { value: m.x },
+        up = moves(1)
+          ? snapAxis(
+              m.y + move.delta[1],
+              pointTargets(base, s.id, k, "y", snap, waterline),
+              options(1, extent.base),
+            )
+          : { value: m.y };
+      const x = out.value,
+        y = up.value,
+        where = () =>
+          worldPoint(base, s.t, { x: x / (base.beam / 2), y: y / base.depth });
+      note(out, where);
+      note(up, where);
+      next = movePoint(base, selection, blend, k, x - m.x, y - m.y);
+      text = `${pointName(s, k)} · out ${metres(Math.abs(x))} m · up ${metres(y - extent.base)} m`;
+    }
+    if (spec.kind === "station" && s) {
+      const z = s.t * base.length,
+        result = snapAxis(
+          z + move.delta[2],
+          stationTargets(base, s.id, snap),
+          options(2, 0),
+        );
+      next = moveStation(base, s.id, result.value - z);
+      const t = next.stations[i].t;
+      note(result, () => worldPoint(next, t, { x: 0, y: 0.45 }));
+      text = `Section ${pad(i)} · ${metres(t * base.length)} m from the bow`;
+    }
+    if (spec.kind === "width" && s) {
+      const m = sectionMetres(base, s),
+        half = m[m.length - 1].x,
+        result = snapAxis(
+          half + move.delta[0],
+          widthTargets(base, s.id, snap),
+          options(0, 0),
+        );
+      next = resizeWidth(base, selection, blend, s.id, result.value - half);
+      note(result, () =>
+        worldPoint(base, s.t, {
+          x: result.value / (base.beam / 2),
+          y: m[m.length - 1].y / base.depth,
+        }),
+      );
+      text = `Section ${pad(i)} · width ${metres(result.value * 2)} m`;
+    }
+    if ((spec.kind === "deck" || spec.kind === "keel") && s) {
+      const keel = spec.kind === "keel",
+        m = sectionMetres(base, s),
+        p = m[keel ? (m.length - 1) / 2 : 0],
+        result = snapAxis(
+          p.y + move.delta[1],
+          heightTargets(base, s.id, keel, snap),
+          options(1, extent.base),
+        );
+      next = moveDeckKeel(
+        base,
+        selection,
+        blend,
+        s.id,
+        keel,
+        result.value - p.y,
+      );
+      note(result, () =>
+        worldPoint(base, s.t, {
+          x: p.x / (base.beam / 2),
+          y: result.value / base.depth,
+        }),
+      );
+      text = `Section ${pad(i)} · ${spec.kind} ${metres(result.value - extent.base)} m above the base`;
+    }
+    if (spec.kind === "rake" || spec.kind === "bulb") {
+      const rake = spec.kind === "rake",
+        raw = rake
+          ? base.rake + move.delta[2] / rakeArm(base)
+          : base.bulb - move.delta[2] / (base.depth * 0.7),
+        percent = enabled && snap.grid ? Math.round(raw * 20) / 20 : raw,
+        value = Math.min(rake ? 1.5 : 1, Math.max(0, percent));
+      next = clone(base);
+      next[spec.kind] = value;
+      text = `${rake ? "Stem rake" : "Bow bulb"} ${Math.round(value * 100)} %`;
+    }
+    if (spec.kind === "paint" && base.redPaintY !== undefined) {
+      const targets =
+        waterline === undefined
+          ? []
+          : [{ value: waterline, label: "the waterline", level: true }];
+      const result = snapAxis(
+        base.redPaintY + move.delta[1],
+        snap.levels ? targets : [],
+        options(1, extent.base),
+      );
+      next = clone(base);
+      next.redPaintY = Math.min(
+        extent.deck,
+        Math.max(extent.base, result.value),
+      );
+      if (result.target) held.push(result.target.label);
+      text = `Red lower hull · ${metres(next.redPaintY - extent.base)} m above the base`;
+    }
+    if (held.length) text += ` · snapped to ${held.join(" and ")}`;
+    return { next, text, guides };
+  };
+  const dragStart = (spec: HullDrag) => {
+    drag.current = { spec, base: hull };
+    setError("");
+  };
+  const dragMove = (move: HullDragMove) => {
+    const d = drag.current;
+    if (!d) return;
+    const result = dragResult(d.spec, d.base, move);
+    d.draft = result.next;
+    setPending(result.next);
+    setError(invalidReason(result.next) ?? "");
+    setFeedback({ text: result.text, guides: result.guides });
+  };
+  const dragEnd = () => {
+    const d = drag.current;
+    drag.current = undefined;
+    setPending(undefined);
+    setFeedback(undefined);
+    setError("");
+    if (d?.draft && d.draft !== d.base) commit(d.draft);
+  };
+  const dragCancel = () => {
+    drag.current = undefined;
+    setPending(undefined);
+    setFeedback(undefined);
+    setError("");
+  };
+  const nudge = (k: number, axis: 0 | 1, sign: 1 | -1) => {
+    const amount = (snapping ? snap.step : 0.1) * sign;
+    setPoint(k);
+    commit(
+      movePoint(
+        hull,
+        selection,
+        blend,
+        k,
+        axis === 0 ? amount : 0,
+        axis === 1 ? amount : 0,
+      ),
+    );
+  };
+  const pair = (add: boolean, k = k0) => {
+    const points = hull.stations[0].points;
+    if (
+      add
+        ? points.length >= MAX_HULL_POINTS
+        : !canRemoveHullPointPair(points, k)
+    )
       return;
-    }
-    const next = clone(hulls),
-      draft = next.find((v) => v.id === h.id)!;
-    setSectionCount(draft, count);
-    if (commit(next)) {
-      const retained = selection.filter((id) =>
-        draft.stations.some((s) => s.id === id),
-      );
-      const nearest = draft.stations.reduce((a, b) =>
-        Math.abs(a.t - station.t) < Math.abs(b.t - station.t) ? a : b,
-      );
-      setSelected(retained.length ? retained : [nearest.id]);
-    }
+    let nextPoint = k;
+    if (
+      edit((draft) => {
+        nextPoint = add
+          ? addHullPointPair(draft, k)
+          : removeHullPointPair(draft, k);
+      })
+    )
+      setPoint(nextPoint);
   };
-  const changeHull = (id: string) => {
-    setActive(id);
-    const next = hulls.find((v) => v.id === id)!;
-    setSelected([next.stations[3].id]);
+  const reading = (key: ReadingKey, value: number) =>
+    commit(applyReading(hull, selection, blend, primary, key, value));
+  const insert = (index: number) => {
+    if (hull.stations.length >= 24) return;
+    const id = uid();
+    edit(
+      (draft) => {
+        const s = sectionAt(
+          draft,
+          (draft.stations[index].t + draft.stations[index + 1].t) / 2,
+        );
+        s.id = id;
+        draft.stations.splice(index + 1, 0, s);
+      },
+      { select: [id] },
+    );
   };
-  const modelPanel = (
-    <section className="hp-model-panel">
-      <Preview
-        hulls={displayed}
-        active={h.id}
-        selected={selection}
-        soft={soft}
-        invalid={!!pending && !!error}
-        lines={lines}
+  const ends = [
+    hull.stations[0].id,
+    hull.stations[hull.stations.length - 1].id,
+  ];
+  const removable =
+    !selection.some((id) => ends.includes(id)) &&
+    hull.stations.length - selection.length >= 4;
+  const removeSections = () => {
+    if (!removable) return;
+    const keep = hull.stations.filter((s) => !selection.includes(s.id));
+    const neighbour = keep.reduce((a, b) =>
+      Math.abs(a.t - primary.t) <= Math.abs(b.t - primary.t) ? a : b,
+    );
+    edit(
+      (draft) => {
+        draft.stations = draft.stations.filter(
+          (s) => !selection.includes(s.id),
+        );
+      },
+      { select: [neighbour.id] },
+    );
+  };
+  const count = (next: number) => {
+    if (next < 4 || next > 24 || next === hull.stations.length) return;
+    const draft = clone(hull);
+    setSectionCount(draft, next);
+    const near = draft.stations.reduce((a, b) =>
+      Math.abs(a.t - primary.t) <= Math.abs(b.t - primary.t) ? a : b,
+    );
+    commit(draft, { select: [near.id] });
+  };
+  const dimension = (key: "length" | "beam" | "depth", value: number) =>
+    edit((draft) => {
+      draft[key] = value;
+    });
+  const extent = hullExtent(shown);
+  const paintAbove =
+    hull.redPaintY === undefined
+      ? undefined
+      : hull.redPaintY - hullExtent(hull).base;
+  const paintToWaterline = () => {
+    if (waterline === undefined) return;
+    edit((draft) => {
+      draft.redPaintY = waterline;
+    });
+  };
+  const loadStarter = (index: number) => {
+    const fresh = makeHull(index);
+    fresh.id = hull.id;
+    fresh.offset = hull.offset;
+    if (commit(fresh, { select: [fresh.stations[3].id], point: 2 })) {
+      setFit((value) => value + 1);
+      setNotice(
+        `${presets[index].name} starter loaded · Undo brings your hull back`,
+      );
+    }
+    setStarter(false);
+  };
+
+  // Editor keys; fields keep their own typing. Alt/Option inverts snapping while held.
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if (e.key === "Alt") setAltHeld(true);
+      const target = e.target as HTMLElement;
+      if (target.closest("input,textarea,select,[contenteditable]")) return;
+      const lower = e.key.toLowerCase();
+      if ((e.metaKey || e.ctrlKey) && lower === "z") {
+        e.preventDefault();
+        if (e.shiftKey) redo();
+        else undo();
+        return;
+      }
+      if ((e.metaKey || e.ctrlKey) && lower === "a") {
+        e.preventDefault();
+        setSelected(hull.stations.map((s) => s.id));
+        return;
+      }
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === "Escape" && (starter || snapMenu)) {
+        e.preventDefault();
+        setStarter(false);
+        setSnapMenu(false);
+        return;
+      }
+      const chosen = VIEWS.find((v) => v.key === e.key);
+      if (chosen) {
+        e.preventDefault();
+        setView(chosen.id);
+      } else if (e.key === "Home") {
+        e.preventDefault();
+        setFit((value) => value + 1);
+      } else if (lower === "f" && !e.repeat) {
+        e.preventDefault();
+        setView("orbit");
+        setFocus((value) => value + 1);
+      } else if (e.key === "[" || e.key === "]") {
+        e.preventDefault();
+        step(e.key === "[" ? -1 : 1);
+      } else if (lower === "n" && !e.repeat) {
+        e.preventDefault();
+        setSnap((value) => ({ ...value, enabled: !value.enabled }));
+      } else if (lower === "s" && !e.repeat) {
+        e.preventDefault();
+        setSnap((value) => ({
+          ...value,
+          step: HULL_SNAP_STEPS[
+            (HULL_SNAP_STEPS.indexOf(value.step) + 1) % HULL_SNAP_STEPS.length
+          ],
+        }));
+      }
+    };
+    const up = (e: KeyboardEvent) => {
+      if (e.key === "Alt") setAltHeld(false);
+    };
+    const blur = () => setAltHeld(false);
+    window.addEventListener("keydown", down);
+    window.addEventListener("keyup", up);
+    window.addEventListener("blur", blur);
+    return () => {
+      window.removeEventListener("keydown", down);
+      window.removeEventListener("keyup", up);
+      window.removeEventListener("blur", blur);
+    };
+  });
+
+  const readings = sectionReadings(shown, primary);
+  const hint = error
+    ? error
+    : (feedback?.text ??
+      (view === "orbit"
+        ? `Drag a point or its X, Y and Z arms · click a ring to pick a section, ⇧ to add · F moves in · drag space to orbit`
+        : view === "section"
+          ? `Section ${pad(primaryIndex)} from astern, looking forward · the outlines inside are the sections ahead`
+          : view === "plan"
+            ? "Drag a deck edge to widen or narrow its section · starboard is up, bow to the left"
+            : "Drag deck and keel points for the sheer and keel line · the brass diamonds rake the stem and grow a bulb"));
+  const measurement = measured?.value,
+    stale = !!measured && measured.hull !== hull;
+  const sectionTitle = multi
+    ? `${selection.length} sections`
+    : `Section ${pad(primaryIndex)}`;
+  const sectionPlace = multi
+    ? selection
+        .map((id) => pad(hull.stations.findIndex((s) => s.id === id)))
+        .join(" · ")
+    : primaryIndex === 0
+      ? "bow"
+      : primaryIndex === shown.stations.length - 1
+        ? "stern"
+        : `${metres(primary.t * shown.length)} m from the bow`;
+  const pointMetres = sectionMetres(shown, primary)[k0];
+
+  const content = (
+    <main
+      ref={root}
+      tabIndex={-1}
+      className={`hs-root${error ? " hs-invalid" : ""}${integration ? " hs-integrated" : ""}`}
+      data-view={view}
+      aria-label="Hull sections"
+    >
+      <CustomHullViewport
+        hull={shown}
         view={view}
         fit={fit}
-        onSelect={(id, section, multi) => {
-          setActive(id);
-          select(section, multi && id === h.id);
-        }}
+        focus={focus}
+        selected={selection}
+        primary={primary.id}
+        point={k0}
+        blend={blend}
+        invalid={!!pending && !!error}
+        waterline={waterline}
+        guides={feedback?.guides ?? []}
+        safe={view === "section" ? SECTION_SAFE : SAFE}
+        dock={DOCK}
+        tag={tag}
+        onSelectStation={select}
+        onSelectPoint={setPoint}
+        onDragStart={dragStart}
+        onDragMove={dragMove}
+        onDragEnd={dragEnd}
+        onDragCancel={dragCancel}
+        onNudge={nudge}
+        onRemovePair={(k) => pair(false, k)}
       />
-      <div className="hp-model-heading">
-        <h2>{h.name}</h2>
-        <span>
-          {h.length} × {h.beam} × {h.depth} m · {h.stations.length} sections
-        </span>
-      </div>
-      <div className="hp-model-tools">
-        {["Orbit", "Plan", "Profile", "Bow"].map((v) => (
-          <button key={v} aria-pressed={view === v} onClick={() => setView(v)}>
-            {v}
+      <header className="hs-top">
+        <div className="hs-title">
+          <Glyph name="hull" />
+          <b>Hull sections</b>
+          {integration?.designName && <span>{integration.designName}</span>}
+        </div>
+        <div className="hs-actions">
+          <button
+            className="hs-undo"
+            aria-label="Undo"
+            title="Undo (⌘Z)"
+            disabled={!past.length || !!pending}
+            onClick={undo}
+          >
+            <Glyph name="undo" />
+            {past.length}
           </button>
-        ))}
-        <button onClick={() => setFit((v) => v + 1)}>Fit</button>
-      </div>
-      <div className="hp-model-caption">
-        <span>Drag to orbit · scroll to zoom · click to select a section</span>
-        <Toggle checked={lines} onChange={() => setLines(!lines)}>
-          Section lines
-        </Toggle>
-      </div>
-    </section>
-  );
-  const sectionPanel = (
-    <CrossSection
-      h={h}
-      selected={selection}
-      point={point}
-      setPoint={setPoint}
-      drag={drag}
-      soft={soft}
-      edit={edit}
-    />
-  );
-  const planPanel = (
-    <Drawings
-      h={h}
-      selected={selection}
-      select={select}
-      drag={drag}
-      soft={soft}
-      kind="plan"
-    />
-  );
-  const profilePanel = (
-    <Drawings
-      h={h}
-      selected={selection}
-      select={select}
-      drag={drag}
-      soft={soft}
-      kind="profile"
-    />
-  );
-  const controls = (
-    <aside className="hp-inspector">
-      <div className="hp-panel-title">
-        <h2>Hull controls</h2>
-        <span>
-          {selection.length} section{selection.length === 1 ? "" : "s"} selected
-        </span>
-      </div>
-      <div className="hp-tabs" role="group" aria-label="Hull editing tools">
-        {(integration ? ["Shape"] : ["Shape", "Surfaces"]).map((v) => (
-          <button key={v} aria-pressed={tool === v} onClick={() => setTool(v)}>
-            {v}
+          <button
+            className="hs-undo"
+            aria-label="Redo"
+            title="Redo (⇧⌘Z)"
+            disabled={!future.length || !!pending}
+            onClick={redo}
+          >
+            <Glyph name="redo" />
+            {future.length}
           </button>
-        ))}
-      </div>
-      {tool === "Shape" ? (
-        <>
-          <div className="hp-fields">
-            <NumberField
-              label="Length"
-              value={h.length}
-              min={5}
-              max={500}
-              onChange={(v) =>
-                edit((d) => {
-                  d.length = v;
-                })
+          <button
+            className="hs-button"
+            aria-expanded={starter}
+            onClick={() => setStarter(!starter)}
+          >
+            Starter
+            <Glyph name="down" />
+          </button>
+          {integration && (
+            <>
+              <button className="hs-button" onClick={integration.onClose}>
+                Cancel
+              </button>
+              <button
+                className="hs-cmd"
+                disabled={!!pending || !!error}
+                onClick={() => integration.onApply(hull)}
+              >
+                Apply hull
+              </button>
+            </>
+          )}
+        </div>
+      </header>
+
+      <aside className="hs-ledger" aria-label="Hull">
+        <h4>Hull</h4>
+        <div className="row">
+          <span>Length</span>
+          <NumberField
+            label="Length"
+            value={hull.length}
+            min={5}
+            max={500}
+            step={1}
+            unit="m"
+            onChange={(v) => dimension("length", v)}
+          />
+        </div>
+        <div className="row">
+          <span>Beam</span>
+          <NumberField
+            label="Beam"
+            value={hull.beam}
+            min={1}
+            max={100}
+            step={0.5}
+            unit="m"
+            onChange={(v) => dimension("beam", v)}
+          />
+        </div>
+        <div className="row">
+          <span>Depth</span>
+          <NumberField
+            label="Depth"
+            value={hull.depth}
+            min={1}
+            max={60}
+            step={0.5}
+            unit="m"
+            onChange={(v) => dimension("depth", v)}
+          />
+        </div>
+        <div className="row">
+          <span>Sections</span>
+          <span className="hs-stepper">
+            <button
+              aria-label="Fewer sections"
+              disabled={hull.stations.length <= 4 || !!pending}
+              onClick={() => count(hull.stations.length - 1)}
+            >
+              −
+            </button>
+            <b>{hull.stations.length}</b>
+            <button
+              aria-label="More sections"
+              disabled={hull.stations.length >= 24 || !!pending}
+              onClick={() => count(hull.stations.length + 1)}
+            >
+              +
+            </button>
+          </span>
+        </div>
+        {integration?.measure && (
+          <>
+            <div
+              className="row"
+              data-stale={stale || undefined}
+              title={
+                measured?.failure ??
+                "Floats the draft hull with the design's current loading"
               }
-            />
-            <NumberField
-              label="Beam"
-              value={h.beam}
-              min={1}
-              max={100}
-              onChange={(v) =>
-                edit((d) => {
-                  d.beam = v;
-                })
-              }
-            />
-            <NumberField
-              label="Depth"
-              value={h.depth}
-              min={1}
-              max={60}
-              onChange={(v) =>
-                edit((d) => {
-                  d.depth = v;
-                })
-              }
-            />
-          </div>
-          <div className="hp-control-group">
-            <Toggle
-              checked={h.redPaintY !== undefined}
+            >
+              <span>Draft</span>
+              <b className="hs-water">
+                {measurement ? `${metres(measurement.draft)} m` : "—"}
+              </b>
+            </div>
+            <div className="row" data-stale={stale || undefined}>
+              <span>Displacement</span>
+              <b>
+                {measurement
+                  ? `${Math.round(measurement.displacementTonnes).toLocaleString()} t`
+                  : "—"}
+              </b>
+            </div>
+          </>
+        )}
+        <h4>Bow</h4>
+        <div className="row">
+          <span>Stem rake</span>
+          <NumberField
+            label="Stem rake"
+            value={hull.rake * 100}
+            min={0}
+            max={150}
+            step={5}
+            digits={0}
+            unit="%"
+            onChange={(v) =>
+              edit((d) => {
+                d.rake = v / 100;
+              })
+            }
+          />
+        </div>
+        <div className="row">
+          <span>Bow bulb</span>
+          <NumberField
+            label="Bow bulb"
+            value={hull.bulb * 100}
+            min={0}
+            max={100}
+            step={5}
+            digits={0}
+            unit="%"
+            onChange={(v) =>
+              edit((d) => {
+                d.bulb = v / 100;
+              })
+            }
+          />
+        </div>
+        <h4>Paint</h4>
+        <div className="row">
+          <label className="hs-check">
+            <input
+              type="checkbox"
+              checked={hull.redPaintY !== undefined}
               onChange={() =>
                 edit((d) => {
                   d.redPaintY =
                     d.redPaintY === undefined ? -0.02 * d.depth : undefined;
                 })
               }
-            >
-              Red lower hull
-            </Toggle>
-            <p>
-              Red oxide on the lower hull. Moves with the hull; does not change
-              its draft.
-            </p>
-          </div>
-          <div className="hp-control-group">
-            <NumberField
-              label="Section count"
-              unit=""
-              value={h.stations.length}
-              min={4}
-              max={24}
-              step={1}
-              onChange={changeSectionCount}
             />
-            <p>
-              4–24 sections. Increasing adds sections between existing ones.
-              Reducing simplifies the shape. Undo restores the previous hull.
-            </p>
-          </div>
-          <div className="hp-control-group">
-            <p className="hp-symmetry-note">
-              Left / right symmetry is always on.
-            </p>
-            <Toggle checked={soft} onChange={() => setSoft(!soft)}>
-              Blend edits into nearby sections
-            </Toggle>
-            <p>
-              {soft
-                ? `Shape edits also move neighbors within ${(h.length * 0.2).toFixed(1)} m of a selected section, fading with distance. Dashed brass sections show these neighbors; percentages show how much they follow your edit.`
-                : "Off: shape edits affect only selected sections. Turn on to gently reshape nearby sections too."}
-            </p>
-            {soft && (
-              <p>
-                Example: a neighbor marked 25% moves 0.25 m when you move a
-                point 1 m. Moving section positions and changing hull dimensions
-                are unaffected.
-              </p>
-            )}
-            <p>Shift-click section numbers to edit a group at full strength.</p>
-          </div>
-          <div className="hp-control-group">
-            <h3>Selected sections</h3>
-            <div className="hp-pair">
-              <NumberField
-                label="Width"
-                value={
-                  ((station.points[last].x - station.points[0].x) * h.beam) / 2
-                }
-                onChange={(v) =>
-                  chosenChange((s, w) => {
-                    const delta =
-                      (v -
-                        ((station.points[last].x - station.points[0].x) *
-                          h.beam) /
-                          2) /
-                      h.beam;
-                    resizeSection(s, Math.abs(s.points[last].x) + delta * w);
-                  })
-                }
-              />
-              <NumberField
-                label="Deck height"
-                value={station.points[0].y * h.depth}
-                onChange={(v) =>
-                  chosenChange((s, w) => {
-                    const delta = v / h.depth - station.points[0].y;
-                    s.points[0].y += delta * w;
-                    s.points[last].y += delta * w;
-                  })
-                }
-              />
-            </div>
-            <div className="hp-pair">
-              <NumberField
-                label="Flare"
-                unit="%"
-                value={
-                  station.points[0].x
-                    ? (1 -
-                        Math.abs(
-                          station.points[flare].x / station.points[0].x,
-                        )) *
-                      100
-                    : 4
-                }
-                onChange={(v) =>
-                  chosenChange((s, w) => {
-                    for (const [a, b] of [
-                      [flare, 0],
-                      [last - flare, last],
-                    ])
-                      s.points[a].x +=
-                        (s.points[b].x * (1 - v / 100) - s.points[a].x) * w;
-                  })
-                }
-              />
-              <NumberField
-                label="Bilge inset"
-                unit="%"
-                value={
-                  station.points[0].x
-                    ? (1 -
-                        Math.abs(
-                          station.points[bilge].x / station.points[0].x,
-                        )) *
-                      100
-                    : 26
-                }
-                onChange={(v) =>
-                  chosenChange((s, w) => {
-                    for (const [a, b] of [
-                      [bilge, 0],
-                      [last - bilge, last],
-                    ])
-                      s.points[a].x +=
-                        (s.points[b].x * (1 - v / 100) - s.points[a].x) * w;
-                  })
-                }
-              />
-            </div>
-            <div className="hp-actions">
-              <button onClick={addSection} disabled={h.stations.length >= 24}>
-                Add section
-              </button>
-              <button
-                disabled={
-                  h.stations.length - selection.length < 4 ||
-                  selection.some(
-                    (id) =>
-                      id === h.stations[0].id || id === h.stations.at(-1)!.id,
-                  )
-                }
-                onClick={() =>
-                  edit((d) => {
-                    d.stations = d.stations.filter(
-                      (s) => !selection.includes(s.id),
-                    );
-                  })
-                }
-              >
-                Remove selected
-              </button>
-            </div>
-          </div>
-          <div className="hp-control-group">
-            <h3>Bow</h3>
-            <div className="hp-pair">
-              <NumberField
-                label="Bow rake"
-                unit="%"
-                value={h.rake * 100}
-                onChange={(v) =>
-                  edit((d) => {
-                    d.rake = Math.max(0, Math.min(1.5, v / 100));
-                  })
-                }
-              />
-              <NumberField
-                label="Bow bulb"
-                unit="%"
-                value={h.bulb * 100}
-                onChange={(v) =>
-                  edit((d) => {
-                    d.bulb = Math.max(0, Math.min(1, v / 100));
-                  })
-                }
-              />
-            </div>
-            <p>
-              Drag deck and keel points in the side profile to change their
-              heights.
-            </p>
-          </div>
-        </>
-      ) : (
-        <div className="hp-control-group">
-          <h3>Central belt region</h3>
-          <Toggle
-            checked={h.region.enabled}
-            onChange={() =>
-              edit((d) => {
-                d.region.enabled = !d.region.enabled;
-              })
-            }
-          >
-            Show surface region
-          </Toggle>
-          <p>
-            One editable region demonstrates boundaries independent of the
-            shaping sections. Armor is a visual annotation in this study.
-          </p>
-          <div className="hp-pair">
-            <NumberField
-              label="Region start"
-              unit="%"
-              value={h.region.start * 100}
-              onChange={(v) =>
-                edit((d) => {
-                  d.region.start = v / 100;
-                })
-              }
-            />
-            <NumberField
-              label="Region end"
-              unit="%"
-              value={h.region.end * 100}
-              onChange={(v) =>
-                edit((d) => {
-                  d.region.end = v / 100;
-                })
-              }
-            />
-            <NumberField
-              label="Lower edge"
-              unit="%"
-              value={h.region.low * 100}
-              onChange={(v) =>
-                edit((d) => {
-                  d.region.low = v / 100;
-                })
-              }
-            />
-            <NumberField
-              label="Upper edge"
-              unit="%"
-              value={h.region.high * 100}
-              onChange={(v) =>
-                edit((d) => {
-                  d.region.high = v / 100;
-                })
-              }
-            />
-          </div>
-          <NumberField
-            label="Armor annotation"
-            unit="mm"
-            value={h.region.armor}
-            onChange={(v) =>
-              edit((d) => {
-                d.region.armor = Math.max(0, v);
-              })
-            }
-          />
-          <label className="hp-color">
-            Region paint
-            <input
-              aria-label="Region paint"
-              type="color"
-              value={h.region.color}
-              onChange={(e) =>
-                edit((d) => {
-                  d.region.color = e.target.value;
-                })
-              }
-            />
+            Red lower hull
           </label>
+          {paintAbove !== undefined && (
+            <NumberField
+              label="Red lower hull height above the base"
+              value={paintAbove}
+              min={0}
+              max={extent.deck - extent.base}
+              step={0.1}
+              unit="m"
+              onChange={(v) =>
+                edit((d) => {
+                  d.redPaintY = hullExtent(d).base + v;
+                })
+              }
+            />
+          )}
         </div>
-      )}
-      {!integration && (
-        <details className="hp-state">
-          <summary>Inspect prototype state</summary>
-          <pre>{JSON.stringify(h, null, 2)}</pre>
-        </details>
-      )}
-    </aside>
-  );
-  const content = (
-    <main
-      className={`hp-root hp-variant-${variant}${pending && error ? " hp-invalid" : ""}${integration ? " hp-integrated" : ""}`}
-    >
-      <header className="hp-header">
+        {paintAbove !== undefined && integration?.measure && (
+          <button
+            className="hs-link"
+            disabled={waterline === undefined}
+            onClick={paintToWaterline}
+          >
+            Paint to the waterline
+          </button>
+        )}
+      </aside>
+
+      <div className="hs-tag" ref={tag} role="group" aria-label={sectionTitle}>
+        <div className="hs-tag-head">
+          <button
+            className="hs-icon"
+            aria-label="Previous section"
+            title="Previous section ([)"
+            disabled={primaryIndex === 0 && !multi}
+            onClick={() => step(-1)}
+          >
+            <Glyph name="left" />
+          </button>
+          <b>{sectionTitle}</b>
+          <button
+            className="hs-icon"
+            aria-label="Next section"
+            title="Next section (])"
+            disabled={primaryIndex === shown.stations.length - 1 && !multi}
+            onClick={() => step(1)}
+          >
+            <Glyph name="right" />
+          </button>
+          <span>{sectionPlace}</span>
+          <button
+            className="hs-icon hs-remove"
+            aria-label="Remove section"
+            title={
+              removable
+                ? "Remove section"
+                : "The bow and stern stay, with at least four sections"
+            }
+            disabled={!removable || !!pending}
+            onClick={removeSections}
+          >
+            <Glyph name="remove" />
+          </button>
+        </div>
+        <div className="hs-readings">
+          {(
+            [
+              ["width", "Width", "m", 0.1, 0, 200],
+              ["deck", "Deck", "m", 0.1, 0.1, 120],
+              ["flare", "Flare", "%", 1, -100, 100],
+              ["bilge", "Bilge", "%", 1, -100, 100],
+            ] as const
+          ).map(([key, label, unit, stepSize, min, max]) => (
+            <div key={key} className="hs-reading">
+              <span>{label}</span>
+              <NumberField
+                label={`Section ${label.toLowerCase()}`}
+                value={readings[key]}
+                min={min}
+                max={max}
+                step={stepSize}
+                digits={unit === "%" ? 0 : 2}
+                unit={unit}
+                onChange={(v) => reading(key, v)}
+              />
+            </div>
+          ))}
+        </div>
+        <div className="hs-point">
+          <b>{pointName(primary, k0)}</b>
+          <span>
+            out <em>{metres(Math.abs(pointMetres.x))}</em> · up{" "}
+            <em>{metres(pointMetres.y - extent.base)}</em> m
+          </span>
+          <button
+            className="hs-small"
+            title="Split the edge toward the keel on both sides, in every section"
+            disabled={primary.points.length >= MAX_HULL_POINTS || !!pending}
+            onClick={() => pair(true)}
+          >
+            + Pair
+          </button>
+          <button
+            className="hs-small"
+            title={
+              canRemoveHullPointPair(primary.points, k0)
+                ? "Remove this point and its mirror from every section"
+                : "Deck edges and the keel stay; sections keep at least five points"
+            }
+            disabled={!canRemoveHullPointPair(primary.points, k0) || !!pending}
+            onClick={() => pair(false)}
+          >
+            − Pair
+          </button>
+        </div>
         <button
-          className="hp-brand"
-          onClick={() =>
-            integration ? integration.onClose() : location.assign("./")
-          }
-          title="Return to shipbuilder"
+          className="hs-blend"
+          aria-pressed={blend.soft}
+          title="Edits also move nearby sections, fading with distance. Drag the band's ends on the ruler to set the reach."
+          onClick={() => setBlend({ ...blend, soft: !blend.soft })}
         >
-          <Icon name="hull" />
-          <span>Shipbuilder</span>
+          <i />
+          Blend nearby sections
         </button>
-        <div className="hp-heading">
-          <h1>Custom hull</h1>
-          <span>
-            {integration
-              ? "Shape the hull, then apply to your design"
-              : "Interactive prototype · changes stay in this tab"}
-          </span>
-        </div>
-        <div className="hp-history">
+      </div>
+
+      <p
+        className={`hs-hint${error ? " bad" : feedback ? " live" : ""}`}
+        role="status"
+      >
+        {hint}
+      </p>
+
+      <HullSectionRuler
+        hull={shown}
+        selected={selection}
+        blend={blend}
+        onSelect={select}
+        onInsert={insert}
+        onReach={(reach) => setBlend({ ...blend, reach })}
+        onDragStart={dragStart}
+        onDragMove={dragMove}
+        onDragEnd={dragEnd}
+        onDragCancel={dragCancel}
+      />
+
+      <div className="hs-corner">
+        <div className="hs-snap" data-override={altHeld || undefined}>
           <button
-            aria-label="Undo"
-            disabled={!past.length || !!pending}
-            onClick={undo}
+            className="hs-snap-main"
+            aria-pressed={snapping}
+            aria-label={`Snapping ${snapping ? "on" : "off"}`}
+            title="N toggles snapping; hold Alt/Option to invert it while dragging"
+            onClick={() => setSnap({ ...snap, enabled: !snap.enabled })}
           >
-            <Icon name="undo" />
-            Undo
+            <Glyph name="snap" />
+            Snap {snapping ? "on" : "off"}
+            <kbd>N</kbd>
           </button>
           <button
-            aria-label="Redo"
-            disabled={!future.length || !!pending}
-            onClick={redo}
+            className="hs-snap-more"
+            aria-label="Snap settings"
+            aria-expanded={snapMenu}
+            onClick={() => setSnapMenu(!snapMenu)}
           >
-            <Icon name="redo" />
-            Redo
+            <Glyph name="down" />
           </button>
-        </div>
-        <button onClick={() => setGallery(!gallery)} aria-expanded={gallery}>
-          Choose a starter
-        </button>
-        {integration && (
-          <div className="hp-apply-actions">
-            <button onClick={integration.onClose}>Cancel</button>
-            <button
-              className="hp-primary"
-              disabled={!!pending || !!error}
-              onClick={() => integration.onApply(h)}
+          <button
+            className="hs-snap-step"
+            aria-label={`Snap step ${snap.step} m; cycle with S`}
+            title="Snap step · S to cycle"
+            onClick={() =>
+              setSnap({
+                ...snap,
+                step: HULL_SNAP_STEPS[
+                  (HULL_SNAP_STEPS.indexOf(snap.step) + 1) %
+                    HULL_SNAP_STEPS.length
+                ],
+              })
+            }
+          >
+            {snap.step} m<kbd>S</kbd>
+          </button>
+          {snapMenu && (
+            <div
+              className="hs-snap-menu"
+              role="group"
+              aria-label="Snap settings"
             >
-              Apply hull
-            </button>
-          </div>
-        )}
-      </header>
-      {gallery && (
-        <section className="hp-gallery" aria-label="Hull starters">
-          <div className="hp-panel-title">
-            <h2>Start with a useful shape</h2>
-            <span>Replaces the selected hull · undo available</span>
-          </div>
-          <div className="hp-preset-list">
-            {presets.map((p, i) => (
-              <button
-                key={p.name}
-                onClick={() => {
-                  const fresh = makeHull(i);
-                  fresh.id = h.id;
-                  fresh.offset = h.offset;
-                  commit(hulls.map((v) => (v.id === h.id ? fresh : v)));
-                  setSelected([fresh.stations[3].id]);
-                  setGallery(false);
-                  setFit((v) => v + 1);
-                }}
-              >
-                <svg viewBox="0 0 220 72" aria-hidden="true">
-                  <path
-                    d={path([
-                      ...p.widths.map((w, j) => ({
-                        x: 12 + (j / 7) * 196,
-                        y: 36 - w * (i === 1 ? 16 : 24),
-                      })),
-                      ...p.widths
-                        .slice()
-                        .reverse()
-                        .map((w, j) => ({
-                          x: 208 - (j / 7) * 196,
-                          y: 36 + w * (i === 1 ? 16 : 24),
-                        })),
-                    ])}
+              <strong>Snap to</strong>
+              {(
+                [
+                  ["grid", "Grid"],
+                  ["sections", "Neighbouring sections and points"],
+                  ["levels", "Waterline, deck and base"],
+                ] as const
+              ).map(([key, label]) => (
+                <label key={key}>
+                  <input
+                    type="checkbox"
+                    checked={snap[key]}
+                    onChange={(e) =>
+                      setSnap({ ...snap, [key]: e.target.checked })
+                    }
                   />
-                </svg>
-                <strong>{p.name}</strong>
-                <span>{p.note}</span>
-                <small>
-                  {p.length} × {p.beam} × {p.depth} m
-                </small>
-              </button>
-            ))}
-          </div>
-          <button onClick={() => setGallery(false)}>Keep current hull</button>
-        </section>
-      )}
-      <div className="hp-station-strip">
-        <span>Sections</span>
-        <div>
-          {h.stations.map((s, i) => {
-            const chosen = selection.includes(s.id),
-              weight = influence(h, selection, s.t, soft);
-            const percent =
-              weight > 0 && Math.round(weight * 100) === 0
-                ? "<1%"
-                : `${Math.round(weight * 100)}%`;
-            const description = chosen
-              ? "Selected: full edit"
-              : weight > 0
-                ? `Follows ${percent} of a shape edit`
-                : "Unaffected by edits to the current selection";
-            return (
-              <button
-                key={s.id}
-                className={!chosen && weight > 0 ? "hp-influenced" : ""}
-                aria-label={`Section ${i + 1}`}
-                aria-description={description}
-                title={description}
-                aria-pressed={chosen}
-                onClick={(e) => select(s.id, e.shiftKey)}
+                  {label}
+                </label>
+              ))}
+              <div
+                className="hs-snap-steps"
+                role="group"
+                aria-label="Snap step"
               >
-                {String(i + 1).padStart(2, "0")}
-                {soft && weight > 0 && (
-                  <small>{chosen ? "100%" : percent}</small>
-                )}
-              </button>
-            );
-          })}
+                {HULL_SNAP_STEPS.map((value) => (
+                  <button
+                    key={value}
+                    aria-pressed={snap.step === value}
+                    onClick={() => setSnap({ ...snap, step: value })}
+                  >
+                    {value}
+                  </button>
+                ))}
+                <span>m</span>
+              </div>
+              <strong>Show</strong>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={snap.guides}
+                  onChange={(e) =>
+                    setSnap({ ...snap, guides: e.target.checked })
+                  }
+                />
+                Alignment guides
+              </label>
+              <p>
+                Stem rake and bulb snap to 5 %. <kbd>N</kbd> toggles,{" "}
+                <kbd>S</kbd> cycles the step, hold <kbd>Alt</kbd> to invert.
+              </p>
+            </div>
+          )}
         </div>
-        <button onClick={() => setSelected(h.stations.map((s) => s.id))}>
-          Select all
-        </button>
-        <span>Bow → Stern</span>
-      </div>
-      <div className="hp-workspace">
-        {variant === "A" && (
-          <>
-            {modelPanel}
-            <div className="hp-section-column">
-              {sectionPanel}
-              {controls}
-            </div>
-            <div className="hp-drawings-row">
-              {planPanel}
-              {profilePanel}
-            </div>
-          </>
-        )}
-        {variant === "B" && (
-          <>
-            <div className="hp-drafting-column">
-              {planPanel}
-              {profilePanel}
-              {controls}
-            </div>
-            <div className="hp-preview-column">
-              {modelPanel}
-              {sectionPanel}
-            </div>
-          </>
-        )}
-        {variant === "C" && (
-          <>
-            {modelPanel}
-            <div className="hp-floating-section">{sectionPanel}</div>
-            <div className="hp-bottom-dock">
-              {planPanel}
-              {profilePanel}
-            </div>
-            <div className="hp-floating-controls">{controls}</div>
-          </>
-        )}
-      </div>
-      {!integration && (
-        <nav className="hp-switcher" aria-label="Prototype layout">
+        <div className="hs-views" role="toolbar" aria-label="View">
+          <span className="hs-cap">View</span>
+          {VIEWS.map((v) => (
+            <button
+              key={v.id}
+              aria-pressed={view === v.id}
+              title={`${v.detail} (${v.key})`}
+              onClick={() => setView(v.id)}
+            >
+              {v.label}
+              <kbd>{v.key}</kbd>
+            </button>
+          ))}
           <button
-            aria-label="Previous layout"
-            onClick={() =>
-              changeVariant(variants[(variants.indexOf(variant) + 2) % 3])
-            }
+            title="Move in on the selected section (F)"
+            onClick={() => {
+              setView("orbit");
+              setFocus((value) => value + 1);
+            }}
           >
-            <Icon name="left" />
+            Focus
+            <kbd>F</kbd>
           </button>
-          <span>
-            <b>{variant}</b> {variantNames[variants.indexOf(variant)]}
-          </span>
           <button
-            aria-label="Next layout"
-            onClick={() =>
-              changeVariant(variants[(variants.indexOf(variant) + 1) % 3])
-            }
+            title="Frame the whole hull (Home)"
+            onClick={() => setFit((value) => value + 1)}
           >
-            <Icon name="right" />
+            Fit
           </button>
-        </nav>
+        </div>
+      </div>
+
+      {starter && (
+        <>
+          <div className="hs-scrim" onClick={() => setStarter(false)} />
+          <section className="hs-starters" aria-label="Hull starters">
+            <div className="hs-starters-head">
+              <b>Start from a hull</b>
+              <span>Replaces this hull · Undo brings it back</span>
+            </div>
+            <div className="hs-starter-list">
+              {presets.map((p, i) => {
+                const h = makeHull(i),
+                  k = Math.min(140 / h.length, 36 / h.beam),
+                  edge = h.stations.map((s) => [
+                    10 + s.t * h.length * k,
+                    sectionMetres(h, s).at(-1)!.x * k,
+                  ]);
+                const d = `M${[...edge.map(([x, y]) => `${x},${22 - y}`), ...edge.reverse().map(([x, y]) => `${x},${22 + y}`)].join("L")}Z`;
+                return (
+                  <button key={p.name} onClick={() => loadStarter(i)}>
+                    <svg viewBox="0 0 160 44" aria-hidden="true">
+                      <path d={d} />
+                    </svg>
+                    <b>{p.name}</b>
+                    <span>{p.note}</span>
+                    <small>
+                      {p.length} × {p.beam} × {p.depth} m
+                    </small>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        </>
+      )}
+      {notice && (
+        <p className="hs-notice" role="status">
+          {notice}
+        </p>
       )}
     </main>
   );
   return integration ? (
     <dialog
       ref={sessionDialog}
-      className="hp-session"
-      aria-label="Custom hull editor"
+      className="hs-session"
+      aria-label="Hull sections editor"
       onCancel={(event) => {
         event.preventDefault();
         integration.onClose();

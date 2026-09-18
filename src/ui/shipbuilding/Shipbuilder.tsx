@@ -128,6 +128,13 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const [memoryOpen, setMemoryOpen] = useState(false);
   const [visualMemory, setVisualMemory] = useState<VisualMemory>();
   const [customHullSession, setCustomHullSession] = useState<{ designId: string; primitive: ConstructionPrimitive }>();
+  // The section editor floats its draft hull on a compiler of its own, so measuring never cancels the builder's compile.
+  const [hullMeasurer, setHullMeasurer] = useState<ConstructionClient>();
+  useEffect(() => {
+    if (!customHullSession || props.compileClient) return;
+    const client = new ConstructionClient(); setHullMeasurer(client);
+    return () => { client.dispose(); setHullMeasurer(undefined); };
+  }, [customHullSession?.primitive.id, props.compileClient]);
   const [balconySession, setBalconySession] = useState<string>();
   const [newDesignOpen, setNewDesignOpen] = useState(false);
   const [tip, setTip] = useState<{ title: string; detail: string; x: number; y: number; key?: string; below?: boolean; right?: number; beside?: boolean }>();
@@ -425,7 +432,16 @@ export function Shipbuilder(props: ShipbuilderProps) {
   return <main className={`shipbuilder ${freeformMode ? 'sb-freeform-mode' : ''}`} aria-label="Shipbuilder" data-balcony-editing={balconyEditing || undefined} data-wall-placement={piece?.kind === 'equipment' && !!piece.wall || undefined} data-path-drawing={!!pathPart || undefined} data-layer={layer} data-drawer={drawer || undefined} aria-busy={!!busy}>
     {balconyEditing && <BalconyEditor key={`${source.id}:${balconySession}`} primitive={selectedPrimitives[0]} onChange={value => tool.editPrimitive('Edit balcony', value)} onClose={() => setBalconySession(undefined)} />}
     {newDesignOpen && <NewDesignDialog onClose={() => setNewDesignOpen(false)} onCreate={newDesign}/>}
-    {customHullSession?.designId === source.id && createPortal(<CustomHullEditor integration={{ hull: editableCustomHull(customHullSession.primitive), onClose: () => setCustomHullSession(undefined), onApply: hull => {
+    {customHullSession?.designId === source.id && createPortal(<CustomHullEditor integration={{ hull: editableCustomHull(customHullSession.primitive), designName: source.name,
+      measure: hullMeasurer && (async (hull, signal) => {
+        const draft = structuredClone(source), target = draft.construction.primitives.find(part => part.id === customHullSession.primitive.id);
+        if (!target) throw new Error('This hull is no longer part of the design.');
+        Object.assign(target, customHullPrimitive(hull, target)); draft.revision = newConstructionId('hull-draft');
+        const result = await hullMeasurer.compile(draft, signal), loading = result.loading, bounds = hullBounds(draft);
+        if (!loading || !bounds) throw new Error(result.diagnostics.find(d => d.severity === 'error')?.message ?? 'The draft hull did not float.');
+        return { waterline: loading.waterlineY - target.position[1], draft: loading.waterlineY - bounds.min[1], displacementTonnes: loading.massKg / 1000 };
+      }),
+      onClose: () => setCustomHullSession(undefined), onApply: hull => {
       const existing = data.primitives.find(part => part.id === customHullSession.primitive.id);
       if (existing) {
         const commands: ConstructionCommand[] = [{ op: 'primitive', value: customHullPrimitive(hull, existing) }];
