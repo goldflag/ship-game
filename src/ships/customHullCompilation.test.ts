@@ -32,7 +32,7 @@ test.each([...HULL_PRESETS])('$name with paired point edits compiles after save/
 });
 
 test('minimum and maximum point counts produce valid native hulls', () => {
-  const source = createStarterSource(catalogJson as ConstructionCatalog, 'barge-hull'), p = source.construction.primitives[0], h = editableCustomHull(p);
+  const source = createStarterSource(catalogJson as ConstructionCatalog, 'baltimore-hull'), p = source.construction.primitives[0], h = editableCustomHull(p);
   removeHullPointPair(h, 1); removeHullPointPair(h, 1);
   for (const count of [5, 33]) {
     while (h.stations[0].points.length < count) addHullPointPair(h, 0);

@@ -8,7 +8,7 @@ import type { ConstructionCatalog, ConstructionSurface, Vec3 } from './blueprint
 const catalog = { revision: 'test' } as ConstructionCatalog;
 const surface: ConstructionSurface = { id: 'hull:port', primitiveId: 'hull', face: 'port', panelId: 'panel', vertices: [[0, -2, -2], [0, 2, -2], [0, 2, 2], [0, -2, 2]], normal: [-1, 0, 0], areaM2: 16, paint: 'sea-blue', thicknessMm: 100, material: 'armor-steel', open: false };
 test('red coating clips at an exact hull-local height, retaining face geometry and lighting', () => {
-  const source = createStarterSource(catalog, 'destroyer-hull'), hull = source.construction.primitives[0];
+  const source = createStarterSource(catalog, 'fletcher-hull'), hull = source.construction.primitives[0];
   hull.position[1] = 1; hull.customHull!.redPaintY = -.5;
   const before = structuredClone(surface), normals: Vec3[] = [[-1,0,0],[-.8,.6,0],[-.8,.6,0],[-1,0,0]];
   const faces = paintedHullFace(surface, hull, normals);
@@ -26,7 +26,7 @@ test('red coating clips at an exact hull-local height, retaining face geometry a
   delete hull.customHull!.redPaintY; expect(paintedHullFace(surface, hull)[0].vertices).toEqual(surface.vertices);
 });
 test('paint height persists through editor commands, reload, placement and mirrored copies; legacy data remains optional', () => {
-  const source = createStarterSource(catalog, 'destroyer-hull'), hull = source.construction.primitives[0];
+  const source = createStarterSource(catalog, 'fletcher-hull'), hull = source.construction.primitives[0];
   const draft = editableCustomHull(hull); draft.redPaintY = 1.25;
   const edited = applyConstructionBatch(source, { version: 1, expectedRevision: source.revision, label: 'Paint height', commands: [{ op: 'primitive', value: customHullPrimitive(draft, hull) }] });
   const loaded = decodeConstructionSource(JSON.parse(JSON.stringify(edited)));

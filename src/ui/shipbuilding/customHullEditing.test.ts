@@ -51,8 +51,8 @@ test("a moved point keeps its mirror and the keel stays on the centerline", () =
 test("blending moves neighbours by their influence over the chosen reach", () => {
   const h = makeHull(1),
     ids = [h.stations[4].id];
-  // The old 0.2 reach left an eight-section starter's neighbours at 1 %.
-  expect(influence(h, ids, h.stations[3].t, true, 0.2)).toBeCloseTo(0.01, 6);
+  // Wider blending reaches further across the ship-derived station spacing.
+  expect(influence(h, ids, h.stations[3].t, true, 0.2)).toBeCloseTo(0.275625, 6);
   expect(influence(h, ids, h.stations[3].t, true)).toBeGreaterThan(0.2);
   const next = movePoint(h, ids, on, 0, 0, 1);
   for (const [i, s] of next.stations.entries()) {
@@ -101,10 +101,10 @@ test("typed readings match the section and apply as the old inspector did", () =
     s = h.stations[3],
     ids = [s.id];
   const now = sectionReadings(h, s);
-  expect(now.width).toBeCloseTo(11.04, 9);
-  expect(now.deck).toBeCloseTo(8.7287, 3);
-  expect(now.flare).toBeCloseTo(4, 9);
-  expect(now.bilge).toBeCloseTo(25.92, 9);
+  expect(now.width).toBeCloseTo(14.1255018, 9);
+  expect(now.deck).toBeCloseTo(16.559, 3);
+  expect(now.flare).toBeCloseTo(22.783905509, 8);
+  expect(now.bilge).toBeCloseTo(49.549016095, 8);
   const wider = applyReading(h, ids, off, s, "width", 12);
   expect(sectionReadings(wider, wider.stations[3]).width).toBeCloseTo(12, 9);
   const higher = applyReading(h, ids, off, s, "deck", 9.2);

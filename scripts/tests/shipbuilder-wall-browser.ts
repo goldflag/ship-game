@@ -14,7 +14,7 @@ try {
     const {createStarterSource}=await import('/src/ships/constructionStarter.ts');
     const {mountShipbuilderReview}=await import('/scripts/tests/shipbuilder-browser.tsx');
     const catalog=await(await fetch('/models/components/catalog.json')).json();
-    await mountShipbuilderReview(createStarterSource(catalog,'patrol-hull'));
+    await mountShipbuilderReview(createStarterSource(catalog,'fletcher-hull'));
   });
   await page.waitForFunction(()=>window.constructionEditor?.source().construction.primitives[0].kind==='custom-hull');await ready();
   await page.getByRole('tab',{name:'Fittings',exact:true}).click();

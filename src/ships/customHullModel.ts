@@ -1,5 +1,5 @@
 // Section editing and display helpers. Rust owns solid validity and physical derivation.
-import { HULL_PRESETS } from './constructionHullPresets';
+import { DEFAULT_HULL_PRESET, HULL_PRESETS } from './constructionHullPresets';
 import type { ConstructionPrimitive, ConstructionHullPoint, ConstructionHullStation, Vec3 } from './blueprint';
 import { contourAt, contourWeight, hullEdgeId, MAX_HULL_POINTS, MIN_HULL_POINTS, outlineTopologyError } from './customHullTopology';
 export type Point = ConstructionHullPoint;
@@ -23,24 +23,13 @@ export function lockSymmetry(h: Hull): Hull {
   return { id, name, length, beam, depth, offset, bulb, rake, redPaintY, region, stations };
 }
 export const presets = HULL_PRESETS;
-export function makeHull(index = 1): Hull {
+export function makeHull(index = presets.findIndex(p => p.id === DEFAULT_HULL_PRESET)): Hull {
   const p = presets[index];
-  const times = [0, .08, .2, .36, .54, .72, .88, 1];
   return {
     id: uid(), name: p.name, length: p.length, beam: p.beam, depth: p.depth, offset: 0,
-    bulb: 0, rake: index === 3 ? 0 : .65, redPaintY: -.02 * p.depth,
+    bulb: p.customHull.bulb, rake: p.customHull.rake, redPaintY: p.customHull.redPaintY,
     region: { enabled: false, start: .25, end: .75, low: .32, high: .7, armor: 200, color: '#9aac9b' },
-    stations: times.map((t, i) => {
-      const w = p.widths[i], keel = index === 3 ? -.45 : -.52 + .28 * Math.pow(Math.abs(t - .5) * 2, 3);
-      const deck = .45;
-      const half = [
-        { x: w, y: deck },
-        { x: w * .96, y: keel + (deck - keel) * .63 },
-        { x: w * (.85 - p.round * .14), y: keel + (deck - keel) * .18 },
-        { x: w * .36, y: keel + (index === 3 ? 0 : .02) },
-      ];
-      return { id: uid(), t, points: [...half.map(v => ({ ...v, x: v.x ? -v.x : 0 })), { x: 0, y: keel }, ...half.slice().reverse().map(v => ({ ...v }))] };
-    }),
+    stations: clone(p.customHull.stations),
   };
 }
 const mix = (a: number, b: number, t: number) => a + (b - a) * t;

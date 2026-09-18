@@ -6,10 +6,12 @@ authoring tool for reusable components.
 
 An account is required. Source revisions save to PostgreSQL; IndexedDB retains account-scoped recovery drafts. Saved valid designs can join online fleets alongside historical presets, within the [online construction limits](accounts.md#online-construction). Campaign missions still use historical presets.
 
-Choose **New design** in port to select a Patrol boat, Destroyer, Battleship or
-Barge hull, or **No hull preset** for the original centered 1 × 1 × 1 m block.
-Cancel leaves the library unchanged. Hull presets start with a level deck and no
-equipment; each remains one editable custom hull. The same chooser is available
+Choose **New design** in port to select a Bismarck or King George V battleship hull,
+Admiral Hipper or Baltimore cruiser hull, or Fletcher or Yukikaze destroyer hull.
+**No hull preset** starts with the original centered 1 × 1 × 1 m block.
+Cancel leaves the library unchanged. Hull presets derive their dimensions and
+sections from the existing in-game ships, including their deck profiles. Each starts with no equipment and remains
+one editable custom hull. Fletcher is selected by default. The same chooser is available
 under **Designs → New design…**. Choose **Edit design** to reopen a saved source.
 All drafts appear in the port’s Ship designs list; valid designs also appear in
 the fleet carousel and can be inspected in the harbor. Returning from the editor

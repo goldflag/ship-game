@@ -12,17 +12,27 @@ bun install
 bunx playwright install chromium
 bun run multiplayer:prepare:dev
 bun run ship:templates
-bun run ship:new my-ship --template destroyer-hull --name "My ship"
+bun run ship:new my-ship --template fletcher-hull --name "My ship"
 bun run ship:edit my-ship
 ```
 
-`ship:new` defaults to `destroyer-hull`. Adjustable presets are `patrol-hull`,
-`destroyer-hull`, `battleship-hull` and `barge-hull`; each starts with one editable
-`custom-hull`, a level deck and no equipment. `blank` retains the one-block starter;
+`ship:new` defaults to `fletcher-hull`. Adjustable presets are `bismarck-hull`
+and `king-george-v-hull` (battleships), `admiral-hipper-hull` and `baltimore-hull`
+(cruisers), and `fletcher-hull` and `yukikaze-hull` (destroyers). Each starts
+with one editable `custom-hull` and no equipment, preserving the source game's
+length, beam, waterline and deck sheer. `blank` retains the one-block starter;
 `patrol` and `catamaran` retain the older armed sandbox layouts. `ship:templates`
-lists choices and dimensions as JSON. These are original sandbox shapes.
-The brief/reference approvals in the ship pipeline still apply to historical
-vessels. A generic template does not establish historical accuracy.
+lists choices, source ships and dimensions as JSON.
+
+These are reduced, editable versions of our original in-game hulls, not complete
+historical ships. Their blueprint sections are sampled to at most 24 stations
+with nine outline controls. Very short end transitions move within 0.51% of
+the hull length to keep sections far enough apart; very thin end caps extend
+downward to the editor's minimum section depth. Regenerate the shared data after
+changing a source hull with `bun scripts/construction/hull-presets.ts` (or use `--check`
+to verify freshness). Saved designs retain their own versioned sections and are
+not changed by a template update. The brief/reference approvals in the ship
+pipeline still apply when authoring a new historical vessel.
 
 `ship:edit` prints a loopback URL and runs until interrupted. It opens the existing
 Shipbuilder directly, without preparing the harbor. `--port 5195` chooses a fixed
