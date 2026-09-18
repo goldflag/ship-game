@@ -257,6 +257,11 @@ Select a custom hull and choose **Edit hull sections**. Edit its cross-section,
 top outline or side profile, dimensions, bow rake and bulb. Left/right symmetry
 is fixed. **Section count** supports 4–24 sections; increasing retains existing
 sections and inserts interpolated profiles, while reducing simplifies the shape.
+Select an outline point, then **Add pair** to split the edge toward the keel on
+both sides, or **Remove pair** to delete that point and its mirror. Delete or
+Backspace also removes the focused pair. Each action adds or removes two points
+in every section, preserving matching hull panels. Sections support 5–33 points;
+the deck edges and center keel cannot be removed. Each action is one undo step.
 **Blend edits into nearby sections** fades shape edits over 20% of hull length;
 dashed brass outlines and percentages identify affected neighbors. Keyboard
 nudges, numeric edits and drags share this behavior.
@@ -287,8 +292,12 @@ The source stores primitive parameters and transforms, surface assignments,
 equipment instances, boundaries, loads and an exact equipment-catalog revision.
 Custom hulls use `kind: "custom-hull"` and `customHull.version: 1` in that same
 primitive list. Stable section IDs, normalized outline points, bow parameters and
-the primitive's beam/depth/length frame survive saving and reopening. Rust
-validates symmetry, section ordering, folds and overlap, then derives closed
+the primitive's beam/depth/length frame survive saving and reopening. The compiler
+accepts matching odd point counts across sections. Optional point `contour`
+positions retain the original 0–8 outline coordinates (keel 4), bow shaping and
+unchanged panel IDs when inserting or removing pairs; legacy nine-point hulls
+need no migration. Split or merged panels inherit their named side's defaults.
+Rust validates symmetry, section ordering, folds and overlap, then derives closed
 convex cells and attributed exterior panels for the existing compiler. Both
 port and starboard use mirrored triangulation. Preview envelopes are display-only;
 saved, trial and battle physics use the native compiled volume.

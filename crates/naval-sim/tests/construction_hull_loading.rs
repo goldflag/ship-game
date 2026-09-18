@@ -124,12 +124,12 @@ fn slender_rounded_hull_returns_from_small_heel_in_native_sea_trial() {
                 ];
                 let points = half
                     .iter()
-                    .map(|v| ConstructionHullPoint { x: -v[0], y: v[1] })
-                    .chain(std::iter::once(ConstructionHullPoint { x: 0., y: keel }))
+                    .map(|v| ConstructionHullPoint { x: -v[0], y: v[1], contour: None })
+                    .chain(std::iter::once(ConstructionHullPoint { x: 0., y: keel, contour: None }))
                     .chain(
                         half.iter()
                             .rev()
-                            .map(|v| ConstructionHullPoint { x: v[0], y: v[1] }),
+                            .map(|v| ConstructionHullPoint { x: v[0], y: v[1], contour: None }),
                     )
                     .collect();
                 ConstructionHullStation {

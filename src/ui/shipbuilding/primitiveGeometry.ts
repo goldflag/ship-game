@@ -80,11 +80,11 @@ export function primitiveOutlineGeometry(p: ConstructionPrimitive): THREE.Buffer
     const solid = primitiveGeometry(p.kind, p.size, p.vertices, p.customHull, p.shaping, p.balcony, p.mesh);
     const edges = new THREE.EdgesGeometry(solid, p.shaping ? 25 : 1); solid.dispose(); return edges;
   }
-  const points = customHullPoints(p), lines: number[] = [];
+  const points = customHullPoints(p), n = p.customHull.stations[0].points.length, lines: number[] = [];
   for (let section = 0; section < p.customHull.stations.length; section++) {
-    for (let edge = 0; edge < 9; edge++) {
-      lines.push(...points[section * 9 + edge], ...points[section * 9 + (edge + 1) % 9]);
-      if (section > 0) lines.push(...points[(section - 1) * 9 + edge], ...points[section * 9 + edge]);
+    for (let edge = 0; edge < n; edge++) {
+      lines.push(...points[section * n + edge], ...points[section * n + (edge + 1) % n]);
+      if (section > 0) lines.push(...points[(section - 1) * n + edge], ...points[section * n + edge]);
     }
   }
   return new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(lines, 3));

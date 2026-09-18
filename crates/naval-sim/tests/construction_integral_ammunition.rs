@@ -320,7 +320,7 @@ fn gun_magazines_fit_above_curved_bottom_plating_across_their_whole_footprint() 
                         [1., 0.45],
                     ]
                     .into_iter()
-                    .map(|[x, y]| ConstructionHullPoint { x, y })
+                    .map(|[x, y]| ConstructionHullPoint { x, y, contour: None })
                     .collect(),
                 }
             })
