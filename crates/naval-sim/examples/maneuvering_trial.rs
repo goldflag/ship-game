@@ -17,9 +17,9 @@ fn main() {
         for (name, throttle, rudder, speed) in [
             ("ahead", 1., 0., 0.),
             ("half", 0.5, 0., 0.),
-            ("turn", 1., 1., d.handling.forward_speed),
-            ("coast", 0., 0., d.handling.forward_speed),
-            ("crash-stop", -1., 0., d.handling.forward_speed),
+            ("turn", 1., 1., model.estimated_speed),
+            ("coast", 0., 0., model.estimated_speed),
+            ("crash-stop", -1., 0., model.estimated_speed),
         ] {
             let mut a = Combatant::new("trial", &d);
             if let Some(l) = &d.loading {
@@ -32,10 +32,34 @@ fn main() {
                 ..Default::default()
             };
             let start = Instant::now();
-            for _ in 0..180 * 60 {
+            let mut heading_change = 0.;
+            let mut seconds_to_half_speed = None;
+            let mut seconds_to_cruise = None;
+            let mut seconds_to_quarter_turn = None;
+            let mut seconds_to_stop = None;
+            let mut samples = vec![];
+            for tick in 1..=180 * 60 {
+                let old_heading = a.motion.heading;
                 maneuvering::step(&mut a, &d, &model, black_box(command), None);
+                heading_change += naval_sim::geometry::wrap_angle(a.motion.heading - old_heading);
+                let seconds = tick as f64 / 60.;
+                if speed == 0. && a.motion.speed >= model.estimated_speed * 0.5 {
+                    seconds_to_half_speed.get_or_insert(seconds);
+                }
+                if speed == 0. && a.motion.speed >= model.estimated_speed * 0.9 {
+                    seconds_to_cruise.get_or_insert(seconds);
+                }
+                if heading_change.abs() >= std::f64::consts::FRAC_PI_2 {
+                    seconds_to_quarter_turn.get_or_insert(seconds);
+                }
+                if speed > 0. && a.motion.speed <= 0. {
+                    seconds_to_stop.get_or_insert(seconds);
+                }
+                if [10 * 60, 30 * 60, 60 * 60].contains(&tick) {
+                    samples.push(serde_json::json!({"seconds":seconds,"speed":a.motion.speed,"headingChangeDeg":heading_change.to_degrees()}));
+                }
             }
-            results.push(serde_json::json!({"scenario":name,"speed":a.motion.speed,"yawRate":a.motion.yaw_rate,"position":[a.motion.x,a.motion.z],"microsecondsPerShipTick":start.elapsed().as_secs_f64()*1e6/(180.*60.)}));
+            results.push(serde_json::json!({"scenario":name,"speed":a.motion.speed,"yawRate":a.motion.yaw_rate,"position":[a.motion.x,a.motion.z],"secondsToHalfSpeed":seconds_to_half_speed,"secondsTo90PercentSpeed":seconds_to_cruise,"secondsTo90DegreeTurn":seconds_to_quarter_turn,"secondsToStop":seconds_to_stop,"samples":samples,"microsecondsPerShipTick":start.elapsed().as_secs_f64()*1e6/(180.*60.)}));
         }
         println!(
             "{}",

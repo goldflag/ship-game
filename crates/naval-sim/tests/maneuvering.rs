@@ -144,7 +144,11 @@ fn angled_propeller_applies_sideways_thrust() {
     }
     let mut a = Combatant::new("angle", &d);
     run(&d, &mut a, 1., 0., 1.);
-    assert!(a.motion.sway_speed > 0. && a.motion.yaw_rate < 0.);
+    assert!(
+        a.motion.sway_speed > 0. && a.motion.yaw_rate < 0.,
+        "{:?}",
+        a.motion
+    );
 }
 #[test]
 fn propeller_wash_steers_from_rest_only_when_aligned() {

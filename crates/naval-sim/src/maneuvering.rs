@@ -485,6 +485,7 @@ impl Maneuvering {
     pub fn braking_acceleration(&self, speed: f64, available: f64, mass: f64) -> f64 {
         (self.straight_thrust(speed, self.reverse_power * available)
             + self.resistance.coefficient(speed) * self.drag_scale * speed * speed)
+            * crate::mobility::FORCE_RESPONSE
             / mass.max(1.)
     }
     fn share(&self, p: &Propeller) -> f64 {
@@ -674,7 +675,13 @@ pub fn step(
     } else {
         0.
     };
-    let m = actor.motion_mass;
+    // Apply one response scale to every planar impulse (including implicit drag).
+    // Keep the actual loading intact for flotation, flooding and resistance.
+    let m = MassProperties {
+        mass: actor.motion_mass.mass / crate::mobility::FORCE_RESPONSE,
+        yaw_inertia: actor.motion_mass.yaw_inertia / crate::mobility::FORCE_RESPONSE,
+        ..actor.motion_mass
+    };
     let global_power = if model.fallback_drive {
         system_health(actor, d, "engine", None)
     } else {
@@ -743,7 +750,7 @@ pub fn step(
         impulse(s, m, p.position, force * sin * DT, force * cos * DT);
         jets[i] = force;
     }
-    let load_scale = (m.mass / d.hull.mass_kg.max(1.)).max(0.1).powf(2. / 3.);
+    let load_scale = (actor.motion_mass.mass / d.hull.mass_kg.max(1.)).max(0.1).powf(2. / 3.);
     let wave_scale = 1. / (1. - sea.map_or(0., |e| e.resistance).clamp(0., 0.8)).powi(3);
     let k = model.resistance.coefficient(s.speed) * model.drag_scale * load_scale * wave_scale;
     // Centered surge drag; no target speed, acceleration clamp, or artificial turn penalty.
@@ -772,12 +779,15 @@ pub fn step(
             flow[1] += p.bearing.cos() * excess * force.signum();
         }
         let angle = s.rudder * 35_f64.to_radians() - r.bearing;
+        // Assist commanded steering, not an amidships blade's passive drag.
+        // Otherwise amplified wash can overpower an angled screw's lateral thrust.
+        let authority = 1. + (crate::mobility::RUDDER_AUTHORITY - 1.) * s.rudder.abs();
         normal_drag(
             s,
             m,
             r.position,
             [angle.cos(), angle.sin()],
-            RHO * r.area * rudder_health[i],
+            RHO * r.area * rudder_health[i] * authority,
             flow,
             true,
         );
