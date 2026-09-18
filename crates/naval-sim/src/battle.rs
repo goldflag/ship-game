@@ -447,6 +447,17 @@ impl Battle {
         if self.outcome.is_some() {
             return;
         }
+        self.advance_tick(orders);
+    }
+    /// Let the battle play out after scoring has stopped. No new player orders
+    /// are admitted, and the deciding tick and tonnage remain authoritative.
+    pub fn step_aftermath(&mut self) {
+        if self.outcome.is_none() {
+            return;
+        }
+        self.advance_tick(&BTreeMap::new());
+    }
+    fn advance_tick(&mut self, orders: &BTreeMap<String, Orders>) {
         let mut tick = std::mem::take(&mut self.scratch);
         tick.begin(self);
         self.observe(&mut tick);
@@ -459,9 +470,10 @@ impl Battle {
         self.scratch = tick;
     }
     pub fn remaining_seconds(&self) -> Option<f64> {
+        let tick = self.outcome.as_ref().map_or(self.tick, |o| o.final_tick);
         self.mission_rules.as_ref().map_or_else(
-            || Some((self.rules.duration_seconds as f64 - self.tick as f64 * DT).max(0.0)),
-            |mission| mission.remaining_seconds(self.tick),
+            || Some((self.rules.duration_seconds as f64 - tick as f64 * DT).max(0.0)),
+            |mission| mission.remaining_seconds(tick),
         )
     }
 }

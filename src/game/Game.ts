@@ -874,8 +874,9 @@ export class Game {
     if (this.disposed) return;
     const realDt = warmingUp ? 1 / 60 : Math.min(Math.max((time - this.lastTime) / 1000, 0.001), 0.1);
     this.lastTime = time;
-    const dt = this.paused || this.tacticalPause ? 0 : realDt;
-    const presentationDt = dt * (this.simulation.simulationSpeed ?? 1);
+    const ended = this.simulation.isBattle && this.simulation.result !== 'active';
+    const dt = !ended && (this.paused || this.tacticalPause) ? 0 : realDt;
+    const presentationDt = dt * (ended ? 1 : this.simulation.simulationSpeed ?? 1);
     try {
       if (this.resizePending) this.resize();
       let state = this.simulation.ship;

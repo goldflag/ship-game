@@ -1,5 +1,5 @@
 import { beforeAll, expect, test } from 'bun:test';
-import init, { PvePlanner, type LocalRuntime } from '../../generated/naval-wasm/naval_wasm';
+import init, { PvePlanner, LocalRuntime } from '../../generated/naval-wasm/naval_wasm';
 import { PveDraft } from './PveDraft';
 import { LocalBattleSession } from './LocalBattleSession';
 import type { FrameUpdate } from './frameDelta';
@@ -64,11 +64,13 @@ class TestWorker {
   async flush() { this.held.shift()?.(); await Promise.resolve(); }
   terminate() { if (this.terminated) return; this.terminated = true; this.runtime?.free(); this.planner?.free(); }
 }
-async function fixture(withAircraft = false) {
+async function fixture(withAircraft = false, durationSeconds?: number) {
   const planner = new PvePlanner(manifest, JSON.stringify({ version: 1, seed: 17001, mapId: 'pacific-islands', weather: 'clear', difficulty: 'normal', ships: [{ id: 'own', presetId: 'fletcher', groupId: 'g' }, ...(withAircraft ? [{ id: 'carrier', presetId: 'enterprise-cv6', groupId: 'g' }] : [])], groups: [{ id: 'g', name: 'Group 1', station: 'front' }] }));
   const briefing = JSON.parse(planner.briefing()) as PveBriefing;
+  if (durationSeconds !== undefined) briefing.setup.ships.push({ ...briefing.setup.ships[0], id: 'enemy', team: 'b', spawn: { x: 0, z: -8000, heading: 0 } });
   const placements = briefing.setup.ships.map(s => ({ id: s.id, spawn: s.spawn! }));
-  const worker = new TestWorker(planner.start(JSON.stringify(placements))); planner.free();
+  const runtime = durationSeconds === undefined ? planner.start(JSON.stringify(placements)) : new LocalRuntime(manifest, JSON.stringify({ ...briefing.setup, missionRules: { ...briefing.setup.missionRules, durationSeconds } }));
+  const worker = new TestWorker(runtime); planner.free();
   return { worker, session: await LocalBattleSession.deploy(worker as unknown as Worker, briefing, placements) };
 }
 async function frame(session: LocalBattleSession, dt: number) { session.advance(dt, helm, intent); await Promise.resolve(); }
@@ -104,7 +106,8 @@ test('4× pause preserves queued orders; resume admits once and restart restores
     await session.restartPve();
     expect(session.simulationSpeed).toBe(1); expect(session.tick).toBe(0); expect(session.orderReceipts).toEqual([]);
     session.result = 'victory';
-    await frame(session, .1); expect(session.tick).toBe(0);
+    await frame(session, .1); await frame(session, 0); expect(session.tick).toBeGreaterThan(0);
+    session.result = 'victory';
     session.setSimulationSpeed(4); expect(session.simulationSpeed).toBe(1);
   } finally { session.dispose(); }
 });
@@ -336,4 +339,21 @@ test('disposing during validation rejects the pending request and never reuses i
     session = await draft.deploy(placements);
     expect(session.tick).toBe(0);
   } finally { session?.dispose(); draft?.dispose(); PveDraft.release(); globalThis.Worker = original; }
+});
+
+
+test('a real finished battle keeps publishing aftermath frames with its result locked', async () => {
+  const { session } = await fixture(false, 1);
+  try {
+    for (let i = 0; i < 60; i++) await frame(session, 1 / 60);
+    await frame(session, 0);
+    expect(session.result).not.toBe('active');
+    const outcome = structuredClone(session.outcome);
+    const tick = session.tick;
+    for (let i = 0; i < 60; i++) await frame(session, 1 / 60);
+    await frame(session, 0);
+    expect(session.tick).toBe(tick + 60);
+    expect(session.outcome).toEqual(outcome);
+    expect(session.remainingSeconds).toBe(0);
+  } finally { session.dispose(); }
 });

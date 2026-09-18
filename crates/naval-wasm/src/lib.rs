@@ -576,6 +576,10 @@ impl LocalRuntime {
             return Err(error("Tick batch exceeds limit"));
         }
         for _ in 0..ticks {
+            if self.session.battle.outcome.is_some() {
+                self.session.battle.step_aftermath();
+                continue;
+            }
             if let Some(plan) = &self.pve_plan {
                 for directive in plan.enemy_air_directives(&self.session.battle) {
                     self.enemy_air_sequence += 1;

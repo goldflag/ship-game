@@ -644,17 +644,19 @@ impl Battle {
         // The counter advances first: the outcome is judged for the tick that
         // just closed, and `remaining_seconds` counts from the same value.
         self.tick += 1;
-        self.outcome = if let Some(mission) = &self.mission_rules {
-            crate::mission::evaluate(
-                self.tick,
-                &self.actors,
-                &self.aviation,
-                mission,
-                rules::afloat_kg(&self.survivors()),
-            )
-        } else {
-            rules::evaluate_outcome(self.tick, &self.survivors(), &self.rules)
-        };
+        if self.outcome.is_none() {
+            self.outcome = if let Some(mission) = &self.mission_rules {
+                crate::mission::evaluate(
+                    self.tick,
+                    &self.actors,
+                    &self.aviation,
+                    mission,
+                    rules::afloat_kg(&self.survivors()),
+                )
+            } else {
+                rules::evaluate_outcome(self.tick, &self.survivors(), &self.rules)
+            };
+        }
         tick.enter(Phase::Idle);
     }
 }

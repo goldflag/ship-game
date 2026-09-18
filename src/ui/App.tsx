@@ -1,5 +1,5 @@
 import { savedReference } from '../ships/constructionCloud';
-import { PveResults } from './PveResults';
+import { BattleEndNotice } from './BattleEndNotice';
 import type { PveRequest } from '../multiplayer/generated/PveRequest';
 import type { PveBriefing } from '../multiplayer/generated/PveBriefing';
 import type { PveDraft } from '../game/session/PveDraft';
@@ -339,13 +339,6 @@ function Harbor({ account, startup }: AppProps) {
     try { await session.restartPveBattle(); }
     finally { setPveRestarting(false); }
   };
-  const newPveBattle = async () => {
-    const session = game.current;
-    if (!session || !pveRequest) throw new Error('The previous mission is unavailable.');
-    await session.returnToPort();
-    setPveRequest({ ...pveRequest, seed: crypto.getRandomValues(new Uint32Array(1))[0] });
-    setPhase('garage'); setBattleMode('pve'); setBattleOpen(true);
-  };
   const onlineBattle = async (remote: RemoteBattleSession) => {
     const current = game.current;
     if (!current) { remote.surrender(); return; }
@@ -480,7 +473,7 @@ function Harbor({ account, startup }: AppProps) {
       <FleetHud key={game.current?.battleRevision} data={data} desk={desk.current} visible={hud} bindings={bindings}/>
       {!hud && <button className="restore-hud" onClick={() => setHud(true)}>Show instruments <kbd>{bindingLabel(bindings, 'hud')}</kbd></button>}
     </div></>}
-    {phase === 'sailing' && ready && !error && game.current?.simulation.missionRules && game.current.simulation.outcome && game.current.simulation.debrief && game.current.simulation.result !== 'active' && <PveResults result={game.current.simulation.result} outcome={game.current.simulation.outcome} debrief={game.current.simulation.debrief} onRestart={restartPve} onNewBattle={newPveBattle} onPort={returnToPort}/>}
+    {phase === 'sailing' && ready && !error && !battleLoading && !pveRestarting && !trial && data.combat && data.combat.result !== 'active' && <BattleEndNotice key={game.current?.battleRevision} result={data.combat.result} outcome={data.combat.outcome} onExit={() => void returnToPort()}/>}
     {battleLoading && ready && !error && <BattleLoadingScreen briefing={pveBriefing} setup={battleSetup} state={battleLoading} multiplayer={!!game.current?.simulation.networked} onLeft={() => setBattleLoading(null)}/>}
 
     {!ready && !error && !startup && <StartupScreen {...loading}/>}
