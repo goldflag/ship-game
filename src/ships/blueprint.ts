@@ -484,6 +484,9 @@ export interface ConstructionEquipmentPart {
   occupancy?: { center: Vec3; size: Vec3 }[];
   /** Conservative physical fitting boxes for sparse original equipment; absent uses the full visual bounds. */
   fitting?: { center: Vec3; size: Vec3 }[];
+  /** Published component-local triangle surface for rope/chain support and clearance.
+   * Base64 zlib: u32 vertex/triangle counts, xyz f32 vertices, u32 triangle indices (little endian). */
+  riggingSurface?: { encoding: 'deflate-f32-u32-v1'; data: string };
   sockets?: { id: string; kind: string; position: Vec3; direction: Vec3 }[];
   gunPartId?: string; torpedoPartId?: string; tubeOffsets?: Vec3[];
   powerKw?: number; exhaustKw?: number; thrustEfficiency?: number; rudderAreaM2?: number;

@@ -5,6 +5,7 @@ import { join, resolve } from 'node:path';
 import type { ConstructionCatalog, ConstructionEquipmentPart } from '../../src/ships/blueprint';
 import { readEquipment, equipmentHash, buildEquipment, inspectEquipmentModel, digest } from './equipment';
 import type { EquipmentSource, EquipmentNode } from './equipment';
+import { riggingSurface } from './rigging';
 
 const root = resolve(import.meta.dir,'../..');
 const sourceDocumentation = 'assets/parts/construction/README.md';
@@ -33,7 +34,7 @@ export async function publishImmutable(directory:string, files:Record<string,str
 async function catalogSourceIdentity(taskRoot:string) {
   const {equipment,catalog,library,registry}=await readEquipment(taskRoot);
   const hashes=await Promise.all(equipment.map(p=>equipmentHash(taskRoot,p)));
-  const publishing=await Promise.all(['scripts/parts/publish.ts','scripts/parts/equipment.ts',sourceDocumentation].map(p=>readFile(join(taskRoot,p),'utf8')));
+  const publishing=await Promise.all(['scripts/parts/publish.ts','scripts/parts/equipment.ts','scripts/parts/rigging.ts',sourceDocumentation].map(p=>readFile(join(taskRoot,p),'utf8')));
   return {equipment,catalog,library,registry,hashes,identity:digest(JSON.stringify([1,equipment,catalog,hashes,registry,publishing]))};
 }
 export async function publishEquipment(taskRoot=root, rebuild=false) {
@@ -64,6 +65,8 @@ export async function publishEquipment(taskRoot=root, rebuild=false) {
       const modelSha256=digest(bytes), revision=digest(JSON.stringify([1,p,hash,modelSha256]));
       const modelUrl=`/models/components/${p.id}/${revision}/model.glb`;
       const entry:ConstructionEquipmentPart={...p,modelUrl,contentHash:hash};
+      const surface = await riggingSurface(bytes, hash, p);
+      if (surface) entry.riggingSurface = surface;
       const review=p.kind==='gun' ? before.library.components.find(e=>e.partId===p.gunPartId) : before.registry.components.find(e=>e.partId===p.id);
       const manifest:PublishedEquipmentManifest={schemaVersion:1,partId:p.id,revision,contentHash:hash,modelSha256,nodePrefix:'component',modelUrl,...inspection,review:review?.review ?? 'unreviewed',limitations:review?.limitations ?? 'Original source adaptation or generic engineering package; package mass/capabilities are provisional and installed clearance remains design-specific.',basis:sourceDocumentation};
       await publishImmutable(join(publicRoot,p.id,revision),{'model.glb':bytes,'manifest.json':json(manifest)});
@@ -86,11 +89,12 @@ export async function checkPublishedEquipment(taskRoot=root) {
   const expected=await catalogSourceIdentity(taskRoot);
   if (catalog.schemaVersion!==1 || JSON.stringify(catalog.weapons)!==JSON.stringify(expected.catalog) || catalog.equipment.length!==expected.equipment.length) throw new Error('Published equipment catalog is stale');
   for (const [i,p] of catalog.equipment.entries()) {
-    const {modelUrl,contentHash,...source}=p;
+    const {modelUrl,contentHash,riggingSurface:surface,...source}=p;
     if (JSON.stringify(source)!==JSON.stringify(expected.equipment[i]) || contentHash!==expected.hashes[i]) throw new Error(`Stale equipment metadata: ${p.id}`);
     if (!/^\/models\/components\/[a-z0-9-]+\/[a-f0-9]{64}\/model.glb$/.test(modelUrl)) throw new Error('Non-production equipment URL');
     const directory=join(taskRoot,'public',modelUrl.replace(/^\//,''),'..');
     const bytes=await readFile(join(directory,'model.glb'));
+    if (JSON.stringify(surface) !== JSON.stringify(await riggingSurface(bytes, contentHash, source))) throw new Error(`Stale rigging surface: ${p.id}`);
     const manifest=JSON.parse(await readFile(join(directory,'manifest.json'),'utf8')) as PublishedEquipmentManifest;
     validateComponentMaterials(JSON.parse(bytes.subarray(20,20+bytes.readUInt32LE(12)).toString()).materials ?? []);
     const inspection=inspectEquipmentModel(bytes,contentHash,source,beforeWeapon(catalog,source));

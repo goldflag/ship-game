@@ -13,8 +13,8 @@ export function pathEquipment(id: string, partId: string, points: readonly Vec3[
   const r=bearingDeg*Math.PI/180,c=Math.cos(r),s=Math.sin(r);
   return { id, partId, position, bearingDeg, path: { points: points.map(p => { const q=p.map((v,k)=>v-position[k]);return [q[0]*c+q[2]*s,q[1],-q[0]*s+q[2]*c] as Vec3; }), slackM } };
 }
-/** Hull clicks retain the exact supporting plane. Equipment clicks choose only
- * the fitting's declared support/rigging socket, never arbitrary model geometry. */
+/** Hull clicks retain the supporting plane. Published fixed-fitting surfaces
+ * retain the actual model hit; older catalogs keep their explicit tie sockets. */
 export function pathAnchor(part: ConstructionEquipmentPart, source: ConstructionSource, catalog: ConstructionCatalog, hit: { id?: string; point: Vec3; normal?: Vec3; axis: 0 | 1 | 2 }, step: number | null): Vec3 | undefined {
   const profile = part.path;
   if (!profile) return undefined;
@@ -23,6 +23,10 @@ export function pathAnchor(part: ConstructionEquipmentPart, source: Construction
     if (profile.kind === 'railing' || profile.kind === 'ladder') return undefined;
     const support = catalog.equipment.find(p => p.id === fitting.partId);
     if (!support || support.path) return undefined;
+    if (support.riggingSurface && hit.normal) {
+      const radius = profile.diameterM * (profile.kind === 'chain' ? 2 : .5);
+      return hit.point.map((v, k) => v + hit.normal![k] * radius) as Vec3;
+    }
     return support.sockets?.filter(s => s.id !== 'attachment' && (s.kind === 'support' || s.kind === 'rigging')).map(s => pathWorldPoint(fitting, s.position)).sort((a, b) => pathDistance(a, hit.point) - pathDistance(b, hit.point))[0];
   }
   if (!source.construction.primitives.some(p => p.id === hit.id)) return undefined;

@@ -250,9 +250,13 @@ port, opening Designs or starting a sea trial. Railings need deck support at
 every post. Choose **Two-rail railing** or **Three-rail railing** from Fittings.
 Set **Railing height** (0.3–3 m) before drawing or in the completed railing’s
 object tag. Older routes retain their saved rail count and height. Minor contacts and joined endpoints are
-allowed; substantial burial in hull or equipment still blocks the route. Rope and chain can attach to hull surfaces or the declared support
-and rigging sockets of fixed fittings; native diagnostics check attachment and
-clearance.
+allowed; substantial burial in hull or equipment still blocks the route. Rope and chain can attach wherever you click on hull surfaces or fixed deck fittings,
+including mast poles and yardarms. Fitting clicks keep the exact surface position
+without grid rounding. Native checks use the published fitting geometry for support
+and clearance, so empty space between mast members stays clear. Existing designs
+need **Update parts library** to use surface attachment; retained older libraries
+continue to support their declared tie sockets. Moving weapons and scalable wall
+details do not provide rope attachment surfaces.
 
 Select a completed route to edit its position, bearing or individual points in
 the object tag. **Insert

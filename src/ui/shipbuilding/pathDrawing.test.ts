@@ -78,6 +78,19 @@ test('hull anchors keep support plane and explicit fitting sockets use their tra
   expect(pathAnchor(fitting('railing'), source, catalog, { ...hull, id: item.id }, .25)).toBeUndefined();
 });
 
+test('rope and chain can anchor to a mast surface without a declared tie socket', () => {
+  const source = createStarterSource(catalog, 'blank');
+  const mast: ConstructionEquipmentPart = { ...fitting('rope'), id: 'mast', kind: 'mast', path: undefined,
+    riggingSurface: { encoding: 'deflate-f32-u32-v1', data: 'surface' },
+    sockets: [{ id: 'attachment', kind: 'support', position: [0, 0, 0], direction: [0, -1, 0] }] };
+  source.construction.equipment.push({ id: 'mast1', partId: mast.id, position: [0, .5, 0], bearingDeg: 35 });
+  const parts = { ...catalog, equipment: [...catalog.equipment, mast] };
+  const hit = { id: 'mast1', point: [.13, 6.34, -.19] as Vec3, normal: [1, 0, 0] as Vec3, axis: 0 as const };
+  expect(pathAnchor(fitting('rope'), source, parts, hit, 1)).toEqual([.15, 6.34, -.19]);
+  expect(pathAnchor(fitting('chain'), source, parts, hit, 1)).toEqual([.2, 6.34, -.19]);
+  expect(pathAnchor(fitting('railing'), source, parts, hit, 1)).toBeUndefined();
+});
+
 test('path rendering uses bounded instancing and actual bounds, with square bars and no foot plates', () => {
   const rail = createConstructionPathModel(fitting('railing'), { points: [[0, 0, 0], [0, 0, -4], [4, 0, -4]] });
   try {

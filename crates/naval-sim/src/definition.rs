@@ -1652,6 +1652,14 @@ pub struct ConstructionEquipmentPartFittingItem {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionEquipmentPartRiggingSurface {
+    #[serde(rename = "encoding")]
+    pub encoding: String,
+    #[serde(rename = "data")]
+    pub data: String,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct ConstructionEquipmentPartSocketsItem {
     #[serde(rename = "id")]
     pub id: String,
@@ -1715,6 +1723,12 @@ pub struct ConstructionEquipmentPart {
     pub occupancy: Option<Vec<ConstructionEquipmentPartOccupancyItem>>,
     #[serde(rename = "fitting")]
     pub fitting: Option<Vec<ConstructionEquipmentPartFittingItem>>,
+    #[serde(
+        rename = "riggingSurface",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub rigging_surface: Option<ConstructionEquipmentPartRiggingSurface>,
     #[serde(rename = "sockets")]
     pub sockets: Option<Vec<ConstructionEquipmentPartSocketsItem>>,
     #[serde(rename = "gunPartId")]
