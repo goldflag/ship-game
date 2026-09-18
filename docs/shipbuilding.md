@@ -738,9 +738,11 @@ their depth below the hull center. The height moves with the hull and stays in
 meters when its depth changes.
 Disable the coating to use face paint everywhere. Apply saves the setting with
 the hull; Cancel discards it, and both the section editor and Shipbuilder support
-Undo. Older designs retain their original paints until the coating is enabled;
-on first enable, their whole-bottom red-oxide default becomes naval gray while
-per-panel assignments and armor remain intact.
+Undo. With the coating enabled, older whole-bottom red-oxide defaults display the
+ship paint above the line, including on rising bow and stern panels. Source
+assignments, per-panel paint overrides and armor remain intact; disabling the
+coating restores the original face paint. The two-tone scheme uses the height
+boundary on coated custom hulls instead of painting their entire bottom panels red.
 
 The optional versioned `customHull.redPaintY` is appearance only. Rendered faces
 are clipped at the paint boundary with interpolated lighting normals; native

@@ -1,7 +1,7 @@
 import { createConstructionWallModel } from './constructionWallModel';
 import { wallScale } from '../ships/constructionWallFittings';
 import { paintConstructionFitting } from './constructionFittingPaint';
-import { paintedHullFace } from '../ships/constructionHullPaint';
+import { constructionHullBasePaint, paintedHullFace } from '../ships/constructionHullPaint';
 import * as THREE from 'three/webgpu';
 import { loadShipModel } from './loadShipModel';
 import { createConstructionPathModel } from './constructionPathModel';
@@ -13,7 +13,7 @@ import { CONSTRUCTION_FINISH, constructionFittingPaint, constructionPaintColor, 
 
 /** Render the native exterior exactly. Triangle attribution remains a reference
  * to source faces; triangulation and material batching never become source IDs. */
-export function createConstructionHull(surfaces: readonly ConstructionSurface[], primitives: readonly ConstructionPrimitive[] = [], finish?: ConstructionSurfaceFinish): THREE.Group {
+export function createConstructionHull(surfaces: readonly ConstructionSurface[], primitives: readonly ConstructionPrimitive[] = [], finish?: ConstructionSurfaceFinish, appearance?: ConstructionSource['construction']): THREE.Group {
   const group = new THREE.Group(); group.name = 'Constructed hull';
   const smooth = new Map(primitives.filter(p => p.smoothGroup || p.mesh?.family === 'rings' || (p.shaping?.style === 'round' && p.shaping.radius > 0 && p.shaping.edges.length > 0) || SMOOTH_HULL_SHAPES.has(p.kind)).map(p => [p.id, p.smoothGroup ? 'joined:' + p.smoothGroup : p.id]));
   const normalAt = constructionVertexNormals(surfaces.filter(s => !s.open && smooth.has(s.primitiveId)).map(s => ({ ...s, group: smooth.get(s.primitiveId)! })));
@@ -54,10 +54,11 @@ export function createConstructionHull(surfaces: readonly ConstructionSurface[],
   };
   const batches = new Map<string, { paint: string; deck: boolean; positions: number[]; normals: number[]; uv: number[]; faces: ConstructionSurface[] }>();
   const primitiveById = new Map(primitives.map(p => [p.id, p]));
+  const basePaint = constructionHullBasePaint(appearance);
   for (const surface of surfaces) {
     if (surface.open || surface.vertices.length < 3) continue;
     const normals = surface.vertices.map(point => custom.has(surface.primitiveId) ? customNormalAt(point, surface.normal, customGroup(surface)) : smooth.has(surface.primitiveId) ? normalAt(point, surface.normal, smooth.get(surface.primitiveId)!) : surface.normal);
-    for (const painted of paintedHullFace(surface, primitiveById.get(surface.primitiveId), normals)) {
+    for (const painted of paintedHullFace(surface, primitiveById.get(surface.primitiveId), normals, basePaint(surface))) {
       const deck = surface.normal[1] > 0.7, key = `${painted.paint}:${deck}`;
       let batch = batches.get(key);
       if (!batch) batches.set(key, batch = { paint: painted.paint, deck, positions: [], normals: [], uv: [], faces: [] });
@@ -98,7 +99,7 @@ function abort(signal?: AbortSignal) { if (signal?.aborted) throw new DOMExcepti
 export async function createConstructionModel(source: ConstructionSource, result: ConstructionResult, signal?: AbortSignal): Promise<THREE.Group> {
   if (source.id !== result.sourceId || source.revision !== result.revision) throw new Error('Model and design revisions do not match.');
   abort(signal);
-  const group = createConstructionHull([...result.surfaces, ...(result.bilgeKeelSurfaces ?? [])], source.construction.primitives, source.construction.finish);
+  const group = createConstructionHull([...result.surfaces, ...(result.bilgeKeelSurfaces ?? [])], source.construction.primitives, source.construction.finish, source.construction);
   group.name = source.name;
   group.userData.definitionHash = result.contentHash;
   group.userData.constructionRevision = source.revision;

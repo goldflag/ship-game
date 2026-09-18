@@ -469,12 +469,6 @@ export function Shipbuilder(props: ShipbuilderProps) {
       const existing = data.primitives.find(part => part.id === customHullSession.primitive.id);
       if (existing) {
         const commands: ConstructionCommand[] = [{ op: 'primitive', value: customHullPrimitive(hull, existing) }];
-        // Older starters painted the whole bottom red. Replace that side default
-        // when first enabling a height boundary; retain panel overrides and armor.
-        if (existing.customHull?.redPaintY === undefined && hull.redPaintY !== undefined) {
-          const bottom = data.surfaces.find(s => s.primitiveId === existing.id && s.face === 'bottom' && s.panelId === undefined && s.paint === 'red-oxide');
-          if (bottom) commands.push({ op: 'surface', value: { ...bottom, paint: 'naval-gray' } });
-        }
         run('Edit custom hull', commands);
       }
       setCustomHullSession(undefined); tool.fit();
