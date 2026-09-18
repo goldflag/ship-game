@@ -1,4 +1,3 @@
-import { releaseDigest } from '../deployment-inputs';
 import { testAccount, verifyMatchContent } from './test-accounts';
 import { gunzipSync } from 'node:zlib';
 // Run against a dedicated server with NAVAL_MAX_MATCHES=2 and no other players.
@@ -84,9 +83,8 @@ try {
     assert.ok(!client.messages.some(m => m.type === 'error'), JSON.stringify(client.messages.filter(m => m.type === 'error')));
   }
   if(template)assert.ok(compileJobs>0);
-  const result={ ok: true, releaseDigest:process.env.NAVAL_QUALIFICATION_OUTPUT?await releaseDigest():undefined, fixtureDigest:template?new Bun.CryptoHasher('sha256').update(JSON.stringify(template)).digest('hex'):undefined, custom:!!template,compileJobs, version, durationSeconds: duration, concurrentMatches: 2, vesselsPerMatch: 16, checks: ['HTTP queue cancellation', 'four players', 'third match rejected', 'sustained snapshots'], clients: clients.map(c => ({ frames: c.frames, bytes: c.bytes })) };
+  const result={ ok: true, fixtureDigest:template?new Bun.CryptoHasher('sha256').update(JSON.stringify(template)).digest('hex'):undefined, custom:!!template,compileJobs, version, durationSeconds: duration, concurrentMatches: 2, vesselsPerMatch: 16, checks: ['HTTP queue cancellation', 'four players', 'third match rejected', 'sustained snapshots'], clients: clients.map(c => ({ frames: c.frames, bytes: c.bytes })) };
   console.log(JSON.stringify(result));
-  if(process.env.NAVAL_QUALIFICATION_OUTPUT)await Bun.write(process.env.NAVAL_QUALIFICATION_OUTPUT,JSON.stringify(result));
 } finally {
   for (const client of clients) { if (client.socket.readyState === WebSocket.OPEN) client.socket.send(JSON.stringify({ type: 'surrender' })); }
   await sleep(250); clients.forEach(c => c.socket.close());
