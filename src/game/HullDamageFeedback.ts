@@ -14,17 +14,20 @@ export class HullDamageFeedback {
   private fromHp: number;
   private hitTime = -Infinity;
   private time = 0;
+  playerAmount = 0;
 
   constructor(hp: number) { this.hp = this.fromHp = hp; }
 
-  update(hp: number, time: number): HullDamageCue {
+  update(hp: number, time: number, playerDamage = 0): HullDamageCue {
     hp = Math.max(0, hp);
     if (time < this.time || hp > this.hp) {
       this.fromHp = hp;
       this.hitTime = -Infinity;
+      this.playerAmount = 0;
     } else if (hp < this.hp) {
       // Merge a salvo into one readable number; later hits begin a fresh group.
-      if (time - this.hitTime > .35) this.fromHp = this.hp;
+      if (time - this.hitTime > .35) { this.fromHp = this.hp; this.playerAmount = 0; }
+      this.playerAmount += Math.max(0, Math.min(playerDamage, this.hp - hp));
       this.hitTime = time;
     }
     this.hp = hp;

@@ -162,7 +162,7 @@ export class CombatSimulation {
   /** Ship instruments may observe a teammate; player death and scoring remain session-owned. */
   telemetry(battery: Battery, aim: Vec3, weaponGroupId?: string, subject: SessionActor = this.player): CombatTelemetry {
     return presentationTelemetry({ ...this, ship: this.ship, aircraft: this.aircraft, ammunitionSelection: this.ammunitionSelection,
-      playerDamageDealt: this.playerDamageDealt, playerFrags: this.playerFrags, damageLog: this.damageLog.snapshot(), afloatKg: afloatKg(this.survivors()) }, battery, aim, weaponGroupId, subject);
+      playerDamageDealt: this.playerDamageDealt, playerArmorBlocked: 0, playerFrags: this.playerFrags, damageLog: this.damageLog.snapshot(), afloatKg: afloatKg(this.survivors()) }, battery, aim, weaponGroupId, subject);
   }
 
 }

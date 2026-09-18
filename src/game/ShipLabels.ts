@@ -1,7 +1,7 @@
 import { Box3, MathUtils, Vector3, WebGPUCoordinateSystem, type Camera } from 'three/webgpu';
 import type { ShipView } from './ShipView';
 import { HullDamageFeedback } from './HullDamageFeedback';
-import type { FleetActor } from '../game/session/elements';
+import type { CombatEvent, FleetActor } from '../game/session/elements';
 
 type ScreenPoint = { x: number; y: number };
 
@@ -18,7 +18,8 @@ type Label = {
   actor: FleetActor; view: ShipView; anchor: Vector3; root: HTMLDivElement;
   meter: HTMLDivElement; fill: HTMLDivElement; health: HTMLSpanElement; hp: number; sunk: boolean;
   loss: HTMLDivElement; damageNumber: HTMLSpanElement; feedback: HullDamageFeedback;
-  lossAmount: number; lossOpacity: number; integrity: number;
+  playerLoss: HTMLDivElement; playerNumber: HTMLSpanElement; otherNumber: HTMLSpanElement;
+  lossAmount: number; playerAmount: number; lossOpacity: number; integrity: number;
 };
 
 /** A hull drawn from an observation report rather than a simulated actor: the PvE
@@ -33,6 +34,8 @@ export class ShipLabels {
   private observed = new Map<string, ObservedLabel>();
   private width = 1;
   private height = 1;
+  private sequence = 0;
+  private time = 0;
 
   constructor(host: HTMLElement, private observedAnchor: (id: string) => Vector3 | undefined = () => undefined) {
     this.root.className = 'ship-label-layer';
@@ -43,6 +46,8 @@ export class ShipLabels {
 
   setFleet(views: readonly ShipView[], actors: readonly FleetActor[], playerId = actors.find(a => a.controller === 'player' && a.team === 'friendly')?.motion.id): void {
     this.root.replaceChildren();
+    this.sequence = 0;
+    this.time = 0;
     this.labels = views.flatMap((view, index) => {
       const actor = actors[index];
       if (actor.motion.id === playerId) return [];
@@ -59,14 +64,19 @@ export class ShipLabels {
       meter.setAttribute('aria-valuemin', '0'); meter.setAttribute('aria-valuemax', String(actor.damage.maxIntegrity));
       const fill = document.createElement('div'); fill.className = 'ship-label-fill';
       const loss = document.createElement('div'); loss.className = 'ship-label-loss';
+      const playerLoss = document.createElement('div'); playerLoss.className = 'ship-label-player-loss';
       const damageNumber = document.createElement('span'); damageNumber.className = 'ship-label-damage';
+      const playerNumber = document.createElement('span'); playerNumber.dataset.source = 'player';
+      const otherNumber = document.createElement('span'); otherNumber.dataset.source = 'other';
+      damageNumber.append(playerNumber, otherNumber);
       damageNumber.hidden = true;
+      loss.appendChild(playerLoss);
       meter.append(fill, loss);
       tag.append(name, meter, health, damageNumber); root.appendChild(tag); this.root.appendChild(root);
       // Measure the authored model once. Inspection helpers never change the anchor.
       const bounds = new Box3().setFromObject(view.root.children[0]);
       const top = bounds.isEmpty() ? actor.definition.hull.depth : bounds.max.y - view.root.position.y;
-      return [{ actor, view, root, meter, fill, health, loss, damageNumber, feedback: new HullDamageFeedback(actor.damage.integrity), anchor: new Vector3(0, top + 5, 0), hp: -1, sunk: false, lossAmount: -1, lossOpacity: -1, integrity: -1 }];
+      return [{ actor, view, root, meter, fill, health, loss, playerLoss, damageNumber, playerNumber, otherNumber, feedback: new HullDamageFeedback(actor.damage.integrity), anchor: new Vector3(0, top + 5, 0), hp: -1, sunk: false, lossAmount: -1, playerAmount: -1, lossOpacity: -1, integrity: -1 }];
     });
   }
 
@@ -114,22 +124,39 @@ export class ShipLabels {
 
   resize(width: number, height: number): void { this.width = width; this.height = height; }
 
-  update(camera: Camera, time: number): void {
+  update(camera: Camera, time: number, events: readonly CombatEvent[] = [], playerId?: string): void {
+    if (time < this.time) this.sequence = 0;
+    this.time = time;
+    const playerDamage = new Map<string, number>();
+    for (const event of events) {
+      if (event.sequence <= this.sequence) continue;
+      this.sequence = event.sequence;
+      if (playerId && event.sourceId === playerId) {
+        const amount = Math.max(0, event.impact?.hullDamage ?? event.hullDamage ?? 0);
+        playerDamage.set(event.shipId, (playerDamage.get(event.shipId) ?? 0) + amount);
+      }
+    }
     camera.updateMatrixWorld();
     for (const label of this.labels) {
       const { actor, view, root } = label;
       const hp = Math.round(MathUtils.clamp(actor.damage.integrity, 0, actor.damage.maxIntegrity));
-      const damage = label.feedback.update(actor.damage.integrity, time);
+      const damage = label.feedback.update(actor.damage.integrity, time, playerDamage.get(actor.motion.id));
       if (label.integrity !== actor.damage.integrity) {
         label.integrity = actor.damage.integrity;
         label.loss.style.left = `${actor.damage.integrity / actor.damage.maxIntegrity * 100}%`;
       }
-      if (label.lossAmount !== damage.amount) {
+      const own = Math.min(damage.amount, label.feedback.playerAmount);
+      if (label.lossAmount !== damage.amount || label.playerAmount !== own) {
         label.lossAmount = damage.amount;
+        label.playerAmount = own;
         label.loss.style.width = `${damage.amount / actor.damage.maxIntegrity * 100}%`;
         label.damageNumber.hidden = damage.amount <= 0;
-        label.damageNumber.textContent = `−${Math.max(1, Math.round(damage.amount)).toLocaleString()}`;
-        label.damageNumber.setAttribute('aria-label', `${Math.max(1, Math.round(damage.amount))} hull HP lost`);
+        label.playerLoss.style.width = `${damage.amount > 0 ? own / damage.amount * 100 : 0}%`;
+        for (const [number, amount, source] of [[label.playerNumber, own, 'Your damage'], [label.otherNumber, damage.amount - own, 'Other damage']] as const) {
+          number.hidden = amount <= 0;
+          number.textContent = `−${Math.max(1, Math.round(amount)).toLocaleString()}`;
+          number.setAttribute('aria-label', `${source}: ${Math.max(1, Math.round(amount))} hull HP`);
+        }
       }
       if (label.lossOpacity !== damage.opacity) {
         label.lossOpacity = damage.opacity;

@@ -43,6 +43,8 @@ export class HitLabels {
         label.innerHTML = '<strong></strong><span class="hit-label-part"><span class="hit-label-name"></span><span class="hit-label-outcome" role="img"><svg viewBox="0 0 18 18" aria-hidden="true"><path/></svg><span></span></span></span><small></small>';
         this.root.appendChild(label); this.labels.set(cue.id, label);
       }
+      label.dataset.source = cue.source;
+      label.setAttribute('aria-label', `${cue.source === 'player' ? 'Your hit' : 'Other hit'}: ${Math.round(cue.damage)} hull HP · ${cue.part} · ${cue.result}`);
       const content = JSON.stringify([cue.damage, cue.part, cue.result, cue.projectileIds.length]);
       if (this.content.get(label) !== content) {
         this.content.set(label, content); this.dimensions.delete(label);

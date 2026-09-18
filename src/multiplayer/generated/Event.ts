@@ -8,4 +8,4 @@ import type { ShellEffect } from "./ShellEffect";
 import type { SurfaceImpact } from "./SurfaceImpact";
 import type { TorpedoEffect } from "./TorpedoEffect";
 
-export type Event = { sequence: number, tick: number, hullDamage?: number, defeatCause?: DefeatCause, depthCharge?: DepthChargeEffect, aircraft?: AircraftEffect, torpedo?: TorpedoEffect, kind: EventKind, position: [number, number, number], message: string, shipId: string, impact?: ImpactRecord, shell?: ShellEffect, surfaceImpact?: SurfaceImpact, normal?: [number, number, number], detonation?: boolean, blastRadiusM?: number, waterBurstY?: number, };
+export type Event = { sequence: number, tick: number, sourceId?: string, hullDamage?: number, defeatCause?: DefeatCause, depthCharge?: DepthChargeEffect, aircraft?: AircraftEffect, torpedo?: TorpedoEffect, kind: EventKind, position: [number, number, number], message: string, shipId: string, impact?: ImpactRecord, shell?: ShellEffect, surfaceImpact?: SurfaceImpact, normal?: [number, number, number], detonation?: boolean, blastRadiusM?: number, waterBurstY?: number, };

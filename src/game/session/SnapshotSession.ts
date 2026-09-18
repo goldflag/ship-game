@@ -56,7 +56,7 @@ export abstract class SnapshotSession implements BattleSession {
   tick = 0; result: BattleResult = 'active'; outcome?: BattleOutcome; phase = 'loading'; connectionStatus = '';
   connected?: boolean[]; loaded?: boolean[]; countdown = 0;
   targetUnderway = true;
-  afloatKg: [number | null, number | null] = [0, 0]; playerDamageDealt = 0; playerFrags = 0; damageLog: DamageLogEntry[] = [];
+  afloatKg: [number | null, number | null] = [0, 0]; playerDamageDealt = 0; playerArmorBlocked = 0; playerFrags = 0; damageLog: DamageLogEntry[] = [];
   shipScores: Record<string, { damageDealt: number; frags: number }> = {};
   aircraftLosses = { own: 0, enemy: 0 };
   private lastLossSequence = -1; private lastFrameTick = -1;
@@ -190,6 +190,7 @@ export abstract class SnapshotSession implements BattleSession {
     this.events = frame.events; this.shellHistory = frame.records.shellHistory;
     const score = frame.records.scores[player.motion.id];
     this.playerDamageDealt = score?.damageDealt ?? 0; this.playerFrags = score?.frags ?? 0; this.damageLog = score?.damageLog ?? [];
+    this.playerArmorBlocked = score?.armorBlocked ?? 0;
     this.shipScores = Object.fromEntries(Object.entries(frame.records.scores).map(([id, s]) => [id, { damageDealt: s.damageDealt, frags: s.frags }]));
     // A restarted mission replays from tick zero; loss counts start again with it.
     if (frame.tick < this.lastFrameTick) { this.aircraftLosses = { own: 0, enemy: 0 }; this.lastLossSequence = -1; }

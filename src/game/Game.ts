@@ -991,7 +991,7 @@ export class Game {
         }
       }
       const combatTime = this.simulation.tick * FIXED_DT;
-      this.shipLabels.update(this.camera, combatTime);
+      this.shipLabels.update(this.camera, combatTime, this.simulation.events, this.simulation.ship.id);
       this.hitLabels.update(this.simulation, this.fleetViews, this.camera, !this.inPort && !this.inspecting);
       const damageSubject = this.simulation.actors.find(actor => actor.motion.id === this.spectatedShipId) ?? this.simulation.player;
       if (this.damageFeedbackShipId !== damageSubject.motion.id) {

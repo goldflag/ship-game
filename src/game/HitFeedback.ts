@@ -7,6 +7,7 @@ import { FIXED_DT } from './session/motion';
 export interface HitCue {
   id: number; shipId: string; projectileIds: number[]; position: Vec3;
   partId: string; part: string; result: string; damage: number; time: number; opacity: number; priority: number;
+  source: 'player' | 'other';
 }
 const DURATION = 3.2;
 const outcomes = { penetrated: 'Penetration', ricochet: 'Ricochet', stopped: 'Armor stopped', damaged: 'Damaged', destroyed: 'Destroyed', detonation: 'Detonation', backing: 'Backing struck' };
@@ -44,17 +45,18 @@ export class HitFeedback {
       const result = impact ? `${impact.outcome === 'stopped' || impact.outcome === 'ricochet' ? outcomes[impact.outcome] : explanation}${impact.breachAreaM2 ? ' · New opening' : ''}` : event.kind === 'torpedo-dud' ? (event.message.endsWith('glancing impact') ? 'Dud · glancing impact' : 'Unarmed impact') : 'Flooding breach';
       const priority = impact ? (impact.kind === 'module' || impact.kind === 'mount' ? 3 : impact.kind === 'burst' ? 2 : 1) + (impact.outcome === 'destroyed' ? 3 : 0) : 4;
       const damage = Math.max(0, impact?.hullDamage ?? event.hullDamage ?? 0);
-      const existing = this.cues.find(c => c.shipId === actor.motion.id && c.projectileIds.includes(projectile));
+      const source = event.sourceId === sim.ship.id ? 'player' : 'other';
+      const existing = this.cues.find(c => c.shipId === actor.motion.id && c.source === source && c.projectileIds.includes(projectile));
       if (existing) {
         existing.damage += damage; existing.time = hitTime;
         if (priority >= existing.priority) { existing.partId = partId; existing.part = part; existing.result = result; existing.priority = priority; }
         if (impact?.breachAreaM2 && !existing.result.includes('New opening')) existing.result += ' · New opening';
-      } else this.cues.push({ id: event.sequence, shipId: actor.motion.id, projectileIds: [projectile], position, partId, part, result, priority, damage, time: hitTime, opacity: 1 });
+      } else this.cues.push({ id: event.sequence, shipId: actor.motion.id, projectileIds: [projectile], position, partId, part, result, priority, damage, source, time: hitTime, opacity: 1 });
     }
     // Keep projectile evidence separate so a later module hit only changes that shell's headline.
     const groups = new Map<string, HitCue>();
     for (const cue of this.cues) {
-      const key = JSON.stringify([cue.shipId, cue.partId, cue.result]);
+      const key = JSON.stringify([cue.shipId, cue.partId, cue.result, cue.source]);
       const group = groups.get(key);
       if (group) {
         group.damage += cue.damage;

@@ -5,6 +5,23 @@ import { localToWorld } from './geometry';
 import { shipPreset } from '../ships/presets';
 import type { CombatEvent } from '../game/session/elements';
 
+test('simultaneous hits on the same enemy stay separated by local ownership after projectiles disappear', () => {
+  const sim = new CombatSimulation(shipPreset('bismarck')), feedback = new HitFeedback();
+  sim.ship.id = 'remote-seat-2';
+  sim.tick = 60;
+  for (const [index, sourceId] of ['remote-seat-2', 'friendly-1', 'remote-seat-2'].entries()) {
+    sim.events.push({ sequence: index + 1, tick: 60, sourceId, kind: 'torpedo-hit', shipId: sim.target.motion.id,
+      position: [0, 0, 0], message: 'Torpedo hit · Hull', hullDamage: 100,
+      torpedo: { id: index + 1, velocity: [0, 0, -20], diameterM: .533 } });
+  }
+  expect(sim.torpedoes).toHaveLength(0);
+  const cues = feedback.update(sim);
+  expect(cues).toHaveLength(2);
+  expect(cues.find(cue => cue.source === 'player')).toMatchObject({ damage: 200, projectileIds: [1, 3] });
+  expect(cues.find(cue => cue.source === 'other')).toMatchObject({ damage: 100, projectileIds: [2] });
+  expect(feedback.update(sim)).toEqual(cues);
+});
+
 test('matching component results combine across time and distance without merging different results or component IDs', () => {
   const sim = new CombatSimulation(shipPreset('bismarck')), feedback = new HitFeedback();
   const hit = (sequence: number, overrides = {}): CombatEvent => ({ sequence, tick: sim.tick, kind: 'penetration', shipId: sim.target.motion.id,

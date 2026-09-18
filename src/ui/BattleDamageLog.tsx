@@ -17,6 +17,7 @@ export function BattleDamageLog({ combat, obscured }: { combat: CombatTelemetry;
     <dl className="fleet-score" aria-label="Your battle score">
       <div><dt>Damage</dt><dd>{Math.round(combat.playerDamageDealt).toLocaleString()}</dd></div>
       <div><dt>Frags</dt><dd>{combat.playerFrags}</dd></div>
+      <div className="fleet-armor-blocked" title="Potential shell damage prevented by your armor’s stops and ricochets, minus any hull damage the shell still caused."><dt>Armor blocked</dt><dd>{Math.round(combat.playerArmorBlocked).toLocaleString()}</dd></div>
     </dl>
     {!obscured && entries.length > 0 && <ol className="fleet-damage-log" aria-label="Damage log: damage dealt (+) and taken (−). Latest first. Hold Ctrl to scroll." tabIndex={0}>{entries.map(entry => {
       const outgoing = entry.sourceId === 'player';

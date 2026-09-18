@@ -177,6 +177,7 @@ test('battle reports distinguish weapons, incoming hits, duplicate ships, damage
   sim.target.damage.stability.combatLost = true;
   sim.target.damage.stability.status = 'disarmed';
   const combat = sim.telemetry('secondary', [0, 0, -5000]);
+  combat.playerArmorBlocked = 12345;
   combat.damageLog = [
     { id: 2, tick: 3720, sourceId: 'enemy-2', targetId: 'player', weapon: '150 mm HE · Secondary', damage: 21, hits: 2 },
     { id: 1, tick: 3600, sourceId: 'player', targetId: 'enemy-1', weapon: '380 mm AP · Main', damage: 364, hits: 8 },
@@ -197,6 +198,7 @@ test('battle reports distinguish weapons, incoming hits, duplicate ships, damage
   expect(html).toContain('380 mm AP · Main');
   expect(html).toContain('To Bismarck #1 · 8 hits');
   expect(html.indexOf('Your battle score')).toBeLessThan(html.indexOf('Damage log'));
+  expect(html).toContain('<dt>Armor blocked</dt><dd>12,345</dd>');
   combat.damageLog = [];
   const empty = renderToStaticMarkup(<ShipContext.Provider value={definition}><FleetHud data={data} desk={null} visible bindings={defaultKeybindings()}/></ShipContext.Provider>);
   expect(empty).not.toContain('class="fleet-damage-log"');

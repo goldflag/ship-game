@@ -11,6 +11,7 @@ pub struct WeaponSource {
     pub owner_id: String,
     pub label: String,
     pub ammunition: Ammunition,
+    pub damage: f64,
 }
 #[derive(Clone, Debug, Serialize, ts_rs::TS)]
 #[serde(rename_all = "camelCase")]
@@ -46,6 +47,7 @@ pub struct DamageLogEntry {
 #[serde(rename_all = "camelCase")]
 pub struct VesselScore {
     pub damage_dealt: f64,
+    pub armor_blocked: f64,
     pub frags: u32,
     pub damage_log: Vec<DamageLogEntry>,
     #[serde(skip)]
@@ -71,12 +73,21 @@ pub struct Records {
     keep: Vec<i64>,
     #[serde(skip)]
     counts: Vec<(String, i32)>,
+    /// Resolve once the shell finishes, including damage from a delayed burst.
+    #[serde(skip)]
+    armor_blocks: BTreeSet<(i64, String)>,
 }
 impl VesselScore {
     /// A score sheet for a frame, addressed through public IDs by the caller.
-    pub fn addressed(damage_dealt: f64, frags: u32, damage_log: Vec<DamageLogEntry>) -> Self {
+    pub fn addressed(
+        damage_dealt: f64,
+        armor_blocked: f64,
+        frags: u32,
+        damage_log: Vec<DamageLogEntry>,
+    ) -> Self {
         Self {
             damage_dealt,
+            armor_blocked,
             frags,
             damage_log,
             sequence: 0,
@@ -123,6 +134,7 @@ impl Records {
                     }
                 ),
                 ammunition: shell.ammunition.unwrap_or_default(),
+                damage: 0.0,
             });
             let index = self
                 .shell_history
@@ -155,6 +167,23 @@ impl Records {
             }
         }
         if let (Some(id), Some(source)) = (id, source) {
+            if e.impact.as_ref().is_some_and(|i| {
+                matches!(i.kind.as_str(), "armor" | "mount")
+                    && matches!(i.outcome.as_str(), "stopped" | "ricochet")
+                    && i.through_wreckage != Some(true)
+            }) && actors
+                .iter()
+                .find(|a| a.motion.id == source.owner_id)
+                .is_some_and(|owner| {
+                    actors.iter().enumerate().any(|(j, victim)| {
+                        victim.motion.id == e.ship_id
+                            && victim.team != owner.team
+                            && self.eligible.get(j).copied().unwrap_or(false)
+                    })
+                })
+            {
+                self.armor_blocks.insert((id, e.ship_id.clone()));
+            }
             let damage = e
                 .impact
                 .as_ref()
@@ -267,6 +296,27 @@ impl Records {
     }
     /// `active` is the sorted list of projectile ids still in flight.
     pub fn finish_tick(&mut self, actors: &[Vessel], active: &[i64]) {
+        self.armor_blocks.retain(|(id, victim)| {
+            if active.binary_search(id).is_ok() {
+                return true;
+            }
+            if let Some(source) = self.sources.get(id) {
+                let dealt: f64 = self
+                    .shell_history
+                    .iter()
+                    .find(|h| h.shell_id == *id)
+                    .into_iter()
+                    .flat_map(|h| &h.impacts)
+                    .filter(|i| &i.ship_id == victim)
+                    .map(|i| i.hull_damage.unwrap_or(0.0))
+                    .sum();
+                let blocked = (source.damage * crate::damage::HULL_HP_SCALE - dealt).max(0.0);
+                if blocked.is_finite() {
+                    self.scores.entry(victim.clone()).or_default().armor_blocked += blocked;
+                }
+            }
+            false
+        });
         for a in actors {
             if a.physical_loss().is_none() || self.credited.contains(&a.motion.id) {
                 continue;
