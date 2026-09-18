@@ -1,5 +1,7 @@
 # Water palette and horizon review
 
+**Historical palette:** the later user-selected **A · Steel blue** replaces these naval-blue swatches. See [current ocean configuration](../../../docs/ocean-configuration.md#water-appearance-and-rendering). The captures below document the earlier treatment.
+
 **Follow-up decision:** the horizon softening from PR #66 was reverted at the user’s request. The naval-blue water palette, wave tuning and brighter port lighting remain. The extra sky/water haze, cool-color sampler overrides and earlier cloud fade are removed, and battle fog returns to power 1.4 with each map/weather’s full authored sky-blend distance. The screenshots and implementation notes below are historical evidence of PR #66, before this horizon revert.
 
 The user supplied the Fort Worth and Lüshun B screenshots in `references/` as the final water direction: deep navy blue, cool glints, small crossing waves, and a soft blue horizon. These are user-provided World of Warships / Wargaming screenshots used only as visual references; no geometry or textures are copied from them.
