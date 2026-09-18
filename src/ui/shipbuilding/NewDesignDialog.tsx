@@ -18,7 +18,7 @@ export function NewDesignDialog({ onCreate, onClose }: {
     catch (cause) { setError(cause instanceof Error ? cause.message : String(cause)); setPending(false); }
   };
   return createPortal(<dialog ref={dialog} className="new-design-dialog" aria-labelledby={title} onKeyDown={event => event.stopPropagation()} onCancel={event => { event.preventDefault(); if (!pending) onClose(); }}>
-    <header><h2 id={title}>Choose a starting hull</h2><p>Start with a hull based on a ship in the game, or build from a single block. Add fittings and equipment in the shipbuilder.</p></header>
+    <header><h2 id={title}>Choose a starting hull</h2><p>Choose a ship hull or a generic shape, or build from a single block. Add fittings and equipment in the shipbuilder.</p></header>
     <fieldset disabled={pending}><legend>Hull presets</legend><div className="new-design-presets">
       {HULL_PRESETS.map(preset => {
         const scale = Math.min(248 / preset.length, 70 / preset.beam);

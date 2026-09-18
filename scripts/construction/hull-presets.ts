@@ -4,28 +4,26 @@ import type { ConstructionCustomHull, Hull } from '../../src/ships/blueprint';
 
 const root = resolve(import.meta.dir, '../..');
 export const PRESET_SHIPS = ['bismarck', 'king-george-v', 'admiral-hipper', 'baltimore', 'fletcher', 'yukikaze'] as const;
+export const PRESET_OPTIONS: Partial<Record<typeof PRESET_SHIPS[number], { bluntEnds: boolean }>> = {
+  bismarck: { bluntEnds: true }, 'king-george-v': { bluntEnds: true },
+};
 
-/** Reduce the original game hull to the editor's 24 sections and nine controls.
+/** Reduce the original game hull to at most 16 sections and nine controls.
  * Select stations by error in metres and space outline controls along each side.
  * Legacy stations run stern-to-bow; custom-hull t runs bow-to-stern. */
-export function deriveHullPreset(hull: Pick<Hull, 'length' | 'beam' | 'sections'>) {
-  const sections = hull.sections!.map((s, i, all) => ({ ...s,
-    // Retain short stem transitions that would otherwise be dropped by the
-    // editor's minimum station spacing. Only move stations within 0.51% of an end.
-    station: i === 0 || i === all.length - 1 ? s.station
-      : Math.max(hull.length * .0051, Math.min(hull.length * .9949, s.station)),
-  }));
+export function deriveHullPreset(hull: Pick<Hull, 'length' | 'beam' | 'sections'>, { bluntEnds = false } = {}) {
+  const sections = hull.sections!;
   const depth = Math.max(...sections.flatMap(s => s.points.map(p => p[1])))
     - Math.min(...sections.flatMap(s => s.points.map(p => p[1])));
   const selected = [0, sections.length - 1];
-  while (selected.length < 24) {
+  while (selected.length < 16) {
     let best = -1, error = -1;
     for (let i = 0; i < selected.length - 1; i++) {
       const a = sections[selected[i]], b = sections[selected[i + 1]];
       for (let j = selected[i] + 1; j < selected[i + 1]; j++) {
         const s = sections[j];
-        // Leave a margin so serialized positions remain at least 0.5% apart.
-        if (Math.min(s.station - a.station, b.station - s.station) / hull.length < .00501) continue;
+        // Give the editable controls breathing room, including at either end.
+        if (Math.min(s.station - a.station, b.station - s.station) / hull.length < .04 - 1e-9) continue;
         const t = (s.station - a.station) / (b.station - a.station);
         const distance = Math.max(...s.points.map((p, k) => Math.hypot(
           p[0] - a.points[k][0] - t * (b.points[k][0] - a.points[k][0]),
@@ -41,9 +39,10 @@ export function deriveHullPreset(hull: Pick<Hull, 'length' | 'beam' | 'sections'
     version: 1, rake: 0, bulb: 0, redPaintY: -.02 * depth,
     stations: selected.reverse().map(index => {
       const s = sections[index], deck = s.points.at(-1)![1], keel = s.points[0][1];
+      const blunt = bluntEnds && (index === 0 || index === sections.length - 1);
       // Collapsed legacy tips need a short vertical stem to remain editable.
-      // Preserve deck height and width, respecting the compiler's minimum depth.
-      const height = Math.max(deck - keel, .06001 * depth);
+      // Preserve deck height, respecting the compiler's minimum section depth.
+      const height = Math.max(deck - keel, (blunt ? .16 : .06001) * depth);
       const distances = [0];
       for (let k = 1; k < s.points.length; k++) distances.push(distances[k - 1]
         + Math.hypot(s.points[k][0] - s.points[k - 1][0], s.points[k][1] - s.points[k - 1][1]));
@@ -54,7 +53,10 @@ export function deriveHullPreset(hull: Pick<Hull, 'length' | 'beam' | 'sections'
         const span = distances[k] - distances[k - 1], f = span > 0 ? (distance - distances[k - 1]) / span : i / 4;
         const x = s.points[k - 1][0] + f * (s.points[k][0] - s.points[k - 1][0]);
         const y = s.points[k - 1][1] + f * (s.points[k][1] - s.points[k - 1][1]);
-        return { x: x / (hull.beam / 2), y: (deck - height + height * (deck > keel ? (y - keel) / (deck - keel) : i / 4)) / depth };
+        // Broader, rounded cross-sections replace the battleships' needle tips.
+        const width = x / (hull.beam / 2);
+        return { x: blunt ? Math.max(width, [0, .36, .74, .96, 1][i] * .08) : width,
+          y: (deck - height + height * (deck > keel ? (y - keel) / (deck - keel) : i / 4)) / depth };
       });
       return { id: `section-${index}`, t: (hull.length - s.station) / hull.length,
         points: [...half.slice(1).reverse().map(p => ({ x: p.x ? -p.x : 0, y: p.y })), { x: 0, y: half[0].y }, ...half.slice(1)] };
@@ -66,7 +68,7 @@ export function deriveHullPreset(hull: Pick<Hull, 'length' | 'beam' | 'sections'
 if (import.meta.main) {
   const entries = await Promise.all(PRESET_SHIPS.map(async id => {
     const { hull } = JSON.parse(await readFile(resolve(root, 'assets/ships', id, 'blueprint.json'), 'utf8'));
-    const shape = deriveHullPreset(hull);
+    const shape = deriveHullPreset(hull, PRESET_OPTIONS[id]);
     // Compact section rows avoid shipping whole ship blueprints to the browser.
     return `  ${JSON.stringify(id)}: ${JSON.stringify(shape).replace('"stations":[', '"stations":[\n    ').replaceAll('},{"id":', '},\n    {"id":').replace(/\]\}\}$/, '\n  ]}}')}`;
   }));

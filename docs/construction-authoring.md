@@ -18,17 +18,20 @@ bun run ship:edit my-ship
 
 `ship:new` defaults to `fletcher-hull`. Adjustable presets are `bismarck-hull`
 and `king-george-v-hull` (battleships), `admiral-hipper-hull` and `baltimore-hull`
-(cruisers), and `fletcher-hull` and `yukikaze-hull` (destroyers). Each starts
-with one editable `custom-hull` and no equipment, preserving the source game's
-length, beam, waterline and deck sheer. `blank` retains the one-block starter;
+(cruisers), and `fletcher-hull` and `yukikaze-hull` (destroyers). Generic starters
+are also available: `patrol-hull`, `destroyer-hull`, `battleship-hull` and
+`barge-hull`, each with eight sections and a level deck. Each preset starts
+with one editable `custom-hull` and no equipment. Ship-based presets preserve
+the source game's length, beam, waterline and deck sheer. `blank` retains the one-block starter;
 `patrol` and `catamaran` retain the older armed sandbox layouts. `ship:templates`
 lists choices, source ships and dimensions as JSON.
 
 These are reduced, editable versions of our original in-game hulls, not complete
-historical ships. Their blueprint sections are sampled to at most 24 stations
-with nine outline controls. Very short end transitions move within 0.51% of
-the hull length to keep sections far enough apart; very thin end caps extend
-downward to the editor's minimum section depth. Regenerate the shared data after
+historical ships. Their blueprint sections are sampled to at most 16 stations,
+at least 4% of the hull length apart, with nine outline controls. Short end
+transitions are simplified instead of crowding the controls. Bismarck and King
+George V use broader end caps to remove needle tips; very thin end caps extend
+downward to remain editable. Regenerate the shared data after
 changing a source hull with `bun scripts/construction/hull-presets.ts` (or use `--check`
 to verify freshness). Saved designs retain their own versioned sections and are
 not changed by a template update. The brief/reference approvals in the ship
