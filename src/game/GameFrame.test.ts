@@ -672,3 +672,20 @@ test('camera overlay listeners receive aircraft presentation from the current fr
   await game.frame(2000 / 60);
   expect(observed).toEqual([1, 2]);
 });
+
+test('port ship switching retains the new hull flotation and only carries its berth', async () => {
+  const previous = { id: 'old', x: 120, z: -80, heading: .6, y: 0, roll: 0, pitch: 0 };
+  const loaded = { id: 'player', x: 0, z: 0, heading: 0, y: -2.8, roll: .02, pitch: -.0075 };
+  const session = { ship: { ...loaded } };
+  const definition = { id: 'valiant', contentHash: 'new' };
+  let replaced = false;
+  const game = Object.assign(Object.create(Game.prototype), {
+    inPort: true, playerView: {}, definition: { id: 'bismarck' },
+    simulation: { ship: previous },
+    portSession: async () => session,
+    replaceFleet: async (next: typeof session) => { expect(next).toBe(session); replaced = true; },
+  }) as Game;
+  await game.switchShip(definition as Parameters<Game['switchShip']>[0]);
+  expect(replaced).toBe(true);
+  expect(session.ship).toEqual({ ...loaded, x: previous.x, z: previous.z, heading: previous.heading });
+});
