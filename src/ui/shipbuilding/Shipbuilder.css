@@ -468,7 +468,7 @@
 .sb-rail .sb-snap-options { width: 14px; border-left: 0; border-radius: 0 3px 3px 0; }
 .sb-rail .sb-snap-options svg { width: 12px; height: 12px; }
 .sb-snap-control[data-override] .sb-snap-main { border-style: dashed; }
-.shipbuilder.sb-snap-popover { position: fixed; inset: auto; width: 240px; height: auto; z-index: 100; display: flex; flex-direction: column; gap: 10px; padding: 14px; background: var(--sb-card); border: 1px solid var(--sb-line2); border-radius: 3px; color: var(--sb-text); font: 12px/1.4 'Barlow', sans-serif; pointer-events: auto; overflow: auto; max-height: calc(100dvh - 16px); }
+.shipbuilder.sb-snap-popover { position: fixed; inset: auto; width: 280px; max-width: calc(100vw - 16px); height: auto; z-index: 100; display: flex; flex-direction: column; gap: 10px; padding: 14px; background: var(--sb-card); border: 1px solid var(--sb-line2); border-radius: 3px; color: var(--sb-text); font: 12px/1.4 'Barlow', sans-serif; pointer-events: auto; overflow: auto; max-height: calc(100dvh - 16px); }
 .sb-snap-popover strong { font-weight: 600; }
 .sb-snap-popover strong:not(:first-child) { margin-top: 5px; padding-top: 12px; border-top: 1px solid var(--sb-line2); }
 .sb-snap-popover label { display: flex; align-items: center; gap: 8px; min-height: 24px; cursor: pointer; }
@@ -480,10 +480,17 @@
 .sb-snap-steps button { flex: 1; min-width: 0; min-height: 30px; padding: 3px; background: var(--sb-card); color: var(--sb-text); border: 1px solid var(--sb-line2); border-radius: 3px; font: inherit; cursor: pointer; }
 .sb-snap-steps button:hover { background: var(--sb-card-hover); }
 .sb-snap-steps button[aria-pressed=true] { color: var(--sb-brass); border-color: var(--sb-brass); background: var(--sb-card-selected); }
-.sb-snap-popover p { font-size: 10px; margin: 4px 0 0; color: var(--sb-muted); }
+.sb-snap-popover p { font-size: 12px; margin: 4px 0 0; color: var(--sb-muted); }
+.sb-snap-status strong { font-size: 14px; }
+.sb-snap-popover input:disabled + span { opacity: .5; }
+.sb-snap-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; color: var(--sb-muted); }
+.sb-snap-legend span { display: flex; align-items: center; gap: 6px; }
+.sb-snap-legend i { width: 14px; border-top: 2px solid var(--sb-mint); }
+.sb-snap-legend span:last-child i { border-color: var(--sb-brass); }
 .sb-snap-popover :focus-visible, .sb-snap-control button:focus-visible { outline: 2px solid var(--sb-mint); outline-offset: 2px; }
 .sb-snap-overlay { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 4; overflow: hidden; }
 .sb-snap-overlay path { fill: none; stroke-width: 1.25; vector-effect: non-scaling-stroke; }
+.sb-snap-overlay .sb-snap-edge { stroke-width: 2.5; }
 .sb-snap-overlay circle { fill: var(--sb-card, #24282b); stroke-width: 1.5; }
 
 .sb-cursor button[aria-pressed=true] { color: var(--sb-mint); border-color: var(--sb-mint); background: var(--sb-card-toggle); }

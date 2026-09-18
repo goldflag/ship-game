@@ -69,7 +69,7 @@ export function HelpDialog({ onClose }: { onClose(): void }) {
         </section>
       </div>
       <p>Select one editable hull shape and press D to enter Freeform; D or Escape finishes. Select a vertex, edge, face or curved-shape ring; drag it in the view plane or use an X/Y/Z handle. Arrow keys nudge a focused axis handle. Mirror axes are local to the block; select none to turn symmetry off. An edge or face spanning a mirror plane cannot move across it. Move nearby corners is opt-in; Split creates independent blocks. Reset edit restores the block’s session-entry shape.</p>
-      <p>In Select, selected blocks show X/Y/Z handles and a center handle for movement in the view plane. Drag pieces and handles to position them. Alignment guides can stay visible with snapping off. The centerline appears only while dragging near it. Movement stops at another block’s bounds; touching faces can slide along each other. Escape cancels a drag. Keys never act inside text or number fields. Mirror also reaches the twin face when painting armor or paint.</p>
+      <p>In Select, selected blocks show X/Y/Z handles and a center handle for movement in the view plane. Drag pieces and handles to position them. Snap guides appear only when a snap is engaged: mint joins aligned geometry, brass marks the ship centerline. Dots mark the aligned points and a solid edge marks the target. Turning Snap off hides these guides. Movement stops at another block’s bounds; touching faces can slide along each other. Escape cancels a drag. Keys never act inside text or number fields. Mirror also reaches the twin face when painting armor or paint.</p>
     </div>
   </div>;
 }

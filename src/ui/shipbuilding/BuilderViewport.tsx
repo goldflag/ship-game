@@ -135,8 +135,6 @@ class Viewport {
   private snapGuides: SnapGuide[] = [];
   private snapLatched: string[] = [];
   private snapContext = '';
-  private workingPoint?: Vec3;
-  private nearCenterline = false;
   private workingAxis = 1;
   private snapBounds = new THREE.Box3();
   private moveConstraintKey = '';
@@ -305,7 +303,7 @@ class Viewport {
     this.updateMoveHandles();
     this.updateRotateHandles();
     if (JSON.stringify(old.scene.snapping) !== JSON.stringify(props.scene.snapping)) {
-      this.snapLatched = []; this.moveHandles.refresh(); this.freeformHandles.refresh();
+      this.clearSnap(); this.moveHandles.refresh(); this.freeformHandles.refresh();
       if (this.pointerStart?.move && this.hover) this.updateMove(this.hover);
     }
     if (!!props.scene.perspective !== (this.camera instanceof THREE.PerspectiveCamera)) {
@@ -639,7 +637,7 @@ class Viewport {
     });
   }
 
-  private clearSnap() { this.snapGuides = []; this.snapLatched = []; this.snapContext = ''; this.workingPoint = undefined; this.nearCenterline = false; }
+  private clearSnap() { this.snapGuides = []; this.snapLatched = []; this.snapContext = ''; }
   private projectSnap = (point: Vec3, width = this.host.clientWidth, height = this.host.clientHeight): [number, number] | undefined => {
     const p = new THREE.Vector3(...point).project(this.camera);
     return p.z >= -1 && p.z <= 1 ? [(p.x + 1) * width / 2, (1 - p.y) * height / 2] : undefined;
@@ -652,12 +650,6 @@ class Viewport {
     const result = resolveSnap({ raw, grid, directions, moving, targets: this.snapFeatures.filter(f => !excluded.has(f.owner)),
       settings: this.props.scene.snapping ?? DEFAULT_SNAPPING, project, previous: this.snapLatched });
     this.snapGuides = result.guides; this.snapLatched = result.latched;
-    this.nearCenterline = moving.some(feature => {
-      if (feature.kind !== 'center') return false;
-      const point = add(feature.point, raw), a = project(point), b = project([0, point[1], point[2]]);
-      return !!a && !!b && Math.hypot(a[0] - b[0], a[1] - b[1]) <= 14;
-    });
-    this.workingPoint = add(moving[0]?.point ?? [0, 0, 0], result.delta);
     return result.delta;
   }
   private snapMove(ids: string[], raw: Vec3, free: boolean[]): Vec3 {
@@ -674,17 +666,18 @@ class Viewport {
   }
   private drawSnapGuides() {
     const settings = this.props.scene.snapping ?? DEFAULT_SNAPPING;
-    const dragging = this.moveHandles.moving || this.freeformHandles.moving || !!(this.pointerStart?.moved && (this.pointerStart.move || this.pointerStart.start && this.props.scene.placementPiece));
-    const showCenterline = settings.showCenterline && dragging && this.nearCenterline;
+    const guides = settings.enabled && settings.guides
+      ? this.snapGuides.filter(g => g.active && (g.centerline ? settings.centerline && settings.showCenterline : settings.geometry)) : [];
+    const centered = guides.find(g => g.centerline);
     let centerline: [Vec3, Vec3] | undefined;
-    if (showCenterline && this.workingPoint) {
-      const point = this.workingPoint;
+    if (centered) {
+      const point = centered.from;
       const padding = Math.max(2, this.hullSize.z * .05);
       centerline = this.workingAxis === 2 || this.props.scene.view === 'bow'
         ? [[0, this.snapBounds.min.y - padding, point[2]], [0, this.snapBounds.max.y + padding, point[2]]]
         : [[0, point[1], this.snapBounds.min.z - padding], [0, point[1], this.snapBounds.max.z + padding]];
     }
-    this.snapOverlay.frame(this.projectSnap, settings.guides ? this.snapGuides.filter(g => !g.centerline || showCenterline) : [], centerline);
+    this.snapOverlay.frame(this.projectSnap, guides, centerline);
   }
 
   /** Empty space is never a placement or selection surface. */
@@ -726,7 +719,6 @@ class Viewport {
       placement = this.resolveSnapping(`placement:${piece.kind}:${id}`, unsnapped, placement, free, moving, new Set());
       // Smart alignment must preserve the exact support plane, including slopes.
       if (piece.kind !== 'boundary') placement[axis] -= placement.reduce((sum, v, k) => sum + (v - unsnapped[k]) * normal[k], 0) / normal[axis];
-      this.workingPoint = piece.kind === 'equipment' ? add(placement, attachmentOffset(piece, piece.bearingDeg)) : [...raw];
     }
     if (piece?.kind === 'hull' && piece.shape === 'balcony' && surface && Math.abs(normal[1]) < .9) placement = seatBalconyOnHull(piece, placement, surface, this.props.scene.result?.surfaces ?? []);
     return { id, hullPlacement: piece?.kind === 'hull' && piece.shape === 'balcony' ? piece : undefined, surface: surface && surfaceSelectionKey(surface), point: raw, normal, axis, placement, bearingDeg: piece?.kind === 'equipment' ? piece.bearingDeg : undefined, additive: !!(event.shiftKey || event.ctrlKey || event.metaKey) };
@@ -1009,7 +1001,8 @@ class Viewport {
     this.moveHandles.update({ key, anchor, axes, unit: props.scene.gridStep, snap: (raw, free) => this.snapMove(ids, raw, free), constrain: this.constrainMove,
       preview: (delta, blocked) => {
         if (!delta) { this.finishMove(); return; }
-        this.moveOffset = delta; this.moveBlocked = !!blocked; if (blocked) this.clearSnap();
+        this.moveOffset = delta; this.moveBlocked = !!blocked;
+        if (blocked || !this.moveHandles.moving) this.clearSnap();
         if (!this.movePreview.children.length) this.buildMovePreview(ids);
         this.positionMovePreview(delta); this.movePreview.visible = delta.some(v => v !== 0);
       },
@@ -1244,7 +1237,7 @@ class Viewport {
     if (!raw || !grid || this.props.scene.source.construction.equipment.some(p => p.id === hit.id)) return grid;
     const point = this.resolveSnapping('path', raw, grid, SHIP_AXES.filter((_, k) => k !== hit.axis), [{ id: 'path:center', owner: 'path', point: [0, 0, 0], kind: 'center' }, { id: 'path:corner', owner: 'path', point: [0, 0, 0], kind: 'corner' }], new Set());
     const normal = hit.normal ?? [0, 1, 0]; point[hit.axis] -= point.reduce((sum, v, k) => sum + (v - raw[k]) * normal[k], 0) / normal[hit.axis];
-    this.workingPoint = point; this.workingAxis = hit.axis; return point;
+    this.workingAxis = hit.axis; return point;
   }
   private updatePathPreview() {
     const draft = this.props.scene.pathDraft, ladder=this.pointerStart?.ladder;

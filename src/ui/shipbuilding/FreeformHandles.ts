@@ -206,6 +206,7 @@ export class FreeformHandles {
     const d = this.drag; if (!d || e.pointerId !== d.pointer) return;
     this.lastEvent = e;
     if (Math.hypot(e.clientX-d.x,e.clientY-d.y) < 5) {
+      this.snapping?.clear();
       if (d.replacements.length) { d.replacements = []; this.preview([]); this.frame(); }
       return;
     }

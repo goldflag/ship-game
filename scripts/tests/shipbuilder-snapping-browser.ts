@@ -22,6 +22,13 @@ async function ready() {
 }
 const snapButton = () => document.querySelector<HTMLButtonElement>('.sb-snap-main')!;
 const centerlineVisible = () => !!document.querySelector('.sb-snap-overlay > path')?.getAttribute('d');
+const guidesVisible = () => [...document.querySelectorAll<SVGElement>('.sb-snap-overlay > *')].some(el => el.style.display !== 'none' && (el.tagName === 'circle' || !!el.getAttribute('d')));
+async function snapOption(label: string) {
+  document.querySelector<HTMLButtonElement>('.sb-snap-options')!.click(); await wait();
+  const option = [...document.querySelectorAll('.sb-snap-popover label')].find(el => el.textContent === label)?.querySelector('input');
+  if (!option) throw new Error(`Snap option unavailable: ${label}`);
+  option.click(); await wait(); await key('Escape');
+}
 async function key(key: string, type = 'keydown') { document.body.dispatchEvent(new KeyboardEvent(type, { key, bubbles: true })); await wait(); }
 async function hover(point: Vec3) {
   const [clientX, clientY] = await controls.screen(point);
@@ -58,20 +65,38 @@ export async function checkSnapping() {
   await key('Escape');
   await controls.tool('Place'); await hover([.03, 1, 6.137]);
   assert(Math.abs(viewport().ghostPosition[0]) < 1e-6, 'automatic placement snaps to centerline');
-  assert(!centerlineVisible(), 'placement hover snaps without displaying the centerline');
+  assert(centerlineVisible(), 'placement hover shows the centerline it snapped to');
   assert(!document.querySelector('.sb-snap-overlay text'), 'snap feedback contains no floating labels');
   await key('Alt');
   assert(snapButton().getAttribute('aria-pressed') === 'false', 'Alt shows temporary release on the control');
   assert(Math.abs(viewport().ghostPosition[0] - .03) < 1e-4 && Math.abs(viewport().ghostPosition[2] - 6.137) < 1e-4, 'temporary release immediately restores raw coordinates without moving the mouse');
+  assert(!guidesVisible() && !viewport().snapGuides.length, 'Alt immediately clears all snap feedback without moving the mouse');
   await key('Alt', 'keyup');
   assert(Math.abs(viewport().ghostPosition[0]) < 1e-6, 'release immediately reacquires snapping');
   await key('n'); await hover([.031, 1, 6.127]);
   assert(Math.abs(viewport().ghostPosition[2] - 6.127) < 1e-4, 'N disables all pointer rounding');
+  assert(!guidesVisible(), 'Snap off hides all guides near the centerline');
   await key('Alt'); assert(snapButton().getAttribute('aria-pressed') === 'true', 'Alt also enables snapping temporarily when normally off');
   await key('Alt', 'keyup'); await key('n');
   await hover([-1.48, 1, -4]);
   assert(Math.abs(viewport().ghostPosition[0] + 1.5) < 1e-5, 'nearby physical edge overrides grid placement');
   assert(viewport().snapGuides.some((g: any) => !g.centerline && g.active), 'nearby geometry draws active alignment feedback');
+  assert([...document.querySelectorAll<SVGElement>('.sb-snap-origin')].some(el => el.style.display !== 'none'), 'geometry feedback marks the moving feature as well as its target');
+  await key('n');
+  assert(!guidesVisible(), 'turning snapping off clears geometry guides at a stationary pointer');
+  await key('n');
+  await snapOption('Show snap guides');
+  assert(!guidesVisible() && Math.abs(viewport().ghostPosition[0] + 1.5) < 1e-5, 'guides can be hidden without disabling snapping');
+  await hover([.03, 1, 6.137]);
+  assert(!guidesVisible() && Math.abs(viewport().ghostPosition[0]) < 1e-6, 'hiding guides also hides the acquired centerline');
+  await snapOption('Show snap guides');
+  assert(centerlineVisible(), 'restoring guides shows the acquired centerline');
+  await snapOption('Include ship centerline');
+  assert(!centerlineVisible() && Math.abs(viewport().ghostPosition[0]) < 1e-6, 'centerline feedback can be hidden without changing alignment');
+  await snapOption('Include ship centerline');
+  await snapOption('Ship centerline');
+  assert(!centerlineVisible(), 'disabling the centerline target clears its feedback');
+  await snapOption('Ship centerline');
   await controls.tool('Select'); controls.click(...await controls.screen([2, 3, 4])); await wait();
   assert(!document.querySelector('.sb-tag input[aria-label="x"],.sb-tag input[aria-label="y"],.sb-tag input[aria-label="z"]'), 'selection has no coordinate inputs');
   const exact = structuredClone(source().construction.primitives.find(p=>p.id==='moving')!); exact.position[0]=2.1234;
@@ -91,10 +116,12 @@ export async function checkSnapping() {
     assert(Math.abs(viewport().moveOffset[0] + 2.1234) < 1e-5, 'axis drag uses centerline snapping');
     assert(centerlineVisible(), 'centerline appears while dragging nearby');
     await key('Alt'); assert(Math.abs(viewport().moveOffset[0] + 2.0934) < .002, 'Alt releases a live gizmo drag immediately');
-    assert(centerlineVisible(), 'nearby centerline remains available with snapping temporarily released');
+    assert(!guidesVisible(), 'temporary release hides all guides during a live gizmo drag');
+    await key('Alt', 'keyup');
+    assert(centerlineVisible(), 'releasing Alt restores the acquired centerline during a live drag');
     handle.dispatchEvent(new PointerEvent('pointermove', { ...start, bubbles: true, pointerId: 77, button: 0 })); await wait();
     assert(!centerlineVisible(), 'centerline disappears when dragging away');
-    await key('Alt', 'keyup'); await key('Escape');
+    await key('Escape');
     assert(source().construction.primitives.find(p => p.id === 'moving')!.position[0] === 2.1234, 'cancelled gizmo drag adds no source movement');
     assert(!centerlineVisible(), 'centerline is hidden after drag cancellation');
   } finally { handle.setPointerCapture = capture; handle.releasePointerCapture = release; }
@@ -115,7 +142,11 @@ export async function checkSnapping() {
     assert(Math.abs(previewCorner()[0]) < 1e-5, 'freeform corner snaps to actual world centerline');
     assert(centerlineVisible(), 'centerline appears during nearby freeform drag');
     await key('Alt'); assert(Math.abs(previewCorner()[0] - .03) < .002, 'Alt releases freeform snapping without changing local-axis constraints');
-    await key('Alt', 'keyup'); await key('Escape');
+    assert(!guidesVisible(), 'freeform release hides all snap guides');
+    await key('Alt', 'keyup');
+    vertexHandle.dispatchEvent(new PointerEvent('pointermove', { clientX: vr.x + vr.width / 2, clientY: vr.y + vr.height / 2, bubbles: true, pointerId: 78, button: 0 })); await wait();
+    assert(!guidesVisible(), 'returning a freeform drag to its origin clears stale guides');
+    await key('Escape');
     assert(source().construction.primitives.find(p => p.id === 'moving')!.kind === 'box', 'cancelling freeform drag preserves original source shape');
   } finally { vertexHandle.setPointerCapture = vertexCapture; vertexHandle.releasePointerCapture = vertexRelease; }
   await key('Escape');

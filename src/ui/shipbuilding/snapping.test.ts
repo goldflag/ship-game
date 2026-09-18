@@ -29,11 +29,25 @@ const solve = (raw: Vec3, settings: Partial<SnapSettings> = {}, targets: SnapFea
   settings: { ...DEFAULT_SNAPPING, ...settings }, project, previous,
 });
 
-test('Off preserves raw motion with passive guides and no magnetic alignment', () => {
-  const result = solve([.031, 2.127, .043], { enabled: false }, [center('target', [.05, 2.127, 0])]);
+test('Off preserves raw motion and clears guides and previously held snaps', () => {
+  const targets = [center('target', [.05, 2.127, 0])];
+  const held = solve([.031, 2.127, .043], {}, targets).latched;
+  expect(held.length).toBeGreaterThan(0);
+  const result = solve([.031, 2.127, .043], { enabled: false }, targets, held);
   expect(result.delta).toEqual([.031, 2.127, .043]);
-  expect(result.guides.length).toBeGreaterThan(0);
-  expect(result.guides.every(g => !g.active)).toBe(true);
+  expect(result.guides).toEqual([]);
+  expect(result.latched).toEqual([]);
+});
+test('guides only confirm acquired snaps, never nearby unaligned candidates', () => {
+  const result = solve([.1, 0, .27], { grid: false });
+  expect(result.delta).toEqual([.1, 0, .27]);
+  expect(result.guides).toEqual([]);
+  const snapped = solve([.07, 0, .27], { grid: false });
+  expect(snapped.guides).toHaveLength(1);
+  expect(snapped.guides[0]).toMatchObject({ active: true, centerline: true, from: [0, 0, .27] });
+  const gridded = solve([.07, 0, .27]);
+  expect(gridded.guides[0].from).toEqual([0, 0, 0]);
+  expect(gridded.guides[0].to).toEqual(gridded.guides[0].from);
 });
 test('geometry wins over the grid on one axis without changing constrained height', () => {
   const result = solve([1.03, 2.127, 3.38], { centerline: false }, [center('target', [1.07, 2.127, 3.38])]);
