@@ -8,9 +8,12 @@ An account is required. Source revisions save to PostgreSQL; IndexedDB retains a
 
 Choose **New design** in port to select a Bismarck or King George V battleship hull,
 Admiral Hipper or Baltimore cruiser hull, or Fletcher or Yukikaze destroyer hull.
+Generic Patrol boat, Destroyer, Battleship and Barge shapes are also available.
 **No hull preset** starts with the original centered 1 × 1 × 1 m block.
-Cancel leaves the library unchanged. Hull presets derive their dimensions and
-sections from the existing in-game ships, including their deck profiles. Each starts with no equipment and remains
+Cancel leaves the library unchanged. Ship-based presets derive their dimensions and
+sections from the existing in-game ships, including their deck profiles, with at most
+16 sections spaced at least 4% of the length apart. Bismarck and King George V have
+broader end caps; generic presets have eight sections. Each starts with no equipment and remains
 one editable custom hull. Fletcher is selected by default. The same chooser is available
 under **Designs → New design…**. Choose **Edit design** to reopen a saved source.
 All drafts appear in the port’s Ship designs list; valid designs also appear in
