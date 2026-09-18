@@ -732,7 +732,7 @@ class Viewport {
   private highlight(event: { clientX: number; clientY: number }) {
     // During placement, the ghost/path already identifies the action. Keep its support block clear.
     const placing = !!this.props.scene.placementPiece || !!this.props.scene.pathDraft;
-    const hit = this.navigating() ? undefined : this.pick(event, this.props.scene.pickTargets);
+    const hit = this.navigating() || this.props.scene.measuring ? undefined : this.pick(event, this.props.scene.pickTargets);
     this.reportHover(hit?.id);
     this.showArmorTooltip(event, hit);
     const supportBlock = this.props.scene.source.construction.primitives.some(part => part.id === hit?.id);
