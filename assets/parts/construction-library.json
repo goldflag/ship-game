@@ -757,6 +757,54 @@
       "inputs": [
         "assets/parts/construction/geometry.py"
       ]
+    },
+    "generic-propeller-2400": {
+      "path": "assets/parts/construction/running_gear.py",
+      "function": "create_propeller",
+      "inputs": [
+        "assets/parts/construction/small_appendages.py",
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-propeller-4200": {
+      "path": "assets/parts/construction/running_gear.py",
+      "function": "create_propeller",
+      "inputs": [
+        "assets/parts/construction/small_appendages.py",
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-propeller-6000": {
+      "path": "assets/parts/construction/running_gear.py",
+      "function": "create_propeller",
+      "inputs": [
+        "assets/parts/construction/small_appendages.py",
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-rudder-2000": {
+      "path": "assets/parts/construction/running_gear.py",
+      "function": "create_rudder",
+      "inputs": [
+        "assets/parts/construction/small_appendages.py",
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-rudder-4000": {
+      "path": "assets/parts/construction/running_gear.py",
+      "function": "create_rudder",
+      "inputs": [
+        "assets/parts/construction/small_appendages.py",
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-rudder-6000": {
+      "path": "assets/parts/construction/running_gear.py",
+      "function": "create_rudder",
+      "inputs": [
+        "assets/parts/construction/small_appendages.py",
+        "assets/parts/construction/geometry.py"
+      ]
     }
   },
   "components": [
@@ -1431,6 +1479,42 @@
       "builder": "generic-deck-open-bin",
       "review": "unreviewed",
       "limitations": "Original simple prop inspired by user-supplied ship model screenshots; no exact historical variant claimed. Dimensions and mass are game estimates. Static geometry adds only loading mass. Installation support and clearance remain design-specific."
+    },
+    {
+      "partId": "generic-propeller-2400",
+      "builder": "generic-propeller-2400",
+      "review": "unreviewed",
+      "limitations": "Original generic running gear; fixed dimensions, mass and capability are gameplay estimates. Installation support, immersion and moving-neighbor clearance require design review."
+    },
+    {
+      "partId": "generic-propeller-4200",
+      "builder": "generic-propeller-4200",
+      "review": "unreviewed",
+      "limitations": "Original generic running gear; fixed dimensions, mass and capability are gameplay estimates. Installation support, immersion and moving-neighbor clearance require design review."
+    },
+    {
+      "partId": "generic-propeller-6000",
+      "builder": "generic-propeller-6000",
+      "review": "unreviewed",
+      "limitations": "Original generic running gear; fixed dimensions, mass and capability are gameplay estimates. Installation support, immersion and moving-neighbor clearance require design review."
+    },
+    {
+      "partId": "generic-rudder-2000",
+      "builder": "generic-rudder-2000",
+      "review": "unreviewed",
+      "limitations": "Original generic running gear; fixed dimensions, mass and capability are gameplay estimates. Installation support, immersion and moving-neighbor clearance require design review."
+    },
+    {
+      "partId": "generic-rudder-4000",
+      "builder": "generic-rudder-4000",
+      "review": "unreviewed",
+      "limitations": "Original generic running gear; fixed dimensions, mass and capability are gameplay estimates. Installation support, immersion and moving-neighbor clearance require design review."
+    },
+    {
+      "partId": "generic-rudder-6000",
+      "builder": "generic-rudder-6000",
+      "review": "unreviewed",
+      "limitations": "Original generic running gear; fixed dimensions, mass and capability are gameplay estimates. Installation support, immersion and moving-neighbor clearance require design review."
     }
   ]
 }
