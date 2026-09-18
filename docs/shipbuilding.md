@@ -105,7 +105,7 @@ stationary blocks. Drags stop at the limit even across a fast pointer jump; exis
 excessive overlaps can be reduced. Mirrored placement, runs, Fill and copies are
 checked as a complete batch. Rejected placement shows a salmon preview and the
 10% rule in the placement feedback, without adding undo history. Ballast-to-ballast
-overlap and equipment fit restrictions remain. This is an editor placement/movement
+overlap restrictions remain. Fixed non-weapon deck fittings may overlap hull pieces and one another while at least 10% of each fitting remains exposed; physical attachment is still required. Weapons, internal packages, underwater machinery and connected paths retain their fit restrictions. This is an editor placement/movement
 policy; imported and freeform drafts remain recoverable through the existing compiler.
 Mass, plating and buoyancy still derive from the physical union, so shared hull
 volume is counted once.

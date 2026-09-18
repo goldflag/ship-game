@@ -1598,6 +1598,12 @@ fn equipment(
     let installed_parts: Vec<_> = c.equipment.iter().filter_map(|e| catalog.equipment.iter().find(|p| p.id == e.part_id).map(|p| (e, p)))
         .map(|(e, p)| crate::construction_wall_fittings::installed(e, p, c, &out.surfaces).map(|p| (e.id.clone(), p)))
         .collect::<Result<_, _>>()?;
+    // Fixed exterior fittings may be seated into hulls and neighboring fittings.
+    // Weapons, interior packages, moving underwater parts and routes retain exact fit.
+    let relaxed_fit = |p: &ConstructionEquipmentPart| p.placement == "deck" && p.path.is_none()
+        && matches!(p.kind.as_str(), "deck-fitting" | "mast" | "director" | "funnel");
+    let relaxed_ids: std::collections::BTreeSet<_> = installed_parts.iter()
+        .filter(|(_, p)| relaxed_fit(p)).map(|(id, _)| id.as_str()).collect();
     let mut fitted = vec![];
     let mut all_envelopes: Vec<(String, cg::Cell)> = vec![];
     let mut fitting_index = cg::Broadphase::new(8.);
@@ -1819,6 +1825,7 @@ fn equipment(
             }
         }
         for (other, cell) in &all_envelopes {
+            if relaxed_fit(p) && relaxed_ids.contains(other.as_str()) { continue; }
             if fitting_cells.iter().any(|f| cg::intersection(f, cell).is_some_and(|x| cg::moments(&x).volume > 1e-5)) {
                 return Err(error(
                     "equipment-overlap",
@@ -1920,6 +1927,10 @@ fn equipment(
         });
         let attached = attached
             && ((p.kind != "deck-fitting" && !crate::construction_installation::deck_mounted(c, catalog, p))
+                || (relaxed_fit(p) && hull.iter().any(|h| h.faces.iter().all(|f| {
+                    let n = cg::normal(&f.vertices);
+                    dot(n, sub(attachment, f.vertices[0])) < -1e-6
+                })))
                 || crate::construction_paths::supported_surface(
                     &out.surfaces,
                     attachment,
@@ -1969,7 +1980,7 @@ fn equipment(
             masses.push(mass(format!("{}-support",e.id), "equipment", &solids, STEEL_DENSITY));
             out.propeller_supports.get_or_insert_with(Vec::new).push(support);
         }
-        let intrusion = if p.placement == "deck" && e.wall.is_none() {
+        let intrusion = if p.placement == "deck" && e.wall.is_none() && !relaxed_fit(p) {
             // The fixed support crosses the deck by design. Its well and hull
             // backing are validated separately; only the gun body must clear it.
             hull.iter().find_map(|h| fitting_cells[..body_cell_count].iter().find_map(|f| {
@@ -2291,6 +2302,24 @@ fn equipment(
                     "Magazine cannot hold all initially loaded rounds",
                     Some(&e.id),
                 ));
+            }
+        }
+    }
+    // Check every fitting against the complete layout, so source order cannot
+    // hide a swallowed neighbor. Subtraction counts combined overlaps only once.
+    for id in &relaxed_ids {
+        let cells: Vec<_> = all_envelopes.iter().filter(|(owner, _)| owner == id)
+            .map(|(_, cell)| cell.clone()).collect();
+        let mut exposed = cg::union(&cells).map_err(|message| error("equipment-overlap", message, Some(id)))?;
+        let volume = cg::total(&exposed).volume;
+        let hull_candidates: std::collections::BTreeSet<_> = cells.iter().flat_map(|cell| hull_index.candidates(cell)).collect();
+        let fitting_candidates: std::collections::BTreeSet<_> = cells.iter().flat_map(|cell| fitting_index.candidates(cell)).collect();
+        let cutters = hull_candidates.iter().map(|&i| &hull[i]).chain(fitting_candidates.iter()
+            .filter(|&&i| all_envelopes[i].0 != *id).map(|&i| &all_envelopes[i].1));
+        for cutter in cutters {
+            exposed = exposed.iter().flat_map(|cell| cg::subtract(cell, cutter)).collect();
+            if cg::total(&exposed).volume + 1e-7 < volume * crate::construction_overlap::MIN_EXPOSED {
+                return Err(error("equipment-overlap", "Keep at least 10% of each fixed fitting outside the hull and other fittings", Some(id)));
             }
         }
     }
@@ -3435,6 +3464,25 @@ mod tests {
         assert!(result.definition.is_some(), "{:?}", result.diagnostics);
         source.construction.equipment.last_mut().unwrap().position[0] = 0.;
         assert!(compile(&source, &catalog).diagnostics.iter().any(|d| d.code == "equipment-overlap"));
+    }
+    #[test]
+    fn fixed_fittings_cannot_overlap_weapons_in_either_source_order() {
+        let (mut source, mut catalog) = equipped_fixture();
+        let mut part = catalog.equipment.iter().find(|p| p.kind == "funnel").unwrap().clone();
+        part.id = "fixed-part".into();
+        part.kind = "deck-fitting".into();
+        part.exhaust_kw = None;
+        part.occupancy = None;
+        catalog.equipment.push(part);
+        source.construction.equipment.push(ConstructionEquipment {
+            id: "fixed".into(), part_id: "fixed-part".into(), position: [1.4, 2., -5.],
+            ..Default::default()
+        });
+        for _ in 0..2 {
+            let result = compile(&source, &catalog);
+            assert!(result.diagnostics.iter().any(|d| d.code == "equipment-overlap"), "{:?}", result.diagnostics);
+            source.construction.equipment.reverse();
+        }
     }
     #[test]
     fn construction_retains_bounded_gun_installation_settings() {

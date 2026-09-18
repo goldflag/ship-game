@@ -672,3 +672,37 @@ fn invalid_railing_options_are_rejected_by_native_compiler() {
         rejected(&s, &c, "equipment-path");
     }
 }
+
+#[test]
+fn fixed_fittings_allow_partial_overlap_but_not_burial_or_floating() {
+    let (mut s, mut c) = fixture();
+    c.equipment.extend([part("a"), part("b")]);
+    s.construction.equipment = vec![fixed("a", [0., 2., 0.]), fixed("b", [0.6, 2., 0.])];
+    compiled(&s, &c);
+    for e in &mut s.construction.equipment { e.position[1] = 1.5; }
+    compiled(&s, &c); // Both are half embedded and overlap one another.
+    s.construction.equipment.reverse();
+    compiled(&s, &c);
+    s.construction.equipment[0].position = s.construction.equipment[1].position;
+    rejected(&s, &c, "equipment-overlap");
+    s.construction.equipment.pop();
+    s.construction.equipment[0].position[1] = 1.1;
+    compiled(&s, &c); // Exactly 10% exposed is permitted.
+    s.construction.equipment[0].position[1] = 1.05;
+    rejected(&s, &c, "equipment-overlap");
+    s.construction.equipment[0].position[1] = 3.;
+    rejected(&s, &c, "equipment-attachment");
+}
+
+#[test]
+fn fixed_fitting_exposure_counts_all_neighbors_together() {
+    let (mut s, mut c) = fixture();
+    c.equipment.extend([part("a"), part("b"), part("c")]);
+    s.construction.equipment = vec![fixed("a", [0., 2., 0.]), fixed("b", [-0.6, 2., 0.]), fixed("c", [0.6, 2., 0.])];
+    compiled(&s, &c); // The center fitting has 20% exposed between its neighbors.
+    s.construction.equipment[1].position[0] = -0.5;
+    s.construction.equipment[2].position[0] = 0.5;
+    rejected(&s, &c, "equipment-overlap"); // Neither neighbor alone buries it.
+    s.construction.equipment.reverse();
+    rejected(&s, &c, "equipment-overlap");
+}
