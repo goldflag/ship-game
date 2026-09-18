@@ -71,7 +71,7 @@ export function decodeConstructionSource(value: unknown): ConstructionSource {
       const ids = new Set<string>();
       for (const point of points) {
         string(point.id, 'Point ID'); number(point.x, 'Point X'); number(point.z, 'Point Z');
-        if (ids.has(point.id as string) || !['open', 'wall', 'railing'].includes(String(point.edge))) throw new Error('Invalid balcony point identity or edge');
+        if (ids.has(point.id as string) || !['open', 'wall', 'railing', 'triple-railing'].includes(String(point.edge))) throw new Error('Invalid balcony point identity or edge');
         ids.add(point.id as string);
       }
     } else if (p.balcony !== undefined) throw new Error('Balcony data belongs to a balcony block');

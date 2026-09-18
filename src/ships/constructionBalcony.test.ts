@@ -26,7 +26,7 @@ test('concave outlines triangulate without filling their notch, including reflec
 test('point insertion, edge treatments, source commands and mirrored copies retain their identities', () => {
   const source=createStarterSource(catalog as ConstructionCatalog,'blank');
   const piece:ConstructionPrimitive={id:'balcony',kind:'balcony',size:[4,.08,6],position:[4,3,0],rotationDeg:90,balcony:defaultBalcony()};
-  piece.balcony!.points[0].edge='railing';piece.balcony!.points[1].edge='wall';
+  piece.balcony!.points[0].edge='railing';piece.balcony!.points[1].edge='wall';piece.balcony!.points[2].edge='triple-railing';
   const before=structuredClone(piece);
   const changed=applyConstructionBatch(source,{version:1,expectedRevision:source.revision,label:'Add balcony',commands:[{op:'primitive',value:piece}]});
   expect(decodeConstructionSource(JSON.parse(JSON.stringify(changed))).construction.primitives.at(-1)).toEqual(piece);
@@ -34,6 +34,9 @@ test('point insertion, edge treatments, source commands and mirrored copies reta
   expect(piece).toEqual(before);
   expect(balconyProblem(piece.balcony!)).toBeUndefined();
   expect(balconyFaces(piece.size,piece.balcony).flat().some(v=>v[1]>.08)).toBe(true);
+  // A triple railing adds exactly one rail (one six-faced bar) to the two-rail edge.
+  const rails = (edge: 'railing' | 'triple-railing') => { const b = defaultBalcony(); b.points.forEach(point => { point.edge = 'open'; }); b.points[0].edge = edge; return balconyFaces(piece.size, b).length; };
+  expect(rails('triple-railing') - rails('railing')).toBe(6);
   const open = defaultBalcony(); open.points.forEach(point => { point.edge = 'open'; });
   expect(Math.max(...balconyFaces(piece.size,open).flat().map(v=>v[1]))).toBe(.04);
 });
