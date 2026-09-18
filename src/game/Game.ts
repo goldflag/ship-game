@@ -69,6 +69,8 @@ import { InputController } from './InputController';
 import { CameraRig } from './CameraRig';
 import { ShellFollow, type ShellView } from './ShellFollow';
 import { sightAim, torpedoCourseAim } from './aiming';
+import { Rangefinder } from './Rangefinder';
+import { observeRangeTarget, pickRangeTarget, rangeTargetVisible, type RangeTarget } from './rangefinderSight';
 import { createHarborBackdrop, type HarborBackdrop } from './HarborBackdrop';
 import { ShipWake } from './ShipWake';
 import type { WakeShip } from './FleetWakeFoam';
@@ -204,6 +206,8 @@ export class Game {
   inspecting = false;
   private manualAim = true;
   private currentAim: Vec3 = [650, .5, -550];
+  private ranging?: Rangefinder;
+  private get rangefinder(): Rangefinder { return this.ranging ??= new Rangefinder(); }
   chartSize = 2;
   airOperationsOpen = false;
   fleetCommandMode = false;
@@ -312,6 +316,7 @@ export class Game {
       simulationSpeed: () => this.cycleSimulationSpeed(),
       shellFollow: () => this.toggleShellFollow(),
       shellType: () => this.cycleAmmunition(),
+      rangefind: () => this.measureRange(), rangeLock: () => this.toggleRangeLock(),
       isSpectating: () => !this.inPort && this.simulation.isBattle && this.simulation.player.damage.sunk,
       cycleSpectator: direction => this.cycleSpectator(direction),
       helmWheel: held => { if (held) this.openHelmWheel('held'); else this.releaseHelmWheel(); },
@@ -678,6 +683,7 @@ export class Game {
     const view = this.fleetViews.find(v => v.actor === this.simulation.player);
     if (!view) return;
     if (!view.definition.contentHash) throw new Error('The controlled ship has no content identity.');
+    this.resetRangefinding();
     this.playerView = view; this.definition = view.definition as IdentifiedShip;
     this.shipLabels.setFleet(this.fleetViews, this.simulation.actors, view.actor.motion.id);
     this.playerDamageFeedback = new HullDamageFeedback(view.actor.damage.integrity);
@@ -880,6 +886,7 @@ export class Game {
       // Apply mouse aim before sampling the sight; follow the new rendered pose
       // after stepping, with camera damping applied only once per frame.
       this.rig.update(focus, focus.y, 0);
+      this.updateRangefinding(presentationDt);
       const aim = this.manualAim ? this.simulation.player.damage.sunk || this.viewAway ? this.currentAim : this.readSightAim() : this.simulation.aimAt(this.aimModule, this.battery, this.weaponGroupId);
       this.currentAim = aim;
       // The HUD reads damage-control detail for the camera's ship only; tell the
@@ -1002,6 +1009,7 @@ export class Game {
         const hud = this.shipTelemetry(aim);
         this.callbacks.telemetry({ ...hud, camera: this.rig.mode,
           binoculars: this.rig.binoculars, magnification: this.rig.magnification, pointerLocked: this.rig.pointerLocked,
+          rangefinder: this.canRange ? { ...this.rangefinder.state } : undefined,
           viewBearing: this.rig.bearing, chartSize: this.chartSize, airOperationsOpen: this.airOperationsOpen, selectedFlightId: this.selectedFlightId, selectedFlightIds: [...this.selectedFlightIds],
           fleetCommandMode: this.fleetCommandMode, selectedShipIds: [...this.selectedShipIds], controlledShipId: this.simulation.controlledShipId, helmWheel: this.helmWheel && { ...this.helmWheel }, tacticalPaused: this.tacticalPause, simulationSpeed: this.simulation.simulationSpeed, achievedSpeed: this.simulation.achievedSpeed,
           airMap: this.airOperationsOpen ? { ...this.battlefieldCamera.view } : undefined,
@@ -1581,15 +1589,70 @@ export class Game {
     this.rig.toggleBinoculars(aim, ship);
   }
   private readSightAim(): Vec3 {
+    const lockedAim = this.rig.rangeAim;
+    if (lockedAim && (this.battery === 'main' || this.battery === 'secondary')) return lockedAim;
     const aim = sightAim(this.camera.position.toArray(), this.camera.getWorldDirection(new THREE.Vector3()).toArray(),
       this.simulation.actors.filter(actor => actor !== this.simulation.player && actor.motion.y > -40).map(actor => ({ pose: actor.motion, armor: actor.definition.armor, definition: actor.definition, trains: actor.mounts.map(m => m.train) })));
     const tube = this.definition.torpedoTubes?.find(t => selectedWeapon('torpedo', t.weapon, this.battery, this.weaponGroupId));
     return this.battery === 'torpedo' && tube && this.camera.position.y < 0 ? torpedoCourseAim(aim, this.simulation.ship, tube.weapon.rangeM) : aim;
   }
+  private get canRange(): boolean {
+    return !this.inPort && this.rig.binoculars && !this.viewAway && !this.simulation.player.damage.sunk
+      && (this.battery === 'main' || this.battery === 'secondary');
+  }
+  private resetRangefinding(): void { this.rangefinder.reset(); this.rig.setRangeLock(); }
+
+  /** Only hulls admitted to this player's view may provide optical measurements.
+   * PvE enemy exteriors use current observations, never hidden actor positions. */
+  private rangeTargets(): RangeTarget[] {
+    const dimensions = (definition: ShipDefinition) => ({ length: definition.hull.length, beam: definition.hull.beam,
+      height: Math.max(2, definition.hull.depth - definition.hull.draft, definition.viewpoints?.bridge?.[1] ?? 0) });
+    const targets: RangeTarget[] = this.simulation.actors.filter(actor => actor !== this.simulation.player && !actor.damage.sunk).map(actor => ({
+      id: actor.motion.id, name: actor.definition.name, position: [actor.motion.x, actor.motion.y, actor.motion.z], heading: actor.motion.heading, ...dimensions(actor.definition),
+    }));
+    for (const report of this.simulation.observedShips ?? []) {
+      if (!report.observers.includes(this.simulation.ship.id) || this.simulation.tick - report.observedTick > 60 || report.health <= 0 || targets.some(target => target.id === report.id)) continue;
+      const position = this.observedShipViews?.position(report.id);
+      if (!position) continue;
+      const track = this.simulation.observationTracks?.find(track => track.id === report.id);
+      targets.push({ id: report.id, name: track ? reportName(track) : 'Surface contact', position: position.toArray(), heading: report.heading, ...dimensions(shipPreset(report.presetId)) });
+    }
+    return targets;
+  }
+  measureRange(): void {
+    if (!this.canRange || this.paused || this.tacticalPause || this.helmWheel) return;
+    const targets = this.rangeTargets();
+    this.rangefinder.start(pickRangeTarget(targets, this.camera, this.simulation.ship, this.host.clientWidth, this.host.clientHeight, this.simulation.islands));
+    this.rig.setRangeLock();
+    this.manualAim = true;
+  }
+  toggleRangeLock(): void {
+    if (!this.canRange || this.paused || this.tacticalPause || this.helmWheel) return;
+    this.rangefinder.toggleLock();
+    this.rig.setRangeLock(this.rangefinder.state.locked ? this.rangefinder.state.rangeM : undefined);
+    this.manualAim = true;
+    this.rig.update(this.simulation.ship, this.simulation.ship.y, 0);
+  }
+  private updateRangefinding(seconds: number): void {
+    if (!this.canRange) { this.resetRangefinding(); return; }
+    if (seconds <= 0) return;
+    const state = this.rangefinder.state;
+    if (state.phase === 'measuring' || state.phase === 'tracking') {
+      const targets = this.rangeTargets(), target = targets.find(target => target.id === state.targetId);
+      const observation = target && observeRangeTarget(target, this.camera, this.simulation.ship, this.host.clientWidth, this.host.clientHeight);
+      this.rangefinder.update(seconds, observation && target && rangeTargetVisible(target, this.camera.position.toArray(), targets, this.simulation.islands) ? observation : undefined);
+    }
+    this.rig.setRangeLock(state.locked ? state.rangeM : undefined);
+    if (state.locked) {
+      const pose = this.playerView?.motion ?? this.simulation.ship;
+      this.rig.update(pose, pose.y, 0);
+    }
+  }
   /** A port request made before the port session arrived; applied by `initialize`. */
   private deferredPort?: boolean;
   setInPort(inPort: boolean): void {
     if (!this.simulation) { this.deferredPort = inPort; return; }
+    this.resetRangefinding();
     this.inspectionHover?.clear();
     // Cancel pending previews even when their first result has not arrived yet.
     this.restoreArticulation();
@@ -1671,7 +1734,7 @@ export class Game {
   subscribeInspectionHover(listener: (hover: InspectionHoverInfo | null) => void): () => void {
     return this.inspectionHover.subscribe(listener);
   }
-  selectAim(moduleId: string): void { this.endFollow(); this.manualAim = moduleId === 'point'; this.aimModule = moduleId; }
+  selectAim(moduleId: string): void { this.resetRangefinding(); this.endFollow(); this.manualAim = moduleId === 'point'; this.aimModule = moduleId; }
   inspectTarget(): void {
     const target = this.simulation.target;
     if (!target) return;
@@ -1685,6 +1748,7 @@ export class Game {
   }
   selectTarget(id: string): void {
     if (!this.simulation.selectTarget(id)) return;
+    this.resetRangefinding();
     this.endFollow();
     this.targetView?.inspect(false);
     this.targetView = this.fleetViews.find(view => view.actor === this.simulation.target);

@@ -28,6 +28,7 @@ export interface Telemetry {
   camera: CameraMode;
   binoculars?: boolean;
   magnification?: number;
+  rangefinder?: import('./Rangefinder').RangefinderState;
   pointerLocked?: boolean;
   viewBearing?: number;
   chartSize?: number;

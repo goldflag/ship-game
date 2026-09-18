@@ -10,6 +10,21 @@ import type { Telemetry } from './types';
 import { updateCapability } from '../simulation/stability';
 import { Game } from './Game';
 
+test('scope rangefinding reports acquisition, tracked locks and held lost ranges with the current bindings', () => {
+  const definition = shipPreset('bismarck'), sim = new CombatSimulation(definition);
+  const bindings = defaultKeybindings(); bindings.rangefind = ['KeyK', null]; bindings.rangeLock = ['KeyV', null];
+  const data: Telemetry = { ship: sim.ship, order: 1, camera: 'Chase', binoculars: true, magnification: 1, pointerLocked: true, fps: 60, backend: 'test', trail: [],
+    rangefinder: { phase: 'measuring', progress: .5, locked: false, targetName: 'Enemy ship' } };
+  const render = () => renderToStaticMarkup(<ShipContext.Provider value={definition}><FleetHud data={data} desk={null} visible bindings={bindings}/></ShipContext.Provider>);
+  expect(render()).toContain('Ranging · 1.5 s'); expect(render()).toContain('fleet-rangefinder-area');
+  data.rangefinder = { ...data.rangefinder!, phase: 'tracking', progress: 1, rangeM: 18000, locked: true };
+  const tracked = render();
+  expect(tracked).toContain('18.00 km'); expect(tracked).toContain('Range locked · tracking');
+  expect(tracked).toContain('<kbd>V</kbd> Unlock'); expect(tracked).toContain('<kbd>K</kbd> Measure again');
+  data.rangefinder.phase = 'lost'; expect(render()).toContain('Contact lost · last range · locked');
+  data.binoculars = false; expect(render()).not.toContain('fleet-rangefinder');
+});
+
 test('PvE helm restores regular ship instruments without granting them to follow or chart views', () => {
   const definition = shipPreset('bismarck'), simulation = new CombatSimulation(definition);
   const game = Object.assign(Object.create(Game.prototype), { simulation, selectedShipIds: [simulation.ship.id], controlGroups: new Map() }) as Game;
