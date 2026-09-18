@@ -6,12 +6,14 @@ export type ConstructionStarter = 'patrol' | 'catamaran' | HullPresetChoice;
 export const startingHullBlock = (): ConstructionPrimitive => ({ id: 'hull', kind: 'box', size: [1, 1, 1], position: [0, 0, 0], rotationDeg: 0 });
 /** Generic editable source, not a precompiled ship or historical reconstruction.
  * Every placement remains visible and is checked by the same native compiler. */
-export function createStarterSource(catalog: ConstructionCatalog, kind: ConstructionStarter = 'patrol'): ConstructionSource {
+/** `paint` is the ship paint the player chose for every face and fitting without a colour of its own. */
+export function createStarterSource(catalog: ConstructionCatalog, kind: ConstructionStarter = 'patrol', paint?: string): ConstructionSource {
   const source: ConstructionSource = {
     schemaVersion: 1, id: `design-${crypto.randomUUID()}`, name: kind === 'catamaran' ? 'Twin-hull experiment' : kind === 'blank' ? 'Untitled design' : 'Patrol experiment',
     revision: crypto.randomUUID(), coordinates: 'meters-y-up-bow-negative-z',
     construction: { version: 2, catalogRevision: catalog.revision, defaultThicknessMm: 16, primitives: [], surfaces: [], equipment: [], boundaries: [], loads: [] },
   };
+  if (paint) source.construction.paint = paint;
   if (kind === 'blank') { source.construction.primitives.push(startingHullBlock()); return source; }
   const preset = HULL_PRESETS.findIndex(p => p.id === kind);
   if (preset >= 0) {

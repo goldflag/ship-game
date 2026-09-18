@@ -15,7 +15,7 @@ const primitiveFields: Fields = {
 };
 const equipmentFields: Fields = {
   partId: true, position: true, bearingDeg: true, magazineId: true, powerSourceId: true, paint: true,
-  gun: { barbetteHeightM: true, barbettePaint: true, battery: true, initialElevationDeg: true, traverseDeg: true, traverseLimitsDeg: true, elevationMinDeg: true, elevationMaxDeg: true },
+  gun: { barbetteHeightM: true, battery: true, initialElevationDeg: true, traverseDeg: true, traverseLimitsDeg: true, elevationMinDeg: true, elevationMaxDeg: true },
   wall: { version: true, widthM: true, heightM: true, mirrorId: true },
   path: { points: true, slackM: true }, launcher: { traverseLimitsDeg: true, launchArcsDeg: true },
 };

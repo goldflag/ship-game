@@ -2,6 +2,7 @@ import { expect, test } from 'bun:test';
 import * as THREE from 'three';
 import { paintConstructionFitting } from './constructionFittingPaint';
 import { componentMaterial } from '../ships/componentMaterials';
+import { constructionFittingPaint } from '../ships/constructionPaints';
 import { createConstructionPathModel } from './constructionPathModel';
 import catalog from '../../public/models/components/catalog.json';
 import type { ConstructionEquipmentPart } from '../ships/blueprint';
@@ -98,4 +99,12 @@ test('procedural rope and chain retain their materials while railing follows com
     expect(material.color.equals(before)).toBe(kind !== 'railing');
     model.traverse(node => { if (node instanceof THREE.Mesh) node.geometry.dispose(); }); material.dispose();
   }
+});
+
+test('fittings wear their own paint, then the ship paint; internal machinery keeps its finish', () => {
+  const ship = { construction: { paint: 'sea-blue' } }, legacy = { construction: {} };
+  expect(constructionFittingPaint(ship, { paint: 'red-oxide' }, { placement: 'deck' })).toBe('red-oxide');
+  expect(constructionFittingPaint(ship, {}, { placement: 'deck' })).toBe('sea-blue');
+  expect(constructionFittingPaint(ship, {}, { placement: 'internal' })).toBeUndefined();
+  expect(constructionFittingPaint(legacy, {}, { placement: 'deck' })).toBeUndefined();
 });

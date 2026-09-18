@@ -3847,7 +3847,6 @@
         "paint": "naval-gray",
         "gun": {
           "barbetteHeightM": 0.6,
-          "barbettePaint": "naval-gray",
           "battery": "main",
           "traverseLimitsDeg": [
             -135,
@@ -3870,7 +3869,6 @@
         "paint": "naval-gray",
         "gun": {
           "barbetteHeightM": 5,
-          "barbettePaint": "naval-gray",
           "battery": "main",
           "traverseLimitsDeg": [
             -135,
@@ -3893,7 +3891,6 @@
         "paint": "naval-gray",
         "gun": {
           "barbetteHeightM": 0.6,
-          "barbettePaint": "naval-gray",
           "battery": "main",
           "traverseLimitsDeg": [
             -135,

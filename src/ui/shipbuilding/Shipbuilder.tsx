@@ -5,7 +5,7 @@ import { wallMount } from '../../ships/constructionWallFittings';
 import { automaticPropellerLabel, propellerEngineName, propellerEngines } from './propellerAssignment';
 import { SnapControls } from './SnapControls';
 import { BalconyEditor } from './BalconyEditor';
-import { CONSTRUCTION_PAINTS } from '../../ships/constructionPaints';
+import { CONSTRUCTION_PAINTS, constructionPaintColor, constructionShipPaint } from '../../ships/constructionPaints';
 import { SurfaceFinishSelect } from './SurfaceFinishSelect';
 import { integrateConstructionMagazines } from '../../ships/constructionArmament';
 import { FreeformToolbar } from './FreeformToolbar';
@@ -190,9 +190,9 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const enterFreeform = () => { if (tool.enterFreeform()) setDrawer(false); };
   const suggestionChanged = tool.suggestionChanged;
 
-  const newDesign = async (kind: ConstructionStarter) => {
+  const newDesign = async (kind: ConstructionStarter, paint?: string) => {
     setDesignsOpen(false);
-    await owner.replace(freshConstruction(createStarterSource(props.catalog, kind), kind === 'blank'), null, false);
+    await owner.replace(freshConstruction(createStarterSource(props.catalog, kind, paint), kind === 'blank'), null, false);
     switchLayer('hull'); tool.setTool('select'); tool.clearSelection(); tool.fit(); setNewDesignOpen(false);
   };
   const deleteDesign = async (designId: string, revisionId: string) => {
@@ -335,14 +335,8 @@ export function Shipbuilder(props: ShipbuilderProps) {
         })}/>
         {item.wall.mirrorId && <span> · Linked mirror · edits update both sides</span>}
       </>}
-      {part?.placement !== 'internal' && <label> · Paint <select className="sb-link" aria-label="Fitting paint" value={item.paint ?? ''} disabled={locked} onChange={event => tool.paintFittings([item.id], event.target.value || undefined)}>
-        <option value="">Original finish</option>{CONSTRUCTION_PAINTS.map(paint => <option key={paint.id} value={paint.id}>{paint.name}</option>)}
-      </select></label>}
       {part?.path && item.path && <PathPointEditor key={item.id} item={item} part={part} onChange={path => edit('Edit fitting path', target => { target.path = path; })}/>}
-      {part?.kind === 'gun' && <> · <NumberField label="Turret rise" description="Raise the mount above its deck attachment. Below-deck magazines stay fixed; ready ammunition follows deck mounts." value={item.gun?.barbetteHeightM ?? 0} min={0} max={30} step={.25} unit="m" onChange={value => tool.raiseTurrets([item.id], () => value)}/>
-        <label> · Barbette paint <select aria-label="Barbette paint" className="sb-link" value={item.gun?.barbettePaint ?? 'naval-gray'} onChange={event => edit('Paint barbette', target => { target.gun = { ...target.gun, barbettePaint: event.target.value }; })}>
-          {CONSTRUCTION_PAINTS.map(paint => <option key={paint.id} value={paint.id}>{paint.name}</option>)}
-        </select></label></>}{data.version === 2 && (part?.kind === 'gun' || part?.kind === 'torpedo-launcher') && <span> · built-in ammunition</span>}{part?.kind === 'funnel' && <span> · {(part.exhaustKw ?? 0).toLocaleString()} kW shared exhaust</span>}{part?.kind === 'propeller' && engineConnection}{!item.wall && <> · <kbd>R</kbd> rotate · right-drag rotate · <kbd>⇧</kbd> fine</>} · <kbd>⌫</kbd> remove
+      {part?.kind === 'gun' && <> · <NumberField label="Turret rise" description="Raise the mount above its deck attachment. Below-deck magazines stay fixed; ready ammunition follows deck mounts." value={item.gun?.barbetteHeightM ?? 0} min={0} max={30} step={.25} unit="m" onChange={value => tool.raiseTurrets([item.id], () => value)}/></>}{data.version === 2 && (part?.kind === 'gun' || part?.kind === 'torpedo-launcher') && <span> · built-in ammunition</span>}{part?.kind === 'funnel' && <span> · {(part.exhaustKw ?? 0).toLocaleString()} kW shared exhaust</span>}{part?.kind === 'propeller' && engineConnection}{!item.wall && <> · <kbd>R</kbd> rotate · right-drag rotate · <kbd>⇧</kbd> fine</>} · <kbd>⌫</kbd> remove
     </> });
   } else if (selected.size > 1) {
     const anchors = [...selectedPrimitives.map(part => part.position), ...selectedEquipment.map(equipmentAnchor)];
@@ -576,8 +570,12 @@ export function Shipbuilder(props: ShipbuilderProps) {
       </div>
       {layer === 'hull' && !freeformMode && <div className="sb-shelves">{hullFilters}</div>}
       {layer === 'paint' && <div className="sb-shelves sb-paint-finishes">
+        <label className="sb-finish-select">Ship paint <i className="sb-ship-paint" style={{ background: constructionPaintColor(constructionShipPaint(source)) }}/><select className="sb-link" aria-label="Ship paint" title="Coats every face and fitting without a paint of its own" value={data.paint ?? ''} disabled={locked} onChange={event => tool.setShipPaint(event.target.value || undefined)}>
+          {data.paint === undefined && <option value="">Original fittings</option>}
+          {CONSTRUCTION_PAINTS.map(paint => <option key={paint.id} value={paint.id}>{paint.name}</option>)}
+        </select></label>
         <SurfaceFinishSelect value={data.finish} disabled={locked} onChange={tool.setFinish}/>
-        <span>Whole ship · painted surfaces</span>
+        <span>Whole ship · cards below paint single faces and fittings</span>
       </div>}
       {layer === 'fittings' && <div className="sb-shelves">
         <div className="sb-chips" role="tablist" aria-label="Fitting shelves">{FITTING_CATEGORIES.map(shelf => <button key={shelf.id} role="tab" aria-selected={fittingFilter.category === shelf.id} title={shelf.note} onClick={() => { tool.setFittingFilter({ category: shelf.id }); setTip(undefined); }}>{shelf.name}</button>)}</div>
