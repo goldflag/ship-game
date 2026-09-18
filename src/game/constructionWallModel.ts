@@ -15,7 +15,7 @@ function clip(polygon: THREE.Vector3[], distance: (p: THREE.Vector3) => number):
 }
 
 /** Project the original component's front triangles onto native hull panels.
- * This preserves its authored silhouette/materials while giving it no solid rim
+ * This preserves its authored silhouette while giving it no solid rim
  * or thickness. A 0.5 mm render bias prevents coplanar flicker, including in GLB.
  * Returned geometry is local to the installation; dimensions are already applied.
  */
@@ -71,7 +71,14 @@ export function createConstructionWallModel(template: THREE.Group, part: Constru
     }
     if (!points.length) return;
     const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(points,3));geometry.setAttribute('normal',new THREE.Float32BufferAttribute(normals,3));
-    const clone=(m:THREE.Material)=>{const material=m.clone();material.side=THREE.DoubleSide;material.polygonOffset=true;material.polygonOffsetFactor=offsetFactor;material.polygonOffsetUnits=-2;return material;};
+    const clone=(m:THREE.Material)=>{
+      const material=m.clone();
+      // Installed glazing stays black regardless of the retained catalog's tint.
+      // Translucent placement previews keep their tool feedback color.
+      if ((part.wallMount === 'window' || part.wallMount === 'porthole') && material instanceof THREE.MeshStandardMaterial && !material.transparent) material.color.set('#000000');
+      material.side=THREE.DoubleSide;material.polygonOffset=true;material.polygonOffsetFactor=offsetFactor;material.polygonOffsetUnits=-2;
+      return material;
+    };
     const mesh=new THREE.Mesh(geometry,Array.isArray(node.material)?node.material.map(clone):clone(node.material));
     mesh.name=node.name;mesh.userData={...node.userData,sharedPreviewResources:false,wallSurfaceDetail:true,wallSurfaceOffsetFactor:offsetFactor};group.add(mesh);
   });

@@ -3,7 +3,7 @@ import type { LocalShipRevision } from '../ships/localShips';
 
 // Bump when framing, lighting or rendering changes. Geometry/paint/fittings are
 // already covered by the compiler's content hash, including catalog identity.
-const CACHE = 'construction-thumbnails-v1';
+const CACHE = 'construction-thumbnails-v2';
 const tasks = new Map<string, Promise<string>>();
 let queue: Promise<unknown> = Promise.resolve();
 
