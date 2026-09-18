@@ -610,6 +610,29 @@ test('tiny scroll inputs zoom continuously and settle without a camera jump', ()
   rig.dispose();
 });
 
+test('range lock sweeps horizontally at the measured distance despite vertical input, zoom, hull motion and heave', () => {
+  const { camera, canvas, rig, drag } = interactiveCamera();
+  const ship = createShipState();
+  rig.toggleBinoculars([0, .5, -18000], ship); rig.setRangeLock(18000); rig.update(ship, 0, 0, true);
+  const bearing = rig.bearing, direction = camera.getWorldDirection(new Vector3());
+  drag(0, 1000); rig.update(ship, 0, 0, true);
+  expect(camera.getWorldDirection(new Vector3()).distanceTo(direction)).toBeLessThan(1e-9);
+  drag(40, 1000); expect(rig.bearing).not.toBe(bearing);
+  for (const deltaY of [100000, -100000]) {
+    canvas.dispatchEvent(Object.assign(new Event('wheel'), { deltaY }));
+    ship.x += 150; ship.z += 80; ship.y = 3;
+    rig.update(ship, ship.y, 0, true);
+    const aim = rig.rangeAim!;
+    expect(Math.hypot(aim[0] - ship.x, aim[2] - ship.z)).toBeCloseTo(18000, 6);
+    const projected = new Vector3(...aim).project(camera);
+    expect(projected.x).toBeCloseTo(0, 6); expect(projected.y).toBeCloseTo(0, 6);
+  }
+  const before = camera.getWorldDirection(new Vector3());
+  rig.setRangeLock(); drag(0, 100); rig.update(ship, ship.y, 0, true);
+  expect(camera.getWorldDirection(new Vector3()).distanceTo(before)).toBeGreaterThan(.001);
+  expect(rig.rangeAim).toBeUndefined(); rig.dispose();
+});
+
 test('chase tilt orbits above the hull at both zoom limits and permits a close look', () => {
   const { camera, canvas, rig, drag } = interactiveCamera();
   const ship = createShipState();

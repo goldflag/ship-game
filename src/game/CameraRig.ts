@@ -7,7 +7,7 @@ import type { ShipState } from '../game/session/elements';
 
 export type CameraMode = 'Chase' | 'Bridge' | 'Tactical';
 const NORMAL_FOV = 52;
-const MIN_MAGNIFICATION = 2, MAX_MAGNIFICATION = 32;
+const MIN_MAGNIFICATION = 1, MAX_MAGNIFICATION = 32;
 const MAX_DOWNWARD_TILT = Math.PI / 2 - .015;
 const MIN_ORBIT_ELEVATION = .08;
 const MAX_UPWARD_TILT = Math.PI / 6;
@@ -22,6 +22,7 @@ export class CameraRig {
   mode: CameraMode = 'Chase';
   binoculars = false;
   private scopeMagnification = 4;
+  private lockedRangeM?: number;
   private displayedDistance = 345;
   private opticsTransition?: { offset: Vector3; aim?: Vec3; elapsed: number };
   private readonly motionPreference = window.matchMedia?.('(prefers-reduced-motion: reduce)');
@@ -92,7 +93,7 @@ export class CameraRig {
         // Angular sensitivity follows the visible field of view at every magnification.
         const sensitivity = .0025 * Math.tan(this.camera.fov * Math.PI / 360) / Math.tan(NORMAL_FOV * Math.PI / 360);
         this.azimuth += dx * sensitivity;
-        this.elevation = MathUtils.clamp(this.elevation + dy * sensitivity, -MAX_UPWARD_TILT, MAX_DOWNWARD_TILT);
+        if (this.lockedRangeM === undefined) this.elevation = MathUtils.clamp(this.elevation + dy * sensitivity, -MAX_UPWARD_TILT, MAX_DOWNWARD_TILT);
         if (dx || dy) { if (this.opticsTransition) this.opticsTransition.aim = undefined; this.actions.aim(); }
       }
       this.previous = { x: e.clientX, y: e.clientY };
@@ -130,6 +131,18 @@ export class CameraRig {
   get firing(): boolean { return this.enabled && !this.shellView && this.pointerLocked && this.mouseFire; }
   get magnification(): number { return Math.tan(NORMAL_FOV * Math.PI / 360) / Math.tan(this.camera.fov * Math.PI / 360); }
   get bearing(): number { return ((this.azimuth % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2); }
+
+  setRangeLock(rangeM?: number): void {
+    if (rangeM !== undefined && (!Number.isFinite(rangeM) || rangeM <= 0)) return;
+    if (rangeM !== undefined && this.lockedRangeM === undefined) this.opticsTransition = undefined;
+    this.lockedRangeM = rangeM;
+  }
+  /** Horizontal range from the controlled hull; bearing remains the player's. */
+  get rangeAim(): Vec3 | undefined {
+    const ship = this.lastShip;
+    return this.binoculars && !this.shellView && ship && this.lockedRangeM !== undefined
+      ? [ship.x + Math.sin(this.azimuth) * this.lockedRangeM, .5, ship.z - Math.cos(this.azimuth) * this.lockedRangeM] : undefined;
+  }
 
   setShellView(view?: ShellView): void {
     if (!!view !== !!this.shellView) {
@@ -192,6 +205,7 @@ export class CameraRig {
     this.camera.updateProjectionMatrix();
   }
   exitBinoculars(): void {
+    this.setRangeLock();
     this.returnBinoculars = false;
     if (!this.binoculars) return;
     this.binoculars = false;
@@ -203,6 +217,7 @@ export class CameraRig {
     const position = this.camera.position.clone(), orientation = this.camera.quaternion.clone(), fov = this.camera.fov;
     this.opticsTransition = undefined;
     this.binoculars = !this.binoculars;
+    if (!this.binoculars) this.setRangeLock();
     this.aimAt(aim, ship);
     if (!this.reducedMotion) {
       this.opticsTransition = { offset: position.clone().sub(this.camera.position), aim: [...aim], elapsed: 0 };
@@ -222,6 +237,7 @@ export class CameraRig {
     }
   }
   cycle(): void {
+    this.setRangeLock();
     const modes: CameraMode[] = ['Chase', 'Bridge', 'Tactical'];
     this.mode = modes[(modes.indexOf(this.mode) + 1) % modes.length];
     this.binoculars = false;
@@ -234,6 +250,7 @@ export class CameraRig {
     this.elevation = this.inPort || this.inspecting ? PORT_ELEVATION : this.mode === 'Tactical' ? .85 : this.mode === 'Bridge' ? .025 : .1;
   }
   setInPort(inPort: boolean): void {
+    this.setRangeLock();
     this.setShellView();
     this.inPort = inPort;
     this.inspecting = false;
@@ -358,7 +375,11 @@ export class CameraRig {
         }
         if (progress >= 1) this.opticsTransition = undefined;
       }
-      this.look.set(Math.sin(this.azimuth) * Math.cos(this.elevation), -Math.sin(this.elevation), -Math.cos(this.azimuth) * Math.cos(this.elevation)).multiplyScalar(1000).add(this.camera.position);
+      const rangeAim = this.rangeAim;
+      if (rangeAim) {
+        this.look.fromArray(rangeAim);
+        this.elevation = Math.atan2(this.camera.position.y - rangeAim[1], Math.hypot(rangeAim[0] - this.camera.position.x, rangeAim[2] - this.camera.position.z));
+      } else this.look.set(Math.sin(this.azimuth) * Math.cos(this.elevation), -Math.sin(this.elevation), -Math.cos(this.azimuth) * Math.cos(this.elevation)).multiplyScalar(1000).add(this.camera.position);
     }
     this.camera.lookAt(this.look);
     this.camera.updateMatrixWorld();

@@ -2,6 +2,17 @@ import { describe, expect, test } from 'bun:test';
 import { bindingError, bindingLabel, defaultKeybindings, isBindableKey, keybindingsOf, keyLabel } from './keybindings';
 
 describe('player keybindings', () => {
+  test('older saves gain range controls without taking custom G or L bindings', () => {
+    const { rangefind: _rangefind, rangeLock: _rangeLock, ...saved } = defaultKeybindings();
+    saved.camera = ['KeyG', null]; saved.fire = ['KeyL', null];
+    const loaded = keybindingsOf(saved);
+    expect(loaded.camera).toEqual(saved.camera); expect(loaded.fire).toEqual(saved.fire);
+    for (const action of ['rangefind', 'rangeLock'] as const) {
+      expect(loaded[action][0]).toBeTruthy();
+      expect(loaded[action]).not.toContain('KeyG'); expect(loaded[action]).not.toContain('KeyL');
+    }
+    expect(keybindingsOf(loaded)).toEqual(loaded);
+  });
   test('older saves gain shell selection without taking a custom E binding', () => {
     const { shellType: _newAction, ...saved } = defaultKeybindings();
     saved.camera = ['KeyE', null];
@@ -14,7 +25,7 @@ describe('player keybindings', () => {
   test('older saves gain shell follow without losing a custom T binding', () => {
     const { shellFollow: _newAction, ...saved } = defaultKeybindings();
     saved.camera = ['KeyT', null];
-    saved.fire = ['KeyL', null];
+    saved.fire = ['KeyK', null];
     const loaded = keybindingsOf(saved);
     expect(loaded.camera).toEqual(saved.camera);
     expect(loaded.fire).toEqual(saved.fire);
@@ -25,10 +36,10 @@ describe('player keybindings', () => {
   test('round-trips customized primary and alternate bindings', () => {
     const bindings = defaultKeybindings();
     bindings.throttleUp = ['KeyI', 'Numpad8'];
-    bindings.fire = [null, 'KeyL'];
+    bindings.fire = [null, 'KeyK'];
     expect(keybindingsOf(JSON.parse(JSON.stringify(bindings)))).toEqual(bindings);
     expect(bindingLabel(bindings, 'throttleUp')).toBe('I / Num 8');
-    expect(bindingLabel(bindings, 'fire')).toBe('L');
+    expect(bindingLabel(bindings, 'fire')).toBe('K');
   });
 
   test('rejects conflicts across actions and within alternate slots', () => {
@@ -36,7 +47,7 @@ describe('player keybindings', () => {
     expect(bindingError(bindings, 'fire', 0, 'KeyW')).toContain('raise engine order');
     expect(bindingError(bindings, 'throttleUp', 0, 'ArrowUp')).toContain('already assigned');
     expect(bindingError(bindings, 'fire', 0, 'KeyQ')).toBeNull();
-    expect(bindingError(bindings, 'fire', 0, 'KeyL')).toBeNull();
+    expect(bindingError(bindings, 'fire', 0, 'KeyK')).toBeNull();
   });
 
   test('keeps every action reachable and reserves menu navigation', () => {
@@ -54,9 +65,9 @@ describe('player keybindings', () => {
       { fire: ['Escape', null] }, { fire: ['KeyW', null] }, { fire: [23, null] }]) {
       expect(keybindingsOf(saved)).toEqual(defaults);
     }
-    expect(keybindingsOf({ fire: ['KeyL', null] }).fire).toEqual(['KeyL', null]);
+    expect(keybindingsOf({ fire: ['KeyK', null] }).fire).toEqual(['KeyK', null]);
     const changed = defaultKeybindings();
-    changed.fire[0] = 'KeyL';
+    changed.fire[0] = 'KeyK';
     expect(defaultKeybindings().fire[0]).toBe('KeyQ');
   });
 });
@@ -116,11 +127,11 @@ test('older saves gain surface and deep-dive shortcuts without taking custom U o
 
 test('retired gunnery bindings are discarded while other saved controls survive', () => {
   const saved = { ...defaultKeybindings(), gunnery: ['KeyG', null] };
-  saved.fire = ['KeyL', null];
+  saved.fire = ['KeyK', null];
   const loaded = keybindingsOf(saved);
-  expect(loaded.fire).toEqual(['KeyL', null]);
+  expect(loaded.fire).toEqual(['KeyK', null]);
   expect(loaded).not.toHaveProperty('gunnery');
-  expect(bindingError(loaded, 'fire', 0, 'KeyG')).toBeNull();
+  expect(bindingError(loaded, 'fire', 0, 'KeyG')).toContain('measure target range');
 });
 
 test('older saves gain the helm wheel on Tab, and Tab is bindable while other menu keys stay reserved', () => {

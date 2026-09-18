@@ -1,7 +1,8 @@
 /* Fleet action: an open sea, a centered sight, and edge-mounted naval instruments. */
 .fleet-hud { --fleet-active:#86e4c5; --fleet-gold:#e8c56c; --fleet-muted:#c1d0d4; --fleet-line:#c9dce04a; --fleet-edge:24px; --fleet-bottom:20px; --chart-limit:min(400px, 31cqw, 68cqh); --chart-width:calc(var(--chart-limit) * var(--map-factor)); position:absolute; inset:0; pointer-events:none; color:#f0f5f3; font-size:12px; font-variant-numeric:tabular-nums; text-shadow:0 2px 4px #07131bea; transition:opacity .18s; }
 .fleet-hud-hidden > :not(.fleet-sight-optics):not(.air-battlefield),
-.fleet-hud-hidden .fleet-scope-readout { opacity:0; visibility:hidden; }
+.fleet-hud-hidden .fleet-scope-readout,
+.fleet-hud-hidden .fleet-rangefinder-area { opacity:0; visibility:hidden; }
 .fleet-hud button { pointer-events:auto; }
 .fleet-hud button:focus-visible { outline:2px solid var(--fleet-active); outline-offset:3px; }
 .fleet-hud kbd { font:500 10px/1.2 'Barlow Condensed',sans-serif; min-width:18px; padding:2px 4px; border-radius:1px; }
@@ -27,9 +28,19 @@
 .fleet-scope-readout strong { font-weight:500; }
 .fleet-scope-readout small { font:400 10px 'Barlow',sans-serif; }
 .fleet-scope-readout>span>small { display:block; margin-top:6px; font-size:8px; color:var(--fleet-muted); }
+.fleet-rangefinder { position:absolute; top:calc(100% + 10px); left:50%; transform:translateX(-50%); width:min(310px,80cqw); text-align:center; color:var(--fleet-muted); font:400 11px/1.5 'Barlow',sans-serif; }
+.fleet-rangefinder [role=status]>span { display:block; }
+.fleet-rangefinder-target { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.fleet-rangefinder[data-locked=true] [role=status] { color:var(--fleet-gold); }
+.fleet-rangefinder-keys { display:flex; justify-content:center; gap:14px; margin-top:3px; }
+.fleet-rangefinder progress { display:block; width:100px; height:3px; margin:6px auto 0; border:0; background:var(--fleet-line); accent-color:var(--fleet-active); }
+.fleet-rangefinder progress::-webkit-progress-bar { background:var(--fleet-line); }
+.fleet-rangefinder progress::-webkit-progress-value { background:var(--fleet-active); }
+.fleet-rangefinder progress::-moz-progress-bar { background:var(--fleet-active); }
+.fleet-rangefinder-area { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:calc(clamp(64px,min(14cqw,14cqh),160px) / var(--hud-scale,1)); aspect-ratio:1; border:1px dashed var(--fleet-active); border-radius:50%; opacity:.65; }
 .fleet-capture-hint { position:absolute; top:calc(50% + 44px); left:50%; transform:translateX(-50%); padding:7px 13px; background:transparent; border:0; border-radius:2px; color:#f0f5f3; font-size:11px; white-space:nowrap; }
 .fleet-capture-hint span { margin-left:12px; color:var(--fleet-muted); font-size:10px; }
-.fleet-in-optics .fleet-capture-hint { top:calc(50% + min(110px,19cqh,16cqw) + 56px); }
+.fleet-in-optics .fleet-capture-hint { top:calc(50% - 85px); }
 
 .fleet-ship { position:absolute; left:var(--fleet-edge); bottom:var(--fleet-bottom); width:240px; }
 .fleet-ship-name { display:flex; flex-wrap:wrap; gap:4px 10px; align-items:baseline; justify-content:space-between; }
@@ -198,6 +209,8 @@
   .fleet-hud { --fleet-bottom:12px; }
   .fleet-compass { top:13px; }
   .fleet-scope-readout { top:auto; bottom:calc(50% + 42px); }
+  .fleet-rangefinder { top:calc(100% + 84px); }
+  .fleet-in-optics .fleet-capture-hint { top:calc(50% - 108px); }
   .fleet-sight-optics>.fleet-scope-reticle { height:180px; clip-path:inset(32% 0); }
   .fleet-armament { --fleet-slot-height:48px; padding-bottom:22px; }
   .fleet-turrets,.fleet-battery-heading { display:none; }

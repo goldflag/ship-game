@@ -17,6 +17,8 @@ export const INPUT_ACTIONS = [
   ...WEAPON_GROUP_ACTIONS.map((id, index) => ({ id, label: `Select weapon group ${index + 1}`, group: 'Gunnery' as const })),
   { id: 'shellType', label: 'Switch AP / HE shells', group: 'Gunnery' },
   { id: 'shellFollow', label: 'Toggle shell follow camera', group: 'Gunnery' },
+  { id: 'rangefind', label: 'Measure target range', group: 'Gunnery' },
+  { id: 'rangeLock', label: 'Lock / unlock range', group: 'Gunnery' },
   { id: 'periscope', label: 'Raise / lower periscope view', group: 'View' },
   { id: 'camera', label: 'Cycle camera', group: 'View' },
   { id: 'recenter', label: 'Recenter camera', group: 'View' },
@@ -40,6 +42,7 @@ export function defaultKeybindings(): Keybindings {
     recenter: ['KeyR', null], hud: ['KeyH', null], fullscreen: ['KeyF', null],
     weaponGroup1: ['Digit1', null], weaponGroup2: ['Digit2', null],
     shellFollow: ['KeyT', null], shellType: ['KeyE', null], weaponGroup3: ['Digit3', null],
+    rangefind: ['KeyG', null], rangeLock: ['KeyL', null],
     weaponGroup4: ['Digit4', null],
     weaponGroup5: ['Digit5', null], weaponGroup6: ['Digit6', null], weaponGroup7: ['Digit7', null],
     weaponGroup8: ['Digit8', null], weaponGroup9: ['Digit9', null], weaponGroup10: ['Digit0', null],
@@ -100,7 +103,7 @@ export function keybindingsOf(value: unknown): Keybindings {
     result[id] = [pair[0], pair[1]];
   }
   // Add new actions to older saves without discarding existing custom controls.
-  const additions: readonly string[] = [...WEAPON_GROUP_ACTIONS, 'shellFollow', 'shellType', 'dive', 'rise', 'emergencyBlow', 'airOperations', 'periscope', 'surface', 'dive50', 'simulationSpeed', 'helmWheel'];
+  const additions: readonly string[] = [...WEAPON_GROUP_ACTIONS, 'shellFollow', 'shellType', 'dive', 'rise', 'emergencyBlow', 'airOperations', 'periscope', 'surface', 'dive50', 'simulationSpeed', 'helmWheel', 'rangefind', 'rangeLock'];
   for (const id of [...missing.filter(id => !additions.includes(id)), ...missing.filter(id => additions.includes(id))]) {
     const preferred = defaults[id].filter((code): code is string => code !== null && !used.has(code));
     if (!additions.includes(id) && preferred.length !== defaults[id].filter(Boolean).length) return defaults;

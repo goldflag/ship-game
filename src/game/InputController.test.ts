@@ -18,7 +18,7 @@ describe('keyboard gameplay controls', () => {
     Object.defineProperty(globalThis, 'window', { configurable: true, value: events });
     Object.defineProperty(globalThis, 'document', { configurable: true, value: { querySelector: () => modal ? {} : null } });
     Object.defineProperty(globalThis, 'HTMLElement', { configurable: true, value: class {} });
-    actions = { isSpectating: mock(() => false), cycleSpectator: mock(), pause: mock(), camera: mock(), recenter: mock(), hud: mock(), fullscreen: mock(), optics: mock(), weaponGroup: mock(), cursor: mock(), chartSize: mock(), shellFollow: mock(), shellType: mock(), depth: mock(), depthPreset: mock(), emergencyBlow: mock(), periscope: mock(), airOperations: mock(), simulationSpeed: mock(), helmWheel: mock() };
+    actions = { isSpectating: mock(() => false), cycleSpectator: mock(), pause: mock(), camera: mock(), recenter: mock(), hud: mock(), fullscreen: mock(), optics: mock(), weaponGroup: mock(), cursor: mock(), chartSize: mock(), shellFollow: mock(), shellType: mock(), rangefind: mock(), rangeLock: mock(), depth: mock(), depthPreset: mock(), emergencyBlow: mock(), periscope: mock(), airOperations: mock(), simulationSpeed: mock(), helmWheel: mock() };
     input = new InputController(actions, defaultKeybindings());
   });
   afterEach(() => {
@@ -61,13 +61,21 @@ describe('keyboard gameplay controls', () => {
     expect(actions.periscope).toHaveBeenCalledTimes(2);
   });
 
-  test('G is available for rebinding and has no default overlay action', () => {
-    expect(key('keydown', 'KeyG').defaultPrevented).toBe(false);
+  test('rangefinding and locking use rebindable keys once per press and respect pause, modifiers and dialogs', () => {
+    expect(key('keydown', 'KeyG').defaultPrevented).toBe(true);
+    key('keydown', 'KeyG', { repeat: true }); key('keydown', 'KeyL');
+    expect(actions.rangefind).toHaveBeenCalledTimes(1); expect(actions.rangeLock).toHaveBeenCalledTimes(1);
     expect(actions.cursor).not.toHaveBeenCalled();
-    const bindings = defaultKeybindings(); bindings.fire = ['KeyG', null];
+    const bindings = defaultKeybindings(); bindings.rangefind = ['KeyK', null]; bindings.rangeLock = ['KeyV', null];
     input.setBindings(bindings);
-    key('keydown', 'KeyG'); expect(input.firing).toBe(true);
-    key('keyup', 'KeyG'); expect(input.firing).toBe(false);
+    key('keydown', 'KeyG'); key('keydown', 'KeyL'); key('keydown', 'KeyK'); key('keydown', 'KeyV');
+    expect(actions.rangefind).toHaveBeenCalledTimes(2); expect(actions.rangeLock).toHaveBeenCalledTimes(2);
+    for (const code of ['KeyK', 'KeyV']) {
+      key('keydown', code, { ctrlKey: true }); key('keydown', code, { shiftKey: true });
+      input.setEnabled(false); key('keydown', code); input.setEnabled(true);
+      modal = true; key('keydown', code); modal = false;
+    }
+    expect(actions.rangefind).toHaveBeenCalledTimes(2); expect(actions.rangeLock).toHaveBeenCalledTimes(2);
   });
 
   test('custom engine keys replace defaults and only notch once per press', () => {

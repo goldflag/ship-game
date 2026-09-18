@@ -43,6 +43,50 @@ afterEach(() => {
 
 const model = loadShipJoints;
 
+test('rangefinding uses a visible ship and feeds locked range into the real gun aim path', async () => {
+  const simulation = await HeadlessSession.create({ playerShipId: 'bismarck', friendlyBots: [], enemies: ['bismarck'], spawnDistance: 18000 });
+  const camera = new PerspectiveCamera(52, 16 / 9, .5, 60000), canvas = Object.assign(new EventTarget(), { setPointerCapture() {} });
+  const rig = new CameraRig(camera, canvas as unknown as HTMLCanvasElement);
+  const target = simulation.target!;
+  rig.toggleBinoculars([target.motion.x, .5, target.motion.z], simulation.ship);
+  rig.update(simulation.ship, simulation.ship.y, 0, true);
+  const game = Object.assign(Object.create(Game.prototype), { simulation, camera, rig, definition: simulation.definition,
+    host: { clientWidth: 1440, clientHeight: 810 }, battery: 'main', manualAim: true, shellFollow: new ShellFollow(), inPort: false,
+  }) as Game;
+  const runtime = game as unknown as { updateRangefinding(dt: number): void; readSightAim(): [number, number, number]; rangefinder: import('./Rangefinder').Rangefinder; rangeTargets(): import('./rangefinderSight').RangeTarget[] };
+  try {
+    game.measureRange(); runtime.updateRangefinding(2.9); game.toggleRangeLock();
+    expect(rig.rangeAim).toBeUndefined();
+    runtime.updateRangefinding(.1); game.toggleRangeLock();
+    const aim = runtime.readSightAim();
+    const range = Math.hypot(target.motion.x - simulation.ship.x, target.motion.z - simulation.ship.z);
+    expect(Math.hypot(aim[0] - simulation.ship.x, aim[2] - simulation.ship.z)).toBeCloseTo(range, 5);
+    expect(aim[1]).toBe(.5);
+    const center = new Vector3(...aim).project(camera);
+    expect(center.x).toBeCloseTo(0, 5); expect(center.y).toBeCloseTo(0, 5);
+    // Losing a hull must not expose its future position to the range tracker.
+    target.damage.sunk = true; runtime.updateRangefinding(.1);
+    expect(runtime.rangefinder.state.phase).toBe('lost');
+    expect(runtime.readSightAim()).toEqual(aim);
+    expect(runtime.rangeTargets()).not.toContainEqual(expect.objectContaining({ id: target.motion.id }));
+    game.toggleRangeLock(); expect(rig.rangeAim).toBeUndefined();
+    rig.exitBinoculars(); runtime.updateRangefinding(.1);
+    expect(runtime.rangefinder.state.phase).toBe('idle');
+  } finally { rig.dispose(); simulation.dispose(); }
+});
+
+test('rangefinding admits only fresh enemy exteriors actually observed by the helm ship', () => {
+  const ship = { id: 'own', x: 0, y: 0, z: 0 };
+  const report = { id: 'contact', presetId: 'bismarck', position: [0, 0, -15000], heading: 0, observedTick: 100, observers: ['own'], health: 1 };
+  const simulation = { ship, actors: [], tick: 110, observedShips: [report], observationTracks: [] };
+  const game = Object.assign(Object.create(Game.prototype), { simulation, observedShipViews: { position: () => new Vector3(0, 0, -15000) } }) as Game;
+  const targets = () => (game as unknown as { rangeTargets(): import('./rangefinderSight').RangeTarget[] }).rangeTargets();
+  expect(targets().map(target => target.id)).toEqual(['contact']);
+  report.observers = ['other-friendly']; expect(targets()).toEqual([]);
+  report.observers = ['own']; simulation.tick = 200; expect(targets()).toEqual([]);
+  simulation.tick = 110; report.health = 0; expect(targets()).toEqual([]);
+});
+
 // Exercise the real scene swap with exported joint hierarchies; only GPU startup is omitted.
 async function port(storageMatrices = false) {
   const definition = shipPreset('bismarck');

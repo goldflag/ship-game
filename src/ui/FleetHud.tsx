@@ -20,6 +20,7 @@ import type { FleetDesk } from './fleet/fleetDesk';
 import './FleetHud.css';
 import { bindingLabel, WEAPON_GROUP_ACTIONS, type Keybindings } from '../game/keybindings';
 import { maxHullIntegrity } from '../ships/durability';
+import { RangefinderReadout } from './RangefinderReadout';
 
 interface FleetHudProps { data: Telemetry; desk: FleetDesk | null; visible: boolean; bindings: Keybindings; }
 
@@ -174,22 +175,24 @@ function FleetHudInstruments({ data, desk, visible, bindings }: FleetHudProps) {
     {followingShell && <div className="fleet-shell-status" role="status" title="Move mouse to orbit; drag when the cursor is released. Scroll to zoom."><strong>{data.shellFollow === 'impact' ? 'Shell impact' : 'Following shell'}</strong><span>{data.shellFollow === 'impact' ? 'Returning to ship…' : `${bindingLabel(bindings, 'shellFollow')} to return to ship`}</span></div>}
     {data.followedAircraftId && <div className="fleet-shell-status fleet-aircraft-status" title="Move mouse to orbit; drag when the cursor is released. Scroll to zoom."><strong>Following {data.followedAircraftId.split('/').slice(1).join(' / ')}</strong><button onClick={e => { desk?.issue({ kind: 'return-to-ship' }); e.currentTarget.blur(); }}>Return to ship</button><span>{bindingLabel(bindings, 'camera')} or {bindingLabel(bindings, 'recenter')} to return · Hold Ctrl to use controls</span></div>}
     {wheel && <HelmWheel data={data} desk={desk} bindings={bindings}/>}
-    {!data.inspecting && !following && !data.airOperationsOpen && !wheel && <div className={`fleet-sight ${data.binoculars ? 'fleet-sight-optics' : 'fleet-sight-chase'}`} aria-hidden="true">
-      {data.binoculars ? <><svg className="fleet-scope-scale" height="180" fill="none">
+    {!data.inspecting && !following && !data.airOperationsOpen && !wheel && <div className={`fleet-sight ${data.binoculars ? 'fleet-sight-optics' : 'fleet-sight-chase'}`} aria-hidden={data.binoculars ? undefined : true}>
+      {data.binoculars ? <><svg className="fleet-scope-scale" height="180" fill="none" aria-hidden="true">
         <line x1="0" y1="90" x2="100%" y2="90" stroke="currentColor"/>
         {/* Percentage positions widen the ruler without stretching its marks or labels. */}
         {Array.from({ length: 33 }, (_, i) => i === 16 ? null : <svg key={i} x={`${50 + (i - 16) * 2.8}%`} y="80" width="1" height="38" overflow="visible">
           <path d={`M0 ${i % 2 === 0 ? 5 : 8}v${i % 2 === 0 ? 11 : 5}`} stroke="currentColor"/>
           {i % 2 === 0 && <text y="28" fill="currentColor" textAnchor="middle" fontSize="10">{Math.abs(i - 16) * 5}</text>}
         </svg>)}
-        </svg><svg className="fleet-scope-reticle" viewBox="0 0 40 180" fill="none">
+        </svg><svg className="fleet-scope-reticle" viewBox="0 0 40 180" fill="none" aria-hidden="true">
         <path d="M20 15v64m0 22v64" stroke="currentColor"/>
         {[30, 50, 70, 110, 130, 150].map(y => <path key={y} d={`M${y === 50 || y === 130 ? 13 : 16} ${y}h${y === 50 || y === 130 ? 14 : 8}`} stroke="currentColor"/>)}
         <circle cx="20" cy="90" r="5" stroke="currentColor"/><circle cx="20" cy="90" r="1.5" fill="currentColor"/></svg>
+        {data.rangefinder?.phase === 'measuring' && <div className="fleet-rangefinder-area" aria-hidden="true"/>}
         <div className="fleet-scope-readout">
           <strong>{((data.combat?.range ?? 0) / 1000).toFixed(2)} <small>km</small></strong>
           {(data.combat?.battery === 'main' || data.combat?.battery === 'secondary') && <span><strong>{data.combat.flightTimeSeconds?.toFixed(1) ?? '—'} <small>s</small></strong><small>FLIGHT TIME</small></span>}
           <strong>{(data.magnification ?? 1).toFixed(1)}×</strong>
+          {data.rangefinder && <RangefinderReadout state={data.rangefinder} bindings={bindings}/>}
         </div></> :
         <svg viewBox="0 0 44 44" fill="none"><path d="M3 22h9m20 0h9M22 3v9m0 20v9" stroke="currentColor"/><circle cx="22" cy="22" r="5" stroke="currentColor"/><circle cx="22" cy="22" r="1" fill="currentColor"/></svg>}
     </div>}

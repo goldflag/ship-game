@@ -14,6 +14,8 @@ export interface InputActions {
   chartSize(direction: number): void;
   shellFollow(): void;
   shellType?(): void;
+  rangefind?(): void;
+  rangeLock?(): void;
   depth?(direction: number): void;
   depthPreset?(depthM: number): void;
   emergencyBlow?(): void;
@@ -111,6 +113,8 @@ export class InputController {
       if (weaponIndex >= 0) this.actions.weaponGroup(weaponIndex);
       if (action === 'shellFollow') this.actions.shellFollow();
       if (action === 'shellType') this.actions.shellType?.();
+      if (action === 'rangefind') this.actions.rangefind?.();
+      if (action === 'rangeLock') this.actions.rangeLock?.();
       if (action === 'dive') this.actions.depth?.(1);
       if (action === 'surface') this.actions.depthPreset?.(0);
       if (action === 'dive50') this.actions.depthPreset?.(50);
