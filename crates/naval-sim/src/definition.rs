@@ -1357,6 +1357,10 @@ pub struct ConstructionEquipmentPath {
     pub points: Vec<[f64; 3]>,
     #[serde(rename = "slackM")]
     pub slack_m: Option<f64>,
+    #[serde(rename = "heightM")]
+    pub height_m: Option<f64>,
+    #[serde(rename = "railCount")]
+    pub rail_count: Option<f64>,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]

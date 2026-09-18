@@ -228,7 +228,10 @@ removes the last pending point; **Escape** or **Cancel** discards the route.
 The brass route is a preview until finished, when the entire route and any
 mirrored copy become one undoable edit. Finish or cancel before returning to
 port, opening Designs or starting a sea trial. Railings need deck support at
-every post. Rope and chain can attach to hull surfaces or the declared support
+every post. Set **Railing height** (0.3–3 m) and choose **2 rails** or **3 rails**
+before drawing or in the completed railing’s object tag. Older routes retain
+the catalog height and three rails. Minor contacts and joined endpoints are
+allowed; substantial burial in hull or equipment still blocks the route. Rope and chain can attach to hull surfaces or the declared support
 and rigging sockets of fixed fittings; native diagnostics check attachment and
 clearance.
 
@@ -797,17 +800,31 @@ same XYZ movement handles as hull pieces, including while placing fittings.
 panel follows the wall, with shallow raised hinges and handles; the watertight
 variant adds dog latches and a wheel. **Deck gear** includes louvered and round
 wall vents plus **Surface rung ladder**. Doors and vents use the existing wall
-snapping, size controls, arrow-key resizing and linked mirror workflow.
+snapping, size controls, arrow-key resizing and linked mirror workflow. Vent
+height changes add or remove fins at a fixed metric pitch, retaining each fin’s
+section and depth. Round vents use a simple 24-sided flange.
 
-To draw a ladder, press on a closed hull side, drag to its other end and release.
-The preview shows the complete ladder and optional opposite-side copy. Every
+To draw a ladder, click its first rung on a closed hull side, move the pointer
+to preview its length, then click its last rung to place. The preview shows the
+complete ladder and optional opposite-side copy. Backspace removes the pending
+start; Escape or Cancel discards it. Every
 U-shaped rung has two wall attachments, without continuous side rails. Rungs
-are evenly spaced at no more than the catalog's spacing. Escape or a cancelled
-drag discards the preview; placement is one undo step. Flat and sloping sides
+are evenly spaced at no more than the catalog's spacing. Placement is one undo step. Welded six-sided tubing keeps the corners closed;
+the attachment ends follow the supporting wall, including sloping panels. Flat and sloping sides
 are supported, while endpoints near missing support or open panels are rejected.
 The old fixed bulkhead ladder is removed from the current shelf. Existing saved
 designs retain their original catalogs; update the parts library to use the new
 fittings. These fittings leave the closed hull and room volumes unchanged.
+
+
+Installed wall vents use `vent_geometry.ts` and
+`src/game/constructionVentModel.ts` to keep fin sections and pitch constant when
+resized. The original Blender samples remain the retained standalone models.
+Procedural railings and surface ladders use six-sided tubing with shared miter
+rings; ladder end rings project onto their closed hull support. Railing path
+instances may override `heightM` (0.3–3 m) and `railCount` (2 or 3); absent
+settings preserve the catalog height and three rails. Native loading scales rail
+mass by count and post mass by height. These remain generic engineering estimates.
 
 
 ### Block rotation

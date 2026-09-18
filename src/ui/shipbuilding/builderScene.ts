@@ -26,7 +26,7 @@ export interface BuilderFreeformOptions {
   onSelect(selection: HullSelection): void;
   onCommit(replacements: ConstructionPrimitive[]): void;
 }
-export interface BuilderPathDraft { part: ConstructionEquipmentPart; points: Vec3[]; slackM: number; mirror: boolean }
+export interface BuilderPathDraft { part: ConstructionEquipmentPart; points: Vec3[]; bearingDeg: number; heightM: number; railCount: 2 | 3; slackM: number; mirror: boolean }
 
 /** Everything the viewport draws, derived by the tool from its state, the source and the compile. */
 export interface BuilderScene {
@@ -65,6 +65,6 @@ export type BuilderPointerEvent =
   | { kind: 'erase'; id: string }
   | { kind: 'move'; ids: string[]; delta: Vec3 }
   | { kind: 'rotate'; ids: string[]; degrees: number }
-  | { kind: 'path-point'; point: Vec3 }
+  | { kind: 'path-point'; point: Vec3; bearingDeg?: number }
   | { kind: 'path-finish' }
   | { kind: 'ladder-draw'; points: Vec3[]; bearingDeg: number };

@@ -399,7 +399,7 @@ export interface ConstructionEquipment {
   launcher?: { traverseLimitsDeg: [number, number]; launchArcsDeg: [number, number][] };
   /** Connected local-space points, transformed by position and bearing like fixed equipment.
    * Rope/chain slack is the vertical midspan sag on each segment, sampled at 16 equal intervals. */
-  path?: { points: Vec3[]; slackM?: number };
+  path?: { points: Vec3[]; slackM?: number; /** Railing overrides; omitted values retain the catalog height and three rails. */ heightM?: number; railCount?: 2 | 3 };
 }
 export interface ConstructionBoundary {
   id: string; axis: 'x' | 'y' | 'z'; offset: number; thicknessMm: number;

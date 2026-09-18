@@ -6,6 +6,7 @@ import catalogJson from '../../../public/models/components/catalog.json';
 import type { ConstructionCatalog } from '../../ships/blueprint';
 import { createStarterSource } from '../../ships/constructionStarter';
 import { EquipmentPreview } from './equipmentPreview';
+import { componentMaterial } from '../../ships/componentMaterials';
 
 const catalog = catalogJson as ConstructionCatalog;
 function fixture() {
@@ -14,6 +15,7 @@ function fixture() {
   const part = catalog.equipment.find(part => part.id === source.construction.equipment[0].partId)!;
   const geometry = new THREE.CylinderGeometry(1, 1, 4), material = new THREE.MeshStandardMaterial();
   material.name = 'naval';
+  material.userData = componentMaterial('naval').userData;
   const model = new THREE.Group(); model.userData.definitionHash = part.contentHash;
   model.add(new THREE.Mesh(geometry, material));
   return { source, model, geometry };

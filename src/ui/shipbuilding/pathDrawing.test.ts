@@ -80,9 +80,9 @@ test('hull anchors keep support plane and explicit fitting sockets use their tra
 test('path rendering uses bounded instancing and actual bounds, with three rails and foot plates', () => {
   const rail = createConstructionPathModel(fitting('railing'), { points: [[0, 0, 0], [0, 0, -4], [4, 0, -4]] });
   try {
-    expect(rail.children).toHaveLength(2);
-    expect((rail.children[0] as THREE.InstancedMesh).count).toBe(7 + 2 * 3);
-    expect((rail.children[1] as THREE.InstancedMesh).count).toBe(7);
+    expect(rail.children).toHaveLength(3);
+    expect((rail.children[0] as THREE.InstancedMesh).count).toBe(7);
+    expect((rail.children[2] as THREE.InstancedMesh).count).toBe(7);
     const bounds = new THREE.Box3().setFromObject(rail);
     expect(bounds.min.y).toBeCloseTo(0); expect(bounds.max.y).toBeGreaterThan(1.1);
     const sourceBounds = equipmentPathBounds(fitting('railing'), { path: { points: [[0, 0, 0], [0, 0, -4], [4, 0, -4]] } });
@@ -91,8 +91,8 @@ test('path rendering uses bounded instancing and actual bounds, with three rails
     // thicker posts, rather than only the nominal route centerline.
     for (const child of rail.children as THREE.InstancedMesh[]) {
       const positions = child.geometry.getAttribute('position'), matrix = new THREE.Matrix4();
-      for (let i = 0; i < child.count; i++) {
-        child.getMatrixAt(i, matrix);
+      for (let i = 0; i < (child instanceof THREE.InstancedMesh ? child.count : 1); i++) {
+        if (child instanceof THREE.InstancedMesh) child.getMatrixAt(i, matrix); else matrix.identity();
         for (let v = 0; v < positions.count; v++) expect(selection.containsPoint(new THREE.Vector3().fromBufferAttribute(positions, v).applyMatrix4(matrix))).toBe(true);
       }
     }
@@ -126,4 +126,20 @@ test('procedural installed previews update route geometry and release replaced b
 test('deck fittings are discoverable and light parts retain readable kilogram mass', () => {
   expect(paletteFor('fittings', catalog).drawer.map(p => p.name)).toEqual(expect.arrayContaining(['rope fitting', 'chain fitting', 'railing fitting']));
   expect(formatTonnes(2.5)).toBe('2.5 kg'); expect(formatTonnes(100_000)).toBe('100 t');
+});
+
+
+test('two-rail height is reflected in mesh, picking bounds and saved copies', () => {
+  const part = fitting('railing'), path = { points: [[0, 0, 0], [0, 0, -4]] as Vec3[], heightM: 1.8, railCount: 2 as const };
+  const model = createConstructionPathModel(part, path);
+  const bounds = new THREE.Box3().setFromObject(model);
+  expect(bounds.max.y).toBeCloseTo(1.82, 2);
+  expect(equipmentPathBounds(part, { path }).size[1]).toBeCloseTo(1.84);
+  expect((model.children[1] as THREE.Mesh).geometry.index!.count / 3).toBe(40);
+  const source = createStarterSource(catalog, 'blank');
+  const item = { ...pathEquipment('railing', part.id, path.points), path };
+  source.construction.equipment.push(item);
+  expect(decodeConstructionSource(JSON.parse(JSON.stringify(source))).construction.equipment[0].path).toEqual(path);
+  expect(mirroredEquipment(item).path).toMatchObject({ heightM: 1.8, railCount: 2 });
+  disposeConstructionModel(model);
 });
