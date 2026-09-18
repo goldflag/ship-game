@@ -71,8 +71,9 @@ export function placementGeometry(piece: Exclude<BuilderPlacement, { kind: 'boun
   return new THREE.BoxGeometry(...piece.size).translate(...piece.boundsCenter);
 }
 
-export function placementRotation(piece: BuilderPlacement): number {
-  return (piece.kind === 'hull' ? piece.rotationDeg : piece.kind === 'equipment' ? -piece.bearingDeg : 0) * Math.PI / 180;
+export function placementRotation(piece: BuilderPlacement): THREE.Euler {
+  if (piece.kind === 'hull') return primitiveRotation(piece);
+  return new THREE.Euler(0, (piece.kind === 'equipment' ? -piece.bearingDeg : 0) * Math.PI / 180, 0, 'YXZ');
 }
 
 /** Selection follows authored sections and chines, without tessellation diagonals. */
@@ -92,4 +93,4 @@ export function primitiveOutlineGeometry(p: ConstructionPrimitive): THREE.Buffer
 }
 
 /** Three adapter for the source YXZ orientation. */
-export function primitiveRotation(p: ConstructionPrimitive): THREE.Euler { const [x, y, z] = blockAngles(p).map(n => n * Math.PI / 180); return new THREE.Euler(x, y, z, 'YXZ'); }
+export function primitiveRotation(p: Pick<ConstructionPrimitive, 'rotationDeg' | 'tilt'>): THREE.Euler { const [x, y, z] = blockAngles(p).map(n => n * Math.PI / 180); return new THREE.Euler(x, y, z, 'YXZ'); }

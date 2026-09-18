@@ -17,6 +17,15 @@
 .new-design-choice line { stroke:#bcc3c770; stroke-width:1; stroke-dasharray:4 4; }
 .new-design-choice>span:not(.new-design-name), .new-design-choice small { color:#bcc3c7; font-size:12px; }
 .new-design-blank { margin-top:10px; gap:6px; }
+.new-design-paint { margin-top:20px !important; }
+.new-design-paint p { margin:0 0 10px; color:#bcc3c7; font-size:12px; }
+.new-design-paints { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:6px; }
+.new-design-swatch { display:flex; align-items:center; gap:8px; padding:6px 8px; border:1px solid #cfd4d835; border-radius:3px; cursor:pointer; font-size:12px; color:#bcc3c7; }
+.new-design-swatch:hover { background:#2f3438; }
+.new-design-swatch[data-selected=true] { background:#253a37; border-color:#86e4c5; color:#edf1ec; }
+.new-design-swatch input { position:absolute; opacity:0; pointer-events:none; }
+.new-design-swatch:has(:focus-visible) { outline:2px solid #86e4c5; outline-offset:2px; }
+.new-design-swatch i { flex:none; width:18px; height:18px; border-radius:2px; border:1px solid #0006; }
 .new-design-dialog footer { display:flex; justify-content:flex-end; gap:10px; margin-top:20px; }
 .new-design-dialog button { min-height:40px; padding:8px 16px; border:1px solid #cfd4d86e; border-radius:3px; background:transparent; color:#edf1ec; font:inherit; cursor:pointer; }
 .new-design-dialog button:hover { background:#343b3e; }

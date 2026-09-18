@@ -18,7 +18,7 @@ export interface BuilderPick { id?: string; surface?: string; point: Vec3; norma
 export interface BuilderArc { position: Vec3; bearingDeg: number; traverseDeg: number; radius: number; color: string }
 export interface BuilderProposal { position: Vec3; bearingDeg: number; size: Vec3; boundsCenter: Vec3 }
 export type BuilderPlacement =
-  | { kind: 'hull'; shape: ConstructionPrimitive['kind']; size: Vec3; rotationDeg: number; balcony?: ConstructionPrimitive['balcony'] }
+  | { kind: 'hull'; shape: ConstructionPrimitive['kind']; size: Vec3; rotationDeg: number; tilt?: ConstructionPrimitive['tilt']; balcony?: ConstructionPrimitive['balcony'] }
   | { kind: 'equipment'; partId?: string; wall?: { version: 1; widthM: number; heightM: number }; rowSpacing?: number; propellerDiameterM?: number; size: Vec3; boundsCenter: Vec3; bearingDeg: number; sockets?: ConstructionEquipmentPart['sockets']; arc?: { traverseDeg: number; radius: number }; /** Clearance from the hit face, e.g. the inward skin thickness for internal packages. */ inset?: number }
   | { kind: 'boundary'; axis: 'x' | 'y' | 'z'; thicknessMm: number };
 export interface BuilderFreeformOptions {

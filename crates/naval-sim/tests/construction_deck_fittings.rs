@@ -1,5 +1,18 @@
 //! Native acceptance for loading-only deck fittings and connected physical routes.
 use naval_sim::{construction, definition::*};
+use base64::Engine;
+use std::io::Write;
+
+fn packed_surface(vertices: Vec<Vec3>, triangles: Vec<Vec3>) -> ConstructionEquipmentPartRiggingSurface {
+    let mut bytes = vec![];
+    bytes.extend((vertices.len() as u32).to_le_bytes());
+    bytes.extend((triangles.len() as u32).to_le_bytes());
+    for p in vertices { for v in p { bytes.extend((v as f32).to_le_bytes()); } }
+    for t in triangles { for i in t { bytes.extend((i as u32).to_le_bytes()); } }
+    let mut compressed = flate2::write::ZlibEncoder::new(Vec::new(), flate2::Compression::default());
+    compressed.write_all(&bytes).unwrap();
+    ConstructionEquipmentPartRiggingSurface {encoding:"deflate-f32-u32-v1".into(),data:base64::engine::general_purpose::STANDARD.encode(compressed.finish().unwrap())}
+}
 
 fn fixture() -> (ConstructionSource, ConstructionCatalog) {
     (
@@ -299,6 +312,70 @@ fn rope_anchors_require_explicit_independently_supported_sockets() {
     rejected(&s, &c, "equipment-path");
 }
 
+fn surface_mast_fixture() -> (ConstructionSource, ConstructionCatalog) {
+    let (mut s, mut c) = eye_fixture();
+    for p in &mut c.equipment[1..] {
+        p.kind = "mast".into();
+        p.sockets.as_mut().unwrap().retain(|s| s.id == "attachment");
+        // A thin post inside a much wider visual envelope (e.g. yardarms).
+        let vertices = vec![[-0.06,0.,-0.06],[0.06,0.,-0.06],[0.06,2.,-0.06],[-0.06,2.,-0.06],
+            [-0.06,0.,0.06],[0.06,0.,0.06],[0.06,2.,0.06],[-0.06,2.,0.06]];
+        let triangles = vec![[0.,2.,1.],[0.,3.,2.],[4.,5.,6.],[4.,6.,7.],
+            [0.,1.,5.],[0.,5.,4.],[3.,7.,6.],[3.,6.,2.],
+            [0.,4.,7.],[0.,7.,3.],[1.,2.,6.],[1.,6.,5.]];
+        p.rigging_surface = Some(packed_surface(vertices,triangles));
+        p.size[0] = 2.;
+    }
+    s.construction.equipment[0].path.as_mut().unwrap().points = vec![[-2.98,3.5,0.],[2.98,3.5,0.]];
+    (s,c)
+}
+
+#[test]
+fn ropes_attach_to_real_mast_surfaces_and_clear_empty_envelope_space() {
+    let (s,c) = surface_mast_fixture();
+    compiled(&s,&c);
+    // Support and clearance rotate with the fittings, not their world AABBs.
+    let mut turned = s.clone();
+    for e in &mut turned.construction.equipment {
+        e.position = [-e.position[2],e.position[1],e.position[0]];
+        e.bearing_deg += 90.;
+    }
+    compiled(&turned,&c);
+    let mut floating = s.clone();
+    floating.construction.equipment[1].position[1] += 0.5;
+    rejected(&floating,&c,"equipment-attachment");
+    // Empty space inside the wide box cannot support a rope.
+    let mut unsupported = s.clone();
+    unsupported.construction.equipment[0].path.as_mut().unwrap().points[0][0] += 0.3;
+    rejected(&unsupported,&c,"equipment-path");
+    // Leaving from the far side would cut through the real post.
+    let mut through = s.clone();
+    through.construction.equipment[0].path.as_mut().unwrap().points[0][0] = -3.14;
+    rejected(&through,&c,"equipment-path");
+}
+
+#[test]
+fn chains_use_their_full_link_radius_on_fitting_surfaces() {
+    let (mut s,mut c) = surface_mast_fixture();
+    c.equipment[0] = route_part("chain");
+    s.construction.equipment[0].part_id = "chain".into();
+    s.construction.equipment[0].path.as_mut().unwrap().points = vec![[-2.93,3.5,0.],[2.93,3.5,0.]];
+    compiled(&s,&c);
+    s.construction.equipment[0].path.as_mut().unwrap().points[0][0] -= 0.05;
+    rejected(&s,&c,"equipment-path");
+}
+
+#[test]
+fn malformed_or_out_of_bounds_published_attachment_geometry_is_rejected() {
+    let (s,mut c) = surface_mast_fixture();
+    c.equipment[1].rigging_surface.as_mut().unwrap().data = "invalid".into();
+    rejected(&s,&c,"equipment-path");
+    c.equipment[1].rigging_surface = Some(packed_surface(vec![[200.,0.,0.];3],vec![[0.,1.,2.]]));
+    rejected(&s,&c,"equipment-path");
+    c.equipment[1].rigging_surface = Some(packed_surface(vec![[0.,0.,0.];3],vec![[0.,1.,4.]]));
+    rejected(&s,&c,"equipment-path");
+}
+
 #[test]
 fn sag_cannot_pass_through_hull_and_fixed_parts_cannot_hide_path_data() {
     let (mut s, c) = eye_fixture();
@@ -456,9 +533,16 @@ fn review_bitts_rope_can_leave_its_socket_downward_without_hitting_empty_catalog
             ..Default::default()
         },
     ];
-    for slack in [0.3, 0.35, 0.4] {
-        s.construction.equipment[2].path.as_mut().unwrap().slack_m = Some(slack);
-        compiled(&s, &c);
+    let published: ConstructionCatalog = serde_json::from_str(&std::fs::read_to_string(
+        concat!(env!("CARGO_MANIFEST_DIR"), "/../../public/models/components/catalog.json")).unwrap()).unwrap();
+    let surface = published.equipment.iter().find(|p| p.id == "generic-twin-bitts").unwrap().rigging_surface.clone();
+    assert!(surface.is_some());
+    for surface in [None, surface] {
+        c.equipment[0].rigging_surface = surface;
+        for slack in [0.3, 0.35, 0.4] {
+            s.construction.equipment[2].path.as_mut().unwrap().slack_m = Some(slack);
+            compiled(&s, &c);
+        }
     }
     s.construction.equipment[2].path.as_mut().unwrap().slack_m = Some(0.45);
     let grounded = construction::compile(&s, &c);
@@ -671,4 +755,38 @@ fn invalid_railing_options_are_rejected_by_native_compiler() {
         s.construction.equipment.push(e);
         rejected(&s, &c, "equipment-path");
     }
+}
+
+#[test]
+fn fixed_fittings_allow_partial_overlap_but_not_burial_or_floating() {
+    let (mut s, mut c) = fixture();
+    c.equipment.extend([part("a"), part("b")]);
+    s.construction.equipment = vec![fixed("a", [0., 2., 0.]), fixed("b", [0.6, 2., 0.])];
+    compiled(&s, &c);
+    for e in &mut s.construction.equipment { e.position[1] = 1.5; }
+    compiled(&s, &c); // Both are half embedded and overlap one another.
+    s.construction.equipment.reverse();
+    compiled(&s, &c);
+    s.construction.equipment[0].position = s.construction.equipment[1].position;
+    rejected(&s, &c, "equipment-overlap");
+    s.construction.equipment.pop();
+    s.construction.equipment[0].position[1] = 1.1;
+    compiled(&s, &c); // Exactly 10% exposed is permitted.
+    s.construction.equipment[0].position[1] = 1.05;
+    rejected(&s, &c, "equipment-overlap");
+    s.construction.equipment[0].position[1] = 3.;
+    rejected(&s, &c, "equipment-attachment");
+}
+
+#[test]
+fn fixed_fitting_exposure_counts_all_neighbors_together() {
+    let (mut s, mut c) = fixture();
+    c.equipment.extend([part("a"), part("b"), part("c")]);
+    s.construction.equipment = vec![fixed("a", [0., 2., 0.]), fixed("b", [-0.6, 2., 0.]), fixed("c", [0.6, 2., 0.])];
+    compiled(&s, &c); // The center fitting has 20% exposed between its neighbors.
+    s.construction.equipment[1].position[0] = -0.5;
+    s.construction.equipment[2].position[0] = 0.5;
+    rejected(&s, &c, "equipment-overlap"); // Neither neighbor alone buries it.
+    s.construction.equipment.reverse();
+    rejected(&s, &c, "equipment-overlap");
 }

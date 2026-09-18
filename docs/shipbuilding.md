@@ -36,6 +36,10 @@ limited and the warning shows available and required kW. Spare funnel capacity
 absorbs damage before power drops; destroyed or submerged funnels lose capacity.
 Existing saved funnel links are ignored.
 
+Running gear uses generic four-blade screws (1.2, 2.4, 4.2 and 6 m diameter)
+and balanced rudders (1, 2, 4 and 6 m blade depth). Each is a fixed-size part
+with its own mass and attachment datum.
+
 Propellers connect to engines automatically. Select a propeller to see its
 resolved **Engine** assignment; choosing an engine manually overrides it, and
 choosing **Automatic** restores layout-based assignment. Existing saved engine
@@ -91,7 +95,11 @@ shaft-line or bearing simulation.
 
 Generated connections use exposed metal shafts, tapered bearing housings, broad
 streamlined fins with flared feet, and a tapered hull-exit fairing where the shaft
-reaches the hull. Rust emits the same loft sections for preview/export, clearance
+reaches the hull. An exposed shaft needs a closed hull face along the screw's
+forward axis. If that line misses the hull, fins can still support the screw but
+the shaft ends inside the bearing housing. Move the screw upward or inward to
+meet the hull ahead, then aft to leave a visible shaft run within its reach.
+Rust emits the same loft sections for preview/export, clearance
 and provisional solid-steel loading. Fins and fairings seat against the closed
 hull surface; they stay fixed while the original propeller joint spins. Shapes
 refit automatically on placement changes. Directly attached catalog parts retain
@@ -117,7 +125,7 @@ stationary blocks. Drags stop at the limit even across a fast pointer jump; exis
 excessive overlaps can be reduced. Mirrored placement, runs, Fill and copies are
 checked as a complete batch. Rejected placement shows a salmon preview and the
 10% rule in the placement feedback, without adding undo history. Ballast-to-ballast
-overlap and equipment fit restrictions remain. This is an editor placement/movement
+overlap restrictions remain. Fixed non-weapon deck fittings may overlap hull pieces and one another while at least 10% of each fitting remains exposed; physical attachment is still required. Weapons, internal packages, underwater machinery and connected paths retain their fit restrictions. This is an editor placement/movement
 policy; imported and freeform drafts remain recoverable through the existing compiler.
 Mass, plating and buoyancy still derive from the physical union, so shared hull
 volume is counted once.
@@ -262,9 +270,13 @@ port, opening Designs or starting a sea trial. Railings need deck support at
 every post. Choose **Two-rail railing** or **Three-rail railing** from Fittings.
 Set **Railing height** (0.3–3 m) before drawing or in the completed railing’s
 object tag. Older routes retain their saved rail count and height. Minor contacts and joined endpoints are
-allowed; substantial burial in hull or equipment still blocks the route. Rope and chain can attach to hull surfaces or the declared support
-and rigging sockets of fixed fittings; native diagnostics check attachment and
-clearance.
+allowed; substantial burial in hull or equipment still blocks the route. Rope and chain can attach wherever you click on hull surfaces or fixed deck fittings,
+including mast poles and yardarms. Fitting clicks keep the exact surface position
+without grid rounding. Native checks use the published fitting geometry for support
+and clearance, so empty space between mast members stays clear. Existing designs
+need **Update parts library** to use surface attachment; retained older libraries
+continue to support their declared tie sockets. Moving weapons and scalable wall
+details do not provide rope attachment surfaces.
 
 Select a completed route to edit its position, bearing or individual points in
 the object tag. **Insert
@@ -677,19 +689,21 @@ Place it against a hull or superstructure, then use the normal move
 handles or Page Up / Page Down to position it at any height. A detached platform
 can be saved, but needs physical contact before Sea Trials.
 
-Select the block and choose **Edit balcony outline**. Drag numbered points in the
-plan drawing or use arrow keys on a focused point. The outline grid defaults to
+Select the block and choose **Edit balcony outline**. Drag numbered points or whole
+edges in the plan drawing, or use arrow keys on a focused point or edge. A dragged
+edge moves both of its points together. Right-click an edge to add a point there.
+Deselecting the balcony closes the editor. The outline grid defaults to
 **0.25 m**, with **No grid**, **0.125 m**, **0.25 m**, **0.5 m** and **1 m** choices.
 Dragging and arrow keys use the chosen step; without a grid, dragging is free
 and arrow keys move 0.1 m. **Add point** splits the selected outgoing edge; **Remove point**
 joins its neighbors. Outlines allow 3–32 points, including concave shapes.
 Crossed outlines remain editable drafts and block launch until corrected.
 
-Click an edge and choose **Open**, **Railing** or **Solid wall**. All edges start
+Click an edge and choose **Open**, **Railing**, **Triple railing** or **Solid wall**. All edges start
 as solid walls; edge height and wall thickness are shared within the block. The middle
-block dimension is **Deck thickness**. Railings have posts and two rails.
+block dimension is **Deck thickness**. Railings have posts and two rails; triple railings have three.
 Every completed edit supports Undo/Redo; Escape, right-click or losing pointer
-capture cancels an active point drag. Copy/mirror and source save/reopen preserve
+capture cancels an active point or edge drag. Copy/mirror and source save/reopen preserve
 the points and edge choices. Native compilation accounts for solid platform and
 edge steel without creating an enclosed room between the rails.
 
@@ -862,7 +876,7 @@ mass by count and post mass by height. These remain generic engineering estimate
 
 ### Block rotation
 
-Select one hull block and choose **Rotate (O)**. Three colored rings turn the block around ship axes: **X** pitch, **Y** yaw and **Z** roll. These keys select the axis; **R** turns +90° and **Shift-R** turns −90°. Yaw is the initial axis. Outside Rotate mode, existing placement and fitting rotation keys retain their behavior.
+Select one hull block and choose **Rotate (O)**. Three colored rings turn the block around ship axes: **X** pitch, **Y** yaw and **Z** roll. Each key aims the gizmo at its axis and turns the block +90° (Shift reverses); **R** turns +90° and **Shift-R** turns −90° about the aimed axis. Outside Rotate mode the same **X**, **Y** and **Z** keys quarter-turn the block about to be placed (with its mirrored twin) or every selected block in place, and **R**/**Shift-R** remain yaw. Balconies about to be placed turn in yaw only. Yaw is the initial axis. Outside Rotate mode, existing placement and fitting rotation keys retain their behavior.
 
 Drag a ring to preview the turn with a live angle. **Snap 15°** toggles angular snapping; hold Shift for 0.1° control. Release commits one undoable edit. Escape, right-click, a cancelled pointer, losing focus or changing the view discards the preview. Escape again leaves Rotate mode and retains the selection. Ring buttons also accept arrow keys (15°, or 1° with Shift). Pitch, yaw and roll fields set exact orientation; **Reset** restores a level, forward orientation without changing shape, dimensions or position.
 

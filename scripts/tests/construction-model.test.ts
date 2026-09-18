@@ -208,6 +208,43 @@ test('native movement stops one mount against an independently held neighboring 
   expect(resolved[0].pose.train).toBeLessThan(Math.PI / 2); expect(resolved[1].pose).toEqual(target[1]);
 });
 
+test('all generic running gear retains installed support and independent moving joints', async () => {
+  const source = equipmentReviewSource(catalog);
+  source.construction.equipment = source.construction.equipment.filter(p => ['engine', 'funnel'].includes(p.id));
+  const runningGear = catalog.equipment.filter(p => p.kind === 'propeller' || p.kind === 'rudder');
+  for (const kind of ['propeller', 'rudder']) {
+    runningGear.filter(p => p.kind === kind).forEach((part, i) => {
+      const seat = part.sockets!.find(s => s.id === 'attachment')!.position;
+      source.construction.equipment.push({ id: part.id, partId: part.id, bearingDeg: 0,
+        position: [-30 + i * 20, kind === 'propeller' ? -9 : -10 - seat[1], kind === 'propeller' ? 100 - seat[2] : 94],
+        ...(kind === 'propeller' ? { powerSourceId: 'engine' } : {}) });
+    });
+  }
+  const result = compile(source);
+  expect(result.diagnostics.filter(d => d.severity === 'error')).toEqual([]);
+  await published(async () => {
+    const model = await createConstructionModel(source, result, new AbortController().signal), actor = actorFor(result.definition!), view = new ShipView(model, result.definition!, actor);
+    try {
+      const nodes = new Map<string, THREE.Object3D>();
+      model.traverse(node => { if (node.userData.nodeId) nodes.set(node.userData.nodeId, node); });
+      const contacts = installedSupportContacts(model, source, catalog);
+      for (const part of runningGear) {
+        expect(contacts.find(contact => contact.id === part.id)!.minimumGapM).toBeLessThan(.001);
+        const joint = nodes.get(`${part.id}.${part.kind === 'propeller' ? 'spin' : 'yaw'}`)!;
+        const root = nodes.get(`${part.id}.root`)!, seat = nodes.get(`${part.id}.socket.attachment`)!;
+        expect(joint.parent).toBe(root);
+        const initialJoint = joint.quaternion.clone(), initialSeat = seat.position.clone();
+        actor.motion.rudder = .7; actor.motion.distance = 4; actor.motion.speed = 2;
+        view.snap(); view.updateRenderMatrices();
+        expect(joint.quaternion.angleTo(initialJoint)).toBeGreaterThan(.1);
+        expect(seat.position.distanceTo(initialSeat)).toBeLessThan(1e-6);
+        actor.motion.rudder = 0; actor.motion.distance = 0;
+        view.snap();
+      }
+    } finally { view.impactMarks.dispose(); disposeConstructionModel(model); }
+  });
+});
+
 test('automatic propeller braces retain native endpoints while the original spin joint moves', async () => {
   const source = equipmentReviewSource(catalog, 'patrol');
   source.construction.equipment = source.construction.equipment.filter(e => e.id === 'screw');

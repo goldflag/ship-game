@@ -1123,98 +1123,6 @@
       "massKg": 8500
     },
     {
-      "id": "fletcher-propeller-starboard",
-      "name": "Fletcher 4.2 m starboard screw",
-      "kind": "propeller",
-      "size": [
-        4.3,
-        4.3,
-        2.32
-      ],
-      "boundsCenter": [
-        0,
-        0,
-        -0.16
-      ],
-      "centerOfGravity": [
-        0,
-        0,
-        0
-      ],
-      "placement": "underwater",
-      "thrustEfficiency": 0.65,
-      "sockets": [
-        {
-          "id": "attachment",
-          "kind": "shaft",
-          "position": [
-            0,
-            0,
-            -1.32
-          ],
-          "direction": [
-            0,
-            0,
-            -1
-          ]
-        }
-      ],
-      "massKg": 2500
-    },
-    {
-      "id": "fletcher-rudder",
-      "name": "Fletcher balanced rudder",
-      "kind": "rudder",
-      "size": [
-        0.5,
-        2.8,
-        3.05
-      ],
-      "boundsCenter": [
-        0,
-        -0.65,
-        0.025
-      ],
-      "centerOfGravity": [
-        0,
-        -0.75,
-        0
-      ],
-      "placement": "underwater",
-      "rudderAreaM2": 7,
-      "sockets": [
-        {
-          "id": "attachment",
-          "kind": "support",
-          "position": [
-            0,
-            0.75,
-            0
-          ],
-          "direction": [
-            0,
-            1,
-            0
-          ]
-        },
-        {
-          "id": "steering",
-          "kind": "steering",
-          "position": [
-            0,
-            0.75,
-            0
-          ],
-          "direction": [
-            0,
-            1,
-            0
-          ]
-        }
-      ],
-      "massKg": 2600
-    },
-    {
       "id": "fletcher-aft-mast",
       "name": "Fletcher aftermast",
       "kind": "mast",
@@ -1387,6 +1295,282 @@
             0,
             0.5,
             0
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "generic-propeller-2400",
+      "name": "2.4 m four-blade screw",
+      "kind": "propeller",
+      "size": [
+        2.44,
+        2.44,
+        1.44
+      ],
+      "boundsCenter": [
+        0.0,
+        0.0,
+        -0.12
+      ],
+      "centerOfGravity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "massKg": 880,
+      "placement": "underwater",
+      "thrustEfficiency": 0.6,
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "shaft",
+          "position": [
+            0.0,
+            0.0,
+            -0.84
+          ],
+          "direction": [
+            0,
+            0,
+            -1
+          ]
+        }
+      ]
+    },
+    {
+      "id": "generic-propeller-4200",
+      "name": "4.2 m four-blade screw",
+      "kind": "propeller",
+      "size": [
+        4.27,
+        4.27,
+        2.52
+      ],
+      "boundsCenter": [
+        0.0,
+        0.0,
+        -0.21
+      ],
+      "centerOfGravity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "massKg": 4720,
+      "placement": "underwater",
+      "thrustEfficiency": 0.6,
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "shaft",
+          "position": [
+            0.0,
+            0.0,
+            -1.47
+          ],
+          "direction": [
+            0,
+            0,
+            -1
+          ]
+        }
+      ]
+    },
+    {
+      "id": "generic-propeller-6000",
+      "name": "6 m four-blade screw",
+      "kind": "propeller",
+      "size": [
+        6.1,
+        6.1,
+        3.6
+      ],
+      "boundsCenter": [
+        0.0,
+        0.0,
+        -0.3
+      ],
+      "centerOfGravity": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "massKg": 13750,
+      "placement": "underwater",
+      "thrustEfficiency": 0.6,
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "shaft",
+          "position": [
+            0.0,
+            0.0,
+            -2.1
+          ],
+          "direction": [
+            0,
+            0,
+            -1
+          ]
+        }
+      ]
+    },
+    {
+      "id": "generic-rudder-2000",
+      "name": "2 m balanced rudder",
+      "kind": "rudder",
+      "size": [
+        0.4,
+        2.26,
+        1.6
+      ],
+      "boundsCenter": [
+        0.0,
+        -0.13,
+        0.56
+      ],
+      "centerOfGravity": [
+        0.0,
+        -0.2,
+        0.44
+      ],
+      "massKg": 680,
+      "placement": "underwater",
+      "rudderAreaM2": 2.88,
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        },
+        {
+          "id": "steering",
+          "kind": "steering",
+          "position": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "generic-rudder-4000",
+      "name": "4 m balanced rudder",
+      "kind": "rudder",
+      "size": [
+        0.8,
+        4.52,
+        3.2
+      ],
+      "boundsCenter": [
+        0.0,
+        -0.26,
+        1.12
+      ],
+      "centerOfGravity": [
+        0.0,
+        -0.4,
+        0.88
+      ],
+      "massKg": 5440,
+      "placement": "underwater",
+      "rudderAreaM2": 11.52,
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0.0,
+            2.0,
+            0.0
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        },
+        {
+          "id": "steering",
+          "kind": "steering",
+          "position": [
+            0.0,
+            2.0,
+            0.0
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "generic-rudder-6000",
+      "name": "6 m balanced rudder",
+      "kind": "rudder",
+      "size": [
+        1.2,
+        6.78,
+        4.8
+      ],
+      "boundsCenter": [
+        0.0,
+        -0.39,
+        1.68
+      ],
+      "centerOfGravity": [
+        0.0,
+        -0.6,
+        1.32
+      ],
+      "massKg": 18360,
+      "placement": "underwater",
+      "rudderAreaM2": 25.92,
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0.0,
+            3.0,
+            0.0
+          ],
+          "direction": [
+            0,
+            1,
+            0
+          ]
+        },
+        {
+          "id": "steering",
+          "kind": "steering",
+          "position": [
+            0.0,
+            3.0,
+            0.0
           ],
           "direction": [
             0,
@@ -2650,123 +2834,6 @@
       "exhaustKw": 82000
     },
     {
-      "id": "german-cruiser-screw-port",
-      "name": "German cruiser 3.4 m screw \u00b7 port",
-      "kind": "propeller",
-      "size": [
-        3.178108428259184,
-        2.8037486672380307,
-        2.4500001156330145
-      ],
-      "boundsCenter": [
-        0.012749023493866973,
-        -0.2805581139990284,
-        -0.37499998629093156
-      ],
-      "centerOfGravity": [
-        0,
-        0,
-        -0.35
-      ],
-      "massKg": 2900,
-      "placement": "underwater",
-      "sockets": [
-        {
-          "id": "attachment",
-          "kind": "support",
-          "position": [
-            0,
-            0,
-            -1.6
-          ],
-          "direction": [
-            0,
-            0,
-            -1
-          ]
-        }
-      ],
-      "thrustEfficiency": 0.65
-    },
-    {
-      "id": "german-cruiser-screw-starboard",
-      "name": "German cruiser 3.4 m screw \u00b7 starboard",
-      "kind": "propeller",
-      "size": [
-        3.1781084527809575,
-        2.803748548033022,
-        2.4500001156330145
-      ],
-      "boundsCenter": [
-        0.012749152009627895,
-        0.2805581045678661,
-        -0.37499998629093156
-      ],
-      "centerOfGravity": [
-        0,
-        0,
-        -0.35
-      ],
-      "massKg": 2900,
-      "placement": "underwater",
-      "sockets": [
-        {
-          "id": "attachment",
-          "kind": "support",
-          "position": [
-            0,
-            0,
-            -1.6
-          ],
-          "direction": [
-            0,
-            0,
-            -1
-          ]
-        }
-      ],
-      "thrustEfficiency": 0.65
-    },
-    {
-      "id": "german-cruiser-rudder",
-      "name": "German cruiser balanced rudder",
-      "kind": "rudder",
-      "size": [
-        0.4400004386108237,
-        5.000000179607701,
-        5.700000047683716
-      ],
-      "boundsCenter": [
-        1.2536026598730654e-07,
-        -2.500000062624605,
-        1.649999976158142
-      ],
-      "centerOfGravity": [
-        0,
-        -2.5,
-        1.65
-      ],
-      "massKg": 5500,
-      "placement": "underwater",
-      "sockets": [
-        {
-          "id": "attachment",
-          "kind": "stock-bearing",
-          "position": [
-            0,
-            -1.7,
-            0
-          ],
-          "direction": [
-            0,
-            -1,
-            0
-          ]
-        }
-      ],
-      "rudderAreaM2": 18
-    },
-    {
       "id": "cruiser-magazine-50000",
       "name": "Cruiser magazine \u00b7 50,000 round capacity",
       "kind": "magazine",
@@ -3317,82 +3384,6 @@
             0,
             0,
             1
-          ]
-        }
-      ]
-    },
-    {
-      "id": "german-cruiser-capstan",
-      "name": "German cruiser capstan 1.36 m",
-      "kind": "deck-fitting",
-      "size": [
-        1.36,
-        0.885,
-        1.36
-      ],
-      "boundsCenter": [
-        0,
-        0.4425,
-        0
-      ],
-      "centerOfGravity": [
-        0,
-        0.4425,
-        0
-      ],
-      "massKg": 480,
-      "placement": "deck",
-      "sockets": [
-        {
-          "id": "attachment",
-          "kind": "support",
-          "position": [
-            0,
-            0,
-            0
-          ],
-          "direction": [
-            0,
-            -1,
-            0
-          ]
-        }
-      ]
-    },
-    {
-      "id": "german-cruiser-deck-hatch",
-      "name": "German cruiser raised hatch 1.51 m",
-      "kind": "deck-fitting",
-      "size": [
-        1.2,
-        0.305,
-        1.51
-      ],
-      "boundsCenter": [
-        0,
-        0.1525,
-        0
-      ],
-      "centerOfGravity": [
-        0,
-        0.1525,
-        0
-      ],
-      "massKg": 170,
-      "placement": "deck",
-      "sockets": [
-        {
-          "id": "attachment",
-          "kind": "support",
-          "position": [
-            0,
-            0,
-            0
-          ],
-          "direction": [
-            0,
-            -1,
-            0
           ]
         }
       ]
@@ -5568,228 +5559,6 @@
       ]
     },
     {
-      "id": "generic-paravane",
-      "name": "Stowed paravane",
-      "kind": "deck-fitting",
-      "size": [
-        2.086,
-        1.144,
-        3.742
-      ],
-      "boundsCenter": [
-        0,
-        0.5713,
-        -0.0525
-      ],
-      "centerOfGravity": [
-        0,
-        0.58,
-        -0.1
-      ],
-      "massKg": 350,
-      "placement": "deck",
-      "sockets": [
-        {
-          "id": "attachment",
-          "kind": "support",
-          "position": [
-            0,
-            0,
-            0
-          ],
-          "direction": [
-            0,
-            -1,
-            0
-          ]
-        }
-      ]
-    },
-    {
-      "id": "generic-breakwater",
-      "name": "Forecastle breakwater",
-      "kind": "deck-fitting",
-      "size": [
-        8.24,
-        1.153,
-        2.665
-      ],
-      "boundsCenter": [
-        0,
-        0.576,
-        0.0333
-      ],
-      "centerOfGravity": [
-        0,
-        0.5,
-        0.05
-      ],
-      "massKg": 800,
-      "placement": "deck",
-      "sockets": [
-        {
-          "id": "attachment",
-          "kind": "support",
-          "position": [
-            0,
-            0,
-            0
-          ],
-          "direction": [
-            0,
-            -1,
-            0
-          ]
-        }
-      ],
-      "fitting": [
-        {
-          "center": [
-            -0.378,
-            0.576,
-            -0.5743
-          ],
-          "size": [
-            0.8581,
-            1.154,
-            1.4506
-          ]
-        },
-        {
-          "center": [
-            -0.9967,
-            0.576,
-            -0.365
-          ],
-          "size": [
-            0.7991,
-            1.154,
-            1.185
-          ]
-        },
-        {
-          "center": [
-            -1.693,
-            0.576,
-            -0.022
-          ],
-          "size": [
-            0.737,
-            1.154,
-            1.185
-          ]
-        },
-        {
-          "center": [
-            -2.4204,
-            0.576,
-            0.322
-          ],
-          "size": [
-            0.8662,
-            1.154,
-            1.185
-          ]
-        },
-        {
-          "center": [
-            -3.0256,
-            0.576,
-            0.665
-          ],
-          "size": [
-            0.8179,
-            1.154,
-            1.185
-          ]
-        },
-        {
-          "center": [
-            -3.6528,
-            0.576,
-            0.891
-          ],
-          "size": [
-            0.9355,
-            1.154,
-            0.95
-          ]
-        },
-        {
-          "center": [
-            0.3597,
-            0.576,
-            -0.5743
-          ],
-          "size": [
-            0.8947,
-            1.154,
-            1.4506
-          ]
-        },
-        {
-          "center": [
-            0.9967,
-            0.576,
-            -0.365
-          ],
-          "size": [
-            0.7991,
-            1.154,
-            1.185
-          ]
-        },
-        {
-          "center": [
-            1.693,
-            0.576,
-            -0.022
-          ],
-          "size": [
-            0.737,
-            1.154,
-            1.185
-          ]
-        },
-        {
-          "center": [
-            2.4204,
-            0.576,
-            0.322
-          ],
-          "size": [
-            0.8662,
-            1.154,
-            1.185
-          ]
-        },
-        {
-          "center": [
-            3.0256,
-            0.576,
-            0.665
-          ],
-          "size": [
-            0.8179,
-            1.154,
-            1.185
-          ]
-        },
-        {
-          "center": [
-            3.6528,
-            0.576,
-            0.891
-          ],
-          "size": [
-            0.9355,
-            1.154,
-            0.95
-          ]
-        }
-      ]
-    },
-    {
       "id": "generic-hawse-pipe",
       "name": "Hawse pipe and bolster",
       "kind": "deck-fitting",
@@ -5942,84 +5711,8 @@
       ]
     },
     {
-      "id": "generic-ready-ammo-locker",
-      "name": "Ready-use ammunition locker",
-      "kind": "deck-fitting",
-      "size": [
-        0.782,
-        1.067,
-        1.787
-      ],
-      "boundsCenter": [
-        0.0183,
-        0.533,
-        0
-      ],
-      "centerOfGravity": [
-        0,
-        0.5,
-        0
-      ],
-      "massKg": 450,
-      "placement": "deck",
-      "sockets": [
-        {
-          "id": "attachment",
-          "kind": "support",
-          "position": [
-            0,
-            0,
-            0
-          ],
-          "direction": [
-            0,
-            -1,
-            0
-          ]
-        }
-      ]
-    },
-    {
-      "id": "generic-signal-lamp",
-      "name": "Signal lamp",
-      "kind": "deck-fitting",
-      "size": [
-        0.631,
-        1.509,
-        0.756
-      ],
-      "boundsCenter": [
-        0,
-        0.754,
-        0.0948
-      ],
-      "centerOfGravity": [
-        0,
-        0.95,
-        -0.02
-      ],
-      "massKg": 90,
-      "placement": "deck",
-      "sockets": [
-        {
-          "id": "attachment",
-          "kind": "support",
-          "position": [
-            0,
-            0,
-            0
-          ],
-          "direction": [
-            0,
-            -1,
-            0
-          ]
-        }
-      ]
-    },
-    {
       "id": "generic-ensign-staff",
-      "name": "Ensign staff",
+      "name": "Deck flagstaff",
       "kind": "deck-fitting",
       "size": [
         0.981,
@@ -6037,652 +5730,6 @@
         0.05
       ],
       "massKg": 60,
-      "placement": "deck",
-      "sockets": [
-        {
-          "id": "attachment",
-          "kind": "support",
-          "position": [
-            0,
-            0,
-            0
-          ],
-          "direction": [
-            0,
-            -1,
-            0
-          ]
-        }
-      ]
-    },
-    {
-      "id": "generic-gun-tub",
-      "name": "Gun tub \u00b7 3 m",
-      "kind": "deck-fitting",
-      "size": [
-        3.201,
-        1.158,
-        3.157
-      ],
-      "boundsCenter": [
-        0,
-        0.5785,
-        -0.0221
-      ],
-      "centerOfGravity": [
-        0,
-        0.58,
-        -0.05
-      ],
-      "massKg": 1500,
-      "placement": "deck",
-      "sockets": [
-        {
-          "id": "attachment",
-          "kind": "support",
-          "position": [
-            0,
-            0,
-            -1.551
-          ],
-          "direction": [
-            0,
-            -1,
-            0
-          ]
-        }
-      ],
-      "fitting": [
-        {
-          "center": [
-            0.5622,
-            0.5785,
-            1.4091
-          ],
-          "size": [
-            0.5417,
-            1.159,
-            0.2954
-          ]
-        },
-        {
-          "center": [
-            0.9048,
-            0.5785,
-            1.1703
-          ],
-          "size": [
-            0.4553,
-            1.159,
-            0.4324
-          ]
-        },
-        {
-          "center": [
-            1.1815,
-            0.5785,
-            0.9271
-          ],
-          "size": [
-            0.4395,
-            1.159,
-            0.4795
-          ]
-        },
-        {
-          "center": [
-            1.3537,
-            0.5785,
-            0.5865
-          ],
-          "size": [
-            0.3847,
-            1.159,
-            0.4487
-          ]
-        },
-        {
-          "center": [
-            1.4578,
-            0.5785,
-            0.2233
-          ],
-          "size": [
-            0.286,
-            1.159,
-            0.4932
-          ]
-        },
-        {
-          "center": [
-            1.5207,
-            0.5785,
-            -0.207
-          ],
-          "size": [
-            0.1596,
-            1.159,
-            0.416
-          ]
-        },
-        {
-          "center": [
-            1.3634,
-            0.5785,
-            -0.4975
-          ],
-          "size": [
-            0.397,
-            1.159,
-            0.6326
-          ]
-        },
-        {
-          "center": [
-            1.1592,
-            0.5785,
-            -0.9069
-          ],
-          "size": [
-            0.4546,
-            1.159,
-            0.4512
-          ]
-        },
-        {
-          "center": [
-            0.9062,
-            0.5785,
-            -1.1678
-          ],
-          "size": [
-            0.5516,
-            1.159,
-            0.4451
-          ]
-        },
-        {
-          "center": [
-            0.5383,
-            0.5785,
-            -1.3708
-          ],
-          "size": [
-            0.5254,
-            1.159,
-            0.3505
-          ]
-        },
-        {
-          "center": [
-            0.1988,
-            0.5785,
-            -1.5
-          ],
-          "size": [
-            0.6196,
-            1.159,
-            0.202
-          ]
-        },
-        {
-          "center": [
-            -0.2538,
-            0.5785,
-            -1.5035
-          ],
-          "size": [
-            0.5096,
-            1.159,
-            0.1951
-          ]
-        },
-        {
-          "center": [
-            -0.5383,
-            0.5785,
-            -1.3708
-          ],
-          "size": [
-            0.5254,
-            1.159,
-            0.3505
-          ]
-        },
-        {
-          "center": [
-            -0.9062,
-            0.5785,
-            -1.1929
-          ],
-          "size": [
-            0.5516,
-            1.159,
-            0.3949
-          ]
-        },
-        {
-          "center": [
-            -1.1592,
-            0.5785,
-            -0.9069
-          ],
-          "size": [
-            0.4546,
-            1.159,
-            0.4512
-          ]
-        },
-        {
-          "center": [
-            -1.3634,
-            0.5785,
-            -0.5688
-          ],
-          "size": [
-            0.397,
-            1.159,
-            0.4901
-          ]
-        },
-        {
-          "center": [
-            -1.4565,
-            0.5785,
-            -0.2094
-          ],
-          "size": [
-            0.2879,
-            1.159,
-            0.4207
-          ]
-        },
-        {
-          "center": [
-            -1.5065,
-            0.5785,
-            0.2233
-          ],
-          "size": [
-            0.1887,
-            1.159,
-            0.4932
-          ]
-        },
-        {
-          "center": [
-            -1.3537,
-            0.5785,
-            0.496
-          ],
-          "size": [
-            0.3847,
-            1.159,
-            0.6296
-          ]
-        },
-        {
-          "center": [
-            -1.1815,
-            0.5785,
-            0.9271
-          ],
-          "size": [
-            0.4395,
-            1.159,
-            0.4795
-          ]
-        },
-        {
-          "center": [
-            -0.9048,
-            0.5785,
-            1.1703
-          ],
-          "size": [
-            0.4553,
-            1.159,
-            0.4324
-          ]
-        },
-        {
-          "center": [
-            -0.5622,
-            0.5785,
-            1.4091
-          ],
-          "size": [
-            0.5417,
-            1.159,
-            0.2954
-          ]
-        }
-      ]
-    },
-    {
-      "id": "generic-gun-tub-large",
-      "name": "Gun tub \u00b7 5 m",
-      "kind": "deck-fitting",
-      "size": [
-        5.201,
-        1.158,
-        5.175
-      ],
-      "boundsCenter": [
-        0,
-        0.5785,
-        -0.0128
-      ],
-      "centerOfGravity": [
-        0,
-        0.58,
-        -0.04
-      ],
-      "massKg": 2500,
-      "placement": "deck",
-      "sockets": [
-        {
-          "id": "attachment",
-          "kind": "support",
-          "position": [
-            0,
-            0,
-            -2.55
-          ],
-          "direction": [
-            0,
-            -1,
-            0
-          ]
-        }
-      ],
-      "fitting": [
-        {
-          "center": [
-            0.8332,
-            0.5785,
-            2.3387
-          ],
-          "size": [
-            1.0857,
-            1.159,
-            0.4733
-          ]
-        },
-        {
-          "center": [
-            1.5283,
-            0.5785,
-            1.974
-          ],
-          "size": [
-            0.7023,
-            1.159,
-            0.558
-          ]
-        },
-        {
-          "center": [
-            1.9371,
-            0.5785,
-            1.5274
-          ],
-          "size": [
-            0.6576,
-            1.159,
-            0.6231
-          ]
-        },
-        {
-          "center": [
-            2.2623,
-            0.5785,
-            0.9697
-          ],
-          "size": [
-            0.4995,
-            1.159,
-            0.6852
-          ]
-        },
-        {
-          "center": [
-            2.4278,
-            0.5785,
-            0.3977
-          ],
-          "size": [
-            0.3454,
-            1.159,
-            0.7983
-          ]
-        },
-        {
-          "center": [
-            2.4536,
-            0.5785,
-            -0.3192
-          ],
-          "size": [
-            0.2943,
-            1.159,
-            0.7086
-          ]
-        },
-        {
-          "center": [
-            2.309,
-            0.5785,
-            -0.9095
-          ],
-          "size": [
-            0.4387,
-            1.159,
-            0.7839
-          ]
-        },
-        {
-          "center": [
-            1.9801,
-            0.5785,
-            -1.4816
-          ],
-          "size": [
-            0.6371,
-            1.159,
-            0.8425
-          ]
-        },
-        {
-          "center": [
-            1.4935,
-            0.5785,
-            -1.9817
-          ],
-          "size": [
-            0.691,
-            1.159,
-            0.6015
-          ]
-        },
-        {
-          "center": [
-            0.8925,
-            0.5785,
-            -2.2767
-          ],
-          "size": [
-            0.818,
-            1.159,
-            0.4869
-          ]
-        },
-        {
-          "center": [
-            0.3035,
-            0.5785,
-            -2.4972
-          ],
-          "size": [
-            0.829,
-            1.159,
-            0.2065
-          ]
-        },
-        {
-          "center": [
-            -0.3583,
-            0.5785,
-            -2.4972
-          ],
-          "size": [
-            0.7195,
-            1.159,
-            0.2065
-          ]
-        },
-        {
-          "center": [
-            -0.8925,
-            0.5785,
-            -2.3186
-          ],
-          "size": [
-            0.818,
-            1.159,
-            0.4031
-          ]
-        },
-        {
-          "center": [
-            -1.4374,
-            0.5785,
-            -1.9817
-          ],
-          "size": [
-            0.8033,
-            1.159,
-            0.6015
-          ]
-        },
-        {
-          "center": [
-            -1.9801,
-            0.5785,
-            -1.4817
-          ],
-          "size": [
-            0.6371,
-            1.159,
-            0.8425
-          ]
-        },
-        {
-          "center": [
-            -2.309,
-            0.5785,
-            -0.9095
-          ],
-          "size": [
-            0.4387,
-            1.159,
-            0.7839
-          ]
-        },
-        {
-          "center": [
-            -2.4536,
-            0.5785,
-            -0.3192
-          ],
-          "size": [
-            0.2943,
-            1.159,
-            0.7086
-          ]
-        },
-        {
-          "center": [
-            -2.4532,
-            0.5785,
-            0.3747
-          ],
-          "size": [
-            0.2946,
-            1.159,
-            0.7524
-          ]
-        },
-        {
-          "center": [
-            -2.31,
-            0.5785,
-            0.9162
-          ],
-          "size": [
-            0.4041,
-            1.159,
-            0.7923
-          ]
-        },
-        {
-          "center": [
-            -2.0036,
-            0.5785,
-            1.445
-          ],
-          "size": [
-            0.5246,
-            1.159,
-            0.7881
-          ]
-        },
-        {
-          "center": [
-            -1.5312,
-            0.5785,
-            1.9032
-          ],
-          "size": [
-            0.708,
-            1.159,
-            0.6996
-          ]
-        },
-        {
-          "center": [
-            -0.8332,
-            0.5785,
-            2.3387
-          ],
-          "size": [
-            1.0857,
-            1.159,
-            0.4733
-          ]
-        }
-      ]
-    },
-    {
-      "id": "generic-splinter-shield",
-      "name": "Splinter shield section",
-      "kind": "deck-fitting",
-      "size": [
-        0.539,
-        1.201,
-        3.001
-      ],
-      "boundsCenter": [
-        -0.239,
-        0.6,
-        0
-      ],
-      "centerOfGravity": [
-        -0.05,
-        0.55,
-        0
-      ],
-      "massKg": 420,
       "placement": "deck",
       "sockets": [
         {
@@ -7499,6 +6546,46 @@
         }
       ],
       "massKg": 12
+    },
+    {
+      "id": "generic-rimmed-porthole",
+      "name": "Rimmed porthole",
+      "kind": "deck-fitting",
+      "size": [
+        0.6,
+        0.6,
+        0.036
+      ],
+      "boundsCenter": [
+        0,
+        0,
+        -0.018
+      ],
+      "centerOfGravity": [
+        0,
+        0,
+        -0.012
+      ],
+      "placement": "deck",
+      "wallMount": "porthole",
+      "sockets": [
+        {
+          "id": "attachment",
+          "kind": "support",
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "direction": [
+            0,
+            0,
+            1
+          ]
+        }
+      ],
+      "massKg": 14,
+      "wallSizing": "uniform"
     },
     {
       "id": "generic-rectangular-window",

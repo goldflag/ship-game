@@ -9,7 +9,7 @@ import { createStarterSource } from '../../ships/constructionStarter';
 import { CORNER_SIGNS, VERTEX_FACES } from '../../ships/constructionVertex';
 import { BuilderTool, type BuilderChrome, type BuilderKey } from './builderTool';
 import type { BuilderPick } from './builderScene';
-import { placementCenter } from './placement';
+import { pieceExtents, placementCenter } from './placement';
 
 const part = (over: Partial<ConstructionEquipmentPart> & Pick<ConstructionEquipmentPart, 'id' | 'kind' | 'placement'>): ConstructionEquipmentPart => ({
   name: over.id, size: [1, 1, 2], boundsCenter: [0, .5, 0], centerOfGravity: [0, .5, 0], massKg: 500, modelUrl: `/models/components/${over.id}/x/model.glb`, contentHash: 'x', ...over,
@@ -64,6 +64,23 @@ test('whole-ship finish changes one revision, supports undo and restores origina
   tool.undo(); expect(data()).toEqual(original);
   tool.redo(); expect(data().finish).toBe('semi-gloss');
   tool.setFinish(); expect(data()).toEqual(original);
+});
+test('ship paint carries faces and fittings that wore the previous ship paint and keeps accents', async () => {
+  const source = createStarterSource(catalog, 'patrol');
+  const [first, second] = source.construction.equipment; first.paint = 'naval-gray'; second.paint = 'red-oxide';
+  const accents = source.construction.surfaces.filter(surface => surface.paint !== 'naval-gray').length;
+  source.construction.surfaces.push({ primitiveId: source.construction.primitives[0].id, face: 'port', thicknessMm: 50, material: 'armor-steel', paint: 'naval-gray' });
+  const { tool, data, labels } = await setup({ source });
+  const original = structuredClone(data());
+  expect(tool.setShipPaint('chrome')).toBeUndefined();
+  expect(tool.setShipPaint('sea-blue')).toMatchObject({ accepted: true, changed: true });
+  expect(data().paint).toBe('sea-blue');
+  expect(data().equipment[0].paint).toBeUndefined();
+  expect(data().equipment[1].paint).toBe('red-oxide');
+  expect(data().surfaces.at(-1)).toMatchObject({ paint: 'sea-blue', thicknessMm: 50 });
+  expect(data().surfaces.filter(surface => surface.paint !== 'sea-blue')).toHaveLength(accents);
+  expect(labels()).toEqual(['Set ship paint']);
+  tool.undo(); expect(data()).toEqual(original);
 });
 const key = (key: string, over: Partial<BuilderKey> = {}): BuilderKey => ({ key, ctrlKey: false, metaKey: false, shiftKey: false, altKey: false, repeat: false, preventDefault() {}, ...over });
 const chrome = (): BuilderChrome & { log: string[] } => { const log: string[] = []; return { log, dismiss: () => { log.push('dismiss'); return false; }, toggleDrawer: () => log.push('drawer'), toggleWarnings: () => log.push('warnings'), slotChosen: () => log.push('slot') }; };
@@ -122,7 +139,7 @@ test('a shut door refuses every edit with its reason and leaves the source untou
   expect(data().primitives).toHaveLength(2);
 });
 
-test('select, move and erase: a drag translates the pressed piece and preserves wall offsets, right-click removes, the last block stays', async () => {
+test('select, move and erase: a drag translates the pressed piece and preserves wall offsets, erase removes, the last block stays', async () => {
   const { tool, data, labels, state } = await setup();
   tool.setTool('place');
   tool.pointer({ kind: 'lay', points: [[0, 1, 0]] });
@@ -734,7 +751,8 @@ test('rotation mode selects ship axes, commits precise angles and restores each 
   const { tool, data, labels } = await setup();
   tool.choose('hull', false); tool.key(key('o'), chrome());
   expect(tool.scene(undefined)).toMatchObject({ moveTargets: 'none', rotation: { id: 'hull', axis: 1, snap: true } });
-  tool.key(key('x'), chrome()); tool.key(key('r'), chrome());
+  tool.key(key('x'), chrome());
+  expect(tool.getSnapshot().rotationAxis).toBe(0);
   expect(data().primitives[0].tilt?.pitchDeg).toBe(90);
   expect(labels()).toEqual(['Rotate block']);
   tool.key(key('r', { shiftKey: true }), chrome());
@@ -748,4 +766,36 @@ test('rotation mode selects ship axes, commits precise angles and restores each 
   tool.key(key('Escape'), chrome());
   expect(tool.getSnapshot().selected.has('hull')).toBe(true); expect(tool.scene(undefined).rotation).toBeUndefined();
   tool.key(key('r'), chrome()); expect(data().primitives[0].rotationDeg).toBe(127);
+});
+
+test('X, Y and Z quarter-turn the block about to be placed, its mirrored twin and the placed pieces', async () => {
+  const { tool, data } = await setup();
+  tool.setTool('place'); tool.setSizeOverride([1, 2, 4]);
+  tool.key(key('x'), chrome());
+  expect(tool.scene(undefined).placementPiece).toMatchObject({ rotationDeg: 0, tilt: { version: 1, pitchDeg: 90, rollDeg: 0 } });
+  expect(tool.scene(undefined).placementMirror).toMatchObject({ rotationDeg: 0, tilt: { version: 1, pitchDeg: 90, rollDeg: 0 } });
+  tool.pointer({ kind: 'lay', points: [[3, 0, 0]] });
+  expect(data().primitives.slice(-2)).toMatchObject([{ position: [3, 0, 0], tilt: { pitchDeg: 90 } }, { position: [-3, 0, 0], tilt: { pitchDeg: 90 } }]);
+  tool.key(key('x', { shiftKey: true }), chrome());
+  expect(tool.scene(undefined).placementPiece).toMatchObject({ rotationDeg: 0 });
+  expect(tool.scene(undefined).placementPiece).not.toHaveProperty('tilt');
+  tool.key(key('z'), chrome()); tool.key(key('y'), chrome());
+  const piece = tool.scene(undefined).placementPiece!;
+  expect(piece.kind === 'hull' && pieceExtents(piece)).toEqual([4, 1, 2]);
+  tool.key(key('r', { shiftKey: true }), chrome());
+  expect(tool.scene(undefined).placementPiece).toMatchObject({ rotationDeg: 0, tilt: { pitchDeg: 0, rollDeg: 90 } });
+});
+
+test('X and Z tip every selected block in place as one undoable edit, and Shift-R turns blocks back', async () => {
+  const { tool, data, labels } = await setup();
+  tool.choose('hull', false);
+  tool.key(key('z'), chrome());
+  expect(data().primitives[0]).toMatchObject({ rotationDeg: 0, position: [0, 0, 0], tilt: { version: 1, pitchDeg: 0, rollDeg: 90 } });
+  expect(labels()).toEqual(['Rotate block']);
+  tool.key(key('z', { shiftKey: true }), chrome());
+  expect(data().primitives[0].tilt).toBeUndefined();
+  tool.key(key('r'), chrome()); expect(data().primitives[0].rotationDeg).toBe(90);
+  tool.key(key('r', { shiftKey: true }), chrome()); expect(data().primitives[0].rotationDeg).toBe(0);
+  tool.undo(); tool.undo(); tool.undo(); tool.undo();
+  expect(data().primitives[0]).toMatchObject({ rotationDeg: 0 }); expect(data().primitives[0].tilt).toBeUndefined();
 });

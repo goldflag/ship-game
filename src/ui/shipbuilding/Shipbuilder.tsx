@@ -1,10 +1,11 @@
+import { WallSizeFields } from './WallSizeFields';
 import { RailingFields } from './RailingFields';
 import { RotationToolbar } from './RotationToolbar';
 import { wallMount } from '../../ships/constructionWallFittings';
 import { automaticPropellerLabel, propellerEngineName, propellerEngines } from './propellerAssignment';
 import { SnapControls } from './SnapControls';
 import { BalconyEditor } from './BalconyEditor';
-import { CONSTRUCTION_PAINTS } from '../../ships/constructionPaints';
+import { CONSTRUCTION_PAINTS, constructionPaintColor, constructionShipPaint } from '../../ships/constructionPaints';
 import { SurfaceFinishSelect } from './SurfaceFinishSelect';
 import { integrateConstructionMagazines } from '../../ships/constructionArmament';
 import { FreeformToolbar } from './FreeformToolbar';
@@ -189,9 +190,9 @@ export function Shipbuilder(props: ShipbuilderProps) {
   const enterFreeform = () => { if (tool.enterFreeform()) setDrawer(false); };
   const suggestionChanged = tool.suggestionChanged;
 
-  const newDesign = async (kind: ConstructionStarter) => {
+  const newDesign = async (kind: ConstructionStarter, paint?: string) => {
     setDesignsOpen(false);
-    await owner.replace(freshConstruction(createStarterSource(props.catalog, kind), kind === 'blank'), null, false);
+    await owner.replace(freshConstruction(createStarterSource(props.catalog, kind, paint), kind === 'blank'), null, false);
     switchLayer('hull'); tool.setTool('select'); tool.clearSelection(); tool.fit(); setNewDesignOpen(false);
   };
   const deleteDesign = async (designId: string, revisionId: string) => {
@@ -289,14 +290,13 @@ export function Shipbuilder(props: ShipbuilderProps) {
   </> : layer === 'armor' ? <>
     <b>Armor</b><NumberField label="Armor thickness" value={customMm} min={0} max={1000} step={1} unit="mm" onChange={tool.setThickness}/><span>{customMm > 0 ? 'armor steel' : 'structural skin, no armor'} · minimum {source.construction.defaultThicknessMm} mm skin</span><NumberField label="Skin" description="Minimum plating thickness across the ship; lowering it also changes unassigned hull faces" value={source.construction.defaultThicknessMm} min={.1} max={1000} step={.1} unit="mm" onChange={thicknessMm => run('Change structural skin', [{ op: 'skin', thicknessMm }])}/>
   </> : !piece ? null : piece.kind === 'hull' && active?.kind === 'shape' ? <>
-    <b>{active.name}</b><NumberField value={piece.size[0]} min={.25} max={500} step={1} onChange={value => tool.setSizeOverride([value, piece.size[1], piece.size[2]])}/> × <NumberField value={piece.size[1]} min={.25} max={500} step={1} onChange={value => tool.setSizeOverride([piece.size[0], value, piece.size[2]])}/> × <NumberField value={piece.size[2]} min={.25} max={500} step={1} onChange={value => tool.setSizeOverride([piece.size[0], piece.size[1], value])}/> m<span>{piece.rotationDeg}°</span>
+    <b>{active.name}</b><NumberField value={piece.size[0]} min={.25} max={500} step={1} onChange={value => tool.setSizeOverride([value, piece.size[1], piece.size[2]])}/> × <NumberField value={piece.size[1]} min={.25} max={500} step={1} onChange={value => tool.setSizeOverride([piece.size[0], value, piece.size[2]])}/> × <NumberField value={piece.size[2]} min={.25} max={500} step={1} onChange={value => tool.setSizeOverride([piece.size[0], piece.size[1], value])}/> m<span>{piece.tilt ? `pitch ${piece.tilt.pitchDeg}° · yaw ${piece.rotationDeg}° · roll ${piece.tilt.rollDeg}°` : `${piece.rotationDeg}°`}</span>
   </> : piece.kind === 'equipment' && active?.kind === 'part' ? <>
     <b>{active.part.name}</b>{piece.wall ? <>
-      <NumberField label={wallMount(active.part) === 'porthole' ? 'Diameter' : 'Width'} value={piece.wall.widthM} min={.15} max={5} step={.05} unit="m" onChange={value => tool.setWallSize(0, value)}/>
-      {wallMount(active.part) !== 'porthole' && <NumberField label="Height" value={piece.wall.heightM} min={.15} max={5} step={.05} unit="m" onChange={value => tool.setWallSize(1, value)}/>}
+      <WallSizeFields part={active.part} wall={piece.wall} onChange={tool.setWallSize}/>
       {['window','porthole'].includes(wallMount(active.part) ?? '') && <><button aria-pressed={!s.windowRow} onClick={() => tool.setWindowRow(false)}>Single</button><button aria-pressed={s.windowRow} onClick={() => tool.setWindowRow(true)}>Row</button>
-      {s.windowRow && <NumberField label="Spacing" description="Distance between window centers. Drag horizontally along a wall to lay a row." value={piece.rowSpacing ?? s.windowSpacing} min={piece.wall.widthM + .05} max={20} step={.1} unit="m" onChange={tool.setWindowSpacing}/>}</>}
-      <span>{s.windowRow && ['window','porthole'].includes(wallMount(active.part) ?? '') ? 'Drag along the hull' : 'Click a hull side or wall'} · ←→ width · ↑↓ height · Shift fine{mirror ? ' · linked mirror' : ''}</span>
+      {s.windowRow && <NumberField label="Spacing" description="Distance between window centers. Click the first window, then click where the row ends." value={piece.rowSpacing ?? s.windowSpacing} min={piece.wall.widthM + .05} max={20} step={.1} unit="m" onChange={tool.setWindowSpacing}/>}</>}
+      <span>{s.windowRow && ['window','porthole'].includes(wallMount(active.part) ?? '') ? 'Click the first window, then the last · Esc cancels' : 'Click a hull side or wall'} · {wallMount(active.part) === 'porthole' ? '←→ / ↑↓ scale' : '←→ width · ↑↓ height'} · Shift fine{mirror ? ' · linked mirror' : ''}</span>
     </> : <span>{active.part.placement} · bearing {Number(piece.bearingDeg.toFixed(2))}°</span>}
   </> : piece.kind === 'boundary' ? <><b>{BOUNDARY_NAMES[piece.axis]}</b><span>on the {gridStep} m grid</span></> : null;
   if (!freeformMode && s.tool !== 'rotate' && selectedPrimitives.length === 1 && !selectedEquipment.length) {
@@ -307,11 +307,12 @@ export function Shipbuilder(props: ShipbuilderProps) {
       <b>{primitive.mesh?.label ?? SHAPE_NAMES[primitive.kind]} <NumberField description="Width along the block's local X axis" value={measured[0]} min={.25} max={500} onChange={value => size(0, value)}/> × <NumberField label={primitive.kind === 'balcony' ? 'Deck thickness' : undefined} description={primitive.kind === 'balcony' ? 'Deck thickness' : "Height along the block's local Y axis"} value={measured[1]} min={primitive.kind === 'balcony' ? .01 : .25} max={500} step={primitive.kind === 'balcony' ? .01 : 1} onChange={value => size(1, value)}/> × <NumberField description="Length along the block's local Z axis" value={measured[2]} min={.25} max={500} onChange={value => size(2, value)}/> m</b>
       {canEditVertices(primitive) && <button className="sb-edit-freeform" onClick={enterFreeform} aria-label="Freeform hull" title="Edit freeform shape (D)">Freeform <kbd>D</kbd></button>}
       {primitive.kind === 'custom-hull' && <button className="sb-edit-freeform" onClick={() => setCustomHullSession({ designId: source.id, primitive: structuredClone(primitive) })}>Edit hull sections</button>}
-      {primitive.kind === 'balcony' && <button className="sb-edit-freeform" onClick={() => setBalconySession(primitive.id)}>Edit balcony outline</button>}
-      {mass !== undefined ? `plating ${formatTonnes(mass)} · ` : ''}{primitive.rotationDeg}° <kbd>R</kbd> · <kbd>⌫</kbd> remove · <kbd>⌘C</kbd> copy
+      {primitive.kind === 'balcony' && <button className="sb-edit-freeform" onClick={() => { if (layer !== 'hull') tool.switchLayer('hull'); setBalconySession(primitive.id); }}>Edit balcony outline</button>}
+      {mass !== undefined ? `plating ${formatTonnes(mass)} · ` : ''}{primitive.rotationDeg}° <kbd>R</kbd> · <kbd>X</kbd><kbd>Z</kbd> tip · <kbd>⌫</kbd> remove · <kbd>⌘C</kbd> copy
     </> });
   } else if (selectedEquipment.length === 1 && !selectedPrimitives.length) {
     const item = selectedEquipment[0], part = partOf(item), mass = equipmentMassKg(compiledResult, item.id);
+    const catalogPart = catalog.equipment.find(p => p.id === item.partId);
     const edit = (label: string, change: (target: ConstructionEquipment) => void) => { const target = structuredClone(item); change(target); run(label, [{ op: 'equipment', value: target }]); };
     const engines = data.equipment.filter(entry => partOf(entry)?.kind === 'engine');
     const assignedEngines = propellerEngines(source, compiledResult, item);
@@ -327,19 +328,15 @@ export function Shipbuilder(props: ShipbuilderProps) {
     tags.push({ key: `part-${item.id}`, anchor: equipmentAnchor(item), dx: 82, dy: -92, tone: 'mint', content: <>
       <b>{part?.path?.kind === 'railing' ? `${item.path?.railCount ?? part.path?.railCount ?? 3}-rail railing` : part?.name ?? item.partId}</b>
       {mass !== undefined ? `${formatTonnes(mass)} · ` : ''}{item.wall ? 'Hull aligned · ' : <>bearing <NumberField value={item.bearingDeg} min={0} max={360} step={.1} unit="°" onChange={value => edit('Set bearing', target => { target.bearingDeg = normalizedBearing(value); })}/></>}
-      {item.wall && part && <>
-        <NumberField label={wallMount(part) === 'porthole' ? 'Diameter' : 'Width'} value={item.wall.widthM} min={.15} max={5} step={.05} unit="m" onChange={value => edit('Resize wall fitting', target => { target.wall!.widthM = value; if (wallMount(part) === 'porthole') target.wall!.heightM = value; })}/>
-        {wallMount(part) !== 'porthole' && <NumberField label="Height" value={item.wall.heightM} min={.15} max={5} step={.05} unit="m" onChange={value => edit('Resize wall fitting', target => { target.wall!.heightM = value; })}/>}
+      {item.wall && catalogPart && <>
+        <WallSizeFields part={catalogPart} wall={item.wall} onChange={(axis, value) => edit('Resize wall fitting', target => {
+          if (axis === 0 || wallMount(catalogPart) === 'porthole') target.wall!.widthM = value;
+          if (axis === 1 || wallMount(catalogPart) === 'porthole') target.wall!.heightM = value;
+        })}/>
         {item.wall.mirrorId && <span> · Linked mirror · edits update both sides</span>}
       </>}
-      {part?.placement !== 'internal' && <label> · Paint <select className="sb-link" aria-label="Fitting paint" value={item.paint ?? ''} disabled={locked} onChange={event => tool.paintFittings([item.id], event.target.value || undefined)}>
-        <option value="">Original finish</option>{CONSTRUCTION_PAINTS.map(paint => <option key={paint.id} value={paint.id}>{paint.name}</option>)}
-      </select></label>}
       {part?.path && item.path && <PathPointEditor key={item.id} item={item} part={part} onChange={path => edit('Edit fitting path', target => { target.path = path; })}/>}
-      {part?.kind === 'gun' && <> · <NumberField label="Turret rise" description="Raise the mount above its deck attachment. Below-deck magazines stay fixed; ready ammunition follows deck mounts." value={item.gun?.barbetteHeightM ?? 0} min={0} max={30} step={.25} unit="m" onChange={value => tool.raiseTurrets([item.id], () => value)}/>
-        <label> · Barbette paint <select aria-label="Barbette paint" className="sb-link" value={item.gun?.barbettePaint ?? 'naval-gray'} onChange={event => edit('Paint barbette', target => { target.gun = { ...target.gun, barbettePaint: event.target.value }; })}>
-          {CONSTRUCTION_PAINTS.map(paint => <option key={paint.id} value={paint.id}>{paint.name}</option>)}
-        </select></label></>}{data.version === 2 && (part?.kind === 'gun' || part?.kind === 'torpedo-launcher') && <span> · built-in ammunition</span>}{part?.kind === 'funnel' && <span> · {(part.exhaustKw ?? 0).toLocaleString()} kW shared exhaust</span>}{part?.kind === 'propeller' && engineConnection}{!item.wall && <> · <kbd>R</kbd> rotate · right-drag rotate · <kbd>⇧</kbd> fine</>} · <kbd>⌫</kbd> remove
+      {part?.kind === 'gun' && <> · <NumberField label="Turret rise" description="Raise the mount above its deck attachment. Below-deck magazines stay fixed; ready ammunition follows deck mounts." value={item.gun?.barbetteHeightM ?? 0} min={0} max={30} step={.25} unit="m" onChange={value => tool.raiseTurrets([item.id], () => value)}/></>}{data.version === 2 && (part?.kind === 'gun' || part?.kind === 'torpedo-launcher') && <span> · built-in ammunition</span>}{part?.kind === 'funnel' && <span> · {(part.exhaustKw ?? 0).toLocaleString()} kW shared exhaust</span>}{part?.kind === 'propeller' && engineConnection}{!item.wall && <> · <kbd>R</kbd> rotate · right-drag rotate · <kbd>⇧</kbd> fine</>} · <kbd>⌫</kbd> remove
     </> });
   } else if (selected.size > 1) {
     const anchors = [...selectedPrimitives.map(part => part.position), ...selectedEquipment.map(equipmentAnchor)];
@@ -429,9 +426,9 @@ export function Shipbuilder(props: ShipbuilderProps) {
     ...(hasDrawer ? [{ keys: ['0'], label: `All ${drawerName}` }] : []),
   ];
   const acting: KeyHint[] = [];
-  if (!locked && piece && piece.kind !== 'boundary' && !(piece.kind === 'equipment' && piece.wall)) acting.push({ keys: ['R'], label: piece.kind === 'hull' ? 'Rotate 90°' : 'Rotate 15°' });
-  else if (s.tool === 'rotate') acting.push({ keys: ['X', 'Y', 'Z'], label: 'Axis' }, { keys: ['R', '⇧R'], label: '±90°' });
-  else if (movable && !freeformMode && !selectedEquipment.some(e => e.wall)) acting.push({ keys: ['R'], label: selectedPrimitives.length ? 'Rotate 90°' : 'Rotate 15°' });
+  if (!locked && piece && piece.kind !== 'boundary' && !(piece.kind === 'equipment' && piece.wall)) acting.push(...(piece.kind === 'hull' ? [{ keys: ['X', 'Y', 'Z'], label: 'Turn 90°' }] : []), { keys: ['R'], label: piece.kind === 'hull' ? 'Rotate 90°' : 'Rotate 15°' });
+  else if (s.tool === 'rotate') acting.push({ keys: ['X', 'Y', 'Z'], label: 'Turn 90°' }, { keys: ['R', '⇧R'], label: '±90°' });
+  else if (movable && !freeformMode && !selectedEquipment.some(e => e.wall)) acting.push(...(selectedPrimitives.length && layer === 'hull' ? [{ keys: ['X', 'Y', 'Z'], label: 'Turn 90°' }] : []), { keys: ['R'], label: selectedPrimitives.length ? 'Rotate 90°' : 'Rotate 15°' });
   if (movable && !freeformMode) acting.push({ keys: ['←→', '↑↓'], label: selectedEquipment.every(e => e.wall) && selectedEquipment.length ? 'Resize · Shift fine' : 'Nudge' }, { keys: ['PgUp', 'PgDn'], label: 'Raise · lower' }, { keys: ['⌘C'], label: 'Copy' }, { keys: ['⇧⌘C'], label: 'Mirror copy' });
   if (selected.size) acting.push({ keys: ['⌫', '⌘X'], label: movable ? 'Remove' : 'Remove · merge rooms' });
   if(!freeformMode&&selected.size===1&&selectedPrimitives[0]&&canEditVertices(selectedPrimitives[0]))acting.push({keys:['D'],label:'Freeform'});
@@ -454,6 +451,8 @@ export function Shipbuilder(props: ShipbuilderProps) {
     tool.setHullCategory(HULL_CATEGORIES[next].id); setTip(undefined);
     event.currentTarget.querySelectorAll<HTMLButtonElement>('button')[next]?.focus();
   }}>{HULL_CATEGORIES.map(category => <button key={category.id} role="radio" aria-checked={hullCategory === category.id} tabIndex={hullCategory === category.id ? 0 : -1} onClick={() => { tool.setHullCategory(category.id); setTip(undefined); }}>{category.name}</button>)}</div>;
+  // The outline editor belongs to one selection: deselecting or leaving the Hull layer closes it rather than parking it.
+  useEffect(() => { if (balconySession && !balconyEditing) setBalconySession(undefined); }, [balconySession, balconyEditing]);
   return <main className={`shipbuilder ${freeformMode ? 'sb-freeform-mode' : ''}`} aria-label="Shipbuilder" data-balcony-editing={balconyEditing || undefined} data-wall-placement={piece?.kind === 'equipment' && !!piece.wall || undefined} data-path-drawing={!!pathPart || undefined} data-layer={layer} data-drawer={drawer || undefined} aria-busy={!!busy}>
     {balconyEditing && <BalconyEditor key={`${source.id}:${balconySession}`} primitive={selectedPrimitives[0]} onChange={value => tool.editPrimitive('Edit balcony', value)} onClose={() => setBalconySession(undefined)} />}
     {newDesignOpen && <NewDesignDialog onClose={() => setNewDesignOpen(false)} onCreate={newDesign}/>}
@@ -571,8 +570,12 @@ export function Shipbuilder(props: ShipbuilderProps) {
       </div>
       {layer === 'hull' && !freeformMode && <div className="sb-shelves">{hullFilters}</div>}
       {layer === 'paint' && <div className="sb-shelves sb-paint-finishes">
+        <label className="sb-finish-select">Ship paint <i className="sb-ship-paint" style={{ background: constructionPaintColor(constructionShipPaint(source)) }}/><select className="sb-link" aria-label="Ship paint" title="Coats every face and fitting without a paint of its own" value={data.paint ?? ''} disabled={locked} onChange={event => tool.setShipPaint(event.target.value || undefined)}>
+          {data.paint === undefined && <option value="">Original fittings</option>}
+          {CONSTRUCTION_PAINTS.map(paint => <option key={paint.id} value={paint.id}>{paint.name}</option>)}
+        </select></label>
         <SurfaceFinishSelect value={data.finish} disabled={locked} onChange={tool.setFinish}/>
-        <span>Whole ship · painted surfaces</span>
+        <span>Whole ship · cards below paint single faces and fittings</span>
       </div>}
       {layer === 'fittings' && <div className="sb-shelves">
         <div className="sb-chips" role="tablist" aria-label="Fitting shelves">{FITTING_CATEGORIES.map(shelf => <button key={shelf.id} role="tab" aria-selected={fittingFilter.category === shelf.id} title={shelf.note} onClick={() => { tool.setFittingFilter({ category: shelf.id }); setTip(undefined); }}>{shelf.name}</button>)}</div>

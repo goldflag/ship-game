@@ -70,13 +70,17 @@ by `target / measured`, then repeat the measurement and check neighboring speeds
 
 ## Water appearance and rendering
 
-The Atlantic palette remains `waterColor #19364a`, `transmissionColor #355166`,
-and `absorptionColor #945b57`. The four maps retain their deep-blue family and
-the Pacific's small green shift. The 1,024 m largest FFT tile, foam textures,
+The selected **A · Steel blue** palette uses `waterColor #2d373c` and
+`transmissionColor #49575e` across all four maps and the port. It replaces the
+more saturated naval blue with a muted, cool blue-gray. The map-specific absorption
+colors remain unchanged (Atlantic `#945b57`), as do sky, fog, reflections and
+exposure. The port inherits the Atlantic swatches through `VisualEnvironment`.
+The 1,024 m largest FFT tile, foam textures,
 Fresnel parameters and quality-tier cascade counts are unchanged. High remains
 the default, including its third ripple cascade and screen-space reflections.
 Calibration adds no geometry, render passes or particles; altered slopes can
-still change fragment-shader work. See the [palette comparison](../assets/reviews/water-palette/README.md).
+still change fragment-shader work. The [earlier naval-blue comparison](../assets/reviews/water-palette/README.md)
+is historical; its captures predate Steel blue.
 
 Water fog fades from 2,500 to 16,000 m with a 10,000 m sky blend. The grid retains
 its 256 m base and six levels; the ocean floor is hidden at configured depth 200 m.
@@ -89,7 +93,7 @@ Port sun peak intensity is **5.8** and hemisphere fill **1.75**, lifting shaded 
 
 The additional horizon softening introduced with the naval-blue palette has been reverted. Sky and water use their existing Sky Pro / Water Pro shading, with the sky preset's original cloud fade distances. Battle fog uses power **1.4** and the complete authored sky-color blend distance for the selected map/weather. Port fog retains power **0.85** and a **2,600 m** sky-color blend distance. The custom horizon veil, cool-color sampler overrides and water-surface haze blend are removed; no depth-based post-fog is added.
 
-The naval-blue palette retains spectral sharpness 0.8. Battle waves now follow the calibrated wind curve above; port keeps the original restrained tuning. The following correction sections also record earlier iterations and their evidence.
+The ocean retains spectral sharpness 0.8. Battle waves now follow the calibrated wind curve above; port keeps the original restrained tuning. The following correction sections also record earlier iterations and their evidence.
 
 The vendored Fresnel shader's grazing-angle guard is reduced from 0.05 to 0.0001. The old guard gave shallow wave slopes identical reflectance, turning distant water into a flat color that was conspicuous at 24×. The smaller positive guard preserves wave shading at naval sight angles; texture filtering already follows the camera projection. It adds no wave samples, mesh detail or render passes. Pixel filtering and weather haze still soften the far horizon. See the [water detail review](../assets/reviews/water-detail/README.md) and [vendor patch record](../vendor/threejs-water-pro/PATCHES.md).
 

@@ -1,6 +1,49 @@
 # Construction equipment
 
+## Generic running gear
+
+The current builder offers four fixed sizes of four-blade screw and four sizes
+of balanced rudder. The Fletcher and German cruiser running gear is omitted
+from the current catalog. No migration or replacement aliases are provided.
+
+| Part | Nominal diameter / blade depth (m) | Dry mass (kg) | Efficiency / rudder area (m²) |
+| --- | ---: | ---: | ---: |
+| Four-blade screw | 1.2 | 110 | 0.60 |
+| Four-blade screw | 2.4 | 880 | 0.60 |
+| Four-blade screw | 4.2 | 4,720 | 0.60 |
+| Four-blade screw | 6 | 13,750 | 0.60 |
+| Balanced rudder | 1 | 85 | 0.72 |
+| Balanced rudder | 2 | 680 | 2.88 |
+| Balanced rudder | 4 | 5,440 | 11.52 |
+| Balanced rudder | 6 | 18,360 | 25.92 |
+
+`running_gear.py` reuses the original `small_appendages.py` recipes, baking each
+larger variant into metre coordinates during authoring. Dimensions, attachment
+sockets and CG scale linearly; the provisional dry masses scale by volume and
+rudder areas by area. All screws share the original right-hand pitch shape and
+efficiency. These are generic game estimates, not researched vessel fittings or
+engineering ratings. The renderer does not resize equipment instances.
+
+Propellers retain the forward shaft seat, fixed bearing and independent `.spin`
+joint. Rudders retain the upper support/steering sockets, fixed bearing and
+independent `.yaw` joint. The native compiler continues to own shaft supports,
+engine assignments, immersion and steering behavior. Per-design hull and
+neighbor clearance still require installation review.
+
 ## Deck fittings and connected paths
+
+The current Deck gear selection is general ship hardware. Drawable rope, chain,
+railings and surface ladders lead the shelf. Paravanes, signal lamps, gun tubs,
+ammunition lockers, splinter shields, fixed-shape breakwaters and the German
+cruiser capstan/hatch are omitted from new catalogs. Retained immutable catalogs
+and their original registrations preserve older saved designs and ship sources.
+
+`utility_fittings.py` supplies plain replacements for the older generic mooring,
+anchor, ventilation, access and flagstaff fittings. They retain stable IDs,
+attachment/rigging datums and conservative package envelopes. Small fasteners,
+cable windings, ornamental profiles and service-specific mechanisms are omitted;
+12-sided castings and six-sided thin rods follow the lightweight boxes and racks.
+These are static visual fittings; no new operating mechanisms are implied.
 
 The first deck fittings collection adds bitts, fairleads, a capstan and anchor
 windlass, a stowed anchor, a lifeboat with cradles and paired davits, two vent
@@ -103,7 +146,7 @@ estimates are construction allowances, not researched magazine drawings; gun
 mass already includes the catalog mounting/protection and must not receive a
 second charge for those plates.
 
-The quintuple bank, forward funnel, starboard screw, rudder, aftermast and Mk37
+The quintuple bank, forward funnel, legacy starboard screw and rudder, aftermast and Mk37
 director adapt original source in `assets/ships/fletcher/build.py`, with the
 original source dimensions preserved. The torpedo bank references canonical
 `us-mk15-fast` ammunition and retains its five muzzle offsets. The screw is the
@@ -343,3 +386,19 @@ each end projects to a closed hull panel. Rust mirrors that member layout for
 support, interference, mass and inertia checks. The standalone Blender sample
 is three metres tall. Ladder mass per metre describes rod length, not route
 length; the current values are provisional engineering estimates.
+
+## Rimmed porthole
+
+`generic-rimmed-porthole` is an original interpretation of the owner-supplied
+porthole image: twelve-sided opaque glazing, a shallow bevelled painted rim,
+and a faceted rain eyebrow attached to the wall. The original recipe is
+`rimmed_porthole.py`; its standalone export has 150 triangles and no textures.
+It appears in **Doors & windows** with one **Scale** control. The versioned
+wall width and height remain equal; `wallSizing: "uniform"` scales the rim
+and eyebrow depth too, with cubic mass scaling. Arrow keys, rows, mirrors and
+saved designs use the existing wall-fitting workflow. Existing flat portholes
+retain their diameter control and surface-only sizing.
+
+The nominal 0.6 m square envelope, 36 mm maximum relief and 14 kg mass are
+game estimates. This closed fitting adds no hull opening, interior or
+articulation; installation must pass the native wall-support checks.

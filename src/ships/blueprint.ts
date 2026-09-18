@@ -344,7 +344,7 @@ export interface ConstructionFreeformFace {
 export interface ConstructionBalconyPoint {
   id: string; x: number; z: number;
   /** Treatment of the edge from this point to the next, wrapping at the end. */
-  edge: 'open' | 'railing' | 'wall';
+  edge: 'open' | 'railing' | 'triple-railing' | 'wall';
 }
 export interface ConstructionBalcony {
   version: 1;
@@ -388,7 +388,7 @@ export interface ConstructionSurfaceAssignment {
 export interface ConstructionEquipment {
   /** Wall fitting installation, in metres; linked partners reflect across ship X=0. */
   wall?: { version: 1; widthM: number; heightM: number; mirrorId?: string };
-  /** Named coating for this installation; omission retains the original component finish. */
+  /** Named coating for this installation and its barbette; omission follows the ship paint. */
   paint?: string;
   id: string; partId: string; position: Vec3; bearingDeg: number;
   magazineId?: string; powerSourceId?: string;
@@ -396,8 +396,6 @@ export interface ConstructionEquipment {
   gun?: {
     /** Added height above the deck attachment; position remains the turret datum. */
     barbetteHeightM?: number;
-    /** Named paint applied to the entire fixed barbette. */
-    barbettePaint?: string;
     battery?: 'main' | 'secondary';
     initialElevationDeg?: number;
     traverseDeg?: number;
@@ -419,6 +417,9 @@ export type ConstructionSurfaceFinish = 'matte' | 'satin' | 'semi-gloss' | 'glos
 export interface ConstructionData {
   /** Ship-wide painted-surface sheen; omission preserves original material finishes. */
   finish?: ConstructionSurfaceFinish;
+  /** Ship paint for unassigned faces, unpainted fittings and their barbettes; omission keeps
+   * naval gray faces and original component finishes. */
+  paint?: string;
   version: 1 | 2; catalogRevision: string; defaultThicknessMm: number;
   primitives: ConstructionPrimitive[]; surfaces: ConstructionSurfaceAssignment[];
   equipment: ConstructionEquipment[]; boundaries: ConstructionBoundary[]; loads: ConstructionLoad[];
@@ -483,10 +484,15 @@ export interface ConstructionEquipmentPart {
   placement: 'internal' | 'deck' | 'underwater';
   /** Closed surface detail; attachment socket faces into a vertical wall. */
   wallMount?: 'door' | 'porthole' | 'window' | 'vent' | 'hardware';
+  /** Porthole proportions, including relief depth, use one overall scale. */
+  wallSizing?: 'uniform';
   /** Intrinsic working spaces. For v2 guns, [] declares a deck mount; omitted light guns (<100 mm) also default to deck mounts. */
   occupancy?: { center: Vec3; size: Vec3 }[];
   /** Conservative physical fitting boxes for sparse original equipment; absent uses the full visual bounds. */
   fitting?: { center: Vec3; size: Vec3 }[];
+  /** Published component-local triangle surface for rope/chain support and clearance.
+   * Base64 zlib: u32 vertex/triangle counts, xyz f32 vertices, u32 triangle indices (little endian). */
+  riggingSurface?: { encoding: 'deflate-f32-u32-v1'; data: string };
   sockets?: { id: string; kind: string; position: Vec3; direction: Vec3 }[];
   gunPartId?: string; torpedoPartId?: string; tubeOffsets?: Vec3[];
   powerKw?: number; exhaustKw?: number; thrustEfficiency?: number; rudderAreaM2?: number;

@@ -6,7 +6,9 @@ export function wallMount(part: ConstructionEquipmentPart): ConstructionEquipmen
 }
 
 export function wallScale(part: ConstructionEquipmentPart, item: Pick<ConstructionEquipment, 'wall'>): Vec3 {
-  return item.wall && wallMount(part) ? [item.wall.widthM / part.size[0], item.wall.heightM / part.size[1], 1] : [1, 1, 1];
+  if (!item.wall || !wallMount(part)) return [1, 1, 1];
+  const x = item.wall.widthM / part.size[0];
+  return part.wallSizing === 'uniform' ? [x, x, x] : [x, item.wall.heightM / part.size[1], 1];
 }
 
 /** Installation dimensions for picking, snapping and display. Rust owns physical validation. */
@@ -15,7 +17,7 @@ export function installedWallPart(part: ConstructionEquipmentPart, item: Pick<Co
   const scale = wallScale(part, item), scaled = (v: Vec3) => v.map((n, k) => n * scale[k]) as Vec3;
   return { ...part, size: scaled(part.size), boundsCenter: scaled(part.boundsCenter), centerOfGravity: scaled(part.centerOfGravity),
     sockets: part.sockets?.map(s => ({ ...s, position: scaled(s.position) })),
-    fitting: part.fitting?.map(b => ({ center: scaled(b.center), size: scaled(b.size) })), massKg: (part.massKg ?? 0) * scale[0] * scale[1] };
+    fitting: part.fitting?.map(b => ({ center: scaled(b.center), size: scaled(b.size) })), massKg: (part.massKg ?? 0) * scale[0] * scale[1] * scale[2] };
 }
 
 export const wallBearing = (normal: Vec3) => ((Math.atan2(normal[0], -normal[2]) * 180 / Math.PI) + 360) % 360;

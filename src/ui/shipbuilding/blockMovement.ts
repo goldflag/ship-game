@@ -38,7 +38,7 @@ export function blockPlacementAllowed(source: ConstructionSource, additions: Con
 export function placementBlocks(piece: Extract<BuilderPlacement, { kind: 'hull' }>, points: Vec3[], mirror: boolean, newId: () => string): ConstructionPrimitive[] {
   const blocks: ConstructionPrimitive[] = [];
   for (const position of points) {
-    const p: ConstructionPrimitive = { id: newId(), kind: piece.shape, size: [...piece.size], position: [...position], rotationDeg: piece.rotationDeg,
+    const p: ConstructionPrimitive = { id: newId(), kind: piece.shape, size: [...piece.size], position: [...position], rotationDeg: piece.rotationDeg, ...(piece.tilt ? { tilt: { ...piece.tilt } } : {}),
       ...(piece.shape === 'balcony' ? { balcony: piece.balcony ? structuredClone(piece.balcony) : placementBalcony(position, piece.rotationDeg) } : {}),
       ...(piece.shape === 'custom-hull' ? { customHull: customHullPrimitive(makeHull()).customHull } : {}) };
     blocks.push(p);

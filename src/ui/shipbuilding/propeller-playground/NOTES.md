@@ -17,7 +17,7 @@ connections. Download exports the current custom-ship source; it does not save
 to an account or add a fleet preset. Reload resets in-memory placement changes.
 The sources omit engines: these are installation studies, not powered trial ships.
 Mass retains the compiler's provisional solid-steel assumption. The large layouts
-reuse the existing Fletcher starboard component on both sides; the mirrored
+reuse the current generic 4.2 m component on both sides; the mirrored
 animation is illustrative, not a newly authored port-hand screw.
 
 ## Implementation boundary

@@ -74,7 +74,7 @@ fn sloped_custom_hull_turrets_still_reject_real_obstructions() {
     let (mut source, catalog) = fixture();
     let hull = &mut source.construction.primitives[0];
     hull.kind = "custom-hull".into();
-    hull.custom_hull = Some(ConstructionCustomHull {
+    hull.custom_hull = Some(ConstructionCustomHull { bilge_keels: None,
         version: 1., rake: 0., bulb: 0., red_paint_y: None,
         stations: (0..4).map(|i| {
             let t = i as f64 / 3.;
@@ -282,13 +282,16 @@ fn invalid_drafts_keep_round_barbettes_and_uncut_deck_corners() {
         .unwrap();
     for rise in [0., 3.] {
         let mut source = source.clone();
+        // The barbette wears the turret's paint, or the ship paint under an unpainted turret.
+        source.construction.paint = Some("sea-blue".into());
+        let paint = if rise > 0. { "red-oxide" } else { "sea-blue" };
         source.construction.equipment.push(ConstructionEquipment {
             id: "turret".into(),
             part_id: part.id.clone(),
             position: [0., 8. - attachment + rise, 0.],
+            paint: (rise > 0.).then(|| "red-oxide".into()),
             gun: Some(ConstructionEquipmentGun {
                 barbette_height_m: Some(rise),
-                barbette_paint: Some("red-oxide".into()),
                 ..Default::default()
             }),
             ..Default::default()
@@ -305,7 +308,7 @@ fn invalid_drafts_keep_round_barbettes_and_uncut_deck_corners() {
         };
         let expected = support(&valid);
         assert!(!expected.is_empty());
-        assert!(expected.iter().all(|s| s.paint == "red-oxide"));
+        assert!(expected.iter().all(|s| s.paint == paint));
         assert!(expected.iter().flat_map(|s| &s.vertices).all(|v|
             v[0].hypot(v[2]) <= weapon.barbette_radius + 1e-6),
             "Barbette has square plates protruding beyond its circular wall");

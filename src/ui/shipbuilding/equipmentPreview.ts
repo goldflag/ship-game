@@ -1,6 +1,7 @@
 import { createConstructionWallModel } from '../../game/constructionWallModel';
 import { wallScale } from '../../ships/constructionWallFittings';
 import { paintConstructionFitting } from '../../game/constructionFittingPaint';
+import { constructionFittingPaint } from '../../ships/constructionPaints';
 import * as THREE from 'three';
 import type { ConstructionCatalog, ConstructionEquipment, ConstructionSource, ConstructionPropellerSupport, ConstructionSurface, ConstructionSurfaceFinish } from '../../ships/blueprint';
 import { constructionEquipmentModelUrl } from '../../ships/constructionEquipment';
@@ -157,11 +158,12 @@ export class EquipmentPreview {
     for (const [id, instance] of this.instances) if (!ids.has(id)) { instance.removeFromParent(); if (instance.userData.path) disposeConstructionModel(instance); this.instances.delete(id); }
     for (const item of source.construction.equipment) {
       let instance = this.instances.get(item.id);
-      const path = this.catalog.equipment.find(part => part.id === item.partId)?.path;
-      const key = `${item.wall || path?.kind === 'ladder' ? JSON.stringify([item, this.surfaceRevision]) : ''}:${this.key(item.partId)}${path ? ':' + JSON.stringify(item.path) : ''}:${invalid.has(item.id)}:${item.paint ?? ''}${source.construction.finish ? ':' + source.construction.finish : ''}`;
+      const catalogPart = this.catalog.equipment.find(part => part.id === item.partId), path = catalogPart?.path;
+      const paint = constructionFittingPaint(source, item, catalogPart);
+      const key = `${item.wall || path?.kind === 'ladder' ? JSON.stringify([item, this.surfaceRevision]) : ''}:${this.key(item.partId)}${path ? ':' + JSON.stringify(item.path) : ''}:${invalid.has(item.id)}:${paint ?? ''}${source.construction.finish ? ':' + source.construction.finish : ''}`;
       if (instance && instance.userData.assetKey !== key) { instance.removeFromParent(); if (instance.userData.path) disposeConstructionModel(instance); this.instances.delete(item.id); instance = undefined; }
       if (!instance) {
-        let model = this.clone(item.partId, false, item.path, invalid.has(item.id), item.paint, {item,surfaces}, source.construction.finish);
+        let model = this.clone(item.partId, false, item.path, invalid.has(item.id), paint, {item,surfaces}, source.construction.finish);
         const part = catalog.equipment.find(p => p.id === item.partId);
         if (model && item.wall && part) model = createConstructionWallModel(model, part, item, surfaces, source.construction.primitives);
         if (!model) continue;

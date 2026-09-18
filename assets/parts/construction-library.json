@@ -72,35 +72,35 @@
       ]
     },
     "generic-twin-bitts": {
-      "path": "assets/parts/construction/deck_fittings.py",
+      "path": "assets/parts/construction/utility_fittings.py",
       "function": "create_twin_bitts",
       "inputs": [
         "assets/parts/construction/geometry.py"
       ]
     },
     "generic-fairlead": {
-      "path": "assets/parts/construction/deck_fittings.py",
+      "path": "assets/parts/construction/utility_fittings.py",
       "function": "create_fairlead",
       "inputs": [
         "assets/parts/construction/geometry.py"
       ]
     },
     "generic-capstan": {
-      "path": "assets/parts/construction/deck_fittings.py",
+      "path": "assets/parts/construction/utility_fittings.py",
       "function": "create_capstan",
       "inputs": [
         "assets/parts/construction/geometry.py"
       ]
     },
     "generic-anchor-windlass": {
-      "path": "assets/parts/construction/deck_fittings.py",
+      "path": "assets/parts/construction/utility_fittings.py",
       "function": "create_anchor_windlass",
       "inputs": [
         "assets/parts/construction/geometry.py"
       ]
     },
     "generic-stowed-anchor": {
-      "path": "assets/parts/construction/deck_fittings.py",
+      "path": "assets/parts/construction/utility_fittings.py",
       "function": "create_stowed_anchor",
       "inputs": [
         "assets/parts/construction/geometry.py"
@@ -114,14 +114,14 @@
       ]
     },
     "generic-mushroom-vent": {
-      "path": "assets/parts/construction/deck_fittings.py",
+      "path": "assets/parts/construction/utility_fittings.py",
       "function": "create_mushroom_vent",
       "inputs": [
         "assets/parts/construction/geometry.py"
       ]
     },
     "generic-cowl-vent": {
-      "path": "assets/parts/construction/deck_fittings.py",
+      "path": "assets/parts/construction/utility_fittings.py",
       "function": "create_cowl_vent",
       "inputs": [
         "assets/parts/construction/geometry.py"
@@ -136,7 +136,7 @@
       ]
     },
     "generic-deck-hatch": {
-      "path": "assets/parts/construction/deck_fittings.py",
+      "path": "assets/parts/construction/utility_fittings.py",
       "function": "create_deck_hatch",
       "inputs": [
         "assets/parts/construction/geometry.py"
@@ -164,7 +164,7 @@
       ]
     },
     "generic-inclined-stairs": {
-      "path": "assets/parts/construction/deck_fittings.py",
+      "path": "assets/parts/construction/utility_fittings.py",
       "function": "create_inclined_stairs",
       "inputs": [
         "assets/parts/construction/geometry.py"
@@ -435,28 +435,28 @@
       ]
     },
     "generic-hawse-pipe": {
-      "path": "assets/parts/deck-gear/forecastle.py",
+      "path": "assets/parts/construction/utility_fittings.py",
       "function": "create_hawse_pipe",
       "inputs": [
         "assets/parts/construction/geometry.py"
       ]
     },
     "generic-cable-reel": {
-      "path": "assets/parts/deck-gear/forecastle.py",
+      "path": "assets/parts/construction/utility_fittings.py",
       "function": "create_cable_reel",
       "inputs": [
         "assets/parts/construction/geometry.py"
       ]
     },
     "generic-deck-winch": {
-      "path": "assets/parts/deck-gear/forecastle.py",
+      "path": "assets/parts/construction/utility_fittings.py",
       "function": "create_deck_winch",
       "inputs": [
         "assets/parts/construction/geometry.py"
       ]
     },
     "generic-accommodation-ladder": {
-      "path": "assets/parts/deck-gear/forecastle.py",
+      "path": "assets/parts/construction/utility_fittings.py",
       "function": "create_accommodation_ladder",
       "inputs": [
         "assets/parts/construction/geometry.py"
@@ -477,7 +477,7 @@
       ]
     },
     "generic-ensign-staff": {
-      "path": "assets/parts/deck-gear/topside.py",
+      "path": "assets/parts/construction/utility_fittings.py",
       "function": "create_ensign_staff",
       "inputs": [
         "assets/parts/construction/geometry.py"
@@ -667,11 +667,10 @@
       ]
     },
     "generic-round-wall-vent": {
-      "path": "assets/parts/construction/surface_fittings.py",
-      "function": "create_surface_fitting",
+      "path": "assets/parts/construction/utility_fittings.py",
+      "function": "create_round_wall_vent",
       "inputs": [
-        "assets/parts/construction/geometry.py",
-        "assets/parts/construction/windows.py"
+        "assets/parts/construction/geometry.py"
       ]
     },
     "generic-surface-ladder": {
@@ -749,6 +748,61 @@
       "path": "assets/parts/construction/superstructure_fittings.py",
       "function": "create_deck_box",
       "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-rimmed-porthole": {
+      "path": "assets/parts/construction/rimmed_porthole.py",
+      "function": "create_rimmed_porthole",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-propeller-2400": {
+      "path": "assets/parts/construction/running_gear.py",
+      "function": "create_propeller",
+      "inputs": [
+        "assets/parts/construction/small_appendages.py",
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-propeller-4200": {
+      "path": "assets/parts/construction/running_gear.py",
+      "function": "create_propeller",
+      "inputs": [
+        "assets/parts/construction/small_appendages.py",
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-propeller-6000": {
+      "path": "assets/parts/construction/running_gear.py",
+      "function": "create_propeller",
+      "inputs": [
+        "assets/parts/construction/small_appendages.py",
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-rudder-2000": {
+      "path": "assets/parts/construction/running_gear.py",
+      "function": "create_rudder",
+      "inputs": [
+        "assets/parts/construction/small_appendages.py",
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-rudder-4000": {
+      "path": "assets/parts/construction/running_gear.py",
+      "function": "create_rudder",
+      "inputs": [
+        "assets/parts/construction/small_appendages.py",
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-rudder-6000": {
+      "path": "assets/parts/construction/running_gear.py",
+      "function": "create_rudder",
+      "inputs": [
+        "assets/parts/construction/small_appendages.py",
         "assets/parts/construction/geometry.py"
       ]
     }
@@ -1271,6 +1325,12 @@
       "limitations": "Original generic closed surface fitting with opaque optics. No hull opening or interior. Dimensions and mass are engineering estimates; installed wall support requires native validation."
     },
     {
+      "partId": "generic-rimmed-porthole",
+      "builder": "generic-rimmed-porthole",
+      "review": "unreviewed",
+      "limitations": "Original low-poly interpretation of the user-supplied porthole image: faceted glazing, raised rim and rain eyebrow. Uniform scale only. Closed fitting with no hull opening; dimensions and mass are game estimates. Installed support requires native validation."
+    },
+    {
       "partId": "generic-rectangular-window",
       "builder": "generic-rectangular-window",
       "review": "unreviewed",
@@ -1419,6 +1479,42 @@
       "builder": "generic-deck-open-bin",
       "review": "unreviewed",
       "limitations": "Original simple prop inspired by user-supplied ship model screenshots; no exact historical variant claimed. Dimensions and mass are game estimates. Static geometry adds only loading mass. Installation support and clearance remain design-specific."
+    },
+    {
+      "partId": "generic-propeller-2400",
+      "builder": "generic-propeller-2400",
+      "review": "unreviewed",
+      "limitations": "Original generic running gear; fixed dimensions, mass and capability are gameplay estimates. Installation support, immersion and moving-neighbor clearance require design review."
+    },
+    {
+      "partId": "generic-propeller-4200",
+      "builder": "generic-propeller-4200",
+      "review": "unreviewed",
+      "limitations": "Original generic running gear; fixed dimensions, mass and capability are gameplay estimates. Installation support, immersion and moving-neighbor clearance require design review."
+    },
+    {
+      "partId": "generic-propeller-6000",
+      "builder": "generic-propeller-6000",
+      "review": "unreviewed",
+      "limitations": "Original generic running gear; fixed dimensions, mass and capability are gameplay estimates. Installation support, immersion and moving-neighbor clearance require design review."
+    },
+    {
+      "partId": "generic-rudder-2000",
+      "builder": "generic-rudder-2000",
+      "review": "unreviewed",
+      "limitations": "Original generic running gear; fixed dimensions, mass and capability are gameplay estimates. Installation support, immersion and moving-neighbor clearance require design review."
+    },
+    {
+      "partId": "generic-rudder-4000",
+      "builder": "generic-rudder-4000",
+      "review": "unreviewed",
+      "limitations": "Original generic running gear; fixed dimensions, mass and capability are gameplay estimates. Installation support, immersion and moving-neighbor clearance require design review."
+    },
+    {
+      "partId": "generic-rudder-6000",
+      "builder": "generic-rudder-6000",
+      "review": "unreviewed",
+      "limitations": "Original generic running gear; fixed dimensions, mass and capability are gameplay estimates. Installation support, immersion and moving-neighbor clearance require design review."
     }
   ]
 }

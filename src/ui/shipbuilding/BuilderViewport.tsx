@@ -27,7 +27,7 @@ import type { ConstructionEquipment, ConstructionPrimitive, ConstructionResult, 
 import { armorThicknessColor } from '../../ships/inspection';
 import { surfaceSelectionKey } from '../../ships/constructionEditor';
 import { pendingHullSurfaces } from './pendingHull';
-import { constructionPaintColor } from '../../ships/constructionPaints';
+import { constructionPaintColor, constructionShipPaint } from '../../ships/constructionPaints';
 import { normalizedBearing, snapCoordinate, gridCoordinate } from './editorNumbers';
 import { attachmentOffset, dominantAxis, fillLattice, pieceExtents, physicalPlacementHit, placementCenter, strokeSegment } from './placement';
 import { primitiveOutlineGeometry, primitiveGeometry, primitiveRotation, placementGeometry, placementRotation } from './primitiveGeometry';
@@ -183,6 +183,8 @@ class Viewport {
   private hoverSurface = '';
   private hoveredPart?: string;
   private modelAbort?: AbortController;
+  /** First click of a two-click window row; the second click on the same wall lays it. */
+  private rowStart?: { pick: BuilderPick; partId?: string };
   private pointerStart?: { id: number; button: number; x: number; y: number; moved: boolean; box: boolean; additive: boolean; start?: BuilderPick; rotate?: RotationDrag; move?: MoveDrag; points: Vec3[]; faces?: Set<string> };
   /** The faces a Paint or Opening drag has crossed so far, drawn as brass over the hull until release commits them. */
   private facesPreview = new THREE.Group();
@@ -387,7 +389,7 @@ class Viewport {
           if (points.length) this.hull.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(points), new THREE.LineBasicMaterial({ color: '#142a31', transparent: true, opacity: props.scene.display === 'internals' ? .35 : .9, depthWrite: false })));
         }
       } else for (const primitive of props.scene.source.construction.primitives) {
-        const mesh = new THREE.Mesh(primitiveGeometry(primitive.kind, primitive.size, primitive.vertices, primitive.customHull, primitive.shaping, primitive.balcony, primitive.mesh), new THREE.MeshStandardMaterial({ color: invalid.has(primitive.id) ? SALMON : constructionPaintColor('naval-gray'), roughness: .78, side: THREE.DoubleSide, transparent: props.scene.display !== 'paint', opacity: props.scene.display !== 'paint' ? .12 : 1, depthWrite: props.scene.display === 'paint' }));
+        const mesh = new THREE.Mesh(primitiveGeometry(primitive.kind, primitive.size, primitive.vertices, primitive.customHull, primitive.shaping, primitive.balcony, primitive.mesh), new THREE.MeshStandardMaterial({ color: invalid.has(primitive.id) ? SALMON : constructionPaintColor(constructionShipPaint(props.scene.source)), roughness: .78, side: THREE.DoubleSide, transparent: props.scene.display !== 'paint', opacity: props.scene.display !== 'paint' ? .12 : 1, depthWrite: props.scene.display === 'paint' }));
         mesh.position.set(...primitive.position); mesh.rotation.copy(primitiveRotation(primitive));
         mesh.userData.sourceId = primitive.id; this.hull.add(mesh); this.pickMeshes.push(mesh); this.hullMeshes.push(mesh);
         mesh.material.polygonOffset = true; mesh.material.polygonOffsetFactor = 1; mesh.material.polygonOffsetUnits = 1;
@@ -542,7 +544,7 @@ class Viewport {
     for(const original of this.props.scene.source.construction.primitives) {
       const p=map.get(original.id)??original;
       const geometry=primitiveGeometry(p.kind,p.size,p.vertices,p.customHull,p.shaping,p.balcony,p.mesh);
-      const mesh=new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({color:constructionPaintColor('naval-gray'),roughness:.78,side:THREE.DoubleSide}));
+      const mesh=new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({color:constructionPaintColor(constructionShipPaint(this.props.scene.source)),roughness:.78,side:THREE.DoubleSide}));
       mesh.position.set(...p.position);mesh.rotation.copy(primitiveRotation(p));this.vertexPreview.add(mesh);
       mesh.material.polygonOffset=true;mesh.material.polygonOffsetFactor=1;mesh.material.polygonOffsetUnits=1;
       const edges=new THREE.LineSegments(primitiveOutlineGeometry(p),new THREE.LineBasicMaterial({color:map.has(p.id)?BRASS_LIGHT:'#142a31',depthWrite:false}));edges.position.copy(mesh.position);edges.rotation.copy(mesh.rotation);this.vertexPreview.add(edges);
@@ -563,7 +565,8 @@ class Viewport {
       if (mirror?.kind === 'hull') mirror = { ...piece, rotationDeg: -piece.rotationDeg,
         balcony: mirroredBalcony({ id: 'preview', kind: 'balcony', position: [0, 0, 0], size: piece.size, rotationDeg: piece.rotationDeg, balcony: piece.balcony }) };
     }
-    if (piece?.kind === 'equipment' && piece.wall && this.pointerStart?.start?.bearingDeg !== undefined && pick?.bearingDeg !== undefined && Math.cos((pick.bearingDeg-this.pointerStart.start.bearingDeg)*Math.PI/180)<.7) pick = undefined;
+    const wallStart = this.pointerStart?.start ?? this.pendingRow();
+    if (piece?.kind === 'equipment' && piece.wall && wallStart?.bearingDeg !== undefined && pick?.bearingDeg !== undefined && Math.cos((pick.bearingDeg-wallStart.bearingDeg)*Math.PI/180)<.7) pick = undefined;
     if (piece?.kind === 'equipment' && piece.wall && pick?.bearingDeg !== undefined) {
       piece = { ...piece, bearingDeg: pick.bearingDeg };
       if (mirror?.kind === 'equipment') mirror = { ...mirror, bearingDeg: normalizedBearing(-pick.bearingDeg) };
@@ -584,7 +587,7 @@ class Viewport {
                 equipment = createConstructionWallModel(equipment, part, {id:'preview',partId:part.id,position,bearingDeg:item.bearingDeg,wall:item.wall}, this.props.scene.current?.surfaces ?? [], this.props.scene.source.construction.primitives);
               } else equipment.scale.fromArray(wallScale(part, { wall: item.wall }));
             }
-            group.add(equipment); group.rotation.y = placementRotation(item); return; }
+            group.add(equipment); group.rotation.copy(placementRotation(item)); return; }
           const balcony = item.kind === 'hull' && item.shape === 'balcony'
             ? item.balcony ?? placementBalcony([(pick?.placement[0] ?? 1) * (mirrored ? -1 : 1), 0, 0], item.rotationDeg) : undefined;
           const geometry = item.kind === 'boundary'
@@ -592,15 +595,15 @@ class Viewport {
             : balcony ? primitiveGeometry('balcony', item.size, undefined, undefined, undefined, balcony) : placementGeometry(item);
           const fill = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ color: BRASS, transparent: true, opacity, depthWrite: false, depthTest: item.kind === 'boundary', side: THREE.DoubleSide }));
           const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geometry), new THREE.LineBasicMaterial({ color: BRASS_LIGHT, depthTest: false, transparent: true, opacity: opacity * 3.6 }));
-          fill.renderOrder = 20; edges.renderOrder = 21; group.add(fill, edges); group.rotation.y = placementRotation(item);
+          fill.renderOrder = 20; edges.renderOrder = 21; group.add(fill, edges); group.rotation.copy(placementRotation(item));
         };
         build(piece, this.ghost, piece.kind === 'boundary' ? .12 : .25);
         if (mirror) build(mirror, this.ghostMirror, .12, true);
         if (piece.kind === 'equipment' && piece.arc) this.ghostArc.add(arcMesh({ bearingDeg: 0, traverseDeg: piece.arc.traverseDeg, radius: piece.arc.radius, color: BRASS }));
       }
     }
-    if (piece) this.ghost.rotation.y = placementRotation(piece);
-    if (mirror) this.ghostMirror.rotation.y = placementRotation(mirror);
+    if (piece) this.ghost.rotation.copy(placementRotation(piece));
+    if (mirror) this.ghostMirror.rotation.copy(placementRotation(mirror));
     this.ghostArc.rotation.y = piece?.kind === 'equipment' ? -piece.bearingDeg * Math.PI / 180 : 0;
     const visible = !!piece && !!pick && (!!rotation?.position || !this.navigating());
     this.ghost.visible = visible;
@@ -713,7 +716,7 @@ class Viewport {
     let placement = piece ? placementCenter(piece, { point: raw, normal, snapOrigin }, step) : raw.map(value => gridCoordinate(value, step)) as Vec3;
     if (piece && !this.pointerStart?.move && !this.moveHandles.dragging) {
       const unsnapped = placementCenter(piece, { point: raw, normal, snapOrigin }, null);
-      const moving = piece.kind === 'hull' ? primitiveSnapFeatures({ id: 'cursor', kind: piece.shape, position: [0, 0, 0], rotationDeg: piece.rotationDeg, size: piece.size, balcony: piece.balcony })
+      const moving = piece.kind === 'hull' ? primitiveSnapFeatures({ id: 'cursor', kind: piece.shape, position: [0, 0, 0], rotationDeg: piece.rotationDeg, tilt: piece.tilt, size: piece.size, balcony: piece.balcony })
         : piece.kind === 'equipment' && piece.wall ? wallFrameSnapFeatures('cursor', [0,0,0], piece.bearingDeg, piece).filter(f => f.kind !== 'edge')
         : [{ id: 'cursor:center', owner: 'cursor', point: piece.kind === 'equipment' ? attachmentOffset(piece, piece.bearingDeg) : [0, 0, 0] as Vec3, kind: 'center' as const }];
       const free = SHIP_AXES.filter((_, k) => piece.kind === 'boundary' ? k === 'xyz'.indexOf(piece.axis) : k !== axis);
@@ -791,11 +794,24 @@ class Viewport {
     this.fillPreview.scale.set(Math.max(.01, high[0] - low[0]), Math.max(.01, high[1] - low[1]), Math.max(.01, high[2] - low[2]));
   }
 
+  /** The placed first end of a window row, dropped once the cursor piece stops being that row. */
+  private pendingRow() {
+    const piece = this.props.scene.placementPiece;
+    if (this.rowStart && !(piece?.kind === 'equipment' && piece.rowSpacing && piece.partId === this.rowStart.partId)) { this.rowStart = undefined; release(this.strokePreview); this.strokeKey = ''; }
+    return this.rowStart?.pick;
+  }
+  private rowPoints(start: BuilderPick, hit: BuilderPick | undefined, spacing: number): Vec3[] {
+    if (!hit || start.bearingDeg === undefined || hit.bearingDeg === undefined || Math.cos((start.bearingDeg - hit.bearingDeg)*Math.PI/180)<.7) return [start.placement];
+    return wallRow(start.placement, hit.placement, start.bearingDeg, spacing);
+  }
+
   /** Draw the pending gesture each frame; source/history commits once on release. */
   private updateStrokePreview() {
-    const drag = this.pointerStart, piece = drag?.start?.hullPlacement ?? this.props.scene.placementPiece;
+    const row = this.pendingRow();
+    const drag = this.pointerStart?.start ? this.pointerStart : row ? { start: row, points: [] as Vec3[] } : undefined, piece = drag?.start?.hullPlacement ?? this.props.scene.placementPiece;
     const hit = this.hover ? this.pick(this.hover, 'hull') : undefined;
-    const points = drag?.start && piece && hit
+    const points = row && drag?.start === row && piece?.kind === 'equipment' && piece.rowSpacing ? this.rowPoints(row, hit, piece.rowSpacing)
+      : drag?.start && piece && hit
       ? this.props.scene.gesture === 'fill' ? fillLattice(drag.start.placement, hit.placement, pieceExtents(piece), drag.start.axis) : drag.points
       : [];
     const key = JSON.stringify([this.props.scene.source.revision, this.ghostKey, this.ghost.rotation.y, this.ghostMirror.rotation.y, points]);
@@ -1154,6 +1170,7 @@ class Viewport {
   };
   private move = (event: PointerEvent) => {
     this.hover = { clientX: event.clientX, clientY: event.clientY }; this.updatePathPreview(); this.updateGhost(); this.highlight(event);
+    if (!this.pointerStart && this.rowStart) this.updateStrokePreview();
     if (!this.pointerStart || event.pointerId !== this.pointerStart.id) return;
     this.pointerStart.moved ||= Math.hypot(event.clientX - this.pointerStart.x, event.clientY - this.pointerStart.y) >= 5;
     if (this.pointerStart.rotate) {
@@ -1202,9 +1219,10 @@ class Viewport {
       this.previewRotation(start.rotate, 0);
       if (Math.abs(start.rotate.degrees % 360) > 1e-6) this.props.onPointer({ kind: 'rotate', ids: start.rotate.ids, degrees: start.rotate.degrees });
       this.updateGhost();
+    } else if (start.button === 2 && clicked && this.pendingRow()) {
+      this.rowStart = undefined; this.updateStrokePreview();
     } else if (start.button === 2) {
-      const hit = clicked ? this.pick(event, 'all') : undefined;
-      if (hit?.id && !this.props.scene.freeform && !this.props.scene.pathDraft) this.props.onPointer({ kind: 'erase', id: hit.id });
+      // Right button only pans, rotates or cancels a pending row; removal is the Erase tool or Delete.
     } else if (this.props.scene.pathDraft && !rect) {
       const point = this.pathPick(event);
       if (clicked && point) this.props.onPointer({ kind: 'path-point', point, bearingDeg: wallBearing(this.pick(event, 'hull')?.normal ?? [0, 0, -1]) });
@@ -1218,6 +1236,15 @@ class Viewport {
       else if (clicked) this.props.onPointer({ kind: 'pick', hit: this.pick(event, 'all') });
     } else if (start.start && piece) {
       const hit = this.pick(event, 'hull');
+      const row = this.pendingRow();
+      if (piece.kind === 'equipment' && piece.rowSpacing && (clicked || row)) {
+        // Click once for the first window and again for the last; a plain drag still lays a row in one gesture.
+        if (!row) { this.rowStart = { pick: start.start, partId: piece.partId }; this.updateStrokePreview(); return; }
+        if (!hit || row.bearingDeg === undefined || hit.bearingDeg === undefined || Math.cos((row.bearingDeg-hit.bearingDeg)*Math.PI/180)<.7) { this.updateStrokePreview(); return; }
+        this.rowStart = undefined;
+        this.props.onPointer({ kind: 'lay', points: wallRow(row.placement, hit.placement, row.bearingDeg, piece.rowSpacing), bearingDeg: row.bearingDeg });
+        return;
+      }
       if (!hit || piece.kind === 'equipment' && piece.wall && Math.cos(((start.start.bearingDeg??0)-(hit.bearingDeg??0))*Math.PI/180)<.7) return;
       if (this.props.scene.gesture === 'fill') this.props.onPointer({ kind: 'lay', hullPlacement: start.start.hullPlacement, points: fillLattice(start.start.placement, clicked ? start.start.placement : hit.placement, pieceExtents(start.start.hullPlacement ?? piece), start.start.axis) });
       else this.props.onPointer({ kind: 'lay', hullPlacement: start.start.hullPlacement, points: clicked ? [start.start.placement] : start.points, bearingDeg: start.start.bearingDeg });
@@ -1267,7 +1294,7 @@ class Viewport {
     if (pointer && this.renderer.domElement.hasPointerCapture(pointer.id)) this.renderer.domElement.releasePointerCapture(pointer.id);
     this.fillPreview.visible = false; release(this.strokePreview); this.strokeKey = ''; this.updateFacesPreview(); this.showBox(); this.finishMove(); this.leave();
   };
-  private key = (event: KeyboardEvent) => { if (event.key === 'Escape' && this.pointerStart) this.cancel(); };
+  private key = (event: KeyboardEvent) => { if (event.key === 'Escape' && (this.pointerStart || this.rowStart)) { this.rowStart = undefined; this.cancel(); } };
   private animate = () => {
     if (this.dead) return;
     if(!this.freeformHandles.dragging && !this.moveHandles.dragging && !this.rotateHandles.dragging && !this.pointerStart?.rotate) this.controls.update();

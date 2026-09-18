@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "generic-rimmed-porthole",
+  "revision": "d32f0ac344d9ab17f1165e143e8ec5b7c69e333888f0fd34a8b8f0727b75fe42",
+  "contentHash": "4b7cd309db71a1509e3d0b5f8e54c4599890592f1e74fb007a405a6c211b267c",
+  "modelSha256": "e86250f8569dd64772a8ed644dbd7546fc98ea8238b00972e127db8121e97ecd",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/generic-rimmed-porthole/d32f0ac344d9ab17f1165e143e8ec5b7c69e333888f0fd34a8b8f0727b75fe42/model.glb",
+  "boundsCenter": [
+    0,
+    0.03573925793170929,
+    -0.01799999759955906
+  ],
+  "size": [
+    0.5795555114746094,
+    0.5080769956111908,
+    0.03600003895434334
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 150,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original low-poly interpretation of the user-supplied porthole image: faceted glazing, raised rim and rain eyebrow. Uniform scale only. Closed fitting with no hull opening; dimensions and mass are game estimates. Installed support requires native validation.",
+  "basis": "assets/parts/construction/README.md"
+}

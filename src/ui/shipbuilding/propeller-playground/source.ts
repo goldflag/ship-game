@@ -24,14 +24,14 @@ export function playgroundSource(catalog: ConstructionCatalog, settings: Setting
       { x: width * .78, y: keel + (.45 - keel) * .15 }, { x: width * .35, y: keel + .018 }];
     station.points = [...half.map(p => ({ ...p, x: -p.x })), { x: 0, y: keel }, ...half.slice().reverse()];
   }
-  const prop = (id: string, x: number, z: number, side: 'port' | 'starboard') => source.construction.equipment.push({
-    id, partId: small ? 'generic-propeller-1200' : 'fletcher-propeller-starboard', position: [x, -settings.depth, z], bearingDeg: settings.bearing,
+  const prop = (id: string, x: number, z: number) => source.construction.equipment.push({
+    id, partId: small ? 'generic-propeller-1200' : 'generic-propeller-4200', position: [x, -settings.depth, z], bearingDeg: settings.bearing,
   });
-  if (small) prop('screw', settings.spacing, settings.aft, 'starboard');
+  if (small) prop('screw', settings.spacing, settings.aft);
   else for (const side of [-1, 1]) {
     const hand = side < 0 ? 'port' : 'starboard';
-    prop(`${hand}-outer`, side * settings.spacing, settings.aft, hand);
-    if (settings.installation === 'Staggered shafts') prop(`${hand}-inner`, side * Math.max(1.85, settings.spacing - 4.6), settings.aft + 6, hand);
+    prop(`${hand}-outer`, side * settings.spacing, settings.aft);
+    if (settings.installation === 'Staggered shafts') prop(`${hand}-inner`, side * Math.max(1.85, settings.spacing - 4.6), settings.aft + 6);
   }
   return source;
 }

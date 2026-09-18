@@ -38,6 +38,10 @@ fn unique<'a>(ids: impl Iterator<Item = &'a str>) -> bool {
     let mut seen = BTreeSet::new();
     ids.into_iter().all(|s| valid_id(s) && seen.insert(s))
 }
+/// Paint for faces, keels and barbettes without a more specific coating.
+pub(crate) fn ship_paint(c: &ConstructionData) -> &str {
+    c.paint.as_deref().unwrap_or("naval-gray")
+}
 fn error(code: &str, message: impl Into<String>, id: Option<&str>) -> ConstructionDiagnostic {
     ConstructionDiagnostic {
         severity: "error".into(),
@@ -361,7 +365,7 @@ fn compile_cached(source: &ConstructionSource, catalog: &ConstructionCatalog, ca
     if out.definition.is_some() {
         let mut faces = vec![];
         for primitive in &source.construction.primitives {
-            faces.extend(crate::construction_bilge_keels::surfaces(primitive));
+            faces.extend(crate::construction_bilge_keels::surfaces(primitive, ship_paint(&source.construction)));
             if out.surfaces.len() + faces.len() > MAX_SURFACES {
                 out.definition = None;
                 out.diagnostics.push(error("complexity", "Bilge keels exceed the exposed surface limit", Some(&primitive.id)));
@@ -437,14 +441,12 @@ fn validate(
     if c.finish.as_deref().is_some_and(|f| !["matte", "satin", "semi-gloss", "gloss"].contains(&f)) {
         return Err(error("surface-finish", "Unsupported ship surface finish", None));
     }
+    if c.paint.as_ref().is_some_and(|paint| paint.is_empty() || paint.len() > 64) {
+        return Err(error("ship-paint", "Ship paint must be a nonempty name of at most 64 bytes", None));
+    }
     for e in &c.equipment {
         if e.paint.as_ref().is_some_and(|paint| paint.is_empty() || paint.len() > 64) {
             return Err(error("equipment-paint", "Fitting paint must be a nonempty name of at most 64 bytes", Some(&e.id)));
-        }
-        if e.gun.as_ref().and_then(|g| g.barbette_paint.as_ref())
-            .is_some_and(|paint| paint.is_empty() || paint.len() > 64) {
-            return Err(error("barbette-paint", "Invalid barbette paint", Some(&e.id)));
-
         }
         let rise = crate::construction_installation::raised(e);
         if !rise.is_finite() || !(0. ..=30.).contains(&rise) || (c.version < 2. && rise != 0.) {
@@ -752,7 +754,7 @@ fn build(
                         a.thickness_mm.max(c.default_thickness_mm)
                     }),
                     material: a.map_or("steel", |a| a.material.as_str()).into(),
-                    paint: a.map_or("naval-gray", |a| a.paint.as_str()).into(),
+                    paint: a.map_or(ship_paint(c), |a| a.paint.as_str()).into(),
                     open: a.is_some_and(|a| a.open == Some(true)),
                 });
                 if out.surfaces.len() > MAX_SURFACES {
@@ -1598,11 +1600,20 @@ fn equipment(
     let installed_parts: Vec<_> = c.equipment.iter().filter_map(|e| catalog.equipment.iter().find(|p| p.id == e.part_id).map(|p| (e, p)))
         .map(|(e, p)| crate::construction_wall_fittings::installed(e, p, c, &out.surfaces).map(|p| (e.id.clone(), p)))
         .collect::<Result<_, _>>()?;
+    // Fixed exterior fittings may be seated into hulls and neighboring fittings.
+    // Weapons, interior packages, moving underwater parts and routes retain exact fit.
+    let relaxed_fit = |p: &ConstructionEquipmentPart| p.placement == "deck" && p.path.is_none()
+        && matches!(p.kind.as_str(), "deck-fitting" | "mast" | "director" | "funnel");
+    let relaxed_ids: std::collections::BTreeSet<_> = installed_parts.iter()
+        .filter(|(_, p)| relaxed_fit(p)).map(|(id, _)| id.as_str()).collect();
     let mut fitted = vec![];
     let mut all_envelopes: Vec<(String, cg::Cell)> = vec![];
     let mut fitting_index = cg::Broadphase::new(8.);
     let hull_index = cg::Broadphase::sized_for(hull);
     let mut support_sockets = vec![];
+    let mut fitting_surfaces = vec![];
+    let has_lines = c.equipment.iter().any(|e| catalog.equipment.iter().any(|p| p.id == e.part_id
+        && p.path.as_ref().is_some_and(|path| matches!(path.kind.as_str(), "rope" | "chain"))));
     let mut path_members = 0;
     // A route can attach to an explicit eye only after its owning fixed fitting
     // has independently passed hull support/fit. Source order cannot form cycles.
@@ -1743,6 +1754,7 @@ fn equipment(
                 hull,
                 &hull_index,
                 &support_sockets,
+                &fitting_surfaces,
                 &all_envelopes,
                 &fitting_index,
             )?;
@@ -1819,6 +1831,7 @@ fn equipment(
             }
         }
         for (other, cell) in &all_envelopes {
+            if relaxed_fit(p) && relaxed_ids.contains(other.as_str()) { continue; }
             if fitting_cells.iter().any(|f| cg::intersection(f, cell).is_some_and(|x| cg::moments(&x).volume > 1e-5)) {
                 return Err(error(
                     "equipment-overlap",
@@ -1920,6 +1933,10 @@ fn equipment(
         });
         let attached = attached
             && ((p.kind != "deck-fitting" && !crate::construction_installation::deck_mounted(c, catalog, p))
+                || (relaxed_fit(p) && hull.iter().any(|h| h.faces.iter().all(|f| {
+                    let n = cg::normal(&f.vertices);
+                    dot(n, sub(attachment, f.vertices[0])) < -1e-6
+                })))
                 || crate::construction_paths::supported_surface(
                     &out.surfaces,
                     attachment,
@@ -1968,7 +1985,7 @@ fn equipment(
             masses.push(mass(format!("{}-support",e.id), "equipment", &solids, STEEL_DENSITY));
             out.propeller_supports.get_or_insert_with(Vec::new).push(support);
         }
-        let intrusion = if p.placement == "deck" && e.wall.is_none() {
+        let intrusion = if p.placement == "deck" && e.wall.is_none() && !relaxed_fit(p) {
             // The fixed support crosses the deck by design. Its well and hull
             // backing are validated separately; only the gun body must clear it.
             hull.iter().find_map(|h| fitting_cells[..body_cell_count].iter().find_map(|f| {
@@ -1989,6 +2006,11 @@ fn equipment(
             ));
         }
         if p.placement == "deck" {
+            if has_lines {
+                if let Some(surface) = crate::construction_paths::FittingSurface::new(e, p)? {
+                    fitting_surfaces.push(surface);
+                }
+            }
             support_sockets.extend(
                 p.sockets
                     .iter()
@@ -2293,6 +2315,24 @@ fn equipment(
             }
         }
     }
+    // Check every fitting against the complete layout, so source order cannot
+    // hide a swallowed neighbor. Subtraction counts combined overlaps only once.
+    for id in &relaxed_ids {
+        let cells: Vec<_> = all_envelopes.iter().filter(|(owner, _)| owner == id)
+            .map(|(_, cell)| cell.clone()).collect();
+        let mut exposed = cg::union(&cells).map_err(|message| error("equipment-overlap", message, Some(id)))?;
+        let volume = cg::total(&exposed).volume;
+        let hull_candidates: std::collections::BTreeSet<_> = cells.iter().flat_map(|cell| hull_index.candidates(cell)).collect();
+        let fitting_candidates: std::collections::BTreeSet<_> = cells.iter().flat_map(|cell| fitting_index.candidates(cell)).collect();
+        let cutters = hull_candidates.iter().map(|&i| &hull[i]).chain(fitting_candidates.iter()
+            .filter(|&&i| all_envelopes[i].0 != *id).map(|&i| &all_envelopes[i].1));
+        for cutter in cutters {
+            exposed = exposed.iter().flat_map(|cell| cg::subtract(cell, cutter)).collect();
+            if cg::total(&exposed).volume + 1e-7 < volume * crate::construction_overlap::MIN_EXPOSED {
+                return Err(error("equipment-overlap", "Keep at least 10% of each fixed fitting outside the hull and other fittings", Some(id)));
+            }
+        }
+    }
     let assignments = crate::construction_propulsion::assignments(&fitted);
     out.propeller_assignments = Some(assignments.clone());
     let mut power = 0.;
@@ -2508,6 +2548,28 @@ mod tests {
         assert!(compile(&source, &catalog).diagnostics.iter().any(|d| d.code == "surface-finish"));
         source.construction.finish = None;
         assert_eq!(compile(&source, &catalog).content_hash, original.content_hash);
+    }
+    #[test]
+    fn ship_paint_coats_unassigned_faces_without_changing_physics() {
+        let (mut source, catalog) = fixture();
+        let original = compile(&source, &catalog);
+        assert!(!to_json(&source).unwrap().contains("\"paint\":\"sea-blue\""));
+        source.construction.paint = Some("sea-blue".into());
+        let saved: ConstructionSource = serde_json::from_str(&to_json(&source).unwrap()).unwrap();
+        assert_eq!(saved.construction.paint.as_deref(), Some("sea-blue"));
+        let result = compile(&saved, &catalog);
+        assert!(result.definition.is_some(), "{:?}", result.diagnostics);
+        assert_eq!(to_json(&result.loading).unwrap(), to_json(&original.loading).unwrap());
+        let assigned = |s: &ConstructionSurface| source.construction.surfaces.iter()
+            .any(|a| a.primitive_id == s.primitive_id && a.face == s.face);
+        let mut repainted = 0;
+        for (before, after) in original.surfaces.iter().zip(&result.surfaces) {
+            if assigned(before) { assert_eq!(before.paint, after.paint); }
+            else { assert_eq!(after.paint, "sea-blue"); repainted += 1; }
+        }
+        assert!(repainted > 0);
+        source.construction.paint = Some(String::new());
+        assert!(compile(&source, &catalog).diagnostics.iter().any(|d| d.code == "ship-paint"));
     }
     #[test]
     fn incremental_revisions_match_fresh_compilation_including_invalid_edits() {
@@ -3434,6 +3496,25 @@ mod tests {
         assert!(result.definition.is_some(), "{:?}", result.diagnostics);
         source.construction.equipment.last_mut().unwrap().position[0] = 0.;
         assert!(compile(&source, &catalog).diagnostics.iter().any(|d| d.code == "equipment-overlap"));
+    }
+    #[test]
+    fn fixed_fittings_cannot_overlap_weapons_in_either_source_order() {
+        let (mut source, mut catalog) = equipped_fixture();
+        let mut part = catalog.equipment.iter().find(|p| p.kind == "funnel").unwrap().clone();
+        part.id = "fixed-part".into();
+        part.kind = "deck-fitting".into();
+        part.exhaust_kw = None;
+        part.occupancy = None;
+        catalog.equipment.push(part);
+        source.construction.equipment.push(ConstructionEquipment {
+            id: "fixed".into(), part_id: "fixed-part".into(), position: [1.4, 2., -5.],
+            ..Default::default()
+        });
+        for _ in 0..2 {
+            let result = compile(&source, &catalog);
+            assert!(result.diagnostics.iter().any(|d| d.code == "equipment-overlap"), "{:?}", result.diagnostics);
+            source.construction.equipment.reverse();
+        }
     }
     #[test]
     fn construction_retains_bounded_gun_installation_settings() {

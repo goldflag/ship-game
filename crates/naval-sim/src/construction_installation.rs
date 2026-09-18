@@ -230,7 +230,8 @@ pub fn derive(
                 vertices,
                 thickness_mm: source.default_thickness_mm,
                 material: "steel".into(),
-                paint: e.gun.as_ref().and_then(|g| g.barbette_paint.as_deref()).unwrap_or("naval-gray").into(),
+                // A barbette wears its turret's paint.
+                paint: e.paint.as_deref().unwrap_or_else(|| crate::construction::ship_paint(source)).into(),
                 open: false,
             });
         };
