@@ -656,7 +656,7 @@ pub fn step(
     c: HelmCommand,
     sea: Option<SeaHandling>,
 ) {
-    if d.stability.is_none() && !d.compartments.is_empty() && actor.motion.tick % 30 == 0 {
+    if d.stability.is_none() && !d.compartments.is_empty() && actor.motion.tick.is_multiple_of(30) {
         actor.motion_mass = legacy_loading(actor, d);
     }
     let h = d

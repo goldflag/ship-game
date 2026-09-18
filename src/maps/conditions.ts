@@ -1,5 +1,6 @@
 import source from '../../assets/maps/battle-conditions.v1.json';
 import type { OceanMap } from './catalog';
+import { windSea } from './seaCalibration';
 
 export type TimeOfDayId = 'map' | 'dawn' | 'morning' | 'noon' | 'dusk' | 'night';
 export type WeatherId = 'map' | 'clear' | 'partly-cloudy' | 'overcast' | 'fog' | 'storm-clouds';
@@ -11,7 +12,7 @@ interface WeatherPreset {
   id: WeatherId; name: string; description: string;
   sky: Partial<OceanMap['sky']>; fog: Partial<OceanMap['fog']>;
   sunScale: number; ambientScale: number; cloudWind: number;
-  waves: { amplitude: number; windSpeed: number; peakWavelength: number };
+  waves: { windSpeed: number };
 }
 export const TIME_OF_DAY_PRESETS = source.times as TimePreset[];
 export const WEATHER_PRESETS = source.weather as WeatherPreset[];
@@ -35,7 +36,7 @@ const blendFog = (from: string, to: string, weight: number) => {
     + ((b >> shift) & 255) * weight).toString(16).padStart(2, '0')).join('');
 };
 
-/** Compose visual conditions without changing the map recipe or CPU combat. */
+/** Resolve shared wind/sea conditions alongside visual sky and fog. */
 export function battleEnvironment(map: OceanMap, timeOfDay: TimeOfDayId = 'map', weather: WeatherId = 'map', conditions: BattleConditions = {}) {
   const time = TIME_OF_DAY_PRESETS.find(preset => preset.id === timeOfDay);
   const forecast = WEATHER_PRESETS.find(preset => preset.id === weather);
@@ -66,17 +67,9 @@ export function battleEnvironment(map: OceanMap, timeOfDay: TimeOfDayId = 'map',
     sky.coverage = conditions.cloudCover / 100;
   }
   const wind = conditions.windSpeed;
-  // Wind owns sea energy independently of the cloud slider. Retain the authored
-  // moderate-sea calibration at 9 m/s, with calm water at zero wind.
-  const waves = wind === undefined ? {
-    amplitude: forecast.waves.amplitude * map.water.amplitudeScale,
-    windSpeed: forecast.waves.windSpeed * map.water.windScale,
-    peakWavelength: forecast.waves.peakWavelength * map.water.wavelengthScale,
-  } : {
-    amplitude: 0.24 * (wind / 9) ** 1.2 * map.water.amplitudeScale,
-    windSpeed: wind,
-    peakWavelength: Math.max(4, 20 * wind / 9) * map.water.wavelengthScale,
-  };
+  // Explicit wind bypasses the map wind multiplier. Presets and numeric wind
+  // then use the same metric height curve and separately calibrated FFT gain.
+  const waves = windSea(map, wind ?? forecast.waves.windSpeed * map.water.windScale);
   return { sky, fog, cloudWind: wind === undefined ? forecast.cloudWind : wind * 4 / 3,
     waves,
     waterLightScale: 0.24 + 0.76 * daylight,
