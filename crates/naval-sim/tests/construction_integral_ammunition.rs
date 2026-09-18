@@ -296,7 +296,7 @@ fn gun_magazines_fit_above_curved_bottom_plating_across_their_whole_footprint() 
     let hull = &mut source.construction.primitives[0];
     hull.kind = "custom-hull".into();
     hull.size = [40., 24., 100.];
-    hull.custom_hull = Some(ConstructionCustomHull {
+    hull.custom_hull = Some(ConstructionCustomHull { bilge_keels: None,
         red_paint_y: None,
         version: 1.,
         rake: 0.,

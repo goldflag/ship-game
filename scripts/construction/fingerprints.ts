@@ -52,7 +52,7 @@ export async function constructionFingerprints(root: string, source: Constructio
     definition: hash(definitionData(result.definition, source.id)),
     // The compiler runs on every check. Its *outputs*, not the native simulation
     // build hash, describe model inputs. Fitted component revisions stay in source.
-    model: hash([source, result.surfaces, result.propellerSupports, modelRecipe]),
+    model: hash([source, result.surfaces, result.propellerSupports, result.bilgeKeelSurfaces, modelRecipe]),
     presentation,
   };
 }

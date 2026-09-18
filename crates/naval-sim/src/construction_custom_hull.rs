@@ -3,7 +3,7 @@ use crate::{construction_geometry as cg, construction_vertex::VertexSolid, defin
 
 fn contour(points: &[ConstructionHullPoint], index: usize) -> f64 { points[index].contour.unwrap_or(index as f64 * 8. / (points.len() - 1) as f64) }
 fn edge_id(start: f64, end: f64) -> String { if start.fract() == 0. && end == start + 1. { start.to_string() } else { format!("{start}~{end}") } }
-fn transform(p: &ConstructionPrimitive, t: f64, point: &ConstructionHullPoint, position: f64) -> Vec3 {
+pub(super) fn transform(p: &ConstructionPrimitive, t: f64, point: &ConstructionHullPoint, position: f64) -> Vec3 {
     let h = p.custom_hull.as_ref().unwrap();
     let sign = if point.x > 0. { 1. } else if point.x < 0. { -1. } else { 0. };
     let x = point.x + (1. - (position - 2.).abs()).max(0.).max((1. - (position - 6.).abs()).max(0.)) * sign * h.bulb * 0.38 * (-((t - 0.055) / 0.075).powi(2)).exp();
@@ -20,6 +20,7 @@ pub fn build(p: &ConstructionPrimitive) -> Result<VertexSolid, String> {
         return Err("Custom hulls need version 1, 4–24 sections and valid bow settings".into());
     }
     if h.red_paint_y.is_some_and(|y| !y.is_finite() || y.abs() > 500.) { return Err("Red paint Y must be between -500 and 500 m".into()); }
+    if let Some(k) = &h.bilge_keels { crate::construction_bilge_keels::validate(k)?; }
     let n = h.stations[0].points.len();
     if !(5..=33).contains(&n) || n % 2 != 1 || h.stations.iter().any(|s| s.points.len() != n) { return Err("Use the same odd number of outline points (5–33) in every section".into()); }
     let keel = (n - 1) / 2;

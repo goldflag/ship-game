@@ -365,9 +365,19 @@ export interface ConstructionHullPoint {
 }
 export interface ConstructionHullStation { id: string; t: number; points: ConstructionHullPoint[]; }
 export interface ConstructionCustomHull {
+  /** Optional symmetric visual fins. Omission preserves older hulls without keels. */
+  bilgeKeels?: ConstructionBilgeKeels;
   /** Red lower-hull coating below this hull-local Y in meters; omission uses face paint. */
   redPaintY?: number;
   version: 1; stations: ConstructionHullStation[]; rake: number; bulb: number;
+}
+export interface ConstructionBilgeKeels {
+  version: 1; enabled: boolean;
+  /** Fractions of hull length, measured from bow to stern. */
+  start: number; end: number;
+  widthM: number; thicknessM: number;
+  /** Fraction of the section outline from center keel (0) toward deck edge (1). */
+  placement: number;
 }
 export interface ConstructionSurfaceAssignment {
   /** Optional custom-hull panel override; omission assigns the whole named side. */
@@ -441,6 +451,8 @@ export interface ConstructionDiagnostic {
   severity: 'error' | 'warning'; code: string; message: string; sourceId?: string;
 }
 export interface ConstructionResult {
+  /** Native visual bilge-keel faces; excluded from buoyancy, armor and loading. */
+  bilgeKeelSurfaces?: ConstructionSurface[];
   sourceId: string; revision: string; contentHash: string;
   definition?: ShipDefinition; surfaces: ConstructionSurface[];
   diagnostics: ConstructionDiagnostic[]; loading?: ConstructionLoading;

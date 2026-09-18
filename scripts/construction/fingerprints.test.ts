@@ -46,6 +46,9 @@ test('native geometry and gameplay outputs invalidate the appropriate stage even
   expect((await get(simulation)).model).toBe(before.model);
   const geometry = structuredClone(result); geometry.propellerSupports = [{ equipmentId: 'screw', members: [] }];
   expect((await get(geometry)).model).not.toBe(before.model);
+  const keels = structuredClone(result); keels.bilgeKeelSurfaces = [];
+  expect((await get(keels)).model).not.toBe(before.model);
+  expect((await get(keels)).definition).toBe(before.definition);
 });
 test('missing transitive inputs fail closed and key/file order remains stable', async () => {
   const before = await recipeHash(root, ['src/game/ShipView.ts', 'src/game/constructionModel.ts']);

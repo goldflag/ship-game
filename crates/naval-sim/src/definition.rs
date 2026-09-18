@@ -1208,6 +1208,24 @@ pub struct ConstructionFreeformShape {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ConstructionBilgeKeels {
+    #[serde(rename = "version")]
+    pub version: f64,
+    #[serde(rename = "enabled")]
+    pub enabled: bool,
+    #[serde(rename = "start")]
+    pub start: f64,
+    #[serde(rename = "end")]
+    pub end: f64,
+    #[serde(rename = "widthM")]
+    pub width_m: f64,
+    #[serde(rename = "thicknessM")]
+    pub thickness_m: f64,
+    #[serde(rename = "placement")]
+    pub placement: f64,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct ConstructionHullPoint {
     #[serde(rename = "x")]
     pub x: f64,
@@ -1229,6 +1247,8 @@ pub struct ConstructionHullStation {
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct ConstructionCustomHull {
+    #[serde(rename = "bilgeKeels")]
+    pub bilge_keels: Option<ConstructionBilgeKeels>,
     #[serde(rename = "redPaintY")]
     pub red_paint_y: Option<f64>,
     #[serde(rename = "version")]
@@ -1581,6 +1601,8 @@ pub struct ConstructionPropellerAssignment {
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct ConstructionResult {
+    #[serde(rename = "bilgeKeelSurfaces")]
+    pub bilge_keel_surfaces: Option<Vec<ConstructionSurface>>,
     #[serde(rename = "sourceId")]
     pub source_id: String,
     #[serde(rename = "revision")]
@@ -1649,7 +1671,7 @@ pub struct ConstructionEquipmentPartPath {
     pub diameter_m: f64,
     #[serde(rename = "heightM")]
     pub height_m: Option<f64>,
-    #[serde(rename = "railCount", skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "railCount")]
     pub rail_count: Option<f64>,
     #[serde(rename = "widthM")]
     pub width_m: Option<f64>,
