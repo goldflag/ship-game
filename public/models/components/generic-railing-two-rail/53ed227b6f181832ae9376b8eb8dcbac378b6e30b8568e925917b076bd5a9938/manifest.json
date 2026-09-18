@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "generic-railing-two-rail",
+  "revision": "53ed227b6f181832ae9376b8eb8dcbac378b6e30b8568e925917b076bd5a9938",
+  "contentHash": "77ea80081e419326d3969c09a8fbd0bd22195e3dee800f7b1273fb3523015923",
+  "modelSha256": "4631ca8ee467e3d75373787919087c9461536504ce8deb8024ee3631a5f58e46",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/generic-railing-two-rail/53ed227b6f181832ae9376b8eb8dcbac378b6e30b8568e925917b076bd5a9938/model.glb",
+  "boundsCenter": [
+    1.5087425708770752e-7,
+    0.550000011920929,
+    -1.9999999897554517
+  ],
+  "size": [
+    0.0400003045797348,
+    1.100000023841858,
+    4.039999982342124
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 60,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original generic four-metre path sample. Player route geometry follows its declared profile; mass and member dimensions are provisional engineering estimates. Native construction validates each installed path.",
+  "basis": "assets/parts/construction/README.md"
+}

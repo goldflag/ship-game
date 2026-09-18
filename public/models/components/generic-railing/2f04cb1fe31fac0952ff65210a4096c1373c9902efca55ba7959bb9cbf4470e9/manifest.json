@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "partId": "generic-railing",
+  "revision": "2f04cb1fe31fac0952ff65210a4096c1373c9902efca55ba7959bb9cbf4470e9",
+  "contentHash": "fa15c33d1c9ce3f68d0200a5bf6361e096f0002fc093ec213ae11524771cc4f8",
+  "modelSha256": "5c9a754c6af3ab08490dea0c97e8c495284212b5f19fb96198c903172b14649f",
+  "nodePrefix": "component",
+  "modelUrl": "/models/components/generic-railing/2f04cb1fe31fac0952ff65210a4096c1373c9902efca55ba7959bb9cbf4470e9/model.glb",
+  "boundsCenter": [
+    1.5087425708770752e-7,
+    0.550000011920929,
+    -1.9999999897554517
+  ],
+  "size": [
+    0.0400003045797348,
+    1.100000023841858,
+    4.039999982342124
+  ],
+  "nodes": [
+    {
+      "id": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "component.socket.attachment",
+      "parentId": "component.root",
+      "localMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "worldMatrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "triangles": 72,
+  "textureCount": 0,
+  "review": "unreviewed",
+  "limitations": "Original generic four-metre path sample. Player route geometry follows its declared profile; mass and member dimensions are provisional engineering estimates. Native construction validates each installed path.",
+  "basis": "assets/parts/construction/README.md"
+}
