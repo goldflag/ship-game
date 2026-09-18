@@ -1,3 +1,4 @@
+import { useConstructionThumbnail } from '../useConstructionThumbnail';
 import { sessionShip } from '../../ships/sessionShips';
 import type { ComponentProps, DragEvent, ReactNode } from 'react';
 import { assetUrl } from '../../assetUrl';
@@ -23,7 +24,8 @@ export function ShipMeta({ presetId }: { presetId: string }) {
 export const shipDescription = (presetId: string) => { const identity = shipIdentity(presetId); return [identity.type, identity.nation].filter(Boolean).join(', '); };
 export function ShipThumbnail({ presetId, width = 72 }: { presetId: string; width?: number }) {
   const local = (localShip(presetId) ?? sessionShip(presetId));
-  if (local?.thumbnail) return <img className="ship-thumbnail" src={local.thumbnail} width={width} height={Math.round(width * .3)} alt="" loading="lazy" draggable={false}/>;
+  const thumbnail = useConstructionThumbnail(local);
+  if (thumbnail) return <img className="ship-thumbnail" src={thumbnail} width={width} height={Math.round(width * .3)} alt="" loading="lazy" draggable={false}/>;
   if (local) {
     const surfaces = local.result.surfaces.filter(s => !s.open), points = surfaces.flatMap(s => s.vertices);
     const left = Math.min(...points.map(p => p[2])), right = Math.max(...points.map(p => p[2]));
