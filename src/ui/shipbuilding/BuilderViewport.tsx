@@ -584,7 +584,7 @@ class Viewport {
                 equipment = createConstructionWallModel(equipment, part, {id:'preview',partId:part.id,position,bearingDeg:item.bearingDeg,wall:item.wall}, this.props.scene.current?.surfaces ?? [], this.props.scene.source.construction.primitives);
               } else equipment.scale.fromArray(wallScale(part, { wall: item.wall }));
             }
-            group.add(equipment); group.rotation.y = placementRotation(item); return; }
+            group.add(equipment); group.rotation.copy(placementRotation(item)); return; }
           const balcony = item.kind === 'hull' && item.shape === 'balcony'
             ? item.balcony ?? placementBalcony([(pick?.placement[0] ?? 1) * (mirrored ? -1 : 1), 0, 0], item.rotationDeg) : undefined;
           const geometry = item.kind === 'boundary'
@@ -592,15 +592,15 @@ class Viewport {
             : balcony ? primitiveGeometry('balcony', item.size, undefined, undefined, undefined, balcony) : placementGeometry(item);
           const fill = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ color: BRASS, transparent: true, opacity, depthWrite: false, depthTest: item.kind === 'boundary', side: THREE.DoubleSide }));
           const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geometry), new THREE.LineBasicMaterial({ color: BRASS_LIGHT, depthTest: false, transparent: true, opacity: opacity * 3.6 }));
-          fill.renderOrder = 20; edges.renderOrder = 21; group.add(fill, edges); group.rotation.y = placementRotation(item);
+          fill.renderOrder = 20; edges.renderOrder = 21; group.add(fill, edges); group.rotation.copy(placementRotation(item));
         };
         build(piece, this.ghost, piece.kind === 'boundary' ? .12 : .25);
         if (mirror) build(mirror, this.ghostMirror, .12, true);
         if (piece.kind === 'equipment' && piece.arc) this.ghostArc.add(arcMesh({ bearingDeg: 0, traverseDeg: piece.arc.traverseDeg, radius: piece.arc.radius, color: BRASS }));
       }
     }
-    if (piece) this.ghost.rotation.y = placementRotation(piece);
-    if (mirror) this.ghostMirror.rotation.y = placementRotation(mirror);
+    if (piece) this.ghost.rotation.copy(placementRotation(piece));
+    if (mirror) this.ghostMirror.rotation.copy(placementRotation(mirror));
     this.ghostArc.rotation.y = piece?.kind === 'equipment' ? -piece.bearingDeg * Math.PI / 180 : 0;
     const visible = !!piece && !!pick && (!!rotation?.position || !this.navigating());
     this.ghost.visible = visible;
@@ -713,7 +713,7 @@ class Viewport {
     let placement = piece ? placementCenter(piece, { point: raw, normal, snapOrigin }, step) : raw.map(value => gridCoordinate(value, step)) as Vec3;
     if (piece && !this.pointerStart?.move && !this.moveHandles.dragging) {
       const unsnapped = placementCenter(piece, { point: raw, normal, snapOrigin }, null);
-      const moving = piece.kind === 'hull' ? primitiveSnapFeatures({ id: 'cursor', kind: piece.shape, position: [0, 0, 0], rotationDeg: piece.rotationDeg, size: piece.size, balcony: piece.balcony })
+      const moving = piece.kind === 'hull' ? primitiveSnapFeatures({ id: 'cursor', kind: piece.shape, position: [0, 0, 0], rotationDeg: piece.rotationDeg, tilt: piece.tilt, size: piece.size, balcony: piece.balcony })
         : piece.kind === 'equipment' && piece.wall ? wallFrameSnapFeatures('cursor', [0,0,0], piece.bearingDeg, piece).filter(f => f.kind !== 'edge')
         : [{ id: 'cursor:center', owner: 'cursor', point: piece.kind === 'equipment' ? attachmentOffset(piece, piece.bearingDeg) : [0, 0, 0] as Vec3, kind: 'center' as const }];
       const free = SHIP_AXES.filter((_, k) => piece.kind === 'boundary' ? k === 'xyz'.indexOf(piece.axis) : k !== axis);

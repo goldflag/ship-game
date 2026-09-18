@@ -290,7 +290,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   </> : layer === 'armor' ? <>
     <b>Armor</b><NumberField label="Armor thickness" value={customMm} min={0} max={1000} step={1} unit="mm" onChange={tool.setThickness}/><span>{customMm > 0 ? 'armor steel' : 'structural skin, no armor'} · minimum {source.construction.defaultThicknessMm} mm skin</span><NumberField label="Skin" description="Minimum plating thickness across the ship; lowering it also changes unassigned hull faces" value={source.construction.defaultThicknessMm} min={.1} max={1000} step={.1} unit="mm" onChange={thicknessMm => run('Change structural skin', [{ op: 'skin', thicknessMm }])}/>
   </> : !piece ? null : piece.kind === 'hull' && active?.kind === 'shape' ? <>
-    <b>{active.name}</b><NumberField value={piece.size[0]} min={.25} max={500} step={1} onChange={value => tool.setSizeOverride([value, piece.size[1], piece.size[2]])}/> × <NumberField value={piece.size[1]} min={.25} max={500} step={1} onChange={value => tool.setSizeOverride([piece.size[0], value, piece.size[2]])}/> × <NumberField value={piece.size[2]} min={.25} max={500} step={1} onChange={value => tool.setSizeOverride([piece.size[0], piece.size[1], value])}/> m<span>{piece.rotationDeg}°</span>
+    <b>{active.name}</b><NumberField value={piece.size[0]} min={.25} max={500} step={1} onChange={value => tool.setSizeOverride([value, piece.size[1], piece.size[2]])}/> × <NumberField value={piece.size[1]} min={.25} max={500} step={1} onChange={value => tool.setSizeOverride([piece.size[0], value, piece.size[2]])}/> × <NumberField value={piece.size[2]} min={.25} max={500} step={1} onChange={value => tool.setSizeOverride([piece.size[0], piece.size[1], value])}/> m<span>{piece.tilt ? `pitch ${piece.tilt.pitchDeg}° · yaw ${piece.rotationDeg}° · roll ${piece.tilt.rollDeg}°` : `${piece.rotationDeg}°`}</span>
   </> : piece.kind === 'equipment' && active?.kind === 'part' ? <>
     <b>{active.part.name}</b>{piece.wall ? <>
       <WallSizeFields part={active.part} wall={piece.wall} onChange={tool.setWallSize}/>
@@ -308,7 +308,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
       {canEditVertices(primitive) && <button className="sb-edit-freeform" onClick={enterFreeform} aria-label="Freeform hull" title="Edit freeform shape (D)">Freeform <kbd>D</kbd></button>}
       {primitive.kind === 'custom-hull' && <button className="sb-edit-freeform" onClick={() => setCustomHullSession({ designId: source.id, primitive: structuredClone(primitive) })}>Edit hull sections</button>}
       {primitive.kind === 'balcony' && <button className="sb-edit-freeform" onClick={() => setBalconySession(primitive.id)}>Edit balcony outline</button>}
-      {mass !== undefined ? `plating ${formatTonnes(mass)} · ` : ''}{primitive.rotationDeg}° <kbd>R</kbd> · <kbd>⌫</kbd> remove · <kbd>⌘C</kbd> copy
+      {mass !== undefined ? `plating ${formatTonnes(mass)} · ` : ''}{primitive.rotationDeg}° <kbd>R</kbd> · <kbd>X</kbd><kbd>Z</kbd> tip · <kbd>⌫</kbd> remove · <kbd>⌘C</kbd> copy
     </> });
   } else if (selectedEquipment.length === 1 && !selectedPrimitives.length) {
     const item = selectedEquipment[0], part = partOf(item), mass = equipmentMassKg(compiledResult, item.id);
@@ -432,9 +432,9 @@ export function Shipbuilder(props: ShipbuilderProps) {
     ...(hasDrawer ? [{ keys: ['0'], label: `All ${drawerName}` }] : []),
   ];
   const acting: KeyHint[] = [];
-  if (!locked && piece && piece.kind !== 'boundary' && !(piece.kind === 'equipment' && piece.wall)) acting.push({ keys: ['R'], label: piece.kind === 'hull' ? 'Rotate 90°' : 'Rotate 15°' });
-  else if (s.tool === 'rotate') acting.push({ keys: ['X', 'Y', 'Z'], label: 'Axis' }, { keys: ['R', '⇧R'], label: '±90°' });
-  else if (movable && !freeformMode && !selectedEquipment.some(e => e.wall)) acting.push({ keys: ['R'], label: selectedPrimitives.length ? 'Rotate 90°' : 'Rotate 15°' });
+  if (!locked && piece && piece.kind !== 'boundary' && !(piece.kind === 'equipment' && piece.wall)) acting.push(...(piece.kind === 'hull' ? [{ keys: ['X', 'Y', 'Z'], label: 'Turn 90°' }] : []), { keys: ['R'], label: piece.kind === 'hull' ? 'Rotate 90°' : 'Rotate 15°' });
+  else if (s.tool === 'rotate') acting.push({ keys: ['X', 'Y', 'Z'], label: 'Turn 90°' }, { keys: ['R', '⇧R'], label: '±90°' });
+  else if (movable && !freeformMode && !selectedEquipment.some(e => e.wall)) acting.push(...(selectedPrimitives.length && layer === 'hull' ? [{ keys: ['X', 'Y', 'Z'], label: 'Turn 90°' }] : []), { keys: ['R'], label: selectedPrimitives.length ? 'Rotate 90°' : 'Rotate 15°' });
   if (movable && !freeformMode) acting.push({ keys: ['←→', '↑↓'], label: selectedEquipment.every(e => e.wall) && selectedEquipment.length ? 'Resize · Shift fine' : 'Nudge' }, { keys: ['PgUp', 'PgDn'], label: 'Raise · lower' }, { keys: ['⌘C'], label: 'Copy' }, { keys: ['⇧⌘C'], label: 'Mirror copy' });
   if (selected.size) acting.push({ keys: ['⌫', '⌘X'], label: movable ? 'Remove' : 'Remove · merge rooms' });
   if(!freeformMode&&selected.size===1&&selectedPrimitives[0]&&canEditVertices(selectedPrimitives[0]))acting.push({keys:['D'],label:'Freeform'});

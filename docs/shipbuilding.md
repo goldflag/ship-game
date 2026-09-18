@@ -850,7 +850,7 @@ mass by count and post mass by height. These remain generic engineering estimate
 
 ### Block rotation
 
-Select one hull block and choose **Rotate (O)**. Three colored rings turn the block around ship axes: **X** pitch, **Y** yaw and **Z** roll. These keys select the axis; **R** turns +90° and **Shift-R** turns −90°. Yaw is the initial axis. Outside Rotate mode, existing placement and fitting rotation keys retain their behavior.
+Select one hull block and choose **Rotate (O)**. Three colored rings turn the block around ship axes: **X** pitch, **Y** yaw and **Z** roll. Each key aims the gizmo at its axis and turns the block +90° (Shift reverses); **R** turns +90° and **Shift-R** turns −90° about the aimed axis. Outside Rotate mode the same **X**, **Y** and **Z** keys quarter-turn the block about to be placed (with its mirrored twin) or every selected block in place, and **R**/**Shift-R** remain yaw. Balconies about to be placed turn in yaw only. Yaw is the initial axis. Outside Rotate mode, existing placement and fitting rotation keys retain their behavior.
 
 Drag a ring to preview the turn with a live angle. **Snap 15°** toggles angular snapping; hold Shift for 0.1° control. Release commits one undoable edit. Escape, right-click, a cancelled pointer, losing focus or changing the view discards the preview. Escape again leaves Rotate mode and retains the selection. Ring buttons also accept arrow keys (15°, or 1° with Shift). Pitch, yaw and roll fields set exact orientation; **Reset** restores a level, forward orientation without changing shape, dimensions or position.
 
