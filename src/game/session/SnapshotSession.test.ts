@@ -30,6 +30,25 @@ test('armor score and event ownership reach telemetry through snapshots and clea
     expect(session.telemetry('main', session.aimAt()).playerArmorBlocked).toBe(0);
   } finally { session.dispose(); }
 });
+
+test('Yamato gains blocked HE damage in a real local battle and reports it to the HUD', async () => {
+  const session = await HeadlessSession.create({ playerShipId: 'yamato', friendlyBots: [], enemies: [{ shipId: 'cleveland', aiLevel: 'hard' }], spawnDistance: 1500, windSpeed: 0 });
+  try {
+    let blockedHE = false;
+    for (let second = 0; second < 30; second++) {
+      for (let batch = 0; batch < 10; batch++) session.runtime.step(6);
+      session.applyRaw(session.runtime.snapshot());
+      blockedHE = session.events.some(event => event.shipId === session.ship.id && event.shell?.ammunition === 'he'
+        && event.impact?.outcome === 'detonation' && (event.impact.resistanceMm ?? 0) > 0
+        && (event.impact.fragmentBudgetMm ?? Infinity) <= (event.impact.resistanceMm ?? 0));
+      if (blockedHE) break;
+    }
+    expect(blockedHE).toBe(true);
+    expect(session.playerArmorBlocked).toBeGreaterThan(0);
+    expect(session.telemetry('main', session.aimAt()).playerArmorBlocked).toBe(session.playerArmorBlocked);
+  } finally { session.dispose(); }
+});
+
 test('managed deck commands and queues retain carrier ownership and policies through real WASM snapshots', async () => {
   const content = new Uint8Array(await Bun.file(new URL('../../../.build/naval-content/manifest.json', import.meta.url)).arrayBuffer());
   const session = await HeadlessSession.create({ playerShipId: 'fletcher', friendlyBots: ['enterprise-cv6', 'shokaku'], enemies: ['fletcher'], spawnDistance: 16000 }, managedDeckFixture(content));

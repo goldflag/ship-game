@@ -495,6 +495,13 @@ pub fn resolve_ship_contact(
             if he.fragment_penetration_mm > resistance && exterior(&a, hit) {
                 r.breaches(actor, shell);
             }
+        } else if hit.kind == ContactKind::Mount {
+            // The burst resolves gunhouse protection too; retain the contact's
+            // resistance so scoring can distinguish rejected HE fragments.
+            let armor = def.mounts[i].weapon.armor_mm;
+            r.evidence.thickness_mm = Some(armor);
+            r.evidence.material = Some("steel".into());
+            r.evidence.resistance_mm = Some(armor);
         }
         return (
             true,

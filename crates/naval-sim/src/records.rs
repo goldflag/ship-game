@@ -169,7 +169,11 @@ impl Records {
         if let (Some(id), Some(source)) = (id, source) {
             if e.impact.as_ref().is_some_and(|i| {
                 matches!(i.kind.as_str(), "armor" | "mount")
-                    && matches!(i.outcome.as_str(), "stopped" | "ricochet")
+                    && (matches!(i.outcome.as_str(), "stopped" | "ricochet")
+                        || source.ammunition == Ammunition::He
+                            && i.outcome == "detonation"
+                            && matches!((i.fragment_budget_mm, i.resistance_mm),
+                                (Some(fragments), Some(armor)) if armor > 0.0 && fragments <= armor))
                     && i.through_wreckage != Some(true)
             }) && actors
                 .iter()
