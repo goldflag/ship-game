@@ -9,6 +9,7 @@ export const CONSTRUCTION_SHAPE_NAMES: Record<Kind, string> = {
   'custom-hull': 'Custom hull',
   balcony: 'Balcony',
   ballast: '100 t ballast',
+  prism: 'Freeform prism', 'half-hemisphere': 'Half dome', 'quarter-hemisphere': 'Quarter dome',
   pyramid: 'Pyramid · ⅓ hull', cylinder: 'Cylinder', 'half-cylinder': 'Half cylinder',
   'quarter-cylinder': 'Quarter cylinder', 'quarter-cylinder-wall': 'Quarter cylinder wall',
   sphere: 'Sphere', hemisphere: 'Hemisphere', 'sphere-octant': 'Eighth sphere',
@@ -24,7 +25,7 @@ export const CONSTRUCTION_SHAPE_NAMES: Record<Kind, string> = {
 export function shapeMirror(kind: Kind): { yaw: number; swap: boolean } {
   if (kind === 'corner' || kind === 'inverse-corner') return { yaw: -90, swap: true };
   if (['quarter-cylinder', 'quarter-cylinder-wall', 'sphere-octant', 'quarter-hemisphere-shell',
-    'concave-corner', 'rounded-bridge', 'rounded-bridge-panel', 'diagonal-bridge', 'diagonal-bridge-panel'].includes(kind)) return { yaw: 90, swap: true };
-  if (kind === 'half-cylinder' || kind === 'half-hemisphere-shell') return { yaw: 180, swap: false };
+    'quarter-hemisphere', 'concave-corner', 'rounded-bridge', 'rounded-bridge-panel', 'diagonal-bridge', 'diagonal-bridge-panel'].includes(kind)) return { yaw: 90, swap: true };
+  if (kind === 'half-hemisphere' || kind === 'half-cylinder' || kind === 'half-hemisphere-shell') return { yaw: 180, swap: false };
   return { yaw: 0, swap: false };
 }

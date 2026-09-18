@@ -489,3 +489,10 @@
 .sb-cursor button[aria-pressed=true] { color: var(--sb-mint); border-color: var(--sb-mint); background: var(--sb-card-toggle); }
 
 .shipbuilder[data-wall-placement] .sb-cursor { max-width: calc(100% - 180px); flex-wrap: wrap; justify-content: center; gap: 6px 12px; white-space: normal; }
+
+.sb-shape-fields label {display:flex;align-items:center;gap:6px;}
+.sb-shape-fields select {max-width:180px;min-height:30px;background:var(--sb-ground);color:var(--sb-text);border:1px solid var(--sb-line);border-radius:3px;}
+.sb-freeform-tools {max-height:calc(100% - var(--sb-bar-bottom) - var(--sb-bar-height) - 150px);overflow:auto;}
+
+.sb-mesh-tools {padding:0 12px 10px;}
+.sb-mesh-tools .sb-shape-fields {flex-wrap:wrap;}

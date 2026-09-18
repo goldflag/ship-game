@@ -28,6 +28,7 @@ fn transform(p: &ConstructionPrimitive, v: Vec3) -> Vec3 {
     add(p.position, [c * x + s * z, y, -s * x + c * z])
 }
 pub fn build(p: &ConstructionPrimitive) -> Result<VertexSolid, String> {
+    if p.mesh.is_some() { return crate::construction_mesh::build(p); }
     if p.shaping.is_some() { return crate::construction_freeform::build(p); }
     let default: Vec<_> = SIGNS.iter().map(|v| scale(*v, 0.5)).collect();
     let v = p.vertices.as_ref().unwrap_or(&default);

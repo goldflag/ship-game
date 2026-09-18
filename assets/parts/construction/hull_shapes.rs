@@ -16,6 +16,9 @@ pub const KINDS: &[&str] = &[
     "quarter-cylinder-wall",
     "sphere",
     "hemisphere",
+    "half-hemisphere",
+    "quarter-hemisphere",
+    "prism",
     "sphere-octant",
     "hemisphere-shell",
     "half-hemisphere-shell",
@@ -302,7 +305,13 @@ fn recipe(kind: &str) -> Vec<cg::Cell> {
                 cg::clip(&c, [0., -1., 0.], 0.).unwrap(),
             ]
         }
+        "prism" => vec![extrusion(&circle(0., 2. * PI, 0.5).into_iter().step_by(2).take(8).collect::<Vec<_>>(), -0.5, 0.5)],
         "hemisphere" => vec![sphere(true, false)],
+        "half-hemisphere" => vec![cg::clip(&sphere(true, false), [-1., 0., 0.], 0.).unwrap()],
+        "quarter-hemisphere" => {
+            let c = cg::clip(&sphere(true, false), [-1., 0., 0.], 0.).unwrap();
+            vec![cg::clip(&c, [0., 0., 1.], 0.).unwrap()]
+        },
         "sphere-octant" => {
             let c = cg::clip(&sphere(true, false), [-1., 0., 0.], 0.).unwrap();
             vec![cg::clip(&c, [0., 0., 1.], 0.).unwrap()]

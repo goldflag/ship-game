@@ -218,7 +218,7 @@ class Viewport {
     this.freeformHandles = new FreeformHandles(host, () => this.camera, replacements => this.previewVertices(replacements), {
       clear: () => this.clearSnap(),
       resolve: (raw, free, primitive, options) => {
-        const corners = cornerVertices(primitive), selected = selectionCorners(options.selection);
+        const corners = cornerVertices(primitive), selected = selectionCorners(options.selection,primitive);
         const moving: SnapFeature[] = selected.map(i => ({ id: `edit:${i}`, owner: primitive.id, point: worldVertex(primitive, corners[i]), kind: 'corner' }));
         moving.unshift({ id: 'edit:center', owner: primitive.id, point: add(primitive.position, rotateVertex(selectionCenter(primitive, options.selection), primitive.rotationDeg)), kind: 'center' });
         const directions = SHIP_AXES.filter((_, k) => free[k]).map(v => rotateVertex(v, primitive.rotationDeg));
@@ -378,7 +378,7 @@ class Viewport {
           if (points.length) this.hull.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(points), new THREE.LineBasicMaterial({ color: '#142a31', transparent: true, opacity: props.scene.display === 'internals' ? .35 : .9, depthWrite: false })));
         }
       } else for (const primitive of props.scene.source.construction.primitives) {
-        const mesh = new THREE.Mesh(primitiveGeometry(primitive.kind, primitive.size, primitive.vertices, primitive.customHull, primitive.shaping, primitive.balcony), new THREE.MeshStandardMaterial({ color: invalid.has(primitive.id) ? SALMON : constructionPaintColor('naval-gray'), roughness: .78, side: THREE.DoubleSide, transparent: props.scene.display !== 'paint', opacity: props.scene.display !== 'paint' ? .12 : 1, depthWrite: props.scene.display === 'paint' }));
+        const mesh = new THREE.Mesh(primitiveGeometry(primitive.kind, primitive.size, primitive.vertices, primitive.customHull, primitive.shaping, primitive.balcony, primitive.mesh), new THREE.MeshStandardMaterial({ color: invalid.has(primitive.id) ? SALMON : constructionPaintColor('naval-gray'), roughness: .78, side: THREE.DoubleSide, transparent: props.scene.display !== 'paint', opacity: props.scene.display !== 'paint' ? .12 : 1, depthWrite: props.scene.display === 'paint' }));
         mesh.position.set(...primitive.position); mesh.rotation.y = primitive.rotationDeg * Math.PI / 180;
         mesh.userData.sourceId = primitive.id; this.hull.add(mesh); this.pickMeshes.push(mesh); this.hullMeshes.push(mesh);
         mesh.material.polygonOffset = true; mesh.material.polygonOffsetFactor = 1; mesh.material.polygonOffsetUnits = 1;
@@ -518,7 +518,7 @@ class Viewport {
     const map=new Map(replacements.map(p=>[p.id,p]));
     for(const original of this.props.scene.source.construction.primitives) {
       const p=map.get(original.id)??original;
-      const geometry=primitiveGeometry(p.kind,p.size,p.vertices,p.customHull,p.shaping,p.balcony);
+      const geometry=primitiveGeometry(p.kind,p.size,p.vertices,p.customHull,p.shaping,p.balcony,p.mesh);
       const mesh=new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({color:constructionPaintColor('naval-gray'),roughness:.78,side:THREE.DoubleSide}));
       mesh.position.set(...p.position);mesh.rotation.y=p.rotationDeg*Math.PI/180;this.vertexPreview.add(mesh);
       mesh.material.polygonOffset=true;mesh.material.polygonOffsetFactor=1;mesh.material.polygonOffsetUnits=1;
@@ -996,7 +996,7 @@ class Viewport {
     for (const id of [...ids, ...partners]) {
       const primitive = primitives.find(part => part.id === id);
       if (primitive) {
-        const geometry = primitiveGeometry(primitive.kind, primitive.size, primitive.vertices, primitive.customHull, primitive.shaping, primitive.balcony);
+        const geometry = primitiveGeometry(primitive.kind, primitive.size, primitive.vertices, primitive.customHull, primitive.shaping, primitive.balcony, primitive.mesh);
         const fill = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ color: BRASS, transparent: true, opacity: .22, depthWrite: false }));
         const edges = new THREE.LineSegments(primitiveOutlineGeometry(primitive), new THREE.LineBasicMaterial({ color: BRASS_LIGHT, depthTest: false }));
         for (const object of [fill, edges]) { object.position.set(...primitive.position); object.rotation.y = primitive.rotationDeg * Math.PI / 180; object.renderOrder = 20; this.movePreview.add(object); }

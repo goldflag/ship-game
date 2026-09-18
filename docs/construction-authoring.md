@@ -327,3 +327,14 @@ The editor/file API is loopback-only development tooling; it is absent from the
 production server. Source and complexity limits remain those of the construction
 compiler. Repository undo snapshots under `.build/construction/history/` are
 scratch recovery; commit source revisions to Git for durable history.
+
+### Freeform shape topology
+
+`vertex` primitives may carry `mesh.version: 1` instead of `vertices`/`shaping`.
+Use `editableMesh` from `src/ships/constructionMesh.ts` to convert a supported
+native prism, wedge, corner, cylinder, cone or dome preset without changing its
+surface. Half and quarter variants use the same contract. The shared `vertices`
+command accepts `selection.mode: "ring"` as well as vertex/edge/face selections;
+`primitive-patch` accepts the versioned mesh record. Original face IDs and mirror
+references survive movement. Ring and outline insertion/removal are shared pure
+source transformations. See the shipbuilding guide for bounds and validity rules.

@@ -100,6 +100,7 @@ The editor opens every design on the newest equipment catalog. Once that catalog
 | Shift-drag | Box select; Ctrl/⌘ adds to the selection |
 | Right-click | Remove the targeted piece or fitting |
 | Delete / Backspace / ⌘X | Remove the selection (a boundary merges its rooms) |
+| D (Hull) | Enter or finish Freeform for one selected editable shape |
 | Escape | Close the drawer or menu, dismiss a proposal, end a measurement, then return to Select and clear |
 
 Shortcuts do not intercept text, number or select fields, and ⌘C / ⌘X stay with the browser while nothing is selected. The UI admits up to 10,000 hull primitives, 128 fittings and 24 boundaries (`CONSTRUCTION_LIMITS` in `constructionEditor.ts`, mirroring the native compiler); native complexity and fit diagnostics can impose tighter limits on a particular arrangement.
@@ -207,7 +208,7 @@ drags. New balconies start at 2 × 1 m with solid walls. The outline grid defaul
 to 0.25 m, with no grid, 0.125, 0.25, 0.5 and 1 m buttons using the shared grid-spacing group; point editing uses the
 drawing rather than coordinate fields. See [balcony controls](../../../docs/shipbuilding.md#balconies).
 
-Hull selection tags and the Freeform rail button enter the eight-corner editor for a single box or freeform hull. `FreeformToolbar.tsx` owns Vertex/Edge/Face selection, local mirror axes, Move step (also G), nearby-corner matching and the Split popover. `FreeformShapeTools.tsx` adds reversible round/chamfer edge sets on one block. `freeformShape.ts` supplies preview geometry and mirrored edge selection; `construction_freeform.rs` owns native solid generation and validation. The ordinary palette, placement mirror and hotkey readout yield space during the session.
+In Hull, **D**, selection tags and the Freeform rail button enter shape editing for a single editable block; D or Escape finishes. Boxes retain their eight-corner controls. Prisms, wedges, corners, cylinders, cones and domes (including half/quarter cylinders and domes) convert their native surface into versioned editable topology. `FreeformMeshTools.tsx` exposes ring resizing/insertion/removal and prism outline points; `constructionMesh.ts` owns shared source edits and `construction_mesh.rs` validates and compiles the closed solid. `FreeformToolbar.tsx` owns Vertex/Edge/Face/Ring selection, local mirror axes, Move step (also G), nearby-corner matching and the Split popover. `FreeformShapeTools.tsx` adds reversible round/chamfer edge sets on one block. `freeformShape.ts` supplies preview geometry and mirrored edge selection; `construction_freeform.rs` owns native solid generation and validation. The ordinary palette, placement mirror and hotkey readout yield space during the session.
 
 `FreeformHandles.ts` owns source face/edge picking, screen-sized focusable handles, affected-component highlights and a local-axis movement gizmo. The center/component handle drags in the camera-facing local plane. Axis handles constrain explicitly; arrow keys nudge the focused axis. It uses the active orthographic or perspective camera and previews detached primitive replacements. Pointer release commits one source command. Cancellation never writes history, storage or neighboring hulls.
 
@@ -249,6 +250,8 @@ axes, support seating, guide independence and a deterministic projection-work bu
 for dragging detailed balconies. `checkSnapping()` from
 `scripts/tests/shipbuilder-snapping-browser.ts`, run on the diagnostic page, checks the
 production controls, precision, undo, live Alt overrides and freeform cancellation.
+
+Freeform topology coverage: `src/ships/constructionMesh.test.ts` verifies native volume, preview, saved topology, mirroring, ring/outline changes and snapping. Run `node scripts/tests/freeform-mesh-browser.mjs <vite-url>` for all new editor variants, D/Escape, ring gizmo movement and undo, topology controls, native validity and desktop/narrow captures under `.build/freeform/`.
 
 
 New balconies leave their hull-facing edge open. The steel deck extends to the
