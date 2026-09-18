@@ -458,7 +458,7 @@ impl Battle {
                     owner_id: shell.owner_id.clone(),
                     label: shell.weapon_label.clone().unwrap_or_else(|| "Shell".into()),
                     ammunition: shell.ammunition.unwrap_or_default(),
-                    damage: shell.damage,
+                    damage: shell.he.as_ref().map_or(shell.damage, |he| he.damage),
                 });
         }
         for t in &self.torpedoes {
