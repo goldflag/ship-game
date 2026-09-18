@@ -8,7 +8,7 @@ function surfaceDetails(asset: GLTF): GLTF {
     if (!node.userData.wallSurfaceDetail || !(node as Mesh).isMesh) return;
     const mesh=node as Mesh;
     for(const material of Array.isArray(mesh.material)?mesh.material:[mesh.material]) {
-      material.polygonOffset=true;material.polygonOffsetFactor=0;material.polygonOffsetUnits=-2;
+      material.polygonOffset=true;material.polygonOffsetFactor=typeof mesh.userData.wallSurfaceOffsetFactor === 'number' ? mesh.userData.wallSurfaceOffsetFactor : -2;material.polygonOffsetUnits=-2;
     }
   });
   return asset;

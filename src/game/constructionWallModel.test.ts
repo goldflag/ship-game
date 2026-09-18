@@ -14,6 +14,7 @@ test('the original flat silhouette follows a sloping hull with no solid extrusio
   expect(model.children.length).toBe(1);
   const mesh=model.children[0] as THREE.Mesh,positions=mesh.geometry.getAttribute('position');
   expect(positions.count).toBeGreaterThanOrEqual(6);
+  expect(mesh.userData.wallSurfaceOffsetFactor).toBe(-2);
   for(let i=0;i<positions.count;i++) {
     const point=new THREE.Vector3().fromBufferAttribute(positions,i).applyMatrix4(mesh.matrixWorld).toArray() as Vec3;
     const projected=projectWallPoint(point,wallNormal(90),surfaces,.01)!;
@@ -30,5 +31,5 @@ test('relief on an exported parent keeps its depth above the flush panel', () =>
   const item={id:'door',partId:part.id,position:[4,0,0] as Vec3,bearingDeg:90,wall:{version:1 as const,widthM:1,heightM:2}};
   const model=createConstructionWallModel(template,part,item,surfaces),mesh=model.children[0] as THREE.Mesh;
   mesh.geometry.computeBoundingBox();expect(mesh.geometry.boundingBox!.max.z).toBeLessThan(-.014);expect(mesh.geometry.boundingBox!.min.z).toBeLessThan(-.044);
-  expect(mesh.userData.wallSurfaceDetail).toBe(true);
+  expect(mesh.userData.wallSurfaceDetail).toBe(true);expect(mesh.userData.wallSurfaceOffsetFactor).toBe(0);
 });

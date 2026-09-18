@@ -22,6 +22,7 @@ function clip(polygon: THREE.Vector3[], distance: (p: THREE.Vector3) => number):
 export function createConstructionWallModel(template: THREE.Group, part: ConstructionEquipmentPart, item: ConstructionEquipment, surfaces: readonly ConstructionSurface[], primitives: readonly ConstructionPrimitive[] = []): THREE.Group {
   const group = new THREE.Group(), n=wallNormal(item.bearingDeg), scale=wallScale(part,item);
   const pose=new THREE.Matrix4().makeRotationY(-item.bearingDeg*Math.PI/180).setPosition(...item.position), inverse=pose.clone().invert();
+  const offsetFactor=part.wallMount === 'door' || part.wallMount === 'vent' ? 0 : -2;
   const depth=wallProjectionDepth(part.size[0]*scale[0],part.size[1]*scale[1]);
   // Match the hull renderer's triangle fan before clipping. Clipping an entire
   // warped quad would introduce a different diagonal and bury part of the mark.
@@ -50,7 +51,7 @@ export function createConstructionWallModel(template: THREE.Group, part: Constru
       geometry.computeVertexNormals();
       const material=Array.isArray(node.material)?node.material.map(m=>m.clone()):node.material.clone();
       for(const m of Array.isArray(material)?material:[material]) {m.polygonOffset=true;m.polygonOffsetFactor=0;m.polygonOffsetUnits=-2;}
-      const mesh=new THREE.Mesh(geometry,material);mesh.name=node.name;mesh.userData={...node.userData,sharedPreviewResources:false,wallSurfaceDetail:true};mesh.castShadow=mesh.receiveShadow=true;group.add(mesh);return;
+      const mesh=new THREE.Mesh(geometry,material);mesh.name=node.name;mesh.userData={...node.userData,sharedPreviewResources:false,wallSurfaceDetail:true,wallSurfaceOffsetFactor:0};mesh.castShadow=mesh.receiveShadow=true;group.add(mesh);return;
     }
     const points:number[]=[], normals:number[]=[];
     for(let i=0;i<(index?.count??position.count);i+=3){
@@ -70,9 +71,9 @@ export function createConstructionWallModel(template: THREE.Group, part: Constru
     }
     if (!points.length) return;
     const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(points,3));geometry.setAttribute('normal',new THREE.Float32BufferAttribute(normals,3));
-    const clone=(m:THREE.Material)=>{const material=m.clone();material.side=THREE.DoubleSide;material.polygonOffset=true;material.polygonOffsetFactor=0;material.polygonOffsetUnits=-2;return material;};
+    const clone=(m:THREE.Material)=>{const material=m.clone();material.side=THREE.DoubleSide;material.polygonOffset=true;material.polygonOffsetFactor=offsetFactor;material.polygonOffsetUnits=-2;return material;};
     const mesh=new THREE.Mesh(geometry,Array.isArray(node.material)?node.material.map(clone):clone(node.material));
-    mesh.name=node.name;mesh.userData={...node.userData,sharedPreviewResources:false,wallSurfaceDetail:true};group.add(mesh);
+    mesh.name=node.name;mesh.userData={...node.userData,sharedPreviewResources:false,wallSurfaceDetail:true,wallSurfaceOffsetFactor:offsetFactor};group.add(mesh);
   });
   return group;
 }

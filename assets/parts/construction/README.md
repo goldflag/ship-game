@@ -287,7 +287,7 @@ Its plain door builder remains available for retained recipes. The attachment is
 local runtime Z=0, facing +Z into the wall. `wallMount` identifies these parts;
 installation dimensions scale the original silhouette and provisional mass.
 The renderer clips original front triangles onto native hull panels, using a
-0.5 mm rendering bias and constant depth-buffer offset to avoid flicker. Window
+0.5 mm rendering bias and depth-buffer offset to avoid flicker. Window
 catalog bounds use a 1 mm picking/mass envelope, without visible extrusion.
 These generic surface details do not cut holes or claim historical fidelity.
 
