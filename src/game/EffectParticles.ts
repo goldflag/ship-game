@@ -15,7 +15,7 @@ function noise(x: number, y: number): number {
 }
 
 /** Original, deterministic density textures. No downloads or canvas/readback needed. */
-export function effectTexture(kind: 'smoke' | 'flash' | 'flame' | 'foam' | 'tracer' | 'wake' | 'droplet' | 'water'): THREE.DataTexture {
+export function effectTexture(kind: 'smoke' | 'flash' | 'glow' | 'flame' | 'foam' | 'tracer' | 'wake' | 'droplet' | 'water'): THREE.DataTexture {
   const size = 128, pixels = new Uint8Array(size * size * 4);
   for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
     const u = (x + .5) / size * 2 - 1, v = (y + .5) / size * 2 - 1;
@@ -60,6 +60,10 @@ export function effectTexture(kind: 'smoke' | 'flash' | 'flame' | 'foam' | 'trac
       const width = .65 * (1 - along) + .03;
       const edge = 1 - Math.abs(u - bend) / width + (coarse - .5) * .8;
       alpha = smooth(edge * 2) * smooth(along * 12) * smooth((1 - along) * 6) * (.65 + detail * .35);
+      light = 1;
+    } else if (kind === 'glow') {
+      // A steady, smooth halo, without the turbulent rim of a muzzle flash.
+      alpha = Math.exp(-radius * radius * 7) * smooth((1 - radius) * 4);
       light = 1;
     } else if (kind === 'flash') {
       alpha = Math.exp(-radius * radius * 5) * smooth((1 - radius) * 5) * (.55 + density * .45);
