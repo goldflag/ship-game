@@ -102,7 +102,35 @@ export function resizeSection(s: Station, halfWidth: number) {
   const profile = [1, .96, .74, .36, 0, .36, .74, .96, 1];
   s.points.forEach((p, i) => { p.x = i === keel ? 0 : (i < keel ? -1 : 1) * (previous > 1e-10 ? Math.abs(p.x) / previous : contourWeight(s.points, i, profile)) * halfWidth; });
 }
-/** Split the selected edge toward the keel and its mirror throughout the loft. */
+/** Re-space each side along its old outline, measuring distance in hull metres.
+ * Sample before changing topology so removal does not first cut off a corner.
+ * Keep contour identities for panel assignments; deck edges and keel stay fixed. */
+function redistributeOutline(h: Hull, original: Point[], topology: Point[]): Point[] {
+  const oldKeel = (original.length - 1) / 2, keel = (topology.length - 1) / 2;
+  const next = topology.map(p => ({ ...p }));
+  for (const side of [0, 1]) {
+    const source = side ? original.slice(oldKeel).reverse() : original.slice(0, oldKeel + 1);
+    const distances = [0];
+    for (let i = 1; i < source.length; i++) distances.push(distances[i - 1] + Math.hypot(
+      (source[i].x - source[i - 1].x) * h.beam / 2,
+      (source[i].y - source[i - 1].y) * h.depth,
+    ));
+    let edge = 1;
+    for (let i = 0; i <= keel; i++) {
+      const distance = distances[oldKeel] * i / keel;
+      while (edge < oldKeel && distances[edge] < distance) edge++;
+      const span = distances[edge] - distances[edge - 1];
+      const t = span > 0 ? (distance - distances[edge - 1]) / span : 0;
+      const point = i === 0 ? source[0] : i === keel ? source[oldKeel] : {
+        x: mix(source[edge - 1].x, source[edge].x, t),
+        y: mix(source[edge - 1].y, source[edge].y, t),
+      };
+      Object.assign(next[side ? next.length - 1 - i : i], { x: point.x, y: point.y });
+    }
+  }
+  return next;
+}
+/** Add a mirrored pair, then redistribute controls around every section. */
 export function addHullPointPair(h: Hull, selected: number): number {
   const count = h.stations[0].points.length, last = count - 1, keel = last / 2;
   if (count >= MAX_HULL_POINTS || !Number.isInteger(selected) || selected < 0 || selected > last) throw new Error('Select an outline point; each section supports at most 33 points.');
@@ -113,7 +141,7 @@ export function addHullPointPair(h: Hull, selected: number): number {
     const port = midpoint(edge), starboard = midpoint(last - edge - 1);
     points.splice(last - edge, 0, starboard);
     points.splice(edge + 1, 0, port);
-    s.points = points;
+    s.points = redistributeOutline(h, s.points, points);
   }
   return selected > keel ? count - edge : edge + 1;
 }
@@ -123,8 +151,12 @@ export function canRemoveHullPointPair(points: Point[], selected: number): boole
 export function removeHullPointPair(h: Hull, selected: number): number {
   const points = h.stations[0].points, last = points.length - 1, port = Math.min(selected, last - selected);
   if (!canRemoveHullPointPair(points, selected)) throw new Error('Keep the deck edges, center keel and at least five outline points.');
-  for (const s of h.stations) s.points = s.points.map((p, i) => ({ ...p, contour: contourAt(s.points, i) })).filter((_, i) => i !== port && i !== last - port);
-  return selected > last / 2 ? last - port - 1 : port;
+  for (const s of h.stations) {
+    const topology = s.points.map((p, i) => ({ ...p, contour: contourAt(s.points, i) })).filter((_, i) => i !== port && i !== last - port);
+    s.points = redistributeOutline(h, s.points, topology);
+  }
+  const nextPort = Math.min(port, (last - 2) / 2 - 1);
+  return selected > last / 2 ? last - 2 - nextPort : nextPort;
 }
 function crosses(a: Point, b: Point, c: Point, d: Point) {
   const orient = (p: Point, q: Point, r: Point) => (q.x - p.x) * (r.y - p.y) - (q.y - p.y) * (r.x - p.x);

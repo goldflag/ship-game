@@ -21,14 +21,30 @@ async function drag(locator, dx, dy, alt = false) {
 }
 const base_ = h => Math.min(...h.stations.flatMap(s => s.points.map(p => p.y * h.depth)));
 const onGrid = v => Math.abs(v * 10 - Math.round(v * 10)) < 1e-6;
+const assertRedistributed = (before, after) => {
+  for (const [i, station] of after.stations.entries()) {
+    const old = before.stations[i].points, points = station.points;
+    // Changing detail must move existing controls beyond merely splicing a pair.
+    const relocated = points.filter(p => !old.some(q => Math.abs(p.x - q.x) < 1e-9 && Math.abs(p.y - q.y) < 1e-9));
+    assert(relocated.length > Math.max(0, points.length - old.length));
+    for (const [a, b] of [[0, 0], [(old.length - 1) / 2, (points.length - 1) / 2], [old.length - 1, points.length - 1]]) {
+      assert.equal(old[a].x, points[b].x); assert.equal(old[a].y, points[b].y);
+    }
+  }
+};
 try {
   await page.goto(`${base}/?hullPrototype=1`);
   await page.locator('.hs-root canvas').waitFor();
   await page.locator('.hs-plane').waitFor();
   const before = await state();
+  await page.keyboard.press('2');
+  await page.screenshot({ path: '.build/hull-sections/before-detail.png' });
   await button('+ Pair').click(); await count(11);
   const added = await state();
   assert(added.stations.every(s => s.points.length === 11));
+  assertRedistributed(before, added);
+  await page.screenshot({ path: '.build/hull-sections/after-detail.png' });
+  await page.keyboard.press('1');
   await button('Undo').click(); await count(9);
   assert.deepEqual(await state(), before);
   await button('Redo').click(); await count(11);
@@ -65,6 +81,7 @@ try {
   assert.deepEqual(await state(), nudged);
   // Delete on the focused handle removes the pair; the tag's pair buttons guard the deck edge and keel.
   await plane.focus(); await page.keyboard.press('Delete'); await count(9);
+  assertRedistributed(nudged, await state());
   await button('Undo').click(); await count(11);
   await page.getByRole('button', { name: /^Keel, section 04/ }).click();
   assert(await button('− Pair').isDisabled());

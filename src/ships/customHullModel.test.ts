@@ -1,31 +1,42 @@
 import { expect, test } from 'bun:test';
-import { addHullPointPair, canRemoveHullPointPair, clone, customHullFaces, customHullPrimitive, displayPoints, invalidReason, lockSymmetry, makeHull, removeHullPointPair, resizeSection, setSectionCount } from './customHullModel';
+import { addHullPointPair, canRemoveHullPointPair, clone, customHullFaces, customHullPrimitive, invalidReason, lockSymmetry, makeHull, removeHullPointPair, resizeSection, setSectionCount } from './customHullModel';
 import { contourAt, MAX_HULL_POINTS } from './customHullTopology';
 import { customHullPanels, mirroredPanelId } from './constructionPanels';
 
-test('adding from either side or the keel splits mirrored edges in every section', () => {
-  for (const selected of [0, 1, 3, 4, 5, 7, 8]) {
-    const h = makeHull(); h.bulb = .5;
-    const before = clone(h), next = addHullPointPair(h, selected);
+const arcPosition = (points: { x: number; y: number }[], p: { x: number; y: number }, beam: number, depth: number) => {
+  let length = 0, nearest = { error: Infinity, distance: 0 };
+  for (let i = 1; i < points.length; i++) {
+    const a = points[i - 1], b = points[i];
+    const dx = (b.x - a.x) * beam / 2, dy = (b.y - a.y) * depth;
+    const px = (p.x - a.x) * beam / 2, py = (p.y - a.y) * depth;
+    const edge = Math.hypot(dx, dy), t = edge ? Math.max(0, Math.min(1, (px * dx + py * dy) / edge ** 2)) : 0;
+    const error = Math.hypot(px - t * dx, py - t * dy);
+    if (error < nearest.error) nearest = { error, distance: length + t * edge };
+    length += edge;
+  }
+  return { ...nearest, fraction: nearest.distance / length };
+};
+
+test('adding and removing pairs redistributes the whole outline in metres', () => {
+  for (const add of [true, false]) for (const selected of add ? [0, 1, 3, 4, 5, 7, 8] : [1, 2, 3, 5, 6, 7]) {
+    const h = makeHull(), before = clone(h);
+    const next = add ? addHullPointPair(h, selected) : removeHullPointPair(h, selected);
+    expect(next).toBeGreaterThan(0);
+    expect(next).toBeLessThan(h.stations[0].points.length - 1);
     expect(invalidReason(h)).toBeUndefined();
-    expect(h.stations.map(s => s.id)).toEqual(before.stations.map(s => s.id));
+    expect(h.stations.map(s => [s.id, s.t])).toEqual(before.stations.map(s => [s.id, s.t]));
     for (const [i, s] of h.stations.entries()) {
-      expect(s.points).toHaveLength(11);
-      expect(s.points[5].x).toBe(0);
-      for (let j = 0; j < 5; j++) {
-        expect(s.points[j].x).toBeCloseTo(-s.points[10 - j].x, 12);
-        expect(s.points[j].y).toBe(s.points[10 - j].y);
-      }
-      // Inserting detail does not relocate the original controls or their bulb weights.
-      const shown = displayPoints(h, s);
-      const old = displayPoints(before, before.stations[i]);
-      for (let j = 0; j < 9; j++) {
-        const point = shown.find(p => p.contour === j)!;
-        expect([point.x, point.y]).toEqual([old[j].x, old[j].y]);
+      const old = before.stations[i].points, last = s.points.length - 1, keel = last / 2;
+      expect(s.points).toHaveLength(add ? 11 : 7);
+      expect([s.points[0].x, s.points[0].y, s.points[keel].x, s.points[keel].y]).toEqual([old[0].x, old[0].y, old[4].x, old[4].y]);
+      for (let j = 1; j < keel; j++) {
+        const at = arcPosition(old.slice(0, 5), s.points[j], h.beam, h.depth);
+        expect(at.error).toBeLessThan(1e-9);
+        expect(at.fraction).toBeCloseTo(j / keel, 10);
+        expect(s.points[j].x).toBeCloseTo(-s.points[last - j].x, 12);
+        expect(s.points[j].y).toBe(s.points[last - j].y);
       }
     }
-    removeHullPointPair(h, next);
-    expect(h.stations.map(s => s.points.map(({ x, y }) => ({ x, y })))).toEqual(before.stations.map(s => s.points));
   }
 });
 
