@@ -712,6 +712,8 @@ dependencies = [
 name = "naval-sim"
 version = "0.1.0"
 dependencies = [
+ "base64",
+ "flate2",
  "serde",
  "serde_json",
  "sha2 0.10.9",

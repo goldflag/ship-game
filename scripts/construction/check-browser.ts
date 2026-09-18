@@ -67,6 +67,10 @@ try {
     const { checkInternalsSelection } = await import(modulePath);
     return checkInternalsSelection();
   }, '/scripts/tests/shipbuilder-internals-browser.ts'));
+  await run('mooring-surface-attachment', page => page.evaluate(async modulePath => {
+    const { checkMastRopeAttachment } = await import(modulePath);
+    return checkMastRopeAttachment();
+  }, '/scripts/tests/shipbuilder-mooring-browser.ts'));
   await run('invalid-part-feedback', page => page.evaluate(async modulePath => {
     const { checkInvalidPartFeedback } = await import(modulePath);
     return checkInvalidPartFeedback();

@@ -157,6 +157,17 @@ struct Body {
     bounds: Box3,
     tree: Chunk,
 }
+
+/// Shared triangle acceleration for renderer-free construction support checks.
+pub(crate) struct SurfaceTree(Body);
+impl SurfaceTree {
+    pub fn new(triangles: Vec<[Vec3; 3]>) -> Self {
+        Self(Body::new(String::new(), None, false, triangles))
+    }
+    pub fn distance(&self, a: Vec3, b: Vec3, limit: f64) -> f64 {
+        self.0.distance(Capsule { a, b, radius: 0. }, limit)
+    }
+}
 impl Body {
     fn new(id: String, mount: Option<usize>, enclosure: bool, triangles: Vec<[Vec3; 3]>) -> Self {
         let bounds = Box3::points(triangles.iter().flatten().copied());
