@@ -3,7 +3,7 @@ import { LocalizedFireEffects, type FireDisplayPose } from './LocalizedFireEffec
 import { ExpandableInstances } from './ExpandableInstances';
 import { localToWorld } from './geometry';
 import * as THREE from 'three/webgpu';
-import { nodeObject, uniform } from 'three/tsl';
+import { attribute, color, mix, nodeObject, positionGeometry, uniform } from 'three/tsl';
 import { FIXED_DT } from './session/motion';
 import { EffectParticlePool, effectTexture } from './EffectParticles';
 import { EffectDepthTextureNode, effectVolumeMaterial, effectVolumeTexture } from './EffectVolume';
@@ -16,6 +16,24 @@ const UP = new THREE.Vector3(0, 1, 0);
 const WARM = new THREE.Color('#ffe7b6');
 const SMOKE = new THREE.Color('#b9b6ae'), WATER = new THREE.Color('#e7f2f1');
 
+function projectileGeometry(detailed: boolean, capacity: number): THREE.LatheGeometry {
+  const geometry = shellGeometry(detailed);
+  geometry.setAttribute('shellHeat', new THREE.InstancedBufferAttribute(new Float32Array(capacity), 1));
+  return geometry;
+}
+
+function projectileMaterial(): THREE.MeshStandardNodeMaterial {
+  const material = new THREE.MeshStandardNodeMaterial({ vertexColors: true, metalness: .45, roughness: .36 });
+  // Illustrative incandescence: an orange body and a hotter gold nose. The
+  // original vertex finish keeps the engraved bands visible through the heat.
+  // Emission and the existing halo need no per-shell light or bloom pass.
+  const nose = positionGeometry.y.add(1.8).div(4.15).clamp(0, 1).pow(2);
+  material.emissiveNode = mix(color('#ff3c08'), color('#ffce83'), nose)
+    .mul(mix(.8, 2.6, nose)).mul(attribute('shellHeat', 'float'))
+    .mul(attribute<'vec3'>('color', 'vec3').mul(.35).add(.65));
+  return material;
+}
+
 /** Visual randomness is local and seeded by the event; combat never consumes it. */
 function randomFor(seed: number): () => number {
   let state = seed >>> 0;
@@ -25,7 +43,7 @@ function randomFor(seed: number): () => number {
 /** Ballistics come from the CPU simulation. Only gas, spray and fragments live here. */
 export class CombatEffects {
   readonly root = new THREE.Group();
-  private readonly maps = { smoke: effectTexture('smoke'), flash: effectTexture('flash'), foam: effectTexture('foam'), tracer: effectTexture('tracer'), wake: effectTexture('wake'),
+  private readonly maps = { smoke: effectTexture('smoke'), flash: effectTexture('flash'), shellGlow: effectTexture('glow'), foam: effectTexture('foam'), tracer: effectTexture('tracer'), wake: effectTexture('wake'),
     droplet: effectTexture('droplet'), water: effectTexture('water') };
   private readonly volumeMap = effectVolumeTexture();
   private readonly sun = uniform(new THREE.Vector3(-.55, .74, -.39).normalize());
@@ -46,15 +64,14 @@ export class CombatEffects {
   private readonly fire = new EffectParticlePool(256, this.maps.flash, true, undefined, false, true);
   private readonly foam = new EffectParticlePool(96, this.maps.foam, false, undefined, false, true);
   private readonly pools = [this.foam, this.smoke, this.aircraftSmoke, this.flakSmoke, this.mist, this.spray, this.fire];
-  private readonly projectiles = new ExpandableInstances(shellGeometry(false),
-    new THREE.MeshStandardMaterial({ vertexColors: true, metalness: .6, roughness: .32 }), 256);
-  private readonly detailedProjectiles = new ExpandableInstances(shellGeometry(), this.projectiles.material, 16);
+  private readonly projectiles = new ExpandableInstances(projectileGeometry(false, 256), projectileMaterial(), 256);
+  private readonly detailedProjectiles = new ExpandableInstances(projectileGeometry(true, 16), this.projectiles.material, 16);
   private readonly shellTrails = new ShellTrails();
   // Water's depth-based postprocessing otherwise classifies these low-flying
   // lights as sea pixels and erases them. Reject the transparent quad margins.
   private readonly shellGlows = new ExpandableInstances(new THREE.PlaneGeometry(1, 1),
-    new THREE.MeshBasicMaterial({ map: this.maps.flash, color: new THREE.Color('#ffe8bc').multiplyScalar(1.45), opacity: .22,
-      transparent: true, blending: THREE.AdditiveBlending, alphaTest: .02, depthWrite: true, side: THREE.DoubleSide }), 256);
+    new THREE.MeshBasicMaterial({ map: this.maps.shellGlow, color: new THREE.Color('#ffaa44').multiplyScalar(2.4), opacity: .35,
+      transparent: true, blending: THREE.AdditiveBlending, alphaTest: .004, depthWrite: true, side: THREE.DoubleSide }), 256);
   private readonly streaks = new ExpandableInstances(new THREE.PlaneGeometry(1, 1),
     new THREE.MeshBasicMaterial({ map: this.maps.tracer, color: new THREE.Color('#fff1d0').multiplyScalar(3.2), transparent: true, opacity: .9,
       blending: THREE.AdditiveBlending, alphaTest: .02, depthWrite: true, side: THREE.DoubleSide }), 256);
@@ -121,7 +138,7 @@ export class CombatEffects {
 
   /** `opticsShipId` is the hull the lens sits on: its own smoke is left out so the
    * view from its bridge stays clear, whether that is the player's ship or a followed teammate. */
-  update(sim: BattleSession, dt: number, camera: THREE.Camera, opticsShipId?: string, poses?: readonly FireDisplayPose[], hideShellTrails = false): void {
+  update(sim: BattleSession, dt: number, camera: THREE.Camera, opticsShipId?: string, poses?: readonly FireDisplayPose[]): void {
     // Advance before emitting: a slow frame still gets one visible muzzle flash.
     for (const item of this.lights) {
       item.age += dt;
@@ -140,7 +157,7 @@ export class CombatEffects {
     for (const pool of this.pools) pool.publish(camera, pool === this.smoke ? opticsShipId : undefined);
     this.spouts.publish(camera);
     this.updateShells(sim, camera);
-    this.shellTrails.update(sim.shells, dt, camera, hideShellTrails);
+    this.shellTrails.update(sim.shells, dt, camera);
     this.updateTorpedoes(sim);
     this.depthChargeCount = sim.depthCharges.length;
     sim.depthCharges.forEach((charge, i) => {
@@ -291,6 +308,8 @@ export class CombatEffects {
     camera.getWorldQuaternion(this.cameraRotation);
     for (let i = 0; i < count; i++) {
       const shell = shells[i];
+      const luminous = shell.waterDragPerSecond === undefined;
+      this.projectiles.setScalarAttributeAt('shellHeat', i, luminous ? 1 : 0);
       this.position.fromArray(shell.position);
       this.direction.fromArray(shell.velocity).normalize();
       if (this.direction.lengthSq() === 0) this.direction.copy(UP);
@@ -306,17 +325,18 @@ export class CombatEffects {
       // including binoculars. Small pages avoid submitting hundreds of detailed
       // zero-scale shells while idle (WebGPU retains each page's draw count).
       if (shell.caliberM / viewHeight > .002) {
+        this.detailedProjectiles.setScalarAttributeAt('shellHeat', detailCount, luminous ? 1 : 0);
         this.dummy.updateMatrix(); this.detailedProjectiles.setMatrixAt(detailCount++, this.dummy.matrix);
         this.dummy.scale.setScalar(0);
       }
       this.dummy.updateMatrix(); this.projectiles.setMatrixAt(i, this.dummy.matrix);
-      // In shell-follow range the luminous head recedes to reveal the metal round.
+      // The short exposure recedes in close views; the incandescent body and
+      // warm halo remain visible, including in the T follow camera.
       const tracking = THREE.MathUtils.smoothstep(this.cameraPosition.distanceTo(this.position), 65, 150);
-      const luminous = shell.waterDragPerSecond === undefined;
       // Caliber also scales the screen-space visibility floor. A shared floor
       // made 20 mm rounds look as large as main-battery shells at equal range.
       const caliberScale = Math.sqrt(shell.caliberM / .38);
-      const glowSize = luminous ? Math.max(shell.caliberM * .45, Math.min(16, viewHeight * .003) * caliberScale) * (.2 + .8 * tracking) : 0;
+      const glowSize = luminous ? Math.max(shell.caliberM * 1.8, Math.min(16, viewHeight * .003) * caliberScale) : 0;
       this.dummy.quaternion.copy(this.cameraRotation);
       this.dummy.scale.set(glowSize, glowSize, 1);
       this.dummy.updateMatrix(); this.shellGlows.setMatrixAt(i, this.dummy.matrix);

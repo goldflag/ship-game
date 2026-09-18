@@ -937,7 +937,7 @@ export class Game {
       // Own smoke is suppressed for the hull the lens sits on, which is the followed
       // teammate while spectating rather than the player's own ship.
       const opticsShipId = this.rig.binoculars && !this.shellFollow.view ? this.cameraShipView.actor.motion.id : undefined;
-      this.effects.update(this.simulation, presentationDt, this.camera, opticsShipId, this.fleetViews, !!this.shellFollow.view);
+      this.effects.update(this.simulation, presentationDt, this.camera, opticsShipId, this.fleetViews);
       this.funnelSmoke.root.visible = !this.inspecting && (!this.inPort || this.playerView!.inspection.mode === 'exterior');
       this.funnelSmoke.update(this.inPort ? [this.playerView!] : this.fleetViews, presentationDt, this.camera, opticsShipId);
       if (!warmingUp) this.audio?.update(this.simulation, this.input.order, this.battery,

@@ -553,3 +553,38 @@ maximum). Its final fifty-second windows were 63.0, 61.8, 64.2, 64.3 and 64.8 FP
 All 52 tests and the full build also passed in the main checkout. The tested
 thirty-ship/four-carrier scenario now exceeds 60 FPS in each ten-second window;
 occasional individual frames still exceed 16.7 ms.
+
+## Restored shell vapor trails (2026-09-17)
+
+Shell trails now survive fresh worker/network snapshot objects by matching shell
+ID, owner and flight age. The T follow camera renders them again. Each path keeps
+1.25 seconds of observed positions in a reusable 32-slot ring, sampled at up to
+10 Hz with extra ricochet corners. Offscreen segments retain their histories but
+skip billboard preparation and uploads. Direct basis matrices avoid per-segment
+quaternion composition. A shared 8,192-segment limit bounds vapor rendering to
+eight instance pages; overflow can omit cosmetic trails, never physical shells.
+
+A local Bun component benchmark with frozen, fully visible paths measured
+0.59–0.61 ms per update for 400 shells versus 1.31–1.38 ms for the previous full
+trail renderer (5,200 versus 8,000 segments). At 1,100 shells the cap limited the
+new renderer to 8,192 segments and 1.00–1.05 ms, versus 22,000 segments and
+3.69–3.77 ms. These are CPU preparation measurements, not whole-game FPS gains.
+The development page `/scripts/diagnostics/shell-tracers.html` exercises wide,
+zoomed and close follow views with the actual trail and projectile materials; append `?webgl`
+to exercise the fallback backend. `review.render('wide' | 'zoom' | 'follow' |
+'close')` selects a fixed view. Both backends were visually inspected. Regression
+coverage includes snapshot replacement, ring wrap, ricochets, pause, expiry,
+reset, near-plane clipping, camera re-entry and dense-salvo bounds.
+
+A Fletcher salvo from the real Rust worker was also inspected in the ocean scene
+with the T follow camera: the retained paths stayed visible through the water
+postprocess. The 117 focused effect/camera/frame/session regressions and the
+production build passed. Temporary captures and benchmark inputs stay in `.build/`.
+
+Shell bodies also use shared emissive shading, with orange heat on the body and
+a brighter gold nose. The existing instanced halo uses a smooth amber texture
+and remains visible up close. A scalar per-instance heat attribute extinguishes
+submerged rounds in both detail levels. This adds no draw calls, dynamic lights
+or bloom passes. The hot finish is a visibility treatment, not a thermal model.
+The ocean-scene salvo, T follow and close-up captures were inspected; the updated
+WebGL2 diagnostic, 103 focused tests and production build pass.

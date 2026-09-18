@@ -461,6 +461,31 @@ test('tracers end at the CPU shell, grow from the muzzle, and stay legible acros
   } finally { effects.dispose(); }
 });
 
+test('hot bodies and close halos extinguish independently when shells enter water, including compacted detail slots', () => {
+  const sim = new CombatSimulation(compileShip(blueprint, catalog)), effects = new CombatEffects();
+  const camera = new PerspectiveCamera(52, 16 / 9, .1, 30000);
+  const shell: Shell = { id: 1, ownerId: 'player', position: [0, 0, -3], velocity: [800, 0, 0], age: 1,
+    caliberM: .38, penetrationMm: 0, damage: 0 };
+  sim.shells.push({ ...shell, id: 0, position: [0, 0, -3000] }, shell, { ...shell, id: 2, waterDragPerSecond: 2 });
+  const body = effects.root.getObjectByName('Shell bodies') as InstancedMesh;
+  const detail = effects.root.getObjectByName('Detailed shell bodies') as InstancedMesh;
+  const glow = effects.root.getObjectByName('Shell glows') as InstancedMesh;
+  const matrix = new Matrix4();
+  const haloWidth = (index: number) => { glow.getMatrixAt(index, matrix); return new Vector3().setFromMatrixScale(matrix).x; };
+  try {
+    camera.updateMatrixWorld(); effects.update(sim, 0, camera);
+    expect([0, 1, 2].map(i => body.geometry.getAttribute('shellHeat').getX(i))).toEqual([1, 1, 0]);
+    expect([0, 1].map(i => detail.geometry.getAttribute('shellHeat').getX(i))).toEqual([1, 0]);
+    expect(haloWidth(1)).toBeGreaterThan(shell.caliberM);
+    expect(haloWidth(2)).toBe(0);
+    shell.waterDragPerSecond = 2;
+    effects.update(sim, 0, camera);
+    expect(detail.geometry.getAttribute('shellHeat').getX(0)).toBe(0);
+    expect(haloWidth(1)).toBe(0);
+    expect(body.geometry.getAttribute('shellHeat').getX(0)).toBe(1);
+  } finally { effects.dispose(); }
+});
+
 test('manual shell heads and trails distinguish AA, secondary and main calibers at equal range', () => {
   const sim = new CombatSimulation(compileShip(blueprint, catalog)), effects = new CombatEffects();
   const camera = new PerspectiveCamera(52, 16 / 9, .1, 30000);
@@ -486,7 +511,7 @@ test('manual shell heads and trails distinguish AA, secondary and main calibers 
   } finally { effects.dispose(); }
 });
 
-test('the shell follow camera hides shell vapor trails without dropping their histories', () => {
+test('shell vapor trails survive replacement snapshot objects through CombatEffects', () => {
   const sim = new CombatSimulation(compileShip(blueprint, catalog)), effects = new CombatEffects();
   const camera = new PerspectiveCamera(52, 16 / 9, .1, 30000);
   try {
@@ -495,11 +520,11 @@ test('the shell follow camera hides shell vapor trails without dropping their hi
     effects.update(sim, .1, camera);
     expect(effects.diagnostics().shellTrails.segments).toBeGreaterThan(0);
     for (const age of [.2, .3]) {
-      shell.age = age; shell.position[0] = (age - .1) * 820;
-      effects.update(sim, .1, camera, undefined, undefined, true);
-      expect(effects.diagnostics().shellTrails).toEqual({ histories: 1, segments: 0 });
+      sim.shells[0] = { ...shell, age, position: [(age - .1) * 820, 100, -1000] };
+      effects.update(sim, .1, camera);
+      expect(effects.diagnostics().shellTrails.histories).toBe(1);
     }
-    expect((effects.root.getObjectByName('Shell vapor trails') as InstancedMesh).visible).toBe(false);
+    expect((effects.root.getObjectByName('Shell vapor trails') as InstancedMesh).visible).toBe(true);
     effects.update(sim, 0, camera);
     expect(effects.diagnostics().shellTrails.segments).toBeGreaterThanOrEqual(2);
   } finally { effects.dispose(); }

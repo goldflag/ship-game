@@ -18,6 +18,8 @@ function endpoints(mesh: InstancedMesh, count: number) {
 
 test('long trails retain curved CPU positions, reach the round and freeze on pause without changing simulation', () => {
   const trails = new ShellTrails(), shell = round();
+  const camera = new PerspectiveCamera(52, 16 / 9, .1, 30000);
+  camera.position.set(800, 200, 1000); camera.lookAt(800, 200, -1000); camera.updateMatrixWorld();
   try {
     for (let i = 0; i <= 120; i++) {
       const t = i / 60;
@@ -25,8 +27,8 @@ test('long trails retain curved CPU positions, reach the round and freeze on pau
       trails.update([shell], 1 / 60, camera);
     }
     const segments = endpoints(trails.mesh, trails.diagnostics().segments);
-    expect(segments.length).toBeGreaterThan(15);
-    expect(segments.length).toBeLessThan(30);
+    expect(segments.length).toBeGreaterThan(10);
+    expect(segments.length).toBeLessThanOrEqual(14);
     expect(segments[0][0].x).toBeCloseTo(600, 2); // Exactly 1.25 seconds of retained flight.
     expect(segments.at(-1)![1].distanceTo(new Vector3(...shell.position))).toBeLessThan(.001);
     for (let i = 1; i < segments.length; i++) expect(segments[i - 1][1].distanceTo(segments[i][0])).toBeLessThan(.001);
@@ -124,24 +126,76 @@ test('a trail crossing the follow camera clips at the near plane and stays thin 
   } finally { trails.dispose(); }
 });
 
-test('the shell follow camera hides trails while they keep recording, so leaving T restores the retained path', () => {
-  const trails = new ShellTrails(), shell = round();
+test('fresh worker/network snapshot objects retain the complete trail', () => {
+  const trails = new ShellTrails();
   try {
-    for (let i = 0; i <= 120; i++) {
-      shell.age = i / 60; shell.position[0] = shell.age * 800;
-      trails.update([shell], 1 / 60, camera, true);
+    for (let i = 0; i <= 60; i++) {
+      const shell = round(); shell.age = i / 60; shell.position[0] = shell.age * 600;
+      trails.update([shell], 1 / 60, camera);
+    }
+    const segments = endpoints(trails.mesh, trails.diagnostics().segments);
+    expect(segments.length).toBeGreaterThanOrEqual(9);
+    expect(segments[0][0].x).toBeCloseTo(0, 5);
+    expect(segments.at(-1)![1].x).toBeCloseTo(600, 3);
+    for (let i = 1; i < segments.length; i++) expect(segments[i - 1][1].distanceTo(segments[i][0])).toBeLessThan(.001);
+    // A reset reuses the ID while the old history is still alive.
+    const restarted = round(); restarted.age = .01; restarted.position[0] = 8;
+    trails.update([restarted], .01, camera);
+    expect(endpoints(trails.mesh, 1)[0].map(p => p.x)).toEqual([0, 8]);
+  } finally { trails.dispose(); }
+});
+
+test('history storage wraps without gaps or retaining old flight', () => {
+  const trails = new ShellTrails();
+  try {
+    for (let frame = 0; frame <= 600; frame++) {
+      const age = frame / 60, shell = { ...round(), age, position: [age * 60, 100, -1000] as [number, number, number] };
+      trails.update([shell], 1 / 60, camera);
+    }
+    const segments = endpoints(trails.mesh, trails.diagnostics().segments);
+    expect(segments.length).toBeLessThanOrEqual(14);
+    expect(segments[0][0].x).toBeCloseTo((10 - 1.25) * 60, 3);
+    expect(segments.at(-1)![1].x).toBeCloseTo(600, 3);
+    for (let i = 1; i < segments.length; i++) expect(segments[i - 1][1].distanceTo(segments[i][0])).toBeLessThan(.001);
+  } finally { trails.dispose(); }
+});
+
+test('offscreen paths keep recording and return at their current age', () => {
+  const trails = new ShellTrails(), shell = round();
+  const away = new PerspectiveCamera(52, 16 / 9, .1, 30000);
+  away.lookAt(1000, 0, 0); away.updateMatrixWorld();
+  try {
+    for (let i = 0; i <= 60; i++) {
+      shell.age = i / 60; shell.position[0] = shell.age * 600;
+      trails.update([shell], 1 / 60, away);
       expect(trails.diagnostics()).toEqual({ histories: 1, segments: 0 });
     }
     expect(trails.mesh.visible).toBe(false);
-    expect([...trails.mesh.instanceMatrix.array].every(value => value === 0)).toBe(true);
     trails.update([shell], 0, camera);
     const segments = endpoints(trails.mesh, trails.diagnostics().segments);
     expect(trails.mesh.visible).toBe(true);
-    expect(segments.length).toBeGreaterThan(15);
-    expect(segments[0][0].x).toBeCloseTo(600, 2); // The full 1.25 seconds recorded while hidden.
+    expect(segments.length).toBeGreaterThanOrEqual(9);
+    expect(segments[0][0].x).toBeCloseTo(0, 5);
     expect(segments.at(-1)![1].distanceTo(new Vector3(...shell.position))).toBeLessThan(.001);
-    // Expiry continues while hidden: a finished flight leaves no stale history.
-    trails.update([], 1.3, camera, true);
+    trails.update([], 1.3, away);
     expect(trails.diagnostics()).toEqual({ histories: 0, segments: 0 });
+  } finally { trails.dispose(); }
+});
+
+test('dense salvos bound GPU batches and expire even when the rendering budget is exhausted', () => {
+  const trails = new ShellTrails(), shells = Array.from({ length: 1100 }, (_, id) => round(id));
+  try {
+    for (let frame = 0; frame <= 90; frame++) {
+      for (const shell of shells) { shell.age = frame / 60; shell.position[0] = shell.age * 300; }
+      trails.update(shells, 1 / 60, camera);
+    }
+    expect(trails.diagnostics()).toEqual({ histories: 1100, segments: 8192 });
+    expect(trails.mesh.children).toHaveLength(7);
+    trails.update([], 1.3, camera);
+    expect(trails.diagnostics()).toEqual({ histories: 0, segments: 0 });
+    for (const page of [trails.mesh, ...trails.mesh.children as InstancedMesh[]]) {
+      expect(page.visible).toBe(false);
+      expect([...page.instanceMatrix.array].every(value => value === 0)).toBe(true);
+    }
   } finally { trails.dispose(); }
 });
