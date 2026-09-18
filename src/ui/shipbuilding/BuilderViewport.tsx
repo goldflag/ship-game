@@ -362,14 +362,17 @@ class Viewport {
         const geometry = new THREE.BufferGeometry(); geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3)); geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3)); geometry.computeVertexNormals();
         if (props.scene.display === 'armor') for (const group of armorGroups) geometry.addGroup(group.start, group.count, group.materialIndex);
         const mesh = new THREE.Mesh(geometry, props.scene.display === 'armor' ? [new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide }), new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide, transparent: true, opacity: .12, depthWrite: false })] : new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .78, metalness: 0, side: THREE.DoubleSide, transparent: props.scene.display === 'internals', opacity: props.scene.display === 'internals' ? .15 : 1, depthWrite: props.scene.display !== 'internals' }));
+        // Bias only rasterized depth: edge positions must stay on the physical hull.
+        for (const material of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) {
+          material.polygonOffset = true; material.polygonOffsetFactor = 1; material.polygonOffsetUnits = 1;
+        }
         mesh.userData.hull = true; this.hull.add(mesh); this.pickMeshes.push(mesh); this.hullMeshes.push(mesh);
         // Outline logical faces in one batch, retaining block seams without triangulation diagonals.
         {
           const points: THREE.Vector3[] = [];
           for (const group of this.surfacesByKey.values()) for (const edge of surfaceOutline(group)) {
             if (edge.surface.open || (props.scene.display === 'armor' && edge.surface.material !== 'armor-steel')) continue;
-            const normal = new THREE.Vector3(...edge.surface.normal);
-            points.push(new THREE.Vector3(...edge.a).addScaledVector(normal, .025), new THREE.Vector3(...edge.b).addScaledVector(normal, .025));
+            points.push(new THREE.Vector3(...edge.a), new THREE.Vector3(...edge.b));
           }
           if (points.length) this.hull.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(points), new THREE.LineBasicMaterial({ color: '#142a31', transparent: true, opacity: props.scene.display === 'internals' ? .35 : .9, depthWrite: false })));
         }
@@ -393,6 +396,13 @@ class Viewport {
         const model = props.createModel ? props.createModel(props.scene.source, props.scene.current!, abort.signal) : Promise.resolve(createConstructionHull(nativeSurfaces, props.scene.source.construction.primitives));
         model.then(group => {
           if (this.dead || abort.signal.aborted || modelKey !== this.modelKey) { release(group); return; }
+          group.traverse(node => {
+            const mesh = node as THREE.Mesh;
+            if (!mesh.isMesh || !mesh.userData.constructionSurfaces) return;
+            for (const material of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) {
+              material.polygonOffset = true; material.polygonOffsetFactor = 1; material.polygonOffsetUnits = 1;
+            }
+          });
           this.composed.add(group); this.update(this.props); this.modelError('');
         }).catch(error => { if (!abort.signal.aborted && !this.dead) this.modelError(`Equipment preview: ${error instanceof Error ? error.message : String(error)}`); });
       }
@@ -458,7 +468,7 @@ class Viewport {
       const outline: THREE.Vector3[] = [], thickness: THREE.Vector3[] = [];
       for (const edge of surfaceOutline(group)) {
         const normal = new THREE.Vector3(...edge.surface.normal), a = new THREE.Vector3(...edge.a), b = new THREE.Vector3(...edge.b);
-        outline.push(a.clone().addScaledVector(normal, .025), b.clone().addScaledVector(normal, .025));
+        outline.push(a, b);
         if (chosen && props.scene.display === 'armor' && !edge.surface.open) {
           const innerA = a.clone().addScaledVector(normal, -edge.surface.thicknessMm / 1000), innerB = b.clone().addScaledVector(normal, -edge.surface.thicknessMm / 1000);
           thickness.push(a, innerA, innerA, innerB);
