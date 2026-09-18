@@ -388,7 +388,7 @@ export interface ConstructionSurfaceAssignment {
 export interface ConstructionEquipment {
   /** Wall fitting installation, in metres; linked partners reflect across ship X=0. */
   wall?: { version: 1; widthM: number; heightM: number; mirrorId?: string };
-  /** Named coating for this installation; omission retains the original component finish. */
+  /** Named coating for this installation and its barbette; omission follows the ship paint. */
   paint?: string;
   id: string; partId: string; position: Vec3; bearingDeg: number;
   magazineId?: string; powerSourceId?: string;
@@ -396,8 +396,6 @@ export interface ConstructionEquipment {
   gun?: {
     /** Added height above the deck attachment; position remains the turret datum. */
     barbetteHeightM?: number;
-    /** Named paint applied to the entire fixed barbette. */
-    barbettePaint?: string;
     battery?: 'main' | 'secondary';
     initialElevationDeg?: number;
     traverseDeg?: number;
@@ -419,6 +417,9 @@ export type ConstructionSurfaceFinish = 'matte' | 'satin' | 'semi-gloss' | 'glos
 export interface ConstructionData {
   /** Ship-wide painted-surface sheen; omission preserves original material finishes. */
   finish?: ConstructionSurfaceFinish;
+  /** Ship paint for unassigned faces, unpainted fittings and their barbettes; omission keeps
+   * naval gray faces and original component finishes. */
+  paint?: string;
   version: 1 | 2; catalogRevision: string; defaultThicknessMm: number;
   primitives: ConstructionPrimitive[]; surfaces: ConstructionSurfaceAssignment[];
   equipment: ConstructionEquipment[]; boundaries: ConstructionBoundary[]; loads: ConstructionLoad[];

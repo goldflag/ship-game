@@ -4,7 +4,7 @@ import { editableMesh } from '../../ships/constructionMesh';
 import { fittedLadder } from '../../ships/constructionLadders';
 import { wallMount, installedWallPart, wallNormal, wallFittingSupported, seatWallFitting } from '../../ships/constructionWallFittings';
 import { DEFAULT_SNAPPING, constructionSnapFeatures, type SnapSettings } from './snapping';
-import { CONSTRUCTION_PAINTS, isConstructionSurfaceFinish } from '../../ships/constructionPaints';
+import { CONSTRUCTION_PAINTS, constructionShipPaint, isConstructionSurfaceFinish } from '../../ships/constructionPaints';
 import { mirroredPanelId } from '../../ships/constructionPanels';
 import { integrateConstructionMagazines, setBarbetteHeight } from '../../ships/constructionArmament';
 import type { ConstructionBoundary, ConstructionCatalog, ConstructionEquipment, ConstructionEquipmentPart, ConstructionPrimitive, ConstructionResult, ConstructionSource, ConstructionSuggestion, ConstructionSurface, ConstructionSurfaceAssignment, Vec3 } from '../../ships/blueprint';
@@ -678,6 +678,17 @@ export class BuilderTool {
   setFinish = (finish?: ConstructionSource['construction']['finish']): ConstructionSubmission | undefined => {
     if (finish !== undefined && !isConstructionSurfaceFinish(finish)) return undefined;
     return this.run('Set ship surface finish', [{ op: 'finish', finish }]);
+  };
+  /** Ship paint coats every face and fitting without a colour of its own. Faces and fittings wearing
+   * the previous ship paint follow the change; decks, boot topping and other accents stay. */
+  setShipPaint = (paint?: string): ConstructionSubmission | undefined => {
+    if (paint && !CONSTRUCTION_PAINTS.some(entry => entry.id === paint)) return undefined;
+    const previous = constructionShipPaint(this.source), next = paint ?? 'naval-gray';
+    if (paint === this.data.paint) return undefined;
+    const commands: ConstructionCommand[] = [{ op: 'ship-paint', paint }];
+    if (previous !== next) for (const surface of this.data.surfaces) if (surface.paint === previous) commands.push({ op: 'surface', value: { ...surface, paint: next } });
+    if (paint) for (const item of this.data.equipment) if (item.paint === previous || item.paint === paint) commands.push({ op: 'equipment-patch', id: item.id, changes: { paint: null } });
+    return this.run('Set ship paint', commands);
   };
   /** Paint whole installations without changing the shared component or other instances. */
   paintFittings = (ids: readonly string[], paint?: string): ConstructionSubmission | undefined => {

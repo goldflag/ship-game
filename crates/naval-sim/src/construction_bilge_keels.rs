@@ -31,7 +31,7 @@ pub fn validate(k: &ConstructionBilgeKeels) -> Result<(), String> {
     Ok(())
 }
 
-pub fn surfaces(p: &ConstructionPrimitive) -> Vec<ConstructionSurface> {
+pub fn surfaces(p: &ConstructionPrimitive, paint: &str) -> Vec<ConstructionSurface> {
     let Some(h) = &p.custom_hull else {
         return vec![];
     };
@@ -170,7 +170,7 @@ pub fn surfaces(p: &ConstructionPrimitive) -> Vec<ConstructionSurface> {
                 vertices,
                 thickness_mm: k.thickness_m * 1000.,
                 material: "steel".into(),
-                paint: "naval-gray".into(),
+                paint: paint.into(),
                 open: false,
             }
         })

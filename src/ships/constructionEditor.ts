@@ -1,5 +1,5 @@
 import { bilgeKeelError } from './constructionBilgeKeels';
-import { isConstructionSurfaceFinish } from './constructionPaints';
+import { constructionShipPaint, isConstructionSurfaceFinish } from './constructionPaints';
 import { mirroredOrientation } from './constructionOrientation';
 import { mirroredIndices } from './freeformShape';
 import { mirroredBalcony } from './constructionBalcony';
@@ -37,7 +37,7 @@ export function projectConstructionSurfaces(source: ConstructionSource, surfaces
     const assignment = assignments.get(surfaceSelectionKey(surface)) ?? (surface.panelId !== undefined ? assignments.get(surfaceKey(surface.primitiveId, surface.face)) : undefined);
     // Match the native skin minimum and defaults, including when undo removes an assignment.
     const thicknessMm = Math.max(assignment?.thicknessMm ?? source.construction.defaultThicknessMm, source.construction.defaultThicknessMm);
-    const material = assignment?.material ?? 'steel', paint = assignment?.paint ?? 'naval-gray', open = !!assignment?.open;
+    const material = assignment?.material ?? 'steel', paint = assignment?.paint ?? constructionShipPaint(source), open = !!assignment?.open;
     return surface.thicknessMm === thicknessMm && surface.material === material && surface.paint === paint && surface.open === !!open ? surface : { ...surface, thicknessMm, material, paint, open: !!open };
   });
 }
@@ -121,6 +121,7 @@ export function decodeConstructionSource(value: unknown): ConstructionSource {
     }
   }
   if (data.finish !== undefined && !isConstructionSurfaceFinish(data.finish)) throw new Error('Unsupported surface finish');
+  if (data.paint !== undefined && (typeof data.paint !== 'string' || !data.paint.length || data.paint.length > 64)) throw new Error('Ship paint must be a name of at most 64 characters');
   for (const surface of rows(data.surfaces, 'Surfaces')) {
     string(surface.primitiveId, 'Surface primitive'); string(surface.paint, 'Paint'); number(surface.thicknessMm, 'Armor thickness');
     if (!CONSTRUCTION_FACES.includes(surface.face as ConstructionFace) || !['steel', 'armor-steel'].includes(surface.material as string)) throw new Error('Unsupported surface face or material');
@@ -284,7 +285,7 @@ export function assignConstructionSurfaces(source: ConstructionSource, keys: Rea
     let assignment = source.construction.surfaces.find(surface => surface.primitiveId === primitive.id && surface.face === face && surface.panelId === panelId);
     if (!assignment) {
       const inherited = source.construction.surfaces.find(surface => surface.primitiveId === primitive.id && surface.face === face && surface.panelId === undefined);
-      assignment = { primitiveId: primitive.id, face, thicknessMm: source.construction.defaultThicknessMm, material: 'steel', paint: 'naval-gray', ...inherited, ...(panelId ? { panelId } : {}) };
+      assignment = { primitiveId: primitive.id, face, thicknessMm: source.construction.defaultThicknessMm, material: 'steel', paint: constructionShipPaint(source), ...inherited, ...(panelId ? { panelId } : {}) };
       source.construction.surfaces.push(assignment);
     }
     Object.assign(assignment, values);

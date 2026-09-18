@@ -171,6 +171,7 @@
 .shipbuilder[data-layer=fittings],.shipbuilder[data-layer=paint],.shipbuilder[data-layer=hull]:not(.sb-freeform-mode) { --sb-shelves: 32px; }
 .sb-shelves.sb-paint-finishes { justify-content: flex-start; align-items: center; }
 .sb-paint-finishes > span { color: var(--sb-muted); font-size: 12px; white-space: nowrap; }
+.sb-ship-paint { width: 14px; height: 14px; border-radius: 2px; border: 1px solid var(--sb-line); }
 .sb-finish-select { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
 .sb-shelves { flex-shrink: 0; height: var(--sb-shelves); display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; padding: 0 14px; background: var(--sb-card); border-top: 1px solid var(--sb-line2); box-shadow: 0 -10px 30px #0a0c0e66; pointer-events: auto; overflow-x: auto; scrollbar-width: none; }
 .sb-shelves + .sb-dock-body { border-top: 0; box-shadow: none; padding-top: 8px; }

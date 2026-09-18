@@ -15,6 +15,11 @@ test('ship finish round-trips through source commands without changing geometry 
   expect(apply(saved, [{ op: 'finish' }]).construction).toEqual(original.construction);
   expect(() => apply(original, [{ op: 'finish', finish: 'chrome' } as unknown as ConstructionCommand])).toThrow('Unsupported surface finish');
   expect(original.construction.finish).toBeUndefined();
+  const painted = apply(original, [{ op: 'ship-paint', paint: 'sea-blue' }]);
+  expect(painted.construction.paint).toBe('sea-blue');
+  expect(constructionDiffCommands(original, painted)).toEqual([{ op: 'ship-paint', paint: 'sea-blue' }]);
+  expect(apply(painted, [{ op: 'ship-paint' }]).construction).toEqual(original.construction);
+  expect(() => apply(original, [{ op: 'ship-paint', paint: '' }])).toThrow('Ship paint');
 });
 test('agent batch is atomic and rejects stale revisions and syntax failures', () => {
   const original = source(), before = JSON.stringify(original);
@@ -97,12 +102,12 @@ test('targeted fittings edits preserve nested settings, linked wall partners, ro
     { id: 'screw', partId: 'screw', position: [0, 0, 10], bearingDeg: 0, powerSourceId: 'manual-engine' },
   ];
   const next = applyConstructionBatch(s, { version: 1, expectedRevision: s.revision, label: 'Refit', commands: [
-    { op: 'equipment-patch', id: 'gun', changes: { gun: { barbetteHeightM: 1, barbettePaint: 'naval-gray' }, bearingDeg: 13.1 } },
+    { op: 'equipment-patch', id: 'gun', changes: { gun: { barbetteHeightM: 1 }, bearingDeg: 13.1 } },
     { op: 'equipment-patch', id: 'rope', changes: { path: { slackM: .5 } } },
     { op: 'equipment-patch', id: 'window-p', changes: { wall: { widthM: 2 }, paint: 'deck-gray' } },
     { op: 'equipment-patch', id: 'screw', changes: { powerSourceId: null } },
   ] });
-  expect(next.construction.equipment[0].gun).toEqual({ ...s.construction.equipment[0].gun, barbetteHeightM: 1, barbettePaint: 'naval-gray' });
+  expect(next.construction.equipment[0].gun).toEqual({ ...s.construction.equipment[0].gun, barbetteHeightM: 1 });
   expect(next.construction.equipment[0].partId).toBe('variant');
   expect(next.construction.equipment[1].path).toEqual({ ...s.construction.equipment[1].path!, slackM: .5 });
   expect(next.construction.equipment[3].wall).toEqual({ ...s.construction.equipment[3].wall!, widthM: 2 });
