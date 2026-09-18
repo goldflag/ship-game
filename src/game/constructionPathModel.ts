@@ -1,8 +1,9 @@
-import { fittedLadder } from '../ships/constructionLadders';
+import { fittedLadder, ladderWallProjection } from '../ships/constructionLadders';
 import { componentMaterial } from '../ships/componentMaterials';
 import * as THREE from 'three';
 import type { ConstructionEquipment, ConstructionEquipmentPart, ConstructionSurface, Vec3 } from '../ships/blueprint';
-import { DEFAULT_PATH } from '../ships/constructionPaths';
+import { DEFAULT_PATH, railingSettings } from '../ships/constructionPaths';
+import { constructionTubeGeometry } from './constructionTubeGeometry';
 import { pathDistance, railingPosts, samplePath } from '../../assets/parts/construction/path_geometry';
 
 /** Original procedural fittings, with no simulation inference from the mesh. */
@@ -16,10 +17,13 @@ export function createConstructionPathModel(part: ConstructionEquipmentPart, pat
   const material = new THREE.MeshStandardMaterial({ color, roughness: surface.roughness, metalness: surface.metallic, transparent: ghost, opacity: ghost ? .6 : 1, depthWrite: !ghost });
   material.userData = surface.userData;
   const members: [Vec3, Vec3][] = [];
+  const tubes: Vec3[][] = [];
   const points = path.points;
   const lengths = points.slice(1).map((p, i) => pathDistance(points[i], p));
   const routeLength = lengths.reduce((sum, length) => sum + length, 0);
-  const bounded = lengths.every(length => length >= .05) && Number.isFinite(path.slackM ?? 0) && routeLength <= 500 && profile.diameterM > 0 && (profile.postSpacingM ?? 1.5) >= .05;
+  const settings = railingSettings(part, path);
+  const bounded = lengths.every(length => length >= .05) && Number.isFinite(path.slackM ?? 0) && routeLength <= 500 && profile.diameterM > 0 && (profile.postSpacingM ?? 1.5) >= .05
+    && (profile.kind !== 'railing' || Number.isFinite(settings.heightM) && settings.heightM >= .3 && settings.heightM <= 3 && [2, 3].includes(settings.railCount));
   if (!bounded) {
     // An invalid point edit remains inspectable without allocating thousands of
     // posts or links before the native diagnostic arrives.
@@ -28,12 +32,12 @@ export function createConstructionPathModel(part: ConstructionEquipmentPart, pat
   }
   const posts = profile.kind === 'railing' ? railingPosts(points, profile.postSpacingM ?? 1.5) : [];
   if (profile.kind === 'railing') {
-    const height = profile.heightM ?? 1.1;
+    const { heightM: height, railCount } = railingSettings(part, path);
     for (const foot of posts) members.push([foot, [foot[0], foot[1] + height, foot[2]]]);
-    for (let i = 1; i < points.length; i++) for (const level of [1 / 3, 2 / 3, 1]) members.push([points[i - 1].map((v, k) => v + (k === 1 ? height * level : 0)) as Vec3, points[i].map((v, k) => v + (k === 1 ? height * level : 0)) as Vec3]);
+    for (let level = 1; level <= railCount; level++) tubes.push(points.map(p => [p[0], p[1] + height * level / railCount, p[2]]));
   } else if (profile.kind === 'ladder') {
     const ladder=fittedLadder(part,mount?.item ?? {id:'preview',partId:part.id,position:[0,0,0],bearingDeg:0,path},mount?.surfaces);
-    if(ladder) members.push(...ladder.members);
+    if(ladder) for (let i = 0; i < ladder.members.length; i += 3) tubes.push([ladder.members[i][0], ladder.members[i][1], ladder.members[i + 1][1], ladder.members[i + 2][1]]);
     else { material.dispose(); return group; }
   } else {
     const sampled = samplePath(points, path.slackM ?? 0);
@@ -53,8 +57,8 @@ export function createConstructionPathModel(part: ConstructionEquipmentPart, pat
       matrix.compose(start.lerp(end, t), rotation, new THREE.Vector3(1, 1.5, 1)); mesh.setMatrixAt(i, matrix);
     }
     mesh.computeBoundingBox(); mesh.computeBoundingSphere(); group.add(mesh);
-  } else {
-    const mesh = new THREE.InstancedMesh(new THREE.CylinderGeometry(profile.diameterM / 2, profile.diameterM / 2, 1, 10), material, members.length);
+  } else if (members.length) {
+    const mesh = new THREE.InstancedMesh(new THREE.CylinderGeometry(profile.diameterM / 2, profile.diameterM / 2, 1, profile.kind === 'railing' ? 6 : 10), material, members.length);
     members.forEach(([a, b], i) => {
       const start = new THREE.Vector3(...a), end = new THREE.Vector3(...b), direction = end.clone().sub(start);
       rotation.setFromUnitVectors(up, direction.clone().normalize());
@@ -62,6 +66,10 @@ export function createConstructionPathModel(part: ConstructionEquipmentPart, pat
       matrix.compose(start.add(end).multiplyScalar(.5), rotation, new THREE.Vector3(radiusScale, direction.length(), radiusScale)); mesh.setMatrixAt(i, matrix);
     });
     mesh.computeBoundingBox(); mesh.computeBoundingSphere(); group.add(mesh);
+  }
+  if (tubes.length) {
+    const projectEnds = profile.kind === 'ladder' && mount ? ladderWallProjection(part, mount.item, mount.surfaces) : undefined;
+    group.add(new THREE.Mesh(constructionTubeGeometry(tubes, profile.diameterM / 2, projectEnds), material));
   }
   if (posts.length) {
     const foot = new THREE.InstancedMesh(new THREE.BoxGeometry(profile.diameterM * 3, profile.diameterM * .75, profile.diameterM * 3), material, posts.length);

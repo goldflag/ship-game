@@ -1,3 +1,4 @@
+import { RailingFields } from './RailingFields';
 import { RotationToolbar } from './RotationToolbar';
 import { wallMount } from '../../ships/constructionWallFittings';
 import { automaticPropellerLabel, propellerEngineName, propellerEngines } from './propellerAssignment';
@@ -280,7 +281,8 @@ export function Shipbuilder(props: ShipbuilderProps) {
   // The cursor piece reads out above the palette instead of following the ghost; its size fields stay editable there.
   // The Armor layer keeps its millimetre field here, above the bar: a new value also assigns the selected faces.
   const status: ReactNode = locked ? null : pathPart ? <>
-    <b>{pathPart.name}</b>{pathPart.path?.kind === 'ladder' ? <span>Drag from the first rung to the last on a hull side · release to place · Esc cancels</span> : <><span>{pathPoints.length ? `${pathPoints.length} points · click to extend` : 'Click the first point on the ship'}</span>
+    <b>{pathPart.path?.kind === 'railing' ? 'Railing' : pathPart.name}</b>{pathPart.path?.kind === 'ladder' ? <><span>{pathPoints.length ? 'Click the last rung to place · Esc cancels' : 'Click the first rung on a hull side'}</span><button onClick={() => tool.cancelPath(false)}>Cancel <kbd>Esc</kbd></button></> : <><span>{pathPoints.length ? `${pathPoints.length} points · click to extend` : 'Click the first point on the ship'}</span>
+    {pathPart.path?.kind === 'railing' && <RailingFields heightM={s.railingHeight} railCount={s.railingRails} onHeight={tool.setRailingHeight} onRails={tool.setRailingRails}/>}
     {pathPart.path?.kind === 'rope' && <NumberField label="Rope slack" value={Math.min(s.ropeSlack, pathSlackLimit(pathPoints))} min={0} max={pathSlackLimit(pathPoints)} step={.05} unit="m" onChange={tool.setRopeSlack}/>}
     <button disabled={pathPoints.length < 2} onClick={tool.finishPath}>Finish <kbd>Enter</kbd></button><button onClick={() => tool.cancelPath(false)}>Cancel <kbd>Esc</kbd></button>
     <span className="sb-path-hint">{pathPart.path?.kind === 'railing' ? 'Deck supports every post' : 'Hull or fitting support sockets'} · double-click finishes</span></>}
@@ -323,7 +325,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
       {engines.map(engine => <option key={engine.id} value={engine.id}>Manual · {propellerEngineName(engine)}</option>)}
     </select>{!item.powerSourceId && assignedEngines.length > 1 && <span className="sb-engine-sources">{assignedEngines.map(propellerEngineName).join('; ')}</span>}</label>;
     tags.push({ key: `part-${item.id}`, anchor: equipmentAnchor(item), dx: 82, dy: -92, tone: 'mint', content: <>
-      <b>{part?.name ?? item.partId}</b>
+      <b>{part?.path?.kind === 'railing' ? `${item.path?.railCount ?? 3}-rail railing` : part?.name ?? item.partId}</b>
       {mass !== undefined ? `${formatTonnes(mass)} · ` : ''}{item.wall ? 'Hull aligned · ' : <>bearing <NumberField value={item.bearingDeg} min={0} max={360} step={.1} unit="°" onChange={value => edit('Set bearing', target => { target.bearingDeg = normalizedBearing(value); })}/></>}
       {item.wall && part && <>
         <NumberField label={wallMount(part) === 'porthole' ? 'Diameter' : 'Width'} value={item.wall.widthM} min={.15} max={5} step={.05} unit="m" onChange={value => edit('Resize wall fitting', target => { target.wall!.widthM = value; if (wallMount(part) === 'porthole') target.wall!.heightM = value; })}/>

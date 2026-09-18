@@ -36,7 +36,7 @@ export interface BuilderToolState {
   hullCategory: HullCategory;
   windowRow: boolean; windowSpacing: number;
   customMm: number; sizeOverride?: Vec3; bearing: number;
-  pathPoints: Vec3[]; ropeSlack: number;
+  pathPoints: Vec3[]; pathBearing: number; ropeSlack: number; railingHeight: number; railingRails: 2 | 3;
   /** Last successfully applied fitting paint, retained while the editor stays open. */
   fittingPaint?: string;
   mirror: boolean; showArcs: boolean; showCenters: boolean;
@@ -106,7 +106,7 @@ export class BuilderTool {
   constructor(private readonly door: BuilderRevisionDoor, private readonly context: BuilderToolContext, initial: Partial<BuilderToolState> = {}) {
     this.state = {
       layer: 'hull', tool: 'select', slots: { hull: 'cube', armor: 'armor', internals: 'deck', fittings: '', paint: 'naval-gray' }, fittingFilter: { category: 'main-battery', nation: 'all' },
-      hullCategory: 'all', windowRow: false, windowSpacing: 1.5, customMm: 10, bearing: 0, pathPoints: [], ropeSlack: .15, mirror: true, showArcs: false, showCenters: false, snapSteps: { hull: 1, equipment: .25 },
+      hullCategory: 'all', windowRow: false, windowSpacing: 1.5, customMm: 10, bearing: 0, pathPoints: [], pathBearing: 0, ropeSlack: .15, railingHeight: 1.1, railingRails: 3, mirror: true, showArcs: false, showCenters: false, snapSteps: { hull: 1, equipment: .25 },
       snapping: { ...DEFAULT_SNAPPING }, snapOverride: false, rotationAxis: 1, rotationSnap: true,
       freeformSettings: { axes: [true, false, false], unit: .2, snap: false, splitAxis: 2, count: 4, selection: { mode: 'vertex', index: 1 } },
       view: 'orbit', perspective: true, fitRequest: 0,
@@ -304,7 +304,7 @@ export class BuilderTool {
       snapping: this.effectiveSnapping, gridStep: this.gridStep, gesture: locked ? 'none' : this.gesture, pickTargets: this.pickTargets, moveTargets: locked || freeformMode ? 'none' : this.moveTargets,
       placementPiece: locked || freeformMode ? undefined : this.piece, placementMirror: this.mirrorPiece,
       highlightFaces: this.faceLayer, rooms: s.layer === 'internals', showCenters: s.showCenters, arcs: this.arcs, proposed: this.proposed, measure: s.measure, measuring: s.tool === 'measure',
-      pathDraft: !locked && pathPart ? { part: pathPart, points: s.pathPoints, slackM: pathPart.path?.kind === 'rope' ? Math.min(s.ropeSlack, pathSlackLimit(s.pathPoints)) : 0, mirror: s.mirror } : undefined,
+      pathDraft: !locked && pathPart ? { part: pathPart, points: s.pathPoints, bearingDeg: s.pathBearing, heightM: s.railingHeight, railCount: s.railingRails, slackM: pathPart.path?.kind === 'rope' ? Math.min(s.ropeSlack, pathSlackLimit(s.pathPoints)) : 0, mirror: s.mirror } : undefined,
       rotation: this.rotationPrimitive && !locked ? { id: this.rotationPrimitive.id, axis: s.rotationAxis, snap: s.rotationSnap, onAxis: this.setRotationAxis, onCommit: this.rotateBlock } : undefined,
       freeform: freeformPrimitive && !locked ? { ...s.freeformSettings, id: freeformPrimitive.id, onSelect: selection => this.changeFreeformSettings({ selection }), onCommit: this.commitFreeform } : undefined,
     };
@@ -403,6 +403,8 @@ export class BuilderTool {
     if (wallMount(this.active.part) === 'porthole') size[1-axis] = value;
     this.update({ sizeOverride: size });
   };
+  setRailingHeight = (railingHeight: number) => this.update({ railingHeight });
+  setRailingRails = (railingRails: 2 | 3) => this.update({ railingRails });
   setRopeSlack = (ropeSlack: number) => this.update({ ropeSlack });
   /** The Armor card's millimetre field; a new value also assigns the selected faces. */
   setThickness = (value: number) => {
@@ -591,12 +593,18 @@ export class BuilderTool {
     if(this.state.mirror && points.some(p=>Math.abs(p[0])>1e-6))parts.push({...mirroredEquipment(item),id:this.newId('ladder')});
     if(!this.compiled || parts.some(e=>!fittedLadder(part,e,this.compiled!.surfaces))){this.door.setError('Every rung needs a closed hull side behind both ends. Move away from edges or turn Mirror off.');return;}
     const outcome=this.run('Draw surface ladder',parts.map(value=>({op:'equipment',value})));
-    if(outcome.accepted)this.update({selected:new Set(parts.map(p=>p.id)),tool:'select'});
+    if(outcome.accepted)this.update({pathPoints:[],selected:new Set(parts.map(p=>p.id)),tool:'select'});
     return outcome;
   };
-  addPathPoint = (point: Vec3) => {
+  addPathPoint = (point: Vec3, bearingDeg = 0) => {
+    if (this.locked) return;
+    if (this.pathPart?.path?.kind === 'ladder' && this.state.pathPoints.length) {
+      const points = appendPathPoint(this.state.pathPoints, point);
+      if (points.length === 2) this.drawLadder(points, this.state.pathBearing);
+      return;
+    }
     if (this.state.pathPoints.length >= 64) { this.update({ notice: '64 points reached. Finish this path before starting another.' }); return; }
-    if (!this.locked) this.update({ pathPoints: appendPathPoint(this.state.pathPoints, point), selected: new Set(), surfaces: new Set() });
+    if (!this.locked) this.update({ pathPoints: appendPathPoint(this.state.pathPoints, point), pathBearing: this.state.pathPoints.length ? this.state.pathBearing : bearingDeg, selected: new Set(), surfaces: new Set() });
   };
   popPathPoint = () => this.update({ pathPoints: this.state.pathPoints.slice(0, -1) });
   clearPath = () => this.update({ pathPoints: [] });
@@ -606,9 +614,11 @@ export class BuilderTool {
     const pathPart = this.pathPart, { pathPoints, ropeSlack, mirror } = this.state;
     if (!pathPart) return undefined;
     const refused = this.refused(); if (refused) return refused;
+    if (pathPart.path?.kind === 'ladder') return this.drawLadder(pathPoints, this.state.pathBearing);
     const slackM = pathPart.path?.kind === 'rope' ? Math.min(ropeSlack, pathSlackLimit(pathPoints)) : 0, problem = pathProblem(pathPoints, slackM);
     if (problem) { this.update({ notice: problem }); return undefined; }
     const item = pathEquipment(this.newId('path'), pathPart.id, pathPoints, slackM);
+    if (pathPart.path?.kind === 'railing') Object.assign(item.path!, { heightM: this.state.railingHeight, railCount: this.state.railingRails });
     if (this.state.fittingPaint) item.paint = this.state.fittingPaint;
     const parts = [item];
     if (mirror && pathPoints.some(point => Math.abs(point[0]) > 1e-6)) parts.push({ ...mirroredEquipment(item), id: this.newId('path') });
@@ -749,7 +759,7 @@ export class BuilderTool {
       case 'move': return this.movePieces(event.ids, event.delta);
       case 'rotate': return this.rotateFittings(event.ids, event.degrees);
       case 'ladder-draw': return this.drawLadder(event.points,event.bearingDeg);
-      case 'path-point': this.addPathPoint(event.point); return undefined;
+      case 'path-point': this.addPathPoint(event.point, event.bearingDeg); return undefined;
       case 'path-finish': return this.finishPath();
     }
   };

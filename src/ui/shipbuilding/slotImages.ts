@@ -1,3 +1,4 @@
+import { constructionVentModel } from '../../game/constructionVentModel';
 import thumbnailIndex from '../../generated/construction-thumbnails.json';
 import { assetUrl } from '../../assetUrl';
 import { useEffect, useState } from 'react';
@@ -48,6 +49,8 @@ function cornerHandles(size: Vec3): THREE.Object3D[] {
 async function partModel(part: ConstructionEquipmentPart, signal: AbortSignal): Promise<THREE.Object3D> {
   if (part.path) return createConstructionPathModel(part);
   const asset = await loadShipModel(constructionEquipmentModelUrl(part), undefined, part.contentHash, signal);
+  const vent = constructionVentModel(asset.scene, part, part.size[0], part.size[1]);
+  if (vent) { dispose(asset.scene); return vent; }
   return asset.scene;
 }
 

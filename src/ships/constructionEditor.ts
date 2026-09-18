@@ -157,6 +157,11 @@ export function decodeConstructionSource(value: unknown): ConstructionSource {
       if (!Array.isArray(path.points) || path.points.length < 2 || path.points.length > 64) throw new Error('Equipment paths require 2–64 points');
       path.points.forEach(point => vector(point, 'Path point'));
       if (path.slackM !== undefined) number(path.slackM, 'Rope slack');
+      if (path.heightM !== undefined) {
+        number(path.heightM, 'Railing height');
+        if ((path.heightM as number) < .3 || (path.heightM as number) > 3) throw new Error('Railing height must be between 0.3 and 3 m');
+      }
+      if (path.railCount !== undefined && path.railCount !== 2 && path.railCount !== 3) throw new Error('Choose two or three rails');
     }
     for (const link of ['magazineId', 'powerSourceId']) if (part[link] !== undefined) string(part[link], link);
   }

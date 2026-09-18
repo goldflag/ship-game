@@ -83,6 +83,7 @@ fn route(kind: &str, points: Vec<Vec3>, slack: f64) -> ConstructionEquipment {
         path: Some(ConstructionEquipmentPath {
             points,
             slack_m: Some(slack),
+            ..Default::default()
         }),
         ..Default::default()
     }
@@ -309,6 +310,7 @@ fn sag_cannot_pass_through_hull_and_fixed_parts_cannot_hide_path_data() {
     e.path = Some(ConstructionEquipmentPath {
         points: vec![[0.; 3], [1., 0., 0.]],
         slack_m: None,
+        ..Default::default()
     });
     s.construction.equipment.push(e);
     rejected(&s, &c, "equipment-path");
@@ -449,6 +451,7 @@ fn review_bitts_rope_can_leave_its_socket_downward_without_hitting_empty_catalog
             path: Some(ConstructionEquipmentPath {
                 points: vec![[0.; 3], [0., 0., -5.69]],
                 slack_m: Some(0.3),
+                ..Default::default()
             }),
             ..Default::default()
         },
@@ -580,4 +583,41 @@ fn internal_planes_still_reject_real_machinery_intersections() {
         id: "through-engine".into(), axis: "x".into(), offset: 0., thickness_mm: 10.,
     });
     rejected(&source, &catalog, "equipment-fit");
+}
+
+#[test]
+fn railing_options_change_loading_and_allow_small_contacts() {
+    let (mut s, mut c) = fixture();
+    c.equipment.push(route_part("railing"));
+    s.construction.equipment.push(route("railing", vec![[-4., 2., 0.], [4., 2., 0.]], 0.));
+    let original = compiled(&s, &c);
+    let path = s.construction.equipment[0].path.as_mut().unwrap();
+    path.height_m = Some(1.65);
+    path.rail_count = Some(2.);
+    let changed = compiled(&s, &c);
+    assert!((contribution(&changed, "railing-route").mass_kg - (2. + 8. * 8.4 * 2. / 3. + 7. * 6. * 1.5)).abs() < 1e-7);
+    assert!(contribution(&changed, "railing-route").center[1] > contribution(&original, "railing-route").center[1]);
+    let mut small = part("small");
+    small.size = [0.1, 1., 0.1];
+    c.equipment.push(small);
+    s.construction.equipment.push(fixed("small", [0.1, 2., 0.]));
+    compiled(&s, &c); // A short crossing/contact is normal for a deck railing.
+    s.construction.equipment.reverse();
+    compiled(&s, &c); // Independent of source order.
+    c.equipment.last_mut().unwrap().size = [4., 2., 2.];
+    c.equipment.last_mut().unwrap().bounds_center[1] = 1.;
+    rejected(&s, &c, "equipment-path");
+}
+
+#[test]
+fn invalid_railing_options_are_rejected_by_native_compiler() {
+    for (height, rails) in [(0.2, 3.), (3.1, 3.), (1., 1.), (1., 2.5), (1., 4.)] {
+        let (mut s, mut c) = fixture();
+        c.equipment.push(route_part("railing"));
+        let mut e = route("railing", vec![[-4., 2., 0.], [4., 2., 0.]], 0.);
+        e.path.as_mut().unwrap().height_m = Some(height);
+        e.path.as_mut().unwrap().rail_count = Some(rails);
+        s.construction.equipment.push(e);
+        rejected(&s, &c, "equipment-path");
+    }
 }

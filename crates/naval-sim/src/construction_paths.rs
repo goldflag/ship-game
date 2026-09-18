@@ -177,6 +177,9 @@ pub(crate) fn compile(
     }
     let railing = profile.kind == "railing";
     let ladder = profile.kind == "ladder";
+    if !railing && (source.height_m.is_some() || source.rail_count.is_some()) {
+        return Err(error("Height and rail count apply only to railings", &e.id));
+    }
     let slack = source.slack_m.unwrap_or(0.);
     let slack_limit = lengths.iter().copied().fold(40., f64::min) * 0.5;
     if !slack.is_finite() || !(0.0..=slack_limit).contains(&slack) || ((railing || ladder) && slack != 0.) {
@@ -225,10 +228,14 @@ pub(crate) fn compile(
             }
         }
     } else if railing {
-        let height = profile.height_m.unwrap_or(1.1);
+        let original_height = profile.height_m.unwrap_or(1.1);
+        let height = source.height_m.unwrap_or(original_height);
+        let rail_count = source.rail_count.unwrap_or(3.);
         let spacing = profile.post_spacing_m.unwrap_or(1.5);
         let post_mass = profile.post_mass_kg.unwrap_or(0.);
         if !height.is_finite()
+            || !original_height.is_finite() || !(0.3..=3.).contains(&original_height)
+            || ![2., 3.].contains(&rail_count)
             || !(0.3..=3.).contains(&height)
             || !spacing.is_finite()
             || !(0.25..=3.).contains(&spacing)
@@ -241,7 +248,8 @@ pub(crate) fn compile(
             ));
         }
         for (span, &len) in points.windows(2).zip(&lengths) {
-            for y in [height / 3., height * 2. / 3., height] {
+            for level in 1..=rail_count as usize {
+                let y = height * level as f64 / rail_count;
                 members.push(Member {
                     a: add(span[0], [0., y, 0.]),
                     b: add(span[1], [0., y, 0.]),
@@ -263,7 +271,7 @@ pub(crate) fn compile(
                     a: foot,
                     b: add(foot, [0., height, 0.]),
                     radius: radius * 1.25,
-                    mass_kg: post_mass,
+                    mass_kg: post_mass * height / original_height,
                 });
             }
         }
@@ -337,10 +345,17 @@ pub(crate) fn compile(
     }
     let cells: Vec<_> = members.iter().map(Member::cell).collect();
     for (member, cell) in members.iter().zip(&cells) {
+        // Railings are thin trim: incidental contacts and joined endpoints are
+        // expected. Block only a substantial length buried in a solid. Keep
+        // the stricter physical attachment checks above and all other paths.
+        let significant = |overlap: &cg::Cell| {
+            let buried_length = cg::moments(overlap).volume / (4. * member.radius * member.radius);
+            buried_length > 0.25_f64.max(length(sub(member.b, member.a)) * 0.25)
+        };
         let fitted_tolerance = 4. * member.radius * member.radius * 0.005;
         if hull_index.candidates(cell).iter().any(|&i| {
             cg::intersection(cell, &hull[i])
-                .is_some_and(|x| cg::moments(&x).volume > fitted_tolerance)
+                .is_some_and(|x| if railing { significant(&x) } else { cg::moments(&x).volume > fitted_tolerance })
         }) {
             return Err(error(
                 "A path member runs through the hull; raise its anchors or reduce slack",
@@ -350,7 +365,7 @@ pub(crate) fn compile(
         for i in fitting_index.candidates(cell) {
             let (owner, other) = &fitted[i];
             if let Some(overlap) =
-                cg::intersection(cell, other).filter(|x| cg::moments(x).volume > 1e-8)
+                cg::intersection(cell, other).filter(|x| if railing { significant(x) } else { cg::moments(x).volume > 1e-8 })
             {
                 // Explicit eyes/throats can sit inside a conservative catalog box.
                 // Their narrow outward corridor flares at 1:4 to accommodate a
