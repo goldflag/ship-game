@@ -681,6 +681,76 @@
         "assets/parts/construction/geometry.py",
         "assets/parts/construction/windows.py"
       ]
+    },
+    "generic-wall-cabinet": {
+      "path": "assets/parts/construction/superstructure_fittings.py",
+      "function": "create_cabinet",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-wall-cabinet-pair": {
+      "path": "assets/parts/construction/superstructure_fittings.py",
+      "function": "create_cabinet",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-cylinder-rack": {
+      "path": "assets/parts/construction/superstructure_fittings.py",
+      "function": "create_cylinder_rack",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-wall-hose-rack": {
+      "path": "assets/parts/construction/superstructure_fittings.py",
+      "function": "create_hose_rack",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-deck-locker-wide": {
+      "path": "assets/parts/construction/superstructure_fittings.py",
+      "function": "create_deck_box",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-deck-locker-tall": {
+      "path": "assets/parts/construction/superstructure_fittings.py",
+      "function": "create_deck_box",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-deck-storage-box": {
+      "path": "assets/parts/construction/superstructure_fittings.py",
+      "function": "create_deck_box",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-deck-storage-chest": {
+      "path": "assets/parts/construction/superstructure_fittings.py",
+      "function": "create_deck_box",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-deck-locker-sloped": {
+      "path": "assets/parts/construction/superstructure_fittings.py",
+      "function": "create_deck_box",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
+    },
+    "generic-deck-open-bin": {
+      "path": "assets/parts/construction/superstructure_fittings.py",
+      "function": "create_deck_box",
+      "inputs": [
+        "assets/parts/construction/geometry.py"
+      ]
     }
   },
   "components": [
@@ -1289,6 +1359,66 @@
       "builder": "generic-surface-ladder",
       "review": "unreviewed",
       "limitations": "Original generic surface fitting. Closed hull remains intact. Dimensions and steel mass are provisional; native construction validates installed support."
+    },
+    {
+      "partId": "generic-wall-cabinet",
+      "builder": "generic-wall-cabinet",
+      "review": "unreviewed",
+      "limitations": "Original simple prop inspired by user-supplied ship model screenshots; no exact historical variant claimed. Dimensions and mass are game estimates. Static geometry adds only loading mass. Installation support and clearance remain design-specific."
+    },
+    {
+      "partId": "generic-wall-cabinet-pair",
+      "builder": "generic-wall-cabinet-pair",
+      "review": "unreviewed",
+      "limitations": "Original simple prop inspired by user-supplied ship model screenshots; no exact historical variant claimed. Dimensions and mass are game estimates. Static geometry adds only loading mass. Installation support and clearance remain design-specific."
+    },
+    {
+      "partId": "generic-cylinder-rack",
+      "builder": "generic-cylinder-rack",
+      "review": "unreviewed",
+      "limitations": "Original simple prop inspired by user-supplied ship model screenshots; no exact historical variant claimed. Dimensions and mass are game estimates. Static geometry adds only loading mass. Installation support and clearance remain design-specific."
+    },
+    {
+      "partId": "generic-wall-hose-rack",
+      "builder": "generic-wall-hose-rack",
+      "review": "unreviewed",
+      "limitations": "Original simple prop inspired by user-supplied ship model screenshots; no exact historical variant claimed. Dimensions and mass are game estimates. Static geometry adds only loading mass. Installation support and clearance remain design-specific."
+    },
+    {
+      "partId": "generic-deck-locker-wide",
+      "builder": "generic-deck-locker-wide",
+      "review": "unreviewed",
+      "limitations": "Original simple prop inspired by user-supplied ship model screenshots; no exact historical variant claimed. Dimensions and mass are game estimates. Static geometry adds only loading mass. Installation support and clearance remain design-specific."
+    },
+    {
+      "partId": "generic-deck-locker-tall",
+      "builder": "generic-deck-locker-tall",
+      "review": "unreviewed",
+      "limitations": "Original simple prop inspired by user-supplied ship model screenshots; no exact historical variant claimed. Dimensions and mass are game estimates. Static geometry adds only loading mass. Installation support and clearance remain design-specific."
+    },
+    {
+      "partId": "generic-deck-storage-box",
+      "builder": "generic-deck-storage-box",
+      "review": "unreviewed",
+      "limitations": "Original simple prop inspired by user-supplied ship model screenshots; no exact historical variant claimed. Dimensions and mass are game estimates. Static geometry adds only loading mass. Installation support and clearance remain design-specific."
+    },
+    {
+      "partId": "generic-deck-storage-chest",
+      "builder": "generic-deck-storage-chest",
+      "review": "unreviewed",
+      "limitations": "Original simple prop inspired by user-supplied ship model screenshots; no exact historical variant claimed. Dimensions and mass are game estimates. Static geometry adds only loading mass. Installation support and clearance remain design-specific."
+    },
+    {
+      "partId": "generic-deck-locker-sloped",
+      "builder": "generic-deck-locker-sloped",
+      "review": "unreviewed",
+      "limitations": "Original simple prop inspired by user-supplied ship model screenshots; no exact historical variant claimed. Dimensions and mass are game estimates. Static geometry adds only loading mass. Installation support and clearance remain design-specific."
+    },
+    {
+      "partId": "generic-deck-open-bin",
+      "builder": "generic-deck-open-bin",
+      "review": "unreviewed",
+      "limitations": "Original simple prop inspired by user-supplied ship model screenshots; no exact historical variant claimed. Dimensions and mass are game estimates. Static geometry adds only loading mass. Installation support and clearance remain design-specific."
     }
   ]
 }

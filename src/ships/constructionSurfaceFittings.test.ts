@@ -15,6 +15,42 @@ const compile=(s:ConstructionSource):ConstructionResult=>JSON.parse(compile_cons
 function fixture(){const s=createStarterSource(catalog,'blank');s.construction.primitives[0].size=[8,8,20];return s;}
 const ladder=()=>pathEquipment('ladder','generic-surface-ladder',[[4,-1,0],[4,2,0]],0,90);
 
+test('service hardware mounts to walls, adds only loading mass and rejects detached placement',()=>{
+  const before=compile(fixture());
+  const hardware=catalog.equipment.filter(p=>p.wallMount==='hardware');
+  expect(hardware.length).toBeGreaterThan(0);
+  for(const p of hardware){
+    const s=fixture();
+    s.construction.equipment.push({id:'service-fitting',partId:p.id,position:[4,0,0],bearingDeg:90,
+      wall:{version:1,widthM:p.size[0],heightM:p.size[1]}});
+    const mounted=compile(s);
+    expect(mounted.definition,p.id+JSON.stringify(mounted.diagnostics)).toBeDefined();
+    expect(mounted.surfaces).toEqual(before.surfaces);
+    expect(mounted.loading!.usableVolumeM3).toEqual(before.loading!.usableVolumeM3);
+    expect(mounted.loading!.massKg-before.loading!.massKg).toBeCloseTo(p.massKg!,5);
+    expect(mounted.definition!.modules).toEqual(before.definition!.modules);
+    s.construction.equipment[0].position[0]+=.2;
+    const detached=compile(s);
+    expect(detached.definition,p.id).toBeUndefined();
+    expect(detached.diagnostics.some(d=>d.code==='wall-fitting'),p.id).toBe(true);
+  }
+});
+
+test('a resized hardware pair retains its mirrored wall relationship and scaled loading',()=>{
+  const s=fixture(),p=catalog.equipment.find(p=>p.id==='generic-wall-cabinet')!;
+  const before=compile(s);
+  const right:ConstructionEquipment={id:'right',partId:p.id,position:[4,0,0],bearingDeg:90,
+    wall:{version:1,widthM:p.size[0]*1.4,heightM:p.size[1]*.8,mirrorId:'left'}};
+  const left={...mirroredEquipment(right),id:'left',wall:{...right.wall!,mirrorId:'right'}};
+  s.construction.equipment.push(right,left);
+  const resized=compile(s);
+  expect(resized.definition,JSON.stringify(resized.diagnostics)).toBeDefined();
+  expect(resized.loading!.massKg-before.loading!.massKg).toBeCloseTo(p.massKg!*1.4*.8*2,5);
+  expect(decodeConstructionSource(JSON.parse(JSON.stringify(s)))).toEqual(JSON.parse(JSON.stringify(s)));
+  left.wall.widthM+=.1;
+  expect(compile(s).diagnostics.some(d=>d.code==='wall-fitting')).toBe(true);
+});
+
 test('all door variants and both wall vents compile with unchanged hull rooms',()=>{
   const before=compile(fixture());
   for(const id of ['generic-utility-door','generic-watertight-door','generic-windowed-door','generic-louvered-vent','generic-round-wall-vent']){
@@ -46,7 +82,8 @@ test('the fitting shelf offers the drawn ladder instead of the old fixed ladder'
 });
 
 test('published door and vent originals preserve a separate relief assembly',async()=>{
-  for(const id of ['generic-utility-door','generic-watertight-door','generic-windowed-door','generic-louvered-vent','generic-round-wall-vent']) {
+  for(const id of ['generic-utility-door','generic-watertight-door','generic-windowed-door','generic-louvered-vent','generic-round-wall-vent',
+    ...catalog.equipment.filter(p=>p.wallMount==='hardware').map(p=>p.id)]) {
     const part=catalog.equipment.find(p=>p.id===id)!;
     const bytes=await Bun.file('public'+part.modelUrl).arrayBuffer(),size=new DataView(bytes).getUint32(12,true);
     const gltf=JSON.parse(new TextDecoder().decode(new Uint8Array(bytes,20,size)));

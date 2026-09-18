@@ -497,6 +497,12 @@ fn every_registered_fixed_deck_fitting_uses_its_original_attachment_and_rangefin
         "generic-static-searchlight",
         "generic-vertical-ladder",
         "generic-inclined-stairs",
+        "generic-deck-locker-wide",
+        "generic-deck-locker-tall",
+        "generic-deck-storage-box",
+        "generic-deck-storage-chest",
+        "generic-deck-locker-sloped",
+        "generic-deck-open-bin",
     ] {
         let (mut s, mut c) = fixture();
         let p = registered_part(id);
@@ -523,6 +529,32 @@ fn every_registered_fixed_deck_fitting_uses_its_original_attachment_and_rangefin
         } else {
             assert!(d.modules.is_empty());
         }
+    }
+}
+
+#[test]
+fn registered_service_hardware_requires_wall_support_and_only_adds_its_loading_mass() {
+    let source: serde_json::Value = serde_json::from_str(include_str!("../../../assets/parts/construction.json")).unwrap();
+    let hardware: Vec<_> = source["equipment"].as_array().unwrap().iter()
+        .filter(|p| p["wallMount"] == "hardware").collect();
+    assert!(!hardware.is_empty());
+    for value in hardware {
+        let id = value["id"].as_str().unwrap();
+        let p = registered_part(id);
+        let (mut s, mut c) = fixture();
+        let before = compiled(&s, &c);
+        let mut e = fixed(id, [5., 0., 0.]);
+        e.bearing_deg = 90.;
+        e.wall = Some(ConstructionEquipmentWall { version: 1., width_m: p.size[0], height_m: p.size[1], mirror_id: None });
+        let mass = p.mass_kg.unwrap();
+        c.equipment.push(p);
+        s.construction.equipment.push(e);
+        let after = compiled(&s, &c);
+        assert!((after.hull.mass_kg - before.hull.mass_kg - mass).abs() < 1e-6, "{id}");
+        assert_eq!(contribution(&after, id).mass_kg, mass);
+        assert!(after.modules.is_empty(), "{id} must not invent service capability");
+        s.construction.equipment[0].position[0] += 0.2;
+        rejected(&s, &c, "wall-fitting");
     }
 }
 
