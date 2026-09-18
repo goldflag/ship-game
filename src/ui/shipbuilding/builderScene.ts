@@ -49,6 +49,8 @@ export interface BuilderScene {
   highlightFaces: boolean; rooms: boolean; showCenters: boolean;
   arcs: BuilderArc[]; proposed: BuilderProposal[];
   measure?: { from: Vec3; to?: Vec3 };
+  /** The measure tool is active: pointer hover draws no outlines, tooltips or hovered-part readouts. */
+  measuring: boolean;
   pathDraft?: BuilderPathDraft;
   freeform?: BuilderFreeformOptions;
 }
