@@ -5,6 +5,8 @@ cd "$(dirname "$0")/.."
 target="${SHIP_DEPLOY_HOST:-root@5.78.237.254}"
 [[ "$target" =~ ^[a-zA-Z0-9_.@-]+$ ]] || { echo 'Invalid SHIP_DEPLOY_HOST' >&2; exit 1; }
 SHIP_REVIEW_PAGES=0 BASE_PATH=/ bun run build
+# Test here rather than in the server image build, which is slow on the host.
+cargo test --release --locked -p naval-server -p naval-protocol
 release="$(git rev-parse --short=12 HEAD)-$(date -u +%Y%m%dT%H%M%SZ)"
 remote="/opt/ships/releases/$release"
 ssh "$target" "mkdir -p '$remote'"
