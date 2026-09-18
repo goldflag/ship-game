@@ -18,6 +18,12 @@ The ship fills a dry construction viewport with a fine ground grid below the hul
 
 At widths up to 1100 px selection tags scroll within their available height. At 740 px and below, the ordinary editor stacks the design and the history/trial actions; the layer tabs spread across the dock's tab row as glyphs and the view strip folds into rows of three. A connected-path prompt gets a bounded, scrolling card beside the tool rail and above the palette, with Finish and Cancel side by side. The compass moves above that prompt, and the cursor-coordinate reading is hidden while drawing.
 
+Opening a design reuses the port's finished compilation when its complete source
+matches, including the retained parts catalog. Otherwise **Loading ship…** stays
+up until the first compilation settles, so the editor opens on the finished hull.
+Edits keep the existing preview visible while compiling. Compilation completion
+does not refit the camera; Fit, view changes and opening another design do.
+
 ## Model memory debug panel
 
 Press **F8** to toggle a nonmodal memory panel for the currently open ship; F8 or
@@ -183,6 +189,7 @@ Browser helpers run against the real application toolchain and IndexedDB without
 - `mountDeckFittingsReview()`, `checkDeckFittingsEditor()` and `checkDeckCatalogUpgrade(retainedRevision)` from `scripts/tests/shipbuilder-deck-fittings-browser.ts`: the complete fitting deck, static searchlight asset, pending connected routes, stable identity through undo/redo, rope picking/slack/save/reload, and an explicit library update that preserves authored source and restores the retained catalog on undo.
 - `measureConstructionEditing()` from `scripts/tests/construction-editor-performance.ts`: source/history editing, actual worker/WASM compilation and IndexedDB save/reload for the patrol starter and a synthetic large hull. Mass is reported by Rust; this helper does not measure rendering, launch or battle performance.
 - `node scripts/tests/shipbuilder-compile-preview-browser.mjs <vite-url>` holds a real compiler response after placement and checks that the new block, unchanged hull faces and timber finish remain visible while sea trials stay disabled. Screenshots go to `.build/compile-preview/`.
+- `node scripts/tests/shipbuilder-opening-browser.mjs <vite-url>` checks cold opening, reuse of an exact finished port revision, and camera preservation through an edit and compilation.
 
 The helpers are Vite modules for browser evaluation. The review surface is independent of App; exercise port entry, actual trials and custom battles through App as separate integration checks. Temporary browser captures and measurements belong in ignored `.build/`.
 

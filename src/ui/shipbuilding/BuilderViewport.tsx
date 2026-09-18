@@ -328,7 +328,7 @@ class Viewport {
       this.snapBounds.copy(bounds);
       this.floorGrid.add(createBuilderGrid(bounds, props.scene.gridStep));
     }
-    if (props.scene.view !== this.currentView || props.scene.fitRequest !== old.scene.fitRequest || props.scene.source.id !== old.scene.source.id || (!old.scene.result && props.scene.result)) this.fit();
+    if (props.scene.view !== this.currentView || props.scene.fitRequest !== old.scene.fitRequest || props.scene.source.id !== old.scene.source.id) this.fit();
     // `current` is the compile of exactly this revision; `result` is the last accepted one, kept for rooms and centers.
     const invalid = new Set((props.scene.current?.diagnostics ?? []).filter(d => d.severity === 'error' && d.sourceId).map(d => d.sourceId!));
     const carried = this.carriedSurfaces(props.scene), compiled = props.scene.current?.surfaces.length ? props.scene.current : carried ? props.scene.result : undefined;
