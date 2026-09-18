@@ -1,4 +1,5 @@
 import type { ConstructionEquipment, ConstructionEquipmentPart, Vec3 } from './blueprint';
+import { ladderRungs } from '../../assets/parts/construction/ladder_geometry';
 import { pathDistance, samplePath } from '../../assets/parts/construction/path_geometry';
 
 export const DEFAULT_PATH: { points: Vec3[]; slackM?: number } = { points: [[0, 0, 0], [0, 0, -4]] };
@@ -24,7 +25,8 @@ export function pathProblem(points: readonly Vec3[], slackM = 0): string | undef
 export function equipmentPathBounds(part: ConstructionEquipmentPart, item: Pick<ConstructionEquipment, 'path'>): { center: Vec3; size: Vec3 } {
   if (!part.path) return { center: part.boundsCenter, size: part.size };
   const path = pathOf(item), profile = part.path;
-  const points = profile.kind === 'railing' ? path.points.flatMap(p => [p, [p[0], p[1] + Math.max(profile.heightM ?? 1.1, profile.diameterM * .75), p[2]] as Vec3]) : samplePath(path.points, path.slackM ?? 0);
+  const ladder = profile.kind === 'ladder' ? ladderRungs(path.points, {widthM:profile.widthM!,standOffM:profile.standOffM!,postSpacingM:profile.postSpacingM!}) : undefined;
+  const points = ladder ? ladder.members.flat() : profile.kind === 'railing' ? path.points.flatMap(p => [p, [p[0], p[1] + Math.max(profile.heightM ?? 1.1, profile.diameterM * .75), p[2]] as Vec3]) : samplePath(path.points, path.slackM ?? 0);
   // Railing feet are 3 diameters wide, wider than both the rails and the
   // 1.25-radius stanchions. Keep the selection box around those actual feet.
   const radius = (axis: number) => profile.diameterM * (profile.kind === 'chain' ? 3 : profile.kind === 'railing' && axis !== 1 ? 1.5 : .5);

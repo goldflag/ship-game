@@ -21,3 +21,14 @@ test('the original flat silhouette follows a sloping hull with no solid extrusio
     expect(Math.abs(point[2])).toBeLessThanOrEqual(.750001);
   }
 });
+
+test('relief on an exported parent keeps its depth above the flush panel', () => {
+  const template=new THREE.Group(),relief=new THREE.Group();relief.userData.wallRelief=true;template.add(relief);
+  relief.add(new THREE.Mesh(new THREE.BoxGeometry(.2,.4,.03).translate(0,0,-.03),new THREE.MeshStandardMaterial()));
+  const surfaces=[{normal:[1,0,0],open:false,vertices:[[4,-2,-3],[4,2,-3],[4,2,3],[4,-2,3]]}] as ConstructionSurface[];
+  const part={id:'door',wallMount:'door',size:[1,2,.1]} as ConstructionEquipmentPart;
+  const item={id:'door',partId:part.id,position:[4,0,0] as Vec3,bearingDeg:90,wall:{version:1 as const,widthM:1,heightM:2}};
+  const model=createConstructionWallModel(template,part,item,surfaces),mesh=model.children[0] as THREE.Mesh;
+  mesh.geometry.computeBoundingBox();expect(mesh.geometry.boundingBox!.max.z).toBeLessThan(-.014);expect(mesh.geometry.boundingBox!.min.z).toBeLessThan(-.044);
+  expect(mesh.userData.wallSurfaceDetail).toBe(true);
+});

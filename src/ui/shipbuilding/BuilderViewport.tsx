@@ -31,7 +31,7 @@ import type { BuilderPick, BuilderPlacement, BuilderPointerEvent, BuilderScene, 
 import { createConstructionHull } from '../../game/constructionModel';
 import { createConstructionPathModel } from '../../game/constructionPathModel';
 import { equipmentPathBounds } from '../../ships/constructionPaths';
-import { appendPathPoint, pathAnchor } from './pathDrawing';
+import { appendPathPoint, pathAnchor, pathEquipment } from './pathDrawing';
 import { EquipmentPreview } from './equipmentPreview';
 import { boxSelectedPieces } from './boxSelection';
 import { BuilderOrientation, updateBuilderOrientation } from './BuilderOrientation';
@@ -177,7 +177,7 @@ class Viewport {
   private hoverSurface = '';
   private hoveredPart?: string;
   private modelAbort?: AbortController;
-  private pointerStart?: { id: number; button: number; x: number; y: number; moved: boolean; box: boolean; additive: boolean; start?: BuilderPick; rotate?: RotationDrag; move?: MoveDrag; points: Vec3[]; faces?: Set<string> };
+  private pointerStart?: { id: number; button: number; x: number; y: number; moved: boolean; box: boolean; additive: boolean; start?: BuilderPick; rotate?: RotationDrag; move?: MoveDrag; points: Vec3[]; faces?: Set<string>; ladder?: {point:Vec3; bearingDeg:number} };
   /** The faces a Paint or Opening drag has crossed so far, drawn as brass over the hull until release commits them. */
   private facesPreview = new THREE.Group();
   private facesKey = '';
@@ -1106,7 +1106,8 @@ class Viewport {
     const face = !box && !move && !path && event.button === 0 && this.props.scene.gesture === 'faces' ? this.pick(event, this.props.scene.pickTargets)?.surface : undefined;
     // A press on the hull lays or moves pieces, so OrbitControls (which listens after this capture handler) must not orbit with the same drag; `up` and `cancel` re-enable it.
     if (start || move || face) this.controls.enabled = false;
-    this.pointerStart = { id: event.pointerId, button: event.button, x: event.clientX, y: event.clientY, moved: false, box, additive: event.ctrlKey || event.metaKey, start, rotate, move, points: start ? [start.placement] : [], faces: face ? new Set([face]) : undefined };
+    const ladder=path && this.props.scene.pathDraft?.part.path?.kind === 'ladder' ? {point:path,bearingDeg:wallBearing(this.pick(event,'hull')!.normal!)} : undefined;
+    this.pointerStart = { ladder, id: event.pointerId, button: event.button, x: event.clientX, y: event.clientY, moved: false, box, additive: event.ctrlKey || event.metaKey, start, rotate, move, points: start ? [start.placement] : [], faces: face ? new Set([face]) : undefined };
     this.hover = { clientX: event.clientX, clientY: event.clientY };
     this.renderer.domElement.setPointerCapture(event.pointerId);
     this.updateGhost(); this.updateStrokePreview();
@@ -1165,8 +1166,11 @@ class Viewport {
       const hit = clicked ? this.pick(event, 'all') : undefined;
       if (hit?.id && !this.props.scene.freeform && !this.props.scene.pathDraft) this.props.onPointer({ kind: 'erase', id: hit.id });
     } else if (this.props.scene.pathDraft && !rect) {
-      const point = clicked ? this.pathPick(event) : undefined;
-      if (point) this.props.onPointer({ kind: 'path-point', point });
+      const point = this.pathPick(event);
+      if(start.ladder) {
+        release(this.pathPreview);this.pathPreviewKey='';
+        if(!clicked && point)this.props.onPointer({kind:'ladder-draw',points:[start.ladder.point,point],bearingDeg:start.ladder.bearingDeg});
+      } else if(clicked && point) this.props.onPointer({ kind: 'path-point', point });
     } else if (rect) {
       if (clicked) { const hit = this.pick(event, 'all'); this.props.onPointer({ kind: 'box', ids: hit?.id ? [hit.id] : [], additive: true }); }
       else this.props.onPointer({ kind: 'box', ids: boxSelectedPieces(this.props.scene.source, this.props.scene.catalog, this.camera, rect, this.host.clientWidth, this.host.clientHeight, this.props.scene.rooms), additive: start.additive });
@@ -1186,8 +1190,9 @@ class Viewport {
   private pathPick(event: { clientX: number; clientY: number }): Vec3 | undefined {
     const draft = this.props.scene.pathDraft;
     if (!draft) return undefined;
-    const hit = this.pick(event, draft.part.path?.kind === 'railing' ? 'hull' : 'all');
+    const hit = this.pick(event, draft.part.path?.kind === 'railing' || draft.part.path?.kind === 'ladder' ? 'hull' : 'all');
     if (!hit) return undefined;
+    if(draft.part.path?.kind === 'ladder' && (!hit.surface || !(this.props.scene.result?.surfaces.some(s=>surfaceSelectionKey(s)===hit.surface&&!s.open))))return;
     const settings = this.props.scene.snapping ?? DEFAULT_SNAPPING;
     const raw = pathAnchor(draft.part, this.props.scene.source, this.props.scene.catalog, hit, null);
     const grid = pathAnchor(draft.part, this.props.scene.source, this.props.scene.catalog, hit, settings.enabled && settings.grid ? this.props.scene.gridStep : null);
@@ -1197,13 +1202,19 @@ class Viewport {
     this.workingPoint = point; this.workingAxis = hit.axis; return point;
   }
   private updatePathPreview() {
-    const draft = this.props.scene.pathDraft, point = draft && this.hover && !this.navigating() ? this.pathPick(this.hover) : undefined;
-    const points = draft ? point ? appendPathPoint(draft.points, point) : draft.points : [];
+    const draft = this.props.scene.pathDraft, ladder=this.pointerStart?.ladder;
+    const point = draft && this.hover && (ladder || !this.navigating()) ? this.pathPick(this.hover) : undefined;
+    const points = ladder ? (point ? appendPathPoint([ladder.point],point) : [ladder.point]) : draft?.part.path?.kind === 'ladder' ? [] : draft ? point ? appendPathPoint(draft.points, point) : draft.points : [];
     const key = JSON.stringify([draft?.part.id, points, draft?.slackM, draft?.mirror]);
     if (key === this.pathPreviewKey) return;
     this.pathPreviewKey = key; release(this.pathPreview);
     if (!draft || !points.length) return;
-    if (points.length > 1) {
+    if(points.length>1 && draft.part.path?.kind === 'ladder' && ladder) {
+      const item=pathEquipment('preview',draft.part.id,points,0,ladder.bearingDeg);
+      const add=(item:ConstructionEquipment)=>{const model=createConstructionPathModel(draft.part,item.path,true,{item,surfaces:this.props.scene.result?.surfaces??[]});model.position.fromArray(item.position);model.rotation.y=-item.bearingDeg*Math.PI/180;this.pathPreview.add(model);};
+      add(item);
+      if(draft.mirror)add({...item,position:[-item.position[0],item.position[1],item.position[2]],bearingDeg:-item.bearingDeg,path:{points:item.path!.points.map(p=>[-p[0],p[1],p[2]])}});
+    } else if (points.length > 1) {
       this.pathPreview.add(createConstructionPathModel(draft.part, { points, slackM: draft.slackM }, true));
       if (draft.mirror && points.some(p => Math.abs(p[0]) > 1e-6)) this.pathPreview.add(createConstructionPathModel(draft.part, { points: points.map(p => [-p[0], p[1], p[2]]), slackM: draft.slackM }, true));
     }

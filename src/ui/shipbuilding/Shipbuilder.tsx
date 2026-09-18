@@ -265,10 +265,10 @@ export function Shipbuilder(props: ShipbuilderProps) {
   // The cursor piece reads out above the palette instead of following the ghost; its size fields stay editable there.
   // The Armor layer keeps its millimetre field here, above the bar: a new value also assigns the selected faces.
   const status: ReactNode = locked ? null : pathPart ? <>
-    <b>{pathPart.name}</b><span>{pathPoints.length ? `${pathPoints.length} points · click to extend` : 'Click the first point on the ship'}</span>
+    <b>{pathPart.name}</b>{pathPart.path?.kind === 'ladder' ? <span>Drag from the first rung to the last on a hull side · release to place · Esc cancels</span> : <><span>{pathPoints.length ? `${pathPoints.length} points · click to extend` : 'Click the first point on the ship'}</span>
     {pathPart.path?.kind === 'rope' && <NumberField label="Rope slack" value={s.ropeSlack} min={0} max={pathSlackLimit(pathPoints)} step={.05} unit="m" onChange={tool.setRopeSlack}/>}
     <button disabled={pathPoints.length < 2} onClick={tool.finishPath}>Finish <kbd>Enter</kbd></button><button onClick={() => tool.cancelPath(false)}>Cancel <kbd>Esc</kbd></button>
-    <span className="sb-path-hint">{pathPart.path?.kind === 'railing' ? 'Deck supports every post' : 'Hull or fitting support sockets'} · double-click finishes</span>
+    <span className="sb-path-hint">{pathPart.path?.kind === 'railing' ? 'Deck supports every post' : 'Hull or fitting support sockets'} · double-click finishes</span></>}
   </> : layer === 'armor' ? <>
     <b>Armor</b><NumberField label="Armor thickness" value={customMm} min={0} max={1000} step={1} unit="mm" onChange={tool.setThickness}/><span>{customMm > 0 ? 'armor steel' : 'structural skin, no armor'} · minimum {source.construction.defaultThicknessMm} mm skin</span><NumberField label="Skin" description="Minimum plating thickness across the ship; lowering it also changes unassigned hull faces" value={source.construction.defaultThicknessMm} min={.1} max={1000} step={.1} unit="mm" onChange={thicknessMm => run('Change structural skin', [{ op: 'skin', thicknessMm }])}/>
   </> : !piece ? null : piece.kind === 'hull' && active?.kind === 'shape' ? <>
@@ -277,9 +277,9 @@ export function Shipbuilder(props: ShipbuilderProps) {
     <b>{active.part.name}</b>{piece.wall ? <>
       <NumberField label={wallMount(active.part) === 'porthole' ? 'Diameter' : 'Width'} value={piece.wall.widthM} min={.15} max={5} step={.05} unit="m" onChange={value => tool.setWallSize(0, value)}/>
       {wallMount(active.part) !== 'porthole' && <NumberField label="Height" value={piece.wall.heightM} min={.15} max={5} step={.05} unit="m" onChange={value => tool.setWallSize(1, value)}/>}
-      {wallMount(active.part) !== 'door' && <><button aria-pressed={!s.windowRow} onClick={() => tool.setWindowRow(false)}>Single</button><button aria-pressed={s.windowRow} onClick={() => tool.setWindowRow(true)}>Row</button>
+      {['window','porthole'].includes(wallMount(active.part) ?? '') && <><button aria-pressed={!s.windowRow} onClick={() => tool.setWindowRow(false)}>Single</button><button aria-pressed={s.windowRow} onClick={() => tool.setWindowRow(true)}>Row</button>
       {s.windowRow && <NumberField label="Spacing" description="Distance between window centers. Drag horizontally along a wall to lay a row." value={piece.rowSpacing ?? s.windowSpacing} min={piece.wall.widthM + .05} max={20} step={.1} unit="m" onChange={tool.setWindowSpacing}/>}</>}
-      <span>{s.windowRow && wallMount(active.part) !== 'door' ? 'Drag along the hull' : 'Click a hull side or wall'} · ←→ width · ↑↓ height · Shift fine{mirror ? ' · linked mirror' : ''}</span>
+      <span>{s.windowRow && ['window','porthole'].includes(wallMount(active.part) ?? '') ? 'Drag along the hull' : 'Click a hull side or wall'} · ←→ width · ↑↓ height · Shift fine{mirror ? ' · linked mirror' : ''}</span>
     </> : <span>{active.part.placement} · bearing {Number(piece.bearingDeg.toFixed(2))}°</span>}
   </> : piece.kind === 'boundary' ? <><b>{BOUNDARY_NAMES[piece.axis]}</b><span>on the {gridStep} m grid</span></> : null;
   if (!freeformMode && selectedPrimitives.length === 1 && !selectedEquipment.length) {

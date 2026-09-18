@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { paintedHullFace } from '../ships/constructionHullPaint';
 import type { ConstructionEquipment, ConstructionEquipmentPart, ConstructionPrimitive, ConstructionSurface, Vec3 } from '../ships/blueprint';
-import { wallNormal, wallProjectionDepth, wallScale, wallSurface } from '../ships/constructionWallFittings';
+import { wallNormal, wallProjectionDepth, wallScale, wallSurface, projectWallPoint } from '../ships/constructionWallFittings';
 
 /** Clip a polygon against a half-plane in the original fitting's projected plane. */
 function clip(polygon: THREE.Vector3[], distance: (p: THREE.Vector3) => number): THREE.Vector3[] {
@@ -36,6 +36,22 @@ export function createConstructionWallModel(template: THREE.Group, part: Constru
     if (!(node instanceof THREE.Mesh)) return;
     const source=node.geometry, position=source.getAttribute('position'), index=source.index;
     if (!position) return;
+    let relief=false;
+    for(let parent:THREE.Object3D|null=node;parent;parent=parent.parent) relief ||= !!parent.userData.wallRelief;
+    if (relief) {
+      const geometry=source.clone(), vertices=geometry.getAttribute('position');
+      for(let i=0;i<vertices.count;i++) {
+        const local=new THREE.Vector3().fromBufferAttribute(vertices,i).applyMatrix4(node.matrixWorld).multiply(new THREE.Vector3(...scale));
+        const world=local.clone().setZ(0).applyMatrix4(pose).toArray() as Vec3;
+        const hit=projectWallPoint(world,n,surfaces,depth);
+        if(hit) local.set(...hit.map((v,k)=>v+n[k]*(-local.z+.0005)) as Vec3).applyMatrix4(inverse);
+        vertices.setXYZ(i,local.x,local.y,local.z);
+      }
+      geometry.computeVertexNormals();
+      const material=Array.isArray(node.material)?node.material.map(m=>m.clone()):node.material.clone();
+      for(const m of Array.isArray(material)?material:[material]) {m.polygonOffset=true;m.polygonOffsetFactor=0;m.polygonOffsetUnits=-2;}
+      const mesh=new THREE.Mesh(geometry,material);mesh.name=node.name;mesh.userData={...node.userData,sharedPreviewResources:false,wallSurfaceDetail:true};mesh.castShadow=mesh.receiveShadow=true;group.add(mesh);return;
+    }
     const points:number[]=[], normals:number[]=[];
     for(let i=0;i<(index?.count??position.count);i+=3){
       const triangle=[0,1,2].map(k=>new THREE.Vector3().fromBufferAttribute(position,index?index.getX(i+k):i+k).applyMatrix4(node.matrixWorld).multiply(new THREE.Vector3(...scale)));
@@ -54,7 +70,7 @@ export function createConstructionWallModel(template: THREE.Group, part: Constru
     }
     if (!points.length) return;
     const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(points,3));geometry.setAttribute('normal',new THREE.Float32BufferAttribute(normals,3));
-    const clone=(m:THREE.Material)=>{const material=m.clone();material.side=THREE.DoubleSide;material.polygonOffset=true;material.polygonOffsetFactor=-2;material.polygonOffsetUnits=-2;return material;};
+    const clone=(m:THREE.Material)=>{const material=m.clone();material.side=THREE.DoubleSide;material.polygonOffset=true;material.polygonOffsetFactor=0;material.polygonOffsetUnits=-2;return material;};
     const mesh=new THREE.Mesh(geometry,Array.isArray(node.material)?node.material.map(clone):clone(node.material));
     mesh.name=node.name;mesh.userData={...node.userData,sharedPreviewResources:false,wallSurfaceDetail:true};group.add(mesh);
   });

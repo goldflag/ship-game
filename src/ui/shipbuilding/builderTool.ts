@@ -1,3 +1,4 @@
+import { fittedLadder } from '../../ships/constructionLadders';
 import { wallMount, installedWallPart, wallNormal, wallFittingSupported, seatWallFitting } from '../../ships/constructionWallFittings';
 import { DEFAULT_SNAPPING, constructionSnapFeatures, type SnapSettings } from './snapping';
 import { CONSTRUCTION_PAINTS } from '../../ships/constructionPaints';
@@ -546,6 +547,20 @@ export class BuilderTool {
     }
     return undefined;
   };
+  drawLadder = (points: Vec3[], bearingDeg: number): ConstructionSubmission | undefined => {
+    const part=this.pathPart;
+    if(part?.path?.kind !== 'ladder' || this.refused())return;
+    const problem=pathProblem(points);
+    if(problem){this.door.setError(problem);return;}
+    const item=pathEquipment(this.newId('ladder'),part.id,points,0,bearingDeg);
+    if(this.state.fittingPaint)item.paint=this.state.fittingPaint;
+    const parts=[item];
+    if(this.state.mirror && points.some(p=>Math.abs(p[0])>1e-6))parts.push({...mirroredEquipment(item),id:this.newId('ladder')});
+    if(!this.compiled || parts.some(e=>!fittedLadder(part,e,this.compiled!.surfaces))){this.door.setError('Every rung needs a closed hull side behind both ends. Move away from edges or turn Mirror off.');return;}
+    const outcome=this.run('Draw surface ladder',parts.map(value=>({op:'equipment',value})));
+    if(outcome.accepted)this.update({selected:new Set(parts.map(p=>p.id)),tool:'select'});
+    return outcome;
+  };
   addPathPoint = (point: Vec3) => {
     if (this.state.pathPoints.length >= 64) { this.update({ notice: '64 points reached. Finish this path before starting another.' }); return; }
     if (!this.locked) this.update({ pathPoints: appendPathPoint(this.state.pathPoints, point), selected: new Set(), surfaces: new Set() });
@@ -696,6 +711,7 @@ export class BuilderTool {
       case 'erase': return this.erase(event.id);
       case 'move': return this.movePieces(event.ids, event.delta);
       case 'rotate': return this.rotateFittings(event.ids, event.degrees);
+      case 'ladder-draw': return this.drawLadder(event.points,event.bearingDeg);
       case 'path-point': this.addPathPoint(event.point); return undefined;
       case 'path-finish': return this.finishPath();
     }

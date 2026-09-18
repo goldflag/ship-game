@@ -1556,6 +1556,10 @@ pub struct ConstructionEquipmentPartSocketsItem {
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct ConstructionEquipmentPartPath {
+    #[serde(rename = "widthM", default, skip_serializing_if = "Option::is_none")]
+    pub width_m: Option<f64>,
+    #[serde(rename = "standOffM", default, skip_serializing_if = "Option::is_none")]
+    pub stand_off_m: Option<f64>,
     #[serde(rename = "kind")]
     pub kind: String,
     #[serde(rename = "diameterM")]
