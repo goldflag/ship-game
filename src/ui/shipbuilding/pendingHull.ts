@@ -24,7 +24,7 @@ function sourceFaces(primitive: ConstructionPrimitive): Face[] {
 function sourceBounds(primitive: ConstructionPrimitive): [Vec3, Vec3] {
   const min: Vec3 = [Infinity, Infinity, Infinity], max: Vec3 = [-Infinity, -Infinity, -Infinity];
   for (const face of sourceFaces(primitive)) for (const v of face.vertices) {
-    const point = rotateVertex(v, primitive.rotationDeg);
+    const point = orientVector(primitive, v);
     for (let axis = 0; axis < 3; axis++) {
       const n = point[axis] + primitive.position[axis];
       min[axis] = Math.min(min[axis], n); max[axis] = Math.max(max[axis], n);
