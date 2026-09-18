@@ -316,7 +316,7 @@ function Harbor({ account, startup }: AppProps) {
     const session = game.current;
     if (!session || battlePending.current) throw new Error('The harbor is still preparing.');
     const revision = registerLocalShip(source, result);
-    const setup: BattleSetup = { playerShipId: revision.definition.id, friendlyBots: [], enemies: [{ shipId: 'liberty-cargo', aiLevel: 'easy' }], spawnDistance: 2500, mapId: 'north-atlantic', timeHours: 12, cloudCover: 10, windSpeed: 0 };
+    const setup: BattleSetup = { playerShipId: revision.definition.id, friendlyBots: [], enemies: [{ shipId: 'liberty-cargo', aiLevel: 'easy' }], spawnDistance: 2500, mapId: 'north-atlantic', timeHours: 12, cloudCover: 10, windSpeed: 9 };
     battlePending.current = true; setPveBriefing(undefined); setBattleSetup(setup);
     setBattleLoading({ label: 'Preparing sea trial', progress: 0, leaving: false });
     try {
