@@ -1,3 +1,4 @@
+import { isConstructionSurfaceFinish } from './constructionPaints';
 import { mirroredOrientation } from './constructionOrientation';
 import { mirroredIndices } from './freeformShape';
 import { mirroredBalcony } from './constructionBalcony';
@@ -117,6 +118,7 @@ export function decodeConstructionSource(value: unknown): ConstructionSource {
       p.vertices.forEach(v => vector(v, 'Hull corner'));
     }
   }
+  if (data.finish !== undefined && !isConstructionSurfaceFinish(data.finish)) throw new Error('Unsupported surface finish');
   for (const surface of rows(data.surfaces, 'Surfaces')) {
     string(surface.primitiveId, 'Surface primitive'); string(surface.paint, 'Paint'); number(surface.thicknessMm, 'Armor thickness');
     if (!CONSTRUCTION_FACES.includes(surface.face as ConstructionFace) || !['steel', 'armor-steel'].includes(surface.material as string)) throw new Error('Unsupported surface face or material');

@@ -6,6 +6,26 @@ import { createConstructionPathModel } from './constructionPathModel';
 import catalog from '../../public/models/components/catalog.json';
 import type { ConstructionEquipmentPart } from '../ships/blueprint';
 
+test('ship sheen affects coatings only and preserves original paint and protected materials', () => {
+  const geometry = new THREE.BoxGeometry(), model = new THREE.Group();
+  const materials = (['naval', 'roof', 'wood', 'bronze', 'glass', 'canvas'] as const).map(name => {
+    const spec = componentMaterial(name);
+    const material = new THREE.MeshStandardMaterial({ color: '#123456', roughness: .9 });
+    material.name = name; material.userData = spec.userData; return material;
+  });
+  const mesh = new THREE.Mesh(geometry, materials); model.add(mesh);
+  const owned = paintConstructionFitting(model, undefined, true, 'semi-gloss');
+  const finished = mesh.material as THREE.MeshStandardMaterial[];
+  expect(owned).toHaveLength(2);
+  for (let i = 0; i < 2; i++) {
+    expect(finished[i].roughness).toBe(.34); expect(finished[i].metalness).toBe(0);
+    expect(finished[i].color.equals(materials[i].color)).toBe(true);
+    expect(materials[i].roughness).toBe(.9);
+  }
+  for (let i = 2; i < materials.length; i++) expect(finished[i]).toBe(materials[i]);
+  owned.forEach(m => m.dispose()); materials.forEach(m => m.dispose()); geometry.dispose();
+});
+
 test('fitting coating isolates shared materials and retains glass, texture detail and joints', () => {
   const material = new THREE.MeshStandardMaterial({ color: '#ffffff' });
   material.userData = componentMaterial('naval').userData;

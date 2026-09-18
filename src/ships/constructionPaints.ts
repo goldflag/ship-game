@@ -1,4 +1,15 @@
 import finishes from '../../assets/ships/appearance/finishes.json';
+import type { ConstructionSurfaceFinish } from './blueprint';
+
+/** Player-selected coatings remain nonmetallic; historical defaults stay unchanged. */
+export const CONSTRUCTION_SURFACE_FINISHES = [
+  { id: 'matte', name: 'Matte', roughness: .85 },
+  { id: 'satin', name: 'Satin', roughness: .58 },
+  { id: 'semi-gloss', name: 'Semi-gloss', roughness: .34 },
+  { id: 'gloss', name: 'Gloss', roughness: .16 },
+] as const;
+export const isConstructionSurfaceFinish = (value: unknown): value is ConstructionSurfaceFinish => CONSTRUCTION_SURFACE_FINISHES.some(finish => finish.id === value);
+export const constructionFinishRoughness = (finish: ConstructionSurfaceFinish | undefined, fallback: number): number => CONSTRUCTION_SURFACE_FINISHES.find(entry => entry.id === finish)?.roughness ?? fallback;
 /** Sandbox paints, using shared painted-steel/deck finish values and an 8 m
  * metric repeat. These are design colors, not claims about historical schemes. */
 export const CONSTRUCTION_PAINTS = [

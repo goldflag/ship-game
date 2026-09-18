@@ -5,6 +5,17 @@ import { customHullPanels, mirroredPanelId } from './constructionPanels';
 import type { ConstructionCommand } from './constructionCommands';
 import type { ConstructionCatalog, ConstructionSource } from './blueprint';
 const source = (): ConstructionSource => ({ schemaVersion: 1, id: 'test', name: 'Test', revision: 'one', coordinates: 'meters-y-up-bow-negative-z', construction: { version: 1, catalogRevision: 'test', defaultThicknessMm: 10, primitives: [{ id: 'hull', kind: 'box', size: [10, 4, 20], position: [0, 0, 0], rotationDeg: 0 }], surfaces: [], equipment: [], boundaries: [], loads: [] } });
+test('ship finish round-trips through source commands without changing geometry or colors', () => {
+  const original = source();
+  const apply = (s: ConstructionSource, commands: ConstructionCommand[]) => applyConstructionBatch(s, { version: 1, expectedRevision: s.revision, label: 'Finish', commands });
+  const finished = apply(original, [{ op: 'finish', finish: 'semi-gloss' }]);
+  expect(finished.construction).toEqual({ ...original.construction, finish: 'semi-gloss' });
+  const saved = JSON.parse(JSON.stringify(finished));
+  expect(constructionDiffCommands(original, saved)).toEqual([{ op: 'finish', finish: 'semi-gloss' }]);
+  expect(apply(saved, [{ op: 'finish' }]).construction).toEqual(original.construction);
+  expect(() => apply(original, [{ op: 'finish', finish: 'chrome' } as unknown as ConstructionCommand])).toThrow('Unsupported surface finish');
+  expect(original.construction.finish).toBeUndefined();
+});
 test('agent batch is atomic and rejects stale revisions and syntax failures', () => {
   const original = source(), before = JSON.stringify(original);
   const batch: ConstructionBatch = { version: 1, expectedRevision: 'one', label: 'Refit', commands: [{ op: 'name', name: 'Changed' }, { op: 'move', ids: ['absent'], delta: [1, 0, 0] }] };

@@ -403,7 +403,7 @@ class Viewport {
       this.modelKey = modelKey; this.modelAbort?.abort(); release(this.composed);
       if (nativeSurfaces && (!props.createModel || props.scene.current)) {
         const abort = new AbortController(); this.modelAbort = abort;
-        const model = props.createModel ? props.createModel(props.scene.source, props.scene.current!, abort.signal) : Promise.resolve(createConstructionHull(nativeSurfaces, props.scene.source.construction.primitives));
+        const model = props.createModel ? props.createModel(props.scene.source, props.scene.current!, abort.signal) : Promise.resolve(createConstructionHull(nativeSurfaces, props.scene.source.construction.primitives, props.scene.source.construction.finish));
         model.then(group => {
           if (this.dead || abort.signal.aborted || modelKey !== this.modelKey) { release(group); return; }
           group.traverse(node => {

@@ -54,6 +54,17 @@ async function setup(options: { connect?: boolean; compile?: boolean; retained?:
   return { owner, tool, store, writes, data, labels, state: tool.getSnapshot };
 }
 const hit = (over: Partial<BuilderPick> = {}): BuilderPick => ({ point: [0, .5, 0], axis: 1, placement: [0, 1, 0], additive: false, ...over });
+test('whole-ship finish changes one revision, supports undo and restores original materials', async () => {
+  const { tool, data, labels } = await setup();
+  const original = structuredClone(data());
+  tool.switchLayer('paint');
+  expect(tool.setFinish('semi-gloss')).toMatchObject({ accepted: true, changed: true });
+  expect(data()).toEqual({ ...original, finish: 'semi-gloss' });
+  expect(labels()).toEqual(['Set ship surface finish']);
+  tool.undo(); expect(data()).toEqual(original);
+  tool.redo(); expect(data().finish).toBe('semi-gloss');
+  tool.setFinish(); expect(data()).toEqual(original);
+});
 const key = (key: string, over: Partial<BuilderKey> = {}): BuilderKey => ({ key, ctrlKey: false, metaKey: false, shiftKey: false, altKey: false, repeat: false, preventDefault() {}, ...over });
 const chrome = (): BuilderChrome & { log: string[] } => { const log: string[] = []; return { log, dismiss: () => { log.push('dismiss'); return false; }, toggleDrawer: () => log.push('drawer'), toggleWarnings: () => log.push('warnings'), slotChosen: () => log.push('slot') }; };
 

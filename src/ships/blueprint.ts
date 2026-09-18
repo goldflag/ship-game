@@ -405,7 +405,10 @@ export interface ConstructionBoundary {
   id: string; axis: 'x' | 'y' | 'z'; offset: number; thicknessMm: number;
 }
 export interface ConstructionLoad extends Volume { name: string; massKg: number; }
+export type ConstructionSurfaceFinish = 'matte' | 'satin' | 'semi-gloss' | 'gloss';
 export interface ConstructionData {
+  /** Ship-wide painted-surface sheen; omission preserves original material finishes. */
+  finish?: ConstructionSurfaceFinish;
   version: 1 | 2; catalogRevision: string; defaultThicknessMm: number;
   primitives: ConstructionPrimitive[]; surfaces: ConstructionSurfaceAssignment[];
   equipment: ConstructionEquipment[]; boundaries: ConstructionBoundary[]; loads: ConstructionLoad[];

@@ -4,7 +4,7 @@ import { editableMesh } from '../../ships/constructionMesh';
 import { fittedLadder } from '../../ships/constructionLadders';
 import { wallMount, installedWallPart, wallNormal, wallFittingSupported, seatWallFitting } from '../../ships/constructionWallFittings';
 import { DEFAULT_SNAPPING, constructionSnapFeatures, type SnapSettings } from './snapping';
-import { CONSTRUCTION_PAINTS } from '../../ships/constructionPaints';
+import { CONSTRUCTION_PAINTS, isConstructionSurfaceFinish } from '../../ships/constructionPaints';
 import { mirroredPanelId } from '../../ships/constructionPanels';
 import { integrateConstructionMagazines, setBarbetteHeight } from '../../ships/constructionArmament';
 import type { ConstructionBoundary, ConstructionCatalog, ConstructionEquipment, ConstructionEquipmentPart, ConstructionPrimitive, ConstructionResult, ConstructionSource, ConstructionSuggestion, ConstructionSurface, ConstructionSurfaceAssignment, Vec3 } from '../../ships/blueprint';
@@ -647,6 +647,10 @@ export class BuilderTool {
       case 'paint': return assign(`Paint ${item.name.toLowerCase()}`, { paint: item.id });
       default: return undefined;
     }
+  };
+  setFinish = (finish?: ConstructionSource['construction']['finish']): ConstructionSubmission | undefined => {
+    if (finish !== undefined && !isConstructionSurfaceFinish(finish)) return undefined;
+    return this.run('Set ship surface finish', [{ op: 'finish', finish }]);
   };
   /** Paint whole installations without changing the shared component or other instances. */
   paintFittings = (ids: readonly string[], paint?: string): ConstructionSubmission | undefined => {

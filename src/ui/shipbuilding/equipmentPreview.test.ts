@@ -13,11 +13,33 @@ function fixture() {
   source.construction.equipment = source.construction.equipment.filter(item => item.id === 'funnel');
   const part = catalog.equipment.find(part => part.id === source.construction.equipment[0].partId)!;
   const geometry = new THREE.CylinderGeometry(1, 1, 4), material = new THREE.MeshStandardMaterial();
+  material.name = 'naval';
   const model = new THREE.Group(); model.userData.definitionHash = part.contentHash;
   model.add(new THREE.Mesh(geometry, material));
   return { source, model, geometry };
 }
 const settled = async () => { await Promise.resolve(); await Promise.resolve(); };
+test('ship finish refreshes every fitting and restores original materials without reloading assets', async () => {
+  const { source, model } = fixture();
+  const original = (model.children[0] as THREE.Mesh).material as THREE.MeshStandardMaterial;
+  source.construction.equipment.push({ ...source.construction.equipment[0], id: 'copy', paint: 'sea-blue' });
+  const loader = spyOn(models, 'loadShipModel').mockResolvedValue({ scene: model } as GLTF);
+  const preview = new EquipmentPreview(() => preview.update(source, catalog), () => {});
+  const material = (id: string) => (preview.group.getObjectByName(id)!.children[0].children[0] as THREE.Mesh).material as THREE.MeshStandardMaterial;
+  try {
+    preview.update(source, catalog); await settled();
+    const blue = material('copy');
+    source.construction.finish = 'semi-gloss'; preview.update(source, catalog);
+    expect(material('funnel').roughness).toBe(.34);
+    expect(material('copy').roughness).toBe(.34);
+    expect(material('copy').color.equals(blue.color)).toBe(true);
+    expect(original.roughness).toBe(1);
+    delete source.construction.finish; preview.update(source, catalog);
+    expect(material('funnel')).toBe(original);
+    expect(material('copy')).toBe(blue);
+    expect(loader).toHaveBeenCalledTimes(1);
+  } finally { preview.dispose(); loader.mockRestore(); }
+});
 
 test('equipment survives source edits and shares one loaded asset across installations and ghosts', async () => {
   const { source, model, geometry } = fixture();

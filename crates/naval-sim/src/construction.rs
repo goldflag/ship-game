@@ -422,6 +422,9 @@ fn validate(
             None,
         ));
     }
+    if c.finish.as_deref().is_some_and(|f| !["matte", "satin", "semi-gloss", "gloss"].contains(&f)) {
+        return Err(error("surface-finish", "Unsupported ship surface finish", None));
+    }
     for e in &c.equipment {
         if e.paint.as_ref().is_some_and(|paint| paint.is_empty() || paint.len() > 64) {
             return Err(error("equipment-paint", "Fitting paint must be a nonempty name of at most 64 bytes", Some(&e.id)));
@@ -2452,6 +2455,29 @@ fn resolve_magazine<'a>(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn ship_surface_finish_preserves_physics_and_validates_saved_source() {
+        let (mut source, catalog) = fixture();
+        let original = compile(&source, &catalog);
+        assert!(!to_json(&source).unwrap().contains("\"finish\""));
+        let mut compiler = ConstructionCompiler::default();
+        compiler.compile(&source, &catalog);
+        for finish in ["matte", "satin", "semi-gloss", "gloss"] {
+            source.construction.finish = Some(finish.into());
+            let saved: ConstructionSource = serde_json::from_str(&to_json(&source).unwrap()).unwrap();
+            assert_eq!(saved.construction.finish.as_deref(), Some(finish));
+            let result = compiler.compile(&saved, &catalog);
+            assert!(result.definition.is_some(), "{:?}", result.diagnostics);
+            assert_ne!(result.content_hash, original.content_hash);
+            assert_eq!(to_json(&result.surfaces).unwrap(), to_json(&original.surfaces).unwrap());
+            assert_eq!(to_json(&result.loading).unwrap(), to_json(&original.loading).unwrap());
+            assert_eq!(to_json(&result).unwrap(), to_json(&compile(&saved, &catalog)).unwrap());
+        }
+        source.construction.finish = Some("chrome".into());
+        assert!(compile(&source, &catalog).diagnostics.iter().any(|d| d.code == "surface-finish"));
+        source.construction.finish = None;
+        assert_eq!(compile(&source, &catalog).content_hash, original.content_hash);
+    }
     #[test]
     fn incremental_revisions_match_fresh_compilation_including_invalid_edits() {
         let (base, mut catalog) = fixture();
