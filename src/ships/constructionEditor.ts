@@ -2,6 +2,7 @@ import { mirroredIndices } from './freeformShape';
 import { mirroredBalcony } from './constructionBalcony';
 import { cornerVertices } from './constructionVertex';
 import { customHullPanels, mirroredPanelId } from './constructionPanels';
+import { outlineTopologyError } from './customHullTopology';
 import type { ConstructionEquipment, ConstructionSource, ConstructionPrimitive, ConstructionSurface, ConstructionSurfaceAssignment, Vec3 } from './blueprint';
 import { normalizedBearing } from '../ui/shipbuilding/editorNumbers';
 import { CONSTRUCTION_SHAPES, shapeMirror } from './constructionShapes';
@@ -81,9 +82,10 @@ export function decodeConstructionSource(value: unknown): ConstructionSource {
       for (const station of stations) {
         string(station.id, 'Section ID'); number(station.t, 'Section position');
         const points = rows(station.points, 'Section points');
-        if (points.length !== 9) throw new Error('Each hull section requires nine outline points');
-        for (const point of points) { number(point.x, 'Point X'); number(point.y, 'Point Y'); }
+        for (const point of points) { number(point.x, 'Point X'); number(point.y, 'Point Y'); if (point.contour !== undefined) number(point.contour, 'Outline position'); }
       }
+      const topology = outlineTopologyError(stations as unknown as import('./blueprint').ConstructionHullStation[]);
+      if (topology) throw new Error(topology);
     } else if (p.customHull !== undefined) throw new Error('Section data belongs to a custom hull');
     if (p.shaping !== undefined) {
       const shape=object(p.shaping,'Freeform shaping');

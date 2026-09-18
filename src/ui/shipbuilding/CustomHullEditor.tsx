@@ -1,7 +1,10 @@
 import { useEffect, useLayoutEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import { Preview } from './CustomHullPreview';
-import { clone, displayPoints, influence, invalidReason, lockSymmetry, makeHull, outline, presets, resizeSection, sectionAt, setSectionCount, uid, type Hull, type Station } from '../../ships/customHullModel';
+import { addHullPointPair, canRemoveHullPointPair, removeHullPointPair, clone, displayPoints, influence, invalidReason, lockSymmetry, makeHull, outline, presets, resizeSection, sectionAt, setSectionCount, uid, type Hull, type Station } from '../../ships/customHullModel';
+import { contourAt, contourWeight, MAX_HULL_POINTS, MIN_HULL_POINTS } from '../../ships/customHullTopology';
 import './CustomHullEditor.css';
+
+const nearestContour = (s: Station, t: number) => s.points.reduce((best, _, i) => i > 0 && i < (s.points.length - 1) / 2 && Math.abs(contourAt(s.points, i) - t) < Math.abs(contourAt(s.points, best) - t) ? i : best, 1);
 
 // Shared section editor. Integration applies a draft to one source primitive;
 // the development study additionally exposes alternate layouts and annotations.
@@ -27,10 +30,10 @@ function Toggle({ children, checked, onChange }: { children: ReactNode; checked:
 
 function Drawings({ h, selected, select, drag, soft, kind }: { h: Hull; selected: string[]; select: (id: string, multi?: boolean) => void; drag: Drag; soft: boolean; kind: 'plan' | 'profile' }) {
   const W = 640, X = 40, Y = 106, S = 65;
-  const at = h.stations;
+  const at = h.stations, last = at[0].points.length - 1, keel = last / 2;
   const edges = at.map(s => {
     const p = displayPoints(h, s);
-    return kind === 'plan' ? [{ x: X + s.t * W, y: Y + p[0].x * S }, { x: X + s.t * W, y: Y + p[8].x * S }] : [{ x: X + s.t * W, y: Y - p[0].y * S }, { x: X + s.t * W, y: Y - p[4].y * S }];
+    return kind === 'plan' ? [{ x: X + s.t * W, y: Y + p[0].x * S }, { x: X + s.t * W, y: Y + p[last].x * S }] : [{ x: X + s.t * W, y: Y - p[0].y * S }, { x: X + s.t * W, y: Y - p[keel].y * S }];
   });
   const shape = [...edges.map(p => p[0]), ...edges.slice().reverse().map(p => p[1])];
   return <section className={`hp-drawing hp-${kind}`}>
@@ -41,7 +44,7 @@ function Drawings({ h, selected, select, drag, soft, kind }: { h: Hull; selected
       <path className="hp-outline" d={path(shape)} />
       {h.stations.map((s, i) => {
         const p = displayPoints(h, s), x = X + s.t * W, chosen = selected.includes(s.id);
-        const ys = kind === 'plan' ? [Y + p[0].x * S, Y + p[8].x * S] : [Y - p[0].y * S, Y - p[4].y * S];
+        const ys = kind === 'plan' ? [Y + p[0].x * S, Y + p[last].x * S] : [Y - p[0].y * S, Y - p[keel].y * S];
         const ids = chosen ? selected : [s.id];
         return <g key={s.id} className={chosen ? 'hp-chosen' : influence(h, selected, s.t, soft) > 0 ? 'hp-influenced' : ''}>
           <line className="hp-station-line" x1={x} x2={x} y1={26} y2={182} />
@@ -60,12 +63,12 @@ function Drawings({ h, selected, select, drag, soft, kind }: { h: Hull; selected
                 const weight = influence(h, ids, q.t, soft); if (!weight) continue;
                 if (kind === 'plan') {
                   const source = h.stations.find(v => v.id === q.id)!;
-                  const index = side ? 8 : 0, delta = dy / S * weight;
+                  const index = side ? last : 0, delta = dy / S * weight;
                   const signedWidth = source.points[index].x + delta;
                   resizeSection(q, (side ? 1 : -1) * signedWidth);
                 } else {
                   const delta = -dy / S * weight;
-                  q.points.forEach((v, k) => { const f = side ? [0, 0, .6, 1, 1, 1, .6, 0, 0][k] : [1, .4, 0, 0, 0, 0, 0, .4, 1][k]; v.y += delta * f; });
+                  q.points.forEach((v, k) => { const f = contourWeight(q.points, k, side ? [0, 0, .6, 1, 1, 1, .6, 0, 0] : [1, .4, 0, 0, 0, 0, 0, .4, 1]); v.y += delta * f; });
                 }
               }
             });
@@ -78,18 +81,17 @@ function Drawings({ h, selected, select, drag, soft, kind }: { h: Hull; selected
   </section>;
 }
 
-function CrossSection({ h, selected, point, setPoint, drag, soft, edit }: { h: Hull; selected: string[]; point: number; setPoint: (p: number) => void; drag: Drag; soft: boolean; edit: (change: Change) => void }) {
+function CrossSection({ h, selected, point, setPoint, drag, soft, edit }: { h: Hull; selected: string[]; point: number; setPoint: (p: number) => void; drag: Drag; soft: boolean; edit: (change: Change) => boolean }) {
   const s = h.stations.find(v => selected.includes(v.id)) ?? h.stations[3];
   const scale = Math.min(140 / (h.beam / 2), 132 / h.depth), sx = h.beam / 2 * scale, sy = h.depth * scale;
   const project = (p: { x: number; y: number }) => ({ x: 190 + p.x * sx, y: 172 - p.y * sy });
   const points = displayPoints(h, s);
-  const changePoint = (d: Hull, dx: number, dy: number) => {
-    for (const q of d.stations) {
-      const w = influence(h, selected, q.t, soft); if (!w) continue;
-      const p = q.points[point]; p.x += dx * w; p.y += dy * w;
-      if (point === 4) p.x = 0;
-      if (point !== 4) q.points[8 - point] = { ...p, x: -p.x };
-    }
+  const last = points.length - 1, keel = last / 2;
+  const removeReason = points.length <= MIN_HULL_POINTS ? 'Keep at least five outline points.' : point === keel ? 'The center keel must stay in place.' : point === 0 || point === last ? 'The deck edges must stay in place.' : undefined;
+  const changePair = (remove: boolean, selectedPoint = point) => {
+    if (remove && !canRemoveHullPointPair(s.points, selectedPoint)) return;
+    let next = selectedPoint;
+    if (edit(d => { next = remove ? removeHullPointPair(d, selectedPoint) : addHullPointPair(d, selectedPoint); })) setPoint(next);
   };
   return <section className="hp-section-editor">
     <div className="hp-panel-title"><h2>Cross-section {String(h.stations.indexOf(s) + 1).padStart(2, '0')}</h2><span>{(s.t * h.length).toFixed(1)} m from bow</span></div>
@@ -103,15 +105,16 @@ function CrossSection({ h, selected, point, setPoint, drag, soft, edit }: { h: H
       <path className="hp-control-polygon" d={path(points.map(project))} />
       {points.map((p, k) => {
         const pos = project(p);
-        return <g key={k} className={point === k ? 'hp-chosen' : ''}><circle className="hp-handle" cx={pos.x} cy={pos.y} r={point === k ? 7 : 5} tabIndex={0} role="button" aria-label={`Outline point ${k + 1}`} onClick={() => setPoint(k)} onKeyDown={e => {
-          if (e.key === 'Enter') setPoint(k);
+        return <g key={k} className={point === k || last - point === k ? 'hp-chosen' : ''}><circle className="hp-handle" cx={pos.x} cy={pos.y} r={point === k ? 7 : 5} tabIndex={0} role="button" aria-label={`Outline point ${k + 1}`} onClick={() => setPoint(k)} onKeyDown={e => {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setPoint(k); }
+          if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); e.stopPropagation(); changePair(true, k); }
           if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
             e.stopPropagation(); e.preventDefault(); setPoint(k);
             edit(d => { for (const q of d.stations) {
               const w = influence(h, selected, q.t, soft); if (!w) continue;
-              const v = q.points[k]; v.x += k === 4 ? 0 : (e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0) * .1 / (h.beam / 2) * w;
+              const v = q.points[k]; v.x += k === keel ? 0 : (e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0) * .1 / (h.beam / 2) * w;
               v.y += (e.key === 'ArrowUp' ? 1 : e.key === 'ArrowDown' ? -1 : 0) * .1 / h.depth * w;
-              if (k !== 4) q.points[8 - k] = { ...v, x: -v.x };
+              if (k !== keel) q.points[last - k] = { ...q.points[last - k], x: -v.x, y: v.y };
             } });
           }
         }} onPointerDown={e => {
@@ -119,8 +122,8 @@ function CrossSection({ h, selected, point, setPoint, drag, soft, edit }: { h: H
           drag(e, (d, dx, dy) => {
             for (const q of d.stations) {
               const w = influence(h, selected, q.t, soft); if (!w) continue;
-              const v = q.points[k]; v.x += k === 4 ? 0 : dx / sx * w; v.y -= dy / sy * w;
-              if (k !== 4) q.points[8 - k] = { ...v, x: -v.x };
+              const v = q.points[k]; v.x += k === keel ? 0 : dx / sx * w; v.y -= dy / sy * w;
+              if (k !== keel) q.points[last - k] = { ...q.points[last - k], x: -v.x, y: v.y };
             }
           });
         }} /><text className="hp-point-label" x={pos.x + (p.x < 0 ? -12 : 12)} y={pos.y - 10}>{k + 1}</text></g>;
@@ -128,8 +131,14 @@ function CrossSection({ h, selected, point, setPoint, drag, soft, edit }: { h: H
       <text x="190" y="330" textAnchor="middle">Drag an outline point · arrow keys nudge 0.1 m</text>
     </svg>
     <div className="hp-point-controls">
-      <label>Point<select aria-label="Outline point" value={point} onChange={e => setPoint(+e.target.value)}>{s.points.map((_, i) => <option key={i} value={i}>{i + 1}{i === 4 ? ' · keel' : i === 0 || i === 8 ? ' · deck edge' : ''}</option>)}</select></label>
+      <label>Point<select aria-label="Outline point" value={point} onChange={e => setPoint(+e.target.value)}>{s.points.map((_, i) => <option key={i} value={i}>{i + 1}{i === keel ? ' · keel' : i === 0 || i === last ? ' · deck edge' : ''}</option>)}</select></label>
+      <span>{points.length} points</span>
     </div>
+    <div className="hp-point-actions">
+      <button onClick={() => changePair(false)} disabled={points.length >= MAX_HULL_POINTS} title={points.length >= MAX_HULL_POINTS ? 'At most 33 outline points per section.' : 'Split the next edge toward the keel on both sides.'}>Add pair</button>
+      <button onClick={() => changePair(true)} disabled={!!removeReason} title={removeReason ?? 'Remove the selected point and its mirror.'}>Remove pair</button>
+    </div>
+    <p className="hp-point-help">Adds or removes matching pairs in every section. Deck edges and the center keel stay in place.</p>
   </section>;
 }
 
@@ -156,7 +165,7 @@ export default function CustomHullEditor({ integration }: { integration?: { hull
     setPending(undefined);
   }, []);
   const [variant, setVariant] = useState(() => { const v = integration ? 'A' : new URLSearchParams(location.search).get('variant') ?? 'A'; return variants.includes(v) ? v : 'A'; });
-  const [point, setPoint] = useState(7), [soft, setSoft] = useState(false), [lines, setLines] = useState(true);
+  const [selectedPoint, setPoint] = useState(7), [soft, setSoft] = useState(false), [lines, setLines] = useState(true);
   const [view, setView] = useState('Orbit'), [fit, setFit] = useState(0), [gallery, setGallery] = useState(false), [tool, setTool] = useState('Shape');
   const dragCleanup = useRef<(() => void) | undefined>(undefined);
   const current = useRef(hulls); current.current = hulls;
@@ -164,13 +173,15 @@ export default function CustomHullEditor({ integration }: { integration?: { hull
   const selectedValid = selected.filter(id => h.stations.some(v => v.id === id));
   const selection = selectedValid.length ? selectedValid : [h.stations[3]?.id ?? h.stations[0].id];
   const station = h.stations.find(v => selection.includes(v.id))!;
+  const last = station.points.length - 1, point = Math.min(selectedPoint, last);
+  const flare = nearestContour(station, 1), bilge = nearestContour(station, 2);
   const commit = (next: Hull[]) => {
     const reason = next.map(invalidReason).find(Boolean);
     if (reason) { setError(reason); return false; }
     setPast(v => [...v.slice(-49), clone(current.current)]); setFuture([]); setHulls(next); setError('');
     return true;
   };
-  const edit = (change: Change) => { const next = clone(hulls); change(next.find(v => v.id === h.id)!); commit(next); };
+  const edit = (change: Change) => { const next = clone(hulls); change(next.find(v => v.id === h.id)!); return commit(next); };
   const select = (id: string, multi = false) => setSelected(previous => multi ? previous.includes(id) ? previous.length > 1 ? previous.filter(v => v !== id) : previous : [...previous, id] : [id]);
   const changeVariant = (next: string) => { setVariant(next); const url = new URL(location.href); url.searchParams.set('variant', next); history.replaceState(null, '', url); };
   const undo = () => { if (!past.length || pending) return; setFuture(v => [clone(hulls), ...v]); setHulls(past.at(-1)!); setPast(v => v.slice(0, -1)); setError(''); };
@@ -239,8 +250,8 @@ export default function CustomHullEditor({ integration }: { integration?: { hull
       <div className="hp-control-group"><Toggle checked={h.redPaintY !== undefined} onChange={() => edit(d => { d.redPaintY = d.redPaintY === undefined ? -.02 * d.depth : undefined; })}>Red lower hull</Toggle><p>Red oxide on the lower hull. Moves with the hull; does not change its draft.</p></div>
       <div className="hp-control-group"><NumberField label="Section count" unit="" value={h.stations.length} min={4} max={24} step={1} onChange={changeSectionCount} /><p>4–24 sections. Increasing adds sections between existing ones. Reducing simplifies the shape. Undo restores the previous hull.</p></div>
       <div className="hp-control-group"><p className="hp-symmetry-note">Left / right symmetry is always on.</p><Toggle checked={soft} onChange={() => setSoft(!soft)}>Blend edits into nearby sections</Toggle><p>{soft ? `Shape edits also move neighbors within ${(h.length * .2).toFixed(1)} m of a selected section, fading with distance. Dashed brass sections show these neighbors; percentages show how much they follow your edit.` : 'Off: shape edits affect only selected sections. Turn on to gently reshape nearby sections too.'}</p>{soft && <p>Example: a neighbor marked 25% moves 0.25 m when you move a point 1 m. Moving section positions and changing hull dimensions are unaffected.</p>}<p>Shift-click section numbers to edit a group at full strength.</p></div>
-      <div className="hp-control-group"><h3>Selected sections</h3><div className="hp-pair"><NumberField label="Width" value={(station.points[8].x - station.points[0].x) * h.beam / 2} onChange={v => chosenChange((s, w) => { const delta = (v - (station.points[8].x - station.points[0].x) * h.beam / 2) / h.beam; resizeSection(s, Math.abs(s.points[8].x) + delta * w); })} /><NumberField label="Deck height" value={station.points[0].y * h.depth} onChange={v => chosenChange((s, w) => { const delta = v / h.depth - station.points[0].y; s.points[0].y += delta * w; s.points[8].y += delta * w; })} /></div>
-      <div className="hp-pair"><NumberField label="Flare" unit="%" value={station.points[0].x ? (1 - Math.abs(station.points[1].x / station.points[0].x)) * 100 : 4} onChange={v => chosenChange((s, w) => { for (const [a, b] of [[1, 0], [7, 8]]) s.points[a].x += (s.points[b].x * (1 - v / 100) - s.points[a].x) * w; })} /><NumberField label="Bilge inset" unit="%" value={station.points[0].x ? (1 - Math.abs(station.points[2].x / station.points[0].x)) * 100 : 26} onChange={v => chosenChange((s, w) => { for (const [a, b] of [[2, 0], [6, 8]]) s.points[a].x += (s.points[b].x * (1 - v / 100) - s.points[a].x) * w; })} /></div>
+      <div className="hp-control-group"><h3>Selected sections</h3><div className="hp-pair"><NumberField label="Width" value={(station.points[last].x - station.points[0].x) * h.beam / 2} onChange={v => chosenChange((s, w) => { const delta = (v - (station.points[last].x - station.points[0].x) * h.beam / 2) / h.beam; resizeSection(s, Math.abs(s.points[last].x) + delta * w); })} /><NumberField label="Deck height" value={station.points[0].y * h.depth} onChange={v => chosenChange((s, w) => { const delta = v / h.depth - station.points[0].y; s.points[0].y += delta * w; s.points[last].y += delta * w; })} /></div>
+      <div className="hp-pair"><NumberField label="Flare" unit="%" value={station.points[0].x ? (1 - Math.abs(station.points[flare].x / station.points[0].x)) * 100 : 4} onChange={v => chosenChange((s, w) => { for (const [a, b] of [[flare, 0], [last - flare, last]]) s.points[a].x += (s.points[b].x * (1 - v / 100) - s.points[a].x) * w; })} /><NumberField label="Bilge inset" unit="%" value={station.points[0].x ? (1 - Math.abs(station.points[bilge].x / station.points[0].x)) * 100 : 26} onChange={v => chosenChange((s, w) => { for (const [a, b] of [[bilge, 0], [last - bilge, last]]) s.points[a].x += (s.points[b].x * (1 - v / 100) - s.points[a].x) * w; })} /></div>
       <div className="hp-actions"><button onClick={addSection} disabled={h.stations.length >= 24}>Add section</button><button disabled={h.stations.length - selection.length < 4 || selection.some(id => id === h.stations[0].id || id === h.stations.at(-1)!.id)} onClick={() => edit(d => { d.stations = d.stations.filter(s => !selection.includes(s.id)); })}>Remove selected</button></div></div>
       <div className="hp-control-group"><h3>Bow</h3><div className="hp-pair"><NumberField label="Bow rake" unit="%" value={h.rake * 100} onChange={v => edit(d => { d.rake = Math.max(0, Math.min(1.5, v / 100)); })} /><NumberField label="Bow bulb" unit="%" value={h.bulb * 100} onChange={v => edit(d => { d.bulb = Math.max(0, Math.min(1, v / 100)); })} /></div><p>Drag deck and keel points in the side profile to change their heights.</p></div>
     </> : <div className="hp-control-group"><h3>Central belt region</h3><Toggle checked={h.region.enabled} onChange={() => edit(d => { d.region.enabled = !d.region.enabled; })}>Show surface region</Toggle><p>One editable region demonstrates boundaries independent of the shaping sections. Armor is a visual annotation in this study.</p><div className="hp-pair"><NumberField label="Region start" unit="%" value={h.region.start * 100} onChange={v => edit(d => { d.region.start = v / 100; })} /><NumberField label="Region end" unit="%" value={h.region.end * 100} onChange={v => edit(d => { d.region.end = v / 100; })} /><NumberField label="Lower edge" unit="%" value={h.region.low * 100} onChange={v => edit(d => { d.region.low = v / 100; })} /><NumberField label="Upper edge" unit="%" value={h.region.high * 100} onChange={v => edit(d => { d.region.high = v / 100; })} /></div><NumberField label="Armor annotation" unit="mm" value={h.region.armor} onChange={v => edit(d => { d.region.armor = Math.max(0, v); })} /><label className="hp-color">Region paint<input aria-label="Region paint" type="color" value={h.region.color} onChange={e => edit(d => { d.region.color = e.target.value; })} /></label></div>}

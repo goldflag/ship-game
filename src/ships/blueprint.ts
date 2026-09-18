@@ -331,7 +331,11 @@ export interface ConstructionFreeformShape {
   radius: number;
   style: 'round' | 'chamfer';
 }
-export interface ConstructionHullPoint { x: number; y: number; }
+export interface ConstructionHullPoint {
+  x: number; y: number;
+  /** Stable position along the original 0–8 outline (keel 4). Omitted on legacy nine-point sections. */
+  contour?: number;
+}
 export interface ConstructionHullStation { id: string; t: number; points: ConstructionHullPoint[]; }
 export interface ConstructionCustomHull {
   /** Red lower-hull coating below this hull-local Y in meters; omission uses face paint. */

@@ -1,6 +1,7 @@
 // Section editing and display helpers. Rust owns solid validity and physical derivation.
 import { HULL_PRESETS } from './constructionHullPresets';
 import type { ConstructionPrimitive, ConstructionHullPoint, ConstructionHullStation, Vec3 } from './blueprint';
+import { contourAt, contourWeight, hullEdgeId, MAX_HULL_POINTS, MIN_HULL_POINTS, outlineTopologyError } from './customHullTopology';
 export type Point = ConstructionHullPoint;
 export type Station = ConstructionHullStation;
 export type Hull = {
@@ -14,9 +15,9 @@ export const clone = <T,>(v: T): T => structuredClone(v);
 export function lockSymmetry(h: Hull): Hull {
   const { id, name, length, beam, depth, offset, bulb, rake, redPaintY, region } = h;
   const stations = h.stations.map(s => {
-    const points = s.points.map(p => ({ x: p.x, y: p.y }));
-    points[4].x = 0;
-    for (let i = 0; i < 4; i++) points[i] = { x: -points[8 - i].x, y: points[8 - i].y };
+    const points = s.points.map(p => ({ ...p })), last = points.length - 1, keel = last / 2;
+    points[keel].x = 0;
+    for (let i = 0; i < keel; i++) points[i] = { ...points[i], x: points[last - i].x ? -points[last - i].x : 0, y: points[last - i].y };
     return { id: s.id, t: s.t, points };
   });
   return { id, name, length, beam, depth, offset, bulb, rake, redPaintY, region, stations };
@@ -50,6 +51,7 @@ export function sectionAt(h: Hull, t: number): Station {
   const b = ss[j], c = ss[j + 1];
   const f = Math.max(0, Math.min(1, (t - b.t) / (c.t - b.t)));
   return { id: '', t, points: b.points.map((p, k) => ({
+    ...p,
     x: mix(p.x, c.points[k].x, f),
     y: mix(p.y, c.points[k].y, f),
   })) };
@@ -81,7 +83,7 @@ export function setSectionCount(h: Hull, count: number): void {
 }
 export function displayPoints(h: Hull, s: Station): Point[] {
   return s.points.map((p, i) => ({ ...p,
-    x: p.x + (i === 2 || i === 6 ? Math.sign(p.x) * h.bulb * .38 * Math.exp(-Math.pow((s.t - .055) / .075, 2)) : 0),
+    x: p.x + Math.sign(p.x) * contourWeight(s.points, i, [0, 0, 1, 0, 0, 0, 1, 0, 0]) * h.bulb * .38 * Math.exp(-Math.pow((s.t - .055) / .075, 2)),
   }));
 }
 export const outline = (h: Hull, s: Station): Point[] => displayPoints(h, s);
@@ -96,23 +98,49 @@ export function sampledStations(h: Hull): Station[] {
 // Reopening a zero-width end must not divide by zero or leave it impossible to edit.
 export function resizeSection(s: Station, halfWidth: number) {
   if (Math.abs(halfWidth) < 1e-10) halfWidth = 0;
-  const previous = Math.abs(s.points[8].x);
+  const last = s.points.length - 1, keel = last / 2, previous = Math.abs(s.points[last].x);
   const profile = [1, .96, .74, .36, 0, .36, .74, .96, 1];
-  s.points.forEach((p, i) => { p.x = i === 4 ? 0 : (i < 4 ? -1 : 1) * (previous > 1e-10 ? Math.abs(p.x) / previous : profile[i]) * halfWidth; });
+  s.points.forEach((p, i) => { p.x = i === keel ? 0 : (i < keel ? -1 : 1) * (previous > 1e-10 ? Math.abs(p.x) / previous : contourWeight(s.points, i, profile)) * halfWidth; });
+}
+/** Split the selected edge toward the keel and its mirror throughout the loft. */
+export function addHullPointPair(h: Hull, selected: number): number {
+  const count = h.stations[0].points.length, last = count - 1, keel = last / 2;
+  if (count >= MAX_HULL_POINTS || !Number.isInteger(selected) || selected < 0 || selected > last) throw new Error('Select an outline point; each section supports at most 33 points.');
+  const edge = Math.min(selected, last - selected, keel - 1);
+  for (const s of h.stations) {
+    const points = s.points.map((p, i) => ({ ...p, contour: contourAt(s.points, i) }));
+    const midpoint = (i: number) => ({ x: (points[i].x + points[i + 1].x) / 2, y: (points[i].y + points[i + 1].y) / 2, contour: (points[i].contour + points[i + 1].contour) / 2 });
+    const port = midpoint(edge), starboard = midpoint(last - edge - 1);
+    points.splice(last - edge, 0, starboard);
+    points.splice(edge + 1, 0, port);
+    s.points = points;
+  }
+  return selected > keel ? count - edge : edge + 1;
+}
+export function canRemoveHullPointPair(points: Point[], selected: number): boolean {
+  return points.length > MIN_HULL_POINTS && Number.isInteger(selected) && selected > 0 && selected < points.length - 1 && selected !== (points.length - 1) / 2;
+}
+export function removeHullPointPair(h: Hull, selected: number): number {
+  const points = h.stations[0].points, last = points.length - 1, port = Math.min(selected, last - selected);
+  if (!canRemoveHullPointPair(points, selected)) throw new Error('Keep the deck edges, center keel and at least five outline points.');
+  for (const s of h.stations) s.points = s.points.map((p, i) => ({ ...p, contour: contourAt(s.points, i) })).filter((_, i) => i !== port && i !== last - port);
+  return selected > last / 2 ? last - port - 1 : port;
 }
 function crosses(a: Point, b: Point, c: Point, d: Point) {
   const orient = (p: Point, q: Point, r: Point) => (q.x - p.x) * (r.y - p.y) - (q.y - p.y) * (r.x - p.x);
   return orient(a, b, c) * orient(a, b, d) < -1e-10 && orient(c, d, a) * orient(c, d, b) < -1e-10;
 }
 export function invalidReason(h: Hull): string | undefined {
+  const topology = outlineTopologyError(h.stations); if (topology) return topology;
   if (![h.length, h.beam, h.depth, h.offset, h.bulb, h.rake].every(Number.isFinite)) return 'Enter a finite dimension.';
   if (h.redPaintY !== undefined && (!Number.isFinite(h.redPaintY) || Math.abs(h.redPaintY) > 500)) return 'Use a red paint Y from −500 to 500 m.';
   if (h.length < 5 || h.length > 500 || h.beam < 1 || h.beam > 100 || h.depth < 1 || h.depth > 60) return 'Use length 5–500 m, beam 1–100 m and depth 1–60 m.';
   for (let i = 1; i < h.stations.length; i++) if (h.stations[i].t - h.stations[i - 1].t < .005) return 'Sections cannot cross or sit less than 0.5% of the hull length apart.';
   for (const s of sampledStations(h)) {
+    const last = s.points.length - 1, keel = last / 2;
     if (s.points.some(p => !Number.isFinite(p.x) || !Number.isFinite(p.y))) return 'Enter finite outline coordinates.';
-    if (s.points.slice(0, 4).some(p => p.x > 1e-10) || s.points.slice(5).some(p => p.x < -1e-10)) return 'Keep each side on its own side of the centerline.';
-    if (Math.min(s.points[0].y, s.points[8].y) - s.points[4].y < .06) return 'The deck must stay above the keel.';
+    if (s.points.slice(0, keel).some(p => p.x > 1e-10) || s.points.slice(keel + 1).some(p => p.x < -1e-10)) return 'Keep each side on its own side of the centerline.';
+    if (Math.min(s.points[0].y, s.points[last].y) - s.points[keel].y < .06) return 'The deck must stay above the keel.';
     const p = outline(h, s);
     const area = Math.abs(p.reduce((sum, v, i) => sum + v.x * p[(i + 1) % p.length].y - p[(i + 1) % p.length].x * v.y, 0));
     if (area < 1e-10 && s !== h.stations[0] && s !== h.stations.at(-1)) return 'Only the bow or stern can taper to zero width.';
@@ -151,15 +179,17 @@ export function customHullPoints(p: ConstructionPrimitive): Vec3[] {
 /** Display-only boundary tessellation matching the native section recipe. */
 export function customHullFaces(p: ConstructionPrimitive): { vertices: Vec3[]; group: string }[] {
   const points = customHullPoints(p), count = p.customHull!.stations.length, faces: { vertices: Vec3[]; group: string }[] = [];
-  for (let j = 0; j < count - 1; j++) for (let i = 0; i < 9; i++) {
-    const a = j * 9 + i, b = j * 9 + (i + 1) % 9, c = a + 9, d = b + 9;
-    if (i >= 4 && i < 8) faces.push({ vertices: [points[a], points[b], points[d]], group: String(i) }, { vertices: [points[a], points[d], points[c]], group: String(i) });
-    else faces.push({ vertices: [points[a], points[b], points[c]], group: String(i) }, { vertices: [points[b], points[d], points[c]], group: String(i) });
+  const outline = p.customHull!.stations[0].points, n = outline.length;
+  for (let j = 0; j < count - 1; j++) for (let i = 0; i < n; i++) {
+    const a = j * n + i, b = j * n + (i + 1) % n, c = a + n, d = b + n;
+    const group = i === n - 1 ? '8' : hullEdgeId(contourAt(outline, i), contourAt(outline, i + 1));
+    if (i >= (n - 1) / 2 && i < n - 1) faces.push({ vertices: [points[a], points[b], points[d]], group }, { vertices: [points[a], points[d], points[c]], group });
+    else faces.push({ vertices: [points[a], points[b], points[c]], group }, { vertices: [points[b], points[d], points[c]], group });
   }
   for (const ring of [0, count - 1]) {
-    const vertices = points.slice(ring * 9, ring * 9 + 9);
-    const center = vertices.reduce<Vec3>((sum, point) => sum.map((v, k) => v + point[k] / 9) as Vec3, [0, 0, 0]);
-    for (let i = 0; i < 9; i++) faces.push({ vertices: ring === 0 ? [vertices[(i + 1) % 9], vertices[i], center] : [vertices[i], vertices[(i + 1) % 9], center], group: ring === 0 ? 'bow' : 'stern' });
+    const vertices = points.slice(ring * n, ring * n + n);
+    const center = vertices.reduce<Vec3>((sum, point) => sum.map((v, k) => v + point[k] / n) as Vec3, [0, 0, 0]);
+    for (let i = 0; i < n; i++) faces.push({ vertices: ring === 0 ? [vertices[(i + 1) % n], vertices[i], center] : [vertices[i], vertices[(i + 1) % n], center], group: ring === 0 ? 'bow' : 'stern' });
   }
   return faces;
 }

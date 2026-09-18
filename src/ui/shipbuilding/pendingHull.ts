@@ -11,7 +11,7 @@ type Face = { vertices: Vec3[]; face?: string; panelId?: string };
 function sourceFaces(primitive: ConstructionPrimitive): Face[] {
   if (primitive.kind === 'custom-hull' && primitive.customHull) {
     const panels = customHullPanels(primitive);
-    const sides = (primitive.customHull.stations.length - 1) * 18;
+    const sides = (primitive.customHull.stations.length - 1) * primitive.customHull.stations[0].points.length * 2;
     return customHullFaces(primitive).map((f, i) => ({ vertices: f.vertices, ...panels[i < sides ? Math.floor(i / 2) : panels.length - (f.group === 'bow' ? 2 : 1)] }));
   }
   if (primitive.kind === 'vertex') return shapedFaces(primitive).map(f => ({ vertices: f.points, face: f.name }));

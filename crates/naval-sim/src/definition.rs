@@ -1145,6 +1145,8 @@ pub struct ConstructionHullPoint {
     pub x: f64,
     #[serde(rename = "y")]
     pub y: f64,
+    #[serde(rename = "contour")]
+    pub contour: Option<f64>,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
