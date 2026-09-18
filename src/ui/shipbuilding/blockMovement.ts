@@ -39,7 +39,7 @@ export function placementBlocks(piece: Extract<BuilderPlacement, { kind: 'hull' 
   const blocks: ConstructionPrimitive[] = [];
   for (const position of points) {
     const p: ConstructionPrimitive = { id: newId(), kind: piece.shape, size: [...piece.size], position: [...position], rotationDeg: piece.rotationDeg,
-      ...(piece.shape === 'balcony' ? { balcony: placementBalcony(position, piece.rotationDeg) } : {}),
+      ...(piece.shape === 'balcony' ? { balcony: piece.balcony ? structuredClone(piece.balcony) : placementBalcony(position, piece.rotationDeg) } : {}),
       ...(piece.shape === 'custom-hull' ? { customHull: customHullPrimitive(makeHull(0)).customHull } : {}) };
     blocks.push(p);
     if (mirror && Math.abs(position[0]) > 1e-6) blocks.push({ ...mirroredPrimitive(p), id: newId() });

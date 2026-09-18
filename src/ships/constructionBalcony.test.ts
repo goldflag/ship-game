@@ -7,9 +7,9 @@ import type { ConstructionCatalog, ConstructionPrimitive } from './blueprint';
 import catalog from '../../public/models/components/catalog.json';
 import { HULL_SHAPES } from '../ui/shipbuilding/builderLayers';
 
-test('Hull starts with freeform and a 2 by 1 metre walled balcony', () => {
+test('Hull starts with freeform and a 1 by 2 metre walled balcony', () => {
   expect(HULL_SHAPES.slice(0, 2).map(shape => shape.id)).toEqual(['vertex', 'balcony']);
-  expect(HULL_SHAPES[1].size).toEqual([2, .08, 1]);
+  expect(HULL_SHAPES[1].size).toEqual([1, .08, 2]);
   expect(defaultBalcony().points.map(point => point.edge)).toEqual(['wall', 'wall', 'wall', 'open']);
 });
 

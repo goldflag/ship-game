@@ -37,7 +37,7 @@ export interface HullShape { id: string; name: string; note: string; kind: Const
  * The first nine fill the keyed bar; freeform hull and balcony lead the palette. */
 export const HULL_SHAPES: HullShape[] = [
   { id: 'vertex', name: 'Freeform hull', note: 'vertices, edges and faces · 4 m', kind: 'vertex', size: [4, 4, 4] },
-  { id: 'balcony', name: 'Balcony', note: '2 × 1 m platform · editable outline and walls', kind: 'balcony', size: [2, .08, 1] },
+  { id: 'balcony', name: 'Balcony', note: '1 m deep × 2 m wide · open mounting edge', kind: 'balcony', size: [1, .08, 2] },
   { id: 'cube', name: 'Cube', note: '1 m', kind: 'box', size: [1, 1, 1] },
   { id: 'slab', name: 'Slab', note: '4 × 1 × 4', kind: 'box', size: [4, 1, 4] },
   { id: 'bar', name: 'Bar', note: '1 × 1 × 4', kind: 'box', size: [1, 1, 4] },

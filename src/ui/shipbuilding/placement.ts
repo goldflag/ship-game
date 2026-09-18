@@ -1,3 +1,4 @@
+import { seatBalconyCenter } from './balconyPlacement';
 import type { ConstructionEquipment, ConstructionEquipmentPart, ConstructionPrimitive, ConstructionSource, ConstructionSurface, Vec3 } from '../../ships/blueprint';
 import { mirroredPrimitive } from '../../ships/constructionEditor';
 import { balconyFaces } from '../../ships/constructionBalcony';
@@ -80,6 +81,7 @@ export function placementCenter(piece: BuilderPlacement, hit: PlacementHit, step
     const center = hit.point.map((value, index) => index === axis
       ? value + sign * extents[index] / 2
       : step === null ? value : gridCoordinate(value - extents[index] / 2 - (hit.snapOrigin?.[index] ?? 0), step) + extents[index] / 2 + (hit.snapOrigin?.[index] ?? 0)) as Vec3;
+    if (piece.shape === 'balcony' && Math.abs(normal[1]) < .9) return seatBalconyCenter(piece, center, hit.point, normal);
     const faces = hullFaces(piece);
     const dot = (v: Vec3) => v[0] * normal[0] + v[1] * normal[1] + v[2] * normal[2];
     let support = Infinity;

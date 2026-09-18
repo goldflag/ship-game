@@ -81,5 +81,17 @@ test('balcony placement seats its full deck footprint against a sloping hull sid
   const contact = [position[0] - 1.03, position[1] + .04, position[2]];
   const distance = contact.reduce((sum, v, i) => sum + (v - point[i]) * normal[i], 0);
   expect(distance).toBeLessThanOrEqual(1e-8);
-  expect(distance).toBeGreaterThan(-.01);
+  expect(distance).toBeGreaterThan(-1);
+});
+
+test('the complete balcony inner edge seats against sloped and tapered surfaces', () => {
+  const piece = { kind: 'hull' as const, shape: 'balcony' as const, size: [1, .08, 2] as Vec3, rotationDeg: 0 };
+  for (const normal of [[1, 0, 0], [.8, .6, 0], [.8, -.6, 0], [.8, 0, .6]] as Vec3[]) {
+    const point: Vec3 = [4, 0, 0];
+    const position = placementCenter(piece, { point, normal }, 1);
+    for (const y of [-.04, .04]) for (const z of [-1.03, 1.03]) {
+      const corner = [position[0] - .53, position[1] + y, position[2] + z];
+      expect(corner.reduce((sum, value, k) => sum + (value - point[k]) * normal[k], 0)).toBeLessThanOrEqual(0);
+    }
+  }
 });

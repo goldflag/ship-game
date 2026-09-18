@@ -1,3 +1,4 @@
+import { reseatBalcony } from './balconyPlacement';
 import { editableMesh } from '../../ships/constructionMesh';
 import { fittedLadder } from '../../ships/constructionLadders';
 import { wallMount, installedWallPart, wallNormal, wallFittingSupported, seatWallFitting } from '../../ships/constructionWallFittings';
@@ -479,7 +480,12 @@ export class BuilderTool {
     return this.nudge([-x, 0, 0]);
   };
   nudge = (delta: Vec3): ConstructionSubmission | undefined => this.state.selected.size ? this.movePieces([...this.state.selected], delta) : undefined;
-  /** A finished move drag or nudge: hull blocks retain at least 10% exposed volume; resolved fitting and wall coordinates stay exact. */
+  /** Keep balcony edits and their physical seating in one undo transaction. */
+  editPrimitive = (label: string, value: ConstructionPrimitive) => {
+    const before = this.data.primitives.find(p => p.id === value.id);
+    return this.run(label, [{ op: 'primitive', value: before ? reseatBalcony(this.source, before, value) : value }]);
+  };
+  /** A finished move drag or nudge retains the native overlap constraint. */
   movePieces = (ids: string[], requested: Vec3): ConstructionSubmission | undefined => {
     ids = ids.filter(this.selectable);
     if (!ids.length) return undefined;
@@ -523,8 +529,8 @@ export class BuilderTool {
     return this.command('Rotate fittings', [{ op: 'rotate', ids, degrees }]);
   };
   /** A click or a finished stroke: one piece per point plus mirrored twins, as one undoable edit. */
-  placeAt = (points: Vec3[], bearingDeg?: number): ConstructionSubmission | undefined => {
-    const piece = this.piece, active = this.active, { mirror } = this.state;
+  placeAt = (points: Vec3[], bearingDeg?: number, hullPlacement?: Extract<BuilderPlacement, { kind: 'hull' }>): ConstructionSubmission | undefined => {
+    const piece = hullPlacement ?? this.piece, active = this.active, { mirror } = this.state;
     if (!piece) return undefined;
     const refused = this.refused(); if (refused) return refused;
     if (piece.kind === 'hull' && active?.kind === 'shape') {
@@ -708,7 +714,7 @@ export class BuilderTool {
   pointer = (event: BuilderPointerEvent): ConstructionSubmission | undefined => {
     switch (event.kind) {
       case 'pick': return this.pick(event.hit);
-      case 'lay': return this.placeAt(event.points, event.bearingDeg);
+      case 'lay': return this.placeAt(event.points, event.bearingDeg, event.hullPlacement);
       case 'faces': return this.applyFaces(event.surfaces);
       case 'box': this.boxSelect(event.ids, event.additive); return undefined;
       case 'erase': return this.erase(event.id);
