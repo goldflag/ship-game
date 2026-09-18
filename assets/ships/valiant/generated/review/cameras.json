@@ -1,10 +1,10 @@
 {
-  "contentHash": "f139cbe4c4fc206a256fe26822c76d41d2a660bc847d9f6bd741659e7df27e31",
+  "contentHash": "990cbe9078660b9da65e9b315087737e550bc53cdee4d65373589c47d51135d5",
   "views": [
     {
       "name": "profile",
       "position": [
-        516.5878490880795,
+        516.4323885854735,
         14.080943343043328,
         0.5760002136230469
       ],
@@ -21,15 +21,15 @@
       "projection": "orthographic",
       "width": 1600,
       "height": 520,
-      "halfHeight": 44.86052992315032,
+      "halfHeight": 44.84622992977396,
       "sourceRevision": "revision-2a58dcbe-2bb3-470a-8309-0f76a60bbb8f",
-      "contentHash": "f139cbe4c4fc206a256fe26822c76d41d2a660bc847d9f6bd741659e7df27e31"
+      "contentHash": "990cbe9078660b9da65e9b315087737e550bc53cdee4d65373589c47d51135d5"
     },
     {
       "name": "plan",
       "position": [
         0,
-        530.6687924311228,
+        530.5133319285169,
         0.5760002136230469
       ],
       "target": [
@@ -45,16 +45,16 @@
       "projection": "orthographic",
       "width": 1600,
       "height": 520,
-      "halfHeight": 44.86052992315032,
+      "halfHeight": 44.84622992977396,
       "sourceRevision": "revision-2a58dcbe-2bb3-470a-8309-0f76a60bbb8f",
-      "contentHash": "f139cbe4c4fc206a256fe26822c76d41d2a660bc847d9f6bd741659e7df27e31"
+      "contentHash": "990cbe9078660b9da65e9b315087737e550bc53cdee4d65373589c47d51135d5"
     },
     {
       "name": "bow",
       "position": [
         0,
         14.080943343043328,
-        -516.0118488744564
+        -515.8563883718505
       ],
       "target": [
         0,
@@ -71,14 +71,14 @@
       "height": 800,
       "halfHeight": 27.53196199089289,
       "sourceRevision": "revision-2a58dcbe-2bb3-470a-8309-0f76a60bbb8f",
-      "contentHash": "f139cbe4c4fc206a256fe26822c76d41d2a660bc847d9f6bd741659e7df27e31"
+      "contentHash": "990cbe9078660b9da65e9b315087737e550bc53cdee4d65373589c47d51135d5"
     },
     {
       "name": "stern",
       "position": [
         0,
         14.080943343043328,
-        517.1638493017025
+        517.0083887990966
       ],
       "target": [
         0,
@@ -95,14 +95,14 @@
       "height": 800,
       "halfHeight": 27.53196199089289,
       "sourceRevision": "revision-2a58dcbe-2bb3-470a-8309-0f76a60bbb8f",
-      "contentHash": "f139cbe4c4fc206a256fe26822c76d41d2a660bc847d9f6bd741659e7df27e31"
+      "contentHash": "990cbe9078660b9da65e9b315087737e550bc53cdee4d65373589c47d51135d5"
     },
     {
       "name": "quarter",
       "position": [
-        336.27004749351624,
-        215.84297183915305,
-        -335.6940472798932
+        336.16885132584224,
+        215.78225413854867,
+        -335.5928511122192
       ],
       "target": [
         0,
@@ -117,9 +117,9 @@
       "projection": "orthographic",
       "width": 1400,
       "height": 900,
-      "halfHeight": 71.49564735048784,
+      "halfHeight": 71.47564633937003,
       "sourceRevision": "revision-2a58dcbe-2bb3-470a-8309-0f76a60bbb8f",
-      "contentHash": "f139cbe4c4fc206a256fe26822c76d41d2a660bc847d9f6bd741659e7df27e31"
+      "contentHash": "990cbe9078660b9da65e9b315087737e550bc53cdee4d65373589c47d51135d5"
     }
   ]
 }

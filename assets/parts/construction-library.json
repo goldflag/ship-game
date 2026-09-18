@@ -751,6 +751,12 @@
       "limitations": "Original generic four-metre path sample. Player route geometry follows its declared profile; mass and member dimensions are provisional engineering estimates. Native construction validates each installed path."
     },
     {
+      "partId": "generic-railing-two-rail",
+      "builder": "generic-railing",
+      "review": "unreviewed",
+      "limitations": "Original generic four-metre path sample. Player route geometry follows its declared profile; mass and member dimensions are provisional engineering estimates. Native construction validates each installed path."
+    },
+    {
       "partId": "generic-rope",
       "builder": "generic-rope",
       "review": "unreviewed",

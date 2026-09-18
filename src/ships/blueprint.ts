@@ -475,9 +475,9 @@ export interface ConstructionEquipmentPart {
   serviceMassKg?: number; ammunitionCapacity?: number;
   /** Procedural path profile. massKg is the fixed end/base hardware allowance;
    * massKgPerM follows the sampled line length, plus postMassKg for each railing post.
-   * Railings use three rails at thirds of height and deck-level source points. */
+   * Railings use square bars, the catalog rail count and deck-level source points. */
   path?: {
-    kind: 'railing' | 'rope' | 'chain' | 'ladder'; diameterM: number; heightM?: number;
+    kind: 'railing' | 'rope' | 'chain' | 'ladder'; diameterM: number; heightM?: number; railCount?: 2 | 3;
     widthM?: number; standOffM?: number;
     postSpacingM?: number; massKgPerM: number; postMassKg?: number;
   };

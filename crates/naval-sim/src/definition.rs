@@ -1649,6 +1649,8 @@ pub struct ConstructionEquipmentPartPath {
     pub diameter_m: f64,
     #[serde(rename = "heightM")]
     pub height_m: Option<f64>,
+    #[serde(rename = "railCount", skip_serializing_if = "Option::is_none")]
+    pub rail_count: Option<f64>,
     #[serde(rename = "widthM")]
     pub width_m: Option<f64>,
     #[serde(rename = "standOffM")]

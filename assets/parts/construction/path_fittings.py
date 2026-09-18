@@ -11,16 +11,15 @@ from geometry import Model
 def create_railing(part, col, helpers, materials):
     model = Model(col, helpers, materials)
     profile = part['path']
-    height, radius = profile['heightM'], profile['diameterM'] / 2
+    height, width = profile['heightM'], profile['diameterM']
     count = math.ceil(4 / profile['postSpacingM'])
     for i in range(count + 1):
         x = 4 * i / count
-        model.box('post-foot', (x, 0, .015), (.12, .12, .03), mat='painted-edge')
-        model.rod('stanchion', (x, 0, .03), (x, 0, height), radius * 1.25, vertices=12)
-        for sign in [-1, 1]:
-            model.cyl('foot-bolt', (x, sign * .043, .037), .008, .014, mat='painted-edge', vertices=6)
-    for z in [height / 3, height * 2 / 3, height]:
-        model.rod('horizontal-rail', (0, 0, z), (4, 0, z), radius, vertices=12)
+        model.box('stanchion', (x, 0, height / 2), (width, width, height))
+    rails = profile.get('railCount', 3)
+    for level in range(1, rails + 1):
+        z = height * level / rails - width / 2
+        model.box('horizontal-rail', (2, 0, z), (4, width, width))
     return model.root
 
 

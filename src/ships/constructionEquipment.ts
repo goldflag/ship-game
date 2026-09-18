@@ -43,6 +43,7 @@ export function parseConstructionCatalog(value:unknown):ConstructionCatalog {
     if(p.wallMount && (p.kind !== 'deck-fitting' || !['door','porthole','window','vent'].includes(p.wallMount))) throw new Error(`Invalid wall fitting: ${p.id}`);
     if(p.path && (p.kind!=='deck-fitting' || !['railing','rope','chain','ladder'].includes(p.path.kind)
       || !Number.isFinite(p.path.diameterM) || p.path.diameterM<=0
+      || p.path.railCount !== undefined && (p.path.kind !== 'railing' || ![2, 3].includes(p.path.railCount))
       || !Number.isFinite(p.path.massKgPerM) || p.path.massKgPerM<=0)) throw new Error(`Invalid path profile: ${p.id}`);
   }
   return c;

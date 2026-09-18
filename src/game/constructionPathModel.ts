@@ -34,7 +34,10 @@ export function createConstructionPathModel(part: ConstructionEquipmentPart, pat
   if (profile.kind === 'railing') {
     const { heightM: height, railCount } = railingSettings(part, path);
     for (const foot of posts) members.push([foot, [foot[0], foot[1] + height, foot[2]]]);
-    for (let level = 1; level <= railCount; level++) tubes.push(points.map(p => [p[0], p[1] + height * level / railCount, p[2]]));
+    for (let level = 1; level <= railCount; level++) {
+      const rail = points.map(p => [p[0], p[1] + height * level / railCount - profile.diameterM / 2, p[2]] as Vec3);
+      for (let i = 1; i < rail.length; i++) members.push([rail[i - 1], rail[i]]);
+    }
   } else if (profile.kind === 'ladder') {
     const ladder=fittedLadder(part,mount?.item ?? {id:'preview',partId:part.id,position:[0,0,0],bearingDeg:0,path},mount?.surfaces);
     if(ladder) for (let i = 0; i < ladder.members.length; i += 3) tubes.push([ladder.members[i][0], ladder.members[i][1], ladder.members[i + 1][1], ladder.members[i + 2][1]]);
@@ -58,23 +61,19 @@ export function createConstructionPathModel(part: ConstructionEquipmentPart, pat
     }
     mesh.computeBoundingBox(); mesh.computeBoundingSphere(); group.add(mesh);
   } else if (members.length) {
-    const mesh = new THREE.InstancedMesh(new THREE.CylinderGeometry(profile.diameterM / 2, profile.diameterM / 2, 1, profile.kind === 'railing' ? 6 : 10), material, members.length);
+    // Balcony railings use plain square bars, with no feet or other hardware.
+    const square = profile.kind === 'railing';
+    const mesh = new THREE.InstancedMesh(square ? new THREE.BoxGeometry(profile.diameterM, profile.diameterM, 1) : new THREE.CylinderGeometry(profile.diameterM / 2, profile.diameterM / 2, 1, 10), material, members.length);
     members.forEach(([a, b], i) => {
       const start = new THREE.Vector3(...a), end = new THREE.Vector3(...b), direction = end.clone().sub(start);
-      rotation.setFromUnitVectors(up, direction.clone().normalize());
-      const radiusScale = i < posts.length ? 1.25 : 1;
-      matrix.compose(start.add(end).multiplyScalar(.5), rotation, new THREE.Vector3(radiusScale, direction.length(), radiusScale)); mesh.setMatrixAt(i, matrix);
+      rotation.setFromUnitVectors(square ? new THREE.Vector3(0, 0, 1) : up, direction.clone().normalize());
+      matrix.compose(start.add(end).multiplyScalar(.5), rotation, square ? new THREE.Vector3(1, 1, direction.length()) : new THREE.Vector3(1, direction.length(), 1)); mesh.setMatrixAt(i, matrix);
     });
     mesh.computeBoundingBox(); mesh.computeBoundingSphere(); group.add(mesh);
   }
   if (tubes.length) {
     const projectEnds = profile.kind === 'ladder' && mount ? ladderWallProjection(part, mount.item, mount.surfaces) : undefined;
     group.add(new THREE.Mesh(constructionTubeGeometry(tubes, profile.diameterM / 2, projectEnds), material));
-  }
-  if (posts.length) {
-    const foot = new THREE.InstancedMesh(new THREE.BoxGeometry(profile.diameterM * 3, profile.diameterM * .75, profile.diameterM * 3), material, posts.length);
-    posts.forEach((p, i) => { matrix.makeTranslation(p[0], p[1] + profile.diameterM * .375, p[2]); foot.setMatrixAt(i, matrix); });
-    foot.computeBoundingBox(); foot.computeBoundingSphere(); group.add(foot);
   }
   group.traverse(node => { if (node instanceof THREE.Mesh) node.castShadow = node.receiveShadow = true; });
   return group;

@@ -228,9 +228,9 @@ removes the last pending point; **Escape** or **Cancel** discards the route.
 The brass route is a preview until finished, when the entire route and any
 mirrored copy become one undoable edit. Finish or cancel before returning to
 port, opening Designs or starting a sea trial. Railings need deck support at
-every post. Set **Railing height** (0.3–3 m) and choose **2 rails** or **3 rails**
-before drawing or in the completed railing’s object tag. Older routes retain
-the catalog height and three rails. Minor contacts and joined endpoints are
+every post. Choose **Two-rail railing** or **Three-rail railing** from Fittings.
+Set **Railing height** (0.3–3 m) before drawing or in the completed railing’s
+object tag. Older routes retain their saved rail count and height. Minor contacts and joined endpoints are
 allowed; substantial burial in hull or equipment still blocks the route. Rope and chain can attach to hull surfaces or the declared support
 and rigging sockets of fixed fittings; native diagnostics check attachment and
 clearance.
@@ -820,10 +820,12 @@ fittings. These fittings leave the closed hull and room volumes unchanged.
 Installed wall vents use `vent_geometry.ts` and
 `src/game/constructionVentModel.ts` to keep fin sections and pitch constant when
 resized. The original Blender samples remain the retained standalone models.
-Procedural railings and surface ladders use six-sided tubing with shared miter
-rings; ladder end rings project onto their closed hull support. Railing path
-instances may override `heightM` (0.3–3 m) and `railCount` (2 or 3); absent
-settings preserve the catalog height and three rails. Native loading scales rail
+Railing fittings use the balcony’s plain square bars, without footplates or bolts.
+Surface ladders use six-sided tubing with shared miter rings; ladder end rings
+project onto their closed hull support. Railing path
+instances may override `heightM` (0.3–3 m). Two-rail and three-rail profiles are
+separate palette fittings. Saved `railCount` overrides (2 or 3) remain supported;
+absent settings preserve the catalog height and rail count. Native loading scales rail
 mass by count and post mass by height. These remain generic engineering estimates.
 
 
