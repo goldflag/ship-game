@@ -223,13 +223,34 @@ pub fn subtract(a: &Cell, b: &Cell) -> Vec<Cell> {
     out
 }
 pub fn subtract_all<'a>(
-    mut cells: Vec<Cell>,
+    cells: Vec<Cell>,
     cutters: impl IntoIterator<Item = &'a Cell>,
 ) -> Result<Vec<Cell>, String> {
+    // Carry bounds and budget counts with unchanged cells. A fitting usually
+    // touches only a handful of thousands of interior/material fragments; do not
+    // rescan all their vertices for every remote cutter.
+    let prepare = |cell: Cell| {
+        let bound = bounds(&cell);
+        let vertices = cell.faces.iter().map(|f| f.vertices.len()).sum::<usize>();
+        (cell, bound, vertices)
+    };
+    let mut cells: Vec<_> = cells.into_iter().map(prepare).collect();
     for b in cutters {
+        let (bc, bs) = bounds(b);
         let mut next = vec![];
-        for a in &cells {
-            next.extend(subtract(a, b));
+        let mut max_faces = 0;
+        let mut vertices = 0;
+        for (a, (ac, asz), count) in cells {
+            let start = next.len();
+            if (0..3).any(|i| (ac[i] - bc[i]).abs() > (asz[i] + bs[i]) * 0.5 + EPS) {
+                next.push((a, (ac, asz), count));
+            } else {
+                next.extend(subtract(&a, b).into_iter().map(prepare));
+            }
+            for (cell, _, count) in &next[start..] {
+                vertices += count;
+                max_faces = max_faces.max(cell.faces.len());
+            }
             if next.len() > MAX_CELLS {
                 return Err(format!(
                     "Subtraction budget exceeded: {} / {MAX_CELLS} convex cells",
@@ -237,10 +258,12 @@ pub fn subtract_all<'a>(
                 ));
             }
         }
+        if max_faces > MAX_CELL_FACES || vertices > MAX_FACE_VERTICES {
+            return Err(format!("Geometry budget exceeded: {} / {MAX_CELLS} convex cells, {max_faces} / {MAX_CELL_FACES} maximum faces per cell, {vertices} / {MAX_FACE_VERTICES} face vertices", next.len()));
+        }
         cells = next;
-        check_budget(&cells)?;
     }
-    Ok(cells)
+    Ok(cells.into_iter().map(|(cell, _, _)| cell).collect())
 }
 pub fn union(cells: &[Cell]) -> Result<Vec<Cell>, String> {
     let mut out = vec![];
@@ -258,6 +281,15 @@ pub fn union(cells: &[Cell]) -> Result<Vec<Cell>, String> {
 /// its neighbor list, in output order. A cutter outside a cell's bounds never changes it,
 /// so the result matches the full scan when `neighbors` holds every non-separated pair.
 pub fn union_near(cells: &[Cell], neighbors: &[Vec<usize>]) -> Result<Vec<Cell>, String> {
+    union_near_with(cells, neighbors, |cell, out, cutters| {
+        subtract_all(vec![cell.clone()], cutters.iter().map(|&k| &out[k]))
+    })
+}
+/// Keep union ordering and complexity limits identical for fresh and cached CSG.
+pub(crate) fn union_near_with(
+    cells: &[Cell], neighbors: &[Vec<usize>],
+    mut subtract: impl FnMut(&Cell, &[Cell], &[usize]) -> Result<Vec<Cell>, String>,
+) -> Result<Vec<Cell>, String> {
     let mut out: Vec<Cell> = vec![];
     let mut produced: Vec<Vec<usize>> = vec![vec![]; cells.len()];
     let mut vertices = 0usize;
@@ -268,7 +300,7 @@ pub fn union_near(cells: &[Cell], neighbors: &[Vec<usize>]) -> Result<Vec<Cell>,
             .flat_map(|&j| produced[j].iter().copied())
             .collect();
         cutters.sort_unstable();
-        let additions = subtract_all(vec![c.clone()], cutters.iter().map(|&k| &out[k]))?;
+        let additions = subtract(c, &out, &cutters)?;
         for a in &additions {
             vertices += a.faces.iter().map(|f| f.vertices.len()).sum::<usize>();
             if a.faces.len() > MAX_CELL_FACES {
@@ -732,6 +764,21 @@ pub fn coalesce_cells(mut cells: Vec<Cell>) -> Vec<Cell> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn prepared_subtraction_matches_original_cutter_order_and_geometry() {
+        for step in 0..24 {
+            let subjects = vec![box_cell([0.; 3], [4.; 3]), box_cell([6., 0., 0.], [3.; 3])];
+            let cutters: Vec<_> = (0..8).map(|i| transform(&box_cell([0.; 3], [1., 5., 2.]),
+                [i as f64 - 2., 0., (step % 3) as f64 * 0.1], [1.; 3], step as f64 * 0.13)).collect();
+            let mut reference = subjects.clone();
+            for cutter in &cutters {
+                reference = reference.iter().flat_map(|cell| subtract(cell, cutter)).collect();
+                check_budget(&reference).unwrap();
+            }
+            let actual = subtract_all(subjects, &cutters).unwrap();
+            assert_eq!(serde_json::to_value(actual).unwrap(), serde_json::to_value(reference).unwrap());
+        }
+    }
     #[test]
     fn geometry_budget_reports_actual_cell_and_face_counts() {
         // Budget validation is independent of geometric validity; empty cells

@@ -6,6 +6,7 @@ pub mod compartment_geometry;
 #[path = "../../../assets/parts/construction/hull_shapes.rs"]
 pub mod construction_shapes;
 pub mod construction;
+mod construction_cache;
 mod construction_vertex;
 mod construction_mesh;
 mod construction_custom_hull;

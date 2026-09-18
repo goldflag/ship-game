@@ -489,8 +489,29 @@ sea trials measure the complete coupled motion.
 The compiler digest includes source, compiler version and catalog content.
 Constructed IDs include a source identity and digest prefix; the complete digest
 and source revision accompany the definition and model. A dedicated bounded
-worker compiles each editor revision. Cancellation terminates in-flight native
-work; stale messages cannot replace the active preview.
+worker compiles editor revisions with a bounded cache of exact geometry operations.
+Unchanged local clipping results are reused across block edits; fit, loading and
+stability are still validated for the current source. The cache retains at most
+32 MiB of estimated geometry storage and 8,192 entries, and expires operations unused in the previous
+revision. It never substitutes a previous revision's physical result.
+
+Block and fitting edits appear immediately. Background checks wait until one
+second after the last committed edit, then compile only that latest revision.
+Opening a design and explicitly retrying a failed check start immediately.
+The ledger keeps the last checked readings, marked **last check**, during edits;
+**Checks pending** changes to **Checking design…** when work is submitted.
+Sea Trials remains unavailable until the current revision passes its checks.
+
+If editing resumes during compilation, the obsolete caller is cancelled and the
+idle delay starts again. At most one compilation runs with a single queued revision.
+Superseded callers are cancelled immediately, while the worker finishes reusable
+work and then compiles only the newest source. Switching designs or catalogs during compilation,
+closing the editor, worker failures and the compilation deadline release the
+worker. Stale messages cannot replace the active preview or enable Sea Trials.
+While waiting, deletion or movement immediately restores source faces on touching
+hull pieces, so the old clipped join does not leave a temporary hole. Source paint
+and intentional openings remain visible; native union geometry replaces this
+display approximation when ready.
 
 PostgreSQL stores account-owned immutable revisions and a transactional current
 revision pointer. Compare-and-swap rejects stale devices; idempotency keys make

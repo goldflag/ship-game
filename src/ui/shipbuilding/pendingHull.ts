@@ -21,12 +21,33 @@ function sourceFaces(primitive: ConstructionPrimitive): Face[] {
   return (CONSTRUCTION_SHAPES[primitive.kind] ?? []).map(vertices => ({ vertices: vertices.map(v => v.map((n, axis) => n * primitive.size[axis]) as Vec3) }));
 }
 
+function sourceBounds(primitive: ConstructionPrimitive): [Vec3, Vec3] {
+  const min: Vec3 = [Infinity, Infinity, Infinity], max: Vec3 = [-Infinity, -Infinity, -Infinity];
+  for (const face of sourceFaces(primitive)) for (const v of face.vertices) {
+    const point = rotateVertex(v, primitive.rotationDeg);
+    for (let axis = 0; axis < 3; axis++) {
+      const n = point[axis] + primitive.position[axis];
+      min[axis] = Math.min(min[axis], n); max[axis] = Math.max(max[axis], n);
+    }
+  }
+  return [min, max];
+}
+
 /** Display envelopes only: no union, mass, fit or launch authority. The native compiler
  * replaces these faces when ready. Use the same paint, smoothing and metric materials
  * as the finished hull instead of flashing the whole design to flat gray. */
 export function pendingHullSurfaces(source: ConstructionSource, previous: ConstructionSource, surfaces: readonly ConstructionSurface[]): ConstructionSurface[] {
   const originals = new Map(previous.id === source.id ? previous.construction.primitives.map(p => [p.id, JSON.stringify(p)]) : []);
   const unchanged = new Set(source.construction.primitives.filter(p => originals.get(p.id) === JSON.stringify(p)).map(p => p.id));
+  // A retained neighbor's native skin was clipped at the old join. Restore its
+  // source envelope when a touching piece leaves, including moved/resized pieces.
+  // Unrelated native faces stay intact; source openings and paint apply below.
+  const vacated = previous.id === source.id ? previous.construction.primitives.filter(p => !unchanged.has(p.id)).map(sourceBounds) : [];
+  if (vacated.length) for (const primitive of source.construction.primitives) {
+    if (!unchanged.has(primitive.id)) continue;
+    const [min, max] = sourceBounds(primitive);
+    if (vacated.some(([oldMin, oldMax]) => min.every((n, axis) => n <= oldMax[axis] + 1e-6 && max[axis] >= oldMin[axis] - 1e-6))) unchanged.delete(primitive.id);
+  }
   const next = surfaces.filter(s => unchanged.has(s.primitiveId));
   // Keep existing supports through additions; moving/removing their hull or fittings
   // discards them until the compiler has resolved their new attachments.

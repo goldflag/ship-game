@@ -258,11 +258,12 @@ export function Shipbuilder(props: ShipbuilderProps) {
   // ---- derived display
   const warnings = warningEntries(compiledResult?.diagnostics);
   const blocks = warnings.filter(entry => entry.tone === 'block'), warns = warnings.filter(entry => entry.tone === 'warn');
-  const rows = useMemo(() => ledgerRows(source, compiledResult, layer), [source, compiledResult, layer]);
-  const masses = useMemo(() => massGroups(compiledResult), [compiledResult]);
+  const readingsSource = compile.retainedSource ?? source;
+  const rows = useMemo(() => ledgerRows(readingsSource, compile.retained, layer), [readingsSource, compile.retained, layer]);
+  const masses = useMemo(() => massGroups(compile.retained), [compile.retained]);
   const totalMass = masses.reduce((sum, group) => sum + group.massKg, 0);
   const canLaunch = !pathPoints.length && !!compiledResult?.definition && !blocks.length && !busy && revision.ready;
-  const launchTitle = busy ? busy : compile.compiling ? 'Compiling this revision…' : blocks.length ? `${blocks.length} block${blocks.length === 1 ? '' : 's'} to fix before a trial` : compiledResult?.definition ? 'Launch a sea trial with this design' : 'Waiting for a compiled design';
+  const launchTitle = busy ? busy : compile.waiting ? 'Checks run when you pause editing. Sea trials need the latest checks.' : compile.compiling ? 'Checking this revision…' : blocks.length ? `${blocks.length} block${blocks.length === 1 ? '' : 's'} to fix before a trial` : compiledResult?.definition ? 'Launch a sea trial with this design' : 'Waiting for a compiled design';
   const saveTone = revision.saveState.status === 'saved' ? 'ok' : revision.saveState.status === 'error' ? 'bad' : 'saving';
   const saveText = revision.saveState.status === 'saved' ? (props.repositoryId ? 'Saved to repository' : 'Saved to account') : revision.saveState.status === 'error' ? 'Not saved · keep a backup' : 'Saving…';
   const drawerItems = query ? everyCard.filter(item => `${item.name} ${item.note} ${item.kind === 'part' ? `${item.part.name} ${FAMILY_NAMES[item.part.kind]} ${item.part.placement}` : ''}`.toLowerCase().includes(query.toLowerCase())) : everyCard;
@@ -484,7 +485,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
     <div className="sb-left">
       <div className="sb-warn">
         <button className={`lead ${blocks.length ? 'bad' : ''}`} aria-expanded={warningsOpen} onClick={() => setWarningsOpen(value => !value)}>
-          {compile.compiling ? 'Compiling · ' : !compiledResult ? 'Draft · ' : ''}{blocks.length} block{blocks.length === 1 ? '' : 's'} · {warns.length} warning{warns.length === 1 ? '' : 's'} <kbd>W</kbd>
+          {compile.compiling ? compile.waiting ? 'Checks pending' : 'Checking design…' : <>{!compiledResult ? 'Draft · ' : ''}{blocks.length} block{blocks.length === 1 ? '' : 's'} · {warns.length} warning{warns.length === 1 ? '' : 's'}</>} <kbd>W</kbd>
         </button>
         {compile.error && <div className="row bad"><i className="sb-dot block"/><span>{compile.error}</span><button onClick={compiled.retry}>Retry</button></div>}
         {revision.error && <div className={`row bad ${props.repositoryId ? 'sb-repository-error' : ''}`} role="alert"><i className="sb-dot block"/><span>{revision.error}</span>
@@ -512,7 +513,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
         <button className="help" aria-haspopup="dialog" aria-expanded={helpOpen} title="Controls and hotkeys (?)" onClick={() => setHelpOpen(value => !value)}><ToolGlyph name="Keys"/><span>Keys</span><kbd>?</kbd></button></div>
     </div>
     <aside className="sb-ledger" aria-label="Ledger">
-      <h4>Ledger{compile.compiling && <span>compiling…</span>}</h4>
+      <h4>Ledger{!compiledResult && <span title={compile.retained ? 'Readings from the last checked revision. They update after you pause editing.' : 'Readings appear after the design is checked.'}>{compile.retained ? 'last check' : 'pending'}</span>}</h4>
       {rows.map(row => <div key={row.label} className={`row ${row.tone ?? ''}`}><span>{row.label}</span><b>{row.value}</b></div>)}
       {totalMass > 0 && <><div className="sb-massbar" aria-hidden="true">{masses.filter(group => group.massKg > 0).map(group => <i key={group.name} style={{ width: `${(100 * group.massKg / totalMass).toFixed(1)}%`, background: group.color }}/>)}</div>
         <div className="sb-masskey">{masses.filter(group => group.massKg > 0).map(group => <span key={group.name} style={{ display: 'contents' }}><i style={{ background: group.color }}/><span>{group.name}</span><b>{formatTonnes(group.massKg, group.massKg < 1e5 ? 1 : 0)}</b></span>)}</div></>}

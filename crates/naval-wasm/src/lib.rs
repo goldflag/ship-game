@@ -8,6 +8,21 @@ pub fn compile_construction(source_json: &str, catalog_json: &str) -> Result<Str
     naval_sim::construction::compile_json(source_json, catalog_json).map_err(error)
 }
 
+/// Owned by one editor worker; dropping the worker releases its bounded CSG cache.
+#[wasm_bindgen]
+#[derive(Default)]
+pub struct ConstructionCompiler {
+    inner: naval_sim::construction::ConstructionCompiler,
+}
+#[wasm_bindgen]
+impl ConstructionCompiler {
+    #[wasm_bindgen(constructor)]
+    pub fn new() -> Self { Self::default() }
+    pub fn compile(&mut self, source_json: &str, catalog_json: &str) -> Result<String, JsValue> {
+        self.inner.compile_json(source_json, catalog_json).map_err(error)
+    }
+}
+
 /// Display-only shape library generated from the native construction recipes.
 #[wasm_bindgen]
 pub fn construction_shape_library() -> String {

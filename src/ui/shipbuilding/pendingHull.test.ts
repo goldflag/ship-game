@@ -34,6 +34,29 @@ test('another design cannot inherit compiled geometry', () => {
   expect(pendingHullSurfaces(after, before, [face]).some(s => s.id === face.id)).toBe(false);
 });
 
+test('deleting or moving a touching block restores clipped faces on its neighbor immediately', () => {
+  const before = source();
+  before.construction.primitives.push({ id: 'cover', kind: 'box', size: [4, 2, 8], position: [0, 2, 0], rotationDeg: 0 });
+  before.construction.primitives.push({ id: 'distant', kind: 'box', size: [2, 2, 2], position: [20, 0, 0], rotationDeg: 0 });
+  before.construction.surfaces = [{ primitiveId: 'hull', face: 'top', thicknessMm: 20, material: 'steel', paint: 'teak-natural' },
+    { primitiveId: 'hull', face: 'bottom', thicknessMm: 12, material: 'steel', paint: 'naval-gray', open: true }];
+  const distant = { ...face, id: 'native-distant', primitiveId: 'distant' };
+  // Native union has removed the hull's entire top where the cover touched it.
+  const native = [distant];
+  for (const move of [false, true]) {
+    const after = structuredClone(before);
+    if (move) after.construction.primitives[1].position[0] = 10;
+    else after.construction.primitives.splice(1, 1);
+    const surfaces = pendingHullSurfaces(after, before, native);
+    const top = surfaces.filter(s => s.primitiveId === 'hull' && s.face === 'top');
+    expect(top.reduce((area, s) => area + s.areaM2, 0)).toBe(32);
+    expect(top.every(s => s.paint === 'teak-natural' && s.thicknessMm === 20 && !s.open)).toBe(true);
+    expect(surfaces.find(s => s.primitiveId === 'hull' && s.face === 'bottom')?.open).toBe(true);
+    expect(surfaces.find(s => s.id === distant.id)).toBe(distant);
+    expect(surfaces.filter(s => s.primitiveId === 'cover').every(s => s.vertices.every(v => v[0] >= 8))).toBe(true);
+  }
+});
+
 test('edited custom hulls retain panel paint, openings and the red waterline setting', () => {
   const before = source(), after = source();
   const hull = customHullPrimitive(makeHull(0)); hull.id = 'custom';
