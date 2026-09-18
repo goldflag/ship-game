@@ -97,9 +97,9 @@ export function partSlot(part: ConstructionEquipmentPart, catalog: ConstructionC
   return { kind: 'part', id: part.id, name: shortName, note: part.path ? `${part.path.kind} path · ${formatTonnes(part.path.massKgPerM)}/m` : `${FAMILY_NAMES[part.kind]}${massKg ? ` · ${formatTonnes(massKg)}` : ''}`, part };
 }
 export function sortedParts(catalog: ConstructionCatalog, placement: (part: ConstructionEquipmentPart) => boolean): ConstructionEquipmentPart[] {
-  // Guns run from the heaviest calibre down, so a shelf reads as a battery list; every other family is alphabetical.
+  // Drawable paths lead the deck-gear shelf; guns run from the heaviest calibre down.
   const caliber = (part: ConstructionEquipmentPart) => part.kind === 'gun' ? catalog.weapons.parts.find(gun => gun.id === part.gunPartId)?.caliberM ?? 0 : 0;
-  return catalog.equipment.filter(part => part.kind !== 'magazine' && part.id !== 'generic-vertical-ladder' && placement(part)).slice().sort((a, b) => FAMILY_ORDER.indexOf(a.kind) - FAMILY_ORDER.indexOf(b.kind) || caliber(b) - caliber(a) || a.name.localeCompare(b.name));
+  return catalog.equipment.filter(part => part.kind !== 'magazine' && part.id !== 'generic-vertical-ladder' && placement(part)).slice().sort((a, b) => FAMILY_ORDER.indexOf(a.kind) - FAMILY_ORDER.indexOf(b.kind) || Number(!!b.path) - Number(!!a.path) || caliber(b) - caliber(a) || a.name.localeCompare(b.name));
 }
 
 export const thicknessSlotId = (mm: number) => `mm-${mm}`;

@@ -1,11 +1,12 @@
 import { beforeAll, expect, test } from 'bun:test';
 import init, { compile_construction } from '../generated/naval-wasm/naval_wasm';
 import catalogJson from '../../public/models/components/catalog.json';
+import retainedCatalogJson from '../../public/models/components/catalogs/f8d5f622818e0ef20c6c3918ac36dc29d1904e18b13a83aa923e1e93d05ff697/catalog.json';
 import type { ConstructionCatalog, ConstructionResult, ConstructionSource } from './blueprint';
 import { createStarterSource } from './constructionStarter';
 const catalog = catalogJson as ConstructionCatalog;
 beforeAll(async () => { await init({ module_or_path: await Bun.file(new URL('../generated/naval-wasm/naval_wasm_bg.wasm', import.meta.url)).arrayBuffer() }); });
-const compile = (source: ConstructionSource): ConstructionResult => JSON.parse(compile_construction(JSON.stringify(source), JSON.stringify(catalog)));
+const compile = (source: ConstructionSource, partsCatalog = catalog): ConstructionResult => JSON.parse(compile_construction(JSON.stringify(source), JSON.stringify(partsCatalog)));
 
 test('every catalog gun fits on a deck by its attachment socket and compiles into a mount of its own weapon', () => {
   for (const part of catalog.equipment.filter(entry => entry.kind === 'gun')) {
@@ -52,14 +53,14 @@ test('every catalog funnel, mast and director stands on a deck without an error 
   }
 });
 
-const bareDeck = () => {
-  const source = createStarterSource(catalog, 'patrol'), hull = source.construction.primitives.find(piece => piece.id === 'hull')!; hull.size = [24, 16, 60];
+const bareDeck = (partsCatalog = catalog) => {
+  const source = createStarterSource(partsCatalog, 'patrol'), hull = source.construction.primitives.find(piece => piece.id === 'hull')!; hull.size = [24, 16, 60];
   source.construction.primitives = [hull]; source.construction.surfaces = source.construction.surfaces.filter(surface => surface.primitiveId === hull.id);
   source.construction.boundaries = []; source.construction.equipment = [];
   return { source, deck: hull.size[1] / 2 };
 };
-const standing = (partId: string, id: string, deck: number, at: [number, number] = [0, 0]) => {
-  const part = catalog.equipment.find(entry => entry.id === partId)!, datum = part.sockets!.find(entry => entry.id === 'attachment')!.position;
+const standing = (partId: string, id: string, deck: number, at: [number, number] = [0, 0], partsCatalog = catalog) => {
+  const part = partsCatalog.equipment.find(entry => entry.id === partId)!, datum = part.sockets!.find(entry => entry.id === 'attachment')!.position;
   return { id, partId, position: [at[0] - datum[0], deck - datum[1], at[1] - datum[2]] as [number, number, number], bearingDeg: 0 };
 };
 
@@ -73,13 +74,14 @@ test('every fixed deck fitting stands on a deck without an error of its own', ()
   }
 });
 
-test('a gun tub collides by its wall and stands on its wall foot, so a light gun fits inside it and small gear fits under a crane jib', () => {
+test('retained catalogs still compile removed gun tubs and lockers with their original collision envelopes', () => {
+  const catalog = retainedCatalogJson as ConstructionCatalog;
   for (const [tub, gun] of [['generic-gun-tub-large', 'type96-25-triple'], ['generic-gun-tub', 'type93-13-twin']] as const) {
-    const { source, deck } = bareDeck(), wall = catalog.equipment.find(entry => entry.id === tub)!.sockets!.find(s => s.id === 'attachment')!.position[2];
+    const { source, deck } = bareDeck(catalog), wall = catalog.equipment.find(entry => entry.id === tub)!.sockets!.find(s => s.id === 'attachment')!.position[2];
     // The tub attaches at its forward wall foot; light guns keep the deck beneath the tub intact.
-    source.construction.equipment = [standing(tub, 'tub', deck, [0, -10 + wall]), standing(gun, 'gun', deck, [0, -10]),
-      standing('generic-boat-crane', 'crane', deck, [0, 20]), standing('generic-ready-ammo-locker', 'locker', deck, [0, 11.5])];
-    const result = compile(source);
+    source.construction.equipment = [standing(tub, 'tub', deck, [0, -10 + wall], catalog), standing(gun, 'gun', deck, [0, -10], catalog),
+      standing('generic-boat-crane', 'crane', deck, [0, 20], catalog), standing('generic-ready-ammo-locker', 'locker', deck, [0, 11.5], catalog)];
+    const result = compile(source, catalog);
     expect(result.diagnostics.filter(entry => entry.severity === 'error'), `${tub}: ${JSON.stringify(result.diagnostics)}`).toEqual([]);
     expect(result.definition!.mounts.map(mount => mount.weapon.id)).toEqual([gun]);
     // As a solid bounding box the same tub would reject the gun: the wall boxes are what leave its middle free.
