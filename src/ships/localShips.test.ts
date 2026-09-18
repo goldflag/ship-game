@@ -3,7 +3,7 @@ import init, { compile_construction, LocalRuntime } from '../generated/naval-was
 import catalogJson from '../../public/models/components/catalog.json';
 import type { ConstructionCatalog, ConstructionResult } from './blueprint';
 import { createStarterSource } from './constructionStarter';
-import { freezeLocalFleet, registerLocalShip, removeLocalShip, resolveShip } from './localShips';
+import { compiledLocalShip, freezeLocalFleet, registerLocalShip, removeLocalShip, resolveShip } from './localShips';
 import { runtimeSetup } from '../game/session/LocalBattleSession';
 import type { Snapshot } from '../game/session/SnapshotSession';
 import { transferCustomShip, transferDuelShip } from '../ui/battle/fleetTransfer';
@@ -16,6 +16,23 @@ function fixture() {
   const result = JSON.parse(compile_construction(JSON.stringify(source), JSON.stringify(catalog))) as ConstructionResult;
   expect(result.diagnostics.filter(d => d.severity === 'error')).toEqual([]); return { source, result };
 }
+test('editor reuse requires the exact source, including catalog, geometry and metadata', () => {
+  const { source, result } = fixture();
+  expect(compiledLocalShip(source)).toBeUndefined();
+  try {
+    const entry = registerLocalShip(source, result);
+    expect(compiledLocalShip(structuredClone(source))).toBe(entry.result);
+    for (const change of [
+      draft => { draft.revision = 'changed'; },
+      draft => { draft.name = 'Renamed'; },
+      draft => { draft.construction.catalogRevision = 'new-catalog'; },
+      draft => { draft.construction.primitives[0].size[0] += 1; },
+    ] satisfies ((draft: typeof source) => void)[]) {
+      const draft = structuredClone(source); change(draft);
+      expect(compiledLocalShip(draft)).toBeUndefined();
+    }
+  } finally { removeLocalShip(source.id); }
+});
 test('custom selection supports duplicates and online fleet selection without changing the historical roster', () => {
   const { source, result } = fixture();
   try {
@@ -52,4 +69,3 @@ test('real local WASM recompiles sources, preserves independent damage, and conf
     expect(source.construction.primitives).toHaveLength(1);
   } finally { trial.free(); }
 });
-

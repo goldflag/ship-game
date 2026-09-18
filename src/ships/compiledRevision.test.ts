@@ -127,3 +127,27 @@ test('rapid edits within the debounce compile once, for the last revision', asyn
   expect(revision.getSnapshot().current?.revision).toBe('r3');
   revision.dispose();
 });
+
+test('opening a prepared revision reuses it through storage adoption, then compiles edits normally', async () => {
+  const initial = source(), design = owner(initial), { client, compiled } = compiler();
+  design.ready(false);
+  const prepared = result(initial.id, initial.revision);
+  const revision = new CompiledRevision(design, client, 0, input => JSON.stringify(input) === JSON.stringify(initial) ? prepared : undefined);
+  design.adopt(structuredClone(initial)); design.ready(true);
+  expect(revision.getSnapshot()).toMatchObject({ current: prepared, retained: prepared, compiling: false });
+  await tick(); expect(compiled).toEqual([]);
+  design.edit('r2');
+  expect(revision.getSnapshot().current).toBeUndefined();
+  expect(revision.getSnapshot().retained).toBe(prepared);
+  await tick(); expect(compiled).toEqual(['r2']);
+  revision.dispose();
+});
+
+test('a prepared result with mismatched identity is ignored', async () => {
+  const design = owner(), { client, compiled } = compiler();
+  const revision = new CompiledRevision(design, client, 0, () => result('other', 'r1'));
+  expect(revision.getSnapshot().current).toBeUndefined();
+  await tick(); expect(compiled).toEqual(['r1']);
+  expect(revision.getSnapshot().current?.sourceId).toBe('design');
+  revision.dispose();
+});

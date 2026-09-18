@@ -438,7 +438,9 @@ export function Shipbuilder(props: ShipbuilderProps) {
       }
       setCustomHullSession(undefined); tool.fit();
     } }}/>, document.body)}
-    <BuilderViewport scene={tool.scene(compile.retained)} tags={tags} status={status} onPointer={tool.pointer} onHover={setHoveredPart} createModel={props.createModel} onMemory={memoryOpen ? setVisualMemory : undefined}/>
+    {!revision.ready || (!compile.retained && compile.compiling)
+      ? <div className="sb-empty" role="status">Loading ship…</div>
+      : <BuilderViewport scene={tool.scene(compile.retained)} tags={tags} status={status} onPointer={tool.pointer} onHover={setHoveredPart} createModel={props.createModel} onMemory={memoryOpen ? setVisualMemory : undefined}/>}
     {freeformPrimitive && <FreeformToolbar primitive={freeformPrimitive} onCommit={tool.commitFreeform} settings={freeformSettings} onChange={tool.changeFreeformSettings} cycleUnit={tool.cycleUnit}
       onReset={tool.resetFreeform} onSplit={tool.splitFreeform} onExit={tool.exitFreeform}/>}
     <header className="sb-top">
