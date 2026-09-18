@@ -245,6 +245,12 @@ Freeform shaping regression coverage: `src/ships/freeformShape.test.ts` checks n
 
 ## Snapping
 
+Snap guides confirm engaged alignment only. Turning Snap off (including temporary
+Alt/Option release) clears every guide immediately. Mint dotted connectors mark both
+aligned features and solid strokes highlight target edges; brass confirms the acquired
+ship centerline during placement or movement. The Snap settings panel explains these
+cues. Show snap guides controls all feedback, with Include ship centerline beneath it.
+
 `snapping.ts` resolves grid, ship centerline and source geometry alignment in screen space;
 `SnapControls.tsx` exposes the shared session settings and `SnapOverlay.ts` draws non-interactive
 lines and markers without labels. `BuilderViewport` caches authoring features per source revision
@@ -261,10 +267,10 @@ until a candidate can win. Detailed geometry remains available for precise snapp
 See [snapping controls](../../../docs/shipbuilding.md) for keyboard, visibility and centering behavior.
 
 `snapping.test.ts` covers target precedence, screen-space thresholds, hysteresis, constrained
-axes, support seating, guide independence and a deterministic projection-work budget
-for dragging detailed balconies. `checkSnapping()` from
-`scripts/tests/shipbuilder-snapping-browser.ts`, run on the diagnostic page, checks the
-production controls, precision, undo, live Alt overrides and freeform cancellation.
+axes, support seating, guide visibility and a deterministic projection-work budget
+for dragging detailed balconies. Run `bun scripts/tests/shipbuilder-snapping-browser.mjs <vite-url>`
+to check the production controls, precision, undo, live Alt overrides, guide clearing and
+freeform cancellation, with desktop/compact captures under `.build/snap-review/`.
 
 Freeform topology coverage: `src/ships/constructionMesh.test.ts` verifies native volume, preview, saved topology, mirroring, ring/outline changes and snapping. Run `node scripts/tests/freeform-mesh-browser.mjs <vite-url>` for all new editor variants, D/Escape, ring gizmo movement and undo, topology controls, native validity and desktop/narrow captures under `.build/freeform/`.
 

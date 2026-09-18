@@ -86,6 +86,7 @@ export function resolveSnap(input: {
   settings: SnapSettings; project: ProjectSnap; previous?: readonly string[];
 }): { delta: Vec3; guides: SnapGuide[]; latched: string[] } {
   const { raw, grid, directions, moving, targets, settings: s } = input;
+  if (!s.enabled) return { delta: [...raw], guides: [], latched: [] };
   // Scoped to one pointer sample: neither camera changes nor source edits can
   // leave stale projections. Fixed corners/endpoints are shared by many pairs.
   const projected = new Map<Vec3, ReturnType<ProjectSnap>>();
@@ -135,16 +136,15 @@ export function resolveSnap(input: {
         const { correction, aligned, screen: b, pixels } = alignment;
         if (!b || pixels > 14) return;
         const held = heldTargets[axisIndex].has(id);
-        if (pixels > (held ? 14 : 12)) return;
-        const active = s.enabled && pixels <= (held ? 14 : 8);
-        const score = pixels - (held && active ? 8 : 0) - (centerline ? 1 : 0);
-        if (best && (Number(best.guide.active) > Number(active) || best.guide.active === active && best.score <= score)) return;
+        if (pixels > (held ? 14 : 8)) return;
+        const score = pixels - (held ? 8 : 0) - (centerline ? 1 : 0);
+        if (best && best.score <= score) return;
         // An axis-aligned edge has a constant coordinate on the snap axis.
         // Find its nearest point only when the alignment could actually win.
         const destination = lazyEdge && edge ? closest(point, edge) : target;
         const t = project(destination);
         if (!t || !centerline && distance(b, t) > 96) return;
-        best = { correction, score, guide: { id: `${prefix}${id}|${axis}`, axis, movingId: feature.id, from: active ? aligned : point, to: destination, edge, centerline, active } };
+        best = { correction, score, guide: { id: `${prefix}${id}|${axis}`, axis, movingId: feature.id, from: aligned, to: destination, edge, centerline, active: true } };
       };
       if (s.centerline && feature.kind === 'center') consider([0, point[1], point[2]], 'centerline', 0, undefined, true);
       if (!s.geometry) continue;
@@ -167,6 +167,7 @@ export function resolveSnap(input: {
   for (const guide of guides) {
     const feature = moving.find(f => f.id === guide.movingId);
     if (feature) guide.from = add(feature.point, delta);
+    if (guide.centerline) guide.to = [0, guide.from[1], guide.from[2]];
   }
   return { delta, guides: s.guides ? guides : [], latched };
 }

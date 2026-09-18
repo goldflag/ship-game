@@ -95,7 +95,7 @@ The adjacent arrow opens independent Grid, Ship centerline and Nearby edges/corn
 choices. Grid spacing uses a button row: 0.25, 0.5, 1, 2 or 5 m. The rail shows the
 current size; click it or press **S** to cycle. Hull and fittings remember separate
 session choices, starting at 1 m and 0.25 m. Freeform uses its local Move step.
-Off removes grid rounding and magnetic alignment;
+Off removes grid rounding, magnetic alignment and all snap guides;
 keyboard nudges still use the chosen step. Physical seating and hull overlap checks remain active.
 
 Hull placement and movement permit intersection, provided every affected block keeps
@@ -111,11 +111,14 @@ Mass, plating and buoyancy still derive from the physical union, so shared hull
 volume is counted once.
 
 Nearby source edges, corners and fitting attachment centers acquire within eight screen pixels
-and release at fourteen; they override grid rounding on the same movement axis. Dashed
-alignment guides become solid when engaged, with a small target marker and edge highlight;
-there are no floating snap labels. Guide visibility is independent of snapping. The centerline
-appears only while dragging near it, over the ship at the working height (vertically in
-Bow view), and disappears when the drag ends or moves away. It is independent of
+and release at fourteen; they override grid rounding on the same movement axis. Guides
+appear only for an engaged snap, during placement or movement. Mint dotted lines join
+the aligned points, with a filled dot on the moving feature, a ring on the target and
+a solid highlight on a target edge. Brass marks an acquired ship centerline at the
+working height (vertically in Bow view). Nearby, unaligned candidates have no guides.
+**Show snap guides** hides all feedback without changing snapping; **Include ship
+centerline** controls its brass feedback within those guides. Turning Snap off or
+temporarily releasing it hides every snap guide immediately. These guides are independent of
 Mirror and center-of-gravity markers. **Center** in the selection actions centers the selected
 part or group using mounting centers while retaining relative positions, subject to collision
 constraints. In freeform, snapping respects local axes and symmetry; Move nearby corners
