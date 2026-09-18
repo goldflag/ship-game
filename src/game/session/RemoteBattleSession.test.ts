@@ -1,6 +1,7 @@
 import { expect, test } from 'bun:test';
 import { gzipSync } from 'node:zlib';
-import { MatchConnection } from './RemoteBattleSession';
+import { MatchConnection, RemoteBattleSession, type MatchMetadata } from './RemoteBattleSession';
+import { HitFeedback } from '../HitFeedback';
 import { HeadlessSession } from '../../../scripts/multiplayer/headless-session';
 import { battleExitLabel } from './BattleSession';
 import { decodeFrameUpdate, type FrameUpdate } from './frameDelta';
@@ -16,6 +17,35 @@ class Socket {
   close() { if(this.readyState===3) return; this.readyState=3; this.onclose?.(); }
   binary(value: unknown, metadata = false) { const gzip=gzipSync(JSON.stringify(value)); const bytes=new Uint8Array(gzip.length+(metadata?1:0)); bytes.set(gzip,metadata?1:0); this.onmessage?.({data:bytes.buffer}); }
 }
+test('online hits retain gold local ownership for either seat after the shell disappears', async () => {
+  const local = await HeadlessSession.create({ playerShipId: 'fletcher', friendlyBots: [], enemies: [{ shipId: 'fletcher', aiLevel: 'normal' }], spawnDistance: 1000, windSpeed: 0 });
+  try {
+    const baseline = decodeFrameUpdate(undefined, JSON.parse(local.runtime.snapshot_delta([])));
+    const feedback = [new HitFeedback(), new HitFeedback()];
+    const sessions = (['a', 'b'] as const).map((team, player) => {
+      const metadata: MatchMetadata = { type: 'matched', matchId: 'ownership', player, team, connectionEpoch: 1,
+        version, contentHash: '', setup: local.setup, environment: { timeOfDay: 'morning', weather: 'clear' }, baseline };
+      return new RemoteBattleSession(metadata, { send: () => true, close: () => {} } as unknown as MatchConnection, baseline);
+    });
+    const seen = [false, false];
+    let frame = baseline;
+    for (let batch = 0; batch < 600 && !seen.every(Boolean); batch++) {
+      const target = local.target!.motion;
+      local.advance(.1, { throttle: 0, rudder: 0 }, { aim: [target.x, 2, target.z], battery: 'main', fire: true });
+      frame = decodeFrameUpdate(frame, JSON.parse(local.runtime.snapshot_delta([])));
+      sessions.forEach((session, seat) => {
+        session.receive(frame);
+        session.advance(0, { throttle: 0, rudder: 0 }, { aim: [0, 0, 0], battery: 'main', fire: false });
+        for (const cue of feedback[seat].update(session)) {
+          expect(cue.source).toBe('player');
+          if (cue.damage > 0 && cue.projectileIds.every(id => !session.shells.some(shell => shell.id === id))) seen[seat] = true;
+        }
+      });
+    }
+    expect(seen).toEqual([true, true]);
+    sessions.forEach(session => session.dispose());
+  } finally { local.dispose(); }
+});
 test('compressed handshake survives following deltas and reconnect resets command epoch', async () => {
   const names=['WebSocket','sessionStorage','location','DecompressionStream','fetch'] as const;
   const descriptors=names.map(name=>Object.getOwnPropertyDescriptor(globalThis,name));

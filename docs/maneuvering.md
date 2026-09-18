@@ -54,11 +54,12 @@ with the cube of its magnitude. Thrust is power divided by an advance-speed and
 induced-flow estimate, which remains finite at rest. Rudder normal force includes
 both turning force and longitudinal resistance. There are no target speed/yaw
 interpolations, artificial turn-speed penalties or gameplay yaw caps. Shared
-gameplay tuning in `mobility.rs` applies a ×4 response to all planar forces and
-torques, up to ×8 rudder force authority at hard over, and ×1.8 authored rudder
-shift. This gives players time to accelerate, brake and change course within a
-fight. Rudder authority is a gameplay coefficient, not a claim of physical blade performance;
-area, signed leverage, flow, exposure and equipment damage still govern its force.
+gameplay tuning in `mobility.rs` applies a ×2.5 response to all planar forces and
+torques, up to ×4 rudder force authority at hard over, and ×1.2 authored rudder
+shift. These moderated boosts retain heavier acceleration, braking and helm
+response while keeping course changes practical during a fight. Rudder authority
+is a gameplay coefficient, not a claim of physical blade performance; area, signed
+leverage, flow, exposure and equipment damage still govern its force.
 The authority boost ramps with actual rudder deflection; an amidships blade keeps
 its ordinary passive drag so it cannot overpower angled propeller thrust.
 The implicit force solver bounds the response on small/light hulls.
