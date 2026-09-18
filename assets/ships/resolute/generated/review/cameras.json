@@ -1,5 +1,5 @@
 {
-  "contentHash": "08ea8ff4305b2a775000aac6053a3bae5062303acaff0b6f9064131ad5b85d66",
+  "contentHash": "51c60b80ceb0efbb49c9054c293ed53d0bc382e642237e3e4d18971414990f79",
   "views": [
     {
       "name": "profile",
@@ -23,7 +23,7 @@
       "height": 520,
       "halfHeight": 39.325,
       "sourceRevision": "revision-4dd48689-1085-49fe-b7f2-38e92bf930fc",
-      "contentHash": "08ea8ff4305b2a775000aac6053a3bae5062303acaff0b6f9064131ad5b85d66"
+      "contentHash": "51c60b80ceb0efbb49c9054c293ed53d0bc382e642237e3e4d18971414990f79"
     },
     {
       "name": "plan",
@@ -47,7 +47,7 @@
       "height": 520,
       "halfHeight": 39.325,
       "sourceRevision": "revision-4dd48689-1085-49fe-b7f2-38e92bf930fc",
-      "contentHash": "08ea8ff4305b2a775000aac6053a3bae5062303acaff0b6f9064131ad5b85d66"
+      "contentHash": "51c60b80ceb0efbb49c9054c293ed53d0bc382e642237e3e4d18971414990f79"
     },
     {
       "name": "bow",
@@ -71,7 +71,7 @@
       "height": 800,
       "halfHeight": 19.718311999291185,
       "sourceRevision": "revision-4dd48689-1085-49fe-b7f2-38e92bf930fc",
-      "contentHash": "08ea8ff4305b2a775000aac6053a3bae5062303acaff0b6f9064131ad5b85d66"
+      "contentHash": "51c60b80ceb0efbb49c9054c293ed53d0bc382e642237e3e4d18971414990f79"
     },
     {
       "name": "stern",
@@ -95,7 +95,7 @@
       "height": 800,
       "halfHeight": 19.718311999291185,
       "sourceRevision": "revision-4dd48689-1085-49fe-b7f2-38e92bf930fc",
-      "contentHash": "08ea8ff4305b2a775000aac6053a3bae5062303acaff0b6f9064131ad5b85d66"
+      "contentHash": "51c60b80ceb0efbb49c9054c293ed53d0bc382e642237e3e4d18971414990f79"
     },
     {
       "name": "quarter",
@@ -119,7 +119,7 @@
       "height": 900,
       "halfHeight": 63.31423017938798,
       "sourceRevision": "revision-4dd48689-1085-49fe-b7f2-38e92bf930fc",
-      "contentHash": "08ea8ff4305b2a775000aac6053a3bae5062303acaff0b6f9064131ad5b85d66"
+      "contentHash": "51c60b80ceb0efbb49c9054c293ed53d0bc382e642237e3e4d18971414990f79"
     }
   ]
 }
