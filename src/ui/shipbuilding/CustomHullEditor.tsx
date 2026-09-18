@@ -1018,7 +1018,7 @@ export default function CustomHullEditor({
           </span>
           <button
             className="hs-small"
-            title="Split the edge toward the keel on both sides, in every section"
+            title="Add a pair and evenly redistribute points along each section's current outline"
             disabled={primary.points.length >= MAX_HULL_POINTS || !!pending}
             onClick={() => pair(true)}
           >
@@ -1028,7 +1028,7 @@ export default function CustomHullEditor({
             className="hs-small"
             title={
               canRemoveHullPointPair(primary.points, k0)
-                ? "Remove this point and its mirror from every section"
+                ? "Remove a pair and evenly redistribute points along each section's current outline"
                 : "Deck edges and the keel stay; sections keep at least five points"
             }
             disabled={!canRemoveHullPointPair(primary.points, k0) || !!pending}

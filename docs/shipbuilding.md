@@ -288,11 +288,15 @@ points for the sheer and keel line; the brass diamonds rake the stem and grow a
 bow bulb, and the square grip moves the red paint line. Escape, a right-click or
 leaving the window cancels a drag.
 
-Select a point, then **+ Pair** to split the edge toward the keel on both sides,
-or **− Pair** to delete that point and its mirror. Delete or Backspace also
-removes the focused pair. Each action adds or removes two points in every
-section, preserving matching hull panels. Sections support 5–33 points; the deck
-edges and center keel cannot be removed. Each action is one undo step.
+**+ Pair** increases cross-section detail and **− Pair** reduces it. Each action
+adds or removes two points in every section, then redistributes the controls at
+equal distances along each side's current outline, measured in metres. Existing
+points move too, while the deck edges and center keel stay fixed. Connecting the
+new points approximates the previous outline; sharp corners can soften, especially
+at lower detail. The focused point chooses which panel interval is split or
+merged, preserving the other panel identities. Delete or Backspace also reduces
+detail. Sections support 5–33 points; the deck edges and center keel cannot be
+removed. Each action is one undo step.
 
 **Blend nearby sections** fades shape edits into the neighboring sections, 35%
 of the hull length either side by default. Drag the grips on the ruler's blend
