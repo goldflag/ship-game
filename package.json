@@ -7,6 +7,7 @@
   "scripts": {
     "water:calibration": "bun run dev -- --open /scripts/diagnostics/ocean-calibration.html",
     "hull:prototype": "vite --config vite.hull-prototype.config.ts",
+    "propeller:playground": "bun run multiplayer:prepare:dev && vite --config vite.propeller-playground.config.ts --open '/?propellerPlayground=1'",
     "dev": "bun run multiplayer:prepare:dev && vite --host 0.0.0.0",
     "build": "bun run multiplayer:prepare && bun run part:published:check && bun run part:thumbnails --check && bun run ship:check all && bun run ship:runtime:check && bun run aircraft:check all && tsc --noEmit && vite build",
     "preview": "vite preview --host 0.0.0.0",

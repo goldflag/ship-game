@@ -227,11 +227,13 @@ test('automatic propeller braces retain native endpoints while the original spin
         actor.motion.distance = distance; actor.motion.speed = 2;
         view.snap(); view.updateRenderMatrices();
         support.members.forEach((member, index) => {
-          const mesh = installation.getObjectByName(`screw.support-${index}`) as THREE.Mesh<THREE.CylinderGeometry>;
+          const mesh = installation.getObjectByName(`screw.support-${index}`) as THREE.Mesh;
           expect(mesh).toBeDefined();
-          const half = mesh.geometry.parameters.height / 2;
-          expect(mesh.localToWorld(new THREE.Vector3(0, -half, 0)).distanceTo(new THREE.Vector3(...member.start))).toBeLessThan(1e-6);
-          expect(mesh.localToWorld(new THREE.Vector3(0, half, 0)).distanceTo(new THREE.Vector3(...member.end))).toBeLessThan(1e-6);
+          const vertices = mesh.geometry.getAttribute('position');
+          member.rings!.flat().forEach((point, i) => {
+            const actual = mesh.localToWorld(new THREE.Vector3().fromBufferAttribute(vertices, i));
+            expect(actual.distanceTo(new THREE.Vector3(...point))).toBeLessThan(2e-6);
+          });
         });
       }
       expect(spin.quaternion.angleTo(initialSpin)).toBeGreaterThan(.1);

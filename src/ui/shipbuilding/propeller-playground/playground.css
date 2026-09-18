@@ -1,0 +1,47 @@
+.propeller-playground { --workshop-ink: #edf1ec; --workshop-muted: #bacbd0; --workshop-line: #cfdfdf35; --workshop-accent: #e0c58d; display: grid; grid-template-columns: minmax(0, 1fr) 310px; height: 100dvh; color: var(--workshop-ink); background: #242a2d; font: 14px/1.45 Barlow, sans-serif; }
+.propeller-playground * { box-sizing: border-box; }
+.propeller-playground ::selection { color: #152b32; background: var(--workshop-accent); }
+.propeller-playground button, .propeller-playground select { font: inherit; color: inherit; border: 1px solid var(--workshop-line); border-radius: 3px; background: #293238; min-height: 36px; cursor: pointer; padding: 7px 12px; }
+.propeller-playground button:hover { background: #3b4549; }
+.propeller-playground :focus-visible { outline: 2px solid var(--workshop-accent); outline-offset: 3px; }
+.propeller-playground button:disabled { opacity: .5; cursor: default; }
+.propeller-playground button[aria-pressed=true] { background: #e0c58d; border-color: #e0c58d; color: #152b32; }
+.propeller-stage { position: relative; min-width: 0; min-height: 0; overflow: hidden; }
+.propeller-canvas { position: absolute; inset: 0; }
+.propeller-canvas canvas { display: block; touch-action: none; }
+.propeller-heading { position: absolute; left: 26px; top: 22px; pointer-events: none; background: #1b252af2; padding: 12px 15px; border-radius: 3px; }
+.propeller-heading h1 { font: 500 30px/1.05 'Barlow Condensed', sans-serif; margin: 0 0 6px; }
+.propeller-heading p { color: var(--workshop-muted); margin: 0; }
+.propeller-views { position: absolute; left: 26px; top: 118px; display: flex; gap: 5px; }
+.propeller-status { position: absolute; left: 26px; bottom: 108px; max-width: min(550px, calc(100% - 52px)); background: #172b2a; color: #b7efd7; border-radius: 3px; padding: 9px 12px; margin: 0; }
+.propeller-status.is-error { color: #ffd2c5; background: #492d29; }
+.propeller-orbit-help { position: absolute; left: 26px; bottom: 79px; margin: 0; font-size: 12px; color: var(--workshop-muted); }
+.propeller-switcher { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; padding: 5px; border-radius: 5px; background: #152b32; box-shadow: 0 6px 20px #0005; }
+.propeller-switcher button { width: 38px; padding: 8px; border: 0; background: transparent; }
+.propeller-switcher svg { display: block; width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.5; }
+.propeller-switcher span { min-width: 170px; text-align: center; white-space: nowrap; }
+.propeller-switcher small { display: inline-block; margin-left: 14px; color: var(--workshop-muted); font-variant-numeric: tabular-nums; }
+.propeller-panel { padding: 25px 22px; border-left: 1px solid var(--workshop-line); background: #1b252a; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #718388 #1b252a; }
+.propeller-select { display: grid; gap: 8px; font-weight: 500; }
+.propeller-select select { width: 100%; }
+.propeller-description { color: var(--workshop-muted); margin: 15px 0 25px; }
+.propeller-panel fieldset { border: 0; border-top: 1px solid var(--workshop-line); margin: 0 0 25px; padding: 17px 0 0; }
+.propeller-panel legend, .propeller-readout h2 { padding: 0 8px 0 0; font: 500 20px/1.2 'Barlow Condensed', sans-serif; }
+.propeller-range { display: block; margin-bottom: 16px; }
+.propeller-range span { display: flex; justify-content: space-between; gap: 8px; }
+.propeller-range output { color: var(--workshop-accent); font-variant-numeric: tabular-nums; }
+.propeller-range input { width: 100%; margin: 9px 0 0; cursor: pointer; accent-color: var(--workshop-accent); }
+.propeller-reset { width: 100%; }
+.propeller-check { display: flex; gap: 10px; align-items: center; min-height: 36px; cursor: pointer; }
+.propeller-check input { width: 16px; height: 16px; accent-color: var(--workshop-accent); margin: 0; }
+.propeller-readout h2 { margin: 0 0 10px; }
+.propeller-readout dl { margin: 0; }
+.propeller-readout dl div { display: flex; justify-content: space-between; padding: 5px 0; }
+.propeller-readout dt { color: var(--workshop-muted); }
+.propeller-readout dd { margin: 0; font-variant-numeric: tabular-nums; }
+.propeller-readout p, .propeller-footnote { font-size: 12px; color: var(--workshop-muted); line-height: 1.5; margin: 12px 0 22px; }
+.propeller-panel .propeller-download { width: 100%; background: var(--workshop-accent); border-color: var(--workshop-accent); color: #152b32; font-weight: 500; }
+.propeller-panel .propeller-download:hover { background: #efd5a0; }
+.propeller-footnote { margin-bottom: 0; }
+@media (max-width: 850px) { .propeller-playground { grid-template-columns: minmax(0, 1fr) 260px; } .propeller-panel { padding: 20px 16px; } .propeller-heading, .propeller-views { left: 16px; } .propeller-views { gap: 3px; flex-wrap: wrap; right: 12px; } .propeller-views button { padding: 6px 8px; } }
+@media (max-width: 620px) { .propeller-playground { display: block; height: auto; min-height: 100dvh; } .propeller-stage { height: 68dvh; min-height: 440px; } .propeller-panel { border-left: 0; border-top: 1px solid var(--workshop-line); overflow: visible; padding: 22px; } .propeller-heading h1 { font-size: 27px; } .propeller-status { left: 16px; bottom: 104px; max-width: calc(100% - 32px); font-size: 12px; } .propeller-orbit-help { left: 16px; font-size: 11px; } .propeller-playground button, .propeller-playground select, .propeller-check { min-height: 44px; } .propeller-switcher { bottom: 14px; } }
