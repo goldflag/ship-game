@@ -1413,6 +1413,8 @@ pub struct ConstructionLoad {
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct ConstructionData {
+    #[serde(rename = "finish", default, skip_serializing_if = "Option::is_none")]
+    pub finish: Option<String>,
     #[serde(rename = "version")]
     pub version: f64,
     #[serde(rename = "catalogRevision")]

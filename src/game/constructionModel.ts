@@ -6,14 +6,14 @@ import * as THREE from 'three/webgpu';
 import { loadShipModel } from './loadShipModel';
 import { createConstructionPathModel } from './constructionPathModel';
 import { createConstructionPropellerSupports } from './constructionPropellerModel';
-import type { ConstructionPrimitive, ConstructionResult, ConstructionSource, ConstructionSurface } from '../ships/blueprint';
+import type { ConstructionPrimitive, ConstructionResult, ConstructionSource, ConstructionSurface, ConstructionSurfaceFinish } from '../ships/blueprint';
 import { constructionVertexNormals, SMOOTH_HULL_SHAPES } from './constructionShading';
 import { constructionEquipmentModelUrl, loadConstructionCatalog, prefixComponentNodeId } from '../ships/constructionEquipment';
-import { CONSTRUCTION_FINISH, constructionPaintColor } from '../ships/constructionPaints';
+import { CONSTRUCTION_FINISH, constructionPaintColor, constructionFinishRoughness } from '../ships/constructionPaints';
 
 /** Render the native exterior exactly. Triangle attribution remains a reference
  * to source faces; triangulation and material batching never become source IDs. */
-export function createConstructionHull(surfaces: readonly ConstructionSurface[], primitives: readonly ConstructionPrimitive[] = []): THREE.Group {
+export function createConstructionHull(surfaces: readonly ConstructionSurface[], primitives: readonly ConstructionPrimitive[] = [], finish?: ConstructionSurfaceFinish): THREE.Group {
   const group = new THREE.Group(); group.name = 'Constructed hull';
   const smooth = new Map(primitives.filter(p => p.smoothGroup || p.mesh?.family === 'rings' || (p.shaping?.style === 'round' && p.shaping.radius > 0 && p.shaping.edges.length > 0) || SMOOTH_HULL_SHAPES.has(p.kind)).map(p => [p.id, p.smoothGroup ? 'joined:' + p.smoothGroup : p.id]));
   const normalAt = constructionVertexNormals(surfaces.filter(s => !s.open && smooth.has(s.primitiveId)).map(s => ({ ...s, group: smooth.get(s.primitiveId)! })));
@@ -80,7 +80,7 @@ export function createConstructionHull(surfaces: readonly ConstructionSurface[],
     geometry.setAttribute('uv', new THREE.Float32BufferAttribute(batch.uv, 2));
     geometry.computeBoundingBox(); geometry.computeBoundingSphere();
     const wood = batch.paint === 'teak-natural';
-    const material = new THREE.MeshStandardMaterial({ color: constructionPaintColor(batch.paint), map: wood ? timberTexture() : coating, roughness: batch.deck ? CONSTRUCTION_FINISH.deckRoughness : CONSTRUCTION_FINISH.steelRoughness, metalness: CONSTRUCTION_FINISH.metalness, side: THREE.DoubleSide });
+    const material = new THREE.MeshStandardMaterial({ color: constructionPaintColor(batch.paint), map: wood ? timberTexture() : coating, roughness: constructionFinishRoughness(wood ? undefined : finish, batch.deck ? CONSTRUCTION_FINISH.deckRoughness : CONSTRUCTION_FINISH.steelRoughness), metalness: CONSTRUCTION_FINISH.metalness, side: THREE.DoubleSide });
     if (wood) material.userData = { deckSubstrate: 'timber', deckCoating: 'bare' };
     material.name = `construction.${key}`;
     const mesh = new THREE.Mesh(geometry, material); mesh.name = `hull.${key}`;
@@ -98,7 +98,7 @@ function abort(signal?: AbortSignal) { if (signal?.aborted) throw new DOMExcepti
 export async function createConstructionModel(source: ConstructionSource, result: ConstructionResult, signal?: AbortSignal): Promise<THREE.Group> {
   if (source.id !== result.sourceId || source.revision !== result.revision) throw new Error('Model and design revisions do not match.');
   abort(signal);
-  const group = createConstructionHull(result.surfaces, source.construction.primitives);
+  const group = createConstructionHull(result.surfaces, source.construction.primitives, source.construction.finish);
   group.name = source.name;
   group.userData.definitionHash = result.contentHash;
   group.userData.constructionRevision = source.revision;
@@ -112,7 +112,7 @@ export async function createConstructionModel(source: ConstructionSource, result
         if (!part) throw new Error(`Equipment unavailable: ${instance.partId}. The source design is preserved.`);
         if (part.path) {
           const model = createConstructionPathModel(part, instance.path, false, {item:instance,surfaces:result.surfaces});
-          paintConstructionFitting(model, instance.paint, false);
+          paintConstructionFitting(model, instance.paint, false, source.construction.finish);
           model.position.fromArray(instance.position); model.rotation.y = -instance.bearingDeg * Math.PI / 180;
           model.traverse(node => { node.userData.sourceId = instance.id; node.userData.assemblyId = instance.id; node.userData.constructionEquipmentKind = part.kind; });
           group.add(model); continue;
@@ -124,7 +124,7 @@ export async function createConstructionModel(source: ConstructionSource, result
           if (template.userData.definitionHash !== part.contentHash) throw new Error(`Equipment identity mismatch: ${part.name}.`);
         }
         const model = instance.wall ? createConstructionWallModel(template, part, instance, result.surfaces, source.construction.primitives) : template.clone(true);
-        paintConstructionFitting(model, instance.paint);
+        paintConstructionFitting(model, instance.paint, true, source.construction.finish);
         const installation = new THREE.Group(); installation.name = instance.id;
         if (!instance.wall) installation.scale.fromArray(wallScale(part, instance));
         installation.position.fromArray(instance.position); installation.rotation.y = -instance.bearingDeg * Math.PI / 180;
@@ -141,7 +141,7 @@ export async function createConstructionModel(source: ConstructionSource, result
       }
     }
     group.updateMatrixWorld(true);
-    const supports = createConstructionPropellerSupports(result.propellerSupports);
+    const supports = createConstructionPropellerSupports(result.propellerSupports, source.construction.finish);
     for (const assembly of [...supports.children]) {
       const id = assembly.userData.assemblyId;
       const installation = group.getObjectByName(id);

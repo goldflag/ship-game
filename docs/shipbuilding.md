@@ -66,7 +66,13 @@ engine's warning to select it. Incomplete propulsion remains a warning, so you
 can still launch a sea trial.
 
 Use Hull for pieces, Armor for plating and openings, Fittings for equipment,
-Internals for rooms and machinery, and Paint for finishes. Hover a face in Armor
+Internals for rooms and machinery, and Paint for finishes. The **Surface finish**
+selector in Paint applies **Matte**, **Satin**, **Semi-gloss** or **Gloss** to the
+whole ship's painted hull, fittings and supports. **Original** restores authored
+roughness. Colors, bare timber, glass, cloth and exposed component metals retain
+their own materials. The choice saves with the design, supports undo/redo, and
+carries through previews, sea trials and GLB exports; newly added parts inherit it.
+Hover a face in Armor
 to see its nominal plate thickness in millimetres and material. This includes
 the minimum structural skin; openings show no protective plate. Pending armor
 edits use the same thickness rules and color scale as the compiled preview.

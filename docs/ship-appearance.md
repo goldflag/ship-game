@@ -9,6 +9,9 @@ the [ship pipeline](ship-pipeline.md) and the ship's approved brief.
 - **Shared finish:** opaque paint uses a matte, nonmetallic surface. Exposed metal,
   canvas, wood and deck coverings have their own reusable finishes. A fitting uses
   the same paint as its supporting structure unless the reference shows otherwise.
+  Player-built designs may explicitly choose a whole-ship Matte, Satin, Semi-gloss
+  or Gloss coating in the Paint layer. This optional `construction.finish` setting
+  changes painted-surface roughness without changing colors or historical defaults.
 - **Deliberate colors:** reuse a named paint when the intended paint is the same.
   Nationality alone does not force identical gray. Identify reference-specific
   interpretations explicitly; do not label estimated RGB values as measured

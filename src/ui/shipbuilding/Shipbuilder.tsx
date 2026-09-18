@@ -4,6 +4,7 @@ import { automaticPropellerLabel, propellerEngineName, propellerEngines } from '
 import { SnapControls } from './SnapControls';
 import { BalconyEditor } from './BalconyEditor';
 import { CONSTRUCTION_PAINTS } from '../../ships/constructionPaints';
+import { SurfaceFinishSelect } from './SurfaceFinishSelect';
 import { integrateConstructionMagazines } from '../../ships/constructionArmament';
 import { FreeformToolbar } from './FreeformToolbar';
 import CustomHullEditor from './CustomHullEditor';
@@ -567,6 +568,10 @@ export function Shipbuilder(props: ShipbuilderProps) {
         </div>
       </div>
       {layer === 'hull' && !freeformMode && <div className="sb-shelves">{hullFilters}</div>}
+      {layer === 'paint' && <div className="sb-shelves sb-paint-finishes">
+        <SurfaceFinishSelect value={data.finish} disabled={locked} onChange={tool.setFinish}/>
+        <span>Whole ship · painted surfaces</span>
+      </div>}
       {layer === 'fittings' && <div className="sb-shelves">
         <div className="sb-chips" role="tablist" aria-label="Fitting shelves">{FITTING_CATEGORIES.map(shelf => <button key={shelf.id} role="tab" aria-selected={fittingFilter.category === shelf.id} title={shelf.note} onClick={() => { tool.setFittingFilter({ category: shelf.id }); setTip(undefined); }}>{shelf.name}</button>)}</div>
         {shelfNations.length > 0 && <div className="sb-chips nations" role="radiogroup" aria-label="Nation">

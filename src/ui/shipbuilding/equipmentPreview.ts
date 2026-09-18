@@ -2,7 +2,7 @@ import { createConstructionWallModel } from '../../game/constructionWallModel';
 import { wallScale } from '../../ships/constructionWallFittings';
 import { paintConstructionFitting } from '../../game/constructionFittingPaint';
 import * as THREE from 'three';
-import type { ConstructionCatalog, ConstructionEquipment, ConstructionSource, ConstructionPropellerSupport, ConstructionSurface } from '../../ships/blueprint';
+import type { ConstructionCatalog, ConstructionEquipment, ConstructionSource, ConstructionPropellerSupport, ConstructionSurface, ConstructionSurfaceFinish } from '../../ships/blueprint';
 import { constructionEquipmentModelUrl } from '../../ships/constructionEquipment';
 import { createConstructionPathModel } from '../../game/constructionPathModel';
 import { loadShipModel } from '../../game/loadShipModel';
@@ -101,11 +101,11 @@ export class EquipmentPreview {
     });
   }
 
-  clone(partId: string, ghost = false, path?: ConstructionEquipment['path'], invalid = false, paint?: string, mount?: {item: ConstructionEquipment; surfaces: readonly ConstructionSurface[]}): THREE.Group | undefined {
+  clone(partId: string, ghost = false, path?: ConstructionEquipment['path'], invalid = false, paint?: string, mount?: {item: ConstructionEquipment; surfaces: readonly ConstructionSurface[]}, finish?: ConstructionSurfaceFinish): THREE.Group | undefined {
     const part = this.catalog?.equipment.find(part => part.id === partId);
     if (part?.path) {
       const model = createConstructionPathModel(part, path, ghost, mount);
-      if (!ghost && !invalid) paintConstructionFitting(model, paint, false);
+      if (!ghost && !invalid) paintConstructionFitting(model, paint, false, finish);
       if (invalid) model.traverse(node => {
         if (!(node instanceof THREE.Mesh)) return;
         for (const material of Array.isArray(node.material) ? node.material : [node.material]) {
@@ -118,12 +118,12 @@ export class EquipmentPreview {
     const key = this.key(partId), template = key && this.templates.get(key);
     if (!template) return undefined;
     let base = ghost ? template.ghost : invalid ? template.invalid : template.model;
-    if (paint && !ghost && !invalid) {
-      const paintKey = `${key}:${paint}`;
+    if ((paint || finish) && !ghost && !invalid) {
+      const paintKey = `${key}:${paint ?? ''}${finish ? ':' + finish : ''}`;
       let painted = this.painted.get(paintKey);
       if (!painted) {
         const model = template.model.clone(true);
-        painted = { model, materials: paintConstructionFitting(model, paint) };
+        painted = { model, materials: paintConstructionFitting(model, paint, true, finish) };
         this.painted.set(paintKey, painted);
       }
       base = painted.model;
@@ -145,10 +145,10 @@ export class EquipmentPreview {
     this.restoreMaterials();
     if (this.catalog && this.catalog.revision !== catalog.revision) this.clear();
     this.catalog = catalog;
-    const supportKey = JSON.stringify(supports ?? []);
+    const supportKey = JSON.stringify([supports ?? [], source.construction.finish]);
     if (supportKey !== this.supportKey) {
       disposeConstructionModel(this.supports);
-      this.supports = createConstructionPropellerSupports(supports);
+      this.supports = createConstructionPropellerSupports(supports, source.construction.finish);
       if (this.supports.children.length) this.group.add(this.supports);
       this.supportKey = supportKey;
     }
@@ -158,10 +158,10 @@ export class EquipmentPreview {
     for (const item of source.construction.equipment) {
       let instance = this.instances.get(item.id);
       const path = this.catalog.equipment.find(part => part.id === item.partId)?.path;
-      const key = `${item.wall || path?.kind === 'ladder' ? JSON.stringify([item, this.surfaceRevision]) : ''}:${this.key(item.partId)}${path ? ':' + JSON.stringify(item.path) : ''}:${invalid.has(item.id)}:${item.paint ?? ''}`;
+      const key = `${item.wall || path?.kind === 'ladder' ? JSON.stringify([item, this.surfaceRevision]) : ''}:${this.key(item.partId)}${path ? ':' + JSON.stringify(item.path) : ''}:${invalid.has(item.id)}:${item.paint ?? ''}${source.construction.finish ? ':' + source.construction.finish : ''}`;
       if (instance && instance.userData.assetKey !== key) { instance.removeFromParent(); if (instance.userData.path) disposeConstructionModel(instance); this.instances.delete(item.id); instance = undefined; }
       if (!instance) {
-        let model = this.clone(item.partId, false, item.path, invalid.has(item.id), item.paint, {item,surfaces});
+        let model = this.clone(item.partId, false, item.path, invalid.has(item.id), item.paint, {item,surfaces}, source.construction.finish);
         const part = catalog.equipment.find(p => p.id === item.partId);
         if (model && item.wall && part) model = createConstructionWallModel(model, part, item, surfaces, source.construction.primitives);
         if (!model) continue;

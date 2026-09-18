@@ -168,7 +168,10 @@
 .sb-dock-tabs { display: flex; align-items: flex-end; gap: 14px; padding: 0 14px; height: var(--sb-dock-tabs); flex-shrink: 0; }
 .sb-dock-body { flex: 1; min-height: 0; display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--sb-card); border-top: 1px solid var(--sb-line2); box-shadow: 0 -10px 30px #0a0c0e66; }
 /* Fittings shelves: a chip row inside the card, between the layer tabs and the cards; the nation filter sits at its right end */
-.shipbuilder[data-layer=fittings],.shipbuilder[data-layer=hull]:not(.sb-freeform-mode) { --sb-shelves: 32px; }
+.shipbuilder[data-layer=fittings],.shipbuilder[data-layer=paint],.shipbuilder[data-layer=hull]:not(.sb-freeform-mode) { --sb-shelves: 32px; }
+.sb-shelves.sb-paint-finishes { justify-content: flex-start; align-items: center; }
+.sb-paint-finishes > span { color: var(--sb-muted); font-size: 12px; white-space: nowrap; }
+.sb-finish-select { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
 .sb-shelves { flex-shrink: 0; height: var(--sb-shelves); display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; padding: 0 14px; background: var(--sb-card); border-top: 1px solid var(--sb-line2); box-shadow: 0 -10px 30px #0a0c0e66; pointer-events: auto; overflow-x: auto; scrollbar-width: none; }
 .sb-shelves + .sb-dock-body { border-top: 0; box-shadow: none; padding-top: 8px; }
 .sb-chips { display: flex; gap: 4px; flex-shrink: 0; }

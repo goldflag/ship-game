@@ -12,6 +12,7 @@ export type ConstructionCommand =
   | { op: 'name'; name: string }
   | { op: 'construction-version'; version: ConstructionSource['construction']['version'] }
   | { op: 'skin'; thicknessMm: number }
+  | { op: 'finish'; finish?: ConstructionSource['construction']['finish'] }
   | { op: 'primitive'; value: ConstructionPrimitive }
   | { op: 'primitive-patch'; id: string; changes: PrimitivePatch }
   | { op: 'hull-sections'; id: string; count: number }
@@ -59,6 +60,7 @@ export function applyConstructionBatch(source: ConstructionSource, batch: Constr
     switch (command.op) {
       case 'name': draft.name = command.name; break;
       case 'construction-version': data.version = command.version; break;
+      case 'finish': if (command.finish === undefined) delete data.finish; else data.finish = command.finish; break;
       case 'skin': data.defaultThicknessMm = command.thicknessMm; break;
       case 'catalog': data.catalogRevision = command.revision; break;
       case 'primitive': upsert(data.primitives, command.value); break;
@@ -161,6 +163,7 @@ export function constructionDiffCommands(before: ConstructionSource, after: Cons
   const a = after.construction, b = before.construction;
   if (a.version !== b.version) commands.push({ op: 'construction-version', version: a.version });
   if (after.name !== before.name) commands.push({ op: 'name', name: after.name });
+  if (a.finish !== b.finish) commands.push({ op: 'finish', finish: a.finish });
   if (a.defaultThicknessMm !== b.defaultThicknessMm) commands.push({ op: 'skin', thicknessMm: a.defaultThicknessMm });
   if (a.catalogRevision !== b.catalogRevision) commands.push({ op: 'catalog', revision: a.catalogRevision });
   const table = <T extends { id: string }>(rows: (value: T) => ConstructionCommand, was: T[], is: T[]) => {
