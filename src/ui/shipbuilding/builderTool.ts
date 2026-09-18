@@ -382,7 +382,7 @@ export class BuilderTool {
     this.update({ pathPoints: [], slots: { ...this.state.slots, [layer]: item.id }, sizeOverride: undefined, fittingFilter });
     const faceTools: BuilderToolId[] = ['apply', 'area', 'eyedrop', 'opening', 'select'];
     switch (item.kind) {
-      case 'shape': if (tool !== 'place' && tool !== 'fill') this.setTool('place'); break;
+      case 'shape': this.clearSelection(); if (tool !== 'place' && tool !== 'fill') this.setTool('place'); break;
       case 'thickness': this.update({ customMm: item.mm }); // falls through: a value card behaves as the Armor card holding that value
       case 'armor': case 'opening': case 'paint':
         if (item.kind === 'paint' && this.selectedEquipment.length) { this.paintFittings([...this.state.selected], item.id); break; }
@@ -390,7 +390,7 @@ export class BuilderTool {
         break;
       case 'scheme': this.applyScheme(item.id); break;
       case 'tool': this.setTool(item.tool); break;
-      case 'part': this.setTool(layer === 'internals' ? 'module' : 'place'); if (item.part.path) this.clearSelection(); break;
+      case 'part': this.clearSelection(); this.setTool(layer === 'internals' ? 'module' : 'place'); break;
     }
     return true;
   };

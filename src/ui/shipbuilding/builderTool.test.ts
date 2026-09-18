@@ -547,6 +547,25 @@ test('fine fitting rotation preserves fractional bearings, filters hull IDs and 
   expect(labels()).toHaveLength(before);
 });
 
+test('choosing a placement card clears the ship selection for clicks and hotkeys', async () => {
+  for (const layer of ['hull', 'fittings', 'internals'] as const) {
+    for (const input of ['click', 'hotkey'] as const) {
+      const { tool, state, labels } = await setup();
+      tool.switchLayer(layer);
+      tool.setTool('select');
+      tool.selectOnly(['hull']);
+      const index = tool.palette.bar.findIndex(item => layer === 'hull' ? item.kind === 'shape' : item.kind === 'part');
+      expect(index).toBeGreaterThanOrEqual(0);
+      if (input === 'click') tool.toggleSlot(tool.palette.bar[index]);
+      else tool.key(key(String(index + 1)), chrome());
+      expect(tool.piece).toBeDefined();
+      expect([...state().selected]).toEqual([]);
+      expect([...tool.scene(undefined).selected]).toEqual([]);
+      expect(labels()).toEqual([]);
+    }
+  }
+});
+
 test('clicking an active placement card stops placement and clicking again resumes', async () => {
   const { tool } = await setup();
   for (const layer of ['hull', 'fittings', 'internals'] as const) {
