@@ -629,3 +629,11 @@ The editor opens in Select with no hull or placement card selected. Click a bloc
 fitting or wall to select it, then start a separate drag to move it. A drag starting
 on an unselected item controls the camera. Palette tooltips stay within the
 visible editor bounds.
+
+
+New balconies leave their hull-facing edge open. The steel deck extends to the
+full edge footprint even when an edge is open; changing a wall to open retains
+that attachment. Adjacent solid walls meet at mitred corners.
+New rope routes start with 0.15 m of midpoint sag, limited for short segments;
+Rope slack still accepts zero for a taut line. Selected external fittings use the
+same XYZ movement handles as hull pieces, including while placing fittings.

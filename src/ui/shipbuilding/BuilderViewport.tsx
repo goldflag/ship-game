@@ -1,3 +1,4 @@
+import { placementBalcony } from '../../ships/constructionBalcony';
 import { createConstructionWallModel } from '../../game/constructionWallModel';
 import { wallFrameSnapFeatures } from './snapping';
 import { installedWallPart, wallNormal, wallBearing, wallRow, wallScale, wallFittingSupported, seatWallFitting } from '../../ships/constructionWallFittings';
@@ -540,7 +541,7 @@ class Viewport {
       if (mirror?.kind === 'equipment') mirror = { ...mirror, bearingDeg: normalizedBearing(-pick.bearingDeg) };
     }
     const offset = piece?.kind === 'boundary' && pick ? pick.placement[{ x: 0, y: 1, z: 2 }[piece.axis]] : undefined;
-    const key = JSON.stringify([shape(piece), shape(mirror), piece?.kind === 'boundary' ? [this.props.scene.source.revision, offset] : piece?.kind === 'equipment' && piece.wall ? [this.props.scene.source.revision, pick?.placement, piece.bearingDeg] : undefined]);
+    const key = JSON.stringify([shape(piece), shape(mirror), piece?.kind === 'hull' && piece.shape === 'balcony' ? Math.sign(pick?.placement[0] ?? 0) : undefined, piece?.kind === 'boundary' ? [this.props.scene.source.revision, offset] : piece?.kind === 'equipment' && piece.wall ? [this.props.scene.source.revision, pick?.placement, piece.bearingDeg] : undefined]);
     if (key !== this.ghostKey) {
       this.strokeKey = ''; release(this.strokePreview);
       this.ghostKey = key; release(this.ghost); release(this.ghostMirror); release(this.ghostArc);
@@ -556,7 +557,11 @@ class Viewport {
               } else equipment.scale.fromArray(wallScale(part, { wall: item.wall }));
             }
             group.add(equipment); group.rotation.y = placementRotation(item); return; }
-          const geometry = item.kind === 'boundary' ? boundaryGeometry(this.props.scene.source.construction.primitives, item.axis, offset ?? NaN) : placementGeometry(item);
+          const balcony = item.kind === 'hull' && item.shape === 'balcony'
+            ? placementBalcony([(pick?.placement[0] ?? 1) * (mirrored ? -1 : 1), 0, 0], item.rotationDeg) : undefined;
+          const geometry = item.kind === 'boundary'
+            ? boundaryGeometry(this.props.scene.source.construction.primitives, item.axis, offset ?? NaN)
+            : balcony ? primitiveGeometry('balcony', item.size, undefined, undefined, undefined, balcony) : placementGeometry(item);
           const fill = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ color: BRASS, transparent: true, opacity, depthWrite: false, depthTest: item.kind === 'boundary', side: THREE.DoubleSide }));
           const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geometry), new THREE.LineBasicMaterial({ color: BRASS_LIGHT, depthTest: false, transparent: true, opacity: opacity * 3.6 }));
           fill.renderOrder = 20; edges.renderOrder = 21; group.add(fill, edges); group.rotation.y = placementRotation(item);
@@ -950,9 +955,9 @@ class Viewport {
     const allowed = internals ? internalSelectionIds(props.scene.source, props.scene.catalog) : undefined;
     const ids = [...props.scene.selected].filter(id => (!allowed || allowed.has(id)) && (props.scene.moveTargets !== 'equipment' || equipment.some(item => item.id === id)));
     const selected = new Set(ids), blocks = primitives.filter(p => selected.has(p.id));
-    if (props.scene.freeform || props.scene.moveTargets === 'none' || (!internals && (props.scene.moveTargets !== 'all' || !blocks.length)) || !ids.length) { this.moveHandles.update(); return; }
+    if (props.scene.freeform || props.scene.moveTargets === 'none' || !ids.length) { this.moveHandles.update(); return; }
     const anchors: Vec3[] = blocks.map(p => p.position);
-    const modules = internals ? equipment.filter(p => selected.has(p.id)) : [];
+    const modules = equipment.filter(p => selected.has(p.id));
     const walls = internals ? boundaries.filter(p => selected.has(p.id)) : [];
     for (const item of modules) {
       const part = props.scene.catalog.equipment.find(p => p.id === item.partId);

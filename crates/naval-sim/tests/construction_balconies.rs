@@ -33,10 +33,10 @@ fn open_balcony_attaches_to_side_and_counts_solid_deck_once() {
         .iter()
         .find(|c| c.id == "skin-balcony-platform")
         .unwrap();
-    assert!((deck.mass_kg - 4. * 4. * 0.08 * 7850.).abs() < 1e-6);
+    assert!((deck.mass_kg - 4.06 * 4.06 * 0.08 * 7850.).abs() < 1e-6);
     assert!((deck.center[0] - 7.).abs() < 1e-8);
     let cells = construction::primitive_cells(&source.construction.primitives[1]).unwrap();
-    assert!((cg::total(&cells).volume - 1.28).abs() < 1e-8);
+    assert!((cg::total(&cells).volume - 4.06 * 4.06 * 0.08).abs() < 1e-8);
 }
 
 #[test]
@@ -98,4 +98,35 @@ fn crossed_outlines_and_detached_platforms_cannot_launch() {
     let result = construction::compile(&source, &catalog);
     assert!(result.definition.is_none());
     assert!(result.diagnostics.iter().any(|d| d.code == "attachment"));
+}
+
+#[test]
+fn opening_a_wall_keeps_the_deck_attached_at_the_old_wall_footprint() {
+    let (mut source, catalog) = fixture();
+    source.construction.primitives[1].position[0] = 7.03;
+    let result = construction::compile(&source, &catalog);
+    assert!(result.definition.is_some(), "{:?}", result.diagnostics);
+}
+
+#[test]
+fn solid_walls_cover_outer_corners_for_both_windings() {
+    for reflected in [false, true] {
+        let (mut source, _) = fixture();
+        let balcony = &mut source.construction.primitives[1];
+        balcony.position = [0.; 3];
+        for point in &mut balcony.balcony.as_mut().unwrap().points {
+            point.edge = "wall".into();
+            if reflected { point.x = -point.x; }
+        }
+        let cells = construction::primitive_cells(balcony).unwrap();
+        for x in [-2.02, 2.02] {
+            for z in [-2.02, 2.02] {
+                assert!(cells.iter().any(|cell| cg::contains(cell, [x, 0.6, z])), "missing wall corner at {x}, {z}");
+            }
+        }
+        // A complete square wall ring has its exact mitred area, with no
+        // overlapping corner blocks to inflate the steel volume.
+        let expected = 4.06 * 4.06 * 0.08 + (4.06 * 4.06 - 3.94 * 3.94) * 1.1;
+        assert!((cg::total(&cells).volume - expected).abs() < 1e-8);
+    }
 }

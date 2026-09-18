@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import type { ConstructionSource } from '../../ships/blueprint';
+import type { ConstructionSource, Vec3 } from '../../ships/blueprint';
 import { attachmentOffset, fillLattice, mirrorTwin, pieceExtents, placementCenter, strokeSegment } from './placement';
 
 test('underside propeller placement leaves the entire blade sweep below the hull', () => {
@@ -70,4 +70,16 @@ test('new blocks align face to face with the centered starter on every side', ()
     const expected: [number, number, number] = [0, 0, 0]; expected[axis] = sign;
     expect(placementCenter(cube, { point, normal, snapOrigin: [-.5, -.5, -.5] }, 1)).toEqual(expected);
   }
+});
+
+
+test('balcony placement seats its full deck footprint against a sloping hull side', () => {
+  const piece = { kind: 'hull' as const, shape: 'balcony' as const, size: [2, .08, 1] as Vec3, rotationDeg: 0 };
+  const normal: Vec3 = [.8, -.6, 0], point: Vec3 = [4, 1, 0];
+  const position = placementCenter(piece, { point, normal }, null);
+  // The inner top deck corner sits into the slope, regardless of wall height.
+  const contact = [position[0] - 1.03, position[1] + .04, position[2]];
+  const distance = contact.reduce((sum, v, i) => sum + (v - point[i]) * normal[i], 0);
+  expect(distance).toBeLessThanOrEqual(1e-8);
+  expect(distance).toBeGreaterThan(-.01);
 });
