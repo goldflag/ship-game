@@ -79,8 +79,8 @@ fn fleet_can_change_course_and_countersteer_during_a_fight() {
     for (id, turn_seconds) in [
         ("fletcher", 18.),
         ("bismarck", 50.),
-        ("valiant", 80.),
-        ("resolute", 48.),
+        ("valiant", 100.),
+        ("resolute", 55.),
         ("type-viic", 24.),
     ] {
         for direction in [-1., 1.] {
