@@ -1,6 +1,7 @@
 import { seatBalconyCenter } from './balconyPlacement';
 import type { ConstructionEquipment, ConstructionEquipmentPart, ConstructionPrimitive, ConstructionSource, ConstructionSurface, Vec3 } from '../../ships/blueprint';
 import { mirroredPrimitive } from '../../ships/constructionEditor';
+import { orientVector } from '../../ships/constructionOrientation';
 import { balconyFaces } from '../../ships/constructionBalcony';
 import { normalizedBearing, gridCoordinate } from './editorNumbers';
 import type { BuilderPlacement } from './builderScene';
@@ -41,12 +42,12 @@ export const bearingRadians = (bearingDeg: number) => -bearingDeg * Math.PI / 18
 
 const hullFacesCache = new Map<string, Vec3[][]>();
 function hullFaces(piece: Extract<BuilderPlacement, { kind: 'hull' }>): Vec3[][] {
-  const key = `${piece.shape}:${piece.size.join(',')}:${piece.rotationDeg}`;
+  const key = `${piece.shape}:${piece.size.join(',')}:${piece.rotationDeg}:${piece.tilt?.pitchDeg ?? 0}:${piece.tilt?.rollDeg ?? 0}`;
   let faces = hullFacesCache.get(key);
   if (!faces) {
-    faces = piece.shape === 'balcony' ? balconyFaces(piece.size).filter(face => face.every(v => v[1] <= piece.size[1] / 2)).map(face => face.map(v => rotateY(v, piece.rotationDeg * Math.PI / 180))) : piece.shape === 'custom-hull'
-      ? customHullFaces({ ...customHullPrimitive(makeHull()), size: piece.size }).map(face => face.vertices.map(v => rotateY(v, piece.rotationDeg * Math.PI / 180)))
-      : (piece.shape === 'vertex' ? VERTEX_SHAPE : CONSTRUCTION_SHAPES[piece.shape]).map(face => face.map(vertex => rotateY(vertex.map((v, i) => v * piece.size[i]) as Vec3, piece.rotationDeg * Math.PI / 180)));
+    faces = piece.shape === 'balcony' ? balconyFaces(piece.size).filter(face => face.every(v => v[1] <= piece.size[1] / 2)).map(face => face.map(v => orientVector(piece, v))) : piece.shape === 'custom-hull'
+      ? customHullFaces({ ...customHullPrimitive(makeHull()), size: piece.size }).map(face => face.vertices.map(v => orientVector(piece, v)))
+      : (piece.shape === 'vertex' ? VERTEX_SHAPE : CONSTRUCTION_SHAPES[piece.shape]).map(face => face.map(vertex => orientVector(piece, vertex.map((v, i) => v * piece.size[i]) as Vec3)));
     if (hullFacesCache.size >= 32) hullFacesCache.delete(hullFacesCache.keys().next().value!);
     hullFacesCache.set(key, faces);
   }
@@ -56,7 +57,12 @@ function hullFaces(piece: Extract<BuilderPlacement, { kind: 'hull' }>): Vec3[][]
 /** Axis-aligned extents of a piece in ship coordinates. */
 export function pieceExtents(piece: BuilderPlacement): Vec3 {
   if (piece.kind === 'boundary') return [0, 0, 0];
-  if (piece.kind === 'hull') return Math.round(piece.rotationDeg / 90) % 2 ? [piece.size[2], piece.size[1], piece.size[0]] : [...piece.size];
+  if (piece.kind === 'hull') {
+    // Ghost blocks turn in quarter turns about any ship axis, so each local axis lands on one ship axis.
+    const extents: Vec3 = [0, 0, 0];
+    piece.size.forEach((length, local) => orientVector(piece, [+(local === 0), +(local === 1), +(local === 2)]).forEach((n, k) => { extents[k] += Math.abs(n) * length; }));
+    return extents.map(value => Math.round(value * 1e9) / 1e9) as Vec3;
+  }
   const cos = Math.abs(Math.cos(bearingRadians(piece.bearingDeg))), sin = Math.abs(Math.sin(bearingRadians(piece.bearingDeg)));
   return [piece.size[0] * cos + piece.size[2] * sin, piece.size[1], piece.size[0] * sin + piece.size[2] * cos];
 }

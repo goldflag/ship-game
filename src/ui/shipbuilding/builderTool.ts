@@ -36,6 +36,8 @@ export interface BuilderToolState {
   hullCategory: HullCategory;
   windowRow: boolean; windowSpacing: number;
   customMm: number; sizeOverride?: Vec3; bearing: number;
+  /** Pitch and roll of the hull block about to be placed; yaw is `bearing`. */
+  tilt?: ConstructionPrimitive['tilt'];
   pathPoints: Vec3[]; pathBearing: number; ropeSlack: number; railingHeight: number;
   /** Last successfully applied fitting paint, retained while the editor stays open. */
   fittingPaint?: string;
@@ -244,9 +246,9 @@ export class BuilderTool {
   get faceLayer() { return this.state.layer === 'armor' || this.state.layer === 'paint'; }
   /** The cursor piece: the shape, fitting or boundary a click would place. Identity is stable while its description is. */
   get piece(): BuilderPlacement | undefined {
-    const { layer, tool, sizeOverride, bearing } = this.state, active = this.active, catalog = this.catalog;
+    const { layer, tool, sizeOverride, bearing, tilt } = this.state, active = this.active, catalog = this.catalog;
     let piece: BuilderPlacement | undefined;
-    if (layer === 'hull' && (tool === 'place' || tool === 'fill') && active?.kind === 'shape') piece = { kind: 'hull', shape: active.shape.kind, size: sizeOverride ?? active.shape.size, rotationDeg: normalizedBearing(Math.round(bearing / 90) * 90) };
+    if (layer === 'hull' && (tool === 'place' || tool === 'fill') && active?.kind === 'shape') piece = { kind: 'hull', shape: active.shape.kind, size: sizeOverride ?? active.shape.size, rotationDeg: normalizedBearing(Math.round(bearing / 90) * 90), ...(tilt && active.shape.kind !== 'balcony' ? { tilt } : {}) };
     else if (((layer === 'fittings' && tool === 'place') || (layer === 'internals' && tool === 'module')) && active?.kind === 'part' && !active.part.path) {
       const gun = active.part.gunPartId ? catalog.weapons.parts.find(gun => gun.id === active.part.gunPartId) : undefined;
       const mount = wallMount(active.part), wall = mount ? { version: 1 as const, widthM: sizeOverride?.[0] ?? active.part.size[0], heightM: sizeOverride?.[1] ?? active.part.size[1] } : undefined;
@@ -261,7 +263,7 @@ export class BuilderTool {
     const piece = this.piece;
     let twin: BuilderPlacement | undefined;
     if (this.state.mirror && piece) {
-      if (piece.kind === 'hull') { const mirrored = mirroredPrimitive({ id: '', kind: piece.shape, size: piece.size, position: [1, 0, 0], rotationDeg: piece.rotationDeg }); twin = { kind: 'hull', shape: mirrored.kind, size: mirrored.size, rotationDeg: mirrored.rotationDeg }; }
+      if (piece.kind === 'hull') { const mirrored = mirroredPrimitive({ id: '', kind: piece.shape, size: piece.size, position: [1, 0, 0], rotationDeg: piece.rotationDeg, ...(piece.tilt ? { tilt: piece.tilt } : {}) }); twin = { kind: 'hull', shape: mirrored.kind, size: mirrored.size, rotationDeg: mirrored.rotationDeg, ...(mirrored.tilt ? { tilt: mirrored.tilt } : {}) }; }
       else if (piece.kind === 'equipment') twin = { ...piece, bearingDeg: normalizedBearing(-piece.bearingDeg), arc: undefined };
     }
     const key = JSON.stringify(twin ?? null);
@@ -356,7 +358,7 @@ export class BuilderTool {
   // ---- layer, tool and cards
   setTool = (tool: BuilderToolId) => this.update({ tool });
   switchLayer = (next: BuilderLayer) => {
-    this.update({ layer: next, tool: DEFAULT_TOOL[next], surfaces: new Set(), measure: undefined, bearing: 0,
+    this.update({ layer: next, tool: DEFAULT_TOOL[next], surfaces: new Set(), measure: undefined, bearing: 0, tilt: undefined,
       ...(next === 'armor' || next === 'paint' ? { selected: new Set<string>() } : next === 'internals' ? { selected: new Set([...this.state.selected].filter(id => this.internalIds.has(id))) } : {}) });
   };
   /** Choose a card: true when it acted, so the caller closes the drawer and its tooltip. */
@@ -538,9 +540,25 @@ export class BuilderTool {
   rotate = (fine = false): ConstructionSubmission | undefined => {
     const piece = this.piece;
     if (piece?.kind === 'equipment' && piece.wall) { this.notify('Wall fittings turn automatically to match their wall.'); return undefined; }
-    if (piece && piece.kind !== 'boundary') { this.update({ bearing: normalizedBearing(this.state.bearing + (piece.kind === 'hull' ? 90 : fine ? 1 : 15)) }); return undefined; }
-    if (this.state.selected.size) return this.command('Rotate selection', [{ op: 'rotate', ids: [...this.state.selected], degrees: this.selectedPrimitives.length ? 90 : fine ? 1 : 15 }]);
+    if (piece?.kind === 'hull') return this.turn(1, fine ? -90 : 90);
+    if (piece && piece.kind !== 'boundary') { this.update({ bearing: normalizedBearing(this.state.bearing + (fine ? 1 : 15)) }); return undefined; }
+    if (this.state.selected.size) return this.command('Rotate selection', [{ op: 'rotate', ids: [...this.state.selected], degrees: this.selectedPrimitives.length ? fine ? -90 : 90 : fine ? 1 : 15 }]);
     return undefined;
+  };
+  /** A quarter turn of hull blocks about a ship axis: the block about to be placed, else each selected block in place. */
+  turn = (axis: number, degrees: number): ConstructionSubmission | undefined => {
+    if (this.locked || ![0, 1, 2].includes(axis)) return undefined;
+    const piece = this.piece, { bearing, tilt } = this.state;
+    if (piece) {
+      if (piece.kind !== 'hull') return axis === 1 ? this.rotate(degrees < 0) : undefined;
+      if (axis !== 1 && piece.shape === 'balcony') { this.notify('Balconies turn about the vertical axis only.'); return undefined; }
+      const turned = rotateBlock({ id: '', kind: piece.shape, size: piece.size, position: [0, 0, 0], rotationDeg: normalizedBearing(Math.round(bearing / 90) * 90), ...(tilt ? { tilt } : {}) }, axis, degrees);
+      this.update({ bearing: turned.rotationDeg, tilt: turned.tilt });
+      return undefined;
+    }
+    const blocks = this.selectedPrimitives;
+    if (axis === 1 || !blocks.length) return axis === 1 ? this.rotate(degrees < 0) : undefined;
+    return this.command(blocks.length > 1 ? 'Rotate blocks' : 'Rotate block', blocks.map(p => ({ op: 'primitive', value: rotateBlock(p, axis, degrees) })));
   };
   /** Empty ids rotate the cursor; fitted parts rotate in place as one source edit. */
   rotateFittings = (ids: string[], degrees: number): ConstructionSubmission | undefined => {
@@ -836,7 +854,8 @@ export class BuilderTool {
     if (modifier && lower === 'z') { event.preventDefault(); if (event.shiftKey) this.door.redo(); else this.door.undo(); return; }
     if (modifier && lower === 'y') { event.preventDefault(); this.door.redo(); return; }
     if (s.tool === 'rotate' && !modifier && !event.altKey) {
-      if (['x', 'y', 'z'].includes(lower)) { event.preventDefault(); this.setRotationAxis('xyz'.indexOf(lower)); return; }
+      // The axis keys mean the same quarter turn in every hull tool; here they also aim the gizmo.
+      if (['x', 'y', 'z'].includes(lower)) { event.preventDefault(); if (!event.repeat) { this.setRotationAxis('xyz'.indexOf(lower)); this.rotateBlock('xyz'.indexOf(lower), event.shiftKey ? -90 : 90); } return; }
       if (lower === 'r') { event.preventDefault(); if (!event.repeat) this.rotateBlock(s.rotationAxis, event.shiftKey ? -90 : 90); return; }
       if (event.key === 'Escape') { event.preventDefault(); this.setTool('select'); return; }
     }
@@ -902,6 +921,7 @@ export class BuilderTool {
     }
     if (/^[1-9]$/.test(event.key)) { const item = this.palette.bar[Number(event.key) - 1]; if (item && this.selectSlot(item)) chrome.slotChosen(); return; }
     if (event.key === '0') { if (this.hasDrawer) { event.preventDefault(); chrome.toggleDrawer(); } return; }
+    if (s.layer === 'hull' && ['x', 'y', 'z'].includes(lower)) { event.preventDefault(); if (!event.repeat) this.turn('xyz'.indexOf(lower), event.shiftKey ? -90 : 90); return; }
     if (lower === 'q') this.cycleView(); else if (lower === 'w') chrome.toggleWarnings();
     else if (lower === 'r') this.rotate(event.shiftKey); else if (lower === 'm') this.toggleMirror(); else if (lower === 'c') this.toggleCenters();
     else if (lower === 'a' && s.layer === 'fittings') this.toggleArcs();
