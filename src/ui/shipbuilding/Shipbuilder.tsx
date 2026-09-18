@@ -284,7 +284,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
   </> : piece.kind === 'boundary' ? <><b>{BOUNDARY_NAMES[piece.axis]}</b><span>on the {gridStep} m grid</span></> : null;
   if (!freeformMode && selectedPrimitives.length === 1 && !selectedEquipment.length) {
     const primitive = selectedPrimitives[0], mass = pieceMassKg(compiledResult, primitive.id);
-    const size = (axis: number, value: number) => { const next = structuredClone(primitive); next.size[axis] = value; run('Resize hull piece', [{ op: 'primitive', value: next }]); };
+    const size = (axis: number, value: number) => { const next = structuredClone(primitive); next.size[axis] = value; tool.editPrimitive('Resize hull piece', next); };
     tags.push({ key: `piece-${primitive.id}`, anchor: primitive.position, dx: 70, dy: -78, tone: 'mint', content: <>
       <b>{SHAPE_NAMES[primitive.kind]} <NumberField value={primitive.size[0]} min={.25} max={500} onChange={value => size(0, value)}/> × <NumberField label={primitive.kind === 'balcony' ? 'Deck thickness' : undefined} value={primitive.size[1]} min={primitive.kind === 'balcony' ? .01 : .25} max={500} step={primitive.kind === 'balcony' ? .01 : 1} onChange={value => size(1, value)}/> × <NumberField value={primitive.size[2]} min={.25} max={500} onChange={value => size(2, value)}/> m</b>
       {canEditVertices(primitive) && <button className="sb-edit-freeform" onClick={enterFreeform} aria-label="Freeform hull" title="Edit freeform shape (D)">Freeform <kbd>D</kbd></button>}
@@ -423,7 +423,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
       onTip={entry => { if (!entry) { setTip(undefined); return; } const rect = entry.target.getBoundingClientRect(), strip = (entry.target.closest('.sb-viewbar') ?? entry.target).getBoundingClientRect(); setTip({ title: entry.title, detail: entry.detail, key: entry.key, x: strip.right + 10, y: rect.top + rect.height / 2, beside: true }); }}/>;
   const balconyEditing = layer === 'hull' && selectedPrimitives.length === 1 && selectedPrimitives[0].kind === 'balcony' && selectedPrimitives[0].id === balconySession;
   return <main className={`shipbuilder ${freeformMode ? 'sb-freeform-mode' : ''}`} aria-label="Shipbuilder" data-balcony-editing={balconyEditing || undefined} data-wall-placement={piece?.kind === 'equipment' && !!piece.wall || undefined} data-path-drawing={!!pathPart || undefined} data-layer={layer} data-drawer={drawer || undefined} aria-busy={!!busy}>
-    {balconyEditing && <BalconyEditor key={`${source.id}:${balconySession}`} primitive={selectedPrimitives[0]} onChange={value => run('Edit balcony', [{ op: 'primitive', value }])} onClose={() => setBalconySession(undefined)} />}
+    {balconyEditing && <BalconyEditor key={`${source.id}:${balconySession}`} primitive={selectedPrimitives[0]} onChange={value => tool.editPrimitive('Edit balcony', value)} onClose={() => setBalconySession(undefined)} />}
     {newDesignOpen && <NewDesignDialog onClose={() => setNewDesignOpen(false)} onCreate={newDesign}/>}
     {customHullSession?.designId === source.id && createPortal(<CustomHullEditor integration={{ hull: editableCustomHull(customHullSession.primitive), onClose: () => setCustomHullSession(undefined), onApply: hull => {
       const existing = data.primitives.find(part => part.id === customHullSession.primitive.id);

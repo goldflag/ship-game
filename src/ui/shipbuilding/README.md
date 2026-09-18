@@ -254,9 +254,13 @@ production controls, precision, undo, live Alt overrides and freeform cancellati
 Freeform topology coverage: `src/ships/constructionMesh.test.ts` verifies native volume, preview, saved topology, mirroring, ring/outline changes and snapping. Run `node scripts/tests/freeform-mesh-browser.mjs <vite-url>` for all new editor variants, D/Escape, ring gizmo movement and undo, topology controls, native validity and desktop/narrow captures under `.build/freeform/`.
 
 
-New balconies leave their hull-facing edge open. The steel deck extends to the
+New balconies are 1 m deep × 2 m wide and turn their wide open edge toward the
+clicked supporting surface. The steel deck extends to the
 full edge footprint even when an edge is open; changing a wall to open retains
-that attachment. Adjacent solid walls meet at mitred corners.
+that attachment. Placement seats the whole inner deck edge, including across
+sloped or tapered hull panels. Resizing or editing an existing balcony reseats it
+against its nearby supporting wall in the same undo step. Adjacent solid walls
+meet at mitred corners.
 New rope routes start with 0.15 m of midpoint sag, limited for short segments;
 Rope slack still accepts zero for a taut line. Selected external fittings use the
 same XYZ movement handles as hull pieces, including while placing fittings.
