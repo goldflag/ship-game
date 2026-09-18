@@ -51,7 +51,7 @@ fn mixed_edges_concavity_mirroring_and_native_steel_remain_valid() {
             id: "inset".into(),
             x: 0.,
             z: 0.,
-            edge: "railing".into(),
+            edge: "triple-railing".into(),
         },
     );
     let result = construction::compile(&source, &catalog);

@@ -344,7 +344,7 @@ export interface ConstructionFreeformFace {
 export interface ConstructionBalconyPoint {
   id: string; x: number; z: number;
   /** Treatment of the edge from this point to the next, wrapping at the end. */
-  edge: 'open' | 'railing' | 'wall';
+  edge: 'open' | 'railing' | 'triple-railing' | 'wall';
 }
 export interface ConstructionBalcony {
   version: 1;

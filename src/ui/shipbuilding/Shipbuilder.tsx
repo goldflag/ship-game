@@ -307,7 +307,7 @@ export function Shipbuilder(props: ShipbuilderProps) {
       <b>{primitive.mesh?.label ?? SHAPE_NAMES[primitive.kind]} <NumberField description="Width along the block's local X axis" value={measured[0]} min={.25} max={500} onChange={value => size(0, value)}/> × <NumberField label={primitive.kind === 'balcony' ? 'Deck thickness' : undefined} description={primitive.kind === 'balcony' ? 'Deck thickness' : "Height along the block's local Y axis"} value={measured[1]} min={primitive.kind === 'balcony' ? .01 : .25} max={500} step={primitive.kind === 'balcony' ? .01 : 1} onChange={value => size(1, value)}/> × <NumberField description="Length along the block's local Z axis" value={measured[2]} min={.25} max={500} onChange={value => size(2, value)}/> m</b>
       {canEditVertices(primitive) && <button className="sb-edit-freeform" onClick={enterFreeform} aria-label="Freeform hull" title="Edit freeform shape (D)">Freeform <kbd>D</kbd></button>}
       {primitive.kind === 'custom-hull' && <button className="sb-edit-freeform" onClick={() => setCustomHullSession({ designId: source.id, primitive: structuredClone(primitive) })}>Edit hull sections</button>}
-      {primitive.kind === 'balcony' && <button className="sb-edit-freeform" onClick={() => setBalconySession(primitive.id)}>Edit balcony outline</button>}
+      {primitive.kind === 'balcony' && <button className="sb-edit-freeform" onClick={() => { if (layer !== 'hull') tool.switchLayer('hull'); setBalconySession(primitive.id); }}>Edit balcony outline</button>}
       {mass !== undefined ? `plating ${formatTonnes(mass)} · ` : ''}{primitive.rotationDeg}° <kbd>R</kbd> · <kbd>X</kbd><kbd>Z</kbd> tip · <kbd>⌫</kbd> remove · <kbd>⌘C</kbd> copy
     </> });
   } else if (selectedEquipment.length === 1 && !selectedPrimitives.length) {
@@ -457,6 +457,8 @@ export function Shipbuilder(props: ShipbuilderProps) {
     tool.setHullCategory(HULL_CATEGORIES[next].id); setTip(undefined);
     event.currentTarget.querySelectorAll<HTMLButtonElement>('button')[next]?.focus();
   }}>{HULL_CATEGORIES.map(category => <button key={category.id} role="radio" aria-checked={hullCategory === category.id} tabIndex={hullCategory === category.id ? 0 : -1} onClick={() => { tool.setHullCategory(category.id); setTip(undefined); }}>{category.name}</button>)}</div>;
+  // The outline editor belongs to one selection: deselecting or leaving the Hull layer closes it rather than parking it.
+  useEffect(() => { if (balconySession && !balconyEditing) setBalconySession(undefined); }, [balconySession, balconyEditing]);
   return <main className={`shipbuilder ${freeformMode ? 'sb-freeform-mode' : ''}`} aria-label="Shipbuilder" data-balcony-editing={balconyEditing || undefined} data-wall-placement={piece?.kind === 'equipment' && !!piece.wall || undefined} data-path-drawing={!!pathPart || undefined} data-layer={layer} data-drawer={drawer || undefined} aria-busy={!!busy}>
     {balconyEditing && <BalconyEditor key={`${source.id}:${balconySession}`} primitive={selectedPrimitives[0]} onChange={value => tool.editPrimitive('Edit balcony', value)} onClose={() => setBalconySession(undefined)} />}
     {newDesignOpen && <NewDesignDialog onClose={() => setNewDesignOpen(false)} onCreate={newDesign}/>}

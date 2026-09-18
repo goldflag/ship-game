@@ -8,6 +8,37 @@ import { paintedHullFace } from '../../ships/constructionHullPaint';
 const source = (): ConstructionSource => ({ schemaVersion: 1, id: 'ship', revision: 'one', name: 'Ship', coordinates: 'meters-y-up-bow-negative-z', construction: { version: 1, catalogRevision: 'catalog', defaultThicknessMm: 12, primitives: [{ id: 'hull', kind: 'box', size: [4, 2, 8], position: [0, 0, 0], rotationDeg: 0 }], surfaces: [], equipment: [], boundaries: [], loads: [] } });
 const face: ConstructionSurface = { id: 'native-top', primitiveId: 'hull', face: 'top', vertices: [[-2, 1, -4], [2, 1, 4], [2, 1, -4]], normal: [0, 1, 0], areaM2: 16, thicknessMm: 12, material: 'steel', paint: 'naval-gray', open: false };
 
+test('barbettes stay visible through block deletion and movement while compilation is pending', () => {
+  const before = source();
+  before.construction.primitives.push({ id: 'block', kind: 'box', size: [1, 1, 1], position: [0, 1.5, 3], rotationDeg: 0 });
+  before.construction.equipment = [{ id: 'turret', partId: 'gun', position: [0, 3, 0], bearingDeg: 0, gun: { barbetteHeightM: 2 } }];
+  const barbette = { ...face, id: 'equipment:turret:top:0', primitiveId: 'equipment:turret', paint: 'sea-blue' };
+  for (const move of [false, true]) {
+    const after = structuredClone(before);
+    if (move) after.construction.primitives[1].position[0] = 10;
+    else after.construction.primitives.pop();
+    expect(pendingHullSurfaces(after, before, [face, barbette])).toContainEqual(barbette);
+  }
+});
+
+test('pending supports follow individual equipment identity and never leak across designs', () => {
+  const before = source();
+  before.construction.equipment = ['a', 'b'].map(id => ({ id, partId: 'gun', position: [0, 3, 0], bearingDeg: 0 }));
+  const supports = before.construction.equipment.map(e => ({ ...face, id: `equipment:${e.id}:top:0`, primitiveId: `equipment:${e.id}` }));
+  for (const change of ['move', 'remove', 'replace', 'rise', 'design', 'catalog']) {
+    const after = structuredClone(before);
+    if (change === 'move') after.construction.equipment[0].position[0] = 10;
+    if (change === 'remove') after.construction.equipment.shift();
+    if (change === 'replace') after.construction.equipment[0].partId = 'other-gun';
+    if (change === 'rise') after.construction.equipment[0].gun = { barbetteHeightM: 4 };
+    if (change === 'design') after.id = 'other';
+    if (change === 'catalog') after.construction.catalogRevision = 'other';
+    const pending = pendingHullSurfaces(after, before, supports);
+    expect(pending.some(s => s.primitiveId === 'equipment:a')).toBe(false);
+    expect(pending.some(s => s.primitiveId === 'equipment:b')).toBe(change !== 'design' && change !== 'catalog');
+  }
+});
+
 test('adding a block retains native hull faces and immediately displays the new piece', () => {
   const before = source(), after = structuredClone(before);
   after.construction.primitives.push({ id: 'new', kind: 'box', size: [2, 2, 2], position: [0, 2, 0], rotationDeg: 0 });

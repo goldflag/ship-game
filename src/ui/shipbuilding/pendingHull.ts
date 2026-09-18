@@ -49,11 +49,14 @@ export function pendingHullSurfaces(source: ConstructionSource, previous: Constr
     if (vacated.some(([oldMin, oldMax]) => min.every((n, axis) => n <= oldMax[axis] + 1e-6 && max[axis] >= oldMin[axis] - 1e-6))) unchanged.delete(primitive.id);
   }
   const next = surfaces.filter(s => unchanged.has(s.primitiveId));
-  // Keep existing supports through additions; moving/removing their hull or fittings
-  // discards them until the compiler has resolved their new attachments.
-  if (previous.id === source.id && unchanged.size === previous.construction.primitives.length && JSON.stringify(source.construction.equipment) === JSON.stringify(previous.construction.equipment)) {
-    const ids = new Set(previous.construction.primitives.map(p => p.id));
-    next.push(...surfaces.filter(s => !ids.has(s.primitiveId)));
+  // Supports belong to individual fittings, not to the hull revision. Keep their
+  // last native geometry through hull edits; the next compile resolves attachment
+  // validity. Changed or removed fittings must not leave their old supports behind.
+  if (previous.id === source.id && previous.construction.catalogRevision === source.construction.catalogRevision) {
+    const equipment = new Map(previous.construction.equipment.map(e => [e.id, JSON.stringify(e)]));
+    const supports = new Set(source.construction.equipment
+      .filter(e => equipment.get(e.id) === JSON.stringify(e)).map(e => `equipment:${e.id}`));
+    next.push(...surfaces.filter(s => supports.has(s.primitiveId)));
   }
   for (const primitive of source.construction.primitives) {
     if (unchanged.has(primitive.id)) continue;

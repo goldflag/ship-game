@@ -12,14 +12,15 @@
 .sb-balcony-edge { stroke: var(--sb-muted); stroke-width: 2; }
 .sb-balcony-edge.open { stroke-dasharray: 4 4; }
 .sb-balcony-edge.railing { stroke-width: 3; }
+.sb-balcony-edge.triple-railing { stroke-width: 4; stroke-dasharray: 10 2; }
 .sb-balcony-edge.wall { stroke-width: 6; }
 .sb-balcony-edge.selected { stroke: var(--sb-brass); }
-.sb-balcony-hit { stroke: transparent; stroke-width: 18; cursor: pointer; }
+.sb-balcony-hit { stroke: transparent; stroke-width: 18; cursor: move; }
 .sb-balcony-point { fill: var(--sb-ground); stroke: var(--sb-mint); stroke-width: 2; cursor: grab; }
 .sb-balcony-point.selected { fill: var(--sb-brass); stroke: var(--sb-brass); }
 .sb-balcony-point:hover { fill: var(--sb-mint); }
 .sb-balcony-fields { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 12px 0; }
-.sb-balcony-actions, .sb-balcony-edges { display: flex; gap: 8px; }
+.sb-balcony-actions, .sb-balcony-edges { display: flex; flex-wrap: wrap; gap: 8px; }
 .shipbuilder .sb-balcony-actions button, .shipbuilder .sb-balcony-edges button { padding: 8px; border: 1px solid var(--sb-line2); border-radius: 3px; }
 .sb-balcony button:hover:not(:disabled) { background: var(--sb-card-hover); }
 .shipbuilder .sb-balcony-edges button[aria-pressed=true] { color: var(--sb-mint); background: var(--sb-card-toggle); border-color: var(--sb-mint); }

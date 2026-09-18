@@ -105,10 +105,10 @@ export function balconyFaces(size: Vec3, balcony = defaultBalcony()): Vec3[][] {
       faces.push(upper, [...bottom].reverse());
       for (let k = 0; k < 4; k++) { const next = (k + 1) % 4; faces.push([bottom[k], bottom[next], upper[next], upper[k]]); }
     }
-    if (p.edge === 'railing') {
+    if (p.edge === 'railing' || p.edge === 'triple-railing') {
       const count = Math.min(64, Math.max(1, Math.ceil(length / 2)));
       for (let k = 0; k <= count; k++) box([a[0] + dx * k / count, center[1], a[2] + dz * k / count], [.04, height, .04], yaw);
-      for (const fraction of [.5, 1]) box([center[0], top + height * fraction - .02, center[2]], [.04, .04, length], yaw);
+      for (const fraction of p.edge === 'railing' ? [.5, 1] : [1 / 3, 2 / 3, 1]) box([center[0], top + height * fraction - .02, center[2]], [.04, .04, length], yaw);
     }
   });
   return faces;
