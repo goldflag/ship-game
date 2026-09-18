@@ -50,7 +50,7 @@
 .hp-panel-title>span { font-size:11px; color:var(--hp-muted); }
 .hp-section-editor { background:var(--hp-panel); min-width:0; }
 .hp-cross { width:100%; max-height:340px; display:block; touch-action:none; }
-.hp-root svg text { fill:var(--hp-muted); font:11px 'Barlow',sans-serif; user-select:none; }
+.hp-root svg text { fill:var(--hp-muted); font:11px 'Barlow',sans-serif; user-select:none; pointer-events:none; }
 .hp-grid { stroke:var(--hp-line); stroke-width:.55; }
 .hp-datum { stroke:#a3b0b569; stroke-width:1; stroke-dasharray:5 5; }
 .hp-outline { fill:#86e4c513; stroke:var(--hp-mint); stroke-width:1.5; stroke-linejoin:round; }
