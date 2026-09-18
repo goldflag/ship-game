@@ -183,6 +183,8 @@ class Viewport {
   private hoverSurface = '';
   private hoveredPart?: string;
   private modelAbort?: AbortController;
+  /** First click of a two-click window row; the second click on the same wall lays it. */
+  private rowStart?: { pick: BuilderPick; partId?: string };
   private pointerStart?: { id: number; button: number; x: number; y: number; moved: boolean; box: boolean; additive: boolean; start?: BuilderPick; rotate?: RotationDrag; move?: MoveDrag; points: Vec3[]; faces?: Set<string> };
   /** The faces a Paint or Opening drag has crossed so far, drawn as brass over the hull until release commits them. */
   private facesPreview = new THREE.Group();
@@ -563,7 +565,8 @@ class Viewport {
       if (mirror?.kind === 'hull') mirror = { ...piece, rotationDeg: -piece.rotationDeg,
         balcony: mirroredBalcony({ id: 'preview', kind: 'balcony', position: [0, 0, 0], size: piece.size, rotationDeg: piece.rotationDeg, balcony: piece.balcony }) };
     }
-    if (piece?.kind === 'equipment' && piece.wall && this.pointerStart?.start?.bearingDeg !== undefined && pick?.bearingDeg !== undefined && Math.cos((pick.bearingDeg-this.pointerStart.start.bearingDeg)*Math.PI/180)<.7) pick = undefined;
+    const wallStart = this.pointerStart?.start ?? this.pendingRow();
+    if (piece?.kind === 'equipment' && piece.wall && wallStart?.bearingDeg !== undefined && pick?.bearingDeg !== undefined && Math.cos((pick.bearingDeg-wallStart.bearingDeg)*Math.PI/180)<.7) pick = undefined;
     if (piece?.kind === 'equipment' && piece.wall && pick?.bearingDeg !== undefined) {
       piece = { ...piece, bearingDeg: pick.bearingDeg };
       if (mirror?.kind === 'equipment') mirror = { ...mirror, bearingDeg: normalizedBearing(-pick.bearingDeg) };
@@ -791,11 +794,24 @@ class Viewport {
     this.fillPreview.scale.set(Math.max(.01, high[0] - low[0]), Math.max(.01, high[1] - low[1]), Math.max(.01, high[2] - low[2]));
   }
 
+  /** The placed first end of a window row, dropped once the cursor piece stops being that row. */
+  private pendingRow() {
+    const piece = this.props.scene.placementPiece;
+    if (this.rowStart && !(piece?.kind === 'equipment' && piece.rowSpacing && piece.partId === this.rowStart.partId)) { this.rowStart = undefined; release(this.strokePreview); this.strokeKey = ''; }
+    return this.rowStart?.pick;
+  }
+  private rowPoints(start: BuilderPick, hit: BuilderPick | undefined, spacing: number): Vec3[] {
+    if (!hit || start.bearingDeg === undefined || hit.bearingDeg === undefined || Math.cos((start.bearingDeg - hit.bearingDeg)*Math.PI/180)<.7) return [start.placement];
+    return wallRow(start.placement, hit.placement, start.bearingDeg, spacing);
+  }
+
   /** Draw the pending gesture each frame; source/history commits once on release. */
   private updateStrokePreview() {
-    const drag = this.pointerStart, piece = drag?.start?.hullPlacement ?? this.props.scene.placementPiece;
+    const row = this.pendingRow();
+    const drag = this.pointerStart?.start ? this.pointerStart : row ? { start: row, points: [] as Vec3[] } : undefined, piece = drag?.start?.hullPlacement ?? this.props.scene.placementPiece;
     const hit = this.hover ? this.pick(this.hover, 'hull') : undefined;
-    const points = drag?.start && piece && hit
+    const points = row && drag?.start === row && piece?.kind === 'equipment' && piece.rowSpacing ? this.rowPoints(row, hit, piece.rowSpacing)
+      : drag?.start && piece && hit
       ? this.props.scene.gesture === 'fill' ? fillLattice(drag.start.placement, hit.placement, pieceExtents(piece), drag.start.axis) : drag.points
       : [];
     const key = JSON.stringify([this.props.scene.source.revision, this.ghostKey, this.ghost.rotation.y, this.ghostMirror.rotation.y, points]);
@@ -1154,6 +1170,7 @@ class Viewport {
   };
   private move = (event: PointerEvent) => {
     this.hover = { clientX: event.clientX, clientY: event.clientY }; this.updatePathPreview(); this.updateGhost(); this.highlight(event);
+    if (!this.pointerStart && this.rowStart) this.updateStrokePreview();
     if (!this.pointerStart || event.pointerId !== this.pointerStart.id) return;
     this.pointerStart.moved ||= Math.hypot(event.clientX - this.pointerStart.x, event.clientY - this.pointerStart.y) >= 5;
     if (this.pointerStart.rotate) {
@@ -1202,6 +1219,8 @@ class Viewport {
       this.previewRotation(start.rotate, 0);
       if (Math.abs(start.rotate.degrees % 360) > 1e-6) this.props.onPointer({ kind: 'rotate', ids: start.rotate.ids, degrees: start.rotate.degrees });
       this.updateGhost();
+    } else if (start.button === 2 && clicked && this.pendingRow()) {
+      this.rowStart = undefined; this.updateStrokePreview();
     } else if (start.button === 2) {
       const hit = clicked ? this.pick(event, 'all') : undefined;
       if (hit?.id && !this.props.scene.freeform && !this.props.scene.pathDraft) this.props.onPointer({ kind: 'erase', id: hit.id });
@@ -1218,6 +1237,15 @@ class Viewport {
       else if (clicked) this.props.onPointer({ kind: 'pick', hit: this.pick(event, 'all') });
     } else if (start.start && piece) {
       const hit = this.pick(event, 'hull');
+      const row = this.pendingRow();
+      if (piece.kind === 'equipment' && piece.rowSpacing && (clicked || row)) {
+        // Click once for the first window and again for the last; a plain drag still lays a row in one gesture.
+        if (!row) { this.rowStart = { pick: start.start, partId: piece.partId }; this.updateStrokePreview(); return; }
+        if (!hit || row.bearingDeg === undefined || hit.bearingDeg === undefined || Math.cos((row.bearingDeg-hit.bearingDeg)*Math.PI/180)<.7) { this.updateStrokePreview(); return; }
+        this.rowStart = undefined;
+        this.props.onPointer({ kind: 'lay', points: wallRow(row.placement, hit.placement, row.bearingDeg, piece.rowSpacing), bearingDeg: row.bearingDeg });
+        return;
+      }
       if (!hit || piece.kind === 'equipment' && piece.wall && Math.cos(((start.start.bearingDeg??0)-(hit.bearingDeg??0))*Math.PI/180)<.7) return;
       if (this.props.scene.gesture === 'fill') this.props.onPointer({ kind: 'lay', hullPlacement: start.start.hullPlacement, points: fillLattice(start.start.placement, clicked ? start.start.placement : hit.placement, pieceExtents(start.start.hullPlacement ?? piece), start.start.axis) });
       else this.props.onPointer({ kind: 'lay', hullPlacement: start.start.hullPlacement, points: clicked ? [start.start.placement] : start.points, bearingDeg: start.start.bearingDeg });
@@ -1267,7 +1295,7 @@ class Viewport {
     if (pointer && this.renderer.domElement.hasPointerCapture(pointer.id)) this.renderer.domElement.releasePointerCapture(pointer.id);
     this.fillPreview.visible = false; release(this.strokePreview); this.strokeKey = ''; this.updateFacesPreview(); this.showBox(); this.finishMove(); this.leave();
   };
-  private key = (event: KeyboardEvent) => { if (event.key === 'Escape' && this.pointerStart) this.cancel(); };
+  private key = (event: KeyboardEvent) => { if (event.key === 'Escape' && (this.pointerStart || this.rowStart)) { this.rowStart = undefined; this.cancel(); } };
   private animate = () => {
     if (this.dead) return;
     if(!this.freeformHandles.dragging && !this.moveHandles.dragging && !this.rotateHandles.dragging && !this.pointerStart?.rotate) this.controls.update();

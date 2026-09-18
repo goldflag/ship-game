@@ -295,8 +295,8 @@ export function Shipbuilder(props: ShipbuilderProps) {
     <b>{active.part.name}</b>{piece.wall ? <>
       <WallSizeFields part={active.part} wall={piece.wall} onChange={tool.setWallSize}/>
       {['window','porthole'].includes(wallMount(active.part) ?? '') && <><button aria-pressed={!s.windowRow} onClick={() => tool.setWindowRow(false)}>Single</button><button aria-pressed={s.windowRow} onClick={() => tool.setWindowRow(true)}>Row</button>
-      {s.windowRow && <NumberField label="Spacing" description="Distance between window centers. Drag horizontally along a wall to lay a row." value={piece.rowSpacing ?? s.windowSpacing} min={piece.wall.widthM + .05} max={20} step={.1} unit="m" onChange={tool.setWindowSpacing}/>}</>}
-      <span>{s.windowRow && ['window','porthole'].includes(wallMount(active.part) ?? '') ? 'Drag along the hull' : 'Click a hull side or wall'} · {wallMount(active.part) === 'porthole' ? '←→ / ↑↓ scale' : '←→ width · ↑↓ height'} · Shift fine{mirror ? ' · linked mirror' : ''}</span>
+      {s.windowRow && <NumberField label="Spacing" description="Distance between window centers. Click the first window, then click where the row ends." value={piece.rowSpacing ?? s.windowSpacing} min={piece.wall.widthM + .05} max={20} step={.1} unit="m" onChange={tool.setWindowSpacing}/>}</>}
+      <span>{s.windowRow && ['window','porthole'].includes(wallMount(active.part) ?? '') ? 'Click the first window, then the last · Esc cancels' : 'Click a hull side or wall'} · {wallMount(active.part) === 'porthole' ? '←→ / ↑↓ scale' : '←→ width · ↑↓ height'} · Shift fine{mirror ? ' · linked mirror' : ''}</span>
     </> : <span>{active.part.placement} · bearing {Number(piece.bearingDeg.toFixed(2))}°</span>}
   </> : piece.kind === 'boundary' ? <><b>{BOUNDARY_NAMES[piece.axis]}</b><span>on the {gridStep} m grid</span></> : null;
   if (!freeformMode && s.tool !== 'rotate' && selectedPrimitives.length === 1 && !selectedEquipment.length) {
