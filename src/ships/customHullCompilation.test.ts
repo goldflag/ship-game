@@ -3,12 +3,13 @@ import init, { compile_construction } from '../generated/naval-wasm/naval_wasm';
 import catalogJson from '../../public/models/components/catalog.json';
 import type { ConstructionCatalog, ConstructionResult } from './blueprint';
 import { createStarterSource } from './constructionStarter';
-import { addHullPointPair, customHullPrimitive, editableCustomHull, removeHullPointPair } from './customHullModel';
+import { addHullPointPair, customHullBilgeKeelFaces, customHullPrimitive, editableCustomHull, removeHullPointPair } from './customHullModel';
 import { customHullPanels } from './constructionPanels';
 import { pendingHullSurfaces } from '../ui/shipbuilding/pendingHull';
 import { primitiveOutlineGeometry } from '../ui/shipbuilding/primitiveGeometry';
 import { HULL_PRESETS } from './constructionHullPresets';
 import { decodeConstructionSource } from './constructionEditor';
+import { primitivePoint } from './constructionOrientation';
 
 beforeAll(async () => { await init({ module_or_path: await Bun.file(new URL('../generated/naval-wasm/naval_wasm_bg.wasm', import.meta.url)).arrayBuffer() }); });
 
@@ -41,4 +42,47 @@ test('minimum and maximum point counts produce valid native hulls', () => {
     expect(result.definition, JSON.stringify(result.diagnostics)).toBeDefined();
     expect(result.loading!.massKg).toBeGreaterThan(0);
   }
+});
+
+
+test.each([...HULL_PRESETS])('$name bilge keels match native export, stay symmetric and leave physics unchanged', preset => {
+  const source = createStarterSource(catalogJson as ConstructionCatalog, preset.id), p = source.construction.primitives[0];
+  const result: ConstructionResult = JSON.parse(compile_construction(JSON.stringify(source), JSON.stringify(catalogJson)));
+  expect(result.definition, JSON.stringify(result.diagnostics)).toBeDefined();
+  const faces = customHullBilgeKeelFaces(editableCustomHull(p)), native = result.bilgeKeelSurfaces!;
+  expect(native.length).toBe(faces.length);
+  for (let i=0;i<faces.length;i++) {
+    expect(native[i].areaM2).toBeGreaterThan(0);
+    for (let j=0;j<3;j++) for (let a=0;a<3;a++) expect(native[i].vertices[j][a]).toBeCloseTo(faces[i][j][a], 8);
+    if (i%2===0) expect(faces[i+1]).toEqual([...faces[i]].reverse().map(p => [-p[0],p[1],p[2]]));
+  }
+  p.customHull!.bilgeKeels!.enabled=false;
+  const without: ConstructionResult = JSON.parse(compile_construction(JSON.stringify(source), JSON.stringify(catalogJson)));
+  expect(without.bilgeKeelSurfaces).toBeUndefined();
+  expect(without.loading).toEqual(result.loading);
+  expect(without.surfaces).toEqual(result.surfaces);
+  expect(customHullBilgeKeelFaces(editableCustomHull(p))).toEqual([]);
+});
+
+test('native bilge keel validation rejects malformed dimensions', () => {
+  const source = createStarterSource(catalogJson as ConstructionCatalog, 'fletcher-hull');
+  source.construction.primitives[0].customHull!.bilgeKeels!.start = .9;
+  const result: ConstructionResult = JSON.parse(compile_construction(JSON.stringify(source), JSON.stringify(catalogJson)));
+  expect(result.definition).toBeUndefined();
+  expect(result.diagnostics.some(d => d.message.includes('bilge keels'))).toBe(true);
+});
+
+test('configured bilge keels follow a moved, tilted hull after outline edits', () => {
+  const source = createStarterSource(catalogJson as ConstructionCatalog, 'patrol-hull'), original = source.construction.primitives[0];
+  const hull = editableCustomHull(original);
+  addHullPointPair(hull, 2);
+  hull.bilgeKeels = { version: 1, enabled: true, start: .02, end: .98, widthM: .65, thicknessM: .04, placement: .58 };
+  const p = customHullPrimitive(hull, original);
+  p.position = [3, -1, 7]; p.rotationDeg = 32; p.tilt = { version: 1, pitchDeg: 7, rollDeg: -9 };
+  source.construction.primitives[0] = p;
+  const result: ConstructionResult = JSON.parse(compile_construction(JSON.stringify(source), JSON.stringify(catalogJson)));
+  expect(result.definition, JSON.stringify(result.diagnostics)).toBeDefined();
+  const expected = customHullBilgeKeelFaces(hull).map(face => face.map(v => primitivePoint(p, v)));
+  expect(result.bilgeKeelSurfaces!.length).toBe(expected.length);
+  result.bilgeKeelSurfaces!.forEach((face, i) => face.vertices.forEach((v, j) => v.forEach((n, a) => expect(n).toBeCloseTo(expected[i][j][a], 8))));
 });

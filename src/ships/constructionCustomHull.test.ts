@@ -1,6 +1,7 @@
 import { expect, test } from 'bun:test';
 import type { ConstructionCatalog } from './blueprint';
 import { createStarterSource } from './constructionStarter';
+import { defaultBilgeKeels } from './constructionBilgeKeels';
 import { HULL_PRESETS } from './constructionHullPresets';
 import { addHullPointPair, removeHullPointPair, customHullPrimitive, editableCustomHull, setSectionCount } from './customHullModel';
 import { copyConstructionSelection, decodeConstructionSource, moveConstructionSelection, rotateConstructionSelection } from './constructionEditor';
@@ -12,7 +13,7 @@ test('new hull presets are one versioned editable primitive; blank retains the u
     expect(source.construction.primitives).toHaveLength(1);
     expect(hull.kind).toBe('custom-hull'); expect(hull.customHull?.version).toBe(1);
     expect(hull.size).toEqual([preset.beam, preset.depth, preset.length]);
-    expect(hull.customHull).toEqual({ ...preset.customHull, version: 1 });
+    expect(hull.customHull).toEqual({ ...preset.customHull, version: 1, bilgeKeels: defaultBilgeKeels(preset.beam) });
     expect(source.construction.equipment).toEqual([]);
     expect(decodeConstructionSource(JSON.parse(JSON.stringify(source)))).toEqual(source);
   }
@@ -52,4 +53,27 @@ test('paired point edits round-trip through the versioned source and reopen exac
   const reopened = decodeConstructionSource(JSON.parse(JSON.stringify(source)));
   expect(reopened).toEqual(source);
   expect(editableCustomHull(reopened.construction.primitives[0])).toEqual(h);
+});
+
+
+test('bilge keel settings survive edits and copies; omitted settings keep old hulls unchanged', () => {
+  const source = createStarterSource(catalog, 'fletcher-hull'), p = source.construction.primitives[0];
+  p.customHull!.bilgeKeels = { version: 1, enabled: false, start: .2, end: .8, widthM: .7, thicknessM: .03, placement: .42 };
+  const reopened = decodeConstructionSource(JSON.parse(JSON.stringify(source)));
+  expect(customHullPrimitive(editableCustomHull(reopened.construction.primitives[0]), p)).toEqual(p);
+  const [id] = copyConstructionSelection(source, new Set(['hull']), { mirror: true });
+  const copy = source.construction.primitives.find(p => p.id === id)!;
+  copy.customHull!.bilgeKeels!.widthM = 1;
+  expect(p.customHull!.bilgeKeels!.widthM).toBe(.7);
+  delete p.customHull!.bilgeKeels;
+  expect(customHullPrimitive(editableCustomHull(p), p)).toEqual(p);
+  expect(editableCustomHull(p).bilgeKeels).toBeUndefined();
+});
+
+test('invalid bilge keel settings are rejected on import', () => {
+  for (const patch of [{ version: 2 }, { enabled: 'true' }, { widthM: -1 }, { thicknessM: .2 }, { start: .8, end: .2 }, { placement: 1 }, { widthM: Infinity }]) {
+    const source = createStarterSource(catalog, 'fletcher-hull');
+    Object.assign(source.construction.primitives[0].customHull!.bilgeKeels!, patch);
+    expect(() => decodeConstructionSource(source)).toThrow();
+  }
 });

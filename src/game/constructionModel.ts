@@ -98,7 +98,7 @@ function abort(signal?: AbortSignal) { if (signal?.aborted) throw new DOMExcepti
 export async function createConstructionModel(source: ConstructionSource, result: ConstructionResult, signal?: AbortSignal): Promise<THREE.Group> {
   if (source.id !== result.sourceId || source.revision !== result.revision) throw new Error('Model and design revisions do not match.');
   abort(signal);
-  const group = createConstructionHull(result.surfaces, source.construction.primitives, source.construction.finish);
+  const group = createConstructionHull([...result.surfaces, ...(result.bilgeKeelSurfaces ?? [])], source.construction.primitives, source.construction.finish);
   group.name = source.name;
   group.userData.definitionHash = result.contentHash;
   group.userData.constructionRevision = source.revision;
